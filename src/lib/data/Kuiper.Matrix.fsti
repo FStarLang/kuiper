@@ -214,7 +214,8 @@ fn gpu_matrix_alloc0
   ensures
     exists* em. on gpu_loc (gm |-> em)
   ensures
-    pure (is_global_matrix gm)
+    pure (is_global_matrix gm) **
+    pure (is_full_array (core gm))
 
 inline_for_extraction noextract
 fn gpu_matrix_free
@@ -226,7 +227,8 @@ fn gpu_matrix_free
   preserves
     cpu
   requires
-    on gpu_loc (gm |-> em)
+    on gpu_loc (gm |-> em) **
+    pure (is_full_array (core gm))
   ensures emp
 
 ghost

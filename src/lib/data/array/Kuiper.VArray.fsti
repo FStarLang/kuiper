@@ -371,7 +371,9 @@ fn varray_alloc0
     a : varray vw
   ensures
     exists* v. on gpu_loc (a |-> v)
-  ensures pure (is_global_varray a)
+  ensures
+    pure (is_global_varray a) **
+    pure (is_full_array (core a))
 
 inline_for_extraction noextract
 fn varray_free
@@ -382,6 +384,7 @@ fn varray_free
   preserves
     cpu
   requires
+    pure (is_full_array (core a)) **
     on gpu_loc (a |-> v)
   ensures emp
 

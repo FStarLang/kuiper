@@ -18,6 +18,7 @@ open Kuiper.Divides { (/?+) }
 open Kuiper.ArrayCoreAssumptions
 module T = FStar.Tactics
 module SZ = Kuiper.SizeT
+module A = Pulse.Lib.Array
 
 val is_full_slice
   (#et:Type)
@@ -173,7 +174,8 @@ fn gpu_array_alloc
       pure (
         Seq.length s == sz /\
         aligned 128 x /\
-        is_global_array x
+        is_global_array x /\
+        A.is_full_array x
       )
 
 fn gpu_array_free
@@ -181,6 +183,7 @@ fn gpu_array_free
   (r : array a)
   (#v : erased (seq a))
   preserves cpu
+  requires pure (A.is_full_array r)
   requires on gpu_loc (r |-> v)
   ensures  emp
 

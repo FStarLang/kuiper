@@ -232,7 +232,9 @@ fn gpu_matrix_alloc0
     gm : gpu_matrix et l
   ensures
     exists* em. on gpu_loc (gm |-> em)
-  ensures   pure (is_global_matrix gm)
+  ensures
+    pure (is_global_matrix gm) **
+    pure (is_full_array (core gm))
 {
   open FStar.SizeT;
   let gm = A.varray_alloc0 (rows *^ cols) (aview_from_mlayout et l);
@@ -251,7 +253,8 @@ fn gpu_matrix_free
   preserves
     cpu
   requires
-    on gpu_loc (gm |-> em)
+    on gpu_loc (gm |-> em) **
+    pure (is_full_array (core gm))
   ensures emp
 {
   rewrite on gpu_loc (gpu_matrix_pts_to gm em) as on gpu_loc (A.varray_pts_to gm em);

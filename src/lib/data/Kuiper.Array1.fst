@@ -135,7 +135,8 @@ fn alloc0
   ensures
     exists* em. on gpu_loc (p |-> em)
   ensures
-    pure (is_global p)
+    pure (is_global p) **
+    pure (is_full_array (core p))
 {
   let t = T.alloc0 #et len l;
   with em. assert on gpu_loc (T.tensor_pts_to t em);
@@ -155,7 +156,8 @@ fn free
   preserves
     cpu
   requires
-    on gpu_loc (p |-> em)
+    on gpu_loc (p |-> em) **
+    pure (is_full_array (core p))
   ensures
     emp
 {

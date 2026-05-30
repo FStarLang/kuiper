@@ -168,7 +168,8 @@ fn alloc0
   returns
     p : t et l
   ensures
-    exists* em. on gpu_loc (p |-> em)
+    exists* em. on gpu_loc (p |-> em) **
+    pure (is_full_array (core p))
   ensures
     pure (is_global p)
 
@@ -182,7 +183,8 @@ fn free
   preserves
     cpu
   requires
-    on gpu_loc (p |-> em)
+    on gpu_loc (p |-> em) **
+    pure (is_full_array (core p))
   ensures emp
 
 ghost

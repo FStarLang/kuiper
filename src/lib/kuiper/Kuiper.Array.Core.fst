@@ -23,7 +23,8 @@ is_send_across_pts_to_mask_instance (#a: Type u#a) (x:A.array a) (f:perm) (s:seq
 : is_send_across (visibility_of_array x) (pts_to_mask x #f s mask)
 = is_send_across_pts_to_mask x f s mask
 
-let is_full_slice = magic()
+let is_full_slice #et a n =
+  pure (Pulse.Lib.Array.length a == n)
 
 // let gpu_array (a : Type u#0) (sz : nat) : Type u#0 = (x: A.larray a sz { sz > 0 })
 // let loc_id_of_array #a #sz x = loc_id_of_array x
@@ -112,7 +113,11 @@ fn array_to_slice
     is_full_slice a (Seq.length s) **
     pure (Seq.length s == Pulse.Lib.Array.length a)
 {
-  admit();
+  A.to_mask a;
+  A.pts_to_mask_len a;
+  A.mask_mext a (mask_of 0 (Seq.length s));
+  fold pts_to_slice #et a #f 0 (Seq.length s) s;
+  fold is_full_slice #et a (Seq.length s);
 }
 
 [@@pulse_intro]
@@ -128,9 +133,14 @@ fn slice_to_array
     is_full_slice a n
   ensures
     (* Cannot use typeclasses here or lemma will not kick in. *)
-    Pulse.Lib.Array.pts_to a #f s
+    A.pts_to a #f s
 {
-  admit();
+  unfold pts_to_slice a #f 0 n s;
+  unfold is_full_slice a n;
+  A.pts_to_mask_len a;
+  A.from_mask a;
+  with v'. assert (pts_to a #f v');
+  assert pure (Seq.equal v' s);
 }
 
 
@@ -212,7 +222,7 @@ fn gpu_array_alloc_vis
   (sz : SZ.t { sz > 0 })
   (l:loc_id)
   (vis:visibility)
-  returns  x : larray a sz
+  returns x : larray a sz
   ensures
     exists* (s:seq a).
       on l (x |-> s) **
@@ -220,7 +230,8 @@ fn gpu_array_alloc_vis
   ensures
     pure (
       visibility_of_array x == vis /\
-      loc_id_of_array x == l
+      loc_id_of_array x == l /\
+      A.is_full_array x
     )
 {
   impersonate _ l emp (fun (x: larray a sz) ->
@@ -228,16 +239,17 @@ fn gpu_array_alloc_vis
       on l (pts_to x s) **
       pure (Seq.length s == sz /\
             visibility_of_array x == vis /\
-            loc_id_of_array x == l))
+            loc_id_of_array x == l /\
+            A.is_full_array x
+      ))
   fn _ {
     let x = mask_alloc_with_vis a sz vis;
     with s0. assert (A.pts_to_mask x s0 (fun _ -> True));
     // Initialize all cells with default value (model only)
     init_array_model_ghost x (default <: a) (SZ.v sz);
     A.mask_mext x (mask_of 0 (SZ.v sz));
-    fold (pts_to_slice #a x 0 (SZ.v sz) (Seq.create (SZ.v sz) default));
-    admit();
-    fold (pts_to x _);
+    fold pts_to_slice #a x 0 (SZ.v sz) (Seq.create (SZ.v sz) default);
+    fold is_full_slice #a x (SZ.v sz);
     on_intro #l (pts_to x _);
     x
   }
@@ -256,39 +268,39 @@ fn gpu_array_alloc
       pure (
         Seq.length s == sz /\
         aligned 128 x /\
-        is_global_array x
+        is_global_array x /\
+        A.is_full_array x
       )
 {
   let x = gpu_array_alloc_vis #a sz gpu_loc (gpu_of);
   gpu_of_idem (gpu_id_loc 0);
-  assume pure (aligned 128 x); // CUDA guarantees this
+  assume pure (aligned 128 x); // cudaMalloc guarantees this
   x
 }
 
-fn gpu_array_free_gen // needed for Kuiper.Kernel.Sync.free_c_shmems (to model launch_kernel_full_sync), to model allocation and liberation of per-block shared memory by the GPU runtime.
+fn gpu_array_free_gen
   (#a:Type u#0)
   (r : array a)
   (#v : erased (seq a))
   (l: loc_id)
+  requires pure (A.is_full_array r)
   requires on l (r |-> v)
   ensures  emp
 {
-  admit();
-  impersonate unit l (on l (r |-> v)) (fun _ -> emp) fn _ {
+  assert pure (is_full_array r);
+  impersonate unit l (on l (r |-> v)) (fun () -> emp)
+  fn _ {
     on_elim _;
-    // unfold pts_to_array;
-    unfold pts_to_slice;
-    A.mask_mext r (fun _ -> True);
-    A.mask_free r;
-  };
+    A.free r;
+  }
 }
-
 
 fn gpu_array_free
   (#a:Type u#0)
   (r : array a)
   (#v : erased (seq a))
   preserves cpu
+  requires pure (A.is_full_array r)
   requires on gpu_loc (r |-> v)
   ensures  emp
 {
@@ -387,8 +399,7 @@ fn rec gpu_memcpy_host_to_device'  //this is a CUDA primitive, so this definitio
       (fun _ -> on gpu_loc (dst_garr |-> Seq.upd gv dst_off x))
       fn _ {
         on_elim _;
-        admit();
-        slice_write dst_garr dst_off x;
+        Pulse.Lib.Array.op_Array_Assignment dst_garr dst_off x;
         on_intro (dst_garr |-> Seq.upd gv dst_off x);
         ()
       };
@@ -424,8 +435,14 @@ fn gpu_memcpy_host_to_device
     pure (Seq.length v == reveal sz)
 {
   Pulse.Lib.Vec.pts_to_len src_arr;
-  admit();
-  pts_to_slice_ref_anywhere dst_garr _ _;
+  ghost_impersonate gpu_loc
+    (on gpu_loc (dst_garr |-> gv))
+    (on gpu_loc (dst_garr |-> gv) ** pure (Seq.length gv == reveal sz))
+    fn _ {
+      on_elim (dst_garr |-> gv);
+      Pulse.Lib.Array.PtsTo.pts_to_len dst_garr;
+      on_intro (dst_garr |-> gv);
+    };
   gpu_memcpy_host_to_device' dst_garr 0sz #sz src_arr 0sz cnt;
   assert pure (Seq.equal v (seq_blit gv 0sz v 0sz cnt));
   with ss.
@@ -472,8 +489,7 @@ fn rec gpu_memcpy_device_to_host'  //this is a CUDA primitive, so this definitio
       (fun res -> on gpu_loc (src_garr |-> Frac f (v<:seq _)) ** pure (res == Seq.index v src_off))
       fn _ {
         on_elim _;
-        admit();
-        let res = slice_read src_garr src_off;
+        let res = Pulse.Lib.Array.op_Array_Access src_garr src_off;
         on_intro (src_garr |-> Frac f (v<:seq _));
         res
       };
@@ -508,9 +524,15 @@ fn gpu_memcpy_device_to_host
     (dst_arr |-> gv) **
     pure (Seq.length gv == reveal sz)
 {
-  admit();
   Pulse.Lib.Vec.pts_to_len dst_arr;
-  pts_to_slice_ref_anywhere src_garr _ _;
+  ghost_impersonate gpu_loc
+    (on gpu_loc (src_garr |-> Frac f gv))
+    (on gpu_loc (src_garr |-> Frac f gv) ** pure (Seq.length gv == reveal sz))
+    fn _ {
+      on_elim (src_garr |-> Frac f gv);
+      Pulse.Lib.Array.PtsTo.pts_to_len src_garr;
+      on_intro (src_garr |-> Frac f gv);
+    };
   gpu_memcpy_device_to_host' #_ #_ #sz dst_arr 0sz #sz src_garr 0sz cnt;
   assert pure (Seq.equal gv (seq_blit v 0sz gv 0sz cnt));
 }
@@ -538,7 +560,6 @@ fn rec gpu_memcpy_device_to_device  //this is a CUDA primitive, so this definiti
     on gpu_loc (dst_arr |-> gv) **
     pure (Seq.length gv == reveal sz)
 {
-  admit();
   impersonate // gpu_memcpy_device_to_device is a CUDA primitive, so this definition is only a model
     unit
     gpu_loc
@@ -551,21 +572,10 @@ fn rec gpu_memcpy_device_to_device  //this is a CUDA primitive, so this definiti
     fn _ {
       on_elim (src_garr |-> Frac f gv);
       on_elim (dst_arr |-> v);
-      unfold (pts_to_slice src_garr #f 0 sz gv);
-      unfold (pts_to_slice dst_arr 0 sz v);
-      Pulse.Lib.Array.PtsTo.from_mask src_garr;
-      Pulse.Lib.Array.PtsTo.from_mask dst_arr;
-      Pulse.Lib.Array.pts_to_len src_garr;
-      Pulse.Lib.Array.pts_to_len dst_arr;
+      Pulse.Lib.Array.PtsTo.pts_to_len src_garr;
+      Pulse.Lib.Array.PtsTo.pts_to_len dst_arr;
       Pulse.Lib.Array.memcpy cnt src_garr dst_arr;
-      Pulse.Lib.Array.pts_to_len dst_arr;
-      Pulse.Lib.Array.PtsTo.to_mask src_garr;
-      Pulse.Lib.Array.mask_mext src_garr (mask_of 0 sz);
-      fold (pts_to_slice src_garr #f 0 sz gv);
       on_intro (src_garr |-> Frac f gv);
-      Pulse.Lib.Array.PtsTo.to_mask dst_arr;
-      Pulse.Lib.Array.mask_mext dst_arr (mask_of 0 sz);
-      fold (pts_to_slice dst_arr 0 sz gv);
       on_intro (dst_arr |-> gv);
     };
 }
@@ -651,14 +661,21 @@ fn array_slice_1
   requires pts_to arr #f v
   ensures  forall+ (i: natlt sz). pts_to_cell arr #f i (v @! i)
 {
-  admit();
-  rewrite pts_to arr #f v
-    as pts_to_slice arr #f 0 (0 + sz) (Seq.slice v 0 sz);
-  forall_slice_to_cell arr 0 sz;
-  forevery_unrefine _;
-  rewrite each (Seq.length v) as sz;
-  forevery_ext #(natlt sz) _ (fun i -> pts_to_cell arr #f i (v @! i));
-  ()
+  array_to_slice arr;
+  drop_ (is_full_slice arr _);
+  if (sz = 0) {
+    drop_ (pts_to_slice arr #f 0 (Seq.length v) v);
+    forevery_intro_false #(natlt sz) (fun i -> pts_to_cell arr #f i (v @! i));
+    forevery_unrefine _;
+  } else {
+    rewrite pts_to_slice arr #f 0 (Seq.length v) v
+      as pts_to_slice arr #f 0 (0 + sz) (Seq.slice v 0 sz);
+    forall_slice_to_cell arr 0 sz;
+    forevery_unrefine _;
+    rewrite each (Seq.length v) as sz;
+    forevery_ext #(natlt sz) _ (fun i -> pts_to_cell arr #f i (v @! i));
+    ()
+  }
 }
 
 #set-options "--split_queries always --debug SMTFail"
@@ -716,8 +733,8 @@ fn array_unslice_1
   forevery_refine_split #(natlt (Seq.length v)) _ (fun i -> i < sz);
   forevery_refine_join #(natlt (Seq.length v)) _ (fun i -> i < sz) _;
   forevery_refine_ext #(natlt (Seq.length v)) (fun i -> i < sz) _;
-  forall_cell_to_slice #a #sz arr 0 sz;
   assume is_full_slice arr sz; // fixme: propagate to pre
+  forall_cell_to_slice #a #sz arr 0 sz;
   ()
 }
 

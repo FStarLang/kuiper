@@ -567,11 +567,12 @@ fn varray_alloc0
   ensures
     exists* v. on gpu_loc (a |-> v)
   ensures
-    pure (is_global_varray a)
+    pure (is_global_varray a) **
+    pure (is_full_array (core a))
 {
   let a = B.gpu_array_alloc #et len;
   with s. assert on gpu_loc (a |-> s);
-  map_loc gpu_loc (fun () ->varray_abs_alt' vw _ a #1.0R #s);
+  map_loc gpu_loc (fun () -> varray_abs_alt' vw _ a #1.0R #s);
   let r = from_array vw a; assert rewrites_to r (from_array vw a);
   assume pure (is_global_varray r); // fixme
   r
@@ -586,6 +587,7 @@ fn varray_free
   preserves
     cpu
   requires
+    pure (is_full_array (core a)) **
     on gpu_loc (a |-> v)
   ensures emp
 {
