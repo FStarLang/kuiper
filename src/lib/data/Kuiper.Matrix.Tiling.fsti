@@ -217,9 +217,9 @@ let is_gpu_matrix_subtile_global
   (#tc : enatlt (cols / tcols))
 : Lemma
   (ensures
-    is_global_matrix (gpu_matrix_subtile gm trows tcols tr tc) <==>
-    is_global_matrix gm)
-  [SMTPat (is_global_matrix (gpu_matrix_subtile gm trows tcols tr tc))]
+    is_global (gpu_matrix_subtile gm trows tcols tr tc) <==>
+    is_global gm)
+  [SMTPat (is_global (gpu_matrix_subtile gm trows tcols tr tc))]
 = admit() // gpu_matrix_subtile_base gm trows tcols tr tc
 
 val cell_convert_eq

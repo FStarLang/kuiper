@@ -52,11 +52,13 @@ let lemma_log2_le2 (n:pos) (m:nat) : Lemma (n <= pow2 m ==> log2 n <= m) =
     log2 n <= m <: prop;
   }
 
+#push-options "--z3rlimit 20"
 let div_pow2_lemma (i j tid: nat) :
   Lemma
     (requires i < j)
     (ensures div_pow2 j tid ==> div_pow2 i tid)
   = assert (pow2 i /? pow2 j) // from lemma_pow2_div and lemma_divides_trans, nice
+#pop-options
 
 val lemma_div_exact: a:int -> p:pos -> Lemma
   (a % p = 0 <==> a = p * (a / p))

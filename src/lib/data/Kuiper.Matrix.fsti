@@ -44,7 +44,7 @@ instance cview_from_clayout
 inline_for_extraction noextract
 val gpu_matrix (et:Type0) (#rows #cols : nat) (l : mlayout rows cols) : Type0
 
-val is_global_matrix (#et:Type0) (#rows #cols : nat) (#l : mlayout rows cols) (g:gpu_matrix et l) : prop
+val is_global (#et:Type0) (#rows #cols : nat) (#l : mlayout rows cols) (g:gpu_matrix et l) : prop
 
 inline_for_extraction noextract
 val from_array
@@ -90,7 +90,7 @@ val is_send_across_global_matrix
   (#et:Type0)
   (#rows #cols : nat)
   (#l : mlayout rows cols)
-  (x: gpu_matrix et l { is_global_matrix x })
+  (x: gpu_matrix et l { is_global x })
   (#f : perm)
   (em : ematrix et rows cols)
   : is_send_across gpu_of (gpu_matrix_pts_to x #f em)
@@ -214,7 +214,7 @@ fn gpu_matrix_alloc0
   ensures
     exists* em. on gpu_loc (gm |-> em)
   ensures
-    pure (is_global_matrix gm) **
+    pure (is_global gm) **
     pure (is_full_array (core gm))
 
 inline_for_extraction noextract
@@ -366,24 +366,16 @@ val gpu_matrix_pts_to_cell_eq
            ==
            pts_to_cell (core gm) #f (cell_of_pos l i j) v)
 
-instance is_send_across_global_matrix_pts_to_cell
+instance val is_send_across_global_matrix_pts_to_cell
   (#et:Type) (#rows #cols : nat)
   (#l : mlayout rows cols)
-  (gm : gpu_matrix et l { is_global_matrix gm })
+  (gm : gpu_matrix et l { is_global gm })
   (#f : perm)
   (i : natlt rows)
   (j : natlt cols)
   (v : et)
 : is_send_across gpu_of
     (gpu_matrix_pts_to_cell gm #f i j v)
-= magic()
-  // gpu_matrix_pts_to_cell_eq gm i j f v;
-  // let x =
-  //   solve
-  //     #(is_send_across gpu_of
-  //       (pts_to_cell (core gm) #f (cell_of_pos l i j) v))
-  // in
-  // coerce_eq () x
 
 inline_for_extraction noextract
 fn gpu_matrix_read_cell

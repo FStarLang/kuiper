@@ -10,7 +10,7 @@ module T = FStar.Tactics.V2
 let gpu_matrix (et:Type0) (#rows #cols : nat) (l : mlayout rows cols) : Type0 =
   A.varray (aview_from_mlayout et #rows #cols l)
 
-let is_global_matrix
+let is_global
   (#et:Type0) (#rows #cols : nat)
   (#l : mlayout rows cols)
   (arr: gpu_matrix et l)
@@ -51,7 +51,7 @@ instance is_send_across_global_matrix
   (#et:Type0)
   (#rows #cols : nat)
   (#l : mlayout rows cols)
-  (x: gpu_matrix et l { is_global_matrix x })
+  (x: gpu_matrix et l { is_global x })
   (#f : perm)
   (em : ematrix et rows cols)
 : is_send_across gpu_of (gpu_matrix_pts_to x #f em)
@@ -233,7 +233,7 @@ fn gpu_matrix_alloc0
   ensures
     exists* em. on gpu_loc (gm |-> em)
   ensures
-    pure (is_global_matrix gm) **
+    pure (is_global gm) **
     pure (is_full_array (core gm))
 {
   open FStar.SizeT;
@@ -472,6 +472,18 @@ let gpu_matrix_pts_to_cell_eq
            ==
            pts_to_cell (core gm) #f (cell_of_pos l i j) v)
   = A.varray_pts_to_cell_eq gm (i,j) f v
+
+instance is_send_across_global_matrix_pts_to_cell
+  (#et:Type) (#rows #cols : nat)
+  (#l : mlayout rows cols)
+  (gm : gpu_matrix et l { is_global gm })
+  (#f : perm)
+  (i : natlt rows)
+  (j : natlt cols)
+  (v : et)
+  : is_send_across gpu_of
+      (gpu_matrix_pts_to_cell gm #f i j v)
+  = solve
 
 inline_for_extraction noextract
 fn gpu_matrix_read_cell
