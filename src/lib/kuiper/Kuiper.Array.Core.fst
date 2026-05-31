@@ -19,6 +19,12 @@ module A = Pulse.Lib.Array
 module SZ = Kuiper.SizeT
 
 instance
+is_send_across_pts_to_instance (#a: Type u#a) (x:A.array a) (f:perm) (s:seq a)
+: is_send_across (visibility_of_array x) (pts_to x #f s)
+= magic() // Should extend Pulse.Lib.Array.PtsTo
+// A.is_send_pts_to x #f s
+
+instance
 is_send_across_pts_to_mask_instance (#a: Type u#a) (x:A.array a) (f:perm) (s:seq (option a)) (mask:nat -> prop)
 : is_send_across (visibility_of_array x) (pts_to_mask x #f s mask)
 = is_send_across_pts_to_mask x f s mask
@@ -164,6 +170,16 @@ fn slice_to_array
 //           Seq.length s == sz /\
 //           A.is_full_array x)
 
+instance is_send_pts_to
+  (#a:Type u#0)
+  (x : array a)
+  (#[exact (`1.0R)] f : perm)
+  (v : seq a)
+  : is_send_across
+      (visibility_of x)
+      (pts_to x #f v)
+  = solve
+
 instance is_send_pts_to_slice
   (#a:Type u#0)
   ([@@@mkey] x : array a)
@@ -171,10 +187,10 @@ instance is_send_pts_to_slice
   ([@@@mkey] i : nat)
   (j : nat)
   (v : seq a)
-: is_send_across
-     (visibility_of x)
-     (pts_to_slice #a x #f i j v)
-= solve
+  : is_send_across
+      (visibility_of x)
+      (pts_to_slice #a x #f i j v)
+  = solve
 
 ghost
 fn pts_to_slice_ref

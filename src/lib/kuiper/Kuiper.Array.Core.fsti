@@ -123,16 +123,24 @@ let pts_to_cell
 // =
 //   pts_to_slice x #f 0 sz v
 
+instance val is_send_pts_to
+  (#a:Type u#0)
+  (x : array a)
+  (#[exact (`1.0R)] f : perm)
+  (v : seq a)
+  : is_send_across
+      (visibility_of x)
+      (pts_to x #f v)
+
 instance val is_send_pts_to_slice
   (#a:Type u#0)
-  ([@@@mkey] x : array a)
+  (x : array a)
   (#[exact (`1.0R)] f : perm)
-  ([@@@mkey] i : nat)
-  (j : nat)
+  (i j : nat)
   (v : seq a)
-: is_send_across
-     (visibility_of x)
-     (pts_to_slice #a x #f i j v)
+  : is_send_across
+      (visibility_of x)
+      (pts_to_slice #a x #f i j v)
 
 instance is_send_across_global_array
   (#et:Type0)

@@ -16,25 +16,25 @@ module T = FStar.Tactics
 let is_send_across_block_array
   (#et:Type0)
   (a : array et { is_block_array a })
-  (#i #j #f #s:_)
-: is_send_across block_of (pts_to_slice a #f i j s)
-= let i : is_send_across (visibility_of a) (pts_to_slice a #f i j s)
-   = Tactics.Typeclasses.solve in
+  (#f:perm) (#s:_)
+: is_send_across block_of (pts_to a #f s)
+= let i : is_send_across (visibility_of a) (pts_to a #f s)
+   = Tactics.Typeclasses.solve_debug #_ #_ in
   i
 
 instance is_send_across_live_c_shmem #d (c:c_shmem d) #f (_:squash (c_shmem_inv c))
 : is_send_across block_of (live_c_shmem #d c #f)
 = match d with
   | SHArray ty len ->
-    let ff (v:_) : is_send_across block_of (pts_to_slice #ty c #f 0 len v) =
-      is_send_across_block_array c
+    let c : array ty = c in
+    let ff (v:_) : is_send_across block_of (pts_to c #f v) =
+      is_send_across_block_array c #_ #_
     in
-    let ff : is_send_across block_of (exists* v. pts_to_slice #ty c #f 0 len v) =
+    let ff : is_send_across block_of (exists* v. pts_to c #f v) =
       is_send_across_exists _ #ff
     in
-    let ff : is_send_across block_of (live_c_shmem #(SHArray ty len) c #f)
-      = magic() // ff
-      // Fix ^. live_c_shmem is now full pts_to, not slice
+    let ff : is_send_across block_of (live_c_shmem #(SHArray ty len) c #f) =
+      ff
     in
     ff
 
@@ -137,17 +137,24 @@ requires
 ensures
   forall+ (_ : natlt k). live_c_shmem c #(f /. Real.of_int k)
 {
-  admit();
+  let c' : larray (d_ty d) (d_len d) = c; assert rewrites_to c' c;
   unfold_live_c_shmem c #f;
-  with s.  assert pts_to (c <: larray (d_ty d) (d_len d)) #f s;
-           drop_  (pts_to (c <: array (d_ty d)) #f s);
-  assume   pts_to_slice #(d_ty d) (c <: array (d_ty d)) #f 0 (d_len d) s;
-  with v. assert (pts_to_slice c #f 0 (d_len d) v);
-  slice_share c 0 (d_len d) k #f;
+  with s.  assert A.pts_to c' #f s;
+  A.pts_to_len c';
+  array_to_slice c';
+  assert pts_to_slice c' #f 0 _ s; // FIXME: using (d_len d) for _ fails!?!?
+  with ll. assert pts_to_slice c' #f 0 ll s;
+  slice_share c' 0 _ k #f;
   forevery_map
-    (fun _ -> pts_to_slice #(d_ty d) c #(f /. Real.of_int k) 0 (d_len d) v)
-    (fun _ -> live_c_shmem c #(f /. Real.of_int k))
-    fn { admit(); };
+    (fun (_ : natlt k) -> pts_to_slice c' #(f /. Real.of_int k) 0 ll s)
+    (fun (_ : natlt k) -> live_c_shmem c #(f /. Real.of_int k))
+    fn _ {
+      assume is_full_slice c' ll; // Should duplicate this
+      slice_to_array c';
+      fold_live_c_shmem #d c #(f /. Real.of_int k);
+      ()
+    };
+  drop_ (is_full_slice c' ll);
   ()
 }
 
@@ -193,16 +200,16 @@ ghost
 fn gpu_live_c_shmem_gather_underspec
   (#d:_) (c:c_shmem d) (#f:perm) (#k:nat { k > 0 })
   requires
-    forall+ (_ : natlt k). live_c_shmem c #(f /. Real.of_int k)
+    forall+ (_ : natlt k). live_c_shmem #d c #(f /. Real.of_int k)
   ensures
     live_c_shmem c #f
 {
-  admit();
+  let c' : larray (d_ty d) (d_len d) = c; assert rewrites_to c' c;
   forevery_map #(natlt k)
-    (fun _ -> live_c_shmem c #(f /. Real.of_int k))
-    (fun _ -> exists* v. pts_to_slice #(d_ty d) #(d_len d) c #(f /. Real.of_int k) 0 (d_len d) v)
-    fn _ { unfold_live_c_shmem c #(f /. Real.of_int k)};
-  slice_gather_underspec c 0 (d_len d) k;
+    (fun (_ : natlt k) -> live_c_shmem #d c #(f /. Real.of_int k))
+    (fun (_ : natlt k) -> exists* v. pts_to c' #(f /. Real.of_int k) v)
+    fn _ { unfold_live_c_shmem #d c #(f /. Real.of_int k); };
+  array_gather_underspec c' k;
   fold_live_c_shmem c #f;
 }
 

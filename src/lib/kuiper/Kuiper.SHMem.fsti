@@ -11,6 +11,7 @@ open Kuiper.ForEvery
 open Kuiper.Common
 module SZ = Kuiper.SizeT
 module T = FStar.Tactics
+module A = Pulse.Lib.Array
 
 (* Description of one shared memory array "request" *)
 // TODO: Does the length really need to be nonzero?
@@ -29,8 +30,8 @@ let is_block_array #ty (g : array ty)
 val is_send_across_block_array
   (#et:Type0)
   (a : array et { is_block_array a })
-  (#i #j #f #s:_)
-: is_send_across block_of (pts_to_slice a #f i j s)
+  (#f:perm) (#s:_)
+: is_send_across block_of (pts_to a #f s)
 
 inline_for_extraction unfold
 let c_shmem (d : shmem_desc) : Type0 =
@@ -59,7 +60,8 @@ let rec c_shmems_inv (#ds : list shmem_desc) (c:c_shmems ds) : prop =
 let live_c_shmem #d (c : c_shmem d) (#[T.exact (`1.0R)]f:_) : slprop =
   match d with
   | SHArray ty len ->
-    exists* (v : Seq.seq ty). (c <: array ty) |-> Frac f v
+    exists* (v : Seq.seq ty).
+      A.pts_to c #f v
 
 instance val is_send_across_live_c_shmem #d (c:c_shmem d) #f (_:squash (c_shmem_inv c))
 : is_send_across block_of (live_c_shmem #d c #f)
