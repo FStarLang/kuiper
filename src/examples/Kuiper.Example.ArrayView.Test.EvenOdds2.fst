@@ -116,7 +116,7 @@ fn write_even (a : varray (even_view u32 100))
 
 let vw = sum_aview (even_view u32 100) (odd_view u32 100)
 
-fn test_simpler (a : gpu_array u32 100)
+fn test_simpler (a : larray u32 100)
   (#v0 : erased (lseq u32 100))
   preserves gpu
   requires a |-> v0
@@ -146,7 +146,7 @@ fn test_simpler (a : gpu_array u32 100)
   varray_concr va;
 
   with v1 l1. rewrite
-    gpu_pts_to_slice (core va) 0 l1 v1
+    core va |-> v1
   as
     a |-> v0;
 
@@ -234,7 +234,7 @@ let split_lemma #et (#len:nat) (s : lseq et len)
             (to_seq (sum_aview (even_view et len) (odd_view et len)) (seq_evens s, seq_odds s)))
 
 #push-options "--z3rlimit 60"
-fn test_write (a : gpu_array u32 100)
+fn test_write (a : larray u32 100)
     (#v0 : erased (lseq u32 100))
     preserves gpu
     requires a |-> v0
@@ -253,11 +253,10 @@ fn test_write (a : gpu_array u32 100)
   varray_concr va;
 
   with vret. assert pure (vret == Seq.upd (Seq.upd v0 20 42ul) 41 43ul);
-  with l1 v1. assert gpu_pts_to_slice (core va) 0 l1 v1;
+  with l1 v1. assert pts_to_slice (core va) 0 l1 v1;
   assert pure (Seq.equal v1 vret);
-  rewrite
-    gpu_pts_to_slice (core va) 0 l1 v1
-  as
-    a |-> vret;
+  slice_to_array (core va); // fixme
+  rewrite core va |-> v1
+       as a |-> vret;
 }
 #pop-options

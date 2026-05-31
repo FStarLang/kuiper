@@ -24,10 +24,10 @@ fn sarray_id
   {
     unfold sarray_pts_to a s0;
     unfold sarray_pts_to' a s0;
-    with v_elems. assert a.elems |-> v_elems;
+    with v_elems. assert pts_to_slice a.elems _ _ v_elems;
 
-    let v = gpu_array_read a.elems !i;
-    gpu_array_write a.elems !i v;
+    let v = slice_read a.elems !i;
+    slice_write a.elems !i v;
 
     with i_v.
       assert i |-> i_v;
@@ -84,14 +84,14 @@ fn sarray_scale
 
   let mut i = 0sz;
 
-  with v_elems. assert a.elems |-> v_elems;
-  with v_pos. assert a.pos |-> v_pos;
+  with v_elems. assert pts_to_slice a.elems _ _ v_elems;
+  with v_pos. assert pts_to_slice a.pos _ _ v_pos;
 
   while (!i <^ a.nnz)
     invariant
       (exists* i_v v_elems'.
         i |-> i_v **
-        a.elems |-> v_elems' **
+        pts_to_slice a.elems 0 a.nnz v_elems' **
         pure FStar.Seq.(
           len v_elems' == a.nnz /\
           forall (j : nat{j < a.nnz}).
@@ -99,12 +99,12 @@ fn sarray_scale
             (j >= i_v ==> index v_elems' j == index v_elems j)))
     decreases (a.nnz - !i)
   {
-    let v = gpu_array_read a.elems !i;
-    gpu_array_write a.elems !i (k `mul` v);
+    let v = slice_read a.elems !i;
+    slice_write a.elems !i (k `mul` v);
     i := !i `SZ.add` 1sz;
   };
 
-  with v_elems'. assert a.elems |-> v_elems';
+  with v_elems'. assert pts_to_slice a.elems 0 a.nnz v_elems';
 
   assert pure FStar.Seq.(v_elems' `equal` scale_seq k v_elems);
 

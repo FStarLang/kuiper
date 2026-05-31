@@ -39,9 +39,9 @@ fn specialize_gpu
 
   // do not specialize
   (rows shared cols : szp)
-  (gA : gpu_matrix et_ab (row_major rows shared) { is_global_matrix gA })
-  (gB : gpu_matrix et_ab (row_major shared cols) { is_global_matrix gB })
-  (gC : gpu_matrix et_c (row_major rows cols) { is_global_matrix gC })
+  (gA : gpu_matrix et_ab (row_major rows shared) { is_global gA })
+  (gB : gpu_matrix et_ab (row_major shared cols) { is_global gB })
+  (gC : gpu_matrix et_c (row_major rows cols) { is_global gC })
   (#_ : squash (aligned 16 (core gA)))
   (#_ : squash (aligned 16 (core gB)))
   (#_ : squash (chunk et_ab * ((bm/tm) * (bn/tn) * warp_size) /?+ (bm * bk)))

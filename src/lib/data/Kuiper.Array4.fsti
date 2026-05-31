@@ -8,6 +8,7 @@ open Kuiper.Injection
 open Kuiper.Index
 open Kuiper.EMatrix4
 open FStar.Tactics.Typeclasses { no_method }
+module B = Kuiper.Array
 module SZ = Kuiper.SizeT
 module Tac = FStar.Tactics.V2
 
@@ -82,14 +83,14 @@ inline_for_extraction noextract
 val from_array
   (#et : Type0) (#d0 #d1 #d2 #d3 : erased nat)
   (l : layout d0 d1 d2 d3)
-  (a : gpu_array et (layout_size l))
+  (a : larray et (layout_size l))
   : t et l
 
 inline_for_extraction noextract
 val core
   (#et : Type0) (#d0 #d1 #d2 #d3 : erased nat) (#l : layout d0 d1 d2 d3)
   (a : t et l)
-  : gpu_array et (layout_size l)
+  : larray et (layout_size l)
 
 val lem_core_from_array
   (#et : Type) (#d0 #d1 #d2 #d3 : erased nat)
@@ -101,7 +102,7 @@ val lem_core_from_array
 val lem_from_array_core
   (#et : Type) (#d0 #d1 #d2 #d3 : erased nat)
   (l : layout d0 d1 d2 d3)
-  (p : gpu_array et (layout_size l))
+  (p : larray et (layout_size l))
   : Lemma (ensures core (from_array l p) == p)
           [SMTPat (from_array l p)]
 
@@ -159,7 +160,7 @@ fn raise
   (#et:Type)
   (#d0 #d1 #d2 #d3 : nat)
   (l : layout d0 d1 d2 d3 { is_full l })
-  (p : gpu_array et (layout_size l))
+  (p : larray et (layout_size l))
   (#f : perm)
   (#s : EMatrix4.t et d0 d1 d2 d3)
   requires
@@ -172,7 +173,7 @@ fn raise'
   (#et:Type)
   (#d0 #d1 #d2 #d3 : nat)
   (l : layout d0 d1 d2 d3 { is_full l })
-  (p : gpu_array et (layout_size l))
+  (p : larray et (layout_size l))
   (#f : perm)
   (#s : lseq et (layout_size l))
   requires
@@ -251,7 +252,7 @@ val pts_to_cell_eq
   (a : t et l) (ijkl : ait d0 d1 d2 d3) (f : perm) (v : et)
   : Lemma (Cell a ijkl |-> Frac f v
            ==
-           gpu_pts_to_cell (core a) #f (l.imap.f (adapt_idx_back ijkl)) v)
+           B.pts_to_cell (core a) #f (l.imap.f (adapt_idx_back ijkl)) v)
 
 ghost
 fn explode

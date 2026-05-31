@@ -12,20 +12,20 @@ open Kuiper.Math { even, odd }
 let slice_live
   (#et : Type0)
   (#l : nat)
-  (a : gpu_array et l)
+  (a : larray et l)
   (#[FStar.Tactics.exact (`1.0R)] f : perm)
   (i j : nat)
   : slprop
-  = exists* s. gpu_pts_to_slice a #f i j s
+  = exists* s. pts_to_slice a #f i j s
 
 let array_live_cell
   (#et : Type0)
   (#l : nat)
-  (a :gpu_array et l)
+  (a :larray et l)
   (#[FStar.Tactics.exact (`1.0R)] f : perm)
   (i : natlt l)
   : slprop
-  = exists* v. gpu_pts_to_cell a #f i v
+  = exists* v. pts_to_cell a #f i v
 
 inline_for_extraction
 type parameters = {

@@ -34,13 +34,18 @@ fn smatrix_sdmm
   let mut i = 0sz;
   unfold smatrix_pts_to gA;
 
+  // FIXME
+  array_to_slice gA.elems;
+  array_to_slice gA.row_off;
+  array_to_slice gA.col_ind;
+
   while (!i <^ rows)
     invariant live i ** pure (!i <= rows)
     invariant live gC
     decreases (rows - !i)
   {
-    let ri = gpu_array_read gA.row_off !i;
-    let re = gpu_array_read gA.row_off (!i +^ 1sz);
+    let ri = slice_read gA.row_off !i;
+    let re = slice_read gA.row_off (!i +^ 1sz);
 
     let mut j = 0sz;
     while (!j <^ cols)
@@ -57,8 +62,8 @@ fn smatrix_sdmm
             live dp ** live k
         decreases (re - !k)
       {
-        let x = gpu_array_read gA.elems !k;
-        let c = gpu_array_read gA.col_ind !k;
+        let x = slice_read gA.elems !k;
+        let c = slice_read gA.col_ind !k;
 
         let y = Array2.read gB (c, !j);
 
@@ -72,6 +77,11 @@ fn smatrix_sdmm
     };
     i := !i +^ 1sz;
   };
+
+  // FIXME
+  slice_to_array gA.elems;
+  slice_to_array gA.row_off;
+  slice_to_array gA.col_ind;
 
   fold smatrix_pts_to gA a;
 }

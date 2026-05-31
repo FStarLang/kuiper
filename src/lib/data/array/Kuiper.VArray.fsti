@@ -26,14 +26,14 @@ let view_equiv (#et #st : Type)
 inline_for_extraction
 val varray (#a : Type0) (#st : Type0) (vw : aview a st) : Type0
 
-val is_global_varray (#a : Type0) (#st : Type0) (#vw : aview a st) (_ : varray vw) : prop
+val is_global (#a : Type0) (#st : Type0) (#vw : aview a st) (_ : varray vw) : prop
 
 inline_for_extraction noextract
 val from_array
   (#a : Type0)
   (#st : Type)
   (vw : aview a st)
-  (arr : gpu_array a (len vw))
+  (arr : larray a (len vw))
   : varray vw
 
 inline_for_extraction noextract
@@ -41,20 +41,27 @@ val core
   (#a : Type)
   (#st : Type) (#vw : aview a st)
   (g : varray vw)
-  : arr : Kuiper.Array.gpu_array a (len vw) { from_array vw arr == g }
+  : larray a (len vw)
+
+val lem_is_global_iff_core
+  (#a : Type0)
+  (#st : Type) (#vw : aview a st)
+  (g : varray vw)
+  : Lemma (ensures is_global g <==> is_global_array (core g))
+          [SMTPat (is_global g)]
 
 val lem_from_array_core
   (#a : Type)
   (#st : Type) (#vw : aview a st)
   (arr : varray vw)
-  : Lemma (ensures from_array vw (core arr) == arr /\ (is_global_array (core arr) <==> is_global_varray arr))
+  : Lemma (ensures from_array vw (core arr) == arr)
           [SMTPat (core arr)]
 
 val lem_core_from_array
   (#a : Type)
   (#st : Type) (#vw : aview a st)
-  (p : gpu_array a (len vw))
-  : Lemma (ensures core (from_array vw p) == p /\ (is_global_varray (from_array vw p) <==> is_global_array p))
+  (p : larray a (len vw))
+  : Lemma (ensures core (from_array vw p) == p)
           [SMTPat (from_array vw p)]
 
 (* Ownership over a single index. *)
@@ -76,7 +83,7 @@ val varray_pts_to_cell_eq
   (v : et)
   : Lemma (varray_pts_to_cell a #f i v
            ==
-           gpu_pts_to_cell (core a) #f (vw.iview.step.imap.f i) v)
+           pts_to_cell (core a) #f (vw.iview.step.imap.f i) v)
 
 [@@pulse_unfold; FStar.Tactics.Typeclasses.noinst]
 instance cell_pts_to (#et : Type) (#st : Type) (#vw : aview et st)
@@ -97,7 +104,7 @@ val is_send_across_global_varray
   (#et:Type0)
   (#st : Type0)
   (#vw : aview et st)
-  (x: varray vw { is_global_varray x })
+  (x: varray vw { is_global x })
   (#f : perm)
   (v : st)
   : is_send_across gpu_of (varray_pts_to x #f v)
@@ -107,7 +114,7 @@ val is_send_across_global_varray_cell
   (#et:Type0)
   (#st : Type0)
   (#vw : aview et st)
-  (a : varray vw { is_global_varray a })
+  (a : varray vw { is_global a })
   (#f : perm)
   (i : vw.iview.ait)
   (v : et)
@@ -229,7 +236,7 @@ type are sequences. *)
 ghost
 fn varray_begin_
   (#et : Type) (#len : erased nat)
-  (a : gpu_array et len)
+  (a : larray et len)
   (#f : perm)
   (#v : lseq et len)
   requires
@@ -240,7 +247,7 @@ fn varray_begin_
 inline_for_extraction noextract
 fn varray_begin
   (#et : Type) (#len : erased nat)
-  (a : gpu_array et len)
+  (a : larray et len)
   (#f : perm)
   (#v : erased (lseq et len))
   requires
@@ -271,7 +278,7 @@ fn varray_end
   requires
     a |-> Frac f v
   returns
-    a' : gpu_array et len
+    a' : larray et len
   ensures
     a' |-> Frac f v
 
@@ -299,7 +306,7 @@ ghost
 fn varray_abs
   (#et : Type0) (#st : Type0)
   (vw : aview et st { is_full_view vw })
-  (a : gpu_array et (len vw))
+  (a : larray et (len vw))
   (#f : perm)
   (#v : st)
   requires
@@ -311,7 +318,7 @@ ghost
 fn varray_abs'
   (#et : Type0) (#st : Type0)
   (vw : aview et st { is_full_view vw })
-  (a : gpu_array et (len vw))
+  (a : larray et (len vw))
   (#f : perm)
   (#v : lseq et (len vw))
   requires
@@ -343,7 +350,7 @@ fn varray_iconcr
   ensures
     pure (SZ.fits (len vw)) **
     (forall+ (i : vw.iview.ait).
-      gpu_pts_to_cell (core a) #f (vw.iview.step.imap.f i) (vw.ctn.acc v i))
+      pts_to_cell (core a) #f (vw.iview.step.imap.f i) (vw.ctn.acc v i))
 
 ghost
 fn varray_iabs
@@ -355,7 +362,7 @@ fn varray_iabs
   requires
     pure (SZ.fits (len vw)) **
     (forall+ (i : vw.iview.ait).
-      gpu_pts_to_cell (core a) #f (vw.iview.step.imap.f i) (vw.ctn.acc v i))
+      pts_to_cell (core a) #f (vw.iview.step.imap.f i) (vw.ctn.acc v i))
   ensures
     a |-> Frac f v
 
@@ -371,7 +378,9 @@ fn varray_alloc0
     a : varray vw
   ensures
     exists* v. on gpu_loc (a |-> v)
-  ensures pure (is_global_varray a)
+  ensures
+    pure (is_global a) **
+    pure (is_full_array (core a))
 
 inline_for_extraction noextract
 fn varray_free
@@ -382,6 +391,7 @@ fn varray_free
   preserves
     cpu
   requires
+    pure (is_full_array (core a)) **
     on gpu_loc (a |-> v)
   ensures emp
 

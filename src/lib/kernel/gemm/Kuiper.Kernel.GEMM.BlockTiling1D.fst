@@ -70,11 +70,11 @@ let barrier_q
 let barrier_contract
   (#et : Type0)
   (tile : valid_tile)
-  (* This is defined over the base shared gpu_arrays, as
+  (* This is defined over the base shared larrays, as
   this spec must make sense before the arrays are viewed as
   a matrix. *)
   (l1 l2 : M.full_layout tile tile)
-  (ar1 ar2 : gpu_array et (tile * tile))
+  (ar1 ar2 : larray et (tile * tile))
   : B.contract tile =
   {
     rin  = barrier_p (M.from_array l1 ar1) (M.from_array l2 ar2);
@@ -247,7 +247,7 @@ let barrier_p_to_q_transform
   (#et : Type0)
   (#tile : valid_tile)
   (l1 l2 : M.full_layout tile tile)
-  (ar1 ar2 : gpu_array et (tile * tile))
+  (ar1 ar2 : larray et (tile * tile))
   (#_ : squash (SZ.fits (M.layout_size l1)))
   (#_ : squash (SZ.fits (M.layout_size l2)))
   : B.barrier_transform (barrier_contract tile l1 l2 ar1 ar2)

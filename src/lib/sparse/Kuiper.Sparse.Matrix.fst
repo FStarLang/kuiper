@@ -19,9 +19,9 @@ type smatrix (et : Type0)
   (rows cols : erased nat) =
 {
   nnz       : sz; // número de no-zeros
-  elems     : gpu_array et nnz; // elementos (no zero)
-  col_ind   : gpu_array sz nnz; // columna de cada elemento
-  row_off   : gpu_array sz (rows + 1); // posición de cada comienzo de  fila
+  elems     : larray et nnz; // elementos (no zero)
+  col_ind   : larray sz nnz; // columna de cada elemento
+  row_off   : larray sz (rows + 1); // posición de cada comienzo de  fila
 }
 
 let is_global_smatrix
@@ -206,7 +206,6 @@ instance has_pts_to_smatrix
   pts_to = smatrix_pts_to;
 }
 
-
 ghost
 fn smatrix_share_n'
   (#et:Type0) {| d : scalar et |}
@@ -222,25 +221,24 @@ fn smatrix_share_n'
   ensures forall+ (_ : natlt k).
     smatrix_pts_to' m #(f /. k) v_elems v_col_ind v_row_off  em
 {
-  gpu_slice_share m.elems _ _ k;
-  gpu_slice_share m.col_ind _ _ k;
-  gpu_slice_share m.row_off _ _ k;
+  Kuiper.Array.Extra.array_share m.elems k;
+  Kuiper.Array.Extra.array_share m.col_ind k;
+  Kuiper.Array.Extra.array_share m.row_off k;
 
   forevery_zip
-    (fun _ -> gpu_pts_to_array m.col_ind #(f /. k) v_col_ind)
-    (fun _ -> gpu_pts_to_array m.row_off #(f /. k) v_row_off);
+    (fun _ -> pts_to m.col_ind #(f /. k) v_col_ind)
+    (fun _ -> pts_to m.row_off #(f /. k) v_row_off);
   forevery_zip
-    (fun _ -> gpu_pts_to_array m.elems #(f /.k) v_elems) _;
+    (fun _ -> pts_to m.elems #(f /.k) v_elems) _;
 
   forevery_map #(natlt k)
     (fun _ ->
-      gpu_pts_to_slice m.elems #(f /. k) 0 (SZ.v m.nnz) v_elems **
-      gpu_pts_to_slice m.col_ind #(f /. k)0 (SZ.v m.nnz) v_col_ind **
-      gpu_pts_to_slice m.row_off #(f /. k) 0 (rows + 1) v_row_off
+      pts_to m.elems   #(f /. k) v_elems **
+      pts_to m.col_ind #(f /. k) v_col_ind **
+      pts_to m.row_off #(f /. k) v_row_off
     )
     (fun _ -> smatrix_pts_to' m #(f /. k) v_elems v_col_ind v_row_off em)
     fn _ {};
-
 }
 
 ghost
@@ -259,11 +257,11 @@ fn smatrix_share_n
 {
   unfold smatrix_pts_to m #f em;
   with v_elems.
-    assert gpu_pts_to_array m.elems #f v_elems;
+    assert pts_to m.elems #f v_elems;
   with v_col_ind.
-    assert gpu_pts_to_array m.col_ind #f v_col_ind;
+    assert pts_to m.col_ind #f v_col_ind;
   with v_row_off.
-    assert gpu_pts_to_array m.row_off #f v_row_off;
+    assert pts_to m.row_off #f v_row_off;
 
   smatrix_share_n' m #f _ _ _ em k;
 
@@ -314,9 +312,9 @@ fn smatrix_gather_n'
   forevery_unzip #(natlt k) _ _;
   forevery_unzip #(natlt k) _ _;
 
-  gpu_slice_gather m.elems   _ _ k;
-  gpu_slice_gather m.col_ind _ _ k;
-  gpu_slice_gather m.row_off _ _ k;
+  Kuiper.Array.Extra.array_gather m.elems   k;
+  Kuiper.Array.Extra.array_gather m.col_ind k;
+  Kuiper.Array.Extra.array_gather m.row_off k;
 
   forevery_natlt_elim k _;
 
@@ -340,29 +338,30 @@ fn smatrix_gather_n
 {
   forevery_natlt_pop k _;
   unfold smatrix_pts_to m #(f /. k) em;
-  with v_elems.   assert gpu_pts_to_array m.elems   #(f /. k) v_elems;
-  with v_col_ind. assert gpu_pts_to_array m.col_ind #(f /. k) v_col_ind;
-  with v_row_off. assert gpu_pts_to_array m.row_off #(f /. k) v_row_off;
+  with v_elems.   assert pts_to m.elems   #(f /. k) v_elems;
+  with v_col_ind. assert pts_to m.col_ind #(f /. k) v_col_ind;
+  with v_row_off. assert pts_to m.row_off #(f /. k) v_row_off;
 
   ghost
   fn aux (_ : natlt (k-1))
     norewrite
     preserves
-      gpu_pts_to_array m.elems   #(f /. k) v_elems **
-      gpu_pts_to_array m.col_ind #(f /. k) v_col_ind **
-      gpu_pts_to_array m.row_off #(f /. k) v_row_off
+      pts_to m.elems   #(f /. k) v_elems **
+      pts_to m.col_ind #(f /. k) v_col_ind **
+      pts_to m.row_off #(f /. k) v_row_off
     requires
       smatrix_pts_to m #(f /. k) em
     ensures
-      gpu_pts_to_array m.elems   #(f /. k) v_elems **
-      gpu_pts_to_array m.col_ind #(f /. k) v_col_ind **
-      gpu_pts_to_array m.row_off #(f /. k) v_row_off
+      pts_to m.elems   #(f /. k) v_elems **
+      pts_to m.col_ind #(f /. k) v_col_ind **
+      pts_to m.row_off #(f /. k) v_row_off
   {
+    open Pulse.Lib.Array;
     unfold smatrix_pts_to m #(f /. k) em;
 
-    gpu_slice_pts_to_eq m.elems 0 m.nnz (f /. k) #_ #v_elems;
-    gpu_slice_pts_to_eq m.col_ind 0 m.nnz (f /. k) #_ #v_col_ind;
-    gpu_slice_pts_to_eq m.row_off 0 (rows + 1) (f /. k) #_ #v_row_off;
+    pts_to_injective_eq m.elems;
+    pts_to_injective_eq m.col_ind;
+    pts_to_injective_eq m.row_off;
     ()
   };
 
@@ -372,9 +371,9 @@ fn smatrix_gather_n
   forevery_unzip #(natlt k) _ _;
   forevery_unzip #(natlt k) _ _;
 
-  gpu_slice_gather m.elems   _ _ k;
-  gpu_slice_gather m.col_ind _ _ k;
-  gpu_slice_gather m.row_off _ _ k;
+  Kuiper.Array.Extra.array_gather m.elems   k;
+  Kuiper.Array.Extra.array_gather m.col_ind k;
+  Kuiper.Array.Extra.array_gather m.row_off k;
 
   fold smatrix_pts_to m #f em;
 }
@@ -388,9 +387,9 @@ open Kuiper.Seq.Common
 let gpu_array_take
   (#a : Type u#0)
   (#n : erased nat)
-  (arr : gpu_array a n)
+  (arr : larray a n)
   (k : szle n)
-: Pure (gpu_array a k)
+: Pure (larray a k)
   (requires true)
   (ensures fun v -> base_address v == base_address arr)
 = admit()
@@ -398,9 +397,9 @@ let gpu_array_take
 let gpu_array_drop
   (#a : Type u#0)
   (#n : erased nat)
-  (arr : gpu_array a n)
+  (arr : larray a n)
   (k : szle n)
-: Pure (gpu_array a (n - k))
+: Pure (larray a (n - k))
   (requires true)
   (ensures fun v -> base_address v == base_address arr + k)
 = admit()
@@ -409,7 +408,7 @@ ghost
 fn gpu_array_cut
   (#a : Type u#0) {| sized a |}
   (#n : nat)
-  (arr : gpu_array a n)
+  (arr : larray a n)
   (#[Tactics.exact (`1.0R)] f : perm)
   (k : szle n)
   (#s : lseq a n)
@@ -426,7 +425,7 @@ ghost
 fn gpu_array_paste
   (#a : Type u#0) {| sized a |}
   (#n : nat)
-  (arr : gpu_array a n)
+  (arr : larray a n)
   (#[Tactics.exact (`1.0R)] f : perm)
   (k : szle n)
   (#s : lseq a n)
@@ -443,7 +442,7 @@ ghost
 fn gpu_array_paste'
   (#a : Type u#0) {| sized a |}
   (#n : nat)
-  (arr : gpu_array a n)
+  (arr : larray a n)
   (#[Tactics.exact (`1.0R)] f : perm)
   (k : szle n)
   (#s : lseq a k) (#t : lseq a (n - k))
@@ -607,7 +606,7 @@ ghost
 fn gpu_array_share
   (#a:Type u#0)
   (#sz:nat)
-  (arr : gpu_array a sz)
+  (arr : larray a sz)
   (#f : perm)
   (#v : seq a)
   requires arr |-> Frac f v
@@ -615,17 +614,14 @@ fn gpu_array_share
     arr |-> Frac (f /. 2) v **
     arr |-> Frac (f /. 2) v
 {
-  gpu_slice_share arr 0 sz 2;
-  forevery_natlt_pop 2 _;
-  forevery_natlt_pop 1 _;
-  forevery_elim_empty _;
+  Pulse.Lib.Array.share arr;
 }
 
 ghost
 fn gpu_array_gather
   (#a:Type u#0)
   (#sz:nat)
-  (arr : gpu_array a sz)
+  (arr : larray a sz)
   (#f : perm)
   (#v : seq a)
   requires
@@ -633,10 +629,7 @@ fn gpu_array_gather
     arr |-> Frac (f /. 2) v
   ensures arr |-> Frac f v
 {
-  forevery_intro_empty #(natlt 0) (fun _ -> arr |-> Frac (f /. 2) v);
-  forevery_natlt_push_shift 1 _;
-  forevery_natlt_push_shift 2 _;
-  gpu_slice_gather arr 0 sz 2;
+  Pulse.Lib.Array.gather arr;
 }
 
 fn smatrix_extract
@@ -655,8 +648,8 @@ fn smatrix_extract
     factored
       (v |-> Frac (f /. 2) (ematrix_row e i))
       (m |-> Frac f e)
-
 {
+  open Pulse.Lib.Array;
 
   unfold smatrix_pts_to m #f e;
 
@@ -664,11 +657,11 @@ fn smatrix_extract
   with (v_col_ind : seq sz).  assert m.col_ind |-> Frac f v_col_ind;
   with (v_row_off : seq sz). assert m.row_off |-> Frac f v_row_off;
 
-  let ri : sz = gpu_array_read m.row_off i;
+  let ri : sz = m.row_off.(i);
   let i' : sz = i +^ 1sz;
   // por que falla esto?
   //let re : sz = gpu_array_read m.row_off (i +^ 1sz);
-  let re : sz = gpu_array_read m.row_off i';
+  let re : sz = m.row_off.(i');
 
   gpu_array_cut m.elems #f ri;
   gpu_array_cut (gpu_array_drop m.elems ri) #f (re -^ ri);
@@ -704,6 +697,11 @@ fn smatrix_extract
   gpu_array_share srow.elems #f;
   gpu_array_share srow.pos #f;
 
+  // array_to_slice srow.elems;
+  // array_to_slice srow.pos;
+
+  admit();
+
   intro
     (srow |-> Frac (f /. 2) (ematrix_row e i) @==> m |-> Frac f e)
     #(
@@ -718,10 +716,11 @@ fn smatrix_extract
       srow.pos |-> Frac (f /. 2) (Seq.slice v_col_ind ri re)
     )
     fn _ {
+      admit();
       unfold sarray_pts_to srow #(f /. 2) (ematrix_row e i);
 
-      gpu_slice_pts_to_eq srow.elems 0 srow.nnz (f /. 2) #_ #(Seq.slice v_elems ri re);
-      gpu_slice_pts_to_eq srow.pos 0 srow.nnz (f /. 2) #_ #(Seq.slice v_col_ind ri re);
+      // gpu_slice_pts_to_eq srow.elems 0 srow.nnz (f /. 2) #_ #(Seq.slice v_elems ri re);
+      // gpu_slice_pts_to_eq srow.pos 0 srow.nnz (f /. 2) #_ #(Seq.slice v_col_ind ri re);
 
       gpu_array_gather srow.elems;
       gpu_array_gather srow.pos;

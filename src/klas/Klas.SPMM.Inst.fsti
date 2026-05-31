@@ -24,7 +24,7 @@ fn inst
   (rows shared cols : szp)
   (gA : smatrix et (SZ.v rows) (SZ.v shared){is_global_smatrix gA})
   (#fA : perm)
-  (row_indices : gpu_array sz rows)
+  (row_indices : larray sz rows)
   (fri : perm)
   (gB : array2 et (repB shared cols) { is_global gB})
   (#fB : perm)

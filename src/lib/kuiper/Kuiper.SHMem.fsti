@@ -11,6 +11,7 @@ open Kuiper.ForEvery
 open Kuiper.Common
 module SZ = Kuiper.SizeT
 module T = FStar.Tactics
+module A = Pulse.Lib.Array
 
 (* Description of one shared memory array "request" *)
 // TODO: Does the length really need to be nonzero?
@@ -23,19 +24,19 @@ type shmem_desc =
     len    : SZ.t { len > 0 } ->
     shmem_desc
 
-let is_block_array #ty #len (g:gpu_array ty len)
+let is_block_array #ty (g : array ty)
   = visibility_of g == block_of
 
 val is_send_across_block_array
-  (#et:Type0) (#sz:_)
-  (a:gpu_array et sz { is_block_array a })
-  (#i #j #f #s:_)
-: is_send_across block_of (gpu_pts_to_slice a #f i j s)
+  (#et:Type0)
+  (a : array et { is_block_array a })
+  (#f:perm) (#s:_)
+: is_send_across block_of (pts_to a #f s)
 
 inline_for_extraction unfold
 let c_shmem (d : shmem_desc) : Type0 =
   match d with
-  | SHArray ty len -> gpu_array ty len
+  | SHArray ty len -> larray ty len
   //would be nice to just add as is_block_array refinement here, but it messes with typeclass resolution
 
 let rec c_shmems (d : list shmem_desc) : Type0 =
@@ -46,7 +47,7 @@ let rec c_shmems (d : list shmem_desc) : Type0 =
 
 let c_shmem_inv (#d : shmem_desc) (c:c_shmem d) : prop =
   match d with
-  | SHArray ty len -> is_block_array #ty #len c
+  | SHArray ty len -> is_block_array #ty c
 
 let rec c_shmems_inv (#ds : list shmem_desc) (c:c_shmems ds) : prop =
   match ds with
@@ -59,7 +60,8 @@ let rec c_shmems_inv (#ds : list shmem_desc) (c:c_shmems ds) : prop =
 let live_c_shmem #d (c : c_shmem d) (#[T.exact (`1.0R)]f:_) : slprop =
   match d with
   | SHArray ty len ->
-    exists* v. gpu_pts_to_array #ty #len c #f v
+    exists* (v : Seq.seq ty).
+      A.pts_to c #f v
 
 instance val is_send_across_live_c_shmem #d (c:c_shmem d) #f (_:squash (c_shmem_inv c))
 : is_send_across block_of (live_c_shmem #d c #f)
@@ -110,11 +112,17 @@ let d_len d : SZ.t = let SHArray _ len = d in len
 ghost
 fn unfold_live_c_shmem #d (c:c_shmem d) #f
   requires live_c_shmem c #f
-  ensures exists* (s:Seq.seq (d_ty d)). gpu_pts_to_array #(d_ty d) #(d_len d) c #f s
+  ensures
+    // This should be pts_to_slice....
+    exists* (s:Seq.seq (d_ty d)).
+      pts_to (c <: larray (d_ty d) (d_len d)) #f s
 
 ghost
 fn fold_live_c_shmem #d (c:c_shmem d) #f
-  requires exists* (s:Seq.seq (d_ty d)). gpu_pts_to_array #(d_ty d) #(d_len d) c #f s
+  requires
+    // Idem
+    exists* (s:Seq.seq (d_ty d)).
+      pts_to (c <: larray (d_ty d) (d_len d)) #f s
   ensures live_c_shmem c #f
 
 ghost

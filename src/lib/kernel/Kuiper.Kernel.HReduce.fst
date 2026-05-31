@@ -195,6 +195,8 @@ fn mk_barrier_pre
             (array1_pts_to_slice_sum r tid (min (tid + pow2 it) nth) vr)))
       (fun (i:natlt nth) -> barrier_matrix nth r vr it tid i);
   } else {
+    assert pure (pow2 it > tid);
+    assert pure (tid % pow2 it == tid);
     if_elim_false _;
     forevery_emp_intro (natlt nth);
     forevery_ext

@@ -441,9 +441,9 @@ fn kf
   let (ar1, (ar2, _)) = sh;
 
   rewrite (live_c_shmem ar1 #(1.0R /. (tile * tile)))
-      as  (exists* v. gpu_pts_to_array ar1 #(1.0R /. (tile * tile)) v);
+      as  (exists* v. pts_to ar1 #(1.0R /. (tile * tile)) v);
   rewrite (live_c_shmem ar2 #(1.0R /. (tile * tile)))
-      as  (exists* v. gpu_pts_to_array ar2 #(1.0R /. (tile * tile)) v);
+      as  (exists* v. pts_to ar2 #(1.0R /. (tile * tile)) v);
 
   gpu_pts_to_ref ar1;
   gpu_pts_to_ref ar2;
@@ -607,9 +607,9 @@ fn kf
   fold (kpost1 comb comb_r tile gA gB gC eA eB eC rA rB rC fA fB bid tid);
 
   (* Fold live_c_shmem for each shmem array *)
-  rewrite (exists* v. gpu_pts_to_array (fst sh) #(1.0R /. (tile * tile)) v)
+  rewrite (exists* v. pts_to (fst sh) #(1.0R /. (tile * tile)) v)
       as  (live_c_shmem (fst sh) #(1.0R /. (tile * tile)));
-  rewrite (exists* v. gpu_pts_to_array (fst (snd sh)) #(1.0R /. (tile * tile)) v)
+  rewrite (exists* v. pts_to (fst (snd sh)) #(1.0R /. (tile * tile)) v)
       as  (live_c_shmem (fst (snd sh)) #(1.0R /. (tile * tile)));
 
   (* Fold live_c_shmems back for kpost *)

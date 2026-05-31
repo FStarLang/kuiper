@@ -25,16 +25,16 @@ val mk_kernel
   {| real_like et_ab, real_like et_c |}
   (#rows #shared #cols : szp)
   (#lA : mlayout rows shared) {| clayout lA |}
-  (gA : gpu_matrix et_ab lA { is_global_matrix gA })
+  (gA : gpu_matrix et_ab lA { is_global gA })
   (#eA : ematrix et_ab rows shared)
   (#lB : mlayout shared cols) {| clayout lB |}
   {| str_A : strided_row_major lA,
      str_B : strided_row_major lB |}
   (#_ : squash (aligned_strided_row_major (chunk et_ab) str_A))
   (#_ : squash (aligned_strided_row_major (chunk et_ab) str_B))
-  (gB : gpu_matrix et_ab lB { is_global_matrix gB })
+  (gB : gpu_matrix et_ab lB { is_global gB })
   (#eB : ematrix et_ab shared cols)
-  (gC : gpu_matrix et_c (R.row_major rows cols) { is_global_matrix gC })
+  (gC : gpu_matrix et_c (R.row_major rows cols) { is_global gC })
   (#_ : squash (SZ.fits (rows * cols)))
   (#eC : ematrix et_c rows cols)
   (bm bn bk
