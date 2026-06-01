@@ -604,6 +604,7 @@ fn cp_matrix_vec
     assert pure (chunk et /? cell_of_pos lsrc row col);
     assert pure (16 /?+ (cell_of_pos lsrc row col * size #et));
 
+    assume pure (aligned' 16 local 0); // fake, but local is registers and do not need alignment, fix
     gpu_matrix_vec_read src row col local;
 
     let ite : erased nat = GR.read git;

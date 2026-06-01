@@ -52,8 +52,8 @@ fn barrier_p_fold_even
   (elems : lseq et nnz)
   (col_ind : lseq sz nnz)
   (row_off : lseq sz (p.rows + 1))
-  (elems_tile : gpu_array et p.blockItemsK)
-  (col_ind_tile : gpu_array sz p.blockItemsK)
+  (elems_tile : larray et p.blockItemsK)
+  (col_ind_tile : larray sz p.blockItemsK)
   (#_ : squash (well_formed p col_ind row_off))
   (bid : natlt (nblocks p))
   (ri : sz{ri == row_off @! (brow p bid |~> row_perm)})
@@ -82,8 +82,8 @@ fn barrier_p_fold_odd
   (elems : lseq et nnz)
   (col_ind : lseq sz nnz)
   (row_off : lseq sz (p.rows + 1))
-  (elems_tile : gpu_array et p.blockItemsK)
-  (col_ind_tile : gpu_array sz p.blockItemsK)
+  (elems_tile : larray et p.blockItemsK)
+  (col_ind_tile : larray sz p.blockItemsK)
   (#_ : squash (well_formed p col_ind row_off))
   (bid : natlt (nblocks p))
   (ri : sz{ri == row_off @! (brow p bid |~> row_perm)})
@@ -132,8 +132,8 @@ fn barrier_q_unfold_even
   (elems : lseq et nnz)
   (col_ind : lseq sz nnz)
   (row_off : lseq sz (p.rows + 1))
-  (elems_tile : gpu_array et p.blockItemsK)
-  (col_ind_tile : gpu_array sz p.blockItemsK)
+  (elems_tile : larray et p.blockItemsK)
+  (col_ind_tile : larray sz p.blockItemsK)
   (#_ : squash (well_formed p col_ind row_off))
   (bid : natlt (nblocks p))
   (ri : sz{ri == row_off @! (brow p bid |~> row_perm)})
@@ -175,8 +175,8 @@ fn barrier_q_unfold_odd
   (elems : lseq et nnz)
   (col_ind : lseq sz nnz)
   (row_off : lseq sz (p.rows + 1))
-  (elems_tile : gpu_array et p.blockItemsK)
-  (col_ind_tile : gpu_array sz p.blockItemsK)
+  (elems_tile : larray et p.blockItemsK)
+  (col_ind_tile : larray sz p.blockItemsK)
   (#_ : squash (well_formed p col_ind row_off))
   (bid : natlt (nblocks p))
   (ri : sz{ri == row_off @! (brow p bid |~> row_perm)})
@@ -228,8 +228,8 @@ fn barrier_q_unfold_odd_residue
   (elems : lseq et nnz)
   (col_ind : lseq sz nnz)
   (row_off : lseq sz (p.rows + 1))
-  (elems_tile : gpu_array et p.blockItemsK)
-  (col_ind_tile : gpu_array sz p.blockItemsK)
+  (elems_tile : larray et p.blockItemsK)
+  (col_ind_tile : larray sz p.blockItemsK)
   (#_ : squash (well_formed p col_ind row_off))
   (bid : natlt (nblocks p))
   (ri : sz{ri == row_off @! (brow p bid |~> row_perm)})
@@ -274,8 +274,8 @@ fn barrier_q_fold_even
   (elems : lseq et nnz)
   (col_ind : lseq sz nnz)
   (row_off : lseq sz (p.rows + 1))
-  (elems_tile : gpu_array et p.blockItemsK)
-  (col_ind_tile : gpu_array sz p.blockItemsK)
+  (elems_tile : larray et p.blockItemsK)
+  (col_ind_tile : larray sz p.blockItemsK)
   (#_ : squash (well_formed p col_ind row_off))
   (bid : natlt (nblocks p))
   (ri : nat{ri == row_off @! (brow p bid |~> row_perm)})
@@ -310,8 +310,8 @@ fn barrier_q_fold_odd
   (elems : lseq et nnz)
   (col_ind : lseq sz nnz)
   (row_off : lseq sz (p.rows + 1))
-  (elems_tile : gpu_array et p.blockItemsK)
-  (col_ind_tile : gpu_array sz p.blockItemsK)
+  (elems_tile : larray et p.blockItemsK)
+  (col_ind_tile : larray sz p.blockItemsK)
   (#_ : squash (well_formed p col_ind row_off))
   (bid : natlt (nblocks p))
   (ri : nat{ri == row_off @! (brow p bid |~> row_perm)})
@@ -350,8 +350,8 @@ fn barrier_q_fold_odd_residue
   (elems : lseq et nnz)
   (col_ind : lseq sz nnz)
   (row_off : lseq sz (p.rows + 1))
-  (elems_tile : gpu_array et p.blockItemsK)
-  (col_ind_tile : gpu_array sz p.blockItemsK)
+  (elems_tile : larray et p.blockItemsK)
+  (col_ind_tile : larray sz p.blockItemsK)
   (#_ : squash (well_formed p col_ind row_off))
   (bid : natlt (nblocks p))
   (ri : nat{ri == row_off @! (brow p bid |~> row_perm)})
@@ -390,8 +390,8 @@ fn barrier_p_odd_to_cells
   (#nnz : sz)
   (elems : lseq et nnz)
   (col_ind : lseq sz nnz)
-  (elems_tile : gpu_array et p.blockItemsK)
-  (col_ind_tile : gpu_array sz p.blockItemsK)
+  (elems_tile : larray et p.blockItemsK)
+  (col_ind_tile : larray sz p.blockItemsK)
   (ri re : nat{ri <= re /\ re <= nnz})
   (idx : nat)
   (#_ : squash (ri + idx * p.blockItemsK <= re))
@@ -402,8 +402,8 @@ fn barrier_p_odd_to_cells
   ensures
     forall+ (i : natlt p.blockItemsK).
       exists* (x : et) (c : sz).
-        gpu_pts_to_cell elems_tile i x **
-        gpu_pts_to_cell col_ind_tile i c **
+        pts_to_cell elems_tile i x **
+        pts_to_cell col_ind_tile i c **
         pure ((ri + idx * p.blockItemsK) + i < re ==>
           x == elems @! ((ri + idx * p.blockItemsK) + i) /\
           c == col_ind @! ((ri + idx * p.blockItemsK) + i))
@@ -433,8 +433,8 @@ fn barrier_p_odd_to_cells
         (prod_gg (p.blockItemsK /^ p.blockWidth) p.blockWidth i)._1)
     (fun (i : natlt ((p.blockItemsK /^ p.blockWidth) * p.blockWidth)) ->
       exists* (x : et) (c : sz).
-        gpu_pts_to_cell elems_tile i x **
-        gpu_pts_to_cell col_ind_tile i c **
+        pts_to_cell elems_tile i x **
+        pts_to_cell col_ind_tile i c **
         pure ((ri + idx * p.blockItemsK) + i < re ==>
           x == elems @! ((ri + idx * p.blockItemsK) + i) /\
           c == col_ind @! ((ri + idx * p.blockItemsK) + i)))
@@ -456,8 +456,8 @@ fn even_barrier_p_to_q
   (#et : Type0)
   (p : parameters { size_req p })
   (#nnz : sz)
-  (elems_tile : gpu_array et p.blockItemsK)
-  (col_ind_tile : gpu_array sz p.blockItemsK)
+  (elems_tile : larray et p.blockItemsK)
+  (col_ind_tile : larray sz p.blockItemsK)
   (ri re : nat{ri <= re /\ re <= nnz})
   (idx : nat)
   (#_ : squash (ri + idx * p.blockItemsK <= re))
@@ -478,38 +478,35 @@ fn even_barrier_p_to_q
       exists* (s : seq sz). col_ind_tile |-> Frac (1.0R /. p.blockWidth) s);
 
   // Step 2: Gather elems fractions
-  gpu_slice_gather_underspec elems_tile 0 p.blockItemsK p.blockWidth;
+  array_gather_underspec elems_tile p.blockWidth;
   // Step 3: Gather col_ind fractions
-  gpu_slice_gather_underspec col_ind_tile 0 p.blockItemsK p.blockWidth;
+  array_gather_underspec col_ind_tile p.blockWidth;
 
   // Step 4: Slice into per-cell ownership
-  with ve. assert (gpu_pts_to_slice elems_tile 0 p.blockItemsK ve);
-  with vc. assert (gpu_pts_to_slice col_ind_tile 0 p.blockItemsK vc);
-  gpu_pts_to_slice_ref elems_tile 0 p.blockItemsK;
-  gpu_pts_to_slice_ref col_ind_tile 0 p.blockItemsK;
-  rewrite (gpu_pts_to_slice elems_tile 0 p.blockItemsK ve)
-    as (pts_to elems_tile ve);
-  rewrite (gpu_pts_to_slice col_ind_tile 0 p.blockItemsK vc)
-    as (pts_to col_ind_tile vc);
-  gpu_array_slice_1 elems_tile;
-  gpu_array_slice_1 col_ind_tile;
+  with ve. assert pts_to elems_tile   ve;
+  with vc. assert pts_to col_ind_tile vc;
+  Pulse.Lib.Array.pts_to_len elems_tile;
+  Pulse.Lib.Array.pts_to_len col_ind_tile;
+
+  array_slice_1 elems_tile;
+  array_slice_1 col_ind_tile;
 
   // Step 5: Zip and wrap cells into array_live_cell
   forevery_zip
     (fun (i : natlt p.blockItemsK) ->
-      gpu_pts_to_cell elems_tile i (ve @! i))
+      pts_to_cell elems_tile i (ve @! i))
     (fun (i : natlt p.blockItemsK) ->
-      gpu_pts_to_cell col_ind_tile i (vc @! i));
+      pts_to_cell col_ind_tile i (vc @! i));
 
   forevery_map
     (fun (i : natlt p.blockItemsK) ->
-      gpu_pts_to_cell elems_tile i (ve @! i) **
-      gpu_pts_to_cell col_ind_tile i (vc @! i))
+      pts_to_cell elems_tile i (ve @! i) **
+      pts_to_cell col_ind_tile i (vc @! i))
     (fun (i : natlt p.blockItemsK) ->
       array_live_cell elems_tile i ** array_live_cell col_ind_tile i)
     fn i {
-      fold (array_live_cell elems_tile i);
-      fold (array_live_cell col_ind_tile i);
+      fold array_live_cell elems_tile i;
+      fold array_live_cell col_ind_tile i;
     };
 
   // Step 7: Flat→pair reindex
@@ -532,6 +529,11 @@ fn even_barrier_p_to_q
     (fun (k : natlt (p.blockItemsK /^ p.blockWidth)) (tid : natlt p.blockWidth) ->
       array_live_cell elems_tile (k * p.blockWidth + tid) **
       array_live_cell col_ind_tile (k * p.blockWidth + tid));
+
+  assert
+    forall+ (tid : natlt p.blockWidth).
+      forall+ (k : natlt (p.blockItemsK /^ p.blockWidth)).
+        barrier_q_even p nnz elems_tile col_ind_tile ri re idx tid k;
 }
 
 #pop-options
@@ -546,8 +548,8 @@ fn odd_full_barrier_p_to_q
   (#nnz : sz)
   (elems : lseq et nnz)
   (col_ind : lseq sz nnz)
-  (elems_tile : gpu_array et p.blockItemsK)
-  (col_ind_tile : gpu_array sz p.blockItemsK)
+  (elems_tile : larray et p.blockItemsK)
+  (col_ind_tile : larray sz p.blockItemsK)
   (ri re : nat{ri <= re /\ re <= nnz})
   (idx : nat)
   (#_ : squash (ri + idx * p.blockItemsK + p.blockItemsK <= re))
@@ -573,18 +575,18 @@ fn odd_full_barrier_p_to_q
   forevery_map
     (fun (i : natlt p.blockItemsK) ->
       exists* (x : et) (c : sz).
-        gpu_pts_to_cell elems_tile i x **
-        gpu_pts_to_cell col_ind_tile i c **
+        pts_to_cell elems_tile i x **
+        pts_to_cell col_ind_tile i c **
         pure ((ri + idx * p.blockItemsK) + i < re ==>
           x == elems @! ((ri + idx * p.blockItemsK) + i) /\
           c == col_ind @! ((ri + idx * p.blockItemsK) + i)))
     (fun (i : natlt p.blockItemsK) ->
-      gpu_pts_to_cell elems_tile i ((Seq.slice (reveal elems) off (off + p.blockItemsK)) @! i) **
-      gpu_pts_to_cell col_ind_tile i ((Seq.slice (reveal col_ind) off (off + p.blockItemsK)) @! i))
+      pts_to_cell elems_tile i ((Seq.slice (reveal elems) off (off + p.blockItemsK)) @! i) **
+      pts_to_cell col_ind_tile i ((Seq.slice (reveal col_ind) off (off + p.blockItemsK)) @! i))
     fn i {
       with x c. assert (
-        gpu_pts_to_cell elems_tile i x **
-        gpu_pts_to_cell col_ind_tile i c **
+        pts_to_cell elems_tile i x **
+        pts_to_cell col_ind_tile i c **
         pure ((ri + idx * p.blockItemsK) + i < re ==>
           x == elems @! ((ri + idx * p.blockItemsK) + i) /\
           c == col_ind @! ((ri + idx * p.blockItemsK) + i)));
@@ -603,15 +605,15 @@ fn odd_full_barrier_p_to_q
   // Unzip, unslice, share, zip
   forevery_unzip
     (fun (i : natlt p.blockItemsK) ->
-      gpu_pts_to_cell elems_tile i ((Seq.slice (reveal elems) off (off + p.blockItemsK)) @! i))
+      pts_to_cell elems_tile i ((Seq.slice (reveal elems) off (off + p.blockItemsK)) @! i))
     (fun (i : natlt p.blockItemsK) ->
-      gpu_pts_to_cell col_ind_tile i ((Seq.slice (reveal col_ind) off (off + p.blockItemsK)) @! i));
+      pts_to_cell col_ind_tile i ((Seq.slice (reveal col_ind) off (off + p.blockItemsK)) @! i));
 
-  gpu_array_unslice_1 elems_tile;
-  gpu_array_unslice_1 col_ind_tile;
+  array_unslice_1 elems_tile;
+  array_unslice_1 col_ind_tile;
 
-  gpu_slice_share elems_tile 0 p.blockItemsK p.blockWidth;
-  gpu_slice_share col_ind_tile 0 p.blockItemsK p.blockWidth;
+  Kuiper.Array.Extra.array_share elems_tile   p.blockWidth;
+  Kuiper.Array.Extra.array_share col_ind_tile p.blockWidth;
 
   forevery_zip
     (fun (_ : natlt p.blockWidth) ->
@@ -636,8 +638,8 @@ fn odd_residue_barrier_p_to_q
   (#nnz : sz)
   (elems : lseq et nnz)
   (col_ind : lseq sz nnz)
-  (elems_tile : gpu_array et p.blockItemsK)
-  (col_ind_tile : gpu_array sz p.blockItemsK)
+  (elems_tile : larray et p.blockItemsK)
+  (col_ind_tile : larray sz p.blockItemsK)
   (ri re : nat{ri <= re /\ re <= nnz})
   (idx : nat)
   (#_ : squash (ri + idx * p.blockItemsK <= re))
@@ -658,34 +660,34 @@ fn odd_residue_barrier_p_to_q
   forevery_map
     (fun (i : natlt p.blockItemsK) ->
       exists* (x : et) (c : sz).
-        gpu_pts_to_cell elems_tile i x **
-        gpu_pts_to_cell col_ind_tile i c **
+        pts_to_cell elems_tile i x **
+        pts_to_cell col_ind_tile i c **
         pure ((ri + idx * p.blockItemsK) + i < re ==>
           x == elems @! ((ri + idx * p.blockItemsK) + i) /\
           c == col_ind @! ((ri + idx * p.blockItemsK) + i)))
     (fun (i : natlt p.blockItemsK) ->
       forall+ (_ : natlt p.blockWidth).
         exists* (x : et) (c : sz).
-          gpu_pts_to_cell elems_tile #(1.0R /. p.blockWidth) i x **
-          gpu_pts_to_cell col_ind_tile #(1.0R /. p.blockWidth) i c **
+          pts_to_cell elems_tile #(1.0R /. p.blockWidth) i x **
+          pts_to_cell col_ind_tile #(1.0R /. p.blockWidth) i c **
           pure ((ri + idx * p.blockItemsK) + i < re ==>
             x == elems @! ((ri + idx * p.blockItemsK) + i) /\
             c == col_ind @! ((ri + idx * p.blockItemsK) + i)))
     fn i {
       with x c. assert (
-        gpu_pts_to_cell elems_tile i x **
-        gpu_pts_to_cell col_ind_tile i c **
+        pts_to_cell elems_tile i x **
+        pts_to_cell col_ind_tile i c **
         pure ((ri + idx * p.blockItemsK) + i < re ==>
           x == elems @! ((ri + idx * p.blockItemsK) + i) /\
           c == col_ind @! ((ri + idx * p.blockItemsK) + i)));
 
       // Unfold cells to slices for sharing
-      unfold gpu_pts_to_cell elems_tile #1.0R i x;
-      unfold gpu_pts_to_cell col_ind_tile #1.0R i c;
+      unfold pts_to_cell elems_tile #1.0R i x;
+      unfold pts_to_cell col_ind_tile #1.0R i c;
 
       // Share each slice p.blockWidth ways
-      gpu_slice_share elems_tile i (i + 1) p.blockWidth;
-      gpu_slice_share col_ind_tile i (i + 1) p.blockWidth;
+      slice_share elems_tile i (i + 1) p.blockWidth;
+      slice_share col_ind_tile i (i + 1) p.blockWidth;
 
       // Introduce duplicated pure fact and zip all three
       forevery_intro_pure
@@ -696,9 +698,9 @@ fn odd_residue_barrier_p_to_q
 
       forevery_zip3
         (fun (_ : natlt p.blockWidth) ->
-          gpu_pts_to_slice elems_tile #(1.0R /. p.blockWidth) i (i + 1) (seq![x]))
+          pts_to_slice elems_tile #(1.0R /. p.blockWidth) i (i + 1) (seq![x]))
         (fun (_ : natlt p.blockWidth) ->
-          gpu_pts_to_slice col_ind_tile #(1.0R /. p.blockWidth) i (i + 1) (seq![c]))
+          pts_to_slice col_ind_tile #(1.0R /. p.blockWidth) i (i + 1) (seq![c]))
         (fun (_ : natlt p.blockWidth) ->
           pure ((ri + idx * p.blockItemsK) + i < re ==>
             x == elems @! ((ri + idx * p.blockItemsK) + i) /\
@@ -707,21 +709,21 @@ fn odd_residue_barrier_p_to_q
       // Fold cells back and package existentials
       forevery_map
         (fun (_ : natlt p.blockWidth) ->
-          gpu_pts_to_slice elems_tile #(1.0R /. p.blockWidth) i (i + 1) (seq![x]) **
-          gpu_pts_to_slice col_ind_tile #(1.0R /. p.blockWidth) i (i + 1) (seq![c]) **
+          pts_to_slice elems_tile #(1.0R /. p.blockWidth) i (i + 1) (seq![x]) **
+          pts_to_slice col_ind_tile #(1.0R /. p.blockWidth) i (i + 1) (seq![c]) **
           pure ((ri + idx * p.blockItemsK) + i < re ==>
             x == elems @! ((ri + idx * p.blockItemsK) + i) /\
             c == col_ind @! ((ri + idx * p.blockItemsK) + i)))
         (fun (_ : natlt p.blockWidth) ->
           exists* (x' : et) (c' : sz).
-            gpu_pts_to_cell elems_tile #(1.0R /. p.blockWidth) i x' **
-            gpu_pts_to_cell col_ind_tile #(1.0R /. p.blockWidth) i c' **
+            pts_to_cell elems_tile #(1.0R /. p.blockWidth) i x' **
+            pts_to_cell col_ind_tile #(1.0R /. p.blockWidth) i c' **
             pure ((ri + idx * p.blockItemsK) + i < re ==>
               x' == elems @! ((ri + idx * p.blockItemsK) + i) /\
               c' == col_ind @! ((ri + idx * p.blockItemsK) + i)))
         fn _ {
-          fold (gpu_pts_to_cell elems_tile #(1.0R /. p.blockWidth) i x);
-          fold (gpu_pts_to_cell col_ind_tile #(1.0R /. p.blockWidth) i c);
+          fold (pts_to_cell elems_tile #(1.0R /. p.blockWidth) i x);
+          fold (pts_to_cell col_ind_tile #(1.0R /. p.blockWidth) i c);
         };
     };
 
@@ -744,8 +746,8 @@ fn barrier_p_to_q_transform
   (elems : lseq et nnz)
   (col_ind : lseq sz nnz)
   (row_off : lseq sz (p.rows + 1))
-  (elems_tile : gpu_array et p.blockItemsK)
-  (col_ind_tile : gpu_array sz p.blockItemsK)
+  (elems_tile : larray et p.blockItemsK)
+  (col_ind_tile : larray sz p.blockItemsK)
   (#_ : squash (well_formed p col_ind row_off))
   (bid : natlt (nblocks p))
   (it : nat)

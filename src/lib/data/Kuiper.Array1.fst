@@ -74,14 +74,14 @@ let is_global (#et : Type0) (#len : nat) (#l : layout len)
 let from_array
   (#et : Type0) (#len : erased nat)
   (l : layout len)
-  (a : gpu_array et (layout_size l))
+  (a : larray et (layout_size l))
   : t et l
   = T.from_array _ a
 
 let core
   (#et : Type0) (#len : erased nat) (#l : layout len)
   (a : t et l)
-  : gpu_array et (layout_size l)
+  : larray et (layout_size l)
   = T.core a
 
 let lem_core_from_array
@@ -95,7 +95,7 @@ let lem_core_from_array
 let lem_from_array_core
   (#et : Type) (#len : erased nat)
   (l : layout len)
-  (p : gpu_array et (layout_size l))
+  (p : larray et (layout_size l))
   : Lemma (ensures core (from_array l p) == p)
           [SMTPat (from_array l p)]
   = ()
@@ -135,7 +135,8 @@ fn alloc0
   ensures
     exists* em. on gpu_loc (p |-> em)
   ensures
-    pure (is_global p)
+    pure (is_global p) **
+    pure (is_full_array (core p))
 {
   let t = T.alloc0 #et len l;
   with em. assert on gpu_loc (T.tensor_pts_to t em);
@@ -155,7 +156,8 @@ fn free
   preserves
     cpu
   requires
-    on gpu_loc (p |-> em)
+    on gpu_loc (p |-> em) **
+    pure (is_full_array (core p))
   ensures
     emp
 {
@@ -202,7 +204,7 @@ ghost
 fn raise
   (#et : Type) (#len : nat)
   (l : full_layout len)
-  (p : gpu_array et (layout_size l))
+  (p : larray et (layout_size l))
   (#f : perm)
   (#s : lseq et len)
   requires
@@ -223,7 +225,7 @@ ghost
 fn raise'
   (#et : Type) (#len : nat)
   (l : full_layout len)
-  (p : gpu_array et (layout_size l))
+  (p : larray et (layout_size l))
   (#f : perm)
   (#s : lseq et len)
   requires
@@ -329,7 +331,7 @@ let pts_to_cell_eq
   (a : t et l) (i : ait len) (f : perm) (v : et)
   : Lemma (pts_to_cell a #f i v
            ==
-           gpu_pts_to_cell (core a) #f (l.imap.f (adapt_idx_back i)) v)
+           B.pts_to_cell (core a) #f (l.imap.f (adapt_idx_back i)) v)
   = T.tensor_pts_to_cell_eq a (adapt_idx_back i) f v
 
 instance is_send_across_global_cell
@@ -489,7 +491,7 @@ fn memcpy_device_to_host'
            as (core src |-> Frac f v);
     };
 
-  (* Bulk copy at the gpu_array level *)
+  (* Bulk copy at the larray level *)
   gpu_memcpy_device_to_host' #_ #_ #dst_sz dst_arr dst_off #_ (core src) src_off cnt;
 
   map_loc gpu_loc

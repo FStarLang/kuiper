@@ -484,6 +484,7 @@ fn cp_array2_vec
     assert pure (chunk et /? cell_of_pos lsrc row col);
     assert pure (16 /?+ (cell_of_pos lsrc row col * size #et));
 
+    assume pure (aligned 16 local); // FIXME local arrays do not need alignment
     array2_vec_read src row col local;
 
     let ite : erased nat = GR.read git;

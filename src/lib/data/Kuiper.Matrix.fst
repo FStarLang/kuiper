@@ -10,12 +10,12 @@ module T = FStar.Tactics.V2
 let gpu_matrix (et:Type0) (#rows #cols : nat) (l : mlayout rows cols) : Type0 =
   A.varray (aview_from_mlayout et #rows #cols l)
 
-let is_global_matrix
+let is_global
   (#et:Type0) (#rows #cols : nat)
   (#l : mlayout rows cols)
   (arr: gpu_matrix et l)
 : prop
-= A.is_global_varray (arr)
+= A.is_global arr
 
 let from_array l p = A.from_array (aview_from_mlayout _ l) p
 let core g = A.core g
@@ -33,7 +33,7 @@ let lem_from_array_core
   (#et : Type)
   (#rows #cols : erased nat)
   (#l : mlayout rows cols)
-  (p : gpu_array et (mlayout_size l))
+  (p : larray et (mlayout_size l))
   : Lemma (ensures core (from_array l p) == p)
           [SMTPat (from_array l p)]
   = ()
@@ -51,7 +51,7 @@ instance is_send_across_global_matrix
   (#et:Type0)
   (#rows #cols : nat)
   (#l : mlayout rows cols)
-  (x: gpu_matrix et l { is_global_matrix x })
+  (x: gpu_matrix et l { is_global x })
   (#f : perm)
   (em : ematrix et rows cols)
 : is_send_across gpu_of (gpu_matrix_pts_to x #f em)
@@ -131,7 +131,7 @@ fn gpu_matrix_abs
   (#et:Type)
   (#rows #cols : nat)
   (l : mlayout rows cols { is_full_layout l })
-  (p : gpu_array et (mlayout_size l))
+  (p : larray et (mlayout_size l))
   (#f : perm)
   (#em : ematrix et rows cols)
   requires
@@ -156,7 +156,7 @@ fn gpu_matrix_abs'
   (#et:Type)
   (#rows #cols : nat)
   (l : mlayout rows cols { is_full_layout l })
-  (p : gpu_array et (mlayout_size l))
+  (p : larray et (mlayout_size l))
   (#f : perm)
   (#s : lseq et (mlayout_size l))
   requires
@@ -182,7 +182,7 @@ fn gpu_matrix_iconcr
   ensures
     pure (SZ.fits (mlayout_size l)) **
     (forall+ (r : natlt rows) (c : natlt cols).
-      gpu_pts_to_cell (core g) #f (cell_of_pos l r c) (macc em r c))
+      pts_to_cell (core g) #f (cell_of_pos l r c) (macc em r c))
 {
   unfold gpu_matrix_pts_to g #f em;
   A.varray_pts_to_ref g;
@@ -191,7 +191,7 @@ fn gpu_matrix_iconcr
   forevery_rw_type _ (natlt rows & natlt cols) _;
   forevery_unflatten' _;
   forevery_ext_2 _
-    (fun r c -> gpu_pts_to_cell (core g) #f (cell_of_pos l r c) (macc em r c));
+    (fun r c -> pts_to_cell (core g) #f (cell_of_pos l r c) (macc em r c));
 }
 
 ghost
@@ -205,14 +205,14 @@ fn gpu_matrix_iabs
   requires
     pure (SZ.fits (mlayout_size l)) **
     (forall+ (r : natlt rows) (c : natlt cols).
-      gpu_pts_to_cell (core g) #f (cell_of_pos l r c) (macc em r c))
+      pts_to_cell (core g) #f (cell_of_pos l r c) (macc em r c))
   ensures
     g |-> Frac f em
 {
   forevery_flatten _;
   forevery_rw_type _ ((aview_from_mlayout et l).iview.ait) _;
   forevery_ext _
-    (fun i -> gpu_pts_to_cell (A.core g) #f ((aview_from_mlayout et l).iview.step.imap.f i)
+    (fun i -> pts_to_cell (A.core g) #f ((aview_from_mlayout et l).iview.step.imap.f i)
       ((aview_from_mlayout et l).ctn.acc em i));
 
   A.varray_iabs g;
@@ -232,7 +232,9 @@ fn gpu_matrix_alloc0
     gm : gpu_matrix et l
   ensures
     exists* em. on gpu_loc (gm |-> em)
-  ensures   pure (is_global_matrix gm)
+  ensures
+    pure (is_global gm) **
+    pure (is_full_array (core gm))
 {
   open FStar.SizeT;
   let gm = A.varray_alloc0 (rows *^ cols) (aview_from_mlayout et l);
@@ -251,7 +253,8 @@ fn gpu_matrix_free
   preserves
     cpu
   requires
-    on gpu_loc (gm |-> em)
+    on gpu_loc (gm |-> em) **
+    pure (is_full_array (core gm))
   ensures emp
 {
   rewrite on gpu_loc (gpu_matrix_pts_to gm em) as on gpu_loc (A.varray_pts_to gm em);
@@ -467,8 +470,20 @@ let gpu_matrix_pts_to_cell_eq
   (v : et)
   : Lemma (gpu_matrix_pts_to_cell gm #f i j v
            ==
-           gpu_pts_to_cell (core gm) #f (cell_of_pos l i j) v)
+           pts_to_cell (core gm) #f (cell_of_pos l i j) v)
   = A.varray_pts_to_cell_eq gm (i,j) f v
+
+instance is_send_across_global_matrix_pts_to_cell
+  (#et:Type) (#rows #cols : nat)
+  (#l : mlayout rows cols)
+  (gm : gpu_matrix et l { is_global gm })
+  (#f : perm)
+  (i : natlt rows)
+  (j : natlt cols)
+  (v : et)
+  : is_send_across gpu_of
+      (gpu_matrix_pts_to_cell gm #f i j v)
+  = solve
 
 inline_for_extraction noextract
 fn gpu_matrix_read_cell

@@ -11,6 +11,20 @@ module Par = Pulse.Lib.Par
 
 module SH = Kuiper.SHMem
 
+module A = Pulse.Lib.Array.Core
+
+let c_shmem_full (#d : SH.shmem_desc) (c : SH.c_shmem d) : prop =
+  match d with
+  | SH.SHArray ty len -> A.is_full_array #ty c
+
+let rec c_shmems_full (#ds : list SH.shmem_desc) (c : SH.c_shmems ds) : prop =
+  match ds with
+  | [] -> True
+  | d :: ds ->
+    let c : SH.c_shmem d & SH.c_shmems ds = c in
+    c_shmem_full #d (fst c) /\
+    c_shmems_full #ds (snd c)
+
 // Models the allocation of per-block shared memory by the GPU runtime.
 noextract
 fn rec alloc_c_shmems
@@ -19,7 +33,7 @@ fn rec alloc_c_shmems
 preserves loc block_loc
 returns res: SH.c_shmems d
 ensures SH.live_c_shmems res
-ensures pure (SH.c_shmems_inv res)
+ensures pure (SH.c_shmems_inv res /\ c_shmems_full res)
 {
   match d {
     norewrite
@@ -36,7 +50,7 @@ ensures pure (SH.c_shmems_inv res)
       let resa' = Kuiper.Array.Core.gpu_array_alloc_vis #a.ty #a.sized a.len block_loc block_of;
       let resa : SH.c_shmem a = coerce_eq () resa';
       on_elim _;
-      with s . rewrite (resa' |-> s) as (Kuiper.Array.Core.gpu_pts_to_array #a.ty #a.len resa s);
+      rewrite each resa' as (resa <: larray a.ty a.len);
       SH.fold_live_c_shmem resa;
       let res : SH.c_shmems d = (resa, resq);
       rewrite each resa as fst #(SH.c_shmem a) #(SH.c_shmems q) res;
@@ -54,9 +68,9 @@ fn rec free_c_shmems
   (block_loc: loc_id)
   (d: list SH.shmem_desc)
   (res: SH.c_shmems d)
-preserves loc block_loc
-requires SH.live_c_shmems res
-requires pure (SH.c_shmems_inv res)
+  preserves loc block_loc
+  requires SH.live_c_shmems res
+  requires pure (SH.c_shmems_inv res /\ c_shmems_full res)
 {
   match d {
     Nil -> {
@@ -72,10 +86,9 @@ requires pure (SH.c_shmems_inv res)
       let resa : SH.c_shmem a = fst res';
       rewrite each (fst res') as resa;
       SH.unfold_live_c_shmem resa;
-      let resa' : Kuiper.Array.Core.gpu_array a.ty a.len = resa;
-      with s . rewrite (Kuiper.Array.Core.gpu_pts_to_array #a.ty #a.len resa s) as (resa' |-> s);
-      with s . assert (resa' |-> s);
-      on_intro (resa' |-> s);
+      let resa' : larray a.ty a.len = resa;
+      rewrite each (resa <: larray a.ty a.len) as resa';
+      on_intro (resa' |-> _);
       Kuiper.Array.Core.gpu_array_free_gen resa' block_loc;
     }
   }
@@ -90,7 +103,7 @@ fn rec run_block_threads
   (#full_post : slprop)
   (k : kernel_desc full_pre full_post)
   (bid: szlt k.nblk)
-  (sh: SH.c_shmems k.shmems_desc {SH.c_shmems_inv sh})
+  (sh: SH.c_shmems k.shmems_desc {SH.c_shmems_inv sh /\ c_shmems_full sh})
   (upto: sz { upto <= k.nthr})
 preserves block_id k.nblk bid
 requires
@@ -148,7 +161,7 @@ fn free_c_shmems'
   (res : SH.c_shmems d)
   preserves block_id 'x bid
   requires SH.live_c_shmems res
-  requires pure (SH.c_shmems_inv res)
+  requires pure (SH.c_shmems_inv res /\ c_shmems_full res)
 {
   unfold block_id 'x bid;
   free_c_shmems _ d res;

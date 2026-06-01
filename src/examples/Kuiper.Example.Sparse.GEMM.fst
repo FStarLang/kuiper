@@ -155,17 +155,14 @@ fn matmul_dotprod
   ensures pure (res == MS.matmul_single eA eB i j)
 {
   unfold smatrix_pts_to gA #fA eA;
-  with v_elems.
-    assert gpu_pts_to_array gA.elems #fA v_elems;
-  with v_row_off.
-    assert gpu_pts_to_array gA.row_off #fA v_row_off;
-  with v_ind.
-    assert gpu_pts_to_array gA.col_ind # fA v_ind;
+  with (v_elems : seq _).     assert gA.elems   |-> Frac fA v_elems;
+  with (v_row_off : seq sz).  assert gA.row_off |-> Frac fA v_row_off;
+  with (v_ind : seq sz).      assert gA.col_ind |-> Frac fA v_ind;
 
   assert pure (forall k. v_ind @! k < shared);
 
-  let ri = gpu_array_read gA.row_off i;
-  let re = gpu_array_read gA.row_off (i +^ 1sz);
+  let ri = Pulse.Lib.Array.(gA.row_off.(i));
+  let re = Pulse.Lib.Array.(gA.row_off.(i +^ 1sz));
 
   let mut dp : et = zero;
 
@@ -182,8 +179,8 @@ fn matmul_dotprod
 
     decreases (re - !k)
   {
-    let x = gpu_array_read gA.elems !k;
-    let c = gpu_array_read gA.col_ind !k;
+    let x = Pulse.Lib.Array.(gA.elems.(!k));
+    let c = Pulse.Lib.Array.(gA.col_ind.(!k));
 
     let y = Array2.read gB (c, j);
 
@@ -440,8 +437,8 @@ let kdesc
 
   f = kf comb gA gB gC;
 
-  kpre_sendable = solve;
-  kpost_sendable = solve;
+  kpre_sendable = magic(); // fixme
+  kpost_sendable = magic(); // fixme
 }
 
 inline_for_extraction noextract

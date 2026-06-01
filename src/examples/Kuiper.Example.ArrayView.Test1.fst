@@ -158,7 +158,7 @@ let seq_rev (#a:Type) (s:seq a) : seq a =
 (* fixed! but could be nicer. *)
 #push-options "--z3rlimit 30"
 fn write3
-  (p : gpu_array u32 50)
+  (p : larray u32 50)
   (#s : erased (lseq u32 50))
   preserves gpu
   requires p |-> s

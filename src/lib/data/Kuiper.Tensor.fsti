@@ -23,7 +23,7 @@ inline_for_extraction noextract
 val from_array
   (#et : Type0) (#r : erased nat) (#d : idesc r)
   (l : tlayout d)
-  (a : gpu_array et (tlayout_size l))
+  (a : larray et (tlayout_size l))
   : tensor et l
 
 inline_for_extraction noextract
@@ -31,7 +31,7 @@ val core
   (#et : Type0) (#r : erased nat) (#d : idesc r)
   (#l : tlayout d)
   (a : tensor et l)
-  : gpu_array et (tlayout_size l)
+  : larray et (tlayout_size l)
 
 val lem_core_from_array
   (#et : Type0) (#r : nat) (#d : idesc r)
@@ -43,7 +43,7 @@ val lem_core_from_array
 val lem_from_array_core
   (#et : Type0) (#r : nat) (#d : idesc r)
   (#l : tlayout d)
-  (p : gpu_array et (tlayout_size l))
+  (p : larray et (tlayout_size l))
   : Lemma (ensures core (from_array l p) == p)
           [SMTPat (from_array l p)]
 
@@ -93,7 +93,8 @@ fn alloc0
   ensures
     exists* em. on gpu_loc (p |-> em)
   ensures
-    pure (is_global p)
+    pure (is_global p) **
+    pure (is_full_array (core p))
 
 inline_for_extraction noextract
 fn free
@@ -105,6 +106,7 @@ fn free
   preserves
     cpu
   requires
+    pure (is_full_array (core p)) **
     on gpu_loc (p |-> em)
   ensures emp
 
@@ -151,7 +153,7 @@ fn tensor_abs
   (#et:Type)
   (#r : nat) (#d : idesc r)
   (l : tlayout d { is_full l })
-  (p : gpu_array et (tlayout_size l))
+  (p : larray et (tlayout_size l))
   (#f : perm)
   (#s : chest d et)
   requires
@@ -164,7 +166,7 @@ fn tensor_abs'
   (#et:Type)
   (#r : nat) (#d : idesc r)
   (l : tlayout d { is_full l })
-  (p : gpu_array et (tlayout_size l))
+  (p : larray et (tlayout_size l))
   (#f : perm)
   (#s : lseq et (tlayout_size l))
   requires
@@ -283,7 +285,7 @@ val tensor_pts_to_cell_eq
   (a : tensor et l) (i : abs d) (f : perm) (v : et)
   : Lemma (Cell a i |-> Frac f v
            ==
-           gpu_pts_to_cell (core a) #f (l.imap.f i) v)
+           pts_to_cell (core a) #f (l.imap.f i) v)
 
 instance
 val is_send_across_global_tensor_cell
@@ -333,7 +335,7 @@ fn tensor_ilower
   ensures
     pure (SZ.fits (tlayout_size l)) **
     (forall+ (i : abs d).
-      gpu_pts_to_cell (core a) #f (l.imap.f i) (acc s i))
+      pts_to_cell (core a) #f (l.imap.f i) (acc s i))
 
 ghost
 fn tensor_iraise
@@ -345,7 +347,7 @@ fn tensor_iraise
   requires
     pure (SZ.fits (tlayout_size l)) **
     (forall+ (i : abs d).
-      gpu_pts_to_cell (core a) #f (l.imap.f i) (acc s i))
+      pts_to_cell (core a) #f (l.imap.f i) (acc s i))
   ensures
     a |-> Frac f s
 

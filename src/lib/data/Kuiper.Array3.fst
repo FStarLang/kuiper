@@ -60,14 +60,14 @@ let is_global (#et : Type0) (#d0 #d1 #d2 : nat) (#l : layout d0 d1 d2)
 let from_array
   (#et : Type0) (#d0 #d1 #d2 : erased nat)
   (l : layout d0 d1 d2)
-  (a : gpu_array et (layout_size l))
+  (a : larray et (layout_size l))
   : t et l
   = T.from_array _ a
 
 let core
   (#et : Type0) (#d0 #d1 #d2 : erased nat) (#l : layout d0 d1 d2)
   (a : t et l)
-  : gpu_array et (layout_size l)
+  : larray et (layout_size l)
   = T.core a
 
 let lem_core_from_array
@@ -81,7 +81,7 @@ let lem_core_from_array
 let lem_from_array_core
   (#et : Type) (#d0 #d1 #d2 : erased nat)
   (l : layout d0 d1 d2)
-  (p : gpu_array et (layout_size l))
+  (p : larray et (layout_size l))
   : Lemma (ensures core (from_array l p) == p)
           [SMTPat (from_array l p)]
   = ()
@@ -158,7 +158,8 @@ fn alloc0
   returns
     p : t et l
   ensures
-    exists* em. on gpu_loc (p |-> em)
+    exists* em. on gpu_loc (p |-> em) **
+    pure (is_full_array (core p))
   ensures
     pure (is_global p)
 {
@@ -181,7 +182,8 @@ fn free
   preserves
     cpu
   requires
-    on gpu_loc (p |-> em)
+    on gpu_loc (p |-> em) **
+    pure (is_full_array (core p))
   ensures emp
 {
   rewrite on gpu_loc (pts_to p em)
@@ -214,7 +216,7 @@ fn raise
   (#et:Type)
   (#d0 #d1 #d2 : nat)
   (l : layout d0 d1 d2 { is_full l })
-  (p : gpu_array et (layout_size l))
+  (p : larray et (layout_size l))
   (#f : perm)
   (#s : EMatrix3.t et d0 d1 d2)
   requires
@@ -236,7 +238,7 @@ fn raise'
   (#et:Type)
   (#d0 #d1 #d2 : nat)
   (l : layout d0 d1 d2 { is_full l })
-  (p : gpu_array et (layout_size l))
+  (p : larray et (layout_size l))
   (#f : perm)
   (#s : lseq et (layout_size l))
   requires
@@ -412,7 +414,7 @@ let pts_to_cell_eq
   (a : t et l) (ijk : ait d0 d1 d2) (f : perm) (v : et)
   : Lemma (pts_to_cell a #f ijk v
            ==
-           gpu_pts_to_cell (core a) #f (l.imap.f (adapt_idx_back ijk)) v)
+           B.pts_to_cell (core a) #f (l.imap.f (adapt_idx_back ijk)) v)
   = T.tensor_pts_to_cell_eq a (adapt_idx_back ijk) f v
 
 ghost

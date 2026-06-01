@@ -66,8 +66,8 @@ fn sarray_iterator_get
     assert sarray_pts_to' a s v_elems v_pos;
     unfold sarray_pts_to' a s v_elems v_pos;
 
-  let v = gpu_array_read a.elems i.i;
-  let p = gpu_array_read a.pos i.i;
+  let v = slice_read a.elems i.i;
+  let p = slice_read a.pos i.i;
 
   fold sarray_pts_to' a s v_elems v_pos;
   fold sarray_pts_to a s;
