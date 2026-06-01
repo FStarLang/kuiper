@@ -528,8 +528,8 @@ let unsparse_row_lemma
   );
   assert row `Seq.equal` s
 
-// TODO probablemente no nos interese probar esto
-#push-options "--z3rlimit 20"
+// TODO: is this useful?
+#push-options "--z3rlimit 40"
 let smatrix_extract_lemma
   (#et:Type0) {| scalar et |}
   (#rows #cols : nat)
@@ -555,8 +555,6 @@ let smatrix_extract_lemma
       row_off
   )
 =
-  // admit();
-  //e == smatrix_unsparse rows cols v_elems (cast_pos v_col_ind) (cast_pos v_row_off)
   let ri = row_off @! r in
   let re = row_off @! r + 1 in
   let first_elems = Seq.slice elems 0 ri in
@@ -565,38 +563,48 @@ let smatrix_extract_lemma
   let last_col_ind = Seq.slice col_ind re nnz in
   let elems' = Seq.append first_elems (Seq.append row_elems last_elems) in
   let col_ind' : lseq sz nnz = Seq.append first_col_ind (Seq.append row_pos last_col_ind) in
-  let e' = smatrix_unsparse rows cols elems' (cast_pos col_ind') (cast_pos row_off) in
 
-  assert valid_smatrix rows cols (cast_pos col_ind') (cast_pos row_off) ;
+  let ccol  = cast_pos col_ind in
+  let ccol' = cast_pos col_ind' in
+  let croff = cast_pos row_off in
+  let cpos  = cast_pos row_pos in
 
-    //if mem_slice j col_ind ri re
-      //then elems @! index_mem_slice j col_ind ri re
-      //else zero
+  let e' = smatrix_unsparse rows cols elems' ccol' croff in
+
+  assert valid_smatrix rows cols ccol' croff ;
+
+  // For each row, [unsparse_row_lemma] expresses [ematrix_row] of the
+  // unsparsed matrix as the (dense) [unsparse] of the row's slice. For
+  // rows other than [r] the slices of (elems', col_ind') coincide with
+  // those of (elems, col_ind); for row [r] they coincide with the
+  // replacement (row_elems, row_pos), which the precondition relates to
+  // [ematrix_row e r]. Hence [e] and [e'] agree row by row.
+  introduce forall (i:natlt rows). ematrix_row e i == ematrix_row e' i
+  with (
+    unsparse_row_lemma rows cols elems  ccol  croff i;
+    unsparse_row_lemma rows cols elems' ccol' croff i;
+    let ai = croff @! i in
+    let bi = croff @! (i + 1) in
+    if i = r
+      then (
+        assert (Seq.slice elems' ai bi `Seq.equal` row_elems);
+        assert (Seq.slice ccol'  ai bi `Seq.equal` cpos);
+        ()
+      )
+      else (
+        assert (bi <= ri \/ re <= ai);
+        assert (Seq.slice elems' ai bi `Seq.equal` Seq.slice elems ai bi);
+        assert (Seq.slice ccol'  ai bi `Seq.equal` Seq.slice ccol  ai bi);
+        ()
+      )
+  );
+
   introduce forall (i:natlt rows) (j:natlt cols). macc e i j == macc e' i j
   with (
-    let ri' = row_off @! i in
-    let re' = row_off @! i + 1 in
-    if i < r
-      then (
-        assert (
-          forall (k : nat{ri' <= k /\ k < re'}).
-            (cast_pos col_ind') @! k == (cast_pos col_ind) @! k
-        );
-        if mem_slice j (cast_pos col_ind') ri' re'
-          then (
-            assert mem_slice j (cast_pos col_ind) ri' re';
-            assert
-              index_mem_slice j (cast_pos col_ind') ri' re' ==
-              index_mem_slice j (cast_pos col_ind) ri' re';
-            let k = index_mem_slice j (cast_pos col_ind) ri' re' in
-            let k' = index_mem_slice j (cast_pos col_ind') ri' re' in
-            admit()
-          )
-          else
-            assert not (mem_slice j (cast_pos col_ind) ri' re')
-      )
-      else admit()
+    assert (macc e  i j == ematrix_row e  i @! j);
+    assert (macc e' i j == ematrix_row e' i @! j)
   );
+
   assert e `equal` e';
 
   ()
