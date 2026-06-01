@@ -206,7 +206,7 @@ val gpu_matrix_subtile_base
     )
     [SMTPat (core (gpu_matrix_subtile gm trows tcols tr tc))]
 
-let is_gpu_matrix_subtile_global
+val is_gpu_matrix_subtile_global
   (#et : _)
   (#rows #cols : erased nat)
   (#l : mlayout rows cols)
@@ -220,7 +220,6 @@ let is_gpu_matrix_subtile_global
     is_global (gpu_matrix_subtile gm trows tcols tr tc) <==>
     is_global gm)
   [SMTPat (is_global (gpu_matrix_subtile gm trows tcols tr tc))]
-= admit() // gpu_matrix_subtile_base gm trows tcols tr tc
 
 val cell_convert_eq
   (#et : _)
