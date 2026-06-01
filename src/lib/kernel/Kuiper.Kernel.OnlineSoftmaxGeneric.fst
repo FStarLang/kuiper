@@ -1,175 +1,308 @@
+(* An attempt at generalizing online softmax so it can be fused with other kernels. *)
 module Kuiper.Kernel.OnlineSoftmaxGeneric
 
 #lang-pulse
 open Kuiper
-open Kuiper.Seq.Common
-module SZ = FStar.SizeT
-open Kuiper.Array1
-open Kuiper.Tensor.Layout { ctlayout }
-open Kuiper.Tensor.Layout.Alg { l1_forward }
+open Kuiper.DotProd
 open Kuiper.Spec.Softmax
+open Kuiper.Seq.Common
 
-let rmax_seq (s: Seq.seq real { Seq.length s > 0 }) : real = seq_fold_left rmax (s @! 0) (seq_drop 1 s)
+let exp_sum (s : seq real{len s > 0}) : r:real{r >. 0.0R} =
+  rsum (seq_map rexp s)
 
-let online_softmax_invariant (l m: real) (z: seq real {Seq.length z > 0}) (k: natle (Seq.length z)): prop =
-  (k == 0 ==> m == (z @! 0)) /\
-  (k > 0 ==> (m == rmax_seq (seq_take k z))) /\
-  (l == rsum (seq_map (fun zi -> rexp (zi -. m)) z))
+let adjust_factor (s : seq real{len s > 0}) (x : real) : real =
+  exp_sum s
+  /.
+  (exp_sum s +. rexp x)
 
-let online_softmax_upd 
-  (l m: real)
-  (z: seq real {Seq.length z > 0}) (i: natlt (Seq.length z)): 
-  (real & real & real & real) = 
-  let m' = rmax m (z @! i) in
-  let adj = rexp (m -. m') in
-  let si = rexp ((z @! i) -. m') in
-  let l' = adj *. l +. si in
-  (l', m', si, adj)
+let rec seq_max (s : seq real{len s > 0})
+  : Tot real (decreases len s)
+  =
+  let SCons h t = view_seq s in
+  match view_seq t with
+  | SNil -> h
+  | SCons _ _ -> rmax h (seq_max t)
 
-let lem_online_softmax_upd
-  (l m: real)
-  (z: seq real { Seq.length z > 0 })
-  (k : natlt ( Seq.length z - 1 )) 
-  (f: real -> real -> real) :
-  Lemma (requires online_softmax_invariant l m z k)
-        (ensures (let (l', m', _, _) = online_softmax_upd l m z k in
-          online_softmax_invariant l' m' z (k + 1))) = admit ()
-
-let online_softmax_init
-  (z: seq real {Seq.length z > 0}) :
-  (real & real) =
-  (0.R, z @! 0)
-
-let lem_online_softmax_init
-  (z : seq real {Seq.length z > 0}) :
-  Lemma (ensures (let (l,m) = online_softmax_init z in 
-    online_softmax_invariant l m z 0)) = admit ()
-
-let lem_online_softmax_elem
-  (l m: real)
-  (z: seq real {Seq.length z > 0})
-  (k: natle (Seq.length z) { k > 0 })
-  (i: natlt (Seq.length z) { i < k }) : 
-  Lemma (requires online_softmax_invariant l m z k)
-        (ensures (rexp ((z @! i) -. m)) /. (l) == (softmax_real (seq_take k z)) @! i) = admit ()
-
-let lem_online_softmax_adj
-  (l m: real)
-  (z: seq real {Seq.length z > 0})
-  (f: real -> natlt (Seq.length z) -> real)
-  (op: real -> real -> real {forall (a b r: real). (r *. a) `op` (r *. b) == r *. (a `op` b)})
-  (init: real)
-  (* TODO: get rid of the extra constraint here. The lemma still holds when k = 0, but we just can't call softmax_real on an empty sequence
-    (seq_take 0 z) because that would entail dividing by 0. *)
-  (* maybe it just needs to be a "softmax_real_safe" that returns an empty sequence given an empty sequence as input.
-    Because it would also not be possible to have the invariant below hold before the loop (when k = 0) on the client side code. *)
-  (k: natlt (Seq.length z) { k > 0 }): 
-  Lemma (requires online_softmax_invariant l m z k)
-        (ensures 
-          (let (l', m', si, adj) = online_softmax_upd l m z k in
-          (seq_fold_left op init (seq_mapi (softmax_real (seq_take k z)) f)) *. l *. adj `op` (f si k) ==
-          (seq_fold_left op init (seq_mapi (softmax_real (seq_take (k+1) z)) f)) *. l')) = admit ()
-          (* in client side code, we would divide by l to get the final thing *)
-
-
-(* this is what the client code for dotproduct would have as the loop invariant for the running dotproduct sum *)
-let dotprod_invariant_example 
-  (sum: ref real)
-  (l: real) (* managed by online_softmax_upd *)
-  (a: seq real {Seq.length a > 0})
-  (b: seq real {Seq.length b == Seq.length a})
-  (* TODO: once again remove side condition for i > 0 *)
-  (i: natle (Seq.length a) { i > 0 }): slprop =
-    sum |-> ((seq_fold_left (+.) 0.0R (seq_mapi (softmax_real (seq_take i a)) (fun s i -> s *. (b @! i)))) *. l)
+let rec seq_max_cons_lem (s : seq real{len s > 0}) (x : real)
+  : Lemma (ensures seq_max (s @+ seq![x]) == rmax x (seq_max s))
+          (decreases len s)
+          [SMTPat (seq_max (s @+ seq![x]))]
+  = let SCons h t = view_seq s in
+    assert Seq.equal (s @+ seq![x]) (Seq.cons h (t @+ seq![x]));
+    match view_seq t with
+    | SNil ->
+      lem_rmax_comm x (seq_max s)
+    | SCons _ _ ->
+      calc (==) {
+        seq_max (s @+ seq![x]);
+        == {}
+        rmax h (seq_max (t @+ seq![x]));
+        == { seq_max_cons_lem t x }
+        rmax h (rmax x (seq_max t));
+        == { lem_rmax_assoc h x (seq_max t)}
+        rmax (rmax h x) (seq_max t);
+        == {}
+        rmax x (seq_max s);
+      }
 
 (*
+desired client code sketch:
 
-previous attempts :
+va vb: float seq N
+ra rb: real seq N { va =~ ra, vb =~ rb }
+a b: array N
 
-inline_for_extraction noextract
-fn online_softmax_generic_one
-  (#et : Type0) {| floating et, real_like et, floating_real_like et |}
-  (#lena #leno : szp)
-  (#la : Kuiper.Array1.layout lena) {| ctlayout la |}
-  (#lo : Kuiper.Array1.layout leno) {| ctlayout lo |}
-  (a : array1 et la)
-  (o : array1 et lo)
-  (lr mr : ref et)
-  (frame: slprop) (* TODO: what if fpre and fpost need different `frame` ? problem is we can't request both since they may not be disjoint..  *)
-  (fpre : fn (i:szlt lena)
-            preserves frame
-            returns r : et)
-  (fpost : fn (a : array1 et la) (i:szlt leno)
-            preserves frame ** (exists* (va: (lseq et lena)). a |-> va)
-            returns r : et)
-(* LATER: values: 
-    (#va : erased (lseq et lenab))
-    (ra : erased (lseq real lenab) { va %~ ra }) 
-  (#_: squash (seq_forallb not_nan va)) *)
-  ()
-  preserves
-    frame **
-    (exists* (va: (lseq et lena)). a |-> va) **
-    (exists* (vo: (lseq et leno)). o |-> vo) **
-    (exists* (vlr: et). lr |-> vlr) **
-    (exists* (vmr: et). mr |-> vmr)
-{
-  let mut l: et = neg infinity; let mut m: et = zero;
-  let mut i = 0sz;
+let state: osmx_st a = online_softmax_init a ();
+let res: float = 0.0f;
+while (i < N)
+  invariant osmx_state_ok state a i **
+    !res =~ state.dr *. osmx_reduce (fun fxi i -> fxi `mul` vb @! i) (fun fxi i -> fxi *. rb @! i) ...
+  {
 
-  // Offline softmax portion
-  // Generate elements with fpre and find max
-  while (!i <^ lena) 
-    invariant live i ** 
-      (live l ** live m) **
-      (exists* (va: (lseq et lena)). a |-> va) **
-      frame
-    decreases (lena - !i) {
-    
-    let x = fpre !i;
-    write a !i x;
-    m := fmax !m x;
+  state', fxi, adj = osmx_step a i ();
+  res := !res * adj + fxi * (b @! i);
+  state' := state;
 
-    i := !i `SZ.add` 1sz;
-  };
-
-  i := 0sz;
-  // Get sum of vector
-  while (!i <^ lena)
-    invariant live i **
-      (exists* (va: (lseq et lena)). a |-> va) **
-      (live l ** live m)
-    decreases (lena - !i) {
-
-    let x = read a !i;
-    let s = exp (x `sub` !m);
-    write a !i s;
-    l := !l `add` s;
-
-    i := !i `SZ.add` 1sz;
-  };
-
-  let m_n = fmax !mr !m;
-  let l_n = !lr `mul` (exp (!mr `sub` m_n)) `add` !l `mul` (exp (!m `sub` m_n));
-
-  i := 0sz;
-  while (!i <^ leno) 
-    invariant live i ** frame **
-      (exists* (va: (lseq et lena)). a |-> va) **
-      (exists* (vo: (lseq et leno)). o |-> vo)
-    decreases (leno - !i) {
-
-    let x = fpost a !i;
-    let o_p = read o !i;
-    let o_n: et = (o_p `mul` (!lr `div` l_n) `mul` (exp (!mr `sub` m_n))) `add` (x `mul` (exp (!m `sub` m_n)));
-    write o !i o_n;
-
-    i := !i `SZ.add` 1sz;
-  };
-
-  mr := m_n;
-  lr := l_n;
-  ()
-} 
+  osmx_adj_lem res a ...;
+}
+// smt should automatically be able to show then !res =~ osmx_reduce ... , but maybe it would fail to cancel out the / state.d.
+// we can also just force people to use the divides in the invariant.
+res := !res / state.d;
+client_side_dotprod_ok_proof ();
 
 *)
+
+let get = Some?.v
+
+[@@erasable]
+noeq
+type osmx_rst : Type0 = {
+  s : seq real;
+  d : real;
+  m : option real;
+  #m_empty_ok : Seq.length s > 0 <==> Some? m;
+}
+
+let ok_rst (rs: osmx_rst): prop =
+  (Seq.length rs.s > 0 ==> get rs.m == seq_max rs.s) /\
+  (Seq.length rs.s > 0 ==> rs.d >. 0.0R /\ rs.d == exp_sum rs.s /. rexp (get rs.m))
+
+noeq
+type osmx_st (et: Type0): Type0 = {
+  d : et;
+  m : et;
+}
+
+instance st_approx (et:Type) {| scalar et, floating et, real_like et |}
+  : can_approximate (osmx_st et) osmx_rst = {
+    approximates = (fun (l : osmx_st et) (r : osmx_rst) ->
+      // (Seq.length r.s == 0 ==> l.d == zero /\ l.m == neg infinity) /\
+      Seq.length r.s > 0 ==>
+        l.d %~ r.d /\ l.m %~ get r.m);
+  }
+
+instance tup3_approx (a0 a1 a2 b0 b1 b2: Type) {| can_approximate a0 b0, can_approximate a1 b1, can_approximate a2 b2 |}
+  : can_approximate (a0 & a1 & a2) (b0 & b1 & b2) = {
+    approximates = (fun (at : (a0 & a1 & a2)) (bt: (b0 & b1 & b2)) ->
+      let (at0,at1,at2) = at in
+      let (bt0,bt1,bt2) = bt in
+      (at0 %~ bt0) /\ (at1 %~ bt1) /\ (at2 %~ bt2));
+  }
+
+// either put in postcondition "osmx_fst s.t. s == []" or unfold def'n
+let osmx_rinit () : osmx_rst = { s = seq![]; d = 0.0R; m = None; }
+
+let osmx_rstep0 (s : osmx_rst) (x : real) : osmx_rst =
+  let m' = (match s.m with | None -> x | Some m -> rmax m x) in
+  {
+    s = s.s @+ seq![x];
+    m = Some m';
+    d = (match s.m with
+         | None   ->                          rexp (x -. m') // equal to one...
+         | Some m -> s.d *. rexp (m -. m') +. rexp (x -. m'))
+  }
+
+let osmx_rstep (s : osmx_rst) (x : real) : GTot (osmx_rst & real & real) =
+  let s' = osmx_rstep0 s x in
+  (s', rexp (x -. get s'.m), (if None? s.m then 1.0R else rexp (get s.m -. get s'.m)))
+
+let lemma_osmx_rstep (s : osmx_rst) (x : real)
+  : Lemma (requires ok_rst s)
+          (ensures  ok_rst (osmx_rstep0 s x))
+          [SMTPat (ok_rst (osmx_rstep0 s x))]
+  = admit()
+
+(*
+let online_softmax_step (xi: real) (m d: real):
+  (real & real & real & real) =
+  let m' = rmax m xi in
+  let fxi = rexp (xi -. m') in
+  let adj = rexp (m -. m') in
+  let d' = d *. adj +. fxi in
+  (m', d', fxi, adj)
+
+val lem_online_softmax_step_correct (#n: pos) (x : lseq real n) (i: pos{i < n})
+  (m d: real):
+  Lemma (requires online_softmax_invariant x i m d)
+        (ensures
+          (let (m',d',fxi,_) = online_softmax_step (x @! i) m d in
+          online_softmax_invariant x (i+1) m' d' /\
+          fxi /. d' == softmax_real (seq_take (i+1) x) @! i))
+*)
+
+// let lem_osmx_rstep_correct
+
+inline_for_extraction noextract
+fn osmx_init #et {| scalar et, floating et,real_like et |}
+  ()
+  returns (s: osmx_st et {s %~ osmx_rinit ()})
+{
+  ({ d = zero #et; m = neg #et infinity; })
+}
+
+inline_for_extraction noextract
+fn osmx_step #et {| scalar et, floating et, real_like et |}
+  (s : osmx_st et)
+  (rs: osmx_rst {s %~ rs})
+  (x : et)
+  (rx : real)
+  requires
+    pure (x %~ rx)
+  returns
+    res : (res : (osmx_st et & et & et) { res %~ osmx_rstep rs rx })
+{
+  let Mkosmx_st d m = s;
+  let m' = fmax m x;
+  let fx = exp (x `sub` m');
+  let adj = exp (m `sub` m');
+  let d' = (d `mul` adj) `add` fx;
+  let s' = {d=d'; m=m'};
+  assume pure False;
+  (s', fx, adj)
+}
+
+// (* k is a continuation: what to do with e^xi where xi is an element of the softmax'd vector *)
+// let fused_k_ty (n: pos) = real -> natlt n -> real
+// let fused_k_comm_div_ty (#n: pos) (k: fused_k_ty n) =
+//   (nr: real) -> (dr: real { dr =!= 0.0R } ) -> (j: natlt n) -> (k nr j) /. dr == k (nr /. dr) j
+
+// (* how to reduce each result of applying k *)
+// let fused_op_ty = real -> real -> real
+// let fused_op_distrib_mul_ty (op: fused_op_ty) =
+//   (a: real) -> (b: real) -> (r: real) -> (a `op` b) *. r == (a *. r) `op` (b *. r)
+
+// unfold
+// let online_softmax_fuse_reduce (#n: pos)
+//   (x: lseq real n)
+//   (k: fused_k_ty n)  (* continuation: what to do with e^xi *)
+//   (op: fused_op_ty)
+//   (i: natle n) =
+//     if i == 0 then 0.0R
+//     else seq_fold_left op 0.0R (seq_mapi (softmax_real (seq_take i x)) k)
+
+// val lem_online_softmax_fuse_by_adj (#n : pos)
+//   (x : lseq real n)
+//   (i: pos {i < n})
+//   (m d: real { online_softmax_invariant x i m d })
+//   (k: fused_k_ty n)  
+//   (#k_comm_div: fused_k_comm_div_ty k)
+//   (op: fused_op_ty)
+//   (#op_distrib_mul: fused_op_distrib_mul_ty op)
+//   (r : real):
+//   Lemma
+//     (requires r /. d == online_softmax_fuse_reduce x k op i)
+//     (ensures
+//       (let (m',d',fxi,adj) = online_softmax_step (x @! i) m d in
+//       ((r *. adj) `op` (k fxi i)) /. d' == online_softmax_fuse_reduce x k op (i+1)))
+
+let rst_d (r : osmx_rst) : real = r.d
+
+let cancel (a b c : real) :
+  Lemma (requires a == b *. c /\ b =!= 0.0R)
+        (ensures  a /. b == c)
+  = ()
+
+#set-options "--split_queries always"
+
+// (a,b) -> softmax(a) * b
+inline_for_extraction noextract
+fn osmx_dotprod
+  (#et : Type0) {| scalar et, floating et, real_like et, floating_real_like et |}
+  (len : szp)
+  (a b : larray et len)
+  (va vb : erased (lseq et   len))
+  (ra rb : erased (lseq real len))
+  preserves a |-> va
+  preserves b |-> vb
+  requires  pure (va %~ ra /\ vb %~ rb)
+  returns v : et
+  ensures pure (v %~ seq_dotprod (softmax_real ra) rb)
+{
+  open Pulse.Lib.Array;
+  Pulse.Lib.Array.pts_to_len a;
+  Pulse.Lib.Array.pts_to_len b;
+
+  let mut st  : osmx_st et = osmx_init #et ();
+  let mut rst : osmx_rst = osmx_rinit ();
+  let mut i : szle len = 0sz;
+  let mut r : et = zero #et;
+  let mut rr : real = 0.0R;
+  while (!i <^ len)
+    invariant live i
+    invariant live st ** live rst ** pure (!st %~ !rst)
+    invariant live r ** live rr **
+      pure (!r %~ !rr /\ ok_rst !rst /\
+            (!rst).s == seq_take !i ra /\
+            !rr == rst_d !rst *. seq_dotprod #(!i) (softmax_real (seq_take !i ra)) (seq_take !i rb))
+    decreases (len - !i)
+  {
+    let rst0 = !rst;
+
+    let stv, fai, adj = osmx_step !st !rst a.(!i) (Seq.index ra !i);
+
+    assert pure (stv %~ (osmx_rstep !rst (Seq.index ra !i))._1);
+    assert pure (stv %~ osmx_rstep0 !rst (Seq.index ra !i));
+
+    assert pure (fai %~ (osmx_rstep !rst (Seq.index ra !i))._2);
+
+    let rst' = osmx_rstep0 !rst (Seq.index ra !i);
+
+    st  := stv;
+    rst := rst';
+    assert pure (!st %~ !rst);
+    r  := add (!r `mul` adj) (fai `mul` b.(!i));
+    assume pure (Some? (rst0 <: osmx_rst).m);
+    rr := !rr *. (rexp (get (rst0 <: osmx_rst).m) -. rexp (get rst'.m)) +.
+           rexp (Seq.index ra !i -. get (rst'.m)) *. Seq.index rb !i;
+    assume pure (!r %~ !rr);
+
+    i := !i +^ 1sz;
+
+    assert pure (!st %~ !rst);
+    assert pure (!r %~ !rr);
+    assert pure (ok_rst !rst);
+    assume pure ((!rst).s == seq_take !i ra);
+    assume pure (!rr == rst_d !rst *. seq_dotprod #(!i) (softmax_real (seq_take !i ra)) (seq_take !i rb));
+
+    ()
+  };
+  assert pure (!i == len);
+  assert pure (seq_take len ra == ra);
+  assert pure (seq_take len rb == rb);
+  assert pure (seq_dotprod #len (softmax_real (seq_take len ra)) (seq_take len rb) == seq_dotprod (softmax_real ra) rb);
+  assert pure (!rr == rst_d !rst *. seq_dotprod (softmax_real ra) rb);
+  assert pure (rst_d !rst =!= 0.0R);
+  cancel !rr (rst_d !rst) (seq_dotprod (softmax_real ra) rb);
+  assert pure (!rr /. rst_d !rst == seq_dotprod (softmax_real ra) rb);
+  let res = !r `div` (!st).d;
+  // assert pure (!r %~ !rr);
+  // assert pure (!st %~ !rst);
+  // assert pure ((!st).d %~ rst_d !rst);
+  // div_approx !r (!st).d !rr (rst_d !rst);
+  // assert pure ((div !r (!st).d) %~ (!rr /. rst_d !rst));
+  assert pure (res %~ seq_dotprod (softmax_real ra) rb);
+  res
+}
+
+let osmx_dotprod_f32 len = osmx_dotprod #f32 len
+ 
