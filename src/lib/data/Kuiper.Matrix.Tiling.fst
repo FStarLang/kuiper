@@ -287,6 +287,22 @@ let gpu_matrix_subtile_base
     [SMTPat (core (gpu_matrix_subtile gm trows tcols tr tc))]
   = ()
 
+let is_gpu_matrix_subtile_global
+  (#et : _)
+  (#rows #cols : erased nat)
+  (#l : mlayout rows cols)
+  (#gm : gpu_matrix et l)
+  (#trows : erased nat {0 < trows /\ trows /? rows})
+  (#tcols : erased nat {0 < tcols /\ tcols /? cols})
+  (#tr : enatlt (rows / trows))
+  (#tc : enatlt (cols / tcols))
+: Lemma
+  (ensures
+    is_global (gpu_matrix_subtile gm trows tcols tr tc) <==>
+    is_global gm)
+  [SMTPat (is_global (gpu_matrix_subtile gm trows tcols tr tc))]
+= ()
+
 let cell_convert_eq
   (#et : _)
   (#rows #cols : erased nat)

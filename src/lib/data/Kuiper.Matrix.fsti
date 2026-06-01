@@ -78,6 +78,14 @@ val lem_from_array_core
   : Lemma (ensures core (from_array l p) == p)
           [SMTPat (from_array l p)]
 
+val lem_is_global_iff_core
+  (#et : Type)
+  (#rows #cols : erased nat)
+  (#l : mlayout rows cols)
+  (g : gpu_matrix et l)
+  : Lemma (ensures is_global g <==> is_global_array (core g))
+          [SMTPat (is_global g)]
+
 val gpu_matrix_pts_to
   (#et:Type) (#rows #cols : nat) (#l : mlayout rows cols)
   ([@@@mkey] gm : gpu_matrix et l)

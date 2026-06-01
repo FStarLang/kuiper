@@ -38,6 +38,15 @@ let lem_from_array_core
           [SMTPat (from_array l p)]
   = ()
 
+let lem_is_global_iff_core
+  (#et : Type)
+  (#rows #cols : erased nat)
+  (#l : mlayout rows cols)
+  (g : gpu_matrix et l)
+  : Lemma (ensures is_global g <==> is_global_array (core g))
+          [SMTPat (is_global g)]
+  = A.lem_is_global_iff_core g
+
 let gpu_matrix_pts_to
   (#et:Type) (#rows #cols : nat)
   (#l : mlayout rows cols)

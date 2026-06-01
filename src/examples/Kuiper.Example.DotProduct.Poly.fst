@@ -161,8 +161,8 @@ let kdesc (#et:Type) {| scalar et |}
   kpost = kpost #et size ga1 ga2 r;
   block_setup = block_setup #et ga1 ga2 r;
   block_teardown = block_teardown #et ga1 ga2 r;
-  kpost_sendable=magic();
-  kpre_sendable=magic();
+  kpost_sendable=solve;
+  kpre_sendable=solve;
   full_post_sendable=magic();
   full_pre_sendable=magic();
 } <: kernel_desc_1_n _ _

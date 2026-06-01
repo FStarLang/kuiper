@@ -67,9 +67,6 @@ let kpr_translate_type_without_decay : translate_type_without_decay_t = fun env 
   let x = type_hta t in
   if None? x then raise NotSupportedByKrmlExtension;
   match Some?.v x with
-  | "Kuiper.Ref.gpu_ref",     [t]      -> TBuf (cb t)
-  | "Kuiper.Array.Core.gpu_array", [t; len] -> TBuf (cb t)
-
   | "Kuiper.TensorCore.Base.fragment", [et; knd; m; n; k; layout] ->
     // Note: it is difficult to try to construct a proper type
     // here because
@@ -744,20 +741,7 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
 
   (******** REFERENCES ********)
 
-  | "Kuiper.Ref.gpu_alloc0", [ty], [ sz; _unit ] ->
-    let sz : expr = sizeof (cb_ty ty) in
-    ECast (EApp (EQualified ([], "KPR_GPU_ALLOC"), [ sz; EConstant (fake_SizeT, "1") ]),
-           TBuf (translate_type env ty))
-
-  | "Kuiper.Ref.gpu_free", [ty], [ r; _v ] ->
-    _MUST <| EApp (EQualified ([], "cudaFree"), [cb r])
-
-  | "Kuiper.Ref.gpu_read", [ty], [ e; _perm; _v ] ->
-    deref (cb e)
-
-  | "Kuiper.Ref.gpu_write", [ty], [ e1; e2; _v0 ] ->
-    EBufWrite (cb e1, zero_for_deref, cb e2)
-
+  (* Sadly these two are still primitive. *)
   | "Kuiper.Ref.gpu_memcpy_host_to_device", [ty], [ sz; dst_gr; src_r; f; v; gv ] ->
     let sz : expr = sizeof (cb_ty ty) in
     _MUST <| EApp (EQualified ([], "cudaMemcpy"), [ cb dst_gr; cb src_r; sz; cudaMemcpyHostToDevice ])
@@ -765,10 +749,6 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
   | "Kuiper.Ref.gpu_memcpy_device_to_host", [ty], [ sz; dst_r; src_gr; f; v; gv ] ->
     let sz : expr = sizeof (cb_ty ty) in
     _MUST <| EApp (EQualified ([], "cudaMemcpy"), [ cb dst_r; cb src_gr; sz; cudaMemcpyDeviceToHost ])
-
-  | "Kuiper.Ref.gpu_memcpy_device_to_device", [ty], [ sz; dst_gr; src_r; f; v; gv ] ->
-    let sz : expr = sizeof (cb_ty ty) in
-    _MUST <| EApp (EQualified ([], "cudaMemcpy"), [ cb dst_gr; cb src_r; sz ; cudaMemcpyDeviceToDevice ])
 
   (******** ARRAY ********)
 
