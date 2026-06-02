@@ -16,12 +16,14 @@ open Kuiper.EMatrix
 open Kuiper.Index
 open Kuiper.Array1
 
+inline_for_extraction noextract
 fn flashattention_tile
   (#et : Type0) {| scalar et, floating et |}
   (bc br d: szp)
-  (#lS: M.layout br bc)  {| ctlayout lS |}
-  (#lKj lVj: M.layout bc d) {| ctlayout lKj, ctlayout lVj |}
-  (#lQi lOi: M.layout br d) {| ctlayout lQi, ctlayout lOi |}
+  (lS: M.layout br bc)
+  (lKj lVj: M.layout bc d)
+  (lQi lOi: M.layout br d)
+  {| ctlayout lS, ctlayout lKj, ctlayout lVj, ctlayout lQi, ctlayout lOi |}
   (gS: M.array2 et lS)
   (gKj: M.array2 et lKj) 
   (gVj: M.array2 et lVj)
@@ -32,15 +34,15 @@ fn flashattention_tile
   (eVj: ematrix et bc d)
   (eQi: ematrix et br d)
   (eOi: ematrix et br d)
-  (vl vm: et)
+  (vl vm: erased et)
   (tid: sz { tid <^ br /\ tid <^ bc }) // TODO: impossible to materialize tid in a kernel unless br = bc
   requires 
     gOi |-> eOi
   preserves 
     gKj |-> eKj ** gVj |-> eVj ** gQi |-> eQi ** gl |-> vl ** gm |-> vm **
-    (exists* (eS: ematrix et br bc). gS |-> eS)
+    live gS
   ensures 
-    (exists* (eOi': ematrix et br d). gOi |-> eOi')
+    live gOi // No functional spec
 {
   let row_m_prev = !gm;
   let row_l_prev = !gl;
@@ -68,9 +70,8 @@ fn flashattention_tile
     // TODO: add softmax scale factor
     // sum := !sum * alpha;
 
-    let wtf2 = !y;
-    let idxs: M.raw_cit = ((tid <: sz), (wtf2 <: sz));
-    M.write gS idxs !sum;
+    let vy = !y;
+    M.write gS ((tid <: sz), (vy <: sz)) !sum;
     row_m := fmax !row_m !sum;
     
     y := !y +^ 1sz;
@@ -82,10 +83,9 @@ fn flashattention_tile
     invariant live y ** live row_l ** live gS
     decreases (bc - !y)
   {
-    let wtf2 = !y;
-    let idxs: M.raw_cit = ((tid <: sz), (wtf2 <: sz));
-    let vs: et = exp ((M.read gS idxs) `sub` !row_m);
-    M.write gS idxs vs;
+    let vy = !y;
+    let vs: et = exp ((M.read gS ((tid <: sz), (vy <: sz))) `sub` !row_m);
+    M.write gS ((tid <: sz), (vy <: sz)) vs;
     row_l := !row_l `add` vs;
 
     y := !y +^ 1sz;
@@ -105,30 +105,37 @@ fn flashattention_tile
       invariant live y ** live pv 
       decreases (bc - !y)
     {
-      let wtf1 = !x; let wtf2 = !y;
-      let idxs: M.raw_cit = ((tid <: sz), (wtf2 <: sz));
-      let idxv: M.raw_cit = ((wtf2 <: sz), (wtf1 <: sz));
-      let vs: et = M.read gS idxs;
-      let vv: et = M.read gVj idxv;
+      let vx = !x; let vy = !y;
+      let vs: et = M.read gS ((tid <: sz), (vy <: sz));
+      let vv: et = M.read gVj ((vy <: sz), (vx <: sz));
       pv := !pv `add` (vs `mul` vv);
 
       y := !y +^ 1sz;
     };
 
-    let wtf1 = !x;
-    let idxo: M.raw_cit = ((tid <: sz), (wtf1 <: sz));
-    let vo: et = M.read gOi idxo;
+    let vx = !x;
+    let vo: et = M.read gOi ((tid <: sz), (vx <: sz));
     let vo: et = (vo `mul` row_l_prev `mul` (exp (row_m_prev `sub` row_m_new))) `div` row_l_new;
     let vo: et = vo `add` ((exp (!row_m `sub` row_m_new)) `mul` !pv);
+
+    M.write gOi ((tid <: sz), (vx <: sz)) vo;
 
     x := !x +^ 1sz;
   }
 }
-  
-(*
 
-qs:
-* cit
-* syntax for add, mul, etc.
+open Kuiper.Tensor.Layout.Alg
 
-*)
+let flashattention_f32 =
+  flashattention_tile #f32
+  32sz 32sz 128sz
+  (l2_row_major _ _)
+  (l2_row_major _ _)
+  (l2_row_major _ _)
+  (l2_row_major _ _)
+  (l2_row_major _ _)
+  #(c_l2_row_major _ _)
+  #(c_l2_row_major _ _)
+  #(c_l2_row_major _ _)
+  #(c_l2_row_major _ _)
+  #(c_l2_row_major _ _)
