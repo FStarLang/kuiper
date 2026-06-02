@@ -165,3 +165,6 @@ let seq_stride (#a:Type)
   = Seq.init_ghost
       (seq_stride_length s stride off)
       (fun i -> s @! (off + i * stride))
+
+let seq_mapi (#a #b :Type) (s : seq a) (f : a -> natlt (Seq.length s) -> b) : GTot (seq b) =
+  Seq.init_ghost (Seq.length s) (fun i -> f (Seq.index s i) i)
