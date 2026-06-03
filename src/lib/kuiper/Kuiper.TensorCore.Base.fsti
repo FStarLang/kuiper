@@ -30,13 +30,14 @@ let valid_frag_layout
 = ((knd == FragA \/ knd == FragB) /\ (layout == FragLRM \/ layout == FragLCM)) \/
    (knd == FragAcc) /\ (layout == FragLAcc)
 
+// Reference: https://docs.nvidia.com/cuda/cuda-programming-guide/05-appendices/cpp-language-extensions.html#element-types-and-matrix-sizes
 // this ignores checking for a valid compute capability
 let valid_frag_et_dims
   (et : Type0)
   (knd : fragment_kind)
   (m n k : nat) : prop
 =
-  ((((knd == FragA \/ knd == FragB) /\ (et == half \/ et == u8 \/ et == i8)) \/
+  ((((knd == FragA \/ knd == FragB) /\ (et == half \/ et == bf16 \/ et == u8 \/ et == i8)) \/
      (knd == FragAcc /\ (et == float \/ et == half \/ et == int))) /\
      ((m == 16 /\ n == 16 /\ k == 16) \/
       (m == 32 /\ n == 8 /\ k == 16)  \/
@@ -53,9 +54,11 @@ let valid_frag_et_comb
   (et_ab == half /\ (et_acc == half \/ et_acc == float)) \/
   // requires sm_72+
   ((et_ab == u8 \/ et_ab == i8) /\ et_acc == int) \/
-  // skip alternate fp (sm_80+) and experimental sub-byte ops (sm_75+)
+  // skip experimental sub-byte ops (sm_75+)
   // double requires (sm_80+)
   (et_ab == double /\ et_acc == double) \/
+  // alternate floating point requires (sm_80+) 
+  (et_ab == bf16 /\ et_acc == float) \/
   False
 
 new
