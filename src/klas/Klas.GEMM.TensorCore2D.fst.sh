@@ -47,6 +47,8 @@ for tm in $all_tm; do
                 if [ $(((bm * bk) % (chunk * 32 * (bm/(wm*tm)) * (bn/(wn*tn))))) -ne 0 ]; then continue; fi # copy fullness
                 if [ $(((bk * bn) % (chunk * 32 * (bm/(wm*tm)) * (bn/(wn*tn))))) -ne 0 ]; then continue; fi # copy fullness
                 echo "let g_gemm_f16_f16_${bm}x${bn}x${bk}_${tm}x${tn}x${tk}_${wm}x${wn} = spec half half ${bm}sz ${bn}sz ${bk}sz ${tm}sz ${tn}sz ${tk}sz ${wm}sz ${wn}sz"
+                # TODO: bf16_bf16 version; needs internal cast when writing out C though, since tensor cores only support float as accumulator with bf16 as A,B
+                echo "let g_gemm_bf16_f32_${bm}x${bn}x${bk}_${tm}x${tn}x${tk}_${wm}x${wn} = spec bf16 float ${bm}sz ${bn}sz ${bk}sz ${tm}sz ${tn}sz ${tk}sz ${wm}sz ${wn}sz"
               done
             done
           done

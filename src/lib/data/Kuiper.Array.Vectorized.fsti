@@ -33,6 +33,11 @@ instance has_vec_cpy_half  : has_vec_cpy half =
   Kuiper.Float16.lem_sizeof ();
   { _chunk = 8sz; _pf = ez; }
 
+inline_for_extraction noextract
+instance has_vec_cpy_bf16  : has_vec_cpy bf16 =
+  Kuiper.BFloat16.lem_sizeof ();
+  { _chunk = 8sz; _pf = ez; }
+
 (* The single primitive for vectorized copies. *)
 
 noextract (* prevents krml warning *)
