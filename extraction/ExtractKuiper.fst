@@ -783,6 +783,21 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
   | "Kuiper.Float64.Base.copysign", [], [] -> EQualified ([], "copysign")
   | "Kuiper.Float64.Base.fma",   [], [] -> EQualified ([], "fma")
 
+  (******** FLOAT CASTS *******)
+
+  | "Kuiper.Float.Casts.cast_f16_to_f32", [], [x] ->
+    EApp (EQualified ([], "__half2float"), [cb x])
+  | "Kuiper.Float.Casts.cast_f16_to_f64", [], [x] ->
+    ECast (EApp (EQualified ([], "__half2float"), [cb x]), TInt Double)
+  | "Kuiper.Float.Casts.cast_f32_to_f16", [], [x] ->
+    EApp (EQualified ([], "__float2half_rn"), [cb x])
+  | "Kuiper.Float.Casts.cast_f32_to_f64", [], [x] ->
+    ECast (cb x, TInt Double)
+  | "Kuiper.Float.Casts.cast_f64_to_f16", [], [x] ->
+    EApp (EQualified ([], "__float2half_rn"), [ECast (cb x, TInt Float)])
+  | "Kuiper.Float.Casts.cast_f64_to_f32", [], [x] ->
+    ECast (cb x, TInt Float)
+
   (******** REFERENCES ********)
 
   (* Sadly these two are still primitive. *)
