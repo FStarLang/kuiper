@@ -82,6 +82,7 @@ let kpr_translate_type_without_decay : translate_type_without_decay_t = fun env 
     TQualified ([], "auto_AMP") // sed subtitutes this to auto&
 
   | "Kuiper.Float16.Base.t",               [] -> TInt Half
+  | "Kuiper.BFloat16.Base.t",              [] -> TInt BFloat16
   | "Kuiper.Float32.Base.t",               [] -> TInt Float
   | "Kuiper.Float64.Base.t",               [] -> TInt Double
   | _ -> raise NotSupportedByKrmlExtension
@@ -488,6 +489,7 @@ let kpr_translate_alloc_fragment (cb : mlexpr -> ML expr) et knd m n k layout =
     let faketype =
       match et with
       | MLTY_Named ([], (["Kuiper"; "Float16"; "Base"], "t")) -> EQualified ([], "half")
+      | MLTY_Named ([], (["Kuiper"; "BFloat16"; "Base"], "t")) -> EQualified ([], "__nv_bfloat16")
       | MLTY_Named ([], (["Kuiper"; "Float32"; "Base"], "t")) -> EQualified ([], "float")
       | MLTY_Named ([], (["Kuiper"; "Float64"; "Base"], "t")) -> EQualified ([], "double")
     in
@@ -625,6 +627,21 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
   | "Kuiper.Float16.Base.infinity", [], [] -> EConstant (Half, "HLF_INFINITY")
   | "Kuiper.Float16.Base.of_int", [], [i] -> EApp (EQualified ([], "__ll2half_rn"), [cb i])
 
+  | "Kuiper.BFloat16.Base.zero", [], [] -> EConstant (BFloat16, "CUDART_ZERO_BF16")
+  | "Kuiper.BFloat16.Base.one",  [], [] -> EConstant (BFloat16, "CUDART_ONE_BF16")
+  | "Kuiper.BFloat16.Base.add",  [], [] -> EQualified ([], "__hadd")
+  | "Kuiper.BFloat16.Base.mul",  [], [] -> EQualified ([], "__hmul")
+  | "Kuiper.BFloat16.Base.sub",  [], [] -> EQualified ([], "__hsub")
+  | "Kuiper.BFloat16.Base.div",  [], [] -> EQualified ([], "__hdiv")
+  | "Kuiper.BFloat16.Base.exp",  [], [] -> EQualified ([], "kpr_bf16exp")
+  | "Kuiper.BFloat16.Base.log",  [], [] -> EQualified ([], "kpr_bf16log")
+  | "Kuiper.BFloat16.Base.eq",   [], [] -> EOp (Eq, BFloat16)
+  | "Kuiper.BFloat16.Base.lt",   [], [] -> EOp (Lt, BFloat16)
+  | "Kuiper.BFloat16.Base.lte",  [], [] -> EOp (Lte, BFloat16)
+  | "Kuiper.BFloat16.Base.largest",  [], [] -> EConstant (BFloat16, "CUDART_MAX_NORMAL_BF16")
+  | "Kuiper.BFloat16.Base.infinity", [], [] -> EConstant (BFloat16, "CUDART_INF_BF16")
+  | "Kuiper.BFloat16.Base.of_int", [], [i] -> EApp (EQualified ([], "__ll2bfloat16_rn"), [cb i])
+
   | "Kuiper.Float32.Base.zero", [], [] -> EConstant (Float, "0.0f")
   | "Kuiper.Float32.Base.one",  [], [] -> EConstant (Float, "1.0f")
   | "Kuiper.Float32.Base.add",  [], [] -> EOp (Add, Float)
@@ -684,6 +701,33 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
   | "Kuiper.Float16.Base.fmod",  [], [] -> EQualified ([], "kpr_hfmod")
   | "Kuiper.Float16.Base.copysign", [], [] -> EQualified ([], "kpr_hcopysign")
   | "Kuiper.Float16.Base.fma",   [], [] -> EQualified ([], "kpr_hfma")
+
+  | "Kuiper.BFloat16.Base.sqrt",  [], [] -> EQualified ([], "kpr_bf16sqrt")
+  | "Kuiper.BFloat16.Base.rsqrt", [], [] -> EQualified ([], "kpr_bf16rsqrt")
+  | "Kuiper.BFloat16.Base.sin",   [], [] -> EQualified ([], "kpr_bf16sin")
+  | "Kuiper.BFloat16.Base.cos",   [], [] -> EQualified ([], "kpr_bf16cos")
+  | "Kuiper.BFloat16.Base.tan",   [], [] -> EQualified ([], "kpr_bf16tan")
+  | "Kuiper.BFloat16.Base.asin",  [], [] -> EQualified ([], "kpr_bf16asin")
+  | "Kuiper.BFloat16.Base.acos",  [], [] -> EQualified ([], "kpr_bf16acos")
+  | "Kuiper.BFloat16.Base.atan",  [], [] -> EQualified ([], "kpr_bf16atan")
+  | "Kuiper.BFloat16.Base.sinh",  [], [] -> EQualified ([], "kpr_bf16sinh")
+  | "Kuiper.BFloat16.Base.cosh",  [], [] -> EQualified ([], "kpr_bf16cosh")
+  | "Kuiper.BFloat16.Base.tanh",  [], [] -> EQualified ([], "kpr_bf16tanh")
+  | "Kuiper.BFloat16.Base.ceil",  [], [] -> EQualified ([], "kpr_bf16ceil")
+  | "Kuiper.BFloat16.Base.floor", [], [] -> EQualified ([], "kpr_bf16floor")
+  | "Kuiper.BFloat16.Base.round", [], [] -> EQualified ([], "kpr_bf16round")
+  | "Kuiper.BFloat16.Base.fabs",  [], [] -> EQualified ([], "kpr_bf16fabs")
+  | "Kuiper.BFloat16.Base.erf",   [], [] -> EQualified ([], "kpr_bf16erf")
+  | "Kuiper.BFloat16.Base.log2",  [], [] -> EQualified ([], "kpr_bf16log2")
+  | "Kuiper.BFloat16.Base.log10", [], [] -> EQualified ([], "kpr_bf16log10")
+  | "Kuiper.BFloat16.Base.exp2",  [], [] -> EQualified ([], "kpr_bf16exp2")
+  | "Kuiper.BFloat16.Base.pow",   [], [] -> EQualified ([], "kpr_bf16pow")
+  | "Kuiper.BFloat16.Base.atan2", [], [] -> EQualified ([], "kpr_bf16atan2")
+  | "Kuiper.BFloat16.Base.fmin",  [], [] -> EQualified ([], "kpr_bf16fmin")
+  | "Kuiper.BFloat16.Base.fmax",  [], [] -> EQualified ([], "kpr_bf16fmax")
+  | "Kuiper.BFloat16.Base.fmod",  [], [] -> EQualified ([], "kpr_bf16fmod")
+  | "Kuiper.BFloat16.Base.copysign", [], [] -> EQualified ([], "kpr_bf16copysign")
+  | "Kuiper.BFloat16.Base.fma",   [], [] -> EQualified ([], "kpr_bf16fma")
 
   | "Kuiper.Float32.Base.sqrt",  [], [] -> EQualified ([], "sqrtf")
   | "Kuiper.Float32.Base.rsqrt", [], [] -> EQualified ([], "rsqrtf")

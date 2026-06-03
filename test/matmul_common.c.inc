@@ -11,6 +11,21 @@ double et2double(et v)
 {
 #if et_is_half == 1
     return __half2float(v);
+#elif et_is_bf16 == 1
+    return __bfloat162float(v);
+#else
+    return v;
+#endif
+}
+
+double cet2double(cet v)
+{
+#if defined(mix_prec) && mix_prec == 1
+    return v;
+#elif et_is_half == 1
+    return __half2float(v);
+#elif et_is_bf16 == 1
+    return __bfloat162float(v);
 #else
     return v;
 #endif
@@ -65,8 +80,8 @@ void cmp(size_t rows, size_t cols, cet *m1_gpu, cet *m2)
     MUST(cudaMemcpy(m1, m1_gpu, rows * cols * sizeof(cet), cudaMemcpyDeviceToHost));
     for (i = 0; i < rows; i++) {
         for (j = 0; j < cols; j++) {
-            double vm1 = et2double(m1[i * cols + j]);
-            double vm2 = et2double(m2[i * cols + j]);
+            double vm1 = cet2double(m1[i * cols + j]);
+            double vm2 = cet2double(m2[i * cols + j]);
 
             double diff = vm1 - vm2;
             if (vm2 != 0.0) {

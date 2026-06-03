@@ -56,6 +56,8 @@ int main(int argc, char **argv)
             m1_cpu[i * shared + j] =
 #if et_is_half == 1
                 __float2half(.5 + i / 100.0);
+#elif et_is_bf16 == 1
+                __float2bfloat16(.5 + i / 100.0);
 #else
                 2 * i * j;
 #endif
@@ -67,6 +69,8 @@ int main(int argc, char **argv)
             m2_cpu[i * cols + j] =
 #if et_is_half == 1
                 __float2half(.5 + j / 100.0);
+#elif et_is_bf16 == 1
+                __float2bfloat16(.5 + j / 100.0);
 #else
                 2 * i * j;
 #endif
@@ -75,9 +79,11 @@ int main(int argc, char **argv)
     for (i = 0; i < rows; i++) {
         for (j = 0; j < cols; j++) {
             m3_cpu[i * cols + j] =
-#if et_is_half == 1 && mix_prec != 1
 // FIXME 0.0 used to check tensorcore2d
+#if (et_is_half == 1 && mix_prec != 1)
                 __float2half(0.0000f);
+#elif (et_is_bf16 == 1 && mix_prec != 1)
+                __float2bfloat16(0.0f);
 #else
                 0.0001f;
 #endif
@@ -99,6 +105,12 @@ int main(int argc, char **argv)
     half beta = __float2half(GEMM_BETA);
 #elif et_is_half == 1 && mix_prec == 1
     half alpha = __float2half(GEMM_ALPHA);
+    float beta = GEMM_BETA;
+#elif et_is_bf16 == 1 && mix_prec != 1
+    __nv_bfloat16 alpha = __float2bfloat16(GEMM_ALPHA);
+    __nv_bfloat16 beta = __float2bfloat16(GEMM_BETA);
+#elif et_is_bf16 == 1 && mix_prec == 1
+    float alpha = GEMM_ALPHA;
     float beta = GEMM_BETA;
 #else
     et alpha = GEMM_ALPHA;
