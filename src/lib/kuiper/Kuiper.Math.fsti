@@ -93,3 +93,14 @@ val shift_left_1_n (n:pos) (s:nat{s < n})
 val add_mod_assoc (#n:nat) (a b c : UInt.uint_t n)
 : Lemma (UInt.add_mod a (UInt.add_mod b c) == UInt.add_mod (UInt.add_mod a b) c)
         [SMTPat (UInt.add_mod a (UInt.add_mod b c))]
+
+(* If pow2 k <= n < pow2 (k+1), then log2 n = k. *)
+val log2_range (n:pos) (k:nat)
+  : Lemma (requires pow2 k <= n /\ n < pow2 (k+1))
+          (ensures log2 n == k)
+          (decreases k)
+
+(* The smallest k with pow2 k >= nth equals log2 (2*nth - 1). *)
+val log2_hreduce (nth:pos) (it:nat)
+  : Lemma (requires pow2 it >= nth /\ (it == 0 \/ pow2 (it - 1) < nth))
+          (ensures it == log2 (2 * nth - 1))
