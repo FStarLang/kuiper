@@ -5,7 +5,7 @@ open Kuiper
 open Kuiper.Spec.Softmax
 open Kuiper.Seq.Common
 
-// NB: this file follows naming conventions of the 
+// NB: this file follows naming conventions of the
 // original online softmax paper, whenever possible: https://arxiv.org/pdf/1805.02867
 // s = sequence (generic)
 // x = softmax input (sequence)
@@ -164,7 +164,7 @@ let softmax_stepi (#n:pos) (x : lseq real n) (i: pos{i < n}) (xst : st (seq_take
   res:(real & st (seq_take (i+1) x) & real)
    { (let (fxi,xst',adj) = res in
     fxi /. xst'.d == softmax_real (seq_take (i+1) x) @! (len (seq_take i x)) /\
-    (i == (len (seq_take i x))) /\ // TODO shouldnt be necessary 
+    (i == (len (seq_take i x))) /\ // TODO shouldnt be necessary
     adj == rexp (xst.m -. xst'.m)) } = admit ()
 #pop-options
 
@@ -207,16 +207,16 @@ let rec lemma_seq_fold_left_distrib_mul
 let lem_online_softmax_adj
   (#n : pos)
   (x : lseq real n)
-  (i: pos {i < n}) 
+  (i: pos {i < n})
   (xst : st (seq_take i x))
   (k: real -> natlt (Seq.length x) -> real)  (* continuation: what to do with e^xi *)
-  (#k_comm_div: (nr: real) -> (dr: real { dr =!= 0.0R } ) -> (j: natlt n) -> (k nr j) /. dr == k (nr /. dr) j) 
+  (#k_comm_div: (nr: real) -> (dr: real { dr =!= 0.0R } ) -> (j: natlt n) -> (k nr j) /. dr == k (nr /. dr) j)
   (op: real -> real -> real)
   (#op_distrib_mul: (a: real) -> (b: real) -> (r: real) -> (a `op` b) *. r == (a *. r) `op` (b *. r))
   (#r : real):
-  Lemma 
+  Lemma
         (requires r /. xst.d == (seq_fold_left op 0.0R (seq_mapi (softmax_real (seq_take i x)) k)))
-        (ensures 
+        (ensures
           (let (fxi,xst',adj) = softmax_stepi #n x i xst in
           ((r *. adj) `op` (k fxi i)) /. xst'.d == (seq_fold_left op 0.0R (seq_mapi (softmax_real (seq_take (i+1) x)) k)))) =
     let (fxi,xst',adj) = softmax_stepi #n x i xst in
@@ -344,9 +344,9 @@ let lem_online_softmax_adj
     assert (((r *. adj) `op` (k fxi i)) /. xst'.d == seq_fold_left op 0.0R s2)
 #pop-options
 
-(* 
+(*
 
-previous version which also goes through, but fails in LSP; maybe cleaner style?  
+previous version which also goes through, but fails in LSP; maybe cleaner style?
 
 
 
@@ -354,19 +354,19 @@ previous version which also goes through, but fails in LSP; maybe cleaner style?
 let lem_online_softmax_adj
   (#n : pos)
   (x : lseq real n)
-  (i: pos {i < n}) 
+  (i: pos {i < n})
   (xst : st (seq_take i x))
   (k: real -> natlt (Seq.length x) -> real)  (* continuation: what to do with e^xi *)
-  (#k_comm_div: (nr: real) -> (dr: real { dr =!= 0.0R } ) -> (j: natlt n) -> (k nr j) /. dr == k (nr /. dr) j) 
+  (#k_comm_div: (nr: real) -> (dr: real { dr =!= 0.0R } ) -> (j: natlt n) -> (k nr j) /. dr == k (nr /. dr) j)
   (op: real -> real -> real)
   (#op_distrib_mul: (a: real) -> (b: real) -> (r: real) -> (a `op` b) *. r == (a *. r) `op` (b *. r))
   (#r : real):
-  Lemma 
+  Lemma
         (requires r /. xst.d == (seq_fold_left op 0.0R (seq_mapi (softmax_real (seq_take i x)) k)))
-        (ensures 
+        (ensures
           (let (fxi,xst',adj) = softmax_stepi #n x i xst in
           ((r *. adj) `op` (k fxi i)) /. xst'.d == (seq_fold_left op 0.0R (seq_mapi (softmax_real (seq_take (i+1) x)) k)))) =
-  
+
     let (fxi,xst',adj) = softmax_stepi #n x i xst in
 
     calc (==) {
@@ -376,7 +376,7 @@ let lem_online_softmax_adj
        == {}
        (k (softmax_real (seq_take (i+1) x) @! i) i);
     };
-    
+
     assert (rexp (xst.m -. xst'.m) == rexp (xst.m) /. rexp (xst'.m));
 
     let x_upto_i = seq_take i x in
@@ -461,7 +461,7 @@ let lem_online_softmax_adj
     calc (==) {
       ((r *. adj) `op` (k fxi i)) /. xst'.d;
       == { }
-      ((r *. adj) `op` (k fxi i)) *. (1.0R /. xst'.d); 
+      ((r *. adj) `op` (k fxi i)) *. (1.0R /. xst'.d);
       == { op_distrib_mul (r *. adj) (k fxi i) (1.0R /. xst'.d) }
       ((r *. adj) *. (1.0R /. xst'.d)) `op` (k fxi i *. (1.0R /. xst'.d));
       == { mul_one_div (r *. adj) xst'.d; mul_one_div (k fxi i) xst'.d }
@@ -478,8 +478,8 @@ let lem_online_softmax_adj
 unfold
 let dp_k (#n: pos) (y: lseq real n) (fxi: real) (i: natlt n) = fxi *. (y @! i)
 
-let dp_k_comm_div (#n: pos) (y: lseq real n) (nr: real) (dr: real { dr =!= 0.0R } ) (j: natlt n): (((dp_k #n y) nr j) /. dr == (dp_k #n y) (nr /. dr) j) = 
-  let k = (dp_k #n y) in 
+let dp_k_comm_div (#n: pos) (y: lseq real n) (nr: real) (dr: real { dr =!= 0.0R } ) (j: natlt n): (((dp_k #n y) nr j) /. dr == (dp_k #n y) (nr /. dr) j) =
+  let k = (dp_k #n y) in
   calc (==) {
     (k nr j) /. dr;
     == {}
@@ -501,7 +501,7 @@ let smx_dotprod_fold (#n: pos) (x y: lseq real n) (i: pos{i <= n}) =
 // #set-options "--z3version 4.15.5"
 #restart-solver
 #set-options "--z3seed 1"
-let rec lem_smx_dotprod_is_dotprod' (#n: pos) (x y: lseq real n) (i: natle n): 
+let rec lem_smx_dotprod_is_dotprod' (#n: pos) (x y: lseq real n) (i: natle n):
   Lemma (ensures seq_fold_left (+.) 0.0R (seq_take i (seq_mapi (softmax_real x) (dp_k #n y))) == seq_dotprod' (softmax_real x) y i)
     (decreases i) =
   if i <= 0 then ()
@@ -533,7 +533,7 @@ let lem_smx_dotprod_fold_is_dotprod_smx (#n: pos) (x y: lseq real n):
 
 
 #push-options "--split_queries always --z3rlimit 20 --retry 5"
-let softmax_dotprod (#n: pos) (x y: lseq real n): 
+let softmax_dotprod (#n: pos) (x y: lseq real n):
   (r: real {r == seq_dotprod (softmax_real x) y}) =
   let k = dp_k #n y in
   let smx_dotprod_fold = smx_dotprod_fold #n x y in
@@ -541,7 +541,7 @@ let softmax_dotprod (#n: pos) (x y: lseq real n):
     (r : real {r /. xst.d == smx_dotprod_fold i})
     : Tot (r' : real {r' == smx_dotprod_fold n})
           (decreases n-i) =
-    if i = n then ( 
+    if i = n then (
       r /. xst.d
     ) else (
       let (fxi,xst',adj) = softmax_stepi #n x i xst in
@@ -563,12 +563,12 @@ let softmax_dotprod (#n: pos) (x y: lseq real n):
       assert (rexp (x @! 0) /. rexp (x @! 0) == 1.0R);
       ()
     );
-  } in 
+  } in
   let r : r:real{(r /. xst.d) == smx_dotprod_fold 1} = (
     assert (rexp (x @! 0) /. rexp (x @! 0) == 1.0R);
     assert (1.0R *. (y @! 0) == (y @! 0));
     assert ((y @! 0) /. 1.0R == 0.0R +. (y @! 0));
     (y @! 0)
   ) in
-  lem_smx_dotprod_fold_is_dotprod_smx #n x y; 
+  lem_smx_dotprod_fold_is_dotprod_smx #n x y;
   aux #1 xst r

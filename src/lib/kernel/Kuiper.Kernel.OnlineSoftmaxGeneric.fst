@@ -204,7 +204,7 @@ fn osmx_step #et {| scalar et, floating et, real_like et |}
 //   (x : lseq real n)
 //   (i: pos {i < n})
 //   (m d: real { online_softmax_invariant x i m d })
-//   (k: fused_k_ty n)  
+//   (k: fused_k_ty n)
 //   (#k_comm_div: fused_k_comm_div_ty k)
 //   (op: fused_op_ty)
 //   (#op_distrib_mul: fused_op_distrib_mul_ty op)
@@ -305,4 +305,3 @@ fn osmx_dotprod
 }
 
 let osmx_dotprod_f32 len = osmx_dotprod #f32 len
- 

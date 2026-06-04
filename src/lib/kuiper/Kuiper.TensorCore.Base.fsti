@@ -57,7 +57,7 @@ let valid_frag_et_comb
   // skip experimental sub-byte ops (sm_75+)
   // double requires (sm_80+)
   (et_ab == double /\ et_acc == double) \/
-  // alternate floating point requires (sm_80+) 
+  // alternate floating point requires (sm_80+)
   (et_ab == bf16 /\ et_acc == float) \/
   False
 

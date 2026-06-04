@@ -6,7 +6,7 @@ open Kuiper.EMatrix
 open Kuiper.Array
 open Kuiper.Tensor.Layout
 
-module M = Kuiper.Array2 
+module M = Kuiper.Array2
 
 
 open Kuiper
@@ -25,7 +25,7 @@ fn flashattention_tile
   (lQi lOi: M.layout br d)
   {| ctlayout lS, ctlayout lKj, ctlayout lVj, ctlayout lQi, ctlayout lOi |}
   (gS: M.array2 et lS)
-  (gKj: M.array2 et lKj) 
+  (gKj: M.array2 et lKj)
   (gVj: M.array2 et lVj)
   (gQi: M.array2 et lQi)
   (gOi: M.array2 et lOi)
@@ -36,26 +36,26 @@ fn flashattention_tile
   (eOi: ematrix et br d)
   (vl vm: erased et)
   (tid: sz { tid <^ br /\ tid <^ bc }) // TODO: impossible to materialize tid in a kernel unless br = bc
-  requires 
+  requires
     gOi |-> eOi
-  preserves 
+  preserves
     gKj |-> eKj ** gVj |-> eVj ** gQi |-> eQi ** gl |-> vl ** gm |-> vm **
     live gS
-  ensures 
+  ensures
     live gOi // No functional spec
 {
   let row_m_prev = !gm;
   let row_l_prev = !gl;
   let mut row_m: et = neg infinity;
   let mut y: szle bc = 0sz;
-  
-  while (!y <^ bc) 
+
+  while (!y <^ bc)
     invariant live y ** live row_m ** live gS
     decreases (bc - !y)
   {
 	  let mut sum: et = zero;
     let mut x: szle d = 0sz;
-    while (!x <^ d) 
+    while (!x <^ d)
       invariant live x ** live sum
       decreases (d - !x)
     {
@@ -73,9 +73,9 @@ fn flashattention_tile
     let vy = !y;
     M.write gS ((tid <: sz), (vy <: sz)) !sum;
     row_m := fmax !row_m !sum;
-    
+
     y := !y +^ 1sz;
-  }; 
+  };
 
   let mut row_l: et = zero;
   y := 0sz;
@@ -95,14 +95,14 @@ fn flashattention_tile
   let row_l_new = row_l_prev `mul` (exp (row_m_prev `sub` row_m_new)) `add` (!row_l `mul` (exp (!row_m `sub` row_m_new)));
 
   let mut x: sz = 0sz;
-  while (!x <^ d) 
+  while (!x <^ d)
     invariant live x ** live gOi
-    decreases (d - !x) 
+    decreases (d - !x)
   {
     let mut pv: et = zero;
-    y := 0sz;    
-    while (!y <^ bc) 
-      invariant live y ** live pv 
+    y := 0sz;
+    while (!y <^ bc)
+      invariant live y ** live pv
       decreases (bc - !y)
     {
       let vx = !x; let vy = !y;
