@@ -11,78 +11,21 @@ module Kuiper.Kernel.Softmax
 #lang-pulse
 
 open Kuiper
-module Vec = Pulse.Lib.Vec
-module Array1 = Kuiper.Array1
-module SZ = Kuiper.SizeT
+open Kuiper.Seq.Common
 open Kuiper.Array1
-
 open Kuiper.Tensor { ctlayout }
 open Kuiper.Tensor.Layout.Alg { l1_forward }
 open Kuiper.Spec.Softmax
-module Max = Kuiper.Kernel.HReduce.Max
 open Kuiper.Math.OnlineSoftmax { seq_max }
+
+module Max = Kuiper.Kernel.HReduce.Max
+module Array1 = Kuiper.Array1
+module SZ = Kuiper.SizeT
 
 (* ── Shift invariance of softmax over the reals ──────────────────────────────
    Subtracting any constant [c] from every element before exponentiating does
    not change [softmax_real].  This is what makes the numerically-stable
    "subtract the max" implementation refine the unchanged golden spec. *)
-
-(* [seq_fold_left (+.)] commutes with pointwise division by a constant, scaling
-   both the elements and the initial accumulator.  Generalizing over [acc] is
-   what makes the recursion go through (the tail fold carries [acc +. hd], not
-   [0.0R]).  Mirrors [lemma_seq_fold_left_distrib_mul] in Kuiper.Math.OnlineSoftmax. *)
-let rec fold_div_scale (acc : real) (k : real { k =!= 0.0R }) (s : Seq.seq real)
-  : Lemma (ensures seq_fold_left (+.) (acc /. k) (seq_map (fun (e:real) -> e /. k) s)
-                   == seq_fold_left (+.) acc s /. k)
-          (decreases Seq.length s)
-  = let f : real -> real = fun (e:real) -> e /. k in
-    let s_mapped = seq_map f s in
-    match view_seq s with
-    | SNil ->
-      assert (Seq.equal s Seq.empty);
-      assert (Seq.equal s_mapped Seq.empty)
-    | SCons hd tl ->
-      assert (Seq.equal s_mapped (Seq.cons (hd /. k) (seq_map f tl)));
-      calc (==) {
-        seq_fold_left (+.) (acc /. k) s_mapped;
-        == { }
-        seq_fold_left (+.) ((acc /. k) +. (hd /. k)) (seq_map f tl);
-        == { }
-        seq_fold_left (+.) ((acc +. hd) /. k) (seq_map f tl);
-        == { fold_div_scale (acc +. hd) k tl }
-        seq_fold_left (+.) (acc +. hd) tl /. k;
-        == { }
-        seq_fold_left (+.) acc s /. k;
-      }
-
-let rsum_div_scale (s : Seq.seq real) (k : real { k =!= 0.0R })
-  : Lemma (ensures rsum (seq_map (fun w -> w /. k) s) == rsum s /. k)
-  = fold_div_scale 0.0R k s
-
-(* The shifted exps are the unshifted exps divided by [rexp c]. *)
-let shift_denom (r0 : Seq.seq real) (c : real)
-  : Lemma (rsum (seq_map (fun z -> rexp (z -. c)) r0)
-           == rsum (seq_map rexp r0) /. rexp c)
-  = assert (Seq.equal (seq_map (fun z -> rexp (z -. c)) r0)
-                      (seq_map (fun w -> w /. rexp c) (seq_map rexp r0)));
-    rsum_div_scale (seq_map rexp r0) (rexp c)
-
-(* The pointwise softmax value is unchanged by the shift. *)
-let softmax_shift (r0 : Seq.seq real { Seq.length r0 > 0 }) (c : real)
-  : Lemma
-    (ensures seq_map (fun x -> rexp (x -. c)
-                               /. rsum (seq_map (fun z -> rexp (z -. c)) r0)) r0
-             == softmax_real r0)
-  = let exps = seq_map rexp r0 in
-    sum_non_zero exps 0.0R;
-    shift_denom r0 c;
-    let lhs = seq_map (fun x -> rexp (x -. c)
-                               /. rsum (seq_map (fun z -> rexp (z -. c)) r0)) r0 in
-    let rhs = softmax_real r0 in
-    let aux (i : nat { i < Seq.length r0 }) : Lemma (lhs @! i == rhs @! i) =
-      () in
-    Classical.forall_intro aux;
-    assert (Seq.equal lhs rhs)
 
 (* Glue for the numerically-stable path: subtracting [m %~ m_r] before
    exponentiating still refines [softmax_real]. *)
@@ -93,9 +36,24 @@ let softmax_shift_approx
     (summ : et { summ %~ rsum (seq_map (fun z -> rexp (z -. m_r)) r0) })
   : Lemma
     (ensures seq_map (fun x -> div (exp (sub x m)) summ) s0 %~ softmax_real r0)
-  = let sexps = seq_map (fun z -> rexp (z -. m_r)) r0 in
-    sum_non_zero sexps 0.0R;
-    shift_denom r0 m_r;
+  = let lhs = seq_map (fun x -> div (exp (sub x m)) summ) s0 in
+    let aux (i : natlt (Seq.length s0))
+      : Lemma ((lhs @! i) %~ (softmax_real (seq_map (fun z -> z -. m_r) r0) @! i))
+    = let x = lhs @! i in
+      let shifted_s0 = seq_map (fun z -> z -. m_r) r0 in
+      let y = softmax_real shifted_s0 @! i in
+      assert (x == div (exp (sub (s0 @! i) m)) summ);
+      assert (y == rexp (shifted_s0 @! i) /. rsum (seq_map rexp shifted_s0));
+      assert (y == rexp ((r0 @! i) -. m_r) /. rsum (seq_map rexp shifted_s0));
+      assert
+        seq_map rexp shifted_s0
+        `Seq.equal`
+        seq_map (fun x -> rexp (x -. m_r)) r0;
+      assert (x %~ y);
+      ()
+    in
+    Classical.forall_intro aux;
+    assert (lhs %~ softmax_real (seq_map (fun z -> z -. m_r) r0));
     softmax_shift r0 m_r;
     ()
 
@@ -148,32 +106,5 @@ fn softmax_gpu
      step to the barrier of HReduce. *)
 
   softmax_shift_approx va ra m (reveal m_r) sum;
-  ()
-}
-
-inline_for_extraction noextract
-fn softmax
-  (#et : Type0) {| floating et, real_like et, floating_real_like et |}
-  (nth : szp{nth <= max_threads})
-  (#lena : szp)
-  (a : Vec.lvec et lena)
-  (#va : erased (lseq et lena))
-  (ra  : erased (lseq real lena))
-  preserves
-    cpu
-  requires
-    a |-> va **
-    pure (va %~ ra) **
-    pure (lena <= max_blocks * max_threads)
-  ensures
-    exists* (va' : lseq et lena).
-      a |-> va' **
-      pure (va' %~ softmax_real ra)
-{
-  let ga = Array1.alloc0 #et lena (l1_forward lena);
-  Array1.memcpy_host_to_device ga a lena;
-  softmax_gpu nth ga ra;
-  Array1.memcpy_device_to_host' a 0sz ga 0sz lena;
-  Array1.free ga;
   ()
 }

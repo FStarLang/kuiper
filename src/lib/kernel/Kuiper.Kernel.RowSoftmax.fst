@@ -67,22 +67,6 @@ let subtract_approx
         %~ mkM (fun i j -> macc ra i j -. cs i))
   = ()
 
-(* Shift invariance of [softmax_real] over the reals, lifted to a single row:
-   subtracting a constant [c] from every element before exponentiating leaves
-   [softmax_real] unchanged.  Built on [softmax_shift] from Kuiper.Kernel.Softmax. *)
-let softmax_shift_eq
-  (r0 : seq real { Seq.length r0 > 0 }) (c : real)
-  : Lemma (SM.softmax_real (seq_map (fun (z:real) -> z -. c) r0) == SM.softmax_real r0)
-  = SMK.softmax_shift r0 c;
-    let shifted = seq_map (fun (z:real) -> z -. c) r0 in
-    let aux (j : nat { j < Seq.length r0 })
-      : Lemma (SM.softmax_real shifted @! j == SM.softmax_real r0 @! j) =
-      Seq.lemma_eq_elim (seq_map rexp shifted)
-                        (seq_map (fun z -> rexp (z -. c)) r0)
-    in
-    Classical.forall_intro aux;
-    Seq.lemma_eq_elim (SM.softmax_real shifted) (SM.softmax_real r0)
-
 (* Lifted to matrices: shifting each row by [cs i] does not change
    [row_softmax_real]. *)
 let row_softmax_shift_eq
@@ -97,7 +81,7 @@ let row_softmax_shift_eq
                  macc (row_softmax_real ra1) i j == macc (row_softmax_real ra) i j) =
       Seq.lemma_eq_elim (ematrix_row ra1 i)
                         (seq_map (fun (z:real) -> z -. cs i) (ematrix_row ra i));
-      softmax_shift_eq (ematrix_row ra i) (cs i)
+      SM.softmax_shift (ematrix_row ra i) (cs i)
     in
     Classical.forall_intro aux;
     assert (forall (i:natlt m) (j:natlt n).
