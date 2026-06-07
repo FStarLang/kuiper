@@ -86,6 +86,8 @@ fn array_to_slice
     is_full_slice a (Seq.length s) **
     pure (Seq.length s == Pulse.Lib.Array.length a)
 
+// FIXME: This should probably use two different [n] parameters and a proof of
+// their equality. Or replace is_full_slice by `n == Array.length a`.
 [@@pulse_intro]
 ghost
 fn slice_to_array
