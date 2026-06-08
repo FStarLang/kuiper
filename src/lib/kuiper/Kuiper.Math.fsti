@@ -98,7 +98,6 @@ val add_mod_assoc (#n:nat) (a b c : UInt.uint_t n)
 val log2_range (n:pos) (k:nat)
   : Lemma (requires pow2 k <= n /\ n < pow2 (k+1))
           (ensures log2 n == k)
-          (decreases k)
 
 (* The smallest k with pow2 k >= nth equals log2 (2*nth - 1). *)
 val log2_hreduce (nth:pos) (it:nat)

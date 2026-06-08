@@ -2,7 +2,6 @@ module Klas.Softmax
 
 #lang-pulse
 open Kuiper
-module K = Kuiper.Kernel.Softmax
 module KS = Kuiper.Spec.Softmax
 open Kuiper.Array1
 open Kuiper.Tensor.Layout.Alg { l1_forward }

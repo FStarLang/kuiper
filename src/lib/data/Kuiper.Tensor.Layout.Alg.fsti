@@ -146,7 +146,6 @@ instance c_major_on_i_0'
   : auto_cinj #n (major_on #(n-1) 0 k sub) =
   c_major_on 0sz k c_sub
 
-#push-options "--z3rlimit 40"
 module T = Kuiper.Tensor
 
 // These below should just work from instances in Tensor.Layout.Alg
