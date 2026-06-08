@@ -35,6 +35,9 @@ jobs:
         uses: actions/checkout@v6
         with:
           submodules: recursive
+          # Full history is needed so try-rebase.sh can rebase the submodule
+          # branches onto upstream/master without shallow-clone conflicts.
+          fetch-depth: 0
           # Don't persist the github-actions[bot] credentials: checkout injects
           # them as an http.extraheader into each submodule's git config, which
           # would override the PAT in the push URLs we use for FStar/karamel
