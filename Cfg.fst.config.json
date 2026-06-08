@@ -1,5 +1,7 @@
 {
   "fstar_exe": "./fstar.sh",
-  "options": [],
+  "options": [
+    "--query_cache"
+  ],
   "include_dirs": []
 }
