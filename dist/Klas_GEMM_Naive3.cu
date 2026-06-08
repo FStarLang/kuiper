@@ -3,6 +3,49 @@
 
 __global__
 /**
+  hoisted when extracting g_matmul_bf16_rrr
+*/
+static void
+__hoisted_g_matmul_bf16_rrr_0(uint32_t m,
+                              uint32_t n,
+                              uint32_t k,
+                              __nv_bfloat16 *gA,
+                              __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+{
+    if (1024U * blockIdx.x + threadIdx.x < m * n) {
+        uint32_t trow = (1024U * blockIdx.x + threadIdx.x) / n;
+        uint32_t tcol = (1024U * blockIdx.x + threadIdx.x) % n;
+        uint32_t k1 = 0U;
+        __nv_bfloat16 acc = CUDART_ZERO_BF16;
+        __nv_bfloat16 c = CUDART_ZERO_BF16;
+        for (; k1 < k; k1++) {
+            uint32_t __anf0 = k1;
+            __nv_bfloat16 y =
+                __hmul(gA[trow * k + __anf0], gB[__anf0 * n + tcol]);
+            __nv_bfloat16 yc = __hsub(y, c);
+            __nv_bfloat16 t = __hadd(acc, yc);
+            c = __hsub(__hsub(t, acc), yc);
+            acc = t;
+        }
+        gC[trow * n + tcol] = acc;
+    }
+}
+
+void
+Klas_GEMM_Naive3_g_matmul_bf16_rrr(uint32_t m,
+                                   uint32_t n,
+                                   uint32_t k,
+                                   __nv_bfloat16 *gA,
+                                   __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+{
+    KPR_KCALL(__hoisted_g_matmul_bf16_rrr_0,
+              m * n / 1024U + (uint32_t) (m * n % 1024U != 0U),
+              1024U, 0U, m, n, k, gA, gB, gC);
+    MUST(cudaDeviceSynchronize());
+}
+
+__global__
+/**
   hoisted when extracting g_matmul_f32_rrr
 */
 static void
@@ -71,6 +114,49 @@ Klas_GEMM_Naive3_g_matmul_f64_rrr(uint32_t m,
                                   double *gA, double *gB, double *gC)
 {
     KPR_KCALL(__hoisted_g_matmul_f64_rrr_0,
+              m * n / 1024U + (uint32_t) (m * n % 1024U != 0U),
+              1024U, 0U, m, n, k, gA, gB, gC);
+    MUST(cudaDeviceSynchronize());
+}
+
+__global__
+/**
+  hoisted when extracting g_matmul_bf16_ccc
+*/
+static void
+__hoisted_g_matmul_bf16_ccc_0(uint32_t m,
+                              uint32_t n,
+                              uint32_t k,
+                              __nv_bfloat16 *gA,
+                              __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+{
+    if (1024U * blockIdx.x + threadIdx.x < m * n) {
+        uint32_t trow = (1024U * blockIdx.x + threadIdx.x) / n;
+        uint32_t tcol = (1024U * blockIdx.x + threadIdx.x) % n;
+        uint32_t k1 = 0U;
+        __nv_bfloat16 acc = CUDART_ZERO_BF16;
+        __nv_bfloat16 c = CUDART_ZERO_BF16;
+        for (; k1 < k; k1++) {
+            uint32_t __anf0 = k1;
+            __nv_bfloat16 y =
+                __hmul(gA[__anf0 * m + trow], gB[tcol * k + __anf0]);
+            __nv_bfloat16 yc = __hsub(y, c);
+            __nv_bfloat16 t = __hadd(acc, yc);
+            c = __hsub(__hsub(t, acc), yc);
+            acc = t;
+        }
+        gC[tcol * m + trow] = acc;
+    }
+}
+
+void
+Klas_GEMM_Naive3_g_matmul_bf16_ccc(uint32_t m,
+                                   uint32_t n,
+                                   uint32_t k,
+                                   __nv_bfloat16 *gA,
+                                   __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+{
+    KPR_KCALL(__hoisted_g_matmul_bf16_ccc_0,
               m * n / 1024U + (uint32_t) (m * n % 1024U != 0U),
               1024U, 0U, m, n, k, gA, gB, gC);
     MUST(cudaDeviceSynchronize());

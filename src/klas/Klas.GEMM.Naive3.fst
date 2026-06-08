@@ -43,8 +43,10 @@ fn spec
   ()
 }
 
+let g_matmul_bf16_rrr = spec bf16 l2_row_major l2_row_major l2_row_major
 let g_matmul_f32_rrr = spec f32 l2_row_major l2_row_major l2_row_major
 let g_matmul_f64_rrr = spec f64 l2_row_major l2_row_major l2_row_major
 
+let g_matmul_bf16_ccc = spec bf16 l2_col_major l2_col_major l2_col_major
 let g_matmul_f32_ccc = spec f32 l2_col_major l2_col_major l2_col_major
 let g_matmul_f64_ccc = spec f64 l2_col_major l2_col_major l2_col_major
