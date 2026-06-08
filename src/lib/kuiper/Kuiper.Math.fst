@@ -127,3 +127,21 @@ let add_mod_assoc (#n:nat) (a b c : UInt.uint_t n)
     == {}
     UInt.add_mod (UInt.add_mod a b) c;
   }
+
+(* If pow2 k <= n < pow2 (k+1), then log2 n = k. *)
+let rec log2_range (n:pos) (k:nat)
+  : Lemma (requires pow2 k <= n /\ n < pow2 (k+1))
+          (ensures log2 n == k)
+          (decreases k)
+= if k = 0 then ()
+  else begin
+    FStar.Math.Lemmas.lemma_div_le (pow2 k) n 2;
+    log2_range (n/2) (k-1)
+  end
+
+(* The smallest k with pow2 k >= nth equals log2 (2*nth - 1). *)
+let log2_hreduce (nth:pos) (it:nat)
+  : Lemma (requires pow2 it >= nth /\ (it == 0 \/ pow2 (it - 1) < nth))
+          (ensures it == log2 (2 * nth - 1))
+= if it = 0 then ()
+  else log2_range (2 * nth - 1) it

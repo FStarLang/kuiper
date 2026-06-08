@@ -48,7 +48,7 @@ fn flashattention_tile
   {
 	  let mut sum: et = zero;
     let mut x: szle d = 0sz;
-    while (!x <^ d) 
+    while (!x <^ d)
       invariant live x ** live sum
       decreases (d - !x)
     {
@@ -65,9 +65,9 @@ fn flashattention_tile
     let vy = !y;
     gSt.(vy) <- !sum;
     row_m := fmax !row_m !sum;
-    
+
     y := !y +^ 1sz;
-  }; 
+  };
 
   let mut row_l: et = zero;
   y := 0sz;
@@ -92,9 +92,9 @@ fn flashattention_tile
     decreases (d - !x) 
   {
     let mut pv: et = zero;
-    y := 0sz;    
-    while (!y <^ bc) 
-      invariant live y ** live pv 
+    y := 0sz;
+    while (!y <^ bc)
+      invariant live y ** live pv
       decreases (bc - !y)
     {
       let vx = !x; let vy = !y;
