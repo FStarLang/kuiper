@@ -4,6 +4,7 @@ module Kuiper.Tensor.Layout.Alg
 
 open Kuiper
 open Kuiper.Injection
+open Kuiper.Bijection
 open Kuiper.Index
 module SZ = Kuiper.SizeT
 open Kuiper.Tensor.Layout
@@ -69,6 +70,15 @@ let l3_batched_col_major (r m n : nat) : tlayout (r @| m @| n @| INil) =
   major_on 0 r <|
   major_on 1 n <|
   major_on 0 m <|
+  lunit
+
+let l4_batched_row_major (r1 r2 m n : nat)
+  : Kuiper.Tensor.Layout.tlayout (r1 @| r2 @| m @| n @| INil) =
+  pack <|
+  major_on 0 r1 <|
+  major_on 0 r2 <|
+  major_on 0 m <|
+  major_on 0 n <|
   lunit
 
 (* Constructing a concrete size for a given description.

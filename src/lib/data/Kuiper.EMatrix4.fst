@@ -25,3 +25,9 @@ let lemma_to_real_matrix_approximates (#et : Type0)
   : Lemma (ensures m %~ to_real_matrix m)
           [SMTPat (to_real_matrix m)]
   = ()
+
+let slice_upd_page_same (#et:Type) (#d0 #d1 #d2 #d3 : nat) m i j p =
+  assert (slice_page (upd_page m i j p) i j `EM.equal` p)
+
+let slice_upd_page_other (#et:Type) (#d0 #d1 #d2 #d3 : nat) m i i' j j' p =
+  assert (slice_page (upd_page m i j p) i' j' `EM.equal` slice_page m i' j')

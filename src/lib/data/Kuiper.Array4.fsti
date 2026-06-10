@@ -7,6 +7,7 @@ open Kuiper.Tensor
 open Kuiper.Injection
 open Kuiper.Index
 open Kuiper.EMatrix4
+open Kuiper.Chest
 open FStar.Tactics.Typeclasses { no_method }
 module B = Kuiper.Array
 module SZ = Kuiper.SizeT
@@ -62,6 +63,10 @@ let to_seq_helper (#et:Type) (#d0 #d1 #d2 #d3 : nat)
   : Lemma (to_seq l s `Seq.index` i == (let x = Kuiper.Injection.inverse_f l.imap i in macc s x._1 x._2._1 x._2._2._1 x._2._2._2._1))
           [SMTPat (to_seq l s `Seq.index` i)]
   = ()
+
+let tr_val (#et : Type) (#d0 #d1 #d2 #d3 : nat) (s : EMatrix4.t et d0 d1 d2 d3)
+  : chest (desc d0 d1 d2 d3) et
+  = Chest.mk (desc d0 d1 d2 d3) (fun (i, (j, (k, (l, ())))) -> EMatrix4.macc s i j k l)
 
 val to_from (#et:Type) (#d0 #d1 #d2 #d3 : nat)
   (l : full_layout d0 d1 d2 d3) (s : lseq et (d0 * d1 * d2 * d3))

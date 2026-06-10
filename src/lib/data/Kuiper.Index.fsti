@@ -296,3 +296,7 @@ let rec raw_fits #n (d : idesc n) (idx : raw d) : prop =
   | ICons t ts ->
     let i, is = idx <: sz & raw ts in
     i < t /\ raw_fits ts is
+
+let fold_outer (#n: nat {n > 1}) (i : idesc n) : idesc (n-1) = 
+  let ICons h1 (ICons h2 ts) = i in
+  (h1 * h2) @| ts

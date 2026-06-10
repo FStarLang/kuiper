@@ -3,6 +3,7 @@ module Kuiper.Tensor
 
 open Kuiper
 open Kuiper.Injection
+open Kuiper.Bijection
 open Kuiper.Index
 open Kuiper.Chest
 include Kuiper.Tensor.Layout
@@ -497,3 +498,73 @@ fn tensor_restore_slice
       (a |-> Frac f s)
   ensures
     a |-> Frac f s
+
+let tlayout_bij
+  (#r1 : nat) (#d1 : idesc r1)
+  (#r2 : nat) (#d2 : idesc r2)
+  (f : abs d1 =~ abs d2)
+  (l : tlayout d1)
+  : tlayout d2
+  = {
+      ulen = l.ulen;
+      imap = inj_bij' f `Kuiper.Injection.inj_comp` l.imap;
+  }
+
+ghost 
+fn tensor_apply_bij
+  (#et : Type0)
+  (#r1 : nat) (#d1 : idesc r1)
+  (#r2 : nat) (#d2 : idesc r2)
+  (f : abs d1 =~ abs d2)
+  (#l : tlayout d1) {| is_full l |}
+  (a : tensor et l)
+  (m : Chest.t d1 et)
+  requires
+    a |-> m
+  ensures
+    from_array (tlayout_bij f l) (core a) |-> Chest.mk d2 (fun i -> Chest.acc m (i <~| f))
+
+let unfold_index (#r: nat {r > 1}) (#d: idesc r) (i : abs (fold_outer d)): GTot (abs d) = 
+  let ICons h1 (ICons h2 ts) = d in
+  let i : natlt (h1 * h2) & abs ts = i in
+  let (ih, it) = i in 
+  (((ih / h2 <: natlt h1), ((ih % h2 <: natlt h2), it)))
+
+let fold_index (#r: nat {r > 1}) (#d: idesc r) (i : abs d): GTot (abs (fold_outer d)) = 
+  let ICons h1 (ICons h2 ts) = d in
+  let i : natlt h1 & (natlt h2 & abs ts) = i in
+  let (ih1, (ih2, it)) = i in 
+  let ih12 : natlt (h1 * h2) = ih1 * h2 + ih2 in
+  (ih12, it)
+
+val fold_bij (#r: nat {r > 1}) (#d: idesc r): abs d =~ abs (fold_outer d)
+
+let fold_chest (#et : Type0) (#r: nat {r > 1}) (#d: idesc r) (m : Chest.t d et): GTot (Chest.t (fold_outer d) et) = 
+  Chest.mk (fold_outer d) (fun i -> Chest.acc m (unfold_index i))
+
+let unfold_chest (#et : Type0) (#r: nat {r > 1}) (#d: idesc r) (m : Chest.t (fold_outer d) et): GTot (Chest.t d et) = 
+  Chest.mk d (fun i -> Chest.acc m (fold_index i))
+
+ghost
+fn tensor_fold_outer
+  (#et : Type0)
+  (#r: nat {r > 1}) (#d: idesc r)
+  (#l: tlayout d) 
+  (a : tensor et l)
+  (m : Chest.t d et)
+  requires
+    a |-> m
+  ensures
+    from_array (tlayout_bij fold_bij l) (core a) |-> fold_chest m
+
+ghost
+fn tensor_unfold_outer
+  (#et : Type0)
+  (#r: nat {r > 1}) (#d: idesc r)
+  (#l: tlayout d) 
+  (a : tensor et (tlayout_bij fold_bij l))
+  (m : Chest.t (fold_outer d) et)
+  requires
+    a |-> m
+  ensures
+    from_array l (core a) |-> unfold_chest m

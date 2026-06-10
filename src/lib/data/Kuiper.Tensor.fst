@@ -738,3 +738,59 @@ fn tensor_restore_slice
   unfold factored _ _;
   ambig_trade_elim ();
 }
+
+ghost
+fn tensor_apply_bij
+  (#et : Type0)
+  (#r1 : nat) (#d1 : idesc r1)
+  (#r2 : nat) (#d2 : idesc r2)
+  (f : abs d1 =~ abs d2)
+  (#l : tlayout d1) {| is_full l |}
+  (a : tensor et l)
+  (m : Chest.t d1 et)
+  requires
+    a |-> m
+  ensures
+    from_array (tlayout_bij f l) (core a) |-> Chest.mk d2 (fun a -> Chest.acc m (a <~| f))
+{
+  // Kuiper.Enumerable.bijection_implies_equal_cardinal (abs d1) (abs d2) f;
+  assume pure (sizeof d1 == sizeof d2);
+  assert pure (tlayout_size l == tlayout_size (tlayout_bij f l));
+  tensor_concr a;
+  tensor_abs' (tlayout_bij f l) (core a);
+  assert pure (from_seq (tlayout_bij f l) (to_seq l m) `Chest.equal`
+               Chest.mk d2 (fun a -> Chest.acc m (a <~| f)));
+  ()
+}
+
+let fold_bij (#r: nat {r > 1}) (#d: idesc r): (abs d =~ abs (fold_outer d)) = admit () // TODO
+
+ghost
+fn tensor_fold_outer
+  (#et : Type0)
+  (#r: nat {r > 1}) (#d: idesc r)
+  (#l: tlayout d) 
+  (a : tensor et l)
+  (m : Chest.t d et)
+  requires
+    a |-> m
+  ensures
+    from_array (tlayout_bij fold_bij l) (core a) |-> fold_chest m
+{
+  admit ();
+}
+
+ghost
+fn tensor_unfold_outer
+  (#et : Type0)
+  (#r: nat {r > 1}) (#d: idesc r)
+  (#l: tlayout d) 
+  (a : tensor et (tlayout_bij fold_bij l))
+  (m : Chest.t (fold_outer d) et)
+  requires
+    a |-> m
+  ensures
+    from_array l (core a) |-> unfold_chest m
+{
+  admit ();
+}
