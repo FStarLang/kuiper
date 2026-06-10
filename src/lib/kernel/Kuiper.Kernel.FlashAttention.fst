@@ -34,7 +34,7 @@ fn flashattention_tile
   requires 
     gOit |-> vOit
   preserves 
-    (gKj |-> Frac fKj eKj) ** (gVj |-> Frac fVj eVj) ** (gQit |-> Frac fQit vQit) ** glt |_> vlt ** gmt |-> vmt **
+    (gKj |-> Frac fKj eKj) ** (gVj |-> Frac fVj eVj) ** (gQit |-> Frac fQit vQit) ** glt |-> vlt ** gmt |-> vmt **
     live gSt
   ensures 
     live gOit // No functional spec
@@ -78,7 +78,7 @@ fn flashattention_tile
     decreases (bc - !y)
   {
     let vy = !y;
-    let vs: et = (exp gSt.(vy)) `sub` !row_m;
+    let vs: et = (fexp gSt.(vy)) `sub` !row_m;
     gSt.(vy) <- vs;
     row_l := !row_l `add` vs;
 
@@ -86,7 +86,7 @@ fn flashattention_tile
   };
 
   let row_m_new = fmax row_m_prev !row_m;
-  let row_l_new = row_l_prev `mul` (exp (row_m_prev `sub` row_m_new)) `add` (!row_l `mul` (exp (!row_m `sub` row_m_new)));
+  let row_l_new = row_l_prev `mul` (fexp (row_m_prev `sub` row_m_new)) `add` (!row_l `mul` (fexp (!row_m `sub` row_m_new)));
 
   let mut x: sz = 0sz;
   while (!x <^ d) 
@@ -109,8 +109,8 @@ fn flashattention_tile
 
     let vx = !x;
     let vo: et = gOit.(vx);
-    let vo: et = (vo `mul` row_l_prev `mul` (exp (row_m_prev `sub` row_m_new))) `div` row_l_new;
-    let vo: et = vo `add` ((exp (!row_m `sub` row_m_new)) `mul` !pv);
+    let vo: et = (vo `mul` row_l_prev `mul` (fexp (row_m_prev `sub` row_m_new))) `div` row_l_new;
+    let vo: et = vo `add` ((fexp (!row_m `sub` row_m_new)) `mul` !pv);
 
     gOit.(vx) <- vo;
 

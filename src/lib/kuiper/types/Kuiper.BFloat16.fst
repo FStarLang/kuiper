@@ -27,7 +27,7 @@ instance is_floating : floating t = {
   kind;
   largest; infinity;
   kind_one; kind_zero; kind_largest; kind_infinity;
-  exp; log; sqrt; rsqrt; sin; cos; tan; asin; acos; atan;
+  fexp; flog; sqrt; rsqrt; sin; cos; tan; asin; acos; atan;
   sinh; cosh; tanh; ceil; floor; round; fabs; erf; log2;
   log10; exp2; pow; atan2; fmin; fmax; fmod; copysign;
   fma;

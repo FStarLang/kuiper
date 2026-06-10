@@ -270,7 +270,7 @@ let kpost_block
 
 (* ── Per-thread kernel function ────────────────────────────────────────── *)
 
-#push-options "--z3rlimit 40"
+#push-options "--z3rlimit 60"
 inline_for_extraction noextract
 fn kf_block
   (#et:Type0) {| floating et, real_like et, floating_real_like et |}

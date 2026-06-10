@@ -2,46 +2,9 @@ module Kuiper.Real
 
 open FStar.Real
 include FStar.Real
+include FStar.Math.Exp
 open Kuiper.Seq.Common
 open Kuiper.Common
-
-(* The exp function is assumed. F*'s real formalization
-does not expose one. *)
-val rexp (x:real) : real
-val rlog (x:real{x >. 0.0R}) : real
-
-(* Usual math laws about exponentiation and logarithms. *)
-
-val rexp_positive (x : real)
-  : Lemma (ensures rexp x >. 0.0R)
-          [SMTPat (rexp x)]
-
-val rexp_base ()
-  : Lemma (rexp 0.0R == 1.0R)
-
-val exp_add (x y : real)
-  : Lemma (ensures rexp (x +. y) == rexp x *. rexp y)
-          [SMTPat (rexp (x +. y))]
-
-val log_exp (x : real)
-  : Lemma (ensures rlog (rexp x) == x)
-          [SMTPat (rlog (rexp x))]
-
-val exp_log (x : real{x >. 0.0R})
-  : Lemma (ensures rexp (rlog x) == x)
-          [SMTPat (rexp (rlog x))]
-
-val exp_sub (x y : real)
-  : Lemma (ensures rexp (x -. y) == rexp x /. rexp y)
-          [SMTPat (rexp (x -. y))]
-
-val log_mul (x y : real{x >. 0.0R /\ y >. 0.0R})
-  : Lemma (ensures rlog (x *. y) == rlog x +. rlog y)
-          [SMTPat (rlog (x *. y))]
-
-val log_div (x y : real{x >. 0.0R /\ y >. 0.0R})
-  : Lemma (ensures rlog (x /. y) == rlog x -. rlog y)
-          [SMTPat (rlog (x /. y))]
 
 let rsum (s : Seq.seq real) : real = seq_fold_left (+.) 0.0R s
 

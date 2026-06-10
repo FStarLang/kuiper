@@ -39,8 +39,8 @@ let online_softmax_dotprod_real_iter
   let (m, dn, dd) = md in
   let (x, y) = xy in
   let m' = rmax m x in
-  let dn' = dn *. (rexp (m -. m')) +. rexp (x -. m') *. y in
-  let dd' = dd *. (rexp (m -. m')) +. rexp (x -. m') in
+  let dn' = dn *. (exp (m -. m')) +. exp (x -. m') *. y in
+  let dd' = dd *. (exp (m -. m')) +. exp (x -. m') in
   (m', dn', dd')
 
 let rec lem_online_softmax_dotprod_real_iter
@@ -82,10 +82,14 @@ let rsum_map_cons (#a: Type) (f: a -> real) (x: a) (t: Seq.seq a)
    below: [exp_x] forgets the second component (giving the denominator
    sum) and [exp_x_y] computes the weighted product (giving the
    numerator sum). *)
-let exp_x   (xy: real & real) : real = rexp (fst xy)
-let exp_x_y (xy: real & real) : real = rexp (fst xy) *. snd xy
+let exp_x   (xy: real & real) : real = exp (fst xy)
+let exp_x_y (xy: real & real) : real = exp (fst xy) *. snd xy
 
-#push-options "--z3rlimit 40"
+let assoc_aux (a b c : real{b =!= 0.0R})
+  : Lemma (ensures (a /. b) *. c == a *. (c /. b))
+  = ()
+
+#push-options "--split_queries always --z3rlimit 20"
 (* Theorem 1 from the Online Softmax paper, generalised to dot-product.
    Both numerator and denominator accumulators, multiplied by [exp m],
    recover the "unshifted" running sums. *)
@@ -94,25 +98,53 @@ let rec fold_correct_dotprod (m0 dn0 dd0: real) (s: Seq.seq (real & real))
       let r = reveal (seq_fold_left online_softmax_dotprod_real_iter
                         (hide (m0, dn0, dd0)) s) in
       let (m', dn', dd') = r in
-      dn' *. rexp m' == dn0 *. rexp m0 +. rsum (seq_map exp_x_y s) /\
-      dd' *. rexp m' == dd0 *. rexp m0 +. rsum (seq_map exp_x   s)))
+      dn' *. exp m' == dn0 *. exp m0 +. rsum (seq_map exp_x_y s) /\
+      dd' *. exp m' == dd0 *. exp m0 +. rsum (seq_map exp_x   s)))
     (decreases Seq.length s)
-  = rexp_base ();
+  = exp_base ();
     match view_seq s with
     | SNil -> ()
     | SCons xy t ->
         let (x, y) = xy in
         let m1 = rmax m0 x in
-        let dn1 = dn0 *. rexp (m0 -. m1) +. rexp (x -. m1) *. y in
-        let dd1 = dd0 *. rexp (m0 -. m1) +. rexp (x -. m1) in
+        let dn1 = dn0 *. exp (m0 -. m1) +. exp (x -. m1) *. y in
+        let dd1 = dd0 *. exp (m0 -. m1) +. exp (x -. m1) in
         // dn1 * exp(m1) = (dn0 * exp(m0-m1) + exp(x-m1)*y) * exp(m1)
         //               = dn0 * exp(m0) + exp(x) * y
-        assert (rexp (m0 -. m1) *. rexp m1 == rexp m0);
-        assert (dn1 *. rexp m1 == (dn0 *. rexp (m0 -. m1) +. rexp (x -. m1) *. y) *. rexp m1);
-        assert (dn1 *. rexp m1 == dn0 *. rexp m0 +. rexp x *. y);
-
-        assert (dd1 *. rexp m1 == (dd0 *. rexp (m0 -. m1) +. rexp (x -. m1)) *. rexp m1);
-        assert (dd1 *. rexp m1 == dd0 *. rexp m0 +. rexp x);
+        calc (==) {
+          exp (m0 -. m1) *. exp m1;
+          == { exp_sub m0 m1 }
+          (exp m0 /. exp m1) *. exp m1;
+          == { assoc_aux (exp m0) (exp m1) (exp m1) }
+          exp m0 *. (exp m1 /. exp m1);
+          == { assert (exp m1 /. exp m1 == 1.0R) }
+          exp m0 *. 1.0R;
+          == {}
+          exp m0;
+        };
+        assert (exp (m0 -. m1) *. exp m1 == exp m0);
+        assert (dn1 *. exp m1 == (dn0 *. exp (m0 -. m1) +. exp (x -. m1) *. y) *. exp m1);
+        calc (==) {
+          (dn0 *. exp (m0 -. m1) +. exp (x -. m1) *. y) *. exp m1;
+          == { admit() }
+          dn0 *. exp (m0 -. m1) *. exp m1 +. exp (x -. m1) *. y *. exp m1;
+          == { admit() }
+          dn0 *. (exp (m0 -. m1) *. exp m1) +. (exp (x -. m1) *. exp m1) *. y;
+          == { admit() }
+          dn0 *. exp m0 +. exp x *. y;
+        };
+        assert (dn1 *. exp m1 == dn0 *. exp m0 +. exp x *. y);
+        assert (dd1 *. exp m1 == (dd0 *. exp (m0 -. m1) +. exp (x -. m1)) *. exp m1);
+        calc (==) {
+          (dd0 *. exp (m0 -. m1) +. exp (x -. m1)) *. exp m1;
+          == { admit() }
+          dd0 *. exp (m0 -. m1) *. exp m1 +. exp (x -. m1) *. exp m1;
+          == { admit() }
+          dd0 *. (exp (m0 -. m1) *. exp m1) +. (exp (x -. m1) *. exp m1);
+          == { admit() }
+          dd0 *. exp m0 +. exp x;
+        };
+        assert (dd1 *. exp m1 == dd0 *. exp m0 +. exp x);
         fold_correct_dotprod m1 dn1 dd1 t;
         rsum_map_cons exp_x_y xy t;
         rsum_map_cons exp_x   xy t
@@ -123,43 +155,43 @@ let rec fold_correct_dotprod (m0 dn0 dd0: real) (s: Seq.seq (real & real))
 let rec rsum_init_dotprod_eq
   (#n: nat) (ra rb: lseq real n) (k: nat{k <= n})
   : Lemma (ensures (
-      let sub : lseq real k = Seq.init k (fun (i:nat{i<k}) -> rexp (ra @! i) *. (rb @! i)) in
-      let mra : lseq real n = seq_map rexp ra in
+      let sub : lseq real k = Seq.init k (fun (i:nat{i<k}) -> exp (ra @! i) *. (rb @! i)) in
+      let mra : lseq real n = seq_map exp ra in
       rsum sub == seq_dotprod' mra rb k))
     (decreases k)
   = if k = 0 then (
-      let sub : lseq real 0 = Seq.init 0 (fun (i:nat{i<0}) -> rexp (ra @! i) *. (rb @! i)) in
+      let sub : lseq real 0 = Seq.init 0 (fun (i:nat{i<0}) -> exp (ra @! i) *. (rb @! i)) in
       assert (Seq.equal sub Seq.empty)
     ) else (
-      let sub  : lseq real k     = Seq.init k     (fun (i:nat{i<k})   -> rexp (ra @! i) *. (rb @! i)) in
-      let sub' : lseq real (k-1) = Seq.init (k-1) (fun (i:nat{i<k-1}) -> rexp (ra @! i) *. (rb @! i)) in
-      let last = rexp (ra @! (k-1)) *. (rb @! (k-1)) in
+      let sub  : lseq real k     = Seq.init k     (fun (i:nat{i<k})   -> exp (ra @! i) *. (rb @! i)) in
+      let sub' : lseq real (k-1) = Seq.init (k-1) (fun (i:nat{i<k-1}) -> exp (ra @! i) *. (rb @! i)) in
+      let last = exp (ra @! (k-1)) *. (rb @! (k-1)) in
       assert (Seq.equal sub (Seq.append sub' (Seq.create 1 last)));
       rsum_append sub' (Seq.create 1 last);
       assert (Seq.equal (Seq.create 1 last) (Seq.cons last Seq.empty));
       rsum_cons last Seq.empty;
       rsum_init_dotprod_eq ra rb (k-1);
-      let mra : lseq real n = seq_map rexp ra in
-      assert (mra @! (k-1) == rexp (ra @! (k-1)))
+      let mra : lseq real n = seq_map exp ra in
+      assert (mra @! (k-1) == exp (ra @! (k-1)))
     )
 
 (* Distribute [summ] out of [seq_dotprod] when the first argument is a
-   softmax with denominator [summ = rsum (seq_map rexp ra)]. *)
+   softmax with denominator [summ = rsum (seq_map exp ra)]. *)
 #push-options "--z3rlimit 20"
 let rec seq_dotprod_softmax_factor
   (#n: nat) (ra: lseq real n {n > 0}) (rb: lseq real n) (k: nat{k <= n})
   : Lemma (ensures (
-            let mra : lseq real n = seq_map rexp ra in
+            let mra : lseq real n = seq_map exp ra in
             let summ : real = rsum mra in
             ~(summ == 0.0R) /\
             seq_dotprod' (softmax_real ra) rb k *. summ == seq_dotprod' mra rb k))
           (decreases k)
-  = let mra : lseq real n = seq_map rexp ra in
+  = let mra : lseq real n = seq_map exp ra in
     sum_non_zero mra 0.0R;
     let summ : real = rsum mra in
     assert (summ >. 0.0R);
-    // [softmax_real ra] unfolds to [seq_map (fun x -> rexp x /. summ) ra].
-    assert (Seq.equal (softmax_real ra) (seq_map (fun (x:real) -> rexp x /. summ) ra));
+    // [softmax_real ra] unfolds to [seq_map (fun x -> exp x /. summ) ra].
+    assert (Seq.equal (softmax_real ra) (seq_map (fun (x:real) -> exp x /. summ) ra));
     if k = 0 then ()
     else seq_dotprod_softmax_factor ra rb (k-1)
 #pop-options
@@ -170,14 +202,14 @@ let pairs_rsum_eq
   (#n: nat) (ra rb: lseq real n)
   : Lemma (
       let pairs = dotprod_pair_seq ra rb in
-      let mra : lseq real n = seq_map rexp ra in
+      let mra : lseq real n = seq_map exp ra in
       rsum (seq_map exp_x_y pairs) == seq_dotprod' mra rb n
       /\ rsum (seq_map exp_x pairs) == rsum mra)
   = let pairs = dotprod_pair_seq ra rb in
-    let mra : lseq real n = seq_map rexp ra in
+    let mra : lseq real n = seq_map exp ra in
     // Pointwise equality for the numerator-side:
     let lhs_num : lseq real n =
-      Seq.init n (fun (i:nat{i<n}) -> rexp (ra @! i) *. (rb @! i)) in
+      Seq.init n (fun (i:nat{i<n}) -> exp (ra @! i) *. (rb @! i)) in
     assert (Seq.equal (seq_map exp_x_y pairs) lhs_num);
     rsum_init_dotprod_eq ra rb n;
     // Pointwise equality for the denominator-side:
@@ -202,7 +234,7 @@ let real_mul_assoc (a b c: real)
 let real_online_softmax_dotprod_lemma
   (#n: nat) (ra rb: lseq real n { n > 0 })
   : Lemma (online_softmax_dotprod_real ra rb == seq_dotprod' (softmax_real ra) rb n)
-  = rexp_base ();
+  = exp_base ();
     let pairs = dotprod_pair_seq ra rb in
     let x0 = ra @! 0 in
     let y0 = rb @! 0 in
@@ -226,42 +258,42 @@ let real_online_softmax_dotprod_lemma
     //                 = rsum (seq_map exp_x_y pairs)
     //   dd' * exp(m') = 1   * exp(x0) + rsum (seq_map exp_x   tl)
     //                 = rsum (seq_map exp_x   pairs)
-    assert (exp_x_y head_pair == rexp x0 *. y0);
-    assert (exp_x   head_pair == rexp x0);
-    assert (dn' *. rexp m' == rsum (seq_map exp_x_y pairs));
-    assert (dd' *. rexp m' == rsum (seq_map exp_x   pairs));
+    assert (exp_x_y head_pair == exp x0 *. y0);
+    assert (exp_x   head_pair == exp x0);
+    assert (dn' *. exp m' == rsum (seq_map exp_x_y pairs));
+    assert (dd' *. exp m' == rsum (seq_map exp_x   pairs));
     // Connect to seq_dotprod and to summ:
     pairs_rsum_eq ra rb;
-    let mra : lseq real n = seq_map rexp ra in
+    let mra : lseq real n = seq_map exp ra in
     let summ : real = rsum mra in
-    // [summ > 0] since each term [rexp _] is positive and [n > 0].
+    // [summ > 0] since each term [exp _] is positive and [n > 0].
     sum_non_zero mra 0.0R;
     assert (summ >. 0.0R);
     assert (~(summ == 0.0R));
     // dd' > 0 via lem_online_softmax_dotprod_real_iter (init's third comp is 1.0R > 0):
     lem_online_softmax_dotprod_real_iter init tl;
     assert (dd' >. 0.0R);
-    // rexp m' > 0:
-    rexp_positive m';
-    assert (~(rexp m' == 0.0R));
+    // exp m' > 0:
+    exp_positive m';
+    assert (~(exp m' == 0.0R));
     assert (~(dd' == 0.0R));
     // Algebraic derivation:
     //   sm * summ        == seq_dotprod mra rb n               (factor lemma)
-    //   summ             == dd' *. rexp m'                     (established)
-    //   seq_dotprod ...  == dn' *. rexp m'                     (established)
-    // hence  sm * (dd' * rexp m')  == dn' * rexp m'
-    // i.e.   (sm * dd') * rexp m'  == dn' * rexp m'
-    // cancel rexp m' to get  sm * dd' == dn'
+    //   summ             == dd' *. exp m'                     (established)
+    //   seq_dotprod ...  == dn' *. exp m'                     (established)
+    // hence  sm * (dd' * exp m')  == dn' * exp m'
+    // i.e.   (sm * dd') * exp m'  == dn' * exp m'
+    // cancel exp m' to get  sm * dd' == dn'
     // then divide by dd' to get  sm == dn' / dd'.
     seq_dotprod_softmax_factor ra rb n;
     let sm = seq_dotprod' (softmax_real ra) rb n in
     assert (sm *. summ == seq_dotprod' mra rb n);
-    assert (sm *. (dd' *. rexp m') == dn' *. rexp m');
+    assert (sm *. (dd' *. exp m') == dn' *. exp m');
     // Associativity of [*.] on reals:
-    real_mul_assoc sm dd' (rexp m');
-    assert ((sm *. dd') *. rexp m' == sm *. (dd' *. rexp m'));
-    assert ((sm *. dd') *. rexp m' == dn' *. rexp m');
-    real_mul_cancel (sm *. dd') dn' (rexp m');
+    real_mul_assoc sm dd' (exp m');
+    assert ((sm *. dd') *. exp m' == sm *. (dd' *. exp m'));
+    assert ((sm *. dd') *. exp m' == dn' *. exp m');
+    real_mul_cancel (sm *. dd') dn' (exp m');
     assert (sm *. dd' == dn');
     real_div_mul sm dd';
     assert ((sm *. dd') /. dd' == sm);
@@ -291,13 +323,13 @@ let loop_inv_maintained
       let gx = ra @! old_i in
       let gy = rb @! old_i in
       let m' = rmax old_max gx in
-      let sn' = old_sn *. rexp (old_max -. m') +. rexp (gx -. m') *. gy in
-      let sd' = old_sd *. rexp (old_max -. m') +. rexp (gx -. m') in
+      let sn' = old_sn *. exp (old_max -. m') +. exp (gx -. m') *. gy in
+      let sd' = old_sd *. exp (old_max -. m') +. exp (gx -. m') in
       (m', sn', sd') ==
         reveal (seq_fold_left online_softmax_dotprod_real_iter
                   (hide (ra @! 0, rb @! 0, 1.0R))
                   (Seq.slice (dotprod_pair_seq ra rb) 1 (old_i + 1)))))
-  = rexp_base ();
+  = exp_base ();
     let pairs = dotprod_pair_seq ra rb in
     let init = hide (ra @! 0, rb @! 0, 1.0R) in
     if old_i = 0 then
@@ -330,7 +362,7 @@ fn softmax_dotprod
   ensures
     pure (res %~ seq_dotprod (KS.softmax_real ra) rb)
 {
-  rexp_base ();
+  exp_base ();
 
   let pairs : erased (lseq (real & real) len) = dotprod_pair_seq ra rb;
 
@@ -372,8 +404,8 @@ fn softmax_dotprod
     let gmax' : erased real = rmax (reveal !gmax) gx;
     assert pure (max' %~ gmax');
 
-    let y1 = exp (!max `sub` max');
-    let gy1 = rexp (reveal !gmax -. reveal gmax');
+    let y1 = fexp (!max `sub` max');
+    let gy1 = exp (reveal !gmax -. reveal gmax');
     assert pure (!gsum_n == 0.0R \/ y1 %~ gy1);
 
     (* At this point, we cannot prove y1 is finite. It may not be,
@@ -386,12 +418,12 @@ fn softmax_dotprod
     assert pure ( (!sum_n `mul` y1)  %~  (reveal (!gsum_n) *. gy1) );
     assert pure ( (!sum_d `mul` y1)  %~  (reveal (!gsum_d) *. gy1) );
 
-    let y2_n = exp (x `sub` max') `mul` y;
-    let gy2_n = rexp (gx -. reveal gmax') *. gy;
+    let y2_n = fexp (x `sub` max') `mul` y;
+    let gy2_n = exp (gx -. reveal gmax') *. gy;
     assert pure (y2_n %~ gy2_n);
 
-    let y2_d = exp (x `sub` max');
-    let gy2_d = rexp (gx -. reveal gmax');
+    let y2_d = fexp (x `sub` max');
+    let gy2_d = exp (gx -. reveal gmax');
     assert pure (y2_d %~ gy2_d);
 
     let sum_n' = !sum_n `mul` y1 `add` y2_n;

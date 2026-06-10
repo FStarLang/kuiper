@@ -445,3 +445,37 @@ fn array1_collect_approx
       exists* (v: et). Cell a i |-> v ** pure (v %~ (ra `Seq.index` i))
   ensures
     exists* (va: lseq et len). (a |-> va) ** pure (va %~ ra)
+
+val ref_of_array_cell
+  (#et : Type0)
+  (#len : nat)
+  (#l : layout len)
+  (a : array1 et l)
+  (i : natlt len)
+  : ref et
+
+ghost
+fn array1_cell_to_ref
+  (#et : Type0)
+  (#len : nat)
+  (#l : layout len)
+  (a : array1 et l)
+  (i : natlt len)
+  (#v : erased et)
+  requires
+    Cell a i |-> v
+  ensures
+    ref_of_array_cell a i |-> v
+
+ghost
+fn array1_cell_from_ref
+  (#et : Type0)
+  (#len : nat)
+  (#l : layout len)
+  (a : array1 et l)
+  (i : natlt len)
+  (#v : erased et)
+  requires
+    ref_of_array_cell a i |-> v
+  ensures
+    Cell a i |-> v

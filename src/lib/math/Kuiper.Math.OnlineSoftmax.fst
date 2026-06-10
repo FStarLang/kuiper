@@ -18,12 +18,12 @@ open Kuiper.Seq.Common
 
 
 let exp_sum (x : seq real{len x > 0}) : r:real{r >. 0.0R} =
-  rsum (seq_map rexp x)
+  rsum (seq_map exp x)
 
 let adjust_factor (x : seq real{len x > 0}) (xi : real) : real =
   exp_sum x
   /.
-  (exp_sum x +. rexp xi)
+  (exp_sum x +. exp xi)
 
 let rec seq_max (s : seq real{len s > 0})
   : Tot real (decreases len s)
@@ -66,19 +66,19 @@ type st (x : erased (seq real){len x > 0}) = {
   m : real; // maximum so far
   d : real; // denominator, i.e. the sum of exponentials, corrected
   #m_ok : m == seq_max x;
-  #d_ok : d >. 0.0R /\ d == exp_sum x /. rexp m;
+  #d_ok : d >. 0.0R /\ d == exp_sum x /. exp m;
 }
 
 let exp_sum_snoc_lem (x : seq real{len x > 0}) (xi : real)
-  : Lemma (exp_sum (x @+ seq![xi]) == exp_sum x +. rexp xi)
+  : Lemma (exp_sum (x @+ seq![xi]) == exp_sum x +. exp xi)
   = calc (==) {
     exp_sum (x @+ seq![xi]);
     == {}
-    rsum (seq_map rexp (x @+ seq![xi]));
+    rsum (seq_map exp (x @+ seq![xi]));
     == {}
-    rsum (seq_map rexp x) +. rsum (seq_map rexp (seq![xi]));
+    rsum (seq_map exp x) +. rsum (seq_map exp (seq![xi]));
     == {}
-    exp_sum x +. rexp xi;
+    exp_sum x +. exp xi;
   }
 
 let r_distr_r (a b c : real) : Lemma (a *. (b +. c) == a *. b +. a *. c) = ()
@@ -112,34 +112,34 @@ let softmax_step #x (xst : st x) (xi : real) :
   res:(real & st (x @+ seq![xi]) & real)
    { (let (fxi,xst',adj) = res in
     fxi /. xst'.d == softmax_real (x @+ seq![xi]) @! len x /\
-    adj == rexp (xst.m -. xst'.m)) }
+    adj == exp (xst.m -. xst'.m)) }
   =
   let m' = rmax xst.m xi in
   seq_max_cons_lem x xi;
   assert m' == seq_max (x @+ seq![xi]);
-  let fxi = rexp (xi -. m') in
-  let adj = rexp (xst.m -. m') in
+  let fxi = exp (xi -. m') in
+  let adj = exp (xst.m -. m') in
   exp_sum_snoc_lem x xi;
-  assert xst.d == exp_sum x /. rexp xst.m;
+  assert xst.d == exp_sum x /. exp xst.m;
   let d' = xst.d *. adj +. fxi in
   assert (d' >. 0.0R);
   (* Prove d' is correct. *)
   calc (==) {
-    exp_sum (x @+ seq![xi]) /. rexp m';
+    exp_sum (x @+ seq![xi]) /. exp m';
     == {}
-    (exp_sum x +. rexp xi) /. rexp m';
-    == { r_distr_l (exp_sum x) (rexp xi) (rexp m') }
-    exp_sum x /. rexp m' +. rexp xi /. rexp m';
-    == { cancel_md (exp_sum x /. rexp m') (rexp xst.m) }
-    exp_sum x /. rexp m' *. rexp xst.m /. rexp xst.m +. rexp xi /. rexp m';
-    == { abcd_adcb (exp_sum x) (rexp xst.m) (rexp xst.m) (rexp m') }
-    exp_sum x /. rexp xst.m *. rexp xst.m /. rexp m' +. rexp xi /. rexp m';
-    == { assoc_mul_div (exp_sum x /. rexp xst.m) (rexp xst.m) (rexp m') }
-    exp_sum x /. rexp xst.m *. (rexp xst.m /. rexp m') +. rexp xi /. rexp m';
+    (exp_sum x +. exp xi) /. exp m';
+    == { r_distr_l (exp_sum x) (exp xi) (exp m') }
+    exp_sum x /. exp m' +. exp xi /. exp m';
+    == { cancel_md (exp_sum x /. exp m') (exp xst.m) }
+    exp_sum x /. exp m' *. exp xst.m /. exp xst.m +. exp xi /. exp m';
+    == { abcd_adcb (exp_sum x) (exp xst.m) (exp xst.m) (exp m') }
+    exp_sum x /. exp xst.m *. exp xst.m /. exp m' +. exp xi /. exp m';
+    == { assoc_mul_div (exp_sum x /. exp xst.m) (exp xst.m) (exp m') }
+    exp_sum x /. exp xst.m *. (exp xst.m /. exp m') +. exp xi /. exp m';
     == { exp_sub xst.m m' }
-    exp_sum x /. rexp xst.m *. rexp (xst.m -. m') +. rexp xi /. rexp m';
+    exp_sum x /. exp xst.m *. exp (xst.m -. m') +. exp xi /. exp m';
     == {}
-    xst.d *. adj +. rexp xi /. rexp m';
+    xst.d *. adj +. exp xi /. exp m';
     == { () }
     d';
   };
@@ -147,11 +147,11 @@ let softmax_step #x (xst : st x) (xi : real) :
   calc (==) {
     fxi /. d';
     == {}
-    rexp (xi -. m') /. (exp_sum (x @+ seq![xi]) /. rexp m');
+    exp (xi -. m') /. (exp_sum (x @+ seq![xi]) /. exp m');
     == {}
-    (rexp xi /. rexp m') /. (exp_sum (x @+ seq![xi]) /. rexp m');
-    == { cancel_ddd (rexp xi) (exp_sum (x @+ seq![xi])) (rexp m') }
-    rexp xi  /. exp_sum (x @+ seq![xi]);
+    (exp xi /. exp m') /. (exp_sum (x @+ seq![xi]) /. exp m');
+    == { cancel_ddd (exp xi) (exp_sum (x @+ seq![xi])) (exp m') }
+    exp xi  /. exp_sum (x @+ seq![xi]);
     == {}
     softmax_real (x @+ seq![xi]) @! len x;
   };
@@ -165,7 +165,7 @@ let softmax_stepi (#n:pos) (x : lseq real n) (i: pos{i < n}) (xst : st (seq_take
    { (let (fxi,xst',adj) = res in
     fxi /. xst'.d == softmax_real (seq_take (i+1) x) @! (len (seq_take i x)) /\
     (i == (len (seq_take i x))) /\ // TODO shouldnt be necessary
-    adj == rexp (xst.m -. xst'.m)) } = admit ()
+    adj == exp (xst.m -. xst'.m)) } = admit ()
 #pop-options
 
 open Kuiper.DotProd
@@ -227,11 +227,11 @@ let lem_online_softmax_adj
     (* Facts from the postcondition of softmax_stepi and the st invariant.
        Each is its own assert so it becomes a separate (small) SMT query. *)
     assert (fxi /. xst'.d == softmax_real x_upto_i' @! i);
-    assert (adj == rexp (xst.m -. xst'.m));
-    assert (rexp (xst.m -. xst'.m) == rexp (xst.m) /. rexp (xst'.m));
-    assert (adj == rexp (xst.m) /. rexp (xst'.m));
-    assert (xst.d == exp_sum x_upto_i /. rexp xst.m);
-    assert (xst'.d == exp_sum x_upto_i' /. rexp xst'.m);
+    assert (adj == exp (xst.m -. xst'.m));
+    assert (exp (xst.m -. xst'.m) == exp (xst.m) /. exp (xst'.m));
+    assert (adj == exp (xst.m) /. exp (xst'.m));
+    assert (xst.d == exp_sum x_upto_i /. exp xst.m);
+    assert (xst'.d == exp_sum x_upto_i' /. exp xst'.m);
     assert (xst'.d =!= 0.0R);
 
     (* ---- Step A: simplify (k fxi i) /. xst'.d ---- *)
@@ -241,33 +241,33 @@ let lem_online_softmax_adj
 
     (* ---- Step B: simplify r *. adj /. xst'.d ----
        Goal: r *. adj /. xst'.d == v1 *. (exp_sum x_upto_i /. exp_sum x_upto_i').
-       Pull the division inside, cancel rexp xst'.m, then use the precondition
-       to replace r with v1 *. xst.d and cancel rexp xst.m. *)
+       Pull the division inside, cancel exp xst'.m, then use the precondition
+       to replace r with v1 *. xst.d and cancel exp xst.m. *)
     assoc_mul_div r adj xst'.d;
     assert (r *. adj /. xst'.d == r *. (adj /. xst'.d));
     assert (adj /. xst'.d
-            == rexp (xst.m) /. rexp (xst'.m) /. (exp_sum x_upto_i' /. rexp xst'.m));
-    cancel_ddd (rexp xst.m) (exp_sum x_upto_i') (rexp xst'.m);
-    assert (adj /. xst'.d == rexp (xst.m) /. exp_sum x_upto_i');
-    assert (r *. adj /. xst'.d == r *. (rexp (xst.m) /. exp_sum x_upto_i'));
+            == exp (xst.m) /. exp (xst'.m) /. (exp_sum x_upto_i' /. exp xst'.m));
+    cancel_ddd (exp xst.m) (exp_sum x_upto_i') (exp xst'.m);
+    assert (adj /. xst'.d == exp (xst.m) /. exp_sum x_upto_i');
+    assert (r *. adj /. xst'.d == r *. (exp (xst.m) /. exp_sum x_upto_i'));
 
     (* Use the precondition r /. xst.d == v1, i.e. r == v1 *. xst.d. *)
     cancel_dm r xst.d;
     assert (r == v1 *. xst.d);
-    assert (r *. (rexp (xst.m) /. exp_sum x_upto_i')
-            == (v1 *. xst.d) *. (rexp (xst.m) /. exp_sum x_upto_i'));
-    assoc_mul v1 xst.d (rexp xst.m /. exp_sum x_upto_i');
-    assert ((v1 *. xst.d) *. (rexp (xst.m) /. exp_sum x_upto_i')
-            == v1 *. (xst.d *. (rexp xst.m /. exp_sum x_upto_i')));
+    assert (r *. (exp (xst.m) /. exp_sum x_upto_i')
+            == (v1 *. xst.d) *. (exp (xst.m) /. exp_sum x_upto_i'));
+    assoc_mul v1 xst.d (exp xst.m /. exp_sum x_upto_i');
+    assert ((v1 *. xst.d) *. (exp (xst.m) /. exp_sum x_upto_i')
+            == v1 *. (xst.d *. (exp xst.m /. exp_sum x_upto_i')));
 
-    assert (xst.d *. (rexp xst.m /. exp_sum x_upto_i')
-            == (exp_sum x_upto_i /. rexp xst.m) *. (rexp xst.m /. exp_sum x_upto_i'));
-    assoc_mul_div (exp_sum x_upto_i /. rexp xst.m) (rexp xst.m) (exp_sum x_upto_i');
-    assert ((exp_sum x_upto_i /. rexp xst.m) *. (rexp xst.m /. exp_sum x_upto_i')
-            == ((exp_sum x_upto_i /. rexp xst.m) *. rexp xst.m) /. exp_sum x_upto_i');
-    cancel_dm (exp_sum x_upto_i) (rexp xst.m);
-    assert ((exp_sum x_upto_i /. rexp xst.m) *. rexp xst.m == exp_sum x_upto_i);
-    assert (xst.d *. (rexp xst.m /. exp_sum x_upto_i')
+    assert (xst.d *. (exp xst.m /. exp_sum x_upto_i')
+            == (exp_sum x_upto_i /. exp xst.m) *. (exp xst.m /. exp_sum x_upto_i'));
+    assoc_mul_div (exp_sum x_upto_i /. exp xst.m) (exp xst.m) (exp_sum x_upto_i');
+    assert ((exp_sum x_upto_i /. exp xst.m) *. (exp xst.m /. exp_sum x_upto_i')
+            == ((exp_sum x_upto_i /. exp xst.m) *. exp xst.m) /. exp_sum x_upto_i');
+    cancel_dm (exp_sum x_upto_i) (exp xst.m);
+    assert ((exp_sum x_upto_i /. exp xst.m) *. exp xst.m == exp_sum x_upto_i);
+    assert (xst.d *. (exp xst.m /. exp_sum x_upto_i')
             == exp_sum x_upto_i /. exp_sum x_upto_i');
 
     let r2 : real = exp_sum x_upto_i /. exp_sum x_upto_i' in
@@ -285,19 +285,19 @@ let lem_online_softmax_adj
       let xj : real = x @! j in
       assert (x_upto_i @! j == xj);
       assert (x_upto_i' @! j == xj);
-      assert (softmax_real x_upto_i @! j == rexp xj /. exp_sum x_upto_i);
-      assert (softmax_real x_upto_i' @! j == rexp xj /. exp_sum x_upto_i');
+      assert (softmax_real x_upto_i @! j == exp xj /. exp_sum x_upto_i);
+      assert (softmax_real x_upto_i' @! j == exp xj /. exp_sum x_upto_i');
       assert (s2_prefix @! j == s2 @! j);
-      assert (s2 @! j == k (rexp xj /. exp_sum x_upto_i') j);
-      assert (s1_scaled @! j == k (rexp xj /. exp_sum x_upto_i) j *. r2);
-      k_comm_div (rexp xj) (exp_sum x_upto_i) j;
-      k_comm_div (rexp xj) (exp_sum x_upto_i') j;
-      (* Both sides reduce to (k (rexp xj) j) /. exp_sum x_upto_i'. *)
-      assert (s2 @! j == k (rexp xj) j /. exp_sum x_upto_i');
-      assert (s1_scaled @! j == (k (rexp xj) j /. exp_sum x_upto_i) *. r2);
-      assoc_mul_div (k (rexp xj) j /. exp_sum x_upto_i) (exp_sum x_upto_i) (exp_sum x_upto_i');
-      cancel_dm (k (rexp xj) j) (exp_sum x_upto_i);
-      assert ((k (rexp xj) j /. exp_sum x_upto_i) *. r2 == k (rexp xj) j /. exp_sum x_upto_i')
+      assert (s2 @! j == k (exp xj /. exp_sum x_upto_i') j);
+      assert (s1_scaled @! j == k (exp xj /. exp_sum x_upto_i) j *. r2);
+      k_comm_div (exp xj) (exp_sum x_upto_i) j;
+      k_comm_div (exp xj) (exp_sum x_upto_i') j;
+      (* Both sides reduce to (k (exp xj) j) /. exp_sum x_upto_i'. *)
+      assert (s2 @! j == k (exp xj) j /. exp_sum x_upto_i');
+      assert (s1_scaled @! j == (k (exp xj) j /. exp_sum x_upto_i) *. r2);
+      assoc_mul_div (k (exp xj) j /. exp_sum x_upto_i) (exp_sum x_upto_i) (exp_sum x_upto_i');
+      cancel_dm (k (exp xj) j) (exp_sum x_upto_i);
+      assert ((k (exp xj) j /. exp_sum x_upto_i) *. r2 == k (exp xj) j /. exp_sum x_upto_i')
     end;
 
     assert (Seq.equal s2_prefix s1_scaled);
@@ -377,7 +377,7 @@ let lem_online_softmax_adj
        (k (softmax_real (seq_take (i+1) x) @! i) i);
     };
 
-    assert (rexp (xst.m -. xst'.m) == rexp (xst.m) /. rexp (xst'.m));
+    assert (exp (xst.m -. xst'.m) == exp (xst.m) /. exp (xst'.m));
 
     let x_upto_i = seq_take i x in
     let x_upto_i' = seq_take (i+1) x in
@@ -387,20 +387,20 @@ let lem_online_softmax_adj
       == { assoc_mul_div r adj xst'.d }
       r *. (adj /. xst'.d);
       == {}
-      r *. (rexp (xst.m) /. rexp (xst'.m) /. xst'.d);
+      r *. (exp (xst.m) /. exp (xst'.m) /. xst'.d);
       == {}
-      r *. (rexp (xst.m) /. rexp (xst'.m) /. (exp_sum x_upto_i' /. (rexp xst'.m)));
-      == { cancel_ddd (rexp xst.m) (exp_sum x_upto_i') (rexp xst'.m)}
-      r *. (rexp (xst.m) /. (exp_sum x_upto_i'));
+      r *. (exp (xst.m) /. exp (xst'.m) /. (exp_sum x_upto_i' /. (exp xst'.m)));
+      == { cancel_ddd (exp xst.m) (exp_sum x_upto_i') (exp xst'.m)}
+      r *. (exp (xst.m) /. (exp_sum x_upto_i'));
       == { cancel_dm r xst.d }
-      v1 *. xst.d *. (rexp (xst.m) /. (exp_sum x_upto_i'));
-      == { assoc_mul v1 xst.d (rexp (xst.m) /. (exp_sum x_upto_i')) }
-      v1 *. (xst.d *. (rexp (xst.m) /. (exp_sum x_upto_i')));
+      v1 *. xst.d *. (exp (xst.m) /. (exp_sum x_upto_i'));
+      == { assoc_mul v1 xst.d (exp (xst.m) /. (exp_sum x_upto_i')) }
+      v1 *. (xst.d *. (exp (xst.m) /. (exp_sum x_upto_i')));
       == { }
-      v1 *. ((exp_sum x_upto_i /. (rexp xst.m)) *. (rexp (xst.m) /. (exp_sum x_upto_i')));
-      == { assoc_mul_div (exp_sum x_upto_i /. (rexp xst.m)) (rexp xst.m) (exp_sum x_upto_i') }
-      v1 *. (((exp_sum x_upto_i /. (rexp xst.m)) *. rexp (xst.m)) /. (exp_sum x_upto_i'));
-      == { cancel_dm (exp_sum x_upto_i) (rexp xst.m) }
+      v1 *. ((exp_sum x_upto_i /. (exp xst.m)) *. (exp (xst.m) /. (exp_sum x_upto_i')));
+      == { assoc_mul_div (exp_sum x_upto_i /. (exp xst.m)) (exp xst.m) (exp_sum x_upto_i') }
+      v1 *. (((exp_sum x_upto_i /. (exp xst.m)) *. exp (xst.m)) /. (exp_sum x_upto_i'));
+      == { cancel_dm (exp_sum x_upto_i) (exp xst.m) }
       v1 *. ((exp_sum x_upto_i) /. (exp_sum x_upto_i'));
     };
 
@@ -427,19 +427,19 @@ let lem_online_softmax_adj
       let xj : real = x @! j in
       assert (x_upto_i @! j == xj);
       assert (x_upto_i' @! j == xj);
-      assert (softmax_real x_upto_i @! j == rexp xj /. exp_sum x_upto_i);
-      assert (softmax_real x_upto_i' @! j == rexp xj /. exp_sum x_upto_i');
+      assert (softmax_real x_upto_i @! j == exp xj /. exp_sum x_upto_i);
+      assert (softmax_real x_upto_i' @! j == exp xj /. exp_sum x_upto_i');
       assert (s2_prefix @! j == s2 @! j);
-      assert (s2 @! j == k (rexp xj /. exp_sum x_upto_i') j);
-      assert (s1_scaled @! j == k (rexp xj /. exp_sum x_upto_i) j *. r2);
-      k_comm_div (rexp xj) (exp_sum x_upto_i) j;
-      k_comm_div (rexp xj) (exp_sum x_upto_i') j;
-      (* Both sides reduce to (k (rexp xj) j) /. exp_sum x_upto_i' *)
-      assert (s2 @! j == k (rexp xj) j /. exp_sum x_upto_i');
-      assert (s1_scaled @! j == (k (rexp xj) j /. exp_sum x_upto_i) *. r2);
-      assoc_mul_div (k (rexp xj) j /. exp_sum x_upto_i) (exp_sum x_upto_i) (exp_sum x_upto_i');
-      cancel_dm (k (rexp xj) j) (exp_sum x_upto_i);
-      assert ((k (rexp xj) j /. exp_sum x_upto_i) *. r2 == k (rexp xj) j /. exp_sum x_upto_i')
+      assert (s2 @! j == k (exp xj /. exp_sum x_upto_i') j);
+      assert (s1_scaled @! j == k (exp xj /. exp_sum x_upto_i) j *. r2);
+      k_comm_div (exp xj) (exp_sum x_upto_i) j;
+      k_comm_div (exp xj) (exp_sum x_upto_i') j;
+      (* Both sides reduce to (k (exp xj) j) /. exp_sum x_upto_i' *)
+      assert (s2 @! j == k (exp xj) j /. exp_sum x_upto_i');
+      assert (s1_scaled @! j == (k (exp xj) j /. exp_sum x_upto_i) *. r2);
+      assoc_mul_div (k (exp xj) j /. exp_sum x_upto_i) (exp_sum x_upto_i) (exp_sum x_upto_i');
+      cancel_dm (k (exp xj) j) (exp_sum x_upto_i);
+      assert ((k (exp xj) j /. exp_sum x_upto_i) *. r2 == k (exp xj) j /. exp_sum x_upto_i')
     end;
 
     assert (Seq.equal s2_prefix s1_scaled);
@@ -559,13 +559,13 @@ let softmax_dotprod (#n: pos) (x y: lseq real n):
       ()
     );
     d_ok = (
-      assert (exp_sum (seq![x @! 0]) == rexp (x @! 0));
-      assert (rexp (x @! 0) /. rexp (x @! 0) == 1.0R);
+      assert (exp_sum (seq![x @! 0]) == exp (x @! 0));
+      assert (exp (x @! 0) /. exp (x @! 0) == 1.0R);
       ()
     );
   } in
   let r : r:real{(r /. xst.d) == smx_dotprod_fold 1} = (
-    assert (rexp (x @! 0) /. rexp (x @! 0) == 1.0R);
+    assert (exp (x @! 0) /. exp (x @! 0) == 1.0R);
     assert (1.0R *. (y @! 0) == (y @! 0));
     assert ((y @! 0) /. 1.0R == 0.0R +. (y @! 0));
     (y @! 0)

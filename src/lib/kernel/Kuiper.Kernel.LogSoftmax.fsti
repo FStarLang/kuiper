@@ -2,7 +2,7 @@ module Kuiper.Kernel.LogSoftmax
 
 #lang-pulse
 open Kuiper
-open Kuiper.Real { rlog }
+open Kuiper.Real { log }
 open Kuiper.Seq.Common
 module Vec = Pulse.Lib.Vec
 module KS = Kuiper.Spec.Softmax
@@ -11,7 +11,7 @@ open Kuiper.Tensor.Layout.Alg { l1_forward }
 
 // Log of softmax.
 let log_softmax_real (s:Seq.seq real { Seq.length s > 0 }) =
-  lseq_map rlog (seq_refine (fun x -> x >. 0.0R) (KS.softmax_real s))
+  lseq_map log (seq_refine (fun x -> x >. 0.0R) (KS.softmax_real s))
 
 unfold
 type log_softmax_gpu_ty (et : Type0) {| floating et, real_like et |} =
