@@ -636,3 +636,44 @@ fn array1_collect_approx
   implode a;
   ()
 }
+
+let ref_of_array_cell
+  (#et : Type0)
+  (#len : nat)
+  (#l : layout len)
+  (a : array1 et l)
+  (i : natlt len)
+  : ref et
+  = magic()
+
+ghost
+fn array1_cell_to_ref
+  (#et : Type0)
+  (#len : nat)
+  (#l : layout len)
+  (a : array1 et l)
+  (i : natlt len)
+  (#v : erased et)
+  requires
+    Cell a i |-> v
+  ensures
+    ref_of_array_cell a i |-> v
+{
+  admit();
+}
+
+ghost
+fn array1_cell_from_ref
+  (#et : Type0)
+  (#len : nat)
+  (#l : layout len)
+  (a : array1 et l)
+  (i : natlt len)
+  (#v : erased et)
+  requires
+    ref_of_array_cell a i |-> v
+  ensures
+    Cell a i |-> v
+{
+  admit();
+}
