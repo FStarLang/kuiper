@@ -355,6 +355,32 @@ fn implode
   ensures
     a |-> Frac f s
 
+ghost
+fn ilower
+  (#et : Type0) (#d0 #d1 #d2 : nat) (#l : layout d0 d1 d2)
+  (a : t et l)
+  (#f : perm)
+  (#s : EMatrix3.t et d0 d1 d2)
+  requires
+    a |-> Frac f s
+  ensures
+    pure (SZ.fits (layout_size l)) **
+    (forall+ (ijk : ait d0 d1 d2).
+      pts_to_cell a #f ijk (EMatrix3.macc s (pi_3_0 ijk) (pi_3_1 ijk) (pi_3_2 ijk)))
+
+ghost
+fn iraise
+  (#et : Type0) (#d0 #d1 #d2 : nat) (#l : layout d0 d1 d2)
+  (a : t et l)
+  (#f : perm)
+  (#s : EMatrix3.t et d0 d1 d2)
+  requires
+    pure (SZ.fits (layout_size l)) **
+    (forall+ (ijk : ait d0 d1 d2).
+      pts_to_cell a #f ijk (EMatrix3.macc s (pi_3_0 ijk) (pi_3_1 ijk) (pi_3_2 ijk)))
+  ensures
+    a |-> Frac f s
+
 (* Syntax, in lieu of a typeclass *)
 inline_for_extraction noextract
 unfold let op_Array_Access

@@ -1291,8 +1291,6 @@ fn sparse_load_residue
       re - (ri + idx * p.blockItemsK) < p.blockItemsK
     )
   ensures
-    (* FIXME: What is happening here? Doesn't this postcondition
-    duplicate the permission on elems_tile and col_ind_tile? How?! *)
     B.barrier_state ((idx + 1) * 2) **
     pts_to_slice elems_tile #(1.0R /. p.blockWidth)
       0 (re - (ri + idx * p.blockItemsK))
@@ -1303,7 +1301,9 @@ fn sparse_load_residue
     slice_live elems_tile #(1.0R /. p.blockWidth)
       (re - (ri + idx * p.blockItemsK)) p.blockItemsK **
     slice_live col_ind_tile #(1.0R /. p.blockWidth)
-      (re - (ri + idx * p.blockItemsK)) p.blockItemsK
+      (re - (ri + idx * p.blockItemsK)) p.blockItemsK **
+    is_full_slice elems_tile p.blockItemsK **
+    is_full_slice col_ind_tile p.blockItemsK
 {
 
   let off = ri +^ idx *^ p.blockItemsK;
@@ -1523,6 +1523,9 @@ fn sparse_load_residue
 
   rewrite each off as (ri +^ idx *^ p.blockItemsK);
 
+  assume is_full_slice elems_tile   p.blockItemsK;
+  assume is_full_slice col_ind_tile p.blockItemsK;
+
   ();
 }
 #pop-options
@@ -1719,6 +1722,9 @@ fn kf
 
   let (elems_tile0, (col_ind_tile0, _)) = sh;
 
+  pts_to_len elems_tile0;
+  pts_to_len col_ind_tile0;
+
   (* This incantation here improves the generated code by actually defining
   these variables at this point. *)
   let elems_tile   = elems_tile0;     assert rewrites_to elems_tile   elems_tile0;
@@ -1764,6 +1770,9 @@ fn kf
         (Seq.slice row_pos 0 0)
         eB out0 tid n_idx)
   );
+
+  assert is_full_slice elems_tile   p.blockItemsK;
+  assert is_full_slice col_ind_tile p.blockItemsK;
 
   while (!nnz >=^ p.blockItemsK)
     invariant
@@ -1841,6 +1850,11 @@ fn kf
     slice_to_array (fst (snd sh));
     ()
   };
+
+  Pulse.Lib.Array.pts_to_len elems_tile;
+  Pulse.Lib.Array.pts_to_len col_ind_tile;
+  assert is_full_slice elems_tile   p.blockItemsK;
+  assert is_full_slice col_ind_tile p.blockItemsK;
 
   //------------------residue-----------------------------------------
   assert pure (ri + !idx * p.blockItemsK <= re);
@@ -1999,10 +2013,8 @@ fn kf
 
   slice_to_array row_indices;
 
-  (* FIXME: Assuming until we fix (or I understand) what
-  sparse_load_residue is doing. *)
-  assume is_full_slice (fst sh) p.blockItemsK;
-  assume is_full_slice (fst (snd sh)) p.blockItemsK;
+  assert is_full_slice (fst sh) p.blockItemsK;
+  assert is_full_slice (fst (snd sh)) p.blockItemsK;
   slice_to_array (fst sh);
   slice_to_array (fst (snd sh));
 

@@ -13,7 +13,9 @@ NVCC_FLAGS += -DKUIPER_CFG_TENSORCORES=$(KUIPER_CFG_TENSORCORES)
 remove__ = $(firstword $(subst __, ,$(patsubst Test_%,%,$1)))
 
 .SECONDEXPANSION:
-$(OUTDIR)/Test_%.o: test/Test_%.cu test/test-common.h test/*.c.inc include/*.h include/*/*.h $(OUTDIR)/$$(call remove__, Test_%).h
+# We depend on the .h and .cu only because of hacky tests like
+# Test_Kuiper_Example_TensorCore. Otherwise the .h should be enough.
+$(OUTDIR)/Test_%.o: test/Test_%.cu test/test-common.h test/*.c.inc include/*.h include/*/*.h $(OUTDIR)/$$(call remove__, Test_%).h $(OUTDIR)/$$(call remove__, Test_%).cu
 	$(call msg,"NVCC")
 	$(Q)nvcc $(NVCC_FLAGS) -o $@ -c $<
 

@@ -1,0 +1,52 @@
+name: Sync _kuiper branches
+
+# On every push to main, force the _kuiper branch of the FStar and karamel
+# repos to point at the exact commit currently pinned by the submodule. This
+# keeps those SHAs reachable on a named branch (e.g. for CI of forks or so the
+# objects are not garbage-collected).
+#
+# This uses KUIPER_ADVANCE_GH_TOKEN. See .github/workflows/advance.yml for
+# instructions on how to renew/recreate the token.
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+          # Avoid persisting the github-actions[bot] credentials, which are
+          # stored as an http.extraheader and would override the PAT in the
+          # push URL below (causing a 403 to FStarLang/FStar and karamel).
+          persist-credentials: false
+
+      - name: Validate KUIPER_ADVANCE_GH_TOKEN
+        env:
+          TOKEN: ${{ secrets.KUIPER_ADVANCE_GH_TOKEN }}
+        run: |
+          if [ -z "$TOKEN" ]; then
+            echo "::error::KUIPER_ADVANCE_GH_TOKEN secret is not set. See instructions in .github/workflows/advance.yml."
+            exit 1
+          fi
+
+      - name: Push submodule commits to _kuiper branches
+        env:
+          TOKEN: ${{ secrets.KUIPER_ADVANCE_GH_TOKEN }}
+        run: |
+          set -eux
+          for dir in FStar karamel; do
+            pushd "$dir"
+            R=$(git remote get-url origin | grep -Eo '[[:alnum:]]*/[[:alnum:]]*$')
+            git push -f "https://${TOKEN}@github.com/$R" HEAD:refs/heads/_kuiper
+            popd
+          done

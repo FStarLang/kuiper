@@ -33,6 +33,16 @@ jobs:
       - run: find . -delete
       - name: Check out repo
         uses: actions/checkout@v6
+        with:
+          submodules: recursive
+          # Full history is needed so try-rebase.sh can rebase the submodule
+          # branches onto upstream/master without shallow-clone conflicts.
+          fetch-depth: 0
+          # Don't persist the github-actions[bot] credentials: checkout injects
+          # them as an http.extraheader into each submodule's git config, which
+          # would override the PAT in the push URLs we use for FStar/karamel
+          # below (resulting in a 403). We set explicit tokens per-push instead.
+          persist-credentials: false
 
       - run: sudo apt-get install -y indent
 
@@ -51,6 +61,9 @@ jobs:
         run: |
           git config --global user.name "Actions bot"
           git config --global user.email "none@none"
+          # Credential persistence is disabled on checkout, so set an explicit
+          # token for pushing to this (kuiper) repository.
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
 
       # This step is optional. It's here to remind us how to update the token,
       # since sadly they expire every year (just long enough to fully forget
@@ -72,10 +85,6 @@ jobs:
               exit 1
             fi
           done
-
-      - name: Get submodules
-        run: |
-          git submodule update --init --recursive
 
       - run: |
           ./try-rebase.sh
@@ -116,9 +125,16 @@ jobs:
             git remote set-url origin https://${{secrets.KUIPER_ADVANCE_GH_TOKEN}}@github.com/$R
             echo after
             git remote -v
+            # Keep the _kuiper branch in sync with the pinned commit. The push
+            # to main below uses GITHUB_TOKEN and therefore won't trigger the
+            # sync-kuiper-branches workflow, so we update _kuiper here directly.
+            git push -f origin HEAD:refs/heads/_kuiper
             popd
           done
-          ./try-push.sh
+          ./push-submodules.sh
+          git add FStar karamel
+          git commit -m 'Advance submodules'
+          git push
 
       - name: Push submodule commits to remotes and open PR
         if: ${{ env.MOVED == '1' && env.DISTCHANGE == '1' }}

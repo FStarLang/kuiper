@@ -572,3 +572,4 @@ let softmax_dotprod (#n: pos) (x y: lseq real n):
   ) in
   lem_smx_dotprod_fold_is_dotprod_smx #n x y;
   aux #1 xst r
+#pop-options

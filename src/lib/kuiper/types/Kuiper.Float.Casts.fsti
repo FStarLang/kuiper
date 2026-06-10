@@ -11,14 +11,14 @@ inline_for_extraction noextract
 class float_cast
   (a b : Type) {| scalar a, scalar b, real_like a, real_like b |}
 = {
-  cast : a -> b;
+  fcast : a -> b;
 
   #[Tactics.Easy.easy_fill()]
-  cast_approx :
+  fcast_approx :
     x:a -> y:real ->
     Lemma (requires x %~ y)
-          (ensures cast x %~ y)
-          [SMTPat (cast x %~ y)];
+          (ensures fcast x %~ y)
+          [SMTPat (fcast x %~ y)];
 }
 
 inline_for_extraction noextract

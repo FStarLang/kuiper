@@ -785,17 +785,17 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
 
   (******** FLOAT CASTS *******)
 
-  | "Kuiper.Float.Casts.cast_f16_to_f32", [], [x] ->
+  | "Kuiper.Float.Casts.Base.cast_f16_to_f32", [], [x] ->
     EApp (EQualified ([], "__half2float"), [cb x])
-  | "Kuiper.Float.Casts.cast_f16_to_f64", [], [x] ->
+  | "Kuiper.Float.Casts.Base.cast_f16_to_f64", [], [x] ->
     ECast (EApp (EQualified ([], "__half2float"), [cb x]), TInt Double)
-  | "Kuiper.Float.Casts.cast_f32_to_f16", [], [x] ->
+  | "Kuiper.Float.Casts.Base.cast_f32_to_f16", [], [x] ->
     EApp (EQualified ([], "__float2half_rn"), [cb x])
-  | "Kuiper.Float.Casts.cast_f32_to_f64", [], [x] ->
+  | "Kuiper.Float.Casts.Base.cast_f32_to_f64", [], [x] ->
     ECast (cb x, TInt Double)
-  | "Kuiper.Float.Casts.cast_f64_to_f16", [], [x] ->
+  | "Kuiper.Float.Casts.Base.cast_f64_to_f16", [], [x] ->
     EApp (EQualified ([], "__float2half_rn"), [ECast (cb x, TInt Float)])
-  | "Kuiper.Float.Casts.cast_f64_to_f32", [], [x] ->
+  | "Kuiper.Float.Casts.Base.cast_f64_to_f32", [], [x] ->
     ECast (cb x, TInt Float)
 
   (******** REFERENCES ********)
