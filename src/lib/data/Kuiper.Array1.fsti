@@ -452,7 +452,19 @@ val ref_of_array_cell
   (#l : layout len)
   (a : array1 et l)
   (i : natlt len)
-  : ref et
+  : GTot (ref et)
+
+inline_for_extraction noextract
+fn get_ref_of_array_cell
+  (#et : Type0)
+  (#len : nat)
+  (#l : layout len) {| c : ctlayout l |}
+  (a : array1 et l)
+  (i : szlt len)
+  returns
+    r : ref et
+  ensures 
+    pure (r == ref_of_array_cell a i)
 
 ghost
 fn array1_cell_to_ref
@@ -461,11 +473,12 @@ fn array1_cell_to_ref
   (#l : layout len)
   (a : array1 et l)
   (i : natlt len)
+  (#f : perm)
   (#v : erased et)
   requires
-    Cell a i |-> v
+    Cell a i |-> Frac f v
   ensures
-    ref_of_array_cell a i |-> v
+    ref_of_array_cell a i |-> Frac f v
 
 ghost
 fn array1_cell_from_ref
@@ -474,8 +487,9 @@ fn array1_cell_from_ref
   (#l : layout len)
   (a : array1 et l)
   (i : natlt len)
+  (#f : perm)
   (#v : erased et)
   requires
-    ref_of_array_cell a i |-> v
+    ref_of_array_cell a i |-> Frac f v
   ensures
-    Cell a i |-> v
+    Cell a i |-> Frac f v

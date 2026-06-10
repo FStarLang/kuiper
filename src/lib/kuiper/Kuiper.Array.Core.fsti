@@ -501,3 +501,42 @@ fn slice_pts_to_eq
 //     arr : gpu_global_array a (sz1 + sz2)
 //   ensures
 //     arr |-> Frac 'f ('s1 @+ 's2)
+
+val ref_of_array_cell
+  (#et : Type0)
+  (a : array et)
+  (i : nat)
+  : ref et
+
+fn get_ref_of_array_cell
+  (#et : Type0)
+  (a : array et)
+  (i : sz)
+  returns
+    r : ref et
+  ensures
+    pure (r == ref_of_array_cell a i)
+
+ghost
+fn array_cell_to_ref
+  (#et : Type0)
+  (a : array et)
+  (i : nat)
+  (#f : perm)
+  (#v : erased et)
+  requires
+    Cell a i |-> Frac f v
+  ensures
+    ref_of_array_cell a i |-> Frac f v
+
+ghost
+fn array_cell_from_ref
+  (#et : Type0)
+  (a : array et)
+  (i : nat)
+  (#f : perm)
+  (#v : erased et)
+  requires
+    ref_of_array_cell a i |-> Frac f v
+  ensures
+    Cell a i |-> Frac f v
