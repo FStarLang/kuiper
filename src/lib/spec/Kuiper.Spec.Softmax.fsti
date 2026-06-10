@@ -8,13 +8,13 @@ open Kuiper.Seq.Common
 (* Real-value golden specification for softmax. *)
 let softmax_real (s : seq real) =
   seq_mapi s (fun x i ->
-    let exps = seq_map rexp s in
+    let exps = seq_map exp s in
     let summ : real = rsum exps in
-    rexp x /. summ)
+    exp x /. summ)
 
 val shift_denom (r0 : Seq.seq real) (c : real)
-  : Lemma (ensures rsum (seq_map (fun z -> rexp (z -. c)) r0)
-                   == rsum (seq_map rexp r0) /. rexp c)
+  : Lemma (ensures rsum (seq_map (fun z -> exp (z -. c)) r0)
+                   == rsum (seq_map exp r0) /. exp c)
 
 (* Softmax is unchanged by a shift. *)
 val softmax_shift (r0 : seq real) (c : real)

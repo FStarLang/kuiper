@@ -110,8 +110,8 @@ val fmax_spec : (x : t) -> (y : t) ->
           (ensures fmax x y == (if lt x y then y else x))
           [SMTPat (fmax x y)]
 
-val exp : t -> t
-val log : t -> t
+val fexp : t -> t
+val flog : t -> t
 val sqrt : t -> t
 val rsqrt : t -> t
 val sin : t -> t

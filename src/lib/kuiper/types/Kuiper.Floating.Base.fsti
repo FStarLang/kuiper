@@ -153,8 +153,8 @@ class floating (t : Type) = {
           (ensures fmax x y == (if lt x y then y else x))
           [SMTPat (fmax x y)];
 
-  exp : t -> t;
-  log : t -> t;
+  fexp : t -> t;
+  flog : t -> t;
   sqrt : t -> t;
   rsqrt : t -> t;
   sin : t -> t;

@@ -3,7 +3,7 @@ module Kuiper.Kernel.RowSoftmax
 #lang-pulse
 friend Kuiper.Kernel.Softmax
 open Kuiper
-open Kuiper.Real { rexp }
+open Kuiper.Real { exp }
 open Kuiper.EMatrix
 open Kuiper.Seq.Common
 open Kuiper.Math.OnlineSoftmax { seq_max }
@@ -36,8 +36,8 @@ let s_row_div_exp_approx_softmax
         sa %~ ra /\
         (forall (i : nat). i < m ==>
           v_approximates (sums @! i)
-                         (rsum (lseq_map rexp (ematrix_row ra i)))))
-      (ensures RB.s_row_broadcast (fun x s -> div (exp x) s) sums sa %~ row_softmax_real #m #n ra)
+                         (rsum (lseq_map exp (ematrix_row ra i)))))
+      (ensures RB.s_row_broadcast (fun x s -> div (fexp x) s) sums sa %~ row_softmax_real #m #n ra)
   = ()
 #pop-options
 
@@ -130,11 +130,11 @@ fn row_softmax_gpu
 
   (* Step 3: tree-reduce exp(a[i, j] - max[i]) into sums[i].  We thread the
      shifted real matrix [ra1] through the reduction. *)
-  KB.reduce_batched_block #et exp rexp m n max_threads a sums ra1;
+  KB.reduce_batched_block #et fexp exp m n max_threads a sums ra1;
   with sums_v. assert (on gpu_loc (sums |-> sums_v));
 
   (* Step 4: in-place fused exp(x) / sums[i] over every (already shifted) cell. *)
-  RB.row_broadcast (fun x s -> div (exp x) s) m n sums a;
+  RB.row_broadcast (fun x s -> div (fexp x) s) m n sums a;
 
   Array1.free sums;
   Array1.free maxs;

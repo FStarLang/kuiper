@@ -91,7 +91,7 @@ class floating_real_like (a:Type) {| scalar a, floating a, real_like a |} = {
 
   exp_approx : x:a -> r:real ->
                 Lemma (requires v_approximates x r)
-                      (ensures v_approximates (exp x) (rexp r));
+                      (ensures v_approximates (fexp x) (exp r));
 
   div_approx : x:a -> y:a -> r:real -> s:real{s =!= 0.0R} ->
                 Lemma (requires v_approximates x r /\ v_approximates y s)
@@ -99,7 +99,7 @@ class floating_real_like (a:Type) {| scalar a, floating a, real_like a |} = {
 
   log_approx : x:a -> r:real{r >. 0.0R} ->
                 Lemma (requires v_approximates x r)
-                      (ensures v_approximates (log x) (rlog r));
+                      (ensures v_approximates (flog x) (log r));
 }
 
 let fmax_approx_pat
@@ -128,8 +128,8 @@ let exp_approx_pat
   (a:Type) {| scalar a, floating a, real_like a, rr : floating_real_like a |}
   (x : a) (r : real) :
                 Lemma (requires v_approximates x r)
-                      (ensures v_approximates (exp x) (rexp r))
-                      [SMTPat (exp x);
+                      (ensures v_approximates (fexp x) (exp r))
+                      [SMTPat (fexp x);
                        SMTPat (v_approximates x r);
                        SMTPat (has_type rr (floating_real_like a))]
   = exp_approx x r
@@ -149,8 +149,8 @@ let log_approx_pat
   (a:Type) {| scalar a, floating a, real_like a, rr : floating_real_like a |}
   (x : a) (r : real{r >. 0.0R}) :
                 Lemma (requires v_approximates x r)
-                      (ensures v_approximates (log x) (rlog r))
-                      [SMTPat (log x);
+                      (ensures v_approximates (flog x) (log r))
+                      [SMTPat (flog x);
                        SMTPat (v_approximates x r);
                        SMTPat (has_type rr (floating_real_like a))]
   = log_approx x r

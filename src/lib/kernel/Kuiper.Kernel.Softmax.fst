@@ -33,22 +33,22 @@ let softmax_shift_approx
     (#et:Type0) {| floating et, real_like et, floating_real_like et |}
     (s0:seq et) (r0:seq real { s0 %~ r0 /\ Seq.length r0 > 0 })
     (m : et) (m_r : real { m %~ m_r })
-    (summ : et { summ %~ rsum (seq_map (fun z -> rexp (z -. m_r)) r0) })
+    (summ : et { summ %~ rsum (seq_map (fun z -> exp (z -. m_r)) r0) })
   : Lemma
-    (ensures seq_map (fun x -> div (exp (sub x m)) summ) s0 %~ softmax_real r0)
-  = let lhs = seq_map (fun x -> div (exp (sub x m)) summ) s0 in
+    (ensures seq_map (fun x -> div (fexp (sub x m)) summ) s0 %~ softmax_real r0)
+  = let lhs = seq_map (fun x -> div (fexp (sub x m)) summ) s0 in
     let aux (i : natlt (Seq.length s0))
       : Lemma ((lhs @! i) %~ (softmax_real (seq_map (fun z -> z -. m_r) r0) @! i))
     = let x = lhs @! i in
       let shifted_s0 = seq_map (fun z -> z -. m_r) r0 in
       let y = softmax_real shifted_s0 @! i in
-      assert (x == div (exp (sub (s0 @! i) m)) summ);
-      assert (y == rexp (shifted_s0 @! i) /. rsum (seq_map rexp shifted_s0));
-      assert (y == rexp ((r0 @! i) -. m_r) /. rsum (seq_map rexp shifted_s0));
+      assert (x == div (fexp (sub (s0 @! i) m)) summ);
+      assert (y == exp (shifted_s0 @! i) /. rsum (seq_map exp shifted_s0));
+      assert (y == exp ((r0 @! i) -. m_r) /. rsum (seq_map exp shifted_s0));
       assert
-        seq_map rexp shifted_s0
+        seq_map exp shifted_s0
         `Seq.equal`
-        seq_map (fun x -> rexp (x -. m_r)) r0;
+        seq_map (fun x -> exp (x -. m_r)) r0;
       assert (x %~ y);
       ()
     in
@@ -96,10 +96,10 @@ fn softmax_gpu
 
   (* Step 2: sum of exp(x - m) (does not modify the array). *)
   let sum = Kuiper.Kernel.HReduce.reduce
-              (fun x -> exp (sub x m)) (fun z -> rexp (z -. reveal m_r)) nth lena a ra;
+              (fun x -> fexp (sub x m)) (fun z -> exp (z -. reveal m_r)) nth lena a ra;
 
   (* Step 3: write exp(x - m) / sum into every cell. *)
-  Kuiper.Kernel.Map.map_gpu (fun x -> div (exp (sub x m)) sum) lena a;
+  Kuiper.Kernel.Map.map_gpu (fun x -> div (fexp (sub x m)) sum) lena a;
 
   (* Note: this could also be fused into a single kcall. The comfortable way of
      doing that would require extensible barrier contracts, so we can add one more

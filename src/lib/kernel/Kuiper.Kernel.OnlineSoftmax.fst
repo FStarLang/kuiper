@@ -14,7 +14,7 @@ open Kuiper.Spec.Softmax
 let online_softmax_real_iter (md: erased (tuple2 real real)) (x:real) : erased (tuple2 real real) =
   let (m,d) = md in
   let m' = rmax m x in
-  let d' = d *. (rexp (m -. m')) +. rexp (x -. m') in
+  let d' = d *. (exp (m -. m')) +. exp (x -. m') in
   (m',d')
 
 let lem_online_softmax_real_iter'
@@ -39,7 +39,7 @@ let rec lem_online_softmax_real_iter
 let online_softmax_real (s:Seq.seq real { Seq.length s > 0 }) : GTot (seq real) =
   let x = Seq.index s 0 in
   let (m, (d : real)) = reveal (seq_fold_left online_softmax_real_iter (hide (x, 1.0R)) (seq_drop 1 s)) in
-  seq_map (fun x -> rexp (x -. m) /. d) s
+  seq_map (fun x -> exp (x -. m) /. d) s
 
 let rsum_cons (x: real) (t: Seq.seq real)
   : Lemma (rsum (Seq.cons x t) == x +. rsum t)
@@ -62,49 +62,49 @@ let rec fold_correct (m0: real) (d0: real) (s: Seq.seq real)
   : Lemma (ensures (
       let r = reveal (seq_fold_left online_softmax_real_iter (hide (m0, d0)) s) in
       fst r == seq_fold_left rmax m0 s /\
-      snd r *. rexp (fst r) == d0 *. rexp m0 +. rsum (seq_map rexp s)))
+      snd r *. exp (fst r) == d0 *. exp m0 +. rsum (seq_map exp s)))
     (decreases Seq.length s)
-  = rexp_base ();
+  = exp_base ();
     match view_seq s with
     | SNil -> ()
     | SCons x t ->
         let m1 = rmax m0 x in
-        let d1 = d0 *. rexp (m0 -. m1) +. rexp (x -. m1) in
+        let d1 = d0 *. exp (m0 -. m1) +. exp (x -. m1) in
         // d1 * exp(m1) = (d0 * exp(m0-m1) + exp(x-m1)) * exp(m1)
         //              = d0 * exp(m0-m1) * exp(m1) + exp(x-m1) * exp(m1)
         //              = d0 * exp(m0) + exp(x)
-        assert (d1 *. rexp m1 == d0 *. rexp m0 +. rexp x);
+        assert (d1 *. exp m1 == d0 *. exp m0 +. exp x);
         fold_correct m1 d1 t;
-        rsum_map_cons rexp x t;
-        // IH gives: snd(fold t) * exp(fst(fold t)) == d1 * exp(m1) + rsum(map rexp t)
-        //         = d0 * exp(m0) + exp(x) + rsum(map rexp t)
-        //         = d0 * exp(m0) + rsum(map rexp (cons x t))
+        rsum_map_cons exp x t;
+        // IH gives: snd(fold t) * exp(fst(fold t)) == d1 * exp(m1) + rsum(map exp t)
+        //         = d0 * exp(m0) + exp(x) + rsum(map exp t)
+        //         = d0 * exp(m0) + rsum(map exp (cons x t))
         ()
 
 let pointwise_eq (xi m d summ : real)
-  : Lemma (requires d *. rexp m == summ /\ d >. 0.0R)
-          (ensures rexp (xi -. m) /. d == rexp xi /. summ)
-  = assert (rexp (xi -. m) == rexp xi /. rexp m);
-    assert (rexp (xi -. m) /. d == (rexp xi /. rexp m) /. d);
-    assert ((rexp xi /. rexp m) /. d == rexp xi /. (rexp m *. d));
-    assert (rexp m *. d == d *. rexp m);
+  : Lemma (requires d *. exp m == summ /\ d >. 0.0R)
+          (ensures exp (xi -. m) /. d == exp xi /. summ)
+  = assert (exp (xi -. m) == exp xi /. exp m);
+    assert (exp (xi -. m) /. d == (exp xi /. exp m) /. d);
+    assert ((exp xi /. exp m) /. d == exp xi /. (exp m *. d));
+    assert (exp m *. d == d *. exp m);
     ()
 
 let online_softmax_is_softmax (s: Seq.seq real{Seq.length s > 0}) :
   Lemma (online_softmax_real s == softmax_real s)
-  = rexp_base ();
+  = exp_base ();
     let x0 = s @! 0 in
     let tl = seq_drop 1 s in
     fold_correct x0 1.0R tl;
     assert (Seq.equal s (Seq.cons x0 tl));
-    rsum_map_cons rexp x0 tl;
+    rsum_map_cons exp x0 tl;
     let init : erased (tuple2 real real) = hide (x0, 1.0R) in
     assert (snd (reveal init) == 1.0R);
     let fold_result = seq_fold_left online_softmax_real_iter init tl in
     let (m, (d : real)) = reveal fold_result in
-    let summ : real = rsum (seq_map rexp s) in
-    assert (d *. rexp m == summ);
-    let aux (idx: natlt (Seq.length s)) : Lemma (rexp ((s @! idx) -. m) /. d == rexp (s @! idx) /. summ)
+    let summ : real = rsum (seq_map exp s) in
+    assert (d *. exp m == summ);
+    let aux (idx: natlt (Seq.length s)) : Lemma (exp ((s @! idx) -. m) /. d == exp (s @! idx) /. summ)
       = pointwise_eq (s @! idx) m d summ
     in
     Classical.forall_intro aux;
@@ -165,7 +165,7 @@ fn kfonline_softmax
   ensures
     kpost #et lenab #l a b #va ra tid
 {
-  rexp_base ();
+  exp_base ();
 
   let mut i = 0sz;
   let mut sum: et = zero;
@@ -197,12 +197,12 @@ fn kfonline_softmax
     let gmax' : erased real = rmax (reveal !gmax) gx;
     assert pure (max' %~ gmax');
 
-    let y1 = exp (!max `sub` max');
-    let gy1 = rexp (reveal !gmax -. reveal gmax');
+    let y1 = fexp (!max `sub` max');
+    let gy1 = exp (reveal !gmax -. reveal gmax');
     assert pure (!gsum == 0.0R \/ y1 %~ gy1);
 
-    let y2 = exp (x `sub` max');
-    let gy2 = rexp (gx -. reveal gmax');
+    let y2 = fexp (x `sub` max');
+    let gy2 = exp (gx -. reveal gmax');
     assert pure (y2 %~ gy2);
 
     (* At this point, we cannot prove y1 is finite. It may not be,
@@ -229,13 +229,13 @@ fn kfonline_softmax
     i := !i `SZ.add` 1sz;
 
     assert pure (reveal gmax' == rmax (reveal old_max) gx);
-    assert pure (reveal gsum' == reveal old_sum *. (rexp (reveal old_max -. reveal gmax'))  +.  rexp (gx -. reveal gmax'));
+    assert pure (reveal gsum' == reveal old_sum *. (exp (reveal old_max -. reveal gmax'))  +.  exp (gx -. reveal gmax'));
     if (!i = 1sz) {
       assert pure (gx == (ra @! 0));
       assert pure (!gmax == (ra @! 0));
       assert pure (old_sum == 0.0R);
       assert pure (!gsum == gy2);
-      assert pure (gy2 == rexp 0.0R);
+      assert pure (gy2 == exp 0.0R);
       assert pure (gy2 == 1.0R);
       assert pure (!gsum == 1.0R);
       assert pure (seq_fold_left online_softmax_real_iter (hide (Seq.index ra 0, 1.0R)) (Seq.slice ra 1 1)
@@ -250,7 +250,7 @@ fn kfonline_softmax
     };
   };
   let x = read a tid;
-  let y = (exp (x `sub` !max) `div` !sum);
+  let y = (fexp (x `sub` !max) `div` !sum);
   write_cell b tid y;
   ()
 }

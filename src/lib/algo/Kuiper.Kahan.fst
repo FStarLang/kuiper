@@ -10,6 +10,7 @@ let sum_step (len : nat) (vf : natlt len -> GTot real) (k : nat{k < len})
   : Lemma (sum 0 (k+1) vf == sum 0 k vf +. vf k)
   = sum_pop_right 0 (k+1) vf
 
+#push-options "--z3rlimit 20"
 inline_for_extraction noextract
 fn kahan_sum
   (#et : Type0) {| floating et, real_like et, floating_real_like et |}
@@ -47,3 +48,4 @@ fn kahan_sum
   };
   !acc
 }
+#pop-options

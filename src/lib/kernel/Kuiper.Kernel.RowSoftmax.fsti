@@ -3,7 +3,7 @@ module Kuiper.Kernel.RowSoftmax
 (* Per-row softmax over an [Array2 et m n] resident on the GPU.
 
    Implementation: TWO kernel launches (independent of m).
-     1. [Kuiper.Kernel.HReduce.Block.reduce_batched_block exp rexp]
+     1. [Kuiper.Kernel.HReduce.Block.reduce_batched_block exp exp]
         — one block per row, tree-reduces row sums of exp(x).
      2. [Kuiper.Kernel.RowBroadcast.row_broadcast (fun x s -> div (exp x) s)]
         — one thread per cell (i, j); writes

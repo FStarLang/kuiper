@@ -8,12 +8,12 @@ open Kuiper.Spec.Softmax
 open Kuiper.Seq.Common
 
 let exp_sum (s : seq real{len s > 0}) : r:real{r >. 0.0R} =
-  rsum (seq_map rexp s)
+  rsum (seq_map exp s)
 
 let adjust_factor (s : seq real{len s > 0}) (x : real) : real =
   exp_sum s
   /.
-  (exp_sum s +. rexp x)
+  (exp_sum s +. exp x)
 
 let rec seq_max (s : seq real{len s > 0})
   : Tot real (decreases len s)
@@ -85,7 +85,7 @@ type osmx_rst : Type0 = {
 
 let ok_rst (rs: osmx_rst): prop =
   (Seq.length rs.s > 0 ==> get rs.m == seq_max rs.s) /\
-  (Seq.length rs.s > 0 ==> rs.d >. 0.0R /\ rs.d == exp_sum rs.s /. rexp (get rs.m))
+  (Seq.length rs.s > 0 ==> rs.d >. 0.0R /\ rs.d == exp_sum rs.s /. exp (get rs.m))
 
 noeq
 type osmx_st (et: Type0): Type0 = {
@@ -118,13 +118,13 @@ let osmx_rstep0 (s : osmx_rst) (x : real) : osmx_rst =
     s = s.s @+ seq![x];
     m = Some m';
     d = (match s.m with
-         | None   ->                          rexp (x -. m') // equal to one...
-         | Some m -> s.d *. rexp (m -. m') +. rexp (x -. m'))
+         | None   ->                          exp (x -. m') // equal to one...
+         | Some m -> s.d *. exp (m -. m') +. exp (x -. m'))
   }
 
 let osmx_rstep (s : osmx_rst) (x : real) : GTot (osmx_rst & real & real) =
   let s' = osmx_rstep0 s x in
-  (s', rexp (x -. get s'.m), (if None? s.m then 1.0R else rexp (get s.m -. get s'.m)))
+  (s', exp (x -. get s'.m), (if None? s.m then 1.0R else exp (get s.m -. get s'.m)))
 
 let lemma_osmx_rstep (s : osmx_rst) (x : real)
   : Lemma (requires ok_rst s)
@@ -136,8 +136,8 @@ let lemma_osmx_rstep (s : osmx_rst) (x : real)
 let online_softmax_step (xi: real) (m d: real):
   (real & real & real & real) =
   let m' = rmax m xi in
-  let fxi = rexp (xi -. m') in
-  let adj = rexp (m -. m') in
+  let fxi = exp (xi -. m') in
+  let adj = exp (m -. m') in
   let d' = d *. adj +. fxi in
   (m', d', fxi, adj)
 
@@ -173,8 +173,8 @@ fn osmx_step #et {| scalar et, floating et, real_like et |}
 {
   let Mkosmx_st d m = s;
   let m' = fmax m x;
-  let fx = exp (x `sub` m');
-  let adj = exp (m `sub` m');
+  let fx = fexp (x `sub` m');
+  let adj = fexp (m `sub` m');
   let d' = (d `mul` adj) `add` fx;
   let s' = {d=d'; m=m'};
   assume pure False;
@@ -272,8 +272,8 @@ fn osmx_dotprod
     assert pure (!st %~ !rst);
     r  := add (!r `mul` adj) (fai `mul` b.(!i));
     assume pure (Some? (rst0 <: osmx_rst).m);
-    rr := !rr *. (rexp (get (rst0 <: osmx_rst).m) -. rexp (get rst'.m)) +.
-           rexp (Seq.index ra !i -. get (rst'.m)) *. Seq.index rb !i;
+    rr := !rr *. (exp (get (rst0 <: osmx_rst).m) -. exp (get rst'.m)) +.
+           exp (Seq.index ra !i -. get (rst'.m)) *. Seq.index rb !i;
     assume pure (!r %~ !rr);
 
     i := !i +^ 1sz;

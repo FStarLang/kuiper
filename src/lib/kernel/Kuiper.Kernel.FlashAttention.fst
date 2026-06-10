@@ -84,7 +84,7 @@ fn flashattention_tile
     decreases (bc - !y)
   {
     let vy = !y;
-    let vs: et = exp ((M.read gS ((tid <: sz), (vy <: sz))) `sub` !row_m);
+    let vs: et = fexp ((M.read gS ((tid <: sz), (vy <: sz))) `sub` !row_m);
     M.write gS ((tid <: sz), (vy <: sz)) vs;
     row_l := !row_l `add` vs;
 
@@ -92,7 +92,7 @@ fn flashattention_tile
   };
 
   let row_m_new = fmax row_m_prev !row_m;
-  let row_l_new = row_l_prev `mul` (exp (row_m_prev `sub` row_m_new)) `add` (!row_l `mul` (exp (!row_m `sub` row_m_new)));
+  let row_l_new = row_l_prev `mul` (fexp (row_m_prev `sub` row_m_new)) `add` (!row_l `mul` (fexp (!row_m `sub` row_m_new)));
 
   let mut x: sz = 0sz;
   while (!x <^ d)
@@ -115,8 +115,8 @@ fn flashattention_tile
 
     let vx = !x;
     let vo: et = M.read gOi ((tid <: sz), (vx <: sz));
-    let vo: et = (vo `mul` row_l_prev `mul` (exp (row_m_prev `sub` row_m_new))) `div` row_l_new;
-    let vo: et = vo `add` ((exp (!row_m `sub` row_m_new)) `mul` !pv);
+    let vo: et = (vo `mul` row_l_prev `mul` (fexp (row_m_prev `sub` row_m_new))) `div` row_l_new;
+    let vo: et = vo `add` ((fexp (!row_m `sub` row_m_new)) `mul` !pv);
 
     M.write gOi ((tid <: sz), (vx <: sz)) vo;
 

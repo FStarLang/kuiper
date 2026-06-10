@@ -37,13 +37,13 @@ let rsum_div_scale (s : Seq.seq real) (k : real { k =!= 0.0R })
   : Lemma (ensures rsum (seq_map (fun w -> w /. k) s) == rsum s /. k)
   = fold_div_scale 0.0R k s
 
-(* The shifted exps are the unshifted exps divided by [rexp c]. *)
+(* The shifted exps are the unshifted exps divided by [exp c]. *)
 let shift_denom (r0 : Seq.seq real) (c : real)
-  : Lemma (rsum (seq_map (fun z -> rexp (z -. c)) r0)
-           == rsum (seq_map rexp r0) /. rexp c)
-  = assert (Seq.equal (seq_map (fun z -> rexp (z -. c)) r0)
-                      (seq_map (fun w -> w /. rexp c) (seq_map rexp r0)));
-    rsum_div_scale (seq_map rexp r0) (rexp c)
+  : Lemma (rsum (seq_map (fun z -> exp (z -. c)) r0)
+           == rsum (seq_map exp r0) /. exp c)
+  = assert (Seq.equal (seq_map (fun z -> exp (z -. c)) r0)
+                      (seq_map (fun w -> w /. exp c) (seq_map exp r0)));
+    rsum_div_scale (seq_map exp r0) (exp c)
 
 let div_cancel_aux (a b c : real{b =!= 0.0R /\ c =!= 0.0R})
   : Lemma ((a /. c) /. (b /. c) == a /. b)
@@ -54,8 +54,8 @@ let softmax_shift (r0 : Seq.seq real) (c : real)
   : Lemma (ensures softmax_real (seq_map (fun x -> x -. c) r0)
                    == softmax_real r0)
   = if len r0 > 0 then (
-      let exps = seq_map rexp r0 in
-      let exps' = seq_map (fun x -> rexp (x -. c)) r0 in
+      let exps = seq_map exp r0 in
+      let exps' = seq_map (fun x -> exp (x -. c)) r0 in
       sum_non_zero exps 0.0R;
       shift_denom r0 c;
       let lhs = softmax_real (seq_map (fun x -> x -. c) r0) in
@@ -64,20 +64,20 @@ let softmax_shift (r0 : Seq.seq real) (c : real)
         calc (==) {
           lhs @! i;
           == {}
-          rexp ((r0 @! i) -. c) /. rsum (seq_map rexp (seq_map (fun x -> x -. c) r0));
+          exp ((r0 @! i) -. c) /. rsum (seq_map exp (seq_map (fun x -> x -. c) r0));
           == {
             assert
-              seq_map rexp (seq_map (fun x -> x -. c) r0)
+              seq_map exp (seq_map (fun x -> x -. c) r0)
               `Seq.equal`
-              seq_map (fun x -> rexp (x -. c)) r0
+              seq_map (fun x -> exp (x -. c)) r0
           }
-          rexp ((r0 @! i) -. c) /. rsum (seq_map (fun x -> rexp (x -. c)) r0);
+          exp ((r0 @! i) -. c) /. rsum (seq_map (fun x -> exp (x -. c)) r0);
           == {}
-          rexp ((r0 @! i) -. c) /. (rsum exps /. rexp c);
+          exp ((r0 @! i) -. c) /. (rsum exps /. exp c);
           == { exp_sub c (r0 @! i) }
-          (rexp (r0 @! i) /. rexp c) /. (rsum exps /. rexp c);
-          == { div_cancel_aux (rexp (r0 @! i)) (rsum exps) (rexp c) }
-          rexp (r0 @! i) /. rsum exps;
+          (exp (r0 @! i) /. exp c) /. (rsum exps /. exp c);
+          == { div_cancel_aux (exp (r0 @! i)) (rsum exps) (exp c) }
+          exp (r0 @! i) /. rsum exps;
           == {}
           rhs @! i;
         }
