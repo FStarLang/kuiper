@@ -763,13 +763,18 @@ fn tensor_apply_bij
   ()
 }
 
-let fold_bij (#r: nat {r > 1}) (#d: idesc r): (abs d =~ abs (fold_outer d)) = admit () // TODO
+let fold_bij (#r: nat {r > 1}) (#d: idesc r): (abs d =~ abs (fold_outer d)) = {
+  ff = fold_index;
+  gg = unfold_index;
+  ff_gg = ez;
+  gg_ff = ez;
+}
 
 ghost
 fn tensor_fold_outer
   (#et : Type0)
   (#r: nat {r > 1}) (#d: idesc r)
-  (#l: tlayout d) 
+  (#l: tlayout d)
   (a : tensor et l)
   (m : Chest.t d et)
   requires
@@ -777,14 +782,40 @@ fn tensor_fold_outer
   ensures
     from_array (tlayout_bij fold_bij l) (core a) |-> fold_chest m
 {
-  admit ();
+  tensor_pts_to_ref a;
+  tensor_explode a;
+  (* forall+ (i : abs d). Cell a i |-> Frac 1.0R (acc m i) *)
+
+  forevery_iso fold_bij
+    (fun (i : abs d) -> Cell a i |-> Frac 1.0R (acc m i));
+  (* forall+ (j : abs (fold_outer d)).
+        Cell a (fold_bij.gg j) |-> Frac 1.0R (acc m (fold_bij.gg j)) *)
+
+  forevery_map
+    (fun (j : abs (fold_outer d)) ->
+      Cell a (fold_bij.gg j) |-> Frac 1.0R (acc m (fold_bij.gg j)))
+    (fun (j : abs (fold_outer d)) ->
+      Cell (from_array (tlayout_bij fold_bij l) (core a)) j
+        |-> Frac 1.0R (acc (fold_chest m) j))
+    fn j {
+      tensor_pts_to_cell_eq a (fold_bij.gg j) 1.0R (acc m (fold_bij.gg j));
+      tensor_pts_to_cell_eq (from_array (tlayout_bij fold_bij l) (core a)) j 1.0R
+        (acc (fold_chest m) j);
+      rewrite
+        Cell a (fold_bij.gg j) |-> Frac 1.0R (acc m (fold_bij.gg j))
+      as
+        Cell (from_array (tlayout_bij fold_bij l) (core a)) j
+          |-> Frac 1.0R (acc (fold_chest m) j);
+    };
+
+  tensor_implode (from_array (tlayout_bij fold_bij l) (core a));
 }
 
 ghost
 fn tensor_unfold_outer
   (#et : Type0)
   (#r: nat {r > 1}) (#d: idesc r)
-  (#l: tlayout d) 
+  (#l: tlayout d)
   (a : tensor et (tlayout_bij fold_bij l))
   (m : Chest.t (fold_outer d) et)
   requires
@@ -792,5 +823,31 @@ fn tensor_unfold_outer
   ensures
     from_array l (core a) |-> unfold_chest m
 {
-  admit ();
+  tensor_pts_to_ref a;
+  tensor_explode a;
+  (* forall+ (j : abs (fold_outer d)). Cell a j |-> Frac 1.0R (acc m j) *)
+
+  forevery_iso (bij_sym fold_bij)
+    (fun (j : abs (fold_outer d)) -> Cell a j |-> Frac 1.0R (acc m j));
+  (* forall+ (i : abs d).
+        Cell a (fold_bij.ff i) |-> Frac 1.0R (acc m (fold_bij.ff i)) *)
+
+  forevery_map
+    (fun (i : abs d) ->
+      Cell a (fold_bij.ff i) |-> Frac 1.0R (acc m (fold_bij.ff i)))
+    (fun (i : abs d) ->
+      Cell (from_array l (core a)) i
+        |-> Frac 1.0R (acc (unfold_chest m) i))
+    fn i {
+      tensor_pts_to_cell_eq a (fold_bij.ff i) 1.0R (acc m (fold_bij.ff i));
+      tensor_pts_to_cell_eq (from_array l (core a)) i 1.0R
+        (acc (unfold_chest m) i);
+      rewrite
+        Cell a (fold_bij.ff i) |-> Frac 1.0R (acc m (fold_bij.ff i))
+      as
+        Cell (from_array l (core a)) i
+          |-> Frac 1.0R (acc (unfold_chest m) i);
+    };
+
+  tensor_implode (from_array l (core a));
 }
