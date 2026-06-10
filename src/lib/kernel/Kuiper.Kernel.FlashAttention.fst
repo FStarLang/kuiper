@@ -5,34 +5,36 @@ open Kuiper
 open Kuiper.EMatrix
 open Kuiper.Array
 open Kuiper.Tensor.Layout
+open Kuiper.Tensor.Tiling
 open Kuiper.EMatrix
 
 module M = Kuiper.Array2 
+module SZ = Kuiper.SizeT
+module Trade = Pulse.Lib.Trade
 open Kuiper.Array1
 
 inline_for_extraction noextract
 fn flashattention_tile
   (#et : Type0) {| scalar et, floating et |}
   (bc br d: szp)
-  (lKj lVj: M.layout bc d)
-  (lSt: layout bc)
-  (lQit lOit: layout d)
-  {| ctlayout lKj, ctlayout lVj, ctlayout lSt, ctlayout lQit, ctlayout lOit |}
+  (#lKj #lVj: M.layout bc d)
+  (#lSt: layout bc)
+  (#lQit #lOit: layout d)
+  {| ctlayout lSt, ctlayout lKj, ctlayout lVj, ctlayout lQit, ctlayout lOit |}
   (gKj: M.array2 et lKj) 
   (gVj: M.array2 et lVj)
   (gSt: array1 et lSt)
   (gQit: array1 et lQit)
   (gOit: array1 et lOit)
   (glt gmt: ref et)
-  (eKj: ematrix et bc d)
-  (eVj: ematrix et bc d)
+  (eKj eVj: ematrix et bc d)
   (vQit vOit: erased (lseq et d))
   (vlt vmt: erased et)
   (#fKj #fVj #fQit: perm)
   requires 
     gOit |-> vOit
   preserves 
-    (gKj |-> Frac fKj eKj) ** (gVj |-> Frac fVj eVj) ** (gQit |-> Frac fQit vQit) ** glt |-> vlt ** gmt |-> vmt **
+    (gKj |-> Frac fKj eKj) ** (gVj |-> Frac fVj eVj) ** (gQit |-> Frac fQit vQit) ** glt |_> vlt ** gmt |-> vmt **
     live gSt
   ensures 
     live gOit // No functional spec
@@ -113,45 +115,92 @@ fn flashattention_tile
     gOit.(vx) <- vo;
 
     x := !x +^ 1sz;
-  }
+  };
+
+  glt := row_l_new;
+  gmt := row_m_new;
+
+  ()
 }
-
-(*
-// Which elements each thread owns in Q and O
-let ttile_j (#et : Type0) {| scalar et, floating et |}
-  (N d: szp)
-  (bc br: szp)
-  (i j: szp)
-
-// Which elements each thread owns (at the start of each iteration of i loop)
 
 // flash attention kernel executed by each thread (no shared memory caching)
 inline_for_extraction noextract 
 fn flashattention_kf_no_smem (#et : Type0) {| scalar et, floating et |}
-  (N d: szp)
-  (bc br: szp)
+  (n d: szp)
+  (bc br: szp { bc /? n /\ br /? n })
   (lSt: layout bc)
-  (lK lV lQ lO: M.layout N d)
-  {| ctlayout lSt, ctlayout lK, ctlayout lV, ctlayout lQ, ctlayout lO |}
+  (lK lV lQ: M.layout n d)
+  (lOt: M.layout (n /^ br) d)
+  (llt lmt: layout (n /^ br))
+  {| ctlayout lSt, ctlayout lK, ctlayout lV, ctlayout lQ, ctlayout lOt, ctlayout llt, ctlayout lmt |}
   (gSt: array1 et lSt)
   (gK: M.array2 et lK) 
   (gV: M.array2 et lV)
   (gQ: M.array2 et lQ)
-  (gO: M.array2 et lO)
-  (gl gm: larray et N)
-  (eK eV eQ eO: ematrix et N d)
-  (vl vm: erased (lseq et N))
+  (gOt: M.array2 et lOt)
+  (glt: array1 et llt)
+  (gmt: array1 et lmt)
+  (eK eV eQ: ematrix et n d)
   (tid: sz { tid <^ br /\ tid <^ bc }) // TODO: impossible to materialize tid in a kernel unless br = bc
-  requires 
-    gOi |-> eOi
+  (#fK #fV #fQ: perm)
   preserves 
-    gKj |-> eKj ** gVj |-> eVj ** gQi |-> eQi ** gl |-> vl ** gm |-> vm **
-    live gS
-  ensures 
-    live gOi // No functional spec
+    (gK |-> Frac fK eK) ** (gV |-> Frac fV eV) ** (gQ |-> Frac fQ eQ) **
+    live gSt ** live gOt ** live glt ** live gmt// No functional spec; note that O, l, m would have preconditions here though. S does not
 {
+  let tc = n /^ bc;
+  let tr = n /^ br;
+  let mut j: szle tc = 0sz;
 
+  while (!j <^ tc) 
+    invariant live j ** live gSt ** live gOt ** live glt ** live gmt
+    decreases (tc - !j)
+  {
+    let gKj = array2_extract_tile_ro' gK (SZ.v bc) (SZ.v d) (SZ.v !j) 0;
+    let gVj = array2_extract_tile_ro' gV (SZ.v bc) (SZ.v d) (SZ.v !j) 0;
+
+    let mut i: szle tr = 0sz;
+    while (!i <^ tr)
+      invariant live i ** live gSt ** live gOt ** live glt ** live gmt
+      decreases (tr - !i)
+    {
+      with eOt. assert gOt |-> eOt;
+      with eSt. assert gSt |-> eSt;
+      with vlt. assert glt |-> vlt;
+      with vmt. assert gmt |-> vmt;
+      let qi = SZ.v (br *^ !i +^ tid);
+      let oi = SZ.v !i;
+
+      M.extract_row_ro gQ qi;
+      let gQit = M.row gQ qi;
+      M.extract_row gOt oi #1.0R #eOt; // gO has already been split into per-thread chunks
+      let gOit = M.row gOt oi;
+
+      explode glt #1.0R #vlt;
+      forevery_extract' #(natlt (SZ.v (n /^ br))) oi _;
+      explode gmt #1.0R #vmt;
+      forevery_extract' #(natlt (SZ.v (n /^ br))) oi _;
+
+      with eKj. assert gKj |-> eKj;
+      with eVj. assert gVj |-> eVj;
+      flashattention_tile bc br d gKj gVj gSt gQit gOit glt gmt
+        eKj eVj (ematrix_row eQ qi) (ematrix_row eOt oi) vlt vmt;
+
+      admit ();
+
+      M.restore_row gQ qi;
+      elim_forall (ematrix_row eOt oi);
+      Trade.elim_trade (gOit |-> Frac 1.0R (ematrix_row eOt oi)) _;
+      i := !i +^ 1sz;
+    };
+    
+    Trade.elim_trade (gKj |-> Frac fK (ematrix_subtile eK (SZ.v bc) (SZ.v d) (SZ.v !j) 0)) _;
+    Trade.elim_trade (gVj |-> Frac fV (ematrix_subtile eV (SZ.v bc) (SZ.v d) (SZ.v !j) 0)) _;
+
+    j := !j +^ 1sz;
+  }
 }
+
+(*
 
 open Kuiper.Tensor.Layout.Alg
 
