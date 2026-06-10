@@ -89,6 +89,36 @@ let assoc_aux (a b c : real{b =!= 0.0R})
   : Lemma (ensures (a /. b) *. c == a *. (c /. b))
   = ()
 
+(* Trivial real algebra used in the [fold_correct_dotprod] calc steps. *)
+let r_distrib (a b c : real)
+  : Lemma ((a +. b) *. c == a *. c +. b *. c)
+  = ()
+
+let r_assoc (a b c : real)
+  : Lemma ((a *. b) *. c == a *. (b *. c))
+  = ()
+
+let r_swap (a b c : real)
+  : Lemma ((a *. b) *. c == (a *. c) *. b)
+  = ()
+
+(* [exp] turns subtraction into division, so multiplying [exp b] back cancels. *)
+#push-options "--z3rlimit 20"
+let exp_sub_mul (a b : real)
+  : Lemma (exp (a -. b) *. exp b == exp a)
+  = calc (==) {
+      exp (a -. b) *. exp b;
+      == { exp_sub a b }
+      (exp a /. exp b) *. exp b;
+      == { assoc_aux (exp a) (exp b) (exp b) }
+      exp a *. (exp b /. exp b);
+      == { assert (exp b /. exp b == 1.0R) }
+      exp a *. 1.0R;
+      == { }
+      exp a;
+    }
+#pop-options
+
 #push-options "--split_queries always --z3rlimit 20"
 (* Theorem 1 from the Online Softmax paper, generalised to dot-product.
    Both numerator and denominator accumulators, multiplied by [exp m],
@@ -111,37 +141,27 @@ let rec fold_correct_dotprod (m0 dn0 dd0: real) (s: Seq.seq (real & real))
         let dd1 = dd0 *. exp (m0 -. m1) +. exp (x -. m1) in
         // dn1 * exp(m1) = (dn0 * exp(m0-m1) + exp(x-m1)*y) * exp(m1)
         //               = dn0 * exp(m0) + exp(x) * y
-        calc (==) {
-          exp (m0 -. m1) *. exp m1;
-          == { exp_sub m0 m1 }
-          (exp m0 /. exp m1) *. exp m1;
-          == { assoc_aux (exp m0) (exp m1) (exp m1) }
-          exp m0 *. (exp m1 /. exp m1);
-          == { assert (exp m1 /. exp m1 == 1.0R) }
-          exp m0 *. 1.0R;
-          == {}
-          exp m0;
-        };
+        exp_sub_mul m0 m1;
         assert (exp (m0 -. m1) *. exp m1 == exp m0);
         assert (dn1 *. exp m1 == (dn0 *. exp (m0 -. m1) +. exp (x -. m1) *. y) *. exp m1);
         calc (==) {
           (dn0 *. exp (m0 -. m1) +. exp (x -. m1) *. y) *. exp m1;
-          == { admit() }
+          == { r_distrib (dn0 *. exp (m0 -. m1)) (exp (x -. m1) *. y) (exp m1) }
           dn0 *. exp (m0 -. m1) *. exp m1 +. exp (x -. m1) *. y *. exp m1;
-          == { admit() }
+          == { r_assoc dn0 (exp (m0 -. m1)) (exp m1); r_swap (exp (x -. m1)) y (exp m1) }
           dn0 *. (exp (m0 -. m1) *. exp m1) +. (exp (x -. m1) *. exp m1) *. y;
-          == { admit() }
+          == { exp_sub_mul m0 m1; exp_sub_mul x m1 }
           dn0 *. exp m0 +. exp x *. y;
         };
         assert (dn1 *. exp m1 == dn0 *. exp m0 +. exp x *. y);
         assert (dd1 *. exp m1 == (dd0 *. exp (m0 -. m1) +. exp (x -. m1)) *. exp m1);
         calc (==) {
           (dd0 *. exp (m0 -. m1) +. exp (x -. m1)) *. exp m1;
-          == { admit() }
+          == { r_distrib (dd0 *. exp (m0 -. m1)) (exp (x -. m1)) (exp m1) }
           dd0 *. exp (m0 -. m1) *. exp m1 +. exp (x -. m1) *. exp m1;
-          == { admit() }
+          == { r_assoc dd0 (exp (m0 -. m1)) (exp m1) }
           dd0 *. (exp (m0 -. m1) *. exp m1) +. (exp (x -. m1) *. exp m1);
-          == { admit() }
+          == { exp_sub_mul m0 m1; exp_sub_mul x m1 }
           dd0 *. exp m0 +. exp x;
         };
         assert (dd1 *. exp m1 == dd0 *. exp m0 +. exp x);
