@@ -65,7 +65,7 @@ int main(int argc, char **argv)
 
     float *expected = cpu_batched_mul(batch, rows, shared, cols, a_cpu, b_cpu);
 
-    float *c_gpu = Klas_GEMM_Batched_batched_gemm_f32(batch, rows, shared, cols,
+    float *c_gpu = Klas_GEMM_Batched_batched_matmul_f32(batch, rows, shared, cols,
                                                       a_gpu, b_gpu);
 
     float *c_host = (float *)malloc(c_elems * sizeof(float));

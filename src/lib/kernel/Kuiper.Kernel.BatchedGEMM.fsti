@@ -7,7 +7,6 @@ module Kuiper.Kernel.BatchedGEMM
 
 #lang-pulse
 open Kuiper
-open Kuiper.Array3
 module Array3 = Kuiper.Array3
 open Kuiper.Tensor.Layout.Alg
 module EM = Kuiper.EMatrix
@@ -15,25 +14,18 @@ module EMatrix3 = Kuiper.EMatrix3
 module MS = Kuiper.Spec.GEMM
 module SZ = Kuiper.SizeT
 
-(* Per-page batched matmul spec. *)
-let batched_matmul
-  (#et:Type) {| scalar et |}
-  (#batch #rows #shared #cols : nat)
-  (a : EMatrix3.t et batch rows shared)
-  (b : EMatrix3.t et batch shared cols)
-  : EMatrix3.t et batch rows cols
-  = EMatrix3.mkM fun i j k ->
-      EM.macc (MS.matmul (EMatrix3.slice_page a i)
-                         (EMatrix3.slice_page b i)) j k
-
 (* TODO: Layout polymorphism. Attempt to not use EMatrix3 and just use Chest. *)
 inline_for_extraction noextract
-fn batched_gemm_f32
+fn bmmcomb_gpu_exact
+  (#et : Type0) {| scalar et |}
+  (comb : binop et)
   (batch rows shared cols : szp)
-  (a : Array3.t f32 (l3_batched_row_major batch rows shared) { Array3.is_global a })
-  (b : Array3.t f32 (l3_batched_row_major batch shared cols) { Array3.is_global b })
-  (#sa : erased (EMatrix3.t f32 batch rows shared))
-  (#sb : erased (EMatrix3.t f32 batch shared cols))
+  (a : Array3.t et (l3_batched_row_major batch rows shared) { Array3.is_global a })
+  (b : Array3.t et (l3_batched_row_major batch shared cols) { Array3.is_global b })
+  (c : Array3.t et (l3_batched_row_major batch rows cols) { Array3.is_global c })
+  (#sa : erased (EMatrix3.t et batch rows shared))
+  (#sb : erased (EMatrix3.t et batch shared cols))
+  (#sc : erased (EMatrix3.t et batch rows cols))
   (#fA #fB : perm)
   norewrite
   preserves
@@ -44,9 +36,7 @@ fn batched_gemm_f32
     pure (
       rows * cols <= max_blocks * max_threads /\
       SZ.fits (batch * rows * cols)
-    )
-  returns
-    out : Array3.t f32 (l3_batched_row_major batch rows cols)
+    ) ** 
+    on gpu_loc (c |-> sc)
   ensures
-    on gpu_loc (out |-> batched_matmul sa sb) **
-    pure (Array3.is_global out)
+    on gpu_loc (c |-> MS.bmmcomb comb sc sa sb)

@@ -601,3 +601,12 @@ let matmul_tiles_lemma
         (ematrix_subtile m1 trows shared i 0)
         (ematrix_subtile m2 shared tcols 0 j)
     ))
+
+let bmatmul_is_bgemm
+  (#et:Type) {| scalar et |}
+  (#batch #rows #shared #columns : nat)
+  (m0 : EM3.t et batch rows columns)
+  (m1 : EM3.t et batch rows shared)
+  (m2 : EM3.t et batch shared columns)
+  : Lemma (bmmcomb comb2 m0 m1 m2 == batched_matmul m1 m2) =
+  EM3.ext (bmmcomb comb2 m0 m1 m2) (batched_matmul m1 m2)
