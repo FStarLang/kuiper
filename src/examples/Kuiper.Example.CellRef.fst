@@ -4,7 +4,6 @@ module Kuiper.Example.CellRef
 open Kuiper
 open Kuiper.Array1
 open Kuiper.Seq.Common
-module Array1 = Kuiper.Array1
 open Kuiper.Tensor.Layout
 open Kuiper.Tensor.Layout.Alg
 open Kuiper.Index

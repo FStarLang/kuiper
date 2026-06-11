@@ -655,7 +655,7 @@ fn get_ref_of_array_cell
   (i : szlt len)
   returns
     r : ref et
-  ensures 
+  ensures
     pure (r == ref_of_array_cell a i)
 {
   Array.Core.get_ref_of_array_cell (core a) (c.cimap (i, ()))
