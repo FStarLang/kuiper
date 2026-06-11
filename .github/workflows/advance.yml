@@ -131,10 +131,7 @@ jobs:
             git push -f origin HEAD:refs/heads/_kuiper
             popd
           done
-          ./push-submodules.sh
-          git add FStar karamel
-          git commit -m 'Advance submodules'
-          git push
+          ./try-push.sh
 
       - name: Push submodule commits to remotes and open PR
         if: ${{ env.MOVED == '1' && env.DISTCHANGE == '1' }}
@@ -150,11 +147,11 @@ jobs:
             popd
           done
 
-          # Create a branch with the submodule bump + dist changes.
+          # Create a branch with the submodule advance + dist changes.
           BRANCH=advance/dist-update
           git checkout -b "$BRANCH"
           git add .
-          git commit -m "Bump submodules (dist changed)"
+          git commit -m "Advance submodules (dist changed)"
           git push -f origin "$BRANCH"
 
           # Create a new PR or update the existing one.
