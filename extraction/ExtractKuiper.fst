@@ -811,6 +811,9 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
 
   (******** ARRAY ********)
 
+  | "Kuiper.Array.Core.get_ref_of_array_cell", [ty], [ a; i ] ->
+    EBufSub (cb a, cb i)
+
   | "Kuiper.Array.Core.gpu_array_alloc", [ty], [ sz; len ] ->
     let sz : expr = sizeof (cb_ty ty) in
     ECast (EApp (EQualified ([], "KPR_GPU_ALLOC"), [ sz; cb len ]),
