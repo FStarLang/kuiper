@@ -17,8 +17,18 @@ giving each a **verified Kuiper witness** that is
 | 3 | `imp3.cu` | tiled (16, forward)           | from-scratch single-thread             |
 | 4 | `imp4.cu` | Kahan-compensated             | instantiates existing `GEMM.Naive3`    |
 | 5 | `imp5.cu` | tiled (16) + Kahan over tiles | from-scratch single-thread             |
+| 6 | `imp6.cu` | shared-memory tiled, forward  | instantiates `GEMM.Naive` (= same as 1)|
+| 7 | `imp7.cu` | shared-memory tiled, forward, **transposed store** | from-scratch single-thread |
 
-Witness sources: `src/klas/KWitness{1..5}.fst` (+ `.fsti`).
+Witness sources: `src/klas/KWitness{1..7}.fst` (+ `.fsti`).
+
+Kernels 1-5 prove the identical spec `eC' %~ MS.matmul rA rB`. Kernel 6 is a
+shared-memory tiled GEMM whose accumulation is nonetheless plain forward (a single
+running `sum` across tiles, no per-tile partial), so it proves the *same* spec and
+is bit-equivalent to the naive forward witness (kw1) — demonstrating that tiling
+for memory locality does not change the floating-point result. Kernel 7 is kernel 6
+with a transposed store (`C[c*m+r]`, the correct transpose into the n×m output for
+any shape), so it proves `eC' %~ mtranspose (MS.matmul rA rB)`.
 
 ## Key results
 

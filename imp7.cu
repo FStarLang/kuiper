@@ -24,7 +24,7 @@ void ker(float *A, float *B, float *C, int m, int n, int k)
     for (int k = 0; k < tile; k++)
       sum += cA[sr * tile + k] * cB[k * tile + sc];
   }
-  C[c * n + r] = sum;
+  C[c * m + r] = sum;
 }
 
 void matmul(float *a, float *b, float *c, int m, int n, int k)
