@@ -8,11 +8,15 @@ void ker(float *a, float *b, float *c, int m, int n, int k)
   int row = gid / n;
   int col = gid % n;
   float sum = 0.0f;
+  float comp = 0.0f;
   for (int k0 = 0; k0 < k; k0 += tile) {
     float acc = 0.0f;
     for (int k1 = 0; k1 < tile && k0 + k1 < k; k1++)
       acc += a[row * k + k0 + k1] * b[(k0 + k1) * n + col];
-    sum += acc;
+    float yc = acc - comp;
+    float t = sum + yc;
+    comp = t - sum - yc;
+    sum = t;
   }
   c[row * n + col] = sum;
 }

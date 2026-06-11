@@ -1,22 +1,28 @@
-// Unified bit-equivalence driver for the four matmul kernels:
+// Unified bit-equivalence driver for the matmul kernels:
 //
 //   imp1 : imp1.cu              forward  K-accumulation (i = 0 .. k-1)
 //   imp2 : imp2.cu              reverse  K-accumulation (i = k-1 .. 0)
+//   imp3 : imp3.cu              tiled    K-accumulation (tiles of 16, forward)
+//   imp4 : imp4.cu              Kahan-compensated forward K-accumulation
+//   imp5 : imp5.cu              tiled (16) forward, Kahan-compensated across tiles
 //   kw1  : KWitness1_matmul_f32 verified Kuiper witness, forward  (bit-eq to imp1)
 //   kw2  : KWitness2_matmul_f32 verified Kuiper witness, reverse  (bit-eq to imp2)
+//   kw3  : KWitness3_matmul_f32 verified Kuiper witness, tiled    (bit-eq to imp3)
+//   kw4  : KWitness4_matmul_f32 verified Kuiper witness, Kahan    (bit-eq to imp4)
+//   kw5  : KWitness5_matmul_f32 verified Kuiper witness, tiled+Kahan (bit-eq to imp5)
 //
-// imp1.cu and imp2.cu both define `ker`/`matmul`, so each is pulled into its own
+// imp1..imp5 each define `ker`/`matmul`, so each is pulled into its own
 // namespace. The Kuiper witnesses are extracted with distinct names.
 //
 // Build:
-//   make obj/KWitness1.cu obj/KWitness2.cu
-//   nvcc -O2 -arch=native -I include -I obj -o bitcmp \
-//        bitcmp.cu obj/KWitness1.cu obj/KWitness2.cu
+//   make obj/KWitness1.cu obj/KWitness2.cu obj/KWitness3.cu obj/KWitness4.cu obj/KWitness5.cu
+//   nvcc -O2 -arch=native -I include -I obj -o bitcmp bitcmp.cu \
+//        obj/KWitness1.cu obj/KWitness2.cu obj/KWitness3.cu obj/KWitness4.cu obj/KWitness5.cu
 //
 // Usage:
 //   ./bitcmp                          # default suite over several shapes
 //   ./bitcmp A B [m] [n] [k] [seed]   # compare kernel A vs B
-//                                     # (A,B in {imp1,imp2,kw1,kw2})
+//                                     # (A,B in {imp1..imp5,kw1..kw5})
 //
 // Exit code: 0 if the checked equivalences hold, 1 otherwise, 2 on usage/CUDA error.
 
@@ -29,12 +35,24 @@
 
 #include "KWitness1.h"
 #include "KWitness2.h"
+#include "KWitness3.h"
+#include "KWitness4.h"
+#include "KWitness5.h"
 
 namespace imp1 {
 #include "imp1.cu"
 }
 namespace imp2 {
 #include "imp2.cu"
+}
+namespace imp3 {
+#include "imp3.cu"
+}
+namespace imp4 {
+#include "imp4.cu"
+}
+namespace imp5 {
+#include "imp5.cu"
 }
 
 #define CUDA_CHECK(call)                                                       \
@@ -54,17 +72,35 @@ static void run_imp1(float *a, float *b, float *c, int m, int n, int k)
 { imp1::matmul(a, b, c, m, n, k); }
 static void run_imp2(float *a, float *b, float *c, int m, int n, int k)
 { imp2::matmul(a, b, c, m, n, k); }
+static void run_imp3(float *a, float *b, float *c, int m, int n, int k)
+{ imp3::matmul(a, b, c, m, n, k); }
+static void run_imp4(float *a, float *b, float *c, int m, int n, int k)
+{ imp4::matmul(a, b, c, m, n, k); }
+static void run_imp5(float *a, float *b, float *c, int m, int n, int k)
+{ imp5::matmul(a, b, c, m, n, k); }
 static void run_kw1(float *a, float *b, float *c, int m, int n, int k)
 { KWitness1_matmul_f32((uint32_t) m, (uint32_t) n, (uint32_t) k, a, b, c); }
 static void run_kw2(float *a, float *b, float *c, int m, int n, int k)
 { KWitness2_matmul_f32((uint32_t) m, (uint32_t) n, (uint32_t) k, a, b, c); }
+static void run_kw3(float *a, float *b, float *c, int m, int n, int k)
+{ KWitness3_matmul_f32((uint32_t) m, (uint32_t) n, (uint32_t) k, a, b, c); }
+static void run_kw4(float *a, float *b, float *c, int m, int n, int k)
+{ KWitness4_matmul_f32((uint32_t) m, (uint32_t) n, (uint32_t) k, a, b, c); }
+static void run_kw5(float *a, float *b, float *c, int m, int n, int k)
+{ KWitness5_matmul_f32((uint32_t) m, (uint32_t) n, (uint32_t) k, a, b, c); }
 
 struct Kernel { const char *name; kernel_fn fn; };
 static const Kernel KERNELS[] = {
     { "imp1", run_imp1 },
     { "imp2", run_imp2 },
+    { "imp3", run_imp3 },
+    { "imp4", run_imp4 },
+    { "imp5", run_imp5 },
     { "kw1",  run_kw1  },
     { "kw2",  run_kw2  },
+    { "kw3",  run_kw3  },
+    { "kw4",  run_kw4  },
+    { "kw5",  run_kw5  },
 };
 static const int NKERNELS = (int) (sizeof(KERNELS) / sizeof(KERNELS[0]));
 
@@ -179,7 +215,11 @@ static int run_suite(void)
     };
     int nshapes = (int) (sizeof(shapes) / sizeof(shapes[0]));
     const Kernel *imp1k = find_kernel("imp1"), *imp2k = find_kernel("imp2");
+    const Kernel *imp3k = find_kernel("imp3"), *imp4k = find_kernel("imp4");
+    const Kernel *imp5k = find_kernel("imp5");
     const Kernel *kw1k = find_kernel("kw1"), *kw2k = find_kernel("kw2");
+    const Kernel *kw3k = find_kernel("kw3"), *kw4k = find_kernel("kw4");
+    const Kernel *kw5k = find_kernel("kw5");
     int failures = 0;
 
     for (int s = 0; s < nshapes; s++) {
@@ -189,8 +229,14 @@ static int run_suite(void)
         // Witness equivalences (must hold):
         if (compare_pair(imp1k, kw1k, m, n, k, seed) != 0) failures++;
         if (compare_pair(imp2k, kw2k, m, n, k, seed) != 0) failures++;
+        if (compare_pair(imp3k, kw3k, m, n, k, seed) != 0) failures++;
+        if (compare_pair(imp4k, kw4k, m, n, k, seed) != 0) failures++;
+        if (compare_pair(imp5k, kw5k, m, n, k, seed) != 0) failures++;
         // Contrast (expected to differ for k>1 due to FP non-associativity):
         compare_pair(imp1k, imp2k, m, n, k, seed);
+        compare_pair(imp1k, imp3k, m, n, k, seed);
+        compare_pair(imp1k, imp4k, m, n, k, seed);
+        compare_pair(imp1k, imp5k, m, n, k, seed);
     }
 
     printf("\n%s\n", failures == 0
@@ -205,7 +251,7 @@ int main(int argc, char **argv)
     if (argc > 1 && find_kernel(argv[1]) != NULL) {
         if (argc < 3 || find_kernel(argv[2]) == NULL) {
             fprintf(stderr, "Usage: %s A B [m] [n] [k] [seed]  "
-                            "(A,B in imp1,imp2,kw1,kw2)\n", argv[0]);
+                            "(A,B in imp1,imp2,imp3,imp4,imp5,kw1,kw2,kw3,kw4,kw5)\n", argv[0]);
             return 2;
         }
         const Kernel *ka = find_kernel(argv[1]);
@@ -224,7 +270,7 @@ int main(int argc, char **argv)
     }
 
     if (argc > 1) {
-        fprintf(stderr, "Unknown kernel '%s' (expected imp1,imp2,kw1,kw2)\n",
+        fprintf(stderr, "Unknown kernel '%s' (expected imp1,imp2,imp3,imp4,imp5,kw1,kw2,kw3,kw4,kw5)\n",
                 argv[1]);
         return 2;
     }

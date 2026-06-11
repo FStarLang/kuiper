@@ -1,5 +1,3 @@
-#define tile 16
-
 __global__
 void ker(float *a, float *b, float *c, int m, int n, int k)
 {
@@ -7,14 +5,15 @@ void ker(float *a, float *b, float *c, int m, int n, int k)
   if (gid >= m * n) return;
   int row = gid / n;
   int col = gid % n;
-  float sum = 0.0f;
-  for (int k0 = 0; k0 < k; k0 += tile) {
-    float acc = 0.0f;
-    for (int k1 = 0; k1 < tile && k0 + k1 < k; k1++)
-      acc += a[row * k + k0 + k1] * b[(k0 + k1) * n + col];
-    sum += acc;
+  float acc = 0.0f;
+  float comp = 0.0f;
+  for (int i = 0; i < k; i++) {
+    float yc = a[row * k + i] * b[i * n + col] - comp;
+    float t = acc + yc;
+    comp = t - acc - yc;
+    acc = t;
   }
-  c[row * n + col] = sum;
+  c[row * n + col] = acc;
 }
 
 void matmul(float *a, float *b, float *c, int m, int n, int k)
