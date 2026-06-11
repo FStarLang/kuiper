@@ -6,10 +6,10 @@ void ker(float *A, float *B, float *C, int m, int n, int k)
 {
   __shared__ float cA[tile * tile];
   __shared__ float cB[tile * tile];
-  int tile_r = blockIdx.x / tile;
-  int tile_c = blockIdx.x % tile;
+  int tile_r = blockIdx.x / (n / tile);
+  int tile_c = blockIdx.x % (n / tile);
   int sr = threadIdx.x / tile;
-  int sc = threadIdx.y % tile;
+  int sc = threadIdx.x % tile;
 
   int r = sr + tile_r * tile;
   int c = sc + tile_c * tile;
@@ -17,12 +17,12 @@ void ker(float *A, float *B, float *C, int m, int n, int k)
   float sum = 0.0f;
   for (int kk = 0; kk < k; kk += tile) {
     __syncthreads();
-    cA[sr * tile + sc] = A[kk * k + sr * k + sc];
-    cB[sr * tile + sc] = B[kk * n + sr * n + sc];
+    cA[sr * tile + sc] = A[r * k + (kk + sc)];
+    cB[sr * tile + sc] = B[(kk + sr) * n + c];
     __syncthreads();
 
     for (int k = 0; k < tile; k++)
-      sum += cA[sr * tile + k] * cB[sr * tile + k];
+      sum += cA[sr * tile + k] * cB[k * tile + sc];
   }
   C[r * n + c] = sum;
 }
