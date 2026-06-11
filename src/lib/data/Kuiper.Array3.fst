@@ -250,6 +250,63 @@ fn raise'
   raise l p;
 }
 
+let bij_apply_em3 (#et : Type) (#d0 #d1 #d2 #e0 #e1 #e2 : nat)
+  (f : abs (desc d0 d1 d2) =~ abs (desc e0 e1 e2))
+  (s : EMatrix3.t et d0 d1 d2)
+  : EMatrix3.t et e0 e1 e2
+  = backtr_val (Chest.mk (desc e0 e1 e2) (fun i -> Chest.acc (tr_val s) (i <~| f)))
+
+let bij_apply_em3_macc
+  (#et : Type) (#d0 #d1 #d2 #e0 #e1 #e2 : nat)
+  (f : abs (desc d0 d1 d2) =~ abs (desc e0 e1 e2))
+  (s : EMatrix3.t et d0 d1 d2)
+  (i : natlt e0) (j : natlt e1) (k : natlt e2)
+  : Lemma (EMatrix3.macc (bij_apply_em3 f s) i j k ==
+           (let (i', (j', (k', ()))) = (i, (j, (k, ()))) <~| f in
+            EMatrix3.macc s i' j' k'))
+          [SMTPat (EMatrix3.macc (bij_apply_em3 f s) i j k)]
+  = ()
+
+let bij_apply_chest_equal
+  (#et : Type) (#d0 #d1 #d2 #e0 #e1 #e2 : nat)
+  (f : abs (desc d0 d1 d2) =~ abs (desc e0 e1 e2))
+  (s : EMatrix3.t et d0 d1 d2)
+  : Lemma (Chest.mk (desc e0 e1 e2) (fun i -> Chest.acc (tr_val s) (i <~| f))
+        == tr_val (bij_apply_em3 f s))
+  = let c1 = Chest.mk (desc e0 e1 e2) (fun i -> Chest.acc (tr_val s) (i <~| f)) in
+    let c2 = tr_val (bij_apply_em3 f s) in
+    let aux (idx : abs (desc e0 e1 e2))
+      : Lemma (Chest.acc c1 idx == Chest.acc c2 idx)
+      = let (i, (j, (k, ()))) = idx in
+        bij_apply_em3_macc f s i j k
+    in
+    Classical.forall_intro aux;
+    Chest.lemma_equal_intro c1 c2;
+    Chest.ext c1 c2
+
+ghost
+fn apply_bij
+  (#et : Type0) (#d0 #d1 #d2 #e0 #e1 #e2 : nat)
+  (f : abs (desc d0 d1 d2) =~ abs (desc e0 e1 e2))
+  (#l : layout d0 d1 d2 { is_full l })
+  (a : t et l)
+  (#fp : perm) (#s : EMatrix3.t et d0 d1 d2)
+  requires
+    a |-> Frac fp s
+  ensures
+    from_array (tlayout_bij f l) (core a)
+    |-> Frac fp (bij_apply_em3 f s)
+{
+  unfold pts_to a #fp s;
+  T.tensor_apply_bij f a;
+  bij_apply_chest_equal f s;
+  rewrite T.tensor_pts_to (from_array (tlayout_bij f l) (core a)) #fp
+            (Chest.mk (desc e0 e1 e2) (fun i -> Chest.acc (tr_val s) (i <~| f)))
+       as T.tensor_pts_to (from_array (tlayout_bij f l) (core a)) #fp
+            (tr_val (bij_apply_em3 f s));
+  fold pts_to (from_array (tlayout_bij f l) (core a)) #fp (bij_apply_em3 f s);
+}
+
 inline_for_extraction noextract
 fn copy_from_vec
   (#et:Type0) {| sized et |}

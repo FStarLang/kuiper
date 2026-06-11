@@ -3,11 +3,16 @@ module Kuiper.Array4
 
 open Kuiper
 open Kuiper.Bijection
+open Kuiper.Chest
 open Kuiper.EMatrix4
 open Kuiper.Index
 module T = Kuiper.Tensor
 module SZ = Kuiper.SizeT
 module Tac = FStar.Tactics.V2
+
+let backtr_val (#et : Type) (#d0 #d1 #d2 #d3 : nat) (c : chest (desc d0 d1 d2 d3) et)
+  : EMatrix4.t et d0 d1 d2 d3
+  = EMatrix4.mkM (fun i j k l -> Chest.acc c (i, (j, (k, (l, ())))))
 
 inline_for_extraction noextract
 let adapt_cit_back (d0 d1 d2 d3 : erased nat) (idx : raw_cit{cit_fits d0 d1 d2 d3 idx}) : conc (desc d0 d1 d2 d3) =
@@ -103,6 +108,52 @@ fn pts_to_ref
   unfold pts_to a #f s;
   T.tensor_pts_to_ref a;
   fold pts_to a #f s;
+}
+
+#push-options "--ifuel 4"
+inline_for_extraction noextract
+fn alloc0
+  (#et:Type) {| sized et |}
+  (d0 d1 d2 d3 : szp)
+  (l : layout d0 d1 d2 d3 { is_full l })
+  preserves
+    cpu
+  requires
+    pure (SZ.fits (layout_size l))
+  returns
+    p : t et l
+  ensures
+    exists* em. on gpu_loc (p |-> em) **
+    pure (is_full_array (core p))
+  ensures
+    pure (is_global p)
+{
+  let t = T.alloc0 #et (d0 *^ (d1 *^ (d2 *^ d3))) l;
+  with em. assert on gpu_loc (T.tensor_pts_to t em);
+  assert pure (Chest.equal em (tr_val (backtr_val em)));
+  rewrite on gpu_loc (T.tensor_pts_to t em)
+       as on gpu_loc (pts_to t (backtr_val em));
+  t
+}
+#pop-options
+
+inline_for_extraction noextract
+fn free
+  (#et:Type)
+  (#d0 #d1 #d2 #d3 : erased nat)
+  (#l : layout d0 d1 d2 d3 { is_full l })
+  (p : t et l)
+  (#em : EMatrix4.t et d0 d1 d2 d3)
+  preserves
+    cpu
+  requires
+    on gpu_loc (p |-> em) **
+    pure (is_full_array (core p))
+  ensures emp
+{
+  rewrite on gpu_loc (pts_to p em)
+       as on gpu_loc (T.tensor_pts_to p (tr_val em));
+  T.free p;
 }
 
 let to_seq_rel (#et:Type) (#d0 #d1 #d2 #d3 : nat)

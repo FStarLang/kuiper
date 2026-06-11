@@ -747,11 +747,11 @@ fn tensor_apply_bij
   (f : abs d1 =~ abs d2)
   (#l : tlayout d1) {| is_full l |}
   (a : tensor et l)
-  (m : Chest.t d1 et)
+  (#fp : perm) (#m : Chest.t d1 et)
   requires
-    a |-> m
+    a |-> Frac fp m
   ensures
-    from_array (tlayout_bij f l) (core a) |-> Chest.mk d2 (fun a -> Chest.acc m (a <~| f))
+    from_array (tlayout_bij f l) (core a) |-> Frac fp (Chest.mk d2 (fun a -> Chest.acc m (a <~| f)))
 {
   // Kuiper.Enumerable.bijection_implies_equal_cardinal (abs d1) (abs d2) f;
   assume pure (sizeof d1 == sizeof d2);

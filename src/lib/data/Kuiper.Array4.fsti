@@ -147,6 +147,37 @@ fn pts_to_ref
   ensures
     pure (SZ.fits (layout_size l))
 
+inline_for_extraction noextract
+fn alloc0
+  (#et:Type) {| sized et |}
+  (d0 d1 d2 d3 : szp)
+  (l : layout d0 d1 d2 d3 { is_full l })
+  preserves
+    cpu
+  requires
+    pure (SZ.fits (layout_size l))
+  returns
+    p : t et l
+  ensures
+    exists* em. on gpu_loc (p |-> em) **
+    pure (is_full_array (core p))
+  ensures
+    pure (is_global p)
+
+inline_for_extraction noextract
+fn free
+  (#et:Type)
+  (#d0 #d1 #d2 #d3 : erased nat)
+  (#l : layout d0 d1 d2 d3 { is_full l })
+  (p : t et l)
+  (#em : EMatrix4.t et d0 d1 d2 d3)
+  preserves
+    cpu
+  requires
+    on gpu_loc (p |-> em) **
+    pure (is_full_array (core p))
+  ensures emp
+
 ghost
 fn lower
   (#et:Type)

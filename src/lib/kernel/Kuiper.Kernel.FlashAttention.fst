@@ -20,27 +20,28 @@ fn flashattention_tile
   (#lKj #lVj: M.layout bc d)
   (#lSt: layout bc)
   (#lQit #lOit: layout d)
-  {| ctlayout lSt, ctlayout lKj, ctlayout lVj, ctlayout lQit, ctlayout lOit |}
+  {| ctlayout lSt, ctlayout lKj, ctlayout lVj |} // ctlayout lQit, ctlayout lOit  <--- TODO: cant infer for row? (just commenting it out to make below typecheck)
   (gKj: M.array2 et lKj) 
   (gVj: M.array2 et lVj)
   (gSt: array1 et lSt)
   (gQit: array1 et lQit)
   (gOit: array1 et lOit)
-  (glt gmt: ref et)
+  (glit gmit: ref et)
   (eKj eVj: ematrix et bc d)
   (vQit vOit: erased (lseq et d))
-  (vlt vmt: erased et)
+  (vlit vmit: erased et)
   (#fKj #fVj #fQit: perm)
   requires 
-    gOit |-> vOit
+    gOit |-> vOit ** glit |-> vlit ** gmit |-> vmit
   preserves 
-    (gKj |-> Frac fKj eKj) ** (gVj |-> Frac fVj eVj) ** (gQit |-> Frac fQit vQit) ** glt |-> vlt ** gmt |-> vmt **
+    (gKj |-> Frac fKj eKj) ** (gVj |-> Frac fVj eVj) ** (gQit |-> Frac fQit vQit) **
     live gSt
   ensures 
-    live gOit // No functional spec
+    live gOit ** live glit ** live gmit // No functional spec
 {
-  let row_m_prev = !gmt;
-  let row_l_prev = !glt;
+  assume pure (ctlayout lQit);
+  let row_m_prev = !gmit;
+  let row_l_prev = !glit;
   let mut row_m: et = neg infinity;
   let mut y: szle bc = 0sz;
   
@@ -117,8 +118,8 @@ fn flashattention_tile
     x := !x +^ 1sz;
   };
 
-  glt := row_l_new;
-  gmt := row_m_new;
+  glit := row_l_new;
+  gmit := row_m_new;
 
   ()
 }
@@ -177,13 +178,22 @@ fn flashattention_kf_no_smem (#et : Type0) {| scalar et, floating et |}
 
       explode glt #1.0R #vlt;
       forevery_extract' #(natlt (SZ.v (n /^ br))) oi _;
+      array1_cell_to_ref glt oi;
+      let glit = ref_of_array_cell glt oi;
+      
       explode gmt #1.0R #vmt;
       forevery_extract' #(natlt (SZ.v (n /^ br))) oi _;
+      array1_cell_to_ref gmt oi;
+      let gmit = ref_of_array_cell gmt oi;
 
       with eKj. assert gKj |-> eKj;
       with eVj. assert gVj |-> eVj;
-      flashattention_tile bc br d gKj gVj gSt gQit gOit glt gmt
-        eKj eVj (ematrix_row eQ qi) (ematrix_row eOt oi) vlt vmt;
+
+      flashattention_tile bc br d
+        #_ #_ #_ #_ #_
+        #_ #_ #_ // #_ #_ TODO: can't infer ctlayout for row layout?
+        gKj gVj gSt (M.row gQ qi) (M.row gOt oi) (ref_of_array_cell glt oi) (ref_of_array_cell gmt oi)
+        eKj eVj (ematrix_row eQ qi) (ematrix_row eOt oi) (vlt @! oi) (vmt @! oi);
 
       admit ();
 

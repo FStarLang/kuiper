@@ -9,20 +9,25 @@ module Kuiper.Kernel.BatchedGEMM
 open Kuiper
 module Array3 = Kuiper.Array3
 open Kuiper.Tensor.Layout.Alg
+open Kuiper.Tensor
 module EM = Kuiper.EMatrix
 module EMatrix3 = Kuiper.EMatrix3
 module MS = Kuiper.Spec.GEMM
 module SZ = Kuiper.SizeT
 
-(* TODO: Layout polymorphism. Attempt to not use EMatrix3 and just use Chest. *)
+(* TODO: Attempt to not use EMatrix3 and just use Chest. *)
 inline_for_extraction noextract
 fn bmmcomb_gpu_exact
   (#et : Type0) {| scalar et |}
   (comb : binop et)
   (batch rows shared cols : szp)
-  (a : Array3.t et (l3_batched_row_major batch rows shared) { Array3.is_global a })
-  (b : Array3.t et (l3_batched_row_major batch shared cols) { Array3.is_global b })
-  (c : Array3.t et (l3_batched_row_major batch rows cols) { Array3.is_global c })
+  (#la : Array3.layout batch rows shared)
+  (#lb : Array3.layout batch shared cols)
+  (#lc : Array3.layout batch rows cols)
+  {| ctlayout la, ctlayout lb, ctlayout lc |}
+  (a : Array3.t et la { Array3.is_global a })
+  (b : Array3.t et lb { Array3.is_global b })
+  (c : Array3.t et lc { Array3.is_global c })
   (#sa : erased (EMatrix3.t et batch rows shared))
   (#sb : erased (EMatrix3.t et batch shared cols))
   (#sc : erased (EMatrix3.t et batch rows cols))

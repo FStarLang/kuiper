@@ -115,7 +115,9 @@ type scaled_dot_product_efficient_attention_ty
        SZ.fits (b * h * n * k)  /\
        SZ.fits (b * h * m * k)  /\
        SZ.fits (b * h * m) /\
-       (EM4.mkM (fun i j k l -> EM4.macc sK i j l k)) %~ rKT
+       (EM4.mkM (fun i j k l -> EM4.macc sK i j l k)) %~ rKT /\
+       m * n <= max_blocks * max_threads /\
+       b * h * m <= max_blocks
      )
    returns
      out : A4.t et (l4_batched_row_major b h m kv) &
@@ -137,5 +139,6 @@ type scaled_dot_product_efficient_attention_ty
      pure (A4.is_global (fst out) /\ A3.is_global (snd out))
 
 inline_for_extraction noextract
-val scaled_dot_product_efficient_attention (#et : Type0) {| scalar et, floating et, real_like et |}
+val scaled_dot_product_efficient_attention
+  (#et : Type0) {| floating et, real_like et, floating_real_like et |}
    : scaled_dot_product_efficient_attention_ty et

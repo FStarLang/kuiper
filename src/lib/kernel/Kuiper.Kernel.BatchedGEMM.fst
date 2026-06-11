@@ -5,6 +5,7 @@ open Kuiper
 open Kuiper.Array3
 module Array3 = Kuiper.Array3
 open Kuiper.Tensor.Layout.Alg
+open Kuiper.Tensor.Layout
 module SZ = Kuiper.SizeT
 open Kuiper.EMatrix { ematrix }
 open Pulse.Lib.Trade
@@ -17,9 +18,13 @@ fn bmmcomb_gpu_exact
   (#et : Type0) {| scalar et |}
   (comb : binop et)
   (batch rows shared cols : szp)
-  (a : Array3.t et (l3_batched_row_major batch rows shared) { Array3.is_global a })
-  (b : Array3.t et (l3_batched_row_major batch shared cols) { Array3.is_global b })
-  (c : Array3.t et (l3_batched_row_major batch rows cols) { Array3.is_global c })
+  (#la : Array3.layout batch rows shared)
+  (#lb : Array3.layout batch shared cols)
+  (#lc : Array3.layout batch rows cols)
+  {| ctlayout la, ctlayout lb, ctlayout lc |}
+  (a : Array3.t et la { Array3.is_global a })
+  (b : Array3.t et lb { Array3.is_global b })
+  (c : Array3.t et lc { Array3.is_global c })
   (#sa : erased (EMatrix3.t et batch rows shared))
   (#sb : erased (EMatrix3.t et batch shared cols))
   (#sc : erased (EMatrix3.t et batch rows cols))
@@ -31,7 +36,7 @@ fn bmmcomb_gpu_exact
     on gpu_loc (b |-> Frac fB sb)
   requires
     pure (
-      rows * cols <= max_blocks * max_threads  /\
+      rows * cols <= max_blocks * max_threads /\
       SZ.fits (batch * rows * cols)
     ) ** 
     on gpu_loc (c |-> sc)

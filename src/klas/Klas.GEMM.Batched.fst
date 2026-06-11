@@ -4,6 +4,7 @@ module Klas.GEMM.Batched
 open Kuiper
 module K = Kuiper.Kernel.BatchedGEMM
 open Kuiper.Tensor.Layout.Alg
+open Kuiper.Tensor
 module Array3 = Kuiper.Array3
 module EM = Kuiper.EMatrix
 module EMatrix3 = Kuiper.EMatrix3
@@ -44,7 +45,14 @@ fn batched_matmul
 inline_for_extraction noextract
 let batched_gemm 
   (#et : Type0) {| scalar et |} 
-  (alpha beta : et) = K.bmmcomb_gpu_exact #et (MS.lincomb alpha beta)
+  (alpha beta : et)
+  (batch rows shared cols : szp {SZ.fits (batch * rows * shared) /\ SZ.fits (batch * shared * cols) /\ SZ.fits (batch * rows * cols)})
+  = 
+    K.bmmcomb_gpu_exact #et #_ (MS.lincomb alpha beta) batch rows shared cols  
+    #(l3_batched_row_major batch rows shared) 
+    #(l3_batched_row_major batch shared cols) 
+    #(l3_batched_row_major batch rows cols) 
 
 let batched_gemm_f32 = batched_gemm #f32
+
 let batched_matmul_f32 = batched_matmul #f32
