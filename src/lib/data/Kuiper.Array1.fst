@@ -379,6 +379,69 @@ fn implode
   fold pts_to a #f s;
 }
 
+ghost
+fn extract_cell
+  (#et : Type0) (#len : nat) (#l : layout len)
+  (a : t et l)
+  (i : natlt len)
+  (#f : perm)
+  (#s : lseq et len)
+  requires
+    a |-> Frac f s ** 
+    pure (SZ.fits (layout_size l))
+  ensures
+    Cell a i |-> Frac f (Seq.index s i) ** 
+    (forall* (si': et).   
+      Cell a i |-> Frac f si' @==> a |-> Frac f (Seq.upd s i si' <: (lseq et len)))
+{
+  explode a #f #s;
+  forevery_extract' #(natlt len) i _;
+  ghost fn aux si'
+    requires forall* (p': natlt len -> slprop).   
+      p' i ** pure (forall (j:natlt len{~(eq2 #(natlt len) j i)}). p' j == (Cell a (j <: natlt len) |-> Frac f (Seq.index s j))) 
+        @==> (forall+ (j:natlt len). p' j)
+    ensures 
+      Cell a i |-> Frac f si' @==> a |-> Frac f (Seq.upd s i si' <: (lseq et len))
+    {
+      let p' = (fun (j: natlt len) -> (Cell a (j <: natlt len)) |-> Frac f (Seq.index (Seq.upd s i si' <: (lseq et len)) j));
+      assert rewrites_to p' (fun (j: natlt len) -> (Cell a (j <: natlt len)) |-> Frac f (Seq.index (Seq.upd s i si' <: (lseq et len)) j));
+      elim_forall p';
+
+      Pulse.Lib.Trade.intro_trade
+        (Cell a i |-> Frac f si')
+        (a |-> Frac f (Seq.upd s i si' <: (lseq et len)))
+        (p' i ** pure (forall (j:natlt len{~(eq2 #(natlt len) j i)}). p' j == (Cell a (j <: natlt len) |-> Frac f (Seq.index s j))) 
+          @==> (forall+ (j:natlt len). p' j))
+        fn _ {
+          Seq.lemma_index_upd1 #et s i si'; 
+          rewrite (Cell a i |-> Frac f si') as (p' i);
+          Pulse.Lib.Trade.elim_trade _ _;
+          implode a #f #(Seq.upd s i si');
+        };
+    };
+  intro_forall _ aux;
+  ()
+}
+
+ghost
+fn restore_cell
+  (#et : Type0) (#len : nat) (#l : layout len)
+  (a : t et l)
+  (i : natlt len)
+  (#f : perm)
+  (#si': et)
+  (#s : lseq et len)
+  requires
+    Cell a i |-> Frac f si' **
+    (forall* (si': et).   
+      Cell a i |-> Frac f si' @==> a |-> Frac f (Seq.upd s i si' <: (lseq et len)))
+  ensures
+    a |-> Frac f (Seq.upd s i si' <: (lseq et len))
+{
+  elim_forall si';
+  Pulse.Lib.Trade.elim_trade _ _;
+}
+
 inline_for_extraction noextract
 fn read_cell
   (#et : Type0) (#len : erased nat)
@@ -649,7 +712,7 @@ let ref_of_array_cell
 inline_for_extraction noextract
 fn get_ref_of_array_cell
   (#et : Type0)
-  (#len : nat)
+  (#len : erased nat)
   (#l : layout len) {| c : ctlayout l |}
   (a : array1 et l)
   (i : szlt len)

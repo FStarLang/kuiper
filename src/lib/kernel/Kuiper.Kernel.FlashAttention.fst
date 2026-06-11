@@ -6,6 +6,7 @@ open Kuiper.EMatrix
 open Kuiper.Array
 open Kuiper.Tensor.Layout
 open Kuiper.Tensor.Tiling
+open Kuiper.Tensor
 open Kuiper.EMatrix
 
 module M = Kuiper.Array2 
@@ -20,16 +21,16 @@ fn flashattention_tile
   (#lKj #lVj: M.layout bc d)
   (#lSt: layout bc)
   (#lQit #lOit: layout d)
-  {| ctlayout lSt, ctlayout lKj, ctlayout lVj |} // ctlayout lQit, ctlayout lOit  <--- TODO: cant infer for row? (just commenting it out to make below typecheck)
+  {| ctlayout lSt, ctlayout lKj, ctlayout lVj, ctlayout lQit, ctlayout lOit |}
   (gKj: M.array2 et lKj) 
   (gVj: M.array2 et lVj)
   (gSt: array1 et lSt)
   (gQit: array1 et lQit)
   (gOit: array1 et lOit)
   (glit gmit: ref et)
-  (eKj eVj: ematrix et bc d)
-  (vQit vOit: erased (lseq et d))
-  (vlit vmit: erased et)
+  (#eKj #eVj: ematrix et bc d)
+  (#vQit #vOit: erased (lseq et d))
+  (#vlit #vmit: erased et)
   (#fKj #fVj #fQit: perm)
   requires 
     gOit |-> vOit ** glit |-> vlit ** gmit |-> vmit
@@ -39,7 +40,6 @@ fn flashattention_tile
   ensures 
     live gOit ** live glit ** live gmit // No functional spec
 {
-  assume pure (ctlayout lQit);
   let row_m_prev = !gmit;
   let row_l_prev = !glit;
   let mut row_m: et = neg infinity;
@@ -125,6 +125,7 @@ fn flashattention_tile
 }
 
 // flash attention kernel executed by each thread (no shared memory caching)
+#push-options "--split_queries always --print_implicits"
 inline_for_extraction noextract 
 fn flashattention_kf_no_smem (#et : Type0) {| scalar et, floating et |}
   (n d: szp)
@@ -168,39 +169,40 @@ fn flashattention_kf_no_smem (#et : Type0) {| scalar et, floating et |}
       with eSt. assert gSt |-> eSt;
       with vlt. assert glt |-> vlt;
       with vmt. assert gmt |-> vmt;
-      let qi = SZ.v (br *^ !i +^ tid);
-      let oi = SZ.v !i;
+      let ii = !i;
+      let qi = br *^ ii +^ tid;
 
       M.extract_row_ro gQ qi;
-      let gQit = M.row gQ qi;
-      M.extract_row gOt oi #1.0R #eOt; // gO has already been split into per-thread chunks
-      let gOit = M.row gOt oi;
+      let gQit = M.row gQ (SZ.v qi);
+      M.extract_row gOt ii #1.0R #eOt; // gO has already been split into per-thread chunks
+      let gOit = M.row gOt (SZ.v ii);
 
-      explode glt #1.0R #vlt;
-      forevery_extract' #(natlt (SZ.v (n /^ br))) oi _;
-      array1_cell_to_ref glt oi;
-      let glit = ref_of_array_cell glt oi;
+      extract_cell glt ii #1.0R #vlt;
+      array1_cell_to_ref glt ii;
+      let glit = get_ref_of_array_cell glt ii;
+      assert rewrites_to glit (ref_of_array_cell glt ii);
       
-      explode gmt #1.0R #vmt;
-      forevery_extract' #(natlt (SZ.v (n /^ br))) oi _;
-      array1_cell_to_ref gmt oi;
-      let gmit = ref_of_array_cell gmt oi;
-
-      with eKj. assert gKj |-> eKj;
-      with eVj. assert gVj |-> eVj;
+      extract_cell gmt ii #1.0R #vmt;
+      array1_cell_to_ref gmt ii;
+      let gmit = get_ref_of_array_cell gmt ii;
+      assert rewrites_to gmit (ref_of_array_cell gmt ii);
 
       flashattention_tile bc br d
         #_ #_ #_ #_ #_
-        #_ #_ #_ // #_ #_ TODO: can't infer ctlayout for row layout?
-        gKj gVj gSt (M.row gQ qi) (M.row gOt oi) (ref_of_array_cell glt oi) (ref_of_array_cell gmt oi)
-        eKj eVj (ematrix_row eQ qi) (ematrix_row eOt oi) (vlt @! oi) (vmt @! oi);
+        #_ #_ #_ #(ctlayout_slice _ 0sz qi) #(ctlayout_slice _ 0sz ii)
+        gKj gVj gSt (M.row gQ (SZ.v qi)) (M.row gOt (SZ.v ii)) glit gmit;
 
-      admit ();
+      array1_cell_from_ref glt ii;
+      array1_cell_from_ref gmt ii;
+      restore_cell glt ii;
+      restore_cell gmt ii;
 
-      M.restore_row gQ qi;
-      elim_forall (ematrix_row eOt oi);
-      Trade.elim_trade (gOit |-> Frac 1.0R (ematrix_row eOt oi)) _;
-      i := !i +^ 1sz;
+      M.restore_row gQ (SZ.v qi);
+      with (eOit: lseq _ _). assert ((M.row gOt ((SZ.v ii) <: natlt n)) <: (array1 et (M.row_layout gOt (SZ.v ii)))) |-> (Frac 1.0R eOit);
+      elim_forall (eOit);
+      Trade.elim_trade (((M.row gOt ((SZ.v ii) <: natlt n)) <: (array1 et (M.row_layout gOt (SZ.v ii)))) |-> (Frac 1.0R eOit)) _;
+
+      i := !i +^ 1sz; 
     };
     
     Trade.elim_trade (gKj |-> Frac fK (ematrix_subtile eK (SZ.v bc) (SZ.v d) (SZ.v !j) 0)) _;

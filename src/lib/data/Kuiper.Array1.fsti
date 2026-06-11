@@ -8,6 +8,7 @@ open Kuiper.Injection
 open Kuiper.Index
 open FStar.Tactics.Typeclasses { no_method }
 open Kuiper.Tensor.Layout.Alg { l1_forward }
+open Pulse.Lib.Trade
 module B = Kuiper.Array
 module SZ = Kuiper.SizeT
 module Tac = FStar.Tactics.V2
@@ -299,6 +300,38 @@ fn implode
   ensures
     a |-> Frac f s
 
+ghost
+fn extract_cell
+  (#et : Type0) (#len : nat) (#l : layout len)
+  (a : t et l)
+  (i : natlt len)
+  (#f : perm)
+  (#s : lseq et len)
+  requires
+    a |-> Frac f s ** 
+    pure (SZ.fits (layout_size l))
+  ensures
+  // TODO: this postcondition could take another step and give you Seq.upd s i si' on the RHS of the trade, but it doesn't make a difference if you're using restore_cell_upd
+    Cell a i |-> Frac f (Seq.index s i) ** 
+    (forall* (si': et).   
+      Cell a i |-> Frac f si' @==> a |-> Frac f (Seq.upd s i si' <: (lseq et len)))
+
+// just an elim_trade wrapper
+ghost
+fn restore_cell
+  (#et : Type0) (#len : nat) (#l : layout len)
+  (a : t et l)
+  (i : natlt len)
+  (#f : perm)
+  (#si': et)
+  (#s : lseq et len)
+  requires
+    Cell a i |-> Frac f si' **
+    (forall* (si': et).   
+      Cell a i |-> Frac f si' @==> a |-> Frac f (Seq.upd s i si' <: (lseq et len)))
+  ensures
+    a |-> Frac f (Seq.upd s i si' <: (lseq et len))
+
 inline_for_extraction noextract
 fn read_cell
   (#et : Type0) (#len : erased nat)
@@ -457,7 +490,7 @@ val ref_of_array_cell
 inline_for_extraction noextract
 fn get_ref_of_array_cell
   (#et : Type0)
-  (#len : nat)
+  (#len : erased nat)
   (#l : layout len) {| c : ctlayout l |}
   (a : array1 et l)
   (i : szlt len)
