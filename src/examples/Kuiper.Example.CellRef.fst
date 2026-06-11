@@ -9,26 +9,9 @@ open Kuiper.Tensor.Layout.Alg
 open Kuiper.Index
 module SZ = Kuiper.SizeT
 
-let layout (m : nat) : layout m =
-  pack <|
-  major_on 0 m <|
-  lunit
-
-inline_for_extraction noextract
-instance blah
-  (m : SZ.t{SZ.fits m})
-  : ctlayout (layout m)
-  =
-  c_pack #_ #_ <|
-  c_major_on 0sz _ #_ #{v = 1sz} <|
-  cunit
-
-inline_for_extraction noextract
-instance _crutch : ctlayout (layout 16) = blah 16sz
-
 (* Read cell [i] by obtaining a ref into it and dereferencing. *)
 fn cell_get
-  (a : array1 u32 (layout 16))
+  (a : array1 u32 (l1_forward 16))
   (i : szlt 16)
   (#f : perm)
   (#v : erased u32)
@@ -50,7 +33,7 @@ fn cell_get
 
 (* Write [w] into cell [i] by obtaining a ref into it and assigning. *)
 fn cell_set
-  (a : array1 u32 (layout 16))
+  (a : array1 u32 (l1_forward 16))
   (i : szlt 16)
   (w : u32)
   (#v : erased u32)
@@ -72,7 +55,7 @@ fn cell_set
    reassemble the array. The only runtime effect is the [cell_set] call;
    everything else is ghost. *)
 fn array_set_via_ref
-  (a : array1 u32 (layout 16))
+  (a : array1 u32 (l1_forward 16))
   (j : szlt 16)
   (w : u32)
   (#s : erased (lseq u32 16))
