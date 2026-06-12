@@ -8,10 +8,12 @@ open Kuiper.Tensor.Layout
 open Kuiper.Tensor.Tiling
 open Kuiper.Tensor
 open Kuiper.EMatrix
+open Kuiper.Tensor.Layout.Alg { l1_forward, l2_row_major, c_l2_row_major }
 
 module M = Kuiper.Array2 
 module SZ = Kuiper.SizeT
 module Trade = Pulse.Lib.Trade
+module Array1 = Kuiper.Array1
 open Kuiper.Array1
 
 inline_for_extraction noextract
@@ -146,6 +148,7 @@ fn flashattention_kf_no_smem (#et : Type0) {| scalar et, floating et |}
   (tid: sz { tid <^ br /\ tid <^ bc }) // TODO: impossible to materialize tid in a kernel unless br = bc
   (#fK #fV #fQ: perm)
   preserves 
+    gpu ** // preserved so this can sit in kernel_desc.f
     (gK |-> Frac fK eK) ** (gV |-> Frac fV eV) ** (gQ |-> Frac fQ eQ) **
     live gSt ** live gOt ** live glt ** live gmt// No functional spec; note that O, l, m would have preconditions here though. S does not
 {
@@ -210,6 +213,416 @@ fn flashattention_kf_no_smem (#et : Type0) {| scalar et, floating et |}
 
     j := !j +^ 1sz;
   }
+}
+#pop-options
+
+(* ─────────────────────────────────────────────────────────────────────────
+   kernel_desc and host launch.
+
+   Configuration: 1 block, [br] threads.  We require [bc == br] so that
+   every thread id [tid : szlt br] is also valid as [szlt bc] (the
+   [flashattention_kf_no_smem] function refines [tid] by both bounds).
+
+   Per-thread resources (in [kpre tid]):
+     - [gK |-> Frac (fK /. br) eK]                         (sharded)
+     - [gV |-> Frac (fV /. br) eV]                         (sharded)
+     - [gQ |-> Frac (fQ /. br) eQ]                         (sharded)
+     - per-thread strided sub-views [gOt, glt, gmt]
+       (rows {i*br + tid for i = 0..n/br}).
+     - row [tid] of the shmem S matrix, viewed as the [array1] [gSt].
+
+   The strided extraction of (n/br) rows starting at offset tid with
+   stride br is non-trivial; the ghost proofs are stubbed with [admit()]
+   for now. The host wrapper, [flashattention_launch], wires everything
+   into [launch_sync].
+   ───────────────────────────────────────────────────────────────────── *)
+
+open Kuiper.SHMem
+
+(* The shmem layout we use for S: a single [SHArray et (bc * br)] viewed
+   as a [br * bc] row-major matrix, so that row [tid] is the per-thread
+   scratch slice expected by [flashattention_kf_no_smem]. *)
+
+inline_for_extraction noextract
+let fa_shmems (et : Type0) {| Kuiper.Sized.sized et |}
+  (bc br : szp { SZ.fits (bc * br) })
+  : list shmem_desc
+  = [SHArray et (bc *^ br)]
+
+(* The Array2 layout we use to view the S shmem array. *)
+inline_for_extraction noextract
+let fa_lS (bc br : szp) : M.layout br bc = l2_row_major br bc
+
+inline_for_extraction noextract
+instance fa_lS_ct (bc br : szp { SZ.fits (bc * br) })
+  : ctlayout (fa_lS bc br) = c_l2_row_major _ _
+
+(* Lift the raw shmem array to an Array2 view. *)
+inline_for_extraction noextract
+let fa_gS
+  (#et : Type0) {| Kuiper.Sized.sized et |}
+  (bc br : szp { SZ.fits (bc * br) })
+  (sh : c_shmems (fa_shmems et bc br))
+  : M.array2 et (fa_lS bc br)
+  = M.from_array (fa_lS bc br) sh._1
+
+(* Per-thread strided slice. Conceptually thread [tid] owns:
+     - the rows {i * br + tid | i = 0 .. n/br - 1} of [gO]
+     - the cells {i * br + tid | i = 0 .. n/br - 1} of [gl], [gm]
+   These are exposed below via an abstract per-thread "view" type
+   [fa_thread_view]. The actual realisation (using Kuiper.Array2.Strided
+   subtile layouts) is left as TODO in [setup_fa] / [block_setup_fa]; the
+   important thing here is that the slprop is well-formed and gets
+   re-bundled symmetrically in [kpost_fa]. *)
+
+inline_for_extraction noextract
+let kpre_fa
+  (#et : Type0) {| scalar et, floating et |}
+  (n d bc br : szp { bc == br /\ bc /? n /\ br /? n /\ SZ.fits (bc * br) })
+  (#lK #lV #lQ : M.layout n d)
+  (gK : M.array2 et lK)
+  (gV : M.array2 et lV)
+  (gQ : M.array2 et lQ)
+  (#lO : M.layout n d)
+  (gO : M.array2 et lO)
+  (#ll #lm : layout n)
+  (gl : array1 et ll)
+  (gm : array1 et lm)
+  (eK eV eQ : ematrix et n d)
+  (fK fV fQ : perm)
+  (sh : c_shmems (fa_shmems et bc br))
+  (tid : natlt br)
+  : slprop
+  =
+  (gK |-> Frac (fK /. br) eK) **
+  (gV |-> Frac (fV /. br) eV) **
+  (gQ |-> Frac (fQ /. br) eQ) **
+  (* Per-thread write-side strided sub-tiles. The actual sub-layouts
+     (subtile_layout of [lO], [ll], [lm] with stride [br] / offset [tid])
+     and their corresponding [array2]/[array1] handles are produced by
+     [block_setup_fa]; here they appear under an existential. *)
+  (exists* (lOt : M.layout (n /^ br) d)
+           (gOt : M.array2 et lOt).
+     live gOt) **
+  (exists* (llt : layout (n /^ br))
+           (glt : array1 et llt).
+     live glt) **
+  (exists* (lmt : layout (n /^ br))
+           (gmt : array1 et lmt).
+     live gmt) **
+  (* This thread's row of the shmem S matrix. *)
+  live (M.row (fa_gS bc br sh) tid)
+
+inline_for_extraction noextract
+let kpost_fa
+  (#et : Type0) {| scalar et, floating et |}
+  (n d bc br : szp { bc == br /\ bc /? n /\ br /? n /\ SZ.fits (bc * br) })
+  (#lK #lV #lQ : M.layout n d)
+  (gK : M.array2 et lK)
+  (gV : M.array2 et lV)
+  (gQ : M.array2 et lQ)
+  (#lO : M.layout n d)
+  (gO : M.array2 et lO)
+  (#ll #lm : layout n)
+  (gl : array1 et ll)
+  (gm : array1 et lm)
+  (eK eV eQ : ematrix et n d)
+  (fK fV fQ : perm)
+  (sh : c_shmems (fa_shmems et bc br))
+  (tid : natlt br)
+  : slprop
+  =
+  (* Same shape as kpre; the kernel has no functional spec so [live] suffices *)
+  kpre_fa n d bc br gK gV gQ gO gl gm eK eV eQ fK fV fQ sh tid
+
+(* Per-thread kf: extracts the row of the shmem S matrix and calls into
+   flashattention_kf_no_smem. *)
+inline_for_extraction noextract
+fn fa_kf
+  (#et : Type0) {| scalar et, floating et |}
+  (n d bc br : szp { bc == br /\ bc /? n /\ br /? n /\ SZ.fits (bc * br) })
+  (#lK #lV #lQ : M.layout n d)
+  {| ctlayout lK, ctlayout lV, ctlayout lQ |}
+  (gK : M.array2 et lK)
+  (gV : M.array2 et lV)
+  (gQ : M.array2 et lQ)
+  (#lO : M.layout n d) {| ctlayout lO |}
+  (gO : M.array2 et lO)
+  (#ll #lm : layout n) {| ctlayout ll, ctlayout lm |}
+  (gl : array1 et ll)
+  (gm : array1 et lm)
+  (eK eV eQ : ematrix et n d)
+  (fK fV fQ : perm)
+  (sh : c_shmems (fa_shmems et bc br))
+  (bid : szlt 1sz)
+  (tid : szlt br)
+  ()
+  requires
+    gpu **
+    kpre_fa n d bc br gK gV gQ gO gl gm eK eV eQ fK fV fQ sh (SZ.v tid) **
+    thread_id br tid **
+    block_id 1sz bid **
+    Kuiper.Barrier.barrier_tok (Kuiper.Barrier.empty_contract br) **
+    Kuiper.Barrier.barrier_state 0
+  ensures
+    gpu **
+    kpost_fa n d bc br gK gV gQ gO gl gm eK eV eQ fK fV fQ sh (SZ.v tid) **
+    thread_id br tid **
+    block_id 1sz bid **
+    Kuiper.Barrier.barrier_tok (Kuiper.Barrier.empty_contract br) **
+    Kuiper.Barrier.barrier_state 0
+{
+  (* Pull out the per-thread strided sub-tiles from the existentials in
+     kpre_fa, extract the per-thread row of the shmem S matrix, then
+     invoke the inner kernel:
+
+       flashattention_kf_no_smem n d bc br
+         _ _ _ _ _ _ _ _
+         (M.row (fa_gS bc br sh) (SZ.v tid))
+         gK gV gQ gOt glt gmt eK eV eQ tid;
+
+     and finally re-bundle into kpost_fa. *)
+  admit ()
+}
+
+(* Outer setup/teardown for the full kernel_desc. nblk = 1, so the
+   [forall+ bid : natlt 1. block_pre bid] is just [block_pre 0]. *)
+ghost
+fn setup_fa
+  (#et : Type0) {| scalar et, floating et |}
+  (n d bc br : szp { bc == br /\ bc /? n /\ br /? n /\ SZ.fits (bc * br) })
+  (#lK #lV #lQ : M.layout n d)
+  (gK : M.array2 et lK)
+  (gV : M.array2 et lV)
+  (gQ : M.array2 et lQ)
+  (#lO : M.layout n d)
+  (gO : M.array2 et lO)
+  (#ll #lm : layout n)
+  (gl : array1 et ll)
+  (gm : array1 et lm)
+  (eK eV eQ eO : ematrix et n d)
+  (vl vm : erased (lseq et n))
+  (fK fV fQ : perm)
+  ()
+  norewrite
+  requires
+    (gK |-> Frac fK eK) ** (gV |-> Frac fV eV) ** (gQ |-> Frac fQ eQ) **
+    (gO |-> eO) ** (gl |-> vl) ** (gm |-> vm)
+  ensures
+    (forall+ (_bid : natlt 1).
+      (gK |-> Frac fK eK) ** (gV |-> Frac fV eV) ** (gQ |-> Frac fQ eQ) **
+      (gO |-> eO) ** (gl |-> vl) ** (gm |-> vm)) **
+    emp
+{
+  admit ()
+}
+
+ghost
+fn teardown_fa
+  (#et : Type0) {| scalar et, floating et |}
+  (n d bc br : szp { bc == br /\ bc /? n /\ br /? n /\ SZ.fits (bc * br) })
+  (#lK #lV #lQ : M.layout n d)
+  (gK : M.array2 et lK)
+  (gV : M.array2 et lV)
+  (gQ : M.array2 et lQ)
+  (#lO : M.layout n d)
+  (gO : M.array2 et lO)
+  (#ll #lm : layout n)
+  (gl : array1 et ll)
+  (gm : array1 et lm)
+  (eK eV eQ : ematrix et n d)
+  (fK fV fQ : perm)
+  ()
+  norewrite
+  requires
+    (forall+ (_bid : natlt 1).
+      (gK |-> Frac fK eK) ** (gV |-> Frac fV eV) ** (gQ |-> Frac fQ eQ) **
+      (exists* (eO' : ematrix et n d). gO |-> eO') **
+      (exists* (vl' : lseq et n). gl |-> vl') **
+      (exists* (vm' : lseq et n). gm |-> vm')) **
+    emp
+  ensures
+    (gK |-> Frac fK eK) ** (gV |-> Frac fV eV) ** (gQ |-> Frac fQ eQ) **
+    (exists* (eO' : ematrix et n d). gO |-> eO') **
+    (exists* (vl' : lseq et n). gl |-> vl') **
+    (exists* (vm' : lseq et n). gm |-> vm')
+{
+  admit ()
+}
+
+(* Block-level setup/teardown: split shmem S matrix into per-thread rows;
+   shard read-only perms; explode write-side matrices into per-thread
+   strided sub-tiles; bundle into [kpre_fa tid]. *)
+ghost
+fn block_setup_fa
+  (#et : Type0) {| scalar et, floating et |}
+  (n d bc br : szp { bc == br /\ bc /? n /\ br /? n /\ SZ.fits (bc * br) })
+  (#lK #lV #lQ : M.layout n d)
+  (gK : M.array2 et lK)
+  (gV : M.array2 et lV)
+  (gQ : M.array2 et lQ)
+  (#lO : M.layout n d)
+  (gO : M.array2 et lO)
+  (#ll #lm : layout n)
+  (gl : array1 et ll)
+  (gm : array1 et lm)
+  (eK eV eQ eO : ematrix et n d)
+  (vl vm : erased (lseq et n))
+  (fK fV fQ : perm)
+  (sh : c_shmems (fa_shmems et bc br))
+  (_bid : natlt 1)
+  ()
+  norewrite
+  requires
+    live_c_shmems sh **
+    ((gK |-> Frac fK eK) ** (gV |-> Frac fV eV) ** (gQ |-> Frac fQ eQ) **
+     (gO |-> eO) ** (gl |-> vl) ** (gm |-> vm))
+  ensures
+    (forall+ (tid : natlt br).
+       kpre_fa n d bc br gK gV gQ gO gl gm eK eV eQ fK fV fQ sh tid) **
+    emp
+{
+  admit ()
+}
+
+ghost
+fn block_teardown_fa
+  (#et : Type0) {| scalar et, floating et |}
+  (n d bc br : szp { bc == br /\ bc /? n /\ br /? n /\ SZ.fits (bc * br) })
+  (#lK #lV #lQ : M.layout n d)
+  (gK : M.array2 et lK)
+  (gV : M.array2 et lV)
+  (gQ : M.array2 et lQ)
+  (#lO : M.layout n d)
+  (gO : M.array2 et lO)
+  (#ll #lm : layout n)
+  (gl : array1 et ll)
+  (gm : array1 et lm)
+  (eK eV eQ : ematrix et n d)
+  (fK fV fQ : perm)
+  (sh : c_shmems (fa_shmems et bc br))
+  (_bid : natlt 1)
+  ()
+  norewrite
+  requires
+    (forall+ (tid : natlt br).
+       kpost_fa n d bc br gK gV gQ gO gl gm eK eV eQ fK fV fQ sh tid) **
+    emp
+  ensures
+    live_c_shmems sh **
+    ((gK |-> Frac fK eK) ** (gV |-> Frac fV eV) ** (gQ |-> Frac fQ eQ) **
+     (exists* (eO' : ematrix et n d). gO |-> eO') **
+     (exists* (vl' : lseq et n). gl |-> vl') **
+     (exists* (vm' : lseq et n). gm |-> vm'))
+{
+  admit ()
+}
+
+(* Full kernel descriptor: 1 block × br threads, with a shmem S matrix,
+   no barrier. *)
+inline_for_extraction noextract
+let fa_kdesc
+  (#et : Type0) {| scalar et, floating et |}
+  (n d bc br : szp { bc == br /\ bc /? n /\ br /? n /\ SZ.fits (bc * br) /\
+                     br <= max_threads })
+  (#lK #lV #lQ : M.layout n d)
+  {| ctlayout lK, ctlayout lV, ctlayout lQ |}
+  (gK : M.array2 et lK { M.is_global gK })
+  (gV : M.array2 et lV { M.is_global gV })
+  (gQ : M.array2 et lQ { M.is_global gQ })
+  (#lO : M.layout n d) {| ctlayout lO |}
+  (gO : M.array2 et lO { M.is_global gO })
+  (#ll #lm : layout n) {| ctlayout ll, ctlayout lm |}
+  (gl : array1 et ll { Array1.is_global gl })
+  (gm : array1 et lm { Array1.is_global gm })
+  (#eK #eV #eQ : ematrix et n d)
+  (#eO : ematrix et n d)
+  (#vl #vm : erased (lseq et n))
+  (#fK #fV #fQ : perm)
+  : kernel_desc
+      ((gK |-> Frac fK eK) ** (gV |-> Frac fV eV) ** (gQ |-> Frac fQ eQ) **
+       (gO |-> eO) ** (gl |-> vl) ** (gm |-> vm))
+      ((gK |-> Frac fK eK) ** (gV |-> Frac fV eV) ** (gQ |-> Frac fQ eQ) **
+       (exists* (eO' : ematrix et n d). gO |-> eO') **
+       (exists* (vl' : lseq et n). gl |-> vl') **
+       (exists* (vm' : lseq et n). gm |-> vm'))
+  =
+  {
+    nblk             = 1sz;
+    nthr             = br;
+
+    shmems_desc      = fa_shmems et bc br;
+
+    (* No barrier used. *)
+    barrier_contract = (fun _bid _sh -> Kuiper.Barrier.empty_contract br);
+    barrier_count    = (fun _bid -> 0);
+    barrier_ok       = (fun _bid _sh -> Kuiper.Barrier.empty_barrier_transform br);
+
+    kpre             = (fun sh _bid tid ->
+                          kpre_fa  n d bc br gK gV gQ gO gl gm eK eV eQ fK fV fQ sh tid);
+    kpost            = (fun sh _bid tid ->
+                          kpost_fa n d bc br gK gV gQ gO gl gm eK eV eQ fK fV fQ sh tid);
+
+    f                = (fun sh bid tid ->
+                          fa_kf n d bc br gK gV gQ gO gl gm eK eV eQ fK fV fQ sh bid tid);
+
+    frame            = emp;
+
+    block_pre        = (fun _bid ->
+                          (gK |-> Frac fK eK) ** (gV |-> Frac fV eV) ** (gQ |-> Frac fQ eQ) **
+                          (gO |-> eO) ** (gl |-> vl) ** (gm |-> vm));
+    block_post       = (fun _bid ->
+                          (gK |-> Frac fK eK) ** (gV |-> Frac fV eV) ** (gQ |-> Frac fQ eQ) **
+                          (exists* (eO' : ematrix et n d). gO |-> eO') **
+                          (exists* (vl' : lseq et n). gl |-> vl') **
+                          (exists* (vm' : lseq et n). gm |-> vm'));
+
+    setup            = setup_fa    n d bc br gK gV gQ gO gl gm eK eV eQ eO vl vm fK fV fQ;
+    teardown         = teardown_fa n d bc br gK gV gQ gO gl gm eK eV eQ fK fV fQ;
+
+    block_frame      = (fun _sh _bid -> emp);
+    block_setup      = (fun sh bid -> block_setup_fa    n d bc br gK gV gQ gO gl gm eK eV eQ eO vl vm fK fV fQ sh bid);
+    block_teardown   = (fun sh bid -> block_teardown_fa n d bc br gK gV gQ gO gl gm eK eV eQ fK fV fQ sh bid);
+
+    block_pre_sendable  = magic ();
+    block_post_sendable = magic ();
+    kpre_sendable       = magic ();
+    kpost_sendable      = magic ();
+  }
+
+(* Host-side launch. Mirrors flash.cu's [forward] but for one head: the
+   caller is responsible for iterating over batch/head. *)
+inline_for_extraction noextract
+fn flashattention_launch
+  (#et : Type0) {| scalar et, floating et |}
+  (n d bc br : szp { bc == br /\ bc /? n /\ br /? n /\ SZ.fits (bc * br) /\
+                     br <= max_threads })
+  (#lK #lV #lQ : M.layout n d)
+  {| ctlayout lK, ctlayout lV, ctlayout lQ |}
+  (gK : M.array2 et lK { M.is_global gK })
+  (gV : M.array2 et lV { M.is_global gV })
+  (gQ : M.array2 et lQ { M.is_global gQ })
+  (#lO : M.layout n d) {| ctlayout lO |}
+  (gO : M.array2 et lO { M.is_global gO })
+  (#ll #lm : layout n) {| ctlayout ll, ctlayout lm |}
+  (gl : array1 et ll { Array1.is_global gl })
+  (gm : array1 et lm { Array1.is_global gm })
+  (#eK #eV #eQ : ematrix et n d)
+  (#eO : ematrix et n d)
+  (#vl #vm : erased (lseq et n))
+  (#fK #fV #fQ : perm)
+  preserves
+    cpu **
+    on gpu_loc ((gK |-> Frac fK eK) ** (gV |-> Frac fV eV) ** (gQ |-> Frac fQ eQ))
+  requires
+    on gpu_loc ((gO |-> eO) ** (gl |-> vl) ** (gm |-> vm))
+  ensures
+    on gpu_loc
+      ((exists* (eO' : ematrix et n d). gO |-> eO') **
+       (exists* (vl' : lseq et n). gl |-> vl') **
+       (exists* (vm' : lseq et n). gm |-> vm'))
+{
+  launch_sync (fa_kdesc n d bc br gK gV gQ gO gl gm)
 }
 
 (*
