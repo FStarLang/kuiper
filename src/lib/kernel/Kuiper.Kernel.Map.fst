@@ -16,7 +16,7 @@ open Kuiper.Tensor.Layout.Alg { l1_forward }
 ghost
 fn explode_setup
   (#et : Type0)
-  (lena : nat)
+  (lena : nat { SZ.fits lena })
   (#l : Array1.layout lena)
   (a : Array1.t et l)
   (#s : erased (lseq et lena))
@@ -37,7 +37,7 @@ ghost
 fn explode_teardown
   (#et : Type0)
   (f : et -> et)
-  (lena : nat)
+  (lena : nat { SZ.fits lena })
   (#l : Array1.layout lena)
   (a : Array1.t et l)
   (#s : erased (lseq et lena))
@@ -425,4 +425,186 @@ fn map_gpu2
   ensures   on gpu_loc (a |-> (lseq_map2 f sa sb <: lseq et lena))
 {
   launch_sync (kmap2 f lena a b);
+}
+
+ghost
+fn explode_setup_gather
+  (#et : Type0)
+  (lens : szp)
+  (leni : szp)
+  (#ls : Array1.layout lens) (#li : Array1.layout leni) (#lo : Array1.layout leni)
+  (src : Array1.t et ls)
+  (idx : Array1.t u32 li)
+  (out : Array1.t et lo)
+  (#ss : erased (lseq et lens))
+  (#si : erased (lseq u32 leni))
+  (#so : erased (lseq et leni))
+  (#fs #fi : perm)
+  ()
+  norewrite
+  requires
+    (src |-> Frac fs ss) ** (idx |-> Frac fi si) ** (out |-> so)
+  ensures
+    (forall+ (i : natlt leni).
+      idx |-> Frac (fi /. leni) si **
+      src |-> Frac (fs /. leni) ss **
+      Cell out i |-> (so @! i)) **
+    pure (SZ.fits (Array1.layout_size lo))
+{
+  Array1.share_n src leni;
+  Array1.share_n idx leni;
+  Array1.pts_to_ref out;
+  Array1.explode out;
+  forevery_zip
+    (fun (_ : natlt leni) -> src |-> Frac (fs /. leni) ss)
+    (fun (i : natlt leni) -> Cell out i |-> (so @! i));
+  forevery_zip
+    (fun (_ : natlt leni) -> idx |-> Frac (fi /. leni) si)
+    (fun (i : natlt leni) ->
+      src |-> Frac (fs /. leni) ss ** Cell out i |-> (so @! i));
+  ()
+}
+
+ghost
+fn explode_teardown_gather
+  (#et : Type0)
+  (lens : szp)
+  (leni : szp)
+  (#ls : Array1.layout lens) (#li : Array1.layout leni) (#lo : Array1.layout leni)
+  (src : Array1.t et ls)
+  (idx : Array1.t u32 li)
+  (out : Array1.t et lo)
+  (#ss : erased (lseq et lens))
+  (#si : erased (lseq u32 leni))
+  (#fs #fi : perm)
+  ()
+  norewrite
+  requires
+    (forall+ (i : natlt leni).
+      idx |-> Frac (fi /. leni) si **
+      src |-> Frac (fs /. leni) ss **
+      Cell out i |-> (ss @! (FStar.UInt32.v (si @! i) % lens))) **
+    pure (SZ.fits (Array1.layout_size lo))
+  ensures
+    (src |-> Frac fs ss) **
+    (idx |-> Frac fi si) **
+    (exists* so'. out |-> so')
+{
+  forevery_unzip
+    (fun (_ : natlt leni) -> idx |-> Frac (fi /. leni) si)
+    _;
+  Array1.gather_n idx leni;
+  forevery_unzip
+    (fun (_ : natlt leni) -> src |-> Frac (fs /. leni) ss)
+    _;
+  Array1.gather_n src leni;
+  forevery_map
+    (fun (i : natlt leni) ->
+      Cell out i |-> (ss @! (FStar.UInt32.v (si @! i) % lens)))
+    (fun (i : natlt leni) ->
+      Cell out i |-> (Seq.init_ghost leni (fun j -> ss @! (FStar.UInt32.v (si @! j) % lens)) @! i))
+    fn x { () };
+  Array1.implode out;
+  ()
+}
+
+inline_for_extraction noextract
+fn kf_gather
+  (#et : Type0)
+  (lens : szp)
+  (#leni : erased nat)
+  (#ls : Array1.layout lens) {| ctlayout ls |}
+  (#li : Array1.layout leni) {| ctlayout li |}
+  (#lo : Array1.layout leni) {| ctlayout lo |}
+  (src : Array1.t et ls)
+  (idx : Array1.t u32 li)
+  (out : Array1.t et lo)
+  (#ss : erased (lseq et lens))
+  (#si : erased (lseq u32 leni))
+  (#so : erased (lseq et leni))
+  (#fs #fi : perm)
+  (i : szlt leni)
+  ()
+  requires
+    gpu **
+    idx |-> Frac fi si **
+    src |-> Frac fs ss **
+    Cell out (i <: natlt leni) |-> (so @! i)
+  ensures
+    gpu **
+    idx |-> Frac fi si **
+    src |-> Frac fs ss **
+    Cell out (i <: natlt leni) |-> (ss @! (FStar.UInt32.v (si @! i) % lens))
+{
+  let ix = Array1.read idx i;
+  let j = SZ.uint32_to_sizet ix;
+  let jm = j %^ lens;
+  let x = Array1.read src jm;
+  Array1.write_cell out i x;
+}
+
+inline_for_extraction noextract
+let kgather
+  (#et : Type0)
+  (lens : szp)
+  (leni : szp { leni <= max_blocks * max_threads })
+  (#ls : Array1.layout lens) {| ctlayout ls |}
+  (#li : Array1.layout leni) {| ctlayout li |}
+  (#lo : Array1.layout leni) {| ctlayout lo |}
+  (src : Array1.t et ls)
+  (idx : Array1.t u32 li)
+  (out : Array1.t et lo)
+  (#_ : squash (Array1.is_global src))
+  (#_ : squash (Array1.is_global idx))
+  (#_ : squash (Array1.is_global out))
+  (#ss : erased (lseq et lens))
+  (#si : erased (lseq u32 leni))
+  (#so : erased (lseq et leni))
+  (#fs #fi : perm)
+  : kernel_desc
+      (requires (src |-> Frac fs ss) ** (idx |-> Frac fi si) ** (out |-> so))
+      (ensures  (src |-> Frac fs ss) ** (idx |-> Frac fi si) ** (exists* so'. out |-> so'))
+= {
+    nthr = leni;
+    f = kf_gather lens src idx out;
+
+    frame    = pure (SZ.fits (Array1.layout_size lo));
+    teardown = explode_teardown_gather lens leni src idx out;
+    setup    = explode_setup_gather lens leni src idx out;
+    kpre  = (fun (i : natlt leni) ->
+      idx |-> Frac (fi /. leni) si **
+      src |-> Frac (fs /. leni) ss **
+      Cell out i |-> (so @! i));
+    kpost = (fun (i : natlt leni) ->
+      idx |-> Frac (fi /. leni) si **
+      src |-> Frac (fs /. leni) ss **
+      Cell out i |-> (ss @! (FStar.UInt32.v (si @! i) % lens)));
+    kpost_sendable = solve;
+    kpre_sendable  = solve;
+  } <: kernel_desc_n _ _
+
+inline_for_extraction noextract
+fn gather_gpu
+  (#et : Type0)
+  (lens : szp)
+  (leni : szp { leni <= max_blocks * max_threads })
+  (#ls : Array1.layout lens) {| ctlayout ls |}
+  (#li : Array1.layout leni) {| ctlayout li |}
+  (#lo : Array1.layout leni) {| ctlayout lo |}
+  (src : Array1.t et ls)
+  (idx : Array1.t u32 li)
+  (out : Array1.t et lo)
+  (#_ : squash (Array1.is_global src))
+  (#_ : squash (Array1.is_global idx))
+  (#_ : squash (Array1.is_global out))
+  (#ss : erased (lseq et lens))
+  (#si : erased (lseq u32 leni))
+  (#so : erased (lseq et leni))
+  (#fs #fi : perm)
+  norewrite
+  preserves cpu ** on gpu_loc (src |-> Frac fs ss) ** on gpu_loc (idx |-> Frac fi si)
+  requires  on gpu_loc (out |-> so)
+  ensures   exists* so'. on gpu_loc (out |-> so')
+{
+  launch_sync (kgather lens leni src idx out);
 }
