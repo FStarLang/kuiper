@@ -31,7 +31,8 @@ for blockItemsK in $all_blockItemsK; do
     for blockWidth in $all_blockWidth; do
       if [ $((blockItemsK % blockWidth)) -ne 0 ]; then continue; fi
       if [ $((blockItemsX % blockWidth)) -ne 0 ]; then continue; fi
-      echo "let g_spmm_f32_${blockItemsK}x${blockItemsX}x${blockWidth} = inst f32 rm rm ${blockItemsX}sz ${blockItemsK}sz ${blockWidth}sz"
+      if [ $(( (blockItemsK / blockWidth) % 4 )) -ne 0 ]; then continue; fi
+      echo "let g_spmm_f32_${blockItemsK}x${blockItemsX}x${blockWidth} = inst f32 rm rm ${blockItemsK}sz ${blockItemsX}sz ${blockWidth}sz"
     done
   done
 done

@@ -1187,7 +1187,7 @@ let barrier_count
   let re = row_off @! (brow p bid |~> row_perm) + 1 in
   ((re - ri) / p.blockItemsK + 1) * 2
 
-noextract
+noextract inline_for_extraction
 let align_offset
   (et : Type0) {| scalar et, sized et, has_vec_cpy et |}
   (off : sz)

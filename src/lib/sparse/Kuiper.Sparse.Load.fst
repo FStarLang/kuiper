@@ -7,6 +7,7 @@ open Kuiper.Sparse
 open Kuiper.Sparse.Common
 open Kuiper.Array.Vectorized
 
+inline_for_extraction noextract
 fn gpu_array_vec_cpy
   (#a : Type u#0) {| sized a, has_vec_cpy a |}
   (#dsz : erased nat)

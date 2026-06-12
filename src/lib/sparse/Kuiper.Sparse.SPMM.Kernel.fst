@@ -179,16 +179,22 @@ let barrier_count
   let re = row_off @! (brow p bid |~> row_perm) + 1 in
   ((re - ri) / p.blockItemsK + 1) * 2
 
-noextract
+noextract inline_for_extraction
+let align_sz (size : szp) (x : sz) : sz =
+  (x /^ size) *^ size
+
+noextract inline_for_extraction
 let align_offset
   (et : Type0) {| scalar et, sized et, has_vec_cpy et |}
   (off : sz)
 : Pure sz
   (requires true)
   (ensures fun r -> SZ.v r == round2 (max (chunk et) (chunk sz)) off)
+  (* chunk sz y chunk et son potencias de dos, así que alinear
+     a la mayor es alinear a ambas. *)
 = if chunk sz <^ chunk et
-    then (off /^ chunk et) *^ chunk et 
-    else (off /^ chunk sz) *^ chunk sz 
+    then align_sz (chunk et) off
+    else align_sz (chunk sz) off
 
 
 inline_for_extraction noextract
