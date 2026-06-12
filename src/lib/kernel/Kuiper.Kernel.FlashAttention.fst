@@ -276,6 +276,7 @@ let fa_gS
    re-bundled symmetrically in [kpost_fa]. *)
 
 inline_for_extraction noextract
+unfold
 let kpre_fa
   (#et : Type0) {| scalar et, floating et |}
   (n d bc br : szp { bc == br /\ bc /? n /\ br /? n /\ SZ.fits (bc * br) })
@@ -314,6 +315,7 @@ let kpre_fa
   live (M.row (fa_gS bc br sh) tid)
 
 inline_for_extraction noextract
+unfold
 let kpost_fa
   (#et : Type0) {| scalar et, floating et |}
   (n d bc br : szp { bc == br /\ bc /? n /\ br /? n /\ SZ.fits (bc * br) })
@@ -372,16 +374,11 @@ fn fa_kf
     Kuiper.Barrier.barrier_tok (Kuiper.Barrier.empty_contract br) **
     Kuiper.Barrier.barrier_state 0
 {
-  (* Pull out the per-thread strided sub-tiles from the existentials in
-     kpre_fa, extract the per-thread row of the shmem S matrix, then
-     invoke the inner kernel:
-
-       flashattention_kf_no_smem n d bc br
-         _ _ _ _ _ _ _ _
-         (M.row (fa_gS bc br sh) (SZ.v tid))
-         gK gV gQ gOt glt gmt eK eV eQ tid;
-
-     and finally re-bundle into kpost_fa. *)
+  (* Pull the per-thread strided sub-tiles out of the existentials in
+     [kpre_fa] (it's marked [unfold] so the existentials are exposed).
+     Then extract the per-thread row of the shmem [S] matrix and invoke
+     [flashattention_kf_no_smem]. [kpost_fa == kpre_fa] so re-bundling
+     happens automatically. *)
   admit ()
 }
 
@@ -414,7 +411,9 @@ fn setup_fa
       (gO |-> eO) ** (gl |-> vl) ** (gm |-> vm)) **
     emp
 {
-  admit ()
+  forevery_singleton_intro #(natlt 1) (fun _bid ->
+    (gK |-> Frac fK eK) ** (gV |-> Frac fV eV) ** (gQ |-> Frac fQ eQ) **
+    (gO |-> eO) ** (gl |-> vl) ** (gm |-> vm));
 }
 
 ghost
@@ -447,7 +446,7 @@ fn teardown_fa
     (exists* (vl' : lseq et n). gl |-> vl') **
     (exists* (vm' : lseq et n). gm |-> vm')
 {
-  admit ()
+  forevery_singleton_elim #(natlt 1) _;
 }
 
 (* Block-level setup/teardown: split shmem S matrix into per-thread rows;
