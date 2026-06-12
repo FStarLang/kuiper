@@ -793,6 +793,10 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
     EApp (EQualified ([], "__float2half_rn"), [cb x])
   | "Kuiper.Float.Casts.Base.cast_f32_to_f64", [], [x] ->
     ECast (cb x, TInt Double)
+  | "Kuiper.Float.Casts.Base.cast_bf16_to_f32", [], [x] ->
+    EApp (EQualified ([], "__bfloat162float"), [cb x])
+  | "Kuiper.Float.Casts.Base.cast_f32_to_bf16", [], [x] ->
+    EApp (EQualified ([], "__float2bfloat16"), [cb x])
   | "Kuiper.Float.Casts.Base.cast_f64_to_f16", [], [x] ->
     EApp (EQualified ([], "__float2half_rn"), [ECast (cb x, TInt Float)])
   | "Kuiper.Float.Casts.Base.cast_f64_to_f32", [], [x] ->

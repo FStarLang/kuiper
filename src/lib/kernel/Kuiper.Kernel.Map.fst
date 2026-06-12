@@ -140,6 +140,149 @@ fn map_host
 }
 
 ghost
+fn explode_setup_cast
+  (#et #ot : Type0)
+  (lena : szp)
+  (#la : Array1.layout lena) (#lc : Array1.layout lena)
+  (a : Array1.t et la)
+  (c : Array1.t ot lc)
+  (#sa : erased (lseq et lena))
+  (#sc : erased (lseq ot lena))
+  (#fa : perm)
+  ()
+  norewrite
+  requires
+    (a |-> Frac fa sa) ** (c |-> sc)
+  ensures
+    (forall+ (i : natlt lena).
+      a |-> Frac (fa /. lena) sa **
+      Cell c i |-> (sc @! i)) **
+    pure (SZ.fits (Array1.layout_size lc))
+{
+  Array1.share_n a lena;
+  Array1.pts_to_ref c;
+  Array1.explode c;
+  forevery_zip
+    (fun (_ : natlt lena) -> a |-> Frac (fa /. lena) sa)
+    (fun (i : natlt lena) -> Cell c i |-> (sc @! i));
+  ()
+}
+
+ghost
+fn explode_teardown_cast
+  (#et #ot : Type0)
+  (f : et -> ot)
+  (lena : szp)
+  (#la : Array1.layout lena) (#lc : Array1.layout lena)
+  (a : Array1.t et la)
+  (c : Array1.t ot lc)
+  (#sa : erased (lseq et lena))
+  (#fa : perm)
+  ()
+  norewrite
+  requires
+    (forall+ (i : natlt lena).
+      a |-> Frac (fa /. lena) sa **
+      Cell c i |-> (f (sa @! i))) **
+    pure (SZ.fits (Array1.layout_size lc))
+  ensures
+    (a |-> Frac fa sa) **
+    (c |-> (lseq_map_cast f sa <: lseq ot lena))
+{
+  forevery_unzip
+    (fun (_ : natlt lena) -> a |-> Frac (fa /. lena) sa)
+    (fun (i : natlt lena) -> Cell c i |-> (f (sa @! i)));
+  Array1.gather_n a lena;
+  forevery_map
+    (fun (i : natlt lena) -> Cell c i |-> (f (sa @! i)))
+    (fun (i : natlt lena) -> Cell c i |-> ((lseq_map_cast f sa) @! i))
+    fn x { () };
+  Array1.implode c;
+  ()
+}
+
+inline_for_extraction noextract
+fn kf_map_cast
+  (#et #ot : Type0)
+  (f : et -> ot)
+  (#lena : erased nat)
+  (#la : Array1.layout lena) {| ctlayout la |}
+  (#lc : Array1.layout lena) {| ctlayout lc |}
+  (a : Array1.t et la)
+  (c : Array1.t ot lc)
+  (#sa : erased (lseq et lena))
+  (#sc : erased (lseq ot lena))
+  (#fa : perm)
+  (i : szlt lena)
+  ()
+  requires
+    gpu **
+    a |-> Frac fa sa **
+    Cell c (i <: natlt lena) |-> (sc @! i)
+  ensures
+    gpu **
+    a |-> Frac fa sa **
+    Cell c (i <: natlt lena) |-> (f (sa @! i))
+{
+  let x = Array1.read a i;
+  Array1.write_cell c i (f x);
+}
+
+inline_for_extraction noextract
+let kmap_cast
+  (#et #ot : Type0)
+  (f : et -> ot)
+  (lena : szp { lena <= max_blocks * max_threads })
+  (#la : Array1.layout lena) {| ctlayout la |}
+  (#lc : Array1.layout lena) {| ctlayout lc |}
+  (a : Array1.t et la)
+  (c : Array1.t ot lc)
+  (#_ : squash (Array1.is_global a))
+  (#_ : squash (Array1.is_global c))
+  (#sa : erased (lseq et lena))
+  (#sc : erased (lseq ot lena))
+  (#fa : perm)
+  : kernel_desc
+      (requires (a |-> Frac fa sa) ** (c |-> sc))
+      (ensures  (a |-> Frac fa sa) ** (c |-> (lseq_map_cast f sa <: lseq ot lena)))
+= {
+    nthr = lena;
+    f = kf_map_cast f a c;
+
+    frame    = pure (SZ.fits (Array1.layout_size lc));
+    teardown = explode_teardown_cast f lena a c;
+    setup    = explode_setup_cast lena a c;
+    kpre  = (fun (i : natlt lena) ->
+      a |-> Frac (fa /. lena) sa ** Cell c i |-> (sc @! i));
+    kpost = (fun (i : natlt lena) ->
+      a |-> Frac (fa /. lena) sa ** Cell c i |-> (f (sa @! i)));
+    kpost_sendable = solve;
+    kpre_sendable  = solve;
+  } <: kernel_desc_n _ _
+
+inline_for_extraction noextract
+fn map_gpu_cast
+  (#et #ot : Type0)
+  (f : et -> ot)
+  (lena : szp { lena <= max_blocks * max_threads })
+  (#la : Array1.layout lena) {| ctlayout la |}
+  (#lc : Array1.layout lena) {| ctlayout lc |}
+  (a : Array1.t et la)
+  (c : Array1.t ot lc)
+  (#_ : squash (Array1.is_global a))
+  (#_ : squash (Array1.is_global c))
+  (#sa : erased (lseq et lena))
+  (#sc : erased (lseq ot lena))
+  (#fa : perm)
+  norewrite
+  preserves cpu ** on gpu_loc (a |-> Frac fa sa)
+  requires  on gpu_loc (c |-> sc)
+  ensures   on gpu_loc (c |-> (lseq_map_cast f sa <: lseq ot lena))
+{
+  launch_sync (kmap_cast f lena a c);
+}
+
+ghost
 fn explode_setup_2
   (#et : Type0)
   (lena : szp)
