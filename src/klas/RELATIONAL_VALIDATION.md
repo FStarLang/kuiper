@@ -19,8 +19,10 @@ giving each a **verified Kuiper witness** that is
 | 5 | `imp5.cu` | tiled (16) + Kahan over tiles | from-scratch single-thread             |
 | 6 | `imp6.cu` | shared-memory tiled, forward  | instantiates `GEMM.Naive` (= same as 1)|
 | 7 | `imp7.cu` | shared-memory tiled, forward, **transposed store** | from-scratch single-thread |
+| 8 | `imp8.cu` | 2D block-tiling SGEMM, forward, **α·(A·B)+β·C** | instantiates `GEMM.Naive` (custom combine) |
 
-Witness sources: `src/klas/KWitness{1..7}.fst` (+ `.fsti`).
+Witness sources: `src/klas/KWitness{1..8}.fst` (+ `.fsti`). Kernel 7 also has an
+alternative witness `KWitness7b` (transpose by zero-cost view shift).
 
 Kernels 1-5 prove the identical spec `eC' %~ MS.matmul rA rB`. Kernel 6 is a
 shared-memory tiled GEMM whose accumulation is nonetheless plain forward (a single
@@ -28,7 +30,11 @@ running `sum` across tiles, no per-tile partial), so it proves the *same* spec a
 is bit-equivalent to the naive forward witness (kw1) — demonstrating that tiling
 for memory locality does not change the floating-point result. Kernel 7 is kernel 6
 with a transposed store (`C[c*m+r]`, the correct transpose into the n×m output for
-any shape), so it proves `eC' %~ mtranspose (MS.matmul rA rB)`.
+any shape), so it proves `eC' %~ mtranspose (MS.matmul rA rB)`. Kernel 8 is the
+optimized 2D block-tiling SGEMM (Boehm's kernel): its register-tiled accumulation is
+still the forward dot product, followed by the general affine combine, so it proves
+`eC' %~ α·(MS.matmul rA rB) + β·C_old` — reusing `GEMM.Naive` with the per-cell
+combine instantiated to `fun old prod -> α·prod + β·old`.
 
 ## Key results
 
