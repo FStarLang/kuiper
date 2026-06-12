@@ -457,7 +457,7 @@ val ref_of_array_cell
 inline_for_extraction noextract
 fn get_ref_of_array_cell
   (#et : Type0)
-  (#len : nat)
+  (#len : erased nat)
   (#l : layout len) {| c : ctlayout l |}
   (a : array1 et l)
   (i : szlt len)
