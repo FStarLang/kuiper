@@ -80,6 +80,7 @@ let rec _dprod_acc
         (_dprod_acc acc s t (to - 1))
         ((s @! to - 1) `mul` (t @! to - 1))
 
+
 let dprod_acc
   (#et:_) {| scalar et |}
   (acc : et)
@@ -187,7 +188,7 @@ let _sparse_dprod_acc
   (#nnz #n : nat) //{nnz <= n})
   (acc : et)
   (elems : lseq et nnz)
-  (pos : lseq nat nnz{valid_pos n pos})
+  (pos : lseq nat nnz{in_bounds 0 n pos})
   (t : lseq et n)
   (to : natle nnz)
   : et
@@ -238,6 +239,26 @@ let rec dprod_acc_all_zeros
   if from = to
     then ()
     else dprod_acc_all_zeros acc s t from (to - 1)
+
+open Kuiper.Seq.Common { (@+) }
+let rec _dprod_acc_mask_lemma
+  (#et:_) {| scalar et |}
+  (acc : et)
+  (#n : nat)
+  (k : natle n)
+  (s : lseq et (n - k))
+  (t : lseq et n)
+  (to : natle n { k <= to })
+: Lemma
+  (requires true)
+  (ensures
+    _dprod_acc acc (Seq.create k zero @+ s) t to ==
+    _dprod_acc acc s (Seq.slice t k n) (to - k)
+  )
+=
+  if k = to
+    then dprod_acc_all_zeros acc (Seq.create k zero @+ s) t 0 to
+    else _dprod_acc_mask_lemma acc k s t (to - 1)
 
 #push-options "--split_queries always"
 let rec _sparse_dprod_acc_lemma

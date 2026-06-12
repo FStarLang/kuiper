@@ -6,40 +6,18 @@ module Kuiper.Sparse.SPMM.Barrier
 
 open Kuiper
 module B = Kuiper.Barrier
+module SZ = Kuiper.SizeT
 open Kuiper.Sparse
 open Kuiper.Math { even, odd }
 open Kuiper.Sparse.SPMM.Defs
 open Kuiper.Bijection { ( |~> ) }
+open Kuiper.Array.Vectorized
 
 (* --- Barrier slprop definitions --- *)
 
-let barrier_p_odd
-  (#et : Type0)
-  (p : parameters)
-  (#nnz : sz)
-  (elems : lseq et nnz)
-  (col_ind : lseq sz nnz)
-  (elems_tile : gpu_array et p.blockItemsK)
-  (col_ind_tile : gpu_array sz p.blockItemsK)
-  (ri re : nat{ri <= re /\ re <= nnz})
-  (idx : nat)
-  (tid : natlt p.blockWidth)
-  (k : natlt (p.blockItemsK /^ p.blockWidth))
-  : slprop
-  =
-  let off = ri + idx * p.blockItemsK in
-  exists* (x : et) (c : sz).
-    gpu_pts_to_cell elems_tile (k * p.blockWidth + tid) x **
-    gpu_pts_to_cell col_ind_tile (k * p.blockWidth + tid) c **
-    pure (
-      off + k * p.blockWidth + tid < re ==>
-        x == elems   @! off + k * p.blockWidth + tid /\
-        c == col_ind @! off + k * p.blockWidth + tid
-    )
-
-let barrier_p
-  (#et : Type0)
-  (p : parameters { size_req p })
+let barrier_in
+  (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
+  (p : parameters et { size_req p })
   (row_perm : permutation (natlt p.rows))
   (#nnz : sz)
   (elems : lseq et nnz)
@@ -48,6 +26,8 @@ let barrier_p
   (elems_tile : gpu_array et p.blockItemsK)
   (col_ind_tile : gpu_array sz p.blockItemsK)
   (#_ : squash (well_formed p col_ind row_off))
+  (#_ : squash ((chunk et * p.blockWidth) /? p.blockItemsK))
+  (#_ : squash ((chunk sz * p.blockWidth) /? p.blockItemsK))
   (bid : natlt (nblocks p))
   : B.barrier_side p.blockWidth
   =
@@ -55,56 +35,52 @@ let barrier_p
     let trow = brow p bid |~> row_perm in
     let ri = row_off @! trow in
     let re = row_off @! trow + 1 in
-    let off = ri + (it / 2) * p.blockItemsK in
-    if off > re then emp else
-    if even it then
-      (exists* (s : seq et). elems_tile |-> Frac (1.0R /. p.blockWidth) s) **
-      (exists* (s : seq sz). col_ind_tile |-> Frac (1.0R /. p.blockWidth) s)
-    else
-      forall+ (k : natlt(p.blockItemsK /^ p.blockWidth)).
-        barrier_p_odd p elems col_ind elems_tile col_ind_tile ri re (it / 2) tid k
-
-let barrier_q_even
-  (#et : Type0)
-  (p : parameters)
-  (nnz : sz)
-  (elems_tile : gpu_array et p.blockItemsK)
-  (col_ind_tile : gpu_array sz p.blockItemsK)
-  (ri re : nat{ri <= re /\ re <= nnz})
-  (idx : nat)
-  (tid : natlt p.blockWidth)
-  (k : natlt(p.blockItemsK /^ p.blockWidth))
-  : slprop
-  =
-  array_live_cell elems_tile (k * p.blockWidth + tid) **
-  array_live_cell col_ind_tile (k * p.blockWidth + tid)
-
-let barrier_q_odd
-  (#et : Type0)
-  (p : parameters)
-  (#nnz : sz)
-  (elems : lseq et nnz)
-  (col_ind : lseq sz nnz)
-  (elems_tile : gpu_array et p.blockItemsK)
-  (col_ind_tile : gpu_array sz p.blockItemsK)
-  (ri re : nat{ri <= re /\ re <= nnz})
-  (idx : nat)
-  (k : natlt p.blockItemsK)
-  : slprop
-  =
-  let off = ri + idx * p.blockItemsK in
-  exists* (x : et) (c : sz).
-    gpu_pts_to_cell elems_tile #(1.0R /. p.blockWidth) k x **
-    gpu_pts_to_cell col_ind_tile #(1.0R /. p.blockWidth) k c **
-    pure (
-      off + k < re ==>
-        x == elems   @! off + k /\
-        c == col_ind @! off + k
+    let ri' = round2 (max (chunk et) (chunk sz)) ri in
+    let off = ri' + (it / 2) * p.blockItemsK in
+    if off + p.blockItemsK <= re then (
+      // MASK
+      // Pre: pasamos de ownership vectorial a escalar
+      if it = 0 then
+        thread_pts_to_chunks elems_tile elems off p.blockWidth tid **
+        thread_pts_to_chunks col_ind_tile col_ind off p.blockWidth tid
+      // Post: gather
+      else if it = 1 then
+        thread_slice_pts_to_value elems_tile 0 (ri - ri') zero
+          p.blockWidth tid **
+        gpu_pts_to_slice elems_tile (ri - ri') p.blockItemsK
+          (Seq.slice elems ri (ri' + p.blockItemsK))
+      // MAIN
+      // Pre: share
+      else if even it then
+        (exists* (s : seq et). elems_tile |-> Frac (1.0R /. p.blockWidth) s) **
+        (exists* (s : seq sz). col_ind_tile |-> Frac (1.0R /. p.blockWidth) s)
+      // Post: gather
+      else
+        thread_pts_to_chunks elems_tile elems off p.blockWidth tid **
+        thread_pts_to_chunks col_ind_tile col_ind off p.blockWidth tid
     )
+    else if off < re then (
+      // RESIDUE
+      // Pre: share
+      if it = (re - ri') / p.blockItemsK * 2 then
+        (exists* (s : seq et). elems_tile |-> Frac (1.0R /. p.blockWidth) s) **
+        (exists* (s : seq sz). col_ind_tile |-> Frac (1.0R /. p.blockWidth) s)
+      // Post: gather
+      else
+        thread_slice_pts_to elems_tile 0 (re - off)
+          elems off p.blockWidth tid **
+        // aca podriamos obviar el resto pero prob sea mas comodo así
+        slice_live elems_tile (re - off) p.blockItemsK **
+        thread_slice_pts_to col_ind_tile 0 (re - off)
+          col_ind off p.blockWidth tid **
+        slice_live col_ind_tile (re - off) p.blockItemsK
+    )
+      // DONE
+    else emp
 
-let barrier_q
-  (#et : Type0)
-  (p : parameters { size_req p })
+let barrier_out
+  (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
+  (p : parameters et { size_req p })
   (row_perm : permutation (natlt p.rows))
   (#nnz : sz)
   (elems : lseq et nnz)
@@ -113,6 +89,8 @@ let barrier_q
   (elems_tile : gpu_array et p.blockItemsK)
   (col_ind_tile : gpu_array sz p.blockItemsK)
   (#_ : squash (well_formed p col_ind row_off))
+  (#_ : squash ((chunk et * p.blockWidth) /? p.blockItemsK))
+  (#_ : squash ((chunk sz * p.blockWidth) /? p.blockItemsK))
   (bid : natlt (nblocks p))
   : B.barrier_side p.blockWidth
   =
@@ -120,25 +98,60 @@ let barrier_q
     let trow = brow p bid |~> row_perm in
     let ri = row_off @! trow in
     let re = row_off @! trow + 1 in
-    let off = ri + (it / 2) * p.blockItemsK in
-    if off > re then emp else
-      if even it then
-        forall+ (k : natlt(p.blockItemsK /^ p.blockWidth)).
-          barrier_q_even p nnz elems_tile col_ind_tile ri re (it / 2) tid k
-      else if off + p.blockItemsK <= re
-        then
-          elems_tile |-> Frac (1.0R /. p.blockWidth)
-            (Seq.slice elems off (off + p.blockItemsK)) **
-          col_ind_tile |-> Frac (1.0R /. p.blockWidth)
-            (Seq.slice col_ind off (off + p.blockItemsK))
-        else
-          forall+ (k : natlt p.blockItemsK).
-            barrier_q_odd p elems col_ind elems_tile col_ind_tile
-              ri re (it / 2) k
+    let ri' = round2 (max (chunk et) (chunk sz)) ri in
+    let off = ri' + (it / 2) * p.blockItemsK in
+    if off + p.blockItemsK <= re then (
+      // MASK
+      // Pre: pasamos de ownership vectorial a escalar
+      if it = 0 then
+        thread_slice_live elems_tile 0 (ri - ri') p.blockWidth tid **
+        gpu_pts_to_slice elems_tile (ri - ri') p.blockItemsK
+          (Seq.slice elems ri (ri' + p.blockItemsK)) **
+        col_ind_tile |-> Frac (1.0R /. p.blockWidth)
+          (Seq.slice col_ind off (off + p.blockItemsK))
+      // Post: gather
+      else if it = 1 then
+        // TODO será la mejor manera de escribirlo?
+        elems_tile |-> Frac (1.0R /. p.blockWidth)
+          (Seq.append
+            (Seq.create (ri - ri') zero)
+            (Seq.slice elems
+              (ri + it / 2 * p.blockItemsK)
+              (off  + p.blockItemsK)))
+      // MAIN
+      // Pre: share
+      else if even it then
+        thread_live_chunks elems_tile p.blockWidth tid **
+        thread_live_chunks col_ind_tile p.blockWidth tid
+      // Post: gather
+      else
+        elems_tile |-> Frac (1.0R /. p.blockWidth)
+          (Seq.slice elems off (off + p.blockItemsK)) **
+        col_ind_tile |-> Frac (1.0R /. p.blockWidth)
+          (Seq.slice col_ind off (off + p.blockItemsK))
+    )
+    else if off < re then (
+      // RESIDUE
+      // Pre: share
+      if it = (re - ri') / p.blockItemsK * 2 then
+        thread_slice_live elems_tile 0 (re - off) p.blockWidth tid **
+        slice_live elems_tile (re - off) p.blockItemsK **
+        thread_slice_live col_ind_tile 0 (re - off) p.blockWidth tid **
+        slice_live col_ind_tile (re - off) p.blockItemsK
+      // Post: gather
+      else
+        gpu_pts_to_slice elems_tile 0 (re - off) (Seq.slice elems off re) **
+        // aca podriamos obviar el resto pero prob sea mas comodo así
+        slice_live elems_tile (re - off) p.blockItemsK **
+        gpu_pts_to_slice col_ind_tile 0 (re - off) (Seq.slice col_ind off re) **
+        slice_live col_ind_tile (re - off) p.blockItemsK
+    )
+      // DONE
+    else emp
 
 let barrier_contract
-  (#et : Type0)
-  (p : parameters { size_req p })
+  (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
+  (p : parameters et { size_req p })
   (row_perm : permutation (natlt p.rows))
   (#nnz : sz)
   (elems : lseq et nnz)
@@ -147,11 +160,13 @@ let barrier_contract
   (elems_tile : gpu_array et p.blockItemsK)
   (col_ind_tile : gpu_array sz p.blockItemsK)
   (#_ : squash (well_formed p col_ind row_off))
+  (#_ : squash ((chunk et * p.blockWidth) /? p.blockItemsK))
+  (#_ : squash ((chunk sz * p.blockWidth) /? p.blockItemsK))
   (bid : natlt (nblocks p))
   : B.contract p.blockWidth =
   {
-    rin  = barrier_p p row_perm elems col_ind row_off elems_tile col_ind_tile bid;
-    rout = barrier_q p row_perm elems col_ind row_off elems_tile col_ind_tile bid;
+    rin  = barrier_in p row_perm elems col_ind row_off elems_tile col_ind_tile bid;
+    rout = barrier_out p row_perm elems col_ind row_off elems_tile col_ind_tile bid;
   }
 
 (* --- Utility --- *)
@@ -166,9 +181,9 @@ fn forevery_prod_to_flat
 (* --- Fold/unfold helpers --- *)
 
 ghost
-fn barrier_p_fold_even
-  (#et : Type0)
-  (p : parameters { size_req p })
+fn barrier_in_fold_mask_pre
+  (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
+  (p : parameters et { size_req p })
   (row_perm : permutation (natlt p.rows))
   (#nnz : sz)
   (elems : lseq et nnz)
@@ -177,22 +192,135 @@ fn barrier_p_fold_even
   (elems_tile : gpu_array et p.blockItemsK)
   (col_ind_tile : gpu_array sz p.blockItemsK)
   (#_ : squash (well_formed p col_ind row_off))
+  (#_ : squash ((chunk et * p.blockWidth) /? p.blockItemsK))
+  (#_ : squash ((chunk sz * p.blockWidth) /? p.blockItemsK))
   (bid : natlt (nblocks p))
-  (ri : sz{ri == row_off @! (brow p bid |~> row_perm)})
+  (ri_ : sz{ri_ == row_off @! (brow p bid |~> row_perm)})
+  (ri : sz{SZ.v ri == round2 (max (chunk et) (chunk sz)) ri_})
   (re : sz{re == row_off @! (brow p bid |~> row_perm) + 1})
-  (idx : nat)
+  (tid : natlt p.blockWidth)
+  (#_ : squash (ri + p.blockItemsK <= re))
+  requires
+    thread_pts_to_chunks elems_tile elems ri p.blockWidth tid **
+    thread_pts_to_chunks col_ind_tile col_ind ri p.blockWidth tid
+  ensures barrier_in p row_perm elems col_ind row_off
+    elems_tile col_ind_tile bid 0 tid
+
+ghost
+fn barrier_in_fold_mask_post
+  (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
+  (p : parameters et { size_req p })
+  (row_perm : permutation (natlt p.rows))
+  (#nnz : sz)
+  (elems : lseq et nnz)
+  (col_ind : lseq sz nnz)
+  (row_off : lseq sz (p.rows + 1))
+  (elems_tile : gpu_array et p.blockItemsK)
+  (col_ind_tile : gpu_array sz p.blockItemsK)
+  (#_ : squash (well_formed p col_ind row_off))
+  (#_ : squash ((chunk et * p.blockWidth) /? p.blockItemsK))
+  (#_ : squash ((chunk sz * p.blockWidth) /? p.blockItemsK))
+  (bid : natlt (nblocks p))
+  (ri_ : sz{ri_ == row_off @! (brow p bid |~> row_perm)})
+  (ri : sz{SZ.v ri == round2 (max (chunk et) (chunk sz)) ri_})
+  (re : sz{re == row_off @! (brow p bid |~> row_perm) + 1})
+  (tid : natlt p.blockWidth)
+  (#_ : squash (ri + p.blockItemsK <= re))
+  requires
+    thread_slice_pts_to_value elems_tile 0 (ri_ - ri) zero
+      p.blockWidth tid **
+    gpu_pts_to_slice elems_tile (ri_ - ri) p.blockItemsK
+      (Seq.slice elems ri_ (ri + p.blockItemsK))
+  ensures barrier_in p row_perm elems col_ind row_off
+    elems_tile col_ind_tile bid 1 tid
+
+ghost
+fn barrier_out_unfold_mask_pre
+  (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
+  (p : parameters et { size_req p })
+  (row_perm : permutation (natlt p.rows))
+  (#nnz : sz)
+  (elems : lseq et nnz)
+  (col_ind : lseq sz nnz)
+  (row_off : lseq sz (p.rows + 1))
+  (elems_tile : gpu_array et p.blockItemsK)
+  (col_ind_tile : gpu_array sz p.blockItemsK)
+  (#_ : squash (well_formed p col_ind row_off))
+  (#_ : squash ((chunk et * p.blockWidth) /? p.blockItemsK))
+  (#_ : squash ((chunk sz * p.blockWidth) /? p.blockItemsK))
+  (bid : natlt (nblocks p))
+  (ri_ : sz{ri_ == row_off @! (brow p bid |~> row_perm)})
+  (ri : sz{SZ.v ri == round2 (max (chunk et) (chunk sz)) ri_})
+  (re : sz{re == row_off @! (brow p bid |~> row_perm) + 1})
+  (tid : natlt p.blockWidth)
+  (#_ : squash (ri + p.blockItemsK <= re))
+  requires barrier_out p row_perm elems col_ind row_off
+    elems_tile col_ind_tile bid 0 tid
+  ensures
+    thread_slice_live elems_tile 0 (ri_ - ri) p.blockWidth tid **
+    gpu_pts_to_slice elems_tile (ri_ - ri) p.blockItemsK
+      (Seq.slice elems ri_ (ri + p.blockItemsK)) **
+    col_ind_tile |-> Frac (1.0R /. p.blockWidth)
+      (Seq.slice col_ind ri (ri + p.blockItemsK))
+
+ghost
+fn barrier_out_unfold_mask_post
+  (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
+  (p : parameters et { size_req p })
+  (row_perm : permutation (natlt p.rows))
+  (#nnz : sz)
+  (elems : lseq et nnz)
+  (col_ind : lseq sz nnz)
+  (row_off : lseq sz (p.rows + 1))
+  (elems_tile : gpu_array et p.blockItemsK)
+  (col_ind_tile : gpu_array sz p.blockItemsK)
+  (#_ : squash (well_formed p col_ind row_off))
+  (#_ : squash ((chunk et * p.blockWidth) /? p.blockItemsK))
+  (#_ : squash ((chunk sz * p.blockWidth) /? p.blockItemsK))
+  (bid : natlt (nblocks p))
+  (ri_ : sz{ri_ == row_off @! (brow p bid |~> row_perm)})
+  (ri : sz{SZ.v ri == round2 (max (chunk et) (chunk sz)) ri_})
+  (re : sz{re == row_off @! (brow p bid |~> row_perm) + 1})
+  (tid : natlt p.blockWidth)
+  (#_ : squash (ri + p.blockItemsK <= re))
+  requires barrier_out p row_perm elems col_ind row_off
+    elems_tile col_ind_tile bid 1 tid
+  ensures
+    elems_tile |-> Frac (1.0R /. p.blockWidth)
+      (Seq.append
+        (Seq.create (ri_ - ri) zero)
+        (Seq.slice elems ri_ (ri  + p.blockItemsK))
+      )
+ghost
+fn barrier_in_fold_main_pre
+  (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
+  (p : parameters et { size_req p })
+  (row_perm : permutation (natlt p.rows))
+  (#nnz : sz)
+  (elems : lseq et nnz)
+  (col_ind : lseq sz nnz)
+  (row_off : lseq sz (p.rows + 1))
+  (elems_tile : gpu_array et p.blockItemsK)
+  (col_ind_tile : gpu_array sz p.blockItemsK)
+  (#_ : squash (well_formed p col_ind row_off))
+  (#_ : squash ((chunk et * p.blockWidth) /? p.blockItemsK))
+  (#_ : squash ((chunk sz * p.blockWidth) /? p.blockItemsK))
+  (bid : natlt (nblocks p))
+  (ri : sz{SZ.v ri == round2 (max (chunk et) (chunk sz)) (row_off @! (brow p bid |~> row_perm))})
+  (re : sz{re == row_off @! (brow p bid |~> row_perm) + 1})
+  (idx : nat { idx > 0 })
   (tid : natlt p.blockWidth)
   requires
-    pure (ri + idx * p.blockItemsK <= re) **
+    pure (ri + idx * p.blockItemsK + p.blockItemsK <= re) **
     (exists* (s : seq et). elems_tile |-> Frac (1.0R /. p.blockWidth) s) **
     (exists* (s : seq sz). col_ind_tile |-> Frac (1.0R /. p.blockWidth) s)
-  ensures barrier_p p row_perm elems col_ind row_off
+  ensures barrier_in p row_perm elems col_ind row_off
     elems_tile col_ind_tile bid (idx * 2) tid
 
 ghost
-fn barrier_p_fold_odd
-  (#et : Type0)
-  (p : parameters { size_req p })
+fn barrier_in_fold_main_post
+  (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
+  (p : parameters et { size_req p })
   (row_perm : permutation (natlt p.rows))
   (#nnz : sz)
   (elems : lseq et nnz)
@@ -201,63 +329,68 @@ fn barrier_p_fold_odd
   (elems_tile : gpu_array et p.blockItemsK)
   (col_ind_tile : gpu_array sz p.blockItemsK)
   (#_ : squash (well_formed p col_ind row_off))
+  (#_ : squash ((chunk et * p.blockWidth) /? p.blockItemsK))
+  (#_ : squash ((chunk sz * p.blockWidth) /? p.blockItemsK))
   (bid : natlt (nblocks p))
-  (ri : sz{ri == row_off @! (brow p bid |~> row_perm)})
+  (ri : sz{SZ.v ri == round2 (max (chunk et) (chunk sz)) (row_off @! (brow p bid |~> row_perm))})
   (re : sz{re == row_off @! (brow p bid |~> row_perm) + 1})
-  (idx : nat)
-  (tid : natlt p.blockWidth)
-  (#_ : squash (ri + idx * p.blockItemsK <= re))
-  requires
-    forall+ (k: natlt (p.blockItemsK /^ p.blockWidth)).
-      barrier_p_odd p elems col_ind elems_tile col_ind_tile ri re idx tid k
-  ensures
-    barrier_p p row_perm elems col_ind row_off elems_tile col_ind_tile bid (idx * 2 + 1) tid
-
-ghost
-fn barrier_q_unfold_even
-  (#et : Type0)
-  (p : parameters { size_req p })
-  (row_perm : permutation (natlt p.rows))
-  (#nnz : sz)
-  (elems : lseq et nnz)
-  (col_ind : lseq sz nnz)
-  (row_off : lseq sz (p.rows + 1))
-  (elems_tile : gpu_array et p.blockItemsK)
-  (col_ind_tile : gpu_array sz p.blockItemsK)
-  (#_ : squash (well_formed p col_ind row_off))
-  (bid : natlt (nblocks p))
-  (ri : sz{ri == row_off @! (brow p bid |~> row_perm)})
-  (re : sz{re == row_off @! (brow p bid |~> row_perm) + 1})
-  (idx : nat)
-  (tid : natlt p.blockWidth)
-  (#_ : squash (ri + idx * p.blockItemsK <= re))
-  requires
-    barrier_q p row_perm elems col_ind row_off elems_tile col_ind_tile bid (idx * 2) tid
-  ensures
-    forall+ (k : natlt (p.blockItemsK /^ p.blockWidth)).
-      barrier_q_even p nnz elems_tile col_ind_tile ri re idx tid k
-
-ghost
-fn barrier_q_unfold_odd
-  (#et : Type0)
-  (p : parameters { size_req p })
-  (row_perm : permutation (natlt p.rows))
-  (#nnz : sz)
-  (elems : lseq et nnz)
-  (col_ind : lseq sz nnz)
-  (row_off : lseq sz (p.rows + 1))
-  (elems_tile : gpu_array et p.blockItemsK)
-  (col_ind_tile : gpu_array sz p.blockItemsK)
-  (#_ : squash (well_formed p col_ind row_off))
-  (bid : natlt (nblocks p))
-  (ri : sz{ri == row_off @! (brow p bid |~> row_perm)})
-  (re : sz{re == row_off @! (brow p bid |~> row_perm) + 1})
-  (idx : nat)
+  (idx : nat { idx > 0 })
   (tid : natlt p.blockWidth)
   (#_ : squash (ri + idx * p.blockItemsK + p.blockItemsK <= re))
   requires
-    barrier_q p row_perm elems col_ind row_off elems_tile col_ind_tile
-      bid (idx * 2 + 1) tid
+    thread_pts_to_chunks elems_tile elems (ri + idx * p.blockItemsK) p.blockWidth tid **
+    thread_pts_to_chunks col_ind_tile col_ind (ri + idx * p.blockItemsK) p.blockWidth tid
+  ensures barrier_in p row_perm elems col_ind row_off
+    elems_tile col_ind_tile bid (idx * 2 + 1) tid
+
+ghost
+fn barrier_out_unfold_main_pre
+  (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
+  (p : parameters et { size_req p })
+  (row_perm : permutation (natlt p.rows))
+  (#nnz : sz)
+  (elems : lseq et nnz)
+  (col_ind : lseq sz nnz)
+  (row_off : lseq sz (p.rows + 1))
+  (elems_tile : gpu_array et p.blockItemsK)
+  (col_ind_tile : gpu_array sz p.blockItemsK)
+  (#_ : squash (well_formed p col_ind row_off))
+  (#_ : squash ((chunk et * p.blockWidth) /? p.blockItemsK))
+  (#_ : squash ((chunk sz * p.blockWidth) /? p.blockItemsK))
+  (bid : natlt (nblocks p))
+  (ri : sz{SZ.v ri == round2 (max (chunk et) (chunk sz)) (row_off @! (brow p bid |~> row_perm))})
+  (re : sz{re == row_off @! (brow p bid |~> row_perm) + 1})
+  (idx : nat { idx > 0 })
+  (tid : natlt p.blockWidth)
+  requires barrier_out p row_perm elems col_ind row_off
+    elems_tile col_ind_tile bid (idx * 2) tid **
+    pure (ri + idx * p.blockItemsK + p.blockItemsK <= re)
+  ensures
+    thread_live_chunks elems_tile p.blockWidth tid **
+    thread_live_chunks col_ind_tile p.blockWidth tid
+
+ghost
+fn barrier_out_unfold_main_post
+  (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
+  (p : parameters et { size_req p })
+  (row_perm : permutation (natlt p.rows))
+  (#nnz : sz)
+  (elems : lseq et nnz)
+  (col_ind : lseq sz nnz)
+  (row_off : lseq sz (p.rows + 1))
+  (elems_tile : gpu_array et p.blockItemsK)
+  (col_ind_tile : gpu_array sz p.blockItemsK)
+  (#_ : squash (well_formed p col_ind row_off))
+  (#_ : squash ((chunk et * p.blockWidth) /? p.blockItemsK))
+  (#_ : squash ((chunk sz * p.blockWidth) /? p.blockItemsK))
+  (bid : natlt (nblocks p))
+  (ri : sz{SZ.v ri == round2 (max (chunk et) (chunk sz)) (row_off @! (brow p bid |~> row_perm))})
+  (re : sz{re == row_off @! (brow p bid |~> row_perm) + 1})
+  (idx : nat { idx > 0 })
+  (tid : natlt p.blockWidth)
+  (#_ : squash (ri + idx * p.blockItemsK + p.blockItemsK <= re))
+  requires barrier_out p row_perm elems col_ind row_off
+    elems_tile col_ind_tile bid (idx * 2 + 1) tid
   ensures
     elems_tile |-> Frac (1.0R /. p.blockWidth)
       (Seq.slice elems
@@ -269,9 +402,9 @@ fn barrier_q_unfold_odd
         (ri + idx * p.blockItemsK + p.blockItemsK))
 
 ghost
-fn barrier_q_unfold_odd_residue
-  (#et : Type0)
-  (p : parameters { size_req p })
+fn barrier_in_fold_residue_pre
+  (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
+  (p : parameters et { size_req p })
   (row_perm : permutation (natlt p.rows))
   (#nnz : sz)
   (elems : lseq et nnz)
@@ -280,25 +413,120 @@ fn barrier_q_unfold_odd_residue
   (elems_tile : gpu_array et p.blockItemsK)
   (col_ind_tile : gpu_array sz p.blockItemsK)
   (#_ : squash (well_formed p col_ind row_off))
+  (#_ : squash ((chunk et * p.blockWidth) /? p.blockItemsK))
+  (#_ : squash ((chunk sz * p.blockWidth) /? p.blockItemsK))
   (bid : natlt (nblocks p))
-  (ri : sz{ri == row_off @! (brow p bid |~> row_perm)})
+  (ri : sz{SZ.v ri == round2 (max (chunk et) (chunk sz)) (row_off @! (brow p bid |~> row_perm))})
   (re : sz{re == row_off @! (brow p bid |~> row_perm) + 1})
   (idx : nat)
   (tid : natlt p.blockWidth)
-  (#_ : squash (ri + idx * p.blockItemsK <= re))
-  (#_ : squash (ri + idx * p.blockItemsK + p.blockItemsK > re))
   requires
-    barrier_q p row_perm elems col_ind row_off elems_tile col_ind_tile
-      bid (idx * 2 + 1) tid
-  ensures forall+ (k : natlt p.blockItemsK).
-    barrier_q_odd p elems col_ind elems_tile col_ind_tile ri re idx k
+    // con esta condicion debería alcanzar
+    pure (idx == (re - ri) / p.blockItemsK) **
+    (exists* (s : seq et). elems_tile |-> Frac (1.0R /. p.blockWidth) s) **
+    (exists* (s : seq sz). col_ind_tile |-> Frac (1.0R /. p.blockWidth) s)
+  ensures barrier_in p row_perm elems col_ind row_off
+    elems_tile col_ind_tile bid (idx * 2) tid
+
+ghost
+fn barrier_in_fold_residue_post
+  (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
+  (p : parameters et { size_req p })
+  (row_perm : permutation (natlt p.rows))
+  (#nnz : sz)
+  (elems : lseq et nnz)
+  (col_ind : lseq sz nnz)
+  (row_off : lseq sz (p.rows + 1))
+  (elems_tile : gpu_array et p.blockItemsK)
+  (col_ind_tile : gpu_array sz p.blockItemsK)
+  (#_ : squash (well_formed p col_ind row_off))
+  (#_ : squash ((chunk et * p.blockWidth) /? p.blockItemsK))
+  (#_ : squash ((chunk sz * p.blockWidth) /? p.blockItemsK))
+  (bid : natlt (nblocks p))
+  (ri : sz{SZ.v ri == round2 (max (chunk et) (chunk sz)) (row_off @! (brow p bid |~> row_perm))})
+  (re : sz{re == row_off @! (brow p bid |~> row_perm) + 1})
+  (idx : nat)
+  (tid : natlt p.blockWidth)
+  // con esta condicion debería alcanzar
+  (#_ : idx == (re - ri) / p.blockItemsK)
+  requires
+    thread_slice_pts_to elems_tile 0 (re - (ri + idx * p.blockItemsK))
+      elems (ri + idx * p.blockItemsK) p.blockWidth tid **
+    slice_live elems_tile (re - (ri + idx * p.blockItemsK)) p.blockItemsK **
+    thread_slice_pts_to col_ind_tile 0 (re - (ri + idx * p.blockItemsK))
+      col_ind (ri + idx * p.blockItemsK) p.blockWidth tid **
+    slice_live col_ind_tile (re - (ri + idx * p.blockItemsK)) p.blockItemsK
+  ensures barrier_in p row_perm elems col_ind row_off
+    elems_tile col_ind_tile bid (idx * 2 + 1) tid
+
+ghost
+fn barrier_out_unfold_residue_pre
+  (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
+  (p : parameters et { size_req p })
+  (row_perm : permutation (natlt p.rows))
+  (#nnz : sz)
+  (elems : lseq et nnz)
+  (col_ind : lseq sz nnz)
+  (row_off : lseq sz (p.rows + 1))
+  (elems_tile : gpu_array et p.blockItemsK)
+  (col_ind_tile : gpu_array sz p.blockItemsK)
+  (#_ : squash (well_formed p col_ind row_off))
+  (#_ : squash ((chunk et * p.blockWidth) /? p.blockItemsK))
+  (#_ : squash ((chunk sz * p.blockWidth) /? p.blockItemsK))
+  (bid : natlt (nblocks p))
+  (ri : sz{SZ.v ri == round2 (max (chunk et) (chunk sz)) (row_off @! (brow p bid |~> row_perm))})
+  (re : sz{re == row_off @! (brow p bid |~> row_perm) + 1})
+  (idx : nat)
+  (tid : natlt p.blockWidth)
+  // con esta condicion debería alcanzar
+  (#_ : idx == (re - ri) / p.blockItemsK)
+  requires barrier_out p row_perm elems col_ind row_off
+    elems_tile col_ind_tile bid (idx * 2) tid
+  ensures
+    thread_slice_live elems_tile 0 (re - (ri + idx * p.blockItemsK)) p.blockWidth tid **
+    slice_live elems_tile (re - (ri + idx * p.blockItemsK)) p.blockItemsK **
+    thread_slice_live col_ind_tile 0 (re - (ri + idx * p.blockItemsK)) p.blockWidth tid **
+    slice_live col_ind_tile (re - (ri + idx * p.blockItemsK)) p.blockItemsK
+
+ghost
+fn barrier_out_unfold_residue_post
+  (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
+  (p : parameters et { size_req p })
+  (row_perm : permutation (natlt p.rows))
+  (#nnz : sz)
+  (elems : lseq et nnz)
+  (col_ind : lseq sz nnz)
+  (row_off : lseq sz (p.rows + 1))
+  (elems_tile : gpu_array et p.blockItemsK)
+  (col_ind_tile : gpu_array sz p.blockItemsK)
+  (#_ : squash (well_formed p col_ind row_off))
+  (#_ : squash ((chunk et * p.blockWidth) /? p.blockItemsK))
+  (#_ : squash ((chunk sz * p.blockWidth) /? p.blockItemsK))
+  (bid : natlt (nblocks p))
+  (ri : sz{SZ.v ri == round2 (max (chunk et) (chunk sz)) (row_off @! (brow p bid |~> row_perm))})
+  (re : sz{re == row_off @! (brow p bid |~> row_perm) + 1})
+  (idx : nat)
+  (tid : natlt p.blockWidth)
+  // con esta condicion debería alcanzar
+  (#_ : idx == (re - ri) / p.blockItemsK)
+  requires barrier_out p row_perm elems col_ind row_off
+    elems_tile col_ind_tile bid (idx * 2 + 1) tid
+  ensures
+    gpu_pts_to_slice elems_tile 0 (re - (ri + idx * p.blockItemsK))
+      (Seq.slice elems (ri + idx * p.blockItemsK) re) **
+    // aca podriamos obviar el resto pero prob sea mas comodo así
+    slice_live elems_tile (re - (ri + idx * p.blockItemsK)) p.blockItemsK **
+    gpu_pts_to_slice col_ind_tile 0 (re - (ri + idx * p.blockItemsK))
+      (Seq.slice col_ind (ri + idx * p.blockItemsK) re) **
+    slice_live col_ind_tile (re - (ri + idx * p.blockItemsK)) p.blockItemsK
+
 
 (* --- Main barrier transform --- *)
 
 ghost
 fn barrier_p_to_q_transform
-  (#et : Type0)
-  (p : parameters { size_req p })
+  (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
+  (p : parameters et { size_req p })
   (row_perm : permutation (natlt p.rows))
   (#nnz : sz)
   (elems : lseq et nnz)
@@ -311,9 +539,9 @@ fn barrier_p_to_q_transform
   (it : nat)
   requires
     forall+ (tid : natlt p.blockWidth).
-      barrier_p p row_perm elems col_ind row_off
+      barrier_in p row_perm elems col_ind row_off
         elems_tile col_ind_tile bid it tid
   ensures
     forall+ (tid : natlt p.blockWidth).
-      barrier_q p row_perm elems col_ind row_off
+      barrier_out p row_perm elems col_ind row_off
         elems_tile col_ind_tile bid it tid

@@ -8,20 +8,26 @@ open Kuiper.Array2
 open Kuiper.Tensor.Layout { trepr2, ctrepr2 }
 open Kuiper.Tensor.Layout.Alg { l2_row_major as rm }
 open Kuiper.EMatrix
+open Kuiper.Array.Vectorized
 module MS = Kuiper.Spec.GEMM
 
 #lang-pulse
 
 inline_for_extraction noextract
 fn inst
-  (et : Type0) {| scalar et |}
+  (et : Type0) {| scalar et, sized et, has_vec_cpy et |}
   (repB repC : trepr2)
   {| crepB : ctrepr2 repB, crepC : ctrepr2 repC |}
   (blockItemsK : szp)
   (blockItemsX : szp)
-  (blockWidth : (k : szp {k /? blockItemsK /\ k /? blockItemsX}))
+  (blockWidth : (k : szp {
+    (k * chunk et) /? blockItemsK /\
+    (k * chunk sz) /? blockItemsK /\
+    k /? blockItemsX
+  }))
   (rows shared cols : szp)
   (gA : smatrix et (SZ.v rows) (SZ.v shared){is_global_smatrix gA})
+  (#_ : squash (aligned 16 gA.elems /\ aligned 16 gA.col_ind))
   (#fA : perm)
   (row_indices : gpu_array sz rows)
   (fri : perm)

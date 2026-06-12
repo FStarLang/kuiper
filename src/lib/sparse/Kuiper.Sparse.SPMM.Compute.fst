@@ -195,7 +195,7 @@ let _sparse_comb
   (i : natlt nnz)
   (to : nat)
 : Ghost (lseq et block)
-  (requires cols <= block /\ valid_pos shared pos)
+  (requires cols <= block /\ in_bounds 0 shared pos)
   (ensures fun _ -> true)
 =
   _comb
@@ -215,7 +215,7 @@ let sparse_comb
   (em : ematrix et shared cols)
   (i : natlt nnz)
 : Ghost (lseq et block)
-  (requires cols <= block /\ valid_pos shared pos)
+  (requires cols <= block /\ in_bounds 0 shared pos)
   (ensures fun _ -> true)
 =
   _sparse_comb acc elems pos em i cols
@@ -231,7 +231,7 @@ let sparse_comb_row_x_mat_acc
   (em : ematrix et shared cols)
   (to : natlt nnz)
 : Lemma
-  (requires cols <= block /\ valid_pos shared pos)
+  (requires cols <= block /\ in_bounds 0 shared pos)
   (ensures
     sparse_comb
       (_sparse_row_x_mat_acc acc elems pos em to)
@@ -359,6 +359,147 @@ let compute_lemma
   }
 
 
+// TODO block??? usar mejores nombres
+let _sparse_row_x_mat_acc_mask_lemma
+  (#et : Type0) {| scalar et |}
+  (#shared #cols : nat)
+  (#block : nat)
+  (acc : lseq et block)
+  (#nnz : nat)
+  (k : natle nnz)
+  (elems : lseq et (nnz - k))
+  (pos : lseq nat nnz)
+  (em : ematrix et shared cols)
+  (to : natle nnz)
+  // (i : natlt block)
+: Lemma
+  (requires in_bounds 0 shared pos /\ k <= to)
+  (ensures
+    _sparse_row_x_mat_acc
+      acc
+      (Seq.append (Seq.create k zero) elems) pos
+      em to ==
+    _sparse_row_x_mat_acc
+      acc
+      elems (Seq.slice pos k nnz)
+      em (to - k)
+  )
+=
+  introduce forall (i : natlt block).
+    _sparse_row_x_mat_acc
+      acc
+      (Seq.append (Seq.create k zero) elems) pos
+      em to @! i ==
+    _sparse_row_x_mat_acc
+      acc
+      elems (Seq.slice pos k nnz)
+      em (to - k) @! i
+  with (
+    if i < cols
+      then (
+        calc (==) {
+          _sparse_dprod_acc
+            (acc @! i)
+            (Seq.append (Seq.create k zero) elems) pos
+            (ematrix_col em i) to;
+          == {}
+          _dprod_acc (acc @! i)
+            (Seq.append (Seq.create k zero) elems)
+            (seq_make_sparse pos (ematrix_col em i))
+            to;
+          == {
+            _dprod_acc_mask_lemma
+              (acc @! i) k
+              elems (seq_make_sparse pos (ematrix_col em i))
+              to
+          }
+          _dprod_acc (acc @! i)
+            elems
+            (Seq.slice
+              (seq_make_sparse pos (ematrix_col em i))
+              k nnz
+            )
+            (to - k);
+          == { seq_make_sparse_slice pos k nnz (ematrix_col em i) }
+          _dprod_acc (acc @! i)
+            elems
+            (seq_make_sparse (Seq.slice pos k nnz) (ematrix_col em i))
+            (to - k);
+          == {}
+          _sparse_dprod_acc
+            (acc @! i)
+            elems (Seq.slice pos k nnz)
+            (ematrix_col em i) (to - k);
+        }
+      )
+      else ()
+  );
+  assert Seq.equal
+    (_sparse_row_x_mat_acc
+      acc
+      (Seq.append (Seq.create k zero) elems) pos
+      em to)
+    (_sparse_row_x_mat_acc
+      acc
+      elems (Seq.slice pos k nnz)
+      em (to - k))
+
+let compute_mask_lemma
+  (#et : Type0) {| scalar et |}
+  (#shared #cols : nat)
+  (bw bx : pos{bw /? bx})
+  (#nnz : nat)
+  (k : natle nnz)
+  (elems : lseq et (nnz - k))
+  (col_ind : lseq nat nnz)
+  (eB : ematrix et shared cols)
+  (out : lseq et (bx / bw))
+  (off : natlt bw)
+  (n : natlt cols)
+: Lemma
+  (requires in_bounds 0 shared col_ind)
+  (ensures
+    compute_result bw bx
+      (Seq.append (Seq.create k zero) elems) col_ind
+      eB out off n ==
+    compute_result bw bx
+      elems (Seq.slice col_ind k nnz)
+      eB out off n
+  )
+=
+  calc (==) {
+    compute_result bw bx
+      (Seq.append (Seq.create k zero) elems) col_ind
+      eB out off n;
+    == {}
+    sparse_row_x_mat_acc
+      out
+      (Seq.append (Seq.create k zero) elems) col_ind
+      (step_submatrix eB (bx - off) (n + off) bw);
+    == {}
+    _sparse_row_x_mat_acc
+      out
+      (Seq.append (Seq.create k zero) elems) col_ind
+      (step_submatrix eB (bx - off) (n + off) bw)
+      nnz;
+    == {
+      _sparse_row_x_mat_acc_mask_lemma
+        out k
+        elems col_ind
+        (step_submatrix eB (bx - off) (n + off) bw)
+        nnz
+    }
+    _sparse_row_x_mat_acc
+      out
+      elems (Seq.slice col_ind k nnz)
+      (step_submatrix eB (bx - off) (n + off) bw)
+      (nnz - k);
+    == {}
+    compute_result bw bx
+      elems (Seq.slice col_ind k nnz)
+      eB out off n;
+  }
+
 #push-options "--z3rlimit 20"
 // TODO ver si se pueden simplificar más los argumentos
 inline_for_extraction noextract
@@ -374,7 +515,7 @@ fn compute
   (nnz : sz)
   (#v_elems : erased (lseq et nnz))
   (#v_col_ind : erased (lseq sz nnz))
-  (#_ : squash(valid_pos shared (cast_pos v_col_ind)))
+  (#_ : squash(in_bounds 0 shared (cast_pos v_col_ind)))
   // matriz densa B
   (#lB : Array2.layout shared cols)
   {| ctlayout lB |}

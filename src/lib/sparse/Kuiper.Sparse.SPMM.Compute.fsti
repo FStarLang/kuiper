@@ -65,7 +65,7 @@ let _sparse_row_x_mat_acc
   (em : ematrix et shared cols)
   (to : natle nnz)
 : Ghost (lseq et block)
-  (requires valid_pos shared pos)
+  (requires in_bounds 0 shared pos)
   (ensures fun _ -> true)
 =
   Seq.init_ghost block (fun i ->
@@ -84,7 +84,7 @@ let sparse_row_x_mat_acc
   (pos : lseq nat nnz)
   (em : ematrix et shared cols)
 : Ghost (lseq et block)
-  (requires valid_pos shared pos)
+  (requires in_bounds 0 shared pos)
   (ensures fun _ -> true)
 =
   _sparse_row_x_mat_acc acc elems pos em nnz
@@ -105,7 +105,7 @@ let compute_result
   (off : natlt bw)
   (n : natlt cols)
 : Ghost (lseq et (bx / bw))
-  (requires valid_pos shared col_ind)
+  (requires in_bounds 0 shared col_ind)
   (ensures fun _ -> true)
 =
   sparse_row_x_mat_acc
@@ -168,6 +168,29 @@ val compute_lemma
     matmul_single eA eB i (n + off + x * bw)
   )
 
+val compute_mask_lemma
+  (#et : Type0) {| scalar et |}
+  (#shared #cols : nat)
+  (bw bx : pos{bw /? bx})
+  (#nnz : nat)
+  (k : natle nnz)
+  (elems : lseq et (nnz - k))
+  (col_ind : lseq nat nnz)
+  (eB : ematrix et shared cols)
+  (out : lseq et (bx / bw))
+  (off : natlt bw)
+  (n : natlt cols)
+: Lemma
+  (requires in_bounds 0 shared col_ind)
+  (ensures
+    compute_result bw bx
+      (Seq.append (Seq.create k zero) elems) col_ind
+      eB out off n ==
+    compute_result bw bx
+      elems (Seq.slice col_ind k nnz)
+      eB out off n
+  )
+
 // TODO ver si se pueden simplificar más los argumentos
 inline_for_extraction noextract
 fn compute
@@ -182,7 +205,7 @@ fn compute
   (nnz : sz)
   (#v_elems : erased (lseq et nnz))
   (#v_col_ind : erased (lseq sz nnz))
-  (#_ : squash(valid_pos shared (cast_pos v_col_ind)))
+  (#_ : squash(in_bounds 0 shared (cast_pos v_col_ind)))
   // matriz densa B
   (#lB : Array2.layout shared cols)
   {| ctlayout lB |}

@@ -9,27 +9,31 @@ module Array2 = Kuiper.Array2
 open Kuiper.Tensor { ctlayout }
 open Kuiper.Sparse
 open Kuiper.EMatrix
-
-let lseq (a:Type) (n:nat) = erased (Seq.lseq a n)
+open Kuiper.Array.Vectorized
 
 inline_for_extraction noextract
 fn spmm
-  (#et : Type0) {| scalar et |}
+  (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
   (rows shared cols : szp)
   (blockItemsK : szp)
   (blockItemsX : szp)
-  (blockWidth : (k : szp {k /? blockItemsK /\ k /? blockItemsX}))
+  (blockWidth : (k : szp {
+    (k * chunk et) /? blockItemsK /\
+    (k * chunk sz) /? blockItemsK /\
+    k /? blockItemsX
+  }))
   (blockChunks : sz{SZ.v blockChunks == blockItemsX / blockWidth}) // Ver nota abajo
   (#lB : Array2.layout shared cols)
   (#lC : Array2.layout rows cols)
   {| ctlayout lB, ctlayout lC |}
   (gA : smatrix et (SZ.v rows) (SZ.v shared){is_global_smatrix gA})
+  (#_ : squash (aligned 16 gA.elems /\ aligned 16 gA.col_ind))
   (#fA : perm)
   (row_indices : gpu_array sz rows)
   (fri : perm)
-  (gB : Array2.t et lB {Array2.is_global gB})
+  (gB : Array2.t et lB{Array2.is_global gB})
   (#fB : perm)
-  (gC : Array2.t et lC {Array2.is_global gC})
+  (gC : Array2.t et lC{Array2.is_global gC})
   // matriz sparse gA
   (elems : lseq et gA.nnz)
   (col_ind : lseq sz gA.nnz)
