@@ -43,6 +43,33 @@ let lseq_map2
   : GTot (lseq c len)
   = Seq.init_ghost len (fun i -> f (sa @! i) (sb @! i))
 
+let lseq_map_cast
+  (#a #b : Type0)
+  (#len : nat)
+  (f : a -> b)
+  (sa : lseq a len)
+  : GTot (lseq b len)
+  = Seq.init_ghost len (fun i -> f (sa @! i))
+
+inline_for_extraction noextract
+fn map_gpu_cast
+  (#et #ot : Type0)
+  (f : et -> ot)
+  (lena : szp { lena <= max_blocks * max_threads })
+  (#la : Array1.layout lena) {| ctlayout la |}
+  (#lc : Array1.layout lena) {| ctlayout lc |}
+  (a : Array1.t et la)
+  (c : Array1.t ot lc)
+  (#_ : squash (Array1.is_global a))
+  (#_ : squash (Array1.is_global c))
+  (#sa : erased (lseq et lena))
+  (#sc : erased (lseq ot lena))
+  (#fa : perm)
+  norewrite
+  preserves cpu ** on gpu_loc (a |-> Frac fa sa)
+  requires  on gpu_loc (c |-> sc)
+  ensures   on gpu_loc (c |-> (lseq_map_cast f sa <: lseq ot lena))
+
 inline_for_extraction noextract
 fn map_gpu2
   (#et : Type0)
