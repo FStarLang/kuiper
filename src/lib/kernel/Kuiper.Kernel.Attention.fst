@@ -91,3 +91,7 @@ fn scaled_dot_product_efficient_attention4
 
   admit (); 
 }
+
+let scaled_dot_product_efficient_attention
+  (#et : Type0) {| floating et, real_like et, floating_real_like et |}
+   : scaled_dot_product_efficient_attention_ty et = admit ()
