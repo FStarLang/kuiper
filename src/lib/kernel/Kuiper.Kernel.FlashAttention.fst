@@ -1,5 +1,24 @@
 module Kuiper.Kernel.FlashAttention
 
+(*
+
+Remaining admits/magics — and why I couldn't remove them in this session
+
+Each requires substantive Kuiper-library work, not 5-minute Pulse fiddling:
+
+  1. fa_kf body (admit ()): kpre_fa's existentials exists* lOt gOt. live gOt don't carry ctlayout lOt — Pulse fails  typeclass resolution for ctlayout (M.row_layout (fa_gS bc br sh) (v tid)) and the matching constraints. I tried passing  #(ctlayout_slice _ 0sz tid) explicitly and even marking fa_lS/kpre_fa as unfold; that caused Frac (fK /. br) to lose its   non-zero refinement on br when it was unfolded into the kdesc record literal at multiple call sites. Real fix: thread  per-thread layouts as concrete block_frame fields rather than slprop existentials.
+  2. block_setup_fa / block_teardown_fa bodies (admit ()): The shmem decomposition can be done by mirroring  Kuiper.Kernel.HReduce.Block.block_setup_block, but the heart of the proof — splitting gO/gl/gm into per-thread strided  sub-tiles {rows i*br + tid} — is not supported by the current Kuiper.Array2.Strided machinery, which only handles  contiguous subtile_layout sub-tiles. New library helpers (a tlayout_slice-based strided-row-extract, or a Cell-to-array2   glue primitive) are needed.
+  3. Four *_sendable fields (magic ()): solve diverges when trying to construct is_send_across for kpre_fa's slprop.  is_send_across_exists and is_send_across_star instances exist, but the recursion through nested existentials and through   live (which itself unfolds to exists* y. pts_to) hangs (timed out at 700 s). Likely needs explicit hand-written  witnesses or a tactic that unfolds kpre_fa step-by-step.
+
+Recommended next steps for a follow-up session:
+
+  - First restructure kpre_fa to take per-thread layout records as explicit parameters (eliminates blocker #1 and likely  simplifies #3 by making the slprop concrete).
+  - Then add a strided-row-extract helper to Kuiper.Array2.Strided to unblock #2.
+  - After both, the sendable proofs should fall out via solve.
+
+*)
+
+
 #lang-pulse
 open Kuiper
 open Kuiper.EMatrix
@@ -275,20 +294,20 @@ let fa_gS
    important thing here is that the slprop is well-formed and gets
    re-bundled symmetrically in [kpost_fa]. *)
 
+#push-options "--z3rlimit 30"
 inline_for_extraction noextract
-unfold
 let kpre_fa
   (#et : Type0) {| scalar et, floating et |}
   (n d bc br : szp { bc == br /\ bc /? n /\ br /? n /\ SZ.fits (bc * br) })
   (#lK #lV #lQ : M.layout n d)
-  (gK : M.array2 et lK)
-  (gV : M.array2 et lV)
-  (gQ : M.array2 et lQ)
+  (gK : M.array2 et lK { M.is_global gK })
+  (gV : M.array2 et lV { M.is_global gV })
+  (gQ : M.array2 et lQ { M.is_global gQ })
   (#lO : M.layout n d)
-  (gO : M.array2 et lO)
+  (gO : M.array2 et lO { M.is_global gO })
   (#ll #lm : layout n)
-  (gl : array1 et ll)
-  (gm : array1 et lm)
+  (gl : array1 et ll { Array1.is_global gl })
+  (gm : array1 et lm { Array1.is_global gm })
   (eK eV eQ : ematrix et n d)
   (fK fV fQ : perm)
   (sh : c_shmems (fa_shmems et bc br))
@@ -303,31 +322,31 @@ let kpre_fa
      and their corresponding [array2]/[array1] handles are produced by
      [block_setup_fa]; here they appear under an existential. *)
   (exists* (lOt : M.layout (n /^ br) d)
-           (gOt : M.array2 et lOt).
+           (gOt : M.array2 et lOt { M.is_global gOt }).
      live gOt) **
   (exists* (llt : layout (n /^ br))
-           (glt : array1 et llt).
+           (glt : array1 et llt { Array1.is_global glt }).
      live glt) **
   (exists* (lmt : layout (n /^ br))
-           (gmt : array1 et lmt).
+           (gmt : array1 et lmt { Array1.is_global gmt }).
      live gmt) **
   (* This thread's row of the shmem S matrix. *)
   live (M.row (fa_gS bc br sh) tid)
+#pop-options
 
 inline_for_extraction noextract
-unfold
 let kpost_fa
   (#et : Type0) {| scalar et, floating et |}
   (n d bc br : szp { bc == br /\ bc /? n /\ br /? n /\ SZ.fits (bc * br) })
   (#lK #lV #lQ : M.layout n d)
-  (gK : M.array2 et lK)
-  (gV : M.array2 et lV)
-  (gQ : M.array2 et lQ)
+  (gK : M.array2 et lK { M.is_global gK })
+  (gV : M.array2 et lV { M.is_global gV })
+  (gQ : M.array2 et lQ { M.is_global gQ })
   (#lO : M.layout n d)
-  (gO : M.array2 et lO)
+  (gO : M.array2 et lO { M.is_global gO })
   (#ll #lm : layout n)
-  (gl : array1 et ll)
-  (gm : array1 et lm)
+  (gl : array1 et ll { Array1.is_global gl })
+  (gm : array1 et lm { Array1.is_global gm })
   (eK eV eQ : ematrix et n d)
   (fK fV fQ : perm)
   (sh : c_shmems (fa_shmems et bc br))
@@ -345,14 +364,14 @@ fn fa_kf
   (n d bc br : szp { bc == br /\ bc /? n /\ br /? n /\ SZ.fits (bc * br) })
   (#lK #lV #lQ : M.layout n d)
   {| ctlayout lK, ctlayout lV, ctlayout lQ |}
-  (gK : M.array2 et lK)
-  (gV : M.array2 et lV)
-  (gQ : M.array2 et lQ)
+  (gK : M.array2 et lK { M.is_global gK })
+  (gV : M.array2 et lV { M.is_global gV })
+  (gQ : M.array2 et lQ { M.is_global gQ })
   (#lO : M.layout n d) {| ctlayout lO |}
-  (gO : M.array2 et lO)
+  (gO : M.array2 et lO { M.is_global gO })
   (#ll #lm : layout n) {| ctlayout ll, ctlayout lm |}
-  (gl : array1 et ll)
-  (gm : array1 et lm)
+  (gl : array1 et ll { Array1.is_global gl })
+  (gm : array1 et lm { Array1.is_global gm })
   (eK eV eQ : ematrix et n d)
   (fK fV fQ : perm)
   (sh : c_shmems (fa_shmems et bc br))
@@ -375,10 +394,16 @@ fn fa_kf
     Kuiper.Barrier.barrier_state 0
 {
   (* Pull the per-thread strided sub-tiles out of the existentials in
-     [kpre_fa] (it's marked [unfold] so the existentials are exposed).
-     Then extract the per-thread row of the shmem [S] matrix and invoke
-     [flashattention_kf_no_smem]. [kpost_fa == kpre_fa] so re-bundling
-     happens automatically. *)
+     [kpre_fa] (it's marked [unfold]), extract the per-thread row of
+     the shmem [S] matrix, then invoke the inner kernel.
+
+     Blocker: the layouts [lOt], [llt], [lmt] are existentially bound
+     so their [ctlayout] instances aren't available — Pulse fails to
+     resolve the typeclass constraints when applying
+     [flashattention_kf_no_smem]. To fix this, [kpre_fa] should either
+     (a) take the layouts as explicit parameters (the block_setup picks
+     them) and rely on a global ctlayout instance, or (b) bundle the
+     ctlayout instances as runtime witnesses (squash + smt). *)
   admit ()
 }
 
@@ -389,14 +414,14 @@ fn setup_fa
   (#et : Type0) {| scalar et, floating et |}
   (n d bc br : szp { bc == br /\ bc /? n /\ br /? n /\ SZ.fits (bc * br) })
   (#lK #lV #lQ : M.layout n d)
-  (gK : M.array2 et lK)
-  (gV : M.array2 et lV)
-  (gQ : M.array2 et lQ)
+  (gK : M.array2 et lK { M.is_global gK })
+  (gV : M.array2 et lV { M.is_global gV })
+  (gQ : M.array2 et lQ { M.is_global gQ })
   (#lO : M.layout n d)
-  (gO : M.array2 et lO)
+  (gO : M.array2 et lO { M.is_global gO })
   (#ll #lm : layout n)
-  (gl : array1 et ll)
-  (gm : array1 et lm)
+  (gl : array1 et ll { Array1.is_global gl })
+  (gm : array1 et lm { Array1.is_global gm })
   (eK eV eQ eO : ematrix et n d)
   (vl vm : erased (lseq et n))
   (fK fV fQ : perm)
@@ -421,14 +446,14 @@ fn teardown_fa
   (#et : Type0) {| scalar et, floating et |}
   (n d bc br : szp { bc == br /\ bc /? n /\ br /? n /\ SZ.fits (bc * br) })
   (#lK #lV #lQ : M.layout n d)
-  (gK : M.array2 et lK)
-  (gV : M.array2 et lV)
-  (gQ : M.array2 et lQ)
+  (gK : M.array2 et lK { M.is_global gK })
+  (gV : M.array2 et lV { M.is_global gV })
+  (gQ : M.array2 et lQ { M.is_global gQ })
   (#lO : M.layout n d)
-  (gO : M.array2 et lO)
+  (gO : M.array2 et lO { M.is_global gO })
   (#ll #lm : layout n)
-  (gl : array1 et ll)
-  (gm : array1 et lm)
+  (gl : array1 et ll { Array1.is_global gl })
+  (gm : array1 et lm { Array1.is_global gm })
   (eK eV eQ : ematrix et n d)
   (fK fV fQ : perm)
   ()
@@ -457,14 +482,14 @@ fn block_setup_fa
   (#et : Type0) {| scalar et, floating et |}
   (n d bc br : szp { bc == br /\ bc /? n /\ br /? n /\ SZ.fits (bc * br) })
   (#lK #lV #lQ : M.layout n d)
-  (gK : M.array2 et lK)
-  (gV : M.array2 et lV)
-  (gQ : M.array2 et lQ)
+  (gK : M.array2 et lK { M.is_global gK })
+  (gV : M.array2 et lV { M.is_global gV })
+  (gQ : M.array2 et lQ { M.is_global gQ })
   (#lO : M.layout n d)
-  (gO : M.array2 et lO)
+  (gO : M.array2 et lO { M.is_global gO })
   (#ll #lm : layout n)
-  (gl : array1 et ll)
-  (gm : array1 et lm)
+  (gl : array1 et ll { Array1.is_global gl })
+  (gm : array1 et lm { Array1.is_global gm })
   (eK eV eQ eO : ematrix et n d)
   (vl vm : erased (lseq et n))
   (fK fV fQ : perm)
@@ -489,14 +514,14 @@ fn block_teardown_fa
   (#et : Type0) {| scalar et, floating et |}
   (n d bc br : szp { bc == br /\ bc /? n /\ br /? n /\ SZ.fits (bc * br) })
   (#lK #lV #lQ : M.layout n d)
-  (gK : M.array2 et lK)
-  (gV : M.array2 et lV)
-  (gQ : M.array2 et lQ)
+  (gK : M.array2 et lK { M.is_global gK })
+  (gV : M.array2 et lV { M.is_global gV })
+  (gQ : M.array2 et lQ { M.is_global gQ })
   (#lO : M.layout n d)
-  (gO : M.array2 et lO)
+  (gO : M.array2 et lO { M.is_global gO })
   (#ll #lm : layout n)
-  (gl : array1 et ll)
-  (gm : array1 et lm)
+  (gl : array1 et ll { Array1.is_global gl })
+  (gm : array1 et lm { Array1.is_global gm })
   (eK eV eQ : ematrix et n d)
   (fK fV fQ : perm)
   (sh : c_shmems (fa_shmems et bc br))
