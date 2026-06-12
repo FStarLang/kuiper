@@ -66,7 +66,7 @@ let attn_lse
   (scores : ematrix real m n)
   : lseq real m
   = Seq.init m (fun i -> 
-      rlog (rsum (seq_map rexp (ematrix_row scores i))))
+      log (rsum (seq_map exp (ematrix_row scores i))))
 
 (* Top-level real-valued spec: (output, log-sum-exp) given real inputs. *)
 let attention_real

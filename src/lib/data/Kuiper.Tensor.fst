@@ -780,7 +780,7 @@ fn tensor_fold_outer
   requires
     a |-> m
   ensures
-    from_array (tlayout_bij fold_bij l) (core a) |-> fold_chest m
+    from_array (tlayout_fold_outer l) (core a) |-> fold_chest m
 {
   tensor_pts_to_ref a;
   tensor_explode a;
@@ -795,20 +795,20 @@ fn tensor_fold_outer
     (fun (j : abs (fold_outer d)) ->
       Cell a (fold_bij.gg j) |-> Frac 1.0R (acc m (fold_bij.gg j)))
     (fun (j : abs (fold_outer d)) ->
-      Cell (from_array (tlayout_bij fold_bij l) (core a)) j
+      Cell (from_array (tlayout_fold_outer l) (core a)) j
         |-> Frac 1.0R (acc (fold_chest m) j))
     fn j {
       tensor_pts_to_cell_eq a (fold_bij.gg j) 1.0R (acc m (fold_bij.gg j));
-      tensor_pts_to_cell_eq (from_array (tlayout_bij fold_bij l) (core a)) j 1.0R
+      tensor_pts_to_cell_eq (from_array (tlayout_fold_outer l) (core a)) j 1.0R
         (acc (fold_chest m) j);
       rewrite
         Cell a (fold_bij.gg j) |-> Frac 1.0R (acc m (fold_bij.gg j))
       as
-        Cell (from_array (tlayout_bij fold_bij l) (core a)) j
+        Cell (from_array (tlayout_fold_outer l) (core a)) j
           |-> Frac 1.0R (acc (fold_chest m) j);
     };
 
-  tensor_implode (from_array (tlayout_bij fold_bij l) (core a));
+  tensor_implode (from_array (tlayout_fold_outer l) (core a));
 }
 
 ghost
@@ -816,7 +816,7 @@ fn tensor_unfold_outer
   (#et : Type0)
   (#r: nat {r > 1}) (#d: idesc r)
   (#l: tlayout d)
-  (a : tensor et (tlayout_bij fold_bij l))
+  (a : tensor et (tlayout_fold_outer l))
   (m : Chest.t (fold_outer d) et)
   requires
     a |-> m

@@ -545,6 +545,10 @@ let fold_chest (#et : Type0) (#r: nat {r > 1}) (#d: idesc r) (m : Chest.t d et):
 let unfold_chest (#et : Type0) (#r: nat {r > 1}) (#d: idesc r) (m : Chest.t (fold_outer d) et): GTot (Chest.t d et) = 
   Chest.mk d (fun i -> Chest.acc m (fold_index i))
 
+unfold let tlayout_fold_outer 
+  (#r : nat {r > 1}) (#d : idesc r)
+  (l : tlayout d) = tlayout_bij fold_bij l
+
 ghost
 fn tensor_fold_outer
   (#et : Type0)
@@ -555,14 +559,14 @@ fn tensor_fold_outer
   requires
     a |-> m
   ensures
-    from_array (tlayout_bij fold_bij l) (core a) |-> fold_chest m
+    from_array (tlayout_fold_outer l) (core a) |-> fold_chest m
 
 ghost
 fn tensor_unfold_outer
   (#et : Type0)
   (#r: nat {r > 1}) (#d: idesc r)
   (#l: tlayout d) 
-  (a : tensor et (tlayout_bij fold_bij l))
+  (a : tensor et (tlayout_fold_outer l))
   (m : Chest.t (fold_outer d) et)
   requires
     a |-> m

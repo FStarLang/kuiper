@@ -8,6 +8,7 @@ a container instance. *)
 open Kuiper
 open Kuiper.Index
 open Kuiper.Container
+open Kuiper.Approximates.Base
 open FStar.FunctionalExtensionality { (^->>) }
 module F = FStar.FunctionalExtensionality
 
@@ -80,4 +81,21 @@ instance chest_is_container (#r : nat) (d : idesc r) (et : Type)
   ext = (fun c1 c2 _ -> assert (equal c1 c2));
   from_fun = mk d;
   from_fun_ok = ez;
+}
+
+
+let chest_approximates
+  (#et : Type0) {| scalar et, real_like et |}
+  (#r : nat) (#d : idesc r)
+  (c1 : chest d et)
+  (c2 : chest d real)
+  : prop
+  = forall (i: abs d). acc c1 i %~ acc c2 i
+
+instance chest_can_approximate
+  (#et : Type0) {| scalar et, real_like et |}
+  (#r : nat) (#d : idesc r)
+  : can_approximate (chest d et) (chest d real) =
+{
+  approximates = chest_approximates;
 }
