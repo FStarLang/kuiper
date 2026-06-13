@@ -33,23 +33,23 @@ fn scaled_dot_product_efficient_attention4
   (b h : szp)
   (m n : szp)
   (k kv : szp)
-  (q    : tensor et (l4_batched_row_major b h m  k ) ) //{ A4.is_global q    }
-  (k_   : tensor et (l4_batched_row_major b h n  k ) ) //{ A4.is_global k_   }
-  (v    : tensor et (l4_batched_row_major b h n  kv) ) //{ A4.is_global v    }
-  (bias : tensor et (l4_batched_row_major b h m  n ) ) //{ A4.is_global bias }
+  (gQ    : tensor et (l4_batched_row_major b h m  k ) ) //{ A4.is_global q    }
+  (gK   : tensor et (l4_batched_row_major b h n  k ) ) //{ A4.is_global k_   }
+  (gV   : tensor et (l4_batched_row_major b h n  kv) ) //{ A4.is_global v    }
+  (gBias : tensor et (l4_batched_row_major b h m  n ) ) //{ A4.is_global bias }
   (scale : et)
-  (#sQ : erased  (CH.t (b @| h @| m @| k @| INil) et))
-  (#sK : erased  (CH.t (b @| h @| n @| k @| INil) et))
-  (#sV : erased  (CH.t (b @| h @| n @| kv @| INil) et))
-  (#sB : erased  (CH.t (b @| h @| m @| n @| INil) et))
+  (#eQ : erased  (CH.t (b @| h @| m @| k @| INil) et))
+  (#eK : erased  (CH.t (b @| h @| n @| k @| INil) et))
+  (#eV : erased  (CH.t (b @| h @| n @| kv @| INil) et))
+  (#eB : erased  (CH.t (b @| h @| m @| n @| INil) et))
   (#rKT : erased (CH.t (b @| h @| k @| n @| INil) real))
   (#fQ #fK #fV #fB : perm)
   preserves
     cpu **
-    (* on gpu_loc *) (q    |-> Frac fQ sQ) **
-    (* on gpu_loc *) (k_   |-> Frac fK sK) **
-    (* on gpu_loc *) (v    |-> Frac fV sV) **
-    (* on gpu_loc *) (bias |-> Frac fB sB)
+    (* on gpu_loc *) (gQ    |-> Frac fQ eQ) **
+    (* on gpu_loc *) (gK    |-> Frac fK eK) **
+    (* on gpu_loc *) (gV    |-> Frac fV eV) **
+    (* on gpu_loc *) (gBias |-> Frac fB eB)
   requires
     pure (
       SZ.fits (b * h * m * kv) /\
@@ -59,7 +59,7 @@ fn scaled_dot_product_efficient_attention4
       SZ.fits (b * h * m) /\
       ((CH.mk (b @| h @| k @| n @| INil) 
         (fun (i,(j,(k,(l,())))) -> 
-          CH.acc sK (i,(j,(l,(k,())))))
+          CH.acc eK (i,(j,(l,(k,())))))
         
         ) %~ (reveal rKT)) /\
       m * n <= max_blocks * max_threads /\
