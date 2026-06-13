@@ -538,7 +538,7 @@ fn extract_page
 
   assert pure (Chest.equal
     (chest_slice 0 i (tr_val s))
-    (Array2.tr_val (EMatrix3.slice_page s i)));
+    (EMatrix3.slice_page s i));
   rewrite T.sliceof a 0 i |-> Frac f (chest_slice 0 i (tr_val s))
        as page a i |-> Frac f (EMatrix3.slice_page s i);
 
@@ -559,7 +559,7 @@ fn extract_page
               @==> a |-> Frac f (chest_update_slice 0 i (tr_val s) s'))
         fn _ {
           assert pure (modulo_i 0 (desc d0 d1 d2) == Array2.desc d1 d2);
-          let w : chest (modulo_i 0 (desc d0 d1 d2)) et = Array2.tr_val s';
+          let w : chest (modulo_i 0 (desc d0 d1 d2)) et = s';
           elim_forall w;
           rewrite Array2.pts_to (page a i) #f s'
                as sliceof a 0 i |-> Frac f w;

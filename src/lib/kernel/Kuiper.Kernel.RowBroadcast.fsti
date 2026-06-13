@@ -11,6 +11,7 @@ module Array1 = Kuiper.Array1
 module Array2 = Kuiper.Array2
 open Kuiper.EMatrix
 open Kuiper.Tensor
+open Kuiper.Index
 
 let s_row_broadcast
   (#t : Type0) {| scalar t |}
@@ -18,7 +19,7 @@ let s_row_broadcast
   (#m #n : nat)
   (a : lseq t m) (b : ematrix t m n)
   : ematrix t m n
-  = Kuiper.EMatrix.mkM fun i j -> f (macc b i j) (a @! i)
+  = Kuiper.EMatrix.mkM fun i j -> f (macc b i j) (Seq.index a i)
 
 inline_for_extraction noextract
 fn row_broadcast

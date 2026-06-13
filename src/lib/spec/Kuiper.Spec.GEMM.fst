@@ -1,5 +1,8 @@
 module Kuiper.Spec.GEMM
 
+module Chest = Kuiper.Chest
+open Kuiper.Index
+
 let lincomb_approx2
   (#et:Type) {| scalar et, real_like et |}
   (alpha beta : et) (alpha_r beta_r : real)
@@ -138,24 +141,7 @@ let matmul
   (m1 : ematrix et rows shared)
   (m2 : ematrix et shared columns)
 : ematrix et rows columns
-= mkM <| fun i j -> matmul_single m1 m2 i j
-
-let matplus
-  (#et:Type) {| scalar et |}
-  (#rows #columns : nat)
-  (m1 m2 : ematrix et rows columns)
-: ematrix et rows columns
-= mkM <| fun i j -> add (macc m1 i j) (macc m2 i j)
-
-let lemma_matplus_index
-  (#et:Type) {| scalar et |}
-  (#rows #columns : nat)
-  (m1 m2 : ematrix et rows columns)
-  (i : nat{ i < rows })
-  (j : nat{ j < columns })
-: Lemma (macc (matplus m1 m2) i j == macc m1 i j `add` macc m2 i j)
-        [SMTPat (macc (matplus m1 m2) i j)]
-= ()
+= Kuiper.Chest.mk (rows @| columns @| INil) fun (i, (j, ())) -> matmul_single m1 m2 i j
 
 let lemma_matmul_index
   (#et:Type) {| scalar et |}
@@ -243,7 +229,7 @@ let matmul_is_gemm
   (m2 : ematrix et shared columns)
   : Lemma (mmcomb comb2 m0 m1 m2 == matmul m1 m2)
           [SMTPat (mmcomb comb2 m0 m1 m2)]
-  = ematrix_ext (mmcomb comb2 m0 m1 m2) (matmul m1 m2)
+  = assert equal (mmcomb comb2 m0 m1 m2) (matmul m1 m2)
 
 (* If we take a full-width slice of A and a full-width slice of B, then
    the matmul of those slices is equal to the corresponding slice of the
@@ -339,6 +325,8 @@ let matmul_decompose_lemma
       trows tcolumns
       i j)
 
+#restart-solver
+#push-options "--z3rlimit 40"
 let rec __matmul_single_subtile_lemma'
   (#et : Type) {| scalar et |}
   (pf2 : (x: et -> squash (add x zero == x /\ add zero x == x)))
@@ -428,8 +416,7 @@ let __matmul_single_subtile_lemma
           (to * tshared)
       )
 = __matmul_single_subtile_lemma' pf2 pf3 trows tcols tshared m1 m2 i j i' j' to tshared
-
-#restart-solver
+#pop-options
 
 let rec __matmul_tiles_lemma
   (#et : Type) {| scalar et |}
@@ -553,43 +540,44 @@ let matmul_tiles_lemma
         (ematrix_subtile m1 trows shared i 0)
         (ematrix_subtile m2 shared tcols 0 j)
     ))
-= let aux (i' : natlt trows) (j' : natlt tcols)
+= let aux (i'j' : natlt trows & (natlt tcols & unit))
     : Lemma (
       ensures
-        macc
+        Chest.acc
           (gmatmul_single acc matmul matplus
             (ematrix_tiled m1 trows tshared)
             (ematrix_tiled m2 tshared tcols)
             i j)
-          i' j'
+          i'j'
         ==
-        macc
+        Chest.acc
           (matplus acc (
             matmul
               (ematrix_subtile m1 trows shared i 0)
               (ematrix_subtile m2 shared tcols 0 j)))
-          i' j'
+          i'j'
     )
   =
     calc (==) {
-      macc (gmatmul_single acc matmul matplus
+      Chest.acc
+        (gmatmul_single acc matmul matplus
             (ematrix_tiled m1 trows tshared)
             (ematrix_tiled m2 tshared tcols)
             i j)
-           i' j';
-      == { __matmul_tiles_lemma pf2 pf3 trows tcols tshared acc m1 m2 i j i' j' (shared / tshared) }
-      macc acc i' j'
-      `add` matmul_single (ematrix_subtile m1 trows shared i 0) (ematrix_subtile m2 shared tcols 0 j) i' j';
+        i'j';
+      == { __matmul_tiles_lemma pf2 pf3 trows tcols tshared acc m1 m2 i j i'j'._1 i'j'._2._1 (shared / tshared) }
+      Chest.acc acc i'j'
+      `add` matmul_single (ematrix_subtile m1 trows shared i 0) (ematrix_subtile m2 shared tcols 0 j) i'j'._1 i'j'._2._1;
       == { }
-      macc (matplus acc (
+      Chest.acc (
+        matplus acc (
             matmul
               (ematrix_subtile m1 trows shared i 0)
               (ematrix_subtile m2 shared tcols 0 j)))
-           i' j';
+           i'j';
     }
-
   in
-  Classical.forall_intro_2 aux;
+  Classical.forall_intro aux;
   assert (
     gmatmul_single acc matmul matplus
       (ematrix_tiled m1 trows tshared)

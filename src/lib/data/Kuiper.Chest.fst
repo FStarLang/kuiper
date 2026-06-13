@@ -30,3 +30,12 @@ let ext (#r : nat) (#d : idesc r) (#et : Type)
           (ensures c1 == c2)
           [SMTPat (equal c1 c2)]
   = F.extensionality_g _ _ c1.f c2.f
+
+let lemma_to_real_chest_approximates (#et : Type0)
+  {| scalar et, real_like et |}
+  (#r : nat)
+  (#d : idesc r)
+  (c : chest d et)
+  : Lemma (ensures c %~ to_real_chest c)
+          [SMTPat (to_real_chest c)]
+  = ()

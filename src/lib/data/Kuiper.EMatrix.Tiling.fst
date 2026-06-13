@@ -7,6 +7,8 @@ open Kuiper.Matrix.Reprs.Type
 open Kuiper.Matrix
 open Kuiper.Injection
 
+let macc_ematrix_tiled #et #rows #cols em trows tcols i j = ()
+
 #push-options "--z3rlimit 10"
 let from_subtiles_id
   (#et : _)

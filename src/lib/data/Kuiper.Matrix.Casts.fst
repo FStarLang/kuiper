@@ -3,6 +3,7 @@ module Kuiper.Matrix.Casts
 
 open Kuiper
 
+open Kuiper.Tensor
 module A2 = Kuiper.Array2
 module A4 = Kuiper.Array4
 open Kuiper.EMatrix
@@ -88,9 +89,9 @@ fn m2_to_m4
   let r = A4.from_array (l2_to_l4 lA) (A2.core gA);
   assert rewrites_to r (A4.from_array (l2_to_l4 lA) (A2.core gA));
   assert pure (Kuiper.EMatrix4.equal
-    (A4.from_seq (l2_to_l4 lA) (A2.to_seq lA eA))
+    (A4.from_seq (l2_to_l4 lA) (to_seq lA eA))
     (em2_to_em4 eA));
-  rewrite r |-> Frac f (A4.from_seq (l2_to_l4 lA) (A2.to_seq lA eA))
+  rewrite r |-> Frac f (A4.from_seq (l2_to_l4 lA) (to_seq lA eA))
        as r |-> Frac f (em2_to_em4 eA);
   ();
   r
@@ -118,9 +119,9 @@ fn m4_to_m2
   let r = A2.from_array (l4_to_l2 lA4) (A4.core gA4);
   assert rewrites_to r (A2.from_array (l4_to_l2 lA4) (A4.core gA4));
   assert pure (Kuiper.EMatrix.equal
-    (A2.from_seq (l4_to_l2 lA4) (A4.to_seq lA4 eA4))
+    (from_seq (l4_to_l2 lA4) (A4.to_seq lA4 eA4))
     (em4_to_em2 eA4));
-  rewrite r |-> Frac f (A2.from_seq (l4_to_l2 lA4) (A4.to_seq lA4 eA4))
+  rewrite r |-> Frac f (from_seq (l4_to_l2 lA4) (A4.to_seq lA4 eA4))
        as r |-> Frac f (em4_to_em2 eA4);
   ();
   r

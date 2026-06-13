@@ -3,6 +3,7 @@ module Kuiper.Ghost.TensorTranspose
 #lang-pulse
 
 open Kuiper
+open Kuiper.Tensor
 open Kuiper.Array2
 open Kuiper.EMatrix
 open Kuiper.Tensor.Layout.Alg

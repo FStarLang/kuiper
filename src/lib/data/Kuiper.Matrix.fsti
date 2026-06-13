@@ -14,8 +14,8 @@ let clayout_imap
   (#rows #cols : erased nat)
   (#l : mlayout rows cols)
   (c : clayout l)
-  : szlt rows & szlt cols -> szlt l.len
-  = fun (i, j) -> c.c_to i j
+  : szlt rows & (szlt cols & unit) -> szlt l.len
+  = fun (i, (j, ())) -> c.c_to i j
 
 inline_for_extraction noextract
 instance cview_from_clayout
@@ -31,7 +31,7 @@ instance cview_from_clayout
   len_fits = ();
 
   sch = {
-    cit = szlt rows & szlt cols;
+    cit = szlt rows & (szlt cols & unit);
     bij = Bijection.natural;
   };
 

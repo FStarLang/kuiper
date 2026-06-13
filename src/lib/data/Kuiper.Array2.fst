@@ -25,25 +25,6 @@ let abs_bij (#rows #cols : nat) : (abs (desc rows cols) =~ (ait rows cols)) =
     gg_ff = ez;
   }
 
-let tr_val (#et : Type) (#rows #cols : nat) (s : ematrix et rows cols)
-  : chest (desc rows cols) et
-  = Chest.mk (desc rows cols) (fun (i, (j, ())) -> EMatrix.macc s i j)
-
-let backtr_val (#et : Type) (#rows #cols : nat) (c : chest (desc rows cols) et)
-  : ematrix et rows cols
-  = EMatrix.mkM (fun i j -> Chest.acc c (i, (j, ())))
-
-let to_from (#et:Type) (#m #n : nat)
-  (l : full_layout m n) (s : lseq et (m * n))
-  : Lemma (ensures to_seq l (from_seq l s) == s)
-          [SMTPat (to_seq l (from_seq l s))]
-  = // Why is this needed? The same proof in Array4 just works
-    let aux (i : natlt (m * n)) : Lemma (to_seq l (from_seq l s) @! i == s @! i) =
-      ()
-    in
-    Classical.forall_intro aux;
-    assert (Seq.equal (to_seq l (from_seq l s)) s)
-
 let t (et : Type0) (#rows #cols : nat) (l : layout rows cols) : Type0 =
   T.tensor et l
 
@@ -105,7 +86,7 @@ let pts_to
   (#[Tac.exact (`1.0R)] f : perm)
   (s : ematrix et rows cols)
   : slprop
-  = T.tensor_pts_to a #f (tr_val s)
+  = T.tensor_pts_to a #f s
 
 instance is_send_across_global
   (#et : Type0) (#rows #cols : nat) (#l : layout rows cols)
@@ -133,9 +114,8 @@ fn alloc0
 {
   let t = T.alloc0 #et (rows *^ cols) l;
   with em. assert on gpu_loc (T.tensor_pts_to t em);
-  assert pure (Chest.equal em (tr_val (backtr_val em)));
   rewrite on gpu_loc (T.tensor_pts_to t em)
-       as on gpu_loc (pts_to t (backtr_val em));
+       as on gpu_loc (pts_to t em);
   t
 }
 
@@ -154,7 +134,7 @@ fn free
   ensures emp
 {
   rewrite on gpu_loc (pts_to p em)
-       as on gpu_loc (T.tensor_pts_to p (tr_val em));
+       as on gpu_loc (T.tensor_pts_to p em);
   T.free p;
 }
 
@@ -194,14 +174,6 @@ fn pts_to_ref_located
     }
 }
 
-let to_seq_rel (#et:Type) (#rows #cols : nat)
-  (l : full_layout rows cols) (s : ematrix et rows cols)
-  : Lemma (to_seq l s == T.to_seq l (tr_val s))
-  = let aux (i : natlt (rows * cols)) : Lemma (to_seq l s @! i == T.to_seq l (tr_val s) @! i) =
-      ()
-    in
-    assert (Seq.equal (to_seq l s) (T.to_seq l (tr_val s)))
-
 ghost
 fn lower
   (#et:Type)
@@ -218,7 +190,7 @@ fn lower
   unfold pts_to g #f s;
   T.tensor_concr g;
   to_seq_rel l s;
-  rewrite T.core g |-> Frac f (T.to_seq l (tr_val s))
+  rewrite T.core g |-> Frac f (T.to_seq l s)
        as core g |-> Frac f (to_seq l s);
 }
 
@@ -239,7 +211,7 @@ fn raise
   rewrite
     p |-> Frac f (to_seq l s)
   as
-    p |-> Frac f (T.to_seq l (tr_val s));
+    p |-> Frac f (T.to_seq l s);
   T.tensor_abs l p;
   fold pts_to (from_array l p) #f s;
 }
@@ -274,7 +246,7 @@ fn share_n
   unfold pts_to a #f s;
   T.tensor_share_n a k;
   forevery_map
-    (fun (i:natlt k) -> T.tensor_pts_to a #(f /. k) (tr_val s))
+    (fun (i:natlt k) -> T.tensor_pts_to a #(f /. k) s)
     (fun (i:natlt k) -> pts_to a #(f /. k) s)
     fn i { fold pts_to a #(f /. k) s };
 }
@@ -291,7 +263,7 @@ fn gather_n
 {
   forevery_map
     (fun (i:natlt k) -> pts_to a #(f /. k) s)
-    (fun (i:natlt k) -> T.tensor_pts_to a #(f /. k) (tr_val s))
+    (fun (i:natlt k) -> T.tensor_pts_to a #(f /. k) s)
     fn i { unfold pts_to a #(f /. k) s };
   T.tensor_gather_n a k;
   fold pts_to a #f s;
@@ -387,7 +359,7 @@ fn write
   unfold pts_to a s;
   T.tensor_write a (adapt_cit_back rows cols idx) v;
   with cs'. assert T.tensor_pts_to a cs';
-  assert pure (Chest.equal cs' (tr_val (mupd s (pi_2_0 idx) (pi_2_1 idx) v)));
+  assert pure (Chest.equal cs' (mupd s (pi_2_0 idx) (pi_2_1 idx) v));
   fold pts_to a (mupd s (pi_2_0 idx) (pi_2_1 idx) v);
   ()
 }
@@ -449,7 +421,7 @@ fn implode
     a |-> Frac f s
 {
   forevery_iso (bij_sym abs_bij) _;
-  forevery_ext _ (fun (i : abs (desc rows cols)) -> Cell a i |-> Frac f (acc (tr_val s) i));
+  forevery_ext _ (fun (i : abs (desc rows cols)) -> Cell a i |-> Frac f (acc s i));
   T.tensor_implode a;
   fold pts_to a #f s;
 }
@@ -616,12 +588,12 @@ fn extract_row
 {
   (* Very tedious proof for simply tweaking types and using some bijections. *)
   unfold pts_to a #f s;
-  T.tensor_extract_slice a 0 i #f #(tr_val s);
+  T.tensor_extract_slice a 0 i #f #s;
 
   assert pure (Chest.equal
-    (chest_slice 0 i (tr_val s))
+    (chest_slice 0 i s)
     (Array1.tr_val (ematrix_row s i)));
-  rewrite T.sliceof a 0 i |-> Frac f (chest_slice 0 i (tr_val s))
+  rewrite T.sliceof a 0 i |-> Frac f (chest_slice 0 i s)
        as row a i |-> Frac f (ematrix_row s i);
 
   intro_forall
@@ -631,14 +603,14 @@ fn extract_row
       @==> a |-> Frac f (ematrix_upd_row s i s'))
     (forall* (s' : chest (modulo_i 0 (desc rows cols)) et).
       sliceof a 0 i |-> Frac f s'
-      @==> a |-> Frac f (chest_update_slice 0 i (tr_val s) s'))
+      @==> a |-> Frac f (chest_update_slice 0 i s s'))
     fn s' {
       intro_trade
         (row a i |-> Frac f s')
         (a |-> Frac f (ematrix_upd_row s i s'))
         (forall* (s' : chest (modulo_i 0 (desc rows cols)) et).
               sliceof a 0 i |-> Frac f s'
-              @==> a |-> Frac f (chest_update_slice 0 i (tr_val s) s'))
+              @==> a |-> Frac f (chest_update_slice 0 i s s'))
         fn _ {
           assert pure (modulo_i 0 (desc rows cols) == Array1.desc cols);
           let w : chest (modulo_i 0 (desc rows cols)) et = Array1.tr_val s';
@@ -646,9 +618,9 @@ fn extract_row
           rewrite Array1.pts_to (row a i) #f s'
                as sliceof a 0 i |-> Frac f w;
           elim_trade _ _;
-          rewrite each chest_update_slice 0 i (tr_val s) w
-               as tr_val (ematrix_upd_row s i s');
-          fold pts_to a #f (ematrix_upd_row s i s');
+          rewrite each chest_update_slice 0 i s w
+               as ematrix_upd_row s i s';
+          // fold pts_to a #f (ematrix_upd_row s i s');
           ();
         };
     };
@@ -720,12 +692,12 @@ fn extract_col
       a |-> Frac f (ematrix_upd_col s i s'))
 {
   unfold pts_to a #f s;
-  T.tensor_extract_slice a 1 i #f #(tr_val s);
+  T.tensor_extract_slice a 1 i #f #s;
 
   assert pure (Chest.equal
-    (chest_slice 1 i (tr_val s))
+    (chest_slice 1 i s)
     (Array1.tr_val (ematrix_col s i)));
-  rewrite T.sliceof a 1 i |-> Frac f (chest_slice 1 i (tr_val s))
+  rewrite T.sliceof a 1 i |-> Frac f (chest_slice 1 i s)
        as col a i |-> Frac f (ematrix_col s i);
 
   intro_forall
@@ -735,14 +707,14 @@ fn extract_col
       @==> a |-> Frac f (ematrix_upd_col s i s'))
     (forall* (s' : chest (modulo_i 1 (desc rows cols)) et).
       sliceof a 1 i |-> Frac f s'
-      @==> a |-> Frac f (chest_update_slice 1 i (tr_val s) s'))
+      @==> T.tensor_pts_to a #f (chest_update_slice 1 i s s'))
     fn s' {
       intro_trade
         (col a i |-> Frac f s')
         (a |-> Frac f (ematrix_upd_col s i s'))
         (forall* (s' : chest (modulo_i 1 (desc rows cols)) et).
               sliceof a 1 i |-> Frac f s'
-              @==> a |-> Frac f (chest_update_slice 1 i (tr_val s) s'))
+              @==> T.tensor_pts_to a #f (chest_update_slice 1 i s s'))
         fn _ {
           assert pure (modulo_i 1 (desc rows cols) == Array1.desc rows);
           let w : chest (modulo_i 1 (desc rows cols)) et = Array1.tr_val s';
@@ -750,8 +722,8 @@ fn extract_col
           rewrite Array1.pts_to (col a i) #f s'
                as sliceof a 1 i |-> Frac f w;
           elim_trade _ _;
-          rewrite each chest_update_slice 1 i (tr_val s) w
-               as tr_val (ematrix_upd_col s i s');
+          rewrite each chest_update_slice 1 i s w
+               as ematrix_upd_col s i s';
           fold pts_to a #f (ematrix_upd_col s i s');
           ();
         };

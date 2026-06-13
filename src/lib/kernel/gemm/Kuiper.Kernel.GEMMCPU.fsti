@@ -37,9 +37,9 @@ type matmul_cpu_ty
     c : vec et
   ensures
     (* This will be nicer when views are usable on CPU arrays. *)
-    c |-> (M.to_seq lC <|
-             MS.matmul (M.from_seq lA sa)
-                       (M.from_seq lB sb))
+    c |-> (to_seq lC <|
+             MS.matmul (from_seq lA sa)
+                       (from_seq lB sb))
 
 inline_for_extraction noextract
 val matmul_cpu

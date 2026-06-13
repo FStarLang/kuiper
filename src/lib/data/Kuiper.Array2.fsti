@@ -41,34 +41,6 @@ type layout (rows cols : nat) = tlayout (desc rows cols)
 
 type full_layout (rows cols : nat) = l : layout rows cols { is_full l }
 
-let from_seq (#et:Type) (#m #n : nat)
-  (l : full_layout m n )
-  (s : lseq et (m * n))
-  : ematrix et m n
-  = EMatrix.mkM (fun i j -> s `Seq.index` l.imap.f (i, (j, ())))
-
-let to_seq (#et:Type) (#m #n : nat)
-  (l : full_layout m n)
-  (s : ematrix et m n)
-  : GTot (lseq et (m * n))
-  = Seq.init_ghost (m * n) (fun i ->
-      let x = Kuiper.Injection.inverse_f l.imap i in
-      macc s x._1 x._2._1)
-
-// Odd that this seems to help.
-let to_seq_helper (#et:Type) (#m #n : nat)
-  (l : full_layout m n)
-  (s : ematrix et m n)
-  (i : natlt (m * n))
-  : Lemma (to_seq l s `Seq.index` i == (let x = Kuiper.Injection.inverse_f l.imap i in macc s x._1 x._2._1))
-          [SMTPat (to_seq l s `Seq.index` i)]
-  = ()
-
-val to_from (#et:Type) (#m #n : nat)
-  (l : full_layout m n) (s : lseq et (m * n))
-  : Lemma (ensures to_seq l (from_seq l s) == s)
-          [SMTPat (to_seq l (from_seq l s))]
-
 let layout_size (#rows #cols : nat) (l : layout rows cols) : GTot nat = l.ulen
 
 inline_for_extraction noextract
