@@ -24,6 +24,10 @@ val of_int       : Int64.t -> t
 val of_int_zero  : squash (of_int 0L == zero)
 val of_int_one   : squash (of_int 1L == one)
 
+(* Float literal from a string. Must be called with a concrete string;
+   replaced during extraction with the corresponding C constant. *)
+val of_literal : string -> t
+
 val kind : t -> fkind
 
 val largest : t
