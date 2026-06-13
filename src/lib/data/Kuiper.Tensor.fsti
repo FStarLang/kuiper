@@ -425,6 +425,14 @@ val lem_sliceof_core
   : Lemma (core (sliceof a i j) == core a)
           [SMTPat (sliceof a i j)]
 
+val lem_is_global_iff_sliceof
+  (#et : Type0) (#r : nat) (#d : idesc r)
+  (#l : tlayout d)
+  (a : tensor et l)
+  (i : natlt r) (j : natlt (d @! i))
+  : Lemma (ensures is_global (sliceof a i j) <==> is_global a)
+          [SMTPat (is_global (sliceof a i j))]
+
 #push-options "--warn_error -271" // implicit subtraction in pattern, OK
 val tensor_slice_cell_eq
   (#et : Type0) (#r : nat) (#d : idesc r)
@@ -437,23 +445,6 @@ val tensor_slice_cell_eq
            Cell a ((abs_bring_forward_bij i d).gg (j, k)) |-> Frac f v)
            [SMTPat (Cell (sliceof a i j) k |-> Frac f v)]
 #pop-options
-
-let chest_slice
-  (#et : Type0) (#r : nat) (#d : idesc r)
-  (i : natlt r) (j : natlt (d @! i))
-  (s : chest d et)
-  : chest (modulo_i i d) et
-  = mk _ (fun (idx : abs (modulo_i i d)) ->
-            acc s ((abs_bring_forward_bij i d).gg (j, idx)))
-
-let chest_update_slice
-  (#et : Type0) (#r : nat) (#d : idesc r)
-  (i : natlt r) (j : natlt (d @! i))
-  (s : chest d et) (s' : chest (modulo_i i d) et)
-  : chest d et
-  = mk _ (fun (idx : abs d) ->
-            let (j', k) = (abs_bring_forward_bij i d).ff idx in
-            if j' = j then acc s' k else acc s idx)
 
 ghost
 fn tensor_extract_slice

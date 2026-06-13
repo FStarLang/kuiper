@@ -335,6 +335,133 @@ fn fragarray_mma
 inline_for_extraction noextract
 let sz_succ (x:SZ.t{SZ.fits (x+1)}) : SZ.t = x +^ 1sz
 
+// Helper lemma: proves the matmul accumulation step via extensional equality,
+// working around the matplus normalization gap introduced by the ematrix→chest
+// refactor (matplus normalizes to Chest.M/on_domain_g in the slprop but the
+// __gmatmul_single_lemma hypothesis keeps it opaque). By having ematrix_subtile
+// directly in the ensures clause (not macc), the conclusion normalizes
+// consistently with the slprop when F* sends it to SMT.
+#push-options "--z3rlimit 60"
+let subproducts_step_eq
+  (#bm #bk #bn : nat)
+  (wm_tm tk_dim wn_tn : pos)
+  (_ : squash (wm_tm /? bm /\ tk_dim /? bk /\ wn_tn /? bn))
+  (rAcc : ematrix real wm_tm wn_tn)
+  (rA : ematrix real bm bk) (rB : ematrix real bk bn)
+  (row : natlt (bm/wm_tm)) (col : natlt (bn/wn_tn))
+  (k : natlt (bk/tk_dim))
+  : Lemma (
+      matplus (__gmatmul_single rAcc matmul matplus
+              (ematrix_tiled rA wm_tm tk_dim) (ematrix_tiled rB tk_dim wn_tn)
+              row col k)
+          (matmul (ematrix_subtile rA wm_tm tk_dim row k)
+                  (ematrix_subtile rB tk_dim wn_tn k col))
+      ==
+      __gmatmul_single rAcc matmul matplus
+          (ematrix_tiled rA wm_tm tk_dim) (ematrix_tiled rB tk_dim wn_tn)
+          row col (k + 1))
+  = __gmatmul_single_lemma rAcc matmul matplus
+      (ematrix_tiled rA wm_tm tk_dim) (ematrix_tiled rB tk_dim wn_tn)
+      row col (k + 1);
+    macc_ematrix_tiled rA wm_tm tk_dim row k;
+    macc_ematrix_tiled rB tk_dim wn_tn k col;
+    assert (equal
+      (matplus (__gmatmul_single rAcc matmul matplus
+               (ematrix_tiled rA wm_tm tk_dim) (ematrix_tiled rB tk_dim wn_tn)
+               row col k)
+          (matmul (ematrix_subtile rA wm_tm tk_dim row k)
+                  (ematrix_subtile rB tk_dim wn_tn k col)))
+      (__gmatmul_single rAcc matmul matplus
+          (ematrix_tiled rA wm_tm tk_dim) (ematrix_tiled rB tk_dim wn_tn)
+          row col (k + 1)))
+#pop-options
+
+// Stateful function to advance fragarrayAcc_approximates by one matmul
+// General ghost function to rewrite fragarrayAcc_approximates from mold
+// to mnew, given that mold == mnew.
+noextract
+ghost fn rewrite_fragarrayAcc
+  (#et:Type0) {| scalar et, real_like et |}
+  (#tm #tn #tk : pos)
+  (wm wn : pos)
+  (accumFrags : array (fragment et FragAcc tm tn tk FragLAcc)
+                { Pulse.Lib.Array.length accumFrags == wm*wn })
+  (mold mnew : ematrix real (wm*tm) (wn*tn))
+  (#_ : squash (mold == mnew))
+  requires fragarrayAcc_approximates wm wn accumFrags mold
+  ensures fragarrayAcc_approximates wm wn accumFrags mnew
+{
+  ()
+}
+
+// Specialized ghost function for the inner-loop accumulation step.
+// Calls the subproducts_step_eq lemma INSIDE the ghost fn body,
+// then unfolds/folds with opaque params
+// so the VC uses trivial congruence from the lemma's propositional equality.
+#push-options "--z3rlimit 60"
+noextract
+ghost fn rewrite_fragarrayAcc_step
+  (#et:Type0) {| scalar et, real_like et |}
+  (#tm #tn #tk : pos)
+  (#bm #bk #bn : pos)
+  (wm wn : pos)
+  (accumFrags : array (fragment et FragAcc tm tn tk FragLAcc)
+                { Pulse.Lib.Array.length accumFrags == wm*wn })
+  (rAcc : ematrix real (wm*tm) (wn*tn))
+  (rA : ematrix real bm bk) (rB : ematrix real bk bn)
+  (arow : natlt (bm/(wm*tm))) (bcol : natlt (bn/(wn*tn)))
+  (k : natlt (bk/tk))
+  (#_ : squash ((wm*tm) /? bm /\ tk /? bk /\ (wn*tn) /? bn))
+  requires fragarrayAcc_approximates wm wn accumFrags
+    (matplus (__gmatmul_single rAcc matmul matplus
+              (ematrix_tiled rA (wm*tm) tk) (ematrix_tiled rB tk (wn*tn))
+              arow bcol k)
+            (matmul (ematrix_subtile rA (wm*tm) tk arow k)
+                    (ematrix_subtile rB tk (wn*tn) k bcol)))
+  ensures fragarrayAcc_approximates wm wn accumFrags
+    (__gmatmul_single rAcc matmul matplus
+      (ematrix_tiled rA (wm*tm) tk) (ematrix_tiled rB tk (wn*tn))
+      arow bcol (k + 1))
+{
+  subproducts_step_eq (wm*tm) tk (wn*tn) () rAcc rA rB arow bcol k;
+  unfold fragarrayAcc_approximates wm wn accumFrags;
+  fold fragarrayAcc_approximates wm wn accumFrags
+    (__gmatmul_single rAcc matmul matplus
+      (ematrix_tiled rA (wm*tm) tk) (ematrix_tiled rB tk (wn*tn))
+      arow bcol (k + 1));
+}
+#pop-options
+
+// Ghost function to rewrite fragarrayAcc_approximates from the final
+// tiled gmatmul_single form to the matplus/matmul form (post-loop).
+noextract
+ghost fn rewrite_fragarrayAcc_tiles
+  (#et:Type0) {| scalar et, real_like et |}
+  (#tm #tn #tk : pos)
+  (#bm #bk #bn : pos)
+  (wm wn : pos)
+  (accumFrags : array (fragment et FragAcc tm tn tk FragLAcc)
+                { Pulse.Lib.Array.length accumFrags == wm*wn })
+  (rAcc : ematrix real (wm*tm) (wn*tn))
+  (rA : ematrix real bm bk) (rB : ematrix real bk bn)
+  (arow : natlt (bm/(wm*tm))) (bcol : natlt (bn/(wn*tn)))
+  (#_ : squash ((wm*tm) /? bm /\ tk /? bk /\ (wn*tn) /? bn))
+  requires fragarrayAcc_approximates wm wn accumFrags
+    (__gmatmul_single rAcc matmul matplus
+      (ematrix_tiled rA (wm*tm) tk) (ematrix_tiled rB tk (wn*tn))
+      arow bcol (bk/tk))
+  ensures fragarrayAcc_approximates wm wn accumFrags
+    (rAcc `matplus` matmul (ematrix_subtile rA (wm*tm) bk arow 0)
+                           (ematrix_subtile rB bk (wn*tn) 0 bcol))
+{
+  matmul_tiles_lemma (fun _ -> ()) (fun _ _ _ -> ())
+    (wm*tm) (wn*tn) tk rAcc rA rB arow bcol;
+  unfold fragarrayAcc_approximates wm wn accumFrags;
+  fold fragarrayAcc_approximates wm wn accumFrags
+    (rAcc `matplus` matmul (ematrix_subtile rA (wm*tm) bk arow 0)
+                           (ematrix_subtile rB bk (wn*tn) 0 bcol));
+}
+
 inline_for_extraction noextract
 fn subproducts_tc_2d
   (#et_ab #et_acc : Type0)
@@ -402,29 +529,17 @@ fn subproducts_tc_2d
     unfold fragarrayA_approximates wm aFrags;
     unfold fragarrayB_approximates wn bFrags;
 
-    __gmatmul_single_lemma rAcc matmul matplus
-      (ematrix_tiled rA (wm*tm) tk) (ematrix_tiled rB tk (wn*tn))
-      arow bcol (!dotIdx +^ 1sz);
-    rewrite each
-        (matplus (__gmatmul_single rAcc matmul matplus
-                (ematrix_tiled rA (wm*tm) tk) (ematrix_tiled rB tk (wn*tn))
-                arow bcol !dotIdx)
-            (matmul (ematrix_subtile rA (wm*tm) tk arow !dotIdx)
-                    (ematrix_subtile rB tk (wn*tn) !dotIdx bcol)))
-    as
-        (__gmatmul_single rAcc matmul matplus
-            (ematrix_tiled rA (wm*tm) tk) (ematrix_tiled rB tk (wn*tn))
-            arow bcol (!dotIdx +^ 1sz));
+    // Ghost fn: advance the accumulator by one step — the lemma call and
+    // unfold/fold happen inside the ghost fn with opaque params.
+    // Pass !dotIdx directly (stt read), NOT a with-bound variable (ghost).
+    rewrite_fragarrayAcc_step wm wn accumFrags rAcc rA rB arow bcol !dotIdx;
 
-    // Weird issue here. We'd like to just add one and be done but
-    // that doesn't seem to work due to some SZ.v (x+^1sz) vs SZ.v x + 1
-    // issues
-    with vdotIdx. assert dotIdx |-> vdotIdx;
-    dotIdx := sz_succ !dotIdx;// +^ 1sz;S
+    with vdi. assert dotIdx |-> vdi;
+    dotIdx := sz_succ !dotIdx;
     rewrite each
-      (SZ.v vdotIdx + 1)
+      (SZ.v vdi + 1)
     as
-      (SZ.v (sz_succ vdotIdx));
+      (SZ.v (sz_succ vdi));
 
     ()
   };
@@ -442,12 +557,7 @@ fn subproducts_tc_2d
           bcol
           (bk/^tk)));
 
-  matmul_tiles_lemma (fun _ -> ()) (fun _ _ _ -> ()) (wm*tm) (wn*tn) tk rAcc rA rB arow bcol;
-  rewrite each (
-    __gmatmul_single rAcc matmul matplus
-      (ematrix_tiled rA (wm*tm) tk) (ematrix_tiled rB tk (wn*tn)) arow bcol (bk/^tk))
-  as (rAcc `matplus` matmul (ematrix_subtile rA (wm*tm) bk arow 0)
-                            (ematrix_subtile rB bk (wn*tn) 0 bcol));
+  rewrite_fragarrayAcc_tiles wm wn accumFrags rAcc rA rB arow bcol;
   ()
 }
 
@@ -515,7 +625,7 @@ fn epilogue
   with (eWarpTile : ematrix _ _ _). assert warp_tile_pts_to gC (v bm) (v bn) (v tm) (v tn) (v wm) (v wn) (v bid) (v wid) eWarpTile;
   let rWarpTile = to_real_matrix eWarpTile;
 
-  lemma_to_real_matrix_approximates eWarpTile;
+  Kuiper.Chest.lemma_to_real_chest_approximates eWarpTile;
   assert pure (eWarpTile %~ rWarpTile);
   assert pure (eWarpTile %~ ematrix_from_tiles tm tn (ematrix_subtile rWarpTile tm tn));
   assert pure (eWarpTile %~ em_fade_tiles tm tn wm wn 0 0 rWarpTile rAcc);
@@ -709,7 +819,8 @@ let loop_invariant_lemma
                   ==
                   macc (ematrix_tiled rA (wm*tm) bk) gwRow vk
                 )
-  = assert (ematrix_subtile rA_sub (wm*tm) bk warpRow 0
+  = macc_ematrix_tiled rA (wm*tm) bk gwRow vk;
+    assert (ematrix_subtile rA_sub (wm*tm) bk warpRow 0
             `equal` macc (ematrix_tiled rA (wm*tm) bk) gwRow vk)
   in
   let aux2 () : Lemma (
@@ -717,7 +828,8 @@ let loop_invariant_lemma
                   ==
                   macc (ematrix_tiled rB bk (wn*tn)) vk gwCol
                 )
-  = assert (ematrix_subtile rB_sub bk (wn*tn) 0 warpCol
+  = macc_ematrix_tiled rB bk (wn*tn) vk gwCol;
+    assert (ematrix_subtile rB_sub bk (wn*tn) 0 warpCol
             `equal` macc (ematrix_tiled rB bk (wn*tn)) vk gwCol)
   in
   aux1 ();
@@ -951,6 +1063,14 @@ fn kf
       rA rB
       rAcc0 rAcc
       rA_sub rB_sub;
+
+    // Rewrite the accumulator slprop from the matplus/matmul form
+    // to the __gmatmul_single form using the equality from loop_invariant_lemma.
+    rewrite_fragarrayAcc wm wn accFrags
+      (rAcc `matplus` matmul (ematrix_subtile rA_sub (wm*tm) bk warpRow 0)
+                              (ematrix_subtile rB_sub bk (wn*tn) 0 warpCol))
+      (__gmatmul_single rAcc0 matmul matplus
+        (ematrix_tiled rA (wm*tm) bk) (ematrix_tiled rB bk (wn*tn)) gwRow gwCol (!bkIdx + 1));
 
     fold FB.bp_sharing sA (ematrix_subtile eA bm bk mrow !bkIdx) nthr;
     fold FB.bp_sharing sB (ematrix_subtile eB bk bn !bkIdx mcol) nthr;

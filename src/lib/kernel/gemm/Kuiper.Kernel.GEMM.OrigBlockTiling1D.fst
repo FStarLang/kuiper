@@ -159,9 +159,9 @@ let mk_kernel
   : kernel_desc
       (gA |-> Frac fA eA ** gB |-> Frac fB eB ** gC |-> eC)
       (gA |-> Frac fA eA ** gB |-> Frac fB eB **
-        (exists* (eC' : ematrix et _ _).
+        (exists* (eC' : ematrix et (mrows * bm) (mcols * bn)).
           gC |-> eC' **
-          pure (ematrix_approximates eC' (MU.real_mmcomb comb_r eC eA eB))))
+          pure (eC' %~ MU.real_mmcomb comb_r eC eA eB)))
 = {
   nblk = mrows *^ mcols;
   nthr = (bm /^ tm *^ bn);
@@ -225,9 +225,9 @@ fn mmcomb_gpu_approx
     pure (bm/tm * bn <= max_threads) **
     on gpu_loc (gC |-> eC)
   ensures
-    (exists* (eC' : ematrix et _ _).
+    (exists* (eC' : ematrix et (mrows * bm) (mcols * bn)).
       on gpu_loc (gC |-> eC') **
-      pure (ematrix_approximates eC' (MU.real_mmcomb comb_r eC eA eB)))
+      pure (eC' %~ MU.real_mmcomb comb_r eC eA eB))
 {
   launch_sync (mk_kernel comb comb_r tm (R.row_major _ _) (R.row_major _ _) gA #fA gB #fB gC #eA #eB #eC ());
 }

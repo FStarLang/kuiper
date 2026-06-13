@@ -6,13 +6,9 @@ open Kuiper
 open Kuiper.EMatrix
 open Kuiper.Matrix { gpu_matrix }
 open Kuiper.Matrix.Reprs.Type
-
+open Kuiper.Kernel.GEMM.OrigBlockTiling1D.Defs
 module MU = Kuiper.Kernel.GEMM.Util
 module SZ = Kuiper.SizeT
-
-open Kuiper.Kernel.GEMM.OrigBlockTiling1D.Defs
-
-inline_for_extraction let () = ()
 
 ghost
 fn block_teardown
@@ -81,6 +77,6 @@ fn teardown
   ensures
     gA |-> Frac fA eA **
     gB |-> Frac fB eB **
-    (exists* (eC' : ematrix et _ _).
+    (exists* (eC' : ematrix et (mrows * bm) (mcols * bn)).
       gC |-> eC' **
-      pure (ematrix_approximates eC' (MU.real_mmcomb comb_r eC eA eB)))
+      pure (eC' %~ MU.real_mmcomb comb_r eC eA eB))

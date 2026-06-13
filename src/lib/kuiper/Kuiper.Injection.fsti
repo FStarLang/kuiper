@@ -15,6 +15,7 @@ noeq
 type injection (a b : Type) = {
   f : a -> GTot b;
 
+  #[Tactics.Easy.easy_fill ()]
   is_inj : x:a -> y:a{f x == f y} -> squash (x == y);
 }
 
@@ -27,7 +28,7 @@ let mk_injection
   (f : a -> GTot b)
   (is_inj : (x:a -> y:a{f x == f y} -> squash (x == y)))
   : (a @~> b) =
-  Mkinjection f is_inj
+  Mkinjection f #is_inj
 
 (* Apply an injection to a value. *)
 let ( |~> ) (#a #b : Type) (x : a) (i : a `injection` b) : GTot b = i.f x
@@ -83,6 +84,12 @@ let inj_comp (i1 : 'a @~> 'b) (i2 : 'b @~> 'c) : ('a @~> 'c) =
   f = i2.f `oo` i1.f;
   is_inj = ez;
 }
+
+let inj_surj_comp (i1 : 'a @~> 'b) (i2 : 'b @~> 'c)
+  : Lemma (requires is_surj i1.f /\ is_surj i2.f)
+          (ensures is_surj (inj_comp i1 i2).f)
+          [SMTPat (is_surj (inj_comp i1 i2).f)]
+  = ()
 
 (* Computationally relevant injections *)
 inline_for_extraction noextract

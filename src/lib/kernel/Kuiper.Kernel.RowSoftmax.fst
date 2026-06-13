@@ -17,6 +17,7 @@ module SMK = Kuiper.Kernel.Softmax
 module SM = Kuiper.Spec.Softmax
 open Kuiper.Tensor { ctlayout }
 open Kuiper.Tensor.Layout.Alg { l1_forward }
+module Chest = Kuiper.Chest
 
 (* ── Approximation glue: numerically-stable cell-wise softmax ─────────────────
    The stable path subtracts a per-row constant [cs i] (the row max) before
@@ -76,17 +77,16 @@ let row_softmax_shift_eq
   : Lemma (row_softmax_real (mkM (fun i j -> macc ra i j -. cs i))
            == row_softmax_real #m #n ra)
   = let ra1 = mkM (fun (i:natlt m) (j:natlt n) -> macc ra i j -. cs i) in
-    let aux (i : nat { i < m })
-      : Lemma (forall (j : nat { j < n }).
-                 macc (row_softmax_real ra1) i j == macc (row_softmax_real ra) i j) =
-      Seq.lemma_eq_elim (ematrix_row ra1 i)
-                        (seq_map (fun (z:real) -> z -. cs i) (ematrix_row ra i));
-      SM.softmax_shift (ematrix_row ra i) (cs i)
+    let aux (idx : natlt m & (natlt n & unit))
+      : Lemma (Chest.acc (row_softmax_real ra1) idx == Chest.acc (row_softmax_real ra) idx) =
+      Seq.lemma_eq_elim (ematrix_row ra1 (fst idx))
+                        (seq_map (fun (z:real) -> z -. cs (fst idx)) (ematrix_row ra (fst idx)));
+      SM.softmax_shift (ematrix_row ra (fst idx)) (cs (fst idx));
+      ()
     in
     Classical.forall_intro aux;
-    assert (forall (i:natlt m) (j:natlt n).
-              macc (row_softmax_real ra1) i j == macc (row_softmax_real ra) i j);
-    lemma_equal_intro (row_softmax_real ra1) (row_softmax_real #m #n ra)
+    assert Chest.equal (row_softmax_real ra1) (row_softmax_real #m #n ra);
+    ()
 
 inline_for_extraction noextract
 fn row_softmax_gpu

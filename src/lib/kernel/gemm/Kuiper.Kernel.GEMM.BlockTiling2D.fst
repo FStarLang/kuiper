@@ -692,6 +692,8 @@ let ettile_mmcomb_pointwise
                  comb (macc (ettile eC bm bn tm tn bid tid) i j)
                       (macc (ettile (MS.matmul eA eB) bm bn tm tn bid tid) i j))
 
+#push-options "--z3rlimit 30"
+#restart-solver
 inline_for_extraction noextract
 fn epilogue
   (#et : Type0) {| scalar et |}
@@ -723,10 +725,14 @@ fn epilogue
     ttile gC bm bn tm tn bid tid |-> ettile (MS.mmcomb comb eC eA eB) bm bn tm tn bid tid
 {
   (* Help the SMT connect vrch to the matmul subtile via div/mod *)
-  assert pure (forall (i:natlt tm) (j:natlt tn).
-    (i * tn + j) / tn == i);
-  assert pure (forall (i:natlt tm) (j:natlt tn).
-    (i * tn + j) % tn == j);
+  (introduce forall (i:natlt tm) (j:natlt tn).
+    (i * tn + j) / tn == i
+  with (FStar.Math.Lemmas.lemma_div_plus j i tn;
+        FStar.Math.Lemmas.small_div j tn));
+  (introduce forall (i:natlt tm) (j:natlt tn).
+    (i * tn + j) % tn == j
+  with (FStar.Math.Lemmas.lemma_mod_plus j i tn;
+        FStar.Math.Lemmas.small_mod j tn));
   assert pure (forall (i:natlt tm) (j:natlt tn).
     vrch @! (i * tn + j) == macc (ettile (MS.matmul eA eB) bm bn tm tn bid tid) i j);
 
@@ -800,9 +806,10 @@ fn epilogue
 
   with m. assert M.pts_to t_tile m;
 
-  assert pure (Kuiper.EMatrix.equal m (ettile (MS.mmcomb comb eC eA eB) bm bn tm tn bid tid));
+  assert pure (Kuiper.Chest.equal m (ettile (MS.mmcomb comb eC eA eB) bm bn tm tn bid tid));
   ()
 }
+#pop-options
 
 #push-options "--fuel 1 --ifuel 1"
 inline_for_extraction noextract

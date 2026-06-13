@@ -449,7 +449,7 @@ fn cp_array2_vec
   let offset : sz = tid *^ chunk et;
   let mut i : sz = 0sz;
 
-  assert pure (Kuiper.EMatrix.equal edst (em_fade edst esrc nthr 0));
+  assert pure (Kuiper.Chest.equal edst (em_fade edst esrc nthr 0));
   rewrite own_strided_chunks dst edst nthr tid
        as own_strided_chunks dst (em_fade edst esrc nthr 0) nthr tid;
 
@@ -496,7 +496,7 @@ fn cp_array2_vec
       invariant
         exists* em'.
           own_strided_chunks dst em' nthr tid **
-          pure (Kuiper.EMatrix.equal em'
+          pure (Kuiper.Chest.equal em'
             (em_fade' edst esrc nthr ite row col !k))
       decreases (chunk et - !k)
     {
@@ -575,7 +575,7 @@ fn cp_array2_vec
     ()
   };
 
-  assert pure (Kuiper.EMatrix.equal esrc (em_fade edst esrc nthr (GR.read git)));
+  assert pure (Kuiper.Chest.equal esrc (em_fade edst esrc nthr (GR.read git)));
   rewrite own_strided_chunks dst (em_fade edst esrc nthr (GR.read git)) nthr tid
        as own_strided_chunks dst esrc nthr tid;
 
