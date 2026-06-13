@@ -38,9 +38,9 @@ fn spec
     pure (bm/tm * bn <= max_threads) **
     on gpu_loc (gC |-> eC)
   ensures
-    exists* (eC' : ematrix et _ _).
+    exists* (eC' : ematrix et rows cols).
       on gpu_loc (gC |-> eC') **
-      pure (eC' `ematrix_approximates` MU.real_mmcomb comb_r eC eA eB)
+      pure (eC' %~ MU.real_mmcomb comb_r eC eA eB)
 {
   M.gpu_matrix_pts_to_ref_located gA;
   M.gpu_matrix_pts_to_ref_located gB;

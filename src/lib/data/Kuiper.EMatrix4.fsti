@@ -9,7 +9,6 @@ open Kuiper.Chest
 include Kuiper.Chest {
   to_real_chest as to_real_matrix,
   equal,
-  chest_approximates as ematrix_approximates,
   chest_comb as matrix_comb,
 }
 open Kuiper.Index

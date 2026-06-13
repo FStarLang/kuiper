@@ -40,6 +40,6 @@ fn mmcomb_gpu_approx
     pure (bm/tm * bn <= max_threads) **
     on gpu_loc (gC |-> eC)
   ensures
-    (exists* (eC' : ematrix et _ _).
+    (exists* (eC' : ematrix et (mrows * bm) (mcols * bn)).
       on gpu_loc (gC |-> eC') **
-      pure (ematrix_approximates eC' (MU.real_mmcomb comb_r eC eA eB)))
+      pure (eC' %~ MU.real_mmcomb comb_r eC eA eB))

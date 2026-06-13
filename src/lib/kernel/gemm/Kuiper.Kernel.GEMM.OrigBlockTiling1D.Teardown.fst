@@ -105,9 +105,9 @@ fn teardown
   ensures
     gA |-> Frac fA eA **
     gB |-> Frac fB eB **
-    (exists* (eC' : ematrix et _ _).
+    (exists* (eC' : ematrix et (mrows * bm) (mcols * bn)).
       gC |-> eC' **
-      pure (ematrix_approximates eC' (MU.real_mmcomb comb_r eC eA eB)))
+      pure (eC' %~ MU.real_mmcomb comb_r eC eA eB))
 {
   let n_threads = (mrows * mcols) * (bm/tm * bn);
 
@@ -362,15 +362,8 @@ fn teardown
          (i:natlt bm) (j:natlt bn) ->
       vf (tr * mcols + tc) (i * bn + j));
 
-  (* Step 14: Prove ematrix_approximates *)
+  (* Step 14: Prove approximation. *)
   with eC'. assert (gC |-> eC');
-
-  assert pure (forall (row:natlt (mrows * bm)) (col:natlt (mcols * bn)).
-    macc eC' row col %~ MU.real_gemm_single comb_r eA eB eC row col);
-
-  assert pure (forall (row:natlt (mrows * bm)) (col:natlt (mcols * bn)).
-    macc eC' row col %~ macc (MU.real_mmcomb comb_r eC eA eB) row col);
-
-  assert pure (ematrix_approximates eC' (MU.real_mmcomb comb_r eC eA eB));
+  assert pure (eC' %~ MU.real_mmcomb comb_r eC eA eB);
 }
 #pop-options

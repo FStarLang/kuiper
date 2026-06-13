@@ -15,7 +15,7 @@ module MS = Kuiper.Spec.GEMM
 module SZ = Kuiper.SizeT
 module B = Kuiper.Barrier
 
-open Kuiper.EMatrix { ematrix, macc, mkM, ematrix_approximates }
+open Kuiper.EMatrix { ematrix, macc, mkM }
 
 (* Description of shared memory used in this kernel. *)
 inline_for_extraction noextract
