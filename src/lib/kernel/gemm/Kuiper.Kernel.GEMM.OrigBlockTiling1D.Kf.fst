@@ -119,7 +119,6 @@ fn subproducts1d
   }
 }
 
-#restart-solver
 #push-options "--ifuel 1"
 
 inline_for_extraction noextract

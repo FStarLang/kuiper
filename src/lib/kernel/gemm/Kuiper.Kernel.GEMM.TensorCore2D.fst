@@ -199,7 +199,6 @@ let arrayfragments_fade
   else ematrix_subtile rAcc tm tn i j
 
 #push-options "--z3rlimit 80"
-#restart-solver // Trying to avoid infinite loop in batch mode!?
 inline_for_extraction noextract
 fn fragarray_mma
   (#et_ab #et_acc : Type0)
@@ -1151,7 +1150,6 @@ fn kf
 }
 
 #push-options "--fuel 1 --ifuel 1 --split_queries no --z3rlimit_factor 10"
-#restart-solver
 inline_for_extraction noextract
 let mk_kernel
   (#et_ab #et_c : Type0)

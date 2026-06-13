@@ -17,7 +17,6 @@ module SZ = Kuiper.SizeT
 
 include Kuiper.EMatrix.Tiling
 
-#restart-solver
 #push-options "--split_queries always --z3rlimit 20"
 inline_for_extraction noextract
 let c_subtile_layout

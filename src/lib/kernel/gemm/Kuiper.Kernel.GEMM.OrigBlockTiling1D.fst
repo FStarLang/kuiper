@@ -129,7 +129,6 @@ let block_post_gpu_sendable
 = magic() (* see above *)
 
 #push-options "--fuel 2 --ifuel 2 --z3rlimit 80"
-#restart-solver
 inline_for_extraction noextract
 let mk_kernel
   (#et : Type0) {| scalar et, real_like et |}

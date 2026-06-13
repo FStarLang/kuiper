@@ -174,7 +174,6 @@ let is_full (et:Type) (len:nat)
   = IView.full_iff_cardinal (sum_aview (even_view et len) (odd_view et len)).iview #(solve <: enumerable _)
 
 #push-options "" // "--split_queries always"
-#restart-solver
 let lem_idx1 #et (#len : nat) (i : natlt len{i % 2 = 0})
   (#_ : squash (in_image (it_to_nat (sum_aview (even_view et len) (odd_view et len))) i)) // should come from surj_lemma
   : Lemma (it_of_nat (sum_aview (even_view et len) (odd_view et len)) i == Inl #(natlt ((len + 1)/ 2)) #(natlt (len / 2)) (i / 2))

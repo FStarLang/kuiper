@@ -24,7 +24,6 @@ let from_subtiles_id
 #pop-options
 
 #push-options "--z3rlimit 20 --fuel 0 --ifuel 0 --split_queries always --retry 3"
-#restart-solver
 let tiles_from_subtiles_id
   (#et : _)
   (#rows #cols : _)

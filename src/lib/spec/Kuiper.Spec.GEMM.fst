@@ -325,7 +325,6 @@ let matmul_decompose_lemma
       trows tcolumns
       i j)
 
-#restart-solver
 #push-options "--z3rlimit 40"
 let rec __matmul_single_subtile_lemma'
   (#et : Type) {| scalar et |}
@@ -418,6 +417,7 @@ let __matmul_single_subtile_lemma
 = __matmul_single_subtile_lemma' pf2 pf3 trows tcols tshared m1 m2 i j i' j' to tshared
 #pop-options
 
+#push-options "--z3rlimit 40"
 let rec __matmul_tiles_lemma
   (#et : Type) {| scalar et |}
   (pf2 : (x:et -> squash (add x zero == x /\ add zero x == x)))  // zero is additive identity

@@ -575,7 +575,7 @@ let lemma_first_past
           (ensures  i == off + ((len - off - 1 + stride) / stride) * stride)
   = ()
 
-#push-options "--z3rlimit 40"
+#push-options "--z3rlimit 60"
 inline_for_extraction noextract
 fn sum_stride_map
   (#et:Type0) {| scalar et, real_like et |}

@@ -693,7 +693,6 @@ let ettile_mmcomb_pointwise
                       (macc (ettile (MS.matmul eA eB) bm bn tm tn bid tid) i j))
 
 #push-options "--z3rlimit 30"
-#restart-solver
 inline_for_extraction noextract
 fn epilogue
   (#et : Type0) {| scalar et |}
@@ -1377,7 +1376,6 @@ fn teardown
 }
 
 #push-options "--z3rlimit_factor 4 --split_queries no --fuel 1 --ifuel 1"
-#restart-solver
 inline_for_extraction noextract
 let mk_kernel
   (#et : Type0) {| scalar et, has_vec_cpy et |}

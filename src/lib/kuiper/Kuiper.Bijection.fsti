@@ -151,7 +151,6 @@ let sz_prod_gg (n1:SZ.t) (n2:SZ.t{SZ.fits (SZ.v n1 * SZ.v n2)})
   : szlt (SZ.v n1 * SZ.v n2) -> szlt (SZ.v n1) & szlt (SZ.v n2)
   = fun i -> (i /^ n2, i %^ n2)
 
-#restart-solver
 unfold
 let bij_sz_prod (n1:SZ.t) (n2:SZ.t{SZ.fits (SZ.v n1 * SZ.v n2)})
   : (szlt (SZ.v n1) & szlt (SZ.v n2) =~ szlt (SZ.v n1 * SZ.v n2))
