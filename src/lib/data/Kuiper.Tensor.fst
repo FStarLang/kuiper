@@ -515,6 +515,15 @@ let lem_sliceof_core
           [SMTPat (sliceof a i j)]
   = ()
 
+let lem_is_global_iff_sliceof
+  (#et : Type0) (#r : nat) (#d : idesc r)
+  (#l : tlayout d)
+  (a : tensor et l)
+  (i : natlt r) (j : natlt (d @! i))
+  : Lemma (is_global (sliceof a i j) <==> is_global a)
+          [SMTPat (sliceof a i j)]
+  = ()
+
 let tensor_slice_cell_eq
   (#et : Type0) (#r : nat) (#d : idesc r)
   (#l : tlayout d)

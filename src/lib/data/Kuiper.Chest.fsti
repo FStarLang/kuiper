@@ -116,3 +116,20 @@ val lemma_to_real_chest_approximates (#et : Type0)
   (c : chest d et)
   : Lemma (ensures c %~ to_real_chest c)
           [SMTPat (to_real_chest c)]
+
+let chest_slice
+  (#et : Type0) (#r : nat) (#d : idesc r)
+  (i : natlt r) (j : natlt (d @! i))
+  (s : chest d et)
+  : chest (modulo_i i d) et
+  = mk _ (fun (idx : abs (modulo_i i d)) ->
+            acc s ((abs_bring_forward_bij i d).gg (j, idx)))
+
+let chest_update_slice
+  (#et : Type0) (#r : nat) (#d : idesc r)
+  (i : natlt r) (j : natlt (d @! i))
+  (s : chest d et) (s' : chest (modulo_i i d) et)
+  : chest d et
+  = mk _ (fun (idx : abs d) ->
+            let (j', k) = (abs_bring_forward_bij i d).ff idx in
+            if j' = j then acc s' k else acc s idx)

@@ -43,34 +43,6 @@ type layout (d0 d1 d2 : nat) = tlayout (desc d0 d1 d2)
 
 type full_layout (d0 d1 d2 : nat) = l : layout d0 d1 d2 { is_full l }
 
-let from_seq (#et:Type) (#d0 #d1 #d2 : nat)
-  (l : full_layout d0 d1 d2)
-  (s : lseq et (d0 * d1 * d2))
-  : EMatrix3.t et d0 d1 d2
-  = EMatrix3.mkM (fun i j k -> s `Seq.index` l.imap.f (i, (j, (k, ()))))
-
-let to_seq (#et:Type) (#d0 #d1 #d2 : nat)
-  (l : full_layout d0 d1 d2)
-  (s : EMatrix3.t et d0 d1 d2)
-  : GTot (lseq et (d0 * d1 * d2))
-  = Seq.init_ghost (d0 * d1 * d2) (fun i ->
-      let x = Kuiper.Injection.inverse_f l.imap i in
-      EMatrix3.macc s x._1 x._2._1 x._2._2._1)
-
-// Odd that this seems to help.
-let to_seq_helper (#et:Type) (#d0 #d1 #d2 : nat)
-  (l : full_layout d0 d1 d2)
-  (s : EMatrix3.t et d0 d1 d2)
-  (i : natlt (d0 * d1 * d2))
-  : Lemma (to_seq l s `Seq.index` i == (let x = Kuiper.Injection.inverse_f l.imap i in EMatrix3.macc s x._1 x._2._1 x._2._2._1))
-          [SMTPat (to_seq l s `Seq.index` i)]
-  = ()
-
-val to_from (#et:Type) (#d0 #d1 #d2 : nat)
-  (l : full_layout d0 d1 d2) (s : lseq et (d0 * d1 * d2))
-  : Lemma (ensures to_seq l (from_seq l s) == s)
-          [SMTPat (to_seq l (from_seq l s))]
-
 let layout_size (#d0 #d1 #d2 : nat) (l : layout d0 d1 d2) : GTot nat = l.ulen
 
 inline_for_extraction noextract
