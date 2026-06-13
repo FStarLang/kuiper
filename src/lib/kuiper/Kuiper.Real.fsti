@@ -21,6 +21,12 @@ val lem_rmax_comm (x: real) (y: real)
 val lem_rmax_assoc (x: real) (y: real) (z: real)
   : Lemma (ensures rmax x (rmax y z) == rmax (rmax x y) z)
 
+(* Real square root, axiomatized (sound: every non-negative real has a unique
+   non-negative square root). Used to specify Euclidean norms. *)
+val realsqrt (x : real) : real
+val realsqrt_nonneg_sq (x : real{x >=. 0.0R})
+  : Lemma (ensures realsqrt x >=. 0.0R /\ realsqrt x *. realsqrt x == x)
+
 val sum_non_zero
     (s : Seq.seq real { forall (i:natlt (Seq.length s)). Seq.index s i >. 0.0R })
     (acc : real)

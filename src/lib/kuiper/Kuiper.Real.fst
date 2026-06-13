@@ -24,6 +24,12 @@ let lem_rmax_assoc (x: real) (y: real) (z: real)
   : Lemma (ensures rmax x (rmax y z) == rmax (rmax x y) z)
   = ()
 
+(* Real square root: an abstract primitive whose defining property is assumed
+   for non-negative inputs (FStar.Real only provides sqrt_2). *)
+assume val realsqrt0 : real -> real
+let realsqrt = realsqrt0
+let realsqrt_nonneg_sq x = admit ()
+
 let rec sum_non_zero
     (s : Seq.seq real { forall (i:natlt (Seq.length s)). Seq.index s i >. 0.0R })
     (acc : real)
