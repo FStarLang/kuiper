@@ -64,7 +64,7 @@ let rec conc #n (i : idesc n) : Type0 =
   | INil -> unit
   | ICons h ts -> szlt h & conc ts
 
-[@@strict_on_arguments [1]]
+[@@strict_on_arguments [1]; Pulse.pulse_unfold]
 let rec up #n (#d : idesc n) (v : conc d) : GTot (abs d) =
   match d with
   | INil -> ()

@@ -53,3 +53,23 @@ let ctlayout_must_fit (#r : nat) (#d : idesc r) (#l : tlayout d)
   : Lemma (ensures SZ.fits (sizeof d))
           [SMTPat (has_type c (ctlayout #r #d l))]
   = ()
+
+let size_layout_1 (d : nat)
+  : Lemma (sizeof (d @| INil) == d)
+          [SMTPat (sizeof (d @| INil))]
+  = ()
+
+let size_layout_2 (d1 d2 : nat)
+  : Lemma (sizeof (d1 @| d2 @| INil) == d1 * d2)
+          [SMTPat (sizeof (d1 @| d2 @| INil))]
+  = ()
+
+let size_layout_3 (d1 d2 d3 : nat)
+  : Lemma (sizeof (d1 @| d2 @| d3 @| INil) == d1 * d2 * d3)
+          [SMTPat (sizeof (d1 @| d2 @| d3 @| INil))]
+  = ()
+
+let size_layout_4 (d1 d2 d3 d4 : nat)
+  : Lemma (sizeof (d1 @| d2 @| d3 @| d4 @| INil) == d1 * d2 * d3 * d4)
+          [SMTPat (sizeof (d1 @| d2 @| d3 @| d4 @| INil))]
+  = ()

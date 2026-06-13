@@ -122,6 +122,18 @@ fn tensor_pts_to_ref
     pure (SZ.fits (tlayout_size l))
 
 ghost
+fn tensor_pts_to_ref_located
+  (#et : Type0) (#r : nat) (#d : idesc r)
+  (#l : tlayout d)
+  (a : tensor et l)
+  (#loc : loc_id)
+  (#f : perm) (#s : chest d et)
+  preserves
+    on loc (a |-> Frac f s)
+  ensures
+    pure (SZ.fits (tlayout_size l))
+
+ghost
 fn tensor_pts_to_eq
   (#et : Type0) (#r : nat) (#d : idesc r)
   (#l : tlayout d)

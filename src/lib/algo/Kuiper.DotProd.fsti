@@ -11,6 +11,10 @@ open Kuiper.EMatrix
 module MS = Kuiper.Spec.GEMM
 module Array1 = Kuiper.Array1
 open Kuiper.Sum { sum }
+open Kuiper.Tensor
+open Kuiper.Index { ( @| ), INil }
+open Kuiper.Chest { chest, chest_slice }
+open Kuiper.Container
 
 (* A simple dot product spec over sequences.
    For reals, equivalent to Kuiper.Sum.sum (see seq_dotprod_is_sum). *)
@@ -139,3 +143,72 @@ fn matmul_kahan_dotprod
     res : et
   ensures
     pure (res %~ MS.matmul_single rA rB i j)
+
+
+(***** Below, similar but for tensors and chest *)
+
+let rec edotprod' (#et : Type0) {| scalar et |}
+  (a b : chest1 et 'n) (k : nat{k <= 'n})
+  : GTot et (decreases k)
+  = if k = 0 then zero
+    else add (edotprod' a b (k-1)) (mul (Chest.acc a (k-1, ())) (Chest.acc b (k-1, ())))
+
+let edotprod (#et : Type0) {| scalar et |}
+  (a b : chest1 et 'n)
+  : GTot et
+  = edotprod' a b 'n
+
+val edotprod_is_matmul_single
+  (#et : Type0) {| scalar et |}
+  (#rows #shared #cols : nat)
+  (eA : ematrix et rows shared) (eB : ematrix et shared cols)
+  (i : natlt rows) (j : natlt cols)
+  (k : nat{k <= shared})
+  : Lemma (ensures
+            edotprod' #shared #_ #_ (chest_slice 0 i eA) (chest_slice 1 j eB) k
+            ==
+            MS.__matmul_single eA eB i j k)
+          (decreases k)
+          [SMTPat (edotprod' #shared (chest_slice 0 i eA) (chest_slice 1 j eB) k)]
+
+inline_for_extraction noextract
+fn dotprod_t
+  (#et : Type0) {| scalar et |}
+  (#len : sz)
+  (#lA #lB : layout1 len)
+  {| ctlayout lA, ctlayout lB |}
+  (a : tensor et lA)
+  (b : tensor et lB)
+  (#sA #sB : erased (chest1 et len))
+  (#fA #fB : perm)
+  preserves
+    gpu **
+    a |-> Frac fA sA **
+    b |-> Frac fB sB
+  returns
+    res : et
+  ensures
+    pure (res == edotprod sA sB)
+
+(* As matmul dotprod but for tensors *)
+inline_for_extraction noextract
+fn matmul_dotprod_t
+  (#et : Type0) {| scalar et |}
+  (#m #n #k : sz)
+  (#lA : tlayout (m @| k @| INil))
+  (#lB : tlayout (k @| n @| INil))
+  {| ctlayout lA, ctlayout lB |}
+  (gA : tensor et lA)
+  (gB : tensor et lB)
+  (i : szlt m)
+  (j : szlt n)
+  (#eA #eB : chest _ et)
+  (#fA #fB : perm)
+  preserves
+    gpu **
+    gA |-> Frac fA eA **
+    gB |-> Frac fB eB
+  returns
+    res : et
+  ensures
+    pure (res == MS.matmul_single eA eB i j)

@@ -7,6 +7,7 @@ open Kuiper.Tensor { ctlayout }
 module Array1 = Kuiper.Array1
 module SZ = Kuiper.SizeT
 open Kuiper.Sum { sum, sum_pop_right }
+open Kuiper.Chest { chest_slice }
 
 #push-options "--fuel 4 --ifuel 2 --z3rlimit 20"
 let rec seq_dotprod_is_sum
@@ -186,4 +187,96 @@ fn matmul_kahan_dotprod
   Array2.restore_col gB j;
 
   s;
+}
+
+let rec edotprod_is_matmul_single
+  (#et : Type0) {| scalar et |}
+  (#rows #shared #cols : nat)
+  (eA : ematrix et rows shared) (eB : ematrix et shared cols)
+  (i : natlt rows) (j : natlt cols)
+  (k : nat{k <= shared})
+  : Lemma (ensures
+            edotprod' #shared #_ #_ (chest_slice 0 i eA) (chest_slice 1 j eB) k
+            ==
+            MS.__matmul_single eA eB i j k)
+          (decreases k)
+          [SMTPat (edotprod' #shared (chest_slice 0 i eA) (chest_slice 1 j eB) k)]
+  = if k > 0 then begin
+      edotprod_is_matmul_single eA eB i j (k-1);
+      assert (Chest.acc (chest_slice 0 i eA) ((k-1 <: natlt shared), ()) == macc eA i (k-1));
+      assert (Chest.acc (chest_slice 1 j eB) ((k-1 <: natlt shared), ()) == macc eB (k-1) j);
+      MS.matmul_single_lemma eA eB i j k
+    end
+
+
+inline_for_extraction noextract
+fn dotprod_t
+  (#et : Type0) {| scalar et |}
+  (#len : sz)
+  (#lA #lB : layout1 len)
+  {| ctlayout lA, ctlayout lB |}
+  (a : tensor et lA)
+  (b : tensor et lB)
+  (#sA #sB : erased (chest1 et len))
+  (#fA #fB : perm)
+  preserves
+    gpu **
+    a |-> Frac fA sA **
+    b |-> Frac fB sB
+  returns
+    res : et
+  ensures
+    pure (res == edotprod sA sB)
+{
+  let mut k : szle len = 0sz;
+  let mut sum : et = zero;
+
+  while (!k <^ len)
+    invariant live k
+    invariant sum |-> edotprod' sA sB !k
+    decreases (len - !k)
+  {
+    let vk = !k;
+    let vk : szlt len = vk;
+    sum := !sum `add` mul (tensor_read a (vk, ())) (tensor_read b (vk, ()));
+    k   := !k +^ 1sz;
+  };
+  !sum
+}
+
+(* As matmul dotprod but for tensors *)
+inline_for_extraction noextract
+fn matmul_dotprod_t
+  (#et : Type0) {| scalar et |}
+  (#m #n #k : sz)
+  (#lA : tlayout (m @| k @| INil))
+  (#lB : tlayout (k @| n @| INil))
+  {| ctlayout lA, ctlayout lB |}
+  (gA : tensor et lA)
+  (gB : tensor et lB)
+  (i : szlt m)
+  (j : szlt n)
+  (#eA #eB : chest _ et)
+  (#fA #fB : perm)
+  preserves
+    gpu **
+    gA |-> Frac fA eA **
+    gB |-> Frac fB eB
+  returns
+    res : et
+  ensures
+    pure (res == MS.matmul_single eA eB i j)
+{
+  tensor_extract_slice_ro gA 0 i;
+  tensor_extract_slice_ro gB 1 j;
+
+  let s = dotprod_t #_ #_ #_ #_ #_
+           #(Kuiper.Tensor.ctlayout_slice _ 0sz i) // should not be needed
+           #(Kuiper.Tensor.ctlayout_slice _ 1sz j) // should not be needed
+           (sliceof gA 0 (SZ.v i)) (sliceof gB 1 (SZ.v j));
+
+  tensor_restore_slice gA 0 i;
+  tensor_restore_slice gB 1 j;
+
+  s
 }
