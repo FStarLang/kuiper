@@ -237,8 +237,7 @@ fn dotprod_t
     decreases (len - !k)
   {
     let vk = !k;
-    let vk : szlt len = vk;
-    sum := !sum `add` mul (tensor_read a (vk, ())) (tensor_read b (vk, ()));
+    sum := !sum `add` mul (tensor_read a ((vk <: szlt len), ())) (tensor_read b ((vk <: szlt len), ()));
     k   := !k +^ 1sz;
   };
   !sum
@@ -274,6 +273,100 @@ fn matmul_dotprod_t
            #(Kuiper.Tensor.ctlayout_slice _ 0sz i) // should not be needed
            #(Kuiper.Tensor.ctlayout_slice _ 1sz j) // should not be needed
            (sliceof gA 0 (SZ.v i)) (sliceof gB 1 (SZ.v j));
+
+  tensor_restore_slice gA 0 i;
+  tensor_restore_slice gB 1 j;
+
+  s
+}
+
+(* For reals, the chest dot product equals Kuiper.Sum.sum (mirrors
+   seq_dotprod_is_sum). Internal helper for the Kahan variant. *)
+#push-options "--fuel 4 --ifuel 2 --z3rlimit 20"
+let rec edotprod_is_sum
+  (#n : nat)
+  (a b : chest1 real n)
+  (k : nat{k <= n})
+  : Lemma (ensures
+            edotprod' a b k
+            ==
+            sum 0 k (fun (i : natlt n) -> (Chest.acc a (i, ())) *. (Chest.acc b (i, ()))))
+          (decreases k)
+  = if k > 0 then begin
+      edotprod_is_sum a b (k-1);
+      sum_pop_right 0 k (fun (i : natlt n) -> (Chest.acc a (i, ())) *. (Chest.acc b (i, ())))
+    end
+#pop-options
+
+(* As kahan_dotprod but for tensors. *)
+inline_for_extraction noextract
+fn kahan_dotprod_t
+  (#et : Type0) {| floating et, real_like et, floating_real_like et |}
+  (#len : sz)
+  (#lA #lB : layout1 len)
+  {| ctlayout lA, ctlayout lB |}
+  (a : tensor et lA)
+  (b : tensor et lB)
+  (#sA #sB : erased (chest1 et len))
+  (rA rB : erased (chest1 real len))
+  (#fA #fB : perm)
+  preserves
+    gpu **
+    a |-> Frac fA sA **
+    b |-> Frac fB sB
+  requires
+    pure (sA %~ rA /\ sB %~ rB)
+  returns
+    res : et
+  ensures
+    pure (res %~ edotprod rA rB)
+{
+  let res =
+    Kuiper.Kahan.kahan_sum #et
+      len
+      (gpu ** a |-> Frac fA sA ** b |-> Frac fB sB)
+      (fun (i : natlt len) -> (Chest.acc rA (i, ())) *. (Chest.acc rB (i, ())))
+      fn (i : szlt len) {
+        mul (tensor_read a (i, ())) (tensor_read b (i, ()));
+      };
+  edotprod_is_sum rA rB len;
+  res
+}
+
+(* As matmul_kahan_dotprod but for tensors. *)
+inline_for_extraction noextract
+fn matmul_kahan_dotprod_t
+  (#et : Type0) {| floating et, real_like et, floating_real_like et |}
+  (#m #n #k : sz)
+  (#lA : tlayout (m @| k @| INil))
+  (#lB : tlayout (k @| n @| INil))
+  {| ctlayout lA, ctlayout lB |}
+  (gA : tensor et lA)
+  (gB : tensor et lB)
+  (i : szlt m)
+  (j : szlt n)
+  (#eA #eB : chest _ et)
+  (rA rB : chest _ real)
+  (#fA #fB : perm)
+  preserves
+    gpu **
+    gA |-> Frac fA eA **
+    gB |-> Frac fB eB
+  requires
+    pure (eA %~ rA /\ eB %~ rB)
+  returns
+    res : et
+  ensures
+    pure (res %~ MS.matmul_single rA rB i j)
+{
+  tensor_extract_slice_ro gA 0 i;
+  tensor_extract_slice_ro gB 1 j;
+
+  let s = kahan_dotprod_t #_ #_ #_ #_ #_ #_ #_
+           #(Kuiper.Tensor.ctlayout_slice _ 0sz i) // should not be needed
+           #(Kuiper.Tensor.ctlayout_slice _ 1sz j) // should not be needed
+           (sliceof gA 0 (SZ.v i)) (sliceof gB 1 (SZ.v j))
+           (chest_slice 0 i rA) (chest_slice 1 j rB);
 
   tensor_restore_slice gA 0 i;
   tensor_restore_slice gB 1 j;

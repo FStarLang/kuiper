@@ -1,5 +1,5 @@
 
-#include "Klas_GEMM_Naive2.h"
+#include "Klas_GEMM_NaiveT2.h"
 
 __global__
 /**
@@ -16,17 +16,17 @@ __hoisted_g_matmul_f32_rrr_0(uint32_t m,
         uint32_t k1 = 0U;
         float sum = 0.0f;
         for (; k1 < k; k1++) {
-            uint32_t vk = k1;
-            sum += gA[trow * k + vk] * gB[vk * n + tcol];
+            uint32_t vk1 = k1;
+            sum += gA[trow * k + vk1] * gB[vk1 * n + tcol];
         }
         gC[trow * n + tcol] = sum;
     }
 }
 
 void
-Klas_GEMM_Naive2_g_matmul_f32_rrr(uint32_t m,
-                                  uint32_t n,
-                                  uint32_t k, float *gA, float *gB, float *gC)
+Klas_GEMM_NaiveT2_g_matmul_f32_rrr(uint32_t m,
+                                   uint32_t n,
+                                   uint32_t k, float *gA, float *gB, float *gC)
 {
     KPR_KCALL(__hoisted_g_matmul_f32_rrr_0,
               m * n / 1024U + (uint32_t) (m * n % 1024U != 0U),
@@ -49,18 +49,18 @@ __hoisted_g_matmul_f64_rrr_0(uint32_t m,
         uint32_t k1 = 0U;
         double sum = 0.0;
         for (; k1 < k; k1++) {
-            uint32_t vk = k1;
-            sum += gA[trow * k + vk] * gB[vk * n + tcol];
+            uint32_t vk1 = k1;
+            sum += gA[trow * k + vk1] * gB[vk1 * n + tcol];
         }
         gC[trow * n + tcol] = sum;
     }
 }
 
 void
-Klas_GEMM_Naive2_g_matmul_f64_rrr(uint32_t m,
-                                  uint32_t n,
-                                  uint32_t k,
-                                  double *gA, double *gB, double *gC)
+Klas_GEMM_NaiveT2_g_matmul_f64_rrr(uint32_t m,
+                                   uint32_t n,
+                                   uint32_t k,
+                                   double *gA, double *gB, double *gC)
 {
     KPR_KCALL(__hoisted_g_matmul_f64_rrr_0,
               m * n / 1024U + (uint32_t) (m * n % 1024U != 0U),
@@ -84,18 +84,18 @@ __hoisted_g_matmul_u32_rrr_0(uint32_t m,
         uint32_t k1 = 0U;
         uint32_t sum = 0U;
         for (; k1 < k; k1++) {
-            uint32_t vk = k1;
-            sum += gA[trow * k + vk] * gB[vk * n + tcol];
+            uint32_t vk1 = k1;
+            sum += gA[trow * k + vk1] * gB[vk1 * n + tcol];
         }
         gC[trow * n + tcol] = sum;
     }
 }
 
 void
-Klas_GEMM_Naive2_g_matmul_u32_rrr(uint32_t m,
-                                  uint32_t n,
-                                  uint32_t k,
-                                  uint32_t *gA, uint32_t *gB, uint32_t *gC)
+Klas_GEMM_NaiveT2_g_matmul_u32_rrr(uint32_t m,
+                                   uint32_t n,
+                                   uint32_t k,
+                                   uint32_t *gA, uint32_t *gB, uint32_t *gC)
 {
     KPR_KCALL(__hoisted_g_matmul_u32_rrr_0,
               m * n / 1024U + (uint32_t) (m * n % 1024U != 0U),
@@ -119,18 +119,18 @@ __hoisted_g_matmul_u64_rrr_0(uint32_t m,
         uint32_t k1 = 0U;
         uint64_t sum = 0ULL;
         for (; k1 < k; k1++) {
-            uint32_t vk = k1;
-            sum += gA[trow * k + vk] * gB[vk * n + tcol];
+            uint32_t vk1 = k1;
+            sum += gA[trow * k + vk1] * gB[vk1 * n + tcol];
         }
         gC[trow * n + tcol] = sum;
     }
 }
 
 void
-Klas_GEMM_Naive2_g_matmul_u64_rrr(uint32_t m,
-                                  uint32_t n,
-                                  uint32_t k,
-                                  uint64_t *gA, uint64_t *gB, uint64_t *gC)
+Klas_GEMM_NaiveT2_g_matmul_u64_rrr(uint32_t m,
+                                   uint32_t n,
+                                   uint32_t k,
+                                   uint64_t *gA, uint64_t *gB, uint64_t *gC)
 {
     KPR_KCALL(__hoisted_g_matmul_u64_rrr_0,
               m * n / 1024U + (uint32_t) (m * n % 1024U != 0U),
@@ -153,17 +153,17 @@ __hoisted_g_matmul_f32_ccc_0(uint32_t m,
         uint32_t k1 = 0U;
         float sum = 0.0f;
         for (; k1 < k; k1++) {
-            uint32_t vk = k1;
-            sum += gA[vk * m + trow] * gB[tcol * k + vk];
+            uint32_t vk1 = k1;
+            sum += gA[vk1 * m + trow] * gB[tcol * k + vk1];
         }
         gC[tcol * m + trow] = sum;
     }
 }
 
 void
-Klas_GEMM_Naive2_g_matmul_f32_ccc(uint32_t m,
-                                  uint32_t n,
-                                  uint32_t k, float *gA, float *gB, float *gC)
+Klas_GEMM_NaiveT2_g_matmul_f32_ccc(uint32_t m,
+                                   uint32_t n,
+                                   uint32_t k, float *gA, float *gB, float *gC)
 {
     KPR_KCALL(__hoisted_g_matmul_f32_ccc_0,
               m * n / 1024U + (uint32_t) (m * n % 1024U != 0U),
@@ -186,18 +186,18 @@ __hoisted_g_matmul_f64_ccc_0(uint32_t m,
         uint32_t k1 = 0U;
         double sum = 0.0;
         for (; k1 < k; k1++) {
-            uint32_t vk = k1;
-            sum += gA[vk * m + trow] * gB[tcol * k + vk];
+            uint32_t vk1 = k1;
+            sum += gA[vk1 * m + trow] * gB[tcol * k + vk1];
         }
         gC[tcol * m + trow] = sum;
     }
 }
 
 void
-Klas_GEMM_Naive2_g_matmul_f64_ccc(uint32_t m,
-                                  uint32_t n,
-                                  uint32_t k,
-                                  double *gA, double *gB, double *gC)
+Klas_GEMM_NaiveT2_g_matmul_f64_ccc(uint32_t m,
+                                   uint32_t n,
+                                   uint32_t k,
+                                   double *gA, double *gB, double *gC)
 {
     KPR_KCALL(__hoisted_g_matmul_f64_ccc_0,
               m * n / 1024U + (uint32_t) (m * n % 1024U != 0U),
@@ -221,18 +221,18 @@ __hoisted_g_matmul_u32_ccc_0(uint32_t m,
         uint32_t k1 = 0U;
         uint32_t sum = 0U;
         for (; k1 < k; k1++) {
-            uint32_t vk = k1;
-            sum += gA[vk * m + trow] * gB[tcol * k + vk];
+            uint32_t vk1 = k1;
+            sum += gA[vk1 * m + trow] * gB[tcol * k + vk1];
         }
         gC[tcol * m + trow] = sum;
     }
 }
 
 void
-Klas_GEMM_Naive2_g_matmul_u32_ccc(uint32_t m,
-                                  uint32_t n,
-                                  uint32_t k,
-                                  uint32_t *gA, uint32_t *gB, uint32_t *gC)
+Klas_GEMM_NaiveT2_g_matmul_u32_ccc(uint32_t m,
+                                   uint32_t n,
+                                   uint32_t k,
+                                   uint32_t *gA, uint32_t *gB, uint32_t *gC)
 {
     KPR_KCALL(__hoisted_g_matmul_u32_ccc_0,
               m * n / 1024U + (uint32_t) (m * n % 1024U != 0U),
@@ -256,18 +256,18 @@ __hoisted_g_matmul_u64_ccc_0(uint32_t m,
         uint32_t k1 = 0U;
         uint64_t sum = 0ULL;
         for (; k1 < k; k1++) {
-            uint32_t vk = k1;
-            sum += gA[vk * m + trow] * gB[tcol * k + vk];
+            uint32_t vk1 = k1;
+            sum += gA[vk1 * m + trow] * gB[tcol * k + vk1];
         }
         gC[tcol * m + trow] = sum;
     }
 }
 
 void
-Klas_GEMM_Naive2_g_matmul_u64_ccc(uint32_t m,
-                                  uint32_t n,
-                                  uint32_t k,
-                                  uint64_t *gA, uint64_t *gB, uint64_t *gC)
+Klas_GEMM_NaiveT2_g_matmul_u64_ccc(uint32_t m,
+                                   uint32_t n,
+                                   uint32_t k,
+                                   uint64_t *gA, uint64_t *gB, uint64_t *gC)
 {
     KPR_KCALL(__hoisted_g_matmul_u64_ccc_0,
               m * n / 1024U + (uint32_t) (m * n % 1024U != 0U),

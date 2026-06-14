@@ -2,12 +2,12 @@ module Kuiper.Kernel.BatchedGEMM
 
 #lang-pulse
 open Kuiper
-open Kuiper.Array3
-module Array3 = Kuiper.Array3
 open Kuiper.Tensor.Layout.Alg
-module SZ = Kuiper.SizeT
 open Kuiper.EMatrix { ematrix }
+open Kuiper.Chest
 open Pulse.Lib.Trade
+open Kuiper.Tensor
+module SZ = Kuiper.SizeT
 module T = Kuiper.Tensor
 module MS = Kuiper.Spec.GEMM
 module P  = Kuiper.Kernel.GEMM.Naive2
@@ -15,8 +15,8 @@ module P  = Kuiper.Kernel.GEMM.Naive2
 inline_for_extraction noextract
 fn batched_gemm_f32
   (batch rows shared cols : szp)
-  (a : Array3.t f32 (l3_batched_row_major batch rows shared) { Array3.is_global a })
-  (b : Array3.t f32 (l3_batched_row_major batch shared cols) { Array3.is_global b })
+  (a : tensor f32 (l3_batched_row_major batch rows shared) { is_global a })
+  (b : tensor f32 (l3_batched_row_major batch shared cols) { is_global b })
   (#sa : erased (EMatrix3.t f32 batch rows shared))
   (#sb : erased (EMatrix3.t f32 batch shared cols))
   (#fA #fB : perm)
@@ -31,15 +31,15 @@ fn batched_gemm_f32
       SZ.fits (batch * rows * cols)
     )
   returns
-    out : Array3.t f32 (l3_batched_row_major batch rows cols)
+    out : tensor f32 (l3_batched_row_major batch rows cols)
   ensures
     on gpu_loc (out |-> batched_matmul sa sb) **
-    pure (Array3.is_global out)
+    pure (is_global out)
 {
-  Array3.pts_to_ref_located a;
-  Array3.pts_to_ref_located b;
+  tensor_pts_to_ref_located a;
+  tensor_pts_to_ref_located b;
   (* Allocate output Array3 on GPU *)
-  let out = Array3.alloc0 #f32 batch rows cols (l3_batched_row_major batch rows cols);
+  let out = alloc0 #f32 (batch *^ rows *^ cols) (l3_batched_row_major batch rows cols);
   with sc0. assert on gpu_loc (out |-> sc0);
 
   (* Batch loop. Invariant: all pages < vi have been overwritten with the
@@ -61,12 +61,12 @@ fn batched_gemm_f32
   {
     let i = !idx;
 
-    map_loc gpu_loc (fun () -> Array3.extract_page_ro a i);
-    map_loc gpu_loc (fun () -> Array3.extract_page_ro b i);
+    map_loc gpu_loc (fun () -> tensor_extract_slice_ro a 0 i);
+    map_loc gpu_loc (fun () -> tensor_extract_slice_ro b 0 i);
 
     (* This one is not RO. *)
     with sc. assert on gpu_loc (out |-> sc);
-    map_loc gpu_loc (fun () -> Array3.extract_page out i);
+    map_loc gpu_loc (fun () -> tensor_extract_slice out 0 i);
 
     (* 4. Launch verified GEMM on the pages *)
     P.mmcomb_gpu_exact MS.comb2
@@ -75,34 +75,42 @@ fn batched_gemm_f32
       #(T.ctlayout_slice _ 0sz i) // should not be needed
       #(T.ctlayout_slice _ 0sz i) // should not be needed
       #(T.ctlayout_slice _ 0sz i) // should not be needed
-      (Array3.page a (SZ.v i))
-      (Array3.page b (SZ.v i))
-      (Array3.page out (SZ.v i));
+      (sliceof a 0 (SZ.v i))
+      (sliceof b 0 (SZ.v i))
+      (sliceof out 0 (SZ.v i));
 
     (* 4. Restore out: recombine page with its forall*/trade wand. The page
           now holds `mmcomb comb2 (slice_page sc i) ... == matmul ...`
           (by MS.matmul_is_gemm SMTPat). *)
-    with eC. assert on gpu_loc (Array3.page out (SZ.v i) |-> eC);
+    with eC. assert on gpu_loc (sliceof out 0 (SZ.v i) |-> eC);
+    open Kuiper.Index;
+    assert pure (modulo_i 0 (batch @| rows @| cols @| INil) == (rows @| cols @| INil));
+    assert
+      on gpu_loc
+        (forall* (s' : chest (modulo_i 0 (batch @| rows @| cols @| INil)) f32).
+          sliceof out 0 (SZ.v i) |-> s' @==>
+          out |-> chest_update_slice 0 i sc s');
+
     map_loc gpu_loc
-      #(Array3.page out (SZ.v i) |-> eC **
-        (forall* (s' : ematrix f32 rows cols).
-          Array3.page out (SZ.v i) |-> s' @==>
-          out |-> EMatrix3.upd_page sc i s'))
+      #(sliceof out 0 (SZ.v i) |-> eC **
+        (forall* (s' : chest (modulo_i 0 (batch @| rows @| cols @| INil)) f32).
+          sliceof out 0 (SZ.v i) |-> s' @==>
+          out |-> chest_update_slice 0 i sc s'))
       #(out |-> EMatrix3.upd_page sc i eC)
       fn () {
-        elim_forall eC;
+        // FIXME: somehow need the cast
+        elim_forall (eC <: chest (modulo_i 0 (batch @| rows @| cols @| INil)) f32);
         elim_trade _ _;
+        ()
       };
 
     (* 5. Restore a+b: recombine pages with trades, then elim trades *)
     map_loc gpu_loc (fun () ->
-        elim_trade
-          (Array3.page a (SZ.v i) |-> Frac fA (EMatrix3.slice_page sa (SZ.v i)))
-          (a |-> Frac fA sa));
+      elim_trade (sliceof a 0 (SZ.v i) |-> Frac fA (chest_slice 0 i sa)) (a |-> Frac fA sa)
+    );
     map_loc gpu_loc (fun () ->
-        elim_trade
-          (Array3.page b (SZ.v i) |-> Frac fB (EMatrix3.slice_page sb (SZ.v i)))
-          (b |-> Frac fB sb));
+      elim_trade (sliceof b 0 (SZ.v i) |-> Frac fB (chest_slice 0 i sb)) (b |-> Frac fB sb)
+    );
 
     idx := !idx +^ 1sz;
   };

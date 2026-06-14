@@ -35,8 +35,9 @@ static void __hoisted_matmul_dist_gpu_0(uint32_t size, uint16_t *a, uint16_t *b)
         uint32_t k = 0U;
         uint16_t sum = 0U;
         for (; k < size; k++) {
-            uint16_t __anf4 = sum;
-            sum = add_(__anf4, mult(a[trow * size + k], a[k * size + tcol]));
+            uint32_t vk = k;
+            uint16_t __anf2 = sum;
+            sum = add_(__anf2, mult(a[trow * size + vk], a[vk * size + tcol]));
         }
         uint16_t s = sum;
         b[trow * size + tcol] = add_(b[trow * size + tcol], s);

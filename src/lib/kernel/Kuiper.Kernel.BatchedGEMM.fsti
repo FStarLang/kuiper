@@ -7,8 +7,7 @@ module Kuiper.Kernel.BatchedGEMM
 
 #lang-pulse
 open Kuiper
-open Kuiper.Array3
-module Array3 = Kuiper.Array3
+open Kuiper.Tensor
 open Kuiper.Tensor.Layout.Alg
 module EM = Kuiper.EMatrix
 module EMatrix3 = Kuiper.EMatrix3
@@ -30,8 +29,8 @@ let batched_matmul
 inline_for_extraction noextract
 fn batched_gemm_f32
   (batch rows shared cols : szp)
-  (a : Array3.t f32 (l3_batched_row_major batch rows shared) { Array3.is_global a })
-  (b : Array3.t f32 (l3_batched_row_major batch shared cols) { Array3.is_global b })
+  (a : tensor f32 (l3_batched_row_major batch rows shared) { is_global a })
+  (b : tensor f32 (l3_batched_row_major batch shared cols) { is_global b })
   (#sa : erased (EMatrix3.t f32 batch rows shared))
   (#sb : erased (EMatrix3.t f32 batch shared cols))
   (#fA #fB : perm)
@@ -42,11 +41,11 @@ fn batched_gemm_f32
     on gpu_loc (b |-> Frac fB sb)
   requires
     pure (
-      rows * cols <= max_blocks * max_threads /\
+      rows * cols <= max_blocks * max_threads  /\
       SZ.fits (batch * rows * cols)
     )
   returns
-    out : Array3.t f32 (l3_batched_row_major batch rows cols)
+    out : tensor f32 (l3_batched_row_major batch rows cols)
   ensures
     on gpu_loc (out |-> batched_matmul sa sb) **
-    pure (Array3.is_global out)
+    pure (is_global out)

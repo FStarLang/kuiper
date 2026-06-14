@@ -212,3 +212,52 @@ fn matmul_dotprod_t
     res : et
   ensures
     pure (res == MS.matmul_single eA eB i j)
+
+(* As kahan_dotprod but for tensors. *)
+inline_for_extraction noextract
+fn kahan_dotprod_t
+  (#et : Type0) {| floating et, real_like et, floating_real_like et |}
+  (#len : sz)
+  (#lA #lB : layout1 len)
+  {| ctlayout lA, ctlayout lB |}
+  (a : tensor et lA)
+  (b : tensor et lB)
+  (#sA #sB : erased (chest1 et len))
+  (rA rB : erased (chest1 real len))
+  (#fA #fB : perm)
+  preserves
+    gpu **
+    a |-> Frac fA sA **
+    b |-> Frac fB sB
+  requires
+    pure (sA %~ rA /\ sB %~ rB)
+  returns
+    res : et
+  ensures
+    pure (res %~ edotprod rA rB)
+
+(* As matmul_kahan_dotprod but for tensors. *)
+inline_for_extraction noextract
+fn matmul_kahan_dotprod_t
+  (#et : Type0) {| floating et, real_like et, floating_real_like et |}
+  (#m #n #k : sz)
+  (#lA : tlayout (m @| k @| INil))
+  (#lB : tlayout (k @| n @| INil))
+  {| ctlayout lA, ctlayout lB |}
+  (gA : tensor et lA)
+  (gB : tensor et lB)
+  (i : szlt m)
+  (j : szlt n)
+  (#eA #eB : chest _ et)
+  (rA rB : chest _ real)
+  (#fA #fB : perm)
+  preserves
+    gpu **
+    gA |-> Frac fA eA **
+    gB |-> Frac fB eB
+  requires
+    pure (eA %~ rA /\ eB %~ rB)
+  returns
+    res : et
+  ensures
+    pure (res %~ MS.matmul_single rA rB i j)

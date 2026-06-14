@@ -13,8 +13,10 @@ __hoisted_g_matmul_f32_rrr_0(uint32_t n, uint32_t k, float *gA, float *gB,
     uint32_t tcol = blockIdx.x % n;
     uint32_t k1 = 0U;
     float sum = 0.0f;
-    for (; k1 < k; k1++)
-        sum += gA[trow * k + k1] * gB[k1 * n + tcol];
+    for (; k1 < k; k1++) {
+        uint32_t vk = k1;
+        sum += gA[trow * k + vk] * gB[vk * n + tcol];
+    }
     gC[trow * n + tcol] = sum;
 }
 
@@ -39,8 +41,10 @@ __hoisted_g_matmul_f64_rrr_0(uint32_t n, uint32_t k, double *gA, double *gB,
     uint32_t tcol = blockIdx.x % n;
     uint32_t k1 = 0U;
     double sum = 0.0;
-    for (; k1 < k; k1++)
-        sum += gA[trow * k + k1] * gB[k1 * n + tcol];
+    for (; k1 < k; k1++) {
+        uint32_t vk = k1;
+        sum += gA[trow * k + vk] * gB[vk * n + tcol];
+    }
     gC[trow * n + tcol] = sum;
 }
 
@@ -65,8 +69,10 @@ __hoisted_g_matmul_u32_rrr_0(uint32_t n, uint32_t k, uint32_t *gA, uint32_t *gB,
     uint32_t tcol = blockIdx.x % n;
     uint32_t k1 = 0U;
     uint32_t sum = 0U;
-    for (; k1 < k; k1++)
-        sum += gA[trow * k + k1] * gB[k1 * n + tcol];
+    for (; k1 < k; k1++) {
+        uint32_t vk = k1;
+        sum += gA[trow * k + vk] * gB[vk * n + tcol];
+    }
     gC[trow * n + tcol] = sum;
 }
 
@@ -92,8 +98,10 @@ __hoisted_g_matmul_u64_rrr_0(uint32_t n, uint32_t k, uint64_t *gA, uint64_t *gB,
     uint32_t tcol = blockIdx.x % n;
     uint32_t k1 = 0U;
     uint64_t sum = 0ULL;
-    for (; k1 < k; k1++)
-        sum += gA[trow * k + k1] * gB[k1 * n + tcol];
+    for (; k1 < k; k1++) {
+        uint32_t vk = k1;
+        sum += gA[trow * k + vk] * gB[vk * n + tcol];
+    }
     gC[trow * n + tcol] = sum;
 }
 
@@ -120,8 +128,10 @@ __hoisted_g_matmul_f32_ccc_0(uint32_t m,
     uint32_t tcol = blockIdx.x % n;
     uint32_t k1 = 0U;
     float sum = 0.0f;
-    for (; k1 < k; k1++)
-        sum += gA[k1 * m + trow] * gB[tcol * k + k1];
+    for (; k1 < k; k1++) {
+        uint32_t vk = k1;
+        sum += gA[vk * m + trow] * gB[tcol * k + vk];
+    }
     gC[tcol * m + trow] = sum;
 }
 
@@ -147,8 +157,10 @@ __hoisted_g_matmul_f64_ccc_0(uint32_t m,
     uint32_t tcol = blockIdx.x % n;
     uint32_t k1 = 0U;
     double sum = 0.0;
-    for (; k1 < k; k1++)
-        sum += gA[k1 * m + trow] * gB[tcol * k + k1];
+    for (; k1 < k; k1++) {
+        uint32_t vk = k1;
+        sum += gA[vk * m + trow] * gB[tcol * k + vk];
+    }
     gC[tcol * m + trow] = sum;
 }
 
@@ -175,8 +187,10 @@ __hoisted_g_matmul_u32_ccc_0(uint32_t m,
     uint32_t tcol = blockIdx.x % n;
     uint32_t k1 = 0U;
     uint32_t sum = 0U;
-    for (; k1 < k; k1++)
-        sum += gA[k1 * m + trow] * gB[tcol * k + k1];
+    for (; k1 < k; k1++) {
+        uint32_t vk = k1;
+        sum += gA[vk * m + trow] * gB[tcol * k + vk];
+    }
     gC[tcol * m + trow] = sum;
 }
 
@@ -204,8 +218,10 @@ __hoisted_g_matmul_u64_ccc_0(uint32_t m,
     uint32_t tcol = blockIdx.x % n;
     uint32_t k1 = 0U;
     uint64_t sum = 0ULL;
-    for (; k1 < k; k1++)
-        sum += gA[k1 * m + trow] * gB[tcol * k + k1];
+    for (; k1 < k; k1++) {
+        uint32_t vk = k1;
+        sum += gA[vk * m + trow] * gB[tcol * k + vk];
+    }
     gC[tcol * m + trow] = sum;
 }
 
