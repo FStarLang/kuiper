@@ -40,8 +40,12 @@ val full_layout_size' (#r : nat) (#d : idesc r) (l : tlayout d)
           (ensures is_full l)
           [SMTPat (is_full l)]
 
-(* Alias for .ulen *)
-let tlayout_size (#d : idesc 'r) (l : tlayout d) : GTot nat = l.ulen
+let tlayout_ulen (#d : idesc 'r) (l : tlayout d) : GTot nat = l.ulen
+let tlayout_size (#d : idesc 'r) (l : tlayout d) : GTot nat = sizeof d
+
+val size_le_ulen (#r : nat) (#d : idesc r) (l : tlayout d)
+  : Lemma (ensures tlayout_size l <= tlayout_ulen l)
+          [SMTPat (tlayout_size l); SMTPat (tlayout_ulen l)]
 
 [@@Tactics.Typeclasses.fundeps [0;1]]
 inline_for_extraction

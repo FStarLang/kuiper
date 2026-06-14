@@ -48,6 +48,11 @@ let full_layout_size' (#r : nat) (#d : idesc r) (l : tlayout d)
   = injection_equal_cardinal_implies_bijection (abs d) (natlt l.ulen) l.imap;
     ()
 
+let size_le_ulen (#r : nat) (#d : idesc r) (l : tlayout d)
+  : Lemma (ensures tlayout_size l <= tlayout_ulen l)
+          [SMTPat (tlayout_size l); SMTPat (tlayout_ulen l)]
+  = ()
+
 let ctlayout_must_fit (#r : nat) (#d : idesc r) (#l : tlayout d)
   (c : ctlayout l)
   : Lemma (ensures SZ.fits (sizeof d))

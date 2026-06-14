@@ -141,11 +141,12 @@ fn sum_stride_map_2d
 
   while (!idx <^ cols)
     invariant
-      live acc ** live gidx **
-      live idx ** pure (SZ.v !idx == gread gidx * stride + off) **
+      live acc ** live gidx ** live idx **
       pure (gread gidx <= seq_stride_length (lseq_map pre_map_r vr_row) stride off /\
             !idx < cols + stride /\
-            !acc %~ rsum (seq_take (gread gidx) (seq_stride (lseq_map pre_map_r vr_row) stride off))) **
+            !acc %~ rsum (seq_take (gread gidx) (seq_stride (lseq_map pre_map_r vr_row) stride off)) /\
+            SZ.v !idx == gread gidx * stride + off
+      ) **
       emp
     decreases (cols + stride - !idx)
   {

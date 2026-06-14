@@ -23,7 +23,7 @@ inline_for_extraction noextract
 val from_array
   (#et : Type0) (#r : erased nat) (#d : idesc r)
   (l : tlayout d)
-  (a : larray et (tlayout_size l))
+  (a : larray et (tlayout_ulen l))
   : tensor et l
 
 inline_for_extraction noextract
@@ -31,7 +31,7 @@ val core
   (#et : Type0) (#r : erased nat) (#d : idesc r)
   (#l : tlayout d)
   (a : tensor et l)
-  : larray et (tlayout_size l)
+  : larray et (tlayout_ulen l)
 
 val lem_core_from_array
   (#et : Type0) (#r : nat) (#d : idesc r)
@@ -43,7 +43,7 @@ val lem_core_from_array
 val lem_from_array_core
   (#et : Type0) (#r : nat) (#d : idesc r)
   (#l : tlayout d)
-  (p : larray et (tlayout_size l))
+  (p : larray et (tlayout_ulen l))
   : Lemma (ensures core (from_array l p) == p)
           [SMTPat (from_array l p)]
 
@@ -119,7 +119,7 @@ fn tensor_pts_to_ref
   preserves
     a |-> Frac f s
   ensures
-    pure (SZ.fits (tlayout_size l))
+    pure (SZ.fits (tlayout_ulen l))
 
 ghost
 fn tensor_pts_to_ref_located
@@ -131,7 +131,7 @@ fn tensor_pts_to_ref_located
   preserves
     on loc (a |-> Frac f s)
   ensures
-    pure (SZ.fits (tlayout_size l))
+    pure (SZ.fits (tlayout_ulen l))
 
 ghost
 fn tensor_pts_to_eq
@@ -165,7 +165,7 @@ fn tensor_abs
   (#et:Type)
   (#r : nat) (#d : idesc r)
   (l : tlayout d { is_full l })
-  (p : larray et (tlayout_size l))
+  (p : larray et (tlayout_ulen l))
   (#f : perm)
   (#s : chest d et)
   requires
@@ -178,9 +178,9 @@ fn tensor_abs'
   (#et:Type)
   (#r : nat) (#d : idesc r)
   (l : tlayout d { is_full l })
-  (p : larray et (tlayout_size l))
+  (p : larray et (tlayout_ulen l))
   (#f : perm)
-  (#s : lseq et (tlayout_size l))
+  (#s : lseq et (tlayout_ulen l))
   requires
     p |-> Frac f s
   ensures
@@ -328,7 +328,7 @@ fn tensor_implode
   (#f : perm)
   (#s : chest d et)
   requires
-    pure (SZ.fits (tlayout_size l))
+    pure (SZ.fits (tlayout_ulen l))
   requires
     forall+ (i : abs d).
       Cell a i |-> Frac f (acc s i)
@@ -345,7 +345,7 @@ fn tensor_ilower
   requires
     a |-> Frac f s
   ensures
-    pure (SZ.fits (tlayout_size l)) **
+    pure (SZ.fits (tlayout_ulen l)) **
     (forall+ (i : abs d).
       pts_to_cell (core a) #f (l.imap.f i) (acc s i))
 
@@ -357,7 +357,7 @@ fn tensor_iraise
   (#f : perm)
   (#s : chest d et)
   requires
-    pure (SZ.fits (tlayout_size l)) **
+    pure (SZ.fits (tlayout_ulen l)) **
     (forall+ (i : abs d).
       pts_to_cell (core a) #f (l.imap.f i) (acc s i))
   ensures
