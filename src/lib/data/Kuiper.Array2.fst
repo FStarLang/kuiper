@@ -28,16 +28,6 @@ let abs_bij (#rows #cols : nat) : (abs (desc rows cols) =~ (ait rows cols)) =
 let t (et : Type0) (#rows #cols : nat) (l : layout rows cols) : Type0 =
   T.tensor et l
 
-let as_tensor (#et : Type0) (#rows #cols : erased nat) (#l : layout rows cols)
-  (a : t et l)
-  : T.tensor et l
-  = a
-
-let from_tensor (#et : Type0) (#rows #cols : erased nat) (#l : layout rows cols)
-  (a : T.tensor et l)
-  : t et l
-  = a
-
 let is_global (#et : Type0) (#rows #cols : nat) (#l : layout rows cols)
   (a : t et l)
   : prop =
@@ -94,6 +84,33 @@ instance is_send_across_global
   (#f : perm) (s : ematrix et rows cols)
   : is_send_across gpu_of (pts_to a #f s)
   = solve
+
+let as_tensor (#et : Type0) (#rows #cols : erased nat) (#l : layout rows cols)
+  (a : t et l)
+  : T.tensor et l
+  = a
+
+let from_tensor (#et : Type0) (#rows #cols : erased nat) (#l : layout rows cols)
+  (a : T.tensor et l)
+  : t et l
+  = a
+
+let lem_as_tensor_core (#et : Type0) (#rows #cols : erased nat) (#l : layout rows cols)
+  (a : t et l)
+  : Lemma (ensures T.core (as_tensor a) == core a)
+          [SMTPat (T.core (as_tensor a))]
+  = ()
+
+let lem_as_tensor_pts_to (#et : Type0) (#rows #cols : nat) (#l : layout rows cols)
+  (a : t et l) (#f : perm) (s : ematrix et rows cols)
+  : Lemma (ensures pts_to a #f s == T.tensor_pts_to (as_tensor a) #f s)
+  = ()
+
+let lem_as_tensor_global (#et : Type0) (#rows #cols : nat) (#l : layout rows cols)
+  (a : t et l)
+  : Lemma (ensures T.is_global (as_tensor a) <==> is_global a)
+          [SMTPat (T.is_global (as_tensor a))]
+  = ()
 
 inline_for_extraction noextract
 fn alloc0
