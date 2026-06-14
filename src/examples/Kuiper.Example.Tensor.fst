@@ -3,16 +3,10 @@ module Kuiper.Example.Tensor
 #lang-pulse
 open Kuiper
 open Kuiper.Tensor
-open Kuiper.Index
-open Kuiper.Injection
 open Kuiper.Tensor.Layout.Alg
 
 inline_for_extraction noextract
 type snat = x:nat{SizeT.fits x}
-
-let desc m n : idesc 2 =
-  m @| n @| INil
-
 
 fn test0 (m : tensor u32 (l2_row_major 10 20))
 {
