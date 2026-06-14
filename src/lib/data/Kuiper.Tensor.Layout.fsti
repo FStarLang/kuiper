@@ -43,6 +43,7 @@ val full_layout_size' (#r : nat) (#d : idesc r) (l : tlayout d)
 (* Alias for .ulen *)
 let tlayout_size (#d : idesc 'r) (l : tlayout d) : GTot nat = l.ulen
 
+[@@Tactics.Typeclasses.fundeps [0;1]]
 inline_for_extraction
 class ctlayout (#r : erased nat) (#d : idesc r) (l : tlayout d) = {
   ulen_fits : squash (SZ.fits l.ulen);

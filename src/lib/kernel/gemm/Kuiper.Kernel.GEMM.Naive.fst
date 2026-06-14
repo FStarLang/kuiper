@@ -113,8 +113,6 @@ fn kf
   ()
 }
 
-#set-options "--print_implicits"
-
 ghost
 fn setup
   (#et : Type0) {| scalar et |}

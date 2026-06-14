@@ -694,7 +694,7 @@ fn array_slice_1
   }
 }
 
-#set-options "--split_queries always --debug SMTFail"
+#set-options "--split_queries always"
 ghost
 fn rec forall_cell_to_slice
   (#a:Type u#0)

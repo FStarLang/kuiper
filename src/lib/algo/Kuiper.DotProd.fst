@@ -242,8 +242,8 @@ inline_for_extraction noextract
 fn matmul_dotprod_t
   (#et : Type0) {| scalar et |}
   (#m #n #k : sz)
-  (#lA : tlayout (m @| k @| INil))
-  (#lB : tlayout (k @| n @| INil))
+  (#lA : layout2 m k)
+  (#lB : layout2 k n)
   {| ctlayout lA, ctlayout lB |}
   (gA : tensor et lA)
   (gB : tensor et lB)
@@ -263,10 +263,7 @@ fn matmul_dotprod_t
   tensor_extract_slice_ro gA 0 i;
   tensor_extract_slice_ro gB 1 j;
 
-  let s = dotprod_t #_ #_ #_ #_ #_
-           #(Kuiper.Tensor.ctlayout_slice _ 0 (SZ.v i)) // should not be needed
-           #(Kuiper.Tensor.ctlayout_slice _ 1 (SZ.v j)) // should not be needed
-           (sliceof gA 0 (SZ.v i)) (sliceof gB 1 (SZ.v j));
+  let s = dotprod_t (sliceof gA 0 (SZ.v i)) (sliceof gB 1 (SZ.v j));
 
   tensor_restore_slice gA 0 i;
   tensor_restore_slice gB 1 j;
