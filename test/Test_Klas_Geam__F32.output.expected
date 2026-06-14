@@ -1,0 +1,9 @@
+test(0) = ok
+test(1) = ok
+test(2) = ok
+test(511) = ok
+test(512) = ok
+test(513) = ok
+test(1024) = ok
+test(1025) = ok
+test(2048) = ok
