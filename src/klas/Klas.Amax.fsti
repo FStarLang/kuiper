@@ -45,6 +45,26 @@ let is_amax (#et:Type0) {| floating et |}
   (s : Seq.seq et{Seq.length s >= 1}) (i:nat) : prop =
   is_amax_pre s (Seq.length s) i
 
+(* amin: symmetric, index of the element of *smallest* absolute value (the
+   first such on ties). *)
+let rec amin_pre (#et:Type0) {| floating et |}
+  (s : Seq.seq et) (k:nat{1 <= k /\ k <= Seq.length s})
+  : Tot (i:nat{i < k}) (decreases k) =
+  if k = 1 then 0
+  else
+    let p = amin_pre s (k-1) in
+    if lt (abs (Seq.index s (k-1))) (abs (Seq.index s p)) then k-1 else p
+
+let is_amin_pre (#et:Type0) {| floating et |}
+  (s : Seq.seq et) (k:nat{1 <= k /\ k <= Seq.length s}) (i:nat) : prop =
+  i < k /\
+  (forall (j:nat). j < k ==> lte (abs (Seq.index s i)) (abs (Seq.index s j))) /\
+  (forall (j:nat). j < k ==> (lte (abs (Seq.index s j)) (abs (Seq.index s i)) ==> i <= j))
+
+let is_amin (#et:Type0) {| floating et |}
+  (s : Seq.seq et{Seq.length s >= 1}) (i:nat) : prop =
+  is_amin_pre s (Seq.length s) i
+
 (* ----------------------------------------------------------------------- *)
 (* Device entry points                                                       *)
 (* ----------------------------------------------------------------------- *)
@@ -64,5 +84,23 @@ type amax_ty (et:Type0) {| floating et |} =
   ensures
     pure (is_amax va (U64.v res))
 
+inline_for_extraction noextract
+type amin_ty (et:Type0) {| floating et |} =
+  fn (lena : szp)
+     (a : array1 et (l1_forward lena) { is_global a })
+     (#va : erased (lseq et lena))
+  preserves
+    cpu **
+    on gpu_loc (a |-> va)
+  requires
+    pure (all_not_nan va)
+  returns
+    res : U64.t
+  ensures
+    pure (is_amin va (U64.v res))
+
 val amax_f32 : amax_ty f32
 val amax_f64 : amax_ty f64
+
+val amin_f32 : amin_ty f32
+val amin_f64 : amin_ty f64

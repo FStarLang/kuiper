@@ -9,15 +9,26 @@ bool ok = true;
 /* It would be nicer to write a purely-Pulse test. */
 
 #define TYPE float
-#define FUN  Klas_Amax_amax_f32
+#define AMAX Klas_Amax_amax_f32
+#define AMIN Klas_Amax_amin_f32
 
-/* Reference: 0-based index of the first element of largest absolute value
-   (matches Klas.Amax.is_amax: strict '>' switch keeps the earliest maximizer). */
+/* Reference: 0-based index of the first element of largest (smallest)
+   absolute value (matches Klas.Amax.is_amax / is_amin: a strict comparison
+   keeps the earliest extremal element). */
 uint64_t cpu_amax(TYPE *a, int siz)
 {
     int best = 0;
     for (int i = 1; i < siz; i++)
         if (fabsf(a[i]) > fabsf(a[best]))
+            best = i;
+    return (uint64_t) best;
+}
+
+uint64_t cpu_amin(TYPE *a, int siz)
+{
+    int best = 0;
+    for (int i = 1; i < siz; i++)
+        if (fabsf(a[i]) < fabsf(a[best]))
             best = i;
     return (uint64_t) best;
 }
@@ -32,29 +43,30 @@ void test(int siz, int pat)
         switch (pat) {
         case 0:
             a[i] = (TYPE) i;
-            break;              /* |a| increasing  -> last  */
+            break;              /* |a| up   -> max last,  min first */
         case 1:
             a[i] = -(TYPE) i;
-            break;              /* |a| increasing  -> last  */
+            break;              /* |a| up   -> max last,  min first */
         case 2:
             a[i] = (TYPE) (siz - i);
-            break;              /* |a| decreasing  -> first */
+            break;              /* |a| down -> max first, min last  */
         case 3:
             a[i] = 7.0f;
-            break;              /* all equal       -> first */
+            break;              /* all equal-> both first           */
         default:
-            a[i] = (i == siz / 2) ? 1000.0f : (TYPE) (i % 10);  /* mid peak               */
+            a[i] = (i == siz / 2) ? 1000.0f : (TYPE) (i % 10 + 1);      /* mid peak; |a| in [1,10] else     */
         }
     }
 
     MUST(cudaMemcpy(ga, a, siz * sizeof(TYPE), cudaMemcpyHostToDevice));
-    uint64_t res = FUN((uint32_t) siz, ga);
+    uint64_t rmax = AMAX((uint32_t) siz, ga);
+    uint64_t rmin = AMIN((uint32_t) siz, ga);
     MUST(cudaFree(ga));
 
-    uint64_t expected = cpu_amax(a, siz);
-    if (res != expected)
+    if (rmax != cpu_amax(a, siz) || rmin != cpu_amin(a, siz))
         ok = false;
-    printf("test(%d, %d) = %" PRIu64 "%s\n", siz, pat, res, ok ? "" : " (FAILED)");
+    printf("test(%d, %d) amax=%" PRIu64 " amin=%" PRIu64 "%s\n",
+           siz, pat, rmax, rmin, ok ? "" : " (FAILED)");
     free(a);
 }
 
