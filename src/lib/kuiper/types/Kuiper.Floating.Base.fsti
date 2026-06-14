@@ -98,6 +98,20 @@ class floating (t : Type) = {
           (ensures lt x y <==> not (lte y x))
           [SMTPat (lt x y)];
 
+  (* Transitivity of <=, for non-NaNs. On non-NaN values <= is a total
+     preorder (totality follows from negate_lt_is_lte + lte_is_lt_or_eq,
+     reflexivity from lte_is_lt_or_eq; transitivity is the one law not
+     derivable from the others, so we take it as an axiom). We deliberately
+     guard on non-NaN: a NaN compares false to everything, so the law would
+     hold vacuously there, but the abstract model leaves NaN comparisons
+     unconstrained, hence the explicit guard. No SMTPat here to avoid a
+     globally-active transitivity trigger; call it explicitly. *)
+  #[easy_fill ()]
+  lte_trans : (x : t) -> (y : t) -> (z : t) ->
+    Lemma (requires ~(NaN? (kind x)) /\ ~(NaN? (kind y)) /\ ~(NaN? (kind z)) /\
+                    lte x y /\ lte y z)
+          (ensures lte x z);
+
   (* Addition commutes. *)
   #[easy_fill ()]
   add_comm : (x : t) -> (y : t) ->

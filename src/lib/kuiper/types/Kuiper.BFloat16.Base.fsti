@@ -67,6 +67,12 @@ val negate_lt_is_lte : (x : t) -> (y : t) ->
           (ensures lt x y <==> not (lte y x))
           [SMTPat (lt x y)]
 
+val lte_trans : (x : t) -> (y : t) -> (z : t) ->
+    Lemma (requires ~(NaN? (kind x)) /\ ~(NaN? (kind y)) /\ ~(NaN? (kind z)) /\
+                    lte x y /\ lte y z)
+          (ensures lte x z)
+          [SMTPat (lte x y); SMTPat (lte y z)]
+
 val add_comm : (x : t) -> (y : t) ->
     Lemma (requires ~(NaN? (kind x)) /\ ~(NaN? (kind y)))
           (ensures add x y == add y x)
