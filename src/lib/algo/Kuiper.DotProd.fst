@@ -138,10 +138,7 @@ fn matmul_dotprod
   Array2.extract_row_ro gA i;
   Array2.extract_col_ro gB j;
 
-  let s = dotprod #_ #_ #_ #_ #_
-           #(Kuiper.Tensor.ctlayout_slice _ 0sz i) // should not be needed
-           #(Kuiper.Tensor.ctlayout_slice _ 1sz j) // should not be needed
-           (Array2.row gA (SZ.v i)) (Array2.col gB (SZ.v j));
+  let s = dotprod (Array2.row gA (SZ.v i)) (Array2.col gB (SZ.v j));
 
   Array2.restore_row gA i;
   Array2.restore_col gB j;
@@ -177,10 +174,7 @@ fn matmul_kahan_dotprod
   Array2.extract_row_ro gA i;
   Array2.extract_col_ro gB j;
 
-  let s = kahan_dotprod #_ #_ #_ #_ #_ #_ #_
-           #(Kuiper.Tensor.ctlayout_slice _ 0sz i) // should not be needed
-           #(Kuiper.Tensor.ctlayout_slice _ 1sz j) // should not be needed
-           (Array2.row gA (SZ.v i)) (Array2.col gB (SZ.v j))
+  let s = kahan_dotprod (Array2.row gA (SZ.v i)) (Array2.col gB (SZ.v j))
            (ematrix_row rA i) (ematrix_col rB j);
 
   Array2.restore_row gA i;
@@ -270,8 +264,8 @@ fn matmul_dotprod_t
   tensor_extract_slice_ro gB 1 j;
 
   let s = dotprod_t #_ #_ #_ #_ #_
-           #(Kuiper.Tensor.ctlayout_slice _ 0sz i) // should not be needed
-           #(Kuiper.Tensor.ctlayout_slice _ 1sz j) // should not be needed
+           #(Kuiper.Tensor.ctlayout_slice _ 0 (SZ.v i)) // should not be needed
+           #(Kuiper.Tensor.ctlayout_slice _ 1 (SZ.v j)) // should not be needed
            (sliceof gA 0 (SZ.v i)) (sliceof gB 1 (SZ.v j));
 
   tensor_restore_slice gA 0 i;
@@ -362,9 +356,7 @@ fn matmul_kahan_dotprod_t
   tensor_extract_slice_ro gA 0 i;
   tensor_extract_slice_ro gB 1 j;
 
-  let s = kahan_dotprod_t #_ #_ #_ #_ #_ #_ #_
-           #(Kuiper.Tensor.ctlayout_slice _ 0sz i) // should not be needed
-           #(Kuiper.Tensor.ctlayout_slice _ 1sz j) // should not be needed
+  let s = kahan_dotprod_t
            (sliceof gA 0 (SZ.v i)) (sliceof gB 1 (SZ.v j))
            (chest_slice 0 i rA) (chest_slice 1 j rB);
 

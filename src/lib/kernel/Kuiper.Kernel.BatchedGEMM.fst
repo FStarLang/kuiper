@@ -72,9 +72,9 @@ fn batched_gemm_f32
     P.mmcomb_gpu_exact MS.comb2
       #_ #_ #_
       #_ #_ #_
-      #(T.ctlayout_slice _ 0sz i) // should not be needed
-      #(T.ctlayout_slice _ 0sz i) // should not be needed
-      #(T.ctlayout_slice _ 0sz i) // should not be needed
+      #(T.ctlayout_slice _ 0 (SZ.v i)) // should not be needed
+      #(T.ctlayout_slice _ 0 (SZ.v i)) // should not be needed
+      #(T.ctlayout_slice _ 0 (SZ.v i)) // should not be needed
       (sliceof a 0 (SZ.v i))
       (sliceof b 0 (SZ.v i))
       (sliceof out 0 (SZ.v i));

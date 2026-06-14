@@ -149,7 +149,7 @@ fn matmul_kahan_dotprod
 
 let rec edotprod' (#et : Type0) {| scalar et |}
   (a b : chest1 et 'n) (k : nat{k <= 'n})
-  : GTot et (decreases k)
+  : GTot et
   = if k = 0 then zero
     else add (edotprod' a b (k-1)) (mul (Chest.acc a (k-1, ())) (Chest.acc b (k-1, ())))
 
@@ -168,7 +168,6 @@ val edotprod_is_matmul_single
             edotprod' #shared #_ #_ (chest_slice 0 i eA) (chest_slice 1 j eB) k
             ==
             MS.__matmul_single eA eB i j k)
-          (decreases k)
           [SMTPat (edotprod' #shared (chest_slice 0 i eA) (chest_slice 1 j eB) k)]
 
 inline_for_extraction noextract

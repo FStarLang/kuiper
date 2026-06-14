@@ -403,7 +403,7 @@ let tlayout_slice_imap
     l.imap.f idx'
 
 let tlayout_slice
-  (#n : erased nat) (#d : idesc n) (l : tlayout d)
+  (#n : nat) (#d : idesc n) (l : tlayout d)
   (i : natlt n) (j : natlt (d @! i)) // Fixing the ith-dimension to j
   : tlayout (modulo_i i d) =
   {
@@ -414,12 +414,20 @@ let tlayout_slice
     };
   }
 
+(* Note: the codomain of this instance
+   has existentially quantified r'/d' so we do
+   not force the unifier to prove equalities
+   involving integer subtraction or modulo_i. *)
 inline_for_extraction noextract
 instance val ctlayout_slice
   (#n : erased nat) (#d : idesc n) (l : tlayout d)
   {| ctlayout l |}
-  (i : szlt n) (j : szlt (d @! i))
-  : ctlayout (tlayout_slice l i j)
+  (i : erased nat{i < n}) (j : erased nat{j < (d @! i)})
+  {| ix : concrete_sz i |} {| jx : concrete_sz j |}
+  (#r' : erased nat) (#d' : idesc r')
+  (#_ : reveal r' == n-1)
+  (#_ : d' == modulo_i i d)
+  : ctlayout #r' #d' (tlayout_slice l i j)
 
 inline_for_extraction noextract
 val sliceof

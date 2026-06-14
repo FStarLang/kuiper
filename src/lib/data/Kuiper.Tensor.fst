@@ -508,13 +508,18 @@ let ctlayout_slice_cimap
 inline_for_extraction noextract
 instance ctlayout_slice
   (#n : erased nat) (#d : idesc n) (l : tlayout d)
-  {| c : ctlayout l |}
-  (i : szlt n) (j : szlt (d @! i))
-  : ctlayout (tlayout_slice l i j) =
+  {| ctlayout l |}
+  (i : erased nat{i < n}) (j : erased nat{j < (d @! i)})
+  {| ix : concrete_sz i |} {| jx : concrete_sz j |}
+  (#r' : erased nat) (#d' : idesc r')
+  (#_ : reveal r' == n-1)
+  (#_ : d' == modulo_i i d)
+  : ctlayout #r' #d' (tlayout_slice l i j) =
   {
     ulen_fits = ();
     all_fit = ();
-    cimap = (fun idx -> ctlayout_slice_cimap d l i j idx);
+    cimap = (fun idx ->
+      ctlayout_slice_cimap d l (concr' ix) (concr' jx) idx);
   }
 
 inline_for_extraction noextract
