@@ -85,6 +85,7 @@ let kpr_translate_type_without_decay : translate_type_without_decay_t = fun env 
   | "Kuiper.BFloat16.Base.t",              [] -> TInt BFloat16
   | "Kuiper.Float32.Base.t",               [] -> TInt Float
   | "Kuiper.Float64.Base.t",               [] -> TInt Double
+  | "Kuiper.Complex32.Base.t",             [] -> TQualified ([], "cuFloatComplex")
   | _ -> raise NotSupportedByKrmlExtension
 
 let cudaMemcpyDeviceToHost = EQualified ([], "cudaMemcpyDeviceToHost")
@@ -677,6 +678,25 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
   | "Kuiper.Float64.Base.largest",  [], [] -> EConstant (Double, "DBL_MAX")
   | "Kuiper.Float64.Base.infinity", [], [] -> EConstant (Double, "INFINITY")
   | "Kuiper.Float64.Base.of_int", [], [i] -> ECast (cb i, TInt Double)
+
+  (* Single-precision complex -> cuFloatComplex (cuComplex.h intrinsics) *)
+  | "Kuiper.Complex32.Base.cadd",  [], [] -> EQualified ([], "cuCaddf")
+  | "Kuiper.Complex32.Base.cmul",  [], [] -> EQualified ([], "cuCmulf")
+  | "Kuiper.Complex32.Base.csub",  [], [] -> EQualified ([], "cuCsubf")
+  | "Kuiper.Complex32.Base.cdiv",  [], [] -> EQualified ([], "cuCdivf")
+  | "Kuiper.Complex32.Base.cconj", [], [] -> EQualified ([], "cuConjf")
+  | "Kuiper.Complex32.Base.cmk",   [], [] -> EQualified ([], "make_cuFloatComplex")
+  | "Kuiper.Complex32.Base.re",    [], [] -> EQualified ([], "cuCrealf")
+  | "Kuiper.Complex32.Base.im",    [], [] -> EQualified ([], "cuCimagf")
+  | "Kuiper.Complex32.Base.ceq",   [], [] -> EQualified ([], "kpr_cceqf")
+  | "Kuiper.Complex32.Base.clt",   [], [] -> EQualified ([], "kpr_cltf")
+  | "Kuiper.Complex32.Base.clte",  [], [] -> EQualified ([], "kpr_cltf")
+  | "Kuiper.Complex32.Base.czero", [], [] ->
+    EApp (EQualified ([], "make_cuFloatComplex"), [EConstant (Float, "0.0f"); EConstant (Float, "0.0f")])
+  | "Kuiper.Complex32.Base.cone",  [], [] ->
+    EApp (EQualified ([], "make_cuFloatComplex"), [EConstant (Float, "1.0f"); EConstant (Float, "0.0f")])
+  | "Kuiper.Complex32.Base.cci",   [], [] ->
+    EApp (EQualified ([], "make_cuFloatComplex"), [EConstant (Float, "0.0f"); EConstant (Float, "1.0f")])
 
   (* Transcendental / math primitives *)
 

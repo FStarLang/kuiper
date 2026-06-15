@@ -13,6 +13,7 @@
 #include "kuiper/atomics.h"
 #include "kuiper/vectorops.h"
 #include "kuiper/math.h"
+#include "kuiper/complex.h"
 
 #if (!defined(KUIPER_CFG_TENSORCORES) || KUIPER_CFG_TENSORCORES)
 #include "kuiper/tensorcores.h"
