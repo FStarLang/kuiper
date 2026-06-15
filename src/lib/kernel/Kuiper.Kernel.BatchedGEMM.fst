@@ -8,7 +8,6 @@ open Kuiper.Chest
 open Pulse.Lib.Trade
 open Kuiper.Tensor
 module SZ = Kuiper.SizeT
-module T = Kuiper.Tensor
 module MS = Kuiper.Spec.GEMM
 module P  = Kuiper.Kernel.GEMM.Naive2
 
