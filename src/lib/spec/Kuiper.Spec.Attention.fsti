@@ -9,81 +9,66 @@ open Kuiper.Tensor.Layout { ctlayout }
 open Kuiper.Tensor.Layout.Alg
 open Kuiper.Tensor
 open Kuiper.Index
+open Kuiper.Chest
+open Kuiper.EMatrix
 open Kuiper.Bijection
 
 module SMX = Kuiper.Spec.Softmax
 module MS = Kuiper.Spec.GEMM
-module CH = Kuiper.Chest
 module SZ = Kuiper.SizeT
+module EM3 = Kuiper.EMatrix3
+module EM4 = Kuiper.EMatrix4
 
-let tup_of_idesc4
-  (#d0 #d1 #d2 #d3 : nat) 
-  (idx : abs (d0 @| d1 @| d2 @| d3 @| INil)) : (natlt d0 & natlt d1 & natlt d2 & natlt d3) =
-  let (i,(j,(k,(l,())))) = idx in
-  (i,j,k,l)
+module RSMX = Kuiper.Kernel.RowSoftmax
 
-let tup_of_idesc3
-  (#d0 #d1 #d2 : nat) 
-  (idx : abs (d0 @| d1 @| d2 @| INil)) : (natlt d0 & natlt d1 & natlt d2) =
-  let (i,(j,(k,()))) = idx in
-  (i,j,k)
+// TODO: consistent usage of ematrix and chest forms? review 
 
-let tup_of_idesc2
-  (#d0 #d1 : nat) 
-  (idx : abs (d0 @| d1 @| INil)) : (natlt d0 & natlt d1) =
-  let (i,(j,())) = idx in
-  (i,j)
+(* Pre-softmax attention scores. *)
+let attn_scores
+  (#l #s #e: pos)
+  (eQ : chest (l @| e @| INil) real)
+  (eK : chest (e @| s @| INil) real)
+  (bias : chest (l @| s @| INil) real)
+  (scale : real)
+  : chest (l @| s @| INil) real
+  = chest_comb (fun bias_qk score -> (bias_qk +. score) *. scale) bias (MS.matmul eQ eK)
 
-let tensor2_row 
-  (#et : Type0) {| scalar et |}
-  (#m #n : nat)
-  (e: CH.t (m @| n @| INil) et)
-  (i : natlt m)
-  : GTot (lseq et n)
-  = Seq.init_ghost n (fun l -> CH.acc e (i,(l,())))
+(* row-wise log sum exp of scores *)
+let attn_lse
+  (#l #s : pos)
+  (scores : chest (l @| s @| INil) real)
+  : GTot (lseq real l)
+  = Seq.init_ghost l (fun i -> log (rsum (seq_map exp (ematrix_row scores i))))
 
-let chest_mk4 (#et:Type) (#d0 #d1 #d2 #d3 : nat)
-  (f : natlt d0 -> natlt d1 -> natlt d2 -> natlt d3 -> GTot et)
-  : CH.t (d0 @| d1 @| d2 @| d3 @| INil) et
-  = CH.mk (d0 @| d1 @| d2 @| d3 @| INil) (fun idx ->
-      let i,j,k,l = tup_of_idesc4 idx in
-      f i j k l)
+(* Top-level real-valued spec: (output, log-sum-exp) given real inputs. *)
+let attention_real
+  (#l #s #e #ev : pos)
+  (eQ : ematrix real l e)
+  (eK : ematrix real e s)
+  (eV : ematrix real s ev)
+  (bias : ematrix real l s)
+  (scale : real)
+  : GTot (ematrix real l ev & lseq real l)
+  = let scores = attn_scores eQ eK bias scale in
+    let probs  = RSMX.row_softmax_real scores in
+    let out    = MS.matmul probs eV in
+    let lse    = attn_lse scores in
+    (out, lse)
 
-let chest_mk3 (#et:Type) (#d0 #d1 #d2 : nat)
-  (f : natlt d0 -> natlt d1 -> natlt d2 -> GTot et)
-  : CH.t (d0 @| d1 @| d2 @| INil) et
-  = CH.mk (d0 @| d1 @| d2 @| INil) (fun idx ->
-      let i,j,k = tup_of_idesc3 idx in
-      f i j k)
-
-let chest_mk2 (#et:Type) (#d0 #d1 : nat)
-  (f : natlt d0 -> natlt d1 -> GTot et)
-  : CH.t (d0 @| d1 @| INil) et
-  = CH.mk (d0 @| d1 @| INil) (fun idx ->
-      let i,j = tup_of_idesc2 idx in
-      f i j)
-    
-let chest_mk1 (#et:Type) (#d0 : nat)
-  (f : natlt d0 -> GTot et)
-  : CH.t (d0 @| INil) et
-  = CH.mk (d0 @| INil) (fun (i,()) -> f i)
-
-let tensor_matmul
-  (#et : Type0) {| scalar et |}
-  (#m #n #k : nat)
-  (eA: CH.t (m @| k @| INil) et)
-  (eB: CH.t (k @| n @| INil) et)
-  : GTot (CH.t (m @| n @| INil) et)
-  = chest_mk2 (fun i j ->
-      let rowA = fun l -> CH.acc eA (i,(l,())) in
-      let colB = fun l -> CH.acc eB (l,(j,())) in
-      let products = Seq.init_ghost k (fun l -> rowA l `mul` colB l) in
-      seq_fold_left (fun acc x -> acc `add` x) zero products)
-
-let tensor_row_softmax_real
-  (#m #n : nat)
-  (eA: CH.t (m @| n @| INil) real)
-  : GTot (CH.t (m @| n @| INil) real)
-  = chest_mk2 (fun i j ->
-      let row = fun l -> CH.acc eA (i,(l,())) in
-      Seq.index (SMX.softmax_real (Seq.init_ghost n row)) j)
+let attention_real_batched
+  (#n #h #l #s #e #ev : pos)
+  (rQ : chest (n @| h @| l @| e @| INil) real)
+  (rKT : chest (n @| h @| e @| s @| INil) real)
+  (rV : chest (n @| h @| s @| ev @| INil) real)
+  (rbias : chest (n @| h @| l @| s @| INil) real)
+  (scale : real)
+  : GTot (chest (n @| h @| l @| ev @| INil) real & chest (n @| h @| l @| INil) real)
+  = let attn_tile = fun i j -> attention_real
+            (EM4.slice_page rQ i j)
+            (EM4.slice_page rKT i j)
+            (EM4.slice_page rV i j)
+            (EM4.slice_page rbias i j)
+            scale in
+    let out_spec = EM4.mkM fun i j -> macc (fst (attn_tile i j)) in 
+    let lse_spec = EM3.mkM fun i j -> Seq.index (snd (attn_tile i j)) in 
+    (out_spec, lse_spec)

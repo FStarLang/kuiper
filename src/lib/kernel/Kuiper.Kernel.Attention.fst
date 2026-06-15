@@ -8,96 +8,71 @@ open Kuiper.Tensor.Layout.Alg
 open Kuiper.Tensor
 open Kuiper.Index
 open Kuiper.Bijection
-open Kuiper.Real
 
+open Kuiper.Spec.Attention
+
+module EM4 = Kuiper.EMatrix4
+module EM3 = Kuiper.EMatrix3
 module CH = Kuiper.Chest
 module SZ = Kuiper.SizeT
 
-// TODO: FIX SPEC ON NEW API
 
-
-// module MS = Kuiper.Spec.GEMM
-// open Kuiper.Kernel.BatchedGEMM
-// open Kuiper.Kernel.RowSoftmax
-  
-(*
-
-  #set-options "--ifuel 0"
-let index_destructure_test (#et : Type0) {| floating et, real_like et, floating_real_like et |} (#b #h : szp)
-  (#m #n : szp) 
-  (#k : szp)
-  (#sK : erased  (CH.t (b @| h @| n @| k @| INil) et))
-  (di: abs (b @| h @| k @| n @| INil)): GTot et =
-  let (i,(j,(k,(l,())))) = di in
-  CH.acc sK (i,(j,(l,(k,()))))
-
-#push-options "--split_queries always --ifuel 4"
-fn scaled_dot_product_efficient_attention4
+fn scaled_dot_product_efficient_attention
   (#et : Type0) {| floating et, real_like et, floating_real_like et |}
-  (b h : szp)
-  (m n : szp)
-  (k kv : szp)
-  (gQ    : tensor et (l4_batched_row_major b h m  k ) ) //{ A4.is_global q    }
-  (gK   : tensor et (l4_batched_row_major b h n  k ) ) //{ A4.is_global k_   }
-  (gV   : tensor et (l4_batched_row_major b h n  kv) ) //{ A4.is_global v    }
-  (gBias : tensor et (l4_batched_row_major b h m  n ) ) //{ A4.is_global bias }
+  (n h : szp)
+  (l s : szp)
+  (e ev : szp)
+  (#lQ: tlayout    (n @| h @| l @| e @| INil))
+  (#lK: tlayout    (n @| h @| s @| e @| INil))
+  (#lV: tlayout    (n @| h @| s @| ev @| INil))
+  (#lbias: tlayout (n @| h @| l @| s @| INil))
+  {| ctlayout lQ, ctlayout lK, ctlayout lV, ctlayout lbias |}
+  (gQ    : tensor et lQ    { is_global gQ    })
+  (gK    : tensor et lK    { is_global gK    })
+  (gV    : tensor et lV    { is_global gV    })
+  (gbias : tensor et lbias { is_global gbias })
   (scale : et)
-  (#eQ : erased  (CH.t (b @| h @| m @| k @| INil) et))
-  (#eK : erased  (CH.t (b @| h @| n @| k @| INil) et))
-  (#eV : erased  (CH.t (b @| h @| n @| kv @| INil) et))
-  (#eB : erased  (CH.t (b @| h @| m @| n @| INil) et))
-  (#rKT : erased (CH.t (b @| h @| k @| n @| INil) real))
-  (#fQ #fK #fV #fB : perm)
+  (#eQ : erased    (EM4.t et n h l e))
+  (#eK : erased    (EM4.t et n h s e))
+  (#eV : erased    (EM4.t et n h s ev))
+  (#ebias : erased (EM4.t et n h l s))
+  (#rKT : erased   (EM4.t real n h e s))
+  (#fQ #fK #fV #fbias : perm)
+  norewrite
   preserves
     cpu **
-    (* on gpu_loc *) (gQ    |-> Frac fQ eQ) **
-    (* on gpu_loc *) (gK    |-> Frac fK eK) **
-    (* on gpu_loc *) (gV    |-> Frac fV eV) **
-    (* on gpu_loc *) (gBias |-> Frac fB eB)
+    on gpu_loc (gQ    |-> Frac fQ eQ) **
+    on gpu_loc (gK    |-> Frac fK eK) **
+    on gpu_loc (gV    |-> Frac fV eV) **
+    on gpu_loc (gbias |-> Frac fbias ebias)
   requires
     pure (
-      SZ.fits (b * h * m * kv) /\
-      SZ.fits (b * h * m * n)  /\
-      SZ.fits (b * h * n * k)  /\
-      SZ.fits (b * h * m * k)  /\
-      SZ.fits (b * h * m) /\
-      ((CH.mk (b @| h @| k @| n @| INil) 
-        (fun (i,(j,(k,(l,())))) -> 
-          CH.acc eK (i,(j,(l,(k,())))))
-        
-        ) %~ (reveal rKT)) /\
-      m * n <= max_blocks * max_threads /\
-      m * kv <= max_blocks * max_threads /\
-      b * h * m <= max_blocks
+      SZ.fits (n * h * l * e) /\
+      SZ.fits (n * h * s * e)  /\
+      SZ.fits (n * h * s * ev)  /\
+      SZ.fits (n * h * l * s)  /\
+      SZ.fits (n * h * l) /\
+      (EM4.mkM (fun i j k l -> EM4.macc eK i j l k)) %~ rKT /\
+      l * s <= max_blocks * max_threads /\
+      n * h * l <= max_blocks
     )
   returns
-    out : tensor et (l4_batched_row_major b h m kv) &
-          tensor et (l3_batched_row_major b h m)
+    // TODO: polymorphic out & LSE layout
+    out : tensor et (l4_batched_row_major n h l ev) & 
+          tensor et (l3_batched_row_major n h l)
   ensures
-    (exists* (sO : CH.t (b @| h @| m @| kv @| INil) et) (sL : CH.t (b @| h @| m @| INil) et).
-      (* on gpu_loc *) (fst out |-> sO) **
-      (* on gpu_loc *) (snd out |-> sL))
-      //pure (
-      //  let attn_tile = fun i j -> attention_real
-      //      (CH.slice_page sQ i j)
-      //      (CH.slice_page rKT i j)
-      //      (CH.slice_page sV i j)
-      //      (CH.slice_page sB i j)
-      //      (to_real scale) in
-      //  let out_spec = CH.mkM fun i j -> CH.macc (fst (attn_tile i j)) in 
-      //  let lse_spec = CH.mkM fun i j -> Seq.index (snd (attn_tile i j)) in 
-      //  sO %~ out_spec /\ sL %~ lse_spec))
-    (* ** pure (A4.is_global (fst out) /\ A3.is_global (snd out)) *) {
+    (exists* (eO : EM4.t et n h l ev) (eLSE : EM3.t et n h l).
+      on gpu_loc (fst out |-> eO) **
+      on gpu_loc (snd out |-> eLSE) **
+      pure (
+        let out_spec, lse_spec = attention_real_batched
+            (EM4.to_real_matrix eQ)
+            rKT
+            (EM4.to_real_matrix eV)
+            (EM4.to_real_matrix ebias)
+            (to_real scale) in
+          eO %~ out_spec /\ eLSE %~ lse_spec)) **
+    pure (is_global (fst out) /\ is_global (snd out)) {
 
-//  map_loc gpu_loc ghost fn () 
-//    requires 
-//  tensor_fold_outer 
-
-  admit (); 
+  admit ();
 }
-
-let scaled_dot_product_efficient_attention
-  (#et : Type0) {| floating et, real_like et, floating_real_like et |}
-   : scaled_dot_product_efficient_attention_ty et = admit ()
-
-*)

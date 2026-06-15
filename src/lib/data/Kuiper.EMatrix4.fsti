@@ -12,6 +12,7 @@ include Kuiper.Chest {
   chest_comb as matrix_comb,
 }
 open Kuiper.Index
+module EM = Kuiper.EMatrix
 
 [@@erasable]
 type ematrix4 (et:Type) (d0 d1 d2 d3 : nat) =
@@ -85,3 +86,31 @@ val lemma_approximates_intro
                       macc m1 i j k l %~ macc m2 i j k l)
           (ensures m1 %~ m2)
           [SMTPat (m1 %~ m2)]
+
+(* Extract / update a single "page" (the 2-D slice at batch index i, j). *)
+let slice_page (#et:Type) (#d0 #d1 #d2 #d3: nat)
+  (m : ematrix4 et d0 d1 d2 d3) (i : natlt d0) (j : natlt d1)
+  : EM.ematrix et d2 d3
+  = EM.mkM fun k l -> macc m i j k l
+
+let upd_page (#et:Type) (#d0 #d1 #d2 #d3: nat)
+  (m : ematrix4 et d0 d1 d2 d3) (i : natlt d0) (j : natlt d1)
+  (p : EM.ematrix et d2 d3)
+  : ematrix4 et d0 d1 d2 d3
+  = mkM fun i' j' k l ->
+      if i' = i && j' = j
+      then EM.macc p k l
+      else macc m i' j' k l
+
+val slice_upd_page_same (#et:Type) (#d0 #d1 #d2 #d3 : nat)
+  (m : ematrix4 et d0 d1 d2 d3) (i : natlt d0) (j : natlt d1)
+  (p : EM.ematrix et d2 d3)
+  : Lemma (ensures slice_page (upd_page m i j p) i j == p)
+          [SMTPat (slice_page (upd_page m i j p) i j)]
+
+val slice_upd_page_other (#et:Type) (#d0 #d1 #d2 #d3 : nat)
+  (m : ematrix4 et d0 d1 d2 d3) (i i' : natlt d0) (j j' : natlt d1)
+  (p : EM.ematrix et d2 d3)
+  : Lemma (requires i' <> i \/ j' <> j)
+          (ensures slice_page (upd_page m i j p) i' j' == slice_page m i' j')
+          [SMTPat (slice_page (upd_page m i j p) i' j')]
