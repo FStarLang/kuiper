@@ -4,9 +4,7 @@
 
 #include <kuiper.h>
 
-void
-Klas_Reduce_mean_fw_f32_row(uint32_t rows, uint32_t cols, float inv_cols,
-                            float *x, float *y);
+float Klas_Reduce_mean(uint32_t n, float *a);
 
 #define Klas_Reduce_H_DEFINED
 #endif                          /* Klas_Reduce_H */

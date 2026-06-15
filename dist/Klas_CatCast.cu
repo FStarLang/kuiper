@@ -1,12 +1,36 @@
 
 #include "Klas_CatCast.h"
 
-__nv_bfloat16 *Klas_CatCast_cat2_bf16(uint32_t len, __nv_bfloat16 *a,
-                                      __nv_bfloat16 *b)
+__global__
+/**
+  hoisted when extracting cat2_bf16
+*/
+static void
+__hoisted_cat2_bf16_0(uint32_t lena,
+                      __nv_bfloat16 *a,
+                      __nv_bfloat16 *b, uint32_t lenab, __nv_bfloat16 *out)
 {
-    KRML_MAYBE_UNUSED_VAR(a);
-    KRML_MAYBE_UNUSED_VAR(b);
-    return (__nv_bfloat16 *) KPR_GPU_ALLOC(sizeof(__nv_bfloat16), len + len);
+    if (1024U * blockIdx.x + threadIdx.x < lenab)
+        if (1024U * blockIdx.x + threadIdx.x < lena)
+            out[1024U * blockIdx.x + threadIdx.x] =
+                a[1024U * blockIdx.x + threadIdx.x];
+        else
+            out[1024U * blockIdx.x + threadIdx.x] =
+                b[1024U * blockIdx.x + threadIdx.x - lena];
+}
+
+__nv_bfloat16
+    * Klas_CatCast_cat2_bf16(uint32_t lena, uint32_t lenb, __nv_bfloat16 *a,
+                             __nv_bfloat16 *b)
+{
+    uint32_t lenab = lena + lenb;
+    __nv_bfloat16 *out =
+        (__nv_bfloat16 *) KPR_GPU_ALLOC(sizeof(__nv_bfloat16), lenab);
+    KPR_KCALL(__hoisted_cat2_bf16_0,
+              lenab / 1024U + (uint32_t) (lenab % 1024U != 0U), 1024U, 0U, lena,
+              a, b, lenab, out);
+    MUST(cudaDeviceSynchronize());
+    return out;
 }
 
 __global__

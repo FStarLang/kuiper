@@ -34,26 +34,34 @@ fn map_host
   requires  a |-> s
   ensures   a |-> lseq_map f s
 
-(* Two-array elementwise map: a[i] := f a[i] b[i]. *)
+(* In-place map with index: a[i] := f a[i] i.  Index is passed as a runtime
+   SZ.t value (a stateful kernel body cannot consume a ghost nat). *)
 
-let lseq_map2
-  (#a #b #c : Type0)
-  (#len : nat)
-  (f : a -> b -> c)
-  (sa : lseq a len) (sb : lseq b len)
-  : GTot (lseq c len)
-  = Seq.init_ghost len (fun i -> f (sa @! i) (sb @! i))
-
-let lseq_map_cast
-  (#a #b : Type0)
-  (#len : nat)
-  (f : a -> b)
-  (sa : lseq a len)
-  : GTot (lseq b len)
-  = Seq.init_ghost len (fun i -> f (sa @! i))
+let lseq_mapi
+  (#et : Type0)
+  (#len : nat { SZ.fits len })
+  (f : et -> (i:SZ.t { SZ.v i < len }) -> et)
+  (s : lseq et len)
+  : GTot (lseq et len)
+  = Seq.init_ghost len (fun (i : natlt len) -> f (s @! i) (SZ.uint_to_t i))
 
 inline_for_extraction noextract
-fn map_gpu_cast
+fn mapi_gpu
+  (#et : Type0)
+  (lena : szp { lena <= max_blocks * max_threads })
+  (f : et -> (i:SZ.t { SZ.v i < lena }) -> et)
+  (#l : Array1.layout lena) {| ctlayout l |}
+  (a : Array1.t et l { Array1.is_global a })
+  (#s : erased (lseq et lena))
+  preserves cpu
+  requires  on gpu_loc (a |-> s)
+  ensures   on gpu_loc (a |-> lseq_mapi f s)
+
+(* Pointwise map from one array to another with possibly different element types.
+   c[i] := f a[i]. *)
+
+inline_for_extraction noextract
+fn map_gpu_notinplace
   (#et #ot : Type0)
   (f : et -> ot)
   (lena : szp { lena <= max_blocks * max_threads })
@@ -69,7 +77,17 @@ fn map_gpu_cast
   norewrite
   preserves cpu ** on gpu_loc (a |-> Frac fa sa)
   requires  on gpu_loc (c |-> sc)
-  ensures   on gpu_loc (c |-> (lseq_map_cast f sa <: lseq ot lena))
+  ensures   on gpu_loc (c |-> (lseq_map f sa <: lseq ot lena))
+
+(* Two-array elementwise map: a[i] := f a[i] b[i]. *)
+
+let lseq_map2
+  (#a #b #c : Type0)
+  (#len : nat)
+  (f : a -> b -> c)
+  (sa : lseq a len) (sb : lseq b len)
+  : GTot (lseq c len)
+  = Seq.init_ghost len (fun i -> f (sa @! i) (sb @! i))
 
 inline_for_extraction noextract
 fn map_gpu2
@@ -89,36 +107,3 @@ fn map_gpu2
   preserves cpu ** on gpu_loc (b |-> Frac fb sb)
   requires  on gpu_loc (a |-> sa)
   ensures   on gpu_loc (a |-> (lseq_map2 f sa sb <: lseq et lena))
-
-(* 1-D gather: out[i] := src[idx[i]].  The idx values are modeled as u32 so
-   they can be converted to Kuiper's 32-bit size_t for the device read. *)
-let lseq_gather
-  (#et : Type0)
-  (#lens #leni : nat)
-  (src : lseq et lens)
-  (idx : (si0:lseq u32 leni { forall (j : natlt leni). FStar.UInt32.v (si0 @! j) < lens }))
-  : GTot (lseq et leni)
-  = Seq.init_ghost leni (fun i -> src @! FStar.UInt32.v (idx @! i))
-
-inline_for_extraction noextract
-fn gather_gpu
-  (#et : Type0)
-  (lens : szp)
-  (leni : szp { leni <= max_blocks * max_threads })
-  (#ls : Array1.layout lens) {| ctlayout ls |}
-  (#li : Array1.layout leni) {| ctlayout li |}
-  (#lo : Array1.layout leni) {| ctlayout lo |}
-  (src : Array1.t et ls)
-  (idx : Array1.t u32 li)
-  (out : Array1.t et lo)
-  (#_ : squash (Array1.is_global src))
-  (#_ : squash (Array1.is_global idx))
-  (#_ : squash (Array1.is_global out))
-  (#ss : erased (lseq et lens))
-  (#si : erased (lseq u32 leni))
-  (#so : erased (lseq et leni))
-  (#fs #fi : perm)
-  norewrite
-  preserves cpu ** on gpu_loc (src |-> Frac fs ss) ** on gpu_loc (idx |-> Frac fi si)
-  requires  on gpu_loc (out |-> so)
-  ensures   exists* so'. on gpu_loc (out |-> so')
