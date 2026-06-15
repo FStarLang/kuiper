@@ -1,0 +1,4 @@
+trsv2 = 1 2
+trsv_diag = 2 2
+trsv3 = 2 3 4
+trsv4 = 1 2 3 4
