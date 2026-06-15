@@ -627,8 +627,8 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
   | "Kuiper.Float16.Base.infinity", [], [] -> EConstant (Half, "HLF_INFINITY")
   | "Kuiper.Float16.Base.of_int", [], [i] -> EApp (EQualified ([], "__ll2half_rn"), [cb i])
 
-  | "Kuiper.BFloat16.Base.zero", [], [] -> EConstant (BFloat16, "CUDART_ZERO_BF16")
-  | "Kuiper.BFloat16.Base.one",  [], [] -> EConstant (BFloat16, "CUDART_ONE_BF16")
+  | "Kuiper.BFloat16.Base.zero", [], [] -> EConstant (BFloat16, "__float2bfloat16(0.0f)")
+  | "Kuiper.BFloat16.Base.one",  [], [] -> EConstant (BFloat16, "__float2bfloat16(1.0f)")
   | "Kuiper.BFloat16.Base.add",  [], [] -> EQualified ([], "__hadd")
   | "Kuiper.BFloat16.Base.mul",  [], [] -> EQualified ([], "__hmul")
   | "Kuiper.BFloat16.Base.sub",  [], [] -> EQualified ([], "__hsub")
@@ -638,8 +638,8 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
   | "Kuiper.BFloat16.Base.eq",   [], [] -> EOp (Eq, BFloat16)
   | "Kuiper.BFloat16.Base.lt",   [], [] -> EOp (Lt, BFloat16)
   | "Kuiper.BFloat16.Base.lte",  [], [] -> EOp (Lte, BFloat16)
-  | "Kuiper.BFloat16.Base.largest",  [], [] -> EConstant (BFloat16, "CUDART_MAX_NORMAL_BF16")
-  | "Kuiper.BFloat16.Base.infinity", [], [] -> EConstant (BFloat16, "CUDART_INF_BF16")
+  | "Kuiper.BFloat16.Base.largest",  [], [] -> EConstant (BFloat16, "__ushort_as_bfloat16(0x7F7F);")
+  | "Kuiper.BFloat16.Base.infinity", [], [] -> EConstant (BFloat16, "__float2bfloat16(INFINITY);")
   | "Kuiper.BFloat16.Base.of_literal", [], [s] ->
     begin match s.expr with
     | MLE_Const (MLC_String v) -> EConstant (BFloat16, v)
