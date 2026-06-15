@@ -5,23 +5,23 @@ module Kuiper.Kernel.Attention
      aten._scaled_dot_product_efficient_attention
 
    Inputs:
-     query     : (B, H, M, K)        -- on GPU
-     key       : (B, H, N, K)        -- on GPU
-     value     : (B, H, N, Kv)       -- on GPU
-     attn_bias : (B, H, M, N)        -- on GPU, additive bias
+     query     : (N, H, L, E)        -- on GPU
+     key       : (N, H, S, E)        -- on GPU
+     value     : (N, H, S, Ev)       -- on GPU
+     attn_bias : (N, H, L, S)        -- on GPU, additive bias
      scale     : et                  -- caller-provided scaling factor
                                        (PyTorch defaults to 1/sqrt(K))
      is_causal : bool                -- if true, mask above the main diagonal
 
    Outputs:
-     out       : (B, H, M, Kv)       -- on GPU
-     lse       : (B, H, M)           -- log-sum-exp, on GPU
+     out       : (N, H, L, Ev)       -- on GPU
+     lse       : (N, H, L)           -- log-sum-exp, on GPU
                                        (PyTorch's `compute_log_sumexp` flag is
                                         skipped here; we always return it)
 
    Dropout (and the philox seed/offset outputs that accompany it) is
    intentionally omitted, as is the broadcasting behaviour of attn_bias
-   (we require the full (B, H, M, N) shape). Functional correctness is
+   (we require the full (N, H, L, S) shape). Functional correctness is
    left for a future revision; this file pins down only the shapes/types. *)
 
 #lang-pulse
@@ -31,24 +31,12 @@ open Kuiper.Tensor.Layout { ctlayout }
 open Kuiper.Tensor.Layout.Alg
 open Kuiper.Tensor
 open Kuiper.Index
-open Kuiper.Real
-module A4 = Kuiper.Array4
-module A3 = Kuiper.Array3
-module EM4 = Kuiper.EMatrix4
-module EM3 = Kuiper.EMatrix3
-open Kuiper.EMatrix
-module SZ = Kuiper.SizeT
+open Kuiper.Bijection
 
+module SMX = Kuiper.Spec.Softmax
 module MS = Kuiper.Spec.GEMM
-
-// TODO: FIX SPEC ON NEW API
- 
-(*
-
-// TODO: feels like we shouldn't need to import these kernel impl. modules
-// to have the real-value specifications of these operators - should separate out into spec modules
-open Kuiper.Kernel.BatchedGEMM
-open Kuiper.Kernel.RowSoftmax
+module CH = Kuiper.Chest
+module SZ = Kuiper.SizeT
 
 // TODO: add masking support (is_causal). Need extended reals; creating the triangular matrix mask 
 // means having if-then-else in the real spec, which we currently don't have approximation rules for.
@@ -56,21 +44,20 @@ open Kuiper.Kernel.RowSoftmax
 
 (* Pre-softmax attention scores. *)
 let attn_scores
-  (#m #n #k: pos)
-  (q : ematrix real m k)
-  (k_ : ematrix real k n)
-  (bias : ematrix real m n)
+  (#l #s #e: pos)
+  (eQ : CH.t (l @| e @| INil) real)
+  (eK : CH.t (e @| s @| INil) real)
+  (bias : CH.t (l @| s @| INil) real)
   (scale : real)
-  : ematrix real m n
-  = mkM fun i j -> macc (MS.matmul q k_ ) i j *. scale +. macc bias i j
+  : CH.t (l @| s @| INil) real
+  = CH.matrix_comb (fun bias_qk score -> (bias_qk +. score) *. scale) bias (tensor_matmul eQ eK)
 
 (* row-wise log sum exp of scores *)
 let attn_lse
-  (#m #n : pos)
-  (scores : ematrix real m n)
-  : lseq real m
-  = Seq.init m (fun i -> 
-      log (rsum (seq_map exp (ematrix_row scores i))))
+  (#l #s : pos)
+  (scores : CH.t (l @| s @| INil) real)
+  : CH.t (l @| INil) real
+  = chest_mk1 (fun i -> log (rsum (seq_map exp (tensor2_row scores i))))
 
 (* Top-level real-valued spec: (output, log-sum-exp) given real inputs. *)
 let attention_real
@@ -146,6 +133,3 @@ inline_for_extraction noextract
 val scaled_dot_product_efficient_attention
   (#et : Type0) {| floating et, real_like et, floating_real_like et |}
    : scaled_dot_product_efficient_attention_ty et
-
-
-*)
