@@ -197,6 +197,7 @@ fn gpu_matrix_iconcr
   A.varray_pts_to_ref g;
   A.varray_iconcr g;
 
+  forevery_iso (Kuiper.Matrix.Common.bij rows cols) _;
   forevery_rw_type _ (natlt rows & natlt cols) _;
   forevery_unflatten' _;
   forevery_ext_2 _
@@ -219,6 +220,7 @@ fn gpu_matrix_iabs
     g |-> Frac f em
 {
   forevery_flatten _;
+  forevery_iso (bij_sym (Kuiper.Matrix.Common.bij rows cols)) _;
   forevery_rw_type _ ((aview_from_mlayout et l).iview.ait) _;
   forevery_ext _
     (fun i -> pts_to_cell (A.core g) #f ((aview_from_mlayout et l).iview.step.imap.f i)
@@ -429,7 +431,7 @@ fn gpu_matrix_read
     pure (v == macc em i j)
 {
   unfold gpu_matrix_pts_to gm #f em;
-  let r = A.varray_read gm (i, j);
+  let r = A.varray_read gm (i, (j, ()));
   fold gpu_matrix_pts_to gm #f em;
   r
 }
@@ -450,11 +452,11 @@ fn gpu_matrix_write
     gpu_matrix_pts_to gm (mupd em i j v)
 {
   unfold gpu_matrix_pts_to gm em;
-  A.varray_write gm (i,j) v;
+  A.varray_write gm (i, (j, ())) v;
   assert (pure (
     mupd em i j v
     `Kuiper.EMatrix.equal`
-    (aview_from_mlayout et #rows #cols l).ctn.upd em (A.ci_to_ai _ (i,j)) v));
+    (aview_from_mlayout et #rows #cols l).ctn.upd em (A.ci_to_ai _ (i,(j,()))) v));
   fold gpu_matrix_pts_to gm (mupd em i j v);
 }
 
@@ -467,7 +469,7 @@ let gpu_matrix_pts_to_cell
   ([@@@mkey]j : natlt cols)
   (v : et)
   : slprop
-  = A.varray_pts_to_cell gm #f (i,j) v
+  = A.varray_pts_to_cell gm #f (i, (j, ())) v
 
 let gpu_matrix_pts_to_cell_eq
   (#et:Type) (#rows #cols : nat)
@@ -480,7 +482,7 @@ let gpu_matrix_pts_to_cell_eq
   : Lemma (gpu_matrix_pts_to_cell gm #f i j v
            ==
            pts_to_cell (core gm) #f (cell_of_pos l i j) v)
-  = A.varray_pts_to_cell_eq gm (i,j) f v
+  = A.varray_pts_to_cell_eq gm (i,(j,())) f v
 
 instance is_send_across_global_matrix_pts_to_cell
   (#et:Type) (#rows #cols : nat)
@@ -513,11 +515,11 @@ fn gpu_matrix_read_cell
   unfold gpu_matrix_pts_to_cell gm #f i j v0;
   (* very awkward *)
   rewrite
-    each Mktuple2 #(natlt rows) #(natlt cols) (SZ.v i) (SZ.v j)
-      as A.ci_to_ai (aview_from_mlayout et l) (i, j);
-  let v = A.varray_read_cell gm (i,j);
+    each Mktuple2 #(natlt rows) (SZ.v i) (Mktuple2 #(natlt cols) (SZ.v j) ())
+      as A.ci_to_ai (aview_from_mlayout et l) (i, (j, ()));
+  let v = A.varray_read_cell gm (i, (j, ()));
   with ai. assert (A.varray_pts_to_cell gm #f ai v0);
-  rewrite each ai as Mktuple2 #(natlt rows) #(natlt cols) i j;
+  rewrite each ai as Mktuple2 #(natlt rows) i (Mktuple2 #(natlt cols) j ());
   fold gpu_matrix_pts_to_cell gm #f i j v0;
   v;
 }
@@ -540,11 +542,11 @@ fn gpu_matrix_write_cell
   unfold gpu_matrix_pts_to_cell gm i j v0;
   (* very awkward *)
   rewrite
-    each Mktuple2 #(natlt rows) #(natlt cols) (SZ.v i) (SZ.v j)
-      as A.ci_to_ai (aview_from_mlayout et l) (i, j);
-  A.varray_write_cell gm (i,j) v1;
+    each Mktuple2 #(natlt rows) (SZ.v i) (Mktuple2 #(natlt cols) (SZ.v j) ())
+      as A.ci_to_ai (aview_from_mlayout et l) (i, (j, ()));
+  A.varray_write_cell gm (i, (j, ())) v1;
   with ai. assert (A.varray_pts_to_cell gm #1.0R ai v1);
-  rewrite each ai as Mktuple2 #(natlt rows) #(natlt cols) i j;
+  rewrite each ai as Mktuple2 #(natlt rows) i (Mktuple2 #(natlt cols) j ());
   fold gpu_matrix_pts_to_cell gm i j v1;
 }
 
@@ -564,22 +566,11 @@ fn gpu_matrix_explode
 {
   unfold gpu_matrix_pts_to gm #f em;
   A.varray_explode gm;
-  forevery_rw_type (aview_from_mlayout et l).iview.ait (natlt rows & natlt cols) _;
-  ghost
-  fn aux (rc : natlt rows & natlt cols)
-    requires A.varray_pts_to_cell gm #f rc ((aview_from_mlayout et l).ctn.acc em rc)
-    ensures  gpu_matrix_pts_to_cell gm #f rc._1 rc._2 (macc em rc._1 rc._2)
-  {
-    rewrite each rc as (rc._1, rc._2);
-    fold gpu_matrix_pts_to_cell gm #f rc._1 rc._2 (macc em rc._1 rc._2);
-  };
-  forevery_map #(natlt rows & natlt cols)
-    (fun rc -> A.varray_pts_to_cell gm #f rc ((aview_from_mlayout et l).ctn.acc em rc))
-    (fun rc -> gpu_matrix_pts_to_cell gm #f rc._1 rc._2 (macc em rc._1 rc._2))
-    aux;
-  forevery_unflatten #(natlt rows) #(natlt cols) (fun r c ->
-    gpu_matrix_pts_to_cell gm #f r c (macc em r c));
-  ()
+  forevery_iso (Kuiper.Matrix.Common.bij rows cols) _;
+  forevery_rw_type _ (natlt rows & natlt cols) _;
+  forevery_unflatten' _;
+  forevery_ext_2 _
+    (fun r c -> gpu_matrix_pts_to_cell gm #f r c (macc em r c));
 }
 
 ghost
@@ -600,8 +591,9 @@ fn gpu_matrix_implode
 {
   forevery_flatten #(natlt rows) #(natlt cols)
     (fun r c -> gpu_matrix_pts_to_cell gm #f r c (macc em r c));
-  forevery_ext #(natlt rows & natlt cols)
-    (fun i -> gpu_matrix_pts_to_cell gm #f i._1 i._2 (macc em i._1 i._2))
+  forevery_iso (bij_sym (Kuiper.Matrix.Common.bij rows cols)) _;
+  forevery_rw_type _ ((aview_from_mlayout et l).iview.ait) _;
+  forevery_ext _
     (fun i -> A.varray_pts_to_cell gm #f i ((aview_from_mlayout et l).ctn.acc em i));
   A.varray_implode gm;
   fold gpu_matrix_pts_to gm #f em;

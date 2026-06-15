@@ -6,6 +6,7 @@ open Kuiper
 open Pulse.Lib.Trade
 module MS = Kuiper.Spec.GEMM
 open Kuiper.EMatrix
+module Chest = Kuiper.Chest
 open Kuiper.Matrix.Reprs.Type
 
 (* Helper: for reals, sum(0 to base+n) = sum(0 to base) + sum over elements base..base+n-1 *)
@@ -86,18 +87,18 @@ let mmcomb_approx_real
   (rA : ematrix real rows shared)
   (rB : ematrix real shared cols)
   (rC : ematrix real rows cols)
-  = let aux (i : natlt rows) (j : natlt cols)
+  = let aux (idx : natlt rows & (natlt cols & unit))
       : Lemma
         (requires eA %~ rA /\ eB %~ rB /\ eC %~ rC /\ approx2 comb comb_r)
-        (ensures macc (MS.mmcomb comb eC eA eB) i j %~ macc (MS.mmcomb comb_r rC rA rB) i j)
+        (ensures macc (MS.mmcomb comb eC eA eB) idx._1 idx._2._1 %~ macc (MS.mmcomb comb_r rC rA rB) idx._1 idx._2._1)
       =
+        let (i, (j, ())) = idx in
         __matmul_single_approx_real eA eB rA rB i j shared;
         (* eC[i,j] %~ rC[i,j] from eC %~ rC *)
         (* matmul_single eA eB i j %~ matmul_single rA rB i j from above *)
         (* approx2 comb comb_r gives: comb x y %~ comb_r r s when x %~ r /\ y %~ s *)
-        assert (macc eC i j %~ macc rC i j);
+        assert (Chest.acc eC idx %~ Chest.acc rC idx);
         assert (MS.matmul_single eA eB i j %~ MS.matmul_single rA rB i j);
         ()
     in
-    Classical.forall_intro_2 (fun i j ->
-      Classical.move_requires (aux i) j)
+    Classical.forall_intro (fun idx -> Classical.move_requires aux idx)

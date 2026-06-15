@@ -24,7 +24,7 @@ inline_for_extraction noextract
 val from_array
   (#et : Type0) (#r : erased nat) (#d : idesc r)
   (l : tlayout d)
-  (a : larray et (tlayout_size l))
+  (a : larray et (tlayout_ulen l))
   : tensor et l
 
 inline_for_extraction noextract
@@ -32,7 +32,7 @@ val core
   (#et : Type0) (#r : erased nat) (#d : idesc r)
   (#l : tlayout d)
   (a : tensor et l)
-  : larray et (tlayout_size l)
+  : larray et (tlayout_ulen l)
 
 val lem_core_from_array
   (#et : Type0) (#r : nat) (#d : idesc r)
@@ -44,7 +44,7 @@ val lem_core_from_array
 val lem_from_array_core
   (#et : Type0) (#r : nat) (#d : idesc r)
   (#l : tlayout d)
-  (p : larray et (tlayout_size l))
+  (p : larray et (tlayout_ulen l))
   : Lemma (ensures core (from_array l p) == p)
           [SMTPat (from_array l p)]
 
@@ -120,7 +120,19 @@ fn tensor_pts_to_ref
   preserves
     a |-> Frac f s
   ensures
-    pure (SZ.fits (tlayout_size l))
+    pure (SZ.fits (tlayout_ulen l))
+
+ghost
+fn tensor_pts_to_ref_located
+  (#et : Type0) (#r : nat) (#d : idesc r)
+  (#l : tlayout d)
+  (a : tensor et l)
+  (#loc : loc_id)
+  (#f : perm) (#s : chest d et)
+  preserves
+    on loc (a |-> Frac f s)
+  ensures
+    pure (SZ.fits (tlayout_ulen l))
 
 ghost
 fn tensor_pts_to_eq
@@ -154,7 +166,7 @@ fn tensor_abs
   (#et:Type)
   (#r : nat) (#d : idesc r)
   (l : tlayout d { is_full l })
-  (p : larray et (tlayout_size l))
+  (p : larray et (tlayout_ulen l))
   (#f : perm)
   (#s : chest d et)
   requires
@@ -167,9 +179,9 @@ fn tensor_abs'
   (#et:Type)
   (#r : nat) (#d : idesc r)
   (l : tlayout d { is_full l })
-  (p : larray et (tlayout_size l))
+  (p : larray et (tlayout_ulen l))
   (#f : perm)
-  (#s : lseq et (tlayout_size l))
+  (#s : lseq et (tlayout_ulen l))
   requires
     p |-> Frac f s
   ensures
@@ -317,7 +329,7 @@ fn tensor_implode
   (#f : perm)
   (#s : chest d et)
   requires
-    pure (SZ.fits (tlayout_size l))
+    pure (SZ.fits (tlayout_ulen l))
   requires
     forall+ (i : abs d).
       Cell a i |-> Frac f (acc s i)
@@ -334,7 +346,7 @@ fn tensor_ilower
   requires
     a |-> Frac f s
   ensures
-    pure (SZ.fits (tlayout_size l)) **
+    pure (SZ.fits (tlayout_ulen l)) **
     (forall+ (i : abs d).
       pts_to_cell (core a) #f (l.imap.f i) (acc s i))
 
@@ -346,7 +358,7 @@ fn tensor_iraise
   (#f : perm)
   (#s : chest d et)
   requires
-    pure (SZ.fits (tlayout_size l)) **
+    pure (SZ.fits (tlayout_ulen l)) **
     (forall+ (i : abs d).
       pts_to_cell (core a) #f (l.imap.f i) (acc s i))
   ensures
@@ -392,7 +404,7 @@ let tlayout_slice_imap
     l.imap.f idx'
 
 let tlayout_slice
-  (#n : erased nat) (#d : idesc n) (l : tlayout d)
+  (#n : nat) (#d : idesc n) (l : tlayout d)
   (i : natlt n) (j : natlt (d @! i)) // Fixing the ith-dimension to j
   : tlayout (modulo_i i d) =
   {
@@ -403,12 +415,20 @@ let tlayout_slice
     };
   }
 
+(* Note: the codomain of this instance
+   has existentially quantified r'/d' so we do
+   not force the unifier to prove equalities
+   involving integer subtraction or modulo_i. *)
 inline_for_extraction noextract
 instance val ctlayout_slice
   (#n : erased nat) (#d : idesc n) (l : tlayout d)
   {| ctlayout l |}
-  (i : szlt n) (j : szlt (d @! i))
-  : ctlayout (tlayout_slice l i j)
+  (i : erased nat{i < n}) (j : erased nat{j < (d @! i)})
+  {| ix : concrete_sz i |} {| jx : concrete_sz j |}
+  (#r' : erased nat) (#d' : idesc r')
+  (#_ : reveal r' == n-1)
+  (#_ : d' == modulo_i i d)
+  : ctlayout #r' #d' (tlayout_slice l i j)
 
 inline_for_extraction noextract
 val sliceof
@@ -426,6 +446,14 @@ val lem_sliceof_core
   : Lemma (core (sliceof a i j) == core a)
           [SMTPat (sliceof a i j)]
 
+val lem_is_global_iff_sliceof
+  (#et : Type0) (#r : nat) (#d : idesc r)
+  (#l : tlayout d)
+  (a : tensor et l)
+  (i : natlt r) (j : natlt (d @! i))
+  : Lemma (ensures is_global (sliceof a i j) <==> is_global a)
+          [SMTPat (is_global (sliceof a i j))]
+
 #push-options "--warn_error -271" // implicit subtraction in pattern, OK
 val tensor_slice_cell_eq
   (#et : Type0) (#r : nat) (#d : idesc r)
@@ -438,23 +466,6 @@ val tensor_slice_cell_eq
            Cell a ((abs_bring_forward_bij i d).gg (j, k)) |-> Frac f v)
            [SMTPat (Cell (sliceof a i j) k |-> Frac f v)]
 #pop-options
-
-let chest_slice
-  (#et : Type0) (#r : nat) (#d : idesc r)
-  (i : natlt r) (j : natlt (d @! i))
-  (s : chest d et)
-  : chest (modulo_i i d) et
-  = mk _ (fun (idx : abs (modulo_i i d)) ->
-            acc s ((abs_bring_forward_bij i d).gg (j, idx)))
-
-let chest_update_slice
-  (#et : Type0) (#r : nat) (#d : idesc r)
-  (i : natlt r) (j : natlt (d @! i))
-  (s : chest d et) (s' : chest (modulo_i i d) et)
-  : chest d et
-  = mk _ (fun (idx : abs d) ->
-            let (j', k) = (abs_bring_forward_bij i d).ff idx in
-            if j' = j then acc s' k else acc s idx)
 
 ghost
 fn tensor_extract_slice

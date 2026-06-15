@@ -18,10 +18,12 @@ __hoisted_batched_gemm_f32_0(float alpha,
         uint32_t tcol = (1024U * blockIdx.x + threadIdx.x) % cols;
         uint32_t k = 0U;
         float sum = 0.0f;
-        for (; k < shared; k++)
+        for (; k < shared; k++) {
+            uint32_t vk = k;
             sum +=
-                a[i * rows * shared + trow * shared + k] * b[i * shared * cols +
-                                                             k * cols + tcol];
+                a[i * rows * shared + trow * shared +
+                  vk] * b[i * shared * cols + vk * cols + tcol];
+        }
         float s = sum;
         c[i * rows * cols + trow * cols + tcol] =
             beta * c[i * rows * cols + trow * cols + tcol] + alpha * s;
@@ -61,10 +63,12 @@ __hoisted_batched_matmul_f32_0(uint32_t rows,
         uint32_t tcol = (1024U * blockIdx.x + threadIdx.x) % cols;
         uint32_t k = 0U;
         float sum = 0.0f;
-        for (; k < shared; k++)
+        for (; k < shared; k++) {
+            uint32_t vk = k;
             sum +=
-                a[i * rows * shared + trow * shared + k] * b[i * shared * cols +
-                                                             k * cols + tcol];
+                a[i * rows * shared + trow * shared +
+                  vk] * b[i * shared * cols + vk * cols + tcol];
+        }
         out[i * rows * cols + trow * cols + tcol] = sum;
     }
 }

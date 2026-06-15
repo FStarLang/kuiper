@@ -640,6 +640,11 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
   | "Kuiper.BFloat16.Base.lte",  [], [] -> EOp (Lte, BFloat16)
   | "Kuiper.BFloat16.Base.largest",  [], [] -> EConstant (BFloat16, "CUDART_MAX_NORMAL_BF16")
   | "Kuiper.BFloat16.Base.infinity", [], [] -> EConstant (BFloat16, "CUDART_INF_BF16")
+  | "Kuiper.BFloat16.Base.of_literal", [], [s] ->
+    begin match s.expr with
+    | MLE_Const (MLC_String v) -> EConstant (BFloat16, v)
+    | _ -> failwith "BFloat16.of_literal: expected a string literal"
+    end
   | "Kuiper.BFloat16.Base.of_int", [], [i] -> EApp (EQualified ([], "__ll2bfloat16_rn"), [cb i])
 
   | "Kuiper.Float32.Base.zero", [], [] -> EConstant (Float, "0.0f")

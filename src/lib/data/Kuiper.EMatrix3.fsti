@@ -1,29 +1,35 @@
 module Kuiper.EMatrix3
 #lang-pulse
 
+(* An "erased" 3-D matrix, for specification purposes only *)
+
 open Kuiper
 open Kuiper.Container
-open FStar.FunctionalExtensionality { (^->>) }
-module F = FStar.FunctionalExtensionality
+open Kuiper.Chest
+include Kuiper.Chest {
+  to_real_chest as to_real_matrix,
+  equal,
+  chest_comb as matrix_comb,
+}
+open Kuiper.Index
 module EM = Kuiper.EMatrix
 
 [@@erasable]
-noeq
 type ematrix3 (et:Type) (d0 d1 d2 : nat) =
-  | M : f:(natlt d0 & natlt d1 & natlt d2 ^->> et)
-     -> ematrix3 et d0 d1 d2
+  chest (d0 @| d1 @| d2 @| INil) et
 
 unfold let t = ematrix3
 
 let mkM (#et:Type) (#d0 #d1 #d2 : nat)
   (f : natlt d0 -> natlt d1 -> natlt d2 -> GTot et)
   : ematrix3 et d0 d1 d2
-  = M <| F.on_g _ <| fun (i, j, k) -> f i j k
+  = Chest.mk (d0 @| d1 @| d2 @| INil)
+      fun (i, (j, (k, ()))) -> f i j k
 
 let const_matrix (#et:Type) (#d0 #d1 #d2 : nat)
   (v:et)
   : ematrix3 et d0 d1 d2
-  = mkM fun _ _ _ -> v
+  = Chest.const _ v
 
 let macc (#et:Type) (#d0 #d1 #d2 : nat)
   (m : ematrix3 et d0 d1 d2)
@@ -31,35 +37,37 @@ let macc (#et:Type) (#d0 #d1 #d2 : nat)
   (j : natlt d1)
   (k : natlt d2)
   : GTot et
-  = m.f (i, j, k)
+  = Chest.acc m (i, (j, (k, ())))
 
 let mupd (#et:Type) (#d0 #d1 #d2 : nat)
   (m : ematrix3 et d0 d1 d2)
-  (i : natlt d0)
-  (j : natlt d1)
-  (k : natlt d2)
+  (i : nat{ i < d0 })
+  (j : nat{ j < d1 })
+  (k : nat{ k < d2 })
   (v : et)
   : ematrix3 et d0 d1 d2
-  = mkM fun i' j' k' ->
-      if i' = i && j' = j && k' = k
-      then v
-      else m.f (i', j', k')
+  = Chest.upd m (i, (j, (k, ()))) v
 
-val macc_pat (#et :Type) (#d0 #d1 #d2 : nat)
+(* ── Matrix-level bridges over the underlying chest ──────────────────────────
+   The chest indexes matrices by the nested tuple [abs (d0 @| d1 @| d2 @| INil)]
+   (i.e. [natlt d0 & (natlt d1 & (natlt d2 & unit))]), so the chest-level
+   [equal], [approximates] and [acc] facts quantify over that nested index.
+   These lemmas re-expose them in the flat [macc m i j k] form that the matrix
+   API uses, bridging the trailing [unit] that SMT cannot erase on its own. *)
+
+val macc_mkM (#et:Type) (#d0 #d1 #d2 : nat)
+  (f : natlt d0 -> natlt d1 -> natlt d2 -> GTot et)
+  (i : natlt d0) (j : natlt d1) (k : natlt d2)
+  : Lemma (macc (mkM f) i j k == f i j k)
+          [SMTPat (macc (mkM f) i j k)]
+
+val macc_mupd (#et:Type) (#d0 #d1 #d2 : nat)
   (m : ematrix3 et d0 d1 d2)
-  (i : natlt d0)
-  (j : natlt d1)
-  (k : natlt d2)
-  : Lemma (macc m i j k == m.f (i, j, k))
-          [SMTPat (m.f (i, j, k))]
-
-let matrix_comb (#et:Type) (#d0 #d1 #d2 : nat)
-  (f : binop et)
-  (m1 m2 : ematrix3 et d0 d1 d2)
-  : ematrix3 et d0 d1 d2
-  = mkM fun i j k -> f (macc m1 i j k) (macc m2 i j k)
-
-val equal (#et #d0 #d1 #d2 : _) (m1 m2 : ematrix3 et d0 d1 d2) : prop
+  (i : nat{i < d0}) (j : nat{j < d1}) (k : nat{k < d2}) (v : et)
+  (i' : natlt d0) (j' : natlt d1) (k' : natlt d2)
+  : Lemma (macc (mupd m i j k v) i' j' k'
+           == (if i' = i && j' = j && k' = k then v else macc m i' j' k'))
+          [SMTPat (macc (mupd m i j k v) i' j' k')]
 
 val lemma_equal_intro (#et #d0 #d1 #d2 : _)
   (m1 m2 : ematrix3 et d0 d1 d2)
@@ -67,70 +75,25 @@ val lemma_equal_intro (#et #d0 #d1 #d2 : _)
           (ensures equal m1 m2)
           [SMTPat (equal m1 m2)]
 
-val ext #et #d0 #d1 #d2
-  (m1 m2 : ematrix3 et d0 d1 d2)
-  : Lemma (requires equal m1 m2)
-          (ensures m1 == m2)
-          [SMTPat (equal m1 m2)]
-
-let ematrix_approximates #et
-  {| scalar et, Kuiper.Approximates.real_like et |}
-  #d0 #d1 #d2
+val lemma_approximates_intro
+  (#et:Type0) {| scalar et, real_like et |} (#d0 #d1 #d2 : nat)
   (m1 : ematrix3 et d0 d1 d2)
   (m2 : ematrix3 real d0 d1 d2)
-  : prop
-  = forall (i:natlt d0) (j:natlt d1) (k:natlt d2).
-      macc m1 i j k %~ macc m2 i j k
-
-instance ematrix_can_approximate
-  (#et : Type0) {| scalar et, real_like et |}
-  (#d0 #d1 #d2 : nat)
-  : can_approximate (ematrix3 et d0 d1 d2) (ematrix3 real d0 d1 d2) =
-{
-  approximates = ematrix_approximates;
-}
-
-let to_real_matrix (#et : Type0)
-  {| scalar et, real_like et |}
-  (#d0 #d1 #d2 : nat)
-  (m : ematrix3 et d0 d1 d2)
-  : GTot (ematrix3 real d0 d1 d2)
-  = mkM fun i j k -> to_real (macc m i j k)
-
-val lemma_to_real_matrix_approximates (#et : Type0)
-  {| scalar et, d : real_like et |}
-  (#d0 #d1 #d2 : nat)
-  (m : ematrix3 et d0 d1 d2)
-  : Lemma (ensures m %~ to_real_matrix m)
-          [SMTPat (to_real_matrix m)]
-
-instance ematrix_is_container
-  (et:Type) (#d0 #d1 #d2 : nat)
-  : container (ematrix3 et d0 d1 d2) (natlt d0 & natlt d1 & natlt d2) et
-= {
-    acc = (fun m (r,c,d) -> macc m r c d);
-    upd = (fun m (i, j, k) x -> mupd m i j k x);
-    l1 = ez;
-    l2 = ez;
-    ext = (fun c1 c2 _ -> assert (equal c1 c2));
-    from_fun = (fun f -> mkM fun i j k -> f (i, j, k));
-    from_fun_ok = ez;
-  }
+  : Lemma (requires forall (i:natlt d0) (j:natlt d1) (k:natlt d2). macc m1 i j k %~ macc m2 i j k)
+          (ensures m1 %~ m2)
+          [SMTPat (m1 %~ m2)]
 
 (* Extract / update a single "page" (the 2-D slice at batch index i). *)
 let slice_page (#et:Type) (#d0 #d1 #d2 : nat)
   (m : ematrix3 et d0 d1 d2) (i : natlt d0)
   : EM.ematrix et d1 d2
-  = EM.mkM fun j k -> macc m i j k
+  = chest_slice 0 i m
 
 let upd_page (#et:Type) (#d0 #d1 #d2 : nat)
   (m : ematrix3 et d0 d1 d2) (i : natlt d0)
   (p : EM.ematrix et d1 d2)
   : ematrix3 et d0 d1 d2
-  = mkM fun i' j k ->
-      if i' = i
-      then EM.macc p j k
-      else macc m i' j k
+  = chest_update_slice 0 i m p
 
 val slice_upd_page_same (#et:Type) (#d0 #d1 #d2 : nat)
   (m : ematrix3 et d0 d1 d2) (i : natlt d0)

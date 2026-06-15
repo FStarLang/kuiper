@@ -11,13 +11,17 @@ open Kuiper.Bijection
 open Kuiper.Real
 
 module CH = Kuiper.Chest
-
 module SZ = Kuiper.SizeT
+
+// TODO: FIX SPEC ON NEW API
+
 
 // module MS = Kuiper.Spec.GEMM
 // open Kuiper.Kernel.BatchedGEMM
 // open Kuiper.Kernel.RowSoftmax
   
+(*
+
   #set-options "--ifuel 0"
 let index_destructure_test (#et : Type0) {| floating et, real_like et, floating_real_like et |} (#b #h : szp)
   (#m #n : szp) 
@@ -95,3 +99,5 @@ fn scaled_dot_product_efficient_attention4
 let scaled_dot_product_efficient_attention
   (#et : Type0) {| floating et, real_like et, floating_real_like et |}
    : scaled_dot_product_efficient_attention_ty et = admit ()
+
+*)

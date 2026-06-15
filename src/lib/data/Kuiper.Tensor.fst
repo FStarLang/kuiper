@@ -20,7 +20,7 @@ inline_for_extraction noextract
 let from_array
   (#et : Type0) (#r : erased nat) (#d : idesc r)
   (l : tlayout d)
-  (a : larray et (tlayout_size l))
+  (a : larray et (tlayout_ulen l))
   : tensor et l
   = A.from_array (tensor_aview et l) a
 
@@ -29,7 +29,7 @@ let core
   (#et : Type0) (#r : erased nat) (#d : idesc r)
   (#l : tlayout d)
   (a : tensor et l)
-  : larray et (tlayout_size l)
+  : larray et (tlayout_ulen l)
   = A.core a
 
 let lem_core_from_array
@@ -43,7 +43,7 @@ let lem_core_from_array
 let lem_from_array_core
   (#et : Type0) (#r : nat) (#d : idesc r)
   (#l : tlayout d)
-  (p : larray et (tlayout_size l))
+  (p : larray et (tlayout_ulen l))
   : Lemma (ensures core (from_array l p) == p)
           [SMTPat (from_array l p)]
   = ()
@@ -126,11 +126,31 @@ fn tensor_pts_to_ref
   preserves
     a |-> Frac f s
   ensures
-    pure (SZ.fits (tlayout_size l))
+    pure (SZ.fits (tlayout_ulen l))
 {
   unfold tensor_pts_to a #f s;
   A.varray_pts_to_ref a;
   fold tensor_pts_to a #f s;
+}
+
+ghost
+fn tensor_pts_to_ref_located
+  (#et : Type0) (#r : nat) (#d : idesc r)
+  (#l : tlayout d)
+  (a : tensor et l)
+  (#loc : loc_id)
+  (#f : perm) (#s : chest d et)
+  preserves
+    on loc (a |-> Frac f s)
+  ensures
+    pure (SZ.fits (tlayout_ulen l))
+{
+  map_loc loc
+    #(a |-> Frac f s)
+    #(a |-> Frac f s ** pure (SZ.fits (tlayout_ulen l)))
+  fn _ {
+    tensor_pts_to_ref a;
+  };
 }
 
 ghost
@@ -179,7 +199,7 @@ fn tensor_abs
   (#et:Type)
   (#r : nat) (#d : idesc r)
   (l : tlayout d { is_full l })
-  (p : larray et (tlayout_size l))
+  (p : larray et (tlayout_ulen l))
   (#f : perm)
   (#s : chest d et)
   requires
@@ -201,9 +221,9 @@ fn tensor_abs'
   (#et:Type)
   (#r : nat) (#d : idesc r)
   (l : tlayout d { is_full l })
-  (p : larray et (tlayout_size l))
+  (p : larray et (tlayout_ulen l))
   (#f : perm)
-  (#s : lseq et (tlayout_size l))
+  (#s : lseq et (tlayout_ulen l))
   requires
     p |-> Frac f s
   ensures
@@ -351,7 +371,7 @@ fn tensor_implode
   (#f : perm)
   (#s : chest d et)
   requires
-    pure (SZ.fits (tlayout_size l))
+    pure (SZ.fits (tlayout_ulen l))
   requires
     forall+ (i : abs d).
       Cell a i |-> Frac f (acc s i)
@@ -378,7 +398,7 @@ fn tensor_ilower
   requires
     a |-> Frac f s
   ensures
-    pure (SZ.fits (tlayout_size l)) **
+    pure (SZ.fits (tlayout_ulen l)) **
     (forall+ (i : abs d).
       pts_to_cell (core a) #f (l.imap.f i) (acc s i))
 {
@@ -404,7 +424,7 @@ fn tensor_iraise
   (#f : perm)
   (#s : chest d et)
   requires
-    pure (SZ.fits (tlayout_size l)) **
+    pure (SZ.fits (tlayout_ulen l)) **
     (forall+ (i : abs d).
       pts_to_cell (core a) #f (l.imap.f i) (acc s i))
   ensures
@@ -488,13 +508,18 @@ let ctlayout_slice_cimap
 inline_for_extraction noextract
 instance ctlayout_slice
   (#n : erased nat) (#d : idesc n) (l : tlayout d)
-  {| c : ctlayout l |}
-  (i : szlt n) (j : szlt (d @! i))
-  : ctlayout (tlayout_slice l i j) =
+  {| ctlayout l |}
+  (i : erased nat{i < n}) (j : erased nat{j < (d @! i)})
+  {| ix : concrete_sz i |} {| jx : concrete_sz j |}
+  (#r' : erased nat) (#d' : idesc r')
+  (#_ : reveal r' == n-1)
+  (#_ : d' == modulo_i i d)
+  : ctlayout #r' #d' (tlayout_slice l i j) =
   {
     ulen_fits = ();
     all_fit = ();
-    cimap = (fun idx -> ctlayout_slice_cimap d l i j idx);
+    cimap = (fun idx ->
+      ctlayout_slice_cimap d l (concr' ix) (concr' jx) idx);
   }
 
 inline_for_extraction noextract
@@ -512,6 +537,15 @@ let lem_sliceof_core
   (a : tensor et l)
   (i : erased nat{i < r}) (j : erased nat{j < d @! i})
   : Lemma (core (sliceof a i j) == core a)
+          [SMTPat (sliceof a i j)]
+  = ()
+
+let lem_is_global_iff_sliceof
+  (#et : Type0) (#r : nat) (#d : idesc r)
+  (#l : tlayout d)
+  (a : tensor et l)
+  (i : natlt r) (j : natlt (d @! i))
+  : Lemma (is_global (sliceof a i j) <==> is_global a)
           [SMTPat (sliceof a i j)]
   = ()
 

@@ -692,6 +692,31 @@ let ettile_mmcomb_pointwise
                  comb (macc (ettile eC bm bn tm tn bid tid) i j)
                       (macc (ettile (MS.matmul eA eB) bm bn tm tn bid tid) i j))
 
+(* Pure-arithmetic tile div/mod facts, extracted to top level so they
+   typecheck in a minimal context. Inside [epilogue]'s large proof state the
+   ambient sizeof SMTPats (the size_layout lemmas in Kuiper.Tensor.Layout)
+   pollute the context and make these [forall] asserts ill-typed when stated
+   inline. *)
+let epilogue_tile_div_mod (tm tn : pos)
+  : Lemma (forall (i:natlt tm) (j:natlt tn).
+            (i * tn + j) / tn == i /\ (i * tn + j) % tn == j)
+  = introduce forall (i:natlt tm) (j:natlt tn).
+      (i * tn + j) / tn == i /\ (i * tn + j) % tn == j
+    with (FStar.Math.Lemmas.lemma_div_plus j i tn;
+          FStar.Math.Lemmas.small_div j tn;
+          FStar.Math.Lemmas.lemma_mod_plus j i tn;
+          FStar.Math.Lemmas.small_mod j tn)
+
+let epilogue_tile_lt_succ (tm : pos) (tn : pos) (rM : nat) (rN : nat{rN < tn})
+  : Lemma (forall (i:natlt tm) (j:natlt tn).
+            (i * tn + j < rM * tn + rN + 1 <==>
+             (i * tn + j < rM * tn + rN \/ (i == rM /\ j == rN))))
+  = introduce forall (i:natlt tm) (j:natlt tn).
+      (i * tn + j < rM * tn + rN + 1 <==>
+       (i * tn + j < rM * tn + rN \/ (i == rM /\ j == rN)))
+    with (lemma_eucl_lt_succ tn i j rM rN)
+
+#push-options "--z3rlimit 30"
 inline_for_extraction noextract
 fn epilogue
   (#et : Type0) {| scalar et |}
@@ -723,10 +748,7 @@ fn epilogue
     ttile gC bm bn tm tn bid tid |-> ettile (MS.mmcomb comb eC eA eB) bm bn tm tn bid tid
 {
   (* Help the SMT connect vrch to the matmul subtile via div/mod *)
-  assert pure (forall (i:natlt tm) (j:natlt tn).
-    (i * tn + j) / tn == i);
-  assert pure (forall (i:natlt tm) (j:natlt tn).
-    (i * tn + j) % tn == j);
+  epilogue_tile_div_mod tm tn;
   assert pure (forall (i:natlt tm) (j:natlt tn).
     vrch @! (i * tn + j) == macc (ettile (MS.matmul eA eB) bm bn tm tn bid tid) i j);
 
@@ -781,10 +803,7 @@ fn epilogue
       // Use lemma_eucl_lt_succ for each (i,j) to avoid flaky Z3 non-linear reasoning.
       let rM = !resIdxM;
       let rN = !resIdxN;
-      (introduce forall (i:natlt tm) (j:natlt tn).
-        (i * tn + j < SZ.v rM * tn + SZ.v rN + 1 <==>
-        (i * tn + j < SZ.v rM * tn + SZ.v rN \/ (i == SZ.v rM /\ j == SZ.v rN)))
-      with (lemma_eucl_lt_succ tn i j (SZ.v rM) (SZ.v rN)));
+      epilogue_tile_lt_succ tm tn (SZ.v rM) (SZ.v rN);
 
       resIdxN := !resIdxN +^ 1sz;
     };
@@ -800,9 +819,10 @@ fn epilogue
 
   with m. assert M.pts_to t_tile m;
 
-  assert pure (Kuiper.EMatrix.equal m (ettile (MS.mmcomb comb eC eA eB) bm bn tm tn bid tid));
+  assert pure (Kuiper.Chest.equal m (ettile (MS.mmcomb comb eC eA eB) bm bn tm tn bid tid));
   ()
 }
+#pop-options
 
 #push-options "--fuel 1 --ifuel 1"
 inline_for_extraction noextract
@@ -1370,7 +1390,6 @@ fn teardown
 }
 
 #push-options "--z3rlimit_factor 4 --split_queries no --fuel 1 --ifuel 1"
-#restart-solver
 inline_for_extraction noextract
 let mk_kernel
   (#et : Type0) {| scalar et, has_vec_cpy et |}

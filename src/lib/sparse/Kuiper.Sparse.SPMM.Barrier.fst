@@ -12,7 +12,6 @@ open Kuiper.Bijection { ( |~> ) }
 
 #set-options "--z3rlimit 20"
 
-#restart-solver
 #push-options "--z3rlimit 80 --fuel 0 --ifuel 0"
 ghost
 fn forevery_prod_to_flat

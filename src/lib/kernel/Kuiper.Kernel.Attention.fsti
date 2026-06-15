@@ -41,6 +41,10 @@ module SZ = Kuiper.SizeT
 
 module MS = Kuiper.Spec.GEMM
 
+// TODO: FIX SPEC ON NEW API
+ 
+(*
+
 // TODO: feels like we shouldn't need to import these kernel impl. modules
 // to have the real-value specifications of these operators - should separate out into spec modules
 open Kuiper.Kernel.BatchedGEMM
@@ -142,3 +146,6 @@ inline_for_extraction noextract
 val scaled_dot_product_efficient_attention
   (#et : Type0) {| floating et, real_like et, floating_real_like et |}
    : scaled_dot_product_efficient_attention_ty et
+
+
+*)

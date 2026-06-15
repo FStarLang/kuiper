@@ -27,28 +27,6 @@ let abs_bij (#d0 #d1 #d2 : nat) : (abs (desc d0 d1 d2) =~ (ait d0 d1 d2)) =
   }
 #pop-options
 
-let tr_val (#et : Type) (#d0 #d1 #d2 : nat) (s : EMatrix3.t et d0 d1 d2)
-  : chest (desc d0 d1 d2) et
-  = Chest.mk (desc d0 d1 d2) (fun (i, (j, (k, ()))) -> EMatrix3.macc s i j k)
-
-let backtr_val (#et : Type) (#d0 #d1 #d2 : nat) (c : chest (desc d0 d1 d2) et)
-  : EMatrix3.t et d0 d1 d2
-  = EMatrix3.mkM (fun i j k -> Chest.acc c (i, (j, (k, ()))))
-
-let to_from (#et:Type) (#d0 #d1 #d2 : nat)
-  (l : full_layout d0 d1 d2) (s : lseq et (d0 * d1 * d2))
-  : Lemma (ensures to_seq l (from_seq l s) == s)
-          [SMTPat (to_seq l (from_seq l s))]
-  = assert (Seq.equal (to_seq l (from_seq l s)) s)
-
-let to_seq_rel (#et:Type) (#d0 #d1 #d2 : nat)
-  (l : full_layout d0 d1 d2) (s : EMatrix3.t et d0 d1 d2)
-  : Lemma (to_seq l s == T.to_seq l (tr_val s))
-  = let aux (i : natlt (d0 * d1 * d2)) : Lemma (to_seq l s @! i == T.to_seq l (tr_val s) @! i) =
-      ()
-    in
-    assert (Seq.equal (to_seq l s) (T.to_seq l (tr_val s)))
-
 let t (et : Type0) (#d0 #d1 #d2 : nat) (l : layout d0 d1 d2) : Type0 =
   T.tensor et l
 
@@ -100,7 +78,7 @@ let pts_to
   (#[Tac.exact (`1.0R)] f : perm)
   (s : EMatrix3.t et d0 d1 d2)
   : slprop
-  = T.tensor_pts_to a #f (tr_val s)
+  = T.tensor_pts_to a #f s
 
 instance is_send_across_global
   (#et : Type0) (#d0 #d1 #d2 : nat) (#l : layout d0 d1 d2)
@@ -165,9 +143,8 @@ fn alloc0
 {
   let t = T.alloc0 #et (d0 *^ (d1 *^ d2)) l;
   with em. assert on gpu_loc (T.tensor_pts_to t em);
-  assert pure (Chest.equal em (tr_val (backtr_val em)));
   rewrite on gpu_loc (T.tensor_pts_to t em)
-       as on gpu_loc (pts_to t (backtr_val em));
+       as on gpu_loc (pts_to t em);
   t
 }
 #pop-options
@@ -187,7 +164,7 @@ fn free
   ensures emp
 {
   rewrite on gpu_loc (pts_to p em)
-       as on gpu_loc (T.tensor_pts_to p (tr_val em));
+       as on gpu_loc (T.tensor_pts_to p em);
   T.free p;
 }
 
@@ -206,9 +183,6 @@ fn lower
 {
   unfold pts_to g #f s;
   T.tensor_concr g;
-  to_seq_rel l s;
-  rewrite T.core g |-> Frac f (T.to_seq l (tr_val s))
-       as core g |-> Frac f (to_seq l s);
 }
 
 ghost
@@ -224,11 +198,6 @@ fn raise
   ensures
     from_array l p |-> Frac f s
 {
-  to_seq_rel l s;
-  rewrite
-    p |-> Frac f (to_seq l s)
-  as
-    p |-> Frac f (T.to_seq l (tr_val s));
   T.tensor_abs l p;
   fold pts_to (from_array l p) #f s;
 }
@@ -248,63 +217,6 @@ fn raise'
 {
   rewrite each s as to_seq l (from_seq l s);
   raise l p;
-}
-
-let bij_apply_em3 (#et : Type) (#d0 #d1 #d2 #e0 #e1 #e2 : nat)
-  (f : abs (desc d0 d1 d2) =~ abs (desc e0 e1 e2))
-  (s : EMatrix3.t et d0 d1 d2)
-  : EMatrix3.t et e0 e1 e2
-  = backtr_val (Chest.mk (desc e0 e1 e2) (fun i -> Chest.acc (tr_val s) (i <~| f)))
-
-let bij_apply_em3_macc
-  (#et : Type) (#d0 #d1 #d2 #e0 #e1 #e2 : nat)
-  (f : abs (desc d0 d1 d2) =~ abs (desc e0 e1 e2))
-  (s : EMatrix3.t et d0 d1 d2)
-  (i : natlt e0) (j : natlt e1) (k : natlt e2)
-  : Lemma (EMatrix3.macc (bij_apply_em3 f s) i j k ==
-           (let (i', (j', (k', ()))) = (i, (j, (k, ()))) <~| f in
-            EMatrix3.macc s i' j' k'))
-          [SMTPat (EMatrix3.macc (bij_apply_em3 f s) i j k)]
-  = ()
-
-let bij_apply_chest_equal
-  (#et : Type) (#d0 #d1 #d2 #e0 #e1 #e2 : nat)
-  (f : abs (desc d0 d1 d2) =~ abs (desc e0 e1 e2))
-  (s : EMatrix3.t et d0 d1 d2)
-  : Lemma (Chest.mk (desc e0 e1 e2) (fun i -> Chest.acc (tr_val s) (i <~| f))
-        == tr_val (bij_apply_em3 f s))
-  = let c1 = Chest.mk (desc e0 e1 e2) (fun i -> Chest.acc (tr_val s) (i <~| f)) in
-    let c2 = tr_val (bij_apply_em3 f s) in
-    let aux (idx : abs (desc e0 e1 e2))
-      : Lemma (Chest.acc c1 idx == Chest.acc c2 idx)
-      = let (i, (j, (k, ()))) = idx in
-        bij_apply_em3_macc f s i j k
-    in
-    Classical.forall_intro aux;
-    Chest.lemma_equal_intro c1 c2;
-    Chest.ext c1 c2
-
-ghost
-fn apply_bij
-  (#et : Type0) (#d0 #d1 #d2 #e0 #e1 #e2 : nat)
-  (f : abs (desc d0 d1 d2) =~ abs (desc e0 e1 e2))
-  (#l : layout d0 d1 d2 { is_full l })
-  (a : t et l)
-  (#fp : perm) (#s : EMatrix3.t et d0 d1 d2)
-  requires
-    a |-> Frac fp s
-  ensures
-    from_array (tlayout_bij f l) (core a)
-    |-> Frac fp (bij_apply_em3 f s)
-{
-  unfold pts_to a #fp s;
-  T.tensor_apply_bij f a;
-  bij_apply_chest_equal f s;
-  rewrite T.tensor_pts_to (from_array (tlayout_bij f l) (core a)) #fp
-            (Chest.mk (desc e0 e1 e2) (fun i -> Chest.acc (tr_val s) (i <~| f)))
-       as T.tensor_pts_to (from_array (tlayout_bij f l) (core a)) #fp
-            (tr_val (bij_apply_em3 f s));
-  fold pts_to (from_array (tlayout_bij f l) (core a)) #fp (bij_apply_em3 f s);
 }
 
 inline_for_extraction noextract
@@ -388,7 +300,7 @@ fn share_n
   unfold pts_to a #f s;
   T.tensor_share_n a k;
   forevery_map
-    (fun (i:natlt k) -> T.tensor_pts_to a #(f /. k) (tr_val s))
+    (fun (i:natlt k) -> T.tensor_pts_to a #(f /. k) s)
     (fun (i:natlt k) -> pts_to a #(f /. k) s)
     fn i { fold pts_to a #(f /. k) s };
 }
@@ -405,7 +317,7 @@ fn gather_n
 {
   forevery_map
     (fun (i:natlt k) -> pts_to a #(f /. k) s)
-    (fun (i:natlt k) -> T.tensor_pts_to a #(f /. k) (tr_val s))
+    (fun (i:natlt k) -> T.tensor_pts_to a #(f /. k) s)
     fn i { unfold pts_to a #(f /. k) s };
   T.tensor_gather_n a k;
   fold pts_to a #f s;
@@ -450,8 +362,6 @@ fn write
 {
   unfold pts_to a s;
   T.tensor_write a (adapt_cit_back d0 d1 d2 idx) v;
-  with cs'. assert T.tensor_pts_to a cs';
-  assert pure (Chest.equal cs' (tr_val (EMatrix3.mupd s (pi_3_0 idx) (pi_3_1 idx) (pi_3_2 idx) v)));
   fold pts_to a (EMatrix3.mupd s (pi_3_0 idx) (pi_3_1 idx) (pi_3_2 idx) v);
   ()
 }
@@ -507,7 +417,7 @@ fn implode
     a |-> Frac f s
 {
   forevery_iso (bij_sym abs_bij) _;
-  forevery_ext _ (fun (i : abs (desc d0 d1 d2)) -> Cell a i |-> Frac f (acc (tr_val s) i));
+  forevery_ext _ (fun (i : abs (desc d0 d1 d2)) -> Cell a i |-> Frac f (acc s i));
   T.tensor_implode a;
   fold pts_to a #f s;
 }
@@ -565,14 +475,14 @@ let page
   (a : t et l)
   (i : erased nat{i < d0})
   : Array2.t et (page_layout a i)
-  = Array2.from_array (page_layout a i) (T.core (T.sliceof a 0 i))
+  = T.sliceof a 0 i
 
 let page_is_global
   (#et : Type0) (#d0 #d1 #d2 : nat) (#l : layout d0 d1 d2)
   (a : t et l) (i : erased nat{i < d0})
   : Lemma (ensures Array2.is_global (page a i) <==> is_global a)
           [SMTPat (page a i)]
-  = ()
+  = lem_is_global_iff_sliceof a 0 i // weird
 
 ghost
 fn extract_page
@@ -590,14 +500,13 @@ fn extract_page
       page a i |-> Frac f s' @==>
       a |-> Frac f (EMatrix3.upd_page s i s'))
 {
-  unfold pts_to a #f s;
-  T.tensor_extract_slice a 0 i #f #(tr_val s);
+  (* This whole thing could eventually work by unification. *)
 
-  assert pure (Chest.equal
-    (chest_slice 0 i (tr_val s))
-    (Array2.tr_val (EMatrix3.slice_page s i)));
-  rewrite T.sliceof a 0 i |-> Frac f (chest_slice 0 i (tr_val s))
-       as page a i |-> Frac f (EMatrix3.slice_page s i);
+  unfold pts_to a #f s;
+  T.tensor_extract_slice a 0 i #f #s;
+
+  rewrite each T.sliceof a 0 i as page a i;
+  fold Array2.pts_to (page a i) #f (EMatrix3.slice_page s i);
 
   intro_forall
     #_
@@ -606,28 +515,22 @@ fn extract_page
       @==> a |-> Frac f (EMatrix3.upd_page s i s'))
     (forall* (s' : chest (modulo_i 0 (desc d0 d1 d2)) et).
       sliceof a 0 i |-> Frac f s'
-      @==> a |-> Frac f (chest_update_slice 0 i (tr_val s) s'))
+      @==> a |-> Frac f (chest_update_slice 0 i s s'))
     fn s' {
       intro_trade
         (page a i |-> Frac f s')
         (a |-> Frac f (EMatrix3.upd_page s i s'))
         (forall* (s' : chest (modulo_i 0 (desc d0 d1 d2)) et).
               sliceof a 0 i |-> Frac f s'
-              @==> a |-> Frac f (chest_update_slice 0 i (tr_val s) s'))
+              @==> a |-> Frac f (chest_update_slice 0 i s s'))
         fn _ {
-          assert pure (modulo_i 0 (desc d0 d1 d2) == Array2.desc d1 d2);
-          let w : chest (modulo_i 0 (desc d0 d1 d2)) et = Array2.tr_val s';
+          let w : chest (modulo_i 0 (desc d0 d1 d2)) et = s';
           elim_forall w;
           rewrite Array2.pts_to (page a i) #f s'
                as sliceof a 0 i |-> Frac f w;
           elim_trade _ _;
-          rewrite each chest_update_slice 0 i (tr_val s) w
-               as tr_val (EMatrix3.upd_page s i s');
-          fold pts_to a #f (EMatrix3.upd_page s i s');
-          ();
         };
     };
-  ();
 }
 
 ghost

@@ -221,20 +221,12 @@ val matmul
   (m2 : ematrix et shared columns)
 : ematrix et rows columns
 
-val matplus
+let matplus
   (#et:Type) {| scalar et |}
   (#rows #columns : nat)
   (m1 m2 : ematrix et rows columns)
-: ematrix et rows columns
-
-val lemma_matplus_index
-  (#et:Type) {| scalar et |}
-  (#rows #columns : nat)
-  (m1 m2 : ematrix et rows columns)
-  (i : nat{ i < rows })
-  (j : nat{ j < columns })
-: Lemma (macc (matplus m1 m2) i j == macc m1 i j `add` macc m2 i j)
-        [SMTPat (macc (matplus m1 m2) i j)]
+  : ematrix et rows columns
+  = Kuiper.Chest.chest_comb add m1 m2
 
 val lemma_matmul_index
   (#et:Type) {| scalar et |}

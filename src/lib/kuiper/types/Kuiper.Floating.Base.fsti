@@ -22,6 +22,10 @@ class floating (t : Type) = {
 
   of_int : Int64.t -> t;
 
+  (* Build a value from a decimal/hex literal string. Extracts to a C
+     floating constant of the appropriate type. *)
+  of_literal : string -> t;
+
   #[easy_fill ()] of_int_zero : squash (of_int 0L == zero);
   #[easy_fill ()] of_int_one  : squash (of_int 1L == one);
 

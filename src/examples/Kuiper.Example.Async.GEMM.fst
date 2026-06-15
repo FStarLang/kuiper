@@ -7,11 +7,10 @@ module Kuiper.Example.Async.GEMM
 open Kuiper
 open Pulse.Lib.Pledge
 open Kuiper.EMatrix
-open Kuiper.Tensor.Layout
+open Kuiper.Tensor
 open Kuiper.Tensor.Layout.Alg
 module MS = Kuiper.Spec.GEMM
 module N = Kuiper.Kernel.GEMM.Naive
-module M = Kuiper.Array2
 
 [@@allow_ambiguous]
 ghost
@@ -32,22 +31,22 @@ inline_for_extraction noextract
 instance c : ctlayout my_layout = c_l2_row_major 1024 1024sz
 
 (* Fixing a size and a type, this is just for illustration *)
-fn main (a b c d r : M.array2 f32 my_layout)
+fn main (a b c d r : tensor f32 my_layout)
   (#eA #eB #eC #eD #eR : ematrix f32 1024 1024)
   preserves cpu
   preserves on gpu_loc <| a |-> eA ** b |-> eB ** c |-> eC ** d |-> eD
-  requires  pure (M.is_global a /\ M.is_global b /\ M.is_global c /\ M.is_global d /\ M.is_global r)
+  requires  pure (is_global a /\ is_global b /\ is_global c /\ is_global d /\ is_global r)
   requires  on gpu_loc <| r |-> eR
   ensures   on gpu_loc <| r |-> MS.matmul (MS.matmul eA eB) (MS.matmul eC eD)
 {
   let e1 = get_epoch ();
 
   (* Begin computing A*B -> s1 *)
-  let s1 = M.alloc0 #f32 1024sz 1024sz my_layout;
+  let s1 = alloc0 #f32 (1024sz *^ 1024sz) my_layout;
   launch (N.kdesc #f32 (fun _ n -> n) #1024sz #1024sz #1024sz a b s1);
 
   (* Begin computing C*D -> s2 *)
-  let s2 = M.alloc0 #f32 1024sz 1024sz my_layout;
+  let s2 = alloc0 #f32 (1024sz *^ 1024sz) my_layout;
   launch (N.kdesc #f32 (fun _ n -> n) #1024sz #1024sz #1024sz c d s2);
 
   (* Synchronize *)
@@ -75,8 +74,8 @@ fn main (a b c d r : M.array2 f32 my_layout)
   rewrite on gpu_loc (r |-> eR') as on gpu_loc (r |-> MS.matmul (MS.matmul eA eB) (MS.matmul eC eD));
 
   (* Free swaps *)
-  M.free s1;
-  M.free s2;
+  free s1;
+  free s2;
 
   (* Drop ghost state *)
   drop_ (epoch_done e1);

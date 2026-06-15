@@ -52,6 +52,8 @@ karamel/Makefile:
 
 .fstar.touch: .fstar.src.touch
 	@echo FSTAR
+	git -C FStar submodule init
+	git -C FStar submodule update
 	$(MAKE) -C FStar ADMIT=1
 	$(MAKE) -C FStar ADMIT=1 PREFIX=$(CURDIR)/inst install
 	@touch .fstar.src.touch # building will change files

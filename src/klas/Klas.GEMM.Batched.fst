@@ -5,7 +5,6 @@ open Kuiper
 module K = Kuiper.Kernel.BatchedGEMM
 open Kuiper.Tensor.Layout.Alg
 open Kuiper.Tensor
-module Array3 = Kuiper.Array3
 module EM = Kuiper.EMatrix
 module EMatrix3 = Kuiper.EMatrix3
 module MS = Kuiper.Spec.GEMM
@@ -15,8 +14,8 @@ inline_for_extraction noextract
 fn batched_matmul
   (#et : Type0) {| scalar et |}
   (batch rows shared cols : szp)
-  (a : Array3.t et (l3_batched_row_major batch rows shared) { Array3.is_global a })
-  (b : Array3.t et (l3_batched_row_major batch shared cols) { Array3.is_global b })
+  (a : tensor et (l3_batched_row_major batch rows shared) { is_global a })
+  (b : tensor et (l3_batched_row_major batch shared cols) { is_global b })
   (#sa : erased (EMatrix3.t et batch rows shared))
   (#sb : erased (EMatrix3.t et batch shared cols))
   (#fA #fB : perm)
@@ -31,12 +30,12 @@ fn batched_matmul
       SZ.fits (batch * rows * cols)
     )
   returns
-    out : Array3.t et (l3_batched_row_major batch rows cols)
+    out : tensor et (l3_batched_row_major batch rows cols)
   ensures
     on gpu_loc (out |-> MS.batched_matmul sa sb) **
-    pure (Array3.is_global out)
+    pure (is_global out)
 {
-  let out = Array3.alloc0 #et batch rows cols (l3_batched_row_major batch rows cols);
+  let out = alloc0 #et (batch *^ rows *^ cols) (l3_batched_row_major batch rows cols);
   with sc0. assert on gpu_loc (out |-> sc0);
   K.bmmcomb_gpu_exact #et (MS.comb2) batch rows shared cols a b out #sa #sb #sc0 #fA #fB;
   out

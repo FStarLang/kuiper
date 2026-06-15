@@ -4,7 +4,6 @@ module Kuiper.Array3
 
 open Kuiper
 open Kuiper.Tensor
-open Kuiper.Bijection
 open Kuiper.Injection
 open Kuiper.Index
 open Kuiper.EMatrix { ematrix }
@@ -43,34 +42,6 @@ let cit_fits (d0 d1 d2 : nat) (idx : raw_cit) : prop =
 type layout (d0 d1 d2 : nat) = tlayout (desc d0 d1 d2)
 
 type full_layout (d0 d1 d2 : nat) = l : layout d0 d1 d2 { is_full l }
-
-let from_seq (#et:Type) (#d0 #d1 #d2 : nat)
-  (l : full_layout d0 d1 d2)
-  (s : lseq et (d0 * d1 * d2))
-  : EMatrix3.t et d0 d1 d2
-  = EMatrix3.mkM (fun i j k -> s `Seq.index` l.imap.f (i, (j, (k, ()))))
-
-let to_seq (#et:Type) (#d0 #d1 #d2 : nat)
-  (l : full_layout d0 d1 d2)
-  (s : EMatrix3.t et d0 d1 d2)
-  : GTot (lseq et (d0 * d1 * d2))
-  = Seq.init_ghost (d0 * d1 * d2) (fun i ->
-      let x = Kuiper.Injection.inverse_f l.imap i in
-      EMatrix3.macc s x._1 x._2._1 x._2._2._1)
-
-// Odd that this seems to help.
-let to_seq_helper (#et:Type) (#d0 #d1 #d2 : nat)
-  (l : full_layout d0 d1 d2)
-  (s : EMatrix3.t et d0 d1 d2)
-  (i : natlt (d0 * d1 * d2))
-  : Lemma (to_seq l s `Seq.index` i == (let x = Kuiper.Injection.inverse_f l.imap i in EMatrix3.macc s x._1 x._2._1 x._2._2._1))
-          [SMTPat (to_seq l s `Seq.index` i)]
-  = ()
-
-val to_from (#et:Type) (#d0 #d1 #d2 : nat)
-  (l : full_layout d0 d1 d2) (s : lseq et (d0 * d1 * d2))
-  : Lemma (ensures to_seq l (from_seq l s) == s)
-          [SMTPat (to_seq l (from_seq l s))]
 
 let layout_size (#d0 #d1 #d2 : nat) (l : layout d0 d1 d2) : GTot nat = l.ulen
 
@@ -226,38 +197,6 @@ fn raise'
     p |-> Frac f s
   ensures
     from_array l p |-> Frac f (from_seq l s)
-
-(* Apply a bijection on the (abstract) index domain to view an Array3 with a
-   re-shaped layout. Pure ghost: storage is shared via [tlayout_bij f l].
-   The resulting EMatrix3 indexes through the inverse of [f]. *)
-[@@erasable]
-val bij_apply_em3 (#et : Type) (#d0 #d1 #d2 #e0 #e1 #e2 : nat)
-  (f : abs (desc d0 d1 d2) =~ abs (desc e0 e1 e2))
-  (s : EMatrix3.t et d0 d1 d2)
-  : EMatrix3.t et e0 e1 e2
-
-val bij_apply_em3_macc
-  (#et : Type) (#d0 #d1 #d2 #e0 #e1 #e2 : nat)
-  (f : abs (desc d0 d1 d2) =~ abs (desc e0 e1 e2))
-  (s : EMatrix3.t et d0 d1 d2)
-  (i : natlt e0) (j : natlt e1) (k : natlt e2)
-  : Lemma (EMatrix3.macc (bij_apply_em3 f s) i j k ==
-           (let (i', (j', (k', ()))) = f.gg (i, (j, (k, ()))) in
-            EMatrix3.macc s i' j' k'))
-          [SMTPat (EMatrix3.macc (bij_apply_em3 f s) i j k)]
-
-ghost
-fn apply_bij
-  (#et : Type0) (#d0 #d1 #d2 #e0 #e1 #e2 : nat)
-  (f : abs (desc d0 d1 d2) =~ abs (desc e0 e1 e2))
-  (#l : layout d0 d1 d2 { is_full l })
-  (a : t et l)
-  (#fp : perm) (#s : EMatrix3.t et d0 d1 d2)
-  requires
-    a |-> Frac fp s
-  ensures
-    from_array (tlayout_bij f l) (core a)
-    |-> Frac fp (bij_apply_em3 f s)
 
 inline_for_extraction noextract
 fn copy_from_vec

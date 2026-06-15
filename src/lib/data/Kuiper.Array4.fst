@@ -2,17 +2,13 @@ module Kuiper.Array4
 #lang-pulse
 
 open Kuiper
-open Kuiper.Bijection
 open Kuiper.Chest
+open Kuiper.Bijection
 open Kuiper.EMatrix4
 open Kuiper.Index
 module T = Kuiper.Tensor
 module SZ = Kuiper.SizeT
 module Tac = FStar.Tactics.V2
-
-let backtr_val (#et : Type) (#d0 #d1 #d2 #d3 : nat) (c : chest (desc d0 d1 d2 d3) et)
-  : EMatrix4.t et d0 d1 d2 d3
-  = EMatrix4.mkM (fun i j k l -> Chest.acc c (i, (j, (k, (l, ())))))
 
 inline_for_extraction noextract
 let adapt_cit_back (d0 d1 d2 d3 : erased nat) (idx : raw_cit{cit_fits d0 d1 d2 d3 idx}) : conc (desc d0 d1 d2 d3) =
@@ -29,12 +25,6 @@ let abs_bij (#d0 #d1 #d2 #d3 : nat) : (abs (desc d0 d1 d2 d3) =~ (ait d0 d1 d2 d
   }
 #pop-options
 
-let to_from (#et:Type) (#d0 #d1 #d2 #d3 : nat)
-  (l : full_layout d0 d1 d2 d3) (s : lseq et (d0 * d1 * d2 * d3))
-  : Lemma (ensures to_seq l (from_seq l s) == s)
-          [SMTPat (to_seq l (from_seq l s))]
-  = assert (Seq.equal (to_seq l (from_seq l s)) s)
-  
 let t (et : Type0) (#d0 #d1 #d2 #d3 : nat) (l : layout d0 d1 d2 d3) : Type0 =
   T.tensor et l
 
@@ -86,7 +76,7 @@ let pts_to
   (#[Tac.exact (`1.0R)] f : perm)
   (s : EMatrix4.t et d0 d1 d2 d3)
   : slprop
-  = T.tensor_pts_to a #f (tr_val s)
+  = T.tensor_pts_to a #f s
 
 instance is_send_across_global
   (#et : Type0) (#d0 #d1 #d2 #d3 : nat) (#l : layout d0 d1 d2 d3)
@@ -110,56 +100,10 @@ fn pts_to_ref
   fold pts_to a #f s;
 }
 
-#push-options "--ifuel 4"
-inline_for_extraction noextract
-fn alloc0
-  (#et:Type) {| sized et |}
-  (d0 d1 d2 d3 : szp)
-  (l : layout d0 d1 d2 d3 { is_full l })
-  preserves
-    cpu
-  requires
-    pure (SZ.fits (layout_size l))
-  returns
-    p : t et l
-  ensures
-    exists* em. on gpu_loc (p |-> em) **
-    pure (is_full_array (core p))
-  ensures
-    pure (is_global p)
-{
-  let t = T.alloc0 #et (d0 *^ (d1 *^ (d2 *^ d3))) l;
-  with em. assert on gpu_loc (T.tensor_pts_to t em);
-  assert pure (Chest.equal em (tr_val (backtr_val em)));
-  rewrite on gpu_loc (T.tensor_pts_to t em)
-       as on gpu_loc (pts_to t (backtr_val em));
-  t
-}
-#pop-options
-
-inline_for_extraction noextract
-fn free
-  (#et:Type)
-  (#d0 #d1 #d2 #d3 : erased nat)
-  (#l : layout d0 d1 d2 d3 { is_full l })
-  (p : t et l)
-  (#em : EMatrix4.t et d0 d1 d2 d3)
-  preserves
-    cpu
-  requires
-    on gpu_loc (p |-> em) **
-    pure (is_full_array (core p))
-  ensures emp
-{
-  rewrite on gpu_loc (pts_to p em)
-       as on gpu_loc (T.tensor_pts_to p (tr_val em));
-  T.free p;
-}
-
 let to_seq_rel (#et:Type) (#d0 #d1 #d2 #d3 : nat)
   (l : full_layout d0 d1 d2 d3) (s : EMatrix4.t et d0 d1 d2 d3)
-  : Lemma (to_seq l s == T.to_seq l (tr_val s))
-  = assert (Seq.equal (to_seq l s) (T.to_seq l (tr_val s)))
+  : Lemma (to_seq l s == T.to_seq l s)
+  = assert (Seq.equal (to_seq l s) (T.to_seq l s))
 
 ghost
 fn lower
@@ -177,7 +121,7 @@ fn lower
   unfold pts_to g #f s;
   T.tensor_concr g;
   to_seq_rel l s;
-  rewrite T.core g |-> Frac f (T.to_seq l (tr_val s))
+  rewrite T.core g |-> Frac f (T.to_seq l s)
        as core g |-> Frac f (to_seq l s);
 }
 
@@ -198,7 +142,7 @@ fn raise
   rewrite
     p |-> Frac f (to_seq l s)
   as
-    p |-> Frac f (T.to_seq l (tr_val s));
+    p |-> Frac f (T.to_seq l s);
   T.tensor_abs l p;
   fold pts_to (from_array l p) #f s;
 }
@@ -233,7 +177,7 @@ fn share_n
   unfold pts_to a #f s;
   T.tensor_share_n a k;
   forevery_map
-    (fun (i:natlt k) -> T.tensor_pts_to a #(f /. k) (tr_val s))
+    (fun (i:natlt k) -> T.tensor_pts_to a #(f /. k) s)
     (fun (i:natlt k) -> pts_to a #(f /. k) s)
     fn i { fold pts_to a #(f /. k) s };
 }
@@ -250,7 +194,7 @@ fn gather_n
 {
   forevery_map
     (fun (i:natlt k) -> pts_to a #(f /. k) s)
-    (fun (i:natlt k) -> T.tensor_pts_to a #(f /. k) (tr_val s))
+    (fun (i:natlt k) -> T.tensor_pts_to a #(f /. k) s)
     fn i { unfold pts_to a #(f /. k) s };
   T.tensor_gather_n a k;
   fold pts_to a #f s;
@@ -295,8 +239,6 @@ fn write
 {
   unfold pts_to a s;
   T.tensor_write a (adapt_cit_back d0 d1 d2 d3 idx) v;
-  with cs'. assert T.tensor_pts_to a cs';
-  assert pure (Chest.equal cs' (tr_val (EMatrix4.mupd s (pi_4_0 idx) (pi_4_1 idx) (pi_4_2 idx) (pi_4_3 idx) v)));
   fold pts_to a (EMatrix4.mupd s (pi_4_0 idx) (pi_4_1 idx) (pi_4_2 idx) (pi_4_3 idx) v);
   ()
 }
@@ -352,7 +294,7 @@ fn implode
     a |-> Frac f s
 {
   forevery_iso (bij_sym abs_bij) _;
-  forevery_ext _ (fun (i : abs (desc d0 d1 d2 d3)) -> Cell a i |-> Frac f (acc (tr_val s) i));
+  forevery_ext _ (fun (i : abs (desc d0 d1 d2 d3)) -> Cell a i |-> Frac f (acc s i));
   T.tensor_implode a;
   fold pts_to a #f s;
 }

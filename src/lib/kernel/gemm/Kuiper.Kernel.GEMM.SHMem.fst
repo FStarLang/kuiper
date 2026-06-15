@@ -909,7 +909,6 @@ fn teardown
 }
 
 #push-options "--z3rlimit_factor 10 --fuel 0 --ifuel 0 --split_queries no"
-#restart-solver
 
 #push-options "--z3rlimit 40"
 let kpre_block_sendable

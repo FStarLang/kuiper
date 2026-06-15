@@ -5,31 +5,35 @@ module Kuiper.EMatrix
 
 open Kuiper
 open Kuiper.Container
-open FStar.FunctionalExtensionality { (^->>) }
-module F = FStar.FunctionalExtensionality
+open Kuiper.Chest
+include Kuiper.Chest {
+  to_real_chest as to_real_matrix,
+  equal,
+  chest_comb as ematrix_comb,
+}
+open Kuiper.Index
 
 [@@erasable]
-noeq
 type ematrix (et:Type) (rows cols : nat) =
-  | M : f:(natlt rows & natlt cols ^->> et)
-     -> ematrix et rows cols
+  chest (rows @| cols @| INil) et
 
 let mkM (#et:Type) (#rows #cols : nat)
   (f : natlt rows -> natlt cols -> GTot et)
   : ematrix et rows cols
-  = M <| F.on_g _ <| fun (i, j) -> f i j
+  = Chest.mk (rows @| cols @| INil)
+      fun (i, (j, ())) -> f i j
 
 let const_matrix (#et:Type) (#rows #cols : nat)
   (v:et)
   : ematrix et rows cols
-  = mkM fun _ _ -> v
+  = Chest.const _ v
 
 let macc (#et:Type) (#rows #cols : nat)
   (m : ematrix et rows cols)
   (i : natlt rows)
   (j : natlt cols)
   : GTot et
-  = m.f (i, j)
+  = Chest.acc m (i, (j, ()))
 
 let mupd (#et:Type) (#rows #cols : nat)
   (m : ematrix et rows cols)
@@ -37,86 +41,18 @@ let mupd (#et:Type) (#rows #cols : nat)
   (j : nat{ j < cols })
   (v : et)
   : ematrix et rows cols
-  = mkM fun i' j' ->
-      if i' = i && j' = j
-      then v
-      else m.f (i', j')
-
-val macc_pat (#et :Type) (#rows #cols : nat)
-  (m : ematrix et rows cols)
-  (i : natlt rows)
-  (j : natlt cols)
-  : Lemma (macc m i j == m.f (i, j))
-          [SMTPat (m.f (i, j))]
+  = Chest.upd m (i, (j, ())) v
 
 let matrix_comb (#et:Type) (#rows #cols : nat)
   (f : binop et)
   (m1 m2 : ematrix et rows cols)
   : ematrix et rows cols
-  = mkM fun i j -> f (macc m1 i j) (macc m2 i j)
+  = Chest.chest_comb f m1 m2
 
 let mtranspose (#et:Type) (#rows #cols : nat)
   (m : ematrix et rows cols)
   : ematrix et cols rows
-  = mkM fun i j -> m.f (j, i)
-
-val equal (#et #rows #cols : _) (m1 m2 : ematrix et rows cols) : prop
-
-val lemma_equal_intro (#et #rows #cols : _)
-  (m1 m2 : ematrix et rows cols)
-  : Lemma (requires forall (i:natlt rows) (j:natlt cols). macc m1 i j == macc m2 i j)
-          (ensures equal m1 m2)
-          [SMTPat (equal m1 m2)]
-
-val ematrix_ext #et #rows #cols
-  (m1 m2 : ematrix et rows cols)
-  : Lemma (requires equal m1 m2)
-          (ensures m1 == m2)
-          [SMTPat (equal m1 m2)]
-
-let ematrix_approximates #et
-  {| scalar et, real_like et |}
-  #rows #cols
-  (m1 : ematrix et rows cols)
-  (m2 : ematrix real rows cols)
-  : prop
-  = forall (i:natlt rows) (j:natlt cols).
-      macc m1 i j %~ macc m2 i j
-
-instance ematrix_can_approximate
-  (#et : Type0) {| scalar et, real_like et |}
-  (#rows #cols : nat)
-  : can_approximate (ematrix et rows cols) (ematrix real rows cols) =
-{
-  approximates = ematrix_approximates;
-}
-
-let to_real_matrix (#et : Type0)
-  {| scalar et, real_like et |}
-  (#rows #cols : nat)
-  (m : ematrix et rows cols)
-  : GTot (ematrix real rows cols)
-  = mkM fun i j -> to_real (macc m i j)
-
-val lemma_to_real_matrix_approximates (#et : Type0)
-  {| scalar et, d : real_like et |}
-  (#rows #cols : nat)
-  (m : ematrix et rows cols)
-  : Lemma (ensures m %~ to_real_matrix m)
-          [SMTPat (to_real_matrix m)]
-
-instance ematrix_is_container
-  (et:Type) (#rows #cols : nat)
-  : container (ematrix et rows cols) (natlt rows & natlt cols) et
-= {
-    acc = (fun m (r,c) -> macc m r c);
-    upd = (fun m (i, j) x -> mupd m i j x);
-    l1 = ez;
-    l2 = ez;
-    ext = (fun c1 c2 _ -> assert (equal c1 c2));
-    from_fun = (fun f -> mkM fun i j -> f (i, j));
-    from_fun_ok = ez;
-  }
+  = mkM fun i j -> macc m j i
 
 let ematrix_row
   (#et : Type0)
@@ -157,3 +93,37 @@ let ematrix_upd_col
       if j' = j
       then Seq.index new_col i
       else macc em i j'
+
+(* ── Matrix-level bridges over the underlying chest ──────────────────────────
+   The chest indexes matrices by the nested tuple [abs (rows @| cols @| INil)]
+   (i.e. [natlt rows & (natlt cols & unit)]), so the chest-level [equal],
+   [approximates] and [acc] facts quantify over that nested index. These
+   lemmas re-expose them in the flat [macc m i j] form that the matrix API
+   uses, bridging the trailing [unit] that SMT cannot erase on its own. *)
+
+val macc_mkM (#et:Type) (#rows #cols : nat)
+  (f : natlt rows -> natlt cols -> GTot et)
+  (i : natlt rows) (j : natlt cols)
+  : Lemma (macc (mkM f) i j == f i j)
+          [SMTPat (macc (mkM f) i j)]
+
+val macc_mupd (#et:Type) (#rows #cols : nat)
+  (m : ematrix et rows cols)
+  (i : nat{i < rows}) (j : nat{j < cols}) (v : et)
+  (i' : natlt rows) (j' : natlt cols)
+  : Lemma (macc (mupd m i j v) i' j' == (if i' = i && j' = j then v else macc m i' j'))
+          [SMTPat (macc (mupd m i j v) i' j')]
+
+val lemma_equal_intro (#et:Type) (#rows #cols : nat)
+  (m1 m2 : ematrix et rows cols)
+  : Lemma (requires forall (i:natlt rows) (j:natlt cols). macc m1 i j == macc m2 i j)
+          (ensures equal m1 m2)
+          [SMTPat (equal m1 m2)]
+
+val lemma_approximates_intro
+  (#et:Type0) {| scalar et, real_like et |} (#rows #cols : nat)
+  (m1 : ematrix et rows cols)
+  (m2 : ematrix real rows cols)
+  : Lemma (requires forall (i:natlt rows) (j:natlt cols). macc m1 i j %~ macc m2 i j)
+          (ensures m1 %~ m2)
+          [SMTPat (m1 %~ m2)]

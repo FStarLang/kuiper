@@ -7,6 +7,8 @@ open Kuiper.Matrix.Reprs.Type
 open Kuiper.Matrix
 open Kuiper.Injection
 
+let macc_ematrix_tiled #et #rows #cols em trows tcols i j = ()
+
 #push-options "--z3rlimit 10"
 let from_subtiles_id
   (#et : _)
@@ -22,7 +24,6 @@ let from_subtiles_id
 #pop-options
 
 #push-options "--z3rlimit 20 --fuel 0 --ifuel 0 --split_queries always --retry 3"
-#restart-solver
 let tiles_from_subtiles_id
   (#et : _)
   (#rows #cols : _)

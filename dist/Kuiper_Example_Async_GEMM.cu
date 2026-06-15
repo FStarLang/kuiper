@@ -9,10 +9,12 @@ static void __hoisted_main_0(float *a, float *b, float *s1)
 {
     uint32_t k = 0U;
     float sum = 0.0f;
-    for (; k < 1024U; k++)
+    for (; k < 1024U; k++) {
+        uint32_t vk = k;
         sum +=
-            a[blockIdx.x / 1024U * 1024U + k] * b[k * 1024U +
-                                                  blockIdx.x % 1024U];
+            a[blockIdx.x / 1024U * 1024U + vk] * b[vk * 1024U +
+                                                   blockIdx.x % 1024U];
+    }
     s1[blockIdx.x] = sum;
 }
 
@@ -24,10 +26,12 @@ static void __hoisted_main_1(float *c1, float *d, float *s2)
 {
     uint32_t k = 0U;
     float sum = 0.0f;
-    for (; k < 1024U; k++)
+    for (; k < 1024U; k++) {
+        uint32_t vk = k;
         sum +=
-            c1[blockIdx.x / 1024U * 1024U + k] * d[k * 1024U +
-                                                   blockIdx.x % 1024U];
+            c1[blockIdx.x / 1024U * 1024U + vk] * d[vk * 1024U +
+                                                    blockIdx.x % 1024U];
+    }
     s2[blockIdx.x] = sum;
 }
 
@@ -39,10 +43,12 @@ static void __hoisted_main_2(float *r, float *s1, float *s2)
 {
     uint32_t k = 0U;
     float sum = 0.0f;
-    for (; k < 1024U; k++)
+    for (; k < 1024U; k++) {
+        uint32_t vk = k;
         sum +=
-            s1[blockIdx.x / 1024U * 1024U + k] * s2[k * 1024U +
-                                                    blockIdx.x % 1024U];
+            s1[blockIdx.x / 1024U * 1024U + vk] * s2[vk * 1024U +
+                                                     blockIdx.x % 1024U];
+    }
     r[blockIdx.x] = sum;
 }
 

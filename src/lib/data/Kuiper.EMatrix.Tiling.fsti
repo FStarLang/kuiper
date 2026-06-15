@@ -55,6 +55,18 @@ let update_tile
     else
       macc em i j
 
+val macc_ematrix_tiled
+  (#et : _)
+  (#rows #cols : _)
+  (em : ematrix et rows cols)
+  (trows : pos {trows /? rows})
+  (tcols : pos {tcols /? cols})
+  (i : natlt (rows / trows))
+  (j : natlt (cols / tcols))
+  : Lemma (macc (ematrix_tiled em trows tcols) i j
+           == ematrix_subtile em trows tcols i j)
+          [SMTPat (macc (ematrix_tiled em trows tcols) i j)]
+
 val from_subtiles_id
   (#et : _)
   (#rows #cols : _)

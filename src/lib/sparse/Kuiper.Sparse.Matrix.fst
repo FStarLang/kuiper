@@ -486,7 +486,6 @@ let rec index_mem_slice_lemma
     then index_mem_slice_lemma x s (a + 1) b
     else ()
 
-#restart-solver
 
 let unsparse_row_lemma
   (#et:Type0) {| scalar et |}

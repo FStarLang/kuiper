@@ -107,7 +107,6 @@ let assoc_mul_div (a b c : real{c =!= 0.0R}) : Lemma ((a *. b) /. c == a *. (b /
 let mul_one_div (a : real) (b : real{b =!= 0.0R}) : Lemma (a *. (1.0R /. b) == a /. b) = ()
 
 #push-options "--split_queries always --z3rlimit 5 --retry 5" // very bad smt performance below
-#restart-solver
 let softmax_step #x (xst : st x) (xi : real) :
   res:(real & st (x @+ seq![xi]) & real)
    { (let (fxi,xst',adj) = res in
@@ -499,7 +498,6 @@ let smx_dotprod_fold (#n: pos) (x y: lseq real n) (i: pos{i <= n}) =
     seq_fold_left (+.) 0.0R (seq_mapi (softmax_real (seq_take i x)) (dp_k #n y))
 
 // #set-options "--z3version 4.15.5"
-#restart-solver
 #set-options "--z3seed 1"
 let rec lem_smx_dotprod_is_dotprod' (#n: pos) (x y: lseq real n) (i: natle n):
   Lemma (ensures seq_fold_left (+.) 0.0R (seq_take i (seq_mapi (softmax_real x) (dp_k #n y))) == seq_dotprod' (softmax_real x) y i)
