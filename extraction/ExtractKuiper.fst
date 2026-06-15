@@ -86,6 +86,7 @@ let kpr_translate_type_without_decay : translate_type_without_decay_t = fun env 
   | "Kuiper.Float32.Base.t",               [] -> TInt Float
   | "Kuiper.Float64.Base.t",               [] -> TInt Double
   | "Kuiper.Complex32.Base.t",             [] -> TQualified ([], "cuFloatComplex")
+  | "Kuiper.Complex64.Base.t",             [] -> TQualified ([], "cuDoubleComplex")
   | _ -> raise NotSupportedByKrmlExtension
 
 let cudaMemcpyDeviceToHost = EQualified ([], "cudaMemcpyDeviceToHost")
@@ -697,6 +698,25 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
     EApp (EQualified ([], "make_cuFloatComplex"), [EConstant (Float, "1.0f"); EConstant (Float, "0.0f")])
   | "Kuiper.Complex32.Base.cci",   [], [] ->
     EApp (EQualified ([], "make_cuFloatComplex"), [EConstant (Float, "0.0f"); EConstant (Float, "1.0f")])
+
+  (* Double-precision complex -> cuDoubleComplex (cuComplex.h intrinsics) *)
+  | "Kuiper.Complex64.Base.cadd",  [], [] -> EQualified ([], "cuCadd")
+  | "Kuiper.Complex64.Base.cmul",  [], [] -> EQualified ([], "cuCmul")
+  | "Kuiper.Complex64.Base.csub",  [], [] -> EQualified ([], "cuCsub")
+  | "Kuiper.Complex64.Base.cdiv",  [], [] -> EQualified ([], "cuCdiv")
+  | "Kuiper.Complex64.Base.cconj", [], [] -> EQualified ([], "cuConj")
+  | "Kuiper.Complex64.Base.cmk",   [], [] -> EQualified ([], "make_cuDoubleComplex")
+  | "Kuiper.Complex64.Base.re",    [], [] -> EQualified ([], "cuCreal")
+  | "Kuiper.Complex64.Base.im",    [], [] -> EQualified ([], "cuCimag")
+  | "Kuiper.Complex64.Base.ceq",   [], [] -> EQualified ([], "kpr_cceq")
+  | "Kuiper.Complex64.Base.clt",   [], [] -> EQualified ([], "kpr_clt")
+  | "Kuiper.Complex64.Base.clte",  [], [] -> EQualified ([], "kpr_clt")
+  | "Kuiper.Complex64.Base.czero", [], [] ->
+    EApp (EQualified ([], "make_cuDoubleComplex"), [EConstant (Double, "0.0"); EConstant (Double, "0.0")])
+  | "Kuiper.Complex64.Base.cone",  [], [] ->
+    EApp (EQualified ([], "make_cuDoubleComplex"), [EConstant (Double, "1.0"); EConstant (Double, "0.0")])
+  | "Kuiper.Complex64.Base.cci",   [], [] ->
+    EApp (EQualified ([], "make_cuDoubleComplex"), [EConstant (Double, "0.0"); EConstant (Double, "1.0")])
 
   (* Transcendental / math primitives *)
 

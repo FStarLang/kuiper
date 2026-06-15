@@ -45,3 +45,21 @@ instance complex_cf32 : complex C.t F.t = {
   cunit = C.cci;
   cconj = C.cconj;
 }
+
+(* ----------------------------------------------------------------------- *)
+(* Double-precision instance: cf64 over f64.                                 *)
+(* ----------------------------------------------------------------------- *)
+
+module C64 = Kuiper.Complex64.Base
+module F64 = Kuiper.Float64
+
+inline_for_extraction noextract
+instance complex_cf64 : complex C64.t F64.t = {
+  cx_scalar = Kuiper.Complex64.scalar_cf64;
+  cx_real   = F64.is_floating;
+  cmk   = C64.cmk;
+  cre   = C64.re;
+  cim   = C64.im;
+  cunit = C64.cci;
+  cconj = C64.cconj;
+}

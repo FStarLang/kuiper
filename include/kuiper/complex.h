@@ -22,3 +22,18 @@ static __host__ __device__ __inline__ bool kpr_cltf(cuFloatComplex a,
     (void) b;
     return false;
 }
+
+/* Double-precision (cuDoubleComplex) versions of the comparison helpers. */
+static __host__ __device__ __inline__ bool kpr_cceq(cuDoubleComplex a,
+                                                    cuDoubleComplex b)
+{
+    return cuCreal(a) == cuCreal(b) && cuCimag(a) == cuCimag(b);
+}
+
+static __host__ __device__ __inline__ bool kpr_clt(cuDoubleComplex a,
+                                                   cuDoubleComplex b)
+{
+    (void) a;
+    (void) b;
+    return false;
+}
