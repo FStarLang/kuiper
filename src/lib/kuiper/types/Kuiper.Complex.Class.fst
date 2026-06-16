@@ -2,8 +2,9 @@ module Kuiper.Complex.Class
 
 (* A typeclass that recognizes a [scalar] type [c] as a complex-number type whose
    components are of (floating) type [r]. It exposes the constructor [cmk], the
-   projections [cre]/[cim], the imaginary unit [cunit], and the conjugate
-   [cconj], so complex kernels can be written polymorphically over precision.
+   projections [cre]/[cim], the imaginary unit [cunit], the conjugate [cconj],
+   and complex subtraction [csub], so complex kernels can be written
+   polymorphically over precision.
 
    The [fundeps] hint lets instance resolution pick [r] from [c]. *)
 
@@ -22,6 +23,7 @@ class complex (c : Type) (r : Type) = {
   cim   : c -> r;        (* imaginary part *)
   cunit : c;             (* the imaginary unit i *)
   cconj : c -> c;        (* complex conjugate *)
+  csub  : c -> c -> c;   (* complex subtraction (scalar add only gives +) *)
 }
 
 (* Lift a real to a complex (imaginary part 0). *)
@@ -44,6 +46,7 @@ instance complex_cf32 : complex C.t F.t = {
   cim   = C.im;
   cunit = C.cci;
   cconj = C.cconj;
+  csub  = C.csub;
 }
 
 (* ----------------------------------------------------------------------- *)
@@ -62,4 +65,5 @@ instance complex_cf64 : complex C64.t F64.t = {
   cim   = C64.im;
   cunit = C64.cci;
   cconj = C64.cconj;
+  csub  = C64.csub;
 }

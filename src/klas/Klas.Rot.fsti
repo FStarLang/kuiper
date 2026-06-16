@@ -16,6 +16,7 @@ open Kuiper.Tensor.Layout.Alg { l1_forward }
 open Kuiper.Complex32           (* cf32 -> cuFloatComplex *)
 open Kuiper.Complex64           (* cf64 -> cuDoubleComplex *)
 open Kuiper.Complex.Class { complex, of_real }
+module CC = Kuiper.Complex.Class
 module Map = Kuiper.Kernel.Map
 
 let s_rot_x (#et:Type0) {| floating et |} (#n:nat) (c s : et) (vx vy : lseq et n)
@@ -78,3 +79,35 @@ type csrot_ty (c r:Type0) {| scalar c |} {| floating r |} {| complex c r |} =
 
 val csrot_cf32 : csrot_ty cf32 f32   (* cuBLAS Csrot *)
 val csrot_cf64 : csrot_ty cf64 f64   (* cuBLAS Zdrot *)
+
+(* ----- Crot / Zrot: a Givens rotation with REAL cosine c but COMPLEX sine s,
+   applied to two COMPLEX vectors (cublasCrot / cublasZrot):
+       x := c*x + s*y
+       y := c*y - conj(s)*x       (using the old x)
+   Here s is complex, so the y-update genuinely needs the complex conjugate and
+   complex subtraction (csub) from the [complex] class. Specs exact. ----- *)
+
+let s_crot_x (#c #r:Type0) {| scalar c |} {| floating r |} {| complex c r |} (#n:nat)
+  (cc : r) (ss : c) (vx vy : lseq c n) : GTot (lseq c n)
+  = Map.lseq_map2 (fun (xi yi : c) -> add (mul (of_real cc) xi) (mul ss yi)) vx vy
+
+let s_crot_y (#c #r:Type0) {| scalar c |} {| floating r |} {| complex c r |} (#n:nat)
+  (cc : r) (ss : c) (vx vy : lseq c n) : GTot (lseq c n)
+  = Map.lseq_map2 (fun (yi xi : c) -> CC.csub #c #r (mul (of_real cc) yi) (mul (CC.cconj #c #r ss) xi)) vy vx
+
+inline_for_extraction noextract
+type crot_ty (c r:Type0) {| scalar c |} {| floating r |} {| complex c r |} =
+  fn (cc : r) (ss : c)
+     (lena : szp { lena <= max_blocks * max_threads })
+     (x : array1 c (l1_forward lena) { is_global x })
+     (y : array1 c (l1_forward lena) { is_global y })
+     (#vx : erased (lseq c lena))
+     (#vy : erased (lseq c lena))
+  preserves cpu
+  requires
+    on gpu_loc (x |-> vx) ** on gpu_loc (y |-> vy)
+  ensures
+    on gpu_loc (x |-> s_crot_x cc ss vx vy) ** on gpu_loc (y |-> s_crot_y cc ss vx vy)
+
+val crot_cf32 : crot_ty cf32 f32   (* cuBLAS Crot *)
+val crot_cf64 : crot_ty cf64 f64   (* cuBLAS Zrot *)

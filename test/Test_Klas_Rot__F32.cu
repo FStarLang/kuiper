@@ -107,6 +107,86 @@ static void test_complex_f64(int siz)
     free(b);
 }
 
+/* Crot/Zrot: REAL cosine c=2, COMPLEX sine s=(1,1), complex vectors.
+   x'=c*x+s*y, y'=c*y-conj(s)*x. Expected computed via cuComplex ops. */
+static void test_crot_f32(int siz)
+{
+    int n = siz ? siz : 1;
+    cuFloatComplex *a = (cuFloatComplex *) malloc(n * sizeof(cuFloatComplex));
+    cuFloatComplex *b = (cuFloatComplex *) malloc(n * sizeof(cuFloatComplex));
+    cuFloatComplex *ga = (cuFloatComplex *) KPR_GPU_ALLOC(sizeof(cuFloatComplex), siz);
+    cuFloatComplex *gb = (cuFloatComplex *) KPR_GPU_ALLOC(sizeof(cuFloatComplex), siz);
+    cuFloatComplex s = make_cuFloatComplex(1.0f, 1.0f);
+    cuFloatComplex cc = make_cuFloatComplex(2.0f, 0.0f);
+    bool this_ok = true;
+    int i;
+
+    for (i = 0; i < siz; i++) {
+        a[i] = make_cuFloatComplex((float)i, 0.0f);
+        b[i] = make_cuFloatComplex(0.0f, (float)i);
+    }
+    MUST(cudaMemcpy(ga, a, siz * sizeof(cuFloatComplex), cudaMemcpyHostToDevice));
+    MUST(cudaMemcpy(gb, b, siz * sizeof(cuFloatComplex), cudaMemcpyHostToDevice));
+    Klas_Rot_crot_cf32(2.0f, s, siz, ga, gb);
+    MUST(cudaMemcpy(a, ga, siz * sizeof(cuFloatComplex), cudaMemcpyDeviceToHost));
+    MUST(cudaMemcpy(b, gb, siz * sizeof(cuFloatComplex), cudaMemcpyDeviceToHost));
+    MUST(cudaFree(ga));
+    MUST(cudaFree(gb));
+    for (i = 0; i < siz; i++) {
+        cuFloatComplex x0 = make_cuFloatComplex((float)i, 0.0f);
+        cuFloatComplex y0 = make_cuFloatComplex(0.0f, (float)i);
+        cuFloatComplex ex = cuCaddf(cuCmulf(cc, x0), cuCmulf(s, y0));
+        cuFloatComplex ey = cuCsubf(cuCmulf(cc, y0), cuCmulf(cuConjf(s), x0));
+        if (cuCrealf(a[i]) != cuCrealf(ex) || cuCimagf(a[i]) != cuCimagf(ex)
+            || cuCrealf(b[i]) != cuCrealf(ey) || cuCimagf(b[i]) != cuCimagf(ey))
+            this_ok = false;
+    }
+    if (!this_ok)
+        ok = false;
+    printf("test_crot_f32(%d) = %s\n", siz, this_ok ? "ok" : "FAILED");
+    free(a);
+    free(b);
+}
+
+static void test_crot_f64(int siz)
+{
+    int n = siz ? siz : 1;
+    cuDoubleComplex *a = (cuDoubleComplex *) malloc(n * sizeof(cuDoubleComplex));
+    cuDoubleComplex *b = (cuDoubleComplex *) malloc(n * sizeof(cuDoubleComplex));
+    cuDoubleComplex *ga = (cuDoubleComplex *) KPR_GPU_ALLOC(sizeof(cuDoubleComplex), siz);
+    cuDoubleComplex *gb = (cuDoubleComplex *) KPR_GPU_ALLOC(sizeof(cuDoubleComplex), siz);
+    cuDoubleComplex s = make_cuDoubleComplex(1.0, 1.0);
+    cuDoubleComplex cc = make_cuDoubleComplex(2.0, 0.0);
+    bool this_ok = true;
+    int i;
+
+    for (i = 0; i < siz; i++) {
+        a[i] = make_cuDoubleComplex((double)i, 0.0);
+        b[i] = make_cuDoubleComplex(0.0, (double)i);
+    }
+    MUST(cudaMemcpy(ga, a, siz * sizeof(cuDoubleComplex), cudaMemcpyHostToDevice));
+    MUST(cudaMemcpy(gb, b, siz * sizeof(cuDoubleComplex), cudaMemcpyHostToDevice));
+    Klas_Rot_crot_cf64(2.0, s, siz, ga, gb);
+    MUST(cudaMemcpy(a, ga, siz * sizeof(cuDoubleComplex), cudaMemcpyDeviceToHost));
+    MUST(cudaMemcpy(b, gb, siz * sizeof(cuDoubleComplex), cudaMemcpyDeviceToHost));
+    MUST(cudaFree(ga));
+    MUST(cudaFree(gb));
+    for (i = 0; i < siz; i++) {
+        cuDoubleComplex x0 = make_cuDoubleComplex((double)i, 0.0);
+        cuDoubleComplex y0 = make_cuDoubleComplex(0.0, (double)i);
+        cuDoubleComplex ex = cuCadd(cuCmul(cc, x0), cuCmul(s, y0));
+        cuDoubleComplex ey = cuCsub(cuCmul(cc, y0), cuCmul(cuConj(s), x0));
+        if (cuCreal(a[i]) != cuCreal(ex) || cuCimag(a[i]) != cuCimag(ex)
+            || cuCreal(b[i]) != cuCreal(ey) || cuCimag(b[i]) != cuCimag(ey))
+            this_ok = false;
+    }
+    if (!this_ok)
+        ok = false;
+    printf("test_crot_f64(%d) = %s\n", siz, this_ok ? "ok" : "FAILED");
+    free(a);
+    free(b);
+}
+
 int main()
 {
     test(0);
@@ -126,5 +206,12 @@ int main()
     test_complex_f64(1);
     test_complex_f64(513);
     test_complex_f64(1024);
+
+    test_crot_f32(1);
+    test_crot_f32(513);
+    test_crot_f32(1024);
+    test_crot_f64(1);
+    test_crot_f64(513);
+    test_crot_f64(1024);
     return !ok;
 }
