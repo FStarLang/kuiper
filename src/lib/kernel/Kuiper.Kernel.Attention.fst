@@ -288,6 +288,7 @@ fn scaled_dot_product_efficient_attention
   //   lseq_map #real #real log (Seq.init_ghost #(r: real {r >. 0.0R}) (n *^ h *^ l) (fun i -> 
   //     rsum (lseq_map exp (ematrix_row rSf i)) <: (r: real {r >. 0.0R}))));
   assume pure (esums' %~ Seq.init_ghost (n *^ h *^ l) (fun i -> log (rsum (lseq_map exp (ematrix_row rSf i))))); // TODO
+  // sums is LSE now.
 
   with eSf. assert on gpu_loc (gSf |-> eSf);
   let eSf: ematrix et (n *^ h *^ l) s = eSf;
@@ -308,7 +309,6 @@ fn scaled_dot_product_efficient_attention
         doing them on 2D matrices and then creating a 4D matrix with chest.mk as in the spec.
   3. turn the flattened LSE array1 into a 3D tensor and show it approximtes the spec. 
       raise/lower in Array1 should be helpful for this. you probably want to make it into a separate lemma (array1_to_3d or something.)
-  4. free sums.
 *)
   admit ()
 }
