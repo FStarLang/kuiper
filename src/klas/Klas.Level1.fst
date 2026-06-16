@@ -11,6 +11,7 @@ open Kuiper.Array1
 open Kuiper.Tensor.Layout.Alg { l1_forward }
 open Kuiper.Complex32           (* cf32 + its scalar instance -> cuFloatComplex *)
 open Kuiper.Complex64           (* cf64 + its scalar instance -> cuDoubleComplex *)
+open Kuiper.Complex.Class { complex, of_real }
 module Map = Kuiper.Kernel.Map
 
 (* SCAL: x := alpha * x. Corresponds to cublasSscal/Dscal/... *)
@@ -34,6 +35,26 @@ let scal_u32 = scal_gen #u32
 let scal_u64 = scal_gen #u64
 let scal_cf32 = scal_gen #cf32   (* cuBLAS Cscal: complex alpha, complex x *)
 let scal_cf64 = scal_gen #cf64   (* cuBLAS Zscal *)
+
+(* CSscal / ZDscal: scale a complex vector by a REAL scalar. We lift the real
+   scalar to the complex type (imaginary part 0) via the [complex] class's
+   [of_real] and reuse the same scal kernel. Extracts to a cuC*mul* against
+   make_cu*Complex(alpha, 0). *)
+inline_for_extraction noextract
+fn csscal_gen (#c #r : Type0) {| scalar c |} {| complex c r |}
+  (alpha : r)
+  (lena : szp { lena <= max_blocks * max_threads })
+  (a : array1 c (l1_forward lena) { is_global a })
+  (#s : erased (lseq c lena))
+  preserves cpu
+  requires on gpu_loc (a |-> s)
+  ensures  on gpu_loc (a |-> s_scal (of_real alpha) s)
+{
+  scal_gen (of_real alpha) lena a;
+}
+
+let csscal = csscal_gen #cf32 #f32   (* cuBLAS CSscal: real alpha, complex x *)
+let zdscal = csscal_gen #cf64 #f64   (* cuBLAS ZDscal *)
 
 (* AXPY: y := alpha * x + y. Corresponds to cublasSaxpy/Daxpy/... *)
 inline_for_extraction noextract

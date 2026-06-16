@@ -27,6 +27,7 @@ open Kuiper.Tensor.Layout.Alg { l1_forward }
 open Kuiper.Seq.Common { lseq_map }
 open Kuiper.Complex32           (* cf32 -> cuFloatComplex *)
 open Kuiper.Complex64           (* cf64 -> cuDoubleComplex *)
+open Kuiper.Complex.Class { complex, of_real }
 module Map = Kuiper.Kernel.Map
 
 (* ----- SCAL: x := alpha * x ----- *)
@@ -52,6 +53,23 @@ val scal_u32 : scal_ty u32
 val scal_u64 : scal_ty u64
 val scal_cf32 : scal_ty cf32   (* cuBLAS Cscal *)
 val scal_cf64 : scal_ty cf64   (* cuBLAS Zscal *)
+
+(* ----- CSscal / ZDscal: scale a complex vector by a REAL scalar ----- *)
+(* The real scalar is lifted to the complex type (imaginary part 0) via the
+   [complex] class's [of_real]; the spec is exactly scal at that lifted value. *)
+
+inline_for_extraction noextract
+type csscal_ty (c r : Type0) {| scalar c |} {| complex c r |} =
+  fn (alpha : r)
+     (lena : szp { lena <= max_blocks * max_threads })
+     (a : array1 c (l1_forward lena) { is_global a })
+     (#s : erased (lseq c lena))
+  preserves cpu
+  requires on gpu_loc (a |-> s)
+  ensures  on gpu_loc (a |-> s_scal (of_real alpha) s)
+
+val csscal : csscal_ty cf32 f32   (* cuBLAS CSscal *)
+val zdscal : csscal_ty cf64 f64   (* cuBLAS ZDscal *)
 
 (* ----- AXPY: y := alpha * x + y ----- *)
 

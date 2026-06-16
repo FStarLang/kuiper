@@ -128,6 +128,16 @@ static void test_complex_f32(int siz)
             || cuCrealf(b[i]) != (float)i || cuCimagf(b[i]) != 0.0f)
             this_ok = false;
 
+    /* csscal: a := alpha*a, REAL alpha=3, a[i]=(i, 2i) => (3i, 6i) */
+    for (i = 0; i < siz; i++)
+        a[i] = make_cuFloatComplex((float)i, 2.0f * (float)i);
+    MUST(cudaMemcpy(ga, a, siz * sizeof(cuFloatComplex), cudaMemcpyHostToDevice));
+    Klas_Level1_csscal(3.0f, siz, ga);
+    MUST(cudaMemcpy(a, ga, siz * sizeof(cuFloatComplex), cudaMemcpyDeviceToHost));
+    for (i = 0; i < siz; i++)
+        if (cuCrealf(a[i]) != 3.0f * (float)i || cuCimagf(a[i]) != 6.0f * (float)i)
+            this_ok = false;
+
     MUST(cudaFree(ga));
     MUST(cudaFree(gb));
     if (!this_ok)
@@ -184,6 +194,16 @@ static void test_complex_f64(int siz)
     for (i = 0; i < siz; i++)
         if (cuCreal(a[i]) != 0.0 || cuCimag(a[i]) != (double)i
             || cuCreal(b[i]) != (double)i || cuCimag(b[i]) != 0.0)
+            this_ok = false;
+
+    /* zdscal: a := alpha*a, REAL alpha=3, a[i]=(i, 2i) => (3i, 6i) */
+    for (i = 0; i < siz; i++)
+        a[i] = make_cuDoubleComplex((double)i, 2.0 * (double)i);
+    MUST(cudaMemcpy(ga, a, siz * sizeof(cuDoubleComplex), cudaMemcpyHostToDevice));
+    Klas_Level1_zdscal(3.0, siz, ga);
+    MUST(cudaMemcpy(a, ga, siz * sizeof(cuDoubleComplex), cudaMemcpyDeviceToHost));
+    for (i = 0; i < siz; i++)
+        if (cuCreal(a[i]) != 3.0 * (double)i || cuCimag(a[i]) != 6.0 * (double)i)
             this_ok = false;
 
     MUST(cudaFree(ga));
