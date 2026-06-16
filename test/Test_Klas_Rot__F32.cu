@@ -187,6 +187,37 @@ static void test_crot_f64(int siz)
     free(b);
 }
 
+/* rotm (modified Givens, full matrix): H=[[2,1],[3,4]], x[i]=i, y[i]=2i =>
+   x'=2i+1*2i=4i, y'=3i+4*2i=11i. Exact. Args order: h11,h21,h12,h22. */
+static void test_rotm_f32(int siz)
+{
+    float *a = (float *)malloc((siz ? siz : 1) * sizeof a[0]);
+    float *b = (float *)malloc((siz ? siz : 1) * sizeof b[0]);
+    float *ga = (float *)KPR_GPU_ALLOC(sizeof ga[0], siz);
+    float *gb = (float *)KPR_GPU_ALLOC(sizeof gb[0], siz);
+    int i;
+    bool this_ok = true;
+    for (i = 0; i < siz; i++) {
+        a[i] = (float)i;
+        b[i] = 2.0f * (float)i;
+    }
+    MUST(cudaMemcpy(ga, a, siz * sizeof(float), cudaMemcpyHostToDevice));
+    MUST(cudaMemcpy(gb, b, siz * sizeof(float), cudaMemcpyHostToDevice));
+    Klas_Rot_rotm_f32(2.0f, 3.0f, 1.0f, 4.0f, siz, ga, gb);
+    MUST(cudaMemcpy(a, ga, siz * sizeof(float), cudaMemcpyDeviceToHost));
+    MUST(cudaMemcpy(b, gb, siz * sizeof(float), cudaMemcpyDeviceToHost));
+    MUST(cudaFree(ga));
+    MUST(cudaFree(gb));
+    for (i = 0; i < siz; i++)
+        if (a[i] != 4.0f * (float)i || b[i] != 11.0f * (float)i)
+            this_ok = false;
+    if (!this_ok)
+        ok = false;
+    printf("test_rotm_f32(%d) = %s\n", siz, this_ok ? "ok" : "FAILED");
+    free(a);
+    free(b);
+}
+
 int main()
 {
     test(0);
@@ -199,6 +230,10 @@ int main()
     test(1025);
     test(2048);
     test(2049);
+
+    test_rotm_f32(1);
+    test_rotm_f32(513);
+    test_rotm_f32(1024);
 
     test_complex_f32(1);
     test_complex_f32(513);

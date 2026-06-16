@@ -45,6 +45,49 @@ val rot_f16 : rot_ty f16
 val rot_f32 : rot_ty f32
 val rot_f64 : rot_ty f64
 
+(* ----- rotm: apply a MODIFIED Givens rotation (cublasSrotm/Drotm). The 2x2
+   matrix H = [[h11, h12], [h21, h22]] is applied pointwise to (x, y):
+       x := h11*x + h12*y
+       y := h21*x + h22*y     (using the old x)
+   We take the four entries directly; this is exactly cuBLAS rotm with flag=-1
+   (full matrix). The cuBLAS flag-packed param[5] = {flag, h11, h21, h12, h22}
+   with flags 0/1/-2 is just a storage optimisation where some entries are the
+   implicit constants (flag 0: h11=h22=1; flag 1: h12=1, h21=-1; flag -2:
+   identity); a caller can express any of those by supplying the corresponding
+   entries here. Only `scalar` add/mul are used, so the spec is exact.
+
+   NOTE: the GENERATOR rotmg (which produces the flag + scaled params) is NOT
+   provided: like rotg it is defined through the sign bit / copysign and the
+   gamsq rescaling thresholds, which this floating-point model cannot observe
+   (+0 and -0 are identified; copysign is unaxiomatized). See Klas.Rotg. ----- *)
+
+let s_rotm_x (#et:Type0) {| scalar et |} (#n:nat) (h11 h21 h12 h22 : et) (vx vy : lseq et n)
+  : GTot (lseq et n)
+  = Map.lseq_map2 (fun (xi yi : et) -> add (mul h11 xi) (mul h12 yi)) vx vy
+
+let s_rotm_y (#et:Type0) {| scalar et |} (#n:nat) (h11 h21 h12 h22 : et) (vx vy : lseq et n)
+  : GTot (lseq et n)
+  = Map.lseq_map2 (fun (yi xi : et) -> add (mul h21 xi) (mul h22 yi)) vy vx
+
+inline_for_extraction noextract
+type rotm_ty (et:Type0) {| scalar et |} =
+  fn (h11 h21 h12 h22 : et)
+     (lena : szp { lena <= max_blocks * max_threads })
+     (x : array1 et (l1_forward lena) { is_global x })
+     (y : array1 et (l1_forward lena) { is_global y })
+     (#vx : erased (lseq et lena))
+     (#vy : erased (lseq et lena))
+  preserves cpu
+  requires
+    on gpu_loc (x |-> vx) ** on gpu_loc (y |-> vy)
+  ensures
+    on gpu_loc (x |-> s_rotm_x h11 h21 h12 h22 vx vy) **
+    on gpu_loc (y |-> s_rotm_y h11 h21 h12 h22 vx vy)
+
+val rotm_f16 : rotm_ty f16
+val rotm_f32 : rotm_ty f32
+val rotm_f64 : rotm_ty f64
+
 (* ----- Csrot / Zdrot: a Givens rotation with REAL cosine/sine applied to two
    COMPLEX vectors (cublasCsrot / cublasZdrot). Same formulas as rot, but the
    coefficients c, s are real and x, y are complex:

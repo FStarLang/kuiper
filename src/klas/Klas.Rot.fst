@@ -37,6 +37,33 @@ let rot_f16 = rot_gen #f16
 let rot_f32 = rot_gen #f32
 let rot_f64 = rot_gen #f64
 
+(* rotm: apply a modified Givens rotation (full 2x2 matrix). See Klas.Rot.fsti. *)
+inline_for_extraction noextract
+fn rotm_gen (#et:Type0) {| scalar et |}
+  (h11 h21 h12 h22 : et)
+  (lena : szp { lena <= max_blocks * max_threads })
+  (x : array1 et (l1_forward lena) { is_global x })
+  (y : array1 et (l1_forward lena) { is_global y })
+  (#vx : erased (lseq et lena))
+  (#vy : erased (lseq et lena))
+  preserves cpu
+  requires
+    on gpu_loc (x |-> vx) ** on gpu_loc (y |-> vy)
+  ensures
+    on gpu_loc (x |-> s_rotm_x h11 h21 h12 h22 vx vy) **
+    on gpu_loc (y |-> s_rotm_y h11 h21 h12 h22 vx vy)
+{
+  let tmp = alloc0 #et lena (l1_forward lena);
+  memcpy_device_to_device tmp x lena;
+  Map.map_gpu2 (fun (xi yi : et) -> add (mul h11 xi) (mul h12 yi)) lena x y;
+  Map.map_gpu2 (fun (yi ti : et) -> add (mul h21 ti) (mul h22 yi)) lena y tmp;
+  free tmp;
+}
+
+let rotm_f16 = rotm_gen #f16
+let rotm_f32 = rotm_gen #f32
+let rotm_f64 = rotm_gen #f64
+
 (* Csrot/Zdrot: real cosine/sine, complex vectors. See Klas.Rot.fsti. *)
 inline_for_extraction noextract
 fn csrot_gen (#c #r:Type0) {| scalar c |} {| floating r |} {| complex c r |}
