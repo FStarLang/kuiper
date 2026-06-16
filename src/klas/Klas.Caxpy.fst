@@ -1,40 +1,43 @@
 module Klas.Caxpy
 
-(* cuBLAS caxpy: y := alpha*x + y over single-precision complex.
+(* Complex axpy (cuBLAS caxpy / zaxpy): y := alpha*x + y.
 
-   This is the *same* verified element-wise map kernel used for the real
-   BLAS-1 ops (Klas.Level1), now instantiated at the complex scalar instance
-   Kuiper.Complex32. Because Kuiper.Complex32.Base.t is a [scalar], the generic
-   kernel goes through unchanged and extracts to CUDA's cuFloatComplex
-   arithmetic (cuCaddf / cuCmulf). It demonstrates "complex BLAS for free". *)
+   There is ONE generic, verified element-wise map kernel (caxpy_gen, over any
+   [scalar]); the per-precision entry points are one-liners that instantiate it
+   at the complex scalar instances. cf32 extracts to cuFloatComplex (cuCaddf /
+   cuCmulf), cf64 to cuDoubleComplex (cuCadd / cuCmul). This is the same kernel
+   used for the real BLAS-1 ops (Klas.Level1): "complex BLAS for free". *)
 
 #lang-pulse
 open Kuiper
 open Kuiper.Array1
 open Kuiper.Tensor.Layout.Alg { l1_forward }
-open Kuiper.Complex32           (* brings cf32 and its scalar instance *)
+open Kuiper.Complex32           (* cf32 + its scalar instance *)
+open Kuiper.Complex64           (* cf64 + its scalar instance *)
 module Map = Kuiper.Kernel.Map
-module C = Kuiper.Complex32.Base
 
-(* Functional spec: elementwise y[i] := alpha * x[i] + y[i] (complex). *)
-let s_caxpy (#n:nat) (alpha:C.t) (sx sy : lseq C.t n) : GTot (lseq C.t n)
-  = Map.lseq_map2 (fun (yi xi : C.t) -> add (mul alpha xi) yi) sy sx
+(* Functional spec: elementwise y[i] := alpha * x[i] + y[i]. *)
+let s_caxpy (#et:Type0) {| scalar et |} (#n:nat) (alpha:et) (sx sy : lseq et n)
+  : GTot (lseq et n)
+  = Map.lseq_map2 (fun (yi xi : et) -> add (mul alpha xi) yi) sy sx
 
 inline_for_extraction noextract
-fn caxpy_gen
-  (alpha : C.t)
+fn caxpy_gen (#et:Type0) {| scalar et |}
+  (alpha : et)
   (lena : szp { lena <= max_blocks * max_threads })
-  (y : array1 C.t (l1_forward lena) { is_global y })
-  (x : array1 C.t (l1_forward lena) { is_global x })
-  (#sy : erased (lseq C.t lena))
-  (#sx : erased (lseq C.t lena))
+  (y : array1 et (l1_forward lena) { is_global y })
+  (x : array1 et (l1_forward lena) { is_global x })
+  (#sy : erased (lseq et lena))
+  (#sx : erased (lseq et lena))
   (#fx : perm)
   norewrite
   preserves cpu ** on gpu_loc (x |-> Frac fx sx)
   requires on gpu_loc (y |-> sy)
   ensures  on gpu_loc (y |-> s_caxpy alpha sx sy)
 {
-  Map.map_gpu2 (fun (yi xi : C.t) -> add (mul alpha xi) yi) lena y x;
+  Map.map_gpu2 (fun (yi xi : et) -> add (mul alpha xi) yi) lena y x;
 }
 
-let caxpy = caxpy_gen
+(* Per-precision entry points: the same kernel at different scalar instances. *)
+let caxpy = caxpy_gen #cf32   (* -> cuFloatComplex  *)
+let zaxpy = caxpy_gen #cf64   (* -> cuDoubleComplex *)

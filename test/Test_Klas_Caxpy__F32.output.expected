@@ -1,3 +1,4 @@
-caxpy_real_a = (2,3) (2,3) (2,3)
-caxpy_imag_a = (0,1) (0,2)
-caxpy_cplx_a = (0,6) (0,6)
+caxpy_real = (2,3) (2,3)
+caxpy_cplx = (0,6) (0,6)
+zaxpy_real = (2,3) (2,3)
+zaxpy_cplx = (0,6) (0,6)
