@@ -82,23 +82,28 @@ let iarray_pts_to
     (forall+ (i : vw.ait).
       iarray_pts_to_cell a #f i (v i))
 
-instance is_send_across_global_iarray
+instance is_send_iarray_cell
   (#et:Type0)
   (#vw : aiview)
-  (x: iarray et vw { is_global x })
-  (#f : perm)
-  (v : (vw.ait -> GTot et))
-  : is_send_across gpu_of (iarray_pts_to x #f v)
-  = Tactics.Typeclasses.solve
-
-instance is_send_across_global_iarray_cell
-  (#et:Type0)
-  (#vw : aiview)
-  (a : iarray et vw { is_global a })
+  (a : iarray et vw)
+  (vis : visibility { vis_refines vis (visibility_of (core a)) })
   (#f : perm)
   (i : vw.ait)
   (v : et)
-  : is_send_across gpu_of (iarray_pts_to_cell a #f i v)
+  : is_send_across vis (iarray_pts_to_cell a #f i v)
+  = iarray_pts_to_cell_def a #f i v;
+    let h : is_send_across vis (pts_to_cell (core a) #f (it_to_nat vw i) v)
+          = is_send_pts_to_slice_weaken (core a) vis (it_to_nat vw i) (it_to_nat vw i + 1) seq![v] in
+    h
+
+instance is_send_iarray
+  (#et:Type0)
+  (#vw : aiview)
+  (x : iarray et vw)
+  (vis : visibility { vis_refines vis (visibility_of (core x)) })
+  (#f : perm)
+  (v : (vw.ait -> GTot et))
+  : is_send_across vis (iarray_pts_to x #f v)
   = solve
 
 ghost

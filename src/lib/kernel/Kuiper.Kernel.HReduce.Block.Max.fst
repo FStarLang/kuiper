@@ -344,6 +344,7 @@ fn kf_block
   (**)assert (pure (psum %~ seq_max (Seq.slice (reveal vr_s) tid (tid + 1))));
   (**)fold (array1_pts_to_slice_max sa tid (tid + 1) vr_s);
   (**)assert (pure (pow2 (SZ.v !n) == 1));
+  (**)assert (pure (SZ.v tid + 1 <= SZ.v nth));
   (**)assert (pure (min (SZ.v tid + pow2 (SZ.v !n)) (SZ.v nth) == SZ.v tid + 1));
   (**)rewrite (array1_pts_to_slice_max sa tid (tid + 1) vr_s)
   (**)     as (array1_pts_to_slice_max sa tid (min (tid + pow2 !n) nth) vr_s);
@@ -727,8 +728,8 @@ let kdesc_block
     kpost = kpost_block pre_map pre_map_r rows cols nth x output sx vr sout;
     frame = pure (SZ.fits (Array1.layout_size lout));
 
-    kpre_sendable       = magic();
-    kpost_sendable      = magic();
+    kpre_sendable       = (fun sh pf bid tid -> solve);
+    kpost_sendable      = (fun sh pf bid tid -> solve);
     block_post_sendable = solve;
     block_pre_sendable  = solve;
   }

@@ -63,12 +63,13 @@ val tensor_pts_to
   : slprop
 
 instance
-val is_send_across_global_tensor
+val is_send_tensor
   (#et : Type0) (#r : nat) (#d : idesc r)
   (#l : tlayout d)
-  (a : tensor et l { is_global a })
+  (a : tensor et l)
+  (vis : visibility { vis_refines vis (visibility_of (core a)) })
   (#f : perm) (s : chest d et)
-  : is_send_across gpu_of (tensor_pts_to a #f s)
+  : is_send_across vis (tensor_pts_to a #f s)
 
 unfold
 instance has_pts_to_tensor
@@ -300,12 +301,13 @@ val tensor_pts_to_cell_eq
            pts_to_cell (core a) #f (l.imap.f i) v)
 
 instance
-val is_send_across_global_tensor_cell
+val is_send_tensor_cell
   (#et : Type0) (#r : nat) (#d : idesc r)
   (#l : tlayout d)
-  (a : tensor et l { is_global a })
+  (a : tensor et l)
+  (vis : visibility { vis_refines vis (visibility_of (core a)) })
   (#f : perm) (i : abs d) (v : et)
-  : is_send_across gpu_of (tensor_pts_to_cell a #f i v)
+  : is_send_across vis (tensor_pts_to_cell a #f i v)
 
 ghost
 fn tensor_explode

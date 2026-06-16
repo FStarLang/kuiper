@@ -93,11 +93,12 @@ val pts_to
   : slprop
 
 instance
-val is_send_across_global
+val is_send_array4
   (#et : Type0) (#d0 #d1 #d2 #d3 : nat) (#l : layout d0 d1 d2 d3)
-  (a : t et l { is_global a })
+  (a : t et l)
+  (vis : visibility { vis_refines vis (visibility_of (core a)) })
   (#f : perm) (s : EMatrix4.t et d0 d1 d2 d3)
-  : is_send_across gpu_of (pts_to a #f s)
+  : is_send_across vis (pts_to a #f s)
 
 unfold
 instance has_pts_to_inst (et : Type) (d0 d1 d2 d3 : erased nat) (l : _)

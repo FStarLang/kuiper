@@ -116,12 +116,13 @@ let pts_to
   : slprop
   = T.tensor_pts_to a #f (tr_val s)
 
-instance is_send_across_global
+instance is_send_array1
   (#et : Type0) (#len : nat) (#l : layout len)
-  (a : t et l { is_global a })
+  (a : t et l)
+  (vis : visibility { vis_refines vis (visibility_of (core a)) })
   (#f : perm) (s : lseq et len)
-  : is_send_across gpu_of (pts_to a #f s)
-  = solve
+  : is_send_across vis (pts_to a #f s)
+  = T.is_send_tensor a vis (tr_val s)
 
 inline_for_extraction noextract
 fn alloc0
@@ -334,12 +335,13 @@ let pts_to_cell_eq
            B.pts_to_cell (core a) #f (l.imap.f (adapt_idx_back i)) v)
   = T.tensor_pts_to_cell_eq a (adapt_idx_back i) f v
 
-instance is_send_across_global_cell
+instance is_send_array1_cell
   (#et : Type0) (#len : nat) (#l : layout len)
-  (a : t et l { is_global a })
+  (a : t et l)
+  (vis : visibility { vis_refines vis (visibility_of (core a)) })
   (#f : perm) (i : ait len) (v : et)
-  : is_send_across gpu_of (pts_to_cell a #f i v)
-  = solve
+  : is_send_across vis (pts_to_cell a #f i v)
+  = T.is_send_tensor_cell a vis (i, ()) v
 
 ghost
 fn explode

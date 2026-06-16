@@ -196,6 +196,23 @@ let pad_kn
   : slprop
 = pad_f (sdivup k.nthr 1024sz * 1024) p (1024 * bid + tid)
 
+(* The padded kpre/kpost of an arbitrary kernel_desc_n is sendable across blocks:
+   each non-padding element is gpu_of-sendable (from the source kernel) and is
+   weakened to block_of via send_gpu_block; padding cells are emp. The source's
+   sendability is abstract, so no per-resource instance applies and we weaken by
+   hand. *)
+let pad_kn_sendable
+  (#full_pre #full_post : slprop)
+  (k : kernel_desc_n full_pre full_post)
+  (p : natlt k.nthr -> slprop)
+  (psend : (i:natlt k.nthr -> is_send_across gpu_of (p i)))
+  (bid : natlt (sdivup k.nthr 1024sz))
+  (tid : natlt 1024sz)
+  : is_send_across block_of (pad_kn k p bid tid)
+= pad_f_sendable _ (sdivup k.nthr 1024sz * 1024) p block_of
+    (fun i -> send_gpu_block (p i) (psend i))
+    (1024 * bid + tid)
+
 ghost
 fn pad_setup
   (#full_pre #full_post : slprop)
@@ -293,8 +310,8 @@ let kn_as_kmn (#full_pre #full_post : slprop)
   f = adapt_kn_as_kmn k #();
   block_pre_sendable = solve;
   block_post_sendable = solve;
-  kpre_sendable = solve;
-  kpost_sendable = solve;
+  kpre_sendable = (fun bid tid -> pad_kn_sendable k k.kpre kpre_sendable bid tid);
+  kpost_sendable = (fun bid tid -> pad_kn_sendable k k.kpost kpost_sendable bid tid);
 
 }
 
@@ -375,8 +392,8 @@ let km1_as_kmn (#full_pre #full_post : slprop)
   f = (fun bid _tid -> frame_2 (thread_id 1sz _tid) (k.f bid));
   block_pre_sendable = solve;
   block_post_sendable = solve;
-  kpre_sendable = solve;
-  kpost_sendable = solve;
+  kpre_sendable = (fun bid _tid -> send_gpu_block (k.kpre bid) (kpre_sendable bid));
+  kpost_sendable = (fun bid _tid -> send_gpu_block (k.kpost bid) (kpost_sendable bid));
 }
 
 ghost
@@ -494,10 +511,10 @@ let k11_as_k1n (#full_pre #full_post : slprop)
 
   f = (fun _tid () -> Kuiper.Frame.frame_2left _ f);
 
-  kpre_sendable=solve;
-  kpost_sendable=solve;
-  full_pre_sendable=solve;
-  full_post_sendable=solve;
+  kpre_sendable=(fun _tid -> send_gpu_block full_pre k.full_pre_sendable);
+  kpost_sendable=(fun _tid -> send_gpu_block full_post k.full_post_sendable);
+  full_pre_sendable=k.full_pre_sendable;
+  full_post_sendable=k.full_post_sendable;
 }
 
 [@@coercion]

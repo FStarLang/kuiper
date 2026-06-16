@@ -685,8 +685,8 @@ let kdesc_block
     kpost = kpost_block pre_map pre_map_r rows cols nth x output sx vr sout;
     frame = pure (SZ.fits (Array1.layout_size lout));
 
-    kpre_sendable       = magic();
-    kpost_sendable      = magic();
+    kpre_sendable       = (fun sh pf bid tid -> solve);
+    kpost_sendable      = (fun sh pf bid tid -> solve);
     block_post_sendable = solve;
     block_pre_sendable  = solve;
   }

@@ -42,11 +42,53 @@ val thread_id_loc_lemma (#[T.exact (`0)]gpu_id:int) (bid tid:int) : Lemma
 val block_of_same_gpu (l0 l1:_{block_of l0 == block_of l1})
 : Lemma (gpu_of l0 == gpu_of l1)
 
-instance send_across_if_send_across_gpu (p:slprop) (sp:is_send_across gpu_of p)
+(* Refinement of equivalence relations: g' is at least as fine as g. If a
+   resource is sendable across g (can move within each g-class), it is sendable
+   across any finer g' (smaller classes), since every g'-equal pair is g-equal.
+
+   It is kept ABSTRACT (no unfolding to a quantifier) so that the SMT patterns
+   below stay narrow: they fire only on [vis_refines _ _] terms, which appear
+   only in sendability refinements, and never pollute unrelated (e.g. tiling
+   arithmetic) proof contexts. *)
+val vis_refines (#b:Type0) (g' g : loc_id -> b) : prop
+
+(* Defining property, used by [weaken]. *)
+val vis_refines_elim (#b:Type0) (g' g : loc_id -> b) (l l':loc_id)
+: Lemma (requires vis_refines g' g /\ g' l == g' l') (ensures g l == g l')
+
+(* Every relation refines itself; covers the "home visibility" and the global
+   array at gpu_of cases. *)
+val vis_refines_refl (g : visibility)
+: Lemma (vis_refines g g) [SMTPat (vis_refines g g)]
+
+(* block_of refines gpu_of (same block => same gpu): covers a global array sent
+   across blocks. The variable trigger [vis_refines block_of g] stays narrow
+   (only fires on vis_refines terms) and the guard g == gpu_of is discharged
+   from is_global. *)
+val vis_refines_block_gpu (g : visibility)
+: Lemma (requires g == gpu_of) (ensures vis_refines block_of g)
+        [SMTPat (vis_refines block_of g)]
+
+(* The general weakening principle. This subsumes the old gpu_of -> block_of
+   lift (which was just [weaken] specialized to g=gpu_of, g'=block_of), and is
+   the single mechanism used to derive every concrete sendability from a
+   resource's home visibility. It is NOT an instance (an unconditional
+   gpu_of->block_of instance would be picked ahead of the per-resource
+   weakening instances for concrete block arrays and then fail). It is invoked
+   explicitly: by the per-resource weakening instances, and by [send_gpu_block]
+   below for abstract slprops. *)
+let weaken (#b:Type0) (#g #g':loc_id -> b) (#p:slprop)
+      (h:is_send_across g p)
+      (pf:squash (vis_refines g' g))
+: is_send_across g' p
+= fun l0 l1 -> vis_refines_elim g' g l0 l1; h l0 l1
+
+(* Explicit gpu_of -> block_of weakening for *abstract* slprops, where no
+   per-resource instance applies (e.g. the polymorphic kpre/kpost in the kernel
+   cast machinery). Not an instance, for the reason above; call it by hand. *)
+let send_gpu_block (p:slprop) (sp:is_send_across gpu_of p)
 : is_send_across block_of p
-= fun l0 l1 ->
-    block_of_same_gpu l0 l1;
-    sp l0 l1
+= weaken sp ()
 
 instance cond_sendable (b:bool) (p q:slprop)
       (vis:loc_id -> 'a)

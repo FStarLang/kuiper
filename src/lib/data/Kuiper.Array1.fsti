@@ -108,11 +108,12 @@ val pts_to
   : slprop
 
 instance
-val is_send_across_global
+val is_send_array1
   (#et : Type0) (#len : nat) (#l : layout len)
-  (a : t et l { is_global a })
+  (a : t et l)
+  (vis : visibility { vis_refines vis (visibility_of (core a)) })
   (#f : perm) (s : lseq et len)
-  : is_send_across gpu_of (pts_to a #f s)
+  : is_send_across vis (pts_to a #f s)
 
 unfold
 instance has_pts_to_inst (et : Type) (len : erased nat) (l : _)
@@ -268,11 +269,12 @@ val pts_to_cell_eq
            B.pts_to_cell (core a) #f (l.imap.f (adapt_idx_back i)) v)
 
 instance
-val is_send_across_global_cell
+val is_send_array1_cell
   (#et : Type0) (#len : nat) (#l : layout len)
-  (a : t et l { is_global a })
+  (a : t et l)
+  (vis : visibility { vis_refines vis (visibility_of (core a)) })
   (#f : perm) (i : ait len) (v : et)
-  : is_send_across gpu_of (pts_to_cell a #f i v)
+  : is_send_across vis (pts_to_cell a #f i v)
 
 ghost
 fn explode

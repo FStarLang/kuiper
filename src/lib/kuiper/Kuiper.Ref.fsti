@@ -19,14 +19,15 @@ val gpu_pts_to
   (v : a)
 : slprop
 
-(* gpu refs are always in gpu global memory *)
+(* gpu refs are always in gpu global memory; sendable across any v refining gpu_of *)
 instance
 val is_send_across_gpu_ref
   (#a:Type u#0)
   (#f:perm)
   (r:gpu_ref a)
+  (vis : visibility { vis_refines vis gpu_of })
   (v:a)
-: is_send_across gpu_of (gpu_pts_to #a r #f v)
+: is_send_across vis (gpu_pts_to #a r #f v)
 
 unfold
 instance has_pts_to_gpu_ref (a:Type) : has_pts_to (gpu_ref a) a = {

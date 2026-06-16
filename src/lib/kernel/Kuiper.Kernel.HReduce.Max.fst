@@ -1044,11 +1044,10 @@ let kernel
     kpost = kpost pre_map pre_map_r nth lena a va vr out;
     frame = emp;
 
-    // FIXME: kpre and kpost mention a non-global array, but tc resolution tries
-    // to apply the instance for global arrays anyway, and fails to prove the
-    // refinement.
-    kpre_sendable       = magic();
-    kpost_sendable      = magic();
+    // kpre/kpost mention a block (shared-memory) Array1; the single generic
+    // weakening instance handles it (block_of refines block_of reflexively).
+    kpre_sendable       = (fun sh pf bid tid -> solve);
+    kpost_sendable      = (fun sh pf bid tid -> solve);
     block_post_sendable = solve;
     block_pre_sendable  = solve;
   }
