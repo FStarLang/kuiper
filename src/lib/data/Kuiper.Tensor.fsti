@@ -521,6 +521,14 @@ let tlayout_bij
       imap = inj_bij' f `Kuiper.Injection.inj_comp` l.imap;
   }
 
+inline_for_extraction noextract
+instance val ctlayout_bij
+  (#r1 : nat) (#d1 : idesc r1)
+  (#r2 : nat) (#d2 : idesc r2)
+  (f : abs d1 =~ abs d2)
+  (l : tlayout d1) {| c: ctlayout l |}
+  : ctlayout #r2 #d2 (tlayout_bij f l)
+
 ghost 
 fn tensor_apply_bij
   (#et : Type0)
@@ -566,11 +574,11 @@ fn tensor_fold_outer
   (#r: nat {r > 1}) (#d: idesc r)
   (#l: tlayout d) 
   (a : tensor et l)
-  (m : Chest.t d et)
+  (#f : perm) (#m : Chest.t d et)
   requires
-    a |-> m
+    a |-> Frac f m
   ensures
-    from_array (tlayout_fold_outer l) (core a) |-> fold_chest m
+    from_array (tlayout_fold_outer l) (core a) |-> Frac f (fold_chest m)
 
 ghost
 fn tensor_unfold_outer
@@ -578,8 +586,8 @@ fn tensor_unfold_outer
   (#r: nat {r > 1}) (#d: idesc r)
   (#l: tlayout d) 
   (a : tensor et (tlayout_fold_outer l))
-  (m : Chest.t (fold_outer d) et)
+  (#f: perm) (#m : Chest.t (fold_outer d) et)
   requires
-    a |-> m
+    a |-> Frac f m
   ensures
-    from_array l (core a) |-> unfold_chest m
+    from_array l (core a) |-> Frac f (unfold_chest m)

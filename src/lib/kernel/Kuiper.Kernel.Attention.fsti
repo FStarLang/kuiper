@@ -50,10 +50,10 @@ type scaled_dot_product_efficient_attention_ty
     (n h : szp)
     (l s : szp)
     (e ev : szp)
-    (#lQ: tlayout    (n @| h @| l @| e @| INil))
-    (#lK: tlayout    (n @| h @| s @| e @| INil))
-    (#lV: tlayout    (n @| h @| s @| ev @| INil))
-    (#lbias: tlayout (n @| h @| l @| s @| INil))
+    (#lQ: tlayout    (n @| h @| l @| e @| INil) { is_full lQ }) // needed for tlayout_bij for now.
+    (#lK: tlayout    (n @| h @| s @| e @| INil) { is_full lK })
+    (#lV: tlayout    (n @| h @| s @| ev @| INil) { is_full lV })
+    (#lbias: tlayout (n @| h @| l @| s @| INil) { is_full lbias })
     {| ctlayout lQ, ctlayout lK, ctlayout lV, ctlayout lbias |}
     (gQ    : tensor et lQ    { is_global gQ    })
     (gK    : tensor et lK    { is_global gK    })
