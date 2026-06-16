@@ -14,13 +14,19 @@ module Klas.Level1
    no approximation, since these are pure pointwise computations.
 
    We provide instances for f16/f32/f64 (cuBLAS H/S/D) and additionally for
-   the unsigned integer types u32/u64, which cuBLAS does not offer. *)
+   the unsigned integer types u32/u64, which cuBLAS does not offer.  Because
+   scal/copy/swap need only the [scalar] class, the SAME verified kernels also
+   instantiate at the complex scalar types cf32/cf64, giving cuBLAS
+   Cscal/Zscal, Ccopy/Zcopy, Cswap/Zswap for free (they extract to
+   cuFloatComplex / cuDoubleComplex arithmetic). *)
 
 #lang-pulse
 open Kuiper
 open Kuiper.Array1
 open Kuiper.Tensor.Layout.Alg { l1_forward }
 open Kuiper.Seq.Common { lseq_map }
+open Kuiper.Complex32           (* cf32 -> cuFloatComplex *)
+open Kuiper.Complex64           (* cf64 -> cuDoubleComplex *)
 module Map = Kuiper.Kernel.Map
 
 (* ----- SCAL: x := alpha * x ----- *)
@@ -44,6 +50,8 @@ val scal_f32 : scal_ty f32
 val scal_f64 : scal_ty f64
 val scal_u32 : scal_ty u32
 val scal_u64 : scal_ty u64
+val scal_cf32 : scal_ty cf32   (* cuBLAS Cscal *)
+val scal_cf64 : scal_ty cf64   (* cuBLAS Zscal *)
 
 (* ----- AXPY: y := alpha * x + y ----- *)
 
@@ -89,6 +97,8 @@ val copy_f32 : copy_ty f32
 val copy_f64 : copy_ty f64
 val copy_u32 : copy_ty u32
 val copy_u64 : copy_ty u64
+val copy_cf32 : copy_ty cf32   (* cuBLAS Ccopy *)
+val copy_cf64 : copy_ty cf64   (* cuBLAS Zcopy *)
 
 (* ----- SWAP: x <-> y ----- *)
 (* Implemented out-of-place (temp + three device copies); cuBLAS swaps in a
@@ -110,3 +120,5 @@ val swap_f32 : swap_ty f32
 val swap_f64 : swap_ty f64
 val swap_u32 : swap_ty u32
 val swap_u64 : swap_ty u64
+val swap_cf32 : swap_ty cf32   (* cuBLAS Cswap *)
+val swap_cf64 : swap_ty cf64   (* cuBLAS Zswap *)

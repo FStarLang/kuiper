@@ -9,6 +9,8 @@ module Klas.Level1
 open Kuiper
 open Kuiper.Array1
 open Kuiper.Tensor.Layout.Alg { l1_forward }
+open Kuiper.Complex32           (* cf32 + its scalar instance -> cuFloatComplex *)
+open Kuiper.Complex64           (* cf64 + its scalar instance -> cuDoubleComplex *)
 module Map = Kuiper.Kernel.Map
 
 (* SCAL: x := alpha * x. Corresponds to cublasSscal/Dscal/... *)
@@ -30,6 +32,8 @@ let scal_f32 = scal_gen #f32
 let scal_f64 = scal_gen #f64
 let scal_u32 = scal_gen #u32
 let scal_u64 = scal_gen #u64
+let scal_cf32 = scal_gen #cf32   (* cuBLAS Cscal: complex alpha, complex x *)
+let scal_cf64 = scal_gen #cf64   (* cuBLAS Zscal *)
 
 (* AXPY: y := alpha * x + y. Corresponds to cublasSaxpy/Daxpy/... *)
 inline_for_extraction noextract
@@ -78,6 +82,8 @@ let copy_f32 = copy_gen #f32
 let copy_f64 = copy_gen #f64
 let copy_u32 = copy_gen #u32
 let copy_u64 = copy_gen #u64
+let copy_cf32 = copy_gen #cf32   (* cuBLAS Ccopy *)
+let copy_cf64 = copy_gen #cf64   (* cuBLAS Zcopy *)
 
 (* SWAP: x <-> y, via a temporary and three device-to-device copies.
    Corresponds to cublasSswap/Dswap/... *)
@@ -104,3 +110,5 @@ let swap_f32 = swap_gen #f32
 let swap_f64 = swap_gen #f64
 let swap_u32 = swap_gen #u32
 let swap_u64 = swap_gen #u64
+let swap_cf32 = swap_gen #cf32   (* cuBLAS Cswap *)
+let swap_cf64 = swap_gen #cf64   (* cuBLAS Zswap *)
