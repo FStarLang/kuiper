@@ -10,6 +10,8 @@ module SZ = Kuiper.SizeT
 open Kuiper.Tensor
 open Kuiper.EMatrix
 open Kuiper.Tensor.Layout.Alg
+open Kuiper.Complex32           (* cf32 -> cuFloatComplex *)
+open Kuiper.Complex64           (* cf64 -> cuDoubleComplex *)
 
 inline_for_extraction noextract
 fn inst (t:Type) {| scalar t|}
@@ -45,3 +47,11 @@ let rowscale_f32_rowmajor = inst f32 l1_forward l2_row_major
 let rowscale_f32_colmajor = inst f32 l1_forward l2_col_major
 let rowscale_f64_rowmajor = inst f64 l1_forward l2_row_major
 let rowscale_f64_colmajor = inst f64 l1_forward l2_col_major
+
+(* Row-scaling is cuBLAS dgmm in LEFT mode (C := diag(x) * A); it needs only
+   the [scalar] class, so it instantiates at the complex types for free,
+   giving cuBLAS Cdgmm/Zdgmm (left/in-place). Extracts to cuCmulf/cuCmul. *)
+let rowscale_cf32_rowmajor = inst cf32 l1_forward l2_row_major
+let rowscale_cf32_colmajor = inst cf32 l1_forward l2_col_major
+let rowscale_cf64_rowmajor = inst cf64 l1_forward l2_row_major
+let rowscale_cf64_colmajor = inst cf64 l1_forward l2_col_major

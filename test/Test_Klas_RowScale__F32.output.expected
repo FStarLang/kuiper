@@ -1,0 +1,4 @@
+test_f32_rowmajor = ok
+test_cf32_rowmajor = ok
+test_cf32_colmajor = ok
+test_cf64_rowmajor = ok
