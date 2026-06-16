@@ -55,7 +55,7 @@ watch:
 	done
 
 clean:
-	rm -f .plugin.touch
+	rm -f .plugin.touch .fstar.touch .krml.touch
 	rm -rf obj/
 	rm -rf inst/
 
