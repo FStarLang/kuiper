@@ -19,12 +19,6 @@ module A = Pulse.Lib.Array
 module SZ = Kuiper.SizeT
 
 instance
-is_send_across_pts_to_instance (#a: Type u#a) (x:A.array a) (f:perm) (s:seq a)
-: is_send_across (visibility_of_array x) (pts_to x #f s)
-= magic() // Should extend Pulse.Lib.Array.PtsTo
-// A.is_send_pts_to x #f s
-
-instance
 is_send_across_pts_to_mask_instance (#a: Type u#a) (x:A.array a) (f:perm) (s:seq (option a)) (mask:nat -> prop)
 : is_send_across (visibility_of_array x) (pts_to_mask x #f s mask)
 = is_send_across_pts_to_mask x f s mask
@@ -169,6 +163,41 @@ fn slice_to_array
 //           SZ.fits sz /\
 //           Seq.length s == sz /\
 //           A.is_full_array x)
+
+(* Whole-array sendability, derived from the masked version (which is real in
+   Pulse) by reinterpreting [pts_to x s] as a full [pts_to_slice]: move that
+   across locations (it is sendable) and convert back. Replaces a former
+   magic() base case. *)
+ghost
+fn is_send_across_pts_to_whole (#a:Type u#0) (x : array a) (f : perm) (s : seq a)
+  : is_send_across (visibility_of_array x) (pts_to x #f s)
+= l1 l2 {
+  ghost_impersonate l1
+    (on l1 (pts_to x #f s))
+    (on l1 (pts_to_slice x #f 0 (Seq.length s) s ** is_full_slice x (Seq.length s)))
+    fn () {
+      on_elim (pts_to x #f s);
+      array_to_slice x;
+      on_intro (pts_to_slice x #f 0 (Seq.length s) s ** is_full_slice x (Seq.length s));
+    };
+  on_star_elim (pts_to_slice x #f 0 (Seq.length s) s) (is_full_slice x (Seq.length s));
+  is_send_across_elim (visibility_of_array x) (pts_to_slice x #f 0 (Seq.length s) s) #_ l2;
+  is_send_across_elim (visibility_of_array x) (is_full_slice x (Seq.length s)) #_ l2;
+  on_star_intro (pts_to_slice x #f 0 (Seq.length s) s) (is_full_slice x (Seq.length s));
+  ghost_impersonate l2
+    (on l2 (pts_to_slice x #f 0 (Seq.length s) s ** is_full_slice x (Seq.length s)))
+    (on l2 (pts_to x #f s))
+    fn () {
+      on_elim (pts_to_slice x #f 0 (Seq.length s) s ** is_full_slice x (Seq.length s));
+      slice_to_array x;
+      on_intro (pts_to x #f s);
+    };
+}
+
+instance
+is_send_across_pts_to_instance (#a: Type u#0) (x:array a) (f:perm) (s:seq a)
+: is_send_across (visibility_of_array x) (pts_to x #f s)
+= is_send_across_pts_to_whole x f s
 
 instance is_send_pts_to
   (#a:Type u#0)

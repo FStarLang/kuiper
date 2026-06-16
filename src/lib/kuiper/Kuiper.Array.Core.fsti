@@ -166,6 +166,22 @@ instance is_send_pts_to_slice_weaken
 : is_send_across v (pts_to_slice x #f i j s)
 = weaken (is_send_pts_to_slice x #f i j s) ()
 
+(* Sendability stated on the raw [A.pts_to] (a named val), independent of the
+   pointer's static type and of the [pts_to] class wrappers. The [pts_to] class
+   method, the [frac] wrapper ([x |-> Frac f v]) and the [lseq] wrapper are all
+   [pulse_unfold] and reduce to [A.pts_to], so this single instance serves
+   array, larray, frac- and lseq-keyed goals alike (e.g. [live] of a raw larray,
+   or a sparse matrix's backing larrays which use [|-> Frac]). *)
+instance is_send_pts_to_raw
+  (#et:Type0)
+  (x : array et)
+  (v : visibility { vis_refines v (visibility_of x) })
+  (#[exact (`1.0R)] f : perm)
+  (s : seq et)
+: is_send_across v (A.pts_to x #f s)
+= is_send_pts_to_weaken x v s
+
+
 [@@pulse_unfold; FStar.Tactics.Typeclasses.noinst]
 instance cell_pts_to (#a : Type)
   : has_pts_to (cell (array a) nat) a
