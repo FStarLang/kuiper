@@ -6,12 +6,15 @@ module Klas.Geam
    storage (an m x n matrix is passed as its length m*n flattened array).
 
    Reuses the verified device copy and pointwise-map kernels; the spec is exact
-   at the element type. *)
+   at the element type. Needs only the [scalar] class, so the same kernel also
+   gives cuBLAS Cgeam/Zgeam (complex cf32/cf64) for free. *)
 
 #lang-pulse
 open Kuiper
 open Kuiper.Array1
 open Kuiper.Tensor.Layout.Alg { l1_forward }
+open Kuiper.Complex32           (* cf32 -> cuFloatComplex *)
+open Kuiper.Complex64           (* cf64 -> cuDoubleComplex *)
 module Map = Kuiper.Kernel.Map
 
 let s_geam (#et:Type0) {| scalar et |} (#n:nat) (alpha beta : et) (sa sb : lseq et n)
@@ -42,3 +45,5 @@ val geam_f32 : geam_ty f32
 val geam_f64 : geam_ty f64
 val geam_u32 : geam_ty u32
 val geam_u64 : geam_ty u64
+val geam_cf32 : geam_ty cf32   (* cuBLAS Cgeam *)
+val geam_cf64 : geam_ty cf64   (* cuBLAS Zgeam *)

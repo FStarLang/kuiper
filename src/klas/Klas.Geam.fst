@@ -6,6 +6,8 @@ module Klas.Geam
 open Kuiper
 open Kuiper.Array1
 open Kuiper.Tensor.Layout.Alg { l1_forward }
+open Kuiper.Complex32           (* cf32 -> cuFloatComplex *)
+open Kuiper.Complex64           (* cf64 -> cuDoubleComplex *)
 module Map = Kuiper.Kernel.Map
 
 inline_for_extraction noextract
@@ -37,3 +39,5 @@ let geam_f32 = geam_gen #f32
 let geam_f64 = geam_gen #f64
 let geam_u32 = geam_gen #u32
 let geam_u64 = geam_gen #u64
+let geam_cf32 = geam_gen #cf32   (* cuBLAS Cgeam (op(A)=A, op(B)=B) *)
+let geam_cf64 = geam_gen #cf64   (* cuBLAS Zgeam *)
