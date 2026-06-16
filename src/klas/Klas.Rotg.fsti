@@ -93,6 +93,9 @@ type rotg_ty (et:Type0) {| floating et, real_like et, floating_real_like et |} =
        o.rc %~ s_rotg_c (to_real a) (to_real b) /\
        o.rs %~ s_rotg_s (to_real a) (to_real b))
 
-val rotg_f16 : rotg_ty f16
+(* NOTE: no f16 instance. rotg is a pure HOST scalar computation (not a kernel),
+   and half-precision arithmetic (__hmul/__hadd/__hdiv/hsqrt) is __device__-only,
+   so a host rotg_f16 fails to compile (calling a __device__ function from a
+   __host__ one). cuBLAS rotg is S/D/C/Z anyway -- there is no half rotg. *)
 val rotg_f32 : rotg_ty f32
 val rotg_f64 : rotg_ty f64

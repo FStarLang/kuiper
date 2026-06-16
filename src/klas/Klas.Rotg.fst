@@ -41,6 +41,7 @@ let rotg_gen (#et:Type0) {| floating et |} {| real_like et |} {| floating_real_l
     AB.div_approx b r rb (s_rotg_r ra rb);     (* div b r %~ s_rotg_s ra rb *)
     { rc = div a r; rs = div b r; rr = r }
 
-let rotg_f16 = rotg_gen #f16
+(* No rotg_f16: rotg is a host-side scalar fn and half arithmetic is
+   __device__-only (and cuBLAS has no half rotg). See Klas.Rotg.fsti. *)
 let rotg_f32 = rotg_gen #f32
 let rotg_f64 = rotg_gen #f64
