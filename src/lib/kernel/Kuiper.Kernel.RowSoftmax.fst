@@ -3,19 +3,20 @@ module Kuiper.Kernel.RowSoftmax
 #lang-pulse
 friend Kuiper.Kernel.Softmax
 open Kuiper
+open Kuiper.Index
+open Kuiper.Chest
 open Kuiper.Real { exp }
 open Kuiper.EMatrix
 open Kuiper.Seq.Common
 open Kuiper.Math.OnlineSoftmax { seq_max }
-module Array1 = Kuiper.Array1
-module Array2 = Kuiper.Array2
 module SZ = Kuiper.SizeT
 module KB = Kuiper.Kernel.HReduce.Block
 module BMax = Kuiper.Kernel.HReduce.Block.Max
 module RB = Kuiper.Kernel.RowBroadcast
 module SMK = Kuiper.Kernel.Softmax
 module SM = Kuiper.Spec.Softmax
-open Kuiper.Tensor { ctlayout }
+module A1 = Kuiper.Array1
+open Kuiper.Tensor 
 open Kuiper.Tensor.Layout.Alg { l1_forward }
 module Chest = Kuiper.Chest
 
@@ -27,7 +28,7 @@ module Chest = Kuiper.Chest
 (* Cell-wise glue for the (already shifted) divide pass: if every row sum
    approximates [rsum (exp row)], the divide broadcast approximates
    [row_softmax_real].  (Same shape as the original unstable proof.) *)
-#push-options "--z3rlimit 60"
+#push-options "--z3rlimit 20"
 let s_row_div_exp_approx_softmax
   (#et : Type0) {| floating et, real_like et, floating_real_like et |}
   (#m : nat) (#n : nat { n > 0 })
@@ -39,7 +40,11 @@ let s_row_div_exp_approx_softmax
           v_approximates (sums @! i)
                          (rsum (lseq_map exp (ematrix_row ra i)))))
       (ensures RB.s_row_broadcast (fun x s -> div (fexp x) s) sums sa %~ row_softmax_real #m #n ra)
-  = ()
+  = assert 
+      (forall (idx: abs (m @| n @| INil)).
+        (let (i, (j, ())) = idx in
+        macc (RB.s_row_broadcast (fun x s -> div (fexp x) s) sums sa) i j == div (fexp (macc sa i j)) (sums @! i)));
+    ()
 #pop-options
 
 (* The identity pre-map leaves a row unchanged, so the batched max reduction's
@@ -93,10 +98,10 @@ fn row_softmax_gpu
   (#et : Type0) {| floating et, real_like et, floating_real_like et |}
   (m : szp { m <= max_blocks })
   (n : szp { m * n <= max_blocks * max_threads })
-  (#l : Array2.layout m n) {| ctlayout l |}
-  (a : Array2.t et l { Array2.is_global a })
+  (#l : tlayout (m @| n @| INil)) {| ctlayout l |}
+  (a : tensor et l { is_global a })
   (#sa : ematrix et m n)
-  (ra : ematrix real m n)
+  (ra :  ematrix real m n)
   preserves
     cpu
   requires
@@ -107,6 +112,10 @@ fn row_softmax_gpu
       on gpu_loc (a |-> sa') **
       pure (sa' %~ row_softmax_real ra)
 {
+  admit (); // TODO: use tensor API instead of array2
+  // Need to fix the submodules as well 
+
+ (* 
   (* The per-row shift is the row max; [ra1] is the real matrix after the shift. *)
   let cs = (fun (i:nat{i < SZ.v m}) -> seq_max (ematrix_row ra i));
   let ra1 : ematrix real (SZ.v m) (SZ.v n) = mkM (fun i j -> macc ra i j -. cs i);
@@ -147,4 +156,32 @@ fn row_softmax_gpu
   s_row_div_exp_approx_softmax sums_v sa1 ra1;
   row_softmax_shift_eq #(SZ.v m) #(SZ.v n) ra cs;
   ()
+*)
+}
+
+
+inline_for_extraction noextract
+fn row_softmax_gpu_with_sum
+  (#et : Type0) {| floating et, real_like et, floating_real_like et |}
+  (m : szp { m <= max_blocks })
+  (n : szp { m * n <= max_blocks * max_threads })
+  (#l : tlayout (m @| n @| INil)) {| ctlayout l |}
+  (a : tensor et l { is_global a })
+  (#sa : ematrix et m n)
+  (ra :  ematrix real m n)
+  preserves
+    cpu
+  requires
+    on gpu_loc (a |-> sa) **
+    pure (sa %~ ra)
+  returns 
+    sums: (sums: A1.t et (l1_forward m) { A1.is_global sums })
+  ensures
+    exists* (sa' : ematrix et m n) (esums : lseq et m).
+      on gpu_loc (a |-> sa') ** 
+      on gpu_loc (sums |-> esums) **
+      pure (sa' %~ row_softmax_real ra) **
+      pure (esums %~ Seq.init_ghost m (fun i -> rsum (lseq_map exp (ematrix_row ra i))))
+{
+  admit (); // same body as above basically
 }

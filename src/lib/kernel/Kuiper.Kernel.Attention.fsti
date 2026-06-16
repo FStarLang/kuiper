@@ -78,11 +78,14 @@ type scaled_dot_product_efficient_attention_ty
       SZ.fits (n * h * l * e) /\
       SZ.fits (n * h * s * e)  /\
       SZ.fits (n * h * s * ev)  /\
+      SZ.fits (n * h * l * ev)  /\ 
       SZ.fits (n * h * l * s)  /\
       SZ.fits (n * h * l) /\
       (EM4.mkM (fun i j k l -> EM4.macc eK i j l k)) %~ rKT /\
       l * s <= max_blocks * max_threads /\
-      n * h * l <= max_blocks
+      l * ev <= max_blocks * max_threads /\
+      n * h * l <= max_blocks /\
+      n * h * l * s <= max_blocks * max_threads
     )
   returns
     // TODO: polymorphic out & LSE layout
