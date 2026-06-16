@@ -91,6 +91,15 @@ void __MUST(cudaError_t rc, const char * str, const char * func, const char *fna
 #define KRML_HOST_FREE              free
 #define KRML_HOST_IGNORE(x)         (void)(x)
 #define KRML_MAYBE_UNUSED_VAR(x)    KRML_HOST_IGNORE(x)
+/*
+ * Compound-literal constructor emitted by KaRaMeL in C++-compat mode (e.g. for
+ * returning a struct by value). nvcc compiles the generated code as C++, where
+ * the right form is C++ aggregate initialization `T{ ... }` (KaRaMeL emits the
+ * designated-initializer fields), so KRML_CLITERAL(T) must expand to just T.
+ */
+#ifndef KRML_CLITERAL
+#define KRML_CLITERAL(T)            T
+#endif
 #define KRML_CHECK_SIZE(size_elt, sz)					\
 	do {								\
 		if (((size_t)(sz)) > ((size_t)(SIZE_MAX / (size_elt))))	\
