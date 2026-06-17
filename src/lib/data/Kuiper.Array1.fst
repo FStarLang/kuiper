@@ -63,14 +63,6 @@ let to_seq_l1_fwd (#et : Type) (#len : nat) (s : lseq et len)
     from_seq_l1_fwd #et #len s;
     assert (to_seq l (from_seq l s) == s)
 
-let t (et : Type0) (#len : nat) (l : layout len) : Type0 =
-  T.tensor et l
-
-let is_global (#et : Type0) (#len : nat) (#l : layout len)
-  (a : t et l)
-  : prop =
-  T.is_global a
-
 let from_array
   (#et : Type0) (#len : erased nat)
   (l : layout len)

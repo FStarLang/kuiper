@@ -59,13 +59,15 @@ val to_from (#et:Type) (#len : nat) (l : full_layout len) (s : lseq et len)
           [SMTPat (to_seq l (from_seq l s))]
 
 inline_for_extraction noextract
-val t (et : Type0) (#len : nat) (l : layout len) : Type0
+let t (et : Type0) (#len : nat) (l : layout len) : Type0 =
+  tensor et l
 
 unfold let array1 = t
 
-val is_global (#et : Type0) (#len : nat) (#l : layout len)
+let is_global (#et : Type0) (#len : nat) (#l : layout len)
   (a : t et l)
-  : prop
+  : prop =
+  is_global a
 
 inline_for_extraction noextract
 val from_array
