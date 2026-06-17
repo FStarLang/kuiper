@@ -1142,7 +1142,7 @@ fn scaled_dot_product_efficient_attention
   //   == 
   //   lseq_map #real #real log (Seq.init_ghost #(r: real {r >. 0.0R}) (n *^ h *^ l) (fun i -> 
   //     rsum (lseq_map exp (ematrix_row rSf i)) <: (r: real {r >. 0.0R}))));
-  assume pure (esums' %~ (Seq.init_ghost (n *^ h *^ l) (fun i -> log (rsum (lseq_map exp (ematrix_row rSf i)))) <: lseq real (n *^ h *^ l))); // TODO
+  assume pure (esums' %~ Seq.init_ghost (n *^ h *^ l) (fun i -> log (rsum (lseq_map exp (ematrix_row rSf i))))); // TODO
   // sums is LSE now.
 
   let gS, eS, rS = unfold2_to_3 gSf #_ #_ #(row_softmax_real rSf);
