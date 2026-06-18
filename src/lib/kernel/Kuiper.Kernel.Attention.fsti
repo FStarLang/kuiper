@@ -75,12 +75,14 @@ type scaled_dot_product_efficient_attention_ty
     on gpu_loc (gbias |-> Frac fbias ebias)
   requires
     pure (
+      SZ.fits (l * ev) /\
       SZ.fits (n * h * l * e) /\
       SZ.fits (n * h * s * e)  /\
       SZ.fits (n * h * s * ev)  /\
       SZ.fits (n * h * l * ev)  /\ 
       SZ.fits (n * h * l * s)  /\
       SZ.fits (n * h * l) /\
+      SZ.fits (h * l) /\
       (EM4.mkM (fun i j k l -> EM4.macc eK i j l k)) %~ rKT /\
       l * s <= max_blocks * max_threads /\
       l * ev <= max_blocks * max_threads /\
@@ -102,8 +104,8 @@ type scaled_dot_product_efficient_attention_ty
             (EM4.to_real_matrix eV)
             (EM4.to_real_matrix ebias)
             (to_real scale) in
-         eO %~ out_spec /\ eLSE %~ lse_spec)) **
-    pure (is_global (fst out) /\ is_global (snd out))
+          eO %~ out_spec /\ eLSE %~ lse_spec)) **
+    pure (is_global (fst out) /\ is_global (snd out)) 
 
 inline_for_extraction noextract
 val scaled_dot_product_efficient_attention
