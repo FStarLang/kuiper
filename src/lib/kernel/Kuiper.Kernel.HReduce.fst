@@ -252,7 +252,7 @@ let kpost
       exists* (v : et). out |-> v ** pure (v %~ rsum (seq_map pre_map_r vr))
     )
 
-inline_for_extraction
+inline_for_extraction noextract
 fn iteration
   (#et:Type0) {| scalar et, real_like et |}
   (nth : szp { SZ.v nth <= max_threads })

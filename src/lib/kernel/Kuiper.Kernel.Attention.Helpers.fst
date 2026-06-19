@@ -46,6 +46,32 @@ let transpose4_2 (#d0 #d1 #d2 #d3 : nat) :
   ));
 }
 
+/// Concrete index mapping for [transpose4_2], mirroring its ghost inverse [gg]
+/// (which swaps the last two dimensions). Carries no proof obligations beyond the
+/// pointwise swap, so [transpose4_2_conc_correct] is definitional.
+inline_for_extraction noextract
+let transpose4_2_conc (#d0 #d1 #d2 #d3 : nat)
+  (x : conc (d0 @| d1 @| d3 @| d2 @| INil))
+  : conc (d0 @| d1 @| d2 @| d3 @| INil)
+  = let (i,(j,(k,(l,())))) = x in (i,(j,(l,(k,()))))
+
+let transpose4_2_conc_correct (#d0 #d1 #d2 #d3 : nat)
+  (x : conc (d0 @| d1 @| d3 @| d2 @| INil))
+  : (up (transpose4_2_conc #d0 #d1 #d2 #d3 x) == (transpose4_2 #d0 #d1 #d2 #d3).gg (up x))
+  = ()
+
+/// Extractable [ctlayout] for the K-transpose relayout: instantiates [ctlayout_bij]
+/// with the concrete swap above.
+inline_for_extraction noextract
+let ctlayout_bij_transpose
+  (#d0 #d1 #d2 #d3 : szp)
+  (lin : tlayout (d0 @| d1 @| d2 @| d3 @| INil)) {| c : ctlayout lin |}
+  : ctlayout (tlayout_bij (transpose4_2 #(SZ.v d0) #(SZ.v d1) #(SZ.v d2) #(SZ.v d3)) lin)
+  = ctlayout_bij (transpose4_2 #(SZ.v d0) #(SZ.v d1) #(SZ.v d2) #(SZ.v d3))
+      (transpose4_2_conc #(SZ.v d0) #(SZ.v d1) #(SZ.v d2) #(SZ.v d3))
+      (transpose4_2_conc_correct #(SZ.v d0) #(SZ.v d1) #(SZ.v d2) #(SZ.v d3))
+      lin
+
 inline_for_extraction noextract
 fn fold4_to_3 
   (#et : Type0) {| floating et, real_like et |}
@@ -319,6 +345,39 @@ let fold_bij_l3 (n h l : szp { SZ.fits (SZ.v n * SZ.v h * SZ.v l) /\ SZ.fits (SZ
         FStar.Math.Lemmas.small_div k (SZ.v l);
         FStar.Math.Lemmas.small_mod k (SZ.v l);
         ())
+
+/// Concrete index mapping for [fold_bij_l3], mirroring its ghost inverse [gg]
+/// (which un-flattens a 1D row-major index into the 3D `(n,h,l)` index).
+inline_for_extraction noextract
+let fold_bij_l3_conc
+  (n h l : szp { SZ.fits (SZ.v n * SZ.v h * SZ.v l) /\ SZ.fits (SZ.v h * SZ.v l) })
+  (idx : conc ((n *^ h *^ l) @| INil))
+  : conc (n @| h @| l @| INil)
+  = let (r, ()) = idx in
+    let hl : szp = h *^ l in
+    let q  : szlt (SZ.v n) = r /^ hl in
+    let rm : szlt (SZ.v hl) = r %^ hl in
+    let q2 : szlt (SZ.v h) = rm /^ l in
+    let q3 : szlt (SZ.v l) = rm %^ l in
+    (q, (q2, (q3, ())))
+
+let fold_bij_l3_conc_correct
+  (n h l : szp { SZ.fits (SZ.v n * SZ.v h * SZ.v l) /\ SZ.fits (SZ.v h * SZ.v l) })
+  (x : conc ((n *^ h *^ l) @| INil))
+  : (up (fold_bij_l3_conc n h l x) == (fold_bij_l3 n h l).gg (up x))
+  = ()
+
+/// Extractable [ctlayout] for the bias flatten relayout: instantiates [ctlayout_bij]
+/// with the concrete un-flatten above.
+inline_for_extraction noextract
+let ctlayout_bij_l3
+  (n h l : szp { SZ.fits (SZ.v n * SZ.v h * SZ.v l) /\ SZ.fits (SZ.v h * SZ.v l) })
+  (lin : tlayout (n @| h @| l @| INil)) {| c : ctlayout lin |}
+  : ctlayout (tlayout_bij (fold_bij_l3 n h l) lin)
+  = ctlayout_bij (fold_bij_l3 n h l)
+      (fold_bij_l3_conc n h l)
+      (fold_bij_l3_conc_correct n h l)
+      lin
 
 let imap_hyp_l3 (n h l : szp { SZ.fits (SZ.v n * SZ.v h * SZ.v l) /\ SZ.fits (SZ.v h * SZ.v l) })
   (idx : abs (n @| h @| l @| INil))

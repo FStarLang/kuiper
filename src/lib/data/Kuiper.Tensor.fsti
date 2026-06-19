@@ -524,8 +524,10 @@ let tlayout_bij
 inline_for_extraction noextract
 instance val ctlayout_bij
   (#r1 : nat) (#d1 : idesc r1)
-  (#r2 : nat) (#d2 : idesc r2)
+  (#r2 : nat) (#d2 : idesc r2 { all_fit d2 })
   (f : abs d1 =~ abs d2)
+  (fconc: conc d2 -> conc d1)
+  (fconc_correct: (x: conc d2) -> up (fconc x) == f.gg (up x))
   (l : tlayout d1) {| c: ctlayout l |}
   : ctlayout #r2 #d2 (tlayout_bij f l)
 
@@ -567,6 +569,16 @@ let unfold_chest (#et : Type0) (#r: nat {r > 1}) (#d: idesc r) (m : Chest.t (fol
 unfold let tlayout_fold_outer 
   (#r : nat {r > 1}) (#d : idesc r)
   (l : tlayout d) = tlayout_bij fold_bij l
+
+unfold
+let desc_top2 (#r: nat {r > 1}) (d: idesc r): GTot (nat & nat & idesc (r-2)) = (head d, head (tail d), tail (tail d))
+
+inline_for_extraction noextract
+instance val ctlayout_fold_outer
+  (#r : nat {r > 1}) (#d : idesc r { all_fit d }) 
+  (#top2_fits: SZ.fits ((desc_top2 d)._1 * (desc_top2 d)._2))
+  (l : tlayout d) {| c: ctlayout l, cs: concrete_sz (desc_top2 d)._2 |}
+  : ctlayout #_ #(fold_outer d) (tlayout_fold_outer l)
 
 ghost
 fn tensor_fold_outer

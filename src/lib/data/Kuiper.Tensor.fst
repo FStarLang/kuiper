@@ -774,31 +774,33 @@ fn tensor_restore_slice
 }
 
 inline_for_extraction noextract
-let ctlayout_bij_cimap 
+let ctlayout_bij_cimap
   (#r1 : nat) (#d1 : idesc r1)
   (#r2 : nat) (#d2 : idesc r2)
   (f : abs d1 =~ abs d2)
+  (fconc: conc d2 -> conc d1)
+  (fconc_correct: (x: conc d2) -> up (fconc x) == f.gg (up x))
   (l : tlayout d1) {| c: ctlayout l |}
   (idx: conc d2)
   : Tot (x : szlt l.ulen{SZ.v x == l.imap.f ((f.gg) (up idx))})  = 
-  assume SZ.v 0sz == l.imap.f ((f.gg) (up idx)); 
-  // TODO: SUPER BROKEN: bijections are currently an erasable type that has 
-  // ff : a -> GTot b and gg : b -> GTot a, but cimap needs a Tot function
-  // It should be the below line. This 0sz is a VERY BROKEN placeholder.
-  // c.cimap (idx <~| f);
-  0sz
+  fconc_correct idx;
+  c.cimap (fconc idx)
 
 inline_for_extraction noextract
 instance ctlayout_bij
   (#r1 : nat) (#d1 : idesc r1)
-  (#r2 : nat) (#d2 : idesc r2)
+  (#r2 : nat) (#d2 : idesc r2 { all_fit d2 })
   (f : abs d1 =~ abs d2)
+  (fconc: conc d2 -> conc d1)
+  (fconc_correct: (x: conc d2) -> up (fconc x) == f.gg (up x))
   (l : tlayout d1) {| c: ctlayout l |}
   : ctlayout #r2 #d2 (tlayout_bij f l) =
   {
     ulen_fits = ();
-    all_fit = admit (); // TODO
-    cimap = ctlayout_bij_cimap f l;
+    all_fit = ();
+    cimap = (fun (idx: conc d2) ->
+              fconc_correct idx;
+              c.cimap (fconc idx));
   }
 
 ghost
@@ -815,8 +817,7 @@ fn tensor_apply_bij
   ensures
     from_array (tlayout_bij f l) (core a) |-> Frac fp (Chest.mk d2 (fun a -> Chest.acc m (a <~| f)))
 {
-  // Kuiper.Enumerable.bijection_implies_equal_cardinal (abs d1) (abs d2) f;
-  assume pure (sizeof d1 == sizeof d2);
+  sizeof_bijection f;
   assert pure (tlayout_size l == tlayout_size (tlayout_bij f l));
   tensor_concr a;
   tensor_abs' (tlayout_bij f l) (core a);
@@ -831,6 +832,32 @@ let fold_bij (#r: nat {r > 1}) (#d: idesc r): (abs d =~ abs (fold_outer d)) = {
   ff_gg = ez;
   gg_ff = ez;
 }
+
+inline_for_extraction noextract
+let unfold_index_conc 
+  (#r: erased nat {r > 1}) 
+  (#d: idesc r { all_fit d }) {| cs: concrete_sz (desc_top2 d)._2 |}
+  (i : conc (fold_outer d)): Tot (conc d) = 
+  let i : szlt (head d * head (tail d)) & conc (tail (tail d)) = i in
+  let (ih, it) = i in 
+  let ih1: szlt (head d) = ih /^ (concr' cs) in
+  let ih2: szlt (head (tail d)) = ih %^ (concr' cs) in
+  (ih1, (ih2, it))
+
+let all_fit_fold_outer (#r: nat {r > 1}) (#d: idesc r { all_fit d }) (#top2_fits: SZ.fits ((desc_top2 d)._1 * (desc_top2 d)._2)): 
+  Lemma (all_fit (fold_outer d)) = ()
+
+inline_for_extraction noextract
+instance ctlayout_fold_outer
+  (#r : nat {r > 1}) (#d : idesc r { all_fit d }) 
+  (#top2_fits: SZ.fits ((desc_top2 d)._1 * (desc_top2 d)._2))
+  (l : tlayout d) {| c: ctlayout l, cs: concrete_sz (desc_top2 d)._2 |}
+  : ctlayout #_ #(fold_outer d) (tlayout_fold_outer l) =
+  ctlayout_bij (fold_bij #r #d)
+    (unfold_index_conc #r #d #cs)
+    (fun (x: conc (fold_outer d)) ->
+       (() <: squash (up (unfold_index_conc #r #d #cs x) == unfold_index (up x))))
+    l
 
 ghost
 fn tensor_fold_outer

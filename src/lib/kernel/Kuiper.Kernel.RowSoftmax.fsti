@@ -18,6 +18,7 @@ open Kuiper.Index
 open Kuiper.Seq.Common
 module SM = Kuiper.Spec.Softmax
 module A1 = Kuiper.Array1
+module Array2 = Kuiper.Array2
 
 (* All-real specification: each row independently softmax'd. *)
 let row_softmax_real
@@ -32,10 +33,10 @@ fn row_softmax_gpu
   (#et : Type0) {| floating et, real_like et, floating_real_like et |}
   (m : szp { m <= max_blocks })
   (n : szp { m * n <= max_blocks * max_threads })
-  (#l : tlayout (m @| n @| INil)) {| ctlayout l |}
-  (a : tensor et l { is_global a })
+  (#l : Array2.layout m n) {| ctlayout l |}
+  (a : Array2.t et l { Array2.is_global a })
   (#sa : ematrix et m n)
-  (ra :  ematrix real m n)
+  (ra : ematrix real m n)
   preserves
     cpu
   requires
@@ -52,10 +53,10 @@ fn row_softmax_gpu_with_sum
   (#et : Type0) {| floating et, real_like et, floating_real_like et |}
   (m : szp { m <= max_blocks })
   (n : szp { m * n <= max_blocks * max_threads })
-  (#l : tlayout (m @| n @| INil)) {| ctlayout l |}
-  (a : tensor et l { is_global a })
+  (#l : Array2.layout m n) {| ctlayout l |}
+  (a : Array2.t et l { Array2.is_global a })
   (#sa : ematrix et m n)
-  (ra :  ematrix real m n)
+  (ra : ematrix real m n)
   preserves
     cpu
   requires

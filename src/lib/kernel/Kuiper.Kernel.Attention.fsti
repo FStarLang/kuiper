@@ -44,7 +44,7 @@ module SZ = Kuiper.SizeT
 // Extended reals means we can say is_causal ==> bias += (triangle of -inf)
 
 unfold
-type scaled_dot_product_efficient_attention_ty
+type sdpa_ty
   (et : Type0) {| scalar et, real_like et |} = 
   fn 
     (n h : szp)
@@ -108,6 +108,6 @@ type scaled_dot_product_efficient_attention_ty
     pure (is_global (fst out) /\ is_global (snd out)) 
 
 inline_for_extraction noextract
-val scaled_dot_product_efficient_attention
+val sdpa_naive
   (#et : Type0) {| floating et, real_like et, floating_real_like et |}
-   : scaled_dot_product_efficient_attention_ty et
+   : sdpa_ty et

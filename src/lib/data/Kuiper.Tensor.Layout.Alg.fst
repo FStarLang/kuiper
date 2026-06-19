@@ -181,3 +181,21 @@ instance c_l3_batched_col_major
                 SZ.add (SZ.mul i (SZ.mul m n)) (SZ.add (SZ.mul k m) j))
   }
 #pop-options
+
+#push-options "--z3rlimit 80"
+inline_for_extraction noextract
+instance c_l4_batched_row_major
+  (r1: erased nat{SZ.fits r1})
+  (r2: SZ.t{SZ.fits (r1 * r2)})
+  (m : SZ.t{SZ.fits (r2 * m) /\ SZ.fits (r1 * (r2 * m))})
+  (n : SZ.t{SZ.fits (m * n) /\ SZ.fits (r2 * (m * n)) /\ SZ.fits (r1 * (r2 * (m * n)))})
+  : T.ctlayout (l4_batched_row_major r1 r2 m n) =
+  {
+    ulen_fits = ();
+    all_fit = ();
+    cimap = (fun (idx : Kuiper.Index.conc (r1 @| r2 @| m @| n @| INil)) ->
+              match idx with
+              | (i, (j, (k, (l, ())))) ->
+                SZ.add (SZ.mul i (SZ.mul r2 (SZ.mul m n))) (SZ.add (SZ.mul j (SZ.mul m n)) (SZ.add (SZ.mul k n) l)))
+  }
+#pop-options

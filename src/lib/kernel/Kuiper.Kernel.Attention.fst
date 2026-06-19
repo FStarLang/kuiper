@@ -21,6 +21,7 @@ module MS = Kuiper.Spec.GEMM
 module T = FStar.Tactics.V2
 module SM = Kuiper.Spec.Softmax
 module GU = Kuiper.Kernel.GEMM.Util
+module A2C = Kuiper.Array2.Conv
 
 open Kuiper.Spec.Attention
 open Kuiper.Kernel.BatchedGEMM
@@ -36,7 +37,7 @@ module TL = Kuiper.Tensor.Layout
 //#push-options "--print_implicits"
 #push-options "--split_queries always --z3rlimit 20"
 inline_for_extraction noextract
-fn scaled_dot_product_efficient_attention
+fn sdpa_naive
   (#et : Type0) {| floating et, real_like et, floating_real_like et |}
   (n h : szp)
   (l s : szp)
@@ -117,7 +118,9 @@ fn scaled_dot_product_efficient_attention
   assert pure (eKT %~ rKT);
 
   // Fold 2 batch dimensions of K^T, Q, V, bias into one (N * H)
-  let gKTf, eKTf, rKTf = fold4_to_3 gKT #fK #eKT #rKT;
+  let gKTf, eKTf, rKTf =
+    fold4_to_3 #_ #_ #_ #_ #_ #_ #_ #_ #(ctlayout_bij_transpose #n #h #s #e lK)
+      gKT #fK #eKT #rKT;
   let gQf, eQf, rQf = fold4_to_3 gQ #fQ #eQ #rQ;
   let gVf, eVf, rVf = fold4_to_3 gV #fV #eV #rV;
   let gbiasf, ebiasf, rbiasf = fold4_to_3 gbias #fbias #ebias #rbias;
@@ -146,8 +149,6 @@ fn scaled_dot_product_efficient_attention
   assert pure (is_full lb);
   assert pure (is_full (l3_batched_row_major (n*^h) l s));
 
-  let ct_lbias3 : ctlayout lbias3 = ctlayout_bij fold_bij lbias;
-  let ct_lb : ctlayout lb = ctlayout_bij flat lbias3 #ct_lbias3;
 
   // ---- aBias : A1 view of gbiasf whose logical sequence is the row-major flatten of ebiasf ----
   let aBias : tensor et lb = from_array lb (core gbiasf);
@@ -174,7 +175,7 @@ fn scaled_dot_product_efficient_attention
   // [sb] (the logical row-major flattening of [ebiasf]) is referenced only in
   // ghost/spec positions as [chest_to_seq1 cb]; we never bind it to a runtime let
   // (it is GTot), which keeps Pulse's ghost discipline happy.
-  map_gpu_notinplace #et #et (fun (x:et) -> x) (n *^ h *^ l *^ s) #lb #ct_lb aBias_a1 aS;
+  map_gpu_notinplace #et #et (fun (x:et) -> x) (n *^ h *^ l *^ s) #lb #(ctlayout_bij_l3 (n *^ h) l s lbias3 #(ctlayout_fold_outer lbias)) aBias_a1 aS;
   lseq_map_id (chest_to_seq1 cb);
   rewrite (on gpu_loc (aS |-> (lseq_map (fun (x:et) -> x) (chest_to_seq1 cb) <: lseq et (n *^ h *^ l *^ s))))
        as (on gpu_loc (aS |-> chest_to_seq1 cb));
@@ -211,9 +212,8 @@ fn scaled_dot_product_efficient_attention
     };
 
   let lKT : tlayout (n @| h @| e @| s @| INil) = tlayout_bij f_transpose lK;
-  let ctlKT : ctlayout lKT = ctlayout_bij f_transpose lK;
   bmmcomb_gpu_exact #et (fun bias_qk score -> (bias_qk `add` score) `mul` scale) 
-    (n*^h) l e s #_ #_ #_ #(ctlayout_bij fold_bij lQ) #(ctlayout_bij fold_bij lKT) #_ gQf gKTf gS;
+    (n*^h) l e s #_ #_ #_ #(ctlayout_fold_outer lQ) #(ctlayout_fold_outer lKT #(ctlayout_bij_transpose #n #h #s #e lK)) #_ gQf gKTf gS;
   with eS'. assert on gpu_loc (gS |-> (eS' <: EM3.t et (n *^ h) l s));
 
   let rS': EM3.t real (n *^ h) l s = MS.bmmcomb 
@@ -232,11 +232,13 @@ fn scaled_dot_product_efficient_attention
   assert pure (is_full_array (core gS));
   let gSf, eSf, rSf = fold3_to_2 gS #_ #eS' #rS';
 
+  let aSf = A2C.array2_of_tensor gSf;
+
   // TODO: could fuse some `f` with the sums in this kernel, for the log step
   let sums = row_softmax_gpu_with_sum (n *^ h *^ l) s 
     #(tlayout_fold_outer (l3_batched_row_major (n*^h) l s))
-    #(ctlayout_bij fold_bij (l3_batched_row_major (n*^h) l s))
-    gSf rSf;
+    #(ctlayout_fold_outer (l3_batched_row_major (n*^h) l s))
+    aSf rSf;
   with esums. assert on gpu_loc (sums |-> esums);
   assert pure (esums %~ Seq.init_ghost (n *^ h *^ l) (fun i -> rsum (lseq_map exp (ematrix_row rSf i))));
   map_gpu flog (n *^ h *^ l) sums;
@@ -254,6 +256,7 @@ fn scaled_dot_product_efficient_attention
   assert pure (SZ.v l > 0);
   // sums is LSE now.
 
+  let gSf = A2C.tensor_of_array2 aSf;
   let gS, eS, rS = unfold2_to_3 gSf #_ #_ #(row_softmax_real rSf);
   
   assert pure (SZ.fits (n * h * l));
@@ -267,7 +270,7 @@ fn scaled_dot_product_efficient_attention
   with eO. assert on gpu_loc (gO |-> eO);
 
   bmmcomb_gpu_exact #et MS.comb2 
-    (n*^h) l s ev #_ #_ #_ #_ #(ctlayout_bij fold_bij lV) #_ gS gVf gO;
+    (n*^h) l s ev #_ #_ #_ #_ #(ctlayout_fold_outer lV) #_ gS gVf gO;
 
   // is_full_array (core gS) now provided by unfold2_to_3's strengthened ensures
   free gS;
@@ -277,7 +280,8 @@ fn scaled_dot_product_efficient_attention
   restore_fold4 gV gVf #fV #_ #(reveal eV);
   restore_fold4 gbias gbiasf #fbias #_ #(reveal ebias);
   // K: undo the outer fold, then undo the transpose
-  restore_fold4 gKT gKTf #fK #_ #eKT;
+  restore_fold4 #_ #_ #_ #_ #_ #_ #_ #_ #(ctlayout_bij_transpose #n #h #s #e lK)
+    gKT gKTf #fK #_ #eKT;
   FStar.Classical.forall_intro (untranspose_imap_hyp f_transpose lK);
   FStar.Classical.forall_intro (kt_chest_eq n h s e (reveal eK) f_transpose);
   gpu_relayout_to lK f_transpose () gKT gK #fK #eKT;
@@ -325,6 +329,4 @@ fn scaled_dot_product_efficient_attention
 
   (gO4, gLSE)
 }
-
-
 #pop-options

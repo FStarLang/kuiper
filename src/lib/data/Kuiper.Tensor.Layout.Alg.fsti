@@ -191,3 +191,11 @@ instance val c_l3_batched_col_major
   (m : SZ.t{SZ.fits (r * m)})
   (n : SZ.t{SZ.fits (m * n) /\ SZ.fits (r * (m * n))})
   : T.ctlayout (l3_batched_col_major r m n)
+
+inline_for_extraction noextract
+instance val c_l4_batched_row_major
+  (r1: erased nat{SZ.fits r1})
+  (r2: SZ.t{SZ.fits (r1 * r2)})
+  (m : SZ.t{SZ.fits (r2 * m) /\ SZ.fits (r1 * (r2 * m))})
+  (n : SZ.t{SZ.fits (m * n) /\ SZ.fits (r2 * (m * n)) /\ SZ.fits (r1 * (r2 * (m * n)))})
+  : T.ctlayout (l4_batched_row_major r1 r2 m n)

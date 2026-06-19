@@ -15,10 +15,12 @@ type idesc : nat -> Type =
 
 unfold let ( @| ) (#n:nat) = ICons #n
 
+inline_for_extraction noextract
 let head (#n:pos) (d : idesc n) : GTot nat =
   match d with
   | ICons hd _ -> hd
 
+inline_for_extraction noextract
 let tail (#n:pos) (d : idesc n) : idesc (n-1) =
   match d with
   | ICons _ tl -> tl
@@ -119,6 +121,7 @@ val down_up #n (#d : idesc n) (v : conc d) :
 
 (* Remove (fix) a given dimension *)
 [@@strict_on_arguments [2]]
+inline_for_extraction noextract
 let rec modulo_i (#n:nat) (i : natlt n) (d : idesc n) : idesc (n-1) =
   (* Cannot match on d and i simultaneously *)
   match d with
@@ -297,6 +300,7 @@ let rec raw_fits #n (d : idesc n) (idx : raw d) : prop =
     let i, is = idx <: sz & raw ts in
     i < t /\ raw_fits ts is
 
+inline_for_extraction noextract
 let fold_outer (#n: nat {n > 1}) (i : idesc n) : idesc (n-1) = 
   let ICons h1 (ICons h2 ts) = i in
   (h1 * h2) @| ts
