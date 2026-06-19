@@ -7,8 +7,8 @@ open Kuiper
 module SZ = FStar.SizeT
 module KSeq = Kuiper.Seq.Common
 
-//TODO ver lib/algo/Kuiper.DotProd
 
+// TODO ordenar un poco
 
 let scale
   (#et:_) {| scalar et |}
@@ -185,7 +185,7 @@ let dprod
 noextract
 let _sparse_dprod_acc
   (#et : Type0) {| scalar et |}
-  (#nnz #n : nat) //{nnz <= n})
+  (#nnz #n : nat)
   (acc : et)
   (elems : lseq et nnz)
   (pos : lseq nat nnz{in_bounds 0 n pos})
@@ -198,18 +198,18 @@ let _sparse_dprod_acc
 noextract
 let sparse_dprod_acc
   (#et : Type0) {| scalar et |}
-  (#n : nat )//{nnz <= n})
+  (#n : nat )
   (acc : et)
   (#nnz : nat)
   (elems : lseq et nnz)
-  (pos : lseq nat nnz{valid_pos n pos})
+  (pos : lseq nat nnz{in_bounds 0 n pos})
   (t : lseq et n)
   : et
 = _sparse_dprod_acc acc elems pos t nnz
 
 let _sparse_dprod
   (#et : Type0) {| scalar et |}
-  (#nnz #n : nat )//{nnz <= n})
+  (#nnz #n : nat )
   (elems : lseq et nnz)
   (pos : lseq nat nnz{valid_pos n pos})
   (t : lseq et n)
@@ -219,7 +219,7 @@ let _sparse_dprod
 
 let sparse_dprod
   (#et : Type0) {| scalar et |}
-  (#nnz #n : nat )//{nnz <= n})
+  (#nnz #n : nat )
   (elems : lseq et nnz)
   (pos : lseq nat nnz{valid_pos n pos})
   (t : lseq et n)

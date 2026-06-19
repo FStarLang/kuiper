@@ -72,7 +72,8 @@ let sparse_row_x_mat_acc_lemma
   (em : ematrix et shared cols)
   (to : natle nnz)
 : Lemma
-  (requires valid_pos shared pos)
+  // (requires valid_pos shared pos)
+  (requires in_bounds 0 shared pos)
   (ensures
     sparse_row_x_mat_acc #_ #_ #_ #_ #block
       (sparse_row_x_mat_acc acc
@@ -150,7 +151,8 @@ let sparse_row_x_mat_acc_lemma'
   (em : ematrix et shared cols)
   (from to : natle nnz{from <= to})
 : Lemma
-  (requires valid_pos shared pos)
+  // (requires valid_pos shared pos)
+  (requires in_bounds 0 shared pos)
   (ensures
     sparse_row_x_mat_acc #_ #_ #_ #_ #block
       (sparse_row_x_mat_acc
@@ -290,7 +292,8 @@ let compute_step
   (n : natlt cols)
   (from to : natle nnz{from <= to})
 : Lemma
-  (requires valid_pos shared col_ind)
+  // (requires valid_pos shared col_ind)
+  (requires in_bounds 0 shared col_ind)
   (ensures
     compute_result
       bw bx #(to - from)

@@ -125,7 +125,7 @@ val compute_step
   (n : natlt cols)
   (from to : natle nnz{from <= to})
 : Lemma
-  (requires valid_pos shared col_ind)
+  (requires in_bounds 0 shared col_ind)
   (ensures
     compute_result
       bw bx #(to - from)
