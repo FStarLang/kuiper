@@ -629,10 +629,13 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
 
   | "Kuiper.BFloat16.Base.zero", [], [] -> EConstant (BFloat16, "__float2bfloat16(0.0f)")
   | "Kuiper.BFloat16.Base.one",  [], [] -> EConstant (BFloat16, "__float2bfloat16(1.0f)")
-  | "Kuiper.BFloat16.Base.add",  [], [] -> EQualified ([], "__hadd")
-  | "Kuiper.BFloat16.Base.mul",  [], [] -> EQualified ([], "__hmul")
-  | "Kuiper.BFloat16.Base.sub",  [], [] -> EQualified ([], "__hsub")
-  | "Kuiper.BFloat16.Base.div",  [], [] -> EQualified ([], "__hdiv")
+// On older versions of CUDA, the native bf16 intrinsics don't compile on a device
+// without native bf16 support. The operator overloads, by contrast, are still defined,
+// and will be compiled to round-trip casts on f32 iff the device does not support the native ops.
+  | "Kuiper.BFloat16.Base.add",  [], [] -> EOp (Add, BFloat16)
+  | "Kuiper.BFloat16.Base.mul",  [], [] -> EOp (Mult, BFloat16)
+  | "Kuiper.BFloat16.Base.sub",  [], [] -> EOp (Sub, BFloat16)
+  | "Kuiper.BFloat16.Base.div",  [], [] -> EOp (Div, BFloat16)
   | "Kuiper.BFloat16.Base.fexp", [], [] -> EQualified ([], "kpr_bf16exp")
   | "Kuiper.BFloat16.Base.flog", [], [] -> EQualified ([], "kpr_bf16log")
   | "Kuiper.BFloat16.Base.eq",   [], [] -> EOp (Eq, BFloat16)
