@@ -15,9 +15,11 @@ module M = Kuiper.Array2
 module SZ = Kuiper.SizeT
 module Trade = Pulse.Lib.Trade
 module Array1 = Kuiper.Array1
+module B = Kuiper.Barrier
 open Kuiper.Array1
 open Kuiper.Index
 open Pulse.Lib.Trade { (@==>) }
+open Kuiper.Math { even, odd }
 
 // STRIDE TILE HELPERS
 
@@ -568,6 +570,231 @@ fn block_teardown_fa
     (forall+ (tid : natlt nthr).
        kpre_post_outer_fa n d nthr (gS_of_sh n d nthr lS sh) gK gV gQ gO gl gm eK eV eQ fK fV fQ tid) **
     frame_fa n d nthr lS lO ll lm
+  ensures
+    live_c_shmems sh **
+    full_io_fa_nos n d nthr gK gV gQ gO gl gm eK eV eQ fK fV fQ
+
+(* ═════════════════════════════════════════════════════════════════════════
+   SHARED-MEMORY VARIANT (K, V, Q caching with a real barrier).
+
+   Configuration unchanged: 1 block, [nthr] threads, [bc == br == nthr], so
+   the K/V tile is [nthr x d].  Four shared arrays:
+     - sK : K tile cache   ([nthr x d]), barrier-shared (all threads read all)
+     - sV : V tile cache   ([nthr x d]), barrier-shared
+     - sQ : Q row cache     ([nthr x d]), per-thread row [tid] (no barrier)
+     - gS : softmax scratch ([nthr x nthr]), per-thread row [tid] (no barrier)
+
+   The barrier contract is CONTENT-FREE (permission-only): this kernel has no
+   functional spec, so it only tracks ownership of sK/sV.
+   ───────────────────────────────────────────────────────────────────────── *)
+
+let shmems_desc_fa_smem
+  (et:Type0) {| scalar et |}
+  (n d nthr:szp{SZ.fits (nthr * d) /\ SZ.fits (nthr * nthr)})
+  : list shmem_desc =
+  [ SHArray et (nthr *^ d)
+  ; SHArray et (nthr *^ d)
+  ; SHArray et (nthr *^ d)
+  ; SHArray et (nthr *^ nthr) ]
+
+let sK_of_sh
+  (#et:Type0) {| scalar et |}
+  (n d nthr:szp{SZ.fits (nthr*d) /\ SZ.fits (nthr*nthr)})
+  (lKV : M.full_layout nthr d)
+  (sh : c_shmems (shmems_desc_fa_smem et n d nthr))
+  : M.array2 et lKV
+  = M.from_array lKV (fst sh)
+
+let sV_of_sh
+  (#et:Type0) {| scalar et |}
+  (n d nthr:szp{SZ.fits (nthr*d) /\ SZ.fits (nthr*nthr)})
+  (lKV : M.full_layout nthr d)
+  (sh : c_shmems (shmems_desc_fa_smem et n d nthr))
+  : M.array2 et lKV
+  = M.from_array lKV (fst (snd sh))
+
+let sQ_of_sh
+  (#et:Type0) {| scalar et |}
+  (n d nthr:szp{SZ.fits (nthr*d) /\ SZ.fits (nthr*nthr)})
+  (lKV : M.full_layout nthr d)
+  (sh : c_shmems (shmems_desc_fa_smem et n d nthr))
+  : M.array2 et lKV
+  = M.from_array lKV (fst (snd (snd sh)))
+
+let gS_of_sh'
+  (#et:Type0) {| scalar et |}
+  (n d nthr:szp{SZ.fits (nthr*d) /\ SZ.fits (nthr*nthr)})
+  (lS : M.full_layout nthr nthr)
+  (sh : c_shmems (shmems_desc_fa_smem et n d nthr))
+  : M.array2 et lS
+  = M.from_array lS (fst (snd (snd (snd sh))))
+
+(* ── The (content-free) barrier contract over sK, sV. ─────────────────────
+   [tc = n /^ nthr] tiles.  At even step [2j] (before the inner loop) each
+   thread holds write-ownership of its own row of sK/sV (just loaded) and
+   receives a fractional read of the WHOLE tile.  At odd step [2j+1] (after
+   the inner loop) it gives back the fractional read and receives its row. *)
+
+let fa_barrier_side_rin
+  (#et:Type0) {| scalar et |}
+  (n d nthr : szp)
+  (#lKV : M.full_layout nthr d)
+  (sK sV : M.array2 et lKV)
+  : B.barrier_side (SZ.v nthr)
+  = fun it tid ->
+    if it >= 2 * SZ.v (n /^ nthr) then emp
+    else if even it then
+      (exists* (r:ematrix et 1 (SZ.v d)). array2_subtile sK 1 (SZ.v d) tid 0 |-> Frac 1.0R r) **
+      (exists* (r:ematrix et 1 (SZ.v d)). array2_subtile sV 1 (SZ.v d) tid 0 |-> Frac 1.0R r)
+    else
+      (exists* (x:ematrix et (SZ.v nthr) (SZ.v d)). sK |-> Frac (1.0R /. (SZ.v nthr)) x) **
+      (exists* (y:ematrix et (SZ.v nthr) (SZ.v d)). sV |-> Frac (1.0R /. (SZ.v nthr)) y)
+
+let fa_barrier_side_rout
+  (#et:Type0) {| scalar et |}
+  (n d nthr : szp)
+  (#lKV : M.full_layout nthr d)
+  (sK sV : M.array2 et lKV)
+  : B.barrier_side (SZ.v nthr)
+  = fun it tid ->
+    if it >= 2 * SZ.v (n /^ nthr) then emp
+    else if even it then
+      (exists* (x:ematrix et (SZ.v nthr) (SZ.v d)). sK |-> Frac (1.0R /. (SZ.v nthr)) x) **
+      (exists* (y:ematrix et (SZ.v nthr) (SZ.v d)). sV |-> Frac (1.0R /. (SZ.v nthr)) y)
+    else
+      (exists* (r:ematrix et 1 (SZ.v d)). array2_subtile sK 1 (SZ.v d) tid 0 |-> Frac 1.0R r) **
+      (exists* (r:ematrix et 1 (SZ.v d)). array2_subtile sV 1 (SZ.v d) tid 0 |-> Frac 1.0R r)
+
+let fa_barrier_contract
+  (#et:Type0) {| scalar et |}
+  (n d nthr : szp)
+  (#lKV : M.full_layout nthr d)
+  (sK sV : M.array2 et lKV)
+  : B.contract (SZ.v nthr)
+  = {
+    rin  = fa_barrier_side_rin  n d nthr sK sV;
+    rout = fa_barrier_side_rout n d nthr sK sV;
+  }
+
+let fa_barrier_count (n d nthr : szp) : GTot nat = 2 * SZ.v (n /^ nthr)
+
+(* The barrier transform proof obligation (content-free). *)
+ghost
+fn fa_barrier_ok
+  (#et:Type0) {| scalar et |}
+  (n d nthr : szp { nthr /? n /\ SZ.fits (nthr * d) })
+  (#lKV : M.full_layout nthr d)
+  {| ctlayout lKV |}
+  (sK sV : M.array2 et lKV)
+  (it : nat)
+  requires
+    forall+ (i:natlt (SZ.v nthr)). fa_barrier_side_rin n d nthr sK sV it i
+  ensures
+    forall+ (i:natlt (SZ.v nthr)). fa_barrier_side_rout n d nthr sK sV it i
+
+(* ── Per-thread pre/post for the shared-memory kernel. ────────────────────
+   The non-shared resources are exactly [kpre_post_outer_fa]; sK/sV/sQ add a
+   content-free write-row each (barrier tokens are supplied by [f]). *)
+unfold
+let kpre_post_outer_fa_smem
+  (#et : Type0) {| scalar et, floating et |}
+  (n d nthr : szp { nthr /? n /\ SZ.fits (nthr * nthr) /\ SZ.fits (nthr * d) })
+  (#lS: M.layout nthr nthr)
+  (#lKV: M.full_layout nthr d)
+  (#lK #lV #lQ #lO: M.layout n d)
+  (#ll #lm: M.layout 1 n)
+  {| ctlayout lS, ctlayout lKV, ctlayout lK, ctlayout lV, ctlayout lQ, ctlayout lO, ctlayout ll, ctlayout lm |}
+  (gS : M.array2 et lS)
+  (sK sV sQ : M.array2 et lKV)
+  (gK : M.array2 et lK { M.is_global gK })
+  (gV : M.array2 et lV { M.is_global gV })
+  (gQ : M.array2 et lQ { M.is_global gQ })
+  (gO : M.array2 et lO { M.is_global gO })
+  (gl : M.array2 et ll { M.is_global gl })
+  (gm : M.array2 et lm { M.is_global gm })
+  (eK eV eQ : ematrix et n d)
+  (fK fV fQ : perm)
+  (tid: natlt nthr)
+  : slprop =
+  kpre_post_outer_fa n d nthr gS gK gV gQ gO gl gm eK eV eQ fK fV fQ tid **
+  (exists* (r:ematrix et 1 (SZ.v d)). array2_subtile sK 1 (SZ.v d) tid 0 |-> Frac 1.0R r) **
+  (exists* (r:ematrix et 1 (SZ.v d)). array2_subtile sV 1 (SZ.v d) tid 0 |-> Frac 1.0R r) **
+  (exists* (r:ematrix et 1 (SZ.v d)). array2_subtile sQ 1 (SZ.v d) tid 0 |-> Frac 1.0R r)
+
+(* Pure side-conditions carried across the launch for the smem variant
+   (adds the [lKV] fits-fact needed to re-assemble sK/sV/sQ). *)
+unfold
+let frame_fa_smem
+  (n d nthr : szp)
+  (lS: M.layout nthr nthr)
+  (lKV: M.layout nthr d)
+  (lO: M.layout n d)
+  (ll lm: M.layout 1 n)
+  : slprop =
+  pure (SZ.fits (M.layout_size lS) /\ SZ.fits (M.layout_size lKV) /\
+        SZ.fits (M.layout_size lO) /\
+        SZ.fits (M.layout_size ll) /\ SZ.fits (M.layout_size lm))
+
+(* Block-level setup: view the four shared arrays as gS/sK/sV/sQ and split
+   into per-thread sub-views (reusing [setup_fa] for the non-shared part). *)
+ghost
+fn block_setup_fa_smem
+  (#et : Type0) {| scalar et, floating et |}
+  (n d nthr : szp { nthr /? n /\ SZ.fits (nthr * nthr) /\ SZ.fits (nthr * d) })
+  (lS : M.full_layout nthr nthr)
+  (lKV : M.full_layout nthr d)
+  (#lK #lV #lQ #lO: M.layout n d)
+  (#ll #lm: M.layout 1 n)
+  {| ctlayout lS, ctlayout lKV, ctlayout lK, ctlayout lV, ctlayout lQ, ctlayout lO, ctlayout ll, ctlayout lm |}
+  (gK : M.array2 et lK { M.is_global gK })
+  (gV : M.array2 et lV { M.is_global gV })
+  (gQ : M.array2 et lQ { M.is_global gQ })
+  (gO : M.array2 et lO { M.is_global gO })
+  (gl : M.array2 et ll { M.is_global gl })
+  (gm : M.array2 et lm { M.is_global gm })
+  (eK eV eQ : ematrix et n d)
+  (#fK #fV #fQ : perm)
+  (sh : c_shmems (shmems_desc_fa_smem et n d nthr))
+  (bid : natlt 1sz)
+  ()
+  norewrite
+  requires
+    live_c_shmems sh **
+    full_io_fa_nos n d nthr gK gV gQ gO gl gm eK eV eQ fK fV fQ
+  ensures
+    (forall+ (tid : natlt nthr).
+       kpre_post_outer_fa_smem n d nthr
+         (gS_of_sh' n d nthr lS sh) (sK_of_sh n d nthr lKV sh) (sV_of_sh n d nthr lKV sh) (sQ_of_sh n d nthr lKV sh)
+         gK gV gQ gO gl gm eK eV eQ fK fV fQ tid) **
+    frame_fa_smem n d nthr lS lKV lO ll lm
+
+ghost
+fn block_teardown_fa_smem
+  (#et : Type0) {| scalar et, floating et |}
+  (n d nthr : szp { nthr /? n /\ SZ.fits (nthr * nthr) /\ SZ.fits (nthr * d) })
+  (lS : M.full_layout nthr nthr)
+  (lKV : M.full_layout nthr d)
+  (#lK #lV #lQ #lO: M.layout n d)
+  (#ll #lm: M.layout 1 n)
+  {| ctlayout lS, ctlayout lKV, ctlayout lK, ctlayout lV, ctlayout lQ, ctlayout lO, ctlayout ll, ctlayout lm |}
+  (gK : M.array2 et lK { M.is_global gK })
+  (gV : M.array2 et lV { M.is_global gV })
+  (gQ : M.array2 et lQ { M.is_global gQ })
+  (gO : M.array2 et lO { M.is_global gO })
+  (gl : M.array2 et ll { M.is_global gl })
+  (gm : M.array2 et lm { M.is_global gm })
+  (eK eV eQ : ematrix et n d)
+  (#fK #fV #fQ : perm)
+  (sh : c_shmems (shmems_desc_fa_smem et n d nthr))
+  (bid : natlt 1sz)
+  ()
+  norewrite
+  requires
+    (forall+ (tid : natlt nthr).
+       kpre_post_outer_fa_smem n d nthr
+         (gS_of_sh' n d nthr lS sh) (sK_of_sh n d nthr lKV sh) (sV_of_sh n d nthr lKV sh) (sQ_of_sh n d nthr lKV sh)
+         gK gV gQ gO gl gm eK eV eQ fK fV fQ tid) **
+    frame_fa_smem n d nthr lS lKV lO ll lm
   ensures
     live_c_shmems sh **
     full_io_fa_nos n d nthr gK gV gQ gO gl gm eK eV eQ fK fV fQ

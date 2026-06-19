@@ -15,6 +15,7 @@ module SZ = Kuiper.SizeT
 module Trade = Pulse.Lib.Trade
 module Array1 = Kuiper.Array1
 module B = Kuiper.Barrier
+open Kuiper.Math { even, odd, even_2x, odd_2x1 }
 open Kuiper.Array1
 open Kuiper.Index
 
@@ -454,4 +455,375 @@ fn flashattention_gpu
   ensures  on gpu_loc (full_io_fa_nos n d nthr gK gV gQ gO gl gm eK eV eQ fK fV fQ)
 {
   launch_sync (kflashattention n d nthr lS gK gV gQ gO gl gm eK eV eQ);
+}
+
+(* ═════════════════════════════════════════════════════════════════════════
+   SHARED-MEMORY VARIANT: K, V, Q cached in shared memory, with a real barrier
+   around the inner loop.  [sK]/[sV] are genuinely shared (every thread reads
+   the whole tile), so they go through the barrier; [sQ] is per-thread scratch
+   (each thread only reads its own row), so no barrier is needed for it.
+   ───────────────────────────────────────────────────────────────────────── *)
+
+// Inner loop (over the row-tiles [i]) for the shared-memory variant.  The K/V
+// tile already lives in shared memory ([sK]/[sV], read at frac 1/nthr); each
+// thread loads its own global Q row into its private scratch [sQrow] and runs
+// [flashattention_tile].  Clean layouts ([lOt] has [d] columns) so the row
+// extract/restore of [gOt] matches without the [d/1] coercion (which is
+// absorbed at the call boundary, cf. flashattention_kf_outer -> _kf_no_smem).
+#push-options "--z3rlimit 100 --fuel 1 --ifuel 1"
+inline_for_extraction noextract
+fn flashattention_inner_smem
+  (#et:Type0){| scalar et, floating et |}
+  (n d nthr:szp{nthr/?n})
+  (#lKV:M.full_layout nthr d)(#lQ:M.layout n d)(#lSt:layout nthr)(#lQrow:layout d)
+  (#lOt:M.layout (n /^ nthr) d)(#llt #lmt:layout (n /^ nthr))
+  {| ctlayout lKV, ctlayout lQ, ctlayout lSt, ctlayout lQrow, ctlayout lOt, ctlayout llt, ctlayout lmt |}
+  (sK sV:M.array2 et lKV)(gSt:array1 et lSt)(sQrow:array1 et lQrow)
+  (gQ:M.array2 et lQ{M.is_global gQ})(gOt:M.array2 et lOt)(glt:array1 et llt)(gmt:array1 et lmt)
+  (eQ:ematrix et n d)(#fQ:perm)(tid:szlt nthr)
+  preserves
+    gpu **
+    (exists* (x:ematrix et (SZ.v nthr) (SZ.v d)). sK |-> Frac (1.0R /. (SZ.v nthr)) x) **
+    (exists* (y:ematrix et (SZ.v nthr) (SZ.v d)). sV |-> Frac (1.0R /. (SZ.v nthr)) y) **
+    (gQ |-> Frac fQ eQ) **
+    live gSt ** live sQrow ** live gOt ** live glt ** live gmt
+{
+  assert pure (SZ.v (n /^ nthr) == SZ.v n / SZ.v nthr);
+  let tr = n /^ nthr;
+  let mut i: szle tr = 0sz;
+  while (!i <^ tr)
+    invariant exists* (vi:szle tr).
+      i |-> vi **
+      live gSt ** live gOt ** live glt ** live gmt ** live sQrow **
+      (gQ |-> Frac fQ eQ) **
+      (exists* (x:ematrix et (SZ.v nthr) (SZ.v d)). sK |-> Frac (1.0R /. (SZ.v nthr)) x) **
+      (exists* (y:ematrix et (SZ.v nthr) (SZ.v d)). sV |-> Frac (1.0R /. (SZ.v nthr)) y)
+    decreases (SZ.v tr - SZ.v !i)
+  {
+    with eOt. assert gOt |-> eOt;
+    let ii = !i;
+    assert pure (SZ.v ii < SZ.v tr);
+    let qi = nthr *^ ii +^ tid;
+    assert pure (SZ.v nthr * SZ.v ii <= SZ.v n);
+    assert pure (SZ.v qi == SZ.v nthr * SZ.v ii + SZ.v tid);
+    assert pure (SZ.v qi < SZ.v n);
+
+    // LOAD Q: copy global row [qi] into this thread's private scratch row.
+    let mut cq: szle d = 0sz;
+    while (!cq <^ d)
+      invariant exists* (vcq:szle d).
+        cq |-> vcq ** live sQrow ** (gQ |-> Frac fQ eQ)
+      decreases (SZ.v d - SZ.v !cq)
+    {
+      let vcq = !cq;
+      let vq = M.read gQ ((qi <: sz), (vcq <: sz));
+      (sQrow.(vcq) <- vq);
+      cq := !cq +^ 1sz;
+    };
+
+    M.extract_row gOt ii #1.0R #eOt;
+
+    with vlt. assert glt |-> vlt;
+    extract_cell glt ii #1.0R #vlt;
+    array1_cell_to_ref glt ii;
+    let glit = get_ref_of_array_cell glt ii;
+    assert rewrites_to glit (ref_of_array_cell glt ii);
+
+    with vmt. assert gmt |-> vmt;
+    extract_cell gmt ii #1.0R #vmt;
+    array1_cell_to_ref gmt ii;
+    let gmit = get_ref_of_array_cell gmt ii;
+    assert rewrites_to gmit (ref_of_array_cell gmt ii);
+
+    with x. assert (sK |-> Frac (1.0R /. (SZ.v nthr)) (x <: ematrix et (SZ.v nthr) (SZ.v d)));
+    with y. assert (sV |-> Frac (1.0R /. (SZ.v nthr)) (y <: ematrix et (SZ.v nthr) (SZ.v d)));
+
+    flashattention_tile nthr nthr d
+      #_ #_ #_ #_ #_
+      #_ #_ #_ #_ #(ctlayout_slice lOt 0 (SZ.v ii))
+      sK sV gSt sQrow (M.row gOt (SZ.v ii)) glit gmit;
+
+    array1_cell_from_ref glt ii;
+    array1_cell_from_ref gmt ii;
+    restore_cell glt ii;
+    restore_cell gmt ii;
+
+    with (eOit: lseq _ _). assert ((M.row gOt ((SZ.v ii) <: natlt (SZ.v n / SZ.v nthr))) <: (array1 et (M.row_layout gOt (SZ.v ii)))) |-> (Frac 1.0R eOit);
+    elim_forall (eOit);
+    Trade.elim_trade (((M.row gOt ((SZ.v ii) <: natlt (SZ.v n / SZ.v nthr))) <: (array1 et (M.row_layout gOt (SZ.v ii)))) |-> (Frac 1.0R eOit)) _;
+
+    i := !i +^ 1sz;
+  }
+}
+#pop-options
+
+// Per-thread f-adapter, matching the full kernel_desc [f] field with the REAL
+// (content-free) barrier contract.  Inlines the per-thread sub-view extraction
+// (cf. flashattention_kf_outer) and the outer K/V-tile loop, adding K/V/Q
+// shared caching with two barriers around the inner loop.
+#push-options "--z3rlimit 100 --fuel 1 --ifuel 1"
+inline_for_extraction noextract
+fn flashattention_kf_smem
+  (#et:Type0){| scalar et, floating et |}
+  (n d nthr:szp{nthr/?n /\ SZ.fits (nthr*nthr) /\ SZ.fits (nthr*d)})
+  (lS:M.full_layout nthr nthr)(lKV:M.full_layout nthr d)
+  (#lK #lV #lQ #lO:M.layout n d)(#ll #lm:M.layout 1 n)
+  {| ctlayout lS, ctlayout lKV, ctlayout lK, ctlayout lV, ctlayout lQ, ctlayout lO, ctlayout ll, ctlayout lm |}
+  (gK:M.array2 et lK{M.is_global gK})(gV:M.array2 et lV{M.is_global gV})
+  (gQ:M.array2 et lQ{M.is_global gQ})(gO:M.array2 et lO{M.is_global gO})(gl:M.array2 et ll{M.is_global gl})(gm:M.array2 et lm{M.is_global gm})
+  (eK eV eQ:ematrix et n d)(#fK #fV #fQ:perm)
+  (sh : c_shmems (shmems_desc_fa_smem et n d nthr))
+  (bid : szlt 1sz)
+  (tid : szlt nthr)
+  ()
+  requires
+    gpu **
+    kpre_post_outer_fa_smem n d nthr
+      (gS_of_sh' n d nthr lS sh) (sK_of_sh n d nthr lKV sh) (sV_of_sh n d nthr lKV sh) (sQ_of_sh n d nthr lKV sh)
+      gK gV gQ gO gl gm eK eV eQ fK fV fQ (SZ.v tid) **
+    thread_id nthr tid **
+    block_id 1sz bid **
+    B.barrier_tok (fa_barrier_contract n d nthr (sK_of_sh n d nthr lKV sh) (sV_of_sh n d nthr lKV sh)) **
+    B.barrier_state 0
+  ensures
+    gpu **
+    kpre_post_outer_fa_smem n d nthr
+      (gS_of_sh' n d nthr lS sh) (sK_of_sh n d nthr lKV sh) (sV_of_sh n d nthr lKV sh) (sQ_of_sh n d nthr lKV sh)
+      gK gV gQ gO gl gm eK eV eQ fK fV fQ (SZ.v tid) **
+    thread_id nthr tid **
+    block_id 1sz bid **
+    B.barrier_tok (fa_barrier_contract n d nthr (sK_of_sh n d nthr lKV sh) (sV_of_sh n d nthr lKV sh)) **
+    B.barrier_state (2 * SZ.v (n /^ nthr))
+{
+  let gS = gS_of_sh' n d nthr lS sh;
+  let sK = sK_of_sh n d nthr lKV sh;
+  let sV = sV_of_sh n d nthr lKV sh;
+  let sQ = sQ_of_sh n d nthr lKV sh;
+  rewrite each (gS_of_sh' n d nthr lS sh) as gS;
+  rewrite each (sK_of_sh n d nthr lKV sh) as sK;
+  rewrite each (sV_of_sh n d nthr lKV sh) as sV;
+  rewrite each (sQ_of_sh n d nthr lKV sh) as sQ;
+
+  unfold (kpre_post_outer_fa_smem n d nthr gS sK sV sQ gK gV gQ gO gl gm eK eV eQ fK fV fQ (SZ.v tid));
+
+  // Euclidean facts.
+  assert pure (SZ.v (n /^ nthr) == SZ.v n / SZ.v nthr);
+  assert pure (SZ.v d / 1 == SZ.v d);
+  FStar.Math.Lemmas.lemma_div_mod (SZ.v n) (SZ.v nthr);
+  assert pure (SZ.v n % SZ.v nthr == 0);
+  assert pure (SZ.v nthr * SZ.v (n /^ nthr) == SZ.v n);
+
+  // ── Per-thread sub-view extraction (cf. flashattention_kf_outer). ──────
+  unfold (kpre_post_outer_fa n d nthr gS gK gV gQ gO gl gm eK eV eQ fK fV fQ (SZ.v tid));
+  with eS eO el em. assert (
+    array2_subtile gS 1 (SZ.v nthr) (SZ.v tid) 0 |-> ematrix_subtile eS 1 (SZ.v nthr) (SZ.v tid) 0 **
+    array2_stride_subtile gl 1 (SZ.v nthr) 0 (SZ.v tid) |-> (ematrix_stride_subtile el 1 (SZ.v nthr) 0 (SZ.v tid) <: ematrix et (1 / 1) (SZ.v n / SZ.v nthr)) **
+    array2_stride_subtile gm 1 (SZ.v nthr) 0 (SZ.v tid) |-> (ematrix_stride_subtile em 1 (SZ.v nthr) 0 (SZ.v tid) <: ematrix et (1 / 1) (SZ.v n / SZ.v nthr)) **
+    array2_stride_subtile gO (SZ.v nthr) 1 (SZ.v tid) 0 |-> (ematrix_stride_subtile eO (SZ.v nthr) 1 (SZ.v tid) 0 <: ematrix et (SZ.v n / SZ.v nthr) (SZ.v d / 1)));
+
+  M.extract_row (array2_subtile gS 1 (SZ.v nthr) (SZ.v tid) 0) 0;
+  M.extract_row (array2_stride_subtile gl 1 (SZ.v nthr) 0 (SZ.v tid)) 0;
+  M.extract_row (array2_stride_subtile gm 1 (SZ.v nthr) 0 (SZ.v tid)) 0;
+
+  let gSt = M.row (array2_subtile gS 1 (SZ.v nthr) (SZ.v tid) 0) 0;
+  let gOt = array2_stride_subtile gO (SZ.v nthr) 1 (SZ.v tid) 0;
+  let glt = M.row (array2_stride_subtile gl 1 (SZ.v nthr) 0 (SZ.v tid)) 0;
+  let gmt = M.row (array2_stride_subtile gm 1 (SZ.v nthr) 0 (SZ.v tid)) 0;
+  rewrite each (M.row (array2_subtile gS 1 (SZ.v nthr) (SZ.v tid) 0) 0) as gSt;
+  rewrite each (array2_stride_subtile gO (SZ.v nthr) 1 (SZ.v tid) 0) as gOt;
+  rewrite each (M.row (array2_stride_subtile gl 1 (SZ.v nthr) 0 (SZ.v tid)) 0) as glt;
+  rewrite each (M.row (array2_stride_subtile gm 1 (SZ.v nthr) 0 (SZ.v tid)) 0) as gmt;
+
+  // ── Extract this thread's private Q scratch row (no barrier). ──────────
+  with rq0. assert (array2_subtile sQ 1 (SZ.v d) (SZ.v tid) 0 |-> Frac 1.0R (rq0 <: ematrix et 1 (SZ.v d)));
+  M.extract_row (array2_subtile sQ 1 (SZ.v d) (SZ.v tid) 0) 0;
+  let sQrow = M.row (array2_subtile sQ 1 (SZ.v d) (SZ.v tid) 0) 0;
+  rewrite each (M.row (array2_subtile sQ 1 (SZ.v d) (SZ.v tid) 0) 0) as sQrow;
+
+  let tc = n /^ nthr;
+  let mut j: szle tc = 0sz;
+
+  while (!j <^ tc)
+    invariant exists* (vj:szle tc).
+      j |-> vj **
+      live gSt ** live gOt ** live glt ** live gmt ** live sQrow **
+      (gK |-> Frac (fK /. (SZ.v nthr)) eK) **
+      (gV |-> Frac (fV /. (SZ.v nthr)) eV) **
+      (gQ |-> Frac (fQ /. (SZ.v nthr)) eQ) **
+      (exists* (r:ematrix et 1 (SZ.v d)). array2_subtile sK 1 (SZ.v d) (SZ.v tid) 0 |-> Frac 1.0R r) **
+      (exists* (r:ematrix et 1 (SZ.v d)). array2_subtile sV 1 (SZ.v d) (SZ.v tid) 0 |-> Frac 1.0R r) **
+      thread_id nthr tid **
+      B.barrier_tok (fa_barrier_contract n d nthr sK sV) **
+      B.barrier_state (2 * SZ.v vj)
+    decreases (SZ.v tc - SZ.v !j)
+  {
+    let vj = !j;
+    assert pure (SZ.v vj < SZ.v tc);
+    let kr = nthr *^ vj +^ tid;
+    assert pure (SZ.v nthr * SZ.v vj <= SZ.v n);
+    assert pure (SZ.v kr == SZ.v nthr * SZ.v vj + SZ.v tid);
+    assert pure (SZ.v kr < SZ.v n);
+
+    // LOAD: thread tid copies global row [kr] of K and V into its shared rows.
+    let mut c: szle d = 0sz;
+    while (!c <^ d)
+      invariant exists* (vc:szle d).
+        c |-> vc **
+        (gK |-> Frac (fK /. (SZ.v nthr)) eK) **
+        (gV |-> Frac (fV /. (SZ.v nthr)) eV) **
+        (exists* (r:ematrix et 1 (SZ.v d)). array2_subtile sK 1 (SZ.v d) (SZ.v tid) 0 |-> Frac 1.0R r) **
+        (exists* (r:ematrix et 1 (SZ.v d)). array2_subtile sV 1 (SZ.v d) (SZ.v tid) 0 |-> Frac 1.0R r)
+      decreases (SZ.v d - SZ.v !c)
+    {
+      let vc = !c;
+      let vk = M.read gK ((kr <: sz), (vc <: sz));
+      M.write (array2_subtile sK 1 (SZ.v d) (SZ.v tid) 0) ((0sz <: sz), (vc <: sz)) vk;
+      let vv = M.read gV ((kr <: sz), (vc <: sz));
+      M.write (array2_subtile sV 1 (SZ.v d) (SZ.v tid) 0) ((0sz <: sz), (vc <: sz)) vv;
+      c := !c +^ 1sz;
+    };
+
+    // ── EVEN barrier (it = 2*vj): give our rows, receive a fractional read. ─
+    even_2x (SZ.v vj);
+    assert pure (2 * SZ.v vj < 2 * SZ.v tc);
+    assert pure (even (2 * SZ.v vj));
+    rewrite ((exists* (r:ematrix et 1 (SZ.v d)). array2_subtile sK 1 (SZ.v d) (SZ.v tid) 0 |-> Frac 1.0R r) **
+             (exists* (r:ematrix et 1 (SZ.v d)). array2_subtile sV 1 (SZ.v d) (SZ.v tid) 0 |-> Frac 1.0R r))
+         as ((fa_barrier_contract n d nthr sK sV).rin (2 * SZ.v vj) (SZ.v tid));
+    B.barrier_wait ();
+    rewrite ((fa_barrier_contract n d nthr sK sV).rout (2 * SZ.v vj) (SZ.v tid))
+         as ((exists* (x:ematrix et (SZ.v nthr) (SZ.v d)). sK |-> Frac (1.0R /. (SZ.v nthr)) x) **
+             (exists* (y:ematrix et (SZ.v nthr) (SZ.v d)). sV |-> Frac (1.0R /. (SZ.v nthr)) y));
+
+    // ── Inner loop: read the whole shared K/V tile at frac 1/nthr. ─────────
+    flashattention_inner_smem n d nthr
+      #_ #_ #_ #_ #_ #_ #_
+      #_ #_
+      #(ctlayout_slice (subtile_layout lS 1 (SZ.v nthr) (SZ.v tid) 0) #(c_subtile_layout lS 1 (SZ.v nthr) (SZ.v tid) 0) 0 0)
+      #(ctlayout_slice (subtile_layout lKV 1 (SZ.v d) (SZ.v tid) 0) #(c_subtile_layout lKV 1 (SZ.v d) (SZ.v tid) 0) 0 0)
+      #(c_stride_subtile_layout lO (SZ.v nthr) 1 (SZ.v tid) 0)
+      #(ctlayout_slice (stride_subtile_layout ll 1 (SZ.v nthr) 0 (SZ.v tid)) #(c_stride_subtile_layout ll 1 (SZ.v nthr) 0 (SZ.v tid)) 0 0)
+      #(ctlayout_slice (stride_subtile_layout lm 1 (SZ.v nthr) 0 (SZ.v tid)) #(c_stride_subtile_layout lm 1 (SZ.v nthr) 0 (SZ.v tid)) 0 0)
+      sK sV gSt sQrow gQ gOt glt gmt eQ tid;
+
+    // ── ODD barrier (it = 2*vj+1): give our read back, receive our rows. ───
+    odd_2x1 (SZ.v vj);
+    assert pure (2 * SZ.v vj + 1 < 2 * SZ.v tc);
+    assert pure (odd (2 * SZ.v vj + 1));
+    rewrite ((exists* (x:ematrix et (SZ.v nthr) (SZ.v d)). sK |-> Frac (1.0R /. (SZ.v nthr)) x) **
+             (exists* (y:ematrix et (SZ.v nthr) (SZ.v d)). sV |-> Frac (1.0R /. (SZ.v nthr)) y))
+         as ((fa_barrier_contract n d nthr sK sV).rin (2 * SZ.v vj + 1) (SZ.v tid));
+    B.barrier_wait ();
+    rewrite ((fa_barrier_contract n d nthr sK sV).rout (2 * SZ.v vj + 1) (SZ.v tid))
+         as ((exists* (r:ematrix et 1 (SZ.v d)). array2_subtile sK 1 (SZ.v d) (SZ.v tid) 0 |-> Frac 1.0R r) **
+             (exists* (r:ematrix et 1 (SZ.v d)). array2_subtile sV 1 (SZ.v d) (SZ.v tid) 0 |-> Frac 1.0R r));
+
+    assert pure (2 * SZ.v vj + 1 + 1 == 2 * (SZ.v vj + 1));
+    j := !j +^ 1sz;
+  };
+
+  // ── Restore the private Q row back into its subtile. ───────────────────
+  with (vQf: lseq _ _). assert (sQrow |-> Frac 1.0R vQf);
+  elim_forall (vQf);
+  Trade.elim_trade (sQrow |-> Frac 1.0R vQf) _;
+
+  // Revert the per-thread sub-view locals to their unfolded forms so the
+  // epilogue rebuilds (copied from flashattention_kf_outer) match the trades.
+  rewrite each gOt as (array2_stride_subtile gO (SZ.v nthr) 1 (SZ.v tid) 0);
+  rewrite each gSt as (M.row (array2_subtile gS 1 (SZ.v nthr) (SZ.v tid) 0) 0);
+  rewrite each glt as (M.row (array2_stride_subtile gl 1 (SZ.v nthr) 0 (SZ.v tid)) 0);
+  rewrite each gmt as (M.row (array2_stride_subtile gm 1 (SZ.v nthr) 0 (SZ.v tid)) 0);
+
+  // ── Rebuild gO/gS/gl/gm sub-views (cf. flashattention_kf_outer epilogue). ─
+  with vO. assert (array2_stride_subtile gO (SZ.v nthr) 1 (SZ.v tid) 0 |-> (vO <: ematrix et (SZ.v n / SZ.v nthr) (SZ.v d / 1)));
+  let vO' : ematrix et (SZ.v n / SZ.v nthr) (SZ.v d / 1) = vO;
+  rewrite (array2_stride_subtile gO (SZ.v nthr) 1 (SZ.v tid) 0 |-> (vO' <: ematrix et (SZ.v n / SZ.v nthr) (SZ.v d / 1)))
+       as (array2_stride_subtile gO (SZ.v nthr) 1 (SZ.v tid) 0 |-> ematrix_stride_subtile (update_stride_tile eO (SZ.v nthr) 1 (SZ.v tid) 0 vO') (SZ.v nthr) 1 (SZ.v tid) 0);
+
+  with (vS: lseq _ _). assert ((M.row (array2_subtile gS 1 (SZ.v nthr) (SZ.v tid) 0) 0 <: array1 et (M.row_layout (array2_subtile gS 1 (SZ.v nthr) (SZ.v tid) 0) 0)) |-> Frac 1.0R vS);
+  elim_forall (vS);
+  Trade.elim_trade ((M.row (array2_subtile gS 1 (SZ.v nthr) (SZ.v tid) 0) 0 <: array1 et (M.row_layout (array2_subtile gS 1 (SZ.v nthr) (SZ.v tid) 0) 0)) |-> Frac 1.0R vS) _;
+  rewrite (array2_subtile gS 1 (SZ.v nthr) (SZ.v tid) 0 |-> Frac 1.0R (ematrix_upd_row (ematrix_subtile eS 1 (SZ.v nthr) (SZ.v tid) 0) 0 vS))
+       as (array2_subtile gS 1 (SZ.v nthr) (SZ.v tid) 0 |-> ematrix_subtile (update_tile eS 1 (SZ.v nthr) (SZ.v tid) 0 (ematrix_upd_row (ematrix_subtile eS 1 (SZ.v nthr) (SZ.v tid) 0) 0 vS)) 1 (SZ.v nthr) (SZ.v tid) 0);
+
+  with (vl: lseq _ _). assert ((M.row (array2_stride_subtile gl 1 (SZ.v nthr) 0 (SZ.v tid)) 0 <: array1 et (M.row_layout (array2_stride_subtile gl 1 (SZ.v nthr) 0 (SZ.v tid)) 0)) |-> Frac 1.0R vl);
+  Pulse.Lib.Forall.Util.elim_forall_imp
+    (fun (s':lseq et (SZ.v n / SZ.v nthr)) -> (M.row (array2_stride_subtile gl 1 (SZ.v nthr) 0 (SZ.v tid)) 0 <: array1 et (M.row_layout (array2_stride_subtile gl 1 (SZ.v nthr) 0 (SZ.v tid)) 0)) |-> Frac 1.0R s')
+    (fun (s':lseq et (SZ.v n / SZ.v nthr)) -> array2_stride_subtile gl 1 (SZ.v nthr) 0 (SZ.v tid) |-> Frac 1.0R (ematrix_upd_row (ematrix_stride_subtile el 1 (SZ.v nthr) 0 (SZ.v tid)) 0 s'))
+    vl;
+  rewrite (array2_stride_subtile gl 1 (SZ.v nthr) 0 (SZ.v tid) |-> Frac 1.0R (ematrix_upd_row (ematrix_stride_subtile el 1 (SZ.v nthr) 0 (SZ.v tid)) 0 vl))
+       as (array2_stride_subtile gl 1 (SZ.v nthr) 0 (SZ.v tid) |-> ematrix_stride_subtile (update_stride_tile el 1 (SZ.v nthr) 0 (SZ.v tid) (ematrix_upd_row (ematrix_stride_subtile el 1 (SZ.v nthr) 0 (SZ.v tid)) 0 vl)) 1 (SZ.v nthr) 0 (SZ.v tid));
+
+  with (vm: lseq _ _). assert ((M.row (array2_stride_subtile gm 1 (SZ.v nthr) 0 (SZ.v tid)) 0 <: array1 et (M.row_layout (array2_stride_subtile gm 1 (SZ.v nthr) 0 (SZ.v tid)) 0)) |-> Frac 1.0R vm);
+  Pulse.Lib.Forall.Util.elim_forall_imp
+    (fun (s':lseq et (SZ.v n / SZ.v nthr)) -> (M.row (array2_stride_subtile gm 1 (SZ.v nthr) 0 (SZ.v tid)) 0 <: array1 et (M.row_layout (array2_stride_subtile gm 1 (SZ.v nthr) 0 (SZ.v tid)) 0)) |-> Frac 1.0R s')
+    (fun (s':lseq et (SZ.v n / SZ.v nthr)) -> array2_stride_subtile gm 1 (SZ.v nthr) 0 (SZ.v tid) |-> Frac 1.0R (ematrix_upd_row (ematrix_stride_subtile em 1 (SZ.v nthr) 0 (SZ.v tid)) 0 s'))
+    vm;
+  rewrite (array2_stride_subtile gm 1 (SZ.v nthr) 0 (SZ.v tid) |-> Frac 1.0R (ematrix_upd_row (ematrix_stride_subtile em 1 (SZ.v nthr) 0 (SZ.v tid)) 0 vm))
+       as (array2_stride_subtile gm 1 (SZ.v nthr) 0 (SZ.v tid) |-> ematrix_stride_subtile (update_stride_tile em 1 (SZ.v nthr) 0 (SZ.v tid) (ematrix_upd_row (ematrix_stride_subtile em 1 (SZ.v nthr) 0 (SZ.v tid)) 0 vm)) 1 (SZ.v nthr) 0 (SZ.v tid));
+
+  // Revert the shared-cache locals to their [_of_sh] forms so the folds (which
+  // normalise the let-bound locals) match the function's pre/postcondition.
+  rewrite each gS as (gS_of_sh' n d nthr lS sh);
+  rewrite each sK as (sK_of_sh n d nthr lKV sh);
+  rewrite each sV as (sV_of_sh n d nthr lKV sh);
+  rewrite each sQ as (sQ_of_sh n d nthr lKV sh);
+
+  fold (kpre_post_outer_fa n d nthr (gS_of_sh' n d nthr lS sh) gK gV gQ gO gl gm eK eV eQ fK fV fQ (SZ.v tid));
+  fold (kpre_post_outer_fa_smem n d nthr (gS_of_sh' n d nthr lS sh) (sK_of_sh n d nthr lKV sh) (sV_of_sh n d nthr lKV sh) (sQ_of_sh n d nthr lKV sh) gK gV gQ gO gl gm eK eV eQ fK fV fQ (SZ.v tid));
+}
+#pop-options
+
+// Shared-memory FlashAttention kernel: 1 block, [nthr] threads, with K/V/Q
+// cached in shared memory and a real barrier around the inner loop.
+inline_for_extraction noextract
+let kflashattention_smem
+  (#et:Type0){| scalar et, floating et |}
+  (n d nthr:szp{nthr/?n /\ SZ.fits (nthr*nthr) /\ SZ.fits (nthr*d) /\ nthr <= max_threads})
+  (lS:M.full_layout nthr nthr)(lKV:M.full_layout nthr d)(#lK #lV #lQ #lO:M.layout n d)(#ll #lm:M.layout 1 n)
+  {| ctlayout lS, ctlayout lKV, ctlayout lK, ctlayout lV, ctlayout lQ, ctlayout lO, ctlayout ll, ctlayout lm |}
+  (gK:M.array2 et lK{M.is_global gK})(gV:M.array2 et lV{M.is_global gV})
+  (gQ:M.array2 et lQ{M.is_global gQ})(gO:M.array2 et lO{M.is_global gO})(gl:M.array2 et ll{M.is_global gl})(gm:M.array2 et lm{M.is_global gm})
+  (eK eV eQ:ematrix et n d)(#fK #fV #fQ:perm)
+  : kernel_desc
+      (requires full_io_fa_nos n d nthr gK gV gQ gO gl gm eK eV eQ fK fV fQ)
+      (ensures  full_io_fa_nos n d nthr gK gV gQ gO gl gm eK eV eQ fK fV fQ)
+= {
+    nblk = 1sz;
+    nthr = nthr;
+    shmems_desc = shmems_desc_fa_smem et n d nthr;
+    barrier_contract = (fun _bid sh -> fa_barrier_contract n d nthr (sK_of_sh n d nthr lKV sh) (sV_of_sh n d nthr lKV sh));
+    barrier_count    = (fun _ -> 2 * SZ.v (n /^ nthr));
+    barrier_ok       = (fun _bid sh -> fa_barrier_ok n d nthr (sK_of_sh n d nthr lKV sh) (sV_of_sh n d nthr lKV sh));
+    frame = frame_fa n d nthr lS lO ll lm;
+    block_pre  = (fun _ -> full_io_fa_nos n d nthr gK gV gQ gO gl gm eK eV eQ fK fV fQ);
+    block_post = (fun _ -> full_io_fa_nos n d nthr gK gV gQ gO gl gm eK eV eQ fK fV fQ);
+    block_frame = (fun _sh _bid -> frame_fa_smem n d nthr lS lKV lO ll lm);
+    setup    = kflashattention_setup n d nthr lS gK gV gQ gO gl gm eK eV eQ;
+    teardown = kflashattention_teardown n d nthr lS gK gV gQ gO gl gm eK eV eQ;
+    kpre  = (fun sh _bid tid -> kpre_post_outer_fa_smem n d nthr (gS_of_sh' n d nthr lS sh) (sK_of_sh n d nthr lKV sh) (sV_of_sh n d nthr lKV sh) (sQ_of_sh n d nthr lKV sh) gK gV gQ gO gl gm eK eV eQ fK fV fQ tid);
+    kpost = (fun sh _bid tid -> kpre_post_outer_fa_smem n d nthr (gS_of_sh' n d nthr lS sh) (sK_of_sh n d nthr lKV sh) (sV_of_sh n d nthr lKV sh) (sQ_of_sh n d nthr lKV sh) gK gV gQ gO gl gm eK eV eQ fK fV fQ tid);
+    block_setup    = block_setup_fa_smem n d nthr lS lKV gK gV gQ gO gl gm eK eV eQ;
+    block_teardown = block_teardown_fa_smem n d nthr lS lKV gK gV gQ gO gl gm eK eV eQ;
+    f = flashattention_kf_smem n d nthr lS lKV gK gV gQ gO gl gm eK eV eQ;
+    block_pre_sendable  = (fun _ -> magic());
+    block_post_sendable = (fun _ -> magic());
+    kpre_sendable  = (fun _ _ _ _ -> magic());
+    kpost_sendable = (fun _ _ _ _ -> magic());
+  }
+
+inline_for_extraction noextract
+fn flashattention_smem_gpu
+  (#et:Type0){| scalar et, floating et |}
+  (n d nthr:szp{nthr/?n /\ SZ.fits (nthr*nthr) /\ SZ.fits (nthr*d) /\ nthr <= max_threads})
+  (lS:M.full_layout nthr nthr)(lKV:M.full_layout nthr d)(#lK #lV #lQ #lO:M.layout n d)(#ll #lm:M.layout 1 n)
+  {| ctlayout lS, ctlayout lKV, ctlayout lK, ctlayout lV, ctlayout lQ, ctlayout lO, ctlayout ll, ctlayout lm |}
+  (gK:M.array2 et lK{M.is_global gK})(gV:M.array2 et lV{M.is_global gV})
+  (gQ:M.array2 et lQ{M.is_global gQ})(gO:M.array2 et lO{M.is_global gO})(gl:M.array2 et ll{M.is_global gl})(gm:M.array2 et lm{M.is_global gm})
+  (eK eV eQ:ematrix et n d)(#fK #fV #fQ:perm)
+  preserves cpu
+  requires on gpu_loc (full_io_fa_nos n d nthr gK gV gQ gO gl gm eK eV eQ fK fV fQ)
+  ensures  on gpu_loc (full_io_fa_nos n d nthr gK gV gQ gO gl gm eK eV eQ fK fV fQ)
+{
+  launch_sync (kflashattention_smem n d nthr lS lKV gK gV gQ gO gl gm eK eV eQ);
 }
