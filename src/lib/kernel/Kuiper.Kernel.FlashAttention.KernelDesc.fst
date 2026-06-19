@@ -561,7 +561,7 @@ fn setup_fa
   (#lK #lV #lQ #lO: M.layout n d)
   (#ll #lm: M.layout 1 n)
   {| ctlayout lS, ctlayout lK, ctlayout lV, ctlayout lQ, ctlayout lO, ctlayout ll, ctlayout lm |}
-  (gS : M.array2 et lS { M.is_global gS })
+  (gS : M.array2 et lS)
   (gK : M.array2 et lK { M.is_global gK })
   (gV : M.array2 et lV { M.is_global gV })
   (gQ : M.array2 et lQ { M.is_global gQ })
@@ -653,7 +653,7 @@ fn teardown_fa
   (#lK #lV #lQ #lO: M.layout n d)
   (#ll #lm: M.layout 1 n)
   {| ctlayout lS, ctlayout lK, ctlayout lV, ctlayout lQ, ctlayout lO, ctlayout ll, ctlayout lm |}
-  (gS : M.array2 et lS { M.is_global gS })
+  (gS : M.array2 et lS)
   (gK : M.array2 et lK { M.is_global gK })
   (gV : M.array2 et lV { M.is_global gV })
   (gQ : M.array2 et lQ { M.is_global gQ })
@@ -755,4 +755,98 @@ fn teardown_fa
   array2_stride_untile' gO (SZ.v nthr) 1
     (fun (tr:natlt (SZ.v nthr)) (tc:natlt 1) ->
         ematrix_stride_subtile (gOfun tr) (SZ.v nthr) 1 tr tc) #1.0R;
+}
+
+(* ─────────────────────────────────────────────────────────────────────────
+   Shared-memory block setup / teardown.
+
+   The block owns a single flat shared array [fst sh : larray et (nthr*nthr)].
+   We view it as the [nthr x nthr] gS scratch matrix ([gS_of_sh]) and then
+   reuse the existing per-thread split/reassembly ([setup_fa]/[teardown_fa]).
+   No threads communicate through gS (each owns a disjoint row), so no
+   barriers are needed.
+   ───────────────────────────────────────────────────────────────────── *)
+
+ghost
+fn block_setup_fa
+  (#et : Type0) {| scalar et, floating et |}
+  (n d nthr : szp { nthr /? n /\ SZ.fits (nthr * nthr) })
+  (lS : M.full_layout nthr nthr)
+  (#lK #lV #lQ #lO: M.layout n d)
+  (#ll #lm: M.layout 1 n)
+  {| ctlayout lS, ctlayout lK, ctlayout lV, ctlayout lQ, ctlayout lO, ctlayout ll, ctlayout lm |}
+  (gK : M.array2 et lK { M.is_global gK })
+  (gV : M.array2 et lV { M.is_global gV })
+  (gQ : M.array2 et lQ { M.is_global gQ })
+  (gO : M.array2 et lO { M.is_global gO })
+  (gl : M.array2 et ll { M.is_global gl })
+  (gm : M.array2 et lm { M.is_global gm })
+  (eK eV eQ : ematrix et n d)
+  (#fK #fV #fQ : perm)
+  (sh : c_shmems (shmems_desc_fa et nthr))
+  (bid : natlt 1sz)
+  ()
+  norewrite
+  requires
+    live_c_shmems sh **
+    full_io_fa_nos n d nthr gK gV gQ gO gl gm eK eV eQ fK fV fQ
+  ensures
+    (forall+ (tid : natlt nthr).
+       kpre_post_outer_fa n d nthr (gS_of_sh n d nthr lS sh) gK gV gQ gO gl gm eK eV eQ fK fV fQ tid) **
+    frame_fa n d nthr lS lO ll lm
+{
+  // Expose the raw shared array.
+  unfold_live_c_shmems_cons sh #1.0R;
+  unfold_live_c_shmems_nil (snd sh) #1.0R;
+  unfold_live_c_shmem (fst sh) #1.0R;
+  gpu_pts_to_ref (fst sh);
+
+  // View it as the gS matrix.
+  M.raise' lS (fst sh);
+  rewrite each (M.from_array lS (fst sh)) as (gS_of_sh n d nthr lS sh);
+
+  // Reuse the existing per-thread split; [live (gS_of_sh ...)] together with
+  // [full_io_fa_nos] matches [setup_fa]'s [full_io_fa] precondition.
+  setup_fa n d nthr (gS_of_sh n d nthr lS sh) gK gV gQ gO gl gm eK eV eQ ();
+}
+
+ghost
+fn block_teardown_fa
+  (#et : Type0) {| scalar et, floating et |}
+  (n d nthr : szp { nthr /? n /\ SZ.fits (nthr * nthr) })
+  (lS : M.full_layout nthr nthr)
+  (#lK #lV #lQ #lO: M.layout n d)
+  (#ll #lm: M.layout 1 n)
+  {| ctlayout lS, ctlayout lK, ctlayout lV, ctlayout lQ, ctlayout lO, ctlayout ll, ctlayout lm |}
+  (gK : M.array2 et lK { M.is_global gK })
+  (gV : M.array2 et lV { M.is_global gV })
+  (gQ : M.array2 et lQ { M.is_global gQ })
+  (gO : M.array2 et lO { M.is_global gO })
+  (gl : M.array2 et ll { M.is_global gl })
+  (gm : M.array2 et lm { M.is_global gm })
+  (eK eV eQ : ematrix et n d)
+  (#fK #fV #fQ : perm)
+  (sh : c_shmems (shmems_desc_fa et nthr))
+  (bid : natlt 1sz)
+  ()
+  norewrite
+  requires
+    (forall+ (tid : natlt nthr).
+       kpre_post_outer_fa n d nthr (gS_of_sh n d nthr lS sh) gK gV gQ gO gl gm eK eV eQ fK fV fQ tid) **
+    frame_fa n d nthr lS lO ll lm
+  ensures
+    live_c_shmems sh **
+    full_io_fa_nos n d nthr gK gV gQ gO gl gm eK eV eQ fK fV fQ
+{
+  // Reuse the existing per-thread reassembly; this yields [full_io_fa] which
+  // unfolds to [full_io_fa_nos ** live (gS_of_sh ...)].
+  teardown_fa n d nthr (gS_of_sh n d nthr lS sh) gK gV gQ gO gl gm eK eV eQ ();
+
+  // Fold the gS matrix view back into the raw shared array.
+  rewrite each (gS_of_sh n d nthr lS sh) as (M.from_array lS (fst sh));
+  M.lower (M.from_array lS (fst sh));
+  rewrite each (M.core (M.from_array lS (fst sh))) as (fst sh);
+  fold_live_c_shmem (fst sh) #1.0R;
+  fold_live_c_shmems_nil (snd sh) #1.0R;
+  fold_live_c_shmems_cons sh #1.0R;
 }

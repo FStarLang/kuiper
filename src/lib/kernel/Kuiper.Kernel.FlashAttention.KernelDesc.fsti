@@ -364,7 +364,7 @@ let kpre_post_outer_fa
 // LATER: fix
   (#ll #lm: M.layout 1 n)
   {| ctlayout lS, ctlayout lK, ctlayout lV, ctlayout lQ, ctlayout lO, ctlayout ll, ctlayout lm |}
-  (gS : M.array2 et lS { M.is_global gS })
+  (gS : M.array2 et lS)
   (gK : M.array2 et lK { M.is_global gK })
   (gV : M.array2 et lV { M.is_global gV })
   (gQ : M.array2 et lQ { M.is_global gQ })
@@ -395,7 +395,7 @@ let full_io_fa
   (#lK #lV #lQ #lO: M.layout n d)
   (#ll #lm: M.layout 1 n)
   {| ctlayout lS, ctlayout lK, ctlayout lV, ctlayout lQ, ctlayout lO, ctlayout ll, ctlayout lm |}
-  (gS : M.array2 et lS { M.is_global gS })
+  (gS : M.array2 et lS)
   (gK : M.array2 et lK { M.is_global gK })
   (gV : M.array2 et lV { M.is_global gV })
   (gQ : M.array2 et lQ { M.is_global gQ })
@@ -407,6 +407,42 @@ let full_io_fa
   : slprop =
   (gK |-> Frac fK eK) ** (gV |-> Frac fV eV) ** (gQ |-> Frac fQ eQ) **
   live gS ** live gO ** live gl ** live gm
+
+(* The full (untiled) global-memory resources the kernel owns, WITHOUT the
+   scratch [gS] (which now lives in shared memory).  Used as both the host
+   pre/post and the (single) block's [block_pre]/[block_post]. *)
+unfold
+let full_io_fa_nos
+  (#et : Type0) {| scalar et, floating et |}
+  (n d nthr : szp { nthr /? n /\ SZ.fits (nthr * nthr) })
+  (#lK #lV #lQ #lO: M.layout n d)
+  (#ll #lm: M.layout 1 n)
+  {| ctlayout lK, ctlayout lV, ctlayout lQ, ctlayout lO, ctlayout ll, ctlayout lm |}
+  (gK : M.array2 et lK { M.is_global gK })
+  (gV : M.array2 et lV { M.is_global gV })
+  (gQ : M.array2 et lQ { M.is_global gQ })
+  (gO : M.array2 et lO { M.is_global gO })
+  (gl : M.array2 et ll { M.is_global gl })
+  (gm : M.array2 et lm { M.is_global gm })
+  (eK eV eQ : ematrix et n d)
+  (fK fV fQ : perm)
+  : slprop =
+  (gK |-> Frac fK eK) ** (gV |-> Frac fV eV) ** (gQ |-> Frac fQ eQ) **
+  live gO ** live gl ** live gm
+
+(* Shared-memory request: a single flat scratch array of size [nthr * nthr],
+   viewed (per block) as the [nthr x nthr] gS matrix. *)
+let shmems_desc_fa (et:Type0) {| scalar et |} (nthr:szp{SZ.fits (nthr * nthr)}) : list shmem_desc =
+  [ SHArray et (nthr *^ nthr) ]
+
+(* View the single shared array of a block as the gS scratch matrix. *)
+let gS_of_sh
+  (#et:Type0) {| scalar et |}
+  (n d nthr:szp{SZ.fits (nthr*nthr)})
+  (lS : M.full_layout nthr nthr)
+  (sh : c_shmems (shmems_desc_fa et nthr))
+  : M.array2 et lS
+  = M.from_array lS (fst sh)
 
 (* Pure side-conditions carried across the kernel launch (needed to
    re-assemble the tiled write-side matrices in teardown). *)
@@ -429,7 +465,7 @@ fn setup_fa
   (#lK #lV #lQ #lO: M.layout n d)
   (#ll #lm: M.layout 1 n)
   {| ctlayout lS, ctlayout lK, ctlayout lV, ctlayout lQ, ctlayout lO, ctlayout ll, ctlayout lm |}
-  (gS : M.array2 et lS { M.is_global gS })
+  (gS : M.array2 et lS)
   (gK : M.array2 et lK { M.is_global gK })
   (gV : M.array2 et lV { M.is_global gV })
   (gQ : M.array2 et lQ { M.is_global gQ })
@@ -457,7 +493,7 @@ fn teardown_fa
   (#lK #lV #lQ #lO: M.layout n d)
   (#ll #lm: M.layout 1 n)
   {| ctlayout lS, ctlayout lK, ctlayout lV, ctlayout lQ, ctlayout lO, ctlayout ll, ctlayout lm |}
-  (gS : M.array2 et lS { M.is_global gS })
+  (gS : M.array2 et lS)
   (gK : M.array2 et lK { M.is_global gK })
   (gV : M.array2 et lV { M.is_global gV })
   (gQ : M.array2 et lQ { M.is_global gQ })
@@ -474,3 +510,64 @@ fn teardown_fa
     frame_fa n d nthr lS lO ll lm
   ensures
     full_io_fa n d nthr gS gK gV gQ gO gl gm eK eV eQ fK fV fQ
+
+(* Block-level setup: convert the block's shared scratch array into the gS
+   matrix view and split (together with the global gO/gl/gm and the
+   fractionally-shared gK/gV/gQ) into the per-thread sub-views. *)
+ghost
+fn block_setup_fa
+  (#et : Type0) {| scalar et, floating et |}
+  (n d nthr : szp { nthr /? n /\ SZ.fits (nthr * nthr) })
+  (lS : M.full_layout nthr nthr)
+  (#lK #lV #lQ #lO: M.layout n d)
+  (#ll #lm: M.layout 1 n)
+  {| ctlayout lS, ctlayout lK, ctlayout lV, ctlayout lQ, ctlayout lO, ctlayout ll, ctlayout lm |}
+  (gK : M.array2 et lK { M.is_global gK })
+  (gV : M.array2 et lV { M.is_global gV })
+  (gQ : M.array2 et lQ { M.is_global gQ })
+  (gO : M.array2 et lO { M.is_global gO })
+  (gl : M.array2 et ll { M.is_global gl })
+  (gm : M.array2 et lm { M.is_global gm })
+  (eK eV eQ : ematrix et n d)
+  (#fK #fV #fQ : perm)
+  (sh : c_shmems (shmems_desc_fa et nthr))
+  (bid : natlt 1sz)
+  ()
+  norewrite
+  requires
+    live_c_shmems sh **
+    full_io_fa_nos n d nthr gK gV gQ gO gl gm eK eV eQ fK fV fQ
+  ensures
+    (forall+ (tid : natlt nthr).
+       kpre_post_outer_fa n d nthr (gS_of_sh n d nthr lS sh) gK gV gQ gO gl gm eK eV eQ fK fV fQ tid) **
+    frame_fa n d nthr lS lO ll lm
+
+(* Block-level teardown: reassemble the per-thread sub-views and fold the gS
+   matrix view back into the block's shared scratch array. *)
+ghost
+fn block_teardown_fa
+  (#et : Type0) {| scalar et, floating et |}
+  (n d nthr : szp { nthr /? n /\ SZ.fits (nthr * nthr) })
+  (lS : M.full_layout nthr nthr)
+  (#lK #lV #lQ #lO: M.layout n d)
+  (#ll #lm: M.layout 1 n)
+  {| ctlayout lS, ctlayout lK, ctlayout lV, ctlayout lQ, ctlayout lO, ctlayout ll, ctlayout lm |}
+  (gK : M.array2 et lK { M.is_global gK })
+  (gV : M.array2 et lV { M.is_global gV })
+  (gQ : M.array2 et lQ { M.is_global gQ })
+  (gO : M.array2 et lO { M.is_global gO })
+  (gl : M.array2 et ll { M.is_global gl })
+  (gm : M.array2 et lm { M.is_global gm })
+  (eK eV eQ : ematrix et n d)
+  (#fK #fV #fQ : perm)
+  (sh : c_shmems (shmems_desc_fa et nthr))
+  (bid : natlt 1sz)
+  ()
+  norewrite
+  requires
+    (forall+ (tid : natlt nthr).
+       kpre_post_outer_fa n d nthr (gS_of_sh n d nthr lS sh) gK gV gQ gO gl gm eK eV eQ fK fV fQ tid) **
+    frame_fa n d nthr lS lO ll lm
+  ensures
+    live_c_shmems sh **
+    full_io_fa_nos n d nthr gK gV gQ gO gl gm eK eV eQ fK fV fQ

@@ -14,6 +14,7 @@ module M = Kuiper.Array2
 module SZ = Kuiper.SizeT
 module Trade = Pulse.Lib.Trade
 module Array1 = Kuiper.Array1
+module B = Kuiper.Barrier
 open Kuiper.Array1
 open Kuiper.Index
 
@@ -250,7 +251,7 @@ fn flashattention_kf_outer (#et:Type0){| scalar et, floating et |}
   (n d nthr:szp{nthr/?n /\ SZ.fits (nthr*nthr)})
   (#lS:M.layout nthr nthr)(#lK #lV #lQ #lO:M.layout n d)(#ll #lm:M.layout 1 n)
   {| ctlayout lS, ctlayout lK, ctlayout lV, ctlayout lQ, ctlayout lO, ctlayout ll, ctlayout lm |}
-  (gS:M.array2 et lS{M.is_global gS})(gK:M.array2 et lK{M.is_global gK})(gV:M.array2 et lV{M.is_global gV})
+  (gS:M.array2 et lS)(gK:M.array2 et lK{M.is_global gK})(gV:M.array2 et lV{M.is_global gV})
   (gQ:M.array2 et lQ{M.is_global gQ})(gO:M.array2 et lO{M.is_global gO})(gl:M.array2 et ll{M.is_global gl})(gm:M.array2 et lm{M.is_global gm})
   (eK eV eQ:ematrix et n d)(#fK #fV #fQ:perm)
   (tid:szlt nthr)
@@ -321,42 +322,136 @@ fn flashattention_kf_outer (#et:Type0){| scalar et, floating et |}
   fold (kpre_post_outer_fa n d nthr gS gK gV gQ gO gl gm eK eV eQ fK fV fQ (SZ.v tid));
 }
 
+// Per-thread kernel adapter: matches the full [kernel_desc] [f] field
+// signature (with the trivial empty barrier) and delegates to the existing
+// per-thread outer kernel, viewing the block's shared scratch as gS.
+inline_for_extraction noextract
+fn flashattention_kf
+  (#et:Type0){| scalar et, floating et |}
+  (n d nthr:szp{nthr/?n /\ SZ.fits (nthr*nthr)})
+  (lS:M.full_layout nthr nthr)(#lK #lV #lQ #lO:M.layout n d)(#ll #lm:M.layout 1 n)
+  {| ctlayout lS, ctlayout lK, ctlayout lV, ctlayout lQ, ctlayout lO, ctlayout ll, ctlayout lm |}
+  (gK:M.array2 et lK{M.is_global gK})(gV:M.array2 et lV{M.is_global gV})
+  (gQ:M.array2 et lQ{M.is_global gQ})(gO:M.array2 et lO{M.is_global gO})(gl:M.array2 et ll{M.is_global gl})(gm:M.array2 et lm{M.is_global gm})
+  (eK eV eQ:ematrix et n d)(#fK #fV #fQ:perm)
+  (sh : c_shmems (shmems_desc_fa et nthr))
+  (bid : szlt 1sz)
+  (tid : szlt nthr)
+  ()
+  requires
+    gpu **
+    kpre_post_outer_fa n d nthr (gS_of_sh n d nthr lS sh) gK gV gQ gO gl gm eK eV eQ fK fV fQ (SZ.v tid) **
+    thread_id nthr tid **
+    block_id 1sz bid **
+    B.barrier_tok (B.empty_contract nthr) **
+    B.barrier_state 0
+  ensures
+    gpu **
+    kpre_post_outer_fa n d nthr (gS_of_sh n d nthr lS sh) gK gV gQ gO gl gm eK eV eQ fK fV fQ (SZ.v tid) **
+    thread_id nthr tid **
+    block_id 1sz bid **
+    B.barrier_tok (B.empty_contract nthr) **
+    B.barrier_state 0
+{
+  flashattention_kf_outer n d nthr (gS_of_sh n d nthr lS sh) gK gV gQ gO gl gm eK eV eQ tid ();
+}
+
+// gpu-level setup / teardown: a single block (nblk = 1), so [block_pre] /
+// [block_post] are just the host I/O, with the size-fact frame.
+ghost
+fn kflashattention_setup
+  (#et:Type0){| scalar et, floating et |}
+  (n d nthr:szp{nthr/?n /\ SZ.fits (nthr*nthr)})
+  (lS:M.full_layout nthr nthr)(#lK #lV #lQ #lO:M.layout n d)(#ll #lm:M.layout 1 n)
+  {| ctlayout lS, ctlayout lK, ctlayout lV, ctlayout lQ, ctlayout lO, ctlayout ll, ctlayout lm |}
+  (gK:M.array2 et lK{M.is_global gK})(gV:M.array2 et lV{M.is_global gV})
+  (gQ:M.array2 et lQ{M.is_global gQ})(gO:M.array2 et lO{M.is_global gO})(gl:M.array2 et ll{M.is_global gl})(gm:M.array2 et lm{M.is_global gm})
+  (eK eV eQ:ematrix et n d)(#fK #fV #fQ:perm)
+  ()
+  norewrite
+  requires
+    full_io_fa_nos n d nthr gK gV gQ gO gl gm eK eV eQ fK fV fQ
+  ensures
+    (forall+ (bid:natlt 1sz).
+       full_io_fa_nos n d nthr gK gV gQ gO gl gm eK eV eQ fK fV fQ) **
+    frame_fa n d nthr lS lO ll lm
+{
+  forevery_singleton_intro #(natlt 1sz)
+    (fun (_:natlt 1sz) -> full_io_fa_nos n d nthr gK gV gQ gO gl gm eK eV eQ fK fV fQ);
+}
+
+ghost
+fn kflashattention_teardown
+  (#et:Type0){| scalar et, floating et |}
+  (n d nthr:szp{nthr/?n /\ SZ.fits (nthr*nthr)})
+  (lS:M.full_layout nthr nthr)(#lK #lV #lQ #lO:M.layout n d)(#ll #lm:M.layout 1 n)
+  {| ctlayout lS, ctlayout lK, ctlayout lV, ctlayout lQ, ctlayout lO, ctlayout ll, ctlayout lm |}
+  (gK:M.array2 et lK{M.is_global gK})(gV:M.array2 et lV{M.is_global gV})
+  (gQ:M.array2 et lQ{M.is_global gQ})(gO:M.array2 et lO{M.is_global gO})(gl:M.array2 et ll{M.is_global gl})(gm:M.array2 et lm{M.is_global gm})
+  (eK eV eQ:ematrix et n d)(#fK #fV #fQ:perm)
+  ()
+  norewrite
+  requires
+    (forall+ (bid:natlt 1sz).
+       full_io_fa_nos n d nthr gK gV gQ gO gl gm eK eV eQ fK fV fQ) **
+    frame_fa n d nthr lS lO ll lm
+  ensures
+    full_io_fa_nos n d nthr gK gV gQ gO gl gm eK eV eQ fK fV fQ
+{
+  forevery_singleton_elim #(natlt 1sz)
+    (fun (_:natlt 1sz) -> full_io_fa_nos n d nthr gK gV gQ gO gl gm eK eV eQ fK fV fQ);
+}
+
+// FlashAttention kernel: 1 block, [nthr] threads, scratch gS in shared memory.
+// No barriers (each thread owns a disjoint row of gS).
 inline_for_extraction noextract
 let kflashattention
   (#et:Type0){| scalar et, floating et |}
-  (n d nthr:szp{nthr/?n /\ SZ.fits (nthr*nthr) /\ nthr <= max_blocks * max_threads})
-  (#lS:M.layout nthr nthr)(#lK #lV #lQ #lO:M.layout n d)(#ll #lm:M.layout 1 n)
+  (n d nthr:szp{nthr/?n /\ SZ.fits (nthr*nthr) /\ nthr <= max_threads})
+  (lS:M.full_layout nthr nthr)(#lK #lV #lQ #lO:M.layout n d)(#ll #lm:M.layout 1 n)
   {| ctlayout lS, ctlayout lK, ctlayout lV, ctlayout lQ, ctlayout lO, ctlayout ll, ctlayout lm |}
-  (gS:M.array2 et lS{M.is_global gS})(gK:M.array2 et lK{M.is_global gK})(gV:M.array2 et lV{M.is_global gV})
+  (gK:M.array2 et lK{M.is_global gK})(gV:M.array2 et lV{M.is_global gV})
   (gQ:M.array2 et lQ{M.is_global gQ})(gO:M.array2 et lO{M.is_global gO})(gl:M.array2 et ll{M.is_global gl})(gm:M.array2 et lm{M.is_global gm})
   (eK eV eQ:ematrix et n d)(#fK #fV #fQ:perm)
   : kernel_desc
-      (requires full_io_fa n d nthr gS gK gV gQ gO gl gm eK eV eQ fK fV fQ)
-      (ensures  full_io_fa n d nthr gS gK gV gQ gO gl gm eK eV eQ fK fV fQ)
+      (requires full_io_fa_nos n d nthr gK gV gQ gO gl gm eK eV eQ fK fV fQ)
+      (ensures  full_io_fa_nos n d nthr gK gV gQ gO gl gm eK eV eQ fK fV fQ)
 = {
+    nblk = 1sz;
     nthr = nthr;
+    shmems_desc = shmems_desc_fa et nthr;
+    barrier_contract = (fun _ _ -> B.empty_contract nthr);
+    barrier_count    = (fun _ -> 0);
+    barrier_ok       = (fun _ _ -> B.empty_barrier_transform nthr);
     frame = frame_fa n d nthr lS lO ll lm;
-    setup = setup_fa n d nthr gS gK gV gQ gO gl gm eK eV eQ;
-    teardown = teardown_fa n d nthr gS gK gV gQ gO gl gm eK eV eQ;
-    kpre  = (fun (tid:natlt nthr) -> kpre_post_outer_fa n d nthr gS gK gV gQ gO gl gm eK eV eQ fK fV fQ tid);
-    kpost = (fun (tid:natlt nthr) -> kpre_post_outer_fa n d nthr gS gK gV gQ gO gl gm eK eV eQ fK fV fQ tid);
-    f = flashattention_kf_outer n d nthr gS gK gV gQ gO gl gm eK eV eQ;
-    kpre_sendable = magic();
-    kpost_sendable = magic();
-  } <: kernel_desc_n _ _
+    block_pre  = (fun _ -> full_io_fa_nos n d nthr gK gV gQ gO gl gm eK eV eQ fK fV fQ);
+    block_post = (fun _ -> full_io_fa_nos n d nthr gK gV gQ gO gl gm eK eV eQ fK fV fQ);
+    block_frame = (fun _sh _bid -> frame_fa n d nthr lS lO ll lm);
+    setup    = kflashattention_setup n d nthr lS gK gV gQ gO gl gm eK eV eQ;
+    teardown = kflashattention_teardown n d nthr lS gK gV gQ gO gl gm eK eV eQ;
+    kpre  = (fun sh _bid tid -> kpre_post_outer_fa n d nthr (gS_of_sh n d nthr lS sh) gK gV gQ gO gl gm eK eV eQ fK fV fQ tid);
+    kpost = (fun sh _bid tid -> kpre_post_outer_fa n d nthr (gS_of_sh n d nthr lS sh) gK gV gQ gO gl gm eK eV eQ fK fV fQ tid);
+    block_setup    = block_setup_fa n d nthr lS gK gV gQ gO gl gm eK eV eQ;
+    block_teardown = block_teardown_fa n d nthr lS gK gV gQ gO gl gm eK eV eQ;
+    f = flashattention_kf n d nthr lS gK gV gQ gO gl gm eK eV eQ;
+    block_pre_sendable  = (fun _ -> magic());
+    block_post_sendable = (fun _ -> magic());
+    kpre_sendable  = (fun _ _ _ _ -> magic());
+    kpost_sendable = (fun _ _ _ _ -> magic());
+  }
 
 inline_for_extraction noextract
 fn flashattention_gpu
   (#et:Type0){| scalar et, floating et |}
-  (n d nthr:szp{nthr/?n /\ SZ.fits (nthr*nthr) /\ nthr <= max_blocks * max_threads})
-  (#lS:M.layout nthr nthr)(#lK #lV #lQ #lO:M.layout n d)(#ll #lm:M.layout 1 n)
+  (n d nthr:szp{nthr/?n /\ SZ.fits (nthr*nthr) /\ nthr <= max_threads})
+  (lS:M.full_layout nthr nthr)(#lK #lV #lQ #lO:M.layout n d)(#ll #lm:M.layout 1 n)
   {| ctlayout lS, ctlayout lK, ctlayout lV, ctlayout lQ, ctlayout lO, ctlayout ll, ctlayout lm |}
-  (gS:M.array2 et lS{M.is_global gS})(gK:M.array2 et lK{M.is_global gK})(gV:M.array2 et lV{M.is_global gV})
+  (gK:M.array2 et lK{M.is_global gK})(gV:M.array2 et lV{M.is_global gV})
   (gQ:M.array2 et lQ{M.is_global gQ})(gO:M.array2 et lO{M.is_global gO})(gl:M.array2 et ll{M.is_global gl})(gm:M.array2 et lm{M.is_global gm})
   (eK eV eQ:ematrix et n d)(#fK #fV #fQ:perm)
   preserves cpu
-  requires on gpu_loc (full_io_fa n d nthr gS gK gV gQ gO gl gm eK eV eQ fK fV fQ)
-  ensures  on gpu_loc (full_io_fa n d nthr gS gK gV gQ gO gl gm eK eV eQ fK fV fQ)
+  requires on gpu_loc (full_io_fa_nos n d nthr gK gV gQ gO gl gm eK eV eQ fK fV fQ)
+  ensures  on gpu_loc (full_io_fa_nos n d nthr gK gV gQ gO gl gm eK eV eQ fK fV fQ)
 {
-  launch_sync (kflashattention n d nthr gS gK gV gQ gO gl gm eK eV eQ);
+  launch_sync (kflashattention n d nthr lS gK gV gQ gO gl gm eK eV eQ);
 }
