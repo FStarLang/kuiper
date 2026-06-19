@@ -29,6 +29,10 @@ contain admitted proofs.
 *Guido Martínez, Bastian Köpcke, Jonáš Fiala, Gabriel Ebner, Tahina Ramananandro, Michel Steuwer, Tyler Sorensen, Nikhil Swamy*.
 PLDI 2026. https://doi.org/10.1145/3808280
 
+- **The Next Frontier for AI-Generated Kernels: Correctness**
+*Guido Martínez, Tyler Sorensen*.
+PAgE 2026. https://doi.org/10.1145/3819802.3820580
+
 ## Using Verified Kernels
 
 You can find the current set of verified kernels in the `dist/` directory, which
