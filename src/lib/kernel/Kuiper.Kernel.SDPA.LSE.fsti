@@ -1,4 +1,4 @@
-module Kuiper.Kernel.Attention
+module Kuiper.Kernel.SDPA.LSE
 
 (* Specification of PyTorch's
 
@@ -11,7 +11,7 @@ module Kuiper.Kernel.Attention
      attn_bias : (N, H, L, S)        -- on GPU, additive bias
      scale     : et                  -- caller-provided scaling factor
                                        (PyTorch defaults to 1/sqrt(K))
-     is_causal : bool                -- if true, mask above the main diagonal
+     is_causal : bool                -- if true, mask above the main diagonal [UNSUPPORTED]
 
    Outputs:
      out       : (N, H, L, Ev)       -- on GPU
@@ -33,6 +33,7 @@ open Kuiper.Index
 open Kuiper.Bijection
 
 open Kuiper.Spec.Attention
+open Kuiper.Kernel.SDPA.LSE.Util
 
 module EM4 = Kuiper.EMatrix4
 module EM3 = Kuiper.EMatrix3
@@ -44,7 +45,7 @@ module SZ = Kuiper.SizeT
 // Extended reals means we can say is_causal ==> bias += (triangle of -inf)
 
 unfold
-type sdpa_ty
+type sdpa_lse_ty
   (et : Type0) {| scalar et, real_like et |} = 
   fn 
     (n h : szp)
@@ -98,7 +99,7 @@ type sdpa_ty
       on gpu_loc (fst out |-> eO) **
       on gpu_loc (snd out |-> eLSE) **
       pure (
-        let out_spec, lse_spec = attention_real_batched
+        let out_spec, lse_spec = attention_real_batched_lse 
             (EM4.to_real_matrix eQ)
             rKT
             (EM4.to_real_matrix eV)
@@ -108,6 +109,6 @@ type sdpa_ty
     pure (is_global (fst out) /\ is_global (snd out)) 
 
 inline_for_extraction noextract
-val sdpa_naive
+val sdpa_lse_naive
   (#et : Type0) {| floating et, real_like et, floating_real_like et |}
-   : sdpa_ty et
+   : sdpa_lse_ty et

@@ -1,4 +1,4 @@
-module Kuiper.Kernel.Attention
+module Kuiper.Kernel.SDPA.LSE.Util
 
 #lang-pulse
 open Kuiper
@@ -45,6 +45,32 @@ let transpose4_2 (#d0 #d1 #d2 #d3 : nat) :
     assert ((fun (i,(j,(k,(l,())))) -> (i,(j,(l,(k,()))))) x) == (i,(j,(l,(k,()))))
   ));
 }
+
+/// Concrete index mapping for [transpose4_2], mirroring its ghost inverse [gg]
+/// (which swaps the last two dimensions). Carries no proof obligations beyond the
+/// pointwise swap, so [transpose4_2_conc_correct] is definitional.
+inline_for_extraction noextract
+let transpose4_2_conc (#d0 #d1 #d2 #d3 : nat)
+  (x : conc (d0 @| d1 @| d3 @| d2 @| INil))
+  : conc (d0 @| d1 @| d2 @| d3 @| INil)
+  = let (i,(j,(k,(l,())))) = x in (i,(j,(l,(k,()))))
+
+let transpose4_2_conc_correct (#d0 #d1 #d2 #d3 : nat)
+  (x : conc (d0 @| d1 @| d3 @| d2 @| INil))
+  : (up (transpose4_2_conc #d0 #d1 #d2 #d3 x) == (transpose4_2 #d0 #d1 #d2 #d3).gg (up x))
+  = ()
+
+/// Extractable [ctlayout] for the K-transpose relayout: instantiates [ctlayout_bij]
+/// with the concrete swap above.
+inline_for_extraction noextract
+let ctlayout_bij_transpose
+  (#d0 #d1 #d2 #d3 : szp)
+  (lin : tlayout (d0 @| d1 @| d2 @| d3 @| INil)) {| c : ctlayout lin |}
+  : ctlayout (tlayout_bij (transpose4_2 #(SZ.v d0) #(SZ.v d1) #(SZ.v d2) #(SZ.v d3)) lin)
+  = ctlayout_bij (transpose4_2 #(SZ.v d0) #(SZ.v d1) #(SZ.v d2) #(SZ.v d3))
+      (transpose4_2_conc #(SZ.v d0) #(SZ.v d1) #(SZ.v d2) #(SZ.v d3))
+      (transpose4_2_conc_correct #(SZ.v d0) #(SZ.v d1) #(SZ.v d2) #(SZ.v d3))
+      lin
 
 inline_for_extraction noextract
 fn fold4_to_3 
@@ -320,6 +346,39 @@ let fold_bij_l3 (n h l : szp { SZ.fits (SZ.v n * SZ.v h * SZ.v l) /\ SZ.fits (SZ
         FStar.Math.Lemmas.small_mod k (SZ.v l);
         ())
 
+/// Concrete index mapping for [fold_bij_l3], mirroring its ghost inverse [gg]
+/// (which un-flattens a 1D row-major index into the 3D `(n,h,l)` index).
+inline_for_extraction noextract
+let fold_bij_l3_conc
+  (n h l : szp { SZ.fits (SZ.v n * SZ.v h * SZ.v l) /\ SZ.fits (SZ.v h * SZ.v l) })
+  (idx : conc ((n *^ h *^ l) @| INil))
+  : conc (n @| h @| l @| INil)
+  = let (r, ()) = idx in
+    let hl : szp = h *^ l in
+    let q  : szlt (SZ.v n) = r /^ hl in
+    let rm : szlt (SZ.v hl) = r %^ hl in
+    let q2 : szlt (SZ.v h) = rm /^ l in
+    let q3 : szlt (SZ.v l) = rm %^ l in
+    (q, (q2, (q3, ())))
+
+let fold_bij_l3_conc_correct
+  (n h l : szp { SZ.fits (SZ.v n * SZ.v h * SZ.v l) /\ SZ.fits (SZ.v h * SZ.v l) })
+  (x : conc ((n *^ h *^ l) @| INil))
+  : (up (fold_bij_l3_conc n h l x) == (fold_bij_l3 n h l).gg (up x))
+  = ()
+
+/// Extractable [ctlayout] for the bias flatten relayout: instantiates [ctlayout_bij]
+/// with the concrete un-flatten above.
+inline_for_extraction noextract
+let ctlayout_bij_l3
+  (n h l : szp { SZ.fits (SZ.v n * SZ.v h * SZ.v l) /\ SZ.fits (SZ.v h * SZ.v l) })
+  (lin : tlayout (n @| h @| l @| INil)) {| c : ctlayout lin |}
+  : ctlayout (tlayout_bij (fold_bij_l3 n h l) lin)
+  = ctlayout_bij (fold_bij_l3 n h l)
+      (fold_bij_l3_conc n h l)
+      (fold_bij_l3_conc_correct n h l)
+      lin
+
 let imap_hyp_l3 (n h l : szp { SZ.fits (SZ.v n * SZ.v h * SZ.v l) /\ SZ.fits (SZ.v h * SZ.v l) })
   (idx : abs (n @| h @| l @| INil))
   : Lemma
@@ -551,7 +610,7 @@ let out_corr_elem
       eVf %~ fold_chest #real #4 #(n @| h @| s @| ev @| INil) rV)
     (ensures
       EM3.macc (MS.batched_matmul eS eVf) ((i*h+j) <: natlt (n*h)) k m
-      %~ EM.macc (fst (attention_real (EM4.slice_page rQ i j) (EM4.slice_page rKT i j)
+      %~ EM.macc (fst (attention_real_lse (EM4.slice_page rQ i j) (EM4.slice_page rKT i j)
                          (EM4.slice_page rV i j) (EM4.slice_page rbias i j) scale)) k m)
   = let p : natlt (n*h) = i*h+j in
     let rS = unfold_chest #real #3 #((n*h) @| l @| s @| INil)
@@ -705,6 +764,51 @@ let lse_macc_all
         == Seq.index esums ((i * (SZ.v h * SZ.v l) + j * SZ.v l + k) <: natlt (SZ.v (n *^ h *^ l)))
     with lse_macc_lemma n h l esums i j k
 
+/// Deterministic proof of the [approx2] fact for the GEMM score combiner
+/// `(bias_qk + score) * scale`. Proving it explicitly (rather than via the flaky
+/// [a_add]/[a_mul] SMT patterns) keeps this robust against perturbations of the
+/// ambient SMT context.
+let approx2_addmul_scale
+  (#et:Type) {| scalar et |} {| real_like et |}
+  (scale : et)
+  : Lemma (approx2 #et #et #et
+             (fun (bias_qk:et) (score:et) -> (bias_qk `add` score) `mul` scale)
+             (fun (bias_qk:real) (score:real) -> (bias_qk +. score) *. (to_real scale)))
+  = introduce forall (x:et) (y:et) (r:real) (s:real).
+       x %~ r /\ y %~ s ==> ((x `add` y) `mul` scale) %~ ((r +. s) *. (to_real scale))
+    with introduce _ ==> _
+    with _. (
+      a_add x y r s;
+      to_real_ok scale;
+      a_mul (x `add` y) scale (r +. s) (to_real scale)
+    )
+
+/// Flat row-major index into an [n*h*l] sequence, with the in-bounds proof
+/// carried in the *return type*. This lets the (SMT-free) Pulse core checker accept
+/// `Seq.index esums (flat3 n h l i j k)` at call sites without having to (re)discharge
+/// the nonlinear bound — which it cannot do — while [flat3_eq] keeps it interchangeable
+/// with the explicit `(i*(h*l)+j*l+k <: natlt ...)` form used by the SMT-checked lemmas.
+let flat3
+  (n : szp) (h : szp { SZ.fits (SZ.v n * SZ.v h) })
+  (l : szp { SZ.fits (SZ.v n * SZ.v h * SZ.v l) /\ SZ.fits (SZ.v h * SZ.v l) })
+  (i:natlt (SZ.v n)) (j:natlt (SZ.v h)) (k:natlt (SZ.v l))
+  : natlt (SZ.v (n *^ h *^ l))
+  = FStar.Math.Lemmas.lemma_mult_le_right (SZ.v h) (i+1) (SZ.v n);
+    assert (SZ.v (n *^ h) == SZ.v n * SZ.v h);
+    assert (SZ.v (n *^ h *^ l) == SZ.v n * SZ.v h * SZ.v l);
+    assert (i * SZ.v h + j < SZ.v n * SZ.v h);
+    FStar.Math.Lemmas.lemma_mult_le_right (SZ.v l) (i * SZ.v h + j + 1) (SZ.v n * SZ.v h);
+    FStar.Math.Lemmas.paren_mul_right i (SZ.v h) (SZ.v l);
+    assert (i * (SZ.v h * SZ.v l) + j * SZ.v l + k < SZ.v n * SZ.v h * SZ.v l);
+    i * (SZ.v h * SZ.v l) + j * SZ.v l + k
+
+let flat3_eq
+  (n : szp) (h : szp { SZ.fits (SZ.v n * SZ.v h) })
+  (l : szp { SZ.fits (SZ.v n * SZ.v h * SZ.v l) /\ SZ.fits (SZ.v h * SZ.v l) })
+  (i:natlt (SZ.v n)) (j:natlt (SZ.v h)) (k:natlt (SZ.v l))
+  : Lemma (flat3 n h l i j k == i * (SZ.v h * SZ.v l) + j * SZ.v l + k)
+  = ()
+
 ghost
 fn array1_to_3d
   (#et:Type)
@@ -722,7 +826,7 @@ fn array1_to_3d
        (g |-> Frac f s3) **
        pure (forall (i:natlt (SZ.v n)) (j:natlt (SZ.v h)) (k:natlt (SZ.v l)).
                EM3.macc s3 i j k
-               == Seq.index esums ((i * (SZ.v h * SZ.v l) + j * SZ.v l + k) <: natlt (SZ.v (n *^ h *^ l))))) **
+              == Seq.index esums (flat3 n h l i j k))) **
     pure (g == from_array (l3_batched_row_major n h l) (A1.core sums) /\
           (A1.is_global sums ==> is_global g))
 {
@@ -736,6 +840,7 @@ fn array1_to_3d
   relayout_via (l3_batched_row_major n h l) (fold_bij_l3 n h l) () g1;
   a1_to_seq_l1_id (n *^ h *^ l) esums;
   lse_macc_all n h l esums;
+  FStar.Classical.forall_intro_3 (flat3_eq n h l);
   let g : tensor et (l3_batched_row_major n h l) =
     from_array (l3_batched_row_major n h l) (core g1);
   assert rewrites_to g (from_array (l3_batched_row_major n h l) (core g1));
@@ -809,12 +914,12 @@ let out_approx_all
       eVf %~ (fold_chest #real #4 #(n @| h @| s @| ev @| INil) rV <: EM3.t real (n*^h) s ev))
     (ensures
       eO4 %~ EM4.mkM (fun (i:natlt (SZ.v n)) (j:natlt (SZ.v h)) ->
-               EM.macc (fst (attention_real
+               EM.macc (fst (attention_real_lse
                  (EM4.slice_page rQ i j) (EM4.slice_page rKT i j)
                  (EM4.slice_page rV i j) (EM4.slice_page rbias i j) scale))))
   = let out_spec : EM4.t real (SZ.v n) (SZ.v h) (SZ.v l) (SZ.v ev) =
       EM4.mkM (fun (i:natlt (SZ.v n)) (j:natlt (SZ.v h)) ->
-               EM.macc (fst (attention_real
+               EM.macc (fst (attention_real_lse
                  (EM4.slice_page rQ i j) (EM4.slice_page rKT i j)
                  (EM4.slice_page rV i j) (EM4.slice_page rbias i j) scale))) in
     introduce forall (i:natlt (SZ.v n))(j:natlt (SZ.v h))(k:natlt (SZ.v l))(m:natlt (SZ.v ev)).
@@ -828,10 +933,26 @@ let out_approx_all
     );
     EM4.lemma_approximates_intro eO4 out_spec
 
+/// Deterministic proof of the flat-index facts needed by [lse_corr_elem].
+/// Every step is discharged by an explicit [Math.Lemmas] call so Z3 never has
+/// to do (flaky) nonlinear reasoning on [(i*h+j)*l].
+let lse_idx_facts (n h l : nat) (i:natlt n) (j:natlt h) (k:natlt l)
+  : Lemma
+    (ensures
+      i * h + j < n * h /\
+      i * (h * l) + j * l + k == (i * h + j) * l + k /\
+      (i * h + j) * l + k < (n * h) * l /\
+      i * (h * l) + j * l + k < n * h * l)
+  = FStar.Math.Lemmas.lemma_mult_le_right h (i + 1) n;
+    FStar.Math.Lemmas.paren_mul_right i h l;
+    FStar.Math.Lemmas.distributivity_add_left (i * h) j l;
+    page_row_bound (n * h) l ((i * h + j) <: natlt (n * h)) k
+
+#push-options "--z3rlimit 50"
 let lse_approx_all
   (#et:Type) {| scalar et |} {| real_like et |}
   (n : szp) (h : szp { SZ.fits (SZ.v n * SZ.v h) })
-  (l : szp { SZ.fits (SZ.v n * SZ.v h * SZ.v l) }) (s e ev : szp)
+  (l : szp { SZ.fits (SZ.v n * SZ.v h * SZ.v l) /\ SZ.fits (SZ.v h * SZ.v l) }) (s e ev : szp)
   (eLSE : EM3.t et n h l)
   (esums' : lseq et (n *^ h *^ l))
   (rQ : EM4.t real n h l e)
@@ -844,7 +965,7 @@ let lse_approx_all
       SZ.fits (SZ.v n * SZ.v h * SZ.v l) /\ SZ.fits (SZ.v h * SZ.v l) /\
       (forall (i:natlt (SZ.v n))(j:natlt (SZ.v h))(k:natlt (SZ.v l)).
          EM3.macc eLSE i j k
-         == Seq.index esums' ((i * (SZ.v h * SZ.v l) + j * SZ.v l + k) <: natlt (SZ.v (n *^ h *^ l)))) /\
+         == Seq.index esums' (flat3 n h l i j k)) /\
       esums' %~ Seq.init_ghost (SZ.v (n *^ h *^ l))
                   (fun r -> log (rsum (lseq_map exp
                     (ematrix_row #real #(SZ.v (n*^h) * SZ.v l) #(SZ.v s)
@@ -856,26 +977,126 @@ let lse_approx_all
                            (fold_chest #real #4 #(n @| h @| e @| s @| INil) rKT))) r)))))
     (ensures
       eLSE %~ EM3.mkM (fun (i:natlt (SZ.v n)) (j:natlt (SZ.v h)) ->
-               Seq.index (snd (attention_real
+               Seq.index (snd (attention_real_lse
                  (EM4.slice_page rQ i j) (EM4.slice_page rKT i j)
                  (EM4.slice_page rV i j) (EM4.slice_page rbias i j) scale))))
   = let lse_spec : EM3.t real (SZ.v n) (SZ.v h) (SZ.v l) =
       EM3.mkM (fun (i:natlt (SZ.v n)) (j:natlt (SZ.v h)) ->
-               Seq.index (snd (attention_real
+               Seq.index (snd (attention_real_lse
                  (EM4.slice_page rQ i j) (EM4.slice_page rKT i j)
                  (EM4.slice_page rV i j) (EM4.slice_page rbias i j) scale))) in
     introduce forall (i:natlt (SZ.v n))(j:natlt (SZ.v h))(k:natlt (SZ.v l)).
        EM3.macc eLSE i j k %~ EM3.macc lse_spec i j k
     with (
-      FStar.Math.Lemmas.lemma_mult_le_right (SZ.v h) (i+1) (SZ.v n);
-      page_row_bound (SZ.v (n*^h)) (SZ.v l) ((i * SZ.v h + j) <: natlt (SZ.v (n*^h))) k;
-      FStar.Math.Lemmas.paren_mul_right i (SZ.v h) (SZ.v l);
+      // Bridge the [n *^ h] / [n *^ h *^ l] descriptor forms to plain products
+      // so the [esums'] hypothesis matches [lse_corr_elem]'s precondition.
+      assert (SZ.v (n*^h) == SZ.v n * SZ.v h);
+      assert (SZ.v (n*^h*^l) == SZ.v n * SZ.v h * SZ.v l);
+      assert (SZ.v (n*^h) * SZ.v l == SZ.v n * SZ.v h * SZ.v l);
+      // All (nonlinear) index arithmetic is discharged deterministically here.
+      lse_idx_facts (SZ.v n) (SZ.v h) (SZ.v l) i j k;
+      flat3_eq n h l i j k;
       lse_corr_elem (SZ.v n) (SZ.v h) (SZ.v l) (SZ.v s) (SZ.v e)
         esums' rQ rKT rbias scale i j k
     );
     EM3.lemma_approximates_intro eLSE lse_spec
+#pop-options
 
-/// ───────────────────────── restore / relayout helpers ─────────────────────
+/// Elementwise [flog] step for the LSE: if [a] approximates the (positive)
+/// row-sums-of-exp sequence [Seq.init_ghost m g], then [lseq_map flog a]
+/// approximates the log-sum-exp sequence [Seq.init_ghost m (fun i -> log (g i))].
+///
+/// Proven here (with [g] abstract) so the caller never has to *elaborate*
+/// `log (rsum (lseq_map exp ...))` in its own (heavy) proof context — doing so
+/// trips an internal Z3 4.13.3 linear-arithmetic solver assertion violation
+/// (lar_solver.cpp). With [g] abstract the positivity is a plain hypothesis.
+let lse_flog_corr
+  (#et:Type) {| scalar et |} {| floating et |} {| real_like et |} {| floating_real_like et |}
+  (m : nat)
+  (a : lseq et m)
+  (g : (i:natlt m -> GTot real))
+  : Lemma
+      (requires
+        (forall (i:natlt m). g i >. 0.0R) /\
+        a %~ Seq.init_ghost m g)
+      (ensures
+        lseq_map flog a %~ Seq.init_ghost m (fun (i:natlt m) -> log (g i)))
+  = let rhs : lseq real m = Seq.init_ghost m (fun (i:natlt m) -> log (g i)) in
+    let lhs : lseq et m = lseq_map flog a in
+    assert (Seq.length lhs == m);
+    assert (Seq.length rhs == m);
+    introduce forall (i:natlt m). Seq.index lhs i %~ Seq.index rhs i
+    with (
+      Seq.init_ghost_index_ m (fun (j:natlt m) -> log (g j)) i;
+      Seq.init_ghost_index_ m g i;
+      Seq.init_ghost_index_ #et m (fun (j:natlt m) -> flog (Seq.index a j)) i;
+      // Seq.index a i %~ g i  (from [a %~ Seq.init_ghost m g]); g i >. 0.0R (hypothesis);
+      // hence flog (Seq.index a i) %~ log (g i) by the [log_approx_pat] SMTPat.
+      ()
+    );
+    assert (seq_approximates (lhs <: seq et) (rhs <: seq real))
+
+
+/// Combined LSE correspondence usable from a *heavy* caller context: the caller
+/// supplies the (positive) row-sums sequence and the relation [esums' == lseq_map flog esums],
+/// but NEVER needs to elaborate the `log (rsum (lseq_map exp ...))` term itself (doing so in a
+/// heavy context trips the Z3 4.13.3 lar_solver assertion violation). The [flog]/[log] bridge is
+/// performed here (in this light context, where that term encodes fine) via [lse_flog_corr], and
+/// the result is fed to [lse_approx_all].
+let lse_approx_all_from_sums
+  (#et:Type) {| scalar et |} {| floating et |} {| real_like et |} {| floating_real_like et |}
+  (n : szp) (h : szp { SZ.fits (SZ.v n * SZ.v h) })
+  (l : szp { SZ.fits (SZ.v n * SZ.v h * SZ.v l) /\ SZ.fits (SZ.v h * SZ.v l) }) (s e ev : szp)
+  (eLSE : EM3.t et n h l)
+  (esums : lseq et (n *^ h *^ l))
+  (esums' : lseq et (n *^ h *^ l))
+  (rQ : EM4.t real n h l e)
+  (rKT : EM4.t real n h e s)
+  (rV : EM4.t real n h s ev)
+  (rbias : EM4.t real n h l s)
+  (scale : real)
+  : Lemma
+    (requires
+      SZ.fits (SZ.v n * SZ.v h * SZ.v l) /\ SZ.fits (SZ.v h * SZ.v l) /\
+      esums' == lseq_map flog esums /\
+      (forall (i:natlt (SZ.v n))(j:natlt (SZ.v h))(k:natlt (SZ.v l)).
+         EM3.macc eLSE i j k
+         == Seq.index esums' (flat3 n h l i j k)) /\
+      (forall (r:natlt (SZ.v (n *^ h *^ l))).
+         rsum (lseq_map exp
+           (ematrix_row #real #(SZ.v (n*^h) * SZ.v l) #(SZ.v s)
+             (fold_chest #real #3 #((n*^h) @| l @| s @| INil)
+               (MS.bmmcomb (fun (bias_qk:real) (score:real) -> (bias_qk +. score) *. scale)
+                  #(SZ.v (n*^h)) #(SZ.v l) #(SZ.v e) #(SZ.v s)
+                  (fold_chest #real #4 #(n @| h @| l @| s @| INil) rbias)
+                  (fold_chest #real #4 #(n @| h @| l @| e @| INil) rQ)
+                  (fold_chest #real #4 #(n @| h @| e @| s @| INil) rKT))) r)) >. 0.0R) /\
+      esums %~ Seq.init_ghost (SZ.v (n *^ h *^ l))
+                  (fun r -> rsum (lseq_map exp
+                    (ematrix_row #real #(SZ.v (n*^h) * SZ.v l) #(SZ.v s)
+                      (fold_chest #real #3 #((n*^h) @| l @| s @| INil)
+                        (MS.bmmcomb (fun (bias_qk:real) (score:real) -> (bias_qk +. score) *. scale)
+                           #(SZ.v (n*^h)) #(SZ.v l) #(SZ.v e) #(SZ.v s)
+                           (fold_chest #real #4 #(n @| h @| l @| s @| INil) rbias)
+                           (fold_chest #real #4 #(n @| h @| l @| e @| INil) rQ)
+                           (fold_chest #real #4 #(n @| h @| e @| s @| INil) rKT))) r))))
+    (ensures
+      eLSE %~ EM3.mkM (fun (i:natlt (SZ.v n)) (j:natlt (SZ.v h)) ->
+               Seq.index (snd (attention_real_lse
+                 (EM4.slice_page rQ i j) (EM4.slice_page rKT i j)
+                 (EM4.slice_page rV i j) (EM4.slice_page rbias i j) scale))))
+  = FStar.Classical.forall_intro_3 (flat3_eq n h l);
+    lse_flog_corr (SZ.v (n *^ h *^ l)) esums
+      (fun r -> rsum (lseq_map exp
+        (ematrix_row #real #(SZ.v (n*^h) * SZ.v l) #(SZ.v s)
+          (fold_chest #real #3 #((n*^h) @| l @| s @| INil)
+            (MS.bmmcomb (fun (bias_qk:real) (score:real) -> (bias_qk +. score) *. scale)
+               #(SZ.v (n*^h)) #(SZ.v l) #(SZ.v e) #(SZ.v s)
+               (fold_chest #real #4 #(n @| h @| l @| s @| INil) rbias)
+               (fold_chest #real #4 #(n @| h @| l @| e @| INil) rQ)
+               (fold_chest #real #4 #(n @| h @| e @| s @| INil) rKT))) r)));
+    lse_approx_all #et n h l s e ev eLSE esums' rQ rKT rV rbias scale
+
 
 let fold_unfold_chest_id (#et:Type0) (#r:nat{r>1}) (#d:idesc r) (m : CH.t d et)
   : Lemma (unfold_chest #et #r #d (fold_chest #et #r #d m) == m)
@@ -985,7 +1206,7 @@ fn array1_to_3d_u
          (gLSE |-> Frac f s3) **
          pure (forall (i:natlt (SZ.v n)) (j:natlt (SZ.v h)) (k:natlt (SZ.v l)).
                  EM3.macc s3 i j k
-                 == Seq.index esums ((i * (SZ.v h * SZ.v l) + j * SZ.v l + k) <: natlt (SZ.v (n *^ h *^ l)))))
+                 == Seq.index esums (flat3 n h l i j k)))
 {
   map_loc gpu_loc
     #(sums |-> Frac f esums)
@@ -993,7 +1214,7 @@ fn array1_to_3d_u
         (gLSE |-> Frac f s3) **
         pure (forall (i:natlt (SZ.v n)) (j:natlt (SZ.v h)) (k:natlt (SZ.v l)).
                 EM3.macc s3 i j k
-                == Seq.index esums ((i * (SZ.v h * SZ.v l) + j * SZ.v l + k) <: natlt (SZ.v (n *^ h *^ l)))))
+                == Seq.index esums (flat3 n h l i j k)))
     fn () {
       let g' = array1_to_3d n h l sums #f #esums;
       rewrite each g' as gLSE;
@@ -1003,7 +1224,7 @@ fn array1_to_3d_u
 #pop-options
 
 /// Unfold the batched attention spec to its per-page form (definitional).
-let attention_real_batched_unfold
+let attention_real_batched_lse_unfold
   (#n #h #l #s #e #ev : pos)
   (rQ : CH.t (n @| h @| l @| e @| INil) real)
   (rKT : CH.t (n @| h @| e @| s @| INil) real)
@@ -1011,204 +1232,292 @@ let attention_real_batched_unfold
   (rbias : CH.t (n @| h @| l @| s @| INil) real)
   (scale : real)
   : Lemma
-      (attention_real_batched rQ rKT rV rbias scale
+      (attention_real_batched_lse rQ rKT rV rbias scale
        == (EM4.mkM (fun (i:natlt n) (j:natlt h) ->
-              EM.macc (fst (attention_real
+              EM.macc (fst (attention_real_lse
                 (EM4.slice_page rQ i j) (EM4.slice_page rKT i j)
                 (EM4.slice_page rV i j) (EM4.slice_page rbias i j) scale))),
            EM3.mkM (fun (i:natlt n) (j:natlt h) ->
-              Seq.index (snd (attention_real
+              Seq.index (snd (attention_real_lse
                 (EM4.slice_page rQ i j) (EM4.slice_page rKT i j)
                 (EM4.slice_page rV i j) (EM4.slice_page rbias i j) scale)))))
   = ()
 
-//#push-options "--print_implicits"
-#push-options "--z3rlimit 100"
-inline_for_extraction noextract
-fn scaled_dot_product_efficient_attention
-  (#et : Type0) {| floating et, real_like et, floating_real_like et |}
-  (n h : szp)
-  (l s : szp)
-  (e ev : szp)
-  (#lQ: tlayout    (n @| h @| l @| e @| INil) { is_full lQ }) // needed for tlayout_bij for now.
-  (#lK: tlayout    (n @| h @| s @| e @| INil) { is_full lK })
-  (#lV: tlayout    (n @| h @| s @| ev @| INil) { is_full lV })
-  (#lbias: tlayout (n @| h @| l @| s @| INil) { is_full lbias })
-  {| ctlayout lQ, ctlayout lK, ctlayout lV, ctlayout lbias |}
-  (gQ    : tensor et lQ    { is_global gQ    })
-  (gK    : tensor et lK    { is_global gK    })
-  (gV    : tensor et lV    { is_global gV    })
-  (gbias : tensor et lbias { is_global gbias })
-  (scale : et)
-  (#eQ : erased    (EM4.t et n h l e))
-  (#eK : erased    (EM4.t et n h s e))
-  (#eV : erased    (EM4.t et n h s ev))
-  (#ebias : erased (EM4.t et n h l s))
-  (#rKT : erased   (EM4.t real n h e s))
-  (#fQ #fK #fV #fbias : perm)
-  norewrite
-  preserves
-    cpu **
-    on gpu_loc (gQ    |-> Frac fQ eQ) **
-    on gpu_loc (gK    |-> Frac fK eK) **
-    on gpu_loc (gV    |-> Frac fV eV) **
-    on gpu_loc (gbias |-> Frac fbias ebias)
-  requires
-    pure (
-      SZ.fits (n * h * l * e) /\
-      SZ.fits (n * h * s * e)  /\
-      SZ.fits (n * h * s * ev)  /\
-      SZ.fits (n * h * l * ev)  /\ 
-      SZ.fits (n * h * l * s)  /\
-      SZ.fits (n * h * l) /\
-      (EM4.mkM (fun i j k l -> EM4.macc eK i j l k)) %~ rKT /\
-      l * s <= max_blocks * max_threads /\
-      l * ev <= max_blocks * max_threads /\
-      n * h * l <= max_blocks /\
-      n * h * l * s <= max_blocks * max_threads
+/// ───────────────────────── bias→scores layout-aware copy helpers ─────────────
+
+module TL = Kuiper.Tensor.Layout
+
+#push-options "--split_queries always --fuel 2 --ifuel 2 --z3rlimit 60"
+
+/// Logical lseq of a 1-D chest (mirror of Array1.backtr_val, defined publicly).
+let chest_to_seq1 (#et:Type) (#nn:nat) (c : CH.t (nn @| INil) et) : GTot (lseq et nn)
+  = Seq.init_ghost nn (fun (i:natlt nn) -> CH.acc c ((i, ()) <: abs (nn @| INil)))
+
+/// 1-D chest from an lseq (mirror of Array1.tr_val, defined publicly).
+let seq1_to_chest (#et:Type) (#nn:nat) (s : lseq et nn) : CH.t (nn @| INil) et
+  = CH.mk (nn @| INil) (fun (idx : abs (nn @| INil)) -> Seq.index s idx._1)
+
+let chest_seq1_roundtrip (#et:Type) (#nn:nat) (s : lseq et nn)
+  : Lemma (chest_to_seq1 (seq1_to_chest s) == s)
+  = introduce forall (i:natlt nn). Seq.index (chest_to_seq1 (seq1_to_chest s)) i == Seq.index s i
+    with (
+      Seq.init_ghost_index_ nn
+        (fun (j:natlt nn) -> CH.acc (seq1_to_chest s) ((j, ()) <: abs (nn @| INil))) i
+    );
+    Seq.lemma_eq_intro (chest_to_seq1 (seq1_to_chest s)) s
+
+let chest_to_seq1_index (#et:Type) (#nn:nat) (c : CH.t (nn @| INil) et) (i:natlt nn)
+  : Lemma (Seq.index (chest_to_seq1 c) i == CH.acc c ((i, ()) <: abs (nn @| INil)))
+  = Seq.init_ghost_index_ nn (fun (j:natlt nn) -> CH.acc c ((j, ()) <: abs (nn @| INil))) i
+
+/// Reverse roundtrip: re-chesting the logical sequence of a 1-D chest recovers it.
+let seq1_chest_roundtrip (#et:Type) (#nn:nat) (c : CH.t (nn @| INil) et)
+  : Lemma (seq1_to_chest (chest_to_seq1 c) == c)
+  = introduce forall (idx : abs (nn @| INil)).
+        CH.acc (seq1_to_chest (chest_to_seq1 c)) idx == CH.acc c idx
+    with (
+      chest_to_seq1_index c idx._1;
+      assert (idx == ((idx._1, ()) <: abs (nn @| INil)))
+    );
+    CH.lemma_equal_intro (seq1_to_chest (chest_to_seq1 c)) c;
+    CH.ext (seq1_to_chest (chest_to_seq1 c)) c
+
+/// The logical sequence [sb] of [aBias] (the chest produced by relaying [eb] through
+/// [bij_sym flat]) is the row-major flattening of [eb].
+let sb_flatten_char
+  (#et:Type)
+  (bnh bl bs : szp { SZ.fits (SZ.v bnh * SZ.v bl * SZ.v bs) /\ SZ.fits (SZ.v bl * SZ.v bs) })
+  (eb : EM3.t et bnh bl bs)
+  : Lemma
+    (ensures
+      (forall (r:natlt (SZ.v (bnh *^ bl *^ bs))).
+        Seq.index
+          (chest_to_seq1 (CH.mk ((bnh *^ bl *^ bs) @| INil)
+             (fun idx -> CH.acc eb ((bij_sym (fold_bij_l3 bnh bl bs)).ff idx))))
+          r
+        == CH.acc eb ((fold_bij_l3 bnh bl bs).gg ((r, ()) <: abs ((bnh *^ bl *^ bs) @| INil)))))
+  = let flat = fold_bij_l3 bnh bl bs in
+    let cb = CH.mk ((bnh *^ bl *^ bs) @| INil)
+               (fun idx -> CH.acc eb ((bij_sym flat).ff idx)) in
+    introduce forall (r:natlt (SZ.v (bnh *^ bl *^ bs))).
+      Seq.index (chest_to_seq1 cb) r
+      == CH.acc eb (flat.gg ((r, ()) <: abs ((bnh *^ bl *^ bs) @| INil)))
+    with ( chest_to_seq1_index cb r )
+
+/// Macc-indexed characterization of the row-major flattening: the flattened
+/// sequence at row-major position [i*(bl*bs)+j*bs+k] equals [EM3.macc eb i j k].
+let sb_macc_char
+  (#et:Type)
+  (bnh bl bs : szp { SZ.fits (SZ.v bnh * SZ.v bl * SZ.v bs) /\ SZ.fits (SZ.v bl * SZ.v bs) })
+  (eb : EM3.t et bnh bl bs)
+  : Lemma
+    (ensures
+      (forall (i:natlt (SZ.v bnh)) (j:natlt (SZ.v bl)) (k:natlt (SZ.v bs)).
+        Seq.index
+          (chest_to_seq1 (CH.mk ((bnh *^ bl *^ bs) @| INil)
+             (fun idx -> CH.acc eb ((bij_sym (fold_bij_l3 bnh bl bs)).ff idx))))
+          ((i * (SZ.v bl * SZ.v bs) + j * SZ.v bs + k) <: natlt (SZ.v (bnh *^ bl *^ bs)))
+        == EM3.macc eb i j k))
+  = let flat = fold_bij_l3 bnh bl bs in
+    sb_flatten_char bnh bl bs eb;
+    let cb = CH.mk ((bnh *^ bl *^ bs) @| INil)
+               (fun idx -> CH.acc eb ((bij_sym flat).ff idx)) in
+    introduce forall (i:natlt (SZ.v bnh)) (j:natlt (SZ.v bl)) (k:natlt (SZ.v bs)).
+        Seq.index (chest_to_seq1 cb)
+          ((i * (SZ.v bl * SZ.v bs) + j * SZ.v bs + k) <: natlt (SZ.v (bnh *^ bl *^ bs)))
+        == EM3.macc eb i j k
+    with (
+      let idx3 : abs (bnh @| bl @| bs @| INil) = (i,(j,(k,()))) in
+      let r : natlt (SZ.v (bnh *^ bl *^ bs)) = i * (SZ.v bl * SZ.v bs) + j * SZ.v bs + k in
+      assert (flat.ff idx3 == ((r, ()) <: abs ((bnh *^ bl *^ bs) @| INil)));
+      // bij_inv_fwd SMTPat gives flat.gg (flat.ff idx3) == idx3, hence flat.gg (r,()) == idx3
+      assert (flat.gg ((r, ()) <: abs ((bnh *^ bl *^ bs) @| INil)) == idx3);
+      ()
     )
-  returns
-    // TODO: polymorphic out & LSE layout
-    out : tensor et (l4_batched_row_major n h l ev) & 
-          tensor et (l3_batched_row_major n h l)
+
+let ulen_eq_l1_l3 (bnh bl bs : szp { SZ.fits (SZ.v bnh * SZ.v bl * SZ.v bs) })
+  : squash (tlayout_ulen (l1_forward (bnh *^ bl *^ bs))
+            == tlayout_ulen (l3_batched_row_major bnh bl bs))
+  = assert (is_full (l1_forward (bnh *^ bl *^ bs)));
+    assert (is_full (l3_batched_row_major bnh bl bs));
+    full_layout_size (l1_forward (bnh *^ bl *^ bs));
+    full_layout_size (l3_batched_row_major bnh bl bs)
+
+/// The tensor-level [to_seq] of a 1-D chest equals the array1-level [to_seq]
+/// of its logical sequence: both reduce to [c] at the inverse-image index.
+let to_seq1_eq (#et:Type) (#nn:nat) (lA : A1.full_layout nn) (c : CH.t (nn @| INil) et)
+  : Lemma (TL.to_seq lA c == A1.to_seq lA (chest_to_seq1 c))
+  = let lhs = TL.to_seq lA c in
+    let rhs = A1.to_seq lA (chest_to_seq1 c) in
+    introduce forall (i:natlt nn). Seq.index lhs i == Seq.index rhs i
+    with (
+      Seq.init_ghost_index_ nn
+        (fun (j:natlt nn) -> (c.f (Kuiper.Injection.inverse_f lA.imap j)))
+        i;
+      let x = Kuiper.Injection.inverse_f lA.imap i in
+      Seq.init_ghost_index_ nn
+        (fun (j:natlt nn) ->
+           (let y = Kuiper.Injection.inverse_f lA.imap j in
+            Seq.index (chest_to_seq1 c) y._1))
+        i;
+      Seq.init_ghost_index_ nn
+        (fun (j:natlt nn) -> CH.acc c ((j, ()) <: abs (nn @| INil)))
+        x._1;
+      assert (x == ((x._1, ()) <: abs (nn @| INil)))
+    );
+    Seq.lemma_eq_intro lhs rhs
+
+/// Bridge: tensor [pts_to] (chest) of a 1-D-descriptor tensor to array1 [pts_to]
+/// (lseq), establishing the A1 resource on the fresh handle [A1.from_array lA (core a)]
+/// over the same physical core. We keep everything on [Tensor.core]/[A1.from_array]
+/// (never equating [Tensor.core] with the abstract [A1.core]).
+ghost
+fn tensor1_to_a1
+  (#et:Type) (#nn:nat)
+  (lA : A1.full_layout nn)
+  (a : tensor et lA)
+  (aTarget : A1.t et lA { aTarget == A1.from_array lA (core a) })
+  (#f:perm) (#c : CH.t (nn @| INil) et)
+  requires
+    on gpu_loc (tensor_pts_to a #f c)
   ensures
-    (exists* (eO : EM4.t et n h l ev) (eLSE : EM3.t et n h l).
-      on gpu_loc (fst out |-> eO) **
-      on gpu_loc (snd out |-> eLSE) **
-      pure (
-        let out_spec, lse_spec = attention_real_batched
-            (EM4.to_real_matrix eQ)
-            rKT
-            (EM4.to_real_matrix eV)
-            (EM4.to_real_matrix ebias)
-            (to_real scale) in
-          eO %~ out_spec /\ eLSE %~ lse_spec)) **
-    pure (is_global (fst out) /\ is_global (snd out)) {
-
-  map_loc gpu_loc (fun () -> tensor_pts_to_ref gQ);
-  map_loc gpu_loc (fun () -> tensor_pts_to_ref gK);
-  map_loc gpu_loc (fun () -> tensor_pts_to_ref gV);
-  map_loc gpu_loc (fun () -> tensor_pts_to_ref gbias);
-  
-  let rQ = EM4.to_real_matrix eQ;
-  let rV = EM4.to_real_matrix eV;
-  let rbias = EM4.to_real_matrix ebias;
-
-  // Transpose K via ghost
-  let f_transpose = transpose4_2 #n #h #s #e; 
-  let gKT: tensor et (tlayout_bij f_transpose lK) = from_array (tlayout_bij f_transpose lK) (core gK);
-  assert rewrites_to gKT (from_array (tlayout_bij f_transpose lK) (core gK));
-  map_loc gpu_loc (fun () -> tensor_apply_bij f_transpose gK #fK);
-  let eKT = CH.mk (n @| h @| e @| s @| INil) (fun i -> CH.acc eK (i <~| f_transpose));
-  assert on gpu_loc (gKT |-> Frac fK eKT);
-  assert pure (eKT %~ rKT);
-
-  // Fold 2 batch dimensions of K^T, Q, V, bias into one (N * H)
-  let gKTf, eKTf, rKTf = fold4_to_3 gKT #fK #eKT #rKT;
-  let gQf, eQf, rQf = fold4_to_3 gQ #fQ #eQ #rQ;
-  let gVf, eVf, rVf = fold4_to_3 gV #fV #eV #rV;
-  let gbiasf, ebiasf, rbiasf = fold4_to_3 gbias #fbias #ebias #rbias;
-
-  let gS = alloc0 #et (n *^ h *^ l *^ s) (l3_batched_row_major (n*^h) l s);
-  with eS. assert on gpu_loc (gS |-> eS);
-
-  let lKT : tlayout (n @| h @| e @| s @| INil) = tlayout_bij f_transpose lK;
-  let ctlKT : ctlayout lKT = ctlayout_bij f_transpose lK;
-  bmmcomb_gpu_exact #et (fun bias_qk score -> (bias_qk `add` score) `mul` scale) 
-    (n*^h) l e s #_ #_ #_ #(ctlayout_bij fold_bij lQ) #(ctlayout_bij fold_bij lKT) #_ gQf gKTf gS;
-  with eS'. assert on gpu_loc (gS |-> (eS' <: EM3.t et (n *^ h) l s));
-
-  let rS': EM3.t real (n *^ h) l s = MS.bmmcomb 
-    (fun bias_qk score -> (bias_qk +. score) *. (to_real scale))
-    rbiasf rQf rKTf;
-  assume pure ((eS' <: EM3.t et (n *^ h) l s) %~ rS'); // TODO
-
-  assert pure (is_full_array (core gS));
-  let gSf, eSf, rSf = fold3_to_2 gS #_ #eS' #rS';
-
-  // TODO: could fuse some `f` with the sums in this kernel, for the log step
-  let sums = row_softmax_gpu_with_sum (n *^ h *^ l) s 
-    #(tlayout_fold_outer (l3_batched_row_major (n*^h) l s))
-    #(ctlayout_bij fold_bij (l3_batched_row_major (n*^h) l s))
-    gSf rSf;
-  with esums. assert on gpu_loc (sums |-> esums);
-  assert pure (esums %~ Seq.init_ghost (n *^ h *^ l) (fun i -> rsum (lseq_map exp (ematrix_row rSf i))));
-  map_gpu flog (n *^ h *^ l) sums;
-  with esums'. assert on gpu_loc (sums |-> esums');
-  assert pure (esums' == lseq_map flog esums);
-  // causes z3 assertion violation (just typechecking the proposition, not proving it).. TODO
-  // assume pure (
-  //   ((Seq.init_ghost #real (n *^ h *^ l) (fun i -> log (rsum (lseq_map exp (ematrix_row rSf i))))) <: lseq real (n *^ h *^ l)) 
-  //   == 
-  //   lseq_map #real #real log (Seq.init_ghost #(r: real {r >. 0.0R}) (n *^ h *^ l) (fun i -> 
-  //     rsum (lseq_map exp (ematrix_row rSf i)) <: (r: real {r >. 0.0R}))));
-  assume pure (esums' %~ Seq.init_ghost (n *^ h *^ l) (fun i -> log (rsum (lseq_map exp (ematrix_row rSf i))))); // TODO
-  // sums is LSE now.
-
-  let gS, eS, rS = unfold2_to_3 gSf #_ #_ #(row_softmax_real rSf);
-
-  let gO = alloc0 #et (n *^ h *^ l *^ ev) (l3_batched_row_major (n*^h) l ev);
-  with eO. assert on gpu_loc (gO |-> eO);
-
-  bmmcomb_gpu_exact #et MS.comb2 
-    (n*^h) l s ev #_ #_ #_ #_ #(ctlayout_bij fold_bij lV) #_ gS gVf gO;
-
-  // is_full_array (core gS) now provided by unfold2_to_3's strengthened ensures
-  free gS;
-
-  // ===== restore the preserved 4D inputs (preserves clause) =====
-  restore_fold4 gQ gQf #fQ #_ #(reveal eQ);
-  restore_fold4 gV gVf #fV #_ #(reveal eV);
-  restore_fold4 gbias gbiasf #fbias #_ #(reveal ebias);
-  // K: undo the outer fold, then undo the transpose
-  restore_fold4 gKT gKTf #fK #_ #eKT;
-  FStar.Classical.forall_intro (untranspose_imap_hyp f_transpose lK);
-  FStar.Classical.forall_intro (kt_chest_eq n h s e (reveal eK) f_transpose);
-  gpu_relayout_to lK f_transpose () gKT gK #fK #eKT;
-  CH.lemma_equal_intro (reveal eK)
-    (CH.mk (n @| h @| s @| e @| INil) (fun idx -> CH.acc eKT (f_transpose.ff idx)));
-  CH.ext (reveal eK)
-    (CH.mk (n @| h @| s @| e @| INil) (fun idx -> CH.acc eKT (f_transpose.ff idx)));
-  rewrite (on gpu_loc (gK |-> Frac fK (CH.mk (n @| h @| s @| e @| INil)
-                                         (fun idx -> CH.acc eKT (f_transpose.ff idx)))))
-       as (on gpu_loc (gK |-> Frac fK (reveal eK)));
-
-  // ===== output tensor: relayout gO (3D (n*h) l ev) to 4D (n h l ev) =====
-  let eOreal : EM3.t et (n*^h) l ev = MS.bmmcomb MS.comb2 eO eS eVf;
-  let gO4 : tensor et (l4_batched_row_major n h l ev) =
-    from_array (l4_batched_row_major n h l ev) (core gO);
-  assert rewrites_to gO4 (from_array (l4_batched_row_major n h l ev) (core gO));
-  imap_hyp_l4_all n h l ev;
-  gpu_relayout_to (l4_batched_row_major n h l ev) (fold_bij_l4 n h l ev)
-    (ulen_eq_l3l4 n h l ev) gO gO4 #_ #eOreal;
-  let eO4 : EM4.t et n h l ev =
-    CH.mk (n @| h @| l @| ev @| INil) (fun idx -> CH.acc eOreal ((fold_bij_l4 n h l ev).ff idx));
-  // functional correctness of the output tensor
-  relayout4_macc_all #et n h l ev eOreal;
-  out_approx_all #et n h l s e ev eO4 eS eVf rQ rKT rV rbias (to_real scale);
-
-  // ===== LSE tensor: flatten array1 -> 3D (n h l) =====
-  FStar.Math.Lemmas.paren_mul_right (SZ.v n) (SZ.v h) (SZ.v l);
-  FStar.Math.Lemmas.lemma_mult_le_right (SZ.v h * SZ.v l) 1 (SZ.v n);
-  assert pure (SZ.fits (SZ.v h * SZ.v l));
-  let gLSE : tensor et (l3_batched_row_major n h l) =
-    from_array (l3_batched_row_major n h l) (A1.core sums);
-  assert rewrites_to gLSE (from_array (l3_batched_row_major n h l) (A1.core sums));
-  array1_to_3d_u n h l sums gLSE #_ #esums';
-  with s3. assert on gpu_loc (gLSE |-> (s3 <: EM3.t et n h l));
-  lse_approx_all #et n h l s e ev s3 esums' rQ rKT rV rbias (to_real scale);
-
-  // bridge the per-page specs (from out_approx_all / lse_approx_all) to the
-  // batched spec [attention_real_batched] used by the interface.
-  attention_real_batched_unfold #(SZ.v n) #(SZ.v h) #(SZ.v l) #(SZ.v s) #(SZ.v e) #(SZ.v ev)
-    (EM4.to_real_matrix eQ) rKT (EM4.to_real_matrix eV) (EM4.to_real_matrix ebias) (to_real scale);
-
-  // is_global facts
-  assert pure (is_global gO4);
-  assert pure (is_global gLSE);
-
-  (gO4, gLSE)
+    on gpu_loc (A1.pts_to aTarget #f (chest_to_seq1 c))
+{
+  map_loc gpu_loc
+    #(tensor_pts_to a #f c)
+    #(A1.pts_to aTarget #f (chest_to_seq1 c))
+    fn () {
+      tensor_concr a #c #f;
+      to_seq1_eq lA c;
+      rewrite (core a |-> Frac f (TL.to_seq lA c))
+           as (core a |-> Frac f (A1.to_seq lA (chest_to_seq1 c)));
+      A1.raise lA (core a) #f #(chest_to_seq1 c);
+      rewrite (A1.from_array lA (core a) |-> Frac f (chest_to_seq1 c))
+           as (A1.pts_to aTarget #f (chest_to_seq1 c));
+    };
 }
 
+/// Bridge: array1 [pts_to] (lseq) of a 1-D-descriptor array to tensor [pts_to]
+/// (chest), establishing the tensor resource on the supplied handle [gTarget]
+/// (which must equal [from_array lA (A1.core a)]) over the same physical core. We
+/// keep everything on [A1.core]/[Tensor.from_array].
+ghost
+fn a1_to_tensor1
+  (#et:Type) (#nn:nat)
+  (lA : A1.full_layout nn)
+  (a : A1.t et lA)
+  (gTarget : tensor et lA { gTarget == from_array lA (A1.core a) })
+  (#f:perm) (#s : lseq et nn)
+  requires
+    on gpu_loc (A1.pts_to a #f s)
+  ensures
+    on gpu_loc (tensor_pts_to gTarget #f (seq1_to_chest s))
+{
+  map_loc gpu_loc
+    #(A1.pts_to a #f s)
+    #(tensor_pts_to gTarget #f (seq1_to_chest s))
+    fn () {
+      A1.lower a #f #s;
+      to_seq1_eq lA (seq1_to_chest s);
+      chest_seq1_roundtrip s;
+      rewrite (A1.core a |-> Frac f (A1.to_seq lA s))
+           as (A1.core a |-> Frac f (TL.to_seq lA (seq1_to_chest s)));
+      tensor_abs lA (A1.core a) #f #(seq1_to_chest s);
+      rewrite (from_array lA (A1.core a) |-> Frac f (seq1_to_chest s))
+           as (tensor_pts_to gTarget #f (seq1_to_chest s));
+    };
+}
+
+let lseq_map_id (#et:Type) (#nn:nat) (s : lseq et nn)
+  : Lemma (lseq_map (fun (x:et) -> x) s == s)
+  = introduce forall (i:natlt nn). Seq.index (lseq_map (fun (x:et) -> x) s) i == Seq.index s i
+    with Seq.init_ghost_index_ nn (fun (j:natlt nn) -> (fun (x:et) -> x) (Seq.index s j)) i;
+    Seq.lemma_eq_intro (lseq_map (fun (x:et) -> x) s) s
+
+/// [(tlayout_bij g l).imap] applied to an arbitrary index equals [l.imap] at the
+/// inverse-mapped index (just unfolds inj_comp; no roundtrip needed).
+let bij_self_imap
+  (#r1 #r2:nat) (#d1:idesc r1) (#d2:idesc r2)
+  (g : abs d1 =~ abs d2) (l : tlayout d1) (idx : abs d2)
+  : Lemma ((tlayout_bij g l).imap.f idx == l.imap.f (g.gg idx))
+  = ()
+
+/// The chest produced by relaying a row-major-flattened 1-D chest back to the
+/// 3-D row-major descriptor recovers the original 3-D chest, provided the 1-D
+/// sequence is exactly the row-major flattening of [eb].
+let post_relayout_chest_eq
+  (#et:Type)
+  (bnh bl bs : szp { SZ.fits (SZ.v bnh * SZ.v bl * SZ.v bs) /\ SZ.fits (SZ.v bl * SZ.v bs) })
+  (flatb : (abs (bnh @| bl @| bs @| INil) =~ abs ((bnh *^ bl *^ bs) @| INil)))
+  (s : lseq et (bnh *^ bl *^ bs))
+  (eb : CH.t (bnh @| bl @| bs @| INil) et)
+  : Lemma
+    (requires
+      (forall (i:natlt (SZ.v (bnh *^ bl *^ bs))).
+        Seq.index s i == CH.acc eb (flatb.gg ((i, ()) <: abs ((bnh *^ bl *^ bs) @| INil)))))
+    (ensures
+      CH.mk (bnh @| bl @| bs @| INil)
+        (fun idx -> CH.acc (seq1_to_chest s) (flatb.ff idx))
+      == eb)
+  = introduce forall (idx : abs (bnh @| bl @| bs @| INil)).
+        CH.acc (CH.mk (bnh @| bl @| bs @| INil)
+                  (fun idx -> CH.acc (seq1_to_chest s) (flatb.ff idx))) idx
+        == CH.acc eb idx
+    with (
+      let q : natlt (SZ.v (bnh *^ bl *^ bs)) = (flatb.ff idx)._1 in
+      assert (flatb.ff idx == ((q, ()) <: abs ((bnh *^ bl *^ bs) @| INil)));
+      // bij roundtrip: flatb.gg (flatb.ff idx) == idx
+      assert (flatb.gg (flatb.ff idx) == idx);
+      // requires instantiated at i = q
+      assert (Seq.index s q
+              == CH.acc eb (flatb.gg ((q, ()) <: abs ((bnh *^ bl *^ bs) @| INil))));
+      // acc of seq1_to_chest at (q,()) is s.[q]
+      assert (CH.acc (seq1_to_chest s) ((q, ()) <: abs ((bnh *^ bl *^ bs) @| INil))
+              == Seq.index s q);
+      // chain everything to the goal explicitly
+      assert (flatb.gg ((q, ()) <: abs ((bnh *^ bl *^ bs) @| INil)) == idx)
+    );
+    CH.lemma_equal_intro (CH.mk (bnh @| bl @| bs @| INil)
+                  (fun idx -> CH.acc (seq1_to_chest s) (flatb.ff idx))) eb;
+    CH.ext (CH.mk (bnh @| bl @| bs @| INil)
+                  (fun idx -> CH.acc (seq1_to_chest s) (flatb.ff idx))) eb
+
+/// EM (2-D) approximation eliminates to per-element.
+let approx2_macc (#et:Type) {| scalar et, real_like et |} (#d0 #d1:nat)
+  (e : EM.ematrix et d0 d1) (r : EM.ematrix real d0 d1)
+  (i:natlt d0) (j:natlt d1)
+  : Lemma (requires e %~ r) (ensures EM.macc e i j %~ EM.macc r i j)
+  = assert (Kuiper.Chest.chest_approximates e r)
+
+/// Approximation congruence for the per-page batched gemm-with-comb spec.
+let bmmcomb_approx
+  (#et:Type) {| scalar et, real_like et |}
+  (comb : binop et) (comb_r : binop real)
+  (#batch #rows #shared #cols : nat)
+  (ec : EM3.t et batch rows cols) (rc : EM3.t real batch rows cols)
+  (ea : EM3.t et batch rows shared) (ra : EM3.t real batch rows shared)
+  (eb : EM3.t et batch shared cols) (rb : EM3.t real batch shared cols)
+  : Lemma
+    (requires approx2 comb comb_r /\ ec %~ rc /\ ea %~ ra /\ eb %~ rb)
+    (ensures MS.bmmcomb comb ec ea eb %~ MS.bmmcomb comb_r rc ra rb)
+  = let le = MS.bmmcomb comb ec ea eb in
+    let lr = MS.bmmcomb comb_r rc ra rb in
+    introduce forall (i:natlt batch) (j:natlt rows) (k:natlt cols).
+      EM3.macc le i j k %~ EM3.macc lr i j k
+    with (
+      slice3_approx ec rc i;
+      slice3_approx ea ra i;
+      slice3_approx eb rb i;
+      GU.mmcomb_approx_real comb comb_r
+        (EM3.slice_page ec i) (EM3.slice_page ea i) (EM3.slice_page eb i)
+        (EM3.slice_page ra i) (EM3.slice_page rb i) (EM3.slice_page rc i);
+      approx2_macc
+        (MS.mmcomb comb (EM3.slice_page ec i) (EM3.slice_page ea i) (EM3.slice_page eb i))
+        (MS.mmcomb comb_r (EM3.slice_page rc i) (EM3.slice_page ra i) (EM3.slice_page rb i))
+        j k
+    );
+    EM3.lemma_approximates_intro le lr
+
+#pop-options
 
 #pop-options

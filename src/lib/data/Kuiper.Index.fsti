@@ -15,6 +15,7 @@ type idesc : nat -> Type =
 
 unfold let ( @| ) (#n:nat) = ICons #n
 
+// TODO: these annotations were added by the agent to extract attention.. is this right?
 inline_for_extraction noextract
 let head (#n:pos) (d : idesc n) : GTot nat =
   match d with

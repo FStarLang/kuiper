@@ -1,4 +1,4 @@
-module Kuiper.Kernel.Attention
+module Kuiper.Kernel.SDPA.LSE
 
 #lang-pulse
 open Kuiper
@@ -30,14 +30,13 @@ open Kuiper.Kernel.HReduce.Block
 open Kuiper.Kernel.Map
 open Kuiper.ForEvery
 
-open Kuiper.Kernel.Attention.Helpers
+open Kuiper.Kernel.SDPA.LSE.Util
 
 module TL = Kuiper.Tensor.Layout
 
-//#push-options "--print_implicits"
 #push-options "--split_queries always --z3rlimit 20"
 inline_for_extraction noextract
-fn sdpa_naive
+fn sdpa_lse_naive
   (#et : Type0) {| floating et, real_like et, floating_real_like et |}
   (n h : szp)
   (l s : szp)
@@ -90,7 +89,7 @@ fn sdpa_naive
       on gpu_loc (fst out |-> eO) **
       on gpu_loc (snd out |-> eLSE) **
       pure (
-        let out_spec, lse_spec = attention_real_batched
+        let out_spec, lse_spec = attention_real_batched_lse
             (EM4.to_real_matrix eQ)
             rKT
             (EM4.to_real_matrix eV)
@@ -319,8 +318,8 @@ fn sdpa_naive
   lse_approx_all_from_sums #et n h l s e ev s3 esums esums' rQ rKT rV rbias (to_real scale);
 
   // bridge the per-page specs (from out_approx_all / lse_approx_all) to the
-  // batched spec [attention_real_batched] used by the interface.
-  attention_real_batched_unfold #(SZ.v n) #(SZ.v h) #(SZ.v l) #(SZ.v s) #(SZ.v e) #(SZ.v ev)
+  // batched spec [attention_real_batched_lse] used by the interface.
+  attention_real_batched_lse_unfold #(SZ.v n) #(SZ.v h) #(SZ.v l) #(SZ.v s) #(SZ.v e) #(SZ.v ev)
     (EM4.to_real_matrix eQ) rKT (EM4.to_real_matrix eV) (EM4.to_real_matrix ebias) (to_real scale);
 
   // is_global facts

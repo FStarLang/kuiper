@@ -1,6 +1,3 @@
-// TEMPORARY - MERGE INTO APPROPRIATE PLACES IN Kuiper.Tensor, Kuiper.Chest, etc.
-// Or rewrite EMatrix2, EMatrix3, etc. to be defined with CH.t
-
 module Kuiper.Spec.Attention
 #lang-pulse
 open Kuiper
@@ -33,6 +30,10 @@ let attn_scores
   : chest (l @| s @| INil) real
   = chest_comb (fun bias_qk score -> (bias_qk +. score) *. scale) bias (MS.matmul eQ eK)
 
+
+(* Specs for attention with log-sum-exp. 
+ LATER: just separate the LSE stuff out so we aren't dealing with tuples & etc. *)
+
 (* row-wise log sum exp of scores *)
 let attn_lse
   (#l #s : pos)
@@ -41,7 +42,7 @@ let attn_lse
   = Seq.init_ghost l (fun i -> log (rsum (seq_map exp (ematrix_row scores i))))
 
 (* Top-level real-valued spec: (output, log-sum-exp) given real inputs. *)
-let attention_real
+let attention_real_lse
   (#l #s #e #ev : pos)
   (eQ : ematrix real l e)
   (eK : ematrix real e s)
@@ -55,7 +56,7 @@ let attention_real
     let lse    = attn_lse scores in
     (out, lse)
 
-let attention_real_batched
+let attention_real_batched_lse
   (#n #h #l #s #e #ev : pos)
   (rQ : chest (n @| h @| l @| e @| INil) real)
   (rKT : chest (n @| h @| e @| s @| INil) real)
@@ -63,7 +64,7 @@ let attention_real_batched
   (rbias : chest (n @| h @| l @| s @| INil) real)
   (scale : real)
   : GTot (chest (n @| h @| l @| ev @| INil) real & chest (n @| h @| l @| INil) real)
-  = let attn_tile = fun i j -> attention_real
+  = let attn_tile = fun i j -> attention_real_lse
             (EM4.slice_page rQ i j)
             (EM4.slice_page rKT i j)
             (EM4.slice_page rV i j)
