@@ -372,14 +372,105 @@ let kpre_post_outer_fa
   (gl : M.array2 et ll { M.is_global gl })
   (gm : M.array2 et lm { M.is_global gm })
   (eK eV eQ : ematrix et n d)
-  (#fK #fV #fQ : perm)
-  (tid: szlt nthr)
+  (fK fV fQ : perm)
+  (tid: natlt nthr)
   : slprop =
   (gK |-> Frac (fK /. nthr) eK) **
   (gV |-> Frac (fV /. nthr) eV) **
   (gQ |-> Frac (fQ /. nthr) eQ) **
   (exists* (eS : ematrix et nthr nthr) (eO : ematrix et n d) (el: ematrix et 1 n) (em: ematrix et 1 n). 
-    array2_subtile gS 1 (SZ.v nthr) (SZ.v tid) 0 |-> ematrix_subtile eS 1 (SZ.v nthr) (SZ.v tid) 0 **
-    array2_stride_subtile gl 1 (SZ.v nthr) 0 (SZ.v tid) |-> ematrix_stride_subtile em 1 (SZ.v nthr) 0 (SZ.v tid) **
-    array2_stride_subtile gm 1 (SZ.v nthr) 0 (SZ.v tid) |-> ematrix_stride_subtile em 1 (SZ.v nthr) 0 (SZ.v tid) **
-    array2_stride_subtile gO (SZ.v nthr) 1 (SZ.v tid) 0 |-> ematrix_stride_subtile eO (SZ.v nthr) 1 (SZ.v tid) 0)
+    array2_subtile gS 1 (SZ.v nthr) tid 0 |-> ematrix_subtile eS 1 (SZ.v nthr) tid 0 **
+    array2_stride_subtile gl 1 (SZ.v nthr) 0 tid |-> ematrix_stride_subtile el 1 (SZ.v nthr) 0 tid **
+    array2_stride_subtile gm 1 (SZ.v nthr) 0 tid |-> ematrix_stride_subtile em 1 (SZ.v nthr) 0 tid **
+    array2_stride_subtile gO (SZ.v nthr) 1 tid 0 |-> ematrix_stride_subtile eO (SZ.v nthr) 1 tid 0)
+
+(* The full (untiled) global-memory resources the kernel owns.  Since the
+   kernel has no functional spec, the post is identical to the pre with O/l/m
+   merely live.  Used as both [full_pre] and [full_post] of the kernel_desc. *)
+unfold
+let full_io_fa
+  (#et : Type0) {| scalar et, floating et |}
+  (n d nthr : szp { nthr /? n /\ SZ.fits (nthr * nthr) })
+  (#lS: M.layout nthr nthr)
+  (#lK #lV #lQ #lO: M.layout n d)
+  (#ll #lm: M.layout 1 n)
+  {| ctlayout lS, ctlayout lK, ctlayout lV, ctlayout lQ, ctlayout lO, ctlayout ll, ctlayout lm |}
+  (gS : M.array2 et lS { M.is_global gS })
+  (gK : M.array2 et lK { M.is_global gK })
+  (gV : M.array2 et lV { M.is_global gV })
+  (gQ : M.array2 et lQ { M.is_global gQ })
+  (gO : M.array2 et lO { M.is_global gO })
+  (gl : M.array2 et ll { M.is_global gl })
+  (gm : M.array2 et lm { M.is_global gm })
+  (eK eV eQ : ematrix et n d)
+  (fK fV fQ : perm)
+  : slprop =
+  (gK |-> Frac fK eK) ** (gV |-> Frac fV eV) ** (gQ |-> Frac fQ eQ) **
+  live gS ** live gO ** live gl ** live gm
+
+(* Pure side-conditions carried across the kernel launch (needed to
+   re-assemble the tiled write-side matrices in teardown). *)
+unfold
+let frame_fa
+  (n d nthr : szp)
+  (lS: M.layout nthr nthr)
+  (lO: M.layout n d)
+  (ll lm: M.layout 1 n)
+  : slprop =
+  pure (SZ.fits (M.layout_size lS) /\ SZ.fits (M.layout_size lO) /\
+        SZ.fits (M.layout_size ll) /\ SZ.fits (M.layout_size lm))
+
+(* Split the full resources into per-thread strided sub-views. *)
+ghost
+fn setup_fa
+  (#et : Type0) {| scalar et, floating et |}
+  (n d nthr : szp { nthr /? n /\ SZ.fits (nthr * nthr) })
+  (#lS: M.layout nthr nthr)
+  (#lK #lV #lQ #lO: M.layout n d)
+  (#ll #lm: M.layout 1 n)
+  {| ctlayout lS, ctlayout lK, ctlayout lV, ctlayout lQ, ctlayout lO, ctlayout ll, ctlayout lm |}
+  (gS : M.array2 et lS { M.is_global gS })
+  (gK : M.array2 et lK { M.is_global gK })
+  (gV : M.array2 et lV { M.is_global gV })
+  (gQ : M.array2 et lQ { M.is_global gQ })
+  (gO : M.array2 et lO { M.is_global gO })
+  (gl : M.array2 et ll { M.is_global gl })
+  (gm : M.array2 et lm { M.is_global gm })
+  (eK eV eQ : ematrix et n d)
+  (#fK #fV #fQ : perm)
+  ()
+  norewrite
+  requires
+    full_io_fa n d nthr gS gK gV gQ gO gl gm eK eV eQ fK fV fQ
+  ensures
+    (forall+ (tid : natlt nthr).
+       kpre_post_outer_fa n d nthr gS gK gV gQ gO gl gm eK eV eQ fK fV fQ tid) **
+    frame_fa n d nthr lS lO ll lm
+
+(* Re-assemble the per-thread strided sub-views back into the full
+   resources (write-side matrices end up merely live). *)
+ghost
+fn teardown_fa
+  (#et : Type0) {| scalar et, floating et |}
+  (n d nthr : szp { nthr /? n /\ SZ.fits (nthr * nthr) })
+  (#lS: M.layout nthr nthr)
+  (#lK #lV #lQ #lO: M.layout n d)
+  (#ll #lm: M.layout 1 n)
+  {| ctlayout lS, ctlayout lK, ctlayout lV, ctlayout lQ, ctlayout lO, ctlayout ll, ctlayout lm |}
+  (gS : M.array2 et lS { M.is_global gS })
+  (gK : M.array2 et lK { M.is_global gK })
+  (gV : M.array2 et lV { M.is_global gV })
+  (gQ : M.array2 et lQ { M.is_global gQ })
+  (gO : M.array2 et lO { M.is_global gO })
+  (gl : M.array2 et ll { M.is_global gl })
+  (gm : M.array2 et lm { M.is_global gm })
+  (eK eV eQ : ematrix et n d)
+  (#fK #fV #fQ : perm)
+  ()
+  norewrite
+  requires
+    (forall+ (tid : natlt nthr).
+       kpre_post_outer_fa n d nthr gS gK gV gQ gO gl gm eK eV eQ fK fV fQ tid) **
+    frame_fa n d nthr lS lO ll lm
+  ensures
+    full_io_fa n d nthr gS gK gV gQ gO gl gm eK eV eQ fK fV fQ

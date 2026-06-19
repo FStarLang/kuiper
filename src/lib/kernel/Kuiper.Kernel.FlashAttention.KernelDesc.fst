@@ -1,24 +1,21 @@
 module Kuiper.Kernel.FlashAttention.KernelDesc
 
 (* ─────────────────────────────────────────────────────────────────────────
-   kernel_desc and host launch.
+   kernel_desc setup / teardown for FlashAttention.
 
-   Configuration: 1 block, [br] threads.  We require [bc == br] so that
-   every thread id [tid : szlt br] is also valid as [szlt bc] (the
-   [flashattention_kf_no_smem] function refines [tid] by both bounds).
+   Configuration: 1 block, [nthr] threads, [bc == br == nthr].  No shared
+   memory, no barriers.
 
-   Per-thread resources (in [kpre tid]):
-     - [gK |-> Frac (fK /. br) eK]                         (sharded)
-     - [gV |-> Frac (fV /. br) eV]                         (sharded)
-     - [gQ |-> Frac (fQ /. br) eQ]                         (sharded)
-     - per-thread strided sub-views [gOt, glt, gmt]
-       (rows {i*br + tid for i = 0..n/br}).
-     - row [tid] of the shmem S matrix, viewed as the [array1] [gSt].
+   Per-thread resources (in [kpre_post_outer_fa tid]):
+     - [gK |-> Frac (fK /. nthr) eK]                      (sharded, read-only)
+     - [gV |-> Frac (fV /. nthr) eV]                      (sharded, read-only)
+     - [gQ |-> Frac (fQ /. nthr) eQ]                      (sharded, read-only)
+     - row [tid] of gS (contiguous)                       (scratch)
+     - strided rows {i*nthr + tid} of gO                  (output)
+     - strided columns {j*nthr + tid} of gl, gm           (stats)
 
-   The strided extraction of (n/br) rows starting at offset tid with
-   stride br is non-trivial; the ghost proofs are stubbed with [admit()]
-   for now. The host wrapper, [flashattention_launch], wires everything
-   into [launch_sync].
+   [setup_fa] / [teardown_fa] split / reassemble the full global resources
+   into these per-thread strided sub-views.
    ───────────────────────────────────────────────────────────────────── *)
 
 #lang-pulse
@@ -36,7 +33,6 @@ module SZ = Kuiper.SizeT
 module Trade = Pulse.Lib.Trade
 module Array1 = Kuiper.Array1
 open Kuiper.Array1
-open Kuiper.SHMem
 open Kuiper.Index
 open Pulse.Lib.Trade { (@==>) }
 
@@ -521,172 +517,242 @@ fn array2_extract_stride_tile_ro'
 }
 
 
-(* The shmem layout we use for S: a single [SHArray et (bc * br)] viewed
-   as a [br * bc] row-major matrix, so that row [tid] is the per-thread
-   scratch slice expected by [flashattention_kf_no_smem]. *)
 
-inline_for_extraction noextract
-let fa_shmems (et : Type0) {| Kuiper.Sized.sized et |}
-  (bc br : szp { SZ.fits (bc * br) })
-  : list shmem_desc
-  = [SHArray et (bc *^ br)]
+(* ─────────────────────────────────────────────────────────────────────────
+   kernel_desc setup / teardown.
 
-(* The Array2 layout we use to view the S shmem array. *)
-inline_for_extraction noextract
-let fa_lS (bc br : szp) : M.layout br bc = l2_row_major br bc
+   1 block, [nthr] threads, [bc == br == nthr].  We split the full global
+   resources into the per-thread strided sub-views of [kpre_post_outer_fa]:
+     - gK/gV/gQ : fractionally shared (read only) among the [nthr] threads;
+     - gS       : per-thread (contiguous) row [tid]              (scratch);
+     - gO       : per-thread strided rows {i*nthr + tid}         (output);
+     - gl/gm    : per-thread strided columns {j*nthr + tid}      (stats).
+   ───────────────────────────────────────────────────────────────────── *)
 
-inline_for_extraction noextract
-instance fa_lS_ct (bc br : szp { SZ.fits (bc * br) })
-  : ctlayout (fa_lS bc br) = c_l2_row_major _ _
+(* Collapse a trailing singleton ([natlt 1]) forevery dimension. *)
+ghost
+fn collapse_inner1 (#nn:nat) (q : natlt nn -> natlt 1 -> slprop)
+  requires forall+ (tr:natlt nn) (tc:natlt 1). q tr tc
+  ensures  forall+ (tr:natlt nn). q tr 0
+{
+  forevery_map
+    (fun (tr:natlt nn) -> forall+ (tc:natlt 1). q tr tc)
+    (fun (tr:natlt nn) -> q tr 0)
+    fn tr { forevery_singleton_elim #(natlt 1) (fun (tc:natlt 1) -> q tr tc); };
+}
 
-(* Lift the raw shmem array to an Array2 view. *)
-inline_for_extraction noextract
-let fa_gS
-  (#et : Type0) {| Kuiper.Sized.sized et |}
-  (bc br : szp { SZ.fits (bc * br) })
-  (sh : c_shmems (fa_shmems et bc br))
-  : M.array2 et (fa_lS bc br)
-  = M.from_array (fa_lS bc br) sh._1
-(*
+(* Introduce a trailing singleton ([natlt 1]) forevery dimension. *)
+ghost
+fn expand_inner1 (#nn:nat) (q : natlt nn -> natlt 1 -> slprop)
+  requires forall+ (tr:natlt nn). q tr 0
+  ensures  forall+ (tr:natlt nn) (tc:natlt 1). q tr tc
+{
+  forevery_map
+    (fun (tr:natlt nn) -> q tr 0)
+    (fun (tr:natlt nn) -> forall+ (tc:natlt 1). q tr tc)
+    fn tr { forevery_singleton_intro #(natlt 1) (fun (tc:natlt 1) -> q tr tc); };
+}
 
-
-(* Outer setup/teardown for the full kernel_desc. nblk = 1, so the
-   [forall+ bid : natlt 1. block_pre bid] is just [block_pre 0]. *)
-// FOR NOW: assume 
-// - 1 block
-// - gS is in global instead of shared memory, and no barriers
-// - br = bc = nthreads
 ghost
 fn setup_fa
   (#et : Type0) {| scalar et, floating et |}
   (n d nthr : szp { nthr /? n /\ SZ.fits (nthr * nthr) })
   (#lS: M.layout nthr nthr)
   (#lK #lV #lQ #lO: M.layout n d)
-  (#ll #lm: layout n)
+  (#ll #lm: M.layout 1 n)
   {| ctlayout lS, ctlayout lK, ctlayout lV, ctlayout lQ, ctlayout lO, ctlayout ll, ctlayout lm |}
   (gS : M.array2 et lS { M.is_global gS })
   (gK : M.array2 et lK { M.is_global gK })
   (gV : M.array2 et lV { M.is_global gV })
   (gQ : M.array2 et lQ { M.is_global gQ })
   (gO : M.array2 et lO { M.is_global gO })
-  (gl : array1 et ll { Array1.is_global gl })
-  (gm : array1 et lm { Array1.is_global gm })
+  (gl : M.array2 et ll { M.is_global gl })
+  (gm : M.array2 et lm { M.is_global gm })
   (eK eV eQ : ematrix et n d)
   (#fK #fV #fQ : perm)
+  ()
   norewrite
   requires
-    (gK |-> Frac fK eK) ** (gV |-> Frac fV eV) ** (gQ |-> Frac fQ eQ) **
-    live gS ** live gO ** live gl ** live gm
+    full_io_fa n d nthr gS gK gV gQ gO gl gm eK eV eQ fK fV fQ
   ensures
     (forall+ (tid : natlt nthr).
-
-      (gK |-> Frac fK eK) ** (gV |-> Frac fV eV) ** (gQ |-> Frac fQ eQ) **
-      (gO |-> eO) ** (gl |-> vl) ** (gm |-> vm)) **
-    emp
+       kpre_post_outer_fa n d nthr gS gK gV gQ gO gl gm eK eV eQ fK fV fQ tid) **
+    frame_fa n d nthr lS lO ll lm
 {
-  forevery_singleton_intro #(natlt 1) (fun _bid ->
-    (gK |-> Frac fK eK) ** (gV |-> Frac fV eV) ** (gQ |-> Frac fQ eQ) **
-    (gO |-> eO) ** (gl |-> vl) ** (gm |-> vm));
+  // K, V, Q : fractional sharing.
+  M.share_n gK (SZ.v nthr);
+  M.share_n gV (SZ.v nthr);
+  M.share_n gQ (SZ.v nthr);
+
+  // gS : contiguous row [tid].
+  unfold (live gS); with eS. assert (gS |-> eS);
+  array2_tile gS 1 (SZ.v nthr);
+  forevery_rw_size2 (SZ.v nthr / 1) (SZ.v nthr) (SZ.v nthr / SZ.v nthr) 1
+    #(fun (tr:natlt (SZ.v nthr / 1)) (tc:natlt (SZ.v nthr / SZ.v nthr)) ->
+        array2_subtile gS 1 (SZ.v nthr) tr tc |-> Frac 1.0R (ematrix_subtile eS 1 (SZ.v nthr) tr tc));
+  collapse_inner1 #(SZ.v nthr)
+    (fun (tr:natlt (SZ.v nthr)) (tc:natlt 1) ->
+        array2_subtile gS 1 (SZ.v nthr) tr tc |-> Frac 1.0R (ematrix_subtile eS 1 (SZ.v nthr) tr tc));
+
+  // gO : strided rows {i*nthr + tid}.
+  unfold (live gO); with eO. assert (gO |-> eO);
+  array2_stride_tile gO (SZ.v nthr) 1;
+  collapse_inner1 #(SZ.v nthr)
+    (fun (tr:natlt (SZ.v nthr)) (tc:natlt 1) ->
+        array2_stride_subtile gO (SZ.v nthr) 1 tr tc |-> Frac 1.0R (ematrix_stride_subtile eO (SZ.v nthr) 1 tr tc));
+
+  // gl : strided columns {j*nthr + tid}.
+  unfold (live gl); with el. assert (gl |-> el);
+  array2_stride_tile gl 1 (SZ.v nthr);
+  forevery_singleton_elim #(natlt 1)
+    (fun (tr:natlt 1) -> forall+ (tc:natlt (SZ.v nthr)).
+        array2_stride_subtile gl 1 (SZ.v nthr) tr tc |-> Frac 1.0R (ematrix_stride_subtile el 1 (SZ.v nthr) tr tc));
+
+  // gm : strided columns {j*nthr + tid}.
+  unfold (live gm); with em. assert (gm |-> em);
+  array2_stride_tile gm 1 (SZ.v nthr);
+  forevery_singleton_elim #(natlt 1)
+    (fun (tr:natlt 1) -> forall+ (tc:natlt (SZ.v nthr)).
+        array2_stride_subtile gm 1 (SZ.v nthr) tr tc |-> Frac 1.0R (ematrix_stride_subtile em 1 (SZ.v nthr) tr tc));
+
+  // Bundle the 7 per-thread foreverys.
+  forevery_zip3 #(natlt (SZ.v nthr))
+    (fun (_:natlt (SZ.v nthr)) -> gK |-> Frac (fK /. (SZ.v nthr)) eK)
+    (fun (_:natlt (SZ.v nthr)) -> gV |-> Frac (fV /. (SZ.v nthr)) eV)
+    (fun (_:natlt (SZ.v nthr)) -> gQ |-> Frac (fQ /. (SZ.v nthr)) eQ);
+  forevery_zip3 #(natlt (SZ.v nthr))
+    (fun (tid:natlt (SZ.v nthr)) -> array2_subtile gS 1 (SZ.v nthr) tid 0 |-> Frac 1.0R (ematrix_subtile eS 1 (SZ.v nthr) tid 0))
+    (fun (tid:natlt (SZ.v nthr)) -> array2_stride_subtile gl 1 (SZ.v nthr) 0 tid |-> Frac 1.0R (ematrix_stride_subtile el 1 (SZ.v nthr) 0 tid))
+    (fun (tid:natlt (SZ.v nthr)) -> array2_stride_subtile gm 1 (SZ.v nthr) 0 tid |-> Frac 1.0R (ematrix_stride_subtile em 1 (SZ.v nthr) 0 tid));
+  forevery_zip3 #(natlt (SZ.v nthr))
+    (fun (_:natlt (SZ.v nthr)) ->
+       (gK |-> Frac (fK /. (SZ.v nthr)) eK) ** (gV |-> Frac (fV /. (SZ.v nthr)) eV) ** (gQ |-> Frac (fQ /. (SZ.v nthr)) eQ))
+    (fun (tid:natlt (SZ.v nthr)) ->
+       (array2_subtile gS 1 (SZ.v nthr) tid 0 |-> Frac 1.0R (ematrix_subtile eS 1 (SZ.v nthr) tid 0)) **
+       (array2_stride_subtile gl 1 (SZ.v nthr) 0 tid |-> Frac 1.0R (ematrix_stride_subtile el 1 (SZ.v nthr) 0 tid)) **
+       (array2_stride_subtile gm 1 (SZ.v nthr) 0 tid |-> Frac 1.0R (ematrix_stride_subtile em 1 (SZ.v nthr) 0 tid)))
+    (fun (tid:natlt (SZ.v nthr)) -> array2_stride_subtile gO (SZ.v nthr) 1 tid 0 |-> Frac 1.0R (ematrix_stride_subtile eO (SZ.v nthr) 1 tid 0));
+
+  forevery_map #(natlt (SZ.v nthr))
+    (fun (tid:natlt (SZ.v nthr)) ->
+       ((gK |-> Frac (fK /. (SZ.v nthr)) eK) ** (gV |-> Frac (fV /. (SZ.v nthr)) eV) ** (gQ |-> Frac (fQ /. (SZ.v nthr)) eQ)) **
+       ((array2_subtile gS 1 (SZ.v nthr) tid 0 |-> Frac 1.0R (ematrix_subtile eS 1 (SZ.v nthr) tid 0)) **
+        (array2_stride_subtile gl 1 (SZ.v nthr) 0 tid |-> Frac 1.0R (ematrix_stride_subtile el 1 (SZ.v nthr) 0 tid)) **
+        (array2_stride_subtile gm 1 (SZ.v nthr) 0 tid |-> Frac 1.0R (ematrix_stride_subtile em 1 (SZ.v nthr) 0 tid))) **
+       (array2_stride_subtile gO (SZ.v nthr) 1 tid 0 |-> Frac 1.0R (ematrix_stride_subtile eO (SZ.v nthr) 1 tid 0)))
+    (fun (tid:natlt (SZ.v nthr)) ->
+       kpre_post_outer_fa n d nthr gS gK gV gQ gO gl gm eK eV eQ fK fV fQ tid)
+    fn tid { () };
 }
 
 ghost
 fn teardown_fa
   (#et : Type0) {| scalar et, floating et |}
-  (n d bc br : szp { bc == br /\ bc /? n /\ br /? n /\ SZ.fits (bc * br) })
-  (#lK #lV #lQ : M.layout n d)
+  (n d nthr : szp { nthr /? n /\ SZ.fits (nthr * nthr) })
+  (#lS: M.layout nthr nthr)
+  (#lK #lV #lQ #lO: M.layout n d)
+  (#ll #lm: M.layout 1 n)
+  {| ctlayout lS, ctlayout lK, ctlayout lV, ctlayout lQ, ctlayout lO, ctlayout ll, ctlayout lm |}
+  (gS : M.array2 et lS { M.is_global gS })
   (gK : M.array2 et lK { M.is_global gK })
   (gV : M.array2 et lV { M.is_global gV })
   (gQ : M.array2 et lQ { M.is_global gQ })
-  (#lO : M.layout n d)
   (gO : M.array2 et lO { M.is_global gO })
-  (#ll #lm : layout n)
-  (gl : array1 et ll { Array1.is_global gl })
-  (gm : array1 et lm { Array1.is_global gm })
+  (gl : M.array2 et ll { M.is_global gl })
+  (gm : M.array2 et lm { M.is_global gm })
   (eK eV eQ : ematrix et n d)
-  (fK fV fQ : perm)
+  (#fK #fV #fQ : perm)
   ()
   norewrite
   requires
-    (forall+ (_bid : natlt 1).
-      (gK |-> Frac fK eK) ** (gV |-> Frac fV eV) ** (gQ |-> Frac fQ eQ) **
-      (exists* (eO' : ematrix et n d). gO |-> eO') **
-      (exists* (vl' : lseq et n). gl |-> vl') **
-      (exists* (vm' : lseq et n). gm |-> vm')) **
-    emp
+    (forall+ (tid : natlt nthr).
+       kpre_post_outer_fa n d nthr gS gK gV gQ gO gl gm eK eV eQ fK fV fQ tid) **
+    frame_fa n d nthr lS lO ll lm
   ensures
-    (gK |-> Frac fK eK) ** (gV |-> Frac fV eV) ** (gQ |-> Frac fQ eQ) **
-    (exists* (eO' : ematrix et n d). gO |-> eO') **
-    (exists* (vl' : lseq et n). gl |-> vl') **
-    (exists* (vm' : lseq et n). gm |-> vm')
+    full_io_fa n d nthr gS gK gV gQ gO gl gm eK eV eQ fK fV fQ
 {
-  forevery_singleton_elim #(natlt 1) _;
-}
+  // Split each tid back into the 7 separate pieces (4 single existentials).
+  forevery_map #(natlt (SZ.v nthr))
+    (fun (tid:natlt (SZ.v nthr)) ->
+       kpre_post_outer_fa n d nthr gS gK gV gQ gO gl gm eK eV eQ fK fV fQ tid)
+    (fun (tid:natlt (SZ.v nthr)) ->
+       ((gK |-> Frac (fK /. (SZ.v nthr)) eK) ** (gV |-> Frac (fV /. (SZ.v nthr)) eV) ** (gQ |-> Frac (fQ /. (SZ.v nthr)) eQ)) **
+       (((exists* (eS:ematrix et (SZ.v nthr) (SZ.v nthr)). array2_subtile gS 1 (SZ.v nthr) tid 0 |-> Frac 1.0R (ematrix_subtile eS 1 (SZ.v nthr) tid 0)) **
+         (exists* (el:ematrix et 1 n). array2_stride_subtile gl 1 (SZ.v nthr) 0 tid |-> Frac 1.0R (ematrix_stride_subtile el 1 (SZ.v nthr) 0 tid)) **
+         (exists* (em:ematrix et 1 n). array2_stride_subtile gm 1 (SZ.v nthr) 0 tid |-> Frac 1.0R (ematrix_stride_subtile em 1 (SZ.v nthr) 0 tid))) **
+        (exists* (eO:ematrix et n d). array2_stride_subtile gO (SZ.v nthr) 1 tid 0 |-> Frac 1.0R (ematrix_stride_subtile eO (SZ.v nthr) 1 tid 0))))
+    fn tid { () };
 
-(* Block-level setup/teardown: split shmem S matrix into per-thread rows;
-   shard read-only perms; explode write-side matrices into per-thread
-   strided sub-tiles; bundle into [kpre_fa tid]. *)
-ghost
-fn block_setup_fa
-  (#et : Type0) {| scalar et, floating et |}
-  (n d bc br : szp { bc == br /\ bc /? n /\ br /? n /\ SZ.fits (bc * br) })
-  (#lK #lV #lQ : M.layout n d)
-  (gK : M.array2 et lK { M.is_global gK })
-  (gV : M.array2 et lV { M.is_global gV })
-  (gQ : M.array2 et lQ { M.is_global gQ })
-  (#lO : M.layout n d)
-  (gO : M.array2 et lO { M.is_global gO })
-  (#ll #lm : layout n)
-  (gl : array1 et ll { Array1.is_global gl })
-  (gm : array1 et lm { Array1.is_global gm })
-  (eK eV eQ eO : ematrix et n d)
-  (vl vm : erased (lseq et n))
-  (fK fV fQ : perm)
-  (sh : c_shmems (fa_shmems et bc br))
-  (_bid : natlt 1)
-  ()
-  norewrite
-  requires
-    live_c_shmems sh **
-    ((gK |-> Frac fK eK) ** (gV |-> Frac fV eV) ** (gQ |-> Frac fQ eQ) **
-     (gO |-> eO) ** (gl |-> vl) ** (gm |-> vm))
-  ensures
-    (forall+ (tid : natlt br).
-       kpre_fa n d bc br gK gV gQ gO gl gm eK eV eQ fK fV fQ sh tid) **
-    emp
-{
-  admit ()
-}
+  // Peel into K**V**Q, the S/l/m trio, and the O existential.
+  forevery_unzip3 #(natlt (SZ.v nthr))
+    (fun (_:natlt (SZ.v nthr)) ->
+       (gK |-> Frac (fK /. (SZ.v nthr)) eK) ** (gV |-> Frac (fV /. (SZ.v nthr)) eV) ** (gQ |-> Frac (fQ /. (SZ.v nthr)) eQ))
+    (fun (tid:natlt (SZ.v nthr)) ->
+       (exists* (eS:ematrix et (SZ.v nthr) (SZ.v nthr)). array2_subtile gS 1 (SZ.v nthr) tid 0 |-> Frac 1.0R (ematrix_subtile eS 1 (SZ.v nthr) tid 0)) **
+       (exists* (el:ematrix et 1 n). array2_stride_subtile gl 1 (SZ.v nthr) 0 tid |-> Frac 1.0R (ematrix_stride_subtile el 1 (SZ.v nthr) 0 tid)) **
+       (exists* (em:ematrix et 1 n). array2_stride_subtile gm 1 (SZ.v nthr) 0 tid |-> Frac 1.0R (ematrix_stride_subtile em 1 (SZ.v nthr) 0 tid)))
+    (fun (tid:natlt (SZ.v nthr)) ->
+       exists* (eO:ematrix et n d). array2_stride_subtile gO (SZ.v nthr) 1 tid 0 |-> Frac 1.0R (ematrix_stride_subtile eO (SZ.v nthr) 1 tid 0));
 
-ghost
-fn block_teardown_fa
-  (#et : Type0) {| scalar et, floating et |}
-  (n d bc br : szp { bc == br /\ bc /? n /\ br /? n /\ SZ.fits (bc * br) })
-  (#lK #lV #lQ : M.layout n d)
-  (gK : M.array2 et lK { M.is_global gK })
-  (gV : M.array2 et lV { M.is_global gV })
-  (gQ : M.array2 et lQ { M.is_global gQ })
-  (#lO : M.layout n d)
-  (gO : M.array2 et lO { M.is_global gO })
-  (#ll #lm : layout n)
-  (gl : array1 et ll { Array1.is_global gl })
-  (gm : array1 et lm { Array1.is_global gm })
-  (eK eV eQ : ematrix et n d)
-  (fK fV fQ : perm)
-  (sh : c_shmems (fa_shmems et bc br))
-  (_bid : natlt 1)
-  ()
-  norewrite
-  requires
-    (forall+ (tid : natlt br).
-       kpost_fa n d bc br gK gV gQ gO gl gm eK eV eQ fK fV fQ sh tid) **
-    emp
-  ensures
-    live_c_shmems sh **
-    ((gK |-> Frac fK eK) ** (gV |-> Frac fV eV) ** (gQ |-> Frac fQ eQ) **
-     (exists* (eO' : ematrix et n d). gO |-> eO') **
-     (exists* (vl' : lseq et n). gl |-> vl') **
-     (exists* (vm' : lseq et n). gm |-> vm'))
-{
-  admit ()
+  // K, V, Q : gather the fractional shares.
+  forevery_unzip3 #(natlt (SZ.v nthr))
+    (fun (_:natlt (SZ.v nthr)) -> gK |-> Frac (fK /. (SZ.v nthr)) eK)
+    (fun (_:natlt (SZ.v nthr)) -> gV |-> Frac (fV /. (SZ.v nthr)) eV)
+    (fun (_:natlt (SZ.v nthr)) -> gQ |-> Frac (fQ /. (SZ.v nthr)) eQ);
+  M.gather_n gK (SZ.v nthr);
+  M.gather_n gV (SZ.v nthr);
+  M.gather_n gQ (SZ.v nthr);
+
+  // Split the trio into the three separate existential foreverys.
+  forevery_unzip3 #(natlt (SZ.v nthr))
+    (fun (tid:natlt (SZ.v nthr)) -> exists* (eS:ematrix et (SZ.v nthr) (SZ.v nthr)). array2_subtile gS 1 (SZ.v nthr) tid 0 |-> Frac 1.0R (ematrix_subtile eS 1 (SZ.v nthr) tid 0))
+    (fun (tid:natlt (SZ.v nthr)) -> exists* (el:ematrix et 1 n). array2_stride_subtile gl 1 (SZ.v nthr) 0 tid |-> Frac 1.0R (ematrix_stride_subtile el 1 (SZ.v nthr) 0 tid))
+    (fun (tid:natlt (SZ.v nthr)) -> exists* (em:ematrix et 1 n). array2_stride_subtile gm 1 (SZ.v nthr) 0 tid |-> Frac 1.0R (ematrix_stride_subtile em 1 (SZ.v nthr) 0 tid));
+
+  // gS : contiguous row [tid] -> reassemble.
+  let gsfun = forevery_exists
+    (fun (tid:natlt (SZ.v nthr)) (e:ematrix et (SZ.v nthr) (SZ.v nthr)) ->
+        array2_subtile gS 1 (SZ.v nthr) tid 0 |-> Frac 1.0R (ematrix_subtile e 1 (SZ.v nthr) tid 0));
+  expand_inner1 #(SZ.v nthr)
+    (fun (tr:natlt (SZ.v nthr)) (tc:natlt 1) ->
+        array2_subtile gS 1 (SZ.v nthr) tr tc |-> Frac 1.0R (ematrix_subtile (gsfun tr) 1 (SZ.v nthr) tr tc));
+  forevery_rw_size2 (SZ.v nthr) (SZ.v nthr / 1) 1 (SZ.v nthr / SZ.v nthr)
+    #(fun (tr:natlt (SZ.v nthr)) (tc:natlt 1) ->
+        array2_subtile gS 1 (SZ.v nthr) tr tc |-> Frac 1.0R (ematrix_subtile (gsfun tr) 1 (SZ.v nthr) tr tc));
+  array2_untile' gS 1 (SZ.v nthr)
+    (fun (tr:natlt (SZ.v nthr / 1)) (tc:natlt (SZ.v nthr / SZ.v nthr)) ->
+        ematrix_subtile (gsfun tr) 1 (SZ.v nthr) tr tc) #1.0R;
+
+  // gl : strided columns -> reassemble.
+  let glfun = forevery_exists
+    (fun (tid:natlt (SZ.v nthr)) (e:ematrix et 1 n) ->
+        array2_stride_subtile gl 1 (SZ.v nthr) 0 tid |-> Frac 1.0R (ematrix_stride_subtile e 1 (SZ.v nthr) 0 tid));
+  forevery_singleton_intro #(natlt 1)
+    (fun (tr:natlt 1) -> forall+ (tc:natlt (SZ.v nthr)).
+        array2_stride_subtile gl 1 (SZ.v nthr) tr tc |-> Frac 1.0R (ematrix_stride_subtile (glfun tc) 1 (SZ.v nthr) tr tc));
+  array2_stride_untile' gl 1 (SZ.v nthr)
+    (fun (tr:natlt 1) (tc:natlt (SZ.v nthr)) ->
+        ematrix_stride_subtile (glfun tc) 1 (SZ.v nthr) tr tc) #1.0R;
+
+  // gm : strided columns -> reassemble.
+  let gmfun = forevery_exists
+    (fun (tid:natlt (SZ.v nthr)) (e:ematrix et 1 n) ->
+        array2_stride_subtile gm 1 (SZ.v nthr) 0 tid |-> Frac 1.0R (ematrix_stride_subtile e 1 (SZ.v nthr) 0 tid));
+  forevery_singleton_intro #(natlt 1)
+    (fun (tr:natlt 1) -> forall+ (tc:natlt (SZ.v nthr)).
+        array2_stride_subtile gm 1 (SZ.v nthr) tr tc |-> Frac 1.0R (ematrix_stride_subtile (gmfun tc) 1 (SZ.v nthr) tr tc));
+  array2_stride_untile' gm 1 (SZ.v nthr)
+    (fun (tr:natlt 1) (tc:natlt (SZ.v nthr)) ->
+        ematrix_stride_subtile (gmfun tc) 1 (SZ.v nthr) tr tc) #1.0R;
+
+  // gO : strided rows -> reassemble.
+  let gOfun = forevery_exists
+    (fun (tid:natlt (SZ.v nthr)) (e:ematrix et n d) ->
+        array2_stride_subtile gO (SZ.v nthr) 1 tid 0 |-> Frac 1.0R (ematrix_stride_subtile e (SZ.v nthr) 1 tid 0));
+  expand_inner1 #(SZ.v nthr)
+    (fun (tr:natlt (SZ.v nthr)) (tc:natlt 1) ->
+        array2_stride_subtile gO (SZ.v nthr) 1 tr tc |-> Frac 1.0R (ematrix_stride_subtile (gOfun tr) (SZ.v nthr) 1 tr tc));
+  array2_stride_untile' gO (SZ.v nthr) 1
+    (fun (tr:natlt (SZ.v nthr)) (tc:natlt 1) ->
+        ematrix_stride_subtile (gOfun tr) (SZ.v nthr) 1 tr tc) #1.0R;
 }
-*)
