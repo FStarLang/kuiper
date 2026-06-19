@@ -16,15 +16,15 @@ __hoisted_g_matmul_bf16_rrr_0(uint32_t m,
         uint32_t trow = (1024U * blockIdx.x + threadIdx.x) / n;
         uint32_t tcol = (1024U * blockIdx.x + threadIdx.x) % n;
         uint32_t k1 = 0U;
-        __nv_bfloat16 acc = CUDART_ZERO_BF16;
-        __nv_bfloat16 c = CUDART_ZERO_BF16;
+        __nv_bfloat16 acc = __float2bfloat16(0.0f);
+        __nv_bfloat16 c = __float2bfloat16(0.0f);
         for (; k1 < k; k1++) {
             uint32_t __anf0 = k1;
             __nv_bfloat16 y =
-                __hmul(gA[trow * k + __anf0], gB[__anf0 * n + tcol]);
-            __nv_bfloat16 yc = __hsub(y, c);
-            __nv_bfloat16 t = __hadd(acc, yc);
-            c = __hsub(__hsub(t, acc), yc);
+                kpr_bf16mul(gA[trow * k + __anf0], gB[__anf0 * n + tcol]);
+            __nv_bfloat16 yc = kpr_bf16sub(y, c);
+            __nv_bfloat16 t = kpr_bf16add(acc, yc);
+            c = kpr_bf16sub(kpr_bf16sub(t, acc), yc);
             acc = t;
         }
         gC[trow * n + tcol] = acc;
@@ -134,15 +134,15 @@ __hoisted_g_matmul_bf16_ccc_0(uint32_t m,
         uint32_t trow = (1024U * blockIdx.x + threadIdx.x) / n;
         uint32_t tcol = (1024U * blockIdx.x + threadIdx.x) % n;
         uint32_t k1 = 0U;
-        __nv_bfloat16 acc = CUDART_ZERO_BF16;
-        __nv_bfloat16 c = CUDART_ZERO_BF16;
+        __nv_bfloat16 acc = __float2bfloat16(0.0f);
+        __nv_bfloat16 c = __float2bfloat16(0.0f);
         for (; k1 < k; k1++) {
             uint32_t __anf0 = k1;
             __nv_bfloat16 y =
-                __hmul(gA[__anf0 * m + trow], gB[tcol * k + __anf0]);
-            __nv_bfloat16 yc = __hsub(y, c);
-            __nv_bfloat16 t = __hadd(acc, yc);
-            c = __hsub(__hsub(t, acc), yc);
+                kpr_bf16mul(gA[__anf0 * m + trow], gB[tcol * k + __anf0]);
+            __nv_bfloat16 yc = kpr_bf16sub(y, c);
+            __nv_bfloat16 t = kpr_bf16add(acc, yc);
+            c = kpr_bf16sub(kpr_bf16sub(t, acc), yc);
             acc = t;
         }
         gC[tcol * m + trow] = acc;

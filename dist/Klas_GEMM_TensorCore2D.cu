@@ -172,7 +172,7 @@ __hoisted_g_gemm_bf16_f32_64x64x16_16x16x16_2x2_0(uint32_t shared,
         for (; i2 < 1024U; i2 += 1024U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 16U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 16U;
             vec_memcpy(local,
@@ -187,7 +187,7 @@ __hoisted_g_gemm_bf16_f32_64x64x16_16x16x16_2x2_0(uint32_t shared,
         for (; i < 1024U; i += 1024U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -435,7 +435,7 @@ __hoisted_g_gemm_bf16_f32_64x64x16_16x16x16_2x4_0(uint32_t shared,
         for (; i2 < 1024U; i2 += 512U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 16U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 16U;
             vec_memcpy(local,
@@ -450,7 +450,7 @@ __hoisted_g_gemm_bf16_f32_64x64x16_16x16x16_2x4_0(uint32_t shared,
         for (; i < 1024U; i += 512U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -698,7 +698,7 @@ __hoisted_g_gemm_bf16_f32_64x64x16_16x16x16_4x2_0(uint32_t shared,
         for (; i2 < 1024U; i2 += 512U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 16U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 16U;
             vec_memcpy(local,
@@ -713,7 +713,7 @@ __hoisted_g_gemm_bf16_f32_64x64x16_16x16x16_4x2_0(uint32_t shared,
         for (; i < 1024U; i += 512U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -962,7 +962,7 @@ __hoisted_g_gemm_bf16_f32_64x64x16_16x16x16_4x4_0(uint32_t shared,
         for (; i2 < 1024U; i2 += 256U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 16U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 16U;
             vec_memcpy(local,
@@ -977,7 +977,7 @@ __hoisted_g_gemm_bf16_f32_64x64x16_16x16x16_4x4_0(uint32_t shared,
         for (; i < 1024U; i += 256U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -1225,7 +1225,7 @@ __hoisted_g_gemm_bf16_f32_64x64x32_16x16x16_2x2_0(uint32_t shared,
         for (; i2 < 2048U; i2 += 1024U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -1240,7 +1240,7 @@ __hoisted_g_gemm_bf16_f32_64x64x32_16x16x16_2x2_0(uint32_t shared,
         for (; i < 2048U; i += 1024U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -1488,7 +1488,7 @@ __hoisted_g_gemm_bf16_f32_64x64x32_16x16x16_2x4_0(uint32_t shared,
         for (; i2 < 2048U; i2 += 512U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -1503,7 +1503,7 @@ __hoisted_g_gemm_bf16_f32_64x64x32_16x16x16_2x4_0(uint32_t shared,
         for (; i < 2048U; i += 512U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -1751,7 +1751,7 @@ __hoisted_g_gemm_bf16_f32_64x64x32_16x16x16_4x2_0(uint32_t shared,
         for (; i2 < 2048U; i2 += 512U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -1766,7 +1766,7 @@ __hoisted_g_gemm_bf16_f32_64x64x32_16x16x16_4x2_0(uint32_t shared,
         for (; i < 2048U; i += 512U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -2015,7 +2015,7 @@ __hoisted_g_gemm_bf16_f32_64x64x32_16x16x16_4x4_0(uint32_t shared,
         for (; i2 < 2048U; i2 += 256U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -2030,7 +2030,7 @@ __hoisted_g_gemm_bf16_f32_64x64x32_16x16x16_4x4_0(uint32_t shared,
         for (; i < 2048U; i += 256U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -2278,7 +2278,7 @@ __hoisted_g_gemm_bf16_f32_64x64x64_16x16x16_2x2_0(uint32_t shared,
         for (; i2 < 4096U; i2 += 1024U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -2293,7 +2293,7 @@ __hoisted_g_gemm_bf16_f32_64x64x64_16x16x16_2x2_0(uint32_t shared,
         for (; i < 4096U; i += 1024U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -2541,7 +2541,7 @@ __hoisted_g_gemm_bf16_f32_64x64x64_16x16x16_2x4_0(uint32_t shared,
         for (; i2 < 4096U; i2 += 512U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -2556,7 +2556,7 @@ __hoisted_g_gemm_bf16_f32_64x64x64_16x16x16_2x4_0(uint32_t shared,
         for (; i < 4096U; i += 512U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -2804,7 +2804,7 @@ __hoisted_g_gemm_bf16_f32_64x64x64_16x16x16_4x2_0(uint32_t shared,
         for (; i2 < 4096U; i2 += 512U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -2819,7 +2819,7 @@ __hoisted_g_gemm_bf16_f32_64x64x64_16x16x16_4x2_0(uint32_t shared,
         for (; i < 4096U; i += 512U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -3068,7 +3068,7 @@ __hoisted_g_gemm_bf16_f32_64x64x64_16x16x16_4x4_0(uint32_t shared,
         for (; i2 < 4096U; i2 += 256U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -3083,7 +3083,7 @@ __hoisted_g_gemm_bf16_f32_64x64x64_16x16x16_4x4_0(uint32_t shared,
         for (; i < 4096U; i += 256U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -3331,7 +3331,7 @@ __hoisted_g_gemm_bf16_f32_64x128x16_16x16x16_2x4_0(uint32_t shared,
         for (; i2 < 1024U; i2 += 1024U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 16U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 16U;
             vec_memcpy(local,
@@ -3346,7 +3346,7 @@ __hoisted_g_gemm_bf16_f32_64x128x16_16x16x16_2x4_0(uint32_t shared,
         for (; i < 2048U; i += 1024U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -3596,7 +3596,7 @@ __hoisted_g_gemm_bf16_f32_64x128x16_16x16x16_2x8_0(uint32_t shared,
         for (; i2 < 1024U; i2 += 512U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 16U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 16U;
             vec_memcpy(local,
@@ -3611,7 +3611,7 @@ __hoisted_g_gemm_bf16_f32_64x128x16_16x16x16_2x8_0(uint32_t shared,
         for (; i < 2048U; i += 512U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -3860,7 +3860,7 @@ __hoisted_g_gemm_bf16_f32_64x128x16_16x16x16_4x2_0(uint32_t shared,
         for (; i2 < 1024U; i2 += 1024U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 16U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 16U;
             vec_memcpy(local,
@@ -3875,7 +3875,7 @@ __hoisted_g_gemm_bf16_f32_64x128x16_16x16x16_4x2_0(uint32_t shared,
         for (; i < 2048U; i += 1024U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -4127,7 +4127,7 @@ __hoisted_g_gemm_bf16_f32_64x128x16_16x16x16_4x4_0(uint32_t shared,
         for (; i2 < 1024U; i2 += 512U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 16U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 16U;
             vec_memcpy(local,
@@ -4142,7 +4142,7 @@ __hoisted_g_gemm_bf16_f32_64x128x16_16x16x16_4x4_0(uint32_t shared,
         for (; i < 2048U; i += 512U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -4392,7 +4392,7 @@ __hoisted_g_gemm_bf16_f32_64x128x16_16x16x16_4x8_0(uint32_t shared,
         for (; i2 < 1024U; i2 += 256U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 16U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 16U;
             vec_memcpy(local,
@@ -4407,7 +4407,7 @@ __hoisted_g_gemm_bf16_f32_64x128x16_16x16x16_4x8_0(uint32_t shared,
         for (; i < 2048U; i += 256U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -4656,7 +4656,7 @@ __hoisted_g_gemm_bf16_f32_64x128x32_16x16x16_2x2_0(uint32_t shared,
         for (; i2 < 2048U; i2 += 2048U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -4671,7 +4671,7 @@ __hoisted_g_gemm_bf16_f32_64x128x32_16x16x16_2x2_0(uint32_t shared,
         for (; i < 4096U; i += 2048U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -4922,7 +4922,7 @@ __hoisted_g_gemm_bf16_f32_64x128x32_16x16x16_2x4_0(uint32_t shared,
         for (; i2 < 2048U; i2 += 1024U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -4937,7 +4937,7 @@ __hoisted_g_gemm_bf16_f32_64x128x32_16x16x16_2x4_0(uint32_t shared,
         for (; i < 4096U; i += 1024U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -5187,7 +5187,7 @@ __hoisted_g_gemm_bf16_f32_64x128x32_16x16x16_2x8_0(uint32_t shared,
         for (; i2 < 2048U; i2 += 512U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -5202,7 +5202,7 @@ __hoisted_g_gemm_bf16_f32_64x128x32_16x16x16_2x8_0(uint32_t shared,
         for (; i < 4096U; i += 512U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -5451,7 +5451,7 @@ __hoisted_g_gemm_bf16_f32_64x128x32_16x16x16_4x2_0(uint32_t shared,
         for (; i2 < 2048U; i2 += 1024U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -5466,7 +5466,7 @@ __hoisted_g_gemm_bf16_f32_64x128x32_16x16x16_4x2_0(uint32_t shared,
         for (; i < 4096U; i += 1024U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -5718,7 +5718,7 @@ __hoisted_g_gemm_bf16_f32_64x128x32_16x16x16_4x4_0(uint32_t shared,
         for (; i2 < 2048U; i2 += 512U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -5733,7 +5733,7 @@ __hoisted_g_gemm_bf16_f32_64x128x32_16x16x16_4x4_0(uint32_t shared,
         for (; i < 4096U; i += 512U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -5983,7 +5983,7 @@ __hoisted_g_gemm_bf16_f32_64x128x32_16x16x16_4x8_0(uint32_t shared,
         for (; i2 < 2048U; i2 += 256U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -5998,7 +5998,7 @@ __hoisted_g_gemm_bf16_f32_64x128x32_16x16x16_4x8_0(uint32_t shared,
         for (; i < 4096U; i += 256U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -6247,7 +6247,7 @@ __hoisted_g_gemm_bf16_f32_64x128x64_16x16x16_2x2_0(uint32_t shared,
         for (; i2 < 4096U; i2 += 2048U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -6262,7 +6262,7 @@ __hoisted_g_gemm_bf16_f32_64x128x64_16x16x16_2x2_0(uint32_t shared,
         for (; i < 8192U; i += 2048U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -6513,7 +6513,7 @@ __hoisted_g_gemm_bf16_f32_64x128x64_16x16x16_2x4_0(uint32_t shared,
         for (; i2 < 4096U; i2 += 1024U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -6528,7 +6528,7 @@ __hoisted_g_gemm_bf16_f32_64x128x64_16x16x16_2x4_0(uint32_t shared,
         for (; i < 8192U; i += 1024U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -6778,7 +6778,7 @@ __hoisted_g_gemm_bf16_f32_64x128x64_16x16x16_2x8_0(uint32_t shared,
         for (; i2 < 4096U; i2 += 512U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -6793,7 +6793,7 @@ __hoisted_g_gemm_bf16_f32_64x128x64_16x16x16_2x8_0(uint32_t shared,
         for (; i < 8192U; i += 512U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -7042,7 +7042,7 @@ __hoisted_g_gemm_bf16_f32_64x128x64_16x16x16_4x2_0(uint32_t shared,
         for (; i2 < 4096U; i2 += 1024U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -7057,7 +7057,7 @@ __hoisted_g_gemm_bf16_f32_64x128x64_16x16x16_4x2_0(uint32_t shared,
         for (; i < 8192U; i += 1024U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -7309,7 +7309,7 @@ __hoisted_g_gemm_bf16_f32_64x128x64_16x16x16_4x4_0(uint32_t shared,
         for (; i2 < 4096U; i2 += 512U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -7324,7 +7324,7 @@ __hoisted_g_gemm_bf16_f32_64x128x64_16x16x16_4x4_0(uint32_t shared,
         for (; i < 8192U; i += 512U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -7574,7 +7574,7 @@ __hoisted_g_gemm_bf16_f32_64x128x64_16x16x16_4x8_0(uint32_t shared,
         for (; i2 < 4096U; i2 += 256U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -7589,7 +7589,7 @@ __hoisted_g_gemm_bf16_f32_64x128x64_16x16x16_4x8_0(uint32_t shared,
         for (; i < 8192U; i += 256U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -7835,7 +7835,7 @@ __hoisted_g_gemm_bf16_f32_128x64x16_16x16x16_2x4_0(uint32_t shared,
         for (; i2 < 2048U; i2 += 1024U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 16U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 16U;
             vec_memcpy(local,
@@ -7850,7 +7850,7 @@ __hoisted_g_gemm_bf16_f32_128x64x16_16x16x16_2x4_0(uint32_t shared,
         for (; i < 1024U; i += 1024U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -8098,7 +8098,7 @@ __hoisted_g_gemm_bf16_f32_128x64x16_16x16x16_4x2_0(uint32_t shared,
         for (; i2 < 2048U; i2 += 1024U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 16U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 16U;
             vec_memcpy(local,
@@ -8113,7 +8113,7 @@ __hoisted_g_gemm_bf16_f32_128x64x16_16x16x16_4x2_0(uint32_t shared,
         for (; i < 1024U; i += 1024U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -8362,7 +8362,7 @@ __hoisted_g_gemm_bf16_f32_128x64x16_16x16x16_4x4_0(uint32_t shared,
         for (; i2 < 2048U; i2 += 512U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 16U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 16U;
             vec_memcpy(local,
@@ -8377,7 +8377,7 @@ __hoisted_g_gemm_bf16_f32_128x64x16_16x16x16_4x4_0(uint32_t shared,
         for (; i < 1024U; i += 512U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -8626,7 +8626,7 @@ __hoisted_g_gemm_bf16_f32_128x64x16_16x16x16_8x2_0(uint32_t shared,
         for (; i2 < 2048U; i2 += 512U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 16U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 16U;
             vec_memcpy(local,
@@ -8641,7 +8641,7 @@ __hoisted_g_gemm_bf16_f32_128x64x16_16x16x16_8x2_0(uint32_t shared,
         for (; i < 1024U; i += 512U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -8890,7 +8890,7 @@ __hoisted_g_gemm_bf16_f32_128x64x16_16x16x16_8x4_0(uint32_t shared,
         for (; i2 < 2048U; i2 += 256U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 16U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 16U;
             vec_memcpy(local,
@@ -8905,7 +8905,7 @@ __hoisted_g_gemm_bf16_f32_128x64x16_16x16x16_8x4_0(uint32_t shared,
         for (; i < 1024U; i += 256U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -9153,7 +9153,7 @@ __hoisted_g_gemm_bf16_f32_128x64x32_16x16x16_2x2_0(uint32_t shared,
         for (; i2 < 4096U; i2 += 2048U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -9168,7 +9168,7 @@ __hoisted_g_gemm_bf16_f32_128x64x32_16x16x16_2x2_0(uint32_t shared,
         for (; i < 2048U; i += 2048U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -9416,7 +9416,7 @@ __hoisted_g_gemm_bf16_f32_128x64x32_16x16x16_2x4_0(uint32_t shared,
         for (; i2 < 4096U; i2 += 1024U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -9431,7 +9431,7 @@ __hoisted_g_gemm_bf16_f32_128x64x32_16x16x16_2x4_0(uint32_t shared,
         for (; i < 2048U; i += 1024U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -9679,7 +9679,7 @@ __hoisted_g_gemm_bf16_f32_128x64x32_16x16x16_4x2_0(uint32_t shared,
         for (; i2 < 4096U; i2 += 1024U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -9694,7 +9694,7 @@ __hoisted_g_gemm_bf16_f32_128x64x32_16x16x16_4x2_0(uint32_t shared,
         for (; i < 2048U; i += 1024U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -9943,7 +9943,7 @@ __hoisted_g_gemm_bf16_f32_128x64x32_16x16x16_4x4_0(uint32_t shared,
         for (; i2 < 4096U; i2 += 512U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -9958,7 +9958,7 @@ __hoisted_g_gemm_bf16_f32_128x64x32_16x16x16_4x4_0(uint32_t shared,
         for (; i < 2048U; i += 512U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -10207,7 +10207,7 @@ __hoisted_g_gemm_bf16_f32_128x64x32_16x16x16_8x2_0(uint32_t shared,
         for (; i2 < 4096U; i2 += 512U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -10222,7 +10222,7 @@ __hoisted_g_gemm_bf16_f32_128x64x32_16x16x16_8x2_0(uint32_t shared,
         for (; i < 2048U; i += 512U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -10471,7 +10471,7 @@ __hoisted_g_gemm_bf16_f32_128x64x32_16x16x16_8x4_0(uint32_t shared,
         for (; i2 < 4096U; i2 += 256U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -10486,7 +10486,7 @@ __hoisted_g_gemm_bf16_f32_128x64x32_16x16x16_8x4_0(uint32_t shared,
         for (; i < 2048U; i += 256U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -10734,7 +10734,7 @@ __hoisted_g_gemm_bf16_f32_128x64x64_16x16x16_2x2_0(uint32_t shared,
         for (; i2 < 8192U; i2 += 2048U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -10749,7 +10749,7 @@ __hoisted_g_gemm_bf16_f32_128x64x64_16x16x16_2x2_0(uint32_t shared,
         for (; i < 4096U; i += 2048U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -10997,7 +10997,7 @@ __hoisted_g_gemm_bf16_f32_128x64x64_16x16x16_2x4_0(uint32_t shared,
         for (; i2 < 8192U; i2 += 1024U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -11012,7 +11012,7 @@ __hoisted_g_gemm_bf16_f32_128x64x64_16x16x16_2x4_0(uint32_t shared,
         for (; i < 4096U; i += 1024U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -11260,7 +11260,7 @@ __hoisted_g_gemm_bf16_f32_128x64x64_16x16x16_4x2_0(uint32_t shared,
         for (; i2 < 8192U; i2 += 1024U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -11275,7 +11275,7 @@ __hoisted_g_gemm_bf16_f32_128x64x64_16x16x16_4x2_0(uint32_t shared,
         for (; i < 4096U; i += 1024U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -11524,7 +11524,7 @@ __hoisted_g_gemm_bf16_f32_128x64x64_16x16x16_4x4_0(uint32_t shared,
         for (; i2 < 8192U; i2 += 512U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -11539,7 +11539,7 @@ __hoisted_g_gemm_bf16_f32_128x64x64_16x16x16_4x4_0(uint32_t shared,
         for (; i < 4096U; i += 512U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -11788,7 +11788,7 @@ __hoisted_g_gemm_bf16_f32_128x64x64_16x16x16_8x2_0(uint32_t shared,
         for (; i2 < 8192U; i2 += 512U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -11803,7 +11803,7 @@ __hoisted_g_gemm_bf16_f32_128x64x64_16x16x16_8x2_0(uint32_t shared,
         for (; i < 4096U; i += 512U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -12052,7 +12052,7 @@ __hoisted_g_gemm_bf16_f32_128x64x64_16x16x16_8x4_0(uint32_t shared,
         for (; i2 < 8192U; i2 += 256U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -12067,7 +12067,7 @@ __hoisted_g_gemm_bf16_f32_128x64x64_16x16x16_8x4_0(uint32_t shared,
         for (; i < 4096U; i += 256U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -12317,7 +12317,7 @@ __hoisted_g_gemm_bf16_f32_128x128x16_16x16x16_2x4_0(uint32_t shared,
         for (; i2 < 2048U; i2 += 2048U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 16U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 16U;
             vec_memcpy(local,
@@ -12332,7 +12332,7 @@ __hoisted_g_gemm_bf16_f32_128x128x16_16x16x16_2x4_0(uint32_t shared,
         for (; i < 2048U; i += 2048U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -12585,7 +12585,7 @@ __hoisted_g_gemm_bf16_f32_128x128x16_16x16x16_2x8_0(uint32_t shared,
         for (; i2 < 2048U; i2 += 1024U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 16U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 16U;
             vec_memcpy(local,
@@ -12600,7 +12600,7 @@ __hoisted_g_gemm_bf16_f32_128x128x16_16x16x16_2x8_0(uint32_t shared,
         for (; i < 2048U; i += 1024U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -12852,7 +12852,7 @@ __hoisted_g_gemm_bf16_f32_128x128x16_16x16x16_4x2_0(uint32_t shared,
         for (; i2 < 2048U; i2 += 2048U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 16U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 16U;
             vec_memcpy(local,
@@ -12867,7 +12867,7 @@ __hoisted_g_gemm_bf16_f32_128x128x16_16x16x16_4x2_0(uint32_t shared,
         for (; i < 2048U; i += 2048U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -13122,7 +13122,7 @@ __hoisted_g_gemm_bf16_f32_128x128x16_16x16x16_4x4_0(uint32_t shared,
         for (; i2 < 2048U; i2 += 1024U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 16U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 16U;
             vec_memcpy(local,
@@ -13137,7 +13137,7 @@ __hoisted_g_gemm_bf16_f32_128x128x16_16x16x16_4x4_0(uint32_t shared,
         for (; i < 2048U; i += 1024U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -13390,7 +13390,7 @@ __hoisted_g_gemm_bf16_f32_128x128x16_16x16x16_4x8_0(uint32_t shared,
         for (; i2 < 2048U; i2 += 512U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 16U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 16U;
             vec_memcpy(local,
@@ -13405,7 +13405,7 @@ __hoisted_g_gemm_bf16_f32_128x128x16_16x16x16_4x8_0(uint32_t shared,
         for (; i < 2048U; i += 512U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -13658,7 +13658,7 @@ __hoisted_g_gemm_bf16_f32_128x128x16_16x16x16_8x2_0(uint32_t shared,
         for (; i2 < 2048U; i2 += 1024U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 16U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 16U;
             vec_memcpy(local,
@@ -13673,7 +13673,7 @@ __hoisted_g_gemm_bf16_f32_128x128x16_16x16x16_8x2_0(uint32_t shared,
         for (; i < 2048U; i += 1024U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -13928,7 +13928,7 @@ __hoisted_g_gemm_bf16_f32_128x128x16_16x16x16_8x4_0(uint32_t shared,
         for (; i2 < 2048U; i2 += 512U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 16U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 16U;
             vec_memcpy(local,
@@ -13943,7 +13943,7 @@ __hoisted_g_gemm_bf16_f32_128x128x16_16x16x16_8x4_0(uint32_t shared,
         for (; i < 2048U; i += 512U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -14196,7 +14196,7 @@ __hoisted_g_gemm_bf16_f32_128x128x16_16x16x16_8x8_0(uint32_t shared,
         for (; i2 < 2048U; i2 += 256U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 16U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 16U;
             vec_memcpy(local,
@@ -14211,7 +14211,7 @@ __hoisted_g_gemm_bf16_f32_128x128x16_16x16x16_8x8_0(uint32_t shared,
         for (; i < 2048U; i += 256U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -14463,7 +14463,7 @@ __hoisted_g_gemm_bf16_f32_128x128x32_16x16x16_2x2_0(uint32_t shared,
         for (; i2 < 4096U; i2 += 4096U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -14478,7 +14478,7 @@ __hoisted_g_gemm_bf16_f32_128x128x32_16x16x16_2x2_0(uint32_t shared,
         for (; i < 4096U; i += 4096U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -14732,7 +14732,7 @@ __hoisted_g_gemm_bf16_f32_128x128x32_16x16x16_2x4_0(uint32_t shared,
         for (; i2 < 4096U; i2 += 2048U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -14747,7 +14747,7 @@ __hoisted_g_gemm_bf16_f32_128x128x32_16x16x16_2x4_0(uint32_t shared,
         for (; i < 4096U; i += 2048U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -15000,7 +15000,7 @@ __hoisted_g_gemm_bf16_f32_128x128x32_16x16x16_2x8_0(uint32_t shared,
         for (; i2 < 4096U; i2 += 1024U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -15015,7 +15015,7 @@ __hoisted_g_gemm_bf16_f32_128x128x32_16x16x16_2x8_0(uint32_t shared,
         for (; i < 4096U; i += 1024U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -15267,7 +15267,7 @@ __hoisted_g_gemm_bf16_f32_128x128x32_16x16x16_4x2_0(uint32_t shared,
         for (; i2 < 4096U; i2 += 2048U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -15282,7 +15282,7 @@ __hoisted_g_gemm_bf16_f32_128x128x32_16x16x16_4x2_0(uint32_t shared,
         for (; i < 4096U; i += 2048U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -15537,7 +15537,7 @@ __hoisted_g_gemm_bf16_f32_128x128x32_16x16x16_4x4_0(uint32_t shared,
         for (; i2 < 4096U; i2 += 1024U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -15552,7 +15552,7 @@ __hoisted_g_gemm_bf16_f32_128x128x32_16x16x16_4x4_0(uint32_t shared,
         for (; i < 4096U; i += 1024U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -15805,7 +15805,7 @@ __hoisted_g_gemm_bf16_f32_128x128x32_16x16x16_4x8_0(uint32_t shared,
         for (; i2 < 4096U; i2 += 512U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -15820,7 +15820,7 @@ __hoisted_g_gemm_bf16_f32_128x128x32_16x16x16_4x8_0(uint32_t shared,
         for (; i < 4096U; i += 512U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -16073,7 +16073,7 @@ __hoisted_g_gemm_bf16_f32_128x128x32_16x16x16_8x2_0(uint32_t shared,
         for (; i2 < 4096U; i2 += 1024U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -16088,7 +16088,7 @@ __hoisted_g_gemm_bf16_f32_128x128x32_16x16x16_8x2_0(uint32_t shared,
         for (; i < 4096U; i += 1024U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -16343,7 +16343,7 @@ __hoisted_g_gemm_bf16_f32_128x128x32_16x16x16_8x4_0(uint32_t shared,
         for (; i2 < 4096U; i2 += 512U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -16358,7 +16358,7 @@ __hoisted_g_gemm_bf16_f32_128x128x32_16x16x16_8x4_0(uint32_t shared,
         for (; i < 4096U; i += 512U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -16611,7 +16611,7 @@ __hoisted_g_gemm_bf16_f32_128x128x32_16x16x16_8x8_0(uint32_t shared,
         for (; i2 < 4096U; i2 += 256U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -16626,7 +16626,7 @@ __hoisted_g_gemm_bf16_f32_128x128x32_16x16x16_8x8_0(uint32_t shared,
         for (; i < 4096U; i += 256U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -16878,7 +16878,7 @@ __hoisted_g_gemm_bf16_f32_128x128x64_16x16x16_2x2_0(uint32_t shared,
         for (; i2 < 8192U; i2 += 4096U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -16893,7 +16893,7 @@ __hoisted_g_gemm_bf16_f32_128x128x64_16x16x16_2x2_0(uint32_t shared,
         for (; i < 8192U; i += 4096U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -17147,7 +17147,7 @@ __hoisted_g_gemm_bf16_f32_128x128x64_16x16x16_2x4_0(uint32_t shared,
         for (; i2 < 8192U; i2 += 2048U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -17162,7 +17162,7 @@ __hoisted_g_gemm_bf16_f32_128x128x64_16x16x16_2x4_0(uint32_t shared,
         for (; i < 8192U; i += 2048U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -17415,7 +17415,7 @@ __hoisted_g_gemm_bf16_f32_128x128x64_16x16x16_2x8_0(uint32_t shared,
         for (; i2 < 8192U; i2 += 1024U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -17430,7 +17430,7 @@ __hoisted_g_gemm_bf16_f32_128x128x64_16x16x16_2x8_0(uint32_t shared,
         for (; i < 8192U; i += 1024U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -17682,7 +17682,7 @@ __hoisted_g_gemm_bf16_f32_128x128x64_16x16x16_4x2_0(uint32_t shared,
         for (; i2 < 8192U; i2 += 2048U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -17697,7 +17697,7 @@ __hoisted_g_gemm_bf16_f32_128x128x64_16x16x16_4x2_0(uint32_t shared,
         for (; i < 8192U; i += 2048U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -17952,7 +17952,7 @@ __hoisted_g_gemm_bf16_f32_128x128x64_16x16x16_4x4_0(uint32_t shared,
         for (; i2 < 8192U; i2 += 1024U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -17967,7 +17967,7 @@ __hoisted_g_gemm_bf16_f32_128x128x64_16x16x16_4x4_0(uint32_t shared,
         for (; i < 8192U; i += 1024U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -18220,7 +18220,7 @@ __hoisted_g_gemm_bf16_f32_128x128x64_16x16x16_4x8_0(uint32_t shared,
         for (; i2 < 8192U; i2 += 512U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -18235,7 +18235,7 @@ __hoisted_g_gemm_bf16_f32_128x128x64_16x16x16_4x8_0(uint32_t shared,
         for (; i < 8192U; i += 512U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -18488,7 +18488,7 @@ __hoisted_g_gemm_bf16_f32_128x128x64_16x16x16_8x2_0(uint32_t shared,
         for (; i2 < 8192U; i2 += 1024U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -18503,7 +18503,7 @@ __hoisted_g_gemm_bf16_f32_128x128x64_16x16x16_8x2_0(uint32_t shared,
         for (; i < 8192U; i += 1024U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -18758,7 +18758,7 @@ __hoisted_g_gemm_bf16_f32_128x128x64_16x16x16_8x4_0(uint32_t shared,
         for (; i2 < 8192U; i2 += 512U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -18773,7 +18773,7 @@ __hoisted_g_gemm_bf16_f32_128x128x64_16x16x16_8x4_0(uint32_t shared,
         for (; i < 8192U; i += 512U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -19026,7 +19026,7 @@ __hoisted_g_gemm_bf16_f32_128x128x64_16x16x16_8x8_0(uint32_t shared,
         for (; i2 < 8192U; i2 += 256U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -19041,7 +19041,7 @@ __hoisted_g_gemm_bf16_f32_128x128x64_16x16x16_8x8_0(uint32_t shared,
         for (; i < 8192U; i += 256U) {
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
-                local[_i] = CUDART_ZERO_BF16;
+                local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
