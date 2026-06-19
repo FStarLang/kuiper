@@ -18,4 +18,3 @@ let lemma_approximates_intro #et #_ #_ #d0 #d1 #d2 #d3 m1 m2 =
   introduce forall (idx : abs (d0 @| d1 @| d2 @| d3 @| INil)). acc m1 idx %~ acc m2 idx
   with (let (i, (j, (k, (l, ())))) = idx in
         assert (macc m1 i j k l %~ macc m2 i j k l))
-

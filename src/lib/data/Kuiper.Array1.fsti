@@ -59,15 +59,13 @@ val to_from (#et:Type) (#len : nat) (l : full_layout len) (s : lseq et len)
           [SMTPat (to_seq l (from_seq l s))]
 
 inline_for_extraction noextract
-let t (et : Type0) (#len : nat) (l : layout len) : Type0 =
-  tensor et l
+val t (et : Type0) (#len : nat) (l : layout len) : Type0
 
 unfold let array1 = t
 
-let is_global (#et : Type0) (#len : nat) (#l : layout len)
+val is_global (#et : Type0) (#len : nat) (#l : layout len)
   (a : t et l)
-  : prop =
-  is_global a
+  : prop
 
 inline_for_extraction noextract
 val from_array
@@ -313,12 +311,11 @@ fn extract_cell
     a |-> Frac f s ** 
     pure (SZ.fits (layout_size l))
   ensures
-  // TODO: this postcondition could take another step and give you Seq.upd s i si' on the RHS of the trade, but it doesn't make a difference if you're using restore_cell_upd
     Cell a i |-> Frac f (Seq.index s i) ** 
     (forall* (si': et).   
       Cell a i |-> Frac f si' @==> a |-> Frac f (Seq.upd s i si' <: (lseq et len)))
 
-// just an elim_trade wrapper
+// Just an elim_trade wrapper
 ghost
 fn restore_cell
   (#et : Type0) (#len : nat) (#l : layout len)

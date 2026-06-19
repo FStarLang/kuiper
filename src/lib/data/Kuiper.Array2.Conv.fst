@@ -1,3 +1,6 @@
+
+// TODO: should probably just be removed when we get rid of Array2
+
 module Kuiper.Array2.Conv
 friend Kuiper.Array2
 #lang-pulse

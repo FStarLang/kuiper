@@ -8,7 +8,6 @@ a container instance. *)
 open Kuiper
 open Kuiper.Index
 open Kuiper.Container
-open Kuiper.Approximates.Base
 open FStar.FunctionalExtensionality { (^->>) }
 module F = FStar.FunctionalExtensionality
 
