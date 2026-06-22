@@ -1,6 +1,6 @@
 module Kuiper.Kernel.BatchedGEMM
 
-(* Batched matrix multiplication (GEMM) using 3D tensors 
+(* Batched matrix multiplication (GEMM) using 3D tensors
   (batch, M, K) and (batch, K, N) to produce (batch, M, N). *)
 
 #lang-pulse
@@ -9,7 +9,6 @@ open Kuiper.Tensor
 open Kuiper.Tensor.Layout
 open Kuiper.Tensor.Layout.Alg
 open Kuiper.Index
-module EM = Kuiper.EMatrix
 module EMatrix3 = Kuiper.EMatrix3
 module MS = Kuiper.Spec.GEMM
 module SZ = Kuiper.SizeT
@@ -39,7 +38,7 @@ fn bmmcomb_gpu_exact
     pure (
       rows * cols <= max_blocks * max_threads  /\
       SZ.fits (batch * rows * cols)
-    ) ** 
+    ) **
     on gpu_loc (c |-> sc)
   ensures
     on gpu_loc (c |-> MS.bmmcomb comb sc sa sb)

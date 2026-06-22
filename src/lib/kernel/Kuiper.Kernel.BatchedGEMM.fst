@@ -37,7 +37,7 @@ fn bmmcomb_gpu_exact
     pure (
       rows * cols <= max_blocks * max_threads  /\
       SZ.fits (batch * rows * cols)
-    ) ** 
+    ) **
     on gpu_loc (c |-> sc)
   ensures
     on gpu_loc (c |-> MS.bmmcomb comb sc sa sb)
@@ -57,15 +57,15 @@ fn bmmcomb_gpu_exact
         pure (
           SZ.v vi <= SZ.v batch /\
           rows * cols <= max_blocks * max_threads /\
-          (forall (k:natlt batch). 
+          (forall (k:natlt batch).
             if (k < SZ.v vi) then
               EMatrix3.slice_page sc' k ==
-              MS.mmcomb comb (EMatrix3.slice_page sc k) (EMatrix3.slice_page sa k) (EMatrix3.slice_page sb k) 
+              MS.mmcomb comb (EMatrix3.slice_page sc k) (EMatrix3.slice_page sa k) (EMatrix3.slice_page sb k)
             else EMatrix3.slice_page sc' k == EMatrix3.slice_page sc k)
         )
   {
     let i = !idx;
-    
+
     map_loc gpu_loc (fun () -> tensor_extract_slice_ro a 0 i);
     map_loc gpu_loc (fun () -> tensor_extract_slice_ro b 0 i);
 
@@ -127,7 +127,7 @@ fn bmmcomb_gpu_exact
   with sc'. assert on gpu_loc (c |-> sc');
   assert pure (forall (k:nat). k < SZ.v batch ==>
              EMatrix3.slice_page sc' k ==
-             MS.mmcomb comb (EMatrix3.slice_page sc k) 
+             MS.mmcomb comb (EMatrix3.slice_page sc k)
               (EMatrix3.slice_page sa k) (EMatrix3.slice_page sb k));
   assert pure (EMatrix3.equal sc' (MS.bmmcomb comb sc sa sb));
 }
