@@ -37,6 +37,7 @@ for bm in $all_bm; do
           if [ $((bn % tn)) -ne 0 ]; then continue; fi
           if [ $(((bm / tm) * (bn / tn))) -gt 1024 ]; then continue; fi
           echo "let g_gemm_f32_${bm}x${bn}x${bk}_${tm}x${tn} = spec ${bm}sz ${bn}sz ${bk}sz ${tm}sz ${tn}sz f32"
+          echo "let g_gemm_bf16_${bm}x${bn}x${bk}_${tm}x${tn} = spec ${bm}sz ${bn}sz ${bk}sz ${tm}sz ${tn}sz bf16"
         done
       done
     done

@@ -118,6 +118,25 @@
 #define kpr_bf16tanh(f)      KPR_BF16WRAP1(htanh,  tanhf,  f)
 #define kpr_bf16fma(x, y, z) KPR_BF16WRAP3(__hfma,  fmaf,   x, y, z)
 
+/* ---- binary ops (native intrinsic available on device) ---------------- */
+
+#define add(f,g) ((f)+(g))
+#define sub(f,g) ((f)-(g))
+#define mul(f,g) ((f)*(g))
+#define div(f,g) ((f)/(g))
+
+// On older versions of CUDA, the native bf16 intrinsics don't compile on a device
+// without native bf16 support. The operator overloads, by contrast, are still defined,
+// and will be compiled to round-trip casts on f32 iff the device does not support the native ops.
+// However, some operator overloads like += are missing, so
+// we force the use of an opaque bf16add/sub/mul/etc. macro 
+// so that karamel does not try to simplify into += etc.
+
+#define kpr_bf16add(f,g) KPR_BF16WRAP2(add,add,f,g) 
+#define kpr_bf16sub(f,g) KPR_BF16WRAP2(sub,sub,f,g) 
+#define kpr_bf16mul(f,g) KPR_BF16WRAP2(mul,mul,f,g) 
+#define kpr_bf16div(f,g) KPR_BF16WRAP2(div,div,f,g) 
+
 /* ---- unary ops (no native intrinsic — float fallback) ---------------- */
 
 #define kpr_bf16tan(f)       KPR_BF16FALL1(tanf,   f)
