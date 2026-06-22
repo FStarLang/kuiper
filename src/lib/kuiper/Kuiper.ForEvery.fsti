@@ -1011,6 +1011,15 @@ instance is_send_forevery
   is_send (forall+ x. p x)
   = is_send_across_forevery p _ #sa
 
+(* Sendability of a guarded resource [when__ p q]: it is [q ()] when [p] holds
+   and [emp] otherwise, so it is sendable whenever [q] is sendable under the
+   proof of [p] (the proof is exactly what types the guarded payload, e.g. an
+   in-bounds matrix cell index). *)
+instance val is_send_when__
+  (#b:Type) (p:prop) (q:squash p -> slprop) (vis:loc_id -> b)
+  {| f: (s:squash p -> is_send_across vis (q s)) |}
+: is_send_across vis (when__ p q)
+
 instance placeless_forevery
   (#a:Type u#0) (p: a -> slprop) {| sa: (x:a -> placeless (p x)) |} :
   placeless (forall+ x. p x)

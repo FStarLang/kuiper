@@ -25,7 +25,7 @@ fn spmm
   {| ctlayout lB, ctlayout lC |}
   (gA : smatrix et (SZ.v rows) (SZ.v shared){is_global_smatrix gA})
   (#fA : perm)
-  (row_indices : larray sz rows)
+  (row_indices : larray sz rows { is_global_array row_indices })
   (fri : perm)
   (gB : Array2.t et lB {Array2.is_global gB})
   (#fB : perm)

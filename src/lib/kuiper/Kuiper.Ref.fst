@@ -63,14 +63,17 @@ fn _fold_loc
     };
 }
 
-(* gpu refs are always in gpu global memory *)
+(* gpu refs are always in gpu global memory; sendable across any v refining gpu_of *)
 instance is_send_across_gpu_ref
   (#a:Type u#0)
   (#f:perm)
   (r:gpu_ref a)
+  (vis : visibility { vis_refines vis gpu_of })
   (v:a)
-  : is_send_across gpu_of (gpu_pts_to #a r #f v)
-  = Kuiper.Array.Core.is_send_pts_to _ _
+  : is_send_across vis (gpu_pts_to #a r #f v)
+  = let home : is_send_across gpu_of (gpu_pts_to #a r #f v)
+             = Kuiper.Array.Core.is_send_pts_to _ _ in
+    weaken home ()
 
 inline_for_extraction noextract
 fn gpu_alloc0

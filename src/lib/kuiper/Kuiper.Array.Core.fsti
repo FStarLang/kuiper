@@ -144,13 +144,43 @@ instance val is_send_pts_to_slice
       (visibility_of x)
       (pts_to_slice #a x #f i j v)
 
-instance is_send_across_global_array
+(* Single generic weakening instance per base resource: sendable across any v
+   that refines the array's home visibility. Subsumes the old gpu-specific
+   is_send_across_global_array and the gpu->block lift (via the block_refines_gpu
+   SMTPat), and serves block arrays too (v == visibility_of x reflexively). *)
+instance is_send_pts_to_weaken
   (#et:Type0)
-  (a : array et { is_global_array a })
-  (#i #j #f #s:_)
-: is_send_across gpu_of (pts_to_slice a #f i j s)
-= let i : is_send_across (visibility_of a) (pts_to_slice a #f i j s) = solve in
-  i
+  (x : array et)
+  (v : visibility { vis_refines v (visibility_of x) })
+  (#[exact (`1.0R)] f : perm)
+  (s : seq et)
+: is_send_across v (pts_to x #f s)
+= weaken (is_send_pts_to x #f s) ()
+
+instance is_send_pts_to_slice_weaken
+  (#et:Type0)
+  (x : array et)
+  (v : visibility { vis_refines v (visibility_of x) })
+  (#[exact (`1.0R)] f : perm)
+  (i j : nat) (s : seq et)
+: is_send_across v (pts_to_slice x #f i j s)
+= weaken (is_send_pts_to_slice x #f i j s) ()
+
+(* Sendability stated on the raw [A.pts_to] (a named val), independent of the
+   pointer's static type and of the [pts_to] class wrappers. The [pts_to] class
+   method, the [frac] wrapper ([x |-> Frac f v]) and the [lseq] wrapper are all
+   [pulse_unfold] and reduce to [A.pts_to], so this single instance serves
+   array, larray, frac- and lseq-keyed goals alike (e.g. [live] of a raw larray,
+   or a sparse matrix's backing larrays which use [|-> Frac]). *)
+instance is_send_pts_to_raw
+  (#et:Type0)
+  (x : array et)
+  (v : visibility { vis_refines v (visibility_of x) })
+  (#[exact (`1.0R)] f : perm)
+  (s : seq et)
+: is_send_across v (A.pts_to x #f s)
+= is_send_pts_to_weaken x v s
+
 
 [@@pulse_unfold; FStar.Tactics.Typeclasses.noinst]
 instance cell_pts_to (#a : Type)

@@ -163,8 +163,8 @@ let kdesc (#et:Type) {| scalar et |}
   block_teardown = block_teardown #et ga1 ga2 r;
   kpost_sendable=solve;
   kpre_sendable=solve;
-  full_post_sendable=magic();
-  full_pre_sendable=magic();
+  full_post_sendable=(solve <: is_send_across gpu_of (live ga1 ** live ga2 ** live r));
+  full_pre_sendable=(solve <: is_send_across gpu_of (live ga1 ** live ga2 ** live r));
 } <: kernel_desc_1_n _ _
 
 inline_for_extraction noextract

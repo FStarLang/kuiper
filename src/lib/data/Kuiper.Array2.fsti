@@ -95,11 +95,12 @@ val pts_to
   : slprop
 
 instance
-val is_send_across_global
+val is_send_array2
   (#et : Type0) (#rows #cols : nat) (#l : layout rows cols)
-  (a : t et l { is_global a })
+  (a : t et l)
+  (vis : visibility { vis_refines vis (visibility_of (core a)) })
   (#f : perm) (s : ematrix et rows cols)
-  : is_send_across gpu_of (pts_to a #f s)
+  : is_send_across vis (pts_to a #f s)
 
 unfold
 instance has_pts_to_inst (et : Type) (rows cols : erased nat) (l : _)
@@ -321,11 +322,12 @@ val pts_to_cell_eq
            B.pts_to_cell (core a) #f (l.imap.f (adapt_idx_back ij)) v)
 
 instance
-val is_send_across_global_cell
+val is_send_array2_cell
   (#et : Type0) (#rows #cols : nat) (#l : layout rows cols)
-  (a : t et l { is_global a })
+  (a : t et l)
+  (vis : visibility { vis_refines vis (visibility_of (core a)) })
   (#f : perm) (ij : ait rows cols) (v : et)
-  : is_send_across gpu_of (pts_to_cell a #f ij v)
+  : is_send_across vis (pts_to_cell a #f ij v)
 
 ghost
 fn explode

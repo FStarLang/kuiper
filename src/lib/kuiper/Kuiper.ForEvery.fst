@@ -2239,6 +2239,12 @@ fn is_send_across_forevery
   }
 }
 
+instance is_send_when__
+  (#b:Type) (p:prop) (q:squash p -> slprop) (vis:loc_id -> b)
+  {| f: (s:squash p -> is_send_across vis (q s)) |}
+: is_send_across vis (when__ p q)
+= fun l0 l1 -> if t2b p then f () l0 l1 else is_send_across_placeless #b #vis emp l0 l1
+
 ghost
 fn forevery_factor_2
   (m : nat) (m1 m2 : nat { m == m1 * m2 })

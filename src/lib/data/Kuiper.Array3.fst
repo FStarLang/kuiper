@@ -80,12 +80,13 @@ let pts_to
   : slprop
   = T.tensor_pts_to a #f s
 
-instance is_send_across_global
+instance is_send_array3
   (#et : Type0) (#d0 #d1 #d2 : nat) (#l : layout d0 d1 d2)
-  (a : t et l { is_global a })
+  (a : t et l)
+  (vis : visibility { vis_refines vis (visibility_of (core a)) })
   (#f : perm) (s : EMatrix3.t et d0 d1 d2)
-  : is_send_across gpu_of (pts_to a #f s)
-  = solve
+  : is_send_across vis (pts_to a #f s)
+  = T.is_send_tensor a vis s
 
 ghost
 fn pts_to_ref

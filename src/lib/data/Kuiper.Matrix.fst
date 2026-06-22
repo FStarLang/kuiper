@@ -56,15 +56,16 @@ let gpu_matrix_pts_to
   : slprop
   = A.varray_pts_to gm #f em
 
-instance is_send_across_global_matrix
+instance is_send_matrix
   (#et:Type0)
   (#rows #cols : nat)
   (#l : mlayout rows cols)
-  (x: gpu_matrix et l { is_global x })
+  (x: gpu_matrix et l)
+  (vis : visibility { vis_refines vis (visibility_of (core x)) })
   (#f : perm)
   (em : ematrix et rows cols)
-: is_send_across gpu_of (gpu_matrix_pts_to x #f em)
-= solve
+: is_send_across vis (gpu_matrix_pts_to x #f em)
+= A.is_send_varray x vis em
 
 ghost
 fn gpu_matrix_pts_to_ref
@@ -484,17 +485,18 @@ let gpu_matrix_pts_to_cell_eq
            pts_to_cell (core gm) #f (cell_of_pos l i j) v)
   = A.varray_pts_to_cell_eq gm (i,(j,())) f v
 
-instance is_send_across_global_matrix_pts_to_cell
+instance is_send_matrix_pts_to_cell
   (#et:Type) (#rows #cols : nat)
   (#l : mlayout rows cols)
-  (gm : gpu_matrix et l { is_global gm })
+  (gm : gpu_matrix et l)
+  (vis : visibility { vis_refines vis (visibility_of (core gm)) })
   (#f : perm)
   (i : natlt rows)
   (j : natlt cols)
   (v : et)
-  : is_send_across gpu_of
+  : is_send_across vis
       (gpu_matrix_pts_to_cell gm #f i j v)
-  = solve
+  = A.is_send_varray_cell gm vis (i,(j,())) v
 
 inline_for_extraction noextract
 fn gpu_matrix_read_cell

@@ -206,6 +206,31 @@ instance has_pts_to_smatrix
   pts_to = smatrix_pts_to;
 }
 
+(* Sendability of a sparse matrix: it is the existential star of its three
+   backing larrays (sent via the raw A.pts_to instance) plus a placeless pure
+   fact, so [solve] assembles it once each component is reachable from [vis].
+   For an is_global_smatrix all components live on gpu_of, so block_of (and
+   gpu_of) discharge the guards via the vis_refines SMTPats. *)
+instance is_send_smatrix
+  (#et: Type0) {| scalar et |}
+  (#rows #cols : nat)
+  (m : smatrix et rows cols)
+  (vis : visibility {
+    vis_refines vis (visibility_of m.elems) /\
+    vis_refines vis (visibility_of m.col_ind) /\
+    vis_refines vis (visibility_of m.row_off) })
+  (#[Tactics.exact (`1.0R)] f : perm)
+  (e : ematrix et rows cols)
+  : is_send_across vis (smatrix_pts_to m #f e)
+  = (solve <: is_send_across vis (
+      exists* (v_elems    : lseq et m.nnz).
+      exists* (v_col_ind  : lseq sz m.nnz).
+      exists* (v_row_off  : lseq sz (rows + 1)).
+        m.elems   |-> Frac f v_elems **
+        m.col_ind |-> Frac f v_col_ind **
+        m.row_off |-> Frac f v_row_off **
+        pure (pure_smatrix_pts_to e v_elems v_col_ind v_row_off)))
+
 ghost
 fn smatrix_share_n'
   (#et:Type0) {| d : scalar et |}

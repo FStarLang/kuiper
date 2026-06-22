@@ -78,12 +78,13 @@ let pts_to
   : slprop
   = T.tensor_pts_to a #f s
 
-instance is_send_across_global
+instance is_send_array2
   (#et : Type0) (#rows #cols : nat) (#l : layout rows cols)
-  (a : t et l { is_global a })
+  (a : t et l)
+  (vis : visibility { vis_refines vis (visibility_of (core a)) })
   (#f : perm) (s : ematrix et rows cols)
-  : is_send_across gpu_of (pts_to a #f s)
-  = solve
+  : is_send_across vis (pts_to a #f s)
+  = T.is_send_tensor a vis s
 
 let as_tensor (#et : Type0) (#rows #cols : erased nat) (#l : layout rows cols)
   (a : t et l)
@@ -398,12 +399,13 @@ let pts_to_cell_eq
            B.pts_to_cell (core a) #f (l.imap.f (adapt_idx_back ij)) v)
   = T.tensor_pts_to_cell_eq a (adapt_idx_back ij) f v
 
-instance is_send_across_global_cell
+instance is_send_array2_cell
   (#et : Type0) (#rows #cols : nat) (#l : layout rows cols)
-  (a : t et l { is_global a })
+  (a : t et l)
+  (vis : visibility { vis_refines vis (visibility_of (core a)) })
   (#f : perm) (ij : ait rows cols) (v : et)
-  : is_send_across gpu_of (pts_to_cell a #f ij v)
-  = solve
+  : is_send_across vis (pts_to_cell a #f ij v)
+  = T.is_send_tensor_cell a vis (adapt_idx_back ij) v
 
 ghost
 fn explode

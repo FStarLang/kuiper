@@ -94,14 +94,15 @@ val gpu_matrix_pts_to
   : slprop
 
 instance
-val is_send_across_global_matrix
+val is_send_matrix
   (#et:Type0)
   (#rows #cols : nat)
   (#l : mlayout rows cols)
-  (x: gpu_matrix et l { is_global x })
+  (x: gpu_matrix et l)
+  (vis : visibility { vis_refines vis (visibility_of (core x)) })
   (#f : perm)
   (em : ematrix et rows cols)
-  : is_send_across gpu_of (gpu_matrix_pts_to x #f em)
+  : is_send_across vis (gpu_matrix_pts_to x #f em)
 
 (* erased is important for the lens! *)
 unfold
@@ -374,15 +375,16 @@ val gpu_matrix_pts_to_cell_eq
            ==
            pts_to_cell (core gm) #f (cell_of_pos l i j) v)
 
-instance val is_send_across_global_matrix_pts_to_cell
+instance val is_send_matrix_pts_to_cell
   (#et:Type) (#rows #cols : nat)
   (#l : mlayout rows cols)
-  (gm : gpu_matrix et l { is_global gm })
+  (gm : gpu_matrix et l)
+  (vis : visibility { vis_refines vis (visibility_of (core gm)) })
   (#f : perm)
   (i : natlt rows)
   (j : natlt cols)
   (v : et)
-: is_send_across gpu_of
+: is_send_across vis
     (gpu_matrix_pts_to_cell gm #f i j v)
 
 inline_for_extraction noextract

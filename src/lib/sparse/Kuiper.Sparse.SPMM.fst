@@ -2022,6 +2022,123 @@ fn kf
 }
 #pop-options
 
+(* Top-level so each sendable proof is elaborated in isolation: when both
+   block_pre_sendable and block_post_sendable are solved inline in the kdesc
+   record, the combined elaboration context makes the shared [_ /. allthreads p]
+   permission arithmetic ill-typed. *)
+inline_for_extraction noextract
+let block_pre_sendable_pf
+  (#et : Type0) {| scalar et |}
+  (p : parameters{size_req p})
+  (row_perm : permutation (natlt p.rows))
+  (#lB : Array2.layout p.shared p.cols)
+  (#lC : Array2.layout p.rows p.cols)
+  (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared){is_global_smatrix gA})
+  (row_indices : larray sz p.rows { is_global_array row_indices })
+  (gB : Array2.t et lB {Array2.is_global gB})
+  (gC : Array2.t et lC {Array2.is_global gC})
+  (elems : lseq et gA.nnz)
+  (col_ind : lseq sz gA.nnz)
+  (row_off : lseq sz (p.rows + 1))
+  (eA : ematrix et p.rows p.shared)
+  (eB : ematrix et p.shared p.cols)
+  (fA fri fB : perm)
+  (bid : natlt (nblocks p))
+  : is_send_across gpu_of (forall+ (tid : natlt p.blockWidth).
+      block_pre p row_perm gA row_indices gB gC elems col_ind row_off eA eB fA fri fB bid tid)
+  = solve
+
+inline_for_extraction noextract
+let block_post_sendable_pf
+  (#et : Type0) {| scalar et |}
+  (p : parameters{size_req p})
+  (row_perm : permutation (natlt p.rows))
+  (#lB : Array2.layout p.shared p.cols)
+  (#lC : Array2.layout p.rows p.cols)
+  (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared){is_global_smatrix gA})
+  (row_indices : larray sz p.rows { is_global_array row_indices })
+  (gB : Array2.t et lB {Array2.is_global gB})
+  (gC : Array2.t et lC {Array2.is_global gC})
+  (elems : lseq et gA.nnz)
+  (col_ind : lseq sz gA.nnz)
+  (row_off : lseq sz (p.rows + 1))
+  (eA : ematrix et p.rows p.shared)
+  (eB : ematrix et p.shared p.cols)
+  (fA fri fB : perm)
+  (bid : natlt (nblocks p))
+  : is_send_across gpu_of (forall+ (tid : natlt p.blockWidth).
+      block_post p row_perm gA row_indices gB gC elems col_ind row_off eA eB fA fri fB bid tid)
+  = solve
+
+(* kpre/kpost add the two shared-memory arrays. Their [exists* s. fst sh |-> ..]
+   (resp. [live (fst sh)]) form is definitionally [live_c_shmem (fst sh)], whose
+   dedicated instance handles the c_shmem reduction and block visibility from the
+   c_shmems_inv witness; we assemble it explicitly since solve does not rewrite
+   the existential form into live_c_shmem. *)
+inline_for_extraction noextract
+let kpre_sendable_pf
+  (#et : Type0) {| scalar et |}
+  (p : parameters{size_req p})
+  (row_perm : permutation (natlt p.rows))
+  (#lB : Array2.layout p.shared p.cols)
+  (#lC : Array2.layout p.rows p.cols)
+  (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared){is_global_smatrix gA})
+  (row_indices : larray sz p.rows { is_global_array row_indices })
+  (gB : Array2.t et lB {Array2.is_global gB})
+  (gC : Array2.t et lC {Array2.is_global gC})
+  (elems : lseq et gA.nnz)
+  (col_ind : lseq sz gA.nnz)
+  (row_off : lseq sz (p.rows + 1))
+  (eA : ematrix et p.rows p.shared)
+  (eB : ematrix et p.shared p.cols)
+  (fA fri fB : perm)
+  (#_ : squash (well_formed p col_ind row_off))
+  (sh : c_shmems (shmems_desc et p))
+  (_ : squash (c_shmems_inv sh))
+  (bid : natlt (nblocks p))
+  (tid : natlt p.blockWidth)
+  : is_send_across block_of (kpre p row_perm gA row_indices gB gC elems col_ind row_off eA eB fA fri fB sh bid tid)
+  = is_send_across_star _ _
+      #(solve <: is_send_across block_of
+          (block_pre p row_perm gA row_indices gB gC elems col_ind row_off eA eB fA fri fB bid tid))
+      #(is_send_across_star _ _
+          #(is_send_across_live_c_shmem (fst sh) #(1.0R /. p.blockWidth) ()
+              <: is_send_across block_of (exists* (s : seq et). fst sh |-> Frac (1.0R /. p.blockWidth) s))
+          #(is_send_across_live_c_shmem (fst (snd sh)) #(1.0R /. p.blockWidth) ()
+              <: is_send_across block_of (exists* (s : seq sz). fst (snd sh) |-> Frac (1.0R /. p.blockWidth) s)))
+
+inline_for_extraction noextract
+let kpost_sendable_pf
+  (#et : Type0) {| scalar et |}
+  (p : parameters{size_req p})
+  (row_perm : permutation (natlt p.rows))
+  (#lB : Array2.layout p.shared p.cols)
+  (#lC : Array2.layout p.rows p.cols)
+  (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared){is_global_smatrix gA})
+  (row_indices : larray sz p.rows { is_global_array row_indices })
+  (gB : Array2.t et lB {Array2.is_global gB})
+  (gC : Array2.t et lC {Array2.is_global gC})
+  (elems : lseq et gA.nnz)
+  (col_ind : lseq sz gA.nnz)
+  (row_off : lseq sz (p.rows + 1))
+  (eA : ematrix et p.rows p.shared)
+  (eB : ematrix et p.shared p.cols)
+  (fA fri fB : perm)
+  (#_ : squash (well_formed p col_ind row_off))
+  (sh : c_shmems (shmems_desc et p))
+  (_ : squash (c_shmems_inv sh))
+  (bid : natlt (nblocks p))
+  (tid : natlt p.blockWidth)
+  : is_send_across block_of (kpost p row_perm gA row_indices gB gC elems col_ind row_off eA eB fA fri fB sh bid tid)
+  = is_send_across_star _ _
+      #(solve <: is_send_across block_of
+          (block_post p row_perm gA row_indices gB gC elems col_ind row_off eA eB fA fri fB bid tid))
+      #(is_send_across_star _ _
+          #(is_send_across_live_c_shmem (fst sh) #(1.0R /. p.blockWidth) ()
+              <: is_send_across block_of (live (fst sh) #(1.0R /. p.blockWidth)))
+          #(is_send_across_live_c_shmem (fst (snd sh)) #(1.0R /. p.blockWidth) ()
+              <: is_send_across block_of (live (fst (snd sh)) #(1.0R /. p.blockWidth))))
+
 inline_for_extraction noextract
 let kdesc
   (#et : Type0) {| scalar et |}
@@ -2032,7 +2149,7 @@ let kdesc
   (#lC : Array2.layout p.rows p.cols)
   {| ctlayout lB, ctlayout lC |}
   (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared){is_global_smatrix gA})
-  (row_indices : larray sz p.rows)
+  (row_indices : larray sz p.rows { is_global_array row_indices })
   (gB : Array2.t et lB {Array2.is_global gB})
   (gC : Array2.t et lC {Array2.is_global gC})
   // matriz sparse gA
@@ -2129,10 +2246,10 @@ let kdesc
 
   f = kf p row_perm blockChunks gA row_indices gB gC;
 
-  block_pre_sendable=magic();
-  block_post_sendable=magic();
-  kpre_sendable=magic();
-  kpost_sendable=magic();
+  block_pre_sendable=(fun bid -> block_pre_sendable_pf p row_perm gA row_indices gB gC elems col_ind row_off eA eB fA fri fB bid);
+  block_post_sendable=(fun bid -> block_post_sendable_pf p row_perm gA row_indices gB gC elems col_ind row_off eA eB fA fri fB bid);
+  kpre_sendable=(fun sh pf bid tid -> kpre_sendable_pf p row_perm gA row_indices gB gC elems col_ind row_off eA eB fA fri fB sh pf bid tid);
+  kpost_sendable=(fun sh pf bid tid -> kpost_sendable_pf p row_perm gA row_indices gB gC elems col_ind row_off eA eB fA fri fB sh pf bid tid);
 }
 
 inline_for_extraction noextract
@@ -2148,7 +2265,7 @@ fn spmm
   {| ctlayout lB, ctlayout lC |}
   (gA : smatrix et (SZ.v rows) (SZ.v shared){is_global_smatrix gA})
   (#fA : perm)
-  (row_indices : larray sz rows)
+  (row_indices : larray sz rows { is_global_array row_indices })
   (fri : perm)
   (gB : Array2.t et lB{Array2.is_global gB})
   (#fB : perm)

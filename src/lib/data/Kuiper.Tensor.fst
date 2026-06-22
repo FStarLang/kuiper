@@ -65,13 +65,14 @@ let tensor_pts_to
   : slprop
   = A.varray_pts_to a #f s
 
-instance is_send_across_global_tensor
+instance is_send_tensor
   (#et : Type0) (#r : nat) (#d : idesc r)
   (#l : tlayout d)
-  (a : tensor et l { is_global a })
+  (a : tensor et l)
+  (vis : visibility { vis_refines vis (visibility_of (core a)) })
   (#f : perm) (s : chest d et)
-  : is_send_across gpu_of (tensor_pts_to a #f s)
-  = solve
+  : is_send_across vis (tensor_pts_to a #f s)
+  = A.is_send_varray a vis s
 
 (* This is slightly odd, the user needs to give the total size
 instead of each dimension. *)
@@ -329,13 +330,14 @@ let tensor_pts_to_cell_eq
            pts_to_cell (core a) #f (l.imap.f i) v)
   = A.varray_pts_to_cell_eq a i f v
 
-instance is_send_across_global_tensor_cell
+instance is_send_tensor_cell
   (#et : Type0) (#r : nat) (#d : idesc r)
   (#l : tlayout d)
-  (a : tensor et l { is_global a })
+  (a : tensor et l)
+  (vis : visibility { vis_refines vis (visibility_of (core a)) })
   (#f : perm) (i : abs d) (v : et)
-  : is_send_across gpu_of (tensor_pts_to_cell a #f i v)
-  = solve
+  : is_send_across vis (tensor_pts_to_cell a #f i v)
+  = A.is_send_varray_cell a vis i v
 
 ghost
 fn tensor_explode

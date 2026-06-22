@@ -88,25 +88,30 @@ let varray_pts_to
   =
     a |-> Frac f (vw.ctn.acc v)
 
-instance is_send_across_global_varray
+instance is_send_varray_cell
   (#et:Type0)
   (#st : Type0)
   (#vw : aview et st)
-  (x: varray vw { is_global x })
-  (#f : perm)
-  (v : st)
-  : is_send_across gpu_of (varray_pts_to x #f v)
-  = solve
-
-instance is_send_across_global_varray_cell
-  (#et:Type0)
-  (#st : Type0)
-  (#vw : aview et st)
-  (a : varray vw { is_global a })
+  (a : varray vw)
+  (vis : visibility { vis_refines vis (visibility_of (core a)) })
   (#f : perm)
   (i : vw.iview.ait)
   (v : et)
-  : is_send_across gpu_of (varray_pts_to_cell a #f i v)
+  : is_send_across vis (varray_pts_to_cell a #f i v)
+  = varray_pts_to_cell_eq a i f v;
+    let h : is_send_across vis (pts_to_cell (core a) #f (vw.iview.step.imap.f i) v)
+          = is_send_pts_to_slice_weaken (core a) vis (vw.iview.step.imap.f i) (vw.iview.step.imap.f i + 1) seq![v] in
+    h
+
+instance is_send_varray
+  (#et:Type0)
+  (#st : Type0)
+  (#vw : aview et st)
+  (x : varray vw)
+  (vis : visibility { vis_refines vis (visibility_of (core x)) })
+  (#f : perm)
+  (v : st)
+  : is_send_across vis (varray_pts_to x #f v)
   = solve
 
 ghost
