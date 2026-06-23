@@ -41,7 +41,7 @@ let lseq_map2
   (f : a -> b -> c)
   (sa : lseq a len) (sb : lseq b len)
   : GTot (lseq c len)
-  = Seq.init_ghost len (fun i -> f (sa @! i) (sb @! i))
+  = Seq.init_ghost len (fun i -> f (Seq.index sa i) (Seq.index sb i))
 
 inline_for_extraction noextract
 fn map_gpu2

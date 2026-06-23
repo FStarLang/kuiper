@@ -1,9 +1,12 @@
 module Kuiper.Index
 
+open FStar.Ghost
 open Kuiper.Bijection
 open Kuiper.Common
 open Kuiper.SizeT
 module SZ = Kuiper.SizeT
+
+// TODO: rename to shape
 
 (* An idesc represents a tensor type, where every ICons adds a dimension.
    MxN matrix = ICons m (ICons n INil) *)
@@ -59,7 +62,7 @@ let rec abs #n (i : idesc n) : eqtype =
 think that is needed and would be bad at runtime. *)
 // [@@strict_on_arguments [1]]
 inline_for_extraction noextract
-let rec conc #n (i : idesc n) : Type0 =
+let rec conc (#n : erased nat) (i : idesc n) : Type0 =
   match i with
   | INil -> unit
   | ICons h ts -> szlt h & conc ts
@@ -267,7 +270,7 @@ val bring_forward_commute2 (#n:nat) (i : natlt n) (d : idesc n)
            == (abs_bring_forward_bij i d).gg (SZ.v j, up idx))
 
 // This bijection only exists when all_fit holds.
-let abs_conc_bij (#n:nat) (d : idesc n{all_fit d})
+let abs_conc_bij (#n : erased nat) (d : idesc n{all_fit d})
   : (abs d =~ conc d)
   = {
     ff = down;

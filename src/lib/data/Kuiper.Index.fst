@@ -110,7 +110,7 @@ let rec bring_forward_commute (#n:nat) (i : natlt n) (d : idesc n{all_fit d})
       match i with
       | 0 -> ()
       | i ->
-        let idx1, idx_mod = idx <: natlt t & abs ts in
+        let idx1, idx_mod = idx <: natlt (d @! 0) & abs ts in
         bring_forward_commute (i-1) ts idx_mod
 
 let rec bring_forward_commute2 (#n:nat) (i : natlt n) (d : idesc n)

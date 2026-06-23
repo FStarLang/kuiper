@@ -47,6 +47,12 @@ val acc_pat (#r : nat) (#d : idesc r) (#et : Type)
   : Lemma (acc c i == c.f i)
           [SMTPat (c.f i)]
 
+let chest_map (#r : nat) (#d : idesc r) (#et : Type)
+  (f : et -> et)
+  (c : chest d et)
+  : chest d et
+  = mk _ fun i -> f (acc c i)
+
 let chest_comb (#r : nat) (#d : idesc r) (#et : Type)
   (f : binop et)
   (c1 c2 : chest d et)

@@ -1,11 +1,14 @@
 module Kuiper.Tensor
 #lang-pulse
 
+include Kuiper.Index
+include Kuiper.Chest
+include Kuiper.Tensor.Layout
+
 open Kuiper
 open Kuiper.Injection
 open Kuiper.Index
 open Kuiper.Chest
-include Kuiper.Tensor.Layout
 open FStar.Tactics.Typeclasses { no_method }
 open Pulse.Lib.Trade
 module SZ = Kuiper.SizeT
@@ -18,6 +21,10 @@ val is_global
   (#et : Type0) (#r : nat) (#d : idesc r)
   (#l : tlayout d)
   (a : tensor et l) : prop
+
+inline_for_extraction noextract
+let global_tensor (et : Type0) (#r : nat) (#d : idesc r) (l : tlayout d) : Type0 =
+  a : tensor et l { is_global a }
 
 inline_for_extraction noextract
 val from_array

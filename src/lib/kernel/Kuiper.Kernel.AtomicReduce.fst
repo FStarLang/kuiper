@@ -45,7 +45,7 @@ fn putback (p : slprop)
 }
 
 (* Relating a sequence of erased bools to v_r. Essentially, v_r containts
-exaclty the contributions of the indices i where v_done @! i is true. *)
+exaclty the contributions of the indices i where Seq.index v_done i is true. *)
 let rec contributions
   (#et : Type0) {| scalar et, d : has_atomic_add et |}
   (nn : nat)
@@ -78,7 +78,7 @@ let inv_p'
   : slprop
 =
   on gpu_loc (r |-> v_r) **
-  (forall+ (i : natlt nn). (done @! i) |-> Frac 0.5R (v_done @! i)) **
+  (forall+ (i : natlt nn). (Seq.index done i) |-> Frac 0.5R (Seq.index v_done i)) **
   pure (contributions nn v_done v_a v_r zero)
 
 (* Invariant. The reference r (on GPU) contains a value that is
@@ -120,7 +120,7 @@ let kpre
   (c: CInv.cinv)
   (tid : natlt nn)
 =
-  (done @! tid) |-> Frac 0.5R false **
+  (Seq.index done tid) |-> Frac 0.5R false **
   (a |-> Frac (1.0R /. nn) v_a) **
   inv (CInv.iname_of c) (CInv.cinv_vp c (inv_p nn v_a r done)) **
   CInv.active c (tperm nn tid 1.0R) **
@@ -139,7 +139,7 @@ let kpost
   (c: CInv.cinv)
   (tid : natlt nn)
 =
-  (done @! tid) |-> Frac 0.5R true **
+  (Seq.index done tid) |-> Frac 0.5R true **
   (a |-> Frac (1.0R /. nn) v_a) **
   CInv.active c (tperm nn tid 1.0R)
 
@@ -150,26 +150,26 @@ fn forevery_ghost_upd_lemma
   (v_done : seq bool {len v_done == nn})
   (tid : nat{tid < nn})
   requires
-    (forall+ (i : natlt nn). (done @! i) |-> Frac 0.5R (v_done @! i)) **
-    (done @! tid) |-> Frac 0.5R false
+    (forall+ (i : natlt nn). (Seq.index done i) |-> Frac 0.5R (Seq.index v_done i)) **
+    (Seq.index done tid) |-> Frac 0.5R false
   ensures
-    (forall+ (i : natlt nn). (done @! i) |-> Frac 0.5R (Seq.upd v_done tid true @! i)) **
-    (done @! tid) |-> Frac 0.5R true **
-    pure (v_done @! tid == false)
+    (forall+ (i : natlt nn). (Seq.index done i) |-> Frac 0.5R (Seq.index (Seq.upd v_done tid true) i)) **
+    (Seq.index done tid) |-> Frac 0.5R true **
+    pure (Seq.index v_done tid == false)
 {
   forevery_extract'
     tid
-    (fun (i : natlt nn) -> (done @! i) |-> Frac 0.5R (v_done @! i));
+    (fun (i : natlt nn) -> (Seq.index done i) |-> Frac 0.5R (Seq.index v_done i));
 
-  Pulse.Lib.GhostReference.gather (done @! tid);
-  Pulse.Lib.GhostReference.write (done @! tid) true;
-  Pulse.Lib.GhostReference.share (done @! tid);
+  Pulse.Lib.GhostReference.gather (Seq.index done tid);
+  Pulse.Lib.GhostReference.write (Seq.index done tid) true;
+  Pulse.Lib.GhostReference.share (Seq.index done tid);
 
   Pulse.Lib.Forall.elim_forall
-    (fun (i : natlt nn) -> (done @! i) |-> Frac 0.5R (Seq.upd v_done tid true @! i));
+    (fun (i : natlt nn) -> (Seq.index done i) |-> Frac 0.5R (Seq.index (Seq.upd v_done tid true) i));
 
-  rewrite ((done @! tid) |-> Frac 0.5R true)
-      as  ((done @! tid) |-> Frac 0.5R (Seq.upd v_done tid true @! tid));
+  rewrite ((Seq.index done tid) |-> Frac 0.5R true)
+      as  ((Seq.index done tid) |-> Frac 0.5R (Seq.index (Seq.upd v_done tid true) tid));
 
   Pulse.Lib.Trade.elim_trade _ _;
 }
@@ -239,8 +239,8 @@ let rec contributions_lemma
   (v_a : seq et{len v_done >= len v_a})
   (v_r : et) (acc : et)
   (tid : nat{tid < len v_a})
-  : Lemma (requires contributions nn v_done v_a v_r acc /\ v_done @! tid == false)
-          (ensures  contributions nn (Seq.upd v_done tid true) v_a (d.pure_op (v_a @! tid) v_r) acc)
+  : Lemma (requires contributions nn v_done v_a v_r acc /\ Seq.index v_done tid == false)
+          (ensures  contributions nn (Seq.upd v_done tid true) v_a (d.pure_op (Seq.index v_a tid) v_r) acc)
           (decreases len v_a)
 = if tid = 0 then begin
     tail_upd_0 v_done true;
@@ -267,9 +267,9 @@ let contributions_lemma_smt
   (v_a : seq et{len v_done >= len v_a})
   (v_r : et) (acc : et)
   (tid : nat{tid < len v_a})
-  : Lemma (requires contributions nn v_done v_a v_r acc /\ v_done @! tid == false /\ is_ac d.pure_op)
-          (ensures  contributions nn (Seq.upd v_done tid true) v_a (d.pure_op (v_a @! tid) v_r) acc)
-          [SMTPat (contributions nn (Seq.upd v_done tid true) v_a (d.pure_op (v_a @! tid) v_r) acc)]
+  : Lemma (requires contributions nn v_done v_a v_r acc /\ Seq.index v_done tid == false /\ is_ac d.pure_op)
+          (ensures  contributions nn (Seq.upd v_done tid true) v_a (d.pure_op (Seq.index v_a tid) v_r) acc)
+          [SMTPat (contributions nn (Seq.upd v_done tid true) v_a (d.pure_op (Seq.index v_a tid) v_r) acc)]
 = contributions_lemma { comm = (fun x y -> ()); assoc = (fun x y z -> ()) } nn v_done v_a v_r acc tid
 
 inline_for_extraction noextract
@@ -302,12 +302,12 @@ fn kf
   with_invariants unit emp_inames (CInv.iname_of c)
     (CInv.cinv_vp c (inv_p (SZ.v nn) v_a r done))
     (gpu **
-     (done @! bid) |-> Frac 0.5R false **
+     (Seq.index done bid) |-> Frac 0.5R false **
      a |-> Frac (1.0R /. SZ.v nn) v_a **
      CInv.active c (tperm (SZ.v nn) bid 1.0R))
     (fun _ ->
      gpu **
-     (done @! bid) |-> Frac 0.5R true **
+     (Seq.index done bid) |-> Frac 0.5R true **
      a |-> Frac (1.0R /. SZ.v nn) v_a **
      CInv.active c (tperm (SZ.v nn) bid 1.0R))
   fn _
@@ -333,14 +333,14 @@ let rec contributions_all_done
   (nn : nat) (v_done : seq bool) (v_a : seq et{len v_done >= len v_a})
   (v_r : et) (acc : et)
   : Lemma (requires contributions nn v_done v_a v_r acc
-                /\ (forall (i:nat{i < len v_a}). v_done @! i == true))
+                /\ (forall (i:nat{i < len v_a}). Seq.index v_done i == true))
           (ensures v_r == Kuiper.Seq.Common.seq_fold_left d.pure_op acc v_a)
           (decreases len v_a)
 = if len v_a = 0 then ()
   else begin
-    assert (v_done @! 0 == true);
+    assert (Seq.index v_done 0 == true);
     let aux (i:nat{i < len (Seq.tail v_a)})
-      : Lemma (Seq.tail v_done @! i == true)
+      : Lemma (Seq.index (Seq.tail v_done) i == true)
     = FStar.Seq.Properties.index_tail v_done i
     in
     FStar.Classical.forall_intro aux;
@@ -351,14 +351,14 @@ let rec contributions_all_done
 let rec contributions_init
   (#et : Type0) {| scalar et |} {| d : has_atomic_add et |}
   (nn : nat) (v_done : seq bool) (v_a : seq et{len v_done >= len v_a})
-  : Lemma (requires forall (i:nat{i < len v_a}). v_done @! i == false)
+  : Lemma (requires forall (i:nat{i < len v_a}). Seq.index v_done i == false)
           (ensures contributions nn v_done v_a zero zero)
           (decreases len v_a)
 = if len v_a = 0 then ()
   else begin
-    assert (v_done @! 0 == false);
+    assert (Seq.index v_done 0 == false);
     let aux (i:nat{i < len (Seq.tail v_a)})
-      : Lemma (Seq.tail v_done @! i == false)
+      : Lemma (Seq.index (Seq.tail v_done) i == false)
     = FStar.Seq.Properties.index_tail v_done i
     in
     FStar.Classical.forall_intro aux;
@@ -368,28 +368,28 @@ let rec contributions_init
 ghost
 fn rec allocate_ref_seq (n : nat)
   returns s : erased (lseq (gref bool) n)
-  ensures (forall+ (i : natlt n). (s @! i) |-> false)
+  ensures (forall+ (i : natlt n). (Seq.index s i) |-> false)
   decreases n
 {
   if (n = 0) {
     let s = Seq.empty #(gref bool);
-    forevery_intro_empty (fun (i : natlt n) -> (s @! i) |-> false);
+    forevery_intro_empty (fun (i : natlt n) -> (Seq.index s i) |-> false);
     s
   } else {
     let tail = allocate_ref_seq (n - 1);
     let r = Pulse.Lib.GhostReference.alloc false;
     let s = Seq.cons r tail;
-    rewrite r |-> false as (s @! 0) |-> false;
+    rewrite r |-> false as (Seq.index s 0) |-> false;
     forevery_map
-      (fun (i : natlt (n-1)) -> (tail @! i) |-> false)
-      (fun (i : natlt (n-1)) -> (s @! (i+1)) |-> false)
+      (fun (i : natlt (n-1)) -> (Seq.index tail i) |-> false)
+      (fun (i : natlt (n-1)) -> (Seq.index s (i+1)) |-> false)
       fn i {
-        rewrite each (tail @! i) as (s @! (i+1));
+        rewrite each (Seq.index tail i) as (Seq.index s (i+1));
         ();
       };
-    assert (s @! 0) |-> false;
-    assert forall+ (i : natlt (n-1)). (s @! (i+1)) |-> false;
-    forevery_natlt_push_shift n (fun (i : natlt n) -> (s @! i) |-> false);
+    assert (Seq.index s 0) |-> false;
+    assert forall+ (i : natlt (n-1)). (Seq.index s (i+1)) |-> false;
+    forevery_natlt_push_shift n (fun (i : natlt n) -> (Seq.index s i) |-> false);
     s
   }
 }
@@ -398,7 +398,7 @@ ghost
 fn allocate_ref_seq' (n : nat)
   returns s : erased (seq (gref bool))
   ensures W.with_pure (len s == n)
-            (fun _ -> forall+ (i : natlt n). (s @! i) |-> false)
+            (fun _ -> forall+ (i : natlt n). (Seq.index s i) |-> false)
 {
   let s = allocate_ref_seq n;
   Ghost.hide (Ghost.reveal s)
@@ -483,7 +483,7 @@ fn setup
   norewrite
   requires
     (a |-> v_a) **
-    (forall+ (tid : natlt n). (done @! tid) |-> Frac 0.5R false) **
+    (forall+ (tid : natlt n). (Seq.index done tid) |-> Frac 0.5R false) **
     inv (CInv.iname_of c) (CInv.cinv_vp c (inv_p (SZ.v n) v_a r done)) **
     CInv.active c 1.0R **
     pure (len v_a == SZ.v n)
@@ -499,13 +499,13 @@ fn setup
 
   (* Zip ghost halves with array fractions *)
   forevery_zip
-    (fun (tid:natlt (SZ.v n)) -> (done @! tid) |-> Frac 0.5R false)
+    (fun (tid:natlt (SZ.v n)) -> (Seq.index done tid) |-> Frac 0.5R false)
     (fun (tid:natlt (SZ.v n)) -> a |-> Frac (1.0R /. SZ.v n) v_a);
 
   (* Zip (ghost+array) with active fractions *)
   forevery_zip
     (fun (tid:natlt (SZ.v n)) ->
-      (done @! tid) |-> Frac 0.5R false **
+      (Seq.index done tid) |-> Frac 0.5R false **
       (a |-> Frac (1.0R /. SZ.v n) v_a))
     (fun (tid:natlt (SZ.v n)) -> CInv.active c (tperm (SZ.v n) tid 1.0R));
 
@@ -515,12 +515,12 @@ fn setup
   forevery_map_extra
     (inv (CInv.iname_of c) (CInv.cinv_vp c (inv_p (SZ.v n) v_a r done)))
     (fun (tid:natlt (SZ.v n)) ->
-      (((done @! tid) |-> Frac 0.5R false **
+      (((Seq.index done tid) |-> Frac 0.5R false **
        (a |-> Frac (1.0R /. SZ.v n) v_a)) **
        CInv.active c (tperm (SZ.v n) tid 1.0R)) **
       pure (len v_a == SZ.v n))
     (fun (tid:natlt (SZ.v n)) ->
-      (done @! tid) |-> Frac 0.5R false **
+      (Seq.index done tid) |-> Frac 0.5R false **
       (a |-> Frac (1.0R /. SZ.v n) v_a) **
       inv (CInv.iname_of c) (CInv.cinv_vp c (inv_p (SZ.v n) v_a r done)) **
       CInv.active c (tperm (SZ.v n) tid 1.0R) **
@@ -554,13 +554,13 @@ fn teardown
     inv (CInv.iname_of c) (CInv.cinv_vp c (inv_p (SZ.v n) v_a r done))
   ensures
     (a |-> v_a) **
-    (forall+ (tid : natlt n). (done @! tid) |-> Frac 0.5R true) **
+    (forall+ (tid : natlt n). (Seq.index done tid) |-> Frac 0.5R true) **
     inv (CInv.iname_of c) (CInv.cinv_vp c (inv_p (SZ.v n) v_a r done)) **
     CInv.active c 1.0R
 {
   (* Unzip done from (array ** active) *)
   forevery_unzip
-    (fun (bid:natlt (SZ.v n)) -> (done @! bid) |-> Frac 0.5R true)
+    (fun (bid:natlt (SZ.v n)) -> (Seq.index done bid) |-> Frac 0.5R true)
     (fun (bid:natlt (SZ.v n)) ->
       (a |-> Frac (1.0R /. SZ.v n) v_a) **
       CInv.active c (tperm (SZ.v n) bid 1.0R));
@@ -596,12 +596,12 @@ let kdesc
   (c : CInv.cinv)
 : kernel_desc
     ((a |-> v_a) **
-      (forall+ (tid : natlt n). (done @! tid) |-> Frac 0.5R false) **
+      (forall+ (tid : natlt n). (Seq.index done tid) |-> Frac 0.5R false) **
       inv (CInv.iname_of c) (CInv.cinv_vp c (inv_p (SZ.v n) v_a r done)) **
       CInv.active c 1.0R **
       pure (len v_a == SZ.v n))
     ((a |-> v_a) **
-      (forall+ (tid : natlt n). (done @! tid) |-> Frac 0.5R true) **
+      (forall+ (tid : natlt n). (Seq.index done tid) |-> Frac 0.5R true) **
       inv (CInv.iname_of c) (CInv.cinv_vp c (inv_p (SZ.v n) v_a r done)) **
       CInv.active c 1.0R)
  = {
@@ -654,10 +654,10 @@ fn reduce
   (* Share each ghost ref into two halves *)
   forevery_map
     #(natlt (SZ.v n))
-    (fun i -> (done @! i) |-> false)
-    (fun i -> (done @! i) |-> Frac 0.5R false ** (done @! i) |-> Frac 0.5R (falses @! i))
+    (fun i -> (Seq.index done i) |-> false)
+    (fun i -> (Seq.index done i) |-> Frac 0.5R false ** (Seq.index done i) |-> Frac 0.5R (Seq.index falses i))
     fn i {
-      Pulse.Lib.GhostReference.share (done @! i);
+      Pulse.Lib.GhostReference.share (Seq.index done i);
       ();
     };
   forevery_unzip _ _;
@@ -678,7 +678,7 @@ fn reduce
     gpu_loc;
 
   placeless_on_intro
-    (forall+ (tid : natlt n). (done @! tid) |-> Frac 0.5R false)
+    (forall+ (tid : natlt n). (Seq.index done tid) |-> Frac 0.5R false)
     gpu_loc;
 
   placeless_on_intro
@@ -695,7 +695,7 @@ fn reduce
     gpu_loc;
 
   placeless_on_elim
-    (forall+ (tid : natlt n). (done @! tid) |-> Frac 0.5R true)
+    (forall+ (tid : natlt n). (Seq.index done tid) |-> Frac 0.5R true)
     gpu_loc;
 
   placeless_on_elim
@@ -713,22 +713,22 @@ fn reduce
   with v_done v_r.
     unfold inv_p' (SZ.v n) v_a gr done v_done v_r;
   assert
-    (forall+ (i : natlt (SZ.v n)). (done @! i) |-> Frac 0.5R true) **
-    (forall+ (i : natlt (SZ.v n)). (done @! i) |-> Frac 0.5R (v_done @! i));
+    (forall+ (i : natlt (SZ.v n)). (Seq.index done i) |-> Frac 0.5R true) **
+    (forall+ (i : natlt (SZ.v n)). (Seq.index done i) |-> Frac 0.5R (Seq.index v_done i));
 
   forevery_zip
-    (fun (i : natlt (SZ.v n)) -> (done @! i) |-> Frac 0.5R true)
-    (fun (i : natlt (SZ.v n)) -> (done @! i) |-> Frac 0.5R (v_done @! i));
+    (fun (i : natlt (SZ.v n)) -> (Seq.index done i) |-> Frac 0.5R true)
+    (fun (i : natlt (SZ.v n)) -> (Seq.index done i) |-> Frac 0.5R (Seq.index v_done i));
   forevery_map
-    (fun (i : natlt (SZ.v n)) -> ((done @! i) |-> Frac 0.5R true) **
-                               ((done @! i) |-> Frac 0.5R (v_done @! i)))
-    (fun (i : natlt (SZ.v n)) -> ((done @! i) |-> true) ** pure (v_done @! i == true))
+    (fun (i : natlt (SZ.v n)) -> ((Seq.index done i) |-> Frac 0.5R true) **
+                               ((Seq.index done i) |-> Frac 0.5R (Seq.index v_done i)))
+    (fun (i : natlt (SZ.v n)) -> ((Seq.index done i) |-> true) ** pure (Seq.index v_done i == true))
     fn i {
-      Pulse.Lib.GhostReference.gather (done @! i);
+      Pulse.Lib.GhostReference.gather (Seq.index done i);
     };
   forevery_extract_pure
-    (fun (i : natlt (SZ.v n)) -> (done @! i) |-> true ** pure (v_done @! i == true))
-    (fun (i : natlt (SZ.v n)) -> (v_done @! i) == true)
+    (fun (i : natlt (SZ.v n)) -> (Seq.index done i) |-> true ** pure (Seq.index v_done i == true))
+    (fun (i : natlt (SZ.v n)) -> (Seq.index v_done i) == true)
     fn _ {};
 
   assert pure (contributions n v_done v_a v_r zero);
@@ -736,7 +736,7 @@ fn reduce
   assert pure (v_r == Kuiper.Seq.Common.seq_fold_left d.pure_op zero v_a);
 
   (* Drop ghost state *)
-  drop_ (forall+ (i : natlt (SZ.v n)). (done @! i) |-> true ** pure (v_done @! i == true));
+  drop_ (forall+ (i : natlt (SZ.v n)). (Seq.index done i) |-> true ** pure (Seq.index v_done i == true));
 
   Kuiper.Ref.gpu_memcpy_device_to_host r gr #_ #_ #_;
 
