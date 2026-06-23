@@ -12,7 +12,7 @@ module MS = Kuiper.Spec.GEMM
 module Array1 = Kuiper.Array1
 open Kuiper.Sum { sum }
 open Kuiper.Tensor
-open Kuiper.Index { ( @| ), INil }
+open Kuiper.Shape { ( @| ), INil }
 open Kuiper.Chest { chest, chest_slice }
 open Kuiper.Container
 

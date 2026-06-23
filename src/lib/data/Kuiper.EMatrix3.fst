@@ -2,7 +2,7 @@ module Kuiper.EMatrix3
 #lang-pulse
 
 open Kuiper
-open Kuiper.Index
+open Kuiper.Shape
 open Kuiper.Chest
 module EM = Kuiper.EMatrix
 

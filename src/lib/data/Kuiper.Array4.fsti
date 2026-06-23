@@ -5,14 +5,14 @@ module Kuiper.Array4
 open Kuiper
 open Kuiper.Tensor
 open Kuiper.Injection
-open Kuiper.Index
+open Kuiper.Shape
 open Kuiper.EMatrix4
 open FStar.Tactics.Typeclasses { no_method }
 module B = Kuiper.Array
 module SZ = Kuiper.SizeT
 module Tac = FStar.Tactics.V2
 
-let desc (d0 d1 d2 d3 : nat) : idesc 4 =
+let desc (d0 d1 d2 d3 : nat) : shape 4 =
   d0 @| d1 @| d2 @| d3 @| INil
 
 // Even if this is trivial, it seems to help in some contexts.

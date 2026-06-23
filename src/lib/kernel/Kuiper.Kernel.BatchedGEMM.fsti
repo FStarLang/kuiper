@@ -8,7 +8,7 @@ open Kuiper
 open Kuiper.Tensor
 open Kuiper.Tensor.Layout
 open Kuiper.Tensor.Layout.Alg
-open Kuiper.Index
+open Kuiper.Shape
 module EMatrix3 = Kuiper.EMatrix3
 module MS = Kuiper.Spec.GEMM
 module SZ = Kuiper.SizeT

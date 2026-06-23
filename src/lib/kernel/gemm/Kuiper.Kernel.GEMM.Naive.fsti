@@ -9,7 +9,7 @@ open Kuiper
 
 module MS = Kuiper.Spec.GEMM
 open Kuiper.Tensor
-open Kuiper.Index
+open Kuiper.Shape
 open Kuiper.Chest
 open Kuiper.Kernel.GEMMGPU.Type
 

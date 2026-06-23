@@ -7,13 +7,13 @@ module Kuiper.Kernel.TMap
 open Kuiper
 module SZ = Kuiper.SizeT
 open Kuiper.Chest
-open Kuiper.Index
+open Kuiper.Shape
 open Kuiper.Tensor
 open Kuiper.Tensor.Layout.Alg { l1_forward }
 
 [@@strict_on_arguments [2]]
 inline_for_extraction noextract
-let rec csizeof (#r : erased nat) (#d : idesc r)
+let rec csizeof (#r : erased nat) (#d : shape r)
   (c : cshape d)
   : Pure sz (requires SZ.fits (sizeof d)) (ensures fun r -> SZ.v r == sizeof d)
   = match c with
@@ -25,7 +25,7 @@ let rec csizeof (#r : erased nat) (#d : idesc r)
 inline_for_extraction noextract
 let rec unflatten
   (#r : nat)
-  (d : idesc r)
+  (d : shape r)
   (x : natlt (sizeof d))
   : GTot (abs d)
          (decreases d)
@@ -40,7 +40,7 @@ let rec unflatten
 inline_for_extraction noextract
 let rec flatten
   (#r : nat)
-  (d : idesc r)
+  (d : shape r)
   (x : abs d)
   : GTot (natlt (sizeof d))
          (decreases d)
@@ -54,7 +54,7 @@ let rec flatten
 inline_for_extraction noextract
 let rec cunflatten
   (#r : erased nat)
-  (#d : idesc r)
+  (#d : shape r)
   (cd : cshape d)
   (x : szlt (sizeof d))
   : Pure (conc d)
@@ -71,7 +71,7 @@ let rec cunflatten
 inline_for_extraction noextract
 let rec cflatten
   (#r : erased nat)
-  (#d : idesc r)
+  (#d : shape r)
   (cd : cshape d)
   (x : conc d)
   : Pure (szlt (sizeof d))
@@ -85,7 +85,7 @@ let rec cflatten
 
 ghost
 fn setup
-  (#et : Type0) (#r : nat) (#d : idesc r)
+  (#et : Type0) (#r : nat) (#d : shape r)
   (n : sz{SZ.v n == sizeof d /\ n <= max_blocks * max_threads}) // sigh
   (f : et -> et)
   (#l : tlayout d)
@@ -107,7 +107,7 @@ fn setup
 
 ghost
 fn teardown
-  (#et : Type0) (#r : nat) (#d : idesc r)
+  (#et : Type0) (#r : nat) (#d : shape r)
   (n : sz{SZ.v n == sizeof d /\ n <= max_blocks * max_threads}) // sigh
   (f : et -> et)
   (#l : tlayout d)
@@ -133,7 +133,7 @@ fn teardown
 
 inline_for_extraction noextract
 fn kf
-  (#et : Type0) (#r : erased nat) (#d : idesc r) (cd : cshape d)
+  (#et : Type0) (#r : erased nat) (#d : shape r) (cd : cshape d)
   (f : et -> et)
   (#l : tlayout d) {| ctlayout l |}
   (a : tensor et l)
@@ -162,7 +162,7 @@ fn kf
 
 inline_for_extraction noextract
 let kmap
-  (#et : Type0) (#r : erased nat) (#d : idesc r) (cd : cshape d)
+  (#et : Type0) (#r : erased nat) (#d : shape r) (cd : cshape d)
   (f : et -> et)
   (#l : tlayout d) {| ctlayout l |}
   (n : sz{SZ.v n == sizeof d /\ n <= max_blocks * max_threads})
@@ -187,7 +187,7 @@ let kmap
 
 inline_for_extraction noextract
 fn map_gpu
-  (#et : Type0) (#r : erased nat) (#d : idesc r) (cd : cshape d)
+  (#et : Type0) (#r : erased nat) (#d : shape r) (cd : cshape d)
   (f : et -> et)
   (#l : tlayout d) {| ctlayout l |}
   (n : sz{SZ.v n == sizeof d /\ n <= max_blocks * max_threads})

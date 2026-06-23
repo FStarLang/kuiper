@@ -13,7 +13,7 @@ open Kuiper
 open Kuiper.Chest
 open Kuiper.Bijection
 open Kuiper.EMatrix
-open Kuiper.Index
+open Kuiper.Shape
 open Kuiper.Array1
 
 inline_for_extraction noextract

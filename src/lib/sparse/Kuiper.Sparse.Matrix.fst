@@ -487,6 +487,7 @@ let rec index_mem_slice_lemma
     else ()
 
 
+#push-options "--z3rlimit 40"
 let unsparse_row_lemma
   (#et:Type0) {| scalar et |}
   (#nnz rows cols : nat)
@@ -526,6 +527,7 @@ let unsparse_row_lemma
       else ()
   );
   assert row `Seq.equal` s
+#pop-options
 
 // TODO: is this useful?
 #push-options "--z3rlimit 40"

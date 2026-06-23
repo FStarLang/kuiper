@@ -11,7 +11,7 @@ include Kuiper.Chest {
   equal,
   chest_comb as matrix_comb,
 }
-open Kuiper.Index
+open Kuiper.Shape
 
 [@@erasable]
 type ematrix4 (et:Type) (d0 d1 d2 d3 : nat) =

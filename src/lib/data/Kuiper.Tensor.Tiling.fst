@@ -10,7 +10,7 @@ open Kuiper.Tensor.Layout.Alg
 open Kuiper.Tensor.Layout
 open Kuiper.Tensor
 open Kuiper.Array2
-open Kuiper.Index
+open Kuiper.Shape
 open Pulse.Lib.Trade { (@==>) }
 module M = Kuiper.Array2
 module SZ = Kuiper.SizeT

@@ -18,12 +18,12 @@ module MU = Kuiper.Kernel.GEMM.Util
 module SZ = Kuiper.SizeT
 module M = Kuiper.Array2
 
-open Kuiper.Index { idesc, abs, conc, all_fit, ( @! ) }
+open Kuiper.Shape { shape, abs, conc, all_fit, ( @! ) }
 open Kuiper.Chest { chest, chest_slice }
 
 inline_for_extraction noextract
 fn tensor_extract_slice_ro'
-  (#et : Type0) (#r : erased nat) (#d : idesc r)
+  (#et : Type0) (#r : erased nat) (#d : shape r)
   (#l : tlayout d)
   (a : tensor et l)
   (i : enatlt r) (j : enatlt (d @! i))
@@ -42,7 +42,7 @@ fn tensor_extract_slice_ro'
   (sliceof a i j);
 }
 
-open Kuiper.Index { ( @| ) }
+open Kuiper.Shape { ( @| ) }
 let chest_flat42
   (#et : Type)
   (#d1 #d2 #d3 #d4 : nat)

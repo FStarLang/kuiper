@@ -5,7 +5,7 @@ friend Kuiper.Array2
 open Kuiper
 open Kuiper.Chest
 open Kuiper.Bijection
-open Kuiper.Index
+open Kuiper.Shape
 open Kuiper.Seq.Common { (@!) }
 module T = Kuiper.Tensor
 module Array2 = Kuiper.Array2

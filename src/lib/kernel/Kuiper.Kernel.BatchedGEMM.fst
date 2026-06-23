@@ -90,7 +90,7 @@ fn bmmcomb_gpu_exact
     //     (Array3.page b (SZ.v i))
     //     (Array3.page c (SZ.v i));
     with eC. assert on gpu_loc (sliceof c 0 (SZ.v i) |-> eC);
-    open Kuiper.Index;
+    open Kuiper.Shape;
     assert pure (modulo_i 0 (batch @| rows @| cols @| INil) == (rows @| cols @| INil));
     assert
       on gpu_loc

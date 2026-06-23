@@ -1,7 +1,7 @@
 module Kuiper.Spec.GEMM
 
 module Chest = Kuiper.Chest
-open Kuiper.Index
+open Kuiper.Shape
 
 let lincomb_approx2
   (#et:Type) {| scalar et, real_like et |}

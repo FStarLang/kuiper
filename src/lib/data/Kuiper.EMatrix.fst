@@ -2,7 +2,7 @@ module Kuiper.EMatrix
 #lang-pulse
 
 open Kuiper
-open Kuiper.Index
+open Kuiper.Shape
 open Kuiper.Chest
 
 let macc_mkM #et #rows #cols f i j = ()

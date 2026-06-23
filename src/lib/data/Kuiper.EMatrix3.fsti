@@ -11,7 +11,7 @@ include Kuiper.Chest {
   equal,
   chest_comb as matrix_comb,
 }
-open Kuiper.Index
+open Kuiper.Shape
 module EM = Kuiper.EMatrix
 
 [@@erasable]
