@@ -208,29 +208,10 @@ fn tensor_gather_n
   ensures
     a |-> Frac f s
 
-(* Helper for below *)
-inline_for_extraction noextract
-let cimap
-  (#r : nat) (#d : idesc r)
-  (#l : tlayout d)
-  (c : ctlayout l)
-  : conc d -> szlt l.ulen
-  = c.cimap
-
-let cimap_inj
-  (#r : nat) (#d : idesc r)
-  (#l : tlayout d)
-  (c : ctlayout l)
-  (x y : conc d)
-  : Lemma (requires cimap c x == cimap c y)
-          (ensures x == y)
-  = down_up x;
-    down_up y;
-    ()
-
+// Needs to be exposed
 inline_for_extraction noextract
 instance ctensor_ciview
-  (#et : Type0) (#r : nat) (#d : idesc r)
+  (#et : Type0) (#r : erased nat) (#d : idesc r)
   (#l : tlayout d)
   (c : ctlayout l)
   : Kuiper.IView.ciview (tensor_aview et l).iview =
@@ -241,15 +222,14 @@ instance ctensor_ciview
     bij = abs_conc_bij d;
   };
   step = {
-    cimap = mk_cinj (cimap c) #(fun _ _ -> Classical.forall_intro_2 (fun x -> Classical.move_requires (cimap_inj c x)));
-    (* ^ Using c.cimap directly fails *)
+    cimap = mk_cinj c.cimap #(fun x y -> down_up x; down_up y);
     compat = ez;
   };
 }
 
 inline_for_extraction noextract
 fn tensor_read
-  (#et : Type0) (#r : nat) (#d : idesc r)
+  (#et : Type0) (#r : erased nat) (#d : idesc r)
   (#l : tlayout d) {| ctlayout l |}
   (a : tensor et l)
   (i : conc d)
@@ -264,7 +244,7 @@ fn tensor_read
 
 inline_for_extraction noextract
 fn tensor_write
-  (#et : Type0) (#r : nat) (#d : idesc r)
+  (#et : Type0) (#r : erased nat) (#d : idesc r)
   (#l : tlayout d) {| ctlayout l |}
   (a : tensor et l)
   (i : conc d)
@@ -365,7 +345,7 @@ fn tensor_iraise
 
 inline_for_extraction noextract
 fn tensor_read_cell
-  (#et : Type0) (#r : nat) (#d : idesc r)
+  (#et : Type0) (#r : erased nat) (#d : idesc r)
   (#l : tlayout d) {| ctlayout l |}
   (a : tensor et l)
   (i : conc d)
@@ -380,7 +360,7 @@ fn tensor_read_cell
 
 inline_for_extraction noextract
 fn tensor_write_cell
-  (#et : Type0) (#r : nat) (#d : idesc r)
+  (#et : Type0) (#r : erased nat) (#d : idesc r)
   (#l : tlayout d) {| ctlayout l |}
   (a : tensor et l)
   (i : conc d)

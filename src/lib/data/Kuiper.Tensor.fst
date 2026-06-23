@@ -273,7 +273,7 @@ fn tensor_gather_n
 
 inline_for_extraction noextract
 fn tensor_read
-  (#et : Type0) (#r : nat) (#d : idesc r)
+  (#et : Type0) (#r : erased nat) (#d : idesc r)
   (#l : tlayout d) {| ctlayout l |}
   (a : tensor et l)
   (i : conc d)
@@ -294,7 +294,7 @@ fn tensor_read
 
 inline_for_extraction noextract
 fn tensor_write
-  (#et : Type0) (#r : nat) (#d : idesc r)
+  (#et : Type0) (#r : erased nat) (#d : idesc r)
   (#l : tlayout d) {| ctlayout l |}
   (a : tensor et l)
   (i : conc d)
@@ -445,7 +445,7 @@ fn tensor_iraise
 
 inline_for_extraction noextract
 fn tensor_read_cell
-  (#et : Type0) (#r : nat) (#d : idesc r)
+  (#et : Type0) (#r : erased nat) (#d : idesc r)
   (#l : tlayout d) {| ctlayout l |}
   (a : tensor et l)
   (i : conc d)
@@ -466,7 +466,7 @@ fn tensor_read_cell
 
 inline_for_extraction noextract
 fn tensor_write_cell
-  (#et : Type0) (#r : nat) (#d : idesc r)
+  (#et : Type0) (#r : erased nat) (#d : idesc r)
   (#l : tlayout d) {| ctlayout l |}
   (a : tensor et l)
   (i : conc d)
