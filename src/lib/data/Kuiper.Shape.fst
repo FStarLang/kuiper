@@ -157,3 +157,21 @@ let rec cflatten
     | CCons #_ #h ch #t ct ->
       let (i1, i2) = x <: szlt h & conc t in
       i1 *^ csizeof ct +^ cflatten ct i2
+
+let rec flatten_unflatten (#r : nat) (d : shape r) (x : natlt (sizeof d))
+  : Lemma (ensures flatten d (unflatten d x) == x)
+          (decreases d)
+  = match d with
+    | INil -> ()
+    | ICons h t ->
+      let minor : natlt (sizeof t) = x % sizeof t in
+      flatten_unflatten t minor
+
+let rec unflatten_flatten (#r : nat) (d : shape r) (x : abs d)
+  : Lemma (ensures unflatten d (flatten d x) == x)
+          (decreases d)
+  = match d with
+    | INil -> ()
+    | ICons h t ->
+      let (i1, i2) = x <: natlt h & abs t in
+      unflatten_flatten t i2

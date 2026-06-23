@@ -30,7 +30,8 @@ fn setup
 {
   tensor_pts_to_ref a;
   tensor_explode a;
-  admit()
+  forevery_iso (flatten_bij d) (fun (i : abs d) -> Cell a i |-> acc s i);
+  forevery_rw_size (sizeof d) (SZ.v n);
 }
 
 ghost
@@ -50,7 +51,8 @@ fn teardown
   ensures
     a |-> (Kuiper.Chest.chest_map f s)
 {
-  admit();
+  forevery_rw_size (SZ.v n) (sizeof d);
+  forevery_iso_back (flatten_bij d) (fun (i : abs d) -> Cell a i |-> (f (acc s i)));
   forevery_map
     (fun (i : abs d) -> Cell a i |-> (f (acc s i)))
     (fun (i : abs d) -> Cell a i |-> ((chest_map f s) `acc` i))
@@ -75,7 +77,6 @@ fn kf
     gpu **
     Cell a (unflatten d id) |-> (f (acc s (unflatten d id)))
 {
-  // admit();
   rewrite
     Cell a (unflatten d id) |-> (acc s (unflatten d id))
   as

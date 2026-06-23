@@ -373,3 +373,19 @@ val cflatten
   : Pure (szlt (sizeof d))
          (requires SZ.fits (sizeof d))
          (ensures fun r -> SZ.v r == flatten d (up x))
+
+val flatten_unflatten (#r : nat) (d : shape r) (x : natlt (sizeof d))
+  : Lemma (ensures flatten d (unflatten d x) == x)
+          [SMTPat (flatten d (unflatten d x))]
+
+val unflatten_flatten (#r : nat) (d : shape r) (x : abs d)
+  : Lemma (ensures unflatten d (flatten d x) == x)
+          [SMTPat (unflatten d (flatten d x))]
+
+unfold
+let flatten_bij (#r : nat) (d : shape r) : (abs d =~ natlt (sizeof d)) = {
+  ff = flatten d;
+  gg = unflatten d;
+  ff_gg = (fun (x : natlt (sizeof d)) -> flatten_unflatten d x);
+  gg_ff = (fun (x : abs d) -> unflatten_flatten d x);
+}
