@@ -7,16 +7,6 @@ open Kuiper.Tensor
 module SZ = Kuiper.SizeT
 
 inline_for_extraction noextract
-noeq
-type cshape : (#r : erased nat) -> (d : shape r) -> Type =
-  | CNil : cshape INil
-  | CCons :
-    (#r : erased nat) ->
-    (#h : erased pos) -> ch : sz{SZ.v ch == reveal h} ->
-    (#t : shape r) -> cshape t ->
-    cshape (ICons h t)
-
-inline_for_extraction noextract
 fn map_gpu
   (#et : Type0) (#r : erased nat) (#d : shape r) (cd : cshape d)
   (f : et -> et)

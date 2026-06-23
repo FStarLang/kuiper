@@ -14,6 +14,19 @@ type shape : nat -> Type =
   | INil : shape 0
   | ICons : #n:nat -> w:nat -> tl:(shape n) -> shape (n+1)
 
+(* Concrete type with size_t's for every dimension. This type is only
+for metaprogramming, and will be evaluated away, but it's not erasable
+so we can actually match on it. *)
+inline_for_extraction noextract
+noeq
+type cshape : (#r : erased nat) -> (d : shape r) -> Type =
+  | CNil : cshape INil
+  | CCons :
+    (#r : erased nat) ->
+    (#h : erased pos) -> ch : sz{SZ.v ch == reveal h} ->
+    (#t : shape r) -> cshape t ->
+    cshape (ICons h t)
+
 unfold let ( @| ) (#n:nat) = ICons #n
 
 let head (#n:pos) (d : shape n) : GTot nat =
@@ -47,6 +60,16 @@ let rec sizeof (#r : nat) (d : shape r) : GTot nat =
   match d with
   | INil -> 1
   | ICons t ts -> t * sizeof ts
+
+[@@strict_on_arguments [2]]
+inline_for_extraction noextract
+let rec csizeof (#r : erased nat) (#d : shape r)
+  (c : cshape d)
+  : Pure sz (requires SZ.fits (sizeof d)) (ensures fun r -> SZ.v r == sizeof d)
+  = match c with
+    | CNil -> 1sz
+    | CCons ch ct ->
+      ch *^ csizeof ct
 
 (* Abstract index type for a tensor *)
 // [@@strict_on_arguments [1]]
@@ -297,3 +320,56 @@ let rec raw_fits #n (d : shape n) (idx : raw d) : prop =
   | ICons t ts ->
     let i, is = idx <: sz & raw ts in
     i < t /\ raw_fits ts is
+
+(* Mapping abstract/concrete indices into flat naturals, and back. *)
+
+[@@strict_on_arguments [1]]
+inline_for_extraction noextract
+let rec unflatten
+  (#r : nat)
+  (d : shape r)
+  (x : natlt (sizeof d))
+  : GTot (abs d)
+         (decreases d)
+  = match d with
+    | INil -> ()
+    | ICons h t ->
+      let major : natlt h          = x / sizeof t in
+      let minor : natlt (sizeof t) = x % sizeof t in
+      (major, unflatten t minor)
+
+[@@strict_on_arguments [1]]
+inline_for_extraction noextract
+let rec flatten
+  (#r : nat)
+  (d : shape r)
+  (x : abs d)
+  : GTot (natlt (sizeof d))
+         (decreases d)
+  = match d with
+    | INil -> 0
+    | ICons h t ->
+      let (i1, i2) = x <: natlt h & abs t in
+      i1 * sizeof t + flatten t i2
+
+[@@strict_on_arguments [2]]
+inline_for_extraction noextract
+val cunflatten
+  (#r : erased nat)
+  (#d : shape r)
+  (cd : cshape d)
+  (x : szlt (sizeof d))
+  : Pure (conc d)
+         (requires SZ.fits (sizeof d))
+         (ensures fun r -> up r == unflatten d (SZ.v x))
+
+[@@strict_on_arguments [2]]
+inline_for_extraction noextract
+val cflatten
+  (#r : erased nat)
+  (#d : shape r)
+  (cd : cshape d)
+  (x : conc d)
+  : Pure (szlt (sizeof d))
+         (requires SZ.fits (sizeof d))
+         (ensures fun r -> SZ.v r == flatten d (up x))

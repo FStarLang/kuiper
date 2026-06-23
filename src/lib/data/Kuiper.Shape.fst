@@ -124,3 +124,36 @@ let rec bring_forward_commute2 (#n:nat) (i : natlt n) (d : shape n)
       | i ->
         let hh, tt = idx <: szlt (d @! 0) & conc (modulo_i (i-1) ts) in
         bring_forward_commute2 (i-1) ts j tt
+
+[@@strict_on_arguments [2]]
+inline_for_extraction noextract
+let rec cunflatten
+  (#r : erased nat)
+  (#d : shape r)
+  (cd : cshape d)
+  (x : szlt (sizeof d))
+  : Pure (conc d)
+         (requires SZ.fits (sizeof d))
+         (ensures fun r -> up r == unflatten d (SZ.v x))
+  = match cd with
+    | CNil -> ()
+    | CCons #_ #h ch #t ct ->
+      let major : szlt h          = x /^ csizeof ct in
+      let minor : szlt (sizeof t) = x %^ csizeof ct in
+      (major, cunflatten ct minor)
+
+[@@strict_on_arguments [2]]
+inline_for_extraction noextract
+let rec cflatten
+  (#r : erased nat)
+  (#d : shape r)
+  (cd : cshape d)
+  (x : conc d)
+  : Pure (szlt (sizeof d))
+         (requires SZ.fits (sizeof d))
+         (ensures fun r -> SZ.v r == flatten d (up x))
+  = match cd with
+    | CNil -> 0sz
+    | CCons #_ #h ch #t ct ->
+      let (i1, i2) = x <: szlt h & conc t in
+      i1 *^ csizeof ct +^ cflatten ct i2
