@@ -15,7 +15,14 @@ ghost
 fn setup
   (#et : Type0) (#r : nat) (#d : shape r)
   (n : sz{SZ.v n == sizeof d /\ n <= max_blocks * max_threads}) // sigh
-  (f : et -> et)
+  (frame : real -> slprop)
+  (vf : abs d -> et -> et -> prop) // spec for f
+  (f :
+    fn (i : conc d) (x : et)
+      preserves frame 1.0R
+      returns r : et
+      ensures pure (vf (up i) x r)
+  )
   (#l : tlayout d)
   (a : tensor et l)
   (#s : chest d et)
@@ -38,7 +45,14 @@ ghost
 fn teardown
   (#et : Type0) (#r : nat) (#d : shape r)
   (n : sz{SZ.v n == sizeof d /\ n <= max_blocks * max_threads}) // sigh
-  (f : et -> et)
+  (frame : real -> slprop)
+  (vf : abs d -> et -> et -> prop) // spec for f
+  (f :
+    fn (i : conc d) (x : et)
+      preserves frame 1.0R
+      returns r : et
+      ensures pure (vf (up i) x r)
+  )
   (#l : tlayout d)
   (a : tensor et l)
   (#s : chest d et)
@@ -46,16 +60,29 @@ fn teardown
   norewrite
   requires
     (forall+ (i : natlt n).
-      Cell a (unflatten d i )|-> (f (acc s (unflatten d i)))) **
+      exists* (v : et).
+        Cell a (unflatten d i) |-> v **
+        pure (vf (unflatten d i) (acc s (unflatten d i)) v)
+    ) **
     pure (SZ.fits (tlayout_ulen l))
   ensures
-    a |-> (Kuiper.Chest.chest_map f s)
+    exists* s'.
+      a |-> s' **
+      pure (chest_foralli (fun i x -> vf i (acc s i) x) s')
 {
+  let accs = forevery_exists #(natlt n) _;
+  forevery_unzip _ _;
+  forevery_elim_pure _;
   forevery_rw_size (SZ.v n) (sizeof d);
-  forevery_iso_back (flatten_bij d) (fun (i : abs d) -> Cell a i |-> (f (acc s i)));
+  assert forall+ (i: natlt (sizeof d)). tensor_pts_to_cell a (unflatten d i) (accs i);
+  forevery_ext #(natlt (sizeof d))
+    (fun i -> tensor_pts_to_cell a (unflatten d i) (accs i))
+    (fun i -> tensor_pts_to_cell a (unflatten d i) (accs (flatten d (unflatten d i))));
+  forevery_iso_back (flatten_bij d) (fun (i : abs d) -> tensor_pts_to_cell a i (accs (flatten d i)));
+  let s' = Kuiper.Chest.mk d (fun i -> accs (flatten d i));
   forevery_map
-    (fun (i : abs d) -> Cell a i |-> (f (acc s i)))
-    (fun (i : abs d) -> Cell a i |-> ((chest_map f s) `acc` i))
+    (fun (i : abs d) -> Cell a i |-> (accs (flatten d i)))
+    (fun (i : abs d) -> Cell a i |-> (s' `acc` i))
     fn x { () };
   tensor_implode a;
   ()
@@ -64,35 +91,53 @@ fn teardown
 inline_for_extraction noextract
 fn kf
   (#et : Type0) (#r : erased nat) (#d : shape r) (cd : cshape d)
-  (f : et -> et)
+  (frame : real -> slprop)
+  (vf : abs d -> et -> et -> prop) // spec for f
+  (f :
+    fn (i : conc d) (x : et)
+      preserves frame 1.0R
+      returns r : et
+      ensures pure (vf (up i) x r))
   (#l : tlayout d) {| ctlayout l |}
   (a : tensor et l)
   (#s : chest d et)
-  (id : szlt (sizeof d))
+  (i : szlt (sizeof d))
   ()
   requires
     gpu **
-    Cell a (unflatten d id) |-> (acc s (unflatten d id))
+    Cell a (unflatten d i) |-> acc s (unflatten d i)
   ensures
     gpu **
-    Cell a (unflatten d id) |-> (f (acc s (unflatten d id)))
+    (exists* (v : et).
+      Cell a (unflatten d i) |-> v **
+      pure (vf (unflatten d i) (acc s (unflatten d i)) v))
 {
+  assume frame 1.0R;
   rewrite
-    Cell a (unflatten d id) |-> (acc s (unflatten d id))
+    Cell a (unflatten d i) |-> (acc s (unflatten d i))
   as
-    Cell a (up (cunflatten cd id)) |-> (acc s (unflatten d id));
-  let x = tensor_read_cell a (cunflatten cd id);
-  tensor_write_cell a (cunflatten cd id) (f x);
+    Cell a (up (cunflatten cd i)) |-> (acc s (unflatten d i));
+  let x = tensor_read_cell a (cunflatten cd i);
+  tensor_write_cell a (cunflatten cd i) (f (cunflatten cd i) x);
+  with v. assert tensor_pts_to_cell a (up (cunflatten cd i)) v;
   rewrite
-    Cell a (up (cunflatten cd id)) |-> f (acc s (unflatten d id))
+    Cell a (up (cunflatten cd i)) |-> v
   as
-    Cell a (unflatten d id) |-> f (acc s (unflatten d id));
+    Cell a (unflatten d i) |-> v;
+  drop_ (frame 1.0R);
+  ()
 }
 
 inline_for_extraction noextract
 let kmap
   (#et : Type0) (#r : erased nat) (#d : shape r) (cd : cshape d)
-  (f : et -> et)
+  (frame : real -> slprop)
+  (vf : abs d -> et -> et -> prop) // spec for f
+  (f :
+    fn (i : conc d) (x : et)
+      preserves frame 1.0R
+      returns r : et
+      ensures pure (vf (up i) x r))
   (#l : tlayout d) {| ctlayout l |}
   (n : sz{SZ.v n == sizeof d /\ n <= max_blocks * max_threads})
   (a : tensor et l)
@@ -100,19 +145,41 @@ let kmap
   (#_ : is_global a)
   : kernel_desc
       (requires a |-> s)
-      (ensures  a |-> chest_map f s)
+      (ensures  exists* s'. a |-> s' **
+        pure (chest_foralli (fun i x -> vf i (acc s i) x) s'))
 = {
     nthr = n;
-    f = kf cd f a;
+    f = kf cd frame vf f a;
 
     frame    = pure (SZ.fits (tlayout_ulen l));
-    setup    = setup    n f a #s;
-    teardown = teardown n f a #s;
+    setup    = setup    n frame vf f a #s;
+    teardown = teardown n frame vf f a #s;
     kpre  = (fun (i : natlt (sizeof d)) -> Cell a (unflatten d i) |-> (acc s (unflatten d i)));
-    kpost = (fun (i : natlt (sizeof d)) -> Cell a (unflatten d i) |-> f (acc s (unflatten d i)));
+    kpost = (fun (i : natlt (sizeof d)) -> exists* v. tensor_pts_to_cell a (unflatten d i) v ** 
+                                             pure (vf (unflatten d i) (acc s (unflatten d i)) v));
     kpost_sendable = solve;
     kpre_sendable  = solve;
   } <: kernel_desc_n _ _
+
+let vf_equal
+  (#et : Type)
+  (#r : erased nat) (#d : shape r)
+  (f : et -> et)
+ : (abs d -> et -> et -> prop) = (fun (_ : abs d) (x : et) (r : et) -> r == f x)
+
+inline_for_extraction noextract
+fn ff_from_pure u#a
+  (#et : Type u#a)
+  (#r : erased nat) (#d : shape r)
+  (f : et -> et)
+  (i : conc d) (x : et)
+  norewrite
+  preserves emp
+  returns r : et
+  ensures pure (vf_equal f (up i) x r)
+{
+  f x;
+}
 
 inline_for_extraction noextract
 fn map_gpu
@@ -126,5 +193,8 @@ fn map_gpu
   requires  on gpu_loc (a |-> s)
   ensures   on gpu_loc (a |-> chest_map f s)
 {
-  launch_sync (kmap cd f n a);
+  launch_sync (kmap cd (fun _ -> emp) (vf_equal f) (ff_from_pure f) n a);
+  with s'. assert on gpu_loc (a |-> s');
+  assert pure (Kuiper.Chest.equal s' (chest_map f s));
+  ();
 }

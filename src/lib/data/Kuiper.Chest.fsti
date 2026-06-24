@@ -47,6 +47,18 @@ val acc_pat (#r : nat) (#d : shape r) (#et : Type)
   : Lemma (acc c i == c.f i)
           [SMTPat (c.f i)]
 
+let chest_foralli (#r : nat) (#d : shape r) (#et : Type)
+  (f : abs d -> et -> prop)
+  (c : chest d et)
+  : prop
+  = forall i. f i (acc c i)
+
+let chest_forall (#r : nat) (#d : shape r) (#et : Type)
+  (f : et -> prop)
+  (c : chest d et)
+  : prop
+  = chest_foralli (fun _ -> f) c
+
 let chest_map (#r : nat) (#d : shape r) (#et : Type)
   (f : et -> et)
   (c : chest d et)
