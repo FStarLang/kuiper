@@ -17,6 +17,15 @@ module T = FStar.Tactics.V2
 inline_for_extraction noextract
 val tensor (et : Type0) (#r : nat) (#d : shape r) (l : tlayout d) : Type0
 
+// inline_for_extraction noextract
+// let array1 (et : Type0) (#d0 : nat) (l : layout1 d0) : Type0 = tensor et l
+// inline_for_extraction noextract
+// let array2 (et : Type0) (#d0 #d1 : nat) (l : layout2 d0 d1) : Type0 = tensor et l
+// inline_for_extraction noextract
+// let array3 (et : Type0) (#d0 #d1 #d2 : nat) (l : layout3 d0 d1 d2) : Type0 = tensor et l
+inline_for_extraction noextract
+let array4 (et : Type0) (#d0 #d1 #d2 #d3 : nat) (l : layout4 d0 d1 d2 d3) : Type0 = tensor et l
+
 val is_global
   (#et : Type0) (#r : nat) (#d : shape r)
   (#l : tlayout d)

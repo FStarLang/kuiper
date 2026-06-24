@@ -108,24 +108,28 @@ let to_from (#et:Type) (#r : nat) (#d : shape r)
 (* Rank-specific shortcuts *)
 
 let layout1 d = tlayout (d @| INil)
+let full_layout1 d = l : layout1 d { is_full l }
 let chest1 et d = chest (d @| INil) et
 val size_layout_1 (d : nat)
   : Lemma (sizeof (d @| INil) == d)
           [SMTPat (sizeof (d @| INil))]
 
 let layout2 d1 d2 = tlayout (d1 @| d2 @| INil)
+let full_layout2 d1 d2 = l : layout2 d1 d2 { is_full l }
 let chest2 et d1 d2 = chest (d1 @| d2 @| INil) et
 val size_layout_2 (d1 d2 : nat)
   : Lemma (sizeof (d1 @| d2 @| INil) == d1 * d2)
           [SMTPat (sizeof (d1 @| d2 @| INil))]
 
 let layout3 d1 d2 d3 = tlayout (d1 @| d2 @| d3 @| INil)
+let full_layout3 d1 d2 d3 = l : layout3 d1 d2 d3 { is_full l }
 let chest3 et d1 d2 d3 = chest (d1 @| d2 @| d3 @| INil) et
 val size_layout_3 (d1 d2 d3 : nat)
   : Lemma (sizeof (d1 @| d2 @| d3 @| INil) == d1 * d2 * d3)
           [SMTPat (sizeof (d1 @| d2 @| d3 @| INil))]
 
 let layout4 d1 d2 d3 d4 = tlayout (d1 @| d2 @| d3 @| d4 @| INil)
+let full_layout4 d1 d2 d3 d4 = l : layout4 d1 d2 d3 d4 { is_full l }
 let chest4 et d1 d2 d3 d4 = chest (d1 @| d2 @| d3 @| d4 @| INil) et
 val size_layout_4 (d1 d2 d3 d4 : nat)
   : Lemma (sizeof (d1 @| d2 @| d3 @| d4 @| INil) == d1 * d2 * d3 * d4)
