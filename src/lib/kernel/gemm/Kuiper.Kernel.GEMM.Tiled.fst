@@ -646,7 +646,7 @@ fn setup
   ();
 }
 
-#push-options "--z3rlimit 40"
+#push-options "--z3rlimit 60 --ifuel 5"
 ghost
 fn teardown
   (#et : Type0) {| scalar et, real_like et |}

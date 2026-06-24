@@ -6,7 +6,6 @@ open Kuiper
 open Kuiper.Tensor
 module A2 = Kuiper.Array2
 open Kuiper.EMatrix
-open Kuiper.EMatrix4
 
 // TODO: define this by composing a bijection with the l.imap injection
 #push-options "--z3rlimit 20 --retry 3"
@@ -29,8 +28,8 @@ let l2_to_l4 (#m #n : nat) (#mm #nn : pos) (l : layout2 (m * mm) (n * nn)) : lay
 }
 #pop-options
 
-let em2_to_em4 (#et : Type0) (#m #n #mm #nn : nat) (e : ematrix et (m * mm) (n * nn)) : ematrix4 et m n mm nn =
-  Kuiper.EMatrix4.mkM (fun i j k o -> Kuiper.EMatrix.macc e (i * mm + k) (j * nn + o))
+let em2_to_em4 (#et : Type0) (#m #n #mm #nn : nat) (e : ematrix et (m * mm) (n * nn)) : chest4 et m n mm nn =
+  mk4 (fun i j k o -> Kuiper.EMatrix.macc e (i * mm + k) (j * nn + o))
 
 #push-options "--z3rlimit 20 --retry 3"
 let l4_to_l2 (#m #n : nat) (#mm #nn : pos) (l : layout4 m n mm nn) : layout2 (m * mm) (n * nn) = {
@@ -58,14 +57,15 @@ let l4_to_l2 (#m #n : nat) (#mm #nn : pos) (l : layout4 m n mm nn) : layout2 (m 
 }
 #pop-options
 
-let em4_to_em2 (#et : Type0) (#m #n #mm #nn : nat) (e : ematrix4 et m n mm nn) : ematrix et (m * mm) (n * nn) =
+let em4_to_em2 (#et : Type0) (#m #n #mm #nn : nat) (e : chest4 et m n mm nn) : ematrix et (m * mm) (n * nn) =
   Kuiper.EMatrix.mkM (fun x y ->
     let i : natlt m = x / mm in
     let j : natlt n = y / nn in
     let k : natlt mm = x % mm in
     let o : natlt nn = y % nn in
-    Kuiper.EMatrix4.macc e i j k o)
+    acc e (i, (j, (k, (o, ())))))
 
+#push-options "--ifuel 5" // sad. Can we allow inversion on tuple2?
 inline_for_extraction noextract
 fn m2_to_m4
   (m n mm nn : erased nat{mm > 0 /\ nn > 0})
@@ -87,7 +87,7 @@ fn m2_to_m4
   tensor_abs' (l2_to_l4 lA) (A2.core gA);
   let r = from_array (l2_to_l4 lA) (A2.core gA);
   assert rewrites_to r (from_array (l2_to_l4 lA) (A2.core gA));
-  assert pure (Kuiper.EMatrix4.equal
+  assert pure (equal
     (from_seq (l2_to_l4 lA) (to_seq lA eA))
     (em2_to_em4 eA));
   rewrite r |-> Frac f (from_seq (l2_to_l4 lA) (to_seq lA eA))
@@ -95,6 +95,7 @@ fn m2_to_m4
   ();
   r
 }
+#pop-options
 
 inline_for_extraction noextract
 fn m4_to_m2
@@ -102,7 +103,7 @@ fn m4_to_m2
   (#et : Type0) {| scalar et |}
   (#lA4 : full_layout4 m n mm nn)
   (gA4 : array4 et lA4)
-  (#eA4 : ematrix4 et _ _ _ _)
+  (#eA4 : chest4 et _ _ _ _)
   (#f : perm)
   requires
     gA4 |-> Frac f eA4

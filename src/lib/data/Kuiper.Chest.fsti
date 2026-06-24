@@ -151,3 +151,60 @@ let chest_update_slice
   = mk _ (fun (idx : abs d) ->
             let (j', k) = (abs_bring_forward_bij i d).ff idx in
             if j' = j then acc s' k else acc s idx)
+
+(* Rank-specific shortcuts *)
+
+let chest1 et d = chest (d @| INil) et
+let mk1 (#et:Type) (#d0 : nat)
+  (f : natlt d0 -> GTot et)
+  : chest1 et d0
+  = mk (d0 @| INil) fun (i, ()) -> f i
+let upd1 (#et:Type) (#d0 : nat)
+  (s : chest1 et d0)
+  (i0 : natlt d0)
+  (x : et)
+  : chest1 et d0
+  = upd s (i0, ()) x
+
+let chest2 et d1 d2 = chest (d1 @| d2 @| INil) et
+let mk2 (#et:Type) (#d0 #d1 : nat)
+  (f : natlt d0 -> natlt d1 -> GTot et)
+  : chest2 et d0 d1
+  = mk (d0 @| d1 @| INil) fun (i, (j, ())) -> f i j
+let upd2 (#et:Type) (#d0 #d1 : nat)
+  (s : chest2 et d0 d1)
+  (i0 : natlt d0)
+  (i1 : natlt d1)
+  (x : et)
+  : chest2 et d0 d1
+  = upd s (i0, (i1, ())) x
+
+let chest3 et d1 d2 d3 = chest (d1 @| d2 @| d3 @| INil) et
+let mk3 (#et:Type) (#d0 #d1 #d2 : nat)
+  (f : natlt d0 -> natlt d1 -> natlt d2 -> GTot et)
+  : chest3 et d0 d1 d2
+  = mk (d0 @| d1 @| d2 @| INil) fun (i, (j, (k, ()))) -> f i j k
+let upd3 (#et:Type) (#d0 #d1 #d2 : nat)
+  (s : chest3 et d0 d1 d2)
+  (i0 : natlt d0)
+  (i1 : natlt d1)
+  (i2 : natlt d2)
+  (x : et)
+  : chest3 et d0 d1 d2
+  = upd s (i0, (i1, (i2, ()))) x
+
+let chest4 et d1 d2 d3 d4 = chest (d1 @| d2 @| d3 @| d4 @| INil) et
+let mk4 (#et:Type) (#d0 #d1 #d2 #d3 : nat)
+  (f : natlt d0 -> natlt d1 -> natlt d2 -> natlt d3 -> GTot et)
+  : chest4 et d0 d1 d2 d3
+  = mk (d0 @| d1 @| d2 @| d3 @| INil)
+      fun (i, (j, (k, (l, ())))) -> f i j k l
+let upd4 (#et:Type) (#d0 #d1 #d2 #d3 : nat)
+  (s : chest4 et d0 d1 d2 d3)
+  (i0 : natlt d0)
+  (i1 : natlt d1)
+  (i2 : natlt d2)
+  (i3 : natlt d3)
+  (x : et)
+  : chest4 et d0 d1 d2 d3
+  = upd s (i0, (i1, (i2, (i3, ())))) x

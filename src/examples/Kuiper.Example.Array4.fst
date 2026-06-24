@@ -52,7 +52,7 @@ fn test1 (m : array4 u32 (layout 10 10 10 10))
 
 fn test2 (m : array4 u32 (layout 10 10 10 10))
   requires m |-> 's
-  ensures  m |-> Kuiper.EMatrix4.mupd 's 1 2 3 4 42ul
+  ensures  m |-> upd4 's 1 2 3 4 42ul
 {
   tensor_write m ((1sz <: szlt _) , ((2sz <: szlt _), ((3sz <: szlt _), ((4sz <: szlt _), ())))) 42ul;
   ()
