@@ -39,3 +39,18 @@ let lemma_to_real_chest_approximates (#et : Type0)
   : Lemma (ensures c %~ to_real_chest c)
           [SMTPat (to_real_chest c)]
   = ()
+
+let slice_upd_page_same (#et:Type) (#d0 #d1 #d2 : nat)
+  (m : chest3 et d0 d1 d2) (i : natlt d0)
+  (p : chest2 et d1 d2)
+  : Lemma (ensures slice_page (upd_page m i p) i == p)
+          [SMTPat (slice_page (upd_page m i p) i)]
+  = assert (equal (slice_page (upd_page m i p) i) p)
+
+let slice_upd_page_other (#et:Type) (#d0 #d1 #d2 : nat)
+  (m : chest3 et d0 d1 d2) (i i' : natlt d0)
+  (p : chest2 et d1 d2)
+  : Lemma (requires i' <> i)
+          (ensures slice_page (upd_page m i p) i' == slice_page m i')
+          [SMTPat (slice_page (upd_page m i p) i')]
+  = assert (equal (slice_page (upd_page m i p) i') (slice_page m i'))

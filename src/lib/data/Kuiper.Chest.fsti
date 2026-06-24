@@ -193,6 +193,31 @@ let upd3 (#et:Type) (#d0 #d1 #d2 : nat)
   : chest3 et d0 d1 d2
   = upd s (i0, (i1, (i2, ()))) x
 
+(* Extract / update a single "page" (the 2-D slice at batch index i). *)
+let slice_page (#et:Type) (#d0 #d1 #d2 : nat)
+  (m : chest3 et d0 d1 d2) (i : natlt d0)
+  : chest2 et d1 d2
+  = chest_slice 0 i m
+
+let upd_page (#et:Type) (#d0 #d1 #d2 : nat)
+  (m : chest3 et d0 d1 d2) (i : natlt d0)
+  (p : chest2 et d1 d2)
+  : chest3 et d0 d1 d2
+  = chest_update_slice 0 i m p
+
+val slice_upd_page_same (#et:Type) (#d0 #d1 #d2 : nat)
+  (m : chest3 et d0 d1 d2) (i : natlt d0)
+  (p : chest2 et d1 d2)
+  : Lemma (ensures slice_page (upd_page m i p) i == p)
+          [SMTPat (slice_page (upd_page m i p) i)]
+
+val slice_upd_page_other (#et:Type) (#d0 #d1 #d2 : nat)
+  (m : chest3 et d0 d1 d2) (i i' : natlt d0)
+  (p : chest2 et d1 d2)
+  : Lemma (requires i' <> i)
+          (ensures slice_page (upd_page m i p) i' == slice_page m i')
+          [SMTPat (slice_page (upd_page m i p) i')]
+
 let chest4 et d1 d2 d3 d4 = chest (d1 @| d2 @| d3 @| d4 @| INil) et
 let mk4 (#et:Type) (#d0 #d1 #d2 #d3 : nat)
   (f : natlt d0 -> natlt d1 -> natlt d2 -> natlt d3 -> GTot et)

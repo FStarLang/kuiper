@@ -4,10 +4,9 @@ module Kuiper.Spec.GEMM
 provide any weak approximate spec. *)
 
 open Kuiper
+open Kuiper.Chest
 open Kuiper.EMatrix
 open Kuiper.EMatrix.Tiling
-
-module EM3 = Kuiper.EMatrix3
 
 inline_for_extraction noextract
 let comb2 (#et:Type) (x y : et) : et = y
@@ -391,29 +390,29 @@ let bmmcomb
   (#et:Type) {| scalar et |}
   (comb : binop et)
   (#batch #rows #shared #cols : nat)
-  (c : EM3.t et batch rows cols)
-  (a : EM3.t et batch rows shared)
-  (b : EM3.t et batch shared cols)
-  : EM3.t et batch rows cols
-  = EM3.mkM fun i j k ->
-      macc (mmcomb comb (EM3.slice_page c i) (EM3.slice_page a i) (EM3.slice_page b i)) j k
+  (c : chest3 et batch rows cols)
+  (a : chest3 et batch rows shared)
+  (b : chest3 et batch shared cols)
+  : chest3 et batch rows cols
+  = mk3 fun i j k ->
+      macc (mmcomb comb (slice_page c i) (slice_page a i) (slice_page b i)) j k
 
 (* Per-page batched matmul spec. *)
 let batched_matmul
   (#et:Type) {| scalar et |}
   (#batch #rows #shared #cols : nat)
-  (a : EM3.t et batch rows shared)
-  (b : EM3.t et batch shared cols)
-  : EM3.t et batch rows cols
-  = EM3.mkM fun i j k ->
-      macc (matmul (EM3.slice_page a i)
-                         (EM3.slice_page b i)) j k
+  (a : chest3 et batch rows shared)
+  (b : chest3 et batch shared cols)
+  : chest3 et batch rows cols
+  = mk3 fun i j k ->
+      macc (matmul (slice_page a i)
+                   (slice_page b i)) j k
 
 val bmatmul_is_bgemm
   (#et:Type) {| scalar et |}
   (#batch #rows #shared #columns : nat)
-  (m0 : EM3.t et batch rows columns)
-  (m1 : EM3.t et batch rows shared)
-  (m2 : EM3.t et batch shared columns)
+  (m0 : chest3 et batch rows columns)
+  (m1 : chest3 et batch rows shared)
+  (m2 : chest3 et batch shared columns)
   : Lemma (bmmcomb comb2 m0 m1 m2 == batched_matmul m1 m2)
           [SMTPat (bmmcomb comb2 m0 m1 m2)]

@@ -5,7 +5,6 @@ open Kuiper
 module K = Kuiper.Kernel.BatchedGEMM
 open Kuiper.Tensor.Layout.Alg
 open Kuiper.Tensor
-module EMatrix3 = Kuiper.EMatrix3
 module MS = Kuiper.Spec.GEMM
 module SZ = Kuiper.SizeT
 
@@ -15,8 +14,8 @@ fn batched_matmul
   (batch rows shared cols : szp)
   (a : tensor et (l3_batched_row_major batch rows shared) { is_global a })
   (b : tensor et (l3_batched_row_major batch shared cols) { is_global b })
-  (#sa : erased (EMatrix3.t et batch rows shared))
-  (#sb : erased (EMatrix3.t et batch shared cols))
+  (#sa : erased (chest3 et batch rows shared))
+  (#sb : erased (chest3 et batch shared cols))
   (#fA #fB : perm)
   norewrite
   preserves
