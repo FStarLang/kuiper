@@ -2,11 +2,9 @@ module Kuiper.Example.Array3
 
 #lang-pulse
 open Kuiper
-open Kuiper.Array3
-module Array3 = Kuiper.Array3
 open Kuiper.Bijection
 open Kuiper.Injection
-open Kuiper.Tensor.Layout
+open Kuiper.Tensor
 open Kuiper.Tensor.Layout.Alg
 open Kuiper.Shape
 module SZ = Kuiper.SizeT
@@ -45,14 +43,14 @@ fn test1 (m : array3 u32 (layout 10 10 10))
   preserves m |-> 's
   returns u32
 {
-  let v = Array3.(m.(1sz, 2sz, 3sz));
+  let v = tensor_read m ((1sz <: szlt _) , ((2sz <: szlt _), ((3sz <: szlt _), ())));
   v
 }
 
 fn test2 (m : array3 u32 (layout 10 10 10))
   requires m |-> 's
-  ensures  m |-> Kuiper.EMatrix3.mupd 's 1 2 3 42ul
+  ensures  m |-> upd3 's 1 2 3 42ul
 {
-  Array3.(m.(1sz, 2sz, 3sz) <- 42ul);
+  tensor_write m ((1sz <: szlt _) , ((2sz <: szlt _), ((3sz <: szlt _), ()))) 42ul;
   ()
 }
