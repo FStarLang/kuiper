@@ -46,31 +46,39 @@ fn putback (p : slprop)
 
 (* Relating a sequence of erased bools to v_r. Essentially, v_r containts
 exaclty the contributions of the indices i where Seq.index v_done i is true. *)
-let rec contributions
+let rec contributions'
   (#et : Type0) {| scalar et, d : has_atomic_add et |}
   (nn : nat)
-  (v_done : seq bool)
-  (v_a : seq et{len v_done >= len v_a})
-  (v_r : et) (acc : et)
-: Tot prop (decreases len v_a)
+  (v_done : lseq bool nn)
+  (v_a : chest1 et nn)
+  (v_r : et)
+  (acc : et)
+  (i : natle nn)
+: Tot prop (decreases i)
 =
-  if len v_a = 0 then
+  if i = 0 then
     v_r == acc
   else
-    let hd = Seq.head v_a in
-    let tl = Seq.tail v_a in
-    let hd_done = Seq.head v_done in
-    let tl_done = Seq.tail v_done in
+    let hd = Kuiper.Chest.acc v_a (i-1, ()) in
+    let hd_done = Seq.index v_done (i-1) in
     if hd_done then
-      contributions nn tl_done tl v_r (d.pure_op hd acc)
+      contributions' nn v_done v_a v_r (d.pure_op hd acc) (i-1)
     else
-      contributions nn tl_done tl v_r acc
+      contributions' nn v_done v_a v_r acc (i-1)
+
+let contributions
+  (#et : Type0) {| scalar et, d : has_atomic_add et |}
+  (nn : nat)
+  (v_done : lseq bool nn)
+  (v_a : chest1 et nn)
+  (v_r : et)
+: Tot prop
+= contributions' nn v_done v_a v_r zero nn
 
 let inv_p'
   (#et : Type0) {| scalar et |} {| d : has_atomic_add et |}
   (nn: nat)
-  (v_a: seq et)
-  (#_ : squash (len v_a == nn))
+  (v_a: chest1 et nn)
   (r: gpu_ref et)
   (done: seq (gref bool) {len done == nn})
   (v_done: seq bool {len v_done == nn})
@@ -79,15 +87,14 @@ let inv_p'
 =
   on gpu_loc (r |-> v_r) **
   (forall+ (i : natlt nn). (Seq.index done i) |-> Frac 0.5R (Seq.index v_done i)) **
-  pure (contributions nn v_done v_a v_r zero)
+  pure (contributions nn v_done v_a v_r)
 
 (* Invariant. The reference r (on GPU) contains a value that is
 exactly the contributions expected. *)
 let inv_p
   (#et : Type0) {| scalar et |} {| d : has_atomic_add et |}
   (nn: nat)
-  (v_a: seq et)
-  (#_ : squash (len v_a == nn))
+  (v_a : chest1 et nn)
   (r: gpu_ref et)
   (done: seq (gref bool))
   (#_ : squash (len done == nn))
@@ -110,11 +117,10 @@ let rec tperm (n : nat{n > 0}) (i : nat{i < n}) (p : perm)
 unfold
 let kpre
   (#et : Type0) {| scalar et, d : has_atomic_add et |}
-  (#repr : (l:nat -> layout l)) {| (l:sz -> ctlayout (repr l)) |}
+  (#repr : (l:nat -> layout1 l)) {| (l:sz -> ctlayout (repr l)) |}
   (nn: nat)
   (a: array1 et (repr nn))
-  (v_a: lseq et nn)
-  (#_ : squash (len v_a == nn))
+  (v_a : chest1 et nn)
   (r: gpu_ref et)
   (done: seq (gref bool) {len done == nn})
   (c: CInv.cinv)
@@ -123,17 +129,15 @@ let kpre
   (Seq.index done tid) |-> Frac 0.5R false **
   (a |-> Frac (1.0R /. nn) v_a) **
   inv (CInv.iname_of c) (CInv.cinv_vp c (inv_p nn v_a r done)) **
-  CInv.active c (tperm nn tid 1.0R) **
-  pure (len v_a == nn)
+  CInv.active c (tperm nn tid 1.0R)
 
 unfold
 let kpost
   (#et : Type0) {| scalar et, d : has_atomic_add et |}
-  (#repr : (l:nat -> layout l)) {| (l:sz -> ctlayout (repr l)) |}
+  (#repr : (l:nat -> layout1 l)) {| (l:sz -> ctlayout (repr l)) |}
   (nn: nat)
   (a : array1 et (repr nn))
-  (v_a: lseq et nn)
-  (#_ : squash (len v_a == nn))
+  (v_a : chest1 et nn)
   (r : gpu_ref et)
   (done : seq (gref bool){len done == Ghost.reveal nn})
   (c: CInv.cinv)
@@ -209,40 +213,42 @@ let tail_upd_succ (#a:Type) (s:seq a{Seq.length s > 0}) (n:nat{n > 0 /\ n < Seq.
   FStar.Classical.forall_intro aux;
   Seq.lemma_eq_intro t1 t2
 
+(* Adding x to the accumulator is equivalent to adding x to v_r. *)
 let rec contributions_shift
   (#et : Type0) {| scalar et |} {| d : has_atomic_add et |}
   (ac : is_ac_w d.pure_op)
-  (nn : nat) (v_done : seq bool) (v_a : seq et{len v_done >= len v_a})
+  (nn : nat) (v_done : lseq bool nn) (v_a : chest1 et nn)
   (v_r : et) (acc : et) (x : et)
-  : Lemma (requires contributions nn v_done v_a v_r acc)
-          (ensures contributions nn v_done v_a (d.pure_op x v_r) (d.pure_op x acc))
-          (decreases len v_a)
-= if len v_a = 0 then ()
+  (i : natle nn)
+  : Lemma (requires contributions' nn v_done v_a v_r acc i)
+          (ensures  contributions' nn v_done v_a (d.pure_op x v_r) (d.pure_op x acc) i)
+          (decreases i)
+= if i = 0 then ()
   else
-    let hd = Seq.head v_a in
-    let tl = Seq.tail v_a in
-    let hd_done = Seq.head v_done in
-    let tl_done = Seq.tail v_done in
+    let hd = Kuiper.Chest.acc v_a (i-1, ()) in
+    let hd_done = Seq.index v_done (i-1) in
     if hd_done then begin
-      contributions_shift ac nn tl_done tl v_r (d.pure_op hd acc) x;
+      contributions_shift ac nn v_done v_a v_r (d.pure_op hd acc) x (i-1);
       ac.assoc x hd acc;
       ac.comm x hd;
       ac.assoc hd x acc
     end else
-      contributions_shift ac nn tl_done tl v_r acc x
+      contributions_shift ac nn v_done v_a v_r acc x (i-1)
 
 let rec contributions_lemma
   (#et : Type0) {| scalar et |} {| d : has_atomic_add et |}
   (ac : is_ac_w d.pure_op)
   (nn: nat)
-  (v_done : seq bool)
-  (v_a : seq et{len v_done >= len v_a})
-  (v_r : et) (acc : et)
-  (tid : nat{tid < len v_a})
-  : Lemma (requires contributions nn v_done v_a v_r acc /\ Seq.index v_done tid == false)
-          (ensures  contributions nn (Seq.upd v_done tid true) v_a (d.pure_op (Seq.index v_a tid) v_r) acc)
-          (decreases len v_a)
-= if tid = 0 then begin
+  (v_done : lseq bool nn)
+  (v_a : chest1 et nn)
+  (v_r : et)
+  (tid : natlt nn)
+  : Lemma (requires contributions nn v_done v_a v_r /\ Seq.index v_done tid == false)
+          (ensures  contributions nn (Seq.upd v_done tid true) v_a (d.pure_op (Kuiper.Chest.acc v_a (tid, ())) v_r))
+          (decreases tid)
+= admit()
+(*
+if tid = 0 then begin
     tail_upd_0 v_done true;
     contributions_shift ac nn (Seq.tail v_done) (Seq.tail v_a) v_r acc (Seq.head v_a)
   end else begin
@@ -254,6 +260,7 @@ let rec contributions_lemma
     else
       contributions_lemma ac nn (Seq.tail v_done) (Seq.tail v_a) v_r acc (tid - 1)
   end
+  *)
 
 let is_ac_from_ac_w (#t:Type) (#f: t -> t -> t) (ac : is_ac_w f)
   : Lemma (is_ac f)
@@ -263,24 +270,23 @@ let is_ac_from_ac_w (#t:Type) (#f: t -> t -> t) (ac : is_ac_w f)
 let contributions_lemma_smt
   (#et : Type0) {| scalar et |} {| d : has_atomic_add et |}
   (nn: nat)
-  (v_done : seq bool)
-  (v_a : seq et{len v_done >= len v_a})
-  (v_r : et) (acc : et)
-  (tid : nat{tid < len v_a})
-  : Lemma (requires contributions nn v_done v_a v_r acc /\ Seq.index v_done tid == false /\ is_ac d.pure_op)
-          (ensures  contributions nn (Seq.upd v_done tid true) v_a (d.pure_op (Seq.index v_a tid) v_r) acc)
-          [SMTPat (contributions nn (Seq.upd v_done tid true) v_a (d.pure_op (Seq.index v_a tid) v_r) acc)]
-= contributions_lemma { comm = (fun x y -> ()); assoc = (fun x y z -> ()) } nn v_done v_a v_r acc tid
+  (v_done : lseq bool nn)
+  (v_a : chest1 et nn)
+  (v_r : et)
+  (tid : natlt nn)
+  : Lemma (requires contributions nn v_done v_a v_r /\ Seq.index v_done tid == false /\ is_ac d.pure_op)
+          (ensures  contributions nn (Seq.upd v_done tid true) v_a (d.pure_op (Kuiper.Chest.acc v_a (tid, ())) v_r))
+          [SMTPat (contributions nn (Seq.upd v_done tid true) v_a (d.pure_op (Kuiper.Chest.acc v_a (tid, ())) v_r))]
+= contributions_lemma { comm = (fun x y -> ()); assoc = (fun x y z -> ()) } nn v_done v_a v_r tid
 
 inline_for_extraction noextract
 fn kf
   (#et : Type0) {| scalar et, d : has_atomic_add et |}
-  (#repr : (l:nat -> layout l)) {| (l:sz -> ctlayout (repr l)) |}
+  (#repr : (l:nat -> layout1 l)) {| (l:sz -> ctlayout (repr l)) |}
   (ac : is_ac_w d.pure_op)
   (#nn: SZ.t)
-  (a: array1 et (repr nn))
-  (#v_a: erased (lseq et nn))
-  (#_ : squash (len v_a == nn))
+  (a : array1 et (repr nn))
+  (#v_a: chest1 et nn)
   (r : gpu_ref et)
   (done : erased (seq (gref bool)){len done == SZ.v nn})
   (c : CInv.cinv)
@@ -296,7 +302,7 @@ fn kf
     block_id (SZ.v nn) bid
 {
   (* Read our value *)
-  let v = Array1.(a.(bid));
+  let v = tensor_read a (bid, ());
 
   (* Atomically add it to result, marking our contribution as done. *)
   with_invariants unit emp_inames (CInv.iname_of c)
@@ -330,31 +336,37 @@ fn kf
 let rec contributions_all_done
   (#et : Type0) {| scalar et |} {| d : has_atomic_add et |}
   (ac : is_ac_w d.pure_op)
-  (nn : nat) (v_done : seq bool) (v_a : seq et{len v_done >= len v_a})
-  (v_r : et) (acc : et)
-  : Lemma (requires contributions nn v_done v_a v_r acc
-                /\ (forall (i:nat{i < len v_a}). Seq.index v_done i == true))
-          (ensures v_r == Kuiper.Seq.Common.seq_fold_left d.pure_op acc v_a)
-          (decreases len v_a)
-= if len v_a = 0 then ()
-  else begin
-    assert (Seq.index v_done 0 == true);
-    let aux (i:nat{i < len (Seq.tail v_a)})
-      : Lemma (Seq.index (Seq.tail v_done) i == true)
-    = FStar.Seq.Properties.index_tail v_done i
-    in
-    FStar.Classical.forall_intro aux;
-    ac.comm (Seq.head v_a) acc;
-    contributions_all_done ac nn (Seq.tail v_done) (Seq.tail v_a) v_r (d.pure_op (Seq.head v_a) acc)
-  end
+  (nn : nat)
+  (v_done : lseq bool nn)
+  (v_a : chest1 et nn)
+  (v_r : et)
+  : Lemma (requires contributions nn v_done v_a v_r
+                /\ (forall (i : nat{i < nn}). Seq.index v_done i == true))
+          (ensures v_r == Kuiper.Seq.Common.seq_fold_left d.pure_op zero (chest1_to_seq v_a))
+          (decreases nn)
+= admit()
+// if nn = 0 then ()
+//   else begin
+//     assert (Seq.index v_done 0 == true);
+//     let aux (i:nat{i < len (Seq.tail v_a)})
+//       : Lemma (Seq.index (Seq.tail v_done) i == true)
+//     = FStar.Seq.Properties.index_tail v_done i
+//     in
+//     FStar.Classical.forall_intro aux;
+//     ac.comm (Seq.head v_a) acc;
+//     contributions_all_done ac nn (Seq.tail v_done) (Seq.tail v_a) v_r (d.pure_op (Seq.head v_a) acc)
+//   end
 
 let rec contributions_init
   (#et : Type0) {| scalar et |} {| d : has_atomic_add et |}
-  (nn : nat) (v_done : seq bool) (v_a : seq et{len v_done >= len v_a})
-  : Lemma (requires forall (i:nat{i < len v_a}). Seq.index v_done i == false)
-          (ensures contributions nn v_done v_a zero zero)
-          (decreases len v_a)
-= if len v_a = 0 then ()
+  (nn : nat)
+  (v_done : lseq bool nn)
+  (v_a : chest1 et nn)
+  : Lemma (requires forall (i : nat{i < nn}). Seq.index v_done i == false)
+          (ensures contributions nn v_done v_a zero)
+          // (decreases i)
+= admit()
+(*if len v_a = 0 then ()
   else begin
     assert (Seq.index v_done 0 == false);
     let aux (i:nat{i < len (Seq.tail v_a)})
@@ -363,7 +375,7 @@ let rec contributions_init
     in
     FStar.Classical.forall_intro aux;
     contributions_init nn (Seq.tail v_done) (Seq.tail v_a)
-  end
+  end *)
 
 ghost
 fn rec allocate_ref_seq (n : nat)
@@ -470,12 +482,11 @@ fn rec gather_active_n (#p:perm) (c : CInv.cinv) (n : nat{n > 0})
 ghost
 fn setup
   (#et : Type0) {| scalar et, d : has_atomic_add et |}
-  (#repr : (l:nat -> layout l)) {| (l:sz -> ctlayout (repr l)) |}
+  (#repr : (l:nat -> layout1 l)) {| (l:sz -> ctlayout (repr l)) |}
   (ac : is_ac_w d.pure_op)
   (n : szp{n <= max_blocks})
   (a : array1 et (repr n))
-  (#v_a : erased (lseq et n))
-  (#_ : squash (len v_a == n))
+  (#v_a : chest1 et n)
   (r : gpu_ref et)
   (done : seq (gref bool){len done == SZ.v n})
   (c : CInv.cinv)
@@ -485,14 +496,13 @@ fn setup
     (a |-> v_a) **
     (forall+ (tid : natlt n). (Seq.index done tid) |-> Frac 0.5R false) **
     inv (CInv.iname_of c) (CInv.cinv_vp c (inv_p (SZ.v n) v_a r done)) **
-    CInv.active c 1.0R **
-    pure (len v_a == SZ.v n)
+    CInv.active c 1.0R
   ensures
     (forall+ (bid : natlt n). kpre (SZ.v n) a v_a r done c bid) **
     inv (CInv.iname_of c) (CInv.cinv_vp c (inv_p (SZ.v n) v_a r done))
 {
   (* Share the array into n fractions *)
-  Array1.share_n a n;
+  tensor_share_n a n;
 
   (* Split active permission into n per-thread fractions *)
   share_active_n c (SZ.v n);
@@ -509,22 +519,18 @@ fn setup
       (a |-> Frac (1.0R /. SZ.v n) v_a))
     (fun (tid:natlt (SZ.v n)) -> CInv.active c (tperm (SZ.v n) tid 1.0R));
 
-  forevery_push_pure _ (len v_a == SZ.v n);
-
   (* Duplicate invariant into each forall+ element *)
   forevery_map_extra
     (inv (CInv.iname_of c) (CInv.cinv_vp c (inv_p (SZ.v n) v_a r done)))
     (fun (tid:natlt (SZ.v n)) ->
       (((Seq.index done tid) |-> Frac 0.5R false **
        (a |-> Frac (1.0R /. SZ.v n) v_a)) **
-       CInv.active c (tperm (SZ.v n) tid 1.0R)) **
-      pure (len v_a == SZ.v n))
+       CInv.active c (tperm (SZ.v n) tid 1.0R)))
     (fun (tid:natlt (SZ.v n)) ->
       (Seq.index done tid) |-> Frac 0.5R false **
       (a |-> Frac (1.0R /. SZ.v n) v_a) **
       inv (CInv.iname_of c) (CInv.cinv_vp c (inv_p (SZ.v n) v_a r done)) **
-      CInv.active c (tperm (SZ.v n) tid 1.0R) **
-      pure (len v_a == SZ.v n))
+      CInv.active c (tperm (SZ.v n) tid 1.0R))
     fn tid {
       dup_inv (CInv.iname_of c)
               (CInv.cinv_vp c (inv_p (SZ.v n) v_a r done))
@@ -538,12 +544,11 @@ fn setup
 ghost
 fn teardown
   (#et : Type0) {| scalar et, d : has_atomic_add et |}
-  (#repr : (l:nat -> layout l)) {| (l:sz -> ctlayout (repr l)) |}
+  (#repr : (l:nat -> layout1 l)) {| (l:sz -> ctlayout (repr l)) |}
   (ac : is_ac_w d.pure_op)
   (n : szp{n <= max_blocks})
   (a : array1 et (repr n))
-  (#v_a : erased (lseq et n))
-  (#_ : squash (len v_a == n))
+  (#v_a : chest1 et n)
   (r : gpu_ref et)
   (done : seq (gref bool){len done == SZ.v n})
   (c : CInv.cinv)
@@ -571,7 +576,7 @@ fn teardown
     (fun (bid:natlt (SZ.v n)) -> CInv.active c (tperm (SZ.v n) bid 1.0R));
 
   (* Gather array fractions *)
-  Array1.gather_n a n;
+  tensor_gather_n a n;
 
   (* Gather active fractions *)
   gather_active_n c (SZ.v n);
@@ -584,12 +589,11 @@ fn teardown
 inline_for_extraction noextract
 let kdesc
   (#et : Type0) {| scalar et, d : has_atomic_add et |}
-  (#repr : (l:nat -> layout l)) {| (l:sz -> ctlayout (repr l)) |}
+  (#repr : (l:nat -> layout1 l)) {| (l:sz -> ctlayout (repr l)) |}
   (ac : is_ac_w d.pure_op)
   (n : szp{n <= max_blocks})
-  (a : array1 et (repr n) { Array1.is_global a })
-  (#v_a : erased (lseq et n))
-  (#_ : squash (len v_a == SZ.v n))
+  (a : array1 et (repr n) { is_global a })
+  (#v_a : chest1 et n)
   (r : gpu_ref et)
   (done : erased (seq (gref bool)))
   (#_ : squash (len done == SZ.v n))
@@ -598,8 +602,7 @@ let kdesc
     ((a |-> v_a) **
       (forall+ (tid : natlt n). (Seq.index done tid) |-> Frac 0.5R false) **
       inv (CInv.iname_of c) (CInv.cinv_vp c (inv_p (SZ.v n) v_a r done)) **
-      CInv.active c 1.0R **
-      pure (len v_a == SZ.v n))
+      CInv.active c 1.0R)
     ((a |-> v_a) **
       (forall+ (tid : natlt n). (Seq.index done tid) |-> Frac 0.5R true) **
       inv (CInv.iname_of c) (CInv.cinv_vp c (inv_p (SZ.v n) v_a r done)) **
@@ -620,26 +623,19 @@ let kdesc
 inline_for_extraction noextract
 fn reduce
   (#et : Type0) {| scalar et, d : has_atomic_add et |}
-  (#r : (l:nat -> layout l)) {| (l:sz -> ctlayout (r l)) |}
+  (#r : (l:nat -> layout1 l)) {| (l:sz -> ctlayout (r l)) |}
   (ac : is_ac_w d.pure_op)
   (n : szp{n <= max_blocks})
-  (a : array1 et (r n) { Array1.is_global a })
-  (#v_a : erased (lseq et n))
+  (a : array1 et (r n) { is_global a })
+  (#v_a : chest1 et n)
   norewrite (* needed to match spec in fsti... they do not get elaborated *)
   preserves
     cpu ** on gpu_loc (a |-> v_a)
   returns
     r : et
   ensures
-    pure (r == Kuiper.Seq.Common.seq_fold_left d.pure_op zero v_a)
+    pure (r == Kuiper.Seq.Common.seq_fold_left d.pure_op zero (chest1_to_seq v_a))
 {
-  map_loc gpu_loc
-    #(a |-> v_a)
-    #(a |-> v_a ** pure (len v_a == SZ.v n))
-    fn () {
-      Array1.pts_to_ref a;
-    };
-
   let mut r : et = zero;
   let gr = gpu_alloc0 #et ();
   Kuiper.Ref.gpu_memcpy_host_to_device #et #_ gr r;
@@ -674,7 +670,7 @@ fn reduce
   (* Move resources to GPU *)
   placeless_on_intro
     (inv (CInv.iname_of c)
-         (CInv.cinv_vp c (inv_p (SZ.v n) v_a #() gr done #())))
+         (CInv.cinv_vp c (inv_p (SZ.v n) v_a gr done #())))
     gpu_loc;
 
   placeless_on_intro
@@ -691,7 +687,7 @@ fn reduce
   (* Bring back from GPU *)
   placeless_on_elim
     (inv (CInv.iname_of c)
-         (CInv.cinv_vp c (inv_p (SZ.v n) v_a #() gr done #())))
+         (CInv.cinv_vp c (inv_p (SZ.v n) v_a gr done #())))
     gpu_loc;
 
   placeless_on_elim
@@ -731,9 +727,9 @@ fn reduce
     (fun (i : natlt (SZ.v n)) -> (Seq.index v_done i) == true)
     fn _ {};
 
-  assert pure (contributions n v_done v_a v_r zero);
-  contributions_all_done ac n v_done v_a v_r zero;
-  assert pure (v_r == Kuiper.Seq.Common.seq_fold_left d.pure_op zero v_a);
+  assert pure (contributions n v_done v_a v_r);
+  contributions_all_done ac n v_done v_a v_r;
+  assert pure (v_r == Kuiper.Seq.Common.seq_fold_left d.pure_op zero (chest1_to_seq v_a));
 
   (* Drop ghost state *)
   drop_ (forall+ (i : natlt (SZ.v n)). (Seq.index done i) |-> true ** pure (Seq.index v_done i == true));

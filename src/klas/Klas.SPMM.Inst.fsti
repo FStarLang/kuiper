@@ -3,7 +3,7 @@ module Klas.SPMM.Inst
 open Kuiper
 open Kuiper.Sparse
 module SZ = Kuiper.SizeT
-open Kuiper.Array2
+open Kuiper.Tensor
 open Kuiper.Tensor.Layout { trepr2, ctrepr2 }
 open Kuiper.Tensor.Layout.Alg { l2_row_major as rm }
 open Kuiper.EMatrix

@@ -6,7 +6,6 @@ open Kuiper
 open Kuiper.EMatrix { ematrix, matrix_comb }
 module MS = Kuiper.Spec.GEMM
 module T = Kuiper.Tensor
-module M  = Kuiper.Array2
 
 (* Clearly, this depends on the algorithm involved and the GPU we
    we're working with. For now, just use this definition. *)
@@ -28,13 +27,13 @@ type matmulcomb_gpu_ty
   fn (#et : Type0) {| scalar et |}
      (comb : binop et)
      (#m #n #k : szp)
-     (#lA : M.layout m k)
-     (#lB : M.layout k n)
-     (#lC : M.layout m n)
+     (#lA : T.layout2 m k)
+     (#lB : T.layout2 k n)
+     (#lC : T.layout2 m n)
      {| T.ctlayout lA, T.ctlayout lB, T.ctlayout lC |}
-     (gA : M.array2 et lA { M.is_global gA })
-     (gB : M.array2 et lB { M.is_global gB })
-     (gC : M.array2 et lC { M.is_global gC })
+     (gA : T.array2 et lA { T.is_global gA })
+     (gB : T.array2 et lB { T.is_global gB })
+     (gC : T.array2 et lC { T.is_global gC })
      (#eA #eB #eC : ematrix et _ _)
      (#fA #fB : perm)
   preserves
@@ -54,13 +53,13 @@ type matmulcomb_gpu_approx_ty
      (comb : binop et)
      (comb_r : binop real { comb `approx2` comb_r })
      (#m #n #k : szp)
-     (#lA : M.layout m k)
-     (#lB : M.layout k n)
-     (#lC : M.layout m n)
+     (#lA : T.layout2 m k)
+     (#lB : T.layout2 k n)
+     (#lC : T.layout2 m n)
      {| T.ctlayout lA, T.ctlayout lB, T.ctlayout lC |}
-     (gA : M.array2 et lA { M.is_global gA })
-     (gB : M.array2 et lB { M.is_global gB })
-     (gC : M.array2 et lC { M.is_global gC })
+     (gA : T.array2 et lA { T.is_global gA })
+     (gB : T.array2 et lB { T.is_global gB })
+     (gC : T.array2 et lC { T.is_global gC })
      (#eA #eB #eC : ematrix et _ _)
      (rA rB rC : ematrix real _ _)
      (#fA #fB : perm)
@@ -84,13 +83,13 @@ type tiled_matmulcomb_gpu_ty
      (#et : Type0) {| scalar et |}
      (comb : binop et)
      (#m #n #k : szp)
-     (#lA : M.layout (m * tile) (k * tile))
-     (#lB : M.layout (k * tile) (n * tile))
-     (#lC : M.layout (m * tile) (n * tile))
+     (#lA : T.layout2 (m * tile) (k * tile))
+     (#lB : T.layout2 (k * tile) (n * tile))
+     (#lC : T.layout2 (m * tile) (n * tile))
      {| T.ctlayout lA, T.ctlayout lB, T.ctlayout lC |}
-     (gA : M.array2 et lA { M.is_global gA })
-     (gB : M.array2 et lB { M.is_global gB })
-     (gC : M.array2 et lC { M.is_global gC })
+     (gA : T.array2 et lA { T.is_global gA })
+     (gB : T.array2 et lB { T.is_global gB })
+     (gC : T.array2 et lC { T.is_global gC })
      (#eA #eB #eC : ematrix _ _ _)
      (#fA #fB : perm)
   preserves
@@ -111,13 +110,13 @@ type tiled_matmulcomb_gpu_approx_ty
      (comb : binop et)
      (comb_r : binop real { comb `approx2` comb_r })
      (#m #n #k : szp)
-     (#lA : M.layout (m * tile) (k * tile))
-     (#lB : M.layout (k * tile) (n * tile))
-     (#lC : M.layout (m * tile) (n * tile))
+     (#lA : T.layout2 (m * tile) (k * tile))
+     (#lB : T.layout2 (k * tile) (n * tile))
+     (#lC : T.layout2 (m * tile) (n * tile))
      {| T.ctlayout lA, T.ctlayout lB, T.ctlayout lC |}
-     (gA : M.array2 et lA { M.is_global gA })
-     (gB : M.array2 et lB { M.is_global gB })
-     (gC : M.array2 et lC { M.is_global gC })
+     (gA : T.array2 et lA { T.is_global gA })
+     (gB : T.array2 et lB { T.is_global gB })
+     (gC : T.array2 et lC { T.is_global gC })
      (rA rB rC : ematrix real _ _)
      (#eA #eB #eC : ematrix _ _ _)
      (#fA #fB : perm)

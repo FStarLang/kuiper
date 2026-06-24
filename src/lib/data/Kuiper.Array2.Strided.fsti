@@ -8,7 +8,7 @@ module Kuiper.Array2.Strided
 
 open Kuiper
 open Kuiper.Injection
-open Kuiper.Array2 { array2, layout, layout_size, adapt_idx_back }
+open Kuiper.Tensor { array2, layout2, ix2 }
 open FStar.Tactics.Typeclasses { no_method }
 open Kuiper.Tensor.Layout.Alg
 open Kuiper.Tensor.Tiling { subtile_layout }
@@ -16,11 +16,11 @@ open Kuiper.Tensor.Tiling { subtile_layout }
 module SZ = Kuiper.SizeT
 
 let cell_of_pos (#rows #cols : nat)
-  (l : layout rows cols) (i : natlt rows) (j : natlt cols) : GTot nat =
-  l.imap.f (adapt_idx_back (i, j))
+  (l : layout2 rows cols) (i : natlt rows) (j : natlt cols) : GTot nat =
+  l.imap.f (ix2 i j)
 
 inline_for_extraction noextract
-class strided_row_major (#rows #cols : erased nat) (l : layout rows cols) = {
+class strided_row_major (#rows #cols : erased nat) (l : layout2 rows cols) = {
   [@@@no_method]
   offset : sz;
   [@@@no_method]
@@ -32,14 +32,14 @@ class strided_row_major (#rows #cols : erased nat) (l : layout rows cols) = {
 
 let aligned_strided_row_major
   (#rows #cols : erased nat)
-  (#l : layout rows cols)
+  (#l : layout2 rows cols)
   (n : pos)
   (srm : strided_row_major l)
   : prop =
   n /?+ srm.stride /\ n /?+ srm.offset
 
 inline_for_extraction noextract
-class strided_col_major (#rows #cols : erased nat) (l : layout rows cols) = {
+class strided_col_major (#rows #cols : erased nat) (l : layout2 rows cols) = {
   [@@@no_method]
   offset : sz;
   [@@@no_method]
@@ -51,7 +51,7 @@ class strided_col_major (#rows #cols : erased nat) (l : layout rows cols) = {
 
 let aligned_strided_col_major
   (#rows #cols : erased nat)
-  (#l : layout rows cols)
+  (#l : layout2 rows cols)
   (n : pos)
   (srm : strided_col_major l)
   : prop =
@@ -81,8 +81,8 @@ instance val strided_col_major_l2_col_major (#rows #cols : erased nat)
 (* Instance for subtile_layout *)
 inline_for_extraction noextract
 instance val strided_row_major_subtile (#rows #cols : erased nat)
-  (l : layout rows cols)
-  (#_ : squash (SZ.fits (layout_size l)))
+  (l : layout2 rows cols)
+  (#_ : squash (SZ.fits (l.ulen)))
   {| sub : strided_row_major l |}
   (trows : erased int {0 < trows /\ trows /?+ rows})
   (tcols : erased int {0 < tcols /\ tcols /?+ cols})
@@ -97,7 +97,7 @@ instance val strided_row_major_subtile (#rows #cols : erased nat)
 
 val lemma_subtile_strided_row_major_offset
   (#rows #cols : erased nat)
-  (l : layout rows cols)
+  (l : layout2 rows cols)
   {| sub : strided_row_major l |}
   (trows : erased int {0 < trows /\ trows /?+ rows})
   (tcols : erased int {0 < tcols /\ tcols /?+ cols})
@@ -108,7 +108,7 @@ val lemma_subtile_strided_row_major_offset
      c_tr    : concrete_sz tr,
      c_tc    : concrete_sz tc,
   |}
-  : Lemma (requires SZ.fits (layout_size l))
+  : Lemma (requires SZ.fits (l.ulen))
           (ensures
             SZ.v (strided_row_major_subtile l trows tcols tr tc).offset
             ==
@@ -117,7 +117,7 @@ val lemma_subtile_strided_row_major_offset
 
 val lemma_subtile_strided_row_major_stride
   (#rows #cols : erased nat)
-  (l : layout rows cols)
+  (l : layout2 rows cols)
   {| sub : strided_row_major l |}
   (trows : erased int {0 < trows /\ trows /?+ rows})
   (tcols : erased int {0 < tcols /\ tcols /?+ cols})
@@ -128,7 +128,7 @@ val lemma_subtile_strided_row_major_stride
      c_tr    : concrete_sz tr,
      c_tc    : concrete_sz tc,
   |}
-  : Lemma (requires SZ.fits (layout_size l))
+  : Lemma (requires SZ.fits (l.ulen))
           (ensures
             (strided_row_major_subtile l trows tcols tr tc).stride
             ==

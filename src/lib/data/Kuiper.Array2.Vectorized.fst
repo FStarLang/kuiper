@@ -9,14 +9,13 @@ open Kuiper
 open Kuiper.Array.Vectorized
 open Kuiper.EMatrix
 
-open Kuiper.Array2 { array2, layout }
+open Kuiper.Tensor { array2, layout2, ix2 }
 open Kuiper.Array2.Strided
-module M = Kuiper.Array2
 module T = Kuiper.Tensor
 
 let strided_row_major_contiguous
   (#rows #cols : erased nat)
-  (l : layout rows cols) {| d : strided_row_major l |}
+  (l : layout2 rows cols) {| d : strided_row_major l |}
   (i : natlt rows)
   (j1 j2 : natlt cols)
   : Lemma (cell_of_pos l i j2 - cell_of_pos l i j1 == j2 - j1)
@@ -28,7 +27,7 @@ let all_but_window l j k : natlt l -> prop =
 let get_slice_inv
   (#et:Type0) {| sized et, has_vec_cpy et |}
   (#rows #cols : nat)
-  (#l : layout rows cols) {| strided : strided_row_major l |}
+  (#l : layout2 rows cols) {| strided : strided_row_major l |}
   (gm : array2 et l)
   (i : natlt rows)
   (j : natlt (cols - chunk et + 1))
@@ -37,16 +36,16 @@ let get_slice_inv
   (k : nat {k <= chunk et})
   : slprop
   =
-  pts_to_slice (M.core gm) #f (cell_of_pos l i j) (cell_of_pos l i j + k)
+  pts_to_slice (T.core gm) #f (cell_of_pos l i j) (cell_of_pos l i j + k)
       (Seq.init_ghost k (fun x -> macc em i (j + x))) **
   (forall+ (x : natlt cols {all_but_window cols j k x}).
-    pts_to_cell (M.core gm) #f (cell_of_pos l i x) (macc em i x))
+    pts_to_cell (T.core gm) #f (cell_of_pos l i x) (macc em i x))
 
 ghost
 fn __get_slice_step
   (#et:Type0) {| sized et, has_vec_cpy et |}
   (#rows #cols : nat)
-  (#l : layout rows cols) {| T.ctlayout l, strided : strided_row_major l |}
+  (#l : layout2 rows cols) {| T.ctlayout l, strided : strided_row_major l |}
   (gm : array2 et l)
   (i : nat {i < rows})
   (j : nat {j < cols - chunk et + 1})
@@ -59,24 +58,24 @@ fn __get_slice_step
   unfold get_slice_inv gm i j f em k;
   forevery_remove' #(natlt cols)
     (fun x -> all_but_window cols j k x)
-    (fun x -> pts_to_cell (M.core gm) #f (cell_of_pos l i x) (macc em i x))
+    (fun x -> pts_to_cell (T.core gm) #f (cell_of_pos l i x) (macc em i x))
     (j + k);
   forevery_refine_ext
     (fun (x : natlt cols) -> all_but_window cols j (k + 1) x)
-    (fun (x : natlt cols) -> pts_to_cell (M.core gm) #f (cell_of_pos l i x) (macc em i x));
+    (fun (x : natlt cols) -> pts_to_cell (T.core gm) #f (cell_of_pos l i x) (macc em i x));
 
-  assert pts_to_cell (M.core gm) #f (cell_of_pos l i (j + k)) (macc em i (j + k));
+  assert pts_to_cell (T.core gm) #f (cell_of_pos l i (j + k)) (macc em i (j + k));
 
   strided_row_major_contiguous l i j (j + k);
   assert pure (j + k < cols);
   assert pure (cell_of_pos l i (j + k) == cell_of_pos l i j + k);
 
   rewrite
-    pts_to_cell (M.core gm) #f (cell_of_pos l i (j + k)) (macc em i (j + k))
+    pts_to_cell (T.core gm) #f (cell_of_pos l i (j + k)) (macc em i (j + k))
   as
-    pts_to_cell (M.core gm) #f (cell_of_pos l i j + k) (macc em i (j + k));
+    pts_to_cell (T.core gm) #f (cell_of_pos l i j + k) (macc em i (j + k));
 
-  slice_concat (M.core gm) #f _ (cell_of_pos l i j + k) _;
+  slice_concat (T.core gm) #f _ (cell_of_pos l i j + k) _;
 
   assert pure (Seq.equal
       (Seq.init_ghost k (fun x -> macc em i (j + x)) `Seq.append` seq![macc em i (j + k)])
@@ -91,7 +90,7 @@ ghost
 fn rec __get_slice
   (#et:Type0) {| sized et, has_vec_cpy et |}
   (#rows #cols : erased nat)
-  (#l : layout rows cols) {| T.ctlayout l, strided : strided_row_major l |}
+  (#l : layout2 rows cols) {| T.ctlayout l, strided : strided_row_major l |}
   (gm : array2 et l)
   (i : natlt rows)
   (j : natlt (cols - chunk et + 1))
@@ -116,7 +115,7 @@ ghost
 fn get_slice
   (#et:Type0) {| sized et, has_vec_cpy et |}
   (#rows #cols : erased nat)
-  (#l : layout rows cols) {| T.ctlayout l, strided : strided_row_major l |}
+  (#l : layout2 rows cols) {| T.ctlayout l, strided : strided_row_major l |}
   (gm : array2 et l)
   (i : nat{i < rows})
   (j : nat{j < cols - chunk et + 1})
@@ -124,26 +123,26 @@ fn get_slice
   (#em : ematrix et rows cols)
   requires  gm |-> Frac f em
   ensures
-    pts_to_slice (M.core gm) #f (cell_of_pos l i j) (cell_of_pos l i j + chunk et)
+    pts_to_slice (T.core gm) #f (cell_of_pos l i j) (cell_of_pos l i j + chunk et)
       (Seq.init_ghost (chunk et) (fun x -> macc em i (j + x))) **
     (forall+ (x : natlt cols{all_but_window cols j (chunk et) x}).
-      pts_to_cell (M.core gm) #f (cell_of_pos l i x) (macc em i x)) **
+      pts_to_cell (T.core gm) #f (cell_of_pos l i x) (macc em i x)) **
     (forall+ (r : natlt rows { ~ (eq2 #(natlt rows) r i) } ) (c : natlt cols).
-      pts_to_cell (M.core gm) #f (cell_of_pos l r c) (macc em r c))
+      pts_to_cell (T.core gm) #f (cell_of_pos l r c) (macc em r c))
 {
-  M.ilower gm;
+  T.tensor_ilower2 gm;
   // Convert pts_to_cell to pts_to_cell
   forevery_map_2
     (fun (r : natlt rows) (c : natlt cols) ->
-      M.pts_to_cell gm #f (r, c) (macc em r c))
+      T.tensor_pts_to_cell gm #f (ix2 r c) (macc em r c))
     (fun (r : natlt rows) (c : natlt cols) ->
-      pts_to_cell (M.core gm) #f (cell_of_pos l r c) (macc em r c))
+      pts_to_cell (T.core gm) #f (cell_of_pos l r c) (macc em r c))
     fn r c {
-      M.pts_to_cell_eq gm (r, c) f (macc em r c);
+      T.tensor_pts_to_cell_eq gm (ix2 r c) f (macc em r c);
       rewrite
-        M.pts_to_cell gm #f (r, c) (macc em r c)
+        T.tensor_pts_to_cell gm #f (ix2 r c) (macc em r c)
       as
-        pts_to_cell (M.core gm) #f (cell_of_pos l r c) (macc em r c);
+        pts_to_cell (T.core gm) #f (cell_of_pos l r c) (macc em r c);
     };
 
   // Extract row i
@@ -151,21 +150,21 @@ fn get_slice
 
   // Extract cell j and create empty slice
   forevery_remove #(natlt cols) _ j;
-  gpu_slice_split' (M.core gm) #f (cell_of_pos l i j) (cell_of_pos l i j + 0) (cell_of_pos l i j + 1);
+  gpu_slice_split' (T.core gm) #f (cell_of_pos l i j) (cell_of_pos l i j + 0) (cell_of_pos l i j + 1);
   assert pure (seq![] `Seq.equal` Seq.init_ghost 0 (fun x -> macc em i (j + x)));
-  assert pts_to_slice (M.core gm) #f (cell_of_pos l i j) (cell_of_pos l i j + 0)
+  assert pts_to_slice (T.core gm) #f (cell_of_pos l i j) (cell_of_pos l i j + 0)
     (Seq.init_ghost 0 (fun x -> macc em i (j + x)));
   assert pure (Seq.equal (Kuiper.Seq.Common.seq_drop (cell_of_pos l i j + 0 - cell_of_pos l i j)
           seq![macc em i j]) seq![macc em i j]);
-  assert pts_to_slice (M.core gm) #f (cell_of_pos l i j + 0) (cell_of_pos l i j + 1)
+  assert pts_to_slice (T.core gm) #f (cell_of_pos l i j + 0) (cell_of_pos l i j + 1)
     seq![macc em i j];
-  rewrite pts_to_slice (M.core gm) #f (cell_of_pos l i j + 0) (cell_of_pos l i j + 1)
+  rewrite pts_to_slice (T.core gm) #f (cell_of_pos l i j + 0) (cell_of_pos l i j + 1)
     seq![macc em i j]
-    as pts_to_slice (M.core gm) #f (cell_of_pos l i j) (cell_of_pos l i j + 1)
+    as pts_to_slice (T.core gm) #f (cell_of_pos l i j) (cell_of_pos l i j + 1)
     seq![macc em i j];
   forevery_insert #(natlt cols) #(fun x -> ~(eq2 #(natlt cols) x j))
     (fun x ->
-      pts_to_slice (M.core gm) #f
+      pts_to_slice (T.core gm) #f
       (cell_of_pos l i x)
       (cell_of_pos l i x + 1)
       seq![macc em i x]) j;
@@ -186,7 +185,7 @@ ghost
 fn __unget_slice_step
   (#et:Type0) {| sized et, has_vec_cpy et |}
   (#rows #cols : nat)
-  (#l : layout rows cols) {| T.ctlayout l, strided : strided_row_major l |}
+  (#l : layout2 rows cols) {| T.ctlayout l, strided : strided_row_major l |}
   (gm : array2 et l)
   (i : nat {i < rows})
   (j : nat {j < cols - chunk et + 1})
@@ -200,22 +199,22 @@ fn __unget_slice_step
   assert pure (Seq.equal
       (Seq.init_ghost k (fun x -> macc em i (j + x)) `Seq.append` seq![macc em i (j + k)])
       (Seq.init_ghost (k + 1) (fun x -> macc em i (j + x))));
-  slice_split (M.core gm) #f #(Seq.init_ghost k (fun x -> macc em i (j + x))) #(seq![macc em i (j + k)]) _ (cell_of_pos l i j + k) _;
+  slice_split (T.core gm) #f #(Seq.init_ghost k (fun x -> macc em i (j + x))) #(seq![macc em i (j + k)]) _ (cell_of_pos l i j + k) _;
   strided_row_major_contiguous l i j (j + k);
   assert pure (j + k < cols);
   assert pure (cell_of_pos l i (j + k) == cell_of_pos l i j + k);
   rewrite
-    pts_to_cell (M.core gm) #f (cell_of_pos l i j + k) (macc em i (j + k))
+    pts_to_cell (T.core gm) #f (cell_of_pos l i j + k) (macc em i (j + k))
   as
-    pts_to_cell (M.core gm) #f (cell_of_pos l i (j + k)) (macc em i (j + k));
-  assert pts_to_cell (M.core gm) #f (cell_of_pos l i (j + k)) (macc em i (j + k));
+    pts_to_cell (T.core gm) #f (cell_of_pos l i (j + k)) (macc em i (j + k));
+  assert pts_to_cell (T.core gm) #f (cell_of_pos l i (j + k)) (macc em i (j + k));
   forevery_insert #(natlt cols)
-    (fun x -> pts_to_cell (M.core gm) #f (cell_of_pos l i x) (macc em i x))
+    (fun x -> pts_to_cell (T.core gm) #f (cell_of_pos l i x) (macc em i x))
     (j + k);
 
   forevery_refine_ext
     (fun (x : natlt cols) -> all_but_window cols j k x)
-    (fun (x : natlt cols) -> pts_to_cell (M.core gm) #f (cell_of_pos l i x) (macc em i x));
+    (fun (x : natlt cols) -> pts_to_cell (T.core gm) #f (cell_of_pos l i x) (macc em i x));
 
   fold get_slice_inv gm i j f em k;
 
@@ -227,7 +226,7 @@ ghost
 fn rec __unget_slice
   (#et:Type0) {| sized et, has_vec_cpy et |}
   (#rows #cols : erased nat)
-  (#l : layout rows cols) {| T.ctlayout l, strided : strided_row_major l |}
+  (#l : layout2 rows cols) {| T.ctlayout l, strided : strided_row_major l |}
   (gm : array2 et l)
   (i : natlt rows)
   (j : natlt (cols - chunk et + 1))
@@ -253,35 +252,35 @@ ghost
 fn unget_slice
   (#et:Type0) {| sized et, has_vec_cpy et |}
   (#rows #cols : erased nat)
-  (#l : layout rows cols) {| T.ctlayout l, strided : strided_row_major l |}
+  (#l : layout2 rows cols) {| T.ctlayout l, strided : strided_row_major l |}
   (gm : array2 et l)
   (i : nat{i < rows})
   (j : nat{j < cols - chunk et + 1})
   (#f : perm)
   (#em : ematrix et rows cols)
   requires
-    pts_to_slice (M.core gm) #f (cell_of_pos l i j) (cell_of_pos l i j + chunk et)
+    pts_to_slice (T.core gm) #f (cell_of_pos l i j) (cell_of_pos l i j + chunk et)
       (Seq.init_ghost (chunk et) (fun x -> macc em i (j + x))) **
     (forall+ (x : natlt cols{all_but_window cols j (chunk et) x}).
-      pts_to_cell (M.core gm) #f (cell_of_pos l i x) (macc em i x)) **
+      pts_to_cell (T.core gm) #f (cell_of_pos l i x) (macc em i x)) **
     (forall+ (r : natlt rows { ~ (eq2 #(natlt rows) r i) } ) (c : natlt cols).
-      pts_to_cell (M.core gm) #f (cell_of_pos l r c) (macc em r c))
+      pts_to_cell (T.core gm) #f (cell_of_pos l r c) (macc em r c))
   ensures  gm |-> Frac f em
 {
   fold get_slice_inv gm i j f em (chunk et);
   __unget_slice gm i j 0;
   unfold get_slice_inv gm i j f em 0;
   forevery_unrefine #(natlt cols) _;
-  with s0 . assert pts_to_slice (M.core gm) #f (cell_of_pos l i j) (cell_of_pos l i j) s0;
+  with s0 . assert pts_to_slice (T.core gm) #f (cell_of_pos l i j) (cell_of_pos l i j) s0;
 
   // Merge the empty slice back into j
   forevery_remove #(natlt cols) _ j;
-  slice_concat (M.core gm) #f (cell_of_pos l i j) (cell_of_pos l i j) _;
-  with s1 . assert pts_to_slice (M.core gm) #f (cell_of_pos l i j) (cell_of_pos l i j + 1) s1;
+  slice_concat (T.core gm) #f (cell_of_pos l i j) (cell_of_pos l i j) _;
+  with s1 . assert pts_to_slice (T.core gm) #f (cell_of_pos l i j) (cell_of_pos l i j + 1) s1;
   assert pure (Seq.equal s1 seq![macc em i j]);
-  assert pts_to_slice (M.core gm) #f (cell_of_pos l i j) (cell_of_pos l i j + 1) seq![macc em i j];
+  assert pts_to_slice (T.core gm) #f (cell_of_pos l i j) (cell_of_pos l i j + 1) seq![macc em i j];
   forevery_insert #(natlt cols) #(fun x -> ~(eq2 #(natlt cols) x j)) (fun x ->
-        pts_to_slice (M.core gm) #f
+        pts_to_slice (T.core gm) #f
         (cell_of_pos l i x)
         (cell_of_pos l i x + 1)
         seq![macc em i x] ) j;
@@ -289,7 +288,7 @@ fn unget_slice
 
   let phi = (fun (r: natlt rows) (c: natlt (reveal #nat cols)) ->
             pts_to_slice #et
-              (M.core #et #rows #cols #l gm)
+              (T.core gm)
               #f
               (cell_of_pos #(reveal #nat rows) #(reveal #nat cols) l r c)
               (cell_of_pos #(reveal #nat rows) #(reveal #nat cols) l r c + 1)
@@ -322,7 +321,7 @@ fn unget_slice
   forevery_ext _ (fun x -> forall+ y . phi x y);
   forevery_ext_2 _ (fun r c ->
             pts_to_slice #et
-              (M.core #et #rows #cols #l gm)
+              (T.core gm)
               #f
               (cell_of_pos #(reveal #nat rows) #(reveal #nat cols) l r c)
               (cell_of_pos #(reveal #nat rows) #(reveal #nat cols) l r c + 1)
@@ -333,17 +332,17 @@ fn unget_slice
   // Convert back from pts_to_cell to M.pts_to_cell
   forevery_map_2
     (fun (r : natlt rows) (c : natlt cols) ->
-      pts_to_cell (M.core gm) #f (cell_of_pos l r c) (macc em r c))
+      pts_to_cell (T.core gm) #f (cell_of_pos l r c) (macc em r c))
     (fun (r : natlt rows) (c : natlt cols) ->
-      M.pts_to_cell gm #f (r, c) (macc em r c))
+      T.tensor_pts_to_cell gm #f (ix2 r c) (macc em r c))
     fn r c {
-      M.pts_to_cell_eq gm (r, c) f (macc em r c);
+      T.tensor_pts_to_cell_eq gm (ix2 r c) f (macc em r c);
       rewrite
-        pts_to_cell (M.core gm) #f (cell_of_pos l r c) (macc em r c)
+        pts_to_cell (T.core gm) #f (cell_of_pos l r c) (macc em r c)
       as
-        M.pts_to_cell gm #f (r, c) (macc em r c);
+        T.tensor_pts_to_cell gm #f (ix2 r c) (macc em r c);
     };
-  M.iraise gm;
+  T.tensor_iraise2 gm;
 }
 #pop-options
 
@@ -352,7 +351,7 @@ inline_for_extraction noextract
 fn array2_vec_read
   (#et:Type0) {| sized et, has_vec_cpy et |}
   (#rows #cols : erased nat)
-  (#l : layout rows cols) {| T.ctlayout l, strided : strided_row_major l |}
+  (#l : layout2 rows cols) {| T.ctlayout l, strided : strided_row_major l |}
   (gm : array2 et l)
   (i : szlt rows)
   (j : szlt (cols - chunk et + 1))
@@ -362,7 +361,7 @@ fn array2_vec_read
   (#s : erased (seq et))
   preserves gpu
   preserves gm |-> Frac f em
-  requires  pure (aligned' 16 (M.core gm) (cell_of_pos l i j))
+  requires  pure (aligned' 16 (T.core gm) (cell_of_pos l i j))
   requires  pure (aligned 16 arr)
   requires  arr |-> s
   requires  pure (Pulse.Lib.Array.length arr == chunk et)
@@ -378,8 +377,8 @@ fn array2_vec_read
   let offset = strided.offset +^ strided.stride *^ i +^ j;
 
   with s0.
-    assert pts_to_slice (M.core gm) #f (cell_of_pos l i j) (cell_of_pos l i j + chunk et) s0;
-  array_vec_cpy arr 0sz (M.core gm) offset;
+    assert pts_to_slice (T.core gm) #f (cell_of_pos l i j) (cell_of_pos l i j + chunk et) s0;
+  array_vec_cpy arr 0sz (T.core gm) offset;
 
   with ds1. assert pts_to arr ds1;
 

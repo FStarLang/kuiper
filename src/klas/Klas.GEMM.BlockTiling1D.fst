@@ -6,7 +6,6 @@ open Kuiper.Kernel.GEMMGPU.Type { valid_tile }
 open Kuiper.Tensor
 open Kuiper.Tensor.Layout.Alg { l2_row_major as rm }
 open Kuiper.EMatrix
-open Kuiper.Array2
 module MS = Kuiper.Spec.GEMM
 module K = Kuiper.Kernel.GEMM.BlockTiling1D
 
@@ -37,9 +36,9 @@ fn spec
       on gpu_loc (gC |-> eC') **
       pure (eC' %~ MS.mmcomb comb_r rC rA rB)))
 {
-  pts_to_ref_located gA;
-  pts_to_ref_located gB;
-  pts_to_ref_located gC;
+  tensor_pts_to_ref_located gA;
+  tensor_pts_to_ref_located gB;
+  tensor_pts_to_ref_located gC;
 
   let mm = m /^ tile;
   let nn = n /^ tile;

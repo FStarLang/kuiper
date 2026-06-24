@@ -9,10 +9,8 @@ open Kuiper.Injection
 open Kuiper.Tensor.Layout.Alg
 open Kuiper.Tensor.Layout
 open Kuiper.Tensor
-open Kuiper.Array2
 open Kuiper.Shape
 open Pulse.Lib.Trade { (@==>) }
-module M = Kuiper.Array2
 module SZ = Kuiper.SizeT
 
 include Kuiper.EMatrix.Tiling
@@ -23,7 +21,7 @@ let tile_inj_f
   (tcols : pos {tcols /? cols})
   (tr : natlt (rows / trows))
   (tc : natlt (cols / tcols))
-  : abs (M.desc trows tcols) -> abs (M.desc rows cols)
+  : abs ((trows @| tcols @| INil)) -> abs ((rows @| cols @| INil))
 =
    (fun (i, (j, ())) -> (tr * trows + i, (tc * tcols + j, ())))
 
@@ -33,7 +31,7 @@ let tile_inj
   (tcols : pos {tcols /? cols})
   (tr : natlt (rows / trows))
   (tc : natlt (cols / tcols))
-  : (abs (M.desc trows tcols) @~> abs (M.desc rows cols))
+  : (abs ((trows @| tcols @| INil)) @~> abs ((rows @| cols @| INil)))
 = {
    f      = tile_inj_f trows tcols tr tc;
    is_inj = ez;
@@ -41,12 +39,12 @@ let tile_inj
 
 let subtile_layout
   (#rows #cols : nat)
-  (l : M.layout rows cols)
+  (l : layout2 rows cols)
   (trows : pos {trows /? rows})
   (tcols : pos {tcols /? cols})
   (tr : natlt (rows / trows))
   (tc : natlt (cols / tcols))
-  : M.layout trows tcols =
+  : layout2 trows tcols =
   {
     ulen = l.ulen;
     imap = inj_comp (tile_inj trows tcols tr tc) l.imap;
@@ -55,7 +53,7 @@ let subtile_layout
 inline_for_extraction noextract
 instance val c_subtile_layout
   (#rows #cols : erased nat)
-  (l : M.layout rows cols)
+  (l : layout2 rows cols)
   {| cc : ctlayout l |}
   (trows : erased int {0 < trows /\ trows /? rows})
   (tcols : erased int {0 < tcols /\ tcols /? cols})
@@ -68,7 +66,7 @@ inline_for_extraction noextract
 val array2_subtile
   (#et : _)
   (#rows #cols : erased nat)
-  (#l : M.layout rows cols)
+  (#l : layout2 rows cols)
   (gm : array2 et l)
   (trows : erased nat {trows > 0 /\ trows /? rows})
   (tcols : erased nat {tcols > 0 /\ tcols /? cols})
@@ -79,7 +77,7 @@ val array2_subtile
 val array2_subtile_base
   (#et : _)
   (#rows #cols : erased nat)
-  (#l : M.layout rows cols)
+  (#l : layout2 rows cols)
   (gm : array2 et l)
   (trows : erased nat {trows > 0 /\ trows /? rows})
   (tcols : erased nat {tcols > 0 /\ tcols /? cols})
@@ -95,7 +93,7 @@ val array2_subtile_base
 let is_array2_subtile_global
   (#et : _)
   (#rows #cols : erased nat)
-  (#l : M.layout rows cols)
+  (#l : layout2 rows cols)
   (#gm : array2 et l)
   (#trows : erased nat {trows > 0 /\ trows /? rows})
   (#tcols : erased nat {tcols > 0 /\ tcols /? cols})
@@ -103,15 +101,15 @@ let is_array2_subtile_global
   (#tc : enatlt (cols / tcols))
 : Lemma
   (ensures
-    M.is_global (array2_subtile gm trows tcols tr tc) <==>
-    M.is_global gm)
-  [SMTPat (M.is_global (array2_subtile gm trows tcols tr tc))]
+    is_global (array2_subtile gm trows tcols tr tc) <==>
+    is_global gm)
+  [SMTPat (is_global (array2_subtile gm trows tcols tr tc))]
 = array2_subtile_base gm trows tcols tr tc
 
 val cell_convert_eq
   (#et : _)
   (#rows #cols : erased nat)
-  (#l : M.layout rows cols)
+  (#l : layout2 rows cols)
   (gm : array2 et l)
   (trows : erased nat {trows > 0 /\ trows /? rows})
   (tcols : erased nat {tcols > 0 /\ tcols /? cols})
@@ -122,16 +120,16 @@ val cell_convert_eq
   (f : perm)
   (v : et)
   : Lemma (
-    M.pts_to_cell (array2_subtile gm trows tcols tr tc) #f (i, j) v
+    tensor_pts_to_cell (array2_subtile gm trows tcols tr tc) #f (ix2 i j) v
     ==
-    M.pts_to_cell gm #f (tr * trows + i, tc * tcols + j) v
+    tensor_pts_to_cell gm #f (ix2 (tr * trows + i) (tc * tcols + j)) v
   )
 
 ghost
 fn array2_tile
   (#et:Type0)
   (#rows #cols : nat)
-  (#l : M.layout rows cols)
+  (#l : layout2 rows cols)
   (gm : array2 et l)
   (trows : pos { trows /? rows })
   (tcols : pos { tcols /? cols })
@@ -149,14 +147,14 @@ ghost
 fn array2_untile'
   (#et:Type0)
   (#rows #cols : nat)
-  (#l : M.layout rows cols)
+  (#l : layout2 rows cols)
   (gm : array2 et l)
   (trows : pos { trows /? rows })
   (tcols : pos { tcols /? cols })
   (tf : natlt (rows / trows) -> natlt (cols / tcols) -> ematrix et trows tcols)
   (#f : perm)
   requires
-    pure (SZ.fits (M.layout_size l))
+    pure (SZ.fits (l.ulen))
   requires
     forall+
       (tr : natlt (rows / trows))
@@ -169,14 +167,14 @@ ghost
 fn array2_untile
   (#et:Type0)
   (#rows #cols : nat)
-  (#l : M.layout rows cols)
+  (#l : layout2 rows cols)
   (gm : array2 et l)
   (trows : pos { trows /? rows })
   (tcols : pos { tcols /? cols })
   (#em : ematrix et rows cols)
   (#f : perm)
   requires
-    pure (SZ.fits (M.layout_size l))
+    pure (SZ.fits (l.ulen))
   requires
     forall+
       (tr : natlt (rows / trows))
@@ -189,7 +187,7 @@ ghost
 fn array2_extract_tile
   (#et:Type0)
   (#rows #cols : nat)
-  (#l : M.layout rows cols)
+  (#l : layout2 rows cols)
   (gm : array2 et l)
   (trows : pos { trows /? rows })
   (tcols : pos { tcols /? cols })
@@ -209,7 +207,7 @@ inline_for_extraction noextract
 fn array2_extract_tile_st
   (#et:Type0)
   (#rows #cols : erased nat)
-  (#l : M.layout rows cols)
+  (#l : layout2 rows cols)
   (gm : array2 et l)
   (trows : erased nat { trows > 0 /\ trows /? rows })
   (tcols : erased nat { tcols > 0 /\ tcols /? cols })
@@ -232,7 +230,7 @@ ghost
 fn array2_extract_tile_ro
   (#et:Type0)
   (#rows #cols : nat)
-  (#l : M.layout rows cols)
+  (#l : layout2 rows cols)
   (gm : array2 et l)
   (trows : nat { trows > 0 /\ trows /? rows })
   (tcols : nat { tcols > 0 /\ tcols /? cols })
@@ -251,7 +249,7 @@ inline_for_extraction noextract
 fn array2_extract_tile_ro'
   (#et:Type0)
   (#rows #cols : erased nat)
-  (#l : M.layout rows cols)
+  (#l : layout2 rows cols)
   (gm : array2 et l)
   (trows : erased nat {trows > 0 /\ trows /? rows })
   (tcols : erased nat {tcols > 0 /\ tcols /? cols })
@@ -278,7 +276,7 @@ ghost
 fn array2_explode_tiled
   (#et : Type0)
   (#rows #cols : nat)
-  (#l : M.layout rows cols)
+  (#l : layout2 rows cols)
   (gm : array2 et l)
   (trows : pos { trows /? rows })
   (tcols : pos { tcols /? cols })
@@ -288,7 +286,7 @@ fn array2_explode_tiled
   ensures
     forall+ (tr : natlt (rows / trows)) (tc : natlt (cols / tcols))
             (i : natlt trows) (j : natlt tcols).
-      M.pts_to_cell (array2_subtile gm trows tcols tr tc) (i, j)
+      tensor_pts_to_cell (array2_subtile gm trows tcols tr tc) (ix2 i j)
         (macc em (tr * trows + i) (tc * tcols + j))
 
 (* Implode a tiled per-cell ownership back to full matrix.
@@ -301,17 +299,17 @@ ghost
 fn array2_implode_tiled
   (#et : Type0)
   (#rows #cols : nat)
-  (#l : M.layout rows cols)
+  (#l : layout2 rows cols)
   (gm : array2 et l)
   (trows : pos { trows /? rows })
   (tcols : pos { tcols /? cols })
   (val_fn : natlt (rows / trows) -> natlt (cols / tcols) -> natlt trows -> natlt tcols -> GTot et)
   requires
-    pure (SZ.fits (M.layout_size l))
+    pure (SZ.fits (l.ulen))
   requires
     forall+ (tr : natlt (rows / trows)) (tc : natlt (cols / tcols))
             (i : natlt trows) (j : natlt tcols).
-      M.pts_to_cell (array2_subtile gm trows tcols tr tc) (i, j)
+      tensor_pts_to_cell (array2_subtile gm trows tcols tr tc) (ix2 i j)
         (val_fn tr tc i j)
   ensures
     gm |-> mkM (fun (row : natlt rows) (col : natlt cols) ->

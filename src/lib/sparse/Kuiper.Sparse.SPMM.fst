@@ -7,7 +7,6 @@ module MS = Kuiper.Spec.GEMM
 module SZ = Kuiper.SizeT
 module B = Kuiper.Barrier
 module Compute = Kuiper.Sparse.SPMM.Compute
-module Array2 = Kuiper.Array2
 open Kuiper.Sparse
 open Kuiper.EMatrix
 // open Kuiper.Matrix.Reprs.Type
@@ -17,29 +16,30 @@ open Kuiper.Bijection { ( |~> ) }
 open Kuiper.Kernel.GEMMGPU.Type { size_req_t }
 open Kuiper.Sparse.SPMM.Defs
 open Kuiper.Sparse.SPMM.Barrier
-open Kuiper.Tensor.Layout { ctlayout }
+open Kuiper.Tensor
+open Kuiper.Seq.Common { op_At_Bang }
 
 let matrix_live_cell
   (#et : Type0)
   (#rows #cols : nat)
-  (#lm : Array2.layout rows cols)
-  (gm : Array2.t et lm)
+  (#lm : layout2 rows cols)
+  (gm : array2 et lm)
   (i : natlt rows)
   (j : natlt cols)
   : slprop
-  = exists* v. Array2.pts_to_cell gm (i, j) v
+  = exists* v. tensor_pts_to_cell gm (ix2 (i) (j)) v
 
 unfold
 let block_pre
   (#et : Type0) {| scalar et |}
   (p : parameters{size_req p})
   (row_perm : permutation (natlt p.rows))
-  (#lB : Array2.layout p.shared p.cols)
-  (#lC : Array2.layout p.rows p.cols)
+  (#lB : layout2 p.shared p.cols)
+  (#lC : layout2 p.rows p.cols)
   (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
   (row_indices : larray sz p.rows)
-  (gB : Array2.t et lB)
-  (gC : Array2.t et lC)
+  (gB : array2 et lB)
+  (gC : array2 et lC)
   // matriz sparse gA
   (elems : lseq et gA.nnz)
   (col_ind : lseq sz gA.nnz)
@@ -68,12 +68,12 @@ let block_post
   (#et : Type0) {| scalar et |}
   (p : parameters{ size_req p })
   (row_perm : permutation (natlt p.rows))
-  (#lB : Array2.layout p.shared p.cols)
-  (#lC : Array2.layout p.rows p.cols)
+  (#lB : layout2 p.shared p.cols)
+  (#lC : layout2 p.rows p.cols)
   (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
   (row_indices : larray sz p.rows)
-  (gB : Array2.t et lB)
-  (gC : Array2.t et lC)
+  (gB : array2 et lB)
+  (gC : array2 et lC)
   // matriz sparse gA
   (elems : lseq et gA.nnz)
   (col_ind : lseq sz gA.nnz)
@@ -93,9 +93,8 @@ let block_post
   forall+ (k : natlt(p.blockItemsX /^ p.blockWidth)).
     when__
       (bcol p bid + k * p.blockWidth + tid < p.cols)
-      (fun _ -> Array2.pts_to_cell gC
-        (brow p bid |~> row_perm,
-         bcol p bid + k * p.blockWidth + tid)
+      (fun _ -> tensor_pts_to_cell gC
+        (ix2 (brow p bid |~> row_perm) (bcol p bid + k * p.blockWidth + tid))
         (MS.matmul_single eA eB
           (brow p bid |~> row_perm)
           (bcol p bid + k * p.blockWidth + tid)))
@@ -123,12 +122,12 @@ let kpre
   (#et : Type0) {| scalar et |}
   (p : parameters { size_req p })
   (row_perm : permutation (natlt p.rows))
-  (#lB : Array2.layout p.shared p.cols)
-  (#lC : Array2.layout p.rows p.cols)
+  (#lB : layout2 p.shared p.cols)
+  (#lC : layout2 p.rows p.cols)
   (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
   (row_indices : larray sz p.rows)
-  (gB : Array2.t et lB)
-  (gC : Array2.t et lC)
+  (gB : array2 et lB)
+  (gC : array2 et lC)
   // matriz sparse gA
   (elems : lseq et gA.nnz)
   (col_ind : lseq sz gA.nnz)
@@ -158,12 +157,12 @@ let kpost
   (#et : Type0) {| scalar et |}
   (p : parameters { size_req p })
   (row_perm : permutation (natlt p.rows))
-  (#lB : Array2.layout p.shared p.cols)
-  (#lC : Array2.layout p.rows p.cols)
+  (#lB : layout2 p.shared p.cols)
+  (#lC : layout2 p.rows p.cols)
   (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
   (row_indices : larray sz p.rows)
-  (gB : Array2.t et lB)
-  (gC : Array2.t et lC)
+  (gB : array2 et lB)
+  (gC : array2 et lC)
   // matriz sparse gA
   (elems : lseq et gA.nnz)
   (col_ind : lseq sz gA.nnz)
@@ -302,13 +301,13 @@ fn setup
   (#et : Type0) {| scalar et |}
   (p : parameters{size_req p})
   (row_perm : permutation (natlt p.rows))
-  (#lB : Array2.layout p.shared p.cols)
-  (#lC : Array2.layout p.rows p.cols)
+  (#lB : layout2 p.shared p.cols)
+  (#lC : layout2 p.rows p.cols)
   {| ctlayout lB, ctlayout lC |}
   (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
   (row_indices : larray sz p.rows)
-  (gB : Array2.t et lB)
-  (gC : Array2.t et lC)
+  (gB : array2 et lB)
+  (gC : array2 et lC)
   // matriz sparse gA
   (elems : lseq et gA.nnz)
   (col_ind : lseq sz gA.nnz)
@@ -337,13 +336,13 @@ fn setup
       emp
 {
   with eC. assert gC |-> eC;
-  Array2.explode gC;
+  tensor_explode2 gC;
   forevery_unflatten' _;
 
   forevery_map
     (fun r ->
       forall+ (c : natlt p.cols).
-        Array2.pts_to_cell gC (r, c) (macc eC r c)
+        tensor_pts_to_cell gC (ix2 (r) (c)) (macc eC r c)
     )
     (fun r ->
       forall+
@@ -362,7 +361,7 @@ fn setup
         #(natlt (divup p.cols p.blockItemsX))
         (fun b ->
           forall+ (ix : natlt p.blockItemsX { b * p.blockItemsX + ix < p.cols }).
-            Array2.pts_to_cell gC (r, b * p.blockItemsX + ix)
+            tensor_pts_to_cell gC (ix2 (r) (b * p.blockItemsX + ix))
               (macc eC r (b * p.blockItemsX + ix))
         )
         (fun b ->
@@ -379,7 +378,7 @@ fn setup
           forevery_map
             #(ix : natlt p.blockItemsX { b * p.blockItemsX + ix  < p.cols })
             (fun ix ->
-              Array2.pts_to_cell gC (r, b * p.blockItemsX + ix)
+              tensor_pts_to_cell gC (ix2 (r) (b * p.blockItemsX + ix))
                 (macc eC r (b * p.blockItemsX + ix))
             )
             (fun ix ->
@@ -438,7 +437,7 @@ fn setup
   Kuiper.Array.Extra.array_share row_indices (allthreads p);
   forevery_factor (allthreads p) (nblocks p) p.blockWidth _;
 
-  Array2.share_n gB (allthreads p) #fB;
+  tensor_share_n gB (allthreads p) #fB;
   forevery_factor (allthreads p) (nblocks p) p.blockWidth _;
 
   forevery_zip3_2
@@ -465,13 +464,13 @@ fn block_setup
   (#et : Type0) {| scalar et |}
   (p : parameters { size_req p })
   (row_perm : permutation (natlt p.rows))
-  (#lB : Array2.layout p.shared p.cols)
-  (#lC : Array2.layout p.rows p.cols)
+  (#lB : layout2 p.shared p.cols)
+  (#lC : layout2 p.rows p.cols)
   {| ctlayout lB, ctlayout lC |}
   (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
   (row_indices : larray sz p.rows)
-  (gB : Array2.t et lB)
-  (gC : Array2.t et lC)
+  (gB : array2 et lB)
+  (gC : array2 et lC)
   // matriz sparse gA
   (elems : lseq et gA.nnz)
   (col_ind : lseq sz gA.nnz)
@@ -537,13 +536,13 @@ fn block_teardown
   (#et : Type0) {| scalar et |}
   (p : parameters { size_req p })
   (row_perm : permutation (natlt p.rows))
-  (#lB : Array2.layout p.shared p.cols)
-  (#lC : Array2.layout p.rows p.cols)
+  (#lB : layout2 p.shared p.cols)
+  (#lC : layout2 p.rows p.cols)
   {| ctlayout lB, ctlayout lC |}
   (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
   (row_indices : larray sz p.rows)
-  (gB : Array2.t et lB)
-  (gC : Array2.t et lC)
+  (gB : array2 et lB)
+  (gC : array2 et lC)
   // matriz sparse gA
   (elems : lseq et gA.nnz)
   (col_ind : lseq sz gA.nnz)
@@ -638,13 +637,13 @@ fn teardown
   (#et : Type0) {| scalar et |}
   (p : parameters{ size_req p })
   (row_perm : permutation (natlt p.rows))
-  (#lB : Array2.layout p.shared p.cols)
-  (#lC : Array2.layout p.rows p.cols)
+  (#lB : layout2 p.shared p.cols)
+  (#lC : layout2 p.rows p.cols)
   {| ctlayout lB, ctlayout lC |}
   (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
   (row_indices : larray sz p.rows)
-  (gB : Array2.t et lB)
-  (gC : Array2.t et lC)
+  (gB : array2 et lB)
+  (gC : array2 et lC)
   // matriz sparse gA
   (elems : lseq et gA.nnz)
   (col_ind : lseq sz gA.nnz)
@@ -688,7 +687,7 @@ fn teardown
   forevery_unzip_2 _ _;
   forevery_unfactor' (allthreads p) _ _
     (fun _ _ -> gB |-> Frac (fB /. allthreads p) eB);
-  Array2.gather_n gB (allthreads p) #fB;
+  tensor_gather_n gB (allthreads p) #fB;
 
 
   forevery_map #(natlt (nblocks p))
@@ -698,9 +697,8 @@ fn teardown
         (k: natlt (p.blockItemsX /^ p.blockWidth)).
         when__ (bcol p bid + k * v p.blockWidth + tid < v p.cols)
           (fun _ ->
-            Array2.pts_to_cell gC
-              (brow p bid |~> row_perm,
-               bcol p bid + k * v p.blockWidth + tid)
+            tensor_pts_to_cell gC
+              (ix2 (brow p bid |~> row_perm) (bcol p bid + k * v p.blockWidth + tid))
               (MS.matmul_single eA
                   eB
                   (brow p bid |~> row_perm)
@@ -711,9 +709,8 @@ fn teardown
         when__
           (bcol p bid + ix < p.cols)
           (fun _ ->
-            Array2.pts_to_cell gC
-              (brow p bid |~> row_perm,
-               bcol p bid + ix)
+            tensor_pts_to_cell gC
+              (ix2 (brow p bid |~> row_perm) (bcol p bid + ix))
               (MS.matmul_single eA eB
                 (brow p bid |~> row_perm)
                 (bcol p bid + ix)
@@ -727,9 +724,8 @@ fn teardown
         (fun tid k ->
           when__ (bcol p bid + k * v p.blockWidth + tid < v p.cols)
             (fun _ ->
-              Array2.pts_to_cell gC
-                (brow p bid |~> row_perm,
-                 bcol p bid + k * v p.blockWidth + tid)
+              tensor_pts_to_cell gC
+                (ix2 (brow p bid |~> row_perm) (bcol p bid + k * v p.blockWidth + tid))
                 (MS.matmul_single eA
                     eB
                     (brow p bid |~> row_perm)
@@ -738,9 +734,8 @@ fn teardown
         (fun tid k ->
           when__ (bcol p bid + (k * v p.blockWidth + tid) < v p.cols)
             (fun _ ->
-              Array2.pts_to_cell gC
-                (brow p bid |~> row_perm,
-                 bcol p bid + (k * v p.blockWidth + tid))
+              tensor_pts_to_cell gC
+                (ix2 (brow p bid |~> row_perm) (bcol p bid + (k * v p.blockWidth + tid)))
                 (MS.matmul_single eA
                     eB
                     (brow p bid |~> row_perm)
@@ -753,9 +748,8 @@ fn teardown
           when__
             (bcol p bid + ix < p.cols)
             (fun _ ->
-              Array2.pts_to_cell gC
-                (brow p bid |~> row_perm,
-                 bcol p bid + ix)
+              tensor_pts_to_cell gC
+                (ix2 (brow p bid |~> row_perm) (bcol p bid + ix))
                 (MS.matmul_single eA eB
                   (brow p bid |~> row_perm)
                   (bcol p bid + ix)
@@ -772,9 +766,8 @@ fn teardown
         when__
           (bcol p (r * divup p.cols p.blockItemsX + b) + ix < p.cols)
           (fun _ ->
-            Array2.pts_to_cell gC
-              (brow p (r * divup p.cols p.blockItemsX + b) |~> row_perm,
-               bcol p (r * divup p.cols p.blockItemsX + b) + ix)
+            tensor_pts_to_cell gC
+              (ix2 (brow p (r * divup p.cols p.blockItemsX + b) |~> row_perm) (bcol p (r * divup p.cols p.blockItemsX + b) + ix))
               (MS.matmul_single eA eB
                 (brow p (r * divup p.cols p.blockItemsX + b) |~> row_perm)
                 (bcol p (r * divup p.cols p.blockItemsX + b) + ix)
@@ -783,7 +776,7 @@ fn teardown
     )
     (fun r ->
       forall+ (c : natlt p.cols).
-        Array2.pts_to_cell gC (r |~> row_perm, c)
+        tensor_pts_to_cell gC (ix2 (r |~> row_perm) (c))
           (MS.matmul_single eA eB (r |~> row_perm) c)
     )
     fn r {
@@ -792,9 +785,8 @@ fn teardown
           when__
             (bcol p (r * divup p.cols p.blockItemsX + b) + ix < p.cols)
             (fun _ ->
-              Array2.pts_to_cell gC
-                (brow p (r * divup p.cols p.blockItemsX + b) |~> row_perm,
-                 bcol p (r * divup p.cols p.blockItemsX + b) + ix)
+              tensor_pts_to_cell gC
+                (ix2 (brow p (r * divup p.cols p.blockItemsX + b) |~> row_perm) (bcol p (r * divup p.cols p.blockItemsX + b) + ix))
                 (MS.matmul_single eA eB
                   (brow p (r * divup p.cols p.blockItemsX + b) |~> row_perm)
                   (bcol p (r * divup p.cols p.blockItemsX + b) + ix)
@@ -805,8 +797,8 @@ fn teardown
           when__
             (b * p.blockItemsX + ix < p.cols)
             (fun _ ->
-              Array2.pts_to_cell gC
-                (r |~> row_perm, b * p.blockItemsX + ix)
+              tensor_pts_to_cell gC
+                (ix2 (r |~> row_perm) (b * p.blockItemsX + ix))
                 (MS.matmul_single eA eB (r |~> row_perm) (b * p.blockItemsX + ix))
             )
         )
@@ -824,8 +816,8 @@ fn teardown
             when__
               (b * p.blockItemsX + ix < p.cols)
               (fun _ ->
-                Array2.pts_to_cell gC
-                  (r |~> row_perm, b * p.blockItemsX + ix)
+                tensor_pts_to_cell gC
+                  (ix2 (r |~> row_perm) (b * p.blockItemsX + ix))
                   (MS.matmul_single eA eB
                     (r |~> row_perm) (b * p.blockItemsX + ix)
                   )
@@ -833,8 +825,8 @@ fn teardown
         )
         (fun b ->
           forall+ (ix : natlt p.blockItemsX {b * p.blockItemsX + ix < p.cols}).
-            Array2.pts_to_cell gC
-              (r |~> row_perm, b * p.blockItemsX + ix)
+            tensor_pts_to_cell gC
+              (ix2 (r |~> row_perm) (b * p.blockItemsX + ix))
               (MS.matmul_single
                 eA eB (r |~> row_perm) (b * p.blockItemsX + ix)
               )
@@ -848,28 +840,28 @@ fn teardown
         p.cols
         (p.blockItemsX)
         (fun c ->
-          Array2.pts_to_cell gC (r |~> row_perm, c)
+          tensor_pts_to_cell gC (ix2 (r |~> row_perm) (c))
             (MS.matmul_single eA eB (r |~> row_perm) c)
         );
     };
 
   forevery_iso row_perm (fun r ->
     forall+ (c : natlt p.cols).
-      Array2.pts_to_cell gC (r |~> row_perm, c)
+      tensor_pts_to_cell gC (ix2 (r |~> row_perm) (c))
         (MS.matmul_single eA eB (r |~> row_perm) c)
   );
   forevery_ext_2
     (fun r c ->
-      Array2.pts_to_cell gC
-        (row_perm.gg r |~> row_perm, c)
+      tensor_pts_to_cell gC
+        (ix2 (row_perm.gg r |~> row_perm) (c))
         (MS.matmul_single eA eB (row_perm.gg r |~> row_perm) c)
     )
-    (fun r c -> Array2.pts_to_cell gC (r, c) (macc (MS.matmul eA eB) r c));
+    (fun r c -> tensor_pts_to_cell gC (ix2 (r) (c)) (macc (MS.matmul eA eB) r c));
   forevery_flatten _;
   forevery_ext
-    (fun (rc : natlt p.rows & natlt p.cols) -> Array2.pts_to_cell gC (rc._1, rc._2) (macc (MS.matmul eA eB) rc._1 rc._2))
-    (fun (rc : Array2.ait p.rows p.cols) -> Array2.pts_to_cell gC rc (macc (MS.matmul eA eB) rc._1 rc._2));
-  Array2.implode gC;
+    (fun (rc : natlt p.rows & natlt p.cols) -> tensor_pts_to_cell gC (ix2 (rc._1) (rc._2)) (macc (MS.matmul eA eB) rc._1 rc._2))
+    (fun (rc : natlt p.rows & natlt p.cols) -> tensor_pts_to_cell gC (ix2 (rc._1) (rc._2)) (macc (MS.matmul eA eB) rc._1 rc._2));
+  tensor_implode2 gC;
 
   ();
 }
@@ -1566,9 +1558,9 @@ fn store_out
   (#et : Type0) {| scalar et |}
   (p : parameters { size_req p })
   (row_perm : permutation (natlt p.rows))
-  (#lC : Array2.layout p.rows p.cols)
+  (#lC : layout2 p.rows p.cols)
   {| ctlayout lC |}
-  (gC : Array2.t et lC)
+  (gC : array2 et lC)
   (out : larray et (p.blockItemsX /^ p.blockWidth))
   (#v_out : erased (seq et){length out == len v_out})
   (bid : szlt (nblocks p))
@@ -1585,9 +1577,8 @@ fn store_out
     ** out |-> v_out
   ensures
     when__ (bcol p bid + x * p.blockWidth + tid < p.cols) (fun _ ->
-        Array2.pts_to_cell gC
-          (brow p bid |~> row_perm,
-           bcol p bid + x * p.blockWidth + tid)
+        tensor_pts_to_cell gC
+          (ix2 (brow p bid |~> row_perm) (bcol p bid + x * p.blockWidth + tid))
           (v_out @! x)
     )
     ** out |-> v_out
@@ -1608,15 +1599,14 @@ fn store_out
     assert rewrites_to #sz m_idx (SZ.uint_to_t (brow p bid |~> row_perm));
     assert rewrites_to #sz n_idx (SZ.uint_to_t (bcol p bid));
 
-    Array2.write_cell gC ((m_idx <: sz), n_idx +^ x *^ p.blockWidth +^ tid) c;
+    tensor_write_cell gC ((m_idx <: szlt _), ((n_idx +^ x *^ p.blockWidth +^ tid <: szlt _), ())) c;
 
-    assert Array2.pts_to_cell gC
-      (brow p bid |~> row_perm, bcol p bid + x * p.blockWidth + tid)
+    assert tensor_pts_to_cell gC
+      (ix2 (brow p bid |~> row_perm) (bcol p bid + x * p.blockWidth + tid))
       (v_out @! x);
     when__intro_true (bcol p bid + x * p.blockWidth + tid < p.cols)
-      (Array2.pts_to_cell gC
-        (brow p bid |~> row_perm,
-         bcol p bid + x * p.blockWidth + tid)
+      (tensor_pts_to_cell gC
+        (ix2 (brow p bid |~> row_perm) (bcol p bid + x * p.blockWidth + tid))
         (v_out @! x)
       );
   }
@@ -1626,8 +1616,8 @@ fn store_out
         (brow p bid |~> row_perm)
         (bcol p bid + x * p.blockWidth + tid)
     ) as when__ (bcol p bid + x * p.blockWidth + tid < p.cols) (fun _ ->
-      Array2.pts_to_cell gC
-        (brow p bid |~> row_perm, bcol p bid + x * p.blockWidth + tid)
+      tensor_pts_to_cell gC
+        (ix2 (brow p bid |~> row_perm) (bcol p bid + x * p.blockWidth + tid))
         (v_out @! x)
     );
   };
@@ -1660,13 +1650,13 @@ fn kf
   (p : parameters { size_req p })
   (row_perm : permutation (natlt p.rows))
   (blockChunks : sz{SZ.v blockChunks == p.blockItemsX / p.blockWidth}) // Ver nota abajo
-  (#lb : Array2.layout p.shared p.cols)
-  (#lc : Array2.layout p.rows p.cols)
+  (#lb : layout2 p.shared p.cols)
+  (#lc : layout2 p.rows p.cols)
   {| ctlayout lb, ctlayout lc |}
   (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
   (row_indices : larray sz p.rows)
-  (gB : Array2.t et lb)
-  (gC : Array2.t et lc)
+  (gB : array2 et lb)
+  (gC : array2 et lc)
   // matriz sparse ga
   (#elems : lseq et gA.nnz)
   (#col_ind : lseq sz gA.nnz)
@@ -1926,9 +1916,8 @@ fn kf
     )
     (fun x -> when__ (bcol p bid + x * p.blockWidth + tid < p.cols)
         (fun _ ->
-          Array2.pts_to_cell gC
-            (brow p bid |~> row_perm,
-             bcol p bid + x * p.blockWidth + tid)
+          tensor_pts_to_cell gC
+            (ix2 (brow p bid |~> row_perm) (bcol p bid + x * p.blockWidth + tid))
             (v_out @! x)
         )
     )
@@ -1941,9 +1930,8 @@ fn kf
   forevery_refine_pred' #(natlt (p.blockItemsX /^ p.blockWidth))
     (fun x -> bcol p bid + x * p.blockWidth + tid < p.cols)
     (fun x _ ->
-      Array2.pts_to_cell gC
-        (brow p bid |~> row_perm,
-         bcol p bid + x * p.blockWidth + tid)
+      tensor_pts_to_cell gC
+        (ix2 (brow p bid |~> row_perm) (bcol p bid + x * p.blockWidth + tid))
         (v_out @! x));
 
   forevery_map
@@ -1951,24 +1939,21 @@ fn kf
       bcol p bid + x * p.blockWidth + tid < p.cols
     })
     (fun x ->
-      Array2.pts_to_cell gC
-        (brow p bid |~> row_perm,
-         bcol p bid + x * p.blockWidth + tid)
+      tensor_pts_to_cell gC
+        (ix2 (brow p bid |~> row_perm) (bcol p bid + x * p.blockWidth + tid))
         (v_out @! x)
     )
     (fun x ->
-      Array2.pts_to_cell gC
-        (brow p bid |~> row_perm,
-         bcol p bid + x * p.blockWidth + tid)
+      tensor_pts_to_cell gC
+        (ix2 (brow p bid |~> row_perm) (bcol p bid + x * p.blockWidth + tid))
         (MS.matmul_single eA eB
           (brow p bid |~> row_perm)
           (bcol p bid + x * p.blockWidth + tid)
         )
     )
     fn x {
-      assert Array2.pts_to_cell gC
-        (brow p bid |~> row_perm,
-         bcol p bid + x * p.blockWidth + tid)
+      assert tensor_pts_to_cell gC
+        (ix2 (brow p bid |~> row_perm) (bcol p bid + x * p.blockWidth + tid))
         (Compute.compute_result
           p.blockWidth p.blockItemsX
           row_elems row_pos
@@ -1995,9 +1980,8 @@ fn kf
   forevery_unrefine_pred' #(natlt (p.blockItemsX /^ p.blockWidth))
     (fun x -> bcol p bid + x * p.blockWidth + tid < p.cols)
     (fun x _ ->
-      Array2.pts_to_cell gC
-        (brow p bid |~> row_perm,
-         bcol p bid + x * p.blockWidth + tid)
+      tensor_pts_to_cell gC
+        (ix2 (brow p bid |~> row_perm) (bcol p bid + x * p.blockWidth + tid))
         (MS.matmul_single eA eB
           (brow p bid |~> row_perm)
           (bcol p bid + x * p.blockWidth + tid)
@@ -2028,13 +2012,13 @@ let kdesc
   (p : parameters{size_req p})
   (row_perm : permutation (natlt p.rows))
   (blockChunks : sz{SZ.v blockChunks == p.blockItemsX / p.blockWidth}) // Ver nota abajo
-  (#lB : Array2.layout p.shared p.cols)
-  (#lC : Array2.layout p.rows p.cols)
+  (#lB : layout2 p.shared p.cols)
+  (#lC : layout2 p.rows p.cols)
   {| ctlayout lB, ctlayout lC |}
   (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared){is_global_smatrix gA})
   (row_indices : larray sz p.rows)
-  (gB : Array2.t et lB {Array2.is_global gB})
-  (gC : Array2.t et lC {Array2.is_global gC})
+  (gB : array2 et lB {is_global gB})
+  (gC : array2 et lC {is_global gC})
   // matriz sparse gA
   (elems : lseq et gA.nnz)
   (col_ind : lseq sz gA.nnz)
@@ -2143,16 +2127,16 @@ fn spmm
   (blockItemsX : szp)
   (blockWidth : (k : szp {k /? blockItemsK /\ k /? blockItemsX}))
   (blockChunks : sz{SZ.v blockChunks == blockItemsX / blockWidth}) // Ver nota abajo
-  (#lB : Array2.layout shared cols)
-  (#lC : Array2.layout rows cols)
+  (#lB : layout2 shared cols)
+  (#lC : layout2 rows cols)
   {| ctlayout lB, ctlayout lC |}
   (gA : smatrix et (SZ.v rows) (SZ.v shared){is_global_smatrix gA})
   (#fA : perm)
   (row_indices : larray sz rows)
   (fri : perm)
-  (gB : Array2.t et lB{Array2.is_global gB})
+  (gB : array2 et lB{is_global gB})
   (#fB : perm)
-  (gC : Array2.t et lC{Array2.is_global gC})
+  (gC : array2 et lC{is_global gC})
   // matriz sparse gA
   (elems : lseq et gA.nnz)
   (col_ind : lseq sz gA.nnz)

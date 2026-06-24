@@ -19,7 +19,7 @@ ghost
 fn array2_collect_approx_tiled
   (#et : Type0) {| scalar et |}
   (#rows #cols : nat)
-  (#l : M.layout rows cols)
+  (#l : layout2 rows cols)
   (gm : array2 et l)
   (trows : pos { trows /? rows })
   (tcols : pos { tcols /? cols })
@@ -27,13 +27,13 @@ fn array2_collect_approx_tiled
   (ntc : nat { ntc == cols / tcols })
   (spec_fn : natlt rows -> natlt cols -> et -> prop)
   requires
-    pure (SZ.fits (M.layout_size l))
+    pure (SZ.fits (l.ulen))
   requires
     forall+ (bid : natlt (ntr * ntc)) (tid : natlt (trows * tcols)).
       exists* (v : et).
-        M.pts_to_cell
+        tensor_pts_to_cell
           (array2_subtile gm trows tcols (bid / ntc) (bid % ntc))
-          ((tid / tcols <: natlt trows), (tid % tcols <: natlt tcols)) v **
+          (ix2 (tid / tcols <: natlt trows) (tid % tcols <: natlt tcols)) v **
         pure (spec_fn ((bid / ntc) * trows + (tid / tcols))
                       ((bid % ntc) * tcols + (tid % tcols)) v)
   returns vf : (natlt (ntr * ntc) -> natlt (trows * tcols) -> GTot et)
@@ -51,9 +51,9 @@ fn array2_collect_approx_tiled
       let tc = bid % ntc in
       let i = tid / tcols in
       let j = tid % tcols in
-      M.pts_to_cell
+      tensor_pts_to_cell
         (array2_subtile gm trows tcols tr tc)
-        ((i <: natlt trows), (j <: natlt tcols)) v **
+        (ix2 (i <: natlt trows) (j <: natlt tcols)) v **
       pure (spec_fn (tr * trows + i) (tc * tcols + j) v));
 
   (* Step 2: Extract pure facts *)
@@ -64,9 +64,9 @@ fn array2_collect_approx_tiled
       let tc = bid % ntc in
       let i = tid / tcols in
       let j = tid % tcols in
-      M.pts_to_cell
+      tensor_pts_to_cell
         (array2_subtile gm trows tcols tr tc)
-        ((i <: natlt trows), (j <: natlt tcols)) (vf bid tid) **
+        (ix2 (i <: natlt trows) (j <: natlt tcols)) (vf bid tid) **
       pure (spec_fn (tr * trows + i) (tc * tcols + j) (vf bid tid)))
     (fun bid tid ->
       let tr = bid / ntc in
@@ -84,18 +84,18 @@ fn array2_collect_approx_tiled
       let tc = bid % ntc in
       let i = tid / tcols in
       let j = tid % tcols in
-      M.pts_to_cell
+      tensor_pts_to_cell
         (array2_subtile gm trows tcols tr tc)
-        ((i <: natlt trows), (j <: natlt tcols)) (vf bid tid) **
+        (ix2 (i <: natlt trows) (j <: natlt tcols)) (vf bid tid) **
       pure (spec_fn (tr * trows + i) (tc * tcols + j) (vf bid tid)))
     (fun bid tid ->
       let tr = bid / ntc in
       let tc = bid % ntc in
       let i = tid / tcols in
       let j = tid % tcols in
-      M.pts_to_cell
+      tensor_pts_to_cell
         (array2_subtile gm trows tcols tr tc)
-        ((i <: natlt trows), (j <: natlt tcols)) (vf bid tid))
+        (ix2 (i <: natlt trows) (j <: natlt tcols)) (vf bid tid))
     fn bid tid { () };
 
   (* Step 4: Factor to 4D *)
@@ -103,9 +103,9 @@ fn array2_collect_approx_tiled
     (ntr * ntc) ntr ntc
     (trows * tcols) trows tcols
     (fun (bid : natlt (ntr * ntc)) (tid : natlt (trows * tcols)) ->
-      M.pts_to_cell
+      tensor_pts_to_cell
         (array2_subtile gm trows tcols (bid / ntc) (bid % ntc))
-        ((tid / tcols <: natlt trows), (tid % tcols <: natlt tcols)) (vf bid tid));
+        (ix2 (tid / tcols <: natlt trows) (tid % tcols <: natlt tcols)) (vf bid tid));
 
   (* Simplify div/mod *)
   assert pure (forall (tr:natlt ntr) (tc:natlt ntc). (tr * ntc + tc) / ntc == tr /\ (tr * ntc + tc) % ntc == tc);
@@ -114,13 +114,13 @@ fn array2_collect_approx_tiled
   forevery_ext_4
     (fun (tr:natlt ntr) (tc:natlt ntc) (i:natlt trows) (j:natlt tcols) ->
       let bid = tr * ntc + tc in let tid = i * tcols + j in
-      M.pts_to_cell
+      tensor_pts_to_cell
         (array2_subtile gm trows tcols (bid / ntc) (bid % ntc))
-        ((tid / tcols <: natlt trows), (tid % tcols <: natlt tcols)) (vf bid tid))
+        (ix2 (tid / tcols <: natlt trows) (tid % tcols <: natlt tcols)) (vf bid tid))
     (fun (tr:natlt ntr) (tc:natlt ntc) (i:natlt trows) (j:natlt tcols) ->
-      M.pts_to_cell
+      tensor_pts_to_cell
         (array2_subtile gm trows tcols tr tc)
-        ((i <: natlt trows), (j <: natlt tcols)) (vf (tr * ntc + tc) (i * tcols + j)));
+        (ix2 (i <: natlt trows) (j <: natlt tcols)) (vf (tr * ntc + tc) (i * tcols + j)));
 
   (* Step 5: Rewrite sizes for implode_tiled *)
   forevery_rw_size4 ntr (rows / trows) ntc (cols / tcols) trows trows tcols tcols;

@@ -7,8 +7,8 @@ open Kuiper.EMatrix
 open Kuiper.Spec.GEMM
 open Kuiper.Sparse.DotProduct
 open Kuiper.Sparse.Common
-module Array2 = Kuiper.Array2
-open Kuiper.Tensor { ctlayout }
+open Kuiper.Tensor
+open Kuiper.Seq.Common { op_At_Bang }
 
 (* Definiciones auxiliares *)
 
@@ -184,9 +184,9 @@ fn compute
   (#v_col_ind : erased (lseq sz nnz))
   (#_ : squash(valid_pos shared (cast_pos v_col_ind)))
   // matriz densa B
-  (#lB : Array2.layout shared cols)
+  (#lB : layout2 shared cols)
   {| ctlayout lB |}
-  (gB : Array2.t et lB)
+  (gB : array2 et lB)
   (#fB : perm)
   (#eB : erased (ematrix et shared cols))
   // resultado parcial

@@ -3,6 +3,7 @@ module Kuiper.Tensor
 
 open Kuiper
 open Kuiper.Shape
+open Kuiper.Bijection
 module A = Kuiper.VArray
 module SZ = Kuiper.SizeT
 module T = FStar.Tactics.V2
@@ -269,6 +270,38 @@ fn tensor_gather_n
     fn i { unfold tensor_pts_to a #(f /. k) s };
   A.varray_gather_n a k;
   fold tensor_pts_to a #f s;
+}
+
+ghost
+fn tensor_gather_n_underspec
+  (#et : Type0) (#r : nat) (#d : shape r)
+  (#l : tlayout d)
+  (a : tensor et l) (k : pos)
+  (#f : perm)
+  requires
+    forall+ (_:natlt k).
+      exists* (s : chest d et). tensor_pts_to a #(f /. k) s
+  ensures
+    exists* (s : chest d et). tensor_pts_to a #f s
+{
+  forevery_natlt_pop k _;
+  with s. assert tensor_pts_to a #(f /. k) s;
+  ghost
+  fn aux (_ : natlt (k-1))
+    norewrite
+    requires
+      tensor_pts_to a #(f /. k) s ** (exists* v. tensor_pts_to a #(f /. k) v)
+    ensures
+      tensor_pts_to a #(f /. k) s ** tensor_pts_to a #(f /. k) s
+  {
+    tensor_pts_to_eq a (f /. k) #_ #s;
+  };
+  forevery_map_extra #(natlt (k-1)) (tensor_pts_to a #(f /. k) s)
+    (fun (_ : natlt (k-1)) -> exists* v. tensor_pts_to a #(f /. k) v)
+    (fun (_ : natlt (k-1)) -> tensor_pts_to a #(f /. k) s)
+    aux;
+  forevery_natlt_push k _;
+  tensor_gather_n a k;
 }
 
 inline_for_extraction noextract
@@ -771,4 +804,106 @@ fn tensor_restore_slice
 {
   unfold factored _ _;
   ambig_trade_elim ();
+}
+
+(* Rank-2 conveniences: explode/implode/ilower/iraise presented over the
+   (natlt rows & natlt cols) index pair, as special cases of the generic
+   rank-r operations above. *)
+
+inline_for_extraction noextract
+unfold
+let abs_bij2 (#rows #cols : nat)
+  : (abs (rows @| cols @| INil) =~ (natlt rows & natlt cols)) =
+  {
+    ff = (fun (i, (j, ())) -> (i, j));
+    gg = (fun (i, j) -> (i, (j, ())));
+    ff_gg = ez;
+    gg_ff = ez;
+  }
+
+ghost
+fn tensor_explode2
+  (#et : Type0) (#rows #cols : nat) (#l : layout2 rows cols)
+  (a : tensor et l)
+  (#f : perm)
+  (#s : chest2 et rows cols)
+  requires
+    a |-> Frac f s
+  ensures
+    forall+ (ij : natlt rows & natlt cols).
+      Cell a (ix2 (fst ij) (snd ij)) |-> Frac f (acc s (ix2 (fst ij) (snd ij)))
+{
+  tensor_explode a;
+  forevery_iso #(abs (rows @| cols @| INil)) #(natlt rows & natlt cols)
+    abs_bij2 (fun (i : abs (rows @| cols @| INil)) -> Cell a i |-> Frac f (acc s i));
+  forevery_ext
+    (fun (ij : natlt rows & natlt cols) ->
+      Cell a (abs_bij2.gg ij) |-> Frac f (acc s (abs_bij2.gg ij)))
+    (fun (ij : natlt rows & natlt cols) ->
+      Cell a (ix2 (fst ij) (snd ij)) |-> Frac f (acc s (ix2 (fst ij) (snd ij))));
+}
+
+ghost
+fn tensor_implode2
+  (#et : Type0) (#rows #cols : nat) (#l : layout2 rows cols)
+  (a : tensor et l)
+  (#f : perm)
+  (#s : chest2 et rows cols)
+  requires
+    pure (SZ.fits (tlayout_ulen l))
+  requires
+    forall+ (ij : natlt rows & natlt cols).
+      Cell a (ix2 (fst ij) (snd ij)) |-> Frac f (acc s (ix2 (fst ij) (snd ij)))
+  ensures
+    a |-> Frac f s
+{
+  forevery_iso #(natlt rows & natlt cols) #(abs (rows @| cols @| INil))
+    (bij_sym abs_bij2)
+    (fun (ij : natlt rows & natlt cols) ->
+      Cell a (ix2 (fst ij) (snd ij)) |-> Frac f (acc s (ix2 (fst ij) (snd ij))));
+  forevery_ext
+    (fun (i : abs (rows @| cols @| INil)) ->
+      Cell a (ix2 (fst ((bij_sym abs_bij2).gg i)) (snd ((bij_sym abs_bij2).gg i)))
+        |-> Frac f (acc s (ix2 (fst ((bij_sym abs_bij2).gg i)) (snd ((bij_sym abs_bij2).gg i)))))
+    (fun (i : abs (rows @| cols @| INil)) -> Cell a i |-> Frac f (acc s i));
+  tensor_implode a;
+}
+
+ghost
+fn tensor_ilower2
+  (#et : Type0) (#rows #cols : nat) (#l : layout2 rows cols)
+  (a : tensor et l)
+  (#f : perm)
+  (#s : chest2 et rows cols)
+  requires
+    a |-> Frac f s
+  ensures
+    pure (SZ.fits (tlayout_ulen l)) **
+    (forall+ (r : natlt rows) (c : natlt cols).
+      Cell a (ix2 r c) |-> Frac f (acc s (ix2 r c)))
+{
+  tensor_pts_to_ref a;
+  tensor_explode2 a;
+  forevery_unflatten'
+    (fun (ij : natlt rows & natlt cols) ->
+      Cell a (ix2 (fst ij) (snd ij)) |-> Frac f (acc s (ix2 (fst ij) (snd ij))));
+}
+
+ghost
+fn tensor_iraise2
+  (#et : Type0) (#rows #cols : nat) (#l : layout2 rows cols)
+  (a : tensor et l)
+  (#f : perm)
+  (#s : chest2 et rows cols)
+  requires
+    pure (SZ.fits (tlayout_ulen l)) **
+    (forall+ (r : natlt rows) (c : natlt cols).
+      Cell a (ix2 r c) |-> Frac f (acc s (ix2 r c)))
+  ensures
+    a |-> Frac f s
+{
+  forevery_flatten'
+    (fun (ij : natlt rows & natlt cols) ->
+      Cell a (ix2 (fst ij) (snd ij)) |-> Frac f (acc s (ix2 (fst ij) (snd ij))));
+  tensor_implode2 a;
 }

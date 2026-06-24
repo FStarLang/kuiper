@@ -2,17 +2,15 @@ module Kuiper.Example.Array2
 
 #lang-pulse
 open Kuiper
-open Kuiper.Array2
-module Array2 = Kuiper.Array2
 open Kuiper.Bijection
 open Kuiper.Injection
-open Kuiper.Tensor.Layout
+open Kuiper.Tensor
 open Kuiper.Tensor.Layout.Alg
 open Kuiper.Shape
 open Kuiper.EMatrix
 module SZ = Kuiper.SizeT
 
-let layout (d0 d1 : nat) : layout d0 d1 =
+let layout (d0 d1 : nat) : layout2 d0 d1 =
   pack <|
   major_on 0 d0 <|
   major_on 0 d1 <|
@@ -43,14 +41,14 @@ fn test1 (m : array2 u32 (layout 10 10))
   preserves m |-> 's
   returns u32
 {
-  let v = Array2.(m.(1sz, 2sz));
+  let v = tensor_read m ((1sz <: szlt _), ((2sz <: szlt _), ()));
   v
 }
 
 fn test2 (m : array2 u32 (layout 10 10))
   requires m |-> 's
-  ensures  m |-> Kuiper.EMatrix.mupd 's 1 2 42ul
+  ensures  m |-> upd2 's 1 2 42ul
 {
-  Array2.(m.(1sz, 2sz) <- 42ul);
+  tensor_write m ((1sz <: szlt _), ((2sz <: szlt _), ())) 42ul;
   ()
 }

@@ -80,20 +80,23 @@ __hoisted_g_gemm_f32_32x32x32_8x8_0(float alpha,
     uint32_t resIdxM = 0U;
     for (; resIdxM < 8U; resIdxM++) {
         uint32_t resIdxN = 0U;
-        for (; resIdxN < 8U; resIdxN++)
+        for (; resIdxN < 8U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             t_tile[(32U * (blockIdx.x / (cols / 32U)) +
-                    8U * (threadIdx.x / 4U) + resIdxM) * cols +
+                    8U * (threadIdx.x / 4U) + vrm) * cols +
                    32U * (blockIdx.x % (cols / 32U))
                    + 8U * (threadIdx.x % 4U)
-                   + resIdxN]
+                   + vrn]
                 =
                 beta *
                 t_tile[(32U * (blockIdx.x / (cols / 32U)) +
-                        8U * (threadIdx.x / 4U) + resIdxM) * cols +
+                        8U * (threadIdx.x / 4U) + vrm) * cols +
                        32U * (blockIdx.x % (cols / 32U))
                        + 8U * (threadIdx.x % 4U)
-                       + resIdxN]
+                       + vrn]
                 + alpha * rchProd[resIdxM * 8U + resIdxN];
+        }
     }
 }
 
@@ -208,22 +211,22 @@ __hoisted_g_gemm_bf16_32x32x32_8x8_0(__nv_bfloat16 alpha,
     for (; resIdxM < 8U; resIdxM++) {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 8U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             __nv_bfloat16
                 v0 =
                 t_tile[(32U * (blockIdx.x / (cols / 32U)) +
-                        8U * (threadIdx.x / 4U) + resIdxM) * cols +
+                        8U * (threadIdx.x / 4U) + vrm) * cols +
                        32U * (blockIdx.x % (cols / 32U))
                        + 8U * (threadIdx.x % 4U)
-                       + resIdxN];
+                       + vrn];
             __nv_bfloat16 v1 = rchProd[resIdxM * 8U + resIdxN];
-            __nv_bfloat16 v_ =
-                kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
             t_tile[(32U * (blockIdx.x / (cols / 32U)) +
-                    8U * (threadIdx.x / 4U) + resIdxM) * cols +
+                    8U * (threadIdx.x / 4U) + vrm) * cols +
                    32U * (blockIdx.x % (cols / 32U))
                    + 8U * (threadIdx.x % 4U)
-                   + resIdxN]
-                = v_;
+                   + vrn]
+                = kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
         }
     }
 }
@@ -330,20 +333,23 @@ __hoisted_g_gemm_f32_32x32x32_8x16_0(float alpha,
     uint32_t resIdxM = 0U;
     for (; resIdxM < 8U; resIdxM++) {
         uint32_t resIdxN = 0U;
-        for (; resIdxN < 16U; resIdxN++)
+        for (; resIdxN < 16U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             t_tile[(32U * (blockIdx.x / (cols / 32U)) +
-                    8U * (threadIdx.x / 2U) + resIdxM) * cols +
+                    8U * (threadIdx.x / 2U) + vrm) * cols +
                    32U * (blockIdx.x % (cols / 32U))
                    + 16U * (threadIdx.x % 2U)
-                   + resIdxN]
+                   + vrn]
                 =
                 beta *
                 t_tile[(32U * (blockIdx.x / (cols / 32U)) +
-                        8U * (threadIdx.x / 2U) + resIdxM) * cols +
+                        8U * (threadIdx.x / 2U) + vrm) * cols +
                        32U * (blockIdx.x % (cols / 32U))
                        + 16U * (threadIdx.x % 2U)
-                       + resIdxN]
+                       + vrn]
                 + alpha * rchProd[resIdxM * 16U + resIdxN];
+        }
     }
 }
 
@@ -459,22 +465,22 @@ __hoisted_g_gemm_bf16_32x32x32_8x16_0(__nv_bfloat16 alpha,
     for (; resIdxM < 8U; resIdxM++) {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 16U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             __nv_bfloat16
                 v0 =
                 t_tile[(32U * (blockIdx.x / (cols / 32U)) +
-                        8U * (threadIdx.x / 2U) + resIdxM) * cols +
+                        8U * (threadIdx.x / 2U) + vrm) * cols +
                        32U * (blockIdx.x % (cols / 32U))
                        + 16U * (threadIdx.x % 2U)
-                       + resIdxN];
+                       + vrn];
             __nv_bfloat16 v1 = rchProd[resIdxM * 16U + resIdxN];
-            __nv_bfloat16 v_ =
-                kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
             t_tile[(32U * (blockIdx.x / (cols / 32U)) +
-                    8U * (threadIdx.x / 2U) + resIdxM) * cols +
+                    8U * (threadIdx.x / 2U) + vrm) * cols +
                    32U * (blockIdx.x % (cols / 32U))
                    + 16U * (threadIdx.x % 2U)
-                   + resIdxN]
-                = v_;
+                   + vrn]
+                = kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
         }
     }
 }
@@ -581,20 +587,23 @@ __hoisted_g_gemm_f32_32x32x32_16x8_0(float alpha,
     uint32_t resIdxM = 0U;
     for (; resIdxM < 16U; resIdxM++) {
         uint32_t resIdxN = 0U;
-        for (; resIdxN < 8U; resIdxN++)
+        for (; resIdxN < 8U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             t_tile[(32U * (blockIdx.x / (cols / 32U)) +
-                    16U * (threadIdx.x / 4U) + resIdxM) * cols +
+                    16U * (threadIdx.x / 4U) + vrm) * cols +
                    32U * (blockIdx.x % (cols / 32U))
                    + 8U * (threadIdx.x % 4U)
-                   + resIdxN]
+                   + vrn]
                 =
                 beta *
                 t_tile[(32U * (blockIdx.x / (cols / 32U)) +
-                        16U * (threadIdx.x / 4U) + resIdxM) * cols +
+                        16U * (threadIdx.x / 4U) + vrm) * cols +
                        32U * (blockIdx.x % (cols / 32U))
                        + 8U * (threadIdx.x % 4U)
-                       + resIdxN]
+                       + vrn]
                 + alpha * rchProd[resIdxM * 8U + resIdxN];
+        }
     }
 }
 
@@ -710,22 +719,22 @@ __hoisted_g_gemm_bf16_32x32x32_16x8_0(__nv_bfloat16 alpha,
     for (; resIdxM < 16U; resIdxM++) {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 8U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             __nv_bfloat16
                 v0 =
                 t_tile[(32U * (blockIdx.x / (cols / 32U)) +
-                        16U * (threadIdx.x / 4U) + resIdxM) * cols +
+                        16U * (threadIdx.x / 4U) + vrm) * cols +
                        32U * (blockIdx.x % (cols / 32U))
                        + 8U * (threadIdx.x % 4U)
-                       + resIdxN];
+                       + vrn];
             __nv_bfloat16 v1 = rchProd[resIdxM * 8U + resIdxN];
-            __nv_bfloat16 v_ =
-                kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
             t_tile[(32U * (blockIdx.x / (cols / 32U)) +
-                    16U * (threadIdx.x / 4U) + resIdxM) * cols +
+                    16U * (threadIdx.x / 4U) + vrm) * cols +
                    32U * (blockIdx.x % (cols / 32U))
                    + 8U * (threadIdx.x % 4U)
-                   + resIdxN]
-                = v_;
+                   + vrn]
+                = kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
         }
     }
 }
@@ -832,20 +841,23 @@ __hoisted_g_gemm_f32_32x32x32_16x16_0(float alpha,
     uint32_t resIdxM = 0U;
     for (; resIdxM < 16U; resIdxM++) {
         uint32_t resIdxN = 0U;
-        for (; resIdxN < 16U; resIdxN++)
+        for (; resIdxN < 16U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             t_tile[(32U * (blockIdx.x / (cols / 32U)) +
-                    16U * (threadIdx.x / 2U) + resIdxM) * cols +
+                    16U * (threadIdx.x / 2U) + vrm) * cols +
                    32U * (blockIdx.x % (cols / 32U))
                    + 16U * (threadIdx.x % 2U)
-                   + resIdxN]
+                   + vrn]
                 =
                 beta *
                 t_tile[(32U * (blockIdx.x / (cols / 32U)) +
-                        16U * (threadIdx.x / 2U) + resIdxM) * cols +
+                        16U * (threadIdx.x / 2U) + vrm) * cols +
                        32U * (blockIdx.x % (cols / 32U))
                        + 16U * (threadIdx.x % 2U)
-                       + resIdxN]
+                       + vrn]
                 + alpha * rchProd[resIdxM * 16U + resIdxN];
+        }
     }
 }
 
@@ -961,22 +973,22 @@ __hoisted_g_gemm_bf16_32x32x32_16x16_0(__nv_bfloat16 alpha,
     for (; resIdxM < 16U; resIdxM++) {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 16U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             __nv_bfloat16
                 v0 =
                 t_tile[(32U * (blockIdx.x / (cols / 32U)) +
-                        16U * (threadIdx.x / 2U) + resIdxM) * cols +
+                        16U * (threadIdx.x / 2U) + vrm) * cols +
                        32U * (blockIdx.x % (cols / 32U))
                        + 16U * (threadIdx.x % 2U)
-                       + resIdxN];
+                       + vrn];
             __nv_bfloat16 v1 = rchProd[resIdxM * 16U + resIdxN];
-            __nv_bfloat16 v_ =
-                kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
             t_tile[(32U * (blockIdx.x / (cols / 32U)) +
-                    16U * (threadIdx.x / 2U) + resIdxM) * cols +
+                    16U * (threadIdx.x / 2U) + vrm) * cols +
                    32U * (blockIdx.x % (cols / 32U))
                    + 16U * (threadIdx.x % 2U)
-                   + resIdxN]
-                = v_;
+                   + vrn]
+                = kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
         }
     }
 }
@@ -1083,20 +1095,23 @@ __hoisted_g_gemm_f32_32x32x64_8x8_0(float alpha,
     uint32_t resIdxM = 0U;
     for (; resIdxM < 8U; resIdxM++) {
         uint32_t resIdxN = 0U;
-        for (; resIdxN < 8U; resIdxN++)
+        for (; resIdxN < 8U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             t_tile[(32U * (blockIdx.x / (cols / 32U)) +
-                    8U * (threadIdx.x / 4U) + resIdxM) * cols +
+                    8U * (threadIdx.x / 4U) + vrm) * cols +
                    32U * (blockIdx.x % (cols / 32U))
                    + 8U * (threadIdx.x % 4U)
-                   + resIdxN]
+                   + vrn]
                 =
                 beta *
                 t_tile[(32U * (blockIdx.x / (cols / 32U)) +
-                        8U * (threadIdx.x / 4U) + resIdxM) * cols +
+                        8U * (threadIdx.x / 4U) + vrm) * cols +
                        32U * (blockIdx.x % (cols / 32U))
                        + 8U * (threadIdx.x % 4U)
-                       + resIdxN]
+                       + vrn]
                 + alpha * rchProd[resIdxM * 8U + resIdxN];
+        }
     }
 }
 
@@ -1211,22 +1226,22 @@ __hoisted_g_gemm_bf16_32x32x64_8x8_0(__nv_bfloat16 alpha,
     for (; resIdxM < 8U; resIdxM++) {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 8U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             __nv_bfloat16
                 v0 =
                 t_tile[(32U * (blockIdx.x / (cols / 32U)) +
-                        8U * (threadIdx.x / 4U) + resIdxM) * cols +
+                        8U * (threadIdx.x / 4U) + vrm) * cols +
                        32U * (blockIdx.x % (cols / 32U))
                        + 8U * (threadIdx.x % 4U)
-                       + resIdxN];
+                       + vrn];
             __nv_bfloat16 v1 = rchProd[resIdxM * 8U + resIdxN];
-            __nv_bfloat16 v_ =
-                kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
             t_tile[(32U * (blockIdx.x / (cols / 32U)) +
-                    8U * (threadIdx.x / 4U) + resIdxM) * cols +
+                    8U * (threadIdx.x / 4U) + vrm) * cols +
                    32U * (blockIdx.x % (cols / 32U))
                    + 8U * (threadIdx.x % 4U)
-                   + resIdxN]
-                = v_;
+                   + vrn]
+                = kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
         }
     }
 }
@@ -1333,20 +1348,23 @@ __hoisted_g_gemm_f32_32x32x64_8x16_0(float alpha,
     uint32_t resIdxM = 0U;
     for (; resIdxM < 8U; resIdxM++) {
         uint32_t resIdxN = 0U;
-        for (; resIdxN < 16U; resIdxN++)
+        for (; resIdxN < 16U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             t_tile[(32U * (blockIdx.x / (cols / 32U)) +
-                    8U * (threadIdx.x / 2U) + resIdxM) * cols +
+                    8U * (threadIdx.x / 2U) + vrm) * cols +
                    32U * (blockIdx.x % (cols / 32U))
                    + 16U * (threadIdx.x % 2U)
-                   + resIdxN]
+                   + vrn]
                 =
                 beta *
                 t_tile[(32U * (blockIdx.x / (cols / 32U)) +
-                        8U * (threadIdx.x / 2U) + resIdxM) * cols +
+                        8U * (threadIdx.x / 2U) + vrm) * cols +
                        32U * (blockIdx.x % (cols / 32U))
                        + 16U * (threadIdx.x % 2U)
-                       + resIdxN]
+                       + vrn]
                 + alpha * rchProd[resIdxM * 16U + resIdxN];
+        }
     }
 }
 
@@ -1462,22 +1480,22 @@ __hoisted_g_gemm_bf16_32x32x64_8x16_0(__nv_bfloat16 alpha,
     for (; resIdxM < 8U; resIdxM++) {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 16U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             __nv_bfloat16
                 v0 =
                 t_tile[(32U * (blockIdx.x / (cols / 32U)) +
-                        8U * (threadIdx.x / 2U) + resIdxM) * cols +
+                        8U * (threadIdx.x / 2U) + vrm) * cols +
                        32U * (blockIdx.x % (cols / 32U))
                        + 16U * (threadIdx.x % 2U)
-                       + resIdxN];
+                       + vrn];
             __nv_bfloat16 v1 = rchProd[resIdxM * 16U + resIdxN];
-            __nv_bfloat16 v_ =
-                kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
             t_tile[(32U * (blockIdx.x / (cols / 32U)) +
-                    8U * (threadIdx.x / 2U) + resIdxM) * cols +
+                    8U * (threadIdx.x / 2U) + vrm) * cols +
                    32U * (blockIdx.x % (cols / 32U))
                    + 16U * (threadIdx.x % 2U)
-                   + resIdxN]
-                = v_;
+                   + vrn]
+                = kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
         }
     }
 }
@@ -1584,20 +1602,23 @@ __hoisted_g_gemm_f32_32x32x64_16x8_0(float alpha,
     uint32_t resIdxM = 0U;
     for (; resIdxM < 16U; resIdxM++) {
         uint32_t resIdxN = 0U;
-        for (; resIdxN < 8U; resIdxN++)
+        for (; resIdxN < 8U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             t_tile[(32U * (blockIdx.x / (cols / 32U)) +
-                    16U * (threadIdx.x / 4U) + resIdxM) * cols +
+                    16U * (threadIdx.x / 4U) + vrm) * cols +
                    32U * (blockIdx.x % (cols / 32U))
                    + 8U * (threadIdx.x % 4U)
-                   + resIdxN]
+                   + vrn]
                 =
                 beta *
                 t_tile[(32U * (blockIdx.x / (cols / 32U)) +
-                        16U * (threadIdx.x / 4U) + resIdxM) * cols +
+                        16U * (threadIdx.x / 4U) + vrm) * cols +
                        32U * (blockIdx.x % (cols / 32U))
                        + 8U * (threadIdx.x % 4U)
-                       + resIdxN]
+                       + vrn]
                 + alpha * rchProd[resIdxM * 8U + resIdxN];
+        }
     }
 }
 
@@ -1713,22 +1734,22 @@ __hoisted_g_gemm_bf16_32x32x64_16x8_0(__nv_bfloat16 alpha,
     for (; resIdxM < 16U; resIdxM++) {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 8U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             __nv_bfloat16
                 v0 =
                 t_tile[(32U * (blockIdx.x / (cols / 32U)) +
-                        16U * (threadIdx.x / 4U) + resIdxM) * cols +
+                        16U * (threadIdx.x / 4U) + vrm) * cols +
                        32U * (blockIdx.x % (cols / 32U))
                        + 8U * (threadIdx.x % 4U)
-                       + resIdxN];
+                       + vrn];
             __nv_bfloat16 v1 = rchProd[resIdxM * 8U + resIdxN];
-            __nv_bfloat16 v_ =
-                kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
             t_tile[(32U * (blockIdx.x / (cols / 32U)) +
-                    16U * (threadIdx.x / 4U) + resIdxM) * cols +
+                    16U * (threadIdx.x / 4U) + vrm) * cols +
                    32U * (blockIdx.x % (cols / 32U))
                    + 8U * (threadIdx.x % 4U)
-                   + resIdxN]
-                = v_;
+                   + vrn]
+                = kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
         }
     }
 }
@@ -1835,20 +1856,23 @@ __hoisted_g_gemm_f32_32x32x64_16x16_0(float alpha,
     uint32_t resIdxM = 0U;
     for (; resIdxM < 16U; resIdxM++) {
         uint32_t resIdxN = 0U;
-        for (; resIdxN < 16U; resIdxN++)
+        for (; resIdxN < 16U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             t_tile[(32U * (blockIdx.x / (cols / 32U)) +
-                    16U * (threadIdx.x / 2U) + resIdxM) * cols +
+                    16U * (threadIdx.x / 2U) + vrm) * cols +
                    32U * (blockIdx.x % (cols / 32U))
                    + 16U * (threadIdx.x % 2U)
-                   + resIdxN]
+                   + vrn]
                 =
                 beta *
                 t_tile[(32U * (blockIdx.x / (cols / 32U)) +
-                        16U * (threadIdx.x / 2U) + resIdxM) * cols +
+                        16U * (threadIdx.x / 2U) + vrm) * cols +
                        32U * (blockIdx.x % (cols / 32U))
                        + 16U * (threadIdx.x % 2U)
-                       + resIdxN]
+                       + vrn]
                 + alpha * rchProd[resIdxM * 16U + resIdxN];
+        }
     }
 }
 
@@ -1964,22 +1988,22 @@ __hoisted_g_gemm_bf16_32x32x64_16x16_0(__nv_bfloat16 alpha,
     for (; resIdxM < 16U; resIdxM++) {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 16U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             __nv_bfloat16
                 v0 =
                 t_tile[(32U * (blockIdx.x / (cols / 32U)) +
-                        16U * (threadIdx.x / 2U) + resIdxM) * cols +
+                        16U * (threadIdx.x / 2U) + vrm) * cols +
                        32U * (blockIdx.x % (cols / 32U))
                        + 16U * (threadIdx.x % 2U)
-                       + resIdxN];
+                       + vrn];
             __nv_bfloat16 v1 = rchProd[resIdxM * 16U + resIdxN];
-            __nv_bfloat16 v_ =
-                kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
             t_tile[(32U * (blockIdx.x / (cols / 32U)) +
-                    16U * (threadIdx.x / 2U) + resIdxM) * cols +
+                    16U * (threadIdx.x / 2U) + vrm) * cols +
                    32U * (blockIdx.x % (cols / 32U))
                    + 16U * (threadIdx.x % 2U)
-                   + resIdxN]
-                = v_;
+                   + vrn]
+                = kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
         }
     }
 }
@@ -2086,20 +2110,23 @@ __hoisted_g_gemm_f32_32x64x32_8x8_0(float alpha,
     uint32_t resIdxM = 0U;
     for (; resIdxM < 8U; resIdxM++) {
         uint32_t resIdxN = 0U;
-        for (; resIdxN < 8U; resIdxN++)
+        for (; resIdxN < 8U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             t_tile[(32U * (blockIdx.x / (cols / 64U)) +
-                    8U * (threadIdx.x / 8U) + resIdxM) * cols +
+                    8U * (threadIdx.x / 8U) + vrm) * cols +
                    64U * (blockIdx.x % (cols / 64U))
                    + 8U * (threadIdx.x % 8U)
-                   + resIdxN]
+                   + vrn]
                 =
                 beta *
                 t_tile[(32U * (blockIdx.x / (cols / 64U)) +
-                        8U * (threadIdx.x / 8U) + resIdxM) * cols +
+                        8U * (threadIdx.x / 8U) + vrm) * cols +
                        64U * (blockIdx.x % (cols / 64U))
                        + 8U * (threadIdx.x % 8U)
-                       + resIdxN]
+                       + vrn]
                 + alpha * rchProd[resIdxM * 8U + resIdxN];
+        }
     }
 }
 
@@ -2214,22 +2241,22 @@ __hoisted_g_gemm_bf16_32x64x32_8x8_0(__nv_bfloat16 alpha,
     for (; resIdxM < 8U; resIdxM++) {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 8U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             __nv_bfloat16
                 v0 =
                 t_tile[(32U * (blockIdx.x / (cols / 64U)) +
-                        8U * (threadIdx.x / 8U) + resIdxM) * cols +
+                        8U * (threadIdx.x / 8U) + vrm) * cols +
                        64U * (blockIdx.x % (cols / 64U))
                        + 8U * (threadIdx.x % 8U)
-                       + resIdxN];
+                       + vrn];
             __nv_bfloat16 v1 = rchProd[resIdxM * 8U + resIdxN];
-            __nv_bfloat16 v_ =
-                kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
             t_tile[(32U * (blockIdx.x / (cols / 64U)) +
-                    8U * (threadIdx.x / 8U) + resIdxM) * cols +
+                    8U * (threadIdx.x / 8U) + vrm) * cols +
                    64U * (blockIdx.x % (cols / 64U))
                    + 8U * (threadIdx.x % 8U)
-                   + resIdxN]
-                = v_;
+                   + vrn]
+                = kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
         }
     }
 }
@@ -2336,20 +2363,23 @@ __hoisted_g_gemm_f32_32x64x32_8x16_0(float alpha,
     uint32_t resIdxM = 0U;
     for (; resIdxM < 8U; resIdxM++) {
         uint32_t resIdxN = 0U;
-        for (; resIdxN < 16U; resIdxN++)
+        for (; resIdxN < 16U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             t_tile[(32U * (blockIdx.x / (cols / 64U)) +
-                    8U * (threadIdx.x / 4U) + resIdxM) * cols +
+                    8U * (threadIdx.x / 4U) + vrm) * cols +
                    64U * (blockIdx.x % (cols / 64U))
                    + 16U * (threadIdx.x % 4U)
-                   + resIdxN]
+                   + vrn]
                 =
                 beta *
                 t_tile[(32U * (blockIdx.x / (cols / 64U)) +
-                        8U * (threadIdx.x / 4U) + resIdxM) * cols +
+                        8U * (threadIdx.x / 4U) + vrm) * cols +
                        64U * (blockIdx.x % (cols / 64U))
                        + 16U * (threadIdx.x % 4U)
-                       + resIdxN]
+                       + vrn]
                 + alpha * rchProd[resIdxM * 16U + resIdxN];
+        }
     }
 }
 
@@ -2465,22 +2495,22 @@ __hoisted_g_gemm_bf16_32x64x32_8x16_0(__nv_bfloat16 alpha,
     for (; resIdxM < 8U; resIdxM++) {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 16U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             __nv_bfloat16
                 v0 =
                 t_tile[(32U * (blockIdx.x / (cols / 64U)) +
-                        8U * (threadIdx.x / 4U) + resIdxM) * cols +
+                        8U * (threadIdx.x / 4U) + vrm) * cols +
                        64U * (blockIdx.x % (cols / 64U))
                        + 16U * (threadIdx.x % 4U)
-                       + resIdxN];
+                       + vrn];
             __nv_bfloat16 v1 = rchProd[resIdxM * 16U + resIdxN];
-            __nv_bfloat16 v_ =
-                kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
             t_tile[(32U * (blockIdx.x / (cols / 64U)) +
-                    8U * (threadIdx.x / 4U) + resIdxM) * cols +
+                    8U * (threadIdx.x / 4U) + vrm) * cols +
                    64U * (blockIdx.x % (cols / 64U))
                    + 16U * (threadIdx.x % 4U)
-                   + resIdxN]
-                = v_;
+                   + vrn]
+                = kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
         }
     }
 }
@@ -2587,20 +2617,23 @@ __hoisted_g_gemm_f32_32x64x32_16x8_0(float alpha,
     uint32_t resIdxM = 0U;
     for (; resIdxM < 16U; resIdxM++) {
         uint32_t resIdxN = 0U;
-        for (; resIdxN < 8U; resIdxN++)
+        for (; resIdxN < 8U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             t_tile[(32U * (blockIdx.x / (cols / 64U)) +
-                    16U * (threadIdx.x / 8U) + resIdxM) * cols +
+                    16U * (threadIdx.x / 8U) + vrm) * cols +
                    64U * (blockIdx.x % (cols / 64U))
                    + 8U * (threadIdx.x % 8U)
-                   + resIdxN]
+                   + vrn]
                 =
                 beta *
                 t_tile[(32U * (blockIdx.x / (cols / 64U)) +
-                        16U * (threadIdx.x / 8U) + resIdxM) * cols +
+                        16U * (threadIdx.x / 8U) + vrm) * cols +
                        64U * (blockIdx.x % (cols / 64U))
                        + 8U * (threadIdx.x % 8U)
-                       + resIdxN]
+                       + vrn]
                 + alpha * rchProd[resIdxM * 8U + resIdxN];
+        }
     }
 }
 
@@ -2716,22 +2749,22 @@ __hoisted_g_gemm_bf16_32x64x32_16x8_0(__nv_bfloat16 alpha,
     for (; resIdxM < 16U; resIdxM++) {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 8U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             __nv_bfloat16
                 v0 =
                 t_tile[(32U * (blockIdx.x / (cols / 64U)) +
-                        16U * (threadIdx.x / 8U) + resIdxM) * cols +
+                        16U * (threadIdx.x / 8U) + vrm) * cols +
                        64U * (blockIdx.x % (cols / 64U))
                        + 8U * (threadIdx.x % 8U)
-                       + resIdxN];
+                       + vrn];
             __nv_bfloat16 v1 = rchProd[resIdxM * 8U + resIdxN];
-            __nv_bfloat16 v_ =
-                kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
             t_tile[(32U * (blockIdx.x / (cols / 64U)) +
-                    16U * (threadIdx.x / 8U) + resIdxM) * cols +
+                    16U * (threadIdx.x / 8U) + vrm) * cols +
                    64U * (blockIdx.x % (cols / 64U))
                    + 8U * (threadIdx.x % 8U)
-                   + resIdxN]
-                = v_;
+                   + vrn]
+                = kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
         }
     }
 }
@@ -2838,20 +2871,23 @@ __hoisted_g_gemm_f32_32x64x32_16x16_0(float alpha,
     uint32_t resIdxM = 0U;
     for (; resIdxM < 16U; resIdxM++) {
         uint32_t resIdxN = 0U;
-        for (; resIdxN < 16U; resIdxN++)
+        for (; resIdxN < 16U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             t_tile[(32U * (blockIdx.x / (cols / 64U)) +
-                    16U * (threadIdx.x / 4U) + resIdxM) * cols +
+                    16U * (threadIdx.x / 4U) + vrm) * cols +
                    64U * (blockIdx.x % (cols / 64U))
                    + 16U * (threadIdx.x % 4U)
-                   + resIdxN]
+                   + vrn]
                 =
                 beta *
                 t_tile[(32U * (blockIdx.x / (cols / 64U)) +
-                        16U * (threadIdx.x / 4U) + resIdxM) * cols +
+                        16U * (threadIdx.x / 4U) + vrm) * cols +
                        64U * (blockIdx.x % (cols / 64U))
                        + 16U * (threadIdx.x % 4U)
-                       + resIdxN]
+                       + vrn]
                 + alpha * rchProd[resIdxM * 16U + resIdxN];
+        }
     }
 }
 
@@ -2967,22 +3003,22 @@ __hoisted_g_gemm_bf16_32x64x32_16x16_0(__nv_bfloat16 alpha,
     for (; resIdxM < 16U; resIdxM++) {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 16U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             __nv_bfloat16
                 v0 =
                 t_tile[(32U * (blockIdx.x / (cols / 64U)) +
-                        16U * (threadIdx.x / 4U) + resIdxM) * cols +
+                        16U * (threadIdx.x / 4U) + vrm) * cols +
                        64U * (blockIdx.x % (cols / 64U))
                        + 16U * (threadIdx.x % 4U)
-                       + resIdxN];
+                       + vrn];
             __nv_bfloat16 v1 = rchProd[resIdxM * 16U + resIdxN];
-            __nv_bfloat16 v_ =
-                kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
             t_tile[(32U * (blockIdx.x / (cols / 64U)) +
-                    16U * (threadIdx.x / 4U) + resIdxM) * cols +
+                    16U * (threadIdx.x / 4U) + vrm) * cols +
                    64U * (blockIdx.x % (cols / 64U))
                    + 16U * (threadIdx.x % 4U)
-                   + resIdxN]
-                = v_;
+                   + vrn]
+                = kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
         }
     }
 }
@@ -3089,20 +3125,23 @@ __hoisted_g_gemm_f32_32x64x64_8x8_0(float alpha,
     uint32_t resIdxM = 0U;
     for (; resIdxM < 8U; resIdxM++) {
         uint32_t resIdxN = 0U;
-        for (; resIdxN < 8U; resIdxN++)
+        for (; resIdxN < 8U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             t_tile[(32U * (blockIdx.x / (cols / 64U)) +
-                    8U * (threadIdx.x / 8U) + resIdxM) * cols +
+                    8U * (threadIdx.x / 8U) + vrm) * cols +
                    64U * (blockIdx.x % (cols / 64U))
                    + 8U * (threadIdx.x % 8U)
-                   + resIdxN]
+                   + vrn]
                 =
                 beta *
                 t_tile[(32U * (blockIdx.x / (cols / 64U)) +
-                        8U * (threadIdx.x / 8U) + resIdxM) * cols +
+                        8U * (threadIdx.x / 8U) + vrm) * cols +
                        64U * (blockIdx.x % (cols / 64U))
                        + 8U * (threadIdx.x % 8U)
-                       + resIdxN]
+                       + vrn]
                 + alpha * rchProd[resIdxM * 8U + resIdxN];
+        }
     }
 }
 
@@ -3217,22 +3256,22 @@ __hoisted_g_gemm_bf16_32x64x64_8x8_0(__nv_bfloat16 alpha,
     for (; resIdxM < 8U; resIdxM++) {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 8U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             __nv_bfloat16
                 v0 =
                 t_tile[(32U * (blockIdx.x / (cols / 64U)) +
-                        8U * (threadIdx.x / 8U) + resIdxM) * cols +
+                        8U * (threadIdx.x / 8U) + vrm) * cols +
                        64U * (blockIdx.x % (cols / 64U))
                        + 8U * (threadIdx.x % 8U)
-                       + resIdxN];
+                       + vrn];
             __nv_bfloat16 v1 = rchProd[resIdxM * 8U + resIdxN];
-            __nv_bfloat16 v_ =
-                kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
             t_tile[(32U * (blockIdx.x / (cols / 64U)) +
-                    8U * (threadIdx.x / 8U) + resIdxM) * cols +
+                    8U * (threadIdx.x / 8U) + vrm) * cols +
                    64U * (blockIdx.x % (cols / 64U))
                    + 8U * (threadIdx.x % 8U)
-                   + resIdxN]
-                = v_;
+                   + vrn]
+                = kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
         }
     }
 }
@@ -3339,20 +3378,23 @@ __hoisted_g_gemm_f32_32x64x64_8x16_0(float alpha,
     uint32_t resIdxM = 0U;
     for (; resIdxM < 8U; resIdxM++) {
         uint32_t resIdxN = 0U;
-        for (; resIdxN < 16U; resIdxN++)
+        for (; resIdxN < 16U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             t_tile[(32U * (blockIdx.x / (cols / 64U)) +
-                    8U * (threadIdx.x / 4U) + resIdxM) * cols +
+                    8U * (threadIdx.x / 4U) + vrm) * cols +
                    64U * (blockIdx.x % (cols / 64U))
                    + 16U * (threadIdx.x % 4U)
-                   + resIdxN]
+                   + vrn]
                 =
                 beta *
                 t_tile[(32U * (blockIdx.x / (cols / 64U)) +
-                        8U * (threadIdx.x / 4U) + resIdxM) * cols +
+                        8U * (threadIdx.x / 4U) + vrm) * cols +
                        64U * (blockIdx.x % (cols / 64U))
                        + 16U * (threadIdx.x % 4U)
-                       + resIdxN]
+                       + vrn]
                 + alpha * rchProd[resIdxM * 16U + resIdxN];
+        }
     }
 }
 
@@ -3468,22 +3510,22 @@ __hoisted_g_gemm_bf16_32x64x64_8x16_0(__nv_bfloat16 alpha,
     for (; resIdxM < 8U; resIdxM++) {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 16U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             __nv_bfloat16
                 v0 =
                 t_tile[(32U * (blockIdx.x / (cols / 64U)) +
-                        8U * (threadIdx.x / 4U) + resIdxM) * cols +
+                        8U * (threadIdx.x / 4U) + vrm) * cols +
                        64U * (blockIdx.x % (cols / 64U))
                        + 16U * (threadIdx.x % 4U)
-                       + resIdxN];
+                       + vrn];
             __nv_bfloat16 v1 = rchProd[resIdxM * 16U + resIdxN];
-            __nv_bfloat16 v_ =
-                kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
             t_tile[(32U * (blockIdx.x / (cols / 64U)) +
-                    8U * (threadIdx.x / 4U) + resIdxM) * cols +
+                    8U * (threadIdx.x / 4U) + vrm) * cols +
                    64U * (blockIdx.x % (cols / 64U))
                    + 16U * (threadIdx.x % 4U)
-                   + resIdxN]
-                = v_;
+                   + vrn]
+                = kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
         }
     }
 }
@@ -3590,20 +3632,23 @@ __hoisted_g_gemm_f32_32x64x64_16x8_0(float alpha,
     uint32_t resIdxM = 0U;
     for (; resIdxM < 16U; resIdxM++) {
         uint32_t resIdxN = 0U;
-        for (; resIdxN < 8U; resIdxN++)
+        for (; resIdxN < 8U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             t_tile[(32U * (blockIdx.x / (cols / 64U)) +
-                    16U * (threadIdx.x / 8U) + resIdxM) * cols +
+                    16U * (threadIdx.x / 8U) + vrm) * cols +
                    64U * (blockIdx.x % (cols / 64U))
                    + 8U * (threadIdx.x % 8U)
-                   + resIdxN]
+                   + vrn]
                 =
                 beta *
                 t_tile[(32U * (blockIdx.x / (cols / 64U)) +
-                        16U * (threadIdx.x / 8U) + resIdxM) * cols +
+                        16U * (threadIdx.x / 8U) + vrm) * cols +
                        64U * (blockIdx.x % (cols / 64U))
                        + 8U * (threadIdx.x % 8U)
-                       + resIdxN]
+                       + vrn]
                 + alpha * rchProd[resIdxM * 8U + resIdxN];
+        }
     }
 }
 
@@ -3719,22 +3764,22 @@ __hoisted_g_gemm_bf16_32x64x64_16x8_0(__nv_bfloat16 alpha,
     for (; resIdxM < 16U; resIdxM++) {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 8U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             __nv_bfloat16
                 v0 =
                 t_tile[(32U * (blockIdx.x / (cols / 64U)) +
-                        16U * (threadIdx.x / 8U) + resIdxM) * cols +
+                        16U * (threadIdx.x / 8U) + vrm) * cols +
                        64U * (blockIdx.x % (cols / 64U))
                        + 8U * (threadIdx.x % 8U)
-                       + resIdxN];
+                       + vrn];
             __nv_bfloat16 v1 = rchProd[resIdxM * 8U + resIdxN];
-            __nv_bfloat16 v_ =
-                kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
             t_tile[(32U * (blockIdx.x / (cols / 64U)) +
-                    16U * (threadIdx.x / 8U) + resIdxM) * cols +
+                    16U * (threadIdx.x / 8U) + vrm) * cols +
                    64U * (blockIdx.x % (cols / 64U))
                    + 8U * (threadIdx.x % 8U)
-                   + resIdxN]
-                = v_;
+                   + vrn]
+                = kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
         }
     }
 }
@@ -3841,20 +3886,23 @@ __hoisted_g_gemm_f32_32x64x64_16x16_0(float alpha,
     uint32_t resIdxM = 0U;
     for (; resIdxM < 16U; resIdxM++) {
         uint32_t resIdxN = 0U;
-        for (; resIdxN < 16U; resIdxN++)
+        for (; resIdxN < 16U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             t_tile[(32U * (blockIdx.x / (cols / 64U)) +
-                    16U * (threadIdx.x / 4U) + resIdxM) * cols +
+                    16U * (threadIdx.x / 4U) + vrm) * cols +
                    64U * (blockIdx.x % (cols / 64U))
                    + 16U * (threadIdx.x % 4U)
-                   + resIdxN]
+                   + vrn]
                 =
                 beta *
                 t_tile[(32U * (blockIdx.x / (cols / 64U)) +
-                        16U * (threadIdx.x / 4U) + resIdxM) * cols +
+                        16U * (threadIdx.x / 4U) + vrm) * cols +
                        64U * (blockIdx.x % (cols / 64U))
                        + 16U * (threadIdx.x % 4U)
-                       + resIdxN]
+                       + vrn]
                 + alpha * rchProd[resIdxM * 16U + resIdxN];
+        }
     }
 }
 
@@ -3970,22 +4018,22 @@ __hoisted_g_gemm_bf16_32x64x64_16x16_0(__nv_bfloat16 alpha,
     for (; resIdxM < 16U; resIdxM++) {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 16U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             __nv_bfloat16
                 v0 =
                 t_tile[(32U * (blockIdx.x / (cols / 64U)) +
-                        16U * (threadIdx.x / 4U) + resIdxM) * cols +
+                        16U * (threadIdx.x / 4U) + vrm) * cols +
                        64U * (blockIdx.x % (cols / 64U))
                        + 16U * (threadIdx.x % 4U)
-                       + resIdxN];
+                       + vrn];
             __nv_bfloat16 v1 = rchProd[resIdxM * 16U + resIdxN];
-            __nv_bfloat16 v_ =
-                kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
             t_tile[(32U * (blockIdx.x / (cols / 64U)) +
-                    16U * (threadIdx.x / 4U) + resIdxM) * cols +
+                    16U * (threadIdx.x / 4U) + vrm) * cols +
                    64U * (blockIdx.x % (cols / 64U))
                    + 16U * (threadIdx.x % 4U)
-                   + resIdxN]
-                = v_;
+                   + vrn]
+                = kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
         }
     }
 }
@@ -4092,20 +4140,23 @@ __hoisted_g_gemm_f32_32x128x32_8x8_0(float alpha,
     uint32_t resIdxM = 0U;
     for (; resIdxM < 8U; resIdxM++) {
         uint32_t resIdxN = 0U;
-        for (; resIdxN < 8U; resIdxN++)
+        for (; resIdxN < 8U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             t_tile[(32U * (blockIdx.x / (cols / 128U)) +
-                    8U * (threadIdx.x / 16U) + resIdxM) * cols +
+                    8U * (threadIdx.x / 16U) + vrm) * cols +
                    128U * (blockIdx.x % (cols / 128U))
                    + 8U * (threadIdx.x % 16U)
-                   + resIdxN]
+                   + vrn]
                 =
                 beta *
                 t_tile[(32U * (blockIdx.x / (cols / 128U)) +
-                        8U * (threadIdx.x / 16U) + resIdxM) * cols +
+                        8U * (threadIdx.x / 16U) + vrm) * cols +
                        128U * (blockIdx.x % (cols / 128U))
                        + 8U * (threadIdx.x % 16U)
-                       + resIdxN]
+                       + vrn]
                 + alpha * rchProd[resIdxM * 8U + resIdxN];
+        }
     }
 }
 
@@ -4221,22 +4272,22 @@ __hoisted_g_gemm_bf16_32x128x32_8x8_0(__nv_bfloat16 alpha,
     for (; resIdxM < 8U; resIdxM++) {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 8U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             __nv_bfloat16
                 v0 =
                 t_tile[(32U * (blockIdx.x / (cols / 128U)) +
-                        8U * (threadIdx.x / 16U) + resIdxM) * cols +
+                        8U * (threadIdx.x / 16U) + vrm) * cols +
                        128U * (blockIdx.x % (cols / 128U))
                        + 8U * (threadIdx.x % 16U)
-                       + resIdxN];
+                       + vrn];
             __nv_bfloat16 v1 = rchProd[resIdxM * 8U + resIdxN];
-            __nv_bfloat16 v_ =
-                kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
             t_tile[(32U * (blockIdx.x / (cols / 128U)) +
-                    8U * (threadIdx.x / 16U) + resIdxM) * cols +
+                    8U * (threadIdx.x / 16U) + vrm) * cols +
                    128U * (blockIdx.x % (cols / 128U))
                    + 8U * (threadIdx.x % 16U)
-                   + resIdxN]
-                = v_;
+                   + vrn]
+                = kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
         }
     }
 }
@@ -4343,20 +4394,23 @@ __hoisted_g_gemm_f32_32x128x32_8x16_0(float alpha,
     uint32_t resIdxM = 0U;
     for (; resIdxM < 8U; resIdxM++) {
         uint32_t resIdxN = 0U;
-        for (; resIdxN < 16U; resIdxN++)
+        for (; resIdxN < 16U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             t_tile[(32U * (blockIdx.x / (cols / 128U)) +
-                    8U * (threadIdx.x / 8U) + resIdxM) * cols +
+                    8U * (threadIdx.x / 8U) + vrm) * cols +
                    128U * (blockIdx.x % (cols / 128U))
                    + 16U * (threadIdx.x % 8U)
-                   + resIdxN]
+                   + vrn]
                 =
                 beta *
                 t_tile[(32U * (blockIdx.x / (cols / 128U)) +
-                        8U * (threadIdx.x / 8U) + resIdxM) * cols +
+                        8U * (threadIdx.x / 8U) + vrm) * cols +
                        128U * (blockIdx.x % (cols / 128U))
                        + 16U * (threadIdx.x % 8U)
-                       + resIdxN]
+                       + vrn]
                 + alpha * rchProd[resIdxM * 16U + resIdxN];
+        }
     }
 }
 
@@ -4472,22 +4526,22 @@ __hoisted_g_gemm_bf16_32x128x32_8x16_0(__nv_bfloat16 alpha,
     for (; resIdxM < 8U; resIdxM++) {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 16U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             __nv_bfloat16
                 v0 =
                 t_tile[(32U * (blockIdx.x / (cols / 128U)) +
-                        8U * (threadIdx.x / 8U) + resIdxM) * cols +
+                        8U * (threadIdx.x / 8U) + vrm) * cols +
                        128U * (blockIdx.x % (cols / 128U))
                        + 16U * (threadIdx.x % 8U)
-                       + resIdxN];
+                       + vrn];
             __nv_bfloat16 v1 = rchProd[resIdxM * 16U + resIdxN];
-            __nv_bfloat16 v_ =
-                kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
             t_tile[(32U * (blockIdx.x / (cols / 128U)) +
-                    8U * (threadIdx.x / 8U) + resIdxM) * cols +
+                    8U * (threadIdx.x / 8U) + vrm) * cols +
                    128U * (blockIdx.x % (cols / 128U))
                    + 16U * (threadIdx.x % 8U)
-                   + resIdxN]
-                = v_;
+                   + vrn]
+                = kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
         }
     }
 }
@@ -4594,20 +4648,23 @@ __hoisted_g_gemm_f32_32x128x32_16x8_0(float alpha,
     uint32_t resIdxM = 0U;
     for (; resIdxM < 16U; resIdxM++) {
         uint32_t resIdxN = 0U;
-        for (; resIdxN < 8U; resIdxN++)
+        for (; resIdxN < 8U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             t_tile[(32U * (blockIdx.x / (cols / 128U)) +
-                    16U * (threadIdx.x / 16U) + resIdxM) * cols +
+                    16U * (threadIdx.x / 16U) + vrm) * cols +
                    128U * (blockIdx.x % (cols / 128U))
                    + 8U * (threadIdx.x % 16U)
-                   + resIdxN]
+                   + vrn]
                 =
                 beta *
                 t_tile[(32U * (blockIdx.x / (cols / 128U)) +
-                        16U * (threadIdx.x / 16U) + resIdxM) * cols +
+                        16U * (threadIdx.x / 16U) + vrm) * cols +
                        128U * (blockIdx.x % (cols / 128U))
                        + 8U * (threadIdx.x % 16U)
-                       + resIdxN]
+                       + vrn]
                 + alpha * rchProd[resIdxM * 8U + resIdxN];
+        }
     }
 }
 
@@ -4723,22 +4780,22 @@ __hoisted_g_gemm_bf16_32x128x32_16x8_0(__nv_bfloat16 alpha,
     for (; resIdxM < 16U; resIdxM++) {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 8U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             __nv_bfloat16
                 v0 =
                 t_tile[(32U * (blockIdx.x / (cols / 128U)) +
-                        16U * (threadIdx.x / 16U) + resIdxM) * cols +
+                        16U * (threadIdx.x / 16U) + vrm) * cols +
                        128U * (blockIdx.x % (cols / 128U))
                        + 8U * (threadIdx.x % 16U)
-                       + resIdxN];
+                       + vrn];
             __nv_bfloat16 v1 = rchProd[resIdxM * 8U + resIdxN];
-            __nv_bfloat16 v_ =
-                kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
             t_tile[(32U * (blockIdx.x / (cols / 128U)) +
-                    16U * (threadIdx.x / 16U) + resIdxM) * cols +
+                    16U * (threadIdx.x / 16U) + vrm) * cols +
                    128U * (blockIdx.x % (cols / 128U))
                    + 8U * (threadIdx.x % 16U)
-                   + resIdxN]
-                = v_;
+                   + vrn]
+                = kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
         }
     }
 }
@@ -4845,20 +4902,23 @@ __hoisted_g_gemm_f32_32x128x32_16x16_0(float alpha,
     uint32_t resIdxM = 0U;
     for (; resIdxM < 16U; resIdxM++) {
         uint32_t resIdxN = 0U;
-        for (; resIdxN < 16U; resIdxN++)
+        for (; resIdxN < 16U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             t_tile[(32U * (blockIdx.x / (cols / 128U)) +
-                    16U * (threadIdx.x / 8U) + resIdxM) * cols +
+                    16U * (threadIdx.x / 8U) + vrm) * cols +
                    128U * (blockIdx.x % (cols / 128U))
                    + 16U * (threadIdx.x % 8U)
-                   + resIdxN]
+                   + vrn]
                 =
                 beta *
                 t_tile[(32U * (blockIdx.x / (cols / 128U)) +
-                        16U * (threadIdx.x / 8U) + resIdxM) * cols +
+                        16U * (threadIdx.x / 8U) + vrm) * cols +
                        128U * (blockIdx.x % (cols / 128U))
                        + 16U * (threadIdx.x % 8U)
-                       + resIdxN]
+                       + vrn]
                 + alpha * rchProd[resIdxM * 16U + resIdxN];
+        }
     }
 }
 
@@ -4974,22 +5034,22 @@ __hoisted_g_gemm_bf16_32x128x32_16x16_0(__nv_bfloat16 alpha,
     for (; resIdxM < 16U; resIdxM++) {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 16U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             __nv_bfloat16
                 v0 =
                 t_tile[(32U * (blockIdx.x / (cols / 128U)) +
-                        16U * (threadIdx.x / 8U) + resIdxM) * cols +
+                        16U * (threadIdx.x / 8U) + vrm) * cols +
                        128U * (blockIdx.x % (cols / 128U))
                        + 16U * (threadIdx.x % 8U)
-                       + resIdxN];
+                       + vrn];
             __nv_bfloat16 v1 = rchProd[resIdxM * 16U + resIdxN];
-            __nv_bfloat16 v_ =
-                kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
             t_tile[(32U * (blockIdx.x / (cols / 128U)) +
-                    16U * (threadIdx.x / 8U) + resIdxM) * cols +
+                    16U * (threadIdx.x / 8U) + vrm) * cols +
                    128U * (blockIdx.x % (cols / 128U))
                    + 16U * (threadIdx.x % 8U)
-                   + resIdxN]
-                = v_;
+                   + vrn]
+                = kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
         }
     }
 }
@@ -5096,20 +5156,23 @@ __hoisted_g_gemm_f32_32x128x64_8x8_0(float alpha,
     uint32_t resIdxM = 0U;
     for (; resIdxM < 8U; resIdxM++) {
         uint32_t resIdxN = 0U;
-        for (; resIdxN < 8U; resIdxN++)
+        for (; resIdxN < 8U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             t_tile[(32U * (blockIdx.x / (cols / 128U)) +
-                    8U * (threadIdx.x / 16U) + resIdxM) * cols +
+                    8U * (threadIdx.x / 16U) + vrm) * cols +
                    128U * (blockIdx.x % (cols / 128U))
                    + 8U * (threadIdx.x % 16U)
-                   + resIdxN]
+                   + vrn]
                 =
                 beta *
                 t_tile[(32U * (blockIdx.x / (cols / 128U)) +
-                        8U * (threadIdx.x / 16U) + resIdxM) * cols +
+                        8U * (threadIdx.x / 16U) + vrm) * cols +
                        128U * (blockIdx.x % (cols / 128U))
                        + 8U * (threadIdx.x % 16U)
-                       + resIdxN]
+                       + vrn]
                 + alpha * rchProd[resIdxM * 8U + resIdxN];
+        }
     }
 }
 
@@ -5225,22 +5288,22 @@ __hoisted_g_gemm_bf16_32x128x64_8x8_0(__nv_bfloat16 alpha,
     for (; resIdxM < 8U; resIdxM++) {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 8U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             __nv_bfloat16
                 v0 =
                 t_tile[(32U * (blockIdx.x / (cols / 128U)) +
-                        8U * (threadIdx.x / 16U) + resIdxM) * cols +
+                        8U * (threadIdx.x / 16U) + vrm) * cols +
                        128U * (blockIdx.x % (cols / 128U))
                        + 8U * (threadIdx.x % 16U)
-                       + resIdxN];
+                       + vrn];
             __nv_bfloat16 v1 = rchProd[resIdxM * 8U + resIdxN];
-            __nv_bfloat16 v_ =
-                kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
             t_tile[(32U * (blockIdx.x / (cols / 128U)) +
-                    8U * (threadIdx.x / 16U) + resIdxM) * cols +
+                    8U * (threadIdx.x / 16U) + vrm) * cols +
                    128U * (blockIdx.x % (cols / 128U))
                    + 8U * (threadIdx.x % 16U)
-                   + resIdxN]
-                = v_;
+                   + vrn]
+                = kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
         }
     }
 }
@@ -5347,20 +5410,23 @@ __hoisted_g_gemm_f32_32x128x64_8x16_0(float alpha,
     uint32_t resIdxM = 0U;
     for (; resIdxM < 8U; resIdxM++) {
         uint32_t resIdxN = 0U;
-        for (; resIdxN < 16U; resIdxN++)
+        for (; resIdxN < 16U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             t_tile[(32U * (blockIdx.x / (cols / 128U)) +
-                    8U * (threadIdx.x / 8U) + resIdxM) * cols +
+                    8U * (threadIdx.x / 8U) + vrm) * cols +
                    128U * (blockIdx.x % (cols / 128U))
                    + 16U * (threadIdx.x % 8U)
-                   + resIdxN]
+                   + vrn]
                 =
                 beta *
                 t_tile[(32U * (blockIdx.x / (cols / 128U)) +
-                        8U * (threadIdx.x / 8U) + resIdxM) * cols +
+                        8U * (threadIdx.x / 8U) + vrm) * cols +
                        128U * (blockIdx.x % (cols / 128U))
                        + 16U * (threadIdx.x % 8U)
-                       + resIdxN]
+                       + vrn]
                 + alpha * rchProd[resIdxM * 16U + resIdxN];
+        }
     }
 }
 
@@ -5476,22 +5542,22 @@ __hoisted_g_gemm_bf16_32x128x64_8x16_0(__nv_bfloat16 alpha,
     for (; resIdxM < 8U; resIdxM++) {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 16U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             __nv_bfloat16
                 v0 =
                 t_tile[(32U * (blockIdx.x / (cols / 128U)) +
-                        8U * (threadIdx.x / 8U) + resIdxM) * cols +
+                        8U * (threadIdx.x / 8U) + vrm) * cols +
                        128U * (blockIdx.x % (cols / 128U))
                        + 16U * (threadIdx.x % 8U)
-                       + resIdxN];
+                       + vrn];
             __nv_bfloat16 v1 = rchProd[resIdxM * 16U + resIdxN];
-            __nv_bfloat16 v_ =
-                kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
             t_tile[(32U * (blockIdx.x / (cols / 128U)) +
-                    8U * (threadIdx.x / 8U) + resIdxM) * cols +
+                    8U * (threadIdx.x / 8U) + vrm) * cols +
                    128U * (blockIdx.x % (cols / 128U))
                    + 16U * (threadIdx.x % 8U)
-                   + resIdxN]
-                = v_;
+                   + vrn]
+                = kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
         }
     }
 }
@@ -5598,20 +5664,23 @@ __hoisted_g_gemm_f32_32x128x64_16x8_0(float alpha,
     uint32_t resIdxM = 0U;
     for (; resIdxM < 16U; resIdxM++) {
         uint32_t resIdxN = 0U;
-        for (; resIdxN < 8U; resIdxN++)
+        for (; resIdxN < 8U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             t_tile[(32U * (blockIdx.x / (cols / 128U)) +
-                    16U * (threadIdx.x / 16U) + resIdxM) * cols +
+                    16U * (threadIdx.x / 16U) + vrm) * cols +
                    128U * (blockIdx.x % (cols / 128U))
                    + 8U * (threadIdx.x % 16U)
-                   + resIdxN]
+                   + vrn]
                 =
                 beta *
                 t_tile[(32U * (blockIdx.x / (cols / 128U)) +
-                        16U * (threadIdx.x / 16U) + resIdxM) * cols +
+                        16U * (threadIdx.x / 16U) + vrm) * cols +
                        128U * (blockIdx.x % (cols / 128U))
                        + 8U * (threadIdx.x % 16U)
-                       + resIdxN]
+                       + vrn]
                 + alpha * rchProd[resIdxM * 8U + resIdxN];
+        }
     }
 }
 
@@ -5727,22 +5796,22 @@ __hoisted_g_gemm_bf16_32x128x64_16x8_0(__nv_bfloat16 alpha,
     for (; resIdxM < 16U; resIdxM++) {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 8U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             __nv_bfloat16
                 v0 =
                 t_tile[(32U * (blockIdx.x / (cols / 128U)) +
-                        16U * (threadIdx.x / 16U) + resIdxM) * cols +
+                        16U * (threadIdx.x / 16U) + vrm) * cols +
                        128U * (blockIdx.x % (cols / 128U))
                        + 8U * (threadIdx.x % 16U)
-                       + resIdxN];
+                       + vrn];
             __nv_bfloat16 v1 = rchProd[resIdxM * 8U + resIdxN];
-            __nv_bfloat16 v_ =
-                kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
             t_tile[(32U * (blockIdx.x / (cols / 128U)) +
-                    16U * (threadIdx.x / 16U) + resIdxM) * cols +
+                    16U * (threadIdx.x / 16U) + vrm) * cols +
                    128U * (blockIdx.x % (cols / 128U))
                    + 8U * (threadIdx.x % 16U)
-                   + resIdxN]
-                = v_;
+                   + vrn]
+                = kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
         }
     }
 }
@@ -5849,20 +5918,23 @@ __hoisted_g_gemm_f32_32x128x64_16x16_0(float alpha,
     uint32_t resIdxM = 0U;
     for (; resIdxM < 16U; resIdxM++) {
         uint32_t resIdxN = 0U;
-        for (; resIdxN < 16U; resIdxN++)
+        for (; resIdxN < 16U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             t_tile[(32U * (blockIdx.x / (cols / 128U)) +
-                    16U * (threadIdx.x / 8U) + resIdxM) * cols +
+                    16U * (threadIdx.x / 8U) + vrm) * cols +
                    128U * (blockIdx.x % (cols / 128U))
                    + 16U * (threadIdx.x % 8U)
-                   + resIdxN]
+                   + vrn]
                 =
                 beta *
                 t_tile[(32U * (blockIdx.x / (cols / 128U)) +
-                        16U * (threadIdx.x / 8U) + resIdxM) * cols +
+                        16U * (threadIdx.x / 8U) + vrm) * cols +
                        128U * (blockIdx.x % (cols / 128U))
                        + 16U * (threadIdx.x % 8U)
-                       + resIdxN]
+                       + vrn]
                 + alpha * rchProd[resIdxM * 16U + resIdxN];
+        }
     }
 }
 
@@ -5978,22 +6050,22 @@ __hoisted_g_gemm_bf16_32x128x64_16x16_0(__nv_bfloat16 alpha,
     for (; resIdxM < 16U; resIdxM++) {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 16U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             __nv_bfloat16
                 v0 =
                 t_tile[(32U * (blockIdx.x / (cols / 128U)) +
-                        16U * (threadIdx.x / 8U) + resIdxM) * cols +
+                        16U * (threadIdx.x / 8U) + vrm) * cols +
                        128U * (blockIdx.x % (cols / 128U))
                        + 16U * (threadIdx.x % 8U)
-                       + resIdxN];
+                       + vrn];
             __nv_bfloat16 v1 = rchProd[resIdxM * 16U + resIdxN];
-            __nv_bfloat16 v_ =
-                kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
             t_tile[(32U * (blockIdx.x / (cols / 128U)) +
-                    16U * (threadIdx.x / 8U) + resIdxM) * cols +
+                    16U * (threadIdx.x / 8U) + vrm) * cols +
                    128U * (blockIdx.x % (cols / 128U))
                    + 16U * (threadIdx.x % 8U)
-                   + resIdxN]
-                = v_;
+                   + vrn]
+                = kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
         }
     }
 }
@@ -6100,20 +6172,23 @@ __hoisted_g_gemm_f32_64x32x32_8x8_0(float alpha,
     uint32_t resIdxM = 0U;
     for (; resIdxM < 8U; resIdxM++) {
         uint32_t resIdxN = 0U;
-        for (; resIdxN < 8U; resIdxN++)
+        for (; resIdxN < 8U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             t_tile[(64U * (blockIdx.x / (cols / 32U)) +
-                    8U * (threadIdx.x / 4U) + resIdxM) * cols +
+                    8U * (threadIdx.x / 4U) + vrm) * cols +
                    32U * (blockIdx.x % (cols / 32U))
                    + 8U * (threadIdx.x % 4U)
-                   + resIdxN]
+                   + vrn]
                 =
                 beta *
                 t_tile[(64U * (blockIdx.x / (cols / 32U)) +
-                        8U * (threadIdx.x / 4U) + resIdxM) * cols +
+                        8U * (threadIdx.x / 4U) + vrm) * cols +
                        32U * (blockIdx.x % (cols / 32U))
                        + 8U * (threadIdx.x % 4U)
-                       + resIdxN]
+                       + vrn]
                 + alpha * rchProd[resIdxM * 8U + resIdxN];
+        }
     }
 }
 
@@ -6228,22 +6303,22 @@ __hoisted_g_gemm_bf16_64x32x32_8x8_0(__nv_bfloat16 alpha,
     for (; resIdxM < 8U; resIdxM++) {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 8U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             __nv_bfloat16
                 v0 =
                 t_tile[(64U * (blockIdx.x / (cols / 32U)) +
-                        8U * (threadIdx.x / 4U) + resIdxM) * cols +
+                        8U * (threadIdx.x / 4U) + vrm) * cols +
                        32U * (blockIdx.x % (cols / 32U))
                        + 8U * (threadIdx.x % 4U)
-                       + resIdxN];
+                       + vrn];
             __nv_bfloat16 v1 = rchProd[resIdxM * 8U + resIdxN];
-            __nv_bfloat16 v_ =
-                kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
             t_tile[(64U * (blockIdx.x / (cols / 32U)) +
-                    8U * (threadIdx.x / 4U) + resIdxM) * cols +
+                    8U * (threadIdx.x / 4U) + vrm) * cols +
                    32U * (blockIdx.x % (cols / 32U))
                    + 8U * (threadIdx.x % 4U)
-                   + resIdxN]
-                = v_;
+                   + vrn]
+                = kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
         }
     }
 }
@@ -6350,20 +6425,23 @@ __hoisted_g_gemm_f32_64x32x32_8x16_0(float alpha,
     uint32_t resIdxM = 0U;
     for (; resIdxM < 8U; resIdxM++) {
         uint32_t resIdxN = 0U;
-        for (; resIdxN < 16U; resIdxN++)
+        for (; resIdxN < 16U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             t_tile[(64U * (blockIdx.x / (cols / 32U)) +
-                    8U * (threadIdx.x / 2U) + resIdxM) * cols +
+                    8U * (threadIdx.x / 2U) + vrm) * cols +
                    32U * (blockIdx.x % (cols / 32U))
                    + 16U * (threadIdx.x % 2U)
-                   + resIdxN]
+                   + vrn]
                 =
                 beta *
                 t_tile[(64U * (blockIdx.x / (cols / 32U)) +
-                        8U * (threadIdx.x / 2U) + resIdxM) * cols +
+                        8U * (threadIdx.x / 2U) + vrm) * cols +
                        32U * (blockIdx.x % (cols / 32U))
                        + 16U * (threadIdx.x % 2U)
-                       + resIdxN]
+                       + vrn]
                 + alpha * rchProd[resIdxM * 16U + resIdxN];
+        }
     }
 }
 
@@ -6479,22 +6557,22 @@ __hoisted_g_gemm_bf16_64x32x32_8x16_0(__nv_bfloat16 alpha,
     for (; resIdxM < 8U; resIdxM++) {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 16U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             __nv_bfloat16
                 v0 =
                 t_tile[(64U * (blockIdx.x / (cols / 32U)) +
-                        8U * (threadIdx.x / 2U) + resIdxM) * cols +
+                        8U * (threadIdx.x / 2U) + vrm) * cols +
                        32U * (blockIdx.x % (cols / 32U))
                        + 16U * (threadIdx.x % 2U)
-                       + resIdxN];
+                       + vrn];
             __nv_bfloat16 v1 = rchProd[resIdxM * 16U + resIdxN];
-            __nv_bfloat16 v_ =
-                kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
             t_tile[(64U * (blockIdx.x / (cols / 32U)) +
-                    8U * (threadIdx.x / 2U) + resIdxM) * cols +
+                    8U * (threadIdx.x / 2U) + vrm) * cols +
                    32U * (blockIdx.x % (cols / 32U))
                    + 16U * (threadIdx.x % 2U)
-                   + resIdxN]
-                = v_;
+                   + vrn]
+                = kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
         }
     }
 }
@@ -6601,20 +6679,23 @@ __hoisted_g_gemm_f32_64x32x32_16x8_0(float alpha,
     uint32_t resIdxM = 0U;
     for (; resIdxM < 16U; resIdxM++) {
         uint32_t resIdxN = 0U;
-        for (; resIdxN < 8U; resIdxN++)
+        for (; resIdxN < 8U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             t_tile[(64U * (blockIdx.x / (cols / 32U)) +
-                    16U * (threadIdx.x / 4U) + resIdxM) * cols +
+                    16U * (threadIdx.x / 4U) + vrm) * cols +
                    32U * (blockIdx.x % (cols / 32U))
                    + 8U * (threadIdx.x % 4U)
-                   + resIdxN]
+                   + vrn]
                 =
                 beta *
                 t_tile[(64U * (blockIdx.x / (cols / 32U)) +
-                        16U * (threadIdx.x / 4U) + resIdxM) * cols +
+                        16U * (threadIdx.x / 4U) + vrm) * cols +
                        32U * (blockIdx.x % (cols / 32U))
                        + 8U * (threadIdx.x % 4U)
-                       + resIdxN]
+                       + vrn]
                 + alpha * rchProd[resIdxM * 8U + resIdxN];
+        }
     }
 }
 
@@ -6730,22 +6811,22 @@ __hoisted_g_gemm_bf16_64x32x32_16x8_0(__nv_bfloat16 alpha,
     for (; resIdxM < 16U; resIdxM++) {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 8U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             __nv_bfloat16
                 v0 =
                 t_tile[(64U * (blockIdx.x / (cols / 32U)) +
-                        16U * (threadIdx.x / 4U) + resIdxM) * cols +
+                        16U * (threadIdx.x / 4U) + vrm) * cols +
                        32U * (blockIdx.x % (cols / 32U))
                        + 8U * (threadIdx.x % 4U)
-                       + resIdxN];
+                       + vrn];
             __nv_bfloat16 v1 = rchProd[resIdxM * 8U + resIdxN];
-            __nv_bfloat16 v_ =
-                kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
             t_tile[(64U * (blockIdx.x / (cols / 32U)) +
-                    16U * (threadIdx.x / 4U) + resIdxM) * cols +
+                    16U * (threadIdx.x / 4U) + vrm) * cols +
                    32U * (blockIdx.x % (cols / 32U))
                    + 8U * (threadIdx.x % 4U)
-                   + resIdxN]
-                = v_;
+                   + vrn]
+                = kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
         }
     }
 }
@@ -6852,20 +6933,23 @@ __hoisted_g_gemm_f32_64x32x32_16x16_0(float alpha,
     uint32_t resIdxM = 0U;
     for (; resIdxM < 16U; resIdxM++) {
         uint32_t resIdxN = 0U;
-        for (; resIdxN < 16U; resIdxN++)
+        for (; resIdxN < 16U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             t_tile[(64U * (blockIdx.x / (cols / 32U)) +
-                    16U * (threadIdx.x / 2U) + resIdxM) * cols +
+                    16U * (threadIdx.x / 2U) + vrm) * cols +
                    32U * (blockIdx.x % (cols / 32U))
                    + 16U * (threadIdx.x % 2U)
-                   + resIdxN]
+                   + vrn]
                 =
                 beta *
                 t_tile[(64U * (blockIdx.x / (cols / 32U)) +
-                        16U * (threadIdx.x / 2U) + resIdxM) * cols +
+                        16U * (threadIdx.x / 2U) + vrm) * cols +
                        32U * (blockIdx.x % (cols / 32U))
                        + 16U * (threadIdx.x % 2U)
-                       + resIdxN]
+                       + vrn]
                 + alpha * rchProd[resIdxM * 16U + resIdxN];
+        }
     }
 }
 
@@ -6981,22 +7065,22 @@ __hoisted_g_gemm_bf16_64x32x32_16x16_0(__nv_bfloat16 alpha,
     for (; resIdxM < 16U; resIdxM++) {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 16U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             __nv_bfloat16
                 v0 =
                 t_tile[(64U * (blockIdx.x / (cols / 32U)) +
-                        16U * (threadIdx.x / 2U) + resIdxM) * cols +
+                        16U * (threadIdx.x / 2U) + vrm) * cols +
                        32U * (blockIdx.x % (cols / 32U))
                        + 16U * (threadIdx.x % 2U)
-                       + resIdxN];
+                       + vrn];
             __nv_bfloat16 v1 = rchProd[resIdxM * 16U + resIdxN];
-            __nv_bfloat16 v_ =
-                kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
             t_tile[(64U * (blockIdx.x / (cols / 32U)) +
-                    16U * (threadIdx.x / 2U) + resIdxM) * cols +
+                    16U * (threadIdx.x / 2U) + vrm) * cols +
                    32U * (blockIdx.x % (cols / 32U))
                    + 16U * (threadIdx.x % 2U)
-                   + resIdxN]
-                = v_;
+                   + vrn]
+                = kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
         }
     }
 }
@@ -7103,20 +7187,23 @@ __hoisted_g_gemm_f32_64x32x64_8x8_0(float alpha,
     uint32_t resIdxM = 0U;
     for (; resIdxM < 8U; resIdxM++) {
         uint32_t resIdxN = 0U;
-        for (; resIdxN < 8U; resIdxN++)
+        for (; resIdxN < 8U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             t_tile[(64U * (blockIdx.x / (cols / 32U)) +
-                    8U * (threadIdx.x / 4U) + resIdxM) * cols +
+                    8U * (threadIdx.x / 4U) + vrm) * cols +
                    32U * (blockIdx.x % (cols / 32U))
                    + 8U * (threadIdx.x % 4U)
-                   + resIdxN]
+                   + vrn]
                 =
                 beta *
                 t_tile[(64U * (blockIdx.x / (cols / 32U)) +
-                        8U * (threadIdx.x / 4U) + resIdxM) * cols +
+                        8U * (threadIdx.x / 4U) + vrm) * cols +
                        32U * (blockIdx.x % (cols / 32U))
                        + 8U * (threadIdx.x % 4U)
-                       + resIdxN]
+                       + vrn]
                 + alpha * rchProd[resIdxM * 8U + resIdxN];
+        }
     }
 }
 
@@ -7231,22 +7318,22 @@ __hoisted_g_gemm_bf16_64x32x64_8x8_0(__nv_bfloat16 alpha,
     for (; resIdxM < 8U; resIdxM++) {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 8U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             __nv_bfloat16
                 v0 =
                 t_tile[(64U * (blockIdx.x / (cols / 32U)) +
-                        8U * (threadIdx.x / 4U) + resIdxM) * cols +
+                        8U * (threadIdx.x / 4U) + vrm) * cols +
                        32U * (blockIdx.x % (cols / 32U))
                        + 8U * (threadIdx.x % 4U)
-                       + resIdxN];
+                       + vrn];
             __nv_bfloat16 v1 = rchProd[resIdxM * 8U + resIdxN];
-            __nv_bfloat16 v_ =
-                kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
             t_tile[(64U * (blockIdx.x / (cols / 32U)) +
-                    8U * (threadIdx.x / 4U) + resIdxM) * cols +
+                    8U * (threadIdx.x / 4U) + vrm) * cols +
                    32U * (blockIdx.x % (cols / 32U))
                    + 8U * (threadIdx.x % 4U)
-                   + resIdxN]
-                = v_;
+                   + vrn]
+                = kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
         }
     }
 }
@@ -7353,20 +7440,23 @@ __hoisted_g_gemm_f32_64x32x64_8x16_0(float alpha,
     uint32_t resIdxM = 0U;
     for (; resIdxM < 8U; resIdxM++) {
         uint32_t resIdxN = 0U;
-        for (; resIdxN < 16U; resIdxN++)
+        for (; resIdxN < 16U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             t_tile[(64U * (blockIdx.x / (cols / 32U)) +
-                    8U * (threadIdx.x / 2U) + resIdxM) * cols +
+                    8U * (threadIdx.x / 2U) + vrm) * cols +
                    32U * (blockIdx.x % (cols / 32U))
                    + 16U * (threadIdx.x % 2U)
-                   + resIdxN]
+                   + vrn]
                 =
                 beta *
                 t_tile[(64U * (blockIdx.x / (cols / 32U)) +
-                        8U * (threadIdx.x / 2U) + resIdxM) * cols +
+                        8U * (threadIdx.x / 2U) + vrm) * cols +
                        32U * (blockIdx.x % (cols / 32U))
                        + 16U * (threadIdx.x % 2U)
-                       + resIdxN]
+                       + vrn]
                 + alpha * rchProd[resIdxM * 16U + resIdxN];
+        }
     }
 }
 
@@ -7482,22 +7572,22 @@ __hoisted_g_gemm_bf16_64x32x64_8x16_0(__nv_bfloat16 alpha,
     for (; resIdxM < 8U; resIdxM++) {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 16U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             __nv_bfloat16
                 v0 =
                 t_tile[(64U * (blockIdx.x / (cols / 32U)) +
-                        8U * (threadIdx.x / 2U) + resIdxM) * cols +
+                        8U * (threadIdx.x / 2U) + vrm) * cols +
                        32U * (blockIdx.x % (cols / 32U))
                        + 16U * (threadIdx.x % 2U)
-                       + resIdxN];
+                       + vrn];
             __nv_bfloat16 v1 = rchProd[resIdxM * 16U + resIdxN];
-            __nv_bfloat16 v_ =
-                kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
             t_tile[(64U * (blockIdx.x / (cols / 32U)) +
-                    8U * (threadIdx.x / 2U) + resIdxM) * cols +
+                    8U * (threadIdx.x / 2U) + vrm) * cols +
                    32U * (blockIdx.x % (cols / 32U))
                    + 16U * (threadIdx.x % 2U)
-                   + resIdxN]
-                = v_;
+                   + vrn]
+                = kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
         }
     }
 }
@@ -7604,20 +7694,23 @@ __hoisted_g_gemm_f32_64x32x64_16x8_0(float alpha,
     uint32_t resIdxM = 0U;
     for (; resIdxM < 16U; resIdxM++) {
         uint32_t resIdxN = 0U;
-        for (; resIdxN < 8U; resIdxN++)
+        for (; resIdxN < 8U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             t_tile[(64U * (blockIdx.x / (cols / 32U)) +
-                    16U * (threadIdx.x / 4U) + resIdxM) * cols +
+                    16U * (threadIdx.x / 4U) + vrm) * cols +
                    32U * (blockIdx.x % (cols / 32U))
                    + 8U * (threadIdx.x % 4U)
-                   + resIdxN]
+                   + vrn]
                 =
                 beta *
                 t_tile[(64U * (blockIdx.x / (cols / 32U)) +
-                        16U * (threadIdx.x / 4U) + resIdxM) * cols +
+                        16U * (threadIdx.x / 4U) + vrm) * cols +
                        32U * (blockIdx.x % (cols / 32U))
                        + 8U * (threadIdx.x % 4U)
-                       + resIdxN]
+                       + vrn]
                 + alpha * rchProd[resIdxM * 8U + resIdxN];
+        }
     }
 }
 
@@ -7733,22 +7826,22 @@ __hoisted_g_gemm_bf16_64x32x64_16x8_0(__nv_bfloat16 alpha,
     for (; resIdxM < 16U; resIdxM++) {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 8U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             __nv_bfloat16
                 v0 =
                 t_tile[(64U * (blockIdx.x / (cols / 32U)) +
-                        16U * (threadIdx.x / 4U) + resIdxM) * cols +
+                        16U * (threadIdx.x / 4U) + vrm) * cols +
                        32U * (blockIdx.x % (cols / 32U))
                        + 8U * (threadIdx.x % 4U)
-                       + resIdxN];
+                       + vrn];
             __nv_bfloat16 v1 = rchProd[resIdxM * 8U + resIdxN];
-            __nv_bfloat16 v_ =
-                kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
             t_tile[(64U * (blockIdx.x / (cols / 32U)) +
-                    16U * (threadIdx.x / 4U) + resIdxM) * cols +
+                    16U * (threadIdx.x / 4U) + vrm) * cols +
                    32U * (blockIdx.x % (cols / 32U))
                    + 8U * (threadIdx.x % 4U)
-                   + resIdxN]
-                = v_;
+                   + vrn]
+                = kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
         }
     }
 }
@@ -7855,20 +7948,23 @@ __hoisted_g_gemm_f32_64x32x64_16x16_0(float alpha,
     uint32_t resIdxM = 0U;
     for (; resIdxM < 16U; resIdxM++) {
         uint32_t resIdxN = 0U;
-        for (; resIdxN < 16U; resIdxN++)
+        for (; resIdxN < 16U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             t_tile[(64U * (blockIdx.x / (cols / 32U)) +
-                    16U * (threadIdx.x / 2U) + resIdxM) * cols +
+                    16U * (threadIdx.x / 2U) + vrm) * cols +
                    32U * (blockIdx.x % (cols / 32U))
                    + 16U * (threadIdx.x % 2U)
-                   + resIdxN]
+                   + vrn]
                 =
                 beta *
                 t_tile[(64U * (blockIdx.x / (cols / 32U)) +
-                        16U * (threadIdx.x / 2U) + resIdxM) * cols +
+                        16U * (threadIdx.x / 2U) + vrm) * cols +
                        32U * (blockIdx.x % (cols / 32U))
                        + 16U * (threadIdx.x % 2U)
-                       + resIdxN]
+                       + vrn]
                 + alpha * rchProd[resIdxM * 16U + resIdxN];
+        }
     }
 }
 
@@ -7984,22 +8080,22 @@ __hoisted_g_gemm_bf16_64x32x64_16x16_0(__nv_bfloat16 alpha,
     for (; resIdxM < 16U; resIdxM++) {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 16U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             __nv_bfloat16
                 v0 =
                 t_tile[(64U * (blockIdx.x / (cols / 32U)) +
-                        16U * (threadIdx.x / 2U) + resIdxM) * cols +
+                        16U * (threadIdx.x / 2U) + vrm) * cols +
                        32U * (blockIdx.x % (cols / 32U))
                        + 16U * (threadIdx.x % 2U)
-                       + resIdxN];
+                       + vrn];
             __nv_bfloat16 v1 = rchProd[resIdxM * 16U + resIdxN];
-            __nv_bfloat16 v_ =
-                kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
             t_tile[(64U * (blockIdx.x / (cols / 32U)) +
-                    16U * (threadIdx.x / 2U) + resIdxM) * cols +
+                    16U * (threadIdx.x / 2U) + vrm) * cols +
                    32U * (blockIdx.x % (cols / 32U))
                    + 16U * (threadIdx.x % 2U)
-                   + resIdxN]
-                = v_;
+                   + vrn]
+                = kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
         }
     }
 }
@@ -8106,20 +8202,23 @@ __hoisted_g_gemm_f32_64x64x32_8x8_0(float alpha,
     uint32_t resIdxM = 0U;
     for (; resIdxM < 8U; resIdxM++) {
         uint32_t resIdxN = 0U;
-        for (; resIdxN < 8U; resIdxN++)
+        for (; resIdxN < 8U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             t_tile[(64U * (blockIdx.x / (cols / 64U)) +
-                    8U * (threadIdx.x / 8U) + resIdxM) * cols +
+                    8U * (threadIdx.x / 8U) + vrm) * cols +
                    64U * (blockIdx.x % (cols / 64U))
                    + 8U * (threadIdx.x % 8U)
-                   + resIdxN]
+                   + vrn]
                 =
                 beta *
                 t_tile[(64U * (blockIdx.x / (cols / 64U)) +
-                        8U * (threadIdx.x / 8U) + resIdxM) * cols +
+                        8U * (threadIdx.x / 8U) + vrm) * cols +
                        64U * (blockIdx.x % (cols / 64U))
                        + 8U * (threadIdx.x % 8U)
-                       + resIdxN]
+                       + vrn]
                 + alpha * rchProd[resIdxM * 8U + resIdxN];
+        }
     }
 }
 
@@ -8234,22 +8333,22 @@ __hoisted_g_gemm_bf16_64x64x32_8x8_0(__nv_bfloat16 alpha,
     for (; resIdxM < 8U; resIdxM++) {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 8U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             __nv_bfloat16
                 v0 =
                 t_tile[(64U * (blockIdx.x / (cols / 64U)) +
-                        8U * (threadIdx.x / 8U) + resIdxM) * cols +
+                        8U * (threadIdx.x / 8U) + vrm) * cols +
                        64U * (blockIdx.x % (cols / 64U))
                        + 8U * (threadIdx.x % 8U)
-                       + resIdxN];
+                       + vrn];
             __nv_bfloat16 v1 = rchProd[resIdxM * 8U + resIdxN];
-            __nv_bfloat16 v_ =
-                kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
             t_tile[(64U * (blockIdx.x / (cols / 64U)) +
-                    8U * (threadIdx.x / 8U) + resIdxM) * cols +
+                    8U * (threadIdx.x / 8U) + vrm) * cols +
                    64U * (blockIdx.x % (cols / 64U))
                    + 8U * (threadIdx.x % 8U)
-                   + resIdxN]
-                = v_;
+                   + vrn]
+                = kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
         }
     }
 }
@@ -8356,20 +8455,23 @@ __hoisted_g_gemm_f32_64x64x32_8x16_0(float alpha,
     uint32_t resIdxM = 0U;
     for (; resIdxM < 8U; resIdxM++) {
         uint32_t resIdxN = 0U;
-        for (; resIdxN < 16U; resIdxN++)
+        for (; resIdxN < 16U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             t_tile[(64U * (blockIdx.x / (cols / 64U)) +
-                    8U * (threadIdx.x / 4U) + resIdxM) * cols +
+                    8U * (threadIdx.x / 4U) + vrm) * cols +
                    64U * (blockIdx.x % (cols / 64U))
                    + 16U * (threadIdx.x % 4U)
-                   + resIdxN]
+                   + vrn]
                 =
                 beta *
                 t_tile[(64U * (blockIdx.x / (cols / 64U)) +
-                        8U * (threadIdx.x / 4U) + resIdxM) * cols +
+                        8U * (threadIdx.x / 4U) + vrm) * cols +
                        64U * (blockIdx.x % (cols / 64U))
                        + 16U * (threadIdx.x % 4U)
-                       + resIdxN]
+                       + vrn]
                 + alpha * rchProd[resIdxM * 16U + resIdxN];
+        }
     }
 }
 
@@ -8485,22 +8587,22 @@ __hoisted_g_gemm_bf16_64x64x32_8x16_0(__nv_bfloat16 alpha,
     for (; resIdxM < 8U; resIdxM++) {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 16U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             __nv_bfloat16
                 v0 =
                 t_tile[(64U * (blockIdx.x / (cols / 64U)) +
-                        8U * (threadIdx.x / 4U) + resIdxM) * cols +
+                        8U * (threadIdx.x / 4U) + vrm) * cols +
                        64U * (blockIdx.x % (cols / 64U))
                        + 16U * (threadIdx.x % 4U)
-                       + resIdxN];
+                       + vrn];
             __nv_bfloat16 v1 = rchProd[resIdxM * 16U + resIdxN];
-            __nv_bfloat16 v_ =
-                kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
             t_tile[(64U * (blockIdx.x / (cols / 64U)) +
-                    8U * (threadIdx.x / 4U) + resIdxM) * cols +
+                    8U * (threadIdx.x / 4U) + vrm) * cols +
                    64U * (blockIdx.x % (cols / 64U))
                    + 16U * (threadIdx.x % 4U)
-                   + resIdxN]
-                = v_;
+                   + vrn]
+                = kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
         }
     }
 }
@@ -8607,20 +8709,23 @@ __hoisted_g_gemm_f32_64x64x32_16x8_0(float alpha,
     uint32_t resIdxM = 0U;
     for (; resIdxM < 16U; resIdxM++) {
         uint32_t resIdxN = 0U;
-        for (; resIdxN < 8U; resIdxN++)
+        for (; resIdxN < 8U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             t_tile[(64U * (blockIdx.x / (cols / 64U)) +
-                    16U * (threadIdx.x / 8U) + resIdxM) * cols +
+                    16U * (threadIdx.x / 8U) + vrm) * cols +
                    64U * (blockIdx.x % (cols / 64U))
                    + 8U * (threadIdx.x % 8U)
-                   + resIdxN]
+                   + vrn]
                 =
                 beta *
                 t_tile[(64U * (blockIdx.x / (cols / 64U)) +
-                        16U * (threadIdx.x / 8U) + resIdxM) * cols +
+                        16U * (threadIdx.x / 8U) + vrm) * cols +
                        64U * (blockIdx.x % (cols / 64U))
                        + 8U * (threadIdx.x % 8U)
-                       + resIdxN]
+                       + vrn]
                 + alpha * rchProd[resIdxM * 8U + resIdxN];
+        }
     }
 }
 
@@ -8736,22 +8841,22 @@ __hoisted_g_gemm_bf16_64x64x32_16x8_0(__nv_bfloat16 alpha,
     for (; resIdxM < 16U; resIdxM++) {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 8U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             __nv_bfloat16
                 v0 =
                 t_tile[(64U * (blockIdx.x / (cols / 64U)) +
-                        16U * (threadIdx.x / 8U) + resIdxM) * cols +
+                        16U * (threadIdx.x / 8U) + vrm) * cols +
                        64U * (blockIdx.x % (cols / 64U))
                        + 8U * (threadIdx.x % 8U)
-                       + resIdxN];
+                       + vrn];
             __nv_bfloat16 v1 = rchProd[resIdxM * 8U + resIdxN];
-            __nv_bfloat16 v_ =
-                kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
             t_tile[(64U * (blockIdx.x / (cols / 64U)) +
-                    16U * (threadIdx.x / 8U) + resIdxM) * cols +
+                    16U * (threadIdx.x / 8U) + vrm) * cols +
                    64U * (blockIdx.x % (cols / 64U))
                    + 8U * (threadIdx.x % 8U)
-                   + resIdxN]
-                = v_;
+                   + vrn]
+                = kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
         }
     }
 }
@@ -8858,20 +8963,23 @@ __hoisted_g_gemm_f32_64x64x32_16x16_0(float alpha,
     uint32_t resIdxM = 0U;
     for (; resIdxM < 16U; resIdxM++) {
         uint32_t resIdxN = 0U;
-        for (; resIdxN < 16U; resIdxN++)
+        for (; resIdxN < 16U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             t_tile[(64U * (blockIdx.x / (cols / 64U)) +
-                    16U * (threadIdx.x / 4U) + resIdxM) * cols +
+                    16U * (threadIdx.x / 4U) + vrm) * cols +
                    64U * (blockIdx.x % (cols / 64U))
                    + 16U * (threadIdx.x % 4U)
-                   + resIdxN]
+                   + vrn]
                 =
                 beta *
                 t_tile[(64U * (blockIdx.x / (cols / 64U)) +
-                        16U * (threadIdx.x / 4U) + resIdxM) * cols +
+                        16U * (threadIdx.x / 4U) + vrm) * cols +
                        64U * (blockIdx.x % (cols / 64U))
                        + 16U * (threadIdx.x % 4U)
-                       + resIdxN]
+                       + vrn]
                 + alpha * rchProd[resIdxM * 16U + resIdxN];
+        }
     }
 }
 
@@ -8987,22 +9095,22 @@ __hoisted_g_gemm_bf16_64x64x32_16x16_0(__nv_bfloat16 alpha,
     for (; resIdxM < 16U; resIdxM++) {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 16U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             __nv_bfloat16
                 v0 =
                 t_tile[(64U * (blockIdx.x / (cols / 64U)) +
-                        16U * (threadIdx.x / 4U) + resIdxM) * cols +
+                        16U * (threadIdx.x / 4U) + vrm) * cols +
                        64U * (blockIdx.x % (cols / 64U))
                        + 16U * (threadIdx.x % 4U)
-                       + resIdxN];
+                       + vrn];
             __nv_bfloat16 v1 = rchProd[resIdxM * 16U + resIdxN];
-            __nv_bfloat16 v_ =
-                kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
             t_tile[(64U * (blockIdx.x / (cols / 64U)) +
-                    16U * (threadIdx.x / 4U) + resIdxM) * cols +
+                    16U * (threadIdx.x / 4U) + vrm) * cols +
                    64U * (blockIdx.x % (cols / 64U))
                    + 16U * (threadIdx.x % 4U)
-                   + resIdxN]
-                = v_;
+                   + vrn]
+                = kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
         }
     }
 }
@@ -9109,20 +9217,23 @@ __hoisted_g_gemm_f32_64x64x64_8x8_0(float alpha,
     uint32_t resIdxM = 0U;
     for (; resIdxM < 8U; resIdxM++) {
         uint32_t resIdxN = 0U;
-        for (; resIdxN < 8U; resIdxN++)
+        for (; resIdxN < 8U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             t_tile[(64U * (blockIdx.x / (cols / 64U)) +
-                    8U * (threadIdx.x / 8U) + resIdxM) * cols +
+                    8U * (threadIdx.x / 8U) + vrm) * cols +
                    64U * (blockIdx.x % (cols / 64U))
                    + 8U * (threadIdx.x % 8U)
-                   + resIdxN]
+                   + vrn]
                 =
                 beta *
                 t_tile[(64U * (blockIdx.x / (cols / 64U)) +
-                        8U * (threadIdx.x / 8U) + resIdxM) * cols +
+                        8U * (threadIdx.x / 8U) + vrm) * cols +
                        64U * (blockIdx.x % (cols / 64U))
                        + 8U * (threadIdx.x % 8U)
-                       + resIdxN]
+                       + vrn]
                 + alpha * rchProd[resIdxM * 8U + resIdxN];
+        }
     }
 }
 
@@ -9237,22 +9348,22 @@ __hoisted_g_gemm_bf16_64x64x64_8x8_0(__nv_bfloat16 alpha,
     for (; resIdxM < 8U; resIdxM++) {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 8U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             __nv_bfloat16
                 v0 =
                 t_tile[(64U * (blockIdx.x / (cols / 64U)) +
-                        8U * (threadIdx.x / 8U) + resIdxM) * cols +
+                        8U * (threadIdx.x / 8U) + vrm) * cols +
                        64U * (blockIdx.x % (cols / 64U))
                        + 8U * (threadIdx.x % 8U)
-                       + resIdxN];
+                       + vrn];
             __nv_bfloat16 v1 = rchProd[resIdxM * 8U + resIdxN];
-            __nv_bfloat16 v_ =
-                kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
             t_tile[(64U * (blockIdx.x / (cols / 64U)) +
-                    8U * (threadIdx.x / 8U) + resIdxM) * cols +
+                    8U * (threadIdx.x / 8U) + vrm) * cols +
                    64U * (blockIdx.x % (cols / 64U))
                    + 8U * (threadIdx.x % 8U)
-                   + resIdxN]
-                = v_;
+                   + vrn]
+                = kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
         }
     }
 }
@@ -9359,20 +9470,23 @@ __hoisted_g_gemm_f32_64x64x64_8x16_0(float alpha,
     uint32_t resIdxM = 0U;
     for (; resIdxM < 8U; resIdxM++) {
         uint32_t resIdxN = 0U;
-        for (; resIdxN < 16U; resIdxN++)
+        for (; resIdxN < 16U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             t_tile[(64U * (blockIdx.x / (cols / 64U)) +
-                    8U * (threadIdx.x / 4U) + resIdxM) * cols +
+                    8U * (threadIdx.x / 4U) + vrm) * cols +
                    64U * (blockIdx.x % (cols / 64U))
                    + 16U * (threadIdx.x % 4U)
-                   + resIdxN]
+                   + vrn]
                 =
                 beta *
                 t_tile[(64U * (blockIdx.x / (cols / 64U)) +
-                        8U * (threadIdx.x / 4U) + resIdxM) * cols +
+                        8U * (threadIdx.x / 4U) + vrm) * cols +
                        64U * (blockIdx.x % (cols / 64U))
                        + 16U * (threadIdx.x % 4U)
-                       + resIdxN]
+                       + vrn]
                 + alpha * rchProd[resIdxM * 16U + resIdxN];
+        }
     }
 }
 
@@ -9488,22 +9602,22 @@ __hoisted_g_gemm_bf16_64x64x64_8x16_0(__nv_bfloat16 alpha,
     for (; resIdxM < 8U; resIdxM++) {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 16U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             __nv_bfloat16
                 v0 =
                 t_tile[(64U * (blockIdx.x / (cols / 64U)) +
-                        8U * (threadIdx.x / 4U) + resIdxM) * cols +
+                        8U * (threadIdx.x / 4U) + vrm) * cols +
                        64U * (blockIdx.x % (cols / 64U))
                        + 16U * (threadIdx.x % 4U)
-                       + resIdxN];
+                       + vrn];
             __nv_bfloat16 v1 = rchProd[resIdxM * 16U + resIdxN];
-            __nv_bfloat16 v_ =
-                kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
             t_tile[(64U * (blockIdx.x / (cols / 64U)) +
-                    8U * (threadIdx.x / 4U) + resIdxM) * cols +
+                    8U * (threadIdx.x / 4U) + vrm) * cols +
                    64U * (blockIdx.x % (cols / 64U))
                    + 16U * (threadIdx.x % 4U)
-                   + resIdxN]
-                = v_;
+                   + vrn]
+                = kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
         }
     }
 }
@@ -9610,20 +9724,23 @@ __hoisted_g_gemm_f32_64x64x64_16x8_0(float alpha,
     uint32_t resIdxM = 0U;
     for (; resIdxM < 16U; resIdxM++) {
         uint32_t resIdxN = 0U;
-        for (; resIdxN < 8U; resIdxN++)
+        for (; resIdxN < 8U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             t_tile[(64U * (blockIdx.x / (cols / 64U)) +
-                    16U * (threadIdx.x / 8U) + resIdxM) * cols +
+                    16U * (threadIdx.x / 8U) + vrm) * cols +
                    64U * (blockIdx.x % (cols / 64U))
                    + 8U * (threadIdx.x % 8U)
-                   + resIdxN]
+                   + vrn]
                 =
                 beta *
                 t_tile[(64U * (blockIdx.x / (cols / 64U)) +
-                        16U * (threadIdx.x / 8U) + resIdxM) * cols +
+                        16U * (threadIdx.x / 8U) + vrm) * cols +
                        64U * (blockIdx.x % (cols / 64U))
                        + 8U * (threadIdx.x % 8U)
-                       + resIdxN]
+                       + vrn]
                 + alpha * rchProd[resIdxM * 8U + resIdxN];
+        }
     }
 }
 
@@ -9739,22 +9856,22 @@ __hoisted_g_gemm_bf16_64x64x64_16x8_0(__nv_bfloat16 alpha,
     for (; resIdxM < 16U; resIdxM++) {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 8U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             __nv_bfloat16
                 v0 =
                 t_tile[(64U * (blockIdx.x / (cols / 64U)) +
-                        16U * (threadIdx.x / 8U) + resIdxM) * cols +
+                        16U * (threadIdx.x / 8U) + vrm) * cols +
                        64U * (blockIdx.x % (cols / 64U))
                        + 8U * (threadIdx.x % 8U)
-                       + resIdxN];
+                       + vrn];
             __nv_bfloat16 v1 = rchProd[resIdxM * 8U + resIdxN];
-            __nv_bfloat16 v_ =
-                kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
             t_tile[(64U * (blockIdx.x / (cols / 64U)) +
-                    16U * (threadIdx.x / 8U) + resIdxM) * cols +
+                    16U * (threadIdx.x / 8U) + vrm) * cols +
                    64U * (blockIdx.x % (cols / 64U))
                    + 8U * (threadIdx.x % 8U)
-                   + resIdxN]
-                = v_;
+                   + vrn]
+                = kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
         }
     }
 }
@@ -9861,20 +9978,23 @@ __hoisted_g_gemm_f32_64x64x64_16x16_0(float alpha,
     uint32_t resIdxM = 0U;
     for (; resIdxM < 16U; resIdxM++) {
         uint32_t resIdxN = 0U;
-        for (; resIdxN < 16U; resIdxN++)
+        for (; resIdxN < 16U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             t_tile[(64U * (blockIdx.x / (cols / 64U)) +
-                    16U * (threadIdx.x / 4U) + resIdxM) * cols +
+                    16U * (threadIdx.x / 4U) + vrm) * cols +
                    64U * (blockIdx.x % (cols / 64U))
                    + 16U * (threadIdx.x % 4U)
-                   + resIdxN]
+                   + vrn]
                 =
                 beta *
                 t_tile[(64U * (blockIdx.x / (cols / 64U)) +
-                        16U * (threadIdx.x / 4U) + resIdxM) * cols +
+                        16U * (threadIdx.x / 4U) + vrm) * cols +
                        64U * (blockIdx.x % (cols / 64U))
                        + 16U * (threadIdx.x % 4U)
-                       + resIdxN]
+                       + vrn]
                 + alpha * rchProd[resIdxM * 16U + resIdxN];
+        }
     }
 }
 
@@ -9990,22 +10110,22 @@ __hoisted_g_gemm_bf16_64x64x64_16x16_0(__nv_bfloat16 alpha,
     for (; resIdxM < 16U; resIdxM++) {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 16U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             __nv_bfloat16
                 v0 =
                 t_tile[(64U * (blockIdx.x / (cols / 64U)) +
-                        16U * (threadIdx.x / 4U) + resIdxM) * cols +
+                        16U * (threadIdx.x / 4U) + vrm) * cols +
                        64U * (blockIdx.x % (cols / 64U))
                        + 16U * (threadIdx.x % 4U)
-                       + resIdxN];
+                       + vrn];
             __nv_bfloat16 v1 = rchProd[resIdxM * 16U + resIdxN];
-            __nv_bfloat16 v_ =
-                kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
             t_tile[(64U * (blockIdx.x / (cols / 64U)) +
-                    16U * (threadIdx.x / 4U) + resIdxM) * cols +
+                    16U * (threadIdx.x / 4U) + vrm) * cols +
                    64U * (blockIdx.x % (cols / 64U))
                    + 16U * (threadIdx.x % 4U)
-                   + resIdxN]
-                = v_;
+                   + vrn]
+                = kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
         }
     }
 }
@@ -10112,20 +10232,23 @@ __hoisted_g_gemm_f32_64x128x32_8x8_0(float alpha,
     uint32_t resIdxM = 0U;
     for (; resIdxM < 8U; resIdxM++) {
         uint32_t resIdxN = 0U;
-        for (; resIdxN < 8U; resIdxN++)
+        for (; resIdxN < 8U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             t_tile[(64U * (blockIdx.x / (cols / 128U)) +
-                    8U * (threadIdx.x / 16U) + resIdxM) * cols +
+                    8U * (threadIdx.x / 16U) + vrm) * cols +
                    128U * (blockIdx.x % (cols / 128U))
                    + 8U * (threadIdx.x % 16U)
-                   + resIdxN]
+                   + vrn]
                 =
                 beta *
                 t_tile[(64U * (blockIdx.x / (cols / 128U)) +
-                        8U * (threadIdx.x / 16U) + resIdxM) * cols +
+                        8U * (threadIdx.x / 16U) + vrm) * cols +
                        128U * (blockIdx.x % (cols / 128U))
                        + 8U * (threadIdx.x % 16U)
-                       + resIdxN]
+                       + vrn]
                 + alpha * rchProd[resIdxM * 8U + resIdxN];
+        }
     }
 }
 
@@ -10241,22 +10364,22 @@ __hoisted_g_gemm_bf16_64x128x32_8x8_0(__nv_bfloat16 alpha,
     for (; resIdxM < 8U; resIdxM++) {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 8U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             __nv_bfloat16
                 v0 =
                 t_tile[(64U * (blockIdx.x / (cols / 128U)) +
-                        8U * (threadIdx.x / 16U) + resIdxM) * cols +
+                        8U * (threadIdx.x / 16U) + vrm) * cols +
                        128U * (blockIdx.x % (cols / 128U))
                        + 8U * (threadIdx.x % 16U)
-                       + resIdxN];
+                       + vrn];
             __nv_bfloat16 v1 = rchProd[resIdxM * 8U + resIdxN];
-            __nv_bfloat16 v_ =
-                kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
             t_tile[(64U * (blockIdx.x / (cols / 128U)) +
-                    8U * (threadIdx.x / 16U) + resIdxM) * cols +
+                    8U * (threadIdx.x / 16U) + vrm) * cols +
                    128U * (blockIdx.x % (cols / 128U))
                    + 8U * (threadIdx.x % 16U)
-                   + resIdxN]
-                = v_;
+                   + vrn]
+                = kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
         }
     }
 }
@@ -10363,20 +10486,23 @@ __hoisted_g_gemm_f32_64x128x32_8x16_0(float alpha,
     uint32_t resIdxM = 0U;
     for (; resIdxM < 8U; resIdxM++) {
         uint32_t resIdxN = 0U;
-        for (; resIdxN < 16U; resIdxN++)
+        for (; resIdxN < 16U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             t_tile[(64U * (blockIdx.x / (cols / 128U)) +
-                    8U * (threadIdx.x / 8U) + resIdxM) * cols +
+                    8U * (threadIdx.x / 8U) + vrm) * cols +
                    128U * (blockIdx.x % (cols / 128U))
                    + 16U * (threadIdx.x % 8U)
-                   + resIdxN]
+                   + vrn]
                 =
                 beta *
                 t_tile[(64U * (blockIdx.x / (cols / 128U)) +
-                        8U * (threadIdx.x / 8U) + resIdxM) * cols +
+                        8U * (threadIdx.x / 8U) + vrm) * cols +
                        128U * (blockIdx.x % (cols / 128U))
                        + 16U * (threadIdx.x % 8U)
-                       + resIdxN]
+                       + vrn]
                 + alpha * rchProd[resIdxM * 16U + resIdxN];
+        }
     }
 }
 
@@ -10492,22 +10618,22 @@ __hoisted_g_gemm_bf16_64x128x32_8x16_0(__nv_bfloat16 alpha,
     for (; resIdxM < 8U; resIdxM++) {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 16U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             __nv_bfloat16
                 v0 =
                 t_tile[(64U * (blockIdx.x / (cols / 128U)) +
-                        8U * (threadIdx.x / 8U) + resIdxM) * cols +
+                        8U * (threadIdx.x / 8U) + vrm) * cols +
                        128U * (blockIdx.x % (cols / 128U))
                        + 16U * (threadIdx.x % 8U)
-                       + resIdxN];
+                       + vrn];
             __nv_bfloat16 v1 = rchProd[resIdxM * 16U + resIdxN];
-            __nv_bfloat16 v_ =
-                kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
             t_tile[(64U * (blockIdx.x / (cols / 128U)) +
-                    8U * (threadIdx.x / 8U) + resIdxM) * cols +
+                    8U * (threadIdx.x / 8U) + vrm) * cols +
                    128U * (blockIdx.x % (cols / 128U))
                    + 16U * (threadIdx.x % 8U)
-                   + resIdxN]
-                = v_;
+                   + vrn]
+                = kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
         }
     }
 }
@@ -10614,20 +10740,23 @@ __hoisted_g_gemm_f32_64x128x32_16x8_0(float alpha,
     uint32_t resIdxM = 0U;
     for (; resIdxM < 16U; resIdxM++) {
         uint32_t resIdxN = 0U;
-        for (; resIdxN < 8U; resIdxN++)
+        for (; resIdxN < 8U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             t_tile[(64U * (blockIdx.x / (cols / 128U)) +
-                    16U * (threadIdx.x / 16U) + resIdxM) * cols +
+                    16U * (threadIdx.x / 16U) + vrm) * cols +
                    128U * (blockIdx.x % (cols / 128U))
                    + 8U * (threadIdx.x % 16U)
-                   + resIdxN]
+                   + vrn]
                 =
                 beta *
                 t_tile[(64U * (blockIdx.x / (cols / 128U)) +
-                        16U * (threadIdx.x / 16U) + resIdxM) * cols +
+                        16U * (threadIdx.x / 16U) + vrm) * cols +
                        128U * (blockIdx.x % (cols / 128U))
                        + 8U * (threadIdx.x % 16U)
-                       + resIdxN]
+                       + vrn]
                 + alpha * rchProd[resIdxM * 8U + resIdxN];
+        }
     }
 }
 
@@ -10743,22 +10872,22 @@ __hoisted_g_gemm_bf16_64x128x32_16x8_0(__nv_bfloat16 alpha,
     for (; resIdxM < 16U; resIdxM++) {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 8U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             __nv_bfloat16
                 v0 =
                 t_tile[(64U * (blockIdx.x / (cols / 128U)) +
-                        16U * (threadIdx.x / 16U) + resIdxM) * cols +
+                        16U * (threadIdx.x / 16U) + vrm) * cols +
                        128U * (blockIdx.x % (cols / 128U))
                        + 8U * (threadIdx.x % 16U)
-                       + resIdxN];
+                       + vrn];
             __nv_bfloat16 v1 = rchProd[resIdxM * 8U + resIdxN];
-            __nv_bfloat16 v_ =
-                kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
             t_tile[(64U * (blockIdx.x / (cols / 128U)) +
-                    16U * (threadIdx.x / 16U) + resIdxM) * cols +
+                    16U * (threadIdx.x / 16U) + vrm) * cols +
                    128U * (blockIdx.x % (cols / 128U))
                    + 8U * (threadIdx.x % 16U)
-                   + resIdxN]
-                = v_;
+                   + vrn]
+                = kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
         }
     }
 }
@@ -10865,20 +10994,23 @@ __hoisted_g_gemm_f32_64x128x32_16x16_0(float alpha,
     uint32_t resIdxM = 0U;
     for (; resIdxM < 16U; resIdxM++) {
         uint32_t resIdxN = 0U;
-        for (; resIdxN < 16U; resIdxN++)
+        for (; resIdxN < 16U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             t_tile[(64U * (blockIdx.x / (cols / 128U)) +
-                    16U * (threadIdx.x / 8U) + resIdxM) * cols +
+                    16U * (threadIdx.x / 8U) + vrm) * cols +
                    128U * (blockIdx.x % (cols / 128U))
                    + 16U * (threadIdx.x % 8U)
-                   + resIdxN]
+                   + vrn]
                 =
                 beta *
                 t_tile[(64U * (blockIdx.x / (cols / 128U)) +
-                        16U * (threadIdx.x / 8U) + resIdxM) * cols +
+                        16U * (threadIdx.x / 8U) + vrm) * cols +
                        128U * (blockIdx.x % (cols / 128U))
                        + 16U * (threadIdx.x % 8U)
-                       + resIdxN]
+                       + vrn]
                 + alpha * rchProd[resIdxM * 16U + resIdxN];
+        }
     }
 }
 
@@ -10994,22 +11126,22 @@ __hoisted_g_gemm_bf16_64x128x32_16x16_0(__nv_bfloat16 alpha,
     for (; resIdxM < 16U; resIdxM++) {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 16U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             __nv_bfloat16
                 v0 =
                 t_tile[(64U * (blockIdx.x / (cols / 128U)) +
-                        16U * (threadIdx.x / 8U) + resIdxM) * cols +
+                        16U * (threadIdx.x / 8U) + vrm) * cols +
                        128U * (blockIdx.x % (cols / 128U))
                        + 16U * (threadIdx.x % 8U)
-                       + resIdxN];
+                       + vrn];
             __nv_bfloat16 v1 = rchProd[resIdxM * 16U + resIdxN];
-            __nv_bfloat16 v_ =
-                kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
             t_tile[(64U * (blockIdx.x / (cols / 128U)) +
-                    16U * (threadIdx.x / 8U) + resIdxM) * cols +
+                    16U * (threadIdx.x / 8U) + vrm) * cols +
                    128U * (blockIdx.x % (cols / 128U))
                    + 16U * (threadIdx.x % 8U)
-                   + resIdxN]
-                = v_;
+                   + vrn]
+                = kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
         }
     }
 }
@@ -11116,20 +11248,23 @@ __hoisted_g_gemm_f32_64x128x64_8x8_0(float alpha,
     uint32_t resIdxM = 0U;
     for (; resIdxM < 8U; resIdxM++) {
         uint32_t resIdxN = 0U;
-        for (; resIdxN < 8U; resIdxN++)
+        for (; resIdxN < 8U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             t_tile[(64U * (blockIdx.x / (cols / 128U)) +
-                    8U * (threadIdx.x / 16U) + resIdxM) * cols +
+                    8U * (threadIdx.x / 16U) + vrm) * cols +
                    128U * (blockIdx.x % (cols / 128U))
                    + 8U * (threadIdx.x % 16U)
-                   + resIdxN]
+                   + vrn]
                 =
                 beta *
                 t_tile[(64U * (blockIdx.x / (cols / 128U)) +
-                        8U * (threadIdx.x / 16U) + resIdxM) * cols +
+                        8U * (threadIdx.x / 16U) + vrm) * cols +
                        128U * (blockIdx.x % (cols / 128U))
                        + 8U * (threadIdx.x % 16U)
-                       + resIdxN]
+                       + vrn]
                 + alpha * rchProd[resIdxM * 8U + resIdxN];
+        }
     }
 }
 
@@ -11245,22 +11380,22 @@ __hoisted_g_gemm_bf16_64x128x64_8x8_0(__nv_bfloat16 alpha,
     for (; resIdxM < 8U; resIdxM++) {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 8U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             __nv_bfloat16
                 v0 =
                 t_tile[(64U * (blockIdx.x / (cols / 128U)) +
-                        8U * (threadIdx.x / 16U) + resIdxM) * cols +
+                        8U * (threadIdx.x / 16U) + vrm) * cols +
                        128U * (blockIdx.x % (cols / 128U))
                        + 8U * (threadIdx.x % 16U)
-                       + resIdxN];
+                       + vrn];
             __nv_bfloat16 v1 = rchProd[resIdxM * 8U + resIdxN];
-            __nv_bfloat16 v_ =
-                kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
             t_tile[(64U * (blockIdx.x / (cols / 128U)) +
-                    8U * (threadIdx.x / 16U) + resIdxM) * cols +
+                    8U * (threadIdx.x / 16U) + vrm) * cols +
                    128U * (blockIdx.x % (cols / 128U))
                    + 8U * (threadIdx.x % 16U)
-                   + resIdxN]
-                = v_;
+                   + vrn]
+                = kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
         }
     }
 }
@@ -11367,20 +11502,23 @@ __hoisted_g_gemm_f32_64x128x64_8x16_0(float alpha,
     uint32_t resIdxM = 0U;
     for (; resIdxM < 8U; resIdxM++) {
         uint32_t resIdxN = 0U;
-        for (; resIdxN < 16U; resIdxN++)
+        for (; resIdxN < 16U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             t_tile[(64U * (blockIdx.x / (cols / 128U)) +
-                    8U * (threadIdx.x / 8U) + resIdxM) * cols +
+                    8U * (threadIdx.x / 8U) + vrm) * cols +
                    128U * (blockIdx.x % (cols / 128U))
                    + 16U * (threadIdx.x % 8U)
-                   + resIdxN]
+                   + vrn]
                 =
                 beta *
                 t_tile[(64U * (blockIdx.x / (cols / 128U)) +
-                        8U * (threadIdx.x / 8U) + resIdxM) * cols +
+                        8U * (threadIdx.x / 8U) + vrm) * cols +
                        128U * (blockIdx.x % (cols / 128U))
                        + 16U * (threadIdx.x % 8U)
-                       + resIdxN]
+                       + vrn]
                 + alpha * rchProd[resIdxM * 16U + resIdxN];
+        }
     }
 }
 
@@ -11496,22 +11634,22 @@ __hoisted_g_gemm_bf16_64x128x64_8x16_0(__nv_bfloat16 alpha,
     for (; resIdxM < 8U; resIdxM++) {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 16U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             __nv_bfloat16
                 v0 =
                 t_tile[(64U * (blockIdx.x / (cols / 128U)) +
-                        8U * (threadIdx.x / 8U) + resIdxM) * cols +
+                        8U * (threadIdx.x / 8U) + vrm) * cols +
                        128U * (blockIdx.x % (cols / 128U))
                        + 16U * (threadIdx.x % 8U)
-                       + resIdxN];
+                       + vrn];
             __nv_bfloat16 v1 = rchProd[resIdxM * 16U + resIdxN];
-            __nv_bfloat16 v_ =
-                kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
             t_tile[(64U * (blockIdx.x / (cols / 128U)) +
-                    8U * (threadIdx.x / 8U) + resIdxM) * cols +
+                    8U * (threadIdx.x / 8U) + vrm) * cols +
                    128U * (blockIdx.x % (cols / 128U))
                    + 16U * (threadIdx.x % 8U)
-                   + resIdxN]
-                = v_;
+                   + vrn]
+                = kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
         }
     }
 }
@@ -11618,20 +11756,23 @@ __hoisted_g_gemm_f32_64x128x64_16x8_0(float alpha,
     uint32_t resIdxM = 0U;
     for (; resIdxM < 16U; resIdxM++) {
         uint32_t resIdxN = 0U;
-        for (; resIdxN < 8U; resIdxN++)
+        for (; resIdxN < 8U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             t_tile[(64U * (blockIdx.x / (cols / 128U)) +
-                    16U * (threadIdx.x / 16U) + resIdxM) * cols +
+                    16U * (threadIdx.x / 16U) + vrm) * cols +
                    128U * (blockIdx.x % (cols / 128U))
                    + 8U * (threadIdx.x % 16U)
-                   + resIdxN]
+                   + vrn]
                 =
                 beta *
                 t_tile[(64U * (blockIdx.x / (cols / 128U)) +
-                        16U * (threadIdx.x / 16U) + resIdxM) * cols +
+                        16U * (threadIdx.x / 16U) + vrm) * cols +
                        128U * (blockIdx.x % (cols / 128U))
                        + 8U * (threadIdx.x % 16U)
-                       + resIdxN]
+                       + vrn]
                 + alpha * rchProd[resIdxM * 8U + resIdxN];
+        }
     }
 }
 
@@ -11747,22 +11888,22 @@ __hoisted_g_gemm_bf16_64x128x64_16x8_0(__nv_bfloat16 alpha,
     for (; resIdxM < 16U; resIdxM++) {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 8U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             __nv_bfloat16
                 v0 =
                 t_tile[(64U * (blockIdx.x / (cols / 128U)) +
-                        16U * (threadIdx.x / 16U) + resIdxM) * cols +
+                        16U * (threadIdx.x / 16U) + vrm) * cols +
                        128U * (blockIdx.x % (cols / 128U))
                        + 8U * (threadIdx.x % 16U)
-                       + resIdxN];
+                       + vrn];
             __nv_bfloat16 v1 = rchProd[resIdxM * 8U + resIdxN];
-            __nv_bfloat16 v_ =
-                kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
             t_tile[(64U * (blockIdx.x / (cols / 128U)) +
-                    16U * (threadIdx.x / 16U) + resIdxM) * cols +
+                    16U * (threadIdx.x / 16U) + vrm) * cols +
                    128U * (blockIdx.x % (cols / 128U))
                    + 8U * (threadIdx.x % 16U)
-                   + resIdxN]
-                = v_;
+                   + vrn]
+                = kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
         }
     }
 }
@@ -11869,20 +12010,23 @@ __hoisted_g_gemm_f32_64x128x64_16x16_0(float alpha,
     uint32_t resIdxM = 0U;
     for (; resIdxM < 16U; resIdxM++) {
         uint32_t resIdxN = 0U;
-        for (; resIdxN < 16U; resIdxN++)
+        for (; resIdxN < 16U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             t_tile[(64U * (blockIdx.x / (cols / 128U)) +
-                    16U * (threadIdx.x / 8U) + resIdxM) * cols +
+                    16U * (threadIdx.x / 8U) + vrm) * cols +
                    128U * (blockIdx.x % (cols / 128U))
                    + 16U * (threadIdx.x % 8U)
-                   + resIdxN]
+                   + vrn]
                 =
                 beta *
                 t_tile[(64U * (blockIdx.x / (cols / 128U)) +
-                        16U * (threadIdx.x / 8U) + resIdxM) * cols +
+                        16U * (threadIdx.x / 8U) + vrm) * cols +
                        128U * (blockIdx.x % (cols / 128U))
                        + 16U * (threadIdx.x % 8U)
-                       + resIdxN]
+                       + vrn]
                 + alpha * rchProd[resIdxM * 16U + resIdxN];
+        }
     }
 }
 
@@ -11998,22 +12142,22 @@ __hoisted_g_gemm_bf16_64x128x64_16x16_0(__nv_bfloat16 alpha,
     for (; resIdxM < 16U; resIdxM++) {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 16U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             __nv_bfloat16
                 v0 =
                 t_tile[(64U * (blockIdx.x / (cols / 128U)) +
-                        16U * (threadIdx.x / 8U) + resIdxM) * cols +
+                        16U * (threadIdx.x / 8U) + vrm) * cols +
                        128U * (blockIdx.x % (cols / 128U))
                        + 16U * (threadIdx.x % 8U)
-                       + resIdxN];
+                       + vrn];
             __nv_bfloat16 v1 = rchProd[resIdxM * 16U + resIdxN];
-            __nv_bfloat16 v_ =
-                kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
             t_tile[(64U * (blockIdx.x / (cols / 128U)) +
-                    16U * (threadIdx.x / 8U) + resIdxM) * cols +
+                    16U * (threadIdx.x / 8U) + vrm) * cols +
                    128U * (blockIdx.x % (cols / 128U))
                    + 16U * (threadIdx.x % 8U)
-                   + resIdxN]
-                = v_;
+                   + vrn]
+                = kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
         }
     }
 }
@@ -12120,20 +12264,23 @@ __hoisted_g_gemm_f32_128x32x32_8x8_0(float alpha,
     uint32_t resIdxM = 0U;
     for (; resIdxM < 8U; resIdxM++) {
         uint32_t resIdxN = 0U;
-        for (; resIdxN < 8U; resIdxN++)
+        for (; resIdxN < 8U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             t_tile[(128U * (blockIdx.x / (cols / 32U)) +
-                    8U * (threadIdx.x / 4U) + resIdxM) * cols +
+                    8U * (threadIdx.x / 4U) + vrm) * cols +
                    32U * (blockIdx.x % (cols / 32U))
                    + 8U * (threadIdx.x % 4U)
-                   + resIdxN]
+                   + vrn]
                 =
                 beta *
                 t_tile[(128U * (blockIdx.x / (cols / 32U)) +
-                        8U * (threadIdx.x / 4U) + resIdxM) * cols +
+                        8U * (threadIdx.x / 4U) + vrm) * cols +
                        32U * (blockIdx.x % (cols / 32U))
                        + 8U * (threadIdx.x % 4U)
-                       + resIdxN]
+                       + vrn]
                 + alpha * rchProd[resIdxM * 8U + resIdxN];
+        }
     }
 }
 
@@ -12249,22 +12396,22 @@ __hoisted_g_gemm_bf16_128x32x32_8x8_0(__nv_bfloat16 alpha,
     for (; resIdxM < 8U; resIdxM++) {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 8U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             __nv_bfloat16
                 v0 =
                 t_tile[(128U * (blockIdx.x / (cols / 32U)) +
-                        8U * (threadIdx.x / 4U) + resIdxM) * cols +
+                        8U * (threadIdx.x / 4U) + vrm) * cols +
                        32U * (blockIdx.x % (cols / 32U))
                        + 8U * (threadIdx.x % 4U)
-                       + resIdxN];
+                       + vrn];
             __nv_bfloat16 v1 = rchProd[resIdxM * 8U + resIdxN];
-            __nv_bfloat16 v_ =
-                kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
             t_tile[(128U * (blockIdx.x / (cols / 32U)) +
-                    8U * (threadIdx.x / 4U) + resIdxM) * cols +
+                    8U * (threadIdx.x / 4U) + vrm) * cols +
                    32U * (blockIdx.x % (cols / 32U))
                    + 8U * (threadIdx.x % 4U)
-                   + resIdxN]
-                = v_;
+                   + vrn]
+                = kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
         }
     }
 }
@@ -12371,20 +12518,23 @@ __hoisted_g_gemm_f32_128x32x32_8x16_0(float alpha,
     uint32_t resIdxM = 0U;
     for (; resIdxM < 8U; resIdxM++) {
         uint32_t resIdxN = 0U;
-        for (; resIdxN < 16U; resIdxN++)
+        for (; resIdxN < 16U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             t_tile[(128U * (blockIdx.x / (cols / 32U)) +
-                    8U * (threadIdx.x / 2U) + resIdxM) * cols +
+                    8U * (threadIdx.x / 2U) + vrm) * cols +
                    32U * (blockIdx.x % (cols / 32U))
                    + 16U * (threadIdx.x % 2U)
-                   + resIdxN]
+                   + vrn]
                 =
                 beta *
                 t_tile[(128U * (blockIdx.x / (cols / 32U)) +
-                        8U * (threadIdx.x / 2U) + resIdxM) * cols +
+                        8U * (threadIdx.x / 2U) + vrm) * cols +
                        32U * (blockIdx.x % (cols / 32U))
                        + 16U * (threadIdx.x % 2U)
-                       + resIdxN]
+                       + vrn]
                 + alpha * rchProd[resIdxM * 16U + resIdxN];
+        }
     }
 }
 
@@ -12500,22 +12650,22 @@ __hoisted_g_gemm_bf16_128x32x32_8x16_0(__nv_bfloat16 alpha,
     for (; resIdxM < 8U; resIdxM++) {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 16U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             __nv_bfloat16
                 v0 =
                 t_tile[(128U * (blockIdx.x / (cols / 32U)) +
-                        8U * (threadIdx.x / 2U) + resIdxM) * cols +
+                        8U * (threadIdx.x / 2U) + vrm) * cols +
                        32U * (blockIdx.x % (cols / 32U))
                        + 16U * (threadIdx.x % 2U)
-                       + resIdxN];
+                       + vrn];
             __nv_bfloat16 v1 = rchProd[resIdxM * 16U + resIdxN];
-            __nv_bfloat16 v_ =
-                kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
             t_tile[(128U * (blockIdx.x / (cols / 32U)) +
-                    8U * (threadIdx.x / 2U) + resIdxM) * cols +
+                    8U * (threadIdx.x / 2U) + vrm) * cols +
                    32U * (blockIdx.x % (cols / 32U))
                    + 16U * (threadIdx.x % 2U)
-                   + resIdxN]
-                = v_;
+                   + vrn]
+                = kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
         }
     }
 }
@@ -12622,20 +12772,23 @@ __hoisted_g_gemm_f32_128x32x32_16x8_0(float alpha,
     uint32_t resIdxM = 0U;
     for (; resIdxM < 16U; resIdxM++) {
         uint32_t resIdxN = 0U;
-        for (; resIdxN < 8U; resIdxN++)
+        for (; resIdxN < 8U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             t_tile[(128U * (blockIdx.x / (cols / 32U)) +
-                    16U * (threadIdx.x / 4U) + resIdxM) * cols +
+                    16U * (threadIdx.x / 4U) + vrm) * cols +
                    32U * (blockIdx.x % (cols / 32U))
                    + 8U * (threadIdx.x % 4U)
-                   + resIdxN]
+                   + vrn]
                 =
                 beta *
                 t_tile[(128U * (blockIdx.x / (cols / 32U)) +
-                        16U * (threadIdx.x / 4U) + resIdxM) * cols +
+                        16U * (threadIdx.x / 4U) + vrm) * cols +
                        32U * (blockIdx.x % (cols / 32U))
                        + 8U * (threadIdx.x % 4U)
-                       + resIdxN]
+                       + vrn]
                 + alpha * rchProd[resIdxM * 8U + resIdxN];
+        }
     }
 }
 
@@ -12751,22 +12904,22 @@ __hoisted_g_gemm_bf16_128x32x32_16x8_0(__nv_bfloat16 alpha,
     for (; resIdxM < 16U; resIdxM++) {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 8U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             __nv_bfloat16
                 v0 =
                 t_tile[(128U * (blockIdx.x / (cols / 32U)) +
-                        16U * (threadIdx.x / 4U) + resIdxM) * cols +
+                        16U * (threadIdx.x / 4U) + vrm) * cols +
                        32U * (blockIdx.x % (cols / 32U))
                        + 8U * (threadIdx.x % 4U)
-                       + resIdxN];
+                       + vrn];
             __nv_bfloat16 v1 = rchProd[resIdxM * 8U + resIdxN];
-            __nv_bfloat16 v_ =
-                kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
             t_tile[(128U * (blockIdx.x / (cols / 32U)) +
-                    16U * (threadIdx.x / 4U) + resIdxM) * cols +
+                    16U * (threadIdx.x / 4U) + vrm) * cols +
                    32U * (blockIdx.x % (cols / 32U))
                    + 8U * (threadIdx.x % 4U)
-                   + resIdxN]
-                = v_;
+                   + vrn]
+                = kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
         }
     }
 }
@@ -12873,20 +13026,23 @@ __hoisted_g_gemm_f32_128x32x32_16x16_0(float alpha,
     uint32_t resIdxM = 0U;
     for (; resIdxM < 16U; resIdxM++) {
         uint32_t resIdxN = 0U;
-        for (; resIdxN < 16U; resIdxN++)
+        for (; resIdxN < 16U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             t_tile[(128U * (blockIdx.x / (cols / 32U)) +
-                    16U * (threadIdx.x / 2U) + resIdxM) * cols +
+                    16U * (threadIdx.x / 2U) + vrm) * cols +
                    32U * (blockIdx.x % (cols / 32U))
                    + 16U * (threadIdx.x % 2U)
-                   + resIdxN]
+                   + vrn]
                 =
                 beta *
                 t_tile[(128U * (blockIdx.x / (cols / 32U)) +
-                        16U * (threadIdx.x / 2U) + resIdxM) * cols +
+                        16U * (threadIdx.x / 2U) + vrm) * cols +
                        32U * (blockIdx.x % (cols / 32U))
                        + 16U * (threadIdx.x % 2U)
-                       + resIdxN]
+                       + vrn]
                 + alpha * rchProd[resIdxM * 16U + resIdxN];
+        }
     }
 }
 
@@ -13002,22 +13158,22 @@ __hoisted_g_gemm_bf16_128x32x32_16x16_0(__nv_bfloat16 alpha,
     for (; resIdxM < 16U; resIdxM++) {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 16U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             __nv_bfloat16
                 v0 =
                 t_tile[(128U * (blockIdx.x / (cols / 32U)) +
-                        16U * (threadIdx.x / 2U) + resIdxM) * cols +
+                        16U * (threadIdx.x / 2U) + vrm) * cols +
                        32U * (blockIdx.x % (cols / 32U))
                        + 16U * (threadIdx.x % 2U)
-                       + resIdxN];
+                       + vrn];
             __nv_bfloat16 v1 = rchProd[resIdxM * 16U + resIdxN];
-            __nv_bfloat16 v_ =
-                kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
             t_tile[(128U * (blockIdx.x / (cols / 32U)) +
-                    16U * (threadIdx.x / 2U) + resIdxM) * cols +
+                    16U * (threadIdx.x / 2U) + vrm) * cols +
                    32U * (blockIdx.x % (cols / 32U))
                    + 16U * (threadIdx.x % 2U)
-                   + resIdxN]
-                = v_;
+                   + vrn]
+                = kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
         }
     }
 }
@@ -13124,20 +13280,23 @@ __hoisted_g_gemm_f32_128x32x64_8x8_0(float alpha,
     uint32_t resIdxM = 0U;
     for (; resIdxM < 8U; resIdxM++) {
         uint32_t resIdxN = 0U;
-        for (; resIdxN < 8U; resIdxN++)
+        for (; resIdxN < 8U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             t_tile[(128U * (blockIdx.x / (cols / 32U)) +
-                    8U * (threadIdx.x / 4U) + resIdxM) * cols +
+                    8U * (threadIdx.x / 4U) + vrm) * cols +
                    32U * (blockIdx.x % (cols / 32U))
                    + 8U * (threadIdx.x % 4U)
-                   + resIdxN]
+                   + vrn]
                 =
                 beta *
                 t_tile[(128U * (blockIdx.x / (cols / 32U)) +
-                        8U * (threadIdx.x / 4U) + resIdxM) * cols +
+                        8U * (threadIdx.x / 4U) + vrm) * cols +
                        32U * (blockIdx.x % (cols / 32U))
                        + 8U * (threadIdx.x % 4U)
-                       + resIdxN]
+                       + vrn]
                 + alpha * rchProd[resIdxM * 8U + resIdxN];
+        }
     }
 }
 
@@ -13253,22 +13412,22 @@ __hoisted_g_gemm_bf16_128x32x64_8x8_0(__nv_bfloat16 alpha,
     for (; resIdxM < 8U; resIdxM++) {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 8U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             __nv_bfloat16
                 v0 =
                 t_tile[(128U * (blockIdx.x / (cols / 32U)) +
-                        8U * (threadIdx.x / 4U) + resIdxM) * cols +
+                        8U * (threadIdx.x / 4U) + vrm) * cols +
                        32U * (blockIdx.x % (cols / 32U))
                        + 8U * (threadIdx.x % 4U)
-                       + resIdxN];
+                       + vrn];
             __nv_bfloat16 v1 = rchProd[resIdxM * 8U + resIdxN];
-            __nv_bfloat16 v_ =
-                kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
             t_tile[(128U * (blockIdx.x / (cols / 32U)) +
-                    8U * (threadIdx.x / 4U) + resIdxM) * cols +
+                    8U * (threadIdx.x / 4U) + vrm) * cols +
                    32U * (blockIdx.x % (cols / 32U))
                    + 8U * (threadIdx.x % 4U)
-                   + resIdxN]
-                = v_;
+                   + vrn]
+                = kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
         }
     }
 }
@@ -13375,20 +13534,23 @@ __hoisted_g_gemm_f32_128x32x64_8x16_0(float alpha,
     uint32_t resIdxM = 0U;
     for (; resIdxM < 8U; resIdxM++) {
         uint32_t resIdxN = 0U;
-        for (; resIdxN < 16U; resIdxN++)
+        for (; resIdxN < 16U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             t_tile[(128U * (blockIdx.x / (cols / 32U)) +
-                    8U * (threadIdx.x / 2U) + resIdxM) * cols +
+                    8U * (threadIdx.x / 2U) + vrm) * cols +
                    32U * (blockIdx.x % (cols / 32U))
                    + 16U * (threadIdx.x % 2U)
-                   + resIdxN]
+                   + vrn]
                 =
                 beta *
                 t_tile[(128U * (blockIdx.x / (cols / 32U)) +
-                        8U * (threadIdx.x / 2U) + resIdxM) * cols +
+                        8U * (threadIdx.x / 2U) + vrm) * cols +
                        32U * (blockIdx.x % (cols / 32U))
                        + 16U * (threadIdx.x % 2U)
-                       + resIdxN]
+                       + vrn]
                 + alpha * rchProd[resIdxM * 16U + resIdxN];
+        }
     }
 }
 
@@ -13504,22 +13666,22 @@ __hoisted_g_gemm_bf16_128x32x64_8x16_0(__nv_bfloat16 alpha,
     for (; resIdxM < 8U; resIdxM++) {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 16U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             __nv_bfloat16
                 v0 =
                 t_tile[(128U * (blockIdx.x / (cols / 32U)) +
-                        8U * (threadIdx.x / 2U) + resIdxM) * cols +
+                        8U * (threadIdx.x / 2U) + vrm) * cols +
                        32U * (blockIdx.x % (cols / 32U))
                        + 16U * (threadIdx.x % 2U)
-                       + resIdxN];
+                       + vrn];
             __nv_bfloat16 v1 = rchProd[resIdxM * 16U + resIdxN];
-            __nv_bfloat16 v_ =
-                kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
             t_tile[(128U * (blockIdx.x / (cols / 32U)) +
-                    8U * (threadIdx.x / 2U) + resIdxM) * cols +
+                    8U * (threadIdx.x / 2U) + vrm) * cols +
                    32U * (blockIdx.x % (cols / 32U))
                    + 16U * (threadIdx.x % 2U)
-                   + resIdxN]
-                = v_;
+                   + vrn]
+                = kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
         }
     }
 }
@@ -13626,20 +13788,23 @@ __hoisted_g_gemm_f32_128x32x64_16x8_0(float alpha,
     uint32_t resIdxM = 0U;
     for (; resIdxM < 16U; resIdxM++) {
         uint32_t resIdxN = 0U;
-        for (; resIdxN < 8U; resIdxN++)
+        for (; resIdxN < 8U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             t_tile[(128U * (blockIdx.x / (cols / 32U)) +
-                    16U * (threadIdx.x / 4U) + resIdxM) * cols +
+                    16U * (threadIdx.x / 4U) + vrm) * cols +
                    32U * (blockIdx.x % (cols / 32U))
                    + 8U * (threadIdx.x % 4U)
-                   + resIdxN]
+                   + vrn]
                 =
                 beta *
                 t_tile[(128U * (blockIdx.x / (cols / 32U)) +
-                        16U * (threadIdx.x / 4U) + resIdxM) * cols +
+                        16U * (threadIdx.x / 4U) + vrm) * cols +
                        32U * (blockIdx.x % (cols / 32U))
                        + 8U * (threadIdx.x % 4U)
-                       + resIdxN]
+                       + vrn]
                 + alpha * rchProd[resIdxM * 8U + resIdxN];
+        }
     }
 }
 
@@ -13755,22 +13920,22 @@ __hoisted_g_gemm_bf16_128x32x64_16x8_0(__nv_bfloat16 alpha,
     for (; resIdxM < 16U; resIdxM++) {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 8U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             __nv_bfloat16
                 v0 =
                 t_tile[(128U * (blockIdx.x / (cols / 32U)) +
-                        16U * (threadIdx.x / 4U) + resIdxM) * cols +
+                        16U * (threadIdx.x / 4U) + vrm) * cols +
                        32U * (blockIdx.x % (cols / 32U))
                        + 8U * (threadIdx.x % 4U)
-                       + resIdxN];
+                       + vrn];
             __nv_bfloat16 v1 = rchProd[resIdxM * 8U + resIdxN];
-            __nv_bfloat16 v_ =
-                kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
             t_tile[(128U * (blockIdx.x / (cols / 32U)) +
-                    16U * (threadIdx.x / 4U) + resIdxM) * cols +
+                    16U * (threadIdx.x / 4U) + vrm) * cols +
                    32U * (blockIdx.x % (cols / 32U))
                    + 8U * (threadIdx.x % 4U)
-                   + resIdxN]
-                = v_;
+                   + vrn]
+                = kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
         }
     }
 }
@@ -13877,20 +14042,23 @@ __hoisted_g_gemm_f32_128x32x64_16x16_0(float alpha,
     uint32_t resIdxM = 0U;
     for (; resIdxM < 16U; resIdxM++) {
         uint32_t resIdxN = 0U;
-        for (; resIdxN < 16U; resIdxN++)
+        for (; resIdxN < 16U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             t_tile[(128U * (blockIdx.x / (cols / 32U)) +
-                    16U * (threadIdx.x / 2U) + resIdxM) * cols +
+                    16U * (threadIdx.x / 2U) + vrm) * cols +
                    32U * (blockIdx.x % (cols / 32U))
                    + 16U * (threadIdx.x % 2U)
-                   + resIdxN]
+                   + vrn]
                 =
                 beta *
                 t_tile[(128U * (blockIdx.x / (cols / 32U)) +
-                        16U * (threadIdx.x / 2U) + resIdxM) * cols +
+                        16U * (threadIdx.x / 2U) + vrm) * cols +
                        32U * (blockIdx.x % (cols / 32U))
                        + 16U * (threadIdx.x % 2U)
-                       + resIdxN]
+                       + vrn]
                 + alpha * rchProd[resIdxM * 16U + resIdxN];
+        }
     }
 }
 
@@ -14006,22 +14174,22 @@ __hoisted_g_gemm_bf16_128x32x64_16x16_0(__nv_bfloat16 alpha,
     for (; resIdxM < 16U; resIdxM++) {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 16U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             __nv_bfloat16
                 v0 =
                 t_tile[(128U * (blockIdx.x / (cols / 32U)) +
-                        16U * (threadIdx.x / 2U) + resIdxM) * cols +
+                        16U * (threadIdx.x / 2U) + vrm) * cols +
                        32U * (blockIdx.x % (cols / 32U))
                        + 16U * (threadIdx.x % 2U)
-                       + resIdxN];
+                       + vrn];
             __nv_bfloat16 v1 = rchProd[resIdxM * 16U + resIdxN];
-            __nv_bfloat16 v_ =
-                kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
             t_tile[(128U * (blockIdx.x / (cols / 32U)) +
-                    16U * (threadIdx.x / 2U) + resIdxM) * cols +
+                    16U * (threadIdx.x / 2U) + vrm) * cols +
                    32U * (blockIdx.x % (cols / 32U))
                    + 16U * (threadIdx.x % 2U)
-                   + resIdxN]
-                = v_;
+                   + vrn]
+                = kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
         }
     }
 }
@@ -14128,20 +14296,23 @@ __hoisted_g_gemm_f32_128x64x32_8x8_0(float alpha,
     uint32_t resIdxM = 0U;
     for (; resIdxM < 8U; resIdxM++) {
         uint32_t resIdxN = 0U;
-        for (; resIdxN < 8U; resIdxN++)
+        for (; resIdxN < 8U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             t_tile[(128U * (blockIdx.x / (cols / 64U)) +
-                    8U * (threadIdx.x / 8U) + resIdxM) * cols +
+                    8U * (threadIdx.x / 8U) + vrm) * cols +
                    64U * (blockIdx.x % (cols / 64U))
                    + 8U * (threadIdx.x % 8U)
-                   + resIdxN]
+                   + vrn]
                 =
                 beta *
                 t_tile[(128U * (blockIdx.x / (cols / 64U)) +
-                        8U * (threadIdx.x / 8U) + resIdxM) * cols +
+                        8U * (threadIdx.x / 8U) + vrm) * cols +
                        64U * (blockIdx.x % (cols / 64U))
                        + 8U * (threadIdx.x % 8U)
-                       + resIdxN]
+                       + vrn]
                 + alpha * rchProd[resIdxM * 8U + resIdxN];
+        }
     }
 }
 
@@ -14257,22 +14428,22 @@ __hoisted_g_gemm_bf16_128x64x32_8x8_0(__nv_bfloat16 alpha,
     for (; resIdxM < 8U; resIdxM++) {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 8U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             __nv_bfloat16
                 v0 =
                 t_tile[(128U * (blockIdx.x / (cols / 64U)) +
-                        8U * (threadIdx.x / 8U) + resIdxM) * cols +
+                        8U * (threadIdx.x / 8U) + vrm) * cols +
                        64U * (blockIdx.x % (cols / 64U))
                        + 8U * (threadIdx.x % 8U)
-                       + resIdxN];
+                       + vrn];
             __nv_bfloat16 v1 = rchProd[resIdxM * 8U + resIdxN];
-            __nv_bfloat16 v_ =
-                kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
             t_tile[(128U * (blockIdx.x / (cols / 64U)) +
-                    8U * (threadIdx.x / 8U) + resIdxM) * cols +
+                    8U * (threadIdx.x / 8U) + vrm) * cols +
                    64U * (blockIdx.x % (cols / 64U))
                    + 8U * (threadIdx.x % 8U)
-                   + resIdxN]
-                = v_;
+                   + vrn]
+                = kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
         }
     }
 }
@@ -14379,20 +14550,23 @@ __hoisted_g_gemm_f32_128x64x32_8x16_0(float alpha,
     uint32_t resIdxM = 0U;
     for (; resIdxM < 8U; resIdxM++) {
         uint32_t resIdxN = 0U;
-        for (; resIdxN < 16U; resIdxN++)
+        for (; resIdxN < 16U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             t_tile[(128U * (blockIdx.x / (cols / 64U)) +
-                    8U * (threadIdx.x / 4U) + resIdxM) * cols +
+                    8U * (threadIdx.x / 4U) + vrm) * cols +
                    64U * (blockIdx.x % (cols / 64U))
                    + 16U * (threadIdx.x % 4U)
-                   + resIdxN]
+                   + vrn]
                 =
                 beta *
                 t_tile[(128U * (blockIdx.x / (cols / 64U)) +
-                        8U * (threadIdx.x / 4U) + resIdxM) * cols +
+                        8U * (threadIdx.x / 4U) + vrm) * cols +
                        64U * (blockIdx.x % (cols / 64U))
                        + 16U * (threadIdx.x % 4U)
-                       + resIdxN]
+                       + vrn]
                 + alpha * rchProd[resIdxM * 16U + resIdxN];
+        }
     }
 }
 
@@ -14508,22 +14682,22 @@ __hoisted_g_gemm_bf16_128x64x32_8x16_0(__nv_bfloat16 alpha,
     for (; resIdxM < 8U; resIdxM++) {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 16U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             __nv_bfloat16
                 v0 =
                 t_tile[(128U * (blockIdx.x / (cols / 64U)) +
-                        8U * (threadIdx.x / 4U) + resIdxM) * cols +
+                        8U * (threadIdx.x / 4U) + vrm) * cols +
                        64U * (blockIdx.x % (cols / 64U))
                        + 16U * (threadIdx.x % 4U)
-                       + resIdxN];
+                       + vrn];
             __nv_bfloat16 v1 = rchProd[resIdxM * 16U + resIdxN];
-            __nv_bfloat16 v_ =
-                kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
             t_tile[(128U * (blockIdx.x / (cols / 64U)) +
-                    8U * (threadIdx.x / 4U) + resIdxM) * cols +
+                    8U * (threadIdx.x / 4U) + vrm) * cols +
                    64U * (blockIdx.x % (cols / 64U))
                    + 16U * (threadIdx.x % 4U)
-                   + resIdxN]
-                = v_;
+                   + vrn]
+                = kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
         }
     }
 }
@@ -14630,20 +14804,23 @@ __hoisted_g_gemm_f32_128x64x32_16x8_0(float alpha,
     uint32_t resIdxM = 0U;
     for (; resIdxM < 16U; resIdxM++) {
         uint32_t resIdxN = 0U;
-        for (; resIdxN < 8U; resIdxN++)
+        for (; resIdxN < 8U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             t_tile[(128U * (blockIdx.x / (cols / 64U)) +
-                    16U * (threadIdx.x / 8U) + resIdxM) * cols +
+                    16U * (threadIdx.x / 8U) + vrm) * cols +
                    64U * (blockIdx.x % (cols / 64U))
                    + 8U * (threadIdx.x % 8U)
-                   + resIdxN]
+                   + vrn]
                 =
                 beta *
                 t_tile[(128U * (blockIdx.x / (cols / 64U)) +
-                        16U * (threadIdx.x / 8U) + resIdxM) * cols +
+                        16U * (threadIdx.x / 8U) + vrm) * cols +
                        64U * (blockIdx.x % (cols / 64U))
                        + 8U * (threadIdx.x % 8U)
-                       + resIdxN]
+                       + vrn]
                 + alpha * rchProd[resIdxM * 8U + resIdxN];
+        }
     }
 }
 
@@ -14759,22 +14936,22 @@ __hoisted_g_gemm_bf16_128x64x32_16x8_0(__nv_bfloat16 alpha,
     for (; resIdxM < 16U; resIdxM++) {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 8U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             __nv_bfloat16
                 v0 =
                 t_tile[(128U * (blockIdx.x / (cols / 64U)) +
-                        16U * (threadIdx.x / 8U) + resIdxM) * cols +
+                        16U * (threadIdx.x / 8U) + vrm) * cols +
                        64U * (blockIdx.x % (cols / 64U))
                        + 8U * (threadIdx.x % 8U)
-                       + resIdxN];
+                       + vrn];
             __nv_bfloat16 v1 = rchProd[resIdxM * 8U + resIdxN];
-            __nv_bfloat16 v_ =
-                kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
             t_tile[(128U * (blockIdx.x / (cols / 64U)) +
-                    16U * (threadIdx.x / 8U) + resIdxM) * cols +
+                    16U * (threadIdx.x / 8U) + vrm) * cols +
                    64U * (blockIdx.x % (cols / 64U))
                    + 8U * (threadIdx.x % 8U)
-                   + resIdxN]
-                = v_;
+                   + vrn]
+                = kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
         }
     }
 }
@@ -14881,20 +15058,23 @@ __hoisted_g_gemm_f32_128x64x32_16x16_0(float alpha,
     uint32_t resIdxM = 0U;
     for (; resIdxM < 16U; resIdxM++) {
         uint32_t resIdxN = 0U;
-        for (; resIdxN < 16U; resIdxN++)
+        for (; resIdxN < 16U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             t_tile[(128U * (blockIdx.x / (cols / 64U)) +
-                    16U * (threadIdx.x / 4U) + resIdxM) * cols +
+                    16U * (threadIdx.x / 4U) + vrm) * cols +
                    64U * (blockIdx.x % (cols / 64U))
                    + 16U * (threadIdx.x % 4U)
-                   + resIdxN]
+                   + vrn]
                 =
                 beta *
                 t_tile[(128U * (blockIdx.x / (cols / 64U)) +
-                        16U * (threadIdx.x / 4U) + resIdxM) * cols +
+                        16U * (threadIdx.x / 4U) + vrm) * cols +
                        64U * (blockIdx.x % (cols / 64U))
                        + 16U * (threadIdx.x % 4U)
-                       + resIdxN]
+                       + vrn]
                 + alpha * rchProd[resIdxM * 16U + resIdxN];
+        }
     }
 }
 
@@ -15010,22 +15190,22 @@ __hoisted_g_gemm_bf16_128x64x32_16x16_0(__nv_bfloat16 alpha,
     for (; resIdxM < 16U; resIdxM++) {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 16U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             __nv_bfloat16
                 v0 =
                 t_tile[(128U * (blockIdx.x / (cols / 64U)) +
-                        16U * (threadIdx.x / 4U) + resIdxM) * cols +
+                        16U * (threadIdx.x / 4U) + vrm) * cols +
                        64U * (blockIdx.x % (cols / 64U))
                        + 16U * (threadIdx.x % 4U)
-                       + resIdxN];
+                       + vrn];
             __nv_bfloat16 v1 = rchProd[resIdxM * 16U + resIdxN];
-            __nv_bfloat16 v_ =
-                kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
             t_tile[(128U * (blockIdx.x / (cols / 64U)) +
-                    16U * (threadIdx.x / 4U) + resIdxM) * cols +
+                    16U * (threadIdx.x / 4U) + vrm) * cols +
                    64U * (blockIdx.x % (cols / 64U))
                    + 16U * (threadIdx.x % 4U)
-                   + resIdxN]
-                = v_;
+                   + vrn]
+                = kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
         }
     }
 }
@@ -15132,20 +15312,23 @@ __hoisted_g_gemm_f32_128x64x64_8x8_0(float alpha,
     uint32_t resIdxM = 0U;
     for (; resIdxM < 8U; resIdxM++) {
         uint32_t resIdxN = 0U;
-        for (; resIdxN < 8U; resIdxN++)
+        for (; resIdxN < 8U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             t_tile[(128U * (blockIdx.x / (cols / 64U)) +
-                    8U * (threadIdx.x / 8U) + resIdxM) * cols +
+                    8U * (threadIdx.x / 8U) + vrm) * cols +
                    64U * (blockIdx.x % (cols / 64U))
                    + 8U * (threadIdx.x % 8U)
-                   + resIdxN]
+                   + vrn]
                 =
                 beta *
                 t_tile[(128U * (blockIdx.x / (cols / 64U)) +
-                        8U * (threadIdx.x / 8U) + resIdxM) * cols +
+                        8U * (threadIdx.x / 8U) + vrm) * cols +
                        64U * (blockIdx.x % (cols / 64U))
                        + 8U * (threadIdx.x % 8U)
-                       + resIdxN]
+                       + vrn]
                 + alpha * rchProd[resIdxM * 8U + resIdxN];
+        }
     }
 }
 
@@ -15261,22 +15444,22 @@ __hoisted_g_gemm_bf16_128x64x64_8x8_0(__nv_bfloat16 alpha,
     for (; resIdxM < 8U; resIdxM++) {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 8U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             __nv_bfloat16
                 v0 =
                 t_tile[(128U * (blockIdx.x / (cols / 64U)) +
-                        8U * (threadIdx.x / 8U) + resIdxM) * cols +
+                        8U * (threadIdx.x / 8U) + vrm) * cols +
                        64U * (blockIdx.x % (cols / 64U))
                        + 8U * (threadIdx.x % 8U)
-                       + resIdxN];
+                       + vrn];
             __nv_bfloat16 v1 = rchProd[resIdxM * 8U + resIdxN];
-            __nv_bfloat16 v_ =
-                kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
             t_tile[(128U * (blockIdx.x / (cols / 64U)) +
-                    8U * (threadIdx.x / 8U) + resIdxM) * cols +
+                    8U * (threadIdx.x / 8U) + vrm) * cols +
                    64U * (blockIdx.x % (cols / 64U))
                    + 8U * (threadIdx.x % 8U)
-                   + resIdxN]
-                = v_;
+                   + vrn]
+                = kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
         }
     }
 }
@@ -15383,20 +15566,23 @@ __hoisted_g_gemm_f32_128x64x64_8x16_0(float alpha,
     uint32_t resIdxM = 0U;
     for (; resIdxM < 8U; resIdxM++) {
         uint32_t resIdxN = 0U;
-        for (; resIdxN < 16U; resIdxN++)
+        for (; resIdxN < 16U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             t_tile[(128U * (blockIdx.x / (cols / 64U)) +
-                    8U * (threadIdx.x / 4U) + resIdxM) * cols +
+                    8U * (threadIdx.x / 4U) + vrm) * cols +
                    64U * (blockIdx.x % (cols / 64U))
                    + 16U * (threadIdx.x % 4U)
-                   + resIdxN]
+                   + vrn]
                 =
                 beta *
                 t_tile[(128U * (blockIdx.x / (cols / 64U)) +
-                        8U * (threadIdx.x / 4U) + resIdxM) * cols +
+                        8U * (threadIdx.x / 4U) + vrm) * cols +
                        64U * (blockIdx.x % (cols / 64U))
                        + 16U * (threadIdx.x % 4U)
-                       + resIdxN]
+                       + vrn]
                 + alpha * rchProd[resIdxM * 16U + resIdxN];
+        }
     }
 }
 
@@ -15512,22 +15698,22 @@ __hoisted_g_gemm_bf16_128x64x64_8x16_0(__nv_bfloat16 alpha,
     for (; resIdxM < 8U; resIdxM++) {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 16U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             __nv_bfloat16
                 v0 =
                 t_tile[(128U * (blockIdx.x / (cols / 64U)) +
-                        8U * (threadIdx.x / 4U) + resIdxM) * cols +
+                        8U * (threadIdx.x / 4U) + vrm) * cols +
                        64U * (blockIdx.x % (cols / 64U))
                        + 16U * (threadIdx.x % 4U)
-                       + resIdxN];
+                       + vrn];
             __nv_bfloat16 v1 = rchProd[resIdxM * 16U + resIdxN];
-            __nv_bfloat16 v_ =
-                kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
             t_tile[(128U * (blockIdx.x / (cols / 64U)) +
-                    8U * (threadIdx.x / 4U) + resIdxM) * cols +
+                    8U * (threadIdx.x / 4U) + vrm) * cols +
                    64U * (blockIdx.x % (cols / 64U))
                    + 16U * (threadIdx.x % 4U)
-                   + resIdxN]
-                = v_;
+                   + vrn]
+                = kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
         }
     }
 }
@@ -15634,20 +15820,23 @@ __hoisted_g_gemm_f32_128x64x64_16x8_0(float alpha,
     uint32_t resIdxM = 0U;
     for (; resIdxM < 16U; resIdxM++) {
         uint32_t resIdxN = 0U;
-        for (; resIdxN < 8U; resIdxN++)
+        for (; resIdxN < 8U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             t_tile[(128U * (blockIdx.x / (cols / 64U)) +
-                    16U * (threadIdx.x / 8U) + resIdxM) * cols +
+                    16U * (threadIdx.x / 8U) + vrm) * cols +
                    64U * (blockIdx.x % (cols / 64U))
                    + 8U * (threadIdx.x % 8U)
-                   + resIdxN]
+                   + vrn]
                 =
                 beta *
                 t_tile[(128U * (blockIdx.x / (cols / 64U)) +
-                        16U * (threadIdx.x / 8U) + resIdxM) * cols +
+                        16U * (threadIdx.x / 8U) + vrm) * cols +
                        64U * (blockIdx.x % (cols / 64U))
                        + 8U * (threadIdx.x % 8U)
-                       + resIdxN]
+                       + vrn]
                 + alpha * rchProd[resIdxM * 8U + resIdxN];
+        }
     }
 }
 
@@ -15763,22 +15952,22 @@ __hoisted_g_gemm_bf16_128x64x64_16x8_0(__nv_bfloat16 alpha,
     for (; resIdxM < 16U; resIdxM++) {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 8U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             __nv_bfloat16
                 v0 =
                 t_tile[(128U * (blockIdx.x / (cols / 64U)) +
-                        16U * (threadIdx.x / 8U) + resIdxM) * cols +
+                        16U * (threadIdx.x / 8U) + vrm) * cols +
                        64U * (blockIdx.x % (cols / 64U))
                        + 8U * (threadIdx.x % 8U)
-                       + resIdxN];
+                       + vrn];
             __nv_bfloat16 v1 = rchProd[resIdxM * 8U + resIdxN];
-            __nv_bfloat16 v_ =
-                kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
             t_tile[(128U * (blockIdx.x / (cols / 64U)) +
-                    16U * (threadIdx.x / 8U) + resIdxM) * cols +
+                    16U * (threadIdx.x / 8U) + vrm) * cols +
                    64U * (blockIdx.x % (cols / 64U))
                    + 8U * (threadIdx.x % 8U)
-                   + resIdxN]
-                = v_;
+                   + vrn]
+                = kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
         }
     }
 }
@@ -15885,20 +16074,23 @@ __hoisted_g_gemm_f32_128x64x64_16x16_0(float alpha,
     uint32_t resIdxM = 0U;
     for (; resIdxM < 16U; resIdxM++) {
         uint32_t resIdxN = 0U;
-        for (; resIdxN < 16U; resIdxN++)
+        for (; resIdxN < 16U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             t_tile[(128U * (blockIdx.x / (cols / 64U)) +
-                    16U * (threadIdx.x / 4U) + resIdxM) * cols +
+                    16U * (threadIdx.x / 4U) + vrm) * cols +
                    64U * (blockIdx.x % (cols / 64U))
                    + 16U * (threadIdx.x % 4U)
-                   + resIdxN]
+                   + vrn]
                 =
                 beta *
                 t_tile[(128U * (blockIdx.x / (cols / 64U)) +
-                        16U * (threadIdx.x / 4U) + resIdxM) * cols +
+                        16U * (threadIdx.x / 4U) + vrm) * cols +
                        64U * (blockIdx.x % (cols / 64U))
                        + 16U * (threadIdx.x % 4U)
-                       + resIdxN]
+                       + vrn]
                 + alpha * rchProd[resIdxM * 16U + resIdxN];
+        }
     }
 }
 
@@ -16014,22 +16206,22 @@ __hoisted_g_gemm_bf16_128x64x64_16x16_0(__nv_bfloat16 alpha,
     for (; resIdxM < 16U; resIdxM++) {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 16U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             __nv_bfloat16
                 v0 =
                 t_tile[(128U * (blockIdx.x / (cols / 64U)) +
-                        16U * (threadIdx.x / 4U) + resIdxM) * cols +
+                        16U * (threadIdx.x / 4U) + vrm) * cols +
                        64U * (blockIdx.x % (cols / 64U))
                        + 16U * (threadIdx.x % 4U)
-                       + resIdxN];
+                       + vrn];
             __nv_bfloat16 v1 = rchProd[resIdxM * 16U + resIdxN];
-            __nv_bfloat16 v_ =
-                kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
             t_tile[(128U * (blockIdx.x / (cols / 64U)) +
-                    16U * (threadIdx.x / 4U) + resIdxM) * cols +
+                    16U * (threadIdx.x / 4U) + vrm) * cols +
                    64U * (blockIdx.x % (cols / 64U))
                    + 16U * (threadIdx.x % 4U)
-                   + resIdxN]
-                = v_;
+                   + vrn]
+                = kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
         }
     }
 }
@@ -16136,20 +16328,23 @@ __hoisted_g_gemm_f32_128x128x32_8x8_0(float alpha,
     uint32_t resIdxM = 0U;
     for (; resIdxM < 8U; resIdxM++) {
         uint32_t resIdxN = 0U;
-        for (; resIdxN < 8U; resIdxN++)
+        for (; resIdxN < 8U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             t_tile[(128U * (blockIdx.x / (cols / 128U)) +
-                    8U * (threadIdx.x / 16U) + resIdxM) * cols +
+                    8U * (threadIdx.x / 16U) + vrm) * cols +
                    128U * (blockIdx.x % (cols / 128U))
                    + 8U * (threadIdx.x % 16U)
-                   + resIdxN]
+                   + vrn]
                 =
                 beta *
                 t_tile[(128U * (blockIdx.x / (cols / 128U)) +
-                        8U * (threadIdx.x / 16U) + resIdxM) * cols +
+                        8U * (threadIdx.x / 16U) + vrm) * cols +
                        128U * (blockIdx.x % (cols / 128U))
                        + 8U * (threadIdx.x % 16U)
-                       + resIdxN]
+                       + vrn]
                 + alpha * rchProd[resIdxM * 8U + resIdxN];
+        }
     }
 }
 
@@ -16265,22 +16460,22 @@ __hoisted_g_gemm_bf16_128x128x32_8x8_0(__nv_bfloat16 alpha,
     for (; resIdxM < 8U; resIdxM++) {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 8U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             __nv_bfloat16
                 v0 =
                 t_tile[(128U * (blockIdx.x / (cols / 128U)) +
-                        8U * (threadIdx.x / 16U) + resIdxM) * cols +
+                        8U * (threadIdx.x / 16U) + vrm) * cols +
                        128U * (blockIdx.x % (cols / 128U))
                        + 8U * (threadIdx.x % 16U)
-                       + resIdxN];
+                       + vrn];
             __nv_bfloat16 v1 = rchProd[resIdxM * 8U + resIdxN];
-            __nv_bfloat16 v_ =
-                kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
             t_tile[(128U * (blockIdx.x / (cols / 128U)) +
-                    8U * (threadIdx.x / 16U) + resIdxM) * cols +
+                    8U * (threadIdx.x / 16U) + vrm) * cols +
                    128U * (blockIdx.x % (cols / 128U))
                    + 8U * (threadIdx.x % 16U)
-                   + resIdxN]
-                = v_;
+                   + vrn]
+                = kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
         }
     }
 }
@@ -16387,20 +16582,23 @@ __hoisted_g_gemm_f32_128x128x32_8x16_0(float alpha,
     uint32_t resIdxM = 0U;
     for (; resIdxM < 8U; resIdxM++) {
         uint32_t resIdxN = 0U;
-        for (; resIdxN < 16U; resIdxN++)
+        for (; resIdxN < 16U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             t_tile[(128U * (blockIdx.x / (cols / 128U)) +
-                    8U * (threadIdx.x / 8U) + resIdxM) * cols +
+                    8U * (threadIdx.x / 8U) + vrm) * cols +
                    128U * (blockIdx.x % (cols / 128U))
                    + 16U * (threadIdx.x % 8U)
-                   + resIdxN]
+                   + vrn]
                 =
                 beta *
                 t_tile[(128U * (blockIdx.x / (cols / 128U)) +
-                        8U * (threadIdx.x / 8U) + resIdxM) * cols +
+                        8U * (threadIdx.x / 8U) + vrm) * cols +
                        128U * (blockIdx.x % (cols / 128U))
                        + 16U * (threadIdx.x % 8U)
-                       + resIdxN]
+                       + vrn]
                 + alpha * rchProd[resIdxM * 16U + resIdxN];
+        }
     }
 }
 
@@ -16516,22 +16714,22 @@ __hoisted_g_gemm_bf16_128x128x32_8x16_0(__nv_bfloat16 alpha,
     for (; resIdxM < 8U; resIdxM++) {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 16U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             __nv_bfloat16
                 v0 =
                 t_tile[(128U * (blockIdx.x / (cols / 128U)) +
-                        8U * (threadIdx.x / 8U) + resIdxM) * cols +
+                        8U * (threadIdx.x / 8U) + vrm) * cols +
                        128U * (blockIdx.x % (cols / 128U))
                        + 16U * (threadIdx.x % 8U)
-                       + resIdxN];
+                       + vrn];
             __nv_bfloat16 v1 = rchProd[resIdxM * 16U + resIdxN];
-            __nv_bfloat16 v_ =
-                kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
             t_tile[(128U * (blockIdx.x / (cols / 128U)) +
-                    8U * (threadIdx.x / 8U) + resIdxM) * cols +
+                    8U * (threadIdx.x / 8U) + vrm) * cols +
                    128U * (blockIdx.x % (cols / 128U))
                    + 16U * (threadIdx.x % 8U)
-                   + resIdxN]
-                = v_;
+                   + vrn]
+                = kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
         }
     }
 }
@@ -16638,20 +16836,23 @@ __hoisted_g_gemm_f32_128x128x32_16x8_0(float alpha,
     uint32_t resIdxM = 0U;
     for (; resIdxM < 16U; resIdxM++) {
         uint32_t resIdxN = 0U;
-        for (; resIdxN < 8U; resIdxN++)
+        for (; resIdxN < 8U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             t_tile[(128U * (blockIdx.x / (cols / 128U)) +
-                    16U * (threadIdx.x / 16U) + resIdxM) * cols +
+                    16U * (threadIdx.x / 16U) + vrm) * cols +
                    128U * (blockIdx.x % (cols / 128U))
                    + 8U * (threadIdx.x % 16U)
-                   + resIdxN]
+                   + vrn]
                 =
                 beta *
                 t_tile[(128U * (blockIdx.x / (cols / 128U)) +
-                        16U * (threadIdx.x / 16U) + resIdxM) * cols +
+                        16U * (threadIdx.x / 16U) + vrm) * cols +
                        128U * (blockIdx.x % (cols / 128U))
                        + 8U * (threadIdx.x % 16U)
-                       + resIdxN]
+                       + vrn]
                 + alpha * rchProd[resIdxM * 8U + resIdxN];
+        }
     }
 }
 
@@ -16767,22 +16968,22 @@ __hoisted_g_gemm_bf16_128x128x32_16x8_0(__nv_bfloat16 alpha,
     for (; resIdxM < 16U; resIdxM++) {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 8U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             __nv_bfloat16
                 v0 =
                 t_tile[(128U * (blockIdx.x / (cols / 128U)) +
-                        16U * (threadIdx.x / 16U) + resIdxM) * cols +
+                        16U * (threadIdx.x / 16U) + vrm) * cols +
                        128U * (blockIdx.x % (cols / 128U))
                        + 8U * (threadIdx.x % 16U)
-                       + resIdxN];
+                       + vrn];
             __nv_bfloat16 v1 = rchProd[resIdxM * 8U + resIdxN];
-            __nv_bfloat16 v_ =
-                kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
             t_tile[(128U * (blockIdx.x / (cols / 128U)) +
-                    16U * (threadIdx.x / 16U) + resIdxM) * cols +
+                    16U * (threadIdx.x / 16U) + vrm) * cols +
                    128U * (blockIdx.x % (cols / 128U))
                    + 8U * (threadIdx.x % 16U)
-                   + resIdxN]
-                = v_;
+                   + vrn]
+                = kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
         }
     }
 }
@@ -16889,20 +17090,23 @@ __hoisted_g_gemm_f32_128x128x32_16x16_0(float alpha,
     uint32_t resIdxM = 0U;
     for (; resIdxM < 16U; resIdxM++) {
         uint32_t resIdxN = 0U;
-        for (; resIdxN < 16U; resIdxN++)
+        for (; resIdxN < 16U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             t_tile[(128U * (blockIdx.x / (cols / 128U)) +
-                    16U * (threadIdx.x / 8U) + resIdxM) * cols +
+                    16U * (threadIdx.x / 8U) + vrm) * cols +
                    128U * (blockIdx.x % (cols / 128U))
                    + 16U * (threadIdx.x % 8U)
-                   + resIdxN]
+                   + vrn]
                 =
                 beta *
                 t_tile[(128U * (blockIdx.x / (cols / 128U)) +
-                        16U * (threadIdx.x / 8U) + resIdxM) * cols +
+                        16U * (threadIdx.x / 8U) + vrm) * cols +
                        128U * (blockIdx.x % (cols / 128U))
                        + 16U * (threadIdx.x % 8U)
-                       + resIdxN]
+                       + vrn]
                 + alpha * rchProd[resIdxM * 16U + resIdxN];
+        }
     }
 }
 
@@ -17018,22 +17222,22 @@ __hoisted_g_gemm_bf16_128x128x32_16x16_0(__nv_bfloat16 alpha,
     for (; resIdxM < 16U; resIdxM++) {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 16U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             __nv_bfloat16
                 v0 =
                 t_tile[(128U * (blockIdx.x / (cols / 128U)) +
-                        16U * (threadIdx.x / 8U) + resIdxM) * cols +
+                        16U * (threadIdx.x / 8U) + vrm) * cols +
                        128U * (blockIdx.x % (cols / 128U))
                        + 16U * (threadIdx.x % 8U)
-                       + resIdxN];
+                       + vrn];
             __nv_bfloat16 v1 = rchProd[resIdxM * 16U + resIdxN];
-            __nv_bfloat16 v_ =
-                kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
             t_tile[(128U * (blockIdx.x / (cols / 128U)) +
-                    16U * (threadIdx.x / 8U) + resIdxM) * cols +
+                    16U * (threadIdx.x / 8U) + vrm) * cols +
                    128U * (blockIdx.x % (cols / 128U))
                    + 16U * (threadIdx.x % 8U)
-                   + resIdxN]
-                = v_;
+                   + vrn]
+                = kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
         }
     }
 }
@@ -17140,20 +17344,23 @@ __hoisted_g_gemm_f32_128x128x64_8x8_0(float alpha,
     uint32_t resIdxM = 0U;
     for (; resIdxM < 8U; resIdxM++) {
         uint32_t resIdxN = 0U;
-        for (; resIdxN < 8U; resIdxN++)
+        for (; resIdxN < 8U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             t_tile[(128U * (blockIdx.x / (cols / 128U)) +
-                    8U * (threadIdx.x / 16U) + resIdxM) * cols +
+                    8U * (threadIdx.x / 16U) + vrm) * cols +
                    128U * (blockIdx.x % (cols / 128U))
                    + 8U * (threadIdx.x % 16U)
-                   + resIdxN]
+                   + vrn]
                 =
                 beta *
                 t_tile[(128U * (blockIdx.x / (cols / 128U)) +
-                        8U * (threadIdx.x / 16U) + resIdxM) * cols +
+                        8U * (threadIdx.x / 16U) + vrm) * cols +
                        128U * (blockIdx.x % (cols / 128U))
                        + 8U * (threadIdx.x % 16U)
-                       + resIdxN]
+                       + vrn]
                 + alpha * rchProd[resIdxM * 8U + resIdxN];
+        }
     }
 }
 
@@ -17269,22 +17476,22 @@ __hoisted_g_gemm_bf16_128x128x64_8x8_0(__nv_bfloat16 alpha,
     for (; resIdxM < 8U; resIdxM++) {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 8U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             __nv_bfloat16
                 v0 =
                 t_tile[(128U * (blockIdx.x / (cols / 128U)) +
-                        8U * (threadIdx.x / 16U) + resIdxM) * cols +
+                        8U * (threadIdx.x / 16U) + vrm) * cols +
                        128U * (blockIdx.x % (cols / 128U))
                        + 8U * (threadIdx.x % 16U)
-                       + resIdxN];
+                       + vrn];
             __nv_bfloat16 v1 = rchProd[resIdxM * 8U + resIdxN];
-            __nv_bfloat16 v_ =
-                kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
             t_tile[(128U * (blockIdx.x / (cols / 128U)) +
-                    8U * (threadIdx.x / 16U) + resIdxM) * cols +
+                    8U * (threadIdx.x / 16U) + vrm) * cols +
                    128U * (blockIdx.x % (cols / 128U))
                    + 8U * (threadIdx.x % 16U)
-                   + resIdxN]
-                = v_;
+                   + vrn]
+                = kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
         }
     }
 }
@@ -17391,20 +17598,23 @@ __hoisted_g_gemm_f32_128x128x64_8x16_0(float alpha,
     uint32_t resIdxM = 0U;
     for (; resIdxM < 8U; resIdxM++) {
         uint32_t resIdxN = 0U;
-        for (; resIdxN < 16U; resIdxN++)
+        for (; resIdxN < 16U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             t_tile[(128U * (blockIdx.x / (cols / 128U)) +
-                    8U * (threadIdx.x / 8U) + resIdxM) * cols +
+                    8U * (threadIdx.x / 8U) + vrm) * cols +
                    128U * (blockIdx.x % (cols / 128U))
                    + 16U * (threadIdx.x % 8U)
-                   + resIdxN]
+                   + vrn]
                 =
                 beta *
                 t_tile[(128U * (blockIdx.x / (cols / 128U)) +
-                        8U * (threadIdx.x / 8U) + resIdxM) * cols +
+                        8U * (threadIdx.x / 8U) + vrm) * cols +
                        128U * (blockIdx.x % (cols / 128U))
                        + 16U * (threadIdx.x % 8U)
-                       + resIdxN]
+                       + vrn]
                 + alpha * rchProd[resIdxM * 16U + resIdxN];
+        }
     }
 }
 
@@ -17520,22 +17730,22 @@ __hoisted_g_gemm_bf16_128x128x64_8x16_0(__nv_bfloat16 alpha,
     for (; resIdxM < 8U; resIdxM++) {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 16U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             __nv_bfloat16
                 v0 =
                 t_tile[(128U * (blockIdx.x / (cols / 128U)) +
-                        8U * (threadIdx.x / 8U) + resIdxM) * cols +
+                        8U * (threadIdx.x / 8U) + vrm) * cols +
                        128U * (blockIdx.x % (cols / 128U))
                        + 16U * (threadIdx.x % 8U)
-                       + resIdxN];
+                       + vrn];
             __nv_bfloat16 v1 = rchProd[resIdxM * 16U + resIdxN];
-            __nv_bfloat16 v_ =
-                kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
             t_tile[(128U * (blockIdx.x / (cols / 128U)) +
-                    8U * (threadIdx.x / 8U) + resIdxM) * cols +
+                    8U * (threadIdx.x / 8U) + vrm) * cols +
                    128U * (blockIdx.x % (cols / 128U))
                    + 16U * (threadIdx.x % 8U)
-                   + resIdxN]
-                = v_;
+                   + vrn]
+                = kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
         }
     }
 }
@@ -17642,20 +17852,23 @@ __hoisted_g_gemm_f32_128x128x64_16x8_0(float alpha,
     uint32_t resIdxM = 0U;
     for (; resIdxM < 16U; resIdxM++) {
         uint32_t resIdxN = 0U;
-        for (; resIdxN < 8U; resIdxN++)
+        for (; resIdxN < 8U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             t_tile[(128U * (blockIdx.x / (cols / 128U)) +
-                    16U * (threadIdx.x / 16U) + resIdxM) * cols +
+                    16U * (threadIdx.x / 16U) + vrm) * cols +
                    128U * (blockIdx.x % (cols / 128U))
                    + 8U * (threadIdx.x % 16U)
-                   + resIdxN]
+                   + vrn]
                 =
                 beta *
                 t_tile[(128U * (blockIdx.x / (cols / 128U)) +
-                        16U * (threadIdx.x / 16U) + resIdxM) * cols +
+                        16U * (threadIdx.x / 16U) + vrm) * cols +
                        128U * (blockIdx.x % (cols / 128U))
                        + 8U * (threadIdx.x % 16U)
-                       + resIdxN]
+                       + vrn]
                 + alpha * rchProd[resIdxM * 8U + resIdxN];
+        }
     }
 }
 
@@ -17771,22 +17984,22 @@ __hoisted_g_gemm_bf16_128x128x64_16x8_0(__nv_bfloat16 alpha,
     for (; resIdxM < 16U; resIdxM++) {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 8U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             __nv_bfloat16
                 v0 =
                 t_tile[(128U * (blockIdx.x / (cols / 128U)) +
-                        16U * (threadIdx.x / 16U) + resIdxM) * cols +
+                        16U * (threadIdx.x / 16U) + vrm) * cols +
                        128U * (blockIdx.x % (cols / 128U))
                        + 8U * (threadIdx.x % 16U)
-                       + resIdxN];
+                       + vrn];
             __nv_bfloat16 v1 = rchProd[resIdxM * 8U + resIdxN];
-            __nv_bfloat16 v_ =
-                kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
             t_tile[(128U * (blockIdx.x / (cols / 128U)) +
-                    16U * (threadIdx.x / 16U) + resIdxM) * cols +
+                    16U * (threadIdx.x / 16U) + vrm) * cols +
                    128U * (blockIdx.x % (cols / 128U))
                    + 8U * (threadIdx.x % 16U)
-                   + resIdxN]
-                = v_;
+                   + vrn]
+                = kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
         }
     }
 }
@@ -17893,20 +18106,23 @@ __hoisted_g_gemm_f32_128x128x64_16x16_0(float alpha,
     uint32_t resIdxM = 0U;
     for (; resIdxM < 16U; resIdxM++) {
         uint32_t resIdxN = 0U;
-        for (; resIdxN < 16U; resIdxN++)
+        for (; resIdxN < 16U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             t_tile[(128U * (blockIdx.x / (cols / 128U)) +
-                    16U * (threadIdx.x / 8U) + resIdxM) * cols +
+                    16U * (threadIdx.x / 8U) + vrm) * cols +
                    128U * (blockIdx.x % (cols / 128U))
                    + 16U * (threadIdx.x % 8U)
-                   + resIdxN]
+                   + vrn]
                 =
                 beta *
                 t_tile[(128U * (blockIdx.x / (cols / 128U)) +
-                        16U * (threadIdx.x / 8U) + resIdxM) * cols +
+                        16U * (threadIdx.x / 8U) + vrm) * cols +
                        128U * (blockIdx.x % (cols / 128U))
                        + 16U * (threadIdx.x % 8U)
-                       + resIdxN]
+                       + vrn]
                 + alpha * rchProd[resIdxM * 16U + resIdxN];
+        }
     }
 }
 
@@ -18022,22 +18238,22 @@ __hoisted_g_gemm_bf16_128x128x64_16x16_0(__nv_bfloat16 alpha,
     for (; resIdxM < 16U; resIdxM++) {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 16U; resIdxN++) {
+            uint32_t vrm = resIdxM;
+            uint32_t vrn = resIdxN;
             __nv_bfloat16
                 v0 =
                 t_tile[(128U * (blockIdx.x / (cols / 128U)) +
-                        16U * (threadIdx.x / 8U) + resIdxM) * cols +
+                        16U * (threadIdx.x / 8U) + vrm) * cols +
                        128U * (blockIdx.x % (cols / 128U))
                        + 16U * (threadIdx.x % 8U)
-                       + resIdxN];
+                       + vrn];
             __nv_bfloat16 v1 = rchProd[resIdxM * 16U + resIdxN];
-            __nv_bfloat16 v_ =
-                kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
             t_tile[(128U * (blockIdx.x / (cols / 128U)) +
-                    16U * (threadIdx.x / 8U) + resIdxM) * cols +
+                    16U * (threadIdx.x / 8U) + vrm) * cols +
                    128U * (blockIdx.x % (cols / 128U))
                    + 16U * (threadIdx.x % 8U)
-                   + resIdxN]
-                = v_;
+                   + vrn]
+                = kpr_bf16add(kpr_bf16mul(beta, v0), kpr_bf16mul(alpha, v1));
         }
     }
 }

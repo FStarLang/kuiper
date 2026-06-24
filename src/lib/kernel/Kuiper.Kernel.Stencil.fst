@@ -3,10 +3,8 @@ module Kuiper.Kernel.Stencil
 #lang-pulse
 
 open Kuiper
-open Kuiper.Array2
+open Kuiper.Tensor
 open Kuiper.EMatrix
-open Kuiper.Tensor { ctlayout }
-module Array2 = Kuiper.Array2
 module STS = Kuiper.Spec.Stencil
 module SZ = Kuiper.SizeT
 
@@ -16,8 +14,8 @@ let kpre
   (stencil: (i: natlt 3) -> (j: natlt 3) -> et)
   (#rows #cols : szp)
   (#_ : squash (SZ.fits (rows + 2) /\ SZ.fits (cols + 2)))
-  (#lIn : Array2.layout (rows +^ 2sz) (cols +^ 2sz))
-  (#lOut : Array2.layout rows cols)
+  (#lIn : layout2 (rows +^ 2sz) (cols +^ 2sz))
+  (#lOut : layout2 rows cols)
   {| ctlayout lIn |}
   {| ctlayout lOut |}
   (gIn : array2 et lIn)
@@ -29,7 +27,7 @@ let kpre
   =
   gIn |-> Frac (fIn /. (rows * cols)) eIn **
   (exists* vv.
-    Array2.pts_to_cell gOut #1.0R (tid / cols, tid % cols) vv)
+    tensor_pts_to_cell gOut #1.0R (ix2 (tid / cols) (tid % cols)) vv)
 
 unfold
 let kpost
@@ -37,8 +35,8 @@ let kpost
   (stencil: (i: natlt 3) -> (j: natlt 3) -> et)
   (#rows #cols : szp)
   (#_ : squash (SZ.fits (rows + 2) /\ SZ.fits (cols + 2)))
-  (#lIn : Array2.layout (rows +^ 2sz) (cols +^ 2sz))
-  (#lOut : Array2.layout rows cols)
+  (#lIn : layout2 (rows +^ 2sz) (cols +^ 2sz))
+  (#lOut : layout2 rows cols)
   {| ctlayout lIn |}
   {| ctlayout lOut |}
   (gIn : array2 et lIn)
@@ -49,7 +47,7 @@ let kpost
   : slprop
   =
   gIn |-> Frac (fIn /. (rows * cols)) eIn **
-  Array2.pts_to_cell gOut (tid / cols, tid % cols)
+  tensor_pts_to_cell gOut (ix2 (tid / cols) (tid % cols))
     (STS.stencil_result_at_idx #_ #_ #rows #cols stencil eIn (tid / cols) (tid % cols))
 
 #push-options "--z3rlimit 15"
@@ -59,8 +57,8 @@ fn kf
   (stencil: (i: natlt 3) -> (j: natlt 3) -> et)
   (#rows #cols : szp)
   (#_ : squash (SZ.fits (rows + 2) /\ SZ.fits (cols + 2)))
-  (#lIn : Array2.layout (rows +^ 2sz) (cols +^ 2sz))
-  (#lOut : Array2.layout rows cols)
+  (#lIn : layout2 (rows +^ 2sz) (cols +^ 2sz))
+  (#lOut : layout2 rows cols)
   {| ctlayout lIn |}
   {| ctlayout lOut |}
   (gIn : array2 et lIn)
@@ -82,16 +80,16 @@ fn kf
   let i : sz = bid /^ cols; assert (rewrites_to i (bid /^ cols));
   let j : sz = bid %^ cols; assert (rewrites_to j (bid %^ cols));
 
-  let tl = Array2.read gIn (i,      j); let tm = Array2.read gIn (i,      j+^1sz); let tr = Array2.read gIn (i,      j+^2sz);
-  let ml = Array2.read gIn (i+^1sz, j); let mm = Array2.read gIn (i+^1sz, j+^1sz); let mr = Array2.read gIn (i+^1sz, j+^2sz);
-  let bl = Array2.read gIn (i+^2sz, j); let bm = Array2.read gIn (i+^2sz, j+^1sz); let br = Array2.read gIn (i+^2sz, j+^2sz);
+  let tl = tensor_read gIn ((i <: szlt _), ((j <: szlt _), ())); let tm = tensor_read gIn ((i <: szlt _), ((j+^1sz <: szlt _), ())); let tr = tensor_read gIn ((i <: szlt _), ((j+^2sz <: szlt _), ()));
+  let ml = tensor_read gIn ((i+^1sz <: szlt _), ((j <: szlt _), ())); let mm = tensor_read gIn ((i+^1sz <: szlt _), ((j+^1sz <: szlt _), ())); let mr = tensor_read gIn ((i+^1sz <: szlt _), ((j+^2sz <: szlt _), ()));
+  let bl = tensor_read gIn ((i+^2sz <: szlt _), ((j <: szlt _), ())); let bm = tensor_read gIn ((i+^2sz <: szlt _), ((j+^1sz <: szlt _), ())); let br = tensor_read gIn ((i+^2sz <: szlt _), ((j+^2sz <: szlt _), ()));
 
   let sv =
     (tl `mul` stencil 0 0) `add` (tm `mul` stencil 0 1) `add` (tr `mul` stencil 0 2) `add`
     (ml `mul` stencil 1 0) `add` (mm `mul` stencil 1 1) `add` (mr `mul` stencil 1 2) `add`
     (bl `mul` stencil 2 0) `add` (bm `mul` stencil 2 1) `add` (br `mul` stencil 2 2);
 
-  Array2.write_cell gOut (i, j) sv;
+  tensor_write_cell gOut ((i <: szlt _), ((j <: szlt _), ())) sv;
 }
 #pop-options
 
@@ -102,8 +100,8 @@ fn setup
   (stencil: (i: natlt 3) -> (j: natlt 3) -> et)
   (#rows #cols : szp)
   (#_ : squash (SZ.fits (rows + 2) /\ SZ.fits (cols + 2)))
-  (#lIn : Array2.layout (rows +^ 2sz) (cols +^ 2sz))
-  (#lOut : Array2.layout rows cols)
+  (#lIn : layout2 (rows +^ 2sz) (cols +^ 2sz))
+  (#lOut : layout2 rows cols)
   {| ctlayout lIn |}
   {| ctlayout lOut |}
   (gIn : array2 et lIn)
@@ -121,19 +119,19 @@ fn setup
       kpre stencil gIn fIn gOut eIn rc) **
     emp (* frame *)
 {
-  Array2.share_n gIn (rows *^ cols);
+  tensor_share_n gIn (rows *^ cols);
 
-  Array2.ilower gOut;
+  tensor_ilower2 gOut;
 
   forevery_unfactor' (rows *^ cols) rows cols (fun r c ->
-    Array2.pts_to_cell gOut (r, c) (macc eOut r c));
+    tensor_pts_to_cell gOut (ix2 r c) (macc eOut r c));
 
   ghost
   fn hide_specific_val_behind_exists (rc: natlt (rows *^ cols))
     requires
-        Array2.pts_to_cell gOut ((rc / cols <: natlt rows), (rc % cols <: natlt cols)) (macc #_ #(SZ.v rows) #(SZ.v cols) eOut (rc / cols) (rc % cols))
+        tensor_pts_to_cell gOut (ix2 (rc / cols <: natlt rows) (rc % cols <: natlt cols)) (macc #_ #(SZ.v rows) #(SZ.v cols) eOut (rc / cols) (rc % cols))
     ensures
-      (exists* vv. Array2.pts_to_cell gOut ((rc / cols <: natlt rows), (rc % cols <: natlt cols)) vv)
+      (exists* vv. tensor_pts_to_cell gOut (ix2 (rc / cols <: natlt rows) (rc % cols <: natlt cols)) vv)
   {
     ()
   };
@@ -143,16 +141,16 @@ fn setup
   forevery_zip #(natlt (rows *^ cols))
     _
     (fun rc ->
-      (exists* vv. Array2.pts_to_cell gOut ((rc / cols <: natlt rows), (rc % cols <: natlt cols)) vv));
+      (exists* vv. tensor_pts_to_cell gOut (ix2 (rc / cols <: natlt rows) (rc % cols <: natlt cols)) vv));
 
   ghost
   fn hide_specific_val_behind_exists (rc: natlt (rows * cols))
     requires
-      Array2.pts_to #et gIn #(fIn /. Real.of_int (SZ.v (SZ.mul rows cols))) eIn **
-        Array2.pts_to_cell gOut ((rc / cols <: natlt rows), (rc % cols <: natlt cols)) (macc eOut (rc / cols) (rc % cols))
+      tensor_pts_to #et gIn #(fIn /. Real.of_int (SZ.v (SZ.mul rows cols))) eIn **
+        tensor_pts_to_cell gOut (ix2 (rc / cols <: natlt rows) (rc % cols <: natlt cols)) (macc eOut (rc / cols) (rc % cols))
     ensures
-      Array2.pts_to #et gIn #(fIn /. Real.of_int (SZ.v (SZ.mul rows cols))) eIn **
-      (exists* vv. Array2.pts_to_cell gOut ((rc / cols <: natlt rows), (rc % cols <: natlt cols)) vv)
+      tensor_pts_to #et gIn #(fIn /. Real.of_int (SZ.v (SZ.mul rows cols))) eIn **
+      (exists* vv. tensor_pts_to_cell gOut (ix2 (rc / cols <: natlt rows) (rc % cols <: natlt cols)) vv)
   {
     ()
   };
@@ -162,7 +160,7 @@ fn setup
     (fun i ->
     (* In the context, fractions are computed by mulitplying SizeT and then converting to nat, *)
       (gIn |-> Frac (fIn /. (rows *^ cols)) eIn) **
-      exists* vv. Array2.pts_to_cell gOut ((i/cols <: natlt rows), (i%cols <: natlt cols)) vv)
+      exists* vv. tensor_pts_to_cell gOut (ix2 (i/cols <: natlt rows) (i%cols <: natlt cols)) vv)
     (* and the goal expects conversion to nat for each factor. *)
     (fun i ->
       kpre stencil gIn fIn gOut eIn i);
@@ -176,8 +174,8 @@ fn teardown
   (stencil: (i: natlt 3) -> (j: natlt 3) -> et)
   (#rows #cols : szp)
   (#_ : squash (SZ.fits (rows + 2) /\ SZ.fits (cols + 2)))
-  (#lIn : Array2.layout (rows +^ 2sz) (cols +^ 2sz))
-  (#lOut : Array2.layout rows cols)
+  (#lIn : layout2 (rows +^ 2sz) (cols +^ 2sz))
+  (#lOut : layout2 rows cols)
   {| ctlayout lIn |}
   {| ctlayout lOut |}
   (gIn : array2 et lIn)
@@ -200,8 +198,8 @@ fn teardown
     (natlt (v (SizeT.mul rows cols)))
     (natlt (v rows * v cols))
     (fun _ ->
-      Array2.pts_to #et gIn #(fIn /. (v rows * v cols)) eIn);
-  Array2.gather_n gIn _;
+      tensor_pts_to #et gIn #(fIn /. (v rows * v cols)) eIn);
+  tensor_gather_n gIn _;
 
   forevery_factor (rows *^ cols) rows cols _;
 
@@ -210,29 +208,29 @@ fn teardown
   assert (pure (forall (r c : nat). c < cols ==> (r * cols + c) % cols == c));
   forevery_ext_2
     (fun (r:natlt rows) (c:natlt cols) ->
-      Array2.pts_to_cell gOut (((r * cols + c) / cols <: natlt rows), ((r * cols + c) % cols <: natlt cols))
+      tensor_pts_to_cell gOut (ix2 ((r * cols + c) / cols <: natlt rows) ((r * cols + c) % cols <: natlt cols))
          (STS.stencil_result_at_idx #_ #_ #rows #cols stencil eIn
             ((r * cols + c) / cols) ((r * cols + c) % cols)))
     (fun (r:natlt rows) (c:natlt cols) ->
-      Array2.pts_to_cell gOut (r, c) (
+      tensor_pts_to_cell gOut (ix2 r c) (
         STS.stencil_result_at_idx #_ #_ #rows #cols stencil eIn r c));
 
   ghost
   fn convert_single_res_to_access_on_entire_res (r:natlt rows) (c:natlt cols)
     requires
-      Array2.pts_to_cell gOut (r, c) (STS.stencil_result_at_idx stencil eIn r c)
+      tensor_pts_to_cell gOut (ix2 r c) (STS.stencil_result_at_idx stencil eIn r c)
     ensures
-      Array2.pts_to_cell gOut (r, c) (macc (STS.stencil_result stencil eIn) r c)
+      tensor_pts_to_cell gOut (ix2 r c) (macc (STS.stencil_result stencil eIn) r c)
   {
     ()
   };
 
   forevery_map_2 #(natlt rows) #(natlt cols)
-    (fun r c -> Array2.pts_to_cell gOut (r, c) (STS.stencil_result_at_idx stencil eIn r c))
+    (fun r c -> tensor_pts_to_cell gOut (ix2 r c) (STS.stencil_result_at_idx stencil eIn r c))
     _
     convert_single_res_to_access_on_entire_res;
 
-  Array2.iraise gOut;
+  tensor_iraise2 gOut;
 }
 
 inline_for_extraction noextract
@@ -241,13 +239,13 @@ let kdesc
   (stencil: (i: natlt 3) -> (j: natlt 3) -> et)
   (#rows #cols : szp)
   (#_ : squash (SZ.fits (rows + 2) /\ SZ.fits (cols + 2)))
-  (#lIn : Array2.layout (rows +^ 2sz) (cols +^ 2sz))
-  (#lOut : Array2.layout rows cols)
+  (#lIn : layout2 (rows +^ 2sz) (cols +^ 2sz))
+  (#lOut : layout2 rows cols)
   {| ctlayout lIn |}
   {| ctlayout lOut |}
-  (gIn : array2 et lIn { Array2.is_global gIn})
+  (gIn : array2 et lIn { is_global gIn})
   (#fIn : perm)
-  (gOut : array2 et lOut { Array2.is_global gOut })
+  (gOut : array2 et lOut { is_global gOut })
   (#eIn : ematrix et (rows +^ 2sz) (cols +^ 2sz))
   (#eOut : ematrix et rows cols)
   (_ : squash (rows * cols <= max_blocks))
@@ -276,13 +274,13 @@ fn host_simple_stencil
   (stencil: (i: natlt 3) -> (j: natlt 3) -> et)
   (#rows #cols : szp)
   (#_ : squash (SZ.fits (rows + 2) /\ SZ.fits (cols + 2)))
-  (#lIn : Array2.layout (rows +^ 2sz) (cols +^ 2sz))
-  (#lOut : Array2.layout rows cols)
+  (#lIn : layout2 (rows +^ 2sz) (cols +^ 2sz))
+  (#lOut : layout2 rows cols)
   {| ctlayout lIn |}
   {| ctlayout lOut |}
-  (gIn : array2 et lIn { Array2.is_global gIn})
+  (gIn : array2 et lIn { is_global gIn})
   (#fIn : perm)
-  (gOut : array2 et lOut { Array2.is_global gOut })
+  (gOut : array2 et lOut { is_global gOut })
   (#eIn : ematrix et (rows +^ 2sz) (cols +^ 2sz))
   (#eOut : ematrix et rows cols)
   preserves
@@ -304,8 +302,8 @@ fn specialize_host_simple_stencil
   (rIn rOut : trepr2)
   {| cIn : ctrepr2 rIn, cOut : ctrepr2 rOut |}
   (rows cols : (x:szp{x >= 3}))
-  (gIn : array2 et (rIn rows cols) { Array2.is_global gIn })
-  (gOut : array2 et (rOut (rows - 2) (cols - 2)) { Array2.is_global gOut })
+  (gIn : array2 et (rIn rows cols) { is_global gIn })
+  (gOut : array2 et (rOut (rows - 2) (cols - 2)) { is_global gOut })
   (#fIn : perm)
   (#eIn : ematrix et rows cols)
   (#eOut : ematrix et (rows - 2) (cols - 2))

@@ -4,7 +4,6 @@ module Kuiper.Matrix.Casts
 open Kuiper
 
 open Kuiper.Tensor
-module A2 = Kuiper.Array2
 open Kuiper.EMatrix
 
 // TODO: define this by composing a bijection with the l.imap injection
@@ -70,8 +69,8 @@ inline_for_extraction noextract
 fn m2_to_m4
   (m n mm nn : erased nat{mm > 0 /\ nn > 0})
   (#et : Type0) {| scalar et |}
-  (#lA : A2.full_layout (m * mm) (n * nn))
-  (gA : A2.t et lA)
+  (#lA : full_layout2 (m * mm) (n * nn))
+  (gA : array2 et lA)
   (#eA : ematrix et _ _)
   (#f : perm)
   requires
@@ -80,13 +79,13 @@ fn m2_to_m4
     gA4 : array4 et (l2_to_l4 lA)
   ensures
     gA4 |-> Frac f (em2_to_em4 eA) **
-    pure (core gA4 == A2.core gA)
+    pure (core gA4 == core gA)
 {
   (* Very roundabout way to do this. *)
-  A2.lower gA;
-  tensor_abs' (l2_to_l4 lA) (A2.core gA);
-  let r = from_array (l2_to_l4 lA) (A2.core gA);
-  assert rewrites_to r (from_array (l2_to_l4 lA) (A2.core gA));
+  tensor_concr gA;
+  tensor_abs' (l2_to_l4 lA) (core gA);
+  let r = from_array (l2_to_l4 lA) (core gA);
+  assert rewrites_to r (from_array (l2_to_l4 lA) (core gA));
   assert pure (equal
     (from_seq (l2_to_l4 lA) (to_seq lA eA))
     (em2_to_em4 eA));
@@ -108,16 +107,16 @@ fn m4_to_m2
   requires
     gA4 |-> Frac f eA4
   returns
-    gA : A2.t et (l4_to_l2 lA4)
+    gA : array2 et (l4_to_l2 lA4)
   ensures
     gA |-> Frac f (em4_to_em2 eA4) **
-    pure (core gA4 == A2.core gA)
+    pure (core gA4 == core gA)
 {
   (* Very roundabout way to do this. *)
   tensor_concr gA4;
-  A2.raise' (l4_to_l2 lA4) (core gA4);
-  let r = A2.from_array (l4_to_l2 lA4) (core gA4);
-  assert rewrites_to r (A2.from_array (l4_to_l2 lA4) (core gA4));
+  tensor_abs' (l4_to_l2 lA4) (core gA4);
+  let r = from_array (l4_to_l2 lA4) (core gA4);
+  assert rewrites_to r (from_array (l4_to_l2 lA4) (core gA4));
   assert pure (Kuiper.EMatrix.equal
     (from_seq (l4_to_l2 lA4) (to_seq lA4 eA4))
     (em4_to_em2 eA4));

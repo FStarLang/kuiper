@@ -7,16 +7,15 @@ open Kuiper
 open Kuiper.Array.Vectorized
 open Kuiper.EMatrix
 
-open Kuiper.Array2 { array2, layout }
+open Kuiper.Tensor { array2, layout2, ix2 }
 open Kuiper.Array2.Strided
-module M = Kuiper.Array2
 module T = Kuiper.Tensor
 
 inline_for_extraction noextract
 fn array2_vec_read
   (#et:Type0) {| sized et, has_vec_cpy et |}
   (#rows #cols : erased nat)
-  (#l : layout rows cols) {| T.ctlayout l, strided : strided_row_major l |}
+  (#l : layout2 rows cols) {| T.ctlayout l, strided : strided_row_major l |}
   (gm : array2 et l)
   (i : szlt rows)
   (j : szlt (cols - chunk et + 1))
@@ -26,7 +25,7 @@ fn array2_vec_read
   (#s : erased (seq et))
   preserves gpu
   preserves gm |-> Frac f em
-  requires  pure (aligned' 16 (M.core gm) (cell_of_pos l i j))
+  requires  pure (aligned' 16 (T.core gm) (cell_of_pos l i j))
   requires  pure (aligned 16 arr)
   requires  arr |-> s
   requires  pure (Pulse.Lib.Array.length arr == chunk et)

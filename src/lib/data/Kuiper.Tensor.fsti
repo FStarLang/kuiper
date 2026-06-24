@@ -17,10 +17,10 @@ module T = FStar.Tactics.V2
 inline_for_extraction noextract
 val tensor (et : Type0) (#r : nat) (#d : shape r) (l : tlayout d) : Type0
 
-// inline_for_extraction noextract
-// let array1 (et : Type0) (#d0 : nat) (l : layout1 d0) : Type0 = tensor et l
-// inline_for_extraction noextract
-// let array2 (et : Type0) (#d0 #d1 : nat) (l : layout2 d0 d1) : Type0 = tensor et l
+inline_for_extraction noextract
+let array1 (et : Type0) (#d0 : nat) (l : layout1 d0) : Type0 = tensor et l
+inline_for_extraction noextract
+let array2 (et : Type0) (#d0 #d1 : nat) (l : layout2 d0 d1) : Type0 = tensor et l
 inline_for_extraction noextract
 let array3 (et : Type0) (#d0 #d1 #d2 : nat) (l : layout3 d0 d1 d2) : Type0 = tensor et l
 inline_for_extraction noextract
@@ -223,6 +223,18 @@ fn tensor_gather_n
     forall+ (_:natlt k). a |-> Frac (f /. k) s
   ensures
     a |-> Frac f s
+
+ghost
+fn tensor_gather_n_underspec
+  (#et : Type0) (#r : nat) (#d : shape r)
+  (#l : tlayout d)
+  (a : tensor et l) (k : pos)
+  (#f : perm)
+  requires
+    forall+ (_:natlt k).
+      exists* (s : chest d et). tensor_pts_to a #(f /. k) s
+  ensures
+    exists* (s : chest d et). tensor_pts_to a #f s
 
 // Needs to be exposed
 inline_for_extraction noextract
@@ -502,5 +514,64 @@ fn tensor_restore_slice
     factored
       (sliceof a i j |-> Frac f (chest_slice i j s))
       (a |-> Frac f s)
+  ensures
+    a |-> Frac f s
+
+(* Rank-2 conveniences over the (natlt rows & natlt cols) index pair. *)
+
+inline_for_extraction noextract
+let ix2 (#rows #cols : nat) (r : natlt rows) (c : natlt cols)
+  : abs (rows @| cols @| INil)
+  = (r, (c, ()))
+
+ghost
+fn tensor_explode2
+  (#et : Type0) (#rows #cols : nat) (#l : layout2 rows cols)
+  (a : tensor et l)
+  (#f : perm)
+  (#s : chest2 et rows cols)
+  requires
+    a |-> Frac f s
+  ensures
+    forall+ (ij : natlt rows & natlt cols).
+      Cell a (ix2 (fst ij) (snd ij)) |-> Frac f (acc s (ix2 (fst ij) (snd ij)))
+
+ghost
+fn tensor_implode2
+  (#et : Type0) (#rows #cols : nat) (#l : layout2 rows cols)
+  (a : tensor et l)
+  (#f : perm)
+  (#s : chest2 et rows cols)
+  requires
+    pure (SZ.fits (tlayout_ulen l))
+  requires
+    forall+ (ij : natlt rows & natlt cols).
+      Cell a (ix2 (fst ij) (snd ij)) |-> Frac f (acc s (ix2 (fst ij) (snd ij)))
+  ensures
+    a |-> Frac f s
+
+ghost
+fn tensor_ilower2
+  (#et : Type0) (#rows #cols : nat) (#l : layout2 rows cols)
+  (a : tensor et l)
+  (#f : perm)
+  (#s : chest2 et rows cols)
+  requires
+    a |-> Frac f s
+  ensures
+    pure (SZ.fits (tlayout_ulen l)) **
+    (forall+ (r : natlt rows) (c : natlt cols).
+      Cell a (ix2 r c) |-> Frac f (acc s (ix2 r c)))
+
+ghost
+fn tensor_iraise2
+  (#et : Type0) (#rows #cols : nat) (#l : layout2 rows cols)
+  (a : tensor et l)
+  (#f : perm)
+  (#s : chest2 et rows cols)
+  requires
+    pure (SZ.fits (tlayout_ulen l)) **
+    (forall+ (r : natlt rows) (c : natlt cols).
+      Cell a (ix2 r c) |-> Frac f (acc s (ix2 r c)))
   ensures
     a |-> Frac f s
