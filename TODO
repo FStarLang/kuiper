@@ -10,3 +10,4 @@
   How should we do that cleanly?
 - Use `smin 1024sz lena` for thread size in HReduce/Softmax/LogSoftmax? Ideally I want
   a single ocurrence of the ternary operator in the output CUDA. See karamel -fternary
+- Should we just use lists for shape/cshape instead of a new type?

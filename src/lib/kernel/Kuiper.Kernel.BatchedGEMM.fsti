@@ -8,8 +8,6 @@ open Kuiper
 open Kuiper.Tensor
 open Kuiper.Tensor.Layout
 open Kuiper.Tensor.Layout.Alg
-open Kuiper.Index
-module EMatrix3 = Kuiper.EMatrix3
 module MS = Kuiper.Spec.GEMM
 module SZ = Kuiper.SizeT
 
@@ -25,9 +23,9 @@ fn bmmcomb_gpu_exact
   (a : tensor et la { is_global a })
   (b : tensor et lb { is_global b })
   (c : tensor et lc { is_global c })
-  (#sa : erased (EMatrix3.t et batch rows shared))
-  (#sb : erased (EMatrix3.t et batch shared cols))
-  (#sc : erased (EMatrix3.t et batch rows cols))
+  (#sa : erased (chest3 et batch rows shared))
+  (#sb : erased (chest3 et batch shared cols))
+  (#sc : erased (chest3 et batch rows cols))
   (#fA #fB : perm)
   norewrite
   preserves

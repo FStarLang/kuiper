@@ -11,7 +11,7 @@ module Array1 = Kuiper.Array1
 module Array2 = Kuiper.Array2
 open Kuiper.EMatrix
 open Kuiper.Tensor
-open Kuiper.Index
+open Kuiper.Shape
 
 let s_row_broadcast
   (#t : Type0) {| scalar t |}

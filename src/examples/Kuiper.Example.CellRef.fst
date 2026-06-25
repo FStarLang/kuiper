@@ -6,7 +6,7 @@ open Kuiper.Array1
 open Kuiper.Seq.Common
 open Kuiper.Tensor.Layout
 open Kuiper.Tensor.Layout.Alg
-open Kuiper.Index
+open Kuiper.Shape
 module SZ = Kuiper.SizeT
 
 (* Read cell [i] by obtaining a ref into it and dereferencing. *)

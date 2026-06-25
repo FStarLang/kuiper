@@ -5,7 +5,7 @@ module Kuiper.Array2
 open Kuiper
 open Kuiper.Tensor
 open Kuiper.Injection
-open Kuiper.Index
+open Kuiper.Shape
 open Kuiper.EMatrix
 open FStar.Tactics.Typeclasses { no_method }
 open Pulse.Lib.Trade
@@ -14,7 +14,7 @@ module SZ = Kuiper.SizeT
 module Tac = FStar.Tactics.V2
 module T = Kuiper.Tensor
 
-let desc (rows cols : nat) : idesc 2 =
+let desc (rows cols : nat) : shape 2 =
   rows @| cols @| INil
 
 // Even if this is trivial, it seems to help in some contexts.

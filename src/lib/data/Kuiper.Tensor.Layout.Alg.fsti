@@ -4,18 +4,17 @@ module Kuiper.Tensor.Layout.Alg
 
 open Kuiper
 open Kuiper.Injection
-open Kuiper.Bijection
-open Kuiper.Index
+open Kuiper.Shape
 module SZ = Kuiper.SizeT
 open Kuiper.Tensor.Layout
-type layout_f_for (#n:nat) (d : idesc n) =
+type layout_f_for (#n:nat) (d : shape n) =
   abs d @~> natlt (sizeof d)
 
 let lunit : layout_f_for INil =
   mk_injection #_ #(natlt 1) (fun () -> 0) ez
 
 (* From a layout_f to a full layout *)
-let pack (#n:nat) (#d:idesc n) (f : layout_f_for d) : full_tlayout d =
+let pack (#n:nat) (#d:shape n) (f : layout_f_for d) : full_tlayout d =
   let ulen = sizeof d in
   let imap = f in
   { ulen; imap }
@@ -23,7 +22,7 @@ let pack (#n:nat) (#d:idesc n) (f : layout_f_for d) : full_tlayout d =
 let major_on_f (#n:nat)
   (i : natlt (n+1))
   (k : nat)
-  (#d : idesc n)
+  (#d : shape n)
   (sub : layout_f_for d)
   : abs (insert_i i k d) -> GTot (natlt (sizeof (insert_i i k d)))
   = fun (idx : abs (insert_i i k d)) ->
@@ -34,7 +33,7 @@ let major_on_f (#n:nat)
 val major_on (#n:nat)
   (i : natlt (n+1))
   (k : nat)
-  (#d : idesc n)
+  (#d : shape n)
   (sub : layout_f_for d)
   : l : layout_f_for (insert_i i k d)
      { l.f == major_on_f i k sub }
@@ -84,7 +83,7 @@ let l4_batched_row_major (r1 r2 m n : nat)
 (* Constructing a concrete size for a given description.
 TODO: use concrete_sz. *)
 inline_for_extraction noextract
-class csizeof (#n : erased nat) (d : idesc n) =
+class csizeof (#n : erased nat) (d : shape n) =
   {
     v : (v : SZ.t{SZ.v v == sizeof d});
   }
@@ -96,7 +95,7 @@ inline_for_extraction noextract
 instance val csizeof_ICons
   (#n : erased nat)
   (d0 : SZ.t)
-  (d1 : idesc n)
+  (d1 : shape n)
   (c_d1 : csizeof d1)
   (#_ : squash (SZ.fits (d0 * c_d1.v)))
   : csizeof (ICons d0 d1)
@@ -106,14 +105,14 @@ instance val csizeof_insert_i
   (#n : erased nat)
   (i : erased nat{i < n+1})
   (k : sz)
-  (d : idesc n)
+  (d : shape n)
   (c_d : csizeof d)
   (#_ : squash (SZ.fits (k * c_d.v)))
   : csizeof (insert_i i k d)
 
 (* Constructing a concrete function for a given ghost injection. *)
 inline_for_extraction noextract
-class auto_cinj (#n : erased nat) (#d : erased (idesc n)) (#k : erased nat)
+class auto_cinj (#n : erased nat) (#d : erased (shape n)) (#k : erased nat)
   (f : abs d @~> natlt k) =
   {
     ff : (x:conc d -> y:SZ.t{SZ.v y == f.f (up x)});
@@ -127,7 +126,7 @@ instance val c_major_on
   (#n: erased nat)
   (i : szlt (n+1))
   (k : erased nat)
-  (#d : idesc n)
+  (#d : shape n)
   {| cs : csizeof d |}
   (#sub : layout_f_for d)
   (#_ : squash (SZ.fits (k * sizeof d)))
@@ -137,7 +136,7 @@ instance val c_major_on
 (* Constructing a ctlayout automatically if we can concretize the size and the
 injection.  FIXME: this does not seem to work. *)
 inline_for_extraction noextract
-instance val c_pack (#n : erased nat) (#d: idesc n)
+instance val c_pack (#n : erased nat) (#d: shape n)
   (#f : layout_f_for d) (c_f : auto_cinj f)
   (#_ : squash (SZ.fits (sizeof d)))
   (#_ : squash (all_fit d))
@@ -148,7 +147,7 @@ inline_for_extraction noextract
 instance c_major_on_i_0'
   (#n: erased nat{n > 0})
   (k : erased nat)
-  (#d : idesc (n-1))
+  (#d : shape (n-1))
   {| cs : csizeof d |}
   (#sub : layout_f_for d)
   (#_ : squash (SZ.fits (k * sizeof d)))

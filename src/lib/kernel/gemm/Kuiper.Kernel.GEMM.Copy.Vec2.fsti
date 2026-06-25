@@ -6,9 +6,8 @@ open Kuiper
 open Kuiper.Array.Vectorized
 open Kuiper.EMatrix
 
-open Kuiper.Array2 { array2 }
+open Kuiper.Tensor
 open Kuiper.Array2.Strided
-module M = Kuiper.Array2
 module T = Kuiper.Tensor
 module SZ = Kuiper.SizeT
 
@@ -44,7 +43,7 @@ val in_chunk_no_overlap
 let own_strided_chunks
   (#et : Type0) {| sized et, hvc: has_vec_cpy et |}
   (#rows #cols : nat)
-  (#l : M.layout rows cols)
+  (#l : layout2 rows cols)
   ([@@@mkey] m : array2 et l)
   (em : ematrix et rows cols)
   (nthr : nat)
@@ -52,12 +51,12 @@ let own_strided_chunks
   : slprop
 =
   forall+ (ij : (natlt rows & natlt cols){in_chunk (chunk et #_ #hvc) rows cols nthr tid ij}).
-    M.pts_to_cell m (ij._1, ij._2) (macc em ij._1 ij._2)
+    tensor_pts_to_cell m (ix2 ij._1 ij._2) (macc em ij._1 ij._2)
 
 let live_strided_chunks
   (#et : Type0) {| sized et, hvc: has_vec_cpy et |}
   (#rows #cols : nat)
-  (#l : M.layout rows cols)
+  (#l : layout2 rows cols)
   ([@@@mkey] m : array2 et l)
   (nthr : nat)
   (tid : natlt nthr)
@@ -70,14 +69,14 @@ ghost
 fn split_array2_into_strided_chunks
   (#et : Type0) {| sized et, hvc : has_vec_cpy et |}
   (#rows #cols : nat)
-  (#l : M.layout rows cols)
+  (#l : layout2 rows cols)
   (m : array2 et l)
   (#em : ematrix et rows cols)
   (nthr : pos)
   requires
     m |-> em
   ensures
-    pure (SZ.fits (M.layout_size l))
+    pure (SZ.fits (l.ulen))
   ensures
     forall+ (tid : natlt nthr).
       own_strided_chunks m em nthr tid
@@ -86,12 +85,12 @@ ghost
 fn join_array2_from_strided_chunks
   (#et : Type0) {| sized et, hvc : has_vec_cpy et |}
   (#rows #cols : nat)
-  (#l : M.layout rows cols)
+  (#l : layout2 rows cols)
   (m : array2 et l)
   (#em : ematrix et rows cols)
   (nthr : pos)
   requires
-    pure (SZ.fits (M.layout_size l))
+    pure (SZ.fits (l.ulen))
   requires
     forall+ (tid : natlt nthr).
       own_strided_chunks m em nthr tid
@@ -102,11 +101,11 @@ ghost
 fn join_array2_from_strided_chunks_underspec
   (#et : Type0) {| sized et, hvc : has_vec_cpy et |}
   (#rows #cols : nat)
-  (#l : M.layout rows cols)
+  (#l : layout2 rows cols)
   (m : array2 et l)
   (nthr : pos)
   requires
-    pure (SZ.fits (M.layout_size l))
+    pure (SZ.fits (l.ulen))
   requires
     forall+ (tid : natlt nthr).
       live_strided_chunks m nthr tid
@@ -117,7 +116,7 @@ inline_for_extraction noextract
 fn cp_array2_vec
   (#et : Type0) {| scalar et, has_vec_cpy et |}
   (rows cols: sz)
-  (#lsrc #ldst : M.layout rows cols)
+  (#lsrc #ldst : layout2 rows cols)
   {| T.ctlayout lsrc, T.ctlayout ldst |}
   {| src_str : strided_row_major lsrc |}
   (src : array2 et lsrc)
@@ -134,7 +133,7 @@ fn cp_array2_vec
     pure (SZ.fits (rows * cols + nthr - 1)) **
     pure (chunk et /?+ cols) **
     pure (chunk et * nthr /?+ (rows * cols)) **
-    pure (aligned 16 (M.core src)) **
+    pure (aligned 16 (core src)) **
     pure (rows * cols > 0) **
     pure (aligned_strided_row_major (chunk et) src_str)
   requires

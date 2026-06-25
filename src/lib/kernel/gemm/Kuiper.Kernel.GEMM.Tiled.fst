@@ -16,14 +16,13 @@ module Chest = Kuiper.Chest
 module MS = Kuiper.Spec.GEMM
 module MU = Kuiper.Kernel.GEMM.Util
 module SZ = Kuiper.SizeT
-module M = Kuiper.Array2
 
-open Kuiper.Index { idesc, abs, conc, all_fit, ( @! ) }
+open Kuiper.Shape { shape, abs, conc, all_fit, ( @! ) }
 open Kuiper.Chest { chest, chest_slice }
 
 inline_for_extraction noextract
 fn tensor_extract_slice_ro'
-  (#et : Type0) (#r : erased nat) (#d : idesc r)
+  (#et : Type0) (#r : erased nat) (#d : shape r)
   (#l : tlayout d)
   (a : tensor et l)
   (i : enatlt r) (j : enatlt (d @! i))
@@ -42,7 +41,7 @@ fn tensor_extract_slice_ro'
   (sliceof a i j);
 }
 
-open Kuiper.Index { ( @| ) }
+open Kuiper.Shape { ( @| ) }
 let chest_flat42
   (#et : Type)
   (#d1 #d2 #d3 #d4 : nat)
@@ -646,7 +645,7 @@ fn setup
   ();
 }
 
-#push-options "--z3rlimit 40"
+#push-options "--z3rlimit 60 --ifuel 5"
 ghost
 fn teardown
   (#et : Type0) {| scalar et, real_like et |}
@@ -954,35 +953,32 @@ let mk_kernel
 ghost
 fn array2_to_tile4_ow
   (#et : Type0) (#m #k : nat) (tile : nat{tile > 0})
-  (#l : M.layout (m * tile) (k * tile))
-  (gA : M.array2 et l)
+  (#l : layout2 (m * tile) (k * tile))
+  (gA : array2 et l)
   (#f : perm) (#s : ematrix et (m * tile) (k * tile))
   requires
     gA |-> Frac f s
   ensures
-    from_array (tile4_layout #m #k #tile l) (core (M.as_tensor gA)) |-> Frac f (untile4 #et #m #k #tile s)
+    from_array (tile4_layout #m #k #tile l) (core (gA)) |-> Frac f (untile4 #et #m #k #tile s)
 {
-  M.lem_as_tensor_pts_to gA #f s;
-  rewrite (gA |-> Frac f s) as (M.as_tensor gA |-> Frac f s);
-  tile4_fwd tile (M.as_tensor gA);
+  tile4_fwd tile (gA);
 }
 
 (* Backward: rank-4 tiled view ownership becomes the flat array2. *)
 ghost
 fn tile4_to_array2_ow
   (#et : Type0) (#m #k : nat) (tile : nat{tile > 0})
-  (#l : M.layout (m * tile) (k * tile))
-  (gA : M.array2 et l)
+  (#l : layout2 (m * tile) (k * tile))
+  (gA : array2 et l)
   (#f : perm) (#s4 : chest4 et m k tile tile)
   requires
-    from_array (tile4_layout #m #k #tile l) (core (M.as_tensor gA)) |-> Frac f s4
+    from_array (tile4_layout #m #k #tile l) (core (gA)) |-> Frac f s4
   ensures
     gA |-> Frac f (chest_flat42 #et #m #k #tile s4)
 {
-  tile4_bwd tile (from_array (tile4_layout #m #k #tile l) (core (M.as_tensor gA)));
-  M.lem_as_tensor_pts_to gA #f (chest_flat42 #et #m #k #tile s4);
+  tile4_bwd tile (from_array (tile4_layout #m #k #tile l) (core (gA)));
   rewrite
-    (from_array l (core (from_array (tile4_layout #m #k #tile l) (core (M.as_tensor gA))))
+    (from_array l (core (from_array (tile4_layout #m #k #tile l) (core (gA))))
       |-> Frac f (chest_flat42 #et #m #k #tile s4))
   as
     (gA |-> Frac f (chest_flat42 #et #m #k #tile s4));
@@ -994,15 +990,15 @@ fn tile4_to_array2_gc
   (#et : Type0) {| scalar et, real_like et |}
   (comb_r : binop real)
   (#m #n #k : nat) (tile : nat{tile > 0})
-  (#l : M.layout (m * tile) (n * tile))
-  (gC : M.array2 et l)
+  (#l : layout2 (m * tile) (n * tile))
+  (gC : array2 et l)
   (rA : ematrix real (m * tile) (k * tile))
   (rB : ematrix real (k * tile) (n * tile))
   (rC : ematrix real (m * tile) (n * tile))
   (#f : perm)
   requires
     (exists* (s4 : chest4 et m n tile tile).
-      from_array (tile4_layout #m #n #tile l) (core (M.as_tensor gC)) |-> Frac f s4 **
+      from_array (tile4_layout #m #n #tile l) (core (gC)) |-> Frac f s4 **
       pure (chest_flat42 #et #m #n #tile s4 %~ MS.mmcomb comb_r rC rA rB))
   ensures
     (exists* (eC' : ematrix et (m * tile) (n * tile)).
@@ -1020,13 +1016,13 @@ fn mmcomb_gpu_approx
   (comb : binop et)
   (comb_r : binop real { comb `approx2` comb_r })
   (#m #n #k : szp)
-  (#lA : M.layout (m * tile) (k * tile))
-  (#lB : M.layout (k * tile) (n * tile))
-  (#lC : M.layout (m * tile) (n * tile))
+  (#lA : layout2 (m * tile) (k * tile))
+  (#lB : layout2 (k * tile) (n * tile))
+  (#lC : layout2 (m * tile) (n * tile))
   {| ctlayout lA, ctlayout lB, ctlayout lC |}
-  (gA : array2 et lA { M.is_global gA })
-  (gB : array2 et lB { M.is_global gB })
-  (gC : array2 et lC { M.is_global gC })
+  (gA : array2 et lA { is_global gA })
+  (gB : array2 et lB { is_global gB })
+  (gC : array2 et lC { is_global gC })
   (rA : ematrix real (m * tile) (k * tile))
   (rB : ematrix real (k * tile) (n * tile))
   (rC : ematrix real (m * tile) (n * tile))
@@ -1067,9 +1063,9 @@ fn mmcomb_gpu_approx
        #(c_tile4_layout #(SZ.v m) #(SZ.v k) tile)
        #(c_tile4_layout #(SZ.v k) #(SZ.v n) tile)
        #(c_tile4_layout #(SZ.v m) #(SZ.v n) tile)
-       (from_array (tile4_layout #(SZ.v m) #(SZ.v k) #(SZ.v tile) lA) (core (M.as_tensor gA)))
-       (from_array (tile4_layout #(SZ.v k) #(SZ.v n) #(SZ.v tile) lB) (core (M.as_tensor gB)))
-       (from_array (tile4_layout #(SZ.v m) #(SZ.v n) #(SZ.v tile) lC) (core (M.as_tensor gC)))
+       (from_array (tile4_layout #(SZ.v m) #(SZ.v k) #(SZ.v tile) lA) (core (gA)))
+       (from_array (tile4_layout #(SZ.v k) #(SZ.v n) #(SZ.v tile) lB) (core (gB)))
+       (from_array (tile4_layout #(SZ.v m) #(SZ.v n) #(SZ.v tile) lC) (core (gC)))
        (untile4 eA) (untile4 eB) (untile4 eC)
        (untile4 rA) (untile4 rB) (untile4 rC) fA fB);
 

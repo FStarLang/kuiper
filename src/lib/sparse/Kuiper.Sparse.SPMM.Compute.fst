@@ -9,7 +9,8 @@ open Kuiper.Spec.GEMM
 open Kuiper.Sparse.DotProduct
 open Kuiper.Sparse.Array
 open Kuiper.Sparse.Common
-module Array2 = Kuiper.Array2
+open Kuiper.Tensor
+open Kuiper.Seq.Common { op_At_Bang }
 
 let step_submatrix_congr
   (#et : Type0) {| scalar et |}
@@ -376,9 +377,9 @@ fn compute
   (#v_col_ind : erased (lseq sz nnz))
   (#_ : squash(valid_pos shared (cast_pos v_col_ind)))
   // matriz densa B
-  (#lB : Array2.layout shared cols)
+  (#lB : layout2 shared cols)
   {| ctlayout lB |}
-  (gB : Array2.t et lB)
+  (gB : array2 et lB)
   (#fB : perm)
   (#eB : erased (ematrix et shared cols))
   // resultado parcial
@@ -462,7 +463,7 @@ fn compute
       {
         with v_out''. assert out |-> v_out'';
 
-        let b = Array2.read gB (c, dense_off);
+        let b = tensor_read gB ((c <: szlt _), ((dense_off <: szlt _), ()));
         open Pulse.Lib.Array;
         Pulse.Lib.Array.pts_to_len out;
         let v = out.(!x);

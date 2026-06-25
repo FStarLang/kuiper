@@ -14,7 +14,7 @@ open Kuiper
 open Kuiper.EMatrix
 open Kuiper.Tensor
 open Kuiper.Tensor.Layout.Alg
-open Kuiper.Index
+open Kuiper.Shape
 open Kuiper.Seq.Common
 module SM = Kuiper.Spec.Softmax
 module A1 = Kuiper.Array1

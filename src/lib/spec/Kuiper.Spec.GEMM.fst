@@ -1,7 +1,7 @@
 module Kuiper.Spec.GEMM
 
 module Chest = Kuiper.Chest
-open Kuiper.Index
+open Kuiper.Shape
 
 let lincomb_approx2
   (#et:Type) {| scalar et, real_like et |}
@@ -593,8 +593,8 @@ let matmul_tiles_lemma
 let bmatmul_is_bgemm
   (#et:Type) {| scalar et |}
   (#batch #rows #shared #columns : nat)
-  (m0 : EM3.t et batch rows columns)
-  (m1 : EM3.t et batch rows shared)
-  (m2 : EM3.t et batch shared columns)
+  (m0 : chest3 et batch rows columns)
+  (m1 : chest3 et batch rows shared)
+  (m2 : chest3 et batch shared columns)
   : Lemma (bmmcomb comb2 m0 m1 m2 == batched_matmul m1 m2)
   = assert equal (bmmcomb comb2 m0 m1 m2) (batched_matmul m1 m2)

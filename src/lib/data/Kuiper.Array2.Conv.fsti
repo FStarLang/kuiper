@@ -4,7 +4,7 @@ module Kuiper.Array2.Conv
 
 open Kuiper
 open Kuiper.Tensor
-open Kuiper.Index
+open Kuiper.Shape
 open Kuiper.EMatrix
 
 module A2 = Kuiper.Array2

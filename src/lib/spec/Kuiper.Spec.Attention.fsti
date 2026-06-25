@@ -5,7 +5,7 @@ open Kuiper.Seq.Common
 open Kuiper.Tensor.Layout { ctlayout }
 open Kuiper.Tensor.Layout.Alg
 open Kuiper.Tensor
-open Kuiper.Index
+open Kuiper.Shape
 open Kuiper.Chest
 open Kuiper.EMatrix
 open Kuiper.Bijection
@@ -13,8 +13,6 @@ open Kuiper.Bijection
 module SMX = Kuiper.Spec.Softmax
 module MS = Kuiper.Spec.GEMM
 module SZ = Kuiper.SizeT
-module EM3 = Kuiper.EMatrix3
-module EM4 = Kuiper.EMatrix4
 
 module RSMX = Kuiper.Kernel.RowSoftmax
 
@@ -65,11 +63,11 @@ let attention_real_batched_lse
   (scale : real)
   : GTot (chest (n @| h @| l @| ev @| INil) real & chest (n @| h @| l @| INil) real)
   = let attn_tile = fun i j -> attention_real_lse
-            (EM4.slice_page rQ i j)
-            (EM4.slice_page rKT i j)
-            (EM4.slice_page rV i j)
-            (EM4.slice_page rbias i j)
+            (slice_page4 rQ i j)
+            (slice_page4 rKT i j)
+            (slice_page4 rV i j)
+            (slice_page4 rbias i j)
             scale in
-    let out_spec = EM4.mkM fun i j -> macc (fst (attn_tile i j)) in 
-    let lse_spec = EM3.mkM fun i j -> Seq.index (snd (attn_tile i j)) in 
+    let out_spec = mk4 fun i j -> macc (fst (attn_tile i j)) in 
+    let lse_spec = mk3 fun i j -> Seq.index (snd (attn_tile i j)) in 
     (out_spec, lse_spec)

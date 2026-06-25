@@ -6,10 +6,9 @@ open Kuiper
 open Kuiper.Array.Vectorized
 open Kuiper.EMatrix
 
-open Kuiper.Array2 { array2 }
+open Kuiper.Tensor
 open Kuiper.Array2.Strided
 open Kuiper.Array2.Vectorized
-module M = Kuiper.Array2
 module T = Kuiper.Tensor
 module SZ = Kuiper.SizeT
 module GR = Pulse.Lib.GhostReference
@@ -80,7 +79,7 @@ ghost
 fn own_strided_chunks_rw
   (#et : Type0) {| sized et, hvc : has_vec_cpy et |}
   (#rows #cols : nat)
-  (#l : M.layout rows cols)
+  (#l : layout2 rows cols)
   (m : array2 et l)
   (nthr : nat)
   (tid : natlt nthr)
@@ -94,14 +93,14 @@ fn own_strided_chunks_rw
 {
   unfold own_strided_chunks m em1 nthr tid;
   forevery_map #(ij : (natlt rows & natlt cols){in_chunk (chunk et #_ #hvc) rows cols nthr tid ij})
-    (fun ij -> M.pts_to_cell m (ij._1, ij._2) (macc em1 ij._1 ij._2))
-    (fun ij -> M.pts_to_cell m (ij._1, ij._2) (macc em2 ij._1 ij._2))
+    (fun ij -> tensor_pts_to_cell m (ix2 ij._1 ij._2) (macc em1 ij._1 ij._2))
+    (fun ij -> tensor_pts_to_cell m (ix2 ij._1 ij._2) (macc em2 ij._1 ij._2))
     fn ij {
       assert pure (in_chunk (chunk et) rows cols nthr tid ij);
       rewrite
-        M.pts_to_cell m (ij._1, ij._2) (macc em1 ij._1 ij._2)
+        tensor_pts_to_cell m (ix2 ij._1 ij._2) (macc em1 ij._1 ij._2)
       as
-        M.pts_to_cell m (ij._1, ij._2) (macc em2 ij._1 ij._2);
+        tensor_pts_to_cell m (ix2 ij._1 ij._2) (macc em2 ij._1 ij._2);
     };
   fold own_strided_chunks m em2 nthr tid;
 }
@@ -112,19 +111,19 @@ ghost
 fn split_array2_into_strided_chunks
   (#et : Type0) {| sized et, hvc : has_vec_cpy et |}
   (#rows #cols : nat)
-  (#l : M.layout rows cols)
+  (#l : layout2 rows cols)
   (m : array2 et l)
   (#em : ematrix et rows cols)
   (nthr : pos)
   requires
     m |-> em
   ensures
-    pure (SZ.fits (M.layout_size l))
+    pure (SZ.fits (l.ulen))
   ensures
     forall+ (tid : natlt nthr).
       own_strided_chunks m em nthr tid
 {
-  M.ilower m;
+  tensor_ilower2 m;
   forevery_flatten _;
   Classical.forall_intro (in_chunk_covers_all (chunk et #_ #hvc) rows cols nthr);
   forevery_refine_ext #_ #(fun _ -> True)
@@ -136,7 +135,7 @@ fn split_array2_into_strided_chunks
   ghost fn aux (tid : natlt nthr)
     requires
       forall+ (ij : (natlt rows & natlt cols){in_chunk (chunk et #_ #hvc) rows cols nthr tid ij}).
-        M.pts_to_cell m (ij._1, ij._2) (macc em ij._1 ij._2)
+        tensor_pts_to_cell m (ix2 ij._1 ij._2) (macc em ij._1 ij._2)
     ensures own_strided_chunks m em nthr tid
   { fold own_strided_chunks m em nthr tid; };
   forevery_map _ _ aux;
@@ -146,25 +145,25 @@ ghost
 fn join_array2_from_strided_chunks
   (#et : Type0) {| sized et, hvc : has_vec_cpy et |}
   (#rows #cols : nat)
-  (#l : M.layout rows cols)
+  (#l : layout2 rows cols)
   (m : array2 et l)
   (#em : ematrix et rows cols)
   (nthr : pos)
   requires
-    pure (SZ.fits (M.layout_size l))
+    pure (SZ.fits (l.ulen))
   requires
     forall+ (tid : natlt nthr). own_strided_chunks m em nthr tid
   ensures
     m |-> em
 {
-  assert pure (SZ.fits (M.layout_size l));
+  assert pure (SZ.fits (l.ulen));
   forevery_map
     (fun tid -> own_strided_chunks m em nthr tid)
     (fun tid -> forall+ (ij : (natlt rows & natlt cols){in_chunk (chunk et #_ #hvc) rows cols nthr tid ij}).
-        M.pts_to_cell m (ij._1, ij._2) (macc em ij._1 ij._2))
+        tensor_pts_to_cell m (ix2 ij._1 ij._2) (macc em ij._1 ij._2))
     fn tid { unfold own_strided_chunks m em nthr tid };
   forevery_join_or_n (fun (tid : natlt nthr) ij -> in_chunk (chunk et #_ #hvc) rows cols nthr tid ij)
-    (fun ij -> M.pts_to_cell m (ij._1, ij._2) (macc em ij._1 ij._2));
+    (fun ij -> tensor_pts_to_cell m (ix2 ij._1 ij._2) (macc em ij._1 ij._2));
   Classical.forall_intro (in_chunk_covers_all (chunk et #_ #hvc) rows cols nthr);
   Classical.forall_intro_3 (fun ij tid1 -> Classical.move_requires
                              (in_chunk_no_overlap (chunk et #_ #hvc) rows cols nthr ij tid1));
@@ -173,18 +172,18 @@ fn join_array2_from_strided_chunks
       exists tid. in_chunk (chunk et #_ #hvc) rows cols nthr tid ij)
     (fun _ -> True) _;
   forevery_unflatten' _;
-  M.iraise m;
+  tensor_iraise2 m;
 }
 
 ghost
 fn join_array2_from_strided_chunks_underspec
   (#et : Type0) {| sized et, hvc : has_vec_cpy et |}
   (#rows #cols : nat)
-  (#l : M.layout rows cols)
+  (#l : layout2 rows cols)
   (m : array2 et l)
   (nthr : pos)
   requires
-    pure (SZ.fits (M.layout_size l))
+    pure (SZ.fits (l.ulen))
   requires
     forall+ (tid : natlt nthr). live_strided_chunks m nthr tid
   ensures
@@ -210,8 +209,8 @@ fn join_array2_from_strided_chunks_underspec
       unfold own_strided_chunks m (ff tid) nthr tid;
       forevery_map
         #(ij : (natlt rows & natlt cols){in_chunk (chunk et #_ #hvc) rows cols nthr tid ij})
-        (fun ij -> M.pts_to_cell m (ij._1, ij._2) (macc (ff tid) ij._1 ij._2))
-        (fun ij -> M.pts_to_cell m (ij._1, ij._2) (macc em' ij._1 ij._2))
+        (fun ij -> tensor_pts_to_cell m (ix2 ij._1 ij._2) (macc (ff tid) ij._1 ij._2))
+        (fun ij -> tensor_pts_to_cell m (ix2 ij._1 ij._2) (macc em' ij._1 ij._2))
         fn ij { () };
       fold own_strided_chunks m em' nthr tid;
     };
@@ -412,12 +411,12 @@ let em_fade'_fade
 (* ---- Vectorized copy ---- *)
 
 // VERY slow and brittle
-#push-options "--z3rlimit 120 --fuel 0 --ifuel 1"
+#push-options "--z3rlimit 120 --fuel 2 --ifuel 1"
 inline_for_extraction noextract
 fn cp_array2_vec
   (#et : Type0) {| scalar et, has_vec_cpy et |}
   (rows cols: sz)
-  (#lsrc #ldst : M.layout rows cols)
+  (#lsrc #ldst : layout2 rows cols)
   {| T.ctlayout lsrc, T.ctlayout ldst |}
   {| src_str : strided_row_major lsrc |}
   (src : array2 et lsrc)
@@ -434,7 +433,7 @@ fn cp_array2_vec
     pure (SZ.fits (rows * cols + nthr - 1)) **
     pure (chunk et /?+ cols) **
     pure (chunk et * nthr /?+ (rows * cols)) **
-    pure (aligned 16 (M.core src)) **
+    pure (aligned 16 (core src)) **
     pure (rows * cols > 0) **
     pure (aligned_strided_row_major (chunk et) src_str)
   requires
@@ -514,35 +513,37 @@ fn cp_array2_vec
         (fun (ij : (natlt rows & natlt cols)) -> in_chunk (chunk et) rows cols nthr tid ij)
         _ ecell;
 
-      assert (M.pts_to_cell dst ((reveal ecell)._1, (reveal ecell)._2)
+      assert (tensor_pts_to_cell dst (ix2 ((reveal ecell)._1) ((reveal ecell)._2))
                   (macc em' (reveal ecell)._1 (reveal ecell)._2));
       rewrite
-        M.pts_to_cell dst ((reveal ecell)._1, (reveal ecell)._2)
+        tensor_pts_to_cell dst (ix2 ((reveal ecell)._1) ((reveal ecell)._2))
                   (macc em' (reveal ecell)._1 (reveal ecell)._2)
       as
-        M.pts_to_cell dst (reveal nrow, reveal colpk)
+        tensor_pts_to_cell dst (ix2 (reveal nrow) (reveal colpk))
                   (macc em' (reveal nrow) (reveal colpk));
 
       with s. assert local |-> s;
       let v = Pulse.Lib.Array.op_Array_Access local !k #_ #s;
+      let ridx : szlt rows = row;
+      let cidx : szlt cols = col +^ !k;
       rewrite
-        M.pts_to_cell dst (reveal nrow, reveal colpk) (macc em' (reveal nrow) (reveal colpk))
+        tensor_pts_to_cell dst (ix2 (reveal nrow) (reveal colpk)) (macc em' (reveal nrow) (reveal colpk))
       as
-        M.pts_to_cell dst ((SZ.v row <: natlt rows), (SZ.v (col +^ !k) <: natlt cols)) (macc em' (reveal nrow) (reveal colpk));
-      M.write_cell' dst row (col +^ !k) v;
+        tensor_pts_to_cell dst (ix2 (SZ.v ridx <: natlt rows) (SZ.v cidx <: natlt cols)) (macc em' (reveal nrow) (reveal colpk));
+      tensor_write_cell dst (ridx, (cidx, ())) v;
 
       let em'' : ematrix et rows cols = mupd em' (reveal nrow) (reveal colpk) v;
 
       rewrite
-        M.pts_to_cell dst ((SZ.v row <: natlt rows), (SZ.v (col +^ !k) <: natlt cols)) v
+        tensor_pts_to_cell dst (ix2 (SZ.v ridx <: natlt rows) (SZ.v cidx <: natlt cols)) v
       as
-        M.pts_to_cell dst ((reveal ecell)._1, (reveal ecell)._2)
+        tensor_pts_to_cell dst (ix2 ((reveal ecell)._1) ((reveal ecell)._2))
                   (macc em'' (reveal ecell)._1 (reveal ecell)._2);
 
       forevery_ext
         #(ij : (natlt rows & natlt cols){in_chunk (chunk et) rows cols nthr tid ij /\ ij =!= ecell})
-        (fun ij -> M.pts_to_cell dst (ij._1, ij._2) (macc em' ij._1 ij._2))
-        (fun ij -> M.pts_to_cell dst (ij._1, ij._2) (macc em'' ij._1 ij._2));
+        (fun ij -> tensor_pts_to_cell dst (ix2 ij._1 ij._2) (macc em' ij._1 ij._2))
+        (fun ij -> tensor_pts_to_cell dst (ix2 ij._1 ij._2) (macc em'' ij._1 ij._2));
 
       forevery_insert
         #(natlt rows & natlt cols)
@@ -552,7 +553,7 @@ fn cp_array2_vec
         #(natlt rows & natlt cols)
         #(fun ij -> (in_chunk (chunk et) rows cols nthr tid ij /\ ij =!= ecell) \/ reveal ecell == ij)
         (fun ij -> in_chunk (chunk et) rows cols nthr tid ij)
-        (fun ij -> M.pts_to_cell dst (ij._1, ij._2) (macc em'' ij._1 ij._2));
+        (fun ij -> tensor_pts_to_cell dst (ix2 ij._1 ij._2) (macc em'' ij._1 ij._2));
 
       fold own_strided_chunks dst em'' nthr tid;
 

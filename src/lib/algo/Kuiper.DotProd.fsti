@@ -12,7 +12,7 @@ module MS = Kuiper.Spec.GEMM
 module Array1 = Kuiper.Array1
 open Kuiper.Sum { sum }
 open Kuiper.Tensor
-open Kuiper.Index { ( @| ), INil }
+open Kuiper.Shape { ( @| ), INil }
 open Kuiper.Chest { chest, chest_slice }
 open Kuiper.Container
 
@@ -22,7 +22,7 @@ let rec seq_dotprod' (#et : Type0) {| scalar et |}
   (a b : lseq et 'n) (k : nat{k <= 'n})
   : GTot et (decreases k)
   = if k = 0 then zero
-    else add (seq_dotprod' a b (k-1)) (mul (a @! k-1) (b @! k-1))
+    else add (seq_dotprod' a b (k-1)) (mul (a `Seq.index` (k-1)) (b `Seq.index` (k-1)))
 
 let seq_dotprod (#et : Type0) {| scalar et |}
   (a b : lseq et 'n)
@@ -36,7 +36,7 @@ val seq_dotprod_is_sum
   : Lemma (ensures
             seq_dotprod'  a b k
             ==
-            sum 0 k (fun (i : natlt n) -> (a @! i) *. (b @! i)))
+            sum 0 k (fun (i : natlt n) -> (Seq.index a i) *. (Seq.index b i)))
 
 (* Lemma: seq_dotprod over ematrix_row/ematrix_col equals matmul_single *)
 val seq_dotprod_is_matmul_single

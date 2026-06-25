@@ -4,12 +4,11 @@ module Klas.GEMM.BlockTiling2D.Inst
 open Kuiper
 open Kuiper.Array.Vectorized { has_vec_cpy, chunk }
 open Kuiper.EMatrix
-open Kuiper.Array2 { array2 }
+open Kuiper.Tensor
 open Kuiper.Array2.Strided
 open Kuiper.Tensor.Layout.Alg { l2_row_major as rm, l2_col_major as cm,
   c_l2_col_major, c_l2_row_major }
 
-module M = Kuiper.Array2
 module MS = Kuiper.Spec.GEMM
 
 unfold
@@ -31,11 +30,11 @@ fn spec
   (#_ : squash (chunk et * (bm/tm * (bn/tn)) /?+ (bk * bn)))
   (alpha beta : et)
   (#rows #shared #cols : szp)
-  (gA : array2 et (rm rows shared) { M.is_global gA })
+  (gA : array2 et (rm rows shared) { is_global gA })
   (#fA : perm)
-  (gB : array2 et (rm shared cols) { M.is_global gB })
+  (gB : array2 et (rm shared cols) { is_global gB })
   (#fB : perm)
-  (gC : array2 et (rm rows cols) { M.is_global gC })
+  (gC : array2 et (rm rows cols) { is_global gC })
   (#eA : ematrix et rows shared)
   (#eB : ematrix et shared cols)
   (#eC : ematrix et rows cols)
@@ -45,8 +44,8 @@ fn spec
     on gpu_loc (gA |-> Frac fA eA) **
     on gpu_loc (gB |-> Frac fB eB)
   requires
-    pure (aligned 16 (M.core gA)) **
-    pure (aligned 16 (M.core gB)) **
+    pure (aligned 16 (core gA)) **
+    pure (aligned 16 (core gB)) **
     pure (rows * cols <= max_blocks) **
     on gpu_loc (gC |-> eC)
   ensures

@@ -4,7 +4,7 @@ module Kuiper.Array1
 open Kuiper
 open Kuiper.Chest
 open Kuiper.Bijection
-open Kuiper.Index
+open Kuiper.Shape
 open Kuiper.Seq.Common { (@!) }
 module T = Kuiper.Tensor
 module SZ = Kuiper.SizeT

@@ -1,62 +1,78 @@
 module Kuiper.Tensor
 #lang-pulse
 
+include Kuiper.Shape
+include Kuiper.Chest
+include Kuiper.Tensor.Layout
+
 open Kuiper
 open Kuiper.Injection
 open Kuiper.Bijection
-open Kuiper.Index
+open Kuiper.Shape
 open Kuiper.Chest
-include Kuiper.Tensor.Layout
 open FStar.Tactics.Typeclasses { no_method }
 open Pulse.Lib.Trade
 module SZ = Kuiper.SizeT
 module T = FStar.Tactics.V2
 
 inline_for_extraction noextract
-val tensor (et : Type0) (#r : nat) (#d : idesc r) (l : tlayout d) : Type0
+val tensor (et : Type0) (#r : nat) (#d : shape r) (l : tlayout d) : Type0
+
+inline_for_extraction noextract
+let array1 (et : Type0) (#d0 : nat) (l : layout1 d0) : Type0 = tensor et l
+inline_for_extraction noextract
+let array2 (et : Type0) (#d0 #d1 : nat) (l : layout2 d0 d1) : Type0 = tensor et l
+inline_for_extraction noextract
+let array3 (et : Type0) (#d0 #d1 #d2 : nat) (l : layout3 d0 d1 d2) : Type0 = tensor et l
+inline_for_extraction noextract
+let array4 (et : Type0) (#d0 #d1 #d2 #d3 : nat) (l : layout4 d0 d1 d2 d3) : Type0 = tensor et l
 
 val is_global
-  (#et : Type0) (#r : nat) (#d : idesc r)
+  (#et : Type0) (#r : nat) (#d : shape r)
   (#l : tlayout d)
   (a : tensor et l) : prop
 
 inline_for_extraction noextract
+let global_tensor (et : Type0) (#r : nat) (#d : shape r) (l : tlayout d) : Type0 =
+  a : tensor et l { is_global a }
+
+inline_for_extraction noextract
 val from_array
-  (#et : Type0) (#r : erased nat) (#d : idesc r)
+  (#et : Type0) (#r : erased nat) (#d : shape r)
   (l : tlayout d)
   (a : larray et (tlayout_ulen l))
   : tensor et l
 
 inline_for_extraction noextract
 val core
-  (#et : Type0) (#r : erased nat) (#d : idesc r)
+  (#et : Type0) (#r : erased nat) (#d : shape r)
   (#l : tlayout d)
   (a : tensor et l)
   : larray et (tlayout_ulen l)
 
 val lem_core_from_array
-  (#et : Type0) (#r : nat) (#d : idesc r)
+  (#et : Type0) (#r : nat) (#d : shape r)
   (#l : tlayout d)
   (a : tensor et l)
   : Lemma (ensures from_array l (core a) == a)
           [SMTPat (core a)]
 
 val lem_from_array_core
-  (#et : Type0) (#r : nat) (#d : idesc r)
+  (#et : Type0) (#r : nat) (#d : shape r)
   (#l : tlayout d)
   (p : larray et (tlayout_ulen l))
   : Lemma (ensures core (from_array l p) == p)
           [SMTPat (from_array l p)]
 
 val lem_is_global_iff_core
-  (#et : Type0) (#r : nat) (#d : idesc r)
+  (#et : Type0) (#r : nat) (#d : shape r)
   (#l : tlayout d)
   (a : tensor et l)
   : Lemma (ensures is_global a <==> is_global_array (core a))
           [SMTPat (is_global a)]
 
 val tensor_pts_to
-  (#et : Type0) (#r : nat) (#d : idesc r)
+  (#et : Type0) (#r : nat) (#d : shape r)
   (#l : tlayout d)
   ([@@@mkey] a : tensor et l)
   (#[T.exact (`1.0R)] f : perm)
@@ -65,7 +81,7 @@ val tensor_pts_to
 
 instance
 val is_send_across_global_tensor
-  (#et : Type0) (#r : nat) (#d : idesc r)
+  (#et : Type0) (#r : nat) (#d : shape r)
   (#l : tlayout d)
   (a : tensor et l { is_global a })
   (#f : perm) (s : chest d et)
@@ -73,7 +89,7 @@ val is_send_across_global_tensor
 
 unfold
 instance has_pts_to_tensor
-  (#et : Type0) (#r : nat) (#d : idesc r)
+  (#et : Type0) (#r : nat) (#d : shape r)
   (#l : tlayout d)
   : has_pts_to (tensor et l) (chest d et) = {
   pts_to = tensor_pts_to;
@@ -84,7 +100,7 @@ instead of each dimension. *)
 inline_for_extraction noextract
 fn alloc0
   (#et:Type) {| sized et |}
-  (#r : nat) (#d : idesc r)
+  (#r : nat) (#d : shape r)
   (s : szp{SZ.v s == sizeof d})
   (l : tlayout d { is_full l })
   preserves
@@ -100,7 +116,7 @@ fn alloc0
 inline_for_extraction noextract
 fn free
   (#et:Type)
-  (#r : nat) (#d : idesc r)
+  (#r : nat) (#d : shape r)
   (#l : tlayout d { is_full l })
   (p : tensor et l)
   (#em : chest d et)
@@ -113,7 +129,7 @@ fn free
 
 ghost
 fn tensor_pts_to_ref
-  (#et : Type0) (#r : nat) (#d : idesc r)
+  (#et : Type0) (#r : nat) (#d : shape r)
   (#l : tlayout d)
   (a : tensor et l)
   (#f : perm) (#s : chest d et)
@@ -124,7 +140,7 @@ fn tensor_pts_to_ref
 
 ghost
 fn tensor_pts_to_ref_located
-  (#et : Type0) (#r : nat) (#d : idesc r)
+  (#et : Type0) (#r : nat) (#d : shape r)
   (#l : tlayout d)
   (a : tensor et l)
   (#loc : loc_id)
@@ -136,7 +152,7 @@ fn tensor_pts_to_ref_located
 
 ghost
 fn tensor_pts_to_eq
-  (#et : Type0) (#r : nat) (#d : idesc r)
+  (#et : Type0) (#r : nat) (#d : shape r)
   (#l : tlayout d)
   (a : tensor et l)
   (#f1 f2 : perm)
@@ -151,7 +167,7 @@ fn tensor_pts_to_eq
 ghost
 fn tensor_concr
   (#et:Type)
-  (#r : nat) (#d : idesc r)
+  (#r : nat) (#d : shape r)
   (#l : tlayout d { is_full l })
   (g : tensor et l)
   (#s : chest d et)
@@ -164,7 +180,7 @@ fn tensor_concr
 ghost
 fn tensor_abs
   (#et:Type)
-  (#r : nat) (#d : idesc r)
+  (#r : nat) (#d : shape r)
   (l : tlayout d { is_full l })
   (p : larray et (tlayout_ulen l))
   (#f : perm)
@@ -177,7 +193,7 @@ fn tensor_abs
 ghost
 fn tensor_abs'
   (#et:Type)
-  (#r : nat) (#d : idesc r)
+  (#r : nat) (#d : shape r)
   (l : tlayout d { is_full l })
   (p : larray et (tlayout_ulen l))
   (#f : perm)
@@ -189,7 +205,7 @@ fn tensor_abs'
 
 ghost
 fn tensor_share_n
-  (#et : Type0) (#r : nat) (#d : idesc r)
+  (#et : Type0) (#r : nat) (#d : shape r)
   (#l : tlayout d)
   (a : tensor et l) (k : pos)
   (#f : perm) (#s : chest d et)
@@ -200,7 +216,7 @@ fn tensor_share_n
 
 ghost
 fn tensor_gather_n
-  (#et : Type0) (#r : nat) (#d : idesc r)
+  (#et : Type0) (#r : nat) (#d : shape r)
   (#l : tlayout d)
   (a : tensor et l) (k : pos)
   (#f : perm) (#s : chest d et)
@@ -209,29 +225,22 @@ fn tensor_gather_n
   ensures
     a |-> Frac f s
 
-(* Helper for below *)
-inline_for_extraction noextract
-let cimap
-  (#r : nat) (#d : idesc r)
+ghost
+fn tensor_gather_n_underspec
+  (#et : Type0) (#r : nat) (#d : shape r)
   (#l : tlayout d)
-  (c : ctlayout l)
-  : conc d -> szlt l.ulen
-  = c.cimap
+  (a : tensor et l) (k : pos)
+  (#f : perm)
+  requires
+    forall+ (_:natlt k).
+      exists* (s : chest d et). tensor_pts_to a #(f /. k) s
+  ensures
+    exists* (s : chest d et). tensor_pts_to a #f s
 
-let cimap_inj
-  (#r : nat) (#d : idesc r)
-  (#l : tlayout d)
-  (c : ctlayout l)
-  (x y : conc d)
-  : Lemma (requires cimap c x == cimap c y)
-          (ensures x == y)
-  = down_up x;
-    down_up y;
-    ()
-
+// Needs to be exposed
 inline_for_extraction noextract
 instance ctensor_ciview
-  (#et : Type0) (#r : nat) (#d : idesc r)
+  (#et : Type0) (#r : erased nat) (#d : shape r)
   (#l : tlayout d)
   (c : ctlayout l)
   : Kuiper.IView.ciview (tensor_aview et l).iview =
@@ -242,15 +251,14 @@ instance ctensor_ciview
     bij = abs_conc_bij d;
   };
   step = {
-    cimap = mk_cinj (cimap c) #(fun _ _ -> Classical.forall_intro_2 (fun x -> Classical.move_requires (cimap_inj c x)));
-    (* ^ Using c.cimap directly fails *)
+    cimap = mk_cinj c.cimap #(fun x y -> down_up x; down_up y);
     compat = ez;
   };
 }
 
 inline_for_extraction noextract
 fn tensor_read
-  (#et : Type0) (#r : nat) (#d : idesc r)
+  (#et : Type0) (#r : erased nat) (#d : shape r)
   (#l : tlayout d) {| ctlayout l |}
   (a : tensor et l)
   (i : conc d)
@@ -265,7 +273,7 @@ fn tensor_read
 
 inline_for_extraction noextract
 fn tensor_write
-  (#et : Type0) (#r : nat) (#d : idesc r)
+  (#et : Type0) (#r : erased nat) (#d : shape r)
   (#l : tlayout d) {| ctlayout l |}
   (a : tensor et l)
   (i : conc d)
@@ -277,7 +285,7 @@ fn tensor_write
     a |-> upd s (up i) v
 
 val tensor_pts_to_cell
-  (#et : Type0) (#r : nat) (#d : idesc r)
+  (#et : Type0) (#r : nat) (#d : shape r)
   (#l : tlayout d)
   ([@@@mkey] a : tensor et l)
   (#[T.exact (`1.0R)] f : perm)
@@ -286,14 +294,14 @@ val tensor_pts_to_cell
   : slprop
 
 [@@pulse_unfold; FStar.Tactics.Typeclasses.noinst]
-instance cell_pts_to (#et : Type) (#r : nat) (#d : idesc r) (#l : tlayout d)
+instance cell_pts_to (#et : Type) (#r : nat) (#d : shape r) (#l : tlayout d)
   : has_pts_to (cell (tensor et l) (abs d)) et
 = {
   pts_to = (fun (Cell ar i) #f v -> tensor_pts_to_cell ar #f i v);
 }
 
 val tensor_pts_to_cell_eq
-  (#et : Type0) (#r : nat) (#d : idesc r)
+  (#et : Type0) (#r : nat) (#d : shape r)
   (#l : tlayout d)
   (a : tensor et l) (i : abs d) (f : perm) (v : et)
   : Lemma (Cell a i |-> Frac f v
@@ -302,7 +310,7 @@ val tensor_pts_to_cell_eq
 
 instance
 val is_send_across_global_tensor_cell
-  (#et : Type0) (#r : nat) (#d : idesc r)
+  (#et : Type0) (#r : nat) (#d : shape r)
   (#l : tlayout d)
   (a : tensor et l { is_global a })
   (#f : perm) (i : abs d) (v : et)
@@ -310,7 +318,7 @@ val is_send_across_global_tensor_cell
 
 ghost
 fn tensor_explode
-  (#et : Type0) (#r : nat) (#d : idesc r)
+  (#et : Type0) (#r : nat) (#d : shape r)
   (#l : tlayout d)
   (a : tensor et l)
   (#f : perm)
@@ -323,7 +331,7 @@ fn tensor_explode
 
 ghost
 fn tensor_implode
-  (#et : Type0) (#r : nat) (#d : idesc r)
+  (#et : Type0) (#r : nat) (#d : shape r)
   (#l : tlayout d)
   (a : tensor et l)
   (#f : perm)
@@ -338,7 +346,7 @@ fn tensor_implode
 
 ghost
 fn tensor_ilower
-  (#et : Type0) (#r : nat) (#d : idesc r)
+  (#et : Type0) (#r : nat) (#d : shape r)
   (#l : tlayout d)
   (a : tensor et l)
   (#f : perm)
@@ -352,7 +360,7 @@ fn tensor_ilower
 
 ghost
 fn tensor_iraise
-  (#et : Type0) (#r : nat) (#d : idesc r)
+  (#et : Type0) (#r : nat) (#d : shape r)
   (#l : tlayout d)
   (a : tensor et l)
   (#f : perm)
@@ -366,7 +374,7 @@ fn tensor_iraise
 
 inline_for_extraction noextract
 fn tensor_read_cell
-  (#et : Type0) (#r : nat) (#d : idesc r)
+  (#et : Type0) (#r : erased nat) (#d : shape r)
   (#l : tlayout d) {| ctlayout l |}
   (a : tensor et l)
   (i : conc d)
@@ -381,7 +389,7 @@ fn tensor_read_cell
 
 inline_for_extraction noextract
 fn tensor_write_cell
-  (#et : Type0) (#r : nat) (#d : idesc r)
+  (#et : Type0) (#r : erased nat) (#d : shape r)
   (#l : tlayout d) {| ctlayout l |}
   (a : tensor et l)
   (i : conc d)
@@ -396,7 +404,7 @@ fn tensor_write_cell
 
 // Move some of this to Tensor.Layout.
 let tlayout_slice_imap
-  (#n:nat) (d : idesc n) (l : tlayout d)
+  (#n:nat) (d : shape n) (l : tlayout d)
   (i : natlt n) (j : natlt (d @! i))
   (idx : abs (modulo_i i d))
   : GTot (natlt l.ulen) =
@@ -404,7 +412,7 @@ let tlayout_slice_imap
     l.imap.f idx'
 
 let tlayout_slice
-  (#n : nat) (#d : idesc n) (l : tlayout d)
+  (#n : nat) (#d : shape n) (l : tlayout d)
   (i : natlt n) (j : natlt (d @! i)) // Fixing the ith-dimension to j
   : tlayout (modulo_i i d) =
   {
@@ -421,25 +429,25 @@ let tlayout_slice
    involving integer subtraction or modulo_i. *)
 inline_for_extraction noextract
 instance val ctlayout_slice
-  (#n : erased nat) (#d : idesc n) (l : tlayout d)
+  (#n : erased nat) (#d : shape n) (l : tlayout d)
   {| ctlayout l |}
   (i : erased nat{i < n}) (j : erased nat{j < (d @! i)})
   {| ix : concrete_sz i |} {| jx : concrete_sz j |}
-  (#r' : erased nat) (#d' : idesc r')
+  (#r' : erased nat) (#d' : shape r')
   (#_ : reveal r' == n-1)
   (#_ : d' == modulo_i i d)
   : ctlayout #r' #d' (tlayout_slice l i j)
 
 inline_for_extraction noextract
 val sliceof
-  (#et : Type0) (#r : erased nat) (#d : idesc r)
+  (#et : Type0) (#r : erased nat) (#d : shape r)
   (#l : tlayout d)
   (a : tensor et l)
   (i : erased nat{i < r}) (j : erased nat{j < d @! i})
   : tensor et (tlayout_slice l i j)
 
 val lem_sliceof_core
-  (#et : Type0) (#r : erased nat) (#d : idesc r)
+  (#et : Type0) (#r : erased nat) (#d : shape r)
   (#l : tlayout d)
   (a : tensor et l)
   (i : erased nat{i < r}) (j : erased nat{j < d @! i})
@@ -447,7 +455,7 @@ val lem_sliceof_core
           [SMTPat (sliceof a i j)]
 
 val lem_is_global_iff_sliceof
-  (#et : Type0) (#r : nat) (#d : idesc r)
+  (#et : Type0) (#r : nat) (#d : shape r)
   (#l : tlayout d)
   (a : tensor et l)
   (i : natlt r) (j : natlt (d @! i))
@@ -456,7 +464,7 @@ val lem_is_global_iff_sliceof
 
 #push-options "--warn_error -271" // implicit subtraction in pattern, OK
 val tensor_slice_cell_eq
-  (#et : Type0) (#r : nat) (#d : idesc r)
+  (#et : Type0) (#r : nat) (#d : shape r)
   (#l : tlayout d)
   (a : tensor et l)
   (i : natlt r) (j : natlt (d @! i))
@@ -469,7 +477,7 @@ val tensor_slice_cell_eq
 
 ghost
 fn tensor_extract_slice
-  (#et : Type0) (#r : nat) (#d : idesc r)
+  (#et : Type0) (#r : nat) (#d : shape r)
   (#l : tlayout d)
   (a : tensor et l)
   (i : natlt r) (j : natlt (d @! i))
@@ -484,7 +492,7 @@ fn tensor_extract_slice
 
 ghost
 fn tensor_extract_slice_ro
-  (#et : Type0) (#r : nat) (#d : idesc r)
+  (#et : Type0) (#r : nat) (#d : shape r)
   (#l : tlayout d)
   (a : tensor et l)
   (i : natlt r) (j : natlt (d @! i))
@@ -498,7 +506,7 @@ fn tensor_extract_slice_ro
 
 ghost
 fn tensor_restore_slice
-  (#et : Type0) (#r : nat) (#d : idesc r)
+  (#et : Type0) (#r : nat) (#d : shape r)
   (#l : tlayout d)
   (a : tensor et l)
   (i : natlt r) (j : natlt (d @! i))
@@ -511,8 +519,8 @@ fn tensor_restore_slice
     a |-> Frac f s
 
 let tlayout_bij
-  (#r1 : nat) (#d1 : idesc r1)
-  (#r2 : nat) (#d2 : idesc r2)
+  (#r1 : nat) (#d1 : shape r1)
+  (#r2 : nat) (#d2 : shape r2)
   (f : abs d1 =~ abs d2)
   (l : tlayout d1)
   : tlayout d2
@@ -523,8 +531,8 @@ let tlayout_bij
 
 inline_for_extraction noextract
 instance val ctlayout_bij
-  (#r1 : nat) (#d1 : idesc r1)
-  (#r2 : nat) (#d2 : idesc r2 { all_fit d2 })
+  (#r1 : nat) (#d1 : shape r1)
+  (#r2 : nat) (#d2 : shape r2 { all_fit d2 })
   (f : abs d1 =~ abs d2)
   (fconc: conc d2 -> conc d1)
   (fconc_correct: (x: conc d2) -> up (fconc x) == f.gg (up x))
@@ -534,8 +542,8 @@ instance val ctlayout_bij
 ghost 
 fn tensor_apply_bij
   (#et : Type0)
-  (#r1 : nat) (#d1 : idesc r1)
-  (#r2 : nat) (#d2 : idesc r2)
+  (#r1 : nat) (#d1 : shape r1)
+  (#r2 : nat) (#d2 : shape r2)
   (f : abs d1 =~ abs d2)
   (#l : tlayout d1) {| is_full l |}
   (a : tensor et l)
@@ -545,37 +553,37 @@ fn tensor_apply_bij
   ensures
     from_array (tlayout_bij f l) (core a) |-> Frac fp (Chest.mk d2 (fun i -> Chest.acc m (i <~| f)))
 
-let unfold_index (#r: nat {r > 1}) (#d: idesc r) (i : abs (fold_outer d)): GTot (abs d) = 
+let unfold_index (#r: nat {r > 1}) (#d: shape r) (i : abs (fold_outer d)): GTot (abs d) = 
   let ICons h1 (ICons h2 ts) = d in
   let i : natlt (h1 * h2) & abs ts = i in
   let (ih, it) = i in 
   (((ih / h2 <: natlt h1), ((ih % h2 <: natlt h2), it)))
 
-let fold_index (#r: nat {r > 1}) (#d: idesc r) (i : abs d): GTot (abs (fold_outer d)) = 
+let fold_index (#r: nat {r > 1}) (#d: shape r) (i : abs d): GTot (abs (fold_outer d)) = 
   let ICons h1 (ICons h2 ts) = d in
   let i : natlt h1 & (natlt h2 & abs ts) = i in
   let (ih1, (ih2, it)) = i in 
   let ih12 : natlt (h1 * h2) = ih1 * h2 + ih2 in
   (ih12, it)
 
-val fold_bij (#r: nat {r > 1}) (#d: idesc r): abs d =~ abs (fold_outer d)
+val fold_bij (#r: nat {r > 1}) (#d: shape r): abs d =~ abs (fold_outer d)
 
-let fold_chest (#et : Type0) (#r: nat {r > 1}) (#d: idesc r) (m : Chest.t d et): GTot (Chest.t (fold_outer d) et) = 
+let fold_chest (#et : Type0) (#r: nat {r > 1}) (#d: shape r) (m : Chest.t d et): GTot (Chest.t (fold_outer d) et) = 
   Chest.mk (fold_outer d) (fun i -> Chest.acc m (unfold_index i))
 
-let unfold_chest (#et : Type0) (#r: nat {r > 1}) (#d: idesc r) (m : Chest.t (fold_outer d) et): GTot (Chest.t d et) = 
+let unfold_chest (#et : Type0) (#r: nat {r > 1}) (#d: shape r) (m : Chest.t (fold_outer d) et): GTot (Chest.t d et) = 
   Chest.mk d (fun i -> Chest.acc m (fold_index i))
 
 unfold let tlayout_fold_outer 
-  (#r : nat {r > 1}) (#d : idesc r)
+  (#r : nat {r > 1}) (#d : shape r)
   (l : tlayout d) = tlayout_bij fold_bij l
 
 unfold
-let desc_top2 (#r: nat {r > 1}) (d: idesc r): GTot (nat & nat & idesc (r-2)) = (head d, head (tail d), tail (tail d))
+let desc_top2 (#r: nat {r > 1}) (d: shape r): GTot (nat & nat & shape (r-2)) = (head d, head (tail d), tail (tail d))
 
 inline_for_extraction noextract
 instance val ctlayout_fold_outer
-  (#r : nat {r > 1}) (#d : idesc r { all_fit d }) 
+  (#r : nat {r > 1}) (#d : shape r { all_fit d }) 
   (#top2_fits: SZ.fits ((desc_top2 d)._1 * (desc_top2 d)._2))
   (l : tlayout d) {| c: ctlayout l, cs: concrete_sz (desc_top2 d)._2 |}
   : ctlayout #_ #(fold_outer d) (tlayout_fold_outer l)
@@ -583,7 +591,7 @@ instance val ctlayout_fold_outer
 ghost
 fn tensor_fold_outer
   (#et : Type0)
-  (#r: nat {r > 1}) (#d: idesc r)
+  (#r: nat {r > 1}) (#d: shape r)
   (#l: tlayout d) 
   (a : tensor et l)
   (#f : perm) (#m : Chest.t d et)
@@ -595,7 +603,7 @@ fn tensor_fold_outer
 ghost
 fn tensor_unfold_outer
   (#et : Type0)
-  (#r: nat {r > 1}) (#d: idesc r)
+  (#r: nat {r > 1}) (#d: shape r)
   (#l: tlayout d) 
   (a : tensor et (tlayout_fold_outer l))
   (#f: perm) (#m : Chest.t (fold_outer d) et)
@@ -603,3 +611,62 @@ fn tensor_unfold_outer
     a |-> Frac f m
   ensures
     from_array l (core a) |-> Frac f (unfold_chest m)
+
+(* Rank-2 conveniences over the (natlt rows & natlt cols) index pair. *)
+
+inline_for_extraction noextract
+let ix2 (#rows #cols : nat) (r : natlt rows) (c : natlt cols)
+  : abs (rows @| cols @| INil)
+  = (r, (c, ()))
+
+ghost
+fn tensor_explode2
+  (#et : Type0) (#rows #cols : nat) (#l : layout2 rows cols)
+  (a : tensor et l)
+  (#f : perm)
+  (#s : chest2 et rows cols)
+  requires
+    a |-> Frac f s
+  ensures
+    forall+ (ij : natlt rows & natlt cols).
+      Cell a (ix2 (fst ij) (snd ij)) |-> Frac f (acc s (ix2 (fst ij) (snd ij)))
+
+ghost
+fn tensor_implode2
+  (#et : Type0) (#rows #cols : nat) (#l : layout2 rows cols)
+  (a : tensor et l)
+  (#f : perm)
+  (#s : chest2 et rows cols)
+  requires
+    pure (SZ.fits (tlayout_ulen l))
+  requires
+    forall+ (ij : natlt rows & natlt cols).
+      Cell a (ix2 (fst ij) (snd ij)) |-> Frac f (acc s (ix2 (fst ij) (snd ij)))
+  ensures
+    a |-> Frac f s
+
+ghost
+fn tensor_ilower2
+  (#et : Type0) (#rows #cols : nat) (#l : layout2 rows cols)
+  (a : tensor et l)
+  (#f : perm)
+  (#s : chest2 et rows cols)
+  requires
+    a |-> Frac f s
+  ensures
+    pure (SZ.fits (tlayout_ulen l)) **
+    (forall+ (r : natlt rows) (c : natlt cols).
+      Cell a (ix2 r c) |-> Frac f (acc s (ix2 r c)))
+
+ghost
+fn tensor_iraise2
+  (#et : Type0) (#rows #cols : nat) (#l : layout2 rows cols)
+  (a : tensor et l)
+  (#f : perm)
+  (#s : chest2 et rows cols)
+  requires
+    pure (SZ.fits (tlayout_ulen l)) **
+    (forall+ (r : natlt rows) (c : natlt cols).
+      Cell a (ix2 r c) |-> Frac f (acc s (ix2 r c)))
+  ensures
+    a |-> Frac f s

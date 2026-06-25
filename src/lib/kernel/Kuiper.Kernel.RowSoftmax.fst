@@ -3,7 +3,7 @@ module Kuiper.Kernel.RowSoftmax
 #lang-pulse
 friend Kuiper.Kernel.Softmax
 open Kuiper
-open Kuiper.Index
+open Kuiper.Shape
 open Kuiper.Chest
 open Kuiper.Real { exp }
 open Kuiper.EMatrix
@@ -39,13 +39,13 @@ let s_row_div_exp_approx_softmax
       (requires
         sa %~ ra /\
         (forall (i : nat). i < m ==>
-          v_approximates (sums @! i)
+          v_approximates (Seq.index sums i)
                          (rsum (lseq_map exp (ematrix_row ra i)))))
       (ensures RB.s_row_broadcast (fun x s -> div (fexp x) s) sums sa %~ row_softmax_real #m #n ra)
   = assert 
       (forall (idx: abs (m @| n @| INil)).
         (let (i, (j, ())) = idx in
-        macc (RB.s_row_broadcast (fun x s -> div (fexp x) s) sums sa) i j == div (fexp (macc sa i j)) (sums @! i)));
+        macc (RB.s_row_broadcast (fun x s -> div (fexp x) s) sums sa) i j == div (fexp (macc sa i j)) (Seq.index sums i)));
     ()
 #pop-options
 
@@ -69,7 +69,7 @@ let subtract_approx
   : Lemma
       (requires
         sa %~ ra /\
-        (forall (i : nat). i < m ==> v_approximates (maxs @! i) (cs i)))
+        (forall (i : nat). i < m ==> v_approximates (Seq.index maxs i) (cs i)))
       (ensures
         RB.s_row_broadcast (fun (x:et) (mx:et) -> sub x mx) maxs sa
         %~ mkM (fun i j -> macc ra i j -. cs i))
@@ -129,7 +129,7 @@ fn row_softmax_gpu
   BMax.reduce_batched_block_max #et (fun x -> x) (fun z -> z) m n nthm a maxs ra;
   with maxs_v. assert (on gpu_loc (maxs |-> maxs_v));
   Classical.forall_intro (id_map_row #(SZ.v m) #(SZ.v n) ra);
-  assert pure (forall (i:nat). i < SZ.v m ==> v_approximates (maxs_v @! i) (cs i));
+  assert pure (forall (i:nat). i < SZ.v m ==> v_approximates (Seq.index maxs_v i) (cs i));
 
   (* Step 2: subtract the per-row max in place: a[i, j] := a[i, j] - maxs[i]. *)
   subtract_approx #et maxs_v sa ra cs;
@@ -181,10 +181,10 @@ let unshift_sums_correct
   : Lemma
       (requires
         (forall (i:nat). i < m ==>
-          v_approximates (sums_v @! i)
+          v_approximates (Seq.index sums_v i)
             (rsum (lseq_map exp (ematrix_row
               (mkM #real #m #n (fun i j -> macc ra i j -. cs i)) i)))) /\
-        (forall (i:nat). i < m ==> v_approximates (maxs_v @! i) (cs i)))
+        (forall (i:nat). i < m ==> v_approximates (Seq.index maxs_v i) (cs i)))
       (ensures
         Map.lseq_map2 (fun (s:et) (mx:et) -> mul s (fexp mx)) sums_v maxs_v
         %~ Seq.init_ghost m (fun (i:natlt m) -> rsum (lseq_map exp (ematrix_row ra i))))
@@ -193,13 +193,13 @@ let unshift_sums_correct
       Map.lseq_map2 (fun (s:et) (mx:et) -> mul s (fexp mx)) sums_v maxs_v in
     let rhs : lseq real m =
       Seq.init_ghost m (fun (i:natlt m) -> rsum (lseq_map exp (ematrix_row ra i))) in
-    introduce forall (i:nat). i < m ==> v_approximates (lhs @! i) (rhs @! i)
+    introduce forall (i:nat). i < m ==> v_approximates (Seq.index lhs i) (Seq.index rhs i)
     with introduce _ ==> _
     with _. (
       Seq.lemma_eq_elim (ematrix_row ra1 i)
                         (seq_map (fun (z:real) -> z -. cs i) (ematrix_row ra i));
-      exp_approx (maxs_v @! i) (cs i);
-      a_mul (sums_v @! i) (fexp (maxs_v @! i))
+      exp_approx (Seq.index maxs_v i) (cs i);
+      a_mul (Seq.index sums_v i) (fexp (Seq.index maxs_v i))
             (rsum (lseq_map exp (ematrix_row ra1 i))) (exp (cs i));
       unshift_row_sum_real (ematrix_row ra i) (cs i)
     );
@@ -243,7 +243,7 @@ fn row_softmax_gpu_with_sum
   BMax.reduce_batched_block_max #et (fun x -> x) (fun z -> z) m n nthm a maxs ra;
   with maxs_v. assert (on gpu_loc (maxs |-> maxs_v));
   Classical.forall_intro (id_map_row #(SZ.v m) #(SZ.v n) ra);
-  assert pure (forall (i:nat). i < SZ.v m ==> v_approximates (maxs_v @! i) (cs i));
+  assert pure (forall (i:nat). i < SZ.v m ==> v_approximates (Seq.index maxs_v i) (cs i));
 
   (* Step 2: subtract the per-row max in place: a[i, j] := a[i, j] - maxs[i]. *)
   subtract_approx #et maxs_v sa ra cs;
@@ -254,7 +254,7 @@ fn row_softmax_gpu_with_sum
   KB.reduce_batched_block #et fexp exp m n max_threads a sums ra1;
   with sums_v. assert (on gpu_loc (sums |-> sums_v));
   assert pure (forall (r:nat). r < SZ.v m ==>
-    v_approximates (sums_v @! r) (rsum (lseq_map exp (ematrix_row ra1 r))));
+    v_approximates (Seq.index sums_v r) (rsum (lseq_map exp (ematrix_row ra1 r))));
 
   (* Step 4: in-place fused exp(x) / sums[i] over every (already shifted) cell. *)
   RB.row_broadcast (fun x s -> div (fexp x) s) m n sums a;

@@ -11,7 +11,7 @@ module SZ = Kuiper.SizeT
 module MS = Kuiper.Spec.GEMM
 module P  = Kuiper.Kernel.GEMM.Naive2
 
-
+#push-options "--z3rlimit 40 --ifuel 5"
 inline_for_extraction noextract
 fn bmmcomb_gpu_exact
   (#et : Type0) {| scalar et |}
@@ -24,9 +24,9 @@ fn bmmcomb_gpu_exact
   (a : tensor et la { is_global a })
   (b : tensor et lb { is_global b })
   (c : tensor et lc { is_global c })
-  (#sa : erased (EMatrix3.t et batch rows shared))
-  (#sb : erased (EMatrix3.t et batch shared cols))
-  (#sc : erased (EMatrix3.t et batch rows cols))
+  (#sa : erased (chest3 et batch rows shared))
+  (#sb : erased (chest3 et batch shared cols))
+  (#sc : erased (chest3 et batch rows cols))
   (#fA #fB : perm)
   norewrite
   preserves
@@ -51,7 +51,7 @@ fn bmmcomb_gpu_exact
   let mut idx = 0sz;
   while (!idx <^ batch)
     invariant
-      exists* (vi : sz) (sc' : EMatrix3.t et batch rows cols).
+      exists* (vi : sz) (sc' : chest3 et batch rows cols).
         idx |-> vi **
         on gpu_loc (c |-> sc') **
         pure (
@@ -59,9 +59,9 @@ fn bmmcomb_gpu_exact
           rows * cols <= max_blocks * max_threads /\
           (forall (k:natlt batch).
             if (k < SZ.v vi) then
-              EMatrix3.slice_page sc' k ==
-              MS.mmcomb comb (EMatrix3.slice_page sc k) (EMatrix3.slice_page sa k) (EMatrix3.slice_page sb k)
-            else EMatrix3.slice_page sc' k == EMatrix3.slice_page sc k)
+              slice_page sc' k ==
+              MS.mmcomb comb (slice_page sc k) (slice_page sa k) (slice_page sb k)
+            else slice_page sc' k == slice_page sc k)
         )
   {
     let i = !idx;
@@ -90,7 +90,7 @@ fn bmmcomb_gpu_exact
     //     (Array3.page b (SZ.v i))
     //     (Array3.page c (SZ.v i));
     with eC. assert on gpu_loc (sliceof c 0 (SZ.v i) |-> eC);
-    open Kuiper.Index;
+    open Kuiper.Shape;
     assert pure (modulo_i 0 (batch @| rows @| cols @| INil) == (rows @| cols @| INil));
     assert
       on gpu_loc
@@ -103,7 +103,7 @@ fn bmmcomb_gpu_exact
         (forall* (s' : chest (modulo_i 0 (batch @| rows @| cols @| INil)) et).
           sliceof c 0 (SZ.v i) |-> s' @==>
           c |-> chest_update_slice 0 i sc' s'))
-      #(c |-> EMatrix3.upd_page sc' i eC)
+      #(c |-> upd_page sc' i eC)
       fn () {
         // FIXME: somehow need the cast
         elim_forall (eC <: chest (modulo_i 0 (batch @| rows @| cols @| INil)) et);
@@ -126,8 +126,10 @@ fn bmmcomb_gpu_exact
      Conclude sc' == mmcomb comb sa sb sc by ematrix3 extensionality. *)
   with sc'. assert on gpu_loc (c |-> sc');
   assert pure (forall (k:nat). k < SZ.v batch ==>
-             EMatrix3.slice_page sc' k ==
-             MS.mmcomb comb (EMatrix3.slice_page sc k)
-              (EMatrix3.slice_page sa k) (EMatrix3.slice_page sb k));
-  assert pure (EMatrix3.equal sc' (MS.bmmcomb comb sc sa sb));
+             slice_page sc' k ==
+             MS.mmcomb comb (slice_page sc k)
+              (slice_page sa k) (slice_page sb k));
+  assert pure (equal sc' (MS.bmmcomb comb sc sa sb));
+  ()
 }
+#pop-options

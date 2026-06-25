@@ -7,7 +7,7 @@ friend Kuiper.Array2
 
 open Kuiper
 open Kuiper.Tensor
-open Kuiper.Index
+open Kuiper.Shape
 open Kuiper.EMatrix
 
 module T = Kuiper.Tensor

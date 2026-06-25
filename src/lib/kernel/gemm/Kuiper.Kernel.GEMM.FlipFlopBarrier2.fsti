@@ -11,8 +11,7 @@ open Kuiper.EMatrix
 open Kuiper.Math { even, odd }
 open Kuiper.Tensor.Tiling
 
-open Kuiper.Array2 { array2 }
-module M = Kuiper.Array2
+open Kuiper.Tensor
 module B = Kuiper.Barrier
 module SZ = Kuiper.SizeT
 module CV = Kuiper.Kernel.GEMM.Copy.Vec
@@ -20,7 +19,7 @@ module CV = Kuiper.Kernel.GEMM.Copy.Vec
 let own_strided_chunks
   (#et : Type0) {| sized et, hvc: has_vec_cpy et |}
   (#rows #cols : nat)
-  (#l : M.layout rows cols)
+  (#l : layout2 rows cols)
   ([@@@mkey] m : array2 et l)
   (em : ematrix et rows cols)
   (nthr : nat)
@@ -28,12 +27,12 @@ let own_strided_chunks
   : slprop
 =
   forall+ (ij : (natlt rows & natlt cols){CV.in_chunk (chunk et #_ #hvc) rows cols nthr tid ij}).
-    M.pts_to_cell m (ij._1, ij._2) (macc em ij._1 ij._2)
+    tensor_pts_to_cell m (ix2 ij._1 ij._2) (macc em ij._1 ij._2)
 
 let live_strided_chunks
   (#et : Type0) {| sized et, hvc: has_vec_cpy et |}
   (#rows #cols : nat)
-  (#l : M.layout rows cols)
+  (#l : layout2 rows cols)
   ([@@@mkey] m : array2 et l)
   (nthr : nat)
   (tid : natlt nthr)
@@ -45,7 +44,7 @@ let live_strided_chunks
 let bp_sharing
   (#et : Type0) {| sized et, has_vec_cpy et |}
   (#rows #cols : nat)
-  (#l : M.layout rows cols)
+  (#l : layout2 rows cols)
   (m : array2 et l)
   (em : ematrix et rows cols)
   (nthr : pos)
@@ -60,8 +59,8 @@ let barrier_p
   (#bm : pos{bm /?+ rows})
   (#bk : pos{bk /?+ shared})
   (#bn : pos{bn /?+ cols})
-  (#l1 : M.layout bm bk)
-  (#l2 : M.layout bk bn)
+  (#l1 : layout2 bm bk)
+  (#l2 : layout2 bk bn)
   (m1 : array2 et l1)
   (m2 : array2 et l2)
   (nthr : pos)
@@ -87,8 +86,8 @@ let barrier_q
   (#bm : pos{bm /?+ rows})
   (#bk : pos{bk /?+ shared})
   (#bn : pos{bn /?+ cols})
-  (#l1 : M.layout bm bk)
-  (#l2 : M.layout bk bn)
+  (#l1 : layout2 bm bk)
+  (#l2 : layout2 bk bn)
   (m1 : array2 et l1)
   (m2 : array2 et l2)
   (nthr : pos)
@@ -114,16 +113,16 @@ let contract
   (#bm : pos{bm /?+ rows})
   (#bk : pos{bk /?+ shared})
   (#bn : pos{bn /?+ cols})
-  (l1 : M.full_layout bm bk)
-  (l2 : M.full_layout bk bn)
+  (l1 : full_layout2 bm bk)
+  (l2 : full_layout2 bk bn)
   (sar1 : larray et (bm * bk))
   (sar2 : larray et (bk * bn))
   (nthr : pos)
   (bid : natlt (rows/bm * (cols/bn)))
   : B.contract nthr =
 {
-  B.rin  = barrier_p eA eB (M.from_array l1 sar1) (M.from_array l2 sar2) nthr bid;
-  B.rout = barrier_q eA eB (M.from_array l1 sar1) (M.from_array l2 sar2) nthr bid;
+  B.rin  = barrier_p eA eB (from_array l1 sar1) (from_array l2 sar2) nthr bid;
+  B.rout = barrier_q eA eB (from_array l1 sar1) (from_array l2 sar2) nthr bid;
 }
 
 let barrier_tok
@@ -134,8 +133,8 @@ let barrier_tok
   (#bm : pos{bm /?+ rows})
   (#bk : pos{bk /?+ shared})
   (#bn : pos{bn /?+ cols})
-  (l1 : M.full_layout bm bk)
-  (l2 : M.full_layout bk bn)
+  (l1 : full_layout2 bm bk)
+  (l2 : full_layout2 bk bn)
   (sar1 : larray et (bm * bk))
   (sar2 : larray et (bk * bn))
   (nthr : pos)
@@ -153,8 +152,8 @@ fn barrier_p_to_q_transform
   (#bm : pos{bm /?+ rows})
   (#bk : pos{bk /?+ shared})
   (#bn : pos{bn /?+ cols})
-  (l1 : M.full_layout bm bk)
-  (l2 : M.full_layout bk bn)
+  (l1 : full_layout2 bm bk)
+  (l2 : full_layout2 bk bn)
   (sar1 : larray et (bm * bk))
   (sar2 : larray et (bk * bn))
   (nthr : pos)
@@ -163,15 +162,15 @@ fn barrier_p_to_q_transform
   (#_ : squash (chunk et /?+ bk))
   (#_ : squash (chunk et * nthr /?+ (bm * bk)))
   (#_ : squash (chunk et * nthr /?+ (bk * bn)))
-  (#_ : squash (SZ.fits (M.layout_size l1)))
-  (#_ : squash (SZ.fits (M.layout_size l2)))
+  (#_ : squash (SZ.fits (l1.ulen)))
+  (#_ : squash (SZ.fits (l2.ulen)))
   (it : nat)
   requires
     forall+ (tid : natlt nthr).
-      barrier_p eA eB (M.from_array l1 sar1) (M.from_array l2 sar2) nthr bid it tid
+      barrier_p eA eB (from_array l1 sar1) (from_array l2 sar2) nthr bid it tid
   ensures
     forall+ (tid : natlt nthr).
-      barrier_q eA eB (M.from_array l1 sar1) (M.from_array l2 sar2) nthr bid it tid
+      barrier_q eA eB (from_array l1 sar1) (from_array l2 sar2) nthr bid it tid
 
 (* Per-thread helpers for odd iterations. *)
 ghost
@@ -183,8 +182,8 @@ fn fold_barrier_p_odd
   (#bm : pos{bm /?+ rows})
   (#bk : pos{bk /?+ shared})
   (#bn : pos{bn /?+ cols})
-  (#l1 : M.layout bm bk)
-  (#l2 : M.layout bk bn)
+  (#l1 : layout2 bm bk)
+  (#l2 : layout2 bk bn)
   (m1 : array2 et l1)
   (m2 : array2 et l2)
   (nthr : pos)
@@ -208,8 +207,8 @@ fn unfold_barrier_q_odd
   (#bm : pos{bm /?+ rows})
   (#bk : pos{bk /?+ shared})
   (#bn : pos{bn /?+ cols})
-  (#l1 : M.layout bm bk)
-  (#l2 : M.layout bk bn)
+  (#l1 : layout2 bm bk)
+  (#l2 : layout2 bk bn)
   (m1 : array2 et l1)
   (m2 : array2 et l2)
   (nthr : pos)
@@ -234,8 +233,8 @@ fn fold_barrier_p_even
   (#bm : pos{bm /?+ rows})
   (#bk : pos{bk /?+ shared})
   (#bn : pos{bn /?+ cols})
-  (#l1 : M.layout bm bk)
-  (#l2 : M.layout bk bn)
+  (#l1 : layout2 bm bk)
+  (#l2 : layout2 bk bn)
   (m1 : array2 et l1)
   (m2 : array2 et l2)
   (nthr : pos)
@@ -257,8 +256,8 @@ fn unfold_barrier_q_even
   (#bm : pos{bm /?+ rows})
   (#bk : pos{bk /?+ shared})
   (#bn : pos{bn /?+ cols})
-  (#l1 : M.layout bm bk)
-  (#l2 : M.layout bk bn)
+  (#l1 : layout2 bm bk)
+  (#l2 : layout2 bk bn)
   (m1 : array2 et l1)
   (m2 : array2 et l2)
   (nthr : pos)

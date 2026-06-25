@@ -4,7 +4,7 @@ module Kuiper.Array2.Strided
 
 open Kuiper
 open Kuiper.Injection
-open Kuiper.Array2 { array2, layout, full_layout, layout_size, adapt_idx_back }
+open Kuiper.Tensor { array2, layout2, full_layout2 }
 open Kuiper.Tensor.Layout.Alg
 module SZ = Kuiper.SizeT
 open Kuiper.Tensor.Tiling { subtile_layout, tile_inj }
@@ -47,8 +47,8 @@ instance strided_col_major_l2_col_major (#rows #cols : erased nat)
 inline_for_extraction noextract
 let strided_row_major_subtile_offset
   (#rows #cols : erased nat)
-  (l : layout rows cols)
-  (#_ : squash (SZ.fits (layout_size l)))
+  (l : layout2 rows cols)
+  (#_ : squash (SZ.fits (l.ulen)))
   {| sub : strided_row_major l |}
   (trows : sz {trows > 0 /\ trows /?+ rows})
   (tcols : sz {tcols > 0 /\ tcols /?+ cols})
@@ -63,7 +63,7 @@ let strided_row_major_subtile_offset
 #push-options "--z3rlimit_factor 4 --fuel 0 --ifuel 0"
 let strided_row_major_subtile_proof
   (#rows #cols : nat)
-  (l : layout rows cols)
+  (l : layout2 rows cols)
   {| sub : strided_row_major l |}
   (trows : nat {trows > 0 /\ trows /?+ rows})
   (tcols : nat {tcols > 0 /\ tcols /?+ cols})
@@ -94,8 +94,8 @@ let strided_row_major_subtile_proof
 
 inline_for_extraction noextract
 instance strided_row_major_subtile (#rows #cols : erased nat)
-  (l : layout rows cols)
-  (#_ : squash (SZ.fits (layout_size l)))
+  (l : layout2 rows cols)
+  (#_ : squash (SZ.fits (l.ulen)))
   {| sub : strided_row_major l |}
   (trows : erased int {0 < trows /\ trows /?+ rows})
   (tcols : erased int {0 < tcols /\ tcols /?+ cols})
@@ -115,7 +115,7 @@ instance strided_row_major_subtile (#rows #cols : erased nat)
 
 let lemma_subtile_strided_row_major_offset
   (#rows #cols : erased nat)
-  (l : layout rows cols)
+  (l : layout2 rows cols)
   {| sub : strided_row_major l |}
   (trows : erased int {0 < trows /\ trows /?+ rows})
   (tcols : erased int {0 < tcols /\ tcols /?+ cols})
@@ -126,7 +126,7 @@ let lemma_subtile_strided_row_major_offset
      c_tr    : concrete_sz tr,
      c_tc    : concrete_sz tc,
   |}
-  : Lemma (requires SZ.fits (layout_size l))
+  : Lemma (requires SZ.fits (l.ulen))
           (ensures
             SZ.v (strided_row_major_subtile l trows tcols tr tc).offset
             ==
@@ -136,7 +136,7 @@ let lemma_subtile_strided_row_major_offset
 
 let lemma_subtile_strided_row_major_stride
   (#rows #cols : erased nat)
-  (l : layout rows cols)
+  (l : layout2 rows cols)
   {| sub : strided_row_major l |}
   (trows : erased int {0 < trows /\ trows /?+ rows})
   (tcols : erased int {0 < tcols /\ tcols /?+ cols})
@@ -147,7 +147,7 @@ let lemma_subtile_strided_row_major_stride
      c_tr    : concrete_sz tr,
      c_tc    : concrete_sz tc,
   |}
-  : Lemma (requires SZ.fits (layout_size l))
+  : Lemma (requires SZ.fits (l.ulen))
           (ensures
             (strided_row_major_subtile l trows tcols tr tc).stride
             ==

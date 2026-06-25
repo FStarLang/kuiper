@@ -43,7 +43,7 @@ let lseq_mapi
   (f : et -> (i:SZ.t { SZ.v i < len }) -> et)
   (s : lseq et len)
   : GTot (lseq et len)
-  = Seq.init_ghost len (fun (i : natlt len) -> f (s @! i) (SZ.uint_to_t i))
+  = Seq.init_ghost len (fun (i : natlt len) -> f (Seq.index s i) (SZ.uint_to_t i))
 
 inline_for_extraction noextract
 fn mapi_gpu
@@ -87,7 +87,7 @@ let lseq_map2
   (f : a -> b -> c)
   (sa : lseq a len) (sb : lseq b len)
   : GTot (lseq c len)
-  = Seq.init_ghost len (fun i -> f (sa @! i) (sb @! i))
+  = Seq.init_ghost len (fun i -> f (Seq.index sa i) (Seq.index sb i))
 
 inline_for_extraction noextract
 fn map_gpu2

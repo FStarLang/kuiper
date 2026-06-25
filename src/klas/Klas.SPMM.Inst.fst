@@ -4,7 +4,7 @@ open Kuiper
 open Kuiper.Sparse
 open Kuiper.Sparse.SPMM
 module SZ = Kuiper.SizeT
-open Kuiper.Array2
+open Kuiper.Tensor
 open Kuiper.Tensor.Layout { trepr2, ctrepr2 }
 open Kuiper.Tensor.Layout.Alg { l2_row_major as rm }
 open Kuiper.EMatrix
@@ -53,8 +53,8 @@ fn inst
     pure (blockWidth <= max_threads)
   ensures on gpu_loc (gC |-> MS.matmul eA eB)
 {
-  pts_to_ref_located gB;
-  pts_to_ref_located gC;
+  tensor_pts_to_ref_located gB;
+  tensor_pts_to_ref_located gC;
   spmm #et
     rows shared cols
     blockItemsK blockItemsX blockWidth (blockItemsX /^ blockWidth)

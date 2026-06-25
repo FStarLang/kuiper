@@ -11,7 +11,7 @@ module MS = Kuiper.Spec.GEMM
 module MU = Kuiper.Kernel.GEMM.Util
 module SZ = Kuiper.SizeT
 module N = Kuiper.Kernel.GEMM.Naive
-open Kuiper.Index
+open Kuiper.Shape
 open Kuiper.Chest
 
 unfold

@@ -5,13 +5,12 @@ module Kuiper.Kernel.GEMMCPU
 (* Invoking GEMMGPU, providing a wrapper callable from CPU code. *)
 
 open Kuiper
-open Kuiper.Tensor.Layout
+open Kuiper.Tensor
 open Kuiper.Kernel.GEMMGPU.Type
 open Kuiper.EMatrix
 module MS = Kuiper.Spec.GEMM
 module SZ = Kuiper.SizeT
 include Kuiper.Kernel.GEMMGPU.Type { size_req_t }
-module M = Kuiper.Array2
 
 (* Fully polymorphic. No need to play tricks at this stage. *)
 unfold
@@ -21,9 +20,9 @@ type matmul_cpu_ty
 =
   fn (#et : Type0) {| scalar et |}
     (#m #n #k : szp) (* concrete args *)
-    (#lA : M.full_layout m k)
-    (#lB : M.full_layout k n)
-    (#lC : M.full_layout m n)
+    (#lA : full_layout2 m k)
+    (#lB : full_layout2 k n)
+    (#lC : full_layout2 m n)
     {| ctlayout lA, ctlayout lB, ctlayout lC |}
     (a b : vec et)
     (#sa : erased (seq et){ len sa == m * k })

@@ -8,7 +8,7 @@ open Kuiper.Bijection
 open Kuiper.Injection
 open Kuiper.Tensor.Layout
 open Kuiper.Tensor.Layout.Alg
-open Kuiper.Index
+open Kuiper.Shape
 module SZ = Kuiper.SizeT
 
 let layout (m : nat) : layout m =

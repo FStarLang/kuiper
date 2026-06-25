@@ -11,15 +11,61 @@ open Kuiper.Tensor
 open Kuiper.EMatrix
 open Kuiper.Tensor.Layout.Alg { l1_forward, l2_row_major, c_l2_row_major }
 
-module M = Kuiper.Array2 
 module SZ = Kuiper.SizeT
 module Trade = Pulse.Lib.Trade
-module Array1 = Kuiper.Array1
 module B = Kuiper.Barrier
-open Kuiper.Array1
-open Kuiper.Index
+open Kuiper.Shape
 open Pulse.Lib.Trade { (@==>) }
 open Kuiper.Math { even, odd }
+
+unfold
+let mdesc (rows cols : nat) : shape 2 = rows @| cols @| INil
+
+let mrow_layout
+  (#et : Type0) (#rows #cols : erased nat) (#l : layout2 rows cols)
+  (a : array2 et l) (i : erased nat{i < rows})
+  : Kuiper.Array1.layout cols
+  = tlayout_slice l 0 i
+
+inline_for_extraction noextract
+val mrow
+  (#et : Type0) (#rows #cols : erased nat) (#l : layout2 rows cols)
+  (a : array2 et l) (i : erased nat{i < rows})
+  : Kuiper.Array1.t et (mrow_layout a i)
+
+ghost
+fn mextract_row
+  (#et : Type0) (#rows #cols : nat) (#l : layout2 rows cols)
+  (a : array2 et l) (i : natlt rows)
+  (#f : perm) (#s : ematrix et rows cols)
+  requires a |-> Frac f s
+  ensures
+    mrow a i |-> Frac f (ematrix_row s i) **
+    (forall* (s' : lseq et cols).
+      mrow a i |-> Frac f s' @==>
+      a |-> Frac f (ematrix_upd_row s i s'))
+
+ghost
+fn mextract_row_ro
+  (#et : Type0) (#rows #cols : nat) (#l : layout2 rows cols)
+  (a : array2 et l) (i : natlt rows)
+  (#f : perm) (#s : ematrix et rows cols)
+  requires a |-> Frac f s
+  ensures
+    factored
+      (mrow a i |-> Frac f (ematrix_row s i))
+      (a |-> Frac f s)
+
+ghost
+fn mrestore_row
+  (#et : Type0) (#rows #cols : nat) (#l : layout2 rows cols)
+  (a : array2 et l) (i : natlt rows)
+  (#f : perm) (#s : ematrix et rows cols)
+  requires
+    factored
+      (mrow a i |-> Frac f (ematrix_row s i))
+      (a |-> Frac f s)
+  ensures a |-> Frac f s
 
 // STRIDE TILE HELPERS
 
@@ -31,7 +77,7 @@ let stride_tile_inj_f
   (scols : pos {scols /? cols})
   (tr : natlt srows)
   (tc : natlt scols)
-  : abs (M.desc (rows/srows) (cols/scols)) -> abs (M.desc rows cols)
+  : abs ((rows/srows) @| (cols/scols) @| INil) -> abs (rows @| cols @| INil)
 =
    (fun (i, (j, ())) -> (tr + i * srows, (tc + j * scols, ())))
 
@@ -42,7 +88,7 @@ let stride_tile_inj
   (scols : pos {scols /? cols})
   (tr : natlt srows)
   (tc : natlt scols)
-  : (abs (M.desc (rows/srows) (cols/scols)) @~> abs (M.desc rows cols))
+  : (abs ((rows/srows) @| (cols/scols) @| INil) @~> abs (rows @| cols @| INil))
 = {
    f      = stride_tile_inj_f srows scols tr tc;
    is_inj = ez;
@@ -50,21 +96,21 @@ let stride_tile_inj
 
 let stride_subtile_layout
   (#rows #cols : nat)
-  (l : M.layout rows cols)
+  (l : layout2 rows cols)
   (srows : pos {srows /? rows})
   (scols : pos {scols /? cols})
   (tr : natlt srows)
   (tc : natlt scols)
-  : M.layout (rows/srows) (cols/scols) =
+  : layout2 (rows/srows) (cols/scols) =
   {
     ulen = l.ulen;
-    imap = inj_comp (stride_tile_inj srows scols tr tc) l.imap;
+    imap = Kuiper.Injection.inj_comp (stride_tile_inj #rows #cols srows scols tr tc) l.imap;
   }
 
 inline_for_extraction noextract
 instance val c_stride_subtile_layout
   (#rows #cols : erased nat)
-  (l : M.layout rows cols)
+  (l : layout2 rows cols)
   {| cc : ctlayout l |}
   (srows : erased int {0 < srows /\ srows /? rows})
   (scols : erased int {0 < scols /\ scols /? cols})
@@ -77,44 +123,44 @@ inline_for_extraction noextract
 val array2_stride_subtile
   (#et : _)
   (#rows #cols : erased nat)
-  (#l : M.layout rows cols)
-  (gm : M.array2 et l)
+  (#l : layout2 rows cols)
+  (gm : array2 et l)
   (srows : erased nat {srows > 0 /\ srows /? rows})
   (scols : erased nat {scols > 0 /\ scols /? cols})
   (tr : enatlt srows)
   (tc : enatlt scols)
-  : Tot (M.array2 et (stride_subtile_layout l srows scols tr tc))
+  : Tot (array2 et (stride_subtile_layout l srows scols tr tc))
 
 val array2_stride_subtile_base
   (#et : _)
   (#rows #cols : erased nat)
-  (#l : M.layout rows cols)
-  (gm : M.array2 et l)
+  (#l : layout2 rows cols)
+  (gm : array2 et l)
   (srows : erased nat {srows > 0 /\ srows /? rows})
   (scols : erased nat {scols > 0 /\ scols /? cols})
   (tr : enatlt srows)
   (tc : enatlt scols)
   : Lemma (
-      M.core (array2_stride_subtile gm srows scols tr tc)
+      core (array2_stride_subtile gm srows scols tr tc)
       ==
-      M.core gm
+      core gm
     )
-    [SMTPat (M.core (array2_stride_subtile gm srows scols tr tc))]
+    [SMTPat (core (array2_stride_subtile gm srows scols tr tc))]
 
 let is_array2_stride_subtile_global
   (#et : _)
   (#rows #cols : erased nat)
-  (#l : M.layout rows cols)
-  (#gm : M.array2 et l)
+  (#l : layout2 rows cols)
+  (#gm : array2 et l)
   (#srows : erased nat {srows > 0 /\ srows /? rows})
   (#scols : erased nat {scols > 0 /\ scols /? cols})
   (#tr : enatlt srows)
   (#tc : enatlt scols)
 : Lemma
   (ensures
-    M.is_global (array2_stride_subtile gm srows scols tr tc) <==>
-    M.is_global gm)
-  [SMTPat (M.is_global (array2_stride_subtile gm srows scols tr tc))]
+    is_global (array2_stride_subtile gm srows scols tr tc) <==>
+    is_global gm)
+  [SMTPat (is_global (array2_stride_subtile gm srows scols tr tc))]
 = array2_stride_subtile_base gm srows scols tr tc
 
 // STRIDE TILE EMATRIX-LEVEL HELPERS
@@ -171,8 +217,8 @@ let update_stride_tile
 val stride_cell_convert_eq
   (#et : _)
   (#rows #cols : erased nat)
-  (#l : M.layout rows cols)
-  (gm : M.array2 et l)
+  (#l : layout2 rows cols)
+  (gm : array2 et l)
   (srows : erased nat {srows > 0 /\ srows /? rows})
   (scols : erased nat {scols > 0 /\ scols /? cols})
   (tr : enatlt srows)
@@ -182,17 +228,17 @@ val stride_cell_convert_eq
   (f : perm)
   (v : et)
   : Lemma (
-    M.pts_to_cell (array2_stride_subtile gm srows scols tr tc) #f (i, j) v
+    tensor_pts_to_cell (array2_stride_subtile gm srows scols tr tc) #f (ix2 i j) v
     ==
-    M.pts_to_cell gm #f (i * srows + tr, j * scols + tc) v
+    tensor_pts_to_cell gm #f (ix2 (i * srows + tr) (j * scols + tc)) v
   )
 
 ghost
 fn array2_stride_tile
   (#et:Type0)
   (#rows #cols : nat)
-  (#l : M.layout rows cols)
-  (gm : M.array2 et l)
+  (#l : layout2 rows cols)
+  (gm : array2 et l)
   (srows : pos { srows /? rows })
   (scols : pos { scols /? cols })
   (#em : ematrix et rows cols)
@@ -209,14 +255,14 @@ ghost
 fn array2_stride_untile'
   (#et:Type0)
   (#rows #cols : nat)
-  (#l : M.layout rows cols)
-  (gm : M.array2 et l)
+  (#l : layout2 rows cols)
+  (gm : array2 et l)
   (srows : pos { srows /? rows })
   (scols : pos { scols /? cols })
   (tf : natlt srows -> natlt scols -> ematrix et (rows/srows) (cols/scols))
   (#f : perm)
   requires
-    pure (SZ.fits (M.layout_size l))
+    pure (SZ.fits (tlayout_ulen l))
   requires
     forall+
       (tr : natlt srows)
@@ -229,14 +275,14 @@ ghost
 fn array2_stride_untile
   (#et:Type0)
   (#rows #cols : nat)
-  (#l : M.layout rows cols)
-  (gm : M.array2 et l)
+  (#l : layout2 rows cols)
+  (gm : array2 et l)
   (srows : pos { srows /? rows })
   (scols : pos { scols /? cols })
   (#em : ematrix et rows cols)
   (#f : perm)
   requires
-    pure (SZ.fits (M.layout_size l))
+    pure (SZ.fits (tlayout_ulen l))
   requires
     forall+
       (tr : natlt srows)
@@ -249,8 +295,8 @@ ghost
 fn array2_extract_stride_tile
   (#et:Type0)
   (#rows #cols : nat)
-  (#l : M.layout rows cols)
-  (gm : M.array2 et l)
+  (#l : layout2 rows cols)
+  (gm : array2 et l)
   (srows : pos { srows /? rows })
   (scols : pos { scols /? cols })
   (tr : natlt srows)
@@ -269,8 +315,8 @@ inline_for_extraction noextract
 fn array2_extract_stride_tile_st
   (#et:Type0)
   (#rows #cols : erased nat)
-  (#l : M.layout rows cols)
-  (gm : M.array2 et l)
+  (#l : layout2 rows cols)
+  (gm : array2 et l)
   (srows : erased nat { srows > 0 /\ srows /? rows })
   (scols : erased nat { scols > 0 /\ scols /? cols })
   (tr : enatlt srows)
@@ -279,7 +325,7 @@ fn array2_extract_stride_tile_st
   (#f : perm)
   requires
     gm |-> Frac f em
-  returns tc_tile : M.array2 et (stride_subtile_layout l srows scols tr tc)
+  returns tc_tile : array2 et (stride_subtile_layout l srows scols tr tc)
   ensures pure (tc_tile == array2_stride_subtile gm srows scols tr tc)
   ensures
     tc_tile |-> Frac f (ematrix_stride_subtile em srows scols tr tc) **
@@ -291,8 +337,8 @@ ghost
 fn array2_extract_stride_tile_ro
   (#et:Type0)
   (#rows #cols : nat)
-  (#l : M.layout rows cols)
-  (gm : M.array2 et l)
+  (#l : layout2 rows cols)
+  (gm : array2 et l)
   (srows : nat { srows > 0 /\ srows /? rows })
   (scols : nat { scols > 0 /\ scols /? cols })
   (tr : natlt srows)
@@ -310,8 +356,8 @@ inline_for_extraction noextract
 fn array2_extract_stride_tile_ro'
   (#et:Type0)
   (#rows #cols : erased nat)
-  (#l : M.layout rows cols)
-  (gm : M.array2 et l)
+  (#l : layout2 rows cols)
+  (gm : array2 et l)
   (srows : erased nat {srows > 0 /\ srows /? rows })
   (scols : erased nat {scols > 0 /\ scols /? cols })
   (tr : enatlt srows)
@@ -320,7 +366,7 @@ fn array2_extract_stride_tile_ro'
   (#f : perm)
   requires
     gm |-> Frac f em
-  returns gm' : M.array2 et (stride_subtile_layout l srows scols tr tc)
+  returns gm' : array2 et (stride_subtile_layout l srows scols tr tc)
   ensures
     rewrites_to gm' (array2_stride_subtile gm srows scols tr tc) **
     factored
@@ -334,18 +380,18 @@ let kpre_post_inner_fa
   (#et : Type0) {| scalar et, floating et |}
   (n d: szp)
   (bc br: szp { bc /? n /\ br /? n })
-  (lSt: layout bc)
-  (lK lV lQ: M.layout n d)
-  (lOt: M.layout (n /^ br) d)
-  (llt lmt: layout (n /^ br))
+  (lSt: Kuiper.Array1.layout bc)
+  (lK lV lQ: layout2 n d)
+  (lOt: layout2 (n /^ br) d)
+  (llt lmt: Kuiper.Array1.layout (n /^ br))
   {| ctlayout lSt, ctlayout lK, ctlayout lV, ctlayout lQ, ctlayout lOt, ctlayout llt, ctlayout lmt |}
-  (gSt: array1 et lSt)
-  (gK: M.array2 et lK) 
-  (gV: M.array2 et lV)
-  (gQ: M.array2 et lQ)
-  (gOt: M.array2 et lOt)
-  (glt: array1 et llt)
-  (gmt: array1 et lmt)
+  (gSt: Kuiper.Array1.array1 et lSt)
+  (gK: array2 et lK) 
+  (gV: array2 et lV)
+  (gQ: array2 et lQ)
+  (gOt: array2 et lOt)
+  (glt: Kuiper.Array1.array1 et llt)
+  (gmt: Kuiper.Array1.array1 et lmt)
   (eK eV eQ: ematrix et n d)
   (#fK #fV #fQ: perm)
   : slprop =
@@ -359,20 +405,20 @@ unfold
 let kpre_post_outer_fa
   (#et : Type0) {| scalar et, floating et |}
   (n d nthr : szp { nthr /? n /\ SZ.fits (nthr * nthr) })
-  (#lS: M.layout nthr nthr)
-  (#lK #lV #lQ #lO: M.layout n d)
+  (#lS: layout2 nthr nthr)
+  (#lK #lV #lQ #lO: layout2 n d)
 // stupid hack to make it easier to express tiling these into n/^br,
 // because we dont have such a ghost on array1 atm
 // LATER: fix
-  (#ll #lm: M.layout 1 n)
+  (#ll #lm: layout2 1 n)
   {| ctlayout lS, ctlayout lK, ctlayout lV, ctlayout lQ, ctlayout lO, ctlayout ll, ctlayout lm |}
-  (gS : M.array2 et lS)
-  (gK : M.array2 et lK { M.is_global gK })
-  (gV : M.array2 et lV { M.is_global gV })
-  (gQ : M.array2 et lQ { M.is_global gQ })
-  (gO : M.array2 et lO { M.is_global gO })
-  (gl : M.array2 et ll { M.is_global gl })
-  (gm : M.array2 et lm { M.is_global gm })
+  (gS : array2 et lS)
+  (gK : array2 et lK { is_global gK })
+  (gV : array2 et lV { is_global gV })
+  (gQ : array2 et lQ { is_global gQ })
+  (gO : array2 et lO { is_global gO })
+  (gl : array2 et ll { is_global gl })
+  (gm : array2 et lm { is_global gm })
   (eK eV eQ : ematrix et n d)
   (fK fV fQ : perm)
   (tid: natlt nthr)
@@ -393,17 +439,17 @@ unfold
 let full_io_fa
   (#et : Type0) {| scalar et, floating et |}
   (n d nthr : szp { nthr /? n /\ SZ.fits (nthr * nthr) })
-  (#lS: M.layout nthr nthr)
-  (#lK #lV #lQ #lO: M.layout n d)
-  (#ll #lm: M.layout 1 n)
+  (#lS: layout2 nthr nthr)
+  (#lK #lV #lQ #lO: layout2 n d)
+  (#ll #lm: layout2 1 n)
   {| ctlayout lS, ctlayout lK, ctlayout lV, ctlayout lQ, ctlayout lO, ctlayout ll, ctlayout lm |}
-  (gS : M.array2 et lS)
-  (gK : M.array2 et lK { M.is_global gK })
-  (gV : M.array2 et lV { M.is_global gV })
-  (gQ : M.array2 et lQ { M.is_global gQ })
-  (gO : M.array2 et lO { M.is_global gO })
-  (gl : M.array2 et ll { M.is_global gl })
-  (gm : M.array2 et lm { M.is_global gm })
+  (gS : array2 et lS)
+  (gK : array2 et lK { is_global gK })
+  (gV : array2 et lV { is_global gV })
+  (gQ : array2 et lQ { is_global gQ })
+  (gO : array2 et lO { is_global gO })
+  (gl : array2 et ll { is_global gl })
+  (gm : array2 et lm { is_global gm })
   (eK eV eQ : ematrix et n d)
   (fK fV fQ : perm)
   : slprop =
@@ -417,15 +463,15 @@ unfold
 let full_io_fa_nos
   (#et : Type0) {| scalar et, floating et |}
   (n d nthr : szp { nthr /? n /\ SZ.fits (nthr * nthr) })
-  (#lK #lV #lQ #lO: M.layout n d)
-  (#ll #lm: M.layout 1 n)
+  (#lK #lV #lQ #lO: layout2 n d)
+  (#ll #lm: layout2 1 n)
   {| ctlayout lK, ctlayout lV, ctlayout lQ, ctlayout lO, ctlayout ll, ctlayout lm |}
-  (gK : M.array2 et lK { M.is_global gK })
-  (gV : M.array2 et lV { M.is_global gV })
-  (gQ : M.array2 et lQ { M.is_global gQ })
-  (gO : M.array2 et lO { M.is_global gO })
-  (gl : M.array2 et ll { M.is_global gl })
-  (gm : M.array2 et lm { M.is_global gm })
+  (gK : array2 et lK { is_global gK })
+  (gV : array2 et lV { is_global gV })
+  (gQ : array2 et lQ { is_global gQ })
+  (gO : array2 et lO { is_global gO })
+  (gl : array2 et ll { is_global gl })
+  (gm : array2 et lm { is_global gm })
   (eK eV eQ : ematrix et n d)
   (fK fV fQ : perm)
   : slprop =
@@ -441,39 +487,39 @@ let shmems_desc_fa (et:Type0) {| scalar et |} (nthr:szp{SZ.fits (nthr * nthr)}) 
 let gS_of_sh
   (#et:Type0) {| scalar et |}
   (n d nthr:szp{SZ.fits (nthr*nthr)})
-  (lS : M.full_layout nthr nthr)
+  (lS : full_layout2 nthr nthr)
   (sh : c_shmems (shmems_desc_fa et nthr))
-  : M.array2 et lS
-  = M.from_array lS (fst sh)
+  : array2 et lS
+  = from_array lS (fst sh)
 
 (* Pure side-conditions carried across the kernel launch (needed to
    re-assemble the tiled write-side matrices in teardown). *)
 unfold
 let frame_fa
   (n d nthr : szp)
-  (lS: M.layout nthr nthr)
-  (lO: M.layout n d)
-  (ll lm: M.layout 1 n)
+  (lS: layout2 nthr nthr)
+  (lO: layout2 n d)
+  (ll lm: layout2 1 n)
   : slprop =
-  pure (SZ.fits (M.layout_size lS) /\ SZ.fits (M.layout_size lO) /\
-        SZ.fits (M.layout_size ll) /\ SZ.fits (M.layout_size lm))
+  pure (SZ.fits (tlayout_ulen lS) /\ SZ.fits (tlayout_ulen lO) /\
+        SZ.fits (tlayout_ulen ll) /\ SZ.fits (tlayout_ulen lm))
 
 (* Split the full resources into per-thread strided sub-views. *)
 ghost
 fn setup_fa
   (#et : Type0) {| scalar et, floating et |}
   (n d nthr : szp { nthr /? n /\ SZ.fits (nthr * nthr) })
-  (#lS: M.layout nthr nthr)
-  (#lK #lV #lQ #lO: M.layout n d)
-  (#ll #lm: M.layout 1 n)
+  (#lS: layout2 nthr nthr)
+  (#lK #lV #lQ #lO: layout2 n d)
+  (#ll #lm: layout2 1 n)
   {| ctlayout lS, ctlayout lK, ctlayout lV, ctlayout lQ, ctlayout lO, ctlayout ll, ctlayout lm |}
-  (gS : M.array2 et lS)
-  (gK : M.array2 et lK { M.is_global gK })
-  (gV : M.array2 et lV { M.is_global gV })
-  (gQ : M.array2 et lQ { M.is_global gQ })
-  (gO : M.array2 et lO { M.is_global gO })
-  (gl : M.array2 et ll { M.is_global gl })
-  (gm : M.array2 et lm { M.is_global gm })
+  (gS : array2 et lS)
+  (gK : array2 et lK { is_global gK })
+  (gV : array2 et lV { is_global gV })
+  (gQ : array2 et lQ { is_global gQ })
+  (gO : array2 et lO { is_global gO })
+  (gl : array2 et ll { is_global gl })
+  (gm : array2 et lm { is_global gm })
   (eK eV eQ : ematrix et n d)
   (#fK #fV #fQ : perm)
   ()
@@ -491,17 +537,17 @@ ghost
 fn teardown_fa
   (#et : Type0) {| scalar et, floating et |}
   (n d nthr : szp { nthr /? n /\ SZ.fits (nthr * nthr) })
-  (#lS: M.layout nthr nthr)
-  (#lK #lV #lQ #lO: M.layout n d)
-  (#ll #lm: M.layout 1 n)
+  (#lS: layout2 nthr nthr)
+  (#lK #lV #lQ #lO: layout2 n d)
+  (#ll #lm: layout2 1 n)
   {| ctlayout lS, ctlayout lK, ctlayout lV, ctlayout lQ, ctlayout lO, ctlayout ll, ctlayout lm |}
-  (gS : M.array2 et lS)
-  (gK : M.array2 et lK { M.is_global gK })
-  (gV : M.array2 et lV { M.is_global gV })
-  (gQ : M.array2 et lQ { M.is_global gQ })
-  (gO : M.array2 et lO { M.is_global gO })
-  (gl : M.array2 et ll { M.is_global gl })
-  (gm : M.array2 et lm { M.is_global gm })
+  (gS : array2 et lS)
+  (gK : array2 et lK { is_global gK })
+  (gV : array2 et lV { is_global gV })
+  (gQ : array2 et lQ { is_global gQ })
+  (gO : array2 et lO { is_global gO })
+  (gl : array2 et ll { is_global gl })
+  (gm : array2 et lm { is_global gm })
   (eK eV eQ : ematrix et n d)
   (#fK #fV #fQ : perm)
   ()
@@ -520,16 +566,16 @@ ghost
 fn block_setup_fa
   (#et : Type0) {| scalar et, floating et |}
   (n d nthr : szp { nthr /? n /\ SZ.fits (nthr * nthr) })
-  (lS : M.full_layout nthr nthr)
-  (#lK #lV #lQ #lO: M.layout n d)
-  (#ll #lm: M.layout 1 n)
+  (lS : full_layout2 nthr nthr)
+  (#lK #lV #lQ #lO: layout2 n d)
+  (#ll #lm: layout2 1 n)
   {| ctlayout lS, ctlayout lK, ctlayout lV, ctlayout lQ, ctlayout lO, ctlayout ll, ctlayout lm |}
-  (gK : M.array2 et lK { M.is_global gK })
-  (gV : M.array2 et lV { M.is_global gV })
-  (gQ : M.array2 et lQ { M.is_global gQ })
-  (gO : M.array2 et lO { M.is_global gO })
-  (gl : M.array2 et ll { M.is_global gl })
-  (gm : M.array2 et lm { M.is_global gm })
+  (gK : array2 et lK { is_global gK })
+  (gV : array2 et lV { is_global gV })
+  (gQ : array2 et lQ { is_global gQ })
+  (gO : array2 et lO { is_global gO })
+  (gl : array2 et ll { is_global gl })
+  (gm : array2 et lm { is_global gm })
   (eK eV eQ : ematrix et n d)
   (#fK #fV #fQ : perm)
   (sh : c_shmems (shmems_desc_fa et nthr))
@@ -550,16 +596,16 @@ ghost
 fn block_teardown_fa
   (#et : Type0) {| scalar et, floating et |}
   (n d nthr : szp { nthr /? n /\ SZ.fits (nthr * nthr) })
-  (lS : M.full_layout nthr nthr)
-  (#lK #lV #lQ #lO: M.layout n d)
-  (#ll #lm: M.layout 1 n)
+  (lS : full_layout2 nthr nthr)
+  (#lK #lV #lQ #lO: layout2 n d)
+  (#ll #lm: layout2 1 n)
   {| ctlayout lS, ctlayout lK, ctlayout lV, ctlayout lQ, ctlayout lO, ctlayout ll, ctlayout lm |}
-  (gK : M.array2 et lK { M.is_global gK })
-  (gV : M.array2 et lV { M.is_global gV })
-  (gQ : M.array2 et lQ { M.is_global gQ })
-  (gO : M.array2 et lO { M.is_global gO })
-  (gl : M.array2 et ll { M.is_global gl })
-  (gm : M.array2 et lm { M.is_global gm })
+  (gK : array2 et lK { is_global gK })
+  (gV : array2 et lV { is_global gV })
+  (gQ : array2 et lQ { is_global gQ })
+  (gO : array2 et lO { is_global gO })
+  (gl : array2 et ll { is_global gl })
+  (gm : array2 et lm { is_global gm })
   (eK eV eQ : ematrix et n d)
   (#fK #fV #fQ : perm)
   (sh : c_shmems (shmems_desc_fa et nthr))
@@ -600,34 +646,34 @@ let shmems_desc_fa_smem
 let sK_of_sh
   (#et:Type0) {| scalar et |}
   (n d nthr:szp{SZ.fits (nthr*d) /\ SZ.fits (nthr*nthr)})
-  (lKV : M.full_layout nthr d)
+  (lKV : full_layout2 nthr d)
   (sh : c_shmems (shmems_desc_fa_smem et n d nthr))
-  : M.array2 et lKV
-  = M.from_array lKV (fst sh)
+  : array2 et lKV
+  = from_array lKV (fst sh)
 
 let sV_of_sh
   (#et:Type0) {| scalar et |}
   (n d nthr:szp{SZ.fits (nthr*d) /\ SZ.fits (nthr*nthr)})
-  (lKV : M.full_layout nthr d)
+  (lKV : full_layout2 nthr d)
   (sh : c_shmems (shmems_desc_fa_smem et n d nthr))
-  : M.array2 et lKV
-  = M.from_array lKV (fst (snd sh))
+  : array2 et lKV
+  = from_array lKV (fst (snd sh))
 
 let sQ_of_sh
   (#et:Type0) {| scalar et |}
   (n d nthr:szp{SZ.fits (nthr*d) /\ SZ.fits (nthr*nthr)})
-  (lKV : M.full_layout nthr d)
+  (lKV : full_layout2 nthr d)
   (sh : c_shmems (shmems_desc_fa_smem et n d nthr))
-  : M.array2 et lKV
-  = M.from_array lKV (fst (snd (snd sh)))
+  : array2 et lKV
+  = from_array lKV (fst (snd (snd sh)))
 
 let gS_of_sh'
   (#et:Type0) {| scalar et |}
   (n d nthr:szp{SZ.fits (nthr*d) /\ SZ.fits (nthr*nthr)})
-  (lS : M.full_layout nthr nthr)
+  (lS : full_layout2 nthr nthr)
   (sh : c_shmems (shmems_desc_fa_smem et n d nthr))
-  : M.array2 et lS
-  = M.from_array lS (fst (snd (snd (snd sh))))
+  : array2 et lS
+  = from_array lS (fst (snd (snd (snd sh))))
 
 (* ── The (content-free) barrier contract over sK, sV. ─────────────────────
    [tc = n /^ nthr] tiles.  At even step [2j] (before the inner loop) each
@@ -638,8 +684,8 @@ let gS_of_sh'
 let fa_barrier_side_rin
   (#et:Type0) {| scalar et |}
   (n d nthr : szp)
-  (#lKV : M.full_layout nthr d)
-  (sK sV : M.array2 et lKV)
+  (#lKV : full_layout2 nthr d)
+  (sK sV : array2 et lKV)
   : B.barrier_side (SZ.v nthr)
   = fun it tid ->
     if it >= 2 * SZ.v (n /^ nthr) then emp
@@ -653,8 +699,8 @@ let fa_barrier_side_rin
 let fa_barrier_side_rout
   (#et:Type0) {| scalar et |}
   (n d nthr : szp)
-  (#lKV : M.full_layout nthr d)
-  (sK sV : M.array2 et lKV)
+  (#lKV : full_layout2 nthr d)
+  (sK sV : array2 et lKV)
   : B.barrier_side (SZ.v nthr)
   = fun it tid ->
     if it >= 2 * SZ.v (n /^ nthr) then emp
@@ -668,8 +714,8 @@ let fa_barrier_side_rout
 let fa_barrier_contract
   (#et:Type0) {| scalar et |}
   (n d nthr : szp)
-  (#lKV : M.full_layout nthr d)
-  (sK sV : M.array2 et lKV)
+  (#lKV : full_layout2 nthr d)
+  (sK sV : array2 et lKV)
   : B.contract (SZ.v nthr)
   = {
     rin  = fa_barrier_side_rin  n d nthr sK sV;
@@ -683,9 +729,9 @@ ghost
 fn fa_barrier_ok
   (#et:Type0) {| scalar et |}
   (n d nthr : szp { nthr /? n /\ SZ.fits (nthr * d) })
-  (#lKV : M.full_layout nthr d)
+  (#lKV : full_layout2 nthr d)
   {| ctlayout lKV |}
-  (sK sV : M.array2 et lKV)
+  (sK sV : array2 et lKV)
   (it : nat)
   requires
     forall+ (i:natlt (SZ.v nthr)). fa_barrier_side_rin n d nthr sK sV it i
@@ -699,19 +745,19 @@ unfold
 let kpre_post_outer_fa_smem
   (#et : Type0) {| scalar et, floating et |}
   (n d nthr : szp { nthr /? n /\ SZ.fits (nthr * nthr) /\ SZ.fits (nthr * d) })
-  (#lS: M.layout nthr nthr)
-  (#lKV: M.full_layout nthr d)
-  (#lK #lV #lQ #lO: M.layout n d)
-  (#ll #lm: M.layout 1 n)
+  (#lS: layout2 nthr nthr)
+  (#lKV: full_layout2 nthr d)
+  (#lK #lV #lQ #lO: layout2 n d)
+  (#ll #lm: layout2 1 n)
   {| ctlayout lS, ctlayout lKV, ctlayout lK, ctlayout lV, ctlayout lQ, ctlayout lO, ctlayout ll, ctlayout lm |}
-  (gS : M.array2 et lS)
-  (sK sV sQ : M.array2 et lKV)
-  (gK : M.array2 et lK { M.is_global gK })
-  (gV : M.array2 et lV { M.is_global gV })
-  (gQ : M.array2 et lQ { M.is_global gQ })
-  (gO : M.array2 et lO { M.is_global gO })
-  (gl : M.array2 et ll { M.is_global gl })
-  (gm : M.array2 et lm { M.is_global gm })
+  (gS : array2 et lS)
+  (sK sV sQ : array2 et lKV)
+  (gK : array2 et lK { is_global gK })
+  (gV : array2 et lV { is_global gV })
+  (gQ : array2 et lQ { is_global gQ })
+  (gO : array2 et lO { is_global gO })
+  (gl : array2 et ll { is_global gl })
+  (gm : array2 et lm { is_global gm })
   (eK eV eQ : ematrix et n d)
   (fK fV fQ : perm)
   (tid: natlt nthr)
@@ -726,14 +772,14 @@ let kpre_post_outer_fa_smem
 unfold
 let frame_fa_smem
   (n d nthr : szp)
-  (lS: M.layout nthr nthr)
-  (lKV: M.layout nthr d)
-  (lO: M.layout n d)
-  (ll lm: M.layout 1 n)
+  (lS: layout2 nthr nthr)
+  (lKV: layout2 nthr d)
+  (lO: layout2 n d)
+  (ll lm: layout2 1 n)
   : slprop =
-  pure (SZ.fits (M.layout_size lS) /\ SZ.fits (M.layout_size lKV) /\
-        SZ.fits (M.layout_size lO) /\
-        SZ.fits (M.layout_size ll) /\ SZ.fits (M.layout_size lm))
+  pure (SZ.fits (tlayout_ulen lS) /\ SZ.fits (tlayout_ulen lKV) /\
+        SZ.fits (tlayout_ulen lO) /\
+        SZ.fits (tlayout_ulen ll) /\ SZ.fits (tlayout_ulen lm))
 
 (* Block-level setup: view the four shared arrays as gS/sK/sV/sQ and split
    into per-thread sub-views (reusing [setup_fa] for the non-shared part). *)
@@ -741,17 +787,17 @@ ghost
 fn block_setup_fa_smem
   (#et : Type0) {| scalar et, floating et |}
   (n d nthr : szp { nthr /? n /\ SZ.fits (nthr * nthr) /\ SZ.fits (nthr * d) })
-  (lS : M.full_layout nthr nthr)
-  (lKV : M.full_layout nthr d)
-  (#lK #lV #lQ #lO: M.layout n d)
-  (#ll #lm: M.layout 1 n)
+  (lS : full_layout2 nthr nthr)
+  (lKV : full_layout2 nthr d)
+  (#lK #lV #lQ #lO: layout2 n d)
+  (#ll #lm: layout2 1 n)
   {| ctlayout lS, ctlayout lKV, ctlayout lK, ctlayout lV, ctlayout lQ, ctlayout lO, ctlayout ll, ctlayout lm |}
-  (gK : M.array2 et lK { M.is_global gK })
-  (gV : M.array2 et lV { M.is_global gV })
-  (gQ : M.array2 et lQ { M.is_global gQ })
-  (gO : M.array2 et lO { M.is_global gO })
-  (gl : M.array2 et ll { M.is_global gl })
-  (gm : M.array2 et lm { M.is_global gm })
+  (gK : array2 et lK { is_global gK })
+  (gV : array2 et lV { is_global gV })
+  (gQ : array2 et lQ { is_global gQ })
+  (gO : array2 et lO { is_global gO })
+  (gl : array2 et ll { is_global gl })
+  (gm : array2 et lm { is_global gm })
   (eK eV eQ : ematrix et n d)
   (#fK #fV #fQ : perm)
   (sh : c_shmems (shmems_desc_fa_smem et n d nthr))
@@ -772,17 +818,17 @@ ghost
 fn block_teardown_fa_smem
   (#et : Type0) {| scalar et, floating et |}
   (n d nthr : szp { nthr /? n /\ SZ.fits (nthr * nthr) /\ SZ.fits (nthr * d) })
-  (lS : M.full_layout nthr nthr)
-  (lKV : M.full_layout nthr d)
-  (#lK #lV #lQ #lO: M.layout n d)
-  (#ll #lm: M.layout 1 n)
+  (lS : full_layout2 nthr nthr)
+  (lKV : full_layout2 nthr d)
+  (#lK #lV #lQ #lO: layout2 n d)
+  (#ll #lm: layout2 1 n)
   {| ctlayout lS, ctlayout lKV, ctlayout lK, ctlayout lV, ctlayout lQ, ctlayout lO, ctlayout ll, ctlayout lm |}
-  (gK : M.array2 et lK { M.is_global gK })
-  (gV : M.array2 et lV { M.is_global gV })
-  (gQ : M.array2 et lQ { M.is_global gQ })
-  (gO : M.array2 et lO { M.is_global gO })
-  (gl : M.array2 et ll { M.is_global gl })
-  (gm : M.array2 et lm { M.is_global gm })
+  (gK : array2 et lK { is_global gK })
+  (gV : array2 et lV { is_global gV })
+  (gQ : array2 et lQ { is_global gQ })
+  (gO : array2 et lO { is_global gO })
+  (gl : array2 et ll { is_global gl })
+  (gm : array2 et lm { is_global gm })
   (eK eV eQ : ematrix et n d)
   (#fK #fV #fQ : perm)
   (sh : c_shmems (shmems_desc_fa_smem et n d nthr))
