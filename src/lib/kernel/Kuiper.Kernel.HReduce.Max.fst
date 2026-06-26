@@ -286,15 +286,18 @@ let vr_partial_max (pre_map : real -> real) (vr : seq real) (nth : pos { nth <= 
     stride_nonempty w nth tid;
     seq_max (seq_stride w nth tid))
 
-(* The max over the per-bucket maxima equals the max over the whole sequence. *)
-#push-options "--fuel 4 --ifuel 2 --z3rlimit 40"
-let strided_max_is_max (pre_map : real -> real) (vr : seq real) (nth : pos { nth <= Seq.length vr })
-  : Lemma (ensures seq_max (vr_partial_max pre_map vr nth) == seq_max (seq_map pre_map vr))
+(* The max over the per-bucket maxima equals the max over the whole sequence.
+   Proven by antisymmetry, with each direction in its own lemma: the monolithic
+   proof is brittle (it only went through via F*'s fuel escalation, which is
+   slow), whereas the two halves are small and stable. *)
+
+(* Direction 1: every bucket max is below the global max, so their max is too. *)
+#push-options "--fuel 2 --ifuel 1 --z3rlimit 30"
+let strided_max_le (pre_map : real -> real) (vr : seq real) (nth : pos { nth <= Seq.length vr })
+  : Lemma (ensures seq_max (vr_partial_max pre_map vr nth) <=. seq_max (seq_map pre_map vr))
   = let w = seq_map pre_map vr in
     let lenw = Seq.length w in
     let vp = vr_partial_max pre_map vr nth in
-    // vp @! tid == seq_max (seq_stride w nth tid)   (init_ghost_index_, SMTPat)
-    // Direction 1: seq_max vp <=. seq_max w
     let aux1 (tid : nat { tid < nth }) : Lemma ((vp @! tid) <=. seq_max w)
       = stride_nonempty w nth tid;
         let bucket = seq_stride w nth tid in
@@ -307,8 +310,17 @@ let strided_max_is_max (pre_map : real -> real) (vr : seq real) (nth : pos { nth
         seq_max_le bucket (seq_max w)
     in
     Classical.forall_intro aux1;
-    seq_max_le vp (seq_max w);
-    // Direction 2: seq_max w <=. seq_max vp
+    seq_max_le vp (seq_max w)
+#pop-options
+
+(* Direction 2: every element lies in some bucket, so it is below that bucket's
+   max, hence below the max of the partial maxima. *)
+#push-options "--fuel 2 --ifuel 1 --z3rlimit 30"
+let strided_max_ge (pre_map : real -> real) (vr : seq real) (nth : pos { nth <= Seq.length vr })
+  : Lemma (ensures seq_max (seq_map pre_map vr) <=. seq_max (vr_partial_max pre_map vr nth))
+  = let w = seq_map pre_map vr in
+    let lenw = Seq.length w in
+    let vp = vr_partial_max pre_map vr nth in
     let aux2 (g : nat { g < lenw }) : Lemma ((w @! g) <=. seq_max vp)
       = let off : nat = g % nth in
         let i : nat = g / nth in
@@ -332,6 +344,11 @@ let strided_max_is_max (pre_map : real -> real) (vr : seq real) (nth : pos { nth
     Classical.forall_intro aux2;
     seq_max_le w (seq_max vp)
 #pop-options
+
+let strided_max_is_max (pre_map : real -> real) (vr : seq real) (nth : pos { nth <= Seq.length vr })
+  : Lemma (ensures seq_max (vr_partial_max pre_map vr nth) == seq_max (seq_map pre_map vr))
+  = strided_max_le pre_map vr nth;
+    strided_max_ge pre_map vr nth
 
 // Barrier
 
