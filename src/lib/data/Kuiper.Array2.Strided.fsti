@@ -8,16 +8,15 @@ module Kuiper.Array2.Strided
 
 open Kuiper
 open Kuiper.Injection
-open Kuiper.Tensor { array2, layout2, ix2 }
-open FStar.Tactics.Typeclasses { no_method }
+open Kuiper.Tensor
 open Kuiper.Tensor.Layout.Alg
 open Kuiper.Tensor.Tiling { subtile_layout }
-
 module SZ = Kuiper.SizeT
+open FStar.Tactics.Typeclasses { no_method }
 
 let cell_of_pos (#rows #cols : nat)
   (l : layout2 rows cols) (i : natlt rows) (j : natlt cols) : GTot nat =
-  l.imap.f (ix2 i j)
+  l.imap.f (idx2 i j)
 
 inline_for_extraction noextract
 class strided_row_major (#rows #cols : erased nat) (l : layout2 rows cols) = {

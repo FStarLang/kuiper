@@ -7,7 +7,7 @@ open Kuiper
 open Kuiper.Array.Vectorized
 open Kuiper.EMatrix
 
-open Kuiper.Tensor { array2, layout2, ix2 }
+open Kuiper.Tensor { array2, layout2, idx2 }
 open Kuiper.Array2.Strided
 module T = Kuiper.Tensor
 

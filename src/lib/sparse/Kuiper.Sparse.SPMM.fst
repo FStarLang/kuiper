@@ -27,7 +27,7 @@ let matrix_live_cell
   (i : natlt rows)
   (j : natlt cols)
   : slprop
-  = exists* v. tensor_pts_to_cell gm (ix2 (i) (j)) v
+  = exists* v. tensor_pts_to_cell gm (idx2 (i) (j)) v
 
 unfold
 let block_pre
@@ -94,7 +94,7 @@ let block_post
     when__
       (bcol p bid + k * p.blockWidth + tid < p.cols)
       (fun _ -> tensor_pts_to_cell gC
-        (ix2 (brow p bid |~> row_perm) (bcol p bid + k * p.blockWidth + tid))
+        (idx2 (brow p bid |~> row_perm) (bcol p bid + k * p.blockWidth + tid))
         (MS.matmul_single eA eB
           (brow p bid |~> row_perm)
           (bcol p bid + k * p.blockWidth + tid)))
@@ -342,7 +342,7 @@ fn setup
   forevery_map
     (fun r ->
       forall+ (c : natlt p.cols).
-        tensor_pts_to_cell gC (ix2 (r) (c)) (macc eC r c)
+        tensor_pts_to_cell gC (idx2 (r) (c)) (macc eC r c)
     )
     (fun r ->
       forall+
@@ -361,7 +361,7 @@ fn setup
         #(natlt (divup p.cols p.blockItemsX))
         (fun b ->
           forall+ (ix : natlt p.blockItemsX { b * p.blockItemsX + ix < p.cols }).
-            tensor_pts_to_cell gC (ix2 (r) (b * p.blockItemsX + ix))
+            tensor_pts_to_cell gC (idx2 (r) (b * p.blockItemsX + ix))
               (macc eC r (b * p.blockItemsX + ix))
         )
         (fun b ->
@@ -378,7 +378,7 @@ fn setup
           forevery_map
             #(ix : natlt p.blockItemsX { b * p.blockItemsX + ix  < p.cols })
             (fun ix ->
-              tensor_pts_to_cell gC (ix2 (r) (b * p.blockItemsX + ix))
+              tensor_pts_to_cell gC (idx2 (r) (b * p.blockItemsX + ix))
                 (macc eC r (b * p.blockItemsX + ix))
             )
             (fun ix ->
@@ -698,7 +698,7 @@ fn teardown
         when__ (bcol p bid + k * v p.blockWidth + tid < v p.cols)
           (fun _ ->
             tensor_pts_to_cell gC
-              (ix2 (brow p bid |~> row_perm) (bcol p bid + k * v p.blockWidth + tid))
+              (idx2 (brow p bid |~> row_perm) (bcol p bid + k * v p.blockWidth + tid))
               (MS.matmul_single eA
                   eB
                   (brow p bid |~> row_perm)
@@ -710,7 +710,7 @@ fn teardown
           (bcol p bid + ix < p.cols)
           (fun _ ->
             tensor_pts_to_cell gC
-              (ix2 (brow p bid |~> row_perm) (bcol p bid + ix))
+              (idx2 (brow p bid |~> row_perm) (bcol p bid + ix))
               (MS.matmul_single eA eB
                 (brow p bid |~> row_perm)
                 (bcol p bid + ix)
@@ -725,7 +725,7 @@ fn teardown
           when__ (bcol p bid + k * v p.blockWidth + tid < v p.cols)
             (fun _ ->
               tensor_pts_to_cell gC
-                (ix2 (brow p bid |~> row_perm) (bcol p bid + k * v p.blockWidth + tid))
+                (idx2 (brow p bid |~> row_perm) (bcol p bid + k * v p.blockWidth + tid))
                 (MS.matmul_single eA
                     eB
                     (brow p bid |~> row_perm)
@@ -735,7 +735,7 @@ fn teardown
           when__ (bcol p bid + (k * v p.blockWidth + tid) < v p.cols)
             (fun _ ->
               tensor_pts_to_cell gC
-                (ix2 (brow p bid |~> row_perm) (bcol p bid + (k * v p.blockWidth + tid)))
+                (idx2 (brow p bid |~> row_perm) (bcol p bid + (k * v p.blockWidth + tid)))
                 (MS.matmul_single eA
                     eB
                     (brow p bid |~> row_perm)
@@ -749,7 +749,7 @@ fn teardown
             (bcol p bid + ix < p.cols)
             (fun _ ->
               tensor_pts_to_cell gC
-                (ix2 (brow p bid |~> row_perm) (bcol p bid + ix))
+                (idx2 (brow p bid |~> row_perm) (bcol p bid + ix))
                 (MS.matmul_single eA eB
                   (brow p bid |~> row_perm)
                   (bcol p bid + ix)
@@ -767,7 +767,7 @@ fn teardown
           (bcol p (r * divup p.cols p.blockItemsX + b) + ix < p.cols)
           (fun _ ->
             tensor_pts_to_cell gC
-              (ix2 (brow p (r * divup p.cols p.blockItemsX + b) |~> row_perm) (bcol p (r * divup p.cols p.blockItemsX + b) + ix))
+              (idx2 (brow p (r * divup p.cols p.blockItemsX + b) |~> row_perm) (bcol p (r * divup p.cols p.blockItemsX + b) + ix))
               (MS.matmul_single eA eB
                 (brow p (r * divup p.cols p.blockItemsX + b) |~> row_perm)
                 (bcol p (r * divup p.cols p.blockItemsX + b) + ix)
@@ -776,7 +776,7 @@ fn teardown
     )
     (fun r ->
       forall+ (c : natlt p.cols).
-        tensor_pts_to_cell gC (ix2 (r |~> row_perm) (c))
+        tensor_pts_to_cell gC (idx2 (r |~> row_perm) (c))
           (MS.matmul_single eA eB (r |~> row_perm) c)
     )
     fn r {
@@ -786,7 +786,7 @@ fn teardown
             (bcol p (r * divup p.cols p.blockItemsX + b) + ix < p.cols)
             (fun _ ->
               tensor_pts_to_cell gC
-                (ix2 (brow p (r * divup p.cols p.blockItemsX + b) |~> row_perm) (bcol p (r * divup p.cols p.blockItemsX + b) + ix))
+                (idx2 (brow p (r * divup p.cols p.blockItemsX + b) |~> row_perm) (bcol p (r * divup p.cols p.blockItemsX + b) + ix))
                 (MS.matmul_single eA eB
                   (brow p (r * divup p.cols p.blockItemsX + b) |~> row_perm)
                   (bcol p (r * divup p.cols p.blockItemsX + b) + ix)
@@ -798,7 +798,7 @@ fn teardown
             (b * p.blockItemsX + ix < p.cols)
             (fun _ ->
               tensor_pts_to_cell gC
-                (ix2 (r |~> row_perm) (b * p.blockItemsX + ix))
+                (idx2 (r |~> row_perm) (b * p.blockItemsX + ix))
                 (MS.matmul_single eA eB (r |~> row_perm) (b * p.blockItemsX + ix))
             )
         )
@@ -817,7 +817,7 @@ fn teardown
               (b * p.blockItemsX + ix < p.cols)
               (fun _ ->
                 tensor_pts_to_cell gC
-                  (ix2 (r |~> row_perm) (b * p.blockItemsX + ix))
+                  (idx2 (r |~> row_perm) (b * p.blockItemsX + ix))
                   (MS.matmul_single eA eB
                     (r |~> row_perm) (b * p.blockItemsX + ix)
                   )
@@ -826,7 +826,7 @@ fn teardown
         (fun b ->
           forall+ (ix : natlt p.blockItemsX {b * p.blockItemsX + ix < p.cols}).
             tensor_pts_to_cell gC
-              (ix2 (r |~> row_perm) (b * p.blockItemsX + ix))
+              (idx2 (r |~> row_perm) (b * p.blockItemsX + ix))
               (MS.matmul_single
                 eA eB (r |~> row_perm) (b * p.blockItemsX + ix)
               )
@@ -840,27 +840,27 @@ fn teardown
         p.cols
         (p.blockItemsX)
         (fun c ->
-          tensor_pts_to_cell gC (ix2 (r |~> row_perm) (c))
+          tensor_pts_to_cell gC (idx2 (r |~> row_perm) (c))
             (MS.matmul_single eA eB (r |~> row_perm) c)
         );
     };
 
   forevery_iso row_perm (fun r ->
     forall+ (c : natlt p.cols).
-      tensor_pts_to_cell gC (ix2 (r |~> row_perm) (c))
+      tensor_pts_to_cell gC (idx2 (r |~> row_perm) (c))
         (MS.matmul_single eA eB (r |~> row_perm) c)
   );
   forevery_ext_2
     (fun r c ->
       tensor_pts_to_cell gC
-        (ix2 (row_perm.gg r |~> row_perm) (c))
+        (idx2 (row_perm.gg r |~> row_perm) (c))
         (MS.matmul_single eA eB (row_perm.gg r |~> row_perm) c)
     )
-    (fun r c -> tensor_pts_to_cell gC (ix2 (r) (c)) (macc (MS.matmul eA eB) r c));
+    (fun r c -> tensor_pts_to_cell gC (idx2 (r) (c)) (macc (MS.matmul eA eB) r c));
   forevery_flatten _;
   forevery_ext
-    (fun (rc : natlt p.rows & natlt p.cols) -> tensor_pts_to_cell gC (ix2 (rc._1) (rc._2)) (macc (MS.matmul eA eB) rc._1 rc._2))
-    (fun (rc : natlt p.rows & natlt p.cols) -> tensor_pts_to_cell gC (ix2 (rc._1) (rc._2)) (macc (MS.matmul eA eB) rc._1 rc._2));
+    (fun (rc : natlt p.rows & natlt p.cols) -> tensor_pts_to_cell gC (idx2 (rc._1) (rc._2)) (macc (MS.matmul eA eB) rc._1 rc._2))
+    (fun (rc : natlt p.rows & natlt p.cols) -> tensor_pts_to_cell gC (idx2 (rc._1) (rc._2)) (macc (MS.matmul eA eB) rc._1 rc._2));
   tensor_implode2 gC;
 
   ();
@@ -1578,7 +1578,7 @@ fn store_out
   ensures
     when__ (bcol p bid + x * p.blockWidth + tid < p.cols) (fun _ ->
         tensor_pts_to_cell gC
-          (ix2 (brow p bid |~> row_perm) (bcol p bid + x * p.blockWidth + tid))
+          (idx2 (brow p bid |~> row_perm) (bcol p bid + x * p.blockWidth + tid))
           (v_out @! x)
     )
     ** out |-> v_out
@@ -1602,11 +1602,11 @@ fn store_out
     tensor_write_cell gC ((m_idx <: szlt _), ((n_idx +^ x *^ p.blockWidth +^ tid <: szlt _), ())) c;
 
     assert tensor_pts_to_cell gC
-      (ix2 (brow p bid |~> row_perm) (bcol p bid + x * p.blockWidth + tid))
+      (idx2 (brow p bid |~> row_perm) (bcol p bid + x * p.blockWidth + tid))
       (v_out @! x);
     when__intro_true (bcol p bid + x * p.blockWidth + tid < p.cols)
       (tensor_pts_to_cell gC
-        (ix2 (brow p bid |~> row_perm) (bcol p bid + x * p.blockWidth + tid))
+        (idx2 (brow p bid |~> row_perm) (bcol p bid + x * p.blockWidth + tid))
         (v_out @! x)
       );
   }
@@ -1617,7 +1617,7 @@ fn store_out
         (bcol p bid + x * p.blockWidth + tid)
     ) as when__ (bcol p bid + x * p.blockWidth + tid < p.cols) (fun _ ->
       tensor_pts_to_cell gC
-        (ix2 (brow p bid |~> row_perm) (bcol p bid + x * p.blockWidth + tid))
+        (idx2 (brow p bid |~> row_perm) (bcol p bid + x * p.blockWidth + tid))
         (v_out @! x)
     );
   };
@@ -1917,7 +1917,7 @@ fn kf
     (fun x -> when__ (bcol p bid + x * p.blockWidth + tid < p.cols)
         (fun _ ->
           tensor_pts_to_cell gC
-            (ix2 (brow p bid |~> row_perm) (bcol p bid + x * p.blockWidth + tid))
+            (idx2 (brow p bid |~> row_perm) (bcol p bid + x * p.blockWidth + tid))
             (v_out @! x)
         )
     )
@@ -1931,7 +1931,7 @@ fn kf
     (fun x -> bcol p bid + x * p.blockWidth + tid < p.cols)
     (fun x _ ->
       tensor_pts_to_cell gC
-        (ix2 (brow p bid |~> row_perm) (bcol p bid + x * p.blockWidth + tid))
+        (idx2 (brow p bid |~> row_perm) (bcol p bid + x * p.blockWidth + tid))
         (v_out @! x));
 
   forevery_map
@@ -1940,12 +1940,12 @@ fn kf
     })
     (fun x ->
       tensor_pts_to_cell gC
-        (ix2 (brow p bid |~> row_perm) (bcol p bid + x * p.blockWidth + tid))
+        (idx2 (brow p bid |~> row_perm) (bcol p bid + x * p.blockWidth + tid))
         (v_out @! x)
     )
     (fun x ->
       tensor_pts_to_cell gC
-        (ix2 (brow p bid |~> row_perm) (bcol p bid + x * p.blockWidth + tid))
+        (idx2 (brow p bid |~> row_perm) (bcol p bid + x * p.blockWidth + tid))
         (MS.matmul_single eA eB
           (brow p bid |~> row_perm)
           (bcol p bid + x * p.blockWidth + tid)
@@ -1953,7 +1953,7 @@ fn kf
     )
     fn x {
       assert tensor_pts_to_cell gC
-        (ix2 (brow p bid |~> row_perm) (bcol p bid + x * p.blockWidth + tid))
+        (idx2 (brow p bid |~> row_perm) (bcol p bid + x * p.blockWidth + tid))
         (Compute.compute_result
           p.blockWidth p.blockItemsX
           row_elems row_pos
@@ -1981,7 +1981,7 @@ fn kf
     (fun x -> bcol p bid + x * p.blockWidth + tid < p.cols)
     (fun x _ ->
       tensor_pts_to_cell gC
-        (ix2 (brow p bid |~> row_perm) (bcol p bid + x * p.blockWidth + tid))
+        (idx2 (brow p bid |~> row_perm) (bcol p bid + x * p.blockWidth + tid))
         (MS.matmul_single eA eB
           (brow p bid |~> row_perm)
           (bcol p bid + x * p.blockWidth + tid)

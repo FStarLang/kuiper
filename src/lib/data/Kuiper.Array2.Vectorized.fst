@@ -9,7 +9,7 @@ open Kuiper
 open Kuiper.Array.Vectorized
 open Kuiper.EMatrix
 
-open Kuiper.Tensor { array2, layout2, ix2 }
+open Kuiper.Tensor { array2, layout2, idx2 }
 open Kuiper.Array2.Strided
 module T = Kuiper.Tensor
 
@@ -134,13 +134,13 @@ fn get_slice
   // Convert pts_to_cell to pts_to_cell
   forevery_map_2
     (fun (r : natlt rows) (c : natlt cols) ->
-      T.tensor_pts_to_cell gm #f (ix2 r c) (macc em r c))
+      T.tensor_pts_to_cell gm #f (idx2 r c) (macc em r c))
     (fun (r : natlt rows) (c : natlt cols) ->
       pts_to_cell (T.core gm) #f (cell_of_pos l r c) (macc em r c))
     fn r c {
-      T.tensor_pts_to_cell_eq gm (ix2 r c) f (macc em r c);
+      T.tensor_pts_to_cell_eq gm (idx2 r c) f (macc em r c);
       rewrite
-        T.tensor_pts_to_cell gm #f (ix2 r c) (macc em r c)
+        T.tensor_pts_to_cell gm #f (idx2 r c) (macc em r c)
       as
         pts_to_cell (T.core gm) #f (cell_of_pos l r c) (macc em r c);
     };
@@ -334,13 +334,13 @@ fn unget_slice
     (fun (r : natlt rows) (c : natlt cols) ->
       pts_to_cell (T.core gm) #f (cell_of_pos l r c) (macc em r c))
     (fun (r : natlt rows) (c : natlt cols) ->
-      T.tensor_pts_to_cell gm #f (ix2 r c) (macc em r c))
+      T.tensor_pts_to_cell gm #f (idx2 r c) (macc em r c))
     fn r c {
-      T.tensor_pts_to_cell_eq gm (ix2 r c) f (macc em r c);
+      T.tensor_pts_to_cell_eq gm (idx2 r c) f (macc em r c);
       rewrite
         pts_to_cell (T.core gm) #f (cell_of_pos l r c) (macc em r c)
       as
-        T.tensor_pts_to_cell gm #f (ix2 r c) (macc em r c);
+        T.tensor_pts_to_cell gm #f (idx2 r c) (macc em r c);
     };
   T.tensor_iraise2 gm;
 }

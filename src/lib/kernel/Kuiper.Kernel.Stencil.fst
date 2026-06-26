@@ -27,7 +27,7 @@ let kpre
   =
   gIn |-> Frac (fIn /. (rows * cols)) eIn **
   (exists* vv.
-    tensor_pts_to_cell gOut #1.0R (ix2 (tid / cols) (tid % cols)) vv)
+    tensor_pts_to_cell gOut #1.0R (idx2 (tid / cols) (tid % cols)) vv)
 
 unfold
 let kpost
@@ -47,7 +47,7 @@ let kpost
   : slprop
   =
   gIn |-> Frac (fIn /. (rows * cols)) eIn **
-  tensor_pts_to_cell gOut (ix2 (tid / cols) (tid % cols))
+  tensor_pts_to_cell gOut (idx2 (tid / cols) (tid % cols))
     (STS.stencil_result_at_idx #_ #_ #rows #cols stencil eIn (tid / cols) (tid % cols))
 
 #push-options "--z3rlimit 15"
@@ -80,16 +80,16 @@ fn kf
   let i : sz = bid /^ cols; assert (rewrites_to i (bid /^ cols));
   let j : sz = bid %^ cols; assert (rewrites_to j (bid %^ cols));
 
-  let tl = tensor_read gIn ((i <: szlt _), ((j <: szlt _), ())); let tm = tensor_read gIn ((i <: szlt _), ((j+^1sz <: szlt _), ())); let tr = tensor_read gIn ((i <: szlt _), ((j+^2sz <: szlt _), ()));
-  let ml = tensor_read gIn ((i+^1sz <: szlt _), ((j <: szlt _), ())); let mm = tensor_read gIn ((i+^1sz <: szlt _), ((j+^1sz <: szlt _), ())); let mr = tensor_read gIn ((i+^1sz <: szlt _), ((j+^2sz <: szlt _), ()));
-  let bl = tensor_read gIn ((i+^2sz <: szlt _), ((j <: szlt _), ())); let bm = tensor_read gIn ((i+^2sz <: szlt _), ((j+^1sz <: szlt _), ())); let br = tensor_read gIn ((i+^2sz <: szlt _), ((j+^2sz <: szlt _), ()));
+  let tl = gIn.(cidx2 i j);        let tm = gIn.(cidx2 i (j+^1sz));        let tr = gIn.(cidx2 i (j+^2sz));
+  let ml = gIn.(cidx2 (i+^1sz) j); let mm = gIn.(cidx2 (i+^1sz) (j+^1sz)); let mr = gIn.(cidx2 (i+^1sz) (j+^2sz));
+  let bl = gIn.(cidx2 (i+^2sz) j); let bm = gIn.(cidx2 (i+^2sz) (j+^1sz)); let br = gIn.(cidx2 (i+^2sz) (j+^2sz));
 
   let sv =
     (tl `mul` stencil 0 0) `add` (tm `mul` stencil 0 1) `add` (tr `mul` stencil 0 2) `add`
     (ml `mul` stencil 1 0) `add` (mm `mul` stencil 1 1) `add` (mr `mul` stencil 1 2) `add`
     (bl `mul` stencil 2 0) `add` (bm `mul` stencil 2 1) `add` (br `mul` stencil 2 2);
 
-  tensor_write_cell gOut ((i <: szlt _), ((j <: szlt _), ())) sv;
+  tensor_write_cell gOut (cidx2 i j) sv;
 }
 #pop-options
 
@@ -124,14 +124,14 @@ fn setup
   tensor_ilower2 gOut;
 
   forevery_unfactor' (rows *^ cols) rows cols (fun r c ->
-    tensor_pts_to_cell gOut (ix2 r c) (macc eOut r c));
+    tensor_pts_to_cell gOut (idx2 r c) (macc eOut r c));
 
   ghost
   fn hide_specific_val_behind_exists (rc: natlt (rows *^ cols))
     requires
-        tensor_pts_to_cell gOut (ix2 (rc / cols <: natlt rows) (rc % cols <: natlt cols)) (macc #_ #(SZ.v rows) #(SZ.v cols) eOut (rc / cols) (rc % cols))
+        tensor_pts_to_cell gOut (idx2 (rc / cols <: natlt rows) (rc % cols <: natlt cols)) (macc #_ #(SZ.v rows) #(SZ.v cols) eOut (rc / cols) (rc % cols))
     ensures
-      (exists* vv. tensor_pts_to_cell gOut (ix2 (rc / cols <: natlt rows) (rc % cols <: natlt cols)) vv)
+      (exists* vv. tensor_pts_to_cell gOut (idx2 (rc / cols <: natlt rows) (rc % cols <: natlt cols)) vv)
   {
     ()
   };
@@ -141,16 +141,16 @@ fn setup
   forevery_zip #(natlt (rows *^ cols))
     _
     (fun rc ->
-      (exists* vv. tensor_pts_to_cell gOut (ix2 (rc / cols <: natlt rows) (rc % cols <: natlt cols)) vv));
+      (exists* vv. tensor_pts_to_cell gOut (idx2 (rc / cols <: natlt rows) (rc % cols <: natlt cols)) vv));
 
   ghost
   fn hide_specific_val_behind_exists (rc: natlt (rows * cols))
     requires
       tensor_pts_to #et gIn #(fIn /. Real.of_int (SZ.v (SZ.mul rows cols))) eIn **
-        tensor_pts_to_cell gOut (ix2 (rc / cols <: natlt rows) (rc % cols <: natlt cols)) (macc eOut (rc / cols) (rc % cols))
+        tensor_pts_to_cell gOut (idx2 (rc / cols <: natlt rows) (rc % cols <: natlt cols)) (macc eOut (rc / cols) (rc % cols))
     ensures
       tensor_pts_to #et gIn #(fIn /. Real.of_int (SZ.v (SZ.mul rows cols))) eIn **
-      (exists* vv. tensor_pts_to_cell gOut (ix2 (rc / cols <: natlt rows) (rc % cols <: natlt cols)) vv)
+      (exists* vv. tensor_pts_to_cell gOut (idx2 (rc / cols <: natlt rows) (rc % cols <: natlt cols)) vv)
   {
     ()
   };
@@ -160,7 +160,7 @@ fn setup
     (fun i ->
     (* In the context, fractions are computed by mulitplying SizeT and then converting to nat, *)
       (gIn |-> Frac (fIn /. (rows *^ cols)) eIn) **
-      exists* vv. tensor_pts_to_cell gOut (ix2 (i/cols <: natlt rows) (i%cols <: natlt cols)) vv)
+      exists* vv. tensor_pts_to_cell gOut (idx2 (i/cols <: natlt rows) (i%cols <: natlt cols)) vv)
     (* and the goal expects conversion to nat for each factor. *)
     (fun i ->
       kpre stencil gIn fIn gOut eIn i);
@@ -208,25 +208,25 @@ fn teardown
   assert (pure (forall (r c : nat). c < cols ==> (r * cols + c) % cols == c));
   forevery_ext_2
     (fun (r:natlt rows) (c:natlt cols) ->
-      tensor_pts_to_cell gOut (ix2 ((r * cols + c) / cols <: natlt rows) ((r * cols + c) % cols <: natlt cols))
+      tensor_pts_to_cell gOut (idx2 ((r * cols + c) / cols <: natlt rows) ((r * cols + c) % cols <: natlt cols))
          (STS.stencil_result_at_idx #_ #_ #rows #cols stencil eIn
             ((r * cols + c) / cols) ((r * cols + c) % cols)))
     (fun (r:natlt rows) (c:natlt cols) ->
-      tensor_pts_to_cell gOut (ix2 r c) (
+      tensor_pts_to_cell gOut (idx2 r c) (
         STS.stencil_result_at_idx #_ #_ #rows #cols stencil eIn r c));
 
   ghost
   fn convert_single_res_to_access_on_entire_res (r:natlt rows) (c:natlt cols)
     requires
-      tensor_pts_to_cell gOut (ix2 r c) (STS.stencil_result_at_idx stencil eIn r c)
+      tensor_pts_to_cell gOut (idx2 r c) (STS.stencil_result_at_idx stencil eIn r c)
     ensures
-      tensor_pts_to_cell gOut (ix2 r c) (macc (STS.stencil_result stencil eIn) r c)
+      tensor_pts_to_cell gOut (idx2 r c) (macc (STS.stencil_result stencil eIn) r c)
   {
     ()
   };
 
   forevery_map_2 #(natlt rows) #(natlt cols)
-    (fun r c -> tensor_pts_to_cell gOut (ix2 r c) (STS.stencil_result_at_idx stencil eIn r c))
+    (fun r c -> tensor_pts_to_cell gOut (idx2 r c) (STS.stencil_result_at_idx stencil eIn r c))
     _
     convert_single_res_to_access_on_entire_res;
 

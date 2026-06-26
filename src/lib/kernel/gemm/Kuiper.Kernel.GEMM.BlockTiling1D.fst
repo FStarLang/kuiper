@@ -43,7 +43,7 @@ let own_1_col
   : slprop =
   forall+ (ii : natlt tile).
     exists* (x : et).
-      Cell m (ix2 ii tid) |-> x
+      Cell m (idx2 ii tid) |-> x
 
 let barrier_p
   (#et : Type0)
@@ -265,25 +265,25 @@ fn even_barrier_p_to_q
   with em2. assert (m2 |-> em2);
   tensor_ilower2 m1;
   tensor_ilower2 m2;
-  forevery_commute (fun (r : natlt tile) (c : natlt tile) -> tensor_pts_to_cell m1 (ix2 r c) (macc em1 r c));
-  forevery_commute (fun (r : natlt tile) (c : natlt tile) -> tensor_pts_to_cell m2 (ix2 r c) (macc em2 r c));
+  forevery_commute (fun (r : natlt tile) (c : natlt tile) -> tensor_pts_to_cell m1 (idx2 r c) (macc em1 r c));
+  forevery_commute (fun (r : natlt tile) (c : natlt tile) -> tensor_pts_to_cell m2 (idx2 r c) (macc em2 r c));
   forevery_map
-    (fun (c : natlt tile) -> forall+ (r : natlt tile). tensor_pts_to_cell m1 (ix2 r c) (macc em1 r c))
+    (fun (c : natlt tile) -> forall+ (r : natlt tile). tensor_pts_to_cell m1 (idx2 r c) (macc em1 r c))
     (fun (c : natlt tile) -> own_1_col m1 c)
     fn c {
       forevery_map
-        (fun (r : natlt tile) -> tensor_pts_to_cell m1 (ix2 r c) (macc em1 r c))
-        (fun (r : natlt tile) -> exists* (x : et). Cell m1 (ix2 r c) |-> x)
+        (fun (r : natlt tile) -> tensor_pts_to_cell m1 (idx2 r c) (macc em1 r c))
+        (fun (r : natlt tile) -> exists* (x : et). Cell m1 (idx2 r c) |-> x)
         fn r { };
       fold own_1_col m1 c;
     };
   forevery_map
-    (fun (c : natlt tile) -> forall+ (r : natlt tile). tensor_pts_to_cell m2 (ix2 r c) (macc em2 r c))
+    (fun (c : natlt tile) -> forall+ (r : natlt tile). tensor_pts_to_cell m2 (idx2 r c) (macc em2 r c))
     (fun (c : natlt tile) -> own_1_col m2 c)
     fn c {
       forevery_map
-        (fun (r : natlt tile) -> tensor_pts_to_cell m2 (ix2 r c) (macc em2 r c))
-        (fun (r : natlt tile) -> exists* (x : et). Cell m2 (ix2 r c) |-> x)
+        (fun (r : natlt tile) -> tensor_pts_to_cell m2 (idx2 r c) (macc em2 r c))
+        (fun (r : natlt tile) -> exists* (x : et). Cell m2 (idx2 r c) |-> x)
         fn r { };
       fold own_1_col m2 c;
     };
@@ -327,37 +327,37 @@ fn odd_barrier_p_to_q
   (* Unfold own_1_col to nested forall+/exists *)
   forevery_map
     (fun (c : natlt tile) -> own_1_col m1 c)
-    (fun (c : natlt tile) -> forall+ (r : natlt tile). exists* (x : et). Cell m1 (ix2 r c) |-> x)
+    (fun (c : natlt tile) -> forall+ (r : natlt tile). exists* (x : et). Cell m1 (idx2 r c) |-> x)
     fn c { unfold own_1_col m1 c };
   forevery_map
     (fun (c : natlt tile) -> own_1_col m2 c)
-    (fun (c : natlt tile) -> forall+ (r : natlt tile). exists* (x : et). Cell m2 (ix2 r c) |-> x)
+    (fun (c : natlt tile) -> forall+ (r : natlt tile). exists* (x : et). Cell m2 (idx2 r c) |-> x)
     fn c { unfold own_1_col m2 c };
   (* Commute: forall+ c r -> forall+ r c *)
-  forevery_commute (fun (c : natlt tile) (r : natlt tile) -> exists* (x : et). Cell m1 (ix2 r c) |-> x);
-  forevery_commute (fun (c : natlt tile) (r : natlt tile) -> exists* (x : et). Cell m2 (ix2 r c) |-> x);
+  forevery_commute (fun (c : natlt tile) (r : natlt tile) -> exists* (x : et). Cell m1 (idx2 r c) |-> x);
+  forevery_commute (fun (c : natlt tile) (r : natlt tile) -> exists* (x : et). Cell m2 (idx2 r c) |-> x);
   (* Extract witnesses *)
-  let f1 = forevery_exists_2 (fun (r : natlt tile) (c : natlt tile) (x : et) -> Cell m1 (ix2 r c) |-> x);
-  let f2 = forevery_exists_2 (fun (r : natlt tile) (c : natlt tile) (x : et) -> Cell m2 (ix2 r c) |-> x);
+  let f1 = forevery_exists_2 (fun (r : natlt tile) (c : natlt tile) (x : et) -> Cell m1 (idx2 r c) |-> x);
+  let f2 = forevery_exists_2 (fun (r : natlt tile) (c : natlt tile) (x : et) -> Cell m2 (idx2 r c) |-> x);
   (* Construct ematrices from witness functions *)
   let em1 : ematrix et tile tile = mkM f1;
   let em2 : ematrix et tile tile = mkM f2;
   (* Rewrite cells to use macc *)
   forevery_map
-    (fun (r : natlt tile) -> forall+ (c : natlt tile). Cell m1 (ix2 r c) |-> f1 r c)
-    (fun (r : natlt tile) -> forall+ (c : natlt tile). tensor_pts_to_cell m1 (ix2 r c) (macc em1 r c))
+    (fun (r : natlt tile) -> forall+ (c : natlt tile). Cell m1 (idx2 r c) |-> f1 r c)
+    (fun (r : natlt tile) -> forall+ (c : natlt tile). tensor_pts_to_cell m1 (idx2 r c) (macc em1 r c))
     fn r {
       forevery_ext
-        (fun (c : natlt tile) -> Cell m1 (ix2 r c) |-> f1 r c)
-        (fun (c : natlt tile) -> tensor_pts_to_cell m1 (ix2 r c) (macc em1 r c));
+        (fun (c : natlt tile) -> Cell m1 (idx2 r c) |-> f1 r c)
+        (fun (c : natlt tile) -> tensor_pts_to_cell m1 (idx2 r c) (macc em1 r c));
     };
   forevery_map
-    (fun (r : natlt tile) -> forall+ (c : natlt tile). Cell m2 (ix2 r c) |-> f2 r c)
-    (fun (r : natlt tile) -> forall+ (c : natlt tile). tensor_pts_to_cell m2 (ix2 r c) (macc em2 r c))
+    (fun (r : natlt tile) -> forall+ (c : natlt tile). Cell m2 (idx2 r c) |-> f2 r c)
+    (fun (r : natlt tile) -> forall+ (c : natlt tile). tensor_pts_to_cell m2 (idx2 r c) (macc em2 r c))
     fn r {
       forevery_ext
-        (fun (c : natlt tile) -> Cell m2 (ix2 r c) |-> f2 r c)
-        (fun (c : natlt tile) -> tensor_pts_to_cell m2 (ix2 r c) (macc em2 r c));
+        (fun (c : natlt tile) -> Cell m2 (idx2 r c) |-> f2 r c)
+        (fun (c : natlt tile) -> tensor_pts_to_cell m2 (idx2 r c) (macc em2 r c));
     };
   tensor_iraise2 m1;
   tensor_iraise2 m2;
@@ -432,7 +432,7 @@ let kpre1
   forall+ (ii : natlt tile).
    (exists* v.
      tensor_pts_to_cell
-      (array2_subtile gC (SZ.v tile) (SZ.v tile) (bid / n) (bid % n)) (ix2 ii tid) v)
+      (array2_subtile gC (SZ.v tile) (SZ.v tile) (bid / n) (bid % n)) (idx2 ii tid) v)
 
 unfold
 let kpost1
@@ -462,7 +462,7 @@ let kpost1
   gB |-> Frac (fB /. ((m * n) * tile)) eB **
   forall+ (ii : natlt tile).
     exists* (v : et).
-      Cell (array2_subtile gC (SZ.v tile) (SZ.v tile) (bid / n) (bid % n)) (ix2 ii tid) |-> v **
+      Cell (array2_subtile gC (SZ.v tile) (SZ.v tile) (bid / n) (bid % n)) (idx2 ii tid) |-> v **
       pure (v %~ MS.gemm_single comb_r rA rB rC (mrow * tile + ii) (mcol * tile + tid))
 
 unfold
@@ -844,8 +844,8 @@ fn kf
     (* tedious, and very sad that tuple syntax does not work (even if we ascribe
     the components, F* infers the left type to be 'nat', which is wrong. *)
     with v0.
-      rewrite tensor_pts_to_cell tileC (ix2 (!row <: natlt tile) (tid <: natlt tile)) v0
-           as tensor_pts_to_cell tileC (ix2 (!row <: natlt tile) (bcol <: natlt tile)) v0;
+      rewrite tensor_pts_to_cell tileC (idx2 (!row <: natlt tile) (tid <: natlt tile)) v0
+           as tensor_pts_to_cell tileC (idx2 (!row <: natlt tile) (bcol <: natlt tile)) v0;
 
     let crow = !row;
     let v0 = tensor_read_cell tileC ((crow <: szlt _), ((bcol <: szlt _), ()));
@@ -873,15 +873,15 @@ fn kf
     (fun (ii : natlt tile) ->
       exists* (v : et).
         tensor_pts_to_cell
-          (array2_subtile gC (SZ.v tile) (SZ.v tile) (bid / n) (bid % n)) (ix2 ii (SZ.v tid)) v)
+          (array2_subtile gC (SZ.v tile) (SZ.v tile) (bid / n) (bid % n)) (idx2 ii (SZ.v tid)) v)
     (fun (ii : natlt tile) ->
       exists* (v : et).
         tensor_pts_to_cell
-          (array2_subtile gC (SZ.v tile) (SZ.v tile) (bid / n) (bid % n)) (ix2 ii (SZ.v tid)) v **
+          (array2_subtile gC (SZ.v tile) (SZ.v tile) (bid / n) (bid % n)) (idx2 ii (SZ.v tid)) v **
         pure (v %~ MS.gemm_single comb_r rA rB rC (bid / n * tile + ii) (bid % n * tile + tid)))
     fn ii {
       with v. assert (tensor_pts_to_cell
-          (array2_subtile gC (SZ.v tile) (SZ.v tile) (bid / n) (bid % n)) (ix2 ii (SZ.v tid)) v);
+          (array2_subtile gC (SZ.v tile) (SZ.v tile) (bid / n) (bid % n)) (idx2 ii (SZ.v tid)) v);
       assume pure (v %~ MS.gemm_single comb_r rA rB rC (bid / n * tile + ii) (bid % n * tile + tid));
     };
 }
@@ -924,30 +924,30 @@ fn setup
   forevery_flatten
     (fun (tr:natlt m) (tc:natlt n) ->
       forall+ (i:natlt tile) (j:natlt tile).
-        tensor_pts_to_cell (array2_subtile gC (SZ.v tile) (SZ.v tile) tr tc) (ix2 i j)
+        tensor_pts_to_cell (array2_subtile gC (SZ.v tile) (SZ.v tile) tr tc) (idx2 i j)
           (macc eC (tr * tile + i) (tc * tile + j)));
 
   forevery_mid_flip
     (fun (trtc:natlt m & natlt n) (i:natlt tile) (j:natlt tile) ->
-      tensor_pts_to_cell (array2_subtile gC (SZ.v tile) (SZ.v tile) trtc._1 trtc._2) (ix2 i j)
+      tensor_pts_to_cell (array2_subtile gC (SZ.v tile) (SZ.v tile) trtc._1 trtc._2) (idx2 i j)
         (macc eC (trtc._1 * tile + i) (trtc._2 * tile + j)));
 
   (* Step 3: Introduce exists* via nested forevery_map *)
   forevery_map
     (fun (trtc:natlt m & natlt n) ->
       forall+ (j:natlt tile) (i:natlt tile).
-        tensor_pts_to_cell (array2_subtile gC (SZ.v tile) (SZ.v tile) trtc._1 trtc._2) (ix2 i j)
+        tensor_pts_to_cell (array2_subtile gC (SZ.v tile) (SZ.v tile) trtc._1 trtc._2) (idx2 i j)
           (macc eC (trtc._1 * tile + i) (trtc._2 * tile + j)))
     (fun (trtc:natlt m & natlt n) ->
       forall+ (j:natlt tile) (i:natlt tile).
-        exists* v. tensor_pts_to_cell (array2_subtile gC (SZ.v tile) (SZ.v tile) trtc._1 trtc._2) (ix2 i j) v)
+        exists* v. tensor_pts_to_cell (array2_subtile gC (SZ.v tile) (SZ.v tile) trtc._1 trtc._2) (idx2 i j) v)
     fn trtc {
       forevery_map_2
         (fun (j:natlt tile) (i:natlt tile) ->
-          tensor_pts_to_cell (array2_subtile gC (SZ.v tile) (SZ.v tile) trtc._1 trtc._2) (ix2 i j)
+          tensor_pts_to_cell (array2_subtile gC (SZ.v tile) (SZ.v tile) trtc._1 trtc._2) (idx2 i j)
             (macc eC (trtc._1 * tile + i) (trtc._2 * tile + j)))
         (fun (j:natlt tile) (i:natlt tile) ->
-          exists* v. tensor_pts_to_cell (array2_subtile gC (SZ.v tile) (SZ.v tile) trtc._1 trtc._2) (ix2 i j) v)
+          exists* v. tensor_pts_to_cell (array2_subtile gC (SZ.v tile) (SZ.v tile) trtc._1 trtc._2) (idx2 i j) v)
         fn j i { (); };
     };
 
@@ -955,13 +955,13 @@ fn setup
   forevery_unflatten
     (fun (tr:natlt m) (tc:natlt n) ->
       forall+ (j:natlt tile) (i:natlt tile).
-        exists* v. tensor_pts_to_cell (array2_subtile gC (SZ.v tile) (SZ.v tile) tr tc) (ix2 i j) v);
+        exists* v. tensor_pts_to_cell (array2_subtile gC (SZ.v tile) (SZ.v tile) tr tc) (idx2 i j) v);
 
   (* Step 5: Collapse (tr, tc) → bid *)
   forevery_unfactor' (m * n) m n
     (fun (tr:natlt m) (tc:natlt n) ->
       forall+ (j:natlt tile) (i:natlt tile).
-        exists* v. tensor_pts_to_cell (array2_subtile gC (SZ.v tile) (SZ.v tile) tr tc) (ix2 i j) v);
+        exists* v. tensor_pts_to_cell (array2_subtile gC (SZ.v tile) (SZ.v tile) tr tc) (idx2 i j) v);
 
   (* Step 6: Factor gA/gB to 2D *)
   forevery_factor ((m * n) * tile) (m * n) tile
@@ -978,7 +978,7 @@ fn setup
     (fun (bid : natlt (m * n)) (tid : natlt tile) ->
       forall+ (ii : natlt tile).
         exists* v. tensor_pts_to_cell
-          (array2_subtile gC (SZ.v tile) (SZ.v tile) (bid / n) (bid % n)) (ix2 ii tid) v);
+          (array2_subtile gC (SZ.v tile) (SZ.v tile) (bid / n) (bid % n)) (idx2 ii tid) v);
 
   (* Step 8: Bridge to natlt2 and match kpre1 *)
   forevery_rw_size2 (m * n) (SZ.v (m `SZ.mul` n)) tile tile;
@@ -988,7 +988,7 @@ fn setup
       gB |-> Frac (fB /. ((m * n) * tile)) eB **
       forall+ (ii : natlt tile).
         exists* v. tensor_pts_to_cell
-          (array2_subtile gC (SZ.v tile) (SZ.v tile) (bid / n) (bid % n)) (ix2 ii tid) v)
+          (array2_subtile gC (SZ.v tile) (SZ.v tile) (bid / n) (bid % n)) (idx2 ii tid) v)
     (fun (bid : natlt2 m n) (tid : natlt tile) ->
       kpre1 comb tile gA gB gC eA eB fA fB bid tid);
   ();
@@ -1127,7 +1127,7 @@ fn teardown
       forall+ (ii : natlt tile).
         exists* (v : et).
           tensor_pts_to_cell
-            (array2_subtile gC (SZ.v tile) (SZ.v tile) (bid / n) (bid % n)) (ix2 ii tid) v **
+            (array2_subtile gC (SZ.v tile) (SZ.v tile) (bid / n) (bid % n)) (idx2 ii tid) v **
           pure (v %~ MS.gemm_single comb_r rA rB rC (mrow * tile + ii) (mcol * tile + tid)));
 
   (* Step 3: Unzip gA *)
@@ -1141,7 +1141,7 @@ fn teardown
       forall+ (ii : natlt tile).
         exists* (v : et).
           tensor_pts_to_cell
-            (array2_subtile gC (SZ.v tile) (SZ.v tile) (bid / n) (bid % n)) (ix2 ii tid) v **
+            (array2_subtile gC (SZ.v tile) (SZ.v tile) (bid / n) (bid % n)) (idx2 ii tid) v **
           pure (v %~ MS.gemm_single comb_r rA rB rC (mrow * tile + ii) (mcol * tile + tid)));
 
   (* Step 4: Unzip gB *)
@@ -1154,7 +1154,7 @@ fn teardown
       forall+ (ii : natlt tile).
         exists* (v : et).
           tensor_pts_to_cell
-            (array2_subtile gC (SZ.v tile) (SZ.v tile) (bid / n) (bid % n)) (ix2 ii tid) v **
+            (array2_subtile gC (SZ.v tile) (SZ.v tile) (bid / n) (bid % n)) (idx2 ii tid) v **
           pure (v %~ MS.gemm_single comb_r rA rB rC (mrow * tile + ii) (mcol * tile + tid)));
 
   (* Step 5: Gather gA and gB *)
@@ -1173,7 +1173,7 @@ fn teardown
     (fun (bid : natlt (m * n)) (tid : natlt tile) (ii : natlt tile) ->
       exists* (v : et).
         tensor_pts_to_cell
-          (array2_subtile gC (SZ.v tile) (SZ.v tile) (bid / n) (bid % n)) (ix2 ii tid) v **
+          (array2_subtile gC (SZ.v tile) (SZ.v tile) (bid / n) (bid % n)) (idx2 ii tid) v **
         pure (v %~ MS.gemm_single comb_r rA rB rC
           (bid / n * tile + ii) (bid % n * tile + tid)));
 
@@ -1183,7 +1183,7 @@ fn teardown
       forall+ (ii : natlt tile) (tid : natlt tile).
         exists* (v : et).
           tensor_pts_to_cell
-            (array2_subtile gC (SZ.v tile) (SZ.v tile) (bid / n) (bid % n)) (ix2 ii tid) v **
+            (array2_subtile gC (SZ.v tile) (SZ.v tile) (bid / n) (bid % n)) (idx2 ii tid) v **
           pure (v %~ MS.gemm_single comb_r rA rB rC
             (bid / n * tile + ii) (bid % n * tile + tid)))
     (fun (bid : natlt (m * n)) ->
@@ -1191,14 +1191,14 @@ fn teardown
         exists* (v : et).
           tensor_pts_to_cell
             (array2_subtile gC (SZ.v tile) (SZ.v tile) (bid / n) (bid % n))
-            (ix2 (flatid / tile <: natlt tile) (flatid % tile <: natlt tile)) v **
+            (idx2 (flatid / tile <: natlt tile) (flatid % tile <: natlt tile)) v **
           pure (v %~ MS.gemm_single comb_r rA rB rC (bid / n * tile + flatid / tile) (bid % n * tile + flatid % tile)))
     fn bid {
       forevery_unfactor' (tile * tile) tile tile
         (fun (ii : natlt tile) (tid : natlt tile) ->
           exists* (v : et).
             tensor_pts_to_cell
-              (array2_subtile gC (SZ.v tile) (SZ.v tile) (bid / n) (bid % n)) (ix2 ii tid) v **
+              (array2_subtile gC (SZ.v tile) (SZ.v tile) (bid / n) (bid % n)) (idx2 ii tid) v **
             pure (v %~ MS.gemm_single comb_r rA rB rC
               (bid / n * tile + ii) (bid % n * tile + tid)));
     };

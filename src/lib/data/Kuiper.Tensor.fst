@@ -831,7 +831,7 @@ fn tensor_explode2
     a |-> Frac f s
   ensures
     forall+ (ij : natlt rows & natlt cols).
-      Cell a (ix2 (fst ij) (snd ij)) |-> Frac f (acc s (ix2 (fst ij) (snd ij)))
+      Cell a (idx2 (fst ij) (snd ij)) |-> Frac f (acc s (idx2 (fst ij) (snd ij)))
 {
   tensor_explode a;
   forevery_iso #(abs (rows @| cols @| INil)) #(natlt rows & natlt cols)
@@ -840,7 +840,7 @@ fn tensor_explode2
     (fun (ij : natlt rows & natlt cols) ->
       Cell a (abs_bij2.gg ij) |-> Frac f (acc s (abs_bij2.gg ij)))
     (fun (ij : natlt rows & natlt cols) ->
-      Cell a (ix2 (fst ij) (snd ij)) |-> Frac f (acc s (ix2 (fst ij) (snd ij))));
+      Cell a (idx2 (fst ij) (snd ij)) |-> Frac f (acc s (idx2 (fst ij) (snd ij))));
 }
 
 ghost
@@ -853,18 +853,18 @@ fn tensor_implode2
     pure (SZ.fits (tlayout_ulen l))
   requires
     forall+ (ij : natlt rows & natlt cols).
-      Cell a (ix2 (fst ij) (snd ij)) |-> Frac f (acc s (ix2 (fst ij) (snd ij)))
+      Cell a (idx2 (fst ij) (snd ij)) |-> Frac f (acc s (idx2 (fst ij) (snd ij)))
   ensures
     a |-> Frac f s
 {
   forevery_iso #(natlt rows & natlt cols) #(abs (rows @| cols @| INil))
     (bij_sym abs_bij2)
     (fun (ij : natlt rows & natlt cols) ->
-      Cell a (ix2 (fst ij) (snd ij)) |-> Frac f (acc s (ix2 (fst ij) (snd ij))));
+      Cell a (idx2 (fst ij) (snd ij)) |-> Frac f (acc s (idx2 (fst ij) (snd ij))));
   forevery_ext
     (fun (i : abs (rows @| cols @| INil)) ->
-      Cell a (ix2 (fst ((bij_sym abs_bij2).gg i)) (snd ((bij_sym abs_bij2).gg i)))
-        |-> Frac f (acc s (ix2 (fst ((bij_sym abs_bij2).gg i)) (snd ((bij_sym abs_bij2).gg i)))))
+      Cell a (idx2 (fst ((bij_sym abs_bij2).gg i)) (snd ((bij_sym abs_bij2).gg i)))
+        |-> Frac f (acc s (idx2 (fst ((bij_sym abs_bij2).gg i)) (snd ((bij_sym abs_bij2).gg i)))))
     (fun (i : abs (rows @| cols @| INil)) -> Cell a i |-> Frac f (acc s i));
   tensor_implode a;
 }
@@ -880,13 +880,13 @@ fn tensor_ilower2
   ensures
     pure (SZ.fits (tlayout_ulen l)) **
     (forall+ (r : natlt rows) (c : natlt cols).
-      Cell a (ix2 r c) |-> Frac f (acc s (ix2 r c)))
+      Cell a (idx2 r c) |-> Frac f (acc s (idx2 r c)))
 {
   tensor_pts_to_ref a;
   tensor_explode2 a;
   forevery_unflatten'
     (fun (ij : natlt rows & natlt cols) ->
-      Cell a (ix2 (fst ij) (snd ij)) |-> Frac f (acc s (ix2 (fst ij) (snd ij))));
+      Cell a (idx2 (fst ij) (snd ij)) |-> Frac f (acc s (idx2 (fst ij) (snd ij))));
 }
 
 ghost
@@ -898,13 +898,13 @@ fn tensor_iraise2
   requires
     pure (SZ.fits (tlayout_ulen l)) **
     (forall+ (r : natlt rows) (c : natlt cols).
-      Cell a (ix2 r c) |-> Frac f (acc s (ix2 r c)))
+      Cell a (idx2 r c) |-> Frac f (acc s (idx2 r c)))
   ensures
     a |-> Frac f s
 {
   forevery_flatten'
     (fun (ij : natlt rows & natlt cols) ->
-      Cell a (ix2 (fst ij) (snd ij)) |-> Frac f (acc s (ix2 (fst ij) (snd ij))));
+      Cell a (idx2 (fst ij) (snd ij)) |-> Frac f (acc s (idx2 (fst ij) (snd ij))));
   tensor_implode2 a;
 }
 

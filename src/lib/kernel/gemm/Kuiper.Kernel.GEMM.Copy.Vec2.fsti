@@ -51,7 +51,7 @@ let own_strided_chunks
   : slprop
 =
   forall+ (ij : (natlt rows & natlt cols){in_chunk (chunk et #_ #hvc) rows cols nthr tid ij}).
-    tensor_pts_to_cell m (ix2 ij._1 ij._2) (macc em ij._1 ij._2)
+    tensor_pts_to_cell m (idx2 ij._1 ij._2) (macc em ij._1 ij._2)
 
 let live_strided_chunks
   (#et : Type0) {| sized et, hvc: has_vec_cpy et |}

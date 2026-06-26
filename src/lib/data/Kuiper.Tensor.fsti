@@ -35,16 +35,16 @@ let idx3 (#d0 #d1 #d2 : nat) (x : natlt d0) (y : natlt d1) (z : natlt d2) : abs 
 let idx4 (#d0 #d1 #d2 #d3 : nat) (x : natlt d0) (y : natlt d1) (z : natlt d2) (w : natlt d3) : abs (d0 @| d1 @| d2 @| d3 @| INil) =
   (x, (y, (z, (w, ()))))
 
-inline_for_extraction noextract
+inline_for_extraction noextract unfold
 let cidx1 (#d0 : erased nat) (x : szlt d0) : conc (d0 @| INil) =
   (x, ())
-inline_for_extraction noextract
+inline_for_extraction noextract unfold
 let cidx2 (#d0 #d1 : erased nat) (x : szlt d0) (y : szlt d1) : conc (d0 @| d1 @| INil) =
   (x, (y, ()))
-inline_for_extraction noextract
+inline_for_extraction noextract unfold
 let cidx3 (#d0 #d1 #d2 : erased nat) (x : szlt d0) (y : szlt d1) (z : szlt d2) : conc (d0 @| d1 @| d2 @| INil) =
   (x, (y, (z, ())))
-inline_for_extraction noextract
+inline_for_extraction noextract unfold
 let cidx4 (#d0 #d1 #d2 #d3 : erased nat) (x : szlt d0) (y : szlt d1) (z : szlt d2) (w : szlt d3) : conc (d0 @| d1 @| d2 @| d3 @| INil) =
   (x, (y, (z, (w, ()))))
 
@@ -563,11 +563,6 @@ fn tensor_restore_slice
 
 (* Rank-2 conveniences over the (natlt rows & natlt cols) index pair. *)
 
-inline_for_extraction noextract
-let ix2 (#rows #cols : nat) (r : natlt rows) (c : natlt cols)
-  : abs (rows @| cols @| INil)
-  = (r, (c, ()))
-
 ghost
 fn tensor_explode2
   (#et : Type0) (#rows #cols : nat) (#l : layout2 rows cols)
@@ -578,7 +573,7 @@ fn tensor_explode2
     a |-> Frac f s
   ensures
     forall+ (ij : natlt rows & natlt cols).
-      Cell a (ix2 (fst ij) (snd ij)) |-> Frac f (acc s (ix2 (fst ij) (snd ij)))
+      Cell a (idx2 (fst ij) (snd ij)) |-> Frac f (acc s (idx2 (fst ij) (snd ij)))
 
 ghost
 fn tensor_implode2
@@ -590,7 +585,7 @@ fn tensor_implode2
     pure (SZ.fits (tlayout_ulen l))
   requires
     forall+ (ij : natlt rows & natlt cols).
-      Cell a (ix2 (fst ij) (snd ij)) |-> Frac f (acc s (ix2 (fst ij) (snd ij)))
+      Cell a (idx2 (fst ij) (snd ij)) |-> Frac f (acc s (idx2 (fst ij) (snd ij)))
   ensures
     a |-> Frac f s
 
@@ -605,7 +600,7 @@ fn tensor_ilower2
   ensures
     pure (SZ.fits (tlayout_ulen l)) **
     (forall+ (r : natlt rows) (c : natlt cols).
-      Cell a (ix2 r c) |-> Frac f (acc s (ix2 r c)))
+      Cell a (idx2 r c) |-> Frac f (acc s (idx2 r c)))
 
 ghost
 fn tensor_iraise2
@@ -616,7 +611,7 @@ fn tensor_iraise2
   requires
     pure (SZ.fits (tlayout_ulen l)) **
     (forall+ (r : natlt rows) (c : natlt cols).
-      Cell a (ix2 r c) |-> Frac f (acc s (ix2 r c)))
+      Cell a (idx2 r c) |-> Frac f (acc s (idx2 r c)))
   ensures
     a |-> Frac f s
 
