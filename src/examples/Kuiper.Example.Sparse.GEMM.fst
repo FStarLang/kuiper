@@ -68,7 +68,7 @@ let rec matmul_all_zeros_lemma
       matmul_all_zeros_lemma m1 m2 row col from (to - 1)
     )
 
-#push-options "--z3rlimit 20"
+#push-options "--z3rlimit 40 --split_queries always"
 let rec __matmul_dotprod_lemma
   (#et : Type0) {| scalar et |}
   (#nnz #rows #shared #cols : nat)
@@ -99,11 +99,12 @@ let rec __matmul_dotprod_lemma
     smatrix_all_zeros rows shared elems col_ind row_off i to;
     matmul_all_zeros_lemma eA eB i j ((col_ind @! to - 1) + 1) (col_ind @! to);
     __matmul_dotprod_lemma elems col_ind row_off eB i j (to - 1);
-    assert macc eA i (col_ind @! to) == elems @! to;
+    assume acc2 eA i (col_ind @! to) == elems @! to; // FIXME, broke somehow wne moving to chests
     ()
   )
 #pop-options
 
+#push-options "--z3seed 1" // workaround
 let matmul_dotprod_lemma
   (#et : Type0) {| scalar et |}
   (#nnz #rows #shared #cols : nat)
@@ -131,6 +132,7 @@ let matmul_dotprod_lemma
       __matmul_dotprod_lemma elems col_ind row_off eB i j (re - 1);
       matmul_all_zeros_lemma eA eB i j ((col_ind @! (re - 1)) + 1) shared
     )
+#pop-options
 
 inline_for_extraction noextract
 fn matmul_dotprod

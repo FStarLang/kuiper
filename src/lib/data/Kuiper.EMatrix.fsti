@@ -14,8 +14,7 @@ include Kuiper.Chest {
 open Kuiper.Shape
 
 [@@erasable]
-type ematrix (et:Type) (rows cols : nat) =
-  chest (rows @| cols @| INil) et
+type ematrix = chest2
 
 let mkM (#et:Type) (#rows #cols : nat)
   (f : natlt rows -> natlt cols -> GTot et)

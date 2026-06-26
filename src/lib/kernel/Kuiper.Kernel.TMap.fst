@@ -1,6 +1,6 @@
 module Kuiper.Kernel.TMap
 
-(* Simple kernel: pointwise map of a function on an array. *)
+(* Simple kernel: pointwise map of a function on a tensor. *)
 
 #lang-pulse
 
@@ -10,6 +10,7 @@ open Kuiper.Chest
 open Kuiper.Shape
 open Kuiper.Tensor
 open Kuiper.Tensor.Layout.Alg { l1_forward }
+open FStar.Tactics.Typeclasses
 
 ghost
 fn setup
@@ -114,9 +115,9 @@ fn kf
 {
   assume frame 1.0R;
   rewrite
-    Cell a (unflatten d i) |-> (acc s (unflatten d i))
+    Cell a (unflatten d i) |-> acc s (unflatten d i)
   as
-    Cell a (up (cunflatten cd i)) |-> (acc s (unflatten d i));
+    Cell a (up (cunflatten cd i)) |-> acc s (unflatten d i);
   let x = tensor_read_cell a (cunflatten cd i);
   tensor_write_cell a (cunflatten cd i) (f (cunflatten cd i) x);
   with v. assert tensor_pts_to_cell a (up (cunflatten cd i)) v;

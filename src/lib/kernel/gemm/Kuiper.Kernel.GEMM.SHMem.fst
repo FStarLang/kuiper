@@ -598,7 +598,7 @@ fn kf
     rewrite each (tid / tile) as v brow;
     rewrite each (tid % tile) as v bcol;
 
-    let t = Kuiper.DotProd.matmul_dotprod_t sa1 sa2 brow bcol;
+    let t = Kuiper.DotProd.matmul_dotprod sa1 sa2 brow bcol;
     let s = !sum;
     sum := s `add` t;
 

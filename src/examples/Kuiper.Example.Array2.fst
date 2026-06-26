@@ -2,12 +2,8 @@ module Kuiper.Example.Array2
 
 #lang-pulse
 open Kuiper
-open Kuiper.Bijection
-open Kuiper.Injection
 open Kuiper.Tensor
 open Kuiper.Tensor.Layout.Alg
-open Kuiper.Shape
-open Kuiper.EMatrix
 module SZ = Kuiper.SizeT
 
 let layout (d0 d1 : nat) : layout2 d0 d1 =
@@ -18,8 +14,7 @@ let layout (d0 d1 : nat) : layout2 d0 d1 =
 
 inline_for_extraction noextract
 instance blah
-  (d0 : SZ.t{SZ.fits d0})
-  (d1 : SZ.t{SZ.fits d1})
+  (d0 d1 : sz)
   (#_ : squash (SZ.fits (d0 * d1)))
   : ctlayout (layout d0 d1)
   =
@@ -41,14 +36,13 @@ fn test1 (m : array2 u32 (layout 10 10))
   preserves m |-> 's
   returns u32
 {
-  let v = tensor_read m ((1sz <: szlt _), ((2sz <: szlt _), ()));
-  v
+  m.((1sz <: szlt _), ((2sz <: szlt _), ()));
 }
 
 fn test2 (m : array2 u32 (layout 10 10))
   requires m |-> 's
   ensures  m |-> upd2 's 1 2 42ul
 {
-  tensor_write m ((1sz <: szlt _), ((2sz <: szlt _), ())) 42ul;
+  m.((1sz <: szlt _), ((2sz <: szlt _), ())) <- 42ul;
   ()
 }

@@ -104,7 +104,7 @@ fn kf
   let trow : szlt rows = bid /^ cols; assert (rewrites_to trow (bid /^ cols));
   let tcol : szlt cols = bid %^ cols; assert (rewrites_to tcol (bid %^ cols));
 
-  let s = Kuiper.DotProd.matmul_dotprod_t gA gB trow tcol;
+  let s = Kuiper.DotProd.matmul_dotprod gA gB trow tcol;
 
   let v0 = tensor_read_cell gC (trow, (tcol, ()));
   let v1 = comb v0 s;

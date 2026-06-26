@@ -90,7 +90,7 @@ fn kf
   let trow : szlt rows = gid /^ cols; assert (rewrites_to trow (gid /^ cols));
   let tcol : szlt cols = gid %^ cols; assert (rewrites_to tcol (gid %^ cols));
 
-  let s = Kuiper.DotProd.matmul_dotprod_t gA gB trow tcol;
+  let s = Kuiper.DotProd.matmul_dotprod gA gB trow tcol;
 
   let v0 = tensor_read_cell gC (trow, (tcol, ()));
   let v1 = comb v0 s;

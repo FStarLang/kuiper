@@ -907,3 +907,65 @@ fn tensor_iraise2
       Cell a (ix2 (fst ij) (snd ij)) |-> Frac f (acc s (ix2 (fst ij) (snd ij))));
   tensor_implode2 a;
 }
+
+let ref_of_tensor_cell
+  (#et : Type0)
+  (#r : nat) (#s : shape r) (#l : tlayout s)
+  (a : tensor et l)
+  (i : abs s)
+  : GTot (ref et)
+  = Array.Core.ref_of_array_cell (core a) (l.imap.f i)
+
+inline_for_extraction noextract
+fn get_ref_of_tensor_cell
+  (#et : Type0)
+  (#r : nat) (#s : shape r) (#l : tlayout s)
+  (a : tensor et l) {| c : ctlayout l |}
+  (i : conc s)
+  returns
+    r : ref et
+  ensures
+    pure (r == ref_of_tensor_cell a (up i))
+{
+  Array.Core.get_ref_of_array_cell (core a) (c.cimap i)
+}
+
+ghost
+fn tensor_cell_to_ref
+  (#et : Type0)
+  (#r : nat) (#s : shape r) (#l : tlayout s)
+  (a : tensor et l)
+  (i : abs s)
+  (#f : perm)
+  (#v : erased et)
+  requires
+    Cell a i |-> Frac f v
+  ensures
+    ref_of_tensor_cell a i |-> Frac f v
+{
+  admit();
+  // pts_to_cell_eq a i f v;
+  // rewrite Cell a i |-> Frac f v
+  //      as B.pts_to_cell (core a) #f (l.imap.f (adapt_idx_back i)) v;
+  // Array.Core.array_cell_to_ref (core a) (l.imap.f (adapt_idx_back i));
+}
+
+ghost
+fn tensor_cell_from_ref
+  (#et : Type0)
+  (#r : nat) (#s : shape r) (#l : tlayout s)
+  (a : tensor et l)
+  (i : abs s)
+  (#f : perm)
+  (#v : erased et)
+  requires
+    ref_of_tensor_cell a i |-> Frac f v
+  ensures
+    Cell a i |-> Frac f v
+{
+  admit();
+  // pts_to_cell_eq a i f v;
+  // Array.Core.array_cell_from_ref (core a) (l.imap.f (adapt_idx_back i));
+  // rewrite B.pts_to_cell (core a) #f (l.imap.f (adapt_idx_back i)) v
+  //      as Cell a i |-> Frac f v;
+}

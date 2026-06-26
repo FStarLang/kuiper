@@ -12,6 +12,7 @@ open Kuiper.Tensor { ctlayout }
 open Kuiper.Tensor.Layout.Alg { l1_forward }
 open Pulse.Lib.GhostReference { read as gread, write as gwrite, alloc as galloc }
 open Kuiper.Kernel.HReduce
+open Kuiper.EMatrix
 
 module SZ = Kuiper.SizeT
 module B = Kuiper.Barrier

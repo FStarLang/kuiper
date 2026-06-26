@@ -211,7 +211,7 @@ val matmul_single_lemma
       (__matmul_single m1 m2 row col (to - 1))
       (mul (macc m1 row (to-1)) (macc m2 (to-1) col))
   ))
-  // [SMTPat (matmul_single m1 m2 row col to)]
+  [SMTPat (__matmul_single m1 m2 row col to)]
 
 val matmul
   (#et:Type) {| scalar et |}

@@ -2,12 +2,11 @@ module Kuiper.Example.CellRef
 
 #lang-pulse
 open Kuiper
-open Kuiper.Array1
-open Kuiper.Seq.Common
-open Kuiper.Tensor.Layout
+open Kuiper.Tensor
 open Kuiper.Tensor.Layout.Alg
-open Kuiper.Shape
 module SZ = Kuiper.SizeT
+
+// #set-options "--print_implicits"
 
 (* Read cell [i] by obtaining a ref into it and dereferencing. *)
 fn cell_get
@@ -16,18 +15,16 @@ fn cell_get
   (#f : perm)
   (#v : erased u32)
   preserves
-    Cell a (i <: natlt 16) |-> Frac f v
+    tensor_pts_to_cell a #f ((i <: natlt 16), ()) v
   returns
     r : u32
   ensures
     pure (r == reveal v)
 {
-  array1_cell_to_ref a i;
-  let p = get_ref_of_array_cell a i;
-  rewrite each ref_of_array_cell a (SZ.v i) as p;
+  tensor_cell_to_ref a ((SZ.v i <: natlt 16), ());
+  let p = get_ref_of_tensor_cell a ((i <: szlt 16), ());
   let x = !p;
-  rewrite each p as ref_of_array_cell a (SZ.v i);
-  array1_cell_from_ref a i;
+  tensor_cell_from_ref a ((SZ.v i <: natlt 16), ());
   x
 }
 
@@ -38,16 +35,14 @@ fn cell_set
   (w : u32)
   (#v : erased u32)
   requires
-    Cell a (i <: natlt 16) |-> v
+    tensor_pts_to_cell a ((i <: natlt 16), ()) v
   ensures
-    Cell a (i <: natlt 16) |-> w
+    tensor_pts_to_cell a ((i <: natlt 16), ()) w
 {
-  array1_cell_to_ref a i;
-  let p = get_ref_of_array_cell a i;
-  rewrite each ref_of_array_cell a (SZ.v i) as p;
+  tensor_cell_to_ref a ((SZ.v i <: natlt 16), ());
+  let p = get_ref_of_tensor_cell a ((i <: szlt 16), ());
   p := w;
-  rewrite each p as ref_of_array_cell a (SZ.v i);
-  array1_cell_from_ref a i;
+  tensor_cell_from_ref a ((SZ.v i <: natlt 16), ());
 }
 
 (* End-to-end: take a full array, explode it into per-cell ownership,
@@ -58,18 +53,18 @@ fn array_set_via_ref
   (a : array1 u32 (l1_forward 16))
   (j : szlt 16)
   (w : u32)
-  (#s : erased (lseq u32 16))
+  (#s : chest1 u32 16)
   requires
-    a |-> reveal s
+    a |-> s
   ensures
-    a |-> lseq_upd (reveal s) (SZ.v j <: natlt 16) w
+    a |-> upd1 s (SZ.v j <: natlt 16) w
 {
-  explode a;
-  forevery_extract' #(natlt 16) (SZ.v j <: natlt 16) _;
+  tensor_explode a;
+  forevery_extract' #(abs (ICons 16 INil)) ((SZ.v j <: natlt 16), ()) _;
   cell_set a j w;
   Pulse.Lib.Forall.elim_forall
-    (fun (x : natlt 16) ->
-      Cell a x |-> Frac 1.0R (Seq.index (lseq_upd (reveal s) (SZ.v j <: natlt 16) w) x));
+    (fun (i : abs (ICons 16 INil)) ->
+      Cell a i |-> Frac 1.0R (acc (upd s ((SZ.v j <: natlt 16), ()) w) i));
   Pulse.Lib.Trade.elim_trade _ _;
-  implode a;
+  tensor_implode a;
 }

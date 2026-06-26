@@ -7,10 +7,8 @@ module Kuiper.Kernel.AtomicReduce
 open Kuiper
 open Kuiper.Atomics
 open Kuiper.Tensor
-open Kuiper.Tensor.Layout
 open Kuiper.Tensor.Layout.Alg
 
-module Array1 = Kuiper.Array1
 module SZ = Kuiper.SizeT
 module W = Pulse.Lib.WithPure
 module CInv = Pulse.Lib.CancellableInvariant

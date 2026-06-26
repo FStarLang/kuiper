@@ -2,38 +2,28 @@ module Kuiper.Kernel.FlashAttention
 
 #lang-pulse
 open Kuiper
-open Kuiper.EMatrix
-open Kuiper.Array
-open Kuiper.Tensor.Layout
-
-module M = Kuiper.Array2
-
-
-open Kuiper
-open Kuiper.Chest
+open Kuiper.Tensor
+open Kuiper.Tensor.Layout.Alg
 open Kuiper.Bijection
-open Kuiper.EMatrix
-open Kuiper.Shape
-open Kuiper.Array1
 
 inline_for_extraction noextract
 fn flashattention_tile
   (#et : Type0) {| scalar et, floating et |}
   (bc br d: szp)
-  (lS: M.layout br bc)
-  (lKj lVj: M.layout bc d)
-  (lQi lOi: M.layout br d)
+  (lS: layout2 br bc)
+  (lKj lVj: layout2 bc d)
+  (lQi lOi: layout2 br d)
   {| ctlayout lS, ctlayout lKj, ctlayout lVj, ctlayout lQi, ctlayout lOi |}
-  (gS: M.array2 et lS)
-  (gKj: M.array2 et lKj)
-  (gVj: M.array2 et lVj)
-  (gQi: M.array2 et lQi)
-  (gOi: M.array2 et lOi)
+  (gS: array2 et lS)
+  (gKj: array2 et lKj)
+  (gVj: array2 et lVj)
+  (gQi: array2 et lQi)
+  (gOi: array2 et lOi)
   (gl gm: ref et)
-  (eKj: ematrix et bc d)
-  (eVj: ematrix et bc d)
-  (eQi: ematrix et br d)
-  (eOi: ematrix et br d)
+  (eKj: chest2 et bc d)
+  (eVj: chest2 et bc d)
+  (eQi: chest2 et br d)
+  (eOi: chest2 et br d)
   (vl vm: erased et)
   (tid: sz { tid <^ br /\ tid <^ bc }) // TODO: impossible to materialize tid in a kernel unless br = bc
   requires
@@ -62,8 +52,8 @@ fn flashattention_tile
       assert pure (tid <^ br);
       assert pure (!x <^ d);
       let vx = !x; let vy = !y;
-      let vq: et = M.read gQi ((tid <: sz), (vx <: sz));
-      let vk: et = M.read gKj ((vy <: sz), (vx <: sz));
+      let vq: et = tensor_read gQi (cidx2 tid vx);
+      let vk: et = tensor_read gKj (cidx2 vy vx);
       sum := !sum `add` (vq `mul` vk);
       x := !x +^ 1sz;
     };
@@ -71,7 +61,7 @@ fn flashattention_tile
     // sum := !sum * alpha;
 
     let vy = !y;
-    M.write gS ((tid <: sz), (vy <: sz)) !sum;
+    tensor_write gS (cidx2 tid vy) !sum;
     row_m := fmax !row_m !sum;
 
     y := !y +^ 1sz;
@@ -84,8 +74,8 @@ fn flashattention_tile
     decreases (bc - !y)
   {
     let vy = !y;
-    let vs: et = fexp ((M.read gS ((tid <: sz), (vy <: sz))) `sub` !row_m);
-    M.write gS ((tid <: sz), (vy <: sz)) vs;
+    let vs: et = fexp ((tensor_read gS (cidx2 tid vy)) `sub` !row_m);
+    tensor_write gS (cidx2 tid vy) vs;
     row_l := !row_l `add` vs;
 
     y := !y +^ 1sz;
@@ -106,25 +96,23 @@ fn flashattention_tile
       decreases (bc - !y)
     {
       let vx = !x; let vy = !y;
-      let vs: et = M.read gS ((tid <: sz), (vy <: sz));
-      let vv: et = M.read gVj ((vy <: sz), (vx <: sz));
+      let vs: et = tensor_read gS (cidx2 tid vy);
+      let vv: et = tensor_read gVj (cidx2 vy vx);
       pv := !pv `add` (vs `mul` vv);
 
       y := !y +^ 1sz;
     };
 
     let vx = !x;
-    let vo: et = M.read gOi ((tid <: sz), (vx <: sz));
+    let vo: et = tensor_read gOi (cidx2 tid vx);
     let vo: et = (vo `mul` row_l_prev `mul` (fexp (row_m_prev `sub` row_m_new))) `div` row_l_new;
     let vo: et = vo `add` ((fexp (!row_m `sub` row_m_new)) `mul` !pv);
 
-    M.write gOi ((tid <: sz), (vx <: sz)) vo;
+    tensor_write gOi (cidx2 tid vx) vo;
 
     x := !x +^ 1sz;
   }
 }
-
-open Kuiper.Tensor.Layout.Alg
 
 let flashattention_f32 =
   flashattention_tile #f32

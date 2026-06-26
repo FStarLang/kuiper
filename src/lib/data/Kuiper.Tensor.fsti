@@ -26,6 +26,28 @@ let array3 (et : Type0) (#d0 #d1 #d2 : nat) (l : layout3 d0 d1 d2) : Type0 = ten
 inline_for_extraction noextract
 let array4 (et : Type0) (#d0 #d1 #d2 #d3 : nat) (l : layout4 d0 d1 d2 d3) : Type0 = tensor et l
 
+let idx1 (#d0 : nat) (x : natlt d0) : abs (d0 @| INil) =
+  (x, ())
+let idx2 (#d0 #d1 : nat) (x : natlt d0) (y : natlt d1) : abs (d0 @| d1 @| INil) =
+  (x, (y, ()))
+let idx3 (#d0 #d1 #d2 : nat) (x : natlt d0) (y : natlt d1) (z : natlt d2) : abs (d0 @| d1 @| d2 @| INil) =
+  (x, (y, (z, ())))
+let idx4 (#d0 #d1 #d2 #d3 : nat) (x : natlt d0) (y : natlt d1) (z : natlt d2) (w : natlt d3) : abs (d0 @| d1 @| d2 @| d3 @| INil) =
+  (x, (y, (z, (w, ()))))
+
+inline_for_extraction noextract
+let cidx1 (#d0 : erased nat) (x : szlt d0) : conc (d0 @| INil) =
+  (x, ())
+inline_for_extraction noextract
+let cidx2 (#d0 #d1 : erased nat) (x : szlt d0) (y : szlt d1) : conc (d0 @| d1 @| INil) =
+  (x, (y, ()))
+inline_for_extraction noextract
+let cidx3 (#d0 #d1 #d2 : erased nat) (x : szlt d0) (y : szlt d1) (z : szlt d2) : conc (d0 @| d1 @| d2 @| INil) =
+  (x, (y, (z, ())))
+inline_for_extraction noextract
+let cidx4 (#d0 #d1 #d2 #d3 : erased nat) (x : szlt d0) (y : szlt d1) (z : szlt d2) (w : szlt d3) : conc (d0 @| d1 @| d2 @| d3 @| INil) =
+  (x, (y, (z, (w, ()))))
+
 val is_global
   (#et : Type0) (#r : nat) (#d : shape r)
   (#l : tlayout d)
@@ -282,6 +304,28 @@ fn tensor_write
     a |-> s
   ensures
     a |-> upd s (up i) v
+
+(* Syntax *)
+inline_for_extraction noextract
+unfold let op_Array_Access
+  (#et : Type0) (#r : erased nat) (#d : shape r)
+  (#l : tlayout d) {| ctlayout l |}
+  (a : tensor et l)
+  (i : conc d)
+  (#f : perm)
+  (#s : chest d et)
+  = tensor_read #et #r #d #l a i #f #s
+
+(* Syntax *)
+inline_for_extraction noextract
+unfold let op_Array_Assignment
+  (#et : Type0) (#r : erased nat) (#d : shape r)
+  (#l : tlayout d) {| ctlayout l |}
+  (a : tensor et l)
+  (i : conc d)
+  (v : et)
+  (#s : chest d et)
+  = tensor_write #et #r #d #l a i v #s
 
 val tensor_pts_to_cell
   (#et : Type0) (#r : nat) (#d : shape r)
@@ -575,3 +619,47 @@ fn tensor_iraise2
       Cell a (ix2 r c) |-> Frac f (acc s (ix2 r c)))
   ensures
     a |-> Frac f s
+
+val ref_of_tensor_cell
+  (#et : Type0)
+  (#r : nat) (#s : shape r) (#l : tlayout s)
+  (a : tensor et l)
+  (i : abs s)
+  : GTot (ref et)
+
+inline_for_extraction noextract
+fn get_ref_of_tensor_cell
+  (#et : Type0)
+  (#r : nat) (#s : shape r) (#l : tlayout s)
+  (a : tensor et l) {| ctlayout l |}
+  (i : conc s)
+  returns
+    r : ref et
+  ensures
+    rewrites_to r (ref_of_tensor_cell a (up i))
+
+ghost
+fn tensor_cell_to_ref
+  (#et : Type0)
+  (#r : nat) (#s : shape r) (#l : tlayout s)
+  (a : tensor et l)
+  (i : abs s)
+  (#f : perm)
+  (#v : erased et)
+  requires
+    Cell a i |-> Frac f v
+  ensures
+    ref_of_tensor_cell a i |-> Frac f v
+
+ghost
+fn tensor_cell_from_ref
+  (#et : Type0)
+  (#r : nat) (#s : shape r) (#l : tlayout s)
+  (a : tensor et l)
+  (i : abs s)
+  (#f : perm)
+  (#v : erased et)
+  requires
+    ref_of_tensor_cell a i |-> Frac f v
+  ensures
+    Cell a i |-> Frac f v

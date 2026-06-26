@@ -348,7 +348,7 @@ fn matmul_tiled_dotprod_real
     let bbk   = tensor_extract_slice_ro' gB  0 (SZ.v !bk);
     let bbkbj = tensor_extract_slice_ro' bbk 0 (SZ.v bj);
 
-    let s' = Kuiper.DotProd.matmul_dotprod_t #_ #_ #_ #_ #tile abibk bbkbj i j;
+    let s' = Kuiper.DotProd.matmul_dotprod #_ #_ #_ #_ #tile abibk bbkbj i j;
 
     ambig_trade_elim ();
     ambig_trade_elim ();
@@ -645,7 +645,7 @@ fn setup
   ();
 }
 
-#push-options "--z3rlimit 60 --ifuel 5"
+#push-options "--z3rlimit 80 --ifuel 5"
 ghost
 fn teardown
   (#et : Type0) {| scalar et, real_like et |}
