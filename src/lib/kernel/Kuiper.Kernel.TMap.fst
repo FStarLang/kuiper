@@ -156,7 +156,7 @@ let kmap
     setup    = setup    n frame vf f a #s;
     teardown = teardown n frame vf f a #s;
     kpre  = (fun (i : natlt (sizeof d)) -> Cell a (unflatten d i) |-> (acc s (unflatten d i)));
-    kpost = (fun (i : natlt (sizeof d)) -> exists* v. tensor_pts_to_cell a (unflatten d i) v ** 
+    kpost = (fun (i : natlt (sizeof d)) -> exists* v. tensor_pts_to_cell a (unflatten d i) v **
                                              pure (vf (unflatten d i) (acc s (unflatten d i)) v));
     kpost_sendable = solve;
     kpre_sendable  = solve;
