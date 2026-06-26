@@ -12,6 +12,8 @@ open Kuiper.Shape
 open Kuiper.Chest
 open FStar.Tactics.Typeclasses { no_method }
 open Pulse.Lib.Trade
+open Kuiper.Shareable
+
 module SZ = Kuiper.SizeT
 module T = FStar.Tactics.V2
 
@@ -670,3 +672,13 @@ fn tensor_iraise2
       Cell a (ix2 r c) |-> Frac f (acc s (ix2 r c)))
   ensures
     a |-> Frac f s
+
+// TODO: it should be possible to have just "pts_to_shareable" for any
+// types that have pts_to, no? or does that not hold?
+instance tensor_pts_to_shareable
+  (#et : Type) (#r: nat) (#d: shape r) (#l: tlayout d)
+  (t: tensor et l) (s: chest d et): 
+  shareable (fun fr -> tensor_pts_to t #fr s) = {
+  _share_n = (fun (n: pos) (#fr : perm) -> tensor_share_n t n #fr);
+  _gather_n = (fun (n: pos) (#fr : perm) -> tensor_gather_n t n #fr);
+}

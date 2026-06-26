@@ -11,7 +11,7 @@ fn map_gpu
   (#et : Type0) (#r : erased nat) (#d : shape r) (cd : cshape d)
   (f : et -> et)
   (#l : tlayout d) {| ctlayout l |}
-  (n : sz{SZ.v n == sizeof d /\ n <= max_blocks * max_threads})
+  (n : sz{SZ.v n == sizeof d /\ n <= max_blocks * max_threads /\ n > 0})
   (a : tensor et l { is_global a })
   (#s : chest d et)
   preserves cpu
