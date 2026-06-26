@@ -880,24 +880,24 @@ fn sparse_load_main
   (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
   (#_ : squash (aligned 16 gA.elems /\ aligned 16 gA.col_ind))
   // matriz sparse gA
-  (#row_off : lseq sz (p.rows + 1))
-  (#elems : lseq et gA.nnz)
-  (#col_ind : lseq sz gA.nnz)
+  (#row_off : erased (lseq sz (p.rows + 1)))
+  (#elems : erased (lseq et gA.nnz))
+  (#col_ind : erased (lseq sz gA.nnz))
   (#eA : ematrix et p.rows p.shared)
   (#fA : perm)
-  (#_ : squash (well_formed p col_ind row_off))
+  (#_ : squash (well_formed p (reveal col_ind) (reveal row_off)))
   (elems_tile : gpu_array et p.blockItemsK { aligned 16 elems_tile })
   (col_ind_tile : gpu_array sz p.blockItemsK { aligned 16 col_ind_tile })
   (bid : szlt (nblocks p))
-  (ri : sz{SZ.v ri == round2 (max (chunk et) (chunk sz)) (row_off @! (brow p bid |~> row_perm))})
-  (re : sz{re == row_off @! (brow p bid |~> row_perm) + 1})
+  (ri : sz{SZ.v ri == round2 (max (chunk et) (chunk sz)) (reveal row_off @! (brow p bid |~> row_perm))})
+  (re : sz{re == reveal row_off @! (brow p bid |~> row_perm) + 1})
   (idx : sz { idx > 0 })
   (tid : szlt p.blockWidth)
   (#_ : squash(ri + idx * p.blockItemsK + p.blockItemsK <= re))
   norewrite
   preserves
     gpu **
-    smatrix_pts_to' gA #fA elems col_ind row_off eA **
+    smatrix_pts_to' gA #fA (reveal elems) col_ind row_off eA **
     B.barrier_tok (
       barrier_contract p row_perm elems col_ind row_off
         elems_tile col_ind_tile bid
@@ -976,9 +976,9 @@ fn sparse_load_residue
   (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
   (#_ : squash (aligned 16 gA.elems /\ aligned 16 gA.col_ind))
   // matriz sparse gA
-  (#row_off : lseq sz (p.rows + 1))
-  (#elems : lseq et gA.nnz)
-  (#col_ind : lseq sz gA.nnz)
+  (#row_off : erased (lseq sz (p.rows + 1)))
+  (#elems : erased (lseq et gA.nnz))
+  (#col_ind : erased (lseq sz gA.nnz))
   (#eA : ematrix et p.rows p.shared)
   (#fA : perm)
   (#_ : squash (well_formed p col_ind row_off))
@@ -1240,9 +1240,9 @@ fn kf_head
   (#_ : squash (aligned 16 gA.elems /\ aligned 16 gA.col_ind))
   (gB : Array2.t et lb)
   // matriz sparse ga
-  (#elems : lseq et gA.nnz)
-  (#col_ind : lseq sz gA.nnz)
-  (#row_off : lseq sz (p.rows + 1))
+  (#elems : erased (lseq et gA.nnz))
+  (#col_ind : erased (lseq sz gA.nnz))
+  (#row_off : erased (lseq sz (p.rows + 1)))
   (eA : ematrix et p.rows p.shared)
   // matriz densa gb
   (#eB : ematrix et p.shared p.cols)
@@ -1499,9 +1499,9 @@ fn kf_main
   (#_ : squash (aligned 16 gA.elems /\ aligned 16 gA.col_ind))
   (gB : Array2.t et lb)
   // matriz sparse ga
-  (#elems : lseq et gA.nnz)
-  (#col_ind : lseq sz gA.nnz)
-  (#row_off : lseq sz (p.rows + 1))
+  (#elems : erased (lseq et gA.nnz))
+  (#col_ind : erased (lseq sz gA.nnz))
+  (#row_off : erased (lseq sz (p.rows + 1)))
   (eA : ematrix et p.rows p.shared)
   // matriz densa gb
   (#eB : ematrix et p.shared p.cols)
@@ -1555,15 +1555,15 @@ fn kf_main
           tid n_idx
     )
 {
-  let out0 : lseq et (p.blockItemsX / p.blockWidth) =
+  let out0 : erased (lseq et (p.blockItemsX / p.blockWidth)) =
     Seq.create (p.blockItemsX / p.blockWidth) zero;
 
   if (!nnz >=^ p.blockItemsK)
   {
-    let row_elems_ : lseq et (re - ri) = hide (Seq.slice elems ri re);
-    let row_elems : lseq et (re - ri') = seq_mask (ri - ri') #(re - ri) row_elems_;
+    let row_elems_ : erased (lseq et (re - ri)) = hide (Seq.slice elems ri re);
+    let row_elems : erased (lseq et (re - ri')) = seq_mask (ri - ri') #(re - ri) row_elems_;
 
-    let row_ind : lseq sz (re - ri') = hide (Seq.slice col_ind ri' re);
+    let row_ind : erased (lseq sz (re - ri')) = hide (Seq.slice col_ind ri' re);
 
     kf_head
       p row_perm
@@ -1734,9 +1734,9 @@ fn kf_residue
   (#_ : squash (aligned 16 gA.elems /\ aligned 16 gA.col_ind))
   (gB : Array2.t et lb)
   // matriz sparse ga
-  (#elems : lseq et gA.nnz)
-  (#col_ind : lseq sz gA.nnz)
-  (#row_off : lseq sz (p.rows + 1))
+  (#elems : erased (lseq et gA.nnz))
+  (#col_ind : erased (lseq sz gA.nnz))
+  (#row_off : erased (lseq sz (p.rows + 1)))
   (eA : ematrix et p.rows p.shared)
   // matriz densa gb
   (#eB : ematrix et p.shared p.cols)
@@ -1787,8 +1787,8 @@ fn kf_residue
         eB (Seq.create (p.blockItemsX / p.blockWidth) zero)
         tid n_idx
 {
-  let row_elems : lseq et (re - ri) = hide (Seq.slice elems ri re);
-  let row_ind : lseq sz (re - ri) = hide (Seq.slice col_ind ri re);
+  let row_elems : erased (lseq et (re - ri)) = hide (Seq.slice elems ri re);
+  let row_ind : erased (lseq sz (re - ri)) = hide (Seq.slice col_ind ri re);
 
   assert pure (
     Seq.equal
@@ -1858,9 +1858,9 @@ fn kf
   (gB : Array2.t et lb)
   (gC : Array2.t et lc)
   // matriz sparse ga
-  (#elems : lseq et gA.nnz)
-  (#col_ind : lseq sz gA.nnz)
-  (#row_off : lseq sz (p.rows + 1))
+  (#elems : erased (lseq et gA.nnz))
+  (#col_ind : erased (lseq sz gA.nnz))
+  (#row_off : erased (lseq sz (p.rows + 1)))
   (#eA : ematrix et p.rows p.shared)
   // matriz densa gb
   (#eB : ematrix et p.shared p.cols)
@@ -1933,7 +1933,7 @@ fn kf
   al kernel (blockChunks) que tiene un refinamiento que asegura que
   es igual (p.blockItemsK / p.blockWidth). *)
   let mut out = [| zero #et #_; blockChunks |];
-  let out0 : lseq et (p.blockItemsX / p.blockWidth) =
+  let out0 : erased (lseq et (p.blockItemsX / p.blockWidth)) =
     Seq.create (p.blockItemsX / p.blockWidth) zero;
 
   //------------------main-----------------------------------------
@@ -2071,9 +2071,9 @@ let kdesc
   (gB : Array2.t et lB {Array2.is_global gB})
   (gC : Array2.t et lC {Array2.is_global gC})
   // matriz sparse gA
-  (elems : lseq et gA.nnz)
-  (col_ind : lseq sz gA.nnz)
-  (row_off : lseq sz (p.rows + 1))
+  (elems : erased (lseq et gA.nnz))
+  (col_ind : erased (lseq sz gA.nnz))
+  (row_off : erased (lseq sz (p.rows + 1)))
   (eA : ematrix et p.rows p.shared)
   // matrices densas
   (#eB : ematrix et p.shared p.cols)
@@ -2195,9 +2195,9 @@ fn spmm
   (#fB : perm)
   (gC : Array2.t et lC{Array2.is_global gC})
   // matriz sparse gA
-  (elems : lseq et gA.nnz)
-  (col_ind : lseq sz gA.nnz)
-  (row_off : lseq sz (rows + 1))
+  (elems : erased (lseq et gA.nnz))
+  (col_ind : erased (lseq sz gA.nnz))
+  (row_off : erased (lseq sz (rows + 1)))
   (#eA : ematrix et rows shared)
   // permutacion de filas
   (row_perm : permutation (natlt rows))

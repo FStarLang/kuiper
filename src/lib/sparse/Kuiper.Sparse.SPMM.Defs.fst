@@ -24,9 +24,6 @@ type parameters (et : Type0) {| sized et, has_vec_cpy et |} = {
   });
 }
 
-(* Shadow lseq to make it erased. *)
-let lseq (a:Type) (n:nat) = erased (Seq.lseq a n)
-
 let nblocks_
   #et {| sized et, has_vec_cpy et |}
   (p : parameters et)

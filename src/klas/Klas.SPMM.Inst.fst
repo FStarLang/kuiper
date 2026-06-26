@@ -35,9 +35,9 @@ fn inst
   (#fB : perm)
   (gC : array2 et (repC rows cols) { is_global gC})
   // matriz sparse gA
-  (elems : lseq et gA.nnz)
-  (col_ind : lseq sz gA.nnz)
-  (row_off : lseq sz (rows + 1))
+  (elems : erased (lseq et gA.nnz))
+  (col_ind : erased (lseq sz gA.nnz))
+  (row_off : erased (lseq sz (rows + 1)))
   (#eA : ematrix et rows shared)
   // permutacion de filas
   (row_perm : permutation (natlt rows))
