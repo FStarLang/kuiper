@@ -47,44 +47,11 @@ let seq_max_take_step (s : seq real) (k : nat { 1 <= k /\ k < len s })
     seq_max_cons_lem pre (s @! k);             // seq_max pre1 == rmax (s@!k) (seq_max pre)
     lem_rmax_comm (s @! k) (seq_max pre)
 
-(* ── Pure arithmetic of the strided fold, factored out ─────────────────────
-   The [max_stride_map_2d] fold carries a quantified approximation hypothesis
-   ([forall j. macc sx row j %~ ...]) in its ambient context. Proving the
-   (nonlinear) index arithmetic of the loop *in that context* is pathologically
-   slow because the solver keeps instantiating that irrelevant quantifier. We
-   instead discharge the arithmetic here, in a clean context, and feed the
-   results back as ground facts. *)
-
-(* One loop step: from [idx == gidx*stride + off] (and [idx] still in range),
-   the next index is [(gidx+1)*stride + off], and the bucket length bound is
-   maintained. *)
-#push-options "--z3rlimit 20"
-let max_stride_step_arith (#a:Type) (s : seq a) (stride : pos) (off : natlt stride)
-  (gidx idx : nat)
-  : Lemma (requires idx == gidx * stride + off /\ idx < Seq.length s)
-          (ensures  off + gidx * stride == idx /\
-                    idx + stride == (gidx + 1) * stride + off /\
-                    gidx + 1 <= seq_stride_length s stride off)
-  = Math.Lemmas.distributivity_add_left gidx 1 stride;
-    Math.Lemmas.cancel_mul_div (gidx + 1) stride;
-    Math.Lemmas.lemma_div_le ((gidx + 1) * stride) (Seq.length s - off + stride - 1) stride
-#pop-options
-
-(* Loop exit: once [idx] has just passed [Seq.length s] in [stride]-sized steps,
-   the step count [gidx] equals the number of strided buckets. *)
-#push-options "--z3rlimit 20"
-let max_stride_post_arith (#a:Type) (s : seq a) (stride : pos) (off : natlt stride)
-  (gidx idx : nat)
-  : Lemma (requires idx == gidx * stride + off /\
-                    idx >= Seq.length s /\ idx < Seq.length s + stride)
-          (ensures  gidx == seq_stride_length s stride off)
-  = let len = Seq.length s in
-    Math.Lemmas.lemma_mod_plus off gidx stride;
-    Math.Lemmas.small_mod off stride;
-    lemma_first_past len off stride idx;
-    Math.Lemmas.cancel_mul_div ((len - off - 1 + stride) / stride) stride;
-    Math.Lemmas.cancel_mul_div gidx stride
-#pop-options
+(* The pure index-arithmetic helpers [max_stride_step_arith] / [max_stride_post_arith]
+   used by [max_stride_map_2d] below are defined in [Kuiper.Kernel.HReduce.Max] and
+   are visible here through the [friend] of that module. They discharge the loop's
+   (nonlinear) index arithmetic in a clean context, away from this module's ambient
+   quantified approximation hypotheses. *)
 
 (* Two tiny pure facts used in [kf_block]'s tree-reduction setup. Proven here
    (clean context) so the heavy ambient kernel context doesn't make the solver
