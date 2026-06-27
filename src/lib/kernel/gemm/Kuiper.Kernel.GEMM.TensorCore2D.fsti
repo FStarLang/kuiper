@@ -23,33 +23,33 @@ val mk_kernel
   (#et_ab #et_c : Type0)
   {| scalar et_ab, has_vec_cpy et_ab, scalar et_c |}
   {| real_like et_ab, real_like et_c |}
-  (#rows #shared #cols : szp)
-  (#lA : mlayout rows shared) {| clayout lA |}
+  (#m #n #k : szp)
+  (#lA : mlayout m k) {| clayout lA |}
   (gA : gpu_matrix et_ab lA { is_global gA })
-  (#eA : ematrix et_ab rows shared)
-  (#lB : mlayout shared cols) {| clayout lB |}
+  (#eA : ematrix et_ab m k)
+  (#lB : mlayout k n) {| clayout lB |}
   {| str_A : strided_row_major lA,
      str_B : strided_row_major lB |}
   (#_ : squash (aligned_strided_row_major (chunk et_ab) str_A))
   (#_ : squash (aligned_strided_row_major (chunk et_ab) str_B))
   (gB : gpu_matrix et_ab lB { is_global gB })
-  (#eB : ematrix et_ab shared cols)
-  (gC : gpu_matrix et_c (R.row_major rows cols) { is_global gC })
-  (#_ : squash (SZ.fits (rows * cols)))
-  (#eC : ematrix et_c rows cols)
+  (#eB : ematrix et_ab k n)
+  (gC : gpu_matrix et_c (R.row_major m n) { is_global gC })
+  (#_ : squash (SZ.fits (m * n)))
+  (#eC : ematrix et_c m n)
   (bm bn bk
    tm tn tk
    wm wn : szp { constraints bm bn bk tm tn tk wm wn })
-  (#_ : squash (bm /?+ rows))
-  (#_ : squash (bn /?+ cols))
-  (#_ : squash (bk /?+ shared))
+  (#_ : squash (bm /?+ m))
+  (#_ : squash (bn /?+ n))
+  (#_ : squash (bk /?+ k))
   (#_ : squash (chunk et_ab /?+ bn))
   (#_ : squash (chunk et_ab /?+ bk))
   (#_: squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
   (#_ : squash (aligned 16 (core gA)))
   (#_ : squash (aligned 16 (core gB)))
   (#fA #fB : perm)
-  (nblk : szp{SZ.v nblk == rows/bm * (cols/bn)})
+  (nblk : szp{SZ.v nblk == m/bm * (n/bn)})
   (nthr : szp{SZ.v nthr == bm/(wm*tm) * (bn/(wn*tn)) * warp_size})
   (#_ : squash (chunk et_ab * nthr /?+ (bm * bk)))
   (#_ : squash (chunk et_ab * nthr /?+ (bk * bn)))
@@ -64,11 +64,11 @@ val mk_kernel
   (#_ : squash (SZ.fits (bk*bn + nthr-1)))
   (#_ : squash (nblk <= max_blocks))
   (#_ : squash (nthr <= max_threads))
-  (rA : ematrix real rows shared)
-  (rB : ematrix real shared cols)
-  (rC : ematrix real rows cols)
-  (#_ : squash (wm * tm /?+ rows)) // obvious, but SMT is flaky
-  (#_ : squash (wn * tn /?+ cols)) // idem
+  (rA : ematrix real m k)
+  (rB : ematrix real k n)
+  (rC : ematrix real m n)
+  (#_ : squash (wm * tm /?+ m)) // obvious, but SMT is flaky
+  (#_ : squash (wn * tn /?+ n)) // idem
   ()
   : kernel_desc
       (gA |-> Frac fA eA ** pure (eA %~ rA) **
@@ -76,5 +76,5 @@ val mk_kernel
        gC |-> eC ** pure (eC %~ rC))
       (gA |-> Frac fA eA **
        gB |-> Frac fB eB **
-       (exists* (eC' : ematrix et_c rows cols).
+       (exists* (eC' : ematrix et_c m n).
          gC |-> eC' ** pure (eC' %~ MS.matmul rA rB)))

@@ -28,15 +28,15 @@ let live_warp_tile
   // Unfortunately, when unfolding live_warp_tile, after passing
   // a (reveal x) as argument, this leads to (reveal (hide (reveal x)))
   // which creates problems with type equalities.
-  (#rows : erased nat)
-  (#cols : nat)
-  (#lC : mlayout rows cols)
+  (#m : erased nat)
+  (#n : nat)
+  (#lC : mlayout m n)
   (gC : gpu_matrix et lC)
-  (bm : nat{bm > 0 /\ bm /?+ rows})
-  (bn : nat{bn > 0 /\ bn /?+ cols})
+  (bm : nat{bm > 0 /\ bm /?+ m})
+  (bn : nat{bn > 0 /\ bn /?+ n})
   (tm : nat{tm > 0 /\ tm /?+ bm})
   (tn : nat{tn > 0 /\ tn /?+ bn})
-  (bid : natlt ((rows/bm) * (cols/bn)))
+  (bid : natlt ((m/bm) * (n/bn)))
   (wid : natlt (bm/tm * (bn/tn)))
   : slprop
   =
@@ -46,76 +46,76 @@ let live_warp_tile
 unfold
 let kpre1
   (#et_ab #et_c : Type0) {| scalar et_ab, scalar et_c |}
-  (#rows #shared #cols : szp)
-  (#lA : mlayout rows shared)
-  (#lB : mlayout shared cols)
-  (#lC : mlayout rows cols)
+  (#m #n #k : szp)
+  (#lA : mlayout m k)
+  (#lB : mlayout k n)
+  (#lC : mlayout m n)
   (gA : gpu_matrix et_ab lA)
-  (eA : ematrix et_ab rows shared)
+  (eA : ematrix et_ab m k)
   (gB : gpu_matrix et_ab lB)
-  (eB : ematrix et_ab shared cols)
+  (eB : ematrix et_ab k n)
   (gC : gpu_matrix et_c lC)
-  (bm : szp{bm /?+ rows})
-  (bn : szp{bn /?+ cols})
-  (bk : szp{bk /?+ shared})
+  (bm : szp{bm /?+ m})
+  (bn : szp{bn /?+ n})
+  (bk : szp{bk /?+ k})
   (tm : szp{tm /?+ bm})
   (tn : szp{tn /?+ bn})
   (tk : szp{tk /?+ bk})
   (fA fB : perm)
-  (bid : natlt (rows/bm * (cols/bn)))
+  (bid : natlt (m/bm * (n/bn)))
   (tid : natlt (bm/tm*(bn/tn)*warp_size))
   : slprop
   =
-  pure (SZ.fits (rows * shared)) **
-  pure (SZ.fits (shared * cols)) **
+  pure (SZ.fits (m * k)) **
+  pure (SZ.fits (k * n)) **
   pure (valid_frag_et_dims et_ab FragA tm tn tk) **
   pure (valid_frag_et_dims et_ab FragB tm tn tk) **
   pure (valid_frag_et_dims et_c FragAcc tm tn tk) **
   pure (valid_frag_et_comb et_ab et_c) **
-  gA |-> Frac (fA /. (rows/tm * (cols/tn) * warp_size)) eA **
-  gB |-> Frac (fB /. (rows/tm * (cols/tn) * warp_size)) eB **
+  gA |-> Frac (fA /. (m/tm * (n/tn) * warp_size)) eA **
+  gB |-> Frac (fB /. (m/tm * (n/tn) * warp_size)) eB **
   live_warp_tile gC bm bn tm tn bid (tid/warp_size)
 
 unfold
 let kpost1
   (#et_ab #et_c : Type0) {| scalar et_ab, scalar et_c |}
-  (#rows #shared #cols : szp)
-  (#lA : mlayout rows shared)
-  (#lB : mlayout shared cols)
-  (#lC : mlayout rows cols)
+  (#m #n #k : szp)
+  (#lA : mlayout m k)
+  (#lB : mlayout k n)
+  (#lC : mlayout m n)
   (gA : gpu_matrix et_ab lA)
-  (eA : ematrix et_ab rows shared)
+  (eA : ematrix et_ab m k)
   (gB : gpu_matrix et_ab lB)
-  (eB : ematrix et_ab shared cols)
+  (eB : ematrix et_ab k n)
   (gC : gpu_matrix et_c lC)
-  (bm : szp{bm /?+ rows})
-  (bn : szp{bn /?+ cols})
+  (bm : szp{bm /?+ m})
+  (bn : szp{bn /?+ n})
   (tm : szp{tm /?+ bm})
   (tn : szp{tn /?+ bn})
   (fA fB : perm)
-  (bid : natlt (rows/bm * (cols/bn)))
+  (bid : natlt (m/bm * (n/bn)))
   (tid : natlt (bm/tm*(bn/tn)*warp_size))
   : slprop
   =
-  gA |-> Frac (fA /. (rows/tm * (cols/tn) * warp_size)) eA **
-  gB |-> Frac (fB /. (rows/tm * (cols/tn) * warp_size)) eB **
+  gA |-> Frac (fA /. (m/tm * (n/tn) * warp_size)) eA **
+  gB |-> Frac (fB /. (m/tm * (n/tn) * warp_size)) eB **
   live_warp_tile gC bm bn tm tn bid (tid/warp_size)
 
 unfold
 let kpre
   (#et_ab #et_c : Type0) {| scalar et_ab, scalar et_c |}
-  (#rows #shared #cols : szp)
-  (#lA : mlayout rows shared)
-  (#lB : mlayout shared cols)
-  (#lC : mlayout rows cols)
+  (#m #n #k : szp)
+  (#lA : mlayout m k)
+  (#lB : mlayout k n)
+  (#lC : mlayout m n)
   (gA : gpu_matrix et_ab lA)
-  (eA : ematrix et_ab rows shared)
+  (eA : ematrix et_ab m k)
   (gB : gpu_matrix et_ab lB)
-  (eB : ematrix et_ab shared cols)
+  (eB : ematrix et_ab k n)
   (gC : gpu_matrix et_c lC)
-  (bm : szp{bm /?+ rows})
-  (bn : szp{bn /?+ cols})
-  (bk : szp{bk /?+ shared})
+  (bm : szp{bm /?+ m})
+  (bn : szp{bn /?+ n})
+  (bk : szp{bk /?+ k})
   (#_: squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
   (tm : szp{tm /?+ bm})
   (tn : szp{tn /?+ bn})
@@ -123,7 +123,7 @@ let kpre
   (fA fB : perm)
   (nthr : nat{nthr == bm/tm*(bn/tn)*warp_size})
   (sh : c_shmems (shmems_desc et_ab bm bn bk))
-  (bid : natlt (rows/bm * (cols/bn)))
+  (bid : natlt (m/bm * (n/bn)))
   (tid : natlt nthr)
   : slprop
   =
@@ -133,25 +133,25 @@ let kpre
 unfold
 let kpost
   (#et_ab #et_c : Type0) {| scalar et_ab, scalar et_c |}
-  (#rows #shared #cols : szp)
-  (#lA : mlayout rows shared)
-  (#lB : mlayout shared cols)
-  (#lC : mlayout rows cols)
+  (#m #n #k : szp)
+  (#lA : mlayout m k)
+  (#lB : mlayout k n)
+  (#lC : mlayout m n)
   (gA : gpu_matrix et_ab lA)
-  (eA : ematrix et_ab rows shared)
+  (eA : ematrix et_ab m k)
   (gB : gpu_matrix et_ab lB)
-  (eB : ematrix et_ab shared cols)
+  (eB : ematrix et_ab k n)
   (gC : gpu_matrix et_c lC)
-  (bm : szp{bm /?+ rows})
-  (bn : szp{bn /?+ cols})
-  (bk : szp{bk /?+ shared})
+  (bm : szp{bm /?+ m})
+  (bn : szp{bn /?+ n})
+  (bk : szp{bk /?+ k})
   (#_: squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
   (tm : szp{tm /?+ bm})
   (tn : szp{tn /?+ bn})
   (fA fB : perm)
   (nthr : nat{nthr == bm/tm*(bn/tn)*warp_size})
   (sh : c_shmems (shmems_desc et_ab bm bn bk))
-  (bid : natlt (rows/bm * (cols/bn)))
+  (bid : natlt (m/bm * (n/bn)))
   (tid : natlt nthr)
   : slprop
   =
@@ -229,20 +229,20 @@ fn subproducts_tc
 inline_for_extraction noextract
 fn epilogue
   (#et : Type0) {| scalar et |}
-  (#rows : erased nat)
-  // cols is concretized so using size is more succinct
-  (#cols : sz)
-  (bm : szp{bm /?+ rows})
-  (bn : szp{bn /?+ cols})
+  (#m : erased nat)
+  // n is concretized so using size is more succinct
+  (#n : sz)
+  (bm : szp{bm /?+ m})
+  (bn : szp{bn /?+ n})
   (tm : szp{tm /?+ bm})
   (tn : szp{tn /?+ bn})
   (#tk : erased nat)
   (accumFrag : fragment et FragAcc tm tn tk FragLAcc)
-  (gC : gpu_matrix et (R.row_major rows cols))
-  (bid : szlt (rows/bm * (cols/bn)))
+  (gC : gpu_matrix et (R.row_major m n))
+  (bid : szlt (m/bm * (n/bn)))
   (wid : szlt (bm/tm * (bn/tn)))
   requires
-    pure (SZ.fits (rows * cols)) **
+    pure (SZ.fits (m * n)) **
     gpu **
     live_warp_tile gC bm bn tm tn bid wid **
     (exists* vaccumFrag.
@@ -262,7 +262,7 @@ fn epilogue
   assert (rewrites_to w_tile (warp_tile (block_tile gC (SZ.v bm) (SZ.v bn) (SZ.v bid))
     (SZ.v tm) (SZ.v tn) (SZ.v wid)));
 
-  // from looking at the type of mma_store, it is not clear that cols mut be concretizable
+  // from looking at the type of mma_store, it is not clear that n mut be concretizable
   // 1. know that strided_row_major needs concrete sizes
   // 2. search the code base for the appropriate instance and see which of the arguments
   //   must be concretizable
@@ -279,19 +279,19 @@ inline_for_extraction noextract
 fn kf
   (#et_ab #et_c : Type0)
   {| scalar et_ab, has_vec_cpy et_ab, scalar et_c |}
-  (#rows #shared #cols : szp)
-  (#lA : mlayout rows shared) {| clayout lA, str_A : strided_row_major lA |}
+  (#m #n #k : szp)
+  (#lA : mlayout m k) {| clayout lA, str_A : strided_row_major lA |}
   (gA : gpu_matrix et_ab lA)
-  (#eA : ematrix et_ab rows shared)
-  (#lB : mlayout shared cols) {| clayout lB, str_B : strided_row_major lB |}
+  (#eA : ematrix et_ab m k)
+  (#lB : mlayout k n) {| clayout lB, str_B : strided_row_major lB |}
   (#_ : squash (aligned_strided_row_major (chunk et_ab) str_A))
   (#_ : squash (aligned_strided_row_major (chunk et_ab) str_B))
   (gB : gpu_matrix et_ab lB)
-  (#eB : ematrix et_ab shared cols)
-  (gC : gpu_matrix et_c (R.row_major rows cols))
-  (bm : szp{bm /?+ rows})
-  (bn : szp{bn /?+ cols})
-  (bk : szp{bk /?+ shared})
+  (#eB : ematrix et_ab k n)
+  (gC : gpu_matrix et_c (R.row_major m n))
+  (bm : szp{bm /?+ m})
+  (bn : szp{bn /?+ n})
+  (bk : szp{bk /?+ k})
   (#_ : squash (chunk et_ab /?+ bn))
   (#_ : squash (chunk et_ab /?+ bk))
   (#_: squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
@@ -300,7 +300,7 @@ fn kf
   (tk : szp{tk /?+ bk})
   (#_ : squash (SZ.fits (bm*bk + bm/tm*(bn/tn)*warp_size -1)))
   (#_ : squash (SZ.fits (bk*bn + bm/tm*(bn/tn)*warp_size -1)))
-  (#_ : squash (SZ.fits (rows * cols)))
+  (#_ : squash (SZ.fits (m * n)))
   (nthr : szp{SZ.v nthr == bm/tm * (bn/tn) * warp_size})
   (#_ : squash (chunk et_ab * nthr /?+ (bm * bk)))
   (#_ : squash (chunk et_ab * nthr /?+ (bk * bn)))
@@ -308,23 +308,23 @@ fn kf
   (#_ : squash (aligned 16 (core gB)))
   (#fA #fB : perm)
   (sh : c_shmems (shmems_desc et_ab bm bn bk))
-  (bid : szlt (rows/bm * (cols/bn)))
+  (bid : szlt (m/bm * (n/bn)))
   (tid : szlt nthr)
   ()
   requires
     gpu **
     kpre gA eA gB eB gC bm bn bk tm tn tk fA fB nthr sh bid tid **
     thread_id (bm/tm * (bn/tn) * warp_size) tid **
-    block_id (rows/bm * (cols/bn)) bid **
+    block_id (m/bm * (n/bn)) bid **
     B.barrier_tok (FB.contract eA eB (R.row_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) nthr bid) **
     B.barrier_state 0
   ensures
     gpu **
     kpost gA eA gB eB gC bm bn bk tm tn fA fB nthr sh bid tid **
     thread_id (bm/tm * (bn/tn) * warp_size) tid **
-    block_id (rows/bm * (cols/bn)) bid **
+    block_id (m/bm * (n/bn)) bid **
     B.barrier_tok (FB.contract eA eB (R.row_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) nthr bid) **
-    B.barrier_state (2 * (shared / bk))
+    B.barrier_state (2 * (k / bk))
 {
   unfold_c_shmems sh #(1.0R /. nthr) (`%shmems_desc);
   let (sarA, (sarB, _)) = sh;
@@ -347,8 +347,8 @@ fn kf
   let sB = from_array (R.row_major bk bn) sarB;
   rewrite each from_array (R.row_major bk bn) sarB as sB;
 
-  let num_k_tiles = shared /^ bk;
-  let num_n_tiles = cols /^ bn;
+  let num_k_tiles = k /^ bk;
+  let num_n_tiles = n /^ bn;
   let mrow = bid /^ num_n_tiles;
   let mcol = bid %^ num_n_tiles;
 
@@ -450,29 +450,29 @@ ghost
 fn setup
   (#et_ab #et_c : Type0)
   {| scalar et_ab, scalar et_c |}
-  (#rows #shared #cols : szp)
-  (#lA : mlayout rows shared)
-  (#lB : mlayout shared cols)
-  (#lC : mlayout rows cols)
+  (#m #n #k : szp)
+  (#lA : mlayout m k)
+  (#lB : mlayout k n)
+  (#lC : mlayout m n)
   {| clayout lA, clayout lB, clayout lC |}
   (gA : gpu_matrix et_ab lA)
-  (eA : ematrix et_ab rows shared)
+  (eA : ematrix et_ab m k)
   (gB : gpu_matrix et_ab lB)
-  (eB : ematrix et_ab shared cols)
+  (eB : ematrix et_ab k n)
   (gC : gpu_matrix et_c lC)
-  (eC : ematrix et_c rows cols)
-  (bm : szp{bm /?+ rows})
-  (bn : szp{bn /?+ cols})
-  (bk : szp{bk /?+ shared})
+  (eC : ematrix et_c m n)
+  (bm : szp{bm /?+ m})
+  (bn : szp{bn /?+ n})
+  (bk : szp{bk /?+ k})
   // (#_: squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
   (#_: squash (SZ.fits (bm * bn)))
-  (#_: squash (SZ.fits (rows * cols)))
+  (#_: squash (SZ.fits (m * n)))
   (tm : szp{tm /?+ bm})
   (tn : szp{tn /?+ bn})
   (tk : szp{tk /?+ bk})
-  (nblk : szp{SZ.v nblk == rows/bm * (cols/bn)})
+  (nblk : szp{SZ.v nblk == m/bm * (n/bn)})
   (nthr : szp{SZ.v nthr == bm/tm * (bn/tn) * warp_size})
-  (#_ : squash (SZ.fits (rows * shared) /\ SZ.fits (shared * cols)))
+  (#_ : squash (SZ.fits (m * k) /\ SZ.fits (k * n)))
   (#_ : squash (valid_frag_et_dims et_ab FragA tm tn tk))
   (#_ : squash (valid_frag_et_dims et_ab FragB tm tn tk))
   (#_ : squash (valid_frag_et_dims et_c FragAcc tm tn tk))
@@ -490,8 +490,8 @@ fn setup
       kpre1 (*comb*) gA eA gB eB gC bm bn bk tm tn tk fA fB bid tid) **
     emp (* frame *)
 {
-  let n_total = rows/tm * (cols/tn) * warp_size;
-  let nblk_val = rows/bm * (cols/bn);
+  let n_total = m/tm * (n/tn) * warp_size;
+  let nblk_val = m/bm * (n/bn);
   let nthr_val = bm/tm * (bn/tn) * warp_size;
 
   (* Step 1: Share gA/gB *)
@@ -500,12 +500,12 @@ fn setup
 
   (* Step 2: Tile gC at block level *)
   gpu_matrix_tile gC (SZ.v bm) (SZ.v bn);
-  forevery_unfactor' nblk_val (rows/bm) (cols/bn)
-    (fun (br : natlt (rows/bm)) (bc : natlt (cols/bn)) ->
+  forevery_unfactor' nblk_val (m/bm) (n/bn)
+    (fun (br : natlt (m/bm)) (bc : natlt (n/bn)) ->
       gpu_matrix_subtile gC (SZ.v bm) (SZ.v bn) br bc |->
         Frac 1.0R (ematrix_subtile eC (SZ.v bm) (SZ.v bn) br bc));
 
-  (* Step 3: Per block, create warp tiles shared across warp lanes *)
+  (* Step 3: Per block, create warp tiles k across warp lanes *)
   ghost
   fn create_warp_tiles_shared
     (#et : Type0) {| scalar et |}
@@ -545,9 +545,9 @@ fn setup
 
   forevery_map
     (fun (bid : natlt nblk_val) ->
-      gpu_matrix_subtile gC (SZ.v bm) (SZ.v bn) (bid/(cols/bn)) (bid%(cols/bn))
+      gpu_matrix_subtile gC (SZ.v bm) (SZ.v bn) (bid/(n/bn)) (bid%(n/bn))
         |-> Frac 1.0R
-      (ematrix_subtile eC bm bn (bid/(cols/bn)) (bid%(cols/bn))))
+      (ematrix_subtile eC bm bn (bid/(n/bn)) (bid%(n/bn))))
     _
     (fun bid ->
       create_warp_tiles_shared
@@ -558,12 +558,12 @@ fn setup
 
   (* Step 4: Factor gA/gB to 2D *)
   (* Divisibility chain: n_total == nblk_val * nthr_val *)
-  assert pure (tm * (bm/tm) * (rows/bm) == bm * (rows/bm));
-  assert pure (tm * ((bm/tm) * (rows/bm)) == tm * (rows/tm));
-  assert pure (rows/tm == (bm/tm) * (rows/bm));
-  assert pure (tn * (bn/tn) * (cols/bn) == bn * (cols/bn));
-  assert pure (tn * ((bn/tn) * (cols/bn)) == tn * (cols/tn));
-  assert pure (cols/tn == (bn/tn) * (cols/bn));
+  assert pure (tm * (bm/tm) * (m/bm) == bm * (m/bm));
+  assert pure (tm * ((bm/tm) * (m/bm)) == tm * (m/tm));
+  assert pure (m/tm == (bm/tm) * (m/bm));
+  assert pure (tn * (bn/tn) * (n/bn) == bn * (n/bn));
+  assert pure (tn * ((bn/tn) * (n/bn)) == tn * (n/tn));
+  assert pure (n/tn == (bn/tn) * (n/bn));
   assert pure (n_total == nblk_val * nthr_val);
 
   forevery_factor n_total nblk_val nthr_val
@@ -577,7 +577,7 @@ fn setup
     (fun (bid : natlt nblk_val) -> fun (tid : natlt nthr_val) ->
       warp_tile (block_tile gC (SZ.v bm) (SZ.v bn) bid) (SZ.v tm) (SZ.v tn) (tid/warp_size)
         |-> Frac (1.0R /. warp_size)
-      (ematrix_subtile (ematrix_subtile eC (SZ.v bm) (SZ.v bn) (bid/(cols/bn)) (bid%(cols/bn)))
+      (ematrix_subtile (ematrix_subtile eC (SZ.v bm) (SZ.v bn) (bid/(n/bn)) (bid%(n/bn)))
         (SZ.v tm) (SZ.v tn)
         (warp_tile_idx_rows (SZ.v bm) (SZ.v bn) (SZ.v tm) (SZ.v tn) (tid/warp_size))
         (warp_tile_idx_cols (SZ.v bm) (SZ.v bn) (SZ.v tm) (SZ.v tn) (tid/warp_size))));
@@ -592,7 +592,7 @@ fn setup
       gB |-> Frac (fB /. n_total) eB **
       warp_tile (block_tile gC (SZ.v bm) (SZ.v bn) bid) (SZ.v tm) (SZ.v tn) (tid/warp_size)
         |-> Frac (1.0R /. warp_size)
-      (ematrix_subtile (ematrix_subtile eC (SZ.v bm) (SZ.v bn) (bid/(cols/bn)) (bid%(cols/bn)))
+      (ematrix_subtile (ematrix_subtile eC (SZ.v bm) (SZ.v bn) (bid/(n/bn)) (bid%(n/bn)))
         (SZ.v tm) (SZ.v tn)
         (warp_tile_idx_rows (SZ.v bm) (SZ.v bn) (SZ.v tm) (SZ.v tn) (tid/warp_size))
         (warp_tile_idx_cols (SZ.v bm) (SZ.v bn) (SZ.v tm) (SZ.v tn) (tid/warp_size))))
@@ -610,27 +610,27 @@ ghost
 fn block_setup
   (#et_ab #et_c : Type0)
   {| scalar et_ab, scalar et_c |}
-  (#rows #shared #cols : szp)
-  (#lA : mlayout rows shared)
-  (#lB : mlayout shared cols)
-  (#lC : mlayout rows cols)
+  (#m #n #k : szp)
+  (#lA : mlayout m k)
+  (#lB : mlayout k n)
+  (#lC : mlayout m n)
   {| clayout lA, clayout lB, clayout lC |}
   (gA : gpu_matrix et_ab lA)
-  (eA : ematrix et_ab rows shared)
+  (eA : ematrix et_ab m k)
   (gB : gpu_matrix et_ab lB)
-  (eB : ematrix et_ab shared cols)
+  (eB : ematrix et_ab k n)
   (gC : gpu_matrix et_c lC)
-  (eC : ematrix et_c rows cols)
-  (bm : szp{bm /?+ rows})
-  (bn : szp{bn /?+ cols})
-  (bk : szp{bk /?+ shared})
+  (eC : ematrix et_c m n)
+  (bm : szp{bm /?+ m})
+  (bn : szp{bn /?+ n})
+  (bk : szp{bk /?+ k})
   // (#_: squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
   (#_: squash (SZ.fits (bm * bn)))
-  (#_: squash (SZ.fits (rows * cols)))
+  (#_: squash (SZ.fits (m * n)))
   (tm : szp{tm /?+ bm})
   (tn : szp{tn /?+ bn})
   (tk : szp{tk /?+ bk})
-  (nblk : szp{SZ.v nblk == rows/bm * (cols/bn)})
+  (nblk : szp{SZ.v nblk == m/bm * (n/bn)})
   (nthr : szp{SZ.v nthr == bm/tm * (bn/tn) * warp_size})
   (fA fB : perm)
   (sh : c_shmems (shmems_desc et_ab bm bn bk))
@@ -659,25 +659,25 @@ ghost
 fn block_teardown
   (#et_ab #et_c : Type0)
   {| scalar et_ab, scalar et_c |}
-  (#rows #shared #cols : szp)
-  (#lA : mlayout rows shared)
-  (#lB : mlayout shared cols)
-  (#lC : mlayout rows cols)
+  (#m #n #k : szp)
+  (#lA : mlayout m k)
+  (#lB : mlayout k n)
+  (#lC : mlayout m n)
   (gA : gpu_matrix et_ab lA)
-  (eA : ematrix et_ab rows shared)
+  (eA : ematrix et_ab m k)
   (gB : gpu_matrix et_ab lB)
-  (eB : ematrix et_ab shared cols)
+  (eB : ematrix et_ab k n)
   (gC : gpu_matrix et_c lC)
-  (eC : ematrix et_c rows cols)
-  (bm : szp{bm /?+ rows})
-  (bn : szp{bn /?+ cols})
-  (bk : szp{bk /?+ shared})
+  (eC : ematrix et_c m n)
+  (bm : szp{bm /?+ m})
+  (bn : szp{bn /?+ n})
+  (bk : szp{bk /?+ k})
   (#_: squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
-  (#_: squash (SZ.fits (rows * cols)))
+  (#_: squash (SZ.fits (m * n)))
   (#_: squash (SZ.fits (bm * bn)))
   (tm : szp{tm /?+ bm})
   (tn : szp{tn /?+ bn})
-  (nblk : szp{SZ.v nblk == rows/bm * (cols/bn)})
+  (nblk : szp{SZ.v nblk == m/bm * (n/bn)})
   (nthr : szp{SZ.v nthr == bm/tm * (bn/tn) * warp_size})
   (fA fB : perm)
   (sh : c_shmems (shmems_desc et_ab bm bn bk))
@@ -706,25 +706,25 @@ ghost
 fn teardown
   (#et_ab #et_c : Type0)
   {| scalar et_ab, scalar et_c |}
-  (#rows #shared #cols : szp)
-  (#lA : mlayout rows shared)
-  (#lB : mlayout shared cols)
-  (#lC : mlayout rows cols)
+  (#m #n #k : szp)
+  (#lA : mlayout m k)
+  (#lB : mlayout k n)
+  (#lC : mlayout m n)
   (gA : gpu_matrix et_ab lA)
-  (eA : ematrix et_ab rows shared)
+  (eA : ematrix et_ab m k)
   (gB : gpu_matrix et_ab lB)
-  (eB : ematrix et_ab shared cols)
+  (eB : ematrix et_ab k n)
   (gC : gpu_matrix et_c lC)
-  (eC : ematrix et_c rows cols)
-  (bm : szp{bm /?+ rows})
-  (bn : szp{bn /?+ cols})
-  (bk : szp{bk /?+ shared})
-  (#_: squash (SZ.fits (rows * cols)))
+  (eC : ematrix et_c m n)
+  (bm : szp{bm /?+ m})
+  (bn : szp{bn /?+ n})
+  (bk : szp{bk /?+ k})
+  (#_: squash (SZ.fits (m * n)))
   (#_: squash (SZ.fits (bm * bn)))
   (#_: squash (SZ.fits (mlayout_size lC)))
   (tm : szp{tm /?+ bm})
   (tn : szp{tn /?+ bn})
-  (nblk : szp{SZ.v nblk == rows/bm * (cols/bn)})
+  (nblk : szp{SZ.v nblk == m/bm * (n/bn)})
   (nthr : szp{SZ.v nthr == bm/tm * (bn/tn) * warp_size})
   (fA fB : perm)
   ()
@@ -741,7 +741,7 @@ fn teardown
     (exists* eC'. gC |-> eC')
     // (gC |-> MS.mmcomb comb eC eA eB)
 {
-  let nblk_val = rows/bm * (cols/bn);
+  let nblk_val = m/bm * (n/bn);
   let nthr_val = bm/tm * (bn/tn) * warp_size;
 
   (* Step 1: Rewrite sizes *)
@@ -750,35 +750,35 @@ fn teardown
   (* Step 2: Unzip kpost1 into gA, gB, live_warp_tile *)
   forevery_unzip_2
     (fun (bid : natlt nblk_val) (tid : natlt nthr_val) ->
-      gA |-> Frac (fA /. (rows/tm * (cols/tn) * warp_size)) eA)
+      gA |-> Frac (fA /. (m/tm * (n/tn) * warp_size)) eA)
     (fun (bid : natlt nblk_val) (tid : natlt nthr_val) ->
-      gB |-> Frac (fB /. (rows/tm * (cols/tn) * warp_size)) eB **
+      gB |-> Frac (fB /. (m/tm * (n/tn) * warp_size)) eB **
       live_warp_tile gC bm bn tm tn bid (tid/warp_size));
   forevery_unzip_2
     (fun (bid : natlt nblk_val) (tid : natlt nthr_val) ->
-      gB |-> Frac (fB /. (rows/tm * (cols/tn) * warp_size)) eB)
+      gB |-> Frac (fB /. (m/tm * (n/tn) * warp_size)) eB)
     (fun (bid : natlt nblk_val) (tid : natlt nthr_val) ->
       live_warp_tile gC bm bn tm tn bid (tid/warp_size));
 
   (* Step 3: Divisibility chain for flatten *)
-  assert pure (tm * (bm/tm) * (rows/bm) == bm * (rows/bm));
-  assert pure (rows/tm == (bm/tm) * (rows/bm));
-  assert pure (tm * ((bm/tm) * (rows/bm)) == tm * (rows/tm));
-  assert pure (tn * (bn/tn) * (cols/bn) == bn * (cols/bn));
-  // assert pure (tn * ((bn/tn) * (cols/bn)) == tn * (cols/tn));
-  assert pure (cols/tn == (bn/tn) * (cols/bn));
-  assert pure (rows/tm * (cols/tn) * warp_size == nblk_val * nthr_val);
+  assert pure (tm * (bm/tm) * (m/bm) == bm * (m/bm));
+  assert pure (m/tm == (bm/tm) * (m/bm));
+  assert pure (tm * ((bm/tm) * (m/bm)) == tm * (m/tm));
+  assert pure (tn * (bn/tn) * (n/bn) == bn * (n/bn));
+  // assert pure (tn * ((bn/tn) * (n/bn)) == tn * (n/tn));
+  assert pure (n/tn == (bn/tn) * (n/bn));
+  assert pure (m/tm * (n/tn) * warp_size == nblk_val * nthr_val);
 
   (* Step 4: Flatten gA/gB from 2D to 1D and gather *)
-  forevery_unfactor' (rows/tm * (cols/tn) * warp_size) nblk_val nthr_val
+  forevery_unfactor' (m/tm * (n/tn) * warp_size) nblk_val nthr_val
     (fun (bid : natlt nblk_val) (tid : natlt nthr_val) ->
-      gA |-> Frac (fA /. (rows/tm * (cols/tn) * warp_size)) eA);
-  gpu_matrix_gather_n gA (rows/tm * (cols/tn) * warp_size);
+      gA |-> Frac (fA /. (m/tm * (n/tn) * warp_size)) eA);
+  gpu_matrix_gather_n gA (m/tm * (n/tn) * warp_size);
 
-  forevery_unfactor' (rows/tm * (cols/tn) * warp_size) nblk_val nthr_val
+  forevery_unfactor' (m/tm * (n/tn) * warp_size) nblk_val nthr_val
     (fun (bid : natlt nblk_val) (tid : natlt nthr_val) ->
-      gB |-> Frac (fB /. (rows/tm * (cols/tn) * warp_size)) eB);
-  gpu_matrix_gather_n gB (rows/tm * (cols/tn) * warp_size);
+      gB |-> Frac (fB /. (m/tm * (n/tn) * warp_size)) eB);
+  gpu_matrix_gather_n gB (m/tm * (n/tn) * warp_size);
 
   (* Step 5: Handle gC *)
   (* 5a: Unfold live_warp_tile *)
@@ -853,15 +853,15 @@ fn teardown
         block_tile gC (SZ.v bm) (SZ.v bn) bid |-> Frac 1.0R em)
     (fun (bid : natlt nblk_val) ->
       exists* (em : ematrix et_c (SZ.v bm) (SZ.v bn)).
-        gpu_matrix_subtile gC (SZ.v bm) (SZ.v bn) (bid/(cols/bn)) (bid%(cols/bn)) |-> Frac 1.0R em)
+        gpu_matrix_subtile gC (SZ.v bm) (SZ.v bn) (bid/(n/bn)) (bid%(n/bn)) |-> Frac 1.0R em)
     fn bid {
       rewrite each
         (block_tile gC (SZ.v bm) (SZ.v bn) bid)
       as
-        (gpu_matrix_subtile gC (SZ.v bm) (SZ.v bn) (bid/(cols/bn)) (bid%(cols/bn)));
+        (gpu_matrix_subtile gC (SZ.v bm) (SZ.v bn) (bid/(n/bn)) (bid%(n/bn)));
     };
-  forevery_factor' nblk_val (rows/bm) (cols/bn)
-    (fun (br : natlt (rows/bm)) (bc : natlt (cols/bn)) ->
+  forevery_factor' nblk_val (m/bm) (n/bn)
+    (fun (br : natlt (m/bm)) (bc : natlt (n/bn)) ->
       exists* (em : ematrix et_c (SZ.v bm) (SZ.v bn)).
         gpu_matrix_subtile gC (SZ.v bm) (SZ.v bn) br bc |-> Frac 1.0R em);
   assert pure (SZ.fits (mlayout_size lC));
@@ -871,18 +871,18 @@ fn teardown
 
 let kpre_block_sendable
   (#et_ab #et_c : Type0) {| scalar et_ab, scalar et_c |}
-  (#rows #shared #cols : szp)
-  (#lA : mlayout rows shared)
-  (#lB : mlayout shared cols)
-  (#lC : mlayout rows cols)
+  (#m #n #k : szp)
+  (#lA : mlayout m k)
+  (#lB : mlayout k n)
+  (#lC : mlayout m n)
   (gA : gpu_matrix et_ab lA { is_global gA })
-  (eA : ematrix et_ab rows shared)
+  (eA : ematrix et_ab m k)
   (gB : gpu_matrix et_ab lB { is_global gB })
-  (eB : ematrix et_ab shared cols)
+  (eB : ematrix et_ab k n)
   (gC : gpu_matrix et_c lC { is_global gC })
-  (bm : szp{bm /?+ rows})
-  (bn : szp{bn /?+ cols})
-  (bk : szp{bk /?+ shared})
+  (bm : szp{bm /?+ m})
+  (bn : szp{bn /?+ n})
+  (bk : szp{bk /?+ k})
   (#_: squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
   (tm : szp{tm /?+ bm})
   (tn : szp{tn /?+ bn})
@@ -891,25 +891,25 @@ let kpre_block_sendable
   (nthr : nat{nthr == bm/tm*(bn/tn)*warp_size})
   (sh : c_shmems (shmems_desc et_ab bm bn bk))
   (_: squash (c_shmems_inv sh))
-  (bid : natlt (rows/bm * (cols/bn)))
+  (bid : natlt (m/bm * (n/bn)))
   (tid : natlt nthr)
 : is_send_across block_of (kpre gA eA gB eB gC bm bn bk tm tn tk fA fB nthr sh bid tid)
 = solve
 
 let kpost_block_sendable
   (#et_ab #et_c : Type0) {| scalar et_ab, scalar et_c |}
-  (#rows #shared #cols : szp)
-  (#lA : mlayout rows shared)
-  (#lB : mlayout shared cols)
-  (#lC : mlayout rows cols)
+  (#m #n #k : szp)
+  (#lA : mlayout m k)
+  (#lB : mlayout k n)
+  (#lC : mlayout m n)
   (gA : gpu_matrix et_ab lA { is_global gA })
-  (eA : ematrix et_ab rows shared)
+  (eA : ematrix et_ab m k)
   (gB : gpu_matrix et_ab lB { is_global gB })
-  (eB : ematrix et_ab shared cols)
+  (eB : ematrix et_ab k n)
   (gC : gpu_matrix et_c lC { is_global gC })
-  (bm : szp{bm /?+ rows})
-  (bn : szp{bn /?+ cols})
-  (bk : szp{bk /?+ shared})
+  (bm : szp{bm /?+ m})
+  (bn : szp{bn /?+ n})
+  (bk : szp{bk /?+ k})
   (#_: squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
   (tm : szp{tm /?+ bm})
   (tn : szp{tn /?+ bn})
@@ -917,7 +917,7 @@ let kpost_block_sendable
   (nthr : nat{nthr == bm/tm*(bn/tn)*warp_size})
   (sh : c_shmems (shmems_desc et_ab bm bn bk))
   (_: squash (c_shmems_inv sh))
-  (bid : natlt (rows/bm * (cols/bn)))
+  (bid : natlt (m/bm * (n/bn)))
   (tid : natlt nthr)
 : is_send_across block_of (kpost gA eA gB eB gC bm bn bk tm tn fA fB nthr sh bid tid)
 = solve
@@ -926,21 +926,21 @@ inline_for_extraction noextract
 let mk_kernel
   (#et_ab #et_c : Type0)
   {| scalar et_ab, has_vec_cpy et_ab, scalar et_c |}
-  (#rows #shared #cols : szp)
-  (#lA : mlayout rows shared) {| clayout lA, str_A : strided_row_major lA |}
+  (#m #n #k : szp)
+  (#lA : mlayout m k) {| clayout lA, str_A : strided_row_major lA |}
   (gA : gpu_matrix et_ab lA { is_global gA })
-  (#eA : ematrix et_ab rows shared)
-  (#lB : mlayout shared cols) {| clayout lB, str_B : strided_row_major lB |}
+  (#eA : ematrix et_ab m k)
+  (#lB : mlayout k n) {| clayout lB, str_B : strided_row_major lB |}
   (#_ : squash (aligned_strided_row_major (chunk et_ab) str_A))
   (#_ : squash (aligned_strided_row_major (chunk et_ab) str_B))
   (gB : gpu_matrix et_ab lB { is_global gB })
-  (#eB : ematrix et_ab shared cols)
-  (gC : gpu_matrix et_c (R.row_major rows cols) { is_global gC })
-  (#_ : squash (SZ.fits (rows * cols)))
-  (#eC : ematrix et_c rows cols)
-  (bm : szp{bm /?+ rows})
-  (bn : szp{bn /?+ cols})
-  (bk : szp{bk /?+ shared})
+  (#eB : ematrix et_ab k n)
+  (gC : gpu_matrix et_c (R.row_major m n) { is_global gC })
+  (#_ : squash (SZ.fits (m * n)))
+  (#eC : ematrix et_c m n)
+  (bm : szp{bm /?+ m})
+  (bn : szp{bn /?+ n})
+  (bk : szp{bk /?+ k})
   (#_ : squash (chunk et_ab /?+ bn))
   (#_ : squash (chunk et_ab /?+ bk))
   (#_: squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
@@ -948,7 +948,7 @@ let mk_kernel
   (tn : szp{tn /?+ bn})
   (tk : szp{tk /?+ bk})
   (#fA #fB : perm)
-  (nblk : szp{SZ.v nblk == rows/bm * (cols/bn)})
+  (nblk : szp{SZ.v nblk == m/bm * (n/bn)})
   // WARNING the previous version was wrong, it was assuming that each
   //  thread computes tm*tk results similar to 2D-Blocktiling.
   // There is nothing that catches this.
@@ -968,8 +968,8 @@ let mk_kernel
   (#_ : squash (SZ.fits (bk*bn + nthr-1)))
   (#_ : squash (nblk <= max_blocks))
   (#_ : squash (nthr <= max_threads /\
-                SZ.fits (rows * shared) /\
-                SZ.fits (shared * cols)))
+                SZ.fits (m * k) /\
+                SZ.fits (k * n)))
   ()
   : kernel_desc
       (gA |-> Frac fA eA ** gB |-> Frac fB eB ** gC |-> eC)
@@ -980,7 +980,7 @@ let mk_kernel
 
   barrier_contract = (fun bid ptrs -> FB.contract eA eB (R.row_major bm bk) (R.row_major bk bn)
                                         (fst ptrs) (fst (snd ptrs)) nthr bid);
-  barrier_count    = (fun _bid -> 2 * (SZ.v shared / SZ.v bk));
+  barrier_count    = (fun _bid -> 2 * (SZ.v k / SZ.v bk));
   barrier_ok = (fun bid ptrs -> FB.barrier_p_to_q_transform eA eB (R.row_major bm bk) (R.row_major bk bn)
                                         (fst ptrs) (fst (snd ptrs)) nthr bid);
 

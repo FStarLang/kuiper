@@ -17,11 +17,11 @@ open Kuiper.EMatrix { ematrix, macc }
 
 let live_cell
   (#et : Type0)
-  (#rows #cols : nat)
-  (#lm : layout2 rows cols)
+  (#m #n : nat)
+  (#lm : layout2 m n)
   (gm : array2 et lm)
-  (i : natlt rows)
-  (j : natlt cols)
+  (i : natlt m)
+  (j : natlt n)
   : slprop
   = exists* v. tensor_pts_to_cell gm (idx2 i j) v
 
@@ -36,13 +36,13 @@ let shmems_desc (et:Type0) {| sized et |} (tile:valid_tile) : list shmem_desc = 
    and 2-arg indexed forall+ (for forevery_unfactor' etc.) *)
 ghost
 fn explode2
-  (#et : Type0) (#rows #cols : nat) (#l : layout2 rows cols)
+  (#et : Type0) (#m #n : nat) (#l : layout2 m n)
   (a : array2 et l)
   (#f : perm)
-  (#s : ematrix et rows cols)
+  (#s : ematrix et m n)
   requires a |-> Frac f s
   ensures
-    forall+ (r : natlt rows) (c : natlt cols).
+    forall+ (r : natlt m) (c : natlt n).
       tensor_pts_to_cell a #f (idx2 r c) (macc s r c)
 {
   tensor_explode2 a;
@@ -53,14 +53,14 @@ fn explode2
 
 ghost
 fn implode2
-  (#et : Type0) (#rows #cols : nat) (#l : layout2 rows cols)
+  (#et : Type0) (#m #n : nat) (#l : layout2 m n)
   (a : array2 et l)
   (#f : perm)
-  (#s : ematrix et rows cols)
+  (#s : ematrix et m n)
   requires
     pure (SZ.fits (l.ulen))
   requires
-    forall+ (r : natlt rows) (c : natlt cols).
+    forall+ (r : natlt m) (c : natlt n).
       tensor_pts_to_cell a #f (idx2 r c) (macc s r c)
   ensures a |-> Frac f s
 {

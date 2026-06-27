@@ -413,7 +413,7 @@ unfold
 let kpre1
   (#et : Type0) {| scalar et |}
   (comb : binop et)
-  (#m #k #n : sz)
+  (#m #n #k : sz)
   (tile : valid_tile)
   (#lA : layout2 (m * tile) (k * tile))
   (#lB : layout2 (k * tile) (n * tile))
@@ -439,7 +439,7 @@ let kpost1
   (#et : Type0) {| scalar et, real_like et |}
   (comb : binop et)
   (comb_r : binop real { approx2 comb comb_r })
-  (#m #k #n : sz)
+  (#m #n #k : sz)
   (tile : valid_tile)
   (#lA : layout2 (m * tile) (k * tile))
   (#lB : layout2 (k * tile) (n * tile))
@@ -469,7 +469,7 @@ unfold
 let kpre
   (#et : Type0) {| scalar et |}
   (comb : binop et)
-  (#m #k #n : sz)
+  (#m #n #k : sz)
   (tile : valid_tile)
   (slA slB : full_layout2 tile tile) // shmem layouts
   (#lA : layout2 (m * tile) (k * tile))
@@ -491,7 +491,7 @@ let kpre
 let kpre_block_sendable
   (#et : Type0) {| scalar et |}
   (comb : binop et)
-  (#m #k #n : sz)
+  (#m #n #k : sz)
   (tile : valid_tile)
   (slA slB : full_layout2 tile tile) // shmem layouts
   (#lA : layout2 (m * tile) (k * tile))
@@ -514,7 +514,7 @@ let kpost
   (#et : Type0) {| scalar et, real_like et |}
   (comb : binop et)
   (comb_r : binop real { approx2 comb comb_r })
-  (#m #k #n : sz)
+  (#m #n #k : sz)
   (tile : valid_tile)
   (slA slB : full_layout2 tile tile) // shmem layouts
   (#lA : layout2 (m * tile) (k * tile))
@@ -540,7 +540,7 @@ let kpost_block_sendable
   (#et : Type0) {| scalar et, real_like et |}
   (comb : binop et)
   (comb_r : binop real { approx2 comb comb_r })
-  (#m #k #n : sz)
+  (#m #n #k : sz)
   (tile : valid_tile)
   (slA slB : full_layout2 tile tile) // shmem layouts
   (#lA : layout2 (m * tile) (k * tile))
@@ -564,7 +564,7 @@ let kpost_block_sendable
 let block_pre_sendable
   (#et : Type0) {| scalar et |}
   (comb : binop et)
-  (#m #k #n : sz)
+  (#m #n #k : sz)
   (tile : valid_tile)
   (#lA : layout2 (m * tile) (k * tile))
   (#lB : layout2 (k * tile) (n * tile))
@@ -582,7 +582,7 @@ let block_post_sendable
   (#et : Type0) {| scalar et, real_like et |}
   (comb : binop et)
   (comb_r : binop real { approx2 comb comb_r })
-  (#m #k #n : sz)
+  (#m #n #k : sz)
   (tile : valid_tile)
   (#lA : layout2 (m * tile) (k * tile))
   (#lB : layout2 (k * tile) (n * tile))
@@ -603,7 +603,7 @@ inline_for_extraction noextract
 fn bring_2cols
   (tile : valid_tile)
   (#et : Type0) {| scalar et |}
-  (#m #k #n : erased nat)
+  (#m #n #k : erased nat)
   (#lA : layout2 (m * tile) (k * tile))
   (#lB : layout2 (k * tile) (n * tile))
   {| T.ctlayout lA, T.ctlayout lB |}
@@ -725,7 +725,7 @@ fn kf
   (#et : Type0) {| scalar et, real_like et |}
   (comb : binop et)
   (comb_r : binop real { comb `approx2` comb_r })
-  (#m #k #n : sz)
+  (#m #n #k : sz)
   (#lA : layout2 (m * tile) (k * tile))
   (#lB : layout2 (k * tile) (n * tile))
   (#lC : layout2 (m * tile) (n * tile))
@@ -892,7 +892,7 @@ fn setup
   (tile : valid_tile)
   (#et : Type0) {| scalar et |}
   (comb : binop et)
-  (#m #k #n : szp)
+  (#m #n #k : szp)
   (#lA : layout2 (m * tile) (k * tile))
   (#lB : layout2 (k * tile) (n * tile))
   (#lC : layout2 (m * tile) (n * tile))
@@ -1000,7 +1000,7 @@ fn block_setup
   (slA slB : full_layout2 tile tile) // shmem layouts
   (#et : Type0) {| scalar et |}
   (comb : binop et)
-  (#m #k #n : szp)
+  (#m #n #k : szp)
   (#lA : layout2 (m * tile) (k * tile))
   (#lB : layout2 (k * tile) (n * tile))
   (#lC : layout2 (m * tile) (n * tile))
@@ -1039,7 +1039,7 @@ fn block_teardown
   (#et : Type0) {| scalar et, real_like et |}
   (comb : binop et)
   (comb_r : binop real { approx2 comb comb_r })
-  (#m #k #n : SZ.t)
+  (#m #n #k : SZ.t)
   (#lA : layout2 (m * tile) (k * tile))
   (#lB : layout2 (k * tile) (n * tile))
   (#lC : layout2 (m * tile) (n * tile))
@@ -1081,7 +1081,7 @@ fn teardown
   (#et : Type0) {| scalar et, real_like et |}
   (comb : binop et)
   (comb_r : binop real { approx2 comb comb_r })
-  (#m #k #n : szp)
+  (#m #n #k : szp)
   (#lA : layout2 (m   * tile) (k * tile))
   (#lB : layout2 (k * tile) (n   * tile))
   (#lC : layout2 (m   * tile) (n   * tile))
@@ -1230,7 +1230,7 @@ let mk_kernel
   (#et : Type0) {| scalar et, real_like et |}
   (comb : binop et)
   (comb_r : binop real { approx2 comb comb_r })
-  (#m #k #n : szp)
+  (#m #n #k : szp)
   (#lA : layout2 (m * tile) (k * tile))
   (#lB : layout2 (k * tile) (n * tile))
   (#lC : layout2 (m * tile) (n * tile))

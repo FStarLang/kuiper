@@ -18,66 +18,66 @@ unfold
 let kpre
   (#et : Type0) {| scalar et |}
   (comb : binop et)
-  (#rows #shared #cols : nat)
-  (#lA : layout2 rows shared)
-  (#lB : layout2 shared cols)
-  (#lC : layout2 rows cols)
+  (#m #n #k : nat)
+  (#lA : layout2 m k)
+  (#lB : layout2 k n)
+  (#lC : layout2 m n)
   (gA : tensor et lA)
   (gB : tensor et lB)
   (gC : tensor et lC)
-  (eA : chest2 et rows shared)
-  (eB : chest2 et shared cols)
-  (eC : chest2 et rows cols)
+  (eA : chest2 et m k)
+  (eB : chest2 et k n)
+  (eC : chest2 et m n)
   (fA fB : perm)
-  (gid : natlt (rows * cols))
+  (gid : natlt (m * n))
   : slprop
   =
-  gA |-> Frac (fA /. (rows * cols)) eA **
-  gB |-> Frac (fB /. (rows * cols)) eB **
+  gA |-> Frac (fA /. (m * n)) eA **
+  gB |-> Frac (fB /. (m * n)) eB **
   pts_to_cell gC
-    (gid / cols, (gid % cols, ()))
-    (acc eC (gid / cols, (gid % cols, ())))
+    (gid / n, (gid % n, ()))
+    (acc eC (gid / n, (gid % n, ())))
 
 unfold
 let kpost
   (#et : Type0) {| scalar et |}
   (comb : binop et)
-  (#rows #shared #cols : nat)
-  (#lA : layout2 rows shared)
-  (#lB : layout2 shared cols)
-  (#lC : layout2 rows cols)
+  (#m #n #k : nat)
+  (#lA : layout2 m k)
+  (#lB : layout2 k n)
+  (#lC : layout2 m n)
   (gA : tensor et lA)
   (gB : tensor et lB)
   (gC : tensor et lC)
-  (eA : chest2 et rows shared)
-  (eB : chest2 et shared cols)
-  (eC : chest2 et rows cols)
+  (eA : chest2 et m k)
+  (eB : chest2 et k n)
+  (eC : chest2 et m n)
   (fA fB : perm)
-  (gid : natlt (rows * cols))
+  (gid : natlt (m * n))
   : slprop
   =
-  gA |-> Frac (fA /. (rows * cols)) eA **
-  gB |-> Frac (fB /. (rows * cols)) eB **
-  pts_to_cell gC (gid / cols, (gid % cols, ()))
-    (MS.gemm_single comb eA eB eC (gid / cols) (gid % cols))
+  gA |-> Frac (fA /. (m * n)) eA **
+  gB |-> Frac (fB /. (m * n)) eB **
+  pts_to_cell gC (gid / n, (gid % n, ()))
+    (MS.gemm_single comb eA eB eC (gid / n) (gid % n))
 
 inline_for_extraction noextract
 fn kf
   (#et : Type0) {| scalar et |}
   (comb : binop et)
-  (#rows #shared #cols : SZ.t)
-  (#lA : layout2 rows shared)
-  (#lB : layout2 shared cols)
-  (#lC : layout2 rows cols)
+  (#m #n #k : SZ.t)
+  (#lA : layout2 m k)
+  (#lB : layout2 k n)
+  (#lC : layout2 m n)
   {| ctlayout lA, ctlayout lB, ctlayout lC |}
   (gA : tensor et lA)
   (gB : tensor et lB)
   (gC : tensor et lC)
-  (#eA : chest2 et rows shared)
-  (#eB : chest2 et shared cols)
-  (#eC : chest2 et rows cols)
+  (#eA : chest2 et m k)
+  (#eB : chest2 et k n)
+  (#eC : chest2 et m n)
   (#fA #fB : perm)
-  (gid : szlt (rows * cols))
+  (gid : szlt (m * n))
   ()
   norewrite
   requires
@@ -87,8 +87,8 @@ fn kf
     gpu **
     kpost comb gA gB gC eA eB eC fA fB gid
 {
-  let trow : szlt rows = gid /^ cols; assert (rewrites_to trow (gid /^ cols));
-  let tcol : szlt cols = gid %^ cols; assert (rewrites_to tcol (gid %^ cols));
+  let trow : szlt m = gid /^ n; assert (rewrites_to trow (gid /^ n));
+  let tcol : szlt n = gid %^ n; assert (rewrites_to tcol (gid %^ n));
 
   let s = Kuiper.DotProd.matmul_dotprod gA gB trow tcol;
 
@@ -103,19 +103,19 @@ ghost
 fn setup
   (#et : Type0) {| scalar et |}
   (comb : binop et)
-  (#rows #shared #cols : szp)
-  (#lA : layout2 rows shared)
-  (#lB : layout2 shared cols)
-  (#lC : layout2 rows cols)
+  (#m #n #k : szp)
+  (#lA : layout2 m k)
+  (#lB : layout2 k n)
+  (#lC : layout2 m n)
   {| ctlayout lA, ctlayout lB, ctlayout lC |}
   (gA : tensor et lA)
   (#fA : perm)
   (gB : tensor et lB)
   (#fB : perm)
   (gC : tensor et lC)
-  (#eA : chest2 et rows shared)
-  (#eB : chest2 et shared cols)
-  (#eC : chest2 et rows cols)
+  (#eA : chest2 et m k)
+  (#eB : chest2 et k n)
+  (#eC : chest2 et m n)
   ()
   norewrite
   requires
@@ -123,7 +123,7 @@ fn setup
     gB |-> Frac fB eB **
     gC |-> eC
   ensures
-    (forall+ (gid : natlt (rows *^ cols)).
+    (forall+ (gid : natlt (m *^ n)).
       kpre comb gA gB gC eA eB eC fA fB gid) **
     emp (* frame *)
 {
@@ -134,23 +134,23 @@ ghost
 fn teardown
   (#et : Type0) {| scalar et |}
   (comb : binop et)
-  (#rows #shared #cols : szp)
-  (#lA : layout2 rows shared)
-  (#lB : layout2 shared cols)
-  (#lC : layout2 rows cols)
+  (#m #n #k : szp)
+  (#lA : layout2 m k)
+  (#lB : layout2 k n)
+  (#lC : layout2 m n)
   {| ctlayout lA, ctlayout lB, ctlayout lC |}
   (gA : tensor et lA)
   (#fA : perm)
   (gB : tensor et lB)
   (#fB : perm)
   (gC : tensor et lC)
-  (#eA : chest2 et rows shared)
-  (#eB : chest2 et shared cols)
-  (#eC : chest2 et rows cols)
+  (#eA : chest2 et m k)
+  (#eB : chest2 et k n)
+  (#eC : chest2 et m n)
   ()
   norewrite
   requires
-    (forall+ (gid : natlt (rows *^ cols)).
+    (forall+ (gid : natlt (m *^ n)).
       kpost comb gA gB gC eA eB eC fA fB gid) **
     emp (* frame *)
   ensures

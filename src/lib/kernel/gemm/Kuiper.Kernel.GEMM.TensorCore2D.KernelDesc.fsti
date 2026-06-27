@@ -32,17 +32,17 @@ type constraints (bm bn bk tm tn tk wm wn : pos) : prop =
 
 let warp_tile_pts_to
   (#et : Type0) {| scalar et |}
-  (#rows : nat)
-  (#cols : nat)
-  (#lC : mlayout rows cols)
+  (#m : nat)
+  (#n : nat)
+  (#lC : mlayout m n)
   (gC : gpu_matrix et lC)
-  (bm : pos{bm /?+ rows})
-  (bn : pos{bn /?+ cols})
+  (bm : pos{bm /?+ m})
+  (bn : pos{bn /?+ n})
   (tm : pos{tm /?+ bm})
   (tn : pos{tn /?+ bn})
   (wm : pos{wm * tm /?+ bm})
   (wn : pos{wn * tn /?+ bn})
-  (bid : natlt ((rows/bm) * (cols/bn)))
+  (bid : natlt ((m/bm) * (n/bn)))
   (wid : natlt (bm/(wm*tm) * (bn/(wn*tn))))
   (em : ematrix et (wm * tm) (wn * tn))
   : slprop
@@ -54,17 +54,17 @@ let warp_tile_pts_to
 
 let warp_tile_pts_to_full
   (#et : Type0) {| scalar et |}
-  (#rows : nat)
-  (#cols : nat)
-  (#lC : mlayout rows cols)
+  (#m : nat)
+  (#n : nat)
+  (#lC : mlayout m n)
   (gC : gpu_matrix et lC)
-  (bm : pos{bm /?+ rows})
-  (bn : pos{bn /?+ cols})
+  (bm : pos{bm /?+ m})
+  (bn : pos{bn /?+ n})
   (tm : pos{tm /?+ bm})
   (tn : pos{tn /?+ bn})
   (wm : pos{wm * tm /?+ bm})
   (wn : pos{wn * tn /?+ bn})
-  (bid : natlt ((rows/bm) * (cols/bn)))
+  (bid : natlt ((m/bm) * (n/bn)))
   (wid : natlt (bm/(wm*tm) * (bn/(wn*tn))))
   (em : ematrix et (wm * tm) (wn * tn))
   : slprop
@@ -75,17 +75,17 @@ let warp_tile_pts_to_full
 
 let warp_tile_approximates
   (#et : Type0) {| scalar et, real_like et |}
-  (#rows : nat)
-  (#cols : nat)
-  (#lC : mlayout rows cols)
+  (#m : nat)
+  (#n : nat)
+  (#lC : mlayout m n)
   (gC : gpu_matrix et lC)
-  (bm : pos{bm /?+ rows})
-  (bn : pos{bn /?+ cols})
+  (bm : pos{bm /?+ m})
+  (bn : pos{bn /?+ n})
   (tm : pos{tm /?+ bm})
   (tn : pos{tn /?+ bn})
   (wm : pos{wm * tm /?+ bm})
   (wn : pos{wn * tn /?+ bn})
-  (bid : natlt ((rows/bm) * (cols/bn)))
+  (bid : natlt ((m/bm) * (n/bn)))
   (wid : natlt (bm/(wm*tm) * (bn/(wn*tn))))
   (rm : ematrix real (wm * tm) (wn * tn))
   : slprop
@@ -99,33 +99,33 @@ let kpre1
   (#et_ab #et_c : Type0)
   {| scalar et_ab, scalar et_c |}
   {| real_like et_ab, real_like et_c |}
-  (#rows #shared #cols : szp)
-  (#lA : mlayout rows shared)
-  (#lB : mlayout shared cols)
-  (#lC : mlayout rows cols)
+  (#m #n #k : szp)
+  (#lA : mlayout m k)
+  (#lB : mlayout k n)
+  (#lC : mlayout m n)
   (gA : gpu_matrix et_ab lA)
-  (eA : ematrix et_ab rows shared)
+  (eA : ematrix et_ab m k)
   (gB : gpu_matrix et_ab lB)
-  (eB : ematrix et_ab shared cols)
+  (eB : ematrix et_ab k n)
   (gC : gpu_matrix et_c lC)
-  (eC : ematrix et_c rows cols)
+  (eC : ematrix et_c m n)
   (bm bn bk
    tm tn tk
    wm wn : szp { constraints bm bn bk tm tn tk wm wn })
-  (#_ : squash (bm /?+ rows))
-  (#_ : squash (bk /?+ shared))
-  (#_ : squash (bn /?+ cols))
+  (#_ : squash (bm /?+ m))
+  (#_ : squash (bk /?+ k))
+  (#_ : squash (bn /?+ n))
   (fA fB : perm)
-  (rA : ematrix real rows shared)
-  (rB : ematrix real shared cols)
-  (rC : ematrix real rows cols)
+  (rA : ematrix real m k)
+  (rB : ematrix real k n)
+  (rC : ematrix real m n)
   (nthr : nat {nthr == bm/(wm*tm)*(bn/(wn*tn))*warp_size})
-  (bid : natlt (rows/bm * (cols/bn)))
+  (bid : natlt (m/bm * (n/bn)))
   (tid : natlt nthr)
   : slprop
   =
-  gA |-> Frac (fA /. (rows/bm * (cols/bn) * nthr)) eA **
-  gB |-> Frac (fB /. (rows/bm * (cols/bn) * nthr)) eB **
+  gA |-> Frac (fA /. (m/bm * (n/bn) * nthr)) eA **
+  gB |-> Frac (fB /. (m/bm * (n/bn) * nthr)) eB **
   (exists* tC.
     warp_tile_pts_to gC bm bn tm tn wm wn bid (tid/warp_size) tC) **
   // ^ Missing functional spec, but not a problem until
@@ -141,30 +141,30 @@ let kpre
   (#et_ab #et_c : Type0)
   {| scalar et_ab, v : has_vec_cpy et_ab, scalar et_c |}
   {| real_like et_ab, real_like et_c |}
-  (#rows #shared #cols : szp)
-  (#lA : mlayout rows shared)
-  (#lB : mlayout shared cols)
-  (#lC : mlayout rows cols)
+  (#m #n #k : szp)
+  (#lA : mlayout m k)
+  (#lB : mlayout k n)
+  (#lC : mlayout m n)
   (gA : gpu_matrix et_ab lA)
-  (eA : ematrix et_ab rows shared)
+  (eA : ematrix et_ab m k)
   (gB : gpu_matrix et_ab lB)
-  (eB : ematrix et_ab shared cols)
+  (eB : ematrix et_ab k n)
   (gC : gpu_matrix et_c lC)
-  (eC : ematrix et_c rows cols)
+  (eC : ematrix et_c m n)
   (bm bn bk
    tm tn tk
    wm wn : szp { constraints bm bn bk tm tn tk wm wn })
-  (#_ : squash (bm /?+ rows))
-  (#_ : squash (bk /?+ shared))
-  (#_ : squash (bn /?+ cols))
+  (#_ : squash (bm /?+ m))
+  (#_ : squash (bk /?+ k))
+  (#_ : squash (bn /?+ n))
   (#_ : squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
   (fA fB : perm)
-  (rA : ematrix real rows shared)
-  (rB : ematrix real shared cols)
-  (rC : ematrix real rows cols)
+  (rA : ematrix real m k)
+  (rB : ematrix real k n)
+  (rC : ematrix real m n)
   (nthr : nat {nthr == bm/(wm*tm)*(bn/(wn*tn))*warp_size})
   (sh : c_shmems (shmems_desc et_ab bm bn bk))
-  (bid : natlt (rows/bm * (cols/bn)))
+  (bid : natlt (m/bm * (n/bn)))
   (tid : natlt nthr)
   : slprop
   =
@@ -176,32 +176,32 @@ fn setup
   (#et_ab #et_c : Type0)
   {| scalar et_ab, scalar et_c |}
   {| real_like et_ab, real_like et_c |}
-  (#rows #shared #cols : szp)
-  (#lA : mlayout rows shared)
-  (#lB : mlayout shared cols)
-  (#lC : mlayout rows cols)
+  (#m #n #k : szp)
+  (#lA : mlayout m k)
+  (#lB : mlayout k n)
+  (#lC : mlayout m n)
   {| clayout lA, clayout lB, clayout lC |}
   (gA : gpu_matrix et_ab lA)
-  (eA : ematrix et_ab rows shared)
+  (eA : ematrix et_ab m k)
   (gB : gpu_matrix et_ab lB)
-  (eB : ematrix et_ab shared cols)
+  (eB : ematrix et_ab k n)
   (gC : gpu_matrix et_c lC)
-  (eC : ematrix et_c rows cols)
+  (eC : ematrix et_c m n)
   (bm bn bk
    tm tn tk
    wm wn : szp { constraints bm bn bk tm tn tk wm wn })
-  (#_ : squash (bm /? rows))
-  (#_ : squash (bk /?+ shared))
-  (#_ : squash (bn /? cols))
+  (#_ : squash (bm /? m))
+  (#_ : squash (bk /?+ k))
+  (#_ : squash (bn /? n))
   (#_ : squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
   (#_ : squash (aligned 16 (core gA)))
   (#_ : squash (aligned 16 (core gB)))
-  (nblk : szp{SZ.v nblk == rows/bm * (cols/bn)})
+  (nblk : szp{SZ.v nblk == m/bm * (n/bn)})
   (nthr : szp{SZ.v nthr == bm/(wm*tm) * (bn/(wn*tn)) * warp_size})
   (fA fB : perm)
-  (rA : ematrix real rows shared)
-  (rB : ematrix real shared cols)
-  (rC : ematrix real rows cols)
+  (rA : ematrix real m k)
+  (rB : ematrix real k n)
+  (rC : ematrix real m n)
   ()
   norewrite
   requires
@@ -219,34 +219,34 @@ fn block_setup
   (#et_ab #et_c : Type0)
   {| scalar et_ab, has_vec_cpy et_ab, scalar et_c |}
   {| real_like et_ab, real_like et_c |}
-  (#rows #shared #cols : szp)
-  (#lA : mlayout rows shared)
-  (#lB : mlayout shared cols)
-  (#lC : mlayout rows cols)
+  (#m #n #k : szp)
+  (#lA : mlayout m k)
+  (#lB : mlayout k n)
+  (#lC : mlayout m n)
   {| clayout lA, clayout lB, clayout lC |}
   (gA : gpu_matrix et_ab lA)
-  (eA : ematrix et_ab rows shared)
+  (eA : ematrix et_ab m k)
   (gB : gpu_matrix et_ab lB)
-  (eB : ematrix et_ab shared cols)
+  (eB : ematrix et_ab k n)
   (gC : gpu_matrix et_c lC)
-  (eC : ematrix et_c rows cols)
+  (eC : ematrix et_c m n)
   (bm bn bk
    tm tn tk
    wm wn : szp { constraints bm bn bk tm tn tk wm wn })
-  (#_ : squash (bm /?+ rows))
-  (#_ : squash (bk /?+ shared))
-  (#_ : squash (bn /?+ cols))
+  (#_ : squash (bm /?+ m))
+  (#_ : squash (bk /?+ k))
+  (#_ : squash (bn /?+ n))
   (#_ : squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
-  (nblk : szp{SZ.v nblk == rows/bm * (cols/bn)})
+  (nblk : szp{SZ.v nblk == m/bm * (n/bn)})
   (nthr : szp{SZ.v nthr == bm/(wm*tm) * (bn/(wn*tn)) * warp_size /\ nthr <= 1024})
   (#_ : squash (chunk et_ab /?+ bn))
   (#_ : squash (chunk et_ab /?+ bk))
   (#_ : squash (chunk et_ab * nthr /?+ (bm * bk)))
   (#_ : squash (chunk et_ab * nthr /?+ (bk * bn)))
   (fA fB : perm)
-  (rA : ematrix real rows shared)
-  (rB : ematrix real shared cols)
-  (rC : ematrix real rows cols)
+  (rA : ematrix real m k)
+  (rB : ematrix real k n)
+  (rC : ematrix real m n)
   (sh : c_shmems (shmems_desc et_ab bm bn bk))
   (bid : natlt nblk)
   ()
@@ -263,65 +263,65 @@ fn block_setup
 
 let block_tile_ematrix
   (#et : Type0) {| scalar et |}
-  (#rows #cols : erased nat)
-  (em : ematrix et rows cols)
-  (trows : erased nat{trows > 0 /\ trows /? rows})
-  (tcols : erased nat{tcols > 0 /\ tcols /? cols})
-  (bid : enatlt (rows/trows * (cols/tcols)))
+  (#m #n : erased nat)
+  (em : ematrix et m n)
+  (trows : erased nat{trows > 0 /\ trows /? m})
+  (tcols : erased nat{tcols > 0 /\ tcols /? n})
+  (bid : enatlt (m/trows * (n/tcols)))
   : ematrix et trows tcols
   = ematrix_subtile em trows tcols
-      (block_tile_idx_rows rows cols trows tcols bid)
-      (block_tile_idx_cols rows cols trows tcols bid)
+      (block_tile_idx_rows m n trows tcols bid)
+      (block_tile_idx_cols m n trows tcols bid)
 
 let warp_tile_ematrix
   (#et : Type0) {| scalar et |}
-  (#rows #cols : erased nat)
-  (em : ematrix et rows cols)
-  (trows : erased nat{trows > 0 /\ trows /? rows})
-  (tcols : erased nat{tcols > 0 /\ tcols /? cols})
-  (wid : enatlt (rows/trows * (cols/tcols)))
+  (#m #n : erased nat)
+  (em : ematrix et m n)
+  (trows : erased nat{trows > 0 /\ trows /? m})
+  (tcols : erased nat{tcols > 0 /\ tcols /? n})
+  (wid : enatlt (m/trows * (n/tcols)))
   : ematrix et trows tcols
   = ematrix_subtile em trows tcols
-      (warp_tile_idx_rows rows cols trows tcols wid)
-      (warp_tile_idx_cols rows cols trows tcols wid)
+      (warp_tile_idx_rows m n trows tcols wid)
+      (warp_tile_idx_cols m n trows tcols wid)
 
 let warp_tile_i
-  (#rows #cols : pos)
+  (#m #n : pos)
   (bm bn bk
    tm tn tk
    wm wn : pos { constraints bm bn bk tm tn tk wm wn })
-  (#_ : squash (bm /?+ rows))
-  (#_ : squash (bn /?+ cols))
+  (#_ : squash (bm /?+ m))
+  (#_ : squash (bn /?+ n))
   (nthr : nat {nthr == bm/(wm*tm)*(bn/(wn*tn))*warp_size})
-  (bid : natlt (rows/bm * (cols/bn)))
+  (bid : natlt (m/bm * (n/bn)))
   (wid : natlt (nthr / warp_size)) // warp ID
-  : GTot (natlt (rows / (wm*tm)))
+  : GTot (natlt (m / (wm*tm)))
   =
-    let tile_i = bid / (cols/bn) in
-    let tile_j = bid % (cols/bn) in
+    let tile_i = bid / (n/bn) in
+    let tile_j = bid % (n/bn) in
     assert (wid < (bm/(wm*tm)) * (bn/(wn*tn)));
     let subtile_i = wid / (bn/(wn*tn)) in
     let subtile_j = wid % (bn/(wn*tn)) in
     (* Z3 takes some convincing.... *)
     assert (subtile_i < (bm/(wm*tm)));
-    assert (tile_i < rows/bm);
-    assert (tile_i * (bm / (wm*tm)) < rows/(wm*tm));
+    assert (tile_i < m/bm);
+    assert (tile_i * (bm / (wm*tm)) < m/(wm*tm));
     tile_i * (bm / (wm*tm)) + subtile_i
 
 let warp_tile_j
-  (#rows #cols : pos)
+  (#m #n : pos)
   (bm bn bk
    tm tn tk
    wm wn : pos { constraints bm bn bk tm tn tk wm wn })
-  (#_ : squash (bm /?+ rows))
-  (#_ : squash (bn /?+ cols))
+  (#_ : squash (bm /?+ m))
+  (#_ : squash (bn /?+ n))
   (nthr : nat {nthr == bm/(wm*tm)*(bn/(wn*tn))*warp_size})
-  (bid : natlt (rows/bm * (cols/bn)))
+  (bid : natlt (m/bm * (n/bn)))
   (wid : natlt (nthr / warp_size)) // warp ID
-  : GTot (natlt (cols / (wn*tn)))
+  : GTot (natlt (n / (wn*tn)))
   =
-    let tile_i = bid / (cols/bn) in
-    let tile_j = bid % (cols/bn) in
+    let tile_i = bid / (n/bn) in
+    let tile_j = bid % (n/bn) in
     let subtile_i = wid / (bn/(wn*tn)) in
     let subtile_j = wid % (bn/(wn*tn)) in
     tile_j * (bn / (wn*tn)) + subtile_j
@@ -331,74 +331,74 @@ let kpost1
   (#et_ab #et_c : Type0)
   {| scalar et_ab, scalar et_c |}
   {| real_like et_ab, real_like et_c |}
-  (#rows #shared #cols : szp)
-  (#lA : mlayout rows shared)
-  (#lB : mlayout shared cols)
-  (#lC : mlayout rows cols)
+  (#m #n #k : szp)
+  (#lA : mlayout m k)
+  (#lB : mlayout k n)
+  (#lC : mlayout m n)
   (gA : gpu_matrix et_ab lA)
-  (eA : ematrix et_ab rows shared)
+  (eA : ematrix et_ab m k)
   (gB : gpu_matrix et_ab lB)
-  (eB : ematrix et_ab shared cols)
+  (eB : ematrix et_ab k n)
   (gC : gpu_matrix et_c lC)
-  (eC : ematrix et_c rows cols)
+  (eC : ematrix et_c m n)
   (bm bn bk
    tm tn tk
    wm wn : szp { constraints bm bn bk tm tn tk wm wn })
-  (#_ : squash (bm /?+ rows))
-  (#_ : squash (bk /?+ shared))
-  (#_ : squash (bn /?+ cols))
+  (#_ : squash (bm /?+ m))
+  (#_ : squash (bk /?+ k))
+  (#_ : squash (bn /?+ n))
   (fA fB : perm)
-  (rA : ematrix real rows shared)
-  (rB : ematrix real shared cols)
-  (rC : ematrix real rows cols)
-  (#_ : squash (wm * tm /?+ rows)) // obvious, but SMT is flaky
-  (#_ : squash (wn * tn /?+ cols)) // idem
+  (rA : ematrix real m k)
+  (rB : ematrix real k n)
+  (rC : ematrix real m n)
+  (#_ : squash (wm * tm /?+ m)) // obvious, but SMT is flaky
+  (#_ : squash (wn * tn /?+ n)) // idem
   (nthr : nat {nthr == bm/(wm*tm)*(bn/(wn*tn))*warp_size})
-  (bid : natlt (rows/bm * (cols/bn)))
+  (bid : natlt (m/bm * (n/bn)))
   (tid : natlt nthr)
   : slprop
   =
-  gA |-> Frac (fA /. (rows/bm * (cols/bn) * nthr)) eA **
-  gB |-> Frac (fB /. (rows/bm * (cols/bn) * nthr)) eB **
+  gA |-> Frac (fA /. (m/bm * (n/bn) * nthr)) eA **
+  gB |-> Frac (fB /. (m/bm * (n/bn) * nthr)) eB **
   warp_tile_approximates gC bm bn tm tn wm wn bid (tid / warp_size)
-    (MS.matmul (ematrix_subtile rA (wm*tm) shared (warp_tile_i bm bn bk tm tn tk wm wn nthr bid (tid / warp_size)) 0)
-               (ematrix_subtile rB shared  (wn*tn) 0 (warp_tile_j bm bn bk tm tn tk wm wn nthr bid (tid / warp_size))))
+    (MS.matmul (ematrix_subtile rA (wm*tm) k (warp_tile_i bm bn bk tm tn tk wm wn nthr bid (tid / warp_size)) 0)
+               (ematrix_subtile rB k  (wn*tn) 0 (warp_tile_j bm bn bk tm tn tk wm wn nthr bid (tid / warp_size))))
 
 unfold
 let kpost
   (#et_ab #et_c : Type0)
   {| scalar et_ab, v : has_vec_cpy et_ab, scalar et_c |}
   {| real_like et_ab, real_like et_c |}
-  (#rows #shared #cols : szp)
-  (#lA : mlayout rows shared)
-  (#lB : mlayout shared cols)
-  (#lC : mlayout rows cols)
+  (#m #n #k : szp)
+  (#lA : mlayout m k)
+  (#lB : mlayout k n)
+  (#lC : mlayout m n)
   (gA : gpu_matrix et_ab lA)
-  (eA : ematrix et_ab rows shared)
+  (eA : ematrix et_ab m k)
   (gB : gpu_matrix et_ab lB)
-  (eB : ematrix et_ab shared cols)
+  (eB : ematrix et_ab k n)
   (gC : gpu_matrix et_c lC)
-  (eC : ematrix et_c rows cols)
+  (eC : ematrix et_c m n)
   (bm bn bk
    tm tn tk
    wm wn : szp { constraints bm bn bk tm tn tk wm wn
-                 /\ 2 * (shared / bk) >= 0 // obvious, but SMT is flaky
+                 /\ 2 * (k / bk) >= 0 // obvious, but SMT is flaky
                  /\ bm * bk > 0 // idem
                   /\ bk * bn > 0 // idem
                  })
-  (#_ : squash (bm /?+ rows))
-  (#_ : squash (bk /?+ shared))
-  (#_ : squash (bn /?+ cols))
+  (#_ : squash (bm /?+ m))
+  (#_ : squash (bk /?+ k))
+  (#_ : squash (bn /?+ n))
   (#_ : squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
   (fA fB : perm)
-  (rA : ematrix real rows shared)
-  (rB : ematrix real shared cols)
-  (rC : ematrix real rows cols)
-  (#_ : squash (wm * tm /?+ rows)) // obvious, but SMT is flaky
-  (#_ : squash (wn * tn /?+ cols)) // idem
+  (rA : ematrix real m k)
+  (rB : ematrix real k n)
+  (rC : ematrix real m n)
+  (#_ : squash (wm * tm /?+ m)) // obvious, but SMT is flaky
+  (#_ : squash (wn * tn /?+ n)) // idem
   (nthr : nat {nthr == bm/(wm*tm)*(bn/(wn*tn))*warp_size})
   (sh : c_shmems (shmems_desc et_ab bm bn bk))
-  (bid : natlt (rows/bm * (cols/bn)))
+  (bid : natlt (m/bm * (n/bn)))
   (tid : natlt nthr)
   : slprop
   =
@@ -410,31 +410,31 @@ fn block_teardown
   (#et_ab #et_c : Type0)
   {| scalar et_ab, has_vec_cpy et_ab, scalar et_c |}
   {| real_like et_ab, real_like et_c |}
-  (#rows #shared #cols : szp)
-  (#lA : mlayout rows shared)
-  (#lB : mlayout shared cols)
-  (#lC : mlayout rows cols)
+  (#m #n #k : szp)
+  (#lA : mlayout m k)
+  (#lB : mlayout k n)
+  (#lC : mlayout m n)
   (gA : gpu_matrix et_ab lA)
-  (eA : ematrix et_ab rows shared)
+  (eA : ematrix et_ab m k)
   (gB : gpu_matrix et_ab lB)
-  (eB : ematrix et_ab shared cols)
+  (eB : ematrix et_ab k n)
   (gC : gpu_matrix et_c lC)
-  (eC : ematrix et_c rows cols)
+  (eC : ematrix et_c m n)
   (bm bn bk
    tm tn tk
    wm wn : szp { constraints bm bn bk tm tn tk wm wn })
-  (#_ : squash (bm /?+ rows))
-  (#_ : squash (bk /?+ shared))
-  (#_ : squash (bn /?+ cols))
+  (#_ : squash (bm /?+ m))
+  (#_ : squash (bk /?+ k))
+  (#_ : squash (bn /?+ n))
   (#_ : squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
-  (nblk : szp{SZ.v nblk == rows/bm * (cols/bn)})
+  (nblk : szp{SZ.v nblk == m/bm * (n/bn)})
   (nthr : szp{SZ.v nthr == bm/(wm*tm) * (bn/(wn*tn)) * warp_size})
   (fA fB : perm)
-  (rA : ematrix real rows shared)
-  (rB : ematrix real shared cols)
-  (rC : ematrix real rows cols)
-  (#_ : squash (wm * tm /?+ rows)) // obvious, but SMT is flaky
-  (#_ : squash (wn * tn /?+ cols)) // idem
+  (rA : ematrix real m k)
+  (rB : ematrix real k n)
+  (rC : ematrix real m n)
+  (#_ : squash (wm * tm /?+ m)) // obvious, but SMT is flaky
+  (#_ : squash (wn * tn /?+ n)) // idem
   (sh : c_shmems (shmems_desc et_ab bm bn bk))
   (bid : natlt nblk)
   ()
@@ -453,33 +453,33 @@ fn teardown
   (#et_ab #et_c : Type0)
   {| scalar et_ab, has_vec_cpy et_ab, scalar et_c |}
   {| real_like et_ab, real_like et_c |}
-  (#rows #shared #cols : szp)
-  (#lA : mlayout rows shared)
-  (#lB : mlayout shared cols)
-  (#lC : mlayout rows cols)
+  (#m #n #k : szp)
+  (#lA : mlayout m k)
+  (#lB : mlayout k n)
+  (#lC : mlayout m n)
   (gA : gpu_matrix et_ab lA)
-  (eA : ematrix et_ab rows shared)
+  (eA : ematrix et_ab m k)
   (gB : gpu_matrix et_ab lB)
-  (eB : ematrix et_ab shared cols)
+  (eB : ematrix et_ab k n)
   (gC : gpu_matrix et_c lC)
-  (eC : ematrix et_c rows cols)
+  (eC : ematrix et_c m n)
   (bm bn bk
    tm tn tk
    wm wn : szp { constraints bm bn bk tm tn tk wm wn })
-  (#_ : squash (bm /?+ rows))
-  (#_ : squash (bk /?+ shared))
-  (#_ : squash (bn /?+ cols))
+  (#_ : squash (bm /?+ m))
+  (#_ : squash (bk /?+ k))
+  (#_ : squash (bn /?+ n))
   (#_ : squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
-  (nblk : szp{SZ.v nblk == rows/bm * (cols/bn)})
+  (nblk : szp{SZ.v nblk == m/bm * (n/bn)})
   (nthr : szp{SZ.v nthr == bm/(wm*tm) * (bn/(wn*tn)) * warp_size})
   (#_ : squash (chunk et_ab * nthr /?+ (bm * bk)))
   (#_ : squash (chunk et_ab * nthr /?+ (bk * bn)))
   (fA fB : perm)
-  (rA : ematrix real rows shared)
-  (rB : ematrix real shared cols)
-  (rC : ematrix real rows cols)
-  (#_ : squash (wm * tm /?+ rows)) // obvious, but SMT is flaky
-  (#_ : squash (wn * tn /?+ cols)) // idem
+  (rA : ematrix real m k)
+  (rB : ematrix real k n)
+  (rC : ematrix real m n)
+  (#_ : squash (wm * tm /?+ m)) // obvious, but SMT is flaky
+  (#_ : squash (wn * tn /?+ n)) // idem
   ()
   norewrite
   requires
@@ -490,5 +490,5 @@ fn teardown
   ensures
     gA |-> Frac fA eA **
     gB |-> Frac fB eB **
-    (exists* (eC' : ematrix et_c rows cols).
+    (exists* (eC' : ematrix et_c m n).
       gC |-> eC' ** pure (eC' %~ MS.matmul rA rB))

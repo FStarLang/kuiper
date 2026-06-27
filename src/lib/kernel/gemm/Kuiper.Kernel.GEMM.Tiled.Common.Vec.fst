@@ -28,26 +28,26 @@ let divides_helper
 inline_for_extraction noextract
 fn copy_tiles_out_of_matrices_vec
   (#et : Type0) {| scalar et, has_vec_cpy et |}
-  (#rows #shared #cols : erased nat)
-  (bm : szp{bm /? rows})
-  (bn : szp{bn /? cols})
-  (bk : szp{bk /? shared})
+  (#m #n #k : erased nat)
+  (bm : szp{bm /? m})
+  (bn : szp{bn /? n})
+  (bk : szp{bk /? k})
   (#_ : squash (chunk et /? bk)) // extra req
   (#_ : squash (chunk et /? bn)) // extra req
   (#slA : mlayout bm bk) {| clayout slA |}
   (#slB : mlayout bk bn) {| clayout slB |}
   (sA : gpu_matrix et slA)
   (sB : gpu_matrix et slB)
-  (#lA : mlayout rows shared) {| clayout lA, str_A : strided_row_major lA |}
-  (#lB : mlayout shared cols) {| clayout lB, str_B : strided_row_major lB |}
+  (#lA : mlayout m k) {| clayout lA, str_A : strided_row_major lA |}
+  (#lB : mlayout k n) {| clayout lB, str_B : strided_row_major lB |}
   (gA : gpu_matrix et lA)
-  (#eA : ematrix et rows shared)
+  (#eA : ematrix et m k)
   (gB : gpu_matrix et lB)
   (#fA #fB : perm)
-  (#eB : ematrix et shared cols)
-  (tile_row : szlt (rows/bm))
-  (tile_shared : szlt (shared/bk))
-  (tile_col : szlt (cols/bn))
+  (#eB : ematrix et k n)
+  (tile_row : szlt (m/bm))
+  (tile_shared : szlt (k/bk))
+  (tile_col : szlt (n/bn))
   (nthr : szp)
   (#_ : squash (chunk et * nthr /?+ (bm * bk))) // extra req
   (#_ : squash (chunk et * nthr /?+ (bk * bn))) // extra req
