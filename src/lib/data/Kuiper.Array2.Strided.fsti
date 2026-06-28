@@ -1,8 +1,6 @@
 module Kuiper.Array2.Strided
 
-(* Strided layout properties for Array2.
-   This mirrors Kuiper.Matrix.Reprs.Type.strided_row_major but
-   for Array2 (Tensor-backed) layouts. *)
+(* Strided layout properties for Array2 (Tensor-backed) layouts. *)
 
 #lang-pulse
 

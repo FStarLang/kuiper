@@ -4,7 +4,6 @@ module Kuiper.Kernel.GEMM.Tiled
 #lang-pulse
 
 open Kuiper
-open Kuiper.Matrix.Reprs.Type
 open Kuiper.Tensor
 open Kuiper.Tensor.Layout
 open Kuiper.EMatrix

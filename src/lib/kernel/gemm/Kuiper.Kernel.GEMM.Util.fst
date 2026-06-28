@@ -7,7 +7,6 @@ open Pulse.Lib.Trade
 module MS = Kuiper.Spec.GEMM
 open Kuiper.EMatrix
 module Chest = Kuiper.Chest
-open Kuiper.Matrix.Reprs.Type
 
 (* Helper: for reals, sum(0 to base+n) = sum(0 to base) + sum over elements base..base+n-1 *)
 let rec __gmatmul_single_split

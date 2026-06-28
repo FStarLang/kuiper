@@ -8,14 +8,15 @@ open Kuiper
 open Kuiper.Array.Vectorized { has_vec_cpy, chunk }
 open Kuiper.EMatrix
 open Kuiper.Math { even, odd }
-open Kuiper.Matrix
-open Kuiper.Matrix.Reprs.Type
-open Kuiper.Matrix.Tiling
-open Kuiper.Kernel.GEMM.Copy.Vec
+open Kuiper.Tensor
+open Kuiper.Array2.Strided
+open Kuiper.Tensor.Tiling
+open Kuiper.Kernel.GEMM.Copy.Vec2
 open Kuiper.Kernel.GEMM.Tiled.Common.Vec
 
 module MS = Kuiper.Spec.GEMM
 module SZ = Kuiper.SizeT
+module T = Kuiper.Tensor
 
 // Using 1.0R /. x can lead to many odd SMT failures...
 // work around it. We should investigate why and fix it.
@@ -34,8 +35,8 @@ let warp_tile_pts_to
   (#et : Type0) {| scalar et |}
   (#m : nat)
   (#n : nat)
-  (#lC : mlayout m n)
-  (gC : gpu_matrix et lC)
+  (#lC : layout2 m n)
+  (gC : array2 et lC)
   (bm : pos{bm /?+ m})
   (bn : pos{bn /?+ n})
   (tm : pos{tm /?+ bm})
@@ -47,7 +48,7 @@ let warp_tile_pts_to
   (em : ematrix et (wm * tm) (wn * tn))
   : slprop
   =
-  gpu_matrix_pts_to
+  tensor_pts_to
     (warp_tile (block_tile gC bm bn bid) (wm*tm) (wn*tn) wid)
     #(precip warp_size)
     em
@@ -56,8 +57,8 @@ let warp_tile_pts_to_full
   (#et : Type0) {| scalar et |}
   (#m : nat)
   (#n : nat)
-  (#lC : mlayout m n)
-  (gC : gpu_matrix et lC)
+  (#lC : layout2 m n)
+  (gC : array2 et lC)
   (bm : pos{bm /?+ m})
   (bn : pos{bn /?+ n})
   (tm : pos{tm /?+ bm})
@@ -69,7 +70,7 @@ let warp_tile_pts_to_full
   (em : ematrix et (wm * tm) (wn * tn))
   : slprop
   =
-  gpu_matrix_pts_to
+  tensor_pts_to
     (warp_tile (block_tile gC bm bn bid) (wm*tm) (wn*tn) wid)
     em
 
@@ -77,8 +78,8 @@ let warp_tile_approximates
   (#et : Type0) {| scalar et, real_like et |}
   (#m : nat)
   (#n : nat)
-  (#lC : mlayout m n)
-  (gC : gpu_matrix et lC)
+  (#lC : layout2 m n)
+  (gC : array2 et lC)
   (bm : pos{bm /?+ m})
   (bn : pos{bn /?+ n})
   (tm : pos{tm /?+ bm})
@@ -100,14 +101,14 @@ let kpre1
   {| scalar et_ab, scalar et_c |}
   {| real_like et_ab, real_like et_c |}
   (#m #n #k : szp)
-  (#lA : mlayout m k)
-  (#lB : mlayout k n)
-  (#lC : mlayout m n)
-  (gA : gpu_matrix et_ab lA)
+  (#lA : layout2 m k)
+  (#lB : layout2 k n)
+  (#lC : layout2 m n)
+  (gA : array2 et_ab lA)
   (eA : ematrix et_ab m k)
-  (gB : gpu_matrix et_ab lB)
+  (gB : array2 et_ab lB)
   (eB : ematrix et_ab k n)
-  (gC : gpu_matrix et_c lC)
+  (gC : array2 et_c lC)
   (eC : ematrix et_c m n)
   (bm bn bk
    tm tn tk
@@ -142,14 +143,14 @@ let kpre
   {| scalar et_ab, v : has_vec_cpy et_ab, scalar et_c |}
   {| real_like et_ab, real_like et_c |}
   (#m #n #k : szp)
-  (#lA : mlayout m k)
-  (#lB : mlayout k n)
-  (#lC : mlayout m n)
-  (gA : gpu_matrix et_ab lA)
+  (#lA : layout2 m k)
+  (#lB : layout2 k n)
+  (#lC : layout2 m n)
+  (gA : array2 et_ab lA)
   (eA : ematrix et_ab m k)
-  (gB : gpu_matrix et_ab lB)
+  (gB : array2 et_ab lB)
   (eB : ematrix et_ab k n)
-  (gC : gpu_matrix et_c lC)
+  (gC : array2 et_c lC)
   (eC : ematrix et_c m n)
   (bm bn bk
    tm tn tk
@@ -177,15 +178,15 @@ fn setup
   {| scalar et_ab, scalar et_c |}
   {| real_like et_ab, real_like et_c |}
   (#m #n #k : szp)
-  (#lA : mlayout m k)
-  (#lB : mlayout k n)
-  (#lC : mlayout m n)
-  {| clayout lA, clayout lB, clayout lC |}
-  (gA : gpu_matrix et_ab lA)
+  (#lA : layout2 m k)
+  (#lB : layout2 k n)
+  (#lC : layout2 m n)
+  {| T.ctlayout lA, T.ctlayout lB, T.ctlayout lC |}
+  (gA : array2 et_ab lA)
   (eA : ematrix et_ab m k)
-  (gB : gpu_matrix et_ab lB)
+  (gB : array2 et_ab lB)
   (eB : ematrix et_ab k n)
-  (gC : gpu_matrix et_c lC)
+  (gC : array2 et_c lC)
   (eC : ematrix et_c m n)
   (bm bn bk
    tm tn tk
@@ -212,7 +213,7 @@ fn setup
     (forall+ (bid : natlt nblk)
              (tid : natlt nthr).
       kpre1 gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr bid tid) **
-    pure (SZ.fits (mlayout_size lC)) // frame
+    pure (SZ.fits (lC.ulen)) // frame
 
 ghost
 fn block_setup
@@ -220,15 +221,15 @@ fn block_setup
   {| scalar et_ab, has_vec_cpy et_ab, scalar et_c |}
   {| real_like et_ab, real_like et_c |}
   (#m #n #k : szp)
-  (#lA : mlayout m k)
-  (#lB : mlayout k n)
-  (#lC : mlayout m n)
-  {| clayout lA, clayout lB, clayout lC |}
-  (gA : gpu_matrix et_ab lA)
+  (#lA : layout2 m k)
+  (#lB : layout2 k n)
+  (#lC : layout2 m n)
+  {| T.ctlayout lA, T.ctlayout lB, T.ctlayout lC |}
+  (gA : array2 et_ab lA)
   (eA : ematrix et_ab m k)
-  (gB : gpu_matrix et_ab lB)
+  (gB : array2 et_ab lB)
   (eB : ematrix et_ab k n)
-  (gC : gpu_matrix et_c lC)
+  (gC : array2 et_c lC)
   (eC : ematrix et_c m n)
   (bm bn bk
    tm tn tk
@@ -332,14 +333,14 @@ let kpost1
   {| scalar et_ab, scalar et_c |}
   {| real_like et_ab, real_like et_c |}
   (#m #n #k : szp)
-  (#lA : mlayout m k)
-  (#lB : mlayout k n)
-  (#lC : mlayout m n)
-  (gA : gpu_matrix et_ab lA)
+  (#lA : layout2 m k)
+  (#lB : layout2 k n)
+  (#lC : layout2 m n)
+  (gA : array2 et_ab lA)
   (eA : ematrix et_ab m k)
-  (gB : gpu_matrix et_ab lB)
+  (gB : array2 et_ab lB)
   (eB : ematrix et_ab k n)
-  (gC : gpu_matrix et_c lC)
+  (gC : array2 et_c lC)
   (eC : ematrix et_c m n)
   (bm bn bk
    tm tn tk
@@ -370,14 +371,14 @@ let kpost
   {| scalar et_ab, v : has_vec_cpy et_ab, scalar et_c |}
   {| real_like et_ab, real_like et_c |}
   (#m #n #k : szp)
-  (#lA : mlayout m k)
-  (#lB : mlayout k n)
-  (#lC : mlayout m n)
-  (gA : gpu_matrix et_ab lA)
+  (#lA : layout2 m k)
+  (#lB : layout2 k n)
+  (#lC : layout2 m n)
+  (gA : array2 et_ab lA)
   (eA : ematrix et_ab m k)
-  (gB : gpu_matrix et_ab lB)
+  (gB : array2 et_ab lB)
   (eB : ematrix et_ab k n)
-  (gC : gpu_matrix et_c lC)
+  (gC : array2 et_c lC)
   (eC : ematrix et_c m n)
   (bm bn bk
    tm tn tk
@@ -411,14 +412,14 @@ fn block_teardown
   {| scalar et_ab, has_vec_cpy et_ab, scalar et_c |}
   {| real_like et_ab, real_like et_c |}
   (#m #n #k : szp)
-  (#lA : mlayout m k)
-  (#lB : mlayout k n)
-  (#lC : mlayout m n)
-  (gA : gpu_matrix et_ab lA)
+  (#lA : layout2 m k)
+  (#lB : layout2 k n)
+  (#lC : layout2 m n)
+  (gA : array2 et_ab lA)
   (eA : ematrix et_ab m k)
-  (gB : gpu_matrix et_ab lB)
+  (gB : array2 et_ab lB)
   (eB : ematrix et_ab k n)
-  (gC : gpu_matrix et_c lC)
+  (gC : array2 et_c lC)
   (eC : ematrix et_c m n)
   (bm bn bk
    tm tn tk
@@ -454,14 +455,14 @@ fn teardown
   {| scalar et_ab, has_vec_cpy et_ab, scalar et_c |}
   {| real_like et_ab, real_like et_c |}
   (#m #n #k : szp)
-  (#lA : mlayout m k)
-  (#lB : mlayout k n)
-  (#lC : mlayout m n)
-  (gA : gpu_matrix et_ab lA)
+  (#lA : layout2 m k)
+  (#lB : layout2 k n)
+  (#lC : layout2 m n)
+  (gA : array2 et_ab lA)
   (eA : ematrix et_ab m k)
-  (gB : gpu_matrix et_ab lB)
+  (gB : array2 et_ab lB)
   (eB : ematrix et_ab k n)
-  (gC : gpu_matrix et_c lC)
+  (gC : array2 et_c lC)
   (eC : ematrix et_c m n)
   (bm bn bk
    tm tn tk
@@ -486,7 +487,7 @@ fn teardown
     (forall+ (bid : natlt nblk)
              (tid : natlt nthr).
       kpost1 gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr bid tid) **
-    pure (SZ.fits (mlayout_size lC)) // frame
+    pure (SZ.fits (lC.ulen)) // frame
   ensures
     gA |-> Frac fA eA **
     gB |-> Frac fB eB **

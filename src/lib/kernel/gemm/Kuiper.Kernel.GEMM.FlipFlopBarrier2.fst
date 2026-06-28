@@ -1,8 +1,7 @@
 module Kuiper.Kernel.GEMM.FlipFlopBarrier2
 
-(* Array2 version of FlipFlopBarrier.
-   This module defines a barrier contract used by GEMMs that operate
-   on Array2 (Tensor-backed) matrices instead of VArray-backed gpu_matrix. *)
+(* This module defines a barrier contract used by GEMMs that operate
+   on Array2 (Tensor-backed) matrices. *)
 
 #lang-pulse
 open Kuiper
@@ -13,7 +12,7 @@ open Kuiper.Tensor.Tiling
 
 open Kuiper.Tensor
 module SZ = Kuiper.SizeT
-module CV = Kuiper.Kernel.GEMM.Copy.Vec
+module CV = Kuiper.Kernel.GEMM.Copy.Vec2
 
 (* ---- Strided chunk operations for Array2 ---- *)
 

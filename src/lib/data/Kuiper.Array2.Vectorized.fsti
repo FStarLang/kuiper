@@ -1,7 +1,7 @@
 module Kuiper.Array2.Vectorized
 #lang-pulse
 
-(* Vectorized read for Array2, analogous to Kuiper.Matrix.Vectorized. *)
+(* Vectorized read for Array2 (Tensor-backed) layouts. *)
 
 open Kuiper
 open Kuiper.Array.Vectorized

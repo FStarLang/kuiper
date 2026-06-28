@@ -184,6 +184,26 @@ fn array2_untile
     gm |-> Frac f em
 
 ghost
+fn array2_untile_underspec
+  (#et:Type0)
+  (#rows #cols : nat)
+  (#l : layout2 rows cols)
+  (gm : array2 et l)
+  (trows : pos { trows /? rows })
+  (tcols : pos { tcols /? cols })
+  (#f : perm)
+  requires
+    pure (SZ.fits (l.ulen))
+  requires
+    forall+
+      (tr : natlt (rows / trows))
+      (tc : natlt (cols / tcols)).
+        (exists* (em : ematrix et trows tcols).
+          array2_subtile gm trows tcols tr tc |-> Frac f em)
+  ensures
+    (exists* (em : ematrix et rows cols). gm |-> Frac f em)
+
+ghost
 fn array2_extract_tile
   (#et:Type0)
   (#rows #cols : nat)

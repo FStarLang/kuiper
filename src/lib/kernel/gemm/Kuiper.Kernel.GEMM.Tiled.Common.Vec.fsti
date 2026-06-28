@@ -4,14 +4,15 @@ module Kuiper.Kernel.GEMM.Tiled.Common.Vec
 
 open Kuiper
 open Kuiper.Array.Vectorized
-open Kuiper.Matrix
-open Kuiper.Matrix.Reprs
-open Kuiper.Matrix.Tiling
-open Kuiper.Kernel.GEMM.Copy.Vec
+open Kuiper.Tensor
+open Kuiper.Array2.Strided
+open Kuiper.Tensor.Tiling
+open Kuiper.Kernel.GEMM.Copy.Vec2
 
 open Kuiper.EMatrix
 
 module SZ = Kuiper.SizeT
+module T = Kuiper.Tensor
 
 inline_for_extraction noextract
 instance concrete_sz_32 : concrete_sz 32 = { x = 32sz }
@@ -37,15 +38,15 @@ fn copy_tiles_out_of_matrices_vec
   (bk : szp{bk /? k})
   (#_ : squash (chunk et /? bk)) // extra req
   (#_ : squash (chunk et /? bn)) // extra req
-  (#slA : mlayout bm bk) {| clayout slA |}
-  (#slB : mlayout bk bn) {| clayout slB |}
-  (sA : gpu_matrix et slA)
-  (sB : gpu_matrix et slB)
-  (#lA : mlayout m k) {| clayout lA, str_A : strided_row_major lA |}
-  (#lB : mlayout k n) {| clayout lB, str_B : strided_row_major lB |}
-  (gA : gpu_matrix et lA)
+  (#slA : layout2 bm bk) {| T.ctlayout slA |}
+  (#slB : layout2 bk bn) {| T.ctlayout slB |}
+  (sA : array2 et slA)
+  (sB : array2 et slB)
+  (#lA : layout2 m k) {| T.ctlayout lA, str_A : strided_row_major lA |}
+  (#lB : layout2 k n) {| T.ctlayout lB, str_B : strided_row_major lB |}
+  (gA : array2 et lA)
   (#eA : ematrix et m k)
-  (gB : gpu_matrix et lB)
+  (gB : array2 et lB)
   (#fA #fB : perm)
   (#eB : ematrix et k n)
   (tile_row : szlt (m/bm))
@@ -115,17 +116,17 @@ inline_for_extraction noextract
 let block_tile
   (#et : Type0)
   (#m #n : erased nat)
-  (#lC : mlayout m n)
-  (gC : gpu_matrix et lC)
+  (#lC : layout2 m n)
+  (gC : array2 et lC)
   (bm : erased nat{bm > 0 /\ bm /? m})
   (bn : erased nat{bn > 0 /\ bn /? n})
   (bid : enatlt (m/bm * (n/bn)))
-  : Tot (gpu_matrix et
+  : Tot (array2 et
           (subtile_layout lC bm bn
             (block_tile_idx_rows m n bm bn bid)
             (block_tile_idx_cols m n bm bn bid)))
   =
-    gpu_matrix_subtile gC bm bn
+    array2_subtile gC bm bn
       (block_tile_idx_rows m n bm bn bid)
       (block_tile_idx_cols m n bm bn bid)
 
@@ -133,16 +134,16 @@ inline_for_extraction noextract
 let thread_tile
   (#et : Type0)
   (#bm #bn : erased nat)
-  (#lC_bt : mlayout bm bn)
-  (gC_bt : gpu_matrix et lC_bt)
+  (#lC_bt : layout2 bm bn)
+  (gC_bt : array2 et lC_bt)
   (tm : erased nat{tm > 0 /\ tm /? bm})
   (tn : erased nat{tn > 0 /\ tn /? bn})
   (tid : enatlt (bm/tm * (bn/tn)))
-  : Tot (gpu_matrix et
+  : Tot (array2 et
           (subtile_layout lC_bt tm tn
             (thread_tile_idx_rows bm bn tm tn tid) (thread_tile_idx_cols bm bn tm tn tid)))
   =
-   gpu_matrix_subtile gC_bt tm tn
+   array2_subtile gC_bt tm tn
     (thread_tile_idx_rows bm bn tm tn tid) (thread_tile_idx_cols bm bn tm tn tid)
 
 // The same as thread_tile* functions.
@@ -170,14 +171,14 @@ inline_for_extraction noextract
 let warp_tile
   (#et : Type0) {| scalar et |}
   (#bm #bn : erased nat)
-  (#lC_bt : mlayout bm bn)
-  (gC_bt : gpu_matrix et lC_bt)
+  (#lC_bt : layout2 bm bn)
+  (gC_bt : array2 et lC_bt)
   (tm : erased nat{tm > 0 /\ tm /? bm})
   (tn : erased nat{tn > 0 /\ tn /? bn})
   (wid : enatlt (bm/tm * (bn/tn)))
-  : Tot (gpu_matrix et
+  : Tot (array2 et
           (subtile_layout lC_bt tm tn
             (warp_tile_idx_rows bm bn tm tn wid) (warp_tile_idx_cols bm bn tm tn wid)))
   =
-   gpu_matrix_subtile gC_bt tm tn
+   array2_subtile gC_bt tm tn
     (warp_tile_idx_rows bm bn tm tn wid) (warp_tile_idx_cols bm bn tm tn wid)

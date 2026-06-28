@@ -2,9 +2,10 @@ module Klas.GEMM.TensorCore2D.Inst
 #lang-pulse
 
 open Kuiper
-open Kuiper.Matrix
+open Kuiper.Tensor
 open Kuiper.EMatrix
-open Kuiper.Matrix.Reprs
+open Kuiper.Array2.Strided
+open Kuiper.Tensor.Layout.Alg { l2_row_major as rm }
 open Kuiper.TensorCore
 open Kuiper.Array.Vectorized { has_vec_cpy, chunk }
 
@@ -43,9 +44,9 @@ fn spec
 
   // do not specialize
   (rows shared cols : szp)
-  (gA : gpu_matrix et_ab (row_major rows shared) { is_global gA })
-  (gB : gpu_matrix et_ab (row_major shared cols) { is_global gB })
-  (gC : gpu_matrix et_c (row_major rows cols) { is_global gC })
+  (gA : array2 et_ab (rm rows shared) { is_global gA })
+  (gB : array2 et_ab (rm shared cols) { is_global gB })
+  (gC : array2 et_c (rm rows cols) { is_global gC })
   (#_ : squash (aligned 16 (core gA)))
   (#_ : squash (aligned 16 (core gB)))
   (#eA : ematrix et_ab rows shared)
@@ -65,9 +66,9 @@ fn spec
     exists* eC'.
       on gpu_loc (gC |-> eC') ** pure (eC' %~ MS.matmul (to_real_matrix eA) (to_real_matrix eB))
 {
-  gpu_matrix_pts_to_ref_located gA;
-  gpu_matrix_pts_to_ref_located gB;
-  gpu_matrix_pts_to_ref_located gC;
+  tensor_pts_to_ref_located gA;
+  tensor_pts_to_ref_located gB;
+  tensor_pts_to_ref_located gC;
 
   // TODO dassert for alignment of A/B
 
@@ -99,13 +100,11 @@ fn spec
 
   lemma_divides_trans (chunk et_ab) bk shared;
   assert pure (chunk et_ab /?+ shared);
-  assert pure (aligned_strided_row_major (chunk et_ab)
-                (Kuiper.Matrix.Reprs.strided_row_major_base #(SZ.v rows) #(SZ.v shared)));
+  lemma_aligned_strided_row_major_l2_row_major #(SZ.v rows) #(SZ.v shared) (chunk et_ab);
 
   lemma_divides_trans (chunk et_ab) bn cols;
   assert pure (chunk et_ab /?+ cols);
-  assert pure (aligned_strided_row_major (chunk et_ab)
-                (Kuiper.Matrix.Reprs.strided_row_major_base #(SZ.v shared) #(SZ.v cols)));
+  lemma_aligned_strided_row_major_l2_row_major #(SZ.v shared) #(SZ.v cols) (chunk et_ab);
 
   (* Instead of threading through approximations, we here pick
      real matrices that are (trivially) approximated

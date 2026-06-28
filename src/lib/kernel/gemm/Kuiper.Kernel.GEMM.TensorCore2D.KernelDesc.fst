@@ -18,11 +18,10 @@ open Kuiper.Bijection
 open Kuiper.EMatrix
 open Kuiper.Float16
 open Kuiper.Math { even, odd, even_2x, odd_2x1 }
-open Kuiper.Matrix
-open Kuiper.Matrix.Reprs
-open Kuiper.Matrix.Reprs.Type
-open Kuiper.Matrix.Tiling
-open Kuiper.Kernel.GEMM.Copy.Vec
+open Kuiper.Tensor
+open Kuiper.Array2.Strided
+open Kuiper.Tensor.Tiling
+open Kuiper.Kernel.GEMM.Copy.Vec2
 open Kuiper.Kernel.GEMM.Tiled.Common.Vec
 open Kuiper.TensorCore
 open Kuiper.VArray { varray, varray_pts_to, varray_pts_to_cell }
@@ -30,6 +29,7 @@ open Pulse.Lib.Array
 open Pulse.Lib.Trade
 
 module SZ = Kuiper.SizeT
+module T = Kuiper.Tensor
 
 let bid_of_ij
   (m n : nat)
@@ -191,11 +191,11 @@ fn gpu_slice_gather_underspec
 }
 
 ghost
-fn gpu_matrix_share_threads
+fn array2_share_threads
   (#et : Type)
   (#m #n : nat)
-  (#l : mlayout m n)
-  (gm : gpu_matrix et l)
+  (#l : layout2 m n)
+  (gm : array2 et l)
   (#f : perm)
   (#em : ematrix et m n)
   (nblk nthr : pos)
@@ -204,7 +204,7 @@ requires
 ensures
   forall+ (bid : natlt nblk) (tid : natlt nthr). gm |-> Frac (f/.(nblk*nthr)) em
 {
-  gpu_matrix_share_n gm (nblk*nthr);
+  tensor_share_n gm (nblk*nthr);
   forevery_factor (nblk * nthr) nblk nthr _;
 }
 
@@ -214,15 +214,15 @@ fn setup
   {| scalar et_ab, scalar et_c |}
   {| real_like et_ab, real_like et_c |}
   (#m #n #k : szp)
-  (#lA : mlayout m k)
-  (#lB : mlayout k n)
-  (#lC : mlayout m n)
-  {| clayout lA, clayout lB, clayout lC |}
-  (gA : gpu_matrix et_ab lA)
+  (#lA : layout2 m k)
+  (#lB : layout2 k n)
+  (#lC : layout2 m n)
+  {| T.ctlayout lA, T.ctlayout lB, T.ctlayout lC |}
+  (gA : array2 et_ab lA)
   (eA : ematrix et_ab m k)
-  (gB : gpu_matrix et_ab lB)
+  (gB : array2 et_ab lB)
   (eB : ematrix et_ab k n)
-  (gC : gpu_matrix et_c lC)
+  (gC : array2 et_c lC)
   (eC : ematrix et_c m n)
   (bm bn bk
    tm tn tk
@@ -249,21 +249,21 @@ fn setup
     (forall+ (bid : natlt nblk)
              (tid : natlt nthr).
       kpre1 gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr bid tid) **
-    pure (SZ.fits (mlayout_size lC)) // frame
+    pure (SZ.fits (lC.ulen)) // frame
 {
-  gpu_matrix_pts_to_ref gC;
-  gpu_matrix_share_threads gA nblk nthr;
-  gpu_matrix_share_threads gB nblk nthr;
+  tensor_pts_to_ref gC;
+  array2_share_threads gA nblk nthr;
+  array2_share_threads gB nblk nthr;
 
-  gpu_matrix_tile gC bm bn;
+  array2_tile gC bm bn;
   forevery_unfactor' nblk (m/bm) (n/bn) _;
 
   ghost
   fn create_warp_tiles_shared
     (#et : Type0) {| scalar et |}
     (#m #n : nat)
-    (#l : mlayout m n)
-    ([@@@mkey] gm : gpu_matrix et l)
+    (#l : layout2 m n)
+    ([@@@mkey] gm : array2 et l)
     (#f : perm)
     (#em : ematrix et m n)
     (trows : nat{trows > 0 /\ trows /? m})
@@ -279,24 +279,24 @@ fn setup
         (warp_tile_idx_rows m n trows tcols (trc/warp_size))
         (warp_tile_idx_cols m n trows tcols (trc/warp_size)))
   {
-    gpu_matrix_tile gm trows tcols;
+    array2_tile gm trows tcols;
     forevery_unfactor' (m/trows * (n/tcols)) (m/trows) (n/tcols) _;
 
     forevery_map
       (fun (trc : natlt (m/trows * (n/tcols))) ->
-        gpu_matrix_subtile gm trows tcols (trc/(n/tcols)) (trc%(n/tcols))
+        array2_subtile gm trows tcols (trc/(n/tcols)) (trc%(n/tcols))
           |-> Frac f (ematrix_subtile em trows tcols (trc/(n/tcols)) (trc%(n/tcols))))
       (fun trc ->
         forall+ (_lid: natlt warp_size).
-          gpu_matrix_subtile gm trows tcols (trc/(n/tcols)) (trc%(n/tcols))
+          array2_subtile gm trows tcols (trc/(n/tcols)) (trc%(n/tcols))
             |-> Frac (f /. warp_size) (ematrix_subtile em trows tcols (trc/(n/tcols)) (trc%(n/tcols))))
-      fn trc { gpu_matrix_share_n _ warp_size };
+      fn trc { tensor_share_n _ warp_size };
     forevery_unfactor' nthr (m / trows * (n / tcols)) 32 _;
     ();
   };
   forevery_map
     (fun (trc : natlt nblk) ->
-      (gpu_matrix_subtile gC (SZ.v bm) (SZ.v bn) (trc/(n/bn)) (trc%(n/bn)))
+      (array2_subtile gC (SZ.v bm) (SZ.v bn) (trc/(n/bn)) (trc%(n/bn)))
         // Explicit fraction required, otherwise tactic to resolve it fails?!?!
         |-> Frac 1.0R
       (ematrix_subtile eC bm bn (trc/(n/bn)) (trc%(n/bn))))
@@ -304,7 +304,7 @@ fn setup
     (fun trc ->
       create_warp_tiles_shared
         (block_tile gC (SZ.v bm) (SZ.v bn) trc)
-        // (gpu_matrix_subtile gC (SZ.v bm) (SZ.v bn) (trc/(n/bn)) (trc%(n/bn)))
+        // (array2_subtile gC (SZ.v bm) (SZ.v bn) (trc/(n/bn)) (trc%(n/bn)))
         (wm*tm)
         (wn*tn)
         nthr);
@@ -350,15 +350,15 @@ fn block_setup
   {| scalar et_ab, v : has_vec_cpy et_ab, scalar et_c |}
   {| real_like et_ab, real_like et_c |}
   (#m #n #k : szp)
-  (#lA : mlayout m k)
-  (#lB : mlayout k n)
-  (#lC : mlayout m n)
-  {| clayout lA, clayout lB, clayout lC |}
-  (gA : gpu_matrix et_ab lA)
+  (#lA : layout2 m k)
+  (#lB : layout2 k n)
+  (#lC : layout2 m n)
+  {| T.ctlayout lA, T.ctlayout lB, T.ctlayout lC |}
+  (gA : array2 et_ab lA)
   (eA : ematrix et_ab m k)
-  (gB : gpu_matrix et_ab lB)
+  (gB : array2 et_ab lB)
   (eB : ematrix et_ab k n)
-  (gC : gpu_matrix et_c lC)
+  (gC : array2 et_c lC)
   (eC : ematrix et_c m n)
   (bm bn bk
    tm tn tk
@@ -406,14 +406,14 @@ fn block_teardown
   {| scalar et_ab, has_vec_cpy et_ab, scalar et_c |}
   {| real_like et_ab, real_like et_c |}
   (#m #n #k : szp)
-  (#lA : mlayout m k)
-  (#lB : mlayout k n)
-  (#lC : mlayout m n)
-  (gA : gpu_matrix et_ab lA)
+  (#lA : layout2 m k)
+  (#lB : layout2 k n)
+  (#lC : layout2 m n)
+  (gA : array2 et_ab lA)
   (eA : ematrix et_ab m k)
-  (gB : gpu_matrix et_ab lB)
+  (gB : array2 et_ab lB)
   (eB : ematrix et_ab k n)
-  (gC : gpu_matrix et_c lC)
+  (gC : array2 et_c lC)
   (eC : ematrix et_c m n)
   (bm bn bk
    tm tn tk
@@ -457,8 +457,8 @@ fn warp_tile_pts_to_eq
   (#et : Type0) {| scalar et |}
   (#m : nat)
   (#n : nat)
-  (#lC : mlayout m n)
-  (gC : gpu_matrix et lC)
+  (#lC : layout2 m n)
+  (gC : array2 et lC)
   (bm : pos{bm /?+ m})
   (bn : pos{bn /?+ n})
   (tm : pos{tm /?+ bm})
@@ -477,7 +477,7 @@ fn warp_tile_pts_to_eq
 {
   unfold warp_tile_pts_to gC bm bn tm tn wm wn bid wid em1;
   unfold warp_tile_pts_to gC bm bn tm tn wm wn bid wid em2;
-  gpu_matrix_pts_to_eq
+  tensor_pts_to_eq
     (warp_tile (block_tile gC bm bn bid) (wm*tm) (wn*tn) wid)
     (precip warp_size)
     #em1 #em2;
@@ -490,8 +490,8 @@ fn warp_tile_pts_to_gatherwarp
   (#et : Type0) {| scalar et |}
   (#m : nat)
   (#n : nat)
-  (#lC : mlayout m n)
-  (gC : gpu_matrix et lC)
+  (#lC : layout2 m n)
+  (gC : array2 et lC)
   (bm : pos{bm /?+ m})
   (bn : pos{bn /?+ n})
   (tm : pos{tm /?+ bm})
@@ -510,14 +510,14 @@ fn warp_tile_pts_to_gatherwarp
   forevery_map #(natlt warp_size)
     (fun _ -> warp_tile_pts_to gC bm bn tm tn wm wn bid wid em)
     (fun _ ->
-      gpu_matrix_pts_to
+      tensor_pts_to
         (warp_tile (block_tile gC bm bn bid) (wm*tm) (wn*tn) wid)
         #(precip warp_size)
         em)
     fn _ {
       unfold warp_tile_pts_to gC bm bn tm tn wm wn bid wid em;
     };
-  gpu_matrix_gather_n
+  tensor_gather_n
     (warp_tile (block_tile gC bm bn bid) (wm*tm) (wn*tn) wid)
     warp_size;
   fold warp_tile_pts_to_full gC bm bn tm tn wm wn bid wid em;
@@ -530,8 +530,8 @@ fn rhs_is_constant_for_warps_approx
   {| scalar et_c |}
   {| real_like et_c |}
   (#m #n #k : pos)
-  (#lC : mlayout m n)
-  (gC : gpu_matrix et_c lC)
+  (#lC : layout2 m n)
+  (gC : array2 et_c lC)
   (eA : ematrix et_ab m k)
   (eB : ematrix et_ab k n)
   (eC : ematrix et_c m n)
@@ -723,8 +723,8 @@ fn reconstruct_from_warp_approx
   {| scalar et_c |}
   {| real_like et_c |}
   (#m #n #k : pos)
-  (#lC : mlayout m n)
-  (gC : gpu_matrix et_c lC)
+  (#lC : layout2 m n)
+  (gC : array2 et_c lC)
   (eA : ematrix et_ab m k)
   (eB : ematrix et_ab k n)
   (eC : ematrix et_c m n)
@@ -743,7 +743,7 @@ fn reconstruct_from_warp_approx
   (#_ : squash (wn * tn /?+ n)) // idem
   norewrite
   requires
-    pure (SZ.fits (mlayout_size lC))
+    pure (SZ.fits (lC.ulen))
   requires
     forall+ (bid : natlt nblk) (tid : natlt nthr).
       warp_tile_approximates gC bm bn tm tn wm wn bid (tid / warp_size)
@@ -827,11 +827,11 @@ fn reconstruct_from_warp_approx
                    (ematrix_subtile rB k  (wn*tn) 0 (warp_tile_j #m #n bm bn bk tm tn tk wm wn nthr bid wid)))))
     (fun bid wid ->
       // warp_tile_pts_to_full gC bm bn tm tn wm wn bid wid (emf bid (wid * warp_size)))
-      // gpu_matrix_pts_to
+      // tensor_pts_to
       //   (warp_tile (block_tile gC (SZ.v bm) (SZ.v bn) bid) (wm*tm) (wn*tn) wid)
       //   (emf bid (wid * warp_size)))
-      gpu_matrix_pts_to
-        (gpu_matrix_subtile (block_tile gC (SZ.v bm) (SZ.v bn) bid)
+      tensor_pts_to
+        (array2_subtile (block_tile gC (SZ.v bm) (SZ.v bn) bid)
           (wm*tm) (wn*tn)
           (wid / (bn/(wn*tn))) (wid % (bn/(wn*tn))))
         (emf bid (wid * warp_size)))
@@ -840,7 +840,7 @@ fn reconstruct_from_warp_approx
       rewrite each
         (warp_tile (block_tile gC (SZ.v bm) (SZ.v bn) bid) (wm*tm) (wn*tn) wid)
       as
-        gpu_matrix_subtile (block_tile gC (SZ.v bm) (SZ.v bn) bid)
+        array2_subtile (block_tile gC (SZ.v bm) (SZ.v bn) bid)
           (wm*tm) (wn*tn)
           (wid / (bn/(wn*tn))) (wid % (bn/(wn*tn)));
       ();
@@ -850,13 +850,13 @@ fn reconstruct_from_warp_approx
   forevery_map
     #(natlt nblk)
     (fun bid -> forall+ (wid : natlt (nthr / warp_size)).
-      gpu_matrix_pts_to
-        (gpu_matrix_subtile (block_tile gC (SZ.v bm) (SZ.v bn) bid)
+      tensor_pts_to
+        (array2_subtile (block_tile gC (SZ.v bm) (SZ.v bn) bid)
           (wm*tm) (wn*tn)
           (wid / (bn/(wn*tn))) (wid % (bn/(wn*tn))))
         (emf bid (wid * warp_size)))
     (fun bid ->
-      gpu_matrix_pts_to (block_tile gC (v bm) (v bn) bid)
+      tensor_pts_to (block_tile gC (v bm) (v bn) bid)
         (ematrix_from_tiles (wm*tm)
             (wn*tn)
             (fun tr tc -> emf bid ((tr * (bn/(wn*tn)) + tc) * 32))))
@@ -868,45 +868,45 @@ fn reconstruct_from_warp_approx
                     (tr * (bn/(wn*tn)) + tc) % (bn/(wn*tn))  == tc);
       forevery_ext_2 #(natlt (bm/(wm*tm))) #(natlt (bn/(wn*tn)))
         (fun tr tc ->
-          gpu_matrix_pts_to
-            (gpu_matrix_subtile (block_tile gC (SZ.v bm) (SZ.v bn) bid)
+          tensor_pts_to
+            (array2_subtile (block_tile gC (SZ.v bm) (SZ.v bn) bid)
               (wm*tm) (wn*tn)
               ((tr * (bn/(wn*tn)) + tc) / (bn/(wn*tn))) ((tr * (bn/(wn*tn)) + tc) % (bn/(wn*tn))))
             (emf bid ((tr * (bn/(wn*tn)) + tc) * warp_size)))
         (fun tr tc ->
-          gpu_matrix_pts_to
-            (gpu_matrix_subtile (block_tile gC (SZ.v bm) (SZ.v bn) bid)
+          tensor_pts_to
+            (array2_subtile (block_tile gC (SZ.v bm) (SZ.v bn) bid)
               (wm*tm) (wn*tn)
               tr tc)
             (emf bid ((tr * (bn/(wn*tn)) + tc) * warp_size)))
         ;
-      gpu_matrix_untile' (block_tile gC (SZ.v bm) (SZ.v bn) bid) (wm*tm) (wn*tn)
+      array2_untile' (block_tile gC (SZ.v bm) (SZ.v bn) bid) (wm*tm) (wn*tn)
         (fun tr tc ->
           emf bid ((tr * (bn/(wn*tn)) + tc) * warp_size));
     };
 
   (* Now that we have each block tile, again shuffle them and join. *)
   assert (forall+ (bid : natlt nblk).
-      gpu_matrix_pts_to (block_tile gC (v bm) (v bn) bid)
+      tensor_pts_to (block_tile gC (v bm) (v bn) bid)
         (ematrix_from_tiles (wm*tm)
             (wn*tn)
             (fun tr tc -> emf bid ((tr * (bn/(wn*tn)) + tc) * 32))));
   forevery_factor nblk (m/bm) (n/bn) _;
   forevery_map_2 #(natlt (m/bm)) #(natlt (n/bn))
     (fun br bc ->
-      gpu_matrix_pts_to (block_tile gC (SZ.v bm) (SZ.v bn) (br * (n/bn) + bc))
+      tensor_pts_to (block_tile gC (SZ.v bm) (SZ.v bn) (br * (n/bn) + bc))
         (ematrix_from_tiles (wm*tm) (wn*tn)
             (fun tr tc -> emf (br * (n/bn) + bc) ((tr * (bn/(wn*tn)) + tc) * 32))))
     (fun br bc ->
-      gpu_matrix_pts_to
-        (gpu_matrix_subtile gC (SZ.v bm) (SZ.v bn) br bc)
+      tensor_pts_to
+        (array2_subtile gC (SZ.v bm) (SZ.v bn) br bc)
         (ematrix_from_tiles (wm*tm) (wn*tn)
             (fun tr tc -> emf (br * (n/bn) + bc) ((tr * (bn/(wn*tn)) + tc) * 32))))
     fn br bc {
       rewrite each
         block_tile gC (SZ.v bm) (SZ.v bn) (br * (n/bn) + bc)
       as
-        gpu_matrix_subtile gC (SZ.v bm) (SZ.v bn)
+        array2_subtile gC (SZ.v bm) (SZ.v bn)
           (block_tile_idx_rows m n (SZ.v bm) (SZ.v bn) (br * (n/bn) + bc))
           (block_tile_idx_cols m n (SZ.v bm) (SZ.v bn) (br * (n/bn) + bc));
       assert pure
@@ -935,14 +935,14 @@ fn reconstruct_from_warp_approx
       rewrite each ((br * (n/bn) + bc) % (n/bn)) as bc;
 
       assert
-        gpu_matrix_subtile gC (SZ.v bm) (SZ.v bn) br bc |->
+        array2_subtile gC (SZ.v bm) (SZ.v bn) br bc |->
           ematrix_from_tiles (wm*tm) (wn*tn)
             (fun tr tc -> emf (br * (n/bn) + bc) ((tr * (bn/(wn*tn)) + tc) * warp_size));
 
       ();
     };
 
-  gpu_matrix_untile' gC bm bn
+  array2_untile' gC bm bn
     (fun br bc ->
       ematrix_from_tiles (wm*tm) (wn*tn)
         (fun tr tc -> emf (br * (n/bn) + bc) ((tr * (bn/(wn*tn)) + tc) * warp_size)));
@@ -964,14 +964,14 @@ fn teardown
   {| scalar et_ab, has_vec_cpy et_ab, scalar et_c |}
   {| real_like et_ab, real_like et_c |}
   (#m #n #k : szp)
-  (#lA : mlayout m k)
-  (#lB : mlayout k n)
-  (#lC : mlayout m n)
-  (gA : gpu_matrix et_ab lA)
+  (#lA : layout2 m k)
+  (#lB : layout2 k n)
+  (#lC : layout2 m n)
+  (gA : array2 et_ab lA)
   (eA : ematrix et_ab m k)
-  (gB : gpu_matrix et_ab lB)
+  (gB : array2 et_ab lB)
   (eB : ematrix et_ab k n)
-  (gC : gpu_matrix et_c lC)
+  (gC : array2 et_c lC)
   (eC : ematrix et_c m n)
   (bm bn bk
    tm tn tk
@@ -996,7 +996,7 @@ fn teardown
     (forall+ (bid : natlt nblk)
              (tid : natlt nthr).
       kpost1 gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr bid tid) **
-    pure (SZ.fits (mlayout_size lC)) // frame
+    pure (SZ.fits (lC.ulen)) // frame
   ensures
     gA |-> Frac fA eA **
     gB |-> Frac fB eB **
@@ -1007,8 +1007,8 @@ fn teardown
   forevery_unzip _ _;
   forevery_unzip _ _;
 
-  gpu_matrix_gather_n gA (m/bm * (n/bn) * nthr);
-  gpu_matrix_gather_n gB (m/bm * (n/bn) * nthr);
+  tensor_gather_n gA (m/bm * (n/bn) * nthr);
+  tensor_gather_n gB (m/bm * (n/bn) * nthr);
 
   (* Done with gA and gB. The tricky bit is getting back gC and
   proving it approximates the matmul. *)

@@ -3,29 +3,31 @@ module Kuiper.Kernel.GEMM.TensorCore
 #lang-pulse
 
 open Kuiper
-open Kuiper.Matrix
+open Kuiper.Tensor
 open Kuiper.EMatrix
 open Kuiper.Array.Vectorized { has_vec_cpy, chunk }
 
-open Kuiper.Matrix.Reprs
+open Kuiper.Array2.Strided
+open Kuiper.Tensor.Layout.Alg { l2_row_major as rm }
 open Kuiper.TensorCore
 
 module SZ = Kuiper.SizeT
+module T = Kuiper.Tensor
 
 inline_for_extraction noextract
 val mk_kernel
   (#et_ab #et_c : Type0)
   {| scalar et_ab, has_vec_cpy et_ab, scalar et_c |}
   (#m #n #k : szp)
-  (#lA : mlayout m k) {| clayout lA, str_A : strided_row_major lA |}
-  (gA : gpu_matrix et_ab lA { is_global gA })
+  (#lA : layout2 m k) {| T.ctlayout lA, str_A : strided_row_major lA |}
+  (gA : array2 et_ab lA { is_global gA })
   (#eA : ematrix et_ab m k)
-  (#lB : mlayout k n) {| clayout lB, str_B : strided_row_major lB |}
+  (#lB : layout2 k n) {| T.ctlayout lB, str_B : strided_row_major lB |}
   (#_ : squash (aligned_strided_row_major (chunk et_ab) str_A))
   (#_ : squash (aligned_strided_row_major (chunk et_ab) str_B))
-  (gB : gpu_matrix et_ab lB { is_global gB })
+  (gB : array2 et_ab lB { is_global gB })
   (#eB : ematrix et_ab k n)
-  (gC : gpu_matrix et_c (row_major m n) { is_global gC })
+  (gC : array2 et_c (rm m n) { is_global gC })
   (#_ : squash (SZ.fits (m * n)))
   (#eC : ematrix et_c m n)
   (bm : szp{bm /?+ m})

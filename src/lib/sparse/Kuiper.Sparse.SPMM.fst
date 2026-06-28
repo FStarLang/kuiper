@@ -9,8 +9,6 @@ module B = Kuiper.Barrier
 module Compute = Kuiper.Sparse.SPMM.Compute
 open Kuiper.Sparse
 open Kuiper.EMatrix
-// open Kuiper.Matrix.Reprs.Type
-// open Kuiper.Matrix.Reprs
 open Kuiper.Math { even, odd, even_2x, odd_2x1 }
 open Kuiper.Bijection { ( |~> ) }
 open Kuiper.Kernel.GEMMGPU.Type { size_req_t }

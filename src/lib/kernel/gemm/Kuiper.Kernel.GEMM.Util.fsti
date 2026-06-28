@@ -5,7 +5,6 @@ module Kuiper.Kernel.GEMM.Util
 open Kuiper
 module MS = Kuiper.Spec.GEMM
 open Kuiper.EMatrix
-open Kuiper.Matrix.Reprs.Type
 
 (* This is now only spec and lemmas. *)
 

@@ -4,7 +4,6 @@ module Kuiper.Sparse.SPMM.Compute
 
 open Kuiper
 open Kuiper.EMatrix
-open Kuiper.Matrix.Reprs.Type
 open Kuiper.Spec.GEMM
 open Kuiper.Sparse.DotProduct
 open Kuiper.Sparse.Array

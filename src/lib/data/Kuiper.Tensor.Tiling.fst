@@ -236,6 +236,44 @@ fn array2_untile
             as em;
 }
 
+ghost
+fn array2_untile_underspec
+  (#et:Type0)
+  (#rows #cols : nat)
+  (#l : layout2 rows cols)
+  (gm : array2 et l)
+  (trows : pos { trows /? rows })
+  (tcols : pos { tcols /? cols })
+  (#f : perm)
+  requires
+    pure (SZ.fits (l.ulen))
+  requires
+    forall+
+      (tr : natlt (rows / trows))
+      (tc : natlt (cols / tcols)).
+        (exists* (em : ematrix et trows tcols).
+          array2_subtile gm trows tcols tr tc |-> Frac f em)
+  ensures
+    exists* (em : ematrix et rows cols). gm |-> Frac f em
+{
+  forevery_flatten _;
+  let cf = forevery_exists #(natlt (rows / trows) & natlt (cols / tcols)) _;
+  let em = ematrix_from_tiles trows tcols (fun x y -> cf (x,y));
+  ghost
+  fn aux (rc : natlt (rows / trows) & natlt (cols / tcols))
+    requires
+      array2_subtile gm trows tcols (fst rc) (snd rc) |-> Frac f (cf rc)
+    ensures
+      array2_subtile gm trows tcols (fst rc) (snd rc) |-> Frac f (ematrix_subtile em trows tcols (fst rc) (snd rc))
+  {
+    rewrite each cf rc as ematrix_subtile em trows tcols (fst rc) (snd rc);
+  };
+  forevery_map _ _ aux;
+  forevery_unflatten #(natlt (rows / trows)) #(natlt (cols / tcols))
+    (fun r c -> array2_subtile gm trows tcols r c |-> Frac f (ematrix_subtile em trows tcols r c));
+  array2_untile gm trows tcols;
+}
+
 #push-options "--z3rlimit 40 --split_queries always"
 ghost
 fn array2_extract_tile

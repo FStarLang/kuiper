@@ -1,7 +1,6 @@
 module Kuiper.Array2.Vectorized
 
-(* Vectorized read for Array2, analogous to Kuiper.Matrix.Vectorized.
-   Ported from Kuiper.Matrix.Vectorized with Array2 types. *)
+(* Vectorized read for Array2 (Tensor-backed) layouts. *)
 
 #lang-pulse
 
