@@ -296,8 +296,6 @@ let abs_conc_bij (#n : erased nat) (d : shape n{all_fit d})
   = {
     ff = down;
     gg = up;
-    ff_gg = (fun (v : conc d) -> down_up v);
-    gg_ff = (fun (v : abs d) -> up_down v);
   }
 
 (* Raw indices. These could be used to give Tensor an API

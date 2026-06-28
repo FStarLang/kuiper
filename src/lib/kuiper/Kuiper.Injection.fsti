@@ -44,13 +44,11 @@ val inverse_lem (#a #b : Type) (i : a @~> b) (y : image_of i)
 (* An injection can be inverted. *)
 let inverse (#a #b : Type) (i : a @~> b) : (image_of i @~> a) = {
   f = inverse_f i;
-  is_inj = ez;
 }
 
 (* If it's surjective, the image_of is not needed. *)
 let inverse' (#a #b : Type) (i : a @~> b { is_surj i.f }) : (b @~> a) = {
   f = inverse_f i;
-  is_inj = ez;
 }
 
 let lem_pat (#a #b : _) (d : a @~> b) (x : a)
@@ -70,19 +68,16 @@ let ( <~| ) (#a #b : Type) (y : b) (i : a `injection` b{in_image i.f y}) : GTot 
 let inj_prod (i1 : 'a @~> 'c) (i2 : 'b @~> 'd) : ('a & 'b @~> 'c & 'd) =
 {
   f = (fun (a,b) -> (i1.f a, i2.f b));
-  is_inj = ez;
 }
 
 let inj_either (i1 : 'a @~> 'c) (i2 : 'b @~> 'd) : (either 'a 'b @~> either 'c 'd) =
 {
   f = (function | Inl a -> Inl (i1.f a) | Inr b -> Inr (i2.f b));
-  is_inj = ez;
 }
 
 let inj_comp (i1 : 'a @~> 'b) (i2 : 'b @~> 'c) : ('a @~> 'c) =
 {
   f = i2.f `oo` i1.f;
-  is_inj = ez;
 }
 
 let inj_surj_comp (i1 : 'a @~> 'b) (i2 : 'b @~> 'c)

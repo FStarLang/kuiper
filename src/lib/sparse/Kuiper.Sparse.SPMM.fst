@@ -195,9 +195,6 @@ let bij_divup_factor (n : nat) (d : pos)
 {
   ff = (fun (i : natlt n) -> (|i / d, i % d|) <: divup_factor n d);
   gg = (fun (|j, k|) -> j * d + k);
-
-  ff_gg = (fun _ -> ());
-  gg_ff = (fun _ -> ());
 }
 
 ghost
@@ -872,8 +869,6 @@ let natlt_refined_bij (m n : nat)
 = {
   ff = (fun (a : natlt m {a < n}) -> let a' : natlt (min m n) = a in a');
   gg = (fun (b : natlt (min m n)) -> b);
-  ff_gg = (fun b -> ());
-  gg_ff = (fun a -> ())
 }
 
 let natlt_is_between (n : nat) : Lemma (natlt n == between 0 n)
@@ -1214,8 +1209,6 @@ let bij_between_natlt (m n : nat{m <= n})
 = {
   ff = between_to_natlt;
   gg = natlt_to_between;
-  ff_gg = (fun b -> ());
-  gg_ff = (fun a -> ())
 }
 
 instance enumerable_between (m n:nat{m <= n}) : enumerable (between m n) = {

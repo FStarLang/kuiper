@@ -20,8 +20,6 @@ let abs_bij (#rows #cols : nat) : (abs (desc rows cols) =~ (ait rows cols)) =
   {
     ff = (fun (i, (j, ())) -> (i, j));
     gg = (fun (i, j) -> (i, (j, ())));
-    ff_gg = ez;
-    gg_ff = ez;
   }
 
 let t (et : Type0) (#rows #cols : nat) (l : layout rows cols) : Type0 =

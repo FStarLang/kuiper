@@ -18,7 +18,9 @@ type bijection (a b : Type) = {
   ff : a -> GTot b;
   gg : b -> GTot a;
 
+  #[Tactics.Easy.easy_fill ()]
   ff_gg : x:_ -> squash (ff (gg x) == x);
+  #[Tactics.Easy.easy_fill ()]
   gg_ff : x:_ -> squash (gg (ff x) == x);
 }
 let ( =~ ) a b = bijection a b
@@ -30,13 +32,11 @@ let mk_bijection
   (ff_gg : (x:b -> squash (ff (gg x) == x)))
   (gg_ff : (x:a -> squash (gg (ff x) == x)))
   : (a =~ b) =
-  Mkbijection ff gg ff_gg gg_ff
+  Mkbijection ff gg #ff_gg #gg_ff
 
 let bij_unit_natlt1 : bijection unit (natlt 1) = {
   ff = (fun _ -> 0 <: natlt 1);
   gg = (fun _ -> ());
-  ff_gg = ez;
-  gg_ff = ez;
 }
 
 (* Move values across bijections. *)
@@ -56,8 +56,6 @@ let bij_self (a:Type) : (a =~ a) =
 {
   ff = id;
   gg = id;
-  ff_gg = ez;
-  gg_ff = ez;
 }
 
 unfold
@@ -65,36 +63,24 @@ let bij_sym (#a #b : Type) (d : a =~ b) : (b =~ a) =
 {
   ff = d.gg;
   gg = d.ff;
-  ff_gg = d.gg_ff;
-  gg_ff = d.ff_gg;
 }
 
 let bij_comp (#a #b #c : Type) (ab : a =~ b) (bc : b =~ c) : (a =~ c) =
 {
   ff = bc.ff `oo` ab.ff;
   gg = ab.gg `oo` bc.gg;
-  ff_gg = (fun x -> ab.ff_gg (bc.gg x); bc.ff_gg x);
-  gg_ff = (fun x -> bc.gg_ff (ab.ff x); ab.gg_ff x);
 }
 
 let bij_prod (#a #b #c #d : Type) (ab : a =~ b) (cd : c =~ d) : (a & c =~ b & d) =
 {
   ff = (fun (x, y) -> (ab.ff x, cd.ff y));
   gg = (fun (x, y) -> (ab.gg x, cd.gg y));
-  ff_gg = (fun x ->
-    let (x1, x2) = x in
-    ab.ff_gg x1; cd.ff_gg x2);
-  gg_ff = (fun x ->
-    let (x1, x2) = x in
-    ab.gg_ff x1; cd.gg_ff x2);
 }
 
 let bij_flip (#a #b : Type) : (a & b =~ b & a) =
 {
   ff = (fun (x, y) -> (y, x));
   gg = (fun (y, x) -> (x, y));
-  ff_gg = ez;
-  gg_ff = ez;
 }
 
 (* weird typing errors without hoisting. *)
@@ -114,8 +100,6 @@ let bij_nat_prod (#n1 #n2 : nat) : (natlt n1 & natlt n2 =~ natlt (n1 * n2)) =
 {
   ff = prod_ff n1 n2;
   gg = prod_gg n1 n2;
-  ff_gg = ez;
-  gg_ff = ez;
 }
 
 val __bij_cardinal (n1 n2 : nat) (bij : natlt n1 =~ natlt n2)
@@ -134,8 +118,6 @@ let fin_size_t_bij (n:nat{SZ.fits n}) : (natlt n =~ szlt n) =
   {
     ff = (fun (i : natlt n) -> SZ.uint_to_t i <: szlt n);
     gg = (fun (m : szlt n)  -> SZ.v m <: natlt n);
-    ff_gg = ez;
-    gg_ff = ez;
   }
 
 (* weird typing errors without hoisting. *)
@@ -157,8 +139,6 @@ let bij_sz_prod (n1:SZ.t) (n2:SZ.t{SZ.fits (SZ.v n1 * SZ.v n2)})
   = {
     ff = sz_prod_ff n1 n2;
     gg = sz_prod_gg n1 n2;
-    ff_gg = ez;
-    gg_ff = ez;
   }
 
 let bij_either (#a #b #c #d : Type)
@@ -170,8 +150,6 @@ let bij_either (#a #b #c #d : Type)
   gg = (fun x -> match x with
     | Inl x -> Inl (ab.gg x)
     | Inr y -> Inr (cd.gg y));
-  ff_gg = ez;
-  gg_ff = ez;
 }
 
 let bij_nat_sum (n1 n2 : nat)
@@ -185,8 +163,6 @@ let bij_nat_sum (n1 n2 : nat)
     if i < n1
     then Inl i
     else Inr (i - n1));
-  ff_gg = ez;
-  gg_ff = ez;
 }
 
 inline_for_extraction noextract
@@ -208,8 +184,6 @@ let bij_sz_sum (n1 : sz) (n2 : sz{SZ.fits (SZ.v n1 + SZ.v n2)})
 {
   ff = bij_sz_sum_ff n1 n2;
   gg = bij_sz_sum_gg n1 n2;
-  ff_gg = ez;
-  gg_ff = ez;
 }
 
 open Kuiper.Injection
@@ -217,13 +191,11 @@ open Kuiper.Injection
 let inj_bij (#a #b : Type) (bij : a =~ b) : (a @~> b) =
   {
     f = bij.ff;
-    is_inj = ez;
   }
 
 let inj_bij' (#a #b : Type) (bij : a =~ b) : (b @~> a) =
   {
     f = bij.gg;
-    is_inj = ez;
   }
 
 let bij_inj (#a #b : Type) (inj : a @~> b)
@@ -232,8 +204,6 @@ let bij_inj (#a #b : Type) (inj : a @~> b)
   {
     ff = ff;
     gg = FStar.Functions.inverse_of_bij ff;
-    ff_gg = ez;
-    gg_ff = ez;
   }
 
 let bij_inj' (#a #b : Type) (inj : a @~> b)
@@ -243,16 +213,12 @@ let bij_inj' (#a #b : Type) (inj : a @~> b)
 = {
   ff = inj.f;
   gg = FStar.Functions.inverse_of_bij inj.f;
-  ff_gg = ez;
-  gg_ff = ez;
 }
 
 let bij_erase (#a #b : Type) (bij : a =~ b) : (erased a =~ erased b) =
 {
   ff = (fun (x : erased a) -> bij.ff x <: erased b);
   gg = (fun (x : erased b) -> bij.gg x <: erased a);
-  ff_gg = ez;
-  gg_ff = ez;
 }
 
 (* These are useful *)
@@ -344,8 +310,6 @@ let bij_prod3 (#a1 #a2 #a3 #b1 #b2 #b3 : Type)
 {
   ff = (fun (x1, x2, x3) -> (ab1.ff x1, ab2.ff x2, ab3.ff x3));
   gg = (fun (y1, y2, y3) -> (ab1.gg y1, ab2.gg y2, ab3.gg y3));
-  ff_gg = (fun (y1, y2, y3) -> ab1.ff_gg y1; ab2.ff_gg y2; ab3.ff_gg y3);
-  gg_ff = (fun (x1, x2, x3) -> ab1.gg_ff x1; ab2.gg_ff x2; ab3.gg_ff x3);
 }
 
 let bij_prod4 (#a1 #a2 #a3 #a4 #b1 #b2 #b3 #b4 : Type)
@@ -354,8 +318,6 @@ let bij_prod4 (#a1 #a2 #a3 #a4 #b1 #b2 #b3 #b4 : Type)
 {
   ff = (fun (x1, x2, x3, x4) -> (ab1.ff x1, ab2.ff x2, ab3.ff x3, ab4.ff x4));
   gg = (fun (y1, y2, y3, y4) -> (ab1.gg y1, ab2.gg y2, ab3.gg y3, ab4.gg y4));
-  ff_gg = (fun (y1, y2, y3, y4) -> ab1.ff_gg y1; ab2.ff_gg y2; ab3.ff_gg y3; ab4.ff_gg y4);
-  gg_ff = (fun (x1, x2, x3, x4) -> ab1.gg_ff x1; ab2.gg_ff x2; ab3.gg_ff x3; ab4.gg_ff x4);
 }
 
 instance nb_prod3 (a1 a2 a3 b1 b2 b3 : Type)
@@ -382,8 +344,6 @@ let bij_push_tuple3 (#a #b #c : _) :
 {
   ff = (fun (x, (y, z)) -> (y, (x, z)));
   gg = (fun (y, (x, z)) -> (x, (y, z)));
-  ff_gg = ez;
-  gg_ff = ez;
 }
 
 inline_for_extraction noextract
@@ -400,8 +360,6 @@ let bij_tuple3_nest (#a #b #c : _) :
 {
   ff = (fun (x, y, z) -> (x, (y, z)));
   gg = (fun (x, (y, z)) -> (x, y, z));
-  ff_gg = ez;
-  gg_ff = ez;
 }
 
 let bij_tuple4_nest (#a #b #c #d : _) :
@@ -409,6 +367,4 @@ let bij_tuple4_nest (#a #b #c #d : _) :
 {
   ff = (fun (x, y, z, w) -> (x, (y, z, w)));
   gg = (fun (x, (y, z, w)) -> (x, y, z, w));
-  ff_gg = ez;
-  gg_ff = ez;
 }

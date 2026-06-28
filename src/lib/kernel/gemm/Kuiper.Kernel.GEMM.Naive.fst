@@ -21,8 +21,6 @@ let abs_bij (#rows #cols : nat)
   {
     ff = (fun (i, (j, ())) -> (i, j));
     gg = (fun (i, j) -> (i, (j, ())));
-    ff_gg = ez;
-    gg_ff = ez;
   }
 
 unfold

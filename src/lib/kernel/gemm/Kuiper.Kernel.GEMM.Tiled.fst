@@ -303,6 +303,7 @@ fn tile4_bwd
 }
 
 (* Move away somewhere, this is generic. *)
+#push-options "--z3rlimit 40"
 inline_for_extraction noextract
 fn matmul_tiled_dotprod_real
   (#et : Type0) {| scalar et, real_like et |}
@@ -380,6 +381,8 @@ fn matmul_tiled_dotprod_real
       (ematrix_subtile (chest_flat42 rB) tile tile (SZ.v !bk) (SZ.v bj))
       (SZ.v i) (SZ.v j);
 
+    assert (pure ((SZ.v !bk + 1) * SZ.v tile == SZ.v !bk * SZ.v tile + SZ.v tile));
+
     bk := !bk +^ 1sz;
 
     ()
@@ -387,6 +390,7 @@ fn matmul_tiled_dotprod_real
 
   !sum
 }
+#pop-options
 
 unfold
 let kpre

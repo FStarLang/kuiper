@@ -14,13 +14,11 @@ module IView = Kuiper.IView
 inline_for_extraction noextract
 let inj_nat_rev (len : nat) : (natlt len @~> natlt len) = {
   f = (fun (i : natlt len) -> len - 1 - i <: natlt len);
-  is_inj = ez;
 }
 
 inline_for_extraction noextract
 let inj_sz_rev (len : sz) : (szlt len @~> szlt len) = {
   f = (fun (i : szlt len) -> len -^ 1sz -^ i <: szlt len);
-  is_inj = ez;
 }
 
 inline_for_extraction noextract
@@ -55,8 +53,6 @@ inline_for_extraction noextract
 let bij__normal (et len : _) : (lseq et len =~ _normal et len) = {
   ff = N;
   gg = N?._0;
-  ff_gg = ez;
-  gg_ff = ez;
 }
 
 inline_for_extraction noextract
@@ -71,8 +67,6 @@ inline_for_extraction noextract
 let bij__reverse (et len : _) : (lseq et len =~ _reverse et len) = {
   ff = R;
   gg = R?._0;
-  ff_gg = ez;
-  gg_ff = ez;
 }
 
 inline_for_extraction noextract

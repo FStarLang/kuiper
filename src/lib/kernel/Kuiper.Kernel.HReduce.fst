@@ -766,8 +766,7 @@ fn kf
         #(k:nat{0 <= k /\ k < nth})
         #(Array1.ait nth)
         (fun k -> k)
-        (fun k -> k)
-        ez ez;
+        (fun k -> k);
     forevery_iso bij _;
     forevery_ext _ (fun (k : natlt nth) -> Cell sa k |-> (ss @! k));
     Array1.implode sa;
