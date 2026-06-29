@@ -23,6 +23,12 @@ let is_full (#r : nat) (#d : shape r) (l : tlayout d) : prop =
 let full_tlayout (#r : nat) (d : shape r) =
   l : tlayout d { is_full l }
 
+(* A bijection between the abstract index spaces of two descriptors implies
+   they have the same total size. *)
+val sizeof_bijection (#r1 #r2 : nat) (#d1 : shape r1) (#d2 : shape r2)
+  (f : Kuiper.Bijection.bijection (abs d1) (abs d2))
+  : Lemma (sizeof d1 == sizeof d2)
+
 (* The underlying array must be large enough to hold all the elements of the tensor. *)
 val full_layout_size_lt (#r : nat) (#d : shape r) (l : tlayout d)
   : Lemma (ensures  l.ulen >= sizeof d)

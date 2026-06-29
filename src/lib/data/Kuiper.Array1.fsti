@@ -8,6 +8,7 @@ open Kuiper.Injection
 open Kuiper.Shape
 open FStar.Tactics.Typeclasses { no_method }
 open Kuiper.Tensor.Layout.Alg { l1_forward }
+open Pulse.Lib.Trade
 module B = Kuiper.Array
 module SZ = Kuiper.SizeT
 module Tac = FStar.Tactics.V2
@@ -298,6 +299,37 @@ fn implode
       Cell a i |-> Frac f (Seq.index s i)
   ensures
     a |-> Frac f s
+
+ghost
+fn extract_cell
+  (#et : Type0) (#len : nat) (#l : layout len)
+  (a : t et l)
+  (i : natlt len)
+  (#f : perm)
+  (#s : lseq et len)
+  requires
+    a |-> Frac f s ** 
+    pure (SZ.fits (layout_size l))
+  ensures
+    Cell a i |-> Frac f (Seq.index s i) ** 
+    (forall* (si': et).   
+      Cell a i |-> Frac f si' @==> a |-> Frac f (Seq.upd s i si' <: (lseq et len)))
+
+// Just an elim_trade wrapper
+ghost
+fn restore_cell
+  (#et : Type0) (#len : nat) (#l : layout len)
+  (a : t et l)
+  (i : natlt len)
+  (#f : perm)
+  (#si': et)
+  (#s : lseq et len)
+  requires
+    Cell a i |-> Frac f si' **
+    (forall* (si': et).   
+      Cell a i |-> Frac f si' @==> a |-> Frac f (Seq.upd s i si' <: (lseq et len)))
+  ensures
+    a |-> Frac f (Seq.upd s i si' <: (lseq et len))
 
 inline_for_extraction noextract
 fn read_cell

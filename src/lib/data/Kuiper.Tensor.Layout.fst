@@ -25,6 +25,12 @@ let rec abs_d_cardinal (#r : nat) (d : shape r)
     let _ = abs_d_cardinal t in
     ()
 
+let sizeof_bijection (#r1 #r2 : nat) (#d1 : shape r1) (#d2 : shape r2)
+  (f : Kuiper.Bijection.bijection (abs d1) (abs d2))
+  : Lemma (sizeof d1 == sizeof d2)
+  = bijection_implies_equal_cardinal (abs d1) (abs d2)
+      #(enumerable_abs' d1) #(enumerable_abs' d2) f
+
 (* The underlying array must be large enough to hold all the elements of the tensor. *)
 let full_layout_size_lt (#r : nat) (#d : shape r) (l : tlayout d)
   : Lemma (ensures  l.ulen >= sizeof d)
