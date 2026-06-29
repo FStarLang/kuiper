@@ -6,6 +6,42 @@ open Kuiper.Tensor
 open Kuiper.Bijection
 open Kuiper.Injection
 
+let layout_bij
+  (#r1 : nat) (#s1 : shape r1)
+  (#r2 : nat) (#s2 : shape r2)
+  (b : abs s1 =~ abs s2)
+  (l : tlayout s1)
+  : tlayout s2 = {
+    ulen = l.ulen;
+    imap = {
+      f = (fun x -> l.imap.f (b.gg x))
+    };
+  }
+
+let chest_bij
+  (#et : Type0)
+  (#r1 : nat) (#s1 : shape r1)
+  (#r2 : nat) (#s2 : shape r2)
+  (b : abs s1 =~ abs s2)
+  (c : chest s1 et)
+  : chest s2 et =
+    mk s2 (fun i -> acc c (b.gg i))
+
+ghost
+fn tensor_abij
+  (#et : Type0)
+  (#r1 : nat) (#s1 : shape r1)
+  (#r2 : nat) (#s2 : shape r2)
+  (b : abs s1 =~ abs s2)
+  (#l : tlayout s1)
+  (a : tensor et l)
+  (#s : chest s1 et)
+  (#f : perm)
+  requires
+    a |-> Frac f s
+  ensures
+    from_array (layout_bij b l) (core a) |-> Frac f (chest_bij b s)
+
 let idx1_to_idx2 (#len : nat)
   (i : abs (len @| INil))
   : abs (1 @| len @| INil) =
@@ -24,14 +60,9 @@ let bij12 (len : nat)
     gg = idx2_to_idx1;
   }
 
-let l1_to_l2 (#len : nat)
-  (l : layout1 len)
-  : layout2 1 len = {
-    ulen = l.ulen;
-    imap = {
-      f = (fun x -> l.imap.f (idx2_to_idx1 x));
-    };
-  }
+let l1_to_l2 (#len : nat) (l : layout1 len)
+  : layout2 1 len
+  = layout_bij (bij12 len) l
 
 let c1_to_c2
   (#et : Type0) (#len : nat)
@@ -52,12 +83,10 @@ fn t1_to_t2
   ensures
     from_array (l1_to_l2 l) (core a) |-> Frac f (c1_to_c2 s)
 
-let l2_to_l1 (#len : nat) (l : layout2 1 len) : layout1 len = {
-  ulen = l.ulen;
-  imap = {
-    f = (fun x -> l.imap.f (idx1_to_idx2 x));
-  };
-}
+let l2_to_l1
+  (#len : nat) (l : layout2 1 len)
+  : layout1 len
+  = layout_bij (bij_sym (bij12 len)) l
 
 let c2_to_c1
   (#et : Type0) (#len : nat)

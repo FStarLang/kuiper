@@ -6,6 +6,53 @@ open Kuiper.Tensor
 open Kuiper.Bijection
 
 ghost
+fn tensor_abij
+  (#et : Type0)
+  (#r1 : nat) (#s1 : shape r1)
+  (#r2 : nat) (#s2 : shape r2)
+  (b : abs s1 =~ abs s2)
+  (#l : tlayout s1)
+  (a : tensor et l)
+  (#s : chest s1 et)
+  (#f : perm)
+  requires
+    a |-> Frac f s
+  ensures
+    from_array (layout_bij b l) (core a) |-> Frac f (chest_bij b s)
+{
+  let l' = layout_bij b l;
+  let a' = from_array l' (core a);
+    assert rewrites_to a' (from_array (layout_bij b l) (core a));
+
+  tensor_ilower a;
+  forevery_iso b _;
+  forevery_map
+    #(abs s2)
+    (fun i ->
+      pts_to_cell (core a) #f
+        (l.imap.f (b.gg i))
+        (acc s (b.gg i))
+    )
+    (fun i ->
+      pts_to_cell (core a') #f
+        (l'.imap.f i)
+        (acc (chest_bij b s) i)
+    )
+    fn i {
+      rewrite
+        pts_to_cell (core a) #f
+          (l.imap.f (b.gg i))
+          (acc s (b.gg i))
+      as
+        pts_to_cell (core a') #f
+          (l'.imap.f i)
+          (acc (chest_bij b s) i);
+      ()
+    };
+  tensor_iraise a';
+}
+
+ghost
 fn t1_to_t2
   (#et : Type0)
   (len : nat)
@@ -18,36 +65,8 @@ fn t1_to_t2
   ensures
     from_array (l1_to_l2 l) (core a) |-> Frac f (c1_to_c2 s)
 {
-  let l' = l1_to_l2 l;
-  let a' = from_array l' (core a);
-    assert rewrites_to a' (from_array (l1_to_l2 l) (core a));
-
-  tensor_ilower a;
-  forevery_iso (bij12 len) _;
-  forevery_map
-    #(abs (1 @| len @| INil))
-    (fun i ->
-      pts_to_cell (core a) #f
-        (l.imap.f ((bij12 len).gg i))
-        (acc s ((bij12 len).gg i))
-    )
-    (fun i ->
-      pts_to_cell (core a') #f
-        (l'.imap.f i)
-        (acc (c1_to_c2 s) i)
-    )
-    fn i {
-      rewrite
-        pts_to_cell (core a) #f
-          (l.imap.f ((bij12 len).gg i))
-          (acc s ((bij12 len).gg i))
-      as
-        pts_to_cell (core a') #f
-          (l'.imap.f i)
-          (acc (c1_to_c2 s) i);
-      ()
-    };
-  tensor_iraise a';
+  tensor_abij (bij12 len) a;
+  rewrite each chest_bij (bij12 len) s as c1_to_c2 s;
 }
 
 ghost
@@ -63,34 +82,6 @@ fn t2_to_t1
   ensures
     from_array (l2_to_l1 l) (core a) |-> Frac f (c2_to_c1 s)
 {
-  let l' = l2_to_l1 l;
-  let a' = from_array l' (core a);
-    assert rewrites_to a' (from_array (l2_to_l1 l) (core a));
-
-  tensor_ilower a;
-  forevery_iso (bij_sym (bij12 len)) _;
-  forevery_map
-    #(abs (len @| INil))
-    (fun i ->
-      pts_to_cell (core a) #f
-        (l.imap.f ((bij_sym (bij12 len)).gg i))
-        (acc s ((bij_sym (bij12 len)).gg i))
-    )
-    (fun i ->
-      pts_to_cell (core a') #f
-        (l'.imap.f i)
-        (acc (c2_to_c1 s) i)
-    )
-    fn i {
-      rewrite
-        pts_to_cell (core a) #f
-          (l.imap.f ((bij_sym (bij12 len)).gg i))
-          (acc s ((bij_sym (bij12 len)).gg i))
-      as
-        pts_to_cell (core a') #f
-          (l'.imap.f i)
-          (acc (c2_to_c1 s) i);
-      ()
-    };
-  tensor_iraise a';
+  tensor_abij (bij_sym (bij12 len)) a;
+  rewrite each chest_bij (bij_sym (bij12 len)) s as c2_to_c1 s;
 }
