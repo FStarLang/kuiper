@@ -626,6 +626,11 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
   | "Kuiper.Float16.Base.largest",  [], [] -> EConstant (Float16, "HLF_MAX")
   | "Kuiper.Float16.Base.infinity", [], [] -> EConstant (Float16, "HLF_INFINITY")
   | "Kuiper.Float16.Base.of_int", [], [i] -> EApp (EQualified ([], "__ll2half_rn"), [cb i])
+  | "Kuiper.Float16.Base.of_literal", [], [s] ->
+    begin match s.expr with
+    | MLE_Const (MLC_String v) -> EConstant (Float16, v)
+    | _ -> failwith "Float16.of_literal: expected a string literal"
+    end
 
   | "Kuiper.BFloat16.Base.zero", [], [] -> EConstant (BFloat16, "__float2bfloat16(0.0f)")
   | "Kuiper.BFloat16.Base.one",  [], [] -> EConstant (BFloat16, "__float2bfloat16(1.0f)")
@@ -661,8 +666,12 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
   | "Kuiper.Float32.Base.valid",  [], [] -> EQualified ([], "kpr_fisvalid")
   | "Kuiper.Float32.Base.largest",  [], [] -> EConstant (Float32, "FLT_MAX")
   | "Kuiper.Float32.Base.infinity", [], [] -> EConstant (Float32, "INFINITY")
+  | "Kuiper.Float32.Base.of_literal", [], [s] ->
+    begin match s.expr with
+    | MLE_Const (MLC_String v) -> EConstant (Float32, v)
+    | _ -> failwith "Float32.of_literal: expected a string literal"
+    end
   | "Kuiper.Float32.Base.of_int", [], [i] -> ECast (cb i, TInt Float32)
-
   | "Kuiper.Float64.Base.zero", [], [] -> EConstant (Float64, "0.0")
   | "Kuiper.Float64.Base.one",  [], [] -> EConstant (Float64, "1.0")
   | "Kuiper.Float64.Base.add",  [], [] -> EOp (Add, Float64)
@@ -677,6 +686,11 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
   | "Kuiper.Float64.Base.largest",  [], [] -> EConstant (Float64, "DBL_MAX")
   | "Kuiper.Float64.Base.infinity", [], [] -> EConstant (Float64, "INFINITY")
   | "Kuiper.Float64.Base.of_int", [], [i] -> ECast (cb i, TInt Float64)
+  | "Kuiper.Float64.Base.of_literal", [], [s] ->
+    begin match s.expr with
+    | MLE_Const (MLC_String v) -> EConstant (Float64, v)
+    | _ -> failwith "Float64.of_literal: expected a string literal"
+    end
 
   (* Transcendental / math primitives *)
 
