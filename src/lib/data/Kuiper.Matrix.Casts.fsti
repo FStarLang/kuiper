@@ -18,6 +18,30 @@ let layout_bij
     };
   }
 
+let bij_up
+  (#r1 : nat) (#s1 : shape r1)
+  (#r2 : nat) (#s2 : shape r2)
+  (#_ : all_fit s1) (#_ : all_fit s2)
+  (cb : conc s1 ==~ conc s2)
+  : (abs s1 =~ abs s2) = {
+    ff = (fun x -> up (cb.cff (down x)));
+    gg = (fun x -> up (cb.cgg (down x)));
+  }
+
+// FIXME: cbij should be a typeclass
+instance clayout_bij
+  (#r1 : nat) (#s1 : shape r1)
+  (#r2 : nat) (#s2 : shape r2)
+  (#_ : all_fit s1) (#_ : all_fit s2)
+  (cb : conc s1 ==~ conc s2)
+  (l : tlayout s1) {| cl : ctlayout l |}
+  : ctlayout (layout_bij (bij_up cb) l)
+  = {
+    ulen_fits = ();
+    all_fit = ();
+    cimap = (fun x -> cl.cimap (cb.cgg x));
+  }
+
 let chest_bij
   (#et : Type0)
   (#r1 : nat) (#s1 : shape r1)
@@ -40,7 +64,7 @@ fn tensor_abij
   requires
     a |-> Frac f s
   ensures
-    from_array (layout_bij b l) (core a) |-> Frac f (chest_bij b s)
+    relay a (layout_bij b l) |-> Frac f (chest_bij b s)
 
 let idx1_to_idx2 (#len : nat)
   (i : abs (len @| INil))
@@ -73,7 +97,7 @@ let c1_to_c2
 ghost
 fn t1_to_t2
   (#et : Type0)
-  (len : nat)
+  (#len : nat)
   (#l : layout1 len)
   (a : array1 et l)
   (#s : chest1 et len)
@@ -81,7 +105,7 @@ fn t1_to_t2
   requires
     a |-> Frac f s
   ensures
-    from_array (l1_to_l2 l) (core a) |-> Frac f (c1_to_c2 s)
+    relay a (l1_to_l2 l) |-> Frac f (c1_to_c2 s)
 
 let l2_to_l1
   (#len : nat) (l : layout2 1 len)
@@ -97,7 +121,7 @@ let c2_to_c1
 ghost
 fn t2_to_t1
   (#et : Type0)
-  (len : nat)
+  (#len : nat)
   (#l : layout2 1 len)
   (a : array2 et l)
   (#s : chest2 et 1 len)
@@ -105,4 +129,4 @@ fn t2_to_t1
   requires
     a |-> Frac f s
   ensures
-    from_array (l2_to_l1 l) (core a) |-> Frac f (c2_to_c1 s)
+    relay a (l2_to_l1 l) |-> Frac f (c2_to_c1 s)

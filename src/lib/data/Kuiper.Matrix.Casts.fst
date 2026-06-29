@@ -18,7 +18,7 @@ fn tensor_abij
   requires
     a |-> Frac f s
   ensures
-    from_array (layout_bij b l) (core a) |-> Frac f (chest_bij b s)
+    relay a (layout_bij b l) |-> Frac f (chest_bij b s)
 {
   let l' = layout_bij b l;
   let a' = from_array l' (core a);
@@ -55,7 +55,7 @@ fn tensor_abij
 ghost
 fn t1_to_t2
   (#et : Type0)
-  (len : nat)
+  (#len : nat)
   (#l : layout1 len)
   (a : array1 et l)
   (#s : chest1 et len)
@@ -63,7 +63,7 @@ fn t1_to_t2
   requires
     a |-> Frac f s
   ensures
-    from_array (l1_to_l2 l) (core a) |-> Frac f (c1_to_c2 s)
+    relay a (l1_to_l2 l) |-> Frac f (c1_to_c2 s)
 {
   tensor_abij (bij12 len) a;
   rewrite each chest_bij (bij12 len) s as c1_to_c2 s;
@@ -72,7 +72,7 @@ fn t1_to_t2
 ghost
 fn t2_to_t1
   (#et : Type0)
-  (len : nat)
+  (#len : nat)
   (#l : layout2 1 len)
   (a : array2 et l)
   (#s : chest2 et 1 len)
@@ -80,7 +80,7 @@ fn t2_to_t1
   requires
     a |-> Frac f s
   ensures
-    from_array (l2_to_l1 l) (core a) |-> Frac f (c2_to_c1 s)
+    relay a (l2_to_l1 l) |-> Frac f (c2_to_c1 s)
 {
   tensor_abij (bij_sym (bij12 len)) a;
   rewrite each chest_bij (bij_sym (bij12 len)) s as c2_to_c1 s;

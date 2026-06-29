@@ -71,6 +71,15 @@ val core
   (a : tensor et l)
   : larray et (tlayout_ulen l)
 
+inline_for_extraction noextract
+let relay
+  (#et : Type0)
+  (#r1 : erased nat) (#d1 : shape r1) (#l1 : tlayout d1)
+  (a : tensor et l1)
+  (#r2 : erased nat) (#d2 : shape r2) (l2 : tlayout d2{l2.ulen == l1.ulen})
+  : tensor et l2
+  = from_array l2 (core a)
+
 val lem_core_from_array
   (#et : Type0) (#r : nat) (#d : shape r)
   (#l : tlayout d)
