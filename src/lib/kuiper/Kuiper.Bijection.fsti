@@ -27,8 +27,8 @@ let ( =~ ) a b = bijection a b
 
 let mk_bijection
   (#a #b : _)
-  (ff : a -> b)
-  (gg : b -> a)
+  (ff : a -> GTot b)
+  (gg : b -> GTot a)
   (ff_gg : (x:b -> squash (ff (gg x) == x)))
   (gg_ff : (x:a -> squash (gg (ff x) == x)))
   : (a =~ b) =
@@ -246,6 +246,15 @@ noeq type cbij (a b: Type) = {
 
 inline_for_extraction
 let (==~) = cbij
+
+let mk_cbij
+  (#a #b : _)
+  (ff : a -> Tot b)
+  (gg : b -> Tot a)
+  (ff_gg : (x:b -> squash (ff (gg x) == x)))
+  (gg_ff : (x:a -> squash (gg (ff x) == x)))
+  : (a ==~ b) =
+  Mkcbij (Mkbijection ff gg #ff_gg #gg_ff) ff gg
 
 inline_for_extraction noextract
 let cbij_self (a:Type) : (a ==~ a) = {
