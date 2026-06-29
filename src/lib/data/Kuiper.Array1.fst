@@ -14,8 +14,6 @@ let abs_bij (#len : nat) : (abs (desc len) =~ ait len) =
   {
     ff = (fun (i, ()) -> i);
     gg = (fun i -> (i, ()));
-    ff_gg = ez;
-    gg_ff = ez;
   }
 
 let tr_val (#et : Type) (#len : nat) (s : lseq et len) : chest (desc len) et =

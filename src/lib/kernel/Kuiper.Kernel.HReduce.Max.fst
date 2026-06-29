@@ -41,7 +41,7 @@ let array1_pts_to_slice
   = forall+ (k : nat{i <= k /\ k < j}).
       Cell r (k <: natlt sz) |-> (s @! (k - i))
 
-#push-options "--z3rlimit 80"
+#push-options "--z3rlimit 40"
 ghost
 fn array1_slice_concat
   (#et : Type0)
@@ -286,15 +286,18 @@ let vr_partial_max (pre_map : real -> real) (vr : seq real) (nth : pos { nth <= 
     stride_nonempty w nth tid;
     seq_max (seq_stride w nth tid))
 
-(* The max over the per-bucket maxima equals the max over the whole sequence. *)
-#push-options "--z3rlimit 40"
-let strided_max_is_max (pre_map : real -> real) (vr : seq real) (nth : pos { nth <= Seq.length vr })
-  : Lemma (ensures seq_max (vr_partial_max pre_map vr nth) == seq_max (seq_map pre_map vr))
+(* The max over the per-bucket maxima equals the max over the whole sequence.
+   Proven by antisymmetry, with each direction in its own lemma: the monolithic
+   proof is brittle (it only went through via F*'s fuel escalation, which is
+   slow), whereas the two halves are small and stable. *)
+
+(* Direction 1: every bucket max is below the global max, so their max is too. *)
+#push-options "--fuel 2 --ifuel 1 --z3rlimit 30"
+let strided_max_le (pre_map : real -> real) (vr : seq real) (nth : pos { nth <= Seq.length vr })
+  : Lemma (ensures seq_max (vr_partial_max pre_map vr nth) <=. seq_max (seq_map pre_map vr))
   = let w = seq_map pre_map vr in
     let lenw = Seq.length w in
     let vp = vr_partial_max pre_map vr nth in
-    // vp @! tid == seq_max (seq_stride w nth tid)   (init_ghost_index_, SMTPat)
-    // Direction 1: seq_max vp <=. seq_max w
     let aux1 (tid : nat { tid < nth }) : Lemma ((vp @! tid) <=. seq_max w)
       = stride_nonempty w nth tid;
         let bucket = seq_stride w nth tid in
@@ -307,8 +310,17 @@ let strided_max_is_max (pre_map : real -> real) (vr : seq real) (nth : pos { nth
         seq_max_le bucket (seq_max w)
     in
     Classical.forall_intro aux1;
-    seq_max_le vp (seq_max w);
-    // Direction 2: seq_max w <=. seq_max vp
+    seq_max_le vp (seq_max w)
+#pop-options
+
+(* Direction 2: every element lies in some bucket, so it is below that bucket's
+   max, hence below the max of the partial maxima. *)
+#push-options "--fuel 2 --ifuel 1 --z3rlimit 30"
+let strided_max_ge (pre_map : real -> real) (vr : seq real) (nth : pos { nth <= Seq.length vr })
+  : Lemma (ensures seq_max (seq_map pre_map vr) <=. seq_max (vr_partial_max pre_map vr nth))
+  = let w = seq_map pre_map vr in
+    let lenw = Seq.length w in
+    let vp = vr_partial_max pre_map vr nth in
     let aux2 (g : nat { g < lenw }) : Lemma ((w @! g) <=. seq_max vp)
       = let off : nat = g % nth in
         let i : nat = g / nth in
@@ -332,6 +344,11 @@ let strided_max_is_max (pre_map : real -> real) (vr : seq real) (nth : pos { nth
     Classical.forall_intro aux2;
     seq_max_le w (seq_max vp)
 #pop-options
+
+let strided_max_is_max (pre_map : real -> real) (vr : seq real) (nth : pos { nth <= Seq.length vr })
+  : Lemma (ensures seq_max (vr_partial_max pre_map vr nth) == seq_max (seq_map pre_map vr))
+  = strided_max_le pre_map vr nth;
+    strided_max_ge pre_map vr nth
 
 // Barrier
 
@@ -589,7 +606,47 @@ let lemma_first_past
           (ensures  i == off + ((len - off - 1 + stride) / stride) * stride)
   = ()
 
-#push-options "--z3rlimit 100"
+(* ── Pure arithmetic of the strided fold, factored out ─────────────────────
+   The strided fold ([max_stride_map] here, [max_stride_map_2d] in
+   [Kuiper.Kernel.HReduce.Block.Max]) carries a quantified approximation
+   hypothesis in its ambient context. Proving the (nonlinear) index arithmetic
+   of the loop *in that context* is pathologically slow because the solver keeps
+   instantiating that irrelevant quantifier. We discharge the arithmetic here,
+   in a clean context, and feed the results back as ground facts. (Block.Max
+   reuses both lemmas through its [friend] of this module.) *)
+
+(* One loop step: from [idx == gidx*stride + off] (and [idx] still in range),
+   the next index is [(gidx+1)*stride + off], and the bucket length bound is
+   maintained. *)
+#push-options "--z3rlimit 20"
+let max_stride_step_arith (#a:Type) (s : seq a) (stride : pos) (off : natlt stride)
+  (gidx idx : nat)
+  : Lemma (requires idx == gidx * stride + off /\ idx < Seq.length s)
+          (ensures  off + gidx * stride == idx /\
+                    idx + stride == (gidx + 1) * stride + off /\
+                    gidx + 1 <= seq_stride_length s stride off)
+  = Math.Lemmas.distributivity_add_left gidx 1 stride;
+    Math.Lemmas.cancel_mul_div (gidx + 1) stride;
+    Math.Lemmas.lemma_div_le ((gidx + 1) * stride) (Seq.length s - off + stride - 1) stride
+#pop-options
+
+(* Loop exit: once [idx] has just passed [Seq.length s] in [stride]-sized steps,
+   the step count [gidx] equals the number of strided buckets. *)
+#push-options "--z3rlimit 20"
+let max_stride_post_arith (#a:Type) (s : seq a) (stride : pos) (off : natlt stride)
+  (gidx idx : nat)
+  : Lemma (requires idx == gidx * stride + off /\
+                    idx >= Seq.length s /\ idx < Seq.length s + stride)
+          (ensures  gidx == seq_stride_length s stride off)
+  = let len = Seq.length s in
+    Math.Lemmas.lemma_mod_plus off gidx stride;
+    Math.Lemmas.small_mod off stride;
+    lemma_first_past len off stride idx;
+    Math.Lemmas.cancel_mul_div ((len - off - 1 + stride) / stride) stride;
+    Math.Lemmas.cancel_mul_div gidx stride
+#pop-options
+
+#push-options "--fuel 2 --ifuel 1 --z3rlimit 20"
 inline_for_extraction noextract
 fn max_stride_map
   (#et:Type0) {| floating et, real_like et, floating_real_like et |}
@@ -643,7 +700,7 @@ fn max_stride_map
       emp
     decreases (lena + stride - !idx)
   {
-    assert pure (gread gidx < seq_stride_length vr stride off);
+    assert pure (gread gidx < seq_stride_length (lseq_map pre_map_r vr) stride off);
 
     (* Read from input array (fractional permission) *)
     let v = Array1.read a !idx;
@@ -654,19 +711,16 @@ fn max_stride_map
 
     assert pure (!acc %~ seq_max (seq_take (gread gidx) (seq_stride (lseq_map pre_map_r vr) stride off)));
     assert pure (v %~ (vr @! !idx));
-    assert pure (seq_stride (lseq_map pre_map_r vr) stride off @! gread gidx == (lseq_map pre_map_r vr) @! (off + gread gidx * stride));
-    assert pure (off + gread gidx * stride == SZ.v !idx);
-
-    (* seq_take (k+1) maxes in the bucket's k-th element; combine with fmax. *)
-    (**)seq_max_take_step (seq_stride (lseq_map pre_map_r vr) stride off) (gread gidx);
 
     let vgidx = gread gidx;
-    assert (pure (SZ.v !idx                  == vgidx    * stride + off));
-    Math.Lemmas.distributivity_add_left vgidx 1 stride;
-    assert (pure ((vgidx + 1) * stride + off == ((vgidx * stride) + (1 * stride)) + off)); // Sad.
-    assert (pure (SZ.v !idx + stride == (vgidx + 1) * stride + off));
+    (* All loop-step index arithmetic, discharged in a clean context so the
+       ambient approximation quantifier doesn't blow up the solver. *)
+    max_stride_step_arith (lseq_map pre_map_r vr) stride off vgidx (SZ.v !idx);
 
-    Math.Lemmas.add_div_mod_1 (SZ.v !idx) stride;
+    assert pure (seq_stride (lseq_map pre_map_r vr) stride off @! vgidx == (lseq_map pre_map_r vr) @! (off + vgidx * stride));
+
+    (* seq_take (k+1) maxes in the bucket's k-th element; combine with fmax. *)
+    (**)seq_max_take_step (seq_stride (lseq_map pre_map_r vr) stride off) vgidx;
 
     acc := !acc `fmax` v';
     idx := !idx +^ stride;
@@ -677,23 +731,8 @@ fn max_stride_map
   };
 
   assert pure (SZ.v !idx == gread gidx * stride + off);
-  Math.Lemmas.lemma_mod_plus off (gread gidx) stride;
-  Math.Lemmas.small_mod off stride;
-  assert pure ((off + stride * gread gidx) % stride == off);
-  assert pure ((gread gidx * stride + off) % stride == off);
-  assert pure (!idx % stride == off);
-  lemma_first_past lena off stride (SZ.v !idx);
-  assert (pure (SZ.v !idx == off + ((lena - off - 1 + stride) / stride) * stride));
-
-  assert pure (gread gidx <= seq_stride_length (lseq_map pre_map_r vr) stride off);
-  Math.Lemmas.cancel_mul_div (gread gidx) stride;
-  (* A calc proof would be much nicer. *)
-  assert pure (gread gidx == (!idx - off) / stride);
-  assert pure (gread gidx == ((off + ((lena - off - 1 + stride) / stride) * stride) - off) / stride);
-  assert pure (gread gidx == (((lena - off - 1 + stride) / stride) * stride) / stride);
-  assert pure (gread gidx == (lena - off - 1 + stride) / stride);
-  assert pure (lena - off - 1 + stride == lena - off + stride - 1);
-  assert pure (gread gidx == (lena - off + stride - 1) / stride);
+  (* Loop-exit index arithmetic, again discharged off to the side. *)
+  max_stride_post_arith (lseq_map pre_map_r vr) stride off (gread gidx) (SZ.v !idx);
   assert pure (gread gidx == seq_stride_length (lseq_map pre_map_r vr) stride off);
   assert pure (seq_take (seq_stride_length (lseq_map pre_map_r vr) stride off) (seq_stride (lseq_map pre_map_r vr) stride off) == seq_stride (lseq_map pre_map_r vr) stride off);
   assert pure (!acc %~ seq_max (seq_stride (lseq_map pre_map_r vr) stride off));
@@ -810,8 +849,7 @@ fn kf
         #(k:nat{0 <= k /\ k < nth})
         #(Array1.ait nth)
         (fun k -> k)
-        (fun k -> k)
-        ez ez;
+        (fun k -> k);
     forevery_iso bij _;
     forevery_ext _ (fun (k : natlt nth) -> Cell sa k |-> (ss @! k));
     Array1.implode sa;

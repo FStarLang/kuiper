@@ -14,12 +14,12 @@ open Kuiper.EMatrix { ematrix, to_real_matrix }
 inline_for_extraction noextract
 fn copy_from_vec
   (#et:Type0) {| sized et |}
-  (#rows #cols : sz)
-  (#l : layout2 rows cols { is_full l })
+  (#m #n : sz)
+  (#l : layout2 m n { is_full l })
   (gm : array2 et l)
   (a : vec et)
-  (#s : erased (seq et){Seq.length s == rows * cols})
-  (#em : ematrix et rows cols)
+  (#s : erased (seq et){Seq.length s == m * n})
+  (#em : ematrix et m n)
   preserves
     cpu ** a |-> s
   requires
@@ -32,7 +32,7 @@ fn copy_from_vec
     #(core gm |-> to_seq l em)
     fn () { tensor_concr gm; };
   Pulse.Lib.Vec.pts_to_len a;
-  gpu_memcpy_host_to_device (core gm) a (rows *^ cols);
+  gpu_memcpy_host_to_device (core gm) a (m *^ n);
   map_loc gpu_loc
     #(core gm |-> s)
     #(gm |-> from_seq l s)
@@ -46,12 +46,12 @@ fn copy_from_vec
 inline_for_extraction noextract
 fn copy_to_vec
   (#et:Type0) {| sized et |}
-  (#rows #cols : sz)
-  (#l : layout2 rows cols { is_full l })
+  (#m #n : sz)
+  (#l : layout2 m n { is_full l })
   (a : vec et)
   (gm : array2 et l)
-  (#s : erased (seq et){Seq.length s == rows * cols})
-  (#em : ematrix et rows cols)
+  (#s : erased (seq et){Seq.length s == m * n})
+  (#em : ematrix et m n)
   preserves
     cpu ** on gpu_loc (gm |-> em)
   requires
@@ -68,7 +68,7 @@ fn copy_to_vec
     #(gm |-> em)
     #(core gm |-> Frac 1.0R (to_seq l em))
     fn () { tensor_concr gm; };
-  gpu_memcpy_device_to_host a (core gm) (rows *^ cols);
+  gpu_memcpy_device_to_host a (core gm) (m *^ n);
   map_loc gpu_loc
     #(core gm |-> Frac 1.0R (to_seq l em))
     #(gm |-> em)
@@ -123,7 +123,7 @@ fn matmul_cpu
   c
 }
 
-(* This will dinamically abort if the dimensions (rows/shared/cols) are not
+(* This will dinamically abort if the dimensions (m/k/n) are not
    multiples of tile. *)
 inline_for_extraction noextract
 fn mmcomb_gpu_tiled

@@ -8,13 +8,6 @@ open Kuiper
 open Kuiper.Tensor
 open Kuiper.Atomics
 
-let chest1_to_seq
-  (#et : Type)
-  (#n : nat)
-  (c : chest1 et n)
-  : GTot (lseq et n)
-  = Seq.init_ghost n (fun i -> Kuiper.Chest.acc c (i, ()))
-
 noeq
 type is_ac_w (#t:Type) (f: t -> t -> t) = {
   comm : (x:t -> y:t -> Lemma (f x y == f y x));

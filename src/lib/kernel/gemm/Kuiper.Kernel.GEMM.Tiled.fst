@@ -4,7 +4,6 @@ module Kuiper.Kernel.GEMM.Tiled
 #lang-pulse
 
 open Kuiper
-open Kuiper.Matrix.Reprs.Type
 open Kuiper.Tensor
 open Kuiper.Tensor.Layout
 open Kuiper.EMatrix
@@ -304,6 +303,7 @@ fn tile4_bwd
 }
 
 (* Move away somewhere, this is generic. *)
+#push-options "--z3rlimit 40"
 inline_for_extraction noextract
 fn matmul_tiled_dotprod_real
   (#et : Type0) {| scalar et, real_like et |}
@@ -348,7 +348,7 @@ fn matmul_tiled_dotprod_real
     let bbk   = tensor_extract_slice_ro' gB  0 (SZ.v !bk);
     let bbkbj = tensor_extract_slice_ro' bbk 0 (SZ.v bj);
 
-    let s' = Kuiper.DotProd.matmul_dotprod_t #_ #_ #_ #_ #tile abibk bbkbj i j;
+    let s' = Kuiper.DotProd.matmul_dotprod #_ #_ #_ #_ #tile abibk bbkbj i j;
 
     ambig_trade_elim ();
     ambig_trade_elim ();
@@ -381,6 +381,8 @@ fn matmul_tiled_dotprod_real
       (ematrix_subtile (chest_flat42 rB) tile tile (SZ.v !bk) (SZ.v bj))
       (SZ.v i) (SZ.v j);
 
+    assert (pure ((SZ.v !bk + 1) * SZ.v tile == SZ.v !bk * SZ.v tile + SZ.v tile));
+
     bk := !bk +^ 1sz;
 
     ()
@@ -388,6 +390,7 @@ fn matmul_tiled_dotprod_real
 
   !sum
 }
+#pop-options
 
 unfold
 let kpre
@@ -645,7 +648,7 @@ fn setup
   ();
 }
 
-#push-options "--z3rlimit 60 --ifuel 5"
+#push-options "--z3rlimit 80 --ifuel 5"
 ghost
 fn teardown
   (#et : Type0) {| scalar et, real_like et |}

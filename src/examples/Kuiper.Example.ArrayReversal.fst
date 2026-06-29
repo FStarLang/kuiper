@@ -18,8 +18,6 @@ let partition (n: nat { n % 2 == 0 }) : (natlt n =~ (natlt (n / 2) & bool)) =
       <: (natlt n -> (natlt (n / 2) & bool));
     gg = (fun x -> if snd x then fst x else n - fst x - 1)
       <: ((natlt (n / 2) & bool) -> natlt n);
-    ff_gg = ez;
-    gg_ff = ez;
   }
 
 ghost

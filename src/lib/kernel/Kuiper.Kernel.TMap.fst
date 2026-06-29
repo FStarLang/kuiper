@@ -1,6 +1,6 @@
 module Kuiper.Kernel.TMap
 
-(* Simple kernel: pointwise map of a function on an array. *)
+(* Simple kernel: pointwise map of a function on a tensor. *)
 
 #lang-pulse
 
@@ -11,6 +11,7 @@ open Kuiper.Shape
 open Kuiper.Tensor
 open Kuiper.Tensor.Layout.Alg { l1_forward }
 open Kuiper.Shareable
+open FStar.Tactics.Typeclasses
 
 ghost
 fn setup
@@ -113,9 +114,9 @@ fn kf
       pure (vf (unflatten d i) (acc s (unflatten d i)) v))
 {
   rewrite
-    Cell a (unflatten d i) |-> (acc s (unflatten d i))
+    Cell a (unflatten d i) |-> acc s (unflatten d i)
   as
-    Cell a (up (cunflatten cd i)) |-> (acc s (unflatten d i));
+    Cell a (up (cunflatten cd i)) |-> acc s (unflatten d i);
   let x = tensor_read_cell a (cunflatten cd i);
   tensor_write_cell a (cunflatten cd i) (f (cunflatten cd i) x);
   with v. assert tensor_pts_to_cell a (up (cunflatten cd i)) v;
@@ -192,8 +193,7 @@ fn map_gpu
   requires  on gpu_loc (a |-> s)
   ensures   on gpu_loc (a |-> chest_map f s)
 {
-  let stuff = (kmap cd (fun _ -> emp) #(emp_shareable) (vf_equal f) (ff_from_pure f) n a #s #_ #1.0R);
-  launch_sync stuff;
+  launch_sync (kmap cd (fun _ -> emp) #(emp_shareable) (vf_equal f) (ff_from_pure f) n a #s #_ #1.0R);
   with s'. assert on gpu_loc (a |-> s');
   assert pure (Kuiper.Chest.equal s' (chest_map f s));
   ()

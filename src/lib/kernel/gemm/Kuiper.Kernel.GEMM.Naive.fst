@@ -21,55 +21,53 @@ let abs_bij (#rows #cols : nat)
   {
     ff = (fun (i, (j, ())) -> (i, j));
     gg = (fun (i, j) -> (i, (j, ())));
-    ff_gg = ez;
-    gg_ff = ez;
   }
 
 unfold
 let kpre
   (#et : Type0) {| scalar et |}
   (comb : binop et)
-  (#rows #shared #cols : nat)
-  (#lA : layout2 rows shared)
-  (#lB : layout2 shared cols)
-  (#lC : layout2 rows cols)
+  (#m #n #k : nat)
+  (#lA : layout2 m k)
+  (#lB : layout2 k n)
+  (#lC : layout2 m n)
   (gA : tensor et lA)
   (gB : tensor et lB)
   (gC : tensor et lC)
-  (eA : chest2 et rows shared)
-  (eB : chest2 et shared cols)
-  (eC : chest2 et rows cols)
+  (eA : chest2 et m k)
+  (eB : chest2 et k n)
+  (eC : chest2 et m n)
   (fA fB : perm)
-  (bid : natlt (rows * cols))
+  (bid : natlt (m * n))
   : slprop
   =
-  gA |-> Frac (fA /. (rows * cols)) eA **
-  gB |-> Frac (fB /. (rows * cols)) eB **
+  gA |-> Frac (fA /. (m * n)) eA **
+  gB |-> Frac (fB /. (m * n)) eB **
   pts_to_cell gC
-    (bid / cols, (bid % cols, ()))
-    (acc eC (bid / cols, (bid % cols, ())))
+    (bid / n, (bid % n, ()))
+    (acc eC (bid / n, (bid % n, ())))
 
 unfold
 let kpost
   (#et : Type0) {| scalar et |}
   (comb : binop et)
-  (#rows #shared #cols : nat)
-  (#lA : layout2 rows shared)
-  (#lB : layout2 shared cols)
-  (#lC : layout2 rows cols)
+  (#m #n #k : nat)
+  (#lA : layout2 m k)
+  (#lB : layout2 k n)
+  (#lC : layout2 m n)
   (gA : tensor et lA)
   (gB : tensor et lB)
   (gC : tensor et lC)
-  (eA : chest2 et rows shared)
-  (eB : chest2 et shared cols)
-  (eC : chest2 et rows cols)
+  (eA : chest2 et m k)
+  (eB : chest2 et k n)
+  (eC : chest2 et m n)
   (fA fB : perm)
-  (bid : natlt (rows * cols))
+  (bid : natlt (m * n))
   =
-  gA |-> Frac (fA /. (rows * cols)) eA **
-  gB |-> Frac (fB /. (rows * cols)) eB **
-  pts_to_cell gC (bid / cols, (bid % cols, ()))
-    (MS.gemm_single comb eA eB eC (bid / cols) (bid % cols))
+  gA |-> Frac (fA /. (m * n)) eA **
+  gB |-> Frac (fB /. (m * n)) eB **
+  pts_to_cell gC (bid / n, (bid % n, ()))
+    (MS.gemm_single comb eA eB eC (bid / n) (bid % n))
 
 #set-options "--split_queries always"
 
@@ -77,34 +75,34 @@ inline_for_extraction noextract
 fn kf
   (#et : Type0) {| scalar et |}
   (comb : binop et)
-  (#rows #shared #cols : SZ.t)
-  (#lA : layout2 rows shared)
-  (#lB : layout2 shared cols)
-  (#lC : layout2 rows cols)
+  (#m #n #k : SZ.t)
+  (#lA : layout2 m k)
+  (#lB : layout2 k n)
+  (#lC : layout2 m n)
   {| ctlayout lA, ctlayout lB, ctlayout lC |}
   (gA : tensor et lA)
   (gB : tensor et lB)
   (gC : tensor et lC)
-  (#eA : chest2 et rows shared)
-  (#eB : chest2 et shared cols)
-  (#eC : chest2 et rows cols)
+  (#eA : chest2 et m k)
+  (#eB : chest2 et k n)
+  (#eC : chest2 et m n)
   (#fA #fB : perm)
-  (bid : szlt (rows * cols))
+  (bid : szlt (m * n))
   ()
   norewrite
   requires
     gpu **
     kpre comb gA gB gC eA eB eC fA fB bid **
-    block_id (rows *^ cols) bid
+    block_id (m *^ n) bid
   ensures
     gpu **
     kpost comb gA gB gC eA eB eC fA fB bid **
-    block_id (rows *^ cols) bid
+    block_id (m *^ n) bid
 {
-  let trow : szlt rows = bid /^ cols; assert (rewrites_to trow (bid /^ cols));
-  let tcol : szlt cols = bid %^ cols; assert (rewrites_to tcol (bid %^ cols));
+  let trow : szlt m = bid /^ n; assert (rewrites_to trow (bid /^ n));
+  let tcol : szlt n = bid %^ n; assert (rewrites_to tcol (bid %^ n));
 
-  let s = Kuiper.DotProd.matmul_dotprod_t gA gB trow tcol;
+  let s = Kuiper.DotProd.matmul_dotprod gA gB trow tcol;
 
   let v0 = tensor_read_cell gC (trow, (tcol, ()));
   let v1 = comb v0 s;
@@ -117,19 +115,19 @@ ghost
 fn setup
   (#et : Type0) {| scalar et |}
   (comb : binop et)
-  (#rows #shared #cols : szp)
-  (#lA : layout2 rows shared)
-  (#lB : layout2 shared cols)
-  (#lC : layout2 rows cols)
+  (#m #n #k : szp)
+  (#lA : layout2 m k)
+  (#lB : layout2 k n)
+  (#lC : layout2 m n)
   {| ctlayout lA, ctlayout lB, ctlayout lC |}
   (gA : tensor et lA)
   (#fA : perm)
   (gB : tensor et lB)
   (#fB : perm)
   (gC : tensor et lC)
-  (#eA : chest2 et rows shared)
-  (#eB : chest2 et shared cols)
-  (#eC : chest2 et rows cols)
+  (#eA : chest2 et m k)
+  (#eB : chest2 et k n)
+  (#eC : chest2 et m n)
   ()
   norewrite
   requires
@@ -137,34 +135,34 @@ fn setup
     gB |-> Frac fB eB **
     gC |-> eC
   ensures
-    (forall+ (rc : natlt (rows *^ cols)).
+    (forall+ (rc : natlt (m *^ n)).
       kpre comb gA gB gC eA eB eC fA fB rc) **
     emp (* frame *)
 {
   // Sharing the input matrices (splitting permissions)
-  tensor_share_n gA (rows *^ cols);
-  tensor_share_n gB (rows *^ cols);
+  tensor_share_n gA (m *^ n);
+  tensor_share_n gB (m *^ n);
 
   // Sharing the output matrix (splitting each cell)
   tensor_explode gC;
-  forevery_iso (abs_bij #rows #cols) _;
-  forevery_ext _ (fun (ij : natlt rows & natlt cols) ->
+  forevery_iso (abs_bij #m #n) _;
+  forevery_ext _ (fun (ij : natlt m & natlt n) ->
     pts_to_cell gC (fst ij, (snd ij, ())) (acc eC (fst ij, (snd ij, ()))));
   forevery_unflatten' _;
 
-  forevery_unfactor' (rows *^ cols) rows cols (fun r c ->
+  forevery_unfactor' (m *^ n) m n (fun r c ->
     pts_to_cell gC (r, (c, ())) (acc eC (r, (c, ()))));
 
   // Join resources into a single bigstar
-  forevery_zip #(natlt2 rows cols)
-    (fun _ -> gB |-> Frac (fB /. (rows *^ cols)) eB)
-    (fun i -> pts_to_cell gC ((i/cols <: natlt rows), ((i%cols <: natlt cols), ())) (acc eC ((i/cols <: natlt rows), ((i%cols <: natlt cols), ()))));
-  forevery_zip #(natlt2 rows cols)
-    (fun _ -> gA |-> Frac (fA /. (rows *^ cols)) eA)
+  forevery_zip #(natlt2 m n)
+    (fun _ -> gB |-> Frac (fB /. (m *^ n)) eB)
+    (fun i -> pts_to_cell gC ((i/n <: natlt m), ((i%n <: natlt n), ())) (acc eC ((i/n <: natlt m), ((i%n <: natlt n), ()))));
+  forevery_zip #(natlt2 m n)
+    (fun _ -> gA |-> Frac (fA /. (m *^ n)) eA)
     _;
 
   (* We're done actually. Just need extensionality. *)
-  forevery_ext #(natlt2 rows cols) _ (kpre comb gA gB gC eA eB eC fA fB);
+  forevery_ext #(natlt2 m n) _ (kpre comb gA gB gC eA eB eC fA fB);
 
   ();
 }
@@ -173,23 +171,23 @@ ghost
 fn teardown
   (#et : Type0) {| scalar et |}
   (comb : binop et)
-  (#rows #shared #cols : szp)
-  (#lA : layout2 rows shared)
-  (#lB : layout2 shared cols)
-  (#lC : layout2 rows cols)
+  (#m #n #k : szp)
+  (#lA : layout2 m k)
+  (#lB : layout2 k n)
+  (#lC : layout2 m n)
   {| ctlayout lA, ctlayout lB, ctlayout lC |}
   (gA : tensor et lA)
   (#fA : perm)
   (gB : tensor et lB)
   (#fB : perm)
   (gC : tensor et lC)
-  (#eA : chest2 et rows shared)
-  (#eB : chest2 et shared cols)
-  (#eC : chest2 et rows cols)
+  (#eA : chest2 et m k)
+  (#eB : chest2 et k n)
+  (#eC : chest2 et m n)
   ()
   norewrite
   requires
-    (forall+ (rc : natlt (rows *^ cols)).
+    (forall+ (rc : natlt (m *^ n)).
       kpost comb gA gB gC eA eB eC fA fB rc) **
     emp (* frame *)
   ensures
@@ -197,37 +195,37 @@ fn teardown
     gB |-> Frac fB eB **
     gC |-> MS.mmcomb comb eC eA eB
 {
-  forevery_unzip #(natlt2 rows cols) _ _;
-  forevery_unzip #(natlt2 rows cols) _ _;
+  forevery_unzip #(natlt2 m n) _ _;
+  forevery_unzip #(natlt2 m n) _ _;
 
   forevery_rw_type
-    (natlt (v (SizeT.mul rows cols)))
-    (natlt (v rows * v cols))
-    (fun _ -> gA |-> Frac (fA /. (v rows * v cols)) eA);
+    (natlt (v (SizeT.mul m n)))
+    (natlt (v m * v n))
+    (fun _ -> gA |-> Frac (fA /. (v m * v n)) eA);
 
   forevery_rw_type
-    (natlt (v (SizeT.mul rows cols)))
-    (natlt (v rows * v cols))
-    (fun _ -> gB |-> Frac (fB /. (v rows * v cols)) eB);
+    (natlt (v (SizeT.mul m n)))
+    (natlt (v m * v n))
+    (fun _ -> gB |-> Frac (fB /. (v m * v n)) eB);
 
   tensor_gather_n gA _;
   tensor_gather_n gB _;
 
-  forevery_factor (rows *^ cols) rows cols _;
+  forevery_factor (m *^ n) m n _;
 
   (* we get things back with some arithmetic in it *)
-  assert (forall+ (r:natlt rows) (c:natlt cols).
-      pts_to_cell gC (((r * cols + c) / cols <: natlt rows), (((r * cols + c) % cols <: natlt cols), ()))
-         (MS.gemm_single comb eA eB eC ((r * cols + c) / cols) ((r * cols + c) % cols)));
+  assert (forall+ (r:natlt m) (c:natlt n).
+      pts_to_cell gC (((r * n + c) / n <: natlt m), (((r * n + c) % n <: natlt n), ()))
+         (MS.gemm_single comb eA eB eC ((r * n + c) / n) ((r * n + c) % n)));
 
   (* need to use ext to get rid of it-- automatically applying ext would be really useful. *)
-  assert (pure (forall (r c : nat). c < cols ==> (r * cols + c) / cols == r));
-  assert (pure (forall (r c : nat). c < cols ==> (r * cols + c) % cols == c));
-  forevery_ext_2 _ (fun (r : natlt rows) (c : natlt cols) ->
+  assert (pure (forall (r c : nat). c < n ==> (r * n + c) / n == r));
+  assert (pure (forall (r c : nat). c < n ==> (r * n + c) % n == c));
+  forevery_ext_2 _ (fun (r : natlt m) (c : natlt n) ->
       pts_to_cell gC (r, (c, ())) (MS.gemm_single comb eA eB eC r c));
 
   ghost
-  fn aux (r:natlt rows) (c:natlt cols)
+  fn aux (r:natlt m) (c:natlt n)
     requires
       pts_to_cell gC (r, (c, ())) (MS.gemm_single comb eA eB eC r c)
     ensures
@@ -235,16 +233,16 @@ fn teardown
   {
     ()
   };
-  forevery_map_2 #(natlt rows) #(natlt cols)
+  forevery_map_2 #(natlt m) #(natlt n)
     (fun r c -> pts_to_cell gC (r, (c, ())) (MS.gemm_single comb eA eB eC r c))
     _
     aux;
 
-  forevery_flatten' (fun (rc : natlt rows & natlt cols) ->
+  forevery_flatten' (fun (rc : natlt m & natlt n) ->
     pts_to_cell gC (fst rc, (snd rc, ())) (acc (MS.mmcomb comb eC eA eB) (fst rc, (snd rc, ()))));
 
-  forevery_iso (bij_sym (abs_bij #rows #cols)) _;
-  forevery_ext _ (fun (i : abs (rows @| cols @| INil)) ->
+  forevery_iso (bij_sym (abs_bij #m #n)) _;
+  forevery_ext _ (fun (i : abs (m @| n @| INil)) ->
     pts_to_cell gC i (acc (MS.mmcomb comb eC eA eB) i));
   tensor_implode gC;
   ()

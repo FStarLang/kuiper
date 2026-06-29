@@ -34,7 +34,7 @@ fn array2_collect_approx_tiled
       exists* (v : et).
         tensor_pts_to_cell
           (array2_subtile gm trows tcols (bid / ntc) (bid % ntc))
-          (ix2 (tid / tcols <: natlt trows) (tid % tcols <: natlt tcols)) v **
+          (idx2 (tid / tcols <: natlt trows) (tid % tcols <: natlt tcols)) v **
         pure (spec_fn ((bid / ntc) * trows + (tid / tcols))
                       ((bid % ntc) * tcols + (tid % tcols)) v)
   returns vf : (natlt (ntr * ntc) -> natlt (trows * tcols) -> GTot et)

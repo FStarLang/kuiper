@@ -34,7 +34,6 @@ let tile_inj
   : (abs ((trows @| tcols @| INil)) @~> abs ((rows @| cols @| INil)))
 = {
    f      = tile_inj_f trows tcols tr tc;
-   is_inj = ez;
 }
 
 let subtile_layout
@@ -120,9 +119,9 @@ val cell_convert_eq
   (f : perm)
   (v : et)
   : Lemma (
-    tensor_pts_to_cell (array2_subtile gm trows tcols tr tc) #f (ix2 i j) v
+    tensor_pts_to_cell (array2_subtile gm trows tcols tr tc) #f (idx2 i j) v
     ==
-    tensor_pts_to_cell gm #f (ix2 (tr * trows + i) (tc * tcols + j)) v
+    tensor_pts_to_cell gm #f (idx2 (tr * trows + i) (tc * tcols + j)) v
   )
 
 ghost
@@ -182,6 +181,26 @@ fn array2_untile
         array2_subtile gm trows tcols tr tc |-> Frac f (ematrix_subtile em trows tcols tr tc)
   ensures
     gm |-> Frac f em
+
+ghost
+fn array2_untile_underspec
+  (#et:Type0)
+  (#rows #cols : nat)
+  (#l : layout2 rows cols)
+  (gm : array2 et l)
+  (trows : pos { trows /? rows })
+  (tcols : pos { tcols /? cols })
+  (#f : perm)
+  requires
+    pure (SZ.fits (l.ulen))
+  requires
+    forall+
+      (tr : natlt (rows / trows))
+      (tc : natlt (cols / tcols)).
+        (exists* (em : ematrix et trows tcols).
+          array2_subtile gm trows tcols tr tc |-> Frac f em)
+  ensures
+    (exists* (em : ematrix et rows cols). gm |-> Frac f em)
 
 ghost
 fn array2_extract_tile
@@ -286,7 +305,7 @@ fn array2_explode_tiled
   ensures
     forall+ (tr : natlt (rows / trows)) (tc : natlt (cols / tcols))
             (i : natlt trows) (j : natlt tcols).
-      tensor_pts_to_cell (array2_subtile gm trows tcols tr tc) (ix2 i j)
+      tensor_pts_to_cell (array2_subtile gm trows tcols tr tc) (idx2 i j)
         (macc em (tr * trows + i) (tc * tcols + j))
 
 (* Implode a tiled per-cell ownership back to full matrix.
@@ -309,7 +328,7 @@ fn array2_implode_tiled
   requires
     forall+ (tr : natlt (rows / trows)) (tc : natlt (cols / tcols))
             (i : natlt trows) (j : natlt tcols).
-      tensor_pts_to_cell (array2_subtile gm trows tcols tr tc) (ix2 i j)
+      tensor_pts_to_cell (array2_subtile gm trows tcols tr tc) (idx2 i j)
         (val_fn tr tc i j)
   ensures
     gm |-> mkM (fun (row : natlt rows) (col : natlt cols) ->

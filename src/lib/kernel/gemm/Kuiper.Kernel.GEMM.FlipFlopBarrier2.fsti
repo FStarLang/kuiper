@@ -1,8 +1,7 @@
 module Kuiper.Kernel.GEMM.FlipFlopBarrier2
 
-(* Array2 version of FlipFlopBarrier.
-   This module defines a barrier contract used by GEMMs that operate
-   on Array2 (Tensor-backed) matrices instead of VArray-backed gpu_matrix. *)
+(* This module defines a barrier contract used by GEMMs that operate
+   on Array2 (Tensor-backed) matrices. *)
 
 #lang-pulse
 open Kuiper
@@ -14,7 +13,7 @@ open Kuiper.Tensor.Tiling
 open Kuiper.Tensor
 module B = Kuiper.Barrier
 module SZ = Kuiper.SizeT
-module CV = Kuiper.Kernel.GEMM.Copy.Vec
+module CV = Kuiper.Kernel.GEMM.Copy.Vec2
 
 let own_strided_chunks
   (#et : Type0) {| sized et, hvc: has_vec_cpy et |}
@@ -27,7 +26,7 @@ let own_strided_chunks
   : slprop
 =
   forall+ (ij : (natlt rows & natlt cols){CV.in_chunk (chunk et #_ #hvc) rows cols nthr tid ij}).
-    tensor_pts_to_cell m (ix2 ij._1 ij._2) (macc em ij._1 ij._2)
+    tensor_pts_to_cell m (idx2 ij._1 ij._2) (macc em ij._1 ij._2)
 
 let live_strided_chunks
   (#et : Type0) {| sized et, hvc: has_vec_cpy et |}

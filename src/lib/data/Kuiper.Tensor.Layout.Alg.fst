@@ -18,7 +18,6 @@ let major_on (#n:nat)
   : layout_f_for (insert_i i k d)
   = {
     f = major_on_f i k sub;
-    is_inj = ez;
   }
 #pop-options
 

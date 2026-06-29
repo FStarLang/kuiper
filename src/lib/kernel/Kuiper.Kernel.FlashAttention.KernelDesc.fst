@@ -48,7 +48,7 @@ fn milower
   ensures
     pure (SZ.fits (tlayout_ulen l)) **
     (forall+ (r : natlt rows) (c : natlt cols).
-      tensor_pts_to_cell a #f (ix2 r c) (macc s r c))
+      tensor_pts_to_cell a #f (idx2 r c) (macc s r c))
 {
   tensor_ilower2 a;
 }
@@ -60,7 +60,7 @@ fn miraise
   requires
     pure (SZ.fits (tlayout_ulen l)) **
     (forall+ (r : natlt rows) (c : natlt cols).
-      tensor_pts_to_cell a #f (ix2 r c) (macc s r c))
+      tensor_pts_to_cell a #f (idx2 r c) (macc s r c))
   ensures
     a |-> Frac f s
 {
@@ -232,12 +232,12 @@ let stride_cell_convert_eq
   (f : perm)
   (v : et)
   : Lemma (
-    tensor_pts_to_cell (array2_stride_subtile gm srows scols tr tc) #f (ix2 i j) v
+    tensor_pts_to_cell (array2_stride_subtile gm srows scols tr tc) #f (idx2 i j) v
     ==
-    tensor_pts_to_cell gm #f (ix2 (i * srows + tr) (j * scols + tc)) v
+    tensor_pts_to_cell gm #f (idx2 (i * srows + tr) (j * scols + tc)) v
   )
-  = tensor_pts_to_cell_eq gm (ix2 ((i * srows + tr) <: natlt rows) ((j * scols + tc) <: natlt cols)) f v;
-    tensor_pts_to_cell_eq (array2_stride_subtile gm srows scols tr tc) (ix2 i j) f v;
+  = tensor_pts_to_cell_eq gm (idx2 ((i * srows + tr) <: natlt rows) ((j * scols + tc) <: natlt cols)) f v;
+    tensor_pts_to_cell_eq (array2_stride_subtile gm srows scols tr tc) (idx2 i j) f v;
     ()
 
 (* ── EMatrix-level lemmas for the stride decomposition ─────────────────── *)
@@ -328,11 +328,11 @@ fn array2_stride_tile
   forevery_map_2
     (fun (i:natlt (rows / srows)) (tr:natlt srows) ->
       forall+ (j:natlt (cols / scols)) (tc:natlt scols).
-        tensor_pts_to_cell gm #f (ix2 (i * srows + tr <: natlt rows) (j * scols + tc <: natlt cols))
+        tensor_pts_to_cell gm #f (idx2 (i * srows + tr <: natlt rows) (j * scols + tc <: natlt cols))
           (macc em (i * srows + tr) (j * scols + tc)))
     (fun (i:natlt (rows / srows)) (tr:natlt srows) ->
      forall+ (tc:natlt scols) (j:natlt (cols / scols)).
-       tensor_pts_to_cell gm #f (ix2 (i * srows + tr <: natlt rows) (j * scols + tc <: natlt cols))
+       tensor_pts_to_cell gm #f (idx2 (i * srows + tr <: natlt rows) (j * scols + tc <: natlt cols))
          (macc em (i * srows + tr) (j * scols + tc)))
     fn i tr {
       forevery_commute _;
@@ -346,26 +346,26 @@ fn array2_stride_tile
   fn aux (tr : natlt srows) (tc : natlt scols)
     requires
       forall+ (i : natlt (rows / srows)) (j : natlt (cols / scols)).
-        tensor_pts_to_cell gm #f (ix2 (i * srows + tr <: natlt rows) (j * scols + tc <: natlt cols))
+        tensor_pts_to_cell gm #f (idx2 (i * srows + tr <: natlt rows) (j * scols + tc <: natlt cols))
           (macc em (i * srows + tr) (j * scols + tc))
     ensures
       array2_stride_subtile gm srows scols tr tc |-> Frac f (ematrix_stride_subtile em srows scols tr tc)
   {
     forevery_map_2
       (fun (i:natlt (rows / srows)) (j:natlt (cols / scols)) ->
-        tensor_pts_to_cell gm #f (ix2 (i * srows + tr <: natlt rows) (j * scols + tc <: natlt cols))
+        tensor_pts_to_cell gm #f (idx2 (i * srows + tr <: natlt rows) (j * scols + tc <: natlt cols))
           (macc em (i * srows + tr) (j * scols + tc)))
       (fun (i:natlt (rows / srows)) (j:natlt (cols / scols)) ->
-        tensor_pts_to_cell (array2_stride_subtile gm srows scols tr tc) #f (ix2 i j)
+        tensor_pts_to_cell (array2_stride_subtile gm srows scols tr tc) #f (idx2 i j)
           (macc (ematrix_stride_subtile em srows scols tr tc) i j))
       fn i j {
         stride_cell_convert_eq gm srows scols tr tc i j f
           (macc em (i * srows + tr) (j * scols + tc));
         rewrite
-          tensor_pts_to_cell gm #f (ix2 (i * srows + tr <: natlt rows) (j * scols + tc <: natlt cols))
+          tensor_pts_to_cell gm #f (idx2 (i * srows + tr <: natlt rows) (j * scols + tc <: natlt cols))
             (macc em (i * srows + tr) (j * scols + tc))
         as
-          tensor_pts_to_cell (array2_stride_subtile gm srows scols tr tc) #f (ix2 i j)
+          tensor_pts_to_cell (array2_stride_subtile gm srows scols tr tc) #f (idx2 i j)
             (macc (ematrix_stride_subtile em srows scols tr tc) i j);
       };
     miraise (array2_stride_subtile gm srows scols tr tc);
@@ -402,16 +402,16 @@ fn array2_stride_untile'
       array2_stride_subtile gm srows scols tr tc |-> Frac f (tf tr tc)
     ensures
       forall+ (i : natlt (rows / srows)) (j : natlt (cols / scols)).
-        tensor_pts_to_cell gm #f (ix2 (i * srows + tr <: natlt rows) (j * scols + tc <: natlt cols))
+        tensor_pts_to_cell gm #f (idx2 (i * srows + tr <: natlt rows) (j * scols + tc <: natlt cols))
           (macc em (i * srows + tr) (j * scols + tc))
   {
     milower (array2_stride_subtile gm srows scols tr tc);
     forevery_map_2
       (fun (i:natlt (rows / srows)) (j:natlt (cols / scols)) ->
-        tensor_pts_to_cell (array2_stride_subtile gm srows scols tr tc) #f (ix2 i j)
+        tensor_pts_to_cell (array2_stride_subtile gm srows scols tr tc) #f (idx2 i j)
           (macc (tf tr tc) i j))
       (fun (i:natlt (rows / srows)) (j:natlt (cols / scols)) ->
-        tensor_pts_to_cell gm #f (ix2 (i * srows + tr <: natlt rows) (j * scols + tc <: natlt cols))
+        tensor_pts_to_cell gm #f (idx2 (i * srows + tr <: natlt rows) (j * scols + tc <: natlt cols))
           (macc em (i * srows + tr) (j * scols + tc)))
       fn i j {
         stride_cell_convert_eq gm srows scols tr tc i j f (macc (tf tr tc) i j);
@@ -421,10 +421,10 @@ fn array2_stride_untile'
         assert pure ((j * scols + tc) / scols == j);
         assert pure (macc em (i * srows + tr) (j * scols + tc) == macc (tf tr tc) i j);
         rewrite
-          tensor_pts_to_cell (array2_stride_subtile gm srows scols tr tc) #f (ix2 i j)
+          tensor_pts_to_cell (array2_stride_subtile gm srows scols tr tc) #f (idx2 i j)
             (macc (tf tr tc) i j)
         as
-          tensor_pts_to_cell gm #f (ix2 (i * srows + tr <: natlt rows) (j * scols + tc <: natlt cols))
+          tensor_pts_to_cell gm #f (idx2 (i * srows + tr <: natlt rows) (j * scols + tc <: natlt cols))
             (macc em (i * srows + tr) (j * scols + tc));
       };
   };
@@ -437,11 +437,11 @@ fn array2_stride_untile'
   forevery_map_2
     (fun (i:natlt (rows / srows)) (tr:natlt srows) ->
       forall+ (tc:natlt scols) (j:natlt (cols / scols)).
-        tensor_pts_to_cell gm #f (ix2 (i * srows + tr <: natlt rows) (j * scols + tc <: natlt cols))
+        tensor_pts_to_cell gm #f (idx2 (i * srows + tr <: natlt rows) (j * scols + tc <: natlt cols))
           (macc em (i * srows + tr) (j * scols + tc)))
     (fun (i:natlt (rows / srows)) (tr:natlt srows) ->
       forall+ (j:natlt (cols / scols)) (tc:natlt scols).
-        tensor_pts_to_cell gm #f (ix2 (i * srows + tr <: natlt rows) (j * scols + tc <: natlt cols))
+        tensor_pts_to_cell gm #f (idx2 (i * srows + tr <: natlt rows) (j * scols + tc <: natlt cols))
           (macc em (i * srows + tr) (j * scols + tc)))
     fn i tr {
        forevery_commute _;
@@ -449,7 +449,7 @@ fn array2_stride_untile'
   // order: (i, tr, j, tc)
   forevery_unfactor_2 rows (rows / srows) srows
     cols (cols / scols) scols
-    (fun i j -> tensor_pts_to_cell gm #f (ix2 i j) (macc em i j));
+    (fun i j -> tensor_pts_to_cell gm #f (idx2 i j) (macc em i j));
   miraise gm;
 }
 #pop-options

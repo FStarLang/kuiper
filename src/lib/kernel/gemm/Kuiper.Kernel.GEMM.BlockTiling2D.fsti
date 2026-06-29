@@ -28,24 +28,24 @@ inline_for_extraction noextract
 fn mmcomb_gpu_exact
   (#et : Type0) {| scalar et, has_vec_cpy et |}
   (comb : binop et)
-  (#rows #shared #cols : szp)
-  (#lA : layout2 rows shared)
-  (#lB : layout2 shared cols)
-  (#lC : layout2 rows cols)
+  (#m #n #k : szp)
+  (#lA : layout2 m k)
+  (#lB : layout2 k n)
+  (#lC : layout2 m n)
   {| T.ctlayout lA, T.ctlayout lB, T.ctlayout lC |}
   {| str_A : strided_row_major lA,
      str_B : strided_row_major lB |}
   (#_ : squash (aligned_strided_row_major (chunk et) str_A))
   (#_ : squash (aligned_strided_row_major (chunk et) str_B))
   (gA : array2 et lA { is_global gA })
-  (#eA : ematrix et rows shared)
+  (#eA : ematrix et m k)
   (gB : array2 et lB { is_global gB })
-  (#eB : ematrix et shared cols)
+  (#eB : ematrix et k n)
   (gC : array2 et lC { is_global gC })
-  (#eC : ematrix et rows cols)
-  (bm : szp{bm /?+ rows})
-  (bn : szp{bn /?+ cols})
-  (bk : szp{bk /?+ shared})
+  (#eC : ematrix et m n)
+  (bm : szp{bm /?+ m})
+  (bn : szp{bn /?+ n})
+  (bk : szp{bk /?+ k})
   (#_ : squash (chunk et /?+ bn))
   (#_ : squash (chunk et /?+ bk))
   (tm : szp{tm /?+ bm})
@@ -67,7 +67,7 @@ fn mmcomb_gpu_exact
   requires
     pure (aligned 16 (core gA)) **
     pure (aligned 16 (core gB)) **
-    pure (rows/bm * (cols/bn) <= max_blocks) **
+    pure (m/bm * (n/bn) <= max_blocks) **
     pure (bm/tm * (bn/tn) <= max_threads) **
     on gpu_loc (gC |-> eC)
   ensures
@@ -78,24 +78,24 @@ fn mmcomb_gpu_approx
   (#et : Type0) {| scalar et, has_vec_cpy et, real_like et |}
   (comb : binop et)
   (comb_r : binop real { approx2 comb comb_r })
-  (#rows #shared #cols : szp)
-  (#lA : layout2 rows shared)
-  (#lB : layout2 shared cols)
-  (#lC : layout2 rows cols)
+  (#m #n #k : szp)
+  (#lA : layout2 m k)
+  (#lB : layout2 k n)
+  (#lC : layout2 m n)
   {| T.ctlayout lA, T.ctlayout lB, T.ctlayout lC |}
   {| str_A : strided_row_major lA,
      str_B : strided_row_major lB |}
   (#_ : squash (aligned_strided_row_major (chunk et) str_A))
   (#_ : squash (aligned_strided_row_major (chunk et) str_B))
   (gA : array2 et lA { is_global gA })
-  (#eA : ematrix et rows shared)
+  (#eA : ematrix et m k)
   (gB : array2 et lB { is_global gB })
-  (#eB : ematrix et shared cols)
+  (#eB : ematrix et k n)
   (gC : array2 et lC { is_global gC })
-  (#eC : ematrix et rows cols)
-  (bm : szp{bm /?+ rows})
-  (bn : szp{bn /?+ cols})
-  (bk : szp{bk /?+ shared})
+  (#eC : ematrix et m n)
+  (bm : szp{bm /?+ m})
+  (bn : szp{bn /?+ n})
+  (bk : szp{bk /?+ k})
   (#_ : squash (chunk et /?+ bn))
   (#_ : squash (chunk et /?+ bk))
   (tm : szp{tm /?+ bm})
@@ -109,9 +109,9 @@ fn mmcomb_gpu_approx
   (slB : full_layout2 bk bn)
   {| T.ctlayout slA, T.ctlayout slB |}
   (#fA #fB : perm)
-  (rA : ematrix real rows shared)
-  (rB : ematrix real shared cols)
-  (rC : ematrix real rows cols)
+  (rA : ematrix real m k)
+  (rB : ematrix real k n)
+  (rC : ematrix real m n)
   norewrite
   preserves
     cpu **
@@ -120,11 +120,11 @@ fn mmcomb_gpu_approx
   requires
     pure (aligned 16 (core gA)) **
     pure (aligned 16 (core gB)) **
-    pure (rows/bm * (cols/bn) <= max_blocks) **
+    pure (m/bm * (n/bn) <= max_blocks) **
     pure (bm/tm * (bn/tn) <= max_threads) **
     pure (eA %~ rA /\ eB %~ rB /\ eC %~ rC) **
     on gpu_loc (gC |-> eC)
   ensures
-    exists* (eC' : ematrix et rows cols).
+    exists* (eC' : ematrix et m n).
       on gpu_loc (gC |-> eC') **
       pure (eC' %~ MS.mmcomb comb_r rC rA rB)

@@ -228,9 +228,9 @@ val stride_cell_convert_eq
   (f : perm)
   (v : et)
   : Lemma (
-    tensor_pts_to_cell (array2_stride_subtile gm srows scols tr tc) #f (ix2 i j) v
+    tensor_pts_to_cell (array2_stride_subtile gm srows scols tr tc) #f (idx2 i j) v
     ==
-    tensor_pts_to_cell gm #f (ix2 (i * srows + tr) (j * scols + tc)) v
+    tensor_pts_to_cell gm #f (idx2 (i * srows + tr) (j * scols + tc)) v
   )
 
 ghost

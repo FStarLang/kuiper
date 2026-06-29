@@ -20,8 +20,6 @@ CHECK=0
 ./obj/Test_Klas_GEMM_BlockTiling1D__F32.exe $LAPS $DIM $DIM $DIM $TILE 0
 ./obj/Test_Klas_GEMM_BlockTiling1D__F32_GEMM.exe $LAPS $DIM $DIM $DIM 0
 
-./obj/Test_Klas_GEMM_OrigBlockTiling1D__F32_GEMM.exe $LAPS $DIM $DIM $DIM 0
-
 ./obj/Test_Klas_GEMM_BlockTiling2D__F32_128x128x32_8x8.exe $LAPS $DIM $DIM $DIM 0
 
 if [ -f ./obj/Test_Klas_GEMM_TensorCore2D__F16_F16_64x64x64_16x16x16_2x2.exe ]; then

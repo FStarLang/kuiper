@@ -5,8 +5,8 @@ module Kuiper.TensorCore.Base
 #lang-pulse
 
 open Kuiper
-open Kuiper.Matrix
-open Kuiper.Matrix.Reprs.Type
+open Kuiper.Tensor
+open Kuiper.Array2.Strided
 open Kuiper.EMatrix
 open Kuiper.Spec.GEMM
 module EMatrix = Kuiper.EMatrix
@@ -160,8 +160,8 @@ fn mma_loadA
   (#et : Type)
   (#m #n #k : erased nat)
   (fr : fragment et FragA m n k FragLRM)
-  (#l : mlayout m k) {| strided_row_major l |}
-  (gm : gpu_matrix et l)
+  (#l : layout2 m k) {| strided_row_major l |}
+  (gm : array2 et l)
   (#f : perm)
   (#m0 : ematrix et m k)
   (#f0 : erased (value_for et FragA m n k))
@@ -176,8 +176,8 @@ fn mma_loadA_cm
   (#et : Type)
   (#m #n #k : erased nat)
   (fr : fragment et FragA m n k FragLCM)
-  (#l : mlayout m k) {| strided_col_major l |}
-  (gm : gpu_matrix et l)
+  (#l : layout2 m k) {| strided_col_major l |}
+  (gm : array2 et l)
   (#f : perm)
   (#m0 : ematrix et m k)
   (#f0 : erased (value_for et FragA m n k))
@@ -192,8 +192,8 @@ fn mma_loadB
   (#et : Type)
   (#m #n #k : erased nat)
   (fr : fragment et FragB m n k FragLRM)
-  (#l : mlayout k n) {| strided_row_major l |}
-  (gm : gpu_matrix et l)
+  (#l : layout2 k n) {| strided_row_major l |}
+  (gm : array2 et l)
   (#f : perm)
   (#m0 : ematrix et k n)
   (#f0 : erased (value_for et FragB m n k))
@@ -208,8 +208,8 @@ fn mma_loadAccum
   (#et : Type)
   (#m #n #k : erased nat)
   (fr : fragment et FragAcc m n k FragLAcc)
-  (#l : mlayout m n) {| strided_row_major l |}
-  (gm : gpu_matrix et l)
+  (#l : layout2 m n) {| strided_row_major l |}
+  (gm : array2 et l)
   (#f : perm)
   (#m0 : ematrix et m n)
   (#f0 : erased (value_for et FragAcc m n k))
@@ -247,8 +247,8 @@ fn mma_store
   (#et : Type)
   (#m #n #k : erased nat)
   (fr : fragment et FragAcc m n k FragLAcc)
-  (#l : mlayout m n) {| strided_row_major l |}
-  (gm : gpu_matrix et l)
+  (#l : layout2 m n) {| strided_row_major l |}
+  (gm : array2 et l)
   (#f0 : erased (value_for et FragAcc m n k))
   (#m0 : ematrix et m n)
   preserves
@@ -295,7 +295,7 @@ let array_fragment_pts_to
       // pure (Seq.length s == Seq.length ems) **
       farr |-> Frac f s **
       forall+ (i : natlt (Seq.length ems)).
-        (s @! i) |-> Frac f (ems @! i)
+        (Seq.index s i) |-> Frac f (Seq.index ems i)
 
 unfold
 instance has_pts_to_array_fragment (et:Type0) (knd : fragment_kind) (m n k : erased nat) (l : fragment_layout)

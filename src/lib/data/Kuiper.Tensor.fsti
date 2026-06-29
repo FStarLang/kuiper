@@ -29,6 +29,28 @@ let array3 (et : Type0) (#d0 #d1 #d2 : nat) (l : layout3 d0 d1 d2) : Type0 = ten
 inline_for_extraction noextract
 let array4 (et : Type0) (#d0 #d1 #d2 #d3 : nat) (l : layout4 d0 d1 d2 d3) : Type0 = tensor et l
 
+let idx1 (#d0 : nat) (x : natlt d0) : abs (d0 @| INil) =
+  (x, ())
+let idx2 (#d0 #d1 : nat) (x : natlt d0) (y : natlt d1) : abs (d0 @| d1 @| INil) =
+  (x, (y, ()))
+let idx3 (#d0 #d1 #d2 : nat) (x : natlt d0) (y : natlt d1) (z : natlt d2) : abs (d0 @| d1 @| d2 @| INil) =
+  (x, (y, (z, ())))
+let idx4 (#d0 #d1 #d2 #d3 : nat) (x : natlt d0) (y : natlt d1) (z : natlt d2) (w : natlt d3) : abs (d0 @| d1 @| d2 @| d3 @| INil) =
+  (x, (y, (z, (w, ()))))
+
+inline_for_extraction noextract unfold
+let cidx1 (#d0 : erased nat) (x : szlt d0) : conc (d0 @| INil) =
+  (x, ())
+inline_for_extraction noextract unfold
+let cidx2 (#d0 #d1 : erased nat) (x : szlt d0) (y : szlt d1) : conc (d0 @| d1 @| INil) =
+  (x, (y, ()))
+inline_for_extraction noextract unfold
+let cidx3 (#d0 #d1 #d2 : erased nat) (x : szlt d0) (y : szlt d1) (z : szlt d2) : conc (d0 @| d1 @| d2 @| INil) =
+  (x, (y, (z, ())))
+inline_for_extraction noextract unfold
+let cidx4 (#d0 #d1 #d2 #d3 : erased nat) (x : szlt d0) (y : szlt d1) (z : szlt d2) (w : szlt d3) : conc (d0 @| d1 @| d2 @| d3 @| INil) =
+  (x, (y, (z, (w, ()))))
+
 val is_global
   (#et : Type0) (#r : nat) (#d : shape r)
   (#l : tlayout d)
@@ -51,6 +73,15 @@ val core
   (#l : tlayout d)
   (a : tensor et l)
   : larray et (tlayout_ulen l)
+
+inline_for_extraction noextract
+let relay
+  (#et : Type0)
+  (#r1 : erased nat) (#d1 : shape r1) (#l1 : tlayout d1)
+  (a : tensor et l1)
+  (#r2 : erased nat) (#d2 : shape r2) (l2 : tlayout d2{l2.ulen == l1.ulen})
+  : tensor et l2
+  = from_array l2 (core a)
 
 val lem_core_from_array
   (#et : Type0) (#r : nat) (#d : shape r)
@@ -254,7 +285,6 @@ instance ctensor_ciview
   };
   step = {
     cimap = mk_cinj c.cimap #(fun x y -> down_up x; down_up y);
-    compat = ez;
   };
 }
 
@@ -285,6 +315,28 @@ fn tensor_write
     a |-> s
   ensures
     a |-> upd s (up i) v
+
+(* Syntax *)
+inline_for_extraction noextract
+unfold let op_Array_Access
+  (#et : Type0) (#r : erased nat) (#d : shape r)
+  (#l : tlayout d) {| ctlayout l |}
+  (a : tensor et l)
+  (i : conc d)
+  (#f : perm)
+  (#s : chest d et)
+  = tensor_read #et #r #d #l a i #f #s
+
+(* Syntax *)
+inline_for_extraction noextract
+unfold let op_Array_Assignment
+  (#et : Type0) (#r : erased nat) (#d : shape r)
+  (#l : tlayout d) {| ctlayout l |}
+  (a : tensor et l)
+  (i : conc d)
+  (v : et)
+  (#s : chest d et)
+  = tensor_write #et #r #d #l a i v #s
 
 val tensor_pts_to_cell
   (#et : Type0) (#r : nat) (#d : shape r)
@@ -616,11 +668,6 @@ fn tensor_unfold_outer
 
 (* Rank-2 conveniences over the (natlt rows & natlt cols) index pair. *)
 
-inline_for_extraction noextract
-let ix2 (#rows #cols : nat) (r : natlt rows) (c : natlt cols)
-  : abs (rows @| cols @| INil)
-  = (r, (c, ()))
-
 ghost
 fn tensor_explode2
   (#et : Type0) (#rows #cols : nat) (#l : layout2 rows cols)
@@ -631,7 +678,7 @@ fn tensor_explode2
     a |-> Frac f s
   ensures
     forall+ (ij : natlt rows & natlt cols).
-      Cell a (ix2 (fst ij) (snd ij)) |-> Frac f (acc s (ix2 (fst ij) (snd ij)))
+      Cell a (idx2 (fst ij) (snd ij)) |-> Frac f (acc s (idx2 (fst ij) (snd ij)))
 
 ghost
 fn tensor_implode2
@@ -643,7 +690,7 @@ fn tensor_implode2
     pure (SZ.fits (tlayout_ulen l))
   requires
     forall+ (ij : natlt rows & natlt cols).
-      Cell a (ix2 (fst ij) (snd ij)) |-> Frac f (acc s (ix2 (fst ij) (snd ij)))
+      Cell a (idx2 (fst ij) (snd ij)) |-> Frac f (acc s (idx2 (fst ij) (snd ij)))
   ensures
     a |-> Frac f s
 
@@ -658,7 +705,7 @@ fn tensor_ilower2
   ensures
     pure (SZ.fits (tlayout_ulen l)) **
     (forall+ (r : natlt rows) (c : natlt cols).
-      Cell a (ix2 r c) |-> Frac f (acc s (ix2 r c)))
+      Cell a (idx2 r c) |-> Frac f (acc s (idx2 r c)))
 
 ghost
 fn tensor_iraise2
@@ -669,7 +716,7 @@ fn tensor_iraise2
   requires
     pure (SZ.fits (tlayout_ulen l)) **
     (forall+ (r : natlt rows) (c : natlt cols).
-      Cell a (ix2 r c) |-> Frac f (acc s (ix2 r c)))
+      Cell a (idx2 r c) |-> Frac f (acc s (idx2 r c)))
   ensures
     a |-> Frac f s
 
@@ -682,3 +729,47 @@ instance tensor_pts_to_shareable
   _share_n = (fun (n: pos) (#fr : perm) -> tensor_share_n t n #fr);
   _gather_n = (fun (n: pos) (#fr : perm) -> tensor_gather_n t n #fr);
 }
+
+val ref_of_tensor_cell
+  (#et : Type0)
+  (#r : nat) (#s : shape r) (#l : tlayout s)
+  (a : tensor et l)
+  (i : abs s)
+  : GTot (ref et)
+
+inline_for_extraction noextract
+fn get_ref_of_tensor_cell
+  (#et : Type0)
+  (#r : nat) (#s : shape r) (#l : tlayout s)
+  (a : tensor et l) {| ctlayout l |}
+  (i : conc s)
+  returns
+    r : ref et
+  ensures
+    rewrites_to r (ref_of_tensor_cell a (up i))
+
+ghost
+fn tensor_cell_to_ref
+  (#et : Type0)
+  (#r : nat) (#s : shape r) (#l : tlayout s)
+  (a : tensor et l)
+  (i : abs s)
+  (#f : perm)
+  (#v : erased et)
+  requires
+    Cell a i |-> Frac f v
+  ensures
+    ref_of_tensor_cell a i |-> Frac f v
+
+ghost
+fn tensor_cell_from_ref
+  (#et : Type0)
+  (#r : nat) (#s : shape r) (#l : tlayout s)
+  (a : tensor et l)
+  (i : abs s)
+  (#f : perm)
+  (#v : erased et)
+  requires
+    ref_of_tensor_cell a i |-> Frac f v
+  ensures
+    Cell a i |-> Frac f v

@@ -890,16 +890,12 @@ let snd_bij #a #b (x: a) : (b =~ (xy: (a & b) { x == fst xy })) =
   {
     ff = (fun y -> ((x,y) <: (xy: (a&b) {x == fst xy})));
     gg = (fun xy -> snd xy);
-    ff_gg = (fun _ -> ());
-    gg_ff = (fun _ -> ());
   }
 
 let snd_bij_dep #a (#b : a -> Type) (x: a) : (b x =~ (xy: (x:a & b x) { x == xy._1 })) =
   {
     ff = (fun y -> ((|x,y|) <: (xy: (x:a & b x) {x == xy._1})));
     gg = (fun xy -> xy._2);
-    ff_gg = (fun _ -> ());
-    gg_ff = (fun _ -> ());
   }
 
 ghost
@@ -1112,8 +1108,6 @@ let swap_bij a b : (a & b =~ b & a) =
   {
     ff = (fun (x,y) -> (y,x));
     gg = (fun (y,x) -> (x,y));
-    ff_gg = ez;
-    gg_ff = ez;
   }
 
 ghost
@@ -1210,10 +1204,7 @@ let bij_mirror_n (n:nat) : (natlt n =~ natlt n) =
   {
     ff = (fun (i:natlt n) -> n - 1 - i <: natlt n);
     gg = (fun (i:natlt n) -> n - 1 - i <: natlt n);
-    ff_gg = ez;
-    gg_ff = ez;
   }
-
 
 ghost
 fn forevery_natlt_pop_shift
@@ -2142,8 +2133,6 @@ let or_n_bij #a #b (r: b -> a -> prop)
       <: (x:a { exists i. r i x } -> GTot (i: b & (x:a { r i x })));
     gg = (fun (|i, x|) -> x)
       <: (i: b & (x:a { r i x }) -> x:a { exists i. r i x });
-    ff_gg = (fun _ -> ());
-    gg_ff = (fun _ -> ());
   }
 
 ghost

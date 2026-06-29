@@ -32,7 +32,6 @@ let strided_step (len : nat) (stride : nat) (offset : natlt stride) :
 = {
     imap = {
       f = (fun (i : natlt ((len + stride - 1 - offset) / stride)) -> i * stride + offset <: natlt len);
-      is_inj = ez;
     };
 }
 
@@ -75,7 +74,6 @@ let strided_cistep (len : erased nat{SZ.fits len}) (stride : sz) (offset : szlt 
 = {
   cimap = mk_cinj
     (fun (i : szlt ((len + stride - 1 - offset) / stride)) -> (i `SZ.mul` stride `SZ.add` offset) <: szlt len);
-  compat = ez;
 }
 
 // FIXME! I broke this somehow.

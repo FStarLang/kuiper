@@ -23,7 +23,6 @@ let even_view et (len : nat) : aview et (lseq et ((len + 1) / 2)) = {
     step = {
       imap = {
         f = (fun (i : natlt ((len + 1)/2)) -> i * 2 <: natlt len);
-        is_inj = ez;
       };
     }
   };
@@ -38,7 +37,6 @@ let odd_view et (len : nat) : aview et (lseq et (len / 2)) = {
     step = {
       imap = {
         f = (fun (i : natlt (len/2)) -> 1 + i * 2 <: natlt len);
-        is_inj = ez;
       };
     };
   };
@@ -54,7 +52,6 @@ instance _cview_even #et (len : erased nat{SZ.fits len}) : IView.ciview (even_vi
   };
   step = {
     cimap = mk_cinj (fun (i : szlt ((len + 1) / 2)) -> i `SZ.mul` 2sz <: szlt len);
-    compat = ez;
   };
 }
 
@@ -67,7 +64,6 @@ instance _cview_odd #et (len : erased nat{SZ.fits len}) : IView.ciview (odd_view
   };
   step = {
     cimap = mk_cinj (fun (i : szlt (len / 2)) -> 1sz +^ i `SZ.mul` 2sz <: szlt len);
-    compat = ez;
   };
 }
 

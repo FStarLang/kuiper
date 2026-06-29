@@ -17,13 +17,13 @@ open Kuiper.EMatrix { ematrix, macc }
 
 let live_cell
   (#et : Type0)
-  (#rows #cols : nat)
-  (#lm : layout2 rows cols)
+  (#m #n : nat)
+  (#lm : layout2 m n)
   (gm : array2 et lm)
-  (i : natlt rows)
-  (j : natlt cols)
+  (i : natlt m)
+  (j : natlt n)
   : slprop
-  = exists* v. tensor_pts_to_cell gm (ix2 i j) v
+  = exists* v. tensor_pts_to_cell gm (idx2 i j) v
 
 (* Description of shared memory used in this kernel. *)
 inline_for_extraction noextract
@@ -36,36 +36,36 @@ let shmems_desc (et:Type0) {| sized et |} (tile:valid_tile) : list shmem_desc = 
    and 2-arg indexed forall+ (for forevery_unfactor' etc.) *)
 ghost
 fn explode2
-  (#et : Type0) (#rows #cols : nat) (#l : layout2 rows cols)
+  (#et : Type0) (#m #n : nat) (#l : layout2 m n)
   (a : array2 et l)
   (#f : perm)
-  (#s : ematrix et rows cols)
+  (#s : ematrix et m n)
   requires a |-> Frac f s
   ensures
-    forall+ (r : natlt rows) (c : natlt cols).
-      tensor_pts_to_cell a #f (ix2 r c) (macc s r c)
+    forall+ (r : natlt m) (c : natlt n).
+      tensor_pts_to_cell a #f (idx2 r c) (macc s r c)
 {
   tensor_explode2 a;
-  forevery_ext _ (fun i -> tensor_pts_to_cell a #f (ix2 (fst i) (snd i)) (macc s (fst i) (snd i)));
-  forevery_unflatten (fun r c -> tensor_pts_to_cell a #f (ix2 r c) (macc s r c));
+  forevery_ext _ (fun i -> tensor_pts_to_cell a #f (idx2 (fst i) (snd i)) (macc s (fst i) (snd i)));
+  forevery_unflatten (fun r c -> tensor_pts_to_cell a #f (idx2 r c) (macc s r c));
   ()
 }
 
 ghost
 fn implode2
-  (#et : Type0) (#rows #cols : nat) (#l : layout2 rows cols)
+  (#et : Type0) (#m #n : nat) (#l : layout2 m n)
   (a : array2 et l)
   (#f : perm)
-  (#s : ematrix et rows cols)
+  (#s : ematrix et m n)
   requires
     pure (SZ.fits (l.ulen))
   requires
-    forall+ (r : natlt rows) (c : natlt cols).
-      tensor_pts_to_cell a #f (ix2 r c) (macc s r c)
+    forall+ (r : natlt m) (c : natlt n).
+      tensor_pts_to_cell a #f (idx2 r c) (macc s r c)
   ensures a |-> Frac f s
 {
-  forevery_flatten (fun r c -> tensor_pts_to_cell a #f (ix2 r c) (macc s r c));
-  forevery_ext _ (fun i -> tensor_pts_to_cell a #f (ix2 (fst i) (snd i)) (macc s (fst i) (snd i)));
+  forevery_flatten (fun r c -> tensor_pts_to_cell a #f (idx2 r c) (macc s r c));
+  forevery_ext _ (fun i -> tensor_pts_to_cell a #f (idx2 (fst i) (snd i)) (macc s (fst i) (snd i)));
   tensor_implode2 a;
   ()
 }
@@ -101,8 +101,8 @@ let barrier_p_cell
     else
       let mrow = bid / mcols in
       let mcol = bid % mcols in
-      tensor_pts_to_cell sa1 (ix2 (tid/tile) (tid%tile)) (macc (ematrix_subtile eA tile tile mrow (it / 2)) (tid/tile) (tid%tile)) **
-      tensor_pts_to_cell sa2 (ix2 (tid/tile) (tid%tile)) (macc (ematrix_subtile eB tile tile (it / 2) mcol) (tid/tile) (tid%tile))
+      tensor_pts_to_cell sa1 (idx2 (tid/tile) (tid%tile)) (macc (ematrix_subtile eA tile tile mrow (it / 2)) (tid/tile) (tid%tile)) **
+      tensor_pts_to_cell sa2 (idx2 (tid/tile) (tid%tile)) (macc (ematrix_subtile eB tile tile (it / 2) mcol) (tid/tile) (tid%tile))
 
 (* Fold the even-step shared-ownership form into barrier_p_cell.
    The runtime [if]s make the [it >= 2*mshared] and [even it] guards in
@@ -233,16 +233,16 @@ fn barrier_p_to_q_cell_transform
       with em2. assert (pts_to sa2 #1.0R em2);
       explode2 sa1;
       forevery_unfactor' (tile * tile) tile tile
-        (fun r c -> tensor_pts_to_cell sa1 (ix2 r c) (macc em1 r c));
+        (fun r c -> tensor_pts_to_cell sa1 (idx2 r c) (macc em1 r c));
       explode2 sa2;
       forevery_unfactor' (tile * tile) tile tile
-        (fun r c -> tensor_pts_to_cell sa2 (ix2 r c) (macc em2 r c));
+        (fun r c -> tensor_pts_to_cell sa2 (idx2 r c) (macc em2 r c));
       forevery_map
-        (fun (tid : natlt (tile * tile)) -> tensor_pts_to_cell sa1 (ix2 (tid/tile) (tid%tile)) (macc em1 (tid/tile) (tid%tile)))
+        (fun (tid : natlt (tile * tile)) -> tensor_pts_to_cell sa1 (idx2 (tid/tile) (tid%tile)) (macc em1 (tid/tile) (tid%tile)))
         (fun (tid : natlt (tile * tile)) -> live_cell sa1 (tid/tile) (tid%tile))
         fn tid { fold live_cell };
       forevery_map
-        (fun (tid : natlt (tile * tile)) -> tensor_pts_to_cell sa2 (ix2 (tid/tile) (tid%tile)) (macc em2 (tid/tile) (tid%tile)))
+        (fun (tid : natlt (tile * tile)) -> tensor_pts_to_cell sa2 (idx2 (tid/tile) (tid%tile)) (macc em2 (tid/tile) (tid%tile)))
         (fun (tid : natlt (tile * tile)) -> live_cell sa2 (tid/tile) (tid%tile))
         fn tid { fold live_cell };
       forevery_zip
@@ -263,19 +263,19 @@ fn barrier_p_to_q_cell_transform
       forevery_map
         (fun (tid : natlt (tile * tile)) -> barrier_p_cell tile eA eB bid sa1 sa2 it tid)
         (fun (tid : natlt (tile * tile)) ->
-          tensor_pts_to_cell sa1 (ix2 (tid/tile) (tid%tile)) (macc (ematrix_subtile eA tile tile mrow (it/2)) (tid/tile) (tid%tile)) **
-          tensor_pts_to_cell sa2 (ix2 (tid/tile) (tid%tile)) (macc (ematrix_subtile eB tile tile (it/2) mcol) (tid/tile) (tid%tile)))
+          tensor_pts_to_cell sa1 (idx2 (tid/tile) (tid%tile)) (macc (ematrix_subtile eA tile tile mrow (it/2)) (tid/tile) (tid%tile)) **
+          tensor_pts_to_cell sa2 (idx2 (tid/tile) (tid%tile)) (macc (ematrix_subtile eB tile tile (it/2) mcol) (tid/tile) (tid%tile)))
         fn tid {
           rewrite barrier_p_cell tile eA eB bid sa1 sa2 it tid
-               as tensor_pts_to_cell sa1 (ix2 (tid/tile) (tid%tile)) (macc (ematrix_subtile eA tile tile mrow (it/2)) (tid/tile) (tid%tile)) **
-                  tensor_pts_to_cell sa2 (ix2 (tid/tile) (tid%tile)) (macc (ematrix_subtile eB tile tile (it/2) mcol) (tid/tile) (tid%tile));
+               as tensor_pts_to_cell sa1 (idx2 (tid/tile) (tid%tile)) (macc (ematrix_subtile eA tile tile mrow (it/2)) (tid/tile) (tid%tile)) **
+                  tensor_pts_to_cell sa2 (idx2 (tid/tile) (tid%tile)) (macc (ematrix_subtile eB tile tile (it/2) mcol) (tid/tile) (tid%tile));
         };
       forevery_unzip _ _;
       forevery_factor' (tile * tile) tile tile
-        (fun r c -> tensor_pts_to_cell sa1 (ix2 r c) (macc (ematrix_subtile eA tile tile mrow (it/2)) r c));
+        (fun r c -> tensor_pts_to_cell sa1 (idx2 r c) (macc (ematrix_subtile eA tile tile mrow (it/2)) r c));
       implode2 sa1;
       forevery_factor' (tile * tile) tile tile
-        (fun r c -> tensor_pts_to_cell sa2 (ix2 r c) (macc (ematrix_subtile eB tile tile (it/2) mcol) r c));
+        (fun r c -> tensor_pts_to_cell sa2 (idx2 r c) (macc (ematrix_subtile eB tile tile (it/2) mcol) r c));
       implode2 sa2;
       tensor_share_n sa1 (tile * tile);
       tensor_share_n sa2 (tile * tile);
@@ -330,7 +330,7 @@ let kpre1
   tensor_pts_to_cell
     (array2_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols))
     #1.0R
-    (ix2 (tid / tile) (tid % tile)) (macc eC grow gcol)
+    (idx2 (tid / tile) (tid % tile)) (macc eC grow gcol)
 
 (* Functional postcondition: the cell contains a value approximating
    MS.gemm_single over external real matrices rA, rB, rC *)
@@ -369,7 +369,7 @@ let kpost1
     tensor_pts_to_cell
       (array2_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols))
       #1.0R
-      (ix2 (tid / tile) (tid % tile)) v **
+      (idx2 (tid / tile) (tid % tile)) v **
     pure (v %~ MS.gemm_single comb_r rA rB rC grow gcol))
 
 unfold
@@ -568,8 +568,8 @@ fn kf
     rewrite each v1 as (macc (ematrix_subtile eA tile tile (SZ.v mrow) (SZ.v !bk)) (tid / tile) (tid % tile));
     rewrite each v2 as (macc (ematrix_subtile eB tile tile (SZ.v !bk) (SZ.v mcol)) (tid / tile) (tid % tile));
 
-    rewrite tensor_pts_to_cell sa1 (ix2 (tid/tile) (tid%tile)) (macc (ematrix_subtile eA tile tile (SZ.v mrow) (SZ.v !bk)) (tid/tile) (tid%tile)) **
-            tensor_pts_to_cell sa2 (ix2 (tid/tile) (tid%tile)) (macc (ematrix_subtile eB tile tile (SZ.v !bk) (SZ.v mcol)) (tid/tile) (tid%tile))
+    rewrite tensor_pts_to_cell sa1 (idx2 (tid/tile) (tid%tile)) (macc (ematrix_subtile eA tile tile (SZ.v mrow) (SZ.v !bk)) (tid/tile) (tid%tile)) **
+            tensor_pts_to_cell sa2 (idx2 (tid/tile) (tid%tile)) (macc (ematrix_subtile eB tile tile (SZ.v !bk) (SZ.v mcol)) (tid/tile) (tid%tile))
          as barrier_p_cell tile eA eB (SZ.v bid) sa1 sa2 (2 * !bk + 1) tid;
 
     // fold barrier_p_cell tile eA eB (SZ.v bid) sa1 sa2 (2 * !bk + 1) tid;
@@ -598,7 +598,7 @@ fn kf
     rewrite each (tid / tile) as v brow;
     rewrite each (tid % tile) as v bcol;
 
-    let t = Kuiper.DotProd.matmul_dotprod_t sa1 sa2 brow bcol;
+    let t = Kuiper.DotProd.matmul_dotprod sa1 sa2 brow bcol;
     let s = !sum;
     sum := s `add` t;
 
@@ -633,8 +633,8 @@ fn kf
   let v1 = comb v0 !sum;
   tensor_write_cell gTile ((brow <: szlt _), ((bcol <: szlt _), ())) v1;
 
-  rewrite tensor_pts_to_cell gTile (ix2 (SZ.v brow) (SZ.v bcol)) v1
-       as tensor_pts_to_cell gTile (ix2 (tid / tile) (tid % tile)) v1;
+  rewrite tensor_pts_to_cell gTile (idx2 (SZ.v brow) (SZ.v bcol)) v1
+       as tensor_pts_to_cell gTile (idx2 (tid / tile) (tid % tile)) v1;
 
   tensor_concr sa1; rewrite each core sa1 as ar1;
   tensor_concr sa2; rewrite each core sa2 as ar2;
@@ -706,13 +706,13 @@ fn setup
   assert pure (forall (brow:natlt tile) (bcol:natlt tile). (brow * tile + bcol) / tile == brow /\ (brow * tile + bcol) % tile == bcol);
   forevery_ext_4
     (fun (mrow:natlt mrows) (mcol:natlt mcols) (brow:natlt tile) (bcol:natlt tile) ->
-      tensor_pts_to_cell (array2_subtile gC (SZ.v tile) (SZ.v tile) mrow mcol) (ix2 (brow <: natlt tile) (bcol <: natlt tile)) (macc eC (mrow * tile + brow) (mcol * tile + bcol)))
+      tensor_pts_to_cell (array2_subtile gC (SZ.v tile) (SZ.v tile) mrow mcol) (idx2 (brow <: natlt tile) (bcol <: natlt tile)) (macc eC (mrow * tile + brow) (mcol * tile + bcol)))
     (fun (mrow:natlt mrows) (mcol:natlt mcols) (brow:natlt tile) (bcol:natlt tile) ->
       let bid = mrow * mcols + mcol in let tid = brow * tile + bcol in
-      tensor_pts_to_cell (array2_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols)) (ix2 (tid / tile <: natlt tile) (tid % tile <: natlt tile))
+      tensor_pts_to_cell (array2_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols)) (idx2 (tid / tile <: natlt tile) (tid % tile <: natlt tile))
         (macc eC ((bid / mcols) * tile + (tid / tile)) ((bid % mcols) * tile + (tid % tile))));
   forevery_unfactor_2 (mrows * mcols) mrows mcols (SZ.v tile * SZ.v tile) (SZ.v tile) (SZ.v tile)
-    (fun bid tid -> tensor_pts_to_cell (array2_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols)) (ix2 (tid / tile <: natlt tile) (tid % tile <: natlt tile))
+    (fun bid tid -> tensor_pts_to_cell (array2_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols)) (idx2 (tid / tile <: natlt tile) (tid % tile <: natlt tile))
       (macc eC ((bid / mcols) * tile + (tid / tile)) ((bid % mcols) * tile + (tid % tile))));
 
   (* Step 4: Zip gA, gB, gC *)
@@ -720,7 +720,7 @@ fn setup
     (fun (_ : natlt (mrows * mcols)) (_ : natlt (SZ.v tile * SZ.v tile)) -> gA |-> Frac (fA /. ((mrows * tile) * (mcols * tile))) eA)
     (fun (_ : natlt (mrows * mcols)) (_ : natlt (SZ.v tile * SZ.v tile)) -> gB |-> Frac (fB /. ((mrows * tile) * (mcols * tile))) eB)
     (fun (bid : natlt (mrows * mcols)) (tid : natlt (SZ.v tile * SZ.v tile)) ->
-      tensor_pts_to_cell (array2_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols)) (ix2 (tid / tile <: natlt tile) (tid % tile <: natlt tile))
+      tensor_pts_to_cell (array2_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols)) (idx2 (tid / tile <: natlt tile) (tid % tile <: natlt tile))
         (macc eC ((bid / mcols) * tile + (tid / tile)) ((bid % mcols) * tile + (tid % tile))));
 
   (* Step 5: Bridge to natlt2 and match kpre1 *)
@@ -728,7 +728,7 @@ fn setup
   forevery_ext_2
     (fun (bid : natlt (SZ.v (mrows `SZ.mul` mcols))) (tid : natlt (SZ.v (tile `SZ.mul` tile))) ->
       gA |-> Frac (fA /. ((mrows * tile) * (mcols * tile))) eA ** gB |-> Frac (fB /. ((mrows * tile) * (mcols * tile))) eB **
-      tensor_pts_to_cell (array2_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols)) (ix2 (tid / tile <: natlt tile) (tid % tile <: natlt tile))
+      tensor_pts_to_cell (array2_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols)) (idx2 (tid / tile <: natlt tile) (tid % tile <: natlt tile))
         (macc eC ((bid / mcols) * tile + (tid / tile)) ((bid % mcols) * tile + (tid % tile))))
     (fun (bid : natlt2 mrows mcols) (tid : natlt2 tile tile) -> kpre1 comb comb_r tile gA gB gC eA eB eC fA fB bid tid);
   ();
@@ -891,7 +891,7 @@ fn teardown
       (exists* (v : et).
         tensor_pts_to_cell
           (array2_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols))
-          (ix2 (tid / tile <: natlt tile) (tid % tile <: natlt tile)) v **
+          (idx2 (tid / tile <: natlt tile) (tid % tile <: natlt tile)) v **
         pure (v %~ MS.gemm_single comb_r rA rB rC grow gcol)));
 
   (* Step 3: Unzip gA *)
@@ -909,7 +909,7 @@ fn teardown
       (exists* (v : et).
         tensor_pts_to_cell
           (array2_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols))
-          (ix2 (tid / tile <: natlt tile) (tid % tile <: natlt tile)) v **
+          (idx2 (tid / tile <: natlt tile) (tid % tile <: natlt tile)) v **
         pure (v %~ MS.gemm_single comb_r rA rB rC grow gcol)));
 
   (* Step 4: Unzip gB *)
@@ -926,7 +926,7 @@ fn teardown
       exists* (v : et).
         tensor_pts_to_cell
           (array2_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols))
-          (ix2 (tid / tile <: natlt tile) (tid % tile <: natlt tile)) v **
+          (idx2 (tid / tile <: natlt tile) (tid % tile <: natlt tile)) v **
         pure (v %~ MS.gemm_single comb_r rA rB rC grow gcol));
 
   (* Step 5: Gather gA and gB *)

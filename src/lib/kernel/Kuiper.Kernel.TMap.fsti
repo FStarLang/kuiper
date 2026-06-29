@@ -1,5 +1,10 @@
 module Kuiper.Kernel.TMap
 
+(* Pointwise map of a (pure) function on a tensor.
+
+Internally, there is infra to map stateful functions (that can read from other
+tensors, etc). We could expose that. *)
+
 #lang-pulse
 
 open Kuiper

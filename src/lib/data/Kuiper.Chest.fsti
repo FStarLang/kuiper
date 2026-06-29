@@ -42,10 +42,10 @@ let upd (#r : nat) (#d : shape r) (#et : Type)
   = mk d fun i' -> if i' = i then v else c.f i'
 
 val acc_pat (#r : nat) (#d : shape r) (#et : Type)
-  (c : chest d et)
+  (f : abs d -> GTot et)
   (i : abs d)
-  : Lemma (acc c i == c.f i)
-          [SMTPat (c.f i)]
+  : Lemma (acc (mk d f) i == f i)
+          [SMTPat (acc (mk d f) i)]
 
 let chest_foralli (#r : nat) (#d : shape r) (#et : Type)
   (f : abs d -> et -> prop)
@@ -59,11 +59,24 @@ let chest_forall (#r : nat) (#d : shape r) (#et : Type)
   : prop
   = chest_foralli (fun _ -> f) c
 
-let chest_map (#r : nat) (#d : shape r) (#et : Type)
-  (f : et -> et)
+let chest_forallb (#r : nat) (#d : shape r) (#et : Type)
+  (f : et -> GTot bool)
   (c : chest d et)
-  : chest d et
+  : prop
+  = chest_forall (fun x -> f x) c
+
+let chest_map (#r : nat) (#d : shape r) (#et1 #et2 : Type)
+  (f : et1 -> et2)
+  (c : chest d et1)
+  : chest d et2
   = mk _ fun i -> f (acc c i)
+
+(* Could be implemented with map. *)
+let chest_refine (#r : nat) (#d : shape r) (#et : Type)
+  (p : et -> prop)
+  (c : chest d et { forall i. p (acc c i) })
+  : chest d (x:et{p x})
+  = mk _ #(x:et{p x}) fun i -> acc c i
 
 let chest_comb (#r : nat) (#d : shape r) (#et : Type)
   (f : binop et)
@@ -93,11 +106,8 @@ instance chest_is_container (#r : nat) (d : shape r) (et : Type)
 {
   acc;
   upd;
-  l1 = ez;
-  l2 = ez;
   ext = (fun c1 c2 _ -> assert (equal c1 c2));
   from_fun = mk d;
-  from_fun_ok = ez;
 }
 
 let chest_approximates #et
@@ -165,6 +175,45 @@ let upd1 (#et:Type) (#d0 : nat)
   (x : et)
   : chest1 et d0
   = upd s (i0, ()) x
+let acc1 (#et:Type) (#d0 : nat)
+  (s : chest1 et d0)
+  (i0 : natlt d0)
+  : GTot et
+  = acc s (i0, ())
+let chest1_to_seq
+  (#et : Type)
+  (#n : nat)
+  (c : chest1 et n)
+  : GTot (lseq et n)
+  = Seq.init_ghost n (fun i -> acc1 c i)
+let seq_to_chest1
+  (#et : Type)
+  (#n : nat)
+  (s : lseq et n)
+  : GTot (chest1 et n)
+  = mk1 (fun i -> Seq.index s i)
+let chest1_mapi (#n : nat) (#et1 #et2 : Type)
+  (f : natlt n -> et1 -> et2)
+  (c : chest1 et1 n)
+  : chest1 et2 n
+  = mk1 (fun i -> f i (acc1 c i))
+let chest1_rsum #n (s : chest1 real n) : real =
+  Kuiper.Seq.Common.seq_fold_left (+.) 0.0R (chest1_to_seq s)
+  (* Do not use seq? *)
+let chest1_sub
+  (#et : Type0) (#n : nat)
+  (i j : natle n{i <= j})
+  (s : chest1 et n)
+  : chest1 et (j-i)
+  = mk1 (fun k -> acc1 s (i + k))
+let chest1_append
+  (#et : Type0) (#n #m : nat)
+  (s1 : chest1 et n)
+  (s2 : chest1 et m)
+  : chest1 et (n + m)
+  = mk1 #_ #(n+m) (fun i ->
+      if i < n then acc1 s1 i
+      else acc1 s2 (i - n))
 
 let chest2 et d1 d2 = chest (d1 @| d2 @| INil) et
 let mk2 (#et:Type) (#d0 #d1 : nat)
@@ -178,6 +227,28 @@ let upd2 (#et:Type) (#d0 #d1 : nat)
   (x : et)
   : chest2 et d0 d1
   = upd s (i0, (i1, ())) x
+let acc2 (#et:Type) (#d0 #d1 : nat)
+  (s : chest2 et d0 d1)
+  (i0 : natlt d0)
+  (i1 : natlt d1)
+  : GTot et
+  = acc s (i0, (i1, ()))
+
+let chest2_row
+  (#et : Type0)
+  (#rows #cols : erased nat)
+  (em : chest2 et rows cols)
+  (i : natlt rows)
+  : chest1 et cols
+  = mk1 (fun j -> acc2 em i j)
+
+let chest2_col
+  (#et : Type0)
+  (#rows #cols : erased nat)
+  (em : chest2 et rows cols)
+  (j : natlt cols)
+  : chest1 et rows
+  = mk1 (fun i -> acc2 em i j)
 
 let chest3 et d1 d2 d3 = chest (d1 @| d2 @| d3 @| INil) et
 let mk3 (#et:Type) (#d0 #d1 #d2 : nat)
@@ -192,6 +263,13 @@ let upd3 (#et:Type) (#d0 #d1 #d2 : nat)
   (x : et)
   : chest3 et d0 d1 d2
   = upd s (i0, (i1, (i2, ()))) x
+let acc3 (#et:Type) (#d0 #d1 #d2 : nat)
+  (s : chest3 et d0 d1 d2)
+  (i0 : natlt d0)
+  (i1 : natlt d1)
+  (i2 : natlt d2)
+  : GTot et
+  = acc s (i0, (i1, (i2, ())))
 
 (* Extract / update a single "page" (the 2-D slice at batch index i). *)
 let slice_page (#et:Type) (#d0 #d1 #d2 : nat)
@@ -233,18 +311,29 @@ let upd4 (#et:Type) (#d0 #d1 #d2 #d3 : nat)
   (x : et)
   : chest4 et d0 d1 d2 d3
   = upd s (i0, (i1, (i2, (i3, ())))) x
+
+let acc4 (#et:Type) (#d0 #d1 #d2 #d3 : nat)
+  (s : chest4 et d0 d1 d2 d3)
+  (i0 : natlt d0)
+  (i1 : natlt d1)
+  (i2 : natlt d2)
+  (i3 : natlt d3)
+  : GTot et
+  = acc s (i0, (i1, (i2, (i3, ()))))
+
 (* Extract / update a single "page" (the 2-D slice at batch index i, j). *)
 // TODO: this is defined a little differently than the 3D version.. probably should be more consistent?
 let slice_page4 (#et:Type) (#d0 #d1 #d2 #d3: nat)
   (m : chest4 et d0 d1 d2 d3) (i : natlt d0) (j : natlt d1)
   : chest2 et d2 d3
-  = mk2 fun k l -> (acc m (i,(j,(k,(l,())))))
+  = mk2 (acc4 m i j)
 
 let upd_page4 (#et:Type) (#d0 #d1 #d2 #d3: nat)
   (m : chest4 et d0 d1 d2 d3) (i : natlt d0) (j : natlt d1)
   (p : chest2 et d2 d3)
   : chest4 et d0 d1 d2 d3
-  = mk4 fun i' j' k l ->
+  = mk4 fun i' j' ->
       if i' = i && j' = j
-      then acc p (k,(l,()))
-      else acc m (i',(j',(k,(l,()))))
+      then acc2 p
+      else acc4 m i' j'
+

@@ -12,6 +12,7 @@ inline_for_extraction noextract
 unfold
 class has_vec_cpy (et : Type) {| sized et |} = {
   [@@@FStar.Tactics.Typeclasses.no_method] _chunk : szp;
+  #[Tactics.Easy.easy_fill ()]
   [@@@FStar.Tactics.Typeclasses.no_method] _pf : squash (_chunk * size #et == 16);
   (* ^ Vectorized copies are always 16 bytes wide, for us. One can do smaller
      vectorized copies in CUDA. *)
@@ -21,22 +22,22 @@ unfold
 inline_for_extraction noextract
 let chunk (et : Type) {| sized et, hvc : has_vec_cpy et |} : szp =
   match hvc with
-  | Mkhas_vec_cpy chunk _ -> chunk
+  | Mkhas_vec_cpy chunk #_ -> chunk
 
 inline_for_extraction noextract
 instance has_vec_cpy_float : has_vec_cpy float =
   Kuiper.Float32.lem_sizeof ();
-  { _chunk = 4sz; _pf = ez; }
+  { _chunk = 4sz }
 
 inline_for_extraction noextract
 instance has_vec_cpy_half  : has_vec_cpy half =
   Kuiper.Float16.lem_sizeof ();
-  { _chunk = 8sz; _pf = ez; }
+  { _chunk = 8sz }
 
 inline_for_extraction noextract
 instance has_vec_cpy_bf16  : has_vec_cpy bf16 =
   Kuiper.BFloat16.lem_sizeof ();
-  { _chunk = 8sz; _pf = ez; }
+  { _chunk = 8sz }
 
 (* The single primitive for vectorized copies. *)
 

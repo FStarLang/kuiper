@@ -19,8 +19,6 @@ let abs_bij (#m #n : nat)
   {
     ff = (fun (i, (j, ())) -> (i, j));
     gg = (fun (i, j) -> (i, (j, ())));
-    ff_gg = ez;
-    gg_ff = ez;
   }
 
 unfold
@@ -114,7 +112,7 @@ fn kf
   let trow : szlt m = gid /^ n; assert (rewrites_to trow (gid /^ n));
   let tcol : szlt n = gid %^ n; assert (rewrites_to tcol (gid %^ n));
 
-  let s = Kuiper.DotProd.matmul_kahan_dotprod_t gA gB trow tcol rA rB;
+  let s = Kuiper.DotProd.matmul_kahan_dotprod gA gB trow tcol rA rB;
 
   let v0 = tensor_read_cell gC (trow, (tcol, ()));
   let v1 = comb v0 s;

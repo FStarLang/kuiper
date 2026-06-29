@@ -1,8 +1,7 @@
 module Kuiper.Kernel.GEMM.FlipFlopBarrier2
 
-(* Array2 version of FlipFlopBarrier.
-   This module defines a barrier contract used by GEMMs that operate
-   on Array2 (Tensor-backed) matrices instead of VArray-backed gpu_matrix. *)
+(* This module defines a barrier contract used by GEMMs that operate
+   on Array2 (Tensor-backed) matrices. *)
 
 #lang-pulse
 open Kuiper
@@ -13,7 +12,7 @@ open Kuiper.Tensor.Tiling
 
 open Kuiper.Tensor
 module SZ = Kuiper.SizeT
-module CV = Kuiper.Kernel.GEMM.Copy.Vec
+module CV = Kuiper.Kernel.GEMM.Copy.Vec2
 
 (* ---- Strided chunk operations for Array2 ---- *)
 
@@ -47,7 +46,7 @@ fn split_array2_into_strided_chunks
   fn aux (tid : natlt nthr)
     requires
       forall+ (ij : (natlt rows & natlt cols){CV.in_chunk (chunk et #_ #hvc) rows cols nthr tid ij}).
-        tensor_pts_to_cell m (ix2 ij._1 ij._2) (macc em ij._1 ij._2)
+        tensor_pts_to_cell m (idx2 ij._1 ij._2) (macc em ij._1 ij._2)
     ensures
       own_strided_chunks m em nthr tid
   {
@@ -76,10 +75,10 @@ fn join_array2_from_strided_chunks
   forevery_map
     (fun tid -> own_strided_chunks m em nthr tid)
     (fun tid -> forall+ (ij : (natlt rows & natlt cols){CV.in_chunk (chunk et #_ #hvc) rows cols nthr tid ij}).
-        tensor_pts_to_cell m (ix2 ij._1 ij._2) (macc em ij._1 ij._2))
+        tensor_pts_to_cell m (idx2 ij._1 ij._2) (macc em ij._1 ij._2))
     fn tid { unfold own_strided_chunks m em nthr tid };
   forevery_join_or_n (fun (tid : natlt nthr) ij -> CV.in_chunk (chunk et #_ #hvc) rows cols nthr tid ij)
-    (fun ij -> tensor_pts_to_cell m (ix2 ij._1 ij._2) (macc em ij._1 ij._2));
+    (fun ij -> tensor_pts_to_cell m (idx2 ij._1 ij._2) (macc em ij._1 ij._2));
   Classical.forall_intro (CV.in_chunk_covers_all (chunk et #_ #hvc) rows cols nthr);
   Classical.forall_intro_3 (fun ij tid1 -> Classical.move_requires
                              (CV.in_chunk_no_overlap (chunk et #_ #hvc) rows cols nthr ij tid1));
@@ -127,8 +126,8 @@ fn join_array2_from_strided_chunks_underspec
       unfold own_strided_chunks m (ff tid) nthr tid;
       forevery_map
         #(ij : (natlt rows & natlt cols){CV.in_chunk (chunk et #_ #hvc) rows cols nthr tid ij})
-        (fun ij -> tensor_pts_to_cell m (ix2 ij._1 ij._2) (macc (ff tid) ij._1 ij._2))
-        (fun ij -> tensor_pts_to_cell m (ix2 ij._1 ij._2) (macc em' ij._1 ij._2))
+        (fun ij -> tensor_pts_to_cell m (idx2 ij._1 ij._2) (macc (ff tid) ij._1 ij._2))
+        (fun ij -> tensor_pts_to_cell m (idx2 ij._1 ij._2) (macc em' ij._1 ij._2))
         fn ij { () };
       fold own_strided_chunks m em' nthr tid;
     };
