@@ -83,8 +83,8 @@ fn softmax_gpu
 
   (* Step 2: sum of exp(x - m) (does not modify the array). *)
   assert pure (SZ.fits (lena + nth));
-  let sum = Kuiper.Kernel.HReduce.reduce
-              (fun x -> fexp (sub x m)) (fun z -> exp (z -. reveal m_r)) nth lena a ra;
+  let sum = Kuiper.Kernel.Reduce.reduce1
+              (fun x -> fexp (sub x m)) (fun z -> exp (z -. reveal m_r)) lena nth a ra;
 
   (* Step 3: write exp(x - m) / sum into every cell. *)
   Kuiper.Kernel.Map.map_gpu (fun x -> div (fexp (sub x m)) sum) lena a;

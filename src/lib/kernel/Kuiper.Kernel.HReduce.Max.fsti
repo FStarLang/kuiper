@@ -23,27 +23,25 @@ instance approx_function_can_approximate
      is non-empty (max has no real-number identity). *)
 
 inline_for_extraction noextract
-type reduce_max_ty (et : Type0) {| floating et, real_like et, floating_real_like et |} =
-  fn (pre_map : et -> et)
-     (pre_map_r : real -> real { pre_map %~ pre_map_r })
-     (nth : szp { nth <= max_threads })
-     (lena : szp)
-     (#l : layout1 lena) {| ctlayout l |}
-     (a : array1 et l { is_global a })
-     (#va : chest1 et lena)
-     (vr  : chest1 real lena)
+fn reduce_max
+  (#et : Type0) {| floating et, real_like et, floating_real_like et |}
+  (pre_map : et -> et)
+  (pre_map_r : real -> real { pre_map %~ pre_map_r })
+  (nth : szp { nth <= max_threads })
+  (lena : szp)
+  (#l : layout1 lena) {| ctlayout l |}
+  (a : array1 et l { is_global a })
+  (#va : chest1 et lena)
+  (vr : chest1 real lena)
+  norewrite // sigh... spec in fsti is not purified
   preserves
     cpu **
     on gpu_loc (a |-> va)
   requires
     pure (va %~ vr) **
     pure (0 < SZ.v nth /\ SZ.v nth <= lena) **
-    pure (SZ.fits (lena + nth)) // Almost impossible to falsify
+    pure (SZ.fits (lena + nth))
   returns
     res : et
   ensures
     pure (res %~ seq_max (chest1_to_seq (chest_map pre_map_r vr)))
-
-inline_for_extraction noextract
-val reduce_max (#et:Type0) {| floating et, real_like et, floating_real_like et |}
-  : reduce_max_ty et

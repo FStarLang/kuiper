@@ -29,6 +29,7 @@ let bij_up
   }
 
 // FIXME: cbij should be a typeclass
+inline_for_extraction noextract
 instance clayout_bij
   (#r1 : nat) (#s1 : shape r1)
   (#r2 : nat) (#s2 : shape r2)

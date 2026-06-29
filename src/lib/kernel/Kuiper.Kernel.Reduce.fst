@@ -12,6 +12,7 @@ module C = Kuiper.Matrix.Casts
 
 #set-options "--split_queries always"
 
+inline_for_extraction noextract
 let cbij (lena : szp)
   : (conc (lena @| INil) ==~ conc (1 @| lena @| INil)) =
   mk_cbij

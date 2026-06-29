@@ -247,6 +247,7 @@ noeq type cbij (a b: Type) = {
 inline_for_extraction
 let (==~) = cbij
 
+inline_for_extraction noextract
 let mk_cbij
   (#a #b : _)
   (ff : a -> Tot b)

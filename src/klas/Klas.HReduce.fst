@@ -4,7 +4,7 @@ module Klas.HReduce
 
 open Kuiper
 open Kuiper.Tensor.Layout.Alg
-module K = Kuiper.Kernel.HReduce
+module K = Kuiper.Kernel.Reduce
 
 inline_for_extraction noextract
 fn inst
@@ -31,7 +31,7 @@ fn inst
   let nth64 = SZ.sizet_to_uint64 nth;
   dassert (not (FStar.UInt64.(lena64 +%^ nth64 <^ lena64)));
   assert pure (equal (chest_map id vr) vr);
-  K.reduce id id nth lena a vr;
+  K.reduce1 id id lena nth a vr;
 }
 
 let reduce_f16_plus : reduce_ty f16 l1_forward = inst _ _

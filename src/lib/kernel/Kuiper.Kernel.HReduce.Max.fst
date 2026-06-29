@@ -370,28 +370,32 @@ let vr_partial_max (pre_map : real -> real) (vr : seq real) (nth : pos { nth <= 
     seq_max (seq_stride w nth tid))
 
 (* The max over the per-bucket maxima equals the max over the whole sequence. *)
-#push-options "--z3rlimit 40"
-let strided_max_is_max (pre_map : real -> real) (vr : seq real) (nth : pos { nth <= Seq.length vr })
-  : Lemma (ensures seq_max (vr_partial_max pre_map vr nth) == seq_max (seq_map pre_map vr))
+(* The two directions of [strided_max_is_max], as separate top-level lemmas.
+   Each is proved in its own clean context so it verifies at a low rlimit
+   (the monolithic version sat at ~100% of rlimit 40 and flaked). *)
+let strided_max_le (pre_map : real -> real) (vr : seq real) (nth : pos { nth <= Seq.length vr })
+  : Lemma (ensures seq_max (vr_partial_max pre_map vr nth) <=. seq_max (seq_map pre_map vr))
   = let w = seq_map pre_map vr in
-    let lenw = Seq.length w in
     let vp = vr_partial_max pre_map vr nth in
-    // vp @! tid == seq_max (seq_stride w nth tid)   (init_ghost_index_, SMTPat)
-    // Direction 1: seq_max vp <=. seq_max w
     let aux1 (tid : nat { tid < nth }) : Lemma ((vp @! tid) <=. seq_max w)
       = stride_nonempty w nth tid;
         let bucket = seq_stride w nth tid in
         let aux1a (i : nat { i < Seq.length bucket }) : Lemma ((bucket @! i) <=. seq_max w)
           = // bucket @! i == w @! (tid + i*nth)
-            assert (tid + i * nth < lenw);
+            assert (tid + i * nth < Seq.length w);
             seq_max_ub w (tid + i * nth)
         in
         Classical.forall_intro aux1a;
         seq_max_le bucket (seq_max w)
     in
     Classical.forall_intro aux1;
-    seq_max_le vp (seq_max w);
-    // Direction 2: seq_max w <=. seq_max vp
+    seq_max_le vp (seq_max w)
+
+let strided_max_ge (pre_map : real -> real) (vr : seq real) (nth : pos { nth <= Seq.length vr })
+  : Lemma (ensures seq_max (seq_map pre_map vr) <=. seq_max (vr_partial_max pre_map vr nth))
+  = let w = seq_map pre_map vr in
+    let lenw = Seq.length w in
+    let vp = vr_partial_max pre_map vr nth in
     let aux2 (g : nat { g < lenw }) : Lemma ((w @! g) <=. seq_max vp)
       = let off : nat = g % nth in
         let i : nat = g / nth in
@@ -414,7 +418,12 @@ let strided_max_is_max (pre_map : real -> real) (vr : seq real) (nth : pos { nth
     in
     Classical.forall_intro aux2;
     seq_max_le w (seq_max vp)
-#pop-options
+
+let strided_max_is_max (pre_map : real -> real) (vr : seq real) (nth : pos { nth <= Seq.length vr })
+  : Lemma (ensures seq_max (vr_partial_max pre_map vr nth) == seq_max (seq_map pre_map vr))
+  = strided_max_le pre_map vr nth;
+    strided_max_ge pre_map vr nth
+    // antisymmetry of <=. on reals closes the equality
 
 // Barrier
 
@@ -671,7 +680,21 @@ let lemma_first_past
   (i : nat)
   : Lemma (requires i % stride == off /\ i >= len /\ i < len + stride)
           (ensures  i == off + ((len - off - 1 + stride) / stride) * stride)
-  = ()
+  = let q = i / stride in
+    let m = len - off - 1 in
+    (* i == stride*q + off, so the bounds on i are linear in the opaque [stride*q]:
+         m = len-off-1 < stride*q <= m + stride. *)
+    FStar.Math.Lemmas.euclidean_division_definition i stride;
+    assert (m < stride * q);
+    assert (stride * q <= m + stride);
+    (* goal reduces to q == m/stride + 1; prove by antisymmetry of the two bounds. *)
+    FStar.Math.Lemmas.lemma_div_plus m 1 stride;                    // (m+stride)/stride == m/stride+1
+    (* upper bound: q == (stride*q)/stride <= (m+stride)/stride == m/stride+1 *)
+    FStar.Math.Lemmas.cancel_mul_div q stride;                      // (q*stride)/stride == q
+    FStar.Math.Lemmas.lemma_div_le (stride * q) (m + stride) stride;
+    (* lower bound: m/stride <= (stride*q-1)/stride == q-1, so m/stride+1 <= q *)
+    FStar.Math.Lemmas.lemma_div_plus (stride - 1) (q - 1) stride;   // (stride*q-1)/stride == q-1
+    FStar.Math.Lemmas.lemma_div_le m (stride * q - 1) stride
 
 #push-options "--z3rlimit 100"
 inline_for_extraction noextract
@@ -791,6 +814,14 @@ fn max_stride_map
 #pop-options
 
 #push-options "--z3rlimit 20"
+(* Pure, quantifier-free arithmetic for the first tree-reduction step, proved in
+   a clean context so it does not consume [kf]'s (monolithic) VC budget under the
+   ambient quantified slprops. *)
+let kf_first_step_arith (tid nth k : nat)
+  : Lemma (requires tid < nth /\ pow2 k == 1)
+          (ensures tid + 1 <= nth /\ min (tid + pow2 k) nth == tid + 1)
+  = ()
+
 inline_for_extraction noextract
 fn kf
   (#et:Type0) {| floating et, real_like et, floating_real_like et |}
@@ -847,9 +878,7 @@ fn kf
   (**)assert (pure (Seq.equal (Seq.slice (reveal vr_s) tid (tid + 1)) (seq![reveal vr_s @! SZ.v tid])));
   (**)assert (pure (acc1 psum_chest 0 %~ seq_max (Seq.slice (reveal vr_s) tid (tid + 1))));
   (**)fold (array1_pts_to_slice_max sa tid (tid + 1) vr_s);
-  (**)assert (pure (pow2 (SZ.v !n) == 1));
-  (**)assert (pure (SZ.v tid + 1 <= SZ.v nth));
-  (**)assert (pure (min (SZ.v tid + pow2 (SZ.v !n)) (SZ.v nth) == SZ.v tid + 1));
+  (**)kf_first_step_arith (SZ.v tid) (SZ.v nth) (SZ.v !n);
   (**)rewrite (array1_pts_to_slice_max sa tid (tid + 1) vr_s)
   (**)     as (array1_pts_to_slice_max sa tid (min (tid + pow2 !n) nth) vr_s);
   (**)if_intro_true' (div_pow2 !n tid) (array1_pts_to_slice_max sa tid (min (tid + pow2 !n) nth) vr_s);

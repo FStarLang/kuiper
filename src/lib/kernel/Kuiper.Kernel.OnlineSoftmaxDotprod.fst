@@ -250,6 +250,42 @@ let real_mul_assoc (a b c: real)
   : Lemma ((a *. b) *. c == a *. (b *. c))
   = ()
 
+let real_mul_comm (a b: real)
+  : Lemma (a *. b == b *. a)
+  = ()
+
+(* Pure-real cancellation tail of [real_online_softmax_dotprod_lemma], extracted
+   so the (nonlinear) algebra is proved in a clean context instead of inside the
+   big lemma's VC: from [sm * (dd * em) == dn * em] with [dd, em <> 0], conclude
+   [sm == dn / dd]. *)
+let dotprod_cancel (sm dd dn em : real)
+  : Lemma (requires sm *. (dd *. em) == dn *. em /\ ~(em == 0.0R) /\ ~(dd == 0.0R))
+          (ensures sm == dn /. dd)
+  = real_mul_assoc sm dd em;            // (sm*dd)*em == sm*(dd*em) == dn*em
+    real_mul_cancel (sm *. dd) dn em;   // sm*dd == dn
+    real_div_mul sm dd                  // (sm*dd)/dd == sm, and sm*dd == dn, so dn/dd == sm
+
+(* [dotprod_pair_seq] is its own head consed onto its tail, proved per-index with
+   explicit [Seq] lemmas so the main proof does not pay for quantified reasoning
+   over [Seq.init]/[slice] indices (that obligation sat at ~94% of rlimit). *)
+let pairs_cons_index (#n: nat) (ra rb: lseq real n { n > 0 }) (i: nat { i < n })
+  : Lemma (Seq.index (dotprod_pair_seq ra rb) i
+           == Seq.index (Seq.cons (ra @! 0, rb @! 0) (seq_drop 1 (dotprod_pair_seq ra rb))) i)
+  = let pairs = dotprod_pair_seq ra rb in
+    if i = 0 then
+      Seq.index_cons_l (ra @! 0, rb @! 0) (seq_drop 1 pairs)
+    else (
+      Seq.index_cons_r (ra @! 0, rb @! 0) (seq_drop 1 pairs) i;
+      Seq.lemma_index_slice pairs 1 n (i - 1)  // index (slice pairs 1 n) (i-1) == index pairs i
+    )
+
+let pairs_is_cons (#n: nat) (ra rb: lseq real n { n > 0 })
+  : Lemma (dotprod_pair_seq ra rb
+           == Seq.cons (ra @! 0, rb @! 0) (seq_drop 1 (dotprod_pair_seq ra rb)))
+  = Classical.forall_intro (pairs_cons_index ra rb);
+    Seq.lemma_eq_intro (dotprod_pair_seq ra rb)
+                       (Seq.cons (ra @! 0, rb @! 0) (seq_drop 1 (dotprod_pair_seq ra rb)))
+
 #push-options "--split_queries always"
 let real_online_softmax_dotprod_lemma
   (#n: nat) (ra rb: lseq real n { n > 0 })
@@ -261,10 +297,8 @@ let real_online_softmax_dotprod_lemma
     let tl = seq_drop 1 pairs in
     let head_pair : real & real = (x0, y0) in
     let cons_pairs : Seq.seq (real & real) = Seq.cons head_pair tl in
-    // pairs == cons (x0, y0) tl
-    assert (Seq.length cons_pairs == n);
-    assert (forall (i: nat{i < n}). Seq.index cons_pairs i == Seq.index pairs i);
-    assert (Seq.equal pairs cons_pairs);
+    // pairs == cons (x0, y0) tl, established per-index in [pairs_is_cons]
+    pairs_is_cons ra rb;
     assert (pairs == cons_pairs);
     rsum_map_cons exp_x_y head_pair tl;
     rsum_map_cons exp_x   head_pair tl;
@@ -280,6 +314,25 @@ let real_online_softmax_dotprod_lemma
     //                 = rsum (seq_map exp_x   pairs)
     assert (exp_x_y head_pair == exp x0 *. y0);
     assert (exp_x   head_pair == exp x0);
+    (* Spell out the fold+cons connection so it is a chain of small deterministic
+       steps instead of one 600ms near-rlimit search.  [cons_pairs == Seq.cons
+       head_pair tl] and [pairs == cons_pairs]. *)
+    calc (==) {
+      dn' *. exp m';
+      == { (* fold_correct_dotprod (init m0=x0,dn0=y0): dn0 *. exp m0 == y0 *. exp x0 *) }
+      y0 *. exp x0 +. rsum (seq_map exp_x_y tl);
+      == { real_mul_comm y0 (exp x0) }
+      exp_x_y head_pair +. rsum (seq_map exp_x_y tl);
+      == { rsum_map_cons exp_x_y head_pair tl }
+      rsum (seq_map exp_x_y cons_pairs);
+    };
+    calc (==) {
+      dd' *. exp m';
+      == { (* fold_correct_dotprod (dd0=1.0R): dd0 *. exp m0 == exp x0 *) }
+      exp x0 +. rsum (seq_map exp_x tl);
+      == { rsum_map_cons exp_x head_pair tl }
+      rsum (seq_map exp_x cons_pairs);
+    };
     assert (dn' *. exp m' == rsum (seq_map exp_x_y pairs));
     assert (dd' *. exp m' == rsum (seq_map exp_x   pairs));
     // Connect to seq_dotprod and to summ:
@@ -309,14 +362,9 @@ let real_online_softmax_dotprod_lemma
     let sm = seq_dotprod' (softmax_real_seq ra) rb n in
     assert (sm *. summ == seq_dotprod' mra rb n);
     assert (sm *. (dd' *. exp m') == dn' *. exp m');
-    // Associativity of [*.] on reals:
-    real_mul_assoc sm dd' (exp m');
-    assert ((sm *. dd') *. exp m' == sm *. (dd' *. exp m'));
-    assert ((sm *. dd') *. exp m' == dn' *. exp m');
-    real_mul_cancel (sm *. dd') dn' (exp m');
-    assert (sm *. dd' == dn');
-    real_div_mul sm dd';
-    assert ((sm *. dd') /. dd' == sm);
+    (* cancel [exp m'] then divide by [dd'] — pure real algebra, in its own lemma *)
+    dotprod_cancel sm dd' dn' (exp m');
+    assert (sm == dn' /. dd');
     assert (online_softmax_dotprod_real ra rb == dn' /. dd');
     assert (online_softmax_dotprod_real ra rb == sm)
 #pop-options

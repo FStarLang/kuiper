@@ -66,7 +66,7 @@ fn log_softmax_gpu
 {
   assert pure (SZ.fits (lena + nth));
   (* Pointwise exp + compute sum (reduce preserves a). *)
-  let sum = Kuiper.Kernel.HReduce.reduce fexp exp nth lena a ra;
+  let sum = Kuiper.Kernel.Reduce.reduce1 fexp exp lena nth a ra;
 
   (* Compute pointwise log softmax. *)
   Kuiper.Kernel.Map.map_gpu (fun x -> x `sub` flog sum) lena a;

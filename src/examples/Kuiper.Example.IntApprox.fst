@@ -25,7 +25,7 @@ fn reduce (#et:Type0) {| scalar et, real_like et |}
   ensures   pure (res %~ chest1_rsum r)
 {
   assert pure (equal (chest_map id r) r);
-  Kuiper.Kernel.HReduce.reduce id id 1024sz len a r;
+  Kuiper.Kernel.Reduce.reduce1 id id len 1024sz a r;
 }
 
 (* Move these 3 away *)

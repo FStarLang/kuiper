@@ -10,7 +10,6 @@ open Kuiper.Tensor { ctlayout }
 open Kuiper.Tensor.Layout.Alg { l1_forward }
 open Pulse.Lib.GhostReference { read as gread, write as gwrite, alloc as galloc }
 open Kuiper.Bijection { ( =~ ), bij_sym }
-open Kuiper.Kernel.HReduce
 
 module SZ = Kuiper.SizeT
 module RPM = Kuiper.Barrier.RPM
@@ -352,6 +351,14 @@ fn iteration
 
 (* Number of barrier calls in the reduction loop: smallest k s.t. pow2 k >= nth *)
 let hreduce_barrier_count (nth : pos) : GTot nat = log2 (2 * nth - 1)
+
+(* Quantifier-free arithmetic step, proved in a clean context (stable):
+   when [tid < nth] and [pow2 k == 1], [min (tid + pow2 k) nth == tid + 1]. *)
+let min_tid_pow2_step (tid nth k : nat)
+  : Lemma (requires tid < nth /\ pow2 k == 1)
+          (ensures min (tid + pow2 k) nth == tid + 1)
+  = ()
+
 
 (* If pow2 k <= n < pow2 (k+1), then log2 n = k. *)
 let rec log2_range (n:pos) (k:nat)
@@ -833,6 +840,7 @@ fn kf_block
   (**)rsum_singleton_ (reveal vr_s @! SZ.v tid);
   (**)assert pure (rsum (Seq.slice (reveal vr_s) (SZ.v tid) (SZ.v tid + 1)) == (reveal vr_s @! SZ.v tid));
 
+  (**)assert pure (forall (y:nat). SZ.v tid <= y /\ y < SZ.v tid + 1 ==> y == SZ.v tid);
   forevery_singleton_intro'
     #(x:nat{tid <= x /\ x < tid + 1})
     (fun x -> tensor_pts_to_cell sa ((x <: natlt nth), ()) (seq![psum] @! (x - tid)))
@@ -840,6 +848,8 @@ fn kf_block
   fold array1_pts_to_slice sa tid (tid+1) seq![psum];
 
   (**)fold (array1_pts_to_slice_sum sa tid (tid + 1) vr_s);
+  (**)assert pure (pow2 (SZ.v !n) == 1);
+  (**)min_tid_pow2_step (SZ.v tid) (SZ.v nth) (SZ.v !n);
   (**)assert pure (min (SZ.v tid + pow2 0) nth == SZ.v tid + 1);
   (**)if_intro_true' (div_pow2 !n tid) (array1_pts_to_slice_sum sa tid (min (tid + pow2 !n) nth) vr_s);
 
