@@ -71,6 +71,15 @@ let l3_batched_col_major (r m n : nat) : tlayout (r @| m @| n @| INil) =
   major_on 0 m <|
   lunit
 
+let l4_batched_row_major (r1 r2 m n : nat)
+  : Kuiper.Tensor.Layout.tlayout (r1 @| r2 @| m @| n @| INil) =
+  pack <|
+  major_on 0 r1 <|
+  major_on 0 r2 <|
+  major_on 0 m <|
+  major_on 0 n <|
+  lunit
+
 (* Constructing a concrete size for a given description.
 TODO: use concrete_sz. *)
 inline_for_extraction noextract
@@ -181,3 +190,11 @@ instance val c_l3_batched_col_major
   (m : SZ.t{SZ.fits (r * m)})
   (n : SZ.t{SZ.fits (m * n) /\ SZ.fits (r * (m * n))})
   : T.ctlayout (l3_batched_col_major r m n)
+
+inline_for_extraction noextract
+instance val c_l4_batched_row_major
+  (r1: erased nat{SZ.fits r1})
+  (r2: SZ.t{SZ.fits (r1 * r2)})
+  (m : SZ.t{SZ.fits (r2 * m) /\ SZ.fits (r1 * (r2 * m))})
+  (n : SZ.t{SZ.fits (m * n) /\ SZ.fits (r2 * (m * n)) /\ SZ.fits (r1 * (r2 * (m * n)))})
+  : T.ctlayout (l4_batched_row_major r1 r2 m n)

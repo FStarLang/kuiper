@@ -319,3 +319,20 @@ let acc4 (#et:Type) (#d0 #d1 #d2 #d3 : nat)
   (i3 : natlt d3)
   : GTot et
   = acc s (i0, (i1, (i2, (i3, ()))))
+
+(* Extract / update a single "page" (the 2-D slice at batch index i, j). *)
+// TODO: this is defined a little differently than the 3D version.. probably should be more consistent?
+let slice_page4 (#et:Type) (#d0 #d1 #d2 #d3: nat)
+  (m : chest4 et d0 d1 d2 d3) (i : natlt d0) (j : natlt d1)
+  : chest2 et d2 d3
+  = mk2 (acc4 m i j)
+
+let upd_page4 (#et:Type) (#d0 #d1 #d2 #d3: nat)
+  (m : chest4 et d0 d1 d2 d3) (i : natlt d0) (j : natlt d1)
+  (p : chest2 et d2 d3)
+  : chest4 et d0 d1 d2 d3
+  = mk4 fun i' j' ->
+      if i' = i && j' = j
+      then acc2 p
+      else acc4 m i' j'
+
