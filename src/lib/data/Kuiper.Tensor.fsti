@@ -7,10 +7,13 @@ include Kuiper.Tensor.Layout
 
 open Kuiper
 open Kuiper.Injection
+open Kuiper.Bijection
 open Kuiper.Shape
 open Kuiper.Chest
 open FStar.Tactics.Typeclasses { no_method }
 open Pulse.Lib.Trade
+open Kuiper.Shareable
+
 module SZ = Kuiper.SizeT
 module T = FStar.Tactics.V2
 
@@ -569,6 +572,100 @@ fn tensor_restore_slice
   ensures
     a |-> Frac f s
 
+let tlayout_bij
+  (#r1 : nat) (#d1 : shape r1)
+  (#r2 : nat) (#d2 : shape r2)
+  (f : abs d1 =~ abs d2)
+  (l : tlayout d1)
+  : tlayout d2
+  = {
+      ulen = l.ulen;
+      imap = inj_bij' f `Kuiper.Injection.inj_comp` l.imap;
+  }
+
+inline_for_extraction noextract
+instance val ctlayout_bij
+  (#r1 : nat) (#d1 : shape r1)
+  (#r2 : nat) (#d2 : shape r2 { all_fit d2 })
+  (f : abs d1 =~ abs d2)
+  (fconc: conc d2 -> conc d1)
+  (fconc_correct: (x: conc d2) -> up (fconc x) == f.gg (up x))
+  (l : tlayout d1) {| c: ctlayout l |}
+  : ctlayout #r2 #d2 (tlayout_bij f l)
+
+ghost 
+fn tensor_apply_bij
+  (#et : Type0)
+  (#r1 : nat) (#d1 : shape r1)
+  (#r2 : nat) (#d2 : shape r2)
+  (f : abs d1 =~ abs d2)
+  (#l : tlayout d1) {| is_full l |}
+  (a : tensor et l)
+  (#fp : perm) (#m : Chest.t d1 et)
+  requires
+    a |-> Frac fp m
+  ensures
+    from_array (tlayout_bij f l) (core a) |-> Frac fp (Chest.mk d2 (fun i -> Chest.acc m (i <~| f)))
+
+let unfold_index (#r: nat {r > 1}) (#d: shape r) (i : abs (fold_outer d)): GTot (abs d) = 
+  let ICons h1 (ICons h2 ts) = d in
+  let i : natlt (h1 * h2) & abs ts = i in
+  let (ih, it) = i in 
+  (((ih / h2 <: natlt h1), ((ih % h2 <: natlt h2), it)))
+
+let fold_index (#r: nat {r > 1}) (#d: shape r) (i : abs d): GTot (abs (fold_outer d)) = 
+  let ICons h1 (ICons h2 ts) = d in
+  let i : natlt h1 & (natlt h2 & abs ts) = i in
+  let (ih1, (ih2, it)) = i in 
+  let ih12 : natlt (h1 * h2) = ih1 * h2 + ih2 in
+  (ih12, it)
+
+val fold_bij (#r: nat {r > 1}) (#d: shape r): abs d =~ abs (fold_outer d)
+
+let fold_chest (#et : Type0) (#r: nat {r > 1}) (#d: shape r) (m : Chest.t d et): GTot (Chest.t (fold_outer d) et) = 
+  Chest.mk (fold_outer d) (fun i -> Chest.acc m (unfold_index i))
+
+let unfold_chest (#et : Type0) (#r: nat {r > 1}) (#d: shape r) (m : Chest.t (fold_outer d) et): GTot (Chest.t d et) = 
+  Chest.mk d (fun i -> Chest.acc m (fold_index i))
+
+unfold let tlayout_fold_outer 
+  (#r : nat {r > 1}) (#d : shape r)
+  (l : tlayout d) = tlayout_bij fold_bij l
+
+unfold
+let desc_top2 (#r: nat {r > 1}) (d: shape r): GTot (nat & nat & shape (r-2)) = (head d, head (tail d), tail (tail d))
+
+inline_for_extraction noextract
+instance val ctlayout_fold_outer
+  (#r : nat {r > 1}) (#d : shape r { all_fit d }) 
+  (#top2_fits: SZ.fits ((desc_top2 d)._1 * (desc_top2 d)._2))
+  (l : tlayout d) {| c: ctlayout l, cs: concrete_sz (desc_top2 d)._2 |}
+  : ctlayout #_ #(fold_outer d) (tlayout_fold_outer l)
+
+ghost
+fn tensor_fold_outer
+  (#et : Type0)
+  (#r: nat {r > 1}) (#d: shape r)
+  (#l: tlayout d) 
+  (a : tensor et l)
+  (#f : perm) (#m : Chest.t d et)
+  requires
+    a |-> Frac f m
+  ensures
+    from_array (tlayout_fold_outer l) (core a) |-> Frac f (fold_chest m)
+
+ghost
+fn tensor_unfold_outer
+  (#et : Type0)
+  (#r: nat {r > 1}) (#d: shape r)
+  (#l: tlayout d) 
+  (a : tensor et (tlayout_fold_outer l))
+  (#f: perm) (#m : Chest.t (fold_outer d) et)
+  requires
+    a |-> Frac f m
+  ensures
+    from_array l (core a) |-> Frac f (unfold_chest m)
+
 (* Rank-2 conveniences over the (natlt rows & natlt cols) index pair. *)
 
 ghost
@@ -622,6 +719,16 @@ fn tensor_iraise2
       Cell a (idx2 r c) |-> Frac f (acc s (idx2 r c)))
   ensures
     a |-> Frac f s
+
+// TODO: it should be possible to have just "pts_to_shareable" for any
+// types that have pts_to, no? or does that not hold?
+instance tensor_pts_to_shareable
+  (#et : Type) (#r: nat) (#d: shape r) (#l: tlayout d)
+  (t: tensor et l) (s: chest d et): 
+  shareable (fun fr -> tensor_pts_to t #fr s) = {
+  _share_n = (fun (n: pos) (#fr : perm) -> tensor_share_n t n #fr);
+  _gather_n = (fun (n: pos) (#fr : perm) -> tensor_gather_n t n #fr);
+}
 
 val ref_of_tensor_cell
   (#et : Type0)
