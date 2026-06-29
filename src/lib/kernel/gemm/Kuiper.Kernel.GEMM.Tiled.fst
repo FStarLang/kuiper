@@ -140,9 +140,9 @@ let tile4_all_fit (m k : nat) (tile : nat)
 inline_for_extraction noextract
 let c_tile4_layout
   (#m #k : erased pos) (tile : szp)
-  (#l : tlayout ((m * SZ.v tile) @| (k * SZ.v tile) @| INil))
+  (#l : tlayout ((m * tile) @| (k * tile) @| INil))
   {| cc : ctlayout l |}
-  : ctlayout (tile4_layout #m #k #(SZ.v tile) l)
+  : ctlayout (tile4_layout #m #k #tile l)
   = let _ = cc.ulen_fits in
     let _ = cc.all_fit in
     tile4_all_fit m k (SZ.v tile);
@@ -1066,9 +1066,9 @@ fn mmcomb_gpu_approx
        #(c_tile4_layout #(SZ.v m) #(SZ.v k) tile)
        #(c_tile4_layout #(SZ.v k) #(SZ.v n) tile)
        #(c_tile4_layout #(SZ.v m) #(SZ.v n) tile)
-       (from_array (tile4_layout #(SZ.v m) #(SZ.v k) #(SZ.v tile) lA) (core (gA)))
-       (from_array (tile4_layout #(SZ.v k) #(SZ.v n) #(SZ.v tile) lB) (core (gB)))
-       (from_array (tile4_layout #(SZ.v m) #(SZ.v n) #(SZ.v tile) lC) (core (gC)))
+       (from_array (tile4_layout #m #k #tile lA) (core (gA)))
+       (from_array (tile4_layout #k #n #tile lB) (core (gB)))
+       (from_array (tile4_layout #m #n #tile lC) (core (gC)))
        (untile4 eA) (untile4 eB) (untile4 eC)
        (untile4 rA) (untile4 rB) (untile4 rC) fA fB);
 

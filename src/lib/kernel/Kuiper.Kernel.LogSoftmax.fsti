@@ -6,20 +6,20 @@ open Kuiper.Real { log }
 open Kuiper.Seq.Common
 module Vec = Pulse.Lib.Vec
 module KS = Kuiper.Spec.Softmax
-open Kuiper.Array1
+open Kuiper.Tensor
 open Kuiper.Tensor.Layout.Alg { l1_forward }
 
 // Log of softmax.
-let log_softmax_real (s:Seq.seq real { Seq.length s > 0 }) =
-  lseq_map log (seq_refine (fun x -> x >. 0.0R) (KS.softmax_real s))
+let log_softmax_real #n (s : chest1 real n) =
+  chest_map log (chest_refine (fun x -> x >. 0.0R) (KS.softmax_real s))
 
 unfold
 type log_softmax_gpu_ty (et : Type0) {| floating et, real_like et |} =
   fn (nth : szp{nth <= max_threads})
      (#lena : szp)
      (a : array1 et (l1_forward lena) { is_global a })
-     (#va : erased (lseq et lena))
-     (ra : erased (lseq real lena))
+     (#va : chest1 et lena)
+     (ra  : chest1 real lena)
   preserves
     cpu
   requires
@@ -27,7 +27,7 @@ type log_softmax_gpu_ty (et : Type0) {| floating et, real_like et |} =
     pure (va %~ ra) **
     pure (lena <= max_blocks * max_threads)
   ensures
-    exists* (va' : lseq et lena).
+    exists* (va' : chest1 et lena).
       on gpu_loc (a |-> va') **
       pure (va' %~ log_softmax_real ra)
 
@@ -48,7 +48,7 @@ type log_softmax_ty (et : Type0) {| floating et, real_like et |} =
   ensures
     exists* (va' : lseq et lena).
       a |-> va' **
-      pure (va' %~ log_softmax_real ra)
+      pure (va' %~ chest1_to_seq (log_softmax_real (seq_to_chest1 ra)))
 
 inline_for_extraction noextract
 val log_softmax_gpu (#et : Type0) {| floating et, real_like et, floating_real_like et |}

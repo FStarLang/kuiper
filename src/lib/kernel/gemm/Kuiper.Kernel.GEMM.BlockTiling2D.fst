@@ -1375,7 +1375,7 @@ fn teardown
         (fun (tr : natlt (bm/tm)) (tc : natlt (bn/tn)) ->
           array2_subtile (array2_subtile gC (SZ.v bm) (SZ.v bn) br bc) (SZ.v tm) (SZ.v tn) tr tc |->
             Frac 1.0R (ematrix_subtile (ematrix_subtile (MS.mmcomb comb eC eA eB) (SZ.v bm) (SZ.v bn) br bc) (SZ.v tm) (SZ.v tn) tr tc));
-      assert pure (SZ.fits ((subtile_layout lC (SZ.v bm) (SZ.v bn) br bc).ulen));
+      assert pure (SZ.fits ((subtile_layout lC bm bn br bc).ulen));
       array2_untile (array2_subtile gC (SZ.v bm) (SZ.v bn) br bc) (SZ.v tm) (SZ.v tn);
     };
 

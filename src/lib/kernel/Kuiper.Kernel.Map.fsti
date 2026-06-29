@@ -5,22 +5,22 @@ module Kuiper.Kernel.Map
 #lang-pulse
 
 open Kuiper
-module Array1 = Kuiper.Array1
-open Kuiper.Array1
 open Kuiper.Seq.Common
 open Kuiper.Tensor
+open Kuiper.Tensor.Layout.Alg { l1_forward }
+module SZ = Kuiper.SizeT
 
 inline_for_extraction noextract
 fn map_gpu
   (#et : Type0)
   (f: et -> et)
   (lena : szp{ lena <= max_blocks * max_threads})
-  (#l : Array1.layout lena) {| ctlayout l |}
-  (a : Array1.t et l { Array1.is_global a })
-  (#s: erased (lseq et lena))
+  (#l : layout1 lena) {| ctlayout l |}
+  (a : array1 et l { is_global a })
+  (#s: erased (chest1 et lena))
   preserves cpu
   requires  on gpu_loc (a |-> s)
-  ensures   on gpu_loc (a |-> lseq_map f s)
+  ensures   on gpu_loc (a |-> chest_map f s)
 
 inline_for_extraction noextract
 fn map_host
@@ -35,29 +35,29 @@ fn map_host
 
 (* Two-array elementwise map: a[i] := f a[i] b[i]. *)
 
-let lseq_map2
-  (#a #b #c : Type0)
+let chest1_map2
+  (#et : Type0)
   (#len : nat)
-  (f : a -> b -> c)
-  (sa : lseq a len) (sb : lseq b len)
-  : GTot (lseq c len)
-  = Seq.init_ghost len (fun i -> f (Seq.index sa i) (Seq.index sb i))
+  (f : et -> et -> et)
+  (sa sb : chest1 et len)
+  : chest1 et len
+  = mk1 (fun i -> f (acc1 sa i) (acc1 sb i))
 
 inline_for_extraction noextract
 fn map_gpu2
   (#et : Type0)
   (f : et -> et -> et)
   (lena : szp { lena <= max_blocks * max_threads })
-  (#la : Array1.layout lena) {| ctlayout la |}
-  (#lb : Array1.layout lena) {| ctlayout lb |}
-  (a : Array1.t et la)
-  (b : Array1.t et lb)
-  (#_ : squash (Array1.is_global a))
-  (#_ : squash (Array1.is_global b))
-  (#sa : erased (lseq et lena))
-  (#sb : erased (lseq et lena))
+  (#la : layout1 lena) {| ctlayout la |}
+  (#lb : layout1 lena) {| ctlayout lb |}
+  (a : array1 et la)
+  (b : array1 et lb)
+  (#_ : squash (is_global a))
+  (#_ : squash (is_global b))
+  (#sa : erased (chest1 et lena))
+  (#sb : erased (chest1 et lena))
   (#fb : perm)
   norewrite
   preserves cpu ** on gpu_loc (b |-> Frac fb sb)
   requires  on gpu_loc (a |-> sa)
-  ensures   on gpu_loc (a |-> (lseq_map2 f sa sb <: lseq et lena))
+  ensures   on gpu_loc (a |-> chest1_map2 f sa sb)

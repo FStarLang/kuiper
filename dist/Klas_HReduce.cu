@@ -16,11 +16,11 @@ static void __hoisted_reduce_f16_plus_0(uint32_t nth, uint32_t lena, half *a,
     sa[threadIdx.x] = acc;
     uint32_t n = 0U;
     for (; 1U << (uint32_t) n < nth; n++) {
-        uint32_t __anf01 = n;
+        uint32_t __anf02 = n;
         __syncthreads();
-        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf01);
+        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf02);
         if (nextid < nth)
-            if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (__anf01 + 1U)) -
+            if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (__anf02 + 1U)) -
                  1U) == 0U)
                 sa[threadIdx.x] = __hadd(sa[threadIdx.x], sa[nextid]);
     }
@@ -61,11 +61,11 @@ static void __hoisted_reduce_f32_plus_0(uint32_t nth, uint32_t lena, float *a,
     sa[threadIdx.x] = acc;
     uint32_t n = 0U;
     for (; 1U << (uint32_t) n < nth; n++) {
-        uint32_t __anf01 = n;
+        uint32_t __anf02 = n;
         __syncthreads();
-        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf01);
+        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf02);
         if (nextid < nth)
-            if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (__anf01 + 1U)) -
+            if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (__anf02 + 1U)) -
                  1U) == 0U)
                 sa[threadIdx.x] += sa[nextid];
     }
@@ -106,11 +106,11 @@ static void __hoisted_reduce_f64_plus_0(uint32_t nth, uint32_t lena, double *a,
     sa[threadIdx.x] = acc;
     uint32_t n = 0U;
     for (; 1U << (uint32_t) n < nth; n++) {
-        uint32_t __anf01 = n;
+        uint32_t __anf02 = n;
         __syncthreads();
-        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf01);
+        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf02);
         if (nextid < nth)
-            if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (__anf01 + 1U)) -
+            if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (__anf02 + 1U)) -
                  1U) == 0U)
                 sa[threadIdx.x] += sa[nextid];
     }
@@ -152,11 +152,11 @@ __hoisted_reduce_u32_plus_0(uint32_t nth, uint32_t lena, uint32_t *a,
     sa[threadIdx.x] = acc;
     uint32_t n = 0U;
     for (; 1U << (uint32_t) n < nth; n++) {
-        uint32_t __anf01 = n;
+        uint32_t __anf02 = n;
         __syncthreads();
-        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf01);
+        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf02);
         if (nextid < nth)
-            if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (__anf01 + 1U)) -
+            if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (__anf02 + 1U)) -
                  1U) == 0U)
                 sa[threadIdx.x] += sa[nextid];
     }
@@ -198,11 +198,11 @@ __hoisted_reduce_u64_plus_0(uint32_t nth, uint32_t lena, uint64_t *a,
     sa[threadIdx.x] = acc;
     uint32_t n = 0U;
     for (; 1U << (uint32_t) n < nth; n++) {
-        uint32_t __anf01 = n;
+        uint32_t __anf02 = n;
         __syncthreads();
-        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf01);
+        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf02);
         if (nextid < nth)
-            if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (__anf01 + 1U)) -
+            if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (__anf02 + 1U)) -
                  1U) == 0U)
                 sa[threadIdx.x] += sa[nextid];
     }

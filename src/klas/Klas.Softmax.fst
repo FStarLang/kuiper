@@ -5,10 +5,9 @@ open Kuiper
 
 module K = Kuiper.Kernel.Softmax
 module KS = Kuiper.Spec.Softmax
-open Kuiper.Array1
-open Kuiper.Tensor.Layout.Alg { l1_forward }
+open Kuiper.Tensor
+open Kuiper.Tensor.Layout.Alg
 module Vec = Pulse.Lib.Vec
-module Array1 = Kuiper.Array1
 
 inline_for_extraction noextract
 fn inst_gpu
@@ -16,8 +15,8 @@ fn inst_gpu
   (nth : szp{nth <= max_threads})
   (#lena : szp)
   (a : array1 et (l1_forward lena) { is_global a })
-  (#va: erased (lseq et lena))
-  (ra: erased (lseq real lena))
+  (#va : chest1 et lena)
+  (ra  : chest1 real lena)
   preserves
     cpu
   requires
@@ -25,7 +24,7 @@ fn inst_gpu
     pure (va %~ ra) **
     pure (lena <= max_blocks * max_threads)
   ensures
-    exists* (va' : lseq et lena).
+    exists* (va' : chest1 et lena).
       on gpu_loc (a |-> va') **
       pure (va' %~ KS.softmax_real ra)
 {
@@ -50,6 +49,7 @@ fn inst_cpu
   (a : Vec.lvec et lena)
   (#va : erased (lseq et lena))
   (ra  : erased (lseq real lena))
+  norewrite
   preserves
     cpu
   requires
@@ -59,13 +59,31 @@ fn inst_cpu
   ensures
     exists* (va' : lseq et lena).
       a |-> va' **
-      pure (va' %~ KS.softmax_real ra)
+        pure (va' %~ chest1_to_seq (KS.softmax_real (seq_to_chest1 ra)))
 {
-  let ga = Array1.alloc0 #et lena (l1_forward lena);
-  Array1.memcpy_host_to_device ga a lena;
-  inst_gpu nth ga ra;
-  Array1.memcpy_device_to_host' a 0sz ga 0sz lena;
-  Array1.free ga;
+  let ga = alloc0 #et lena (l1_forward lena);
+  with em. assert on gpu_loc (ga |-> em);
+  map_loc gpu_loc #(ga |-> em) #(core ga |-> to_seq (l1_forward lena) em)
+    fn _ { tensor_concr ga; };
+  gpu_memcpy_host_to_device (core ga) a lena;
+  map_loc gpu_loc #(core ga |-> reveal va) #(ga |-> from_seq (l1_forward lena) va)
+    fn _ {
+      tensor_abs' (l1_forward lena) (core ga);
+      rewrite (from_array (l1_forward lena) (core ga) |-> from_seq (l1_forward lena) va)
+           as (ga |-> from_seq (l1_forward lena) va);
+    };
+  inst_gpu nth ga (seq_to_chest1 ra);
+  with res. assert on gpu_loc (ga |-> res);
+  map_loc gpu_loc #(ga |-> res) #(core ga |-> to_seq (l1_forward lena) res)
+    fn _ { tensor_concr ga; };
+  gpu_memcpy_device_to_host a (core ga) lena;
+  map_loc gpu_loc #(core ga |-> to_seq (l1_forward lena) res) #(ga |-> res)
+    fn _ {
+      tensor_abs (l1_forward lena) (core ga);
+      rewrite (from_array (l1_forward lena) (core ga) |-> reveal res)
+           as (ga |-> reveal res);
+    };
+  free ga;
   ()
 }
 

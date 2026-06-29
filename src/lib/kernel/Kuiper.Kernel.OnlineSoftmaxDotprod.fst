@@ -3,13 +3,13 @@ module Kuiper.Kernel.OnlineSoftmaxDotprod
 #lang-pulse
 open Kuiper
 open Kuiper.Seq.Common
-open Kuiper.Array1
-open Kuiper.Tensor.Layout { ctlayout }
+open Kuiper.Tensor
 open Kuiper.Tensor.Layout.Alg { l1_forward }
 open Kuiper.Spec.Softmax
 open Kuiper.DotProd
+open Kuiper.Seq.Common { op_At_Bang }
 module SZ = FStar.SizeT
-module Array1 = Kuiper.Array1
+module CH = Kuiper.Chest
 
 (* Proofs *)
 
@@ -204,14 +204,14 @@ let rec seq_dotprod_softmax_factor
             let mra : lseq real n = seq_map exp ra in
             let summ : real = rsum mra in
             ~(summ == 0.0R) /\
-            seq_dotprod' (softmax_real ra) rb k *. summ == seq_dotprod' mra rb k))
+            seq_dotprod' (softmax_real_seq ra) rb k *. summ == seq_dotprod' mra rb k))
           (decreases k)
   = let mra : lseq real n = seq_map exp ra in
     sum_non_zero mra 0.0R;
     let summ : real = rsum mra in
     assert (summ >. 0.0R);
-    // [softmax_real ra] unfolds to [seq_map (fun x -> exp x /. summ) ra].
-    assert (Seq.equal (softmax_real ra) (seq_map (fun (x:real) -> exp x /. summ) ra));
+    // [softmax_real_seq ra] unfolds to [seq_map (fun x -> exp x /. summ) ra].
+    assert (Seq.equal (softmax_real_seq ra) (seq_map (fun (x:real) -> exp x /. summ) ra));
     if k = 0 then ()
     else seq_dotprod_softmax_factor ra rb (k-1)
 #pop-options
@@ -253,7 +253,7 @@ let real_mul_assoc (a b c: real)
 #push-options "--split_queries always"
 let real_online_softmax_dotprod_lemma
   (#n: nat) (ra rb: lseq real n { n > 0 })
-  : Lemma (online_softmax_dotprod_real ra rb == seq_dotprod' (softmax_real ra) rb n)
+  : Lemma (online_softmax_dotprod_real ra rb == seq_dotprod' (softmax_real_seq ra) rb n)
   = exp_base ();
     let pairs = dotprod_pair_seq ra rb in
     let x0 = ra @! 0 in
@@ -306,7 +306,7 @@ let real_online_softmax_dotprod_lemma
     // cancel exp m' to get  sm * dd' == dn'
     // then divide by dd' to get  sm == dn' / dd'.
     seq_dotprod_softmax_factor ra rb n;
-    let sm = seq_dotprod' (softmax_real ra) rb n in
+    let sm = seq_dotprod' (softmax_real_seq ra) rb n in
     assert (sm *. summ == seq_dotprod' mra rb n);
     assert (sm *. (dd' *. exp m') == dn' *. exp m');
     // Associativity of [*.] on reals:
@@ -357,20 +357,28 @@ let loop_inv_maintained
     else
       lemma_seq_fold_left_slice init online_softmax_dotprod_real_iter pairs 1 old_i
 
+(* Bridge: chest1_dotprod is the seq dotprod transported through chest1_to_seq. *)
+let rec chest1_dotprod_seq (#et : Type0) {| scalar et |} (#n : nat)
+  (a b : chest1 et n) (k : nat{k <= n})
+  : Lemma (ensures chest1_dotprod' a b k
+                   == seq_dotprod' (CH.chest1_to_seq a) (CH.chest1_to_seq b) k)
+          (decreases k)
+  = if k = 0 then () else chest1_dotprod_seq a b (k-1)
+
 inline_for_extraction noextract
 fn softmax_dotprod
   (#et : Type0) {| floating et, real_like et, floating_real_like et |}
-  (len : szp)
-  (#l : Array1.layout len) {| ctlayout l |}
+  (len : szp{len <= max_blocks * max_threads})
+  (#l : layout1 len) {| ctlayout l |}
   (a : array1 et l)
   (b : array1 et l)
   (r : gpu_ref et)
-  (#va : erased (lseq et len))
-  (#vb : erased (lseq et len))
-  (ra : erased (lseq real len) { va %~ ra })
-  (rb : erased (lseq real len) { vb %~ rb })
+  (#va : chest1 et len)
+  (#vb : chest1 et len)
+  (ra : chest1 real len { va %~ ra })
+  (rb : chest1 real len { vb %~ rb })
   (#fa #fb : perm)
-  (#_: squash (seq_forallb not_nan va))
+  (#_: squash (chest_forallb not_nan va))
   (tid : szlt len)
   ()
   preserves
@@ -380,11 +388,13 @@ fn softmax_dotprod
   returns
     res : et
   ensures
-    pure (res %~ seq_dotprod (KS.softmax_real ra) rb)
+    pure (res %~ chest1_dotprod (KS.softmax_real ra) rb)
 {
   exp_base ();
 
-  let pairs : erased (lseq (real & real) len) = dotprod_pair_seq ra rb;
+  let ras : erased (lseq real len) = hide (CH.chest1_to_seq ra);
+  let rbs : erased (lseq real len) = hide (CH.chest1_to_seq rb);
+  let pairs : erased (lseq (real & real) len) = dotprod_pair_seq ras rbs;
 
   let mut i : szle len = 0sz;
   let mut sum_n  : et = zero;
@@ -392,7 +402,7 @@ fn softmax_dotprod
   let mut max    : et = neg infinity;
   let mut gsum_n : erased real = 0.0R;
   let mut gsum_d : erased real = 0.0R;
-  let mut gmax   : erased real = ra @! 0;
+  let mut gmax   : erased real = ras @! 0;
   while (!i <^ len)
     invariant live i
     invariant
@@ -403,17 +413,18 @@ fn softmax_dotprod
     invariant pure (!i > 0 ==> !max %~ !gmax)
     invariant pure (!i > 0 ==>
       (reveal !gmax, reveal !gsum_n, reveal !gsum_d) ==
-        seq_fold_left online_softmax_dotprod_real_iter (hide (ra @! 0, rb @! 0, 1.0R)) (Seq.slice (reveal pairs) 1 (!i)))
+        seq_fold_left online_softmax_dotprod_real_iter (hide (ras @! 0, rbs @! 0, 1.0R)) (Seq.slice (reveal pairs) 1 (!i)))
     invariant pure (!i == 0sz ==>
-      (!sum_n == zero /\ !sum_d == zero /\ !gsum_n == 0.0R /\ !gsum_d == 0.0R /\ !max == neg infinity /\ !gmax == ra @! 0))
+      (!sum_n == zero /\ !sum_d == zero /\ !gsum_n == 0.0R /\ !gsum_d == 0.0R /\ !max == neg infinity /\ !gmax == ras @! 0))
     decreases (len - !i) {
 
-    let x = read a !i;
-    let gx = ra @! !i;
+    let vk = !i;
+    let x = tensor_read a ((vk <: szlt len), ());
+    let gx = ras @! vk;
     assert pure (x %~ gx);
 
-    let y = read b !i;
-    let gy = rb @! !i;
+    let y = tensor_read b ((vk <: szlt len), ());
+    let gy = rbs @! vk;
     assert pure (y %~ gy);
 
     let old_sum_n = !gsum_n;
@@ -466,19 +477,22 @@ fn softmax_dotprod
     gsum_d := gsum_d';
     assert pure (!sum_d %~ !gsum_d);
 
-    loop_inv_maintained ra rb (!i) (reveal old_max) (reveal old_sum_n) (reveal old_sum_d);
+    loop_inv_maintained ras rbs (!i) (reveal old_max) (reveal old_sum_n) (reveal old_sum_d);
 
     i := !i `SZ.add` 1sz;
 
     assert pure ((reveal gmax', reveal gsum_n', reveal gsum_d') ==
-      seq_fold_left online_softmax_dotprod_real_iter (hide (ra @! 0, rb @! 0, 1.0R)) (Seq.slice (reveal pairs) 1 (!i)));
+      seq_fold_left online_softmax_dotprod_real_iter (hide (ras @! 0, rbs @! 0, 1.0R)) (Seq.slice (reveal pairs) 1 (!i)));
     ()
   };
 
   let res = !sum_n `div` !sum_d;
-  assert pure (res %~ online_softmax_dotprod_real ra rb);
-  real_online_softmax_dotprod_lemma ra rb;
-  assert pure (res %~ seq_dotprod (softmax_real ra) rb);
+  assert pure (res %~ online_softmax_dotprod_real ras rbs);
+  real_online_softmax_dotprod_lemma ras rbs;
+  assert pure (res %~ seq_dotprod (softmax_real_seq ras) rbs);
+  lem_softmax_real_to_seq ra;
+  chest1_dotprod_seq (softmax_real ra) rb len;
+  assert pure (res %~ chest1_dotprod (softmax_real ra) rb);
   res
 }
 

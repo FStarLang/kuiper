@@ -9,6 +9,7 @@ open Kuiper
 open Kuiper.Tensor
 open Kuiper.Tensor.Layout.Alg
 module MS = Kuiper.Spec.GEMM
+module SZ = Kuiper.SizeT
 
 [@@Comment
 "Compute the (i,j) element of the matrix product of A and B by extracting the

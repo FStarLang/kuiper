@@ -799,7 +799,6 @@ fn kf_block
                        (vr_partial pre_map_r (chest2_row vr (SZ.v bid)) nth)) **
     B.barrier_state (hreduce_barrier_count nth)
 {
-  admit();
   unfold kpre_block pre_map pre_map_r rows cols nth x output sx vr sout shmem (SZ.v bid) (SZ.v tid);
 
   let (gsa, _) = shmem;

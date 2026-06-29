@@ -3,10 +3,8 @@ module Kuiper.Kernel.HReduce
 #lang-pulse
 
 open Kuiper
-open Kuiper.Tensor { ctlayout }
-open Kuiper.Seq.Common { seq_map }
+open Kuiper.Tensor
 module SZ = Kuiper.SizeT
-module Array1 = Kuiper.Array1
 
 // TODO: generalize operation? It currently always uses `add`
 // from the scalar class.
@@ -25,10 +23,10 @@ type reduce_ty (et : Type0) {| scalar et, real_like et |} =
      (pre_map_r : real -> real { pre_map %~ pre_map_r })
      (nth : szp { nth <= max_threads })
      (lena : sz)
-     (#l : Array1.layout lena) {| ctlayout l |}
-     (a : Array1.t et l { Array1.is_global a })
-     (#va : erased (lseq et lena))
-     (vr : erased (lseq real lena))
+     (#l : layout1 lena) {| ctlayout l |}
+     (a : array1 et l { is_global a })
+     (#va : chest1 et lena)
+     (vr  : chest1 real lena)
   preserves
     cpu **
     on gpu_loc (a |-> va)
@@ -38,7 +36,7 @@ type reduce_ty (et : Type0) {| scalar et, real_like et |} =
   returns
     res : et
   ensures
-    pure (res %~ rsum (seq_map pre_map_r vr))
+    pure (res %~ chest1_rsum (chest_map pre_map_r vr))
 
 inline_for_extraction noextract
 val reduce (#et:Type0) {| scalar et, real_like et |} : reduce_ty et

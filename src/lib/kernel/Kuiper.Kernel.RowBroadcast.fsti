@@ -7,35 +7,31 @@ module Kuiper.Kernel.RowBroadcast
 #lang-pulse
 
 open Kuiper
-module Array1 = Kuiper.Array1
-module Array2 = Kuiper.Array2
-open Kuiper.EMatrix
 open Kuiper.Tensor
-open Kuiper.Shape
 
 let s_row_broadcast
-  (#t : Type0) {| scalar t |}
-  (f : t -> t -> t)
+  (#ta #tb : Type0)
+  (f : ta -> tb -> tb)
   (#m #n : nat)
-  (a : lseq t m) (b : ematrix t m n)
-  : ematrix t m n
-  = Kuiper.EMatrix.mkM fun i j -> f (macc b i j) (Seq.index a i)
+  (a : chest1 ta m) (b : chest2 tb m n)
+  : chest2 tb m n
+  = mk2 fun i j -> acc1 a i `f` acc2 b i j
 
 inline_for_extraction noextract
 fn row_broadcast
-  (#t : Type0) {| scalar t |}
-  (f : t -> t -> t)
+  (#ta #tb : Type0)
+  (f : ta -> tb -> tb)
   (m n : szp)
   (#_ : squash (m * n <= max_blocks * max_threads))
-  (#la : Array1.layout m) {| ctlayout la |}
-  (a : Array1.t t la)
-  (#lb : Array2.layout m n) {| ctlayout lb |}
-  (b : Array2.t t lb)
-  (#_ : squash (Array1.is_global a))
-  (#_ : squash (Array2.is_global b))
+  (#la : layout1 m) {| ctlayout la |}
+  (a : array1 ta la)
+  (#lb : layout2 m n) {| ctlayout lb |}
+  (b : array2 tb lb)
+  (#_ : squash (is_global a))
+  (#_ : squash (is_global b))
   (#fA : perm)
-  (#sa : erased (lseq t m))
-  (#sb : ematrix t m n)
+  (#sa : chest1 ta m)
+  (#sb : chest2 tb m n)
   norewrite
   preserves
     cpu ** on gpu_loc (a |-> Frac fA sa)

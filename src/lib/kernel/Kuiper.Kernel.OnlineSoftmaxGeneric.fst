@@ -147,7 +147,7 @@ val lem_online_softmax_step_correct (#n: pos) (x : lseq real n) (i: pos{i < n})
         (ensures
           (let (m',d',fxi,_) = online_softmax_step (x @! i) m d in
           online_softmax_invariant x (i+1) m' d' /\
-          fxi /. d' == softmax_real (seq_take (i+1) x) @! i))
+          fxi /. d' == softmax_real_seq (seq_take (i+1) x) @! i))
 *)
 
 // let lem_osmx_rstep_correct
@@ -198,7 +198,7 @@ fn osmx_step #et {| scalar et, floating et, real_like et |}
 //   (op: fused_op_ty)
 //   (i: natle n) =
 //     if i == 0 then 0.0R
-//     else seq_fold_left op 0.0R (seq_mapi (softmax_real (seq_take i x)) k)
+//     else seq_fold_left op 0.0R (seq_mapi (softmax_real_seq (seq_take i x)) k)
 
 // val lem_online_softmax_fuse_by_adj (#n : pos)
 //   (x : lseq real n)
@@ -236,7 +236,7 @@ fn osmx_dotprod
   preserves b |-> vb
   requires  pure (va %~ ra /\ vb %~ rb)
   returns v : et
-  ensures pure (v %~ seq_dotprod (softmax_real ra) rb)
+  ensures pure (v %~ seq_dotprod (softmax_real_seq ra) rb)
 {
   open Pulse.Lib.Array;
   Pulse.Lib.Array.pts_to_len a;
@@ -253,7 +253,7 @@ fn osmx_dotprod
     invariant live r ** live rr **
       pure (!r %~ !rr /\ ok_rst !rst /\
             (!rst).s == seq_take !i ra /\
-            !rr == rst_d !rst *. seq_dotprod #(!i) (softmax_real (seq_take !i ra)) (seq_take !i rb))
+            !rr == rst_d !rst *. seq_dotprod #(!i) (softmax_real_seq (seq_take !i ra)) (seq_take !i rb))
     decreases (len - !i)
   {
     let rst0 = !rst;
@@ -282,25 +282,25 @@ fn osmx_dotprod
     assert pure (!r %~ !rr);
     assert pure (ok_rst !rst);
     assume pure ((!rst).s == seq_take !i ra);
-    assume pure (!rr == rst_d !rst *. seq_dotprod #(!i) (softmax_real (seq_take !i ra)) (seq_take !i rb));
+    assume pure (!rr == rst_d !rst *. seq_dotprod #(!i) (softmax_real_seq (seq_take !i ra)) (seq_take !i rb));
 
     ()
   };
   assert pure (!i == len);
   assert pure (seq_take len ra == ra);
   assert pure (seq_take len rb == rb);
-  assert pure (seq_dotprod #len (softmax_real (seq_take len ra)) (seq_take len rb) == seq_dotprod (softmax_real ra) rb);
-  assert pure (!rr == rst_d !rst *. seq_dotprod (softmax_real ra) rb);
+  assert pure (seq_dotprod #len (softmax_real_seq (seq_take len ra)) (seq_take len rb) == seq_dotprod (softmax_real_seq ra) rb);
+  assert pure (!rr == rst_d !rst *. seq_dotprod (softmax_real_seq ra) rb);
   assert pure (rst_d !rst =!= 0.0R);
-  cancel !rr (rst_d !rst) (seq_dotprod (softmax_real ra) rb);
-  assert pure (!rr /. rst_d !rst == seq_dotprod (softmax_real ra) rb);
+  cancel !rr (rst_d !rst) (seq_dotprod (softmax_real_seq ra) rb);
+  assert pure (!rr /. rst_d !rst == seq_dotprod (softmax_real_seq ra) rb);
   let res = !r `div` (!st).d;
   // assert pure (!r %~ !rr);
   // assert pure (!st %~ !rst);
   // assert pure ((!st).d %~ rst_d !rst);
   // div_approx !r (!st).d !rr (rst_d !rst);
   // assert pure ((div !r (!st).d) %~ (!rr /. rst_d !rst));
-  assert pure (res %~ seq_dotprod (softmax_real ra) rb);
+  assert pure (res %~ seq_dotprod (softmax_real_seq ra) rb);
   res
 }
 

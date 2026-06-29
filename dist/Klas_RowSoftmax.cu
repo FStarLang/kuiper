@@ -38,14 +38,9 @@ static void __hoisted_row_softmax_rm_f32_1(uint32_t m, uint32_t n, float *a,
     if (1024U * blockIdx.x + threadIdx.x < m * n) {
         uint32_t row = (1024U * blockIdx.x + threadIdx.x) / n;
         uint32_t col = (1024U * blockIdx.x + threadIdx.x) % n;
-        a[row * n + col] -= maxs[row];
+        a[row * n + col] = maxs[row] - a[row * n + col];
     }
 }
-
-typedef struct __uint32_t__uint32_t_______s {
-    uint32_t fst;
-    uint32_t snd;
-} __uint32_t__uint32_t______;
 
 __global__
 /**
@@ -57,8 +52,7 @@ static void __hoisted_row_softmax_rm_f32_2(uint32_t n, float *a, float *sums)
     float acc = 0.0f;
     uint32_t idx = threadIdx.x;
     for (; idx < n; idx += 1024U) {
-        __uint32_t__uint32_t______ scrut = {.fst = blockIdx.x,.snd = idx };
-        float v_ = expf(a[scrut.fst * n + scrut.snd]);
+        float v_ = expf(a[blockIdx.x * n + idx]);
         acc += v_;
     }
     sa1[threadIdx.x] = acc;
@@ -86,9 +80,9 @@ static void __hoisted_row_softmax_rm_f32_3(uint32_t m, uint32_t n, float *a,
     if (1024U * blockIdx.x + threadIdx.x < m * n) {
         uint32_t row = (1024U * blockIdx.x + threadIdx.x) / n;
         uint32_t col = (1024U * blockIdx.x + threadIdx.x) % n;
-        float v = sums[row];
+        float vb = a[row * n + col];
         uint32_t ni = row * n + col;
-        a[ni] = expf(a[row * n + col]) / v;
+        a[ni] = expf(sums[row]) / vb;
     }
 }
 
@@ -159,7 +153,7 @@ static void __hoisted_row_softmax_rm_f64_1(uint32_t m, uint32_t n, double *a,
     if (1024U * blockIdx.x + threadIdx.x < m * n) {
         uint32_t row = (1024U * blockIdx.x + threadIdx.x) / n;
         uint32_t col = (1024U * blockIdx.x + threadIdx.x) % n;
-        a[row * n + col] -= maxs[row];
+        a[row * n + col] = maxs[row] - a[row * n + col];
     }
 }
 
@@ -173,8 +167,7 @@ static void __hoisted_row_softmax_rm_f64_2(uint32_t n, double *a, double *sums)
     double acc = 0.0;
     uint32_t idx = threadIdx.x;
     for (; idx < n; idx += 1024U) {
-        __uint32_t__uint32_t______ scrut = {.fst = blockIdx.x,.snd = idx };
-        double v_ = exp(a[scrut.fst * n + scrut.snd]);
+        double v_ = exp(a[blockIdx.x * n + idx]);
         acc += v_;
     }
     sa1[threadIdx.x] = acc;
@@ -202,9 +195,9 @@ static void __hoisted_row_softmax_rm_f64_3(uint32_t m, uint32_t n, double *a,
     if (1024U * blockIdx.x + threadIdx.x < m * n) {
         uint32_t row = (1024U * blockIdx.x + threadIdx.x) / n;
         uint32_t col = (1024U * blockIdx.x + threadIdx.x) % n;
-        double v = sums[row];
+        double vb = a[row * n + col];
         uint32_t ni = row * n + col;
-        a[ni] = exp(a[row * n + col]) / v;
+        a[ni] = exp(sums[row]) / vb;
     }
 }
 

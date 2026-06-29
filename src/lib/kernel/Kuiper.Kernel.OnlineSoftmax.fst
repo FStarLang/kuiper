@@ -4,10 +4,28 @@ module Kuiper.Kernel.OnlineSoftmax
 open Kuiper
 open Kuiper.Seq.Common
 module SZ = FStar.SizeT
-open Kuiper.Array1
-open Kuiper.Tensor.Layout { ctlayout }
+open Kuiper.Tensor
 open Kuiper.Tensor.Layout.Alg { l1_forward }
 open Kuiper.Spec.Softmax
+open Kuiper.Seq.Common { op_At_Bang }
+open Kuiper.Bijection { ( =~ ) }
+module CH = Kuiper.Chest
+
+(* Bijection between the abstract 1-D tensor index [(k, ())] and a plain
+   [natlt len], used to (un)reindex a forevery over tensor cells. *)
+let abs_bij (#len : nat) : (abs (len @| INil) =~ natlt len) =
+  {
+    ff = (fun (i, ()) -> i);
+    gg = (fun i -> (i, ()));
+  }
+
+let chest1_approx_intro
+  (#et : Type0) {| scalar et, real_like et |} (#n : nat)
+  (c1 : chest1 et n) (c2 : chest1 real n)
+  : Lemma (requires forall (bid:natlt n). acc1 c1 bid %~ acc1 c2 bid)
+          (ensures c1 %~ c2)
+  = introduce forall (i:abs (n @| INil)). acc c1 i %~ acc c2 i
+    with (let (b0, ()) = i in ())
 
 (* Proofs *)
 
@@ -91,7 +109,7 @@ let pointwise_eq (xi m d summ : real)
     ()
 
 let online_softmax_is_softmax (s: Seq.seq real{Seq.length s > 0}) :
-  Lemma (online_softmax_real s == softmax_real s)
+  Lemma (online_softmax_real s == softmax_real_seq s)
   = exp_base ();
     let x0 = s @! 0 in
     let tl = seq_drop 1 s in
@@ -108,7 +126,7 @@ let online_softmax_is_softmax (s: Seq.seq real{Seq.length s > 0}) :
       = pointwise_eq (s @! idx) m d summ
     in
     Classical.forall_intro aux;
-    assert (Seq.equal (online_softmax_real s) (softmax_real s))
+    assert (Seq.equal (online_softmax_real s) (softmax_real_seq s))
 
 (* END Proofs *)
 
@@ -116,29 +134,29 @@ unfold
 let kpre
   (#et : Type0) {| floating et, real_like et |}
   (lenab : szp{ lenab <= max_blocks * max_threads})
-  (#l : Kuiper.Array1.layout lenab) {| ctlayout l |} (* TODO: let them have different layouts *)
+  (#l : layout1 lenab) {| ctlayout l |} (* TODO: let them have different layouts *)
   (a : array1 et l)
   (b : array1 et l)
-  (#va : erased (lseq et lenab))
+  (#va : erased (chest1 et lenab))
   (tid : natlt lenab)
   : slprop
 = (a |-> Frac (1 /. lenab) va) **
-  (exists* (v: et). Cell b tid |-> v)
+  (exists* (v: et). Cell b (idx1 tid) |-> v)
 
 unfold
 let kpost
   (#et : Type0) {| floating et, real_like et |}
   (lenab : szp{ lenab <= max_blocks * max_threads})
-  (#l : Kuiper.Array1.layout lenab) {| ctlayout l |} (* TODO: let them have different layouts *)
+  (#l : layout1 lenab) {| ctlayout l |} (* TODO: let them have different layouts *)
   (a : array1 et l)
   (b : array1 et l)
-  (#va : erased (lseq et lenab))
-  (ra : erased (lseq real lenab) { va %~ ra })
+  (#va : erased (chest1 et lenab))
+  (ra : erased (chest1 real lenab) { va %~ ra })
   (tid : natlt lenab)
   : slprop
 = (a |-> Frac (1 /. lenab) va) **
-  (exists* (v': et). Cell b tid |->
-    v' ** pure (v' %~ ((online_softmax_real ra) @! tid)))
+  (exists* (v': et). Cell b (idx1 tid) |->
+    v' ** pure (v' %~ acc1 (softmax_real ra) tid))
 
 let lemma_seq_fold_left_slice' (#a #b:Type) (e:b) (f: b -> a -> b)
   (s : seq a) (i j : nat)
@@ -150,12 +168,12 @@ inline_for_extraction noextract
 fn kfonline_softmax
   (#et : Type0) {| floating et, real_like et, floating_real_like et |}
   (#lenab : szp{lenab <= max_blocks * max_threads})
-  (#l : Kuiper.Array1.layout lenab) {| ctlayout l |} (* TODO: let them have different layouts *)
+  (#l : layout1 lenab) {| ctlayout l |} (* TODO: let them have different layouts *)
   (a : array1 et l)
   (b : array1 et l)
-  (#va : erased (lseq et lenab))
-  (ra : erased (lseq real lenab) { va %~ ra })
-  (#_: squash (seq_forallb not_nan va))
+  (#va : erased (chest1 et lenab))
+  (ra : erased (chest1 real lenab) { va %~ ra })
+  (#_: squash (chest_forallb not_nan va))
   (tid : szlt lenab)
   ()
   preserves
@@ -167,27 +185,30 @@ fn kfonline_softmax
 {
   exp_base ();
 
+  let ras : erased (lseq real lenab) = hide (CH.chest1_to_seq ra);
+
   let mut i = 0sz;
   let mut sum: et = zero;
   let mut max: et = neg infinity;
   let mut gsum : erased real = 0.0R;
-  let mut gmax : erased real = ra @! 0;
+  let mut gmax : erased real = ras @! 0;
   while (!i <^ lenab)
     invariant live i **
       live max ** live gmax **
       live sum ** live gsum
     invariant pure (!sum %~ !gsum)
     invariant pure (!i > 0 ==> !max %~ !gmax)
-    invariant pure (!i > 0 ==> !i <= Seq.length ra /\
+    invariant pure (!i > 0 ==> !i <= Seq.length ras /\
       (reveal !gmax, reveal !gsum) ==
         seq_fold_left online_softmax_real_iter
-        (hide (ra @! 0, 1.0R)) (Seq.slice ra 1 (!i)))
+        (hide (ras @! 0, 1.0R)) (Seq.slice (reveal ras) 1 (!i)))
     invariant pure (!i == 0sz ==>
-      (!sum == zero /\ !gsum == 0.0R /\ !max == neg infinity /\ !gmax == ra @! 0))
+      (!sum == zero /\ !gsum == 0.0R /\ !max == neg infinity /\ !gmax == ras @! 0))
     decreases (lenab - !i) {
 
-    let x = read a !i;
-    let gx = ra @! !i;
+    let vk = !i;
+    let x = tensor_read a ((vk <: szlt lenab), ());
+    let gx = ras @! vk;
     assert pure (x %~ gx);
 
     let old_sum = !gsum;
@@ -231,27 +252,67 @@ fn kfonline_softmax
     assert pure (reveal gmax' == rmax (reveal old_max) gx);
     assert pure (reveal gsum' == reveal old_sum *. (exp (reveal old_max -. reveal gmax'))  +.  exp (gx -. reveal gmax'));
     if (!i = 1sz) {
-      assert pure (gx == (ra @! 0));
-      assert pure (!gmax == (ra @! 0));
+      assert pure (gx == (ras @! 0));
+      assert pure (!gmax == (ras @! 0));
       assert pure (old_sum == 0.0R);
       assert pure (!gsum == gy2);
       assert pure (gy2 == exp 0.0R);
       assert pure (gy2 == 1.0R);
       assert pure (!gsum == 1.0R);
-      assert pure (seq_fold_left online_softmax_real_iter (hide (Seq.index ra 0, 1.0R)) (Seq.slice ra 1 1)
+      assert pure (seq_fold_left online_softmax_real_iter (hide (Seq.index ras 0, 1.0R)) (Seq.slice (reveal ras) 1 1)
                    ==
-                   (hide (Seq.index ra 0, 1.0R)));
+                   (hide (Seq.index ras 0, 1.0R)));
       ();
     } else {
-      assert pure ((reveal old_max, reveal old_sum) == seq_fold_left online_softmax_real_iter (hide (Seq.index ra 0, 1.0R)) (Seq.slice ra 1 (!i - 1)));
+      assert pure ((reveal old_max, reveal old_sum) == seq_fold_left online_softmax_real_iter (hide (Seq.index ras 0, 1.0R)) (Seq.slice (reveal ras) 1 (!i - 1)));
       assert pure ((reveal gmax', reveal gsum') == online_softmax_real_iter (reveal old_max, reveal old_sum) gx);
-      lemma_seq_fold_left_slice' (hide (ra @! 0, 1.0R)) online_softmax_real_iter ra 1 (!i);
-      assert pure ((reveal gmax', reveal gsum') == seq_fold_left online_softmax_real_iter (hide (Seq.index ra 0, 1.0R)) (Seq.slice ra 1 (!i)));
+      lemma_seq_fold_left_slice' (hide (ras @! 0, 1.0R)) online_softmax_real_iter (reveal ras) 1 (!i);
+      assert pure ((reveal gmax', reveal gsum') == seq_fold_left online_softmax_real_iter (hide (Seq.index ras 0, 1.0R)) (Seq.slice (reveal ras) 1 (!i)));
     };
   };
-  let x = read a tid;
+  let x = tensor_read a ((tid <: szlt lenab), ());
   let y = (fexp (x `sub` !max) `div` !sum);
-  write_cell b tid y;
+  assert pure (y %~ ((online_softmax_real (reveal ras)) @! tid));
+  online_softmax_is_softmax (reveal ras);
+  lem_softmax_real_to_seq ra;
+  assert pure (y %~ acc1 (softmax_real ra) tid);
+  tensor_write_cell b ((tid <: szlt lenab), ()) y;
+  ()
+}
+
+ghost
+fn collect_approx_chest
+  (#et : Type0) {| floating et, real_like et |}
+  (#lenab : szp{lenab <= max_blocks * max_threads})
+  (#l : layout1 lenab) {| ctlayout l |}
+  (b : array1 et l)
+  (target : chest1 real lenab)
+  requires
+    pure (SZ.fits (tlayout_ulen l)) **
+    (forall+ (bid : natlt lenab).
+      exists* (v': et). Cell b (idx1 bid) |-> v' ** pure (v' %~ acc1 target bid))
+  ensures
+    (exists* (vb' : chest1 et lenab).
+      b |-> vb' ** pure (vb' %~ target))
+{
+  let fa = forevery_exists (fun (bid:natlt lenab) (v: et) ->
+                              Cell b (idx1 bid) |-> v ** pure (v %~ acc1 target bid));
+  let vb' : chest1 et lenab = mk1 (fun (bid:natlt lenab) -> fa bid);
+  forevery_extract_pure
+    (fun (bid:natlt lenab) -> Cell b (idx1 bid) |-> fa bid ** pure (fa bid %~ acc1 target bid))
+    (fun (bid:natlt lenab) -> acc1 vb' bid %~ acc1 target bid)
+    fn bid { };
+  forevery_map
+    (fun (bid:natlt lenab) -> Cell b (idx1 bid) |-> fa bid ** pure (fa bid %~ acc1 target bid))
+    (fun (bid:natlt lenab) -> Cell b (idx1 bid) |-> (acc1 vb' bid))
+    fn x { };
+  forevery_ext
+    (fun (bid : natlt lenab) -> Cell b (idx1 bid) |-> (acc1 vb' bid))
+    (fun (y : natlt lenab) -> Cell b (abs_bij.gg y) |-> (acc vb' (abs_bij.gg y)));
+  forevery_iso_back (abs_bij #lenab)
+    (fun (i : abs (lenab @| INil)) -> Cell b i |-> (acc vb' i));
+  tensor_implode b;
+  chest1_approx_intro vb' target;
   ()
 }
 
@@ -259,78 +320,83 @@ ghost
 fn setup
   (#et : Type0) {| floating et, real_like et |}
   (#lenab : szp{lenab <= max_blocks * max_threads})
-  (#l : Kuiper.Array1.layout lenab) {| ctlayout l |} (* TODO: let them have different layouts *)
+  (#l : layout1 lenab) {| ctlayout l |} (* TODO: let them have different layouts *)
   (a : array1 et l)
   (b : array1 et l)
-  (#va : erased (lseq et lenab))
-  (ra : erased (lseq real lenab) { va %~ ra })
+  (#va : erased (chest1 et lenab))
+  (ra : erased (chest1 real lenab) { va %~ ra })
   ()
   norewrite
   requires
-    (a |-> va) ** (exists* (vb : lseq et lenab). b |-> vb)
+    (a |-> va) ** (exists* (vb : chest1 et lenab). b |-> vb)
   ensures
     (forall+ (bid : natlt lenab).
       kpre #et lenab #l a b #va bid) **
-    pure (SZ.fits (layout_size l))
+    pure (SZ.fits (tlayout_ulen l))
 {
   with vb. assert b |-> vb;
-  Kuiper.Array1.pts_to_ref b;
-  Kuiper.Array1.explode b;
+  tensor_pts_to_ref b;
+  tensor_explode b;
+  forevery_iso (abs_bij #lenab)
+    (fun (i : abs (lenab @| INil)) -> Cell b i |-> (acc vb i));
+  forevery_ext
+    (fun (y : natlt lenab) -> Cell b (abs_bij.gg y) |-> (acc vb (abs_bij.gg y)))
+    (fun (bid : natlt lenab) -> Cell b (idx1 bid) |-> (acc1 vb bid));
   forevery_map
-    (fun (i:natlt lenab) -> Cell b i |-> (vb @! i))
-    (fun (i:natlt lenab) -> (exists* (v: et). Cell b i |-> v))
+    (fun (bid:natlt lenab) -> Cell b (idx1 bid) |-> (acc1 vb bid))
+    (fun (bid:natlt lenab) -> (exists* (v: et). Cell b (idx1 bid) |-> v))
     fn x { () };
-  Kuiper.Array1.share_n a lenab;
+  tensor_share_n a lenab;
   forevery_zip
     (fun (bid:natlt lenab) -> (a |-> Frac (1 /. lenab) va))
-    (fun (bid:natlt lenab) -> (exists* (v: et). Cell b bid |-> v))
+    (fun (bid:natlt lenab) -> (exists* (v: et). Cell b (idx1 bid) |-> v))
 }
 
 ghost
 fn teardown
   (#et : Type0) {| floating et, real_like et |}
   (#lenab : szp{lenab <= max_blocks * max_threads})
-  (#l : Kuiper.Array1.layout lenab) {| ctlayout l |} (* TODO: let them have different layouts *)
+  (#l : layout1 lenab) {| ctlayout l |} (* TODO: let them have different layouts *)
   (a : array1 et l)
   (b : array1 et l)
-  (#va : erased (lseq et lenab))
-  (ra : erased (lseq real lenab) { va %~ ra })
+  (#va : erased (chest1 et lenab))
+  (ra : erased (chest1 real lenab) { va %~ ra })
   ()
   norewrite
   requires
     (forall+ (bid : natlt lenab).
       kpost #et lenab #l a b #va ra bid) **
-    pure (SZ.fits (layout_size l))
+    pure (SZ.fits (tlayout_ulen l))
   ensures
-    (a |-> va) ** (exists* (vb' : lseq et lenab).
+    (a |-> va) ** (exists* (vb' : chest1 et lenab).
       b |-> vb' **
-      pure (vb' %~ online_softmax_real ra))
+      pure (vb' %~ softmax_real ra))
 {
   forevery_unzip _ _;
-  Kuiper.Array1.gather_n a lenab;
-  array1_collect_approx b (online_softmax_real ra);
+  tensor_gather_n a lenab;
+  collect_approx_chest b (softmax_real ra);
 }
 
 inline_for_extraction noextract
 let konline_softmax
   (#et : Type0) {| floating et, real_like et, floating_real_like et |}
   (#lenab : szp{lenab <= max_blocks * max_threads})
-  (#l : Kuiper.Array1.layout lenab) {| ctlayout l |} (* TODO: let them have different layouts *)
+  (#l : layout1 lenab) {| ctlayout l |} (* TODO: let them have different layouts *)
   (a : array1 et l { is_global a })
   (b : array1 et l { is_global b })
-  (#va : erased (lseq et lenab))
-  (ra : erased (lseq real lenab) { va %~ ra })
-  (#_: squash (seq_forallb not_nan va))
+  (#va : erased (chest1 et lenab))
+  (ra : erased (chest1 real lenab) { va %~ ra })
+  (#_: squash (chest_forallb not_nan va))
   : kernel_desc
-      (requires a |-> va ** (exists* (vb : lseq et lenab). b |-> vb))
-      (ensures  a |-> va ** (exists* (vb' : lseq et lenab).
+      (requires a |-> va ** (exists* (vb : chest1 et lenab). b |-> vb))
+      (ensures  a |-> va ** (exists* (vb' : chest1 et lenab).
         b |-> vb' **
-        pure (vb' %~ online_softmax_real ra)))
+        pure (vb' %~ softmax_real ra)))
 = {
     nthr = lenab;
     f = kfonline_softmax a b ra;
 
-    frame    = pure (SZ.fits (layout_size l));
+    frame    = pure (SZ.fits (tlayout_ulen l));
     teardown = teardown a b #va ra;
     setup    = setup a b #va ra;
     kpre =  (kpre #et lenab #l a b #va);
@@ -344,24 +410,23 @@ fn online_softmax_gpu
   (#et : Type0) {| floating et, real_like et, floating_real_like et |}
   (nth : szp{nth <= max_threads})
   (#lenab : szp{lenab <= max_blocks * max_threads})
-  (#l : Kuiper.Array1.layout lenab) {| ctlayout l |} (* TODO: let them have different layouts *)
+  (#l : layout1 lenab) {| ctlayout l |} (* TODO: let them have different layouts *)
   (a : array1 et l { is_global a })
   (b : array1 et l { is_global b })
-  (#va : erased (lseq et lenab))
-  (ra : erased (lseq real lenab) { va %~ ra })
-  (#_: squash (seq_forallb not_nan va))
+  (#va : chest1 et lenab)
+  (ra : chest1 real lenab { va %~ ra })
+  (#_: squash (chest_forallb not_nan va))
   norewrite
   preserves
     cpu **
     on gpu_loc (a |-> va)
   requires
-    exists* (vb : lseq et lenab). on gpu_loc (b |-> vb)
+    exists* (vb : chest1 et lenab). on gpu_loc (b |-> vb)
   ensures
-    exists* (vb' : lseq et lenab).
+    exists* (vb' : chest1 et lenab).
       on gpu_loc (b |-> vb') **
       pure (vb' %~ softmax_real ra)
 {
   launch_sync (konline_softmax a b #va ra);
-  online_softmax_is_softmax ra;
   ()
 }

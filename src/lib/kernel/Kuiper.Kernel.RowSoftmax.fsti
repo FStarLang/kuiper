@@ -11,34 +11,32 @@ module Kuiper.Kernel.RowSoftmax
 
 #lang-pulse
 open Kuiper
-open Kuiper.EMatrix
-open Kuiper.Tensor { ctlayout }
-module Array2 = Kuiper.Array2
+open Kuiper.Tensor
 module SM = Kuiper.Spec.Softmax
 
 (* All-real specification: each row independently softmax'd. *)
 let row_softmax_real
   (#m #n : nat)
-  (ra : ematrix real m n)
-  : ematrix real m n
-  = mkM (fun i j ->
-      Seq.index (SM.softmax_real (ematrix_row ra i)) j)
+  (ra : chest2 real m n)
+  : chest2 real m n
+  = mk2 (fun i j ->
+      acc1 (SM.softmax_real (chest2_row ra i)) j)
 
 inline_for_extraction noextract
 fn row_softmax_gpu
   (#et : Type0) {| floating et, real_like et, floating_real_like et |}
   (m : szp { m <= max_blocks })
   (n : szp { m * n <= max_blocks * max_threads })
-  (#l : Array2.layout m n) {| ctlayout l |}
-  (a : Array2.t et l { Array2.is_global a })
-  (#sa : ematrix et m n)
-  (ra :  ematrix real m n)
+  (#l : layout2 m n) {| ctlayout l |}
+  (a : array2 et l { is_global a })
+  (#sa : chest2 et m n)
+  (ra :  chest2 real m n)
   preserves
     cpu
   requires
     on gpu_loc (a |-> sa) **
     pure (sa %~ ra)
   ensures
-    exists* (sa' : ematrix et m n).
+    exists* (sa' : chest2 et m n).
       on gpu_loc (a |-> sa') **
       pure (sa' %~ row_softmax_real ra)

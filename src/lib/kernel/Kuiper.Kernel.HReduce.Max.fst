@@ -18,71 +18,128 @@ module Kuiper.Kernel.HReduce.Max
 open Kuiper
 open Kuiper.Barrier.RPM
 open Kuiper.Math
-open Kuiper.Seq.Common
-open Kuiper.Math.OnlineSoftmax { seq_max, seq_max_cons_lem }
-open Kuiper.Tensor { ctlayout }
 open Kuiper.Tensor.Layout.Alg { l1_forward }
 open Pulse.Lib.GhostReference { read as gread, write as gwrite, alloc as galloc }
+open Kuiper.Tensor
+open Kuiper.Chest1.Helpers
+open Kuiper.Bijection { ( =~ ), bij_sym }
+// Re-open after Kuiper.Tensor so the seq-level `@!`/`seq![..]`/`@+` notations
+// shadow the shape-indexing `@!` pulled in via Kuiper.Shape.
+open Kuiper.Seq.Common
+open Kuiper.Math.OnlineSoftmax { seq_max, seq_max_cons_lem }
 
 module SZ = Kuiper.SizeT
 module RPM = Kuiper.Barrier.RPM
 module B = Kuiper.Barrier
 
-(* Plain ownership of a slice of an Array1. *)
+let chest1_stride_length
+  (n : nat) (stride : pos) (off : natlt stride)
+  : GTot nat
+  = (n - off + stride - 1) / stride
+
+let chest1_stride (#a:Type0) (#n : nat)
+  (s : chest1 a n) (stride : pos) (off : natlt stride)
+  : GTot (chest1 a (chest1_stride_length n stride off))
+  = mk1 (fun i -> acc1 s (off + i * stride))
+
+let chest1_take (#a:Type0) (#n : nat)
+  (len : natle n)
+  (s : chest1 a n)
+  : GTot (chest1 a len)
+  = chest1_sub 0 len s
+
+let chest1_drop (#a:Type0) (#n : nat)
+  (len : natle n)
+  (s : chest1 a n)
+  : GTot (chest1 a (n-len))
+  = chest1_sub len n s
+
+(* Bijection between the abstract 1-D tensor index [(k, ())] and a plain
+   [natlt len], used to (un)reindex a forevery over tensor cells. *)
+let abs_bij (#len : nat) : (abs (len @| INil) =~ natlt len) =
+  {
+    ff = (fun (i, ()) -> i);
+    gg = (fun i -> (i, ()));
+  }
+
+(* Same bijection but with a refined [nat] domain, matching the binder produced
+   by unfolding [array1_pts_to_slice r 0 nth]. *)
+let nat_abs_bij (nth : nat) : ((k:nat{0 <= k /\ k < nth}) =~ abs (nth @| INil)) =
+  {
+    ff = (fun k -> ((k, ()) <: abs (nth @| INil)));
+    gg = (fun (i, ()) -> i);
+  }
+
+(* [chest1_to_seq] commutes with mapping; bridges the chest1 interface (in the
+   .fsti) to the seq-based numeric proof below. *)
+let chest_map_to_seq_map (#et1 #et2 : Type) (#n : nat)
+  (f : et1 -> et2) (c : chest1 et1 n)
+  : Lemma (chest1_to_seq (chest_map f c) == seq_map f (chest1_to_seq c))
+  = assert (Seq.equal (chest1_to_seq (chest_map f c)) (seq_map f (chest1_to_seq c)))
+
+(* Plain ownership of a slice of a 1-D tensor. *)
 let array1_pts_to_slice
   (#et : Type0)
   (#sz : nat)
-  (#l : Array1.layout sz)
-  ([@@@mkey] r : Array1.t et l)
+  (#l : layout1 sz)
+  ([@@@mkey] r : array1 et l)
   ([@@@mkey]i
    [@@@mkey]j : nat{i <= j /\ j <= sz})
-  (s : lseq et (j - i))
+  (s : chest1 et (j - i))
   : slprop
   = forall+ (k : nat{i <= k /\ k < j}).
-      Cell r (k <: natlt sz) |-> (s @! (k - i))
+      Cell r ((k, ()) <: abs (sz @| INil)) |-> (s `acc1` (k - i))
 
-#push-options "--z3rlimit 40"
+#push-options "--z3rlimit 80"
 ghost
 fn array1_slice_concat
   (#et : Type0)
   (#sz : nat)
-  (#l : Array1.layout sz)
-  (r : Array1.t et l)
+  (#l : layout1 sz)
+  (r : array1 et l)
   (i j k : nat{i <= j /\ j <= k /\ k <= sz})
-  (#s1 : lseq et (j - i))
-  (#s2 : lseq et (k - j))
+  (#s1 : chest1 et (j - i))
+  (#s2 : chest1 et (k - j))
   requires
     array1_pts_to_slice r i j s1 **
     array1_pts_to_slice r j k s2
   ensures
-    array1_pts_to_slice r i k (s1 @+ s2)
+    array1_pts_to_slice r i k (chest1_append s1 s2)
 {
   unfold array1_pts_to_slice r i j s1;
   unfold array1_pts_to_slice r j k s2;
 
-  let s = s1 @+ s2;
+  let s = chest1_append s1 s2;
 
   (* Rewrite each side to use s *)
   forevery_ext
-    (fun (x:nat{i <= x /\ x < j}) -> Cell r (x <: natlt sz) |-> (s1 @! (x - i)))
-    (fun (x:nat{i <= x /\ x < j}) -> Cell r (x <: natlt sz) |-> (s @! (x - i)));
+    (fun (x:nat{i <= x /\ x < j}) -> tensor_pts_to_cell r ((x <: natlt sz), ()) (acc1 s1 (x - i)))
+    (fun (x:nat{i <= x /\ x < j}) -> tensor_pts_to_cell r ((x <: natlt sz), ()) (acc1 s (x - i)));
   forevery_ext
-    (fun (x:nat{j <= x /\ x < k}) -> Cell r (x <: natlt sz) |-> (s2 @! (x - j)))
-    (fun (x:nat{j <= x /\ x < k}) -> Cell r (x <: natlt sz) |-> (s @! (x - i)));
+    (fun (x:nat{j <= x /\ x < k}) -> tensor_pts_to_cell r ((x <: natlt sz), ()) (acc1 s2 (x - j)))
+    (fun (x:nat{j <= x /\ x < k}) -> tensor_pts_to_cell r ((x <: natlt sz), ()) (acc1 s (x - i)));
 
   (* Join *)
   forevery_refine_join' #nat
     (fun (x:nat) -> i <= x /\ x < j)
     (fun (x:nat) -> j <= x /\ x < k)
     (fun (x:nat{(i <= x /\ x < j) \/ (j <= x /\ x < k)}) ->
-      Cell r (x <: natlt sz) |-> (s @! (x - i)));
+      tensor_pts_to_cell r ((x <: natlt sz), ()) (acc1 s (x - i)));
 
   (* Simplify *)
   forevery_refine_ext' #nat
     #(fun (x:nat) -> (i <= x /\ x < j) \/ (j <= x /\ x < k))
     (fun (x:nat) -> i <= x /\ x < k)
     (fun (x:nat{(i <= x /\ x < j) \/ (j <= x /\ x < k)}) ->
-      Cell r (x <: natlt sz) |-> (s @! (x - i)));
+      tensor_pts_to_cell r ((x <: natlt sz), ()) (acc1 s (x - i)));
+
+
+  // FIXME: Terrible that this is needed. But we have a length of (j-i)+(k-j) which
+  // does not unify with k-i.
+  forevery_ext
+    _
+    (fun (x : nat{i <= x /\ x < k}) ->
+      tensor_pts_to_cell r ((x <: natlt sz), ()) (acc1 #_ #(k-i) s (x - i)));
 
   fold array1_pts_to_slice r i k s;
 }
@@ -92,21 +149,21 @@ inline_for_extraction noextract
 fn array1_read_from_slice
   (#et : Type0)
   (#len : erased nat)
-  (#l : Array1.layout len) {| ctlayout l |}
-  (r : Array1.t et l)
+  (#l : layout1 len) {| ctlayout l |}
+  (r : array1 et l)
   (#i #j : erased nat{i <= j /\ j <= len})
   (idx : sz{i <= idx /\ idx < j})
-  (#s : erased (lseq et (j - i)))
+  (#s : erased (chest1 et (j - i)))
   preserves
     array1_pts_to_slice r i j s
   returns
     v : et
   ensures
-    pure (v == s @! (idx - i))
+    pure (v == acc1 s (idx - i))
 {
   unfold array1_pts_to_slice r i j s;
   forevery_extract #(x:nat{i <= x /\ x < j}) (SZ.v idx) _;
-  let v = Array1.read_cell r idx;
+  let v = tensor_read_cell r ((idx <: szlt len), ());
   Pulse.Lib.Trade.elim_trade _ _;
   fold array1_pts_to_slice r i j s;
   v
@@ -116,50 +173,76 @@ inline_for_extraction noextract
 fn array1_write_to_slice
   (#et : Type0)
   (#len : erased nat)
-  (#l : Array1.layout len) {| ctlayout l |}
-  (r : Array1.t et l)
+  (#l : layout1 len) {| ctlayout l |}
+  (r : array1 et l)
   (#i #j : erased nat{i <= j /\ j <= len})
   (idx : sz{i <= idx /\ idx < j})
-  (#s : erased (lseq et (j - i)))
+  (#s : erased (chest1 et (j - i)))
   (v : et)
   requires
     array1_pts_to_slice r i j s
   ensures
-    array1_pts_to_slice r i j (Seq.upd s (idx - i) v)
+    array1_pts_to_slice r i j (upd1 s (idx - i) v)
 {
   unfold array1_pts_to_slice r i j s;
   forevery_extract' #(x:nat{i <= x /\ x < j}) (SZ.v idx) _;
-  Array1.write_cell r idx v;
-  let s' : erased (lseq et (j - i)) = Seq.upd s (idx - i) v;
+  tensor_write_cell r ((idx <: szlt len), ()) v;
+  let s' : erased (chest1 et (j - i)) = upd1 s (idx - i) v;
   Pulse.Lib.Forall.elim_forall
     (fun (x:nat{i <= x /\ x < j}) ->
-      Cell r (x <: natlt len) |-> (s' @! (x - i)));
+      tensor_pts_to_cell r ((x <: natlt len), ()) (acc1 s' (x - i)));
   Pulse.Lib.Trade.elim_trade _ _;
   fold array1_pts_to_slice r i j s';
-  rewrite each s' as Seq.upd s (idx - i) v;
+  rewrite each s' as upd1 s (idx - i) v;
   ()
 }
 
+(* Build a length-one slice from a single owned cell. *)
+ghost
+fn slice_singleton
+  (#et : Type0)
+  (#sz : nat)
+  (#l : layout1 sz)
+  (r : array1 et l)
+  (i : nat{i < sz})
+  (v : et)
+  (s : chest1 et 1)
+  requires
+    tensor_pts_to_cell r ((i <: natlt sz), ()) v **
+    pure (v == acc1 s 0)
+  ensures
+    array1_pts_to_slice r i (i+1) s
+{
+  forevery_singleton_intro'
+    #(x:nat{i <= x /\ x < i + 1})
+    (fun x -> tensor_pts_to_cell r ((x <: natlt sz), ()) v)
+    i;
+  forevery_ext
+    (fun (x:nat{i <= x /\ x < i + 1}) -> tensor_pts_to_cell r ((x <: natlt sz), ()) v)
+    (fun (x:nat{i <= x /\ x < i + 1}) -> tensor_pts_to_cell r ((x <: natlt sz), ()) (acc1 #_ #(i+1-i) s (x - i)));
+  fold array1_pts_to_slice r i (i+1) s;
+}
+
 (* Ownership of array r between i and j. The first value of that slice
-is the reduction of all the values in the (original) slice v. *)
+is the max of all the values in the (original) slice rr. *)
 unfold
 let array1_pts_to_slice_max_inner
   (#et:Type0) {| floating et, real_like et, floating_real_like et |}
   (#sz : nat)
-  (#l : Array1.layout sz)
-  (r : Array1.t et l)
+  (#l : layout1 sz)
+  (r : array1 et l)
   (i j : nat{i < j /\ j <= sz})
   (rr : lseq real sz)
-  (s : lseq et (j - i))
+  (s : chest1 et (j - i))
   : slprop
   = array1_pts_to_slice r i j s **
-    pure ((s @! 0) %~ seq_max (Seq.slice rr i j))
+    pure ((acc1 s 0) %~ seq_max (Seq.slice rr i j))
 
 let array1_pts_to_slice_max
   (#et:Type0) {| floating et, real_like et, floating_real_like et |}
   (#sz : nat)
-  (#l : Array1.layout sz)
-  ([@@@mkey] r : Array1.t et l)
+  (#l : layout1 sz)
+  ([@@@mkey] r : array1 et l)
   ([@@@mkey] i : nat)
   (j : nat{i < j /\ j <= sz})
   (rr : lseq real sz)
@@ -286,18 +369,15 @@ let vr_partial_max (pre_map : real -> real) (vr : seq real) (nth : pos { nth <= 
     stride_nonempty w nth tid;
     seq_max (seq_stride w nth tid))
 
-(* The max over the per-bucket maxima equals the max over the whole sequence.
-   Proven by antisymmetry, with each direction in its own lemma: the monolithic
-   proof is brittle (it only went through via F*'s fuel escalation, which is
-   slow), whereas the two halves are small and stable. *)
-
-(* Direction 1: every bucket max is below the global max, so their max is too. *)
-#push-options "--fuel 2 --ifuel 1 --z3rlimit 30"
-let strided_max_le (pre_map : real -> real) (vr : seq real) (nth : pos { nth <= Seq.length vr })
-  : Lemma (ensures seq_max (vr_partial_max pre_map vr nth) <=. seq_max (seq_map pre_map vr))
+(* The max over the per-bucket maxima equals the max over the whole sequence. *)
+#push-options "--z3rlimit 40"
+let strided_max_is_max (pre_map : real -> real) (vr : seq real) (nth : pos { nth <= Seq.length vr })
+  : Lemma (ensures seq_max (vr_partial_max pre_map vr nth) == seq_max (seq_map pre_map vr))
   = let w = seq_map pre_map vr in
     let lenw = Seq.length w in
     let vp = vr_partial_max pre_map vr nth in
+    // vp @! tid == seq_max (seq_stride w nth tid)   (init_ghost_index_, SMTPat)
+    // Direction 1: seq_max vp <=. seq_max w
     let aux1 (tid : nat { tid < nth }) : Lemma ((vp @! tid) <=. seq_max w)
       = stride_nonempty w nth tid;
         let bucket = seq_stride w nth tid in
@@ -310,17 +390,8 @@ let strided_max_le (pre_map : real -> real) (vr : seq real) (nth : pos { nth <= 
         seq_max_le bucket (seq_max w)
     in
     Classical.forall_intro aux1;
-    seq_max_le vp (seq_max w)
-#pop-options
-
-(* Direction 2: every element lies in some bucket, so it is below that bucket's
-   max, hence below the max of the partial maxima. *)
-#push-options "--fuel 2 --ifuel 1 --z3rlimit 30"
-let strided_max_ge (pre_map : real -> real) (vr : seq real) (nth : pos { nth <= Seq.length vr })
-  : Lemma (ensures seq_max (seq_map pre_map vr) <=. seq_max (vr_partial_max pre_map vr nth))
-  = let w = seq_map pre_map vr in
-    let lenw = Seq.length w in
-    let vp = vr_partial_max pre_map vr nth in
+    seq_max_le vp (seq_max w);
+    // Direction 2: seq_max w <=. seq_max vp
     let aux2 (g : nat { g < lenw }) : Lemma ((w @! g) <=. seq_max vp)
       = let off : nat = g % nth in
         let i : nat = g / nth in
@@ -345,18 +416,13 @@ let strided_max_ge (pre_map : real -> real) (vr : seq real) (nth : pos { nth <= 
     seq_max_le w (seq_max vp)
 #pop-options
 
-let strided_max_is_max (pre_map : real -> real) (vr : seq real) (nth : pos { nth <= Seq.length vr })
-  : Lemma (ensures seq_max (vr_partial_max pre_map vr nth) == seq_max (seq_map pre_map vr))
-  = strided_max_le pre_map vr nth;
-    strided_max_ge pre_map vr nth
-
 // Barrier
 
 let barrier_matrix
   (#et:Type0) {| floating et, real_like et, floating_real_like et |}
   (nth : szp)
-  (#l : Array1.layout nth)
-  (r : Array1.t et l)
+  (#l : layout1 nth)
+  (r : array1 et l)
   (vr : lseq real nth)
   (it : nat)
   (from to : natlt nth)
@@ -370,8 +436,8 @@ ghost
 fn mk_barrier_pre
   (#et:Type0) {| floating et, real_like et, floating_real_like et |}
   (nth : szp)
-  (#l : Array1.layout nth)
-  (r : Array1.t et l)
+  (#l : layout1 nth)
+  (r : array1 et l)
   (vr : lseq real nth)
   (tid : natlt nth)
   (it: natlt 31)
@@ -412,10 +478,10 @@ let kpre
   (pre_map_r : real -> real { pre_map %~ pre_map_r })
   (nth : szp { nth <= max_threads })
   (lena : sz { SZ.fits (lena + nth) /\ SZ.v nth <= lena })
-  (#l : Array1.layout lena)
-  (a : Array1.t et l)
-  (va : lseq et lena)
-  (vr : lseq real lena)
+  (#l : layout1 lena)
+  (a : array1 et l)
+  (va : chest1 et lena)
+  (vr : chest1 real lena)
   (out : gpu_ref et)
   (shmem : c_shmems [SHArray et nth])
   (bid : natlt 1)
@@ -423,7 +489,8 @@ let kpre
   : slprop
   = a |-> Frac (1 /. nth) va **
     if_ (op_Equality #nat tid 0) (live out) **
-    exists* (v : et). Cell (Array1.from_array (l1_forward nth) shmem._1) tid |-> v
+    exists* (v : et).
+      tensor_pts_to_cell (from_array (l1_forward nth) shmem._1) (tid, ()) v
 
 // Same RO permission to a, 1st thread has full ownership of shmem plus of the
 // output reference.  No need to specify the contents of the shmem array, it
@@ -435,10 +502,10 @@ let kpost
   (pre_map_r : real -> real { pre_map %~ pre_map_r })
   (nth : szp { nth <= max_threads })
   (lena : sz { SZ.fits (lena + nth) /\ SZ.v nth <= lena })
-  (#l : Array1.layout lena)
-  (a : Array1.t et l)
-  (va : lseq et lena)
-  (vr : lseq real lena)
+  (#l : layout1 lena)
+  (a : array1 et l)
+  (va : chest1 et lena)
+  (vr : chest1 real lena)
   (out : gpu_ref et)
   (shmem : c_shmems [SHArray et nth])
   (bid : natlt 1)
@@ -446,16 +513,16 @@ let kpost
   : slprop
   = a |-> Frac (1 /. nth) va **
     if_ (op_Equality #nat tid 0) (
-      live (Array1.from_array (l1_forward nth) shmem._1) **
-      exists* (v : et). out |-> v ** pure (v %~ seq_max (seq_map pre_map_r vr))
+      live (from_array (l1_forward nth) shmem._1) **
+      exists* (v : et). out |-> v ** pure (v %~ seq_max (chest1_to_seq (chest_map pre_map_r vr)))
     )
 
 inline_for_extraction
 fn iteration
   (#et:Type0) {| floating et, real_like et, floating_real_like et |}
   (nth : szp { SZ.v nth <= max_threads })
-  (#l : Array1.layout nth) {| Kuiper.Tensor.ctlayout l |}
-  (r : Array1.t et l)
+  (#l : layout1 nth) {| Kuiper.Tensor.ctlayout l |}
+  (r : array1 et l)
   (vr : erased (lseq real nth))
   (tid : szlt nth)
   (it: szlt 31)
@@ -606,83 +673,44 @@ let lemma_first_past
           (ensures  i == off + ((len - off - 1 + stride) / stride) * stride)
   = ()
 
-(* ── Pure arithmetic of the strided fold, factored out ─────────────────────
-   The strided fold ([max_stride_map] here, [max_stride_map_2d] in
-   [Kuiper.Kernel.HReduce.Block.Max]) carries a quantified approximation
-   hypothesis in its ambient context. Proving the (nonlinear) index arithmetic
-   of the loop *in that context* is pathologically slow because the solver keeps
-   instantiating that irrelevant quantifier. We discharge the arithmetic here,
-   in a clean context, and feed the results back as ground facts. (Block.Max
-   reuses both lemmas through its [friend] of this module.) *)
-
-(* One loop step: from [idx == gidx*stride + off] (and [idx] still in range),
-   the next index is [(gidx+1)*stride + off], and the bucket length bound is
-   maintained. *)
-#push-options "--z3rlimit 20"
-let max_stride_step_arith (#a:Type) (s : seq a) (stride : pos) (off : natlt stride)
-  (gidx idx : nat)
-  : Lemma (requires idx == gidx * stride + off /\ idx < Seq.length s)
-          (ensures  off + gidx * stride == idx /\
-                    idx + stride == (gidx + 1) * stride + off /\
-                    gidx + 1 <= seq_stride_length s stride off)
-  = Math.Lemmas.distributivity_add_left gidx 1 stride;
-    Math.Lemmas.cancel_mul_div (gidx + 1) stride;
-    Math.Lemmas.lemma_div_le ((gidx + 1) * stride) (Seq.length s - off + stride - 1) stride
-#pop-options
-
-(* Loop exit: once [idx] has just passed [Seq.length s] in [stride]-sized steps,
-   the step count [gidx] equals the number of strided buckets. *)
-#push-options "--z3rlimit 20"
-let max_stride_post_arith (#a:Type) (s : seq a) (stride : pos) (off : natlt stride)
-  (gidx idx : nat)
-  : Lemma (requires idx == gidx * stride + off /\
-                    idx >= Seq.length s /\ idx < Seq.length s + stride)
-          (ensures  gidx == seq_stride_length s stride off)
-  = let len = Seq.length s in
-    Math.Lemmas.lemma_mod_plus off gidx stride;
-    Math.Lemmas.small_mod off stride;
-    lemma_first_past len off stride idx;
-    Math.Lemmas.cancel_mul_div ((len - off - 1 + stride) / stride) stride;
-    Math.Lemmas.cancel_mul_div gidx stride
-#pop-options
-
-#push-options "--fuel 2 --ifuel 1 --z3rlimit 20"
+#push-options "--z3rlimit 100"
 inline_for_extraction noextract
 fn max_stride_map
   (#et:Type0) {| floating et, real_like et, floating_real_like et |}
   (pre_map : et -> et)
   (pre_map_r : real -> real { pre_map %~ pre_map_r })
   (lena : sz)
-  (#l : Array1.layout lena) {| ctlayout l |}
-  (a : Array1.t et l)
+  (#l : layout1 lena) {| ctlayout l |}
+  (a : array1 et l)
   (stride : szp)
   (off : szlt stride { SZ.v off < lena })
-  (#va : erased (lseq et lena))
-  (vr : erased (lseq real lena))
+  (#va : chest1 et lena)
+  (vr : chest1 real lena)
   (#f : perm)
   preserves
     gpu ** a |-> Frac f va ** pure (va %~ vr) ** pure (SZ.fits (lena + stride))
   returns
     res : et
   ensures
-    pure (res %~ seq_max (seq_stride (lseq_map pre_map_r vr) stride off))
+    pure (res %~ seq_max (seq_stride (seq_map pre_map_r (chest1_to_seq vr)) stride off))
 {
   (* off < lena, so the strided bucket at `off` is non-empty. *)
-  stride_nonempty (lseq_map pre_map_r vr) stride off;
+  stride_nonempty (seq_map pre_map_r (chest1_to_seq vr)) stride off;
 
   (* Initialize the accumulator with the first strided element (index off),
      so the running max is over a non-empty prefix.  seq_take 1 of the bucket
      is the singleton [w @! off]. *)
-  let v0 = Array1.read a off;
+  let off_s : sz = off;
+  let v0 = tensor_read a ((off_s <: szlt lena), ());
   let acc0 = pre_map v0;
-  (**)assert (pure (v0 == va @! SZ.v off));
-  (**)assert (pure (acc0 %~ (lseq_map pre_map_r vr @! SZ.v off)));
-  (**)assert (pure (seq_stride (lseq_map pre_map_r vr) stride off @! 0 == (lseq_map pre_map_r vr) @! (off + 0 * stride)));
-  (**)assert (pure (acc0 %~ (seq_stride (lseq_map pre_map_r vr) stride off @! 0)));
-  (**)seq_max_singleton (seq_stride (lseq_map pre_map_r vr) stride off @! 0);
-  (**)assert (pure (Seq.equal (seq_take 1 (seq_stride (lseq_map pre_map_r vr) stride off))
-  (**)                        (seq![seq_stride (lseq_map pre_map_r vr) stride off @! 0])));
-  (**)assert (pure (acc0 %~ seq_max (seq_take 1 (seq_stride (lseq_map pre_map_r vr) stride off))));
+  (**)assert (pure (v0 == acc1 va (SZ.v off)));
+  (**)assert (pure (acc0 %~ (seq_map pre_map_r (chest1_to_seq vr) @! SZ.v off)));
+  (**)assert (pure (seq_stride (seq_map pre_map_r (chest1_to_seq vr)) stride off @! 0 == (seq_map pre_map_r (chest1_to_seq vr)) @! (off + 0 * stride)));
+  (**)assert (pure (acc0 %~ (seq_stride (seq_map pre_map_r (chest1_to_seq vr)) stride off @! 0)));
+  (**)seq_max_singleton (seq_stride (seq_map pre_map_r (chest1_to_seq vr)) stride off @! 0);
+  (**)assert (pure (Seq.equal (seq_take 1 (seq_stride (seq_map pre_map_r (chest1_to_seq vr)) stride off))
+  (**)                        (seq![seq_stride (seq_map pre_map_r (chest1_to_seq vr)) stride off @! 0])));
+  (**)assert (pure (acc0 %~ seq_max (seq_take 1 (seq_stride (seq_map pre_map_r (chest1_to_seq vr)) stride off))));
 
   let mut acc : et = acc0;
   let mut idx : sz = off +^ stride;
@@ -695,32 +723,36 @@ fn max_stride_map
       pure (SZ.v !idx == gread gidx * stride + off /\
             gread gidx >= 1 /\
             off <= SZ.v !idx /\ SZ.v !idx < lena + stride /\
-            gread gidx <= seq_stride_length (lseq_map pre_map_r vr) stride off /\
-            !acc %~ seq_max (seq_take (gread gidx) (seq_stride (lseq_map pre_map_r vr) stride off))) **
+            gread gidx <= seq_stride_length (seq_map pre_map_r (chest1_to_seq vr)) stride off /\
+            !acc %~ seq_max (seq_take (gread gidx) (seq_stride (seq_map pre_map_r (chest1_to_seq vr)) stride off))) **
       emp
     decreases (lena + stride - !idx)
   {
-    assert pure (gread gidx < seq_stride_length (lseq_map pre_map_r vr) stride off);
+    assert pure (gread gidx < seq_stride_length (seq_map pre_map_r (chest1_to_seq vr)) stride off);
 
     (* Read from input array (fractional permission) *)
-    let v = Array1.read a !idx;
+    let vidx = !idx;
+    let v = tensor_read a ((vidx <: szlt lena), ());
     let v' = pre_map v;
-    (**)assert (pure (v == va @! SZ.v !idx));
-    (**)assert (pure (v %~ (vr @! SZ.v !idx)));
-    (**)assert (pure (v' %~ (lseq_map pre_map_r vr @! SZ.v !idx)));
+    (**)assert (pure (v == acc1 va (SZ.v !idx)));
+    (**)assert (pure (v %~ (chest1_to_seq vr @! SZ.v !idx)));
+    (**)assert (pure (v' %~ (seq_map pre_map_r (chest1_to_seq vr) @! SZ.v !idx)));
 
-    assert pure (!acc %~ seq_max (seq_take (gread gidx) (seq_stride (lseq_map pre_map_r vr) stride off)));
-    assert pure (v %~ (vr @! !idx));
-
-    let vgidx = gread gidx;
-    (* All loop-step index arithmetic, discharged in a clean context so the
-       ambient approximation quantifier doesn't blow up the solver. *)
-    max_stride_step_arith (lseq_map pre_map_r vr) stride off vgidx (SZ.v !idx);
-
-    assert pure (seq_stride (lseq_map pre_map_r vr) stride off @! vgidx == (lseq_map pre_map_r vr) @! (off + vgidx * stride));
+    assert pure (!acc %~ seq_max (seq_take (gread gidx) (seq_stride (seq_map pre_map_r (chest1_to_seq vr)) stride off)));
+    assert pure (v %~ (chest1_to_seq vr @! !idx));
+    assert pure (seq_stride (seq_map pre_map_r (chest1_to_seq vr)) stride off @! gread gidx == (seq_map pre_map_r (chest1_to_seq vr)) @! (off + gread gidx * stride));
+    assert pure (off + gread gidx * stride == SZ.v !idx);
 
     (* seq_take (k+1) maxes in the bucket's k-th element; combine with fmax. *)
-    (**)seq_max_take_step (seq_stride (lseq_map pre_map_r vr) stride off) vgidx;
+    (**)seq_max_take_step (seq_stride (seq_map pre_map_r (chest1_to_seq vr)) stride off) (gread gidx);
+
+    let vgidx = gread gidx;
+    assert (pure (SZ.v !idx                  == vgidx    * stride + off));
+    Math.Lemmas.distributivity_add_left vgidx 1 stride;
+    assert (pure ((vgidx + 1) * stride + off == ((vgidx * stride) + (1 * stride)) + off)); // Sad.
+    assert (pure (SZ.v !idx + stride == (vgidx + 1) * stride + off));
+
+    Math.Lemmas.add_div_mod_1 (SZ.v !idx) stride;
 
     acc := !acc `fmax` v';
     idx := !idx +^ stride;
@@ -731,11 +763,26 @@ fn max_stride_map
   };
 
   assert pure (SZ.v !idx == gread gidx * stride + off);
-  (* Loop-exit index arithmetic, again discharged off to the side. *)
-  max_stride_post_arith (lseq_map pre_map_r vr) stride off (gread gidx) (SZ.v !idx);
-  assert pure (gread gidx == seq_stride_length (lseq_map pre_map_r vr) stride off);
-  assert pure (seq_take (seq_stride_length (lseq_map pre_map_r vr) stride off) (seq_stride (lseq_map pre_map_r vr) stride off) == seq_stride (lseq_map pre_map_r vr) stride off);
-  assert pure (!acc %~ seq_max (seq_stride (lseq_map pre_map_r vr) stride off));
+  Math.Lemmas.lemma_mod_plus off (gread gidx) stride;
+  Math.Lemmas.small_mod off stride;
+  assert pure ((off + stride * gread gidx) % stride == off);
+  assert pure ((gread gidx * stride + off) % stride == off);
+  assert pure (!idx % stride == off);
+  lemma_first_past lena off stride (SZ.v !idx);
+  assert (pure (SZ.v !idx == off + ((lena - off - 1 + stride) / stride) * stride));
+
+  assert pure (gread gidx <= seq_stride_length (seq_map pre_map_r (chest1_to_seq vr)) stride off);
+  Math.Lemmas.cancel_mul_div (gread gidx) stride;
+  (* A calc proof would be much nicer. *)
+  assert pure (gread gidx == (!idx - off) / stride);
+  assert pure (gread gidx == ((off + ((lena - off - 1 + stride) / stride) * stride) - off) / stride);
+  assert pure (gread gidx == (((lena - off - 1 + stride) / stride) * stride) / stride);
+  assert pure (gread gidx == (lena - off - 1 + stride) / stride);
+  assert pure (lena - off - 1 + stride == lena - off + stride - 1);
+  assert pure (gread gidx == (lena - off + stride - 1) / stride);
+  assert pure (gread gidx == seq_stride_length (seq_map pre_map_r (chest1_to_seq vr)) stride off);
+  assert pure (seq_take (seq_stride_length (seq_map pre_map_r (chest1_to_seq vr)) stride off) (seq_stride (seq_map pre_map_r (chest1_to_seq vr)) stride off) == seq_stride (seq_map pre_map_r (chest1_to_seq vr)) stride off);
+  assert pure (!acc %~ seq_max (seq_stride (seq_map pre_map_r (chest1_to_seq vr)) stride off));
 
   drop_ (gidx |-> _);
 
@@ -751,10 +798,10 @@ fn kf
   (pre_map_r : real -> real { pre_map %~ pre_map_r })
   (nth : szp { nth <= max_threads })
   (lena : sz { SZ.fits (lena + nth) /\ SZ.v nth <= lena })
-  (#l : Array1.layout lena) {| ctlayout l |}
-  (a : Array1.t et l)
-  (va : erased (lseq et lena))
-  (vr : erased (lseq real lena) { va %~ vr })
+  (#l : layout1 lena) {| ctlayout l |}
+  (a : array1 et l)
+  (va : chest1 et lena)
+  (vr : chest1 real lena { va %~ vr })
   (out : gpu_ref et)
   (shmem : c_shmems [SHArray et nth])
   (bid : szlt 1sz)
@@ -765,44 +812,43 @@ fn kf
     kpre pre_map pre_map_r nth lena a va vr out shmem bid tid **
     thread_id nth tid **
     block_id 1 bid **
-    mbarrier_tok nth (barrier_matrix nth (Array1.from_array (l1_forward nth) shmem._1) (vr_partial_max pre_map_r vr nth)) **
+    mbarrier_tok nth (barrier_matrix nth (from_array (l1_forward nth) shmem._1) (vr_partial_max pre_map_r (chest1_to_seq vr) nth)) **
     B.barrier_state 0
   ensures
     gpu **
     kpost pre_map pre_map_r nth lena a va vr out shmem bid tid **
     thread_id nth tid **
     block_id 1 bid **
-    mbarrier_tok nth (barrier_matrix nth (Array1.from_array (l1_forward nth) shmem._1) (vr_partial_max pre_map_r vr nth)) **
+    mbarrier_tok nth (barrier_matrix nth (from_array (l1_forward nth) shmem._1) (vr_partial_max pre_map_r (chest1_to_seq vr) nth)) **
     B.barrier_state (hreduce_barrier_count nth)
 {
   let (gsa, _) = shmem;
 
-  let sa = Array1.from_array (l1_forward nth) gsa;
-  rewrite each Array1.from_array (l1_forward nth) gsa as sa;
+  let sa = from_array (l1_forward nth) gsa;
+  rewrite each from_array (l1_forward nth) gsa as sa;
 
-  let vr_s : erased (lseq real nth) = vr_partial_max pre_map_r vr nth;
+  let vr_s : erased (lseq real nth) = vr_partial_max pre_map_r (chest1_to_seq vr) nth;
 
   (* Compute partial max and write to shmem *)
+  (**)chest1_to_seq_approx va vr;
   let psum : et = max_stride_map pre_map pre_map_r lena a nth tid vr;
-  Array1.write_cell sa tid psum;
+  tensor_write_cell sa (tid, ()) psum;
 
   (* Now do tree reduction on shmem *)
   let mut n : szlt 32 = 0sz;
 
-  forevery_singleton_intro'
-    #(x:nat{tid <= x /\ x < tid + 1})
-    (fun x -> Cell sa (x <: natlt nth) |-> (seq![psum] @! (x - tid)))
-    tid;
-  fold array1_pts_to_slice sa tid (tid+1) seq![psum];
+  let psum_chest : chest1 et 1 = mk1 #et #1 (fun _ -> psum);
+  slice_singleton sa (SZ.v tid) psum psum_chest;
 
   (* psum %~ vr_s @! tid == seq_max (single-element slice [tid, tid+1)) *)
-  (**)stride_nonempty (lseq_map pre_map_r vr) nth tid;
+  (**)stride_nonempty (seq_map pre_map_r (chest1_to_seq vr)) nth tid;
   (**)assert (pure (psum %~ (reveal vr_s @! SZ.v tid)));
   (**)seq_max_singleton (reveal vr_s @! SZ.v tid);
   (**)assert (pure (Seq.equal (Seq.slice (reveal vr_s) tid (tid + 1)) (seq![reveal vr_s @! SZ.v tid])));
-  (**)assert (pure (psum %~ seq_max (Seq.slice (reveal vr_s) tid (tid + 1))));
+  (**)assert (pure (acc1 psum_chest 0 %~ seq_max (Seq.slice (reveal vr_s) tid (tid + 1))));
   (**)fold (array1_pts_to_slice_max sa tid (tid + 1) vr_s);
   (**)assert (pure (pow2 (SZ.v !n) == 1));
+  (**)assert (pure (SZ.v tid + 1 <= SZ.v nth));
   (**)assert (pure (min (SZ.v tid + pow2 (SZ.v !n)) (SZ.v nth) == SZ.v tid + 1));
   (**)rewrite (array1_pts_to_slice_max sa tid (tid + 1) vr_s)
   (**)     as (array1_pts_to_slice_max sa tid (min (tid + pow2 !n) nth) vr_s);
@@ -817,7 +863,6 @@ fn kf
       pure (v !n > 0 ==> pow2 (v !n - 1) < v nth)
     decreases (2 * nth - spow2 !n)
   {
-    assert pure (Seq.length va == SZ.v lena);
     iteration nth sa vr_s tid !n;
     n := !n +^ 1sz;
   };
@@ -839,32 +884,34 @@ fn kf
     if_elim_true' (op_Equality #nat tid 0) (array1_pts_to_slice_max sa 0 nth vr_s);
     if_elim_true' (op_Equality #nat tid 0) (live out);
     unfold array1_pts_to_slice_max sa 0 nth vr_s;
-    (**)strided_max_is_max pre_map_r vr nth;
+    (**)strided_max_is_max pre_map_r (chest1_to_seq vr) nth;
+    (**)chest_map_to_seq_map pre_map_r vr;
     (**)assert (pure (Seq.equal (Seq.slice (reveal vr_s) 0 nth) (reveal vr_s)));
     gpu_write out (array1_read_from_slice sa 0sz);
     with ss. assert array1_pts_to_slice sa 0 nth ss;
     unfold array1_pts_to_slice sa;
-    let bij : Kuiper.Bijection.bijection (k:nat{0 <= k /\ k < nth}) (Array1.ait nth) =
-      Kuiper.Bijection.Mkbijection
-        #(k:nat{0 <= k /\ k < nth})
-        #(Array1.ait nth)
-        (fun k -> k)
-        (fun k -> k);
-    forevery_iso bij _;
-    forevery_ext _ (fun (k : natlt nth) -> Cell sa k |-> (ss @! k));
-    Array1.implode sa;
-    rewrite each sa as Array1.from_array (l1_forward nth) shmem._1;
+    let css : erased (chest1 et nth) = hide (mk1 #et #nth (fun (k:natlt nth) -> acc1 ss k));
+    (* Clean the index refinement [0<=k /\ k<nth] down to [k<nth] (= natlt nth),
+       then reindex to the abstract tensor index and implode. *)
+    forevery_refine_ext' #nat #(fun (k:nat) -> 0 <= k /\ k < nth) (fun (k:nat) -> k < nth) _;
+    forevery_ext
+      (fun (k:natlt nth) -> tensor_pts_to_cell sa ((k <: natlt nth), ()) (acc1 ss (k - 0)))
+      (fun (k:natlt nth) -> tensor_pts_to_cell sa (abs_bij.gg k) (acc (reveal css) (abs_bij.gg k)));
+    forevery_iso_back (abs_bij #nth)
+      (fun (i : abs (nth @| INil)) -> tensor_pts_to_cell sa i (acc (reveal css) i));
+    tensor_implode sa #1.0R #(reveal css);
+    rewrite each sa as from_array (l1_forward nth) shmem._1;
     if_intro_true' (op_Equality #nat tid 0) (
-      live (Array1.from_array (l1_forward nth) shmem._1) **
-      exists* (v : et). out |-> v ** pure (v %~ seq_max (seq_map pre_map_r vr))
+      live (from_array (l1_forward nth) shmem._1) **
+      exists* (v : et). out |-> v ** pure (v %~ seq_max (chest1_to_seq (chest_map pre_map_r vr)))
     )
   } else {
     (* Nop, convince Pulse. *)
     if_elim_false' (op_Equality #nat tid 0) (array1_pts_to_slice_max sa 0 nth vr_s);
     if_elim_false' (op_Equality #nat tid 0) (live out);
     if_intro_false' (op_Equality #nat tid 0) (
-      live (Array1.from_array (l1_forward nth) shmem._1) **
-      exists* (v : et). out |-> v ** pure (v %~ seq_max (seq_map pre_map_r vr))
+      live (from_array (l1_forward nth) shmem._1) **
+      exists* (v : et). out |-> v ** pure (v %~ seq_max (chest1_to_seq (chest_map pre_map_r vr)))
     );
     ();
   };
@@ -878,10 +925,10 @@ fn block_setup
   (pre_map_r : real -> real { pre_map %~ pre_map_r })
   (nth : szp { nth <= max_threads })
   (lena : sz { SZ.fits (lena + nth) /\ SZ.v nth <= lena })
-  (#l : Array1.layout lena)
-  (a : Array1.t et l)
-  (#va : lseq et lena)
-  (vr : lseq real lena { va %~ vr })
+  (#l : layout1 lena)
+  (a : array1 et l)
+  (#va : chest1 et lena)
+  (vr : chest1 real lena { va %~ vr })
   (out : gpu_ref et)
   (shmem : c_shmems [SHArray et nth])
   (bid : natlt 1)
@@ -903,7 +950,7 @@ fn block_setup
   gpu_pts_to_ref gsa;
 
   (* share input into nth fractional copies *)
-  Array1.share_n a nth;
+  tensor_share_n a nth;
 
   (* tid 0 gets the ref *)
   forevery_if_intro #(natlt nth) 0 (fun _ -> live out);
@@ -914,9 +961,10 @@ fn block_setup
 
   forevery_zip (fun _ -> a |-> Frac (1 /. nth) va) _;
 
-  (* View shmem array as Array1. Explode it. *)
-  Array1.raise' (l1_forward nth) gsa;
-  Array1.explode (Array1.from_array (l1_forward nth) gsa);
+  (* View shmem array as a tensor and explode it into per-cell ownership. *)
+  tensor_abs' (l1_forward nth) gsa;
+  tensor_explode (from_array (l1_forward nth) gsa);
+  forevery_iso abs_bij _;
 
   forevery_zip #(natlt nth)
     (fun tid -> a |-> Frac (1 /. nth) va ** if_ (op_Equality #nat tid 0) (live out))
@@ -927,7 +975,8 @@ fn block_setup
     (fun tid ->
       (a |-> Frac (1 /. nth) va **
        if_ (op_Equality #nat tid 0) (live out)) **
-      Cell (Array1.from_array (l1_forward nth) gsa) tid |-> (Array1.from_seq (l1_forward nth) vgsa @! tid)
+      Cell (from_array (l1_forward nth) gsa) (abs_bij.gg (tid <: natlt nth))
+        |-> (acc (from_seq (l1_forward nth) vgsa) (abs_bij.gg (tid <: natlt nth)))
     )
     (fun (tid : natlt nth) -> kpre pre_map pre_map_r nth lena a va vr out shmem bid tid)
     fn tid {
@@ -939,7 +988,6 @@ fn block_setup
 }
 
 
-#push-options "--z3rlimit 40 --fuel 2 --ifuel 2"
 ghost
 fn block_teardown
   (#et:Type0) {| floating et, real_like et, floating_real_like et |}
@@ -947,10 +995,10 @@ fn block_teardown
   (pre_map_r : real -> real { pre_map %~ pre_map_r })
   (nth : szp { nth <= max_threads })
   (lena : sz { SZ.fits (lena + nth) /\ SZ.v nth <= lena })
-  (#l : Array1.layout lena)
-  (a : Array1.t et l)
-  (#va : lseq et lena)
-  (vr : lseq real lena { va %~ vr })
+  (#l : layout1 lena)
+  (a : array1 et l)
+  (#va : chest1 et lena)
+  (vr : chest1 real lena { va %~ vr })
   (out : gpu_ref et)
   (shmem : c_shmems [SHArray et nth])
   (bid : natlt 1)
@@ -961,48 +1009,46 @@ fn block_teardown
     emp
   ensures
     live_c_shmems shmem **
-    (a |-> va ** (exists* (v : et). out |-> v ** pure (v %~ seq_max (lseq_map pre_map_r vr))))
+    (a |-> va ** (exists* (v : et). out |-> v ** pure (v %~ seq_max (chest1_to_seq (chest_map pre_map_r vr)))))
 {
   forevery_unzip _ _;
 
-  Array1.gather_n a nth;
+  tensor_gather_n a nth;
 
   (* Sad.*)
   forevery_ext #(natlt nth)
     (fun tid ->
       if_ (op_Equality #nat tid 0) (
-        live (Array1.from_array (l1_forward nth) shmem._1) **
-        exists* (v : et). out |-> v ** pure (v %~ seq_max (lseq_map pre_map_r vr))))
+        live (from_array (l1_forward nth) shmem._1) **
+        exists* (v : et). out |-> v ** pure (v %~ seq_max (chest1_to_seq (chest_map pre_map_r vr)))))
     (fun tid ->
       if_ (op_Equality #(natlt nth) tid 0) (
-        live (Array1.from_array (l1_forward nth) shmem._1) **
-        exists* (v : et). out |-> v ** pure (v %~ seq_max (lseq_map pre_map_r vr))));
+        live (from_array (l1_forward nth) shmem._1) **
+        exists* (v : et). out |-> v ** pure (v %~ seq_max (chest1_to_seq (chest_map pre_map_r vr)))));
 
   forevery_if_elim #(natlt nth) 0 (fun tid ->
-      live (Array1.from_array (l1_forward nth) shmem._1) **
-      exists* (v : et). out |-> v ** pure (v %~ seq_max (lseq_map pre_map_r vr))
+      live (from_array (l1_forward nth) shmem._1) **
+      exists* (v : et). out |-> v ** pure (v %~ seq_max (chest1_to_seq (chest_map pre_map_r vr)))
   );
 
-  Array1.lower (Array1.from_array (l1_forward nth) shmem._1);
-  rewrite each Array1.core (Array1.from_array (l1_forward nth) shmem._1) as shmem._1;
+  tensor_concr (from_array (l1_forward nth) shmem._1);
+  rewrite each core (from_array (l1_forward nth) shmem._1) as shmem._1;
 
   fold_live_c_shmems_nil shmem._2 #_;
   with vgsa. assert shmem._1 |-> vgsa;
   fold_live_c_shmem shmem._1;
   fold_live_c_shmems_cons shmem #_;
 }
-#pop-options
 
 ghost
 fn setup
   (#et:Type0) {| floating et, real_like et, floating_real_like et |}
   (nth : szp { nth <= max_threads })
   (lena : sz { SZ.fits (lena + nth) /\ SZ.v nth <= lena })
-  (#l : Array1.layout lena) {| ctlayout l |}
-  (a : Array1.t et l { Array1.is_global a })
-  (#va : erased (lseq et lena))
-  (vr : erased (lseq real lena) { va %~ vr })
-  (#_ : squash (Seq.length va == SZ.v lena))
+  (#l : layout1 lena) {| ctlayout l |}
+  (a : array1 et l { is_global a })
+  (#va : chest1 et lena)
+  (vr : chest1 real lena { va %~ vr })
   (out : gpu_ref et)
   ()
   norewrite
@@ -1022,19 +1068,18 @@ fn teardown
   (pre_map_r : real -> real { pre_map %~ pre_map_r })
   (nth : szp { nth <= max_threads })
   (lena : sz { SZ.fits (lena + nth) /\ SZ.v nth <= lena })
-  (#l : Array1.layout lena) {| ctlayout l |}
-  (a : Array1.t et l { Array1.is_global a })
-  (#va : erased (lseq et lena))
-  (vr : erased (lseq real lena) { va %~ vr })
-  (#_ : squash (Seq.length va == SZ.v lena))
+  (#l : layout1 lena) {| ctlayout l |}
+  (a : array1 et l { is_global a })
+  (#va : chest1 et lena)
+  (vr : chest1 real lena { va %~ vr })
   (out : gpu_ref et)
   ()
   norewrite
   requires
-    (forall+ (bid : natlt 1). a |-> va ** exists* (v : et). out |-> v ** pure (v %~ seq_max (lseq_map pre_map_r vr))) **
+    (forall+ (bid : natlt 1). a |-> va ** exists* (v : et). out |-> v ** pure (v %~ seq_max (chest1_to_seq (chest_map pre_map_r vr)))) **
     emp
   ensures
-    a |-> va ** (exists* (v : et). out |-> v ** pure (v %~ seq_max (lseq_map pre_map_r vr)))
+    a |-> va ** (exists* (v : et). out |-> v ** pure (v %~ seq_max (chest1_to_seq (chest_map pre_map_r vr))))
 {
   forevery_singleton_elim #(natlt 1) _;
 }
@@ -1046,15 +1091,14 @@ let kernel
   (pre_map_r : real -> real { pre_map %~ pre_map_r })
   (nth : szp { nth <= max_threads })
   (lena : sz { SZ.fits (lena + nth) /\ SZ.v nth <= lena })
-  (#l : Array1.layout lena) {| ctlayout l |}
-  (a : Array1.t et l { Array1.is_global a })
-  (#va : erased (lseq et lena))
-  (vr : erased (lseq real lena) { va %~ vr })
-  (#_ : squash (Seq.length va == SZ.v lena))
+  (#l : layout1 lena) {| ctlayout l |}
+  (a : array1 et l { is_global a })
+  (#va : chest1 et lena)
+  (vr : chest1 real lena { va %~ vr })
   (out : gpu_ref et)
   : kernel_desc
       (a |-> va ** live out)
-      (a |-> va ** exists* (v : et). out |-> v ** pure (v %~ seq_max (lseq_map pre_map_r vr)))
+      (a |-> va ** exists* (v : et). out |-> v ** pure (v %~ seq_max (chest1_to_seq (chest_map pre_map_r vr))))
   = {
     nblk = 1sz;
     nthr = nth;
@@ -1062,15 +1106,15 @@ let kernel
     shmems_desc = [SHArray et nth];
 
     barrier_contract = (fun _bid shmem ->
-      mbarrier_contract (barrier_matrix #et nth (Array1.from_array _ shmem._1) (vr_partial_max pre_map_r vr nth)));
+      mbarrier_contract (barrier_matrix #et nth (from_array _ shmem._1) (vr_partial_max pre_map_r (chest1_to_seq vr) nth)));
     barrier_count    = (fun _bid    -> hreduce_barrier_count nth);
     barrier_ok       = (fun _bid shmem ->
-      mbarrier_transform (barrier_matrix nth #(l1_forward nth) (Array1.from_array _ shmem._1) (vr_partial_max pre_map_r vr nth)));
+      mbarrier_transform (barrier_matrix nth #(l1_forward nth) (from_array _ shmem._1) (vr_partial_max pre_map_r (chest1_to_seq vr) nth)));
 
     f = kf pre_map pre_map_r nth lena a va vr out;
 
     block_pre  = (fun bid -> a |-> va ** live out);
-    block_post = (fun bid -> a |-> va ** exists* (v : et). out |-> v ** pure (v %~ seq_max (lseq_map pre_map_r vr)));
+    block_post = (fun bid -> a |-> va ** exists* (v : et). out |-> v ** pure (v %~ seq_max (chest1_to_seq (chest_map pre_map_r vr))));
     setup      = setup    nth lena a #va vr out;
     teardown   = teardown pre_map pre_map_r nth lena a #va vr out;
 
@@ -1098,10 +1142,10 @@ fn reduce_max
   (pre_map_r : real -> real { pre_map %~ pre_map_r })
   (nth : szp { nth <= max_threads })
   (lena : szp)
-  (#l : Array1.layout lena) {| ctlayout l |}
-  (a : Array1.t et l { Array1.is_global a })
-  (#va : erased (lseq et lena))
-  (vr : erased (lseq real lena))
+  (#l : layout1 lena) {| ctlayout l |}
+  (a : array1 et l { is_global a })
+  (#va : chest1 et lena)
+  (vr : chest1 real lena)
   norewrite // sigh... spec in fsti is not purified
   preserves
     cpu **
@@ -1113,7 +1157,7 @@ fn reduce_max
   returns
     res : et
   ensures
-    pure (res %~ seq_max (seq_map pre_map_r vr))
+    pure (res %~ seq_max (chest1_to_seq (chest_map pre_map_r vr)))
 {
   let out = Kuiper.Ref.gpu_alloc0 #et ();
   launch_sync (kernel pre_map pre_map_r nth lena a vr out);

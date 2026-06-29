@@ -25,53 +25,25 @@ from every cell. We don't do that yet. *)
 
 open Kuiper
 module Vec = Pulse.Lib.Vec
-module Array1 = Kuiper.Array1
-open Kuiper.Array1
-
-open Kuiper.Tensor { ctlayout }
+module SZ = Kuiper.SizeT
+open Kuiper.Real { log }
+open Kuiper.Seq.Common
+module KS = Kuiper.Spec.Softmax
+open Kuiper.Tensor
 open Kuiper.Tensor.Layout.Alg { l1_forward }
-
-(* Alternative definition closer to what we compute. *)
-let log_softmax_real' (s:Seq.seq real { Seq.length s > 0 }) =
-  let exps = seq_map exp s in
-  let summ : real = rsum exps in
-  lseq_map #_ #_ #(Seq.length s) (fun x -> x -. log summ) s
-
-(* Should add enough exp/log facts to prove this. *)
-let real_log_softmax_lemma (s : seq real{len s > 0})
-  : Lemma (log_softmax_real s == log_softmax_real' s)
-  = let aux (i : natlt (len s)) : Lemma ((log_softmax_real s @! i) == (log_softmax_real' s @! i)) =
-      calc (==) {
-        log_softmax_real s @! i;
-        == {}
-        lseq_map log (seq_refine (fun x -> x >. 0.0R) (KS.softmax_real s))
-          @! i;
-        == {}
-        log (seq_refine (fun x -> x >. 0.0R) (KS.softmax_real s) @! i);
-        == { lem_seq_refine_at #real (fun x -> x >. 0.0R) (KS.softmax_real s) i } // FIXME: should be automatic
-        log (KS.softmax_real s @! i);
-        == {}
-        log (exp (s @! i) /. (rsum (seq_map exp s)));
-        == {}
-        log (exp (s @! i)) -. log (rsum (seq_map exp s));
-        == {}
-        (s @! i) -. log (rsum (seq_map exp s));
-        == {}
-        log_softmax_real' s @! i;
-      };
-      ()
-    in
-    Classical.forall_intro aux;
-    assert (Seq.equal (log_softmax_real s) (log_softmax_real' s));
-    ()
 
 let log_softmax_approx
     (#et:Type0) {| floating et, real_like et, floating_real_like et |}
-    (s0:seq et) (r0:seq real { s0 %~ r0 /\ Seq.length r0 > 0 })
-    (summ : et{summ %~ rsum (seq_map exp r0)})
-  : Lemma (ensures seq_map (fun x -> x `sub` flog summ) s0 %~ log_softmax_real r0)
-  = real_log_softmax_lemma r0;
-    ()
+    (#n:nat) (va:chest1 et n) (ra:chest1 real n { va %~ ra /\ n > 0 })
+    (summ : et { summ %~ chest1_rsum (chest_map exp ra) })
+  : Lemma (ensures chest_map (fun x -> x `sub` flog summ) va %~ log_softmax_real ra)
+  = let aux (i : natlt n)
+      : Lemma (acc1 (chest_map (fun x -> x `sub` flog summ) va) i
+               %~ acc1 (log_softmax_real ra) i)
+      = () in
+    Classical.forall_intro aux
+
+
 
 inline_for_extraction noextract
 fn log_softmax_gpu
@@ -79,8 +51,8 @@ fn log_softmax_gpu
   (nth : szp{nth <= max_threads})
   (#lena : szp)
   (a : array1 et (l1_forward lena) { is_global a })
-  (#va: erased (lseq et lena))
-  (ra: erased (lseq real lena))
+  (#va: chest1 et lena)
+  (ra: chest1 real lena)
   preserves
     cpu
   requires
@@ -88,17 +60,13 @@ fn log_softmax_gpu
     pure (va %~ ra) **
     pure (lena <= max_blocks * max_threads)
   ensures
-    exists* (va' : lseq et lena).
+    exists* (va' : chest1 et lena).
       on gpu_loc (a |-> va') **
       pure (va' %~ log_softmax_real ra)
 {
-  (* Copy original array. *)
-  let a' = Array1.alloc0 #et lena (l1_forward lena);
-  Array1.memcpy_device_to_device a' a lena;
-
-  (* Pointwise exp + compute sum *)
-  let sum = Kuiper.Kernel.HReduce.reduce fexp exp nth lena a' ra;
-  Array1.free a';
+  assert pure (SZ.fits (lena + nth));
+  (* Pointwise exp + compute sum (reduce preserves a). *)
+  let sum = Kuiper.Kernel.HReduce.reduce fexp exp nth lena a ra;
 
   (* Compute pointwise log softmax. *)
   Kuiper.Kernel.Map.map_gpu (fun x -> x `sub` flog sum) lena a;
@@ -124,12 +92,32 @@ fn log_softmax
   ensures
     exists* (va' : lseq et lena).
       a |-> va' **
-      pure (va' %~ log_softmax_real ra)
+      pure (va' %~ chest1_to_seq (log_softmax_real (seq_to_chest1 ra)))
 {
-  let ga = Array1.alloc0 #et lena (l1_forward lena);
-  Array1.memcpy_host_to_device ga a lena;
-  log_softmax_gpu nth ga ra;
-  Array1.memcpy_device_to_host' a 0sz ga 0sz lena;
-  Array1.free ga;
+  let ga = alloc0 #et lena (l1_forward lena);
+  with em. assert on gpu_loc (ga |-> em);
+  map_loc gpu_loc #(ga |-> em) #(core ga |-> to_seq (l1_forward lena) em)
+    fn _ { tensor_concr ga; };
+  gpu_memcpy_host_to_device (core ga) a lena;
+  map_loc gpu_loc #(core ga |-> reveal va) #(ga |-> from_seq (l1_forward lena) va)
+    fn _ {
+      tensor_abs' (l1_forward lena) (core ga);
+      rewrite (from_array (l1_forward lena) (core ga) |-> from_seq (l1_forward lena) va)
+           as (ga |-> from_seq (l1_forward lena) va);
+    };
+  log_softmax_gpu nth ga (seq_to_chest1 ra);
+  with res. assert on gpu_loc (ga |-> res);
+  map_loc gpu_loc #(ga |-> res) #(core ga |-> to_seq (l1_forward lena) res)
+    fn _ { tensor_concr ga; };
+  gpu_memcpy_device_to_host a (core ga) lena;
+  map_loc gpu_loc #(core ga |-> to_seq (l1_forward lena) res) #(ga |-> res)
+    fn _ {
+      tensor_abs (l1_forward lena) (core ga);
+      rewrite (from_array (l1_forward lena) (core ga) |-> reveal res)
+           as (ga |-> reveal res);
+    };
+  free ga;
   ()
 }
+
+

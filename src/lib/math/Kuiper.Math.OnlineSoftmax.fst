@@ -110,7 +110,7 @@ let mul_one_div (a : real) (b : real{b =!= 0.0R}) : Lemma (a *. (1.0R /. b) == a
 let softmax_step #x (xst : st x) (xi : real) :
   res:(real & st (x @+ seq![xi]) & real)
    { (let (fxi,xst',adj) = res in
-    fxi /. xst'.d == softmax_real (x @+ seq![xi]) @! len x /\
+    fxi /. xst'.d == softmax_real_seq (x @+ seq![xi]) @! len x /\
     adj == exp (xst.m -. xst'.m)) }
   =
   let m' = rmax xst.m xi in
@@ -152,9 +152,9 @@ let softmax_step #x (xst : st x) (xi : real) :
     == { cancel_ddd (exp xi) (exp_sum (x @+ seq![xi])) (exp m') }
     exp xi  /. exp_sum (x @+ seq![xi]);
     == {}
-    softmax_real (x @+ seq![xi]) @! len x;
+    softmax_real_seq (x @+ seq![xi]) @! len x;
   };
-  assert (fxi /. d' == softmax_real (x @+ seq![xi]) @! len x);
+  assert (fxi /. d' == softmax_real_seq (x @+ seq![xi]) @! len x);
   fxi, { m=m'; d=d' }, adj
 #pop-options
 
@@ -162,7 +162,7 @@ let softmax_step #x (xst : st x) (xi : real) :
 let softmax_stepi (#n:pos) (x : lseq real n) (i: pos{i < n}) (xst : st (seq_take i x)) :
   res:(real & st (seq_take (i+1) x) & real)
    { (let (fxi,xst',adj) = res in
-    fxi /. xst'.d == softmax_real (seq_take (i+1) x) @! (len (seq_take i x)) /\
+    fxi /. xst'.d == softmax_real_seq (seq_take (i+1) x) @! (len (seq_take i x)) /\
     (i == (len (seq_take i x))) /\ // TODO shouldnt be necessary
     adj == exp (xst.m -. xst'.m)) } = admit ()
 #pop-options
@@ -214,18 +214,18 @@ let lem_online_softmax_adj
   (#op_distrib_mul: (a: real) -> (b: real) -> (r: real) -> (a `op` b) *. r == (a *. r) `op` (b *. r))
   (#r : real):
   Lemma
-        (requires r /. xst.d == (seq_fold_left op 0.0R (seq_mapi (softmax_real (seq_take i x)) k)))
+        (requires r /. xst.d == (seq_fold_left op 0.0R (seq_mapi (softmax_real_seq (seq_take i x)) k)))
         (ensures
           (let (fxi,xst',adj) = softmax_stepi #n x i xst in
-          ((r *. adj) `op` (k fxi i)) /. xst'.d == (seq_fold_left op 0.0R (seq_mapi (softmax_real (seq_take (i+1) x)) k)))) =
+          ((r *. adj) `op` (k fxi i)) /. xst'.d == (seq_fold_left op 0.0R (seq_mapi (softmax_real_seq (seq_take (i+1) x)) k)))) =
     let (fxi,xst',adj) = softmax_stepi #n x i xst in
     let x_upto_i = seq_take i x in
     let x_upto_i' = seq_take (i+1) x in
-    let v1 = seq_fold_left op 0.0R (seq_mapi (softmax_real x_upto_i) k) in
+    let v1 = seq_fold_left op 0.0R (seq_mapi (softmax_real_seq x_upto_i) k) in
 
     (* Facts from the postcondition of softmax_stepi and the st invariant.
        Each is its own assert so it becomes a separate (small) SMT query. *)
-    assert (fxi /. xst'.d == softmax_real x_upto_i' @! i);
+    assert (fxi /. xst'.d == softmax_real_seq x_upto_i' @! i);
     assert (adj == exp (xst.m -. xst'.m));
     assert (exp (xst.m -. xst'.m) == exp (xst.m) /. exp (xst'.m));
     assert (adj == exp (xst.m) /. exp (xst'.m));
@@ -236,7 +236,7 @@ let lem_online_softmax_adj
     (* ---- Step A: simplify (k fxi i) /. xst'.d ---- *)
     k_comm_div fxi xst'.d i;
     assert ((k fxi i) /. xst'.d == k (fxi /. xst'.d) i);
-    assert ((k fxi i) /. xst'.d == k (softmax_real x_upto_i' @! i) i);
+    assert ((k fxi i) /. xst'.d == k (softmax_real_seq x_upto_i' @! i) i);
 
     (* ---- Step B: simplify r *. adj /. xst'.d ----
        Goal: r *. adj /. xst'.d == v1 *. (exp_sum x_upto_i /. exp_sum x_upto_i').
@@ -273,8 +273,8 @@ let lem_online_softmax_adj
     assert (r *. adj /. xst'.d == v1 *. r2);
 
     (* ---- Step C: rewrite the RHS fold using fold-distributivity ---- *)
-    let s1 = seq_mapi (softmax_real x_upto_i) k in
-    let s2 = seq_mapi (softmax_real x_upto_i') k in
+    let s1 = seq_mapi (softmax_real_seq x_upto_i) k in
+    let s2 = seq_mapi (softmax_real_seq x_upto_i') k in
     let f_r2 : real -> real = fun e -> e *. r2 in
     let s1_scaled = seq_map f_r2 s1 in
     let s2_prefix = seq_take i s2 in
@@ -284,8 +284,8 @@ let lem_online_softmax_adj
       let xj : real = x @! j in
       assert (x_upto_i @! j == xj);
       assert (x_upto_i' @! j == xj);
-      assert (softmax_real x_upto_i @! j == exp xj /. exp_sum x_upto_i);
-      assert (softmax_real x_upto_i' @! j == exp xj /. exp_sum x_upto_i');
+      assert (softmax_real_seq x_upto_i @! j == exp xj /. exp_sum x_upto_i);
+      assert (softmax_real_seq x_upto_i' @! j == exp xj /. exp_sum x_upto_i');
       assert (s2_prefix @! j == s2 @! j);
       assert (s2 @! j == k (exp xj /. exp_sum x_upto_i') j);
       assert (s1_scaled @! j == k (exp xj /. exp_sum x_upto_i) j *. r2);
@@ -313,9 +313,9 @@ let lem_online_softmax_adj
     lemma_seq_fold_left_slice 0.0R op s2 0 i;
     assert (Seq.equal (Seq.slice s2 0 (i+1)) s2);
     assert (Seq.equal (Seq.slice s2 0 i) s2_prefix);
-    assert (s2 @! i == k (softmax_real x_upto_i' @! i) i);
+    assert (s2 @! i == k (softmax_real_seq x_upto_i' @! i) i);
     assert (seq_fold_left op 0.0R s2
-            == (v1 *. r2) `op` (k (softmax_real x_upto_i' @! i) i));
+            == (v1 *. r2) `op` (k (softmax_real_seq x_upto_i' @! i) i));
 
     (* ---- Step D: combine via op_distrib_mul ----
        (a `op` b) /. d  ==  (a /. d) `op` (b /. d)
@@ -335,9 +335,9 @@ let lem_online_softmax_adj
 
     (* Plug in the results of Steps A and B. *)
     assert (((r *. adj) /. xst'.d) `op` ((k fxi i) /. xst'.d)
-            == (v1 *. r2) `op` (k (softmax_real x_upto_i' @! i) i));
+            == (v1 *. r2) `op` (k (softmax_real_seq x_upto_i' @! i) i));
     assert (((r *. adj) `op` (k fxi i)) /. xst'.d
-            == (v1 *. r2) `op` (k (softmax_real x_upto_i' @! i) i));
+            == (v1 *. r2) `op` (k (softmax_real_seq x_upto_i' @! i) i));
 
     (* Conclude using Step C. *)
     assert (((r *. adj) `op` (k fxi i)) /. xst'.d == seq_fold_left op 0.0R s2)
@@ -361,10 +361,10 @@ let lem_online_softmax_adj
   (#op_distrib_mul: (a: real) -> (b: real) -> (r: real) -> (a `op` b) *. r == (a *. r) `op` (b *. r))
   (#r : real):
   Lemma
-        (requires r /. xst.d == (seq_fold_left op 0.0R (seq_mapi (softmax_real (seq_take i x)) k)))
+        (requires r /. xst.d == (seq_fold_left op 0.0R (seq_mapi (softmax_real_seq (seq_take i x)) k)))
         (ensures
           (let (fxi,xst',adj) = softmax_stepi #n x i xst in
-          ((r *. adj) `op` (k fxi i)) /. xst'.d == (seq_fold_left op 0.0R (seq_mapi (softmax_real (seq_take (i+1) x)) k)))) =
+          ((r *. adj) `op` (k fxi i)) /. xst'.d == (seq_fold_left op 0.0R (seq_mapi (softmax_real_seq (seq_take (i+1) x)) k)))) =
 
     let (fxi,xst',adj) = softmax_stepi #n x i xst in
 
@@ -373,14 +373,14 @@ let lem_online_softmax_adj
        == { k_comm_div fxi xst'.d i }
        (k (fxi /. xst'.d) i);
        == {}
-       (k (softmax_real (seq_take (i+1) x) @! i) i);
+       (k (softmax_real_seq (seq_take (i+1) x) @! i) i);
     };
 
     assert (exp (xst.m -. xst'.m) == exp (xst.m) /. exp (xst'.m));
 
     let x_upto_i = seq_take i x in
     let x_upto_i' = seq_take (i+1) x in
-    let v1 = (seq_fold_left op 0.0R (seq_mapi (softmax_real (x_upto_i)) k)) in
+    let v1 = (seq_fold_left op 0.0R (seq_mapi (softmax_real_seq (x_upto_i)) k)) in
     calc (==) {
       r *. adj /. xst'.d;
       == { assoc_mul_div r adj xst'.d }
@@ -404,19 +404,19 @@ let lem_online_softmax_adj
     };
 
     (* Prove the "external lemma":
-         (v1 *. (exp_sum x_upto_i /. exp_sum x_upto_i')) `op` (k (softmax_real x_upto_i' @! i) i)
-         == seq_fold_left op 0.0R (seq_mapi (softmax_real x_upto_i') k)
+         (v1 *. (exp_sum x_upto_i /. exp_sum x_upto_i')) `op` (k (softmax_real_seq x_upto_i' @! i) i)
+         == seq_fold_left op 0.0R (seq_mapi (softmax_real_seq x_upto_i') k)
 
        Strategy: split the RHS using lemma_seq_fold_left_slice into a fold over
        the first i elements (the "prefix") and the last element. Show the prefix
-       equals a pointwise rescaling of seq_mapi (softmax_real x_upto_i) k by
+       equals a pointwise rescaling of seq_mapi (softmax_real_seq x_upto_i) k by
        r2 = exp_sum x_upto_i /. exp_sum x_upto_i', and lift the rescaling out of
        the fold via lemma_seq_fold_left_distrib_mul. The init=0 is crucial:
        0.0R *. r2 == 0.0R so the helper's "rescaled initial accumulator" matches
        our initial 0.0R. *)
     let r2 : real = exp_sum x_upto_i /. exp_sum x_upto_i' in
-    let s1 = seq_mapi (softmax_real x_upto_i) k in
-    let s2 = seq_mapi (softmax_real x_upto_i') k in
+    let s1 = seq_mapi (softmax_real_seq x_upto_i) k in
+    let s2 = seq_mapi (softmax_real_seq x_upto_i') k in
     let f_r2 : real -> real = fun e -> e *. r2 in
     let s1_scaled = seq_map f_r2 s1 in
     let s2_prefix = seq_take i s2 in
@@ -426,8 +426,8 @@ let lem_online_softmax_adj
       let xj : real = x @! j in
       assert (x_upto_i @! j == xj);
       assert (x_upto_i' @! j == xj);
-      assert (softmax_real x_upto_i @! j == exp xj /. exp_sum x_upto_i);
-      assert (softmax_real x_upto_i' @! j == exp xj /. exp_sum x_upto_i');
+      assert (softmax_real_seq x_upto_i @! j == exp xj /. exp_sum x_upto_i);
+      assert (softmax_real_seq x_upto_i' @! j == exp xj /. exp_sum x_upto_i');
       assert (s2_prefix @! j == s2 @! j);
       assert (s2 @! j == k (exp xj /. exp_sum x_upto_i') j);
       assert (s1_scaled @! j == k (exp xj /. exp_sum x_upto_i) j *. r2);
@@ -453,9 +453,9 @@ let lem_online_softmax_adj
     lemma_seq_fold_left_slice 0.0R op s2 0 i;
     assert (Seq.equal (Seq.slice s2 0 (i+1)) s2);
     assert (Seq.equal (Seq.slice s2 0 i) s2_prefix);
-    assert (s2 @! i == k (softmax_real x_upto_i' @! i) i);
+    assert (s2 @! i == k (softmax_real_seq x_upto_i' @! i) i);
     assert (seq_fold_left op 0.0R s2
-            == (v1 *. r2) `op` (k (softmax_real x_upto_i' @! i) i));
+            == (v1 *. r2) `op` (k (softmax_real_seq x_upto_i' @! i) i));
 
     calc (==) {
       ((r *. adj) `op` (k fxi i)) /. xst'.d;
@@ -466,9 +466,9 @@ let lem_online_softmax_adj
       == { mul_one_div (r *. adj) xst'.d; mul_one_div (k fxi i) xst'.d }
       (r *. adj /. xst'.d) `op` ((k fxi i) /. xst'.d);
       == { }
-      (v1 *. ((exp_sum x_upto_i) /. (exp_sum x_upto_i'))) `op` (k (softmax_real (seq_take (i+1) x) @! i) i);
+      (v1 *. ((exp_sum x_upto_i) /. (exp_sum x_upto_i'))) `op` (k (softmax_real_seq (seq_take (i+1) x) @! i) i);
       == { }
-      seq_fold_left op 0.0R (seq_mapi (softmax_real (x_upto_i')) k);
+      seq_fold_left op 0.0R (seq_mapi (softmax_real_seq (x_upto_i')) k);
     }
 #pop-options
 
@@ -495,44 +495,44 @@ let dp_k_comm_div (#n: pos) (y: lseq real n) (nr: real) (dr: real { dr =!= 0.0R 
 
 unfold
 let smx_dotprod_fold (#n: pos) (x y: lseq real n) (i: pos{i <= n}) =
-    seq_fold_left (+.) 0.0R (seq_mapi (softmax_real (seq_take i x)) (dp_k #n y))
+    seq_fold_left (+.) 0.0R (seq_mapi (softmax_real_seq (seq_take i x)) (dp_k #n y))
 
 // #set-options "--z3version 4.15.5"
 #set-options "--z3seed 1"
 let rec lem_smx_dotprod_is_dotprod' (#n: pos) (x y: lseq real n) (i: natle n):
-  Lemma (ensures seq_fold_left (+.) 0.0R (seq_take i (seq_mapi (softmax_real x) (dp_k #n y))) == seq_dotprod' (softmax_real x) y i)
+  Lemma (ensures seq_fold_left (+.) 0.0R (seq_take i (seq_mapi (softmax_real_seq x) (dp_k #n y))) == seq_dotprod' (softmax_real_seq x) y i)
     (decreases i) =
   if i <= 0 then ()
   else (
-    assert (Seq.length (softmax_real x) == n);
+    assert (Seq.length (softmax_real_seq x) == n);
     let k = dp_k #n y in
-    let l = seq_mapi (softmax_real x) k in
+    let l = seq_mapi (softmax_real_seq x) k in
     assert (Seq.length l == n);
     calc (==) {
       seq_fold_left (+.) 0.0R (seq_take i l);
       == {lemma_seq_fold_left_slice 0.0R (+.) l 0 (i-1)}
       seq_fold_left (+.) 0.0R (seq_take (i-1) l) +. (l @! (i-1));
       == {lem_smx_dotprod_is_dotprod' #n x y (i-1)}
-      seq_dotprod' (softmax_real x) y (i-1) +. (l @! (i-1));
+      seq_dotprod' (softmax_real_seq x) y (i-1) +. (l @! (i-1));
       == {}
-      seq_dotprod' (softmax_real x) y (i-1) +. (k ((softmax_real x) @! (i-1)) (i-1));
+      seq_dotprod' (softmax_real_seq x) y (i-1) +. (k ((softmax_real_seq x) @! (i-1)) (i-1));
       == {}
-      (seq_dotprod' (softmax_real x) y (i-1)) +. ((softmax_real x) @! (i-1)) *. (y @! (i-1));
+      (seq_dotprod' (softmax_real_seq x) y (i-1)) +. ((softmax_real_seq x) @! (i-1)) *. (y @! (i-1));
       == {}
-      seq_dotprod' (softmax_real x) y i;
+      seq_dotprod' (softmax_real_seq x) y i;
     }
   )
 
 let lem_smx_dotprod_fold_is_dotprod_smx (#n: pos) (x y: lseq real n):
-  Lemma (smx_dotprod_fold #n x y n == seq_dotprod (softmax_real x) y) =
-    assert (smx_dotprod_fold #n x y n == seq_fold_left (+.) 0.0R (seq_mapi (softmax_real x) (dp_k #n y)));
-    assert (seq_fold_left (+.) 0.0R (seq_take n (seq_mapi (softmax_real x) (dp_k #n y))) == seq_fold_left (+.) 0.0R (seq_mapi (softmax_real x) (dp_k #n y)));
+  Lemma (smx_dotprod_fold #n x y n == seq_dotprod (softmax_real_seq x) y) =
+    assert (smx_dotprod_fold #n x y n == seq_fold_left (+.) 0.0R (seq_mapi (softmax_real_seq x) (dp_k #n y)));
+    assert (seq_fold_left (+.) 0.0R (seq_take n (seq_mapi (softmax_real_seq x) (dp_k #n y))) == seq_fold_left (+.) 0.0R (seq_mapi (softmax_real_seq x) (dp_k #n y)));
     lem_smx_dotprod_is_dotprod' #n x y n
 
 
 #push-options "--split_queries always --z3rlimit 20 --retry 5"
 let softmax_dotprod (#n: pos) (x y: lseq real n):
-  (r: real {r == seq_dotprod (softmax_real x) y}) =
+  (r: real {r == seq_dotprod (softmax_real_seq x) y}) =
   let k = dp_k #n y in
   let smx_dotprod_fold = smx_dotprod_fold #n x y in
   let rec aux (#i: pos{i <= n}) (xst : st (seq_take i x))
@@ -544,7 +544,7 @@ let softmax_dotprod (#n: pos) (x y: lseq real n):
     ) else (
       let (fxi,xst',adj) = softmax_stepi #n x i xst in
       let r' = r *. adj +. fxi *. (y @! i) in
-      assert (r /. xst.d == (seq_fold_left (+.) 0.0R (seq_mapi (softmax_real (seq_take i x)) k)));
+      assert (r /. xst.d == (seq_fold_left (+.) 0.0R (seq_mapi (softmax_real_seq (seq_take i x)) k)));
       lem_online_softmax_adj #n x i xst k #(dp_k_comm_div #n y) (+.) #l_distr_r #r;
       aux #(i+1) xst' r'
     ) in

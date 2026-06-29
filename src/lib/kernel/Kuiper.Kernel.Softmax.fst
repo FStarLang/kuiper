@@ -11,51 +11,38 @@ module Kuiper.Kernel.Softmax
 #lang-pulse
 
 open Kuiper
-open Kuiper.Seq.Common
-open Kuiper.Array1
-open Kuiper.Tensor { ctlayout }
+open Kuiper.Tensor
 open Kuiper.Tensor.Layout.Alg { l1_forward }
 open Kuiper.Spec.Softmax
 open Kuiper.Math.OnlineSoftmax { seq_max }
 
 module Max = Kuiper.Kernel.HReduce.Max
-module Array1 = Kuiper.Array1
 module SZ = Kuiper.SizeT
 
-(* ── Shift invariance of softmax over the reals ──────────────────────────────
-   Subtracting any constant [c] from every element before exponentiating does
-   not change [softmax_real].  This is what makes the numerically-stable
-   "subtract the max" implementation refine the unchanged golden spec. *)
-
 (* Glue for the numerically-stable path: subtracting [m %~ m_r] before
-   exponentiating still refines [softmax_real]. *)
+   exponentiating still refines [softmax_real].  We relate each cell to the
+   already-well-typed value of [softmax_real] on the shifted chest (so we never
+   write a real division ourselves, avoiding the nonzero-divisor obligation). *)
+#push-options "--z3rlimit 100 --fuel 1 --ifuel 1 --split_queries always"
 let softmax_shift_approx
     (#et:Type0) {| floating et, real_like et, floating_real_like et |}
-    (s0:seq et) (r0:seq real { s0 %~ r0 /\ Seq.length r0 > 0 })
+    (#n:nat) (va:chest1 et n) (ra:chest1 real n { va %~ ra /\ n > 0 })
     (m : et) (m_r : real { m %~ m_r })
-    (summ : et { summ %~ rsum (seq_map (fun z -> exp (z -. m_r)) r0) })
+    (summ : et { summ %~ chest1_rsum (chest_map (fun z -> exp (z -. m_r)) ra) })
   : Lemma
-    (ensures seq_map (fun x -> div (fexp (sub x m)) summ) s0 %~ softmax_real r0)
-  = let lhs = seq_map (fun x -> div (fexp (sub x m)) summ) s0 in
-    let aux (i : natlt (Seq.length s0))
-      : Lemma ((lhs @! i) %~ (softmax_real (seq_map (fun z -> z -. m_r) r0) @! i))
-    = let x = lhs @! i in
-      let shifted_s0 = seq_map (fun z -> z -. m_r) r0 in
-      let y = softmax_real shifted_s0 @! i in
-      assert (x == div (fexp (sub (s0 @! i) m)) summ);
-      assert (y == exp (shifted_s0 @! i) /. rsum (seq_map exp shifted_s0));
-      assert (y == exp ((r0 @! i) -. m_r) /. rsum (seq_map exp shifted_s0));
-      assert
-        seq_map exp shifted_s0
-        `Seq.equal`
-        seq_map (fun x -> exp (x -. m_r)) r0;
-      assert (x %~ y);
-      ()
-    in
-    Classical.forall_intro aux;
-    assert (lhs %~ softmax_real (seq_map (fun z -> z -. m_r) r0));
-    softmax_shift r0 m_r;
-    ()
+    (ensures chest_map (fun x -> div (fexp (sub x m)) summ) va %~ softmax_real ra)
+  = let rs = chest_map (fun (z:real) -> z -. m_r) ra in
+    (* softmax is shift-invariant, so [softmax_real ra == softmax_real rs]. *)
+    softmax_shift ra m_r;
+    (* the denominator of [softmax_real rs] is exactly what [summ] approximates. *)
+    lemma_equal_intro (chest_map exp rs) (chest_map (fun z -> exp (z -. m_r)) ra);
+    ext (chest_map exp rs) (chest_map (fun z -> exp (z -. m_r)) ra);
+    let aux (i : natlt n)
+      : Lemma (acc1 (chest_map (fun x -> div (fexp (sub x m)) summ) va) i
+               %~ acc1 (softmax_real ra) i)
+      = () in
+    Classical.forall_intro aux
+#pop-options
 
 (* Clamp the block thread count so it never exceeds the data length: this keeps
    every strided bucket of the max reduction non-empty. *)
@@ -69,10 +56,10 @@ fn softmax_gpu
   (#et : Type0) {| floating et, real_like et, floating_real_like et |}
   (nth : szp{nth <= max_threads})
   (#lena : szp)
-  (#l : Array1.layout lena) {| ctlayout l |}
+  (#l : layout1 lena) {| ctlayout l |}
   (a : array1 et l { is_global a })
-  (#va: erased (lseq et lena))
-  (ra: erased (lseq real lena))
+  (#va : chest1 et lena)
+  (ra  : chest1 real lena)
   preserves
     cpu
   requires
@@ -80,7 +67,7 @@ fn softmax_gpu
     pure (va %~ ra) **
     pure (lena <= max_blocks * max_threads)
   ensures
-    exists* (va' : lseq et lena).
+    exists* (va' : chest1 et lena).
       on gpu_loc (a |-> va') **
       pure (va' %~ softmax_real ra)
 {
@@ -90,20 +77,17 @@ fn softmax_gpu
   let nthm : szp = clamp_threads nth lena;
   assert pure (0 < SZ.v nthm /\ SZ.v nthm <= lena /\ nthm <= max_threads /\ SZ.fits (lena + nthm));
   let m = Max.reduce_max (fun x -> x) (fun z -> z) nthm lena a ra;
-  Seq.lemma_eq_elim (seq_map (fun (z:real) -> z) (reveal ra)) (reveal ra);
-  let m_r : erased real = hide (seq_max (reveal ra));
+  assert pure (equal (chest_map (fun (z:real) -> z) ra) ra);
+  let m_r : erased real = hide (seq_max (chest1_to_seq ra));
   assert pure (m %~ reveal m_r);
 
   (* Step 2: sum of exp(x - m) (does not modify the array). *)
+  assert pure (SZ.fits (lena + nth));
   let sum = Kuiper.Kernel.HReduce.reduce
               (fun x -> fexp (sub x m)) (fun z -> exp (z -. reveal m_r)) nth lena a ra;
 
   (* Step 3: write exp(x - m) / sum into every cell. *)
   Kuiper.Kernel.Map.map_gpu (fun x -> div (fexp (sub x m)) sum) lena a;
-
-  (* Note: this could also be fused into a single kcall. The comfortable way of
-     doing that would require extensible barrier contracts, so we can add one more
-     step to the barrier of HReduce. *)
 
   softmax_shift_approx va ra m (reveal m_r) sum;
   ()
