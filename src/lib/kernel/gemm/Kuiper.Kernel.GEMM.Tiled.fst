@@ -381,6 +381,7 @@ fn matmul_tiled_dotprod_real
       (ematrix_subtile (chest_flat42 rB) tile tile (SZ.v !bk) (SZ.v bj))
       (SZ.v i) (SZ.v j);
 
+    FStar.Math.Lemmas.distributivity_add_left (SZ.v !bk) 1 (SZ.v tile);
     assert (pure ((SZ.v !bk + 1) * SZ.v tile == SZ.v !bk * SZ.v tile + SZ.v tile));
 
     bk := !bk +^ 1sz;

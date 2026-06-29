@@ -7,14 +7,6 @@ open Kuiper.Tensor
 open Kuiper.Math.OnlineSoftmax { seq_max }
 module SZ = Kuiper.SizeT
 
-(* Function approximation, needed to state `pre_map %~ pre_map_r`. *)
-instance approx_function_can_approximate
-  (dom1 dom2 cod1 cod2 : Type)
-  {| can_approximate dom1 dom2, can_approximate cod1 cod2 |}
-  : can_approximate (dom1 -> cod1) (dom2 -> cod2) = {
-  approximates = (fun f g -> forall x y. x %~ y ==> f x %~ g y);
-}
-
 (* Parallel single-block max reduction.
 
    Same shape as Kuiper.Kernel.HReduce.reduce, but:

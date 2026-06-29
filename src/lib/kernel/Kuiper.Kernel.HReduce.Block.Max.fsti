@@ -7,7 +7,6 @@ open Kuiper.EMatrix
 open Kuiper.Tensor
 open Kuiper.Math.OnlineSoftmax { seq_max }
 module SZ = Kuiper.SizeT
-open Kuiper.Kernel.HReduce.Max {} (* for the [approx_function_can_approximate] instance *)
 
 (* ── reduce_batched_block_max: one block per row, tree max-reduction in shmem ─
    MAX analogue of [Kuiper.Kernel.HReduce.Block.reduce_batched_block]. Spawns one

@@ -6,14 +6,6 @@ open Kuiper
 open Kuiper.Tensor
 module SZ = Kuiper.SizeT
 
-// Duplicate from Kuiper.Kernel.HReduce. Move to approx?
-instance approx_function_can_approximate
-  (dom1 dom2 cod1 cod2 : Type)
-  {| can_approximate dom1 dom2, can_approximate cod1 cod2 |}
-  : can_approximate (dom1 -> cod1) (dom2 -> cod2) = {
-  approximates = (fun f g -> forall x y. x %~ y ==> f x %~ g y);
-}
-
 (* Simple version for a 1D array. Returns the result. *)
 inline_for_extraction noextract
 fn reduce1
