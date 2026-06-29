@@ -22,7 +22,6 @@ let strided_view et (len : nat) (stride : nat) (offset : natlt stride) :
     step = {
       imap = {
         f = (fun (i : natlt ((len + stride - 1 - offset) / stride)) -> i * stride + offset <: natlt len);
-        is_inj = ez;
       };
     };
   };
@@ -46,7 +45,6 @@ instance _cview_strided
   };
   step = {
     cimap = mk_cinj (fun (i : szlt ((len + stride - 1 - offset) / stride)) -> i `SZ.mul` stride `SZ.add` offset <: szlt len);
-    compat = ez;
   };
 }
 

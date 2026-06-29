@@ -174,6 +174,8 @@ ensures
       Pulse.Lib.Forall.elim_forall
         (ematrix_subtile (ematrix_subtile em tk (wn*tn) dotIdx bcol) tk tn 0 !i1);
 
+      FStar.Math.Lemmas.paren_mul_right (SZ.v bcol) (SZ.v wn) (SZ.v tn);
+      FStar.Math.Lemmas.distributivity_add_left (SZ.v bcol * SZ.v wn) (SZ.v !i1) (SZ.v tn);
       ambig_trade_elim ();
       ambig_trade_elim ();
 

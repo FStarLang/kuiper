@@ -273,7 +273,6 @@ instance ctensor_ciview
   };
   step = {
     cimap = mk_cinj c.cimap #(fun x y -> down_up x; down_up y);
-    compat = ez;
   };
 }
 

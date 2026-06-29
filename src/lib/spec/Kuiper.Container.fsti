@@ -20,9 +20,11 @@ class container (ct it vt : Type) = {
   acc : ct -> it -> GTot vt;
   upd : ct -> it -> vt -> GTot ct;
 
+  #[Tactics.Easy.easy_fill()]
   l1 : c:ct -> i:it -> v:vt ->
     squash (acc (upd c i v) i == v);
 
+  #[Tactics.Easy.easy_fill()]
   l2 : c:ct -> i1:it -> i2:it{i1 =!= i2} -> v:vt ->
     squash (acc (upd c i2 v) i1 == acc c i1);
 
@@ -32,6 +34,7 @@ class container (ct it vt : Type) = {
 
   from_fun : f:(it -> GTot vt) -> GTot ct;
 
+  #[Tactics.Easy.easy_fill()]
   from_fun_ok : f:(it -> GTot vt) -> (i:it) -> squash (acc (from_fun f) i == f i);
 }
 
@@ -104,22 +107,16 @@ noextract
 instance lseq_container (et:Type) (len:nat) : container (lseq et len) (natlt len) et = {
   acc   = (fun (v : lseq et len) (i : natlt len) -> v @! i);
   upd = (fun v i x -> Seq.upd (reveal v) i x);
-  l1  = ez;
-  l2  = ez;
   ext = (fun c1 c2 _ -> assert (Seq.equal c1 c2));
   from_fun = (fun f -> Seq.init_ghost len f);
-  from_fun_ok = ez;
 }
 
 instance ghost_map_container #a #b : container (a ^->> b) a b =
   {
     acc = (fun (m : (a ^->> b)) i -> m i);
     upd = (fun m i e -> oplus m i e <: a ^->> b);
-    l1 = ez;
-    l2 = ez;
     ext = (fun c1 c2 _ -> assert (F.feq_g c1 c2));
     from_fun = (fun f -> F.on_g _ f);
-    from_fun_ok = ez;
   }
 
 instance dep_ghost_map_container
@@ -197,7 +194,7 @@ instance dep_ghost_map_container
   in
   // Bad inference with record notation
   Mkcontainer #(idx ^->> mt) #(x:idx & i x) #e
-    acc upd l1 l2 ext from_fun from_fun_ok
+    acc upd #l1 #l2 ext from_fun #from_fun_ok
 
 val oplus_lemma
   (#ct #it #vt : Type)

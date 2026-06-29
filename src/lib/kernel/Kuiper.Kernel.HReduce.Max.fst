@@ -700,7 +700,7 @@ fn max_stride_map
       emp
     decreases (lena + stride - !idx)
   {
-    assert pure (gread gidx < seq_stride_length vr stride off);
+    assert pure (gread gidx < seq_stride_length (lseq_map pre_map_r vr) stride off);
 
     (* Read from input array (fractional permission) *)
     let v = Array1.read a !idx;

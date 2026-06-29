@@ -34,7 +34,6 @@ let tile_inj
   : (abs ((trows @| tcols @| INil)) @~> abs ((rows @| cols @| INil)))
 = {
    f      = tile_inj_f trows tcols tr tc;
-   is_inj = ez;
 }
 
 let subtile_layout

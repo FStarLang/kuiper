@@ -106,11 +106,8 @@ instance chest_is_container (#r : nat) (d : shape r) (et : Type)
 {
   acc;
   upd;
-  l1 = ez;
-  l2 = ez;
   ext = (fun c1 c2 _ -> assert (equal c1 c2));
   from_fun = mk d;
-  from_fun_ok = ez;
 }
 
 let chest_approximates #et
