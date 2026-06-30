@@ -6,6 +6,7 @@ open Kuiper
 open Kuiper.Tensor
 module SZ = Kuiper.SizeT
 
+unfold
 let tid_to_cell (m n : nat) (tid : natlt (m * n))
   : abs (m @| n @| INil) =
   idx2 (tid / n) (tid % n)
@@ -67,19 +68,24 @@ fn setup
       kpre f m n #la a #lb b #fA #sa #sb tid) **
     pure (SZ.fits (tlayout_ulen lb))
 {
-  admit();
-  // Array2.pts_to_ref b;
-  // Array1.share_n a (m *^ n);
-  // Array2.explode b;
-  // forevery_rw_type (Array2.ait m n) (natlt m & natlt n) _;
-  // forevery_unflatten' _;
-  // forevery_unfactor' (m *^ n) m n (fun r c ->
-  //   Cell b (r, c) |-> macc sb r c);
-  // forevery_zip #(natlt (m *^ n))
-  //   (fun _ -> a |-> Frac (fA /. (m *^ n)) sa)
-  //   (fun tid -> Cell b (tid_to_cell m n tid) |-> macc sb (tid / n) (tid % n));
-  // forevery_ext #(natlt (m *^ n)) _ (kpre #t f m n #la a #lb b #fA #sa #sb);
-  // ()
+  (* Share [a]'s fractional permission across all m*n threads, and explode the
+     output matrix [b] into per-cell ownership reindexed by a flat thread id. *)
+  tensor_share_n a (m *^ n);
+  tensor_ilower2 b;
+  forevery_unfactor' (m *^ n) m n
+    (fun r c -> Cell b (idx2 r c) |-> acc2 sb r c);
+  forevery_zip #(natlt (m *^ n))
+    (fun _ -> a |-> Frac (fA /. (m *^ n)) sa)
+    (fun (tid : natlt (m *^ n)) ->
+       Cell b (idx2 ((tid / n) <: natlt m) ((tid % n) <: natlt n))
+         |-> acc2 sb (tid / n) (tid % n));
+  forevery_ext #(natlt (m *^ n))
+    (fun (tid : natlt (m *^ n)) ->
+       (a |-> Frac (fA /. (m *^ n)) sa) **
+       (Cell b (idx2 ((tid / n) <: natlt m) ((tid % n) <: natlt n))
+          |-> acc2 sb (tid / n) (tid % n)))
+    (fun tid -> kpre f m n #la a #lb b #fA #sa #sb tid);
+  ()
 }
 
 ghost
@@ -104,21 +110,19 @@ fn teardown
     a |-> Frac fA sa **
     b |-> s_row_broadcast f sa sb
 {
-  admit();
-  // forevery_ext #(natlt (m *^ n))
-  //   (kpost #t f m n #la a #lb b #fA #sa #sb)
-  //   (fun tid ->
-  //     a |-> Frac (fA /. (m *^ n)) sa **
-  //     Cell b (tid_to_cell m n tid)
-  //       |-> macc (s_row_broadcast f sa sb) (tid / n) (tid % n));
-  // forevery_unzip #(natlt (m *^ n)) _ _;
-  // Array1.gather_n a (m *^ n);
-  // forevery_factor' (m *^ n) m n (fun r c ->
-  //   Cell b (r, c) |-> macc (s_row_broadcast f sa sb) r c);
-  // forevery_flatten' (fun (ij : natlt m & natlt n) ->
-  //   Cell b ij |-> macc (s_row_broadcast f sa sb) (fst ij) (snd ij));
-  // forevery_rw_type (natlt m & natlt n) (Array2.ait m n) _;
-  // Array2.implode b;
+  (* Re-fold per-cell ownership of [b] (now holding [s_row_broadcast f sa sb])
+     back into a tensor, and gather [a]'s shared fractions back to full. *)
+  forevery_ext #(natlt (m *^ n))
+    (fun tid -> kpost f m n #la a #lb b #fA #sa #sb tid)
+    (fun (tid : natlt (m *^ n)) ->
+       (a |-> Frac (fA /. (m *^ n)) sa) **
+       (Cell b (idx2 ((tid / n) <: natlt m) ((tid % n) <: natlt n))
+          |-> acc2 (s_row_broadcast f sa sb) (tid / n) (tid % n)));
+  forevery_unzip #(natlt (m *^ n)) _ _;
+  tensor_gather_n a (m *^ n);
+  forevery_factor' (m *^ n) m n
+    (fun r c -> Cell b (idx2 r c) |-> acc2 (s_row_broadcast f sa sb) r c);
+  tensor_iraise2 b;
   ()
 }
 
