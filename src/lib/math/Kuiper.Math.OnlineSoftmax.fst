@@ -106,7 +106,7 @@ let assoc_mul_div (a b c : real{c =!= 0.0R}) : Lemma ((a *. b) /. c == a *. (b /
 
 let mul_one_div (a : real) (b : real{b =!= 0.0R}) : Lemma (a *. (1.0R /. b) == a /. b) = ()
 
-#push-options "--split_queries always --z3rlimit 5 --retry 5" // very bad smt performance below
+#push-options "--split_queries always --z3rlimit 10"
 let softmax_step #x (xst : st x) (xi : real) :
   res:(real & st (x @+ seq![xi]) & real)
    { (let (fxi,xst',adj) = res in
@@ -217,8 +217,7 @@ let rec lemma_seq_fold_left_distrib_mul
         seq_fold_left op acc s *. r;
       }
 
-(* TODO: terrible performance *)
-#push-options "--split_queries always --z3rlimit 30 --retry 5"
+#push-options "--split_queries always --z3rlimit 30"
 let lem_online_softmax_adj
   (#n : pos)
   (x : lseq real n)
@@ -546,7 +545,7 @@ let lem_smx_dotprod_fold_is_dotprod_smx (#n: pos) (x y: lseq real n):
     lem_smx_dotprod_is_dotprod' #n x y n
 
 
-#push-options "--split_queries always --z3rlimit 20 --retry 5"
+#push-options "--split_queries always --z3rlimit 20"
 let softmax_dotprod (#n: pos) (x y: lseq real n):
   (r: real {r == seq_dotprod (softmax_real_seq x) y}) =
   let k = dp_k #n y in
