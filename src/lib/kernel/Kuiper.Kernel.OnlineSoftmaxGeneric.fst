@@ -126,11 +126,46 @@ let osmx_rstep (s : osmx_rst) (x : real) : GTot (osmx_rst & real & real) =
   let s' = osmx_rstep0 s x in
   (s', exp (x -. get s'.m), (if None? s.m then 1.0R else exp (get s.m -. get s'.m)))
 
+(* exp_sum extends over a snoc by adding the new exponential. *)
+let exp_sum_snoc (s : seq real{len s > 0}) (x : real)
+  : Lemma (exp_sum (s @+ seq![x]) == exp_sum s +. exp x)
+  = Seq.lemma_eq_elim (seq_map exp (s @+ seq![x])) (seq_map exp s @+ seq![exp x])
+    // rsum_append (SMTPat) then closes rsum (a @+ [exp x]) == rsum a +. exp x
+
+(* Field facts used to recombine the running denominator (proved in a clean,
+   quantifier-free context). *)
+let cancel_mid (a b c : real{b =!= 0.0R /\ c =!= 0.0R})
+  : Lemma ((a /. b) *. (b /. c) == a /. c) = ()
+let r_distr_l (a b c : real{c =!= 0.0R})
+  : Lemma ((a +. b) /. c == a /. c +. b /. c) = ()
+let self_div (a : real{a =!= 0.0R}) : Lemma (a /. a == 1.0R) = ()
+
 let lemma_osmx_rstep (s : osmx_rst) (x : real)
   : Lemma (requires ok_rst s)
           (ensures  ok_rst (osmx_rstep0 s x))
           [SMTPat (ok_rst (osmx_rstep0 s x))]
-  = admit()
+  = let s' = osmx_rstep0 s x in
+    match s.m with
+    | None ->
+      (* m_empty_ok: s.m = None <==> len s.s == 0, so the new state is the
+         singleton [x] with max x and denominator exp(x-x) == exp x /. exp x == 1. *)
+      Seq.lemma_eq_elim s'.s (seq![x]);
+      assert (seq_max s'.s == x);
+      Seq.lemma_eq_elim (seq_map exp s'.s) (seq![exp x]);  // exp_sum s'.s == exp x
+      self_div (exp x)                                     // exp(x-.x) == exp x/.exp x == 1
+    | Some m ->
+      (* len s.s > 0, so m == seq_max s.s and s.d == exp_sum s.s /. exp m. *)
+      let m' = rmax m x in
+      (* New max: seq_max (s.s @+ [x]) == rmax x (seq_max s.s) == rmax x m == m'
+         (seq_max_cons_lem fires via SMTPat). *)
+      lem_rmax_comm x m;
+      (* New denominator: s.d *. exp(m-m') +. exp(x-m'), with exp(m-m') and
+         exp(x-m') rewritten by exp_sub (SMTPat). *)
+      assert (s.d == exp_sum s.s /. exp m);
+      cancel_mid (exp_sum s.s) (exp m) (exp m');     // s.d *. exp(m-m') == exp_sum s.s /. exp m'
+      exp_sum_snoc s.s x;                            // exp_sum s'.s == exp_sum s.s +. exp x
+      r_distr_l (exp_sum s.s) (exp x) (exp m')       // splits the combined quotient
+
 
 (*
 let online_softmax_step (xi: real) (m d: real):
