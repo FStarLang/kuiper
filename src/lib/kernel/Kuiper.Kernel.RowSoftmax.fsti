@@ -27,6 +27,7 @@ fn row_softmax_gpu
   (#et : Type0) {| floating et, real_like et, floating_real_like et |}
   (m : szp { m <= max_blocks })
   (n : szp { m * n <= max_blocks * max_threads })
+  (nth : szp { nth <= max_threads })
   (#l : layout2 m n) {| ctlayout l |}
   (a : array2 et l { is_global a })
   (#sa : chest2 et m n)

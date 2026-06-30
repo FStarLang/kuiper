@@ -1,12 +1,9 @@
 module Kuiper.Kernel.Softmax
 
-(* Softmax, in two kernel calls.
-   1. Compute sum of exps (does not modify array)
-   2. Exp and divide by sum. Note: we are callng exp twice for every value.  An
-   alernative would be to first do an exp pass, then reduce, then divide, but I
-   think the extra kernel launch would be more expensive than the redundant
-   exp's.
-   *)
+(* 1-D softmax, implemented by reusing the per-row 2-D kernel
+   [Kuiper.Kernel.RowSoftmax.row_softmax_gpu]: a length-[lena] array is a
+   [1 x lena] matrix, so its softmax is the (single) row-softmax of that matrix.
+   This mirrors how [Kuiper.Kernel.Reduce.reduce1] reuses [row_reduce]. *)
 
 #lang-pulse
 
@@ -14,42 +11,33 @@ open Kuiper
 open Kuiper.Tensor
 open Kuiper.Tensor.Layout.Alg { l1_forward }
 open Kuiper.Spec.Softmax
-open Kuiper.Math.OnlineSoftmax { seq_max }
-
-module Max = Kuiper.Kernel.HReduce.Max
+open Kuiper.Kernel.RowSoftmax { row_softmax_real, row_softmax_gpu }
+open Kuiper.Bijection
 module SZ = Kuiper.SizeT
+module C = Kuiper.Matrix.Casts
 
-(* Glue for the numerically-stable path: subtracting [m %~ m_r] before
-   exponentiating still refines [softmax_real].  We relate each cell to the
-   already-well-typed value of [softmax_real] on the shifted chest (so we never
-   write a real division ourselves, avoiding the nonzero-divisor obligation). *)
-#push-options "--z3rlimit 100 --fuel 1 --ifuel 1 --split_queries always"
-let softmax_shift_approx
-    (#et:Type0) {| floating et, real_like et, floating_real_like et |}
-    (#n:nat) (va:chest1 et n) (ra:chest1 real n { va %~ ra /\ n > 0 })
-    (m : et) (m_r : real { m %~ m_r })
-    (summ : et { summ %~ chest1_rsum (chest_map (fun z -> exp (z -. m_r)) ra) })
-  : Lemma
-    (ensures chest_map (fun x -> div (fexp (sub x m)) summ) va %~ softmax_real ra)
-  = let rs = chest_map (fun (z:real) -> z -. m_r) ra in
-    (* softmax is shift-invariant, so [softmax_real ra == softmax_real rs]. *)
-    softmax_shift ra m_r;
-    (* the denominator of [softmax_real rs] is exactly what [summ] approximates. *)
-    lemma_equal_intro (chest_map exp rs) (chest_map (fun z -> exp (z -. m_r)) ra);
-    ext (chest_map exp rs) (chest_map (fun z -> exp (z -. m_r)) ra);
-    let aux (i : natlt n)
-      : Lemma (acc1 (chest_map (fun x -> div (fexp (sub x m)) summ) va) i
-               %~ acc1 (softmax_real ra) i)
-      = () in
-    Classical.forall_intro aux
-#pop-options
+#set-options "--split_queries always"
 
-(* Clamp the block thread count so it never exceeds the data length: this keeps
-   every strided bucket of the max reduction non-empty. *)
+(* The 1<->2 index bijection used to view a flat array as a 1-row matrix
+   (same as in [Kuiper.Kernel.Reduce]). *)
 inline_for_extraction noextract
-let clamp_threads (nth lena : szp)
-  : (r : szp { SZ.v r <= SZ.v nth /\ SZ.v r <= SZ.v lena })
-  = if nth <=^ lena then nth else lena
+let cbij (lena : szp)
+  : (conc (lena @| INil) ==~ conc (1 @| lena @| INil)) =
+  mk_cbij
+    #(conc (lena @| INil))
+    #(conc (1 @| lena @| INil))
+    (function (i, ()) -> (0sz, (i, ())))
+    (function (_, (i, ())) -> (i, ()))
+    ez
+    ez
+
+(* Spec bridge: the row-softmax of the [1 x lena] embedding of [ra], cast back
+   to 1-D, is exactly the 1-D [softmax_real ra]. *)
+let softmax_via_row_spec (#lena : nat) (ra : chest1 real lena)
+  : Lemma (C.c2_to_c1 (row_softmax_real (C.c1_to_c2 ra)) == softmax_real ra)
+  = ext (chest2_row (C.c1_to_c2 ra) 0) ra;
+    ext (C.c2_to_c1 (row_softmax_real (C.c1_to_c2 ra))) (softmax_real ra);
+    ()
 
 inline_for_extraction noextract
 fn softmax_gpu
@@ -71,24 +59,38 @@ fn softmax_gpu
       on gpu_loc (a |-> va') **
       pure (va' %~ softmax_real ra)
 {
-  (* Step 1: find the max over the array (does not modify it). Clamp the thread
-     count so every strided bucket is non-empty (the max reduction has no
-     identity element). *)
-  let nthm : szp = clamp_threads nth lena;
-  assert pure (0 < SZ.v nthm /\ SZ.v nthm <= lena /\ nthm <= max_threads /\ SZ.fits (lena + nthm));
-  let m = Max.reduce_max (fun x -> x) (fun z -> z) nthm lena a ra;
-  assert pure (equal (chest_map (fun (z:real) -> z) ra) ra);
-  let m_r : erased real = hide (seq_max (chest1_to_seq ra));
-  assert pure (m %~ reveal m_r);
+  (* View the flat array as a [1 x lena] matrix. *)
+  let a' = relay a (C.l1_to_l2 l);
+    assert rewrites_to a' (relay a (C.l1_to_l2 l));
+  map_loc gpu_loc
+    #(a |-> va)
+    #(a' |-> C.c1_to_c2 va)
+    fn _ {
+      C.t1_to_t2 a;
+    };
+  assume pure (C.l1_to_l2 l == C.layout_bij (C.bij_up (cbij lena)) l);
+  (* ^ FIXME, diamonds (as in Kuiper.Kernel.Reduce) *)
 
-  (* Step 2: sum of exp(x - m) (does not modify the array). *)
-  assert pure (SZ.fits (lena + nth));
-  let sum = Kuiper.Kernel.Reduce.reduce1
-              (fun x -> fexp (sub x m)) (fun z -> exp (z -. reveal m_r)) lena nth a ra;
+  (* Run the per-row kernel on the single row. *)
+  row_softmax_gpu #et 1sz lena nth
+    #_ #(C.clayout_bij (cbij _) _) a' (C.c1_to_c2 ra);
+  with sa'. assert on gpu_loc (a' |-> sa');
 
-  (* Step 3: write exp(x - m) / sum into every cell. *)
-  Kuiper.Kernel.Map.map_gpu (fun x -> div (fexp (sub x m)) sum) lena a;
+  (* Cast the result back to 1-D. *)
+  map_loc gpu_loc
+    #(a' |-> sa')
+    #(a |-> C.c2_to_c1 sa')
+    fn _ {
+      C.t2_to_t1 a';
+      assert relay (relay a (C.l1_to_l2 l)) (C.l2_to_l1 (C.l1_to_l2 l))
+               |-> C.c2_to_c1 sa';
+      assume pure (C.l2_to_l1 (C.l1_to_l2 l) == l); // sigh, extensionality of layouts
+      rewrite each
+        relay (relay a (C.l1_to_l2 l)) (C.l2_to_l1 (C.l1_to_l2 l))
+      as a;
+      ()
+    };
 
-  softmax_shift_approx va ra m (reveal m_r) sum;
+  softmax_via_row_spec ra;
   ()
 }

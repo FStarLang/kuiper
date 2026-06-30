@@ -13,6 +13,7 @@ fn inst_gpu
   (#et : Type0) {| floating et, real_like et, floating_real_like et |}
   (m : szp { m <= max_blocks })
   (n : szp { m * n <= max_blocks * max_threads })
+  (nth : szp { nth <= max_threads })
   (a : array2 et (l2_row_major m n) { is_global a })
   (#sa : chest2 et m n)
   (ra : chest2 real m n)
@@ -25,7 +26,7 @@ fn inst_gpu
       on gpu_loc (a |-> sa') **
       pure (sa' %~ K.row_softmax_real #(SZ.v m) #(SZ.v n) ra)
 {
-  K.row_softmax_gpu #et m n a #sa ra;
+  K.row_softmax_gpu #et m n nth a #sa ra;
 }
 
 let row_softmax_rm_f32 = inst_gpu #f32
