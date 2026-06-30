@@ -696,7 +696,54 @@ let lemma_first_past
     FStar.Math.Lemmas.lemma_div_plus (stride - 1) (q - 1) stride;   // (stride*q-1)/stride == q-1
     FStar.Math.Lemmas.lemma_div_le m (stride * q - 1) stride
 
-#push-options "--z3rlimit 100"
+(* ── Extracted nat / strided-bucket arithmetic ─────────────────────────────
+   The [max_stride_map] kernels below run in a context carrying an ambient
+   quantified hypothesis [forall j. <input> j %~ <real> j].  Proving the
+   (nonlinear / modular) stride arithmetic inline forces Z3 to interleave that
+   quantifier with the arithmetic, which is pathologically slow.  We extract the
+   pure-nat / generic-seq facts into top-level lemmas proven in a clean context
+   and just call them (shared with [Kuiper.Kernel.HReduce.Block.Max]). *)
+
+(* Loop step: advancing the flat index by one stride. *)
+let stride_step_arith (idx vgidx stride off : nat)
+  : Lemma (requires idx == vgidx * stride + off)
+          (ensures  idx + stride == (vgidx + 1) * stride + off)
+  = FStar.Math.Lemmas.distributivity_add_left vgidx 1 stride
+
+(* Loop body: the running bucket index is strictly below the bucket count. *)
+let stride_idx_in_bounds (cols off stride gidx idx : nat)
+  : Lemma (requires off < stride /\ idx == gidx * stride + off /\ idx < cols)
+          (ensures  gidx < (cols - off + stride - 1) / stride)
+  = FStar.Math.Lemmas.cancel_mul_div gidx stride;
+    FStar.Math.Lemmas.lemma_div_le (gidx * stride) (cols - off - 1) stride;
+    FStar.Math.Lemmas.lemma_div_plus (cols - off - 1) 1 stride
+
+(* Loop body: the [gidx]-th strided bucket element is the flat index [idx]. *)
+let stride_bucket_index (#a:Type) (s : seq a) (stride : pos) (off : nat{off < stride})
+                        (gidx idx : nat)
+  : Lemma (requires idx == gidx * stride + off /\ gidx < seq_stride_length s stride off)
+          (ensures  off + gidx * stride == idx /\
+                    seq_stride s stride off @! gidx == s @! idx)
+  = ()
+
+(* Loop exit: the first strided index at/after [len s] pins down the bucket
+   count exactly.  Stated over the concrete sequence so the caller gets the
+   [seq_stride_length] equality directly (without re-deriving the modular
+   arithmetic in its quantifier-polluted context). *)
+let max_stride_post_arith (#a:Type) (s : seq a) (off stride gidx idx : nat)
+  : Lemma (requires off < stride /\ off < Seq.length s /\
+                    idx == gidx * stride + off /\
+                    Seq.length s <= idx /\ idx < Seq.length s + stride)
+          (ensures  gidx == seq_stride_length s stride off)
+  = let cols = Seq.length s in
+    FStar.Math.Lemmas.lemma_mod_plus off gidx stride;
+    FStar.Math.Lemmas.small_mod off stride;
+    assert (idx % stride == off);
+    lemma_first_past cols off stride idx;
+    FStar.Math.Lemmas.cancel_mul_div gidx stride;
+    FStar.Math.Lemmas.cancel_mul_div ((cols - off - 1 + stride) / stride) stride
+
+#push-options "--z3rlimit 60"
 inline_for_extraction noextract
 fn max_stride_map
   (#et:Type0) {| floating et, real_like et, floating_real_like et |}
@@ -751,6 +798,7 @@ fn max_stride_map
       emp
     decreases (lena + stride - !idx)
   {
+    stride_idx_in_bounds (SZ.v lena) (SZ.v off) (SZ.v stride) (gread gidx) (SZ.v !idx);
     assert pure (gread gidx < seq_stride_length (seq_map pre_map_r (chest1_to_seq vr)) stride off);
 
     (* Read from input array (fractional permission) *)
@@ -763,16 +811,15 @@ fn max_stride_map
 
     assert pure (!acc %~ seq_max (seq_take (gread gidx) (seq_stride (seq_map pre_map_r (chest1_to_seq vr)) stride off)));
     assert pure (v %~ (chest1_to_seq vr @! !idx));
-    assert pure (seq_stride (seq_map pre_map_r (chest1_to_seq vr)) stride off @! gread gidx == (seq_map pre_map_r (chest1_to_seq vr)) @! (off + gread gidx * stride));
-    assert pure (off + gread gidx * stride == SZ.v !idx);
+    stride_bucket_index (seq_map pre_map_r (chest1_to_seq vr)) (SZ.v stride) (SZ.v off) (gread gidx) (SZ.v !idx);
+    assert pure (seq_stride (seq_map pre_map_r (chest1_to_seq vr)) stride off @! gread gidx == (seq_map pre_map_r (chest1_to_seq vr)) @! (SZ.v !idx));
 
     (* seq_take (k+1) maxes in the bucket's k-th element; combine with fmax. *)
     (**)seq_max_take_step (seq_stride (seq_map pre_map_r (chest1_to_seq vr)) stride off) (gread gidx);
 
     let vgidx = gread gidx;
-    assert (pure (SZ.v !idx                  == vgidx    * stride + off));
-    Math.Lemmas.distributivity_add_left vgidx 1 stride;
-    assert (pure ((vgidx + 1) * stride + off == ((vgidx * stride) + (1 * stride)) + off)); // Sad.
+    assert (pure (SZ.v !idx == vgidx * stride + off));
+    stride_step_arith (SZ.v !idx) vgidx (SZ.v stride) (SZ.v off);
     assert (pure (SZ.v !idx + stride == (vgidx + 1) * stride + off));
 
     Math.Lemmas.add_div_mod_1 (SZ.v !idx) stride;
@@ -786,23 +833,7 @@ fn max_stride_map
   };
 
   assert pure (SZ.v !idx == gread gidx * stride + off);
-  Math.Lemmas.lemma_mod_plus off (gread gidx) stride;
-  Math.Lemmas.small_mod off stride;
-  assert pure ((off + stride * gread gidx) % stride == off);
-  assert pure ((gread gidx * stride + off) % stride == off);
-  assert pure (!idx % stride == off);
-  lemma_first_past lena off stride (SZ.v !idx);
-  assert (pure (SZ.v !idx == off + ((lena - off - 1 + stride) / stride) * stride));
-
-  assert pure (gread gidx <= seq_stride_length (seq_map pre_map_r (chest1_to_seq vr)) stride off);
-  Math.Lemmas.cancel_mul_div (gread gidx) stride;
-  (* A calc proof would be much nicer. *)
-  assert pure (gread gidx == (!idx - off) / stride);
-  assert pure (gread gidx == ((off + ((lena - off - 1 + stride) / stride) * stride) - off) / stride);
-  assert pure (gread gidx == (((lena - off - 1 + stride) / stride) * stride) / stride);
-  assert pure (gread gidx == (lena - off - 1 + stride) / stride);
-  assert pure (lena - off - 1 + stride == lena - off + stride - 1);
-  assert pure (gread gidx == (lena - off + stride - 1) / stride);
+  max_stride_post_arith (seq_map pre_map_r (chest1_to_seq vr)) (SZ.v off) (SZ.v stride) (gread gidx) (SZ.v !idx);
   assert pure (gread gidx == seq_stride_length (seq_map pre_map_r (chest1_to_seq vr)) stride off);
   assert pure (seq_take (seq_stride_length (seq_map pre_map_r (chest1_to_seq vr)) stride off) (seq_stride (seq_map pre_map_r (chest1_to_seq vr)) stride off) == seq_stride (seq_map pre_map_r (chest1_to_seq vr)) stride off);
   assert pure (!acc %~ seq_max (seq_stride (seq_map pre_map_r (chest1_to_seq vr)) stride off));

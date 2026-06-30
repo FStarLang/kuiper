@@ -101,7 +101,14 @@ fn forevery_drop_pure
 (* Per-thread input-side max reduction: like [max_stride_map] but reads from a
    single row of a 2-D tensor. Initializes its accumulator with its first strided
    element (index [off]) so the running max is over a non-empty prefix. *)
-#push-options "--fuel 2 --ifuel 2 --z3rlimit 400"
+(* ── Strided-bucket arithmetic ─────────────────────────────────────────────
+   [max_stride_map_2d] below runs in a context carrying the ambient quantified
+   hypothesis [forall j. macc sx row j %~ vr_row @! j], which makes inline stride
+   arithmetic pathologically slow.  The pure-nat / generic-seq lemmas it needs
+   ([stride_step_arith], [stride_idx_in_bounds], [stride_bucket_index],
+   [max_stride_post_arith]) are shared from [Kuiper.Kernel.HReduce.Max]. *)
+
+#push-options "--fuel 2 --ifuel 1 --z3rlimit 60"
 inline_for_extraction noextract
 fn max_stride_map_2d
   (#et:Type0) {| floating et, real_like et, floating_real_like et |}
@@ -161,6 +168,7 @@ fn max_stride_map_2d
       emp
     decreases (cols + stride - !idx)
   {
+    stride_idx_in_bounds (SZ.v cols) (SZ.v off) (SZ.v stride) (gread gidx) (SZ.v !idx);
     assert pure (gread gidx < seq_stride_length vr_row stride off);
 
     let idx_raw : sz = !idx;
@@ -173,16 +181,15 @@ fn max_stride_map_2d
     (**)assert (pure (v' %~ (lseq_map pre_map_r vr_row @! SZ.v idx_v)));
 
     assert pure (!acc %~ seq_max (seq_take (gread gidx) (seq_stride (lseq_map pre_map_r vr_row) stride off)));
-    assert pure (seq_stride (lseq_map pre_map_r vr_row) stride off @! gread gidx == (lseq_map pre_map_r vr_row) @! (off + gread gidx * stride));
-    assert pure (off + gread gidx * stride == SZ.v !idx);
+    stride_bucket_index (lseq_map pre_map_r vr_row) (SZ.v stride) (SZ.v off) (gread gidx) (SZ.v !idx);
+    assert pure (seq_stride (lseq_map pre_map_r vr_row) stride off @! gread gidx == (lseq_map pre_map_r vr_row) @! (SZ.v !idx));
 
     (* seq_take (k+1) maxes in the bucket's k-th element; combine with fmax. *)
     (**)seq_max_take_step (seq_stride (lseq_map pre_map_r vr_row) stride off) (gread gidx);
 
     let vgidx = gread gidx;
-    assert (pure (SZ.v !idx                  == vgidx    * stride + off));
-    Math.Lemmas.distributivity_add_left vgidx 1 stride;
-    assert (pure ((vgidx + 1) * stride + off == ((vgidx * stride) + (1 * stride)) + off)); // Sad.
+    assert (pure (SZ.v !idx == vgidx * stride + off));
+    stride_step_arith (SZ.v !idx) vgidx (SZ.v stride) (SZ.v off);
     assert (pure (SZ.v !idx + stride == (vgidx + 1) * stride + off));
 
     Math.Lemmas.add_div_mod_1 (SZ.v !idx) stride;
@@ -196,22 +203,7 @@ fn max_stride_map_2d
   };
 
   assert pure (SZ.v !idx == gread gidx * stride + off);
-  Math.Lemmas.lemma_mod_plus off (gread gidx) stride;
-  Math.Lemmas.small_mod off stride;
-  assert pure ((off + stride * gread gidx) % stride == off);
-  assert pure ((gread gidx * stride + off) % stride == off);
-  assert pure (!idx % stride == off);
-  lemma_first_past cols off stride (SZ.v !idx);
-  assert (pure (SZ.v !idx == off + ((cols - off - 1 + stride) / stride) * stride));
-
-  assert pure (gread gidx <= seq_stride_length (lseq_map pre_map_r vr_row) stride off);
-  Math.Lemmas.cancel_mul_div (gread gidx) stride;
-  assert pure (gread gidx == (!idx - off) / stride);
-  assert pure (gread gidx == ((off + ((cols - off - 1 + stride) / stride) * stride) - off) / stride);
-  assert pure (gread gidx == (((cols - off - 1 + stride) / stride) * stride) / stride);
-  assert pure (gread gidx == (cols - off - 1 + stride) / stride);
-  assert pure (cols - off - 1 + stride == cols - off + stride - 1);
-  assert pure (gread gidx == (cols - off + stride - 1) / stride);
+  max_stride_post_arith (lseq_map pre_map_r vr_row) (SZ.v off) (SZ.v stride) (gread gidx) (SZ.v !idx);
   assert pure (gread gidx == seq_stride_length (lseq_map pre_map_r vr_row) stride off);
   assert pure (seq_take (seq_stride_length (lseq_map pre_map_r vr_row) stride off)
                        (seq_stride (lseq_map pre_map_r vr_row) stride off)
