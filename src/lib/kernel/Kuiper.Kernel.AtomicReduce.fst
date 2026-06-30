@@ -8,6 +8,7 @@ open Kuiper
 open Kuiper.Atomics
 open Kuiper.Tensor
 open Kuiper.Tensor.Layout.Alg
+open Kuiper.Seq.Common
 
 module SZ = Kuiper.SizeT
 module W = Pulse.Lib.WithPure
@@ -233,7 +234,66 @@ let rec contributions_shift
     end else
       contributions_shift ac nn v_done v_a v_r acc x (i-1)
 
-let rec contributions_lemma
+(* Changing [v_done] outside the prefix [0, i) cannot affect [contributions'],
+   which only inspects indices [0, i). *)
+let rec contributions'_irrel
+  (#et : Type0) {| scalar et |} {| d : has_atomic_add et |}
+  (nn : nat) (vd1 vd2 : lseq bool nn) (v_a : chest1 et nn)
+  (v_r acc : et) (i : natle nn)
+  : Lemma (requires (forall (j:nat). j < i ==> Seq.index vd1 j == Seq.index vd2 j))
+          (ensures  contributions' nn vd1 v_a v_r acc i
+                    == contributions' nn vd2 v_a v_r acc i)
+          (decreases i)
+= if i = 0 then ()
+  else begin
+    let hd = Kuiper.Chest.acc v_a (i-1, ()) in
+    assert (Seq.index vd1 (i-1) == Seq.index vd2 (i-1));
+    if Seq.index vd1 (i-1) then
+      contributions'_irrel nn vd1 vd2 v_a v_r (d.pure_op hd acc) (i-1)
+    else
+      contributions'_irrel nn vd1 vd2 v_a v_r acc (i-1)
+  end
+
+(* Flipping [v_done.(tid)] from false to true folds [v_a.(tid)] into the running
+   sum [v_r] (when [tid] lies in the inspected prefix [0, i)). *)
+let rec contributions'_upd
+  (#et : Type0) {| scalar et |} {| d : has_atomic_add et |}
+  (ac : is_ac_w d.pure_op)
+  (nn : nat) (v_done : lseq bool nn) (v_a : chest1 et nn)
+  (v_r acc : et) (tid : natlt nn) (i : natle nn)
+  : Lemma (requires contributions' nn v_done v_a v_r acc i /\ Seq.index v_done tid == false)
+          (ensures (if tid < i
+                    then contributions' nn (Seq.upd v_done tid true) v_a
+                           (d.pure_op (Kuiper.Chest.acc v_a (tid, ())) v_r) acc i
+                    else contributions' nn (Seq.upd v_done tid true) v_a v_r acc i))
+          (decreases i)
+= let vd' = Seq.upd v_done tid true in
+  if i = 0 then ()
+  else begin
+    let hd = Kuiper.Chest.acc v_a (i-1, ()) in
+    if i - 1 = tid then begin
+      (* The flipped index is the head of this prefix: the original took the
+         [false] branch, the updated one takes the [true] branch which folds in
+         [hd = v_a.(tid)].  [contributions_shift] supplies the new sum. *)
+      Seq.lemma_index_upd1 v_done tid true;
+      contributions_shift ac nn v_done v_a v_r acc hd (i-1);
+      let aux (j:nat) : Lemma (j < i-1 ==> Seq.index v_done j == Seq.index vd' j) =
+        if j < i - 1 then Seq.lemma_index_upd2 v_done tid true j
+      in
+      FStar.Classical.forall_intro aux;
+      contributions'_irrel nn v_done vd' v_a (d.pure_op hd v_r) (d.pure_op hd acc) (i-1)
+    end else begin
+      (* The flipped index is below this prefix's head: recurse, the head step
+         is identical for [v_done] and [vd']. *)
+      Seq.lemma_index_upd2 v_done tid true (i-1);
+      if Seq.index v_done (i-1) then
+        contributions'_upd ac nn v_done v_a v_r (d.pure_op hd acc) tid (i-1)
+      else
+        contributions'_upd ac nn v_done v_a v_r acc tid (i-1)
+    end
+  end
+
+let contributions_lemma
   (#et : Type0) {| scalar et |} {| d : has_atomic_add et |}
   (ac : is_ac_w d.pure_op)
   (nn: nat)
@@ -244,21 +304,7 @@ let rec contributions_lemma
   : Lemma (requires contributions nn v_done v_a v_r /\ Seq.index v_done tid == false)
           (ensures  contributions nn (Seq.upd v_done tid true) v_a (d.pure_op (Kuiper.Chest.acc v_a (tid, ())) v_r))
           (decreases tid)
-= admit()
-(*
-if tid = 0 then begin
-    tail_upd_0 v_done true;
-    contributions_shift ac nn (Seq.tail v_done) (Seq.tail v_a) v_r acc (Seq.head v_a)
-  end else begin
-    tail_upd_succ v_done tid true;
-    FStar.Seq.Properties.index_tail v_a (tid - 1);
-    FStar.Seq.Properties.index_tail v_done (tid - 1);
-    if Seq.head v_done then
-      contributions_lemma ac nn (Seq.tail v_done) (Seq.tail v_a) v_r (d.pure_op (Seq.head v_a) acc) (tid - 1)
-    else
-      contributions_lemma ac nn (Seq.tail v_done) (Seq.tail v_a) v_r acc (tid - 1)
-  end
-  *)
+= contributions'_upd ac nn v_done v_a v_r zero tid nn
 
 let is_ac_from_ac_w (#t:Type) (#f: t -> t -> t) (ac : is_ac_w f)
   : Lemma (is_ac f)
@@ -331,7 +377,66 @@ fn kf
   }
 }
 
-let rec contributions_all_done
+(* [seq_take (i+1)] extends [seq_take i] by the i-th element. *)
+let seq_take_snoc (#a:Type) (s : seq a) (i : nat{i < Seq.length s})
+  : Lemma (seq_take (i+1) s == seq_take i s @+ seq![Seq.index s i])
+  = Seq.lemma_eq_elim (seq_take (i+1) s) (seq_take i s @+ seq![Seq.index s i])
+
+(* [seq_fold_left] distributes over append (local copy; the Seq.Common version
+   is not exposed in its interface). *)
+let rec seq_fold_left_append (#a #b:Type) (f: b -> a -> b) (acc:b) (l0 l1:seq a)
+  : Lemma (ensures seq_fold_left f acc (l0 @+ l1)
+                == seq_fold_left f (seq_fold_left f acc l0) l1)
+          (decreases Seq.length l0)
+  = match view_seq l0 with
+    | SNil -> assert (Seq.equal (l0 @+ l1) l1)
+    | SCons hd tl ->
+      let SCons hd' tl' = view_seq (l0 @+ l1) in
+      assert (hd == hd');
+      assert (tl' `Seq.equal` (tl @+ l1));
+      seq_fold_left_append f (f acc hd) tl l1
+
+(* AC fact: a value [x] seeded into a left fold can be pulled out to the end. *)
+let rec seq_fold_left_ac_shift
+  (#t : Type) (f : t -> t -> t) (ac : is_ac_w f)
+  (x acc : t) (ys : seq t)
+  : Lemma (ensures seq_fold_left f (f x acc) ys == f (seq_fold_left f acc ys) x)
+          (decreases Seq.length ys)
+= match view_seq ys with
+  | SNil -> ac.comm x acc
+  | SCons hd tl ->
+    ac.assoc x acc hd;        // f (f x acc) hd == f x (f acc hd)
+    seq_fold_left_ac_shift f ac x (f acc hd) tl
+
+(* Under all-done, [contributions'] is exactly the left fold of [pure_op] over
+   the inspected prefix.  [contributions'] threads the running sum high-to-low,
+   so each step is reconciled with the (low-to-high) [seq_fold_left] using AC. *)
+let rec contributions'_alltrue_fold
+  (#et : Type0) {| scalar et |} {| d : has_atomic_add et |}
+  (ac : is_ac_w d.pure_op)
+  (nn : nat) (v_done : lseq bool nn) (v_a : chest1 et nn)
+  (v_r acc : et) (i : natle nn)
+  : Lemma (requires contributions' nn v_done v_a v_r acc i
+                /\ (forall (j:nat). j < i ==> Seq.index v_done j == true))
+          (ensures v_r == seq_fold_left d.pure_op acc (seq_take i (chest1_to_seq v_a)))
+          (decreases i)
+= let s = chest1_to_seq v_a in
+  if i = 0 then ()
+  else begin
+    let hd = Kuiper.Chest.acc v_a (i-1, ()) in
+    assert (Seq.index v_done (i-1) == true);
+    assert (Seq.index s (i-1) == hd);
+    contributions'_alltrue_fold ac nn v_done v_a v_r (d.pure_op hd acc) (i-1);
+    // v_r == seq_fold_left pure_op (pure_op hd acc) (seq_take (i-1) s)
+    seq_fold_left_ac_shift d.pure_op ac hd acc (seq_take (i-1) s);
+    // == pure_op (seq_fold_left pure_op acc (seq_take (i-1) s)) hd
+    seq_fold_left_append d.pure_op acc (seq_take (i-1) s) (seq![hd]);
+    // seq_fold_left pure_op acc (seq_take (i-1) s @+ [hd]) == that same value
+    seq_take_snoc s (i-1)
+    // seq_take i s == seq_take (i-1) s @+ [hd]
+  end
+
+let contributions_all_done
   (#et : Type0) {| scalar et |} {| d : has_atomic_add et |}
   (ac : is_ac_w d.pure_op)
   (nn : nat)
@@ -341,39 +446,33 @@ let rec contributions_all_done
   : Lemma (requires contributions nn v_done v_a v_r
                 /\ (forall (i : nat{i < nn}). Seq.index v_done i == true))
           (ensures v_r == Kuiper.Seq.Common.seq_fold_left d.pure_op zero (chest1_to_seq v_a))
-          (decreases nn)
-= admit()
-// if nn = 0 then ()
-//   else begin
-//     assert (Seq.index v_done 0 == true);
-//     let aux (i:nat{i < len (Seq.tail v_a)})
-//       : Lemma (Seq.index (Seq.tail v_done) i == true)
-//     = FStar.Seq.Properties.index_tail v_done i
-//     in
-//     FStar.Classical.forall_intro aux;
-//     ac.comm (Seq.head v_a) acc;
-//     contributions_all_done ac nn (Seq.tail v_done) (Seq.tail v_a) v_r (d.pure_op (Seq.head v_a) acc)
-//   end
+= let s = chest1_to_seq v_a in
+  contributions'_alltrue_fold ac nn v_done v_a v_r zero nn;
+  Seq.lemma_eq_elim (seq_take nn s) s
 
-let rec contributions_init
+(* With nothing marked done, the running sum over any prefix stays at the
+   initial accumulator. *)
+let rec contributions'_allfalse
+  (#et : Type0) {| scalar et |} {| d : has_atomic_add et |}
+  (nn : nat) (v_done : lseq bool nn) (v_a : chest1 et nn)
+  (acc : et) (i : natle nn)
+  : Lemma (requires (forall (j:nat). j < i ==> Seq.index v_done j == false))
+          (ensures  contributions' nn v_done v_a acc acc i)
+          (decreases i)
+= if i = 0 then ()
+  else begin
+    assert (Seq.index v_done (i-1) == false);
+    contributions'_allfalse nn v_done v_a acc (i-1)
+  end
+
+let contributions_init
   (#et : Type0) {| scalar et |} {| d : has_atomic_add et |}
   (nn : nat)
   (v_done : lseq bool nn)
   (v_a : chest1 et nn)
   : Lemma (requires forall (i : nat{i < nn}). Seq.index v_done i == false)
           (ensures contributions nn v_done v_a zero)
-          // (decreases i)
-= admit()
-(*if len v_a = 0 then ()
-  else begin
-    assert (Seq.index v_done 0 == false);
-    let aux (i:nat{i < len (Seq.tail v_a)})
-      : Lemma (Seq.index (Seq.tail v_done) i == false)
-    = FStar.Seq.Properties.index_tail v_done i
-    in
-    FStar.Classical.forall_intro aux;
-    contributions_init nn (Seq.tail v_done) (Seq.tail v_a)
-  end *)
+= contributions'_allfalse nn v_done v_a zero nn
 
 ghost
 fn rec allocate_ref_seq (n : nat)

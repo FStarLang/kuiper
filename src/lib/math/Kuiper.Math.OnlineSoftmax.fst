@@ -158,13 +158,29 @@ let softmax_step #x (xst : st x) (xi : real) :
   fxi, { m=m'; d=d' }, adj
 #pop-options
 
+(* [seq_take (i+1)] extends [seq_take i] by the i-th element. *)
+let seq_take_snoc (#a:Type) (s : seq a) (i : nat{i < len s})
+  : Lemma (seq_take (i+1) s == seq_take i s @+ seq![s @! i])
+  = Seq.lemma_eq_elim (seq_take (i+1) s) (seq_take i s @+ seq![s @! i])
+
 #push-options "--split_queries always --z3rlimit 10"
+[@@"opaque_to_smt"] (* keep the body out of downstream (fragile) SMT contexts *)
 let softmax_stepi (#n:pos) (x : lseq real n) (i: pos{i < n}) (xst : st (seq_take i x)) :
   res:(real & st (seq_take (i+1) x) & real)
    { (let (fxi,xst',adj) = res in
     fxi /. xst'.d == softmax_real_seq (seq_take (i+1) x) @! (len (seq_take i x)) /\
     (i == (len (seq_take i x))) /\ // TODO shouldnt be necessary
-    adj == exp (xst.m -. xst'.m)) } = admit ()
+    adj == exp (xst.m -. xst'.m)) }
+  = (* [seq_take (i+1) x = seq_take i x @+ [x@!i]], so this is just one
+       [softmax_step] over the i-th element of [x]; the result state is
+       re-indexed through that sequence equality. *)
+    let xi : real = x @! i in
+    seq_take_snoc x i;
+    let (fxi, xst', adj) = softmax_step #(seq_take i x) xst xi in
+    (* Re-index the state record from [seq_take i x @+ [xi]] to the equal
+       [seq_take (i+1) x]; its [m_ok]/[d_ok] invariants transport along. *)
+    let xstf : st (seq_take (i+1) x) = { m = xst'.m; d = xst'.d } in
+    (fxi, xstf, adj)
 #pop-options
 
 open Kuiper.DotProd
