@@ -84,7 +84,25 @@ ghost fn double_gather
 requires forall+ (_ : natlt n). res1 (ffr1 *. (fr /. Real.of_int n)) ** res2 (ffr2 *. (fr /. Real.of_int n))
 ensures res1 (ffr1 *. fr) ** res2 (ffr2 *. fr)
 {
-  admit ()
+  forevery_unzip _ _;
+  forevery_map 
+    (fun (_ : natlt n) -> res1 (ffr1 *. (fr /. Real.of_int n)))
+    (fun (_ : natlt n) -> res1 ((ffr1 *. fr) /. Real.of_int n))
+    fn i { 
+      rewrite 
+        res1 (ffr1 *. (fr /. Real.of_int n)) as 
+        res1 ((ffr1 *. fr) /. Real.of_int n);
+    };
+  forevery_map 
+    (fun (_ : natlt n) -> res2 (ffr2 *. (fr /. Real.of_int n)))
+    (fun (_ : natlt n) -> res2 ((ffr2 *. fr) /. Real.of_int n))
+    fn i { 
+      rewrite 
+        res2 (ffr2 *. (fr /. Real.of_int n)) as 
+        res2 ((ffr2 *. fr) /. Real.of_int n);
+    };
+  gather_n res1 n;
+  gather_n res2 n;
 }
 
 instance double_shareable

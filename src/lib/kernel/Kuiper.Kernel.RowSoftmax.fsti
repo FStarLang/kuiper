@@ -47,7 +47,8 @@ fn row_softmax_gpu
       on gpu_loc (a |-> sa') **
       pure (sa' %~ row_softmax_real ra)
 
-// identical to the above but it returns the temporary sums array it creates
+// Identical to the above but it returns the temporary sums array it creates.
+// Useful for some implementations of attention, namely those that need to return the log-sum-exp.
 inline_for_extraction noextract
 fn row_softmax_gpu_with_sum
   (#et : Type0) {| floating et, real_like et, floating_real_like et |}
