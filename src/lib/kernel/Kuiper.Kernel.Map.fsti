@@ -107,3 +107,42 @@ fn map_gpu2
   preserves cpu ** on gpu_loc (b |-> Frac fb sb)
   requires  on gpu_loc (a |-> sa)
   ensures   on gpu_loc (a |-> (lseq_map2 f sa sb <: lseq et lena))
+
+(* Three-array elementwise map into a separate output array, each array with a
+   possibly different element type: o[i] := f a[i] b[i] c[i].
+   The inputs a, b, c are held read-only; o receives the result. *)
+
+let lseq_map3
+  (#a #b #c #d : Type0)
+  (#len : nat)
+  (f : a -> b -> c -> d)
+  (sa : lseq a len) (sb : lseq b len) (sc : lseq c len)
+  : GTot (lseq d len)
+  = Seq.init_ghost len (fun i -> f (Seq.index sa i) (Seq.index sb i) (Seq.index sc i))
+
+inline_for_extraction noextract
+fn map_gpu3
+  (#eta #etb #etc #eto : Type0)
+  (f : eta -> etb -> etc -> eto)
+  (lena : szp { lena <= max_blocks * max_threads })
+  (#la : Array1.layout lena) {| ctlayout la |}
+  (#lb : Array1.layout lena) {| ctlayout lb |}
+  (#lc : Array1.layout lena) {| ctlayout lc |}
+  (#lo : Array1.layout lena) {| ctlayout lo |}
+  (a : Array1.t eta la)
+  (b : Array1.t etb lb)
+  (c : Array1.t etc lc)
+  (o : Array1.t eto lo)
+  (#_ : squash (Array1.is_global a))
+  (#_ : squash (Array1.is_global b))
+  (#_ : squash (Array1.is_global c))
+  (#_ : squash (Array1.is_global o))
+  (#sa : erased (lseq eta lena))
+  (#sb : erased (lseq etb lena))
+  (#sc : erased (lseq etc lena))
+  (#so : erased (lseq eto lena))
+  (#fa #fb #fc : perm)
+  norewrite
+  preserves cpu ** on gpu_loc (a |-> Frac fa sa) ** on gpu_loc (b |-> Frac fb sb) ** on gpu_loc (c |-> Frac fc sc)
+  requires  on gpu_loc (o |-> so)
+  ensures   on gpu_loc (o |-> (lseq_map3 f sa sb sc <: lseq eto lena))

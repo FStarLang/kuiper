@@ -520,3 +520,225 @@ fn map_gpu2
 {
   launch_sync (kmap2 f lena a b);
 }
+
+(* Three-array elementwise map into a separate output array, each array with a
+   possibly different element type: o[i] := f a[i] b[i] c[i].
+   The inputs a, b, c are held read-only; o receives the result. *)
+
+ghost
+fn explode_setup_3
+  (#eta #etb #etc #eto : Type0)
+  (lena : szp)
+  (#la : Array1.layout lena) (#lb : Array1.layout lena)
+  (#lc : Array1.layout lena) (#lo : Array1.layout lena)
+  (a : Array1.t eta la)
+  (b : Array1.t etb lb)
+  (c : Array1.t etc lc)
+  (o : Array1.t eto lo)
+  (#sa : erased (lseq eta lena))
+  (#sb : erased (lseq etb lena))
+  (#sc : erased (lseq etc lena))
+  (#so : erased (lseq eto lena))
+  (#fa #fb #fc : perm)
+  ()
+  norewrite
+  requires
+    (a |-> Frac fa sa) ** (b |-> Frac fb sb) ** (c |-> Frac fc sc) ** (o |-> so)
+  ensures
+    (forall+ (i : natlt lena).
+      a |-> Frac (fa /. lena) sa **
+      b |-> Frac (fb /. lena) sb **
+      c |-> Frac (fc /. lena) sc **
+      Cell o i |-> (so @! i)) **
+    pure (SZ.fits (Array1.layout_size lo))
+{
+  Array1.share_n a lena;
+  Array1.share_n b lena;
+  Array1.share_n c lena;
+  Array1.pts_to_ref o;
+  Array1.explode o;
+  forevery_zip
+    (fun (_ : natlt lena) -> c |-> Frac (fc /. lena) sc)
+    (fun (i : natlt lena) -> Cell o i |-> (so @! i));
+  forevery_zip
+    (fun (_ : natlt lena) -> b |-> Frac (fb /. lena) sb)
+    (fun (i : natlt lena) ->
+      c |-> Frac (fc /. lena) sc **
+      Cell o i |-> (so @! i));
+  forevery_zip
+    (fun (_ : natlt lena) -> a |-> Frac (fa /. lena) sa)
+    (fun (i : natlt lena) ->
+      b |-> Frac (fb /. lena) sb **
+      c |-> Frac (fc /. lena) sc **
+      Cell o i |-> (so @! i));
+  ()
+}
+
+ghost
+fn explode_teardown_3
+  (#eta #etb #etc #eto : Type0)
+  (f : eta -> etb -> etc -> eto)
+  (lena : szp)
+  (#la : Array1.layout lena) (#lb : Array1.layout lena)
+  (#lc : Array1.layout lena) (#lo : Array1.layout lena)
+  (a : Array1.t eta la)
+  (b : Array1.t etb lb)
+  (c : Array1.t etc lc)
+  (o : Array1.t eto lo)
+  (#sa : erased (lseq eta lena))
+  (#sb : erased (lseq etb lena))
+  (#sc : erased (lseq etc lena))
+  (#fa #fb #fc : perm)
+  ()
+  norewrite
+  requires
+    (forall+ (i : natlt lena).
+      a |-> Frac (fa /. lena) sa **
+      b |-> Frac (fb /. lena) sb **
+      c |-> Frac (fc /. lena) sc **
+      Cell o i |-> (f (sa @! i) (sb @! i) (sc @! i))) **
+    pure (SZ.fits (Array1.layout_size lo))
+  ensures
+    (a |-> Frac fa sa) ** (b |-> Frac fb sb) ** (c |-> Frac fc sc) **
+    (o |-> (lseq_map3 f sa sb sc <: lseq eto lena))
+{
+  forevery_unzip
+    (fun (_ : natlt lena) -> a |-> Frac (fa /. lena) sa)
+    (fun (i : natlt lena) ->
+      b |-> Frac (fb /. lena) sb **
+      c |-> Frac (fc /. lena) sc **
+      Cell o i |-> (f (sa @! i) (sb @! i) (sc @! i)));
+  forevery_unzip
+    (fun (_ : natlt lena) -> b |-> Frac (fb /. lena) sb)
+    (fun (i : natlt lena) ->
+      c |-> Frac (fc /. lena) sc **
+      Cell o i |-> (f (sa @! i) (sb @! i) (sc @! i)));
+  forevery_unzip
+    (fun (_ : natlt lena) -> c |-> Frac (fc /. lena) sc)
+    (fun (i : natlt lena) -> Cell o i |-> (f (sa @! i) (sb @! i) (sc @! i)));
+  Array1.gather_n a lena;
+  Array1.gather_n b lena;
+  Array1.gather_n c lena;
+  forevery_map
+    (fun (i : natlt lena) -> Cell o i |-> (f (sa @! i) (sb @! i) (sc @! i)))
+    (fun (i : natlt lena) -> Cell o i |-> ((lseq_map3 f sa sb sc) @! i))
+    fn x { () };
+  Array1.implode o;
+  ()
+}
+
+inline_for_extraction noextract
+fn kf_map3
+  (#eta #etb #etc #eto : Type0)
+  (f : eta -> etb -> etc -> eto)
+  (#lena : erased nat)
+  (#la : Array1.layout lena) {| ctlayout la |}
+  (#lb : Array1.layout lena) {| ctlayout lb |}
+  (#lc : Array1.layout lena) {| ctlayout lc |}
+  (#lo : Array1.layout lena) {| ctlayout lo |}
+  (a : Array1.t eta la)
+  (b : Array1.t etb lb)
+  (c : Array1.t etc lc)
+  (o : Array1.t eto lo)
+  (#sa : erased (lseq eta lena))
+  (#sb : erased (lseq etb lena))
+  (#sc : erased (lseq etc lena))
+  (#so : erased (lseq eto lena))
+  (#fa #fb #fc : perm)
+  (i : szlt lena)
+  ()
+  requires
+    gpu **
+    a |-> Frac fa sa **
+    b |-> Frac fb sb **
+    c |-> Frac fc sc **
+    Cell o (i <: natlt lena) |-> (so @! i)
+  ensures
+    gpu **
+    a |-> Frac fa sa **
+    b |-> Frac fb sb **
+    c |-> Frac fc sc **
+    Cell o (i <: natlt lena) |-> (f (sa @! i) (sb @! i) (sc @! i))
+{
+  let x = Array1.read a i;
+  let y = Array1.read b i;
+  let z = Array1.read c i;
+  Array1.write_cell o i (f x y z);
+}
+
+inline_for_extraction noextract
+let kmap3
+  (#eta #etb #etc #eto : Type0)
+  (f : eta -> etb -> etc -> eto)
+  (lena : szp { lena <= max_blocks * max_threads })
+  (#la : Array1.layout lena) {| ctlayout la |}
+  (#lb : Array1.layout lena) {| ctlayout lb |}
+  (#lc : Array1.layout lena) {| ctlayout lc |}
+  (#lo : Array1.layout lena) {| ctlayout lo |}
+  (a : Array1.t eta la)
+  (b : Array1.t etb lb)
+  (c : Array1.t etc lc)
+  (o : Array1.t eto lo)
+  (#_ : squash (Array1.is_global a))
+  (#_ : squash (Array1.is_global b))
+  (#_ : squash (Array1.is_global c))
+  (#_ : squash (Array1.is_global o))
+  (#sa : erased (lseq eta lena))
+  (#sb : erased (lseq etb lena))
+  (#sc : erased (lseq etc lena))
+  (#so : erased (lseq eto lena))
+  (#fa #fb #fc : perm)
+  : kernel_desc
+      (requires (a |-> Frac fa sa) ** (b |-> Frac fb sb) ** (c |-> Frac fc sc) ** (o |-> so))
+      (ensures  (a |-> Frac fa sa) ** (b |-> Frac fb sb) ** (c |-> Frac fc sc) **
+                (o |-> (lseq_map3 f sa sb sc <: lseq eto lena)))
+= {
+    nthr = lena;
+    f = kf_map3 f a b c o;
+
+    frame    = pure (SZ.fits (Array1.layout_size lo));
+    teardown = explode_teardown_3 f lena a b c o;
+    setup    = explode_setup_3 lena a b c o;
+    kpre  = (fun (i : natlt lena) ->
+      a |-> Frac (fa /. lena) sa **
+      b |-> Frac (fb /. lena) sb **
+      c |-> Frac (fc /. lena) sc **
+      Cell o i |-> (so @! i));
+    kpost = (fun (i : natlt lena) ->
+      a |-> Frac (fa /. lena) sa **
+      b |-> Frac (fb /. lena) sb **
+      c |-> Frac (fc /. lena) sc **
+      Cell o i |-> (f (sa @! i) (sb @! i) (sc @! i)));
+    kpost_sendable = solve;
+    kpre_sendable  = solve;
+  } <: kernel_desc_n _ _
+
+inline_for_extraction noextract
+fn map_gpu3
+  (#eta #etb #etc #eto : Type0)
+  (f : eta -> etb -> etc -> eto)
+  (lena : szp { lena <= max_blocks * max_threads })
+  (#la : Array1.layout lena) {| ctlayout la |}
+  (#lb : Array1.layout lena) {| ctlayout lb |}
+  (#lc : Array1.layout lena) {| ctlayout lc |}
+  (#lo : Array1.layout lena) {| ctlayout lo |}
+  (a : Array1.t eta la)
+  (b : Array1.t etb lb)
+  (c : Array1.t etc lc)
+  (o : Array1.t eto lo)
+  (#_ : squash (Array1.is_global a))
+  (#_ : squash (Array1.is_global b))
+  (#_ : squash (Array1.is_global c))
+  (#_ : squash (Array1.is_global o))
+  (#sa : erased (lseq eta lena))
+  (#sb : erased (lseq etb lena))
+  (#sc : erased (lseq etc lena))
+  (#so : erased (lseq eto lena))
+  (#fa #fb #fc : perm)
+  norewrite
+  preserves cpu ** on gpu_loc (a |-> Frac fa sa) ** on gpu_loc (b |-> Frac fb sb) ** on gpu_loc (c |-> Frac fc sc)
+  requires  on gpu_loc (o |-> so)
+  ensures   on gpu_loc (o |-> (lseq_map3 f sa sb sc <: lseq eto lena))
+{
+  launch_sync (kmap3 f lena a b c o);
+}
