@@ -26,8 +26,36 @@ let attn_scores
   (bias : chest (l @| s @| INil) real)
   (scale : real)
   : chest (l @| s @| INil) real
-  = chest_comb (fun bias_qk score -> (bias_qk +. score) *. scale) bias (MS.matmul eQ eK)
+  = chest_comb (fun bias_qk score -> (bias_qk +. (score *. scale))) bias (MS.matmul eQ eK)
 
+(* Top-level real-valued spec *)
+let attention_real
+  (#l #s #e #ev : pos)
+  (eQ : ematrix real l e)
+  (eK : ematrix real e s)
+  (eV : ematrix real s ev)
+  (bias : ematrix real l s)
+  (scale : real)
+  : GTot (ematrix real l ev)
+  = let scores = attn_scores eQ eK bias scale in
+    let probs  = RSMX.row_softmax_real scores in
+    MS.matmul probs eV
+
+let attention_real_batched
+  (#n #h #l #s #e #ev : pos)
+  (rQ:    chest4 real n h l e)
+  (rKT:   chest4 real n h e s)
+  (rV:    chest4 real n h s ev)
+  (rbias: chest4 real n h l s)
+  (scale : real)  
+  : GTot (chest4 real n h l ev)
+  = mk4 (fun i j -> 
+      acc2 (attention_real
+        (slice_page4 rQ i j)
+        (slice_page4 rKT i j)
+        (slice_page4 rV i j)
+        (slice_page4 rbias i j)
+        scale))
 
 (* Specs for attention with log-sum-exp. 
  LATER: just separate the LSE stuff out so we aren't dealing with tuples & etc. *)
