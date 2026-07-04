@@ -2,8 +2,6 @@ module Kuiper.Kernel.RowSoftmax
 
 #lang-pulse
 open Kuiper
-open Kuiper.Shape
-open Kuiper.Chest
 open Kuiper.Real { exp }
 open Kuiper.EMatrix
 open Kuiper.Seq.Common
@@ -13,9 +11,7 @@ module BMax = Kuiper.Kernel.HReduce.Block.Max
 module RB = Kuiper.Kernel.RowBroadcast
 module SM = Kuiper.Spec.Softmax
 module Map = Kuiper.Kernel.Map
-module Array1 = Kuiper.Array1
-module Array2 = Kuiper.Array2
-open Kuiper.Tensor 
+open Kuiper.Tensor { ctlayout }
 open Kuiper.Tensor.Layout.Alg { l1_forward }
 module Chest = Kuiper.Chest
 
@@ -31,13 +27,58 @@ let lseq_to_chest1
   (#n : nat)
   (s : lseq t n)
   : Chest.chest1 t n
-  = Chest.mk1 (fun i -> s @! i)
+  = Chest.mk1 (fun i -> Seq.index s i)
 
 let row_sum_bridge (#m #n : nat) (ra1 : ematrix real m n) (i : natlt m)
   : Lemma (chest1_rsum (chest_map exp (chest2_row ra1 i))
            == rsum (lseq_map exp (ematrix_row ra1 i)))
   = Seq.lemma_eq_elim (chest1_to_seq (chest_map exp (chest2_row ra1 i)))
                       (lseq_map exp (ematrix_row ra1 i))
+
+(* Cell-wise reduction of the [row_softmax_real] golden spec, proven once in a
+   clean context.  [row_softmax_real] chains several definitional unfoldings
+   (row_softmax_real -> mk2 -> softmax_real -> chest1_mapi -> chest2_row).  Under
+   the repo's context pruning these no longer reduce inside the larger cell-glue
+   proofs below, so we isolate each [acc (mk ..) ..] step as its own lemma and
+   expose the fully-reduced cell via an SMTPat. *)
+#push-options "--fuel 4 --ifuel 2"
+let mk2_cell (#et : Type) (#d0 #d1 : nat)
+  (f : natlt d0 -> natlt d1 -> GTot et) (i : natlt d0) (j : natlt d1)
+  : Lemma (acc2 (mk2 f) i j == f i j)
+  = ()
+
+let mk1_cell (#et : Type) (#d0 : nat)
+  (f : natlt d0 -> GTot et) (i : natlt d0)
+  : Lemma (acc1 (mk1 f) i == f i)
+  = ()
+#pop-options
+
+#push-options "--fuel 6 --ifuel 2"
+let softmax_real_cell (#n : nat { n > 0 }) (row : Chest.chest1 real n) (j : natlt n)
+  : Lemma
+      (requires chest1_rsum (chest_map exp row) =!= 0.0R)
+      (ensures acc1 (SM.softmax_real row) j
+               == exp (acc1 row j) /. chest1_rsum (chest_map exp row))
+  = ()
+#pop-options
+
+#push-options "--fuel 4 --ifuel 2"
+let acc2_row_softmax_real (#m : nat) (#n : nat { n > 0 })
+  (ra : ematrix real m n) (i : natlt m) (j : natlt n)
+  : Lemma (acc2 (row_softmax_real #m #n ra) i j
+           == exp (macc ra i j) /. chest1_rsum (chest_map exp (chest2_row ra i)))
+          [SMTPat (acc2 (row_softmax_real #m #n ra) i j)]
+  = // the row-sum denominator is strictly positive, hence the division is well-defined
+    sum_non_zero (lseq_map exp (ematrix_row ra i)) 0.0R;
+    row_sum_bridge ra i;
+    // row_softmax_real ra i j = acc1 (softmax_real (chest2_row ra i)) j
+    mk2_cell (fun (i : natlt m) (j : natlt n) ->
+                acc1 (SM.softmax_real (chest2_row ra i)) j) i j;
+    // acc1 (softmax_real row) j = exp (acc1 row j) / rsum
+    softmax_real_cell (chest2_row ra i) j;
+    // acc1 (chest2_row ra i) j = macc ra i j
+    mk1_cell (fun (j : natlt n) -> acc2 ra i j) j
+#pop-options
 
 (* ── Approximation glue: numerically-stable cell-wise softmax ─────────────────
    The stable path subtracts a per-row constant [cs i] (the row max) before
@@ -81,7 +122,10 @@ let s_row_div_exp_approx_softmax
                              (exp (macc ra i j) /. denom));
       // both sides reduce (acc_pat) to the canonical cell forms
       assert (Chest.acc lhs idx == div (fexp (acc2 sa i j)) (acc1 sums i));
-      assert (Chest.acc (row_softmax_real #m #n ra) idx == exp (macc ra i j) /. denom);
+      // [acc2_row_softmax_real] (SMTPat) reduces the golden-spec cell
+      assert (Chest.acc (row_softmax_real #m #n ra) idx
+           == acc2 (row_softmax_real #m #n ra) i j);
+      assert (acc2 (row_softmax_real #m #n ra) i j == exp (macc ra i j) /. denom);
       ()
     in
     Classical.forall_intro aux
@@ -236,43 +280,43 @@ let unshift_row_sum_real (row : Seq.seq real) (c : real)
 let unshift_sums_correct
   (#et : Type0) {| floating et, real_like et, floating_real_like et |}
   (#m #n : nat)
-  (sums_v maxs_v : lseq et m)
+  (sums_v maxs_v : Chest.chest1 et m)
   (ra : ematrix real m n)
   (cs : (i:nat{i<m}) -> GTot real)
   : Lemma
       (requires
         (forall (i:nat). i < m ==>
-          v_approximates (Seq.index sums_v i)
+          v_approximates (acc1 sums_v i)
             (rsum (lseq_map exp (ematrix_row
               (mkM #real #m #n (fun i j -> macc ra i j -. cs i)) i)))) /\
-        (forall (i:nat). i < m ==> v_approximates (Seq.index maxs_v i) (cs i)))
+        (forall (i:nat). i < m ==> v_approximates (acc1 maxs_v i) (cs i)))
       (ensures
-        Map.lseq_map2 (fun (s:et) (mx:et) -> mul s (fexp mx)) sums_v maxs_v
-        %~ Seq.init_ghost m (fun (i:natlt m) -> rsum (lseq_map exp (ematrix_row ra i))))
+        (forall (i:nat). i < m ==>
+          v_approximates
+            (acc1 (Map.chest1_map2 (fun (s:et) (mx:et) -> mul s (fexp mx)) sums_v maxs_v) i)
+            (rsum (lseq_map exp (ematrix_row ra i)))))
   = let ra1 = mkM #real #m #n (fun (i:natlt m) (j:natlt n) -> macc ra i j -. cs i) in
-    let lhs : lseq et m =
-      Map.lseq_map2 (fun (s:et) (mx:et) -> mul s (fexp mx)) sums_v maxs_v in
-    let rhs : lseq real m =
-      Seq.init_ghost m (fun (i:natlt m) -> rsum (lseq_map exp (ematrix_row ra i))) in
-    introduce forall (i:nat). i < m ==> v_approximates (Seq.index lhs i) (Seq.index rhs i)
+    introduce forall (i:nat). i < m ==>
+      v_approximates
+        (acc1 (Map.chest1_map2 (fun (s:et) (mx:et) -> mul s (fexp mx)) sums_v maxs_v) i)
+        (rsum (lseq_map exp (ematrix_row ra i)))
     with introduce _ ==> _
     with _. (
       Seq.lemma_eq_elim (ematrix_row ra1 i)
                         (seq_map (fun (z:real) -> z -. cs i) (ematrix_row ra i));
-      exp_approx (Seq.index maxs_v i) (cs i);
-      a_mul (Seq.index sums_v i) (fexp (Seq.index maxs_v i))
+      exp_approx (acc1 maxs_v i) (cs i);
+      a_mul (acc1 sums_v i) (fexp (acc1 maxs_v i))
             (rsum (lseq_map exp (ematrix_row ra1 i))) (exp (cs i));
       unshift_row_sum_real (ematrix_row ra i) (cs i)
-    );
-    assert (seq_approximates lhs rhs)
+    )
 
 inline_for_extraction noextract
 fn row_softmax_gpu_with_sum
   (#et : Type0) {| floating et, real_like et, floating_real_like et |}
   (m : szp { m <= max_blocks })
   (n : szp { m * n <= max_blocks * max_threads })
-  (#l : Array2.layout m n) {| ctlayout l |}
-  (a : Array2.t et l { Array2.is_global a })
+  (#l : layout2 m n) {| ctlayout l |}
+  (a : array2 et l { is_global a })
   (#sa : ematrix et m n)
   (ra : ematrix real m n)
   preserves
@@ -281,44 +325,50 @@ fn row_softmax_gpu_with_sum
     on gpu_loc (a |-> sa) **
     pure (sa %~ ra)
   returns 
-    sums: (sums: Array1.t et (l1_forward m) { Array1.is_global sums })
+    sums: (sums: array1 et (l1_forward m) { is_global sums })
   ensures
-    exists* (sa' : ematrix et m n) (esums : lseq et m).
+    exists* (sa' : ematrix et m n) (esums : Chest.chest1 et m).
       on gpu_loc (a |-> sa') ** 
       on gpu_loc (sums |-> esums) **
       pure (sa' %~ row_softmax_real ra) **
-      pure (esums %~ Seq.init_ghost m (fun i -> rsum (lseq_map exp (ematrix_row ra i))))
+      pure (forall (i:nat). i < SZ.v m ==>
+              acc1 esums i %~ rsum (lseq_map exp (ematrix_row ra i)))
 {
    (* The per-row shift is the row max; [ra1] is the real matrix after the shift. *)
   let cs = (fun (i:nat{i < SZ.v m}) -> seq_max (ematrix_row ra i));
   let ra1 : ematrix real (SZ.v m) (SZ.v n) = mkM (fun i j -> macc ra i j -. cs i);
 
   (* Allocate per-row maxes and sums on the GPU. *)
-  let maxs = Array1.alloc0 #et m (l1_forward m);
-  let sums = Array1.alloc0 #et m (l1_forward m);
+  let maxs = Kuiper.Tensor.alloc0 #et m (l1_forward m);
+  let sums = Kuiper.Tensor.alloc0 #et m (l1_forward m);
 
   (* Step 1: per-row max. Clamp the thread count so every strided bucket is
      non-empty (the max reduction has no identity element). *)
-  let nthm : szp = SMK.clamp_threads max_threads n;
+  let nthm : szp = clamp_threads max_threads n;
   assert pure (SZ.fits (SZ.v n + SZ.v nthm));
   BMax.reduce_batched_block_max #et (fun x -> x) (fun z -> z) m n nthm a maxs ra;
   with maxs_v. assert (on gpu_loc (maxs |-> maxs_v));
   Classical.forall_intro (id_map_row #(SZ.v m) #(SZ.v n) ra);
-  assert pure (forall (i:nat). i < SZ.v m ==> v_approximates (Seq.index maxs_v i) (cs i));
+  assert pure (forall (i:nat). i < SZ.v m ==> v_approximates (acc1 maxs_v i) (cs i));
 
-  (* Step 2: subtract the per-row max in place: a[i, j] := a[i, j] - maxs[i]. *)
+  (* Step 2: subtract the per-row max in place: a[i, j] := a[i, j] - maxs[i].
+     [row_broadcast f] writes [f (broadcast i) (cell i j)], so the max is the
+     FIRST lambda argument and the cell the SECOND. *)
   subtract_approx #et maxs_v sa ra cs;
-  RB.row_broadcast (fun x mx -> sub x mx) m n maxs a;
+  RB.row_broadcast (fun mx aij -> sub aij mx) m n maxs a;
 
   (* Step 3: tree-reduce exp(a[i, j] - max[i]) into sums[i].  We thread the
      shifted real matrix [ra1] through the reduction. *)
-  KB.reduce_batched_block #et fexp exp m n max_threads a sums ra1;
+  Kuiper.Kernel.RowReduce.row_reduce fexp exp m n nthm a sums ra1;
   with sums_v. assert (on gpu_loc (sums |-> sums_v));
+  Classical.forall_intro (row_sum_bridge #(SZ.v m) #(SZ.v n) ra1);
   assert pure (forall (r:nat). r < SZ.v m ==>
-    v_approximates (Seq.index sums_v r) (rsum (lseq_map exp (ematrix_row ra1 r))));
+    v_approximates (acc1 sums_v r) (rsum (lseq_map exp (ematrix_row ra1 r))));
 
-  (* Step 4: in-place fused exp(x) / sums[i] over every (already shifted) cell. *)
-  RB.row_broadcast (fun x s -> div (fexp x) s) m n sums a;
+  (* Step 4: in-place fused exp(x) / sums[i] over every (already shifted) cell.
+     [row_broadcast f] writes [f (broadcast i) (cell i j)], so the sum is the
+     FIRST lambda argument and we exponentiate the SECOND. *)
+  RB.row_broadcast (fun s aij -> div (fexp aij) s) m n sums a;
 
   (* Step 5: unshift the row sums back to the true (unshifted) scale:
      sums[i] := sums[i] * exp(maxs[i]).  Step 3 reduced the max-shifted matrix,
@@ -326,15 +376,15 @@ fn row_softmax_gpu_with_sum
   Map.map_gpu2 (fun (s:et) (mx:et) -> mul s (fexp mx)) m sums maxs;
   with sums_v2. assert (on gpu_loc (sums |-> sums_v2));
   assert pure (sums_v2
-    == Map.lseq_map2 (fun (s:et) (mx:et) -> mul s (fexp mx)) sums_v maxs_v);
+    == Map.chest1_map2 (fun (s:et) (mx:et) -> mul s (fexp mx)) sums_v maxs_v);
 
-  Array1.free maxs;
+  Kuiper.Tensor.free maxs;
 
   (* Glue: the divide broadcast over the shifted matrix [ra1] approximates
      [row_softmax_real ra1]; shift invariance equates that with the spec
      [row_softmax_real ra]. *)
   let sa1 : ematrix et (SZ.v m) (SZ.v n) =
-    RB.s_row_broadcast (fun (x:et) (mx:et) -> sub x mx) maxs_v sa;
+    RB.s_row_broadcast (fun (mx:et) (aij:et) -> sub aij mx) maxs_v sa;
   s_row_div_exp_approx_softmax sums_v sa1 ra1;
   row_softmax_shift_eq #(SZ.v m) #(SZ.v n) ra cs;
 

@@ -1,5 +1,4 @@
 module Kuiper.Kernel.FlashAttention.KernelDesc
-friend Kuiper.Array1
 
 (* ─────────────────────────────────────────────────────────────────────────
    kernel_desc setup / teardown for FlashAttention.
@@ -31,7 +30,6 @@ open Kuiper.Tensor.Layout.Alg { l1_forward, l2_row_major, c_l2_row_major }
 
 module SZ = Kuiper.SizeT
 module Trade = Pulse.Lib.Trade
-module Array1 = Kuiper.Array1
 module B = Kuiper.Barrier
 open Kuiper.Shape
 open Pulse.Lib.Trade { (@==>) }
@@ -70,8 +68,8 @@ fn miraise
 let mrow
   (#et : Type0) (#rows #cols : erased nat) (#l : layout2 rows cols)
   (a : array2 et l) (i : erased nat{i < rows})
-  : Array1.t et (mrow_layout a i)
-  = Array1.from_array (mrow_layout a i) (core (sliceof a 0 i))
+  : array1 et (mrow_layout a i)
+  = sliceof a 0 i
 
 ghost
 fn mextract_row
@@ -81,41 +79,44 @@ fn mextract_row
   requires
     a |-> Frac f s
   ensures
-    mrow a i |-> Frac f (ematrix_row s i) **
+    mrow a i |-> Frac f (tr_val (ematrix_row s i)) **
     (forall* (s' : lseq et cols).
-      mrow a i |-> Frac f s' @==>
+      mrow a i |-> Frac f (tr_val s') @==>
       a |-> Frac f (ematrix_upd_row s i s'))
 {
   tensor_extract_slice a 0 i #f #s;
 
   assert pure (Kuiper.Chest.equal
     (chest_slice 0 i s)
-    (Array1.tr_val (ematrix_row s i)));
+    (tr_val (ematrix_row s i)));
   rewrite sliceof a 0 i |-> Frac f (chest_slice 0 i s)
-       as mrow a i |-> Frac f (ematrix_row s i);
+       as mrow a i |-> Frac f (tr_val (ematrix_row s i));
 
   Pulse.Lib.Forall.intro_forall
     #_
     #(fun (s' : lseq et cols) ->
-      mrow a i |-> Frac f s'
+      mrow a i |-> Frac f (tr_val s')
       @==> a |-> Frac f (ematrix_upd_row s i s'))
     (forall* (s' : chest (modulo_i 0 (mdesc rows cols)) et).
       sliceof a 0 i |-> Frac f s'
       @==> a |-> Frac f (chest_update_slice 0 i s s'))
     fn s' {
       Pulse.Lib.Trade.intro_trade
-        (mrow a i |-> Frac f s')
+        (mrow a i |-> Frac f (tr_val s'))
         (a |-> Frac f (ematrix_upd_row s i s'))
         (forall* (s' : chest (modulo_i 0 (mdesc rows cols)) et).
               sliceof a 0 i |-> Frac f s'
               @==> a |-> Frac f (chest_update_slice 0 i s s'))
         fn _ {
-          assert pure (modulo_i 0 (mdesc rows cols) == Array1.desc cols);
-          let w : chest (modulo_i 0 (mdesc rows cols)) et = Array1.tr_val s';
+          assert pure (modulo_i 0 (mdesc rows cols) == cols @| INil);
+          let w : chest (modulo_i 0 (mdesc rows cols)) et = tr_val s';
           Pulse.Lib.Forall.elim_forall w;
-          rewrite Array1.pts_to (mrow a i) #f s'
+          rewrite mrow a i |-> Frac f (tr_val s')
                as sliceof a 0 i |-> Frac f w;
           Pulse.Lib.Trade.elim_trade _ _;
+          assert pure (Kuiper.Chest.equal
+            (chest_update_slice 0 i s w)
+            (ematrix_upd_row s i s'));
           rewrite each chest_update_slice 0 i s w
                as ematrix_upd_row s i s';
           ();
@@ -133,12 +134,14 @@ fn mextract_row_ro
     a |-> Frac f s
   ensures
     factored
-      (mrow a i |-> Frac f (ematrix_row s i))
+      (mrow a i |-> Frac f (tr_val (ematrix_row s i)))
       (a |-> Frac f s)
 {
   mextract_row a i;
   Pulse.Lib.Forall.elim_forall (ematrix_row s i);
-  assert pure (Kuiper.Chest.equal (ematrix_upd_row s i (ematrix_row s i)) s);
+  assert pure (Kuiper.Chest.equal
+    (ematrix_upd_row s i (ematrix_row s i))
+    s);
 }
 
 ghost
@@ -148,7 +151,7 @@ fn mrestore_row
   (#f : perm) (#s : ematrix et rows cols)
   requires
     factored
-      (mrow a i |-> Frac f (ematrix_row s i))
+      (mrow a i |-> Frac f (tr_val (ematrix_row s i)))
       (a |-> Frac f s)
   ensures
     a |-> Frac f s

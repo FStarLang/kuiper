@@ -18,20 +18,28 @@ open Kuiper.Shape
 open Pulse.Lib.Trade { (@==>) }
 open Kuiper.Math { even, odd }
 
+(* The lseq->chest bridge that the deleted 1-D wrapper's [pts_to] used to apply
+   implicitly: a plain [tensor]'s [|->] is chest-valued, whereas [ematrix_row]/
+   [ematrix_upd_row] speak [lseq].  Kept explicit at every [mrow ... |->] so the
+   row specs stay in their original [lseq] form.  (Use [Seq.index], not [@!],
+   since opening Tensor/Shape shadows [Kuiper.Seq.Common.( @! )].) *)
+let tr_val (#et : Type) (#len : nat) (s : lseq et len) : chest (len @| INil) et =
+  Kuiper.Chest.mk (len @| INil) (fun (i, ()) -> Seq.index s i)
+
 unfold
 let mdesc (rows cols : nat) : shape 2 = rows @| cols @| INil
 
 let mrow_layout
   (#et : Type0) (#rows #cols : erased nat) (#l : layout2 rows cols)
   (a : array2 et l) (i : erased nat{i < rows})
-  : Kuiper.Array1.layout cols
+  : layout1 cols
   = tlayout_slice l 0 i
 
 inline_for_extraction noextract
 val mrow
   (#et : Type0) (#rows #cols : erased nat) (#l : layout2 rows cols)
   (a : array2 et l) (i : erased nat{i < rows})
-  : Kuiper.Array1.t et (mrow_layout a i)
+  : array1 et (mrow_layout a i)
 
 ghost
 fn mextract_row
@@ -40,9 +48,9 @@ fn mextract_row
   (#f : perm) (#s : ematrix et rows cols)
   requires a |-> Frac f s
   ensures
-    mrow a i |-> Frac f (ematrix_row s i) **
+    mrow a i |-> Frac f (tr_val (ematrix_row s i)) **
     (forall* (s' : lseq et cols).
-      mrow a i |-> Frac f s' @==>
+      mrow a i |-> Frac f (tr_val s') @==>
       a |-> Frac f (ematrix_upd_row s i s'))
 
 ghost
@@ -53,7 +61,7 @@ fn mextract_row_ro
   requires a |-> Frac f s
   ensures
     factored
-      (mrow a i |-> Frac f (ematrix_row s i))
+      (mrow a i |-> Frac f (tr_val (ematrix_row s i)))
       (a |-> Frac f s)
 
 ghost
@@ -63,7 +71,7 @@ fn mrestore_row
   (#f : perm) (#s : ematrix et rows cols)
   requires
     factored
-      (mrow a i |-> Frac f (ematrix_row s i))
+      (mrow a i |-> Frac f (tr_val (ematrix_row s i)))
       (a |-> Frac f s)
   ensures a |-> Frac f s
 
@@ -380,18 +388,18 @@ let kpre_post_inner_fa
   (#et : Type0) {| scalar et, floating et |}
   (n d: szp)
   (bc br: szp { bc /? n /\ br /? n })
-  (lSt: Kuiper.Array1.layout bc)
+  (lSt: layout1 bc)
   (lK lV lQ: layout2 n d)
   (lOt: layout2 (n /^ br) d)
-  (llt lmt: Kuiper.Array1.layout (n /^ br))
+  (llt lmt: layout1 (n /^ br))
   {| ctlayout lSt, ctlayout lK, ctlayout lV, ctlayout lQ, ctlayout lOt, ctlayout llt, ctlayout lmt |}
-  (gSt: Kuiper.Array1.array1 et lSt)
+  (gSt: array1 et lSt)
   (gK: array2 et lK) 
   (gV: array2 et lV)
   (gQ: array2 et lQ)
   (gOt: array2 et lOt)
-  (glt: Kuiper.Array1.array1 et llt)
-  (gmt: Kuiper.Array1.array1 et lmt)
+  (glt: array1 et llt)
+  (gmt: array1 et lmt)
   (eK eV eQ: ematrix et n d)
   (#fK #fV #fQ: perm)
   : slprop =

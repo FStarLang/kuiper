@@ -12,21 +12,206 @@ open Kuiper.Tensor.Layout.Alg { l1_forward, l2_row_major, c_l2_row_major }
 
 module SZ = Kuiper.SizeT
 module Trade = Pulse.Lib.Trade
-module Array1 = Kuiper.Array1
+open Pulse.Lib.Trade { ( @==> ) }
 module B = Kuiper.Barrier
 open Kuiper.Math { even, odd, even_2x, odd_2x1 }
-open Kuiper.Array1
+open Kuiper.Bijection { ( =~ ) }
 open Kuiper.Shape
 
 open Kuiper.Kernel.FlashAttention.KernelDesc
+
+(* ── array1-over-tensor cell / ref shims ─────────────────────────────────────
+   The old thin 1-D wrapper module was a thin layer over [Kuiper.Tensor].
+   These helpers reproduce its 1-D single-cell extract/restore and cell/ref API
+   directly on [array1 = tensor], with chest-valued contents (matching the
+   tensor [|->] instance).  Ported from the old wrapper's
+   [{explode,implode,extract_cell,restore_cell,ref_of_array_cell,...}],
+   substituting [Seq.index -> acc1], [Seq.upd -> upd1],
+   [Cell a i -> Cell a (idx1 i)], [ait len -> natlt len].                       *)
+
+// [abs (len @| INil)] is definitionally [natlt len & unit]; expose this to the
+// SMT solver so 1-D cell indices unify with the explicit [(i, ())] tuples.
+let fa_abs_cons_nil_eq (len:nat)
+  : Lemma (abs (len @| INil) == (natlt len & unit))
+          [SMTPat (abs (len @| INil))]
+  = ()
+
+unfold
+let fa_abs_bij (#len : nat) : (abs (len @| INil) =~ natlt len) =
+  {
+    ff = (fun (i, ()) -> i);
+    gg = (fun i -> (i, ()));
+  }
+
+// [acc1]/[upd1] interaction (chest analogue of [Seq.lemma_index_upd]).
+let fa_acc1_upd1 (#et:Type) (#len:nat) (s:chest1 et len) (i:natlt len) (v:et) (j:natlt len)
+  : Lemma (acc1 (upd1 s i v) j == (if j = i then v else acc1 s j))
+          [SMTPat (acc1 (upd1 s i v) j)]
+  = ()
+
+// [up] on a 1-D concrete index is the corresponding abstract index.
+let fa_up_cidx1_eq (#d0:nat) (i:szlt d0)
+  : Lemma (up (cidx1 i) == idx1 (SZ.v i))
+          [SMTPat (up (cidx1 i))]
+  = ()
+
+// [tr_val] and [chest1_to_seq] are mutually inverse (rebuilding a chest from the
+// seq view of a chest yields the original chest).  The row-array trades produced
+// by [mextract_row] quantify over [lseq]; a caller holding a chest witness [v]
+// instantiates them at [chest1_to_seq v], and this lemma lets the resulting
+// [tr_val (chest1_to_seq v)] be recognised as [v].
+let fa_tr_val_chest1_to_seq (#et:Type) (#len:nat) (v:chest1 et len)
+  : Lemma (tr_val (chest1_to_seq v) == v)
+          [SMTPat (tr_val (chest1_to_seq v))]
+  = introduce forall (i : abs (len @| INil)).
+        acc (tr_val (chest1_to_seq v)) i == acc v i
+    with ( let (j, _) = i in () );
+    Kuiper.Chest.lemma_equal_intro (tr_val (chest1_to_seq v)) v;
+    Kuiper.Chest.ext (tr_val (chest1_to_seq v)) v
+
+ghost
+fn explode1
+  (#et : Type0) (#len : nat) (#l : layout1 len)
+  (a : array1 et l)
+  (#f : perm)
+  (#s : chest1 et len)
+  requires a |-> Frac f s
+  ensures
+    forall+ (i : natlt len).
+      Cell a (idx1 i) |-> Frac f (acc1 s i)
+{
+  tensor_explode a #f #s;
+  forevery_iso fa_abs_bij (fun (i : abs (len @| INil)) -> Cell a i |-> Frac f (acc s i));
+  forevery_ext _ (fun (i : natlt len) -> Cell a (idx1 i) |-> Frac f (acc1 s i));
+  ()
+}
+
+ghost
+fn implode1
+  (#et : Type0) (#len : nat) (#l : layout1 len)
+  (a : array1 et l)
+  (#f : perm)
+  (#s : chest1 et len)
+  requires
+    pure (SZ.fits (tlayout_ulen l))
+  requires
+    forall+ (i : natlt len).
+      Cell a (idx1 i) |-> Frac f (acc1 s i)
+  ensures
+    a |-> Frac f s
+{
+  forevery_ext _ (fun (i : natlt len) -> Cell a (fa_abs_bij.gg i) |-> Frac f (acc s (fa_abs_bij.gg i)));
+  forevery_iso_back fa_abs_bij (fun (i : abs (len @| INil)) -> Cell a i |-> Frac f (acc s i));
+  tensor_implode a #f #s;
+}
+
+ghost
+fn extract_cell1
+  (#et : Type0) (#len : nat) (#l : layout1 len)
+  (a : array1 et l)
+  (i : natlt len)
+  (#f : perm)
+  (#s : chest1 et len)
+  requires
+    a |-> Frac f s **
+    pure (SZ.fits (tlayout_ulen l))
+  ensures
+    Cell a (idx1 i) |-> Frac f (acc1 s i) **
+    (forall* (si': et).
+      Cell a (idx1 i) |-> Frac f si' @==> a |-> Frac f (upd1 s i si' <: chest1 et len))
+{
+  explode1 a #f #s;
+  forevery_extract' #(natlt len) i _;
+  ghost fn aux si'
+    requires forall* (p': natlt len -> slprop).
+      p' i ** pure (forall (j:natlt len{~(eq2 #(natlt len) j i)}). p' j == (Cell a (idx1 j) |-> Frac f (acc1 s j)))
+        @==> (forall+ (j:natlt len). p' j)
+    ensures
+      Cell a (idx1 i) |-> Frac f si' @==> a |-> Frac f (upd1 s i si' <: chest1 et len)
+    {
+      let p' = (fun (j: natlt len) -> (Cell a (idx1 j)) |-> Frac f (acc1 (upd1 s i si' <: chest1 et len) j));
+      assert rewrites_to p' (fun (j: natlt len) -> (Cell a (idx1 j)) |-> Frac f (acc1 (upd1 s i si' <: chest1 et len) j));
+      elim_forall p';
+
+      Trade.intro_trade
+        (Cell a (idx1 i) |-> Frac f si')
+        (a |-> Frac f (upd1 s i si' <: chest1 et len))
+        (p' i ** pure (forall (j:natlt len{~(eq2 #(natlt len) j i)}). p' j == (Cell a (idx1 j) |-> Frac f (acc1 s j)))
+          @==> (forall+ (j:natlt len). p' j))
+        fn _ {
+          rewrite (Cell a (idx1 i) |-> Frac f si') as (p' i);
+          Trade.elim_trade _ _;
+          implode1 a #f #(upd1 s i si' <: chest1 et len);
+        };
+    };
+  intro_forall _ aux;
+  ()
+}
+
+ghost
+fn restore_cell1
+  (#et : Type0) (#len : nat) (#l : layout1 len)
+  (a : array1 et l)
+  (i : natlt len)
+  (#f : perm)
+  (#si': et)
+  (#s : chest1 et len)
+  requires
+    Cell a (idx1 i) |-> Frac f si' **
+    (forall* (si': et).
+      Cell a (idx1 i) |-> Frac f si' @==> a |-> Frac f (upd1 s i si' <: chest1 et len))
+  ensures
+    a |-> Frac f (upd1 s i si' <: chest1 et len)
+{
+  elim_forall si';
+  Trade.elim_trade _ _;
+}
+
+let ref_of_array_cell
+  (#et : Type0) (#len : nat) (#l : layout1 len)
+  (a : array1 et l) (i : natlt len)
+  : GTot (ref et)
+  = ref_of_tensor_cell a (idx1 i)
+
+inline_for_extraction noextract
+fn get_ref_of_array_cell
+  (#et : Type0) (#len : erased nat) (#l : layout1 len) {| ctlayout l |}
+  (a : array1 et l) (i : szlt len)
+  returns r : ref et
+  ensures pure (r == ref_of_array_cell a i)
+{
+  get_ref_of_tensor_cell a (cidx1 i)
+}
+
+ghost
+fn array1_cell_to_ref
+  (#et : Type0) (#len : nat) (#l : layout1 len)
+  (a : array1 et l) (i : natlt len)
+  (#f : perm) (#v : erased et)
+  requires Cell a (idx1 i) |-> Frac f v
+  ensures ref_of_array_cell a i |-> Frac f v
+{
+  tensor_cell_to_ref a (idx1 i);
+}
+
+ghost
+fn array1_cell_from_ref
+  (#et : Type0) (#len : nat) (#l : layout1 len)
+  (a : array1 et l) (i : natlt len)
+  (#f : perm) (#v : erased et)
+  requires ref_of_array_cell a i |-> Frac f v
+  ensures Cell a (idx1 i) |-> Frac f v
+{
+  tensor_cell_from_ref a (idx1 i);
+}
 
 inline_for_extraction noextract
 fn flashattention_tile
   (#et : Type0) {| scalar et, floating et |}
   (bc br d: szp)
   (#lKj #lVj: layout2 bc d)
-  (#lSt: layout bc)
-  (#lQit #lOit: layout d)
+  (#lSt: layout1 bc)
+  (#lQit #lOit: layout1 d)
   {| ctlayout lSt, ctlayout lKj, ctlayout lVj, ctlayout lQit, ctlayout lOit |}
   (gKj: array2 et lKj) 
   (gVj: array2 et lVj)
@@ -35,7 +220,7 @@ fn flashattention_tile
   (gOit: array1 et lOit)
   (glit gmit: ref et)
   (#eKj #eVj: ematrix et bc d)
-  (#vQit #vOit: erased (lseq et d))
+  (#vQit #vOit: erased (chest1 et d))
   (#vlit #vmit: erased et)
   (#fKj #fVj #fQit: perm)
   requires 
@@ -63,7 +248,7 @@ fn flashattention_tile
     {
       assert pure (!x <^ d);
       let vx = !x; let vy = !y;
-      let vq: et = read gQit vx;
+      let vq: et = gQit.(cidx1 (vx <: szlt d));
       let vk: et = tensor_read gKj ((vy <: szlt bc), ((vx <: szlt d), ()));
       sum := !sum `add` (vq `mul` vk);
       x := !x +^ 1sz;
@@ -72,7 +257,7 @@ fn flashattention_tile
     // sum := !sum * alpha;
 
     let vy = !y;
-    gSt.(vy) <- !sum;
+    gSt.(cidx1 (vy <: szlt bc)) <- !sum;
     row_m := fmax !row_m !sum;
 
     y := !y +^ 1sz;
@@ -85,8 +270,8 @@ fn flashattention_tile
     decreases (bc - !y)
   {
     let vy = !y;
-    let vs: et = (fexp gSt.(vy)) `sub` !row_m;
-    gSt.(vy) <- vs;
+    let vs: et = (fexp gSt.(cidx1 (vy <: szlt bc))) `sub` !row_m;
+    gSt.(cidx1 (vy <: szlt bc)) <- vs;
     row_l := !row_l `add` vs;
 
     y := !y +^ 1sz;
@@ -107,7 +292,7 @@ fn flashattention_tile
       decreases (bc - !y)
     {
       let vx = !x; let vy = !y;
-      let vs: et = gSt.(vy);
+      let vs: et = gSt.(cidx1 (vy <: szlt bc));
       let vv: et = tensor_read gVj ((vy <: szlt bc), ((vx <: szlt d), ()));
       pv := !pv `add` (vs `mul` vv);
 
@@ -115,11 +300,11 @@ fn flashattention_tile
     };
 
     let vx = !x;
-    let vo: et = gOit.(vx);
+    let vo: et = gOit.(cidx1 (vx <: szlt d));
     let vo: et = (vo `mul` row_l_prev `mul` (fexp (row_m_prev `sub` row_m_new))) `div` row_l_new;
     let vo: et = vo `add` ((fexp (!row_m `sub` row_m_new)) `mul` !pv);
 
-    gOit.(vx) <- vo;
+    gOit.(cidx1 (vx <: szlt d)) <- vo;
 
     x := !x +^ 1sz;
   };
@@ -135,10 +320,10 @@ inline_for_extraction noextract
 fn flashattention_kf_no_smem (#et : Type0) {| scalar et, floating et |}
   (n d: szp)
   (bc br: szp { bc /? n /\ br /? n })
-  (lSt: layout bc)
+  (lSt: layout1 bc)
   (lK lV lQ: layout2 n d)
   (lOt: layout2 (n /^ br) d)
-  (llt lmt: layout (n /^ br))
+  (llt lmt: layout1 (n /^ br))
   {| ctlayout lSt, ctlayout lK, ctlayout lV, ctlayout lQ, ctlayout lOt, ctlayout llt, ctlayout lmt |}
   (gSt: array1 et lSt)
   (gK: array2 et lK) 
@@ -182,12 +367,12 @@ fn flashattention_kf_no_smem (#et : Type0) {| scalar et, floating et |}
       mextract_row gOt ii #1.0R #eOt; // gO has already been split into per-thread chunks
       let gOit = mrow gOt (SZ.v ii);
 
-      extract_cell glt ii #1.0R #vlt;
+      extract_cell1 glt ii #1.0R #vlt;
       array1_cell_to_ref glt ii;
       let glit = get_ref_of_array_cell glt ii;
       assert rewrites_to glit (ref_of_array_cell glt ii);
       
-      extract_cell gmt ii #1.0R #vmt;
+      extract_cell1 gmt ii #1.0R #vmt;
       array1_cell_to_ref gmt ii;
       let gmit = get_ref_of_array_cell gmt ii;
       assert rewrites_to gmit (ref_of_array_cell gmt ii);
@@ -199,13 +384,15 @@ fn flashattention_kf_no_smem (#et : Type0) {| scalar et, floating et |}
 
       array1_cell_from_ref glt ii;
       array1_cell_from_ref gmt ii;
-      restore_cell glt ii;
-      restore_cell gmt ii;
+      restore_cell1 glt ii;
+      restore_cell1 gmt ii;
 
       mrestore_row gQ (SZ.v qi);
-      with (eOit: lseq _ _). assert ((mrow gOt ((SZ.v ii) <: natlt n)) <: (array1 et (mrow_layout gOt (SZ.v ii)))) |-> (Frac 1.0R eOit);
-      elim_forall (eOit);
-      Trade.elim_trade (((mrow gOt ((SZ.v ii) <: natlt n)) <: (array1 et (mrow_layout gOt (SZ.v ii)))) |-> (Frac 1.0R eOit)) _;
+      with (eOit: chest1 _ _). assert ((mrow gOt ((SZ.v ii) <: natlt n)) <: (array1 et (mrow_layout gOt (SZ.v ii)))) |-> (Frac 1.0R eOit);
+      rewrite (((mrow gOt ((SZ.v ii) <: natlt n)) <: (array1 et (mrow_layout gOt (SZ.v ii)))) |-> (Frac 1.0R eOit))
+           as (((mrow gOt ((SZ.v ii) <: natlt n)) <: (array1 et (mrow_layout gOt (SZ.v ii)))) |-> (Frac 1.0R (tr_val (chest1_to_seq eOit))));
+      elim_forall (chest1_to_seq eOit);
+      Trade.elim_trade (((mrow gOt ((SZ.v ii) <: natlt n)) <: (array1 et (mrow_layout gOt (SZ.v ii)))) |-> (Frac 1.0R (tr_val (chest1_to_seq eOit)))) _;
 
       i := !i +^ 1sz; 
     };
@@ -294,30 +481,36 @@ fn flashattention_kf_outer (#et:Type0){| scalar et, floating et |}
        as (array2_stride_subtile gO (SZ.v nthr) 1 (SZ.v tid) 0 |-> ematrix_stride_subtile (update_stride_tile eO (SZ.v nthr) 1 (SZ.v tid) 0 vO') (SZ.v nthr) 1 (SZ.v tid) 0);
 
   // Rebuild gS's row -> contiguous sub-tile.
-  with (vS: lseq _ _). assert ((mrow (array2_subtile gS 1 (SZ.v nthr) (SZ.v tid) 0) 0 <: array1 et (mrow_layout (array2_subtile gS 1 (SZ.v nthr) (SZ.v tid) 0) 0)) |-> Frac 1.0R vS);
-  elim_forall (vS);
-  Trade.elim_trade ((mrow (array2_subtile gS 1 (SZ.v nthr) (SZ.v tid) 0) 0 <: array1 et (mrow_layout (array2_subtile gS 1 (SZ.v nthr) (SZ.v tid) 0) 0)) |-> Frac 1.0R vS) _;
-  rewrite (array2_subtile gS 1 (SZ.v nthr) (SZ.v tid) 0 |-> Frac 1.0R (ematrix_upd_row (ematrix_subtile eS 1 (SZ.v nthr) (SZ.v tid) 0) 0 vS))
-       as (array2_subtile gS 1 (SZ.v nthr) (SZ.v tid) 0 |-> ematrix_subtile (update_tile eS 1 (SZ.v nthr) (SZ.v tid) 0 (ematrix_upd_row (ematrix_subtile eS 1 (SZ.v nthr) (SZ.v tid) 0) 0 vS)) 1 (SZ.v nthr) (SZ.v tid) 0);
+  with (vS: chest1 _ _). assert ((mrow (array2_subtile gS 1 (SZ.v nthr) (SZ.v tid) 0) 0 <: array1 et (mrow_layout (array2_subtile gS 1 (SZ.v nthr) (SZ.v tid) 0) 0)) |-> Frac 1.0R vS);
+  rewrite ((mrow (array2_subtile gS 1 (SZ.v nthr) (SZ.v tid) 0) 0 <: array1 et (mrow_layout (array2_subtile gS 1 (SZ.v nthr) (SZ.v tid) 0) 0)) |-> Frac 1.0R vS)
+       as ((mrow (array2_subtile gS 1 (SZ.v nthr) (SZ.v tid) 0) 0 <: array1 et (mrow_layout (array2_subtile gS 1 (SZ.v nthr) (SZ.v tid) 0) 0)) |-> Frac 1.0R (tr_val (chest1_to_seq vS)));
+  elim_forall (chest1_to_seq vS);
+  Trade.elim_trade ((mrow (array2_subtile gS 1 (SZ.v nthr) (SZ.v tid) 0) 0 <: array1 et (mrow_layout (array2_subtile gS 1 (SZ.v nthr) (SZ.v tid) 0) 0)) |-> Frac 1.0R (tr_val (chest1_to_seq vS))) _;
+  rewrite (array2_subtile gS 1 (SZ.v nthr) (SZ.v tid) 0 |-> Frac 1.0R (ematrix_upd_row (ematrix_subtile eS 1 (SZ.v nthr) (SZ.v tid) 0) 0 (chest1_to_seq vS)))
+       as (array2_subtile gS 1 (SZ.v nthr) (SZ.v tid) 0 |-> ematrix_subtile (update_tile eS 1 (SZ.v nthr) (SZ.v tid) 0 (ematrix_upd_row (ematrix_subtile eS 1 (SZ.v nthr) (SZ.v tid) 0) 0 (chest1_to_seq vS))) 1 (SZ.v nthr) (SZ.v tid) 0);
 
   // Rebuild gl's row -> strided sub-view.  Two same-typed trades (gl, gm) are
   // live, so we eliminate via [elim_forall_imp] with explicit predicates.
-  with (vl: lseq _ _). assert ((mrow (array2_stride_subtile gl 1 (SZ.v nthr) 0 (SZ.v tid)) 0 <: array1 et (mrow_layout (array2_stride_subtile gl 1 (SZ.v nthr) 0 (SZ.v tid)) 0)) |-> Frac 1.0R vl);
+  with (vl: chest1 _ _). assert ((mrow (array2_stride_subtile gl 1 (SZ.v nthr) 0 (SZ.v tid)) 0 <: array1 et (mrow_layout (array2_stride_subtile gl 1 (SZ.v nthr) 0 (SZ.v tid)) 0)) |-> Frac 1.0R vl);
+  rewrite ((mrow (array2_stride_subtile gl 1 (SZ.v nthr) 0 (SZ.v tid)) 0 <: array1 et (mrow_layout (array2_stride_subtile gl 1 (SZ.v nthr) 0 (SZ.v tid)) 0)) |-> Frac 1.0R vl)
+       as ((mrow (array2_stride_subtile gl 1 (SZ.v nthr) 0 (SZ.v tid)) 0 <: array1 et (mrow_layout (array2_stride_subtile gl 1 (SZ.v nthr) 0 (SZ.v tid)) 0)) |-> Frac 1.0R (tr_val (chest1_to_seq vl)));
   Pulse.Lib.Forall.Util.elim_forall_imp
-    (fun (s':lseq et (SZ.v n / SZ.v nthr)) -> (mrow (array2_stride_subtile gl 1 (SZ.v nthr) 0 (SZ.v tid)) 0 <: array1 et (mrow_layout (array2_stride_subtile gl 1 (SZ.v nthr) 0 (SZ.v tid)) 0)) |-> Frac 1.0R s')
+    (fun (s':lseq et (SZ.v n / SZ.v nthr)) -> (mrow (array2_stride_subtile gl 1 (SZ.v nthr) 0 (SZ.v tid)) 0 <: array1 et (mrow_layout (array2_stride_subtile gl 1 (SZ.v nthr) 0 (SZ.v tid)) 0)) |-> Frac 1.0R (tr_val s'))
     (fun (s':lseq et (SZ.v n / SZ.v nthr)) -> array2_stride_subtile gl 1 (SZ.v nthr) 0 (SZ.v tid) |-> Frac 1.0R (ematrix_upd_row (ematrix_stride_subtile el 1 (SZ.v nthr) 0 (SZ.v tid)) 0 s'))
-    vl;
-  rewrite (array2_stride_subtile gl 1 (SZ.v nthr) 0 (SZ.v tid) |-> Frac 1.0R (ematrix_upd_row (ematrix_stride_subtile el 1 (SZ.v nthr) 0 (SZ.v tid)) 0 vl))
-       as (array2_stride_subtile gl 1 (SZ.v nthr) 0 (SZ.v tid) |-> ematrix_stride_subtile (update_stride_tile el 1 (SZ.v nthr) 0 (SZ.v tid) (ematrix_upd_row (ematrix_stride_subtile el 1 (SZ.v nthr) 0 (SZ.v tid)) 0 vl)) 1 (SZ.v nthr) 0 (SZ.v tid));
+    (chest1_to_seq vl);
+  rewrite (array2_stride_subtile gl 1 (SZ.v nthr) 0 (SZ.v tid) |-> Frac 1.0R (ematrix_upd_row (ematrix_stride_subtile el 1 (SZ.v nthr) 0 (SZ.v tid)) 0 (chest1_to_seq vl)))
+       as (array2_stride_subtile gl 1 (SZ.v nthr) 0 (SZ.v tid) |-> ematrix_stride_subtile (update_stride_tile el 1 (SZ.v nthr) 0 (SZ.v tid) (ematrix_upd_row (ematrix_stride_subtile el 1 (SZ.v nthr) 0 (SZ.v tid)) 0 (chest1_to_seq vl))) 1 (SZ.v nthr) 0 (SZ.v tid));
 
   // Rebuild gm's row -> strided sub-view.
-  with (vm: lseq _ _). assert ((mrow (array2_stride_subtile gm 1 (SZ.v nthr) 0 (SZ.v tid)) 0 <: array1 et (mrow_layout (array2_stride_subtile gm 1 (SZ.v nthr) 0 (SZ.v tid)) 0)) |-> Frac 1.0R vm);
+  with (vm: chest1 _ _). assert ((mrow (array2_stride_subtile gm 1 (SZ.v nthr) 0 (SZ.v tid)) 0 <: array1 et (mrow_layout (array2_stride_subtile gm 1 (SZ.v nthr) 0 (SZ.v tid)) 0)) |-> Frac 1.0R vm);
+  rewrite ((mrow (array2_stride_subtile gm 1 (SZ.v nthr) 0 (SZ.v tid)) 0 <: array1 et (mrow_layout (array2_stride_subtile gm 1 (SZ.v nthr) 0 (SZ.v tid)) 0)) |-> Frac 1.0R vm)
+       as ((mrow (array2_stride_subtile gm 1 (SZ.v nthr) 0 (SZ.v tid)) 0 <: array1 et (mrow_layout (array2_stride_subtile gm 1 (SZ.v nthr) 0 (SZ.v tid)) 0)) |-> Frac 1.0R (tr_val (chest1_to_seq vm)));
   Pulse.Lib.Forall.Util.elim_forall_imp
-    (fun (s':lseq et (SZ.v n / SZ.v nthr)) -> (mrow (array2_stride_subtile gm 1 (SZ.v nthr) 0 (SZ.v tid)) 0 <: array1 et (mrow_layout (array2_stride_subtile gm 1 (SZ.v nthr) 0 (SZ.v tid)) 0)) |-> Frac 1.0R s')
+    (fun (s':lseq et (SZ.v n / SZ.v nthr)) -> (mrow (array2_stride_subtile gm 1 (SZ.v nthr) 0 (SZ.v tid)) 0 <: array1 et (mrow_layout (array2_stride_subtile gm 1 (SZ.v nthr) 0 (SZ.v tid)) 0)) |-> Frac 1.0R (tr_val s'))
     (fun (s':lseq et (SZ.v n / SZ.v nthr)) -> array2_stride_subtile gm 1 (SZ.v nthr) 0 (SZ.v tid) |-> Frac 1.0R (ematrix_upd_row (ematrix_stride_subtile em 1 (SZ.v nthr) 0 (SZ.v tid)) 0 s'))
-    vm;
-  rewrite (array2_stride_subtile gm 1 (SZ.v nthr) 0 (SZ.v tid) |-> Frac 1.0R (ematrix_upd_row (ematrix_stride_subtile em 1 (SZ.v nthr) 0 (SZ.v tid)) 0 vm))
-       as (array2_stride_subtile gm 1 (SZ.v nthr) 0 (SZ.v tid) |-> ematrix_stride_subtile (update_stride_tile em 1 (SZ.v nthr) 0 (SZ.v tid) (ematrix_upd_row (ematrix_stride_subtile em 1 (SZ.v nthr) 0 (SZ.v tid)) 0 vm)) 1 (SZ.v nthr) 0 (SZ.v tid));
+    (chest1_to_seq vm);
+  rewrite (array2_stride_subtile gm 1 (SZ.v nthr) 0 (SZ.v tid) |-> Frac 1.0R (ematrix_upd_row (ematrix_stride_subtile em 1 (SZ.v nthr) 0 (SZ.v tid)) 0 (chest1_to_seq vm)))
+       as (array2_stride_subtile gm 1 (SZ.v nthr) 0 (SZ.v tid) |-> ematrix_stride_subtile (update_stride_tile em 1 (SZ.v nthr) 0 (SZ.v tid) (ematrix_upd_row (ematrix_stride_subtile em 1 (SZ.v nthr) 0 (SZ.v tid)) 0 (chest1_to_seq vm))) 1 (SZ.v nthr) 0 (SZ.v tid));
 
   fold (kpre_post_outer_fa n d nthr gS gK gV gQ gO gl gm eK eV eQ fK fV fQ (SZ.v tid));
 }
@@ -474,8 +667,8 @@ inline_for_extraction noextract
 fn flashattention_inner_smem
   (#et:Type0){| scalar et, floating et |}
   (n d nthr:szp{nthr/?n})
-  (#lKV:full_layout2 nthr d)(#lQ:layout2 n d)(#lSt:layout nthr)(#lQrow:layout d)
-  (#lOt:layout2 (n /^ nthr) d)(#llt #lmt:layout (n /^ nthr))
+  (#lKV:full_layout2 nthr d)(#lQ:layout2 n d)(#lSt:layout1 nthr)(#lQrow:layout1 d)
+  (#lOt:layout2 (n /^ nthr) d)(#llt #lmt:layout1 (n /^ nthr))
   {| ctlayout lKV, ctlayout lQ, ctlayout lSt, ctlayout lQrow, ctlayout lOt, ctlayout llt, ctlayout lmt |}
   (sK sV:array2 et lKV)(gSt:array1 et lSt)(sQrow:array1 et lQrow)
   (gQ:array2 et lQ{Kuiper.Tensor.is_global gQ})(gOt:array2 et lOt)(glt:array1 et llt)(gmt:array1 et lmt)
@@ -516,20 +709,20 @@ fn flashattention_inner_smem
     {
       let vcq = !cq;
       let vq = tensor_read gQ ((qi <: szlt n), ((vcq <: szlt d), ()));
-      (sQrow.(vcq) <- vq);
+      (sQrow.(cidx1 (vcq <: szlt d)) <- vq);
       cq := !cq +^ 1sz;
     };
 
     mextract_row gOt ii #1.0R #eOt;
 
     with vlt. assert glt |-> vlt;
-    extract_cell glt ii #1.0R #vlt;
+    extract_cell1 glt ii #1.0R #vlt;
     array1_cell_to_ref glt ii;
     let glit = get_ref_of_array_cell glt ii;
     assert rewrites_to glit (ref_of_array_cell glt ii);
 
     with vmt. assert gmt |-> vmt;
-    extract_cell gmt ii #1.0R #vmt;
+    extract_cell1 gmt ii #1.0R #vmt;
     array1_cell_to_ref gmt ii;
     let gmit = get_ref_of_array_cell gmt ii;
     assert rewrites_to gmit (ref_of_array_cell gmt ii);
@@ -544,12 +737,14 @@ fn flashattention_inner_smem
 
     array1_cell_from_ref glt ii;
     array1_cell_from_ref gmt ii;
-    restore_cell glt ii;
-    restore_cell gmt ii;
+    restore_cell1 glt ii;
+    restore_cell1 gmt ii;
 
-    with (eOit: lseq _ _). assert ((mrow gOt ((SZ.v ii) <: natlt (SZ.v n / SZ.v nthr))) <: (array1 et (mrow_layout gOt (SZ.v ii)))) |-> (Frac 1.0R eOit);
-    elim_forall (eOit);
-    Trade.elim_trade (((mrow gOt ((SZ.v ii) <: natlt (SZ.v n / SZ.v nthr))) <: (array1 et (mrow_layout gOt (SZ.v ii)))) |-> (Frac 1.0R eOit)) _;
+    with (eOit: chest1 _ _). assert ((mrow gOt ((SZ.v ii) <: natlt (SZ.v n / SZ.v nthr))) <: (array1 et (mrow_layout gOt (SZ.v ii)))) |-> (Frac 1.0R eOit);
+    rewrite (((mrow gOt ((SZ.v ii) <: natlt (SZ.v n / SZ.v nthr))) <: (array1 et (mrow_layout gOt (SZ.v ii)))) |-> (Frac 1.0R eOit))
+         as (((mrow gOt ((SZ.v ii) <: natlt (SZ.v n / SZ.v nthr))) <: (array1 et (mrow_layout gOt (SZ.v ii)))) |-> (Frac 1.0R (tr_val (chest1_to_seq eOit))));
+    elim_forall (chest1_to_seq eOit);
+    Trade.elim_trade (((mrow gOt ((SZ.v ii) <: natlt (SZ.v n / SZ.v nthr))) <: (array1 et (mrow_layout gOt (SZ.v ii)))) |-> (Frac 1.0R (tr_val (chest1_to_seq eOit)))) _;
 
     i := !i +^ 1sz;
   }
@@ -722,9 +917,11 @@ fn flashattention_kf_smem
   };
 
   // ── Restore the private Q row back into its subtile. ───────────────────
-  with (vQf: lseq _ _). assert (sQrow |-> Frac 1.0R vQf);
-  elim_forall (vQf);
-  Trade.elim_trade (sQrow |-> Frac 1.0R vQf) _;
+  with (vQf: chest1 _ _). assert (sQrow |-> Frac 1.0R vQf);
+  rewrite (sQrow |-> Frac 1.0R vQf)
+       as (sQrow |-> Frac 1.0R (tr_val (chest1_to_seq vQf)));
+  elim_forall (chest1_to_seq vQf);
+  Trade.elim_trade (sQrow |-> Frac 1.0R (tr_val (chest1_to_seq vQf))) _;
 
   // Revert the per-thread sub-view locals to their unfolded forms so the
   // epilogue rebuilds (copied from flashattention_kf_outer) match the trades.
@@ -739,27 +936,33 @@ fn flashattention_kf_smem
   rewrite (array2_stride_subtile gO (SZ.v nthr) 1 (SZ.v tid) 0 |-> (vO' <: ematrix et (SZ.v n / SZ.v nthr) (SZ.v d / 1)))
        as (array2_stride_subtile gO (SZ.v nthr) 1 (SZ.v tid) 0 |-> ematrix_stride_subtile (update_stride_tile eO (SZ.v nthr) 1 (SZ.v tid) 0 vO') (SZ.v nthr) 1 (SZ.v tid) 0);
 
-  with (vS: lseq _ _). assert ((mrow (array2_subtile gS 1 (SZ.v nthr) (SZ.v tid) 0) 0 <: array1 et (mrow_layout (array2_subtile gS 1 (SZ.v nthr) (SZ.v tid) 0) 0)) |-> Frac 1.0R vS);
-  elim_forall (vS);
-  Trade.elim_trade ((mrow (array2_subtile gS 1 (SZ.v nthr) (SZ.v tid) 0) 0 <: array1 et (mrow_layout (array2_subtile gS 1 (SZ.v nthr) (SZ.v tid) 0) 0)) |-> Frac 1.0R vS) _;
-  rewrite (array2_subtile gS 1 (SZ.v nthr) (SZ.v tid) 0 |-> Frac 1.0R (ematrix_upd_row (ematrix_subtile eS 1 (SZ.v nthr) (SZ.v tid) 0) 0 vS))
-       as (array2_subtile gS 1 (SZ.v nthr) (SZ.v tid) 0 |-> ematrix_subtile (update_tile eS 1 (SZ.v nthr) (SZ.v tid) 0 (ematrix_upd_row (ematrix_subtile eS 1 (SZ.v nthr) (SZ.v tid) 0) 0 vS)) 1 (SZ.v nthr) (SZ.v tid) 0);
+  with (vS: chest1 _ _). assert ((mrow (array2_subtile gS 1 (SZ.v nthr) (SZ.v tid) 0) 0 <: array1 et (mrow_layout (array2_subtile gS 1 (SZ.v nthr) (SZ.v tid) 0) 0)) |-> Frac 1.0R vS);
+  rewrite ((mrow (array2_subtile gS 1 (SZ.v nthr) (SZ.v tid) 0) 0 <: array1 et (mrow_layout (array2_subtile gS 1 (SZ.v nthr) (SZ.v tid) 0) 0)) |-> Frac 1.0R vS)
+       as ((mrow (array2_subtile gS 1 (SZ.v nthr) (SZ.v tid) 0) 0 <: array1 et (mrow_layout (array2_subtile gS 1 (SZ.v nthr) (SZ.v tid) 0) 0)) |-> Frac 1.0R (tr_val (chest1_to_seq vS)));
+  elim_forall (chest1_to_seq vS);
+  Trade.elim_trade ((mrow (array2_subtile gS 1 (SZ.v nthr) (SZ.v tid) 0) 0 <: array1 et (mrow_layout (array2_subtile gS 1 (SZ.v nthr) (SZ.v tid) 0) 0)) |-> Frac 1.0R (tr_val (chest1_to_seq vS))) _;
+  rewrite (array2_subtile gS 1 (SZ.v nthr) (SZ.v tid) 0 |-> Frac 1.0R (ematrix_upd_row (ematrix_subtile eS 1 (SZ.v nthr) (SZ.v tid) 0) 0 (chest1_to_seq vS)))
+       as (array2_subtile gS 1 (SZ.v nthr) (SZ.v tid) 0 |-> ematrix_subtile (update_tile eS 1 (SZ.v nthr) (SZ.v tid) 0 (ematrix_upd_row (ematrix_subtile eS 1 (SZ.v nthr) (SZ.v tid) 0) 0 (chest1_to_seq vS))) 1 (SZ.v nthr) (SZ.v tid) 0);
 
-  with (vl: lseq _ _). assert ((mrow (array2_stride_subtile gl 1 (SZ.v nthr) 0 (SZ.v tid)) 0 <: array1 et (mrow_layout (array2_stride_subtile gl 1 (SZ.v nthr) 0 (SZ.v tid)) 0)) |-> Frac 1.0R vl);
+  with (vl: chest1 _ _). assert ((mrow (array2_stride_subtile gl 1 (SZ.v nthr) 0 (SZ.v tid)) 0 <: array1 et (mrow_layout (array2_stride_subtile gl 1 (SZ.v nthr) 0 (SZ.v tid)) 0)) |-> Frac 1.0R vl);
+  rewrite ((mrow (array2_stride_subtile gl 1 (SZ.v nthr) 0 (SZ.v tid)) 0 <: array1 et (mrow_layout (array2_stride_subtile gl 1 (SZ.v nthr) 0 (SZ.v tid)) 0)) |-> Frac 1.0R vl)
+       as ((mrow (array2_stride_subtile gl 1 (SZ.v nthr) 0 (SZ.v tid)) 0 <: array1 et (mrow_layout (array2_stride_subtile gl 1 (SZ.v nthr) 0 (SZ.v tid)) 0)) |-> Frac 1.0R (tr_val (chest1_to_seq vl)));
   Pulse.Lib.Forall.Util.elim_forall_imp
-    (fun (s':lseq et (SZ.v n / SZ.v nthr)) -> (mrow (array2_stride_subtile gl 1 (SZ.v nthr) 0 (SZ.v tid)) 0 <: array1 et (mrow_layout (array2_stride_subtile gl 1 (SZ.v nthr) 0 (SZ.v tid)) 0)) |-> Frac 1.0R s')
+    (fun (s':lseq et (SZ.v n / SZ.v nthr)) -> (mrow (array2_stride_subtile gl 1 (SZ.v nthr) 0 (SZ.v tid)) 0 <: array1 et (mrow_layout (array2_stride_subtile gl 1 (SZ.v nthr) 0 (SZ.v tid)) 0)) |-> Frac 1.0R (tr_val s'))
     (fun (s':lseq et (SZ.v n / SZ.v nthr)) -> array2_stride_subtile gl 1 (SZ.v nthr) 0 (SZ.v tid) |-> Frac 1.0R (ematrix_upd_row (ematrix_stride_subtile el 1 (SZ.v nthr) 0 (SZ.v tid)) 0 s'))
-    vl;
-  rewrite (array2_stride_subtile gl 1 (SZ.v nthr) 0 (SZ.v tid) |-> Frac 1.0R (ematrix_upd_row (ematrix_stride_subtile el 1 (SZ.v nthr) 0 (SZ.v tid)) 0 vl))
-       as (array2_stride_subtile gl 1 (SZ.v nthr) 0 (SZ.v tid) |-> ematrix_stride_subtile (update_stride_tile el 1 (SZ.v nthr) 0 (SZ.v tid) (ematrix_upd_row (ematrix_stride_subtile el 1 (SZ.v nthr) 0 (SZ.v tid)) 0 vl)) 1 (SZ.v nthr) 0 (SZ.v tid));
+    (chest1_to_seq vl);
+  rewrite (array2_stride_subtile gl 1 (SZ.v nthr) 0 (SZ.v tid) |-> Frac 1.0R (ematrix_upd_row (ematrix_stride_subtile el 1 (SZ.v nthr) 0 (SZ.v tid)) 0 (chest1_to_seq vl)))
+       as (array2_stride_subtile gl 1 (SZ.v nthr) 0 (SZ.v tid) |-> ematrix_stride_subtile (update_stride_tile el 1 (SZ.v nthr) 0 (SZ.v tid) (ematrix_upd_row (ematrix_stride_subtile el 1 (SZ.v nthr) 0 (SZ.v tid)) 0 (chest1_to_seq vl))) 1 (SZ.v nthr) 0 (SZ.v tid));
 
-  with (vm: lseq _ _). assert ((mrow (array2_stride_subtile gm 1 (SZ.v nthr) 0 (SZ.v tid)) 0 <: array1 et (mrow_layout (array2_stride_subtile gm 1 (SZ.v nthr) 0 (SZ.v tid)) 0)) |-> Frac 1.0R vm);
+  with (vm: chest1 _ _). assert ((mrow (array2_stride_subtile gm 1 (SZ.v nthr) 0 (SZ.v tid)) 0 <: array1 et (mrow_layout (array2_stride_subtile gm 1 (SZ.v nthr) 0 (SZ.v tid)) 0)) |-> Frac 1.0R vm);
+  rewrite ((mrow (array2_stride_subtile gm 1 (SZ.v nthr) 0 (SZ.v tid)) 0 <: array1 et (mrow_layout (array2_stride_subtile gm 1 (SZ.v nthr) 0 (SZ.v tid)) 0)) |-> Frac 1.0R vm)
+       as ((mrow (array2_stride_subtile gm 1 (SZ.v nthr) 0 (SZ.v tid)) 0 <: array1 et (mrow_layout (array2_stride_subtile gm 1 (SZ.v nthr) 0 (SZ.v tid)) 0)) |-> Frac 1.0R (tr_val (chest1_to_seq vm)));
   Pulse.Lib.Forall.Util.elim_forall_imp
-    (fun (s':lseq et (SZ.v n / SZ.v nthr)) -> (mrow (array2_stride_subtile gm 1 (SZ.v nthr) 0 (SZ.v tid)) 0 <: array1 et (mrow_layout (array2_stride_subtile gm 1 (SZ.v nthr) 0 (SZ.v tid)) 0)) |-> Frac 1.0R s')
+    (fun (s':lseq et (SZ.v n / SZ.v nthr)) -> (mrow (array2_stride_subtile gm 1 (SZ.v nthr) 0 (SZ.v tid)) 0 <: array1 et (mrow_layout (array2_stride_subtile gm 1 (SZ.v nthr) 0 (SZ.v tid)) 0)) |-> Frac 1.0R (tr_val s'))
     (fun (s':lseq et (SZ.v n / SZ.v nthr)) -> array2_stride_subtile gm 1 (SZ.v nthr) 0 (SZ.v tid) |-> Frac 1.0R (ematrix_upd_row (ematrix_stride_subtile em 1 (SZ.v nthr) 0 (SZ.v tid)) 0 s'))
-    vm;
-  rewrite (array2_stride_subtile gm 1 (SZ.v nthr) 0 (SZ.v tid) |-> Frac 1.0R (ematrix_upd_row (ematrix_stride_subtile em 1 (SZ.v nthr) 0 (SZ.v tid)) 0 vm))
-       as (array2_stride_subtile gm 1 (SZ.v nthr) 0 (SZ.v tid) |-> ematrix_stride_subtile (update_stride_tile em 1 (SZ.v nthr) 0 (SZ.v tid) (ematrix_upd_row (ematrix_stride_subtile em 1 (SZ.v nthr) 0 (SZ.v tid)) 0 vm)) 1 (SZ.v nthr) 0 (SZ.v tid));
+    (chest1_to_seq vm);
+  rewrite (array2_stride_subtile gm 1 (SZ.v nthr) 0 (SZ.v tid) |-> Frac 1.0R (ematrix_upd_row (ematrix_stride_subtile em 1 (SZ.v nthr) 0 (SZ.v tid)) 0 (chest1_to_seq vm)))
+       as (array2_stride_subtile gm 1 (SZ.v nthr) 0 (SZ.v tid) |-> ematrix_stride_subtile (update_stride_tile em 1 (SZ.v nthr) 0 (SZ.v tid) (ematrix_upd_row (ematrix_stride_subtile em 1 (SZ.v nthr) 0 (SZ.v tid)) 0 (chest1_to_seq vm))) 1 (SZ.v nthr) 0 (SZ.v tid));
 
   // Revert the shared-cache locals to their [_of_sh] forms so the folds (which
   // normalise the let-bound locals) match the function's pre/postcondition.

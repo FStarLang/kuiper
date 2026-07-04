@@ -11,7 +11,12 @@ module Kuiper.Kernel.RowSoftmax
 
 #lang-pulse
 open Kuiper
+open Kuiper.EMatrix
 open Kuiper.Tensor
+open Kuiper.Real { exp }
+open Kuiper.Seq.Common
+open Kuiper.Tensor.Layout.Alg { l1_forward }
+module SZ = Kuiper.SizeT
 module SM = Kuiper.Spec.Softmax
 
 (* All-real specification: each row independently softmax'd. *)
@@ -49,8 +54,8 @@ fn row_softmax_gpu_with_sum
   (#et : Type0) {| floating et, real_like et, floating_real_like et |}
   (m : szp { m <= max_blocks })
   (n : szp { m * n <= max_blocks * max_threads })
-  (#l : Array2.layout m n) {| ctlayout l |}
-  (a : Array2.t et l { Array2.is_global a })
+  (#l : layout2 m n) {| ctlayout l |}
+  (a : array2 et l { is_global a })
   (#sa : ematrix et m n)
   (ra : ematrix real m n)
   preserves
@@ -59,10 +64,11 @@ fn row_softmax_gpu_with_sum
     on gpu_loc (a |-> sa) **
     pure (sa %~ ra)
   returns 
-    sums: (sums: A1.t et (l1_forward m) { A1.is_global sums })
+    sums: (sums: array1 et (l1_forward m) { is_global sums })
   ensures
-    exists* (sa' : ematrix et m n) (esums : lseq et m).
+    exists* (sa' : ematrix et m n) (esums : chest1 et m).
       on gpu_loc (a |-> sa') ** 
       on gpu_loc (sums |-> esums) **
       pure (sa' %~ row_softmax_real ra) **
-      pure (esums %~ Seq.init_ghost m (fun i -> rsum (lseq_map exp (ematrix_row ra i))))
+      pure (forall (i:nat). i < SZ.v m ==>
+              acc1 esums i %~ rsum (lseq_map exp (ematrix_row ra i)))
