@@ -319,6 +319,10 @@ let rec raw_fits #n (d : shape n) (idx : raw d) : prop =
     let i, is = idx <: sz & raw ts in
     i < t /\ raw_fits ts is
 
+inline_for_extraction noextract
+let fold_outer (#n: nat {n > 1}) (i : shape n) : shape (n-1) = 
+  let ICons h1 (ICons h2 ts) = i in
+  (h1 * h2) @| ts
 (* Mapping abstract/concrete indices into flat naturals, and back. *)
 
 [@@strict_on_arguments [1]]
