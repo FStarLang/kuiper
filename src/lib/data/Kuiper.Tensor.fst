@@ -1108,11 +1108,10 @@ fn tensor_cell_to_ref
   ensures
     ref_of_tensor_cell a i |-> Frac f v
 {
-  admit();
-  // pts_to_cell_eq a i f v;
-  // rewrite Cell a i |-> Frac f v
-  //      as B.pts_to_cell (core a) #f (l.imap.f (adapt_idx_back i)) v;
-  // Array.Core.array_cell_to_ref (core a) (l.imap.f (adapt_idx_back i));
+  tensor_pts_to_cell_eq a i f v;
+  rewrite Cell a i |-> Frac f v
+       as pts_to_cell (core a) #f (l.imap.f i) v;
+  Array.Core.array_cell_to_ref (core a) (l.imap.f i);
 }
 
 ghost
@@ -1128,9 +1127,8 @@ fn tensor_cell_from_ref
   ensures
     Cell a i |-> Frac f v
 {
-  admit();
-  // pts_to_cell_eq a i f v;
-  // Array.Core.array_cell_from_ref (core a) (l.imap.f (adapt_idx_back i));
-  // rewrite B.pts_to_cell (core a) #f (l.imap.f (adapt_idx_back i)) v
-  //      as Cell a i |-> Frac f v;
+  tensor_pts_to_cell_eq a i f v;
+  Array.Core.array_cell_from_ref (core a) (l.imap.f i);
+  rewrite pts_to_cell (core a) #f (l.imap.f i) v
+       as Cell a i |-> Frac f v;
 }
