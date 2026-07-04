@@ -28,7 +28,6 @@ module Vec = Pulse.Lib.Vec
 module SZ = Kuiper.SizeT
 open Kuiper.Real { log }
 open Kuiper.Seq.Common
-module KS = Kuiper.Spec.Softmax
 open Kuiper.Tensor
 open Kuiper.Tensor.Layout.Alg { l1_forward }
 

@@ -815,7 +815,7 @@ let ctlayout_bij_cimap
   (fconc_correct: (x: conc d2) -> up (fconc x) == f.gg (up x))
   (l : tlayout d1) {| c: ctlayout l |}
   (idx: conc d2)
-  : Tot (x : szlt l.ulen{SZ.v x == l.imap.f ((f.gg) (up idx))})  = 
+  : Tot (x : szlt l.ulen{SZ.v x == l.imap.f ((f.gg) (up idx))})  =
   fconc_correct idx;
   c.cimap (fconc idx)
 
@@ -867,22 +867,22 @@ let fold_bij (#r: nat {r > 1}) (#d: shape r): (abs d =~ abs (fold_outer d)) = {
 }
 
 inline_for_extraction noextract
-let unfold_index_conc 
-  (#r: erased nat {r > 1}) 
+let unfold_index_conc
+  (#r: erased nat {r > 1})
   (#d: shape r { all_fit d }) {| cs: concrete_sz (desc_top2 d)._2 |}
-  (i : conc (fold_outer d)): Tot (conc d) = 
+  (i : conc (fold_outer d)): Tot (conc d) =
   let i : szlt (head d * head (tail d)) & conc (tail (tail d)) = i in
-  let (ih, it) = i in 
+  let (ih, it) = i in
   let ih1: szlt (head d) = ih /^ (concr' cs) in
   let ih2: szlt (head (tail d)) = ih %^ (concr' cs) in
   (ih1, (ih2, it))
 
-let all_fit_fold_outer (#r: nat {r > 1}) (#d: shape r { all_fit d }) (#top2_fits: SZ.fits ((desc_top2 d)._1 * (desc_top2 d)._2)): 
+let all_fit_fold_outer (#r: nat {r > 1}) (#d: shape r { all_fit d }) (#top2_fits: SZ.fits ((desc_top2 d)._1 * (desc_top2 d)._2)):
   Lemma (all_fit (fold_outer d)) = ()
 
 inline_for_extraction noextract
 instance ctlayout_fold_outer
-  (#r : nat {r > 1}) (#d : shape r { all_fit d }) 
+  (#r : nat {r > 1}) (#d : shape r { all_fit d })
   (#top2_fits: SZ.fits ((desc_top2 d)._1 * (desc_top2 d)._2))
   (l : tlayout d) {| c: ctlayout l, cs: concrete_sz (desc_top2 d)._2 |}
   : ctlayout #_ #(fold_outer d) (tlayout_fold_outer l) =
@@ -896,7 +896,7 @@ ghost
 fn tensor_fold_outer
   (#et : Type0)
   (#r: nat {r > 1}) (#d: shape r)
-  (#l: tlayout d) 
+  (#l: tlayout d)
   (a : tensor et l)
   (#f : perm) (#m : Chest.t d et)
   requires
@@ -937,7 +937,7 @@ ghost
 fn tensor_unfold_outer
   (#et : Type0)
   (#r: nat {r > 1}) (#d: shape r)
-  (#l: tlayout d) 
+  (#l: tlayout d)
   (a : tensor et (tlayout_fold_outer l))
   (#f: perm) (#m : Chest.t (fold_outer d) et)
   requires

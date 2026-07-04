@@ -8,7 +8,6 @@ open Kuiper
 open Kuiper.Seq.Common
 open Kuiper.Tensor
 open Kuiper.Tensor.Layout.Alg { l1_forward }
-module SZ = Kuiper.SizeT
 
 inline_for_extraction noextract
 fn map_gpu

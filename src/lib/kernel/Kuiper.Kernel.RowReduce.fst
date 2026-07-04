@@ -14,7 +14,6 @@ open Kuiper.Bijection { ( =~ ), bij_sym }
 module SZ = Kuiper.SizeT
 module RPM = Kuiper.Barrier.RPM
 module B = Kuiper.Barrier
-module C = Kuiper.Matrix.Casts
 
 (* ── Chest <-> seq bridges (ported from Kuiper.Kernel.HReduce) ───────────── *)
 

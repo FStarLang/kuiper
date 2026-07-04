@@ -213,7 +213,7 @@ fn flashattention_tile
   (#lSt: layout1 bc)
   (#lQit #lOit: layout1 d)
   {| ctlayout lSt, ctlayout lKj, ctlayout lVj, ctlayout lQit, ctlayout lOit |}
-  (gKj: array2 et lKj) 
+  (gKj: array2 et lKj)
   (gVj: array2 et lVj)
   (gSt: array1 et lSt)
   (gQit: array1 et lQit)
@@ -223,20 +223,20 @@ fn flashattention_tile
   (#vQit #vOit: erased (chest1 et d))
   (#vlit #vmit: erased et)
   (#fKj #fVj #fQit: perm)
-  requires 
+  requires
     gOit |-> vOit ** glit |-> vlit ** gmit |-> vmit
-  preserves 
+  preserves
     (gKj |-> Frac fKj eKj) ** (gVj |-> Frac fVj eVj) ** (gQit |-> Frac fQit vQit) **
     live gSt
-  ensures 
+  ensures
     live gOit ** live glit ** live gmit // No functional spec
 {
   let row_m_prev = !gmit;
   let row_l_prev = !glit;
   let mut row_m: et = neg infinity;
   let mut y: szle bc = 0sz;
-  
-  while (!y <^ bc) 
+
+  while (!y <^ bc)
     invariant live y ** live row_m ** live gSt
     decreases (bc - !y)
   {
@@ -281,9 +281,9 @@ fn flashattention_tile
   let row_l_new = row_l_prev `mul` (fexp (row_m_prev `sub` row_m_new)) `add` (!row_l `mul` (fexp (!row_m `sub` row_m_new)));
 
   let mut x: sz = 0sz;
-  while (!x <^ d) 
+  while (!x <^ d)
     invariant live x ** live gOit
-    decreases (d - !x) 
+    decreases (d - !x)
   {
     let mut pv: et = zero;
     y := 0sz;
@@ -316,7 +316,7 @@ fn flashattention_tile
 }
 
 // flash attention kernel executed by each thread (no shared memory caching)
-inline_for_extraction noextract 
+inline_for_extraction noextract
 fn flashattention_kf_no_smem (#et : Type0) {| scalar et, floating et |}
   (n d: szp)
   (bc br: szp { bc /? n /\ br /? n })
@@ -326,7 +326,7 @@ fn flashattention_kf_no_smem (#et : Type0) {| scalar et, floating et |}
   (llt lmt: layout1 (n /^ br))
   {| ctlayout lSt, ctlayout lK, ctlayout lV, ctlayout lQ, ctlayout lOt, ctlayout llt, ctlayout lmt |}
   (gSt: array1 et lSt)
-  (gK: array2 et lK) 
+  (gK: array2 et lK)
   (gV: array2 et lV)
   (gQ: array2 et lQ)
   (gOt: array2 et lOt)
@@ -335,15 +335,15 @@ fn flashattention_kf_no_smem (#et : Type0) {| scalar et, floating et |}
   (eK eV eQ: ematrix et n d)
   (#fK #fV #fQ: perm)
   (tid: sz { tid <^ br /\ tid <^ bc }) // TODO: impossible to materialize tid in a kernel unless br = bc
-  preserves 
-    gpu ** 
+  preserves
+    gpu **
     kpre_post_inner_fa n d bc br lSt lK lV lQ lOt llt lmt gSt gK gV gQ gOt glt gmt eK eV eQ #fK #fV #fQ
 {
   let tc = n /^ bc;
   let tr = n /^ br;
   let mut j: szle tc = 0sz;
 
-  while (!j <^ tc) 
+  while (!j <^ tc)
     invariant live j ** live gSt ** live gOt ** live glt ** live gmt
     decreases (tc - !j)
   {
@@ -371,7 +371,7 @@ fn flashattention_kf_no_smem (#et : Type0) {| scalar et, floating et |}
       array1_cell_to_ref glt ii;
       let glit = get_ref_of_array_cell glt ii;
       assert rewrites_to glit (ref_of_array_cell glt ii);
-      
+
       extract_cell1 gmt ii #1.0R #vmt;
       array1_cell_to_ref gmt ii;
       let gmit = get_ref_of_array_cell gmt ii;
@@ -394,9 +394,9 @@ fn flashattention_kf_no_smem (#et : Type0) {| scalar et, floating et |}
       elim_forall (chest1_to_seq eOit);
       Trade.elim_trade (((mrow gOt ((SZ.v ii) <: natlt n)) <: (array1 et (mrow_layout gOt (SZ.v ii)))) |-> (Frac 1.0R (tr_val (chest1_to_seq eOit)))) _;
 
-      i := !i +^ 1sz; 
+      i := !i +^ 1sz;
     };
-    
+
     Trade.elim_trade (gKj |-> Frac fK (ematrix_subtile eK (SZ.v bc) (SZ.v d) (SZ.v !j) 0)) _;
     Trade.elim_trade (gVj |-> Frac fV (ematrix_subtile eV (SZ.v bc) (SZ.v d) (SZ.v !j) 0)) _;
 

@@ -13,7 +13,6 @@ open Kuiper.Tensor.Layout.Alg { l1_forward }
 open Kuiper.Spec.Softmax
 open Kuiper.Kernel.RowSoftmax { row_softmax_real, row_softmax_gpu }
 open Kuiper.Bijection
-module SZ = Kuiper.SizeT
 module C = Kuiper.Matrix.Casts
 
 #set-options "--split_queries always"

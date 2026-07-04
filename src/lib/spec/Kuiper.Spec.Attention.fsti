@@ -10,13 +10,11 @@ open Kuiper.Chest
 open Kuiper.EMatrix
 open Kuiper.Bijection
 
-module SMX = Kuiper.Spec.Softmax
 module MS = Kuiper.Spec.GEMM
-module SZ = Kuiper.SizeT
 
 module RSMX = Kuiper.Kernel.RowSoftmax
 
-// TODO: consistent usage of ematrix and chest forms? review 
+// TODO: consistent usage of ematrix and chest forms? review
 
 (* Pre-softmax attention scores. *)
 let attn_scores
@@ -29,7 +27,7 @@ let attn_scores
   = chest_comb (fun bias_qk score -> (bias_qk +. score) *. scale) bias (MS.matmul eQ eK)
 
 
-(* Specs for attention with log-sum-exp. 
+(* Specs for attention with log-sum-exp.
  LATER: just separate the LSE stuff out so we aren't dealing with tuples & etc. *)
 
 (* row-wise log sum exp of scores *)
@@ -68,6 +66,6 @@ let attention_real_batched_lse
             (slice_page4 rV i j)
             (slice_page4 rbias i j)
             scale in
-    let out_spec = mk4 fun i j -> macc (fst (attn_tile i j)) in 
-    let lse_spec = mk3 fun i j -> Seq.index (snd (attn_tile i j)) in 
+    let out_spec = mk4 fun i j -> macc (fst (attn_tile i j)) in
+    let lse_spec = mk3 fun i j -> Seq.index (snd (attn_tile i j)) in
     (out_spec, lse_spec)

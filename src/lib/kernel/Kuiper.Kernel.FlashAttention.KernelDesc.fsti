@@ -12,7 +12,6 @@ open Kuiper.EMatrix
 open Kuiper.Tensor.Layout.Alg { l1_forward, l2_row_major, c_l2_row_major }
 
 module SZ = Kuiper.SizeT
-module Trade = Pulse.Lib.Trade
 module B = Kuiper.Barrier
 open Kuiper.Shape
 open Pulse.Lib.Trade { (@==>) }
@@ -394,7 +393,7 @@ let kpre_post_inner_fa
   (llt lmt: layout1 (n /^ br))
   {| ctlayout lSt, ctlayout lK, ctlayout lV, ctlayout lQ, ctlayout lOt, ctlayout llt, ctlayout lmt |}
   (gSt: array1 et lSt)
-  (gK: array2 et lK) 
+  (gK: array2 et lK)
   (gV: array2 et lV)
   (gQ: array2 et lQ)
   (gOt: array2 et lOt)
@@ -434,7 +433,7 @@ let kpre_post_outer_fa
   (gK |-> Frac (fK /. nthr) eK) **
   (gV |-> Frac (fV /. nthr) eV) **
   (gQ |-> Frac (fQ /. nthr) eQ) **
-  (exists* (eS : ematrix et nthr nthr) (eO : ematrix et n d) (el: ematrix et 1 n) (em: ematrix et 1 n). 
+  (exists* (eS : ematrix et nthr nthr) (eO : ematrix et n d) (el: ematrix et 1 n) (em: ematrix et 1 n).
     array2_subtile gS 1 (SZ.v nthr) tid 0 |-> ematrix_subtile eS 1 (SZ.v nthr) tid 0 **
     array2_stride_subtile gl 1 (SZ.v nthr) 0 tid |-> ematrix_stride_subtile el 1 (SZ.v nthr) 0 tid **
     array2_stride_subtile gm 1 (SZ.v nthr) 0 tid |-> ematrix_stride_subtile em 1 (SZ.v nthr) 0 tid **

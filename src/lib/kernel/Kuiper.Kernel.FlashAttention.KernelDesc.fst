@@ -30,7 +30,6 @@ open Kuiper.Tensor.Layout.Alg { l1_forward, l2_row_major, c_l2_row_major }
 
 module SZ = Kuiper.SizeT
 module Trade = Pulse.Lib.Trade
-module B = Kuiper.Barrier
 open Kuiper.Shape
 open Pulse.Lib.Trade { (@==>) }
 open Kuiper.Math { even, odd }

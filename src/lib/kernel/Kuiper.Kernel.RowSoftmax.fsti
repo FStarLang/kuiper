@@ -63,11 +63,11 @@ fn row_softmax_gpu_with_sum
   requires
     on gpu_loc (a |-> sa) **
     pure (sa %~ ra)
-  returns 
+  returns
     sums: (sums: array1 et (l1_forward m) { is_global sums })
   ensures
     exists* (sa' : ematrix et m n) (esums : chest1 et m).
-      on gpu_loc (a |-> sa') ** 
+      on gpu_loc (a |-> sa') **
       on gpu_loc (sums |-> esums) **
       pure (sa' %~ row_softmax_real ra) **
       pure (forall (i:nat). i < SZ.v m ==>

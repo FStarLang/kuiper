@@ -21,7 +21,7 @@ class shareable (res : perm -> slprop) = {
 
 ghost
 fn share_n
-  (res : perm -> slprop)  
+  (res : perm -> slprop)
   {| d : shareable res |}
   (n : pos) (#p : perm)
   requires res p
@@ -33,7 +33,7 @@ fn share_n
 
 ghost
 fn gather_n
-  (res : perm -> slprop)  
+  (res : perm -> slprop)
   {| d : shareable res |}
   (n : pos) (#p : perm)
   requires forall+ (_ : natlt n). res (p /. Real.of_int n)
@@ -49,7 +49,7 @@ instance emp_shareable: shareable (fun _ -> emp) = {
 }
 
 
-ghost fn double_share 
+ghost fn double_share
   (res1 : perm -> slprop) {| shareable res1 |}
   (res2 : perm -> slprop) {| shareable res2 |}
   (ffr1 ffr2: perm)
@@ -59,18 +59,18 @@ ensures forall+ (_ : natlt n). res1 (ffr1 *. (fr /. Real.of_int n)) ** res2 (ffr
 {
   share_n res1 n #(ffr1 *. fr);
   share_n res2 n #(ffr2 *. fr);
-  forevery_map 
+  forevery_map
     (fun (_ : natlt n) -> res1 ((ffr1 *. fr) /. Real.of_int n))
     (fun (_ : natlt n) -> res1 (ffr1 *. (fr /. Real.of_int n)))
-    fn i { 
-      rewrite res1 ((ffr1 *. fr) /. Real.of_int n) as 
+    fn i {
+      rewrite res1 ((ffr1 *. fr) /. Real.of_int n) as
         res1 (ffr1 *. (fr /. Real.of_int n));
      };
-  forevery_map 
+  forevery_map
     (fun (_ : natlt n) -> res2 ((ffr2 *. fr) /. Real.of_int n))
     (fun (_ : natlt n) -> res2 (ffr2 *. (fr /. Real.of_int n)))
-    fn i { 
-      rewrite res2 ((ffr2 *. fr) /. Real.of_int n) as 
+    fn i {
+      rewrite res2 ((ffr2 *. fr) /. Real.of_int n) as
         res2 (ffr2 *. (fr /. Real.of_int n));
      };
   forevery_zip (fun (_ : natlt n) -> res1 (ffr1 *. (fr /. Real.of_int n))) _;
@@ -85,20 +85,20 @@ requires forall+ (_ : natlt n). res1 (ffr1 *. (fr /. Real.of_int n)) ** res2 (ff
 ensures res1 (ffr1 *. fr) ** res2 (ffr2 *. fr)
 {
   forevery_unzip _ _;
-  forevery_map 
+  forevery_map
     (fun (_ : natlt n) -> res1 (ffr1 *. (fr /. Real.of_int n)))
     (fun (_ : natlt n) -> res1 ((ffr1 *. fr) /. Real.of_int n))
-    fn i { 
-      rewrite 
-        res1 (ffr1 *. (fr /. Real.of_int n)) as 
+    fn i {
+      rewrite
+        res1 (ffr1 *. (fr /. Real.of_int n)) as
         res1 ((ffr1 *. fr) /. Real.of_int n);
     };
-  forevery_map 
+  forevery_map
     (fun (_ : natlt n) -> res2 (ffr2 *. (fr /. Real.of_int n)))
     (fun (_ : natlt n) -> res2 ((ffr2 *. fr) /. Real.of_int n))
-    fn i { 
-      rewrite 
-        res2 (ffr2 *. (fr /. Real.of_int n)) as 
+    fn i {
+      rewrite
+        res2 (ffr2 *. (fr /. Real.of_int n)) as
         res2 ((ffr2 *. fr) /. Real.of_int n);
     };
   gather_n res1 n;

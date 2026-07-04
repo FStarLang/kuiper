@@ -36,7 +36,7 @@ fn setup
   tensor_explode a;
   forevery_iso (flatten_bij d) (fun (i : abs d) -> Cell a i |-> acc s i);
   forevery_rw_size (sizeof d) (SZ.v n);
-  share_n frame n; 
+  share_n frame n;
   forevery_zip (fun (_ : natlt n) -> frame (fr /. n)) _
 }
 
@@ -54,14 +54,14 @@ fn teardown
   norewrite
   requires
     (forall+ (i : natlt n).
-      frame (fr /. n) ** 
+      frame (fr /. n) **
       exists* (v : et).
         Cell a (unflatten d i) |-> v **
         pure (vf (unflatten d i) (acc s (unflatten d i)) v)
     ) **
     pure (SZ.fits (tlayout_ulen l))
   ensures
-    frame fr ** 
+    frame fr **
     (exists* s'.
       a |-> s' **
       pure (chest_foralli (fun i x -> vf i (acc s i) x) s'))
@@ -104,7 +104,7 @@ fn kf
   ()
   requires
     gpu **
-    frame fr ** 
+    frame fr **
     Cell a (unflatten d i) |-> acc s (unflatten d i)
   ensures
     gpu **
@@ -155,7 +155,7 @@ let kmap
     setup    = setup    n frame vf a #s;
     teardown = teardown n frame vf a #s;
     kpre  = (fun (i : natlt (sizeof d)) -> frame (fr /. n) ** Cell a (unflatten d i) |-> (acc s (unflatten d i)));
-    kpost = (fun (i : natlt (sizeof d)) -> frame (fr /. n) ** exists* v. tensor_pts_to_cell a (unflatten d i) v ** 
+    kpost = (fun (i : natlt (sizeof d)) -> frame (fr /. n) ** exists* v. tensor_pts_to_cell a (unflatten d i) v **
                                              pure (vf (unflatten d i) (acc s (unflatten d i)) v));
     kpost_sendable = magic (); // LATER: frame needs to be sendable
     kpre_sendable  = magic ();
