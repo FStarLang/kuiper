@@ -149,6 +149,23 @@ fn slice_to_array
   assert pure (Seq.equal v' s);
 }
 
+ghost
+fn slice_to_array_full
+  (#et:Type)
+  (a : array et)
+  (#f : perm)
+  (#s : seq et)
+  (#n : nat)
+  requires
+    pts_to_slice a #f 0 n s **
+    pure (Pulse.Lib.Array.length a == n)
+  ensures
+    A.pts_to a #f s
+{
+  fold is_full_slice a n;
+  slice_to_array a;
+}
+
 
 (* x is the base pointer, this gives permission in [i,j) *)
 (* Internally uses Seq.seq (option a) but exposes seq a *)

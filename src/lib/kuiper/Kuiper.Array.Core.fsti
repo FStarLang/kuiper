@@ -103,6 +103,22 @@ fn slice_to_array
     (* Cannot use typeclasses here or lemma will not kick in. *)
     Pulse.Lib.Array.pts_to a #f s
 
+(* Like [slice_to_array], but takes the fullness fact as a plain (duplicable)
+   [pure] instead of the [is_full_slice] resource. This lets callers that only
+   have a length equality (e.g. shared across a loop) reassemble the array. *)
+ghost
+fn slice_to_array_full
+  (#et:Type)
+  (a : array et)
+  (#f : perm)
+  (#s : seq et)
+  (#n : nat)
+  requires
+    pts_to_slice a #f 0 n s **
+    pure (Pulse.Lib.Array.length a == n)
+  ensures
+    Pulse.Lib.Array.pts_to a #f s
+
 unfold
 let pts_to_cell
   (#a:Type u#0)

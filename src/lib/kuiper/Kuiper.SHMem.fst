@@ -145,16 +145,19 @@ ensures
   assert pts_to_slice c' #f 0 _ s; // FIXME: using (d_len d) for _ fails!?!?
   with ll. assert pts_to_slice c' #f 0 ll s;
   slice_share c' 0 _ k #f;
-  forevery_map
+  (* [array_to_slice] gave [pure (Seq.length s == length c')] and [ll == Seq.length s],
+     so the fullness fact is pure/duplicable: thread it through every iteration. *)
+  assert pure (Pulse.Lib.Array.length c' == ll);
+  drop_ (is_full_slice c' ll);
+  forevery_map_extra
+    (pure (Pulse.Lib.Array.length c' == ll))
     (fun (_ : natlt k) -> pts_to_slice c' #(f /. Real.of_int k) 0 ll s)
     (fun (_ : natlt k) -> live_c_shmem c #(f /. Real.of_int k))
     fn _ {
-      assume is_full_slice c' ll; // Should duplicate this
-      slice_to_array c';
+      slice_to_array_full c';
       fold_live_c_shmem #d c #(f /. Real.of_int k);
       ()
     };
-  drop_ (is_full_slice c' ll);
   ()
 }
 
