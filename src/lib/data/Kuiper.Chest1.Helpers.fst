@@ -118,3 +118,30 @@ let chest1_to_seq_approx
           (ensures  chest1_to_seq va %~ chest1_to_seq vr)
   = assert (forall (i : natlt n). acc1 va i %~ acc1 vr i)
 
+(* [chest1_fold_left'] from index [k] agrees with [seq_fold_left] over the
+   [k, n) suffix of [chest1_to_seq]. *)
+let rec chest1_fold_left'_eq_seq
+  (#et #at : Type) (#n : nat)
+  (f : at -> et -> at) (z : at) (c : chest1 et n) (k : natle n)
+  : Lemma (ensures chest1_fold_left' f z c k
+                   == seq_fold_left f z (Seq.slice (chest1_to_seq c) k n))
+          (decreases n - k)
+  = let full = chest1_to_seq c in
+    if k = n
+    then ()
+    else begin
+      let s_k  = Seq.slice full k n in
+      let s_k1 = Seq.slice full (k + 1) n in
+      assert (view_seq s_k == SCons (acc1 c k) s_k1);
+      chest1_fold_left'_eq_seq f (f z (acc1 c k)) c (k + 1)
+    end
+
+(* [chest1_fold_left] agrees with [seq_fold_left] over [chest1_to_seq]. This
+   bridges the chest1-level fold to the seq-level [rsum]/approximation lemmas. *)
+let chest1_fold_left_eq_seq
+  (#et #at : Type) (#n : nat)
+  (f : at -> et -> at) (z : at) (c : chest1 et n)
+  : Lemma (chest1_fold_left f z c == seq_fold_left f z (chest1_to_seq c))
+  = chest1_fold_left'_eq_seq f z c 0;
+    Seq.lemma_eq_elim (Seq.slice (chest1_to_seq c) 0 n) (chest1_to_seq c)
+

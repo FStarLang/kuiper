@@ -44,7 +44,9 @@ let sum_is_approx #a #n {| scalar a, real_like a |}
   (s : chest1 a n) (s' : chest1 real n)
   : Lemma (requires s %~ s')
           (ensures chest1_fold_left add zero s %~ chest1_rsum s')
-  = admit() // induction
+  = Kuiper.Chest1.Helpers.chest1_to_seq_approx s s';
+    Kuiper.Chest1.Helpers.chest1_fold_left_eq_seq add zero s;
+    Kuiper.Approximates.sum_is_approx (chest1_to_seq s) (chest1_to_seq s')
 
 (* A stronger exact spec for reduce on u32s, proven from the approximate spec. *)
 noextract
