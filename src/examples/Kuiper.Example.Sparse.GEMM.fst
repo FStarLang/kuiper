@@ -99,7 +99,12 @@ let rec __matmul_dotprod_lemma
     smatrix_all_zeros rows shared elems col_ind row_off i to;
     matmul_all_zeros_lemma eA eB i j ((col_ind @! to - 1) + 1) (col_ind @! to);
     __matmul_dotprod_lemma elems col_ind row_off eB i j (to - 1);
-    assume acc2 eA i (col_ind @! to) == elems @! to; // FIXME, broke somehow wne moving to chests
+    let k = col_ind @! to in
+    let b = mem_slice k col_ind ri re in
+    assert b;
+    let t = index_mem_slice k col_ind ri re in
+    assert (t == to); // strict sortedness of col_ind on [ri,re) => index is unique
+    assert (acc2 eA i k == elems @! to);
     ()
   )
 #pop-options
