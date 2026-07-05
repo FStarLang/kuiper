@@ -119,6 +119,24 @@ fn slice_to_array_full
   ensures
     Pulse.Lib.Array.pts_to a #f s
 
+(* Materialize the (pure, trivially-derivable) fullness fact as an
+   [is_full_slice] resource, using any [pts_to_slice] on the same array to
+   ground frame inference. *)
+ghost
+fn add_full_slice
+  (#et:Type)
+  (a : array et)
+  (#f : perm)
+  (#s : seq et)
+  (i j : nat)
+  (n : nat)
+  requires
+    pts_to_slice a #f i j s **
+    pure (Pulse.Lib.Array.length a == n)
+  ensures
+    pts_to_slice a #f i j s **
+    is_full_slice a n
+
 unfold
 let pts_to_cell
   (#a:Type u#0)

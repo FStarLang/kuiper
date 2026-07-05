@@ -1503,11 +1503,17 @@ fn sparse_load_residue
   gpu_forall_cell_to_slice elems_tile 0 (re - off);
   gpu_forall_cell_to_slice col_ind_tile 0 (re - off);
 
+  (* [elems_tile]/[col_ind_tile] : larray _ p.blockItemsK are full; materialize
+     [is_full_slice] from the residue slice, which grounds frame inference. *)
+  unfold slice_live elems_tile #(1.0R /. p.blockWidth) (re - off) p.blockItemsK;
+  add_full_slice elems_tile (re - off) p.blockItemsK p.blockItemsK;
+  fold slice_live elems_tile #(1.0R /. p.blockWidth) (re - off) p.blockItemsK;
+
+  unfold slice_live col_ind_tile #(1.0R /. p.blockWidth) (re - off) p.blockItemsK;
+  add_full_slice col_ind_tile (re - off) p.blockItemsK p.blockItemsK;
+  fold slice_live col_ind_tile #(1.0R /. p.blockWidth) (re - off) p.blockItemsK;
 
   rewrite each off as (ri +^ idx *^ p.blockItemsK);
-
-  assume is_full_slice elems_tile   p.blockItemsK;
-  assume is_full_slice col_ind_tile p.blockItemsK;
 
   ();
 }

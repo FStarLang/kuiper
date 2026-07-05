@@ -166,6 +166,24 @@ fn slice_to_array_full
   slice_to_array a;
 }
 
+ghost
+fn add_full_slice
+  (#et:Type)
+  (a : array et)
+  (#f : perm)
+  (#s : seq et)
+  (i j : nat)
+  (n : nat)
+  requires
+    pts_to_slice a #f i j s **
+    pure (Pulse.Lib.Array.length a == n)
+  ensures
+    pts_to_slice a #f i j s **
+    is_full_slice a n
+{
+  fold is_full_slice a n;
+}
+
 
 (* x is the base pointer, this gives permission in [i,j) *)
 (* Internally uses Seq.seq (option a) but exposes seq a *)
@@ -766,7 +784,7 @@ fn array_unslice_1
   forevery_refine_split #(natlt (Seq.length v)) _ (fun i -> i < sz);
   forevery_refine_join #(natlt (Seq.length v)) _ (fun i -> i < sz) _;
   forevery_refine_ext #(natlt (Seq.length v)) (fun i -> i < sz) _;
-  assume is_full_slice arr sz; // fixme: propagate to pre
+  fold is_full_slice arr sz; // arr : larray a sz, so length arr == sz
   forall_cell_to_slice #a #sz arr 0 sz;
   ()
 }
