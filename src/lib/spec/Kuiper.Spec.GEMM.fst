@@ -598,3 +598,4 @@ let bmatmul_is_bgemm
   (m2 : chest3 et batch shared columns)
   : Lemma (bmmcomb comb2 m0 m1 m2 == batched_matmul m1 m2)
   = assert equal (bmmcomb comb2 m0 m1 m2) (batched_matmul m1 m2)
+#pop-options

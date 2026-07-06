@@ -221,6 +221,7 @@ let compose_cstep
   );
 }
 
+[@@erasable] // avoid silly warning
 val full_view_bij (avw : aiview { is_full_view avw })
   : Ghost (avw.ait =~ natlt avw.len)
           (requires True)

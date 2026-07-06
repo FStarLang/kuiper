@@ -30,6 +30,7 @@ let major_on_f (#n:nat)
       maj * sizeof d + sub.f min
 
 (* Hiding the injection proof ...  but revealing the function *)
+[@@erasable] // avoid silly warning
 val major_on (#n:nat)
   (i : natlt (n+1))
   (k : nat)

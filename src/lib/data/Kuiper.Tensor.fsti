@@ -620,6 +620,7 @@ let fold_index (#r: nat {r > 1}) (#d: shape r) (i : abs d): GTot (abs (fold_oute
   let ih12 : natlt (h1 * h2) = ih1 * h2 + ih2 in
   (ih12, it)
 
+[@@erasable] // avoid silly warning
 val fold_bij (#r: nat {r > 1}) (#d: shape r): abs d =~ abs (fold_outer d)
 
 let fold_chest (#et : Type0) (#r: nat {r > 1}) (#d: shape r) (m : Chest.t d et): GTot (Chest.t (fold_outer d) et) =

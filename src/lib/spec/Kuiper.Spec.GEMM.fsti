@@ -213,6 +213,7 @@ val matmul_single_lemma
   ))
   [SMTPat (__matmul_single m1 m2 row col to)]
 
+[@@erasable] // avoid silly warning
 val matmul
   (#et:Type) {| scalar et |}
   (#rows #shared #columns : nat)
