@@ -5,18 +5,15 @@ module Kuiper.Kernel.TMap
 #lang-pulse
 
 open Kuiper
-module SZ = Kuiper.SizeT
-open Kuiper.Chest
-open Kuiper.Shape
 open Kuiper.Tensor
 open Kuiper.Tensor.Layout.Alg { l1_forward }
 open Kuiper.Shareable
-open FStar.Tactics.Typeclasses
+module SZ = Kuiper.SizeT
 
 ghost
 fn setup
   (#et : Type0) (#r : nat) (#d : shape r)
-  (n : sz{SZ.v n == sizeof d /\ n <= max_blocks * max_threads /\ n > 0}) // sigh
+  (n : szp{SZ.v n == sizeof d /\ n <= max_blocks * max_threads}) // sigh
   (frame : perm -> slprop) {| shareable frame |}
   (vf : abs d -> et -> et -> prop) // spec for f
   (#l : tlayout d)
@@ -43,7 +40,7 @@ fn setup
 ghost
 fn teardown
   (#et : Type0) (#r : nat) (#d : shape r)
-  (n : sz{SZ.v n == sizeof d /\ n <= max_blocks * max_threads /\ n > 0}) // sigh
+  (n : szp{SZ.v n == sizeof d /\ n <= max_blocks * max_threads}) // sigh
   (frame : perm -> slprop) {| shareable frame |}
   (vf : abs d -> et -> et -> prop) // spec for f
   (#l : tlayout d)
@@ -138,7 +135,7 @@ let kmap
       returns r : et
       ensures pure (vf (up i) x r))
   (#l : tlayout d) {| ctlayout l |}
-  (n : sz{SZ.v n == sizeof d /\ n <= max_blocks * max_threads /\ n > 0}) // n > 0 cause of fraction stuff
+  (n : szp{SZ.v n == sizeof d /\ n <= max_blocks * max_threads})
   (a : tensor et l)
   (#s : chest d et)
   (#_ : is_global a)
@@ -186,7 +183,7 @@ fn map_gpu
   (#et : Type0) (#r : erased nat) (#d : shape r) (cd : cshape d)
   (f : et -> et)
   (#l : tlayout d) {| ctlayout l |}
-  (n : sz{SZ.v n == sizeof d /\ n <= max_blocks * max_threads /\ n > 0})
+  (n : szp{SZ.v n == sizeof d /\ n <= max_blocks * max_threads})
   (a : tensor et l { is_global a })
   (#s : chest d et)
   preserves cpu

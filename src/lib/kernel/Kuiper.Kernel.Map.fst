@@ -10,6 +10,7 @@ open Kuiper.Seq.Common
 open Kuiper.Tensor
 open Kuiper.Tensor.Layout.Alg { l1_forward }
 open Kuiper.Bijection { ( =~ ) }
+module TMap = Kuiper.Kernel.TMap
 
 (* Bijection between the abstract 1-D tensor index [(k, ())] and a plain
    [natlt len], used to (un)reindex a forevery over tensor cells. *)
@@ -18,102 +19,6 @@ let abs_bij (#len : nat) : (abs (len @| INil) =~ natlt len) =
     ff = (fun (i, ()) -> i);
     gg = (fun i -> (i, ()));
   }
-
-ghost
-fn explode_setup
-  (#et : Type0)
-  (lena : nat)
-  (#l : layout1 lena)
-  (a : array1 et l)
-  (#s : erased (chest1 et lena))
-  ()
-  norewrite
-  requires
-    (a |-> s)
-  ensures
-    (forall+ (bid : natlt lena).
-      Cell a (idx1 bid) |-> (acc1 s bid)) **
-    pure (SZ.fits (tlayout_ulen l))
-{
-  tensor_pts_to_ref a;
-  tensor_explode a;
-  forevery_iso (abs_bij #lena)
-    (fun (i : abs (lena @| INil)) -> Cell a i |-> (acc s i));
-  forevery_ext
-    (fun (y : natlt lena) -> Cell a (abs_bij.gg y) |-> (acc s (abs_bij.gg y)))
-    (fun (bid : natlt lena) -> Cell a (idx1 bid) |-> (acc1 s bid));
-}
-
-ghost
-fn explode_teardown
-  (#et : Type0)
-  (f : et -> et)
-  (lena : nat)
-  (#l : layout1 lena)
-  (a : array1 et l)
-  (#s : erased (chest1 et lena))
-  ()
-  norewrite
-  requires
-    (forall+ (bid : natlt lena).
-      Cell a (idx1 bid) |-> (f (acc1 s bid))) **
-    pure (SZ.fits (tlayout_ulen l))
-  ensures
-    a |-> chest_map f s
-{
-  forevery_ext
-    (fun (bid : natlt lena) -> Cell a (idx1 bid) |-> (f (acc1 s bid)))
-    (fun (y : natlt lena) -> Cell a (abs_bij.gg y) |-> (acc (chest_map f s) (abs_bij.gg y)));
-  forevery_iso_back (abs_bij #lena)
-    (fun (i : abs (lena @| INil)) -> Cell a i |-> (acc (chest_map f s) i));
-  tensor_implode a;
-}
-
-inline_for_extraction noextract
-fn kf_map
-  (#et : Type0)
-  (f : et -> et)
-  (#lena : erased nat)
-  (#l : layout1 lena) {| ctlayout l |}
-  (a : array1 et l)
-  (#s : erased (chest1 et lena) )
-  (bid : szlt lena)
-  ()
-  requires
-    gpu **
-    Cell a (idx1 (bid <: natlt lena)) |-> (acc1 s bid)
-  ensures
-    gpu **
-    Cell a (idx1 (bid <: natlt lena)) |-> (f (acc1 s bid))
-{
-  let x = tensor_read_cell a (cidx1 bid);
-  tensor_write_cell a (cidx1 bid) (f x);
-}
-
-inline_for_extraction noextract
-let kmap
-  (#et : Type0)
-  (f: et -> et)
-  (lena : szp{ lena <= max_blocks * max_threads})
-  (#l : layout1 lena) {| ctlayout l |}
-  (a : array1 et l)
-  (#_ : squash (is_global a))
-  (#s : erased (chest1 et lena))
-  : kernel_desc
-      (requires a |-> s)
-      (ensures  a |-> chest_map f s)
-= {
-    nthr = lena;
-    f = kf_map f a;
-
-    frame    = pure (SZ.fits (tlayout_ulen l));
-    teardown = explode_teardown f lena a;
-    setup    = explode_setup lena a;
-    kpre =  (fun (i:natlt lena) -> Cell a (idx1 i) |-> (acc1 s i));
-    kpost = (fun (i:natlt lena) -> Cell a (idx1 i) |-> (f (acc1 s i)));
-    kpost_sendable = solve;
-    kpre_sendable  = solve;
-  } <: kernel_desc_n _ _
 
 inline_for_extraction noextract
 fn map_gpu
@@ -127,7 +32,7 @@ fn map_gpu
   requires  on gpu_loc (a |-> s)
   ensures   on gpu_loc (a |-> chest_map f s)
 {
-  launch_sync (kmap f lena a);
+  TMap.map_gpu (CCons lena CNil) f lena a;
 }
 
 inline_for_extraction noextract
