@@ -16,6 +16,7 @@ inline_for_extraction noextract
 val kmap
   (#et : Type0) (#r : erased nat) (#d : shape r) (cd : cshape d)
   (frame : perm -> slprop) {| shareable frame |}
+  {| (f:perm -> is_send_across gpu_of (frame f)) |}
   (vf : abs d -> et -> et -> prop) // spec for f
   (f :
     fn (#fr: perm) (i : conc d) (x : et)

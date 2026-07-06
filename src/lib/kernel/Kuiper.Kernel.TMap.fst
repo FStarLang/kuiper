@@ -128,6 +128,7 @@ inline_for_extraction noextract
 let kmap
   (#et : Type0) (#r : erased nat) (#d : shape r) (cd : cshape d)
   (frame : perm -> slprop) {| shareable frame |}
+  {| (f:perm -> is_send_across gpu_of (frame f)) |}
   (vf : abs d -> et -> et -> prop) // spec for f
   (f :
     fn (#fr: perm) (i : conc d) (x : et)
@@ -154,8 +155,8 @@ let kmap
     kpre  = (fun (i : natlt (sizeof d)) -> frame (fr /. n) ** Cell a (unflatten d i) |-> (acc s (unflatten d i)));
     kpost = (fun (i : natlt (sizeof d)) -> frame (fr /. n) ** exists* v. tensor_pts_to_cell a (unflatten d i) v **
                                              pure (vf (unflatten d i) (acc s (unflatten d i)) v));
-    kpost_sendable = magic (); // LATER: frame needs to be sendable
-    kpre_sendable  = magic ();
+    kpost_sendable = solve;
+    kpre_sendable  = solve;
   } <: kernel_desc_n _ _
 
 let vf_equal
