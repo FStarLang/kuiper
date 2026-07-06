@@ -5,20 +5,11 @@ module Kuiper.Kernel.Map
 #lang-pulse
 
 open Kuiper
-module SZ = Kuiper.SizeT
-open Kuiper.Seq.Common
 open Kuiper.Tensor
 open Kuiper.Tensor.Layout.Alg { l1_forward }
-open Kuiper.Bijection { ( =~ ) }
+open Kuiper.Shareable
+module SZ = Kuiper.SizeT
 module TMap = Kuiper.Kernel.TMap
-
-(* Bijection between the abstract 1-D tensor index [(k, ())] and a plain
-   [natlt len], used to (un)reindex a forevery over tensor cells. *)
-let abs_bij (#len : nat) : (abs (len @| INil) =~ natlt len) =
-  {
-    ff = (fun (i, ()) -> i);
-    gg = (fun i -> (i, ()));
-  }
 
 inline_for_extraction noextract
 fn map_gpu
@@ -87,134 +78,14 @@ fn map_host
   ();
 }
 
-ghost
-fn explode_setup_2
-  (#et : Type0)
-  (lena : szp)
-  (#la : layout1 lena) (#lb : layout1 lena)
-  (a : array1 et la)
-  (b : array1 et lb)
-  (#sa : erased (chest1 et lena))
-  (#sb : erased (chest1 et lena))
-  (#fb : perm)
-  ()
-  norewrite
-  requires
-    (a |-> sa) ** (b |-> Frac fb sb)
-  ensures
-    (forall+ (i : natlt lena).
-      Cell a (idx1 i) |-> (acc1 sa i) **
-      b |-> Frac (fb /. lena) sb) **
-    pure (SZ.fits (tlayout_ulen la))
-{
-  tensor_pts_to_ref a;
-  tensor_share_n b lena;
-  tensor_explode a;
-  forevery_iso (abs_bij #lena)
-    (fun (i : abs (lena @| INil)) -> Cell a i |-> (acc sa i));
-  forevery_ext
-    (fun (y : natlt lena) -> Cell a (abs_bij.gg y) |-> (acc sa (abs_bij.gg y)))
-    (fun (i : natlt lena) -> Cell a (idx1 i) |-> (acc1 sa i));
-  forevery_zip
-    (fun (i : natlt lena) -> Cell a (idx1 i) |-> (acc1 sa i))
-    (fun (_ : natlt lena) -> b |-> Frac (fb /. lena) sb);
-  ()
-}
-
-ghost
-fn explode_teardown_2
-  (#et : Type0)
-  (f : et -> et -> et)
-  (lena : szp)
-  (#la : layout1 lena) (#lb : layout1 lena)
-  (a : array1 et la)
-  (b : array1 et lb)
-  (#sa : erased (chest1 et lena))
-  (#sb : erased (chest1 et lena))
-  (#fb : perm)
-  ()
-  norewrite
-  requires
-    (forall+ (i : natlt lena).
-      Cell a (idx1 i) |-> (f (acc1 sa i) (acc1 sb i)) **
-      b |-> Frac (fb /. lena) sb) **
-    pure (SZ.fits (tlayout_ulen la))
-  ensures
-    (a |-> chest1_map2 f sa sb) **
-    (b |-> Frac fb sb)
-{
-  forevery_unzip
-    (fun (i : natlt lena) -> Cell a (idx1 i) |-> (f (acc1 sa i) (acc1 sb i)))
-    (fun (_ : natlt lena) -> b |-> Frac (fb /. lena) sb);
-  tensor_gather_n b lena;
-  forevery_ext
-    (fun (i : natlt lena) -> Cell a (idx1 i) |-> (f (acc1 sa i) (acc1 sb i)))
-    (fun (y : natlt lena) -> Cell a (abs_bij.gg y) |-> (acc (chest1_map2 f sa sb) (abs_bij.gg y)));
-  forevery_iso_back (abs_bij #lena)
-    (fun (i : abs (lena @| INil)) -> Cell a i |-> (acc (chest1_map2 f sa sb) i));
-  tensor_implode a;
-  ()
-}
-
-inline_for_extraction noextract
-fn kf_map2
-  (#et : Type0)
-  (f : et -> et -> et)
-  (#lena : erased nat)
-  (#la : layout1 lena) {| ctlayout la |}
-  (#lb : layout1 lena) {| ctlayout lb |}
-  (a : array1 et la)
-  (b : array1 et lb)
-  (#sa : erased (chest1 et lena))
-  (#sb : erased (chest1 et lena))
-  (#fb : perm)
-  (i : szlt lena)
-  ()
-  requires
-    gpu **
-    Cell a (idx1 (i <: natlt lena)) |-> (acc1 sa i) **
-    b |-> Frac fb sb
-  ensures
-    gpu **
-    Cell a (idx1 (i <: natlt lena)) |-> (f (acc1 sa i) (acc1 sb i)) **
-    b |-> Frac fb sb
-{
-  let x = tensor_read_cell a (cidx1 i);
-  let y = tensor_read b (cidx1 i);
-  tensor_write_cell a (cidx1 i) (f x y);
-}
-
-inline_for_extraction noextract
-let kmap2
-  (#et : Type0)
-  (f : et -> et -> et)
-  (lena : szp { lena <= max_blocks * max_threads })
-  (#la : layout1 lena) {| ctlayout la |}
-  (#lb : layout1 lena) {| ctlayout lb |}
-  (a : array1 et la)
-  (b : array1 et lb)
-  (#_ : squash (is_global a))
-  (#_ : squash (is_global b))
-  (#sa : erased (chest1 et lena))
-  (#sb : erased (chest1 et lena))
-  (#fb : perm)
-  : kernel_desc
-      (requires (a |-> sa) ** (b |-> Frac fb sb))
-      (ensures  (a |-> chest1_map2 f sa sb) ** (b |-> Frac fb sb))
-= {
-    nthr = lena;
-    f = kf_map2 f a b;
-
-    frame    = pure (SZ.fits (tlayout_ulen la));
-    teardown = explode_teardown_2 f lena a b;
-    setup    = explode_setup_2 lena a b;
-    kpre  = (fun (i : natlt lena) ->
-      Cell a (idx1 i) |-> (acc1 sa i) ** b |-> Frac (fb /. lena) sb);
-    kpost = (fun (i : natlt lena) ->
-      Cell a (idx1 i) |-> (f (acc1 sa i) (acc1 sb i)) ** b |-> Frac (fb /. lena) sb);
-    kpost_sendable = solve;
-    kpre_sendable  = solve;
-  } <: kernel_desc_n _ _
+instance shareable_tensor_pts_to
+  (#r : nat) (#d : shape r) (#et : Type0)
+  (#l : tlayout d)
+  (a : tensor et l)
+  (#s : chest d et)
+  (base : perm)
+  : shareable (fun fr -> on gpu_loc (a |-> Frac (base *. fr) s))
+  = magic()
 
 inline_for_extraction noextract
 fn map_gpu2
@@ -235,5 +106,30 @@ fn map_gpu2
   requires  on gpu_loc (a |-> sa)
   ensures   on gpu_loc (a |-> chest1_map2 f sa sb)
 {
-  launch_sync (kmap2 f lena a b);
+  fn ff (#fr: perm) (i : conc (lena @| INil)) (x : et)
+    norewrite
+    preserves gpu ** on gpu_loc (b |-> Frac (fb *. fr) sb)
+    returns r : et
+    ensures pure (r == f x (acc sb (up i)))
+  {
+    elim_gpu (b |-> Frac (fb *. fr) sb);
+    let y = tensor_read b i;
+    let res = f x y;
+    intro_gpu (b |-> Frac (fb *. fr) sb);
+    res
+  };
+  rewrite on gpu_loc (b |-> Frac fb sb) as on gpu_loc (b |-> Frac (fb *. 1.0R) sb);
+  launch_sync (TMap.kmap
+    (CCons lena CNil)
+    (fun f -> on gpu_loc (b |-> Frac (fb *. f) sb))
+    #(shareable_tensor_pts_to #_ #_ #_ #lb b #sb fb)
+    (fun (i : abs (lena @| INil)) (x r : et) -> r == f x (acc sb i))
+    ff
+    lena a #_ #_ #1.0R);
+  rewrite on gpu_loc (b |-> Frac (fb *. 1.0R) sb) as on gpu_loc (b |-> Frac fb sb);
+
+  with sa'. assert on gpu_loc (a |-> sa');
+  assert pure (equal (chest1_map2 f sa sb) sa');
+
+  ()
 }

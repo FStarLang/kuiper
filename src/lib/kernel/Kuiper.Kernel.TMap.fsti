@@ -20,7 +20,7 @@ val kmap
   (vf : abs d -> et -> et -> prop) // spec for f
   (f :
     fn (#fr: perm) (i : conc d) (x : et)
-      preserves frame fr
+      preserves gpu ** frame fr
       returns r : et
       ensures pure (vf (up i) x r))
   (#l : tlayout d) {| ctlayout l |}

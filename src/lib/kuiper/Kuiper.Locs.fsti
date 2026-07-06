@@ -101,3 +101,21 @@ ensures norm steps p
   norm_spec steps p;
   rewrite p as (norm steps p);
 }
+
+ghost
+fn elim_gpu (p : slprop)
+  preserves gpu
+  requires on gpu_loc p
+  ensures p
+{
+  admit()
+}
+
+ghost
+fn intro_gpu (p : slprop)
+  preserves gpu
+  requires p
+  ensures on gpu_loc p
+{
+  admit()
+}

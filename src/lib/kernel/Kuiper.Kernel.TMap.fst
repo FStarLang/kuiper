@@ -90,7 +90,7 @@ fn kf
   (vf : abs d -> et -> et -> prop) // spec for f
   (f :
     fn (#fr: perm) (i : conc d) (x : et)
-      preserves frame fr
+      preserves gpu ** frame fr
       returns r : et
       ensures pure (vf (up i) x r))
   (#l : tlayout d) {| ctlayout l |}
@@ -132,7 +132,7 @@ let kmap
   (vf : abs d -> et -> et -> prop) // spec for f
   (f :
     fn (#fr: perm) (i : conc d) (x : et)
-      preserves frame fr
+      preserves gpu ** frame fr
       returns r : et
       ensures pure (vf (up i) x r))
   (#l : tlayout d) {| ctlayout l |}
@@ -172,7 +172,7 @@ fn ff_from_pure u#a
   (f : et -> et)
   (#fr: perm) (i : conc d) (x : et)
   norewrite
-  preserves emp
+  preserves gpu ** emp
   returns r : et
   ensures pure (vf_equal f (up i) x r)
 {
@@ -191,7 +191,7 @@ fn map_gpu
   requires  on gpu_loc (a |-> s)
   ensures   on gpu_loc (a |-> chest_map f s)
 {
-  launch_sync (kmap cd (fun _ -> emp) #(emp_shareable) (vf_equal f) (ff_from_pure f) n a #s #_ #1.0R);
+  launch_sync (kmap cd (fun _ -> emp) (vf_equal f) (ff_from_pure f) n a #s #_ #1.0R);
   with s'. assert on gpu_loc (a |-> s');
   assert pure (Kuiper.Chest.equal s' (chest_map f s));
   ()
