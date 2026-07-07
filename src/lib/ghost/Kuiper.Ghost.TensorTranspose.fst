@@ -29,7 +29,7 @@ fn ghost_transpose1
   (#et:Type)
   (#rows #cols : nat)
   (gA : tensor et (l2_row_major rows cols))
-  (#m : ematrix et rows cols)
+  (#m : chest2 et rows cols)
   requires
     gA |-> m
   ensures
@@ -51,7 +51,7 @@ fn ghost_transpose2
   (#et:Type)
   (#rows #cols : nat)
   (gA : tensor et (l2_col_major rows cols))
-  (#m : ematrix et rows cols)
+  (#m : chest2 et rows cols)
   requires
     gA |-> m
   ensures
@@ -72,7 +72,7 @@ fn ghost_transpose1_back
   (#et:Type)
   (#rows #cols : nat)
   (gA : tensor et (l2_row_major rows cols))
-  (#m : ematrix et cols rows)
+  (#m : chest2 et cols rows)
   requires
     row2col gA |-> m
   ensures
@@ -91,7 +91,7 @@ fn ghost_transpose2_back
   (#et:Type)
   (#rows #cols : nat)
   (gA : tensor et (l2_col_major rows cols))
-  (#m : ematrix et cols rows)
+  (#m : chest2 et cols rows)
   requires
     col2row gA |-> m
   ensures

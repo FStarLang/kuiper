@@ -20,13 +20,13 @@ let own_strided_chunks
   (#rows #cols : nat)
   (#l : layout2 rows cols)
   ([@@@mkey] m : array2 et l)
-  (em : ematrix et rows cols)
+  (em : chest2 et rows cols)
   (nthr : nat)
   (tid : natlt nthr)
   : slprop
 =
   forall+ (ij : (natlt rows & natlt cols){CV.in_chunk (chunk et #_ #hvc) rows cols nthr tid ij}).
-    tensor_pts_to_cell m (idx2 ij._1 ij._2) (macc em ij._1 ij._2)
+    tensor_pts_to_cell m (idx2 ij._1 ij._2) (acc2 em ij._1 ij._2)
 
 let live_strided_chunks
   (#et : Type0) {| sized et, hvc: has_vec_cpy et |}
@@ -45,7 +45,7 @@ let bp_sharing
   (#rows #cols : nat)
   (#l : layout2 rows cols)
   (m : array2 et l)
-  (em : ematrix et rows cols)
+  (em : chest2 et rows cols)
   (nthr : pos)
   : slprop
   = m |-> Frac (1.0R /. nthr) em
@@ -53,8 +53,8 @@ let bp_sharing
 let barrier_p
   (#et : Type0) {| sized et, has_vec_cpy et |}
   (#rows #shared #cols : pos)
-  (eA : ematrix et rows shared)
-  (eB : ematrix et shared cols)
+  (eA : chest2 et rows shared)
+  (eB : chest2 et shared cols)
   (#bm : pos{bm /?+ rows})
   (#bk : pos{bk /?+ shared})
   (#bn : pos{bn /?+ cols})
@@ -80,8 +80,8 @@ let barrier_p
 let barrier_q
   (#et : Type0) {| sized et, has_vec_cpy et |}
   (#rows #shared #cols : pos)
-  (eA : ematrix et rows shared)
-  (eB : ematrix et shared cols)
+  (eA : chest2 et rows shared)
+  (eB : chest2 et shared cols)
   (#bm : pos{bm /?+ rows})
   (#bk : pos{bk /?+ shared})
   (#bn : pos{bn /?+ cols})
@@ -107,8 +107,8 @@ let barrier_q
 let contract
   (#et : Type0) {| sized et, has_vec_cpy et |}
   (#rows #shared #cols : pos)
-  (eA : ematrix et rows shared)
-  (eB : ematrix et shared cols)
+  (eA : chest2 et rows shared)
+  (eB : chest2 et shared cols)
   (#bm : pos{bm /?+ rows})
   (#bk : pos{bk /?+ shared})
   (#bn : pos{bn /?+ cols})
@@ -127,8 +127,8 @@ let contract
 let barrier_tok
   (#et : Type0) {| sized et, has_vec_cpy et |}
   (#rows #shared #cols : pos)
-  (eA : ematrix et rows shared)
-  (eB : ematrix et shared cols)
+  (eA : chest2 et rows shared)
+  (eB : chest2 et shared cols)
   (#bm : pos{bm /?+ rows})
   (#bk : pos{bk /?+ shared})
   (#bn : pos{bn /?+ cols})
@@ -146,8 +146,8 @@ ghost
 fn barrier_p_to_q_transform
   (#et : Type0) {| sized et, has_vec_cpy et |}
   (#rows #shared #cols : pos)
-  (eA : ematrix et rows shared)
-  (eB : ematrix et shared cols)
+  (eA : chest2 et rows shared)
+  (eB : chest2 et shared cols)
   (#bm : pos{bm /?+ rows})
   (#bk : pos{bk /?+ shared})
   (#bn : pos{bn /?+ cols})
@@ -176,8 +176,8 @@ ghost
 fn fold_barrier_p_odd
   (#et : Type0) {| sized et, has_vec_cpy et |}
   (#rows #shared #cols : pos)
-  (eA : ematrix et rows shared)
-  (eB : ematrix et shared cols)
+  (eA : chest2 et rows shared)
+  (eB : chest2 et shared cols)
   (#bm : pos{bm /?+ rows})
   (#bk : pos{bk /?+ shared})
   (#bn : pos{bn /?+ cols})
@@ -201,8 +201,8 @@ ghost
 fn unfold_barrier_q_odd
   (#et : Type0) {| sized et, has_vec_cpy et |}
   (#rows #shared #cols : pos)
-  (eA : ematrix et rows shared)
-  (eB : ematrix et shared cols)
+  (eA : chest2 et rows shared)
+  (eB : chest2 et shared cols)
   (#bm : pos{bm /?+ rows})
   (#bk : pos{bk /?+ shared})
   (#bn : pos{bn /?+ cols})
@@ -227,8 +227,8 @@ ghost
 fn fold_barrier_p_even
   (#et : Type0) {| sized et, has_vec_cpy et |}
   (#rows #shared #cols : pos)
-  (eA : ematrix et rows shared)
-  (eB : ematrix et shared cols)
+  (eA : chest2 et rows shared)
+  (eB : chest2 et shared cols)
   (#bm : pos{bm /?+ rows})
   (#bk : pos{bk /?+ shared})
   (#bn : pos{bn /?+ cols})
@@ -250,8 +250,8 @@ ghost
 fn unfold_barrier_q_even
   (#et : Type0) {| sized et, has_vec_cpy et |}
   (#rows #shared #cols : pos)
-  (eA : ematrix et rows shared)
-  (eB : ematrix et shared cols)
+  (eA : chest2 et rows shared)
+  (eB : chest2 et shared cols)
   (#bm : pos{bm /?+ rows})
   (#bk : pos{bk /?+ shared})
   (#bn : pos{bn /?+ cols})

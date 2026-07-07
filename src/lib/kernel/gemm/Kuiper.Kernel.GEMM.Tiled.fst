@@ -959,7 +959,7 @@ fn array2_to_tile4_ow
   (#et : Type0) (#m #k : nat) (tile : nat{tile > 0})
   (#l : layout2 (m * tile) (k * tile))
   (gA : array2 et l)
-  (#f : perm) (#s : ematrix et (m * tile) (k * tile))
+  (#f : perm) (#s : chest2 et (m * tile) (k * tile))
   requires
     gA |-> Frac f s
   ensures
@@ -996,16 +996,16 @@ fn tile4_to_array2_gc
   (#m #n #k : nat) (tile : nat{tile > 0})
   (#l : layout2 (m * tile) (n * tile))
   (gC : array2 et l)
-  (rA : ematrix real (m * tile) (k * tile))
-  (rB : ematrix real (k * tile) (n * tile))
-  (rC : ematrix real (m * tile) (n * tile))
+  (rA : chest2 real (m * tile) (k * tile))
+  (rB : chest2 real (k * tile) (n * tile))
+  (rC : chest2 real (m * tile) (n * tile))
   (#f : perm)
   requires
     (exists* (s4 : chest4 et m n tile tile).
       from_array (tile4_layout #m #n #tile l) (core (gC)) |-> Frac f s4 **
       pure (chest_flat42 #et #m #n #tile s4 %~ MS.mmcomb comb_r rC rA rB))
   ensures
-    (exists* (eC' : ematrix et (m * tile) (n * tile)).
+    (exists* (eC' : chest2 et (m * tile) (n * tile)).
       gC |-> Frac f eC' **
       pure (eC' %~ MS.mmcomb comb_r rC rA rB))
 {
@@ -1027,12 +1027,12 @@ fn mmcomb_gpu_approx
   (gA : array2 et lA { is_global gA })
   (gB : array2 et lB { is_global gB })
   (gC : array2 et lC { is_global gC })
-  (rA : ematrix real (m * tile) (k * tile))
-  (rB : ematrix real (k * tile) (n * tile))
-  (rC : ematrix real (m * tile) (n * tile))
-  (#eA : ematrix et (m * tile) (k * tile))
-  (#eB : ematrix et (k * tile) (n * tile))
-  (#eC : ematrix et (m * tile) (n * tile))
+  (rA : chest2 real (m * tile) (k * tile))
+  (rB : chest2 real (k * tile) (n * tile))
+  (rC : chest2 real (m * tile) (n * tile))
+  (#eA : chest2 et (m * tile) (k * tile))
+  (#eB : chest2 et (k * tile) (n * tile))
+  (#eC : chest2 et (m * tile) (n * tile))
   (#fA #fB : perm)
   norewrite
   preserves
@@ -1042,7 +1042,7 @@ fn mmcomb_gpu_approx
     pure (eA %~ rA /\ eB %~ rB /\ eC %~ rC) **
     on gpu_loc (gC |-> eC)
   ensures
-    (exists* (eC' : ematrix et (m * tile) (n * tile)).
+    (exists* (eC' : chest2 et (m * tile) (n * tile)).
       on gpu_loc (gC |-> eC') **
       pure (eC' %~ MS.mmcomb comb_r rC rA rB))
 {

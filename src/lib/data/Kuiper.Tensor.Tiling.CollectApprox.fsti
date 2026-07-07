@@ -39,7 +39,7 @@ fn array2_collect_approx_tiled
                       ((bid % ntc) * tcols + (tid % tcols)) v)
   returns vf : (natlt (ntr * ntc) -> natlt (trows * tcols) -> GTot et)
   ensures
-    gm |-> mkM (fun (row : natlt rows) (col : natlt cols) ->
+    gm |-> mk2 (fun (row : natlt rows) (col : natlt cols) ->
       vf ((row / trows) * ntc + (col / tcols)) ((row % trows) * tcols + (col % tcols))) **
     pure (forall (row : natlt rows) (col : natlt cols).
       spec_fn row col

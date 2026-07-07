@@ -45,13 +45,13 @@ let own_strided_chunks
   (#rows #cols : nat)
   (#l : layout2 rows cols)
   ([@@@mkey] m : array2 et l)
-  (em : ematrix et rows cols)
+  (em : chest2 et rows cols)
   (nthr : nat)
   (tid : natlt nthr)
   : slprop
 =
   forall+ (ij : (natlt rows & natlt cols){in_chunk (chunk et #_ #hvc) rows cols nthr tid ij}).
-    tensor_pts_to_cell m (idx2 ij._1 ij._2) (macc em ij._1 ij._2)
+    tensor_pts_to_cell m (idx2 ij._1 ij._2) (acc2 em ij._1 ij._2)
 
 let live_strided_chunks
   (#et : Type0) {| sized et, hvc: has_vec_cpy et |}
@@ -71,7 +71,7 @@ fn split_array2_into_strided_chunks
   (#rows #cols : nat)
   (#l : layout2 rows cols)
   (m : array2 et l)
-  (#em : ematrix et rows cols)
+  (#em : chest2 et rows cols)
   (nthr : pos)
   requires
     m |-> em
@@ -87,7 +87,7 @@ fn join_array2_from_strided_chunks
   (#rows #cols : nat)
   (#l : layout2 rows cols)
   (m : array2 et l)
-  (#em : ematrix et rows cols)
+  (#em : chest2 et rows cols)
   (nthr : pos)
   requires
     pure (SZ.fits (l.ulen))
@@ -121,9 +121,9 @@ fn cp_array2_vec
   {| src_str : strided_row_major lsrc |}
   (src : array2 et lsrc)
   (#f : perm)
-  (#esrc : ematrix et rows cols)
+  (#esrc : chest2 et rows cols)
   (dst : array2 et ldst)
-  (#edst : ematrix et rows cols)
+  (#edst : chest2 et rows cols)
   (nthr : szp)
   (tid : szlt nthr)
   preserves gpu

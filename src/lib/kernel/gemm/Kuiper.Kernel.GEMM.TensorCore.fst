@@ -54,9 +54,9 @@ let kpre1
   (#lB : layout2 k n)
   (#lC : layout2 m n)
   (gA : array2 et_ab lA)
-  (eA : ematrix et_ab m k)
+  (eA : chest2 et_ab m k)
   (gB : array2 et_ab lB)
-  (eB : ematrix et_ab k n)
+  (eB : chest2 et_ab k n)
   (gC : array2 et_c lC)
   (bm : szp{bm /?+ m})
   (bn : szp{bn /?+ n})
@@ -87,9 +87,9 @@ let kpost1
   (#lB : layout2 k n)
   (#lC : layout2 m n)
   (gA : array2 et_ab lA)
-  (eA : ematrix et_ab m k)
+  (eA : chest2 et_ab m k)
   (gB : array2 et_ab lB)
-  (eB : ematrix et_ab k n)
+  (eB : chest2 et_ab k n)
   (gC : array2 et_c lC)
   (bm : szp{bm /?+ m})
   (bn : szp{bn /?+ n})
@@ -112,9 +112,9 @@ let kpre
   (#lB : layout2 k n)
   (#lC : layout2 m n)
   (gA : array2 et_ab lA)
-  (eA : ematrix et_ab m k)
+  (eA : chest2 et_ab m k)
   (gB : array2 et_ab lB)
-  (eB : ematrix et_ab k n)
+  (eB : chest2 et_ab k n)
   (gC : array2 et_c lC)
   (bm : szp{bm /?+ m})
   (bn : szp{bn /?+ n})
@@ -141,9 +141,9 @@ let kpost
   (#lB : layout2 k n)
   (#lC : layout2 m n)
   (gA : array2 et_ab lA)
-  (eA : ematrix et_ab m k)
+  (eA : chest2 et_ab m k)
   (gB : array2 et_ab lB)
-  (eB : ematrix et_ab k n)
+  (eB : chest2 et_ab k n)
   (gC : array2 et_c lC)
   (bm : szp{bm /?+ m})
   (bn : szp{bn /?+ n})
@@ -170,15 +170,15 @@ fn subproducts_tc
   (tn : szp{tn /?+ bn})
   (tk : szp{tk /?+ bk})
   (aFrag : fragment et_ab FragA tm tn tk FragLRM)
-  (#vaFrag : ematrix et_ab tm tk)
+  (#vaFrag : chest2 et_ab tm tk)
   (bFrag : fragment et_ab FragB tm tn tk FragLRM)
-  (#vbFrag : ematrix et_ab tk tn)
+  (#vbFrag : chest2 et_ab tk tn)
   (accumFrag : fragment et_acc FragAcc tm tn tk FragLAcc)
-  (#vaccumFrag : ematrix et_acc tm tn)
+  (#vaccumFrag : chest2 et_acc tm tn)
   (gA : array2 et_ab (rm bm bk))
   (gB : array2 et_ab (rm bk bn))
-  (#eA : ematrix et_ab bm bk)
-  (#eB : ematrix et_ab bk bn)
+  (#eA : chest2 et_ab bm bk)
+  (#eB : chest2 et_ab bk bn)
   (#fA #fB : perm)
   (arow: szlt (bm/tm))
   (bcol : szlt (bn/tn))
@@ -285,12 +285,12 @@ fn kf
   (#m #n #k : szp)
   (#lA : layout2 m k) {| T.ctlayout lA, str_A : strided_row_major lA |}
   (gA : array2 et_ab lA)
-  (#eA : ematrix et_ab m k)
+  (#eA : chest2 et_ab m k)
   (#lB : layout2 k n) {| T.ctlayout lB, str_B : strided_row_major lB |}
   (#_ : squash (aligned_strided_row_major (chunk et_ab) str_A))
   (#_ : squash (aligned_strided_row_major (chunk et_ab) str_B))
   (gB : array2 et_ab lB)
-  (#eB : ematrix et_ab k n)
+  (#eB : chest2 et_ab k n)
   (gC : array2 et_c (rm m n))
   (bm : szp{bm /?+ m})
   (bn : szp{bn /?+ n})
@@ -476,11 +476,11 @@ fn setup
   (#lC : layout2 m n)
   {| T.ctlayout lA, T.ctlayout lB, T.ctlayout lC |}
   (gA : array2 et_ab lA)
-  (eA : ematrix et_ab m k)
+  (eA : chest2 et_ab m k)
   (gB : array2 et_ab lB)
-  (eB : ematrix et_ab k n)
+  (eB : chest2 et_ab k n)
   (gC : array2 et_c lC)
-  (eC : ematrix et_c m n)
+  (eC : chest2 et_c m n)
   (bm : szp{bm /?+ m})
   (bn : szp{bn /?+ n})
   (bk : szp{bk /?+ k})
@@ -533,7 +533,7 @@ fn setup
     (#l : layout2 bm_ bn_)
     ([@@@mkey] gm : array2 et l)
     (#f : perm)
-    (#em : ematrix et bm_ bn_)
+    (#em : chest2 et bm_ bn_)
     (tm_ : nat{tm_ > 0 /\ tm_ /? bm_})
     (tn_ : nat{tn_ > 0 /\ tn_ /? bn_})
     (n : nat{n == bm_/tm_ * (bn_/tn_) * warp_size})
@@ -636,11 +636,11 @@ fn block_setup
   (#lC : layout2 m n)
   {| T.ctlayout lA, T.ctlayout lB, T.ctlayout lC |}
   (gA : array2 et_ab lA)
-  (eA : ematrix et_ab m k)
+  (eA : chest2 et_ab m k)
   (gB : array2 et_ab lB)
-  (eB : ematrix et_ab k n)
+  (eB : chest2 et_ab k n)
   (gC : array2 et_c lC)
-  (eC : ematrix et_c m n)
+  (eC : chest2 et_c m n)
   (bm : szp{bm /?+ m})
   (bn : szp{bn /?+ n})
   (bk : szp{bk /?+ k})
@@ -684,11 +684,11 @@ fn block_teardown
   (#lB : layout2 k n)
   (#lC : layout2 m n)
   (gA : array2 et_ab lA)
-  (eA : ematrix et_ab m k)
+  (eA : chest2 et_ab m k)
   (gB : array2 et_ab lB)
-  (eB : ematrix et_ab k n)
+  (eB : chest2 et_ab k n)
   (gC : array2 et_c lC)
-  (eC : ematrix et_c m n)
+  (eC : chest2 et_c m n)
   (bm : szp{bm /?+ m})
   (bn : szp{bn /?+ n})
   (bk : szp{bk /?+ k})
@@ -731,11 +731,11 @@ fn teardown
   (#lB : layout2 k n)
   (#lC : layout2 m n)
   (gA : array2 et_ab lA)
-  (eA : ematrix et_ab m k)
+  (eA : chest2 et_ab m k)
   (gB : array2 et_ab lB)
-  (eB : ematrix et_ab k n)
+  (eB : chest2 et_ab k n)
   (gC : array2 et_c lC)
-  (eC : ematrix et_c m n)
+  (eC : chest2 et_c m n)
   (bm : szp{bm /?+ m})
   (bn : szp{bn /?+ n})
   (bk : szp{bk /?+ k})
@@ -829,7 +829,7 @@ fn teardown
       forall+ (lane : natlt warp_size).
         live (warp_tile (block_tile gC (SZ.v bm) (SZ.v bn) bid) (SZ.v tm) (SZ.v tn) wid) #(1.0R /. warp_size))
     (fun (bid : natlt nblk_val) (wid : natlt (bm/tm * (bn/tn))) ->
-      exists* (em : ematrix et_c (SZ.v tm) (SZ.v tn)).
+      exists* (em : chest2 et_c (SZ.v tm) (SZ.v tn)).
         warp_tile (block_tile gC (SZ.v bm) (SZ.v bn) bid) (SZ.v tm) (SZ.v tn) wid |-> Frac 1.0R em)
     fn bid wid {
       tensor_gather_n_underspec (warp_tile (block_tile gC (SZ.v bm) (SZ.v bn) bid) (SZ.v tm) (SZ.v tn) wid) warp_size;
@@ -839,18 +839,18 @@ fn teardown
   forevery_map
     (fun (bid : natlt nblk_val) ->
       forall+ (wid : natlt (bm/tm * (bn/tn))).
-        exists* (em : ematrix et_c (SZ.v tm) (SZ.v tn)).
+        exists* (em : chest2 et_c (SZ.v tm) (SZ.v tn)).
           warp_tile (block_tile gC (SZ.v bm) (SZ.v bn) bid) (SZ.v tm) (SZ.v tn) wid |-> Frac 1.0R em)
     (fun (bid : natlt nblk_val) ->
-      exists* (em : ematrix et_c (SZ.v bm) (SZ.v bn)).
+      exists* (em : chest2 et_c (SZ.v bm) (SZ.v bn)).
         block_tile gC (SZ.v bm) (SZ.v bn) bid |-> Frac 1.0R em)
     fn bid {
       forevery_map
         (fun (wid : natlt (bm/tm * (bn/tn))) ->
-          exists* (em : ematrix et_c (SZ.v tm) (SZ.v tn)).
+          exists* (em : chest2 et_c (SZ.v tm) (SZ.v tn)).
             warp_tile (block_tile gC (SZ.v bm) (SZ.v bn) bid) (SZ.v tm) (SZ.v tn) wid |-> Frac 1.0R em)
         (fun (wid : natlt (bm/tm * (bn/tn))) ->
-          exists* (em : ematrix et_c (SZ.v tm) (SZ.v tn)).
+          exists* (em : chest2 et_c (SZ.v tm) (SZ.v tn)).
             array2_subtile (block_tile gC (SZ.v bm) (SZ.v bn) bid) (SZ.v tm) (SZ.v tn) (wid/(bn/tn)) (wid%(bn/tn)) |-> Frac 1.0R em)
         fn wid {
           rewrite each
@@ -860,7 +860,7 @@ fn teardown
         };
       forevery_factor' (bm/tm * (bn/tn)) (bm/tm) (bn/tn)
         (fun (wr : natlt (bm/tm)) (wc : natlt (bn/tn)) ->
-          exists* (em : ematrix et_c (SZ.v tm) (SZ.v tn)).
+          exists* (em : chest2 et_c (SZ.v tm) (SZ.v tn)).
             array2_subtile (block_tile gC (SZ.v bm) (SZ.v bn) bid) (SZ.v tm) (SZ.v tn) wr wc |-> Frac 1.0R em);
       assert pure (SZ.fits (lC.ulen));
       array2_untile_underspec (block_tile gC (SZ.v bm) (SZ.v bn) bid) (SZ.v tm) (SZ.v tn);
@@ -869,10 +869,10 @@ fn teardown
   (* 5e: Rewrite block_tile → subtile, factor, and untile *)
   forevery_map
     (fun (bid : natlt nblk_val) ->
-      exists* (em : ematrix et_c (SZ.v bm) (SZ.v bn)).
+      exists* (em : chest2 et_c (SZ.v bm) (SZ.v bn)).
         block_tile gC (SZ.v bm) (SZ.v bn) bid |-> Frac 1.0R em)
     (fun (bid : natlt nblk_val) ->
-      exists* (em : ematrix et_c (SZ.v bm) (SZ.v bn)).
+      exists* (em : chest2 et_c (SZ.v bm) (SZ.v bn)).
         array2_subtile gC (SZ.v bm) (SZ.v bn) (bid/(n/bn)) (bid%(n/bn)) |-> Frac 1.0R em)
     fn bid {
       rewrite each
@@ -882,7 +882,7 @@ fn teardown
     };
   forevery_factor' nblk_val (m/bm) (n/bn)
     (fun (br : natlt (m/bm)) (bc : natlt (n/bn)) ->
-      exists* (em : ematrix et_c (SZ.v bm) (SZ.v bn)).
+      exists* (em : chest2 et_c (SZ.v bm) (SZ.v bn)).
         array2_subtile gC (SZ.v bm) (SZ.v bn) br bc |-> Frac 1.0R em);
   assert pure (SZ.fits (lC.ulen));
   array2_untile_underspec gC (SZ.v bm) (SZ.v bn);
@@ -896,9 +896,9 @@ let kpre_block_sendable
   (#lB : layout2 k n)
   (#lC : layout2 m n)
   (gA : array2 et_ab lA { is_global gA })
-  (eA : ematrix et_ab m k)
+  (eA : chest2 et_ab m k)
   (gB : array2 et_ab lB { is_global gB })
-  (eB : ematrix et_ab k n)
+  (eB : chest2 et_ab k n)
   (gC : array2 et_c lC { is_global gC })
   (bm : szp{bm /?+ m})
   (bn : szp{bn /?+ n})
@@ -923,9 +923,9 @@ let kpost_block_sendable
   (#lB : layout2 k n)
   (#lC : layout2 m n)
   (gA : array2 et_ab lA { is_global gA })
-  (eA : ematrix et_ab m k)
+  (eA : chest2 et_ab m k)
   (gB : array2 et_ab lB { is_global gB })
-  (eB : ematrix et_ab k n)
+  (eB : chest2 et_ab k n)
   (gC : array2 et_c lC { is_global gC })
   (bm : szp{bm /?+ m})
   (bn : szp{bn /?+ n})
@@ -949,15 +949,15 @@ let mk_kernel
   (#m #n #k : szp)
   (#lA : layout2 m k) {| T.ctlayout lA, str_A : strided_row_major lA |}
   (gA : array2 et_ab lA { is_global gA })
-  (#eA : ematrix et_ab m k)
+  (#eA : chest2 et_ab m k)
   (#lB : layout2 k n) {| T.ctlayout lB, str_B : strided_row_major lB |}
   (#_ : squash (aligned_strided_row_major (chunk et_ab) str_A))
   (#_ : squash (aligned_strided_row_major (chunk et_ab) str_B))
   (gB : array2 et_ab lB { is_global gB })
-  (#eB : ematrix et_ab k n)
+  (#eB : chest2 et_ab k n)
   (gC : array2 et_c (rm m n) { is_global gC })
   (#_ : squash (SZ.fits (m * n)))
-  (#eC : ematrix et_c m n)
+  (#eC : chest2 et_c m n)
   (bm : szp{bm /?+ m})
   (bn : szp{bn /?+ n})
   (bk : szp{bk /?+ k})

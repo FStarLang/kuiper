@@ -42,10 +42,10 @@ fn copy_tiles_out_of_matrices_vec
   (#lA : layout2 m k) {| T.ctlayout lA, str_A : strided_row_major lA |}
   (#lB : layout2 k n) {| T.ctlayout lB, str_B : strided_row_major lB |}
   (gA : array2 et lA)
-  (#eA : ematrix et m k)
+  (#eA : chest2 et m k)
   (gB : array2 et lB)
   (#fA #fB : perm)
-  (#eB : ematrix et k n)
+  (#eB : chest2 et k n)
   (tile_row : szlt (m/bm))
   (tile_shared : szlt (k/bk))
   (tile_col : szlt (n/bn))

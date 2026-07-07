@@ -21,7 +21,7 @@ let kpre
   (gIn : array2 et lIn)
   (fIn : perm)
   (gOut : array2 et lOut)
-  (eIn : ematrix et (rows +^ 2sz) (cols +^ 2sz))
+  (eIn : chest2 et (rows +^ 2sz) (cols +^ 2sz))
   (tid : nat{ tid < rows * cols })
   : slprop
   =
@@ -42,7 +42,7 @@ let kpost
   (gIn : array2 et lIn)
   (fIn : perm)
   (gOut : array2 et lOut)
-  (eIn : ematrix et (rows +^ 2sz) (cols +^ 2sz))
+  (eIn : chest2 et (rows +^ 2sz) (cols +^ 2sz))
   (tid : nat{ tid < rows * cols })
   : slprop
   =
@@ -64,7 +64,7 @@ fn kf
   (gIn : array2 et lIn)
   (#fIn : perm)
   (gOut : array2 et lOut)
-  (#eIn : ematrix et (rows +^ 2sz) (cols +^ 2sz))
+  (#eIn : chest2 et (rows +^ 2sz) (cols +^ 2sz))
   (bid : szlt (rows *^ cols))
   ()
   norewrite
@@ -107,8 +107,8 @@ fn setup
   (gIn : array2 et lIn)
   (#fIn : perm)
   (gOut : array2 et lOut)
-  (#eIn : ematrix et (rows +^ 2sz) (cols +^ 2sz))
-  (#eOut : ematrix et rows cols)
+  (#eIn : chest2 et (rows +^ 2sz) (cols +^ 2sz))
+  (#eOut : chest2 et rows cols)
   ()
   norewrite
   requires
@@ -124,12 +124,12 @@ fn setup
   tensor_ilower2 gOut;
 
   forevery_unfactor' (rows *^ cols) rows cols (fun r c ->
-    tensor_pts_to_cell gOut (idx2 r c) (macc eOut r c));
+    tensor_pts_to_cell gOut (idx2 r c) (acc2 eOut r c));
 
   ghost
   fn hide_specific_val_behind_exists (rc: natlt (rows *^ cols))
     requires
-        tensor_pts_to_cell gOut (idx2 (rc / cols <: natlt rows) (rc % cols <: natlt cols)) (macc #_ #(SZ.v rows) #(SZ.v cols) eOut (rc / cols) (rc % cols))
+        tensor_pts_to_cell gOut (idx2 (rc / cols <: natlt rows) (rc % cols <: natlt cols)) (acc2 #_ #(SZ.v rows) #(SZ.v cols) eOut (rc / cols) (rc % cols))
     ensures
       (exists* vv. tensor_pts_to_cell gOut (idx2 (rc / cols <: natlt rows) (rc % cols <: natlt cols)) vv)
   {
@@ -147,7 +147,7 @@ fn setup
   fn hide_specific_val_behind_exists (rc: natlt (rows * cols))
     requires
       tensor_pts_to #et gIn #(fIn /. Real.of_int (SZ.v (SZ.mul rows cols))) eIn **
-        tensor_pts_to_cell gOut (idx2 (rc / cols <: natlt rows) (rc % cols <: natlt cols)) (macc eOut (rc / cols) (rc % cols))
+        tensor_pts_to_cell gOut (idx2 (rc / cols <: natlt rows) (rc % cols <: natlt cols)) (acc2 eOut (rc / cols) (rc % cols))
     ensures
       tensor_pts_to #et gIn #(fIn /. Real.of_int (SZ.v (SZ.mul rows cols))) eIn **
       (exists* vv. tensor_pts_to_cell gOut (idx2 (rc / cols <: natlt rows) (rc % cols <: natlt cols)) vv)
@@ -181,7 +181,7 @@ fn teardown
   (gIn : array2 et lIn)
   (#fIn : perm)
   (gOut : array2 et lOut)
-  (#eIn : ematrix et (rows +^ 2sz) (cols +^ 2sz))
+  (#eIn : chest2 et (rows +^ 2sz) (cols +^ 2sz))
   ()
   norewrite
   requires
@@ -220,7 +220,7 @@ fn teardown
     requires
       tensor_pts_to_cell gOut (idx2 r c) (STS.stencil_result_at_idx stencil eIn r c)
     ensures
-      tensor_pts_to_cell gOut (idx2 r c) (macc (STS.stencil_result stencil eIn) r c)
+      tensor_pts_to_cell gOut (idx2 r c) (acc2 (STS.stencil_result stencil eIn) r c)
   {
     ()
   };
@@ -246,8 +246,8 @@ let kdesc
   (gIn : array2 et lIn { is_global gIn})
   (#fIn : perm)
   (gOut : array2 et lOut { is_global gOut })
-  (#eIn : ematrix et (rows +^ 2sz) (cols +^ 2sz))
-  (#eOut : ematrix et rows cols)
+  (#eIn : chest2 et (rows +^ 2sz) (cols +^ 2sz))
+  (#eOut : chest2 et rows cols)
   (_ : squash (rows * cols <= max_blocks))
   : kernel_desc_m_1
     (gIn |-> Frac fIn eIn ** gOut |-> eOut)
@@ -281,8 +281,8 @@ fn host_simple_stencil
   (gIn : array2 et lIn { is_global gIn})
   (#fIn : perm)
   (gOut : array2 et lOut { is_global gOut })
-  (#eIn : ematrix et (rows +^ 2sz) (cols +^ 2sz))
-  (#eOut : ematrix et rows cols)
+  (#eIn : chest2 et (rows +^ 2sz) (cols +^ 2sz))
+  (#eOut : chest2 et rows cols)
   preserves
     cpu **
     on gpu_loc (gIn |-> Frac fIn eIn)
@@ -305,8 +305,8 @@ fn specialize_host_simple_stencil
   (gIn : array2 et (rIn rows cols) { is_global gIn })
   (gOut : array2 et (rOut (rows - 2) (cols - 2)) { is_global gOut })
   (#fIn : perm)
-  (#eIn : ematrix et rows cols)
-  (#eOut : ematrix et (rows - 2) (cols - 2))
+  (#eIn : chest2 et rows cols)
+  (#eOut : chest2 et (rows - 2) (cols - 2))
   preserves
     cpu **
     on gpu_loc (gIn |-> Frac fIn eIn)

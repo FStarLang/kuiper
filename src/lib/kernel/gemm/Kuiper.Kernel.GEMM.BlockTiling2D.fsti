@@ -38,11 +38,11 @@ fn mmcomb_gpu_exact
   (#_ : squash (aligned_strided_row_major (chunk et) str_A))
   (#_ : squash (aligned_strided_row_major (chunk et) str_B))
   (gA : array2 et lA { is_global gA })
-  (#eA : ematrix et m k)
+  (#eA : chest2 et m k)
   (gB : array2 et lB { is_global gB })
-  (#eB : ematrix et k n)
+  (#eB : chest2 et k n)
   (gC : array2 et lC { is_global gC })
-  (#eC : ematrix et m n)
+  (#eC : chest2 et m n)
   (bm : szp{bm /?+ m})
   (bn : szp{bn /?+ n})
   (bk : szp{bk /?+ k})
@@ -88,11 +88,11 @@ fn mmcomb_gpu_approx
   (#_ : squash (aligned_strided_row_major (chunk et) str_A))
   (#_ : squash (aligned_strided_row_major (chunk et) str_B))
   (gA : array2 et lA { is_global gA })
-  (#eA : ematrix et m k)
+  (#eA : chest2 et m k)
   (gB : array2 et lB { is_global gB })
-  (#eB : ematrix et k n)
+  (#eB : chest2 et k n)
   (gC : array2 et lC { is_global gC })
-  (#eC : ematrix et m n)
+  (#eC : chest2 et m n)
   (bm : szp{bm /?+ m})
   (bn : szp{bn /?+ n})
   (bk : szp{bk /?+ k})
@@ -109,9 +109,9 @@ fn mmcomb_gpu_approx
   (slB : full_layout2 bk bn)
   {| T.ctlayout slA, T.ctlayout slB |}
   (#fA #fB : perm)
-  (rA : ematrix real m k)
-  (rB : ematrix real k n)
-  (rC : ematrix real m n)
+  (rA : chest2 real m k)
+  (rB : chest2 real k n)
+  (rC : chest2 real m n)
   norewrite
   preserves
     cpu **
@@ -125,6 +125,6 @@ fn mmcomb_gpu_approx
     pure (eA %~ rA /\ eB %~ rB /\ eC %~ rC) **
     on gpu_loc (gC |-> eC)
   ensures
-    exists* (eC' : ematrix et m n).
+    exists* (eC' : chest2 et m n).
       on gpu_loc (gC |-> eC') **
       pure (eC' %~ MS.mmcomb comb_r rC rA rB)

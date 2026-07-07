@@ -32,7 +32,7 @@ instance c : ctlayout my_layout = c_l2_row_major 1024 1024sz
 
 (* Fixing a size and a type, this is just for illustration *)
 fn main (a b c d r : tensor f32 my_layout)
-  (#eA #eB #eC #eD #eR : ematrix f32 1024 1024)
+  (#eA #eB #eC #eD #eR : chest2 f32 1024 1024)
   preserves cpu
   preserves on gpu_loc <| a |-> eA ** b |-> eB ** c |-> eC ** d |-> eD
   requires  pure (is_global a /\ is_global b /\ is_global c /\ is_global d /\ is_global r)

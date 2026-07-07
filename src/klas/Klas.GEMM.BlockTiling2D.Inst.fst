@@ -33,9 +33,9 @@ fn spec
   (gB : array2 et (rm k n) { is_global gB })
   (#fB : perm)
   (gC : array2 et (rm m n) { is_global gC })
-  (#eA : ematrix et m k)
-  (#eB : ematrix et k n)
-  (#eC : ematrix et m n)
+  (#eA : chest2 et m k)
+  (#eB : chest2 et k n)
+  (#eC : chest2 et m n)
   norewrite
   preserves
     cpu **

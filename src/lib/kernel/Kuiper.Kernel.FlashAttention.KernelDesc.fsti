@@ -44,7 +44,7 @@ ghost
 fn mextract_row
   (#et : Type0) (#rows #cols : nat) (#l : layout2 rows cols)
   (a : array2 et l) (i : natlt rows)
-  (#f : perm) (#s : ematrix et rows cols)
+  (#f : perm) (#s : chest2 et rows cols)
   requires a |-> Frac f s
   ensures
     mrow a i |-> Frac f (tr_val (ematrix_row s i)) **
@@ -56,7 +56,7 @@ ghost
 fn mextract_row_ro
   (#et : Type0) (#rows #cols : nat) (#l : layout2 rows cols)
   (a : array2 et l) (i : natlt rows)
-  (#f : perm) (#s : ematrix et rows cols)
+  (#f : perm) (#s : chest2 et rows cols)
   requires a |-> Frac f s
   ensures
     factored
@@ -67,7 +67,7 @@ ghost
 fn mrestore_row
   (#et : Type0) (#rows #cols : nat) (#l : layout2 rows cols)
   (a : array2 et l) (i : natlt rows)
-  (#f : perm) (#s : ematrix et rows cols)
+  (#f : perm) (#s : chest2 et rows cols)
   requires
     factored
       (mrow a i |-> Frac f (tr_val (ematrix_row s i)))
@@ -183,43 +183,43 @@ let is_array2_stride_subtile_global
 let ematrix_stride_subtile
   (#et : _)
   (#rows #cols : _)
-  (em : ematrix et rows cols)
+  (em : chest2 et rows cols)
   (srows : pos {srows /? rows})
   (scols : pos {scols /? cols})
   (tr : natlt srows)
   (tc : natlt scols)
-  : ematrix et (rows/srows) (cols/scols)
+  : chest2 et (rows/srows) (cols/scols)
 =
-  mkM fun i j ->
-    macc em (i * srows + tr) (j * scols + tc)
+  mk2 fun i j ->
+    acc2 em (i * srows + tr) (j * scols + tc)
 
 let ematrix_stride_from_tiles
   (#et : _)
   (#rows #cols : nat)
   (srows : pos {srows /? rows})
   (scols : pos {scols /? cols})
-  (f : natlt srows -> natlt scols -> ematrix et (rows/srows) (cols/scols))
-  : ematrix et rows cols
+  (f : natlt srows -> natlt scols -> chest2 et (rows/srows) (cols/scols))
+  : chest2 et rows cols
 =
-  mkM fun i j ->
-    macc (f (i % srows) (j % scols)) (i / srows) (j / scols)
+  mk2 fun i j ->
+    acc2 (f (i % srows) (j % scols)) (i / srows) (j / scols)
 
 let update_stride_tile
   (#et : _)
   (#rows #cols : nat)
-  (em : ematrix et rows cols)
+  (em : chest2 et rows cols)
   (srows : pos {srows /? rows})
   (scols : pos {scols /? cols})
   (tr : natlt srows)
   (tc : natlt scols)
-  (tm : ematrix et (rows/srows) (cols/scols))
-  : ematrix et rows cols
+  (tm : chest2 et (rows/srows) (cols/scols))
+  : chest2 et rows cols
 =
-  mkM fun i j ->
+  mk2 fun i j ->
     if i % srows = tr && j % scols = tc then
-      macc tm (i / srows) (j / scols)
+      acc2 tm (i / srows) (j / scols)
     else
-      macc em i j
+      acc2 em i j
 
 val stride_cell_convert_eq
   (#et : _)
@@ -248,7 +248,7 @@ fn array2_stride_tile
   (gm : array2 et l)
   (srows : pos { srows /? rows })
   (scols : pos { scols /? cols })
-  (#em : ematrix et rows cols)
+  (#em : chest2 et rows cols)
   (#f : perm)
   requires
     gm |-> Frac f em
@@ -266,7 +266,7 @@ fn array2_stride_untile'
   (gm : array2 et l)
   (srows : pos { srows /? rows })
   (scols : pos { scols /? cols })
-  (tf : natlt srows -> natlt scols -> ematrix et (rows/srows) (cols/scols))
+  (tf : natlt srows -> natlt scols -> chest2 et (rows/srows) (cols/scols))
   (#f : perm)
   requires
     pure (SZ.fits (tlayout_ulen l))
@@ -286,7 +286,7 @@ fn array2_stride_untile
   (gm : array2 et l)
   (srows : pos { srows /? rows })
   (scols : pos { scols /? cols })
-  (#em : ematrix et rows cols)
+  (#em : chest2 et rows cols)
   (#f : perm)
   requires
     pure (SZ.fits (tlayout_ulen l))
@@ -308,13 +308,13 @@ fn array2_extract_stride_tile
   (scols : pos { scols /? cols })
   (tr : natlt srows)
   (tc : natlt scols)
-  (#em : ematrix et rows cols)
+  (#em : chest2 et rows cols)
   (#f : perm)
   requires
     gm |-> Frac f em
   ensures
     array2_stride_subtile gm srows scols tr tc |-> Frac f (ematrix_stride_subtile em srows scols tr tc) **
-    (forall* (tm' : ematrix et (rows/srows) (cols/scols)).
+    (forall* (tm' : chest2 et (rows/srows) (cols/scols)).
       array2_stride_subtile gm srows scols tr tc |-> Frac f tm' @==>
       gm |-> Frac f (update_stride_tile em srows scols tr tc tm'))
 
@@ -328,7 +328,7 @@ fn array2_extract_stride_tile_st
   (scols : erased nat { scols > 0 /\ scols /? cols })
   (tr : enatlt srows)
   (tc : enatlt scols)
-  (#em : ematrix et rows cols)
+  (#em : chest2 et rows cols)
   (#f : perm)
   requires
     gm |-> Frac f em
@@ -336,7 +336,7 @@ fn array2_extract_stride_tile_st
   ensures pure (tc_tile == array2_stride_subtile gm srows scols tr tc)
   ensures
     tc_tile |-> Frac f (ematrix_stride_subtile em srows scols tr tc) **
-    (forall* (tm' : ematrix et (rows/srows) (cols/scols)).
+    (forall* (tm' : chest2 et (rows/srows) (cols/scols)).
       tc_tile |-> Frac f tm' @==>
       gm |-> Frac f (update_stride_tile em srows scols tr tc tm'))
 
@@ -350,7 +350,7 @@ fn array2_extract_stride_tile_ro
   (scols : nat { scols > 0 /\ scols /? cols })
   (tr : natlt srows)
   (tc : natlt scols)
-  (#em : ematrix et rows cols)
+  (#em : chest2 et rows cols)
   (#f : perm)
   requires
     gm |-> Frac f em
@@ -369,7 +369,7 @@ fn array2_extract_stride_tile_ro'
   (scols : erased nat {scols > 0 /\ scols /? cols })
   (tr : enatlt srows)
   (tc : enatlt scols)
-  (#em : ematrix et rows cols)
+  (#em : chest2 et rows cols)
   (#f : perm)
   requires
     gm |-> Frac f em
@@ -399,7 +399,7 @@ let kpre_post_inner_fa
   (gOt: array2 et lOt)
   (glt: array1 et llt)
   (gmt: array1 et lmt)
-  (eK eV eQ: ematrix et n d)
+  (eK eV eQ: chest2 et n d)
   (#fK #fV #fQ: perm)
   : slprop =
   (gK |-> Frac fK eK) **
@@ -426,14 +426,14 @@ let kpre_post_outer_fa
   (gO : array2 et lO { is_global gO })
   (gl : array2 et ll { is_global gl })
   (gm : array2 et lm { is_global gm })
-  (eK eV eQ : ematrix et n d)
+  (eK eV eQ : chest2 et n d)
   (fK fV fQ : perm)
   (tid: natlt nthr)
   : slprop =
   (gK |-> Frac (fK /. nthr) eK) **
   (gV |-> Frac (fV /. nthr) eV) **
   (gQ |-> Frac (fQ /. nthr) eQ) **
-  (exists* (eS : ematrix et nthr nthr) (eO : ematrix et n d) (el: ematrix et 1 n) (em: ematrix et 1 n).
+  (exists* (eS : chest2 et nthr nthr) (eO : chest2 et n d) (el: chest2 et 1 n) (em: chest2 et 1 n).
     array2_subtile gS 1 (SZ.v nthr) tid 0 |-> ematrix_subtile eS 1 (SZ.v nthr) tid 0 **
     array2_stride_subtile gl 1 (SZ.v nthr) 0 tid |-> ematrix_stride_subtile el 1 (SZ.v nthr) 0 tid **
     array2_stride_subtile gm 1 (SZ.v nthr) 0 tid |-> ematrix_stride_subtile em 1 (SZ.v nthr) 0 tid **
@@ -457,7 +457,7 @@ let full_io_fa
   (gO : array2 et lO { is_global gO })
   (gl : array2 et ll { is_global gl })
   (gm : array2 et lm { is_global gm })
-  (eK eV eQ : ematrix et n d)
+  (eK eV eQ : chest2 et n d)
   (fK fV fQ : perm)
   : slprop =
   (gK |-> Frac fK eK) ** (gV |-> Frac fV eV) ** (gQ |-> Frac fQ eQ) **
@@ -479,7 +479,7 @@ let full_io_fa_nos
   (gO : array2 et lO { is_global gO })
   (gl : array2 et ll { is_global gl })
   (gm : array2 et lm { is_global gm })
-  (eK eV eQ : ematrix et n d)
+  (eK eV eQ : chest2 et n d)
   (fK fV fQ : perm)
   : slprop =
   (gK |-> Frac fK eK) ** (gV |-> Frac fV eV) ** (gQ |-> Frac fQ eQ) **
@@ -527,7 +527,7 @@ fn setup_fa
   (gO : array2 et lO { is_global gO })
   (gl : array2 et ll { is_global gl })
   (gm : array2 et lm { is_global gm })
-  (eK eV eQ : ematrix et n d)
+  (eK eV eQ : chest2 et n d)
   (#fK #fV #fQ : perm)
   ()
   norewrite
@@ -555,7 +555,7 @@ fn teardown_fa
   (gO : array2 et lO { is_global gO })
   (gl : array2 et ll { is_global gl })
   (gm : array2 et lm { is_global gm })
-  (eK eV eQ : ematrix et n d)
+  (eK eV eQ : chest2 et n d)
   (#fK #fV #fQ : perm)
   ()
   norewrite
@@ -583,7 +583,7 @@ fn block_setup_fa
   (gO : array2 et lO { is_global gO })
   (gl : array2 et ll { is_global gl })
   (gm : array2 et lm { is_global gm })
-  (eK eV eQ : ematrix et n d)
+  (eK eV eQ : chest2 et n d)
   (#fK #fV #fQ : perm)
   (sh : c_shmems (shmems_desc_fa et nthr))
   (bid : natlt 1sz)
@@ -613,7 +613,7 @@ fn block_teardown_fa
   (gO : array2 et lO { is_global gO })
   (gl : array2 et ll { is_global gl })
   (gm : array2 et lm { is_global gm })
-  (eK eV eQ : ematrix et n d)
+  (eK eV eQ : chest2 et n d)
   (#fK #fV #fQ : perm)
   (sh : c_shmems (shmems_desc_fa et nthr))
   (bid : natlt 1sz)
@@ -697,11 +697,11 @@ let fa_barrier_side_rin
   = fun it tid ->
     if it >= 2 * SZ.v (n /^ nthr) then emp
     else if even it then
-      (exists* (r:ematrix et 1 (SZ.v d)). array2_subtile sK 1 (SZ.v d) tid 0 |-> Frac 1.0R r) **
-      (exists* (r:ematrix et 1 (SZ.v d)). array2_subtile sV 1 (SZ.v d) tid 0 |-> Frac 1.0R r)
+      (exists* (r:chest2 et 1 (SZ.v d)). array2_subtile sK 1 (SZ.v d) tid 0 |-> Frac 1.0R r) **
+      (exists* (r:chest2 et 1 (SZ.v d)). array2_subtile sV 1 (SZ.v d) tid 0 |-> Frac 1.0R r)
     else
-      (exists* (x:ematrix et (SZ.v nthr) (SZ.v d)). sK |-> Frac (1.0R /. (SZ.v nthr)) x) **
-      (exists* (y:ematrix et (SZ.v nthr) (SZ.v d)). sV |-> Frac (1.0R /. (SZ.v nthr)) y)
+      (exists* (x:chest2 et (SZ.v nthr) (SZ.v d)). sK |-> Frac (1.0R /. (SZ.v nthr)) x) **
+      (exists* (y:chest2 et (SZ.v nthr) (SZ.v d)). sV |-> Frac (1.0R /. (SZ.v nthr)) y)
 
 let fa_barrier_side_rout
   (#et:Type0) {| scalar et |}
@@ -712,11 +712,11 @@ let fa_barrier_side_rout
   = fun it tid ->
     if it >= 2 * SZ.v (n /^ nthr) then emp
     else if even it then
-      (exists* (x:ematrix et (SZ.v nthr) (SZ.v d)). sK |-> Frac (1.0R /. (SZ.v nthr)) x) **
-      (exists* (y:ematrix et (SZ.v nthr) (SZ.v d)). sV |-> Frac (1.0R /. (SZ.v nthr)) y)
+      (exists* (x:chest2 et (SZ.v nthr) (SZ.v d)). sK |-> Frac (1.0R /. (SZ.v nthr)) x) **
+      (exists* (y:chest2 et (SZ.v nthr) (SZ.v d)). sV |-> Frac (1.0R /. (SZ.v nthr)) y)
     else
-      (exists* (r:ematrix et 1 (SZ.v d)). array2_subtile sK 1 (SZ.v d) tid 0 |-> Frac 1.0R r) **
-      (exists* (r:ematrix et 1 (SZ.v d)). array2_subtile sV 1 (SZ.v d) tid 0 |-> Frac 1.0R r)
+      (exists* (r:chest2 et 1 (SZ.v d)). array2_subtile sK 1 (SZ.v d) tid 0 |-> Frac 1.0R r) **
+      (exists* (r:chest2 et 1 (SZ.v d)). array2_subtile sV 1 (SZ.v d) tid 0 |-> Frac 1.0R r)
 
 let fa_barrier_contract
   (#et:Type0) {| scalar et |}
@@ -765,14 +765,14 @@ let kpre_post_outer_fa_smem
   (gO : array2 et lO { is_global gO })
   (gl : array2 et ll { is_global gl })
   (gm : array2 et lm { is_global gm })
-  (eK eV eQ : ematrix et n d)
+  (eK eV eQ : chest2 et n d)
   (fK fV fQ : perm)
   (tid: natlt nthr)
   : slprop =
   kpre_post_outer_fa n d nthr gS gK gV gQ gO gl gm eK eV eQ fK fV fQ tid **
-  (exists* (r:ematrix et 1 (SZ.v d)). array2_subtile sK 1 (SZ.v d) tid 0 |-> Frac 1.0R r) **
-  (exists* (r:ematrix et 1 (SZ.v d)). array2_subtile sV 1 (SZ.v d) tid 0 |-> Frac 1.0R r) **
-  (exists* (r:ematrix et 1 (SZ.v d)). array2_subtile sQ 1 (SZ.v d) tid 0 |-> Frac 1.0R r)
+  (exists* (r:chest2 et 1 (SZ.v d)). array2_subtile sK 1 (SZ.v d) tid 0 |-> Frac 1.0R r) **
+  (exists* (r:chest2 et 1 (SZ.v d)). array2_subtile sV 1 (SZ.v d) tid 0 |-> Frac 1.0R r) **
+  (exists* (r:chest2 et 1 (SZ.v d)). array2_subtile sQ 1 (SZ.v d) tid 0 |-> Frac 1.0R r)
 
 (* Pure side-conditions carried across the launch for the smem variant
    (adds the [lKV] fits-fact needed to re-assemble sK/sV/sQ). *)
@@ -805,7 +805,7 @@ fn block_setup_fa_smem
   (gO : array2 et lO { is_global gO })
   (gl : array2 et ll { is_global gl })
   (gm : array2 et lm { is_global gm })
-  (eK eV eQ : ematrix et n d)
+  (eK eV eQ : chest2 et n d)
   (#fK #fV #fQ : perm)
   (sh : c_shmems (shmems_desc_fa_smem et n d nthr))
   (bid : natlt 1sz)
@@ -836,7 +836,7 @@ fn block_teardown_fa_smem
   (gO : array2 et lO { is_global gO })
   (gl : array2 et ll { is_global gl })
   (gm : array2 et lm { is_global gm })
-  (eK eV eQ : ematrix et n d)
+  (eK eV eQ : chest2 et n d)
   (#fK #fV #fQ : perm)
   (sh : c_shmems (shmems_desc_fa_smem et n d nthr))
   (bid : natlt 1sz)

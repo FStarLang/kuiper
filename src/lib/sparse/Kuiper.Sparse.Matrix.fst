@@ -3,6 +3,7 @@ module Kuiper.Sparse.Matrix
 #lang-pulse
 open Kuiper
 open Kuiper.Sparse.Common
+open Kuiper.Chest
 open Kuiper.EMatrix
 module SZ = Kuiper.SizeT
 
@@ -81,11 +82,11 @@ let smatrix_unsparse
   (elems : lseq et nnz)
   (col_ind : lseq nat nnz)
   (row_off : lseq nat (rows + 1))
-  : Ghost (ematrix et rows cols)
+  : Ghost (chest2 et rows cols)
     (requires valid_smatrix rows cols col_ind row_off)
     (ensures fun _ -> true)
 =
-  mkM fun i j ->
+  mk2 fun i j ->
     //let row_cols = slice_row row_off col_ind i in
     //let row_elems = slice_row row_off elems i in
     //unsparse _ cols row_elems row_cols @! j
@@ -107,7 +108,7 @@ let smatrix_all_zeros
     (requires valid_smatrix rows cols col_ind row_off)
     (ensures
       forall j. (col_ind @! r - 1) < j /\ j < col_ind @! r ==>
-      macc (smatrix_unsparse rows cols elems col_ind row_off) i j == zero)
+      acc2 (smatrix_unsparse rows cols elems col_ind row_off) i j == zero)
 = ()
 
 
@@ -116,7 +117,7 @@ let pure_smatrix_pts_to
   (#et:Type0) {| d : scalar et |}
   #rows #cols
   (#nnz : nat)
-  (e : ematrix et rows cols)
+  (e : chest2 et rows cols)
   (v_elems   : lseq et nnz)
   (v_col_ind : lseq sz nnz)
   (v_row_off : lseq sz (rows + 1))
@@ -137,7 +138,7 @@ let smatrix_pts_to'
   (v_elems   : lseq et m.nnz)
   (v_col_ind : lseq sz m.nnz)
   (v_row_off : lseq sz (rows + 1))
-  (e : ematrix et rows cols)
+  (e : chest2 et rows cols)
   : slprop
 =
   m.elems   |-> Frac f v_elems **
@@ -152,7 +153,7 @@ let smatrix_pts_to
   #rows #cols
   (m : smatrix et rows cols)
   (#[Tactics.exact (`1.0R)] f : perm)
-  (e : ematrix et rows cols)
+  (e : chest2 et rows cols)
   : slprop
 =
   exists* (v_elems    : lseq et m.nnz).
@@ -170,7 +171,7 @@ fn unfold_smatrix
   #rows #cols
   (m : smatrix et rows cols)
   (#[Tactics.exact (`1.0R)] f : perm)
-  (e : ematrix et rows cols)
+  (e : chest2 et rows cols)
   requires smatrix_pts_to m #f e
   ensures
     exists* (v_elems    : lseq et m.nnz).
@@ -190,7 +191,7 @@ fn fold_smatrix
   (v_elems    : lseq et m.nnz)
   (v_col_ind  : lseq sz m.nnz)
   (v_row_off  : lseq sz (rows + 1))
-  (e : ematrix et rows cols)
+  (e : chest2 et rows cols)
   requires smatrix_pts_to' m v_elems v_col_ind v_row_off e
   ensures smatrix_pts_to m e
 {
@@ -201,7 +202,7 @@ inline_for_extraction noextract
 unfold
 instance has_pts_to_smatrix
   (#et: Type0) (#rows #cols : nat) {| scalar et |}
-  : has_pts_to (smatrix et rows cols) (ematrix et rows cols) =
+  : has_pts_to (smatrix et rows cols) (chest2 et rows cols) =
 {
   pts_to = smatrix_pts_to;
 }
@@ -215,7 +216,7 @@ fn smatrix_share_n'
   (v_elems   : lseq et m.nnz)
   (v_col_ind : lseq sz m.nnz)
   (v_row_off : lseq sz (rows + 1))
-  (em : ematrix et rows cols)
+  (em : chest2 et rows cols)
   (k : pos)
   requires smatrix_pts_to' m #f v_elems v_col_ind v_row_off em
   ensures forall+ (_ : natlt k).
@@ -248,7 +249,7 @@ fn smatrix_share_n
   (m : smatrix et rows cols)
   (k : pos)
   (#f : perm)
-  (#em : ematrix et rows cols)
+  (#em : chest2 et rows cols)
   requires
     smatrix_pts_to m #f em
   ensures
@@ -302,7 +303,7 @@ fn smatrix_gather_n'
   (v_elems   : lseq et m.nnz)
   (v_col_ind : lseq sz m.nnz)
   (v_row_off : lseq sz (rows + 1))
-  (em : ematrix et rows cols)
+  (em : chest2 et rows cols)
   (k : pos)
   requires forall+ (_ : natlt k).
     smatrix_pts_to' m #(f /. k) v_elems v_col_ind v_row_off  em
@@ -330,7 +331,7 @@ fn smatrix_gather_n
   (m : smatrix et rows cols)
   (k : pos)
   (#f : perm)
-  (#em : ematrix et rows cols)
+  (#em : chest2 et rows cols)
   requires
     forall+ (_ : natlt k). smatrix_pts_to m #(f /. k) em
   ensures
@@ -538,7 +539,7 @@ let smatrix_extract_lemma
   (elems : lseq et nnz)
   (col_ind : lseq sz nnz)
   (row_off : lseq sz (rows + 1))
-  (e : ematrix et rows cols)
+  (e : chest2 et rows cols)
   (r : natlt rows)
   (#row_nnz : nat)
   (row_elems : lseq et row_nnz)
@@ -600,10 +601,10 @@ let smatrix_extract_lemma
       )
   );
 
-  introduce forall (i:natlt rows) (j:natlt cols). macc e i j == macc e' i j
+  introduce forall (i:natlt rows) (j:natlt cols). acc2 e i j == acc2 e' i j
   with (
-    assert (macc e  i j == ematrix_row e  i @! j);
-    assert (macc e' i j == ematrix_row e' i @! j)
+    assert (acc2 e  i j == ematrix_row e  i @! j);
+    assert (acc2 e' i j == ematrix_row e' i @! j)
   );
 
   assert e `equal` e';
@@ -647,7 +648,7 @@ fn smatrix_extract
   (#rows #cols : szp)
   (m : smatrix et (SZ.v rows) (SZ.v cols))
   (#[Tactics.exact (`1.0R)] f : perm)
-  (e : ematrix et rows cols)
+  (e : chest2 et rows cols)
   (i : szlt rows)
   requires
     m |-> Frac f e

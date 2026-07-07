@@ -6,7 +6,7 @@ module Kuiper.Kernel.GEMM.BlockTiling2D
 
 open Kuiper
 open Kuiper.Array.Vectorized { has_vec_cpy, chunk }
-open Kuiper.EMatrix { ematrix }
+open Kuiper.EMatrix { chest2 }
 open Kuiper.Math { even, odd, even_2x, odd_2x1 }
 open Kuiper.Array2.Strided
 open Kuiper.Tensor.Tiling
@@ -54,14 +54,14 @@ let ettile
   (#et : Type0)
   (#m : nat)
   (#n : nat)
-  (em : ematrix et m n)
+  (em : chest2 et m n)
   (bm : nat{bm > 0 /\ bm /?+ m})
   (bn : nat{bn > 0 /\ bn /?+ n})
   (tm : nat{tm > 0 /\ tm /?+ bm})
   (tn : nat{tn > 0 /\ tn /?+ bn})
   (bid : natlt ((m/bm) * (n/bn)))
   (tid : natlt (bm/tm * (bn/tn)))
-  : ematrix et tm tn
+  : chest2 et tm tn
   = ematrix_subtile (ematrix_subtile em bm bn (bid/(n/bn)) (bid%(n/bn))) tm tn (tid/(bn/tn)) (tid%(bn/tn))
 
 unfold
@@ -73,11 +73,11 @@ let kpre1
   (#lB : layout2 k n)
   (#lC : layout2 m n)
   (gA : array2 et lA)
-  (eA : ematrix et m k)
+  (eA : chest2 et m k)
   (gB : array2 et lB)
-  (eB : ematrix et k n)
+  (eB : chest2 et k n)
   (gC : array2 et lC)
-  (eC : ematrix et m n)
+  (eC : chest2 et m n)
   (bm : szp{bm /?+ m})
   (bn : szp{bn /?+ n})
   (bk : szp{bk /?+ k})
@@ -104,11 +104,11 @@ let kpost1
   (#lB : layout2 k n)
   (#lC : layout2 m n)
   (gA : array2 et lA)
-  (eA : ematrix et m k)
+  (eA : chest2 et m k)
   (gB : array2 et lB)
-  (eB : ematrix et k n)
+  (eB : chest2 et k n)
   (gC : array2 et lC)
-  (eC : ematrix et m n)
+  (eC : chest2 et m n)
   (bm : szp{bm /?+ m})
   (bn : szp{bn /?+ n})
   (bk : szp{bk /?+ k})
@@ -132,11 +132,11 @@ let kpre
   (#lB : layout2 k n)
   (#lC : layout2 m n)
   (gA : array2 et lA)
-  (eA : ematrix et m k)
+  (eA : chest2 et m k)
   (gB : array2 et lB)
-  (eB : ematrix et k n)
+  (eB : chest2 et k n)
   (gC : array2 et lC)
-  (eC : ematrix et m n)
+  (eC : chest2 et m n)
   (bm : szp{bm /?+ m})
   (bn : szp{bn /?+ n})
   (bk : szp{bk /?+ k})
@@ -163,11 +163,11 @@ instance kpre_block_sendable
   (#lB : layout2 k n)
   (#lC : layout2 m n)
   (gA : array2 et lA { is_global gA })
-  (eA : ematrix et m k)
+  (eA : chest2 et m k)
   (gB : array2 et lB { is_global gB })
-  (eB : ematrix et k n)
+  (eB : chest2 et k n)
   (gC : array2 et lC { is_global gC })
-  (eC : ematrix et m n)
+  (eC : chest2 et m n)
   (bm : szp{bm /?+ m})
   (bn : szp{bn /?+ n})
   (bk : szp{bk /?+ k})
@@ -196,11 +196,11 @@ let kpost
   (#lB : layout2 k n)
   (#lC : layout2 m n)
   (gA : array2 et lA)
-  (eA : ematrix et m k)
+  (eA : chest2 et m k)
   (gB : array2 et lB)
-  (eB : ematrix et k n)
+  (eB : chest2 et k n)
   (gC : array2 et lC)
-  (eC : ematrix et m n)
+  (eC : chest2 et m n)
   (bm : szp{bm /?+ m})
   (bn : szp{bn /?+ n})
   (bk : szp{bk /?+ k})
@@ -227,11 +227,11 @@ instance kpost_block_sendable
   (#lB : layout2 k n)
   (#lC : layout2 m n)
   (gA : array2 et lA { is_global gA })
-  (eA : ematrix et m k)
+  (eA : chest2 et m k)
   (gB : array2 et lB { is_global gB })
-  (eB : ematrix et k n)
+  (eB : chest2 et k n)
   (gC : array2 et lC { is_global gC })
-  (eC : ematrix et m n)
+  (eC : chest2 et m n)
   (bm : szp{bm /?+ m})
   (bn : szp{bn /?+ n})
   (bk : szp{bk /?+ k})
@@ -257,8 +257,8 @@ let __gms
   (#et : Type0) {| scalar et |}
   (#m #k #columns : nat)
   (z : et)
-  (m1 : ematrix et m k)
-  (m2 : ematrix et k columns)
+  (m1 : chest2 et m k)
+  (m2 : chest2 et k columns)
   (row : nat) (col : nat) (to : nat)
   : GTot et
   = if row < m && col < columns && to <= k
@@ -272,13 +272,13 @@ let __gms_fwd
   (#et : Type0) {| scalar et |}
   (#m #k #columns : nat)
   (z : et)
-  (m1 : ematrix et m k)
-  (m2 : ematrix et k columns)
+  (m1 : chest2 et m k)
+  (m2 : chest2 et k columns)
   (row : nat) (col : nat) (d : nat)
   : Lemma
     (requires row < m /\ col < columns /\ d < k)
     (ensures add (__gms z m1 m2 row col d)
-                 (mul (macc m1 row d) (macc m2 d col))
+                 (mul (acc2 m1 row d) (acc2 m2 d col))
              == __gms z m1 m2 row col (d + 1))
     [SMTPat (__gms z m1 m2 row col (d + 1))]
   = MS.__gmatmul_single_lemma z mul add m1 m2 row col (d + 1)
@@ -288,8 +288,8 @@ let __gms_fwd
 let rec __gms_tiled_step
   (#et : Type0) {| scalar et |}
   (#m #n #k : nat)
-  (eA : ematrix et m k)
-  (eB : ematrix et k n)
+  (eA : chest2 et m k)
+  (eB : chest2 et k n)
   (bm : pos{bm /?+ m})
   (bn : pos{bn /?+ n})
   (bk : pos{bk /?+ k})
@@ -328,8 +328,8 @@ let rec __gms_tiled_step
 let __gms_tile_full
   (#et : Type0) {| scalar et |}
   (#m #n #k : nat)
-  (eA : ematrix et m k)
-  (eB : ematrix et k n)
+  (eA : chest2 et m k)
+  (eB : chest2 et k n)
   (bm : pos{bm /?+ m})
   (bn : pos{bn /?+ n})
   (bk : pos{bk /?+ k})
@@ -359,8 +359,8 @@ let __gms_tile_full
 let __gms_full
   (#et : Type0) {| scalar et |}
   (#m #n #k : nat)
-  (eA : ematrix et m k)
-  (eB : ematrix et k n)
+  (eA : chest2 et m k)
+  (eB : chest2 et k n)
   (row : natlt m) (col : natlt n)
   : Lemma (__gms (zero #et) eA eB row col k == MS.matmul_single eA eB row col)
           [SMTPat (__gms (zero #et) eA eB row col k)]
@@ -373,8 +373,8 @@ let __gms_full
 let __bkIdx_loop_step
   (#et : Type0) {| scalar et |}
   (#m #n #k : nat)
-  (eA : ematrix et m k)
-  (eB : ematrix et k n)
+  (eA : chest2 et m k)
+  (eB : chest2 et k n)
   (bm : pos{bm /?+ m})
   (bn : pos{bn /?+ n})
   (bk : pos{bk /?+ k})
@@ -439,8 +439,8 @@ fn subproducts2d
   (#l2 : layout2 bk bn) {| T.ctlayout l2 |}
   (gA : array2 et l1)
   (gB : array2 et l2)
-  (#eA : ematrix et bm bk)
-  (#eB : ematrix et bk bn)
+  (#eA : chest2 et bm bk)
+  (#eB : chest2 et bk bn)
   (#f : perm)
   (arow: szlt (bm/tm))
   (bcol : szlt (bn/tn))
@@ -481,7 +481,7 @@ fn subproducts2d
       invariant exists* (vrAcol : lseq et tm).
         rAcol |-> vrAcol **
         pure (forall (k : natlt (!j0)).
-                vrAcol @! k == macc eA (tm * arow + k) !dotIdx)
+                vrAcol @! k == acc2 eA (tm * arow + k) !dotIdx)
       decreases (tm - !j0)
     {
       pts_to_len rAcol;
@@ -494,7 +494,7 @@ fn subproducts2d
     with vrAcol. assert rAcol |-> vrAcol;
     assert
         pure (forall (k : natlt tm).
-                vrAcol @! k == macc eA (tm * arow + k) !dotIdx);
+                vrAcol @! k == acc2 eA (tm * arow + k) !dotIdx);
 
     let mut j1 = 0sz;
     while (!j1 <^ tn)
@@ -502,7 +502,7 @@ fn subproducts2d
       invariant exists* (vrBrow : lseq et tn).
         rBrow |-> vrBrow **
         pure (forall (k : natlt (!j1)).
-                vrBrow @! k == macc eB !dotIdx (tn * bcol + k))
+                vrBrow @! k == acc2 eB !dotIdx (tn * bcol + k))
       decreases (tn - !j1)
     {
       pts_to_len rBrow;
@@ -515,7 +515,7 @@ fn subproducts2d
     with vrBrow. assert rBrow |-> vrBrow;
     assert
         pure (forall (k : natlt tn).
-                vrBrow @! k == macc eB !dotIdx (tn * bcol + k));
+                vrBrow @! k == acc2 eB !dotIdx (tn * bcol + k));
 
     with v_cur. assert rchProd |-> v_cur;
 
@@ -592,13 +592,13 @@ let mul_add_inj (#n : pos) (a : nat) (b : natlt n) (c : nat) (d : natlt n)
     FStar.Math.Lemmas.small_div d n
 
 (* ettile commutes with matrix_comb (and thus mmcomb) pointwise.
-   This needs normalization through ematrix_subtile → mkM → macc chains. *)
+   This needs normalization through ematrix_subtile → mk2 → acc2 chains. *)
 let ettile_matmul_pointwise
   (#et : Type0) {| scalar et |}
   (#m #n : nat)
   (#k : nat)
-  (eA : ematrix et m k)
-  (eB : ematrix et k n)
+  (eA : chest2 et m k)
+  (eB : chest2 et k n)
   (bm : nat{bm > 0 /\ bm /?+ m})
   (bn : nat{bn > 0 /\ bn /?+ n})
   (tm : nat{tm > 0 /\ tm /?+ bm})
@@ -606,24 +606,24 @@ let ettile_matmul_pointwise
   (bid : natlt (m/bm * (n/bn)))
   (tid : natlt (bm/tm * (bn/tn)))
   (i : natlt tm) (j : natlt tn)
-  : Lemma (macc (ettile (MS.matmul eA eB) bm bn tm tn bid tid) i j ==
-           macc (MS.matmul eA eB)
+  : Lemma (acc2 (ettile (MS.matmul eA eB) bm bn tm tn bid tid) i j ==
+           acc2 (MS.matmul eA eB)
              (bid/(n/bn) * bm + tid/(bn/tn) * tm + i)
              (bid%(n/bn) * bn + tid%(bn/tn) * tn + j))
-  = assert_norm (macc (ettile (MS.matmul eA eB) bm bn tm tn bid tid) i j ==
-                 macc (MS.matmul eA eB)
+  = assert_norm (acc2 (ettile (MS.matmul eA eB) bm bn tm tn bid tid) i j ==
+                 acc2 (MS.matmul eA eB)
                    (bid/(n/bn) * bm + tid/(bn/tn) * tm + i)
                    (bid%(n/bn) * bn + tid%(bn/tn) * tn + j))
 
 (* Connects the post-bkIdx-loop state to the epilogue precondition.
    The loop invariant tracks __gms zero eA eB glob_r glob_c k.
-   The epilogue needs macc (ettile (matmul eA eB) ...) (idx/tn) (idx%tn).
+   The epilogue needs acc2 (ettile (matmul eA eB) ...) (idx/tn) (idx%tn).
    This lemma bridges them via __gms_full + lemma_matmul_index + ettile normalization. *)
 let __post_loop_to_epilogue
   (#et : Type0) {| scalar et |}
   (#m #n #k : nat)
-  (eA : ematrix et m k)
-  (eB : ematrix et k n)
+  (eA : chest2 et m k)
+  (eB : chest2 et k n)
   (bm : pos{bm /?+ m})
   (bn : pos{bn /?+ n})
   (tm : pos{tm /?+ bm})
@@ -641,9 +641,9 @@ let __post_loop_to_epilogue
           k))
     (ensures
       forall (idx : natlt (tm * tn)).
-        vrch_val @! idx == macc (ettile (MS.matmul eA eB) bm bn tm tn bid tid) (idx / tn) (idx % tn))
+        vrch_val @! idx == acc2 (ettile (MS.matmul eA eB) bm bn tm tn bid tid) (idx / tn) (idx % tn))
   = let aux (idx : natlt (tm * tn))
-      : Lemma (vrch_val @! idx == macc (ettile (MS.matmul eA eB) bm bn tm tn bid tid) (idx / tn) (idx % tn))
+      : Lemma (vrch_val @! idx == acc2 (ettile (MS.matmul eA eB) bm bn tm tn bid tid) (idx / tn) (idx % tn))
       = let i : natlt tm = idx / tn in
         let j : natlt tn = idx % tn in
         let br : natlt (m/bm) = bid / (n/bn) in
@@ -667,9 +667,9 @@ let ettile_mmcomb_pointwise
   (comb : binop et)
   (#m #n : nat)
   (#k : nat)
-  (eA : ematrix et m k)
-  (eB : ematrix et k n)
-  (eC : ematrix et m n)
+  (eA : chest2 et m k)
+  (eB : chest2 et k n)
+  (eC : chest2 et m n)
   (bm : nat{bm > 0 /\ bm /?+ m})
   (bn : nat{bn > 0 /\ bn /?+ n})
   (tm : nat{tm > 0 /\ tm /?+ bm})
@@ -677,13 +677,13 @@ let ettile_mmcomb_pointwise
   (bid : natlt (m/bm * (n/bn)))
   (tid : natlt (bm/tm * (bn/tn)))
   (i : natlt tm) (j : natlt tn)
-  : Lemma (macc (ettile (MS.mmcomb comb eC eA eB) bm bn tm tn bid tid) i j ==
-           comb (macc (ettile eC bm bn tm tn bid tid) i j)
-                (macc (ettile (MS.matmul eA eB) bm bn tm tn bid tid) i j))
-          [SMTPat (macc (ettile (MS.mmcomb comb eC eA eB) bm bn tm tn bid tid) i j)]
-  = assert_norm (macc (ettile (MS.mmcomb comb eC eA eB) bm bn tm tn bid tid) i j ==
-                 comb (macc (ettile eC bm bn tm tn bid tid) i j)
-                      (macc (ettile (MS.matmul eA eB) bm bn tm tn bid tid) i j))
+  : Lemma (acc2 (ettile (MS.mmcomb comb eC eA eB) bm bn tm tn bid tid) i j ==
+           comb (acc2 (ettile eC bm bn tm tn bid tid) i j)
+                (acc2 (ettile (MS.matmul eA eB) bm bn tm tn bid tid) i j))
+          [SMTPat (acc2 (ettile (MS.mmcomb comb eC eA eB) bm bn tm tn bid tid) i j)]
+  = assert_norm (acc2 (ettile (MS.mmcomb comb eC eA eB) bm bn tm tn bid tid) i j ==
+                 comb (acc2 (ettile eC bm bn tm tn bid tid) i j)
+                      (acc2 (ettile (MS.matmul eA eB) bm bn tm tn bid tid) i j))
 
 (* Pure-arithmetic tile div/mod facts, extracted to top level so they
    typecheck in a minimal context. Inside [epilogue]'s large proof state the
@@ -726,16 +726,16 @@ fn epilogue
   (#lC : layout2 m n)
   {| T.ctlayout lC |}
   (gC : array2 et lC)
-  (eA : ematrix et m k)
-  (eB : ematrix et k n)
-  (eC : ematrix et m n)
+  (eA : chest2 et m k)
+  (eB : chest2 et k n)
+  (eC : chest2 et m n)
   (bid : szlt (m/bm * (n/bn)))
   (tid : szlt (bm/tm * (bn/tn)))
   preserves
     rchProd |-> vrch
   requires
     pure (forall (idx : natlt (tm * tn)).
-      vrch @! idx == macc (ettile (MS.matmul eA eB) bm bn tm tn bid tid) (idx / tn) (idx % tn)) **
+      vrch @! idx == acc2 (ettile (MS.matmul eA eB) bm bn tm tn bid tid) (idx / tn) (idx % tn)) **
     ttile gC bm bn tm tn bid tid |-> ettile eC bm bn tm tn bid tid
   ensures
     ttile gC bm bn tm tn bid tid |-> ettile (MS.mmcomb comb eC eA eB) bm bn tm tn bid tid
@@ -743,7 +743,7 @@ fn epilogue
   (* Help the SMT connect vrch to the matmul subtile via div/mod *)
   epilogue_tile_div_mod tm tn;
   assert pure (forall (i:natlt tm) (j:natlt tn).
-    vrch @! (i * tn + j) == macc (ettile (MS.matmul eA eB) bm bn tm tn bid tid) i j);
+    vrch @! (i * tn + j) == acc2 (ettile (MS.matmul eA eB) bm bn tm tn bid tid) i j);
 
   let t_tile = ttile gC (SZ.v bm) (SZ.v bn) (SZ.v tm) (SZ.v tn) (SZ.v bid) (SZ.v tid);
   assert (rewrites_to t_tile (ttile gC (SZ.v bm) (SZ.v bn) (SZ.v tm) (SZ.v tn) (SZ.v bid) (SZ.v tid)));
@@ -753,25 +753,25 @@ fn epilogue
   let mut resIdxM = 0sz;
   while (!resIdxM <^ tm)
     invariant live resIdxM ** pure (!resIdxM <= tm)
-    invariant exists* (m_cur : ematrix et tm tn).
+    invariant exists* (m_cur : chest2 et tm tn).
       t_tile |-> m_cur **
       pure (forall (i:natlt tm) (j:natlt tn).
-        macc m_cur i j ==
+        acc2 m_cur i j ==
           (if i < !resIdxM
-           then comb (macc eC_tile i j) (vrch @! (i * tn + j))
-           else macc eC_tile i j))
+           then comb (acc2 eC_tile i j) (vrch @! (i * tn + j))
+           else acc2 eC_tile i j))
     decreases (tm - !resIdxM)
   {
     let mut resIdxN = 0sz;
     while (!resIdxN <^ tn)
       invariant live resIdxN ** pure (!resIdxN <= tn)
-      invariant exists* (m_cur : ematrix et tm tn).
+      invariant exists* (m_cur : chest2 et tm tn).
         t_tile |-> m_cur **
         pure (forall (i:natlt tm) (j:natlt tn).
-          macc m_cur i j ==
+          acc2 m_cur i j ==
             (if i * tn + j < !resIdxM * tn + !resIdxN
-             then comb (macc eC_tile i j) (vrch @! (i * tn + j))
-             else macc eC_tile i j))
+             then comb (acc2 eC_tile i j) (vrch @! (i * tn + j))
+             else acc2 eC_tile i j))
       decreases (tn - !resIdxN)
     {
       open Pulse.Lib.Array;
@@ -788,7 +788,7 @@ fn epilogue
 
       (* Key arithmetic fact for the invariant step: for (i,j) in bounds,
          i*tn+j == resIdxM*tn+resIdxN iff i==resIdxM /\ j==resIdxN.
-         This is needed so the SMT can connect mupd to the linearized
+         This is needed so the SMT can connect upd2 to the linearized
          index comparison in the invariant. *)
       assert pure (forall (i:natlt tm) (j:natlt tn).
         i * tn + j == !resIdxM * tn + !resIdxN <==> (i == !resIdxM /\ j == !resIdxN));
@@ -834,11 +834,11 @@ fn kf
   (#_ : squash (aligned_strided_row_major (chunk et) str_A))
   (#_ : squash (aligned_strided_row_major (chunk et) str_B))
   (gA : array2 et lA)
-  (#eA : ematrix et m k)
+  (#eA : chest2 et m k)
   (gB : array2 et lB)
-  (#eB : ematrix et k n)
+  (#eB : chest2 et k n)
   (gC : array2 et lC)
-  (#eC : ematrix et m n)
+  (#eC : chest2 et m n)
   (bm : szp{bm /?+ m})
   (bn : szp{bn /?+ n})
   (bk : szp{bk /?+ k})
@@ -922,8 +922,8 @@ fn kf
             (mcol * bn + tn * threadCol + idx % tn)
             (!bkIdx * bk))
     invariant B.barrier_state (2 * !bkIdx) **
-        (exists* (x : ematrix _ _ _). FB.bp_sharing sA x nthr) **
-        (exists* (x : ematrix _ _ _). FB.bp_sharing sB x nthr)
+        (exists* (x : chest2 _ _ _). FB.bp_sharing sA x nthr) **
+        (exists* (x : chest2 _ _ _). FB.bp_sharing sB x nthr)
     decreases (num_k_tiles - !bkIdx)
   {
     even_2x !bkIdx;
@@ -1030,7 +1030,7 @@ fn kf
 
   (* After the loop: rchProd[idx] == __gms zero eA eB glob_r glob_c (num_k_tiles * bk)
      == __gms zero eA eB glob_r glob_c k == matmul_single eA eB glob_r glob_c
-     == macc (matmul eA eB) glob_r glob_c == macc (ettile (matmul eA eB) ...) (idx/tn) (idx%tn) *)
+     == acc2 (matmul eA eB) glob_r glob_c == acc2 (ettile (matmul eA eB) ...) (idx/tn) (idx%tn) *)
   with vrch_val. assert (rchProd |-> vrch_val);
   pts_to_len rchProd;
   assert pure (num_k_tiles * bk == k);
@@ -1058,11 +1058,11 @@ fn setup
   (#lC : layout2 m n)
   {| T.ctlayout lA, T.ctlayout lB, T.ctlayout lC |}
   (gA : array2 et lA)
-  (eA : ematrix et m k)
+  (eA : chest2 et m k)
   (gB : array2 et lB)
-  (eB : ematrix et k n)
+  (eB : chest2 et k n)
   (gC : array2 et lC)
-  (eC : ematrix et m n)
+  (eC : chest2 et m n)
   (bm : szp{bm /?+ m})
   (bn : szp{bn /?+ n})
   (bk : szp{bk /?+ k})
@@ -1182,11 +1182,11 @@ fn block_setup
   (#lB : layout2 k n)
   (#lC : layout2 m n)
   (gA : array2 et lA)
-  (eA : ematrix et m k)
+  (eA : chest2 et m k)
   (gB : array2 et lB)
-  (eB : ematrix et k n)
+  (eB : chest2 et k n)
   (gC : array2 et lC)
-  (eC : ematrix et m n)
+  (eC : chest2 et m n)
   (bm : szp{bm /?+ m})
   (bn : szp{bn /?+ n})
   (bk : szp{bk /?+ k})
@@ -1229,11 +1229,11 @@ fn block_teardown
   (#lB : layout2 k n)
   (#lC : layout2 m n)
   (gA : array2 et lA)
-  (eA : ematrix et m k)
+  (eA : chest2 et m k)
   (gB : array2 et lB)
-  (eB : ematrix et k n)
+  (eB : chest2 et k n)
   (gC : array2 et lC)
-  (eC : ematrix et m n)
+  (eC : chest2 et m n)
   (bm : szp{bm /?+ m})
   (bn : szp{bn /?+ n})
   (bk : szp{bk /?+ k})
@@ -1279,11 +1279,11 @@ fn teardown
   (#lC : layout2 m n)
   {| T.ctlayout lC |}
   (gA : array2 et lA)
-  (eA : ematrix et m k)
+  (eA : chest2 et m k)
   (gB : array2 et lB)
-  (eB : ematrix et k n)
+  (eB : chest2 et k n)
   (gC : array2 et lC)
-  (eC : ematrix et m n)
+  (eC : chest2 et m n)
   (bm : szp{bm /?+ m})
   (bn : szp{bn /?+ n})
   (bk : szp{bk /?+ k})
@@ -1400,12 +1400,12 @@ let mk_kernel
   (#_ : squash (aligned_strided_row_major (chunk et) str_B))
   (gA : array2 et lA { is_global gA })
   (#fA : perm)
-  (#eA : ematrix et m k)
+  (#eA : chest2 et m k)
   (gB : array2 et lB { is_global gB })
   (#fB : perm)
-  (#eB : ematrix et k n)
+  (#eB : chest2 et k n)
   (gC : array2 et lC { is_global gC })
-  (#eC : ematrix et m n)
+  (#eC : chest2 et m n)
   (bm : szp{bm /?+ m})
   (bn : szp{bn /?+ n})
   (bk : szp{bk /?+ k})
@@ -1477,11 +1477,11 @@ fn mmcomb_gpu_exact
   (#_ : squash (aligned_strided_row_major (chunk et) str_A))
   (#_ : squash (aligned_strided_row_major (chunk et) str_B))
   (gA : array2 et lA { is_global gA })
-  (#eA : ematrix et m k)
+  (#eA : chest2 et m k)
   (gB : array2 et lB { is_global gB })
-  (#eB : ematrix et k n)
+  (#eB : chest2 et k n)
   (gC : array2 et lC { is_global gC })
-  (#eC : ematrix et m n)
+  (#eC : chest2 et m n)
   (bm : szp{bm /?+ m})
   (bn : szp{bn /?+ n})
   (bk : szp{bk /?+ k})
@@ -1531,11 +1531,11 @@ fn mmcomb_gpu_approx
   (#_ : squash (aligned_strided_row_major (chunk et) str_A))
   (#_ : squash (aligned_strided_row_major (chunk et) str_B))
   (gA : array2 et lA { is_global gA })
-  (#eA : ematrix et m k)
+  (#eA : chest2 et m k)
   (gB : array2 et lB { is_global gB })
-  (#eB : ematrix et k n)
+  (#eB : chest2 et k n)
   (gC : array2 et lC { is_global gC })
-  (#eC : ematrix et m n)
+  (#eC : chest2 et m n)
   (bm : szp{bm /?+ m})
   (bn : szp{bn /?+ n})
   (bk : szp{bk /?+ k})
@@ -1552,9 +1552,9 @@ fn mmcomb_gpu_approx
   (slB : full_layout2 bk bn)
   {| T.ctlayout slA, T.ctlayout slB |}
   (#fA #fB : perm)
-  (rA : ematrix real m k)
-  (rB : ematrix real k n)
-  (rC : ematrix real m n)
+  (rA : chest2 real m k)
+  (rB : chest2 real k n)
+  (rC : chest2 real m n)
   norewrite
   preserves
     cpu **
@@ -1568,7 +1568,7 @@ fn mmcomb_gpu_approx
     pure (eA %~ rA /\ eB %~ rB /\ eC %~ rC) **
     on gpu_loc (gC |-> eC)
   ensures
-    exists* (eC' : ematrix et m n).
+    exists* (eC' : chest2 et m n).
       on gpu_loc (gC |-> eC') **
       pure (eC' %~ MS.mmcomb comb_r rC rA rB)
 {

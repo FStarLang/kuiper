@@ -7,7 +7,7 @@ open Kuiper.Tensor
 open Kuiper.Tensor.Layout
 module MS = Kuiper.Spec.GEMM
 module SZ = Kuiper.SizeT
-open Kuiper.EMatrix { ematrix, to_real_matrix }
+open Kuiper.EMatrix { chest2, to_real_matrix }
 
 #set-options "--z3rlimit 20"
 
@@ -19,7 +19,7 @@ fn copy_from_vec
   (gm : array2 et l)
   (a : vec et)
   (#s : erased (seq et){Seq.length s == m * n})
-  (#em : ematrix et m n)
+  (#em : chest2 et m n)
   preserves
     cpu ** a |-> s
   requires
@@ -51,7 +51,7 @@ fn copy_to_vec
   (a : vec et)
   (gm : array2 et l)
   (#s : erased (seq et){Seq.length s == m * n})
-  (#em : ematrix et m n)
+  (#em : chest2 et m n)
   preserves
     cpu ** on gpu_loc (gm |-> em)
   requires
@@ -140,7 +140,7 @@ fn mmcomb_gpu_tiled
   (gA : array2 et lA { is_global gA })
   (gB : array2 et lB { is_global gB })
   (gC : array2 et lC { is_global gC })
-  (#eA #eB #eC : ematrix et _ _)
+  (#eA #eB #eC : chest2 et _ _)
   (#fA #fB : perm)
   norewrite
   preserves

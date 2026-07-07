@@ -12,8 +12,7 @@ module MS = Kuiper.Spec.GEMM
 module MU = Kuiper.Kernel.GEMM.Util
 module SZ = Kuiper.SizeT
 module B = Kuiper.Barrier
-
-open Kuiper.EMatrix { ematrix, macc }
+open Kuiper.Chest
 
 let live_cell
   (#et : Type0)
@@ -39,15 +38,15 @@ fn explode2
   (#et : Type0) (#m #n : nat) (#l : layout2 m n)
   (a : array2 et l)
   (#f : perm)
-  (#s : ematrix et m n)
+  (#s : chest2 et m n)
   requires a |-> Frac f s
   ensures
     forall+ (r : natlt m) (c : natlt n).
-      tensor_pts_to_cell a #f (idx2 r c) (macc s r c)
+      tensor_pts_to_cell a #f (idx2 r c) (acc2 s r c)
 {
   tensor_explode2 a;
-  forevery_ext _ (fun i -> tensor_pts_to_cell a #f (idx2 (fst i) (snd i)) (macc s (fst i) (snd i)));
-  forevery_unflatten (fun r c -> tensor_pts_to_cell a #f (idx2 r c) (macc s r c));
+  forevery_ext _ (fun i -> tensor_pts_to_cell a #f (idx2 (fst i) (snd i)) (acc2 s (fst i) (snd i)));
+  forevery_unflatten (fun r c -> tensor_pts_to_cell a #f (idx2 r c) (acc2 s r c));
   ()
 }
 
@@ -56,16 +55,16 @@ fn implode2
   (#et : Type0) (#m #n : nat) (#l : layout2 m n)
   (a : array2 et l)
   (#f : perm)
-  (#s : ematrix et m n)
+  (#s : chest2 et m n)
   requires
     pure (SZ.fits (l.ulen))
   requires
     forall+ (r : natlt m) (c : natlt n).
-      tensor_pts_to_cell a #f (idx2 r c) (macc s r c)
+      tensor_pts_to_cell a #f (idx2 r c) (acc2 s r c)
   ensures a |-> Frac f s
 {
-  forevery_flatten (fun r c -> tensor_pts_to_cell a #f (idx2 r c) (macc s r c));
-  forevery_ext _ (fun i -> tensor_pts_to_cell a #f (idx2 (fst i) (snd i)) (macc s (fst i) (snd i)));
+  forevery_flatten (fun r c -> tensor_pts_to_cell a #f (idx2 r c) (acc2 s r c));
+  forevery_ext _ (fun i -> tensor_pts_to_cell a #f (idx2 (fst i) (snd i)) (acc2 s (fst i) (snd i)));
   tensor_implode2 a;
   ()
 }
@@ -85,8 +84,8 @@ let barrier_p_cell
   (#et : Type0)
   (tile : valid_tile)
   (#mrows #mshared #mcols : pos)
-  (eA : ematrix et (mrows * tile) (mshared * tile))
-  (eB : ematrix et (mshared * tile) (mcols * tile))
+  (eA : chest2 et (mrows * tile) (mshared * tile))
+  (eB : chest2 et (mshared * tile) (mcols * tile))
   (bid : natlt (mrows * mcols))
   (#slA #slB : full_layout2 tile tile)
   (sa1 : array2 et slA)
@@ -96,13 +95,13 @@ let barrier_p_cell
     if it >= 2 * mshared then
       emp
     else if even it then
-      (exists* (x : ematrix _ _ _). sa1 |-> Frac (1.0R /. (tile * tile)) x) **
-      (exists* (x : ematrix _ _ _). sa2 |-> Frac (1.0R /. (tile * tile)) x)
+      (exists* (x : chest2 _ _ _). sa1 |-> Frac (1.0R /. (tile * tile)) x) **
+      (exists* (x : chest2 _ _ _). sa2 |-> Frac (1.0R /. (tile * tile)) x)
     else
       let mrow = bid / mcols in
       let mcol = bid % mcols in
-      tensor_pts_to_cell sa1 (idx2 (tid/tile) (tid%tile)) (macc (ematrix_subtile eA tile tile mrow (it / 2)) (tid/tile) (tid%tile)) **
-      tensor_pts_to_cell sa2 (idx2 (tid/tile) (tid%tile)) (macc (ematrix_subtile eB tile tile (it / 2) mcol) (tid/tile) (tid%tile))
+      tensor_pts_to_cell sa1 (idx2 (tid/tile) (tid%tile)) (acc2 (ematrix_subtile eA tile tile mrow (it / 2)) (tid/tile) (tid%tile)) **
+      tensor_pts_to_cell sa2 (idx2 (tid/tile) (tid%tile)) (acc2 (ematrix_subtile eB tile tile (it / 2) mcol) (tid/tile) (tid%tile))
 
 (* Fold the even-step shared-ownership form into barrier_p_cell.
    The runtime [if]s make the [it >= 2*mshared] and [even it] guards in
@@ -114,8 +113,8 @@ fn fold_barrier_p_even
   (#et : Type0)
   (tile : valid_tile)
   (#mrows #mshared #mcols : pos)
-  (eA : ematrix et (mrows * tile) (mshared * tile))
-  (eB : ematrix et (mshared * tile) (mcols * tile))
+  (eA : chest2 et (mrows * tile) (mshared * tile))
+  (eB : chest2 et (mshared * tile) (mcols * tile))
   (bid : natlt (mrows * mcols))
   (#slA #slB : full_layout2 tile tile)
   (sa1 : array2 et slA)
@@ -123,8 +122,8 @@ fn fold_barrier_p_even
   (it : nat)
   (tid : natlt (tile * tile))
   requires
-    (exists* (x : ematrix _ _ _). sa1 |-> Frac (1.0R /. (tile * tile)) x) **
-    (exists* (x : ematrix _ _ _). sa2 |-> Frac (1.0R /. (tile * tile)) x) **
+    (exists* (x : chest2 _ _ _). sa1 |-> Frac (1.0R /. (tile * tile)) x) **
+    (exists* (x : chest2 _ _ _). sa2 |-> Frac (1.0R /. (tile * tile)) x) **
     pure (even it /\ it < 2 * mshared)
   ensures
     barrier_p_cell tile eA eB bid sa1 sa2 it tid
@@ -134,8 +133,8 @@ fn fold_barrier_p_even
   } else {
     let ev = even it;
     if ev {
-      rewrite (exists* (x : ematrix _ _ _). sa1 |-> Frac (1.0R /. (tile * tile)) x) **
-              (exists* (x : ematrix _ _ _). sa2 |-> Frac (1.0R /. (tile * tile)) x)
+      rewrite (exists* (x : chest2 _ _ _). sa1 |-> Frac (1.0R /. (tile * tile)) x) **
+              (exists* (x : chest2 _ _ _). sa2 |-> Frac (1.0R /. (tile * tile)) x)
            as barrier_p_cell tile eA eB bid sa1 sa2 it tid;
     } else {
       unreachable ();
@@ -148,8 +147,8 @@ let barrier_q_cell
   (#et : Type0) {| scalar et |}
   (tile : valid_tile)
   (#mrows #mshared #mcols : pos)
-  (eA : ematrix et (mrows * tile) (mshared * tile))
-  (eB : ematrix et (mshared * tile) (mcols * tile))
+  (eA : chest2 et (mrows * tile) (mshared * tile))
+  (eB : chest2 et (mshared * tile) (mcols * tile))
   (bid : natlt (mrows * mcols))
   (#slA #slB : full_layout2 tile tile)
   (sa1 : array2 et slA)
@@ -170,8 +169,8 @@ let shmem_contract
   (#et : Type0) {| scalar et |}
   (tile : valid_tile)
   (#mrows #mshared #mcols : pos)
-  (eA : ematrix et (mrows * tile) (mshared * tile))
-  (eB : ematrix et (mshared * tile) (mcols * tile))
+  (eA : chest2 et (mrows * tile) (mshared * tile))
+  (eB : chest2 et (mshared * tile) (mcols * tile))
   (bid : natlt (mrows * mcols))
   (#slA #slB : full_layout2 tile tile)
   (sa1 : array2 et slA)
@@ -187,8 +186,8 @@ fn barrier_p_to_q_cell_transform
   (#et : Type0) {| scalar et |}
   (tile : valid_tile)
   (#mrows #mshared #mcols : pos)
-  (eA : ematrix et (mrows * tile) (mshared * tile))
-  (eB : ematrix et (mshared * tile) (mcols * tile))
+  (eA : chest2 et (mrows * tile) (mshared * tile))
+  (eB : chest2 et (mshared * tile) (mcols * tile))
   (bid : natlt (mrows * mcols))
   (#slA #slB : full_layout2 tile tile)
   (sa1 : array2 et slA)
@@ -219,12 +218,12 @@ fn barrier_p_to_q_cell_transform
       forevery_map
         (fun (tid : natlt (tile * tile)) -> barrier_p_cell tile eA eB bid sa1 sa2 it tid)
         (fun (tid : natlt (tile * tile)) ->
-          (exists* (x : ematrix _ _ _). sa1 |-> Frac (1.0R /. (tile * tile)) x) **
-          (exists* (x : ematrix _ _ _). sa2 |-> Frac (1.0R /. (tile * tile)) x))
+          (exists* (x : chest2 _ _ _). sa1 |-> Frac (1.0R /. (tile * tile)) x) **
+          (exists* (x : chest2 _ _ _). sa2 |-> Frac (1.0R /. (tile * tile)) x))
         fn tid {
           rewrite barrier_p_cell tile eA eB bid sa1 sa2 it tid
-               as (exists* (x : ematrix _ _ _). sa1 |-> Frac (1.0R /. (tile * tile)) x) **
-                  (exists* (x : ematrix _ _ _). sa2 |-> Frac (1.0R /. (tile * tile)) x);
+               as (exists* (x : chest2 _ _ _). sa1 |-> Frac (1.0R /. (tile * tile)) x) **
+                  (exists* (x : chest2 _ _ _). sa2 |-> Frac (1.0R /. (tile * tile)) x);
         };
       forevery_unzip _ _;
       tensor_gather_n_underspec sa1 (tile * tile);
@@ -233,16 +232,16 @@ fn barrier_p_to_q_cell_transform
       with em2. assert (pts_to sa2 #1.0R em2);
       explode2 sa1;
       forevery_unfactor' (tile * tile) tile tile
-        (fun r c -> tensor_pts_to_cell sa1 (idx2 r c) (macc em1 r c));
+        (fun r c -> tensor_pts_to_cell sa1 (idx2 r c) (acc2 em1 r c));
       explode2 sa2;
       forevery_unfactor' (tile * tile) tile tile
-        (fun r c -> tensor_pts_to_cell sa2 (idx2 r c) (macc em2 r c));
+        (fun r c -> tensor_pts_to_cell sa2 (idx2 r c) (acc2 em2 r c));
       forevery_map
-        (fun (tid : natlt (tile * tile)) -> tensor_pts_to_cell sa1 (idx2 (tid/tile) (tid%tile)) (macc em1 (tid/tile) (tid%tile)))
+        (fun (tid : natlt (tile * tile)) -> tensor_pts_to_cell sa1 (idx2 (tid/tile) (tid%tile)) (acc2 em1 (tid/tile) (tid%tile)))
         (fun (tid : natlt (tile * tile)) -> live_cell sa1 (tid/tile) (tid%tile))
         fn tid { fold live_cell };
       forevery_map
-        (fun (tid : natlt (tile * tile)) -> tensor_pts_to_cell sa2 (idx2 (tid/tile) (tid%tile)) (macc em2 (tid/tile) (tid%tile)))
+        (fun (tid : natlt (tile * tile)) -> tensor_pts_to_cell sa2 (idx2 (tid/tile) (tid%tile)) (acc2 em2 (tid/tile) (tid%tile)))
         (fun (tid : natlt (tile * tile)) -> live_cell sa2 (tid/tile) (tid%tile))
         fn tid { fold live_cell };
       forevery_zip
@@ -263,19 +262,19 @@ fn barrier_p_to_q_cell_transform
       forevery_map
         (fun (tid : natlt (tile * tile)) -> barrier_p_cell tile eA eB bid sa1 sa2 it tid)
         (fun (tid : natlt (tile * tile)) ->
-          tensor_pts_to_cell sa1 (idx2 (tid/tile) (tid%tile)) (macc (ematrix_subtile eA tile tile mrow (it/2)) (tid/tile) (tid%tile)) **
-          tensor_pts_to_cell sa2 (idx2 (tid/tile) (tid%tile)) (macc (ematrix_subtile eB tile tile (it/2) mcol) (tid/tile) (tid%tile)))
+          tensor_pts_to_cell sa1 (idx2 (tid/tile) (tid%tile)) (acc2 (ematrix_subtile eA tile tile mrow (it/2)) (tid/tile) (tid%tile)) **
+          tensor_pts_to_cell sa2 (idx2 (tid/tile) (tid%tile)) (acc2 (ematrix_subtile eB tile tile (it/2) mcol) (tid/tile) (tid%tile)))
         fn tid {
           rewrite barrier_p_cell tile eA eB bid sa1 sa2 it tid
-               as tensor_pts_to_cell sa1 (idx2 (tid/tile) (tid%tile)) (macc (ematrix_subtile eA tile tile mrow (it/2)) (tid/tile) (tid%tile)) **
-                  tensor_pts_to_cell sa2 (idx2 (tid/tile) (tid%tile)) (macc (ematrix_subtile eB tile tile (it/2) mcol) (tid/tile) (tid%tile));
+               as tensor_pts_to_cell sa1 (idx2 (tid/tile) (tid%tile)) (acc2 (ematrix_subtile eA tile tile mrow (it/2)) (tid/tile) (tid%tile)) **
+                  tensor_pts_to_cell sa2 (idx2 (tid/tile) (tid%tile)) (acc2 (ematrix_subtile eB tile tile (it/2) mcol) (tid/tile) (tid%tile));
         };
       forevery_unzip _ _;
       forevery_factor' (tile * tile) tile tile
-        (fun r c -> tensor_pts_to_cell sa1 (idx2 r c) (macc (ematrix_subtile eA tile tile mrow (it/2)) r c));
+        (fun r c -> tensor_pts_to_cell sa1 (idx2 r c) (acc2 (ematrix_subtile eA tile tile mrow (it/2)) r c));
       implode2 sa1;
       forevery_factor' (tile * tile) tile tile
-        (fun r c -> tensor_pts_to_cell sa2 (idx2 r c) (macc (ematrix_subtile eB tile tile (it/2) mcol) r c));
+        (fun r c -> tensor_pts_to_cell sa2 (idx2 r c) (acc2 (ematrix_subtile eB tile tile (it/2) mcol) r c));
       implode2 sa2;
       tensor_share_n sa1 (tile * tile);
       tensor_share_n sa2 (tile * tile);
@@ -312,8 +311,8 @@ let kpre1
   (gA : array2 et lA)
   (gB : array2 et lB)
   (gC : array2 et lC)
-  (eA eB : ematrix _ _ _)
-  (eC : ematrix et (mrows * tile) (mcols * tile))
+  (eA eB : chest2 _ _ _)
+  (eC : chest2 et (mrows * tile) (mcols * tile))
   (fA fB : perm)
   (bid : natlt (mrows * mcols))
   (tid : natlt (tile * tile))
@@ -330,7 +329,7 @@ let kpre1
   tensor_pts_to_cell
     (array2_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols))
     #1.0R
-    (idx2 (tid / tile) (tid % tile)) (macc eC grow gcol)
+    (idx2 (tid / tile) (tid % tile)) (acc2 eC grow gcol)
 
 (* Functional postcondition: the cell contains a value approximating
    MS.gemm_single over external real matrices rA, rB, rC *)
@@ -347,11 +346,11 @@ let kpost1
   (gA : array2 et lA)
   (gB : array2 et lB)
   (gC : array2 et lC)
-  (eA eB : ematrix _ _ _)
-  (eC : ematrix et (mrows * tile) (mcols * tile))
-  (rA : ematrix real (mrows   * tile) (mshared * tile))
-  (rB : ematrix real (mshared * tile) (mcols   * tile))
-  (rC : ematrix real (mrows   * tile) (mcols   * tile))
+  (eA eB : chest2 _ _ _)
+  (eC : chest2 et (mrows * tile) (mcols * tile))
+  (rA : chest2 real (mrows   * tile) (mshared * tile))
+  (rB : chest2 real (mshared * tile) (mcols   * tile))
+  (rC : chest2 real (mrows   * tile) (mcols   * tile))
   (fA fB : perm)
   (bid : natlt (mrows * mcols))
   (tid : natlt (tile * tile))
@@ -386,8 +385,8 @@ let kpre
   (gA : array2 et lA)
   (gB : array2 et lB)
   (gC : array2 et lC)
-  (eA eB : ematrix _ _ _)
-  (eC : ematrix et (mrows * tile) (mcols * tile))
+  (eA eB : chest2 _ _ _)
+  (eC : chest2 et (mrows * tile) (mcols * tile))
   (fA fB : perm)
   (sh : c_shmems (shmems_desc et tile))
   (bid : natlt (mrows * mcols))
@@ -411,11 +410,11 @@ let kpost
   (gA : array2 et lA)
   (gB : array2 et lB)
   (gC : array2 et lC)
-  (eA eB : ematrix _ _ _)
-  (eC : ematrix et (mrows * tile) (mcols * tile))
-  (rA : ematrix real (mrows   * tile) (mshared * tile))
-  (rB : ematrix real (mshared * tile) (mcols   * tile))
-  (rC : ematrix real (mrows   * tile) (mcols   * tile))
+  (eA eB : chest2 _ _ _)
+  (eC : chest2 et (mrows * tile) (mcols * tile))
+  (rA : chest2 real (mrows   * tile) (mshared * tile))
+  (rB : chest2 real (mshared * tile) (mcols   * tile))
+  (rC : chest2 real (mrows   * tile) (mcols   * tile))
   (fA fB : perm)
   (sh : c_shmems (shmems_desc et tile))
   (bid : natlt (mrows * mcols))
@@ -444,12 +443,12 @@ fn kf
   (gA : array2 et lA)
   (gB : array2 et lB)
   (gC : array2 et lC)
-  (#eA : ematrix et (mrows * tile)   (mshared * tile))
-  (#eB : ematrix et (mshared * tile) (mcols * tile))
-  (#eC : ematrix et (mrows * tile)   (mcols * tile))
-  (rA : ematrix real (mrows   * tile) (mshared * tile))
-  (rB : ematrix real (mshared * tile) (mcols   * tile))
-  (rC : ematrix real (mrows   * tile) (mcols   * tile))
+  (#eA : chest2 et (mrows * tile)   (mshared * tile))
+  (#eB : chest2 et (mshared * tile) (mcols * tile))
+  (#eC : chest2 et (mrows * tile)   (mcols * tile))
+  (rA : chest2 real (mrows   * tile) (mshared * tile))
+  (rB : chest2 real (mshared * tile) (mcols   * tile))
+  (rC : chest2 real (mrows   * tile) (mcols   * tile))
   (#_sq : squash (eA %~ rA /\ eB %~ rB /\ eC %~ rC))
   (#fA #fB : perm)
   (sh : c_shmems (shmems_desc et tile))
@@ -565,11 +564,11 @@ fn kf
 
     rewrite each (v brow) as (tid / tile);
     rewrite each (v bcol) as (tid % tile);
-    rewrite each v1 as (macc (ematrix_subtile eA tile tile (SZ.v mrow) (SZ.v !bk)) (tid / tile) (tid % tile));
-    rewrite each v2 as (macc (ematrix_subtile eB tile tile (SZ.v !bk) (SZ.v mcol)) (tid / tile) (tid % tile));
+    rewrite each v1 as (acc2 (ematrix_subtile eA tile tile (SZ.v mrow) (SZ.v !bk)) (tid / tile) (tid % tile));
+    rewrite each v2 as (acc2 (ematrix_subtile eB tile tile (SZ.v !bk) (SZ.v mcol)) (tid / tile) (tid % tile));
 
-    rewrite tensor_pts_to_cell sa1 (idx2 (tid/tile) (tid%tile)) (macc (ematrix_subtile eA tile tile (SZ.v mrow) (SZ.v !bk)) (tid/tile) (tid%tile)) **
-            tensor_pts_to_cell sa2 (idx2 (tid/tile) (tid%tile)) (macc (ematrix_subtile eB tile tile (SZ.v !bk) (SZ.v mcol)) (tid/tile) (tid%tile))
+    rewrite tensor_pts_to_cell sa1 (idx2 (tid/tile) (tid%tile)) (acc2 (ematrix_subtile eA tile tile (SZ.v mrow) (SZ.v !bk)) (tid/tile) (tid%tile)) **
+            tensor_pts_to_cell sa2 (idx2 (tid/tile) (tid%tile)) (acc2 (ematrix_subtile eB tile tile (SZ.v !bk) (SZ.v mcol)) (tid/tile) (tid%tile))
          as barrier_p_cell tile eA eB (SZ.v bid) sa1 sa2 (2 * !bk + 1) tid;
 
     // fold barrier_p_cell tile eA eB (SZ.v bid) sa1 sa2 (2 * !bk + 1) tid;
@@ -676,8 +675,8 @@ fn setup
   (gB : array2 et lB)
   (gC : array2 et lC)
   (#fA #fB : perm)
-  (#eA #eB : ematrix _ _ _)
-  (#eC : ematrix et (mrows * tile) (mcols * tile))
+  (#eA #eB : chest2 _ _ _)
+  (#eC : chest2 et (mrows * tile) (mcols * tile))
   ()
   norewrite
   requires
@@ -706,14 +705,14 @@ fn setup
   assert pure (forall (brow:natlt tile) (bcol:natlt tile). (brow * tile + bcol) / tile == brow /\ (brow * tile + bcol) % tile == bcol);
   forevery_ext_4
     (fun (mrow:natlt mrows) (mcol:natlt mcols) (brow:natlt tile) (bcol:natlt tile) ->
-      tensor_pts_to_cell (array2_subtile gC (SZ.v tile) (SZ.v tile) mrow mcol) (idx2 (brow <: natlt tile) (bcol <: natlt tile)) (macc eC (mrow * tile + brow) (mcol * tile + bcol)))
+      tensor_pts_to_cell (array2_subtile gC (SZ.v tile) (SZ.v tile) mrow mcol) (idx2 (brow <: natlt tile) (bcol <: natlt tile)) (acc2 eC (mrow * tile + brow) (mcol * tile + bcol)))
     (fun (mrow:natlt mrows) (mcol:natlt mcols) (brow:natlt tile) (bcol:natlt tile) ->
       let bid = mrow * mcols + mcol in let tid = brow * tile + bcol in
       tensor_pts_to_cell (array2_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols)) (idx2 (tid / tile <: natlt tile) (tid % tile <: natlt tile))
-        (macc eC ((bid / mcols) * tile + (tid / tile)) ((bid % mcols) * tile + (tid % tile))));
+        (acc2 eC ((bid / mcols) * tile + (tid / tile)) ((bid % mcols) * tile + (tid % tile))));
   forevery_unfactor_2 (mrows * mcols) mrows mcols (SZ.v tile * SZ.v tile) (SZ.v tile) (SZ.v tile)
     (fun bid tid -> tensor_pts_to_cell (array2_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols)) (idx2 (tid / tile <: natlt tile) (tid % tile <: natlt tile))
-      (macc eC ((bid / mcols) * tile + (tid / tile)) ((bid % mcols) * tile + (tid % tile))));
+      (acc2 eC ((bid / mcols) * tile + (tid / tile)) ((bid % mcols) * tile + (tid % tile))));
 
   (* Step 4: Zip gA, gB, gC *)
   forevery_zip3_2
@@ -721,7 +720,7 @@ fn setup
     (fun (_ : natlt (mrows * mcols)) (_ : natlt (SZ.v tile * SZ.v tile)) -> gB |-> Frac (fB /. ((mrows * tile) * (mcols * tile))) eB)
     (fun (bid : natlt (mrows * mcols)) (tid : natlt (SZ.v tile * SZ.v tile)) ->
       tensor_pts_to_cell (array2_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols)) (idx2 (tid / tile <: natlt tile) (tid % tile <: natlt tile))
-        (macc eC ((bid / mcols) * tile + (tid / tile)) ((bid % mcols) * tile + (tid % tile))));
+        (acc2 eC ((bid / mcols) * tile + (tid / tile)) ((bid % mcols) * tile + (tid % tile))));
 
   (* Step 5: Bridge to natlt2 and match kpre1 *)
   forevery_rw_size2 (mrows * mcols) (SZ.v (mrows `SZ.mul` mcols)) (SZ.v tile * SZ.v tile) (SZ.v (tile `SZ.mul` tile));
@@ -729,7 +728,7 @@ fn setup
     (fun (bid : natlt (SZ.v (mrows `SZ.mul` mcols))) (tid : natlt (SZ.v (tile `SZ.mul` tile))) ->
       gA |-> Frac (fA /. ((mrows * tile) * (mcols * tile))) eA ** gB |-> Frac (fB /. ((mrows * tile) * (mcols * tile))) eB **
       tensor_pts_to_cell (array2_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols)) (idx2 (tid / tile <: natlt tile) (tid % tile <: natlt tile))
-        (macc eC ((bid / mcols) * tile + (tid / tile)) ((bid % mcols) * tile + (tid % tile))))
+        (acc2 eC ((bid / mcols) * tile + (tid / tile)) ((bid % mcols) * tile + (tid % tile))))
     (fun (bid : natlt2 mrows mcols) (tid : natlt2 tile tile) -> kpre1 comb comb_r tile gA gB gC eA eB eC fA fB bid tid);
   ();
 }
@@ -751,9 +750,9 @@ fn block_setup
   (gB : array2 et lB)
   (gC : array2 et lC)
   (#fA #fB : perm)
-  (#eA : ematrix et (mrows * tile) (mshared * tile))
-  (#eB : ematrix et (mshared * tile) (mcols * tile))
-  (#eC : ematrix et (mrows * tile) (mcols * tile))
+  (#eA : chest2 et (mrows * tile) (mshared * tile))
+  (#eB : chest2 et (mshared * tile) (mcols * tile))
+  (#eC : chest2 et (mrows * tile) (mcols * tile))
   (sh : c_shmems (shmems_desc et tile))
   (bid : natlt (mrows * mcols))
   ()
@@ -799,12 +798,12 @@ fn block_teardown
   (gB : array2 et lB)
   (gC : array2 et lC)
   (#fA #fB : perm)
-  (#eA : ematrix et (mrows * tile) (mshared * tile))
-  (#eB : ematrix et (mshared * tile) (mcols * tile))
-  (#eC : ematrix et (mrows * tile) (mcols * tile))
-  (rA : ematrix real (mrows   * tile) (mshared * tile))
-  (rB : ematrix real (mshared * tile) (mcols   * tile))
-  (rC : ematrix real (mrows   * tile) (mcols   * tile))
+  (#eA : chest2 et (mrows * tile) (mshared * tile))
+  (#eB : chest2 et (mshared * tile) (mcols * tile))
+  (#eC : chest2 et (mrows * tile) (mcols * tile))
+  (rA : chest2 real (mrows   * tile) (mshared * tile))
+  (rB : chest2 real (mshared * tile) (mcols   * tile))
+  (rC : chest2 real (mrows   * tile) (mcols   * tile))
   (sh : c_shmems (shmems_desc et tile))
   (bid : natlt (mrows * mcols))
   ()
@@ -850,12 +849,12 @@ fn teardown
   (gB : array2 et lB)
   (gC : array2 et lC)
   (#fA #fB : perm)
-  (#eA : ematrix et (mrows * tile) (mshared * tile))
-  (#eB : ematrix et (mshared * tile) (mcols * tile))
-  (#eC : ematrix et (mrows * tile) (mcols * tile))
-  (rA : ematrix real (mrows   * tile) (mshared * tile))
-  (rB : ematrix real (mshared * tile) (mcols   * tile))
-  (rC : ematrix real (mrows   * tile) (mcols   * tile))
+  (#eA : chest2 et (mrows * tile) (mshared * tile))
+  (#eB : chest2 et (mshared * tile) (mcols * tile))
+  (#eC : chest2 et (mrows * tile) (mcols * tile))
+  (rA : chest2 real (mrows   * tile) (mshared * tile))
+  (rB : chest2 real (mshared * tile) (mcols   * tile))
+  (rC : chest2 real (mrows   * tile) (mcols   * tile))
   ()
   norewrite
   requires
@@ -866,7 +865,7 @@ fn teardown
   ensures
     gA |-> Frac fA eA **
     gB |-> Frac fB eB **
-    (exists* (eC' : ematrix et (mrows * tile) (mcols * tile)).
+    (exists* (eC' : chest2 et (mrows * tile) (mcols * tile)).
       gC |-> eC' **
       pure (eC' %~ MS.mmcomb comb_r rC rA rB))
 {
@@ -963,8 +962,8 @@ let kpre_block_sendable
   (gA : array2 et lA { is_global gA })
   (gB : array2 et lB { is_global gB })
   (gC : array2 et lC { is_global gC })
-  (eA eB : ematrix _ _ _)
-  (eC : ematrix et (mrows * tile) (mcols * tile))
+  (eA eB : chest2 _ _ _)
+  (eC : chest2 et (mrows * tile) (mcols * tile))
   (fA fB : perm)
   (sh : c_shmems (shmems_desc et tile))
   (_:squash (c_shmems_inv sh))
@@ -986,11 +985,11 @@ let kpost_block_sendable
   (gA : array2 et lA { is_global gA })
   (gB : array2 et lB { is_global gB })
   (gC : array2 et lC { is_global gC })
-  (eA eB : ematrix _ _ _)
-  (eC : ematrix et (mrows * tile) (mcols * tile))
-  (rA : ematrix real (mrows   * tile) (mshared * tile))
-  (rB : ematrix real (mshared * tile) (mcols   * tile))
-  (rC : ematrix real (mrows   * tile) (mcols   * tile))
+  (eA eB : chest2 _ _ _)
+  (eC : chest2 et (mrows * tile) (mcols * tile))
+  (rA : chest2 real (mrows   * tile) (mshared * tile))
+  (rB : chest2 real (mshared * tile) (mcols   * tile))
+  (rC : chest2 real (mrows   * tile) (mcols   * tile))
   (fA fB : perm)
   (sh : c_shmems (shmems_desc et tile))
   (_:squash (c_shmems_inv sh))
@@ -1012,8 +1011,8 @@ let block_pre_gpu_sendable
   (gA : array2 et lA { is_global gA })
   (gB : array2 et lB { is_global gB })
   (gC : array2 et lC { is_global gC })
-  (eA eB : ematrix _ _ _)
-  (eC : ematrix et (mrows * tile) (mcols * tile))
+  (eA eB : chest2 _ _ _)
+  (eC : chest2 et (mrows * tile) (mcols * tile))
   (fA fB : perm)
   (bid : natlt (mrows * mcols))
 : is_send_across gpu_of
@@ -1034,11 +1033,11 @@ let block_post_gpu_sendable
   (gA : array2 et lA { is_global gA })
   (gB : array2 et lB { is_global gB })
   (gC : array2 et lC { is_global gC })
-  (eA eB : ematrix _ _ _)
-  (eC : ematrix et (mrows * tile) (mcols * tile))
-  (rA : ematrix real (mrows   * tile) (mshared * tile))
-  (rB : ematrix real (mshared * tile) (mcols   * tile))
-  (rC : ematrix real (mrows   * tile) (mcols   * tile))
+  (eA eB : chest2 _ _ _)
+  (eC : chest2 et (mrows * tile) (mcols * tile))
+  (rA : chest2 real (mrows   * tile) (mshared * tile))
+  (rB : chest2 real (mshared * tile) (mcols   * tile))
+  (rC : chest2 real (mrows   * tile) (mcols   * tile))
   (fA fB : perm)
   (bid : natlt (mrows * mcols))
 : is_send_across gpu_of
@@ -1064,12 +1063,12 @@ let mk_kernel
   (gB : array2 et lB { is_global gB })
   (gC : array2 et lC { is_global gC })
   (#fA #fB : perm)
-  (#eA : ematrix et (mrows * tile) (mshared * tile))
-  (#eB : ematrix et (mshared * tile) (mcols * tile))
-  (#eC : ematrix et (mrows * tile) (mcols * tile))
-  (rA : ematrix real (mrows   * tile) (mshared * tile))
-  (rB : ematrix real (mshared * tile) (mcols   * tile))
-  (rC : ematrix real (mrows   * tile) (mcols   * tile))
+  (#eA : chest2 et (mrows * tile) (mshared * tile))
+  (#eB : chest2 et (mshared * tile) (mcols * tile))
+  (#eC : chest2 et (mrows * tile) (mcols * tile))
+  (rA : chest2 real (mrows   * tile) (mshared * tile))
+  (rB : chest2 real (mshared * tile) (mcols   * tile))
+  (rC : chest2 real (mrows   * tile) (mcols   * tile))
   (#_ : squash (SZ.fits (slA.ulen)))
   (#_ : squash (SZ.fits (slB.ulen)))
   (_ : squash (mrows * mcols <= max_blocks
@@ -1078,7 +1077,7 @@ let mk_kernel
   : kernel_desc
       (gA |-> Frac fA eA ** gB |-> Frac fB eB ** gC |-> eC)
       (gA |-> Frac fA eA ** gB |-> Frac fB eB **
-        (exists* (eC' : ematrix et (mrows * tile) (mcols * tile)).
+        (exists* (eC' : chest2 et (mrows * tile) (mcols * tile)).
           gC |-> eC' **
           pure (eC' %~ MS.mmcomb comb_r rC rA rB)))
 = {
@@ -1128,12 +1127,12 @@ fn mmcomb_gpu_approx
   (gA : array2 et lA { is_global gA })
   (gB : array2 et lB { is_global gB })
   (gC : array2 et lC { is_global gC })
-  (rA  : ematrix real (m * tile) (k * tile))
-  (rB  : ematrix real (k * tile) (n * tile))
-  (rC  : ematrix real (m * tile) (n * tile))
-  (#eA : ematrix et (m * tile) (k * tile))
-  (#eB : ematrix et (k * tile) (n * tile))
-  (#eC : ematrix et (m * tile) (n * tile))
+  (rA  : chest2 real (m * tile) (k * tile))
+  (rB  : chest2 real (k * tile) (n * tile))
+  (rC  : chest2 real (m * tile) (n * tile))
+  (#eA : chest2 et (m * tile) (k * tile))
+  (#eB : chest2 et (k * tile) (n * tile))
+  (#eC : chest2 et (m * tile) (n * tile))
   (#fA #fB : perm)
   norewrite
   preserves
@@ -1144,7 +1143,7 @@ fn mmcomb_gpu_approx
     pure (eA %~ rA /\ eB %~ rB /\ eC %~ rC) **
     on gpu_loc (gC |-> eC)
   ensures
-    (exists* (eC' : ematrix et (m * tile) (n * tile)).
+    (exists* (eC' : chest2 et (m * tile) (n * tile)).
       on gpu_loc (gC |-> eC') **
       pure (eC' %~ MS.mmcomb comb_r rC rA rB))
 {

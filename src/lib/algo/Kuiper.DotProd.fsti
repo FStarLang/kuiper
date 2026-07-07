@@ -72,7 +72,7 @@ val seq_dotprod_is_sum
 val seq_dotprod_is_matmul_single
   (#et : Type0) {| scalar et |}
   (#rows #shared #cols : nat)
-  (eA : ematrix et rows shared) (eB : ematrix et shared cols)
+  (eA : chest2 et rows shared) (eB : chest2 et shared cols)
   (i : natlt rows) (j : natlt cols)
   (k : nat{k <= shared})
   : Lemma (ensures

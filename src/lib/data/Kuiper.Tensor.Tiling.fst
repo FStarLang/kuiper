@@ -101,7 +101,7 @@ fn array2_tile
   (gm : array2 et l)
   (trows : pos { trows /? rows })
   (tcols : pos { tcols /? cols })
-  (#em : ematrix et rows cols)
+  (#em : chest2 et rows cols)
   (#f : perm)
   requires
     gm |-> Frac f em
@@ -120,26 +120,26 @@ fn array2_tile
   fn aux (tr : natlt (rows / trows)) (tc : natlt (cols / tcols))
     requires
       forall+ (i : natlt trows) (j : natlt tcols).
-        tensor_pts_to_cell gm #f (idx2 (tr * trows + i <: natlt rows) (tc * tcols + j <: natlt cols)) (macc em (tr * trows + i) (tc * tcols + j))
+        tensor_pts_to_cell gm #f (idx2 (tr * trows + i <: natlt rows) (tc * tcols + j <: natlt cols)) (acc2 em (tr * trows + i) (tc * tcols + j))
     ensures
       array2_subtile gm trows tcols tr tc |-> Frac f (ematrix_subtile em trows tcols tr tc)
   {
     forevery_map_2
       (fun (i:natlt trows) (j:natlt tcols) ->
         tensor_pts_to_cell gm #f (idx2 (tr * trows + i <: natlt rows) (tc * tcols + j <: natlt cols))
-          (macc em (tr * trows + i) (tc * tcols + j)))
+          (acc2 em (tr * trows + i) (tc * tcols + j)))
       (fun (i:natlt trows) (j:natlt tcols) ->
         tensor_pts_to_cell (array2_subtile gm trows tcols tr tc) #f (idx2 i j)
-          (macc (ematrix_subtile em trows tcols tr tc) i j))
+          (acc2 (ematrix_subtile em trows tcols tr tc) i j))
       fn i j {
         cell_convert_eq gm trows tcols tr tc i j f
-          (macc em (tr * trows + i) (tc * tcols + j));
+          (acc2 em (tr * trows + i) (tc * tcols + j));
         rewrite
           tensor_pts_to_cell gm #f (idx2 (tr * trows + i <: natlt rows) (tc * tcols + j <: natlt cols))
-            (macc em (tr * trows + i) (tc * tcols + j))
+            (acc2 em (tr * trows + i) (tc * tcols + j))
         as
           tensor_pts_to_cell (array2_subtile gm trows tcols tr tc) #f (idx2 i j)
-            (macc (ematrix_subtile em trows tcols tr tc) i j);
+            (acc2 (ematrix_subtile em trows tcols tr tc) i j);
       };
     tensor_iraise2 (array2_subtile gm trows tcols tr tc);
   };
@@ -156,7 +156,7 @@ fn array2_untile'
   (gm : array2 et l)
   (trows : pos { trows /? rows })
   (tcols : pos { tcols /? cols })
-  (tf : natlt (rows / trows) -> natlt (cols / tcols) -> ematrix et trows tcols)
+  (tf : natlt (rows / trows) -> natlt (cols / tcols) -> chest2 et trows tcols)
   (#f : perm)
   requires
     pure (SZ.fits (l.ulen))
@@ -176,36 +176,36 @@ fn array2_untile'
     ensures
       forall+ (i : natlt trows) (j : natlt tcols).
         tensor_pts_to_cell gm #f (idx2 (tr * trows + i <: natlt rows) (tc * tcols + j <: natlt cols))
-          (macc em (tr * trows + i) (tc * tcols + j))
+          (acc2 em (tr * trows + i) (tc * tcols + j))
   {
     tensor_ilower2 (array2_subtile gm trows tcols tr tc);
     forevery_map_2
       (fun (i:natlt trows) (j:natlt tcols) ->
         tensor_pts_to_cell (array2_subtile gm trows tcols tr tc) #f (idx2 i j)
-          (macc (tf tr tc) i j))
+          (acc2 (tf tr tc) i j))
       (fun (i:natlt trows) (j:natlt tcols) ->
         tensor_pts_to_cell gm #f (idx2 (tr * trows + i <: natlt rows) (tc * tcols + j <: natlt cols))
-          (macc em (tr * trows + i) (tc * tcols + j)))
+          (acc2 em (tr * trows + i) (tc * tcols + j)))
       fn i j {
-        cell_convert_eq gm trows tcols tr tc i j f (macc (tf tr tc) i j);
+        cell_convert_eq gm trows tcols tr tc i j f (acc2 (tf tr tc) i j);
         assert pure ((tr * trows + i) / trows == tr);
         assert pure ((tc * tcols + j) / tcols == tc);
         assert pure ((tr * trows + i) % trows == i);
         assert pure ((tc * tcols + j) % tcols == j);
-        assert pure (macc em (tr * trows + i) (tc * tcols + j) == macc (tf tr tc) i j);
+        assert pure (acc2 em (tr * trows + i) (tc * tcols + j) == acc2 (tf tr tc) i j);
         rewrite
           tensor_pts_to_cell (array2_subtile gm trows tcols tr tc) #f (idx2 i j)
-            (macc (tf tr tc) i j)
+            (acc2 (tf tr tc) i j)
         as
           tensor_pts_to_cell gm #f (idx2 (tr * trows + i <: natlt rows) (tc * tcols + j <: natlt cols))
-            (macc em (tr * trows + i) (tc * tcols + j));
+            (acc2 em (tr * trows + i) (tc * tcols + j));
       };
   };
   forevery_map_2 _ _ aux;
   forevery_mid_flip _;
   forevery_unfactor_2 rows (rows / trows) trows
     cols (cols / tcols) tcols
-    (fun i j -> tensor_pts_to_cell gm #f (idx2 i j) (macc em i j));
+    (fun i j -> tensor_pts_to_cell gm #f (idx2 i j) (acc2 em i j));
   tensor_iraise2 gm;
 }
 #pop-options
@@ -218,7 +218,7 @@ fn array2_untile
   (gm : array2 et l)
   (trows : pos { trows /? rows })
   (tcols : pos { tcols /? cols })
-  (#em : ematrix et rows cols)
+  (#em : chest2 et rows cols)
   (#f : perm)
   requires
     pure (SZ.fits (l.ulen))
@@ -251,10 +251,10 @@ fn array2_untile_underspec
     forall+
       (tr : natlt (rows / trows))
       (tc : natlt (cols / tcols)).
-        (exists* (em : ematrix et trows tcols).
+        (exists* (em : chest2 et trows tcols).
           array2_subtile gm trows tcols tr tc |-> Frac f em)
   ensures
-    exists* (em : ematrix et rows cols). gm |-> Frac f em
+    exists* (em : chest2 et rows cols). gm |-> Frac f em
 {
   forevery_flatten _;
   let cf = forevery_exists #(natlt (rows / trows) & natlt (cols / tcols)) _;
@@ -285,13 +285,13 @@ fn array2_extract_tile
   (tcols : pos { tcols /? cols })
   (tr : natlt (rows / trows))
   (tc : natlt (cols / tcols))
-  (#em : ematrix et rows cols)
+  (#em : chest2 et rows cols)
   (#f : perm)
   requires
     gm |-> Frac f em
   ensures
     array2_subtile gm trows tcols tr tc |-> Frac f (ematrix_subtile em trows tcols tr tc) **
-    (forall* (tm' : ematrix et trows tcols).
+    (forall* (tm' : chest2 et trows tcols).
       array2_subtile gm trows tcols tr tc |-> Frac f tm' @==>
       gm |-> Frac f (update_tile em trows tcols tr tc tm'))
 {
@@ -300,7 +300,7 @@ fn array2_extract_tile
   forevery_flatten _;
   forevery_remove _ (tr, tc);
   ghost
-  fn aux (tm' : ematrix et trows tcols)
+  fn aux (tm' : chest2 et trows tcols)
     requires
       forall+
         (tr'tc' : natlt (rows / trows) & natlt (cols / tcols) { tr'tc' =!= (tr, tc) } ).
@@ -364,7 +364,7 @@ fn array2_extract_tile_st
   (tcols : erased nat { tcols > 0 /\ tcols /? cols })
   (tr : enatlt (rows / trows))
   (tc : enatlt (cols / tcols))
-  (#em : ematrix et rows cols)
+  (#em : chest2 et rows cols)
   (#f : perm)
   requires
     gm |-> Frac f em
@@ -373,7 +373,7 @@ fn array2_extract_tile_st
   ensures pure (tc_tile == array2_subtile gm trows tcols tr tc)
   ensures
     tc_tile |-> Frac f (ematrix_subtile em trows tcols tr tc) **
-    (forall* (tm' : ematrix et trows tcols).
+    (forall* (tm' : chest2 et trows tcols).
       tc_tile |-> Frac f tm' @==>
       gm |-> Frac f (update_tile em trows tcols tr tc tm'))
 {
@@ -391,7 +391,7 @@ fn array2_extract_tile_ro
   (tcols : nat { tcols > 0 /\ tcols /? cols })
   (tr : natlt (rows / trows))
   (tc : natlt (cols / tcols))
-  (#em : ematrix et rows cols)
+  (#em : chest2 et rows cols)
   (#f : perm)
   requires
     gm |-> Frac f em
@@ -416,7 +416,7 @@ fn array2_extract_tile_ro'
   (tcols : erased nat {tcols > 0 /\ tcols /? cols })
   (tr : enatlt (rows / trows))
   (tc : enatlt (cols / tcols))
-  (#em : ematrix et rows cols)
+  (#em : chest2 et rows cols)
   (#f : perm)
   requires
     gm |-> Frac f em
@@ -435,7 +435,7 @@ fn array2_extract_tile_ro'
    Combines explode + factor + subcell_to_cell in one step.
 
    Input: gm |-> em (full matrix ownership)
-   Output: forall+ tr tc i j. subtile_cell(tr, tc, i, j) with value macc em (tr*trows+i) (tc*tcols+j)
+   Output: forall+ tr tc i j. subtile_cell(tr, tc, i, j) with value acc2 em (tr*trows+i) (tc*tcols+j)
 *)
 ghost
 fn array2_explode_tiled
@@ -445,14 +445,14 @@ fn array2_explode_tiled
   (gm : array2 et l)
   (trows : pos { trows /? rows })
   (tcols : pos { tcols /? cols })
-  (#em : ematrix et rows cols)
+  (#em : chest2 et rows cols)
   requires
     gm |-> em
   ensures
     forall+ (tr : natlt (rows / trows)) (tc : natlt (cols / tcols))
             (i : natlt trows) (j : natlt tcols).
       tensor_pts_to_cell (array2_subtile gm trows tcols tr tc) (idx2 i j)
-        (macc em (tr * trows + i) (tc * tcols + j))
+        (acc2 em (tr * trows + i) (tc * tcols + j))
 {
   array2_tile gm trows tcols;
   ghost
@@ -462,16 +462,16 @@ fn array2_explode_tiled
     ensures
       forall+ (i : natlt trows) (j : natlt tcols).
         tensor_pts_to_cell (array2_subtile gm trows tcols tr tc) (idx2 i j)
-          (macc em (tr * trows + i) (tc * tcols + j))
+          (acc2 em (tr * trows + i) (tc * tcols + j))
   {
     tensor_ilower2 (array2_subtile gm trows tcols tr tc);
     forevery_ext_2
       (fun (i:natlt trows) (j:natlt tcols) ->
         tensor_pts_to_cell (array2_subtile gm trows tcols tr tc) (idx2 i j)
-          (macc (ematrix_subtile em trows tcols tr tc) i j))
+          (acc2 (ematrix_subtile em trows tcols tr tc) i j))
       (fun (i:natlt trows) (j:natlt tcols) ->
         tensor_pts_to_cell (array2_subtile gm trows tcols tr tc) (idx2 i j)
-          (macc em (tr * trows + i) (tc * tcols + j)));
+          (acc2 em (tr * trows + i) (tc * tcols + j)));
   };
   forevery_map_2 _ _ aux;
 }
@@ -480,7 +480,7 @@ fn array2_explode_tiled
    Reverse of array2_explode_tiled.
 
    Input: forall+ tr tc i j. subtile_cell(tr, tc, i, j) with value val_fn(tr, tc, i, j)
-   Output: gm |-> em' where macc em' (tr*trows+i) (tc*tcols+j) == val_fn(tr, tc, i, j)
+   Output: gm |-> em' where acc2 em' (tr*trows+i) (tc*tcols+j) == val_fn(tr, tc, i, j)
 *)
 ghost
 fn array2_implode_tiled
@@ -499,10 +499,10 @@ fn array2_implode_tiled
       tensor_pts_to_cell (array2_subtile gm trows tcols tr tc) (idx2 i j)
         (val_fn tr tc i j)
   ensures
-    gm |-> mkM (fun (row : natlt rows) (col : natlt cols) ->
+    gm |-> mk2 (fun (row : natlt rows) (col : natlt cols) ->
       val_fn (row / trows) (col / tcols) (row % trows) (col % tcols))
 {
-  let em' = mkM (fun (row : natlt rows) (col : natlt cols) ->
+  let em' = mk2 (fun (row : natlt rows) (col : natlt cols) ->
     val_fn (row / trows) (col / tcols) (row % trows) (col % tcols));
 
   ghost
@@ -524,7 +524,7 @@ fn array2_implode_tiled
           (val_fn tr tc i j))
       (fun (i:natlt trows) (j:natlt tcols) ->
         tensor_pts_to_cell (array2_subtile gm trows tcols tr tc) (idx2 i j)
-          (macc (ematrix_subtile em' trows tcols tr tc) i j));
+          (acc2 (ematrix_subtile em' trows tcols tr tc) i j));
     tensor_iraise2 (array2_subtile gm trows tcols tr tc);
   };
   forevery_map_2 _ _ aux;

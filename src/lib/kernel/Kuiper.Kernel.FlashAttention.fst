@@ -219,7 +219,7 @@ fn flashattention_tile
   (gQit: array1 et lQit)
   (gOit: array1 et lOit)
   (glit gmit: ref et)
-  (#eKj #eVj: ematrix et bc d)
+  (#eKj #eVj: chest2 et bc d)
   (#vQit #vOit: erased (chest1 et d))
   (#vlit #vmit: erased et)
   (#fKj #fVj #fQit: perm)
@@ -332,7 +332,7 @@ fn flashattention_kf_no_smem (#et : Type0) {| scalar et, floating et |}
   (gOt: array2 et lOt)
   (glt: array1 et llt)
   (gmt: array1 et lmt)
-  (eK eV eQ: ematrix et n d)
+  (eK eV eQ: chest2 et n d)
   (#fK #fV #fQ: perm)
   (tid: sz { tid <^ br /\ tid <^ bc }) // TODO: impossible to materialize tid in a kernel unless br = bc
   preserves
@@ -409,14 +409,14 @@ fn flashattention_kf_no_smem (#et : Type0) {| scalar et, floating et |}
 #push-options "--split_queries always --z3rlimit 40"
 let fa_subtile_of_update_stride_tile
   (#et : _)(#rows #cols : _)
-  (em : ematrix et rows cols)
+  (em : chest2 et rows cols)
   (srows : pos {srows /? rows})(scols : pos {scols /? cols})
   (tr : natlt srows)(tc : natlt scols)
-  (etile : ematrix et (rows/srows) (cols/scols))
+  (etile : chest2 et (rows/srows) (cols/scols))
   : Lemma (ematrix_stride_subtile (update_stride_tile em srows scols tr tc etile) srows scols tr tc == etile)
           [SMTPat (ematrix_stride_subtile (update_stride_tile em srows scols tr tc etile) srows scols tr tc)]
   = let lhs = ematrix_stride_subtile (update_stride_tile em srows scols tr tc etile) srows scols tr tc in
-    introduce forall (i:natlt (rows/srows)) (j:natlt (cols/scols)). macc lhs i j == macc etile i j
+    introduce forall (i:natlt (rows/srows)) (j:natlt (cols/scols)). acc2 lhs i j == acc2 etile i j
     with (
       FStar.Math.Lemmas.lemma_mod_plus tr i srows;
       FStar.Math.Lemmas.lemma_div_plus tr i srows;
@@ -440,7 +440,7 @@ fn flashattention_kf_outer (#et:Type0){| scalar et, floating et |}
   {| ctlayout lS, ctlayout lK, ctlayout lV, ctlayout lQ, ctlayout lO, ctlayout ll, ctlayout lm |}
   (gS:array2 et lS)(gK:array2 et lK{Kuiper.Tensor.is_global gK})(gV:array2 et lV{Kuiper.Tensor.is_global gV})
   (gQ:array2 et lQ{Kuiper.Tensor.is_global gQ})(gO:array2 et lO{Kuiper.Tensor.is_global gO})(gl:array2 et ll{Kuiper.Tensor.is_global gl})(gm:array2 et lm{Kuiper.Tensor.is_global gm})
-  (eK eV eQ:ematrix et n d)(#fK #fV #fQ:perm)
+  (eK eV eQ:chest2 et n d)(#fK #fV #fQ:perm)
   (tid:szlt nthr)
   ()
   preserves gpu ** kpre_post_outer_fa n d nthr gS gK gV gQ gO gl gm eK eV eQ fK fV fQ (SZ.v tid)
@@ -451,9 +451,9 @@ fn flashattention_kf_outer (#et:Type0){| scalar et, floating et |}
   unfold (kpre_post_outer_fa n d nthr gS gK gV gQ gO gl gm eK eV eQ fK fV fQ (SZ.v tid));
   with eS eO el em. assert (
     array2_subtile gS 1 (SZ.v nthr) (SZ.v tid) 0 |-> ematrix_subtile eS 1 (SZ.v nthr) (SZ.v tid) 0 **
-    array2_stride_subtile gl 1 (SZ.v nthr) 0 (SZ.v tid) |-> (ematrix_stride_subtile el 1 (SZ.v nthr) 0 (SZ.v tid) <: ematrix et (1 / 1) (SZ.v n / SZ.v nthr)) **
-    array2_stride_subtile gm 1 (SZ.v nthr) 0 (SZ.v tid) |-> (ematrix_stride_subtile em 1 (SZ.v nthr) 0 (SZ.v tid) <: ematrix et (1 / 1) (SZ.v n / SZ.v nthr)) **
-    array2_stride_subtile gO (SZ.v nthr) 1 (SZ.v tid) 0 |-> (ematrix_stride_subtile eO (SZ.v nthr) 1 (SZ.v tid) 0 <: ematrix et (SZ.v n / SZ.v nthr) (SZ.v d / 1)));
+    array2_stride_subtile gl 1 (SZ.v nthr) 0 (SZ.v tid) |-> (ematrix_stride_subtile el 1 (SZ.v nthr) 0 (SZ.v tid) <: chest2 et (1 / 1) (SZ.v n / SZ.v nthr)) **
+    array2_stride_subtile gm 1 (SZ.v nthr) 0 (SZ.v tid) |-> (ematrix_stride_subtile em 1 (SZ.v nthr) 0 (SZ.v tid) <: chest2 et (1 / 1) (SZ.v n / SZ.v nthr)) **
+    array2_stride_subtile gO (SZ.v nthr) 1 (SZ.v tid) 0 |-> (ematrix_stride_subtile eO (SZ.v nthr) 1 (SZ.v tid) 0 <: chest2 et (SZ.v n / SZ.v nthr) (SZ.v d / 1)));
 
   // Extract the single rows the inner kernel needs as array1's.
   mextract_row (array2_subtile gS 1 (SZ.v nthr) (SZ.v tid) 0) 0;
@@ -475,9 +475,9 @@ fn flashattention_kf_outer (#et:Type0){| scalar et, floating et |}
     tid;
 
   // Rebuild gO's strided sub-view (written by the inner kernel).
-  with vO. assert (array2_stride_subtile gO (SZ.v nthr) 1 (SZ.v tid) 0 |-> (vO <: ematrix et (SZ.v n / SZ.v nthr) (SZ.v d / 1)));
-  let vO' : ematrix et (SZ.v n / SZ.v nthr) (SZ.v d / 1) = vO;
-  rewrite (array2_stride_subtile gO (SZ.v nthr) 1 (SZ.v tid) 0 |-> (vO' <: ematrix et (SZ.v n / SZ.v nthr) (SZ.v d / 1)))
+  with vO. assert (array2_stride_subtile gO (SZ.v nthr) 1 (SZ.v tid) 0 |-> (vO <: chest2 et (SZ.v n / SZ.v nthr) (SZ.v d / 1)));
+  let vO' : chest2 et (SZ.v n / SZ.v nthr) (SZ.v d / 1) = vO;
+  rewrite (array2_stride_subtile gO (SZ.v nthr) 1 (SZ.v tid) 0 |-> (vO' <: chest2 et (SZ.v n / SZ.v nthr) (SZ.v d / 1)))
        as (array2_stride_subtile gO (SZ.v nthr) 1 (SZ.v tid) 0 |-> ematrix_stride_subtile (update_stride_tile eO (SZ.v nthr) 1 (SZ.v tid) 0 vO') (SZ.v nthr) 1 (SZ.v tid) 0);
 
   // Rebuild gS's row -> contiguous sub-tile.
@@ -526,7 +526,7 @@ fn flashattention_kf
   {| ctlayout lS, ctlayout lK, ctlayout lV, ctlayout lQ, ctlayout lO, ctlayout ll, ctlayout lm |}
   (gK:array2 et lK{Kuiper.Tensor.is_global gK})(gV:array2 et lV{Kuiper.Tensor.is_global gV})
   (gQ:array2 et lQ{Kuiper.Tensor.is_global gQ})(gO:array2 et lO{Kuiper.Tensor.is_global gO})(gl:array2 et ll{Kuiper.Tensor.is_global gl})(gm:array2 et lm{Kuiper.Tensor.is_global gm})
-  (eK eV eQ:ematrix et n d)(#fK #fV #fQ:perm)
+  (eK eV eQ:chest2 et n d)(#fK #fV #fQ:perm)
   (sh : c_shmems (shmems_desc_fa et nthr))
   (bid : szlt 1sz)
   (tid : szlt nthr)
@@ -559,7 +559,7 @@ fn kflashattention_setup
   {| ctlayout lS, ctlayout lK, ctlayout lV, ctlayout lQ, ctlayout lO, ctlayout ll, ctlayout lm |}
   (gK:array2 et lK{Kuiper.Tensor.is_global gK})(gV:array2 et lV{Kuiper.Tensor.is_global gV})
   (gQ:array2 et lQ{Kuiper.Tensor.is_global gQ})(gO:array2 et lO{Kuiper.Tensor.is_global gO})(gl:array2 et ll{Kuiper.Tensor.is_global gl})(gm:array2 et lm{Kuiper.Tensor.is_global gm})
-  (eK eV eQ:ematrix et n d)(#fK #fV #fQ:perm)
+  (eK eV eQ:chest2 et n d)(#fK #fV #fQ:perm)
   ()
   norewrite
   requires
@@ -581,7 +581,7 @@ fn kflashattention_teardown
   {| ctlayout lS, ctlayout lK, ctlayout lV, ctlayout lQ, ctlayout lO, ctlayout ll, ctlayout lm |}
   (gK:array2 et lK{Kuiper.Tensor.is_global gK})(gV:array2 et lV{Kuiper.Tensor.is_global gV})
   (gQ:array2 et lQ{Kuiper.Tensor.is_global gQ})(gO:array2 et lO{Kuiper.Tensor.is_global gO})(gl:array2 et ll{Kuiper.Tensor.is_global gl})(gm:array2 et lm{Kuiper.Tensor.is_global gm})
-  (eK eV eQ:ematrix et n d)(#fK #fV #fQ:perm)
+  (eK eV eQ:chest2 et n d)(#fK #fV #fQ:perm)
   ()
   norewrite
   requires
@@ -605,7 +605,7 @@ let kflashattention
   {| ctlayout lS, ctlayout lK, ctlayout lV, ctlayout lQ, ctlayout lO, ctlayout ll, ctlayout lm |}
   (gK:array2 et lK{Kuiper.Tensor.is_global gK})(gV:array2 et lV{Kuiper.Tensor.is_global gV})
   (gQ:array2 et lQ{Kuiper.Tensor.is_global gQ})(gO:array2 et lO{Kuiper.Tensor.is_global gO})(gl:array2 et ll{Kuiper.Tensor.is_global gl})(gm:array2 et lm{Kuiper.Tensor.is_global gm})
-  (eK eV eQ:ematrix et n d)(#fK #fV #fQ:perm)
+  (eK eV eQ:chest2 et n d)(#fK #fV #fQ:perm)
   : kernel_desc
       (requires full_io_fa_nos n d nthr gK gV gQ gO gl gm eK eV eQ fK fV fQ)
       (ensures  full_io_fa_nos n d nthr gK gV gQ gO gl gm eK eV eQ fK fV fQ)
@@ -641,7 +641,7 @@ fn flashattention_gpu
   {| ctlayout lS, ctlayout lK, ctlayout lV, ctlayout lQ, ctlayout lO, ctlayout ll, ctlayout lm |}
   (gK:array2 et lK{Kuiper.Tensor.is_global gK})(gV:array2 et lV{Kuiper.Tensor.is_global gV})
   (gQ:array2 et lQ{Kuiper.Tensor.is_global gQ})(gO:array2 et lO{Kuiper.Tensor.is_global gO})(gl:array2 et ll{Kuiper.Tensor.is_global gl})(gm:array2 et lm{Kuiper.Tensor.is_global gm})
-  (eK eV eQ:ematrix et n d)(#fK #fV #fQ:perm)
+  (eK eV eQ:chest2 et n d)(#fK #fV #fQ:perm)
   preserves cpu
   requires on gpu_loc (full_io_fa_nos n d nthr gK gV gQ gO gl gm eK eV eQ fK fV fQ)
   ensures  on gpu_loc (full_io_fa_nos n d nthr gK gV gQ gO gl gm eK eV eQ fK fV fQ)
@@ -672,11 +672,11 @@ fn flashattention_inner_smem
   {| ctlayout lKV, ctlayout lQ, ctlayout lSt, ctlayout lQrow, ctlayout lOt, ctlayout llt, ctlayout lmt |}
   (sK sV:array2 et lKV)(gSt:array1 et lSt)(sQrow:array1 et lQrow)
   (gQ:array2 et lQ{Kuiper.Tensor.is_global gQ})(gOt:array2 et lOt)(glt:array1 et llt)(gmt:array1 et lmt)
-  (eQ:ematrix et n d)(#fQ:perm)(tid:szlt nthr)
+  (eQ:chest2 et n d)(#fQ:perm)(tid:szlt nthr)
   preserves
     gpu **
-    (exists* (x:ematrix et (SZ.v nthr) (SZ.v d)). sK |-> Frac (1.0R /. (SZ.v nthr)) x) **
-    (exists* (y:ematrix et (SZ.v nthr) (SZ.v d)). sV |-> Frac (1.0R /. (SZ.v nthr)) y) **
+    (exists* (x:chest2 et (SZ.v nthr) (SZ.v d)). sK |-> Frac (1.0R /. (SZ.v nthr)) x) **
+    (exists* (y:chest2 et (SZ.v nthr) (SZ.v d)). sV |-> Frac (1.0R /. (SZ.v nthr)) y) **
     (gQ |-> Frac fQ eQ) **
     live gSt ** live sQrow ** live gOt ** live glt ** live gmt
 {
@@ -688,8 +688,8 @@ fn flashattention_inner_smem
       i |-> vi **
       live gSt ** live gOt ** live glt ** live gmt ** live sQrow **
       (gQ |-> Frac fQ eQ) **
-      (exists* (x:ematrix et (SZ.v nthr) (SZ.v d)). sK |-> Frac (1.0R /. (SZ.v nthr)) x) **
-      (exists* (y:ematrix et (SZ.v nthr) (SZ.v d)). sV |-> Frac (1.0R /. (SZ.v nthr)) y)
+      (exists* (x:chest2 et (SZ.v nthr) (SZ.v d)). sK |-> Frac (1.0R /. (SZ.v nthr)) x) **
+      (exists* (y:chest2 et (SZ.v nthr) (SZ.v d)). sV |-> Frac (1.0R /. (SZ.v nthr)) y)
     decreases (SZ.v tr - SZ.v !i)
   {
     with eOt. assert gOt |-> eOt;
@@ -727,8 +727,8 @@ fn flashattention_inner_smem
     let gmit = get_ref_of_array_cell gmt ii;
     assert rewrites_to gmit (ref_of_array_cell gmt ii);
 
-    with x. assert (sK |-> Frac (1.0R /. (SZ.v nthr)) (x <: ematrix et (SZ.v nthr) (SZ.v d)));
-    with y. assert (sV |-> Frac (1.0R /. (SZ.v nthr)) (y <: ematrix et (SZ.v nthr) (SZ.v d)));
+    with x. assert (sK |-> Frac (1.0R /. (SZ.v nthr)) (x <: chest2 et (SZ.v nthr) (SZ.v d)));
+    with y. assert (sV |-> Frac (1.0R /. (SZ.v nthr)) (y <: chest2 et (SZ.v nthr) (SZ.v d)));
 
     flashattention_tile nthr nthr d
       #_ #_ #_ #_ #_
@@ -765,7 +765,7 @@ fn flashattention_kf_smem
   {| ctlayout lS, ctlayout lKV, ctlayout lK, ctlayout lV, ctlayout lQ, ctlayout lO, ctlayout ll, ctlayout lm |}
   (gK:array2 et lK{Kuiper.Tensor.is_global gK})(gV:array2 et lV{Kuiper.Tensor.is_global gV})
   (gQ:array2 et lQ{Kuiper.Tensor.is_global gQ})(gO:array2 et lO{Kuiper.Tensor.is_global gO})(gl:array2 et ll{Kuiper.Tensor.is_global gl})(gm:array2 et lm{Kuiper.Tensor.is_global gm})
-  (eK eV eQ:ematrix et n d)(#fK #fV #fQ:perm)
+  (eK eV eQ:chest2 et n d)(#fK #fV #fQ:perm)
   (sh : c_shmems (shmems_desc_fa_smem et n d nthr))
   (bid : szlt 1sz)
   (tid : szlt nthr)
@@ -811,9 +811,9 @@ fn flashattention_kf_smem
   unfold (kpre_post_outer_fa n d nthr gS gK gV gQ gO gl gm eK eV eQ fK fV fQ (SZ.v tid));
   with eS eO el em. assert (
     array2_subtile gS 1 (SZ.v nthr) (SZ.v tid) 0 |-> ematrix_subtile eS 1 (SZ.v nthr) (SZ.v tid) 0 **
-    array2_stride_subtile gl 1 (SZ.v nthr) 0 (SZ.v tid) |-> (ematrix_stride_subtile el 1 (SZ.v nthr) 0 (SZ.v tid) <: ematrix et (1 / 1) (SZ.v n / SZ.v nthr)) **
-    array2_stride_subtile gm 1 (SZ.v nthr) 0 (SZ.v tid) |-> (ematrix_stride_subtile em 1 (SZ.v nthr) 0 (SZ.v tid) <: ematrix et (1 / 1) (SZ.v n / SZ.v nthr)) **
-    array2_stride_subtile gO (SZ.v nthr) 1 (SZ.v tid) 0 |-> (ematrix_stride_subtile eO (SZ.v nthr) 1 (SZ.v tid) 0 <: ematrix et (SZ.v n / SZ.v nthr) (SZ.v d / 1)));
+    array2_stride_subtile gl 1 (SZ.v nthr) 0 (SZ.v tid) |-> (ematrix_stride_subtile el 1 (SZ.v nthr) 0 (SZ.v tid) <: chest2 et (1 / 1) (SZ.v n / SZ.v nthr)) **
+    array2_stride_subtile gm 1 (SZ.v nthr) 0 (SZ.v tid) |-> (ematrix_stride_subtile em 1 (SZ.v nthr) 0 (SZ.v tid) <: chest2 et (1 / 1) (SZ.v n / SZ.v nthr)) **
+    array2_stride_subtile gO (SZ.v nthr) 1 (SZ.v tid) 0 |-> (ematrix_stride_subtile eO (SZ.v nthr) 1 (SZ.v tid) 0 <: chest2 et (SZ.v n / SZ.v nthr) (SZ.v d / 1)));
 
   mextract_row (array2_subtile gS 1 (SZ.v nthr) (SZ.v tid) 0) 0;
   mextract_row (array2_stride_subtile gl 1 (SZ.v nthr) 0 (SZ.v tid)) 0;
@@ -829,7 +829,7 @@ fn flashattention_kf_smem
   rewrite each (mrow (array2_stride_subtile gm 1 (SZ.v nthr) 0 (SZ.v tid)) 0) as gmt;
 
   // ── Extract this thread's private Q scratch row (no barrier). ──────────
-  with rq0. assert (array2_subtile sQ 1 (SZ.v d) (SZ.v tid) 0 |-> Frac 1.0R (rq0 <: ematrix et 1 (SZ.v d)));
+  with rq0. assert (array2_subtile sQ 1 (SZ.v d) (SZ.v tid) 0 |-> Frac 1.0R (rq0 <: chest2 et 1 (SZ.v d)));
   mextract_row (array2_subtile sQ 1 (SZ.v d) (SZ.v tid) 0) 0;
   let sQrow = mrow (array2_subtile sQ 1 (SZ.v d) (SZ.v tid) 0) 0;
   rewrite each (mrow (array2_subtile sQ 1 (SZ.v d) (SZ.v tid) 0) 0) as sQrow;
@@ -844,8 +844,8 @@ fn flashattention_kf_smem
       (gK |-> Frac (fK /. (SZ.v nthr)) eK) **
       (gV |-> Frac (fV /. (SZ.v nthr)) eV) **
       (gQ |-> Frac (fQ /. (SZ.v nthr)) eQ) **
-      (exists* (r:ematrix et 1 (SZ.v d)). array2_subtile sK 1 (SZ.v d) (SZ.v tid) 0 |-> Frac 1.0R r) **
-      (exists* (r:ematrix et 1 (SZ.v d)). array2_subtile sV 1 (SZ.v d) (SZ.v tid) 0 |-> Frac 1.0R r) **
+      (exists* (r:chest2 et 1 (SZ.v d)). array2_subtile sK 1 (SZ.v d) (SZ.v tid) 0 |-> Frac 1.0R r) **
+      (exists* (r:chest2 et 1 (SZ.v d)). array2_subtile sV 1 (SZ.v d) (SZ.v tid) 0 |-> Frac 1.0R r) **
       thread_id nthr tid **
       B.barrier_tok (fa_barrier_contract n d nthr sK sV) **
       B.barrier_state (2 * SZ.v vj)
@@ -865,8 +865,8 @@ fn flashattention_kf_smem
         c |-> vc **
         (gK |-> Frac (fK /. (SZ.v nthr)) eK) **
         (gV |-> Frac (fV /. (SZ.v nthr)) eV) **
-        (exists* (r:ematrix et 1 (SZ.v d)). array2_subtile sK 1 (SZ.v d) (SZ.v tid) 0 |-> Frac 1.0R r) **
-        (exists* (r:ematrix et 1 (SZ.v d)). array2_subtile sV 1 (SZ.v d) (SZ.v tid) 0 |-> Frac 1.0R r)
+        (exists* (r:chest2 et 1 (SZ.v d)). array2_subtile sK 1 (SZ.v d) (SZ.v tid) 0 |-> Frac 1.0R r) **
+        (exists* (r:chest2 et 1 (SZ.v d)). array2_subtile sV 1 (SZ.v d) (SZ.v tid) 0 |-> Frac 1.0R r)
       decreases (SZ.v d - SZ.v !c)
     {
       let vc = !c;
@@ -881,13 +881,13 @@ fn flashattention_kf_smem
     even_2x (SZ.v vj);
     assert pure (2 * SZ.v vj < 2 * SZ.v tc);
     assert pure (even (2 * SZ.v vj));
-    rewrite ((exists* (r:ematrix et 1 (SZ.v d)). array2_subtile sK 1 (SZ.v d) (SZ.v tid) 0 |-> Frac 1.0R r) **
-             (exists* (r:ematrix et 1 (SZ.v d)). array2_subtile sV 1 (SZ.v d) (SZ.v tid) 0 |-> Frac 1.0R r))
+    rewrite ((exists* (r:chest2 et 1 (SZ.v d)). array2_subtile sK 1 (SZ.v d) (SZ.v tid) 0 |-> Frac 1.0R r) **
+             (exists* (r:chest2 et 1 (SZ.v d)). array2_subtile sV 1 (SZ.v d) (SZ.v tid) 0 |-> Frac 1.0R r))
          as ((fa_barrier_contract n d nthr sK sV).rin (2 * SZ.v vj) (SZ.v tid));
     B.barrier_wait ();
     rewrite ((fa_barrier_contract n d nthr sK sV).rout (2 * SZ.v vj) (SZ.v tid))
-         as ((exists* (x:ematrix et (SZ.v nthr) (SZ.v d)). sK |-> Frac (1.0R /. (SZ.v nthr)) x) **
-             (exists* (y:ematrix et (SZ.v nthr) (SZ.v d)). sV |-> Frac (1.0R /. (SZ.v nthr)) y));
+         as ((exists* (x:chest2 et (SZ.v nthr) (SZ.v d)). sK |-> Frac (1.0R /. (SZ.v nthr)) x) **
+             (exists* (y:chest2 et (SZ.v nthr) (SZ.v d)). sV |-> Frac (1.0R /. (SZ.v nthr)) y));
 
     // ── Inner loop: read the whole shared K/V tile at frac 1/nthr. ─────────
     flashattention_inner_smem n d nthr
@@ -904,13 +904,13 @@ fn flashattention_kf_smem
     odd_2x1 (SZ.v vj);
     assert pure (2 * SZ.v vj + 1 < 2 * SZ.v tc);
     assert pure (odd (2 * SZ.v vj + 1));
-    rewrite ((exists* (x:ematrix et (SZ.v nthr) (SZ.v d)). sK |-> Frac (1.0R /. (SZ.v nthr)) x) **
-             (exists* (y:ematrix et (SZ.v nthr) (SZ.v d)). sV |-> Frac (1.0R /. (SZ.v nthr)) y))
+    rewrite ((exists* (x:chest2 et (SZ.v nthr) (SZ.v d)). sK |-> Frac (1.0R /. (SZ.v nthr)) x) **
+             (exists* (y:chest2 et (SZ.v nthr) (SZ.v d)). sV |-> Frac (1.0R /. (SZ.v nthr)) y))
          as ((fa_barrier_contract n d nthr sK sV).rin (2 * SZ.v vj + 1) (SZ.v tid));
     B.barrier_wait ();
     rewrite ((fa_barrier_contract n d nthr sK sV).rout (2 * SZ.v vj + 1) (SZ.v tid))
-         as ((exists* (r:ematrix et 1 (SZ.v d)). array2_subtile sK 1 (SZ.v d) (SZ.v tid) 0 |-> Frac 1.0R r) **
-             (exists* (r:ematrix et 1 (SZ.v d)). array2_subtile sV 1 (SZ.v d) (SZ.v tid) 0 |-> Frac 1.0R r));
+         as ((exists* (r:chest2 et 1 (SZ.v d)). array2_subtile sK 1 (SZ.v d) (SZ.v tid) 0 |-> Frac 1.0R r) **
+             (exists* (r:chest2 et 1 (SZ.v d)). array2_subtile sV 1 (SZ.v d) (SZ.v tid) 0 |-> Frac 1.0R r));
 
     assert pure (2 * SZ.v vj + 1 + 1 == 2 * (SZ.v vj + 1));
     j := !j +^ 1sz;
@@ -931,9 +931,9 @@ fn flashattention_kf_smem
   rewrite each gmt as (mrow (array2_stride_subtile gm 1 (SZ.v nthr) 0 (SZ.v tid)) 0);
 
   // ── Rebuild gO/gS/gl/gm sub-views (cf. flashattention_kf_outer epilogue). ─
-  with vO. assert (array2_stride_subtile gO (SZ.v nthr) 1 (SZ.v tid) 0 |-> (vO <: ematrix et (SZ.v n / SZ.v nthr) (SZ.v d / 1)));
-  let vO' : ematrix et (SZ.v n / SZ.v nthr) (SZ.v d / 1) = vO;
-  rewrite (array2_stride_subtile gO (SZ.v nthr) 1 (SZ.v tid) 0 |-> (vO' <: ematrix et (SZ.v n / SZ.v nthr) (SZ.v d / 1)))
+  with vO. assert (array2_stride_subtile gO (SZ.v nthr) 1 (SZ.v tid) 0 |-> (vO <: chest2 et (SZ.v n / SZ.v nthr) (SZ.v d / 1)));
+  let vO' : chest2 et (SZ.v n / SZ.v nthr) (SZ.v d / 1) = vO;
+  rewrite (array2_stride_subtile gO (SZ.v nthr) 1 (SZ.v tid) 0 |-> (vO' <: chest2 et (SZ.v n / SZ.v nthr) (SZ.v d / 1)))
        as (array2_stride_subtile gO (SZ.v nthr) 1 (SZ.v tid) 0 |-> ematrix_stride_subtile (update_stride_tile eO (SZ.v nthr) 1 (SZ.v tid) 0 vO') (SZ.v nthr) 1 (SZ.v tid) 0);
 
   with (vS: chest1 _ _). assert ((mrow (array2_subtile gS 1 (SZ.v nthr) (SZ.v tid) 0) 0 <: array1 et (mrow_layout (array2_subtile gS 1 (SZ.v nthr) (SZ.v tid) 0) 0)) |-> Frac 1.0R vS);
@@ -986,7 +986,7 @@ let kflashattention_smem
   {| ctlayout lS, ctlayout lKV, ctlayout lK, ctlayout lV, ctlayout lQ, ctlayout lO, ctlayout ll, ctlayout lm |}
   (gK:array2 et lK{Kuiper.Tensor.is_global gK})(gV:array2 et lV{Kuiper.Tensor.is_global gV})
   (gQ:array2 et lQ{Kuiper.Tensor.is_global gQ})(gO:array2 et lO{Kuiper.Tensor.is_global gO})(gl:array2 et ll{Kuiper.Tensor.is_global gl})(gm:array2 et lm{Kuiper.Tensor.is_global gm})
-  (eK eV eQ:ematrix et n d)(#fK #fV #fQ:perm)
+  (eK eV eQ:chest2 et n d)(#fK #fV #fQ:perm)
   : kernel_desc
       (requires full_io_fa_nos n d nthr gK gV gQ gO gl gm eK eV eQ fK fV fQ)
       (ensures  full_io_fa_nos n d nthr gK gV gQ gO gl gm eK eV eQ fK fV fQ)
@@ -1022,7 +1022,7 @@ fn flashattention_smem_gpu
   {| ctlayout lS, ctlayout lKV, ctlayout lK, ctlayout lV, ctlayout lQ, ctlayout lO, ctlayout ll, ctlayout lm |}
   (gK:array2 et lK{Kuiper.Tensor.is_global gK})(gV:array2 et lV{Kuiper.Tensor.is_global gV})
   (gQ:array2 et lQ{Kuiper.Tensor.is_global gQ})(gO:array2 et lO{Kuiper.Tensor.is_global gO})(gl:array2 et ll{Kuiper.Tensor.is_global gl})(gm:array2 et lm{Kuiper.Tensor.is_global gm})
-  (eK eV eQ:ematrix et n d)(#fK #fV #fQ:perm)
+  (eK eV eQ:chest2 et n d)(#fK #fV #fQ:perm)
   preserves cpu
   requires on gpu_loc (full_io_fa_nos n d nthr gK gV gQ gO gl gm eK eV eQ fK fV fQ)
   ensures  on gpu_loc (full_io_fa_nos n d nthr gK gV gQ gO gl gm eK eV eQ fK fV fQ)

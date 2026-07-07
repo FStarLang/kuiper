@@ -69,14 +69,14 @@ fn read_at
   (x : array2 et lin)
   (row : szlt rows)
   (col : szlt cols)
-  (#sx : ematrix et rows cols)
+  (#sx : chest2 et rows cols)
   (#f : perm)
   preserves
     x |-> Frac f sx
   returns
     res : et
   ensures
-    pure (res == macc sx (SZ.v row) (SZ.v col))
+    pure (res == acc2 sx (SZ.v row) (SZ.v col))
 {
   tensor_read x (cidx2 row col)
 }
@@ -103,7 +103,7 @@ fn forevery_drop_pure
    element (index [off]) so the running max is over a non-empty prefix. *)
 (* ── Strided-bucket arithmetic ─────────────────────────────────────────────
    [max_stride_map_2d] below runs in a context carrying the ambient quantified
-   hypothesis [forall j. macc sx row j %~ vr_row @! j], which makes inline stride
+   hypothesis [forall j. acc2 sx row j %~ vr_row @! j], which makes inline stride
    arithmetic pathologically slow.  The pure-nat / generic-seq lemmas it needs
    ([stride_step_arith], [stride_idx_in_bounds], [stride_bucket_index],
    [max_stride_post_arith]) are shared from [Kuiper.Kernel.HReduce.Max]. *)
@@ -121,12 +121,12 @@ fn max_stride_map_2d
   (row : szlt rows)
   (stride : szp)
   (off : szlt stride { SZ.v off < SZ.v cols })
-  (#sx : ematrix et rows cols)
+  (#sx : chest2 et rows cols)
   (vr_row : erased (lseq real cols))
   (#f : perm)
   preserves
     gpu ** x |-> Frac f sx **
-    pure (forall (j:nat). j < SZ.v cols ==> macc sx (SZ.v row) j %~ (vr_row @! j)) **
+    pure (forall (j:nat). j < SZ.v cols ==> acc2 sx (SZ.v row) j %~ (vr_row @! j)) **
     pure (SZ.fits (SZ.v cols + stride))
   returns
     res : et
@@ -142,7 +142,7 @@ fn max_stride_map_2d
   let off_c : szlt cols = off_raw;
   let v0 = read_at rows cols x row off_c;
   let acc0 = pre_map v0;
-  (**)assert (pure (v0 == macc sx (SZ.v row) (SZ.v off_c)));
+  (**)assert (pure (v0 == acc2 sx (SZ.v row) (SZ.v off_c)));
   (**)assert (pure (v0 %~ (vr_row @! SZ.v off_c)));
   (**)assert (pure (acc0 %~ (lseq_map pre_map_r vr_row @! SZ.v off)));
   (**)assert (pure (seq_stride (lseq_map pre_map_r vr_row) stride off @! 0 == (lseq_map pre_map_r vr_row) @! (off + 0 * stride)));
@@ -176,7 +176,7 @@ fn max_stride_map_2d
     let idx_v : szlt cols = idx_raw;
     let v = read_at rows cols x row idx_v;
     let v' = pre_map v;
-    (**)assert (pure (v == macc sx (SZ.v row) (SZ.v idx_v)));
+    (**)assert (pure (v == acc2 sx (SZ.v row) (SZ.v idx_v)));
     (**)assert (pure (v %~ (vr_row @! SZ.v idx_v)));
     (**)assert (pure (v' %~ (lseq_map pre_map_r vr_row @! SZ.v idx_v)));
 
@@ -229,8 +229,8 @@ let kpre_block
   (#lout : layout1 rows)
   (x      : array2 et lin)
   (output : array1 et lout)
-  (sx   : ematrix et   rows cols)
-  (vr   : ematrix real rows cols)
+  (sx   : chest2 et   rows cols)
+  (vr   : chest2 real rows cols)
   (sout : chest1 et rows)
   (shmem : c_shmems [SHArray et nth])
   (bid : natlt rows)
@@ -252,8 +252,8 @@ let kpost_block
   (#lout : layout1 rows)
   (x      : array2 et lin)
   (output : array1 et lout)
-  (sx   : ematrix et   rows cols)
-  (vr   : ematrix real rows cols)
+  (sx   : chest2 et   rows cols)
+  (vr   : chest2 real rows cols)
   (sout : chest1 et rows)
   (shmem : c_shmems [SHArray et nth])
   (bid : natlt rows)
@@ -282,8 +282,8 @@ fn kf_block
   (#lout : layout1 rows)                   {| ctlayout lout |}
   (x      : array2 et lin)
   (output : array1 et lout)
-  (sx   : ematrix et   rows cols)
-  (vr   : ematrix real rows cols { sx %~ vr })
+  (sx   : chest2 et   rows cols)
+  (vr   : chest2 real rows cols { sx %~ vr })
   (sout : erased (chest1 et rows))
   (shmem : c_shmems [SHArray et nth])
   (bid : szlt rows)
@@ -318,9 +318,9 @@ fn kf_block
 
   (* Bridge from (sx %~ vr) to row-level approximation. *)
   assert pure (forall (j:nat). j < SZ.v cols ==>
-                 (vr_row @! j) == macc (reveal vr) (SZ.v bid) j);
+                 (vr_row @! j) == acc2 (reveal vr) (SZ.v bid) j);
   assert pure (forall (j:nat). j < SZ.v cols ==>
-                 macc sx (SZ.v bid) j %~ (vr_row @! j));
+                 acc2 sx (SZ.v bid) j %~ (vr_row @! j));
 
   (* Compute partial max over stride and write to shmem. *)
   let psum : et = max_stride_map_2d pre_map pre_map_r rows cols x bid nth tid vr_row;
@@ -426,8 +426,8 @@ fn block_setup_block
   (#lout : layout1 rows)
   (x      : array2 et lin)
   (output : array1 et lout)
-  (sx   : ematrix et   rows cols)
-  (vr   : ematrix real rows cols { sx %~ vr })
+  (sx   : chest2 et   rows cols)
+  (vr   : chest2 real rows cols { sx %~ vr })
   (sout : erased (chest1 et rows))
   (shmem : c_shmems [SHArray et nth])
   (bid : natlt rows)
@@ -498,8 +498,8 @@ fn block_teardown_block
   (#lout : layout1 rows)
   (x      : array2 et lin)
   (output : array1 et lout)
-  (sx   : ematrix et   rows cols)
-  (vr   : ematrix real rows cols { sx %~ vr })
+  (sx   : chest2 et   rows cols)
+  (vr   : chest2 real rows cols { sx %~ vr })
   (sout : erased (chest1 et rows))
   (shmem : c_shmems [SHArray et nth])
   (bid : natlt rows)
@@ -563,8 +563,8 @@ fn setup_block_outer
   (#lout : layout1 rows)                   {| ctlayout lout |}
   (x      : array2 et lin)
   (output : array1 et lout)
-  (sx   : ematrix et   rows cols)
-  (vr   : ematrix real rows cols { sx %~ vr })
+  (sx   : chest2 et   rows cols)
+  (vr   : chest2 real rows cols { sx %~ vr })
   (sout : erased (chest1 et rows))
   ()
   norewrite
@@ -604,8 +604,8 @@ fn teardown_block_outer
   (#lout : layout1 rows)                   {| ctlayout lout |}
   (x      : array2 et lin)
   (output : array1 et lout)
-  (sx   : ematrix et   rows cols)
-  (vr   : ematrix real rows cols { sx %~ vr })
+  (sx   : chest2 et   rows cols)
+  (vr   : chest2 real rows cols { sx %~ vr })
   (sout : erased (chest1 et rows))
   ()
   norewrite
@@ -685,8 +685,8 @@ let kdesc_block
   (#lout : layout1 rows)                   {| ctlayout lout |}
   (x      : array2 et lin  { is_global x      })
   (output : array1 et lout { is_global output })
-  (sx   : ematrix et   rows cols)
-  (vr   : ematrix real rows cols { sx %~ vr })
+  (sx   : chest2 et   rows cols)
+  (vr   : chest2 real rows cols { sx %~ vr })
   (sout : erased (chest1 et rows))
   : kernel_desc
       (x |-> sx ** output |-> sout)
@@ -751,8 +751,8 @@ fn reduce_batched_block_max
   (#lout : layout1 rows)                   {| ctlayout lout |}
   (x      : array2 et lin  { is_global x      })
   (output : array1 et lout { is_global output })
-  (#sx   : ematrix et   rows cols)
-  (vr    : ematrix real rows cols)
+  (#sx   : chest2 et   rows cols)
+  (vr    : chest2 real rows cols)
   (#sout : erased (chest1 et rows))
   preserves
     cpu **

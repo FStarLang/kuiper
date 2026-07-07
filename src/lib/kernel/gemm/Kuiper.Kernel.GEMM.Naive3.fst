@@ -12,7 +12,6 @@ module SZ = Kuiper.SizeT
 open Kuiper.Shape
 open Kuiper.Chest
 open Kuiper.Bijection
-open Kuiper.EMatrix { mkM, macc }
 
 let abs_bij (#m #n : nat)
   : (abs (m @| n @| INil) =~ (natlt m & natlt n)) =
@@ -243,7 +242,7 @@ fn teardown
       vf r c %~ MS.gemm_single comb_r rA rB rC r c)
     fn r c { (); };
 
-  let eC' : chest2 et m n = mkM (fun (r : natlt m) (c : natlt n) -> vf r c);
+  let eC' : chest2 et m n = mk2 (fun (r : natlt m) (c : natlt n) -> vf r c);
 
   ghost
   fn aux (r:natlt m) (c:natlt n)
@@ -253,7 +252,7 @@ fn teardown
     ensures
       pts_to_cell gC (r, (c, ())) (acc eC' (r, (c, ())))
   {
-    assert (pure (macc eC' r c == vf r c));
+    assert (pure (acc2 eC' r c == vf r c));
     ()
   };
   forevery_map_2 #(natlt m) #(natlt n)

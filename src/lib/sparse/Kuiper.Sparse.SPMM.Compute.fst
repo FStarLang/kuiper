@@ -14,7 +14,7 @@ open Kuiper.Seq.Common { op_At_Bang }
 let step_submatrix_congr
   (#et : Type0) {| scalar et |}
   (#rows #cols : nat)
-  (em : ematrix et rows cols)
+  (em : chest2 et rows cols)
   (scols : nat)
   (n : nat)
   (step : pos)
@@ -37,7 +37,7 @@ let _row_x_mat_acc
   (#block : nat)
   (acc : lseq et block)
   (row : lseq et shared)
-  (em : ematrix et shared cols)
+  (em : chest2 et shared cols)
   (to : natle shared)
 : Ghost (lseq et block) (requires cols <= block) (ensures fun _ -> true)
 =
@@ -53,7 +53,7 @@ let row_x_mat_acc
   (#block : nat)
   (acc : lseq et block)
   (row : lseq et shared)
-  (em : ematrix et shared cols)
+  (em : chest2 et shared cols)
 : Ghost (lseq et block) (requires cols <= block) (ensures fun _ -> true)
 =
   _row_x_mat_acc acc row em shared
@@ -69,7 +69,7 @@ let sparse_row_x_mat_acc_lemma
   (#nnz : nat)
   (elems : lseq et nnz)
   (pos : lseq nat nnz)
-  (em : ematrix et shared cols)
+  (em : chest2 et shared cols)
   (to : natle nnz)
 : Lemma
   (requires valid_pos shared pos)
@@ -147,7 +147,7 @@ let sparse_row_x_mat_acc_lemma'
   (#nnz : nat)
   (elems : lseq et nnz)
   (pos : lseq nat nnz)
-  (em : ematrix et shared cols)
+  (em : chest2 et shared cols)
   (from to : natle nnz{from <= to})
 : Lemma
   (requires valid_pos shared pos)
@@ -191,7 +191,7 @@ let _sparse_comb
   (#nnz : nat)
   (elems : lseq et nnz)
   (pos : lseq nat nnz)
-  (em : ematrix et shared cols)
+  (em : chest2 et shared cols)
   (i : natlt nnz)
   (to : nat)
 : Ghost (lseq et block)
@@ -212,7 +212,7 @@ let sparse_comb
   (#nnz : nat)
   (elems : lseq et nnz)
   (pos : lseq nat nnz)
-  (em : ematrix et shared cols)
+  (em : chest2 et shared cols)
   (i : natlt nnz)
 : Ghost (lseq et block)
   (requires cols <= block /\ valid_pos shared pos)
@@ -228,7 +228,7 @@ let sparse_comb_row_x_mat_acc
   (#nnz : nat)
   (elems : lseq et nnz)
   (pos : lseq nat nnz)
-  (em : ematrix et shared cols)
+  (em : chest2 et shared cols)
   (to : natlt nnz)
 : Lemma
   (requires cols <= block /\ valid_pos shared pos)
@@ -257,7 +257,7 @@ let sparse_row_x_mat_acc_congr
   (#nnz : nat)
   (elems : lseq et nnz)
   (pos : lseq nat nnz)
-  (em : ematrix et shared cols)
+  (em : chest2 et shared cols)
 : Lemma
   (requires valid_pos shared pos /\ cols <= block)
   (ensures
@@ -284,7 +284,7 @@ let compute_step
   (#nnz : nat)
   (elems : lseq et nnz)
   (col_ind : lseq nat nnz)
-  (eB : ematrix et shared cols)
+  (eB : chest2 et shared cols)
   (out : lseq et (bx / bw))
   (off : natlt bw)
   (n : natlt cols)
@@ -319,8 +319,8 @@ let compute_lemma
   (#nnz : nat)
   (elems : lseq et nnz)
   (col_ind : lseq nat nnz)
-  (eA : ematrix et rows shared)
-  (eB : ematrix et shared cols)
+  (eA : chest2 et rows shared)
+  (eB : chest2 et shared cols)
   (out : lseq et (bx / bw))
   (off : natlt bw)
   (n : natlt cols)
@@ -380,7 +380,7 @@ fn compute
   {| ctlayout lB |}
   (gB : array2 et lB)
   (#fB : perm)
-  (#eB : erased (ematrix et shared cols))
+  (#eB : erased (chest2 et shared cols))
   // resultado parcial
   (out : larray et (blockItemsX /^ blockWidth))
   (#v_out : erased (seq et))

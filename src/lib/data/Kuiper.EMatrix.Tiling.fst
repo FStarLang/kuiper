@@ -11,7 +11,7 @@ let macc_ematrix_tiled #et #rows #cols em trows tcols i j = ()
 let from_subtiles_id
   (#et : _)
   (#rows #cols : _)
-  (em : ematrix et rows cols)
+  (em : chest2 et rows cols)
   (trows : pos {trows /? rows})
   (tcols : pos {tcols /? cols})
   : Lemma (ematrix_from_tiles trows tcols (ematrix_subtile em trows tcols)
@@ -21,13 +21,13 @@ let from_subtiles_id
   ()
 #pop-options
 
-#push-options "--z3rlimit 20 --fuel 0 --ifuel 0 --split_queries always --retry 3"
+#push-options "--z3rlimit 20 --fuel 0 --ifuel 0 --split_queries always --retry 5"
 let tiles_from_subtiles_id
   (#et : _)
   (#rows #cols : _)
   (trows : pos {trows /? rows})
   (tcols : pos {tcols /? cols})
-  (f : natlt (rows / trows) -> natlt (cols / tcols) -> ematrix et trows tcols)
+  (f : natlt (rows / trows) -> natlt (cols / tcols) -> chest2 et trows tcols)
   (tr : natlt (rows / trows))
   (tc : natlt (cols / tcols))
   : Lemma (ematrix_subtile (ematrix_from_tiles trows tcols f) trows tcols tr tc
@@ -40,7 +40,7 @@ let tiles_from_subtiles_id
 let update_tile_self
   (#et : _)
   (#rows #cols : _)
-  (em : ematrix et rows cols)
+  (em : chest2 et rows cols)
   (trows : pos {trows /? rows})
   (tcols : pos {tcols /? cols})
   (tr : natlt (rows / trows))
@@ -55,12 +55,12 @@ let update_tile_self
 let subtile_of_update_tile
   (#et : _)
   (#rows #cols : _)
-  (em : ematrix et rows cols)
+  (em : chest2 et rows cols)
   (trows : pos {trows /? rows})
   (tcols : pos {tcols /? cols})
   (tr : natlt (rows / trows))
   (tc : natlt (cols / tcols))
-  (etile : ematrix et trows tcols)
+  (etile : chest2 et trows tcols)
   (tr' : natlt (rows / trows))
   (tc' : natlt (cols / tcols))
   : Lemma (ematrix_subtile (update_tile em trows tcols tr tc etile) trows tcols tr' tc'

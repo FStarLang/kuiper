@@ -33,10 +33,10 @@ let fragarrayAcc_approximates (#et:Type0) {| scalar et, real_like et |}
   (#tm #tn #tk : pos)
   (wm wn : nat)
   ([@@@mkey] arr : array (fragment et FragAcc tm tn tk FragLAcc) { Pulse.Lib.Array.length arr == wm*wn})
-  (rm : ematrix real (wm*tm) (wn*tn))
+  (rm : chest2 real (wm*tm) (wn*tn))
   : slprop
   =
-    exists* (em : seq (ematrix et tm tn)).
+    exists* (em : seq (chest2 et tm tn)).
       arr |-> em **
       pure (
         (Seq.length em == wm*wn) /\
@@ -46,10 +46,10 @@ let fragarrayA_approximates (#et:Type0) {| scalar et, real_like et |}
   (#tm #tn #tk : pos)
   (wm : nat)
   (arr : array (fragment et FragA tm tn tk FragLRM) { Pulse.Lib.Array.length arr == wm})
-  (rm : ematrix real (wm*tm) tk)
+  (rm : chest2 real (wm*tm) tk)
   : slprop
   =
-    exists* (eAs : seq (ematrix et tm tk)).
+    exists* (eAs : seq (chest2 et tm tk)).
       arr |-> eAs **
       pure (
         (Seq.length eAs == wm) /\
@@ -60,10 +60,10 @@ let fragarrayB_approximates (#et:Type0) {| scalar et, real_like et |}
   (#tm #tn #tk : pos)
   (wn : nat)
   (arr : array (fragment et FragB tm tn tk FragLRM) { Pulse.Lib.Array.length arr == wn})
-  (rm : ematrix real tk (wn*tn))
+  (rm : chest2 real tk (wn*tn))
   : slprop
   =
-    exists* (eBs : seq (ematrix et tk tn)).
+    exists* (eBs : seq (chest2 et tk tn)).
       arr |-> eBs **
       pure (
         (Seq.length eBs == wn) /\
@@ -79,8 +79,8 @@ fn populate_fragments_a
    wm wn : szp { constraints bm bn bk tm tn tk wm wn })
   (frags : array (fragment et FragA tm tn tk FragLRM))
   (gm : array2 et (rm bm bk))
-  (#em : ematrix et bm bk)
-  (rm : ematrix real bm bk {em %~ rm})
+  (#em : chest2 et bm bk)
+  (rm : chest2 real bm bk {em %~ rm})
   (#f : perm)
   (arow : szlt (bm/(wm*tm)))
   (dotIdx : szlt (bk/tk))
@@ -136,8 +136,8 @@ fn populate_fragments_b
    wm wn : szp { constraints bm bn bk tm tn tk wm wn })
   (frags : array (fragment et FragB tm tn tk FragLRM))
   (gm : array2 et (rm bk bn))
-  (#em : ematrix et bk bn)
-  (rm : ematrix real bk bn {em %~ rm})
+  (#em : chest2 et bk bn)
+  (rm : chest2 real bk bn {em %~ rm})
   (#f : perm)
   (bcol : szlt (bn/(wn*tn)))
   (dotIdx : szlt (bk/tk))
@@ -192,10 +192,10 @@ let arrayfragments_fade
   (j : natlt wn)
   (resIdxM : natle wm)
   (resIdxN : natle wn)
-  (rA : ematrix real (wm*tm) tk)
-  (rB : ematrix real tk (wn*tn))
-  (rAcc : ematrix real (wm*tm) (wn*tn))
-: ematrix real tm tn
+  (rA : chest2 real (wm*tm) tk)
+  (rB : chest2 real tk (wn*tn))
+  (rAcc : chest2 real (wm*tm) (wn*tn))
+: chest2 real tm tn
 =
   if i < resIdxM || (i = resIdxM && j < resIdxN)
   then ematrix_subtile rAcc tm tn i j `matplus`
@@ -213,9 +213,9 @@ fn fragarray_mma
   (aFrags     : array (fragment et_ab FragA tm tn tk FragLRM))
   (bFrags     : array (fragment et_ab FragB tm tn tk FragLRM))
   (accumFrags : array (fragment et_acc FragAcc tm tn tk FragLAcc))
-  (rA : ematrix real (wm*tm) tk)
-  (rB : ematrix real tk (wn*tn))
-  (rAcc : ematrix real (wm*tm) (wn*tn))
+  (rA : chest2 real (wm*tm) tk)
+  (rB : chest2 real tk (wn*tn))
+  (rAcc : chest2 real (wm*tm) (wn*tn))
   (dotIdx : szlt (bk/tk))
   (#_ : squash (Pulse.Lib.Array.length aFrags == wm))
   (#_ : squash (Pulse.Lib.Array.length bFrags == wn))
@@ -241,7 +241,7 @@ fn fragarray_mma
   while (!resIdxM <^ wm)
     invariant live resIdxM
     invariant
-      exists* (eAcc : seq (ematrix et_acc tm tn)).
+      exists* (eAcc : seq (chest2 et_acc tm tn)).
         accumFrags |-> eAcc **
         pure (
           !resIdxM <= wm /\
@@ -255,7 +255,7 @@ fn fragarray_mma
     while (!resIdxN <^ wn)
       invariant live resIdxN
       invariant
-        exists* (eAcc : seq (ematrix et_acc tm tn)).
+        exists* (eAcc : seq (chest2 et_acc tm tn)).
           accumFrags |-> eAcc **
           pure (
             !resIdxN <= wn /\
@@ -339,18 +339,18 @@ inline_for_extraction noextract
 let sz_succ (x:SZ.t{SZ.fits (x+1)}) : SZ.t = x +^ 1sz
 
 // Helper lemma: proves the matmul accumulation step via extensional equality,
-// working around the matplus normalization gap introduced by the ematrix→chest
+// working around the matplus normalization gap introduced by the chest2→chest
 // refactor (matplus normalizes to Chest.M/on_domain_g in the slprop but the
 // __gmatmul_single_lemma hypothesis keeps it opaque). By having ematrix_subtile
-// directly in the ensures clause (not macc), the conclusion normalizes
+// directly in the ensures clause (not acc2), the conclusion normalizes
 // consistently with the slprop when F* sends it to SMT.
 #push-options "--z3rlimit 60"
 let subproducts_step_eq
   (#bm #bk #bn : nat)
   (wm_tm tk_dim wn_tn : pos)
   (_ : squash (wm_tm /? bm /\ tk_dim /? bk /\ wn_tn /? bn))
-  (rAcc : ematrix real wm_tm wn_tn)
-  (rA : ematrix real bm bk) (rB : ematrix real bk bn)
+  (rAcc : chest2 real wm_tm wn_tn)
+  (rA : chest2 real bm bk) (rB : chest2 real bk bn)
   (row : natlt (bm/wm_tm)) (col : natlt (bn/wn_tn))
   (k : natlt (bk/tk_dim))
   : Lemma (
@@ -389,7 +389,7 @@ ghost fn rewrite_fragarrayAcc
   (wm wn : pos)
   (accumFrags : array (fragment et FragAcc tm tn tk FragLAcc)
                 { Pulse.Lib.Array.length accumFrags == wm*wn })
-  (mold mnew : ematrix real (wm*tm) (wn*tn))
+  (mold mnew : chest2 real (wm*tm) (wn*tn))
   (#_ : squash (mold == mnew))
   requires fragarrayAcc_approximates wm wn accumFrags mold
   ensures fragarrayAcc_approximates wm wn accumFrags mnew
@@ -410,8 +410,8 @@ ghost fn rewrite_fragarrayAcc_step
   (wm wn : pos)
   (accumFrags : array (fragment et FragAcc tm tn tk FragLAcc)
                 { Pulse.Lib.Array.length accumFrags == wm*wn })
-  (rAcc : ematrix real (wm*tm) (wn*tn))
-  (rA : ematrix real bm bk) (rB : ematrix real bk bn)
+  (rAcc : chest2 real (wm*tm) (wn*tn))
+  (rA : chest2 real bm bk) (rB : chest2 real bk bn)
   (arow : natlt (bm/(wm*tm))) (bcol : natlt (bn/(wn*tn)))
   (k : natlt (bk/tk))
   (#_ : squash ((wm*tm) /? bm /\ tk /? bk /\ (wn*tn) /? bn))
@@ -445,8 +445,8 @@ ghost fn rewrite_fragarrayAcc_tiles
   (wm wn : pos)
   (accumFrags : array (fragment et FragAcc tm tn tk FragLAcc)
                 { Pulse.Lib.Array.length accumFrags == wm*wn })
-  (rAcc : ematrix real (wm*tm) (wn*tn))
-  (rA : ematrix real bm bk) (rB : ematrix real bk bn)
+  (rAcc : chest2 real (wm*tm) (wn*tn))
+  (rA : chest2 real bm bk) (rB : chest2 real bk bn)
   (arow : natlt (bm/(wm*tm))) (bcol : natlt (bn/(wn*tn)))
   (#_ : squash ((wm*tm) /? bm /\ tk /? bk /\ (wn*tn) /? bn))
   requires fragarrayAcc_approximates wm wn accumFrags
@@ -477,11 +477,11 @@ fn subproducts_tc_2d
   (accumFrags : array (fragment et_acc FragAcc tm tn tk FragLAcc))
   (gA : array2 et_ab (rm bm bk))
   (gB : array2 et_ab (rm bk bn))
-  (#eA : ematrix et_ab bm bk)
-  (#eB : ematrix et_ab bk bn)
-  (rA : ematrix real bm bk {eA %~ rA})
-  (rB : ematrix real bk bn {eB %~ rB})
-  (rAcc : ematrix real (wm*tm) (wn*tn))
+  (#eA : chest2 et_ab bm bk)
+  (#eB : chest2 et_ab bk bn)
+  (rA : chest2 real bm bk {eA %~ rA})
+  (rB : chest2 real bk bn {eB %~ rB})
+  (rAcc : chest2 real (wm*tm) (wn*tn))
   (#fA #fB : perm)
   (arow : szlt (bm/(wm*tm)))
   (bcol : szlt (bn/(wn*tn)))
@@ -568,8 +568,8 @@ let em_fade_tiles
   (tm tn wm wn : pos)
   (idxI : natle wm)
   (idxJ : natle wn)
-  (rm1 rm2 : ematrix real (wm*tm) (wn*tn))
-: ematrix real (wm*tm) (wn*tn)
+  (rm1 rm2 : chest2 real (wm*tm) (wn*tn))
+: chest2 real (wm*tm) (wn*tn)
 =
   ematrix_from_tiles tm tn (fun i j ->
     let flat_idx = i * wn + j in
@@ -578,15 +578,29 @@ let em_fade_tiles
     then ematrix_subtile rm2 tm tn i j
     else ematrix_subtile rm1 tm tn i j)
 
+// Once idxI reaches wm, every output tile index (i,j) satisfies
+// i*wn+j < wm*wn <= wm*wn+idxJ, so the fade selects rm2 everywhere and the
+// whole matrix collapses to rm2 (regardless of idxJ). Proven extensionally so
+// that the chest2 stays opaque: from_subtiles_id no longer fires syntactically
+// after the ematrix->chest refactor, so we bridge via `equal`.
+#push-options "--z3rlimit 40"
+let em_fade_tiles_full
+  (tm tn wm wn : pos)
+  (idxJ : natle wn)
+  (rm1 rm2 : chest2 real (wm*tm) (wn*tn))
+: Lemma (em_fade_tiles tm tn wm wn wm idxJ rm1 rm2 == rm2)
+= assert (equal (em_fade_tiles tm tn wm wn wm idxJ rm1 rm2) rm2)
+#pop-options
+
 #push-options "--z3rlimit 80 --split_queries always"
 let lemma_update_tile_fade_approximates
   (#et : Type0) {| scalar et, real_like et|}
   (tm tn wm wn : pos)
   (idxI : natlt wm)
   (idxJ : natlt wn)
-  (em : ematrix et (wm*tm) (wn*tn))
-  (etile : ematrix et tm tn)
-  (rm1 rm2 : ematrix real (wm*tm) (wn*tn))
+  (em : chest2 et (wm*tm) (wn*tn))
+  (etile : chest2 et tm tn)
+  (rm1 rm2 : chest2 real (wm*tm) (wn*tn))
 : Lemma
   (requires
     (em %~ (em_fade_tiles tm tn wm wn idxI idxJ rm1 rm2)) /\
@@ -609,9 +623,9 @@ fn epilogue
   (#_ : squash (bn /?+ n))
   (#_ : squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
   (accumFrags : array (fragment et FragAcc tm tn tk FragLAcc))
-  (rAcc : ematrix real (wm*tm) (wn*tn))
+  (rAcc : chest2 real (wm*tm) (wn*tn))
   (gC : array2 et (rm m n))
-  // (#eC : ematrix et m n)
+  // (#eC : chest2 et m n)
   (#_ : squash (SZ.fits (m * n)))
   (bid : szlt (m/bm * (n/bn)))
   (wid : szlt (bm/(wm*tm) * (bn/(wn*tn))))
@@ -625,7 +639,7 @@ fn epilogue
   ensures
     warp_tile_approximates gC bm bn tm tn wm wn bid wid rAcc
 {
-  with (eWarpTile : ematrix _ _ _). assert warp_tile_pts_to gC (v bm) (v bn) (v tm) (v tn) (v wm) (v wn) (v bid) (v wid) eWarpTile;
+  with (eWarpTile : chest2 _ _ _). assert warp_tile_pts_to gC (v bm) (v bn) (v tm) (v tn) (v wm) (v wn) (v bid) (v wid) eWarpTile;
   let rWarpTile = to_real_matrix eWarpTile;
 
   Kuiper.Chest.lemma_to_real_chest_approximates eWarpTile;
@@ -638,7 +652,7 @@ fn epilogue
     invariant
       live i
     invariant
-      exists* (eWarpTile: ematrix et (wm*tm) (wn*tn)).
+      exists* (eWarpTile: chest2 et (wm*tm) (wn*tn)).
         warp_tile_pts_to gC bm bn tm tn wm wn bid wid eWarpTile **
           pure (!i <= wm /\
             eWarpTile %~ (em_fade_tiles tm tn wm wn !i 0 rWarpTile rAcc))
@@ -648,7 +662,7 @@ fn epilogue
     while (!j <^ wn)
       invariant live j
       invariant
-        exists* (eWarpTile: ematrix et (wm*tm) (wn*tn)).
+        exists* (eWarpTile: chest2 et (wm*tm) (wn*tn)).
           warp_tile_pts_to gC bm bn tm tn wm wn bid wid eWarpTile **
             pure (!i <= wm /\ !j <= wn /\
               eWarpTile %~ (em_fade_tiles tm tn wm wn !i !j rWarpTile rAcc))
@@ -696,8 +710,10 @@ fn epilogue
 
   with eWarpTile'.
     assert (warp_tile_pts_to gC bm bn tm tn wm wn bid wid eWarpTile');
-  assert pure (eWarpTile' %~ (em_fade_tiles tm tn wm wn wm wn rWarpTile rAcc));
-  assert pure (eWarpTile' %~ (ematrix_from_tiles tm tn (ematrix_subtile rAcc tm tn)));
+  // After the outer loop !i == wm, so the invariant gives
+  //   eWarpTile' %~ em_fade_tiles tm tn wm wn wm 0 rWarpTile rAcc.
+  // With idxI = wm every tile is an rAcc subtile, so the fade collapses to rAcc.
+  em_fade_tiles_full tm tn wm wn 0 rWarpTile rAcc;
   assert pure (eWarpTile' %~ rAcc);
 
   fold warp_tile_approximates gC bm bn tm tn wm wn bid wid rAcc;
@@ -721,7 +737,7 @@ ensures
   while (!fi <^ wm*^wn)
     invariant
       live fi **
-      (exists* (eAcc : seq (ematrix et tm tn)).
+      (exists* (eAcc : seq (chest2 et tm tn)).
         accumFrags |-> eAcc **
         pure (
           Seq.length eAcc == wm*wn /\ !fi <= wm*wn  /\
@@ -758,10 +774,10 @@ let loop_invariant_lemma
   (gwRow : natlt (m/(wm*tm)) { gwRow == mrow * (bm/(wm*tm)) + warpRow })
   (gwCol : natlt (n/(wn*tn)) { gwCol == mcol * (bn/(wn*tn)) + warpCol })
   (vk : natlt (k / bk))
-  (rA : ematrix real m k)
-  (rB : ematrix real k n)
-  (rAcc0 : ematrix real (wm*tm) (wn*tn) { rAcc0 == const_matrix 0.0R })
-  (rAcc  : ematrix real (wm*tm) (wn*tn))
+  (rA : chest2 real m k)
+  (rB : chest2 real k n)
+  (rAcc0 : chest2 real (wm*tm) (wn*tn) { rAcc0 == const_matrix 0.0R })
+  (rAcc  : chest2 real (wm*tm) (wn*tn))
   (#_ : squash (wm * tm /?+ m)) // obvious, but SMT is flaky
   (#_ : squash (wn * tn /?+ n)) // idem
   (#_ : squash (rAcc  ==
@@ -770,8 +786,8 @@ let loop_invariant_lemma
               gwRow
               gwCol
               vk)))
-  (rA_sub : ematrix real bm bk { rA_sub == ematrix_subtile rA bm bk mrow vk })
-  (rB_sub : ematrix real bk bn { rB_sub == ematrix_subtile rB bk bn vk mcol })
+  (rA_sub : chest2 real bm bk { rA_sub == ematrix_subtile rA bm bk mrow vk })
+  (rB_sub : chest2 real bk bn { rB_sub == ematrix_subtile rB bk bn vk mcol })
 : Lemma (
         rAcc `matplus` matmul (ematrix_subtile rA_sub (wm*tm) bk warpRow 0)
                                (ematrix_subtile rB_sub bk (wn*tn) 0 warpCol)
@@ -779,9 +795,9 @@ let loop_invariant_lemma
         __gmatmul_single rAcc0 matmul matplus
           (ematrix_tiled rA (wm*tm) bk) (ematrix_tiled rB bk (wn*tn)) gwRow gwCol (vk + 1)
     )
-= let lhs : ematrix real (wm*tm) (wn*tn) = rAcc `matplus` matmul (ematrix_subtile rA_sub (wm*tm) bk warpRow 0)
+= let lhs : chest2 real (wm*tm) (wn*tn) = rAcc `matplus` matmul (ematrix_subtile rA_sub (wm*tm) bk warpRow 0)
                                    (ematrix_subtile rB_sub bk (wn*tn) 0 warpCol) in
-  let rhs : ematrix real (wm*tm) (wn*tn) =
+  let rhs : chest2 real (wm*tm) (wn*tn) =
         __gmatmul_single rAcc0 matmul matplus
           (ematrix_tiled rA (wm*tm) bk) (ematrix_tiled rB bk (wn*tn)) gwRow gwCol (vk + 1)
   in
@@ -820,50 +836,50 @@ let loop_invariant_lemma
   let aux1 () : Lemma (
                   ematrix_subtile rA_sub (wm*tm) bk warpRow 0
                   ==
-                  macc (ematrix_tiled rA (wm*tm) bk) gwRow vk
+                  acc2 (ematrix_tiled rA (wm*tm) bk) gwRow vk
                 )
   = macc_ematrix_tiled rA (wm*tm) bk gwRow vk;
     assert (ematrix_subtile rA_sub (wm*tm) bk warpRow 0
-            `equal` macc (ematrix_tiled rA (wm*tm) bk) gwRow vk)
+            `equal` acc2 (ematrix_tiled rA (wm*tm) bk) gwRow vk)
   in
   let aux2 () : Lemma (
                   ematrix_subtile rB_sub bk (wn*tn) 0 warpCol
                   ==
-                  macc (ematrix_tiled rB bk (wn*tn)) vk gwCol
+                  acc2 (ematrix_tiled rB bk (wn*tn)) vk gwCol
                 )
   = macc_ematrix_tiled rB bk (wn*tn) vk gwCol;
     assert (ematrix_subtile rB_sub bk (wn*tn) 0 warpCol
-            `equal` macc (ematrix_tiled rB bk (wn*tn)) vk gwCol)
+            `equal` acc2 (ematrix_tiled rB bk (wn*tn)) vk gwCol)
   in
   aux1 ();
   aux2 ();
 
   let aux (i : natlt (wm*tm)) (j : natlt (wn*tn))
-    : Lemma (macc lhs i j == macc rhs i j)
+    : Lemma (acc2 lhs i j == acc2 rhs i j)
     = calc (==) {
-        macc lhs i j;
+        acc2 lhs i j;
         == {}
-        macc (__gmatmul_single rAcc0 matmul matplus
+        acc2 (__gmatmul_single rAcc0 matmul matplus
                (ematrix_tiled rA (wm*tm) bk)
                (ematrix_tiled rB bk (wn*tn)) gwRow gwCol vk
               `matplus`
                  matmul (ematrix_subtile rA_sub (wm*tm) bk warpRow 0)
                         (ematrix_subtile rB_sub bk (wn*tn) 0 warpCol)) i j;
         == {}
-        macc (__gmatmul_single rAcc0 matmul matplus
+        acc2 (__gmatmul_single rAcc0 matmul matplus
                (ematrix_tiled rA (wm*tm) bk)
                (ematrix_tiled rB bk (wn*tn)) gwRow gwCol vk
               `matplus`
-                 matmul (macc (ematrix_tiled rA (wm*tm) bk) gwRow vk)
-                        (macc (ematrix_tiled rB bk (wn*tn)) vk gwCol)) i j;
+                 matmul (acc2 (ematrix_tiled rA (wm*tm) bk) gwRow vk)
+                        (acc2 (ematrix_tiled rB bk (wn*tn)) vk gwCol)) i j;
         == { __gmatmul_single_lemma rAcc0 matmul matplus
                (ematrix_tiled rA (wm*tm) bk)
                (ematrix_tiled rB bk (wn*tn)) gwRow gwCol (vk + 1) }
-        macc (__gmatmul_single rAcc0 matmul matplus
+        acc2 (__gmatmul_single rAcc0 matmul matplus
                (ematrix_tiled rA (wm*tm) bk)
                (ematrix_tiled rB bk (wn*tn)) gwRow gwCol (vk+1)) i j;
         == {}
-        macc rhs i j;
+        acc2 rhs i j;
       }
   in
   Classical.forall_intro_2 aux;
@@ -879,16 +895,16 @@ fn kf
   (#m #n #k : szp)
   (#lA : layout2 m k) {| T.ctlayout lA |}
   (gA : array2 et_ab lA)
-  (#eA : ematrix et_ab m k)
+  (#eA : chest2 et_ab m k)
   (#lB : layout2 k n) {| T.ctlayout lB |}
   {| str_A : strided_row_major lA,
      str_B : strided_row_major lB |}
   (#_ : squash (aligned_strided_row_major (chunk et_ab) str_A))
   (#_ : squash (aligned_strided_row_major (chunk et_ab) str_B))
   (gB : array2 et_ab lB)
-  (#eB : ematrix et_ab k n)
+  (#eB : chest2 et_ab k n)
   (gC : array2 et_c (rm m n))
-  (#eC : ematrix et_c m n)
+  (#eC : chest2 et_c m n)
   (bm bn bk
    tm tn tk
    wm wn : szp { constraints bm bn bk tm tn tk wm wn })
@@ -908,9 +924,9 @@ fn kf
   (#_ : squash (valid_frag_et_dims et_c FragAcc tm tn tk))
   (#_ : squash (valid_frag_et_comb et_ab et_c))
   (#fA #fB : perm)
-  (rA : ematrix real m k)
-  (rB : ematrix real k n)
-  (rC : ematrix real m n)
+  (rA : chest2 real m k)
+  (rB : chest2 real k n)
+  (rC : chest2 real m n)
   (nthr : erased nat {nthr == bm/(wm*tm)*(bn/(wn*tn))*warp_size})
   (#_ : squash (chunk et_ab * nthr /?+ (bm * bk)))
   (#_ : squash (chunk et_ab * nthr /?+ (bk * bn)))
@@ -969,7 +985,7 @@ fn kf
 
   // Fill accumulators with 0
   populate_acc_with_zero tm tn tk wm wn accFrags;
-  let rAcc0 : ematrix real (wm*tm) (wn*tn) = const_matrix 0.0R;
+  let rAcc0 : chest2 real (wm*tm) (wn*tn) = const_matrix 0.0R;
   assert (rewrites_to rAcc0 (const_matrix 0.0R));
 
   rewrite fragarrayAcc_approximates wm wn accFrags rAcc0
@@ -978,8 +994,8 @@ fn kf
               (ematrix_tiled rA (wm*tm) bk) (ematrix_tiled rB bk (wn*tn)) mrow mcol 0);
 
   rewrite
-    (exists* (x : ematrix _ _ _). sA |-> Frac (1.0R /. nthr) x) **
-    (exists* (x : ematrix _ _ _). sB |-> Frac (1.0R /. nthr) x)
+    (exists* (x : chest2 _ _ _). sA |-> Frac (1.0R /. nthr) x) **
+    (exists* (x : chest2 _ _ _). sB |-> Frac (1.0R /. nthr) x)
   as
     (exists* em1. FB.bp_sharing sA em1 nthr) **
     (exists* em2. FB.bp_sharing sB em2 nthr);
@@ -1116,7 +1132,7 @@ fn kf
     rAcc0 rA rB
     gwRow gwCol;
 
-  let rAcc' : ematrix real (wm*tm) (wn*tn) =
+  let rAcc' : chest2 real (wm*tm) (wn*tn) =
     gmatmul_single rAcc0 matmul matplus
      (ematrix_tiled rA (wm*tm) bk) (ematrix_tiled rB bk (wn*tn))
        gwRow gwCol;
@@ -1126,7 +1142,7 @@ fn kf
         (ematrix_tiled rA (wm*tm) bk) (ematrix_tiled rB bk (wn*tn)) gwRow gwCol !bkIdx)
       == rAcc');
 
-  let rAcc'' : ematrix real (wm*tm) (wn*tn) =
+  let rAcc'' : chest2 real (wm*tm) (wn*tn) =
     MS.matmul (ematrix_subtile rA (wm*tm) k (warp_tile_i #m #n bm bn bk tm tn tk wm wn nthr bid (tid / warp_size)) 0)
               (ematrix_subtile rB k  (wn*tn) 0 (warp_tile_j #m #n bm bn bk tm tn tk wm wn nthr bid (tid / warp_size)));
 
@@ -1181,18 +1197,18 @@ let mk_kernel
   (#m #n #k : szp)
   (#lA : layout2 m k) {| T.ctlayout lA |}
   (gA : array2 et_ab lA  { is_global gA })
-  (#eA : ematrix et_ab m k)
+  (#eA : chest2 et_ab m k)
   (#lB : layout2 k n) {| T.ctlayout lB |}
   {| str_A : strided_row_major lA,
      str_B : strided_row_major lB |}
   (#_ : squash (aligned_strided_row_major (chunk et_ab) str_A))
   (#_ : squash (aligned_strided_row_major (chunk et_ab) str_B))
   (gB : array2 et_ab lB { is_global gB })
-  (#eB : ematrix et_ab k n)
+  (#eB : chest2 et_ab k n)
   (gC : array2 et_c (rm m n) { is_global gC })
   // ^ Why does this have a fixed layout?
   (#_ : squash (SZ.fits (m * n)))
-  (#eC : ematrix et_c m n)
+  (#eC : chest2 et_c m n)
   (bm bn bk
    tm tn tk
    wm wn : szp { constraints bm bn bk tm tn tk wm wn })
@@ -1220,9 +1236,9 @@ let mk_kernel
   (#_ : squash (SZ.fits (bk*bn + nthr-1)))
   (#_ : squash (nblk <= max_blocks))
   (#_ : squash (nthr <= max_threads))
-  (rA : ematrix real m k)
-  (rB : ematrix real k n)
-  (rC : ematrix real m n)
+  (rA : chest2 real m k)
+  (rB : chest2 real k n)
+  (rC : chest2 real m n)
   (#_ : squash (wm * tm /?+ m)) // obvious, but SMT is flaky
   (#_ : squash (wn * tn /?+ n)) // idem
   ()
@@ -1232,7 +1248,7 @@ let mk_kernel
        gC |-> eC ** pure (eC %~ rC))
       (gA |-> Frac fA eA **
        gB |-> Frac fB eB **
-       (exists* (eC' : ematrix et_c m n).
+       (exists* (eC' : chest2 et_c m n).
          gC |-> eC' ** pure (eC' %~ MS.matmul rA rB)))
 = {
   nblk;

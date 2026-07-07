@@ -15,22 +15,22 @@ open Kuiper.Seq.Common { op_At_Bang }
 let submatrix
   (#a : Type0)
   (#rows #cols : nat)
-  (em : ematrix a rows cols)
+  (em : chest2 a rows cols)
   (m : natle rows)
   (srows : nat{m + srows <= rows})
   (n : natle cols)
   (scols : nat{n + scols <= cols})
-: ematrix a srows scols
-= mkM (fun i j -> macc em (m + i) (n + j))
+: chest2 a srows scols
+= mk2 (fun i j -> acc2 em (m + i) (n + j))
 
 let col_strided_matrix
   (#a : Type0)
   (#rows #cols : nat)
-  (em : ematrix a rows cols)
+  (em : chest2 a rows cols)
   (step : pos)
-: ematrix a rows (cols `divup` step)
+: chest2 a rows (cols `divup` step)
 =
-  mkM (fun i j -> macc em i (j * step))
+  mk2 (fun i j -> acc2 em i (j * step))
 
 let step_sparse_cols
   (cols n scols : nat)
@@ -41,11 +41,11 @@ let step_sparse_cols
 let step_submatrix
   (#et : Type0) {| scalar et |}
   (#rows #cols : nat)
-  (em : ematrix et rows cols)
+  (em : chest2 et rows cols)
   (scols : nat)
   (n : nat)
   (step : pos)
-: Pure (ematrix et rows (step_sparse_cols cols n scols step))
+: Pure (chest2 et rows (step_sparse_cols cols n scols step))
   (requires true)
   (ensures fun _ -> true)
 =
@@ -62,7 +62,7 @@ let _sparse_row_x_mat_acc
   (#nnz : nat)
   (elems : lseq et nnz)
   (pos : lseq nat nnz)
-  (em : ematrix et shared cols)
+  (em : chest2 et shared cols)
   (to : natle nnz)
 : Ghost (lseq et block)
   (requires valid_pos shared pos)
@@ -82,7 +82,7 @@ let sparse_row_x_mat_acc
   (#nnz : nat)
   (elems : lseq et nnz)
   (pos : lseq nat nnz)
-  (em : ematrix et shared cols)
+  (em : chest2 et shared cols)
 : Ghost (lseq et block)
   (requires valid_pos shared pos)
   (ensures fun _ -> true)
@@ -100,7 +100,7 @@ let compute_result
   (#nnz : nat)
   (elems : lseq et nnz)
   (col_ind : lseq nat nnz)
-  (eB : ematrix et shared cols)
+  (eB : chest2 et shared cols)
   (out : lseq et (bx / bw))
   (off : natlt bw)
   (n : natlt cols)
@@ -119,7 +119,7 @@ val compute_step
   (#nnz : nat)
   (elems : lseq et nnz)
   (col_ind : lseq nat nnz)
-  (eB : ematrix et shared cols)
+  (eB : chest2 et shared cols)
   (out : lseq et (bx / bw))
   (off : natlt bw)
   (n : natlt cols)
@@ -149,8 +149,8 @@ val compute_lemma
   (#nnz : nat)
   (elems : lseq et nnz)
   (col_ind : lseq nat nnz)
-  (eA : ematrix et rows shared)
-  (eB : ematrix et shared cols)
+  (eA : chest2 et rows shared)
+  (eB : chest2 et shared cols)
   (out : lseq et (bx / bw))
   (off : natlt bw)
   (n : natlt cols)
@@ -188,7 +188,7 @@ fn compute
   {| ctlayout lB |}
   (gB : array2 et lB)
   (#fB : perm)
-  (#eB : erased (ematrix et shared cols))
+  (#eB : erased (chest2 et shared cols))
   // resultado parcial
   (out : larray et (blockItemsX /^ blockWidth))
   (#v_out : erased (seq et))

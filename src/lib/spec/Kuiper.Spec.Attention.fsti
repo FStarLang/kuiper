@@ -14,7 +14,7 @@ module MS = Kuiper.Spec.GEMM
 
 module RSMX = Kuiper.Kernel.RowSoftmax
 
-// TODO: consistent usage of ematrix and chest forms? review
+// TODO: consistent usage of chest2 and chest forms? review
 
 (* Pre-softmax attention scores. *)
 let attn_scores
@@ -40,12 +40,12 @@ let attn_lse
 (* Top-level real-valued spec: (output, log-sum-exp) given real inputs. *)
 let attention_real_lse
   (#l #s #e #ev : pos)
-  (eQ : ematrix real l e)
-  (eK : ematrix real e s)
-  (eV : ematrix real s ev)
-  (bias : ematrix real l s)
+  (eQ : chest2 real l e)
+  (eK : chest2 real e s)
+  (eV : chest2 real s ev)
+  (bias : chest2 real l s)
   (scale : real)
-  : GTot (ematrix real l ev & lseq real l)
+  : GTot (chest2 real l ev & lseq real l)
   = let scores = attn_scores eQ eK bias scale in
     let probs  = RSMX.row_softmax_real scores in
     let out    = MS.matmul probs eV in
@@ -66,6 +66,6 @@ let attention_real_batched_lse
             (slice_page4 rV i j)
             (slice_page4 rbias i j)
             scale in
-    let out_spec = mk4 fun i j -> macc (fst (attn_tile i j)) in
+    let out_spec = mk4 fun i j -> acc2 (fst (attn_tile i j)) in
     let lse_spec = mk3 fun i j -> Seq.index (snd (attn_tile i j)) in
     (out_spec, lse_spec)

@@ -49,9 +49,9 @@ fn spec
   (gC : array2 et_c (rm rows cols) { is_global gC })
   (#_ : squash (aligned 16 (core gA)))
   (#_ : squash (aligned 16 (core gB)))
-  (#eA : ematrix et_ab rows shared)
-  (#eB : ematrix et_ab shared cols)
-  (#eC : ematrix et_c rows cols)
+  (#eA : chest2 et_ab rows shared)
+  (#eB : chest2 et_ab shared cols)
+  (#eC : chest2 et_c rows cols)
   (#fA #fB : perm)
   // non of these are are checked because the functions is only
   //  partially applied

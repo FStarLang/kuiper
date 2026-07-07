@@ -42,9 +42,9 @@ let block_pre
   (elems : lseq et gA.nnz)
   (col_ind : lseq sz gA.nnz)
   (row_off : lseq sz (p.rows + 1))
-  (eA : ematrix et p.rows p.shared)
+  (eA : chest2 et p.rows p.shared)
   // matrices densas
-  (eB : ematrix et p.shared p.cols)
+  (eB : chest2 et p.shared p.cols)
   (fA fri fB : perm)
   (bid : natlt (nblocks p))
   (tid : natlt p.blockWidth)
@@ -76,9 +76,9 @@ let block_post
   (elems : lseq et gA.nnz)
   (col_ind : lseq sz gA.nnz)
   (row_off : lseq sz (p.rows + 1))
-  (eA : ematrix et p.rows p.shared)
+  (eA : chest2 et p.rows p.shared)
   // matrices densas
-  (eB : ematrix et p.shared p.cols)
+  (eB : chest2 et p.shared p.cols)
   (fA fri fB : perm)
   (bid : natlt (nblocks p))
   (tid : natlt p.blockWidth)
@@ -130,9 +130,9 @@ let kpre
   (elems : lseq et gA.nnz)
   (col_ind : lseq sz gA.nnz)
   (row_off : lseq sz (p.rows + 1))
-  (eA : ematrix et p.rows p.shared)
+  (eA : chest2 et p.rows p.shared)
   // matrices densas
-  (eB : ematrix et p.shared p.cols)
+  (eB : chest2 et p.shared p.cols)
   (fA fri fB : perm)
   (#_ : squash (well_formed p col_ind row_off))
   (sh : c_shmems (shmems_desc et p))
@@ -165,9 +165,9 @@ let kpost
   (elems : lseq et gA.nnz)
   (col_ind : lseq sz gA.nnz)
   (row_off : lseq sz (p.rows + 1))
-  (eA : ematrix et p.rows p.shared)
+  (eA : chest2 et p.rows p.shared)
   // matrices densas
-  (eB : ematrix et p.shared p.cols)
+  (eB : chest2 et p.shared p.cols)
   (fA fri fB : perm)
   (#_ : squash (well_formed p col_ind row_off))
   (sh : c_shmems (shmems_desc et p))
@@ -307,9 +307,9 @@ fn setup
   (elems : lseq et gA.nnz)
   (col_ind : lseq sz gA.nnz)
   (row_off : lseq sz (p.rows + 1))
-  (#eA : ematrix et p.rows p.shared)
+  (#eA : chest2 et p.rows p.shared)
   // matrices densas
-  (#eB : ematrix et p.shared p.cols)
+  (#eB : chest2 et p.shared p.cols)
   (#fA #fri #fB : perm)
   ()
   norewrite
@@ -337,7 +337,7 @@ fn setup
   forevery_map
     (fun r ->
       forall+ (c : natlt p.cols).
-        tensor_pts_to_cell gC (idx2 (r) (c)) (macc eC r c)
+        tensor_pts_to_cell gC (idx2 (r) (c)) (acc2 eC r c)
     )
     (fun r ->
       forall+
@@ -357,7 +357,7 @@ fn setup
         (fun b ->
           forall+ (ix : natlt p.blockItemsX { b * p.blockItemsX + ix < p.cols }).
             tensor_pts_to_cell gC (idx2 (r) (b * p.blockItemsX + ix))
-              (macc eC r (b * p.blockItemsX + ix))
+              (acc2 eC r (b * p.blockItemsX + ix))
         )
         (fun b ->
           forall+
@@ -374,7 +374,7 @@ fn setup
             #(ix : natlt p.blockItemsX { b * p.blockItemsX + ix  < p.cols })
             (fun ix ->
               tensor_pts_to_cell gC (idx2 (r) (b * p.blockItemsX + ix))
-                (macc eC r (b * p.blockItemsX + ix))
+                (acc2 eC r (b * p.blockItemsX + ix))
             )
             (fun ix ->
               matrix_live_cell gC r (b * p.blockItemsX + ix)
@@ -470,9 +470,9 @@ fn block_setup
   (elems : lseq et gA.nnz)
   (col_ind : lseq sz gA.nnz)
   (row_off : lseq sz (p.rows + 1))
-  (#eA : ematrix et p.rows p.shared)
+  (#eA : chest2 et p.rows p.shared)
   // matrices densas
-  (#eB : ematrix et p.shared p.cols)
+  (#eB : chest2 et p.shared p.cols)
   (#fA #fri #fB : perm)
   (#_ : squash (well_formed p col_ind row_off))
   (sh : c_shmems (shmems_desc et p ))
@@ -542,9 +542,9 @@ fn block_teardown
   (elems : lseq et gA.nnz)
   (col_ind : lseq sz gA.nnz)
   (row_off : lseq sz (p.rows + 1))
-  (#eA : ematrix et p.rows p.shared)
+  (#eA : chest2 et p.rows p.shared)
   // matrices densas
-  (#eB : ematrix et p.shared p.cols)
+  (#eB : chest2 et p.shared p.cols)
   (#fA #fri #fB : perm)
   (#_ : squash (well_formed p col_ind row_off))
   (sh : c_shmems (shmems_desc et p ))
@@ -643,9 +643,9 @@ fn teardown
   (elems : lseq et gA.nnz)
   (col_ind : lseq sz gA.nnz)
   (row_off : lseq sz (p.rows + 1))
-  (#eA : ematrix et p.rows p.shared)
+  (#eA : chest2 et p.rows p.shared)
   // matrices densas
-  (#eB : ematrix et p.shared p.cols)
+  (#eB : chest2 et p.shared p.cols)
   (#fA #fri #fB : perm)
   ()
   norewrite
@@ -851,11 +851,11 @@ fn teardown
         (idx2 (row_perm.gg r |~> row_perm) (c))
         (MS.matmul_single eA eB (row_perm.gg r |~> row_perm) c)
     )
-    (fun r c -> tensor_pts_to_cell gC (idx2 (r) (c)) (macc (MS.matmul eA eB) r c));
+    (fun r c -> tensor_pts_to_cell gC (idx2 (r) (c)) (acc2 (MS.matmul eA eB) r c));
   forevery_flatten _;
   forevery_ext
-    (fun (rc : natlt p.rows & natlt p.cols) -> tensor_pts_to_cell gC (idx2 (rc._1) (rc._2)) (macc (MS.matmul eA eB) rc._1 rc._2))
-    (fun (rc : natlt p.rows & natlt p.cols) -> tensor_pts_to_cell gC (idx2 (rc._1) (rc._2)) (macc (MS.matmul eA eB) rc._1 rc._2));
+    (fun (rc : natlt p.rows & natlt p.cols) -> tensor_pts_to_cell gC (idx2 (rc._1) (rc._2)) (acc2 (MS.matmul eA eB) rc._1 rc._2))
+    (fun (rc : natlt p.rows & natlt p.cols) -> tensor_pts_to_cell gC (idx2 (rc._1) (rc._2)) (acc2 (MS.matmul eA eB) rc._1 rc._2));
   tensor_implode2 gC;
 
   ();
@@ -915,7 +915,7 @@ fn sparse_load_one
   (#row_off : lseq sz (p.rows + 1))
   (#elems : lseq et gA.nnz)
   (#col_ind : lseq sz gA.nnz)
-  (#eA : ematrix et p.rows p.shared)
+  (#eA : chest2 et p.rows p.shared)
   (#fA : perm)
   (#_ : squash (well_formed p col_ind row_off))
   (elems_tile : larray et p.blockItemsK)
@@ -974,7 +974,7 @@ fn sparse_load
   (#row_off : lseq sz (p.rows + 1))
   (#elems : lseq et gA.nnz)
   (#col_ind : lseq sz gA.nnz)
-  (#eA : ematrix et p.rows p.shared)
+  (#eA : chest2 et p.rows p.shared)
   (#fA : perm)
   (#_ : squash (well_formed p col_ind row_off))
   (elems_tile : larray et p.blockItemsK)
@@ -1246,7 +1246,7 @@ fn sparse_load_residue
   (#row_off : lseq sz (p.rows + 1))
   (#elems : lseq et gA.nnz)
   (#col_ind : lseq sz gA.nnz)
-  (#eA : ematrix et p.rows p.shared)
+  (#eA : chest2 et p.rows p.shared)
   (#fA : perm)
   (#_ : squash (well_formed p col_ind row_off))
   (elems_tile : larray et p.blockItemsK)
@@ -1658,9 +1658,9 @@ fn kf
   (#elems : lseq et gA.nnz)
   (#col_ind : lseq sz gA.nnz)
   (#row_off : lseq sz (p.rows + 1))
-  (#eA : ematrix et p.rows p.shared)
+  (#eA : chest2 et p.rows p.shared)
   // matriz densa gb
-  (#eB : ematrix et p.shared p.cols)
+  (#eB : chest2 et p.shared p.cols)
   (#fA #fri #fB : perm)
   (#_ : squash (well_formed p col_ind row_off))
   (sh : c_shmems (shmems_desc et p))
@@ -2020,9 +2020,9 @@ let kdesc
   (elems : lseq et gA.nnz)
   (col_ind : lseq sz gA.nnz)
   (row_off : lseq sz (p.rows + 1))
-  (eA : ematrix et p.rows p.shared)
+  (eA : chest2 et p.rows p.shared)
   // matrices densas
-  (#eB : ematrix et p.shared p.cols)
+  (#eB : chest2 et p.shared p.cols)
   (#fA #fri #fB : perm)
   (#_ : squash (well_formed p col_ind row_off))
   : kernel_desc
@@ -2138,12 +2138,12 @@ fn spmm
   (elems : lseq et gA.nnz)
   (col_ind : lseq sz gA.nnz)
   (row_off : lseq sz (rows + 1))
-  (#eA : ematrix et rows shared)
+  (#eA : chest2 et rows shared)
   // permutacion de filas
   (row_perm : permutation (natlt rows))
   // matrices densas
-  (#eB : ematrix et shared cols)
-  (#eC : ematrix et rows cols)
+  (#eB : chest2 et shared cols)
+  (#eC : chest2 et rows cols)
   //(#_ : size_req rows shared cols)
   norewrite
   preserves

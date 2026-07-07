@@ -5,7 +5,7 @@ module Kuiper.Array2.Vectorized
 
 open Kuiper
 open Kuiper.Array.Vectorized
-open Kuiper.EMatrix
+open Kuiper.Chest
 
 open Kuiper.Tensor { array2, layout2, idx2 }
 open Kuiper.Array2.Strided
@@ -20,7 +20,7 @@ fn array2_vec_read
   (i : szlt rows)
   (j : szlt (cols - chunk et + 1))
   (#f : perm)
-  (#em : ematrix et rows cols)
+  (#em : chest2 et rows cols)
   (arr : array et)
   (#s : erased (seq et))
   preserves gpu
@@ -29,4 +29,4 @@ fn array2_vec_read
   requires  pure (aligned 16 arr)
   requires  arr |-> s
   requires  pure (Pulse.Lib.Array.length arr == chunk et)
-  ensures   arr |-> Seq.init_ghost (chunk et) (fun x -> macc em i (j + x))
+  ensures   arr |-> Seq.init_ghost (chunk et) (fun x -> acc2 em i (j + x))

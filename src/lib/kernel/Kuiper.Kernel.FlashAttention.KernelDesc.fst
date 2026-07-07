@@ -39,13 +39,13 @@ open Kuiper.Math { even, odd }
 ghost
 fn milower
   (#et : Type0) (#rows #cols : nat) (#l : layout2 rows cols)
-  (a : array2 et l) (#f : perm) (#s : ematrix et rows cols)
+  (a : array2 et l) (#f : perm) (#s : chest2 et rows cols)
   requires
     a |-> Frac f s
   ensures
     pure (SZ.fits (tlayout_ulen l)) **
     (forall+ (r : natlt rows) (c : natlt cols).
-      tensor_pts_to_cell a #f (idx2 r c) (macc s r c))
+      tensor_pts_to_cell a #f (idx2 r c) (acc2 s r c))
 {
   tensor_ilower2 a;
 }
@@ -53,11 +53,11 @@ fn milower
 ghost
 fn miraise
   (#et : Type0) (#rows #cols : nat) (#l : layout2 rows cols)
-  (a : array2 et l) (#f : perm) (#s : ematrix et rows cols)
+  (a : array2 et l) (#f : perm) (#s : chest2 et rows cols)
   requires
     pure (SZ.fits (tlayout_ulen l)) **
     (forall+ (r : natlt rows) (c : natlt cols).
-      tensor_pts_to_cell a #f (idx2 r c) (macc s r c))
+      tensor_pts_to_cell a #f (idx2 r c) (acc2 s r c))
   ensures
     a |-> Frac f s
 {
@@ -74,7 +74,7 @@ ghost
 fn mextract_row
   (#et : Type0) (#rows #cols : nat) (#l : layout2 rows cols)
   (a : array2 et l) (i : natlt rows)
-  (#f : perm) (#s : ematrix et rows cols)
+  (#f : perm) (#s : chest2 et rows cols)
   requires
     a |-> Frac f s
   ensures
@@ -128,7 +128,7 @@ ghost
 fn mextract_row_ro
   (#et : Type0) (#rows #cols : nat) (#l : layout2 rows cols)
   (a : array2 et l) (i : natlt rows)
-  (#f : perm) (#s : ematrix et rows cols)
+  (#f : perm) (#s : chest2 et rows cols)
   requires
     a |-> Frac f s
   ensures
@@ -147,7 +147,7 @@ ghost
 fn mrestore_row
   (#et : Type0) (#rows #cols : nat) (#l : layout2 rows cols)
   (a : array2 et l) (i : natlt rows)
-  (#f : perm) (#s : ematrix et rows cols)
+  (#f : perm) (#s : chest2 et rows cols)
   requires
     factored
       (mrow a i |-> Frac f (tr_val (ematrix_row s i)))
@@ -254,7 +254,7 @@ let lem_stride_eucl (s:pos) (q:nat) (r:nat{r < s})
 let from_stride_subtiles_id
   (#et : _)
   (#rows #cols : _)
-  (em : ematrix et rows cols)
+  (em : chest2 et rows cols)
   (srows : pos {srows /? rows})
   (scols : pos {scols /? cols})
   : Lemma (ematrix_stride_from_tiles srows scols (ematrix_stride_subtile em srows scols)
@@ -268,7 +268,7 @@ let from_stride_subtiles_id
 let update_stride_tile_self
   (#et : _)
   (#rows #cols : _)
-  (em : ematrix et rows cols)
+  (em : chest2 et rows cols)
   (srows : pos {srows /? rows})
   (scols : pos {scols /? cols})
   (tr : natlt srows)
@@ -283,12 +283,12 @@ let update_stride_tile_self
 let subtile_of_update_stride_tile
   (#et : _)
   (#rows #cols : _)
-  (em : ematrix et rows cols)
+  (em : chest2 et rows cols)
   (srows : pos {srows /? rows})
   (scols : pos {scols /? cols})
   (tr : natlt srows)
   (tc : natlt scols)
-  (etile : ematrix et (rows/srows) (cols/scols))
+  (etile : chest2 et (rows/srows) (cols/scols))
   (tr' : natlt srows)
   (tc' : natlt scols)
   : Lemma (ematrix_stride_subtile (update_stride_tile em srows scols tr tc etile) srows scols tr' tc'
@@ -312,7 +312,7 @@ fn array2_stride_tile
   (gm : array2 et l)
   (srows : pos { srows /? rows })
   (scols : pos { scols /? cols })
-  (#em : ematrix et rows cols)
+  (#em : chest2 et rows cols)
   (#f : perm)
   requires
     gm |-> Frac f em
@@ -331,11 +331,11 @@ fn array2_stride_tile
     (fun (i:natlt (rows / srows)) (tr:natlt srows) ->
       forall+ (j:natlt (cols / scols)) (tc:natlt scols).
         tensor_pts_to_cell gm #f (idx2 (i * srows + tr <: natlt rows) (j * scols + tc <: natlt cols))
-          (macc em (i * srows + tr) (j * scols + tc)))
+          (acc2 em (i * srows + tr) (j * scols + tc)))
     (fun (i:natlt (rows / srows)) (tr:natlt srows) ->
      forall+ (tc:natlt scols) (j:natlt (cols / scols)).
        tensor_pts_to_cell gm #f (idx2 (i * srows + tr <: natlt rows) (j * scols + tc <: natlt cols))
-         (macc em (i * srows + tr) (j * scols + tc)))
+         (acc2 em (i * srows + tr) (j * scols + tc)))
     fn i tr {
       forevery_commute _;
     };
@@ -349,26 +349,26 @@ fn array2_stride_tile
     requires
       forall+ (i : natlt (rows / srows)) (j : natlt (cols / scols)).
         tensor_pts_to_cell gm #f (idx2 (i * srows + tr <: natlt rows) (j * scols + tc <: natlt cols))
-          (macc em (i * srows + tr) (j * scols + tc))
+          (acc2 em (i * srows + tr) (j * scols + tc))
     ensures
       array2_stride_subtile gm srows scols tr tc |-> Frac f (ematrix_stride_subtile em srows scols tr tc)
   {
     forevery_map_2
       (fun (i:natlt (rows / srows)) (j:natlt (cols / scols)) ->
         tensor_pts_to_cell gm #f (idx2 (i * srows + tr <: natlt rows) (j * scols + tc <: natlt cols))
-          (macc em (i * srows + tr) (j * scols + tc)))
+          (acc2 em (i * srows + tr) (j * scols + tc)))
       (fun (i:natlt (rows / srows)) (j:natlt (cols / scols)) ->
         tensor_pts_to_cell (array2_stride_subtile gm srows scols tr tc) #f (idx2 i j)
-          (macc (ematrix_stride_subtile em srows scols tr tc) i j))
+          (acc2 (ematrix_stride_subtile em srows scols tr tc) i j))
       fn i j {
         stride_cell_convert_eq gm srows scols tr tc i j f
-          (macc em (i * srows + tr) (j * scols + tc));
+          (acc2 em (i * srows + tr) (j * scols + tc));
         rewrite
           tensor_pts_to_cell gm #f (idx2 (i * srows + tr <: natlt rows) (j * scols + tc <: natlt cols))
-            (macc em (i * srows + tr) (j * scols + tc))
+            (acc2 em (i * srows + tr) (j * scols + tc))
         as
           tensor_pts_to_cell (array2_stride_subtile gm srows scols tr tc) #f (idx2 i j)
-            (macc (ematrix_stride_subtile em srows scols tr tc) i j);
+            (acc2 (ematrix_stride_subtile em srows scols tr tc) i j);
       };
     miraise (array2_stride_subtile gm srows scols tr tc);
   };
@@ -385,7 +385,7 @@ fn array2_stride_untile'
   (gm : array2 et l)
   (srows : pos { srows /? rows })
   (scols : pos { scols /? cols })
-  (tf : natlt srows -> natlt scols -> ematrix et (rows/srows) (cols/scols))
+  (tf : natlt srows -> natlt scols -> chest2 et (rows/srows) (cols/scols))
   (#f : perm)
   requires
     pure (SZ.fits (tlayout_ulen l))
@@ -405,29 +405,29 @@ fn array2_stride_untile'
     ensures
       forall+ (i : natlt (rows / srows)) (j : natlt (cols / scols)).
         tensor_pts_to_cell gm #f (idx2 (i * srows + tr <: natlt rows) (j * scols + tc <: natlt cols))
-          (macc em (i * srows + tr) (j * scols + tc))
+          (acc2 em (i * srows + tr) (j * scols + tc))
   {
     milower (array2_stride_subtile gm srows scols tr tc);
     forevery_map_2
       (fun (i:natlt (rows / srows)) (j:natlt (cols / scols)) ->
         tensor_pts_to_cell (array2_stride_subtile gm srows scols tr tc) #f (idx2 i j)
-          (macc (tf tr tc) i j))
+          (acc2 (tf tr tc) i j))
       (fun (i:natlt (rows / srows)) (j:natlt (cols / scols)) ->
         tensor_pts_to_cell gm #f (idx2 (i * srows + tr <: natlt rows) (j * scols + tc <: natlt cols))
-          (macc em (i * srows + tr) (j * scols + tc)))
+          (acc2 em (i * srows + tr) (j * scols + tc)))
       fn i j {
-        stride_cell_convert_eq gm srows scols tr tc i j f (macc (tf tr tc) i j);
+        stride_cell_convert_eq gm srows scols tr tc i j f (acc2 (tf tr tc) i j);
         assert pure ((i * srows + tr) % srows == tr);
         assert pure ((j * scols + tc) % scols == tc);
         assert pure ((i * srows + tr) / srows == i);
         assert pure ((j * scols + tc) / scols == j);
-        assert pure (macc em (i * srows + tr) (j * scols + tc) == macc (tf tr tc) i j);
+        assert pure (acc2 em (i * srows + tr) (j * scols + tc) == acc2 (tf tr tc) i j);
         rewrite
           tensor_pts_to_cell (array2_stride_subtile gm srows scols tr tc) #f (idx2 i j)
-            (macc (tf tr tc) i j)
+            (acc2 (tf tr tc) i j)
         as
           tensor_pts_to_cell gm #f (idx2 (i * srows + tr <: natlt rows) (j * scols + tc <: natlt cols))
-            (macc em (i * srows + tr) (j * scols + tc));
+            (acc2 em (i * srows + tr) (j * scols + tc));
       };
   };
   forevery_map_2 _ _ aux;
@@ -440,18 +440,18 @@ fn array2_stride_untile'
     (fun (i:natlt (rows / srows)) (tr:natlt srows) ->
       forall+ (tc:natlt scols) (j:natlt (cols / scols)).
         tensor_pts_to_cell gm #f (idx2 (i * srows + tr <: natlt rows) (j * scols + tc <: natlt cols))
-          (macc em (i * srows + tr) (j * scols + tc)))
+          (acc2 em (i * srows + tr) (j * scols + tc)))
     (fun (i:natlt (rows / srows)) (tr:natlt srows) ->
       forall+ (j:natlt (cols / scols)) (tc:natlt scols).
         tensor_pts_to_cell gm #f (idx2 (i * srows + tr <: natlt rows) (j * scols + tc <: natlt cols))
-          (macc em (i * srows + tr) (j * scols + tc)))
+          (acc2 em (i * srows + tr) (j * scols + tc)))
     fn i tr {
        forevery_commute _;
     };
   // order: (i, tr, j, tc)
   forevery_unfactor_2 rows (rows / srows) srows
     cols (cols / scols) scols
-    (fun i j -> tensor_pts_to_cell gm #f (idx2 i j) (macc em i j));
+    (fun i j -> tensor_pts_to_cell gm #f (idx2 i j) (acc2 em i j));
   miraise gm;
 }
 #pop-options
@@ -464,7 +464,7 @@ fn array2_stride_untile
   (gm : array2 et l)
   (srows : pos { srows /? rows })
   (scols : pos { scols /? cols })
-  (#em : ematrix et rows cols)
+  (#em : chest2 et rows cols)
   (#f : perm)
   requires
     pure (SZ.fits (tlayout_ulen l))
@@ -493,13 +493,13 @@ fn array2_extract_stride_tile
   (scols : pos { scols /? cols })
   (tr : natlt srows)
   (tc : natlt scols)
-  (#em : ematrix et rows cols)
+  (#em : chest2 et rows cols)
   (#f : perm)
   requires
     gm |-> Frac f em
   ensures
     array2_stride_subtile gm srows scols tr tc |-> Frac f (ematrix_stride_subtile em srows scols tr tc) **
-    (forall* (tm' : ematrix et (rows/srows) (cols/scols)).
+    (forall* (tm' : chest2 et (rows/srows) (cols/scols)).
       array2_stride_subtile gm srows scols tr tc |-> Frac f tm' @==>
       gm |-> Frac f (update_stride_tile em srows scols tr tc tm'))
 {
@@ -508,7 +508,7 @@ fn array2_extract_stride_tile
   forevery_flatten _;
   forevery_remove _ (tr, tc);
   ghost
-  fn aux (tm' : ematrix et (rows/srows) (cols/scols))
+  fn aux (tm' : chest2 et (rows/srows) (cols/scols))
     requires
       forall+
         (tr'tc' : natlt srows & natlt scols { tr'tc' =!= (tr, tc) } ).
@@ -572,7 +572,7 @@ fn array2_extract_stride_tile_st
   (scols : erased nat { scols > 0 /\ scols /? cols })
   (tr : enatlt srows)
   (tc : enatlt scols)
-  (#em : ematrix et rows cols)
+  (#em : chest2 et rows cols)
   (#f : perm)
   requires
     gm |-> Frac f em
@@ -580,7 +580,7 @@ fn array2_extract_stride_tile_st
   ensures pure (tc_tile == array2_stride_subtile gm srows scols tr tc)
   ensures
     tc_tile |-> Frac f (ematrix_stride_subtile em srows scols tr tc) **
-    (forall* (tm' : ematrix et (rows/srows) (cols/scols)).
+    (forall* (tm' : chest2 et (rows/srows) (cols/scols)).
       tc_tile |-> Frac f tm' @==>
       gm |-> Frac f (update_stride_tile em srows scols tr tc tm'))
 {
@@ -598,7 +598,7 @@ fn array2_extract_stride_tile_ro
   (scols : nat { scols > 0 /\ scols /? cols })
   (tr : natlt srows)
   (tc : natlt scols)
-  (#em : ematrix et rows cols)
+  (#em : chest2 et rows cols)
   (#f : perm)
   requires
     gm |-> Frac f em
@@ -623,7 +623,7 @@ fn array2_extract_stride_tile_ro'
   (scols : erased nat {scols > 0 /\ scols /? cols })
   (tr : enatlt srows)
   (tc : enatlt scols)
-  (#em : ematrix et rows cols)
+  (#em : chest2 et rows cols)
   (#f : perm)
   requires
     gm |-> Frac f em
@@ -690,7 +690,7 @@ fn setup_fa
   (gO : array2 et lO { is_global gO })
   (gl : array2 et ll { is_global gl })
   (gm : array2 et lm { is_global gm })
-  (eK eV eQ : ematrix et n d)
+  (eK eV eQ : chest2 et n d)
   (#fK #fV #fQ : perm)
   ()
   norewrite
@@ -782,7 +782,7 @@ fn teardown_fa
   (gO : array2 et lO { is_global gO })
   (gl : array2 et ll { is_global gl })
   (gm : array2 et lm { is_global gm })
-  (eK eV eQ : ematrix et n d)
+  (eK eV eQ : chest2 et n d)
   (#fK #fV #fQ : perm)
   ()
   norewrite
@@ -799,10 +799,10 @@ fn teardown_fa
        kpre_post_outer_fa n d nthr gS gK gV gQ gO gl gm eK eV eQ fK fV fQ tid)
     (fun (tid:natlt (SZ.v nthr)) ->
        ((gK |-> Frac (fK /. (SZ.v nthr)) eK) ** (gV |-> Frac (fV /. (SZ.v nthr)) eV) ** (gQ |-> Frac (fQ /. (SZ.v nthr)) eQ)) **
-       (((exists* (eS:ematrix et (SZ.v nthr) (SZ.v nthr)). array2_subtile gS 1 (SZ.v nthr) tid 0 |-> Frac 1.0R (ematrix_subtile eS 1 (SZ.v nthr) tid 0)) **
-         (exists* (el:ematrix et 1 n). array2_stride_subtile gl 1 (SZ.v nthr) 0 tid |-> Frac 1.0R (ematrix_stride_subtile el 1 (SZ.v nthr) 0 tid)) **
-         (exists* (em:ematrix et 1 n). array2_stride_subtile gm 1 (SZ.v nthr) 0 tid |-> Frac 1.0R (ematrix_stride_subtile em 1 (SZ.v nthr) 0 tid))) **
-        (exists* (eO:ematrix et n d). array2_stride_subtile gO (SZ.v nthr) 1 tid 0 |-> Frac 1.0R (ematrix_stride_subtile eO (SZ.v nthr) 1 tid 0))))
+       (((exists* (eS:chest2 et (SZ.v nthr) (SZ.v nthr)). array2_subtile gS 1 (SZ.v nthr) tid 0 |-> Frac 1.0R (ematrix_subtile eS 1 (SZ.v nthr) tid 0)) **
+         (exists* (el:chest2 et 1 n). array2_stride_subtile gl 1 (SZ.v nthr) 0 tid |-> Frac 1.0R (ematrix_stride_subtile el 1 (SZ.v nthr) 0 tid)) **
+         (exists* (em:chest2 et 1 n). array2_stride_subtile gm 1 (SZ.v nthr) 0 tid |-> Frac 1.0R (ematrix_stride_subtile em 1 (SZ.v nthr) 0 tid))) **
+        (exists* (eO:chest2 et n d). array2_stride_subtile gO (SZ.v nthr) 1 tid 0 |-> Frac 1.0R (ematrix_stride_subtile eO (SZ.v nthr) 1 tid 0))))
     fn tid { () };
 
   // Peel into K**V**Q, the S/l/m trio, and the O existential.
@@ -810,11 +810,11 @@ fn teardown_fa
     (fun (_:natlt (SZ.v nthr)) ->
        (gK |-> Frac (fK /. (SZ.v nthr)) eK) ** (gV |-> Frac (fV /. (SZ.v nthr)) eV) ** (gQ |-> Frac (fQ /. (SZ.v nthr)) eQ))
     (fun (tid:natlt (SZ.v nthr)) ->
-       (exists* (eS:ematrix et (SZ.v nthr) (SZ.v nthr)). array2_subtile gS 1 (SZ.v nthr) tid 0 |-> Frac 1.0R (ematrix_subtile eS 1 (SZ.v nthr) tid 0)) **
-       (exists* (el:ematrix et 1 n). array2_stride_subtile gl 1 (SZ.v nthr) 0 tid |-> Frac 1.0R (ematrix_stride_subtile el 1 (SZ.v nthr) 0 tid)) **
-       (exists* (em:ematrix et 1 n). array2_stride_subtile gm 1 (SZ.v nthr) 0 tid |-> Frac 1.0R (ematrix_stride_subtile em 1 (SZ.v nthr) 0 tid)))
+       (exists* (eS:chest2 et (SZ.v nthr) (SZ.v nthr)). array2_subtile gS 1 (SZ.v nthr) tid 0 |-> Frac 1.0R (ematrix_subtile eS 1 (SZ.v nthr) tid 0)) **
+       (exists* (el:chest2 et 1 n). array2_stride_subtile gl 1 (SZ.v nthr) 0 tid |-> Frac 1.0R (ematrix_stride_subtile el 1 (SZ.v nthr) 0 tid)) **
+       (exists* (em:chest2 et 1 n). array2_stride_subtile gm 1 (SZ.v nthr) 0 tid |-> Frac 1.0R (ematrix_stride_subtile em 1 (SZ.v nthr) 0 tid)))
     (fun (tid:natlt (SZ.v nthr)) ->
-       exists* (eO:ematrix et n d). array2_stride_subtile gO (SZ.v nthr) 1 tid 0 |-> Frac 1.0R (ematrix_stride_subtile eO (SZ.v nthr) 1 tid 0));
+       exists* (eO:chest2 et n d). array2_stride_subtile gO (SZ.v nthr) 1 tid 0 |-> Frac 1.0R (ematrix_stride_subtile eO (SZ.v nthr) 1 tid 0));
 
   // K, V, Q : gather the fractional shares.
   forevery_unzip3 #(natlt (SZ.v nthr))
@@ -827,13 +827,13 @@ fn teardown_fa
 
   // Split the trio into the three separate existential foreverys.
   forevery_unzip3 #(natlt (SZ.v nthr))
-    (fun (tid:natlt (SZ.v nthr)) -> exists* (eS:ematrix et (SZ.v nthr) (SZ.v nthr)). array2_subtile gS 1 (SZ.v nthr) tid 0 |-> Frac 1.0R (ematrix_subtile eS 1 (SZ.v nthr) tid 0))
-    (fun (tid:natlt (SZ.v nthr)) -> exists* (el:ematrix et 1 n). array2_stride_subtile gl 1 (SZ.v nthr) 0 tid |-> Frac 1.0R (ematrix_stride_subtile el 1 (SZ.v nthr) 0 tid))
-    (fun (tid:natlt (SZ.v nthr)) -> exists* (em:ematrix et 1 n). array2_stride_subtile gm 1 (SZ.v nthr) 0 tid |-> Frac 1.0R (ematrix_stride_subtile em 1 (SZ.v nthr) 0 tid));
+    (fun (tid:natlt (SZ.v nthr)) -> exists* (eS:chest2 et (SZ.v nthr) (SZ.v nthr)). array2_subtile gS 1 (SZ.v nthr) tid 0 |-> Frac 1.0R (ematrix_subtile eS 1 (SZ.v nthr) tid 0))
+    (fun (tid:natlt (SZ.v nthr)) -> exists* (el:chest2 et 1 n). array2_stride_subtile gl 1 (SZ.v nthr) 0 tid |-> Frac 1.0R (ematrix_stride_subtile el 1 (SZ.v nthr) 0 tid))
+    (fun (tid:natlt (SZ.v nthr)) -> exists* (em:chest2 et 1 n). array2_stride_subtile gm 1 (SZ.v nthr) 0 tid |-> Frac 1.0R (ematrix_stride_subtile em 1 (SZ.v nthr) 0 tid));
 
   // gS : contiguous row [tid] -> reassemble.
   let gsfun = forevery_exists
-    (fun (tid:natlt (SZ.v nthr)) (e:ematrix et (SZ.v nthr) (SZ.v nthr)) ->
+    (fun (tid:natlt (SZ.v nthr)) (e:chest2 et (SZ.v nthr) (SZ.v nthr)) ->
         array2_subtile gS 1 (SZ.v nthr) tid 0 |-> Frac 1.0R (ematrix_subtile e 1 (SZ.v nthr) tid 0));
   expand_inner1 #(SZ.v nthr)
     (fun (tr:natlt (SZ.v nthr)) (tc:natlt 1) ->
@@ -847,7 +847,7 @@ fn teardown_fa
 
   // gl : strided columns -> reassemble.
   let glfun = forevery_exists
-    (fun (tid:natlt (SZ.v nthr)) (e:ematrix et 1 n) ->
+    (fun (tid:natlt (SZ.v nthr)) (e:chest2 et 1 n) ->
         array2_stride_subtile gl 1 (SZ.v nthr) 0 tid |-> Frac 1.0R (ematrix_stride_subtile e 1 (SZ.v nthr) 0 tid));
   forevery_singleton_intro #(natlt 1)
     (fun (tr:natlt 1) -> forall+ (tc:natlt (SZ.v nthr)).
@@ -858,7 +858,7 @@ fn teardown_fa
 
   // gm : strided columns -> reassemble.
   let gmfun = forevery_exists
-    (fun (tid:natlt (SZ.v nthr)) (e:ematrix et 1 n) ->
+    (fun (tid:natlt (SZ.v nthr)) (e:chest2 et 1 n) ->
         array2_stride_subtile gm 1 (SZ.v nthr) 0 tid |-> Frac 1.0R (ematrix_stride_subtile e 1 (SZ.v nthr) 0 tid));
   forevery_singleton_intro #(natlt 1)
     (fun (tr:natlt 1) -> forall+ (tc:natlt (SZ.v nthr)).
@@ -869,7 +869,7 @@ fn teardown_fa
 
   // gO : strided rows -> reassemble.
   let gOfun = forevery_exists
-    (fun (tid:natlt (SZ.v nthr)) (e:ematrix et n d) ->
+    (fun (tid:natlt (SZ.v nthr)) (e:chest2 et n d) ->
         array2_stride_subtile gO (SZ.v nthr) 1 tid 0 |-> Frac 1.0R (ematrix_stride_subtile e (SZ.v nthr) 1 tid 0));
   expand_inner1 #(SZ.v nthr)
     (fun (tr:natlt (SZ.v nthr)) (tc:natlt 1) ->
@@ -903,7 +903,7 @@ fn block_setup_fa
   (gO : array2 et lO { is_global gO })
   (gl : array2 et ll { is_global gl })
   (gm : array2 et lm { is_global gm })
-  (eK eV eQ : ematrix et n d)
+  (eK eV eQ : chest2 et n d)
   (#fK #fV #fQ : perm)
   (sh : c_shmems (shmems_desc_fa et nthr))
   (bid : natlt 1sz)
@@ -946,7 +946,7 @@ fn block_teardown_fa
   (gO : array2 et lO { is_global gO })
   (gl : array2 et ll { is_global gl })
   (gm : array2 et lm { is_global gm })
-  (eK eV eQ : ematrix et n d)
+  (eK eV eQ : chest2 et n d)
   (#fK #fV #fQ : perm)
   (sh : c_shmems (shmems_desc_fa et nthr))
   (bid : natlt 1sz)
@@ -986,10 +986,10 @@ fn rows_split
   (#l : layout2 rows cols)
   (a : array2 et l)
   requires
-    exists* (e:ematrix et rows cols). a |-> e
+    exists* (e:chest2 et rows cols). a |-> e
   ensures
     forall+ (tid:natlt rows).
-      exists* (r:ematrix et 1 cols). array2_subtile a 1 cols tid 0 |-> Frac 1.0R r
+      exists* (r:chest2 et 1 cols). array2_subtile a 1 cols tid 0 |-> Frac 1.0R r
 {
   with e. assert (a |-> e);
   array2_tile a 1 cols;
@@ -1001,7 +1001,7 @@ fn rows_split
         array2_subtile a 1 cols tr tc |-> Frac 1.0R (ematrix_subtile e 1 cols tr tc));
   forevery_map #(natlt rows)
     (fun (tid:natlt rows) -> array2_subtile a 1 cols tid 0 |-> Frac 1.0R (ematrix_subtile e 1 cols tid 0))
-    (fun (tid:natlt rows) -> exists* (r:ematrix et 1 cols). array2_subtile a 1 cols tid 0 |-> Frac 1.0R r)
+    (fun (tid:natlt rows) -> exists* (r:chest2 et 1 cols). array2_subtile a 1 cols tid 0 |-> Frac 1.0R r)
     fn tid { () };
 }
 
@@ -1016,12 +1016,12 @@ fn rows_gather
   requires
     pure (SZ.fits (tlayout_ulen l)) **
     (forall+ (tid:natlt rows).
-      exists* (r:ematrix et 1 cols). array2_subtile a 1 cols tid 0 |-> Frac 1.0R r)
+      exists* (r:chest2 et 1 cols). array2_subtile a 1 cols tid 0 |-> Frac 1.0R r)
   ensures
-    exists* (e:ematrix et rows cols). a |-> e
+    exists* (e:chest2 et rows cols). a |-> e
 {
   let rf = forevery_exists
-    (fun (tid:natlt rows) (r:ematrix et 1 cols) ->
+    (fun (tid:natlt rows) (r:chest2 et 1 cols) ->
         array2_subtile a 1 cols tid 0 |-> Frac 1.0R r);
   expand_inner1 #rows
     (fun (tr:natlt rows) (tc:natlt 1) ->
@@ -1064,16 +1064,16 @@ fn fa_barrier_ok
       forevery_map #(natlt (SZ.v nthr))
         (fun (i:natlt (SZ.v nthr)) -> fa_barrier_side_rin n d nthr sK sV it i)
         (fun (i:natlt (SZ.v nthr)) ->
-          (exists* (r:ematrix et 1 (SZ.v d)). array2_subtile sK 1 (SZ.v d) i 0 |-> Frac 1.0R r) **
-          (exists* (r:ematrix et 1 (SZ.v d)). array2_subtile sV 1 (SZ.v d) i 0 |-> Frac 1.0R r))
+          (exists* (r:chest2 et 1 (SZ.v d)). array2_subtile sK 1 (SZ.v d) i 0 |-> Frac 1.0R r) **
+          (exists* (r:chest2 et 1 (SZ.v d)). array2_subtile sV 1 (SZ.v d) i 0 |-> Frac 1.0R r))
         fn i {
           rewrite (fa_barrier_side_rin n d nthr sK sV it i)
-               as ((exists* (r:ematrix et 1 (SZ.v d)). array2_subtile sK 1 (SZ.v d) i 0 |-> Frac 1.0R r) **
-                   (exists* (r:ematrix et 1 (SZ.v d)). array2_subtile sV 1 (SZ.v d) i 0 |-> Frac 1.0R r));
+               as ((exists* (r:chest2 et 1 (SZ.v d)). array2_subtile sK 1 (SZ.v d) i 0 |-> Frac 1.0R r) **
+                   (exists* (r:chest2 et 1 (SZ.v d)). array2_subtile sV 1 (SZ.v d) i 0 |-> Frac 1.0R r));
         };
       forevery_unzip #(natlt (SZ.v nthr))
-        (fun (i:natlt (SZ.v nthr)) -> exists* (r:ematrix et 1 (SZ.v d)). array2_subtile sK 1 (SZ.v d) i 0 |-> Frac 1.0R r)
-        (fun (i:natlt (SZ.v nthr)) -> exists* (r:ematrix et 1 (SZ.v d)). array2_subtile sV 1 (SZ.v d) i 0 |-> Frac 1.0R r);
+        (fun (i:natlt (SZ.v nthr)) -> exists* (r:chest2 et 1 (SZ.v d)). array2_subtile sK 1 (SZ.v d) i 0 |-> Frac 1.0R r)
+        (fun (i:natlt (SZ.v nthr)) -> exists* (r:chest2 et 1 (SZ.v d)). array2_subtile sV 1 (SZ.v d) i 0 |-> Frac 1.0R r);
       rows_gather sK;
       rows_gather sV;
       with x. assert (sK |-> x);
@@ -1082,23 +1082,23 @@ fn fa_barrier_ok
       tensor_share_n sV (SZ.v nthr);
       forevery_map #(natlt (SZ.v nthr))
         (fun (_:natlt (SZ.v nthr)) -> sK |-> Frac (1.0R /. (SZ.v nthr)) x)
-        (fun (_:natlt (SZ.v nthr)) -> exists* (x':ematrix et (SZ.v nthr) (SZ.v d)). sK |-> Frac (1.0R /. (SZ.v nthr)) x')
+        (fun (_:natlt (SZ.v nthr)) -> exists* (x':chest2 et (SZ.v nthr) (SZ.v d)). sK |-> Frac (1.0R /. (SZ.v nthr)) x')
         fn i { () };
       forevery_map #(natlt (SZ.v nthr))
         (fun (_:natlt (SZ.v nthr)) -> sV |-> Frac (1.0R /. (SZ.v nthr)) y)
-        (fun (_:natlt (SZ.v nthr)) -> exists* (y':ematrix et (SZ.v nthr) (SZ.v d)). sV |-> Frac (1.0R /. (SZ.v nthr)) y')
+        (fun (_:natlt (SZ.v nthr)) -> exists* (y':chest2 et (SZ.v nthr) (SZ.v d)). sV |-> Frac (1.0R /. (SZ.v nthr)) y')
         fn i { () };
       forevery_zip #(natlt (SZ.v nthr))
-        (fun (_:natlt (SZ.v nthr)) -> exists* (x':ematrix et (SZ.v nthr) (SZ.v d)). sK |-> Frac (1.0R /. (SZ.v nthr)) x')
-        (fun (_:natlt (SZ.v nthr)) -> exists* (y':ematrix et (SZ.v nthr) (SZ.v d)). sV |-> Frac (1.0R /. (SZ.v nthr)) y');
+        (fun (_:natlt (SZ.v nthr)) -> exists* (x':chest2 et (SZ.v nthr) (SZ.v d)). sK |-> Frac (1.0R /. (SZ.v nthr)) x')
+        (fun (_:natlt (SZ.v nthr)) -> exists* (y':chest2 et (SZ.v nthr) (SZ.v d)). sV |-> Frac (1.0R /. (SZ.v nthr)) y');
       forevery_map #(natlt (SZ.v nthr))
         (fun (i:natlt (SZ.v nthr)) ->
-          (exists* (x':ematrix et (SZ.v nthr) (SZ.v d)). sK |-> Frac (1.0R /. (SZ.v nthr)) x') **
-          (exists* (y':ematrix et (SZ.v nthr) (SZ.v d)). sV |-> Frac (1.0R /. (SZ.v nthr)) y'))
+          (exists* (x':chest2 et (SZ.v nthr) (SZ.v d)). sK |-> Frac (1.0R /. (SZ.v nthr)) x') **
+          (exists* (y':chest2 et (SZ.v nthr) (SZ.v d)). sV |-> Frac (1.0R /. (SZ.v nthr)) y'))
         (fun (i:natlt (SZ.v nthr)) -> fa_barrier_side_rout n d nthr sK sV it i)
         fn i {
-          rewrite ((exists* (x':ematrix et (SZ.v nthr) (SZ.v d)). sK |-> Frac (1.0R /. (SZ.v nthr)) x') **
-                   (exists* (y':ematrix et (SZ.v nthr) (SZ.v d)). sV |-> Frac (1.0R /. (SZ.v nthr)) y'))
+          rewrite ((exists* (x':chest2 et (SZ.v nthr) (SZ.v d)). sK |-> Frac (1.0R /. (SZ.v nthr)) x') **
+                   (exists* (y':chest2 et (SZ.v nthr) (SZ.v d)). sV |-> Frac (1.0R /. (SZ.v nthr)) y'))
                as (fa_barrier_side_rout n d nthr sK sV it i);
         };
     } else {
@@ -1108,31 +1108,31 @@ fn fa_barrier_ok
       forevery_map #(natlt (SZ.v nthr))
         (fun (i:natlt (SZ.v nthr)) -> fa_barrier_side_rin n d nthr sK sV it i)
         (fun (i:natlt (SZ.v nthr)) ->
-          (exists* (x:ematrix et (SZ.v nthr) (SZ.v d)). sK |-> Frac (1.0R /. (SZ.v nthr)) x) **
-          (exists* (y:ematrix et (SZ.v nthr) (SZ.v d)). sV |-> Frac (1.0R /. (SZ.v nthr)) y))
+          (exists* (x:chest2 et (SZ.v nthr) (SZ.v d)). sK |-> Frac (1.0R /. (SZ.v nthr)) x) **
+          (exists* (y:chest2 et (SZ.v nthr) (SZ.v d)). sV |-> Frac (1.0R /. (SZ.v nthr)) y))
         fn i {
           rewrite (fa_barrier_side_rin n d nthr sK sV it i)
-               as ((exists* (x:ematrix et (SZ.v nthr) (SZ.v d)). sK |-> Frac (1.0R /. (SZ.v nthr)) x) **
-                   (exists* (y:ematrix et (SZ.v nthr) (SZ.v d)). sV |-> Frac (1.0R /. (SZ.v nthr)) y));
+               as ((exists* (x:chest2 et (SZ.v nthr) (SZ.v d)). sK |-> Frac (1.0R /. (SZ.v nthr)) x) **
+                   (exists* (y:chest2 et (SZ.v nthr) (SZ.v d)). sV |-> Frac (1.0R /. (SZ.v nthr)) y));
         };
       forevery_unzip #(natlt (SZ.v nthr))
-        (fun (i:natlt (SZ.v nthr)) -> exists* (x:ematrix et (SZ.v nthr) (SZ.v d)). sK |-> Frac (1.0R /. (SZ.v nthr)) x)
-        (fun (i:natlt (SZ.v nthr)) -> exists* (y:ematrix et (SZ.v nthr) (SZ.v d)). sV |-> Frac (1.0R /. (SZ.v nthr)) y);
+        (fun (i:natlt (SZ.v nthr)) -> exists* (x:chest2 et (SZ.v nthr) (SZ.v d)). sK |-> Frac (1.0R /. (SZ.v nthr)) x)
+        (fun (i:natlt (SZ.v nthr)) -> exists* (y:chest2 et (SZ.v nthr) (SZ.v d)). sV |-> Frac (1.0R /. (SZ.v nthr)) y);
       tensor_gather_n_underspec sK (SZ.v nthr);
       tensor_gather_n_underspec sV (SZ.v nthr);
       rows_split sK;
       rows_split sV;
       forevery_zip #(natlt (SZ.v nthr))
-        (fun (i:natlt (SZ.v nthr)) -> exists* (r:ematrix et 1 (SZ.v d)). array2_subtile sK 1 (SZ.v d) i 0 |-> Frac 1.0R r)
-        (fun (i:natlt (SZ.v nthr)) -> exists* (r:ematrix et 1 (SZ.v d)). array2_subtile sV 1 (SZ.v d) i 0 |-> Frac 1.0R r);
+        (fun (i:natlt (SZ.v nthr)) -> exists* (r:chest2 et 1 (SZ.v d)). array2_subtile sK 1 (SZ.v d) i 0 |-> Frac 1.0R r)
+        (fun (i:natlt (SZ.v nthr)) -> exists* (r:chest2 et 1 (SZ.v d)). array2_subtile sV 1 (SZ.v d) i 0 |-> Frac 1.0R r);
       forevery_map #(natlt (SZ.v nthr))
         (fun (i:natlt (SZ.v nthr)) ->
-          (exists* (r:ematrix et 1 (SZ.v d)). array2_subtile sK 1 (SZ.v d) i 0 |-> Frac 1.0R r) **
-          (exists* (r:ematrix et 1 (SZ.v d)). array2_subtile sV 1 (SZ.v d) i 0 |-> Frac 1.0R r))
+          (exists* (r:chest2 et 1 (SZ.v d)). array2_subtile sK 1 (SZ.v d) i 0 |-> Frac 1.0R r) **
+          (exists* (r:chest2 et 1 (SZ.v d)). array2_subtile sV 1 (SZ.v d) i 0 |-> Frac 1.0R r))
         (fun (i:natlt (SZ.v nthr)) -> fa_barrier_side_rout n d nthr sK sV it i)
         fn i {
-          rewrite ((exists* (r:ematrix et 1 (SZ.v d)). array2_subtile sK 1 (SZ.v d) i 0 |-> Frac 1.0R r) **
-                   (exists* (r:ematrix et 1 (SZ.v d)). array2_subtile sV 1 (SZ.v d) i 0 |-> Frac 1.0R r))
+          rewrite ((exists* (r:chest2 et 1 (SZ.v d)). array2_subtile sK 1 (SZ.v d) i 0 |-> Frac 1.0R r) **
+                   (exists* (r:chest2 et 1 (SZ.v d)). array2_subtile sV 1 (SZ.v d) i 0 |-> Frac 1.0R r))
                as (fa_barrier_side_rout n d nthr sK sV it i);
         };
     }
@@ -1162,7 +1162,7 @@ fn block_setup_fa_smem
   (gO : array2 et lO { is_global gO })
   (gl : array2 et ll { is_global gl })
   (gm : array2 et lm { is_global gm })
-  (eK eV eQ : ematrix et n d)
+  (eK eV eQ : chest2 et n d)
   (#fK #fV #fQ : perm)
   (sh : c_shmems (shmems_desc_fa_smem et n d nthr))
   (bid : natlt 1sz)
@@ -1214,22 +1214,22 @@ fn block_setup_fa_smem
 
   // Bundle gS-pre + the three write-rows into kpre_post_outer_fa_smem.
   forevery_zip3 #(natlt (SZ.v nthr))
-    (fun (tid:natlt (SZ.v nthr)) -> exists* (r:ematrix et 1 (SZ.v d)). array2_subtile (sK_of_sh n d nthr lKV sh) 1 (SZ.v d) tid 0 |-> Frac 1.0R r)
-    (fun (tid:natlt (SZ.v nthr)) -> exists* (r:ematrix et 1 (SZ.v d)). array2_subtile (sV_of_sh n d nthr lKV sh) 1 (SZ.v d) tid 0 |-> Frac 1.0R r)
-    (fun (tid:natlt (SZ.v nthr)) -> exists* (r:ematrix et 1 (SZ.v d)). array2_subtile (sQ_of_sh n d nthr lKV sh) 1 (SZ.v d) tid 0 |-> Frac 1.0R r);
+    (fun (tid:natlt (SZ.v nthr)) -> exists* (r:chest2 et 1 (SZ.v d)). array2_subtile (sK_of_sh n d nthr lKV sh) 1 (SZ.v d) tid 0 |-> Frac 1.0R r)
+    (fun (tid:natlt (SZ.v nthr)) -> exists* (r:chest2 et 1 (SZ.v d)). array2_subtile (sV_of_sh n d nthr lKV sh) 1 (SZ.v d) tid 0 |-> Frac 1.0R r)
+    (fun (tid:natlt (SZ.v nthr)) -> exists* (r:chest2 et 1 (SZ.v d)). array2_subtile (sQ_of_sh n d nthr lKV sh) 1 (SZ.v d) tid 0 |-> Frac 1.0R r);
   forevery_zip #(natlt (SZ.v nthr))
     (fun (tid:natlt (SZ.v nthr)) ->
        kpre_post_outer_fa n d nthr (gS_of_sh' n d nthr lS sh) gK gV gQ gO gl gm eK eV eQ fK fV fQ tid)
     (fun (tid:natlt (SZ.v nthr)) ->
-       (exists* (r:ematrix et 1 (SZ.v d)). array2_subtile (sK_of_sh n d nthr lKV sh) 1 (SZ.v d) tid 0 |-> Frac 1.0R r) **
-       (exists* (r:ematrix et 1 (SZ.v d)). array2_subtile (sV_of_sh n d nthr lKV sh) 1 (SZ.v d) tid 0 |-> Frac 1.0R r) **
-       (exists* (r:ematrix et 1 (SZ.v d)). array2_subtile (sQ_of_sh n d nthr lKV sh) 1 (SZ.v d) tid 0 |-> Frac 1.0R r));
+       (exists* (r:chest2 et 1 (SZ.v d)). array2_subtile (sK_of_sh n d nthr lKV sh) 1 (SZ.v d) tid 0 |-> Frac 1.0R r) **
+       (exists* (r:chest2 et 1 (SZ.v d)). array2_subtile (sV_of_sh n d nthr lKV sh) 1 (SZ.v d) tid 0 |-> Frac 1.0R r) **
+       (exists* (r:chest2 et 1 (SZ.v d)). array2_subtile (sQ_of_sh n d nthr lKV sh) 1 (SZ.v d) tid 0 |-> Frac 1.0R r));
   forevery_map #(natlt (SZ.v nthr))
     (fun (tid:natlt (SZ.v nthr)) ->
        (kpre_post_outer_fa n d nthr (gS_of_sh' n d nthr lS sh) gK gV gQ gO gl gm eK eV eQ fK fV fQ tid) **
-       ((exists* (r:ematrix et 1 (SZ.v d)). array2_subtile (sK_of_sh n d nthr lKV sh) 1 (SZ.v d) tid 0 |-> Frac 1.0R r) **
-        (exists* (r:ematrix et 1 (SZ.v d)). array2_subtile (sV_of_sh n d nthr lKV sh) 1 (SZ.v d) tid 0 |-> Frac 1.0R r) **
-        (exists* (r:ematrix et 1 (SZ.v d)). array2_subtile (sQ_of_sh n d nthr lKV sh) 1 (SZ.v d) tid 0 |-> Frac 1.0R r)))
+       ((exists* (r:chest2 et 1 (SZ.v d)). array2_subtile (sK_of_sh n d nthr lKV sh) 1 (SZ.v d) tid 0 |-> Frac 1.0R r) **
+        (exists* (r:chest2 et 1 (SZ.v d)). array2_subtile (sV_of_sh n d nthr lKV sh) 1 (SZ.v d) tid 0 |-> Frac 1.0R r) **
+        (exists* (r:chest2 et 1 (SZ.v d)). array2_subtile (sQ_of_sh n d nthr lKV sh) 1 (SZ.v d) tid 0 |-> Frac 1.0R r)))
     (fun (tid:natlt (SZ.v nthr)) ->
        kpre_post_outer_fa_smem n d nthr
          (gS_of_sh' n d nthr lS sh) (sK_of_sh n d nthr lKV sh) (sV_of_sh n d nthr lKV sh) (sQ_of_sh n d nthr lKV sh)
@@ -1252,7 +1252,7 @@ fn block_teardown_fa_smem
   (gO : array2 et lO { is_global gO })
   (gl : array2 et ll { is_global gl })
   (gm : array2 et lm { is_global gm })
-  (eK eV eQ : ematrix et n d)
+  (eK eV eQ : chest2 et n d)
   (#fK #fV #fQ : perm)
   (sh : c_shmems (shmems_desc_fa_smem et n d nthr))
   (bid : natlt 1sz)
@@ -1276,21 +1276,21 @@ fn block_teardown_fa_smem
          gK gV gQ gO gl gm eK eV eQ fK fV fQ tid)
     (fun (tid:natlt (SZ.v nthr)) ->
        (kpre_post_outer_fa n d nthr (gS_of_sh' n d nthr lS sh) gK gV gQ gO gl gm eK eV eQ fK fV fQ tid) **
-       ((exists* (r:ematrix et 1 (SZ.v d)). array2_subtile (sK_of_sh n d nthr lKV sh) 1 (SZ.v d) tid 0 |-> Frac 1.0R r) **
-        (exists* (r:ematrix et 1 (SZ.v d)). array2_subtile (sV_of_sh n d nthr lKV sh) 1 (SZ.v d) tid 0 |-> Frac 1.0R r) **
-        (exists* (r:ematrix et 1 (SZ.v d)). array2_subtile (sQ_of_sh n d nthr lKV sh) 1 (SZ.v d) tid 0 |-> Frac 1.0R r)))
+       ((exists* (r:chest2 et 1 (SZ.v d)). array2_subtile (sK_of_sh n d nthr lKV sh) 1 (SZ.v d) tid 0 |-> Frac 1.0R r) **
+        (exists* (r:chest2 et 1 (SZ.v d)). array2_subtile (sV_of_sh n d nthr lKV sh) 1 (SZ.v d) tid 0 |-> Frac 1.0R r) **
+        (exists* (r:chest2 et 1 (SZ.v d)). array2_subtile (sQ_of_sh n d nthr lKV sh) 1 (SZ.v d) tid 0 |-> Frac 1.0R r)))
     fn tid { () };
   forevery_unzip #(natlt (SZ.v nthr))
     (fun (tid:natlt (SZ.v nthr)) ->
        kpre_post_outer_fa n d nthr (gS_of_sh' n d nthr lS sh) gK gV gQ gO gl gm eK eV eQ fK fV fQ tid)
     (fun (tid:natlt (SZ.v nthr)) ->
-       (exists* (r:ematrix et 1 (SZ.v d)). array2_subtile (sK_of_sh n d nthr lKV sh) 1 (SZ.v d) tid 0 |-> Frac 1.0R r) **
-       (exists* (r:ematrix et 1 (SZ.v d)). array2_subtile (sV_of_sh n d nthr lKV sh) 1 (SZ.v d) tid 0 |-> Frac 1.0R r) **
-       (exists* (r:ematrix et 1 (SZ.v d)). array2_subtile (sQ_of_sh n d nthr lKV sh) 1 (SZ.v d) tid 0 |-> Frac 1.0R r));
+       (exists* (r:chest2 et 1 (SZ.v d)). array2_subtile (sK_of_sh n d nthr lKV sh) 1 (SZ.v d) tid 0 |-> Frac 1.0R r) **
+       (exists* (r:chest2 et 1 (SZ.v d)). array2_subtile (sV_of_sh n d nthr lKV sh) 1 (SZ.v d) tid 0 |-> Frac 1.0R r) **
+       (exists* (r:chest2 et 1 (SZ.v d)). array2_subtile (sQ_of_sh n d nthr lKV sh) 1 (SZ.v d) tid 0 |-> Frac 1.0R r));
   forevery_unzip3 #(natlt (SZ.v nthr))
-    (fun (tid:natlt (SZ.v nthr)) -> exists* (r:ematrix et 1 (SZ.v d)). array2_subtile (sK_of_sh n d nthr lKV sh) 1 (SZ.v d) tid 0 |-> Frac 1.0R r)
-    (fun (tid:natlt (SZ.v nthr)) -> exists* (r:ematrix et 1 (SZ.v d)). array2_subtile (sV_of_sh n d nthr lKV sh) 1 (SZ.v d) tid 0 |-> Frac 1.0R r)
-    (fun (tid:natlt (SZ.v nthr)) -> exists* (r:ematrix et 1 (SZ.v d)). array2_subtile (sQ_of_sh n d nthr lKV sh) 1 (SZ.v d) tid 0 |-> Frac 1.0R r);
+    (fun (tid:natlt (SZ.v nthr)) -> exists* (r:chest2 et 1 (SZ.v d)). array2_subtile (sK_of_sh n d nthr lKV sh) 1 (SZ.v d) tid 0 |-> Frac 1.0R r)
+    (fun (tid:natlt (SZ.v nthr)) -> exists* (r:chest2 et 1 (SZ.v d)). array2_subtile (sV_of_sh n d nthr lKV sh) 1 (SZ.v d) tid 0 |-> Frac 1.0R r)
+    (fun (tid:natlt (SZ.v nthr)) -> exists* (r:chest2 et 1 (SZ.v d)). array2_subtile (sQ_of_sh n d nthr lKV sh) 1 (SZ.v d) tid 0 |-> Frac 1.0R r);
 
   // Reassemble the three caches and the gS scratch.
   rows_gather (sK_of_sh n d nthr lKV sh);

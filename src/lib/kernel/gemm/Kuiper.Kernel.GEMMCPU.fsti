@@ -77,12 +77,12 @@ val mmcomb_gpu_tiled
 //   (gB : gpu_matrix et lB { is_global gB })
 //   (#fB : perm)
 //   (gC : gpu_matrix et lC { is_global gC })
-//   (#eA : ematrix et m k)
-//   (#eB : ematrix et k n)
-//   (#eC : ematrix et m n)
-//   (rA : ematrix real m k)
-//   (rB : ematrix real k n)
-//   (rC : ematrix real m n)
+//   (#eA : chest2 et m k)
+//   (#eB : chest2 et k n)
+//   (#eC : chest2 et m n)
+//   (rA : chest2 real m k)
+//   (rB : chest2 real k n)
+//   (rC : chest2 real m n)
 //   requires
 //     (cpu ** on gpu_loc (gA |-> Frac fA eA) ** on gpu_loc (gB |-> Frac fB eB)) **
 //     (pure (size_req (m / tile) (k / tile) (n / tile) tile) **
@@ -90,7 +90,7 @@ val mmcomb_gpu_tiled
 //      on gpu_loc (gC |-> eC))
 //   ensures
 //     (cpu ** on gpu_loc (gA |-> Frac fA eA) ** on gpu_loc (gB |-> Frac fB eB)) **
-//     (exists* (eC' : ematrix et m n).
+//     (exists* (eC' : chest2 et m n).
 //       on gpu_loc (gC |-> eC') **
 //       pure (eC' %~ MS.mmcomb comb_r rC rA rB))
 
@@ -140,9 +140,9 @@ val mmcomb_gpu_tiled
 //      (gA : gpu_matrix et (rA m k) { is_global gA})
 //      (gB : gpu_matrix et (rB k n) { is_global gB})
 //      (gC : gpu_matrix et (rC m n) { is_global gC})
-//      (#ma : ematrix et m k)
-//      (#mb : ematrix et k n)
-//      (#mc0 : ematrix et m n)
+//      (#ma : chest2 et m k)
+//      (#mb : chest2 et k n)
+//      (#mc0 : chest2 et m n)
 //   norewrite
 //   preserves
 //     cpu **
@@ -173,12 +173,12 @@ val mmcomb_gpu_tiled
 //      (gA : gpu_matrix et (repA m k) { is_global gA })
 //      (gB : gpu_matrix et (repB k n) { is_global gB })
 //      (gC : gpu_matrix et (repC m n) { is_global gC })
-//      (#ma : ematrix et m k)
-//      (#mb : ematrix et k n)
-//      (#mc0 : ematrix et m n)
-//      (rA : ematrix real m k)
-//      (rB : ematrix real k n)
-//      (rC : ematrix real m n)
+//      (#ma : chest2 et m k)
+//      (#mb : chest2 et k n)
+//      (#mc0 : chest2 et m n)
+//      (rA : chest2 real m k)
+//      (rB : chest2 real k n)
+//      (rC : chest2 real m n)
 //   norewrite
 //   preserves
 //     cpu **
@@ -190,7 +190,7 @@ val mmcomb_gpu_tiled
 //           alpha %~ alpha_r /\ beta %~ beta_r) **
 //     on gpu_loc (gC |-> mc0)
 //   ensures (
-//     exists* (mc' : ematrix et m n).
+//     exists* (mc' : chest2 et m n).
 //       on gpu_loc (gC |-> mc') **
 //       pure (mc' %~ MS.gemm (alpha_r) (beta_r) rC rA rB))
 
@@ -208,9 +208,9 @@ val mmcomb_gpu_tiled
 //      (gA : gpu_matrix et (rA m k) { is_global gA })
 //      (gB : gpu_matrix et (rB k n) { is_global gB })
 //      (gC : gpu_matrix et (rC m n) { is_global gC })
-//      (#ma : ematrix et m k)
-//      (#mb : ematrix et k n)
-//      (#mc0 : ematrix et m n)
+//      (#ma : chest2 et m k)
+//      (#mb : chest2 et k n)
+//      (#mc0 : chest2 et m n)
 //   norewrite
 //   preserves
 //     cpu **
@@ -256,11 +256,11 @@ val mmcomb_gpu_tiled
 //      (gA : gpu_matrix et (repA m k) { is_global gA })
 //      (gB : gpu_matrix et (repB k n) { is_global gB })
 //      (gC : gpu_matrix et (repC m n) { is_global gC })
-//      (#ma : ematrix et m k)
-//      (#mb : ematrix et k n)
-//      (#mc0 : ematrix et m n)
-//      (rA : ematrix real m k)
-//      (rB : ematrix real k n)
+//      (#ma : chest2 et m k)
+//      (#mb : chest2 et k n)
+//      (#mc0 : chest2 et m n)
+//      (rA : chest2 real m k)
+//      (rB : chest2 real k n)
 //   norewrite
 //   preserves
 //     cpu **
@@ -271,7 +271,7 @@ val mmcomb_gpu_tiled
 //     pure (ma %~ rA /\ mb %~ rB) **
 //     on gpu_loc (gC |-> mc0)
 //   ensures (
-//     exists* (mc' : ematrix et m n).
+//     exists* (mc' : chest2 et m n).
 //       on gpu_loc (gC |-> mc') **
 //       pure (mc' %~ MS.matmul rA rB))
 
@@ -326,8 +326,8 @@ val mmcomb_gpu_tiled
 //      (b : vec et)
 //      (#sa : erased (seq et){ len sa == m * k })
 //      (#sb : erased (seq et){ len sb == k * n })
-//      (rA : ematrix real m k)
-//      (rB : ematrix real k n)
+//      (rA : chest2 real m k)
+//      (rB : chest2 real k n)
 //   norewrite
 //   preserves
 //     cpu **

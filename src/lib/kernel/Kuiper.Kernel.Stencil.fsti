@@ -17,8 +17,8 @@ fn specialize_host_simple_stencil
   (gIn : array2 et (rIn rows cols) { is_global gIn })
   (gOut : array2 et (rOut (rows - 2) (cols - 2)) { is_global gOut })
   (#fIn : perm)
-  (#eIn : ematrix et rows cols)
-  (#eOut : ematrix et (rows - 2) (cols - 2))
+  (#eIn : chest2 et rows cols)
+  (#eOut : chest2 et (rows - 2) (cols - 2))
   preserves
     cpu **
     on gpu_loc (gIn |-> Frac fIn eIn)

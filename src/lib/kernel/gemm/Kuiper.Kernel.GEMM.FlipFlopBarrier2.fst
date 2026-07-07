@@ -22,7 +22,7 @@ fn split_array2_into_strided_chunks
   (#rows #cols : nat)
   (#l : layout2 rows cols)
   (m : array2 et l)
-  (#em : ematrix et rows cols)
+  (#em : chest2 et rows cols)
   (nthr : pos)
   requires
     m |-> em
@@ -46,7 +46,7 @@ fn split_array2_into_strided_chunks
   fn aux (tid : natlt nthr)
     requires
       forall+ (ij : (natlt rows & natlt cols){CV.in_chunk (chunk et #_ #hvc) rows cols nthr tid ij}).
-        tensor_pts_to_cell m (idx2 ij._1 ij._2) (macc em ij._1 ij._2)
+        tensor_pts_to_cell m (idx2 ij._1 ij._2) (acc2 em ij._1 ij._2)
     ensures
       own_strided_chunks m em nthr tid
   {
@@ -61,7 +61,7 @@ fn join_array2_from_strided_chunks
   (#rows #cols : nat)
   (#l : layout2 rows cols)
   (m : array2 et l)
-  (#em : ematrix et rows cols)
+  (#em : chest2 et rows cols)
   (nthr : pos)
   requires
     pure (SZ.fits (l.ulen))
@@ -75,10 +75,10 @@ fn join_array2_from_strided_chunks
   forevery_map
     (fun tid -> own_strided_chunks m em nthr tid)
     (fun tid -> forall+ (ij : (natlt rows & natlt cols){CV.in_chunk (chunk et #_ #hvc) rows cols nthr tid ij}).
-        tensor_pts_to_cell m (idx2 ij._1 ij._2) (macc em ij._1 ij._2))
+        tensor_pts_to_cell m (idx2 ij._1 ij._2) (acc2 em ij._1 ij._2))
     fn tid { unfold own_strided_chunks m em nthr tid };
   forevery_join_or_n (fun (tid : natlt nthr) ij -> CV.in_chunk (chunk et #_ #hvc) rows cols nthr tid ij)
-    (fun ij -> tensor_pts_to_cell m (idx2 ij._1 ij._2) (macc em ij._1 ij._2));
+    (fun ij -> tensor_pts_to_cell m (idx2 ij._1 ij._2) (acc2 em ij._1 ij._2));
   Classical.forall_intro (CV.in_chunk_covers_all (chunk et #_ #hvc) rows cols nthr);
   Classical.forall_intro_3 (fun ij tid1 -> Classical.move_requires
                              (CV.in_chunk_no_overlap (chunk et #_ #hvc) rows cols nthr ij tid1));
@@ -112,12 +112,12 @@ fn join_array2_from_strided_chunks_underspec
     fn tid { unfold live_strided_chunks m nthr tid };
 
   let ff = forevery_exists #(natlt nthr) _;
-  let em' : ematrix et rows cols =
-    (mkM fun i j ->
+  let em' : chest2 et rows cols =
+    (mk2 fun i j ->
        let flat_idx : nat = i * cols + j in
        let chunk_idx = flat_idx / chunk et in
        let tid = chunk_idx % nthr in
-       macc (ff tid) i j);
+       acc2 (ff tid) i j);
 
   forevery_map
     (fun (tid : natlt nthr) -> own_strided_chunks m (ff tid) nthr tid)
@@ -126,8 +126,8 @@ fn join_array2_from_strided_chunks_underspec
       unfold own_strided_chunks m (ff tid) nthr tid;
       forevery_map
         #(ij : (natlt rows & natlt cols){CV.in_chunk (chunk et #_ #hvc) rows cols nthr tid ij})
-        (fun ij -> tensor_pts_to_cell m (idx2 ij._1 ij._2) (macc (ff tid) ij._1 ij._2))
-        (fun ij -> tensor_pts_to_cell m (idx2 ij._1 ij._2) (macc em' ij._1 ij._2))
+        (fun ij -> tensor_pts_to_cell m (idx2 ij._1 ij._2) (acc2 (ff tid) ij._1 ij._2))
+        (fun ij -> tensor_pts_to_cell m (idx2 ij._1 ij._2) (acc2 em' ij._1 ij._2))
         fn ij { () };
       fold own_strided_chunks m em' nthr tid;
     };
@@ -144,7 +144,7 @@ fn bp_sharing_to_own_strided_chunks
   (#rows #cols : pos)
   (l : full_layout2 rows cols)
   (sar : larray et (rows * cols))
-  (em : ematrix et rows cols)
+  (em : chest2 et rows cols)
   (nthr : pos)
   (#_ : squash (chunk et /?+ cols))
   (#_ : squash (chunk et * nthr /?+ (rows * cols)))
@@ -165,7 +165,7 @@ fn own_strided_chunks_to_bp_sharing
   (#rows #cols : pos)
   (l : full_layout2 rows cols)
   (sar : larray et (rows * cols))
-  (em : ematrix et rows cols)
+  (em : chest2 et rows cols)
   (nthr : pos)
   (#_ : squash (SZ.fits (l.ulen)))
   requires
@@ -238,8 +238,8 @@ ghost
 fn even_barrier_p_to_q
   (#et : Type0) {| sized et, has_vec_cpy et |}
   (#rows #shared #cols : pos)
-  (eA : ematrix et rows shared)
-  (eB : ematrix et shared cols)
+  (eA : chest2 et rows shared)
+  (eB : chest2 et shared cols)
   (#bm : pos{bm /?+ rows})
   (#bk : pos{bk /?+ shared})
   (#bn : pos{bn /?+ cols})
@@ -272,8 +272,8 @@ ghost
 fn odd_barrier_p_to_q
   (#et : Type0) {| sized et, has_vec_cpy et |}
   (#rows #shared #cols : pos)
-  (eA : ematrix et rows shared)
-  (eB : ematrix et shared cols)
+  (eA : chest2 et rows shared)
+  (eB : chest2 et shared cols)
   (#bm : pos{bm /?+ rows})
   (#bk : pos{bk /?+ shared})
   (#bn : pos{bn /?+ cols})
@@ -314,8 +314,8 @@ ghost
 fn barrier_p_to_q_transform
   (#et : Type0) {| sized et, has_vec_cpy et |}
   (#rows #shared #cols : pos)
-  (eA : ematrix et rows shared)
-  (eB : ematrix et shared cols)
+  (eA : chest2 et rows shared)
+  (eB : chest2 et shared cols)
   (#bm : pos{bm /?+ rows})
   (#bk : pos{bk /?+ shared})
   (#bn : pos{bn /?+ cols})
@@ -428,8 +428,8 @@ ghost
 fn fold_barrier_p_odd
   (#et : Type0) {| sized et, has_vec_cpy et |}
   (#rows #shared #cols : pos)
-  (eA : ematrix et rows shared)
-  (eB : ematrix et shared cols)
+  (eA : chest2 et rows shared)
+  (eB : chest2 et shared cols)
   (#bm : pos{bm /?+ rows})
   (#bk : pos{bk /?+ shared})
   (#bn : pos{bn /?+ cols})
@@ -462,8 +462,8 @@ ghost
 fn unfold_barrier_q_odd
   (#et : Type0) {| sized et, has_vec_cpy et |}
   (#rows #shared #cols : pos)
-  (eA : ematrix et rows shared)
-  (eB : ematrix et shared cols)
+  (eA : chest2 et rows shared)
+  (eB : chest2 et shared cols)
   (#bm : pos{bm /?+ rows})
   (#bk : pos{bk /?+ shared})
   (#bn : pos{bn /?+ cols})
@@ -496,8 +496,8 @@ ghost
 fn fold_barrier_p_even
   (#et : Type0) {| sized et, has_vec_cpy et |}
   (#rows #shared #cols : pos)
-  (eA : ematrix et rows shared)
-  (eB : ematrix et shared cols)
+  (eA : chest2 et rows shared)
+  (eB : chest2 et shared cols)
   (#bm : pos{bm /?+ rows})
   (#bk : pos{bk /?+ shared})
   (#bn : pos{bn /?+ cols})
@@ -528,8 +528,8 @@ ghost
 fn unfold_barrier_q_even
   (#et : Type0) {| sized et, has_vec_cpy et |}
   (#rows #shared #cols : pos)
-  (eA : ematrix et rows shared)
-  (eB : ematrix et shared cols)
+  (eA : chest2 et rows shared)
+  (eB : chest2 et shared cols)
   (#bm : pos{bm /?+ rows})
   (#bk : pos{bk /?+ shared})
   (#bn : pos{bn /?+ cols})

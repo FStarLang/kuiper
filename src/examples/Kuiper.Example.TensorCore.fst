@@ -39,7 +39,7 @@ fn use_wmma_ker
 
 let matplus_zero_lem
   (#m #n : nat)
-  (mm : ematrix real m n)
+  (mm : chest2 real m n)
   : Lemma (ensures matplus (const_matrix 0.0R) mm == mm)
   = assert (equal (matplus (const_matrix 0.0R) mm) mm);
     ()
@@ -48,15 +48,15 @@ let matplus_zero_lem
  CPrologue "__device__"]
 fn test
   (m1 m2 m3 : array2 half (row_major 16 16))
-  (#v1 #v2 #v3 : ematrix half 16 16)
-  (#r1 #r2 #r3 : ematrix real 16 16)
+  (#v1 #v2 #v3 : chest2 half 16 16)
+  (#r1 #r2 #r3 : chest2 real 16 16)
   preserves
     m1 |-> v1 ** pure (v1 %~ r1) **
     m2 |-> v2 ** pure (v2 %~ r2)
   requires
     m3 |-> Frac (1.0R /. 32.0R) v3
   ensures
-    (exists* (v3 : ematrix half 16 16).
+    (exists* (v3 : chest2 half 16 16).
       m3 |-> Frac (1.0R /. 32.0R) v3 ** pure (v3 %~ matmul r1 r2))
 {
   with v1. assert m1 |-> v1;
@@ -85,15 +85,15 @@ fn test
  CPrologue "__device__"]
 fn test2
   (m1 m2 m3 : array2 half (row_major 48 48))
-  (#v1 #v2 #v3 : ematrix half 48 48)
-  (#r1 #r2 #r3 : ematrix real 48 48)
+  (#v1 #v2 #v3 : chest2 half 48 48)
+  (#r1 #r2 #r3 : chest2 real 48 48)
   preserves
     m1 |-> v1 ** pure (v1 %~ r1) **
     m2 |-> v2 ** pure (v2 %~ r2)
   requires
     m3 |-> Frac (1.0R /. 32) v3 ** pure (v3 %~ r3)
   ensures
-    exists* (v3' : ematrix half 48 48).
+    exists* (v3' : chest2 half 48 48).
       m3 |-> Frac (1.0R /. 32) v3' **
       pure (v3' %~
         update_tile #real r3 16 16 1 1

@@ -71,9 +71,9 @@ val fragment
 
 let value_for et knd m n k =
   match knd with
-  | FragA   -> ematrix et m k
-  | FragB   -> ematrix et k n
-  | FragAcc -> ematrix et m n
+  | FragA   -> chest2 et m k
+  | FragB   -> chest2 et k n
+  | FragAcc -> chest2 et m n
 
 val fragment_pts_to
   (#et : Type0)
@@ -113,21 +113,21 @@ fn fragment_pts_to_ref
 val emma
   (#et0 #et1 : Type)
   (#rows #shared #columns : nat)
-  (mc : ematrix et1 rows columns)
-  (ma : ematrix et0 rows shared)
-  (mb : ematrix et0 shared columns)
-  : ematrix et1 rows columns
+  (mc : chest2 et1 rows columns)
+  (ma : chest2 et0 rows shared)
+  (mb : chest2 et0 shared columns)
+  : chest2 et1 rows columns
 
 val emma_approx_lemma
   (#et0 : Type) {| scalar et0, real_like et0 |}
   (#et1 : Type) {| scalar et1, real_like et1 |}
   (#rows #shared #columns : nat)
-  (mc : ematrix et1 rows columns)
-  (ma : ematrix et0 rows shared)
-  (mb : ematrix et0 shared columns)
-  (rc : ematrix real rows columns)
-  (ra : ematrix real rows shared)
-  (rb : ematrix real shared columns)
+  (mc : chest2 et1 rows columns)
+  (ma : chest2 et0 rows shared)
+  (mb : chest2 et0 shared columns)
+  (rc : chest2 real rows columns)
+  (ra : chest2 real rows shared)
+  (rb : chest2 real shared columns)
   : Lemma (requires
             ma %~ ra /\
             mb %~ rb /\
@@ -145,9 +145,9 @@ fn mma_sync'
   (fa : fragment et_ab FragA   m n k la)
   (fb : fragment et_ab FragB   m n k lb)
   (fc : fragment et_acc FragAcc m n k FragLAcc)
-  (#ea : ematrix et_ab m k)
-  (#eb : ematrix et_ab k n)
-  (#ec : ematrix et_acc m n)
+  (#ea : chest2 et_ab m k)
+  (#eb : chest2 et_ab k n)
+  (#ec : chest2 et_acc m n)
   preserves fa |-> ea
   preserves fb |-> eb
   requires pure (valid_frag_et_comb et_ab et_acc)
@@ -163,7 +163,7 @@ fn mma_loadA
   (#l : layout2 m k) {| strided_row_major l |}
   (gm : array2 et l)
   (#f : perm)
-  (#m0 : ematrix et m k)
+  (#m0 : chest2 et m k)
   (#f0 : erased (value_for et FragA m n k))
   preserves
     gm |-> Frac f m0
@@ -179,7 +179,7 @@ fn mma_loadA_cm
   (#l : layout2 m k) {| strided_col_major l |}
   (gm : array2 et l)
   (#f : perm)
-  (#m0 : ematrix et m k)
+  (#m0 : chest2 et m k)
   (#f0 : erased (value_for et FragA m n k))
   preserves
     gm |-> Frac f m0
@@ -195,7 +195,7 @@ fn mma_loadB
   (#l : layout2 k n) {| strided_row_major l |}
   (gm : array2 et l)
   (#f : perm)
-  (#m0 : ematrix et k n)
+  (#m0 : chest2 et k n)
   (#f0 : erased (value_for et FragB m n k))
   preserves
     gm |-> Frac f m0
@@ -211,7 +211,7 @@ fn mma_loadAccum
   (#l : layout2 m n) {| strided_row_major l |}
   (gm : array2 et l)
   (#f : perm)
-  (#m0 : ematrix et m n)
+  (#m0 : chest2 et m n)
   (#f0 : erased (value_for et FragAcc m n k))
   preserves
     gm |-> Frac f m0
@@ -250,7 +250,7 @@ fn mma_store
   (#l : layout2 m n) {| strided_row_major l |}
   (gm : array2 et l)
   (#f0 : erased (value_for et FragAcc m n k))
-  (#m0 : ematrix et m n)
+  (#m0 : chest2 et m n)
   preserves
     fr |-> f0
   requires

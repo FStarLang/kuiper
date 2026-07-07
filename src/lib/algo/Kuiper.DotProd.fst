@@ -57,7 +57,7 @@ let rec seq_dotprod_is_sum
 let rec seq_dotprod_is_matmul_single
   (#et : Type0) {| scalar et |}
   (#rows #shared #cols : nat)
-  (eA : ematrix et rows shared) (eB : ematrix et shared cols)
+  (eA : chest2 et rows shared) (eB : chest2 et shared cols)
   (i : natlt rows) (j : natlt cols)
   (k : nat{k <= shared})
   : Lemma (ensures
@@ -68,8 +68,8 @@ let rec seq_dotprod_is_matmul_single
           [SMTPat (seq_dotprod' (ematrix_row eA i) (ematrix_col eB j) k)]
   = if k > 0 then begin
       seq_dotprod_is_matmul_single eA eB i j (k-1);
-      assert (Seq.index (ematrix_row eA i) (k-1) == macc eA i (k-1));
-      assert (Seq.index (ematrix_col eB j) (k-1) == macc eB (k-1) j);
+      assert (Seq.index (ematrix_row eA i) (k-1) == acc2 eA i (k-1));
+      assert (Seq.index (ematrix_col eB j) (k-1) == acc2 eB (k-1) j);
       MS.matmul_single_lemma eA eB i j k
     end
 #pop-options

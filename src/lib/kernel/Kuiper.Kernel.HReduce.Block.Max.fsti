@@ -29,8 +29,8 @@ fn reduce_batched_block_max
   (#lout : layout1 rows)                   {| ctlayout lout |}
   (x      : array2 et lin  { is_global x      })
   (output : array1 et lout { is_global output })
-  (#sx   : ematrix et   rows cols)
-  (vr    : ematrix real rows cols)
+  (#sx   : chest2 et   rows cols)
+  (vr    : chest2 real rows cols)
   (#sout : erased (chest1 et rows))
   preserves
     cpu **

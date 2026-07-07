@@ -20,9 +20,9 @@ fn spec
   (gA : array2 et (repA m k) { is_global gA })
   (gB : array2 et (repB k n) { is_global gB })
   (gC : array2 et (repC m n) { is_global gC })
-  (rA rB rC : ematrix real _ _)
-  (#eA #eB : ematrix _ _ _)
-  (#eC : ematrix et m n)
+  (rA rB rC : chest2 real _ _)
+  (#eA #eB : chest2 _ _ _)
+  (#eC : chest2 et m n)
   (#fA #fB : perm)
   preserves
     cpu ** on gpu_loc (gA |-> Frac fA eA ** gB |-> Frac fB eB) **
@@ -32,7 +32,7 @@ fn spec
     pure (eA %~ rA /\ eB %~ rB /\ eC %~ rC) **
     on gpu_loc (gC |-> eC)
   ensures (
-    (exists* (eC' : ematrix et m n).
+    (exists* (eC' : chest2 et m n).
       on gpu_loc (gC |-> eC') **
       pure (eC' %~ MS.mmcomb comb_r rC rA rB)))
 {

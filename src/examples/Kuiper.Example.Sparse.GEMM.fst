@@ -17,7 +17,7 @@ let rec __dprod
   (#nnz #shared #cols : nat)
   (elems : lseq et nnz)
   (col_ind : lseq nat nnz{in_bounds 0 shared col_ind})
-  (eB : ematrix et shared cols)
+  (eB : chest2 et shared cols)
   (ri re : nat{ri <= re /\ re <= nnz /\ sorted_slice col_ind ri re})
   (j : natlt cols)
   (to : nat{ri <= to /\ to <= re})
@@ -30,7 +30,7 @@ let rec __dprod
         (__dprod elems col_ind eB ri re j (to - 1))
         (mul
           (elems @! (to - 1))
-          (macc eB (col_ind @! (to - 1)) j))
+          (acc2 eB (col_ind @! (to - 1)) j))
     )
 
 noextract
@@ -39,7 +39,7 @@ let dprod
   (#nnz #shared #cols : nat)
   (elems : lseq et nnz)
   (col_ind : lseq nat nnz{in_bounds 0 shared col_ind})
-  (eB : ematrix et shared cols)
+  (eB : chest2 et shared cols)
   (ri re : nat{ri <= re /\ re <= nnz /\ sorted_slice col_ind ri re})
   (j : natlt cols)
   : GTot et
@@ -52,13 +52,13 @@ let dprod
 let rec matmul_all_zeros_lemma
   (#et:Type) {| scalar et |}
   (#rows #shared #columns : nat)
-  (m1 : ematrix et rows shared)
-  (m2 : ematrix et shared columns)
+  (m1 : chest2 et rows shared)
+  (m2 : chest2 et shared columns)
   (row : nat{row < rows})
   (col : nat{col < columns})
   (from to : nat{from <= to /\ to <= shared})
   : Lemma
-    (requires forall i. from <= i /\ i < to ==> macc m1 row i == zero)
+    (requires forall i. from <= i /\ i < to ==> acc2 m1 row i == zero)
     (ensures MS.__matmul_single m1 m2 row col from == MS.__matmul_single m1 m2 row col to)
 =
   if from = to
@@ -75,7 +75,7 @@ let rec __matmul_dotprod_lemma
   (elems : lseq et nnz)
   (col_ind : lseq nat nnz{in_bounds 0 shared col_ind})
   (row_off : lseq nat (rows + 1))
-  (eB : ematrix et shared cols)
+  (eB : chest2 et shared cols)
   (i : natlt rows)
   (j : natlt cols)
   (to : nat{(row_off @! i) <= to /\ to < (row_off @! (i + 1))})
@@ -109,14 +109,14 @@ let rec __matmul_dotprod_lemma
   )
 #pop-options
 
-#push-options "--z3seed 1" // workaround
+#push-options "--z3rlimit 20"
 let matmul_dotprod_lemma
   (#et : Type0) {| scalar et |}
   (#nnz #rows #shared #cols : nat)
   (elems : lseq et nnz)
   (col_ind : lseq nat nnz{in_bounds 0 shared col_ind})
   (row_off : lseq nat (rows + 1))
-  (eB : ematrix et shared cols)
+  (eB : chest2 et shared cols)
   (i : natlt rows)
   (j : natlt cols)
   : Lemma
@@ -147,8 +147,8 @@ fn matmul_dotprod
   {| ctlayout lB |}
   (gA : smatrix et (SZ.v rows) (SZ.v shared))
   (gB : array2 et lB)
-  (#eA : ematrix et rows shared)
-  (#eB : ematrix et shared cols)
+  (#eA : chest2 et rows shared)
+  (#eB : chest2 et shared cols)
   (i : szlt rows)
   (j : szlt cols)
   (#fA #fB : perm)
@@ -212,9 +212,9 @@ let kpre
   (gA : smatrix et rows shared)
   (gB : array2 et lB)
   (gC : array2 et lC)
-  (eA : ematrix et rows shared)
-  (eB : ematrix et shared cols)
-  (eC : ematrix et rows cols)
+  (eA : chest2 et rows shared)
+  (eB : chest2 et shared cols)
+  (eC : chest2 et rows cols)
   (fA fB : perm)
   (bid : natlt (rows * cols))
   : slprop
@@ -222,7 +222,7 @@ let kpre
   gA |-> Frac (fA /. (rows * cols)) eA **
   gB |-> Frac (fB /. (rows * cols)) eB **
   tensor_pts_to_cell gC (idx2 (bid / cols) (bid % cols))
-    (macc eC (bid / cols) (bid % cols))
+    (acc2 eC (bid / cols) (bid % cols))
 
 unfold
 let kpost
@@ -234,9 +234,9 @@ let kpost
   (gA : smatrix et rows shared)
   (gB : array2 et lB)
   (gC : array2 et lC)
-  (eA : ematrix et rows shared)
-  (eB : ematrix et shared cols)
-  (eC : ematrix et rows cols)
+  (eA : chest2 et rows shared)
+  (eB : chest2 et shared cols)
+  (eC : chest2 et rows cols)
   (fA fB : perm)
   (bid : natlt (rows * cols))
   : slprop
@@ -257,9 +257,9 @@ fn kf
   (gA : smatrix et (SZ.v rows) (SZ.v shared))
   (gB : array2 et lB)
   (gC : array2 et lC)
-  (#eA : ematrix et rows shared)
-  (#eB : ematrix et shared cols)
-  (#eC : ematrix et rows cols)
+  (#eA : chest2 et rows shared)
+  (#eB : chest2 et shared cols)
+  (#eC : chest2 et rows cols)
   (#fA #fB : perm)
   (bid : szlt (rows * cols))
   ()
@@ -295,9 +295,9 @@ fn setup
   (gB : array2 et lB)
   (#fB : perm)
   (gC : array2 et lC)
-  (#eA : ematrix et rows shared)
-  (#eB : ematrix et shared cols)
-  (#eC : ematrix et rows cols)
+  (#eA : chest2 et rows shared)
+  (#eB : chest2 et shared cols)
+  (#eC : chest2 et rows cols)
   ()
   norewrite
   requires
@@ -317,12 +317,12 @@ fn setup
   tensor_ilower2 gC;
 
   forevery_unfactor' (rows *^ cols) rows cols (fun r c ->
-    tensor_pts_to_cell gC (idx2 (r) (c)) (macc eC r c));
+    tensor_pts_to_cell gC (idx2 (r) (c)) (acc2 eC r c));
 
   // Join resources into a single bigstar
   forevery_zip #(natlt2 rows cols)
     (fun _ -> gB |-> Frac (fB /. (rows *^ cols)) eB)
-    (fun i -> tensor_pts_to_cell gC (idx2 ((i/cols <: natlt rows)) ((i%cols <: natlt cols))) (macc eC (i/cols) (i%cols)));
+    (fun i -> tensor_pts_to_cell gC (idx2 ((i/cols <: natlt rows)) ((i%cols <: natlt cols))) (acc2 eC (i/cols) (i%cols)));
   forevery_zip #(natlt2 rows cols)
     (fun _ -> gA |-> Frac (fA /. (rows *^ cols)) eA)
     _;
@@ -332,7 +332,7 @@ fn setup
     (fun i ->
       (gA |-> Frac (fA /. (rows *^ cols)) eA) **
       (gB |-> Frac (fB /. (rows *^ cols)) eB) **
-      tensor_pts_to_cell gC (idx2 ((i/cols <: natlt rows)) ((i%cols <: natlt cols))) (macc eC (i / cols) (i % cols)))
+      tensor_pts_to_cell gC (idx2 ((i/cols <: natlt rows)) ((i%cols <: natlt cols))) (acc2 eC (i / cols) (i % cols)))
     (fun i ->
       kpre comb gA gB gC eA eB eC fA fB i);
 }
@@ -350,9 +350,9 @@ fn teardown
   (gB : array2 et lB)
   (#fB : perm)
   (gC : array2 et lC)
-  (#eA : ematrix et rows shared)
-  (#eB : ematrix et shared cols)
-  (#eC : ematrix et rows cols)
+  (#eA : chest2 et rows shared)
+  (#eB : chest2 et shared cols)
+  (#eC : chest2 et rows cols)
   ()
   norewrite
   requires
@@ -395,7 +395,7 @@ fn teardown
     requires
       tensor_pts_to_cell gC (idx2 (r) (c)) (MS.gemm_single comb eA eB eC r c)
     ensures
-      tensor_pts_to_cell gC (idx2 (r) (c)) (macc (matrix_comb comb eC (MS.matmul eA eB)) r c)
+      tensor_pts_to_cell gC (idx2 (r) (c)) (acc2 (matrix_comb comb eC (MS.matmul eA eB)) r c)
   {
     ()
   };
@@ -420,9 +420,9 @@ let kdesc
   (gB : array2 et lB { is_global gB })
   (#fB : perm)
   (gC : array2 et lC { is_global gC })
-  (#eA : ematrix et rows shared)
-  (#eB : ematrix et shared cols)
-  (#eC : ematrix et rows cols)
+  (#eA : chest2 et rows shared)
+  (#eB : chest2 et shared cols)
+  (#eC : chest2 et rows cols)
   (#_ : squash (rows * cols <= max_blocks * max_threads))
   : kernel_desc_n
     (gA |-> Frac fA eA ** gB |-> Frac fB eB ** gC |-> eC)
@@ -460,9 +460,9 @@ fn mmcomb_gpu
   (gB : array2 et lB { is_global gB })
   (#fB : perm)
   (gC : array2 et lC { is_global gC })
-  (#eA : ematrix et rows shared)
-  (#eB : ematrix et shared cols)
-  (#eC : ematrix et rows cols)
+  (#eA : chest2 et rows shared)
+  (#eB : chest2 et shared cols)
+  (#eC : chest2 et rows cols)
   norewrite
   preserves
     cpu **

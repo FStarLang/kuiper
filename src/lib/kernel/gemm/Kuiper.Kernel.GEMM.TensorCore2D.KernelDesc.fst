@@ -197,7 +197,7 @@ fn array2_share_threads
   (#l : layout2 m n)
   (gm : array2 et l)
   (#f : perm)
-  (#em : ematrix et m n)
+  (#em : chest2 et m n)
   (nblk nthr : pos)
 requires
   gm |-> Frac f em
@@ -219,11 +219,11 @@ fn setup
   (#lC : layout2 m n)
   {| T.ctlayout lA, T.ctlayout lB, T.ctlayout lC |}
   (gA : array2 et_ab lA)
-  (eA : ematrix et_ab m k)
+  (eA : chest2 et_ab m k)
   (gB : array2 et_ab lB)
-  (eB : ematrix et_ab k n)
+  (eB : chest2 et_ab k n)
   (gC : array2 et_c lC)
-  (eC : ematrix et_c m n)
+  (eC : chest2 et_c m n)
   (bm bn bk
    tm tn tk
    wm wn : szp { constraints bm bn bk tm tn tk wm wn })
@@ -236,9 +236,9 @@ fn setup
   (nblk : szp{SZ.v nblk == m/bm * (n/bn)})
   (nthr : szp{SZ.v nthr == bm/(wm*tm) * (bn/(wn*tn)) * warp_size})
   (fA fB : perm)
-  (rA : ematrix real m k)
-  (rB : ematrix real k n)
-  (rC : ematrix real m n)
+  (rA : chest2 real m k)
+  (rB : chest2 real k n)
+  (rC : chest2 real m n)
   ()
   norewrite
   requires
@@ -265,7 +265,7 @@ fn setup
     (#l : layout2 m n)
     ([@@@mkey] gm : array2 et l)
     (#f : perm)
-    (#em : ematrix et m n)
+    (#em : chest2 et m n)
     (trows : nat{trows > 0 /\ trows /? m})
     (tcols : nat{tcols > 0 /\ tcols /? n})
     (nthr : nat{nthr == m/trows * (n/tcols) * warp_size})
@@ -355,11 +355,11 @@ fn block_setup
   (#lC : layout2 m n)
   {| T.ctlayout lA, T.ctlayout lB, T.ctlayout lC |}
   (gA : array2 et_ab lA)
-  (eA : ematrix et_ab m k)
+  (eA : chest2 et_ab m k)
   (gB : array2 et_ab lB)
-  (eB : ematrix et_ab k n)
+  (eB : chest2 et_ab k n)
   (gC : array2 et_c lC)
-  (eC : ematrix et_c m n)
+  (eC : chest2 et_c m n)
   (bm bn bk
    tm tn tk
    wm wn : szp { constraints bm bn bk tm tn tk wm wn })
@@ -374,9 +374,9 @@ fn block_setup
   (#_ : squash (chunk et_ab * nthr /?+ (bm * bk)))
   (#_ : squash (chunk et_ab * nthr /?+ (bk * bn)))
   (fA fB : perm)
-  (rA : ematrix real m k)
-  (rB : ematrix real k n)
-  (rC : ematrix real m n)
+  (rA : chest2 real m k)
+  (rB : chest2 real k n)
+  (rC : chest2 real m n)
   (sh : c_shmems (shmems_desc et_ab bm bn bk))
   (bid : natlt nblk)
   ()
@@ -410,11 +410,11 @@ fn block_teardown
   (#lB : layout2 k n)
   (#lC : layout2 m n)
   (gA : array2 et_ab lA)
-  (eA : ematrix et_ab m k)
+  (eA : chest2 et_ab m k)
   (gB : array2 et_ab lB)
-  (eB : ematrix et_ab k n)
+  (eB : chest2 et_ab k n)
   (gC : array2 et_c lC)
-  (eC : ematrix et_c m n)
+  (eC : chest2 et_c m n)
   (bm bn bk
    tm tn tk
    wm wn : szp { constraints bm bn bk tm tn tk wm wn })
@@ -425,9 +425,9 @@ fn block_teardown
   (nblk : szp{SZ.v nblk == m/bm * (n/bn)})
   (nthr : szp{SZ.v nthr == bm/(wm*tm) * (bn/(wn*tn)) * warp_size})
   (fA fB : perm)
-  (rA : ematrix real m k)
-  (rB : ematrix real k n)
-  (rC : ematrix real m n)
+  (rA : chest2 real m k)
+  (rB : chest2 real k n)
+  (rC : chest2 real m n)
   (#_ : squash (wm * tm /?+ m)) // obvious, but SMT is flaky
   (#_ : squash (wn * tn /?+ n)) // idem
   (sh : c_shmems (shmems_desc et_ab bm bn bk))
@@ -467,7 +467,7 @@ fn warp_tile_pts_to_eq
   (wn : pos{wn * tn /?+ bn})
   (bid : natlt ((m/bm) * (n/bn)))
   (wid : natlt (bm/(wm*tm) * (bn/(wn*tn))))
-  (em1 em2 : ematrix et (wm * tm) (wn * tn))
+  (em1 em2 : chest2 et (wm * tm) (wn * tn))
   requires
     warp_tile_pts_to gC bm bn tm tn wm wn bid wid em1 **
     warp_tile_pts_to gC bm bn tm tn wm wn bid wid em2
@@ -500,7 +500,7 @@ fn warp_tile_pts_to_gatherwarp
   (wn : pos{wn * tn /?+ bn})
   (bid : natlt ((m/bm) * (n/bn)))
   (wid : natlt (bm/(wm*tm) * (bn/(wn*tn))))
-  (em : ematrix et (wm * tm) (wn * tn))
+  (em : chest2 et (wm * tm) (wn * tn))
   requires
     forall+ (_ : natlt warp_size).
       warp_tile_pts_to gC bm bn tm tn wm wn bid wid em
@@ -532,9 +532,9 @@ fn rhs_is_constant_for_warps_approx
   (#m #n #k : pos)
   (#lC : layout2 m n)
   (gC : array2 et_c lC)
-  (eA : ematrix et_ab m k)
-  (eB : ematrix et_ab k n)
-  (eC : ematrix et_c m n)
+  (eA : chest2 et_ab m k)
+  (eB : chest2 et_ab k n)
+  (eC : chest2 et_c m n)
   (bm bn bk
    tm tn tk
    wm wn : szp { constraints bm bn bk tm tn tk wm wn })
@@ -543,13 +543,13 @@ fn rhs_is_constant_for_warps_approx
   (#_ : squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
   (nblk : pos{nblk == m/bm * (n/bn)})
   (nthr : pos{nthr == bm/(wm*tm) * (bn/(wn*tn)) * warp_size})
-  (rA : ematrix real m k)
-  (rB : ematrix real k n)
-  (rC : ematrix real m n)
+  (rA : chest2 real m k)
+  (rB : chest2 real k n)
+  (rC : chest2 real m n)
   (#_ : squash (wm * tm /?+ m)) // obvious, but SMT is flaky
   (#_ : squash (wn * tn /?+ n)) // idem
   (bid : natlt nblk)
-  (emf : natlt nthr -> ematrix et_c (wm*tm) (wn*tn))
+  (emf : natlt nthr -> chest2 et_c (wm*tm) (wn*tn))
   norewrite
   requires
     forall+ (tid : natlt nthr).
@@ -635,12 +635,12 @@ let tiles_approx_lemma
   (#_ : squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
   (nblk : pos{nblk == m/bm * (n/bn)})
   (nthr : pos{nthr == bm/(wm*tm) * (bn/(wn*tn)) * warp_size})
-  (rA : ematrix real m k)
-  (rB : ematrix real k n)
+  (rA : chest2 real m k)
+  (rB : chest2 real k n)
   (#_ : squash (wm * tm /?+ m)) // obvious, but SMT is flaky
   (#_ : squash (wn * tn /?+ n)) // idem
-  (eC' : ematrix et_c m n)
-  (emf : natlt nblk -> natlt nthr -> ematrix et_c (wm*tm) (wn*tn))
+  (eC' : chest2 et_c m n)
+  (emf : natlt nblk -> natlt nthr -> chest2 et_c (wm*tm) (wn*tn))
   : Lemma (requires
             (eC' ==
               ematrix_from_tiles bm bn
@@ -653,38 +653,38 @@ let tiles_approx_lemma
                             (ematrix_subtile rB k  (wn*tn) 0 (warp_tile_j #m #n bm bn bk tm tn tk wm wn nthr bid wid)))))
           (ensures eC' %~ MS.matmul rA rB)
 = let aux (i : natlt m) (j : natlt n)
-    : Lemma (macc eC' i j %~ macc (MS.matmul rA rB) i j)
+    : Lemma (acc2 eC' i j %~ acc2 (MS.matmul rA rB) i j)
   =
     let bid : natlt nblk = bid_of_ij m n bm bn i j in
     let wid : natlt (nthr / warp_size) = wid_of_ij m n bm bn tm tn wm wn i j in
     let ii  : natlt (wm*tm) = (i % bm) % (wm*tm) in
     let jj  : natlt (wn*tn) = (j % bn) % (wn*tn) in
     calc (==) {
-      macc eC' i j;
+      acc2 eC' i j;
       == {}
-      macc (ematrix_from_tiles #_ #m #n bm bn
+      acc2 (ematrix_from_tiles #_ #m #n bm bn
               (fun br bc ->
                 ematrix_from_tiles (wm*tm) (wn*tn)
                   (fun tr tc -> emf (br * (n/bn) + bc) ((tr * (bn/(wn*tn)) + tc) * warp_size))))
         i j;
       == {}
-      macc (ematrix_from_tiles #_ #bm #bn (wm*tm) (wn*tn)
+      acc2 (ematrix_from_tiles #_ #bm #bn (wm*tm) (wn*tn)
                   (fun tr tc -> emf bid ((tr * (bn/(wn*tn)) + tc) * warp_size)))
            (i % bm) (j % bn);
       == {}
-      macc (emf bid (wid * warp_size)) ii jj;
+      acc2 (emf bid (wid * warp_size)) ii jj;
     };
-    assert (macc eC' i j == macc (emf bid (wid * warp_size)) ii jj);
-    assert (macc eC' i j %~
-      macc
+    assert (acc2 eC' i j == acc2 (emf bid (wid * warp_size)) ii jj);
+    assert (acc2 eC' i j %~
+      acc2
         (MS.matmul (ematrix_subtile rA (wm*tm) k (warp_tile_i #m #n bm bn bk tm tn tk wm wn nthr bid wid) 0)
                    (ematrix_subtile rB k  (wn*tn) 0 (warp_tile_j #m #n bm bn bk tm tn tk wm wn nthr bid wid)))
         ii jj);
 
     MS.matmul_decompose_lemma rA rB (wm*tm) (wn*tn) (warp_tile_i #m #n bm bn bk tm tn tk wm wn nthr bid wid)
                                                     (warp_tile_j #m #n bm bn bk tm tn tk wm wn nthr bid wid);
-    assert (macc eC' i j %~
-      macc
+    assert (acc2 eC' i j %~
+      acc2
         (ematrix_subtile
           (MS.matmul rA rB)
           (wm*tm) (wn*tn)
@@ -693,7 +693,7 @@ let tiles_approx_lemma
         ii jj);
 
     calc (==) {
-      macc
+      acc2
         (ematrix_subtile
           (MS.matmul rA rB)
           (wm*tm) (wn*tn)
@@ -701,13 +701,13 @@ let tiles_approx_lemma
           (warp_tile_j #m #n bm bn bk tm tn tk wm wn nthr bid wid))
         ii jj;
       == {}
-      macc
+      acc2
         (MS.matmul rA rB)
         (warp_tile_i #m #n bm bn bk tm tn tk wm wn nthr bid wid * (wm*tm) + ii)
         (warp_tile_j #m #n bm bn bk tm tn tk wm wn nthr bid wid * (wn*tn) + jj);
       == { lem_i m n k bm bn bk tm tn tk wm wn nthr i j;
            lem_j m n k bm bn bk tm tn tk wm wn nthr i j }
-      macc (MS.matmul rA rB) i j;
+      acc2 (MS.matmul rA rB) i j;
     };
 
     ()
@@ -725,9 +725,9 @@ fn reconstruct_from_warp_approx
   (#m #n #k : pos)
   (#lC : layout2 m n)
   (gC : array2 et_c lC)
-  (eA : ematrix et_ab m k)
-  (eB : ematrix et_ab k n)
-  (eC : ematrix et_c m n)
+  (eA : chest2 et_ab m k)
+  (eB : chest2 et_ab k n)
+  (eC : chest2 et_c m n)
   (bm bn bk
    tm tn tk
    wm wn : szp { constraints bm bn bk tm tn tk wm wn })
@@ -736,9 +736,9 @@ fn reconstruct_from_warp_approx
   (#_ : squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
   (nblk : pos{nblk == m/bm * (n/bn)})
   (nthr : pos{nthr == bm/(wm*tm) * (bn/(wn*tn)) * warp_size})
-  (rA : ematrix real m k)
-  (rB : ematrix real k n)
-  (rC : ematrix real m n)
+  (rA : chest2 real m k)
+  (rB : chest2 real k n)
+  (rC : chest2 real m n)
   (#_ : squash (wm * tm /?+ m)) // obvious, but SMT is flaky
   (#_ : squash (wn * tn /?+ n)) // idem
   norewrite
@@ -750,7 +750,7 @@ fn reconstruct_from_warp_approx
         (MS.matmul (ematrix_subtile rA (wm*tm) k (warp_tile_i #m #n bm bn bk tm tn tk wm wn nthr bid (tid / warp_size)) 0)
                    (ematrix_subtile rB k  (wn*tn) 0 (warp_tile_j #m #n bm bn bk tm tn tk wm wn nthr bid (tid / warp_size))))
   ensures
-    exists* (eC' : ematrix et_c m n).
+    exists* (eC' : chest2 et_c m n).
       gC |-> eC' ** pure (eC' %~ MS.matmul rA rB)
 {
   (* Expose the existential. *)
@@ -760,7 +760,7 @@ fn reconstruct_from_warp_approx
         (MS.matmul (ematrix_subtile rA (wm*tm) k (warp_tile_i #m #n bm bn bk tm tn tk wm wn nthr bid (tid / warp_size)) 0)
                    (ematrix_subtile rB k  (wn*tn) 0 (warp_tile_j #m #n bm bn bk tm tn tk wm wn nthr bid (tid / warp_size)))))
     (fun bid tid ->
-      exists* (em : ematrix et_c (wm*tm) (wn*tn)).
+      exists* (em : chest2 et_c (wm*tm) (wn*tn)).
         warp_tile_pts_to gC bm bn tm tn wm wn bid (tid / warp_size) em **
         pure (em %~
           (MS.matmul (ematrix_subtile rA (wm*tm) k (warp_tile_i #m #n bm bn bk tm tn tk wm wn nthr bid (tid / warp_size)) 0)
@@ -773,7 +773,7 @@ fn reconstruct_from_warp_approx
 
   (* Choice. *)
   let emf = forevery_exists_2
-    (fun (bid : natlt nblk) (tid : natlt nthr) (em : ematrix et_c (wm*tm) (wn*tn)) ->
+    (fun (bid : natlt nblk) (tid : natlt nthr) (em : chest2 et_c (wm*tm) (wn*tn)) ->
         warp_tile_pts_to gC bm bn tm tn wm wn bid (tid / warp_size) em **
         pure (em %~
           (MS.matmul (ematrix_subtile rA (wm*tm) k (warp_tile_i #m #n bm bn bk tm tn tk wm wn nthr bid (tid / warp_size)) 0)
@@ -968,11 +968,11 @@ fn teardown
   (#lB : layout2 k n)
   (#lC : layout2 m n)
   (gA : array2 et_ab lA)
-  (eA : ematrix et_ab m k)
+  (eA : chest2 et_ab m k)
   (gB : array2 et_ab lB)
-  (eB : ematrix et_ab k n)
+  (eB : chest2 et_ab k n)
   (gC : array2 et_c lC)
-  (eC : ematrix et_c m n)
+  (eC : chest2 et_c m n)
   (bm bn bk
    tm tn tk
    wm wn : szp { constraints bm bn bk tm tn tk wm wn })
@@ -985,9 +985,9 @@ fn teardown
   (#_ : squash (chunk et_ab * nthr /?+ (bm * bk)))
   (#_ : squash (chunk et_ab * nthr /?+ (bk * bn)))
   (fA fB : perm)
-  (rA : ematrix real m k)
-  (rB : ematrix real k n)
-  (rC : ematrix real m n)
+  (rA : chest2 real m k)
+  (rB : chest2 real k n)
+  (rC : chest2 real m n)
   (#_ : squash (wm * tm /?+ m)) // obvious, but SMT is flaky
   (#_ : squash (wn * tn /?+ n)) // idem
   ()
@@ -1000,7 +1000,7 @@ fn teardown
   ensures
     gA |-> Frac fA eA **
     gB |-> Frac fB eB **
-    (exists* (eC' : ematrix et_c m n).
+    (exists* (eC' : chest2 et_c m n).
       gC |-> eC' ** pure (eC' %~ MS.matmul rA rB))
 {
   forevery_unfactor' (m/bm * (n/bn) * nthr) nblk nthr _;

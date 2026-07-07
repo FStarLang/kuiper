@@ -3,7 +3,7 @@ module Kuiper.Kernel.BatchedGEMM
 #lang-pulse
 open Kuiper
 open Kuiper.Tensor.Layout.Alg
-open Kuiper.EMatrix { ematrix }
+open Kuiper.EMatrix { chest2 }
 open Kuiper.Chest
 open Pulse.Lib.Trade
 open Kuiper.Tensor

@@ -56,8 +56,8 @@ fn row_softmax_gpu_with_sum
   (n : szp { m * n <= max_blocks * max_threads })
   (#l : layout2 m n) {| ctlayout l |}
   (a : array2 et l { is_global a })
-  (#sa : ematrix et m n)
-  (ra : ematrix real m n)
+  (#sa : chest2 et m n)
+  (ra : chest2 real m n)
   preserves
     cpu
   requires
@@ -66,7 +66,7 @@ fn row_softmax_gpu_with_sum
   returns
     sums: (sums: array1 et (l1_forward m) { is_global sums })
   ensures
-    exists* (sa' : ematrix et m n) (esums : chest1 et m).
+    exists* (sa' : chest2 et m n) (esums : chest1 et m).
       on gpu_loc (a |-> sa') **
       on gpu_loc (sums |-> esums) **
       pure (sa' %~ row_softmax_real ra) **

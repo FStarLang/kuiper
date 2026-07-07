@@ -33,12 +33,12 @@ fn spmm
   (elems : lseq et gA.nnz)
   (col_ind : lseq sz gA.nnz)
   (row_off : lseq sz (rows + 1))
-  (#eA : ematrix et rows shared)
+  (#eA : chest2 et rows shared)
   // permutacion de filas
   (row_perm : permutation (natlt rows))
   // matrices densas
-  (#eB : ematrix et shared cols)
-  (#eC : ematrix et rows cols)
+  (#eB : chest2 et shared cols)
+  (#eC : chest2 et rows cols)
   //(#_ : size_req rows shared cols)
   norewrite
   preserves

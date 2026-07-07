@@ -27,17 +27,17 @@ val mk_kernel
   (#m #n #k : szp)
   (#lA : layout2 m k) {| T.ctlayout lA |}
   (gA : array2 et_ab lA { is_global gA })
-  (#eA : ematrix et_ab m k)
+  (#eA : chest2 et_ab m k)
   (#lB : layout2 k n) {| T.ctlayout lB |}
   {| str_A : strided_row_major lA,
      str_B : strided_row_major lB |}
   (#_ : squash (aligned_strided_row_major (chunk et_ab) str_A))
   (#_ : squash (aligned_strided_row_major (chunk et_ab) str_B))
   (gB : array2 et_ab lB { is_global gB })
-  (#eB : ematrix et_ab k n)
+  (#eB : chest2 et_ab k n)
   (gC : array2 et_c (rm m n) { is_global gC })
   (#_ : squash (SZ.fits (m * n)))
-  (#eC : ematrix et_c m n)
+  (#eC : chest2 et_c m n)
   (bm bn bk
    tm tn tk
    wm wn : szp { constraints bm bn bk tm tn tk wm wn })
@@ -65,9 +65,9 @@ val mk_kernel
   (#_ : squash (SZ.fits (bk*bn + nthr-1)))
   (#_ : squash (nblk <= max_blocks))
   (#_ : squash (nthr <= max_threads))
-  (rA : ematrix real m k)
-  (rB : ematrix real k n)
-  (rC : ematrix real m n)
+  (rA : chest2 real m k)
+  (rB : chest2 real k n)
+  (rC : chest2 real m n)
   (#_ : squash (wm * tm /?+ m)) // obvious, but SMT is flaky
   (#_ : squash (wn * tn /?+ n)) // idem
   ()
@@ -77,5 +77,5 @@ val mk_kernel
        gC |-> eC ** pure (eC %~ rC))
       (gA |-> Frac fA eA **
        gB |-> Frac fB eB **
-       (exists* (eC' : ematrix et_c m n).
+       (exists* (eC' : chest2 et_c m n).
          gC |-> eC' ** pure (eC' %~ MS.matmul rA rB)))

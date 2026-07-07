@@ -21,7 +21,7 @@ fn matmul_transpose_gpu
   (gA : tensor et (l2_row_major m k) { is_global gA })
   (gB : tensor et (l2_row_major k n) { is_global gB })
   (gC : tensor et (l2_row_major n m) { is_global gC })
-  (#eA #eB #eC : ematrix et _ _)
+  (#eA #eB #eC : chest2 et _ _)
   preserves
     cpu **
     on gpu_loc (gA |-> eA ** gB |-> eB)

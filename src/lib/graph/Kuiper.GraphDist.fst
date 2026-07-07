@@ -6,7 +6,7 @@ open Kuiper.Scalars
 module K = Kuiper.Kernel.GEMM.Naive2
 open Kuiper.Tensor
 open Kuiper.Tensor.Layout.Alg
-open Kuiper.EMatrix { ematrix }
+open Kuiper.EMatrix { chest2 }
 
 // inline_for_extraction noextract
 // class ord_raw (a : Type) = {
@@ -79,7 +79,7 @@ fn m_share_2
   (#m #n : nat)
   (#l : layout2 m n)
   (a : tensor et l)
-  (#em : ematrix et m n)
+  (#em : chest2 et m n)
   requires
     a |-> em
   ensures
@@ -97,7 +97,7 @@ fn m_gather_2
   (#m #n : nat)
   (#l : layout2 m n)
   (a : tensor et l)
-  (#em : ematrix et m n)
+  (#em : chest2 et m n)
   requires
     a |-> Frac 0.5R em ** a |-> Frac 0.5R em
   ensures
@@ -114,8 +114,8 @@ fn matmul_dist_gpu
   (#size : szp)
   (a : tensor dist (l2_row_major size size) { is_global a })
   (b : tensor dist (l2_row_major size size) { is_global b })
-  (#ea : ematrix dist size size)
-  (#eb : ematrix dist size size)
+  (#ea : chest2 dist size size)
+  (#eb : chest2 dist size size)
   preserves
     cpu ** on gpu_loc (a |-> ea)
   requires
