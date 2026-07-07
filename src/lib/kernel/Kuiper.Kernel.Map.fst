@@ -78,6 +78,79 @@ fn map_host
   ();
 }
 
+(* Pull [on l] out of a [forall+], the reverse of the library's
+   [on_forevery_elim]. Inside the impersonation of [l] we own [loc l], which we
+   thread through the map with [forevery_map_extra] so each cell can shed its
+   [on l] wrapper. *)
+ghost
+fn on_forevery_intro (#a: Type0) {| enumerable a |} (p: a -> slprop) (l: loc_id)
+  requires forall+ (x:a). on l (p x)
+  ensures on l (forall+ (x:a). p x)
+{
+  ghost_impersonate l (forall+ (x:a). on l (p x)) (on l (forall+ (x:a). p x)) fn _ {
+    forevery_map_extra (loc l) (fun x -> on l (p x)) p fn x { on_elim (p x) };
+    on_intro (forall+ (x:a). p x);
+  };
+}
+
+(* Share the on-gpu tensor points-to into [n] fractional copies. We impersonate
+   the gpu location to run the raw [tensor_share_n], then distribute [on gpu_loc]
+   over the resulting [forall+]. *)
+ghost
+fn share_on_gpu
+  (#r : nat) (#d : shape r) (#et : Type0) (#lay : tlayout d)
+  (a : tensor et lay) (s : chest d et) (base : perm)
+  (n : pos) (#p : perm)
+  requires on gpu_loc (a |-> Frac (base *. p) s)
+  ensures  forall+ (_ : natlt n). on gpu_loc (a |-> Frac (base *. (p /. Real.of_int n)) s)
+{
+  ghost_impersonate gpu_loc
+    (on gpu_loc (a |-> Frac (base *. p) s))
+    (on gpu_loc (forall+ (_ : natlt n). a |-> Frac (base *. (p /. Real.of_int n)) s))
+    fn _ {
+      on_elim (a |-> Frac (base *. p) s);
+      tensor_share_n a n #(base *. p);
+      forevery_map
+        (fun (_ : natlt n) -> a |-> Frac ((base *. p) /. Real.of_int n) s)
+        (fun (_ : natlt n) -> a |-> Frac (base *. (p /. Real.of_int n)) s)
+        fn i {
+          rewrite (a |-> Frac ((base *. p) /. Real.of_int n) s)
+              as  (a |-> Frac (base *. (p /. Real.of_int n)) s);
+        };
+      on_intro (forall+ (_ : natlt n). a |-> Frac (base *. (p /. Real.of_int n)) s);
+    };
+  on_forevery_elim (fun (_ : natlt n) -> a |-> Frac (base *. (p /. Real.of_int n)) s) gpu_loc;
+}
+
+(* Gather [n] fractional copies of the on-gpu tensor points-to back into one.
+   The mirror of [share_on_gpu]: pull [on gpu_loc] out of the [forall+], then
+   impersonate the gpu location to run the raw [tensor_gather_n]. *)
+ghost
+fn gather_on_gpu
+  (#r : nat) (#d : shape r) (#et : Type0) (#lay : tlayout d)
+  (a : tensor et lay) (s : chest d et) (base : perm)
+  (n : pos) (#p : perm)
+  requires forall+ (_ : natlt n). on gpu_loc (a |-> Frac (base *. (p /. Real.of_int n)) s)
+  ensures  on gpu_loc (a |-> Frac (base *. p) s)
+{
+  on_forevery_intro (fun (_ : natlt n) -> a |-> Frac (base *. (p /. Real.of_int n)) s) gpu_loc;
+  ghost_impersonate gpu_loc
+    (on gpu_loc (forall+ (_ : natlt n). a |-> Frac (base *. (p /. Real.of_int n)) s))
+    (on gpu_loc (a |-> Frac (base *. p) s))
+    fn _ {
+      on_elim (forall+ (_ : natlt n). a |-> Frac (base *. (p /. Real.of_int n)) s);
+      forevery_map
+        (fun (_ : natlt n) -> a |-> Frac (base *. (p /. Real.of_int n)) s)
+        (fun (_ : natlt n) -> a |-> Frac ((base *. p) /. Real.of_int n) s)
+        fn i {
+          rewrite (a |-> Frac (base *. (p /. Real.of_int n)) s)
+              as  (a |-> Frac ((base *. p) /. Real.of_int n) s);
+        };
+      tensor_gather_n a n #(base *. p);
+      on_intro (a |-> Frac (base *. p) s);
+    };
+}
+
 instance shareable_tensor_pts_to
   (#r : nat) (#d : shape r) (#et : Type0)
   (#l : tlayout d)
@@ -85,7 +158,10 @@ instance shareable_tensor_pts_to
   (#s : chest d et)
   (base : perm)
   : shareable (fun fr -> on gpu_loc (a |-> Frac (base *. fr) s))
-  = magic()
+  = {
+    _share_n  = (fun (n : pos) (#p : perm) -> share_on_gpu a s base n #p);
+    _gather_n = (fun (n : pos) (#p : perm) -> gather_on_gpu a s base n #p);
+  }
 
 inline_for_extraction noextract
 fn map_gpu2
