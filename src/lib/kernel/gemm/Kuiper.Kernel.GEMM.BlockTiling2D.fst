@@ -591,7 +591,7 @@ let mul_add_inj (#n : pos) (a : nat) (b : natlt n) (c : nat) (d : natlt n)
     FStar.Math.Lemmas.division_addition_lemma d n c;
     FStar.Math.Lemmas.small_div d n
 
-(* ettile commutes with matrix_comb (and thus mmcomb) pointwise.
+(* ettile commutes with chest_comb (and thus mmcomb) pointwise.
    This needs normalization through ematrix_subtile → mk2 → acc2 chains. *)
 let ettile_matmul_pointwise
   (#et : Type0) {| scalar et |}

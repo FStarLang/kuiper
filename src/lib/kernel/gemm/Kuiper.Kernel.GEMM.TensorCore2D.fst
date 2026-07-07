@@ -729,7 +729,7 @@ fn populate_acc_with_zero
 requires
   live accumFrags
 ensures
-  fragarrayAcc_approximates wm wn accumFrags (const_matrix 0.0R)
+  fragarrayAcc_approximates wm wn accumFrags (const _ 0.0R)
 {
   array_fragment_pts_to_ref accumFrags;
 
@@ -742,7 +742,7 @@ ensures
         pure (
           Seq.length eAcc == wm*wn /\ !fi <= wm*wn  /\
           forall (i : natlt !fi).
-            (Seq.index eAcc i) %~ (ematrix_subtile (const_matrix #_ #(wm*tm) #(wn*tn) 0.0R) tm tn (i/wn) (i%wn))))
+            Seq.index eAcc i %~ const _ 0.0R))
     decreases (wm*^wn - !fi)
   {
     array_fragment_pts_to_ref accumFrags;
@@ -754,7 +754,7 @@ ensures
 
     fi := !fi +^ 1sz;
   };
-  fold fragarrayAcc_approximates wm wn accumFrags (const_matrix 0.0R);
+  fold fragarrayAcc_approximates wm wn accumFrags (const _ 0.0R);
   ()
 }
 
@@ -776,7 +776,7 @@ let loop_invariant_lemma
   (vk : natlt (k / bk))
   (rA : chest2 real m k)
   (rB : chest2 real k n)
-  (rAcc0 : chest2 real (wm*tm) (wn*tn) { rAcc0 == const_matrix 0.0R })
+  (rAcc0 : chest2 real (wm*tm) (wn*tn) { rAcc0 == const _ 0.0R })
   (rAcc  : chest2 real (wm*tm) (wn*tn))
   (#_ : squash (wm * tm /?+ m)) // obvious, but SMT is flaky
   (#_ : squash (wn * tn /?+ n)) // idem
@@ -985,8 +985,8 @@ fn kf
 
   // Fill accumulators with 0
   populate_acc_with_zero tm tn tk wm wn accFrags;
-  let rAcc0 : chest2 real (wm*tm) (wn*tn) = const_matrix 0.0R;
-  assert (rewrites_to rAcc0 (const_matrix 0.0R));
+  let rAcc0 : chest2 real (wm*tm) (wn*tn) = const _ 0.0R;
+  assert (rewrites_to rAcc0 (const _ 0.0R));
 
   rewrite fragarrayAcc_approximates wm wn accFrags rAcc0
        as fragarrayAcc_approximates wm wn accFrags
@@ -1146,7 +1146,7 @@ fn kf
     MS.matmul (ematrix_subtile rA (wm*tm) k (warp_tile_i #m #n bm bn bk tm tn tk wm wn nthr bid (tid / warp_size)) 0)
               (ematrix_subtile rB k  (wn*tn) 0 (warp_tile_j #m #n bm bn bk tm tn tk wm wn nthr bid (tid / warp_size)));
 
-  assert pure (matplus (const_matrix 0.0R) rAcc'' `equal` rAcc'');
+  assert pure (matplus (const _ 0.0R) rAcc'' `equal` rAcc'');
   // ^ This is needed so we can use the result of the matmul_tiles_lemma
   // above...  very boring.
 

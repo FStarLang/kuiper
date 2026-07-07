@@ -276,7 +276,7 @@ val matmul_single_tile_zero_lemma
   (tcol : natlt (columns / tn))
 : Lemma
   (ensures (
-    __matmul_single_tile tm tn tk m1 m2 trow tcol 0 == const_matrix zero
+    __matmul_single_tile tm tn tk m1 m2 trow tcol 0 == const _ zero
   ))
 
 val matmul_single_tile_lemma
@@ -307,8 +307,8 @@ let mmcomb
   (m0 : chest2 et rows columns)
   (m1 : chest2 et rows shared)
   (m2 : chest2 et shared columns)
-: chest2 et rows columns
-= matrix_comb comb m0 (matmul m1 m2)
+  : chest2 et rows columns
+  = chest_comb comb m0 (matmul m1 m2)
 
 val matmul_is_gemm
   (#et:Type) {| scalar et |}
@@ -326,8 +326,8 @@ let gemm
   (m0 : chest2 et rows columns)
   (m1 : chest2 et rows shared)
   (m2 : chest2 et shared columns)
-: chest2 et rows columns
-= matrix_comb (lincomb alpha beta) m0 (matmul m1 m2)
+  : chest2 et rows columns
+  = chest_comb (lincomb alpha beta) m0 (matmul m1 m2)
 
 (* If we take a full-width slice of A and a full-height slice of B, then
    the matmul of those slices is equal to the corresponding tile of the

@@ -3,7 +3,7 @@ module Kuiper.Kernel.GEMMGPU.Type
 #lang-pulse
 
 open Kuiper
-open Kuiper.EMatrix { chest2, matrix_comb }
+open Kuiper.EMatrix { chest2 }
 module MS = Kuiper.Spec.GEMM
 module T = Kuiper.Tensor
 

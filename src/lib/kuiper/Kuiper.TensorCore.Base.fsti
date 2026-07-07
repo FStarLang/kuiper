@@ -7,9 +7,8 @@ module Kuiper.TensorCore.Base
 open Kuiper
 open Kuiper.Tensor
 open Kuiper.Array2.Strided
-open Kuiper.EMatrix
+open Kuiper.Chest
 open Kuiper.Spec.GEMM
-module EMatrix = Kuiper.EMatrix
 
 module T = FStar.Tactics.V2
 module SZ = Kuiper.SizeT
@@ -228,9 +227,9 @@ let fill_value
   : value_for et knd m n k
 =
   match knd with
-  | FragA   -> EMatrix.const_matrix #_ #m #k i
-  | FragB   -> EMatrix.const_matrix #_ #k #n i
-  | FragAcc -> EMatrix.const_matrix #_ #m #n i
+  | FragA   -> const (m @| k @| INil) i
+  | FragB   -> const (k @| n @| INil) i
+  | FragAcc -> const (m @| n @| INil) i
 
 fn mma_fill
   (#et : Type)

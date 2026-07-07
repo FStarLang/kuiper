@@ -10,20 +10,8 @@ open Kuiper.Shape
 include Kuiper.Chest {
   to_real_chest as to_real_matrix,
   equal,
-  chest_comb as ematrix_comb,
   chest2
 }
-
-let const_matrix (#et:Type) (#rows #cols : nat)
-  (v:et)
-  : chest2 et rows cols
-  = Chest.const _ v
-
-let matrix_comb (#et:Type) (#rows #cols : nat)
-  (f : binop et)
-  (m1 m2 : chest2 et rows cols)
-  : chest2 et rows cols
-  = Chest.chest_comb f m1 m2
 
 let mtranspose (#et:Type) (#rows #cols : nat)
   (m : chest2 et rows cols)

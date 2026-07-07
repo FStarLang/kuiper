@@ -166,7 +166,7 @@ let rec __matmul_single_tile
   (to : nat{to <= shared / tk})
   : GTot (chest2 et tm tn) (decreases to)
   =
-  if reveal to = 0 then const_matrix zero
+  if reveal to = 0 then const _ zero
   else (
     matplus
       (__matmul_single_tile tm tn tk m1 m2 trow tcol (to-1))
@@ -185,7 +185,7 @@ let matmul_single_tile_zero_lemma
   (tcol : natlt (columns / tn))
 : Lemma
   (ensures (
-    __matmul_single_tile tm tn tk m1 m2 trow tcol 0 == const_matrix zero
+    __matmul_single_tile tm tn tk m1 m2 trow tcol 0 == const _ zero
   ))
   = ()
 

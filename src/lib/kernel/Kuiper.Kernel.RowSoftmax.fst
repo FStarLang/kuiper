@@ -62,7 +62,7 @@ let softmax_real_cell (#n : nat { n > 0 }) (row : Chest.chest1 real n) (j : natl
   = ()
 #pop-options
 
-#push-options "--fuel 4 --ifuel 2"
+#push-options "--fuel 4 --ifuel 2 --split_queries always"
 let acc2_row_softmax_real (#m : nat) (#n : nat { n > 0 })
   (ra : chest2 real m n) (i : natlt m) (j : natlt n)
   : Lemma (acc2 (row_softmax_real #m #n ra) i j

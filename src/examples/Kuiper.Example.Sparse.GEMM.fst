@@ -362,7 +362,7 @@ fn teardown
   ensures
     gA |-> Frac fA eA **
     gB |-> Frac fB eB **
-    gC |-> matrix_comb comb eC (MS.matmul eA eB)
+    gC |-> chest_comb comb eC (MS.matmul eA eB)
 {
   forevery_rw_size (rows *^ cols) (rows * cols);
 
@@ -395,7 +395,7 @@ fn teardown
     requires
       tensor_pts_to_cell gC (idx2 (r) (c)) (MS.gemm_single comb eA eB eC r c)
     ensures
-      tensor_pts_to_cell gC (idx2 (r) (c)) (acc2 (matrix_comb comb eC (MS.matmul eA eB)) r c)
+      tensor_pts_to_cell gC (idx2 (r) (c)) (acc2 (chest_comb comb eC (MS.matmul eA eB)) r c)
   {
     ()
   };

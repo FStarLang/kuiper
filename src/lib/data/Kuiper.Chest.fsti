@@ -135,7 +135,7 @@ let to_real_chest (#et : Type0)
   (#d : shape r)
   (c : chest d et)
   : GTot (chest d real)
-  = mk d fun i -> to_real (acc c i)
+  = chest_map to_real c
 
 val lemma_to_real_chest_approximates (#et : Type0)
   {| scalar et, real_like et |}
@@ -240,7 +240,7 @@ let chest2_row
   (em : chest2 et rows cols)
   (i : natlt rows)
   : chest1 et cols
-  = mk1 (fun j -> acc2 em i j)
+  = chest_slice 0 i em
 
 let chest2_col
   (#et : Type0)
@@ -248,7 +248,7 @@ let chest2_col
   (em : chest2 et rows cols)
   (j : natlt cols)
   : chest1 et rows
-  = mk1 (fun i -> acc2 em i j)
+  = chest_slice 1 j em
 
 let chest3 et d1 d2 d3 = chest (d1 @| d2 @| d3 @| INil) et
 let mk3 (#et:Type) (#d0 #d1 #d2 : nat)
@@ -325,7 +325,7 @@ let acc4 (#et:Type) (#d0 #d1 #d2 #d3 : nat)
 let slice_page4 (#et:Type) (#d0 #d1 #d2 #d3: nat)
   (m : chest4 et d0 d1 d2 d3) (i : natlt d0) (j : natlt d1)
   : chest2 et d2 d3
-  = mk2 (acc4 m i j)
+  = chest_slice 0 i (chest_slice 1 j m)
 
 let upd_page4 (#et:Type) (#d0 #d1 #d2 #d3: nat)
   (m : chest4 et d0 d1 d2 d3) (i : natlt d0) (j : natlt d1)
@@ -335,4 +335,3 @@ let upd_page4 (#et:Type) (#d0 #d1 #d2 #d3: nat)
       if i' = i && j' = j
       then acc2 p
       else acc4 m i' j'
-

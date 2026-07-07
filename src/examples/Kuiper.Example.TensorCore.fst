@@ -7,7 +7,6 @@ open Kuiper.Tensor
 open Kuiper.Tensor.Tiling
 open Kuiper.Tensor.Layout.Alg { l2_row_major as row_major, l2_col_major as col_major }
 open Kuiper.Spec.GEMM
-open Kuiper.EMatrix
 
 inline_for_extraction noextract instance c16 : concrete_sz 16 = { x = 16sz; }
 inline_for_extraction noextract instance c1 : concrete_sz 1 = { x = 1sz; }
@@ -40,8 +39,8 @@ fn use_wmma_ker
 let matplus_zero_lem
   (#m #n : nat)
   (mm : chest2 real m n)
-  : Lemma (ensures matplus (const_matrix 0.0R) mm == mm)
-  = assert (equal (matplus (const_matrix 0.0R) mm) mm);
+  : Lemma (ensures matplus (const _ 0.0R) mm == mm)
+  = assert (equal (matplus (const _ 0.0R) mm) mm);
     ()
 
 [@@CPrologue "inline";
@@ -73,7 +72,7 @@ fn test
   mma_sync' fa fb fc;
   mma_store fc m3;
 
-  emma_approx_lemma (fill_value #half #FragAcc #16 #16 #16 zero) v1 v2 (Kuiper.EMatrix.const_matrix 0.0R) r1 r2;
+  emma_approx_lemma (fill_value #half #FragAcc #16 #16 #16 zero) v1 v2 (const _ 0.0R) r1 r2;
 
   with x. assert fa |-> x; drop_ (fa |-> x);
   with x. assert fb |-> x; drop_ (fb |-> x);
@@ -128,7 +127,7 @@ fn test2
   emma_approx_lemma (fill_value #half #FragAcc #16 #16 #16 zero)
     (ematrix_subtile v1 16 16 1 1)
     (ematrix_subtile v2 16 16 1 1)
-    (Kuiper.EMatrix.const_matrix 0.0R)
+    (const _ 0.0R)
     (ematrix_subtile r1 16 16 1 1)
     (ematrix_subtile r2 16 16 1 1);
 
