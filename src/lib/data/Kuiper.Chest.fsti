@@ -200,6 +200,16 @@ let chest1_mapi (#n : nat) (#et1 #et2 : Type)
 let chest1_rsum #n (s : chest1 real n) : real =
   Kuiper.Seq.Common.seq_fold_left (+.) 0.0R (chest1_to_seq s)
   (* Do not use seq? *)
+(* Row max: the [rmax] analogue of [chest1_rsum].  Max has no identity element,
+   so it recurses over the non-empty underlying seq instead of folding from a
+   unit.  ([chest1_max_seq s] equals [Kuiper.Math.OnlineSoftmax.seq_max s]; the
+   bridge lives with [seq_max] since that module sits above [Chest].) *)
+let rec chest1_max_seq (s : Seq.seq real { Seq.length s > 0 })
+  : Tot real (decreases Seq.length s)
+  = if Seq.length s = 1 then Seq.index s 0
+    else rmax (Seq.index s 0) (chest1_max_seq (Seq.slice s 1 (Seq.length s)))
+let chest1_max (#n : nat { n > 0 }) (s : chest1 real n) : real =
+  chest1_max_seq (chest1_to_seq s)
 let chest1_sub
   (#et : Type0) (#n : nat)
   (i j : natle n{i <= j})

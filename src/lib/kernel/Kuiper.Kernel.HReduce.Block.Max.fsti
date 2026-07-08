@@ -5,7 +5,6 @@ module Kuiper.Kernel.HReduce.Block.Max
 open Kuiper
 open Kuiper.EMatrix
 open Kuiper.Tensor
-open Kuiper.Math.OnlineSoftmax { seq_max }
 module SZ = Kuiper.SizeT
 
 (* ── reduce_batched_block_max: one block per row, tree max-reduction in shmem ─
@@ -42,4 +41,4 @@ fn reduce_batched_block_max
     exists* (sout' : chest1 et rows).
       on gpu_loc (output |-> sout') **
       pure (forall (r : nat). r < SZ.v rows ==>
-            (acc1 sout' r) %~ seq_max (Kuiper.Seq.Common.lseq_map pre_map_r (ematrix_row vr r)))
+            (acc1 sout' r) %~ chest1_max (chest_map pre_map_r (chest2_row vr r)))

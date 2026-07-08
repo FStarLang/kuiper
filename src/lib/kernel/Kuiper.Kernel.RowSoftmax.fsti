@@ -71,4 +71,4 @@ fn row_softmax_gpu_with_sum
       on gpu_loc (sums |-> esums) **
       pure (sa' %~ row_softmax_real ra) **
       pure (forall (i:nat). i < SZ.v m ==>
-              acc1 esums i %~ rsum (lseq_map exp (ematrix_row ra i)))
+              acc1 esums i %~ chest1_rsum (chest_map exp (chest2_row ra i)))

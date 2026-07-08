@@ -739,6 +739,66 @@ let kdesc_block
 
 (* ── Entry point ──────────────────────────────────────────────────────── *)
 
+(* [Kuiper.Chest.chest1_max] recurses over the underlying seq exactly like
+   [seq_max] (head + [rmax] over the tail); this bridges the two.  It lives here
+   rather than in [Chest] because [seq_max] sits in a module above [Chest]. *)
+let rec chest1_max_seq_is_seq_max (s : Seq.seq real { Seq.length s > 0 })
+  : Lemma (ensures chest1_max_seq s == seq_max s) (decreases Seq.length s)
+  = if Seq.length s = 1 then () else chest1_max_seq_is_seq_max (Seq.slice s 1 (Seq.length s))
+
+let chest1_max_is_seq_max (#n : nat { n > 0 }) (c : chest1 real n)
+  : Lemma (chest1_max c == seq_max (chest1_to_seq c))
+  = chest1_max_seq_is_seq_max (chest1_to_seq c)
+
+(* Boundary bridge: the seq-based per-row max produced by the internal descriptor
+   equals the chest-native [chest1_max] over [chest2_row]. Mirrors the (now
+   removed) [row_sum_bridge] on the sum side; [Seq.lemma_eq_elim] relates the two
+   seqs and [chest1_max_is_seq_max] relates [chest1_max] to [seq_max]. *)
+let max_row_bridge
+  (pre_map_r : real -> real)
+  (#rows : nat) (#cols : nat { cols > 0 })
+  (vr : chest2 real rows cols) (r : natlt rows)
+  : Lemma (ensures seq_max (lseq_map pre_map_r (ematrix_row vr r))
+                   == chest1_max (chest_map pre_map_r (chest2_row vr r)))
+  = Seq.lemma_eq_elim (chest1_to_seq (chest_map pre_map_r (chest2_row vr r)))
+                      (lseq_map pre_map_r (ematrix_row vr r));
+    chest1_max_is_seq_max (chest_map pre_map_r (chest2_row vr r))
+
+(* Transport an approximation across a real equality by pure congruence. Keeping
+   [a] and [b] abstract prevents Z3 from unfolding [%~] over the arithmetic-heavy
+   [seq_max]/[chest1_max] terms (which crashes the 4.13.3 lar_solver); the caller
+   supplies the concrete equality via [max_row_bridge]. *)
+let approximates_subst
+  (#et : Type0) {| scalar et, real_like et |}
+  (x : et) (a b : real)
+  : Lemma (requires x %~ a /\ a == b) (ensures x %~ b)
+  = ()
+
+(* Per-row boundary transport, packaged as a [Lemma] taking the whole seq-form
+   postcondition (the launch result) as [requires] so the Pulse fn discharges it
+   with a single call.  The per-row transport goes through [approximates_subst]
+   with the reals abstract, keeping Z3 off the arithmetic-heavy terms. *)
+let max_boundary_all
+  (#et : Type0) {| scalar et, real_like et |}
+  (pre_map_r : real -> real)
+  (#rows : nat) (#cols : nat { cols > 0 })
+  (vr : chest2 real rows cols)
+  (sout' : chest1 et rows)
+  : Lemma
+      (requires (forall (r : nat). r < rows ==>
+                   (acc1 sout' r) %~ seq_max (lseq_map pre_map_r (ematrix_row vr r))))
+      (ensures  (forall (r : nat). r < rows ==>
+                   (acc1 sout' r) %~ chest1_max (chest_map pre_map_r (chest2_row vr r))))
+  = introduce forall (r : nat). r < rows ==>
+      (acc1 sout' r) %~ chest1_max (chest_map pre_map_r (chest2_row vr r))
+    with introduce _ ==> _
+    with _. (
+      max_row_bridge pre_map_r vr r;
+      approximates_subst (acc1 sout' r)
+        (seq_max (lseq_map pre_map_r (ematrix_row vr r)))
+        (chest1_max (chest_map pre_map_r (chest2_row vr r)))
+    )
+
 inline_for_extraction noextract
 fn reduce_batched_block_max
   (#et:Type0) {| floating et, real_like et, floating_real_like et |}
@@ -764,7 +824,11 @@ fn reduce_batched_block_max
     exists* (sout' : chest1 et rows).
       on gpu_loc (output |-> sout') **
       pure (forall (r : nat). r < SZ.v rows ==>
-            (acc1 sout' r) %~ seq_max (Kuiper.Seq.Common.lseq_map pre_map_r (ematrix_row vr r)))
+            (acc1 sout' r) %~ chest1_max (chest_map pre_map_r (chest2_row vr r)))
 {
   launch_sync (kdesc_block pre_map pre_map_r rows cols nth x output sx vr sout);
+  with sout'. assert (on gpu_loc (output |-> sout'));
+  max_boundary_all #et pre_map_r #(SZ.v rows) #(SZ.v cols) vr sout';
+  assert pure (forall (r : nat). r < SZ.v rows ==>
+    (acc1 sout' r) %~ chest1_max (chest_map pre_map_r (chest2_row vr r)));
 }
