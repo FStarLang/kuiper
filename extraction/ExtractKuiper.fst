@@ -899,6 +899,18 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
     let bytesize : expr = mul_by_sz sz (cb cnt) in
     _MUST <| EApp (EQualified ([], "cudaMemcpy"), [ cb dst_a; cb src_ga; bytesize; cudaMemcpyDeviceToDevice ])
 
+  | "Kuiper.Array.Core.gpu_memcpy_device_to_device'", [ty],
+        [ sz; _dst_sz; dst_ga; dst_off; _src_sz; src_ga; src_off; cnt; f; v; gv ] ->
+    let sz : expr = sizeof (cb_ty ty) in
+    let dst_off = cb dst_off in (* element offset, not byte offset *)
+    let dst_ga = cb dst_ga in
+    let dst_ga = EBufSub (dst_ga, dst_off) in
+    let src_off = cb src_off in (* element offset, not byte offset *)
+    let src_ga = cb src_ga in
+    let src_ga = EBufSub (src_ga, src_off) in
+    let bytesize : expr = mul_by_sz sz (cb cnt) in
+    _MUST <| EApp (EQualified ([], "cudaMemcpy"), [ dst_ga; src_ga; bytesize; cudaMemcpyDeviceToDevice ])
+
 
   (******** VECTORIZED ARRAY ********)
 
