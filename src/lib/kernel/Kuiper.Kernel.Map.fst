@@ -163,6 +163,33 @@ instance shareable_tensor_pts_to
     _gather_n = (fun (n : pos) (#p : perm) -> gather_on_gpu a s base n #p);
   }
 
+(* Per-element binary map closure, hoisted to top level so it is
+   [inline_for_extraction] and gets inlined into the launched kernel body.
+   A nested [fn] cannot carry the [inline_for_extraction] flag and would
+   otherwise leak into the hoisted __global__ as a function-typed parameter,
+   which is not valid CUDA (mirrors [TMap.ff_from_pure]). *)
+inline_for_extraction noextract
+fn ff_from_binop
+  (#et : Type0)
+  (#lena : szp)
+  (f : et -> et -> et)
+  (#lb : layout1 lena) {| ctlayout lb |}
+  (b : array1 et lb)
+  (#fb : perm)
+  (#sb : erased (chest1 et lena))
+  (#fr: perm) (i : conc (lena @| INil)) (x : et)
+  norewrite
+  preserves gpu ** on gpu_loc (b |-> Frac (fb *. fr) sb)
+  returns r : et
+  ensures pure (r == f x (acc sb (up i)))
+{
+  elim_gpu (b |-> Frac (fb *. fr) sb);
+  let y = tensor_read b i;
+  let res = f x y;
+  intro_gpu (b |-> Frac (fb *. fr) sb);
+  res
+}
+
 inline_for_extraction noextract
 fn map_gpu2
   (#et : Type0)
@@ -182,25 +209,13 @@ fn map_gpu2
   requires  on gpu_loc (a |-> sa)
   ensures   on gpu_loc (a |-> chest1_map2 f sa sb)
 {
-  fn ff (#fr: perm) (i : conc (lena @| INil)) (x : et)
-    norewrite
-    preserves gpu ** on gpu_loc (b |-> Frac (fb *. fr) sb)
-    returns r : et
-    ensures pure (r == f x (acc sb (up i)))
-  {
-    elim_gpu (b |-> Frac (fb *. fr) sb);
-    let y = tensor_read b i;
-    let res = f x y;
-    intro_gpu (b |-> Frac (fb *. fr) sb);
-    res
-  };
   rewrite on gpu_loc (b |-> Frac fb sb) as on gpu_loc (b |-> Frac (fb *. 1.0R) sb);
   launch_sync (TMap.kmap
     (CCons lena CNil)
     (fun f -> on gpu_loc (b |-> Frac (fb *. f) sb))
     #(shareable_tensor_pts_to #_ #_ #_ #lb b #sb fb)
     (fun (i : abs (lena @| INil)) (x r : et) -> r == f x (acc sb i))
-    ff
+    (ff_from_binop f b)
     lena a #_ #_ #1.0R);
   rewrite on gpu_loc (b |-> Frac (fb *. 1.0R) sb) as on gpu_loc (b |-> Frac fb sb);
 
