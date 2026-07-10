@@ -162,55 +162,6 @@ let kpost
   live (fst sh) #(1.0R /. p.blockWidth) **
   live (fst (snd sh)) #(1.0R /. p.blockWidth)
 
-let divup_factor (n : nat) (d : pos) =
-  (i : natlt (divup n d) & (j : natlt d {i * d + j < n }))
-
-let bij_divup_factor (n : nat) (d : pos)
-: Kuiper.Bijection.bijection (natlt n) (divup_factor n d)
-=
-{
-  ff = (fun (i : natlt n) -> (|i / d, i % d|) <: divup_factor n d);
-  gg = (fun (|j, k|) -> j * d + k);
-
-  ff_gg = (fun _ -> ());
-  gg_ff = (fun _ -> ());
-}
-
-ghost
-fn forevery_factor_
-  (n : nat)
-  (d : pos)
-  (p : natlt n -> slprop)
-  requires forall+ (i:natlt n). p i
-  ensures forall+ (i1:natlt (divup n d)) (i2:natlt d {i1 * d + i2 < n}).
-    p (i1 * d + i2)
-{
-  forevery_iso (bij_divup_factor n d) p;
-  forevery_ext #(divup_factor n d)
-    (fun q -> p ((bij_divup_factor n d).gg q))
-    (fun q -> p (q._1 * d + q._2));
-  forevery_unflatten_dep
-    #(natlt (divup n d)) #(fun i1 -> (i2 : natlt d {i1 * d + i2 < n}))
-    (fun i1 i2 -> p (i1 * d + i2));
-}
-
-ghost
-fn forevery_unfactor_
-  (n : nat)
-  (d : pos)
-  (p : natlt n -> slprop)
-  requires forall+ (i1:natlt (divup n d)) (i2:natlt d {i1 * d + i2 < n}).
-    p (i1 * d + i2)
-  ensures forall+ (i:natlt n). p i
-{
-  forevery_flatten_dep
-    #(natlt (divup n d)) #(fun i1 -> (i2 : natlt d {i1 * d + i2 < n}))
-    (fun i1 i2 -> p (i1 * d + i2));
-  forevery_iso (Kuiper.Bijection.bij_sym (bij_divup_factor n d )) _;
-  forevery_ext _ (fun i -> p i);
-}
-
-
 ghost
 fn forevery_ext_3
   (#a #b #c : Type0)
@@ -253,22 +204,6 @@ let lem_div1 (n : nat) (d : pos) (r : natlt d)
 let lem_div2 (n : nat) (d : pos) (r : natlt d)
 : Lemma (requires true) (ensures (n * d + r) % d == r)
 = Math.Lemmas.lemma_mod_plus r n d
-
-ghost
-fn forevery_refine_pred'
-  (#a:Type0)
-  (f: a -> prop)
-  (p: (x:a) -> squash (f x) -> slprop)
-  requires
-    forall+ (x:a). when__ (f x) (p x)
-  ensures
-    forall+ (x:a { f x }). p x ()
-{
-  forevery_refine_split (fun x -> when__ (f x) (p x)) f;
-  drop_ (forall+ (x:a { ~(f x) }). when__ (f x) (p x));
-  forevery_ext (fun (x:a { f x }) -> when__ (f x) (p x)) (fun x -> p x ());
-}
-
 
 ghost
 fn setup
@@ -1027,7 +962,7 @@ fn sparse_load_residue
   barrier_out_unfold_residue_pre p row_perm elems col_ind row_off
     elems_tile col_ind_tile bid ri ri' re tid idx residue;
 
-  load2_array_to
+  load2_array
     elems_tile col_ind_tile
     residue
     gA.elems gA.col_ind (re -^ residue)
@@ -1052,36 +987,6 @@ fn sparse_load_residue
     elems_tile col_ind_tile bid ri ri' re tid idx residue;
 }
 
-ghost
-fn when__intro_true (b:bool{b == true}) (p : slprop)
-  requires p
-  ensures when__ b (fun _ -> p)
-{
-  rewrite p as when__ b (fun _ -> p);
-}
-
-ghost
-fn when__intro_false (b : bool{b == false}) (p : slprop)
-  ensures when__ b (fun _ -> p)
-{
-  rewrite emp as when__ b (fun _ -> p);
-}
-
-ghost
-fn when__elim_true (b:bool{b == true}) (p : slprop)
-  requires when__ b (fun _ -> p)
-  ensures p
-{
-  rewrite when__ b (fun _ -> p) as p;
-}
-
-ghost
-fn when__elim_false (b:bool{b == false}) (p : slprop)
-  requires when__ b (fun _ -> p)
-  ensures emp
-{
-  rewrite when__ b (fun _ -> p) as emp;
-}
 
 inline_for_extraction noextract
 fn store_out
@@ -1315,7 +1220,7 @@ fn kf_head
   barrier_out_unfold_mask_pre p row_perm elems col_ind row_off
     elems_tile col_ind_tile bid ri ri' re tid;
 
-  mask_array_to elems_tile (ri -^ ri') zero p.blockWidth tid;
+  mask_array
 
   barrier_in_fold_mask_post p row_perm elems col_ind row_off
     elems_tile col_ind_tile bid ri ri' re tid;

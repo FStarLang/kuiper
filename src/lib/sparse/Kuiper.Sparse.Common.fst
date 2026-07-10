@@ -16,7 +16,7 @@ instance has_vec_cpy_sz : has_vec_cpy sz = { _chunk = 4sz; _pf = ez }
 
 (* Aritmetica *)
 
-let divup (n : int) (d : pos {n + d > 0}) : GTot nat = (n + d - 1) / d
+let divup (n : int) (d : pos {n + d > 0}) : Tot nat = (n + d - 1) / d
 
 let round2 (k : pos) (n : nat) = (n / k) * k
 
@@ -126,11 +126,25 @@ let prod_divides (a b c : pos)
   ()
 
 let lineal_divides (d : pos) (a b k : nat)
-: Lemma (requires d /? a /\ d /? b) (ensures d /? (a + k * b))
+: Lemma (requires d /? a /\ d /? b) (ensures d /? (a + k * b) /\ d /? (k * b + a))
 =
   lemma_divides_product_r d k b;
   lemma_divides_sum d a (k * b)
 
+let prod_preserves_divides (c d : pos) (a : nat)
+: Lemma (requires c /? a) (ensures (c * d) /? (a * d))
+=
+  lemma_divides_product_l c a d;
+  lemma_divides_exact c (a * d);
+  intro_divides (c * d) (a / c) (a * d)
+
+let lemma_divides_leq
+  (d : pos)
+  (a b : nat)
+: Lemma
+  (requires d /? a /\ d /? b)
+  (ensures b < a <==> b + d <= a)
+= ()
 
 
 (* Orderings *)
@@ -186,7 +200,6 @@ val zero_is_id_r
 
 (* Secuencias *)
 
-
 let map_seq_len (#a #b:Type) (f:a -> Tot b) (s:Seq.seq a)
   : Lemma (ensures len (Seq.map_seq f s) == len s)
           [SMTPat (Seq.map_seq f s)]
@@ -197,6 +210,106 @@ let my_map_seq_index (#a #b:Type) (f:a -> Tot b) (s:Seq.seq a) (i:nat{i < len s}
           [SMTPat (Seq.map_seq f s @! i)]
   = Seq.map_seq_index f s i
 
+
+(* Matrices *)
+
+open Kuiper.EMatrix
+
+let ematrix_from_rows
+  (#et : Type0)
+  (#rows #cols : erased nat)
+  (r : natlt rows -> GTot (lseq et cols))
+: ematrix et rows cols
+= mkM fun i j -> r i @! j
+
+let ematrix_from_rows_lemma
+  (#et : Type0)
+  (#rows #cols : erased nat)
+  (r : natlt rows -> GTot (lseq et cols))
+  (i : natlt rows)
+: Lemma (requires true) (ensures ematrix_row (ematrix_from_rows r) i == r i)
+  [SMTPat (ematrix_row (ematrix_from_rows r) i)]
+= assert ematrix_row (ematrix_from_rows r) i `Seq.equal` r i 
+
+let ematrix_rows_equal
+  (#et : Type0)
+  (#rows #cols : erased nat)
+  (m1 m2 : ematrix et rows cols)
+: prop = forall i. ematrix_row m1 i == ematrix_row m2 i 
+
+let ematrix_rows_equal_intro
+  (#et : Type0)
+  (#rows #cols : erased nat)
+  (m1 m2 : ematrix et rows cols)
+: Lemma (requires ematrix_rows_equal m1 m2) (ensures m1 == m2)
+  [SMTPat (ematrix_rows_equal m1 m2)]
+=
+  introduce forall i j. macc m1 i j == macc m2 i j
+  with (
+    assert macc m1 i j == ematrix_row m1 i @! j;
+    assert macc m2 i j == ematrix_row m2 i @! j
+  );
+  assert m1 `Kuiper.EMatrix.equal` m2
+
+let ematrix_from_cols
+  (#et : Type0)
+  (#rows #cols : erased nat)
+  (c : natlt cols -> GTot (lseq et rows))
+: ematrix et rows cols
+= mkM fun i j -> c j @! i
+
+let ematrix_from_cols_lemma
+  (#et : Type0)
+  (#rows #cols : erased nat)
+  (c : natlt cols -> GTot (lseq et rows))
+  (j : natlt cols)
+: Lemma (requires true) (ensures ematrix_col (ematrix_from_cols c) j == c j)
+  [SMTPat (ematrix_col (ematrix_from_cols c) j)]
+= assert ematrix_col (ematrix_from_cols c) j `Seq.equal` c j 
+
+let ematrix_cols_equal
+  (#et : Type0)
+  (#rows #cols : erased nat)
+  (m1 m2 : ematrix et rows cols)
+: prop = forall j. ematrix_col m1 j == ematrix_col m2 j 
+
+let ematrix_cols_equal_intro
+  (#et : Type0)
+  (#rows #cols : erased nat)
+  (m1 m2 : ematrix et rows cols)
+: Lemma (requires ematrix_cols_equal m1 m2) (ensures m1 == m2)
+  [SMTPat (ematrix_cols_equal m1 m2)]
+=
+  introduce forall i j. macc m1 i j == macc m2 i j
+  with (
+    assert macc m1 i j == ematrix_col m1 j @! i;
+    assert macc m2 i j == ematrix_col m2 j @! i
+  );
+  assert m1 `Kuiper.EMatrix.equal` m2
+
+let ematrix_upd_row_f
+  (#et : Type0)
+  (#rows #cols : erased nat)
+  (em : ematrix et rows cols)
+  (i : natlt rows)
+  (new_row : lseq et cols)
+  (k : natlt rows)
+: GTot (lseq et cols)
+= if k == i then new_row else ematrix_row em k
+
+let ematrix_upd_row_lemma
+  (#et : Type0)
+  (#rows #cols : erased nat)
+  (em : ematrix et rows cols)
+  (i : natlt rows)
+  (new_row : lseq et cols)
+: Lemma
+  (requires true)
+  (ensures ematrix_upd_row em i new_row == ematrix_from_rows (ematrix_upd_row_f em i new_row)) 
+=
+  assert Kuiper.EMatrix.equal
+    (ematrix_upd_row em i new_row)
+    (ematrix_from_rows (ematrix_upd_row_f em i new_row))
 
 (* Propiedades sobre las posiciones de un array esparso *)
 
@@ -245,7 +358,7 @@ let valid_pos (#nnz l : nat) (s : lseq nat nnz) : prop
 = in_bounds 0 l s /\ sorted s
 
 let seq_make_sparse
-  (#et : Type0) {| scalar et |}
+  (#et : Type0)
   (#nnz #n : nat)
   (pos : lseq nat nnz{in_bounds 0 n pos})
   (s : lseq et n)
@@ -263,11 +376,11 @@ let seq_make_sparse_slice
   (requires true)
   (ensures
     Seq.slice (seq_make_sparse pos s) i j ==
-    seq_make_sparse #_ #_ #(j - i) (Seq.slice pos i j) s
+    seq_make_sparse #_ #(j - i) #n (Seq.slice pos i j) s
   )
 = assert
     Seq.slice (seq_make_sparse pos s) i j `Seq.equal`
-    seq_make_sparse #_ #_ #(j - i) (Seq.slice pos i j) s
+    seq_make_sparse #_ #(j - i) #n (Seq.slice pos i j) s
 
 // renombrar a seq_unsparse
 let unsparse
@@ -330,3 +443,173 @@ fn foreach
     fn x { f x };
   forevery_rw_type (between 0sz n) (natlt n) q;
 }
+
+(* SL helpers *)
+
+ghost
+fn when__intro_true (p : prop) (q : slprop)
+  requires pure p
+  requires q
+  ensures when__ p (fun _ -> q)
+{
+  rewrite q as when__ p (fun _ -> q)
+}
+
+ghost
+fn when__intro_false (p : prop) (q : squash p -> slprop)
+  requires pure (~p)
+  ensures when__ p q
+{
+  rewrite emp as when__ p q
+}
+
+ghost
+fn when__elim_true (p : prop) (q : slprop)
+  requires pure p
+  requires when__ p (fun _ -> q)
+  ensures q
+{
+  rewrite when__ p (fun _ -> q) as q;
+}
+
+ghost
+fn when__elim_false (p : prop) (q : squash p -> slprop)
+  requires pure (~p)
+  requires when__ p q
+{
+  rewrite when__ p q as emp;
+}
+
+ghost
+fn forevery_refine_pred'
+  (#a:Type0)
+  (f: a -> prop)
+  (p: (x:a) -> squash (f x) -> slprop)
+  requires
+    forall+ (x:a). when__ (f x) (p x)
+  ensures
+    forall+ (x:a { f x }). p x ()
+{
+  forevery_refine_split (fun x -> when__ (f x) (p x)) f;
+  drop_ (forall+ (x:a { ~(f x) }). when__ (f x) (p x));
+  forevery_ext (fun (x:a { f x }) -> when__ (f x) (p x)) (fun x -> p x ());
+}
+
+let divup_factor (n : nat) (d : pos) =
+  (i : natlt (divup n d) & (j : natlt d {i * d + j < n }))
+
+let bij_divup_factor (n : nat) (d : pos)
+: Kuiper.Bijection.bijection (natlt n) (divup_factor n d)
+=
+{
+  ff = (fun (i : natlt n) -> (|i / d, i % d|) <: divup_factor n d);
+  gg = (fun (|j, k|) -> j * d + k);
+
+  ff_gg = (fun _ -> ());
+  gg_ff = (fun _ -> ());
+}
+
+ghost
+fn forevery_factor_
+  (n : nat)
+  (d : pos)
+  (p : natlt n -> slprop)
+  requires forall+ (i:natlt n). p i
+  ensures forall+ (i1:natlt (divup n d)) (i2:natlt d {i1 * d + i2 < n}).
+    p (i1 * d + i2)
+{
+  forevery_iso (bij_divup_factor n d) p;
+  forevery_ext #(divup_factor n d)
+    (fun q -> p ((bij_divup_factor n d).gg q))
+    (fun q -> p (q._1 * d + q._2));
+  forevery_unflatten_dep
+    #(natlt (divup n d)) #(fun i1 -> (i2 : natlt d {i1 * d + i2 < n}))
+    (fun i1 i2 -> p (i1 * d + i2));
+}
+
+ghost
+fn forevery_unfactor_
+  (n : nat)
+  (d : pos)
+  (p : natlt n -> slprop)
+  requires forall+ (i1:natlt (divup n d)) (i2:natlt d {i1 * d + i2 < n}).
+    p (i1 * d + i2)
+  ensures forall+ (i:natlt n). p i
+{
+  forevery_flatten_dep
+    #(natlt (divup n d)) #(fun i1 -> (i2 : natlt d {i1 * d + i2 < n}))
+    (fun i1 i2 -> p (i1 * d + i2));
+  forevery_iso (Kuiper.Bijection.bij_sym (bij_divup_factor n d )) _;
+  forevery_ext _ (fun i -> p i);
+}
+
+(* Tensors *) // tiene sentido que esté acá?
+
+module A = Kuiper.Array1
+module M = Kuiper.Array2
+module T = Kuiper.Tensor
+open Kuiper.Tensor.Layout.Alg { l1_forward }
+open Kuiper.Array2.Strided { strided_row_major, aligned_strided_row_major }
+
+let array_cell_of_pos (#n : nat)
+  (l : A.layout n) (i : natlt n) : GTot (natlt (A.layout_size l)) =
+  l.imap.f (A.adapt_idx_back i)
+
+open FStar.Tactics.Typeclasses { no_method }
+
+inline_for_extraction noextract
+class cont_layout (#n : erased nat) (l : A.layout n) = {
+  [@@@no_method]
+  offset : sz;
+  [@@@no_method]
+  pf : i:natlt n -> squash (array_cell_of_pos l i == offset + i);
+}
+
+let aligned_cont_layout
+  (#n : erased nat)
+  (#l : A.layout n)
+  (k : pos)
+  (cl : cont_layout l)
+: prop = k /?+ cl.offset
+
+inline_for_extraction noextract
+instance cont_layout_l1_forward (#n : erased nat)
+  : cont_layout (l1_forward n) = {
+    offset  = 0sz;
+    pf = ez
+  }
+
+inline_for_extraction noextract
+instance cont_layout_strided_row_major
+  (#rows #cols : erased nat)
+  (l : M.layout rows cols { 0 < cols }) {| srm : strided_row_major l |}
+  (#_: squash (fits (M.layout_size l)))
+  (i : natlt rows)
+  {| conc_i : concrete_sz i |}
+  : cont_layout #cols (T.tlayout_slice l 0 i) = {
+    offset  = (srm.pf i 0; srm.offset +^ srm.stride *^ (concr' conc_i));
+    pf = srm.pf i;
+  }
+
+let aligned_cont_strided_row_major
+  (#rows #cols : erased nat { 0 < cols })
+  (l : M.layout rows cols) {| srm : strided_row_major l |}
+  (#_: squash (fits (M.layout_size l)))
+  (k : pos)
+  (i : szlt rows)
+: Lemma
+  (requires aligned_strided_row_major k srm)
+  (ensures aligned_cont_layout k (cont_layout_strided_row_major l i))
+=
+  srm.pf i 0;
+  lineal_divides k srm.offset srm.stride i
+
+// esto es cierto pero no lo puedo probar con la interfaz actual
+let row_core_lemma
+  (#et:Type0)
+  (#m #n : nat)
+  (#l : M.layout m n)
+  (a : M.array2 et l)
+  (i : natlt m)
+: Lemma (requires true) (ensures A.core (M.row a i) == M.core a)
+= admit()

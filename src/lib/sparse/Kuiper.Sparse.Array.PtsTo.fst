@@ -1,4 +1,4 @@
-module Kuiper.Sparse.PtsTo
+module Kuiper.Sparse.Array.PtsTo
 
 #lang-pulse
 
@@ -27,18 +27,6 @@ let array_live_cell
   (i : natlt l)
   : slprop
   = exists* v. gpu_pts_to_cell a #f i v
-
-module Array2 = Kuiper.Array2
-
-let matrix_live_cell
-  (#et : Type0)
-  (#rows #cols : nat)
-  (#lm : Array2.layout rows cols)
-  (gm : Array2.t et lm)
-  (i : natlt rows)
-  (j : natlt cols)
-  : slprop
-  = exists* v. Array2.pts_to_cell gm (i, j) v
 
 
 (* Vector *)
@@ -179,6 +167,7 @@ fn gpu_array_unslice_1'
   (#f : perm)
   (i j : natle sz)
   (#v : erased (seq a) { Seq.length v == j - i })
+  // considerar usar n con n == j - i para no tener que reescribir el forall+
   requires forall+ (k: natlt (j - i)). gpu_pts_to_cell arr #f (i + k) (v @! k)
   ensures gpu_pts_to_slice arr #f i j v
 {

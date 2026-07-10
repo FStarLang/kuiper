@@ -1,0 +1,9 @@
+module Kuiper.Sparse.SPMM.LoadSparse
+
+#lang-pulse
+
+open Kuiper
+open Kuiper.Sparse
+open Kuiper.Array.Vectorized
+open Kuiper.Array2.Vectorized
+open Kuiper.EMatrix

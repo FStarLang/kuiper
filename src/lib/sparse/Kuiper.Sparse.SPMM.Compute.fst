@@ -639,4 +639,84 @@ fn compute
   };
 
 }
-#pop-options
+
+module M = Kuiper.Array2
+module A = Kuiper.Array1
+open Kuiper.Tensor.Layout.Alg { l2_row_major, c_l2_row_major }
+open Kuiper.DotProd
+
+// producto entre vector y matriz acumulado
+// y' = y `comb` x * m 
+
+let seq_vmprod
+  (#et : Type0) {| scalar et |}
+  (#rows #cols : nat)
+  (acc : lseq et cols)
+  (v : lseq et rows)
+  (m : ematrix et rows cols)
+  (comb : binop et)
+: GTot (lseq et cols)
+= Seq.init_ghost cols (fun i -> (acc @! i) `comb` seq_dotprod v (ematrix_col m i) rows)
+
+
+inline_for_extraction noextract
+fn vmprod
+  (#et : Type0) {| scalar et |}
+  (#rows #cols : sz)
+  (#lx : A.layout rows)
+  {| ctlayout lx |}
+  (x : A.array1 et lx)
+  (#f : perm)
+  (#vx : erased (lseq et rows))
+  (#lm : M.layout rows cols) {| ctlayout lm |}
+  (m : M.array2 et lm)
+  (#vm : ematrix et rows cols)
+  (#ly : A.layout cols)
+  {| ctlayout ly |}
+  (y : A.array1 et ly)
+  (#vy : erased (lseq et cols))
+  (comb : binop et)
+  norewrite
+  preserves
+    gpu **
+    x |-> Frac f vx **
+    m |-> vm
+  requires
+    y |-> vy
+  ensures
+    y |-> seq_vmprod vy vx vm comb
+
+{
+  let mut k : sz = 0sz;
+  while (!k <^ cols)
+    invariant
+      exists* vk vy'.
+        k |-> vk **
+        y |-> vy' **
+        pure (
+          vk <= cols /\
+          len vy' == cols /\
+          (forall (i : natlt cols {i < vk}).
+            vy' @! i ==
+            (vy @! i) `comb` seq_dotprod vx (ematrix_col vm i) rows) /\
+          forall (i : natlt cols {vk <= i}).
+            vy' @! i == vy @! i
+        )
+  {
+    Array2.extract_col_ro m !k;
+    let v =
+      dotprod #_ #_ #_ #_ #_ #_
+          #(Kuiper.Tensor.ctlayout_slice _ 1sz !k) // should not be needed
+          x (M.col m (v !k));
+    Array2.restore_col m !k;
+
+    let v0 = A.read y !k;
+    let v1 = v0 `comb` v;
+    A.write y !k v1;
+
+    k := !k +^ 1sz;
+  };
+
+  with vy'. assert y |-> vy';
+  assert pure (vy' `Seq.equal` seq_vmprod vy vx vm comb);
+}
