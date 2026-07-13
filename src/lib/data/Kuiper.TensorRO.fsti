@@ -1,4 +1,4 @@
-module Kuiper.Tensor
+module Kuiper.TensorRO
 #lang-pulse
 
 include Kuiper.Shape
@@ -6,6 +6,7 @@ include Kuiper.Chest
 include Kuiper.Tensor.Layout
 
 open Kuiper
+open Kuiper.Tensor
 open Kuiper.Injection
 open Kuiper.Bijection
 open Kuiper.Shape
@@ -18,75 +19,53 @@ module SZ = Kuiper.SizeT
 module T = FStar.Tactics.V2
 
 inline_for_extraction noextract
-val tensor (et : Type0) (#r : nat) (#d : shape r) (l : tlayout d) : Type0
+val rotensor (et : Type0) (#r : nat) (#d : shape r) (l : tlayout d) : Type0
 
 inline_for_extraction noextract
-let array1 (et : Type0) (#d0 : nat) (l : layout1 d0) : Type0 = tensor et l
+let roarray1 (et : Type0) (#d0 : nat) (l : layout1 d0) : Type0 = rotensor et l
 inline_for_extraction noextract
-let array2 (et : Type0) (#d0 #d1 : nat) (l : layout2 d0 d1) : Type0 = tensor et l
+let roarray2 (et : Type0) (#d0 #d1 : nat) (l : layout2 d0 d1) : Type0 = rotensor et l
 inline_for_extraction noextract
-let array3 (et : Type0) (#d0 #d1 #d2 : nat) (l : layout3 d0 d1 d2) : Type0 = tensor et l
+let roarray3 (et : Type0) (#d0 #d1 #d2 : nat) (l : layout3 d0 d1 d2) : Type0 = rotensor et l
 inline_for_extraction noextract
-let array4 (et : Type0) (#d0 #d1 #d2 #d3 : nat) (l : layout4 d0 d1 d2 d3) : Type0 = tensor et l
-
-let idx1 (#d0 : nat) (x : natlt d0) : abs (d0 @| INil) =
-  (x, ())
-let idx2 (#d0 #d1 : nat) (x : natlt d0) (y : natlt d1) : abs (d0 @| d1 @| INil) =
-  (x, (y, ()))
-let idx3 (#d0 #d1 #d2 : nat) (x : natlt d0) (y : natlt d1) (z : natlt d2) : abs (d0 @| d1 @| d2 @| INil) =
-  (x, (y, (z, ())))
-let idx4 (#d0 #d1 #d2 #d3 : nat) (x : natlt d0) (y : natlt d1) (z : natlt d2) (w : natlt d3) : abs (d0 @| d1 @| d2 @| d3 @| INil) =
-  (x, (y, (z, (w, ()))))
-
-inline_for_extraction noextract unfold
-let cidx1 (#d0 : erased nat) (x : szlt d0) : conc (d0 @| INil) =
-  (x, ())
-inline_for_extraction noextract unfold
-let cidx2 (#d0 #d1 : erased nat) (x : szlt d0) (y : szlt d1) : conc (d0 @| d1 @| INil) =
-  (x, (y, ()))
-inline_for_extraction noextract unfold
-let cidx3 (#d0 #d1 #d2 : erased nat) (x : szlt d0) (y : szlt d1) (z : szlt d2) : conc (d0 @| d1 @| d2 @| INil) =
-  (x, (y, (z, ())))
-inline_for_extraction noextract unfold
-let cidx4 (#d0 #d1 #d2 #d3 : erased nat) (x : szlt d0) (y : szlt d1) (z : szlt d2) (w : szlt d3) : conc (d0 @| d1 @| d2 @| d3 @| INil) =
-  (x, (y, (z, (w, ()))))
+let roarray4 (et : Type0) (#d0 #d1 #d2 #d3 : nat) (l : layout4 d0 d1 d2 d3) : Type0 = rotensor et l
 
 val is_global
   (#et : Type0) (#r : nat) (#d : shape r)
   (#l : tlayout d)
-  (a : tensor et l) : prop
+  (a : rotensor et l) : prop
 
 inline_for_extraction noextract
-let global_tensor (et : Type0) (#r : nat) (#d : shape r) (l : tlayout d) : Type0 =
-  a : tensor et l { is_global a }
+let global_rotensor (et : Type0) (#r : nat) (#d : shape r) (l : tlayout d) : Type0 =
+  a : rotensor et l { is_global a }
 
 inline_for_extraction noextract
 val from_array
   (#et : Type0) (#r : erased nat) (#d : shape r)
   (l : tlayout d)
   (a : larray et (tlayout_ulen l))
-  : tensor et l
+  : rotensor et l
 
 inline_for_extraction noextract
 val core
   (#et : Type0) (#r : erased nat) (#d : shape r)
   (#l : tlayout d)
-  (a : tensor et l)
+  (a : rotensor et l)
   : larray et (tlayout_ulen l)
 
 inline_for_extraction noextract
 let relay
   (#et : Type0)
   (#r1 : erased nat) (#d1 : shape r1) (#l1 : tlayout d1)
-  (a : tensor et l1)
+  (a : rotensor et l1)
   (#r2 : erased nat) (#d2 : shape r2) (l2 : tlayout d2{l2.ulen == l1.ulen})
-  : tensor et l2
+  : rotensor et l2
   = from_array l2 (core a)
 
 val lem_core_from_array
   (#et : Type0) (#r : nat) (#d : shape r)
   (#l : tlayout d)
-  (a : tensor et l)
+  (a : rotensor et l)
   : Lemma (ensures from_array l (core a) == a)
           [SMTPat (core a)]
 
@@ -100,14 +79,14 @@ val lem_from_array_core
 val lem_is_global_iff_core
   (#et : Type0) (#r : nat) (#d : shape r)
   (#l : tlayout d)
-  (a : tensor et l)
+  (a : rotensor et l)
   : Lemma (ensures is_global a <==> is_global_array (core a))
           [SMTPat (is_global a)]
 
 val tensor_pts_to
   (#et : Type0) (#r : nat) (#d : shape r)
   (#l : tlayout d)
-  ([@@@mkey] a : tensor et l)
+  ([@@@mkey] a : rotensor et l)
   (#[T.exact (`1.0R)] f : perm)
   (s : chest d et)
   : slprop
@@ -116,15 +95,15 @@ instance
 val is_send_across_global_tensor
   (#et : Type0) (#r : nat) (#d : shape r)
   (#l : tlayout d)
-  (a : tensor et l { is_global a })
+  (a : rotensor et l { is_global a })
   (#f : perm) (s : chest d et)
   : is_send_across gpu_of (tensor_pts_to a #f s)
 
 unfold
-instance has_pts_to_tensor
+instance has_pts_to_rotensor
   (#et : Type0) (#r : nat) (#d : shape r)
   (#l : tlayout d)
-  : has_pts_to (tensor et l) (chest d et) = {
+  : has_pts_to (rotensor et l) (chest d et) = {
   pts_to = tensor_pts_to;
 }
 
@@ -139,7 +118,7 @@ fn alloc0
   preserves
     cpu
   returns
-    p : tensor et l
+    p : rotensor et l
   ensures
     exists* em. on gpu_loc (p |-> em)
   ensures
@@ -151,7 +130,7 @@ fn free
   (#et:Type)
   (#r : nat) (#d : shape r)
   (#l : tlayout d { is_full l })
-  (p : tensor et l)
+  (p : rotensor et l)
   (#em : chest d et)
   preserves
     cpu
@@ -164,7 +143,7 @@ ghost
 fn tensor_pts_to_ref
   (#et : Type0) (#r : nat) (#d : shape r)
   (#l : tlayout d)
-  (a : tensor et l)
+  (a : rotensor et l)
   (#f : perm) (#s : chest d et)
   preserves
     a |-> Frac f s
@@ -175,7 +154,7 @@ ghost
 fn tensor_pts_to_ref_located
   (#et : Type0) (#r : nat) (#d : shape r)
   (#l : tlayout d)
-  (a : tensor et l)
+  (a : rotensor et l)
   (#loc : loc_id)
   (#f : perm) (#s : chest d et)
   preserves
@@ -187,7 +166,7 @@ ghost
 fn tensor_pts_to_eq
   (#et : Type0) (#r : nat) (#d : shape r)
   (#l : tlayout d)
-  (a : tensor et l)
+  (a : rotensor et l)
   (#f1 f2 : perm)
   (#s1 #s2 : chest d et)
   requires
@@ -202,7 +181,7 @@ fn tensor_concr
   (#et:Type)
   (#r : nat) (#d : shape r)
   (#l : tlayout d { is_full l })
-  (g : tensor et l)
+  (g : rotensor et l)
   (#s : chest d et)
   (#f : perm)
   requires
@@ -240,7 +219,7 @@ ghost
 fn tensor_share_n
   (#et : Type0) (#r : nat) (#d : shape r)
   (#l : tlayout d)
-  (a : tensor et l) (k : pos)
+  (a : rotensor et l) (k : pos)
   (#f : perm) (#s : chest d et)
   requires
     a |-> Frac f s
@@ -251,7 +230,7 @@ ghost
 fn tensor_gather_n
   (#et : Type0) (#r : nat) (#d : shape r)
   (#l : tlayout d)
-  (a : tensor et l) (k : pos)
+  (a : rotensor et l) (k : pos)
   (#f : perm) (#s : chest d et)
   requires
     forall+ (_:natlt k). a |-> Frac (f /. k) s
@@ -262,7 +241,7 @@ ghost
 fn tensor_gather_n_underspec
   (#et : Type0) (#r : nat) (#d : shape r)
   (#l : tlayout d)
-  (a : tensor et l) (k : pos)
+  (a : rotensor et l) (k : pos)
   (#f : perm)
   requires
     forall+ (_:natlt k).
@@ -270,7 +249,7 @@ fn tensor_gather_n_underspec
   ensures
     exists* (s : chest d et). tensor_pts_to a #f s
 
-// Needs to be exposed to know about the 'conc d' part
+// Needs to be exposed
 inline_for_extraction noextract
 instance ctensor_ciview
   (#et : Type0) (#r : erased nat) (#d : shape r)
@@ -292,7 +271,7 @@ inline_for_extraction noextract
 fn tensor_read
   (#et : Type0) (#r : erased nat) (#d : shape r)
   (#l : tlayout d) {| ctlayout l |}
-  (a : tensor et l)
+  (a : rotensor et l)
   (i : conc d)
   (#f : perm)
   (#s : chest d et)
@@ -303,45 +282,45 @@ fn tensor_read
   ensures
     pure (v == acc s (up i))
 
-inline_for_extraction noextract
-fn tensor_write
-  (#et : Type0) (#r : erased nat) (#d : shape r)
-  (#l : tlayout d) {| ctlayout l |}
-  (a : tensor et l)
-  (i : conc d)
-  (v : et)
-  (#s : chest d et)
-  requires
-    a |-> s
-  ensures
-    a |-> upd s (up i) v
+// inline_for_extraction noextract
+// fn tensor_write
+//   (#et : Type0) (#r : erased nat) (#d : shape r)
+//   (#l : tlayout d) {| ctlayout l |}
+//   (a : rotensor et l)
+//   (i : conc d)
+//   (v : et)
+//   (#s : chest d et)
+//   requires
+//     a |-> s
+//   ensures
+//     a |-> upd s (up i) v
 
 (* Syntax *)
 inline_for_extraction noextract
 unfold let op_Array_Access
   (#et : Type0) (#r : erased nat) (#d : shape r)
   (#l : tlayout d) {| ctlayout l |}
-  (a : tensor et l)
+  (a : rotensor et l)
   (i : conc d)
   (#f : perm)
   (#s : chest d et)
   = tensor_read #et #r #d #l a i #f #s
 
 (* Syntax *)
-inline_for_extraction noextract
-unfold let op_Array_Assignment
-  (#et : Type0) (#r : erased nat) (#d : shape r)
-  (#l : tlayout d) {| ctlayout l |}
-  (a : tensor et l)
-  (i : conc d)
-  (v : et)
-  (#s : chest d et)
-  = tensor_write #et #r #d #l a i v #s
+// inline_for_extraction noextract
+// unfold let op_Array_Assignment
+//   (#et : Type0) (#r : erased nat) (#d : shape r)
+//   (#l : tlayout d) {| ctlayout l |}
+//   (a : rotensor et l)
+//   (i : conc d)
+//   (v : et)
+//   (#s : chest d et)
+//   = tensor_write #et #r #d #l a i v #s
 
 val tensor_pts_to_cell
   (#et : Type0) (#r : nat) (#d : shape r)
   (#l : tlayout d)
-  ([@@@mkey] a : tensor et l)
+  ([@@@mkey] a : rotensor et l)
   (#[T.exact (`1.0R)] f : perm)
   ([@@@mkey] i : abs d)
   (v : et)
@@ -349,7 +328,7 @@ val tensor_pts_to_cell
 
 [@@pulse_unfold; FStar.Tactics.Typeclasses.noinst]
 instance cell_pts_to (#et : Type) (#r : nat) (#d : shape r) (#l : tlayout d)
-  : has_pts_to (cell (tensor et l) (abs d)) et
+  : has_pts_to (cell (rotensor et l) (abs d)) et
 = {
   pts_to = (fun (Cell ar i) #f v -> tensor_pts_to_cell ar #f i v);
 }
@@ -357,7 +336,7 @@ instance cell_pts_to (#et : Type) (#r : nat) (#d : shape r) (#l : tlayout d)
 val tensor_pts_to_cell_eq
   (#et : Type0) (#r : nat) (#d : shape r)
   (#l : tlayout d)
-  (a : tensor et l) (i : abs d) (f : perm) (v : et)
+  (a : rotensor et l) (i : abs d) (f : perm) (v : et)
   : Lemma (Cell a i |-> Frac f v
            ==
            pts_to_cell (core a) #f (l.imap.f i) v)
@@ -366,7 +345,7 @@ instance
 val is_send_across_global_tensor_cell
   (#et : Type0) (#r : nat) (#d : shape r)
   (#l : tlayout d)
-  (a : tensor et l { is_global a })
+  (a : rotensor et l { is_global a })
   (#f : perm) (i : abs d) (v : et)
   : is_send_across gpu_of (tensor_pts_to_cell a #f i v)
 
@@ -374,7 +353,7 @@ ghost
 fn tensor_explode
   (#et : Type0) (#r : nat) (#d : shape r)
   (#l : tlayout d)
-  (a : tensor et l)
+  (a : rotensor et l)
   (#f : perm)
   (#s : chest d et)
   requires
@@ -387,7 +366,7 @@ ghost
 fn tensor_implode
   (#et : Type0) (#r : nat) (#d : shape r)
   (#l : tlayout d)
-  (a : tensor et l)
+  (a : rotensor et l)
   (#f : perm)
   (#s : chest d et)
   requires
@@ -402,7 +381,7 @@ ghost
 fn tensor_ilower
   (#et : Type0) (#r : nat) (#d : shape r)
   (#l : tlayout d)
-  (a : tensor et l)
+  (a : rotensor et l)
   (#f : perm)
   (#s : chest d et)
   requires
@@ -416,7 +395,7 @@ ghost
 fn tensor_iraise
   (#et : Type0) (#r : nat) (#d : shape r)
   (#l : tlayout d)
-  (a : tensor et l)
+  (a : rotensor et l)
   (#f : perm)
   (#s : chest d et)
   requires
@@ -430,7 +409,7 @@ inline_for_extraction noextract
 fn tensor_read_cell
   (#et : Type0) (#r : erased nat) (#d : shape r)
   (#l : tlayout d) {| ctlayout l |}
-  (a : tensor et l)
+  (a : rotensor et l)
   (i : conc d)
   (#f : perm)
   (#s : erased et)
@@ -441,22 +420,22 @@ fn tensor_read_cell
   ensures
     pure (v == s)
 
-inline_for_extraction noextract
-fn tensor_write_cell
-  (#et : Type0) (#r : erased nat) (#d : shape r)
-  (#l : tlayout d) {| ctlayout l |}
-  (a : tensor et l)
-  (i : conc d)
-  (v : et)
-  (#s : erased et)
-  requires
-    Cell a (up i) |-> s
-  ensures
-    Cell a (up i) |-> v
+// inline_for_extraction noextract
+// fn tensor_write_cell
+//   (#et : Type0) (#r : erased nat) (#d : shape r)
+//   (#l : tlayout d) {| ctlayout l |}
+//   (a : rotensor et l)
+//   (i : conc d)
+//   (v : et)
+//   (#s : erased et)
+//   requires
+//     Cell a (up i) |-> s
+//   ensures
+//     Cell a (up i) |-> v
 
 (* Generic extraction of slices *)
 
-// Move some of this to Tensor.Layout.
+// Move some of this to rotensor.Layout.
 let tlayout_slice_imap
   (#n:nat) (d : shape n) (l : tlayout d)
   (i : natlt n) (j : natlt (d @! i))
@@ -496,14 +475,14 @@ inline_for_extraction noextract
 val sliceof
   (#et : Type0) (#r : erased nat) (#d : shape r)
   (#l : tlayout d)
-  (a : tensor et l)
+  (a : rotensor et l)
   (i : erased nat{i < r}) (j : erased nat{j < d @! i})
-  : tensor et (tlayout_slice l i j)
+  : rotensor et (tlayout_slice l i j)
 
 val lem_sliceof_core
   (#et : Type0) (#r : erased nat) (#d : shape r)
   (#l : tlayout d)
-  (a : tensor et l)
+  (a : rotensor et l)
   (i : erased nat{i < r}) (j : erased nat{j < d @! i})
   : Lemma (core (sliceof a i j) == core a)
           [SMTPat (sliceof a i j)]
@@ -511,7 +490,7 @@ val lem_sliceof_core
 val lem_is_global_iff_sliceof
   (#et : Type0) (#r : nat) (#d : shape r)
   (#l : tlayout d)
-  (a : tensor et l)
+  (a : rotensor et l)
   (i : natlt r) (j : natlt (d @! i))
   : Lemma (ensures is_global (sliceof a i j) <==> is_global a)
           [SMTPat (is_global (sliceof a i j))]
@@ -520,7 +499,7 @@ val lem_is_global_iff_sliceof
 val tensor_slice_cell_eq
   (#et : Type0) (#r : nat) (#d : shape r)
   (#l : tlayout d)
-  (a : tensor et l)
+  (a : rotensor et l)
   (i : natlt r) (j : natlt (d @! i))
   (k : abs (modulo_i i d)) (f : perm) (v : et)
   : Lemma (Cell (sliceof a i j) k |-> Frac f v
@@ -533,7 +512,7 @@ ghost
 fn tensor_extract_slice
   (#et : Type0) (#r : nat) (#d : shape r)
   (#l : tlayout d)
-  (a : tensor et l)
+  (a : rotensor et l)
   (i : natlt r) (j : natlt (d @! i))
   (#f : perm) (#s : chest d et)
   requires
@@ -548,7 +527,7 @@ ghost
 fn tensor_extract_slice_ro
   (#et : Type0) (#r : nat) (#d : shape r)
   (#l : tlayout d)
-  (a : tensor et l)
+  (a : rotensor et l)
   (i : natlt r) (j : natlt (d @! i))
   (#f : perm) (#s : chest d et)
   requires
@@ -562,7 +541,7 @@ ghost
 fn tensor_restore_slice
   (#et : Type0) (#r : nat) (#d : shape r)
   (#l : tlayout d)
-  (a : tensor et l)
+  (a : rotensor et l)
   (i : natlt r) (j : natlt (d @! i))
   (#f : perm) (#s : chest d et)
   requires
@@ -600,79 +579,19 @@ fn tensor_apply_bij
   (#r2 : nat) (#d2 : shape r2)
   (f : abs d1 =~ abs d2)
   (#l : tlayout d1) {| is_full l |}
-  (a : tensor et l)
+  (a : rotensor et l)
   (#fp : perm) (#m : Chest.t d1 et)
   requires
     a |-> Frac fp m
   ensures
     from_array (tlayout_bij f l) (core a) |-> Frac fp (Chest.mk d2 (fun i -> Chest.acc m (i <~| f)))
 
-let unfold_index (#r: nat {r > 1}) (#d: shape r) (i : abs (fold_outer d)): GTot (abs d) =
-  let ICons h1 (ICons h2 ts) = d in
-  let i : natlt (h1 * h2) & abs ts = i in
-  let (ih, it) = i in
-  (((ih / h2 <: natlt h1), ((ih % h2 <: natlt h2), it)))
-
-let fold_index (#r: nat {r > 1}) (#d: shape r) (i : abs d): GTot (abs (fold_outer d)) =
-  let ICons h1 (ICons h2 ts) = d in
-  let i : natlt h1 & (natlt h2 & abs ts) = i in
-  let (ih1, (ih2, it)) = i in
-  let ih12 : natlt (h1 * h2) = ih1 * h2 + ih2 in
-  (ih12, it)
-
-[@@erasable] // avoid silly warning
-val fold_bij (#r: nat {r > 1}) (#d: shape r): abs d =~ abs (fold_outer d)
-
-let fold_chest (#et : Type0) (#r: nat {r > 1}) (#d: shape r) (m : Chest.t d et): GTot (Chest.t (fold_outer d) et) =
-  Chest.mk (fold_outer d) (fun i -> Chest.acc m (unfold_index i))
-
-let unfold_chest (#et : Type0) (#r: nat {r > 1}) (#d: shape r) (m : Chest.t (fold_outer d) et): GTot (Chest.t d et) =
-  Chest.mk d (fun i -> Chest.acc m (fold_index i))
-
-unfold let tlayout_fold_outer
-  (#r : nat {r > 1}) (#d : shape r)
-  (l : tlayout d) = tlayout_bij fold_bij l
-
-unfold
-let desc_top2 (#r: nat {r > 1}) (d: shape r): GTot (nat & nat & shape (r-2)) = (head d, head (tail d), tail (tail d))
-
-inline_for_extraction noextract
-instance val ctlayout_fold_outer
-  (#r : nat {r > 1}) (#d : shape r { all_fit d })
-  (#top2_fits: SZ.fits ((desc_top2 d)._1 * (desc_top2 d)._2))
-  (l : tlayout d) {| c: ctlayout l, cs: concrete_sz (desc_top2 d)._2 |}
-  : ctlayout #_ #(fold_outer d) (tlayout_fold_outer l)
-
-ghost
-fn tensor_fold_outer
-  (#et : Type0)
-  (#r: nat {r > 1}) (#d: shape r)
-  (#l: tlayout d)
-  (a : tensor et l)
-  (#f : perm) (#m : Chest.t d et)
-  requires
-    a |-> Frac f m
-  ensures
-    from_array (tlayout_fold_outer l) (core a) |-> Frac f (fold_chest m)
-
-ghost
-fn tensor_unfold_outer
-  (#et : Type0)
-  (#r: nat {r > 1}) (#d: shape r)
-  (#l: tlayout d)
-  (a : tensor et (tlayout_fold_outer l))
-  (#f: perm) (#m : Chest.t (fold_outer d) et)
-  requires
-    a |-> Frac f m
-  ensures
-    from_array l (core a) |-> Frac f (unfold_chest m)
-
 (* Rank-2 conveniences over the (natlt rows & natlt cols) index pair. *)
 
 ghost
 fn tensor_explode2
   (#et : Type0) (#rows #cols : nat) (#l : layout2 rows cols)
-  (a : tensor et l)
+  (a : rotensor et l)
   (#f : perm)
   (#s : chest2 et rows cols)
   requires
@@ -684,7 +603,7 @@ fn tensor_explode2
 ghost
 fn tensor_implode2
   (#et : Type0) (#rows #cols : nat) (#l : layout2 rows cols)
-  (a : tensor et l)
+  (a : rotensor et l)
   (#f : perm)
   (#s : chest2 et rows cols)
   requires
@@ -698,7 +617,7 @@ fn tensor_implode2
 ghost
 fn tensor_ilower2
   (#et : Type0) (#rows #cols : nat) (#l : layout2 rows cols)
-  (a : tensor et l)
+  (a : rotensor et l)
   (#f : perm)
   (#s : chest2 et rows cols)
   requires
@@ -711,7 +630,7 @@ fn tensor_ilower2
 ghost
 fn tensor_iraise2
   (#et : Type0) (#rows #cols : nat) (#l : layout2 rows cols)
-  (a : tensor et l)
+  (a : rotensor et l)
   (#f : perm)
   (#s : chest2 et rows cols)
   requires
@@ -725,7 +644,7 @@ fn tensor_iraise2
 // types that have pts_to, no? or does that not hold?
 instance tensor_pts_to_shareable
   (#et : Type) (#r: erased nat) (#d: shape r) (#l: tlayout d)
-  (t: tensor et l) (s: chest d et):
+  (t: rotensor et l) (s: chest d et):
   shareable (fun fr -> tensor_pts_to t #fr s) = {
   _share_n = (fun (n: pos) (#fr : perm) -> tensor_share_n t n #fr);
   _gather_n = (fun (n: pos) (#fr : perm) -> tensor_gather_n t n #fr);
@@ -734,7 +653,7 @@ instance tensor_pts_to_shareable
 val ref_of_tensor_cell
   (#et : Type0)
   (#r : nat) (#s : shape r) (#l : tlayout s)
-  (a : tensor et l)
+  (a : rotensor et l)
   (i : abs s)
   : GTot (ref et)
 
@@ -742,7 +661,7 @@ inline_for_extraction noextract
 fn get_ref_of_tensor_cell
   (#et : Type0)
   (#r : nat) (#s : shape r) (#l : tlayout s)
-  (a : tensor et l) {| ctlayout l |}
+  (a : rotensor et l) {| ctlayout l |}
   (i : conc s)
   returns
     r : ref et
@@ -753,7 +672,7 @@ ghost
 fn tensor_cell_to_ref
   (#et : Type0)
   (#r : nat) (#s : shape r) (#l : tlayout s)
-  (a : tensor et l)
+  (a : rotensor et l)
   (i : abs s)
   (#f : perm)
   (#v : erased et)
@@ -766,7 +685,7 @@ ghost
 fn tensor_cell_from_ref
   (#et : Type0)
   (#r : nat) (#s : shape r) (#l : tlayout s)
-  (a : tensor et l)
+  (a : rotensor et l)
   (i : abs s)
   (#f : perm)
   (#v : erased et)
@@ -774,3 +693,36 @@ fn tensor_cell_from_ref
     ref_of_tensor_cell a i |-> Frac f v
   ensures
     Cell a i |-> Frac f v
+
+let drop_fst
+  (#r : nat)
+  (#d : shape r)
+  (#e : nat)
+  : abs (e @| d) -> GTot (abs d)
+  = function (_, i) -> i
+
+let extended_layout
+  (#r : nat) (#d : shape r)
+  (l : tlayout d)
+  (e : nat) // new dim
+  : tlayout (e @| d)
+  = {
+      ulen = l.ulen;
+      imap = {
+        f = (fun i -> l.imap.f (drop_fst i));
+        is_inj = (fun _ _ -> admit()); // clearly not true, needs layout rework
+      }
+    }
+
+ghost
+fn rotensor_add_dim
+  (#et : Type0)
+  (#r : nat) (#d : shape r)
+  (#l : tlayout d)
+  (a : rotensor et l)
+  (#f : perm) (#m : Chest.t d et)
+  (e : nat) // new dim
+  requires
+    a |-> Frac f m
+  ensures
+    from_array (extended_layout l e) (core a) |-> Frac f (Chest.mk (e @| d) (function (_, i) -> acc m i))
