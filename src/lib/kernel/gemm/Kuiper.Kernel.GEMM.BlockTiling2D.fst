@@ -991,8 +991,8 @@ fn kf
 
     B.barrier_wait ();
 
-    even_2x (!bkIdx + 1);
-    assert (pure (2 * (!bkIdx + 1) == 2 * !bkIdx + 2));
+    even_2x (SZ.v !bkIdx + 1);
+    assert (pure (2 * (SZ.v !bkIdx + 1) == 2 * !bkIdx + 2));
     assert (pure (even (2 * !bkIdx + 2)));
     assert (pure (odd (2 * !bkIdx + 1)));
     assert pure ((2 * !bkIdx + 1) < (2 * (k /^ bk)));
