@@ -9,7 +9,7 @@ module KWitness7b
 
      1. ghost-reinterpret the n x m row-major output gC as an m x n COL-MAJOR matrix
         (row2col gC) -- a zero-cost view shift, no data moves;
-     2. run the EXISTING verified naive forward matmul (Kuiper.Kernel.GEMM.Naive,
+     2. run the EXISTING verified naive forward matmul (Kuiper.Kernel.GEMM.Naive1,
         reused by KWitness1/KWitness6) writing A*B into that col-major view; and
      3. ghost-reinterpret back: the buffer now read row-major is exactly (A*B)^T.
 
@@ -22,12 +22,13 @@ module KWitness7b
 
 #lang-pulse
 open Kuiper
+open Kuiper.Chest
 open Kuiper.EMatrix
 module Alg = Kuiper.Tensor.Layout.Alg
 module MS = Kuiper.Spec.GEMM
-module M = Kuiper.Array2
+module M = Kuiper.Tensor
 module SZ = Kuiper.SizeT
-module K = Kuiper.Kernel.GEMM.Naive
+module K = Kuiper.Kernel.GEMM.Naive1
 module TGT = Kuiper.Ghost.TensorTranspose
 
 fn matmul_f32
@@ -35,11 +36,11 @@ fn matmul_f32
   (gA : M.array2 f32 (Alg.l2_row_major m k) { M.is_global gA })
   (gB : M.array2 f32 (Alg.l2_row_major k n) { M.is_global gB })
   (gC : M.array2 f32 (Alg.l2_row_major n m) { M.is_global gC })
-  (rA : ematrix real m k)
-  (rB : ematrix real k n)
-  (#eA : ematrix f32 m k)
-  (#eB : ematrix f32 k n)
-  (#eC : ematrix f32 n m)
+  (rA : chest2 real m k)
+  (rB : chest2 real k n)
+  (#eA : chest2 f32 m k)
+  (#eB : chest2 f32 k n)
+  (#eC : chest2 f32 n m)
   (#fA #fB : perm)
   preserves
     cpu ** on gpu_loc (gA |-> Frac fA eA ** gB |-> Frac fB eB)
@@ -48,13 +49,13 @@ fn matmul_f32
     pure (eA %~ rA /\ eB %~ rB) **
     on gpu_loc (gC |-> eC)
   ensures
-    (exists* (eC' : ematrix f32 n m).
+    (exists* (eC' : chest2 f32 n m).
       on gpu_loc (gC |-> eC') **
       pure (eC' %~ mtranspose (MS.matmul rA rB)))
 {
-  map_loc gpu_loc (fun () -> M.pts_to_ref gA);
-  map_loc gpu_loc (fun () -> M.pts_to_ref gB);
-  map_loc gpu_loc (fun () -> M.pts_to_ref gC);
+  map_loc gpu_loc (fun () -> M.tensor_pts_to_ref gA);
+  map_loc gpu_loc (fun () -> M.tensor_pts_to_ref gB);
+  map_loc gpu_loc (fun () -> M.tensor_pts_to_ref gC);
 
   (* Reinterpret gC (n x m row-major) as an m x n col-major matrix holding the
      transpose of its current contents. *)

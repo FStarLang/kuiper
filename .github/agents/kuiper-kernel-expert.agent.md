@@ -28,7 +28,7 @@ The script automatically configures F* with necessary options for the Kuiper cod
 
 When implementing proofs for a new kernel, study simpler implementations first:
 
-1. **Simple kernels**: Start with `Kuiper.GEMM.Naive`, `Kuiper.GEMM.Naive2`, `Kuiper.GEMM.Tiled`, `Kuiper.GEMM.SHMem`
+1. **Simple kernels**: Start with `Kuiper.GEMM.Naive1`, `Kuiper.GEMM.Naive2`, `Kuiper.GEMM.Tiled`, `Kuiper.GEMM.SHMem`
    - These provide templates for basic proof patterns
    - Understand the simpler cases before tackling complex ones
 

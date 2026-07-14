@@ -5,11 +5,12 @@ module KWitness8
 
 #lang-pulse
 open Kuiper
+open Kuiper.Chest
 open Kuiper.EMatrix
 module Alg = Kuiper.Tensor.Layout.Alg
-module M = Kuiper.Array2
+module M = Kuiper.Tensor
 module SZ = Kuiper.SizeT
-module K = Kuiper.Kernel.GEMM.Naive
+module K = Kuiper.Kernel.GEMM.Naive1
 module AB = Kuiper.Approximates.Base
 
 (* The f32 combine `alpha*prod + beta*old` approximates its real analog. The
@@ -36,11 +37,11 @@ fn matmul_f32
   (gA : M.array2 f32 (Alg.l2_row_major m k) { M.is_global gA })
   (gB : M.array2 f32 (Alg.l2_row_major k n) { M.is_global gB })
   (gC : M.array2 f32 (Alg.l2_row_major m n) { M.is_global gC })
-  (rA : ematrix real m k)
-  (rB : ematrix real k n)
-  (#eA : ematrix f32 m k)
-  (#eB : ematrix f32 k n)
-  (#eC : ematrix f32 m n)
+  (rA : chest2 real m k)
+  (rB : chest2 real k n)
+  (#eA : chest2 f32 m k)
+  (#eB : chest2 f32 k n)
+  (#eC : chest2 f32 m n)
   (#fA #fB : perm)
   preserves
     cpu ** on gpu_loc (gA |-> Frac fA eA ** gB |-> Frac fB eB)
@@ -49,7 +50,7 @@ fn matmul_f32
     pure (eA %~ rA /\ eB %~ rB) **
     on gpu_loc (gC |-> eC)
   ensures
-    (exists* (eC' : ematrix f32 m n).
+    (exists* (eC' : chest2 f32 m n).
       on gpu_loc (gC |-> eC') **
       pure (eC' %~ gemm_real (to_real alpha) (to_real beta) rA rB (to_real_matrix eC)))
 {

@@ -9,11 +9,12 @@ module KWitness3
 
 #lang-pulse
 open Kuiper
+open Kuiper.Chest
 open Kuiper.EMatrix
 open Kuiper.Sum { sum, sum_pop_left, sum_pop_right, sum_split }
 module Alg = Kuiper.Tensor.Layout.Alg
 module MS = Kuiper.Spec.GEMM
-module M = Kuiper.Array2
+module M = Kuiper.Tensor
 module T = Kuiper.Tensor
 module SZ = Kuiper.SizeT
 
@@ -40,40 +41,40 @@ let min_nat_ge (a b : nat)
 let rec seg
   (#et:Type) {| scalar et |}
   (#rows #shared #cols : nat)
-  (eA : ematrix et rows shared) (eB : ematrix et shared cols)
+  (eA : chest2 et rows shared) (eB : chest2 et shared cols)
   (i : natlt rows) (j : natlt cols)
   (from : nat) (to : nat{to <= shared})
   : GTot et (decreases (if to <= from then 0 else to - from))
   = if from >= to then zero
-    else add (seg eA eB i j from (to - 1)) (mul (macc eA i (to - 1)) (macc eB (to - 1) j))
+    else add (seg eA eB i j from (to - 1)) (mul (acc2 eA i (to - 1)) (acc2 eB (to - 1) j))
 
 #push-options "--fuel 2 --ifuel 1"
 let seg_step
   (#et:Type) {| scalar et |}
   (#rows #shared #cols : nat)
-  (eA : ematrix et rows shared) (eB : ematrix et shared cols)
+  (eA : chest2 et rows shared) (eB : chest2 et shared cols)
   (i : natlt rows) (j : natlt cols)
   (from : nat) (to : nat{from < to /\ to <= shared})
   : Lemma (seg eA eB i j from to ==
-           add (seg eA eB i j from (to - 1)) (mul (macc eA i (to - 1)) (macc eB (to - 1) j)))
+           add (seg eA eB i j from (to - 1)) (mul (acc2 eA i (to - 1)) (acc2 eB (to - 1) j)))
   = ()
 #pop-options
 
 (* The (fixed-domain) product function whose sum is the dot product. *)
 let prodf
   (#rows #shared #cols : nat)
-  (rA : ematrix real rows shared)
-  (rB : ematrix real shared cols)
+  (rA : chest2 real rows shared)
+  (rB : chest2 real shared cols)
   (i : natlt rows) (j : natlt cols)
   : (natlt shared -> GTot real)
-  = fun t -> mul (macc rA i t) (macc rB t j)
+  = fun t -> mul (acc2 rA i t) (acc2 rB t j)
 
 (* Over the reals, a segment equals the canonical sum of products over it. *)
 #push-options "--fuel 2 --ifuel 1"
 let rec seg_is_sum
   (#rows #shared #cols : nat)
-  (rA : ematrix real rows shared)
-  (rB : ematrix real shared cols)
+  (rA : chest2 real rows shared)
+  (rB : chest2 real shared cols)
   (i : natlt rows) (j : natlt cols)
   (from : nat) (to : nat{from <= to /\ to <= shared})
   : Lemma (ensures seg rA rB i j from to == sum from to (prodf rA rB i j))
@@ -89,8 +90,8 @@ let rec seg_is_sum
 #push-options "--fuel 2 --ifuel 1"
 let rec matmul_is_sum
   (#rows #shared #cols : nat)
-  (rA : ematrix real rows shared)
-  (rB : ematrix real shared cols)
+  (rA : chest2 real rows shared)
+  (rB : chest2 real shared cols)
   (i : natlt rows) (j : natlt cols)
   (to : nat{to <= shared})
   : Lemma (ensures MS.__matmul_single rA rB i j to == sum 0 to (prodf rA rB i j))
@@ -109,7 +110,7 @@ let rec matmul_is_sum
 let rec tiled
   (#et:Type) {| scalar et |}
   (#rows #shared #cols : nat)
-  (eA : ematrix et rows shared) (eB : ematrix et shared cols)
+  (eA : chest2 et rows shared) (eB : chest2 et shared cols)
   (i : natlt rows) (j : natlt cols)
   (nt : nat)
   : GTot et (decreases nt)
@@ -121,7 +122,7 @@ let rec tiled
 let tiled_step
   (#et:Type) {| scalar et |}
   (#rows #shared #cols : nat)
-  (eA : ematrix et rows shared) (eB : ematrix et shared cols)
+  (eA : chest2 et rows shared) (eB : chest2 et shared cols)
   (i : natlt rows) (j : natlt cols)
   (nt : nat{nt > 0})
   : Lemma (tiled eA eB i j nt ==
@@ -132,7 +133,7 @@ let tiled_step
 let tiled_zero
   (#et:Type) {| scalar et |}
   (#rows #shared #cols : nat)
-  (eA : ematrix et rows shared) (eB : ematrix et shared cols)
+  (eA : chest2 et rows shared) (eB : chest2 et shared cols)
   (i : natlt rows) (j : natlt cols)
   : Lemma (tiled eA eB i j 0 == zero)
   = ()
@@ -143,7 +144,7 @@ let tiled_zero
 let tiled_zero_v
   (#et:Type) {| scalar et |}
   (#rows #shared #cols : nat)
-  (eA : ematrix et rows shared) (eB : ematrix et shared cols)
+  (eA : chest2 et rows shared) (eB : chest2 et shared cols)
   (i : natlt rows) (j : natlt cols)
   (z : sz{v z == 0})
   : Lemma (tiled eA eB i j (v z) == zero)
@@ -154,7 +155,7 @@ let tiled_zero_v
 let seg_zero_v
   (#et:Type) {| scalar et |}
   (#rows #shared #cols : nat)
-  (eA : ematrix et rows shared) (eB : ematrix et shared cols)
+  (eA : chest2 et rows shared) (eB : chest2 et shared cols)
   (i : natlt rows) (j : natlt cols)
   (z : sz{v z <= shared})
   : Lemma (seg eA eB i j (v z) (v z) == zero)
@@ -175,8 +176,8 @@ let ntiles_covers (s : nat)
 #push-options "--fuel 2 --ifuel 1 --z3rlimit 40"
 let rec tiled_is_sum
   (#rows #shared #cols : nat)
-  (rA : ematrix real rows shared)
-  (rB : ematrix real shared cols)
+  (rA : chest2 real rows shared)
+  (rB : chest2 real shared cols)
   (i : natlt rows) (j : natlt cols)
   (nt : nat)
   : Lemma (ensures tiled rA rB i j nt == sum 0 (min_nat (nt * tile) shared) (prodf rA rB i j))
@@ -192,8 +193,8 @@ let rec tiled_is_sum
 (* Hence, over reals, the full tiled sum equals the matmul cell. *)
 let tiled_eq_matmul_single
   (#rows #shared #cols : nat)
-  (rA : ematrix real rows shared)
-  (rB : ematrix real shared cols)
+  (rA : chest2 real rows shared)
+  (rB : chest2 real shared cols)
   (i : natlt rows) (j : natlt cols)
   : Lemma (tiled rA rB i j (ntiles shared) == MS.matmul_single rA rB i j)
   = tiled_is_sum rA rB i j (ntiles shared);
@@ -206,14 +207,14 @@ let tiled_eq_matmul_single
 let rec seg_approx
   (#et:Type) {| scalar et, real_like et |}
   (#rows #shared #cols : nat)
-  (eA : ematrix et rows shared) (eB : ematrix et shared cols)
-  (rA : ematrix real rows shared) (rB : ematrix real shared cols)
+  (eA : chest2 et rows shared) (eB : chest2 et shared cols)
+  (rA : chest2 real rows shared) (rB : chest2 real shared cols)
   (i : natlt rows) (j : natlt cols)
   (from : nat) (to : nat{from <= to /\ to <= shared})
   : Lemma
       (requires
-        (forall (a : natlt rows) (b : natlt shared). macc eA a b %~ macc rA a b) /\
-        (forall (a : natlt shared) (b : natlt cols). macc eB a b %~ macc rB a b))
+        (forall (a : natlt rows) (b : natlt shared). acc2 eA a b %~ acc2 rA a b) /\
+        (forall (a : natlt shared) (b : natlt cols). acc2 eB a b %~ acc2 rB a b))
       (ensures seg eA eB i j from to %~ seg rA rB i j from to)
       (decreases (to - from))
   = if from < to then begin
@@ -221,10 +222,10 @@ let rec seg_approx
       seg_step eA eB i j from to;
       seg_step rA rB i j from to;
       Kuiper.Approximates.Base.a_mul
-        (macc eA i (to - 1)) (macc eB (to - 1) j) (macc rA i (to - 1)) (macc rB (to - 1) j);
+        (acc2 eA i (to - 1)) (acc2 eB (to - 1) j) (acc2 rA i (to - 1)) (acc2 rB (to - 1) j);
       Kuiper.Approximates.Base.a_add
-        (seg eA eB i j from (to - 1)) (mul (macc eA i (to - 1)) (macc eB (to - 1) j))
-        (seg rA rB i j from (to - 1)) (mul (macc rA i (to - 1)) (macc rB (to - 1) j))
+        (seg eA eB i j from (to - 1)) (mul (acc2 eA i (to - 1)) (acc2 eB (to - 1) j))
+        (seg rA rB i j from (to - 1)) (mul (acc2 rA i (to - 1)) (acc2 rB (to - 1) j))
     end else ()
 #pop-options
 
@@ -233,14 +234,14 @@ let rec seg_approx
 let rec tiled_approx
   (#et:Type) {| scalar et, real_like et |}
   (#rows #shared #cols : nat)
-  (eA : ematrix et rows shared) (eB : ematrix et shared cols)
-  (rA : ematrix real rows shared) (rB : ematrix real shared cols)
+  (eA : chest2 et rows shared) (eB : chest2 et shared cols)
+  (rA : chest2 real rows shared) (rB : chest2 real shared cols)
   (i : natlt rows) (j : natlt cols)
   (nt : nat)
   : Lemma
       (requires
-        (forall (a : natlt rows) (b : natlt shared). macc eA a b %~ macc rA a b) /\
-        (forall (a : natlt shared) (b : natlt cols). macc eB a b %~ macc rB a b))
+        (forall (a : natlt rows) (b : natlt shared). acc2 eA a b %~ acc2 rA a b) /\
+        (forall (a : natlt shared) (b : natlt cols). acc2 eB a b %~ acc2 rB a b))
       (ensures tiled eA eB i j nt %~ tiled rA rB i j nt)
       (decreases nt)
   = if nt > 0 then begin
@@ -260,8 +261,8 @@ let rec tiled_approx
 let cell_approx
   (#et:Type) {| scalar et, real_like et |}
   (#rows #shared #cols : nat)
-  (eA : ematrix et rows shared) (eB : ematrix et shared cols)
-  (rA : ematrix real rows shared) (rB : ematrix real shared cols)
+  (eA : chest2 et rows shared) (eB : chest2 et shared cols)
+  (rA : chest2 real rows shared) (rB : chest2 real shared cols)
   (i : natlt rows) (j : natlt cols)
   : Lemma (requires eA %~ rA /\ eB %~ rB)
           (ensures tiled eA eB i j (ntiles shared) %~ MS.matmul_single rA rB i j)
@@ -272,19 +273,19 @@ let cell_approx
 let tiled_result
   (#et:Type) {| scalar et |}
   (#rows #shared #cols : nat)
-  (eA : ematrix et rows shared) (eB : ematrix et shared cols)
-  : ematrix et rows cols
-  = mkM (fun i j -> tiled eA eB i j (ntiles shared))
+  (eA : chest2 et rows shared) (eB : chest2 et shared cols)
+  : chest2 et rows cols
+  = mk2 (fun i j -> tiled eA eB i j (ntiles shared))
 
 let tiled_result_approx
   (#et:Type) {| scalar et, real_like et |}
   (#rows #shared #cols : nat)
-  (eA : ematrix et rows shared) (eB : ematrix et shared cols)
-  (rA : ematrix real rows shared) (rB : ematrix real shared cols)
+  (eA : chest2 et rows shared) (eB : chest2 et shared cols)
+  (rA : chest2 real rows shared) (rB : chest2 real shared cols)
   : Lemma (requires eA %~ rA /\ eB %~ rB)
           (ensures tiled_result eA eB %~ MS.matmul rA rB)
   = introduce forall (i : natlt rows) (j : natlt cols).
-        macc (tiled_result eA eB) i j %~ macc (MS.matmul rA rB) i j
+        acc2 (tiled_result eA eB) i j %~ acc2 (MS.matmul rA rB) i j
     with (
       cell_approx eA eB rA rB i j
     )
@@ -298,34 +299,34 @@ let tiled_result_approx
 let partial
   (#et : Type) {| scalar et |}
   (#rows #shared #cols : nat)
-  (eA : ematrix et rows shared)
-  (eB : ematrix et shared cols)
-  (eC : ematrix et rows cols)
+  (eA : chest2 et rows shared)
+  (eB : chest2 et shared cols)
+  (eC : chest2 et rows cols)
   (g : nat)
-  : ematrix et rows cols
-  = mkM (fun i j -> if i * cols + j < g then tiled eA eB i j (ntiles shared) else macc eC i j)
+  : chest2 et rows cols
+  = mk2 (fun i j -> if i * cols + j < g then tiled eA eB i j (ntiles shared) else acc2 eC i j)
 
 let partial_zero
   (#et : Type) {| scalar et |}
   (#rows #shared #cols : nat)
-  (eA : ematrix et rows shared)
-  (eB : ematrix et shared cols)
-  (eC : ematrix et rows cols)
+  (eA : chest2 et rows shared)
+  (eB : chest2 et shared cols)
+  (eC : chest2 et rows cols)
   : Lemma (partial eA eB eC 0 == eC)
   = introduce forall (i : natlt rows) (j : natlt cols).
-        macc (partial eA eB eC 0) i j == macc eC i j
+        acc2 (partial eA eB eC 0) i j == acc2 eC i j
     with ();
     assert (equal (partial eA eB eC 0) eC)
 
 let partial_full
   (#et : Type) {| scalar et |}
   (#rows #shared #cols : nat)
-  (eA : ematrix et rows shared)
-  (eB : ematrix et shared cols)
-  (eC : ematrix et rows cols)
+  (eA : chest2 et rows shared)
+  (eB : chest2 et shared cols)
+  (eC : chest2 et rows cols)
   : Lemma (partial eA eB eC (rows * cols) == tiled_result eA eB)
   = introduce forall (i : natlt rows) (j : natlt cols).
-        macc (partial eA eB eC (rows * cols)) i j == macc (tiled_result eA eB) i j
+        acc2 (partial eA eB eC (rows * cols)) i j == acc2 (tiled_result eA eB) i j
     with (
       Math.Lemmas.lemma_mult_le_right cols i (rows - 1)
     );
@@ -335,22 +336,22 @@ let partial_full
 let partial_step
   (#et : Type) {| scalar et |}
   (#rows #shared #cols : nat)
-  (eA : ematrix et rows shared)
-  (eB : ematrix et shared cols)
-  (eC : ematrix et rows cols)
+  (eA : chest2 et rows shared)
+  (eB : chest2 et shared cols)
+  (eC : chest2 et rows cols)
   (g : nat{g < rows * cols})
   : Lemma
       (requires cols > 0 /\ g / cols < rows /\ g % cols < cols)
       (ensures
-        mupd (partial eA eB eC g) (g / cols) (g % cols)
+        upd2 (partial eA eB eC g) (g / cols) (g % cols)
              (tiled eA eB (g / cols) (g % cols) (ntiles shared))
         == partial eA eB eC (g + 1))
   = let r : natlt rows = g / cols in
     let c : natlt cols = g % cols in
     Math.Lemmas.euclidean_division_definition g cols;
     introduce forall (i : natlt rows) (j : natlt cols).
-        macc (mupd (partial eA eB eC g) r c (tiled eA eB r c (ntiles shared))) i j
-        == macc (partial eA eB eC (g + 1)) i j
+        acc2 (upd2 (partial eA eB eC g) r c (tiled eA eB r c (ntiles shared))) i j
+        == acc2 (partial eA eB eC (g + 1)) i j
     with (
       if i = r && j = c then ()
       else begin
@@ -358,7 +359,7 @@ let partial_step
         assert (i * cols + j <> g)
       end
     );
-    assert (equal (mupd (partial eA eB eC g) r c (tiled eA eB r c (ntiles shared)))
+    assert (equal (upd2 (partial eA eB eC g) r c (tiled eA eB r c (ntiles shared)))
                   (partial eA eB eC (g + 1)))
 #pop-options
 
@@ -372,12 +373,6 @@ let div_bound (g m n : nat)
   : Lemma (requires n > 0 /\ g < m * n) (ensures g / n < m)
   = Math.Lemmas.euclidean_division_definition g n;
     if g / n >= m then Math.Lemmas.lemma_mult_le_right n m (g / n)
-
-(* cit_fits is a (non-unfold) let, so expose it from the index bounds. *)
-let cit_fits_intro (rows cols : nat) (a b : sz)
-  : Lemma (requires v a < rows /\ v b < cols)
-          (ensures M.cit_fits rows cols (a, b))
-  = ()
 
 (* v (sdivup k 16sz) == ntiles (v k): both are (v k + 15) / 16. *)
 let nt_eq (k : szp)
@@ -396,15 +391,15 @@ inline_for_extraction noextract
 fn tiled_cell
   (#et : Type0) {| scalar et |}
   (m n k : szp)
-  (#lA : M.layout m k)
-  (#lB : M.layout k n)
+  (#lA : M.layout2 m k)
+  (#lB : M.layout2 k n)
   {| T.ctlayout lA, T.ctlayout lB |}
   (gA : M.array2 et lA)
   (gB : M.array2 et lB)
   (row : szlt m)
   (col : szlt n)
-  (#eA : ematrix et _ _)
-  (#eB : ematrix et _ _)
+  (#eA : chest2 et _ _)
+  (#eB : chest2 et _ _)
   (#fA #fB : perm)
   preserves
     gpu **
@@ -453,10 +448,8 @@ fn tiled_cell
       decreases (v hi - v !jj)
     {
       let jc : sz = !jj +^ 0sz; assert (rewrites_to jc (!jj +^ 0sz));
-      cit_fits_intro (v m) (v k) ri jc;
-      cit_fits_intro (v k) (v n) jc ci;
-      let av = M.read gA (ri, jc);
-      let bv = M.read gB (jc, ci);
+      let av = M.tensor_read gA (M.cidx2 ri jc);
+      let bv = M.tensor_read gB (M.cidx2 jc ci);
       seg_step eA eB (v row) (v col) (v k0) (v jc + 1);
       acc := !acc `add` (av `mul` bv);
       jj := !jj +^ 1sz;
@@ -474,16 +467,16 @@ inline_for_extraction noextract
 fn tiled_matmul_kf
   (#et : Type0) {| scalar et |}
   (m n k : szp)
-  (#lA : M.layout m k)
-  (#lB : M.layout k n)
-  (#lC : M.layout m n)
+  (#lA : M.layout2 m k)
+  (#lB : M.layout2 k n)
+  (#lC : M.layout2 m n)
   {| T.ctlayout lA, T.ctlayout lB, T.ctlayout lC |}
   (gA : M.array2 et lA)
   (gB : M.array2 et lB)
   (gC : M.array2 et lC)
-  (#eA : ematrix et _ _)
-  (#eB : ematrix et _ _)
-  (#eC : ematrix et _ _)
+  (#eA : chest2 et _ _)
+  (#eB : chest2 et _ _)
+  (#eC : chest2 et _ _)
   (#fA #fB : perm)
   (#_ : squash (SZ.fits (v m * v n)))
   preserves
@@ -510,8 +503,7 @@ fn tiled_matmul_kf
     let row : sz = g0 /^ n; assert (rewrites_to row (g0 /^ n));
     let col : sz = g0 %^ n; assert (rewrites_to col (g0 %^ n));
     let value = tiled_cell m n k gA gB row col;
-    cit_fits_intro (v m) (v n) row col;
-    M.write gC (row, col) value;
+    M.tensor_write gC (M.cidx2 row col) value;
     partial_step eA eB eC (v g0);
     g := !g +^ 1sz;
   };
@@ -529,18 +521,18 @@ inline_for_extraction noextract
 fn tiled_matmul_gpu
   (#et : Type0) {| scalar et, real_like et |}
   (m n k : szp)
-  (#lA : M.layout m k)
-  (#lB : M.layout k n)
-  (#lC : M.layout m n)
+  (#lA : M.layout2 m k)
+  (#lB : M.layout2 k n)
+  (#lC : M.layout2 m n)
   {| T.ctlayout lA, T.ctlayout lB, T.ctlayout lC |}
   (gA : M.array2 et lA { M.is_global gA })
   (gB : M.array2 et lB { M.is_global gB })
   (gC : M.array2 et lC { M.is_global gC })
-  (rA : ematrix real _ _)
-  (rB : ematrix real _ _)
-  (#eA : ematrix et _ _)
-  (#eB : ematrix et _ _)
-  (#eC : ematrix et _ _)
+  (rA : chest2 real _ _)
+  (rB : chest2 real _ _)
+  (#eA : chest2 et _ _)
+  (#eB : chest2 et _ _)
+  (#eC : chest2 et _ _)
   (#fA #fB : perm)
   preserves
     cpu ** on gpu_loc (gA |-> Frac fA eA ** gB |-> Frac fB eB)
@@ -549,13 +541,13 @@ fn tiled_matmul_gpu
     pure (eA %~ rA /\ eB %~ rB) **
     on gpu_loc (gC |-> eC)
   ensures
-    (exists* (eC' : ematrix et (v m) (v n)).
+    (exists* (eC' : chest2 et (v m) (v n)).
       on gpu_loc (gC |-> eC') **
       pure (eC' %~ MS.matmul rA rB))
 {
-  M.pts_to_ref_located gA;
-  M.pts_to_ref_located gB;
-  M.pts_to_ref_located gC;
+  M.tensor_pts_to_ref_located gA;
+  M.tensor_pts_to_ref_located gB;
+  M.tensor_pts_to_ref_located gC;
 
   launch_kernel_1 (fun _ -> tiled_matmul_kf m n k gA gB gC #eA #eB #eC #fA #fB);
 
@@ -569,11 +561,11 @@ fn matmul_f32
   (gA : M.array2 f32 (Alg.l2_row_major m k) { M.is_global gA })
   (gB : M.array2 f32 (Alg.l2_row_major k n) { M.is_global gB })
   (gC : M.array2 f32 (Alg.l2_row_major m n) { M.is_global gC })
-  (rA : ematrix real m k)
-  (rB : ematrix real k n)
-  (#eA : ematrix f32 m k)
-  (#eB : ematrix f32 k n)
-  (#eC : ematrix f32 m n)
+  (rA : chest2 real m k)
+  (rB : chest2 real k n)
+  (#eA : chest2 f32 m k)
+  (#eB : chest2 f32 k n)
+  (#eC : chest2 f32 m n)
   (#fA #fB : perm)
   preserves
     cpu ** on gpu_loc (gA |-> Frac fA eA ** gB |-> Frac fB eB)
@@ -582,7 +574,7 @@ fn matmul_f32
     pure (eA %~ rA /\ eB %~ rB) **
     on gpu_loc (gC |-> eC)
   ensures
-    (exists* (eC' : ematrix f32 m n).
+    (exists* (eC' : chest2 f32 m n).
       on gpu_loc (gC |-> eC') **
       pure (eC' %~ MS.matmul rA rB))
 {

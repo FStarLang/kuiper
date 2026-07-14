@@ -16,7 +16,7 @@ module KWitness8
    general-SGEMM affine combine `C := alpha * (A*B) + beta * C`. The block/register
    tiling only changes data movement and which thread owns which cell -- it does not
    change the per-cell floating-point operations -- so this witness reproduces imp8
-   with the EXISTING verified naive matmul kernel (Kuiper.Kernel.GEMM.Naive), whose
+   with the EXISTING verified naive matmul kernel (Kuiper.Kernel.GEMM.Naive1), whose
    per-cell combine step `comb (C_old) (dot)` is instantiated to
    `alpha * dot + beta * C_old`. Instantiated at f32, row-major, it extracts to the
    same per-cell arithmetic as imp8.cu, hence is bit-equivalent. (The grid shape
@@ -30,21 +30,22 @@ module KWitness8
 
 #lang-pulse
 open Kuiper
+open Kuiper.Chest
 open Kuiper.EMatrix
 module Alg = Kuiper.Tensor.Layout.Alg
 module MS = Kuiper.Spec.GEMM
-module M = Kuiper.Array2
+module M = Kuiper.Tensor
 module SZ = Kuiper.SizeT
 
 (* The real-valued SGEMM result: cell (i, j) is alpha*(A*B)[i][j] + beta*C[i][j]. *)
 let gemm_real
   (#m #k #n : nat)
   (alpha beta : real)
-  (rA : ematrix real m k)
-  (rB : ematrix real k n)
-  (rC : ematrix real m n)
-  : ematrix real m n
-  = mkM (fun i j -> (alpha *. macc (MS.matmul rA rB) i j) +. (beta *. macc rC i j))
+  (rA : chest2 real m k)
+  (rB : chest2 real k n)
+  (rC : chest2 real m n)
+  : chest2 real m n
+  = mk2 (fun i j -> (alpha *. acc2 (MS.matmul rA rB) i j) +. (beta *. acc2 rC i j))
 
 (* Concrete, monomorphic spec: f32, row-major A, B and C, with runtime scalars
    alpha and beta.
@@ -58,11 +59,11 @@ fn matmul_f32
   (gA : M.array2 f32 (Alg.l2_row_major m k) { M.is_global gA })
   (gB : M.array2 f32 (Alg.l2_row_major k n) { M.is_global gB })
   (gC : M.array2 f32 (Alg.l2_row_major m n) { M.is_global gC })
-  (rA : ematrix real m k)
-  (rB : ematrix real k n)
-  (#eA : ematrix f32 m k)
-  (#eB : ematrix f32 k n)
-  (#eC : ematrix f32 m n)
+  (rA : chest2 real m k)
+  (rB : chest2 real k n)
+  (#eA : chest2 f32 m k)
+  (#eB : chest2 f32 k n)
+  (#eC : chest2 f32 m n)
   (#fA #fB : perm)
   preserves
     cpu ** on gpu_loc (gA |-> Frac fA eA ** gB |-> Frac fB eB)
@@ -71,6 +72,6 @@ fn matmul_f32
     pure (eA %~ rA /\ eB %~ rB) **
     on gpu_loc (gC |-> eC)
   ensures
-    (exists* (eC' : ematrix f32 m n).
+    (exists* (eC' : chest2 f32 m n).
       on gpu_loc (gC |-> eC') **
       pure (eC' %~ gemm_real (to_real alpha) (to_real beta) rA rB (to_real_matrix eC)))

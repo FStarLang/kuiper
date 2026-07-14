@@ -1,6 +1,6 @@
 module Kuiper.Kernel.GEMM.Naive2
 
-(* Like Naive, but spawns full blocks of threads going in row-major order
+(* Like Naive1, but spawns full blocks of threads going in row-major order
 through the output matrix, with each thread computing a full dot product.
 Tensor analog of Naive2. *)
 

@@ -20,7 +20,7 @@ module KWitness6
    is plain forward, left-associated from 0.0f over t = 0 .. k-1 -- exactly the
    order of imp1.cu, and exactly MS.matmul_single, the forward left-associated sum
    from `zero` computed by the library's naive GEMM kernel
-   (Kuiper.Kernel.GEMM.Naive). (Contrast imp3.cu, which resets a per-tile partial
+   (Kuiper.Kernel.GEMM.Naive1). (Contrast imp3.cu, which resets a per-tile partial
    `acc = 0` and does `sum += acc`, giving a genuinely tiled bracketing.)
 
    The witness therefore reuses the SAME forward kernel as KWitness1: instantiated
@@ -37,10 +37,11 @@ module KWitness6
 
 #lang-pulse
 open Kuiper
+open Kuiper.Chest
 open Kuiper.EMatrix
 module Alg = Kuiper.Tensor.Layout.Alg
 module MS = Kuiper.Spec.GEMM
-module M = Kuiper.Array2
+module M = Kuiper.Tensor
 module SZ = Kuiper.SizeT
 
 (* Concrete, monomorphic spec: f32, row-major A, B and C.
@@ -53,11 +54,11 @@ fn matmul_f32
   (gA : M.array2 f32 (Alg.l2_row_major m k) { M.is_global gA })
   (gB : M.array2 f32 (Alg.l2_row_major k n) { M.is_global gB })
   (gC : M.array2 f32 (Alg.l2_row_major m n) { M.is_global gC })
-  (rA : ematrix real m k)
-  (rB : ematrix real k n)
-  (#eA : ematrix f32 m k)
-  (#eB : ematrix f32 k n)
-  (#eC : ematrix f32 m n)
+  (rA : chest2 real m k)
+  (rB : chest2 real k n)
+  (#eA : chest2 f32 m k)
+  (#eB : chest2 f32 k n)
+  (#eC : chest2 f32 m n)
   (#fA #fB : perm)
   preserves
     cpu ** on gpu_loc (gA |-> Frac fA eA ** gB |-> Frac fB eB)
@@ -66,6 +67,6 @@ fn matmul_f32
     pure (eA %~ rA /\ eB %~ rB) **
     on gpu_loc (gC |-> eC)
   ensures
-    (exists* (eC' : ematrix f32 m n).
+    (exists* (eC' : chest2 f32 m n).
       on gpu_loc (gC |-> eC') **
       pure (eC' %~ MS.matmul rA rB))

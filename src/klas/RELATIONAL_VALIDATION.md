@@ -12,14 +12,14 @@ giving each a **verified Kuiper witness** that is
 
 | # | Kernel    | Accumulation order            | Witness source                         |
 |---|-----------|-------------------------------|----------------------------------------|
-| 1 | `imp1.cu` | forward (i = 0 .. k-1)        | instantiates existing `GEMM.Naive`     |
+| 1 | `imp1.cu` | forward (i = 0 .. k-1)        | instantiates existing `GEMM.Naive1`     |
 | 2 | `imp2.cu` | reverse (i = k-1 .. 0)        | from-scratch single-thread             |
 | 3 | `imp3.cu` | tiled (16, forward)           | from-scratch single-thread             |
 | 4 | `imp4.cu` | Kahan-compensated             | instantiates existing `GEMM.Naive3`    |
 | 5 | `imp5.cu` | tiled (16) + Kahan over tiles | from-scratch single-thread             |
-| 6 | `imp6.cu` | shared-memory tiled, forward  | instantiates `GEMM.Naive` (= same as 1)|
+| 6 | `imp6.cu` | shared-memory tiled, forward  | instantiates `GEMM.Naive1` (= same as 1)|
 | 7 | `imp7.cu` | shared-memory tiled, forward, **transposed store** | from-scratch single-thread |
-| 8 | `imp8.cu` | 2D block-tiling SGEMM, forward, **α·(A·B)+β·C** | instantiates `GEMM.Naive` (custom combine) |
+| 8 | `imp8.cu` | 2D block-tiling SGEMM, forward, **α·(A·B)+β·C** | instantiates `GEMM.Naive1` (custom combine) |
 
 Witness sources: `src/klas/KWitness{1..8}.fst` (+ `.fsti`). Kernel 7 also has an
 alternative witness `KWitness7b` (transpose by zero-cost view shift).
@@ -33,7 +33,7 @@ with a transposed store (`C[c*m+r]`, the correct transpose into the n×m output 
 any shape), so it proves `eC' %~ mtranspose (MS.matmul rA rB)`. Kernel 8 is the
 optimized 2D block-tiling SGEMM (Boehm's kernel): its register-tiled accumulation is
 still the forward dot product, followed by the general affine combine, so it proves
-`eC' %~ α·(MS.matmul rA rB) + β·C_old` — reusing `GEMM.Naive` with the per-cell
+`eC' %~ α·(MS.matmul rA rB) + β·C_old` — reusing `GEMM.Naive1` with the per-cell
 combine instantiated to `fun old prod -> α·prod + β·old`.
 
 ## Key results

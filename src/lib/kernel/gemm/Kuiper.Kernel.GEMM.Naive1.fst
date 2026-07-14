@@ -31,7 +31,7 @@ module MS = Kuiper.Spec.GEMM
 module SZ = Kuiper.SizeT
 
 (* Reshaping bridge between the 2-D nested index
-   [abs (m @| n @| INil)] and the flat pair, mirroring Naive.abs_bij. *)
+   [abs (m @| n @| INil)] and the flat pair, mirroring Naive1.abs_bij. *)
 let abs_bij2 (#m #n : nat)
   : (abs (m @| n @| INil) =~ (natlt m & natlt n)) =
   {
