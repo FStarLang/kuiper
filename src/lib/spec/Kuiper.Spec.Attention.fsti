@@ -7,14 +7,11 @@ open Kuiper.Tensor.Layout.Alg
 open Kuiper.Tensor
 open Kuiper.Shape
 open Kuiper.Chest
-open Kuiper.EMatrix
 open Kuiper.Bijection
 
 module MS = Kuiper.Spec.GEMM
 
 module RSMX = Kuiper.Kernel.RowSoftmax
-
-// TODO: consistent usage of chest2 and chest forms? review
 
 (* Pre-softmax attention scores. *)
 let attn_scores
@@ -24,8 +21,36 @@ let attn_scores
   (bias : chest (l @| s @| INil) real)
   (scale : real)
   : chest (l @| s @| INil) real
-  = chest_comb (fun bias_qk score -> (bias_qk +. score) *. scale) bias (MS.matmul eQ eK)
+  = chest_comb (fun bias_qk score -> (bias_qk +. (score *. scale))) bias (MS.matmul eQ eK)
 
+(* Top-level real-valued spec *)
+let attention_real
+  (#l #s #e #ev : pos)
+  (eQ : chest2 real l e)
+  (eK : chest2 real e s)
+  (eV : chest2 real s ev)
+  (bias : chest2 real l s)
+  (scale : real)
+  : GTot (chest2 real l ev)
+  = let scores = attn_scores eQ eK bias scale in
+    let probs  = RSMX.row_softmax_real scores in
+    MS.matmul probs eV
+
+let attention_real_batched
+  (#n #h #l #s #e #ev : pos)
+  (rQ:    chest4 real n h l e)
+  (rKT:   chest4 real n h e s)
+  (rV:    chest4 real n h s ev)
+  (rbias: chest4 real n h l s)
+  (scale : real)  
+  : GTot (chest4 real n h l ev)
+  = mk4 (fun i j -> 
+      acc2 (attention_real
+        (slice_page4 rQ i j)
+        (slice_page4 rKT i j)
+        (slice_page4 rV i j)
+        (slice_page4 rbias i j)
+        scale))
 
 (* Specs for attention with log-sum-exp.
  LATER: just separate the LSE stuff out so we aren't dealing with tuples & etc. *)
@@ -34,8 +59,8 @@ let attn_scores
 let attn_lse
   (#l #s : pos)
   (scores : chest (l @| s @| INil) real)
-  : GTot (lseq real l)
-  = Seq.init_ghost l (fun i -> log (rsum (seq_map exp (ematrix_row scores i))))
+  : GTot (chest1 real l)
+  = mk1 (fun i -> log (chest1_rsum (chest_map exp (chest2_row scores i))))
 
 (* Top-level real-valued spec: (output, log-sum-exp) given real inputs. *)
 let attention_real_lse
@@ -45,7 +70,7 @@ let attention_real_lse
   (eV : chest2 real s ev)
   (bias : chest2 real l s)
   (scale : real)
-  : GTot (chest2 real l ev & lseq real l)
+  : GTot (chest2 real l ev & chest1 real l)
   = let scores = attn_scores eQ eK bias scale in
     let probs  = RSMX.row_softmax_real scores in
     let out    = MS.matmul probs eV in
@@ -67,5 +92,5 @@ let attention_real_batched_lse
             (slice_page4 rbias i j)
             scale in
     let out_spec = mk4 fun i j -> acc2 (fst (attn_tile i j)) in
-    let lse_spec = mk3 fun i j -> Seq.index (snd (attn_tile i j)) in
+    let lse_spec = mk3 fun i j -> acc1 (snd (attn_tile i j)) in
     (out_spec, lse_spec)
