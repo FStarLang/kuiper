@@ -4,6 +4,7 @@ module Kuiper.DotProd
 
 open Kuiper
 open Kuiper.Tensor
+open Kuiper.Tensor.Layout.Slice
 module SZ = Kuiper.SizeT
 open Kuiper.Sum { sum, sum_pop_right }
 open Kuiper.Chest { chest_slice }

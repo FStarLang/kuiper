@@ -7,6 +7,7 @@ module Kuiper.Kernel.BatchedGEMM
 open Kuiper
 open Kuiper.Tensor
 open Kuiper.Tensor.Layout
+open Kuiper.Tensor.Layout.Slice
 open Kuiper.Tensor.Layout.Alg
 module MS = Kuiper.Spec.GEMM
 module SZ = Kuiper.SizeT
