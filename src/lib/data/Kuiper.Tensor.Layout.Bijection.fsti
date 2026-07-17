@@ -9,6 +9,7 @@ open Kuiper.Injection
 open Kuiper.Bijection
 open Kuiper.Shape
 open Kuiper.Chest
+open Pulse.Lib.Trade { (@==>) }
 
 module SZ = Kuiper.SizeT
 
@@ -46,6 +47,85 @@ fn tensor_apply_bij
     a |-> Frac fp m
   ensures
     from_array (tlayout_bij f l) (core a) |-> Frac fp (mk d2 (fun i -> acc m (i <~| f)))
+
+
+fn tensor_apply_bij_ro
+  (#et : Type0)
+  (#r1 : nat) (#d1 : shape r1)
+  (#r2 : nat) (#d2 : shape r2)
+  (f : abs d1 =~ abs d2)
+  (#l : tlayout d1) {| is_full l |}
+  (a : tensor et l)
+  (#fp : perm) (#m : chest d1 et)
+  requires
+    a |-> Frac fp m
+  returns
+    fa: tensor et (tlayout_bij f l)
+  ensures
+    rewrites_to fa (from_array (tlayout_bij f l) (core a)) **
+    factored
+      (fa |-> Frac fp (mk d2 (fun i -> acc m (i <~| f))))
+      (a |-> Frac fp m)
+
+fn tensor_apply_bij_ro_located
+  (#et : Type0)
+  (#r1 : nat) (#d1 : shape r1)
+  (#r2 : nat) (#d2 : shape r2)
+  (f : abs d1 =~ abs d2)
+  (#l : tlayout d1) {| is_full l |}
+  (#loc: loc_id)
+  (a : tensor et l)
+  (#fp : perm) (#m : chest d1 et)
+  requires
+    on loc (a |-> Frac fp m)
+  returns
+    fa: tensor et (tlayout_bij f l)
+  ensures
+    rewrites_to fa (from_array (tlayout_bij f l) (core a)) **
+    factored
+      (on loc (fa |-> Frac fp (mk d2 (fun i -> acc m (i <~| f)))))
+      (on loc (a |-> Frac fp m))
+
+fn tensor_apply_bij_st
+  (#et : Type0)
+  (#r1 : nat) (#d1 : shape r1)
+  (#r2 : nat) (#d2 : shape r2)
+  (f : abs d1 =~ abs d2)
+  (#l : tlayout d1) {| is_full l |}
+  (a : tensor et l)
+  (#fp : perm) (#m : chest d1 et)
+  requires
+    a |-> Frac fp m
+  returns
+    fa: tensor et (tlayout_bij f l)
+  ensures
+    rewrites_to fa (from_array (tlayout_bij f l) (core a)) **
+    fa |-> Frac fp (mk d2 (fun i -> acc m (i <~| f))) **
+    (forall* (m' : chest d2 et).
+      fa |-> Frac fp m' @==>
+      a |-> Frac fp (mk d1 (fun i -> acc m' (f.ff i))))
+
+fn tensor_apply_bij_st_located
+  (#et : Type0)
+  (#r1 : nat) (#d1 : shape r1)
+  (#r2 : nat) (#d2 : shape r2)
+  (f : abs d1 =~ abs d2)
+  (#l : tlayout d1) {| is_full l |}
+  (#loc: loc_id)
+  (a : tensor et l)
+  (#fp : perm) (#m : chest d1 et)
+  requires
+    on loc (a |-> Frac fp m)
+  returns
+    fa: tensor et (tlayout_bij f l)
+  ensures
+    rewrites_to fa (from_array (tlayout_bij f l) (core a)) **
+    on loc (fa |-> Frac fp (mk d2 (fun i -> acc m (i <~| f)))) **
+    (forall* (m' : chest d2 et).
+      on loc (fa |-> Frac fp m') @==>
+      on loc (a |-> Frac fp (mk d1 (fun i -> acc m' (f.ff i)))))
+
+(* ---------------------- Folding outer dimensions ---------------------- *)
 
 let unfold_index (#r: nat {r > 1}) (#d: shape r) (i : abs (fold_outer d)): GTot (abs d) =
   let ICons h1 (ICons h2 ts) = d in
@@ -107,13 +187,12 @@ fn tensor_unfold_outer
   ensures
     from_array l (core a) |-> Frac f (unfold_chest m)
 
-(*
-fn tensor_fold_ro'
+fn tensor_fold_ro
   (#et : Type0)
   (#r: nat {r > 1}) (#d: shape r)
-  (#l: tlayout d)
+  (#l: tlayout d { is_full l })
   (a : tensor et l)
-  (#f : perm) (#m : Chest.t d et)
+  (#f : perm) (#m : chest d et)
   requires
     a |-> Frac f m
   returns
@@ -123,4 +202,64 @@ fn tensor_fold_ro'
     factored
       (fa |-> Frac f (fold_chest m))
       (a |-> Frac f m)
-*)
+
+fn tensor_fold_ro_located
+  (#et : Type0)
+  (#r: nat {r > 1}) (#d: shape r)
+  (#l: tlayout d { is_full l })
+  (#loc: loc_id)
+  (a : tensor et l)
+  (#f : perm) (#m : chest d et)
+  requires
+    on loc (a |-> Frac f m)
+  returns
+    fa: tensor et (tlayout_fold_outer l)
+  ensures
+    rewrites_to fa (from_array (tlayout_fold_outer l) (core a)) **
+    factored
+      (on loc (fa |-> Frac f (fold_chest m)))
+      (on loc (a |-> Frac f m))
+
+
+fn tensor_fold_st
+  (#et : Type0)
+  (#r: nat {r > 1}) (#d: shape r)
+  (#l: tlayout d { is_full l })
+  (a : tensor et l)
+  (#f : perm) (#m : chest d et)
+  requires
+    a |-> Frac f m
+  returns
+    fa: tensor et (tlayout_fold_outer l)
+  ensures
+    rewrites_to fa (from_array (tlayout_fold_outer l) (core a)) **
+    fa |-> Frac f (fold_chest m) **
+    (forall* (m' : chest (fold_outer d) et).
+      fa |-> Frac f m' @==>
+      a |-> Frac f (unfold_chest m'))
+
+fn tensor_fold_st_located
+  (#et : Type0)
+  (#r: nat {r > 1}) (#d: shape r)
+  (#l: tlayout d { is_full l })
+  (#loc: loc_id)
+  (a : tensor et l)
+  (#f : perm) (#m : chest d et)
+  requires
+    on loc (a |-> Frac f m)
+  returns
+    fa: tensor et (tlayout_fold_outer l)
+  ensures
+    rewrites_to fa (from_array (tlayout_fold_outer l) (core a)) **
+    (on loc (fa |-> Frac f (fold_chest m))) **
+    (forall* (m' : chest (fold_outer d) et).
+      (on loc (fa |-> Frac f m')) @==>
+      (on loc (a |-> Frac f (unfold_chest m'))))
+
+val unfold_fold_chest_id (#et:Type0) (#r:nat{r>1}) (#d:shape r) (m : chest d et)
+  : Lemma (unfold_chest #et #r #d (fold_chest #et #r #d m) == m)
+  [SMTPat (unfold_chest (fold_chest m))]
+
+val fold_unfold_chest_id (#et:Type0) (#r:nat{r>1}) (#d:shape r) (m : chest (fold_outer d) et)
+  : Lemma (fold_chest (unfold_chest m) == m)
+  [SMTPat (fold_chest (unfold_chest m))]

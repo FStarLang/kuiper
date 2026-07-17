@@ -5,6 +5,7 @@ module Kuiper.Kernel.GEMM.Util
 open Kuiper
 module MS = Kuiper.Spec.GEMM
 open Kuiper.Chest
+open Kuiper.Shape
 open Kuiper.EMatrix
 
 (* This is now only spec and lemmas. *)
@@ -117,3 +118,36 @@ val mmcomb_approx_real
     (requires approx2 comb comb_r /\
               eA %~ rA /\ eB %~ rB /\ eC %~ rC)
     (ensures MS.mmcomb comb eC eA eB %~ MS.mmcomb comb_r rC rA rB)
+
+let bmmcomb_approx_real
+  (#et: Type0) {| scalar et, real_like et |}
+  (comb : binop et)
+  (comb_r : binop real)
+  (#batch #rows #shared #cols : nat)
+  (eC : chest3 et batch rows cols)
+  (eA : chest3 et batch rows shared)
+  (eB : chest3 et batch shared cols)
+  (rC : chest3 real batch rows cols)
+  (rA : chest3 real batch rows shared)
+  (rB : chest3 real batch shared cols)
+  : Lemma
+      (requires
+        approx2 comb comb_r /\
+        eC %~ rC /\ eA %~ rA /\ eB %~ rB)
+      (ensures
+        MS.bmmcomb comb eC eA eB %~
+        MS.bmmcomb comb_r rC rA rB) =
+  let aux (idx : Kuiper.Shape.abs (batch @| rows @| cols @| INil))
+    : Lemma
+        (requires
+          approx2 comb comb_r /\
+          eC %~ rC /\ eA %~ rA /\ eB %~ rB)
+        (ensures
+          acc (MS.bmmcomb comb eC eA eB) idx %~
+          acc (MS.bmmcomb comb_r rC rA rB) idx) =
+    let (i, (j, (k, ()))) = idx in
+    mmcomb_approx_real comb comb_r
+      (slice_page eC i) (slice_page eA i) (slice_page eB i)
+      (slice_page rA i) (slice_page rB i) (slice_page rC i)
+  in
+  Classical.forall_intro (fun idx -> Classical.move_requires aux idx)
