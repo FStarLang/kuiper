@@ -6,6 +6,7 @@ module Kuiper.Kernel.GEMM.Tiled
 open Kuiper
 open Kuiper.Tensor
 open Kuiper.Tensor.Layout
+open Kuiper.Tensor.Layout.Slice
 open Kuiper.EMatrix
 open Kuiper.EMatrix.Tiling
 open Kuiper.Bijection

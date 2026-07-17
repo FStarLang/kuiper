@@ -38,7 +38,7 @@ fn spec
   K.bmmcomb_gpu_exact MS.comb2 batch m n k gA gB gC;
   MU.bmmcomb_approx_real
     MS.comb2 MS.comb2
-    eC eA eB
+    eA eB eC
     rA rB (Kuiper.Chest.to_real_chest eC);
   ()
 }

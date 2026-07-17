@@ -123,14 +123,18 @@ let bmmcomb_approx_real
   (#et:Type) {| scalar et, real_like et |}
   (comb : binop et)
   (comb_r : binop real)
-  (#batch #rows #shared #cols : nat)
-  (eC : chest3 et batch rows cols)
-  (eA : chest3 et batch rows shared)
-  (eB : chest3 et batch shared cols)
-  (rA : chest3 real batch rows shared)
-  (rB : chest3 real batch shared cols)
-  (rC : chest3 real batch rows cols)
-  = let aux (idx : natlt batch & (natlt rows & (natlt cols & unit)))
+  (#batch #m #n #k : nat)
+  (eA : chest3 et batch m k)
+  (eB : chest3 et batch k n)
+  (eC : chest3 et batch m n)
+  (rA : chest3 real batch m k)
+  (rB : chest3 real batch k n)
+  (rC : chest3 real batch m n)
+  : Lemma
+    (requires approx2 comb comb_r /\
+              eA %~ rA /\ eB %~ rB /\ eC %~ rC)
+    (ensures MS.bmmcomb comb eC eA eB %~ MS.bmmcomb comb_r rC rA rB)
+  = let aux (idx : natlt batch & (natlt m & (natlt n & unit)))
       : Lemma
         (requires approx2 comb comb_r /\ eA %~ rA /\ eB %~ rB /\ eC %~ rC)
         (ensures
@@ -149,4 +153,5 @@ let bmmcomb_approx_real
                 %~ acc2 (MS.mmcomb comb_r (slice_page rC page) (slice_page rA page) (slice_page rB page)) row col);
         ()
     in
-    Classical.forall_intro (fun idx -> Classical.move_requires aux idx)
+    Classical.forall_intro (fun idx -> Classical.move_requires aux idx);
+    ()

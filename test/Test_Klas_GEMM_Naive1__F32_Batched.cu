@@ -12,9 +12,7 @@ const char *progname = "Test_Klas_GEMM_Naive1__F32_Batched";
 #define TOLERANCE 0.001f
 
 static float *cpu_batched_mul(uint32_t batch, uint32_t m,
-                              uint32_t n,
-                              uint32_t k,
-                              float *m1, float *m2)
+                              uint32_t n, uint32_t k, float *m1, float *m2)
 {
     float *out = (float *)calloc(batch * m * n, sizeof(float));
     for (uint32_t b = 0; b < batch; b++) {
@@ -22,8 +20,7 @@ static float *cpu_batched_mul(uint32_t batch, uint32_t m,
             for (uint32_t l = 0; l < k; l++) {
                 for (uint32_t j = 0; j < n; j++) {
                     out[b * (m * n) + i * n + j] +=
-                        m1[b * (m * k) + i * k + l] *
-                        m2[b * (k * n) + l * n + j];
+                        m1[b * (m * k) + i * k + l] * m2[b * (k * n) + l * n + j];
                 }
             }
         }
@@ -99,8 +96,7 @@ int main(int argc, char **argv)
 
     float *gemm_gpu = (float *)kpr_wait_alloc(sizeof(float), c_elems);
     cudaMemcpy(gemm_gpu, c_initial, c_elems * sizeof(float), cudaMemcpyHostToDevice);
-    Klas_GEMM_Naive1_batched_gemm_f32(2.0f, 0.5f, batch, m, n, k,
-                                       a_gpu, b_gpu, gemm_gpu);
+    Klas_GEMM_Naive1_batched_gemm_f32(2.0f, 0.5f, batch, m, n, k, a_gpu, b_gpu, gemm_gpu);
     MUST(cudaMemcpy(c_host, gemm_gpu, c_elems * sizeof(float), cudaMemcpyDeviceToHost));
 
     for (size_t i = 0; i < c_elems; i++) {
@@ -108,8 +104,7 @@ int main(int argc, char **argv)
         float got = c_host[i];
         bool ok = (got == exp) || (exp != 0.0f && fabsf((got - exp) / exp) <= TOLERANCE);
         if (!ok) {
-            fprintf(stderr, "GEMM error at index=%zu: %g (gpu) != %g (cpu)\n",
-                    i, got, exp);
+            fprintf(stderr, "GEMM error at index=%zu: %g (gpu) != %g (cpu)\n", i, got, exp);
             nerrs++;
             if (nerrs >= 10)
                 return 1;
