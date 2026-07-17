@@ -358,30 +358,28 @@ let transpose4_2 (d0 d1 d2 d3 : nat) :
   ));
 }
 
-/// Concrete index mapping for [transpose4_2], mirroring its ghost inverse [gg]
-/// (which swaps the last two dimensions). Carries no proof obligations beyond the
-/// pointwise swap, so [transpose4_2_conc_correct] is definitional.
 inline_for_extraction noextract
-let transpose4_2_conc (d0 d1 d2 d3 : nat)
-  (x : conc (d0 @| d1 @| d3 @| d2 @| INil))
-  : conc (d0 @| d1 @| d2 @| d3 @| INil)
-  = let (i,(j,(k,(l,())))) = x in (i,(j,(l,(k,()))))
+let transpose4_2_conc (#d0 #d1 #d2 #d3 : nat)
+  (x : szlt d0 & (szlt d1 & (szlt d3 & (szlt d2 & unit))))
+  : Tot (szlt d0 & (szlt d1 & (szlt d2 & (szlt d3 & unit))))
+  = let i, (j, (k, (l, ()))) = x in
+    (i, (j, (l, (k, ()))))
 
-let transpose4_2_conc_correct (d0 d1 d2 d3 : nat)
+let transpose4_2_conc_correct (#d0 #d1 #d2 #d3 : nat)
   (x : conc (d0 @| d1 @| d3 @| d2 @| INil))
-  : (up (transpose4_2_conc d0 d1 d2 d3 x) == (transpose4_2 d0 d1 d2 d3).gg (up x))
+  : (up (transpose4_2_conc x) == (transpose4_2 d0 d1 d2 d3).gg (up x))
   = ()
 
-/// Extractable [ctlayout] for the K-transpose relayout: instantiates [ctlayout_bij]
-/// with the concrete swap above.
 inline_for_extraction noextract
 let ctlayout_bij_transpose
   (#d0 #d1 #d2 #d3 : szp)
   (lin : tlayout (d0 @| d1 @| d2 @| d3 @| INil)) {| c : ctlayout lin |}
   : ctlayout (tlayout_bij (transpose4_2 (SZ.v d0) (SZ.v d1) (SZ.v d2) (SZ.v d3)) lin)
   = ctlayout_bij (transpose4_2 (SZ.v d0) (SZ.v d1) (SZ.v d2) (SZ.v d3))
-      (transpose4_2_conc (SZ.v d0) (SZ.v d1) (SZ.v d2) (SZ.v d3))
-      (transpose4_2_conc_correct (SZ.v d0) (SZ.v d1) (SZ.v d2) (SZ.v d3))
+      (transpose4_2_conc
+        #(SZ.v d0) #(SZ.v d1) #(SZ.v d2) #(SZ.v d3))
+      (transpose4_2_conc_correct
+        #(SZ.v d0) #(SZ.v d1) #(SZ.v d2) #(SZ.v d3))
       lin
 
 #pop-options
@@ -396,7 +394,15 @@ fn sdpa_naive
   (#lK: tlayout    (n @| h @| s @| e @| INil)  { is_full lK })
   (#lV: tlayout    (n @| h @| s @| ev @| INil) { is_full lV })
   (#lbias: tlayout (n @| h @| l @| s @| INil)  { is_full lbias })
-  {| ctlayout lQ, ctlayout lK, ctlayout lV, ctlayout lbias |}
+  {| ctlayout lQ, ctlayout lK, ctlayout lV, ctlayout lbias,
+     cQf : ctlayout (tlayout_fold_outer lQ),
+     cKTf : ctlayout (
+       tlayout_fold_outer (tlayout_bij (transpose4_2 n h s e) lK)),
+     cBiasF : ctlayout (tlayout_fold_outer lbias),
+     cBiasFF : ctlayout (tlayout_fold_outer (tlayout_fold_outer lbias)),
+     cVf : ctlayout (tlayout_fold_outer lV),
+     cOutF : ctlayout (
+       tlayout_fold_outer (l4_batched_row_major n h l ev)) |}
   (gQ    : tensor et lQ    { is_global gQ    })
   (gK    : tensor et lK    { is_global gK    })
   (gV    : tensor et lV    { is_global gV    })
@@ -447,7 +453,6 @@ fn sdpa_naive
           (to_real_chest ebias)
           (to_real scale))) 
 {
-  
   map_loc gpu_loc (fun () -> tensor_pts_to_ref gQ);
   map_loc gpu_loc (fun () -> tensor_pts_to_ref gK);
   map_loc gpu_loc (fun () -> tensor_pts_to_ref gV);
@@ -474,11 +479,7 @@ fn sdpa_naive
   // Compute Q * K^T + bias, scaled by scale, into bias
   bmmcomb_gpu_exact #et (fun bias_qk score -> bias_qk `add` (score `mul` scale))
     (n*^h) l e s #_ #_ #_
-    #(ctlayout_fold_outer lQ)
-    #(ctlayout_fold_outer
-        (tlayout_bij f_transpose lK)
-        #(ctlayout_bij_transpose lK))
-    #(ctlayout_fold_outer lbias)
+    #cQf #cKTf #cBiasF
     gQf gKf gSf;
 
   with eSf'. assert on gpu_loc (gSf |-> eSf');
@@ -523,9 +524,7 @@ fn sdpa_naive
   let gSff = tensor_fold_st_located gSf;
   row_softmax_gpu #et
     (n*^h*^l) s max_threads #_
-    #(ctlayout_fold_outer
-        (tlayout_fold_outer lbias)
-        #(ctlayout_fold_outer lbias))
+    #cBiasFF
     gSff #eSff scoresff;
   with eSff'. assert on gpu_loc (gSff |-> eSff');
 
@@ -555,9 +554,7 @@ fn sdpa_naive
   // Final batched matmul to compute output: probs * V
   bmmcomb_gpu_exact #et (MS.comb2 #et)
     (n*^h) l s ev #_ #_ #_
-    #(ctlayout_fold_outer lbias)
-    #(ctlayout_fold_outer lV)
-    #(ctlayout_fold_outer (l4_batched_row_major n h l ev))
+    #cBiasF #cVf #cOutF
     gSf gVf out_f;
   with eOf'. assert on gpu_loc (out_f |-> eOf');
 

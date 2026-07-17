@@ -373,6 +373,11 @@ let fold_bij (#r: nat {r > 1}) (#d: shape r): (abs d =~ abs (fold_outer d)) = {
   gg_ff = ez;
 }
 
+let fold_bij_gg (#r: nat {r > 1}) (#d: shape r)
+  (x : abs (fold_outer d))
+  : Lemma ((fold_bij #r #d).gg x == unfold_index x)
+  = ()
+
 inline_for_extraction noextract
 let unfold_index_conc
   (#r: erased nat {r > 1})
@@ -481,6 +486,7 @@ fn tensor_unfold_outer
   tensor_implode (from_array l (core a));
 }
 
+inline_for_extraction noextract
 fn tensor_fold_ro
   (#et : Type0)
   (#r: nat {r > 1}) (#d: shape r)
@@ -500,6 +506,7 @@ fn tensor_fold_ro
   tensor_apply_bij_ro fold_bij a
 }
 
+inline_for_extraction noextract
 fn tensor_fold_ro_located
   (#et : Type0)
   (#r: nat {r > 1}) (#d: shape r)
@@ -520,6 +527,7 @@ fn tensor_fold_ro_located
   tensor_apply_bij_ro_located fold_bij a
 }
 
+inline_for_extraction noextract
 fn tensor_fold_st
   (#et : Type0)
   (#r: nat {r > 1}) (#d: shape r)
@@ -540,6 +548,7 @@ fn tensor_fold_st
   tensor_apply_bij_st fold_bij a
 }
 
+inline_for_extraction noextract
 fn tensor_fold_st_located
   (#et : Type0)
   (#r: nat {r > 1}) (#d: shape r)

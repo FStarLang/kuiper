@@ -164,6 +164,20 @@ instance c_l3_batched_row_major
   }
 #pop-options
 
+#push-options "--fuel 2 --ifuel 2 --z3rlimit 80"
+let l3_batched_row_major_imap
+  (r : erased nat{SZ.fits r})
+  (m : SZ.t{SZ.fits (r * m)})
+  (n : SZ.t{SZ.fits (m * n) /\ SZ.fits (r * (m * n))})
+  (i : szlt r) (j : szlt m) (k : szlt n)
+  : Lemma (
+      (l3_batched_row_major r m n).imap.f
+        (SZ.v i, (SZ.v j, (SZ.v k, ()))) ==
+      SZ.v (
+        SZ.add (SZ.mul i (SZ.mul m n)) (SZ.add (SZ.mul j n) k)))
+  = ()
+#pop-options
+
 #push-options "--z3rlimit 80"
 inline_for_extraction noextract
 instance c_l3_batched_col_major
@@ -179,6 +193,20 @@ instance c_l3_batched_col_major
               | (i, (j, (k, ()))) ->
                 SZ.add (SZ.mul i (SZ.mul m n)) (SZ.add (SZ.mul k m) j))
   }
+#pop-options
+
+#push-options "--fuel 2 --ifuel 2 --z3rlimit 80"
+let l3_batched_col_major_imap
+  (r : erased nat{SZ.fits r})
+  (m : SZ.t{SZ.fits (r * m)})
+  (n : SZ.t{SZ.fits (m * n) /\ SZ.fits (r * (m * n))})
+  (i : szlt r) (j : szlt m) (k : szlt n)
+  : Lemma (
+      (l3_batched_col_major r m n).imap.f
+        (SZ.v i, (SZ.v j, (SZ.v k, ()))) ==
+      SZ.v (
+        SZ.add (SZ.mul i (SZ.mul m n)) (SZ.add (SZ.mul k m) j)))
+  = ()
 #pop-options
 
 #push-options "--z3rlimit 80"
@@ -197,4 +225,23 @@ instance c_l4_batched_row_major
               | (i, (j, (k, (l, ())))) ->
                 SZ.add (SZ.mul i (SZ.mul r2 (SZ.mul m n))) (SZ.add (SZ.mul j (SZ.mul m n)) (SZ.add (SZ.mul k n) l)))
   }
+#pop-options
+
+#push-options "--fuel 2 --ifuel 2 --z3rlimit 80"
+let l4_batched_row_major_imap
+  (r1: erased nat{SZ.fits r1})
+  (r2: SZ.t{SZ.fits (r1 * r2)})
+  (m : SZ.t{SZ.fits (r2 * m) /\ SZ.fits (r1 * (r2 * m))})
+  (n : SZ.t{
+    SZ.fits (m * n) /\
+    SZ.fits (r2 * (m * n)) /\
+    SZ.fits (r1 * (r2 * (m * n)))})
+  (i : szlt r1) (j : szlt r2) (k : szlt m) (l : szlt n)
+  : Lemma (
+      (l4_batched_row_major r1 r2 m n).imap.f
+        (SZ.v i, (SZ.v j, (SZ.v k, (SZ.v l, ())))) ==
+      SZ.v (
+        SZ.add (SZ.mul i (SZ.mul r2 (SZ.mul m n)))
+          (SZ.add (SZ.mul j (SZ.mul m n)) (SZ.add (SZ.mul k n) l))))
+  = ()
 #pop-options
