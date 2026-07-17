@@ -19,6 +19,25 @@ let size_req : size_req_t =
   fun m n k -> m * n <= max_blocks * max_threads
 
 inline_for_extraction noextract
+val kdesc
+  (#et : Type0) {| scalar et |}
+  (comb : binop et)
+  (#m #n #k : szp)
+  (#lA : layout2 m k)
+  (#lB : layout2 k n)
+  (#lC : layout2 m n)
+  {| ctlayout lA, ctlayout lB, ctlayout lC |}
+  (gA : tensor et lA { is_global gA })
+  (gB : tensor et lB { is_global gB })
+  (gC : tensor et lC { is_global gC })
+  (#eA #eB #eC : chest2 et _ _)
+  (#fA #fB : perm)
+  (#_ : squash (size_req m n k))
+  : kernel_desc
+    (gA |-> Frac fA eA ** gB |-> Frac fB eB ** gC |-> eC)
+    (gA |-> Frac fA eA ** gB |-> Frac fB eB ** gC |-> MS.mmcomb comb eC eA eB)
+
+inline_for_extraction noextract
 fn mmcomb_gpu_exact
   (#et : Type0) {| scalar et |}
   (comb : binop et)

@@ -117,3 +117,23 @@ val mmcomb_approx_real
     (requires approx2 comb comb_r /\
               eA %~ rA /\ eB %~ rB /\ eC %~ rC)
     (ensures MS.mmcomb comb eC eA eB %~ MS.mmcomb comb_r rC rA rB)
+
+(* Batched (rank-3) analogue of [mmcomb_approx_real]: the reusable
+   approximation lemma for the natively-batched GEMM spec. If eA %~ rA,
+   eB %~ rB, eC %~ rC (per batch page) and approx2 comb comb_r, then the
+   per-page batched combine [bmmcomb] approximates its real counterpart. *)
+val bmmcomb_approx_real
+  (#et:Type) {| scalar et, real_like et |}
+  (comb : binop et)
+  (comb_r : binop real)
+  (#batch #rows #shared #cols : nat)
+  (eC : chest3 et batch rows cols)
+  (eA : chest3 et batch rows shared)
+  (eB : chest3 et batch shared cols)
+  (rA : chest3 real batch rows shared)
+  (rB : chest3 real batch shared cols)
+  (rC : chest3 real batch rows cols)
+  : Lemma
+    (requires approx2 comb comb_r /\
+              eA %~ rA /\ eB %~ rB /\ eC %~ rC)
+    (ensures MS.bmmcomb comb eC eA eB %~ MS.bmmcomb comb_r rC rA rB)

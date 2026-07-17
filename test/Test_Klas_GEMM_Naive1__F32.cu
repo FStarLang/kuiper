@@ -1,6 +1,6 @@
-#include "Klas_GEMM_Naive.h"
+#include "Klas_GEMM_Naive1.h"
 
-#define stem         Klas_GEMM_Naive_g_matmul_
+#define stem         Klas_GEMM_Naive1_g_matmul_
 #define et           float
 #define et_lbl       f32
 #define TOLERANCE    0.001f
