@@ -29,7 +29,6 @@ open Kuiper.Bijection
 open Pulse.Lib.Trade
 module MS = Kuiper.Spec.GEMM
 module SZ = Kuiper.SizeT
-module C = Kuiper.Matrix.Casts
 
 (* Reshaping bridge between the 2-D nested index
    [abs (m @| n @| INil)] and the flat pair, mirroring Naive.abs_bij. *)
