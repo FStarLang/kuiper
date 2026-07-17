@@ -119,35 +119,22 @@ val mmcomb_approx_real
               eA %~ rA /\ eB %~ rB /\ eC %~ rC)
     (ensures MS.mmcomb comb eC eA eB %~ MS.mmcomb comb_r rC rA rB)
 
-let bmmcomb_approx_real
-  (#et: Type0) {| scalar et, real_like et |}
+(* Batched (rank-3) analogue of [mmcomb_approx_real]: the reusable
+   approximation lemma for the natively-batched GEMM spec. If eA %~ rA,
+   eB %~ rB, eC %~ rC (per batch page) and approx2 comb comb_r, then the
+   per-page batched combine [bmmcomb] approximates its real counterpart. *)
+val bmmcomb_approx_real
+  (#et:Type) {| scalar et, real_like et |}
   (comb : binop et)
   (comb_r : binop real)
-  (#batch #rows #shared #cols : nat)
-  (eC : chest3 et batch rows cols)
-  (eA : chest3 et batch rows shared)
-  (eB : chest3 et batch shared cols)
-  (rC : chest3 real batch rows cols)
-  (rA : chest3 real batch rows shared)
-  (rB : chest3 real batch shared cols)
+  (#batch #m #n #k : nat)
+  (eA : chest3 et batch m k)
+  (eB : chest3 et batch k n)
+  (eC : chest3 et batch m n)
+  (rA : chest3 real batch m k)
+  (rB : chest3 real batch k n)
+  (rC : chest3 real batch m n)
   : Lemma
-      (requires
-        approx2 comb comb_r /\
-        eC %~ rC /\ eA %~ rA /\ eB %~ rB)
-      (ensures
-        MS.bmmcomb comb eC eA eB %~
-        MS.bmmcomb comb_r rC rA rB) =
-  let aux (idx : Kuiper.Shape.abs (batch @| rows @| cols @| INil))
-    : Lemma
-        (requires
-          approx2 comb comb_r /\
-          eC %~ rC /\ eA %~ rA /\ eB %~ rB)
-        (ensures
-          acc (MS.bmmcomb comb eC eA eB) idx %~
-          acc (MS.bmmcomb comb_r rC rA rB) idx) =
-    let (i, (j, (k, ()))) = idx in
-    mmcomb_approx_real comb comb_r
-      (slice_page eC i) (slice_page eA i) (slice_page eB i)
-      (slice_page rA i) (slice_page rB i) (slice_page rC i)
-  in
-  Classical.forall_intro (fun idx -> Classical.move_requires aux idx)
+    (requires approx2 comb comb_r /\
+              eA %~ rA /\ eB %~ rB /\ eC %~ rC)
+    (ensures MS.bmmcomb comb eC eA eB %~ MS.bmmcomb comb_r rC rA rB)

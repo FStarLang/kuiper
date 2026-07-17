@@ -8,7 +8,7 @@ open Kuiper.Tensor
 
 module SZ = Kuiper.SizeT
 
-let gather_chest 
+let gather_chest
   (#et : Type0)
   (#r : erased nat)
   (di do : shape r { shape_le di do })
@@ -35,5 +35,5 @@ fn gather_gpu
   (#fInp #fIdx: perm)
   preserves cpu ** on gpu_loc (gInp |-> Frac fInp eInp) ** on gpu_loc (gIdx |-> Frac fIdx eIdx)
   requires on gpu_loc (live gOut)
-  ensures 
+  ensures
       on gpu_loc (gOut |-> gather_chest di do eInp dim eIdx)

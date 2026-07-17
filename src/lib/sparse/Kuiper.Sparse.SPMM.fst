@@ -1781,6 +1781,7 @@ fn kf
             eB out0 tid n_idx
         )
       )
+    decreases SZ.v !nnz
   {
     assert pure (ri + (!idx + 1) * p.blockItemsK <= gA.nnz);
     assert pure (!idx < (re - ri) / p.blockItemsK);

@@ -430,6 +430,7 @@ fn compute
           stepB
           v_k
       )
+    decreases (nnz - !k)
   {
     let a = slice_read elems_tile !k;
     let c = slice_read col_ind_tile !k;
@@ -451,6 +452,7 @@ fn compute
             _sparse_comb v_out' v_elems (cast_pos v_col_ind) stepB v_k v_x
         ) **
         k |-> v_k
+      decreases (blockItemsX /^ blockWidth - !x)
     {
       with v_x. assert x |-> v_x;
       assert pure (v_x *^ blockWidth + tid < blockItemsX);

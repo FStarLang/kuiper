@@ -10,7 +10,7 @@ open Kuiper.EMatrix
 open Kuiper.Tensor
 open Kuiper.Tensor.Layout.Alg
 module MS = Kuiper.Spec.GEMM
-module N = Kuiper.Kernel.GEMM.Naive
+module N = Kuiper.Kernel.GEMM.Naive2
 
 [@@allow_ambiguous]
 ghost

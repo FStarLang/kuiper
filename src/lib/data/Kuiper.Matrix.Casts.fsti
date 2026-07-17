@@ -131,3 +131,102 @@ fn t2_to_t1
     a |-> Frac f s
   ensures
     relay a (l2_to_l1 l) |-> Frac f (c2_to_c1 s)
+
+(* ----- Rank-2 <-> single-page ("batch-one") rank-3 -----
+
+   These lift a rank-2 matrix to a rank-3 tensor whose leading (batch) index
+   has size one, and back.  They are the rank-2/rank-3 analogues of the
+   [l1_to_l2]/[c1_to_c2]/... family above, and are reused by the batched GEMM
+   kernels to run a single matrix through the batched path at batch one. *)
+
+(* A rank-2 matrix and a single-page rank-3 tensor have the same index
+   cardinality.  This concrete bijection lets [clayout_bij] construct the
+   rank-3 layout without changing the underlying allocation. *)
+inline_for_extraction noextract
+let cbij23 (d0 d1 : szp)
+  : (conc (d0 @| d1 @| INil) ==~ conc (1 @| d0 @| d1 @| INil)) =
+  mk_cbij
+    #(conc (d0 @| d1 @| INil))
+    #(conc (1 @| d0 @| d1 @| INil))
+    (function (i, (j, ())) -> (0sz, (i, (j, ()))))
+    (function (_, (i, (j, ()))) -> (i, (j, ())))
+    (fun (z, (_, (_, ()))) ->
+      FStar.SizeT.size_v_inj z;
+      ())
+    ez
+
+inline_for_extraction noextract
+let l2_to_l3
+  (d0 d1 : szp)
+  (#l : layout2 d0 d1)
+  {| ctlayout l |}
+  : layout3 1 d0 d1 =
+  layout_bij (bij_up (cbij23 d0 d1)) l
+
+inline_for_extraction noextract
+instance cl2_to_cl3
+  (d0 d1 : szp)
+  (#l : layout2 d0 d1)
+  {| ctlayout l |}
+  : ctlayout (l2_to_l3 d0 d1 #l) =
+  clayout_bij (cbij23 d0 d1) l
+
+let c2_to_c3
+  (#et : Type0)
+  (d0 d1 : szp)
+  (s : chest2 et d0 d1)
+  : chest3 et 1 d0 d1 =
+  chest_bij (bij_up (cbij23 d0 d1)) s
+
+let c3_to_c2
+  (#et : Type0)
+  (d0 d1 : szp)
+  (s : chest3 et 1 d0 d1)
+  : chest2 et d0 d1 =
+  chest_bij (bij_sym (bij_up (cbij23 d0 d1))) s
+
+val c2_to_c3_roundtrip
+  (#et : Type0)
+  (d0 d1 : szp)
+  (s : chest2 et d0 d1)
+  : Lemma (c3_to_c2 d0 d1 (c2_to_c3 d0 d1 s) == s)
+
+val c2_to_c3_slice_page
+  (#et : Type0)
+  (d0 d1 : szp)
+  (s : chest2 et d0 d1)
+  : Lemma (slice_page (c2_to_c3 d0 d1 s) 0 == s)
+
+(* Ownership-only rank lift.  [tensor_abij] proves that the relayed tensor
+   carries exactly the lifted chest with the same fractional permission. *)
+ghost
+fn t2_to_t3
+  (#et : Type0)
+  (d0 d1 : szp)
+  (#l : layout2 d0 d1)
+  {| ctlayout l |}
+  (g : tensor et l)
+  (#f : perm)
+  (#s : chest2 et d0 d1)
+  requires
+    g |-> Frac f s
+  ensures
+    from_array (l2_to_l3 d0 d1 #l) (core g)
+      |-> Frac f (c2_to_c3 d0 d1 s)
+
+(* Inverse ownership cast.  Unlike composing two relays and postulating
+   layout extensionality, this lowers to cells, transports them through the
+   verified bijection, and raises the original rank-2 tensor again. *)
+ghost
+fn t3_to_t2
+  (#et : Type0)
+  (d0 d1 : szp)
+  (#l : layout2 d0 d1)
+  {| ctlayout l |}
+  (g : tensor et l)
+  (#f : perm)
+  (#s3 : chest3 et 1 d0 d1)
+  requires
+    from_array (l2_to_l3 d0 d1 #l) (core g) |-> Frac f s3
+  ensures
+    g |-> Frac f (c3_to_c2 d0 d1 s3)

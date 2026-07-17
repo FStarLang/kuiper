@@ -39,7 +39,7 @@ fn matmul_transpose_gpu
   map_loc gpu_loc (fun () -> tensor_pts_to_ref gC);
 
   map_loc gpu_loc (fun () -> TGT.ghost_transpose1 gC);
-  Kuiper.Kernel.GEMM.Naive.mmcomb_gpu_exact
+  Kuiper.Kernel.GEMM.Naive2.mmcomb_gpu_exact
     MS.comb2 gA gB (TGT.row2col gC);
 
   map_loc gpu_loc (fun () -> TGT.ghost_transpose1_back gC);

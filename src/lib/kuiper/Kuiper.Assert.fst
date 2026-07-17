@@ -12,11 +12,11 @@ fn dassert (b:bool)
   ensures  pure b
 {}
 
-fn rec dguard (b:bool)
+(* Extracted primitively. A possible model is to loop
+   if ~b, but that's not total. *)
+fn dguard (b:bool)
   requires emp
   ensures  pure b
 {
-  if (not b) {
-    dguard b
-  }
+  admit()
 }

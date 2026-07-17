@@ -8,11 +8,11 @@ open Kuiper.Tensor
 
 module SZ = Kuiper.SizeT
 
-let vscatter (#et: Type0) (#r : erased nat) 
+let vscatter (#et: Type0) (#r : erased nat)
   (di do: shape r {shape_le di do}) (dim : natlt r)
   (eInp : chest di et) (eIdx : chest di (szlt (do @! dim))) (eOut : chest do et)
   (i : abs di)
-  : prop 
+  : prop
   = acc eOut (abs_set_at2 di do dim (acc eIdx i) i) == acc eInp i
 
 let vscatter_chest
@@ -20,7 +20,7 @@ let vscatter_chest
   (#r : erased nat)
   (di do: shape r {shape_le di do})
   (dim : natlt r)
-  (eInp : chest di et) 
+  (eInp : chest di et)
   (eIdx : chest di (szlt (do @! dim)))
   (eOut : chest do et): prop
   = chest_foralli (fun i _ -> vscatter di do dim eInp eIdx eOut i) eInp
@@ -53,7 +53,7 @@ fn scatter_gpu
   (#fInp #fIdx: perm)
   preserves cpu ** on gpu_loc (gInp |-> Frac fInp eInp) ** on gpu_loc (gIdx |-> Frac fIdx (eIdx <: chest di (szlt (do @! (SZ.v dim)))))
   requires on gpu_loc (live gOut)
-  ensures 
-    exists* eOut. 
+  ensures
+    exists* eOut.
       on gpu_loc (gOut |-> eOut) **
       pure (vscatter_chest di do dim eInp eIdx eOut)

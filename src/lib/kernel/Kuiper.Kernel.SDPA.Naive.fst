@@ -16,9 +16,9 @@ open Kuiper.Float.Casts
 module SZ = Kuiper.SizeT
 module MS = Kuiper.Spec.GEMM
 module MU = Kuiper.Kernel.GEMM.Util
+module G = Kuiper.Kernel.GEMM.Naive1
 
 open Kuiper.Spec.Attention
-open Kuiper.Kernel.BatchedGEMM
 open Kuiper.Kernel.RowSoftmax
 
 let fold_chest4_slice_page
@@ -92,14 +92,14 @@ let fold_chest3_row
       (fold_chest #et #3 #(d0 @| d1 @| d2 @| INil) m) ij)
     (chest2_row #et #d1 #d2 (slice_page m i) j)
 
-let sdpa_scores_spec 
+let sdpa_scores_spec
   (#n #h : szp)
   (#l #s : szp)
   (#e: szp)
   (rQ : chest4 real n h l e)
   (rK : chest4 real n h e s)
   (rS : chest4 real n h l s)
-  (rscale : real) = 
+  (rscale : real) =
   mk4 (fun i j -> acc2 (attn_scores
           (slice_page4 (rQ) i j)
           (slice_page4 (rK) i j)
@@ -283,10 +283,10 @@ let sdpa_naive_aux
   (rK : chest4 real n h e s)
   (rS : chest4 real n h l s)
   (rscale : real):
-  Lemma (ensures 
+  Lemma (ensures
     (sdpa_scores_spec rQ rK rS rscale)
-    == 
-    (unfold_chest (MS.bmmcomb (fun bias_qk score -> bias_qk +. (score *. rscale)) 
+    ==
+    (unfold_chest (MS.bmmcomb (fun bias_qk score -> bias_qk +. (score *. rscale))
       #(SZ.v (n *^ h)) #l #e #s (fold_chest rS) (fold_chest rQ) (fold_chest rK)))) =
   let lhs = sdpa_scores_spec rQ rK rS rscale in
   let rhs = unfold_chest (MS.bmmcomb
@@ -342,7 +342,7 @@ let comb2_approx
 // TODO: this shouldn't require so much boilerplate...
 
 #push-options "--split_queries always"
-let transpose4_2 (d0 d1 d2 d3 : nat) : 
+let transpose4_2 (d0 d1 d2 d3 : nat) :
   (abs (d0 @| d1 @| d2 @| d3 @| INil) =~ abs (d0 @| d1 @| d3 @| d2 @| INil)) =
 {
   ff = (fun (i,(j,(k,(l,())))) -> (i,(j,(l,(k,())))));
@@ -386,6 +386,8 @@ let ctlayout_bij_transpose
 
 #pop-options
 
+#set-options "--split_queries always --debug SMTFail"
+
 inline_for_extraction noextract
 fn sdpa_naive
   (#et: Type0) {| floating et, real_like et, floating_real_like et |}
@@ -423,15 +425,16 @@ fn sdpa_naive
       SZ.fits (n * h * l * e) /\
       SZ.fits (n * h * s * e)  /\
       SZ.fits (n * h * s * ev)  /\
-      SZ.fits (n * h * l * ev)  /\ 
+      SZ.fits (n * h * l * ev)  /\
       SZ.fits (n * h * l * s)  /\
       SZ.fits (n * h * l) /\
       SZ.fits (h * l) /\
       (mk4 (fun i j k l -> acc4 eK i j l k)) %~ rKT /\
-      l * s <= max_blocks * max_threads /\
-      l * ev <= max_blocks * max_threads /\
+      l * s <= max_blocks /\
+      l * ev <= max_blocks /\
       n * h * l <= max_blocks /\
-      n * h * l * s <= max_blocks * max_threads
+      n * h * l * s <= max_blocks /\
+      n * h * l * ev <= max_blocks
     )
   ensures
     // For simplicity, bias is used to hold the scores.
@@ -445,20 +448,19 @@ fn sdpa_naive
           rKT
           (to_real_chest eV)
           (to_real_chest ebias)
-          (to_real scale))) 
+          (to_real scale)))
 {
-  
-  map_loc gpu_loc (fun () -> tensor_pts_to_ref gQ);
-  map_loc gpu_loc (fun () -> tensor_pts_to_ref gK);
-  map_loc gpu_loc (fun () -> tensor_pts_to_ref gV);
-  map_loc gpu_loc (fun () -> tensor_pts_to_ref gbias);
+  tensor_pts_to_ref_located gQ;
+  tensor_pts_to_ref_located gK;
+  tensor_pts_to_ref_located gV;
+  tensor_pts_to_ref_located gbias;
 
   let rQ    = to_real_chest eQ;
   let rV    = to_real_chest eV;
   let rbias = to_real_chest ebias;
-  
+
   // Transpose K via ghost
-  let f_transpose = transpose4_2 n h s e; 
+  let f_transpose = transpose4_2 n h s e;
   let gKT = tensor_apply_bij_ro_located f_transpose #lK gK #fK #eK;
   with eKT. assert on gpu_loc (gKT |-> Frac fK eKT);
   assert pure (eKT %~ rKT);
@@ -472,8 +474,11 @@ fn sdpa_naive
   let eSf = fold_chest ebias; let rSf = fold_chest rbias;
 
   // Compute Q * K^T + bias, scaled by scale, into bias
-  bmmcomb_gpu_exact #et (fun bias_qk score -> bias_qk `add` (score `mul` scale))
-    (n*^h) l e s #_ #_ #_
+  assert pure (SZ.fits ((n *^ h) * (l * s)));
+  assert pure ((n *^ h) * (l * s) <= max_blocks);
+  assert pure (G.bsize_req (n*^h) l s e);
+  G.bmmcomb_gpu_exact #et (fun bias_qk score -> bias_qk `add` (score `mul` scale))
+    (n*^h) l s e #_ #_ #_
     #(ctlayout_fold_outer lQ)
     #(ctlayout_fold_outer
         (tlayout_bij f_transpose lK)
@@ -496,8 +501,10 @@ fn sdpa_naive
     #et
     (fun bias_qk score -> bias_qk `add` (score `mul` scale))
     (fun bias_qk score -> bias_qk +. (score *. to_real scale))
-    #(n * h) #l #e #s
-    eSf eQf eKf rSf rQf rKf;
+    #(n * h) #l #s #e
+    eQf eKf eSf
+    rQf rKf rSf;
+
   assert pure (eSf' %~ (MS.bmmcomb
     (fun bias_qk score -> bias_qk +. (score *. to_real scale))
     #(n * h) #l #e #s rSf rQf rKf));
@@ -553,8 +560,11 @@ fn sdpa_naive
   let eO0f = fold_chest eO0;
 
   // Final batched matmul to compute output: probs * V
-  bmmcomb_gpu_exact #et (MS.comb2 #et)
-    (n*^h) l s ev #_ #_ #_
+  assert pure (SZ.fits ((n *^ h) * (l * ev)));
+  assert pure ((n *^ h) * (l * ev) <= max_blocks);
+  assert pure (G.bsize_req (n*^h) l ev s);
+  G.bmmcomb_gpu_exact #et (MS.comb2 #et)
+    (n*^h) l ev s #_ #_ #_
     #(ctlayout_fold_outer lbias)
     #(ctlayout_fold_outer lV)
     #(ctlayout_fold_outer (l4_batched_row_major n h l ev))
@@ -589,8 +599,12 @@ fn sdpa_naive
     #et
     (MS.comb2 #et)
     (MS.comb2 #real)
-    #(n * h) #l #s #ev
-    eO0f eProbsf eVf rO0f rProbsf rVf;
+    #(n * h) #l #ev #s
+    eProbsf eVf
+    eO0f
+    rProbsf rVf
+    rO0f
+    ;
 
   let rOf0 =
     MS.bmmcomb (MS.comb2 #real) #(n * h) #l #s #ev

@@ -101,3 +101,57 @@ let mmcomb_approx_real
         ()
     in
     Classical.forall_intro (fun idx -> Classical.move_requires aux idx)
+
+let chest3_slice_page_approx
+  (#et:Type) {| scalar et, real_like et |}
+  (#batch #rows #cols : nat)
+  (e : chest3 et batch rows cols)
+  (r : chest3 real batch rows cols)
+  (page : natlt batch)
+  = let aux (idx : natlt rows & (natlt cols & unit))
+      : Lemma
+        (requires e %~ r)
+        (ensures acc2 (slice_page e page) idx._1 idx._2._1 %~ acc2 (slice_page r page) idx._1 idx._2._1)
+      =
+        let (i, (j, ())) = idx in
+        assert (Chest.acc e (page, (i, (j, ()))) %~ Chest.acc r (page, (i, (j, ()))));
+        ()
+    in
+    Classical.forall_intro (fun idx -> Classical.move_requires aux idx)
+
+let bmmcomb_approx_real
+  (#et:Type) {| scalar et, real_like et |}
+  (comb : binop et)
+  (comb_r : binop real)
+  (#batch #m #n #k : nat)
+  (eA : chest3 et batch m k)
+  (eB : chest3 et batch k n)
+  (eC : chest3 et batch m n)
+  (rA : chest3 real batch m k)
+  (rB : chest3 real batch k n)
+  (rC : chest3 real batch m n)
+  : Lemma
+    (requires approx2 comb comb_r /\
+              eA %~ rA /\ eB %~ rB /\ eC %~ rC)
+    (ensures MS.bmmcomb comb eC eA eB %~ MS.bmmcomb comb_r rC rA rB)
+  = let aux (idx : natlt batch & (natlt m & (natlt n & unit)))
+      : Lemma
+        (requires approx2 comb comb_r /\ eA %~ rA /\ eB %~ rB /\ eC %~ rC)
+        (ensures
+          acc3 (MS.bmmcomb comb eC eA eB) idx._1 idx._2._1 idx._2._2._1
+          %~
+          acc3 (MS.bmmcomb comb_r rC rA rB) idx._1 idx._2._1 idx._2._2._1)
+      =
+        let (page, (row, (col, ()))) = idx in
+        chest3_slice_page_approx eA rA page;
+        chest3_slice_page_approx eB rB page;
+        chest3_slice_page_approx eC rC page;
+        mmcomb_approx_real comb comb_r
+          (slice_page eC page) (slice_page eA page) (slice_page eB page)
+          (slice_page rA page) (slice_page rB page) (slice_page rC page);
+        assert (acc2 (MS.mmcomb comb (slice_page eC page) (slice_page eA page) (slice_page eB page)) row col
+                %~ acc2 (MS.mmcomb comb_r (slice_page rC page) (slice_page rA page) (slice_page rB page)) row col);
+        ()
+    in
+    Classical.forall_intro (fun idx -> Classical.move_requires aux idx);
+    ()

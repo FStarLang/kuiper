@@ -8,7 +8,6 @@ open Kuiper.Tensor
 open Pulse.Lib.Trade
 
 module SZ = Kuiper.SizeT
-module T = FStar.Tactics.V2
 
 inline_for_extraction noextract
 let ctlayout_slice_cimap

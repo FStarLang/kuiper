@@ -15,7 +15,7 @@ module SZ = Kuiper.SizeT
 let vfgather (#et: Type0) (#r : erased nat) (di do : shape r { shape_le di do }) (dim : natlt r)
   (eInp : chest do et) (eIdx : chest di (szlt (do @! dim)))
   (x : abs di) (_: et) (o: et)
-  : prop 
+  : prop
   = o == acc eInp (abs_set_at2 di do dim (acc eIdx x) x)
 
 unfold
@@ -41,8 +41,8 @@ instance gather_frame_shareable
   (eIdx: chest di (szlt (do @! (SZ.v dim))))
   (fInp fIdx: perm):
   shareable (gather_frame di do cdi dim #lInp #lIdx gInp gIdx eInp eIdx fInp fIdx) =
-    double_shareable 
-    (fun fr -> tensor_pts_to gInp #fr eInp) 
+    double_shareable
+    (fun fr -> tensor_pts_to gInp #fr eInp)
     (fun fr -> tensor_pts_to gIdx #fr eIdx)
     fInp fIdx
 
@@ -56,12 +56,12 @@ fn fgather (#et : Type0) (#r : erased nat) (di do : shape r { shape_le di do }) 
   (eInp: chest do et)
   (eIdx: chest di (szlt (do @! (SZ.v dim))))
   (#fInp #fIdx: perm)
-  (#fr: perm) (i: conc di) (x : et) 
+  (#fr: perm) (i: conc di) (x : et)
 norewrite
 preserves
   gpu **
   (gather_frame di do cdi dim #lInp #lIdx gInp gIdx eInp eIdx fInp fIdx fr)
-returns 
+returns
   r: et
 ensures
   pure (vfgather di do dim eInp eIdx (up i) x r)
@@ -87,7 +87,7 @@ fn gather_gpu
   (#fInp #fIdx: perm)
   preserves cpu ** on gpu_loc (gInp |-> Frac fInp eInp) ** on gpu_loc (gIdx |-> Frac fIdx eIdx)
   requires on gpu_loc (live gOut)
-  ensures 
+  ensures
       on gpu_loc (gOut |-> gather_chest di do eInp dim eIdx) {
   with eOut. assert on gpu_loc (gOut |-> eOut);
   launch_sync
@@ -99,9 +99,9 @@ fn gather_gpu
         (fun fr -> gInp |-> Frac fr eInp)
         (fun fr -> gIdx |-> Frac fr eIdx)
         fInp fIdx)
-      (vfgather di do dim eInp eIdx) 
+      (vfgather di do dim eInp eIdx)
       (fgather di do cdi cdo dim #lInp #lIdx #lOut gInp gIdx gOut eInp eIdx #fInp #fIdx)
       n gOut #eOut #_ #1.0R);
   with eOut'. assert on gpu_loc (gOut |-> eOut');
-  assert pure (Kuiper.Chest.equal eOut' (gather_chest di do eInp dim eIdx)); 
+  assert pure (Kuiper.Chest.equal eOut' (gather_chest di do eInp dim eIdx));
 }
