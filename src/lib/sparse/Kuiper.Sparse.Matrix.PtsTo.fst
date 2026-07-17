@@ -39,26 +39,18 @@ let matrix_pts_to_vec
 let matrix_live_vec
   (#et : Type0) {| sized et, has_vec_cpy et |}
   (#rows #cols : nat)
-  (#l : layout rows cols) {| T.ctlayout l, strided : strided_row_major l |}
+  (#l : layout rows cols)
   (gm : array2 et l)
   (i : natlt rows)
   (j : natlt cols { j + chunk et <= cols })
 : slprop
 = exists* v. matrix_pts_to_vec gm i j v
 
-let seq_chunk
-  (#et : Type0) {| sized et, has_vec_cpy et |}
-  (#n : nat)
-  (s : lseq et n)
-  (k : nat { k + chunk et <= n })
-: GTot (lseq et (chunk et))
-= Seq.slice s k (k + chunk et)
-
 unfold
 let matrix_pts_to_vec_slice
   (#et : Type0) {| sized et, has_vec_cpy et |}
   (#rows #cols : nat)
-  (#l : layout rows cols) {| T.ctlayout l, strided : strided_row_major l |}
+  (#l : layout rows cols)
   (gm : array2 et l)
   (i : natlt rows)
   (j : natlt cols { j + chunk et <= cols })
@@ -107,7 +99,7 @@ ghost
 fn matrix_pts_to_vec_in_bounds_equiv
   (#et : Type0) {| sized et, has_vec_cpy et |}
   (#rows #cols : nat { chunk et /? cols })
-  (#l : layout rows cols) {| T.ctlayout l, strided : strided_row_major l |}
+  (#l : layout rows cols)
   (gm : array2 et l)
   (i : natlt rows)
   (j : nat { chunk et /? j })
@@ -148,7 +140,7 @@ unfold
 let matrix_pts_to_vec_slice_in_bounds
   (#et : Type0) {| sized et, has_vec_cpy et |}
   (#rows #cols : nat { chunk et /? cols })
-  (#l : layout rows cols) {| T.ctlayout l, strided : strided_row_major l |}
+  (#l : layout rows cols)
   (gm : array2 et l)
   (i : natlt rows)
   (j : nat { chunk et /? j })
@@ -164,7 +156,7 @@ ghost
 fn fold_matrix_pts_to_vec_in_bounds
   (#et : Type0) {| sized et, has_vec_cpy et |}
   (#rows #cols : nat { chunk et /? cols })
-  (#l : layout rows cols) {| T.ctlayout l, strided : strided_row_major l |}
+  (#l : layout rows cols)
   (gm : array2 et l)
   (i : natlt rows)
   (j : nat { chunk et /? j })
@@ -181,7 +173,7 @@ ghost
 fn fold_matrix_pts_to_vec_slice_in_bounds
   (#et : Type0) {| sized et, has_vec_cpy et |}
   (#rows #cols : nat { chunk et /? cols })
-  (#l : layout rows cols) {| T.ctlayout l, strided : strided_row_major l |}
+  (#l : layout rows cols)
   (gm : array2 et l)
   (i : natlt rows)
   (j : nat { chunk et /? j })
@@ -199,7 +191,7 @@ ghost
 fn fold_matrix_pts_to_vec_not_in_bounds
   (#et : Type0) {| sized et, has_vec_cpy et |}
   (#rows #cols : nat { chunk et /? cols })
-  (#l : layout rows cols) {| T.ctlayout l, strided : strided_row_major l |}
+  (#l : layout rows cols)
   (gm : array2 et l)
   (i : natlt rows)
   (j : nat { chunk et /? j })
@@ -217,7 +209,7 @@ ghost
 fn fold_matrix_pts_to_vec_slice_not_in_bounds
   (#et : Type0) {| sized et, has_vec_cpy et |}
   (#rows #cols : nat { chunk et /? cols })
-  (#l : layout rows cols) {| T.ctlayout l, strided : strided_row_major l |}
+  (#l : layout rows cols)
   (gm : array2 et l)
   (i : natlt rows)
   (j : nat { chunk et /? j })
@@ -234,7 +226,7 @@ ghost
 fn unfold_matrix_pts_to_vec_in_bounds
   (#et : Type0) {| sized et, has_vec_cpy et |}
   (#rows #cols : nat { chunk et /? cols })
-  (#l : layout rows cols) {| T.ctlayout l, strided : strided_row_major l |}
+  (#l : layout rows cols)
   (gm : array2 et l)
   (i : natlt rows)
   (j : nat { chunk et /? j })
@@ -251,7 +243,7 @@ ghost
 fn unfold_matrix_live_vec_in_bounds
   (#et : Type0) {| sized et, has_vec_cpy et |}
   (#rows #cols : nat { chunk et /? cols })
-  (#l : layout rows cols) {| T.ctlayout l, strided : strided_row_major l |}
+  (#l : layout rows cols)
   (gm : array2 et l)
   (i : natlt rows)
   (j : nat { chunk et /? j })
@@ -268,7 +260,7 @@ ghost
 fn unfold_matrix_pts_to_vec_not_in_bounds
   (#et : Type0) {| sized et, has_vec_cpy et |}
   (#rows #cols : nat { chunk et /? cols })
-  (#l : layout rows cols) {| T.ctlayout l, strided : strided_row_major l |}
+  (#l : layout rows cols)
   (gm : array2 et l)
   (i : natlt rows)
   (j : nat { chunk et /? j })
@@ -284,7 +276,7 @@ ghost
 fn unfold_matrix_live_vec_not_in_bounds
   (#et : Type0) {| sized et, has_vec_cpy et |}
   (#rows #cols : nat { chunk et /? cols })
-  (#l : layout rows cols) {| T.ctlayout l, strided : strided_row_major l |}
+  (#l : layout rows cols)
   (gm : array2 et l)
   (i : natlt rows)
   (j : nat { chunk et /? j })
@@ -296,17 +288,6 @@ fn unfold_matrix_live_vec_not_in_bounds
 }
 
 (* thread owns in matrix *)
-
-let offset_chunk
-  (et : Type0) {| sized et, has_vec_cpy et |}
-  (j : nat { chunk et /? j })
-  (k : nat)
-  (nthr : nat)
-: Pure nat (requires true) (ensures divides (chunk et))
-=
-  lemma_divides_product (chunk et) (k * nthr);
-  lemma_divides_sum (chunk et) j (k * nthr * chunk et);
-  j + k * nthr * v (chunk et)
 
 unfold
 let thread_live_vec
@@ -325,7 +306,7 @@ let thread_live_vec
 let thread_live_tile_vec
   (#et : Type0) {| sized et, has_vec_cpy et |}
   (#rows #cols : nat { chunk et /? cols })
-  (#l : layout rows cols) {| T.ctlayout l, strided : strided_row_major l |}
+  (#l : layout rows cols)
   (gm : array2 et l)
   (i : natlt rows)
   (j : nat { chunk et /? j })
@@ -340,7 +321,7 @@ unfold
 let thread_pts_to_vec_underspec
   (#et : Type0) {| sized et, has_vec_cpy et |}
   (#rows #cols : nat { chunk et /? cols })
-  (#l : layout rows cols) {| T.ctlayout l, strided : strided_row_major l |}
+  (#l : layout rows cols)
   (gm : array2 et l)
   (i : natlt rows)
   (j : nat { chunk et /? j })
@@ -357,7 +338,7 @@ let thread_pts_to_vec_underspec
 let thread_pts_to_tile_vec_underspec
   (#et : Type0) {| sized et, has_vec_cpy et |}
   (#rows #cols : nat { chunk et /? cols })
-  (#l : layout rows cols) {| T.ctlayout l, strided : strided_row_major l |}
+  (#l : layout rows cols)
   (gm : array2 et l)
   (i : natlt rows)
   (j : nat { chunk et /? j })
@@ -372,32 +353,13 @@ let thread_pts_to_tile_vec_underspec
     //   i (offset_chunk et j k nthr tid)
     //   s (k * chunk et)
 
-let ematrix_row_chunk_
-  (#et : Type0) {| sized et, has_vec_cpy et |}
-  (#rows #cols : nat)
-  (em : ematrix et rows cols)
-  (i : natlt rows)
-  (j : natlt cols { j + chunk et <= cols })
-: GTot (lseq et (chunk et))
-= Seq.init_ghost (chunk et) (fun k -> macc em i (j + k)) 
-
-let ematrix_row_chunk
-  (#et : Type0) {| sized et, has_vec_cpy et |}
-  // usamos pos y no nat porque garantiza que chunk et <= cols
-  (#rows #cols : pos { chunk et /? cols })
-  (em : ematrix et rows cols)
-  (i : natlt rows)
-  (j : natlt cols { chunk et /? j })
-: GTot (lseq et (chunk et))
-= ematrix_row_chunk_ em i j
-
 // TODO mover de acá
 unfold
 let matrix_pts_to_vec_in_matrix_in_bounds
   (#et : Type0) {| sized et, has_vec_cpy et |}
   // usamos pos y no nat porque garantiza que chunk et <= cols
   (#rows #cols : pos { chunk et /? cols })
-  (#l : layout rows cols) {| T.ctlayout l, strided : strided_row_major l |}
+  (#l : layout rows cols)
   (gm : array2 et l)
   (i : natlt rows)
   (j : nat { chunk et /? j })
@@ -412,7 +374,7 @@ unfold
 let thread_pts_to_vec
   (#et : Type0) {| sized et, has_vec_cpy et |}
   (#rows #cols : pos { chunk et /? cols })
-  (#l : layout rows cols) {| T.ctlayout l, strided : strided_row_major l |}
+  (#l : layout rows cols)
   (gm : array2 et l)
   (i : natlt rows)
   (j : nat { chunk et /? j })
@@ -421,48 +383,15 @@ let thread_pts_to_vec
   (k : nat)
 : slprop
 =
-    matrix_pts_to_vec_in_matrix_in_bounds gm
-      i (offset_chunk et j k nthr) em
+  matrix_pts_to_vec_in_matrix_in_bounds gm
+    i (offset_chunk et j k nthr) em
 
-
-
-let is_ematrix_tile_at
-  (#et : Type0) {| sized et, has_vec_cpy et |}
-  (#rows #cols : nat { chunk et /? cols })
-  (em : ematrix et rows cols)
-  (i : natlt rows)
-  (j : nat { chunk et /? j })
-  (#row_tile : nat { chunk et /? row_tile }) 
-  (s : lseq et row_tile)
-  (nthr : nat)
-  (k : natlt (row_tile / chunk et))
-: Pure prop
-  (requires offset_chunk et j k nthr < cols)
-  (ensures fun _ -> true)
-= 
-  seq_chunk s (k * chunk et) ==
-  ematrix_row_chunk em i (offset_chunk et j k nthr)
-
-let is_ematrix_tile
-  (#et : Type0) {| sized et, has_vec_cpy et |}
-  (#rows #cols : nat { chunk et /? cols })
-  (em : ematrix et rows cols)
-  (i : natlt rows)
-  (j : nat { chunk et /? j })
-  (#row_tile : nat { chunk et /? row_tile }) 
-  (s : lseq et row_tile)
-  (nthr : nat)
-: prop
-=
-  forall (k : natlt (row_tile / chunk et)).
-    offset_chunk et j k nthr < cols ==>
-      is_ematrix_tile_at em i j s nthr k
 
 ghost
 fn fold_thread_pts_to_vec
   (#et : Type0) {| sized et, has_vec_cpy et |}
   (#rows #cols : pos { chunk et /? cols })
-  (#l : layout rows cols) {| T.ctlayout l, strided : strided_row_major l |}
+  (#l : layout rows cols)
   (gm : array2 et l)
   (i : natlt rows)
   (j : nat { chunk et /? j })
@@ -500,12 +429,12 @@ fn fold_thread_pts_to_vec
 let thread_pts_to_tile_vec
   (#et : Type0) {| sized et, has_vec_cpy et |}
   (#rows #cols : pos { chunk et /? cols })
-  (#l : layout rows cols) {| T.ctlayout l, strided : strided_row_major l |}
+  (#l : layout rows cols)
   (gm : array2 et l)
   (i : natlt rows)
   (j : nat { chunk et /? j })
   (em : ematrix et rows cols)
-  (row_tile : nat { chunk et /? row_tile })
+  (row_tile : nat)
   (nthr : nat)
 : slprop
 =
@@ -517,7 +446,7 @@ ghost
 fn fold_thread_pts_to_tile_vec
   (#et : Type0) {| sized et, has_vec_cpy et |}
   (#rows #cols : pos { chunk et /? cols })
-  (#l : layout rows cols) {| T.ctlayout l, strided : strided_row_major l |}
+  (#l : layout rows cols)
   (gm : array2 et l)
   (i : natlt rows)
   (j : nat { chunk et /? j })
@@ -574,7 +503,7 @@ fn unfold_matrix_pts_to_vec_in_matrix_in_bounds
   (#et : Type0) {| sized et, has_vec_cpy et |}
   // usamos pos y no nat porque garantiza que chunk et <= cols
   (#rows #cols : pos { chunk et /? cols })
-  (#l : layout rows cols) {| T.ctlayout l, strided : strided_row_major l |}
+  (#l : layout rows cols)
   (gm : array2 et l)
   (i : natlt rows)
   (j : nat { chunk et /? j })
@@ -625,7 +554,7 @@ ghost
 fn thread_pts_to_tile_vec_gather
   (#et : Type0) {| sized et, has_vec_cpy et |}
   (#rows #cols : pos { chunk et /? cols })
-  (#l : layout rows cols) {| T.ctlayout l, strided : strided_row_major l |}
+  (#l : layout rows cols)
   (gm : array2 et l)
   (i : natlt rows)
   (j : natlt cols { chunk et /? j })

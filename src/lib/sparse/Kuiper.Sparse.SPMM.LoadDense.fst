@@ -3,12 +3,13 @@ module Kuiper.Sparse.SPMM.LoadDense
 #lang-pulse
 
 open Kuiper
-open Kuiper.Sparse
-open Kuiper.Sparse.Load
-open Kuiper.Array.Vectorized
-open Kuiper.Array2.Vectorized
 open Kuiper.EMatrix
 open Kuiper.Seq.Common { seq_blit, seq_replace }
+open Kuiper.Sparse
+open Kuiper.Sparse.Load
+open Kuiper.Sparse.SPMM.Defs { ematrix_tile_prop }
+open Kuiper.Array.Vectorized
+open Kuiper.Array2.Vectorized
 module T = Kuiper.Tensor.Layout
 module M = Kuiper.Array2
 module A = Kuiper.Array1
@@ -65,7 +66,7 @@ fn tile_vec_cpy
   (#l1 : A.layout n1) {| T.ctlayout l1, cl1 : cont_layout l1 |}
   (x1 : A.array1 et l1)
   (#s1 : erased (lseq et n1))
-  (#n2 : sz { chunk et /? n2})
+  (#n2 : szp { chunk et /? n2})
   (#l2 : A.layout n2) {| T.ctlayout l2, cl2 : cont_layout l2 |}
   (x2 : A.array1 et l2)
   (#f : perm)
@@ -92,7 +93,7 @@ fn tile_vec_cpy
     lemma_fits_tile_offset et n1 j !k step;
     lemma_divides_tile_offset et j !k step;
     assert pure (fits (j + !k * step * chunk et));
-    array_vec_cpy_device x1 (!k *^ chunk et) x2 (j +^ !k *^ step *^ chunk et);
+    array_vec_cpy x1 (!k *^ chunk et) x2 (j +^ !k *^ step *^ chunk et);
     k := !k +^ 1sz;
   }
 }
@@ -116,7 +117,6 @@ let ematrix_tile_cpy
 
 open Kuiper.Array2.Strided { strided_row_major, aligned_strided_row_major }
 
-#push-options "--split_queries always"
 inline_for_extraction noextract
 fn matrix_tile_vec_cpy
   (#et:Type0) {| sized et, has_vec_cpy et |}
@@ -433,6 +433,27 @@ let ematrix_tile_col_lemma
     (ematrix_tile_cpy em1 em2 row_ind j step)
     (ematrix_from_cols (ematrix_tile_col em1 em2 row_ind j step))
 
+// podriamos probar solo esta spec parcial
+// aunque la prueba seria bastante similar
+let ematrix_tile_lemma
+  (#et : Type0) {| sized et, has_vec_cpy et |}
+  (#m1 #n1 : nat { chunk et /? n1 })
+  (em1 : ematrix et m1 n1)
+  (#m2 #n2 : nat {  chunk et /? n2 })
+  (em2 : ematrix et m2 n2)
+  (row_ind : lseq nat m1 { in_bounds 0 m2 row_ind })
+  (j : nat { chunk et /? j })
+  (step : pos)
+: Lemma
+  (requires true)
+  (ensures
+    ematrix_tile_prop
+      em2 row_ind j step
+      (ematrix_from_cols (ematrix_tile_col em1 em2 row_ind j step))
+  )
+= ()
+
+
 inline_for_extraction noextract
 fn load_dense_matrix
   (#et:Type0) {| sized et, has_vec_cpy et |}
@@ -459,9 +480,13 @@ fn load_dense_matrix
   requires  pure (aligned 16 (M.core a2) /\ aligned_strided_row_major (chunk et) srm2)
   requires  pure (fits (j + n1 * step))
   preserves row_ind |-> Frac fr vrow_ind
-  ensures   a1 |-> ematrix_from_cols (ematrix_tile_col em1 em2 (cast_pos vrow_ind) j step)
+  ensures exists* em1'.
+    a1 |-> em1' **
+    pure (
+      ematrix_tile_prop em2 (cast_pos vrow_ind) j step em1'
+    )
 {
   matrix_tile_vec_cpy a1 a2 j step row_ind;
   ematrix_tile_col_lemma em1 em2 (cast_pos vrow_ind) j step;
-  assert a1 |-> ematrix_from_cols (ematrix_tile_col em1 em2 (cast_pos vrow_ind) j step);
+  ematrix_tile_lemma em1 em2 (cast_pos vrow_ind) j step;
 }

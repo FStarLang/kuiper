@@ -4,232 +4,236 @@ module Kuiper.Sparse.SPMM.Compute
 
 open Kuiper
 open Kuiper.EMatrix
+open Kuiper.Seq.Common { (@+) }
 open Kuiper.Spec.GEMM
 open Kuiper.Sparse.DotProduct
 open Kuiper.Sparse.Common
-module Array2 = Kuiper.Array2
+open Kuiper.Sparse.SPMM.Defs { ematrix_tile_prop }
+open Kuiper.Array.Vectorized
 open Kuiper.Tensor { ctlayout }
+module A = Kuiper.Array1
+module M = Kuiper.Array2
 
-(* Definiciones auxiliares *)
 
-let submatrix
-  (#a : Type0)
-  (#rows #cols : nat)
-  (em : ematrix a rows cols)
-  (m : natle rows)
-  (srows : nat{m + srows <= rows})
-  (n : natle cols)
-  (scols : nat{n + scols <= cols})
-: ematrix a srows scols
-= mkM (fun i j -> macc em (m + i) (n + j))
+val tile_vmprod_prop
+  (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
+  (#m1 #n1 : nat { chunk et /? n1 })
+  (acc : erased (lseq et n1))
+  (elems : erased (lseq et m1))
+  (row_ind : erased (lseq nat m1))
+  (#m2 #n2 : nat {  chunk et /? n2 })
+  (em2 : ematrix et m2 n2)
+  (j : nat { chunk et /? j })
+  (step : nat)
+  (#_ : squash (in_bounds 0 m2 row_ind))
+  (y : lseq et n1)
+  : prop
 
-let col_strided_matrix
-  (#a : Type0)
-  (#rows #cols : nat)
-  (em : ematrix a rows cols)
-  (step : pos)
-: ematrix a rows (cols `divup` step)
-=
-  mkM (fun i j -> macc em i (j * step))
-
-let step_sparse_cols
-  (cols n scols : nat)
-  (step : pos)
-  : GTot nat
-= let n' = min n cols in min scols (cols - n') `divup` step
-
-let step_submatrix
-  (#et : Type0) {| scalar et |}
-  (#rows #cols : nat)
-  (em : ematrix et rows cols)
-  (scols : nat)
-  (n : nat)
-  (step : pos)
-: Pure (ematrix et rows (step_sparse_cols cols n scols step))
-  (requires true)
-  (ensures fun _ -> true)
-=
-  let n' = min n cols in
-  col_strided_matrix (submatrix em 0 rows n' (min scols (cols - n'))) step
-
-(* Definiciones sparse *)
-
-let _sparse_row_x_mat_acc
-  (#et : Type0) {| scalar et |}
-  (#shared #cols : nat)
-  (#block : nat)
-  (acc : lseq et block)
-  (#nnz : nat)
-  (elems : lseq et nnz)
-  (pos : lseq nat nnz)
-  (em : ematrix et shared cols)
-  (to : natle nnz)
-: Ghost (lseq et block)
-  (requires in_bounds 0 shared pos)
-  (ensures fun _ -> true)
-=
-  Seq.init_ghost block (fun i ->
-    if i < cols
-      then _sparse_dprod_acc (acc @! i) elems pos (ematrix_col em i) to
-      else acc @! i
-  )
-
-let sparse_row_x_mat_acc
-  (#et : Type0) {| scalar et |}
-  (#shared #cols : nat)
-  (#block : nat)
-  (acc : lseq et block)
-  (#nnz : nat)
-  (elems : lseq et nnz)
-  (pos : lseq nat nnz)
-  (em : ematrix et shared cols)
-: Ghost (lseq et block)
-  (requires in_bounds 0 shared pos)
-  (ensures fun _ -> true)
-=
-  _sparse_row_x_mat_acc acc elems pos em nnz
-
-(* Lemas para combinar resultados *)
-
-(* Sparse compute *)
-
-let compute_result
-  (#et : Type0) {| scalar et |}
-  (#shared #cols : nat)
-  (bw bx : pos{bw /? bx})
-  (#nnz : nat)
-  (elems : lseq et nnz)
-  (col_ind : lseq nat nnz)
-  (eB : ematrix et shared cols)
-  (out : lseq et (bx / bw))
-  (off : natlt bw)
-  (n : natlt cols)
-: Ghost (lseq et (bx / bw))
-  (requires in_bounds 0 shared col_ind)
-  (ensures fun _ -> true)
-=
-  sparse_row_x_mat_acc
-    out elems col_ind
-    (step_submatrix eB (bx - off) (n + off) bw)
-
-val compute_step
-  (#et : Type0) {| scalar et |}
-  (#shared #cols : nat)
-  (bw bx : pos{bw /? bx})
-  (#nnz : nat)
-  (elems : lseq et nnz)
-  (col_ind : lseq nat nnz)
-  (eB : ematrix et shared cols)
-  (out : lseq et (bx / bw))
-  (off : natlt bw)
-  (n : natlt cols)
-  (from to : natle nnz{from <= to})
+val tile_vmprod_prop_lemma0
+  (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
+  (#m1 #n1 : nat { chunk et /? n1 })
+  (acc : erased (lseq et n1))
+  (elems : erased (lseq et m1))
+  (row_ind : erased (lseq nat m1))
+  (#m2 #n2 : nat {  chunk et /? n2 })
+  (em2 : ematrix et m2 n2)
+  (j : nat { chunk et /? j })
+  (step : nat)
+  (#_ : squash (in_bounds 0 m2 row_ind))
 : Lemma
-  (requires in_bounds 0 shared col_ind)
-  (ensures
-    compute_result
-      bw bx #(to - from)
-      (Seq.slice elems from to) (Seq.slice col_ind from to) eB
-      (compute_result
-        bw bx #from
-        (Seq.slice elems 0 from) (Seq.slice col_ind 0 from)
-        eB out off n
-      )
-      off n ==
-    compute_result
-      bw bx #to
-      (Seq.slice elems 0 to) (Seq.slice col_ind 0 to)
-      eB out off n
-  )
+  (requires m1 == 0)
+  (ensures tile_vmprod_prop acc elems row_ind em2 j step acc)
 
-val compute_lemma
-  (#et : Type0) {| scalar et |}
-  (#rows #shared #cols : nat)
-  (bw bx : pos{bw /? bx})
-  (#nnz : nat)
-  (elems : lseq et nnz)
-  (col_ind : lseq nat nnz)
-  (eA : ematrix et rows shared)
-  (eB : ematrix et shared cols)
-  (out : lseq et (bx / bw))
-  (off : natlt bw)
-  (n : natlt cols)
+val tile_mask_lemma
+  (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
+  (#rows #shared #cols : nat { chunk et /? cols })
+  (em1 : ematrix et rows shared)
   (i : natlt rows)
-  (x : natlt (bx / bw))
+  (#nnz : nat)
+  (mask_len : natle nnz)
+  (elems : erased (lseq et (nnz - mask_len)))
+  (row_ind : erased (lseq nat nnz))
+  (#_ : squash (in_bounds 0 shared row_ind /\ sorted row_ind))
+  (em2 : ematrix et shared cols)
+  (j : nat { chunk et /? j })
+  (step : nat)
+  (#tlen : nat { chunk et /? tlen })
+  (tile0 : lseq et tlen)
+  (tile : lseq et tlen)
 : Lemma
   (requires
-    valid_pos shared col_ind /\
-    unsparse _ _ elems col_ind == ematrix_row eA i /\
-    n + off + x * bw < cols /\
-    forall i. out @! i == zero
+    tile_vmprod_prop
+      tile0
+      (Seq.create mask_len zero @+ elems) row_ind
+      em2 j step tile
   )
   (ensures
-    compute_result bw bx elems col_ind eB out off n @! x ==
-    matmul_single eA eB i (n + off + x * bw)
+    tile_vmprod_prop #_ #_ #_ #solve
+      tile0
+      elems (Seq.slice row_ind mask_len nnz)
+      em2 j step tile
   )
 
-val compute_mask_lemma
-  (#et : Type0) {| scalar et |}
-  (#shared #cols : nat)
-  (bw bx : pos{bw /? bx})
+// TODO reemplazar esto con is_ematrix_tile del producto
+let tile_result_cell_prop
+  (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
+  (#rows #shared #cols : nat)
+  (em1 : ematrix et rows shared)
+  (i : natlt rows)
+  (em2 : ematrix et shared cols)
+  (j : nat)
+  (step : nat)
+  (#tlen : nat)
+  (tile : lseq et tlen)
+  (k1 : natlt tlen)
+: prop
+=
+  let k2 = j + k1 / chunk et * step * chunk et + k1 % chunk et in
+  k2 < cols ==>
+  tile @! k1 == matmul_single em1 em2 i k2
+
+let tile_result_prop
+  (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
+  (#rows #shared #cols : nat)
+  (em1 : ematrix et rows shared)
+  (i : natlt rows)
+  (em2 : ematrix et shared cols)
+  (j : nat)
+  (step : nat)
+  (#tlen : nat)
+  (tile : lseq et tlen)
+: prop
+=
+  forall (k1 : natlt tlen).
+    tile_result_cell_prop em1 i em2 j step tile k1
+
+val tile_result_lemma
+  (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
+  (#rows #shared #cols : nat { chunk et /? cols })
+  (em1 : ematrix et rows shared)
+  (i : natlt rows)
   (#nnz : nat)
-  (k : natle nnz)
-  (elems : lseq et (nnz - k))
-  (col_ind : lseq nat nnz)
-  (eB : ematrix et shared cols)
-  (out : lseq et (bx / bw))
-  (off : natlt bw)
-  (n : natlt cols)
+  (elems : erased (lseq et nnz))
+  (row_ind : erased (lseq nat nnz))
+  (#_ : squash (in_bounds 0 shared row_ind /\ sorted row_ind))
+  (em2 : ematrix et shared cols)
+  (j : nat { chunk et /? j })
+  (step : nat)
+  (#tlen : nat { chunk et /? tlen })
+  (tile : lseq et tlen)
 : Lemma
-  (requires in_bounds 0 shared col_ind)
-  (ensures
-    compute_result bw bx
-      (Seq.append (Seq.create k zero) elems) col_ind
-      eB out off n ==
-    compute_result bw bx
-      elems (Seq.slice col_ind k nnz)
-      eB out off n
+  (requires
+    unsparse _ _ elems row_ind == ematrix_row em1 i /\
+    tile_vmprod_prop
+      (Seq.create tlen zero)
+      elems row_ind
+      em2
+      j step
+      tile
   )
+  (ensures tile_result_prop #_ #_ #_ #solve em1 i em2 j step tile)
 
-// TODO ver si se pueden simplificar más los argumentos
 inline_for_extraction noextract
-fn compute
-  (#et : Type0) {| scalar et |}
-  (#shared #cols : sz)
-  // creo que este refinamiento no hace falta
-  (blockWidth blockItemsK blockItemsX : szp{blockWidth /? blockItemsX})
-  // fragmentos sparse
-  (elems_tile : gpu_array et blockItemsK)
-  (col_ind_tile : gpu_array sz blockItemsK)
-  (#fA : perm)
-  (nnz : sz)
-  (#v_elems : erased (lseq et nnz))
-  (#v_col_ind : erased (lseq sz nnz))
-  (#_ : squash(in_bounds 0 shared (cast_pos v_col_ind)))
-  // matriz densa B
-  (#lB : Array2.layout shared cols)
-  {| ctlayout lB |}
-  (gB : Array2.t et lB)
-  (#fB : perm)
-  (#eB : erased (ematrix et shared cols))
-  // resultado parcial
-  (out : larray et (blockItemsX /^ blockWidth))
-  (#v_out : erased (seq et))
-  (#_ : squash (len v_out == blockItemsX /^ blockWidth))
-  (tid : szlt blockWidth)
-  (n_idx : szlt cols)
+fn tile_vmprod
+  (#et : Type0) {| scalar et, sized et, hvc : has_vec_cpy et |}
+  (#m1 #n1 : sz { chunk et /? n1 })
+  (#ly : A.layout n1) {| ctlayout ly |}
+  (y : A.array1 et ly)
+  (#vy : erased (lseq et n1))
+  (vy0 : erased (lseq et n1))
+  (#lx : A.layout m1) {| ctlayout lx |}
+  (x : A.array1 et lx)
+  (#fx : perm)
+  (#nnz : erased nat)
+  (elems : erased (lseq et nnz))
+  (row_ind : erased (lseq nat nnz))
+  (to : erased nat { to + m1 <= nnz })
+  (#ltm : M.layout m1 n1) {| ctlayout ltm |}
+  (tm : M.array2 et ltm)
+  (#tem : ematrix et m1 n1)
+  (#ftm : perm)
+  (#m2 #n2 : nat {  chunk et /? n2 })
+  (gem : ematrix et m2 n2)
+  (j : sz { chunk et /? j })
+  (step : sz)
+  (#_ : squash (in_bounds 0 m2 row_ind /\ sorted row_ind))
   norewrite
-  preserves
-    gpu **
-    gpu_pts_to_slice elems_tile #fA 0 nnz v_elems **
-    gpu_pts_to_slice col_ind_tile #fA 0 nnz v_col_ind **
-    gB |-> Frac fB eB
+  preserves gpu
+  preserves x  |-> Frac fx (Seq.slice elems to (to + m1) <: lseq et m1)
+  preserves tm |-> Frac ftm tem
+  requires  pure (ematrix_tile_prop #_ #_ #hvc gem (Seq.slice row_ind to (to + m1)) j step tem)
+  requires  y  |-> vy
   requires
-    pure (fits (cols + blockItemsX)) **
-    out |-> v_out
-  ensures
-    out |->
-      compute_result
-        blockWidth blockItemsX
-        v_elems (cast_pos v_col_ind) eB v_out
-        tid n_idx
+    pure (
+      tile_vmprod_prop
+        vy0
+        (Seq.slice elems 0 to <: lseq et to) (Seq.slice row_ind 0 to)
+        gem
+        j step
+        vy
+    )
+  ensures exists* (vy' : lseq et n1).
+    y |-> vy' **
+    pure (
+      tile_vmprod_prop
+        vy0
+        (Seq.slice elems 0 (to + m1) <: lseq et (to + m1)) (Seq.slice row_ind 0 (to + m1))
+        gem
+        j step
+        vy'
+    )
+
+open Kuiper.Array2.Strided { strided_row_major, aligned_strided_row_major }
+
+inline_for_extraction noextract
+fn tile_load_vmprod
+  (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
+  (#m1 #n1 : sz { chunk et /? n1 })
+  (#ly : A.layout n1) {| ctlayout ly |}
+  // en realidad y es un larray... por el momento no podemos unificar
+  (y : A.array1 et ly)
+  (#vy : erased (lseq et n1))
+  (vy0 : erased (lseq et n1))
+  (#lx  : A.layout m1) {| ctlayout lx |}
+  (elems : A.array1 et lx)
+  (row_ind : A.array1 sz lx)
+  (#fx : perm)
+  (#nnz : erased nat)
+  (#velems : lseq et nnz)
+  (#vrow_ind : lseq sz nnz)
+  (#m2 #n2 : szp { chunk et /? n2 })
+  (#lm : M.layout m2 n2) {| ctlayout lm, srm : strided_row_major lm |}
+  (m : M.array2 et lm)
+  (#fm : perm)
+  (#em : ematrix et m2 n2)
+  (j : sz { chunk et /? j })
+  (step : sz)
+  (#_ : squash (in_bounds 0 m2 (cast_pos vrow_ind)))
+  (from to : erased nat { from + m1 <= nnz })
+  (cant : szlt m1 { v cant == to - from })
+  preserves gpu
+  preserves elems   |-> Frac fx (Seq.slice velems from (from + m1) <: lseq et m1)
+  preserves row_ind |-> Frac fx (Seq.slice vrow_ind from (from + m1) <: lseq sz m1)
+  preserves m |-> Frac fm em
+  requires  pure (aligned 16 (M.core m) /\ aligned_strided_row_major (chunk et) srm)
+  requires  pure (fits (j + n1 * step))
+  requires  y |-> vy
+  requires
+    pure (
+      tile_vmprod_prop
+        vy0
+        (Seq.slice velems 0 from <: lseq et from)
+        (Seq.slice (cast_pos vrow_ind) 0 from)
+        em
+        j step
+        vy
+    )
+  ensures exists* vy'.
+    y |-> vy' **
+    pure (
+      tile_vmprod_prop
+        vy0
+        (Seq.slice velems 0 to <: lseq et to)
+        (Seq.slice (cast_pos vrow_ind) 0 to <: lseq nat to)
+        em j step vy'
+    )

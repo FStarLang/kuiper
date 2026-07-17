@@ -146,6 +146,12 @@ let lemma_divides_leq
   (ensures b < a <==> b + d <= a)
 = ()
 
+// ya esta definido pero pide que c sea pos??
+let lemma_divides_chain (a b : pos) (c : nat)
+  : Lemma (requires a /? b /\ b /? c)
+          (ensures a /? c)
+= ()
+
 
 (* Orderings *)
 
@@ -209,6 +215,15 @@ let my_map_seq_index (#a #b:Type) (f:a -> Tot b) (s:Seq.seq a) (i:nat{i < len s}
   : Lemma (ensures (Seq.map_seq_len f s; Seq.map_seq f s @! i == f (s @! i)))
           [SMTPat (Seq.map_seq f s @! i)]
   = Seq.map_seq_index f s i
+
+let seq_chunk
+  (#et : Type0) {| sized et, has_vec_cpy et |}
+  (#n : nat)
+  (s : lseq et n)
+  (k : nat { k + chunk et <= n })
+: GTot (lseq et (chunk et))
+= Seq.slice s k (k + chunk et)
+
 
 
 (* Matrices *)
@@ -310,6 +325,69 @@ let ematrix_upd_row_lemma
   assert Kuiper.EMatrix.equal
     (ematrix_upd_row em i new_row)
     (ematrix_from_rows (ematrix_upd_row_f em i new_row))
+
+let ematrix_row_chunk_
+  (#et : Type0) {| sized et, has_vec_cpy et |}
+  (#rows #cols : nat)
+  (em : ematrix et rows cols)
+  (i : natlt rows)
+  (j : natlt cols { j + chunk et <= cols })
+: GTot (lseq et (chunk et))
+= Seq.init_ghost (chunk et) (fun k -> macc em i (j + k)) 
+
+let ematrix_row_chunk
+  (#et : Type0) {| sized et, has_vec_cpy et |}
+  // usamos pos y no nat porque garantiza que chunk et <= cols
+  (#rows #cols : pos { chunk et /? cols })
+  (em : ematrix et rows cols)
+  (i : natlt rows)
+  (j : natlt cols { chunk et /? j })
+: GTot (lseq et (chunk et))
+= ematrix_row_chunk_ em i j
+
+// TODO estas cosas son medio especificas, mover??
+let offset_chunk
+  (et : Type0) {| sized et, has_vec_cpy et |}
+  (j : nat { chunk et /? j })
+  (k : nat)
+  (nthr : nat)
+: Pure nat (requires true) (ensures divides (chunk et))
+=
+  lemma_divides_product (chunk et) (k * nthr);
+  lemma_divides_sum (chunk et) j (k * nthr * chunk et);
+  j + k * nthr * v (chunk et)
+
+let is_ematrix_tile_at
+  (#et : Type0) {| sized et, has_vec_cpy et |}
+  (#rows #cols : nat { chunk et /? cols })
+  (em : ematrix et rows cols)
+  (i : natlt rows)
+  (j : nat { chunk et /? j })
+  (#row_tile : nat { chunk et /? row_tile }) 
+  (s : lseq et row_tile)
+  (nthr : nat)
+  (k : natlt (row_tile / chunk et))
+: Pure prop
+  (requires offset_chunk et j k nthr < cols)
+  (ensures fun _ -> true)
+= 
+  seq_chunk s (k * chunk et) ==
+  ematrix_row_chunk em i (offset_chunk et j k nthr)
+
+let is_ematrix_tile
+  (#et : Type0) {| sized et, has_vec_cpy et |}
+  (#rows #cols : nat { chunk et /? cols })
+  (em : ematrix et rows cols)
+  (i : natlt rows)
+  (j : nat { chunk et /? j })
+  (#row_tile : nat { chunk et /? row_tile }) 
+  (s : lseq et row_tile)
+  (nthr : nat)
+: prop
+=
+  forall (k : natlt (row_tile / chunk et)).
+    offset_chunk et j k nthr < cols ==>
+      is_ematrix_tile_at em i j s nthr k
 
 (* Propiedades sobre las posiciones de un array esparso *)
 

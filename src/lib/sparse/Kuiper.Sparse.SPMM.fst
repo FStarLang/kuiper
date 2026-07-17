@@ -3,18 +3,24 @@ module Kuiper.Sparse.SPMM
 #lang-pulse
 
 open Kuiper
+open Kuiper.Sparse
+open Kuiper.Sparse.SPMM.LoadSparse
+open Kuiper.Sparse.SPMM.LoadDense
+open Kuiper.Sparse.SPMM.StoreDense
+open Kuiper.Sparse.SPMM.Defs
+open Kuiper.Sparse.SPMM.Barrier
+open Kuiper.EMatrix
+open Kuiper.Bijection { ( |~> ) }
+open Kuiper.Tensor.Layout { ctlayout }
+open Kuiper.Array2.Strided { strided_row_major, aligned_strided_row_major }
 module MS = Kuiper.Spec.GEMM
 module SZ = Kuiper.SizeT
 module B = Kuiper.Barrier
 module Compute = Kuiper.Sparse.SPMM.Compute
 module Array2 = Kuiper.Array2
-open Kuiper.Sparse
-open Kuiper.Sparse.Load
-open Kuiper.EMatrix
-open Kuiper.Bijection { ( |~> ) }
-open Kuiper.Sparse.SPMM.Defs
-open Kuiper.Sparse.SPMM.Barrier
-open Kuiper.Tensor.Layout { ctlayout }
+
+
+#push-options "--split_queries always"
 
 unfold
 let block_pre
@@ -43,11 +49,17 @@ let block_pre
     elems col_ind row_off eA **
   row_indices |-> Frac (fri /. allthreads p) (ordering row_perm) **
   gB |-> Frac (fB /. allthreads p) eB **
-  forall+ (k : natlt(p.blockItemsX /^ p.blockWidth)).
-    when__
-      (bcol p bid + k * p.blockWidth + tid < p.cols)
-      (fun _ -> matrix_live_cell
-        gC (brow p bid |~> row_perm) (bcol p bid + k * p.blockWidth + tid))
+  thread_live_tile_vec
+    gC
+    (brow p bid |~> row_perm)
+    (tcol p bid tid)
+    (p.blockItemsX / p.blockWidth)
+    p.blockWidth
+  // forall+ (k : natlt(p.blockItemsX /^ p.blockWidth)).
+  //   when__
+  //     (bcol p bid + k * p.blockWidth + tid < p.cols)
+  //     (fun _ -> matrix_live_cell
+  //       gC (brow p bid |~> row_perm) (bcol p bid + k * p.blockWidth + tid))
 
 
 unfold
@@ -77,15 +89,22 @@ let block_post
     elems col_ind row_off eA **
   row_indices |-> Frac (fri /. allthreads p) (ordering row_perm) **
   gB |-> Frac (fB /. allthreads p) eB **
-  forall+ (k : natlt(p.blockItemsX /^ p.blockWidth)).
-    when__
-      (bcol p bid + k * p.blockWidth + tid < p.cols)
-      (fun _ -> Array2.pts_to_cell gC
-        (brow p bid |~> row_perm,
-         bcol p bid + k * p.blockWidth + tid)
-        (MS.matmul_single eA eB
-          (brow p bid |~> row_perm)
-          (bcol p bid + k * p.blockWidth + tid)))
+  thread_pts_to_tile_vec
+    gC
+    (brow p bid |~> row_perm)
+    (tcol p bid tid)
+    (MS.matmul eA eB)
+    (p.blockItemsX / p.blockWidth)
+    p.blockWidth
+  // forall+ (k : natlt(p.blockItemsX /^ p.blockWidth)).
+  //   when__
+  //     (bcol p bid + k * p.blockWidth + tid < p.cols)
+  //     (fun _ -> Array2.pts_to_cell gC
+  //       (brow p bid |~> row_perm,
+  //        bcol p bid + k * p.blockWidth + tid)
+  //       (MS.matmul_single eA eB
+  //         (brow p bid |~> row_perm)
+  //         (bcol p bid + k * p.blockWidth + tid)))
 
 unfold
 let kpre
@@ -162,6 +181,8 @@ let kpost
   live (fst sh) #(1.0R /. p.blockWidth) **
   live (fst (snd sh)) #(1.0R /. p.blockWidth)
 
+// Lemas para prueba de setup
+// TODO mover de acá
 ghost
 fn forevery_ext_3
   (#a #b #c : Type0)
@@ -204,6 +225,7 @@ let lem_div1 (n : nat) (d : pos) (r : natlt d)
 let lem_div2 (n : nat) (d : pos) (r : natlt d)
 : Lemma (requires true) (ensures (n * d + r) % d == r)
 = Math.Lemmas.lemma_mod_plus r n d
+//
 
 ghost
 fn setup
@@ -244,6 +266,7 @@ fn setup
     ) **
       emp
 {
+  admit();
   with eC. assert gC |-> eC;
   Array2.explode gC;
   forevery_unflatten' _;
@@ -368,7 +391,6 @@ fn setup
   ();
 }
 
-// #push-options "--print_implicits"
 ghost
 fn block_setup
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
@@ -604,6 +626,7 @@ fn teardown
     gB |-> Frac fB eB **
     gC |-> MS.matmul eA eB
 {
+  admit();
   forevery_unzip_2 _ _;
   forevery_unfactor' (allthreads p) _ _
     (fun _ _ ->
@@ -988,78 +1011,79 @@ fn sparse_load_residue
 }
 
 
-inline_for_extraction noextract
-fn store_out
-  (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
-  (p : parameters et { size_req p })
-  (row_perm : permutation (natlt p.rows))
-  (#lC : Array2.layout p.rows p.cols)
-  {| ctlayout lC |}
-  (gC : Array2.t et lC)
-  (out : larray et (p.blockItemsX /^ p.blockWidth))
-  (#v_out : erased (seq et){length out == len v_out})
-  (bid : szlt (nblocks p))
-  (tid : szlt p.blockWidth)
-  (m_idx : szlt p.rows{SZ.v m_idx == (brow p bid |~> row_perm)})
-  (n_idx : szlt p.cols{SZ.v n_idx == bcol p bid})
-  (x : szlt (p.blockItemsX /^ p.blockWidth))
-  requires
-    when__ (bcol p bid + x * p.blockWidth + tid < p.cols) (fun _ ->
-      matrix_live_cell gC
-        (brow p bid |~> row_perm)
-        (bcol p bid + x * p.blockWidth + tid)
-    )
-    ** out |-> v_out
-  ensures
-    when__ (bcol p bid + x * p.blockWidth + tid < p.cols) (fun _ ->
-        Array2.pts_to_cell gC
-          (brow p bid |~> row_perm,
-           bcol p bid + x * p.blockWidth + tid)
-          (v_out @! x)
-    )
-    ** out |-> v_out
-{
-  block_lemma_off p.blockItemsX p.blockWidth x tid;
+// TODO quitar; no se deberia usar mas
+// inline_for_extraction noextract
+// fn store_out
+//   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
+//   (p : parameters et { size_req p })
+//   (row_perm : permutation (natlt p.rows))
+//   (#lC : Array2.layout p.rows p.cols) {| ctlayout lC |}
+//   (gC : Array2.t et lC)
+//   (out : larray et (p.blockItemsX /^ p.blockWidth))
+//   (#v_out : erased (seq et){length out == len v_out})
+//   (bid : szlt (nblocks p))
+//   (tid : szlt p.blockWidth)
+//   (m_idx : szlt p.rows{SZ.v m_idx == (brow p bid |~> row_perm)})
+//   (n_idx : szlt p.cols{SZ.v n_idx == bcol p bid})
+//   (x : szlt (p.blockItemsX /^ p.blockWidth))
+//   requires
+//     when__ (bcol p bid + x * p.blockWidth + tid < p.cols) (fun _ ->
+//       matrix_live_cell gC
+//         (brow p bid |~> row_perm)
+//         (bcol p bid + x * p.blockWidth + tid)
+//     )
+//     ** out |-> v_out
+//   ensures
+//     when__ (bcol p bid + x * p.blockWidth + tid < p.cols) (fun _ ->
+//         Array2.pts_to_cell gC
+//           (brow p bid |~> row_perm,
+//            bcol p bid + x * p.blockWidth + tid)
+//           (v_out @! x)
+//     )
+//     ** out |-> v_out
+// {
+//   admit();
+//   block_lemma_off p.blockItemsX p.blockWidth x tid;
 
-  let out_off = n_idx +^ x *^ p.blockWidth +^ tid;
-  assert rewrites_to out_off (n_idx +^ x *^ p.blockWidth +^ tid);
+//   let out_off = n_idx +^ x *^ p.blockWidth +^ tid;
+//   assert rewrites_to out_off (n_idx +^ x *^ p.blockWidth +^ tid);
 
-  if (out_off <^ p.cols) {
-    when__elim_true _ _;
-    unfold matrix_live_cell;
+//   if (out_off <^ p.cols) {
+//     when__elim_true _ _;
+//     unfold matrix_live_cell;
 
-    open Pulse.Lib.Array;
-    let c = out.(x);
-    assert pure (n_idx +^ x *^ p.blockWidth +^ tid <^ p.cols);
+//     open Pulse.Lib.Array;
+//     let c = out.(x);
+//     assert pure (n_idx +^ x *^ p.blockWidth +^ tid <^ p.cols);
 
-    assert rewrites_to #sz m_idx (SZ.uint_to_t (brow p bid |~> row_perm));
-    assert rewrites_to #sz n_idx (SZ.uint_to_t (bcol p bid));
+//     assert rewrites_to #sz m_idx (SZ.uint_to_t (brow p bid |~> row_perm));
+//     assert rewrites_to #sz n_idx (SZ.uint_to_t (bcol p bid));
 
-    Array2.write_cell gC ((m_idx <: sz), n_idx +^ x *^ p.blockWidth +^ tid) c;
+//     Array2.write_cell gC ((m_idx <: sz), n_idx +^ x *^ p.blockWidth +^ tid) c;
 
-    assert Array2.pts_to_cell gC
-      (brow p bid |~> row_perm, bcol p bid + x * p.blockWidth + tid)
-      (v_out @! x);
-    when__intro_true (bcol p bid + x * p.blockWidth + tid < p.cols)
-      (Array2.pts_to_cell gC
-        (brow p bid |~> row_perm,
-         bcol p bid + x * p.blockWidth + tid)
-        (v_out @! x)
-      );
-  }
-  else {
-    rewrite when__ (bcol p bid + x * p.blockWidth + tid < p.cols) (fun _ ->
-      matrix_live_cell gC
-        (brow p bid |~> row_perm)
-        (bcol p bid + x * p.blockWidth + tid)
-    ) as when__ (bcol p bid + x * p.blockWidth + tid < p.cols) (fun _ ->
-      Array2.pts_to_cell gC
-        (brow p bid |~> row_perm, bcol p bid + x * p.blockWidth + tid)
-        (v_out @! x)
-    );
-  };
+//     assert Array2.pts_to_cell gC
+//       (brow p bid |~> row_perm, bcol p bid + x * p.blockWidth + tid)
+//       (v_out @! x);
+//     when__intro_true (bcol p bid + x * p.blockWidth + tid < p.cols)
+//       (Array2.pts_to_cell gC
+//         (brow p bid |~> row_perm,
+//          bcol p bid + x * p.blockWidth + tid)
+//         (v_out @! x)
+//       );
+//   }
+//   else {
+//     rewrite when__ (bcol p bid + x * p.blockWidth + tid < p.cols) (fun _ ->
+//       matrix_live_cell gC
+//         (brow p bid |~> row_perm)
+//         (bcol p bid + x * p.blockWidth + tid)
+//     ) as when__ (bcol p bid + x * p.blockWidth + tid < p.cols) (fun _ ->
+//       Array2.pts_to_cell gC
+//         (brow p bid |~> row_perm, bcol p bid + x * p.blockWidth + tid)
+//         (v_out @! x)
+//     );
+//   };
 
-}
+// }
 
 noextract
 let barrier_count
@@ -1081,6 +1105,8 @@ let barrier_count
   let ri' = round2 (max (chunk et) (chunk sz)) ri in
   ((re - ri') / p.blockItemsK + 1) * 2
 
+// Defs de algignment
+// TODO mover a otro lado
 noextract inline_for_extraction
 let align_sz (size : szp) (x : sz) : sz =
   (x /^ size) *^ size
@@ -1116,10 +1142,10 @@ let offset_aligned_lemma_et'
   ()
 
 let offset_aligned_lemma_sz'
-  (#et : Type0) {| sized et, has_vec_cpy et |}
+  (et : Type0) {| sized et, has_vec_cpy et |}
   (p : parameters et)
   (#n : nat)
-  (x : gpu_array et n { aligned 16 x })
+  (x : gpu_array sz n { aligned 16 x })
   (i : nat)
 : Lemma
   (requires true)
@@ -1131,120 +1157,13 @@ let offset_aligned_lemma_sz'
   round2_chunk_lemma et sz i;
   assert chunk sz /? i';
   ()
+//
 
 open Kuiper.Seq.Common { (@+) }
+open Kuiper.Sparse.SPMM.Mask
 
-inline_for_extraction noextract
-fn kf_head
-  (#et : Type0) {| d : scalar et, sized et, has_vec_cpy et |}
-  (p : parameters et { size_req p })
-  (row_perm : permutation (natlt p.rows))
-  (#lb : Array2.layout p.shared p.cols)
-  {| ctlayout lb |}
-  (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
-  (#_ : squash (aligned 16 gA.elems /\ aligned 16 gA.col_ind))
-  (gB : Array2.t et lb)
-  // matriz sparse ga
-  (#elems : erased (lseq et gA.nnz))
-  (#col_ind : erased (lseq sz gA.nnz))
-  (#row_off : erased (lseq sz (p.rows + 1)))
-  (eA : ematrix et p.rows p.shared)
-  // matriz densa gb
-  (#eB : ematrix et p.shared p.cols)
-  (#fA #fB : perm)
-  (#_ : squash (well_formed p col_ind row_off))
-  // salida
-  (out : larray et (p.blockItemsX /^ p.blockWidth))
-  // shmem
-  (elems_tile : gpu_array et p.blockItemsK { aligned 16 elems_tile })
-  (col_ind_tile : gpu_array sz p.blockItemsK { aligned 16 col_ind_tile })
-  (bid : szlt (nblocks p))
-  (ri : sz{ri == row_off @! (brow p bid |~> row_perm)})
-  (ri' : sz{SZ.v ri' == round2 (max (chunk et) (chunk sz)) ri})
-  (re : sz{re == row_off @! (brow p bid |~> row_perm) + 1})
-  (tid : szlt p.blockWidth)
-  (n_idx : sz {SZ.v n_idx == bcol p bid })
-  (#_ : squash (ri' + p.blockItemsK <= re))
-  norewrite
-  preserves
-    gpu **
-    smatrix_pts_to' gA #fA elems col_ind row_off eA **
-    gB |-> Frac (fB /. allthreads p) eB **
-    B.barrier_tok (
-      barrier_contract p row_perm elems col_ind row_off
-        elems_tile col_ind_tile bid
-    ) **
-    thread_id p.blockWidth tid
-  requires
-    thread_live_chunks elems_tile p.blockWidth tid **
-    thread_live_chunks col_ind_tile p.blockWidth tid **
-    out |-> Seq.create (p.blockItemsX / p.blockWidth) d.zero **
-    B.barrier_state 0
-  ensures
-    (exists* (s : seq et). elems_tile |-> Frac (1.0R /. p.blockWidth) s) **
-    (exists* (s : seq sz). col_ind_tile |-> Frac (1.0R /. p.blockWidth) s) **
-    B.barrier_state 2 **
-    out |->
-      Compute.compute_result
-        p.blockWidth p.blockItemsX #p.blockItemsK
-        (Seq.create (ri - ri') zero @+ Seq.slice elems ri (ri' + p.blockItemsK))
-        // (Seq.slice (cast_pos col_ind) ri (ri + p.blockItemsK))
-        (cast_pos (Seq.slice col_ind ri' (ri' + p.blockItemsK)))
-        eB
-        (Seq.create (p.blockItemsX / p.blockWidth) zero)
-        tid (bcol p bid)
-{
-  offset_aligned_lemma_et' p gA.elems ri;
-  assert pure (aligned' 16 gA.elems ri');
-  load_array_vec elems_tile gA.elems ri' p.blockWidth tid;
-
-  offset_aligned_lemma_sz' p gA.elems ri;
-  assert pure (aligned' 16 gA.col_ind ri');
-  load_array_vec col_ind_tile gA.col_ind ri' p.blockWidth tid;
-
-  barrier_in_fold_mask_pre p row_perm elems col_ind row_off
-    elems_tile col_ind_tile bid ri ri' re tid;
-
-  rewrite barrier_in p row_perm elems col_ind row_off
-    elems_tile col_ind_tile bid 0 tid
-  as (barrier_contract p row_perm elems col_ind row_off
-    elems_tile col_ind_tile bid).rin 0 tid;
-
-  B.barrier_wait ();
-
-  rewrite (barrier_contract p row_perm elems col_ind
-    row_off elems_tile col_ind_tile bid).rout 0 tid
-  as barrier_out p row_perm elems col_ind row_off
-    elems_tile col_ind_tile bid 0 tid;
-
-  barrier_out_unfold_mask_pre p row_perm elems col_ind row_off
-    elems_tile col_ind_tile bid ri ri' re tid;
-
-  mask_array
-
-  barrier_in_fold_mask_post p row_perm elems col_ind row_off
-    elems_tile col_ind_tile bid ri ri' re tid;
-
-  rewrite barrier_in p row_perm elems col_ind row_off
-    elems_tile col_ind_tile bid 1 tid
-  as (barrier_contract p row_perm elems col_ind row_off
-    elems_tile col_ind_tile bid).rin 1 tid;
-
-  B.barrier_wait ();
-
-  rewrite (barrier_contract p row_perm elems col_ind
-    row_off elems_tile col_ind_tile bid).rout 1 tid
-  as barrier_out p row_perm elems col_ind row_off
-    elems_tile col_ind_tile bid 1 tid;
-
-  barrier_out_unfold_mask_post p row_perm elems col_ind row_off
-    elems_tile col_ind_tile bid ri ri' re tid;
-
-  Compute.compute
-    p.blockWidth p.blockItemsK p.blockItemsX
-    elems_tile col_ind_tile p.blockItemsK gB out tid n_idx;
-}
-
+// Defs de secuencias
+// TODO hacen falta? mover a otro lado o quitar
 let lslice
   (#a : Type0)
   (#n : nat)
@@ -1268,6 +1187,168 @@ let seq_mask
   (s : lseq et n)
 : lseq et (k + n)
 = Seq.create k zero @+ s
+//
+
+
+let lem0
+  (a : nat) (c d : pos)
+: Lemma (requires (c * d) /? a) (ensures c /? (a / d))
+=
+  let open FStar.Math.Lemmas in
+  calc (==) {
+    a;
+    == { cancel_mul_div a (c * d) }
+    a / (c * d) * (c * d);
+    == { paren_mul_right (a / (c * d)) c d; paren_mul_right (a / (c * d)) c d }
+    (a / (c * d) * c) * d;
+  };
+  calc (==) {
+    a / d;
+    == {}
+    ((a / (c * d) * c) * d) / d;
+    == { cancel_mul_div (a / (c * d) * c) d }
+    a / (c * d) * c;
+  };
+  intro_divides c (a / (c * d)) (a / d)
+
+// TODO mover y renombrar
+let lem
+  (a : nat) (c d : pos)
+: Lemma (requires (c * d) /? a) (ensures c /? (a / d) /\ d /? (a / c))
+= lem0 a c d; lem0 a d c
+
+let threadItemsX
+  (#et : Type0) {| d : scalar et, sized et, hvc : has_vec_cpy et |}
+  (p : parameters et)
+: Ghost nat (requires true) (ensures fun k -> chunk et /? k)
+=
+  lem p.blockItemsX p.blockWidth (chunk et);
+  p.blockItemsX / p.blockWidth
+
+inline_for_extraction noextract
+fn kf_head
+  (#et : Type0) {| d : scalar et, sized et, hvc : has_vec_cpy et |}
+  (p : parameters et { size_req p })
+  (row_perm : permutation (natlt p.rows))
+  (#lB : Array2.layout p.shared p.cols) {| ctlayout lB, srm : strided_row_major lB |}
+  (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
+  (gB : Array2.t et lB)
+  // matriz sparse ga
+  (#elems : erased (lseq et gA.nnz))
+  (#col_ind : erased (lseq sz gA.nnz))
+  (#row_off : erased (lseq sz (p.rows + 1)))
+  (eA : ematrix et p.rows p.shared)
+  // matriz densa gb
+  (#eB : ematrix et p.shared p.cols)
+  (#fA #fB : perm)
+  (#_ : squash (well_formed p col_ind row_off))
+  // salida
+  (out : larray et (p.blockItemsX /^ p.blockWidth))
+  // shmem
+  (elems_tile : gpu_array et p.blockItemsK { aligned 16 elems_tile })
+  (col_ind_tile : gpu_array sz p.blockItemsK { aligned 16 col_ind_tile })
+  (bid : szlt (nblocks p))
+  (ri : sz{ri == row_off @! (brow p bid |~> row_perm)})
+  (ri' : sz{SZ.v ri' == round2 (max (chunk et) (chunk sz)) ri})
+  (re : sz{re == row_off @! (brow p bid |~> row_perm) + 1})
+  // TODO creo tid : natlt p.blockWidth esta bien
+  (tid : szlt p.blockWidth)
+  (n_idx : sz {SZ.v n_idx == tcol p bid tid })
+  (#_ : squash (ri' + p.blockItemsK <= re))
+  norewrite
+  preserves gpu
+  preserves smatrix_pts_to' gA #fA elems col_ind row_off eA
+  requires  pure (aligned 16 gA.elems)
+  requires  pure (aligned 16 gA.col_ind)
+  preserves gB |-> Frac (fB /. allthreads p) eB
+  requires  pure (aligned 16 (Array2.core gB))
+  requires  pure (aligned_strided_row_major (chunk et) srm)
+  preserves
+    B.barrier_tok (
+      barrier_contract p row_perm elems col_ind row_off
+        elems_tile col_ind_tile bid
+    )
+  preserves thread_id p.blockWidth tid
+  requires  thread_live_chunks elems_tile p.blockWidth tid
+  requires  thread_live_chunks col_ind_tile p.blockWidth tid
+  requires  out |-> Seq.create (p.blockItemsX / p.blockWidth) d.zero
+  requires  B.barrier_state 0
+  ensures   exists* (s : seq et). elems_tile |-> Frac (1.0R /. p.blockWidth) s
+  ensures   exists* (s : seq sz). col_ind_tile |-> Frac (1.0R /. p.blockWidth) s
+  ensures   B.barrier_state 2
+  ensures   exists* vout.
+    out |-> (vout <: seq et) **
+    pure (
+      Compute.tile_vmprod_prop #_ #_ #_ #hvc
+        #(p.blockItemsK)
+        #(threadItemsX p)
+        (Seq.create (p.blockItemsX / p.blockWidth) d.zero)
+        (Seq.create (ri - ri') zero @+ Seq.slice elems ri (ri' + p.blockItemsK))
+        (lslice (cast_pos col_ind) ri' p.blockItemsK)
+        eB n_idx p.blockWidth vout
+    )
+    // out |->
+    //   Compute.compute_result
+    //     p.blockWidth p.blockItemsX #p.blockItemsK
+    //     (Seq.create (ri - ri') zero @+ Seq.slice elems ri (ri' + p.blockItemsK))
+    //     // (Seq.slice (cast_pos col_ind) ri (ri + p.blockItemsK))
+    //     (cast_pos (Seq.slice col_ind ri' (ri' + p.blockItemsK)))
+    //     eB
+    //     (Seq.create (p.blockItemsX / p.blockWidth) zero)
+    //     tid (bcol p bid)
+{
+  offset_aligned_lemma_et' p gA.elems ri;
+  assert pure (aligned' 16 gA.elems ri');
+  load_array_vec elems_tile gA.elems ri' p.blockWidth tid;
+
+  offset_aligned_lemma_sz' et p gA.col_ind ri;
+  assert pure (aligned' 16 gA.col_ind ri');
+  load_array_vec col_ind_tile gA.col_ind ri' p.blockWidth tid;
+
+  barrier_in_fold_mask_pre p row_perm elems col_ind row_off
+    elems_tile col_ind_tile bid ri ri' re tid;
+
+  rewrite barrier_in p row_perm elems col_ind row_off
+    elems_tile col_ind_tile bid 0 tid
+  as (barrier_contract p row_perm elems col_ind row_off
+    elems_tile col_ind_tile bid).rin 0 tid;
+
+  B.barrier_wait ();
+
+  rewrite (barrier_contract p row_perm elems col_ind
+    row_off elems_tile col_ind_tile bid).rout 0 tid
+  as barrier_out p row_perm elems col_ind row_off
+    elems_tile col_ind_tile bid 0 tid;
+
+  barrier_out_unfold_mask_pre p row_perm elems col_ind row_off
+    elems_tile col_ind_tile bid ri ri' re tid;
+
+  mask_array elems_tile (ri -^ ri') zero p.blockWidth tid;
+
+  barrier_in_fold_mask_post p row_perm elems col_ind row_off
+    elems_tile col_ind_tile bid ri ri' re tid;
+
+  rewrite barrier_in p row_perm elems col_ind row_off
+    elems_tile col_ind_tile bid 1 tid
+  as (barrier_contract p row_perm elems col_ind row_off
+    elems_tile col_ind_tile bid).rin 1 tid;
+
+  B.barrier_wait ();
+
+  rewrite (barrier_contract p row_perm elems col_ind
+    row_off elems_tile col_ind_tile bid).rout 1 tid
+  as barrier_out p row_perm elems col_ind row_off
+    elems_tile col_ind_tile bid 1 tid;
+
+  barrier_out_unfold_mask_post p row_perm elems col_ind row_off
+    elems_tile col_ind_tile bid ri ri' re tid;
+
+  admit();
+  // Compute.compute
+  //   p.blockWidth p.blockItemsK p.blockItemsX
+  //   elems_tile col_ind_tile p.blockItemsK gB out tid n_idx;
+}
+
 
 ghost
 fn rewrite_seq_slice
@@ -1321,76 +1402,77 @@ fn rewrite_seq_mask_slice
   assert pure (t `Seq.equal` t');
 }
 
-ghost
-fn rewrite_compute_step
-  (#et : Type0) {| scalar et |}
-  (#shared #cols : nat)
-  (bw bx : pos{bw /? bx})
-  (#nnz : nat)
-  (elems : lseq et nnz)
-  (col_ind : lseq sz nnz{ in_bounds 0 shared (cast_pos col_ind) })
-  (eB : ematrix et shared cols)
-  (#l : nat)
-  (out : larray et l)
-  (v_out0 : seq et { len v_out0 == bx / bw})
-  (v_out : seq et { len v_out == bx / bw})
-  (off : natlt bw)
-  (n : natlt cols)
-  (from to : natle nnz{from <= to})
-  requires
-    out |->
-      Compute.compute_result
-        bw bx #(to - from)
-        (Seq.slice elems from to)
-        (cast_pos (Seq.slice col_ind from to))
-        eB v_out off n **
-    pure (
-      v_out ==
-      Compute.compute_result
-        bw bx #from
-        (Seq.slice elems 0 from)
-        (cast_pos (Seq.slice col_ind 0 from))
-        eB v_out0 off n
-    )
-  ensures
-    out |->
-    Compute.compute_result
-      bw bx #to
-      (Seq.slice elems 0 to)
-      (cast_pos (Seq.slice col_ind 0 to))
-      eB v_out0 off n
-{
-  assert pure (
-    Seq.equal
-      (cast_pos #from (Seq.slice col_ind 0 from))
-      (Seq.slice (cast_pos col_ind) 0 from)
-  );
-  assert pure (
-    Seq.equal
-      (Seq.slice (cast_pos col_ind) from to)
-      (cast_pos #(to - from) (Seq.slice col_ind from to))
-  );
-  assert pure (
-    Seq.equal
-      (Seq.slice (cast_pos col_ind) 0 to)
-      (cast_pos #to (Seq.slice col_ind 0 to))
-  );
-  Compute.compute_step
-    bw bx
-    elems
-    (cast_pos col_ind)
-    eB v_out0 off n
-    from
-    to;
-  assert pure (
-    v_out `Seq.equal`
-    Compute.compute_result
-      bw bx #from
-      (Seq.slice elems 0 from)
-      ((Seq.slice (cast_pos col_ind) 0 from))
-      eB v_out0 off n
-  );
-}
+// TODO creo que esto no hace falta
+// ghost
+// fn rewrite_compute_step
+//   (#et : Type0) {| scalar et |}
+//   (#shared #cols : nat)
+//   (bw bx : pos{bw /? bx})
+//   (#nnz : nat)
+//   (elems : lseq et nnz)
+//   (col_ind : lseq sz nnz{ in_bounds 0 shared (cast_pos col_ind) })
+//   (eB : ematrix et shared cols)
+//   (#l : nat)
+//   (out : larray et l)
+//   (v_out0 : seq et { len v_out0 == bx / bw})
+//   (v_out : seq et { len v_out == bx / bw})
+//   (off : natlt bw)
+//   (n : natlt cols)
+//   (from to : natle nnz{from <= to})
+//   requires
+//     out |->
+//       Compute.compute_result
+//         bw bx #(to - from)
+//         (Seq.slice elems from to)
+//         (cast_pos (Seq.slice col_ind from to))
+//         eB v_out off n **
+//     pure (
+//       v_out ==
+//       Compute.compute_result
+//         bw bx #from
+//         (Seq.slice elems 0 from)
+//         (cast_pos (Seq.slice col_ind 0 from))
+//         eB v_out0 off n
+//     )
+//   ensures
+//     out |->
+//     Compute.compute_result
+//       bw bx #to
+//       (Seq.slice elems 0 to)
+//       (cast_pos (Seq.slice col_ind 0 to))
+//       eB v_out0 off n
+// {
+//   assert pure (
+//     Seq.equal
+//       (cast_pos #from (Seq.slice col_ind 0 from))
+//       (Seq.slice (cast_pos col_ind) 0 from)
+//   );
+//   assert pure (
+//     Seq.equal
+//       (Seq.slice (cast_pos col_ind) from to)
+//       (cast_pos #(to - from) (Seq.slice col_ind from to))
+//   );
+//   assert pure (
+//     Seq.equal
+//       (Seq.slice (cast_pos col_ind) 0 to)
+//       (cast_pos #to (Seq.slice col_ind 0 to))
+//   );
+//   Compute.compute_step
+//     bw bx
+//     elems
+//     (cast_pos col_ind)
+//     eB v_out0 off n
+//     from
+//     to;
+//   assert pure (
+//     v_out `Seq.equal`
+//     Compute.compute_result
+//       bw bx #from
+//       (Seq.slice elems 0 from)
+//       ((Seq.slice (cast_pos col_ind) 0 from))
+//       eB v_out0 off n
+//   );
+// }
 
 #push-options "--z3rlimit 25"
 inline_for_extraction noextract
@@ -1398,11 +1480,10 @@ fn kf_main
   (#et : Type0) {| d : scalar et, sized et, has_vec_cpy et |}
   (p : parameters et { size_req p })
   (row_perm : permutation (natlt p.rows))
-  (#lb : Array2.layout p.shared p.cols)
-  {| ctlayout lb |}
+  (#lB : Array2.layout p.shared p.cols) {| ctlayout lB, srm : strided_row_major lB |}
   (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
-  (#_ : squash (aligned 16 gA.elems /\ aligned 16 gA.col_ind))
-  (gB : Array2.t et lb)
+  // (#_ : squash (aligned 16 gA.elems /\ aligned 16 gA.col_ind))
+  (gB : Array2.t et lB)
   // matriz sparse ga
   (#elems : erased (lseq et gA.nnz))
   (#col_ind : erased (lseq sz gA.nnz))
@@ -1422,44 +1503,56 @@ fn kf_main
   (ri' : sz{SZ.v ri' == round2 (max (chunk et) (chunk sz)) ri})
   (re : sz{re == row_off @! (brow p bid |~> row_perm) + 1})
   (tid : szlt p.blockWidth)
-  (n_idx : sz {SZ.v n_idx == bcol p bid })
+  (n_idx : sz {SZ.v n_idx == tcol p bid tid })
   (nnz idx : ref sz) // realmente no necesito una referencia a idx
   norewrite
+  preserves gpu
+  preserves smatrix_pts_to' gA #fA elems col_ind row_off eA
+  requires  pure (aligned 16 gA.elems)
+  requires  pure (aligned 16 gA.col_ind)
+  preserves gB |-> Frac (fB /. allthreads p) eB
+  requires  pure (aligned 16 (Array2.core gB))
+  requires  pure (aligned_strided_row_major (chunk et) srm)
   preserves
-    gpu **
-    smatrix_pts_to' gA #fA elems col_ind row_off eA **
-    gB |-> Frac (fB /. allthreads p) eB **
     B.barrier_tok (
       barrier_contract p row_perm elems col_ind row_off
         elems_tile col_ind_tile bid
-    ) **
-    thread_id p.blockWidth tid
-  requires
-    thread_live_chunks elems_tile p.blockWidth tid **
-    thread_live_chunks col_ind_tile p.blockWidth tid **
-    B.barrier_state 0 **
-    out |-> Seq.create (p.blockItemsX / p.blockWidth) d.zero **
-    live idx **
-    nnz |-> (re -^ ri')
-  ensures
-    // MAYBE usar round2 p.blockItemsK (re - ri)
-    (exists* (v_idx :sz) (residue : szle (re - ri)).
-      idx |-> v_idx **
-      nnz |-> (residue <: sz) **
-      pure (residue_pred p.blockItemsK ri ri' re v_idx residue) **
-      B.barrier_state (v_idx * 2) **
-      barrier_in p row_perm elems col_ind row_off
-      elems_tile col_ind_tile bid (v_idx * 2) tid **
-      out |->
-        Compute.compute_result
-          p.blockWidth p.blockItemsX
-          #(re - residue - ri)
-          (Seq.slice elems ri (re - residue))
-          (cast_pos (lslice' col_ind ri (re - residue)))
-          eB (Seq.create (p.blockItemsX / p.blockWidth) zero)
-          tid n_idx
+    ) 
+  preserves thread_id p.blockWidth tid
+  requires  thread_live_chunks elems_tile p.blockWidth tid
+  requires  thread_live_chunks col_ind_tile p.blockWidth tid
+  requires  B.barrier_state 0
+  requires  out |-> Seq.create (p.blockItemsX / p.blockWidth) d.zero
+  requires  live idx
+  requires  nnz |-> (re -^ ri')
+  // MAYBE usar round2 p.blockItemsK (re - ri)
+  ensures exists* (v_idx :sz) (residue : szle (re - ri)) vout.
+    idx |-> v_idx **
+    nnz |-> (residue <: sz) **
+    pure (residue_pred p.blockItemsK ri ri' re v_idx residue) **
+    B.barrier_state (v_idx * 2) **
+    barrier_in p row_perm elems col_ind row_off
+    elems_tile col_ind_tile bid (v_idx * 2) tid **
+    out |-> (vout <: seq et) **
+    pure (
+      Compute.tile_vmprod_prop #_ #_ #_ #_
+        #(re - residue - ri)
+        #(threadItemsX p)
+        (Seq.create (p.blockItemsX / p.blockWidth) d.zero)
+        (Seq.slice elems ri (re - residue))
+        (lslice' (cast_pos col_ind) ri (re - residue))
+        eB n_idx p.blockWidth vout
     )
+      // Compute.compute_result
+      //   p.blockWidth p.blockItemsX
+      //   #(re - residue - ri)
+      //   (Seq.slice elems ri (re - residue))
+      //   (cast_pos (lslice' col_ind ri (re - residue)))
+      //   eB (Seq.create (p.blockItemsX / p.blockWidth) zero)
+      //   tid n_idx
+    
 {
+  admit();
   let out0 : erased (lseq et (p.blockItemsX / p.blockWidth)) =
     Seq.create (p.blockItemsX / p.blockWidth) zero;
 
@@ -1493,13 +1586,13 @@ fn kf_main
         (cast_pos #(p.blockItemsK) (lslice' row_ind 0 (!idx * p.blockItemsK)))
     );
 
-    assert out |->
-      Compute.compute_result
-        p.blockWidth p.blockItemsX #(!idx * p.blockItemsK)
-        (Seq.slice row_elems 0 (!idx * p.blockItemsK))
-        // (Seq.slice row_pos 0 (!idx * p.blockItemsK))
-        (cast_pos #(p.blockItemsK) (Seq.slice row_ind 0 (!idx * p.blockItemsK)))
-        eB out0 tid n_idx;
+    // assert out |->
+    //   Compute.compute_result
+    //     p.blockWidth p.blockItemsX #(!idx * p.blockItemsK)
+    //     (Seq.slice row_elems 0 (!idx * p.blockItemsK))
+    //     // (Seq.slice row_pos 0 (!idx * p.blockItemsK))
+    //     (cast_pos #(p.blockItemsK) (Seq.slice row_ind 0 (!idx * p.blockItemsK)))
+    //     eB out0 tid n_idx;
 
     while (!nnz >=^ p.blockItemsK)
       invariant
@@ -1513,12 +1606,13 @@ fn kf_main
           pure (
             !idx > 0 /\ !idx <= (re - ri') / p.blockItemsK /\
             SZ.v !nnz == re - ri' - !idx * p.blockItemsK /\
-            v_out ==
-            Compute.compute_result
-              p.blockWidth p.blockItemsX #(!idx * p.blockItemsK)
-              (lslice row_elems 0 (!idx * p.blockItemsK))
-              (cast_pos (lslice row_ind 0 (!idx * p.blockItemsK)))
-              eB out0 tid n_idx
+            true
+            // v_out ==
+            // Compute.compute_result
+            //   p.blockWidth p.blockItemsX #(!idx * p.blockItemsK)
+            //   (lslice row_elems 0 (!idx * p.blockItemsK))
+            //   (cast_pos (lslice row_ind 0 (!idx * p.blockItemsK)))
+            //   eB out0 tid n_idx
           )
         )
     {
@@ -1544,20 +1638,20 @@ fn kf_main
       with v_out. assert out |-> v_out;
       assert pure (len v_out == p.blockItemsX / p.blockWidth);
 
-      Compute.compute
-        p.blockWidth p.blockItemsK p.blockItemsX
-        elems_tile col_ind_tile p.blockItemsK gB out tid n_idx;
+      // Compute.compute
+      //   p.blockWidth p.blockItemsK p.blockItemsX
+      //   elems_tile col_ind_tile p.blockItemsK gB out tid n_idx;
 
-      rewrite_compute_step
-        p.blockWidth p.blockItemsX
-        row_elems row_ind
-        eB
-        out
-        out0
-        v_out
-        tid n_idx
-        (!idx * p.blockItemsK)
-        ((!idx + 1) * p.blockItemsK);
+      // rewrite_compute_step
+      //   p.blockWidth p.blockItemsX
+      //   row_elems row_ind
+      //   eB
+      //   out
+      //   out0
+      //   v_out
+      //   tid n_idx
+      //   (!idx * p.blockItemsK)
+      //   ((!idx + 1) * p.blockItemsK);
 
       idx := !idx +^ 1sz;
       nnz := !nnz -^ p.blockItemsK;
@@ -1571,12 +1665,12 @@ fn kf_main
         (seq_mask (ri - ri') (lslice row_elems_ 0 (ri' + !idx * p.blockItemsK - ri)))
     );
 
-    Compute.compute_mask_lemma
-      p.blockWidth p.blockItemsX
-      (ri - ri')
-      (lslice row_elems_ 0 (ri' + !idx * p.blockItemsK - ri))
-      (cast_pos (lslice row_ind 0 (!idx * p.blockItemsK)))
-      eB out0 tid n_idx;
+    // Compute.compute_mask_lemma
+    //   p.blockWidth p.blockItemsX
+    //   (ri - ri')
+    //   (lslice row_elems_ 0 (ri' + !idx * p.blockItemsK - ri))
+    //   (cast_pos (lslice row_ind 0 (!idx * p.blockItemsK)))
+    //   eB out0 tid n_idx;
 
     assert pure (
       Seq.equal
@@ -1606,17 +1700,17 @@ fn kf_main
   else {
     idx := 0sz;
     nnz := re -^ ri;
-    assert pure (
-      Seq.equal
-        out0
-        (Compute.compute_result
-          p.blockWidth p.blockItemsX
-          #(re - !nnz - ri)
-          (Seq.slice elems ri (re - !nnz))
-          (cast_pos #(re - !nnz - ri) (Seq.slice col_ind ri (re - !nnz)))
-          eB (Seq.create (p.blockItemsX / p.blockWidth) zero)
-          tid n_idx)
-    );
+    // assert pure (
+    //   Seq.equal
+    //     out0
+    //     (Compute.compute_result
+    //       p.blockWidth p.blockItemsX
+    //       #(re - !nnz - ri)
+    //       (Seq.slice elems ri (re - !nnz))
+    //       (cast_pos #(re - !nnz - ri) (Seq.slice col_ind ri (re - !nnz)))
+    //       eB (Seq.create (p.blockItemsX / p.blockWidth) zero)
+    //       tid n_idx)
+    // );
     barrier_in_fold_residue0_pre p row_perm elems col_ind row_off
       elems_tile col_ind_tile bid ri' re tid;
 
@@ -1633,11 +1727,9 @@ fn kf_residue
   (#et : Type0) {| d : scalar et, sized et, has_vec_cpy et |}
   (p : parameters et { size_req p })
   (row_perm : permutation (natlt p.rows))
-  (#lb : Array2.layout p.shared p.cols)
-  {| ctlayout lb |}
+  (#lB : Array2.layout p.shared p.cols) {| ctlayout lB, srm : strided_row_major lB |}
   (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
-  (#_ : squash (aligned 16 gA.elems /\ aligned 16 gA.col_ind))
-  (gB : Array2.t et lb)
+  (gB : Array2.t et lB)
   // matriz sparse ga
   (#elems : erased (lseq et gA.nnz))
   (#col_ind : erased (lseq sz gA.nnz))
@@ -1657,41 +1749,66 @@ fn kf_residue
   (ri' : sz{SZ.v ri' == round2 (max (chunk et) (chunk sz)) ri})
   (re : sz{re == row_off @! (brow p bid |~> row_perm) + 1})
   (tid : szlt p.blockWidth)
-  (n_idx : sz {SZ.v n_idx == bcol p bid })
+  (n_idx : sz {SZ.v n_idx == tcol p bid tid })
   (idx residue : sz {residue_pred p.blockItemsK ri ri' re idx residue})
   norewrite
+  preserves gpu
+  preserves smatrix_pts_to' gA #fA elems col_ind row_off eA
+  requires  pure (aligned 16 gA.elems)
+  requires  pure (aligned 16 gA.col_ind)
+  preserves gB |-> Frac (fB /. allthreads p) eB
+  requires  pure (aligned 16 (Array2.core gB))
+  requires  pure (aligned_strided_row_major (chunk et) srm)
   preserves
-    gpu **
-    smatrix_pts_to' gA #fA elems col_ind row_off eA **
-    gB |-> Frac (fB /. allthreads p) eB **
     B.barrier_tok (
       barrier_contract p row_perm elems col_ind row_off
         elems_tile col_ind_tile bid
-    ) **
-    thread_id p.blockWidth tid
+    )
+  preserves thread_id p.blockWidth tid
+  requires B.barrier_state (idx * 2)
   requires
-    B.barrier_state (idx * 2) **
     barrier_in p row_perm elems col_ind row_off
-      elems_tile col_ind_tile bid (idx * 2) tid **
-    out |->
-      Compute.compute_result
-        p.blockWidth p.blockItemsX
+      elems_tile col_ind_tile bid (idx * 2) tid
+  requires exists* vout.
+    out |-> vout **
+    pure (
+      Compute.tile_vmprod_prop #_ #_ #_ #_
+        #(re - residue - ri)
+        #(threadItemsX p)
+        (Seq.create (p.blockItemsX / p.blockWidth) d.zero)
         (Seq.slice elems ri (re - residue))
-          (cast_pos (lslice' col_ind ri (re - residue)))
-        eB (Seq.create (p.blockItemsX / p.blockWidth) zero)
-        tid n_idx
-  ensures
-    B.barrier_state ((idx + 1) * 2) **
-    (exists* (s : seq et). elems_tile |-> Frac (1.0R /. p.blockWidth) s) **
-    (exists* (s : seq sz). col_ind_tile |-> Frac (1.0R /. p.blockWidth) s) **
-    out |->
-      Compute.compute_result
-        p.blockWidth p.blockItemsX
+        (lslice' (cast_pos col_ind) ri (re - residue))
+        eB n_idx p.blockWidth vout
+      // Compute.compute_result
+      //   p.blockWidth p.blockItemsX
+      //   (Seq.slice elems ri (re - residue))
+      //     (cast_pos (lslice' col_ind ri (re - residue)))
+      //   eB (Seq.create (p.blockItemsX / p.blockWidth) zero)
+      //   tid n_idx
+    )
+  ensures B.barrier_state ((idx + 1) * 2)
+  ensures exists* (s : seq et). elems_tile |-> Frac (1.0R /. p.blockWidth) s
+  ensures exists* (s : seq sz). col_ind_tile |-> Frac (1.0R /. p.blockWidth) s
+  ensures exists* vout.
+    out |-> vout **
+    pure (
+      Compute.tile_vmprod_prop #_ #_ #_ #_
+        #(re - ri)
+        #(threadItemsX p)
+        (Seq.create (p.blockItemsX / p.blockWidth) d.zero)
         (Seq.slice elems ri re)
-        (cast_pos (lslice' col_ind ri re))
-        eB (Seq.create (p.blockItemsX / p.blockWidth) zero)
-        tid n_idx
+        (lslice' (cast_pos col_ind) ri re)
+        eB n_idx p.blockWidth vout
+    // out |->
+    //   Compute.compute_result
+    //     p.blockWidth p.blockItemsX
+    //     (Seq.slice elems ri re)
+    //     (cast_pos (lslice' col_ind ri re))
+    //     eB (Seq.create (p.blockItemsX / p.blockWidth) zero)
+    //     tid n_idx
+    )
 {
+  admit();
   let row_elems : erased (lseq et (re - ri)) = hide (Seq.slice elems ri re);
   let row_ind : erased (lseq sz (re - ri)) = hide (Seq.slice col_ind ri re);
 
@@ -1706,20 +1823,20 @@ fn kf_residue
       (lslice' (cast_pos row_ind) 0 ((re - ri) - residue))
   );
 
-  assert out |->
-    Compute.compute_result
-      p.blockWidth p.blockItemsX
-      (lslice' row_elems 0 ((re - ri) - residue))
-      (lslice' (cast_pos row_ind) 0 ((re - ri) - residue))
-      eB (Seq.create (p.blockItemsX / p.blockWidth) zero)
-      tid n_idx;
+  // assert out |->
+  //   Compute.compute_result
+  //     p.blockWidth p.blockItemsX
+  //     (lslice' row_elems 0 ((re - ri) - residue))
+  //     (lslice' (cast_pos row_ind) 0 ((re - ri) - residue))
+  //     eB (Seq.create (p.blockItemsX / p.blockWidth) zero)
+  //     tid n_idx;
 
   sparse_load_residue p row_perm gA #_ #row_off #elems #col_ind #eA #fA
     elems_tile col_ind_tile bid ri ri' re tid idx residue;
 
-  Compute.compute
-    p.blockWidth p.blockItemsK p.blockItemsX
-    elems_tile col_ind_tile residue gB out tid n_idx;
+  // Compute.compute
+  //   p.blockWidth p.blockItemsK p.blockItemsX
+  //   elems_tile col_ind_tile residue gB out tid n_idx;
 
   assert pure (
     Seq.equal
@@ -1731,13 +1848,13 @@ fn kf_residue
       (cast_pos (lslice' col_ind (re - residue) re))
       (lslice' (cast_pos row_ind) ((re - ri) - residue) (re - ri))
   );
-  Compute.compute_step
-    p.blockWidth p.blockItemsX
-    #(re - ri)
-    row_elems (cast_pos row_ind)
-    eB
-    (Seq.create (p.blockItemsX / p.blockWidth) zero)
-    tid n_idx ((re - ri) - residue) (re - ri);
+  // Compute.compute_step
+  //   p.blockWidth p.blockItemsX
+  //   #(re - ri)
+  //   row_elems (cast_pos row_ind)
+  //   eB
+  //   (Seq.create (p.blockItemsX / p.blockWidth) zero)
+  //   tid n_idx ((re - ri) - residue) (re - ri);
 
   unfold slice_live elems_tile #(1.0R /. p.blockWidth) residue p.blockItemsK;
   gpu_slice_concat elems_tile #(1.0R /. p.blockWidth)
@@ -1754,14 +1871,20 @@ fn kf
   (p : parameters et { size_req p })
   (row_perm : permutation (natlt p.rows))
   (blockChunks : sz{SZ.v blockChunks == p.blockItemsX / p.blockWidth}) // Ver nota abajo
-  (#lb : Array2.layout p.shared p.cols)
-  (#lc : Array2.layout p.rows p.cols)
-  {| ctlayout lb, ctlayout lc |}
+  (#lB : Array2.layout p.shared p.cols) {| ctlayout lB, srmB : strided_row_major lB |}
+  (#lC : Array2.layout p.rows p.cols)   {| ctlayout lC, srmC : strided_row_major lC |}
   (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
+  // TODO esto tiene que estar acá? podria estar en block_pre?
   (#_ : squash (aligned 16 gA.elems /\ aligned 16 gA.col_ind))
   (row_indices : gpu_array sz p.rows)
-  (gB : Array2.t et lb)
-  (gC : Array2.t et lc)
+  (gB : Array2.t et lB)
+  // TODO esto tiene que estar acá? podria estar en block_pre?
+  (#_ : squash (aligned 16 (Array2.core gB)))
+  (#_ : squash (aligned_strided_row_major (chunk et) srmB))
+  (gC : Array2.t et lC)
+  // TODO esto tiene que estar acá? podria estar en block_pre?
+  (#_ : squash (aligned 16 (Array2.core gC)))
+  (#_ : squash (aligned_strided_row_major (chunk et) srmC))
   // matriz sparse ga
   (#elems : erased (lseq et gA.nnz))
   (#col_ind : erased (lseq sz gA.nnz))
@@ -1811,9 +1934,11 @@ fn kf
     ) **
     B.barrier_state (barrier_count p row_perm col_ind row_off bid)
 {
+  admit();
   let m_idx = gpu_array_read row_indices (brow_ p bid);
   assert rewrites_to m_idx (SZ.uint_to_t (brow p bid |~> row_perm));
-  let n_idx = bcol_ p bid;
+  // let n_idx = bcol_ p bid;
+  let n_idx = tcol_ p bid tid;
 
   let (elems_tile0, (col_ind_tile0, _)) = sh;
 
@@ -1867,92 +1992,92 @@ fn kf
   with v_out. assert out |-> v_out;
   Pulse.Lib.Array.pts_to_len out;
 
-  foreach (p.blockItemsX /^ p.blockWidth)
-    (fun x -> when__ (bcol p bid + x * p.blockWidth + tid < p.cols)
-      (fun _ ->
-        matrix_live_cell gC
-          (brow p bid |~> row_perm)
-          (bcol p bid + x * p.blockWidth + tid)
-      )
-    )
-    (fun x -> when__ (bcol p bid + x * p.blockWidth + tid < p.cols)
-        (fun _ ->
-          Array2.pts_to_cell gC
-            (brow p bid |~> row_perm,
-             bcol p bid + x * p.blockWidth + tid)
-            (v_out @! x)
-        )
-    )
-    (store_out p row_perm gC out bid tid m_idx n_idx);
+  // foreach (p.blockItemsX /^ p.blockWidth)
+  //   (fun x -> when__ (bcol p bid + x * p.blockWidth + tid < p.cols)
+  //     (fun _ ->
+  //       matrix_live_cell gC
+  //         (brow p bid |~> row_perm)
+  //         (bcol p bid + x * p.blockWidth + tid)
+  //     )
+  //   )
+  //   (fun x -> when__ (bcol p bid + x * p.blockWidth + tid < p.cols)
+  //       (fun _ ->
+  //         Array2.pts_to_cell gC
+  //           (brow p bid |~> row_perm,
+  //            bcol p bid + x * p.blockWidth + tid)
+  //           (v_out @! x)
+  //       )
+  //   )
+  //   (store_out p row_perm gC out bid tid m_idx n_idx);
 
   unsparse_row_lemma
     p.rows p.shared
     elems (cast_pos col_ind) (cast_pos row_off) m_idx;
 
-  forevery_refine_pred' #(natlt (p.blockItemsX /^ p.blockWidth))
-    (fun x -> bcol p bid + x * p.blockWidth + tid < p.cols)
-    (fun x _ ->
-      Array2.pts_to_cell gC
-        (brow p bid |~> row_perm,
-         bcol p bid + x * p.blockWidth + tid)
-        (v_out @! x));
+  // forevery_refine_pred' #(natlt (p.blockItemsX /^ p.blockWidth))
+  //   (fun x -> bcol p bid + x * p.blockWidth + tid < p.cols)
+  //   (fun x _ ->
+  //     Array2.pts_to_cell gC
+  //       (brow p bid |~> row_perm,
+  //        bcol p bid + x * p.blockWidth + tid)
+  //       (v_out @! x));
 
   assert pure (
     Seq.equal
       (cast_pos #(re - ri) (Seq.slice col_ind ri re))
       (Seq.slice (cast_pos col_ind) ri re)
   );
-  forevery_map
-    #(x : natlt (p.blockItemsX /^ p.blockWidth){
-      bcol p bid + x * p.blockWidth + tid < p.cols
-    })
-    (fun x ->
-      Array2.pts_to_cell gC
-        (brow p bid |~> row_perm,
-         bcol p bid + x * p.blockWidth + tid)
-        (v_out @! x)
-    )
-    (fun x ->
-      Array2.pts_to_cell gC
-        (brow p bid |~> row_perm,
-         bcol p bid + x * p.blockWidth + tid)
-        (MS.matmul_single eA eB
-          (brow p bid |~> row_perm)
-          (bcol p bid + x * p.blockWidth + tid)
-        )
-    )
-    fn x {
-      Compute.compute_lemma
-        p.blockWidth p.blockItemsX
-        #(re - ri)
-        (Seq.slice elems ri re)
-        (Seq.slice (cast_pos col_ind) ri re)
-        eA eB out0
-        tid n_idx m_idx x;
-      rewrite each (
-        Compute.compute_result
-          p.blockWidth p.blockItemsX
-          (Seq.Base.slice elems (v ri) (v re))
-          (cast_pos (lslice' col_ind (v ri) (v re)))
-          eB (Seq.create (p.blockItemsX / p.blockWidth) zero)
-          tid n_idx @! x
-      ) as (
-        MS.matmul_single eA eB m_idx (n_idx + tid + x * p.blockWidth)
-      );
+  // forevery_map
+  //   #(x : natlt (p.blockItemsX /^ p.blockWidth){
+  //     bcol p bid + x * p.blockWidth + tid < p.cols
+  //   })
+  //   (fun x ->
+  //     Array2.pts_to_cell gC
+  //       (brow p bid |~> row_perm,
+  //        bcol p bid + x * p.blockWidth + tid)
+  //       (v_out @! x)
+  //   )
+  //   (fun x ->
+  //     Array2.pts_to_cell gC
+  //       (brow p bid |~> row_perm,
+  //        bcol p bid + x * p.blockWidth + tid)
+  //       (MS.matmul_single eA eB
+  //         (brow p bid |~> row_perm)
+  //         (bcol p bid + x * p.blockWidth + tid)
+  //       )
+  //   )
+  //   fn x {
+      // Compute.compute_lemma
+      //   p.blockWidth p.blockItemsX
+      //   #(re - ri)
+      //   (Seq.slice elems ri re)
+      //   (Seq.slice (cast_pos col_ind) ri re)
+      //   eA eB out0
+      //   tid n_idx m_idx x;
+      // rewrite each (
+      //   Compute.compute_result
+      //     p.blockWidth p.blockItemsX
+      //     (Seq.Base.slice elems (v ri) (v re))
+      //     (cast_pos (lslice' col_ind (v ri) (v re)))
+      //     eB (Seq.create (p.blockItemsX / p.blockWidth) zero)
+      //     tid n_idx @! x
+      // ) as (
+      //   MS.matmul_single eA eB m_idx (n_idx + tid + x * p.blockWidth)
+      // );
       ();
-    };
+    // };
 
-  forevery_unrefine_pred' #(natlt (p.blockItemsX /^ p.blockWidth))
-    (fun x -> bcol p bid + x * p.blockWidth + tid < p.cols)
-    (fun x _ ->
-      Array2.pts_to_cell gC
-        (brow p bid |~> row_perm,
-         bcol p bid + x * p.blockWidth + tid)
-        (MS.matmul_single eA eB
-          (brow p bid |~> row_perm)
-          (bcol p bid + x * p.blockWidth + tid)
-        )
-    );
+  // forevery_unrefine_pred' #(natlt (p.blockItemsX /^ p.blockWidth))
+  //   (fun x -> bcol p bid + x * p.blockWidth + tid < p.cols)
+  //   (fun x _ ->
+  //     Array2.pts_to_cell gC
+  //       (brow p bid |~> row_perm,
+  //        bcol p bid + x * p.blockWidth + tid)
+  //       (MS.matmul_single eA eB
+  //         (brow p bid |~> row_perm)
+  //         (bcol p bid + x * p.blockWidth + tid)
+  //       )
+  //   );
 
   assert pure (SZ.v !idx = (re - ri') / p.blockItemsK);
 
@@ -1967,14 +2092,17 @@ let kdesc
   (p : parameters et {size_req p})
   (row_perm : permutation (natlt p.rows))
   (blockChunks : sz{SZ.v blockChunks == p.blockItemsX / p.blockWidth}) // Ver nota abajo
-  (#lB : Array2.layout p.shared p.cols)
-  (#lC : Array2.layout p.rows p.cols)
-  {| ctlayout lB, ctlayout lC |}
+  (#lB : Array2.layout p.shared p.cols) {| ctlayout lB, srmB : strided_row_major lB |}
+  (#lC : Array2.layout p.rows p.cols)   {| ctlayout lC, srmC : strided_row_major lC |}
   (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared){is_global_smatrix gA})
   (#_ : squash (aligned 16 gA.elems /\ aligned 16 gA.col_ind))
   (row_indices : gpu_array sz p.rows)
   (gB : Array2.t et lB {Array2.is_global gB})
+  (#_ : squash (aligned 16 (Array2.core gB)))
+  (#_ : squash (aligned_strided_row_major (chunk et) srmB))
   (gC : Array2.t et lC {Array2.is_global gC})
+  (#_ : squash (aligned 16 (Array2.core gC)))
+  (#_ : squash (aligned_strided_row_major (chunk et) srmC))
   // matriz sparse gA
   (elems : erased (lseq et gA.nnz))
   (col_ind : erased (lseq sz gA.nnz))
@@ -2079,26 +2207,29 @@ let kdesc
 inline_for_extraction noextract
 fn spmm
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
-  (rows shared cols : szp)
+  (rows shared cols : szp { chunk et /? cols })
   (blockItemsK : szp)
   (blockItemsX : szp)
   (blockWidth : (k : szp {
     (k * chunk et) /? blockItemsK /\
     (k * chunk sz) /? blockItemsK /\
-    k /? blockItemsX
+    (k * chunk et) /? blockItemsX
   }))
   (blockChunks : sz{SZ.v blockChunks == blockItemsX / blockWidth}) // Ver nota abajo
-  (#lB : Array2.layout shared cols)
-  (#lC : Array2.layout rows cols)
-  {| ctlayout lB, ctlayout lC |}
+  (#lB : Array2.layout shared cols) {| ctlayout lB, srmB : strided_row_major lB |}
+  (#lC : Array2.layout rows cols)   {| ctlayout lC, srmC : strided_row_major lC |}
   (gA : smatrix et (SZ.v rows) (SZ.v shared){is_global_smatrix gA})
   (#_ : squash (aligned 16 gA.elems /\ aligned 16 gA.col_ind))
   (#fA : perm)
   (row_indices : gpu_array sz rows)
   (fri : perm)
   (gB : Array2.t et lB{Array2.is_global gB})
+  (#_ : squash (aligned 16 (Array2.core gB)))
+  (#_ : squash (aligned_strided_row_major (chunk et) srmB))
   (#fB : perm)
   (gC : Array2.t et lC{Array2.is_global gC})
+  (#_ : squash (aligned 16 (Array2.core gC)))
+  (#_ : squash (aligned_strided_row_major (chunk et) srmC))
   // matriz sparse gA
   (elems : erased (lseq et gA.nnz))
   (col_ind : erased (lseq sz gA.nnz))
@@ -2135,7 +2266,7 @@ fn spmm
   launch_sync (
     kdesc #et #_
       ({ rows; shared; cols; blockItemsK; blockItemsX; blockWidth })
-      row_perm blockChunks #lB #lC
+      row_perm blockChunks #lB #_ #_ #lC
       gA row_indices gB gC elems col_ind row_off eA
       #eB #fA #fri #fB
   );

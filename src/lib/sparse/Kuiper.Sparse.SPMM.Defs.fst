@@ -14,13 +14,13 @@ inline_for_extraction
 type parameters (et : Type0) {| sized et, has_vec_cpy et |} = {
   rows : szp;
   shared : szp;
-  cols : szp;
+  cols : (k : szp { chunk et /? k});
   blockItemsK : szp;
   blockItemsX : szp;
   blockWidth : (k : szp {
     (k * chunk et) /? blockItemsK /\
     (k * chunk sz) /? blockItemsK /\
-    k /? blockItemsX
+    (k * chunk et) /? blockItemsX
   });
 }
 
@@ -98,7 +98,7 @@ let brow_
 let bcol
   #et {| sized et, has_vec_cpy et |}
   (p : parameters et) (bid : natlt (nblocks_ p))
-: GTot (natlt p.cols)
+: GTot (natlt p.cols) // por que Ghost?
 = (bid % (p.cols `divup` p.blockItemsX)) * p.blockItemsX
 
 inline_for_extraction noextract
@@ -107,6 +107,33 @@ let bcol_
   (p : parameters et { size_req p }) (bid : szlt (nblocks_ p))
 : Tot (n : sz {SZ.v n == bcol p bid})
 = (bid %^ (p.cols `divup_` p.blockItemsX)) *^ p.blockItemsX
+
+noextract
+let tcol
+  (#et : Type0) {| sized et, has_vec_cpy et |}
+  (p : parameters et)
+  (bid : natlt (nblocks_ p))
+  (tid : nat)
+: Ghost nat (requires true) (ensures fun c -> chunk et /? c)
+=
+  lemma_divides_product (chunk et) tid;
+  assert chunk et /? (tid * chunk et);
+  lemma_divides_product p.blockItemsX (bid % (p.cols `divup` p.blockItemsX));
+  assert p.blockItemsX /? bcol p bid;
+  prod_divides (p.blockWidth) (chunk et) p.blockItemsX;
+  assert chunk et /? p.blockItemsX;
+  lemma_divides_chain (chunk et) p.blockItemsX (bcol p bid);
+  lemma_divides_sum (chunk et) (bcol p bid) (tid * chunk et);
+  bcol p bid + tid * chunk et
+
+inline_for_extraction noextract
+let tcol_
+  (#et : Type0) {| sized et, has_vec_cpy et |}
+  (p : parameters et { size_req p })
+  (bid : szlt (nblocks_ p))
+  (tid : szlt p.blockWidth)
+: Pure sz (requires true) (ensures fun c -> SZ.v c == tcol p bid tid)
+= bcol_ p bid +^ tid *^ chunk et
 
 // MAYBE definir threadItemsX?
 
@@ -121,6 +148,7 @@ let shmems_desc
   SHArray sz p.blockItemsK;
 ]
 
+// esto no tiene sentido, pedir valid_smatrix y listo
 unfold
 let well_formed
   #et {| sized et, has_vec_cpy et |}
@@ -218,3 +246,20 @@ let offset_aligned_lemma_sz'
   round2_chunk_lemma et sz i;
   assert chunk sz /? i';
   ()
+
+open Kuiper.EMatrix
+
+let ematrix_tile_prop
+  (#et : Type0) {| sized et, has_vec_cpy et |}
+  (#m1 #n1 : nat { chunk et /? n1 })
+  (#m2 #n2 : nat {  chunk et /? n2 })
+  (em2 : ematrix et m2 n2)
+  (row_ind : lseq nat m1 { in_bounds 0 m2 row_ind })
+  (j : nat { chunk et /? j })
+  (step : nat)
+  (em : ematrix et m1 n1)
+: GTot prop
+=
+  forall (k1 : natlt n1).
+    let k2 = j + k1 / chunk et * step * chunk et + k1 % chunk et in
+    k2 < n2 ==> ematrix_col em k1 == seq_make_sparse row_ind (ematrix_col em2 k2)

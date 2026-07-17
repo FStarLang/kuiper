@@ -42,7 +42,7 @@ fn load_array_vec
   )
   #(gpu ** y |-> Frac f s)
   fn k {
-    gpu_array_vec_cpy
+    gpu_array_vec_cpy_device
       x ((k *^ nthr +^ tid) *^ chunk et)
       y (i +^ ((k *^ nthr +^ tid) *^ chunk et));
   };

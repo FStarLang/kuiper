@@ -290,3 +290,37 @@ fn array_vec_cpy
   }
 }
 #pop-options
+
+noextract
+fn array_vec_cpy_dh
+  (#et : Type u#0) {| sized et, has_vec_cpy et |}
+  (dst_arr : larray et (chunk et))
+  (#src_sz : szp { chunk et /? src_sz })
+  (#src_l : A.layout src_sz) {| T.ctlayout src_l, src_cl : cont_layout src_l |}
+  (src_arr : A.array1 et src_l)
+  (src_off : szlt src_sz { chunk et /? src_off })
+  (#f : perm)
+  (#ss : erased (lseq et src_sz))
+  preserves gpu
+  requires  live dst_arr
+  preserves src_arr |-> Frac f ss
+  requires  pure (aligned 16 (A.core src_arr))
+  requires  pure (aligned_cont_layout (chunk et) src_cl)
+  ensures   dst_arr |-> Seq.slice ss src_off (src_off + chunk et)
+{
+    lower_cont src_arr #f;
+    
+    src_cl.pf src_off;
+    
+    aligned_cont_offset src_arr (SZ.v src_off);
+
+    Pulse.Lib.Array.PtsTo.pts_to_len dst_arr;
+    gpu_array_vec_cpy_dh
+      dst_arr 0sz
+      (A.core src_arr) (src_cl.offset +^ src_off);
+
+    raise_cont src_arr #f;
+
+    with s. assert dst_arr |-> s;
+    assert pure (Seq.equal s (Seq.slice ss src_off (src_off + chunk et)));
+}
