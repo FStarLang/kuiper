@@ -104,6 +104,7 @@ fn sarray_iterator_next
 }
 
 inline_for_extraction noextract
+divergent
 fn sarray_iterator_test
   (#et : eqtype) {| ets: scalar et |}
   (#l : erased nat)

@@ -63,6 +63,7 @@ fn bmmcomb_gpu_exact
               MS.mmcomb comb (slice_page sc k) (slice_page sa k) (slice_page sb k)
             else slice_page sc' k == slice_page sc k)
         )
+    decreases (batch - !idx)
   {
     let i = !idx;
 

@@ -435,6 +435,7 @@ fn rec gpu_memcpy_host_to_device'  //this is a CUDA primitive, so this definitio
     exists* s'.
       on gpu_loc (dst_garr |-> s') **
       pure (s' == seq_blit gv dst_off v src_off cnt /\ Seq.length s' == reveal dst_sz)
+  decreases SZ.v cnt
 {
   if (cnt = 0sz) {
     assert pure (Seq.equal gv (seq_blit gv dst_off v src_off cnt));
@@ -526,6 +527,7 @@ fn rec gpu_memcpy_device_to_host'  //this is a CUDA primitive, so this definitio
   ensures
     exists* s'. dst_arr |-> s' **
     pure (s'==seq_blit gv dst_off v src_off cnt /\ Seq.length s' == reveal dst_sz)
+  decreases SZ.v cnt
 {
   if (cnt = 0sz) {
     assert pure (Seq.equal gv (seq_blit gv dst_off v src_off cnt));
@@ -610,6 +612,7 @@ fn rec gpu_memcpy_device_to_device  //this is a CUDA primitive, so this definiti
   ensures
     on gpu_loc (dst_arr |-> gv) **
     pure (Seq.length gv == reveal sz)
+  decreases SZ.v cnt
 {
   impersonate // gpu_memcpy_device_to_device is a CUDA primitive, so this definition is only a model
     unit
