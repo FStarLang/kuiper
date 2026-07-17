@@ -4,24 +4,24 @@ module Kuiper.Kernel.GEMM.Util
 
 open Kuiper
 module MS = Kuiper.Spec.GEMM
+open Kuiper.Chest
 open Kuiper.EMatrix
-open Kuiper.Matrix.Reprs.Type
 
 (* This is now only spec and lemmas. *)
 
 (* Real-valued matrix for specification purposes *)
 let ematrix_to_real (#et:Type) {| scalar et, real_like et |}
   (#rows #cols : nat)
-  (em : ematrix et rows cols)
-  : GTot (ematrix real rows cols)
-  = mkM (fun i j -> to_real (macc em i j))
+  (em : chest2 et rows cols)
+  : GTot (chest2 real rows cols)
+  = mk2 (fun i j -> to_real (acc2 em i j))
 
 (* Real-valued matmul_single using real arithmetic (which IS associative) *)
 let real_matmul_single
   (#et:Type) {| scalar et, real_like et |}
   (#rows #shared #cols : nat)
-  (m1 : ematrix et rows shared)
-  (m2 : ematrix et shared cols)
+  (m1 : chest2 et rows shared)
+  (m2 : chest2 et shared cols)
   (row : natlt rows)
   (col : natlt cols)
   : GTot real
@@ -34,45 +34,45 @@ let real_gemm_single
   (comb_r : binop real)
   (#et:Type) {| scalar et, real_like et |}
   (#rows #shared #cols : nat)
-  (m1 : ematrix et rows shared)
-  (m2 : ematrix et shared cols)
-  (m0 : ematrix et rows cols)
+  (m1 : chest2 et rows shared)
+  (m2 : chest2 et shared cols)
+  (m0 : chest2 et rows cols)
   (row : natlt rows)
   (col : natlt cols)
   : GTot real
-  = comb_r (to_real (macc m0 row col)) (real_matmul_single m1 m2 row col)
+  = comb_r (to_real (acc2 m0 row col)) (real_matmul_single m1 m2 row col)
 
 (* Real-valued GEMM matrix: each cell is real_gemm_single *)
 let real_mmcomb
   (comb_r : binop real)
   (#et:Type) {| scalar et, real_like et |}
   (#rows #shared #cols : nat)
-  (m0 : ematrix et rows cols)
-  (m1 : ematrix et rows shared)
-  (m2 : ematrix et shared cols)
-  : GTot (ematrix real rows cols)
-  = mkM (fun i j -> real_gemm_single comb_r m1 m2 m0 i j)
+  (m0 : chest2 et rows cols)
+  (m1 : chest2 et rows shared)
+  (m2 : chest2 et shared cols)
+  : GTot (chest2 real rows cols)
+  = mk2 (fun i j -> real_gemm_single comb_r m1 m2 m0 i j)
 
 (* Splitting partial sum over real matrices:
    sum(0 to base+n) = sum(0 to base) + sum over subtile elements *)
 val __gmatmul_single_split
   (#rows #shared #cols : nat)
-  (m1 : ematrix real rows shared)
-  (m2 : ematrix real shared cols)
+  (m1 : chest2 real rows shared)
+  (m2 : chest2 real shared cols)
   (row : natlt rows)
   (col : natlt cols)
   (base : nat{base <= shared})
   (n : nat{base + n <= shared})
   (#sub_n : nat{n <= sub_n})
-  (sub_m1 : ematrix real sub_n sub_n)
-  (sub_m2 : ematrix real sub_n sub_n)
+  (sub_m1 : chest2 real sub_n sub_n)
+  (sub_m2 : chest2 real sub_n sub_n)
   (sub_row : natlt sub_n)
   (sub_col : natlt sub_n)
   : Lemma
     (requires
       (forall (k:nat). k < n ==>
-        macc sub_m1 sub_row k == macc m1 row (base + k) /\
-        macc sub_m2 k sub_col == macc m2 (base + k) col))
+        acc2 sub_m1 sub_row k == acc2 m1 row (base + k) /\
+        acc2 sub_m2 k sub_col == acc2 m2 (base + k) col))
     (ensures
       MS.__gmatmul_single 0.0R ( *. ) ( +. ) m1 m2 row col (base + n)
       ==
@@ -85,10 +85,10 @@ val __gmatmul_single_split
 val __matmul_single_approx_real
   (#et:Type) {| scalar et |} {| real_like et |}
   (#rows #shared #cols : nat)
-  (eA : ematrix et rows shared)
-  (eB : ematrix et shared cols)
-  (rA : ematrix real rows shared)
-  (rB : ematrix real shared cols)
+  (eA : chest2 et rows shared)
+  (eB : chest2 et shared cols)
+  (rA : chest2 real rows shared)
+  (rB : chest2 real shared cols)
   (row : natlt rows)
   (col : natlt cols)
   (n : nat{n <= shared})
@@ -107,12 +107,12 @@ val mmcomb_approx_real
   (comb : binop et)
   (comb_r : binop real)
   (#rows #shared #cols : nat)
-  (eC : ematrix et rows cols)
-  (eA : ematrix et rows shared)
-  (eB : ematrix et shared cols)
-  (rA : ematrix real rows shared)
-  (rB : ematrix real shared cols)
-  (rC : ematrix real rows cols)
+  (eC : chest2 et rows cols)
+  (eA : chest2 et rows shared)
+  (eB : chest2 et shared cols)
+  (rA : chest2 real rows shared)
+  (rB : chest2 real shared cols)
+  (rC : chest2 real rows cols)
   : Lemma
     (requires approx2 comb comb_r /\
               eA %~ rA /\ eB %~ rB /\ eC %~ rC)

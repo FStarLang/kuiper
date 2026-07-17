@@ -7,13 +7,14 @@ open Kuiper
 #set-options "--z3rlimit 120"
 
 open Kuiper.Array.Vectorized { has_vec_cpy, chunk }
-open Kuiper.EMatrix { ematrix }
+open Kuiper.EMatrix
 open Kuiper.Float16
 open Kuiper.Math { even, odd, even_2x, odd_2x1 }
-open Kuiper.Matrix
-open Kuiper.Matrix.Reprs.Type
-open Kuiper.Matrix.Tiling
-open Kuiper.Kernel.GEMM.Copy.Vec
+open Kuiper.Tensor
+open Kuiper.Array2.Strided
+open Kuiper.Tensor.Tiling
+open Kuiper.Tensor.Layout.Alg { l2_row_major as rm }
+open Kuiper.Kernel.GEMM.Copy.Vec2
 open Kuiper.Kernel.GEMM.Tiled.Common.Vec
 open Kuiper.Spec.GEMM
 open Kuiper.TensorCore
@@ -22,8 +23,9 @@ open Pulse.Lib.Trade
 
 module SZ = Kuiper.SizeT
 module B = Kuiper.Barrier
-module R = Kuiper.Matrix.Reprs
-module FB = Kuiper.Kernel.GEMM.FlipFlopBarrier
+module T = Kuiper.Tensor
+module FB = Kuiper.Kernel.GEMM.FlipFlopBarrier2
+module CV2 = Kuiper.Kernel.GEMM.Copy.Vec2
 
 open Kuiper.Kernel.GEMM.TensorCore2D.KernelDesc
 
@@ -31,42 +33,42 @@ let fragarrayAcc_approximates (#et:Type0) {| scalar et, real_like et |}
   (#tm #tn #tk : pos)
   (wm wn : nat)
   ([@@@mkey] arr : array (fragment et FragAcc tm tn tk FragLAcc) { Pulse.Lib.Array.length arr == wm*wn})
-  (rm : ematrix real (wm*tm) (wn*tn))
+  (rm : chest2 real (wm*tm) (wn*tn))
   : slprop
   =
-    exists* (em : seq (ematrix et tm tn)).
+    exists* (em : seq (chest2 et tm tn)).
       arr |-> em **
       pure (
         (Seq.length em == wm*wn) /\
-        forall (i : natlt wm) (j : natlt wn). (em @! (i * wn + j)) %~ (ematrix_subtile rm tm tn i j))
+        forall (i : natlt wm) (j : natlt wn). (Seq.index em (i * wn + j)) %~ (ematrix_subtile rm tm tn i j))
 
 let fragarrayA_approximates (#et:Type0) {| scalar et, real_like et |}
   (#tm #tn #tk : pos)
   (wm : nat)
   (arr : array (fragment et FragA tm tn tk FragLRM) { Pulse.Lib.Array.length arr == wm})
-  (rm : ematrix real (wm*tm) tk)
+  (rm : chest2 real (wm*tm) tk)
   : slprop
   =
-    exists* (eAs : seq (ematrix et tm tk)).
+    exists* (eAs : seq (chest2 et tm tk)).
       arr |-> eAs **
       pure (
         (Seq.length eAs == wm) /\
         forall (i : natlt wm).
-          (eAs @! i) %~ (ematrix_subtile rm tm tk i 0))
+          (Seq.index eAs i) %~ (ematrix_subtile rm tm tk i 0))
 
 let fragarrayB_approximates (#et:Type0) {| scalar et, real_like et |}
   (#tm #tn #tk : pos)
   (wn : nat)
   (arr : array (fragment et FragB tm tn tk FragLRM) { Pulse.Lib.Array.length arr == wn})
-  (rm : ematrix real tk (wn*tn))
+  (rm : chest2 real tk (wn*tn))
   : slprop
   =
-    exists* (eBs : seq (ematrix et tk tn)).
+    exists* (eBs : seq (chest2 et tk tn)).
       arr |-> eBs **
       pure (
         (Seq.length eBs == wn) /\
         forall (i : natlt wn).
-          (eBs @! i) %~ (ematrix_subtile rm tk tn 0 i))
+          (Seq.index eBs i) %~ (ematrix_subtile rm tk tn 0 i))
 
 inline_for_extraction noextract
 fn populate_fragments_a
@@ -76,9 +78,9 @@ fn populate_fragments_a
    tm tn tk
    wm wn : szp { constraints bm bn bk tm tn tk wm wn })
   (frags : array (fragment et FragA tm tn tk FragLRM))
-  (gm : gpu_matrix et (R.row_major bm bk))
-  (#em : ematrix et bm bk)
-  (rm : ematrix real bm bk {em %~ rm})
+  (gm : array2 et (rm bm bk))
+  (#em : chest2 et bm bk)
+  (rm : chest2 real bm bk {em %~ rm})
   (#f : perm)
   (arow : szlt (bm/(wm*tm)))
   (dotIdx : szlt (bk/tk))
@@ -91,11 +93,11 @@ requires
 ensures
   fragarrayA_approximates wm frags (ematrix_subtile rm (wm*tm) tk arow dotIdx)
 {
-    gpu_matrix_pts_to_ref gm;
+    tensor_pts_to_ref gm;
     array_fragment_pts_to_ref frags;
 
     let tile_for_tc_a_tiles =
-      gpu_matrix_extract_tile_ro' gm (wm*tm) (SZ.v tk) (SZ.v arow) (SZ.v dotIdx);
+      array2_extract_tile_ro' gm (wm*tm) (SZ.v tk) (SZ.v arow) (SZ.v dotIdx);
     let mut i0 = 0sz;
     while (!i0 <^ wm)
       invariant live i0
@@ -104,14 +106,11 @@ ensures
           frags |-> ems **
           pure (Seq.length ems == wm /\ !i0 <= wm /\
             forall (i : natlt !i0).
-              (ems @! i) %~ (ematrix_subtile rm tm tk (arow*wm+i) dotIdx)))
+              (Seq.index ems i) %~ (ematrix_subtile rm tm tk (arow*wm+i) dotIdx)))
       decreases (wm - !i0)
     {
-      // Guido: why is there a zero here? Can this really be right?
-      // Guido: I see. tile_for_tc_a_tiles is a very rectangular tile with height equal to one tile.
-      //        Zero is the only possible value here. Still seems a bit odd.
       let a_tile =
-        gpu_matrix_extract_tile_ro' tile_for_tc_a_tiles (SZ.v tm) (SZ.v tk) (SZ.v !i0) 0;
+        array2_extract_tile_ro' tile_for_tc_a_tiles (SZ.v tm) (SZ.v tk) (SZ.v !i0) 0;
       array_fragment_extract frags !i0;
 
       mma_loadA frags.(!i0) a_tile;
@@ -136,9 +135,9 @@ fn populate_fragments_b
    tm tn tk
    wm wn : szp { constraints bm bn bk tm tn tk wm wn })
   (frags : array (fragment et FragB tm tn tk FragLRM))
-  (gm : gpu_matrix et (R.row_major bk bn))
-  (#em : ematrix et bk bn)
-  (rm : ematrix real bk bn {em %~ rm})
+  (gm : array2 et (rm bk bn))
+  (#em : chest2 et bk bn)
+  (rm : chest2 real bk bn {em %~ rm})
   (#f : perm)
   (bcol : szlt (bn/(wn*tn)))
   (dotIdx : szlt (bk/tk))
@@ -151,10 +150,10 @@ requires
 ensures
   fragarrayB_approximates wn frags (ematrix_subtile rm tk (wn*tn) dotIdx bcol)
 {
-    gpu_matrix_pts_to_ref gm;
+    tensor_pts_to_ref gm;
     array_fragment_pts_to_ref frags;
 
-    let tile_for_tc_b_tiles = gpu_matrix_extract_tile_ro' gm (SZ.v tk) (wn*tn) (SZ.v dotIdx) (SZ.v bcol);
+    let tile_for_tc_b_tiles = array2_extract_tile_ro' gm (SZ.v tk) (wn*tn) (SZ.v dotIdx) (SZ.v bcol);
     let mut i1 = 0sz;
     while (!i1 <^ wn)
       invariant live i1
@@ -163,10 +162,10 @@ ensures
           frags |-> ems **
           pure (Seq.length ems == wn /\ !i1 <= wn /\
             forall (i : natlt !i1).
-              (ems @! i) %~ (ematrix_subtile rm tk tn dotIdx (bcol*wn+i))))
+              (Seq.index ems i) %~ (ematrix_subtile rm tk tn dotIdx (bcol*wn+i))))
       decreases (wn - !i1)
     {
-      let b_tile = gpu_matrix_extract_tile_ro' tile_for_tc_b_tiles (SZ.v tk) (SZ.v tn) 0 (SZ.v !i1);
+      let b_tile = array2_extract_tile_ro' tile_for_tc_b_tiles (SZ.v tk) (SZ.v tn) 0 (SZ.v !i1);
 
       array_fragment_pts_to_ref frags;
       array_fragment_extract frags !i1;
@@ -175,6 +174,8 @@ ensures
       Pulse.Lib.Forall.elim_forall
         (ematrix_subtile (ematrix_subtile em tk (wn*tn) dotIdx bcol) tk tn 0 !i1);
 
+      FStar.Math.Lemmas.paren_mul_right (SZ.v bcol) (SZ.v wn) (SZ.v tn);
+      FStar.Math.Lemmas.distributivity_add_left (SZ.v bcol * SZ.v wn) (SZ.v !i1) (SZ.v tn);
       ambig_trade_elim ();
       ambig_trade_elim ();
 
@@ -191,10 +192,10 @@ let arrayfragments_fade
   (j : natlt wn)
   (resIdxM : natle wm)
   (resIdxN : natle wn)
-  (rA : ematrix real (wm*tm) tk)
-  (rB : ematrix real tk (wn*tn))
-  (rAcc : ematrix real (wm*tm) (wn*tn))
-: ematrix real tm tn
+  (rA : chest2 real (wm*tm) tk)
+  (rB : chest2 real tk (wn*tn))
+  (rAcc : chest2 real (wm*tm) (wn*tn))
+: chest2 real tm tn
 =
   if i < resIdxM || (i = resIdxM && j < resIdxN)
   then ematrix_subtile rAcc tm tn i j `matplus`
@@ -202,7 +203,6 @@ let arrayfragments_fade
   else ematrix_subtile rAcc tm tn i j
 
 #push-options "--z3rlimit 80"
-#restart-solver // Trying to avoid infinite loop in batch mode!?
 inline_for_extraction noextract
 fn fragarray_mma
   (#et_ab #et_acc : Type0)
@@ -213,9 +213,9 @@ fn fragarray_mma
   (aFrags     : array (fragment et_ab FragA tm tn tk FragLRM))
   (bFrags     : array (fragment et_ab FragB tm tn tk FragLRM))
   (accumFrags : array (fragment et_acc FragAcc tm tn tk FragLAcc))
-  (rA : ematrix real (wm*tm) tk)
-  (rB : ematrix real tk (wn*tn))
-  (rAcc : ematrix real (wm*tm) (wn*tn))
+  (rA : chest2 real (wm*tm) tk)
+  (rB : chest2 real tk (wn*tn))
+  (rAcc : chest2 real (wm*tm) (wn*tn))
   (dotIdx : szlt (bk/tk))
   (#_ : squash (Pulse.Lib.Array.length aFrags == wm))
   (#_ : squash (Pulse.Lib.Array.length bFrags == wn))
@@ -241,13 +241,13 @@ fn fragarray_mma
   while (!resIdxM <^ wm)
     invariant live resIdxM
     invariant
-      exists* (eAcc : seq (ematrix et_acc tm tn)).
+      exists* (eAcc : seq (chest2 et_acc tm tn)).
         accumFrags |-> eAcc **
         pure (
           !resIdxM <= wm /\
           (Seq.length eAcc == wm*wn) /\
           forall (i : natlt wm) (j : natlt wn).
-            (eAcc @! (i * wn + j)) %~
+            (Seq.index eAcc (i * wn + j)) %~
               (arrayfragments_fade tm tn tk wm wn i j !resIdxM 0 rA rB rAcc))
     decreases (wm - !resIdxM)
   {
@@ -255,13 +255,13 @@ fn fragarray_mma
     while (!resIdxN <^ wn)
       invariant live resIdxN
       invariant
-        exists* (eAcc : seq (ematrix et_acc tm tn)).
+        exists* (eAcc : seq (chest2 et_acc tm tn)).
           accumFrags |-> eAcc **
           pure (
             !resIdxN <= wn /\
             (Seq.length eAcc == wm*wn) /\
             forall (i : natlt wm) (j : natlt wn).
-              (eAcc @! (i * wn + j)) %~
+              (Seq.index eAcc (i * wn + j)) %~
                 (arrayfragments_fade tm tn tk wm wn i j !resIdxM !resIdxN rA rB rAcc))
       decreases (wn - !resIdxN)
     {
@@ -303,9 +303,9 @@ fn fragarray_mma
 
       assert array_fragment_pts_to accumFrags (Seq.Base.upd eAccs
             (!resIdxM * wn + !resIdxN)
-            (emma (eAccs @! (!resIdxM * wn + !resIdxN))
-                (eAs @! !resIdxM)
-                (eBs @! !resIdxN)));
+            (emma (Seq.index eAccs (!resIdxM * wn + !resIdxN))
+                (Seq.index eAs !resIdxM)
+                (Seq.index eBs !resIdxN)));
 
       resIdxN := !resIdxN +^ 1sz;
     };
@@ -316,16 +316,16 @@ fn fragarray_mma
   with eAcc. assert accumFrags |-> eAcc;
   assert pure (
     forall (i : natlt wm) (j : natlt wn).
-              (eAcc @! (i * wn + j)) %~ (arrayfragments_fade tm tn tk wm wn i j wm 0 rA rB rAcc));
+              (Seq.index eAcc (i * wn + j)) %~ (arrayfragments_fade tm tn tk wm wn i j wm 0 rA rB rAcc));
   assert pure (
     forall (i : natlt wm) (j : natlt wn).
-      (eAcc @! (i * wn + j)) %~
+      (Seq.index eAcc (i * wn + j)) %~
                 ematrix_subtile rAcc tm tn i j `matplus`
                   (matmul (ematrix_subtile rA tm tk i 0) (ematrix_subtile rB tk tn 0 j)));
 
   assert pure (
     forall (i : natlt wm) (j : natlt wn).
-              (eAcc @! (i * wn + j)) %~ (ematrix_subtile (rAcc `matplus` (matmul rA rB)) tm tn i j));
+              (Seq.index eAcc (i * wn + j)) %~ (ematrix_subtile (rAcc `matplus` (matmul rA rB)) tm tn i j));
   assert pure (Seq.length eAcc == wm*wn);
 
   fold fragarrayA_approximates wm aFrags rA;
@@ -338,6 +338,133 @@ fn fragarray_mma
 inline_for_extraction noextract
 let sz_succ (x:SZ.t{SZ.fits (x+1)}) : SZ.t = x +^ 1sz
 
+// Helper lemma: proves the matmul accumulation step via extensional equality,
+// working around the matplus normalization gap introduced by the chest2→chest
+// refactor (matplus normalizes to Chest.M/on_domain_g in the slprop but the
+// __gmatmul_single_lemma hypothesis keeps it opaque). By having ematrix_subtile
+// directly in the ensures clause (not acc2), the conclusion normalizes
+// consistently with the slprop when F* sends it to SMT.
+#push-options "--z3rlimit 60"
+let subproducts_step_eq
+  (#bm #bk #bn : nat)
+  (wm_tm tk_dim wn_tn : pos)
+  (_ : squash (wm_tm /? bm /\ tk_dim /? bk /\ wn_tn /? bn))
+  (rAcc : chest2 real wm_tm wn_tn)
+  (rA : chest2 real bm bk) (rB : chest2 real bk bn)
+  (row : natlt (bm/wm_tm)) (col : natlt (bn/wn_tn))
+  (k : natlt (bk/tk_dim))
+  : Lemma (
+      matplus (__gmatmul_single rAcc matmul matplus
+              (ematrix_tiled rA wm_tm tk_dim) (ematrix_tiled rB tk_dim wn_tn)
+              row col k)
+          (matmul (ematrix_subtile rA wm_tm tk_dim row k)
+                  (ematrix_subtile rB tk_dim wn_tn k col))
+      ==
+      __gmatmul_single rAcc matmul matplus
+          (ematrix_tiled rA wm_tm tk_dim) (ematrix_tiled rB tk_dim wn_tn)
+          row col (k + 1))
+  = __gmatmul_single_lemma rAcc matmul matplus
+      (ematrix_tiled rA wm_tm tk_dim) (ematrix_tiled rB tk_dim wn_tn)
+      row col (k + 1);
+    macc_ematrix_tiled rA wm_tm tk_dim row k;
+    macc_ematrix_tiled rB tk_dim wn_tn k col;
+    assert (equal
+      (matplus (__gmatmul_single rAcc matmul matplus
+               (ematrix_tiled rA wm_tm tk_dim) (ematrix_tiled rB tk_dim wn_tn)
+               row col k)
+          (matmul (ematrix_subtile rA wm_tm tk_dim row k)
+                  (ematrix_subtile rB tk_dim wn_tn k col)))
+      (__gmatmul_single rAcc matmul matplus
+          (ematrix_tiled rA wm_tm tk_dim) (ematrix_tiled rB tk_dim wn_tn)
+          row col (k + 1)))
+#pop-options
+
+// Stateful function to advance fragarrayAcc_approximates by one matmul
+// General ghost function to rewrite fragarrayAcc_approximates from mold
+// to mnew, given that mold == mnew.
+noextract
+ghost fn rewrite_fragarrayAcc
+  (#et:Type0) {| scalar et, real_like et |}
+  (#tm #tn #tk : pos)
+  (wm wn : pos)
+  (accumFrags : array (fragment et FragAcc tm tn tk FragLAcc)
+                { Pulse.Lib.Array.length accumFrags == wm*wn })
+  (mold mnew : chest2 real (wm*tm) (wn*tn))
+  (#_ : squash (mold == mnew))
+  requires fragarrayAcc_approximates wm wn accumFrags mold
+  ensures fragarrayAcc_approximates wm wn accumFrags mnew
+{
+  ()
+}
+
+// Specialized ghost function for the inner-loop accumulation step.
+// Calls the subproducts_step_eq lemma INSIDE the ghost fn body,
+// then unfolds/folds with opaque params
+// so the VC uses trivial congruence from the lemma's propositional equality.
+#push-options "--z3rlimit 60"
+noextract
+ghost fn rewrite_fragarrayAcc_step
+  (#et:Type0) {| scalar et, real_like et |}
+  (#tm #tn #tk : pos)
+  (#bm #bk #bn : pos)
+  (wm wn : pos)
+  (accumFrags : array (fragment et FragAcc tm tn tk FragLAcc)
+                { Pulse.Lib.Array.length accumFrags == wm*wn })
+  (rAcc : chest2 real (wm*tm) (wn*tn))
+  (rA : chest2 real bm bk) (rB : chest2 real bk bn)
+  (arow : natlt (bm/(wm*tm))) (bcol : natlt (bn/(wn*tn)))
+  (k : natlt (bk/tk))
+  (#_ : squash ((wm*tm) /? bm /\ tk /? bk /\ (wn*tn) /? bn))
+  requires fragarrayAcc_approximates wm wn accumFrags
+    (matplus (__gmatmul_single rAcc matmul matplus
+              (ematrix_tiled rA (wm*tm) tk) (ematrix_tiled rB tk (wn*tn))
+              arow bcol k)
+            (matmul (ematrix_subtile rA (wm*tm) tk arow k)
+                    (ematrix_subtile rB tk (wn*tn) k bcol)))
+  ensures fragarrayAcc_approximates wm wn accumFrags
+    (__gmatmul_single rAcc matmul matplus
+      (ematrix_tiled rA (wm*tm) tk) (ematrix_tiled rB tk (wn*tn))
+      arow bcol (k + 1))
+{
+  subproducts_step_eq (wm*tm) tk (wn*tn) () rAcc rA rB arow bcol k;
+  unfold fragarrayAcc_approximates wm wn accumFrags;
+  fold fragarrayAcc_approximates wm wn accumFrags
+    (__gmatmul_single rAcc matmul matplus
+      (ematrix_tiled rA (wm*tm) tk) (ematrix_tiled rB tk (wn*tn))
+      arow bcol (k + 1));
+}
+#pop-options
+
+// Ghost function to rewrite fragarrayAcc_approximates from the final
+// tiled gmatmul_single form to the matplus/matmul form (post-loop).
+noextract
+ghost fn rewrite_fragarrayAcc_tiles
+  (#et:Type0) {| scalar et, real_like et |}
+  (#tm #tn #tk : pos)
+  (#bm #bk #bn : pos)
+  (wm wn : pos)
+  (accumFrags : array (fragment et FragAcc tm tn tk FragLAcc)
+                { Pulse.Lib.Array.length accumFrags == wm*wn })
+  (rAcc : chest2 real (wm*tm) (wn*tn))
+  (rA : chest2 real bm bk) (rB : chest2 real bk bn)
+  (arow : natlt (bm/(wm*tm))) (bcol : natlt (bn/(wn*tn)))
+  (#_ : squash ((wm*tm) /? bm /\ tk /? bk /\ (wn*tn) /? bn))
+  requires fragarrayAcc_approximates wm wn accumFrags
+    (__gmatmul_single rAcc matmul matplus
+      (ematrix_tiled rA (wm*tm) tk) (ematrix_tiled rB tk (wn*tn))
+      arow bcol (bk/tk))
+  ensures fragarrayAcc_approximates wm wn accumFrags
+    (rAcc `matplus` matmul (ematrix_subtile rA (wm*tm) bk arow 0)
+                           (ematrix_subtile rB bk (wn*tn) 0 bcol))
+{
+  matmul_tiles_lemma (fun _ -> ()) (fun _ _ _ -> ())
+    (wm*tm) (wn*tn) tk rAcc rA rB arow bcol;
+  unfold fragarrayAcc_approximates wm wn accumFrags;
+  fold fragarrayAcc_approximates wm wn accumFrags
+    (rAcc `matplus` matmul (ematrix_subtile rA (wm*tm) bk arow 0)
+                           (ematrix_subtile rB bk (wn*tn) 0 bcol));
+}
+
 inline_for_extraction noextract
 fn subproducts_tc_2d
   (#et_ab #et_acc : Type0)
@@ -348,13 +475,13 @@ fn subproducts_tc_2d
   (aFrags     : array (fragment et_ab FragA tm tn tk FragLRM))
   (bFrags     : array (fragment et_ab FragB tm tn tk FragLRM))
   (accumFrags : array (fragment et_acc FragAcc tm tn tk FragLAcc))
-  (gA : gpu_matrix et_ab (R.row_major bm bk))
-  (gB : gpu_matrix et_ab (R.row_major bk bn))
-  (#eA : ematrix et_ab bm bk)
-  (#eB : ematrix et_ab bk bn)
-  (rA : ematrix real bm bk {eA %~ rA})
-  (rB : ematrix real bk bn {eB %~ rB})
-  (rAcc : ematrix real (wm*tm) (wn*tn))
+  (gA : array2 et_ab (rm bm bk))
+  (gB : array2 et_ab (rm bk bn))
+  (#eA : chest2 et_ab bm bk)
+  (#eB : chest2 et_ab bk bn)
+  (rA : chest2 real bm bk {eA %~ rA})
+  (rB : chest2 real bk bn {eB %~ rB})
+  (rAcc : chest2 real (wm*tm) (wn*tn))
   (#fA #fB : perm)
   (arow : szlt (bm/(wm*tm)))
   (bcol : szlt (bn/(wn*tn)))
@@ -405,29 +532,17 @@ fn subproducts_tc_2d
     unfold fragarrayA_approximates wm aFrags;
     unfold fragarrayB_approximates wn bFrags;
 
-    __gmatmul_single_lemma rAcc matmul matplus
-      (ematrix_tiled rA (wm*tm) tk) (ematrix_tiled rB tk (wn*tn))
-      arow bcol (!dotIdx +^ 1sz);
-    rewrite each
-        (matplus (__gmatmul_single rAcc matmul matplus
-                (ematrix_tiled rA (wm*tm) tk) (ematrix_tiled rB tk (wn*tn))
-                arow bcol !dotIdx)
-            (matmul (ematrix_subtile rA (wm*tm) tk arow !dotIdx)
-                    (ematrix_subtile rB tk (wn*tn) !dotIdx bcol)))
-    as
-        (__gmatmul_single rAcc matmul matplus
-            (ematrix_tiled rA (wm*tm) tk) (ematrix_tiled rB tk (wn*tn))
-            arow bcol (!dotIdx +^ 1sz));
+    // Ghost fn: advance the accumulator by one step — the lemma call and
+    // unfold/fold happen inside the ghost fn with opaque params.
+    // Pass !dotIdx directly (stt read), NOT a with-bound variable (ghost).
+    rewrite_fragarrayAcc_step wm wn accumFrags rAcc rA rB arow bcol !dotIdx;
 
-    // Weird issue here. We'd like to just add one and be done but
-    // that doesn't seem to work due to some SZ.v (x+^1sz) vs SZ.v x + 1
-    // issues
-    with vdotIdx. assert dotIdx |-> vdotIdx;
-    dotIdx := sz_succ !dotIdx;// +^ 1sz;S
+    with vdi. assert dotIdx |-> vdi;
+    dotIdx := sz_succ !dotIdx;
     rewrite each
-      (SZ.v vdotIdx + 1)
+      (SZ.v vdi + 1)
     as
-      (SZ.v (sz_succ vdotIdx));
+      (SZ.v (sz_succ vdi));
 
     ()
   };
@@ -445,12 +560,7 @@ fn subproducts_tc_2d
           bcol
           (bk/^tk)));
 
-  matmul_tiles_lemma (fun _ -> ()) (fun _ _ _ -> ()) (wm*tm) (wn*tn) tk rAcc rA rB arow bcol;
-  rewrite each (
-    __gmatmul_single rAcc matmul matplus
-      (ematrix_tiled rA (wm*tm) tk) (ematrix_tiled rB tk (wn*tn)) arow bcol (bk/^tk))
-  as (rAcc `matplus` matmul (ematrix_subtile rA (wm*tm) bk arow 0)
-                            (ematrix_subtile rB bk (wn*tn) 0 bcol));
+  rewrite_fragarrayAcc_tiles wm wn accumFrags rAcc rA rB arow bcol;
   ()
 }
 
@@ -458,8 +568,8 @@ let em_fade_tiles
   (tm tn wm wn : pos)
   (idxI : natle wm)
   (idxJ : natle wn)
-  (rm1 rm2 : ematrix real (wm*tm) (wn*tn))
-: ematrix real (wm*tm) (wn*tn)
+  (rm1 rm2 : chest2 real (wm*tm) (wn*tn))
+: chest2 real (wm*tm) (wn*tn)
 =
   ematrix_from_tiles tm tn (fun i j ->
     let flat_idx = i * wn + j in
@@ -468,15 +578,29 @@ let em_fade_tiles
     then ematrix_subtile rm2 tm tn i j
     else ematrix_subtile rm1 tm tn i j)
 
+// Once idxI reaches wm, every output tile index (i,j) satisfies
+// i*wn+j < wm*wn <= wm*wn+idxJ, so the fade selects rm2 everywhere and the
+// whole matrix collapses to rm2 (regardless of idxJ). Proven extensionally so
+// that the chest2 stays opaque: from_subtiles_id no longer fires syntactically
+// after the ematrix->chest refactor, so we bridge via `equal`.
+#push-options "--z3rlimit 40"
+let em_fade_tiles_full
+  (tm tn wm wn : pos)
+  (idxJ : natle wn)
+  (rm1 rm2 : chest2 real (wm*tm) (wn*tn))
+: Lemma (em_fade_tiles tm tn wm wn wm idxJ rm1 rm2 == rm2)
+= assert (equal (em_fade_tiles tm tn wm wn wm idxJ rm1 rm2) rm2)
+#pop-options
+
 #push-options "--z3rlimit 80 --split_queries always"
 let lemma_update_tile_fade_approximates
   (#et : Type0) {| scalar et, real_like et|}
   (tm tn wm wn : pos)
   (idxI : natlt wm)
   (idxJ : natlt wn)
-  (em : ematrix et (wm*tm) (wn*tn))
-  (etile : ematrix et tm tn)
-  (rm1 rm2 : ematrix real (wm*tm) (wn*tn))
+  (em : chest2 et (wm*tm) (wn*tn))
+  (etile : chest2 et tm tn)
+  (rm1 rm2 : chest2 real (wm*tm) (wn*tn))
 : Lemma
   (requires
     (em %~ (em_fade_tiles tm tn wm wn idxI idxJ rm1 rm2)) /\
@@ -489,21 +613,21 @@ let lemma_update_tile_fade_approximates
 inline_for_extraction noextract
 fn epilogue
   (#et : Type0) {| scalar et, real_like et |}
-  (#rows : erased nat)
-  // cols is concretized so using size is more succinct
-  (#cols : sz)
+  (#m : erased nat)
+  // n is concretized so using size is more succinct
+  (#n : sz)
   (bm bn bk
    tm tn tk
    wm wn : szp { constraints bm bn bk tm tn tk wm wn })
-  (#_ : squash (bm /?+ rows))
-  (#_ : squash (bn /?+ cols))
+  (#_ : squash (bm /?+ m))
+  (#_ : squash (bn /?+ n))
   (#_ : squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
   (accumFrags : array (fragment et FragAcc tm tn tk FragLAcc))
-  (rAcc : ematrix real (wm*tm) (wn*tn))
-  (gC : gpu_matrix et (R.row_major rows cols))
-  // (#eC : ematrix et rows cols)
-  (#_ : squash (SZ.fits (rows * cols)))
-  (bid : szlt (rows/bm * (cols/bn)))
+  (rAcc : chest2 real (wm*tm) (wn*tn))
+  (gC : array2 et (rm m n))
+  // (#eC : chest2 et m n)
+  (#_ : squash (SZ.fits (m * n)))
+  (bid : szlt (m/bm * (n/bn)))
   (wid : szlt (bm/(wm*tm) * (bn/(wn*tn))))
   (#_ : squash (Pulse.Lib.Array.length accumFrags == wm*wn))
   preserves
@@ -515,10 +639,10 @@ fn epilogue
   ensures
     warp_tile_approximates gC bm bn tm tn wm wn bid wid rAcc
 {
-  with (eWarpTile : ematrix _ _ _). assert warp_tile_pts_to gC (v bm) (v bn) (v tm) (v tn) (v wm) (v wn) (v bid) (v wid) eWarpTile;
+  with (eWarpTile : chest2 _ _ _). assert warp_tile_pts_to gC (v bm) (v bn) (v tm) (v tn) (v wm) (v wn) (v bid) (v wid) eWarpTile;
   let rWarpTile = to_real_matrix eWarpTile;
 
-  lemma_to_real_matrix_approximates eWarpTile;
+  Kuiper.Chest.lemma_to_real_chest_approximates eWarpTile;
   assert pure (eWarpTile %~ rWarpTile);
   assert pure (eWarpTile %~ ematrix_from_tiles tm tn (ematrix_subtile rWarpTile tm tn));
   assert pure (eWarpTile %~ em_fade_tiles tm tn wm wn 0 0 rWarpTile rAcc);
@@ -528,7 +652,7 @@ fn epilogue
     invariant
       live i
     invariant
-      exists* (eWarpTile: ematrix et (wm*tm) (wn*tn)).
+      exists* (eWarpTile: chest2 et (wm*tm) (wn*tn)).
         warp_tile_pts_to gC bm bn tm tn wm wn bid wid eWarpTile **
           pure (!i <= wm /\
             eWarpTile %~ (em_fade_tiles tm tn wm wn !i 0 rWarpTile rAcc))
@@ -538,7 +662,7 @@ fn epilogue
     while (!j <^ wn)
       invariant live j
       invariant
-        exists* (eWarpTile: ematrix et (wm*tm) (wn*tn)).
+        exists* (eWarpTile: chest2 et (wm*tm) (wn*tn)).
           warp_tile_pts_to gC bm bn tm tn wm wn bid wid eWarpTile **
             pure (!i <= wm /\ !j <= wn /\
               eWarpTile %~ (em_fade_tiles tm tn wm wn !i !j rWarpTile rAcc))
@@ -550,7 +674,7 @@ fn epilogue
       let tile_for_tc_tiles = warp_tile (block_tile gC (SZ.v bm) (SZ.v bn) (SZ.v bid)) (wm*tm) (wn*tn) (SZ.v wid);
       rewrite each _ as tile_for_tc_tiles;
 
-      let tc_tile = gpu_matrix_extract_tile_st tile_for_tc_tiles (SZ.v tm) (SZ.v tn) (SZ.v !i) (SZ.v !j);
+      let tc_tile = array2_extract_tile_st tile_for_tc_tiles (SZ.v tm) (SZ.v tn) (SZ.v !i) (SZ.v !j);
 
       let vi = !i;
       let vj = !j;
@@ -577,7 +701,7 @@ fn epilogue
       rewrite each tile_for_tc_tiles as _;
       with eWarpTile'. fold warp_tile_pts_to gC bm bn tm tn wm wn bid wid eWarpTile';
 
-      lemma_update_tile_fade_approximates tm tn wm wn !i !j eWarpTile (eAccumFrags @! idx) rWarpTile rAcc;
+      lemma_update_tile_fade_approximates tm tn wm wn !i !j eWarpTile (Seq.index eAccumFrags idx) rWarpTile rAcc;
 
       j := !j +^ 1sz;
     };
@@ -586,8 +710,10 @@ fn epilogue
 
   with eWarpTile'.
     assert (warp_tile_pts_to gC bm bn tm tn wm wn bid wid eWarpTile');
-  assert pure (eWarpTile' %~ (em_fade_tiles tm tn wm wn wm wn rWarpTile rAcc));
-  assert pure (eWarpTile' %~ (ematrix_from_tiles tm tn (ematrix_subtile rAcc tm tn)));
+  // After the outer loop !i == wm, so the invariant gives
+  //   eWarpTile' %~ em_fade_tiles tm tn wm wn wm 0 rWarpTile rAcc.
+  // With idxI = wm every tile is an rAcc subtile, so the fade collapses to rAcc.
+  em_fade_tiles_full tm tn wm wn 0 rWarpTile rAcc;
   assert pure (eWarpTile' %~ rAcc);
 
   fold warp_tile_approximates gC bm bn tm tn wm wn bid wid rAcc;
@@ -603,7 +729,7 @@ fn populate_acc_with_zero
 requires
   live accumFrags
 ensures
-  fragarrayAcc_approximates wm wn accumFrags (const_matrix 0.0R)
+  fragarrayAcc_approximates wm wn accumFrags (const _ 0.0R)
 {
   array_fragment_pts_to_ref accumFrags;
 
@@ -611,12 +737,12 @@ ensures
   while (!fi <^ wm*^wn)
     invariant
       live fi **
-      (exists* (eAcc : seq (ematrix et tm tn)).
+      (exists* (eAcc : seq (chest2 et tm tn)).
         accumFrags |-> eAcc **
         pure (
           Seq.length eAcc == wm*wn /\ !fi <= wm*wn  /\
           forall (i : natlt !fi).
-            (eAcc @! i) %~ (ematrix_subtile (const_matrix #_ #(wm*tm) #(wn*tn) 0.0R) tm tn (i/wn) (i%wn))))
+            Seq.index eAcc i %~ const _ 0.0R))
     decreases (wm*^wn - !fi)
   {
     array_fragment_pts_to_ref accumFrags;
@@ -628,40 +754,40 @@ ensures
 
     fi := !fi +^ 1sz;
   };
-  fold fragarrayAcc_approximates wm wn accumFrags (const_matrix 0.0R);
+  fold fragarrayAcc_approximates wm wn accumFrags (const _ 0.0R);
   ()
 }
 
 #push-options "--z3rlimit 100"
 let loop_invariant_lemma
-  (rows shared cols : nat)
+  (m n k : nat)
   (bm bn bk
    tm tn tk
    wm wn : szp { constraints bm bn bk tm tn tk wm wn })
-  (#_ : squash (bm /?+ rows))
-  (#_ : squash (bn /?+ cols))
-  (#_ : squash (bk /?+ shared))
-  (mrow : natlt (rows / bm))
-  (mcol : natlt (cols / bn))
+  (#_ : squash (bm /?+ m))
+  (#_ : squash (bn /?+ n))
+  (#_ : squash (bk /?+ k))
+  (mrow : natlt (m / bm))
+  (mcol : natlt (n / bn))
   (warpRow : natlt (bm/(wm*tm)))
   (warpCol : natlt (bn/(wn*tn)))
-  (gwRow : natlt (rows/(wm*tm)) { gwRow == mrow * (bm/(wm*tm)) + warpRow })
-  (gwCol : natlt (cols/(wn*tn)) { gwCol == mcol * (bn/(wn*tn)) + warpCol })
-  (vk : natlt (shared / bk))
-  (rA : ematrix real rows shared)
-  (rB : ematrix real shared cols)
-  (rAcc0 : ematrix real (wm*tm) (wn*tn) { rAcc0 == const_matrix 0.0R })
-  (rAcc  : ematrix real (wm*tm) (wn*tn))
-  (#_ : squash (wm * tm /?+ rows)) // obvious, but SMT is flaky
-  (#_ : squash (wn * tn /?+ cols)) // idem
+  (gwRow : natlt (m/(wm*tm)) { gwRow == mrow * (bm/(wm*tm)) + warpRow })
+  (gwCol : natlt (n/(wn*tn)) { gwCol == mcol * (bn/(wn*tn)) + warpCol })
+  (vk : natlt (k / bk))
+  (rA : chest2 real m k)
+  (rB : chest2 real k n)
+  (rAcc0 : chest2 real (wm*tm) (wn*tn) { rAcc0 == const _ 0.0R })
+  (rAcc  : chest2 real (wm*tm) (wn*tn))
+  (#_ : squash (wm * tm /?+ m)) // obvious, but SMT is flaky
+  (#_ : squash (wn * tn /?+ n)) // idem
   (#_ : squash (rAcc  ==
           (__gmatmul_single rAcc0 matmul matplus
             (ematrix_tiled rA (wm*tm) bk) (ematrix_tiled rB bk (wn*tn))
               gwRow
               gwCol
               vk)))
-  (rA_sub : ematrix real bm bk { rA_sub == ematrix_subtile rA bm bk mrow vk })
-  (rB_sub : ematrix real bk bn { rB_sub == ematrix_subtile rB bk bn vk mcol })
+  (rA_sub : chest2 real bm bk { rA_sub == ematrix_subtile rA bm bk mrow vk })
+  (rB_sub : chest2 real bk bn { rB_sub == ematrix_subtile rB bk bn vk mcol })
 : Lemma (
         rAcc `matplus` matmul (ematrix_subtile rA_sub (wm*tm) bk warpRow 0)
                                (ematrix_subtile rB_sub bk (wn*tn) 0 warpCol)
@@ -669,9 +795,9 @@ let loop_invariant_lemma
         __gmatmul_single rAcc0 matmul matplus
           (ematrix_tiled rA (wm*tm) bk) (ematrix_tiled rB bk (wn*tn)) gwRow gwCol (vk + 1)
     )
-= let lhs : ematrix real (wm*tm) (wn*tn) = rAcc `matplus` matmul (ematrix_subtile rA_sub (wm*tm) bk warpRow 0)
+= let lhs : chest2 real (wm*tm) (wn*tn) = rAcc `matplus` matmul (ematrix_subtile rA_sub (wm*tm) bk warpRow 0)
                                    (ematrix_subtile rB_sub bk (wn*tn) 0 warpCol) in
-  let rhs : ematrix real (wm*tm) (wn*tn) =
+  let rhs : chest2 real (wm*tm) (wn*tn) =
         __gmatmul_single rAcc0 matmul matplus
           (ematrix_tiled rA (wm*tm) bk) (ematrix_tiled rB bk (wn*tn)) gwRow gwCol (vk + 1)
   in
@@ -710,48 +836,50 @@ let loop_invariant_lemma
   let aux1 () : Lemma (
                   ematrix_subtile rA_sub (wm*tm) bk warpRow 0
                   ==
-                  macc (ematrix_tiled rA (wm*tm) bk) gwRow vk
+                  acc2 (ematrix_tiled rA (wm*tm) bk) gwRow vk
                 )
-  = assert (ematrix_subtile rA_sub (wm*tm) bk warpRow 0
-            `equal` macc (ematrix_tiled rA (wm*tm) bk) gwRow vk)
+  = macc_ematrix_tiled rA (wm*tm) bk gwRow vk;
+    assert (ematrix_subtile rA_sub (wm*tm) bk warpRow 0
+            `equal` acc2 (ematrix_tiled rA (wm*tm) bk) gwRow vk)
   in
   let aux2 () : Lemma (
                   ematrix_subtile rB_sub bk (wn*tn) 0 warpCol
                   ==
-                  macc (ematrix_tiled rB bk (wn*tn)) vk gwCol
+                  acc2 (ematrix_tiled rB bk (wn*tn)) vk gwCol
                 )
-  = assert (ematrix_subtile rB_sub bk (wn*tn) 0 warpCol
-            `equal` macc (ematrix_tiled rB bk (wn*tn)) vk gwCol)
+  = macc_ematrix_tiled rB bk (wn*tn) vk gwCol;
+    assert (ematrix_subtile rB_sub bk (wn*tn) 0 warpCol
+            `equal` acc2 (ematrix_tiled rB bk (wn*tn)) vk gwCol)
   in
   aux1 ();
   aux2 ();
 
   let aux (i : natlt (wm*tm)) (j : natlt (wn*tn))
-    : Lemma (macc lhs i j == macc rhs i j)
+    : Lemma (acc2 lhs i j == acc2 rhs i j)
     = calc (==) {
-        macc lhs i j;
+        acc2 lhs i j;
         == {}
-        macc (__gmatmul_single rAcc0 matmul matplus
+        acc2 (__gmatmul_single rAcc0 matmul matplus
                (ematrix_tiled rA (wm*tm) bk)
                (ematrix_tiled rB bk (wn*tn)) gwRow gwCol vk
               `matplus`
                  matmul (ematrix_subtile rA_sub (wm*tm) bk warpRow 0)
                         (ematrix_subtile rB_sub bk (wn*tn) 0 warpCol)) i j;
         == {}
-        macc (__gmatmul_single rAcc0 matmul matplus
+        acc2 (__gmatmul_single rAcc0 matmul matplus
                (ematrix_tiled rA (wm*tm) bk)
                (ematrix_tiled rB bk (wn*tn)) gwRow gwCol vk
               `matplus`
-                 matmul (macc (ematrix_tiled rA (wm*tm) bk) gwRow vk)
-                        (macc (ematrix_tiled rB bk (wn*tn)) vk gwCol)) i j;
+                 matmul (acc2 (ematrix_tiled rA (wm*tm) bk) gwRow vk)
+                        (acc2 (ematrix_tiled rB bk (wn*tn)) vk gwCol)) i j;
         == { __gmatmul_single_lemma rAcc0 matmul matplus
                (ematrix_tiled rA (wm*tm) bk)
                (ematrix_tiled rB bk (wn*tn)) gwRow gwCol (vk + 1) }
-        macc (__gmatmul_single rAcc0 matmul matplus
+        acc2 (__gmatmul_single rAcc0 matmul matplus
                (ematrix_tiled rA (wm*tm) bk)
                (ematrix_tiled rB bk (wn*tn)) gwRow gwCol (vk+1)) i j;
         == {}
-        macc rhs i j;
+        acc2 rhs i j;
       }
   in
   Classical.forall_intro_2 aux;
@@ -764,31 +892,31 @@ fn kf
   (#et_ab #et_c : Type0)
   {| scalar et_ab, has_vec_cpy et_ab, sc : scalar et_c |}
   {| real_like et_ab, real_like et_c |}
-  (#rows #shared #cols : szp)
-  (#lA : mlayout rows shared) {| clayout lA |}
-  (gA : gpu_matrix et_ab lA)
-  (#eA : ematrix et_ab rows shared)
-  (#lB : mlayout shared cols) {| clayout lB |}
+  (#m #n #k : szp)
+  (#lA : layout2 m k) {| T.ctlayout lA |}
+  (gA : array2 et_ab lA)
+  (#eA : chest2 et_ab m k)
+  (#lB : layout2 k n) {| T.ctlayout lB |}
   {| str_A : strided_row_major lA,
      str_B : strided_row_major lB |}
   (#_ : squash (aligned_strided_row_major (chunk et_ab) str_A))
   (#_ : squash (aligned_strided_row_major (chunk et_ab) str_B))
-  (gB : gpu_matrix et_ab lB)
-  (#eB : ematrix et_ab shared cols)
-  (gC : gpu_matrix et_c (R.row_major rows cols))
-  (#eC : ematrix et_c rows cols)
+  (gB : array2 et_ab lB)
+  (#eB : chest2 et_ab k n)
+  (gC : array2 et_c (rm m n))
+  (#eC : chest2 et_c m n)
   (bm bn bk
    tm tn tk
    wm wn : szp { constraints bm bn bk tm tn tk wm wn })
-  (#_ : squash (bm /?+ rows))
-  (#_ : squash (bn /?+ cols))
-  (#_ : squash (bk /?+ shared))
+  (#_ : squash (bm /?+ m))
+  (#_ : squash (bn /?+ n))
+  (#_ : squash (bk /?+ k))
   (#_ : squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
   (#_ : squash (chunk et_ab /?+ bn))
   (#_ : squash (chunk et_ab /?+ bk))
-  (#_ : squash (SZ.fits (rows * shared)))
-  (#_ : squash (SZ.fits (rows * cols)))
-  (#_ : squash (SZ.fits (shared * cols)))
+  (#_ : squash (SZ.fits (m * k)))
+  (#_ : squash (SZ.fits (m * n)))
+  (#_ : squash (SZ.fits (k * n)))
   (#_ : squash (SZ.fits (wm * tm)))
   (#_ : squash (SZ.fits (wn * tn)))
   (#_ : squash (valid_frag_et_dims et_ab FragA tm tn tk))
@@ -796,34 +924,34 @@ fn kf
   (#_ : squash (valid_frag_et_dims et_c FragAcc tm tn tk))
   (#_ : squash (valid_frag_et_comb et_ab et_c))
   (#fA #fB : perm)
-  (rA : ematrix real rows shared)
-  (rB : ematrix real shared cols)
-  (rC : ematrix real rows cols)
+  (rA : chest2 real m k)
+  (rB : chest2 real k n)
+  (rC : chest2 real m n)
   (nthr : erased nat {nthr == bm/(wm*tm)*(bn/(wn*tn))*warp_size})
   (#_ : squash (chunk et_ab * nthr /?+ (bm * bk)))
   (#_ : squash (chunk et_ab * nthr /?+ (bk * bn)))
   (#_ : squash (SZ.fits (bm*bk + nthr-1)))
   (#_ : squash (SZ.fits (bk*bn + nthr-1)))
-  (#_ : squash (wm * tm /?+ rows)) // obvious, but SMT is flaky
-  (#_ : squash (wn * tn /?+ cols)) // idem
+  (#_ : squash (wm * tm /?+ m)) // obvious, but SMT is flaky
+  (#_ : squash (wn * tn /?+ n)) // idem
   (sh : c_shmems (shmems_desc et_ab bm bn bk))
-  (bid : szlt (rows/bm * (cols/bn)))
+  (bid : szlt (m/bm * (n/bn)))
   (tid : szlt nthr)
   ()
   requires
     gpu **
     kpre gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr sh bid tid **
     thread_id nthr tid **
-    block_id (rows/bm * (cols/bn)) bid **
-    B.barrier_tok (FB.contract eA eB (R.row_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) nthr bid) **
+    block_id (m/bm * (n/bn)) bid **
+    B.barrier_tok (FB.contract eA eB (rm bm bk) (rm bk bn) (fst sh) (fst (snd sh)) nthr bid) **
     B.barrier_state 0
   ensures
     gpu **
     kpost gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr sh bid tid **
     thread_id nthr tid **
-    block_id (rows/bm * (cols/bn)) bid **
-    B.barrier_tok (FB.contract eA eB (R.row_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) nthr bid) **
-    B.barrier_state (2 * (shared / bk))
+    block_id (m/bm * (n/bn)) bid **
+    B.barrier_tok (FB.contract eA eB (rm bm bk) (rm bk bn) (fst sh) (fst (snd sh)) nthr bid) **
+    B.barrier_state (2 * (k / bk))
 {
   unfold_c_shmems sh (`%shmems_desc);
   let (sarA, (sarB, _)) = sh;
@@ -831,20 +959,20 @@ fn kf
   gpu_pts_to_ref sarA;
   gpu_pts_to_ref sarB;
 
-  gpu_matrix_abs' (R.row_major bm bk) sarA;
-  let sA = from_array (R.row_major bm bk) sarA;
-  rewrite each _ as sA; //from_array (R.row_major bm bk) sarA as sA;
+  tensor_abs' (rm bm bk) sarA;
+  let sA = from_array (rm bm bk) sarA;
+  rewrite each _ as sA; //from_array (rm bm bk) sarA as sA;
 
-  gpu_matrix_abs' (R.row_major bk bn) sarB;
-  let sB = from_array (R.row_major bk bn) sarB;
-  rewrite each _ as sB; //from_array (R.row_major bk bn) sarB as sB;
+  tensor_abs' (rm bk bn) sarB;
+  let sB = from_array (rm bk bn) sarB;
+  rewrite each _ as sB; //from_array (rm bk bn) sarB as sB;
 
-  let num_k_tiles = shared /^ bk;
-  let num_n_tiles = cols /^ bn;
+  let num_k_tiles = k /^ bk;
+  let num_n_tiles = n /^ bn;
   let mrow = bid /^ num_n_tiles;
-  assert pure (mrow < rows / bm);
+  assert pure (mrow < m / bm);
   let mcol = bid %^ num_n_tiles;
-  assert pure (mcol < cols / bn);
+  assert pure (mcol < n / bn);
 
   let wid = tid /^ warp_size;
   let warpRow : szlt (bm / (wm*tm)) = wid /^ (bn/^(wn*^tn));
@@ -857,8 +985,8 @@ fn kf
 
   // Fill accumulators with 0
   populate_acc_with_zero tm tn tk wm wn accFrags;
-  let rAcc0 : ematrix real (wm*tm) (wn*tn) = const_matrix 0.0R;
-  assert (rewrites_to rAcc0 (const_matrix 0.0R));
+  let rAcc0 : chest2 real (wm*tm) (wn*tn) = const _ 0.0R;
+  assert (rewrites_to rAcc0 (const _ 0.0R));
 
   rewrite fragarrayAcc_approximates wm wn accFrags rAcc0
        as fragarrayAcc_approximates wm wn accFrags
@@ -866,14 +994,14 @@ fn kf
               (ematrix_tiled rA (wm*tm) bk) (ematrix_tiled rB bk (wn*tn)) mrow mcol 0);
 
   rewrite
-    (exists* (x : ematrix _ _ _). sA |-> Frac (1.0R /. nthr) x) **
-    (exists* (x : ematrix _ _ _). sB |-> Frac (1.0R /. nthr) x)
+    (exists* (x : chest2 _ _ _). sA |-> Frac (1.0R /. nthr) x) **
+    (exists* (x : chest2 _ _ _). sB |-> Frac (1.0R /. nthr) x)
   as
     (exists* em1. FB.bp_sharing sA em1 nthr) **
     (exists* em2. FB.bp_sharing sB em2 nthr);
 
-  let gwRow : enatlt (rows/(wm*tm)) = mrow * (bm/(wm*tm)) + warpRow;
-  let gwCol : enatlt (cols/(wn*tn)) = mcol * (bn/(wn*tn)) + warpCol;
+  let gwRow : enatlt (m/(wm*tm)) = mrow * (bm/(wm*tm)) + warpRow;
+  let gwCol : enatlt (n/(wn*tn)) = mcol * (bn/(wn*tn)) + warpCol;
 
   let mut bkIdx : sz = 0sz;
   while (!bkIdx <^ num_k_tiles)
@@ -901,30 +1029,49 @@ fn kf
 
     FB.fold_barrier_p_even eA eB sA sB nthr bid !bkIdx tid;
     rewrite (FB.barrier_p eA eB sA sB nthr bid) (2 * !bkIdx) tid
-         as (FB.contract eA eB (R.row_major bm bk) (R.row_major bk bn) sarA sarB nthr bid).rin (2 * !bkIdx) tid;
+         as (FB.contract eA eB (rm bm bk) (rm bk bn) sarA sarB nthr bid).rin (2 * !bkIdx) tid;
 
     B.barrier_wait ();
 
-    rewrite (FB.contract eA eB (R.row_major bm bk) (R.row_major bk bn) sarA sarB nthr bid).rout (2 * !bkIdx) tid
+    rewrite (FB.contract eA eB (rm bm bk) (rm bk bn) sarA sarB nthr bid).rout (2 * !bkIdx) tid
          as (FB.barrier_q eA eB sA sB nthr bid) (2 * !bkIdx) tid;
     FB.unfold_barrier_q_even eA eB sA sB nthr bid !bkIdx tid;
 
+    // FlipFlopBarrier2 returns FB.live_strided_chunks; the copy helper consumes
+    // Copy.Vec2.live_strided_chunks. They share the same in_chunk predicate but
+    // are distinct symbols, so bridge across them (as BlockTiling2D does).
+    unfold FB.live_strided_chunks sA nthr tid;
+    with eA0. assert (FB.own_strided_chunks sA eA0 nthr tid);
+    rewrite FB.own_strided_chunks sA eA0 nthr tid as CV2.own_strided_chunks sA eA0 nthr tid;
+    fold CV2.live_strided_chunks sA nthr tid;
+    unfold FB.live_strided_chunks sB nthr tid;
+    with eB0. assert (FB.own_strided_chunks sB eB0 nthr tid);
+    rewrite FB.own_strided_chunks sB eB0 nthr tid as CV2.own_strided_chunks sB eB0 nthr tid;
+    fold CV2.live_strided_chunks sB nthr tid;
+
     copy_tiles_out_of_matrices_vec bm bn bk sA sB gA gB mrow !bkIdx mcol (bm/^(wm*^tm)*^(bn/^(wn*^tn))*^warp_size) tid;
+
+    // The copy helper yields Copy.Vec2.own_strided_chunks; convert back to FB's
+    // for the barrier's odd phase.
+    rewrite CV2.own_strided_chunks sA (ematrix_subtile eA bm bk mrow !bkIdx) nthr tid
+         as FB.own_strided_chunks sA (ematrix_subtile eA bm bk mrow !bkIdx) nthr tid;
+    rewrite CV2.own_strided_chunks sB (ematrix_subtile eB bk bn !bkIdx mcol) nthr tid
+         as FB.own_strided_chunks sB (ematrix_subtile eB bk bn !bkIdx mcol) nthr tid;
 
     odd_2x1 !bkIdx;
     assert (pure (odd (2 * !bkIdx + 1)));
     FB.fold_barrier_p_odd eA eB sA sB nthr bid mrow mcol !bkIdx tid;
     rewrite (FB.barrier_p eA eB sA sB nthr bid) (2 * !bkIdx + 1) tid
-         as (FB.contract eA eB (R.row_major bm bk) (R.row_major bk bn) sarA sarB nthr bid).rin (2 * !bkIdx + 1) tid;
+         as (FB.contract eA eB (rm bm bk) (rm bk bn) sarA sarB nthr bid).rin (2 * !bkIdx + 1) tid;
 
     B.barrier_wait ();
 
     even_2x (!bkIdx + 1);
     assert pure (2 * (!bkIdx + 1) == 2 * !bkIdx + 2);
     assert pure (odd (2 * !bkIdx + 1));
-    assert pure ((2 * !bkIdx + 1) < 2 * shared / bk);
+    assert pure ((2 * !bkIdx + 1) < 2 * k / bk);
     assert pure (even (2 * !bkIdx + 2));
-    rewrite (FB.contract eA eB (R.row_major bm bk) (R.row_major bk bn) sarA sarB nthr bid).rout (2 * !bkIdx + 1) tid
+    rewrite (FB.contract eA eB (rm bm bk) (rm bk bn) sarA sarB nthr bid).rout (2 * !bkIdx + 1) tid
          as (FB.barrier_q eA eB sA sB nthr bid) (2 * !bkIdx + 1) tid;
     FB.unfold_barrier_q_odd eA eB sA sB nthr bid mrow mcol !bkIdx tid;
 
@@ -945,7 +1092,7 @@ fn kf
                                (ematrix_subtile rB_sub bk (wn*tn) 0 warpCol));
 
     loop_invariant_lemma
-      rows shared cols
+      m n k
       bm bn bk tm tn tk wm wn
       mrow mcol
       warpRow warpCol
@@ -954,6 +1101,14 @@ fn kf
       rA rB
       rAcc0 rAcc
       rA_sub rB_sub;
+
+    // Rewrite the accumulator slprop from the matplus/matmul form
+    // to the __gmatmul_single form using the equality from loop_invariant_lemma.
+    rewrite_fragarrayAcc wm wn accFrags
+      (rAcc `matplus` matmul (ematrix_subtile rA_sub (wm*tm) bk warpRow 0)
+                              (ematrix_subtile rB_sub bk (wn*tn) 0 warpCol))
+      (__gmatmul_single rAcc0 matmul matplus
+        (ematrix_tiled rA (wm*tm) bk) (ematrix_tiled rB bk (wn*tn)) gwRow gwCol (!bkIdx + 1));
 
     fold FB.bp_sharing sA (ematrix_subtile eA bm bk mrow !bkIdx) nthr;
     fold FB.bp_sharing sB (ematrix_subtile eB bk bn !bkIdx mcol) nthr;
@@ -967,17 +1122,17 @@ fn kf
             (ematrix_tiled rA (wm*tm) bk) (ematrix_tiled rB bk (wn*tn))
               gwRow // (mrow * bm/(wm*tm) + warpRow)
               gwCol // (mcol * bn/(wn*tn) + warpCol)
-              (shared / bk));
+              (k / bk));
 
-  assert pure (gwRow == warp_tile_i #rows #cols bm bn bk tm tn tk wm wn nthr bid (tid / warp_size));
-  assert pure (gwCol == warp_tile_j #rows #cols bm bn bk tm tn tk wm wn nthr bid (tid / warp_size));
+  assert pure (gwRow == warp_tile_i #m #n bm bn bk tm tn tk wm wn nthr bid (tid / warp_size));
+  assert pure (gwCol == warp_tile_j #m #n bm bn bk tm tn tk wm wn nthr bid (tid / warp_size));
 
   matmul_tiles_lemma (fun _ -> ()) (fun _ _ _ -> ())
     (wm*tm) (wn*tn) bk
     rAcc0 rA rB
     gwRow gwCol;
 
-  let rAcc' : ematrix real (wm*tm) (wn*tn) =
+  let rAcc' : chest2 real (wm*tm) (wn*tn) =
     gmatmul_single rAcc0 matmul matplus
      (ematrix_tiled rA (wm*tm) bk) (ematrix_tiled rB bk (wn*tn))
        gwRow gwCol;
@@ -987,11 +1142,11 @@ fn kf
         (ematrix_tiled rA (wm*tm) bk) (ematrix_tiled rB bk (wn*tn)) gwRow gwCol !bkIdx)
       == rAcc');
 
-  let rAcc'' : ematrix real (wm*tm) (wn*tn) =
-    MS.matmul (ematrix_subtile rA (wm*tm) shared (warp_tile_i #rows #cols bm bn bk tm tn tk wm wn nthr bid (tid / warp_size)) 0)
-              (ematrix_subtile rB shared  (wn*tn) 0 (warp_tile_j #rows #cols bm bn bk tm tn tk wm wn nthr bid (tid / warp_size)));
+  let rAcc'' : chest2 real (wm*tm) (wn*tn) =
+    MS.matmul (ematrix_subtile rA (wm*tm) k (warp_tile_i #m #n bm bn bk tm tn tk wm wn nthr bid (tid / warp_size)) 0)
+              (ematrix_subtile rB k  (wn*tn) 0 (warp_tile_j #m #n bm bn bk tm tn tk wm wn nthr bid (tid / warp_size)));
 
-  assert pure (matplus (const_matrix 0.0R) rAcc'' `equal` rAcc'');
+  assert pure (matplus (const _ 0.0R) rAcc'' `equal` rAcc'');
   // ^ This is needed so we can use the result of the matmul_tiles_lemma
   // above...  very boring.
 
@@ -1015,18 +1170,18 @@ fn kf
   unfold fragarrayAcc_approximates wm wn accFrags rAcc'';
   with vaccumFrags. assert accFrags |-> vaccumFrags; drop_ (accFrags |-> vaccumFrags);
 
-  gpu_matrix_concr sA; rewrite each core sA as sarA;
-  gpu_matrix_concr sB; rewrite each core sB as sarB;
+  tensor_concr sA; rewrite each core sA as sarA;
+  tensor_concr sB; rewrite each core sB as sarB;
 
   rewrite each sarA as fst sh;
   rewrite each sarB as fst (snd sh);
 
   // Silly rewrite.
   rewrite each rAcc''
-    as MS.matmul (ematrix_subtile rA (wm*tm) shared
-            (warp_tile_i #rows #cols bm bn bk tm tn tk wm wn nthr bid (tid / warp_size)) 0)
-          (ematrix_subtile rB shared (wn*tn)
-            0 (warp_tile_j #rows #cols bm bn bk tm tn tk wm wn nthr bid (tid / warp_size)));
+    as MS.matmul (ematrix_subtile rA (wm*tm) k
+            (warp_tile_i #m #n bm bn bk tm tn tk wm wn nthr bid (tid / warp_size)) 0)
+          (ematrix_subtile rB k (wn*tn)
+            0 (warp_tile_j #m #n bm bn bk tm tn tk wm wn nthr bid (tid / warp_size)));
 
   fold_c_shmems sh (`%shmems_desc);
 
@@ -1034,40 +1189,39 @@ fn kf
 }
 
 #push-options "--fuel 1 --ifuel 1 --split_queries no --z3rlimit_factor 10"
-#restart-solver
 inline_for_extraction noextract
 let mk_kernel
   (#et_ab #et_c : Type0)
   {| scalar et_ab, has_vec_cpy et_ab, scalar et_c |}
   {| real_like et_ab, real_like et_c |}
-  (#rows #shared #cols : szp)
-  (#lA : mlayout rows shared) {| clayout lA |}
-  (gA : gpu_matrix et_ab lA  { is_global_matrix gA })
-  (#eA : ematrix et_ab rows shared)
-  (#lB : mlayout shared cols) {| clayout lB |}
+  (#m #n #k : szp)
+  (#lA : layout2 m k) {| T.ctlayout lA |}
+  (gA : array2 et_ab lA  { is_global gA })
+  (#eA : chest2 et_ab m k)
+  (#lB : layout2 k n) {| T.ctlayout lB |}
   {| str_A : strided_row_major lA,
      str_B : strided_row_major lB |}
   (#_ : squash (aligned_strided_row_major (chunk et_ab) str_A))
   (#_ : squash (aligned_strided_row_major (chunk et_ab) str_B))
-  (gB : gpu_matrix et_ab lB { is_global_matrix gB })
-  (#eB : ematrix et_ab shared cols)
-  (gC : gpu_matrix et_c (R.row_major rows cols) { is_global_matrix gC })
+  (gB : array2 et_ab lB { is_global gB })
+  (#eB : chest2 et_ab k n)
+  (gC : array2 et_c (rm m n) { is_global gC })
   // ^ Why does this have a fixed layout?
-  (#_ : squash (SZ.fits (rows * cols)))
-  (#eC : ematrix et_c rows cols)
+  (#_ : squash (SZ.fits (m * n)))
+  (#eC : chest2 et_c m n)
   (bm bn bk
    tm tn tk
    wm wn : szp { constraints bm bn bk tm tn tk wm wn })
-  (#_ : squash (bm /?+ rows))
-  (#_ : squash (bn /?+ cols))
-  (#_ : squash (bk /?+ shared))
+  (#_ : squash (bm /?+ m))
+  (#_ : squash (bn /?+ n))
+  (#_ : squash (bk /?+ k))
   (#_ : squash (chunk et_ab /?+ bn))
   (#_ : squash (chunk et_ab /?+ bk))
   (#_: squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
   (#_ : squash (aligned 16 (core gA)))
   (#_ : squash (aligned 16 (core gB)))
   (#fA #fB : perm)
-  (nblk : szp{SZ.v nblk == rows/bm * (cols/bn)})
+  (nblk : szp{SZ.v nblk == m/bm * (n/bn)})
   (nthr : szp{SZ.v nthr == bm/(wm*tm) * (bn/(wn*tn)) * warp_size})
   (#_ : squash (chunk et_ab * nthr /?+ (bm * bk)))
   (#_ : squash (chunk et_ab * nthr /?+ (bk * bn)))
@@ -1082,11 +1236,11 @@ let mk_kernel
   (#_ : squash (SZ.fits (bk*bn + nthr-1)))
   (#_ : squash (nblk <= max_blocks))
   (#_ : squash (nthr <= max_threads))
-  (rA : ematrix real rows shared)
-  (rB : ematrix real shared cols)
-  (rC : ematrix real rows cols)
-  (#_ : squash (wm * tm /?+ rows)) // obvious, but SMT is flaky
-  (#_ : squash (wn * tn /?+ cols)) // idem
+  (rA : chest2 real m k)
+  (rB : chest2 real k n)
+  (rC : chest2 real m n)
+  (#_ : squash (wm * tm /?+ m)) // obvious, but SMT is flaky
+  (#_ : squash (wn * tn /?+ n)) // idem
   ()
   : kernel_desc
       (gA |-> Frac fA eA ** pure (eA %~ rA) **
@@ -1094,7 +1248,7 @@ let mk_kernel
        gC |-> eC ** pure (eC %~ rC))
       (gA |-> Frac fA eA **
        gB |-> Frac fB eB **
-       (exists* (eC' : ematrix et_c rows cols).
+       (exists* (eC' : chest2 et_c m n).
          gC |-> eC' ** pure (eC' %~ MS.matmul rA rB)))
 = {
   nblk;
@@ -1102,11 +1256,11 @@ let mk_kernel
 
   shmems_desc = shmems_desc et_ab bm bn bk;
 
-  barrier_contract = (fun bid ptrs -> FB.contract eA eB (R.row_major bm bk) (R.row_major bk bn) (fst ptrs) (fst (snd ptrs)) nthr bid);
-  barrier_count    = (fun _bid -> 2 * (SZ.v shared / SZ.v bk));
-  barrier_ok = (fun bid ptrs -> FB.barrier_p_to_q_transform eA eB (R.row_major bm bk) (R.row_major bk bn) (fst ptrs) (fst (snd ptrs)) nthr bid);
+  barrier_contract = (fun bid ptrs -> FB.contract eA eB (rm bm bk) (rm bk bn) (fst ptrs) (fst (snd ptrs)) nthr bid);
+  barrier_count    = (fun _bid -> 2 * (SZ.v k / SZ.v bk));
+  barrier_ok = (fun bid ptrs -> FB.barrier_p_to_q_transform eA eB (rm bm bk) (rm bk bn) (fst ptrs) (fst (snd ptrs)) nthr bid);
 
-  frame = pure (SZ.fits (mlayout_size (R.row_major rows cols)));
+  frame = pure (SZ.fits ((rm m n).ulen));
   block_pre  = (fun bid -> forall+ (tid : natlt nthr). kpre1  gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr bid tid);
   block_post = (fun bid -> forall+ (tid : natlt nthr). kpost1 gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr bid tid);
 

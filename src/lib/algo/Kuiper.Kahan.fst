@@ -2,8 +2,6 @@ module Kuiper.Kahan
 
 #lang-pulse
 
-#set-options "--z3seed 1" // Sigh
-
 open Kuiper
 open Kuiper.Approximates
 open Kuiper.Sum { sum, sum_pop_right }
@@ -12,6 +10,7 @@ let sum_step (len : nat) (vf : natlt len -> GTot real) (k : nat{k < len})
   : Lemma (sum 0 (k+1) vf == sum 0 k vf +. vf k)
   = sum_pop_right 0 (k+1) vf
 
+#push-options "--z3rlimit 20"
 inline_for_extraction noextract
 fn kahan_sum
   (#et : Type0) {| floating et, real_like et, floating_real_like et |}
@@ -36,7 +35,7 @@ fn kahan_sum
   while (!k <^ len)
     invariant live k
     invariant live acc ** pure (!acc %~ sum 0 !k vf)
-    invariant live c ** pure (!c %~ 0.0R)
+    invariant live c   ** pure (!c %~ 0.0R)
     decreases (len - !k)
   {
     let y = f !k;
@@ -49,3 +48,4 @@ fn kahan_sum
   };
   !acc
 }
+#pop-options

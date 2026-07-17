@@ -2,9 +2,10 @@ module Klas.GEMM.TensorCore2D.Inst
 #lang-pulse
 
 open Kuiper
-open Kuiper.Matrix
+open Kuiper.Tensor
 open Kuiper.EMatrix
-open Kuiper.Matrix.Reprs
+open Kuiper.Array2.Strided
+open Kuiper.Tensor.Layout.Alg { l2_row_major as rm }
 open Kuiper.TensorCore
 open Kuiper.Array.Vectorized { has_vec_cpy, chunk }
 module MS = Kuiper.Spec.GEMM
@@ -40,14 +41,14 @@ fn spec
 
   // do not specialize
   (rows shared cols : szp)
-  (gA : gpu_matrix et_ab (row_major rows shared) { is_global_matrix gA })
-  (gB : gpu_matrix et_ab (row_major shared cols) { is_global_matrix gB })
-  (gC : gpu_matrix et_c (row_major rows cols) { is_global_matrix gC })
+  (gA : array2 et_ab (rm rows shared) { is_global gA })
+  (gB : array2 et_ab (rm shared cols) { is_global gB })
+  (gC : array2 et_c (rm rows cols) { is_global gC })
   (#_ : squash (aligned 16 (core gA)))
   (#_ : squash (aligned 16 (core gB)))
-  (#eA : ematrix et_ab rows shared)
-  (#eB : ematrix et_ab shared cols)
-  (#eC : ematrix et_c rows cols)
+  (#eA : chest2 et_ab rows shared)
+  (#eB : chest2 et_ab shared cols)
+  (#eC : chest2 et_c rows cols)
   (#fA #fB : perm)
   // non of these are are checked because the functions is only
   //  partially applied

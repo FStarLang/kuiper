@@ -5,8 +5,7 @@ module Kuiper.Sparse.SPMM
 open Kuiper
 module MS = Kuiper.Spec.GEMM
 module SZ = Kuiper.SizeT
-module Array2 = Kuiper.Array2
-open Kuiper.Tensor { ctlayout }
+open Kuiper.Tensor
 open Kuiper.Sparse
 open Kuiper.EMatrix
 open Kuiper.Array.Vectorized
@@ -29,7 +28,7 @@ fn spmm
   (gA : smatrix et (SZ.v rows) (SZ.v shared){is_global_smatrix gA})
   (#_ : squash (aligned 16 gA.elems /\ aligned 16 gA.col_ind))
   (#fA : perm)
-  (row_indices : gpu_array sz rows)
+  (row_indices : larray sz rows)
   (fri : perm)
   (gB : Array2.t et lB{Array2.is_global gB})
   (#_ : squash (aligned 16 (Array2.core gB)))
@@ -46,8 +45,8 @@ fn spmm
   // permutacion de filas
   (row_perm : permutation (natlt rows))
   // matrices densas
-  (#eB : ematrix et shared cols)
-  (#eC : ematrix et rows cols)
+  (#eB : chest2 et shared cols)
+  (#eC : chest2 et rows cols)
   //(#_ : size_req rows shared cols)
   norewrite
   preserves

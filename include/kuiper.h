@@ -127,4 +127,9 @@ void INFO ()
 
 #define KPR_SHMEM_FITS(e) KPR_ASSERT((e) <= 101376) // 99KiB
 
+/* FIXME: We should not emit KRML_CLITERAL, it happens when there are intermediate
+tuples or structs that are not evaluated away. Ideally these values would not be
+visible in the CUDA code at all. */
+#define KRML_CLITERAL(a) (a)
+
 #endif /* KUIPER_H */

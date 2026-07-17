@@ -525,6 +525,38 @@ fn forevery_intro_pure_2 (#a:Type0) (#b:Type0) (p: a -> b -> prop)
 }
 
 ghost
+fn forevery_elim_pure (#a:Type0) (p: a -> prop)
+  requires
+    forall+ x. pure (p x)
+  ensures
+    pure (forall x. p x)
+{
+  let b = t2b (forall (x:a). p x);
+  if b {
+    drop_ (forall+ (x:a). pure (p x));
+  } else {
+    let x0 = FStar.IndefiniteDescription.indefinite_description_ghost a (fun (x:a) -> ~(p x));
+    forevery_remove #a (fun (x:a) -> pure (p x)) x0;
+    unreachable ();
+  }
+}
+
+ghost
+fn forevery_eilm_pure_2 (#a:Type0) (#b:Type0) (p: a -> b -> prop)
+  requires
+    forall+ (x:a) (y:b). pure (p x y)
+  ensures
+    pure (forall x y. p x y)
+{
+  forevery_map
+    (fun (x:a) -> forall+ (y:b). pure (p x y))
+    (fun (x:a) -> pure (forall (y:b). p x y))
+    fn x { forevery_elim_pure #b (fun (y:b) -> p x y) };
+  forevery_elim_pure #a (fun (x:a) -> forall (y:b). p x y);
+}
+
+
+ghost
 fn forevery_unrefine
   (#a: Type0)
   (#f: a->prop)
@@ -858,16 +890,12 @@ let snd_bij #a #b (x: a) : (b =~ (xy: (a & b) { x == fst xy })) =
   {
     ff = (fun y -> ((x,y) <: (xy: (a&b) {x == fst xy})));
     gg = (fun xy -> snd xy);
-    ff_gg = (fun _ -> ());
-    gg_ff = (fun _ -> ());
   }
 
 let snd_bij_dep #a (#b : a -> Type) (x: a) : (b x =~ (xy: (x:a & b x) { x == xy._1 })) =
   {
     ff = (fun y -> ((|x,y|) <: (xy: (x:a & b x) {x == xy._1})));
     gg = (fun xy -> xy._2);
-    ff_gg = (fun _ -> ());
-    gg_ff = (fun _ -> ());
   }
 
 ghost
@@ -1080,8 +1108,6 @@ let swap_bij a b : (a & b =~ b & a) =
   {
     ff = (fun (x,y) -> (y,x));
     gg = (fun (y,x) -> (x,y));
-    ff_gg = ez;
-    gg_ff = ez;
   }
 
 ghost
@@ -1178,10 +1204,7 @@ let bij_mirror_n (n:nat) : (natlt n =~ natlt n) =
   {
     ff = (fun (i:natlt n) -> n - 1 - i <: natlt n);
     gg = (fun (i:natlt n) -> n - 1 - i <: natlt n);
-    ff_gg = ez;
-    gg_ff = ez;
   }
-
 
 ghost
 fn forevery_natlt_pop_shift
@@ -2110,8 +2133,6 @@ let or_n_bij #a #b (r: b -> a -> prop)
       <: (x:a { exists i. r i x } -> GTot (i: b & (x:a { r i x })));
     gg = (fun (|i, x|) -> x)
       <: (i: b & (x:a { r i x }) -> x:a { exists i. r i x });
-    ff_gg = (fun _ -> ());
-    gg_ff = (fun _ -> ());
   }
 
 ghost

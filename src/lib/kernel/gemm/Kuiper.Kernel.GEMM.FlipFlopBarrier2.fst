@@ -1,8 +1,7 @@
 module Kuiper.Kernel.GEMM.FlipFlopBarrier2
 
-(* Array2 version of FlipFlopBarrier.
-   This module defines a barrier contract used by GEMMs that operate
-   on Array2 (Tensor-backed) matrices instead of VArray-backed gpu_matrix. *)
+(* This module defines a barrier contract used by GEMMs that operate
+   on Array2 (Tensor-backed) matrices. *)
 
 #lang-pulse
 open Kuiper
@@ -11,10 +10,9 @@ open Kuiper.EMatrix
 open Kuiper.Math { even, odd }
 open Kuiper.Tensor.Tiling
 
-open Kuiper.Array2 { array2 }
-module M = Kuiper.Array2
+open Kuiper.Tensor
 module SZ = Kuiper.SizeT
-module CV = Kuiper.Kernel.GEMM.Copy.Vec
+module CV = Kuiper.Kernel.GEMM.Copy.Vec2
 
 (* ---- Strided chunk operations for Array2 ---- *)
 
@@ -22,19 +20,19 @@ ghost
 fn split_array2_into_strided_chunks
   (#et : Type0) {| sized et, hvc : has_vec_cpy et |}
   (#rows #cols : nat)
-  (#l : M.layout rows cols)
+  (#l : layout2 rows cols)
   (m : array2 et l)
-  (#em : ematrix et rows cols)
+  (#em : chest2 et rows cols)
   (nthr : pos)
   requires
     m |-> em
   ensures
-    pure (SZ.fits (M.layout_size l))
+    pure (SZ.fits (l.ulen))
   ensures
     forall+ (tid : natlt nthr).
       own_strided_chunks m em nthr tid
 {
-  M.ilower m;
+  tensor_ilower2 m;
   forevery_flatten _;
   Classical.forall_intro (CV.in_chunk_covers_all (chunk et #_ #hvc) rows cols nthr);
   forevery_refine_ext #_ #(fun _ -> True)
@@ -48,7 +46,7 @@ fn split_array2_into_strided_chunks
   fn aux (tid : natlt nthr)
     requires
       forall+ (ij : (natlt rows & natlt cols){CV.in_chunk (chunk et #_ #hvc) rows cols nthr tid ij}).
-        M.pts_to_cell m (ij._1, ij._2) (macc em ij._1 ij._2)
+        tensor_pts_to_cell m (idx2 ij._1 ij._2) (acc2 em ij._1 ij._2)
     ensures
       own_strided_chunks m em nthr tid
   {
@@ -61,26 +59,26 @@ ghost
 fn join_array2_from_strided_chunks
   (#et : Type0) {| sized et, hvc : has_vec_cpy et |}
   (#rows #cols : nat)
-  (#l : M.layout rows cols)
+  (#l : layout2 rows cols)
   (m : array2 et l)
-  (#em : ematrix et rows cols)
+  (#em : chest2 et rows cols)
   (nthr : pos)
   requires
-    pure (SZ.fits (M.layout_size l))
+    pure (SZ.fits (l.ulen))
   requires
     forall+ (tid : natlt nthr).
       own_strided_chunks m em nthr tid
   ensures
     m |-> em
 {
-  assert pure (SZ.fits (M.layout_size l));
+  assert pure (SZ.fits (l.ulen));
   forevery_map
     (fun tid -> own_strided_chunks m em nthr tid)
     (fun tid -> forall+ (ij : (natlt rows & natlt cols){CV.in_chunk (chunk et #_ #hvc) rows cols nthr tid ij}).
-        M.pts_to_cell m (ij._1, ij._2) (macc em ij._1 ij._2))
+        tensor_pts_to_cell m (idx2 ij._1 ij._2) (acc2 em ij._1 ij._2))
     fn tid { unfold own_strided_chunks m em nthr tid };
   forevery_join_or_n (fun (tid : natlt nthr) ij -> CV.in_chunk (chunk et #_ #hvc) rows cols nthr tid ij)
-    (fun ij -> M.pts_to_cell m (ij._1, ij._2) (macc em ij._1 ij._2));
+    (fun ij -> tensor_pts_to_cell m (idx2 ij._1 ij._2) (acc2 em ij._1 ij._2));
   Classical.forall_intro (CV.in_chunk_covers_all (chunk et #_ #hvc) rows cols nthr);
   Classical.forall_intro_3 (fun ij tid1 -> Classical.move_requires
                              (CV.in_chunk_no_overlap (chunk et #_ #hvc) rows cols nthr ij tid1));
@@ -90,18 +88,18 @@ fn join_array2_from_strided_chunks
     (fun _ -> True)
     _;
   forevery_unflatten' _;
-  M.iraise m;
+  tensor_iraise2 m;
 }
 
 ghost
 fn join_array2_from_strided_chunks_underspec
   (#et : Type0) {| sized et, hvc : has_vec_cpy et |}
   (#rows #cols : nat)
-  (#l : M.layout rows cols)
+  (#l : layout2 rows cols)
   (m : array2 et l)
   (nthr : pos)
   requires
-    pure (SZ.fits (M.layout_size l))
+    pure (SZ.fits (l.ulen))
   requires
     forall+ (tid : natlt nthr).
       live_strided_chunks m nthr tid
@@ -114,12 +112,12 @@ fn join_array2_from_strided_chunks_underspec
     fn tid { unfold live_strided_chunks m nthr tid };
 
   let ff = forevery_exists #(natlt nthr) _;
-  let em' : ematrix et rows cols =
-    (mkM fun i j ->
+  let em' : chest2 et rows cols =
+    (mk2 fun i j ->
        let flat_idx : nat = i * cols + j in
        let chunk_idx = flat_idx / chunk et in
        let tid = chunk_idx % nthr in
-       macc (ff tid) i j);
+       acc2 (ff tid) i j);
 
   forevery_map
     (fun (tid : natlt nthr) -> own_strided_chunks m (ff tid) nthr tid)
@@ -128,8 +126,8 @@ fn join_array2_from_strided_chunks_underspec
       unfold own_strided_chunks m (ff tid) nthr tid;
       forevery_map
         #(ij : (natlt rows & natlt cols){CV.in_chunk (chunk et #_ #hvc) rows cols nthr tid ij})
-        (fun ij -> M.pts_to_cell m (ij._1, ij._2) (macc (ff tid) ij._1 ij._2))
-        (fun ij -> M.pts_to_cell m (ij._1, ij._2) (macc em' ij._1 ij._2))
+        (fun ij -> tensor_pts_to_cell m (idx2 ij._1 ij._2) (acc2 (ff tid) ij._1 ij._2))
+        (fun ij -> tensor_pts_to_cell m (idx2 ij._1 ij._2) (acc2 em' ij._1 ij._2))
         fn ij { () };
       fold own_strided_chunks m em' nthr tid;
     };
@@ -144,67 +142,67 @@ ghost
 fn bp_sharing_to_own_strided_chunks
   (#et : Type0) {| sized et, has_vec_cpy et |}
   (#rows #cols : pos)
-  (l : M.full_layout rows cols)
-  (sar : gpu_array et (rows * cols))
-  (em : ematrix et rows cols)
+  (l : full_layout2 rows cols)
+  (sar : larray et (rows * cols))
+  (em : chest2 et rows cols)
   (nthr : pos)
   (#_ : squash (chunk et /?+ cols))
   (#_ : squash (chunk et * nthr /?+ (rows * cols)))
   requires
     forall+ (_tid : natlt nthr).
-      bp_sharing (M.from_array l sar) em nthr
+      bp_sharing (from_array l sar) em nthr
   ensures
     forall+ (tid : natlt nthr).
-      own_strided_chunks (M.from_array l sar) em nthr tid
+      own_strided_chunks (from_array l sar) em nthr tid
 {
-  M.gather_n (M.from_array l sar) nthr;
-  split_array2_into_strided_chunks (M.from_array l sar) nthr;
+  tensor_gather_n (from_array l sar) nthr;
+  split_array2_into_strided_chunks (from_array l sar) nthr;
 }
 
 ghost
 fn own_strided_chunks_to_bp_sharing
   (#et : Type0) {| sized et, has_vec_cpy et |}
   (#rows #cols : pos)
-  (l : M.full_layout rows cols)
-  (sar : gpu_array et (rows * cols))
-  (em : ematrix et rows cols)
+  (l : full_layout2 rows cols)
+  (sar : larray et (rows * cols))
+  (em : chest2 et rows cols)
   (nthr : pos)
-  (#_ : squash (SZ.fits (M.layout_size l)))
+  (#_ : squash (SZ.fits (l.ulen)))
   requires
     forall+ (tid : natlt nthr).
-      own_strided_chunks (M.from_array l sar) em nthr tid
+      own_strided_chunks (from_array l sar) em nthr tid
   ensures
     forall+ (_tid : natlt nthr).
-      bp_sharing (M.from_array l sar) em nthr
+      bp_sharing (from_array l sar) em nthr
 {
-  join_array2_from_strided_chunks (M.from_array l sar) nthr;
-  M.share_n (M.from_array l sar) nthr;
+  join_array2_from_strided_chunks (from_array l sar) nthr;
+  tensor_share_n (from_array l sar) nthr;
 }
 
 ghost
 fn bp_sharing_to_own_strided_chunks_underspec
   (#et : Type0) {| sized et, has_vec_cpy et |}
   (#rows #cols : pos)
-  (l : M.full_layout rows cols)
-  (sar : gpu_array et (rows * cols))
+  (l : full_layout2 rows cols)
+  (sar : larray et (rows * cols))
   (nthr : pos)
   (#_ : squash (chunk et /?+ cols))
   (#_ : squash (chunk et * nthr /?+ (rows * cols)))
   requires
     forall+ (_tid : natlt nthr).
       exists* em.
-        bp_sharing (M.from_array l sar) em nthr
+        bp_sharing (from_array l sar) em nthr
   ensures
     forall+ (tid : natlt nthr).
       exists* em.
-        own_strided_chunks (M.from_array l sar) em nthr tid
+        own_strided_chunks (from_array l sar) em nthr tid
 {
-  M.gather_n_underspec (M.from_array l sar) nthr;
-  with em. assert M.from_array l sar |-> em;
-  split_array2_into_strided_chunks (M.from_array l sar) nthr;
+  tensor_gather_n_underspec (from_array l sar) nthr;
+  with em. assert from_array l sar |-> em;
+  split_array2_into_strided_chunks (from_array l sar) nthr;
   forevery_map
-    (fun tid -> own_strided_chunks (M.from_array l sar) em nthr tid)
-    (fun tid -> exists* em. own_strided_chunks (M.from_array l sar) em nthr tid)
+    (fun tid -> own_strided_chunks (from_array l sar) em nthr tid)
+    (fun tid -> exists* em. own_strided_chunks (from_array l sar) em nthr tid)
     fn tid { };
 }
 
@@ -212,26 +210,26 @@ ghost
 fn own_strided_chunks_to_bp_sharing_underspec
   (#et : Type0) {| sized et, has_vec_cpy et |}
   (#rows #cols : pos)
-  (l : M.full_layout rows cols)
-  (sar : gpu_array et (rows * cols))
+  (l : full_layout2 rows cols)
+  (sar : larray et (rows * cols))
   (nthr : pos)
-  (#_ : squash (SZ.fits (M.layout_size l)))
+  (#_ : squash (SZ.fits (l.ulen)))
   requires
     forall+ (tid : natlt nthr).
       exists* em.
-        own_strided_chunks (M.from_array l sar) em nthr tid
+        own_strided_chunks (from_array l sar) em nthr tid
   ensures
     forall+ (_tid : natlt nthr).
       exists* em.
-        bp_sharing (M.from_array l sar) em nthr
+        bp_sharing (from_array l sar) em nthr
 {
-  join_array2_from_strided_chunks_underspec (M.from_array l sar) nthr;
-  with em. assert M.from_array l sar |-> em;
-  M.share_n (M.from_array l sar) nthr;
+  join_array2_from_strided_chunks_underspec (from_array l sar) nthr;
+  with em. assert from_array l sar |-> em;
+  tensor_share_n (from_array l sar) nthr;
   forevery_map
-    (fun (tid : natlt nthr) -> M.from_array l sar |-> Frac (1.0R /. nthr) em)
-    (fun (tid : natlt nthr) -> exists* em. bp_sharing (M.from_array l sar) em nthr)
-    fn tid { fold bp_sharing (M.from_array l sar) em nthr; };
+    (fun (tid : natlt nthr) -> from_array l sar |-> Frac (1.0R /. nthr) em)
+    (fun (tid : natlt nthr) -> exists* em. bp_sharing (from_array l sar) em nthr)
+    fn tid { fold bp_sharing (from_array l sar) em nthr; };
 }
 
 (* ---- Even/odd barrier transforms ---- *)
@@ -240,15 +238,15 @@ ghost
 fn even_barrier_p_to_q
   (#et : Type0) {| sized et, has_vec_cpy et |}
   (#rows #shared #cols : pos)
-  (eA : ematrix et rows shared)
-  (eB : ematrix et shared cols)
+  (eA : chest2 et rows shared)
+  (eB : chest2 et shared cols)
   (#bm : pos{bm /?+ rows})
   (#bk : pos{bk /?+ shared})
   (#bn : pos{bn /?+ cols})
-  (l1 : M.full_layout bm bk)
-  (l2 : M.full_layout bk bn)
-  (sar1 : gpu_array et (bm * bk))
-  (sar2 : gpu_array et (bk * bn))
+  (l1 : full_layout2 bm bk)
+  (l2 : full_layout2 bk bn)
+  (sar1 : larray et (bm * bk))
+  (sar2 : larray et (bk * bn))
   (nthr : pos)
   (#_ : squash (chunk et /?+ bn))
   (#_ : squash (chunk et /?+ bk))
@@ -256,33 +254,33 @@ fn even_barrier_p_to_q
   (#_ : squash (chunk et * nthr /?+ (bk * bn)))
   requires
     forall+ (tid : natlt nthr).
-      (exists* em1. bp_sharing (M.from_array l1 sar1) em1 nthr) **
-      (exists* em2. bp_sharing (M.from_array l2 sar2) em2 nthr)
+      (exists* em1. bp_sharing (from_array l1 sar1) em1 nthr) **
+      (exists* em2. bp_sharing (from_array l2 sar2) em2 nthr)
   ensures
     forall+ (tid : natlt nthr).
-      live_strided_chunks (M.from_array l1 sar1) nthr tid **
-      live_strided_chunks (M.from_array l2 sar2) nthr tid
+      live_strided_chunks (from_array l1 sar1) nthr tid **
+      live_strided_chunks (from_array l2 sar2) nthr tid
 {
   forevery_unzip _ _;
   bp_sharing_to_own_strided_chunks_underspec l1 sar1 nthr;
   bp_sharing_to_own_strided_chunks_underspec l2 sar2 nthr;
   forevery_zip (fun (tid: natlt nthr) ->
-      live_strided_chunks (M.from_array l1 sar1) nthr tid) _;
+      live_strided_chunks (from_array l1 sar1) nthr tid) _;
 }
 
 ghost
 fn odd_barrier_p_to_q
   (#et : Type0) {| sized et, has_vec_cpy et |}
   (#rows #shared #cols : pos)
-  (eA : ematrix et rows shared)
-  (eB : ematrix et shared cols)
+  (eA : chest2 et rows shared)
+  (eB : chest2 et shared cols)
   (#bm : pos{bm /?+ rows})
   (#bk : pos{bk /?+ shared})
   (#bn : pos{bn /?+ cols})
-  (l1 : M.full_layout bm bk)
-  (l2 : M.full_layout bk bn)
-  (sar1 : gpu_array et (bm * bk))
-  (sar2 : gpu_array et (bk * bn))
+  (l1 : full_layout2 bm bk)
+  (l2 : full_layout2 bk bn)
+  (sar1 : larray et (bm * bk))
+  (sar2 : larray et (bk * bn))
   (nthr : pos)
   (bid : natlt (rows/bm * (cols/bn)))
   (it : natlt (2 * (shared / bk)))
@@ -290,23 +288,23 @@ fn odd_barrier_p_to_q
   (#_ : squash (chunk et /?+ bk))
   (#_ : squash (chunk et * nthr /?+ (bm * bk)))
   (#_ : squash (chunk et * nthr /?+ (bk * bn)))
-  (#_ : squash (SZ.fits (M.layout_size l1)))
-  (#_ : squash (SZ.fits (M.layout_size l2)))
+  (#_ : squash (SZ.fits (l1.ulen)))
+  (#_ : squash (SZ.fits (l2.ulen)))
   requires
     forall+ (tid : natlt nthr).
-      own_strided_chunks (M.from_array l1 sar1) (ematrix_subtile eA bm bk (bid/(cols/bn)) (it/2)) nthr tid **
-      own_strided_chunks (M.from_array l2 sar2) (ematrix_subtile eB bk bn (it/2) (bid%(cols/bn))) nthr tid
+      own_strided_chunks (from_array l1 sar1) (ematrix_subtile eA bm bk (bid/(cols/bn)) (it/2)) nthr tid **
+      own_strided_chunks (from_array l2 sar2) (ematrix_subtile eB bk bn (it/2) (bid%(cols/bn))) nthr tid
   ensures
     forall+ (tid : natlt nthr).
-      bp_sharing (M.from_array l1 sar1) (ematrix_subtile eA bm bk (bid/(cols/bn)) (it/2)) nthr **
-      bp_sharing (M.from_array l2 sar2) (ematrix_subtile eB bk bn (it/2) (bid%(cols/bn))) nthr
+      bp_sharing (from_array l1 sar1) (ematrix_subtile eA bm bk (bid/(cols/bn)) (it/2)) nthr **
+      bp_sharing (from_array l2 sar2) (ematrix_subtile eB bk bn (it/2) (bid%(cols/bn))) nthr
 {
   forevery_unzip _ _;
   own_strided_chunks_to_bp_sharing l1 sar1 _ nthr;
   own_strided_chunks_to_bp_sharing l2 sar2 _ nthr;
   forevery_zip
     (fun (tid : natlt nthr) ->
-      bp_sharing (M.from_array l1 sar1) (ematrix_subtile eA bm bk (bid/(cols/bn)) (it/2)) nthr)
+      bp_sharing (from_array l1 sar1) (ematrix_subtile eA bm bk (bid/(cols/bn)) (it/2)) nthr)
       _;
 }
 
@@ -316,40 +314,40 @@ ghost
 fn barrier_p_to_q_transform
   (#et : Type0) {| sized et, has_vec_cpy et |}
   (#rows #shared #cols : pos)
-  (eA : ematrix et rows shared)
-  (eB : ematrix et shared cols)
+  (eA : chest2 et rows shared)
+  (eB : chest2 et shared cols)
   (#bm : pos{bm /?+ rows})
   (#bk : pos{bk /?+ shared})
   (#bn : pos{bn /?+ cols})
-  (l1 : M.full_layout bm bk)
-  (l2 : M.full_layout bk bn)
-  (sar1 : gpu_array et (bm * bk))
-  (sar2 : gpu_array et (bk * bn))
+  (l1 : full_layout2 bm bk)
+  (l2 : full_layout2 bk bn)
+  (sar1 : larray et (bm * bk))
+  (sar2 : larray et (bk * bn))
   (nthr : pos)
   (bid : natlt (rows/bm * (cols/bn)))
   (#_ : squash (chunk et /?+ bn))
   (#_ : squash (chunk et /?+ bk))
   (#_ : squash (chunk et * nthr /?+ (bm * bk)))
   (#_ : squash (chunk et * nthr /?+ (bk * bn)))
-  (#_ : squash (SZ.fits (M.layout_size l1)))
-  (#_ : squash (SZ.fits (M.layout_size l2)))
+  (#_ : squash (SZ.fits (l1.ulen)))
+  (#_ : squash (SZ.fits (l2.ulen)))
   (it : nat)
   requires
     forall+ (tid : natlt nthr).
-      barrier_p eA eB (M.from_array l1 sar1) (M.from_array l2 sar2) nthr bid it tid
+      barrier_p eA eB (from_array l1 sar1) (from_array l2 sar2) nthr bid it tid
   ensures
     forall+ (tid : natlt nthr).
-      barrier_q eA eB (M.from_array l1 sar1) (M.from_array l2 sar2) nthr bid it tid
+      barrier_q eA eB (from_array l1 sar1) (from_array l2 sar2) nthr bid it tid
 {
   if (it >= 2 * (shared / bk)) {
     forevery_map
       (fun (tid : natlt nthr) ->
-        barrier_p eA eB (M.from_array l1 sar1) (M.from_array l2 sar2) nthr bid it tid)
+        barrier_p eA eB (from_array l1 sar1) (from_array l2 sar2) nthr bid it tid)
       (fun (tid : natlt nthr) ->
-        barrier_q eA eB (M.from_array l1 sar1) (M.from_array l2 sar2) nthr bid it tid)
+        barrier_q eA eB (from_array l1 sar1) (from_array l2 sar2) nthr bid it tid)
       fn tid {
-        rewrite barrier_p eA eB (M.from_array l1 sar1) (M.from_array l2 sar2) nthr bid it tid as emp;
-        rewrite emp as barrier_q eA eB (M.from_array l1 sar1) (M.from_array l2 sar2) nthr bid it tid;
+        rewrite barrier_p eA eB (from_array l1 sar1) (from_array l2 sar2) nthr bid it tid as emp;
+        rewrite emp as barrier_q eA eB (from_array l1 sar1) (from_array l2 sar2) nthr bid it tid;
       };
   } else {
     let ev = even it;
@@ -358,66 +356,66 @@ fn barrier_p_to_q_transform
       assert pure (even it);
       forevery_map
         (fun (tid : natlt nthr) ->
-          barrier_p eA eB (M.from_array l1 sar1) (M.from_array l2 sar2) nthr bid it tid)
+          barrier_p eA eB (from_array l1 sar1) (from_array l2 sar2) nthr bid it tid)
         (fun (tid : natlt nthr) ->
-          (exists* em1. bp_sharing (M.from_array l1 sar1) em1 nthr) **
-          (exists* em2. bp_sharing (M.from_array l2 sar2) em2 nthr)
+          (exists* em1. bp_sharing (from_array l1 sar1) em1 nthr) **
+          (exists* em2. bp_sharing (from_array l2 sar2) em2 nthr)
         )
         fn tid {
-          rewrite barrier_p eA eB (M.from_array l1 sar1) (M.from_array l2 sar2) nthr bid it tid
-              as (exists* em1. bp_sharing (M.from_array l1 sar1) em1 nthr) **
-                  (exists* em2. bp_sharing (M.from_array l2 sar2) em2 nthr);
+          rewrite barrier_p eA eB (from_array l1 sar1) (from_array l2 sar2) nthr bid it tid
+              as (exists* em1. bp_sharing (from_array l1 sar1) em1 nthr) **
+                  (exists* em2. bp_sharing (from_array l2 sar2) em2 nthr);
         };
 
       even_barrier_p_to_q eA eB l1 l2 sar1 sar2 nthr;
 
       forevery_map
         (fun (tid : natlt nthr) ->
-          live_strided_chunks (M.from_array l1 sar1) nthr tid **
-          live_strided_chunks (M.from_array l2 sar2) nthr tid)
+          live_strided_chunks (from_array l1 sar1) nthr tid **
+          live_strided_chunks (from_array l2 sar2) nthr tid)
         (fun (tid : natlt nthr) ->
-          barrier_q eA eB (M.from_array l1 sar1) (M.from_array l2 sar2) nthr bid it tid
+          barrier_q eA eB (from_array l1 sar1) (from_array l2 sar2) nthr bid it tid
         )
         fn tid {
           rewrite
-            live_strided_chunks (M.from_array l1 sar1) nthr tid **
-            live_strided_chunks (M.from_array l2 sar2) nthr tid
+            live_strided_chunks (from_array l1 sar1) nthr tid **
+            live_strided_chunks (from_array l2 sar2) nthr tid
           as
-            barrier_q eA eB (M.from_array l1 sar1) (M.from_array l2 sar2) nthr bid it tid;
+            barrier_q eA eB (from_array l1 sar1) (from_array l2 sar2) nthr bid it tid;
         };
     } else {
       assert pure (it < 2 * (shared / bk));
       assert pure (odd it);
       forevery_map
         (fun (tid : natlt nthr) ->
-          barrier_p eA eB (M.from_array l1 sar1) (M.from_array l2 sar2) nthr bid it tid)
+          barrier_p eA eB (from_array l1 sar1) (from_array l2 sar2) nthr bid it tid)
         (fun (tid : natlt nthr) ->
-          own_strided_chunks (M.from_array l1 sar1) (ematrix_subtile eA bm bk (bid/(cols/bn)) (it/2)) nthr tid **
-          own_strided_chunks (M.from_array l2 sar2) (ematrix_subtile eB bk bn (it/2) (bid%(cols/bn))) nthr tid
+          own_strided_chunks (from_array l1 sar1) (ematrix_subtile eA bm bk (bid/(cols/bn)) (it/2)) nthr tid **
+          own_strided_chunks (from_array l2 sar2) (ematrix_subtile eB bk bn (it/2) (bid%(cols/bn))) nthr tid
         )
         fn tid {
           rewrite
-            barrier_p eA eB (M.from_array l1 sar1) (M.from_array l2 sar2) nthr bid it tid
+            barrier_p eA eB (from_array l1 sar1) (from_array l2 sar2) nthr bid it tid
           as
-            own_strided_chunks (M.from_array l1 sar1) (ematrix_subtile eA bm bk (bid/(cols/bn)) (it/2)) nthr tid **
-            own_strided_chunks (M.from_array l2 sar2) (ematrix_subtile eB bk bn (it/2) (bid%(cols/bn))) nthr tid;
+            own_strided_chunks (from_array l1 sar1) (ematrix_subtile eA bm bk (bid/(cols/bn)) (it/2)) nthr tid **
+            own_strided_chunks (from_array l2 sar2) (ematrix_subtile eB bk bn (it/2) (bid%(cols/bn))) nthr tid;
         };
 
       odd_barrier_p_to_q eA eB l1 l2 sar1 sar2 nthr bid it;
 
       forevery_map
         (fun (tid : natlt nthr) ->
-          bp_sharing (M.from_array l1 sar1) (ematrix_subtile eA bm bk (bid/(cols/bn)) (it/2)) nthr **
-          bp_sharing (M.from_array l2 sar2) (ematrix_subtile eB bk bn (it/2) (bid%(cols/bn))) nthr)
+          bp_sharing (from_array l1 sar1) (ematrix_subtile eA bm bk (bid/(cols/bn)) (it/2)) nthr **
+          bp_sharing (from_array l2 sar2) (ematrix_subtile eB bk bn (it/2) (bid%(cols/bn))) nthr)
         (fun (tid : natlt nthr) ->
-          barrier_q eA eB (M.from_array l1 sar1) (M.from_array l2 sar2) nthr bid it tid
+          barrier_q eA eB (from_array l1 sar1) (from_array l2 sar2) nthr bid it tid
         )
         fn tid {
           rewrite
-            bp_sharing (M.from_array l1 sar1) (ematrix_subtile eA bm bk (bid/(cols/bn)) (it/2)) nthr **
-            bp_sharing (M.from_array l2 sar2) (ematrix_subtile eB bk bn (it/2) (bid%(cols/bn))) nthr
+            bp_sharing (from_array l1 sar1) (ematrix_subtile eA bm bk (bid/(cols/bn)) (it/2)) nthr **
+            bp_sharing (from_array l2 sar2) (ematrix_subtile eB bk bn (it/2) (bid%(cols/bn))) nthr
           as
-            barrier_q eA eB (M.from_array l1 sar1) (M.from_array l2 sar2) nthr bid it tid;
+            barrier_q eA eB (from_array l1 sar1) (from_array l2 sar2) nthr bid it tid;
         };
     }
   }
@@ -430,13 +428,13 @@ ghost
 fn fold_barrier_p_odd
   (#et : Type0) {| sized et, has_vec_cpy et |}
   (#rows #shared #cols : pos)
-  (eA : ematrix et rows shared)
-  (eB : ematrix et shared cols)
+  (eA : chest2 et rows shared)
+  (eB : chest2 et shared cols)
   (#bm : pos{bm /?+ rows})
   (#bk : pos{bk /?+ shared})
   (#bn : pos{bn /?+ cols})
-  (#l1 : M.layout bm bk)
-  (#l2 : M.layout bk bn)
+  (#l1 : layout2 bm bk)
+  (#l2 : layout2 bk bn)
   (m1 : array2 et l1)
   (m2 : array2 et l2)
   (nthr : pos)
@@ -464,13 +462,13 @@ ghost
 fn unfold_barrier_q_odd
   (#et : Type0) {| sized et, has_vec_cpy et |}
   (#rows #shared #cols : pos)
-  (eA : ematrix et rows shared)
-  (eB : ematrix et shared cols)
+  (eA : chest2 et rows shared)
+  (eB : chest2 et shared cols)
   (#bm : pos{bm /?+ rows})
   (#bk : pos{bk /?+ shared})
   (#bn : pos{bn /?+ cols})
-  (#l1 : M.layout bm bk)
-  (#l2 : M.layout bk bn)
+  (#l1 : layout2 bm bk)
+  (#l2 : layout2 bk bn)
   (m1 : array2 et l1)
   (m2 : array2 et l2)
   (nthr : pos)
@@ -498,13 +496,13 @@ ghost
 fn fold_barrier_p_even
   (#et : Type0) {| sized et, has_vec_cpy et |}
   (#rows #shared #cols : pos)
-  (eA : ematrix et rows shared)
-  (eB : ematrix et shared cols)
+  (eA : chest2 et rows shared)
+  (eB : chest2 et shared cols)
   (#bm : pos{bm /?+ rows})
   (#bk : pos{bk /?+ shared})
   (#bn : pos{bn /?+ cols})
-  (#l1 : M.layout bm bk)
-  (#l2 : M.layout bk bn)
+  (#l1 : layout2 bm bk)
+  (#l2 : layout2 bk bn)
   (m1 : array2 et l1)
   (m2 : array2 et l2)
   (nthr : pos)
@@ -530,13 +528,13 @@ ghost
 fn unfold_barrier_q_even
   (#et : Type0) {| sized et, has_vec_cpy et |}
   (#rows #shared #cols : pos)
-  (eA : ematrix et rows shared)
-  (eB : ematrix et shared cols)
+  (eA : chest2 et rows shared)
+  (eB : chest2 et shared cols)
   (#bm : pos{bm /?+ rows})
   (#bk : pos{bk /?+ shared})
   (#bn : pos{bn /?+ cols})
-  (#l1 : M.layout bm bk)
-  (#l2 : M.layout bk bn)
+  (#l1 : layout2 bm bk)
+  (#l2 : layout2 bk bn)
   (m1 : array2 et l1)
   (m2 : array2 et l2)
   (nthr : pos)

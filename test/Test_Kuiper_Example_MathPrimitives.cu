@@ -44,7 +44,9 @@ static void check_f16(const char *name, half got, float expected, float tol)
 {
     n_tests++;
     float g = __half2float(got);
-    float err = fabsf(g - expected);
+    /* Round-trip the error via halfs to get rid of minor differences
+       detectable in floats but not representable in halfs. */
+    float err = __half2float(__float2half(fabsf(g - expected)));
     int ok = (err <= tol) || (isnan(g) && isnan(expected)) || (isinf(g)
                                                                && isinf(expected)
                                                                && g == expected);
@@ -186,70 +188,16 @@ int main()
     /* ---- valid / min_val / max_val ---- */
 
     /* Float32 */
-    n_tests++;
-    if (Kuiper_Example_MathPrimitives_test_valid_f32(1.0f))
-        n_pass++;
-    else
-        printf("FAIL f32 valid(1.0f) returned false\n");
-
-    n_tests++;
-    if (!Kuiper_Example_MathPrimitives_test_valid_f32(NAN))
-        n_pass++;
-    else
-        printf("FAIL f32 valid(NAN) returned true\n");
-
-    n_tests++;
-    if (!Kuiper_Example_MathPrimitives_test_valid_f32(INFINITY))
-        n_pass++;
-    else
-        printf("FAIL f32 valid(INFINITY) returned true\n");
-
-    check_f32("min_val", Kuiper_Example_MathPrimitives_test_min_val_f32(), -FLT_MAX, 0.0f);
-    check_f32("max_val", Kuiper_Example_MathPrimitives_test_max_val_f32(), FLT_MAX, 0.0f);
+    check_f32("largest", Kuiper_Example_MathPrimitives_test_largest_f32(), FLT_MAX, 0.0f);
+    check_f32("infinity", Kuiper_Example_MathPrimitives_test_infinity_f32(), INFINITY, 0.0f);
 
     /* Float64 */
-    n_tests++;
-    if (Kuiper_Example_MathPrimitives_test_valid_f64(1.0))
-        n_pass++;
-    else
-        printf("FAIL f64 valid(1.0) returned false\n");
-
-    n_tests++;
-    if (!Kuiper_Example_MathPrimitives_test_valid_f64((double)NAN))
-        n_pass++;
-    else
-        printf("FAIL f64 valid(NAN) returned true\n");
-
-    n_tests++;
-    if (!Kuiper_Example_MathPrimitives_test_valid_f64((double)INFINITY))
-        n_pass++;
-    else
-        printf("FAIL f64 valid(INFINITY) returned true\n");
-
-    check_f64("min_val", Kuiper_Example_MathPrimitives_test_min_val_f64(), -DBL_MAX, 0.0);
-    check_f64("max_val", Kuiper_Example_MathPrimitives_test_max_val_f64(), DBL_MAX, 0.0);
+    check_f64("largest", Kuiper_Example_MathPrimitives_test_largest_f64(), DBL_MAX, 0.0f);
+    check_f64("infinity", Kuiper_Example_MathPrimitives_test_infinity_f64(), INFINITY, 0.0f);
 
     /* Float16 */
-    n_tests++;
-    if (Kuiper_Example_MathPrimitives_test_valid_f16(__float2half(1.0f)))
-        n_pass++;
-    else
-        printf("FAIL f16 valid(1.0) returned false\n");
-
-    n_tests++;
-    if (!Kuiper_Example_MathPrimitives_test_valid_f16(__float2half(NAN)))
-        n_pass++;
-    else
-        printf("FAIL f16 valid(NAN) returned true\n");
-
-    n_tests++;
-    if (!Kuiper_Example_MathPrimitives_test_valid_f16(__float2half(INFINITY)))
-        n_pass++;
-    else
-        printf("FAIL f16 valid(INFINITY) returned true\n");
-
-    check_f16("min_val", Kuiper_Example_MathPrimitives_test_min_val_f16(), -65504.0f, 0.0f);
-    check_f16("max_val", Kuiper_Example_MathPrimitives_test_max_val_f16(), 65504.0f, 0.0f);
+    check_f16("largest", Kuiper_Example_MathPrimitives_test_largest_f16(), 65504.0f, 0.0f);
+    check_f16("infinity", Kuiper_Example_MathPrimitives_test_infinity_f16(), INFINITY, 0.0f);
 
     if (n_pass == n_tests) {
         printf("%d tests, OK\n", n_tests);

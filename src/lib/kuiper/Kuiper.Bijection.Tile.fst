@@ -42,6 +42,4 @@ let tile_bij
 = {
     ff = tile_ff _ _ _ _ ();
     gg = tile_gg _ _ _ _ ();
-    ff_gg = ez;
-    gg_ff = ez;
 }

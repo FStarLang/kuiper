@@ -4,9 +4,10 @@ module Klas.GEMM.TensorCore.Inst
 
 open Kuiper
 open Kuiper.Array.Vectorized { has_vec_cpy, chunk }
-open Kuiper.Matrix
+open Kuiper.Tensor
 open Kuiper.EMatrix
-open Kuiper.Matrix.Reprs
+open Kuiper.Array2.Strided
+open Kuiper.Tensor.Layout.Alg { l2_row_major as rm }
 open Kuiper.TensorCore
 
 module SZ = Kuiper.SizeT
@@ -39,16 +40,16 @@ fn specialize_gpu
 
   // do not specialize
   (rows shared cols : szp)
-  (gA : gpu_matrix et_ab (row_major rows shared) { is_global_matrix gA })
-  (gB : gpu_matrix et_ab (row_major shared cols) { is_global_matrix gB })
-  (gC : gpu_matrix et_c (row_major rows cols) { is_global_matrix gC })
+  (gA : array2 et_ab (rm rows shared) { is_global gA })
+  (gB : array2 et_ab (rm shared cols) { is_global gB })
+  (gC : array2 et_c (rm rows cols) { is_global gC })
   (#_ : squash (aligned 16 (core gA)))
   (#_ : squash (aligned 16 (core gB)))
   (#_ : squash (chunk et_ab * ((bm/tm) * (bn/tn) * warp_size) /?+ (bm * bk)))
   (#_ : squash (chunk et_ab * ((bm/tm) * (bn/tn) * warp_size) /?+ (bk * bn)))
-  (#eA : ematrix et_ab rows shared)
-  (#eB : ematrix et_ab shared cols)
-  (#eC : ematrix et_c rows cols)
+  (#eA : chest2 et_ab rows shared)
+  (#eB : chest2 et_ab shared cols)
+  (#eC : chest2 et_c rows cols)
   (#fA #fB : perm)
   // non of these are are checked because the functions is only
   //  partially applied

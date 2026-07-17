@@ -5,7 +5,8 @@ __global__
 /**
   hoisted when extracting rowscale_f16_rowmajor
 */
-static void __hoisted_0(uint32_t m, uint32_t n, half *a, half *b)
+static void __hoisted_rowscale_f16_rowmajor_0(uint32_t m, uint32_t n, half *a,
+                                              half *b)
 {
     if (1024U * blockIdx.x + threadIdx.x < m * n) {
         uint32_t row = (1024U * blockIdx.x + threadIdx.x) / n;
@@ -18,7 +19,8 @@ static void __hoisted_0(uint32_t m, uint32_t n, half *a, half *b)
 void Klas_RowScale_rowscale_f16_rowmajor(uint32_t m, uint32_t n, half *a,
                                          half *b)
 {
-    KPR_KCALL(__hoisted_0, m * n / 1024U + (uint32_t) (m * n % 1024U != 0U),
+    KPR_KCALL(__hoisted_rowscale_f16_rowmajor_0,
+              m * n / 1024U + (uint32_t) (m * n % 1024U != 0U),
               1024U, 0U, m, n, a, b);
     MUST(cudaDeviceSynchronize());
 }
@@ -27,7 +29,8 @@ __global__
 /**
   hoisted when extracting rowscale_f16_colmajor
 */
-static void __hoisted_1(uint32_t m, uint32_t n, half *a, half *b)
+static void __hoisted_rowscale_f16_colmajor_0(uint32_t m, uint32_t n, half *a,
+                                              half *b)
 {
     if (1024U * blockIdx.x + threadIdx.x < m * n) {
         uint32_t row = (1024U * blockIdx.x + threadIdx.x) / n;
@@ -40,7 +43,8 @@ static void __hoisted_1(uint32_t m, uint32_t n, half *a, half *b)
 void Klas_RowScale_rowscale_f16_colmajor(uint32_t m, uint32_t n, half *a,
                                          half *b)
 {
-    KPR_KCALL(__hoisted_1, m * n / 1024U + (uint32_t) (m * n % 1024U != 0U),
+    KPR_KCALL(__hoisted_rowscale_f16_colmajor_0,
+              m * n / 1024U + (uint32_t) (m * n % 1024U != 0U),
               1024U, 0U, m, n, a, b);
     MUST(cudaDeviceSynchronize());
 }
@@ -49,7 +53,8 @@ __global__
 /**
   hoisted when extracting rowscale_f32_rowmajor
 */
-static void __hoisted_2(uint32_t m, uint32_t n, float *a, float *b)
+static void __hoisted_rowscale_f32_rowmajor_0(uint32_t m, uint32_t n, float *a,
+                                              float *b)
 {
     if (1024U * blockIdx.x + threadIdx.x < m * n) {
         uint32_t row = (1024U * blockIdx.x + threadIdx.x) / n;
@@ -61,7 +66,8 @@ static void __hoisted_2(uint32_t m, uint32_t n, float *a, float *b)
 void Klas_RowScale_rowscale_f32_rowmajor(uint32_t m, uint32_t n, float *a,
                                          float *b)
 {
-    KPR_KCALL(__hoisted_2, m * n / 1024U + (uint32_t) (m * n % 1024U != 0U),
+    KPR_KCALL(__hoisted_rowscale_f32_rowmajor_0,
+              m * n / 1024U + (uint32_t) (m * n % 1024U != 0U),
               1024U, 0U, m, n, a, b);
     MUST(cudaDeviceSynchronize());
 }
@@ -70,7 +76,8 @@ __global__
 /**
   hoisted when extracting rowscale_f32_colmajor
 */
-static void __hoisted_3(uint32_t m, uint32_t n, float *a, float *b)
+static void __hoisted_rowscale_f32_colmajor_0(uint32_t m, uint32_t n, float *a,
+                                              float *b)
 {
     if (1024U * blockIdx.x + threadIdx.x < m * n) {
         uint32_t row = (1024U * blockIdx.x + threadIdx.x) / n;
@@ -82,7 +89,8 @@ static void __hoisted_3(uint32_t m, uint32_t n, float *a, float *b)
 void Klas_RowScale_rowscale_f32_colmajor(uint32_t m, uint32_t n, float *a,
                                          float *b)
 {
-    KPR_KCALL(__hoisted_3, m * n / 1024U + (uint32_t) (m * n % 1024U != 0U),
+    KPR_KCALL(__hoisted_rowscale_f32_colmajor_0,
+              m * n / 1024U + (uint32_t) (m * n % 1024U != 0U),
               1024U, 0U, m, n, a, b);
     MUST(cudaDeviceSynchronize());
 }
@@ -91,7 +99,8 @@ __global__
 /**
   hoisted when extracting rowscale_f64_rowmajor
 */
-static void __hoisted_4(uint32_t m, uint32_t n, double *a, double *b)
+static void __hoisted_rowscale_f64_rowmajor_0(uint32_t m, uint32_t n, double *a,
+                                              double *b)
 {
     if (1024U * blockIdx.x + threadIdx.x < m * n) {
         uint32_t row = (1024U * blockIdx.x + threadIdx.x) / n;
@@ -103,7 +112,8 @@ static void __hoisted_4(uint32_t m, uint32_t n, double *a, double *b)
 void Klas_RowScale_rowscale_f64_rowmajor(uint32_t m, uint32_t n, double *a,
                                          double *b)
 {
-    KPR_KCALL(__hoisted_4, m * n / 1024U + (uint32_t) (m * n % 1024U != 0U),
+    KPR_KCALL(__hoisted_rowscale_f64_rowmajor_0,
+              m * n / 1024U + (uint32_t) (m * n % 1024U != 0U),
               1024U, 0U, m, n, a, b);
     MUST(cudaDeviceSynchronize());
 }
@@ -112,7 +122,8 @@ __global__
 /**
   hoisted when extracting rowscale_f64_colmajor
 */
-static void __hoisted_5(uint32_t m, uint32_t n, double *a, double *b)
+static void __hoisted_rowscale_f64_colmajor_0(uint32_t m, uint32_t n, double *a,
+                                              double *b)
 {
     if (1024U * blockIdx.x + threadIdx.x < m * n) {
         uint32_t row = (1024U * blockIdx.x + threadIdx.x) / n;
@@ -124,7 +135,8 @@ static void __hoisted_5(uint32_t m, uint32_t n, double *a, double *b)
 void Klas_RowScale_rowscale_f64_colmajor(uint32_t m, uint32_t n, double *a,
                                          double *b)
 {
-    KPR_KCALL(__hoisted_5, m * n / 1024U + (uint32_t) (m * n % 1024U != 0U),
+    KPR_KCALL(__hoisted_rowscale_f64_colmajor_0,
+              m * n / 1024U + (uint32_t) (m * n % 1024U != 0U),
               1024U, 0U, m, n, a, b);
     MUST(cudaDeviceSynchronize());
 }

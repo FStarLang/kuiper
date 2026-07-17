@@ -3,34 +3,36 @@ module Kuiper.Kernel.GEMM.TensorCore
 #lang-pulse
 
 open Kuiper
-open Kuiper.Matrix
+open Kuiper.Tensor
 open Kuiper.EMatrix
 open Kuiper.Array.Vectorized { has_vec_cpy, chunk }
 
-open Kuiper.Matrix.Reprs
+open Kuiper.Array2.Strided
+open Kuiper.Tensor.Layout.Alg { l2_row_major as rm }
 open Kuiper.TensorCore
 
 module SZ = Kuiper.SizeT
+module T = Kuiper.Tensor
 
 inline_for_extraction noextract
 val mk_kernel
   (#et_ab #et_c : Type0)
   {| scalar et_ab, has_vec_cpy et_ab, scalar et_c |}
-  (#rows #shared #cols : szp)
-  (#lA : mlayout rows shared) {| clayout lA, str_A : strided_row_major lA |}
-  (gA : gpu_matrix et_ab lA { is_global_matrix gA })
-  (#eA : ematrix et_ab rows shared)
-  (#lB : mlayout shared cols) {| clayout lB, str_B : strided_row_major lB |}
+  (#m #n #k : szp)
+  (#lA : layout2 m k) {| T.ctlayout lA, str_A : strided_row_major lA |}
+  (gA : array2 et_ab lA { is_global gA })
+  (#eA : chest2 et_ab m k)
+  (#lB : layout2 k n) {| T.ctlayout lB, str_B : strided_row_major lB |}
   (#_ : squash (aligned_strided_row_major (chunk et_ab) str_A))
   (#_ : squash (aligned_strided_row_major (chunk et_ab) str_B))
-  (gB : gpu_matrix et_ab lB { is_global_matrix gB })
-  (#eB : ematrix et_ab shared cols)
-  (gC : gpu_matrix et_c (row_major rows cols) { is_global_matrix gC })
-  (#_ : squash (SZ.fits (rows * cols)))
-  (#eC : ematrix et_c rows cols)
-  (bm : szp{bm /?+ rows})
-  (bn : szp{bn /?+ cols})
-  (bk : szp{bk /?+ shared})
+  (gB : array2 et_ab lB { is_global gB })
+  (#eB : chest2 et_ab k n)
+  (gC : array2 et_c (rm m n) { is_global gC })
+  (#_ : squash (SZ.fits (m * n)))
+  (#eC : chest2 et_c m n)
+  (bm : szp{bm /?+ m})
+  (bn : szp{bn /?+ n})
+  (bk : szp{bk /?+ k})
   (#_ : squash (chunk et_ab /?+ bn))
   (#_ : squash (chunk et_ab /?+ bk))
   (#_: squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
@@ -38,7 +40,7 @@ val mk_kernel
   (tn : szp{tn /?+ bn})
   (tk : szp{tk /?+ bk})
   (#fA #fB : perm)
-  (nblk : szp{SZ.v nblk == rows/bm * (cols/bn)})
+  (nblk : szp{SZ.v nblk == m/bm * (n/bn)})
   // WARNING the previous version was wrong, it was assuming that each
   //  thread computes tm*tk results similar to 2D-Blocktiling.
   // There is nothing that catches this.

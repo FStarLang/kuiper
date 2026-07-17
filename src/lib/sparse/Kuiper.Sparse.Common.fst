@@ -1,15 +1,22 @@
 module Kuiper.Sparse.Common
 
 #lang-pulse
+
 open Kuiper
+open Kuiper.Tensor
+open Kuiper.Tensor.Layout.Alg { l1_forward }
+open Kuiper.Array2.Strided { strided_row_major, aligned_strided_row_major }
+open FStar.Tactics.Typeclasses { no_method }
+open Kuiper.Array.Vectorized
+open Kuiper.Seq.Common { (@!) }
+
 module SZ = FStar.SizeT
+module Chest = Kuiper.Chest
 
 // This is here to force extraction.
 let _ = 1ul
 
 (* Class instances *)
-
-open Kuiper.Array.Vectorized
 
 inline_for_extraction noextract
 instance has_vec_cpy_sz : has_vec_cpy sz = { _chunk = 4sz; _pf = ez }
@@ -229,13 +236,14 @@ let seq_chunk
 (* Matrices *)
 
 open Kuiper.EMatrix
+open Kuiper.Chest
 
 let ematrix_from_rows
   (#et : Type0)
   (#rows #cols : erased nat)
   (r : natlt rows -> GTot (lseq et cols))
-: ematrix et rows cols
-= mkM fun i j -> r i @! j
+: chest2 et rows cols
+= Chest.mk2 fun i j -> r i `Seq.index` j
 
 let ematrix_from_rows_lemma
   (#et : Type0)
@@ -249,29 +257,29 @@ let ematrix_from_rows_lemma
 let ematrix_rows_equal
   (#et : Type0)
   (#rows #cols : erased nat)
-  (m1 m2 : ematrix et rows cols)
+  (m1 m2 : chest2 et rows cols)
 : prop = forall i. ematrix_row m1 i == ematrix_row m2 i 
 
 let ematrix_rows_equal_intro
   (#et : Type0)
   (#rows #cols : erased nat)
-  (m1 m2 : ematrix et rows cols)
+  (m1 m2 : chest2 et rows cols)
 : Lemma (requires ematrix_rows_equal m1 m2) (ensures m1 == m2)
   [SMTPat (ematrix_rows_equal m1 m2)]
 =
-  introduce forall i j. macc m1 i j == macc m2 i j
+  introduce forall i j. acc2 m1 i j == acc2 m2 i j
   with (
-    assert macc m1 i j == ematrix_row m1 i @! j;
-    assert macc m2 i j == ematrix_row m2 i @! j
+    assert acc2 m1 i j == ematrix_row m1 i @! j;
+    assert acc2 m2 i j == ematrix_row m2 i @! j
   );
-  assert m1 `Kuiper.EMatrix.equal` m2
+  assert m1 `Chest.equal` m2
 
 let ematrix_from_cols
   (#et : Type0)
   (#rows #cols : erased nat)
   (c : natlt cols -> GTot (lseq et rows))
-: ematrix et rows cols
-= mkM fun i j -> c j @! i
+: chest2 et rows cols
+= Chest.mk2 fun i j -> c j @! i
 
 let ematrix_from_cols_lemma
   (#et : Type0)
@@ -285,27 +293,27 @@ let ematrix_from_cols_lemma
 let ematrix_cols_equal
   (#et : Type0)
   (#rows #cols : erased nat)
-  (m1 m2 : ematrix et rows cols)
+  (m1 m2 : chest2 et rows cols)
 : prop = forall j. ematrix_col m1 j == ematrix_col m2 j 
 
 let ematrix_cols_equal_intro
   (#et : Type0)
   (#rows #cols : erased nat)
-  (m1 m2 : ematrix et rows cols)
+  (m1 m2 : chest2 et rows cols)
 : Lemma (requires ematrix_cols_equal m1 m2) (ensures m1 == m2)
   [SMTPat (ematrix_cols_equal m1 m2)]
 =
-  introduce forall i j. macc m1 i j == macc m2 i j
+  introduce forall i j. acc2 m1 i j == acc2 m2 i j
   with (
-    assert macc m1 i j == ematrix_col m1 j @! i;
-    assert macc m2 i j == ematrix_col m2 j @! i
+    assert acc2 m1 i j == ematrix_col m1 j @! i;
+    assert acc2 m2 i j == ematrix_col m2 j @! i
   );
-  assert m1 `Kuiper.EMatrix.equal` m2
+  assert m1 `Chest.equal` m2
 
 let ematrix_upd_row_f
   (#et : Type0)
   (#rows #cols : erased nat)
-  (em : ematrix et rows cols)
+  (em : chest2 et rows cols)
   (i : natlt rows)
   (new_row : lseq et cols)
   (k : natlt rows)
@@ -315,31 +323,31 @@ let ematrix_upd_row_f
 let ematrix_upd_row_lemma
   (#et : Type0)
   (#rows #cols : erased nat)
-  (em : ematrix et rows cols)
+  (em : chest2 et rows cols)
   (i : natlt rows)
   (new_row : lseq et cols)
 : Lemma
   (requires true)
   (ensures ematrix_upd_row em i new_row == ematrix_from_rows (ematrix_upd_row_f em i new_row)) 
 =
-  assert Kuiper.EMatrix.equal
+  assert equal
     (ematrix_upd_row em i new_row)
     (ematrix_from_rows (ematrix_upd_row_f em i new_row))
 
 let ematrix_row_chunk_
   (#et : Type0) {| sized et, has_vec_cpy et |}
   (#rows #cols : nat)
-  (em : ematrix et rows cols)
+  (em : chest2 et rows cols)
   (i : natlt rows)
   (j : natlt cols { j + chunk et <= cols })
 : GTot (lseq et (chunk et))
-= Seq.init_ghost (chunk et) (fun k -> macc em i (j + k)) 
+= Seq.init_ghost (chunk et) (fun k -> acc2 em i (j + k)) 
 
 let ematrix_row_chunk
   (#et : Type0) {| sized et, has_vec_cpy et |}
   // usamos pos y no nat porque garantiza que chunk et <= cols
   (#rows #cols : pos { chunk et /? cols })
-  (em : ematrix et rows cols)
+  (em : chest2 et rows cols)
   (i : natlt rows)
   (j : natlt cols { chunk et /? j })
 : GTot (lseq et (chunk et))
@@ -360,7 +368,7 @@ let offset_chunk
 let is_ematrix_tile_at
   (#et : Type0) {| sized et, has_vec_cpy et |}
   (#rows #cols : nat { chunk et /? cols })
-  (em : ematrix et rows cols)
+  (em : chest2 et rows cols)
   (i : natlt rows)
   (j : nat { chunk et /? j })
   (#row_tile : nat { chunk et /? row_tile }) 
@@ -377,7 +385,7 @@ let is_ematrix_tile_at
 let is_ematrix_tile
   (#et : Type0) {| sized et, has_vec_cpy et |}
   (#rows #cols : nat { chunk et /? cols })
-  (em : ematrix et rows cols)
+  (em : chest2 et rows cols)
   (i : natlt rows)
   (j : nat { chunk et /? j })
   (#row_tile : nat { chunk et /? row_tile }) 
@@ -623,20 +631,12 @@ fn forevery_unfactor_
 
 (* Tensors *) // tiene sentido que esté acá?
 
-module A = Kuiper.Array1
-module M = Kuiper.Array2
-module T = Kuiper.Tensor
-open Kuiper.Tensor.Layout.Alg { l1_forward }
-open Kuiper.Array2.Strided { strided_row_major, aligned_strided_row_major }
-
 let array_cell_of_pos (#n : nat)
-  (l : A.layout n) (i : natlt n) : GTot (natlt (A.layout_size l)) =
-  l.imap.f (A.adapt_idx_back i)
-
-open FStar.Tactics.Typeclasses { no_method }
+  (l : layout1 n) (i : natlt n) : GTot (natlt (tlayout_ulen l)) =
+  l.imap.f (i, ())
 
 inline_for_extraction noextract
-class cont_layout (#n : erased nat) (l : A.layout n) = {
+class cont_layout (#n : erased nat) (l : layout1 n) = {
   [@@@no_method]
   offset : sz;
   [@@@no_method]
@@ -645,7 +645,7 @@ class cont_layout (#n : erased nat) (l : A.layout n) = {
 
 let aligned_cont_layout
   (#n : erased nat)
-  (#l : A.layout n)
+  (#l : layout1 n)
   (k : pos)
   (cl : cont_layout l)
 : prop = k /?+ cl.offset
@@ -660,19 +660,19 @@ instance cont_layout_l1_forward (#n : erased nat)
 inline_for_extraction noextract
 instance cont_layout_strided_row_major
   (#rows #cols : erased nat)
-  (l : M.layout rows cols { 0 < cols }) {| srm : strided_row_major l |}
-  (#_: squash (fits (M.layout_size l)))
+  (l : layout2 rows cols { 0 < cols }) {| srm : strided_row_major l |}
+  (#_: squash (fits (tlayout_ulen l)))
   (i : natlt rows)
   {| conc_i : concrete_sz i |}
-  : cont_layout #cols (T.tlayout_slice l 0 i) = {
+  : cont_layout #cols (tlayout_slice l 0 i) = {
     offset  = (srm.pf i 0; srm.offset +^ srm.stride *^ (concr' conc_i));
     pf = srm.pf i;
   }
 
 let aligned_cont_strided_row_major
   (#rows #cols : erased nat { 0 < cols })
-  (l : M.layout rows cols) {| srm : strided_row_major l |}
-  (#_: squash (fits (M.layout_size l)))
+  (l : layout2 rows cols) {| srm : strided_row_major l |}
+  (#_: squash (fits (tlayout_ulen l)))
   (k : pos)
   (i : szlt rows)
 : Lemma
@@ -686,8 +686,8 @@ let aligned_cont_strided_row_major
 let row_core_lemma
   (#et:Type0)
   (#m #n : nat)
-  (#l : M.layout m n)
-  (a : M.array2 et l)
+  (#l : layout2 m n)
+  (a : array2 et l)
   (i : natlt m)
-: Lemma (requires true) (ensures A.core (M.row a i) == M.core a)
-= admit()
+  : Lemma (requires true) (ensures core (sliceof a 0 i) == core a)
+  = ()

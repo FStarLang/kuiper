@@ -18,39 +18,26 @@ let partition (n: nat { n % 2 == 0 }) : (natlt n =~ (natlt (n / 2) & bool)) =
       <: (natlt n -> (natlt (n / 2) & bool));
     gg = (fun x -> if snd x then fst x else n - fst x - 1)
       <: ((natlt (n / 2) & bool) -> natlt n);
-    ff_gg = ez;
-    gg_ff = ez;
   }
-
-let gpu_pts_to_cell
-  (#a:Type0)
-  (#sz:nat)
-  ([@@@mkey] arr : gpu_array a sz)
-  (#f : perm)
-  ([@@@mkey] i:nat)
-  (v:a)
-: slprop
-= exists* s. gpu_pts_to_slice arr #f i (i+1) s **
-             pure (s `Seq.equal` Seq.create 1 v)
 
 ghost
 fn explode_cells
   (#a:Type0)
   (#sz:nat)
-  (arr : gpu_array a sz)
+  (arr : larray a sz)
   (#f : perm)
   (#s : lseq a sz)
 requires
   arr |-> Frac f s
 ensures
-  forall+ (i: natlt sz). gpu_pts_to_cell arr #f i (Seq.index s i)
+  forall+ (i: natlt sz). pts_to_cell arr #f i (Seq.index s i)
 {
-  gpu_array_slice_1 arr;
+  array_slice_1 arr;
   forevery_map #(natlt sz)
-    (fun (i: nat { i < sz }) -> gpu_pts_to_slice arr #f i (i+1) seq![Seq.index s i])
-    (fun i -> gpu_pts_to_cell arr #f i (Seq.index s i))
+    (fun (i: nat { i < sz }) -> pts_to_slice arr #f i (i+1) seq![Seq.index s i])
+    (fun i -> pts_to_cell arr #f i (Seq.index s i))
     fn i {
-      fold (gpu_pts_to_cell arr #f i (Seq.index s i))
+      fold (pts_to_cell arr #f i (Seq.index s i))
     };
 }
 
@@ -58,67 +45,67 @@ ghost
 fn implode_cells
   (#a:Type0)
   (#sz:nat)
-  (arr : gpu_array a sz)
+  (arr : larray a sz)
   (#f : perm)
   (#s : lseq a sz)
 requires
-  forall+ (i:natlt sz). gpu_pts_to_cell arr #f i (Seq.index s i)
+  forall+ (i:natlt sz). pts_to_cell arr #f i (Seq.index s i)
 ensures
   arr |-> Frac f s
 {
   forevery_map #(natlt sz)
-    (fun i -> gpu_pts_to_cell arr #f i (Seq.index s i))
-    (fun i -> gpu_pts_to_slice arr #f i (Prims.op_Addition i 1) seq![Seq.index s i])
+    (fun i -> pts_to_cell arr #f i (Seq.index s i))
+    (fun i -> pts_to_slice arr #f i (Prims.op_Addition i 1) seq![Seq.index s i])
     fn i {
-      unfold (gpu_pts_to_cell arr #f i (Seq.index s i));
-      with s'. assert (gpu_pts_to_slice arr #f i (Prims.op_Addition i 1) s');
+      unfold pts_to_cell arr #f i (Seq.index s i);
+      with s'. assert pts_to_slice arr #f i (Prims.op_Addition i 1) s';
       assert pure (reveal s' `Seq.equal` seq![Seq.index (reveal s) i]);
     };
-  gpu_array_unslice_1 arr #f #s
+  array_unslice_1 arr #f #s
 }
 
 ghost
 fn partition_cells
   (#a:Type0)
   (#size:sz { size % 2sz == 0sz })
-  (arr : gpu_array a size)
+  (arr : larray a size)
   (#f : perm)
   (#s:seq a { len s == SZ.v size })
 requires
   forall+ (i: natlt size).
-    gpu_pts_to_cell arr #f i (Seq.index s i)
+    pts_to_cell arr #f i (Seq.index s i)
 ensures
   forall+ (i: natlt (v size / 2)).
-    gpu_pts_to_cell arr #f i (Seq.index s i) **
-    gpu_pts_to_cell arr #f (SZ.v size - i - 1) (index_flip s i)
+    pts_to_cell arr #f i (Seq.index s i) **
+    pts_to_cell arr #f (SZ.v size - i - 1) (index_flip s i)
 {
   forevery_iso (partition (SZ.v size)) _;
   forevery_unflatten' (fun (y: natlt (v size / 2) & bool) ->
-    gpu_pts_to_cell arr #f
+    pts_to_cell arr #f
       ((partition (v size)).gg y)
       (Seq.Base.index s ((partition (v size)).gg y)));
   forevery_map #(natlt (v size / 2))
     (fun (x: natlt (v size / 2)) -> forall+ (y: bool).
-      gpu_pts_to_cell arr #f
+      pts_to_cell arr #f
         ((partition (v size)).gg (x, y))
         (Seq.Base.index s ((partition (v size)).gg (x, y))))
     (fun (i: natlt (v size / 2)) ->
-      gpu_pts_to_cell arr #f i (Seq.index s i) **
-      gpu_pts_to_cell arr #f (SZ.v size - i - 1) (index_flip s i))
+      pts_to_cell arr #f i (Seq.index s i) **
+      pts_to_cell arr #f (SZ.v size - i - 1) (index_flip s i))
     fn i {
       forevery_bool_elim _;
       rewrite
-        gpu_pts_to_cell arr #f
+        pts_to_cell arr #f
           ((partition (v size)).gg (i, true))
           (Seq.Base.index s ((partition (v size)).gg (i, true)))
       as
-        gpu_pts_to_cell arr #f i (Seq.index s i);
+        pts_to_cell arr #f i (Seq.index s i);
       rewrite
-        gpu_pts_to_cell arr #f
+        pts_to_cell arr #f
           ((partition (v size)).gg (i, false))
           (Seq.Base.index s ((partition (v size)).gg (i, false)))
       as
-        gpu_pts_to_cell arr #f (SZ.v size - i - 1) (index_flip s i);
+        pts_to_cell arr #f (SZ.v size - i - 1) (index_flip s i);
     };
   // forevery_rw_type (natlt (v size / 2)) (natlt (SZ.v (size `div` 2sz))) _;
 }
@@ -127,72 +114,92 @@ ghost
 fn partition_cells_inv
  (#a:Type0)
   (#size:sz { size % 2sz == 0sz })
-  (arr : gpu_array a size)
+  (arr : larray a size)
   (#f : perm)
   (#s:seq a { len s == SZ.v size })
 requires
   forall+ (i: natlt (SZ.v size / 2)).
-    gpu_pts_to_cell arr #f i (Seq.index s i) **
-    gpu_pts_to_cell arr #f (SZ.v size - i - 1) (index_flip s i)
+    pts_to_cell arr #f i (Seq.index s i) **
+    pts_to_cell arr #f (SZ.v size - i - 1) (index_flip s i)
 ensures
   forall+ (i: natlt (SZ.v size)).
-    gpu_pts_to_cell arr #f i (Seq.index s i)
+    pts_to_cell arr #f i (Seq.index s i)
 {
   forevery_map #(natlt (v size / 2))
     (fun (i: natlt (v size / 2)) ->
-      gpu_pts_to_cell arr #f i (Seq.index s i) **
-      gpu_pts_to_cell arr #f (SZ.v size - i - 1) (index_flip s i))
+      pts_to_cell arr #f i (Seq.index s i) **
+      pts_to_cell arr #f (SZ.v size - i - 1) (index_flip s i))
     (fun (x: natlt (v size / 2)) -> forall+ (y: bool).
-      gpu_pts_to_cell arr #f
+      pts_to_cell arr #f
         ((partition (v size)).gg (x, y))
         (Seq.Base.index s ((partition (v size)).gg (x, y))))
     fn i {
       rewrite
-        gpu_pts_to_cell arr #f i (Seq.index s i)
+        pts_to_cell arr #f i (Seq.index s i)
       as
-        gpu_pts_to_cell arr #f
+        pts_to_cell arr #f
           ((partition (v size)).gg (i, true))
           (Seq.Base.index s ((partition (v size)).gg (i, true)));
       rewrite
-        gpu_pts_to_cell arr #f (SZ.v size - i - 1) (index_flip s i)
+        pts_to_cell arr #f (SZ.v size - i - 1) (index_flip s i)
       as
-        gpu_pts_to_cell arr #f
+        pts_to_cell arr #f
           ((partition (v size)).gg (i, false))
           (Seq.Base.index s ((partition (v size)).gg (i, false)));
       forevery_bool_intro (fun y ->
-        gpu_pts_to_cell arr #f
+        pts_to_cell arr #f
           ((partition (v size)).gg (i, y))
           (Seq.Base.index s ((partition (v size)).gg (i, y))));
     };
   forevery_flatten _;
   forevery_ext _ (fun (y: natlt (v size / 2) & bool) ->
-    gpu_pts_to_cell arr #f
+    pts_to_cell arr #f
       ((partition (v size)).gg y)
       (Seq.index s ((partition (v size)).gg y)));
   forevery_iso_back (partition (v size)) (fun i ->
-    gpu_pts_to_cell arr #f i (Seq.index s i));
+    pts_to_cell arr #f i (Seq.index s i));
 }
+
+unfold
+let kpre
+  (#ty:Type0)
+  (size:sz)
+  (a : larray ty size)
+  (s : seq ty{ len s == SZ.v size })
+  (bid : natlt (SZ.v size / 2))
+  : slprop =
+  pts_to_cell a #1.0R bid (Seq.index s bid) **
+  pts_to_cell a #1.0R (SZ.v size - bid - 1) (index_flip s bid)
+
+unfold
+let kpost
+  (#ty:Type0)
+  (size:sz)
+  (a : larray ty size)
+  (s : seq ty{ len s == SZ.v size })
+  (bid : natlt (SZ.v size / 2))
+  : slprop =
+  pts_to_cell a #1.0R bid (Seq.index (reverse_spec s) bid) **
+  pts_to_cell a #1.0R (SZ.v size - bid - 1) (index_flip (reverse_spec s) bid)
 
 inline_for_extraction
 fn read_cell
   (#ty:Type0)
   (#size:erased sz)
-  (a:gpu_array ty (SZ.v size))
+  (a : larray ty (SZ.v size))
   (i:sz { i < v size })
   (#p:perm)
   (#u:erased ty)
 requires
-  gpu **
-  gpu_pts_to_cell a #p (SZ.v i) u
+  pts_to_cell a #p (SZ.v i) u
 returns v:ty
 ensures
-  gpu **
-  gpu_pts_to_cell a #p (SZ.v i) u **
+  pts_to_cell a #p (SZ.v i) u **
   pure (u == v)
 {
-  unfold gpu_pts_to_cell;
-  let v = gpu_array_read a i;
-  fold (gpu_pts_to_cell a #p (SZ.v i) u);
+  unfold pts_to_cell;
+  let v = slice_read a i;
+  fold (pts_to_cell a #p (SZ.v i) u);
   v
 }
 
@@ -200,49 +207,29 @@ inline_for_extraction
 fn write_cell
   (#ty:Type0)
   (#size:erased sz)
-  (a:gpu_array ty (SZ.v size))
+  (a : larray ty (SZ.v size))
   (i:sz { i < v size })
   (v:ty)
   (#u:erased ty)
 requires
-  gpu **
-  gpu_pts_to_cell a #1.0R (SZ.v i) u
+  pts_to_cell a #1.0R (SZ.v i) u
 ensures
-  gpu **
-  gpu_pts_to_cell a #1.0R (SZ.v i) v
+  pts_to_cell a #1.0R (SZ.v i) v
 {
-  unfold gpu_pts_to_cell;
-  gpu_array_write a i v;
-  fold (gpu_pts_to_cell a #1.0R (SZ.v i) v);
+  unfold pts_to_cell;
+  slice_write a i v;
+  with s'. assert pts_to_slice a i (i+1) s';
+  assert pure (Seq.equal seq![v] s');
+  rewrite pts_to_slice a i (i+1) s' as pts_to_slice a i (i+1) seq![v];
+  fold pts_to_cell a #1.0R (SZ.v i) v;
+  ()
 }
-
-unfold
-let kpre
-  (#ty:Type0)
-  (size:sz)
-  (a:gpu_array ty size)
-  (s:seq ty{ len s == SZ.v size })
-  (bid : natlt (SZ.v size / 2))
-  : slprop =
-  gpu_pts_to_cell a #1.0R bid (Seq.index s bid) **
-  gpu_pts_to_cell a #1.0R (SZ.v size - bid - 1) (index_flip s bid)
-
-unfold
-let kpost
-  (#ty:Type0)
-  (size:sz)
-  (a:gpu_array ty size)
-  (s:seq ty{ len s == SZ.v size })
-  (bid : natlt (SZ.v size / 2))
-  : slprop =
-  gpu_pts_to_cell a #1.0R bid (Seq.index (reverse_spec s) bid) **
-  gpu_pts_to_cell a #1.0R (SZ.v size - bid - 1) (index_flip (reverse_spec s) bid)
 
 inline_for_extraction noextract
 fn kf
   (#ty:Type0)
   (size:sz)
-  (a:gpu_array ty size)
+  (a : larray ty size)
   (#s:erased (Seq.seq ty) { len s == SZ.v size })
   (bid : szlt (size / 2))
   ()
@@ -272,7 +259,7 @@ ghost
 fn setup
   (#ty:Type0)
   (size:sz { size > 0sz /\ size % 2 == 0 /\ size < max_blocks })
-  (a:gpu_array ty size)
+  (a : larray ty size)
   (#s: erased (FStar.Seq.seq ty) { len s == SZ.v size })
   ()
   norewrite
@@ -291,7 +278,7 @@ ghost
 fn teardown
   (#ty:Type0)
   (size:sz { size > 0sz /\ size % 2 == 0 /\ size < max_blocks })
-  (a:gpu_array ty size)
+  (a : larray ty size)
   (#s: erased (FStar.Seq.seq ty) { len s == SZ.v size })
   ()
   norewrite
@@ -311,7 +298,7 @@ inline_for_extraction noextract
 let kdesc
   (#ty:Type0)
   (size:sz { size > 0sz /\ size % 2 == 0 /\ size < max_blocks })
-  (a:gpu_array ty size { is_global_array a })
+  (a : larray ty size { is_global_array a })
   (#s: erased (FStar.Seq.seq ty) { len s == SZ.v size })
   : kernel_desc_m_1
       (a |-> s)
@@ -332,7 +319,7 @@ inline_for_extraction noextract
 fn reverse
     (#ty:Type0)
     (size:sz { size > 0sz /\ size % 2 == 0 /\ size < max_blocks })
-    (a:gpu_array ty size { is_global_array a })
+    (a : larray ty size { is_global_array a })
     (#s: erased (seq ty) { len s == SZ.v size })
   preserves
     cpu

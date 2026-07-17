@@ -3,6 +3,6 @@ module Kuiper.ArrayCoreAssumptions
 open Pulse.Lib.Pervasives
 module A = Pulse.Lib.Array
 
-//we could expose this from core_pcm_ref
-//assuming that every allocation is at least 128-aligned
-val core_base_address (x:A.array 'a) : GTot (n:nat { n > 0 /\ n%128==0 })
+(* We assume every array has a base address, in bytes. This could
+be exposed from inside Pulse. *)
+val core_base_address (x:A.array 'a) : GTot (n:nat { n > 0 })

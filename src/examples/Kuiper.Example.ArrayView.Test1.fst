@@ -14,13 +14,11 @@ module IView = Kuiper.IView
 inline_for_extraction noextract
 let inj_nat_rev (len : nat) : (natlt len @~> natlt len) = {
   f = (fun (i : natlt len) -> len - 1 - i <: natlt len);
-  is_inj = ez;
 }
 
 inline_for_extraction noextract
 let inj_sz_rev (len : sz) : (szlt len @~> szlt len) = {
   f = (fun (i : szlt len) -> len -^ 1sz -^ i <: szlt len);
-  is_inj = ez;
 }
 
 inline_for_extraction noextract
@@ -55,8 +53,6 @@ inline_for_extraction noextract
 let bij__normal (et len : _) : (lseq et len =~ _normal et len) = {
   ff = N;
   gg = N?._0;
-  ff_gg = ez;
-  gg_ff = ez;
 }
 
 inline_for_extraction noextract
@@ -71,8 +67,6 @@ inline_for_extraction noextract
 let bij__reverse (et len : _) : (lseq et len =~ _reverse et len) = {
   ff = R;
   gg = R?._0;
-  ff_gg = ez;
-  gg_ff = ez;
 }
 
 inline_for_extraction noextract
@@ -88,7 +82,6 @@ instance cnormal_view et (len : erased nat{SZ.fits len}) : IView.ciview (normal_
   };
   step = {
     cimap    = cinj_id;
-    compat   = ez;
   };
 }
 
@@ -106,7 +99,6 @@ instance creverse_view et (len : erased nat{SZ.fits len}) {| sz_len : concrete_s
       // Can't use imap = inj_sz_rev (SZ.uint_to_t len) for stupid reasons,
       // a type inside a refinement does not match exactly.
       mk_cinj (fun (i : szlt len) -> concr' sz_len -^ 1sz -^ i <: szlt len);
-    compat   = ez;
   };
 }
 
@@ -158,7 +150,7 @@ let seq_rev (#a:Type) (s:seq a) : seq a =
 (* fixed! but could be nicer. *)
 #push-options "--z3rlimit 30"
 fn write3
-  (p : gpu_array u32 50)
+  (p : larray u32 50)
   (#s : erased (lseq u32 50))
   preserves gpu
   requires p |-> s

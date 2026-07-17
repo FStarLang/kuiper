@@ -4,6 +4,7 @@ module Kuiper.Spec.GEMM
 provide any weak approximate spec. *)
 
 open Kuiper
+open Kuiper.Chest
 open Kuiper.EMatrix
 open Kuiper.EMatrix.Tiling
 
@@ -38,15 +39,15 @@ different types, which is useful to state a matmul
 over a big matrix being a matmul over individual tiles.
 
 In that case, we are multiplying something like
-  ematrix (ematrix et tm tk) (rows/tm) (shared/tk)
+  chest2 (chest2 et tm tk) (rows/tm) (shared/tk)
 with
-  ematrix (ematrix et tk tn) (shared/tk) (cols/tn)
+  chest2 (chest2 et tk tn) (shared/tk) (cols/tn)
 to get
-  ematrix (ematrix et tm tn) (rows/tm) (cols/tn
+  chest2 (chest2 et tm tn) (rows/tm) (cols/tn
 
-Notably, the inner elements (ematrix et tm tk) and (ematrix et tk tn)
+Notably, the inner elements (chest2 et tm tk) and (chest2 et tk tn)
 are not scalars. We therefore require a function to multiply them
-into some other type (ematrix et tm tn), and a function to add
+into some other type (chest2 et tm tn), and a function to add
 two such elements. *)
 
 // computes
@@ -60,8 +61,8 @@ val __gmatmul_single
   (mul : t1 -> t2 -> t3)
   (add : t3 -> t3 -> t3)
   (#rows #shared #columns : nat)
-  (m1 : ematrix t1 rows shared)
-  (m2 : ematrix t2 shared columns)
+  (m1 : chest2 t1 rows shared)
+  (m2 : chest2 t2 shared columns)
   (row : nat{row < rows})
   (col : nat{col < columns})
   (to : nat{to <= shared})
@@ -73,19 +74,19 @@ val __gmatmul_single_congr
   (mul : t1 -> t2 -> t3)
   (add : t3 -> t3 -> t3)
   (#rows #shared #columns : nat)
-  (m1 : ematrix t1 rows shared)
-  (m2 : ematrix t2 shared columns)
+  (m1 : chest2 t1 rows shared)
+  (m2 : chest2 t2 shared columns)
   (#rows' #columns' : nat)
-  (m1' : ematrix t1 rows' shared)
-  (m2' : ematrix t2 shared columns')
+  (m1' : chest2 t1 rows' shared)
+  (m2' : chest2 t2 shared columns')
   (row : nat{row < rows})
   (col : nat{col < columns})
   (row' : nat{row' < rows'})
   (col' : nat{col' < columns'})
   (to : nat{to <= shared})
   : Lemma (requires (forall k. 0 <= k /\ k < to ==>
-                        macc m1 row k == macc m1' row' k /\
-                        macc m2 k col == macc m2' k col'))
+                        acc2 m1 row k == acc2 m1' row' k /\
+                        acc2 m2 k col == acc2 m2' k col'))
           (ensures (__gmatmul_single z mul add m1 m2 row col to
                     == __gmatmul_single z mul add m1' m2' row' col' to))
 
@@ -95,8 +96,8 @@ val __gmatmul_single_zero_lemma
   (mul : t1 -> t2 -> t3)
   (add : t3 -> t3 -> t3)
   (#rows #cols #shared: nat)
-  (m1 : ematrix t1 rows shared)
-  (m2 : ematrix t2 shared cols)
+  (m1 : chest2 t1 rows shared)
+  (m2 : chest2 t2 shared cols)
   (i : natlt rows)
   (j : natlt cols)
 : Lemma
@@ -109,8 +110,8 @@ val __gmatmul_single_lemma
   (mul : t1 -> t2 -> t3)
   (add : t3 -> t3 -> t3)
   (#rows #shared #columns : nat)
-  (m1 : ematrix t1 rows shared)
-  (m2 : ematrix t2 shared columns)
+  (m1 : chest2 t1 rows shared)
+  (m2 : chest2 t2 shared columns)
   (row : nat{row < rows})
   (col : nat{col < columns})
   (to : pos{to <= shared})
@@ -119,8 +120,8 @@ val __gmatmul_single_lemma
     __gmatmul_single z mul add m1 m2 row col to ==
     add
       (__gmatmul_single z mul add m1 m2 row col (to - 1))
-      (mul (macc m1 row (to - 1))
-           (macc m2 (to - 1) col)))
+      (mul (acc2 m1 row (to - 1))
+           (acc2 m2 (to - 1) col)))
 
 let gmatmul_single
   (#t1 #t2 #t3 : Type)
@@ -128,8 +129,8 @@ let gmatmul_single
   (mul : t1 -> t2 -> t3)
   (add : t3 -> t3 -> t3)
   (#rows #shared #columns : nat)
-  (m1 : ematrix t1 rows shared)
-  (m2 : ematrix t2 shared columns)
+  (m1 : chest2 t1 rows shared)
+  (m2 : chest2 t2 shared columns)
   (row : nat{row < rows})
   (col : nat{col < columns})
   : GTot t3
@@ -141,8 +142,8 @@ the canonical multiplication and addition. *)
 let __matmul_single
   (#et : Type) {| scalar et |}
   (#rows #shared #columns : nat)
-  (m1 : ematrix et rows shared)
-  (m2 : ematrix et shared columns)
+  (m1 : chest2 et rows shared)
+  (m2 : chest2 et shared columns)
   (row : nat{row < rows})
   (col : nat{col < columns})
   (to : nat{to <= shared})
@@ -152,8 +153,8 @@ let __matmul_single
 let matmul_single
   (#et : Type) {| scalar et |}
   (#rows #shared #columns : nat)
-  (m1 : ematrix et rows shared)
-  (m2 : ematrix et shared columns)
+  (m1 : chest2 et rows shared)
+  (m2 : chest2 et shared columns)
   (row : nat{row < rows})
   (col : nat{col < columns})
   : GTot et
@@ -162,31 +163,31 @@ let matmul_single
 let __matmul_up_to
   (#et : Type) {| scalar et |}
   (#rows #shared #columns : nat)
-  (m1 : ematrix et rows shared)
-  (m2 : ematrix et shared columns)
+  (m1 : chest2 et rows shared)
+  (m2 : chest2 et shared columns)
   (to : nat{to <= shared})
-: ematrix et rows columns
-= mkM fun i j -> __matmul_single m1 m2 i j to
+: chest2 et rows columns
+= mk2 fun i j -> __matmul_single m1 m2 i j to
 
 let gemm_single
   (#et:Type) {| scalar et |}
   (comb : binop et)
   (#rows #shared #columns : nat)
-  (m1 : ematrix et rows shared)
-  (m2 : ematrix et shared columns)
-  (m0 : ematrix et rows columns)
+  (m1 : chest2 et rows shared)
+  (m2 : chest2 et shared columns)
+  (m0 : chest2 et rows columns)
   (row : nat{row < rows})
   (col : nat{col < columns})
   : GTot et
   = comb
-      (macc m0 row col)
+      (acc2 m0 row col)
       (matmul_single m1 m2 row col)
 
 val matmul_zero_lemma
   (#et:Type) {| scalar et |}
   (#rows #shared #columns : nat)
-  (m1 : ematrix et rows shared)
-  (m2 : ematrix et shared columns)
+  (m1 : chest2 et rows shared)
+  (m2 : chest2 et shared columns)
   (row col : nat{row < rows /\ col < columns})
 : Lemma
   (ensures (
@@ -197,8 +198,8 @@ val matmul_zero_lemma
 val matmul_single_lemma
   (#et:Type) {| scalar et |}
   (#rows #shared #columns : nat)
-  (m1 : ematrix et rows shared)
-  (m2 : ematrix et shared columns)
+  (m1 : chest2 et rows shared)
+  (m2 : chest2 et shared columns)
   (row : nat{row < rows})
   (col : nat{col < columns})
   (to : nat)
@@ -208,40 +209,33 @@ val matmul_single_lemma
     __matmul_single m1 m2 row col to ==
     add
       (__matmul_single m1 m2 row col (to - 1))
-      (mul (macc m1 row (to-1)) (macc m2 (to-1) col))
+      (mul (acc2 m1 row (to-1)) (acc2 m2 (to-1) col))
   ))
-  // [SMTPat (matmul_single m1 m2 row col to)]
+  [SMTPat (__matmul_single m1 m2 row col to)]
 
+[@@erasable] // avoid silly warning
 val matmul
   (#et:Type) {| scalar et |}
   (#rows #shared #columns : nat)
-  (m1 : ematrix et rows shared)
-  (m2 : ematrix et shared columns)
-: ematrix et rows columns
+  (m1 : chest2 et rows shared)
+  (m2 : chest2 et shared columns)
+: chest2 et rows columns
 
-val matplus
+let matplus
   (#et:Type) {| scalar et |}
   (#rows #columns : nat)
-  (m1 m2 : ematrix et rows columns)
-: ematrix et rows columns
-
-val lemma_matplus_index
-  (#et:Type) {| scalar et |}
-  (#rows #columns : nat)
-  (m1 m2 : ematrix et rows columns)
-  (i : nat{ i < rows })
-  (j : nat{ j < columns })
-: Lemma (macc (matplus m1 m2) i j == macc m1 i j `add` macc m2 i j)
-        [SMTPat (macc (matplus m1 m2) i j)]
+  (m1 m2 : chest2 et rows columns)
+  : chest2 et rows columns
+  = Kuiper.Chest.chest_comb add m1 m2
 
 val lemma_matmul_index
   (#et:Type) {| scalar et |}
   (#rows #shared #columns : nat)
-  (m1 : ematrix et rows shared)
-  (m2 : ematrix et shared columns)
+  (m1 : chest2 et rows shared)
+  (m2 : chest2 et shared columns)
   (i : nat{ i < rows })
   (j : nat{ j < columns })
-: Lemma (macc (matmul m1 m2) i j == matmul_single m1 m2 i j)
+: Lemma (acc2 (matmul m1 m2) i j == matmul_single m1 m2 i j)
         [SMTPat (matmul_single m1 m2 i j)]
 
 val __matmul_single_tile
@@ -250,12 +244,12 @@ val __matmul_single_tile
   (tm : pos{tm /? rows})
   (tn : pos{tn /? columns})
   (tk : pos{tk /? shared})
-  (m1 : ematrix et rows shared)
-  (m2 : ematrix et shared columns)
+  (m1 : chest2 et rows shared)
+  (m2 : chest2 et shared columns)
   (trow : natlt (rows / tm))
   (tcol : natlt (columns / tn))
   (to : nat{to <= shared / tk})
-  : GTot (ematrix et tm tn)
+  : GTot (chest2 et tm tn)
 
 let matmul_single_tile
   (#et:Type) {| scalar et |}
@@ -263,11 +257,11 @@ let matmul_single_tile
   (tm : pos{tm /? rows})
   (tn : pos{tn /? columns})
   (tk : pos{tk /? shared})
-  (m1 : ematrix et rows shared)
-  (m2 : ematrix et shared columns)
+  (m1 : chest2 et rows shared)
+  (m2 : chest2 et shared columns)
   (trow : natlt (rows / tm))
   (tcol : natlt (columns / tn))
-  : GTot (ematrix et tm tn)
+  : GTot (chest2 et tm tn)
   = __matmul_single_tile tm tn tk m1 m2 trow tcol (shared/tk)
 
 val matmul_single_tile_zero_lemma
@@ -276,13 +270,13 @@ val matmul_single_tile_zero_lemma
   (tm : pos{tm /? rows})
   (tn : pos{tn /? columns})
   (tk : pos{tk /? shared})
-  (m1 : ematrix et rows shared)
-  (m2 : ematrix et shared columns)
+  (m1 : chest2 et rows shared)
+  (m2 : chest2 et shared columns)
   (trow : natlt (rows / tm))
   (tcol : natlt (columns / tn))
 : Lemma
   (ensures (
-    __matmul_single_tile tm tn tk m1 m2 trow tcol 0 == const_matrix zero
+    __matmul_single_tile tm tn tk m1 m2 trow tcol 0 == const _ zero
   ))
 
 val matmul_single_tile_lemma
@@ -291,8 +285,8 @@ val matmul_single_tile_lemma
   (tm : pos{tm /? rows})
   (tn : pos{tn /? columns})
   (tk : pos{tk /? shared})
-  (m1 : ematrix et rows shared)
-  (m2 : ematrix et shared columns)
+  (m1 : chest2 et rows shared)
+  (m2 : chest2 et shared columns)
   (trow : natlt (rows / tm))
   (tcol : natlt (columns / tn))
   (to : nat{to <= shared / tk})
@@ -310,18 +304,18 @@ let mmcomb
   (#et:Type) {| scalar et |}
   (comb : binop et)
   (#rows #shared #columns : nat)
-  (m0 : ematrix et rows columns)
-  (m1 : ematrix et rows shared)
-  (m2 : ematrix et shared columns)
-: ematrix et rows columns
-= matrix_comb comb m0 (matmul m1 m2)
+  (m0 : chest2 et rows columns)
+  (m1 : chest2 et rows shared)
+  (m2 : chest2 et shared columns)
+  : chest2 et rows columns
+  = chest_comb comb m0 (matmul m1 m2)
 
 val matmul_is_gemm
   (#et:Type) {| scalar et |}
   (#rows #shared #columns : nat)
-  (m0 : ematrix et rows columns)
-  (m1 : ematrix et rows shared)
-  (m2 : ematrix et shared columns)
+  (m0 : chest2 et rows columns)
+  (m1 : chest2 et rows shared)
+  (m2 : chest2 et shared columns)
   : Lemma (mmcomb comb2 m0 m1 m2 == matmul m1 m2)
           [SMTPat (mmcomb comb2 m0 m1 m2)]
 
@@ -329,11 +323,11 @@ let gemm
   (#et:Type) {| scalar et |}
   (alpha beta : et)
   (#rows #shared #columns : nat)
-  (m0 : ematrix et rows columns)
-  (m1 : ematrix et rows shared)
-  (m2 : ematrix et shared columns)
-: ematrix et rows columns
-= matrix_comb (lincomb alpha beta) m0 (matmul m1 m2)
+  (m0 : chest2 et rows columns)
+  (m1 : chest2 et rows shared)
+  (m2 : chest2 et shared columns)
+  : chest2 et rows columns
+  = chest_comb (lincomb alpha beta) m0 (matmul m1 m2)
 
 (* If we take a full-width slice of A and a full-height slice of B, then
    the matmul of those slices is equal to the corresponding tile of the
@@ -341,8 +335,8 @@ let gemm
 val matmul_decompose_lemma
   (#et:Type) {| scalar et |}
   (#rows #shared #columns : pos)
-  (m1 : ematrix et rows shared)
-  (m2 : ematrix et shared columns)
+  (m1 : chest2 et rows shared)
+  (m2 : chest2 et shared columns)
   (trows : nat {trows /? rows})
   (tcolumns : nat {tcolumns /? columns})
   (i : natlt (rows / trows))
@@ -374,9 +368,9 @@ val matmul_tiles_lemma
   (trows : pos{trows /? rows})
   (tcols : pos{tcols /? columns})
   (tshared : pos{tshared /? shared})
-  (z : ematrix et trows tcols)
-  (m1 : ematrix et rows shared)
-  (m2 : ematrix et shared columns)
+  (z : chest2 et trows tcols)
+  (m1 : chest2 et rows shared)
+  (m2 : chest2 et shared columns)
   (i : nat{i < rows/trows})
   (j : nat{j < columns/tcols})
 : Lemma
@@ -391,3 +385,35 @@ val matmul_tiles_lemma
         (ematrix_subtile m1 trows shared i 0)
         (ematrix_subtile m2 shared tcols 0 j)
     ))
+
+(* Per-page batched gemm spec. *)
+let bmmcomb
+  (#et:Type) {| scalar et |}
+  (comb : binop et)
+  (#batch #rows #shared #cols : nat)
+  (c : chest3 et batch rows cols)
+  (a : chest3 et batch rows shared)
+  (b : chest3 et batch shared cols)
+  : chest3 et batch rows cols
+  = mk3 fun i j k ->
+      acc2 (mmcomb comb (slice_page c i) (slice_page a i) (slice_page b i)) j k
+
+(* Per-page batched matmul spec. *)
+let batched_matmul
+  (#et:Type) {| scalar et |}
+  (#batch #rows #shared #cols : nat)
+  (a : chest3 et batch rows shared)
+  (b : chest3 et batch shared cols)
+  : chest3 et batch rows cols
+  = mk3 fun i j k ->
+      acc2 (matmul (slice_page a i)
+                   (slice_page b i)) j k
+
+val bmatmul_is_bgemm
+  (#et:Type) {| scalar et |}
+  (#batch #rows #shared #columns : nat)
+  (m0 : chest3 et batch rows columns)
+  (m1 : chest3 et batch rows shared)
+  (m2 : chest3 et batch shared columns)
+  : Lemma (bmmcomb comb2 m0 m1 m2 == batched_matmul m1 m2)
+          [SMTPat (bmmcomb comb2 m0 m1 m2)]

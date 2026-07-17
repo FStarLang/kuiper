@@ -5,35 +5,30 @@ module Kuiper.Kernel.RowScale
 #lang-pulse
 
 open Kuiper
-module Array1 = Kuiper.Array1
-module Array2 = Kuiper.Array2
-open Kuiper.Array1
-open Kuiper.EMatrix
-open Kuiper.Seq.Common
 open Kuiper.Tensor
-open Kuiper.Seq.Common { (@!) }
 
 (* Spec too strong? *)
 let s_row_scale
   (#t:Type0) {| scalar t |}
   (#m #n : nat)
-  (a : lseq t m) (b : ematrix t m n)
-  : ematrix t m n
-  = Kuiper.EMatrix.mkM fun i j -> (a @! i) `mul` macc b i j
+  (a : chest1 t m) (b : chest2 t m n)
+  : chest2 t m n
+  = mk2 fun i j -> acc1 a i `mul` acc2 b i j
 
-type row_scale_ty (t:Type0) {| scalar t |} =
-  fn
+inline_for_extraction noextract
+fn row_scale
+  (#t:Type0) {| scalar t |}
   (m n : szp)
   (#_ : squash (m * n <= max_blocks * max_threads))
-  (#la : Array1.layout m) {| ctlayout la |}
-  (a : Array1.t t la)
-  (#lb : Array2.layout m n) {| ctlayout lb |}
-  (b : Array2.t t lb)
-  (#_ : squash (Array1.is_global a))
-  (#_ : squash (Array2.is_global b))
+  (#la : layout1 m) {| ctlayout la |}
+  (a : array1 t la)
+  (#lb : layout2 m n) {| ctlayout lb |}
+  (b : array2 t lb)
+  (#_ : squash (is_global a))
+  (#_ : squash (is_global b))
   (#fA : perm)
-  (#sa : erased (lseq t m))
-  (#sb : ematrix t m n)
+  (#sa : chest1 t m)
+  (#sb : chest2 t m n)
   norewrite
   preserves
     cpu ** on gpu_loc (a |-> Frac fA sa)
@@ -41,6 +36,3 @@ type row_scale_ty (t:Type0) {| scalar t |} =
     on gpu_loc (b |-> sb)
   ensures
     on gpu_loc (b |-> s_row_scale sa sb)
-
-inline_for_extraction noextract
-val row_scale (t:Type0) {| scalar t |} : row_scale_ty t

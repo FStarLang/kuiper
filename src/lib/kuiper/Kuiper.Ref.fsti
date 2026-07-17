@@ -7,9 +7,11 @@ open FStar.Tactics.V2
 open Kuiper.Base
 open Kuiper.Sized
 
+inline_for_extraction noextract
 val gpu_ref (a:Type u#0) : Type u#0
 
 // x |-> v
+inline_for_extraction noextract
 val gpu_pts_to
   (#a:Type u#0)
   ([@@@mkey]x:gpu_ref a)
@@ -31,6 +33,7 @@ instance has_pts_to_gpu_ref (a:Type) : has_pts_to (gpu_ref a) a = {
   pts_to = gpu_pts_to;
 }
 
+inline_for_extraction noextract
 fn gpu_alloc0
   (#a:Type u#0)
   {| sized a |}
@@ -48,6 +51,7 @@ fn gpu_alloc0
 //   returns  x : gpu_ref a
 //   ensures  cpu ** gpu_pts_to x #1.0R v
 
+inline_for_extraction noextract
 fn gpu_free
   (#a:Type u#0)
   (r : gpu_ref a)
@@ -55,6 +59,7 @@ fn gpu_free
   requires on gpu_loc (r |-> 'v)
   ensures emp
 
+inline_for_extraction noextract
 fn gpu_read
   (#a:Type u#0)
   (r : gpu_ref a)
@@ -65,6 +70,7 @@ fn gpu_read
   returns  v : a
   ensures  pure (v == reveal v0)
 
+inline_for_extraction noextract
 fn gpu_write
   (#a:Type u#0)
   (r : gpu_ref a)
@@ -72,6 +78,7 @@ fn gpu_write
   requires  r |-> 'v0
   ensures   r |-> v
 
+noextract
 fn gpu_memcpy_host_to_device
   (#a:Type u#0)
   {| sized a |}
@@ -82,6 +89,7 @@ fn gpu_memcpy_host_to_device
   requires  on gpu_loc (dst_gr |-> 'gv)
   ensures   on gpu_loc (dst_gr |-> 'v)
 
+noextract
 fn gpu_memcpy_device_to_host
   (#a:Type u#0)
   {| sized a |}
@@ -92,6 +100,7 @@ fn gpu_memcpy_device_to_host
   requires dst_r |-> 'v
   ensures  dst_r |-> 'gv
 
+inline_for_extraction noextract
 fn gpu_memcpy_device_to_device
   (#a:Type u#0)
   {| sized a |}

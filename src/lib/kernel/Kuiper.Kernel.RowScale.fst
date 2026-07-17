@@ -5,192 +5,23 @@ module Kuiper.Kernel.RowScale
 #lang-pulse
 
 open Kuiper
-module Array1 = Kuiper.Array1
-module Array2 = Kuiper.Array2
-module SZ = Kuiper.SizeT
-open Kuiper.Array1
-open Kuiper.EMatrix
-open Kuiper.Seq.Common
 open Kuiper.Tensor
-open Kuiper.Seq.Common { (@!) }
-
-let tid_to_cell (m n : nat) (tid : natlt (m * n)) : (natlt m & natlt n) =
-  (tid / n, tid % n)
-
-unfold
-let kpre
-  (#t : Type0) {| scalar t |}
-  (m n : szp)
-  (#la : Array1.layout m) {| ctlayout la |}
-  (a : Array1.t t la)
-  (#lb : Array2.layout m n) {| ctlayout lb |}
-  (b : Array2.t t lb)
-  (#fA : perm)
-  (#sa : erased (lseq t m))
-  (#sb : ematrix t m n)
-  (tid : natlt (m *^ n))
-  : slprop
-  = a |-> Frac (fA /. (m *^ n)) sa **
-    Cell b (tid_to_cell m n tid) |-> macc sb (tid / n) (tid % n)
-
-unfold
-let kpost
-  (#t : Type0) {| scalar t |}
-  (m n : szp)
-  (#la : Array1.layout m) {| ctlayout la |}
-  (a : Array1.t t la)
-  (#lb : Array2.layout m n) {| ctlayout lb |}
-  (b : Array2.t t lb)
-  (#fA : perm)
-  (#sa : erased (lseq t m))
-  (#sb : ematrix t m n)
-  (tid : natlt (m *^ n))
-  : slprop
-  = a |-> Frac (fA /. (m *^ n)) sa **
-    Cell b (tid_to_cell m n tid) |-> macc (s_row_scale sa sb) (tid / n) (tid % n)
-
-ghost
-fn setup
-  (#t : Type0) {| scalar t |}
-  (m n : szp)
-  (#la : Array1.layout m) {| ctlayout la |}
-  (a : Array1.t t la)
-  (#lb : Array2.layout m n) {| ctlayout lb |}
-  (b : Array2.t t lb)
-  (#fA : perm)
-  (#sa : erased (lseq t m))
-  (#sb : ematrix t m n)
-  ()
-  norewrite
-  requires
-    a |-> Frac fA sa **
-    b |-> sb
-  ensures
-    (forall+ (tid : natlt (m *^ n)).
-      kpre #t m n #la a #lb b #fA #sa #sb tid) **
-    pure (SZ.fits (Array2.layout_size lb))
-{
-  Array2.pts_to_ref b;
-  Array1.share_n a (m *^ n);
-  Array2.explode b;
-  forevery_rw_type (Array2.ait m n) (natlt m & natlt n) _;
-  forevery_unflatten' _;
-  forevery_unfactor' (m *^ n) m n (fun r c ->
-    Cell b (r, c) |-> macc sb r c);
-  forevery_zip #(natlt (m *^ n))
-    (fun _ -> a |-> Frac (fA /. (m *^ n)) sa)
-    (fun tid -> Cell b (tid_to_cell m n tid) |-> macc sb (tid / n) (tid % n));
-  forevery_ext #(natlt (m *^ n)) _ (kpre #t m n #la a #lb b #fA #sa #sb);
-  ()
-}
-
-ghost
-fn teardown
-  (#t : Type0) {| scalar t |}
-  (m n : szp)
-  (#la : Array1.layout m) {| ctlayout la |}
-  (a : Array1.t t la)
-  (#lb : Array2.layout m n) {| ctlayout lb |}
-  (b : Array2.t t lb)
-  (#fA : perm)
-  (#sa : erased (lseq t m))
-  (#sb : ematrix t m n)
-  ()
-  norewrite
-  requires
-    (forall+ (tid : natlt (m *^ n)).
-      kpost #t m n #la a #lb b #fA #sa #sb tid) **
-    pure (SZ.fits (Array2.layout_size lb))
-  ensures
-    a |-> Frac fA sa **
-    b |-> s_row_scale sa sb
-{
-  forevery_ext #(natlt (m *^ n))
-    (kpost #t m n #la a #lb b #fA #sa #sb)
-    (fun tid ->
-      a |-> Frac (fA /. (m *^ n)) sa **
-      Cell b (tid_to_cell m n tid) |-> macc (s_row_scale sa sb) (tid / n) (tid % n));
-  forevery_unzip #(natlt (m *^ n)) _ _;
-  Array1.gather_n a (m *^ n);
-  forevery_factor' (m *^ n) m n (fun r c ->
-    Cell b (r, c) |-> macc (s_row_scale sa sb) r c);
-  forevery_flatten' (fun (ij : natlt m & natlt n) ->
-    Cell b ij |-> macc (s_row_scale sa sb) (fst ij) (snd ij));
-  forevery_rw_type (natlt m & natlt n) (Array2.ait m n) _;
-  Array2.implode b;
-  ()
-}
-
-inline_for_extraction noextract
-fn kf
-  (#t : Type0) {| scalar t |}
-  (m n : szp)
-  (#la : Array1.layout m) {| ctlayout la |}
-  (a : Array1.t t la)
-  (#lb : Array2.layout m n) {| ctlayout lb |}
-  (b : Array2.t t lb)
-  (#fA : perm)
-  (#sa : erased (lseq t m))
-  (#sb : ematrix t m n)
-  (tid : szlt (m *^ n))
-  ()
-  requires
-    gpu **
-    kpre #t m n #la a #lb b #fA #sa #sb tid
-  ensures
-    gpu **
-    kpost #t m n #la a #lb b #fA #sa #sb tid
-{
-  let row : sz = tid /^ n; assert rewrites_to row (tid /^ n);
-  let col : sz = tid %^ n; assert rewrites_to col (tid %^ n);
-  let x = Array2.read_cell b (row, col);
-  let x = Array2.read_cell b (row, col);
-  let v = Array1.read a row;
-  Array2.write_cell b (row, col) (v `mul` x);
-}
-
-inline_for_extraction noextract
-let kdesc
-  (#t : Type0) {| scalar t |}
-  (m n : szp)
-  (#_ : squash (m * n <= max_blocks * max_threads))
-  (#la : Array1.layout m) {| ctlayout la |}
-  (a : Array1.t t la)
-  (#lb : Array2.layout m n) {| ctlayout lb |}
-  (b : Array2.t t lb)
-  (#_ : squash (Array1.is_global a))
-  (#_ : squash (Array2.is_global b))
-  (#fA : perm)
-  (#sa : erased (lseq t m))
-  (#sb : ematrix t m n)
-  : kernel_desc (requires a |-> Frac fA sa ** b |-> sb)
-                (ensures  a |-> Frac fA sa ** b |-> s_row_scale sa sb)
-  = {
-    nthr = m *^ n;
-    f = kf m n a b #fA #sa #sb;
-    frame = pure (SZ.fits (Array2.layout_size lb));
-    teardown = teardown m n a b #fA #sa #sb;
-    setup    = setup    m n a b #fA #sa #sb;
-    kpre  = kpre #t m n #la a #lb b #fA #sa #sb;
-    kpost = kpost #t m n #la a #lb b #fA #sa #sb;
-    kpre_sendable = solve;
-    kpost_sendable = solve;
-  } <: kernel_desc_n _ _
+module RB = Kuiper.Kernel.RowBroadcast
 
 inline_for_extraction noextract
 fn row_scale
-  (t:Type0) {| scalar t |}
+  (#t:Type0) {| scalar t |}
   (m n : szp)
   (#_ : squash (m * n <= max_blocks * max_threads))
-  (#la : Array1.layout m) {| ctlayout la |}
-  (a : Array1.t t la)
-  (#lb : Array2.layout m n) {| ctlayout lb |}
-  (b : Array2.t t lb)
-  (#_ : squash (Array1.is_global a))
-  (#_ : squash (Array2.is_global b))
+  (#la : layout1 m) {| ctlayout la |}
+  (a : array1 t la)
+  (#lb : layout2 m n) {| ctlayout lb |}
+  (b : array2 t lb)
+  (#_ : squash (is_global a))
+  (#_ : squash (is_global b))
   (#fA : perm)
-  (#sa : erased (lseq t m))
-  (#sb : ematrix t m n)
+  (#sa : chest1 t m)
+  (#sb : chest2 t m n)
   norewrite
   preserves
     cpu ** on gpu_loc (a |-> Frac fA sa)
@@ -199,5 +30,5 @@ fn row_scale
   ensures
     on gpu_loc (b |-> s_row_scale sa sb)
 {
-  launch_sync (kdesc m n a b);
+  RB.row_broadcast mul m n a b;
 }

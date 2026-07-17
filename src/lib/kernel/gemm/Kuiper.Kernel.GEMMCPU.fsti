@@ -5,13 +5,12 @@ module Kuiper.Kernel.GEMMCPU
 (* Invoking GEMMGPU, providing a wrapper callable from CPU code. *)
 
 open Kuiper
-open Kuiper.Tensor.Layout
+open Kuiper.Tensor
 open Kuiper.Kernel.GEMMGPU.Type
 open Kuiper.EMatrix
 module MS = Kuiper.Spec.GEMM
 module SZ = Kuiper.SizeT
 include Kuiper.Kernel.GEMMGPU.Type { size_req_t }
-module M = Kuiper.Array2
 
 (* Fully polymorphic. No need to play tricks at this stage. *)
 unfold
@@ -21,9 +20,9 @@ type matmul_cpu_ty
 =
   fn (#et : Type0) {| scalar et |}
     (#m #n #k : szp) (* concrete args *)
-    (#lA : M.full_layout m k)
-    (#lB : M.full_layout k n)
-    (#lC : M.full_layout m n)
+    (#lA : full_layout2 m k)
+    (#lB : full_layout2 k n)
+    (#lC : full_layout2 m n)
     {| ctlayout lA, ctlayout lB, ctlayout lC |}
     (a b : vec et)
     (#sa : erased (seq et){ len sa == m * k })
@@ -37,9 +36,9 @@ type matmul_cpu_ty
     c : vec et
   ensures
     (* This will be nicer when views are usable on CPU arrays. *)
-    c |-> (M.to_seq lC <|
-             MS.matmul (M.from_seq lA sa)
-                       (M.from_seq lB sb))
+    c |-> (to_seq lC <|
+             MS.matmul (from_seq lA sa)
+                       (from_seq lB sb))
 
 inline_for_extraction noextract
 val matmul_cpu
@@ -68,30 +67,30 @@ val mmcomb_gpu_tiled
 //   (#et : Type0) {| scalar et |} {| real_like et |}
 //   (comb : binop et)
 //   (comb_r : binop real { approx2 comb comb_r })
-//   (#rows #shared #cols : szp)
-//   (#lA : full_mlayout rows shared)
-//   (#lB : full_mlayout shared cols)
-//   (#lC : full_mlayout rows cols)
+//   (#m #n #k : szp)
+//   (#lA : full_mlayout m k)
+//   (#lB : full_mlayout k n)
+//   (#lC : full_mlayout m n)
 //   {| clayout lA, clayout lB, clayout lC |}
-//   (gA : gpu_matrix et lA { is_global_matrix gA })
+//   (gA : gpu_matrix et lA { is_global gA })
 //   (#fA : perm)
-//   (gB : gpu_matrix et lB { is_global_matrix gB })
+//   (gB : gpu_matrix et lB { is_global gB })
 //   (#fB : perm)
-//   (gC : gpu_matrix et lC { is_global_matrix gC })
-//   (#eA : ematrix et rows shared)
-//   (#eB : ematrix et shared cols)
-//   (#eC : ematrix et rows cols)
-//   (rA : ematrix real rows shared)
-//   (rB : ematrix real shared cols)
-//   (rC : ematrix real rows cols)
+//   (gC : gpu_matrix et lC { is_global gC })
+//   (#eA : chest2 et m k)
+//   (#eB : chest2 et k n)
+//   (#eC : chest2 et m n)
+//   (rA : chest2 real m k)
+//   (rB : chest2 real k n)
+//   (rC : chest2 real m n)
 //   requires
 //     (cpu ** on gpu_loc (gA |-> Frac fA eA) ** on gpu_loc (gB |-> Frac fB eB)) **
-//     (pure (size_req (rows / tile) (shared / tile) (cols / tile) tile) **
+//     (pure (size_req (m / tile) (k / tile) (n / tile) tile) **
 //      pure (eA %~ rA /\ eB %~ rB /\ eC %~ rC) **
 //      on gpu_loc (gC |-> eC))
 //   ensures
 //     (cpu ** on gpu_loc (gA |-> Frac fA eA) ** on gpu_loc (gB |-> Frac fB eB)) **
-//     (exists* (eC' : ematrix et rows cols).
+//     (exists* (eC' : chest2 et m n).
 //       on gpu_loc (gC |-> eC') **
 //       pure (eC' %~ MS.mmcomb comb_r rC rA rB))
 
@@ -103,27 +102,27 @@ val mmcomb_gpu_tiled
 //   (rA rB rC : mrepr)
 //   {| crepr rA, crepr rB, crepr rC |}
 // =
-//   fn (#rows : szp)
-//      (#shared : szp) (* concrete args *)
-//      (#cols : szp)
+//   fn (#m : szp)
+//      (#k : szp) (* concrete args *)
+//      (#n : szp)
 //      (a : vec et)
 //      (b : vec et)
-//      (#sa : erased (seq et){ len sa == rows * shared })
-//      (#sb : erased (seq et){ len sb == shared * cols })
+//      (#sa : erased (seq et){ len sa == m * k })
+//      (#sb : erased (seq et){ len sb == k * n })
 //   norewrite
 //   preserves
 //     cpu **
 //     a |-> sa **
 //     b |-> sb
 //   requires
-//     pure (size_req rows shared cols) **
-//     pure (SZ.fits (rows * cols))
+//     pure (size_req m n k) **
+//     pure (SZ.fits (m * n))
 //   returns
 //     c : vec et
 //   ensures
-//     c |-> (to_seq (rC rows cols) <|
-//               MS.matmul (from_seq (rA rows shared) sa)
-//                         (from_seq (rB shared cols) sb))
+//     c |-> (to_seq (rC m n) <|
+//               MS.matmul (from_seq (rA m k) sa)
+//                         (from_seq (rB k n) sb))
 
 // unfold
 // inline_for_extraction
@@ -135,22 +134,22 @@ val mmcomb_gpu_tiled
 // =
 //   fn (alpha : et)
 //      (beta : et)
-//      (#rows : szp)
-//      (#shared : szp) (* concrete args *)
-//      (#cols : szp)
-//      (gA : gpu_matrix et (rA rows shared) { is_global_matrix gA})
-//      (gB : gpu_matrix et (rB shared cols) { is_global_matrix gB})
-//      (gC : gpu_matrix et (rC rows cols) { is_global_matrix gC})
-//      (#ma : ematrix et rows shared)
-//      (#mb : ematrix et shared cols)
-//      (#mc0 : ematrix et rows cols)
+//      (#m : szp)
+//      (#k : szp) (* concrete args *)
+//      (#n : szp)
+//      (gA : gpu_matrix et (rA m k) { is_global gA})
+//      (gB : gpu_matrix et (rB k n) { is_global gB})
+//      (gC : gpu_matrix et (rC m n) { is_global gC})
+//      (#ma : chest2 et m k)
+//      (#mb : chest2 et k n)
+//      (#mc0 : chest2 et m n)
 //   norewrite
 //   preserves
 //     cpu **
 //     on gpu_loc (gA |-> ma) **
 //     on gpu_loc (gB |-> mb)
 //   requires
-//     pure (size_req rows shared cols) **
+//     pure (size_req m n k) **
 //     on gpu_loc (gC |-> mc0)
 //   ensures
 //     on gpu_loc (gC |-> MS.gemm alpha beta mc0 ma mb)
@@ -168,30 +167,30 @@ val mmcomb_gpu_tiled
 //      (beta : et)
 //      (alpha_r : real)
 //      (beta_r : real)
-//      (#rows : szp)
-//      (#shared : szp)
-//      (#cols : szp)
-//      (gA : gpu_matrix et (repA rows shared) { is_global_matrix gA })
-//      (gB : gpu_matrix et (repB shared cols) { is_global_matrix gB })
-//      (gC : gpu_matrix et (repC rows cols) { is_global_matrix gC })
-//      (#ma : ematrix et rows shared)
-//      (#mb : ematrix et shared cols)
-//      (#mc0 : ematrix et rows cols)
-//      (rA : ematrix real rows shared)
-//      (rB : ematrix real shared cols)
-//      (rC : ematrix real rows cols)
+//      (#m : szp)
+//      (#k : szp)
+//      (#n : szp)
+//      (gA : gpu_matrix et (repA m k) { is_global gA })
+//      (gB : gpu_matrix et (repB k n) { is_global gB })
+//      (gC : gpu_matrix et (repC m n) { is_global gC })
+//      (#ma : chest2 et m k)
+//      (#mb : chest2 et k n)
+//      (#mc0 : chest2 et m n)
+//      (rA : chest2 real m k)
+//      (rB : chest2 real k n)
+//      (rC : chest2 real m n)
 //   norewrite
 //   preserves
 //     cpu **
 //     on gpu_loc (gA |-> ma) **
 //     on gpu_loc (gB |-> mb)
 //   requires
-//     pure (size_req rows shared cols) **
+//     pure (size_req m n k) **
 //     pure (ma %~ rA /\ mb %~ rB /\ mc0 %~ rC /\
 //           alpha %~ alpha_r /\ beta %~ beta_r) **
 //     on gpu_loc (gC |-> mc0)
 //   ensures (
-//     exists* (mc' : ematrix et rows cols).
+//     exists* (mc' : chest2 et m n).
 //       on gpu_loc (gC |-> mc') **
 //       pure (mc' %~ MS.gemm (alpha_r) (beta_r) rC rA rB))
 
@@ -203,22 +202,22 @@ val mmcomb_gpu_tiled
 //   (rA rB rC : mrepr)
 //   {| crepr rA, crepr rB, crepr rC |}
 // =
-//   fn (#rows : szp)
-//      (#shared : szp) (* concrete args *)
-//      (#cols : szp)
-//      (gA : gpu_matrix et (rA rows shared) { is_global_matrix gA })
-//      (gB : gpu_matrix et (rB shared cols) { is_global_matrix gB })
-//      (gC : gpu_matrix et (rC rows cols) { is_global_matrix gC })
-//      (#ma : ematrix et rows shared)
-//      (#mb : ematrix et shared cols)
-//      (#mc0 : ematrix et rows cols)
+//   fn (#m : szp)
+//      (#k : szp) (* concrete args *)
+//      (#n : szp)
+//      (gA : gpu_matrix et (rA m k) { is_global gA })
+//      (gB : gpu_matrix et (rB k n) { is_global gB })
+//      (gC : gpu_matrix et (rC m n) { is_global gC })
+//      (#ma : chest2 et m k)
+//      (#mb : chest2 et k n)
+//      (#mc0 : chest2 et m n)
 //   norewrite
 //   preserves
 //     cpu **
 //     on gpu_loc (gA |-> ma) **
 //     on gpu_loc (gB |-> mb)
 //   requires
-//     pure (size_req rows shared cols) **
+//     pure (size_req m n k) **
 //     on gpu_loc (gC |-> mc0)
 //   ensures
 //     on gpu_loc (gC |-> MS.matmul ma mb)
@@ -251,28 +250,28 @@ val mmcomb_gpu_tiled
 //   (repA repB repC : mrepr)
 //   {| crepr repA, crepr repB, crepr repC |}
 // =
-//   fn (#rows : szp)
-//      (#shared : szp)
-//      (#cols : szp)
-//      (gA : gpu_matrix et (repA rows shared) { is_global_matrix gA })
-//      (gB : gpu_matrix et (repB shared cols) { is_global_matrix gB })
-//      (gC : gpu_matrix et (repC rows cols) { is_global_matrix gC })
-//      (#ma : ematrix et rows shared)
-//      (#mb : ematrix et shared cols)
-//      (#mc0 : ematrix et rows cols)
-//      (rA : ematrix real rows shared)
-//      (rB : ematrix real shared cols)
+//   fn (#m : szp)
+//      (#k : szp)
+//      (#n : szp)
+//      (gA : gpu_matrix et (repA m k) { is_global gA })
+//      (gB : gpu_matrix et (repB k n) { is_global gB })
+//      (gC : gpu_matrix et (repC m n) { is_global gC })
+//      (#ma : chest2 et m k)
+//      (#mb : chest2 et k n)
+//      (#mc0 : chest2 et m n)
+//      (rA : chest2 real m k)
+//      (rB : chest2 real k n)
 //   norewrite
 //   preserves
 //     cpu **
 //     on gpu_loc (gA |-> ma) **
 //     on gpu_loc (gB |-> mb)
 //   requires
-//     pure (size_req rows shared cols) **
+//     pure (size_req m n k) **
 //     pure (ma %~ rA /\ mb %~ rB) **
 //     on gpu_loc (gC |-> mc0)
 //   ensures (
-//     exists* (mc' : ematrix et rows cols).
+//     exists* (mc' : chest2 et m n).
 //       on gpu_loc (gC |-> mc') **
 //       pure (mc' %~ MS.matmul rA rB))
 
@@ -285,8 +284,8 @@ val mmcomb_gpu_tiled
 //   (repA repB repC : mrepr)
 //   {| crepr repA, crepr repB, crepr repC |}
 //   : fixed_repr_mmcomb_gpu_approx_ty et
-//       (fun rows shared cols ->
-//         size_req (rows / tile) (shared / tile) (cols / tile) tile)
+//       (fun m n k ->
+//         size_req (m / tile) (k / tile) (n / tile) tile)
 //       repA repB repC
 
 // inline_for_extraction noextract
@@ -298,8 +297,8 @@ val mmcomb_gpu_tiled
 //   (repA repB repC : mrepr)
 //   {| crepr repA, crepr repB, crepr repC |}
 //   : fixed_repr_gemm_gpu_approx_ty et
-//       (fun rows shared cols ->
-//         size_req (rows / tile) (shared / tile) (cols / tile) tile)
+//       (fun m n k ->
+//         size_req (m / tile) (k / tile) (n / tile) tile)
 //       repA repB repC
 
 // inline_for_extraction noextract
@@ -320,32 +319,32 @@ val mmcomb_gpu_tiled
 //   (repA repB repC : mrepr)
 //   {| crepr repA, crepr repB, crepr repC |}
 // =
-//   fn (#rows : szp)
-//      (#shared : szp)
-//      (#cols : szp)
+//   fn (#m : szp)
+//      (#k : szp)
+//      (#n : szp)
 //      (a : vec et)
 //      (b : vec et)
-//      (#sa : erased (seq et){ len sa == rows * shared })
-//      (#sb : erased (seq et){ len sb == shared * cols })
-//      (rA : ematrix real rows shared)
-//      (rB : ematrix real shared cols)
+//      (#sa : erased (seq et){ len sa == m * k })
+//      (#sb : erased (seq et){ len sb == k * n })
+//      (rA : chest2 real m k)
+//      (rB : chest2 real k n)
 //   norewrite
 //   preserves
 //     cpu **
 //     a |-> sa **
 //     b |-> sb
 //   requires
-//     pure (size_req rows shared cols) **
-//     pure (SZ.fits (rows * cols)) **
-//     pure (from_seq (repA rows shared) sa %~ rA /\
-//           from_seq (repB shared cols) sb %~ rB)
+//     pure (size_req m n k) **
+//     pure (SZ.fits (m * n)) **
+//     pure (from_seq (repA m k) sa %~ rA /\
+//           from_seq (repB k n) sb %~ rB)
 //   returns
 //     c : vec et
 //   ensures (
 //     exists* (sc : seq et).
 //       c |-> sc **
-//       pure (len sc == rows * cols /\
-//             from_seq (repC rows cols) sc %~ MS.matmul rA rB))
+//       pure (len sc == m * n /\
+//             from_seq (repC m n) sc %~ MS.matmul rA rB))
 
 // inline_for_extraction noextract
 // val specialize_tiled_approx_cpu

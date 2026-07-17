@@ -16,8 +16,8 @@ type sarray (et : Type0)
   (l : erased nat) =
   // ^ longitud "virtual" del array
 { nnz   : sz; // número de no-zeros len   : (len : sz {SZ.v len == reveal l}); // longitud "real" del array virtual
-  elems : gpu_array et nnz; // elementos (no zero)
-  pos   : gpu_array sz nnz; // posición de cada elemento
+  elems : larray et nnz; // elementos (no zero)
+  pos   : larray sz nnz; // posición de cada elemento
 }
 
 
@@ -43,8 +43,8 @@ let sarray_pts_to'
   (v_pos   : lseq sz a.nnz)
   : slprop
 =
-    a.elems |-> Frac f v_elems **
-    a.pos   |-> Frac f v_pos **
+    pts_to_slice a.elems #f 0 a.nnz v_elems **
+    pts_to_slice a.pos   #f 0 a.nnz v_pos **
     pure (
       pure_sarray_pts_to l s v_elems v_pos
     )
@@ -85,15 +85,8 @@ fn sarray_pts_to_eq
   unfold sarray_pts_to a #f1 v1;
   unfold sarray_pts_to a #f2 v2;
 
-  gpu_slice_pts_to_eq a.elems 0 a.nnz f2;
-  gpu_slice_pts_to_eq a.pos 0 a.nnz f2;
-
-  with v_elems.
-    assert gpu_pts_to_slice a.elems #f1 0 a.nnz v_elems;
-    assert gpu_pts_to_slice a.elems #f2 0 a.nnz v_elems;
-  with v_pos.
-    assert gpu_pts_to_slice a.pos #f1 0 a.nnz v_pos;
-    assert gpu_pts_to_slice a.pos #f2 0 a.nnz v_pos;
+  slice_pts_to_eq a.elems 0 a.nnz f2;
+  slice_pts_to_eq a.pos 0 a.nnz f2;
 
   fold sarray_pts_to a #f1 v2;
   fold sarray_pts_to a #f2 v2;
@@ -113,18 +106,18 @@ fn sarray_share_n
     forall+ (_ : natlt n). a |-> Frac (f /. n) s
 {
   unfold sarray_pts_to a #f s;
-  with v_elems. assert gpu_pts_to_slice a.elems #f 0 a.nnz v_elems;
-  with v_pos. assert gpu_pts_to_slice a.pos #f 0 a.nnz v_pos;
+  with v_elems. assert pts_to_slice a.elems #f 0 a.nnz v_elems;
+  with v_pos.   assert pts_to_slice a.pos #f 0 a.nnz v_pos;
 
-  gpu_slice_share a.elems 0 a.nnz n #f;
-  gpu_slice_share a.pos 0 a.nnz n #f;
+  slice_share a.elems 0 a.nnz n #f;
+  slice_share a.pos 0 a.nnz n #f;
 
-  forevery_zip (fun _ -> gpu_pts_to_slice a.elems #(f /. n) 0 a.nnz _) _;
+  forevery_zip (fun _ -> pts_to_slice a.elems #(f /. n) 0 a.nnz _) _;
 
   forevery_map #(natlt n)
     (fun _ ->
-      gpu_pts_to_slice a.elems #(f /. n) 0 a.nnz v_elems **
-      gpu_pts_to_slice a.pos #(f /. n) 0 a.nnz v_pos)
+      pts_to_slice a.elems #(f /. n) 0 a.nnz v_elems **
+      pts_to_slice a.pos #(f /. n) 0 a.nnz v_pos)
     (fun _ -> a |-> Frac (f /. n) s)
     fn _ { fold sarray_pts_to a #(f /. n) s };
 }
@@ -164,25 +157,25 @@ fn sarray_gather_n
   forevery_natlt_pop n _;
 
   unfold sarray_pts_to a #(f /. n) s;
-  with v_elems.   assert gpu_pts_to_array a.elems   #(f /. n) v_elems;
-  with v_pos. assert gpu_pts_to_array a.pos #(f /. n) v_pos;
+  with v_elems. assert pts_to_slice a.elems #(f /. n) 0 a.nnz v_elems;
+  with v_pos.   assert pts_to_slice a.pos   #(f /. n) 0 a.nnz v_pos;
 
   ghost
   fn aux (_ : natlt (n-1))
     norewrite
     preserves
-      gpu_pts_to_array a.elems #(f /. n) v_elems **
-      gpu_pts_to_array a.pos #(f /. n) v_pos
+      pts_to_slice a.elems #(f /. n) 0 a.nnz v_elems **
+      pts_to_slice a.pos   #(f /. n) 0 a.nnz v_pos
     requires
       sarray_pts_to a #(f /. n) s
     ensures
-      gpu_pts_to_array a.elems #(f /. n) v_elems **
-      gpu_pts_to_array a.pos #(f /. n) v_pos
+      pts_to_slice a.elems #(f /. n) 0 a.nnz v_elems **
+      pts_to_slice a.pos   #(f /. n) 0 a.nnz v_pos
   {
     unfold sarray_pts_to a #(f /. n) s;
 
-    gpu_slice_pts_to_eq a.elems 0 a.nnz (f /. n) #_ #v_elems;
-    gpu_slice_pts_to_eq a.pos 0 a.nnz (f /. n) #_ #v_pos;
+    slice_pts_to_eq a.elems 0 a.nnz (f /. n) #_ #v_elems;
+    slice_pts_to_eq a.pos 0 a.nnz (f /. n) #_ #v_pos;
   };
 
   forevery_map_extra _ _ _ aux;
@@ -190,8 +183,8 @@ fn sarray_gather_n
 
   forevery_unzip #(natlt n) _ _;
 
-  gpu_slice_gather a.elems   _ _ n;
-  gpu_slice_gather a.pos _ _ n;
+  slice_gather a.elems   _ _ n;
+  slice_gather a.pos _ _ n;
 
   fold sarray_pts_to a #f s;
 }

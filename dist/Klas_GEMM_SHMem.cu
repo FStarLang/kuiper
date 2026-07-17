@@ -6,13 +6,14 @@ __global__
   hoisted when extracting g_matmul_f32_rrr
 */
 static void
-__hoisted_0(uint32_t tile,
-            uint32_t n,
-            uint32_t k,
-            float *gA, float *gB, float *gC, uint32_t nn, uint32_t kk)
+__hoisted_g_matmul_f32_rrr_0(uint32_t tile,
+                             uint32_t n,
+                             uint32_t k,
+                             float *gA,
+                             float *gB, float *gC, uint32_t nn, uint32_t kk)
 {
     float *sa1 = (float *)KPR_SHMEM_AT(0U);
-    float *sa2 = (float *)KPR_SHMEM_AT(4U * (tile * tile));
+    float *sa2 = (float *)KPR_SHMEM_AT(4U * tile * tile);
     float *gTile = gC;
     float sum = 0.0f;
     uint32_t bk = 0U;
@@ -31,10 +32,12 @@ __hoisted_0(uint32_t tile,
         __syncthreads();
         uint32_t k1 = 0U;
         float sum1 = 0.0f;
-        for (; k1 < tile; k1++)
+        for (; k1 < tile; k1++) {
+            uint32_t vk = k1;
             sum1 +=
-                sa1[threadIdx.x / tile * tile + k1] * sa2[k1 * tile +
+                sa1[threadIdx.x / tile * tile + vk] * sa2[vk * tile +
                                                           threadIdx.x % tile];
+        }
         float t = sum1;
         sum += t;
     }
@@ -53,14 +56,14 @@ Klas_GEMM_SHMem_g_matmul_f32_rrr(uint32_t tile,
     uint32_t nn = n / tile;
     uint32_t kk = k / tile;
     KPR_ASSERT(tile > 0U);
-    KPR_SHMEM_FITS(4U * (tile * tile) + 4U * (tile * tile));
-    MUST(cudaFuncSetAttribute(__hoisted_0,
+    KPR_SHMEM_FITS(4U * tile * tile + 4U * tile * tile);
+    MUST(cudaFuncSetAttribute(__hoisted_g_matmul_f32_rrr_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              4U * (tile * tile) + 4U * (tile * tile)));
-    KPR_KCALL(__hoisted_0,
+                              4U * tile * tile + 4U * tile * tile));
+    KPR_KCALL(__hoisted_g_matmul_f32_rrr_0,
               mm * nn,
               tile * tile,
-              4U * (tile * tile) + 4U * (tile * tile),
+              4U * tile * tile + 4U * tile * tile,
               tile, n, k, gA, gB, gC, nn, kk);
     MUST(cudaDeviceSynchronize());
 }
@@ -70,15 +73,16 @@ __global__
   hoisted when extracting g_matmul_f64_rrr
 */
 static void
-__hoisted_1(uint32_t tile,
-            uint32_t n,
-            uint32_t k,
-            double *gA, double *gB, double *gC, uint32_t nn, uint32_t kk)
+__hoisted_g_matmul_f64_rrr_0(uint32_t tile,
+                             uint32_t n,
+                             uint32_t k,
+                             double *gA,
+                             double *gB, double *gC, uint32_t nn, uint32_t kk)
 {
     double *sa1 = (double *)KPR_SHMEM_AT(0U);
-    double *sa2 = (double *)KPR_SHMEM_AT(8U * (tile * tile));
+    double *sa2 = (double *)KPR_SHMEM_AT(8U * tile * tile);
     double *gTile = gC;
-    double sum = 0.0l;
+    double sum = 0.0;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
         double
@@ -94,11 +98,13 @@ __hoisted_1(uint32_t tile,
         sa2[threadIdx.x] = v2;
         __syncthreads();
         uint32_t k1 = 0U;
-        double sum1 = 0.0l;
-        for (; k1 < tile; k1++)
+        double sum1 = 0.0;
+        for (; k1 < tile; k1++) {
+            uint32_t vk = k1;
             sum1 +=
-                sa1[threadIdx.x / tile * tile + k1] * sa2[k1 * tile +
+                sa1[threadIdx.x / tile * tile + vk] * sa2[vk * tile +
                                                           threadIdx.x % tile];
+        }
         double t = sum1;
         sum += t;
     }
@@ -117,14 +123,14 @@ Klas_GEMM_SHMem_g_matmul_f64_rrr(uint32_t tile,
     uint32_t nn = n / tile;
     uint32_t kk = k / tile;
     KPR_ASSERT(tile > 0U);
-    KPR_SHMEM_FITS(8U * (tile * tile) + 8U * (tile * tile));
-    MUST(cudaFuncSetAttribute(__hoisted_1,
+    KPR_SHMEM_FITS(8U * tile * tile + 8U * tile * tile);
+    MUST(cudaFuncSetAttribute(__hoisted_g_matmul_f64_rrr_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              8U * (tile * tile) + 8U * (tile * tile)));
-    KPR_KCALL(__hoisted_1,
+                              8U * tile * tile + 8U * tile * tile));
+    KPR_KCALL(__hoisted_g_matmul_f64_rrr_0,
               mm * nn,
               tile * tile,
-              8U * (tile * tile) + 8U * (tile * tile),
+              8U * tile * tile + 8U * tile * tile,
               tile, n, k, gA, gB, gC, nn, kk);
     MUST(cudaDeviceSynchronize());
 }
@@ -134,13 +140,15 @@ __global__
   hoisted when extracting g_matmul_u32_rrr
 */
 static void
-__hoisted_2(uint32_t tile,
-            uint32_t n,
-            uint32_t k,
-            uint32_t *gA, uint32_t *gB, uint32_t *gC, uint32_t nn, uint32_t kk)
+__hoisted_g_matmul_u32_rrr_0(uint32_t tile,
+                             uint32_t n,
+                             uint32_t k,
+                             uint32_t *gA,
+                             uint32_t *gB,
+                             uint32_t *gC, uint32_t nn, uint32_t kk)
 {
     uint32_t *sa1 = (uint32_t *) KPR_SHMEM_AT(0U);
-    uint32_t *sa2 = (uint32_t *) KPR_SHMEM_AT(4U * (tile * tile));
+    uint32_t *sa2 = (uint32_t *) KPR_SHMEM_AT(4U * tile * tile);
     uint32_t *gTile = gC;
     uint32_t sum = 0U;
     uint32_t bk = 0U;
@@ -158,10 +166,12 @@ __hoisted_2(uint32_t tile,
         __syncthreads();
         uint32_t k1 = 0U;
         uint32_t sum1 = 0U;
-        for (; k1 < tile; k1++)
+        for (; k1 < tile; k1++) {
+            uint32_t vk = k1;
             sum1 +=
-                sa1[threadIdx.x / tile * tile + k1] * sa2[k1 * tile +
+                sa1[threadIdx.x / tile * tile + vk] * sa2[vk * tile +
                                                           threadIdx.x % tile];
+        }
         uint32_t t = sum1;
         sum += t;
     }
@@ -181,14 +191,14 @@ Klas_GEMM_SHMem_g_matmul_u32_rrr(uint32_t tile,
     uint32_t nn = n / tile;
     uint32_t kk = k / tile;
     KPR_ASSERT(tile > 0U);
-    KPR_SHMEM_FITS(4U * (tile * tile) + 4U * (tile * tile));
-    MUST(cudaFuncSetAttribute(__hoisted_2,
+    KPR_SHMEM_FITS(4U * tile * tile + 4U * tile * tile);
+    MUST(cudaFuncSetAttribute(__hoisted_g_matmul_u32_rrr_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              4U * (tile * tile) + 4U * (tile * tile)));
-    KPR_KCALL(__hoisted_2,
+                              4U * tile * tile + 4U * tile * tile));
+    KPR_KCALL(__hoisted_g_matmul_u32_rrr_0,
               mm * nn,
               tile * tile,
-              4U * (tile * tile) + 4U * (tile * tile),
+              4U * tile * tile + 4U * tile * tile,
               tile, n, k, gA, gB, gC, nn, kk);
     MUST(cudaDeviceSynchronize());
 }
@@ -198,13 +208,15 @@ __global__
   hoisted when extracting g_matmul_u64_rrr
 */
 static void
-__hoisted_3(uint32_t tile,
-            uint32_t n,
-            uint32_t k,
-            uint64_t *gA, uint64_t *gB, uint64_t *gC, uint32_t nn, uint32_t kk)
+__hoisted_g_matmul_u64_rrr_0(uint32_t tile,
+                             uint32_t n,
+                             uint32_t k,
+                             uint64_t *gA,
+                             uint64_t *gB,
+                             uint64_t *gC, uint32_t nn, uint32_t kk)
 {
     uint64_t *sa1 = (uint64_t *) KPR_SHMEM_AT(0U);
-    uint64_t *sa2 = (uint64_t *) KPR_SHMEM_AT(8U * (tile * tile));
+    uint64_t *sa2 = (uint64_t *) KPR_SHMEM_AT(8U * tile * tile);
     uint64_t *gTile = gC;
     uint64_t sum = 0ULL;
     uint32_t bk = 0U;
@@ -222,10 +234,12 @@ __hoisted_3(uint32_t tile,
         __syncthreads();
         uint32_t k1 = 0U;
         uint64_t sum1 = 0ULL;
-        for (; k1 < tile; k1++)
+        for (; k1 < tile; k1++) {
+            uint32_t vk = k1;
             sum1 +=
-                sa1[threadIdx.x / tile * tile + k1] * sa2[k1 * tile +
+                sa1[threadIdx.x / tile * tile + vk] * sa2[vk * tile +
                                                           threadIdx.x % tile];
+        }
         uint64_t t = sum1;
         sum += t;
     }
@@ -245,14 +259,14 @@ Klas_GEMM_SHMem_g_matmul_u64_rrr(uint32_t tile,
     uint32_t nn = n / tile;
     uint32_t kk = k / tile;
     KPR_ASSERT(tile > 0U);
-    KPR_SHMEM_FITS(8U * (tile * tile) + 8U * (tile * tile));
-    MUST(cudaFuncSetAttribute(__hoisted_3,
+    KPR_SHMEM_FITS(8U * tile * tile + 8U * tile * tile);
+    MUST(cudaFuncSetAttribute(__hoisted_g_matmul_u64_rrr_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              8U * (tile * tile) + 8U * (tile * tile)));
-    KPR_KCALL(__hoisted_3,
+                              8U * tile * tile + 8U * tile * tile));
+    KPR_KCALL(__hoisted_g_matmul_u64_rrr_0,
               mm * nn,
               tile * tile,
-              8U * (tile * tile) + 8U * (tile * tile),
+              8U * tile * tile + 8U * tile * tile,
               tile, n, k, gA, gB, gC, nn, kk);
     MUST(cudaDeviceSynchronize());
 }
@@ -262,8 +276,11 @@ __global__
   hoisted when extracting g_matmul_f32_tile32_rrr
 */
 static void
-__hoisted_4(uint32_t n, uint32_t k, float *gA, float *gB, float *gC,
-            uint32_t nn, uint32_t kk)
+__hoisted_g_matmul_f32_tile32_rrr_0(uint32_t n,
+                                    uint32_t k,
+                                    float *gA,
+                                    float *gB,
+                                    float *gC, uint32_t nn, uint32_t kk)
 {
     float *sa1 = (float *)KPR_SHMEM_AT(0U);
     float *sa2 = (float *)KPR_SHMEM_AT(4096U);
@@ -285,10 +302,12 @@ __hoisted_4(uint32_t n, uint32_t k, float *gA, float *gB, float *gC,
         __syncthreads();
         uint32_t k1 = 0U;
         float sum1 = 0.0f;
-        for (; k1 < 32U; k1++)
+        for (; k1 < 32U; k1++) {
+            uint32_t vk = k1;
             sum1 +=
-                sa1[threadIdx.x / 32U * 32U + k1] * sa2[k1 * 32U +
+                sa1[threadIdx.x / 32U * 32U + vk] * sa2[vk * 32U +
                                                         threadIdx.x % 32U];
+        }
         float t = sum1;
         sum += t;
     }
@@ -307,9 +326,11 @@ Klas_GEMM_SHMem_g_matmul_f32_tile32_rrr(uint32_t m,
     uint32_t nn = n / 32U;
     uint32_t kk = k / 32U;
     KPR_SHMEM_FITS(8192U);
-    MUST(cudaFuncSetAttribute
-         (__hoisted_4, cudaFuncAttributeMaxDynamicSharedMemorySize, 8192U));
-    KPR_KCALL(__hoisted_4, mm * nn, 1024U, 8192U, n, k, gA, gB, gC, nn, kk);
+    MUST(cudaFuncSetAttribute(__hoisted_g_matmul_f32_tile32_rrr_0,
+                              cudaFuncAttributeMaxDynamicSharedMemorySize,
+                              8192U));
+    KPR_KCALL(__hoisted_g_matmul_f32_tile32_rrr_0,
+              mm * nn, 1024U, 8192U, n, k, gA, gB, gC, nn, kk);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -318,14 +339,16 @@ __global__
   hoisted when extracting g_matmul_f64_tile32_rrr
 */
 static void
-__hoisted_5(uint32_t n,
-            uint32_t k,
-            double *gA, double *gB, double *gC, uint32_t nn, uint32_t kk)
+__hoisted_g_matmul_f64_tile32_rrr_0(uint32_t n,
+                                    uint32_t k,
+                                    double *gA,
+                                    double *gB,
+                                    double *gC, uint32_t nn, uint32_t kk)
 {
     double *sa1 = (double *)KPR_SHMEM_AT(0U);
     double *sa2 = (double *)KPR_SHMEM_AT(8192U);
     double *gTile = gC;
-    double sum = 0.0l;
+    double sum = 0.0;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
         double
@@ -341,11 +364,13 @@ __hoisted_5(uint32_t n,
         sa2[threadIdx.x] = v2;
         __syncthreads();
         uint32_t k1 = 0U;
-        double sum1 = 0.0l;
-        for (; k1 < 32U; k1++)
+        double sum1 = 0.0;
+        for (; k1 < 32U; k1++) {
+            uint32_t vk = k1;
             sum1 +=
-                sa1[threadIdx.x / 32U * 32U + k1] * sa2[k1 * 32U +
+                sa1[threadIdx.x / 32U * 32U + vk] * sa2[vk * 32U +
                                                         threadIdx.x % 32U];
+        }
         double t = sum1;
         sum += t;
     }
@@ -364,9 +389,11 @@ Klas_GEMM_SHMem_g_matmul_f64_tile32_rrr(uint32_t m,
     uint32_t nn = n / 32U;
     uint32_t kk = k / 32U;
     KPR_SHMEM_FITS(16384U);
-    MUST(cudaFuncSetAttribute
-         (__hoisted_5, cudaFuncAttributeMaxDynamicSharedMemorySize, 16384U));
-    KPR_KCALL(__hoisted_5, mm * nn, 1024U, 16384U, n, k, gA, gB, gC, nn, kk);
+    MUST(cudaFuncSetAttribute(__hoisted_g_matmul_f64_tile32_rrr_0,
+                              cudaFuncAttributeMaxDynamicSharedMemorySize,
+                              16384U));
+    KPR_KCALL(__hoisted_g_matmul_f64_tile32_rrr_0,
+              mm * nn, 1024U, 16384U, n, k, gA, gB, gC, nn, kk);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -375,9 +402,11 @@ __global__
   hoisted when extracting g_matmul_u32_tile32_rrr
 */
 static void
-__hoisted_6(uint32_t n,
-            uint32_t k,
-            uint32_t *gA, uint32_t *gB, uint32_t *gC, uint32_t nn, uint32_t kk)
+__hoisted_g_matmul_u32_tile32_rrr_0(uint32_t n,
+                                    uint32_t k,
+                                    uint32_t *gA,
+                                    uint32_t *gB,
+                                    uint32_t *gC, uint32_t nn, uint32_t kk)
 {
     uint32_t *sa1 = (uint32_t *) KPR_SHMEM_AT(0U);
     uint32_t *sa2 = (uint32_t *) KPR_SHMEM_AT(4096U);
@@ -398,10 +427,12 @@ __hoisted_6(uint32_t n,
         __syncthreads();
         uint32_t k1 = 0U;
         uint32_t sum1 = 0U;
-        for (; k1 < 32U; k1++)
+        for (; k1 < 32U; k1++) {
+            uint32_t vk = k1;
             sum1 +=
-                sa1[threadIdx.x / 32U * 32U + k1] * sa2[k1 * 32U +
+                sa1[threadIdx.x / 32U * 32U + vk] * sa2[vk * 32U +
                                                         threadIdx.x % 32U];
+        }
         uint32_t t = sum1;
         sum += t;
     }
@@ -421,9 +452,11 @@ Klas_GEMM_SHMem_g_matmul_u32_tile32_rrr(uint32_t m,
     uint32_t nn = n / 32U;
     uint32_t kk = k / 32U;
     KPR_SHMEM_FITS(8192U);
-    MUST(cudaFuncSetAttribute
-         (__hoisted_6, cudaFuncAttributeMaxDynamicSharedMemorySize, 8192U));
-    KPR_KCALL(__hoisted_6, mm * nn, 1024U, 8192U, n, k, gA, gB, gC, nn, kk);
+    MUST(cudaFuncSetAttribute(__hoisted_g_matmul_u32_tile32_rrr_0,
+                              cudaFuncAttributeMaxDynamicSharedMemorySize,
+                              8192U));
+    KPR_KCALL(__hoisted_g_matmul_u32_tile32_rrr_0,
+              mm * nn, 1024U, 8192U, n, k, gA, gB, gC, nn, kk);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -432,9 +465,11 @@ __global__
   hoisted when extracting g_matmul_u64_tile32_rrr
 */
 static void
-__hoisted_7(uint32_t n,
-            uint32_t k,
-            uint64_t *gA, uint64_t *gB, uint64_t *gC, uint32_t nn, uint32_t kk)
+__hoisted_g_matmul_u64_tile32_rrr_0(uint32_t n,
+                                    uint32_t k,
+                                    uint64_t *gA,
+                                    uint64_t *gB,
+                                    uint64_t *gC, uint32_t nn, uint32_t kk)
 {
     uint64_t *sa1 = (uint64_t *) KPR_SHMEM_AT(0U);
     uint64_t *sa2 = (uint64_t *) KPR_SHMEM_AT(8192U);
@@ -455,10 +490,12 @@ __hoisted_7(uint32_t n,
         __syncthreads();
         uint32_t k1 = 0U;
         uint64_t sum1 = 0ULL;
-        for (; k1 < 32U; k1++)
+        for (; k1 < 32U; k1++) {
+            uint32_t vk = k1;
             sum1 +=
-                sa1[threadIdx.x / 32U * 32U + k1] * sa2[k1 * 32U +
+                sa1[threadIdx.x / 32U * 32U + vk] * sa2[vk * 32U +
                                                         threadIdx.x % 32U];
+        }
         uint64_t t = sum1;
         sum += t;
     }
@@ -478,9 +515,11 @@ Klas_GEMM_SHMem_g_matmul_u64_tile32_rrr(uint32_t m,
     uint32_t nn = n / 32U;
     uint32_t kk = k / 32U;
     KPR_SHMEM_FITS(16384U);
-    MUST(cudaFuncSetAttribute
-         (__hoisted_7, cudaFuncAttributeMaxDynamicSharedMemorySize, 16384U));
-    KPR_KCALL(__hoisted_7, mm * nn, 1024U, 16384U, n, k, gA, gB, gC, nn, kk);
+    MUST(cudaFuncSetAttribute(__hoisted_g_matmul_u64_tile32_rrr_0,
+                              cudaFuncAttributeMaxDynamicSharedMemorySize,
+                              16384U));
+    KPR_KCALL(__hoisted_g_matmul_u64_tile32_rrr_0,
+              mm * nn, 1024U, 16384U, n, k, gA, gB, gC, nn, kk);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -489,8 +528,11 @@ __global__
   hoisted when extracting g_matmul_f32_tile16_rrr
 */
 static void
-__hoisted_8(uint32_t n, uint32_t k, float *gA, float *gB, float *gC,
-            uint32_t nn, uint32_t kk)
+__hoisted_g_matmul_f32_tile16_rrr_0(uint32_t n,
+                                    uint32_t k,
+                                    float *gA,
+                                    float *gB,
+                                    float *gC, uint32_t nn, uint32_t kk)
 {
     float *sa1 = (float *)KPR_SHMEM_AT(0U);
     float *sa2 = (float *)KPR_SHMEM_AT(1024U);
@@ -512,10 +554,12 @@ __hoisted_8(uint32_t n, uint32_t k, float *gA, float *gB, float *gC,
         __syncthreads();
         uint32_t k1 = 0U;
         float sum1 = 0.0f;
-        for (; k1 < 16U; k1++)
+        for (; k1 < 16U; k1++) {
+            uint32_t vk = k1;
             sum1 +=
-                sa1[threadIdx.x / 16U * 16U + k1] * sa2[k1 * 16U +
+                sa1[threadIdx.x / 16U * 16U + vk] * sa2[vk * 16U +
                                                         threadIdx.x % 16U];
+        }
         float t = sum1;
         sum += t;
     }
@@ -534,9 +578,11 @@ Klas_GEMM_SHMem_g_matmul_f32_tile16_rrr(uint32_t m,
     uint32_t nn = n / 16U;
     uint32_t kk = k / 16U;
     KPR_SHMEM_FITS(2048U);
-    MUST(cudaFuncSetAttribute
-         (__hoisted_8, cudaFuncAttributeMaxDynamicSharedMemorySize, 2048U));
-    KPR_KCALL(__hoisted_8, mm * nn, 256U, 2048U, n, k, gA, gB, gC, nn, kk);
+    MUST(cudaFuncSetAttribute(__hoisted_g_matmul_f32_tile16_rrr_0,
+                              cudaFuncAttributeMaxDynamicSharedMemorySize,
+                              2048U));
+    KPR_KCALL(__hoisted_g_matmul_f32_tile16_rrr_0, mm * nn, 256U, 2048U, n, k,
+              gA, gB, gC, nn, kk);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -545,14 +591,16 @@ __global__
   hoisted when extracting g_matmul_f64_tile16_rrr
 */
 static void
-__hoisted_9(uint32_t n,
-            uint32_t k,
-            double *gA, double *gB, double *gC, uint32_t nn, uint32_t kk)
+__hoisted_g_matmul_f64_tile16_rrr_0(uint32_t n,
+                                    uint32_t k,
+                                    double *gA,
+                                    double *gB,
+                                    double *gC, uint32_t nn, uint32_t kk)
 {
     double *sa1 = (double *)KPR_SHMEM_AT(0U);
     double *sa2 = (double *)KPR_SHMEM_AT(2048U);
     double *gTile = gC;
-    double sum = 0.0l;
+    double sum = 0.0;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
         double
@@ -568,11 +616,13 @@ __hoisted_9(uint32_t n,
         sa2[threadIdx.x] = v2;
         __syncthreads();
         uint32_t k1 = 0U;
-        double sum1 = 0.0l;
-        for (; k1 < 16U; k1++)
+        double sum1 = 0.0;
+        for (; k1 < 16U; k1++) {
+            uint32_t vk = k1;
             sum1 +=
-                sa1[threadIdx.x / 16U * 16U + k1] * sa2[k1 * 16U +
+                sa1[threadIdx.x / 16U * 16U + vk] * sa2[vk * 16U +
                                                         threadIdx.x % 16U];
+        }
         double t = sum1;
         sum += t;
     }
@@ -591,9 +641,11 @@ Klas_GEMM_SHMem_g_matmul_f64_tile16_rrr(uint32_t m,
     uint32_t nn = n / 16U;
     uint32_t kk = k / 16U;
     KPR_SHMEM_FITS(4096U);
-    MUST(cudaFuncSetAttribute
-         (__hoisted_9, cudaFuncAttributeMaxDynamicSharedMemorySize, 4096U));
-    KPR_KCALL(__hoisted_9, mm * nn, 256U, 4096U, n, k, gA, gB, gC, nn, kk);
+    MUST(cudaFuncSetAttribute(__hoisted_g_matmul_f64_tile16_rrr_0,
+                              cudaFuncAttributeMaxDynamicSharedMemorySize,
+                              4096U));
+    KPR_KCALL(__hoisted_g_matmul_f64_tile16_rrr_0, mm * nn, 256U, 4096U, n, k,
+              gA, gB, gC, nn, kk);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -602,9 +654,11 @@ __global__
   hoisted when extracting g_matmul_u32_tile16_rrr
 */
 static void
-__hoisted_10(uint32_t n,
-             uint32_t k,
-             uint32_t *gA, uint32_t *gB, uint32_t *gC, uint32_t nn, uint32_t kk)
+__hoisted_g_matmul_u32_tile16_rrr_0(uint32_t n,
+                                    uint32_t k,
+                                    uint32_t *gA,
+                                    uint32_t *gB,
+                                    uint32_t *gC, uint32_t nn, uint32_t kk)
 {
     uint32_t *sa1 = (uint32_t *) KPR_SHMEM_AT(0U);
     uint32_t *sa2 = (uint32_t *) KPR_SHMEM_AT(1024U);
@@ -625,10 +679,12 @@ __hoisted_10(uint32_t n,
         __syncthreads();
         uint32_t k1 = 0U;
         uint32_t sum1 = 0U;
-        for (; k1 < 16U; k1++)
+        for (; k1 < 16U; k1++) {
+            uint32_t vk = k1;
             sum1 +=
-                sa1[threadIdx.x / 16U * 16U + k1] * sa2[k1 * 16U +
+                sa1[threadIdx.x / 16U * 16U + vk] * sa2[vk * 16U +
                                                         threadIdx.x % 16U];
+        }
         uint32_t t = sum1;
         sum += t;
     }
@@ -648,9 +704,11 @@ Klas_GEMM_SHMem_g_matmul_u32_tile16_rrr(uint32_t m,
     uint32_t nn = n / 16U;
     uint32_t kk = k / 16U;
     KPR_SHMEM_FITS(2048U);
-    MUST(cudaFuncSetAttribute
-         (__hoisted_10, cudaFuncAttributeMaxDynamicSharedMemorySize, 2048U));
-    KPR_KCALL(__hoisted_10, mm * nn, 256U, 2048U, n, k, gA, gB, gC, nn, kk);
+    MUST(cudaFuncSetAttribute(__hoisted_g_matmul_u32_tile16_rrr_0,
+                              cudaFuncAttributeMaxDynamicSharedMemorySize,
+                              2048U));
+    KPR_KCALL(__hoisted_g_matmul_u32_tile16_rrr_0, mm * nn, 256U, 2048U, n, k,
+              gA, gB, gC, nn, kk);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -659,9 +717,11 @@ __global__
   hoisted when extracting g_matmul_u64_tile16_rrr
 */
 static void
-__hoisted_11(uint32_t n,
-             uint32_t k,
-             uint64_t *gA, uint64_t *gB, uint64_t *gC, uint32_t nn, uint32_t kk)
+__hoisted_g_matmul_u64_tile16_rrr_0(uint32_t n,
+                                    uint32_t k,
+                                    uint64_t *gA,
+                                    uint64_t *gB,
+                                    uint64_t *gC, uint32_t nn, uint32_t kk)
 {
     uint64_t *sa1 = (uint64_t *) KPR_SHMEM_AT(0U);
     uint64_t *sa2 = (uint64_t *) KPR_SHMEM_AT(2048U);
@@ -682,10 +742,12 @@ __hoisted_11(uint32_t n,
         __syncthreads();
         uint32_t k1 = 0U;
         uint64_t sum1 = 0ULL;
-        for (; k1 < 16U; k1++)
+        for (; k1 < 16U; k1++) {
+            uint32_t vk = k1;
             sum1 +=
-                sa1[threadIdx.x / 16U * 16U + k1] * sa2[k1 * 16U +
+                sa1[threadIdx.x / 16U * 16U + vk] * sa2[vk * 16U +
                                                         threadIdx.x % 16U];
+        }
         uint64_t t = sum1;
         sum += t;
     }
@@ -705,9 +767,11 @@ Klas_GEMM_SHMem_g_matmul_u64_tile16_rrr(uint32_t m,
     uint32_t nn = n / 16U;
     uint32_t kk = k / 16U;
     KPR_SHMEM_FITS(4096U);
-    MUST(cudaFuncSetAttribute
-         (__hoisted_11, cudaFuncAttributeMaxDynamicSharedMemorySize, 4096U));
-    KPR_KCALL(__hoisted_11, mm * nn, 256U, 4096U, n, k, gA, gB, gC, nn, kk);
+    MUST(cudaFuncSetAttribute(__hoisted_g_matmul_u64_tile16_rrr_0,
+                              cudaFuncAttributeMaxDynamicSharedMemorySize,
+                              4096U));
+    KPR_KCALL(__hoisted_g_matmul_u64_tile16_rrr_0, mm * nn, 256U, 4096U, n, k,
+              gA, gB, gC, nn, kk);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -716,15 +780,16 @@ __global__
   hoisted when extracting g_gemm_f32_rrr
 */
 static void
-__hoisted_12(uint32_t tile,
-             float alpha,
-             float beta,
-             uint32_t n,
-             uint32_t k,
-             float *gA, float *gB, float *gC, uint32_t nn, uint32_t kk)
+__hoisted_g_gemm_f32_rrr_0(uint32_t tile,
+                           float alpha,
+                           float beta,
+                           uint32_t n,
+                           uint32_t k,
+                           float *gA,
+                           float *gB, float *gC, uint32_t nn, uint32_t kk)
 {
     float *sa1 = (float *)KPR_SHMEM_AT(0U);
-    float *sa2 = (float *)KPR_SHMEM_AT(4U * (tile * tile));
+    float *sa2 = (float *)KPR_SHMEM_AT(4U * tile * tile);
     float *gTile = gC;
     float sum = 0.0f;
     uint32_t bk = 0U;
@@ -743,19 +808,19 @@ __hoisted_12(uint32_t tile,
         __syncthreads();
         uint32_t k1 = 0U;
         float sum1 = 0.0f;
-        for (; k1 < tile; k1++)
+        for (; k1 < tile; k1++) {
+            uint32_t vk = k1;
             sum1 +=
-                sa1[threadIdx.x / tile * tile + k1] * sa2[k1 * tile +
+                sa1[threadIdx.x / tile * tile + vk] * sa2[vk * tile +
                                                           threadIdx.x % tile];
+        }
         float t = sum1;
         sum += t;
     }
     gTile[(tile * (blockIdx.x / nn) + threadIdx.x / tile) * n +
           tile * (blockIdx.x % nn) + threadIdx.x % tile]
-        =
-        beta *
-        gTile[(tile * (blockIdx.x / nn) + threadIdx.x / tile) * n +
-              tile * (blockIdx.x % nn) + threadIdx.x % tile]
+        = beta * gTile[(tile * (blockIdx.x / nn) + threadIdx.x / tile) * n +
+                       tile * (blockIdx.x % nn) + threadIdx.x % tile]
         + alpha * sum;
 }
 
@@ -771,14 +836,14 @@ Klas_GEMM_SHMem_g_gemm_f32_rrr(uint32_t tile,
     uint32_t nn = n / tile;
     uint32_t kk = k / tile;
     KPR_ASSERT(tile > 0U);
-    KPR_SHMEM_FITS(4U * (tile * tile) + 4U * (tile * tile));
-    MUST(cudaFuncSetAttribute(__hoisted_12,
+    KPR_SHMEM_FITS(4U * tile * tile + 4U * tile * tile);
+    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_rrr_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              4U * (tile * tile) + 4U * (tile * tile)));
-    KPR_KCALL(__hoisted_12,
+                              4U * tile * tile + 4U * tile * tile));
+    KPR_KCALL(__hoisted_g_gemm_f32_rrr_0,
               mm * nn,
               tile * tile,
-              4U * (tile * tile) + 4U * (tile * tile),
+              4U * tile * tile + 4U * tile * tile,
               tile, alpha, beta, n, k, gA, gB, gC, nn, kk);
     MUST(cudaDeviceSynchronize());
 }
@@ -788,17 +853,18 @@ __global__
   hoisted when extracting g_gemm_f64_rrr
 */
 static void
-__hoisted_13(uint32_t tile,
-             double alpha,
-             double beta,
-             uint32_t n,
-             uint32_t k,
-             double *gA, double *gB, double *gC, uint32_t nn, uint32_t kk)
+__hoisted_g_gemm_f64_rrr_0(uint32_t tile,
+                           double alpha,
+                           double beta,
+                           uint32_t n,
+                           uint32_t k,
+                           double *gA,
+                           double *gB, double *gC, uint32_t nn, uint32_t kk)
 {
     double *sa1 = (double *)KPR_SHMEM_AT(0U);
-    double *sa2 = (double *)KPR_SHMEM_AT(8U * (tile * tile));
+    double *sa2 = (double *)KPR_SHMEM_AT(8U * tile * tile);
     double *gTile = gC;
-    double sum = 0.0l;
+    double sum = 0.0;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
         double
@@ -814,20 +880,20 @@ __hoisted_13(uint32_t tile,
         sa2[threadIdx.x] = v2;
         __syncthreads();
         uint32_t k1 = 0U;
-        double sum1 = 0.0l;
-        for (; k1 < tile; k1++)
+        double sum1 = 0.0;
+        for (; k1 < tile; k1++) {
+            uint32_t vk = k1;
             sum1 +=
-                sa1[threadIdx.x / tile * tile + k1] * sa2[k1 * tile +
+                sa1[threadIdx.x / tile * tile + vk] * sa2[vk * tile +
                                                           threadIdx.x % tile];
+        }
         double t = sum1;
         sum += t;
     }
     gTile[(tile * (blockIdx.x / nn) + threadIdx.x / tile) * n +
           tile * (blockIdx.x % nn) + threadIdx.x % tile]
-        =
-        beta *
-        gTile[(tile * (blockIdx.x / nn) + threadIdx.x / tile) * n +
-              tile * (blockIdx.x % nn) + threadIdx.x % tile]
+        = beta * gTile[(tile * (blockIdx.x / nn) + threadIdx.x / tile) * n +
+                       tile * (blockIdx.x % nn) + threadIdx.x % tile]
         + alpha * sum;
 }
 
@@ -843,14 +909,14 @@ Klas_GEMM_SHMem_g_gemm_f64_rrr(uint32_t tile,
     uint32_t nn = n / tile;
     uint32_t kk = k / tile;
     KPR_ASSERT(tile > 0U);
-    KPR_SHMEM_FITS(8U * (tile * tile) + 8U * (tile * tile));
-    MUST(cudaFuncSetAttribute(__hoisted_13,
+    KPR_SHMEM_FITS(8U * tile * tile + 8U * tile * tile);
+    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f64_rrr_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              8U * (tile * tile) + 8U * (tile * tile)));
-    KPR_KCALL(__hoisted_13,
+                              8U * tile * tile + 8U * tile * tile));
+    KPR_KCALL(__hoisted_g_gemm_f64_rrr_0,
               mm * nn,
               tile * tile,
-              8U * (tile * tile) + 8U * (tile * tile),
+              8U * tile * tile + 8U * tile * tile,
               tile, alpha, beta, n, k, gA, gB, gC, nn, kk);
     MUST(cudaDeviceSynchronize());
 }
@@ -860,15 +926,16 @@ __global__
   hoisted when extracting g_gemm_u32_rrr
 */
 static void
-__hoisted_14(uint32_t tile,
-             uint32_t alpha,
-             uint32_t beta,
-             uint32_t n,
-             uint32_t k,
-             uint32_t *gA, uint32_t *gB, uint32_t *gC, uint32_t nn, uint32_t kk)
+__hoisted_g_gemm_u32_rrr_0(uint32_t tile,
+                           uint32_t alpha,
+                           uint32_t beta,
+                           uint32_t n,
+                           uint32_t k,
+                           uint32_t *gA,
+                           uint32_t *gB, uint32_t *gC, uint32_t nn, uint32_t kk)
 {
     uint32_t *sa1 = (uint32_t *) KPR_SHMEM_AT(0U);
-    uint32_t *sa2 = (uint32_t *) KPR_SHMEM_AT(4U * (tile * tile));
+    uint32_t *sa2 = (uint32_t *) KPR_SHMEM_AT(4U * tile * tile);
     uint32_t *gTile = gC;
     uint32_t sum = 0U;
     uint32_t bk = 0U;
@@ -886,19 +953,19 @@ __hoisted_14(uint32_t tile,
         __syncthreads();
         uint32_t k1 = 0U;
         uint32_t sum1 = 0U;
-        for (; k1 < tile; k1++)
+        for (; k1 < tile; k1++) {
+            uint32_t vk = k1;
             sum1 +=
-                sa1[threadIdx.x / tile * tile + k1] * sa2[k1 * tile +
+                sa1[threadIdx.x / tile * tile + vk] * sa2[vk * tile +
                                                           threadIdx.x % tile];
+        }
         uint32_t t = sum1;
         sum += t;
     }
     gTile[(tile * (blockIdx.x / nn) + threadIdx.x / tile) * n +
           tile * (blockIdx.x % nn) + threadIdx.x % tile]
-        =
-        beta *
-        gTile[(tile * (blockIdx.x / nn) + threadIdx.x / tile) * n +
-              tile * (blockIdx.x % nn) + threadIdx.x % tile]
+        = beta * gTile[(tile * (blockIdx.x / nn) + threadIdx.x / tile) * n +
+                       tile * (blockIdx.x % nn) + threadIdx.x % tile]
         + alpha * sum;
 }
 
@@ -915,14 +982,14 @@ Klas_GEMM_SHMem_g_gemm_u32_rrr(uint32_t tile,
     uint32_t nn = n / tile;
     uint32_t kk = k / tile;
     KPR_ASSERT(tile > 0U);
-    KPR_SHMEM_FITS(4U * (tile * tile) + 4U * (tile * tile));
-    MUST(cudaFuncSetAttribute(__hoisted_14,
+    KPR_SHMEM_FITS(4U * tile * tile + 4U * tile * tile);
+    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_u32_rrr_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              4U * (tile * tile) + 4U * (tile * tile)));
-    KPR_KCALL(__hoisted_14,
+                              4U * tile * tile + 4U * tile * tile));
+    KPR_KCALL(__hoisted_g_gemm_u32_rrr_0,
               mm * nn,
               tile * tile,
-              4U * (tile * tile) + 4U * (tile * tile),
+              4U * tile * tile + 4U * tile * tile,
               tile, alpha, beta, n, k, gA, gB, gC, nn, kk);
     MUST(cudaDeviceSynchronize());
 }
@@ -932,15 +999,16 @@ __global__
   hoisted when extracting g_gemm_u64_rrr
 */
 static void
-__hoisted_15(uint32_t tile,
-             uint64_t alpha,
-             uint64_t beta,
-             uint32_t n,
-             uint32_t k,
-             uint64_t *gA, uint64_t *gB, uint64_t *gC, uint32_t nn, uint32_t kk)
+__hoisted_g_gemm_u64_rrr_0(uint32_t tile,
+                           uint64_t alpha,
+                           uint64_t beta,
+                           uint32_t n,
+                           uint32_t k,
+                           uint64_t *gA,
+                           uint64_t *gB, uint64_t *gC, uint32_t nn, uint32_t kk)
 {
     uint64_t *sa1 = (uint64_t *) KPR_SHMEM_AT(0U);
-    uint64_t *sa2 = (uint64_t *) KPR_SHMEM_AT(8U * (tile * tile));
+    uint64_t *sa2 = (uint64_t *) KPR_SHMEM_AT(8U * tile * tile);
     uint64_t *gTile = gC;
     uint64_t sum = 0ULL;
     uint32_t bk = 0U;
@@ -958,19 +1026,19 @@ __hoisted_15(uint32_t tile,
         __syncthreads();
         uint32_t k1 = 0U;
         uint64_t sum1 = 0ULL;
-        for (; k1 < tile; k1++)
+        for (; k1 < tile; k1++) {
+            uint32_t vk = k1;
             sum1 +=
-                sa1[threadIdx.x / tile * tile + k1] * sa2[k1 * tile +
+                sa1[threadIdx.x / tile * tile + vk] * sa2[vk * tile +
                                                           threadIdx.x % tile];
+        }
         uint64_t t = sum1;
         sum += t;
     }
     gTile[(tile * (blockIdx.x / nn) + threadIdx.x / tile) * n +
           tile * (blockIdx.x % nn) + threadIdx.x % tile]
-        =
-        beta *
-        gTile[(tile * (blockIdx.x / nn) + threadIdx.x / tile) * n +
-              tile * (blockIdx.x % nn) + threadIdx.x % tile]
+        = beta * gTile[(tile * (blockIdx.x / nn) + threadIdx.x / tile) * n +
+                       tile * (blockIdx.x % nn) + threadIdx.x % tile]
         + alpha * sum;
 }
 
@@ -987,14 +1055,14 @@ Klas_GEMM_SHMem_g_gemm_u64_rrr(uint32_t tile,
     uint32_t nn = n / tile;
     uint32_t kk = k / tile;
     KPR_ASSERT(tile > 0U);
-    KPR_SHMEM_FITS(8U * (tile * tile) + 8U * (tile * tile));
-    MUST(cudaFuncSetAttribute(__hoisted_15,
+    KPR_SHMEM_FITS(8U * tile * tile + 8U * tile * tile);
+    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_u64_rrr_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              8U * (tile * tile) + 8U * (tile * tile)));
-    KPR_KCALL(__hoisted_15,
+                              8U * tile * tile + 8U * tile * tile));
+    KPR_KCALL(__hoisted_g_gemm_u64_rrr_0,
               mm * nn,
               tile * tile,
-              8U * (tile * tile) + 8U * (tile * tile),
+              8U * tile * tile + 8U * tile * tile,
               tile, alpha, beta, n, k, gA, gB, gC, nn, kk);
     MUST(cudaDeviceSynchronize());
 }
@@ -1004,11 +1072,13 @@ __global__
   hoisted when extracting g_gemm_f32_tile32_rrr
 */
 static void
-__hoisted_16(float alpha,
-             float beta,
-             uint32_t n,
-             uint32_t k,
-             float *gA, float *gB, float *gC, uint32_t nn, uint32_t kk)
+__hoisted_g_gemm_f32_tile32_rrr_0(float alpha,
+                                  float beta,
+                                  uint32_t n,
+                                  uint32_t k,
+                                  float *gA,
+                                  float *gB,
+                                  float *gC, uint32_t nn, uint32_t kk)
 {
     float *sa1 = (float *)KPR_SHMEM_AT(0U);
     float *sa2 = (float *)KPR_SHMEM_AT(4096U);
@@ -1030,19 +1100,19 @@ __hoisted_16(float alpha,
         __syncthreads();
         uint32_t k1 = 0U;
         float sum1 = 0.0f;
-        for (; k1 < 32U; k1++)
+        for (; k1 < 32U; k1++) {
+            uint32_t vk = k1;
             sum1 +=
-                sa1[threadIdx.x / 32U * 32U + k1] * sa2[k1 * 32U +
+                sa1[threadIdx.x / 32U * 32U + vk] * sa2[vk * 32U +
                                                         threadIdx.x % 32U];
+        }
         float t = sum1;
         sum += t;
     }
     gTile[(32U * (blockIdx.x / nn) + threadIdx.x / 32U) * n +
           32U * (blockIdx.x % nn) + threadIdx.x % 32U]
-        =
-        beta *
-        gTile[(32U * (blockIdx.x / nn) + threadIdx.x / 32U) * n +
-              32U * (blockIdx.x % nn) + threadIdx.x % 32U]
+        = beta * gTile[(32U * (blockIdx.x / nn) + threadIdx.x / 32U) * n +
+                       32U * (blockIdx.x % nn) + threadIdx.x % 32U]
         + alpha * sum;
 }
 
@@ -1058,10 +1128,11 @@ Klas_GEMM_SHMem_g_gemm_f32_tile32_rrr(float alpha,
     uint32_t nn = n / 32U;
     uint32_t kk = k / 32U;
     KPR_SHMEM_FITS(8192U);
-    MUST(cudaFuncSetAttribute
-         (__hoisted_16, cudaFuncAttributeMaxDynamicSharedMemorySize, 8192U));
-    KPR_KCALL(__hoisted_16, mm * nn, 1024U, 8192U, alpha, beta, n, k, gA, gB,
-              gC, nn, kk);
+    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_tile32_rrr_0,
+                              cudaFuncAttributeMaxDynamicSharedMemorySize,
+                              8192U));
+    KPR_KCALL(__hoisted_g_gemm_f32_tile32_rrr_0,
+              mm * nn, 1024U, 8192U, alpha, beta, n, k, gA, gB, gC, nn, kk);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -1070,16 +1141,18 @@ __global__
   hoisted when extracting g_gemm_f64_tile32_rrr
 */
 static void
-__hoisted_17(double alpha,
-             double beta,
-             uint32_t n,
-             uint32_t k,
-             double *gA, double *gB, double *gC, uint32_t nn, uint32_t kk)
+__hoisted_g_gemm_f64_tile32_rrr_0(double alpha,
+                                  double beta,
+                                  uint32_t n,
+                                  uint32_t k,
+                                  double *gA,
+                                  double *gB,
+                                  double *gC, uint32_t nn, uint32_t kk)
 {
     double *sa1 = (double *)KPR_SHMEM_AT(0U);
     double *sa2 = (double *)KPR_SHMEM_AT(8192U);
     double *gTile = gC;
-    double sum = 0.0l;
+    double sum = 0.0;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
         double
@@ -1095,20 +1168,20 @@ __hoisted_17(double alpha,
         sa2[threadIdx.x] = v2;
         __syncthreads();
         uint32_t k1 = 0U;
-        double sum1 = 0.0l;
-        for (; k1 < 32U; k1++)
+        double sum1 = 0.0;
+        for (; k1 < 32U; k1++) {
+            uint32_t vk = k1;
             sum1 +=
-                sa1[threadIdx.x / 32U * 32U + k1] * sa2[k1 * 32U +
+                sa1[threadIdx.x / 32U * 32U + vk] * sa2[vk * 32U +
                                                         threadIdx.x % 32U];
+        }
         double t = sum1;
         sum += t;
     }
     gTile[(32U * (blockIdx.x / nn) + threadIdx.x / 32U) * n +
           32U * (blockIdx.x % nn) + threadIdx.x % 32U]
-        =
-        beta *
-        gTile[(32U * (blockIdx.x / nn) + threadIdx.x / 32U) * n +
-              32U * (blockIdx.x % nn) + threadIdx.x % 32U]
+        = beta * gTile[(32U * (blockIdx.x / nn) + threadIdx.x / 32U) * n +
+                       32U * (blockIdx.x % nn) + threadIdx.x % 32U]
         + alpha * sum;
 }
 
@@ -1124,10 +1197,11 @@ Klas_GEMM_SHMem_g_gemm_f64_tile32_rrr(double alpha,
     uint32_t nn = n / 32U;
     uint32_t kk = k / 32U;
     KPR_SHMEM_FITS(16384U);
-    MUST(cudaFuncSetAttribute
-         (__hoisted_17, cudaFuncAttributeMaxDynamicSharedMemorySize, 16384U));
-    KPR_KCALL(__hoisted_17, mm * nn, 1024U, 16384U, alpha, beta, n, k, gA, gB,
-              gC, nn, kk);
+    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f64_tile32_rrr_0,
+                              cudaFuncAttributeMaxDynamicSharedMemorySize,
+                              16384U));
+    KPR_KCALL(__hoisted_g_gemm_f64_tile32_rrr_0,
+              mm * nn, 1024U, 16384U, alpha, beta, n, k, gA, gB, gC, nn, kk);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -1136,11 +1210,13 @@ __global__
   hoisted when extracting g_gemm_u32_tile32_rrr
 */
 static void
-__hoisted_18(uint32_t alpha,
-             uint32_t beta,
-             uint32_t n,
-             uint32_t k,
-             uint32_t *gA, uint32_t *gB, uint32_t *gC, uint32_t nn, uint32_t kk)
+__hoisted_g_gemm_u32_tile32_rrr_0(uint32_t alpha,
+                                  uint32_t beta,
+                                  uint32_t n,
+                                  uint32_t k,
+                                  uint32_t *gA,
+                                  uint32_t *gB,
+                                  uint32_t *gC, uint32_t nn, uint32_t kk)
 {
     uint32_t *sa1 = (uint32_t *) KPR_SHMEM_AT(0U);
     uint32_t *sa2 = (uint32_t *) KPR_SHMEM_AT(4096U);
@@ -1161,19 +1237,19 @@ __hoisted_18(uint32_t alpha,
         __syncthreads();
         uint32_t k1 = 0U;
         uint32_t sum1 = 0U;
-        for (; k1 < 32U; k1++)
+        for (; k1 < 32U; k1++) {
+            uint32_t vk = k1;
             sum1 +=
-                sa1[threadIdx.x / 32U * 32U + k1] * sa2[k1 * 32U +
+                sa1[threadIdx.x / 32U * 32U + vk] * sa2[vk * 32U +
                                                         threadIdx.x % 32U];
+        }
         uint32_t t = sum1;
         sum += t;
     }
     gTile[(32U * (blockIdx.x / nn) + threadIdx.x / 32U) * n +
           32U * (blockIdx.x % nn) + threadIdx.x % 32U]
-        =
-        beta *
-        gTile[(32U * (blockIdx.x / nn) + threadIdx.x / 32U) * n +
-              32U * (blockIdx.x % nn) + threadIdx.x % 32U]
+        = beta * gTile[(32U * (blockIdx.x / nn) + threadIdx.x / 32U) * n +
+                       32U * (blockIdx.x % nn) + threadIdx.x % 32U]
         + alpha * sum;
 }
 
@@ -1189,10 +1265,11 @@ Klas_GEMM_SHMem_g_gemm_u32_tile32_rrr(uint32_t alpha,
     uint32_t nn = n / 32U;
     uint32_t kk = k / 32U;
     KPR_SHMEM_FITS(8192U);
-    MUST(cudaFuncSetAttribute
-         (__hoisted_18, cudaFuncAttributeMaxDynamicSharedMemorySize, 8192U));
-    KPR_KCALL(__hoisted_18, mm * nn, 1024U, 8192U, alpha, beta, n, k, gA, gB,
-              gC, nn, kk);
+    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_u32_tile32_rrr_0,
+                              cudaFuncAttributeMaxDynamicSharedMemorySize,
+                              8192U));
+    KPR_KCALL(__hoisted_g_gemm_u32_tile32_rrr_0,
+              mm * nn, 1024U, 8192U, alpha, beta, n, k, gA, gB, gC, nn, kk);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -1201,11 +1278,13 @@ __global__
   hoisted when extracting g_gemm_u64_tile32_rrr
 */
 static void
-__hoisted_19(uint64_t alpha,
-             uint64_t beta,
-             uint32_t n,
-             uint32_t k,
-             uint64_t *gA, uint64_t *gB, uint64_t *gC, uint32_t nn, uint32_t kk)
+__hoisted_g_gemm_u64_tile32_rrr_0(uint64_t alpha,
+                                  uint64_t beta,
+                                  uint32_t n,
+                                  uint32_t k,
+                                  uint64_t *gA,
+                                  uint64_t *gB,
+                                  uint64_t *gC, uint32_t nn, uint32_t kk)
 {
     uint64_t *sa1 = (uint64_t *) KPR_SHMEM_AT(0U);
     uint64_t *sa2 = (uint64_t *) KPR_SHMEM_AT(8192U);
@@ -1226,19 +1305,19 @@ __hoisted_19(uint64_t alpha,
         __syncthreads();
         uint32_t k1 = 0U;
         uint64_t sum1 = 0ULL;
-        for (; k1 < 32U; k1++)
+        for (; k1 < 32U; k1++) {
+            uint32_t vk = k1;
             sum1 +=
-                sa1[threadIdx.x / 32U * 32U + k1] * sa2[k1 * 32U +
+                sa1[threadIdx.x / 32U * 32U + vk] * sa2[vk * 32U +
                                                         threadIdx.x % 32U];
+        }
         uint64_t t = sum1;
         sum += t;
     }
     gTile[(32U * (blockIdx.x / nn) + threadIdx.x / 32U) * n +
           32U * (blockIdx.x % nn) + threadIdx.x % 32U]
-        =
-        beta *
-        gTile[(32U * (blockIdx.x / nn) + threadIdx.x / 32U) * n +
-              32U * (blockIdx.x % nn) + threadIdx.x % 32U]
+        = beta * gTile[(32U * (blockIdx.x / nn) + threadIdx.x / 32U) * n +
+                       32U * (blockIdx.x % nn) + threadIdx.x % 32U]
         + alpha * sum;
 }
 
@@ -1254,10 +1333,11 @@ Klas_GEMM_SHMem_g_gemm_u64_tile32_rrr(uint64_t alpha,
     uint32_t nn = n / 32U;
     uint32_t kk = k / 32U;
     KPR_SHMEM_FITS(16384U);
-    MUST(cudaFuncSetAttribute
-         (__hoisted_19, cudaFuncAttributeMaxDynamicSharedMemorySize, 16384U));
-    KPR_KCALL(__hoisted_19, mm * nn, 1024U, 16384U, alpha, beta, n, k, gA, gB,
-              gC, nn, kk);
+    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_u64_tile32_rrr_0,
+                              cudaFuncAttributeMaxDynamicSharedMemorySize,
+                              16384U));
+    KPR_KCALL(__hoisted_g_gemm_u64_tile32_rrr_0,
+              mm * nn, 1024U, 16384U, alpha, beta, n, k, gA, gB, gC, nn, kk);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -1266,11 +1346,13 @@ __global__
   hoisted when extracting g_gemm_f32_tile16_rrr
 */
 static void
-__hoisted_20(float alpha,
-             float beta,
-             uint32_t n,
-             uint32_t k,
-             float *gA, float *gB, float *gC, uint32_t nn, uint32_t kk)
+__hoisted_g_gemm_f32_tile16_rrr_0(float alpha,
+                                  float beta,
+                                  uint32_t n,
+                                  uint32_t k,
+                                  float *gA,
+                                  float *gB,
+                                  float *gC, uint32_t nn, uint32_t kk)
 {
     float *sa1 = (float *)KPR_SHMEM_AT(0U);
     float *sa2 = (float *)KPR_SHMEM_AT(1024U);
@@ -1292,19 +1374,19 @@ __hoisted_20(float alpha,
         __syncthreads();
         uint32_t k1 = 0U;
         float sum1 = 0.0f;
-        for (; k1 < 16U; k1++)
+        for (; k1 < 16U; k1++) {
+            uint32_t vk = k1;
             sum1 +=
-                sa1[threadIdx.x / 16U * 16U + k1] * sa2[k1 * 16U +
+                sa1[threadIdx.x / 16U * 16U + vk] * sa2[vk * 16U +
                                                         threadIdx.x % 16U];
+        }
         float t = sum1;
         sum += t;
     }
     gTile[(16U * (blockIdx.x / nn) + threadIdx.x / 16U) * n +
           16U * (blockIdx.x % nn) + threadIdx.x % 16U]
-        =
-        beta *
-        gTile[(16U * (blockIdx.x / nn) + threadIdx.x / 16U) * n +
-              16U * (blockIdx.x % nn) + threadIdx.x % 16U]
+        = beta * gTile[(16U * (blockIdx.x / nn) + threadIdx.x / 16U) * n +
+                       16U * (blockIdx.x % nn) + threadIdx.x % 16U]
         + alpha * sum;
 }
 
@@ -1320,10 +1402,11 @@ Klas_GEMM_SHMem_g_gemm_f32_tile16_rrr(float alpha,
     uint32_t nn = n / 16U;
     uint32_t kk = k / 16U;
     KPR_SHMEM_FITS(2048U);
-    MUST(cudaFuncSetAttribute
-         (__hoisted_20, cudaFuncAttributeMaxDynamicSharedMemorySize, 2048U));
-    KPR_KCALL(__hoisted_20, mm * nn, 256U, 2048U, alpha, beta, n, k, gA, gB, gC,
-              nn, kk);
+    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_tile16_rrr_0,
+                              cudaFuncAttributeMaxDynamicSharedMemorySize,
+                              2048U));
+    KPR_KCALL(__hoisted_g_gemm_f32_tile16_rrr_0,
+              mm * nn, 256U, 2048U, alpha, beta, n, k, gA, gB, gC, nn, kk);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -1332,16 +1415,18 @@ __global__
   hoisted when extracting g_gemm_f64_tile16_rrr
 */
 static void
-__hoisted_21(double alpha,
-             double beta,
-             uint32_t n,
-             uint32_t k,
-             double *gA, double *gB, double *gC, uint32_t nn, uint32_t kk)
+__hoisted_g_gemm_f64_tile16_rrr_0(double alpha,
+                                  double beta,
+                                  uint32_t n,
+                                  uint32_t k,
+                                  double *gA,
+                                  double *gB,
+                                  double *gC, uint32_t nn, uint32_t kk)
 {
     double *sa1 = (double *)KPR_SHMEM_AT(0U);
     double *sa2 = (double *)KPR_SHMEM_AT(2048U);
     double *gTile = gC;
-    double sum = 0.0l;
+    double sum = 0.0;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
         double
@@ -1357,20 +1442,20 @@ __hoisted_21(double alpha,
         sa2[threadIdx.x] = v2;
         __syncthreads();
         uint32_t k1 = 0U;
-        double sum1 = 0.0l;
-        for (; k1 < 16U; k1++)
+        double sum1 = 0.0;
+        for (; k1 < 16U; k1++) {
+            uint32_t vk = k1;
             sum1 +=
-                sa1[threadIdx.x / 16U * 16U + k1] * sa2[k1 * 16U +
+                sa1[threadIdx.x / 16U * 16U + vk] * sa2[vk * 16U +
                                                         threadIdx.x % 16U];
+        }
         double t = sum1;
         sum += t;
     }
     gTile[(16U * (blockIdx.x / nn) + threadIdx.x / 16U) * n +
           16U * (blockIdx.x % nn) + threadIdx.x % 16U]
-        =
-        beta *
-        gTile[(16U * (blockIdx.x / nn) + threadIdx.x / 16U) * n +
-              16U * (blockIdx.x % nn) + threadIdx.x % 16U]
+        = beta * gTile[(16U * (blockIdx.x / nn) + threadIdx.x / 16U) * n +
+                       16U * (blockIdx.x % nn) + threadIdx.x % 16U]
         + alpha * sum;
 }
 
@@ -1386,10 +1471,11 @@ Klas_GEMM_SHMem_g_gemm_f64_tile16_rrr(double alpha,
     uint32_t nn = n / 16U;
     uint32_t kk = k / 16U;
     KPR_SHMEM_FITS(4096U);
-    MUST(cudaFuncSetAttribute
-         (__hoisted_21, cudaFuncAttributeMaxDynamicSharedMemorySize, 4096U));
-    KPR_KCALL(__hoisted_21, mm * nn, 256U, 4096U, alpha, beta, n, k, gA, gB, gC,
-              nn, kk);
+    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f64_tile16_rrr_0,
+                              cudaFuncAttributeMaxDynamicSharedMemorySize,
+                              4096U));
+    KPR_KCALL(__hoisted_g_gemm_f64_tile16_rrr_0,
+              mm * nn, 256U, 4096U, alpha, beta, n, k, gA, gB, gC, nn, kk);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -1398,11 +1484,13 @@ __global__
   hoisted when extracting g_gemm_u32_tile16_rrr
 */
 static void
-__hoisted_22(uint32_t alpha,
-             uint32_t beta,
-             uint32_t n,
-             uint32_t k,
-             uint32_t *gA, uint32_t *gB, uint32_t *gC, uint32_t nn, uint32_t kk)
+__hoisted_g_gemm_u32_tile16_rrr_0(uint32_t alpha,
+                                  uint32_t beta,
+                                  uint32_t n,
+                                  uint32_t k,
+                                  uint32_t *gA,
+                                  uint32_t *gB,
+                                  uint32_t *gC, uint32_t nn, uint32_t kk)
 {
     uint32_t *sa1 = (uint32_t *) KPR_SHMEM_AT(0U);
     uint32_t *sa2 = (uint32_t *) KPR_SHMEM_AT(1024U);
@@ -1423,19 +1511,19 @@ __hoisted_22(uint32_t alpha,
         __syncthreads();
         uint32_t k1 = 0U;
         uint32_t sum1 = 0U;
-        for (; k1 < 16U; k1++)
+        for (; k1 < 16U; k1++) {
+            uint32_t vk = k1;
             sum1 +=
-                sa1[threadIdx.x / 16U * 16U + k1] * sa2[k1 * 16U +
+                sa1[threadIdx.x / 16U * 16U + vk] * sa2[vk * 16U +
                                                         threadIdx.x % 16U];
+        }
         uint32_t t = sum1;
         sum += t;
     }
     gTile[(16U * (blockIdx.x / nn) + threadIdx.x / 16U) * n +
           16U * (blockIdx.x % nn) + threadIdx.x % 16U]
-        =
-        beta *
-        gTile[(16U * (blockIdx.x / nn) + threadIdx.x / 16U) * n +
-              16U * (blockIdx.x % nn) + threadIdx.x % 16U]
+        = beta * gTile[(16U * (blockIdx.x / nn) + threadIdx.x / 16U) * n +
+                       16U * (blockIdx.x % nn) + threadIdx.x % 16U]
         + alpha * sum;
 }
 
@@ -1451,10 +1539,11 @@ Klas_GEMM_SHMem_g_gemm_u32_tile16_rrr(uint32_t alpha,
     uint32_t nn = n / 16U;
     uint32_t kk = k / 16U;
     KPR_SHMEM_FITS(2048U);
-    MUST(cudaFuncSetAttribute
-         (__hoisted_22, cudaFuncAttributeMaxDynamicSharedMemorySize, 2048U));
-    KPR_KCALL(__hoisted_22, mm * nn, 256U, 2048U, alpha, beta, n, k, gA, gB, gC,
-              nn, kk);
+    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_u32_tile16_rrr_0,
+                              cudaFuncAttributeMaxDynamicSharedMemorySize,
+                              2048U));
+    KPR_KCALL(__hoisted_g_gemm_u32_tile16_rrr_0,
+              mm * nn, 256U, 2048U, alpha, beta, n, k, gA, gB, gC, nn, kk);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -1463,11 +1552,13 @@ __global__
   hoisted when extracting g_gemm_u64_tile16_rrr
 */
 static void
-__hoisted_23(uint64_t alpha,
-             uint64_t beta,
-             uint32_t n,
-             uint32_t k,
-             uint64_t *gA, uint64_t *gB, uint64_t *gC, uint32_t nn, uint32_t kk)
+__hoisted_g_gemm_u64_tile16_rrr_0(uint64_t alpha,
+                                  uint64_t beta,
+                                  uint32_t n,
+                                  uint32_t k,
+                                  uint64_t *gA,
+                                  uint64_t *gB,
+                                  uint64_t *gC, uint32_t nn, uint32_t kk)
 {
     uint64_t *sa1 = (uint64_t *) KPR_SHMEM_AT(0U);
     uint64_t *sa2 = (uint64_t *) KPR_SHMEM_AT(2048U);
@@ -1488,19 +1579,19 @@ __hoisted_23(uint64_t alpha,
         __syncthreads();
         uint32_t k1 = 0U;
         uint64_t sum1 = 0ULL;
-        for (; k1 < 16U; k1++)
+        for (; k1 < 16U; k1++) {
+            uint32_t vk = k1;
             sum1 +=
-                sa1[threadIdx.x / 16U * 16U + k1] * sa2[k1 * 16U +
+                sa1[threadIdx.x / 16U * 16U + vk] * sa2[vk * 16U +
                                                         threadIdx.x % 16U];
+        }
         uint64_t t = sum1;
         sum += t;
     }
     gTile[(16U * (blockIdx.x / nn) + threadIdx.x / 16U) * n +
           16U * (blockIdx.x % nn) + threadIdx.x % 16U]
-        =
-        beta *
-        gTile[(16U * (blockIdx.x / nn) + threadIdx.x / 16U) * n +
-              16U * (blockIdx.x % nn) + threadIdx.x % 16U]
+        = beta * gTile[(16U * (blockIdx.x / nn) + threadIdx.x / 16U) * n +
+                       16U * (blockIdx.x % nn) + threadIdx.x % 16U]
         + alpha * sum;
 }
 
@@ -1516,9 +1607,10 @@ Klas_GEMM_SHMem_g_gemm_u64_tile16_rrr(uint64_t alpha,
     uint32_t nn = n / 16U;
     uint32_t kk = k / 16U;
     KPR_SHMEM_FITS(4096U);
-    MUST(cudaFuncSetAttribute
-         (__hoisted_23, cudaFuncAttributeMaxDynamicSharedMemorySize, 4096U));
-    KPR_KCALL(__hoisted_23, mm * nn, 256U, 4096U, alpha, beta, n, k, gA, gB, gC,
-              nn, kk);
+    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_u64_tile16_rrr_0,
+                              cudaFuncAttributeMaxDynamicSharedMemorySize,
+                              4096U));
+    KPR_KCALL(__hoisted_g_gemm_u64_tile16_rrr_0,
+              mm * nn, 256U, 4096U, alpha, beta, n, k, gA, gB, gC, nn, kk);
     MUST(cudaDeviceSynchronize());
 }

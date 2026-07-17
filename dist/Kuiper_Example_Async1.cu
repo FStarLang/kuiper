@@ -4,15 +4,15 @@
 uint64_t *Kuiper_Example_Async1_galloc(uint64_t x)
 {
     uint64_t r = x;
-    uint64_t *gr = (uint64_t *) KPR_GPU_ALLOC(8U, 1U);
-    MUST(cudaMemcpy(gr, &r, 8U, cudaMemcpyHostToDevice));
+    uint64_t *gr = (uint64_t *) KPR_GPU_ALLOC(sizeof(uint64_t), 1U);
+    MUST(cudaMemcpy(gr, &r, sizeof(uint64_t), cudaMemcpyHostToDevice));
     return gr;
 }
 
 uint64_t Kuiper_Example_Async1_gread(uint64_t *gr)
 {
     uint64_t r = 0ULL;
-    MUST(cudaMemcpy(&r, gr, 8U, cudaMemcpyDeviceToHost));
+    MUST(cudaMemcpy(&r, gr, sizeof(uint64_t), cudaMemcpyDeviceToHost));
     return r;
 }
 
@@ -20,7 +20,7 @@ __global__
 /**
   hoisted when extracting main
 */
-static void __hoisted_0(uint64_t *r1)
+static void __hoisted_main_0(uint64_t *r1)
 {
     (*r1)++;
 }
@@ -29,7 +29,7 @@ __global__
 /**
   hoisted when extracting main
 */
-static void __hoisted_1(uint64_t *r2)
+static void __hoisted_main_1(uint64_t *r2)
 {
     (*r2)++;
 }
@@ -38,7 +38,7 @@ __global__
 /**
   hoisted when extracting main
 */
-static void __hoisted_2(uint64_t *r3)
+static void __hoisted_main_2(uint64_t *r3)
 {
     (*r3)++;
 }
@@ -47,7 +47,7 @@ __global__
 /**
   hoisted when extracting main
 */
-static void __hoisted_3(uint64_t *r4)
+static void __hoisted_main_3(uint64_t *r4)
 {
     (*r4)++;
 }
@@ -56,7 +56,7 @@ __global__
 /**
   hoisted when extracting main
 */
-static void __hoisted_4(uint64_t *r5)
+static void __hoisted_main_4(uint64_t *r5)
 {
     (*r5)++;
 }
@@ -65,7 +65,7 @@ __global__
 /**
   hoisted when extracting main
 */
-static void __hoisted_5(uint64_t *r6)
+static void __hoisted_main_5(uint64_t *r6)
 {
     (*r6)++;
 }
@@ -78,12 +78,12 @@ uint64_t Kuiper_Example_Async1_main(void)
     uint64_t *r4 = Kuiper_Example_Async1_galloc(4ULL);
     uint64_t *r5 = Kuiper_Example_Async1_galloc(5ULL);
     uint64_t *r6 = Kuiper_Example_Async1_galloc(6ULL);
-    KPR_KCALL(__hoisted_0, 1U, 1U, 0U, r1);
-    KPR_KCALL(__hoisted_1, 1U, 1U, 0U, r2);
-    KPR_KCALL(__hoisted_2, 1U, 1U, 0U, r3);
-    KPR_KCALL(__hoisted_3, 1U, 1U, 0U, r4);
-    KPR_KCALL(__hoisted_4, 1U, 1U, 0U, r5);
-    KPR_KCALL(__hoisted_5, 1U, 1U, 0U, r6);
+    KPR_KCALL(__hoisted_main_0, 1U, 1U, 0U, r1);
+    KPR_KCALL(__hoisted_main_1, 1U, 1U, 0U, r2);
+    KPR_KCALL(__hoisted_main_2, 1U, 1U, 0U, r3);
+    KPR_KCALL(__hoisted_main_3, 1U, 1U, 0U, r4);
+    KPR_KCALL(__hoisted_main_4, 1U, 1U, 0U, r5);
+    KPR_KCALL(__hoisted_main_5, 1U, 1U, 0U, r6);
     MUST(cudaDeviceSynchronize());
     uint64_t v1 = Kuiper_Example_Async1_gread(r1);
     MUST(cudaFree(r1));

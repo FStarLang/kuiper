@@ -2,7 +2,6 @@ module Klas.GEMM.TensorCore
 #lang-pulse
 
 open Kuiper
-open Kuiper.Matrix.Reprs
 open Klas.GEMM.TensorCore.Inst
 
 let g_gemm_f16_f16_64x64x16_16x16x16 = specialize_gpu half half 64sz 64sz 16sz 16sz 16sz 16sz

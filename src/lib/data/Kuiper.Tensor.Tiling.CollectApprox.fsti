@@ -3,9 +3,8 @@ module Kuiper.Tensor.Tiling.CollectApprox
 
 open Kuiper
 open Kuiper.EMatrix
-open Kuiper.Array2
-module M = Kuiper.Array2
 module SZ = Kuiper.SizeT
+open Kuiper.Tensor
 open Kuiper.Tensor.Tiling
 
 #set-options "--admit_smt_queries true"
@@ -21,7 +20,7 @@ ghost
 fn array2_collect_approx_tiled
   (#et : Type0) {| scalar et |}
   (#rows #cols : nat)
-  (#l : M.layout rows cols)
+  (#l : layout2 rows cols)
   (gm : array2 et l)
   (trows : pos { trows /? rows })
   (tcols : pos { tcols /? cols })
@@ -29,18 +28,18 @@ fn array2_collect_approx_tiled
   (ntc : nat { ntc == cols / tcols })
   (spec_fn : natlt rows -> natlt cols -> et -> prop)
   requires
-    pure (SZ.fits (M.layout_size l))
+    pure (SZ.fits (l.ulen))
   requires
     forall+ (bid : natlt (ntr * ntc)) (tid : natlt (trows * tcols)).
       exists* (v : et).
-        M.pts_to_cell
+        tensor_pts_to_cell
           (array2_subtile gm trows tcols (bid / ntc) (bid % ntc))
-          ((tid / tcols <: natlt trows), (tid % tcols <: natlt tcols)) v **
+          (idx2 (tid / tcols <: natlt trows) (tid % tcols <: natlt tcols)) v **
         pure (spec_fn ((bid / ntc) * trows + (tid / tcols))
                       ((bid % ntc) * tcols + (tid % tcols)) v)
   returns vf : (natlt (ntr * ntc) -> natlt (trows * tcols) -> GTot et)
   ensures
-    gm |-> mkM (fun (row : natlt rows) (col : natlt cols) ->
+    gm |-> mk2 (fun (row : natlt rows) (col : natlt cols) ->
       vf ((row / trows) * ntc + (col / tcols)) ((row % trows) * tcols + (col % tcols))) **
     pure (forall (row : natlt rows) (col : natlt cols).
       spec_fn row col

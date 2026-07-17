@@ -8,7 +8,7 @@ open Kuiper.IView { ciview }
 open Kuiper.Tensor
 open Kuiper.Tensor.Layout.Alg
 
-open Kuiper.Index
+open Kuiper.Shape
 module Chest = Kuiper.Chest
 module SZ = Kuiper.SizeT
 module Concat = Kuiper.View.Concat

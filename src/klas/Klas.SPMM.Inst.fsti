@@ -3,7 +3,7 @@ module Klas.SPMM.Inst
 open Kuiper
 open Kuiper.Sparse
 module SZ = Kuiper.SizeT
-open Kuiper.Array2
+open Kuiper.Tensor
 open Kuiper.Tensor.Layout { trepr2, ctrepr2 }
 open Kuiper.Tensor.Layout.Alg { l2_row_major as rm }
 open Kuiper.EMatrix
@@ -28,7 +28,7 @@ fn inst
   (gA : smatrix et (SZ.v rows) (SZ.v shared){is_global_smatrix gA})
   (#_ : squash (aligned 16 gA.elems /\ aligned 16 gA.col_ind))
   (#fA : perm)
-  (row_indices : gpu_array sz rows)
+  (row_indices : larray sz rows)
   (fri : perm)
   (gB : array2 et (repB shared cols) { is_global gB})
   (#fB : perm)
@@ -37,12 +37,12 @@ fn inst
   (elems : erased (lseq et gA.nnz))
   (col_ind : erased (lseq sz gA.nnz))
   (row_off : erased (lseq sz (rows + 1)))
-  (#eA : ematrix et rows shared)
+  (#eA : chest2 et rows shared)
   // permutacion de filas
   (row_perm : permutation (natlt rows))
   // matrices densas
-  (#eB : ematrix et shared cols)
-  (#eC : ematrix et rows cols)
+  (#eB : chest2 et shared cols)
+  (#eC : chest2 et rows cols)
   //(#_ : size_req rows shared cols)
   norewrite
   preserves

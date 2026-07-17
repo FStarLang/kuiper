@@ -4,18 +4,18 @@ module Klas.HReduce
 
 open Kuiper
 open Kuiper.Tensor.Layout.Alg
-module K = Kuiper.Kernel.HReduce
+module K = Kuiper.Kernel.Reduce
 
 inline_for_extraction noextract
 fn inst
   (et : Type0) {| scalar et, real_like et |}
-  (lay : (len:nat -> Array1.layout len))
+  (lay : (len:nat -> layout1 len))
   {| (len:szp -> ctlayout (lay len)) |}
   (nth : szp { nth <= max_threads })
   (lena : szp { SZ.fits (lena + nth) })
-  (a : Array1.t et (lay lena) { Array1.is_global a })
-  (#va : erased (lseq et lena))
-  (vr : erased (lseq real lena))
+  (a : array1 et (lay lena) { is_global a })
+  (#va : chest1 et lena)
+  (vr : chest1 real lena)
   norewrite // no purification on fsti
   preserves
     cpu **
@@ -25,13 +25,13 @@ fn inst
   returns
     res : et
   ensures
-    pure (res %~ rsum vr)
+    pure (res %~ chest1_rsum vr)
 {
   let lena64 = SZ.sizet_to_uint64 lena;
   let nth64 = SZ.sizet_to_uint64 nth;
   dassert (not (FStar.UInt64.(lena64 +%^ nth64 <^ lena64)));
-  assert pure (Seq.equal (seq_map id vr) vr);
-  K.reduce id id nth lena a vr;
+  assert pure (equal (chest_map id vr) vr);
+  K.reduce1 id id lena nth a vr;
 }
 
 let reduce_f16_plus : reduce_ty f16 l1_forward = inst _ _

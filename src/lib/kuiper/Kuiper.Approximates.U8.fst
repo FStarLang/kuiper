@@ -8,8 +8,6 @@ open Kuiper.Approximates.Base
 open FStar.Real
 open Kuiper.Math.Silly { mod_prod }
 
-#set-options "--z3rlimit 20 --retry 3"
-
 (* For the integer types, we can actually define the relation
 and prove it. BUT, we must consider overflow! So we make the relation
 weaker than you may expect. *)
@@ -20,7 +18,12 @@ instance real_like_u8 : real_like u8 = {
     exists (x' : int).
       r == Real.of_int x' /\ UInt8.v x == x' % 256);
 
-  to_real_ok = (fun x -> ());
+  to_real_ok = (fun x ->
+    let r = Real.of_int (UInt8.v x) in
+    let x' : int = UInt8.v x in
+    assert (UInt8.v x == x' % 256);
+    ()
+  );
 
   a0 = ();
   a1 = ();

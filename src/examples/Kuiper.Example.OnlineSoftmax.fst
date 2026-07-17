@@ -2,9 +2,8 @@ module Kuiper.Example.OnlineSoftmax
 
 #lang-pulse
 open Kuiper
-open Kuiper.Array1
-open Kuiper.Tensor.Layout { ctlayout }
-open Kuiper.Tensor.Layout.Alg { l1_forward }
+open Kuiper.Tensor
+open Kuiper.Tensor.Layout.Alg
 
 module OSMX = Kuiper.Kernel.OnlineSoftmax
 

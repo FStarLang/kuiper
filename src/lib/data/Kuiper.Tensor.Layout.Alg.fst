@@ -3,7 +3,7 @@ module Kuiper.Tensor.Layout.Alg
 (* Constructing tensor layouts algebraically. *)
 open Kuiper
 open Kuiper.Injection
-open Kuiper.Index
+open Kuiper.Shape
 open Kuiper.Chest
 open FStar.Tactics.Typeclasses { no_method }
 module SZ = Kuiper.SizeT
@@ -13,12 +13,11 @@ open Kuiper.Tensor.Layout
 let major_on (#n:nat)
   (i : natlt (n+1))
   (k : nat)
-  (#d : idesc n)
+  (#d : shape n)
   (sub : layout_f_for d)
   : layout_f_for (insert_i i k d)
   = {
     f = major_on_f i k sub;
-    is_inj = ez;
   }
 #pop-options
 
@@ -30,7 +29,7 @@ inline_for_extraction noextract
 instance csizeof_ICons
   (#n : erased nat)
   (d0 : SZ.t)
-  (d1 : idesc n)
+  (d1 : shape n)
   (c_d1 : csizeof d1)
   (#_ : squash (SZ.fits (d0 * c_d1.v)))
   : csizeof (ICons d0 d1) =
@@ -41,7 +40,7 @@ instance csizeof_insert_i
   (#n : erased nat)
   (i : erased nat{i < n+1})
   (k : sz)
-  (d : idesc n)
+  (d : shape n)
   (c_d : csizeof d)
   (#_ : squash (SZ.fits (k * c_d.v)))
   : csizeof (insert_i i k d)
@@ -58,7 +57,7 @@ let c_major_on_f
   (#n: erased nat)
   (i : szlt (n+1))
   (k : erased nat)
-  (#d : idesc n)
+  (#d : shape n)
   {| cs : csizeof d |}
   (#sub : layout_f_for d)
   (#_ : squash (SZ.fits (k * sizeof d)))
@@ -88,7 +87,7 @@ instance c_major_on
   (#n: erased nat)
   (i : szlt (n+1))
   (k : erased nat)
-  (#d : idesc n)
+  (#d : shape n)
   {| cs : csizeof d |}
   (#sub : layout_f_for d)
   (#_ : squash (SZ.fits (k * sizeof d)))
@@ -97,7 +96,7 @@ instance c_major_on
   { ff = c_major_on_f i k c_sub; }
 
 inline_for_extraction noextract
-instance c_pack (#n : erased nat) (#d: idesc n)
+instance c_pack (#n : erased nat) (#d: shape n)
   (#f : layout_f_for d) (c_f : auto_cinj f)
   (#_ : squash (SZ.fits (sizeof d)))
   (#_ : squash (all_fit d))
@@ -113,7 +112,7 @@ instance c_l1_forward (m : erased nat{SZ.fits m}) : T.ctlayout (l1_forward m) =
   {
     ulen_fits = ();
     all_fit = ();
-    cimap = (fun (idx : Kuiper.Index.conc (m @| INil)) ->
+    cimap = (fun (idx : Kuiper.Shape.conc (m @| INil)) ->
               match idx with
               | (i, ()) -> i);
   }
@@ -123,7 +122,7 @@ instance c_l2_row_major (m : erased nat{SZ.fits m}) (n : SZ.t{SZ.fits (m * n)}) 
   {
     ulen_fits = ();
     all_fit = ();
-    cimap = (fun (idx : Kuiper.Index.conc (m @| n @| INil)) ->
+    cimap = (fun (idx : Kuiper.Shape.conc (m @| n @| INil)) ->
               match idx with
               | (i, (j, ())) -> SZ.add (SZ.mul i n) j)
   }
@@ -138,7 +137,7 @@ instance c_l2_col_major (m : sz) (n : erased nat{SZ.fits n /\ SZ.fits (m * n)}) 
   {
     ulen_fits = ();
     all_fit = ();
-    cimap = (fun (idx : Kuiper.Index.conc (m @| n @| INil)) ->
+    cimap = (fun (idx : Kuiper.Shape.conc (m @| n @| INil)) ->
               match idx with
               | (i, (j, ())) -> SZ.add (SZ.mul j m) i)
   }
@@ -158,7 +157,7 @@ instance c_l3_batched_row_major
   {
     ulen_fits = ();
     all_fit = ();
-    cimap = (fun (idx : Kuiper.Index.conc (r @| m @| n @| INil)) ->
+    cimap = (fun (idx : Kuiper.Shape.conc (r @| m @| n @| INil)) ->
               match idx with
               | (i, (j, (k, ()))) ->
                 SZ.add (SZ.mul i (SZ.mul m n)) (SZ.add (SZ.mul j n) k))
@@ -175,9 +174,27 @@ instance c_l3_batched_col_major
   {
     ulen_fits = ();
     all_fit = ();
-    cimap = (fun (idx : Kuiper.Index.conc (r @| m @| n @| INil)) ->
+    cimap = (fun (idx : Kuiper.Shape.conc (r @| m @| n @| INil)) ->
               match idx with
               | (i, (j, (k, ()))) ->
                 SZ.add (SZ.mul i (SZ.mul m n)) (SZ.add (SZ.mul k m) j))
+  }
+#pop-options
+
+#push-options "--z3rlimit 80"
+inline_for_extraction noextract
+instance c_l4_batched_row_major
+  (r1: erased nat{SZ.fits r1})
+  (r2: SZ.t{SZ.fits (r1 * r2)})
+  (m : SZ.t{SZ.fits (r2 * m) /\ SZ.fits (r1 * (r2 * m))})
+  (n : SZ.t{SZ.fits (m * n) /\ SZ.fits (r2 * (m * n)) /\ SZ.fits (r1 * (r2 * (m * n)))})
+  : T.ctlayout (l4_batched_row_major r1 r2 m n) =
+  {
+    ulen_fits = ();
+    all_fit = ();
+    cimap = (fun (idx : Kuiper.Shape.conc (r1 @| r2 @| m @| n @| INil)) ->
+              match idx with
+              | (i, (j, (k, (l, ())))) ->
+                SZ.add (SZ.mul i (SZ.mul r2 (SZ.mul m n))) (SZ.add (SZ.mul j (SZ.mul m n)) (SZ.add (SZ.mul k n) l)))
   }
 #pop-options

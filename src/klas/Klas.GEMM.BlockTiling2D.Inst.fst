@@ -4,11 +4,10 @@ module Klas.GEMM.BlockTiling2D.Inst
 open Kuiper
 open Kuiper.Array.Vectorized { has_vec_cpy, chunk }
 open Kuiper.EMatrix
-open Kuiper.Array2 { array2 }
+open Kuiper.Tensor
 open Kuiper.Array2.Strided
 open Kuiper.Tensor.Layout.Alg { l2_row_major as rm, l2_col_major as cm }
 
-module M = Kuiper.Array2
 module MS = Kuiper.Spec.GEMM
 module K = Kuiper.Kernel.GEMM.BlockTiling2D
 module SZ = Kuiper.SizeT
@@ -28,35 +27,35 @@ fn spec
   (#_ : squash (chunk et * (bm/tm * (bn/tn)) /?+ (bm * bk)))
   (#_ : squash (chunk et * (bm/tm * (bn/tn)) /?+ (bk * bn)))
   (alpha beta : et)
-  (#rows #shared #cols : szp)
-  (gA : array2 et (rm rows shared) { M.is_global gA })
+  (#m #n #k : szp)
+  (gA : array2 et (rm m k) { is_global gA })
   (#fA : perm)
-  (gB : array2 et (rm shared cols) { M.is_global gB })
+  (gB : array2 et (rm k n) { is_global gB })
   (#fB : perm)
-  (gC : array2 et (rm rows cols) { M.is_global gC })
-  (#eA : ematrix et rows shared)
-  (#eB : ematrix et shared cols)
-  (#eC : ematrix et rows cols)
+  (gC : array2 et (rm m n) { is_global gC })
+  (#eA : chest2 et m k)
+  (#eB : chest2 et k n)
+  (#eC : chest2 et m n)
   norewrite
   preserves
     cpu **
     on gpu_loc (gA |-> Frac fA eA) **
     on gpu_loc (gB |-> Frac fB eB)
   requires
-    pure (aligned 16 (M.core gA)) **
-    pure (aligned 16 (M.core gB)) **
-    pure (rows * cols <= max_blocks) **
+    pure (aligned 16 (core gA)) **
+    pure (aligned 16 (core gB)) **
+    pure (m * n <= max_blocks) **
     on gpu_loc (gC |-> eC)
   ensures
     on gpu_loc (gC |-> MS.gemm alpha beta eC eA eB)
 {
-  M.pts_to_ref_located gA;
-  M.pts_to_ref_located gB;
-  M.pts_to_ref_located gC;
+  tensor_pts_to_ref_located gA;
+  tensor_pts_to_ref_located gB;
+  tensor_pts_to_ref_located gC;
 
   // TODO: add dynamic assert for this.
-    // pure (aligned 16 (M.core gA)) **
-    // pure (aligned 16 (M.core gB)) **
+    // pure (aligned 16 (core gA)) **
+    // pure (aligned 16 (core gB)) **
 
   dassert (bm >^ 0sz);
   dassert (bn >^ 0sz);
@@ -64,32 +63,32 @@ fn spec
   dassert (tm >^ 0sz);
   dassert (bm %^ tm = 0sz);
   dassert (bn %^ tn = 0sz);
-  dguard (rows   %^ bm = 0sz);
-  dguard (shared %^ bk = 0sz);
-  dguard (cols   %^ bn = 0sz);
-  let mrows   = rows   /^ bm;
-  let mshared = shared /^ bk;
-  let mcols   = cols   /^ bn;
+  dguard (m   %^ bm = 0sz);
+  dguard (k %^ bk = 0sz);
+  dguard (n   %^ bn = 0sz);
+  let mrows   = m /^ bm;
+  let mshared = k /^ bk;
+  let mcols   = n /^ bn;
 
-  lemma_divides_trans (chunk et) bk shared;
-  assert pure (chunk et /?+ shared);
-  lemma_aligned_strided_row_major_l2_row_major #(SZ.v rows) #(SZ.v shared) (chunk et);
+  lemma_divides_trans (chunk et) bk k;
+  assert pure (chunk et /?+ k);
+  lemma_aligned_strided_row_major_l2_row_major #(SZ.v m) #(SZ.v k) (chunk et);
 
-  lemma_divides_trans (chunk et) bn cols;
-  assert pure (chunk et /?+ cols);
-  lemma_aligned_strided_row_major_l2_row_major #(SZ.v shared) #(SZ.v cols) (chunk et);
+  lemma_divides_trans (chunk et) bn n;
+  assert pure (chunk et /?+ n);
+  lemma_aligned_strided_row_major_l2_row_major #(SZ.v k) #(SZ.v n) (chunk et);
 
   assert pure (SZ.fits (bm * bk));
   assert pure (SZ.fits (bk * bn));
 
-  assert pure (rows / bm <= rows);
-  assert pure (cols / bn <= cols);
-  assert pure ((rows / bm) * (cols / bn) <= rows * cols);
-  assert pure ((rows / bm) * (cols / bn) <= max_blocks);
+  assert pure (m / bm <= m);
+  assert pure (n / bn <= n);
+  assert pure ((m / bm) * (n / bn) <= m * n);
+  assert pure ((m / bm) * (n / bn) <= max_blocks);
 
   K.mmcomb_gpu_exact
     (fun o n -> mul beta o `add` mul alpha n)
-    #rows #shared #cols
+    #m #n #k
     gA #eA gB #eB gC #eC
     bm bn bk
     tm tn

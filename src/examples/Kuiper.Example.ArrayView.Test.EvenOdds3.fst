@@ -26,7 +26,6 @@ let strided_view et (len : nat) (stride : nat) (offset : natlt stride) :
     step = {
       imap = {
         f = (fun (i : natlt ((len + stride - 1 - offset) / stride)) -> i * stride + offset <: natlt len);
-        is_inj = ez;
       };
     };
   };
@@ -51,7 +50,6 @@ instance _cview_strided
   step = {
     cimap = mk_cinj
       (fun (i : szlt ((len + stride - 1 - offset) / stride)) -> i `SZ.mul` stride `SZ.add` offset <: szlt len);
-    compat = ez;
   };
 }
 #pop-options
@@ -101,7 +99,7 @@ fn foo_odd (a : varray (odd_view u32 100))
 
 let vw = sum_aview (even_view u32 100) (odd_view u32 100)
 
-fn test (a : gpu_array u32 100)
+fn test (a : larray u32 100)
   (#v0 : erased (lseq u32 100))
   preserves gpu
   requires a |-> v0
@@ -123,10 +121,9 @@ fn test (a : gpu_array u32 100)
 
   varray_concr va;
 
-  with v l. rewrite
-    gpu_pts_to_slice (core va) 0 l v
-  as
-    gpu_pts_to_slice a 0 100 v0;
+  with v.
+    rewrite core va |-> v
+        as a |-> v0;
 
   res
 }
@@ -146,7 +143,6 @@ let it_of_nat_lem_1 (#len:nat) (i : natlt len) :
     ()
 #pop-options
 
-#restart-solver // work around Z3 crash
 let it_of_nat_lem (#len:nat) (i : natlt len)
   : Lemma (it_to_nat (sum_aview (even_view u32 len) (odd_view u32 len)) (__it_of_nat #len i) == i)
           [SMTPat (it_of_nat (sum_aview (even_view u32 len) (odd_view u32 len)) i)]
@@ -215,7 +211,7 @@ let split_lemma #et (#len:nat) (s : lseq et len)
             s)
 
 #push-options "--z3rlimit 40"
-fn test_write (a : gpu_array u32 100)
+fn test_write (a : larray u32 100)
     (#v0 : erased (lseq u32 100))
     preserves gpu
     requires a |-> v0
@@ -240,11 +236,14 @@ fn test_write (a : gpu_array u32 100)
 
   varray_concr va;
 
-  with l1 v1. assert gpu_pts_to_slice (core va) 0 l1 v1;
+  with l1 v1. assert pts_to_slice (core va) 0 l1 v1;
   with vret. assert pure (vret == Seq.upd (Seq.upd v0 20 42ul) 41 43ul);
   assert pure (v1 `Seq.equal` vret);
+
+  slice_to_array (core va);
+
   rewrite
-    gpu_pts_to_slice (core va) 0 l1 v1
+    pts_to (core va) v1
   as
     a |-> Seq.upd (Seq.upd v0 20 42ul) 41 43ul;
 }

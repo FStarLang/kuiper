@@ -5,395 +5,807 @@ __global__
 /**
   hoisted when extracting softmax_gpu_n_f16
 */
-static void __hoisted_0(uint32_t nth, uint32_t lena, half *a, half *out)
+static void __hoisted_softmax_gpu_n_f16_0(uint32_t lena, half *a_, half *maxs,
+                                          uint32_t nthm)
 {
     half *sa = (half *) KPR_SHMEM_AT(0U);
-    half acc = __float2half_rn(0.0f);
-    uint32_t idx = threadIdx.x;
-    for (; idx < lena; idx += nth) {
-        half v_ = hexp(a[idx]);
-        acc = __hadd(acc, v_);
-    }
+    half acc = a_[threadIdx.x];
+    uint32_t idx = threadIdx.x + nthm;
+    for (; idx < lena; idx += nthm)
+        acc = kpr_hfmax(acc, a_[idx]);
     sa[threadIdx.x] = acc;
     uint32_t n = 0U;
-    for (; 1U << (uint32_t) n < nth; n++) {
-        uint32_t __anf01 = n;
+    for (; 1U << (uint32_t) n < nthm; n++) {
+        uint32_t __anf02 = n;
         __syncthreads();
-        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf01);
-        if (nextid < nth)
-            if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (__anf01 + 1U)) -
+        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf02);
+        if (nextid < nthm)
+            if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (__anf02 + 1U)) -
                  1U) == 0U)
-                sa[threadIdx.x] = __hadd(sa[threadIdx.x], sa[nextid]);
+                sa[threadIdx.x] = kpr_hfmax(sa[threadIdx.x], sa[nextid]);
     }
     if (threadIdx.x == 0U)
-        *out = *sa;
+        maxs[blockIdx.x] = *sa;
 }
 
 __global__
 /**
   hoisted when extracting softmax_gpu_n_f16
 */
-static void __hoisted_1(uint32_t lena, half *a, half sum)
+static void __hoisted_softmax_gpu_n_f16_1(uint32_t lena, half *a_, half *maxs)
 {
-    if (1024U * blockIdx.x + threadIdx.x < lena)
-        a[1024U * blockIdx.x + threadIdx.x] =
-            __hdiv(hexp(a[1024U * blockIdx.x + threadIdx.x]), sum);
+    if (1024U * blockIdx.x + threadIdx.x < lena) {
+        uint32_t col = (1024U * blockIdx.x + threadIdx.x) % lena;
+        uint32_t ni = col;
+        a_[ni] =
+            __hsub(a_[col], maxs[(1024U * blockIdx.x + threadIdx.x) / lena]);
+    }
+}
+
+__global__
+/**
+  hoisted when extracting softmax_gpu_n_f16
+*/
+static void __hoisted_softmax_gpu_n_f16_2(uint32_t nth, uint32_t lena, half *a_,
+                                          half *sums)
+{
+    half *sa = (half *) KPR_SHMEM_AT(0U);
+    half acc = __float2half_rn(0.0f);
+    uint32_t idx = threadIdx.x;
+    for (; idx < lena; idx += nth) {
+        half v_ = hexp(a_[idx]);
+        acc = __hadd(acc, v_);
+    }
+    sa[threadIdx.x] = acc;
+    uint32_t n = 0U;
+    for (; 1U << (uint32_t) n < nth; n++) {
+        uint32_t __anf02 = n;
+        __syncthreads();
+        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf02);
+        if (nextid < nth)
+            if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (__anf02 + 1U)) -
+                 1U) == 0U)
+                sa[threadIdx.x] = __hadd(sa[threadIdx.x], sa[nextid]);
+    }
+    if (threadIdx.x == 0U)
+        sums[blockIdx.x] = *sa;
+}
+
+__global__
+/**
+  hoisted when extracting softmax_gpu_n_f16
+*/
+static void __hoisted_softmax_gpu_n_f16_3(uint32_t lena, half *a_, half *sums)
+{
+    if (1024U * blockIdx.x + threadIdx.x < lena) {
+        uint32_t col = (1024U * blockIdx.x + threadIdx.x) % lena;
+        half va1 = sums[(1024U * blockIdx.x + threadIdx.x) / lena];
+        uint32_t ni = col;
+        a_[ni] = __hdiv(hexp(a_[col]), va1);
+    }
 }
 
 void Klas_Softmax_softmax_gpu_n_f16(uint32_t nth, uint32_t lena, half *a)
 {
-    half *out = (half *) KPR_GPU_ALLOC(2U, 1U);
-    KPR_SHMEM_FITS(2U * nth);
-    MUST(cudaFuncSetAttribute
-         (__hoisted_0, cudaFuncAttributeMaxDynamicSharedMemorySize, 2U * nth));
-    KPR_KCALL(__hoisted_0, 1U, nth, 2U * nth, nth, lena, a, out);
+    half *a_ = a;
+    half *maxs = (half *) KPR_GPU_ALLOC(sizeof(half), 1U);
+    half *sums = (half *) KPR_GPU_ALLOC(sizeof(half), 1U);
+    uint32_t nthm = nth <= lena ? nth : lena;
+    KPR_SHMEM_FITS(2U * nthm);
+    MUST(cudaFuncSetAttribute(__hoisted_softmax_gpu_n_f16_0,
+                              cudaFuncAttributeMaxDynamicSharedMemorySize,
+                              2U * nthm));
+    KPR_KCALL(__hoisted_softmax_gpu_n_f16_0, 1U, nthm, 2U * nthm, lena, a_,
+              maxs, nthm);
     MUST(cudaDeviceSynchronize());
-    half hout = __float2half_rn(0.0f);
-    MUST(cudaMemcpy(&hout, out, 2U, cudaMemcpyDeviceToHost));
-    MUST(cudaFree(out));
-    KPR_KCALL(__hoisted_1,
+    KPR_KCALL(__hoisted_softmax_gpu_n_f16_1,
               lena / 1024U + (uint32_t) (lena % 1024U != 0U),
-              1024U, 0U, lena, a, hout);
+              1024U, 0U, lena, a_, maxs);
     MUST(cudaDeviceSynchronize());
+    KPR_SHMEM_FITS(2U * nth);
+    MUST(cudaFuncSetAttribute(__hoisted_softmax_gpu_n_f16_2,
+                              cudaFuncAttributeMaxDynamicSharedMemorySize,
+                              2U * nth));
+    KPR_KCALL(__hoisted_softmax_gpu_n_f16_2, 1U, nth, 2U * nth, nth, lena, a_,
+              sums);
+    MUST(cudaDeviceSynchronize());
+    KPR_KCALL(__hoisted_softmax_gpu_n_f16_3,
+              lena / 1024U + (uint32_t) (lena % 1024U != 0U),
+              1024U, 0U, lena, a_, sums);
+    MUST(cudaDeviceSynchronize());
+    MUST(cudaFree(sums));
+    MUST(cudaFree(maxs));
 }
 
 __global__
 /**
   hoisted when extracting softmax_gpu_n_f32
 */
-static void __hoisted_2(uint32_t nth, uint32_t lena, float *a, float *out)
+static void __hoisted_softmax_gpu_n_f32_0(uint32_t lena, float *a_, float *maxs,
+                                          uint32_t nthm)
+{
+    float *sa = (float *)KPR_SHMEM_AT(0U);
+    float acc = a_[threadIdx.x];
+    uint32_t idx = threadIdx.x + nthm;
+    for (; idx < lena; idx += nthm)
+        acc = fmaxf(acc, a_[idx]);
+    sa[threadIdx.x] = acc;
+    uint32_t n = 0U;
+    for (; 1U << (uint32_t) n < nthm; n++) {
+        uint32_t __anf02 = n;
+        __syncthreads();
+        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf02);
+        if (nextid < nthm)
+            if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (__anf02 + 1U)) -
+                 1U) == 0U)
+                sa[threadIdx.x] = fmaxf(sa[threadIdx.x], sa[nextid]);
+    }
+    if (threadIdx.x == 0U)
+        maxs[blockIdx.x] = *sa;
+}
+
+__global__
+/**
+  hoisted when extracting softmax_gpu_n_f32
+*/
+static void __hoisted_softmax_gpu_n_f32_1(uint32_t lena, float *a_, float *maxs)
+{
+    if (1024U * blockIdx.x + threadIdx.x < lena) {
+        uint32_t col = (1024U * blockIdx.x + threadIdx.x) % lena;
+        a_[col] -= maxs[(1024U * blockIdx.x + threadIdx.x) / lena];
+    }
+}
+
+__global__
+/**
+  hoisted when extracting softmax_gpu_n_f32
+*/
+static void __hoisted_softmax_gpu_n_f32_2(uint32_t nth, uint32_t lena,
+                                          float *a_, float *sums)
 {
     float *sa = (float *)KPR_SHMEM_AT(0U);
     float acc = 0.0f;
     uint32_t idx = threadIdx.x;
     for (; idx < lena; idx += nth) {
-        float v_ = expf(a[idx]);
+        float v_ = expf(a_[idx]);
         acc += v_;
     }
     sa[threadIdx.x] = acc;
     uint32_t n = 0U;
     for (; 1U << (uint32_t) n < nth; n++) {
-        uint32_t __anf01 = n;
+        uint32_t __anf02 = n;
         __syncthreads();
-        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf01);
+        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf02);
         if (nextid < nth)
-            if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (__anf01 + 1U)) -
+            if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (__anf02 + 1U)) -
                  1U) == 0U)
                 sa[threadIdx.x] += sa[nextid];
     }
     if (threadIdx.x == 0U)
-        *out = *sa;
+        sums[blockIdx.x] = *sa;
 }
 
 __global__
 /**
   hoisted when extracting softmax_gpu_n_f32
 */
-static void __hoisted_3(uint32_t lena, float *a, float sum)
+static void __hoisted_softmax_gpu_n_f32_3(uint32_t lena, float *a_, float *sums)
 {
-    if (1024U * blockIdx.x + threadIdx.x < lena)
-        a[1024U * blockIdx.x + threadIdx.x] =
-            expf(a[1024U * blockIdx.x + threadIdx.x]) / sum;
+    if (1024U * blockIdx.x + threadIdx.x < lena) {
+        uint32_t col = (1024U * blockIdx.x + threadIdx.x) % lena;
+        float va1 = sums[(1024U * blockIdx.x + threadIdx.x) / lena];
+        uint32_t ni = col;
+        a_[ni] = expf(a_[col]) / va1;
+    }
 }
 
 void Klas_Softmax_softmax_gpu_n_f32(uint32_t nth, uint32_t lena, float *a)
 {
-    float *out = (float *)KPR_GPU_ALLOC(4U, 1U);
-    KPR_SHMEM_FITS(4U * nth);
-    MUST(cudaFuncSetAttribute
-         (__hoisted_2, cudaFuncAttributeMaxDynamicSharedMemorySize, 4U * nth));
-    KPR_KCALL(__hoisted_2, 1U, nth, 4U * nth, nth, lena, a, out);
+    float *a_ = a;
+    float *maxs = (float *)KPR_GPU_ALLOC(sizeof(float), 1U);
+    float *sums = (float *)KPR_GPU_ALLOC(sizeof(float), 1U);
+    uint32_t nthm = nth <= lena ? nth : lena;
+    KPR_SHMEM_FITS(4U * nthm);
+    MUST(cudaFuncSetAttribute(__hoisted_softmax_gpu_n_f32_0,
+                              cudaFuncAttributeMaxDynamicSharedMemorySize,
+                              4U * nthm));
+    KPR_KCALL(__hoisted_softmax_gpu_n_f32_0, 1U, nthm, 4U * nthm, lena, a_,
+              maxs, nthm);
     MUST(cudaDeviceSynchronize());
-    float hout = 0.0f;
-    MUST(cudaMemcpy(&hout, out, 4U, cudaMemcpyDeviceToHost));
-    MUST(cudaFree(out));
-    KPR_KCALL(__hoisted_3,
+    KPR_KCALL(__hoisted_softmax_gpu_n_f32_1,
               lena / 1024U + (uint32_t) (lena % 1024U != 0U),
-              1024U, 0U, lena, a, hout);
+              1024U, 0U, lena, a_, maxs);
     MUST(cudaDeviceSynchronize());
+    KPR_SHMEM_FITS(4U * nth);
+    MUST(cudaFuncSetAttribute(__hoisted_softmax_gpu_n_f32_2,
+                              cudaFuncAttributeMaxDynamicSharedMemorySize,
+                              4U * nth));
+    KPR_KCALL(__hoisted_softmax_gpu_n_f32_2, 1U, nth, 4U * nth, nth, lena, a_,
+              sums);
+    MUST(cudaDeviceSynchronize());
+    KPR_KCALL(__hoisted_softmax_gpu_n_f32_3,
+              lena / 1024U + (uint32_t) (lena % 1024U != 0U),
+              1024U, 0U, lena, a_, sums);
+    MUST(cudaDeviceSynchronize());
+    MUST(cudaFree(sums));
+    MUST(cudaFree(maxs));
 }
 
 __global__
 /**
   hoisted when extracting softmax_gpu_n_f64
 */
-static void __hoisted_4(uint32_t nth, uint32_t lena, double *a, double *out)
+static void
+__hoisted_softmax_gpu_n_f64_0(uint32_t lena, double *a_, double *maxs,
+                              uint32_t nthm)
 {
     double *sa = (double *)KPR_SHMEM_AT(0U);
-    double acc = 0.0l;
+    double acc = a_[threadIdx.x];
+    uint32_t idx = threadIdx.x + nthm;
+    for (; idx < lena; idx += nthm)
+        acc = fmax(acc, a_[idx]);
+    sa[threadIdx.x] = acc;
+    uint32_t n = 0U;
+    for (; 1U << (uint32_t) n < nthm; n++) {
+        uint32_t __anf02 = n;
+        __syncthreads();
+        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf02);
+        if (nextid < nthm)
+            if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (__anf02 + 1U)) -
+                 1U) == 0U)
+                sa[threadIdx.x] = fmax(sa[threadIdx.x], sa[nextid]);
+    }
+    if (threadIdx.x == 0U)
+        maxs[blockIdx.x] = *sa;
+}
+
+__global__
+/**
+  hoisted when extracting softmax_gpu_n_f64
+*/
+static void __hoisted_softmax_gpu_n_f64_1(uint32_t lena, double *a_,
+                                          double *maxs)
+{
+    if (1024U * blockIdx.x + threadIdx.x < lena) {
+        uint32_t col = (1024U * blockIdx.x + threadIdx.x) % lena;
+        a_[col] -= maxs[(1024U * blockIdx.x + threadIdx.x) / lena];
+    }
+}
+
+__global__
+/**
+  hoisted when extracting softmax_gpu_n_f64
+*/
+static void
+__hoisted_softmax_gpu_n_f64_2(uint32_t nth, uint32_t lena, double *a_,
+                              double *sums)
+{
+    double *sa = (double *)KPR_SHMEM_AT(0U);
+    double acc = 0.0;
     uint32_t idx = threadIdx.x;
     for (; idx < lena; idx += nth) {
-        double v_ = exp(a[idx]);
+        double v_ = exp(a_[idx]);
         acc += v_;
     }
     sa[threadIdx.x] = acc;
     uint32_t n = 0U;
     for (; 1U << (uint32_t) n < nth; n++) {
-        uint32_t __anf01 = n;
+        uint32_t __anf02 = n;
         __syncthreads();
-        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf01);
+        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf02);
         if (nextid < nth)
-            if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (__anf01 + 1U)) -
+            if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (__anf02 + 1U)) -
                  1U) == 0U)
                 sa[threadIdx.x] += sa[nextid];
     }
     if (threadIdx.x == 0U)
-        *out = *sa;
+        sums[blockIdx.x] = *sa;
 }
 
 __global__
 /**
   hoisted when extracting softmax_gpu_n_f64
 */
-static void __hoisted_5(uint32_t lena, double *a, double sum)
+static void __hoisted_softmax_gpu_n_f64_3(uint32_t lena, double *a_,
+                                          double *sums)
 {
-    if (1024U * blockIdx.x + threadIdx.x < lena)
-        a[1024U * blockIdx.x + threadIdx.x] =
-            exp(a[1024U * blockIdx.x + threadIdx.x]) / sum;
+    if (1024U * blockIdx.x + threadIdx.x < lena) {
+        uint32_t col = (1024U * blockIdx.x + threadIdx.x) % lena;
+        double va1 = sums[(1024U * blockIdx.x + threadIdx.x) / lena];
+        uint32_t ni = col;
+        a_[ni] = exp(a_[col]) / va1;
+    }
 }
 
 void Klas_Softmax_softmax_gpu_n_f64(uint32_t nth, uint32_t lena, double *a)
 {
-    double *out = (double *)KPR_GPU_ALLOC(8U, 1U);
-    KPR_SHMEM_FITS(8U * nth);
-    MUST(cudaFuncSetAttribute
-         (__hoisted_4, cudaFuncAttributeMaxDynamicSharedMemorySize, 8U * nth));
-    KPR_KCALL(__hoisted_4, 1U, nth, 8U * nth, nth, lena, a, out);
+    double *a_ = a;
+    double *maxs = (double *)KPR_GPU_ALLOC(sizeof(double), 1U);
+    double *sums = (double *)KPR_GPU_ALLOC(sizeof(double), 1U);
+    uint32_t nthm = nth <= lena ? nth : lena;
+    KPR_SHMEM_FITS(8U * nthm);
+    MUST(cudaFuncSetAttribute(__hoisted_softmax_gpu_n_f64_0,
+                              cudaFuncAttributeMaxDynamicSharedMemorySize,
+                              8U * nthm));
+    KPR_KCALL(__hoisted_softmax_gpu_n_f64_0, 1U, nthm, 8U * nthm, lena, a_,
+              maxs, nthm);
     MUST(cudaDeviceSynchronize());
-    double hout = 0.0l;
-    MUST(cudaMemcpy(&hout, out, 8U, cudaMemcpyDeviceToHost));
-    MUST(cudaFree(out));
-    KPR_KCALL(__hoisted_5,
+    KPR_KCALL(__hoisted_softmax_gpu_n_f64_1,
               lena / 1024U + (uint32_t) (lena % 1024U != 0U),
-              1024U, 0U, lena, a, hout);
+              1024U, 0U, lena, a_, maxs);
     MUST(cudaDeviceSynchronize());
+    KPR_SHMEM_FITS(8U * nth);
+    MUST(cudaFuncSetAttribute(__hoisted_softmax_gpu_n_f64_2,
+                              cudaFuncAttributeMaxDynamicSharedMemorySize,
+                              8U * nth));
+    KPR_KCALL(__hoisted_softmax_gpu_n_f64_2, 1U, nth, 8U * nth, nth, lena, a_,
+              sums);
+    MUST(cudaDeviceSynchronize());
+    KPR_KCALL(__hoisted_softmax_gpu_n_f64_3,
+              lena / 1024U + (uint32_t) (lena % 1024U != 0U),
+              1024U, 0U, lena, a_, sums);
+    MUST(cudaDeviceSynchronize());
+    MUST(cudaFree(sums));
+    MUST(cudaFree(maxs));
 }
 
 __global__
 /**
   hoisted when extracting softmax_gpu_f16
 */
-static void __hoisted_6(uint32_t lena, half *a, half *out)
+static void __hoisted_softmax_gpu_f16_0(uint32_t lena, half *a_, half *maxs,
+                                        uint32_t nthm)
+{
+    half *sa = (half *) KPR_SHMEM_AT(0U);
+    half acc = a_[threadIdx.x];
+    uint32_t idx = threadIdx.x + nthm;
+    for (; idx < lena; idx += nthm)
+        acc = kpr_hfmax(acc, a_[idx]);
+    sa[threadIdx.x] = acc;
+    uint32_t n = 0U;
+    for (; 1U << (uint32_t) n < nthm; n++) {
+        uint32_t __anf02 = n;
+        __syncthreads();
+        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf02);
+        if (nextid < nthm)
+            if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (__anf02 + 1U)) -
+                 1U) == 0U)
+                sa[threadIdx.x] = kpr_hfmax(sa[threadIdx.x], sa[nextid]);
+    }
+    if (threadIdx.x == 0U)
+        maxs[blockIdx.x] = *sa;
+}
+
+__global__
+/**
+  hoisted when extracting softmax_gpu_f16
+*/
+static void __hoisted_softmax_gpu_f16_1(uint32_t lena, half *a_, half *maxs)
+{
+    if (1024U * blockIdx.x + threadIdx.x < lena) {
+        uint32_t col = (1024U * blockIdx.x + threadIdx.x) % lena;
+        uint32_t ni = col;
+        a_[ni] =
+            __hsub(a_[col], maxs[(1024U * blockIdx.x + threadIdx.x) / lena]);
+    }
+}
+
+__global__
+/**
+  hoisted when extracting softmax_gpu_f16
+*/
+static void __hoisted_softmax_gpu_f16_2(uint32_t lena, half *a_, half *sums)
 {
     half *sa = (half *) KPR_SHMEM_AT(0U);
     half acc = __float2half_rn(0.0f);
     uint32_t idx = threadIdx.x;
     for (; idx < lena; idx += 1024U) {
-        half v_ = hexp(a[idx]);
+        half v_ = hexp(a_[idx]);
         acc = __hadd(acc, v_);
     }
     sa[threadIdx.x] = acc;
     uint32_t n = 0U;
     for (; 1U << (uint32_t) n < 1024U; n++) {
-        uint32_t __anf01 = n;
+        uint32_t __anf02 = n;
         __syncthreads();
-        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf01);
+        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf02);
         if (nextid < 1024U)
-            if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (__anf01 + 1U)) -
+            if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (__anf02 + 1U)) -
                  1U) == 0U)
                 sa[threadIdx.x] = __hadd(sa[threadIdx.x], sa[nextid]);
     }
     if (threadIdx.x == 0U)
-        *out = *sa;
+        sums[blockIdx.x] = *sa;
 }
 
 __global__
 /**
   hoisted when extracting softmax_gpu_f16
 */
-static void __hoisted_7(uint32_t lena, half *a, half sum)
+static void __hoisted_softmax_gpu_f16_3(uint32_t lena, half *a_, half *sums)
 {
-    if (1024U * blockIdx.x + threadIdx.x < lena)
-        a[1024U * blockIdx.x + threadIdx.x] =
-            __hdiv(hexp(a[1024U * blockIdx.x + threadIdx.x]), sum);
+    if (1024U * blockIdx.x + threadIdx.x < lena) {
+        uint32_t col = (1024U * blockIdx.x + threadIdx.x) % lena;
+        half va1 = sums[(1024U * blockIdx.x + threadIdx.x) / lena];
+        uint32_t ni = col;
+        a_[ni] = __hdiv(hexp(a_[col]), va1);
+    }
 }
 
 void Klas_Softmax_softmax_gpu_f16(uint32_t lena, half *a)
 {
-    half *out = (half *) KPR_GPU_ALLOC(2U, 1U);
-    KPR_SHMEM_FITS(2048U);
-    MUST(cudaFuncSetAttribute
-         (__hoisted_6, cudaFuncAttributeMaxDynamicSharedMemorySize, 2048U));
-    KPR_KCALL(__hoisted_6, 1U, 1024U, 2048U, lena, a, out);
+    half *a_ = a;
+    half *maxs = (half *) KPR_GPU_ALLOC(sizeof(half), 1U);
+    half *sums = (half *) KPR_GPU_ALLOC(sizeof(half), 1U);
+    uint32_t nthm = 1024U <= lena ? 1024U : lena;
+    KPR_SHMEM_FITS(2U * nthm);
+    MUST(cudaFuncSetAttribute(__hoisted_softmax_gpu_f16_0,
+                              cudaFuncAttributeMaxDynamicSharedMemorySize,
+                              2U * nthm));
+    KPR_KCALL(__hoisted_softmax_gpu_f16_0, 1U, nthm, 2U * nthm, lena, a_, maxs,
+              nthm);
     MUST(cudaDeviceSynchronize());
-    half hout = __float2half_rn(0.0f);
-    MUST(cudaMemcpy(&hout, out, 2U, cudaMemcpyDeviceToHost));
-    MUST(cudaFree(out));
-    KPR_KCALL(__hoisted_7,
+    KPR_KCALL(__hoisted_softmax_gpu_f16_1,
               lena / 1024U + (uint32_t) (lena % 1024U != 0U),
-              1024U, 0U, lena, a, hout);
+              1024U, 0U, lena, a_, maxs);
     MUST(cudaDeviceSynchronize());
+    KPR_SHMEM_FITS(2048U);
+    MUST(cudaFuncSetAttribute(__hoisted_softmax_gpu_f16_2,
+                              cudaFuncAttributeMaxDynamicSharedMemorySize,
+                              2048U));
+    KPR_KCALL(__hoisted_softmax_gpu_f16_2, 1U, 1024U, 2048U, lena, a_, sums);
+    MUST(cudaDeviceSynchronize());
+    KPR_KCALL(__hoisted_softmax_gpu_f16_3,
+              lena / 1024U + (uint32_t) (lena % 1024U != 0U),
+              1024U, 0U, lena, a_, sums);
+    MUST(cudaDeviceSynchronize());
+    MUST(cudaFree(sums));
+    MUST(cudaFree(maxs));
 }
 
 __global__
 /**
   hoisted when extracting softmax_gpu_f32
 */
-static void __hoisted_8(uint32_t lena, float *a, float *out)
+static void __hoisted_softmax_gpu_f32_0(uint32_t lena, float *a_, float *maxs,
+                                        uint32_t nthm)
+{
+    float *sa = (float *)KPR_SHMEM_AT(0U);
+    float acc = a_[threadIdx.x];
+    uint32_t idx = threadIdx.x + nthm;
+    for (; idx < lena; idx += nthm)
+        acc = fmaxf(acc, a_[idx]);
+    sa[threadIdx.x] = acc;
+    uint32_t n = 0U;
+    for (; 1U << (uint32_t) n < nthm; n++) {
+        uint32_t __anf02 = n;
+        __syncthreads();
+        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf02);
+        if (nextid < nthm)
+            if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (__anf02 + 1U)) -
+                 1U) == 0U)
+                sa[threadIdx.x] = fmaxf(sa[threadIdx.x], sa[nextid]);
+    }
+    if (threadIdx.x == 0U)
+        maxs[blockIdx.x] = *sa;
+}
+
+__global__
+/**
+  hoisted when extracting softmax_gpu_f32
+*/
+static void __hoisted_softmax_gpu_f32_1(uint32_t lena, float *a_, float *maxs)
+{
+    if (1024U * blockIdx.x + threadIdx.x < lena) {
+        uint32_t col = (1024U * blockIdx.x + threadIdx.x) % lena;
+        a_[col] -= maxs[(1024U * blockIdx.x + threadIdx.x) / lena];
+    }
+}
+
+__global__
+/**
+  hoisted when extracting softmax_gpu_f32
+*/
+static void __hoisted_softmax_gpu_f32_2(uint32_t lena, float *a_, float *sums)
 {
     float *sa = (float *)KPR_SHMEM_AT(0U);
     float acc = 0.0f;
     uint32_t idx = threadIdx.x;
     for (; idx < lena; idx += 1024U) {
-        float v_ = expf(a[idx]);
+        float v_ = expf(a_[idx]);
         acc += v_;
     }
     sa[threadIdx.x] = acc;
     uint32_t n = 0U;
     for (; 1U << (uint32_t) n < 1024U; n++) {
-        uint32_t __anf01 = n;
+        uint32_t __anf02 = n;
         __syncthreads();
-        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf01);
+        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf02);
         if (nextid < 1024U)
-            if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (__anf01 + 1U)) -
+            if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (__anf02 + 1U)) -
                  1U) == 0U)
                 sa[threadIdx.x] += sa[nextid];
     }
     if (threadIdx.x == 0U)
-        *out = *sa;
+        sums[blockIdx.x] = *sa;
 }
 
 __global__
 /**
   hoisted when extracting softmax_gpu_f32
 */
-static void __hoisted_9(uint32_t lena, float *a, float sum)
+static void __hoisted_softmax_gpu_f32_3(uint32_t lena, float *a_, float *sums)
 {
-    if (1024U * blockIdx.x + threadIdx.x < lena)
-        a[1024U * blockIdx.x + threadIdx.x] =
-            expf(a[1024U * blockIdx.x + threadIdx.x]) / sum;
+    if (1024U * blockIdx.x + threadIdx.x < lena) {
+        uint32_t col = (1024U * blockIdx.x + threadIdx.x) % lena;
+        float va1 = sums[(1024U * blockIdx.x + threadIdx.x) / lena];
+        uint32_t ni = col;
+        a_[ni] = expf(a_[col]) / va1;
+    }
 }
 
 void Klas_Softmax_softmax_gpu_f32(uint32_t lena, float *a)
 {
-    float *out = (float *)KPR_GPU_ALLOC(4U, 1U);
-    KPR_SHMEM_FITS(4096U);
-    MUST(cudaFuncSetAttribute
-         (__hoisted_8, cudaFuncAttributeMaxDynamicSharedMemorySize, 4096U));
-    KPR_KCALL(__hoisted_8, 1U, 1024U, 4096U, lena, a, out);
+    float *a_ = a;
+    float *maxs = (float *)KPR_GPU_ALLOC(sizeof(float), 1U);
+    float *sums = (float *)KPR_GPU_ALLOC(sizeof(float), 1U);
+    uint32_t nthm = 1024U <= lena ? 1024U : lena;
+    KPR_SHMEM_FITS(4U * nthm);
+    MUST(cudaFuncSetAttribute(__hoisted_softmax_gpu_f32_0,
+                              cudaFuncAttributeMaxDynamicSharedMemorySize,
+                              4U * nthm));
+    KPR_KCALL(__hoisted_softmax_gpu_f32_0, 1U, nthm, 4U * nthm, lena, a_, maxs,
+              nthm);
     MUST(cudaDeviceSynchronize());
-    float hout = 0.0f;
-    MUST(cudaMemcpy(&hout, out, 4U, cudaMemcpyDeviceToHost));
-    MUST(cudaFree(out));
-    KPR_KCALL(__hoisted_9,
+    KPR_KCALL(__hoisted_softmax_gpu_f32_1,
               lena / 1024U + (uint32_t) (lena % 1024U != 0U),
-              1024U, 0U, lena, a, hout);
+              1024U, 0U, lena, a_, maxs);
     MUST(cudaDeviceSynchronize());
+    KPR_SHMEM_FITS(4096U);
+    MUST(cudaFuncSetAttribute(__hoisted_softmax_gpu_f32_2,
+                              cudaFuncAttributeMaxDynamicSharedMemorySize,
+                              4096U));
+    KPR_KCALL(__hoisted_softmax_gpu_f32_2, 1U, 1024U, 4096U, lena, a_, sums);
+    MUST(cudaDeviceSynchronize());
+    KPR_KCALL(__hoisted_softmax_gpu_f32_3,
+              lena / 1024U + (uint32_t) (lena % 1024U != 0U),
+              1024U, 0U, lena, a_, sums);
+    MUST(cudaDeviceSynchronize());
+    MUST(cudaFree(sums));
+    MUST(cudaFree(maxs));
 }
 
 __global__
 /**
   hoisted when extracting softmax_gpu_f64
 */
-static void __hoisted_10(uint32_t lena, double *a, double *out)
+static void __hoisted_softmax_gpu_f64_0(uint32_t lena, double *a_, double *maxs,
+                                        uint32_t nthm)
 {
     double *sa = (double *)KPR_SHMEM_AT(0U);
-    double acc = 0.0l;
+    double acc = a_[threadIdx.x];
+    uint32_t idx = threadIdx.x + nthm;
+    for (; idx < lena; idx += nthm)
+        acc = fmax(acc, a_[idx]);
+    sa[threadIdx.x] = acc;
+    uint32_t n = 0U;
+    for (; 1U << (uint32_t) n < nthm; n++) {
+        uint32_t __anf02 = n;
+        __syncthreads();
+        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf02);
+        if (nextid < nthm)
+            if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (__anf02 + 1U)) -
+                 1U) == 0U)
+                sa[threadIdx.x] = fmax(sa[threadIdx.x], sa[nextid]);
+    }
+    if (threadIdx.x == 0U)
+        maxs[blockIdx.x] = *sa;
+}
+
+__global__
+/**
+  hoisted when extracting softmax_gpu_f64
+*/
+static void __hoisted_softmax_gpu_f64_1(uint32_t lena, double *a_, double *maxs)
+{
+    if (1024U * blockIdx.x + threadIdx.x < lena) {
+        uint32_t col = (1024U * blockIdx.x + threadIdx.x) % lena;
+        a_[col] -= maxs[(1024U * blockIdx.x + threadIdx.x) / lena];
+    }
+}
+
+__global__
+/**
+  hoisted when extracting softmax_gpu_f64
+*/
+static void __hoisted_softmax_gpu_f64_2(uint32_t lena, double *a_, double *sums)
+{
+    double *sa = (double *)KPR_SHMEM_AT(0U);
+    double acc = 0.0;
     uint32_t idx = threadIdx.x;
     for (; idx < lena; idx += 1024U) {
-        double v_ = exp(a[idx]);
+        double v_ = exp(a_[idx]);
         acc += v_;
     }
     sa[threadIdx.x] = acc;
     uint32_t n = 0U;
     for (; 1U << (uint32_t) n < 1024U; n++) {
-        uint32_t __anf01 = n;
+        uint32_t __anf02 = n;
         __syncthreads();
-        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf01);
+        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf02);
         if (nextid < 1024U)
-            if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (__anf01 + 1U)) -
+            if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (__anf02 + 1U)) -
                  1U) == 0U)
                 sa[threadIdx.x] += sa[nextid];
     }
     if (threadIdx.x == 0U)
-        *out = *sa;
+        sums[blockIdx.x] = *sa;
 }
 
 __global__
 /**
   hoisted when extracting softmax_gpu_f64
 */
-static void __hoisted_11(uint32_t lena, double *a, double sum)
+static void __hoisted_softmax_gpu_f64_3(uint32_t lena, double *a_, double *sums)
 {
-    if (1024U * blockIdx.x + threadIdx.x < lena)
-        a[1024U * blockIdx.x + threadIdx.x] =
-            exp(a[1024U * blockIdx.x + threadIdx.x]) / sum;
+    if (1024U * blockIdx.x + threadIdx.x < lena) {
+        uint32_t col = (1024U * blockIdx.x + threadIdx.x) % lena;
+        double va1 = sums[(1024U * blockIdx.x + threadIdx.x) / lena];
+        uint32_t ni = col;
+        a_[ni] = exp(a_[col]) / va1;
+    }
 }
 
 void Klas_Softmax_softmax_gpu_f64(uint32_t lena, double *a)
 {
-    double *out = (double *)KPR_GPU_ALLOC(8U, 1U);
-    KPR_SHMEM_FITS(8192U);
-    MUST(cudaFuncSetAttribute
-         (__hoisted_10, cudaFuncAttributeMaxDynamicSharedMemorySize, 8192U));
-    KPR_KCALL(__hoisted_10, 1U, 1024U, 8192U, lena, a, out);
+    double *a_ = a;
+    double *maxs = (double *)KPR_GPU_ALLOC(sizeof(double), 1U);
+    double *sums = (double *)KPR_GPU_ALLOC(sizeof(double), 1U);
+    uint32_t nthm = 1024U <= lena ? 1024U : lena;
+    KPR_SHMEM_FITS(8U * nthm);
+    MUST(cudaFuncSetAttribute(__hoisted_softmax_gpu_f64_0,
+                              cudaFuncAttributeMaxDynamicSharedMemorySize,
+                              8U * nthm));
+    KPR_KCALL(__hoisted_softmax_gpu_f64_0, 1U, nthm, 8U * nthm, lena, a_, maxs,
+              nthm);
     MUST(cudaDeviceSynchronize());
-    double hout = 0.0l;
-    MUST(cudaMemcpy(&hout, out, 8U, cudaMemcpyDeviceToHost));
-    MUST(cudaFree(out));
-    KPR_KCALL(__hoisted_11,
+    KPR_KCALL(__hoisted_softmax_gpu_f64_1,
               lena / 1024U + (uint32_t) (lena % 1024U != 0U),
-              1024U, 0U, lena, a, hout);
+              1024U, 0U, lena, a_, maxs);
     MUST(cudaDeviceSynchronize());
+    KPR_SHMEM_FITS(8192U);
+    MUST(cudaFuncSetAttribute(__hoisted_softmax_gpu_f64_2,
+                              cudaFuncAttributeMaxDynamicSharedMemorySize,
+                              8192U));
+    KPR_KCALL(__hoisted_softmax_gpu_f64_2, 1U, 1024U, 8192U, lena, a_, sums);
+    MUST(cudaDeviceSynchronize());
+    KPR_KCALL(__hoisted_softmax_gpu_f64_3,
+              lena / 1024U + (uint32_t) (lena % 1024U != 0U),
+              1024U, 0U, lena, a_, sums);
+    MUST(cudaDeviceSynchronize());
+    MUST(cudaFree(sums));
+    MUST(cudaFree(maxs));
 }
 
 __global__
 /**
   hoisted when extracting softmax_n_f16
 */
-static void __hoisted_12(uint32_t nth, uint32_t lena, half *ga, half *out)
+static void __hoisted_softmax_n_f16_0(uint32_t lena, half *a_, half *maxs,
+                                      uint32_t nthm)
+{
+    half *sa = (half *) KPR_SHMEM_AT(0U);
+    half acc = a_[threadIdx.x];
+    uint32_t idx = threadIdx.x + nthm;
+    for (; idx < lena; idx += nthm)
+        acc = kpr_hfmax(acc, a_[idx]);
+    sa[threadIdx.x] = acc;
+    uint32_t n = 0U;
+    for (; 1U << (uint32_t) n < nthm; n++) {
+        uint32_t __anf02 = n;
+        __syncthreads();
+        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf02);
+        if (nextid < nthm)
+            if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (__anf02 + 1U)) -
+                 1U) == 0U)
+                sa[threadIdx.x] = kpr_hfmax(sa[threadIdx.x], sa[nextid]);
+    }
+    if (threadIdx.x == 0U)
+        maxs[blockIdx.x] = *sa;
+}
+
+__global__
+/**
+  hoisted when extracting softmax_n_f16
+*/
+static void __hoisted_softmax_n_f16_1(uint32_t lena, half *a_, half *maxs)
+{
+    if (1024U * blockIdx.x + threadIdx.x < lena) {
+        uint32_t col = (1024U * blockIdx.x + threadIdx.x) % lena;
+        uint32_t ni = col;
+        a_[ni] =
+            __hsub(a_[col], maxs[(1024U * blockIdx.x + threadIdx.x) / lena]);
+    }
+}
+
+__global__
+/**
+  hoisted when extracting softmax_n_f16
+*/
+static void __hoisted_softmax_n_f16_2(uint32_t nth, uint32_t lena, half *a_,
+                                      half *sums)
 {
     half *sa = (half *) KPR_SHMEM_AT(0U);
     half acc = __float2half_rn(0.0f);
     uint32_t idx = threadIdx.x;
     for (; idx < lena; idx += nth) {
-        half v_ = hexp(ga[idx]);
+        half v_ = hexp(a_[idx]);
         acc = __hadd(acc, v_);
     }
     sa[threadIdx.x] = acc;
     uint32_t n = 0U;
     for (; 1U << (uint32_t) n < nth; n++) {
-        uint32_t __anf01 = n;
+        uint32_t __anf02 = n;
         __syncthreads();
-        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf01);
+        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf02);
         if (nextid < nth)
-            if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (__anf01 + 1U)) -
+            if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (__anf02 + 1U)) -
                  1U) == 0U)
                 sa[threadIdx.x] = __hadd(sa[threadIdx.x], sa[nextid]);
     }
     if (threadIdx.x == 0U)
-        *out = *sa;
+        sums[blockIdx.x] = *sa;
 }
 
 __global__
 /**
   hoisted when extracting softmax_n_f16
 */
-static void __hoisted_13(uint32_t lena, half *ga, half sum)
+static void __hoisted_softmax_n_f16_3(uint32_t lena, half *a_, half *sums)
 {
-    if (1024U * blockIdx.x + threadIdx.x < lena)
-        ga[1024U * blockIdx.x + threadIdx.x] =
-            __hdiv(hexp(ga[1024U * blockIdx.x + threadIdx.x]), sum);
+    if (1024U * blockIdx.x + threadIdx.x < lena) {
+        uint32_t col = (1024U * blockIdx.x + threadIdx.x) % lena;
+        half va1 = sums[(1024U * blockIdx.x + threadIdx.x) / lena];
+        uint32_t ni = col;
+        a_[ni] = __hdiv(hexp(a_[col]), va1);
+    }
 }
 
 void Klas_Softmax_softmax_n_f16(uint32_t nth, uint32_t lena, half *a)
 {
-    half *ga = (half *) KPR_GPU_ALLOC(2U, lena);
-    MUST(cudaMemcpy(ga, a, 2U * lena, cudaMemcpyHostToDevice));
-    half *out = (half *) KPR_GPU_ALLOC(2U, 1U);
-    KPR_SHMEM_FITS(2U * nth);
-    MUST(cudaFuncSetAttribute
-         (__hoisted_12, cudaFuncAttributeMaxDynamicSharedMemorySize, 2U * nth));
-    KPR_KCALL(__hoisted_12, 1U, nth, 2U * nth, nth, lena, ga, out);
+    half *ga = (half *) KPR_GPU_ALLOC(sizeof(half), lena);
+    MUST(cudaMemcpy
+         (ga, a, (uint32_t) sizeof(half) * lena, cudaMemcpyHostToDevice));
+    half *a_ = ga;
+    half *maxs = (half *) KPR_GPU_ALLOC(sizeof(half), 1U);
+    half *sums = (half *) KPR_GPU_ALLOC(sizeof(half), 1U);
+    uint32_t nthm = nth <= lena ? nth : lena;
+    KPR_SHMEM_FITS(2U * nthm);
+    MUST(cudaFuncSetAttribute(__hoisted_softmax_n_f16_0,
+                              cudaFuncAttributeMaxDynamicSharedMemorySize,
+                              2U * nthm));
+    KPR_KCALL(__hoisted_softmax_n_f16_0, 1U, nthm, 2U * nthm, lena, a_, maxs,
+              nthm);
     MUST(cudaDeviceSynchronize());
-    half hout = __float2half_rn(0.0f);
-    MUST(cudaMemcpy(&hout, out, 2U, cudaMemcpyDeviceToHost));
-    MUST(cudaFree(out));
-    KPR_KCALL(__hoisted_13,
+    KPR_KCALL(__hoisted_softmax_n_f16_1,
               lena / 1024U + (uint32_t) (lena % 1024U != 0U),
-              1024U, 0U, lena, ga, hout);
+              1024U, 0U, lena, a_, maxs);
     MUST(cudaDeviceSynchronize());
-    MUST(cudaMemcpy(a, ga, 2U * lena, cudaMemcpyDeviceToHost));
+    KPR_SHMEM_FITS(2U * nth);
+    MUST(cudaFuncSetAttribute(__hoisted_softmax_n_f16_2,
+                              cudaFuncAttributeMaxDynamicSharedMemorySize,
+                              2U * nth));
+    KPR_KCALL(__hoisted_softmax_n_f16_2, 1U, nth, 2U * nth, nth, lena, a_,
+              sums);
+    MUST(cudaDeviceSynchronize());
+    KPR_KCALL(__hoisted_softmax_n_f16_3,
+              lena / 1024U + (uint32_t) (lena % 1024U != 0U),
+              1024U, 0U, lena, a_, sums);
+    MUST(cudaDeviceSynchronize());
+    MUST(cudaFree(sums));
+    MUST(cudaFree(maxs));
+    MUST(cudaMemcpy
+         (a, ga, (uint32_t) sizeof(half) * lena, cudaMemcpyDeviceToHost));
     MUST(cudaFree(ga));
 }
 
@@ -401,59 +813,119 @@ __global__
 /**
   hoisted when extracting softmax_n_f32
 */
-static void __hoisted_14(uint32_t nth, uint32_t lena, float *ga, float *out)
+static void __hoisted_softmax_n_f32_0(uint32_t lena, float *a_, float *maxs,
+                                      uint32_t nthm)
+{
+    float *sa = (float *)KPR_SHMEM_AT(0U);
+    float acc = a_[threadIdx.x];
+    uint32_t idx = threadIdx.x + nthm;
+    for (; idx < lena; idx += nthm)
+        acc = fmaxf(acc, a_[idx]);
+    sa[threadIdx.x] = acc;
+    uint32_t n = 0U;
+    for (; 1U << (uint32_t) n < nthm; n++) {
+        uint32_t __anf02 = n;
+        __syncthreads();
+        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf02);
+        if (nextid < nthm)
+            if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (__anf02 + 1U)) -
+                 1U) == 0U)
+                sa[threadIdx.x] = fmaxf(sa[threadIdx.x], sa[nextid]);
+    }
+    if (threadIdx.x == 0U)
+        maxs[blockIdx.x] = *sa;
+}
+
+__global__
+/**
+  hoisted when extracting softmax_n_f32
+*/
+static void __hoisted_softmax_n_f32_1(uint32_t lena, float *a_, float *maxs)
+{
+    if (1024U * blockIdx.x + threadIdx.x < lena) {
+        uint32_t col = (1024U * blockIdx.x + threadIdx.x) % lena;
+        a_[col] -= maxs[(1024U * blockIdx.x + threadIdx.x) / lena];
+    }
+}
+
+__global__
+/**
+  hoisted when extracting softmax_n_f32
+*/
+static void __hoisted_softmax_n_f32_2(uint32_t nth, uint32_t lena, float *a_,
+                                      float *sums)
 {
     float *sa = (float *)KPR_SHMEM_AT(0U);
     float acc = 0.0f;
     uint32_t idx = threadIdx.x;
     for (; idx < lena; idx += nth) {
-        float v_ = expf(ga[idx]);
+        float v_ = expf(a_[idx]);
         acc += v_;
     }
     sa[threadIdx.x] = acc;
     uint32_t n = 0U;
     for (; 1U << (uint32_t) n < nth; n++) {
-        uint32_t __anf01 = n;
+        uint32_t __anf02 = n;
         __syncthreads();
-        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf01);
+        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf02);
         if (nextid < nth)
-            if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (__anf01 + 1U)) -
+            if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (__anf02 + 1U)) -
                  1U) == 0U)
                 sa[threadIdx.x] += sa[nextid];
     }
     if (threadIdx.x == 0U)
-        *out = *sa;
+        sums[blockIdx.x] = *sa;
 }
 
 __global__
 /**
   hoisted when extracting softmax_n_f32
 */
-static void __hoisted_15(uint32_t lena, float *ga, float sum)
+static void __hoisted_softmax_n_f32_3(uint32_t lena, float *a_, float *sums)
 {
-    if (1024U * blockIdx.x + threadIdx.x < lena)
-        ga[1024U * blockIdx.x + threadIdx.x] =
-            expf(ga[1024U * blockIdx.x + threadIdx.x]) / sum;
+    if (1024U * blockIdx.x + threadIdx.x < lena) {
+        uint32_t col = (1024U * blockIdx.x + threadIdx.x) % lena;
+        float va1 = sums[(1024U * blockIdx.x + threadIdx.x) / lena];
+        uint32_t ni = col;
+        a_[ni] = expf(a_[col]) / va1;
+    }
 }
 
 void Klas_Softmax_softmax_n_f32(uint32_t nth, uint32_t lena, float *a)
 {
-    float *ga = (float *)KPR_GPU_ALLOC(4U, lena);
-    MUST(cudaMemcpy(ga, a, 4U * lena, cudaMemcpyHostToDevice));
-    float *out = (float *)KPR_GPU_ALLOC(4U, 1U);
-    KPR_SHMEM_FITS(4U * nth);
-    MUST(cudaFuncSetAttribute
-         (__hoisted_14, cudaFuncAttributeMaxDynamicSharedMemorySize, 4U * nth));
-    KPR_KCALL(__hoisted_14, 1U, nth, 4U * nth, nth, lena, ga, out);
+    float *ga = (float *)KPR_GPU_ALLOC(sizeof(float), lena);
+    MUST(cudaMemcpy
+         (ga, a, (uint32_t) sizeof(float) * lena, cudaMemcpyHostToDevice));
+    float *a_ = ga;
+    float *maxs = (float *)KPR_GPU_ALLOC(sizeof(float), 1U);
+    float *sums = (float *)KPR_GPU_ALLOC(sizeof(float), 1U);
+    uint32_t nthm = nth <= lena ? nth : lena;
+    KPR_SHMEM_FITS(4U * nthm);
+    MUST(cudaFuncSetAttribute(__hoisted_softmax_n_f32_0,
+                              cudaFuncAttributeMaxDynamicSharedMemorySize,
+                              4U * nthm));
+    KPR_KCALL(__hoisted_softmax_n_f32_0, 1U, nthm, 4U * nthm, lena, a_, maxs,
+              nthm);
     MUST(cudaDeviceSynchronize());
-    float hout = 0.0f;
-    MUST(cudaMemcpy(&hout, out, 4U, cudaMemcpyDeviceToHost));
-    MUST(cudaFree(out));
-    KPR_KCALL(__hoisted_15,
+    KPR_KCALL(__hoisted_softmax_n_f32_1,
               lena / 1024U + (uint32_t) (lena % 1024U != 0U),
-              1024U, 0U, lena, ga, hout);
+              1024U, 0U, lena, a_, maxs);
     MUST(cudaDeviceSynchronize());
-    MUST(cudaMemcpy(a, ga, 4U * lena, cudaMemcpyDeviceToHost));
+    KPR_SHMEM_FITS(4U * nth);
+    MUST(cudaFuncSetAttribute(__hoisted_softmax_n_f32_2,
+                              cudaFuncAttributeMaxDynamicSharedMemorySize,
+                              4U * nth));
+    KPR_KCALL(__hoisted_softmax_n_f32_2, 1U, nth, 4U * nth, nth, lena, a_,
+              sums);
+    MUST(cudaDeviceSynchronize());
+    KPR_KCALL(__hoisted_softmax_n_f32_3,
+              lena / 1024U + (uint32_t) (lena % 1024U != 0U),
+              1024U, 0U, lena, a_, sums);
+    MUST(cudaDeviceSynchronize());
+    MUST(cudaFree(sums));
+    MUST(cudaFree(maxs));
+    MUST(cudaMemcpy
+         (a, ga, (uint32_t) sizeof(float) * lena, cudaMemcpyDeviceToHost));
     MUST(cudaFree(ga));
 }
 
@@ -461,59 +933,119 @@ __global__
 /**
   hoisted when extracting softmax_n_f64
 */
-static void __hoisted_16(uint32_t nth, uint32_t lena, double *ga, double *out)
+static void __hoisted_softmax_n_f64_0(uint32_t lena, double *a_, double *maxs,
+                                      uint32_t nthm)
 {
     double *sa = (double *)KPR_SHMEM_AT(0U);
-    double acc = 0.0l;
-    uint32_t idx = threadIdx.x;
-    for (; idx < lena; idx += nth) {
-        double v_ = exp(ga[idx]);
-        acc += v_;
-    }
+    double acc = a_[threadIdx.x];
+    uint32_t idx = threadIdx.x + nthm;
+    for (; idx < lena; idx += nthm)
+        acc = fmax(acc, a_[idx]);
     sa[threadIdx.x] = acc;
     uint32_t n = 0U;
-    for (; 1U << (uint32_t) n < nth; n++) {
-        uint32_t __anf01 = n;
+    for (; 1U << (uint32_t) n < nthm; n++) {
+        uint32_t __anf02 = n;
         __syncthreads();
-        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf01);
-        if (nextid < nth)
-            if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (__anf01 + 1U)) -
+        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf02);
+        if (nextid < nthm)
+            if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (__anf02 + 1U)) -
                  1U) == 0U)
-                sa[threadIdx.x] += sa[nextid];
+                sa[threadIdx.x] = fmax(sa[threadIdx.x], sa[nextid]);
     }
     if (threadIdx.x == 0U)
-        *out = *sa;
+        maxs[blockIdx.x] = *sa;
 }
 
 __global__
 /**
   hoisted when extracting softmax_n_f64
 */
-static void __hoisted_17(uint32_t lena, double *ga, double sum)
+static void __hoisted_softmax_n_f64_1(uint32_t lena, double *a_, double *maxs)
 {
-    if (1024U * blockIdx.x + threadIdx.x < lena)
-        ga[1024U * blockIdx.x + threadIdx.x] =
-            exp(ga[1024U * blockIdx.x + threadIdx.x]) / sum;
+    if (1024U * blockIdx.x + threadIdx.x < lena) {
+        uint32_t col = (1024U * blockIdx.x + threadIdx.x) % lena;
+        a_[col] -= maxs[(1024U * blockIdx.x + threadIdx.x) / lena];
+    }
+}
+
+__global__
+/**
+  hoisted when extracting softmax_n_f64
+*/
+static void __hoisted_softmax_n_f64_2(uint32_t nth, uint32_t lena, double *a_,
+                                      double *sums)
+{
+    double *sa = (double *)KPR_SHMEM_AT(0U);
+    double acc = 0.0;
+    uint32_t idx = threadIdx.x;
+    for (; idx < lena; idx += nth) {
+        double v_ = exp(a_[idx]);
+        acc += v_;
+    }
+    sa[threadIdx.x] = acc;
+    uint32_t n = 0U;
+    for (; 1U << (uint32_t) n < nth; n++) {
+        uint32_t __anf02 = n;
+        __syncthreads();
+        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf02);
+        if (nextid < nth)
+            if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (__anf02 + 1U)) -
+                 1U) == 0U)
+                sa[threadIdx.x] += sa[nextid];
+    }
+    if (threadIdx.x == 0U)
+        sums[blockIdx.x] = *sa;
+}
+
+__global__
+/**
+  hoisted when extracting softmax_n_f64
+*/
+static void __hoisted_softmax_n_f64_3(uint32_t lena, double *a_, double *sums)
+{
+    if (1024U * blockIdx.x + threadIdx.x < lena) {
+        uint32_t col = (1024U * blockIdx.x + threadIdx.x) % lena;
+        double va1 = sums[(1024U * blockIdx.x + threadIdx.x) / lena];
+        uint32_t ni = col;
+        a_[ni] = exp(a_[col]) / va1;
+    }
 }
 
 void Klas_Softmax_softmax_n_f64(uint32_t nth, uint32_t lena, double *a)
 {
-    double *ga = (double *)KPR_GPU_ALLOC(8U, lena);
-    MUST(cudaMemcpy(ga, a, 8U * lena, cudaMemcpyHostToDevice));
-    double *out = (double *)KPR_GPU_ALLOC(8U, 1U);
-    KPR_SHMEM_FITS(8U * nth);
-    MUST(cudaFuncSetAttribute
-         (__hoisted_16, cudaFuncAttributeMaxDynamicSharedMemorySize, 8U * nth));
-    KPR_KCALL(__hoisted_16, 1U, nth, 8U * nth, nth, lena, ga, out);
+    double *ga = (double *)KPR_GPU_ALLOC(sizeof(double), lena);
+    MUST(cudaMemcpy
+         (ga, a, (uint32_t) sizeof(double) * lena, cudaMemcpyHostToDevice));
+    double *a_ = ga;
+    double *maxs = (double *)KPR_GPU_ALLOC(sizeof(double), 1U);
+    double *sums = (double *)KPR_GPU_ALLOC(sizeof(double), 1U);
+    uint32_t nthm = nth <= lena ? nth : lena;
+    KPR_SHMEM_FITS(8U * nthm);
+    MUST(cudaFuncSetAttribute(__hoisted_softmax_n_f64_0,
+                              cudaFuncAttributeMaxDynamicSharedMemorySize,
+                              8U * nthm));
+    KPR_KCALL(__hoisted_softmax_n_f64_0, 1U, nthm, 8U * nthm, lena, a_, maxs,
+              nthm);
     MUST(cudaDeviceSynchronize());
-    double hout = 0.0l;
-    MUST(cudaMemcpy(&hout, out, 8U, cudaMemcpyDeviceToHost));
-    MUST(cudaFree(out));
-    KPR_KCALL(__hoisted_17,
+    KPR_KCALL(__hoisted_softmax_n_f64_1,
               lena / 1024U + (uint32_t) (lena % 1024U != 0U),
-              1024U, 0U, lena, ga, hout);
+              1024U, 0U, lena, a_, maxs);
     MUST(cudaDeviceSynchronize());
-    MUST(cudaMemcpy(a, ga, 8U * lena, cudaMemcpyDeviceToHost));
+    KPR_SHMEM_FITS(8U * nth);
+    MUST(cudaFuncSetAttribute(__hoisted_softmax_n_f64_2,
+                              cudaFuncAttributeMaxDynamicSharedMemorySize,
+                              8U * nth));
+    KPR_KCALL(__hoisted_softmax_n_f64_2, 1U, nth, 8U * nth, nth, lena, a_,
+              sums);
+    MUST(cudaDeviceSynchronize());
+    KPR_KCALL(__hoisted_softmax_n_f64_3,
+              lena / 1024U + (uint32_t) (lena % 1024U != 0U),
+              1024U, 0U, lena, a_, sums);
+    MUST(cudaDeviceSynchronize());
+    MUST(cudaFree(sums));
+    MUST(cudaFree(maxs));
+    MUST(cudaMemcpy
+         (a, ga, (uint32_t) sizeof(double) * lena, cudaMemcpyDeviceToHost));
     MUST(cudaFree(ga));
 }
 
@@ -521,59 +1053,119 @@ __global__
 /**
   hoisted when extracting softmax_f16
 */
-static void __hoisted_18(uint32_t lena, half *ga, half *out)
+static void __hoisted_softmax_f16_0(uint32_t lena, half *a_, half *maxs,
+                                    uint32_t nthm)
+{
+    half *sa = (half *) KPR_SHMEM_AT(0U);
+    half acc = a_[threadIdx.x];
+    uint32_t idx = threadIdx.x + nthm;
+    for (; idx < lena; idx += nthm)
+        acc = kpr_hfmax(acc, a_[idx]);
+    sa[threadIdx.x] = acc;
+    uint32_t n = 0U;
+    for (; 1U << (uint32_t) n < nthm; n++) {
+        uint32_t __anf02 = n;
+        __syncthreads();
+        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf02);
+        if (nextid < nthm)
+            if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (__anf02 + 1U)) -
+                 1U) == 0U)
+                sa[threadIdx.x] = kpr_hfmax(sa[threadIdx.x], sa[nextid]);
+    }
+    if (threadIdx.x == 0U)
+        maxs[blockIdx.x] = *sa;
+}
+
+__global__
+/**
+  hoisted when extracting softmax_f16
+*/
+static void __hoisted_softmax_f16_1(uint32_t lena, half *a_, half *maxs)
+{
+    if (1024U * blockIdx.x + threadIdx.x < lena) {
+        uint32_t col = (1024U * blockIdx.x + threadIdx.x) % lena;
+        uint32_t ni = col;
+        a_[ni] =
+            __hsub(a_[col], maxs[(1024U * blockIdx.x + threadIdx.x) / lena]);
+    }
+}
+
+__global__
+/**
+  hoisted when extracting softmax_f16
+*/
+static void __hoisted_softmax_f16_2(uint32_t lena, half *a_, half *sums)
 {
     half *sa = (half *) KPR_SHMEM_AT(0U);
     half acc = __float2half_rn(0.0f);
     uint32_t idx = threadIdx.x;
     for (; idx < lena; idx += 1024U) {
-        half v_ = hexp(ga[idx]);
+        half v_ = hexp(a_[idx]);
         acc = __hadd(acc, v_);
     }
     sa[threadIdx.x] = acc;
     uint32_t n = 0U;
     for (; 1U << (uint32_t) n < 1024U; n++) {
-        uint32_t __anf01 = n;
+        uint32_t __anf02 = n;
         __syncthreads();
-        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf01);
+        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf02);
         if (nextid < 1024U)
-            if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (__anf01 + 1U)) -
+            if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (__anf02 + 1U)) -
                  1U) == 0U)
                 sa[threadIdx.x] = __hadd(sa[threadIdx.x], sa[nextid]);
     }
     if (threadIdx.x == 0U)
-        *out = *sa;
+        sums[blockIdx.x] = *sa;
 }
 
 __global__
 /**
   hoisted when extracting softmax_f16
 */
-static void __hoisted_19(uint32_t lena, half *ga, half sum)
+static void __hoisted_softmax_f16_3(uint32_t lena, half *a_, half *sums)
 {
-    if (1024U * blockIdx.x + threadIdx.x < lena)
-        ga[1024U * blockIdx.x + threadIdx.x] =
-            __hdiv(hexp(ga[1024U * blockIdx.x + threadIdx.x]), sum);
+    if (1024U * blockIdx.x + threadIdx.x < lena) {
+        uint32_t col = (1024U * blockIdx.x + threadIdx.x) % lena;
+        half va1 = sums[(1024U * blockIdx.x + threadIdx.x) / lena];
+        uint32_t ni = col;
+        a_[ni] = __hdiv(hexp(a_[col]), va1);
+    }
 }
 
 void Klas_Softmax_softmax_f16(uint32_t lena, half *a)
 {
-    half *ga = (half *) KPR_GPU_ALLOC(2U, lena);
-    MUST(cudaMemcpy(ga, a, 2U * lena, cudaMemcpyHostToDevice));
-    half *out = (half *) KPR_GPU_ALLOC(2U, 1U);
-    KPR_SHMEM_FITS(2048U);
-    MUST(cudaFuncSetAttribute
-         (__hoisted_18, cudaFuncAttributeMaxDynamicSharedMemorySize, 2048U));
-    KPR_KCALL(__hoisted_18, 1U, 1024U, 2048U, lena, ga, out);
+    half *ga = (half *) KPR_GPU_ALLOC(sizeof(half), lena);
+    MUST(cudaMemcpy
+         (ga, a, (uint32_t) sizeof(half) * lena, cudaMemcpyHostToDevice));
+    half *a_ = ga;
+    half *maxs = (half *) KPR_GPU_ALLOC(sizeof(half), 1U);
+    half *sums = (half *) KPR_GPU_ALLOC(sizeof(half), 1U);
+    uint32_t nthm = 1024U <= lena ? 1024U : lena;
+    KPR_SHMEM_FITS(2U * nthm);
+    MUST(cudaFuncSetAttribute(__hoisted_softmax_f16_0,
+                              cudaFuncAttributeMaxDynamicSharedMemorySize,
+                              2U * nthm));
+    KPR_KCALL(__hoisted_softmax_f16_0, 1U, nthm, 2U * nthm, lena, a_, maxs,
+              nthm);
     MUST(cudaDeviceSynchronize());
-    half hout = __float2half_rn(0.0f);
-    MUST(cudaMemcpy(&hout, out, 2U, cudaMemcpyDeviceToHost));
-    MUST(cudaFree(out));
-    KPR_KCALL(__hoisted_19,
+    KPR_KCALL(__hoisted_softmax_f16_1,
               lena / 1024U + (uint32_t) (lena % 1024U != 0U),
-              1024U, 0U, lena, ga, hout);
+              1024U, 0U, lena, a_, maxs);
     MUST(cudaDeviceSynchronize());
-    MUST(cudaMemcpy(a, ga, 2U * lena, cudaMemcpyDeviceToHost));
+    KPR_SHMEM_FITS(2048U);
+    MUST(cudaFuncSetAttribute(__hoisted_softmax_f16_2,
+                              cudaFuncAttributeMaxDynamicSharedMemorySize,
+                              2048U));
+    KPR_KCALL(__hoisted_softmax_f16_2, 1U, 1024U, 2048U, lena, a_, sums);
+    MUST(cudaDeviceSynchronize());
+    KPR_KCALL(__hoisted_softmax_f16_3,
+              lena / 1024U + (uint32_t) (lena % 1024U != 0U),
+              1024U, 0U, lena, a_, sums);
+    MUST(cudaDeviceSynchronize());
+    MUST(cudaFree(sums));
+    MUST(cudaFree(maxs));
+    MUST(cudaMemcpy
+         (a, ga, (uint32_t) sizeof(half) * lena, cudaMemcpyDeviceToHost));
     MUST(cudaFree(ga));
 }
 
@@ -581,59 +1173,117 @@ __global__
 /**
   hoisted when extracting softmax_f32
 */
-static void __hoisted_20(uint32_t lena, float *ga, float *out)
+static void __hoisted_softmax_f32_0(uint32_t lena, float *a_, float *maxs,
+                                    uint32_t nthm)
+{
+    float *sa = (float *)KPR_SHMEM_AT(0U);
+    float acc = a_[threadIdx.x];
+    uint32_t idx = threadIdx.x + nthm;
+    for (; idx < lena; idx += nthm)
+        acc = fmaxf(acc, a_[idx]);
+    sa[threadIdx.x] = acc;
+    uint32_t n = 0U;
+    for (; 1U << (uint32_t) n < nthm; n++) {
+        uint32_t __anf02 = n;
+        __syncthreads();
+        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf02);
+        if (nextid < nthm)
+            if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (__anf02 + 1U)) -
+                 1U) == 0U)
+                sa[threadIdx.x] = fmaxf(sa[threadIdx.x], sa[nextid]);
+    }
+    if (threadIdx.x == 0U)
+        maxs[blockIdx.x] = *sa;
+}
+
+__global__
+/**
+  hoisted when extracting softmax_f32
+*/
+static void __hoisted_softmax_f32_1(uint32_t lena, float *a_, float *maxs)
+{
+    if (1024U * blockIdx.x + threadIdx.x < lena) {
+        uint32_t col = (1024U * blockIdx.x + threadIdx.x) % lena;
+        a_[col] -= maxs[(1024U * blockIdx.x + threadIdx.x) / lena];
+    }
+}
+
+__global__
+/**
+  hoisted when extracting softmax_f32
+*/
+static void __hoisted_softmax_f32_2(uint32_t lena, float *a_, float *sums)
 {
     float *sa = (float *)KPR_SHMEM_AT(0U);
     float acc = 0.0f;
     uint32_t idx = threadIdx.x;
     for (; idx < lena; idx += 1024U) {
-        float v_ = expf(ga[idx]);
+        float v_ = expf(a_[idx]);
         acc += v_;
     }
     sa[threadIdx.x] = acc;
     uint32_t n = 0U;
     for (; 1U << (uint32_t) n < 1024U; n++) {
-        uint32_t __anf01 = n;
+        uint32_t __anf02 = n;
         __syncthreads();
-        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf01);
+        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf02);
         if (nextid < 1024U)
-            if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (__anf01 + 1U)) -
+            if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (__anf02 + 1U)) -
                  1U) == 0U)
                 sa[threadIdx.x] += sa[nextid];
     }
     if (threadIdx.x == 0U)
-        *out = *sa;
+        sums[blockIdx.x] = *sa;
 }
 
 __global__
 /**
   hoisted when extracting softmax_f32
 */
-static void __hoisted_21(uint32_t lena, float *ga, float sum)
+static void __hoisted_softmax_f32_3(uint32_t lena, float *a_, float *sums)
 {
-    if (1024U * blockIdx.x + threadIdx.x < lena)
-        ga[1024U * blockIdx.x + threadIdx.x] =
-            expf(ga[1024U * blockIdx.x + threadIdx.x]) / sum;
+    if (1024U * blockIdx.x + threadIdx.x < lena) {
+        uint32_t col = (1024U * blockIdx.x + threadIdx.x) % lena;
+        float va1 = sums[(1024U * blockIdx.x + threadIdx.x) / lena];
+        uint32_t ni = col;
+        a_[ni] = expf(a_[col]) / va1;
+    }
 }
 
 void Klas_Softmax_softmax_f32(uint32_t lena, float *a)
 {
-    float *ga = (float *)KPR_GPU_ALLOC(4U, lena);
-    MUST(cudaMemcpy(ga, a, 4U * lena, cudaMemcpyHostToDevice));
-    float *out = (float *)KPR_GPU_ALLOC(4U, 1U);
-    KPR_SHMEM_FITS(4096U);
-    MUST(cudaFuncSetAttribute
-         (__hoisted_20, cudaFuncAttributeMaxDynamicSharedMemorySize, 4096U));
-    KPR_KCALL(__hoisted_20, 1U, 1024U, 4096U, lena, ga, out);
+    float *ga = (float *)KPR_GPU_ALLOC(sizeof(float), lena);
+    MUST(cudaMemcpy
+         (ga, a, (uint32_t) sizeof(float) * lena, cudaMemcpyHostToDevice));
+    float *a_ = ga;
+    float *maxs = (float *)KPR_GPU_ALLOC(sizeof(float), 1U);
+    float *sums = (float *)KPR_GPU_ALLOC(sizeof(float), 1U);
+    uint32_t nthm = 1024U <= lena ? 1024U : lena;
+    KPR_SHMEM_FITS(4U * nthm);
+    MUST(cudaFuncSetAttribute(__hoisted_softmax_f32_0,
+                              cudaFuncAttributeMaxDynamicSharedMemorySize,
+                              4U * nthm));
+    KPR_KCALL(__hoisted_softmax_f32_0, 1U, nthm, 4U * nthm, lena, a_, maxs,
+              nthm);
     MUST(cudaDeviceSynchronize());
-    float hout = 0.0f;
-    MUST(cudaMemcpy(&hout, out, 4U, cudaMemcpyDeviceToHost));
-    MUST(cudaFree(out));
-    KPR_KCALL(__hoisted_21,
+    KPR_KCALL(__hoisted_softmax_f32_1,
               lena / 1024U + (uint32_t) (lena % 1024U != 0U),
-              1024U, 0U, lena, ga, hout);
+              1024U, 0U, lena, a_, maxs);
     MUST(cudaDeviceSynchronize());
-    MUST(cudaMemcpy(a, ga, 4U * lena, cudaMemcpyDeviceToHost));
+    KPR_SHMEM_FITS(4096U);
+    MUST(cudaFuncSetAttribute(__hoisted_softmax_f32_2,
+                              cudaFuncAttributeMaxDynamicSharedMemorySize,
+                              4096U));
+    KPR_KCALL(__hoisted_softmax_f32_2, 1U, 1024U, 4096U, lena, a_, sums);
+    MUST(cudaDeviceSynchronize());
+    KPR_KCALL(__hoisted_softmax_f32_3,
+              lena / 1024U + (uint32_t) (lena % 1024U != 0U),
+              1024U, 0U, lena, a_, sums);
+    MUST(cudaDeviceSynchronize());
+    MUST(cudaFree(sums));
+    MUST(cudaFree(maxs));
+    MUST(cudaMemcpy
+         (a, ga, (uint32_t) sizeof(float) * lena, cudaMemcpyDeviceToHost));
     MUST(cudaFree(ga));
 }
 
@@ -641,58 +1291,116 @@ __global__
 /**
   hoisted when extracting softmax_f64
 */
-static void __hoisted_22(uint32_t lena, double *ga, double *out)
+static void __hoisted_softmax_f64_0(uint32_t lena, double *a_, double *maxs,
+                                    uint32_t nthm)
 {
     double *sa = (double *)KPR_SHMEM_AT(0U);
-    double acc = 0.0l;
-    uint32_t idx = threadIdx.x;
-    for (; idx < lena; idx += 1024U) {
-        double v_ = exp(ga[idx]);
-        acc += v_;
-    }
+    double acc = a_[threadIdx.x];
+    uint32_t idx = threadIdx.x + nthm;
+    for (; idx < lena; idx += nthm)
+        acc = fmax(acc, a_[idx]);
     sa[threadIdx.x] = acc;
     uint32_t n = 0U;
-    for (; 1U << (uint32_t) n < 1024U; n++) {
-        uint32_t __anf01 = n;
+    for (; 1U << (uint32_t) n < nthm; n++) {
+        uint32_t __anf02 = n;
         __syncthreads();
-        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf01);
-        if (nextid < 1024U)
-            if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (__anf01 + 1U)) -
+        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf02);
+        if (nextid < nthm)
+            if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (__anf02 + 1U)) -
                  1U) == 0U)
-                sa[threadIdx.x] += sa[nextid];
+                sa[threadIdx.x] = fmax(sa[threadIdx.x], sa[nextid]);
     }
     if (threadIdx.x == 0U)
-        *out = *sa;
+        maxs[blockIdx.x] = *sa;
 }
 
 __global__
 /**
   hoisted when extracting softmax_f64
 */
-static void __hoisted_23(uint32_t lena, double *ga, double sum)
+static void __hoisted_softmax_f64_1(uint32_t lena, double *a_, double *maxs)
 {
-    if (1024U * blockIdx.x + threadIdx.x < lena)
-        ga[1024U * blockIdx.x + threadIdx.x] =
-            exp(ga[1024U * blockIdx.x + threadIdx.x]) / sum;
+    if (1024U * blockIdx.x + threadIdx.x < lena) {
+        uint32_t col = (1024U * blockIdx.x + threadIdx.x) % lena;
+        a_[col] -= maxs[(1024U * blockIdx.x + threadIdx.x) / lena];
+    }
+}
+
+__global__
+/**
+  hoisted when extracting softmax_f64
+*/
+static void __hoisted_softmax_f64_2(uint32_t lena, double *a_, double *sums)
+{
+    double *sa = (double *)KPR_SHMEM_AT(0U);
+    double acc = 0.0;
+    uint32_t idx = threadIdx.x;
+    for (; idx < lena; idx += 1024U) {
+        double v_ = exp(a_[idx]);
+        acc += v_;
+    }
+    sa[threadIdx.x] = acc;
+    uint32_t n = 0U;
+    for (; 1U << (uint32_t) n < 1024U; n++) {
+        uint32_t __anf02 = n;
+        __syncthreads();
+        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf02);
+        if (nextid < 1024U)
+            if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (__anf02 + 1U)) -
+                 1U) == 0U)
+                sa[threadIdx.x] += sa[nextid];
+    }
+    if (threadIdx.x == 0U)
+        sums[blockIdx.x] = *sa;
+}
+
+__global__
+/**
+  hoisted when extracting softmax_f64
+*/
+static void __hoisted_softmax_f64_3(uint32_t lena, double *a_, double *sums)
+{
+    if (1024U * blockIdx.x + threadIdx.x < lena) {
+        uint32_t col = (1024U * blockIdx.x + threadIdx.x) % lena;
+        double va1 = sums[(1024U * blockIdx.x + threadIdx.x) / lena];
+        uint32_t ni = col;
+        a_[ni] = exp(a_[col]) / va1;
+    }
 }
 
 void Klas_Softmax_softmax_f64(uint32_t lena, double *a)
 {
-    double *ga = (double *)KPR_GPU_ALLOC(8U, lena);
-    MUST(cudaMemcpy(ga, a, 8U * lena, cudaMemcpyHostToDevice));
-    double *out = (double *)KPR_GPU_ALLOC(8U, 1U);
-    KPR_SHMEM_FITS(8192U);
-    MUST(cudaFuncSetAttribute
-         (__hoisted_22, cudaFuncAttributeMaxDynamicSharedMemorySize, 8192U));
-    KPR_KCALL(__hoisted_22, 1U, 1024U, 8192U, lena, ga, out);
+    double *ga = (double *)KPR_GPU_ALLOC(sizeof(double), lena);
+    MUST(cudaMemcpy
+         (ga, a, (uint32_t) sizeof(double) * lena, cudaMemcpyHostToDevice));
+    double *a_ = ga;
+    double *maxs = (double *)KPR_GPU_ALLOC(sizeof(double), 1U);
+    double *sums = (double *)KPR_GPU_ALLOC(sizeof(double), 1U);
+    uint32_t nthm = 1024U <= lena ? 1024U : lena;
+    KPR_SHMEM_FITS(8U * nthm);
+    MUST(cudaFuncSetAttribute(__hoisted_softmax_f64_0,
+                              cudaFuncAttributeMaxDynamicSharedMemorySize,
+                              8U * nthm));
+    KPR_KCALL(__hoisted_softmax_f64_0, 1U, nthm, 8U * nthm, lena, a_, maxs,
+              nthm);
     MUST(cudaDeviceSynchronize());
-    double hout = 0.0l;
-    MUST(cudaMemcpy(&hout, out, 8U, cudaMemcpyDeviceToHost));
-    MUST(cudaFree(out));
-    KPR_KCALL(__hoisted_23,
+    KPR_KCALL(__hoisted_softmax_f64_1,
               lena / 1024U + (uint32_t) (lena % 1024U != 0U),
-              1024U, 0U, lena, ga, hout);
+              1024U, 0U, lena, a_, maxs);
     MUST(cudaDeviceSynchronize());
-    MUST(cudaMemcpy(a, ga, 8U * lena, cudaMemcpyDeviceToHost));
+    KPR_SHMEM_FITS(8192U);
+    MUST(cudaFuncSetAttribute(__hoisted_softmax_f64_2,
+                              cudaFuncAttributeMaxDynamicSharedMemorySize,
+                              8192U));
+    KPR_KCALL(__hoisted_softmax_f64_2, 1U, 1024U, 8192U, lena, a_, sums);
+    MUST(cudaDeviceSynchronize());
+    KPR_KCALL(__hoisted_softmax_f64_3,
+              lena / 1024U + (uint32_t) (lena % 1024U != 0U),
+              1024U, 0U, lena, a_, sums);
+    MUST(cudaDeviceSynchronize());
+    MUST(cudaFree(sums));
+    MUST(cudaFree(maxs));
+    MUST(cudaMemcpy
+         (a, ga, (uint32_t) sizeof(double) * lena, cudaMemcpyDeviceToHost));
     MUST(cudaFree(ga));
 }

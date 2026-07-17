@@ -1,79 +1,83 @@
 module Kuiper.Kernel.GEMM.Naive2
 
-friend Kuiper.Kernel.GEMM.Naive (* We reuse some lemmas from Naive *)
+friend Kuiper.Kernel.GEMM.Naive (* We reuse setup/teardown from Naive *)
 
 #lang-pulse
+
 open Kuiper
-module T = Kuiper.Tensor
-module M = Kuiper.Array2
+open Kuiper.Tensor
+open Kuiper.Tensor { tensor_pts_to_cell as pts_to_cell }
 module MS = Kuiper.Spec.GEMM
 module MU = Kuiper.Kernel.GEMM.Util
 module SZ = Kuiper.SizeT
-open Kuiper.EMatrix
+module N = Kuiper.Kernel.GEMM.Naive
+open Kuiper.Shape
+open Kuiper.Chest
 
 unfold
 let kpre
   (#et : Type0) {| scalar et |}
   (comb : binop et)
-  (#rows #shared #cols : nat)
-  (#lA : M.layout rows shared)
-  (#lB : M.layout shared cols)
-  (#lC : M.layout rows cols)
-  (gA : M.array2 et lA)
-  (gB : M.array2 et lB)
-  (gC : M.array2 et lC)
-  (eA : ematrix et rows shared)
-  (eB : ematrix et shared cols)
-  (eC : ematrix et rows cols)
+  (#m #n #k : nat)
+  (#lA : layout2 m k)
+  (#lB : layout2 k n)
+  (#lC : layout2 m n)
+  (gA : tensor et lA)
+  (gB : tensor et lB)
+  (gC : tensor et lC)
+  (eA : chest2 et m k)
+  (eB : chest2 et k n)
+  (eC : chest2 et m n)
   (fA fB : perm)
-  (gid : natlt (rows * cols))
+  (gid : natlt (m * n))
   : slprop
   =
-  gA |-> Frac (fA /. (rows * cols)) eA **
-  gB |-> Frac (fB /. (rows * cols)) eB **
-  M.pts_to_cell gC (gid / cols, gid % cols)
-    (macc eC (gid / cols) (gid % cols))
+  gA |-> Frac (fA /. (m * n)) eA **
+  gB |-> Frac (fB /. (m * n)) eB **
+  pts_to_cell gC
+    (gid / n, (gid % n, ()))
+    (acc eC (gid / n, (gid % n, ())))
 
 unfold
 let kpost
   (#et : Type0) {| scalar et |}
   (comb : binop et)
-  (#rows #shared #cols : nat)
-  (#lA : M.layout rows shared)
-  (#lB : M.layout shared cols)
-  (#lC : M.layout rows cols)
-  (gA : M.array2 et lA)
-  (gB : M.array2 et lB)
-  (gC : M.array2 et lC)
-  (eA : ematrix et rows shared)
-  (eB : ematrix et shared cols)
-  (eC : ematrix et rows cols)
+  (#m #n #k : nat)
+  (#lA : layout2 m k)
+  (#lB : layout2 k n)
+  (#lC : layout2 m n)
+  (gA : tensor et lA)
+  (gB : tensor et lB)
+  (gC : tensor et lC)
+  (eA : chest2 et m k)
+  (eB : chest2 et k n)
+  (eC : chest2 et m n)
   (fA fB : perm)
-  (gid : natlt (rows * cols))
+  (gid : natlt (m * n))
   : slprop
   =
-  gA |-> Frac (fA /. (rows * cols)) eA **
-  gB |-> Frac (fB /. (rows * cols)) eB **
-  M.pts_to_cell gC (gid / cols, gid % cols)
-    (MS.gemm_single comb eA eB eC (gid / cols) (gid % cols))
+  gA |-> Frac (fA /. (m * n)) eA **
+  gB |-> Frac (fB /. (m * n)) eB **
+  pts_to_cell gC (gid / n, (gid % n, ()))
+    (MS.gemm_single comb eA eB eC (gid / n) (gid % n))
 
 inline_for_extraction noextract
 fn kf
   (#et : Type0) {| scalar et |}
   (comb : binop et)
-  (#rows #shared #cols : SZ.t)
-  (#lA : M.layout rows shared)
-  (#lB : M.layout shared cols)
-  (#lC : M.layout rows cols)
-  {| cA : T.ctlayout lA, cB : T.ctlayout lB, cC : T.ctlayout lC |}
-  (gA : M.array2 et lA)
-  (gB : M.array2 et lB)
-  (gC : M.array2 et lC)
-  (#eA : ematrix et rows shared)
-  (#eB : ematrix et shared cols)
-  (#eC : ematrix et rows cols)
+  (#m #n #k : SZ.t)
+  (#lA : layout2 m k)
+  (#lB : layout2 k n)
+  (#lC : layout2 m n)
+  {| ctlayout lA, ctlayout lB, ctlayout lC |}
+  (gA : tensor et lA)
+  (gB : tensor et lB)
+  (gC : tensor et lC)
+  (#eA : chest2 et m k)
+  (#eB : chest2 et k n)
+  (#eC : chest2 et m n)
   (#fA #fB : perm)
-  (gid : szlt (rows * cols))
+  (gid : szlt (m * n))
   ()
   norewrite
   requires
@@ -83,14 +87,14 @@ fn kf
     gpu **
     kpost comb gA gB gC eA eB eC fA fB gid
 {
-  let trow = gid /^ cols; assert (rewrites_to trow (gid /^ cols));
-  let tcol = gid %^ cols; assert (rewrites_to tcol (gid %^ cols));
+  let trow : szlt m = gid /^ n; assert (rewrites_to trow (gid /^ n));
+  let tcol : szlt n = gid %^ n; assert (rewrites_to tcol (gid %^ n));
 
   let s = Kuiper.DotProd.matmul_dotprod gA gB trow tcol;
 
-  let v0 = M.read_cell' gC trow tcol;
+  let v0 = tensor_read_cell gC (trow, (tcol, ()));
   let v1 = comb v0 s;
-  M.write_cell' gC trow tcol v1;
+  tensor_write_cell gC (trow, (tcol, ())) v1;
 
   ()
 }
@@ -99,19 +103,19 @@ ghost
 fn setup
   (#et : Type0) {| scalar et |}
   (comb : binop et)
-  (#rows #shared #cols : szp)
-  (#lA : M.layout rows shared)
-  (#lB : M.layout shared cols)
-  (#lC : M.layout rows cols)
-  {| T.ctlayout lA, T.ctlayout lB, T.ctlayout lC |}
-  (gA : M.array2 et lA)
+  (#m #n #k : szp)
+  (#lA : layout2 m k)
+  (#lB : layout2 k n)
+  (#lC : layout2 m n)
+  {| ctlayout lA, ctlayout lB, ctlayout lC |}
+  (gA : tensor et lA)
   (#fA : perm)
-  (gB : M.array2 et lB)
+  (gB : tensor et lB)
   (#fB : perm)
-  (gC : M.array2 et lC)
-  (#eA : ematrix et rows shared)
-  (#eB : ematrix et shared cols)
-  (#eC : ematrix et rows cols)
+  (gC : tensor et lC)
+  (#eA : chest2 et m k)
+  (#eB : chest2 et k n)
+  (#eC : chest2 et m n)
   ()
   norewrite
   requires
@@ -119,34 +123,34 @@ fn setup
     gB |-> Frac fB eB **
     gC |-> eC
   ensures
-    (forall+ (gid : natlt (rows *^ cols)).
+    (forall+ (gid : natlt (m *^ n)).
       kpre comb gA gB gC eA eB eC fA fB gid) **
     emp (* frame *)
 {
-  Kuiper.Kernel.GEMM.Naive.setup comb gA gB gC #eA #eB #eC ();
+  N.setup comb gA gB gC #eA #eB #eC ();
 }
 
 ghost
 fn teardown
   (#et : Type0) {| scalar et |}
   (comb : binop et)
-  (#rows #shared #cols : szp)
-  (#lA : M.layout rows shared)
-  (#lB : M.layout shared cols)
-  (#lC : M.layout rows cols)
-  {| T.ctlayout lA, T.ctlayout lB, T.ctlayout lC |}
-  (gA : M.array2 et lA)
+  (#m #n #k : szp)
+  (#lA : layout2 m k)
+  (#lB : layout2 k n)
+  (#lC : layout2 m n)
+  {| ctlayout lA, ctlayout lB, ctlayout lC |}
+  (gA : tensor et lA)
   (#fA : perm)
-  (gB : M.array2 et lB)
+  (gB : tensor et lB)
   (#fB : perm)
-  (gC : M.array2 et lC)
-  (#eA : ematrix et rows shared)
-  (#eB : ematrix et shared cols)
-  (#eC : ematrix et rows cols)
+  (gC : tensor et lC)
+  (#eA : chest2 et m k)
+  (#eB : chest2 et k n)
+  (#eC : chest2 et m n)
   ()
   norewrite
   requires
-    (forall+ (gid : natlt (rows *^ cols)).
+    (forall+ (gid : natlt (m *^ n)).
       kpost comb gA gB gC eA eB eC fA fB gid) **
     emp (* frame *)
   ensures
@@ -154,7 +158,7 @@ fn teardown
     gB |-> Frac fB eB **
     gC |-> MS.mmcomb comb eC eA eB
 {
-  Naive.teardown comb gA gB gC #eA #eB #eC ();
+  N.teardown comb gA gB gC #eA #eB #eC ();
 }
 
 inline_for_extraction noextract
@@ -162,14 +166,14 @@ let kdesc
   (#et : Type0) {| scalar et |}
   (comb : binop et)
   (#m #n #k : szp)
-  (#lA : M.layout m k)
-  (#lB : M.layout k n)
-  (#lC : M.layout m n)
-  {| T.ctlayout lA, T.ctlayout lB, T.ctlayout lC |}
-  (gA : M.array2 et lA { M.is_global gA })
-  (gB : M.array2 et lB { M.is_global gB })
-  (gC : M.array2 et lC { M.is_global gC })
-  (#eA #eB #eC : ematrix et _ _)
+  (#lA : layout2 m k)
+  (#lB : layout2 k n)
+  (#lC : layout2 m n)
+  {| ctlayout lA, ctlayout lB, ctlayout lC |}
+  (gA : tensor et lA { is_global gA })
+  (gB : tensor et lB { is_global gB })
+  (gC : tensor et lC { is_global gC })
+  (#eA #eB #eC : chest2 et _ _)
   (#fA #fB : perm)
   (#_ : squash (size_req m n k))
   : kernel_desc
@@ -181,78 +185,72 @@ let kdesc
 
   frame = emp;
 
-  setup    = setup    comb gA #fA gB #fB gC #eA #eB #eC;
-  teardown = teardown comb gA #fA gB #fB gC #eA #eB;
+  setup    = setup    comb gA gB gC;
+  teardown = teardown comb gA gB gC;
 
   kpre  = kpre  comb gA gB gC eA eB eC fA fB;
   kpost = kpost comb gA gB gC eA eB eC fA fB;
 
-  f = kf comb gA gB gC #eA #eB #eC #fA #fB;
+  f = kf comb gA gB gC;
   kpre_sendable  = solve;
   kpost_sendable = solve;
 } <: kernel_desc_n _ _
 
-// FIXME: extraction of this function (in the inst module) is very slow, around
-// 1.5s for each one. This is *after* a lot of tweaking in the definition of the
-// kn_as_kmn cast. We seem to spend a lot of time normalizing, probably with an
-// exponential explosion somewhere.
 inline_for_extraction noextract
 fn mmcomb_gpu_exact
   (#et : Type0) {| scalar et |}
   (comb : binop et)
   (#m #n #k : szp)
-  (#lA : M.layout m k)
-  (#lB : M.layout k n)
-  (#lC : M.layout m n)
-  {| T.ctlayout lA, T.ctlayout lB, T.ctlayout lC |}
-  (gA : M.array2 et lA { M.is_global gA })
-  (gB : M.array2 et lB { M.is_global gB })
-  (gC : M.array2 et lC { M.is_global gC })
-  (#eA #eB #eC : ematrix et _ _)
+  (#lA : layout2 m k)
+  (#lB : layout2 k n)
+  (#lC : layout2 m n)
+  {| ctlayout lA, ctlayout lB, ctlayout lC |}
+  (gA : tensor et lA { is_global gA })
+  (gB : tensor et lB { is_global gB })
+  (gC : tensor et lC { is_global gC })
+  (#eA #eB #eC : chest2 et _ _)
   (#fA #fB : perm)
   norewrite
   preserves
-    cpu **
-    on gpu_loc (gA |-> Frac fA eA ** gB |-> Frac fB eB)
+    cpu ** on gpu_loc (gA |-> Frac fA eA ** gB |-> Frac fB eB)
   requires
     pure (size_req m n k) **
     on gpu_loc (gC |-> eC)
   ensures
     on gpu_loc (gC |-> MS.mmcomb comb eC eA eB)
 {
-  launch_sync (kdesc comb gA gB gC);
+  launch_sync (kdesc comb gA gB gC #eA #eB #eC);
 }
 
 inline_for_extraction noextract
 fn mmcomb_gpu_approx
   (#et : Type0) {| scalar et, real_like et |}
   (comb : binop et)
-  (comb_r : binop real { approx2 comb comb_r })
+  (comb_r : binop real { comb `approx2` comb_r })
   (#m #n #k : szp)
-  (#lA : M.layout m k)
-  (#lB : M.layout k n)
-  (#lC : M.layout m n)
-  {| T.ctlayout lA, T.ctlayout lB, T.ctlayout lC |}
-  (gA : M.array2 et lA { M.is_global gA })
-  (gB : M.array2 et lB { M.is_global gB })
-  (gC : M.array2 et lC { M.is_global gC })
-  (#eA : ematrix et m k)
-  (#eB : ematrix et k n)
-  (#eC : ematrix et m n)
-  (rA : ematrix real m k)
-  (rB : ematrix real k n)
-  (rC : ematrix real m n)
+  (#lA : layout2 m k)
+  (#lB : layout2 k n)
+  (#lC : layout2 m n)
+  {| ctlayout lA, ctlayout lB, ctlayout lC |}
+  (gA : tensor et lA { is_global gA })
+  (gB : tensor et lB { is_global gB })
+  (gC : tensor et lC { is_global gC })
+  (#eA : chest2 et m k)
+  (#eB : chest2 et k n)
+  (#eC : chest2 et m n)
+  (rA : chest2 real m k)
+  (rB : chest2 real k n)
+  (rC : chest2 real m n)
   (#fA #fB : perm)
   norewrite
   preserves
-    cpu **
-    on gpu_loc (gA |-> Frac fA eA ** gB |-> Frac fB eB)
+    cpu ** on gpu_loc (gA |-> Frac fA eA ** gB |-> Frac fB eB)
   requires
     pure (size_req m n k) **
     pure (eA %~ rA /\ eB %~ rB /\ eC %~ rC) **
     on gpu_loc (gC |-> eC)
   ensures
-    exists* (eC' : ematrix et m n).
+    exists* (eC' : chest2 et m n).
       on gpu_loc (gC |-> eC') **
       pure (eC' %~ MS.mmcomb comb_r rC rA rB)
 {

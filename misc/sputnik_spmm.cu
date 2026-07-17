@@ -19,17 +19,17 @@ void predicateInit(uint32_t *predicates, int words) {
     }
 }
 
-// en sputnik se usan solo los primeros 4 bits de cada byte
-// no está claro por qué
-// acá usamos los 8 bits
+// In sputnik only the first 4 bits of each byte are used
+// it's unclear why
+// here we use all 8 bits
 __device__ __forceinline__
 void GetWordAndBitOffsets(int x, int *word, int *bit) {
     const int kWordOffset =
         (x / 8) / sizeof(uint32_t);
     const int kByteOffset =
         (x / 8) % sizeof(uint32_t);
-    // esto esta bien?? no parece
-    // deberia ser kBitOffset = x % 8
+    // is this correct?? doesn't seem right
+    // should be kBitOffset = x % 8
     const int kBitOffset =
         (x % 8) % sizeof(uint32_t);
 
@@ -66,14 +66,14 @@ void predicateSet(int n, int n_idx, uint32_t *predicates, int threadItemsX, int 
 
 template<int blockItemsX, int blockItemsK, int blockWidth, int residueUnroll>
 
-// creo que si los parámetros dividen bien esto debería andar
+// if the parameters divide evenly this should work
 __global__
 void spmm_kernel(int rows,
                  int cols,
                  int shared,
-                 // matrix rala en formato CSR
+                 // sparse matrix in CSR format
                  smatrix gA,
-                 // matrices densas en formato row major
+                 // dense matrices in row-major format
                  scalar *gB, scalar *gC)
 {
     
@@ -82,47 +82,47 @@ void spmm_kernel(int rows,
     static_assert(blockWidth <= blockItemsX);
     static_assert(blockItemsX % blockWidth == 0);
 
-    // grid de M x blockItemsX ==> tiles de C por fila de largo blockItemsX
+    // grid of M x blockItemsX ==> tiles of C per row of length blockItemsX
 
-    // fila de bloque
+    // block row
     const int m_idx = blockIdx.y;
-    // primer columna de bloque
+    // first block column
     const int n_idx = blockIdx.x * blockItemsX;
 
-    // creo que esto debería valer siempre
+    // this should always hold
     assert(m_idx < rows);
     assert(n_idx < cols);
 
-    // offset de fila
+    // row offset
     const int m_off = gA.row_off[m_idx];
-    // cantidad de elementos no nulos de la fila
+    // number of non-zero elements in the row
     int nnz = gA.row_off[m_idx + 1] - m_off;
 
-    // tiles de gA en shmem
+    // tiles of gA in shared memory
     scalar elems_tile[blockItemsK];
     int col_ind_tile[blockItemsK];
 
     const int threadItemsX = blockItemsX / blockWidth;
 
-    // por qué align 16? está así en sputnik
+    // why align 16? it's like this in sputnik
 
-    // tile 2D de gB
+    // 2D tile of gB
     __align__(16) scalar dense_fragment[blockItemsK * threadItemsX];
-    // Guido: ^ hay que inicializar a cero? Capaz no, porque se filtar todo
-    // por el predicado.
+    // ^ do we need to zero-initialize? Maybe not, since everything is
+    // filtered by the predicate.
 
-    // tile 1D de gC
-    // acá sputnik usa float para acumular los resultados
+    // 1D tile of gC
+    // sputnik uses float here to accumulate results
     __align__(16) scalar output_fragment[threadItemsX] = {};
 
-    // TODO borrar
-    // chequeo pavote
+    // TODO remove
+    // sanity check
     for (int i = 0; i < nnz; i++) {
         assert(output_fragment[i] == 0);
     }
 
 
-    // Seteamos predicado para enmascarar indices que caen fuera de rango
+    // Set predicate to mask out-of-range indices
     const int predicateBytes = (threadItemsX + 7) / 8;
     const int predicateWords =
         (predicateBytes + sizeof(uint32_t) - 1) / sizeof(uint32_t);
@@ -135,28 +135,28 @@ void spmm_kernel(int rows,
 
     // main loop
 
-    // matriz rala + offset de bloque + offset de thread
+    // sparse matrix + block offset + thread offset
     scalar *elems = gA.elems + m_off + threadIdx.x;
     int *col_ind = gA.col_ind + m_off + threadIdx.x;
 
     int sparse_offset = m_off + threadIdx.x;
 
-    // matriz densa + offset de bloque + offset de thread
+    // dense matrix + block offset + thread offset
     scalar *const dense = gB + n_idx + threadIdx.x;
 
     int dense_offset = n_idx + threadIdx.x;
     
-    // Nota: en sputniik solo se sincroniza cuando hay mas de 32 threads
+    // Note: in sputnik they only synchronize when there are more than 32 threads
     for (; nnz >= blockItemsK; nnz -= blockItemsK) {
 
-        // cargamos cooperativamente el tile sparse
+        // cooperatively load the sparse tile
         __syncthreads();
 
         int sparse_tile_offset = threadIdx.x;
 #pragma unroll
         for (int k = 0; k < blockItemsK / blockWidth; k++) {
             elems_tile[sparse_tile_offset] = elems[sparse_offset];
-            // indice de columna ==> indice de fila para cargar matriz densa
+            // column index ==> row index for loading dense matrix
             col_ind_tile[sparse_tile_offset] = cols * col_ind[sparse_offset];
 
             sparse_offset += blockWidth;
@@ -165,7 +165,7 @@ void spmm_kernel(int rows,
 
         __syncthreads();
 
-        // cargamos el tile 2D denso para este thread
+        // load the 2D dense tile for this thread
         int dense_fragment_offset = 0;
 #pragma unroll
         for (int k = 0; k < blockItemsK; k++) {
@@ -173,20 +173,20 @@ void spmm_kernel(int rows,
 #pragma unroll
             for (int x = 0; x < threadItemsX; x++) {
                 if (GetBit(predicates, x)) {
-                    // Guido: gB es densa
+                    // gB is dense
                     dense_fragment[dense_fragment_offset] =
                         gB[dense_it];
                     dense_it += blockWidth;
                     dense_fragment_offset++;
 
-                    // Alternativa:
+                    // Alternative:
                     // dense_fragment[dense_fragment_offset + x] =
                     //     gB[dense_it + blockWidth * x];
                 }
             }
         }
 
-        // calculamos el producto
+        // compute the product
 #pragma unroll
         for (int k = 0, dense_fragment_offset=0; k < blockItemsK; k++, dense_fragment_offset++) {
 #pragma unroll
@@ -198,22 +198,22 @@ void spmm_kernel(int rows,
         
     }
 
-    // output_fragment tiene productos parciales para este hilo
-    // Nos faltan procesar algunos de la fila de a, porque fuimos
-    // en pasos de blockItemsK, que no necesariamente divide nnz.
+    // output_fragment holds partial products for this thread.
+    // We still need to process some elements from row a, because we
+    // stepped by blockItemsK, which doesn't necessarily divide nnz.
 
-    // calculamos valores residuales
+    // compute residual values
 
-    // precondicion del kernel
+    // kernel precondition
     static_assert(residueUnroll > 0);
     static_assert(blockItemsK % residueUnroll == 0);
 
-    // cargamos tile sparse
+    // load sparse tile
     __syncthreads();
 
     if (residueUnroll > 1) {
-        // ponemos el tile sparse en cero para poder operar sin
-        // chequear rangos en cada iteracion
+        // zero out the sparse tile so we can operate without
+        // checking bounds on each iteration
         int sparse_tile_offset = threadIdx.x;
 #pragma unroll
         for (int k = 0; k < blockItemsK; k++) {
@@ -245,7 +245,7 @@ void spmm_kernel(int rows,
 
     sparse_offset = 0;
     residue = nnz;
-    // esto es solo para poder unrollear los loops
+    // this is only so the loops can be unrolled
 #pragma unroll
     for (int k_outer = 0; k_outer++ < blockItemsK / residueUnroll; k_outer++) {
         if (residue <= 0) break;
@@ -266,7 +266,7 @@ void spmm_kernel(int rows,
     }
 
 
-    // acumulamos resultados
+    // accumulate results
 
     int out_offset = m_idx * cols + n_idx + threadIdx.x;
 #pragma unroll

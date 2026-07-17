@@ -5,7 +5,7 @@ module Kuiper.Kernel.GEMM.Tiled
 open Kuiper
 open Kuiper.Kernel.GEMMGPU.Type
 open Kuiper.Tensor.Layout { ctlayout }
-open Kuiper.Array2 { array2 }
+open Kuiper.Tensor { array2 }
 open Kuiper.EMatrix
 module MS = Kuiper.Spec.GEMM
 

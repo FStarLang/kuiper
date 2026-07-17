@@ -373,8 +373,8 @@ open Kuiper.Spec.GEMM
 let rec __dprod_is_matmul_single
   (#et : Type) {| scalar et |}
   (#rows #shared #columns : nat)
-  (m1 : ematrix et rows shared)
-  (m2 : ematrix et shared columns)
+  (m1 : chest2 et rows shared)
+  (m2 : chest2 et shared columns)
   (row : natlt rows)
   (col : natlt columns)
   (to : natle shared)
@@ -395,8 +395,8 @@ let rec __dprod_is_matmul_single
 let dprod_is_matmul_single
   (#et : Type) {| scalar et |}
   (#rows #shared #columns : nat)
-  (m1 : ematrix et rows shared)
-  (m2 : ematrix et shared columns)
+  (m1 : chest2 et rows shared)
+  (m2 : chest2 et shared columns)
   (row : natlt rows)
   (col : natlt columns)
 : Lemma

@@ -67,9 +67,6 @@ let kpr_translate_type_without_decay : translate_type_without_decay_t = fun env 
   let x = type_hta t in
   if None? x then raise NotSupportedByKrmlExtension;
   match Some?.v x with
-  | "Kuiper.Ref.gpu_ref",     [t]      -> TBuf (cb t)
-  | "Kuiper.Array.Core.gpu_array", [t; len] -> TBuf (cb t)
-
   | "Kuiper.TensorCore.Base.fragment", [et; knd; m; n; k; layout] ->
     // Note: it is difficult to try to construct a proper type
     // here because
@@ -84,9 +81,10 @@ let kpr_translate_type_without_decay : translate_type_without_decay_t = fun env 
     //    expand to the proper templated type.
     TQualified ([], "auto_AMP") // sed subtitutes this to auto&
 
-  | "Kuiper.Float16.t",               [] -> TInt Half
-  | "Kuiper.Float32.t",               [] -> TInt Float
-  | "Kuiper.Float64.t",               [] -> TInt Double
+  | "Kuiper.Float16.Base.t",               [] -> TInt Float16
+  | "Kuiper.BFloat16.Base.t",              [] -> TInt BFloat16
+  | "Kuiper.Float32.Base.t",               [] -> TInt Float32
+  | "Kuiper.Float64.Base.t",               [] -> TInt Float64
   | _ -> raise NotSupportedByKrmlExtension
 
 let cudaMemcpyDeviceToHost = EQualified ([], "cudaMemcpyDeviceToHost")
@@ -110,6 +108,19 @@ let get_record_field fname (e:mlexpr) : ML mlexpr =
     ]
 
 let get_sizet (e : mlexpr) : ML mlexpr = get_record_field "size" e
+
+(* Generate a sizeof expression for a type. A bit hacky, since it generates
+   something like sizeof((ty)0). The way to avoid the zero would to be add
+   a ESizeof to krml. Note: sizeof((int)) fails, so we need something in there. *)
+let sizeof (ty : typ) : expr = ESizeof ty
+
+(* e times sz, where sz is a sizeof *)
+let mul_by_sz (sz e : expr) : expr =
+  (* Note the cast below to please krml, since ESizeof t is always SizeT.
+  The real one, not the fake one. *)
+  let sz = ECast (sz, TInt fake_SizeT) in
+  EApp (EOp (Mult, fake_SizeT), [ sz; e ])
+
 // repeated names get a numeric prefix, and we have both strided_row_major and strided_col_major
 let get_strided_row_major_offset (e : mlexpr) : ML mlexpr =
   try get_record_field "offset" e with | _ -> get_record_field "offset1" e
@@ -124,6 +135,7 @@ let _mlMUST (e : mlexpr) : mlexpr =
       MLE_App (with_ty ml_unit_ty <| MLE_Name ([], "MUST"), [e])
 
 let ctr = mk_ref 0
+let last_name : ref mlident = mk_ref "<bogus>"
 
 let extra_unit_binder = {mlbinder_name = "extra_unit"; mlbinder_ty = ml_unit_ty; mlbinder_attrs = []}
 
@@ -265,8 +277,20 @@ let hoist (g : env) (e : mlexpr) : ML mlexpr =
   let call_args = List.map (fun (v, t) -> with_ty t <| MLE_Var v) fvs in
   let e = collapse_record_proj e in
   let mk_binder (v, t) = {mlbinder_name = v; mlbinder_ty = t; mlbinder_attrs = []} in
-  let fresh = "__hoisted_" ^ string_of_int !ctr in
-  ctr := !ctr + 1;
+
+  if None? !krml_current_decl then
+    raise_error0 Fatal_ExtractionUnsupported [
+      text "Hoist: internal error: no current declaration in context for:" ^/^ pp e0
+    ];
+
+  (* Get a fresh stable name *)
+  if Some?.v !krml_current_decl <> !last_name then (
+    last_name := Some?.v !krml_current_decl;
+    ctr := 0
+  ) else
+    ctr := !ctr + 1;
+
+  let fresh = "__hoisted_" ^ !last_name ^ "_" ^ string_of_int !ctr in
 
   let bs =  List.map mk_binder fvs @ [extra_unit_binder] in
   let kbs = translate_binders g bs in
@@ -297,6 +321,8 @@ let parse_shmem_desc (e : mlexpr) : ML (option (mlexpr & mlexpr)) =
   let open FStarC.Class.Monad in
   match e.expr with
   | MLE_CTor (fv, [_ty; sized; len]) when string_of_mlpath fv = "Kuiper.SHMem.SHArray" ->
+    (* Note: we cannot use sizeof of the type here, since it has
+    already been erased into unit. *)
     let sized_a = get_sizet sized in
     return (sized_a, len)
   | _ ->
@@ -462,9 +488,10 @@ let kpr_translate_alloc_fragment (cb : mlexpr -> ML expr) et knd m n k layout =
     in
     let faketype =
       match et with
-      | MLTY_Named ([], (["Kuiper"; "Float16"], "t")) -> EQualified ([], "half")
-      | MLTY_Named ([], (["Kuiper"; "Float32"], "t")) -> EQualified ([], "float")
-      | MLTY_Named ([], (["Kuiper"; "Float64"], "t")) -> EQualified ([], "double")
+      | MLTY_Named ([], (["Kuiper"; "Float16"; "Base"], "t")) -> EQualified ([], "half")
+      | MLTY_Named ([], (["Kuiper"; "BFloat16"; "Base"], "t")) -> EQualified ([], "__nv_bfloat16")
+      | MLTY_Named ([], (["Kuiper"; "Float32"; "Base"], "t")) -> EQualified ([], "float")
+      | MLTY_Named ([], (["Kuiper"; "Float64"; "Base"], "t")) -> EQualified ([], "double")
     in
     let args =
       [ knd; cb m; cb n; cb k; faketype ]
@@ -477,6 +504,7 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
   if !dbg
   then Format.print1_warning "ExtractKuiper.kpr_translate_expr %s\n" (mlexpr_to_string e);
   let cb = translate_expr env in
+  let cb_ty = translate_type env in
   let x = hta e in
   if None? x then raise NotSupportedByKrmlExtension;
   match Some?.v x with
@@ -584,270 +612,317 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
    depends on CUDA version. Just use the intrinsics. *)
   // TODO: review exactly which variant to use here. There are also
   // __hexp and __hlog that are faster but numerically worse.
-  | "Kuiper.Float16.zero", [], [] -> EConstant (Half, "__float2half_rn(0.0f)")
-  | "Kuiper.Float16.one",  [], [] -> EConstant (Half, "__float2half_rn(1.0f)")
-  | "Kuiper.Float16.add",  [], [] -> EQualified ([], "__hadd")
-  | "Kuiper.Float16.sub",  [], [] -> EQualified ([], "__hsub")
-  | "Kuiper.Float16.mul",  [], [] -> EQualified ([], "__hmul")
-  | "Kuiper.Float16.div",  [], [] -> EQualified ([], "__hdiv")
-  | "Kuiper.Float16.exp",  [], [] -> EQualified ([], "hexp")
-  | "Kuiper.Float16.log",  [], [] -> EQualified ([], "hlog")
-  | "Kuiper.Float16.eq",   [], [] -> EOp (Eq, Half)
-  | "Kuiper.Float16.lt",   [], [] -> EOp (Lt, Half)
-  | "Kuiper.Float16.lte",  [], [] -> EOp (Lte, Half)
-  | "Kuiper.Float16.valid",  [], [] -> EQualified ([], "kpr_hisvalid")
-  | "Kuiper.Float16.min_val",  [], [] -> EConstant (Half, "__float2half_rn(-65504.0f)")
-  | "Kuiper.Float16.max_val",  [], [] -> EConstant (Half, "__float2half_rn(65504.0f)")
+  | "Kuiper.Float16.Base.zero", [], [] -> EConstant (Float16, "__float2half_rn(0.0f)")
+  | "Kuiper.Float16.Base.one",  [], [] -> EConstant (Float16, "__float2half_rn(1.0f)")
+  | "Kuiper.Float16.Base.add",  [], [] -> EQualified ([], "__hadd")
+  | "Kuiper.Float16.Base.mul",  [], [] -> EQualified ([], "__hmul")
+  | "Kuiper.Float16.Base.sub",  [], [] -> EQualified ([], "__hsub")
+  | "Kuiper.Float16.Base.div",  [], [] -> EQualified ([], "__hdiv")
+  | "Kuiper.Float16.Base.fexp", [], [] -> EQualified ([], "hexp")
+  | "Kuiper.Float16.Base.flog", [], [] -> EQualified ([], "hlog")
+  | "Kuiper.Float16.Base.eq",   [], [] -> EOp (Eq, Float16)
+  | "Kuiper.Float16.Base.lt",   [], [] -> EOp (Lt, Float16)
+  | "Kuiper.Float16.Base.lte",  [], [] -> EOp (Lte, Float16)
+  | "Kuiper.Float16.Base.largest",  [], [] -> EConstant (Float16, "HLF_MAX")
+  | "Kuiper.Float16.Base.infinity", [], [] -> EConstant (Float16, "HLF_INFINITY")
+  | "Kuiper.Float16.Base.of_int", [], [i] -> EApp (EQualified ([], "__ll2half_rn"), [cb i])
+  | "Kuiper.Float16.Base.of_literal", [], [s] ->
+    begin match s.expr with
+    | MLE_Const (MLC_String v) -> EConstant (Float16, v)
+    | _ -> failwith "Float16.of_literal: expected a string literal"
+    end
 
-  | "Kuiper.Float32.zero", [], [] -> EConstant (Float, "0.0f")
-  | "Kuiper.Float32.one",  [], [] -> EConstant (Float, "1.0f")
-  | "Kuiper.Float32.add",  [], [] -> EOp (Add, Float)
-  | "Kuiper.Float32.sub",  [], [] -> EOp (Sub, Float)
-  | "Kuiper.Float32.mul",  [], [] -> EOp (Mult, Float)
-  | "Kuiper.Float32.div",  [], [] -> EOp (Div, Float)
-  | "Kuiper.Float32.exp",  [], [] -> EQualified ([], "expf")
-  | "Kuiper.Float32.log",  [], [] -> EQualified ([], "logf")
-  | "Kuiper.Float32.eq",   [], [] -> EOp (Eq, Float)
-  | "Kuiper.Float32.lt",   [], [] -> EOp (Lt, Float)
-  | "Kuiper.Float32.lte",  [], [] -> EOp (Lte, Float)
-  | "Kuiper.Float32.valid",  [], [] -> EQualified ([], "kpr_fisvalid")
-  | "Kuiper.Float32.min_val",  [], [] -> EConstant (Float, "-FLT_MAX")
-  | "Kuiper.Float32.max_val",  [], [] -> EConstant (Float, "FLT_MAX")
+  | "Kuiper.BFloat16.Base.zero", [], [] -> EConstant (BFloat16, "__float2bfloat16(0.0f)")
+  | "Kuiper.BFloat16.Base.one",  [], [] -> EConstant (BFloat16, "__float2bfloat16(1.0f)")
+  | "Kuiper.BFloat16.Base.add",  [], [] -> EQualified ([], "kpr_bf16add")
+  | "Kuiper.BFloat16.Base.mul",  [], [] -> EQualified ([], "kpr_bf16mul")
+  | "Kuiper.BFloat16.Base.sub",  [], [] -> EQualified ([], "kpr_bf16sub")
+  | "Kuiper.BFloat16.Base.div",  [], [] -> EQualified ([], "kpr_bf16div")
+  | "Kuiper.BFloat16.Base.fexp", [], [] -> EQualified ([], "kpr_bf16exp")
+  | "Kuiper.BFloat16.Base.flog", [], [] -> EQualified ([], "kpr_bf16log")
+  | "Kuiper.BFloat16.Base.eq",   [], [] -> EOp (Eq, BFloat16)
+  | "Kuiper.BFloat16.Base.lt",   [], [] -> EOp (Lt, BFloat16)
+  | "Kuiper.BFloat16.Base.lte",  [], [] -> EOp (Lte, BFloat16)
+  | "Kuiper.BFloat16.Base.largest",  [], [] -> EConstant (BFloat16, "__ushort_as_bfloat16(0x7F7F);")
+  | "Kuiper.BFloat16.Base.infinity", [], [] -> EConstant (BFloat16, "__float2bfloat16(INFINITY);")
+  | "Kuiper.BFloat16.Base.of_literal", [], [s] ->
+    begin match s.expr with
+    | MLE_Const (MLC_String v) -> EConstant (BFloat16, v)
+    | _ -> failwith "BFloat16.of_literal: expected a string literal"
+    end
+  | "Kuiper.BFloat16.Base.of_int", [], [i] -> EApp (EQualified ([], "__ll2bfloat16_rn"), [cb i])
 
-  | "Kuiper.Float64.zero", [], [] -> EConstant (Double, "0.0l")
-  | "Kuiper.Float64.one",  [], [] -> EConstant (Double, "1.0l")
-  | "Kuiper.Float64.add",  [], [] -> EOp (Add, Double)
-  | "Kuiper.Float64.sub",  [], [] -> EOp (Sub, Double)
-  | "Kuiper.Float64.mul",  [], [] -> EOp (Mult, Double)
-  | "Kuiper.Float64.div",  [], [] -> EOp (Div, Double)
-  | "Kuiper.Float64.exp",  [], [] -> EQualified ([], "exp")
-  | "Kuiper.Float64.log",  [], [] -> EQualified ([], "log")
-  | "Kuiper.Float64.lt",   [], [] -> EOp (Lt, Double)
-  | "Kuiper.Float64.lte",  [], [] -> EOp (Lte, Double)
-  | "Kuiper.Float64.eq",   [], [] -> EOp (Eq, Double)
-  | "Kuiper.Float64.valid",  [], [] -> EQualified ([], "kpr_disvalid")
-  | "Kuiper.Float64.min_val",  [], [] -> EConstant (Double, "-DBL_MAX")
-  | "Kuiper.Float64.max_val",  [], [] -> EConstant (Double, "DBL_MAX")
+  | "Kuiper.Float32.Base.zero", [], [] -> EConstant (Float32, "0.0f")
+  | "Kuiper.Float32.Base.one",  [], [] -> EConstant (Float32, "1.0f")
+  | "Kuiper.Float32.Base.add",  [], [] -> EOp (Add, Float32)
+  | "Kuiper.Float32.Base.mul",  [], [] -> EOp (Mult, Float32)
+  | "Kuiper.Float32.Base.sub",  [], [] -> EOp (Sub, Float32)
+  | "Kuiper.Float32.Base.div",  [], [] -> EOp (Div, Float32)
+  | "Kuiper.Float32.Base.fexp", [], [] -> EQualified ([], "expf")
+  | "Kuiper.Float32.Base.flog", [], [] -> EQualified ([], "logf")
+  | "Kuiper.Float32.Base.eq",   [], [] -> EOp (Eq, Float32)
+  | "Kuiper.Float32.Base.lt",   [], [] -> EOp (Lt, Float32)
+  | "Kuiper.Float32.Base.lte",  [], [] -> EOp (Lte, Float32)
+  | "Kuiper.Float32.Base.valid",  [], [] -> EQualified ([], "kpr_fisvalid")
+  | "Kuiper.Float32.Base.largest",  [], [] -> EConstant (Float32, "FLT_MAX")
+  | "Kuiper.Float32.Base.infinity", [], [] -> EConstant (Float32, "INFINITY")
+  | "Kuiper.Float32.Base.of_literal", [], [s] ->
+    begin match s.expr with
+    | MLE_Const (MLC_String v) -> EConstant (Float32, v)
+    | _ -> failwith "Float32.of_literal: expected a string literal"
+    end
+  | "Kuiper.Float32.Base.of_int", [], [i] -> ECast (cb i, TInt Float32)
+  | "Kuiper.Float64.Base.zero", [], [] -> EConstant (Float64, "0.0")
+  | "Kuiper.Float64.Base.one",  [], [] -> EConstant (Float64, "1.0")
+  | "Kuiper.Float64.Base.add",  [], [] -> EOp (Add, Float64)
+  | "Kuiper.Float64.Base.mul",  [], [] -> EOp (Mult, Float64)
+  | "Kuiper.Float64.Base.sub",  [], [] -> EOp (Sub, Float64)
+  | "Kuiper.Float64.Base.div",  [], [] -> EOp (Div, Float64)
+  | "Kuiper.Float64.Base.fexp",  [], [] -> EQualified ([], "exp")
+  | "Kuiper.Float64.Base.flog",  [], [] -> EQualified ([], "log")
+  | "Kuiper.Float64.Base.lt",   [], [] -> EOp (Lt, Float64)
+  | "Kuiper.Float64.Base.lte",  [], [] -> EOp (Lte, Float64)
+  | "Kuiper.Float64.Base.eq",   [], [] -> EOp (Eq, Float64)
+  | "Kuiper.Float64.Base.largest",  [], [] -> EConstant (Float64, "DBL_MAX")
+  | "Kuiper.Float64.Base.infinity", [], [] -> EConstant (Float64, "INFINITY")
+  | "Kuiper.Float64.Base.of_int", [], [i] -> ECast (cb i, TInt Float64)
+  | "Kuiper.Float64.Base.of_literal", [], [s] ->
+    begin match s.expr with
+    | MLE_Const (MLC_String v) -> EConstant (Float64, v)
+    | _ -> failwith "Float64.of_literal: expected a string literal"
+    end
 
   (* Transcendental / math primitives *)
 
-  | "Kuiper.Float16.sqrt",  [], [] -> EQualified ([], "kpr_hsqrt")
-  | "Kuiper.Float16.rsqrt", [], [] -> EQualified ([], "kpr_hrsqrt")
-  | "Kuiper.Float16.sin",   [], [] -> EQualified ([], "kpr_hsin")
-  | "Kuiper.Float16.cos",   [], [] -> EQualified ([], "kpr_hcos")
-  | "Kuiper.Float16.tan",   [], [] -> EQualified ([], "kpr_htan")
-  | "Kuiper.Float16.asin",  [], [] -> EQualified ([], "kpr_hasin")
-  | "Kuiper.Float16.acos",  [], [] -> EQualified ([], "kpr_hacos")
-  | "Kuiper.Float16.atan",  [], [] -> EQualified ([], "kpr_hatan")
-  | "Kuiper.Float16.sinh",  [], [] -> EQualified ([], "kpr_hsinh")
-  | "Kuiper.Float16.cosh",  [], [] -> EQualified ([], "kpr_hcosh")
-  | "Kuiper.Float16.tanh",  [], [] -> EQualified ([], "kpr_htanh")
-  | "Kuiper.Float16.ceil",  [], [] -> EQualified ([], "kpr_hceil")
-  | "Kuiper.Float16.floor", [], [] -> EQualified ([], "kpr_hfloor")
-  | "Kuiper.Float16.round", [], [] -> EQualified ([], "kpr_hround")
-  | "Kuiper.Float16.fabs",  [], [] -> EQualified ([], "kpr_hfabs")
-  | "Kuiper.Float16.erf",   [], [] -> EQualified ([], "kpr_herf")
-  | "Kuiper.Float16.log2",  [], [] -> EQualified ([], "kpr_hlog2")
-  | "Kuiper.Float16.log10", [], [] -> EQualified ([], "kpr_hlog10")
-  | "Kuiper.Float16.exp2",  [], [] -> EQualified ([], "kpr_hexp2")
-  | "Kuiper.Float16.pow",   [], [] -> EQualified ([], "kpr_hpow")
-  | "Kuiper.Float16.atan2", [], [] -> EQualified ([], "kpr_hatan2")
-  | "Kuiper.Float16.fmin",  [], [] -> EQualified ([], "kpr_hfmin")
-  | "Kuiper.Float16.fmax",  [], [] -> EQualified ([], "kpr_hfmax")
-  | "Kuiper.Float16.fmod",  [], [] -> EQualified ([], "kpr_hfmod")
-  | "Kuiper.Float16.copysign", [], [] -> EQualified ([], "kpr_hcopysign")
-  | "Kuiper.Float16.fma",   [], [] -> EQualified ([], "kpr_hfma")
+  | "Kuiper.Float16.Base.sqrt",  [], [] -> EQualified ([], "kpr_hsqrt")
+  | "Kuiper.Float16.Base.rsqrt", [], [] -> EQualified ([], "kpr_hrsqrt")
+  | "Kuiper.Float16.Base.sin",   [], [] -> EQualified ([], "kpr_hsin")
+  | "Kuiper.Float16.Base.cos",   [], [] -> EQualified ([], "kpr_hcos")
+  | "Kuiper.Float16.Base.tan",   [], [] -> EQualified ([], "kpr_htan")
+  | "Kuiper.Float16.Base.asin",  [], [] -> EQualified ([], "kpr_hasin")
+  | "Kuiper.Float16.Base.acos",  [], [] -> EQualified ([], "kpr_hacos")
+  | "Kuiper.Float16.Base.atan",  [], [] -> EQualified ([], "kpr_hatan")
+  | "Kuiper.Float16.Base.sinh",  [], [] -> EQualified ([], "kpr_hsinh")
+  | "Kuiper.Float16.Base.cosh",  [], [] -> EQualified ([], "kpr_hcosh")
+  | "Kuiper.Float16.Base.tanh",  [], [] -> EQualified ([], "kpr_htanh")
+  | "Kuiper.Float16.Base.ceil",  [], [] -> EQualified ([], "kpr_hceil")
+  | "Kuiper.Float16.Base.floor", [], [] -> EQualified ([], "kpr_hfloor")
+  | "Kuiper.Float16.Base.round", [], [] -> EQualified ([], "kpr_hround")
+  | "Kuiper.Float16.Base.fabs",  [], [] -> EQualified ([], "kpr_hfabs")
+  | "Kuiper.Float16.Base.erf",   [], [] -> EQualified ([], "kpr_herf")
+  | "Kuiper.Float16.Base.log2",  [], [] -> EQualified ([], "kpr_hlog2")
+  | "Kuiper.Float16.Base.log10", [], [] -> EQualified ([], "kpr_hlog10")
+  | "Kuiper.Float16.Base.exp2",  [], [] -> EQualified ([], "kpr_hexp2")
+  | "Kuiper.Float16.Base.pow",   [], [] -> EQualified ([], "kpr_hpow")
+  | "Kuiper.Float16.Base.atan2", [], [] -> EQualified ([], "kpr_hatan2")
+  | "Kuiper.Float16.Base.fmin",  [], [] -> EQualified ([], "kpr_hfmin")
+  | "Kuiper.Float16.Base.fmax",  [], [] -> EQualified ([], "kpr_hfmax")
+  | "Kuiper.Float16.Base.fmod",  [], [] -> EQualified ([], "kpr_hfmod")
+  | "Kuiper.Float16.Base.copysign", [], [] -> EQualified ([], "kpr_hcopysign")
+  | "Kuiper.Float16.Base.fma",   [], [] -> EQualified ([], "kpr_hfma")
 
-  | "Kuiper.Float32.sqrt",  [], [] -> EQualified ([], "sqrtf")
-  | "Kuiper.Float32.rsqrt", [], [] -> EQualified ([], "rsqrtf")
-  | "Kuiper.Float32.sin",   [], [] -> EQualified ([], "sinf")
-  | "Kuiper.Float32.cos",   [], [] -> EQualified ([], "cosf")
-  | "Kuiper.Float32.tan",   [], [] -> EQualified ([], "tanf")
-  | "Kuiper.Float32.asin",  [], [] -> EQualified ([], "asinf")
-  | "Kuiper.Float32.acos",  [], [] -> EQualified ([], "acosf")
-  | "Kuiper.Float32.atan",  [], [] -> EQualified ([], "atanf")
-  | "Kuiper.Float32.sinh",  [], [] -> EQualified ([], "sinhf")
-  | "Kuiper.Float32.cosh",  [], [] -> EQualified ([], "coshf")
-  | "Kuiper.Float32.tanh",  [], [] -> EQualified ([], "tanhf")
-  | "Kuiper.Float32.ceil",  [], [] -> EQualified ([], "ceilf")
-  | "Kuiper.Float32.floor", [], [] -> EQualified ([], "floorf")
-  | "Kuiper.Float32.round", [], [] -> EQualified ([], "roundf")
-  | "Kuiper.Float32.fabs",  [], [] -> EQualified ([], "fabsf")
-  | "Kuiper.Float32.erf",   [], [] -> EQualified ([], "erff")
-  | "Kuiper.Float32.log2",  [], [] -> EQualified ([], "log2f")
-  | "Kuiper.Float32.log10", [], [] -> EQualified ([], "log10f")
-  | "Kuiper.Float32.exp2",  [], [] -> EQualified ([], "exp2f")
-  | "Kuiper.Float32.pow",   [], [] -> EQualified ([], "powf")
-  | "Kuiper.Float32.atan2", [], [] -> EQualified ([], "atan2f")
-  | "Kuiper.Float32.fmin",  [], [] -> EQualified ([], "fminf")
-  | "Kuiper.Float32.fmax",  [], [] -> EQualified ([], "fmaxf")
-  | "Kuiper.Float32.fmod",  [], [] -> EQualified ([], "fmodf")
-  | "Kuiper.Float32.copysign", [], [] -> EQualified ([], "copysignf")
-  | "Kuiper.Float32.fma",   [], [] -> EQualified ([], "fmaf")
+  | "Kuiper.BFloat16.Base.sqrt",  [], [] -> EQualified ([], "kpr_bf16sqrt")
+  | "Kuiper.BFloat16.Base.rsqrt", [], [] -> EQualified ([], "kpr_bf16rsqrt")
+  | "Kuiper.BFloat16.Base.sin",   [], [] -> EQualified ([], "kpr_bf16sin")
+  | "Kuiper.BFloat16.Base.cos",   [], [] -> EQualified ([], "kpr_bf16cos")
+  | "Kuiper.BFloat16.Base.tan",   [], [] -> EQualified ([], "kpr_bf16tan")
+  | "Kuiper.BFloat16.Base.asin",  [], [] -> EQualified ([], "kpr_bf16asin")
+  | "Kuiper.BFloat16.Base.acos",  [], [] -> EQualified ([], "kpr_bf16acos")
+  | "Kuiper.BFloat16.Base.atan",  [], [] -> EQualified ([], "kpr_bf16atan")
+  | "Kuiper.BFloat16.Base.sinh",  [], [] -> EQualified ([], "kpr_bf16sinh")
+  | "Kuiper.BFloat16.Base.cosh",  [], [] -> EQualified ([], "kpr_bf16cosh")
+  | "Kuiper.BFloat16.Base.tanh",  [], [] -> EQualified ([], "kpr_bf16tanh")
+  | "Kuiper.BFloat16.Base.ceil",  [], [] -> EQualified ([], "kpr_bf16ceil")
+  | "Kuiper.BFloat16.Base.floor", [], [] -> EQualified ([], "kpr_bf16floor")
+  | "Kuiper.BFloat16.Base.round", [], [] -> EQualified ([], "kpr_bf16round")
+  | "Kuiper.BFloat16.Base.fabs",  [], [] -> EQualified ([], "kpr_bf16fabs")
+  | "Kuiper.BFloat16.Base.erf",   [], [] -> EQualified ([], "kpr_bf16erf")
+  | "Kuiper.BFloat16.Base.log2",  [], [] -> EQualified ([], "kpr_bf16log2")
+  | "Kuiper.BFloat16.Base.log10", [], [] -> EQualified ([], "kpr_bf16log10")
+  | "Kuiper.BFloat16.Base.exp2",  [], [] -> EQualified ([], "kpr_bf16exp2")
+  | "Kuiper.BFloat16.Base.pow",   [], [] -> EQualified ([], "kpr_bf16pow")
+  | "Kuiper.BFloat16.Base.atan2", [], [] -> EQualified ([], "kpr_bf16atan2")
+  | "Kuiper.BFloat16.Base.fmin",  [], [] -> EQualified ([], "kpr_bf16fmin")
+  | "Kuiper.BFloat16.Base.fmax",  [], [] -> EQualified ([], "kpr_bf16fmax")
+  | "Kuiper.BFloat16.Base.fmod",  [], [] -> EQualified ([], "kpr_bf16fmod")
+  | "Kuiper.BFloat16.Base.copysign", [], [] -> EQualified ([], "kpr_bf16copysign")
+  | "Kuiper.BFloat16.Base.fma",   [], [] -> EQualified ([], "kpr_bf16fma")
 
-  | "Kuiper.Float64.sqrt",  [], [] -> EQualified ([], "sqrt")
-  | "Kuiper.Float64.rsqrt", [], [] -> EQualified ([], "rsqrt")
-  | "Kuiper.Float64.sin",   [], [] -> EQualified ([], "sin")
-  | "Kuiper.Float64.cos",   [], [] -> EQualified ([], "cos")
-  | "Kuiper.Float64.tan",   [], [] -> EQualified ([], "tan")
-  | "Kuiper.Float64.asin",  [], [] -> EQualified ([], "asin")
-  | "Kuiper.Float64.acos",  [], [] -> EQualified ([], "acos")
-  | "Kuiper.Float64.atan",  [], [] -> EQualified ([], "atan")
-  | "Kuiper.Float64.sinh",  [], [] -> EQualified ([], "sinh")
-  | "Kuiper.Float64.cosh",  [], [] -> EQualified ([], "cosh")
-  | "Kuiper.Float64.tanh",  [], [] -> EQualified ([], "tanh")
-  | "Kuiper.Float64.ceil",  [], [] -> EQualified ([], "ceil")
-  | "Kuiper.Float64.floor", [], [] -> EQualified ([], "floor")
-  | "Kuiper.Float64.round", [], [] -> EQualified ([], "round")
-  | "Kuiper.Float64.fabs",  [], [] -> EQualified ([], "fabs")
-  | "Kuiper.Float64.erf",   [], [] -> EQualified ([], "erf")
-  | "Kuiper.Float64.log2",  [], [] -> EQualified ([], "log2")
-  | "Kuiper.Float64.log10", [], [] -> EQualified ([], "log10")
-  | "Kuiper.Float64.exp2",  [], [] -> EQualified ([], "exp2")
-  | "Kuiper.Float64.pow",   [], [] -> EQualified ([], "pow")
-  | "Kuiper.Float64.atan2", [], [] -> EQualified ([], "atan2")
-  | "Kuiper.Float64.fmin",  [], [] -> EQualified ([], "fmin")
-  | "Kuiper.Float64.fmax",  [], [] -> EQualified ([], "fmax")
-  | "Kuiper.Float64.fmod",  [], [] -> EQualified ([], "fmod")
-  | "Kuiper.Float64.copysign", [], [] -> EQualified ([], "copysign")
-  | "Kuiper.Float64.fma",   [], [] -> EQualified ([], "fma")
+  | "Kuiper.Float32.Base.sqrt",  [], [] -> EQualified ([], "sqrtf")
+  | "Kuiper.Float32.Base.rsqrt", [], [] -> EQualified ([], "rsqrtf")
+  | "Kuiper.Float32.Base.sin",   [], [] -> EQualified ([], "sinf")
+  | "Kuiper.Float32.Base.cos",   [], [] -> EQualified ([], "cosf")
+  | "Kuiper.Float32.Base.tan",   [], [] -> EQualified ([], "tanf")
+  | "Kuiper.Float32.Base.asin",  [], [] -> EQualified ([], "asinf")
+  | "Kuiper.Float32.Base.acos",  [], [] -> EQualified ([], "acosf")
+  | "Kuiper.Float32.Base.atan",  [], [] -> EQualified ([], "atanf")
+  | "Kuiper.Float32.Base.sinh",  [], [] -> EQualified ([], "sinhf")
+  | "Kuiper.Float32.Base.cosh",  [], [] -> EQualified ([], "coshf")
+  | "Kuiper.Float32.Base.tanh",  [], [] -> EQualified ([], "tanhf")
+  | "Kuiper.Float32.Base.ceil",  [], [] -> EQualified ([], "ceilf")
+  | "Kuiper.Float32.Base.floor", [], [] -> EQualified ([], "floorf")
+  | "Kuiper.Float32.Base.round", [], [] -> EQualified ([], "roundf")
+  | "Kuiper.Float32.Base.fabs",  [], [] -> EQualified ([], "fabsf")
+  | "Kuiper.Float32.Base.erf",   [], [] -> EQualified ([], "erff")
+  | "Kuiper.Float32.Base.log2",  [], [] -> EQualified ([], "log2f")
+  | "Kuiper.Float32.Base.log10", [], [] -> EQualified ([], "log10f")
+  | "Kuiper.Float32.Base.exp2",  [], [] -> EQualified ([], "exp2f")
+  | "Kuiper.Float32.Base.pow",   [], [] -> EQualified ([], "powf")
+  | "Kuiper.Float32.Base.atan2", [], [] -> EQualified ([], "atan2f")
+  | "Kuiper.Float32.Base.fmin",  [], [] -> EQualified ([], "fminf")
+  | "Kuiper.Float32.Base.fmax",  [], [] -> EQualified ([], "fmaxf")
+  | "Kuiper.Float32.Base.fmod",  [], [] -> EQualified ([], "fmodf")
+  | "Kuiper.Float32.Base.copysign", [], [] -> EQualified ([], "copysignf")
+  | "Kuiper.Float32.Base.fma",   [], [] -> EQualified ([], "fmaf")
+
+  | "Kuiper.Float64.Base.sqrt",  [], [] -> EQualified ([], "sqrt")
+  | "Kuiper.Float64.Base.rsqrt", [], [] -> EQualified ([], "rsqrt")
+  | "Kuiper.Float64.Base.sin",   [], [] -> EQualified ([], "sin")
+  | "Kuiper.Float64.Base.cos",   [], [] -> EQualified ([], "cos")
+  | "Kuiper.Float64.Base.tan",   [], [] -> EQualified ([], "tan")
+  | "Kuiper.Float64.Base.asin",  [], [] -> EQualified ([], "asin")
+  | "Kuiper.Float64.Base.acos",  [], [] -> EQualified ([], "acos")
+  | "Kuiper.Float64.Base.atan",  [], [] -> EQualified ([], "atan")
+  | "Kuiper.Float64.Base.sinh",  [], [] -> EQualified ([], "sinh")
+  | "Kuiper.Float64.Base.cosh",  [], [] -> EQualified ([], "cosh")
+  | "Kuiper.Float64.Base.tanh",  [], [] -> EQualified ([], "tanh")
+  | "Kuiper.Float64.Base.ceil",  [], [] -> EQualified ([], "ceil")
+  | "Kuiper.Float64.Base.floor", [], [] -> EQualified ([], "floor")
+  | "Kuiper.Float64.Base.round", [], [] -> EQualified ([], "round")
+  | "Kuiper.Float64.Base.fabs",  [], [] -> EQualified ([], "fabs")
+  | "Kuiper.Float64.Base.erf",   [], [] -> EQualified ([], "erf")
+  | "Kuiper.Float64.Base.log2",  [], [] -> EQualified ([], "log2")
+  | "Kuiper.Float64.Base.log10", [], [] -> EQualified ([], "log10")
+  | "Kuiper.Float64.Base.exp2",  [], [] -> EQualified ([], "exp2")
+  | "Kuiper.Float64.Base.pow",   [], [] -> EQualified ([], "pow")
+  | "Kuiper.Float64.Base.atan2", [], [] -> EQualified ([], "atan2")
+  | "Kuiper.Float64.Base.fmin",  [], [] -> EQualified ([], "fmin")
+  | "Kuiper.Float64.Base.fmax",  [], [] -> EQualified ([], "fmax")
+  | "Kuiper.Float64.Base.fmod",  [], [] -> EQualified ([], "fmod")
+  | "Kuiper.Float64.Base.copysign", [], [] -> EQualified ([], "copysign")
+  | "Kuiper.Float64.Base.fma",   [], [] -> EQualified ([], "fma")
+
+  (******** FLOAT CASTS *******)
+
+  | "Kuiper.Float.Casts.Base.cast_f16_to_f32", [], [x] ->
+    EApp (EQualified ([], "__half2float"), [cb x])
+  | "Kuiper.Float.Casts.Base.cast_f16_to_f64", [], [x] ->
+    ECast (EApp (EQualified ([], "__half2float"), [cb x]), TInt Float64)
+  | "Kuiper.Float.Casts.Base.cast_f32_to_f16", [], [x] ->
+    EApp (EQualified ([], "__float2half_rn"), [cb x])
+  | "Kuiper.Float.Casts.Base.cast_f32_to_f64", [], [x] ->
+    ECast (cb x, TInt Float64)
+  | "Kuiper.Float.Casts.Base.cast_bf16_to_f32", [], [x] ->
+    EApp (EQualified ([], "__bfloat162float"), [cb x])
+  | "Kuiper.Float.Casts.Base.cast_f32_to_bf16", [], [x] ->
+    EApp (EQualified ([], "__float2bfloat16"), [cb x])
+  | "Kuiper.Float.Casts.Base.cast_f16_to_bf16", [], [x] ->
+    EApp (EQualified ([], "__float2bfloat16"), [EApp (EQualified ([], "__half2float"), [cb x])])
+  | "Kuiper.Float.Casts.Base.cast_bf16_to_f16", [], [x] ->
+    EApp (EQualified ([], "__float2half_rn"), [EApp (EQualified ([], "__bfloat162float"), [cb x])])
+  | "Kuiper.Float.Casts.Base.cast_bf16_to_f64", [], [x] ->
+    ECast (EApp (EQualified ([], "__bfloat162float"), [cb x]), TInt Float64)
+  | "Kuiper.Float.Casts.Base.cast_f64_to_bf16", [], [x] ->
+    EApp (EQualified ([], "__float2bfloat16"), [ECast (cb x, TInt Float32)])
+  | "Kuiper.Float.Casts.Base.cast_f64_to_f16", [], [x] ->
+    EApp (EQualified ([], "__float2half_rn"), [ECast (cb x, TInt Float32)])
+  | "Kuiper.Float.Casts.Base.cast_f64_to_f32", [], [x] ->
+    ECast (cb x, TInt Float32)
 
   (******** REFERENCES ********)
 
-  | "Kuiper.Ref.gpu_alloc0", [ty], [ sz; _unit ] ->
-    let sz : mlexpr = get_sizet sz in
-    ECast (EApp (EQualified ([], "KPR_GPU_ALLOC"), [ cb sz; EConstant (fake_SizeT, "1") ]),
-           TBuf (translate_type env ty))
-
-  | "Kuiper.Ref.gpu_free", [ty], [ r; _v ] ->
-    _MUST <| EApp (EQualified ([], "cudaFree"), [cb r])
-
-  | "Kuiper.Ref.gpu_read", [ty], [ e; _perm; _v ] ->
-    deref (cb e)
-
-  | "Kuiper.Ref.gpu_write", [ty], [ e1; e2; _v0 ] ->
-    EBufWrite (cb e1, zero_for_deref, cb e2)
-
+  (* Sadly these two are still primitive. *)
   | "Kuiper.Ref.gpu_memcpy_host_to_device", [ty], [ sz; dst_gr; src_r; f; v; gv ] ->
-    let sz : mlexpr = get_sizet sz in
-    _MUST <| EApp (EQualified ([], "cudaMemcpy"), [ cb dst_gr; cb src_r; cb sz ; cudaMemcpyHostToDevice ])
+    let sz : expr = sizeof (cb_ty ty) in
+    _MUST <| EApp (EQualified ([], "cudaMemcpy"), [ cb dst_gr; cb src_r; sz; cudaMemcpyHostToDevice ])
 
   | "Kuiper.Ref.gpu_memcpy_device_to_host", [ty], [ sz; dst_r; src_gr; f; v; gv ] ->
-    let sz : mlexpr = get_sizet sz in
-    _MUST <| EApp (EQualified ([], "cudaMemcpy"), [ cb dst_r; cb src_gr; cb sz; cudaMemcpyDeviceToHost ])
-
-  | "Kuiper.Ref.gpu_memcpy_device_to_device", [ty], [ sz; dst_gr; src_r; f; v; gv ] ->
-    let sz : mlexpr = get_sizet sz in
-    _MUST <| EApp (EQualified ([], "cudaMemcpy"), [ cb dst_gr; cb src_r; cb sz ; cudaMemcpyDeviceToDevice ])
+    let sz : expr = sizeof (cb_ty ty) in
+    _MUST <| EApp (EQualified ([], "cudaMemcpy"), [ cb dst_r; cb src_gr; sz; cudaMemcpyDeviceToHost ])
 
   (******** ARRAY ********)
 
+  | "Kuiper.Array.Core.get_ref_of_array_cell", [ty], [ a; i ] ->
+    EBufSub (cb a, cb i)
+
   | "Kuiper.Array.Core.gpu_array_alloc", [ty], [ sz; len ] ->
-    let sz : mlexpr = get_sizet sz in
-    ECast (EApp (EQualified ([], "KPR_GPU_ALLOC"), [ cb sz; cb len ]),
+    let sz : expr = sizeof (cb_ty ty) in
+    ECast (EApp (EQualified ([], "KPR_GPU_ALLOC"), [ sz; cb len ]),
            TBuf (translate_type env ty))
 
-  | "Kuiper.Array.Core.gpu_array_free", [ty], [ _sz; a; _v ] ->
+  | "Kuiper.Array.Core.gpu_array_free", [ty], [ a; _v ] ->
     _MUST <| EApp (EQualified ([], "cudaFree"), [cb a])
 
-  | "Kuiper.Array.Core.gpu_array_read", [ty], [ _sz; _i; _j; a; _f; idx; _s ] ->
+  | "Kuiper.Array.Core.slice_read", [ty], [ _i; _j; a; _f; idx; _s ] ->
     EBufRead (cb a, cb idx)
 
-  | "Kuiper.Array.Core.gpu_array_write", [ty], [ _sz; _i; _j; a; idx; v; _s ] ->
+  | "Kuiper.Array.Core.slice_write", [ty], [ _i; _j; a; idx; v; _s ] ->
     EBufWrite (cb a, cb idx, cb v)
 
   | "Kuiper.Array.Core.gpu_memcpy_host_to_device", [ty], [ sz; _elen; dst_ga; src_a; cnt; f; v; gv ] ->
-    let sz : mlexpr = get_sizet sz in
-    let bytesize : expr = EApp (EOp (Mult, fake_SizeT), [ cb sz; cb cnt ]) in
+    let sz : expr = sizeof (cb_ty ty) in
+    let bytesize : expr = mul_by_sz sz (cb cnt) in
     _MUST <| EApp (EQualified ([], "cudaMemcpy"), [ cb dst_ga; cb src_a; bytesize; cudaMemcpyHostToDevice ])
 
   | "Kuiper.Array.Core.gpu_memcpy_host_to_device'", [ty],
         [ sz; _dst_sz; dst_ga; dst_off; _src_sz; src_a; src_off; cnt; f; v; gv ] ->
-    let sz : expr = cb <| get_sizet sz in
-    let mul_by_sz (e:expr) = EApp (EOp (Mult, fake_SizeT), [ sz; e ]) in
+    let sz : expr = sizeof (cb_ty ty) in
     let dst_off = cb dst_off in (* element offset, not byte offset *)
     let dst_ga = cb dst_ga in
     let dst_ga = EBufSub (dst_ga, dst_off) in
     let src_off = cb src_off in (* element offset, not byte offset *)
     let src_a = cb src_a in
     let src_a = EBufSub (src_a, src_off) in
-    let bytesize : expr = mul_by_sz (cb cnt) in
+    let bytesize : expr = mul_by_sz sz (cb cnt) in
     _MUST <| EApp (EQualified ([], "cudaMemcpy"), [ dst_ga; src_a; bytesize; cudaMemcpyHostToDevice ])
 
-  | "Kuiper.Array.Core.gpu_memcpy_device_to_host", [ty], [ sz; _elen; dst_a; src_ga; cnt; f; v; gv ] ->
-    let sz : mlexpr = get_sizet sz in
-    let bytesize : expr = EApp (EOp (Mult, fake_SizeT), [ cb sz; cb cnt ]) in
+  | "Kuiper.Array.Core.gpu_memcpy_device_to_host", [ty],
+  [ sz; _elen; dst_a; src_ga; cnt; f; v; gv ] ->
+    let sz : expr = sizeof (cb_ty ty) in
+    let bytesize : expr = mul_by_sz sz (cb cnt) in
     _MUST <| EApp (EQualified ([], "cudaMemcpy"), [ cb dst_a; cb src_ga; bytesize; cudaMemcpyDeviceToHost ])
 
   | "Kuiper.Array.Core.gpu_memcpy_device_to_host'", [ty],
         [ sz; _dst_sz; dst_a; dst_off; _src_sz; src_ga; src_off; cnt; f; v; gv ] ->
-    let sz : expr = cb <| get_sizet sz in
-    let mul_by_sz (e:expr) = EApp (EOp (Mult, fake_SizeT), [ sz; e ]) in
+    let sz : expr = sizeof (cb_ty ty) in
     let dst_off = cb dst_off in (* element offset, not byte offset *)
     let dst_ga = cb dst_a in
     let dst_ga = EBufSub (dst_ga, dst_off) in
     let src_off = cb src_off in (* element offset, not byte offset *)
     let src_a = cb src_ga in
     let src_a = EBufSub (src_a, src_off) in
-    let bytesize : expr = mul_by_sz (cb cnt) in
+    let bytesize : expr = mul_by_sz sz (cb cnt) in
     _MUST <| EApp (EQualified ([], "cudaMemcpy"), [ dst_ga; src_a; bytesize; cudaMemcpyDeviceToHost ])
 
   | "Kuiper.Array.Core.gpu_memcpy_device_to_device", [ty], [ sz; _elen; dst_a; src_ga; cnt; f; v; gv ] ->
-    let sz : mlexpr = get_sizet sz in
-    let bytesize : expr = EApp (EOp (Mult, fake_SizeT), [ cb sz; cb cnt ]) in
+    let sz : expr = sizeof (cb_ty ty) in
+    let bytesize : expr = mul_by_sz sz (cb cnt) in
     _MUST <| EApp (EQualified ([], "cudaMemcpy"), [ cb dst_a; cb src_ga; bytesize; cudaMemcpyDeviceToDevice ])
+
+  | "Kuiper.Array.Core.gpu_memcpy_device_to_device'", [ty],
+        [ sz; _dst_sz; dst_ga; dst_off; _src_sz; src_ga; src_off; cnt; f; v; gv ] ->
+    let sz : expr = sizeof (cb_ty ty) in
+    let dst_off = cb dst_off in (* element offset, not byte offset *)
+    let dst_ga = cb dst_ga in
+    let dst_ga = EBufSub (dst_ga, dst_off) in
+    let src_off = cb src_off in (* element offset, not byte offset *)
+    let src_ga = cb src_ga in
+    let src_ga = EBufSub (src_ga, src_off) in
+    let bytesize : expr = mul_by_sz sz (cb cnt) in
+    _MUST <| EApp (EQualified ([], "cudaMemcpy"), [ dst_ga; src_ga; bytesize; cudaMemcpyDeviceToDevice ])
 
 
   (******** VECTORIZED ARRAY ********)
 
-  | "Kuiper.Array.Vectorized.gpu_array_vec_cpy_dd",
+  | "Kuiper.Array.Vectorized.array_vec_cpy",
     [ et ],
-    [ sized; _has_vec_cpy;
-      _dst_sz; dst_arr; dst_off; _dst_slice_i; _dst_slice_j;
-      _src_sz; src_arr; src_off; _src_slice_i; _src_slice_j;
+    [ _sized; _has_vec_cpy;
+      dst_arr; dst_off; _dst_slice_i; _dst_slice_j;
+      src_arr; src_off; _src_slice_i; _src_slice_j;
       _f; _ss; _ds; _sq1; _sq2; _sq3; _sq4 ] ->
-    let dst_off = cb dst_off in
-    let dst_arr = cb dst_arr in
-    let dst_arr = EBufSub (dst_arr, dst_off) in
-    let src_off = cb src_off in
-    let src_arr = cb src_arr in
-    let src_arr = EBufSub (src_arr, src_off) in
+    let dst_arr = EBufSub (cb dst_arr, cb dst_off) in
+    let src_arr = EBufSub (cb src_arr, cb src_off) in
     EApp (EQualified ([], "vec_memcpy"), [ dst_arr; src_arr; ])
-
-  | "Kuiper.Array.Vectorized.gpu_array_vec_cpy_dh",
-    [ et ],
-    [ sized; _has_vec_cpy;
-      dst_arr; dst_off;
-      _src_sz; src_arr; src_off; _src_slice_i; _src_slice_j;
-      _f; _ss; _ds; _sq1; _sq2; _sq3; ] ->
-    let dst_off = cb dst_off in
-    let dst_arr = cb dst_arr in
-    let dst_arr = EBufSub (dst_arr, dst_off) in
-    let src_off = cb src_off in
-    let src_arr = cb src_arr in
-    let src_arr = EBufSub (src_arr, src_off) in
-    EApp (EQualified ([], "vec_memcpy"), [ dst_arr; src_arr; ])
-  | "Kuiper.Array.Vectorized.gpu_array_vec_cpy_dh", _, _ ->
-    raise_error (mlloc_to_range e.loc) Fatal_ExtractionUnsupported [
-      text "unexpected arguments to gpu_array_vec_cpy_dh:" ^/^ pp e
-    ]
-
-  | "Kuiper.Array.Vectorized.gpu_array_vec_cpy_hd",
-    [ et ],
-    [ sized; _has_vec_cpy;
-      _dst_sz; dst_arr; dst_off; _dst_slice_i; _dst_slice_j;
-      src_arr; src_off;
-      _f; _ss; _ds; _sq1; _sq2; _sq3; ] ->
-    let dst_off = cb dst_off in
-    let dst_arr = cb dst_arr in
-    let dst_arr = EBufSub (dst_arr, dst_off) in
-    let src_off = cb src_off in
-    let src_arr = cb src_arr in
-    let src_arr = EBufSub (src_arr, src_off) in
-    EApp (EQualified ([], "vec_memcpy"), [ dst_arr; src_arr; ])
-
-  | "Kuiper.Array.Vectorized.gpu_array_vec4_write", [], [ _sz; _i; _j; a; idx; v; _s ] ->
-    EApp (EQualified ([], "KPR_VECTZD_WRITE"), [ cb a; cb idx; cb v ])
 
   (******** ATOMIC OPS ********)
 
@@ -855,14 +930,6 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
   | "Kuiper.AtomicOps.gpu_faa_u64", [], [ r; v; _ev ] -> EApp (EQualified ([], "atomic_add_u64"), [cb r; cb v])
   | "Kuiper.AtomicOps.gpu_faa_f32", [], [ r; v; _ev ] -> EApp (EQualified ([], "atomic_add_f32"), [cb r; cb v])
   | "Kuiper.AtomicOps.gpu_faa_f64", [], [ r; v; _ev ] -> EApp (EQualified ([], "atomic_add_f64"), [cb r; cb v])
-
-  (******** VECTOR OPS ********)
-  | "Kuiper.VectorType.make_float4", [], [ x; y; z; w; ] ->
-    EApp (EQualified ([], "make_float4"), [cb x; cb y; cb z; cb w])
-  | "Kuiper.VectorType.getx", [], [ v ] -> EApp (EQualified ([], "KPR_PROJ_X"), [ cb v ])
-  | "Kuiper.VectorType.gety", [], [ v ] -> EApp (EQualified ([], "KPR_PROJ_Y"), [ cb v ])
-  | "Kuiper.VectorType.getz", [], [ v ] -> EApp (EQualified ([], "KPR_PROJ_Z"), [ cb v ])
-  | "Kuiper.VectorType.getw", [], [ v ] -> EApp (EQualified ([], "KPR_PROJ_W"), [ cb v ])
 
   (******** KERNEL CALL ********)
 

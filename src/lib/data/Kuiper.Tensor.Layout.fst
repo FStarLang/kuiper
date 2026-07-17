@@ -2,20 +2,20 @@ module Kuiper.Tensor.Layout
 
 open Kuiper
 open Kuiper.Injection
-open Kuiper.Index
+open Kuiper.Shape
 open Kuiper.Chest
 module SZ = Kuiper.SizeT
 open Kuiper.Enumerable
 
-let rec enumerable_abs (#r : nat) (d : idesc r) : enumerable (abs d) =
+let rec enumerable_abs (#r : nat) (d : shape r) : enumerable (abs d) =
   match d with
   | INil -> solve <: enumerable unit
   | ICons h t ->
     enumerable_prod (natlt h) (abs t) #solve #(enumerable_abs t)
 
-instance enumerable_abs' (#r : nat) (d : idesc r) : enumerable (abs d) = enumerable_abs d
+instance enumerable_abs' (#r : nat) (d : shape r) : enumerable (abs d) = enumerable_abs d
 
-let rec abs_d_cardinal (#r : nat) (d : idesc r)
+let rec abs_d_cardinal (#r : nat) (d : shape r)
   : Lemma (ensures cardinal (abs d) #_ == sizeof d)
           [SMTPat (cardinal (abs d))]
   =
@@ -25,15 +25,21 @@ let rec abs_d_cardinal (#r : nat) (d : idesc r)
     let _ = abs_d_cardinal t in
     ()
 
+let sizeof_bijection (#r1 #r2 : nat) (#d1 : shape r1) (#d2 : shape r2)
+  (f : Kuiper.Bijection.bijection (abs d1) (abs d2))
+  : Lemma (sizeof d1 == sizeof d2)
+  = bijection_implies_equal_cardinal (abs d1) (abs d2)
+      #(enumerable_abs' d1) #(enumerable_abs' d2) f
+
 (* The underlying array must be large enough to hold all the elements of the tensor. *)
-let full_layout_size_lt (#r : nat) (#d : idesc r) (l : tlayout d)
+let full_layout_size_lt (#r : nat) (#d : shape r) (l : tlayout d)
   : Lemma (ensures  l.ulen >= sizeof d)
           [SMTPat (has_type l (tlayout d))]
   = injection_implies_lte_cardinal (abs d) (natlt l.ulen) l.imap;
     ()
 
 (* The underlying array is exactly the size of the tensor if and only if the layout is full. *)
-let full_layout_size (#r : nat) (#d : idesc r) (l : tlayout d)
+let full_layout_size (#r : nat) (#d : shape r) (l : tlayout d)
   : Lemma (requires is_full l)
           (ensures  l.ulen == sizeof d)
           [SMTPat (is_full l)]
@@ -41,15 +47,40 @@ let full_layout_size (#r : nat) (#d : idesc r) (l : tlayout d)
     bijection_implies_equal_cardinal (abs d) (natlt l.ulen) b;
     ()
 
-let full_layout_size' (#r : nat) (#d : idesc r) (l : tlayout d)
+let full_layout_size' (#r : nat) (#d : shape r) (l : tlayout d)
   : Lemma (requires l.ulen == sizeof d)
           (ensures is_full l)
           [SMTPat (is_full l)]
   = injection_equal_cardinal_implies_bijection (abs d) (natlt l.ulen) l.imap;
     ()
 
-let ctlayout_must_fit (#r : nat) (#d : idesc r) (#l : tlayout d)
+let size_le_ulen (#r : nat) (#d : shape r) (l : tlayout d)
+  : Lemma (ensures tlayout_size l <= tlayout_ulen l)
+          [SMTPat (tlayout_size l); SMTPat (tlayout_ulen l)]
+  = ()
+
+let ctlayout_must_fit (#r : nat) (#d : shape r) (#l : tlayout d)
   (c : ctlayout l)
   : Lemma (ensures SZ.fits (sizeof d))
           [SMTPat (has_type c (ctlayout #r #d l))]
+  = ()
+
+let size_layout_1 (d : nat)
+  : Lemma (sizeof (d @| INil) == d)
+          [SMTPat (sizeof (d @| INil))]
+  = ()
+
+let size_layout_2 (d1 d2 : nat)
+  : Lemma (sizeof (d1 @| d2 @| INil) == d1 * d2)
+          [SMTPat (sizeof (d1 @| d2 @| INil))]
+  = ()
+
+let size_layout_3 (d1 d2 d3 : nat)
+  : Lemma (sizeof (d1 @| d2 @| d3 @| INil) == d1 * d2 * d3)
+          [SMTPat (sizeof (d1 @| d2 @| d3 @| INil))]
+  = ()
+
+let size_layout_4 (d1 d2 d3 d4 : nat)
+  : Lemma (sizeof (d1 @| d2 @| d3 @| d4 @| INil) == d1 * d2 * d3 * d4)
+          [SMTPat (sizeof (d1 @| d2 @| d3 @| d4 @| INil))]
   = ()

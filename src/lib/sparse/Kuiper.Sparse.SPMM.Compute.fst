@@ -16,6 +16,8 @@ open Kuiper.Tensor.Layout.Alg { l2_row_major, c_l2_row_major }
 module Array2 = Kuiper.Array2
 module M = Kuiper.Array2
 module A = Kuiper.Array1
+open Kuiper.Tensor
+open Kuiper.Seq.Common { op_At_Bang }
 
 noextract
 let seq_scalar_prod

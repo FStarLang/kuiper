@@ -6,7 +6,6 @@ open Kuiper.Kernel.GEMMGPU.Type { valid_tile }
 open Kuiper.Tensor
 open Kuiper.Tensor.Layout.Alg { l2_row_major as rm }
 open Kuiper.EMatrix
-open Kuiper.Array2
 module MS = Kuiper.Spec.GEMM
 module K = Kuiper.Kernel.GEMM.SHMem
 
@@ -21,9 +20,9 @@ fn spec
   (gA : array2 et (repA m k) { is_global gA })
   (gB : array2 et (repB k n) { is_global gB })
   (gC : array2 et (repC m n) { is_global gC })
-  (rA rB rC : ematrix real _ _)
-  (#eA #eB : ematrix _ _ _)
-  (#eC : ematrix et m n)
+  (rA rB rC : chest2 real _ _)
+  (#eA #eB : chest2 _ _ _)
+  (#eC : chest2 et m n)
   (#fA #fB : perm)
   preserves
     cpu ** on gpu_loc (gA |-> Frac fA eA ** gB |-> Frac fB eB) **
@@ -33,13 +32,13 @@ fn spec
     pure (eA %~ rA /\ eB %~ rB /\ eC %~ rC) **
     on gpu_loc (gC |-> eC)
   ensures (
-    (exists* (eC' : ematrix et m n).
+    (exists* (eC' : chest2 et m n).
       on gpu_loc (gC |-> eC') **
       pure (eC' %~ MS.mmcomb comb_r rC rA rB)))
 {
-  pts_to_ref_located gA;
-  pts_to_ref_located gB;
-  pts_to_ref_located gC;
+  tensor_pts_to_ref_located gA;
+  tensor_pts_to_ref_located gB;
+  tensor_pts_to_ref_located gC;
 
   let mm = m /^ tile;
   let nn = n /^ tile;

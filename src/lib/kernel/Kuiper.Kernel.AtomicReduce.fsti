@@ -5,7 +5,7 @@ module Kuiper.Kernel.AtomicReduce
 #lang-pulse
 
 open Kuiper
-open Kuiper.Array1
+open Kuiper.Tensor
 open Kuiper.Atomics
 
 noeq
@@ -17,22 +17,22 @@ type is_ac_w (#t:Type) (f: t -> t -> t) = {
 inline_for_extraction noextract
 type reduce_ty
   (et : Type0) {| scalar et, d : has_atomic_add et |}
-  (r : (l:nat -> layout l))
+  (r : (l:nat -> layout1 l))
   =
   fn (ac : is_ac_w d.pure_op)
      (n : szp{n <= max_blocks})
      (a : array1 et (r n) { is_global a })
-     (#v_a : erased (lseq et n))
+     (#v_a : chest1 et n)
   preserves
     cpu ** on gpu_loc (a |-> v_a)
   returns
     r : et
   ensures
-    pure (r == Kuiper.Seq.Common.seq_fold_left d.pure_op zero v_a)
+    pure (r == Kuiper.Seq.Common.seq_fold_left d.pure_op zero (chest1_to_seq v_a))
 
 inline_for_extraction noextract
 val reduce
   (#et : Type0) {| scalar et |} {| has_atomic_add et |}
-  (#r : (l:nat -> layout l))
+  (#r : (l:nat -> layout1 l))
   {| cr : (l:sz -> Kuiper.Tensor.ctlayout (r l)) |}
   : reduce_ty et r

@@ -3,20 +3,18 @@ module Kuiper.Example.Sparse.MM
 
 #lang-pulse
 open Kuiper
-open Kuiper.Array2
 open Kuiper.Sparse
 open Kuiper.Spec.GEMM
-open Kuiper.Tensor { ctlayout }
+open Kuiper.Tensor
 open Kuiper.Tensor.Layout.Alg { l2_row_major, l2_col_major }
 module SZ = Kuiper.SizeT
-module Array2 = Kuiper.Array2
 
 inline_for_extraction noextract
 fn smatrix_sdmm
   (#et : Type0) {| scalar et |}
   (rows shared cols : szp)
-  (#lB : layout shared cols)
-  (#lC : layout rows cols)
+  (#lB : layout2 shared cols)
+  (#lC : layout2 rows cols)
   {| ctlayout lB, ctlayout lC |}
   (gA : smatrix et (SZ.v rows) (SZ.v shared))
   (gB : array2 et lB)
@@ -34,13 +32,18 @@ fn smatrix_sdmm
   let mut i = 0sz;
   unfold smatrix_pts_to gA;
 
+  // FIXME
+  array_to_slice gA.elems;
+  array_to_slice gA.row_off;
+  array_to_slice gA.col_ind;
+
   while (!i <^ rows)
     invariant live i ** pure (!i <= rows)
     invariant live gC
     decreases (rows - !i)
   {
-    let ri = gpu_array_read gA.row_off !i;
-    let re = gpu_array_read gA.row_off (!i +^ 1sz);
+    let ri = slice_read gA.row_off !i;
+    let re = slice_read gA.row_off (!i +^ 1sz);
 
     let mut j = 0sz;
     while (!j <^ cols)
@@ -57,21 +60,30 @@ fn smatrix_sdmm
             live dp ** live k
         decreases (re - !k)
       {
-        let x = gpu_array_read gA.elems !k;
-        let c = gpu_array_read gA.col_ind !k;
+        let x = slice_read gA.elems !k;
+        let c = slice_read gA.col_ind !k;
 
-        let y = Array2.read gB (c, !j);
+        let jv = !j;
+        let y = tensor_read gB ((c <: szlt _), ((jv <: szlt _), ()));
 
         dp := !dp `add` (x `mul` y);
 
         k := !k +^ 1sz;
       };
 
-      Array2.write gC (!i, !j) !dp;
+      let iv = !i;
+      let jv = !j;
+      let dpv = !dp;
+      tensor_write gC ((iv <: szlt _), ((jv <: szlt _), ())) dpv;
       j := !j +^ 1sz;
     };
     i := !i +^ 1sz;
   };
+
+  // FIXME
+  slice_to_array gA.elems;
+  slice_to_array gA.row_off;
+  slice_to_array gA.col_ind;
 
   fold smatrix_pts_to gA a;
 }

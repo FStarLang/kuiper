@@ -2,16 +2,11 @@ module Kuiper.Example.Array3
 
 #lang-pulse
 open Kuiper
-open Kuiper.Array3
-module Array3 = Kuiper.Array3
-open Kuiper.Bijection
-open Kuiper.Injection
-open Kuiper.Tensor.Layout
+open Kuiper.Tensor
 open Kuiper.Tensor.Layout.Alg
-open Kuiper.Index
 module SZ = Kuiper.SizeT
 
-let layout (d0 d1 d2 : nat) : Kuiper.Tensor.Layout.tlayout (d0 @| d1 @| d2 @| INil) =
+let layout (d0 d1 d2 : nat) : layout3 d0 d1 d2 =
   pack <|
   major_on 0 d0 <|
   major_on 0 d1 <|
@@ -20,9 +15,7 @@ let layout (d0 d1 d2 : nat) : Kuiper.Tensor.Layout.tlayout (d0 @| d1 @| d2 @| IN
 
 inline_for_extraction noextract
 instance blah
-  (d0 : SZ.t{SZ.fits d0})
-  (d1 : SZ.t{SZ.fits d1})
-  (d2 : SZ.t{SZ.fits d2})
+  (d0 d1 d2 : sz)
   (#_ : squash (SZ.fits (d0 * d1 * d2) /\ SZ.fits (d1 * d2)))
   : ctlayout (layout d0 d1 d2)
   =
@@ -45,14 +38,13 @@ fn test1 (m : array3 u32 (layout 10 10 10))
   preserves m |-> 's
   returns u32
 {
-  let v = Array3.(m.(1sz, 2sz, 3sz));
-  v
+  m.((1sz <: szlt _) , ((2sz <: szlt _), ((3sz <: szlt _), ())));
 }
 
 fn test2 (m : array3 u32 (layout 10 10 10))
   requires m |-> 's
-  ensures  m |-> Kuiper.EMatrix3.mupd 's 1 2 3 42ul
+  ensures  m |-> upd3 's 1 2 3 42ul
 {
-  Array3.(m.(1sz, 2sz, 3sz) <- 42ul);
+  m.((1sz <: szlt _) , ((2sz <: szlt _), ((3sz <: szlt _), ()))) <- 42ul;
   ()
 }

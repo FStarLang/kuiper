@@ -101,6 +101,7 @@ class ciview_step
        |                      |
      cit1    --  cimap -->  cit2
    *)
+  #[Tactics.Easy.easy_fill()]
   [@@@no_method]
   compat :
     ai : ait1 ->
@@ -127,21 +128,14 @@ instance concrete_raw_view (#len : nat{SZ.fits len}) : ciview (raw_view #len) = 
   sch  = raw_ciview_schema len;
   step = {
     cimap  = cinj_id;
-    compat = ez;
   };
 }
 
 let inj_bij (#a #b : Type) (bij : a =~ b) : (a @~> b) =
-{
-  f = bij.ff;
-  is_inj = ez;
-}
+  { f = bij.ff; }
 
 let inj_bij' (#a #b : Type) (bij : a =~ b) : (b @~> a) =
-{
-  f = bij.gg;
-  is_inj = ez;
-}
+  { f = bij.gg; }
 
 let reindex_view
   (vw : aiview)
@@ -196,7 +190,6 @@ let sum_aiview
   step = {
     imap     = {
       f      = merge_either vw1.step.imap.f vw2.step.imap.f;
-      is_inj = ez;
     };
   };
 }
@@ -228,6 +221,7 @@ let compose_cstep
   );
 }
 
+[@@erasable] // avoid silly warning
 val full_view_bij (avw : aiview { is_full_view avw })
   : Ghost (avw.ait =~ natlt avw.len)
           (requires True)

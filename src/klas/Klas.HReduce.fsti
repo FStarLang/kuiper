@@ -3,23 +3,22 @@ module Klas.HReduce
 #lang-pulse
 
 open Kuiper
-open Kuiper.Tensor { ctlayout }
+open Kuiper.Tensor
 open Kuiper.Tensor.Layout.Alg
 open Kuiper.Seq.Common
 module SZ = FStar.SizeT
-module Array1 = Kuiper.Array1
 
 (* Type of reduction over a family of layouts. Note:
 pre_map is specialized to the identity here. *)
 inline_for_extraction noextract
 type reduce_ty (et : Type0) {| scalar et, real_like et |}
-  (lay : (len:nat -> Array1.layout len))
+  (lay : (len:nat -> layout1 len))
 =
   fn (nth : szp { nth <= max_threads })
      (len : szp { SZ.fits (len + nth) })
-     (a : Array1.t et (lay len) { Array1.is_global a })
-     (#va : erased (lseq et len))
-     (vr : erased (lseq real len))
+     (a : array1 et (lay len) { is_global a })
+     (#va : chest1 et len)
+     (vr : chest1 real len)
   preserves
     cpu **
     on gpu_loc (a |-> va)
@@ -28,7 +27,7 @@ type reduce_ty (et : Type0) {| scalar et, real_like et |}
   returns
     res : et
   ensures
-    pure (res %~ rsum vr)
+    pure (res %~ chest1_rsum vr)
 
 val reduce_f16_plus : reduce_ty f16 l1_forward
 val reduce_f32_plus : reduce_ty f32 l1_forward

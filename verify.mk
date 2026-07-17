@@ -52,6 +52,8 @@ karamel/Makefile:
 
 .fstar.touch: .fstar.src.touch
 	@echo FSTAR
+	git -C FStar submodule init
+	git -C FStar submodule update
 	$(MAKE) -C FStar ADMIT=1
 	$(MAKE) -C FStar ADMIT=1 PREFIX=$(CURDIR)/inst install
 	@touch .fstar.src.touch # building will change files
@@ -107,14 +109,16 @@ FSTAR_FLAGS += --ext __unrefine
 FSTAR_FLAGS += --ext no_krml_private
 # FSTAR_FLAGS += --ext core_phase2
 FSTAR_FLAGS += --warn_error -288 # using has_type (we only use it in SMT patterns)
+FSTAR_FLAGS += --warn_error -271 # arithmetic (+,-,*,/) in SMT patterns, benign & unavoidable in foundational lemmas
 # FSTAR_FLAGS += --ext krml_inline_all
 # FSTAR_FLAGS += --error_contexts true
 FSTAR_FLAGS += --ext context_pruning_no_ambients
+FSTAR_FLAGS += --ext freshen
 FSTAR_FLAGS += $(OTHERFLAGS)
 FSTAR_FLAGS += $(FSTAR_DEBUG)
 
 # abspath is important so the fstar.sh script can be run from anywhere
-FSTAR = $(FSTAR_EXE)							\
+FSTAR = $(RAMON) $(FSTAR_EXE)						\
 	$(SIL)								\
 	--include $(abspath src)					\
 	$(FSTAR_FLAGS)
@@ -140,7 +144,7 @@ KRML_FLAGS += -warn-error @6 # VLA
 KRML_FLAGS += -warn-error -2@4-10@18
 KRML_FLAGS += $(KOTHERFLAGS)
 
-KRML := $(KRML_EXE) $(KRML_FLAGS)
+KRML := $(RAMON) $(KRML_EXE) $(KRML_FLAGS)
 
 # 2: unimplemented function (we trick krml into extracting macros, and we cannot give a prototype)
 # 4: type error / malformed input; krml usually skips the decl, we fail hard

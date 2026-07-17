@@ -52,6 +52,20 @@ fn forevery_intro_pure_2 (#a:Type0) (#b:Type0) (p: a -> b -> prop)
     forall+ (x:a) (y:b). pure (p x y)
 
 ghost
+fn forevery_elim_pure (#a:Type0) (p: a -> prop)
+  requires
+    forall+ x. pure (p x)
+  ensures
+    pure (forall x. p x)
+
+ghost
+fn forevery_eilm_pure_2 (#a:Type0) (#b:Type0) (p: a -> b -> prop)
+  requires
+    forall+ (x:a) (y:b). pure (p x y)
+  ensures
+    pure (forall x y. p x y)
+
+ghost
 fn forevery_intro_empty (#a:Type0) (p: a -> slprop)
   requires
     pure (forall (x:a). False)

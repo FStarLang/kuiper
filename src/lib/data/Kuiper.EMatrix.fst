@@ -1,29 +1,20 @@
 module Kuiper.EMatrix
 #lang-pulse
 
-(* An "erased" matrix, for specification purposes only *)
-
 open Kuiper
-open FStar.FunctionalExtensionality { (^->>) }
-module F = FStar.FunctionalExtensionality
+open Kuiper.Shape
+open Kuiper.Chest
 
-let macc_pat m i j = ()
+let macc_mkM #et #rows #cols f i j = ()
 
-let equal (#et #rows #cols : _) m1 m2 =
-  forall (i:natlt rows) (j:natlt cols). macc m1 i j == macc m2 i j
+let macc_mupd #et #rows #cols m i j v i' j' = ()
 
-let lemma_equal_intro m1 m2 = ()
+let lemma_equal_intro #et #rows #cols m1 m2 =
+  introduce forall (idx : abs (rows @| cols @| INil)). acc m1 idx == acc m2 idx
+  with (let (i, (j, ())) = idx in
+        assert (acc2 m1 i j == acc2 m2 i j))
 
-let ematrix_ext #et #rows #cols
-  (m1 m2 : ematrix et rows cols)
-  : Lemma (requires equal m1 m2)
-          (ensures m1 == m2)
-  = assert (F.feq_g m1.f m2.f)
-
-let lemma_to_real_matrix_approximates (#et : Type0)
-  {| scalar et, d : real_like et |}
-  (#rows #cols : nat)
-  (m : ematrix et rows cols)
-  : Lemma (ensures m %~ to_real_matrix m)
-          [SMTPat (to_real_matrix m)]
-  = ()
+let lemma_approximates_intro #et #_ #_ #rows #cols m1 m2 =
+  introduce forall (idx : abs (rows @| cols @| INil)). acc m1 idx %~ acc m2 idx
+  with (let (i, (j, ())) = idx in
+        assert (acc2 m1 i j %~ acc2 m2 i j))

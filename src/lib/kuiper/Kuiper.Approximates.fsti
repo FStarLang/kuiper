@@ -102,7 +102,7 @@ val sum_is_approx' #a {| scalar a, real_like a |}
 
 val sum_is_approx #a {| scalar a, real_like a |} (s: seq a) (s': seq real) :
     Lemma (requires s %~ s')
-          (ensures seq_fold_left add zero s %~ seq_fold_left (+.) 0.0R s')
+          (ensures seq_fold_left add zero s %~ rsum s')
 
 let approx2
   (#a #b #c : Type)
@@ -116,9 +116,9 @@ let approx2
       x %~ r /\ y %~ s ==> f x y %~ g r s
 
 (* Could we use this instead of approx2? *)
-// instance approx_function_can_approximate
-//   (dom1 dom2 cod1 cod2 : Type)
-//   {| can_approximate dom1 dom2, can_approximate cod1 cod2 |}
-//   : can_approximate (dom1 -> cod1) (dom2 -> cod2) = {
-//   approximates = (fun f g -> forall x y. x %~ y ==> f x %~ g y);
-// }
+instance approx_function_can_approximate
+  (dom1 dom2 cod1 cod2 : Type)
+  {| can_approximate dom1 dom2, can_approximate cod1 cod2 |}
+  : can_approximate (dom1 -> cod1) (dom2 -> cod2) = {
+  approximates = (fun f g -> forall x y. x %~ y ==> f x %~ g y);
+}

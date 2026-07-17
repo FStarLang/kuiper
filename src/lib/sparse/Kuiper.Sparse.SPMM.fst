@@ -27,19 +27,19 @@ let block_pre
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
   (p : parameters et {size_req p})
   (row_perm : permutation (natlt p.rows))
-  (#lB : Array2.layout p.shared p.cols)
-  (#lC : Array2.layout p.rows p.cols)
+  (#lB : layout2 p.shared p.cols)
+  (#lC : layout2 p.rows p.cols)
   (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
-  (row_indices : gpu_array sz p.rows)
-  (gB : Array2.t et lB)
-  (gC : Array2.t et lC)
+  (row_indices : larray sz p.rows)
+  (gB : array2 et lB)
+  (gC : array2 et lC)
   // matriz sparse gA
   (elems : lseq et gA.nnz)
   (col_ind : lseq sz gA.nnz)
   (row_off : lseq sz (p.rows + 1))
-  (eA : ematrix et p.rows p.shared)
+  (eA : chest2 et p.rows p.shared)
   // matrices densas
-  (eB : ematrix et p.shared p.cols)
+  (eB : chest2 et p.shared p.cols)
   (fA fri fB : perm)
   (bid : natlt (nblocks p))
   (tid : natlt p.blockWidth)
@@ -67,19 +67,19 @@ let block_post
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
   (p : parameters et { size_req p })
   (row_perm : permutation (natlt p.rows))
-  (#lB : Array2.layout p.shared p.cols)
-  (#lC : Array2.layout p.rows p.cols)
+  (#lB : layout2 p.shared p.cols)
+  (#lC : layout2 p.rows p.cols)
   (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
-  (row_indices : gpu_array sz p.rows)
-  (gB : Array2.t et lB)
-  (gC : Array2.t et lC)
+  (row_indices : larray sz p.rows)
+  (gB : array2 et lB)
+  (gC : array2 et lC)
   // matriz sparse gA
   (elems : lseq et gA.nnz)
   (col_ind : lseq sz gA.nnz)
   (row_off : lseq sz (p.rows + 1))
-  (eA : ematrix et p.rows p.shared)
+  (eA : chest2 et p.rows p.shared)
   // matrices densas
-  (eB : ematrix et p.shared p.cols)
+  (eB : chest2 et p.shared p.cols)
   (fA fri fB : perm)
   (bid : natlt (nblocks p))
   (tid : natlt p.blockWidth)
@@ -111,19 +111,19 @@ let kpre
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
   (p : parameters et { size_req p })
   (row_perm : permutation (natlt p.rows))
-  (#lB : Array2.layout p.shared p.cols)
-  (#lC : Array2.layout p.rows p.cols)
+  (#lB : layout2 p.shared p.cols)
+  (#lC : layout2 p.rows p.cols)
   (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
-  (row_indices : gpu_array sz p.rows)
-  (gB : Array2.t et lB)
-  (gC : Array2.t et lC)
+  (row_indices : larray sz p.rows)
+  (gB : array2 et lB)
+  (gC : array2 et lC)
   // matriz sparse gA
   (elems : lseq et gA.nnz)
   (col_ind : lseq sz gA.nnz)
   (row_off : lseq sz (p.rows + 1))
-  (eA : ematrix et p.rows p.shared)
+  (eA : chest2 et p.rows p.shared)
   // matrices densas
-  (eB : ematrix et p.shared p.cols)
+  (eB : chest2 et p.shared p.cols)
   (fA fri fB : perm)
   (#_ : squash (well_formed p col_ind row_off))
   // TODO no se si puedo hacer eso
@@ -151,19 +151,19 @@ let kpost
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
   (p : parameters et { size_req p })
   (row_perm : permutation (natlt p.rows))
-  (#lB : Array2.layout p.shared p.cols)
-  (#lC : Array2.layout p.rows p.cols)
+  (#lB : layout2 p.shared p.cols)
+  (#lC : layout2 p.rows p.cols)
   (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
-  (row_indices : gpu_array sz p.rows)
-  (gB : Array2.t et lB)
-  (gC : Array2.t et lC)
+  (row_indices : larray sz p.rows)
+  (gB : array2 et lB)
+  (gC : array2 et lC)
   // matriz sparse gA
   (elems : lseq et gA.nnz)
   (col_ind : lseq sz gA.nnz)
   (row_off : lseq sz (p.rows + 1))
-  (eA : ematrix et p.rows p.shared)
+  (eA : chest2 et p.rows p.shared)
   // matrices densas
-  (eB : ematrix et p.shared p.cols)
+  (eB : chest2 et p.shared p.cols)
   (fA fri fB : perm)
   (#_ : squash (well_formed p col_ind row_off))
   (sh : c_shmems (shmems_desc p))
@@ -232,20 +232,20 @@ fn setup
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
   (p : parameters et {size_req p})
   (row_perm : permutation (natlt p.rows))
-  (#lB : Array2.layout p.shared p.cols)
-  (#lC : Array2.layout p.rows p.cols)
+  (#lB : layout2 p.shared p.cols)
+  (#lC : layout2 p.rows p.cols)
   {| ctlayout lB, ctlayout lC |}
   (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
-  (row_indices : gpu_array sz p.rows)
-  (gB : Array2.t et lB)
-  (gC : Array2.t et lC)
+  (row_indices : larray sz p.rows)
+  (gB : array2 et lB)
+  (gC : array2 et lC)
   // matriz sparse gA
   (elems : lseq et gA.nnz)
   (col_ind : lseq sz gA.nnz)
   (row_off : lseq sz (p.rows + 1))
-  (#eA : ematrix et p.rows p.shared)
+  (#eA : chest2 et p.rows p.shared)
   // matrices densas
-  (#eB : ematrix et p.shared p.cols)
+  (#eB : chest2 et p.shared p.cols)
   (#fA #fri #fB : perm)
   ()
   norewrite
@@ -268,13 +268,13 @@ fn setup
 {
   admit();
   with eC. assert gC |-> eC;
-  Array2.explode gC;
+  tensor_explode2 gC;
   forevery_unflatten' _;
 
   forevery_map
     (fun r ->
       forall+ (c : natlt p.cols).
-        Array2.pts_to_cell gC (r, c) (macc eC r c)
+        tensor_pts_to_cell gC (idx2 (r) (c)) (acc2 eC r c)
     )
     (fun r ->
       forall+
@@ -293,8 +293,8 @@ fn setup
         #(natlt (divup p.cols p.blockItemsX))
         (fun b ->
           forall+ (ix : natlt p.blockItemsX { b * p.blockItemsX + ix < p.cols }).
-            Array2.pts_to_cell gC (r, b * p.blockItemsX + ix)
-              (macc eC r (b * p.blockItemsX + ix))
+            tensor_pts_to_cell gC (idx2 (r) (b * p.blockItemsX + ix))
+              (acc2 eC r (b * p.blockItemsX + ix))
         )
         (fun b ->
           forall+
@@ -310,8 +310,8 @@ fn setup
           forevery_map
             #(ix : natlt p.blockItemsX { b * p.blockItemsX + ix  < p.cols })
             (fun ix ->
-              Array2.pts_to_cell gC (r, b * p.blockItemsX + ix)
-                (macc eC r (b * p.blockItemsX + ix))
+              tensor_pts_to_cell gC (idx2 (r) (b * p.blockItemsX + ix))
+                (acc2 eC r (b * p.blockItemsX + ix))
             )
             (fun ix ->
               matrix_live_cell gC r (b * p.blockItemsX + ix)
@@ -366,10 +366,10 @@ fn setup
         )
     );
 
-  gpu_slice_share row_indices 0 p.rows (allthreads p);
+  Kuiper.Array.Extra.array_share row_indices (allthreads p);
   forevery_factor (allthreads p) (nblocks p) p.blockWidth _;
 
-  Array2.share_n gB (allthreads p) #fB;
+  tensor_share_n gB (allthreads p) #fB;
   forevery_factor (allthreads p) (nblocks p) p.blockWidth _;
 
   forevery_zip3_2
@@ -396,20 +396,20 @@ fn block_setup
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
   (p : parameters et { size_req p })
   (row_perm : permutation (natlt p.rows))
-  (#lB : Array2.layout p.shared p.cols)
-  (#lC : Array2.layout p.rows p.cols)
+  (#lB : layout2 p.shared p.cols)
+  (#lC : layout2 p.rows p.cols)
   {| ctlayout lB, ctlayout lC |}
   (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
-  (row_indices : gpu_array sz p.rows)
-  (gB : Array2.t et lB)
-  (gC : Array2.t et lC)
+  (row_indices : larray sz p.rows)
+  (gB : array2 et lB)
+  (gC : array2 et lC)
   // matriz sparse gA
   (elems : lseq et gA.nnz)
   (col_ind : lseq sz gA.nnz)
   (row_off : lseq sz (p.rows + 1))
-  (#eA : ematrix et p.rows p.shared)
+  (#eA : chest2 et p.rows p.shared)
   // matrices densas
-  (#eB : ematrix et p.shared p.cols)
+  (#eB : chest2 et p.shared p.cols)
   (#fA #fri #fB : perm)
   (#_ : squash (well_formed p col_ind row_off))
   (sh : c_shmems (shmems_desc p))
@@ -481,20 +481,20 @@ fn block_teardown
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
   (p : parameters et { size_req p })
   (row_perm : permutation (natlt p.rows))
-  (#lB : Array2.layout p.shared p.cols)
-  (#lC : Array2.layout p.rows p.cols)
+  (#lB : layout2 p.shared p.cols)
+  (#lC : layout2 p.rows p.cols)
   {| ctlayout lB, ctlayout lC |}
   (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
-  (row_indices : gpu_array sz p.rows)
-  (gB : Array2.t et lB)
-  (gC : Array2.t et lC)
+  (row_indices : larray sz p.rows)
+  (gB : array2 et lB)
+  (gC : array2 et lC)
   // matriz sparse gA
   (elems : lseq et gA.nnz)
   (col_ind : lseq sz gA.nnz)
   (row_off : lseq sz (p.rows + 1))
-  (#eA : ematrix et p.rows p.shared)
+  (#eA : chest2 et p.rows p.shared)
   // matrices densas
-  (#eB : ematrix et p.shared p.cols)
+  (#eB : chest2 et p.shared p.cols)
   (#fA #fri #fB : perm)
   (#_ : squash (well_formed p col_ind row_off))
   (sh : c_shmems (shmems_desc p ))
@@ -527,60 +527,50 @@ fn block_teardown
   forevery_unzip3 _ _ _;
   forevery_natlt_pop p.blockWidth
     (fun tid -> exists* x.
-      gpu_pts_to_slice (fst sh) #(1.0R /. p.blockWidth) 0 p.blockItemsK x
+      pts_to (fst sh) #(1.0R /. p.blockWidth) x
     );
   with elems_tile.
-    assert gpu_pts_to_slice (fst sh) #(1.0R /. p.blockWidth) 0 p.blockItemsK
-      elems_tile;
+    assert pts_to (fst sh) #(1.0R /. p.blockWidth) elems_tile;
   forevery_map_extra #(natlt (p.blockWidth - 1))
-    (gpu_pts_to_slice (fst sh) #(1.0R /. p.blockWidth) 0 p.blockItemsK
-      elems_tile)
+    (pts_to (fst sh) #(1.0R /. p.blockWidth) elems_tile)
     (fun tid -> exists* x.
-      gpu_pts_to_slice (fst sh) #(1.0R /. p.blockWidth) 0 p.blockItemsK x
+      pts_to (fst sh) #(1.0R /. p.blockWidth) x
     )
     (fun tid ->
-      gpu_pts_to_slice (fst sh) #(1.0R /. p.blockWidth) 0 p.blockItemsK
-        elems_tile
+      pts_to (fst sh) #(1.0R /. p.blockWidth) elems_tile
     )
     fn tid {
-      gpu_slice_pts_to_eq (fst sh) 0 p.blockItemsK (1.0R /. p.blockWidth)
-        #_ #elems_tile;
+      Pulse.Lib.Array.pts_to_injective_eq (fst sh);
     };
   forevery_natlt_push p.blockWidth
     (fun tid ->
-      gpu_pts_to_slice (fst sh) #(1.0R /. p.blockWidth) 0 p.blockItemsK
-        elems_tile
+      pts_to (fst sh) #(1.0R /. p.blockWidth) elems_tile
     );
 
   forevery_natlt_pop p.blockWidth
     (fun tid -> exists* x.
-      gpu_pts_to_slice (fst (snd sh)) #(1.0R /. p.blockWidth) 0 p.blockItemsK x
+      pts_to (fst (snd sh)) #(1.0R /. p.blockWidth) x
     );
   with col_ind_tile.
-    assert gpu_pts_to_slice (fst (snd sh)) #(1.0R /. p.blockWidth) 0 p.blockItemsK
-      col_ind_tile;
+    assert pts_to (fst (snd sh)) #(1.0R /. p.blockWidth) col_ind_tile;
   forevery_map_extra #(natlt (p.blockWidth - 1))
-    (gpu_pts_to_slice (fst (snd sh)) #(1.0R /. p.blockWidth) 0 p.blockItemsK
-      col_ind_tile)
+    (pts_to (fst (snd sh)) #(1.0R /. p.blockWidth) col_ind_tile)
     (fun tid -> exists* x.
-      gpu_pts_to_slice (fst (snd sh)) #(1.0R /. p.blockWidth) 0 p.blockItemsK x
+      pts_to (fst (snd sh)) #(1.0R /. p.blockWidth) x
     )
     (fun tid ->
-      gpu_pts_to_slice (fst (snd sh)) #(1.0R /. p.blockWidth) 0 p.blockItemsK
-        col_ind_tile
+      pts_to (fst (snd sh)) #(1.0R /. p.blockWidth) col_ind_tile
     )
     fn tid {
-      gpu_slice_pts_to_eq (fst (snd sh)) 0 p.blockItemsK (1.0R /. p.blockWidth)
-        #_ #col_ind_tile;
+      Pulse.Lib.Array.pts_to_injective_eq (fst (snd sh));
     };
   forevery_natlt_push p.blockWidth
     (fun tid ->
-      gpu_pts_to_slice (fst (snd sh)) #(1.0R /. p.blockWidth) 0 p.blockItemsK
-        col_ind_tile
+      pts_to (fst (snd sh)) #(1.0R /. p.blockWidth) col_ind_tile
     );
 
-  gpu_slice_gather (fst sh) 0 p.blockItemsK p.blockWidth;
-  gpu_slice_gather (fst (snd sh)) 0 p.blockItemsK p.blockWidth;
+  Kuiper.Array.Extra.array_gather (fst sh)       p.blockWidth;
+  Kuiper.Array.Extra.array_gather (fst (snd sh)) p.blockWidth;
 
   fold_c_shmems sh (`%shmems_desc);
 
@@ -592,20 +582,20 @@ fn teardown
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
   (p : parameters et { size_req p })
   (row_perm : permutation (natlt p.rows))
-  (#lB : Array2.layout p.shared p.cols)
-  (#lC : Array2.layout p.rows p.cols)
+  (#lB : layout2 p.shared p.cols)
+  (#lC : layout2 p.rows p.cols)
   {| ctlayout lB, ctlayout lC |}
   (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
-  (row_indices : gpu_array sz p.rows)
-  (gB : Array2.t et lB)
-  (gC : Array2.t et lC)
+  (row_indices : larray sz p.rows)
+  (gB : array2 et lB)
+  (gC : array2 et lC)
   // matriz sparse gA
   (elems : lseq et gA.nnz)
   (col_ind : lseq sz gA.nnz)
   (row_off : lseq sz (p.rows + 1))
-  (#eA : ematrix et p.rows p.shared)
+  (#eA : chest2 et p.rows p.shared)
   // matrices densas
-  (#eB : ematrix et p.shared p.cols)
+  (#eB : chest2 et p.shared p.cols)
   (#fA #fri #fB : perm)
   ()
   norewrite
@@ -639,11 +629,11 @@ fn teardown
     (fun _ _ ->
       row_indices |-> Frac (fri /. allthreads p) (ordering row_perm)
     );
-  gpu_slice_gather row_indices 0 p.rows (allthreads p);
+  Kuiper.Array.Extra.array_gather row_indices (allthreads p);
   forevery_unzip_2 _ _;
   forevery_unfactor' (allthreads p) _ _
     (fun _ _ -> gB |-> Frac (fB /. allthreads p) eB);
-  Array2.gather_n gB (allthreads p) #fB;
+  tensor_gather_n gB (allthreads p) #fB;
 
 
   forevery_map #(natlt (nblocks p))
@@ -653,9 +643,8 @@ fn teardown
         (k: natlt (p.blockItemsX /^ p.blockWidth)).
         when__ (bcol p bid + k * v p.blockWidth + tid < v p.cols)
           (fun _ ->
-            Array2.pts_to_cell gC
-              (brow p bid |~> row_perm,
-               bcol p bid + k * v p.blockWidth + tid)
+            tensor_pts_to_cell gC
+              (idx2 (brow p bid |~> row_perm) (bcol p bid + k * v p.blockWidth + tid))
               (MS.matmul_single eA
                   eB
                   (brow p bid |~> row_perm)
@@ -666,9 +655,8 @@ fn teardown
         when__
           (bcol p bid + ix < p.cols)
           (fun _ ->
-            Array2.pts_to_cell gC
-              (brow p bid |~> row_perm,
-               bcol p bid + ix)
+            tensor_pts_to_cell gC
+              (idx2 (brow p bid |~> row_perm) (bcol p bid + ix))
               (MS.matmul_single eA eB
                 (brow p bid |~> row_perm)
                 (bcol p bid + ix)
@@ -682,9 +670,8 @@ fn teardown
         (fun tid k ->
           when__ (bcol p bid + k * v p.blockWidth + tid < v p.cols)
             (fun _ ->
-              Array2.pts_to_cell gC
-                (brow p bid |~> row_perm,
-                 bcol p bid + k * v p.blockWidth + tid)
+              tensor_pts_to_cell gC
+                (idx2 (brow p bid |~> row_perm) (bcol p bid + k * v p.blockWidth + tid))
                 (MS.matmul_single eA
                     eB
                     (brow p bid |~> row_perm)
@@ -693,9 +680,8 @@ fn teardown
         (fun tid k ->
           when__ (bcol p bid + (k * v p.blockWidth + tid) < v p.cols)
             (fun _ ->
-              Array2.pts_to_cell gC
-                (brow p bid |~> row_perm,
-                 bcol p bid + (k * v p.blockWidth + tid))
+              tensor_pts_to_cell gC
+                (idx2 (brow p bid |~> row_perm) (bcol p bid + (k * v p.blockWidth + tid)))
                 (MS.matmul_single eA
                     eB
                     (brow p bid |~> row_perm)
@@ -708,9 +694,8 @@ fn teardown
           when__
             (bcol p bid + ix < p.cols)
             (fun _ ->
-              Array2.pts_to_cell gC
-                (brow p bid |~> row_perm,
-                 bcol p bid + ix)
+              tensor_pts_to_cell gC
+                (idx2 (brow p bid |~> row_perm) (bcol p bid + ix))
                 (MS.matmul_single eA eB
                   (brow p bid |~> row_perm)
                   (bcol p bid + ix)
@@ -727,9 +712,8 @@ fn teardown
         when__
           (bcol p (r * divup p.cols p.blockItemsX + b) + ix < p.cols)
           (fun _ ->
-            Array2.pts_to_cell gC
-              (brow p (r * divup p.cols p.blockItemsX + b) |~> row_perm,
-               bcol p (r * divup p.cols p.blockItemsX + b) + ix)
+            tensor_pts_to_cell gC
+              (idx2 (brow p (r * divup p.cols p.blockItemsX + b) |~> row_perm) (bcol p (r * divup p.cols p.blockItemsX + b) + ix))
               (MS.matmul_single eA eB
                 (brow p (r * divup p.cols p.blockItemsX + b) |~> row_perm)
                 (bcol p (r * divup p.cols p.blockItemsX + b) + ix)
@@ -738,7 +722,7 @@ fn teardown
     )
     (fun r ->
       forall+ (c : natlt p.cols).
-        Array2.pts_to_cell gC (r |~> row_perm, c)
+        tensor_pts_to_cell gC (idx2 (r |~> row_perm) (c))
           (MS.matmul_single eA eB (r |~> row_perm) c)
     )
     fn r {
@@ -747,9 +731,8 @@ fn teardown
           when__
             (bcol p (r * divup p.cols p.blockItemsX + b) + ix < p.cols)
             (fun _ ->
-              Array2.pts_to_cell gC
-                (brow p (r * divup p.cols p.blockItemsX + b) |~> row_perm,
-                 bcol p (r * divup p.cols p.blockItemsX + b) + ix)
+              tensor_pts_to_cell gC
+                (idx2 (brow p (r * divup p.cols p.blockItemsX + b) |~> row_perm) (bcol p (r * divup p.cols p.blockItemsX + b) + ix))
                 (MS.matmul_single eA eB
                   (brow p (r * divup p.cols p.blockItemsX + b) |~> row_perm)
                   (bcol p (r * divup p.cols p.blockItemsX + b) + ix)
@@ -760,8 +743,8 @@ fn teardown
           when__
             (b * p.blockItemsX + ix < p.cols)
             (fun _ ->
-              Array2.pts_to_cell gC
-                (r |~> row_perm, b * p.blockItemsX + ix)
+              tensor_pts_to_cell gC
+                (idx2 (r |~> row_perm) (b * p.blockItemsX + ix))
                 (MS.matmul_single eA eB (r |~> row_perm) (b * p.blockItemsX + ix))
             )
         )
@@ -779,8 +762,8 @@ fn teardown
             when__
               (b * p.blockItemsX + ix < p.cols)
               (fun _ ->
-                Array2.pts_to_cell gC
-                  (r |~> row_perm, b * p.blockItemsX + ix)
+                tensor_pts_to_cell gC
+                  (idx2 (r |~> row_perm) (b * p.blockItemsX + ix))
                   (MS.matmul_single eA eB
                     (r |~> row_perm) (b * p.blockItemsX + ix)
                   )
@@ -788,8 +771,8 @@ fn teardown
         )
         (fun b ->
           forall+ (ix : natlt p.blockItemsX {b * p.blockItemsX + ix < p.cols}).
-            Array2.pts_to_cell gC
-              (r |~> row_perm, b * p.blockItemsX + ix)
+            tensor_pts_to_cell gC
+              (idx2 (r |~> row_perm) (b * p.blockItemsX + ix))
               (MS.matmul_single
                 eA eB (r |~> row_perm) (b * p.blockItemsX + ix)
               )
@@ -803,28 +786,28 @@ fn teardown
         p.cols
         (p.blockItemsX)
         (fun c ->
-          Array2.pts_to_cell gC (r |~> row_perm, c)
+          tensor_pts_to_cell gC (idx2 (r |~> row_perm) (c))
             (MS.matmul_single eA eB (r |~> row_perm) c)
         );
     };
 
   forevery_iso row_perm (fun r ->
     forall+ (c : natlt p.cols).
-      Array2.pts_to_cell gC (r |~> row_perm, c)
+      tensor_pts_to_cell gC (idx2 (r |~> row_perm) (c))
         (MS.matmul_single eA eB (r |~> row_perm) c)
   );
   forevery_ext_2
     (fun r c ->
-      Array2.pts_to_cell gC
-        (row_perm.gg r |~> row_perm, c)
+      tensor_pts_to_cell gC
+        (idx2 (row_perm.gg r |~> row_perm) (c))
         (MS.matmul_single eA eB (row_perm.gg r |~> row_perm) c)
     )
-    (fun r c -> Array2.pts_to_cell gC (r, c) (macc (MS.matmul eA eB) r c));
+    (fun r c -> tensor_pts_to_cell gC (idx2 (r) (c)) (acc2 (MS.matmul eA eB) r c));
   forevery_flatten _;
   forevery_ext
-    (fun (rc : natlt p.rows & natlt p.cols) -> Array2.pts_to_cell gC (rc._1, rc._2) (macc (MS.matmul eA eB) rc._1 rc._2))
-    (fun (rc : Array2.ait p.rows p.cols) -> Array2.pts_to_cell gC rc (macc (MS.matmul eA eB) rc._1 rc._2));
-  Array2.implode gC;
+    (fun (rc : natlt p.rows & natlt p.cols) -> tensor_pts_to_cell gC (idx2 (rc._1) (rc._2)) (acc2 (MS.matmul eA eB) rc._1 rc._2))
+    (fun (rc : natlt p.rows & natlt p.cols) -> tensor_pts_to_cell gC (idx2 (rc._1) (rc._2)) (acc2 (MS.matmul eA eB) rc._1 rc._2));
+  tensor_implode2 gC;
 
   ();
 }
@@ -1891,7 +1874,7 @@ fn kf
   (#row_off : erased (lseq sz (p.rows + 1)))
   (#eA : ematrix et p.rows p.shared)
   // matriz densa gb
-  (#eB : ematrix et p.shared p.cols)
+  (#eB : chest2 et p.shared p.cols)
   (#fA #fri #fB : perm)
   (#_ : squash (well_formed p col_ind row_off))
   (sh : c_shmems (shmems_desc p))
@@ -1942,6 +1925,9 @@ fn kf
 
   let (elems_tile0, (col_ind_tile0, _)) = sh;
 
+  pts_to_len elems_tile0;
+  pts_to_len col_ind_tile0;
+
   (* This incantation here improves the generated code by actually defining
   these variables at this point. *)
   let elems_tile   = elems_tile0;     assert rewrites_to elems_tile   elems_tile0;
@@ -1977,6 +1963,11 @@ fn kf
     ri ri' re
     tid n_idx
     nnz idx;
+
+  Pulse.Lib.Array.pts_to_len elems_tile;
+  Pulse.Lib.Array.pts_to_len col_ind_tile;
+  assert is_full_slice elems_tile   p.blockItemsK;
+  assert is_full_slice col_ind_tile p.blockItemsK;
 
   //------------------residue-----------------------------------------
 
@@ -2081,6 +2072,13 @@ fn kf
 
   assert pure (SZ.v !idx = (re - ri') / p.blockItemsK);
 
+  slice_to_array row_indices;
+
+  assert is_full_slice (fst sh) p.blockItemsK;
+  assert is_full_slice (fst (snd sh)) p.blockItemsK;
+  slice_to_array (fst sh);
+  slice_to_array (fst (snd sh));
+
   ()
 }
  #pop-options
@@ -2109,7 +2107,7 @@ let kdesc
   (row_off : erased (lseq sz (p.rows + 1)))
   (eA : ematrix et p.rows p.shared)
   // matrices densas
-  (#eB : ematrix et p.shared p.cols)
+  (#eB : chest2 et p.shared p.cols)
   (#fA #fri #fB : perm)
   (#_ : squash (well_formed p col_ind row_off))
   : kernel_desc
@@ -2221,7 +2219,7 @@ fn spmm
   (gA : smatrix et (SZ.v rows) (SZ.v shared){is_global_smatrix gA})
   (#_ : squash (aligned 16 gA.elems /\ aligned 16 gA.col_ind))
   (#fA : perm)
-  (row_indices : gpu_array sz rows)
+  (row_indices : larray sz rows)
   (fri : perm)
   (gB : Array2.t et lB{Array2.is_global gB})
   (#_ : squash (aligned 16 (Array2.core gB)))
@@ -2238,8 +2236,8 @@ fn spmm
   // permutacion de filas
   (row_perm : permutation (natlt rows))
   // matrices densas
-  (#eB : ematrix et shared cols)
-  (#eC : ematrix et rows cols)
+  (#eB : chest2 et shared cols)
+  (#eC : chest2 et rows cols)
   //(#_ : size_req rows shared cols)
   norewrite
   preserves

@@ -20,7 +20,9 @@ class real_like (a:Type) {| scalar a |} = {
   a0 : squash (v_approximates zero 0.0R);
   a1 : squash (v_approximates one 1.0R);
 
-  // It would be nice if we could directly write SMT patterns on the lemmas below.
+  // It would be nice if we could directly write SMT patterns on the lemmas
+  // below.  This is now supported by F*, but introduces a matching loop and
+  // breaks ton of things (see https://github.com/FStarLang/FStar/issues/4264)
   a_add : x:a -> y:a -> r:real -> s:real ->
           Lemma (requires v_approximates x r /\ v_approximates y s)
                 (ensures v_approximates (x `add` y) (r +. s));
@@ -76,13 +78,20 @@ let approx_to_real #a {| scalar a, real_like a, precise_real_like a |} (x y: a) 
 
 (* Extra rules for types supporting division and exponentiation. *)
 class floating_real_like (a:Type) {| scalar a, floating a, real_like a |} = {
+  of_int_approx : (x : Int64.t) ->
+    squash (v_approximates (of_int #a x) (Real.of_int (Int64.v x)));
+
+  fmax_approx : (x: a) -> (y: a) -> (xr: real) -> (yr: real) ->
+    Lemma (requires v_approximates x xr /\ v_approximates y yr)
+          (ensures v_approximates (fmax x y) (rmax xr yr));
+
   sub_approx : x:a -> y:a -> r:real -> s:real ->
                 Lemma (requires v_approximates x r /\ v_approximates y s)
                       (ensures v_approximates (sub x y) (r -. s));
 
   exp_approx : x:a -> r:real ->
                 Lemma (requires v_approximates x r)
-                      (ensures v_approximates (exp x) (rexp r));
+                      (ensures v_approximates (fexp x) (exp r));
 
   div_approx : x:a -> y:a -> r:real -> s:real{s =!= 0.0R} ->
                 Lemma (requires v_approximates x r /\ v_approximates y s)
@@ -90,8 +99,19 @@ class floating_real_like (a:Type) {| scalar a, floating a, real_like a |} = {
 
   log_approx : x:a -> r:real{r >. 0.0R} ->
                 Lemma (requires v_approximates x r)
-                      (ensures v_approximates (log x) (rlog r));
+                      (ensures v_approximates (flog x) (log r));
 }
+
+let fmax_approx_pat
+  (a:Type) {| scalar a, floating a, real_like a, rr : floating_real_like a |}
+  (x y : a) (xr yr : real) :
+    Lemma (requires v_approximates x xr /\ v_approximates y yr)
+          (ensures v_approximates (fmax x y) (rmax xr yr))
+          [SMTPat (fmax x y);
+           SMTPat (v_approximates x xr);
+           SMTPat (v_approximates y yr);
+           SMTPat (has_type rr (floating_real_like a))]
+  = fmax_approx x y xr yr
 
 let sub_approx_pat
   (a:Type) {| scalar a, floating a, real_like a, rr : floating_real_like a |}
@@ -108,8 +128,8 @@ let exp_approx_pat
   (a:Type) {| scalar a, floating a, real_like a, rr : floating_real_like a |}
   (x : a) (r : real) :
                 Lemma (requires v_approximates x r)
-                      (ensures v_approximates (exp x) (rexp r))
-                      [SMTPat (exp x);
+                      (ensures v_approximates (fexp x) (exp r))
+                      [SMTPat (fexp x);
                        SMTPat (v_approximates x r);
                        SMTPat (has_type rr (floating_real_like a))]
   = exp_approx x r
@@ -129,8 +149,8 @@ let log_approx_pat
   (a:Type) {| scalar a, floating a, real_like a, rr : floating_real_like a |}
   (x : a) (r : real{r >. 0.0R}) :
                 Lemma (requires v_approximates x r)
-                      (ensures v_approximates (log x) (rlog r))
-                      [SMTPat (log x);
+                      (ensures v_approximates (flog x) (log r))
+                      [SMTPat (flog x);
                        SMTPat (v_approximates x r);
                        SMTPat (has_type rr (floating_real_like a))]
   = log_approx x r
