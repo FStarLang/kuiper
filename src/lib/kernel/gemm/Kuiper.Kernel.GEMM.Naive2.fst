@@ -1,7 +1,5 @@
 module Kuiper.Kernel.GEMM.Naive2
 
-friend Kuiper.Kernel.GEMM.Naive (* We reuse setup/teardown from Naive *)
-
 #lang-pulse
 
 open Kuiper
@@ -10,9 +8,20 @@ open Kuiper.Tensor { tensor_pts_to_cell as pts_to_cell }
 module MS = Kuiper.Spec.GEMM
 module MU = Kuiper.Kernel.GEMM.Util
 module SZ = Kuiper.SizeT
-module N = Kuiper.Kernel.GEMM.Naive
 open Kuiper.Shape
 open Kuiper.Chest
+open Kuiper.Bijection
+
+(* The reshaping bridge between the nested tensor index
+   [abs (rows @| cols @| INil) = natlt rows & (natlt cols & unit)]
+   and the flat pair [natlt rows & natlt cols], mirroring
+   [Kuiper.Array2.abs_bij]. *)
+let abs_bij (#rows #cols : nat)
+  : (abs (rows @| cols @| INil) =~ (natlt rows & natlt cols)) =
+  {
+    ff = (fun (i, (j, ())) -> (i, j));
+    gg = (fun (i, j) -> (i, (j, ())));
+  }
 
 unfold
 let kpre
@@ -99,6 +108,7 @@ fn kf
   ()
 }
 
+#push-options "--split_queries always"
 ghost
 fn setup
   (#et : Type0) {| scalar et |}
@@ -127,7 +137,32 @@ fn setup
       kpre comb gA gB gC eA eB eC fA fB gid) **
     emp (* frame *)
 {
-  N.setup comb gA gB gC #eA #eB #eC ();
+  // Sharing the input matrices (splitting permissions)
+  tensor_share_n gA (m *^ n);
+  tensor_share_n gB (m *^ n);
+
+  // Sharing the output matrix (splitting each cell)
+  tensor_explode gC;
+  forevery_iso (abs_bij #m #n) _;
+  forevery_ext _ (fun (ij : natlt m & natlt n) ->
+    pts_to_cell gC (fst ij, (snd ij, ())) (acc eC (fst ij, (snd ij, ()))));
+  forevery_unflatten' _;
+
+  forevery_unfactor' (m *^ n) m n (fun r c ->
+    pts_to_cell gC (r, (c, ())) (acc eC (r, (c, ()))));
+
+  // Join resources into a single bigstar
+  forevery_zip #(natlt2 m n)
+    (fun _ -> gB |-> Frac (fB /. (m *^ n)) eB)
+    (fun i -> pts_to_cell gC ((i/n <: natlt m), ((i%n <: natlt n), ())) (acc eC ((i/n <: natlt m), ((i%n <: natlt n), ()))));
+  forevery_zip #(natlt2 m n)
+    (fun _ -> gA |-> Frac (fA /. (m *^ n)) eA)
+    _;
+
+  (* We're done actually. Just need extensionality. *)
+  forevery_ext #(natlt2 m n) _ (kpre comb gA gB gC eA eB eC fA fB);
+
+  ();
 }
 
 ghost
@@ -158,8 +193,59 @@ fn teardown
     gB |-> Frac fB eB **
     gC |-> MS.mmcomb comb eC eA eB
 {
-  N.teardown comb gA gB gC #eA #eB #eC ();
+  forevery_unzip #(natlt2 m n) _ _;
+  forevery_unzip #(natlt2 m n) _ _;
+
+  forevery_rw_type
+    (natlt (v (SizeT.mul m n)))
+    (natlt (v m * v n))
+    (fun _ -> gA |-> Frac (fA /. (v m * v n)) eA);
+
+  forevery_rw_type
+    (natlt (v (SizeT.mul m n)))
+    (natlt (v m * v n))
+    (fun _ -> gB |-> Frac (fB /. (v m * v n)) eB);
+
+  tensor_gather_n gA _;
+  tensor_gather_n gB _;
+
+  forevery_factor (m *^ n) m n _;
+
+  (* we get things back with some arithmetic in it *)
+  assert (forall+ (r:natlt m) (c:natlt n).
+      pts_to_cell gC (((r * n + c) / n <: natlt m), (((r * n + c) % n <: natlt n), ()))
+         (MS.gemm_single comb eA eB eC ((r * n + c) / n) ((r * n + c) % n)));
+
+  (* need to use ext to get rid of it-- automatically applying ext would be really useful. *)
+  assert (pure (forall (r c : nat). c < n ==> (r * n + c) / n == r));
+  assert (pure (forall (r c : nat). c < n ==> (r * n + c) % n == c));
+  forevery_ext_2 _ (fun (r : natlt m) (c : natlt n) ->
+      pts_to_cell gC (r, (c, ())) (MS.gemm_single comb eA eB eC r c));
+
+  ghost
+  fn aux (r:natlt m) (c:natlt n)
+    requires
+      pts_to_cell gC (r, (c, ())) (MS.gemm_single comb eA eB eC r c)
+    ensures
+      pts_to_cell gC (r, (c, ())) (acc (MS.mmcomb comb eC eA eB) (r, (c, ())))
+  {
+    ()
+  };
+  forevery_map_2 #(natlt m) #(natlt n)
+    (fun r c -> pts_to_cell gC (r, (c, ())) (MS.gemm_single comb eA eB eC r c))
+    _
+    aux;
+
+  forevery_flatten' (fun (rc : natlt m & natlt n) ->
+    pts_to_cell gC (fst rc, (snd rc, ())) (acc (MS.mmcomb comb eC eA eB) (fst rc, (snd rc, ()))));
+
+  forevery_iso (bij_sym (abs_bij #m #n)) _;
+  forevery_ext _ (fun (i : abs (m @| n @| INil)) ->
+    pts_to_cell gC i (acc (MS.mmcomb comb eC eA eB) i));
+  tensor_implode gC;
+  ()
 }
+#pop-options
 
 inline_for_extraction noextract
 let kdesc

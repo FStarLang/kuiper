@@ -100,7 +100,7 @@ let scatter_out_uncovered (#et : Type0) (#r : erased nat) (di do : shape r { sha
 
 (*
 
-LATER: it would be great to have this, however I realized it will not work when going to 
+LATER: it would be great to have this, however I realized it will not work when going to
 the concrete layout, because the concrete layout requires reading from the gIdx tensor,
 and that is an impure operation which we currently do not support in layouts.
 We would need to carry around the permission to read gIdx in the layout, which is quite an
@@ -108,9 +108,9 @@ invasive change.
 
 // A tensor layout for mapping indices through a lookup table.
 // For now, the lookup table only stores 1 dimension of indices,
-// but it could store tuples so that it maps N-D. 
-// The LUT can be smaller than the mapped tensor. The resulting tensor 
-// will then have the same shape as the LUT. 
+// but it could store tuples so that it maps N-D.
+// The LUT can be smaller than the mapped tensor. The resulting tensor
+// will then have the same shape as the LUT.
 let tlayout_lut
   (#r : erased nat) (#d1 #d2: shape r { shape_le d1 d2 })
   (dim: szlt r)
@@ -120,10 +120,10 @@ let tlayout_lut
   : tlayout d1 = {
     ulen = sizeof d1;
     imap = {
-      f = (fun i -> 
+      f = (fun i ->
         let i' = abs_set_at2 d1 d2 dim (acc eIdx i) i in
         l.imap.f i');
-      is_inj = (fun i j -> 
+      is_inj = (fun i j ->
         l.imap.is_inj (abs_set_at2 d1 d2 dim (acc eIdx i) i) (abs_set_at2 d1 d2 dim (acc eIdx j) j);
           .... // TODO
         eIdxInj);
@@ -412,8 +412,8 @@ fn scatter_gpu
   (#fInp #fIdx: perm)
   preserves cpu ** on gpu_loc (gInp |-> Frac fInp eInp) ** on gpu_loc (gIdx |-> Frac fIdx (eIdx <: chest di (szlt (do @! (SZ.v dim)))))
   requires on gpu_loc (live gOut)
-  ensures 
-    exists* eOut. 
+  ensures
+    exists* eOut.
       on gpu_loc (gOut |-> eOut) **
       pure (vscatter_chest di do dim eInp eIdx eOut) {
   // Recover the function-form injectivity witness from the `chest_inj`

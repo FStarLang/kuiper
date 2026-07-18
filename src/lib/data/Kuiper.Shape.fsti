@@ -401,15 +401,15 @@ let rec abs_set_at (#r : nat) (#d : shape r) (dim : natlt r) (idx : natlt (d @! 
       (idx, i2)
     else
       (i1, abs_set_at #_ #(tail d) (dim - 1) idx i2)
-        
+
 inline_for_extraction noextract
 val conc_set_at (#r : erased nat) (#d : shape r) (dim : szlt r) (idx : szlt (d @! dim)) (x : conc d)
   : Tot (c : conc d {up c == abs_set_at dim idx (up x)})
 
 let rec shape_le (#r: erased nat) (d1 d2: shape r): prop =
-  match d1 with 
-  | INil -> true 
-  | ICons d1h d1t -> (match d2 with 
+  match d1 with
+  | INil -> true
+  | ICons d1h d1t -> (match d2 with
     | ICons d2h d2t -> d1h <= d2h /\ shape_le d1t d2t)
 
 // Embed an abstract index of d1 into the (pointwise larger) shape d2. Every
@@ -437,7 +437,7 @@ let rec abs_set_at2 (#r : nat) (d1 d2 : shape r { shape_le d1 d2 }) (dim : natlt
          (decreases dim)
   = assert r > 0;
     assert (d1 @! 0) <= (d2 @! 0);
-    let (i1, i2) = x <: natlt (d1 @! 0) & abs (tail d1) in    
+    let (i1, i2) = x <: natlt (d1 @! 0) & abs (tail d1) in
     let i1: natlt (d2 @! 0) = i1 in
     if dim == 0 then
       (idx, abs_le (tail d1) (tail d2) i2)
@@ -463,7 +463,7 @@ val conc_set_at2 (#r : erased nat) (#d1 #d2 : shape r { shape_le d1 d2 })
 (* modulo_i unfolding facts, used to line up the shapes narrowed across `dim`. *)
 val modulo_zero (#n : pos) (d : shape n)
   : Lemma (modulo_i 0 d == tail d)
-  
+
 val modulo_succ (#n : nat) (dim : natlt n { dim > 0 }) (d : shape n)
   : Lemma (modulo_i dim d == ICons (d @! 0) (modulo_i (dim - 1) (tail d)))
 

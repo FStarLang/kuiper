@@ -42,9 +42,9 @@ let attention_real_batched
   (rKT:   chest4 real n h e s)
   (rV:    chest4 real n h s ev)
   (rbias: chest4 real n h l s)
-  (scale : real)  
+  (scale : real)
   : GTot (chest4 real n h l ev)
-  = mk4 (fun i j -> 
+  = mk4 (fun i j ->
       acc2 (attention_real
         (slice_page4 rQ i j)
         (slice_page4 rKT i j)

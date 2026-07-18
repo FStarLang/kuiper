@@ -7,8 +7,6 @@ open Kuiper.Chest
 open Kuiper.Tensor
 open Pulse.Lib.Trade
 
-module SZ = Kuiper.SizeT
-module T = FStar.Tactics.V2
 
 (* Generic extraction of slices *)
 
