@@ -46,30 +46,3 @@ fn bmmcomb_gpu_exact
     on gpu_loc (c |-> eC)
   ensures
     on gpu_loc (c |-> MS.bmmcomb comb eC eA eB)
-
-(* Rank-2 specialization of [bmmcomb_gpu_exact], obtained by viewing each
-   matrix as a single-page rank-3 tensor. *)
-inline_for_extraction noextract
-fn mmcomb_gpu_exact
-  (#et : Type0) {| scalar et |}
-  (comb : binop et)
-  (#m #n #k : szp)
-  (#lA : layout2 m k)
-  (#lB : layout2 k n)
-  (#lC : layout2 m n)
-  {| ctlayout lA, ctlayout lB, ctlayout lC |}
-  (a : tensor et lA { is_global a })
-  (b : tensor et lB { is_global b })
-  (c : tensor et lC { is_global c })
-  (#eA : chest2 et m k)
-  (#eB : chest2 et k n)
-  (#eC : chest2 et m n)
-  (#fA #fB : perm)
-  norewrite
-  preserves
-    cpu ** on gpu_loc (a |-> Frac fA eA ** b |-> Frac fB eB)
-  requires
-    pure (bsize_req 1 m n k) **
-    on gpu_loc (c |-> eC)
-  ensures
-    on gpu_loc (c |-> MS.mmcomb comb eC eA eB)
