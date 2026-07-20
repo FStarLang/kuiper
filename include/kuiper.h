@@ -32,6 +32,18 @@ void __MUST(cudaError_t rc, const char * str, const char * func, const char *fna
 }
 
 /*
+ * Stream that kernels launch on. Host code (e.g. a Torch wrapper) sets it via
+ * kpr_stream() to its current stream so launches are ordered on -- and captured
+ * by -- the caller's CUDA stream; it defaults to the legacy default stream (0).
+ * A single shared instance across all translation units (inline + thread_local).
+ */
+inline cudaStream_t& kpr_stream()
+{
+	static thread_local cudaStream_t s = 0;
+	return s;
+}
+
+/*
  * All kernel calls extract to this. The shared memory will just
  * be zero if not used, etc.
  */
@@ -40,11 +52,8 @@ void __MUST(cudaError_t rc, const char * str, const char * func, const char *fna
 		auto _nblk = (nblk);							\
 		auto _nthr = (nthr);							\
 		if (_nblk > 0 && _nthr > 0) {						\
-			cudaStream_t fresh;						\
-			cudaStreamCreate(&fresh);					\
-			foo<<<_nblk, _nthr, (e_size), fresh>>>(__VA_ARGS__);		\
+			foo<<<_nblk, _nthr, (e_size), kpr_stream()>>>(__VA_ARGS__);\
 			__MUST(cudaGetLastError(), "kcall", __func__, __FILE__, __LINE__);\
-			cudaStreamDestroy(fresh); /* note: ok to destroy while running */;\
 		}									\
 	} while (0)
 
@@ -131,5 +140,7 @@ void INFO ()
 tuples or structs that are not evaluated away. Ideally these values would not be
 visible in the CUDA code at all. */
 #define KRML_CLITERAL(a) (a)
+
+#define KPR_SYNC_DEVICE_DUMMY()
 
 #endif /* KUIPER_H */

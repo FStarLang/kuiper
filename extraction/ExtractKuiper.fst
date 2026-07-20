@@ -944,7 +944,7 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
     end
 
   | "Kuiper.Kernel.Base.sync_device", [], [_unit; _epoch] ->
-    _MUST <| EApp (EQualified ([], "cudaDeviceSynchronize"), [ EUnit ])
+    EApp (EQualified ([], "KPR_SYNC_DEVICE_DUMMY"), [ EUnit ])
 
   (* Misc stuff missing from F*? Without these, they extract to names
      and depend on being linked with that module. *)
