@@ -556,7 +556,8 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
 
   | "Kuiper.TensorCore.Base.mma_loadA", [et], [ m; n; k; fr; l; strided_l; gm; f; m0; f0 ]
   | "Kuiper.TensorCore.Base.mma_loadA_cm", [et], [ m; n; k; fr; l; strided_l; gm; f; m0; f0 ]
-  | "Kuiper.TensorCore.Base.mma_loadB", [et], [ m; n; k; fr; l; strided_l; gm; f; m0; f0 ] ->
+  | "Kuiper.TensorCore.Base.mma_loadB", [et], [ m; n; k; fr; l; strided_l; gm; f; m0; f0 ]
+  | "Kuiper.TensorCore.Base.mma_loadB_cm", [et], [ m; n; k; fr; l; strided_l; gm; f; m0; f0 ] ->
     let fr = cb fr in
     let ldm = cb <| get_strided_row_major_stride strided_l in
     let offset = cb <| get_strided_row_major_offset strided_l in

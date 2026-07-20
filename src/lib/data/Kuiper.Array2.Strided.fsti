@@ -131,3 +131,60 @@ val lemma_subtile_strided_row_major_stride
             ==
             sub.stride)
           [SMTPat (strided_row_major_subtile l trows tcols tr tc).stride]
+
+(* Instance for subtile_layout of a col-major parent *)
+inline_for_extraction noextract
+instance val strided_col_major_subtile (#rows #cols : erased nat)
+  (l : layout2 rows cols)
+  (#_ : squash (SZ.fits (l.ulen)))
+  {| sub : strided_col_major l |}
+  (trows : erased int {0 < trows /\ trows /?+ rows})
+  (tcols : erased int {0 < tcols /\ tcols /?+ cols})
+  (tr    : erased int {0 <= tr /\ tr < rows / trows})
+  (tc    : erased int {0 <= tc /\ tc < cols / tcols})
+  {| c_trows : concrete_sz trows,
+     c_tcols : concrete_sz tcols,
+     c_tr    : concrete_sz tr,
+     c_tc    : concrete_sz tc,
+  |}
+  : strided_col_major (subtile_layout l trows tcols tr tc)
+
+val lemma_subtile_strided_col_major_offset
+  (#rows #cols : erased nat)
+  (l : layout2 rows cols)
+  {| sub : strided_col_major l |}
+  (trows : erased int {0 < trows /\ trows /?+ rows})
+  (tcols : erased int {0 < tcols /\ tcols /?+ cols})
+  (tr    : erased int {0 <= tr /\ tr < rows / trows})
+  (tc    : erased int {0 <= tc /\ tc < cols / tcols})
+  {| c_trows : concrete_sz trows,
+     c_tcols : concrete_sz tcols,
+     c_tr    : concrete_sz tr,
+     c_tc    : concrete_sz tc,
+  |}
+  : Lemma (requires SZ.fits (l.ulen))
+          (ensures
+            SZ.v (strided_col_major_subtile l trows tcols tr tc).offset
+            ==
+            sub.offset + sub.stride * (tc * tcols) + tr * trows)
+          [SMTPat (strided_col_major_subtile l trows tcols tr tc).offset]
+
+val lemma_subtile_strided_col_major_stride
+  (#rows #cols : erased nat)
+  (l : layout2 rows cols)
+  {| sub : strided_col_major l |}
+  (trows : erased int {0 < trows /\ trows /?+ rows})
+  (tcols : erased int {0 < tcols /\ tcols /?+ cols})
+  (tr    : erased int {0 <= tr /\ tr < rows / trows})
+  (tc    : erased int {0 <= tc /\ tc < cols / tcols})
+  {| c_trows : concrete_sz trows,
+     c_tcols : concrete_sz tcols,
+     c_tr    : concrete_sz tr,
+     c_tc    : concrete_sz tc,
+  |}
+  : Lemma (requires SZ.fits (l.ulen))
+          (ensures
+            (strided_col_major_subtile l trows tcols tr tc).stride
+            ==
+            sub.stride)
+          [SMTPat (strided_col_major_subtile l trows tcols tr tc).stride]
