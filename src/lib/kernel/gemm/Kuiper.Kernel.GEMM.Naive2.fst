@@ -47,18 +47,20 @@ let abs_bij3 (#b #m #n : nat)
 
 unfold
 let bkpre
-  (#et : Type0) {| scalar et |}
-  (comb : binop et)
+  (#ta #tb #tc #tacc : Type0) {| scalar tacc |}
+  (mapA : ta -> tacc)
+  (mapB : tb -> tacc)
+  (comb : tc -> tacc -> tc)
   (#b #m #n #k : nat)
   (#lA : layout3 b m k)
   (#lB : layout3 b k n)
   (#lC : layout3 b m n)
-  (gA : tensor et lA)
-  (gB : tensor et lB)
-  (gC : tensor et lC)
-  (eA : chest3 et b m k)
-  (eB : chest3 et b k n)
-  (eC : chest3 et b m n)
+  (gA : tensor ta lA)
+  (gB : tensor tb lB)
+  (gC : tensor tc lC)
+  (eA : chest3 ta b m k)
+  (eB : chest3 tb b k n)
+  (eC : chest3 tc b m n)
   (fA fB : perm)
   (gid : natlt (b * (m * n)))
   : slprop
@@ -71,18 +73,20 @@ let bkpre
 
 unfold
 let bkpost
-  (#et : Type0) {| scalar et |}
-  (comb : binop et)
+  (#ta #tb #tc #tacc : Type0) {| scalar tacc |}
+  (mapA : ta -> tacc)
+  (mapB : tb -> tacc)
+  (comb : tc -> tacc -> tc)
   (#b #m #n #k : nat)
   (#lA : layout3 b m k)
   (#lB : layout3 b k n)
   (#lC : layout3 b m n)
-  (gA : tensor et lA)
-  (gB : tensor et lB)
-  (gC : tensor et lC)
-  (eA : chest3 et b m k)
-  (eB : chest3 et b k n)
-  (eC : chest3 et b m n)
+  (gA : tensor ta lA)
+  (gB : tensor tb lB)
+  (gC : tensor tc lC)
+  (eA : chest3 ta b m k)
+  (eB : chest3 tb b k n)
+  (eC : chest3 tc b m n)
   (fA fB : perm)
   (gid : natlt (b * (m * n)))
   : slprop
@@ -91,7 +95,7 @@ let bkpost
   gB |-> Frac (fB /. (b * (m * n))) eB **
   pts_to_cell gC
     (gid % b, ((gid / b) / n, ((gid / b) % n, ())))
-    (MS.gemm_single comb
+    (MS.ggemm_single mapA mapB comb
       (slice_page eA (gid % b))
       (slice_page eB (gid % b))
       (slice_page eC (gid % b))
@@ -101,29 +105,31 @@ let bkpost
 #push-options "--z3rlimit 40 --split_queries always"
 inline_for_extraction noextract
 fn bkf
-  (#et : Type0) {| scalar et |}
-  (comb : binop et)
+  (#ta #tb #tc #tacc : Type0) {| scalar tacc |}
+  (mapA : ta -> tacc)
+  (mapB : tb -> tacc)
+  (comb : tc -> tacc -> tc)
   (#b #m #n #k : SZ.t)
   (#lA : layout3 b m k)
   (#lB : layout3 b k n)
   (#lC : layout3 b m n)
   {| ctlayout lA, ctlayout lB, ctlayout lC |}
-  (gA : tensor et lA)
-  (gB : tensor et lB)
-  (gC : tensor et lC)
-  (#eA : chest3 et b m k)
-  (#eB : chest3 et b k n)
-  (#eC : chest3 et b m n)
+  (gA : tensor ta lA)
+  (gB : tensor tb lB)
+  (gC : tensor tc lC)
+  (#eA : chest3 ta b m k)
+  (#eB : chest3 tb b k n)
+  (#eC : chest3 tc b m n)
   (#fA #fB : perm)
   (gid : szlt (b * (m * n)))
   ()
   norewrite
   requires
     gpu **
-    bkpre comb gA gB gC eA eB eC fA fB gid
+    bkpre mapA mapB comb gA gB gC eA eB eC fA fB gid
   ensures
     gpu **
-    bkpost comb gA gB gC eA eB eC fA fB gid
+    bkpost mapA mapB comb gA gB gC eA eB eC fA fB gid
 {
   (* Page-minor (batch-innermost) decomposition. *)
   let page : szlt b = gid %^ b; assert (rewrites_to page (gid %^ b));
@@ -149,7 +155,7 @@ fn bkf
   tensor_extract_slice_ro gA 0 (SZ.v page);
   tensor_extract_slice_ro gB 0 (SZ.v page);
 
-  let s = Kuiper.DotProd.matmul_dotprod
+  let s = Kuiper.DotProd.gmatmul_dotprod mapA mapB
             (sliceof gA 0 (SZ.v page))
             (sliceof gB 0 (SZ.v page))
             trow tcol;
@@ -175,7 +181,7 @@ fn bkf
     ((SZ.v gid % SZ.v b <: natlt (SZ.v b)),
       ((SZ.v gid / SZ.v b / SZ.v n <: natlt (SZ.v m)),
         ((SZ.v gid / SZ.v b % SZ.v n <: natlt (SZ.v n)), ())))
-    (MS.gemm_single comb
+    (MS.ggemm_single mapA mapB comb
       (slice_page eA (SZ.v gid % SZ.v b))
       (slice_page eB (SZ.v gid % SZ.v b))
       (slice_page eC (SZ.v gid % SZ.v b))
@@ -187,21 +193,23 @@ fn bkf
 
 ghost
 fn bsetup
-  (#et : Type0) {| scalar et |}
-  (comb : binop et)
+  (#ta #tb #tc #tacc : Type0) {| scalar tacc |}
+  (mapA : ta -> tacc)
+  (mapB : tb -> tacc)
+  (comb : tc -> tacc -> tc)
   (#b #m #n #k : szp)
   (#lA : layout3 b m k)
   (#lB : layout3 b k n)
   (#lC : layout3 b m n)
   {| ctlayout lA, ctlayout lB, ctlayout lC |}
-  (gA : tensor et lA)
+  (gA : tensor ta lA)
   (#fA : perm)
-  (gB : tensor et lB)
+  (gB : tensor tb lB)
   (#fB : perm)
-  (gC : tensor et lC)
-  (#eA : chest3 et b m k)
-  (#eB : chest3 et b k n)
-  (#eC : chest3 et b m n)
+  (gC : tensor tc lC)
+  (#eA : chest3 ta b m k)
+  (#eB : chest3 tb b k n)
+  (#eC : chest3 tc b m n)
   ()
   norewrite
   requires
@@ -210,7 +218,7 @@ fn bsetup
     gC |-> eC
   ensures
     (forall+ (gid : natlt (b *^ (m *^ n))).
-      bkpre comb gA gB gC eA eB eC fA fB gid) **
+      bkpre mapA mapB comb gA gB gC eA eB eC fA fB gid) **
     emp (* frame *)
 {
   // Split the read-only input tensors once per output cell.
@@ -307,37 +315,39 @@ fn bsetup
         (page, ((q / n <: natlt m), ((q % n <: natlt n), ())))));
 
   forevery_ext #(natlt (b *^ (m *^ n))) _
-    (bkpre comb gA gB gC eA eB eC fA fB);
+    (bkpre mapA mapB comb gA gB gC eA eB eC fA fB);
   ()
 }
 
 ghost
 fn bteardown
-  (#et : Type0) {| scalar et |}
-  (comb : binop et)
+  (#ta #tb #tc #tacc : Type0) {| scalar tacc |}
+  (mapA : ta -> tacc)
+  (mapB : tb -> tacc)
+  (comb : tc -> tacc -> tc)
   (#b #m #n #k : szp)
   (#lA : layout3 b m k)
   (#lB : layout3 b k n)
   (#lC : layout3 b m n)
   {| ctlayout lA, ctlayout lB, ctlayout lC |}
-  (gA : tensor et lA)
+  (gA : tensor ta lA)
   (#fA : perm)
-  (gB : tensor et lB)
+  (gB : tensor tb lB)
   (#fB : perm)
-  (gC : tensor et lC)
-  (#eA : chest3 et b m k)
-  (#eB : chest3 et b k n)
-  (#eC : chest3 et b m n)
+  (gC : tensor tc lC)
+  (#eA : chest3 ta b m k)
+  (#eB : chest3 tb b k n)
+  (#eC : chest3 tc b m n)
   ()
   norewrite
   requires
     (forall+ (gid : natlt (b *^ (m *^ n))).
-      bkpost comb gA gB gC eA eB eC fA fB gid) **
+      bkpost mapA mapB comb gA gB gC eA eB eC fA fB gid) **
     emp (* frame *)
   ensures
     gA |-> Frac fA eA **
     gB |-> Frac fB eB **
-    gC |-> MS.bmmcomb comb eC eA eB
+    gC |-> MS.gbmmcomb mapA mapB comb eC eA eB
 {
   // First recover page-local cell index and page from the flat gid, in
   // *page-minor* order (page = gid % batch, rest = gid / batch), then
@@ -349,7 +359,7 @@ fn bteardown
     gB |-> Frac (fB /. (b * (m * n))) eB **
     pts_to_cell gC
       (page, ((q / n <: natlt m), ((q % n <: natlt n), ())))
-      (MS.gemm_single comb
+      (MS.ggemm_single mapA mapB comb
         (slice_page eA page)
         (slice_page eB page)
         (slice_page eC page)
@@ -362,7 +372,7 @@ fn bteardown
     gB |-> Frac (fB /. (b * (m * n))) eB **
     pts_to_cell gC
       (page, ((q / n <: natlt m), ((q % n <: natlt n), ())))
-      (MS.gemm_single comb
+      (MS.ggemm_single mapA mapB comb
         (slice_page eA page)
         (slice_page eB page)
         (slice_page eC page)
@@ -376,7 +386,7 @@ fn bteardown
       gB |-> Frac (fB /. (b * (m * n))) eB **
       pts_to_cell gC
         (page, ((q / n <: natlt m), ((q % n <: natlt n), ())))
-        (MS.gemm_single comb
+        (MS.ggemm_single mapA mapB comb
           (slice_page eA page)
           (slice_page eB page)
           (slice_page eC page)
@@ -387,7 +397,7 @@ fn bteardown
     (fun page q ->
       pts_to_cell gC
         (page, ((q / n <: natlt m), ((q % n <: natlt n), ())))
-        (MS.gemm_single comb
+        (MS.ggemm_single mapA mapB comb
           (slice_page eA page)
           (slice_page eB page)
           (slice_page eC page)
@@ -420,7 +430,7 @@ fn bteardown
       forall+ (q : natlt (SZ.v m * SZ.v n)).
         pts_to_cell gC
           (page, ((q / n <: natlt m), ((q % n <: natlt n), ())))
-          (MS.gemm_single comb
+          (MS.ggemm_single mapA mapB comb
             (slice_page eA page)
             (slice_page eB page)
             (slice_page eC page)
@@ -430,7 +440,7 @@ fn bteardown
       forall+ (row : natlt m) (col : natlt n).
         pts_to_cell gC
           (page, (row, (col, ())))
-          (MS.gemm_single comb
+          (MS.ggemm_single mapA mapB comb
             (slice_page eA page)
             (slice_page eB page)
             (slice_page eC page)
@@ -440,7 +450,7 @@ fn bteardown
         (fun row col ->
         pts_to_cell gC
           (page, (row, (col, ())))
-          (MS.gemm_single comb
+          (MS.ggemm_single mapA mapB comb
             (slice_page eA page)
             (slice_page eB page)
             (slice_page eC page)
@@ -453,7 +463,7 @@ fn bteardown
       forall+ (row : natlt m) (col : natlt n).
         pts_to_cell gC
           (page, (row, (col, ())))
-          (MS.gemm_single comb
+          (MS.ggemm_single mapA mapB comb
             (slice_page eA page)
             (slice_page eB page)
             (slice_page eC page)
@@ -462,14 +472,14 @@ fn bteardown
       forall+ (row : natlt m) (col : natlt n).
         pts_to_cell gC
           (page, (row, (col, ())))
-          (acc (MS.bmmcomb comb eC eA eB)
+          (acc (MS.gbmmcomb mapA mapB comb eC eA eB)
             (page, (row, (col, ())))))
     fn page {
       forevery_map_2
         (fun row col ->
           pts_to_cell gC
             (page, (row, (col, ())))
-            (MS.gemm_single comb
+            (MS.ggemm_single mapA mapB comb
               (slice_page eA page)
               (slice_page eB page)
               (slice_page eC page)
@@ -477,7 +487,7 @@ fn bteardown
         (fun row col ->
           pts_to_cell gC
             (page, (row, (col, ())))
-            (acc (MS.bmmcomb comb eC eA eB)
+            (acc (MS.gbmmcomb mapA mapB comb eC eA eB)
               (page, (row, (col, ())))))
         fn row col {
           ()
@@ -490,20 +500,20 @@ fn bteardown
       forall+ (row : natlt m) (col : natlt n).
         pts_to_cell gC
           (page, (row, (col, ())))
-          (acc (MS.bmmcomb comb eC eA eB)
+          (acc (MS.gbmmcomb mapA mapB comb eC eA eB)
             (page, (row, (col, ())))))
     (fun page ->
       forall+ (rc : natlt m & natlt n).
         pts_to_cell gC
           (page, (fst rc, (snd rc, ())))
-          (acc (MS.bmmcomb comb eC eA eB)
+          (acc (MS.gbmmcomb mapA mapB comb eC eA eB)
             (page, (fst rc, (snd rc, ())))))
     fn page {
       forevery_flatten'
         (fun (rc : natlt m & natlt n) ->
           pts_to_cell gC
             (page, (fst rc, (snd rc, ())))
-            (acc (MS.bmmcomb comb eC eA eB)
+            (acc (MS.gbmmcomb mapA mapB comb eC eA eB)
               (page, (fst rc, (snd rc, ())))));
     };
 
@@ -511,15 +521,56 @@ fn bteardown
     (fun (prc : natlt b & (natlt m & natlt n)) ->
       pts_to_cell gC
         (fst prc, (fst (snd prc), (snd (snd prc), ())))
-        (acc (MS.bmmcomb comb eC eA eB)
+        (acc (MS.gbmmcomb mapA mapB comb eC eA eB)
           (fst prc, (fst (snd prc), (snd (snd prc), ())))));
   forevery_iso (bij_sym (abs_bij3 #b #m #n)) _;
   forevery_ext _ (fun (i : abs (b @| m @| n @| INil)) ->
-    pts_to_cell gC i (acc (MS.bmmcomb comb eC eA eB) i));
+    pts_to_cell gC i (acc (MS.gbmmcomb mapA mapB comb eC eA eB) i));
   tensor_implode gC;
   ()
 }
 
+inline_for_extraction noextract
+let gbkdesc
+  (#ta #tb #tc #tacc : Type0) {| scalar tacc |}
+  (mapA : ta -> tacc)
+  (mapB : tb -> tacc)
+  (comb : tc -> tacc -> tc)
+  (#b #m #n #k : szp)
+  (#lA : layout3 b m k)
+  (#lB : layout3 b k n)
+  (#lC : layout3 b m n)
+  {| ctlayout lA, ctlayout lB, ctlayout lC |}
+  (gA : tensor ta lA { is_global gA })
+  (gB : tensor tb lB { is_global gB })
+  (gC : tensor tc lC { is_global gC })
+  (#eA : chest3 ta b m k)
+  (#eB : chest3 tb b k n)
+  (#eC : chest3 tc b m n)
+  (#fA #fB : perm)
+  (#_ : squash (bsize_req b m n k))
+  : kernel_desc
+    (gA |-> Frac fA eA ** gB |-> Frac fB eB ** gC |-> eC)
+    (gA |-> Frac fA eA ** gB |-> Frac fB eB ** gC |-> MS.gbmmcomb mapA mapB comb eC eA eB)
+=
+{
+  nthr = b *^ (m *^ n);
+
+  frame = emp;
+
+  setup    = bsetup    mapA mapB comb gA gB gC;
+  teardown = bteardown mapA mapB comb gA gB gC;
+
+  kpre  = bkpre  mapA mapB comb gA gB gC eA eB eC fA fB;
+  kpost = bkpost mapA mapB comb gA gB gC eA eB eC fA fB;
+
+  f = bkf mapA mapB comb gA gB gC;
+  kpre_sendable  = solve;
+  kpost_sendable = solve;
+} <: kernel_desc_n _ _
+
+(* Scalar batched entry point (homogeneous, identity maps), kept for
+   existing callers.  Reduces to the general kernel via [gbmmcomb_id]. *)
 inline_for_extraction noextract
 let bkdesc
   (#et : Type0) {| scalar et |}
@@ -541,21 +592,38 @@ let bkdesc
     (gA |-> Frac fA eA ** gB |-> Frac fB eB ** gC |-> eC)
     (gA |-> Frac fA eA ** gB |-> Frac fB eB ** gC |-> MS.bmmcomb comb eC eA eB)
 =
+  MS.gbmmcomb_id comb eC eA eB;
+  gbkdesc (fun x -> x) (fun x -> x) comb gA gB gC
+
+inline_for_extraction noextract
+fn gbmmcomb_gpu_exact
+  (#ta #tb #tc #tacc : Type0) {| scalar tacc |}
+  (mapA : ta -> tacc)
+  (mapB : tb -> tacc)
+  (comb : tc -> tacc -> tc)
+  (batch m n k : szp)
+  (#lA : layout3 batch m k)
+  (#lB : layout3 batch k n)
+  (#lC : layout3 batch m n)
+  {| ctlayout lA, ctlayout lB, ctlayout lC |}
+  (a : tensor ta lA { is_global a })
+  (b : tensor tb lB { is_global b })
+  (c : tensor tc lC { is_global c })
+  (#eA : chest3 ta batch _ _)
+  (#eB : chest3 tb batch _ _)
+  (#eC : chest3 tc batch _ _)
+  (#fA #fB : perm)
+  norewrite
+  preserves
+    cpu ** on gpu_loc (a |-> Frac fA eA ** b |-> Frac fB eB)
+  requires
+    pure (bsize_req batch m n k) **
+    on gpu_loc (c |-> eC)
+  ensures
+    on gpu_loc (c |-> MS.gbmmcomb mapA mapB comb eC eA eB)
 {
-  nthr = b *^ (m *^ n);
-
-  frame = emp;
-
-  setup    = bsetup    comb gA gB gC;
-  teardown = bteardown comb gA gB gC;
-
-  kpre  = bkpre  comb gA gB gC eA eB eC fA fB;
-  kpost = bkpost comb gA gB gC eA eB eC fA fB;
-
-  f = bkf comb gA gB gC;
-  kpre_sendable  = solve;
-  kpost_sendable = solve;
-} <: kernel_desc_n _ _
+  launch_sync (gbkdesc mapA mapB comb a b c #eA #eB #eC);
+}
 
 inline_for_extraction noextract
 fn bmmcomb_gpu_exact
@@ -580,7 +648,7 @@ fn bmmcomb_gpu_exact
   ensures
     on gpu_loc (c |-> MS.bmmcomb comb eC eA eB)
 {
-  launch_sync (bkdesc comb a b c #eA #eB #eC);
+  gbmmcomb_gpu_exact (fun x -> x) (fun x -> x) comb batch m n k a b c;
 }
 
 
@@ -597,31 +665,33 @@ fn bmmcomb_gpu_exact
 (* ------------------------------------------------------------------ *)
 
 (* Lowering a one-page batched [mmcomb] yields the rank-2 [mmcomb]. *)
-let batch1_mmcomb
-  (#et : Type0) {| scalar et |}
-  (comb : binop et)
+let batch1_gmmcomb
+  (#ta #tb #tc #tacc : Type0) {| scalar tacc |}
+  (mapA : ta -> tacc)
+  (mapB : tb -> tacc)
+  (comb : tc -> tacc -> tc)
   (#m #n #k : szp)
-  (eC : chest2 et m n)
-  (eA : chest2 et m k)
-  (eB : chest2 et k n)
+  (eC : chest2 tc m n)
+  (eA : chest2 ta m k)
+  (eB : chest2 tb k n)
   : Lemma (
       C.c3_to_c2 m n
-        (MS.bmmcomb comb
+        (MS.gbmmcomb mapA mapB comb
           (C.c2_to_c3 m n eC)
           (C.c2_to_c3 m k eA)
           (C.c2_to_c3 k n eB))
-      == MS.mmcomb comb eC eA eB)
+      == MS.gmmcomb mapA mapB comb eC eA eB)
   =
   C.c2_to_c3_slice_page m n eC;
   C.c2_to_c3_slice_page m k eA;
   C.c2_to_c3_slice_page k n eB;
   assert (equal
       (C.c3_to_c2 m n
-        (MS.bmmcomb comb
+        (MS.gbmmcomb mapA mapB comb
           (C.c2_to_c3 m n eC)
           (C.c2_to_c3 m k eA)
           (C.c2_to_c3 k n eB)))
-      (MS.mmcomb comb eC eA eB))
+      (MS.gmmcomb mapA mapB comb eC eA eB))
 
 (* ------------------------------------------------------------------ *)
 (* Rank-2 GEMM, obtained by *casting* the single batched descriptor     *)
@@ -686,18 +756,18 @@ let kdreframe
    rank-3 view that [bkdesc]'s setup expects. *)
 ghost
 fn cast_in
-  (#et : Type0) {| scalar et |}
+  (#ta #tb #tc : Type0)
   (#m #n #k : szp)
   (#lA : layout2 m k)
   (#lB : layout2 k n)
   (#lC : layout2 m n)
   {| ctlayout lA, ctlayout lB, ctlayout lC |}
-  (gA : tensor et lA)
-  (gB : tensor et lB)
-  (gC : tensor et lC)
-  (eA : chest2 et m k)
-  (eB : chest2 et k n)
-  (eC : chest2 et m n)
+  (gA : tensor ta lA)
+  (gB : tensor tb lB)
+  (gC : tensor tc lC)
+  (eA : chest2 ta m k)
+  (eB : chest2 tb k n)
+  (eC : chest2 tc m n)
   (fA fB : perm)
   ()
   requires
@@ -718,19 +788,21 @@ fn cast_in
    [mmcomb] postcondition. *)
 ghost
 fn cast_out
-  (#et : Type0) {| scalar et |}
-  (comb : binop et)
+  (#ta #tb #tc #tacc : Type0) {| scalar tacc |}
+  (mapA : ta -> tacc)
+  (mapB : tb -> tacc)
+  (comb : tc -> tacc -> tc)
   (#m #n #k : szp)
   (#lA : layout2 m k)
   (#lB : layout2 k n)
   (#lC : layout2 m n)
   {| ctlayout lA, ctlayout lB, ctlayout lC |}
-  (gA : tensor et lA)
-  (gB : tensor et lB)
-  (gC : tensor et lC)
-  (eA : chest2 et m k)
-  (eB : chest2 et k n)
-  (eC : chest2 et m n)
+  (gA : tensor ta lA)
+  (gB : tensor tb lB)
+  (gC : tensor tc lC)
+  (eA : chest2 ta m k)
+  (eB : chest2 tb k n)
+  (eC : chest2 tc m n)
   (fA fB : perm)
   ()
   norewrite
@@ -738,18 +810,18 @@ fn cast_out
     relay gA (C.l2_to_l3 m k #lA) |-> Frac fA (C.c2_to_c3 m k eA) **
     relay gB (C.l2_to_l3 k n #lB) |-> Frac fB (C.c2_to_c3 k n eB) **
     relay gC (C.l2_to_l3 m n #lC) |->
-      MS.bmmcomb comb (C.c2_to_c3 m n eC) (C.c2_to_c3 m k eA) (C.c2_to_c3 k n eB)
+      MS.gbmmcomb mapA mapB comb (C.c2_to_c3 m n eC) (C.c2_to_c3 m k eA) (C.c2_to_c3 k n eB)
   ensures
     gA |-> Frac fA eA **
     gB |-> Frac fB eB **
-    gC |-> MS.mmcomb comb eC eA eB
+    gC |-> MS.gmmcomb mapA mapB comb eC eA eB
 {
   C.t3_to_t2 m k gA;
   C.t3_to_t2 k n gB;
   C.t3_to_t2 m n gC;
   C.c2_to_c3_roundtrip m k eA;
   C.c2_to_c3_roundtrip k n eB;
-  batch1_mmcomb comb eC eA eB;
+  batch1_gmmcomb mapA mapB comb eC eA eB;
   rewrite
     (gA |-> Frac fA (C.c3_to_c2 m k (C.c2_to_c3 m k eA)))
   as
@@ -760,17 +832,55 @@ fn cast_out
     (gB |-> Frac fB eB);
   rewrite
     (gC |-> C.c3_to_c2 m n
-              (MS.bmmcomb comb
+              (MS.gbmmcomb mapA mapB comb
                 (C.c2_to_c3 m n eC)
                 (C.c2_to_c3 m k eA)
                 (C.c2_to_c3 k n eB)))
   as
-    (gC |-> MS.mmcomb comb eC eA eB);
+    (gC |-> MS.gmmcomb mapA mapB comb eC eA eB);
 }
 
 (* Rank-2 kernel descriptor, exposed so callers can launch it directly
    (e.g. asynchronously, as in [Kuiper.Example.Async.GEMM]).  It is the
    batched [bkdesc] at batch one, reframed by [cast_in]/[cast_out]. *)
+inline_for_extraction noextract
+let gkdesc
+  (#ta #tb #tc #tacc : Type0) {| scalar tacc |}
+  (mapA : ta -> tacc)
+  (mapB : tb -> tacc)
+  (comb : tc -> tacc -> tc)
+  (#m #n #k : szp)
+  (#lA : layout2 m k)
+  (#lB : layout2 k n)
+  (#lC : layout2 m n)
+  {| ctlayout lA, ctlayout lB, ctlayout lC |}
+  (gA : tensor ta lA { is_global gA })
+  (gB : tensor tb lB { is_global gB })
+  (gC : tensor tc lC { is_global gC })
+  (#eA : chest2 ta _ _)
+  (#eB : chest2 tb _ _)
+  (#eC : chest2 tc _ _)
+  (#fA #fB : perm)
+  (#_ : squash (size_req m n k))
+  : kernel_desc
+    (gA |-> Frac fA eA ** gB |-> Frac fB eB ** gC |-> eC)
+    (gA |-> Frac fA eA ** gB |-> Frac fB eB ** gC |-> MS.gmmcomb mapA mapB comb eC eA eB)
+=
+  size_req_bsize1 m n k;
+  kdreframe
+    (cast_in gA gB gC eA eB eC fA fB)
+    (cast_out mapA mapB comb gA gB gC eA eB eC fA fB)
+    (gbkdesc mapA mapB comb #1sz #m #n #k
+      #(C.l2_to_l3 m k #lA) #(C.l2_to_l3 k n #lB) #(C.l2_to_l3 m n #lC)
+      (relay gA (C.l2_to_l3 m k #lA))
+      (relay gB (C.l2_to_l3 k n #lB))
+      (relay gC (C.l2_to_l3 m n #lC))
+      #(C.c2_to_c3 m k eA) #(C.c2_to_c3 k n eB) #(C.c2_to_c3 m n eC)
+      #fA #fB)
+#pop-options
+
+(* Scalar rank-2 kernel descriptor (homogeneous, identity maps), kept for
+   existing callers (e.g. [Kuiper.Example.Async.GEMM]). *)
 inline_for_extraction noextract
 let kdesc
   (#et : Type0) {| scalar et |}
@@ -790,22 +900,44 @@ let kdesc
     (gA |-> Frac fA eA ** gB |-> Frac fB eB ** gC |-> eC)
     (gA |-> Frac fA eA ** gB |-> Frac fB eB ** gC |-> MS.mmcomb comb eC eA eB)
 =
-  size_req_bsize1 m n k;
-  kdreframe
-    (cast_in gA gB gC eA eB eC fA fB)
-    (cast_out comb gA gB gC eA eB eC fA fB)
-    (bkdesc comb #1sz #m #n #k
-      #(C.l2_to_l3 m k #lA) #(C.l2_to_l3 k n #lB) #(C.l2_to_l3 m n #lC)
-      (relay gA (C.l2_to_l3 m k #lA))
-      (relay gB (C.l2_to_l3 k n #lB))
-      (relay gC (C.l2_to_l3 m n #lC))
-      #(C.c2_to_c3 m k eA) #(C.c2_to_c3 k n eB) #(C.c2_to_c3 m n eC)
-      #fA #fB)
-#pop-options
+  MS.gmmcomb_id comb eC eA eB;
+  gkdesc (fun x -> x) (fun x -> x) comb gA gB gC
 
 (* Rank-2 GEMM: a single launch spawns [m * n] threads (via
    [kernel_desc_n]), each computing one output cell with a full dot
    product. *)
+inline_for_extraction noextract
+fn gmmcomb_gpu_exact
+  (#ta #tb #tc #tacc : Type0) {| scalar tacc |}
+  (mapA : ta -> tacc)
+  (mapB : tb -> tacc)
+  (comb : tc -> tacc -> tc)
+  (#m #n #k : szp)
+  (#lA : layout2 m k)
+  (#lB : layout2 k n)
+  (#lC : layout2 m n)
+  {| ctlayout lA, ctlayout lB, ctlayout lC |}
+  (gA : tensor ta lA { is_global gA })
+  (gB : tensor tb lB { is_global gB })
+  (gC : tensor tc lC { is_global gC })
+  (#eA : chest2 ta _ _)
+  (#eB : chest2 tb _ _)
+  (#eC : chest2 tc _ _)
+  (#fA #fB : perm)
+  norewrite
+  preserves
+    cpu ** on gpu_loc (gA |-> Frac fA eA ** gB |-> Frac fB eB)
+  requires
+    pure (size_req m n k) **
+    on gpu_loc (gC |-> eC)
+  ensures
+    on gpu_loc (gC |-> MS.gmmcomb mapA mapB comb eC eA eB)
+{
+  launch_sync (gkdesc mapA mapB comb gA gB gC #eA #eB #eC);
+}
+
+(* Scalar rank-2 entry point (homogeneous, identity maps), kept for
+   existing callers. *)
 inline_for_extraction noextract
 fn mmcomb_gpu_exact
   (#et : Type0) {| scalar et |}
@@ -829,5 +961,6 @@ fn mmcomb_gpu_exact
   ensures
     on gpu_loc (gC |-> MS.mmcomb comb eC eA eB)
 {
-  launch_sync (kdesc comb gA gB gC #eA #eB #eC);
+  MS.gmmcomb_id comb eC eA eB;
+  gmmcomb_gpu_exact (fun x -> x) (fun x -> x) comb gA gB gC;
 }

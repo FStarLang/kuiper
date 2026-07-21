@@ -417,3 +417,95 @@ val bmatmul_is_bgemm
   (m2 : chest3 et batch shared columns)
   : Lemma (bmmcomb comb2 m0 m1 m2 == batched_matmul m1 m2)
           [SMTPat (bmmcomb comb2 m0 m1 m2)]
+
+(* ===== General (multi-type, fused-map) GEMM spec =====
+
+   These generalize the scalar spec above to four decoupled types:
+     ta   : element type of input A
+     tb   : element type of input B
+     tc   : element type of output C
+     tacc : accumulation type (with a [scalar] instance)
+   plus fused elementwise pre-maps [mapA : ta -> tacc], [mapB : tb -> tacc]
+   and a combine operation [comb : tc -> tacc -> tc].
+
+   Each of the general functions reduces to the corresponding scalar
+   function when [ta = tb = tc = tacc = et] and [mapA = mapB = (fun x -> x)];
+   this is stated by the [*_id] lemmas below (with SMT patterns), which the
+   kernel wrappers use to line up their pre/post separation-logic assertions. *)
+
+(* Single output cell: comb (old C cell) (dot product in tacc of the mapped
+   inputs).  The fused elementwise maps [mapA]/[mapB] are applied to the inputs
+   with [chest_map], reducing the accumulation to the ordinary scalar
+   [matmul_single] at the accumulation type [tacc]. *)
+let ggemm_single
+  (#ta #tb #tc #tacc : Type) {| scalar tacc |}
+  (mapA : ta -> tacc) (mapB : tb -> tacc)
+  (comb : tc -> tacc -> tc)
+  (#rows #shared #columns : nat)
+  (m1 : chest2 ta rows shared)
+  (m2 : chest2 tb shared columns)
+  (m0 : chest2 tc rows columns)
+  (row : nat{row < rows}) (col : nat{col < columns})
+  : GTot tc
+  = comb (acc2 m0 row col)
+         (matmul_single (chest_map mapA m1) (chest_map mapB m2) row col)
+
+(* Rank-2 output. *)
+let gmmcomb
+  (#ta #tb #tc #tacc : Type) {| scalar tacc |}
+  (mapA : ta -> tacc) (mapB : tb -> tacc)
+  (comb : tc -> tacc -> tc)
+  (#rows #shared #columns : nat)
+  (m0 : chest2 tc rows columns)
+  (m1 : chest2 ta rows shared)
+  (m2 : chest2 tb shared columns)
+  : chest2 tc rows columns
+  = mk2 fun i j -> ggemm_single mapA mapB comb m1 m2 m0 i j
+
+(* Rank-3 batched (per-page) output. *)
+let gbmmcomb
+  (#ta #tb #tc #tacc : Type) {| scalar tacc |}
+  (mapA : ta -> tacc) (mapB : tb -> tacc)
+  (comb : tc -> tacc -> tc)
+  (#batch #rows #shared #cols : nat)
+  (c : chest3 tc batch rows cols)
+  (a : chest3 ta batch rows shared)
+  (b : chest3 tb batch shared cols)
+  : chest3 tc batch rows cols
+  = mk3 fun i j k ->
+      acc2 (gmmcomb mapA mapB comb (slice_page c i) (slice_page a i) (slice_page b i)) j k
+
+(* Reduction to the scalar spec at the identity maps. *)
+val ggemm_single_id
+  (#et : Type) {| scalar et |}
+  (comb : binop et)
+  (#rows #shared #columns : nat)
+  (m1 : chest2 et rows shared)
+  (m2 : chest2 et shared columns)
+  (m0 : chest2 et rows columns)
+  (row : nat{row < rows}) (col : nat{col < columns})
+  : Lemma (ggemm_single (fun (x:et) -> x) (fun (x:et) -> x) comb m1 m2 m0 row col
+           == gemm_single comb m1 m2 m0 row col)
+          [SMTPat (ggemm_single (fun (x:et) -> x) (fun (x:et) -> x) comb m1 m2 m0 row col)]
+
+val gmmcomb_id
+  (#et : Type) {| scalar et |}
+  (comb : binop et)
+  (#rows #shared #columns : nat)
+  (m0 : chest2 et rows columns)
+  (m1 : chest2 et rows shared)
+  (m2 : chest2 et shared columns)
+  : Lemma (gmmcomb (fun (x:et) -> x) (fun (x:et) -> x) comb m0 m1 m2
+           == mmcomb comb m0 m1 m2)
+          [SMTPat (gmmcomb (fun (x:et) -> x) (fun (x:et) -> x) comb m0 m1 m2)]
+
+val gbmmcomb_id
+  (#et : Type) {| scalar et |}
+  (comb : binop et)
+  (#batch #rows #shared #cols : nat)
+  (c : chest3 et batch rows cols)
+  (a : chest3 et batch rows shared)
+  (b : chest3 et batch shared cols)
+  : Lemma (gbmmcomb (fun (x:et) -> x) (fun (x:et) -> x) comb c a b
+           == bmmcomb comb c a b)
+          [SMTPat (gbmmcomb (fun (x:et) -> x) (fun (x:et) -> x) comb c a b)]
