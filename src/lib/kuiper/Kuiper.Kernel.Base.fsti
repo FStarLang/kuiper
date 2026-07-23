@@ -10,6 +10,9 @@ open Kuiper.Epoch
 open Pulse.Lib.Pledge
 open Kuiper.Kernel.Desc
 open Kuiper.Kernel.Stream
+open Kuiper.Seq.Common
+open FStar.Seq
+open Kuiper.ForEvery
 
 module SZ = Kuiper.SizeT
 
@@ -22,42 +25,42 @@ fn launch_kernel_full
   (#full_post : slprop)
   (k : kernel_desc full_pre full_post)
   (s: stream_t)
-  (#e : epoch_t s)
-  preserves cpu ** stream_live s ** epoch_live e
+  (#e : epoch_t)
+  preserves cpu ** stream_live s ** epoch_live s e
   requires
     on gpu_loc full_pre
   ensures
-    pledge0 (epoch_done e) (on gpu_loc full_post)
+    pledge0 (epoch_done s e) (on gpu_loc full_post)
 
 noextract
 fn sync_stream
   (s: stream_t)
-  (#e:epoch_t s)
+  (#e:epoch_t)
   preserves
     cpu ** stream_live s
   requires
-    epoch_live e
+    epoch_live s e
   returns
-    e' : epoch_t s
+    e' : epoch_t
   ensures
-    epoch_done e **
-    epoch_live e' **
+    epoch_done s e **
+    epoch_live s e' **
     pure (e' >= e)
 
 val sync_token: slprop
 
 ghost fn sync_stream_ghost
   (s: stream_t)
-  (#e:epoch_t s)
+  (#e:epoch_t)
   preserves
     sync_token ** stream_live s
   requires
-    epoch_live e
+    epoch_live s e
   returns
-    e' : epoch_t s
+    e' : epoch_t
   ensures
-    epoch_done e **
-    epoch_live e' **
+    epoch_done s e **
+    epoch_live s e' **
     pure (e' >= e)
 
 noextract
@@ -74,4 +77,3 @@ fn sync_device ()
     frame ** cpu
   requires p
   ensures q
-

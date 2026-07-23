@@ -53,14 +53,14 @@ open Pulse.Lib.Pledge
 
 [@@allow_ambiguous]
 ghost
-fn redeem1 (s: stream_t) (e e' : epoch_t s) (post : slprop)
-  requires epoch_done e' ** pledge0 (epoch_done e) post ** pure (e' >= e)
-  ensures  epoch_done e' ** post
+fn redeem1 (s: stream_t) (e e' : epoch_t) (post : slprop)
+  requires epoch_done s e' ** pledge0 (epoch_done s e) post ** pure (e' >= e)
+  ensures  epoch_done s e' ** post
 {
   done_lower s e' e;
   unfold pledge0;
   redeem_pledge _ _ _;
-  drop_ (epoch_done e);
+  drop_ (epoch_done s e);
 }
 
 fn main (_:unit)
@@ -98,10 +98,10 @@ fn main (_:unit)
   sync_device
     ()
     (stream_live s1 ** stream_live s2 ** stream_live s3 ** stream_live s4 ** stream_live s5 ** stream_live s6)
-    (epoch_live e1 ** epoch_live e2 ** epoch_live e3 ** epoch_live e4 ** epoch_live e5 ** epoch_live e6)
-    (epoch_done e1 ** epoch_done e2 ** epoch_done e3 ** epoch_done e4 ** epoch_done e5 ** epoch_done e6 **
-      (exists* (e1': epoch_t s1) (e2': epoch_t s2) (e3': epoch_t s3) (e4': epoch_t s4) (e5': epoch_t s5) (e6': epoch_t s6).
-      epoch_live e1' ** epoch_live e2' ** epoch_live e3' ** epoch_live e4' ** epoch_live e5' ** epoch_live e6' **
+    (epoch_live s1 e1 ** epoch_live s2 e2 ** epoch_live s3 e3 ** epoch_live s4 e4 ** epoch_live s5 e5 ** epoch_live s6 e6)
+    (epoch_done s1 e1 ** epoch_done s2 e2 ** epoch_done s3 e3 ** epoch_done s4 e4 ** epoch_done s5 e5 ** epoch_done s6 e6 **
+      (exists* (e1' e2' e3' e4' e5' e6': epoch_t).
+      epoch_live s1 e1' ** epoch_live s2 e2' ** epoch_live s3 e3' ** epoch_live s4 e4' ** epoch_live s5 e5' ** epoch_live s6 e6' **
       pure (e1' >= e1 /\ e2' >= e2 /\ e3' >= e3 /\ e4' >= e4 /\ e5' >= e5 /\ e6' >= e6)))
     fn _ {
       sync_stream_ghost s1;
@@ -120,18 +120,18 @@ fn main (_:unit)
   redeem1 s5 _ _ _;
   redeem1 s6 _ _ _;
 
-  drop_ (epoch_done #s1 _);
-  drop_ (epoch_done #s2 _);
-  drop_ (epoch_done #s3 _);
-  drop_ (epoch_done #s4 _);
-  drop_ (epoch_done #s5 _);
-  drop_ (epoch_done #s6 _);
-  drop_ (epoch_live #s1 _);
-  drop_ (epoch_live #s2 _);
-  drop_ (epoch_live #s3 _);
-  drop_ (epoch_live #s4 _);
-  drop_ (epoch_live #s5 _);
-  drop_ (epoch_live #s6 _);
+  drop_ (epoch_done s1 _);
+  drop_ (epoch_done s2 _);
+  drop_ (epoch_done s3 _);
+  drop_ (epoch_done s4 _);
+  drop_ (epoch_done s5 _);
+  drop_ (epoch_done s6 _);
+  drop_ (epoch_live s1 _);
+  drop_ (epoch_live s2 _);
+  drop_ (epoch_live s3 _);
+  drop_ (epoch_live s4 _);
+  drop_ (epoch_live s5 _);
+  drop_ (epoch_live s6 _);
 
   let v1 = gread r1; gpu_free r1;
   let v2 = gread r2; gpu_free r2;

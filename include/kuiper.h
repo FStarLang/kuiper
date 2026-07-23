@@ -138,7 +138,7 @@ cudaStream_t KPR_FRESH_STREAM() {
 	// submitted to the NULL stream. Thus, only blocking streams are guaranteed to 
 	// synchronize with it first.
 	cudaError_t rc = cudaStreamCreate(&s);
-	__MUST(rc, "cudaStreamCreateWithFlags", __func__, __FILE__, __LINE__);\
+	__MUST(rc, "cudaStreamCreate", __func__, __FILE__, __LINE__);\
 	return s;
 }
 

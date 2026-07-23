@@ -14,14 +14,14 @@ module N = Kuiper.Kernel.GEMM.Naive2
 
 [@@allow_ambiguous]
 ghost
-fn redeem1 (s: stream_t) (e e' : epoch_t s) (post : slprop)
-  requires epoch_done e' ** pledge0 (epoch_done e) post ** pure (e' >= e)
-  ensures  epoch_done e' ** post
+fn redeem1 (s: stream_t) (e e' : epoch_t) (post : slprop)
+  requires epoch_done s e' ** pledge0 (epoch_done s e) post ** pure (e' >= e)
+  ensures  epoch_done s e' ** post
 {
   done_lower s e' e;
   unfold pledge0;
   redeem_pledge _ _ _;
-  drop_ (epoch_done e);
+  drop_ (epoch_done s e);
 }
 
 let my_layout = l2_row_major 1024 1024
@@ -82,10 +82,10 @@ fn main (a b c d r : tensor f32 my_layout)
   free s2;
 
   (* Drop ghost state *)
-  drop_ (epoch_done e1);
-  drop_ (epoch_done e2);
-  with e. assert (epoch_live #str1 e); drop_ (epoch_live e);
-  with e. assert (epoch_live #str2 e); drop_ (epoch_live e);
+  drop_ (epoch_done str1 e1);
+  drop_ (epoch_done str2 e2);
+  with e. assert (epoch_live str1 e); drop_ (epoch_live str1 e);
+  with e. assert (epoch_live str2 e); drop_ (epoch_live str2 e);
 
   (* Destroy streams *)
   destroy_stream str1;
