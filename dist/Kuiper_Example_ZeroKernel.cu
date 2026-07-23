@@ -12,6 +12,8 @@ static void __hoisted_test_0(void)
 
 void Kuiper_Example_ZeroKernel_test(void)
 {
-    KPR_KCALL(__hoisted_test_0, 1U, 0U, 0U);
-    MUST(cudaDeviceSynchronize());
+    cudaStream_t s = KPR_FRESH_STREAM();
+    KPR_KCALL(__hoisted_test_0, 1U, 0U, 0U, s);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }

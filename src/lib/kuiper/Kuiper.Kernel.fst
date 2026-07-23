@@ -5,6 +5,7 @@ open Pulse.Lib.Core
 open Kuiper.Base
 open Kuiper.Kernel.Base
 open Kuiper.Epoch
+open Kuiper.Kernel.Stream
 open Pulse.Lib.Pledge
 open FStar.Tactics.Typeclasses { solve }
 
@@ -20,12 +21,14 @@ fn launch_kernel_full_sync
     cpu **
     on gpu_loc full_post
 {
-  get_epoch ();
-  launch_kernel_full k;
-  sync_device ();
-  redeem_pledge emp_inames (epoch_done _) (on gpu_loc full_post);
-  drop_ (epoch_done _);
-  drop_ (epoch_live _);
+  let s = fresh_stream ();
+  get_epoch s ();
+  launch_kernel_full k s;
+  sync_stream s; 
+  redeem_pledge emp_inames (epoch_done #s _) (on gpu_loc full_post);
+  drop_ (epoch_done #s _);
+  drop_ (epoch_live #s _);
+  destroy_stream s;
 }
 
 // inline_for_extraction noextract

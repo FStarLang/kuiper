@@ -28,10 +28,12 @@ Klas_GEMM_Naive2_g_matmul_f32_rrr(uint32_t m,
                                   uint32_t n,
                                   uint32_t k, float *gA, float *gB, float *gC)
 {
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_KCALL(__hoisted_g_matmul_f32_rrr_0,
               m * n / 1024U + (uint32_t) (m * n % 1024U != 0U),
-              1024U, 0U, m, n, k, gA, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              1024U, 0U, s, m, n, k, gA, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -62,10 +64,12 @@ Klas_GEMM_Naive2_g_matmul_f64_rrr(uint32_t m,
                                   uint32_t k,
                                   double *gA, double *gB, double *gC)
 {
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_KCALL(__hoisted_g_matmul_f64_rrr_0,
               m * n / 1024U + (uint32_t) (m * n % 1024U != 0U),
-              1024U, 0U, m, n, k, gA, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              1024U, 0U, s, m, n, k, gA, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -97,10 +101,12 @@ Klas_GEMM_Naive2_g_matmul_u32_rrr(uint32_t m,
                                   uint32_t k,
                                   uint32_t *gA, uint32_t *gB, uint32_t *gC)
 {
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_KCALL(__hoisted_g_matmul_u32_rrr_0,
               m * n / 1024U + (uint32_t) (m * n % 1024U != 0U),
-              1024U, 0U, m, n, k, gA, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              1024U, 0U, s, m, n, k, gA, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -132,10 +138,12 @@ Klas_GEMM_Naive2_g_matmul_u64_rrr(uint32_t m,
                                   uint32_t k,
                                   uint64_t *gA, uint64_t *gB, uint64_t *gC)
 {
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_KCALL(__hoisted_g_matmul_u64_rrr_0,
               m * n / 1024U + (uint32_t) (m * n % 1024U != 0U),
-              1024U, 0U, m, n, k, gA, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              1024U, 0U, s, m, n, k, gA, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -165,10 +173,12 @@ Klas_GEMM_Naive2_g_matmul_f32_ccc(uint32_t m,
                                   uint32_t n,
                                   uint32_t k, float *gA, float *gB, float *gC)
 {
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_KCALL(__hoisted_g_matmul_f32_ccc_0,
               m * n / 1024U + (uint32_t) (m * n % 1024U != 0U),
-              1024U, 0U, m, n, k, gA, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              1024U, 0U, s, m, n, k, gA, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -199,10 +209,12 @@ Klas_GEMM_Naive2_g_matmul_f64_ccc(uint32_t m,
                                   uint32_t k,
                                   double *gA, double *gB, double *gC)
 {
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_KCALL(__hoisted_g_matmul_f64_ccc_0,
               m * n / 1024U + (uint32_t) (m * n % 1024U != 0U),
-              1024U, 0U, m, n, k, gA, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              1024U, 0U, s, m, n, k, gA, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -234,10 +246,12 @@ Klas_GEMM_Naive2_g_matmul_u32_ccc(uint32_t m,
                                   uint32_t k,
                                   uint32_t *gA, uint32_t *gB, uint32_t *gC)
 {
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_KCALL(__hoisted_g_matmul_u32_ccc_0,
               m * n / 1024U + (uint32_t) (m * n % 1024U != 0U),
-              1024U, 0U, m, n, k, gA, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              1024U, 0U, s, m, n, k, gA, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -269,10 +283,12 @@ Klas_GEMM_Naive2_g_matmul_u64_ccc(uint32_t m,
                                   uint32_t k,
                                   uint64_t *gA, uint64_t *gB, uint64_t *gC)
 {
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_KCALL(__hoisted_g_matmul_u64_ccc_0,
               m * n / 1024U + (uint32_t) (m * n % 1024U != 0U),
-              1024U, 0U, m, n, k, gA, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              1024U, 0U, s, m, n, k, gA, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -308,10 +324,12 @@ Klas_GEMM_Naive2_batched_matmul_f32(uint32_t batch,
                                     uint32_t n,
                                     uint32_t k, float *a, float *b, float *c)
 {
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_KCALL(__hoisted_batched_matmul_f32_0,
               batch * m * n / 1024U + (uint32_t) (batch * m * n % 1024U != 0U),
-              1024U, 0U, batch, m, n, k, a, b, c);
-    MUST(cudaDeviceSynchronize());
+              1024U, 0U, s, batch, m, n, k, a, b, c);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -339,9 +357,9 @@ __hoisted_batched_gemm_f32_0(float alpha,
                 a[page * m * k + trow * k + vk] * b[page * k * n + vk * n +
                                                     tcol];
         }
-        float s = sum;
+        float s1 = sum;
         c[page * m * n + trow * n + tcol] =
-            beta * c[page * m * n + trow * n + tcol] + alpha * s;
+            beta * c[page * m * n + trow * n + tcol] + alpha * s1;
     }
 }
 
@@ -353,8 +371,10 @@ Klas_GEMM_Naive2_batched_gemm_f32(float alpha,
                                   uint32_t n,
                                   uint32_t k, float *a, float *b, float *c)
 {
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_KCALL(__hoisted_batched_gemm_f32_0,
               batch * m * n / 1024U + (uint32_t) (batch * m * n % 1024U != 0U),
-              1024U, 0U, alpha, beta, batch, m, n, k, a, b, c);
-    MUST(cudaDeviceSynchronize());
+              1024U, 0U, s, alpha, beta, batch, m, n, k, a, b, c);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }

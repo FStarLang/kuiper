@@ -14,11 +14,11 @@ module N = Kuiper.Kernel.GEMM.Naive2
 
 [@@allow_ambiguous]
 ghost
-fn redeem1 (e e' : erased nat) (post : slprop)
+fn redeem1 (s: stream_t) (e e' : epoch_t s) (post : slprop)
   requires epoch_done e' ** pledge0 (epoch_done e) post ** pure (e' >= e)
   ensures  epoch_done e' ** post
 {
-  done_lower e' e;
+  done_lower s e' e;
   unfold pledge0;
   redeem_pledge _ _ _;
   drop_ (epoch_done e);
@@ -39,20 +39,24 @@ fn main (a b c d r : tensor f32 my_layout)
   requires  on gpu_loc <| r |-> eR
   ensures   on gpu_loc <| r |-> MS.matmul (MS.matmul eA eB) (MS.matmul eC eD)
 {
-  let e1 = get_epoch ();
+  let str1 = fresh_stream ();
+  let str2 = fresh_stream ();
+  let e1 = get_epoch str1 ();
+  let e2 = get_epoch str2 ();
 
   (* Begin computing A*B -> s1 *)
   let s1 = alloc0 #f32 (1024sz *^ 1024sz) my_layout;
-  launch (N.kdesc #f32 (fun _ n -> n) #1024sz #1024sz #1024sz a b s1);
+  launch (N.kdesc #f32 (fun _ n -> n) #1024sz #1024sz #1024sz a b s1) str1;
 
   (* Begin computing C*D -> s2 *)
   let s2 = alloc0 #f32 (1024sz *^ 1024sz) my_layout;
-  launch (N.kdesc #f32 (fun _ n -> n) #1024sz #1024sz #1024sz c d s2);
+  launch (N.kdesc #f32 (fun _ n -> n) #1024sz #1024sz #1024sz c d s2) str2;
 
   (* Synchronize *)
-  sync_device ();
-  redeem1 _ _ _;
-  redeem1 _ _ _;
+  sync_stream str1;
+  sync_stream str2;
+  redeem1 str1 _ _ _;
+  redeem1 str2 _ _ _;
 
   (* The expressions in the context are more complicated as they are built from
   mmcomb specs. We can rewrite since it's trivial to show that it's pointwise
@@ -79,7 +83,12 @@ fn main (a b c d r : tensor f32 my_layout)
 
   (* Drop ghost state *)
   drop_ (epoch_done e1);
-  with e. assert (epoch_live e); drop_ (epoch_live e);
+  drop_ (epoch_done e2);
+  with e. assert (epoch_live #str1 e); drop_ (epoch_live e);
+  with e. assert (epoch_live #str2 e); drop_ (epoch_live e);
 
+  (* Destroy streams *)
+  destroy_stream str1;
+  destroy_stream str2;
   ()
 }
