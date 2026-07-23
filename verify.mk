@@ -41,6 +41,16 @@ define newline
 
 endef
 
+# In a binary package (see scripts/mk-package.sh) the toolchain (inst/), the
+# Kuiper checked files (obj/), and the extraction plugin all ship prebuilt, and
+# the FStar/karamel submodules are absent. The `.packaged` marker file disables
+# the rules below that would otherwise try to (re)build them from source. The
+# accompanying touch files ship in the package and are already up to date, so
+# these no-op recipes never actually run unless a source becomes newer.
+PACKAGED := $(wildcard .packaged)
+
+ifeq ($(PACKAGED),)
+
 FStar/Makefile:
 	$(error $@ not found${newline}Run `git submodule init && git submodule update` if you haven't)
 karamel/Makefile:
@@ -71,6 +81,16 @@ karamel/Makefile:
 	$(MAKE) MAKEFLAGS=-j$(shell nproc) -C karamel LOWSTAR=false PREFIX=$(CURDIR)/inst install
 	@touch .krml.src.touch # building will change files
 	@touch $@
+
+else
+
+# Package mode: the toolchain and plugin are prebuilt and their touch files ship
+# with the package. Provide trivial recipes so that if make ever considers these
+# targets it simply refreshes the marker instead of rebuilding from submodules.
+.fstar.src.touch .fstar.touch .krml.src.touch .krml.touch:
+	@touch $@
+
+endif
 
 .PHONY: prepare
 prepare: .fstar.touch .krml.touch .plugin.touch
@@ -184,9 +204,15 @@ $(CACHEDIR)/%.checked: | .fstar.touch
 # Without .cmxs extension
 PLUGIN=extraction/dune/_build/default/kuiper_extr
 
+ifeq ($(PACKAGED),)
 .plugin.touch: .fstar.touch $(shell find extraction -type f)
 	+$(MAKE) -C extraction build
 	touch $@
+else
+# Package mode: the plugin ships prebuilt; its touch file is already up to date.
+.plugin.touch:
+	@touch $@
+endif
 
 .PHONY: echo-fstar
 echo-fstar:
