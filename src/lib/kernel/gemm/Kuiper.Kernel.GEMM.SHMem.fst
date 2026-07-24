@@ -901,12 +901,12 @@ fn bkf
      decode rewrote the cell index into [page]/[rest] form, so the forward
      rewrite matches that expanded shape and the backward rewrite restores the
      [sbtile_cell_idx] shape that bkpost1 expects. *)
-  let bidn : natlt (batch * (mrows * mcols)) = SZ.v bid;
-  let tidn : natlt (tile * tile) = SZ.v tid;
+  let bidn : erased (natlt (batch * (mrows * mcols))) = SZ.v bid;
+  let tidn : erased (natlt (tile * tile)) = SZ.v tid;
   let grow_sz : szlt (mrows * tile) = mrow *^ tile +^ brow;
   let gcol_sz : szlt (mcols * tile) = mcol *^ tile +^ bcol;
-  let ci : conc (batch @| (mrows * tile) @| (mcols * tile) @| INil)
-         = (page, (grow_sz, (gcol_sz, ())));
+  let ci : conc (batch @| (mrows * tile) @| (mcols * tile) @| INil) = (page, (grow_sz, (gcol_sz, ())));
+  assert rewrites_to ci (page, (grow_sz, (gcol_sz, ())));
   assert (pure (SZ.v grow_sz == SZ.v mrow * SZ.v tile + SZ.v brow));
   assert (pure (SZ.v gcol_sz == SZ.v mcol * SZ.v tile + SZ.v bcol));
   up3_lemma #batch #(mrows * tile) #(mcols * tile) page grow_sz gcol_sz;
@@ -922,7 +922,9 @@ fn bkf
        as (tensor_pts_to_cell gC (up ci) (Chest.acc eC (up ci)));
   let v0 = tensor_read_cell gC ci;
   let v1 = comb v0 !sum;
-  tensor_write_cell gC ci v1;
+  // Note: repeat ci here since the let binding above does not inline.
+  // Not doing so means we get tuples (structs) in generated CUDA
+  tensor_write_cell gC (page, (grow_sz, (gcol_sz, ()))) v1;
   rewrite (tensor_pts_to_cell gC (up ci) v1)
        as (tensor_pts_to_cell gC (sbtile_cell_idx batch mrows mcols tile (SZ.v bid) (SZ.v tid)) v1);
 
