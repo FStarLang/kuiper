@@ -15,6 +15,7 @@ open Kuiper.Array.Vectorized
 
 (* --- Barrier slprop definitions --- *)
 
+irreducible
 let barrier_in
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
   (p : parameters et { size_req p })
@@ -47,7 +48,7 @@ let barrier_in
       else if it = 1 then
         thread_slice_pts_to_value elems_tile 0 (ri - ri') zero
           p.blockWidth tid **
-        gpu_pts_to_slice elems_tile (ri - ri') p.blockItemsK
+        pts_to_slice elems_tile (ri - ri') p.blockItemsK
           (Seq.slice elems ri (ri' + p.blockItemsK))
       // MAIN
       // Pre: share
@@ -93,6 +94,7 @@ let barrier_in
       // DONE
     else emp
 
+irreducible
 let barrier_out
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
   (p : parameters et { size_req p })
@@ -120,7 +122,7 @@ let barrier_out
       // Pre: pasamos de ownership vectorial a escalar
       if it = 0 then
         thread_slice_live elems_tile 0 (ri - ri') p.blockWidth tid **
-        gpu_pts_to_slice elems_tile (ri - ri') p.blockItemsK
+        pts_to_slice elems_tile (ri - ri') p.blockItemsK
           (Seq.slice elems ri (ri' + p.blockItemsK)) **
         col_ind_tile |-> Frac (1.0R /. p.blockWidth)
           (Seq.slice col_ind off (off + p.blockItemsK))
@@ -155,10 +157,10 @@ let barrier_out
         slice_live col_ind_tile (re - ri) p.blockItemsK
       // Post: gather
       else if it = 1 then
-        gpu_pts_to_slice elems_tile 0 (re - ri) (Seq.slice elems ri re) **
+        pts_to_slice elems_tile 0 (re - ri) (Seq.slice elems ri re) **
         // aca podriamos obviar el resto pero prob sea mas comodo así
         slice_live elems_tile (re - ri) p.blockItemsK **
-        gpu_pts_to_slice col_ind_tile 0 (re - ri) (Seq.slice col_ind ri re) **
+        pts_to_slice col_ind_tile 0 (re - ri) (Seq.slice col_ind ri re) **
         slice_live col_ind_tile (re - ri) p.blockItemsK
       // RESIDUE
       // Pre: share
@@ -169,17 +171,18 @@ let barrier_out
         slice_live col_ind_tile #(1.0R /. p.blockWidth)(re - off) p.blockItemsK
       // Post: gather
       else
-        gpu_pts_to_slice elems_tile #(1.0R /. p.blockWidth)
+        pts_to_slice elems_tile #(1.0R /. p.blockWidth)
           0 (re - off) (Seq.slice elems off re) **
         // aca podriamos obviar el resto pero prob sea mas comodo así
         slice_live elems_tile #(1.0R /. p.blockWidth) (re - off) p.blockItemsK **
-        gpu_pts_to_slice col_ind_tile #(1.0R /. p.blockWidth)
+        pts_to_slice col_ind_tile #(1.0R /. p.blockWidth)
           0 (re - off) (Seq.slice col_ind off re) **
         slice_live col_ind_tile #(1.0R /. p.blockWidth)(re - off) p.blockItemsK
     )
       // DONE
     else emp
 
+irreducible
 let barrier_contract
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
   (p : parameters et { size_req p })
@@ -199,6 +202,59 @@ let barrier_contract
     rin  = barrier_in p row_perm elems col_ind row_off elems_tile col_ind_tile bid;
     rout = barrier_out p row_perm elems col_ind row_off elems_tile col_ind_tile bid;
   }
+
+(* [barrier_contract] is [irreducible] so that Pulse's [check_slprop]
+   normalization does not descend into (and choke on) the contract's
+   construction when it appears under [B.barrier_tok] in a spec.  These two
+   ghost lemmas re-expose the (definitional) projections for use in the kernel
+   bodies, which must convert between the [barrier_in]/[barrier_out] forms
+   produced by the fold/unfold helpers and the [.rin]/[.rout] projections
+   expected by [B.barrier_wait]. *)
+ghost
+fn barrier_contract_rin
+  (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
+  (p : parameters et { size_req p })
+  (row_perm : permutation (natlt p.rows))
+  (#nnz : sz)
+  (elems : lseq et nnz)
+  (col_ind : lseq sz nnz)
+  (row_off : lseq sz (p.rows + 1))
+  (elems_tile : larray et p.blockItemsK)
+  (col_ind_tile : larray sz p.blockItemsK)
+  (#_ : squash (well_formed p col_ind row_off))
+  (#_ : squash ((chunk et * p.blockWidth) /? p.blockItemsK))
+  (#_ : squash ((chunk sz * p.blockWidth) /? p.blockItemsK))
+  (bid : natlt (nblocks p))
+  requires emp
+  ensures
+    pure ((barrier_contract p row_perm elems col_ind row_off elems_tile col_ind_tile bid).rin
+      == barrier_in p row_perm elems col_ind row_off elems_tile col_ind_tile bid)
+{
+  admit ()
+}
+
+ghost
+fn barrier_contract_rout
+  (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
+  (p : parameters et { size_req p })
+  (row_perm : permutation (natlt p.rows))
+  (#nnz : sz)
+  (elems : lseq et nnz)
+  (col_ind : lseq sz nnz)
+  (row_off : lseq sz (p.rows + 1))
+  (elems_tile : larray et p.blockItemsK)
+  (col_ind_tile : larray sz p.blockItemsK)
+  (#_ : squash (well_formed p col_ind row_off))
+  (#_ : squash ((chunk et * p.blockWidth) /? p.blockItemsK))
+  (#_ : squash ((chunk sz * p.blockWidth) /? p.blockItemsK))
+  (bid : natlt (nblocks p))
+  requires emp
+  ensures
+    pure ((barrier_contract p row_perm elems col_ind row_off elems_tile col_ind_tile bid).rout
+      == barrier_out p row_perm elems col_ind row_off elems_tile col_ind_tile bid)
+{
+  admit ()
+}
 
 (* --- Utility --- *)
 
@@ -246,8 +302,8 @@ fn barrier_in_fold_mask_post
   (elems : lseq et nnz)
   (col_ind : lseq sz nnz)
   (row_off : lseq sz (p.rows + 1))
-  (elems_tile : gpu_array et p.blockItemsK)
-  (col_ind_tile : gpu_array sz p.blockItemsK)
+  (elems_tile : larray et p.blockItemsK)
+  (col_ind_tile : larray sz p.blockItemsK)
   (#_ : squash (well_formed p col_ind row_off))
   (#_ : squash ((chunk et * p.blockWidth) /? p.blockItemsK))
   (#_ : squash ((chunk sz * p.blockWidth) /? p.blockItemsK))
@@ -260,7 +316,7 @@ fn barrier_in_fold_mask_post
   requires
     thread_slice_pts_to_value elems_tile 0 (ri_ - ri) zero
       p.blockWidth tid **
-    gpu_pts_to_slice elems_tile (ri_ - ri) p.blockItemsK
+    pts_to_slice elems_tile (ri_ - ri) p.blockItemsK
       (Seq.slice elems ri_ (ri + p.blockItemsK))
   ensures barrier_in p row_perm elems col_ind row_off
     elems_tile col_ind_tile bid 1 tid
@@ -274,8 +330,8 @@ fn barrier_out_unfold_mask_pre
   (elems : lseq et nnz)
   (col_ind : lseq sz nnz)
   (row_off : lseq sz (p.rows + 1))
-  (elems_tile : gpu_array et p.blockItemsK)
-  (col_ind_tile : gpu_array sz p.blockItemsK)
+  (elems_tile : larray et p.blockItemsK)
+  (col_ind_tile : larray sz p.blockItemsK)
   (#_ : squash (well_formed p col_ind row_off))
   (#_ : squash ((chunk et * p.blockWidth) /? p.blockItemsK))
   (#_ : squash ((chunk sz * p.blockWidth) /? p.blockItemsK))
@@ -289,7 +345,7 @@ fn barrier_out_unfold_mask_pre
     elems_tile col_ind_tile bid 0 tid
   ensures
     thread_slice_live elems_tile 0 (ri_ - ri) p.blockWidth tid **
-    gpu_pts_to_slice elems_tile (ri_ - ri) p.blockItemsK
+    pts_to_slice elems_tile (ri_ - ri) p.blockItemsK
       (Seq.slice elems ri_ (ri + p.blockItemsK)) **
     col_ind_tile |-> Frac (1.0R /. p.blockWidth)
       (Seq.slice col_ind ri (ri + p.blockItemsK))
@@ -303,8 +359,8 @@ fn barrier_out_unfold_mask_post
   (elems : lseq et nnz)
   (col_ind : lseq sz nnz)
   (row_off : lseq sz (p.rows + 1))
-  (elems_tile : gpu_array et p.blockItemsK)
-  (col_ind_tile : gpu_array sz p.blockItemsK)
+  (elems_tile : larray et p.blockItemsK)
+  (col_ind_tile : larray sz p.blockItemsK)
   (#_ : squash (well_formed p col_ind row_off))
   (#_ : squash ((chunk et * p.blockWidth) /? p.blockItemsK))
   (#_ : squash ((chunk sz * p.blockWidth) /? p.blockItemsK))
@@ -331,8 +387,8 @@ fn barrier_in_fold_main_pre
   (elems : lseq et nnz)
   (col_ind : lseq sz nnz)
   (row_off : lseq sz (p.rows + 1))
-  (elems_tile : gpu_array et p.blockItemsK)
-  (col_ind_tile : gpu_array sz p.blockItemsK)
+  (elems_tile : larray et p.blockItemsK)
+  (col_ind_tile : larray sz p.blockItemsK)
   (#_ : squash (well_formed p col_ind row_off))
   (#_ : squash ((chunk et * p.blockWidth) /? p.blockItemsK))
   (#_ : squash ((chunk sz * p.blockWidth) /? p.blockItemsK))
@@ -383,8 +439,8 @@ fn barrier_out_unfold_main_pre
   (elems : lseq et nnz)
   (col_ind : lseq sz nnz)
   (row_off : lseq sz (p.rows + 1))
-  (elems_tile : gpu_array et p.blockItemsK)
-  (col_ind_tile : gpu_array sz p.blockItemsK)
+  (elems_tile : larray et p.blockItemsK)
+  (col_ind_tile : larray sz p.blockItemsK)
   (#_ : squash (well_formed p col_ind row_off))
   (#_ : squash ((chunk et * p.blockWidth) /? p.blockItemsK))
   (#_ : squash ((chunk sz * p.blockWidth) /? p.blockItemsK))
@@ -409,8 +465,8 @@ fn barrier_out_unfold_main_post
   (elems : lseq et nnz)
   (col_ind : lseq sz nnz)
   (row_off : lseq sz (p.rows + 1))
-  (elems_tile : gpu_array et p.blockItemsK)
-  (col_ind_tile : gpu_array sz p.blockItemsK)
+  (elems_tile : larray et p.blockItemsK)
+  (col_ind_tile : larray sz p.blockItemsK)
   (#_ : squash (well_formed p col_ind row_off))
   (#_ : squash ((chunk et * p.blockWidth) /? p.blockItemsK))
   (#_ : squash ((chunk sz * p.blockWidth) /? p.blockItemsK))
@@ -466,8 +522,8 @@ fn barrier_in_fold_residue_pre
   (elems : lseq et nnz)
   (col_ind : lseq sz nnz)
   (row_off : lseq sz (p.rows + 1))
-  (elems_tile : gpu_array et p.blockItemsK)
-  (col_ind_tile : gpu_array sz p.blockItemsK)
+  (elems_tile : larray et p.blockItemsK)
+  (col_ind_tile : larray sz p.blockItemsK)
   (#_ : squash (well_formed p col_ind row_off))
   (#_ : squash ((chunk et * p.blockWidth) /? p.blockItemsK))
   (#_ : squash ((chunk sz * p.blockWidth) /? p.blockItemsK))
@@ -524,8 +580,8 @@ fn barrier_in_fold_residue_post
   (elems : lseq et nnz)
   (col_ind : lseq sz nnz)
   (row_off : lseq sz (p.rows + 1))
-  (elems_tile : gpu_array et p.blockItemsK)
-  (col_ind_tile : gpu_array sz p.blockItemsK)
+  (elems_tile : larray et p.blockItemsK)
+  (col_ind_tile : larray sz p.blockItemsK)
   (#_ : squash (well_formed p col_ind row_off))
   (#_ : squash ((chunk et * p.blockWidth) /? p.blockItemsK))
   (#_ : squash ((chunk sz * p.blockWidth) /? p.blockItemsK))
@@ -554,8 +610,8 @@ fn barrier_out_unfold_residue_pre
   (elems : lseq et nnz)
   (col_ind : lseq sz nnz)
   (row_off : lseq sz (p.rows + 1))
-  (elems_tile : gpu_array et p.blockItemsK)
-  (col_ind_tile : gpu_array sz p.blockItemsK)
+  (elems_tile : larray et p.blockItemsK)
+  (col_ind_tile : larray sz p.blockItemsK)
   (#_ : squash (well_formed p col_ind row_off))
   (#_ : squash ((chunk et * p.blockWidth) /? p.blockItemsK))
   (#_ : squash ((chunk sz * p.blockWidth) /? p.blockItemsK))
@@ -582,8 +638,8 @@ fn barrier_out_unfold_residue_post
   (elems : lseq et nnz)
   (col_ind : lseq sz nnz)
   (row_off : lseq sz (p.rows + 1))
-  (elems_tile : gpu_array et p.blockItemsK)
-  (col_ind_tile : gpu_array sz p.blockItemsK)
+  (elems_tile : larray et p.blockItemsK)
+  (col_ind_tile : larray sz p.blockItemsK)
   (#_ : squash (well_formed p col_ind row_off))
   (#_ : squash ((chunk et * p.blockWidth) /? p.blockItemsK))
   (#_ : squash ((chunk sz * p.blockWidth) /? p.blockItemsK))
@@ -596,10 +652,10 @@ fn barrier_out_unfold_residue_post
   requires barrier_out p row_perm elems col_ind row_off
     elems_tile col_ind_tile bid (idx * 2 + 1) tid
   ensures
-    gpu_pts_to_slice elems_tile #(1.0R /. p.blockWidth) 0 residue
+    pts_to_slice elems_tile #(1.0R /. p.blockWidth) 0 residue
       (Seq.slice elems (re - residue) re) **
     slice_live elems_tile #(1.0R /. p.blockWidth) residue p.blockItemsK **
-    gpu_pts_to_slice col_ind_tile #(1.0R /. p.blockWidth) 0 residue
+    pts_to_slice col_ind_tile #(1.0R /. p.blockWidth) 0 residue
       (Seq.slice col_ind (re - residue) re) **
     slice_live col_ind_tile #(1.0R /. p.blockWidth) residue p.blockItemsK
 

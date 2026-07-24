@@ -7,14 +7,13 @@ module Klas.SPMM
 
 #lang-pulse
 open Kuiper
-open Kuiper.Tensor.Layout.Alg { l2_row_major as rm }
 open Klas.SPMM.Inst
 
 // One single u32 variant for the test
-let spmm_u32 = inst u32 rm rm 128sz 128sz 32sz
+let spmm_u32 = inst u32 128sz 128sz 32sz
 
 // A fixed-name f32 variant for the test and quick benching
-let spmm_f32 = inst f32 rm rm 512sz 512sz 64sz
+let spmm_f32 = inst f32 512sz 512sz 64sz
 
 EOF
 
@@ -32,7 +31,8 @@ for blockItemsK in $all_blockItemsK; do
       if [ $((blockItemsK % blockWidth)) -ne 0 ]; then continue; fi
       if [ $((blockItemsX % blockWidth)) -ne 0 ]; then continue; fi
       if [ $(( (blockItemsK / blockWidth) % 4 )) -ne 0 ]; then continue; fi
-      echo "let g_spmm_f32_${blockItemsK}x${blockItemsX}x${blockWidth} = inst f32 rm rm ${blockItemsK}sz ${blockItemsX}sz ${blockWidth}sz"
+      if [ $(( (blockItemsX / blockWidth) % 4 )) -ne 0 ]; then continue; fi
+      echo "let g_spmm_f32_${blockItemsK}x${blockItemsX}x${blockWidth} = inst f32 ${blockItemsK}sz ${blockItemsX}sz ${blockWidth}sz"
     done
   done
 done

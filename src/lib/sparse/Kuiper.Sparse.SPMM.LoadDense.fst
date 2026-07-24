@@ -274,6 +274,7 @@ let chest1_blit_lemma1
   lemma_divides_leq cnt n1 off1;
   lemma_divides_leq cnt n2 off2
 
+#push-options "--split_queries always"
 let chest1_blit_lemma2
   (#a:Type)
   (#n1 : nat)
@@ -283,7 +284,7 @@ let chest1_blit_lemma2
   (cnt : nat { cnt /? n1 /\ cnt /? off1 /\ cnt /? n2 /\ cnt /? off2 } )
   (k : natlt n1)
 : Lemma
-  (requires off1 <= k /\ k < off1 + cnt /\ off2 < n2)
+  (requires off1 <= k /\ k < off1 + cnt /\ off2 < n2 /\ off2 + k - off1 < n2)
   (ensures
     acc1 (chest1_blit' s1 off1 s2 off2 cnt) k == acc1 s2 (off2 + k - off1)
   )

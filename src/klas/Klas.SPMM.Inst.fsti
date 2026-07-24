@@ -4,10 +4,10 @@ open Kuiper
 open Kuiper.Sparse
 module SZ = Kuiper.SizeT
 open Kuiper.Tensor
-open Kuiper.Tensor.Layout { trepr2, ctrepr2 }
 open Kuiper.Tensor.Layout.Alg { l2_row_major as rm }
 open Kuiper.EMatrix
 open Kuiper.Array.Vectorized
+open Kuiper.Array2.Strided
 module MS = Kuiper.Spec.GEMM
 
 #lang-pulse
@@ -15,14 +15,12 @@ module MS = Kuiper.Spec.GEMM
 inline_for_extraction noextract
 fn inst
   (et : Type0) {| scalar et, sized et, has_vec_cpy et |}
-  (repB repC : trepr2)
-  {| crepB : ctrepr2 repB, crepC : ctrepr2 repC |}
   (blockItemsK : szp)
   (blockItemsX : szp)
   (blockWidth : (k : szp {
     (k * chunk et) /? blockItemsK /\
     (k * chunk sz) /? blockItemsK /\
-    k /? blockItemsX
+    (k * chunk et) /? blockItemsX
   }))
   (rows shared cols : szp)
   (gA : smatrix et (SZ.v rows) (SZ.v shared){is_global_smatrix gA})
@@ -30,9 +28,11 @@ fn inst
   (#fA : perm)
   (row_indices : larray sz rows)
   (fri : perm)
-  (gB : array2 et (repB shared cols) { is_global gB})
+  (gB : array2 et (rm shared cols) { is_global gB})
+  (#_ : squash (aligned 16 (core gB)))
   (#fB : perm)
-  (gC : array2 et (repC rows cols) { is_global gC})
+  (gC : array2 et (rm rows cols) { is_global gC})
+  (#_ : squash (aligned 16 (core gC)))
   // matriz sparse gA
   (elems : erased (lseq et gA.nnz))
   (col_ind : erased (lseq sz gA.nnz))

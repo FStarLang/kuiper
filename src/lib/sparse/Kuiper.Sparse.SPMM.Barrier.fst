@@ -87,8 +87,8 @@ fn barrier_in_fold_mask_post
   (elems : lseq et nnz)
   (col_ind : lseq sz nnz)
   (row_off : lseq sz (p.rows + 1))
-  (elems_tile : gpu_array et p.blockItemsK)
-  (col_ind_tile : gpu_array sz p.blockItemsK)
+  (elems_tile : larray et p.blockItemsK)
+  (col_ind_tile : larray sz p.blockItemsK)
   (#_ : squash (well_formed p col_ind row_off))
   (#_ : squash ((chunk et * p.blockWidth) /? p.blockItemsK))
   (#_ : squash ((chunk sz * p.blockWidth) /? p.blockItemsK))
@@ -101,7 +101,7 @@ fn barrier_in_fold_mask_post
   requires
     thread_slice_pts_to_value elems_tile 0 (ri_ - ri) zero
       p.blockWidth tid **
-    gpu_pts_to_slice elems_tile (ri_ - ri) p.blockItemsK
+    pts_to_slice elems_tile (ri_ - ri) p.blockItemsK
       (Seq.slice elems ri_ (ri + p.blockItemsK))
   ensures barrier_in p row_perm elems col_ind row_off
     elems_tile col_ind_tile bid 1 tid
@@ -118,8 +118,8 @@ fn barrier_out_unfold_mask_pre
   (elems : lseq et nnz)
   (col_ind : lseq sz nnz)
   (row_off : lseq sz (p.rows + 1))
-  (elems_tile : gpu_array et p.blockItemsK)
-  (col_ind_tile : gpu_array sz p.blockItemsK)
+  (elems_tile : larray et p.blockItemsK)
+  (col_ind_tile : larray sz p.blockItemsK)
   (#_ : squash (well_formed p col_ind row_off))
   (#_ : squash ((chunk et * p.blockWidth) /? p.blockItemsK))
   (#_ : squash ((chunk sz * p.blockWidth) /? p.blockItemsK))
@@ -133,7 +133,7 @@ fn barrier_out_unfold_mask_pre
     elems_tile col_ind_tile bid 0 tid
   ensures
     thread_slice_live elems_tile 0 (ri_ - ri) p.blockWidth tid **
-    gpu_pts_to_slice elems_tile (ri_ - ri) p.blockItemsK
+    pts_to_slice elems_tile (ri_ - ri) p.blockItemsK
       (Seq.slice elems ri_ (ri + p.blockItemsK)) **
     col_ind_tile |-> Frac (1.0R /. p.blockWidth)
       (Seq.slice col_ind ri (ri + p.blockItemsK))
@@ -150,8 +150,8 @@ fn barrier_out_unfold_mask_post
   (elems : lseq et nnz)
   (col_ind : lseq sz nnz)
   (row_off : lseq sz (p.rows + 1))
-  (elems_tile : gpu_array et p.blockItemsK)
-  (col_ind_tile : gpu_array sz p.blockItemsK)
+  (elems_tile : larray et p.blockItemsK)
+  (col_ind_tile : larray sz p.blockItemsK)
   (#_ : squash (well_formed p col_ind row_off))
   (#_ : squash ((chunk et * p.blockWidth) /? p.blockItemsK))
   (#_ : squash ((chunk sz * p.blockWidth) /? p.blockItemsK))
@@ -182,8 +182,8 @@ fn barrier_in_fold_main_pre
   (elems : lseq et nnz)
   (col_ind : lseq sz nnz)
   (row_off : lseq sz (p.rows + 1))
-  (elems_tile : gpu_array et p.blockItemsK)
-  (col_ind_tile : gpu_array sz p.blockItemsK)
+  (elems_tile : larray et p.blockItemsK)
+  (col_ind_tile : larray sz p.blockItemsK)
   (#_ : squash (well_formed p col_ind row_off))
   (#_ : squash ((chunk et * p.blockWidth) /? p.blockItemsK))
   (#_ : squash ((chunk sz * p.blockWidth) /? p.blockItemsK))
@@ -240,8 +240,8 @@ fn barrier_out_unfold_main_pre
   (elems : lseq et nnz)
   (col_ind : lseq sz nnz)
   (row_off : lseq sz (p.rows + 1))
-  (elems_tile : gpu_array et p.blockItemsK)
-  (col_ind_tile : gpu_array sz p.blockItemsK)
+  (elems_tile : larray et p.blockItemsK)
+  (col_ind_tile : larray sz p.blockItemsK)
   (#_ : squash (well_formed p col_ind row_off))
   (#_ : squash ((chunk et * p.blockWidth) /? p.blockItemsK))
   (#_ : squash ((chunk sz * p.blockWidth) /? p.blockItemsK))
@@ -269,8 +269,8 @@ fn barrier_out_unfold_main_post
   (elems : lseq et nnz)
   (col_ind : lseq sz nnz)
   (row_off : lseq sz (p.rows + 1))
-  (elems_tile : gpu_array et p.blockItemsK)
-  (col_ind_tile : gpu_array sz p.blockItemsK)
+  (elems_tile : larray et p.blockItemsK)
+  (col_ind_tile : larray sz p.blockItemsK)
   (#_ : squash (well_formed p col_ind row_off))
   (#_ : squash ((chunk et * p.blockWidth) /? p.blockItemsK))
   (#_ : squash ((chunk sz * p.blockWidth) /? p.blockItemsK))
@@ -424,8 +424,8 @@ fn barrier_out_unfold_residue_post
   (elems : lseq et nnz)
   (col_ind : lseq sz nnz)
   (row_off : lseq sz (p.rows + 1))
-  (elems_tile : gpu_array et p.blockItemsK)
-  (col_ind_tile : gpu_array sz p.blockItemsK)
+  (elems_tile : larray et p.blockItemsK)
+  (col_ind_tile : larray sz p.blockItemsK)
   (#_ : squash (well_formed p col_ind row_off))
   (#_ : squash ((chunk et * p.blockWidth) /? p.blockItemsK))
   (#_ : squash ((chunk sz * p.blockWidth) /? p.blockItemsK))
@@ -438,10 +438,10 @@ fn barrier_out_unfold_residue_post
   requires barrier_out p row_perm elems col_ind row_off
     elems_tile col_ind_tile bid (idx * 2 + 1) tid
   ensures
-    gpu_pts_to_slice elems_tile #(1.0R /. p.blockWidth) 0 residue
+    pts_to_slice elems_tile #(1.0R /. p.blockWidth) 0 residue
       (Seq.slice elems (re - residue) re) **
     slice_live elems_tile #(1.0R /. p.blockWidth) residue p.blockItemsK **
-    gpu_pts_to_slice col_ind_tile #(1.0R /. p.blockWidth) 0 residue
+    pts_to_slice col_ind_tile #(1.0R /. p.blockWidth) 0 residue
       (Seq.slice col_ind (re - residue) re) **
     slice_live col_ind_tile #(1.0R /. p.blockWidth) residue p.blockItemsK
 {
