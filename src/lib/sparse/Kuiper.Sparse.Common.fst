@@ -245,6 +245,7 @@ let ematrix_from_rows
 : chest2 et rows cols
 = Chest.mk2 fun i j -> r i `Seq.index` j
 
+// creo que me falta escribir esto para chest2
 let ematrix_from_rows_lemma
   (#et : Type0)
   (#rows #cols : erased nat)
@@ -320,6 +321,16 @@ let ematrix_upd_row_f
 : GTot (lseq et cols)
 = if k == i then new_row else ematrix_row em k
 
+let chest2_upd_row_f
+  (#et : Type0)
+  (#rows #cols : erased nat)
+  (em : chest2 et rows cols)
+  (i : natlt rows)
+  (new_row : chest1 et cols)
+  (k : natlt rows)
+: GTot (chest1 et cols)
+= if k == i then new_row else chest2_row em k
+
 let ematrix_upd_row_lemma
   (#et : Type0)
   (#rows #cols : erased nat)
@@ -333,6 +344,104 @@ let ematrix_upd_row_lemma
   assert equal
     (ematrix_upd_row em i new_row)
     (ematrix_from_rows (ematrix_upd_row_f em i new_row))
+
+let chest2_upd_row
+  (#et : Type0)
+  (#rows #cols : erased nat)
+  (em : chest2 et rows cols)
+  (i : natlt rows)
+  (new_row : chest1 et cols)
+  : chest2 et rows cols
+  = mk2 fun i' j ->
+      if i' = i
+      then acc new_row (idx1 j)
+      else acc2 em i' j
+
+let chest2_from_rows
+  (#et : Type0)
+  (#rows #cols : erased nat)
+  (r : natlt rows -> GTot (chest1 et cols))
+: chest2 et rows cols
+= mk2 fun i j -> acc1 (r i) j
+
+let chest2_from_rows_lemma
+  (#et : Type0)
+  (#rows #cols : erased nat)
+  (r : natlt rows -> GTot (chest1 et cols))
+  (i : natlt rows)
+: Lemma (requires true) (ensures chest2_row (chest2_from_rows r) i == r i)
+  [SMTPat (chest2_row (chest2_from_rows r) i)]
+= assert chest2_row (chest2_from_rows r) i `equal` r i 
+
+let chest2_rows_equal
+  (#et : Type0)
+  (#rows #cols : erased nat)
+  (m1 m2 : chest2 et rows cols)
+: prop = forall i. chest2_row m1 i == chest2_row m2 i 
+
+let chest2_rows_equal_intro
+  (#et : Type0)
+  (#rows #cols : erased nat)
+  (m1 m2 : chest2 et rows cols)
+: Lemma (requires chest2_rows_equal m1 m2) (ensures m1 == m2)
+  [SMTPat (chest2_rows_equal m1 m2)]
+=
+  introduce forall i j. acc2 m1 i j == acc2 m2 i j
+  with (
+    assert acc2 m1 i j == acc1 (chest2_row m1 i) j;
+    assert acc2 m2 i j == acc1 (chest2_row m2 i) j
+  );
+  assert m1 `equal` m2
+
+let chest2_upd_row_lemma
+  (#et : Type0)
+  (#rows #cols : erased nat)
+  (em : chest2 et rows cols)
+  (i : natlt rows)
+  (new_row : chest1 et cols)
+: Lemma
+  (requires true)
+  (ensures chest2_upd_row em i new_row == chest2_from_rows (chest2_upd_row_f em i new_row)) 
+=
+  assert equal
+    (chest2_upd_row em i new_row)
+    (chest2_from_rows (chest2_upd_row_f em i new_row))
+
+let chest2_from_cols
+  (#et : Type0)
+  (#rows #cols : erased nat)
+  (c : natlt cols -> GTot (chest1 et rows))
+: chest2 et rows cols
+= Chest.mk2 fun i j -> acc1 (c j) i
+
+let chest2_from_cols_lemma
+  (#et : Type0)
+  (#rows #cols : erased nat)
+  (c : natlt cols -> GTot (chest1 et rows))
+  (j : natlt cols)
+: Lemma (requires true) (ensures chest2_col (chest2_from_cols c) j == c j)
+  [SMTPat (chest2_col (chest2_from_cols c) j)]
+= assert chest2_col (chest2_from_cols c) j `equal` c j 
+
+let chest2_cols_equal
+  (#et : Type0)
+  (#rows #cols : erased nat)
+  (m1 m2 : chest2 et rows cols)
+: prop = forall j. chest2_col m1 j == chest2_col m2 j 
+
+let chest2_cols_equal_intro
+  (#et : Type0)
+  (#rows #cols : erased nat)
+  (m1 m2 : chest2 et rows cols)
+: Lemma (requires chest2_cols_equal m1 m2) (ensures m1 == m2)
+  [SMTPat (chest2_cols_equal m1 m2)]
+=
+  introduce forall i j. acc2 m1 i j == acc2 m2 i j
+  with (
+    assert acc2 m1 i j == acc1 (chest2_col m1 j) i;
+    assert acc2 m2 i j == acc1 (chest2_col m2 j) i
+  );
+  assert m1 `equal` m2
 
 let ematrix_row_chunk_
   (#et : Type0) {| sized et, has_vec_cpy et |}
@@ -691,3 +800,98 @@ let row_core_lemma
   (i : natlt m)
   : Lemma (requires true) (ensures core (sliceof a 0 i) == core a)
   = ()
+
+
+// TODO mover todo esto
+open Pulse.Lib.Trade { (@==>) }
+
+inline_for_extraction noextract
+let tensor_row
+  (#et : Type0)
+  (#rows #cols : erased nat)
+  (#l : layout2 rows cols)
+  (a : array2 et l)
+  (i : erased nat { i < rows })
+  : array1 et #cols (tlayout_slice l 0 i)
+= sliceof a 0 i
+
+#push-options "--split_queries always"
+ghost
+fn tensor_extract_row
+  (#et : Type0)
+  (#rows #cols : nat)
+  (#l : layout2 rows cols)
+  (a : array2 et l)
+  (i : natlt rows)
+  (#f : perm)
+  (#s : chest2 et rows cols)
+  requires
+    a |-> Frac f s
+  ensures
+    tensor_row a i |-> Frac f (chest2_row s i) **
+    (forall* (s' : chest1 et cols).
+      tensor_row a i |-> Frac f s' @==>
+      a |-> Frac f (chest2_upd_row s i s'))
+{
+  tensor_extract_slice a 0 i;
+  rewrite each sliceof a 0 i as tensor_row a i;
+  rewrite each chest (modulo_i 0 (ICons rows (ICons cols INil))) et as chest1 et cols;
+  rewrite each modulo_i 0 (rows @| (cols @| INil)) as (cols @| INil);
+
+  Pulse.Lib.Forall.intro_forall
+    #_
+    #(fun (s' : chest1 et cols) ->
+      tensor_row a i |-> Frac f s' @==>
+      a |-> Frac f (chest2_upd_row s i s'))
+    (forall* (s' : chest1 et cols).
+      tensor_row a i |-> Frac f s' @==>
+      a |-> Frac f (chest_update_slice 0 i s s'))
+    fn s'{
+      Pulse.Lib.Forall.elim_forall s';
+      rewrite each chest_update_slice 0 i s s' as chest2_upd_row s i s';
+    };
+}
+
+ghost
+fn tensor_extract_row_ro
+  (#et : Type0)
+  (#rows #cols : nat)
+  (#l : layout2 rows cols)
+  (a : array2 et l)
+  (i : natlt rows)
+  (#f : perm)
+  (#s : chest2 et rows cols)
+  requires
+    a |-> Frac f s
+  ensures
+    factored
+      (tensor_row a i |-> Frac f (chest2_row s i))
+      (a |-> Frac f s)
+{
+  tensor_extract_row a i;
+  Pulse.Lib.Forall.elim_forall (chest_slice 0 i s <: chest1 et cols); 
+  assert pure (
+    equal
+      (chest2_upd_row s i (chest2_row s i))
+      s
+  );
+}
+
+ghost
+fn tensor_restore_row
+  (#et : Type0)
+  (#rows #cols : nat)
+  (#l : layout2 rows cols)
+  (a : array2 et l)
+  (i : natlt rows)
+  (#f : perm)
+  (#s : chest2 et rows cols)
+  requires
+    factored
+      (tensor_row a i |-> Frac f (chest_slice 0 i s))
+      (a |-> Frac f s)
+  ensures
+    a |-> Frac f s
+{
+  Pulse.Lib.Trade.elim_trade _ _;
+}

@@ -14,10 +14,10 @@ inline_for_extraction noextract
 fn load_array_vec
   (#et : Type0) {| sized et, has_vec_cpy et |}
   (#n : sz)
-  (x : gpu_array et n)
+  (x : larray et n)
   (#_ : squash (aligned 16 x))
   (#m : sz)
-  (y : gpu_array et m)
+  (y : larray et m)
   (#f : perm)
   (#s : erased (lseq et m))
   (i : szle m)
@@ -35,14 +35,14 @@ fn load_array_vec
   forevery_rw_size (n / (nthr * (chunk et))) (n /^ nthr /^ chunk et);
 
   foreach (n /^ nthr /^ chunk et)
-  (fun k -> gpu_live_vec x ((k * nthr + tid) * chunk et))
+  (fun k -> live_vec x ((k * nthr + tid) * chunk et))
   (fun k ->
-    gpu_pts_to_vec' x ((k * nthr + tid) * chunk et)
+    pts_to_vec' x ((k * nthr + tid) * chunk et)
       s (i + (k * nthr + tid) * chunk et)
   )
   #(gpu ** y |-> Frac f s)
   fn k {
-    gpu_array_vec_cpy_device
+    array_vec_cpy_device
       x ((k *^ nthr +^ tid) *^ chunk et)
       y (i +^ ((k *^ nthr +^ tid) *^ chunk et));
   };
@@ -62,12 +62,12 @@ inline_for_extraction noextract
 fn load2_array
   (#et1 #et2 : Type0)
   (#dsz : sz)
-  (dst1 : gpu_array et1 dsz)
-  (dst2 : gpu_array et2 dsz)
+  (dst1 : larray et1 dsz)
+  (dst2 : larray et2 dsz)
   (to : szle dsz)
   (#ssz : sz)
-  (src1 : gpu_array et1 ssz)
-  (src2 : gpu_array et2 ssz)
+  (src1 : larray et1 ssz)
+  (src2 : larray et2 ssz)
   (#f : perm)
   (#s1 : erased (lseq et1 ssz))
   (#s2 : erased (lseq et2 ssz))
@@ -98,14 +98,14 @@ fn load2_array
       array_live_cell dst2 (0 + k * nthr + tid)
     )
     (fun k -> 
-      gpu_pts_to_cell dst1 (k * nthr + tid) (s1 @! i + k * nthr + tid) **
-      gpu_pts_to_cell dst2 (k * nthr + tid) (s2 @! i + k * nthr + tid)
+      pts_to_cell dst1 (k * nthr + tid) (s1 @! i + k * nthr + tid) **
+      pts_to_cell dst2 (k * nthr + tid) (s2 @! i + k * nthr + tid)
     )
     #(gpu ** src1 |-> Frac f s1 ** src2 |-> Frac f s2)
     fn k {
       rewrite each (0 + k * nthr + tid) as (k * nthr + tid);
-      gpu_load_cell dst1 (k *^ nthr +^ tid) src1 (i +^ k *^ nthr +^ tid);
-      gpu_load_cell dst2 (k *^ nthr +^ tid) src2 (i +^ k *^ nthr +^ tid);
+      load_cell dst1 (k *^ nthr +^ tid) src1 (i +^ k *^ nthr +^ tid);
+      load_cell dst2 (k *^ nthr +^ tid) src2 (i +^ k *^ nthr +^ tid);
     };
 
   forevery_rw_size
@@ -115,19 +115,19 @@ fn load2_array
 
   forevery_ext #(natlt ((to - 0 - tid) `divup` nthr))
     (fun x ->
-      gpu_pts_to_cell dst1 (x * nthr + tid) (s1 @! i + x * nthr + tid)
+      pts_to_cell dst1 (x * nthr + tid) (s1 @! i + x * nthr + tid)
     )
     (fun x ->
-      gpu_pts_to_cell dst1 (0 + x * nthr + tid) (s1 @! i + x * nthr + tid)
+      pts_to_cell dst1 (0 + x * nthr + tid) (s1 @! i + x * nthr + tid)
     );
   fold thread_slice_pts_to dst1 0 to s1 i nthr tid;
 
   forevery_ext #(natlt ((to - 0 - tid) `divup` nthr))
     (fun x ->
-      gpu_pts_to_cell dst2 (x * nthr + tid) (s2 @! i + x * nthr + tid)
+      pts_to_cell dst2 (x * nthr + tid) (s2 @! i + x * nthr + tid)
     )
     (fun x ->
-      gpu_pts_to_cell dst2 (0 + x * nthr + tid) (s2 @! i + x * nthr + tid)
+      pts_to_cell dst2 (0 + x * nthr + tid) (s2 @! i + x * nthr + tid)
     );
   fold thread_slice_pts_to dst2 0 to s2 i nthr tid;
 }

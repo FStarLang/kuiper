@@ -177,7 +177,7 @@ let offset_aligned_lemma_et
   (#et : Type0) {| sized et, has_vec_cpy et |}
   (p : parameters et)
   (#n : nat)
-  (x : gpu_array et n { aligned 16 x })
+  (x : larray et n { aligned 16 x })
   (i k : nat)
 : Lemma
   (requires true)
@@ -188,7 +188,7 @@ let offset_aligned_lemma_et
   let i' = round2 (max (chunk et) (chunk sz)) i in
   round2_chunk_lemma et sz i;
   assert chunk et /? i';
-  prod_divides (chunk et) p.blockWidth p.blockItemsK;
+  prod_divides p.blockWidth (chunk et) p.blockItemsK;
   lineal_divides (chunk et) i' p.blockItemsK k;
   ()
 #pop-options
@@ -197,7 +197,7 @@ let offset_aligned_lemma_sz
   (#et : Type0) {| sized et, has_vec_cpy et |}
   (p : parameters et)
   (#n : nat)
-  (x : gpu_array sz n { aligned 16 x })
+  (x : larray sz n { aligned 16 x })
   (i k : nat)
 : Lemma
   (requires true)
@@ -208,7 +208,7 @@ let offset_aligned_lemma_sz
   let i' = round2 (max (chunk et) (chunk sz)) i in
   round2_chunk_lemma et sz i;
   assert chunk sz /? i';
-  prod_divides (chunk sz) p.blockWidth p.blockItemsK;
+  prod_divides p.blockWidth (chunk sz) p.blockItemsK;
   lineal_divides (chunk sz) i' p.blockItemsK k;
   ()
 
@@ -217,7 +217,7 @@ let offset_aligned_lemma_et'
   (#et : Type0) {| sized et, has_vec_cpy et |}
   (p : parameters et)
   (#n : nat)
-  (x : gpu_array et n { aligned 16 x })
+  (x : larray et n { aligned 16 x })
   (i : nat)
 : Lemma
   (requires true)
@@ -234,7 +234,7 @@ let offset_aligned_lemma_sz'
   (#et : Type0) {| sized et, has_vec_cpy et |}
   (p : parameters et)
   (#n : nat)
-  (x : gpu_array et n { aligned 16 x })
+  (x : larray et n { aligned 16 x })
   (i : nat)
 : Lemma
   (requires true)
@@ -247,19 +247,20 @@ let offset_aligned_lemma_sz'
   assert chunk sz /? i';
   ()
 
+open Kuiper.Chest
 open Kuiper.EMatrix
 
-let ematrix_tile_prop
+let chest2_tile_prop
   (#et : Type0) {| sized et, has_vec_cpy et |}
   (#m1 #n1 : nat { chunk et /? n1 })
   (#m2 #n2 : nat {  chunk et /? n2 })
-  (em2 : ematrix et m2 n2)
+  (em2 : chest2 et m2 n2)
   (row_ind : lseq nat m1 { in_bounds 0 m2 row_ind })
   (j : nat { chunk et /? j })
   (step : nat)
-  (em : ematrix et m1 n1)
+  (em : chest2 et m1 n1)
 : GTot prop
 =
   forall (k1 : natlt n1).
     let k2 = j + k1 / chunk et * step * chunk et + k1 % chunk et in
-    k2 < n2 ==> ematrix_col em k1 == seq_make_sparse row_ind (ematrix_col em2 k2)
+    k2 < n2 ==> chest2_col em k1 == seq_to_chest1 (seq_make_sparse row_ind (ematrix_col em2 k2))

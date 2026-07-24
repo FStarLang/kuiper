@@ -13,57 +13,58 @@ open Kuiper.Sparse.Common
 let slice_live
   (#et : Type0)
   (#l : nat)
-  (a : gpu_array et l)
+  (a : larray et l)
   (#[FStar.Tactics.exact (`1.0R)] f : perm)
   (i j : nat)
   : slprop
-  = exists* s. gpu_pts_to_slice a #f i j s
+  = exists* s. pts_to_slice a #f i j s
 
 let array_live_cell
   (#et : Type0)
   (#l : nat)
-  (a :gpu_array et l)
+  (a : larray et l)
   (#[FStar.Tactics.exact (`1.0R)] f : perm)
   (i : natlt l)
   : slprop
-  = exists* v. gpu_pts_to_cell a #f i v
+  // esto es medio choto
+  // = exists* v. Cell (a <: array et) (i <: nat) |-> Frac f (v <: et)
+  = exists* v. pts_to_cell a #f i v
 
 
 (* Vector *)
 
 unfold
-let gpu_pts_to_vec
+let pts_to_vec
   (#a:Type u#0) {| sized a, has_vec_cpy a |}
   (#sz:nat)
-  ([@@@mkey] x:gpu_array a sz)
+  ([@@@mkey] x:larray a sz)
   (#[exact (`1.0R)] f : perm)
   ([@@@mkey] i : nat)
   (v : seq a)
 : slprop
 = 
-  gpu_pts_to_slice x #f i (i + chunk a) v
+  pts_to_slice x #f i (i + chunk a) v
 
 unfold
-let gpu_pts_to_vec'
+let pts_to_vec'
   (#a:Type) {| sized a, has_vec_cpy a |}
   (#sz:nat)
-  ([@@@mkey] x:gpu_array a sz)
+  ([@@@mkey] x:larray a sz)
   (#[exact (`1.0R)] f : perm)
   ([@@@mkey] i : nat)
   (v : seq a)
   (k : natle (len v - chunk a))
 : slprop
-= gpu_pts_to_vec x #f i (Seq.slice v k (k + chunk a))
+= pts_to_vec x #f i (Seq.slice v k (k + chunk a))
 
-let gpu_live_vec
+let live_vec
   (#a:Type) {| sized a, has_vec_cpy a |}
   (#l : nat)
-  (x :gpu_array a l)
+  (x :larray a l)
   (#[exact (`1.0R)] f : perm)
   (i : nat)
 : slprop
-= exists* v. gpu_pts_to_vec x #f i v
-
+= exists* v. pts_to_vec x #f i v
 
 
 (* Thread sharing *)
@@ -71,7 +72,7 @@ let gpu_live_vec
 let thread_slice_pts_to
   (#et : Type0)
   (#n : nat)
-  (a : gpu_array et n)
+  (a : larray et n)
   (i j : natle n { i <= j })
   (#m : nat)
   (s : lseq et m)
@@ -80,24 +81,24 @@ let thread_slice_pts_to
 : slprop
 =
   forall+ (x : natlt ((j - i - tid) `divup` nthr)).
-    gpu_pts_to_cell a (i + x * nthr + tid) (s @! k + x * nthr + tid)
+    pts_to_cell a (i + x * nthr + tid <: nat) (s @! k + x * nthr + tid)
 
 let thread_slice_pts_to_value
   (#et : Type0)
   (#n : nat)
-  (a : gpu_array et n)
+  (a : larray et n)
   (i j : natle n { i <= j })
   (v : et)
   (nthr : nat) (tid : natlt nthr)
 : slprop
 =
   forall+ (x : natlt ((j - i - tid) `divup` nthr)).
-    gpu_pts_to_cell a (i + x * nthr + tid) v
+    pts_to_cell a (i + x * nthr + tid) v
 
 let thread_slice_live
   (#et : Type0)
   (#n : nat)
-  (a : gpu_array et n)
+  (a : larray et n)
   (i j : natle n {i <= j})
   (nthr : nat) (tid : natlt nthr)
 : slprop
@@ -111,7 +112,7 @@ let thread_slice_live
 let thread_pts_to_chunks
   (#et : Type0) {| sized et, has_vec_cpy et |}
   (#n : nat)
-  ([@@@mkey] x : gpu_array et n)
+  ([@@@mkey] x : larray et n)
   (#m : nat)
   (s : lseq et m)
   (i : nat)
@@ -122,13 +123,13 @@ let thread_pts_to_chunks
   (ensures fun _ -> true)
 =
   forall+ (k : natlt (n / (nthr * chunk et))).
-    gpu_pts_to_vec' x ((k * nthr + tid) * chunk et)
+    pts_to_vec' x ((k * nthr + tid) * chunk et)
       s (i + (k * nthr + tid) * chunk et)
 
 let thread_live_chunks
   (#et : Type0) {| sized et, has_vec_cpy et |}
   (#n : nat)
-  ([@@@mkey] x : gpu_array et n)
+  ([@@@mkey] x : larray et n)
   (nthr : nat)
   (tid : natlt nthr)
 : Pure slprop
@@ -136,7 +137,7 @@ let thread_live_chunks
   (ensures fun _ -> true)
 =
   forall+ (k : natlt (n / (nthr * chunk et))).
-    gpu_live_vec x ((k * nthr + tid) * chunk et)
+    live_vec x ((k * nthr + tid) * chunk et)
 
 
 
@@ -146,30 +147,30 @@ open Kuiper.Bijection
 
 // TODO por que esto no está definido?
 ghost
-fn gpu_array_slice_1'
+fn array_slice_1'
   (#a:Type u#0)
   (#sz:nat)
-  (arr : gpu_array a sz)
+  (arr : larray a sz)
   (#f : perm)
   (i j : natle sz)
   (#v : erased (seq a){ Seq.length v == j - i })
-  requires gpu_pts_to_slice arr #f i j v
-  ensures  forall+ (k: natlt (j - i)). gpu_pts_to_cell arr #f (i + k) (v @! k)
+  requires pts_to_slice arr #f i j v
+  ensures  forall+ (k: natlt (j - i)). pts_to_cell arr #f (i + k) (v @! k)
 {
   admit()
 }
 
 ghost
-fn gpu_array_unslice_1'
+fn array_unslice_1'
   (#a:Type u#0)
   (#sz:nat)
-  (arr : gpu_array a sz)
+  (arr : larray a sz)
   (#f : perm)
   (i j : natle sz)
   (#v : erased (seq a) { Seq.length v == j - i })
   // considerar usar n con n == j - i para no tener que reescribir el forall+
-  requires forall+ (k: natlt (j - i)). gpu_pts_to_cell arr #f (i + k) (v @! k)
-  ensures gpu_pts_to_slice arr #f i j v
+  requires forall+ (k: natlt (j - i)). pts_to_cell arr #f (i + k) (v @! k)
+  ensures pts_to_slice arr #f i j v
 {
   admit();
 }
@@ -202,7 +203,7 @@ ghost
 fn thread_slice_share
   (#et : Type0)
   (#n : nat)
-  (x : gpu_array et n)
+  (x : larray et n)
   (i j : natle n { i <= j })
   (#m : nat)
   (nthr : pos)
@@ -210,30 +211,30 @@ fn thread_slice_share
   ensures forall+ (tid : natlt nthr). thread_slice_live x i j nthr tid
 {
   unfold slice_live;
-  with s. assert gpu_pts_to_slice x i j s;
-  gpu_pts_to_slice_ref x i j;
+  with s. assert pts_to_slice x i j s;
+  pts_to_slice_ref x i j;
 
-  gpu_array_slice_1' x i j;
+  array_slice_1' x i j;
   forevery_iso (share_thread_bij (j - i) nthr) _;
   forevery_ext
     (fun r -> 
-      gpu_pts_to_cell x
+      pts_to_cell x
         (i + (share_thread_bij (j - i) nthr).gg r)
         (s @! (share_thread_bij (j - i) nthr).gg r)
     )
     (fun (| tid, k |) ->
-      gpu_pts_to_cell x (i + k * nthr + tid ) (s @! k * nthr + tid)
+      pts_to_cell x (i + k * nthr + tid ) (s @! k * nthr + tid)
     );
   forevery_unflatten_dep' _;
 
   forevery_map #(natlt nthr)
     (fun tid -> forall+ (k : natlt (((j -i) - tid) `divup` nthr)).
-      gpu_pts_to_cell x (i + k * nthr + tid) (s @! k * nthr + tid)
+      pts_to_cell x (i + k * nthr + tid) (s @! k * nthr + tid)
     ) 
     (fun tid -> thread_slice_live x i j nthr tid)
     fn tid {
       forevery_map #(natlt (((j -i) - tid) `divup` nthr))
-        (fun k -> gpu_pts_to_cell x (i + k * nthr + tid) (s @! k * nthr + tid))
+        (fun k -> pts_to_cell x (i + k * nthr + tid) (s @! k * nthr + tid))
         (fun k -> array_live_cell x (i + k * nthr + tid))
         fn k {
           fold array_live_cell x (i + k * nthr + tid);
@@ -246,124 +247,125 @@ ghost
 fn thread_slice_gather
   (#et : Type0)
   (#n : nat)
-  (x : gpu_array et n)
+  (x : larray et n)
   (i j : natle n { i <= j })
   (#m : nat)
   (s : lseq et m)
   (k : natle (m - (j - i)))
   (nthr : pos)
   requires forall+ (tid : natlt nthr). thread_slice_pts_to x i j s k nthr tid
-  ensures gpu_pts_to_slice x i j (Seq.slice s k (k + (j - i)))
+  ensures pts_to_slice x i j (Seq.slice s k (k + (j - i)))
 {
   let s' = Seq.slice s k (k + (j - i));
 
   forevery_map #(natlt nthr)
     (fun tid -> thread_slice_pts_to x i j s k nthr tid)
     (fun tid -> forall+ (h : natlt (((j -i) - tid) `divup` nthr)).
-      gpu_pts_to_cell x (i + h * nthr + tid) (s' @! h * nthr + tid)
+      pts_to_cell x (i + h * nthr + tid) (s' @! h * nthr + tid)
     ) 
     fn tid {
       unfold thread_slice_pts_to x i j s k nthr tid;
       forevery_ext #(natlt (((j -i) - tid) `divup` nthr))
-        (fun h -> gpu_pts_to_cell x (i + h * nthr + tid) (s @! k + h * nthr + tid))
-        (fun h -> gpu_pts_to_cell x (i + h * nthr + tid) (s' @! h * nthr + tid));
+        (fun h -> pts_to_cell x (i + h * nthr + tid) (s @! k + h * nthr + tid))
+        (fun h -> pts_to_cell x (i + h * nthr + tid) (s' @! h * nthr + tid));
     };
 
   forevery_flatten_dep _;
 
   forevery_ext #(tid : natlt nthr & natlt (((j - i) - tid) `divup` nthr))
     (fun r ->
-      gpu_pts_to_cell x (i + r._2 * nthr + r._1) (s' @! r._2 * nthr + r._1)
+      pts_to_cell x (i + r._2 * nthr + r._1) (s' @! r._2 * nthr + r._1)
     )
     (fun r -> 
-      gpu_pts_to_cell x
+      pts_to_cell x
         (i + (share_thread_bij (j - i) nthr).gg r)
         (s' @! (share_thread_bij (j - i) nthr).gg r)
     );
 
   forevery_iso_back (share_thread_bij (j - i) nthr)
-    (fun r -> gpu_pts_to_cell x (i + r) (s' @! r));
+    (fun r -> pts_to_cell x (i + r) (s' @! r));
 
-  gpu_array_unslice_1' x i j;
+  array_unslice_1' x i j;
 }
 
 ghost
 fn thread_slice_gather_value
   (#et : Type0)
   (#n : nat)
-  (x : gpu_array et n)
+  (x : larray et n)
   (i j : natle n { i <= j })
   (v : et)
   (nthr : pos)
   requires forall+ (tid : natlt nthr). thread_slice_pts_to_value x i j v nthr tid
-  ensures gpu_pts_to_slice x i j (Seq.create (j - i) v)
+  ensures pts_to_slice x i j (Seq.create (j - i) v)
 {
   let s = Seq.create (j - i) v;
   forevery_map #(natlt nthr)
     (fun tid -> thread_slice_pts_to_value x i j v nthr tid)
     (fun tid -> forall+ (k : natlt (((j -i) - tid) `divup` nthr)).
-      gpu_pts_to_cell x (i + k * nthr + tid) (s @! k * nthr + tid)
+      pts_to_cell x (i + k * nthr + tid) (s @! k * nthr + tid)
     ) 
     fn tid {
       unfold thread_slice_pts_to_value x i j v nthr tid;
       forevery_ext #(natlt (((j -i) - tid) `divup` nthr))
-        (fun h -> gpu_pts_to_cell x (i + h * nthr + tid) v)
-        (fun h -> gpu_pts_to_cell x (i + h * nthr + tid) (s @! h * nthr + tid));
+        (fun h -> pts_to_cell x (i + h * nthr + tid) v)
+        (fun h -> pts_to_cell x (i + h * nthr + tid) (s @! h * nthr + tid));
     };
   forevery_flatten_dep _;
   forevery_ext #(tid : natlt nthr & natlt (((j - i) - tid) `divup` nthr))
     (fun r ->
-      gpu_pts_to_cell x (i + r._2 * nthr + r._1) (s @! r._2 * nthr + r._1)
+      pts_to_cell x (i + r._2 * nthr + r._1) (s @! r._2 * nthr + r._1)
     )
     (fun r -> 
-      gpu_pts_to_cell x
+      pts_to_cell x
         (i + (share_thread_bij (j - i) nthr).gg r)
         (s @! (share_thread_bij (j - i) nthr).gg r)
     );
   forevery_iso_back (share_thread_bij (j - i) nthr)
-    (fun r -> gpu_pts_to_cell x (i + r) (s @! r));
+    (fun r -> pts_to_cell x (i + r) (s @! r));
 
-  gpu_array_unslice_1' x i j;
+  array_unslice_1' x i j;
 }
 
 ghost
 fn thread_share_chunks
   (#et : Type0) {| sized et, has_vec_cpy et |}
   (#n : nat)
-  (x : gpu_array et n)
+  (x : larray et n)
   (nthr : pos)
   (#_: squash ((nthr * chunk et) /? n))
   requires live x
   ensures forall+ (tid : natlt nthr). thread_live_chunks x nthr tid
 {
-  with s. assert gpu_pts_to_slice x 0 n s;
-  gpu_pts_to_slice_ref x 0 n;
+  array_to_slice x;
+  with s. assert pts_to_slice x 0 n s;
+  pts_to_slice_ref x 0 n;
 
   let ch = chunk et;
 
-  gpu_array_slice_1 x;
+  array_slice_1 x;
 
   forevery_factor n (n / (nthr * ch)) (nthr * ch) _;
 
   forevery_map #(natlt (n / (nthr * ch)))
     (fun k ->
       forall+ (h : natlt (nthr * ch)).
-        gpu_pts_to_cell x (k * (nthr * ch) + h) (s @! k * (nthr * ch) + h)
+        pts_to_cell x (k * (nthr * ch) + h) (s @! k * (nthr * ch) + h)
     )
     (fun k ->
-      forall+ (tid : natlt nthr). gpu_live_vec x ((k * nthr + tid) * chunk et)
+      forall+ (tid : natlt nthr). live_vec x ((k * nthr + tid) * chunk et)
     )
     fn k {
       forevery_factor (nthr * ch) nthr ch _;
       forevery_map #(natlt nthr)
         (fun tid ->
           forall+ (i : natlt ch).
-            gpu_pts_to_cell x
+            pts_to_cell x
               (k * (nthr * ch) + (tid * ch + i))
               (s @! k * (nthr * ch) + (tid * ch + i))
         )
         (fun tid ->
-          gpu_live_vec x ((k * nthr + tid) * chunk et)
+          live_vec x ((k * nthr + tid) * chunk et)
         )
         fn tid {
           let v : lseq et ch = Seq.slice s 
@@ -372,16 +374,16 @@ fn thread_share_chunks
 
           forevery_ext #(natlt ch)
             _
-            (fun i -> gpu_pts_to_cell x ((k * nthr + tid) * ch + i) (v @! i));
+            (fun i -> pts_to_cell x ((k * nthr + tid) * ch + i) (v @! i));
           forevery_rw_size ch
             (((k * nthr + tid) * ch) + ch - ((k * nthr + tid) * ch));
 
-          gpu_array_unslice_1' x
+          array_unslice_1' x
             ((k * nthr + tid) * ch)
             ((k * nthr + tid) * ch + ch);
 
           rewrite each ch as (chunk et);
-          fold gpu_live_vec x ((k * nthr + tid) * chunk et);
+          fold live_vec x ((k * nthr + tid) * chunk et);
         };
     };
   rewrite each ch as (chunk et);
@@ -391,7 +393,7 @@ fn thread_share_chunks
   forevery_map #(natlt nthr)
     (fun tid ->
       forall+ (k: natlt (n / (nthr * (chunk et)))).
-        gpu_live_vec x ((k * nthr + tid) * (chunk et))
+        live_vec x ((k * nthr + tid) * (chunk et))
     )
     (fun tid -> thread_live_chunks x nthr tid)
     fn tid { fold thread_live_chunks x nthr tid };
@@ -401,7 +403,7 @@ ghost
 fn thread_gather_chunks
   (#et : Type0) {| sized et, has_vec_cpy et |}
   (#n : nat)
-  (x : gpu_array et n)
+  (x : larray et n)
   (#m : nat)
   (s : lseq et m)
   (i : natle (m - n))
@@ -415,25 +417,25 @@ fn thread_gather_chunks
     (fun tid -> thread_pts_to_chunks x s i nthr tid)
     (fun tid -> 
       forall+ (j : natlt ch) (k : natlt (n / (nthr * ch))).
-        gpu_pts_to_cell x (k * (nthr * ch) + (tid * ch + j))
+        pts_to_cell x (k * (nthr * ch) + (tid * ch + j))
           (s @! i + (k * (nthr * ch) + (tid * ch + j)))
     )
     fn tid {
       unfold thread_pts_to_chunks x s i nthr tid;
       forevery_map #(natlt (n / (nthr * (chunk et))))
         (fun k ->
-          gpu_pts_to_vec' x ((k * nthr + tid) * chunk et)
+          pts_to_vec' x ((k * nthr + tid) * chunk et)
             s (i + (k * nthr + tid) * chunk et)
         )
         (fun k ->
           forall+ (j : natlt ch).
-            gpu_pts_to_cell x (k * (nthr * ch) + (tid * ch + j))
+            pts_to_cell x (k * (nthr * ch) + (tid * ch + j))
               (s @! i + (k * (nthr * ch) + (tid * ch + j)))
         )
         fn k {
           rewrite each (v (chunk et)) as ch;
 
-          gpu_array_slice_1' x
+          array_slice_1' x
             ((k * nthr + tid) * ch)
             ((k * nthr + tid) * ch + ch);
 
@@ -442,7 +444,7 @@ fn thread_gather_chunks
           forevery_ext #(natlt ch)
             _
             (fun j ->
-              gpu_pts_to_cell x (k * (nthr * ch) + (tid * ch + j))
+              pts_to_cell x (k * (nthr * ch) + (tid * ch + j))
                 (s @! i + (k * (nthr * ch) + (tid * ch + j)))
             );
           ();
@@ -454,16 +456,16 @@ fn thread_gather_chunks
   forevery_unfactor (nthr * ch) _ _
     (fun h ->
       forall+ (k : natlt (n / (nthr * ch))).
-        gpu_pts_to_cell x
+        pts_to_cell x
           (k * (nthr * ch) + h)
           (s @! i + (k * (nthr * ch) + h))
     );
   forevery_commute _;
   forevery_unfactor n (n / (nthr * ch)) (nthr * ch)
-    (fun k -> gpu_pts_to_cell x k (s @! i + k));
+    (fun k -> pts_to_cell x k (s @! i + k));
   forevery_ext _
     (fun (k : natlt n) ->
-      gpu_pts_to_cell x k (Seq.slice s i (i + n) @! k)
+      pts_to_cell x k (Seq.slice s i (i + n) @! k)
     );
-  gpu_array_unslice_1 x;
+  array_unslice_1 x;
 }
