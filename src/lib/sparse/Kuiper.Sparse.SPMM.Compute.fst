@@ -380,7 +380,7 @@ let tile_mask_lemma
   let elems' : lseq et nnz = mask @+ elems in
   let row_ind' : lseq nat (nnz - mask_len) = Seq.slice row_ind mask_len nnz in
   introduce forall (k1 : natlt tlen).
-    tile_vmprod_cell_prop tile0 elems row_ind' em2 j step #() (nnz - mask_len) k1 tile 
+    tile_vmprod_cell_prop tile0 elems row_ind' em2 j step #() (nnz - mask_len) k1 tile
   with (
     let k2 = j + k1 / chunk et * step * chunk et + k1 % chunk et in
     if k2 < cols
@@ -546,7 +546,7 @@ fn fma_arr
   (k : sz { k + n <= sz_y })
   preserves gpu
   preserves x2 |-> vx2
-  requires  y |-> vy 
+  requires  y |-> vy
   ensures  y |-> seq_to_chest1 (seq_fma x1 vx2 (chest1_to_seq vy) k n)
 {
   let mut ix : sz = 0sz;
@@ -647,8 +647,8 @@ let rec seq_load_vmprod_row
   (step : nat)
   (k : natle (n1 / chunk et))
 : Tot (lseq et n1)
-= 
-  let ch : nat = v (chunk et) in 
+=
+  let ch : nat = v (chunk et) in
   if k = 0 then y
     else (
       lineal_divides ch j ch ((k - 1) * step);
@@ -683,7 +683,7 @@ fn load_vmprod_row
   requires  y |-> vy
   ensures   y |-> seq_to_chest1 (seq_load_vmprod_row (chest1_to_seq vy) x (chest1_to_seq vrow) j step (n1 / chunk et))
 {
-  let mut k : sz = 0sz; 
+  let mut k : sz = 0sz;
 
   while (!k <^ n1 /^ chunk et)
     invariant exists* vk (vy' : chest1 et n1).
@@ -729,7 +729,7 @@ let rec seq_load_vmprod
         (elems @! to - 1)
         (ematrix_row em (row_ind @! to - 1))
         j step (n1 / chunk et)
-  
+
 
 open Kuiper.Array2.Strided { strided_row_major, aligned_strided_row_major }
 
@@ -861,7 +861,7 @@ let seq_fma_lemma0'
 : Lemma
   (requires true)
   (ensures forall (i : natlt sz_y { i < k1 \/ k1 + cnt <= i }).
-    seq_fma' cnt x1 x2 y0 k1 k2 @! i == y0 @! i) 
+    seq_fma' cnt x1 x2 y0 k1 k2 @! i == y0 @! i)
 = ()
 
 noextract
@@ -893,7 +893,7 @@ let seq_fma_lemma'
       )
     )
     else ()
-    
+
 noextract
 let seq_load_vmprod_row_cell_prop_
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
@@ -1005,7 +1005,7 @@ let rec seq_load_vmprod_row_cell_lemma_
       (seq_load_vmprod_row y0 x row j step k)
       ik ix
   )
-= 
+=
   if k = 0 then ()
   else (
     lineal_divides (chunk et) j (chunk et) ((k - 1) * step);
@@ -1045,7 +1045,7 @@ let tile_vmprod_slice_lemma
   (to : natle m1)
   (k1 : natlt n1)
   (y : lseq et n1)
-: Lemma 
+: Lemma
   (requires tile_vmprod_cell_prop acc elems row_ind em2 j step to k1 y)
   (ensures tile_vmprod_cell_prop #_ #_ #_ #solve
     #to
@@ -1143,7 +1143,7 @@ let seq_load_vmprod_lemma
     seq_load_vmprod_cell_lemma
       y elems row_ind em j step #() to k1;
     tile_vmprod_slice_lemma
-      y elems row_ind em j step to k1 
+      y elems row_ind em j step to k1
       (seq_load_vmprod y elems row_ind em j step #() to)
   )
 
@@ -1199,7 +1199,7 @@ let seq_load_vmprod_step_lemma
   let y' = seq_load_vmprod y elems2' row_ind2' em j step cnt in
 
   seq_load_vmprod_lemma y elems2' row_ind2' em j step cnt;
-  
+
   slice_slice elems   to (to + m1) 0 cnt;
   slice_slice row_ind to (to + m1) 0 cnt;
 
@@ -1273,7 +1273,7 @@ fn tile_load_vmprod
     )
 {
   load_vmprod y elems row_ind m j step cant;
-  seq_load_vmprod_step_lemma 
+  seq_load_vmprod_step_lemma
     m1
     vy0
     velems (cast_pos vrow_ind)

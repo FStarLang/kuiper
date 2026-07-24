@@ -110,7 +110,7 @@ fn gpu_matrix_store_tile_vec_underspec
   unfold thread_live_tile_vec gm;
 
   forevery_rw_size (n / chunk et) (n /^ chunk et);
-  
+
   foreach (n /^ chunk et)
     (fun k -> thread_live_vec gm i j n nthr k)
     (fun k -> thread_pts_to_vec_underspec gm i j s nthr k)

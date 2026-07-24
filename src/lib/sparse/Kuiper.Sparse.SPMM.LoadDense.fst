@@ -209,8 +209,8 @@ fn matrix_tile_vec_cpy
 
     tensor_extract_row a1 !k;
     let ri = Pulse.Lib.Array.(row_ind.(!k));
-    tensor_extract_row_ro a2 ri; 
-    
+    tensor_extract_row_ro a2 ri;
+
     row_core_lemma a1 !k;
     aligned_cont_strided_row_major l1 (chunk et) !k;
     row_core_lemma a2 ri;
@@ -224,21 +224,21 @@ fn matrix_tile_vec_cpy
       #_ #_ #_
       #(ctlayout_slice _ 0 (v ri)) // should not be needed
       (tensor_row a2 (v ri)) j step;
-    
+
     tensor_restore_row a2 ri;
 
-    Pulse.Lib.Forall.elim_forall 
+    Pulse.Lib.Forall.elim_forall
       (chest1_tile_cpy
         (chest2_row em1 !k) (chest2_row em2 ri)
         j step (n1 / chunk et));
     Pulse.Lib.Trade.elim_trade _ _;
-    
 
-    chest2_upd_row_lemma em !k 
+
+    chest2_upd_row_lemma em !k
       (chest1_tile_cpy
         (chest2_row em1 !k) (chest2_row em2 ri)
         j step (n1 / chunk et));
-    
+
     k := !k +^ 1sz;
   };
 
@@ -312,7 +312,7 @@ let rec chest1_tile_cpy_col_lemma1
     acc1 (chest1_tile_cpy s1 s2 j2 step to) k ==
     acc1 s2 (j2 + k / chunk et * step * chunk et + k % chunk et)
   )
-= 
+=
   lemma_divides_product (chunk et) (to - 1);
   lemma_divides_product (chunk et) ((to - 1) * step);
   lemma_divides_sum (chunk et) j2 ((to - 1) * step * chunk et);
@@ -361,7 +361,7 @@ let rec chest1_tile_cpy_col_lemma2
 : Lemma
   (requires j2 + k / chunk et * step * chunk et >= n2)
   (ensures acc1 (chest1_tile_cpy s1 s2 j2 step to) k == acc1 s1 k)
-= 
+=
   if to = 0 then () else (
     chest1_tile_cpy_col_lemma2 s1 s2 j2 step (to - 1) k;
 
@@ -407,7 +407,7 @@ let chest2_tile_col
 : GTot (chest1 et m1)
 =
   let k2 = j + k1 / chunk et * step * chunk et + k1 % chunk et in
-  if k2 < n2 
+  if k2 < n2
     // mm defino chest1_make_sparse??
     then seq_to_chest1 (seq_make_sparse row_ind (ematrix_col em2 k2))
     else chest2_col em1 k1
@@ -484,7 +484,7 @@ let chest2_tile_col_lemma
     chest2_col (chest2_tile_cpy em1 em2 row_ind j step) k ==
     chest2_tile_col em1 em2 row_ind j step k
   with chest2_tile_col_lemma_ em1 em2 row_ind j step k;
-  assert chest2_cols_equal 
+  assert chest2_cols_equal
     (chest2_tile_cpy em1 em2 row_ind j step)
     (chest2_from_cols (chest2_tile_col em1 em2 row_ind j step))
 

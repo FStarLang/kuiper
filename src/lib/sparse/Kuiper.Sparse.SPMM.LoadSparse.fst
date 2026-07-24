@@ -97,7 +97,7 @@ fn load2_array
       array_live_cell dst1 (0 + k * nthr + tid) **
       array_live_cell dst2 (0 + k * nthr + tid)
     )
-    (fun k -> 
+    (fun k ->
       pts_to_cell dst1 (k * nthr + tid) (s1 @! i + k * nthr + tid) **
       pts_to_cell dst2 (k * nthr + tid) (s2 @! i + k * nthr + tid)
     )

@@ -42,7 +42,7 @@ let pts_to_vec
   ([@@@mkey] i : nat)
   (v : seq a)
 : slprop
-= 
+=
   pts_to_slice x #f i (i + chunk a) v
 
 unfold
@@ -217,7 +217,7 @@ fn thread_slice_share
   array_slice_1' x i j;
   forevery_iso (share_thread_bij (j - i) nthr) _;
   forevery_ext
-    (fun r -> 
+    (fun r ->
       pts_to_cell x
         (i + (share_thread_bij (j - i) nthr).gg r)
         (s @! (share_thread_bij (j - i) nthr).gg r)
@@ -230,7 +230,7 @@ fn thread_slice_share
   forevery_map #(natlt nthr)
     (fun tid -> forall+ (k : natlt (((j -i) - tid) `divup` nthr)).
       pts_to_cell x (i + k * nthr + tid) (s @! k * nthr + tid)
-    ) 
+    )
     (fun tid -> thread_slice_live x i j nthr tid)
     fn tid {
       forevery_map #(natlt (((j -i) - tid) `divup` nthr))
@@ -262,7 +262,7 @@ fn thread_slice_gather
     (fun tid -> thread_slice_pts_to x i j s k nthr tid)
     (fun tid -> forall+ (h : natlt (((j -i) - tid) `divup` nthr)).
       pts_to_cell x (i + h * nthr + tid) (s' @! h * nthr + tid)
-    ) 
+    )
     fn tid {
       unfold thread_slice_pts_to x i j s k nthr tid;
       forevery_ext #(natlt (((j -i) - tid) `divup` nthr))
@@ -276,7 +276,7 @@ fn thread_slice_gather
     (fun r ->
       pts_to_cell x (i + r._2 * nthr + r._1) (s' @! r._2 * nthr + r._1)
     )
-    (fun r -> 
+    (fun r ->
       pts_to_cell x
         (i + (share_thread_bij (j - i) nthr).gg r)
         (s' @! (share_thread_bij (j - i) nthr).gg r)
@@ -304,7 +304,7 @@ fn thread_slice_gather_value
     (fun tid -> thread_slice_pts_to_value x i j v nthr tid)
     (fun tid -> forall+ (k : natlt (((j -i) - tid) `divup` nthr)).
       pts_to_cell x (i + k * nthr + tid) (s @! k * nthr + tid)
-    ) 
+    )
     fn tid {
       unfold thread_slice_pts_to_value x i j v nthr tid;
       forevery_ext #(natlt (((j -i) - tid) `divup` nthr))
@@ -316,7 +316,7 @@ fn thread_slice_gather_value
     (fun r ->
       pts_to_cell x (i + r._2 * nthr + r._1) (s @! r._2 * nthr + r._1)
     )
-    (fun r -> 
+    (fun r ->
       pts_to_cell x
         (i + (share_thread_bij (j - i) nthr).gg r)
         (s @! (share_thread_bij (j - i) nthr).gg r)
@@ -368,7 +368,7 @@ fn thread_share_chunks
           live_vec x ((k * nthr + tid) * chunk et)
         )
         fn tid {
-          let v : lseq et ch = Seq.slice s 
+          let v : lseq et ch = Seq.slice s
             ((k * nthr + tid) * ch)
             ((k * nthr + tid) * ch + ch);
 
@@ -415,7 +415,7 @@ fn thread_gather_chunks
   let ch = v (chunk et);
   forevery_map
     (fun tid -> thread_pts_to_chunks x s i nthr tid)
-    (fun tid -> 
+    (fun tid ->
       forall+ (j : natlt ch) (k : natlt (n / (nthr * ch))).
         pts_to_cell x (k * (nthr * ch) + (tid * ch + j))
           (s @! i + (k * (nthr * ch) + (tid * ch + j)))

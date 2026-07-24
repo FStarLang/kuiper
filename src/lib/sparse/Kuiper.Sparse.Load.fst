@@ -344,10 +344,10 @@ fn array_vec_cpy'
   {
     lower_cont dst_arr;
     lower_cont src_arr #f;
-    
+
     dst_cl.pf dst_off;
     src_cl.pf src_off;
-    
+
     aligned_cont_offset dst_arr (SZ.v dst_off);
     aligned_cont_offset src_arr (SZ.v src_off);
 
@@ -395,9 +395,9 @@ fn array_vec_cpy_dh
   ensures   dst_arr |-> Seq.slice ss src_off (src_off + chunk et)
 {
     lower_cont src_arr #f;
-    
+
     src_cl.pf src_off;
-    
+
     aligned_cont_offset src_arr (SZ.v src_off);
 
     Pulse.Lib.Array.PtsTo.pts_to_len dst_arr;

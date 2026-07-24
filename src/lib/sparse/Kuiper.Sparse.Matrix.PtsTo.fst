@@ -234,7 +234,7 @@ fn unfold_matrix_pts_to_vec_in_bounds
   (v : lseq et (chunk et))
   (#_ : squash (j < cols))
   requires matrix_pts_to_vec_in_bounds gm i j v
-  ensures matrix_pts_to_vec gm i j v 
+  ensures matrix_pts_to_vec gm i j v
 {
   unfold matrix_pts_to_vec_in_bounds gm i j v;
   when__elim_true _ _;
@@ -284,7 +284,7 @@ fn unfold_matrix_live_vec_not_in_bounds
   requires pure (j >= cols)
   requires matrix_live_vec_in_bounds gm i j
 {
-  unfold matrix_live_vec_in_bounds gm; 
+  unfold matrix_live_vec_in_bounds gm;
   unfold_matrix_pts_to_vec_not_in_bounds gm i j _;
 }
 
@@ -593,7 +593,7 @@ fn thread_pts_to_tile_vec_gather
       };
       rewrite each offset_chunk et (thread_offset et j (x % nthr)) (x / nthr) nthr
       as (j + x * chunk et);
-      
+
       unfold_matrix_pts_to_vec_in_matrix_in_bounds gm
         i (j + x * chunk et) em;
 
@@ -664,7 +664,7 @@ fn gather_gpu_pts_to_tile
   forevery_map #(natlt rows)
     (fun r ->
       forall+ (b : natlt (cols `divup` row_tile)).
-        gpu_pts_to_tile gm r (b * row_tile) em row_tile 
+        gpu_pts_to_tile gm r (b * row_tile) em row_tile
     )
     (fun r ->
       forall+ (j : natlt cols).

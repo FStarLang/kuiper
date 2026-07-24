@@ -254,13 +254,13 @@ let ematrix_from_rows_lemma
   (i : natlt rows)
 : Lemma (requires true) (ensures ematrix_row (ematrix_from_rows r) i == r i)
   [SMTPat (ematrix_row (ematrix_from_rows r) i)]
-= assert ematrix_row (ematrix_from_rows r) i `Seq.equal` r i 
+= assert ematrix_row (ematrix_from_rows r) i `Seq.equal` r i
 
 let ematrix_rows_equal
   (#et : Type0)
   (#rows #cols : erased nat)
   (m1 m2 : chest2 et rows cols)
-: prop = forall i. ematrix_row m1 i == ematrix_row m2 i 
+: prop = forall i. ematrix_row m1 i == ematrix_row m2 i
 
 let ematrix_rows_equal_intro
   (#et : Type0)
@@ -290,13 +290,13 @@ let ematrix_from_cols_lemma
   (j : natlt cols)
 : Lemma (requires true) (ensures ematrix_col (ematrix_from_cols c) j == c j)
   [SMTPat (ematrix_col (ematrix_from_cols c) j)]
-= assert ematrix_col (ematrix_from_cols c) j `Seq.equal` c j 
+= assert ematrix_col (ematrix_from_cols c) j `Seq.equal` c j
 
 let ematrix_cols_equal
   (#et : Type0)
   (#rows #cols : erased nat)
   (m1 m2 : chest2 et rows cols)
-: prop = forall j. ematrix_col m1 j == ematrix_col m2 j 
+: prop = forall j. ematrix_col m1 j == ematrix_col m2 j
 
 let ematrix_cols_equal_intro
   (#et : Type0)
@@ -340,7 +340,7 @@ let ematrix_upd_row_lemma
   (new_row : lseq et cols)
 : Lemma
   (requires true)
-  (ensures ematrix_upd_row em i new_row == ematrix_from_rows (ematrix_upd_row_f em i new_row)) 
+  (ensures ematrix_upd_row em i new_row == ematrix_from_rows (ematrix_upd_row_f em i new_row))
 =
   assert equal
     (ematrix_upd_row em i new_row)
@@ -372,13 +372,13 @@ let chest2_from_rows_lemma
   (i : natlt rows)
 : Lemma (requires true) (ensures chest2_row (chest2_from_rows r) i == r i)
   [SMTPat (chest2_row (chest2_from_rows r) i)]
-= assert chest2_row (chest2_from_rows r) i `equal` r i 
+= assert chest2_row (chest2_from_rows r) i `equal` r i
 
 let chest2_rows_equal
   (#et : Type0)
   (#rows #cols : erased nat)
   (m1 m2 : chest2 et rows cols)
-: prop = forall i. chest2_row m1 i == chest2_row m2 i 
+: prop = forall i. chest2_row m1 i == chest2_row m2 i
 
 let chest2_rows_equal_intro
   (#et : Type0)
@@ -402,7 +402,7 @@ let chest2_upd_row_lemma
   (new_row : chest1 et cols)
 : Lemma
   (requires true)
-  (ensures chest2_upd_row em i new_row == chest2_from_rows (chest2_upd_row_f em i new_row)) 
+  (ensures chest2_upd_row em i new_row == chest2_from_rows (chest2_upd_row_f em i new_row))
 =
   assert equal
     (chest2_upd_row em i new_row)
@@ -422,13 +422,13 @@ let chest2_from_cols_lemma
   (j : natlt cols)
 : Lemma (requires true) (ensures chest2_col (chest2_from_cols c) j == c j)
   [SMTPat (chest2_col (chest2_from_cols c) j)]
-= assert chest2_col (chest2_from_cols c) j `equal` c j 
+= assert chest2_col (chest2_from_cols c) j `equal` c j
 
 let chest2_cols_equal
   (#et : Type0)
   (#rows #cols : erased nat)
   (m1 m2 : chest2 et rows cols)
-: prop = forall j. chest2_col m1 j == chest2_col m2 j 
+: prop = forall j. chest2_col m1 j == chest2_col m2 j
 
 let chest2_cols_equal_intro
   (#et : Type0)
@@ -451,7 +451,7 @@ let ematrix_row_chunk_
   (i : natlt rows)
   (j : natlt cols { j + chunk et <= cols })
 : GTot (lseq et (chunk et))
-= Seq.init_ghost (chunk et) (fun k -> acc2 em i (j + k)) 
+= Seq.init_ghost (chunk et) (fun k -> acc2 em i (j + k))
 
 let ematrix_row_chunk
   (#et : Type0) {| sized et, has_vec_cpy et |}
@@ -481,14 +481,14 @@ let is_ematrix_tile_at
   (em : chest2 et rows cols)
   (i : natlt rows)
   (j : nat { chunk et /? j })
-  (#row_tile : nat { chunk et /? row_tile }) 
+  (#row_tile : nat { chunk et /? row_tile })
   (s : lseq et row_tile)
   (nthr : nat)
   (k : natlt (row_tile / chunk et))
 : Pure prop
   (requires offset_chunk et j k nthr < cols)
   (ensures fun _ -> true)
-= 
+=
   seq_chunk s (k * chunk et) ==
   ematrix_row_chunk em i (offset_chunk et j k nthr)
 
@@ -498,7 +498,7 @@ let is_ematrix_tile
   (em : chest2 et rows cols)
   (i : natlt rows)
   (j : nat { chunk et /? j })
-  (#row_tile : nat { chunk et /? row_tile }) 
+  (#row_tile : nat { chunk et /? row_tile })
   (s : lseq et row_tile)
   (nthr : nat)
 : prop
@@ -870,7 +870,7 @@ fn tensor_extract_row_ro
       (a |-> Frac f s)
 {
   tensor_extract_row a i;
-  Pulse.Lib.Forall.elim_forall (chest_slice 0 i s <: chest1 et cols); 
+  Pulse.Lib.Forall.elim_forall (chest_slice 0 i s <: chest1 et cols);
   assert pure (
     equal
       (chest2_upd_row s i (chest2_row s i))

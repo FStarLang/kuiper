@@ -1534,7 +1534,7 @@ fn kf_main
     B.barrier_tok (
       barrier_contract p row_perm elems col_ind row_off
         elems_tile col_ind_tile bid
-    ) 
+    )
   preserves thread_id p.blockWidth tid
   requires  thread_live_chunks elems_tile p.blockWidth tid
   requires  thread_live_chunks col_ind_tile p.blockWidth tid
@@ -1567,7 +1567,7 @@ fn kf_main
       //   (cast_pos (lslice' col_ind ri (re - residue)))
       //   eB (Seq.create (p.blockItemsX / p.blockWidth) zero)
       //   tid n_idx
-    
+
 {
   admit();
   let out0 : erased (lseq et (p.blockItemsX / p.blockWidth)) =
