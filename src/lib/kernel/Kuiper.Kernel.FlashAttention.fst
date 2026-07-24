@@ -5,6 +5,7 @@ open Kuiper
 open Kuiper.EMatrix
 open Kuiper.Array
 open Kuiper.Tensor.Layout
+open Kuiper.Tensor.Layout.Slice
 open Kuiper.Tensor.Tiling
 open Kuiper.Tensor
 open Kuiper.EMatrix
@@ -122,7 +123,7 @@ fn extract_cell1
 {
   explode1 a #f #s;
   forevery_extract' #(natlt len) i _;
-  ghost fn aux si'
+  ghost fn aux (si' : et)
     requires forall* (p': natlt len -> slprop).
       p' i ** pure (forall (j:natlt len{~(eq2 #(natlt len) j i)}). p' j == (Cell a (idx1 j) |-> Frac f (acc1 s j)))
         @==> (forall+ (j:natlt len). p' j)

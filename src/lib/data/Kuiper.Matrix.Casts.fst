@@ -85,3 +85,193 @@ fn t2_to_t1
   tensor_abij (bij_sym (bij12 len)) a;
   rewrite each chest_bij (bij_sym (bij12 len)) s as c2_to_c1 s;
 }
+
+let c2_to_c3_roundtrip
+  (#et : Type0)
+  (d0 d1 : szp)
+  (s : chest2 et d0 d1)
+  : Lemma (c3_to_c2 d0 d1 (c2_to_c3 d0 d1 s) == s)
+  =
+  Kuiper.Chest.lemma_equal_intro
+    (c3_to_c2 d0 d1 (c2_to_c3 d0 d1 s)) s;
+  Kuiper.Chest.ext (c3_to_c2 d0 d1 (c2_to_c3 d0 d1 s)) s
+
+let c2_to_c3_slice_page
+  (#et : Type0)
+  (d0 d1 : szp)
+  (s : chest2 et d0 d1)
+  : Lemma (slice_page (c2_to_c3 d0 d1 s) 0 == s)
+  =
+  Kuiper.Chest.lemma_equal_intro (slice_page (c2_to_c3 d0 d1 s) 0) s;
+  Kuiper.Chest.ext (slice_page (c2_to_c3 d0 d1 s) 0) s
+
+ghost
+fn t2_to_t3
+  (#et : Type0)
+  (d0 d1 : szp)
+  (#l : layout2 d0 d1)
+  {| ctlayout l |}
+  (g : tensor et l)
+  (#f : perm)
+  (#s : chest2 et d0 d1)
+  requires
+    g |-> Frac f s
+  ensures
+    from_array (l2_to_l3 d0 d1 #l) (core g)
+      |-> Frac f (c2_to_c3 d0 d1 s)
+{
+  tensor_abij (bij_up (cbij23 d0 d1)) g;
+}
+
+ghost
+fn t3_to_t2
+  (#et : Type0)
+  (d0 d1 : szp)
+  (#l : layout2 d0 d1)
+  {| ctlayout l |}
+  (g : tensor et l)
+  (#f : perm)
+  (#s3 : chest3 et 1 d0 d1)
+  requires
+    from_array (l2_to_l3 d0 d1 #l) (core g) |-> Frac f s3
+  ensures
+    g |-> Frac f (c3_to_c2 d0 d1 s3)
+{
+  let g3 = from_array (l2_to_l3 d0 d1 #l) (core g);
+  rewrite each
+    from_array (l2_to_l3 d0 d1 #l) (core g)
+  as g3;
+  tensor_ilower g3;
+  let g2 = from_array l (core g3);
+  rewrite each core g3 as core g2;
+
+  let bij = bij_up (cbij23 d0 d1);
+  forevery_iso (bij_sym bij)
+    (fun (idx3 : abs (1 @| d0 @| d1 @| INil)) ->
+      Kuiper.Array.pts_to_cell (core g2) #f
+        ((l2_to_l3 d0 d1 #l).imap.f idx3)
+        (acc s3 idx3));
+  forevery_ext
+    (fun (idx2 : abs (d0 @| d1 @| INil)) ->
+      Kuiper.Array.pts_to_cell (core g2) #f
+        ((l2_to_l3 d0 d1 #l).imap.f (bij.ff idx2))
+        (acc s3 (bij.ff idx2)))
+    (fun (idx2 : abs (d0 @| d1 @| INil)) ->
+      Kuiper.Array.pts_to_cell (core g2) #f
+        (l.imap.f idx2)
+        (acc (c3_to_c2 d0 d1 s3) idx2));
+  tensor_iraise g2;
+  rewrite
+    (g2 |-> Frac f (c3_to_c2 d0 d1 s3))
+  as
+    (g |-> Frac f (c3_to_c2 d0 d1 s3));
+}
+
+(* ── Nat-typed rank-2 <-> single-page rank-3 casts (implementations) ─────── *)
+
+let c2_to_c3n_roundtrip
+  (#et : Type0)
+  (a b : nat)
+  (af : squash (all_fit (a @| b @| INil)))
+  (s : chest2 et a b)
+  : Lemma (c3_to_c2n a b af (c2_to_c3n a b af s) == s)
+  =
+  Kuiper.Chest.lemma_equal_intro (c3_to_c2n a b af (c2_to_c3n a b af s)) s;
+  Kuiper.Chest.ext (c3_to_c2n a b af (c2_to_c3n a b af s)) s
+
+let c2_to_c3n_slice_page
+  (#et : Type0)
+  (a b : nat)
+  (af : squash (all_fit (a @| b @| INil)))
+  (s : chest2 et a b)
+  : Lemma (slice_page (c2_to_c3n a b af s) 0 == s)
+  =
+  Kuiper.Chest.lemma_equal_intro (slice_page (c2_to_c3n a b af s) 0) s;
+  Kuiper.Chest.ext (slice_page (c2_to_c3n a b af s) 0) s
+
+ghost
+fn t2_to_t3n
+  (#et : Type0)
+  (a b : nat)
+  (af : squash (all_fit (a @| b @| INil)))
+  (#l : layout2 a b)
+  {| ctlayout l |}
+  (g : tensor et l)
+  (#f : perm)
+  (#s : chest2 et a b)
+  requires
+    g |-> Frac f s
+  ensures
+    from_array (l2_to_l3n #a #b #l) (core g)
+      |-> Frac f (c2_to_c3n a b af s)
+{
+  tensor_abij (bij_up (cbij23n a b)) g;
+}
+
+ghost
+fn t3_to_t2n
+  (#et : Type0)
+  (a b : nat)
+  (af : squash (all_fit (a @| b @| INil)))
+  (#l : layout2 a b)
+  {| ctlayout l |}
+  (g : tensor et l)
+  (#f : perm)
+  (#s3 : chest3 et 1 a b)
+  requires
+    from_array (l2_to_l3n #a #b #l) (core g) |-> Frac f s3
+  ensures
+    g |-> Frac f (c3_to_c2n a b af s3)
+{
+  let g3 = from_array (l2_to_l3n #a #b #l) (core g);
+  rewrite each
+    from_array (l2_to_l3n #a #b #l) (core g)
+  as g3;
+  tensor_ilower g3;
+  let g2 = from_array l (core g3);
+  rewrite each core g3 as core g2;
+
+  let bij = bij_up (cbij23n a b);
+  forevery_iso (bij_sym bij)
+    (fun (idx3 : abs (1 @| a @| b @| INil)) ->
+      Kuiper.Array.pts_to_cell (core g2) #f
+        ((l2_to_l3n #a #b #l).imap.f idx3)
+        (acc s3 idx3));
+  forevery_ext
+    (fun (idx2 : abs (a @| b @| INil)) ->
+      Kuiper.Array.pts_to_cell (core g2) #f
+        ((l2_to_l3n #a #b #l).imap.f (bij.ff idx2))
+        (acc s3 (bij.ff idx2)))
+    (fun (idx2 : abs (a @| b @| INil)) ->
+      Kuiper.Array.pts_to_cell (core g2) #f
+        (l.imap.f idx2)
+        (acc (c3_to_c2n a b af s3) idx2));
+  tensor_iraise g2;
+  rewrite
+    (g2 |-> Frac f (c3_to_c2n a b af s3))
+  as
+    (g |-> Frac f (c3_to_c2n a b af s3));
+}
+
+ghost
+fn t3_to_t2n_ow
+  (#et : Type0)
+  (a b : nat)
+  (af : squash (all_fit (a @| b @| INil)))
+  (#l : layout2 a b)
+  {| ctlayout l |}
+  (g : tensor et l)
+  (#f : perm)
+  (#s : chest2 et a b)
+  requires
+    from_array (l2_to_l3n #a #b #l) (core g) |-> Frac f (c2_to_c3n a b af s)
+  ensures
+    g |-> Frac f s
+{
+  t3_to_t2n a b af g;
+  c2_to_c3n_roundtrip a b af s;
+  rewrite
+    (g |-> Frac f (c3_to_c2n a b af (c2_to_c3n a b af s)))
+  as
+    (g |-> Frac f s);
+}

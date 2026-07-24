@@ -30,10 +30,11 @@ noextract
 fn rec alloc_c_shmems
   (block_loc: loc_id)
   (d: list SH.shmem_desc)
-preserves loc block_loc
-returns res: SH.c_shmems d
-ensures SH.live_c_shmems res
-ensures pure (SH.c_shmems_inv res /\ c_shmems_full res)
+  preserves loc block_loc
+  returns res: SH.c_shmems d
+  ensures SH.live_c_shmems res
+  ensures pure (SH.c_shmems_inv res /\ c_shmems_full res)
+  decreases d
 {
   match d {
     norewrite
@@ -71,6 +72,7 @@ fn rec free_c_shmems
   preserves loc block_loc
   requires SH.live_c_shmems res
   requires pure (SH.c_shmems_inv res /\ c_shmems_full res)
+  decreases d
 {
   match d {
     Nil -> {
@@ -98,6 +100,7 @@ inline_for_extraction noextract
 let szlt_coerce #m #n (i: szlt n { i < m }) : szlt m = i
 
 noextract
+divergent
 fn rec run_block_threads
   (#full_pre : slprop)
   (#full_post : slprop)
@@ -105,11 +108,12 @@ fn rec run_block_threads
   (bid: szlt k.nblk)
   (sh: SH.c_shmems k.shmems_desc {SH.c_shmems_inv sh /\ c_shmems_full sh})
   (upto: sz { upto <= k.nthr})
-preserves block_id k.nblk bid
-requires
-  (forall+ (i : natlt upto). k.kpre sh bid (natlt_coerce i))
-ensures
-  (forall+ (i : natlt upto). k.kpost sh bid (natlt_coerce i))
+  preserves block_id k.nblk bid
+  requires
+    (forall+ (i : natlt upto). k.kpre sh bid (natlt_coerce i))
+  ensures
+    (forall+ (i : natlt upto). k.kpost sh bid (natlt_coerce i))
+  decreases SizeT.v upto
 {
   if (upto = 0sz) {
     forevery_elim_empty _;
@@ -169,17 +173,18 @@ fn free_c_shmems'
 }
 
 noextract
-fn rec run_block
+divergent
+fn run_block
   (#full_pre : slprop)
   (#full_post : slprop)
   (k : kernel_desc full_pre full_post)
   (bid: szlt k.nblk)
-requires
-  block_id k.nblk bid **
-  k.block_pre bid
-ensures
-  block_id k.nblk bid **
-  k.block_post bid
+  requires
+    block_id k.nblk bid **
+    k.block_pre bid
+  ensures
+    block_id k.nblk bid **
+    k.block_post bid
 {
   unfold (block_id k.nblk bid);
   let sh = alloc_c_shmems _ k.shmems_desc;
@@ -192,6 +197,7 @@ ensures
 }
 
 noextract
+divergent
 fn rec run_blocks
   (#full_pre : slprop)
   (#full_post : slprop)
@@ -236,6 +242,7 @@ ensures
 }
 
 noextract
+divergent
 fn launch_kernel_full_sync
   (#full_pre #full_post : slprop)
   (k : kernel_desc full_pre full_post)
@@ -247,7 +254,7 @@ fn launch_kernel_full_sync
     on gpu_loc full_post
 {
   gpu_id_loc_lemma 0;
-  impersonate
+  Kuiper.Kernel.Par.impersonate_div
     unit
     gpu_loc
     (on gpu_loc full_pre)

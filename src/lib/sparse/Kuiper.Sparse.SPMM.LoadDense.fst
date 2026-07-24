@@ -10,6 +10,7 @@ open Kuiper.Sparse.Load
 open Kuiper.Sparse.SPMM.Defs { chest2_tile_prop }
 open Kuiper.Array.Vectorized
 open Kuiper.Tensor
+open Kuiper.Tensor.Layout.Slice
 open Kuiper.Array2.Vectorized
 
 
@@ -110,6 +111,7 @@ fn tile_vec_cpy
     invariant exists* (vk : szle (n1 / chunk et)).
       k  |-> (vk <: sz) **
       x1 |-> chest1_tile_cpy s1 s2 j step vk
+    decreases (n1 / chunk et - !k)
   {
     lemma_fits_tile_offset et n1 j !k step;
     lemma_divides_tile_offset et j !k step;
@@ -201,6 +203,7 @@ fn matrix_tile_vec_cpy
         forall (i : natlt m1 { vk <= i }).
           chest2_row em i == chest2_row em1 i
       )
+    decreases (m1 - !k)
   {
     with em. assert a1 |-> em;
 
@@ -219,7 +222,7 @@ fn matrix_tile_vec_cpy
       #(ctlayout_slice _ 0 (v !k)) // should not be needed
       (tensor_row a1 (v !k))
       #_ #_ #_
-      #(Kuiper.Tensor.ctlayout_slice _ 0 (v ri)) // should not be needed
+      #(ctlayout_slice _ 0 (v ri)) // should not be needed
       (tensor_row a2 (v ri)) j step;
     
     tensor_restore_row a2 ri;

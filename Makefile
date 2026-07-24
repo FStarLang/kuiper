@@ -68,6 +68,10 @@ clean-full: clean clean-modules
 dist: extract-all
 	@./scripts/update-dist.sh
 
+.PHONY: package
+package:
+	@./scripts/mk-package.sh $(if $(PACKAGE_NAME),$(PACKAGE_NAME),)
+
 .PHONY: lint-c
 lint-c:
 	indent -linux -l100 -nut -i4 test/*.cu test/*.c.inc && rm -f test/*.cu~ test/*.c.inc~

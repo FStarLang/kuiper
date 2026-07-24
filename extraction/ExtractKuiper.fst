@@ -85,6 +85,7 @@ let kpr_translate_type_without_decay : translate_type_without_decay_t = fun env 
   | "Kuiper.BFloat16.Base.t",              [] -> TInt BFloat16
   | "Kuiper.Float32.Base.t",               [] -> TInt Float32
   | "Kuiper.Float64.Base.t",               [] -> TInt Float64
+  | "Kuiper.Kernel.Stream.stream_t",       [] -> TQualified ([], "cudaStream_t")
   | _ -> raise NotSupportedByKrmlExtension
 
 let cudaMemcpyDeviceToHost = EQualified ([], "cudaMemcpyDeviceToHost")
@@ -329,7 +330,7 @@ let parse_shmem_desc (e : mlexpr) : ML (option (mlexpr & mlexpr)) =
     Format.print1 "Not a shmem_desc: %s\n" (mlexpr_to_string e);
     None
 
-let extract_kcall (cb : mlexpr -> ML expr) (env : Krml.env) (kdesc : mlexpr) : ML (option expr) =
+let extract_kcall (cb : mlexpr -> ML expr) (env : Krml.env) (kdesc : mlexpr) (stream : mlexpr) : ML (option expr) =
   let open FStarC.Class.Monad in
   let assoc' k v =
     match List.assoc k v with
@@ -461,7 +462,7 @@ let extract_kcall (cb : mlexpr -> ML expr) (env : Krml.env) (kdesc : mlexpr) : M
   in
   let e' =
     let kcall : expr = EQualified ([], "KPR_KCALL") in
-    EApp (kcall, [ cb hd; cb nblk; cb nthr; smem_bytesz ] @ List.map cb rest_args)
+    EApp (kcall, [ cb hd; cb nblk; cb nthr; smem_bytesz; cb stream ] @ List.map cb rest_args)
   in
   // Format.print1_warning "New kcall: %s\n" (show e');
   return <|
@@ -934,8 +935,8 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
   (******** KERNEL CALL ********)
 
   (* The single kcall! *)
-  | "Kuiper.Kernel.Base.launch_kernel_full", [], [ _full_pre; _full_post; kdesc; _epoch ] ->
-    begin match extract_kcall cb env kdesc with
+  | "Kuiper.Kernel.Base.launch_kernel_full", [], [ _full_pre; _full_post; kdesc; stream; _epoch ] ->
+    begin match extract_kcall cb env kdesc stream with
     | Some e' -> e'
     | None ->
       raise_error (mlloc_to_range e.loc) Fatal_ExtractionUnsupported [
@@ -943,7 +944,13 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
       ]
     end
 
-  | "Kuiper.Kernel.Base.sync_device", [], [_unit; _epoch] ->
+  | "Kuiper.Kernel.Stream.fresh_stream", [], [_unit;] ->
+    EApp (EQualified ([], "KPR_FRESH_STREAM"), [ EUnit ])
+  | "Kuiper.Kernel.Stream.destroy_stream", [], [stream] ->
+    _MUST <| EApp (EQualified ([], "cudaStreamDestroy"), [ cb stream ])
+  | "Kuiper.Kernel.Base.sync_stream", [], [stream; _epoch] ->
+    _MUST <| EApp (EQualified ([], "cudaStreamSynchronize"), [ cb stream ])
+  | "Kuiper.Kernel.Base.sync_device", [], [_unit; _frame; _p; _q; _justif] ->
     _MUST <| EApp (EQualified ([], "cudaDeviceSynchronize"), [ EUnit ])
 
   (* Misc stuff missing from F*? Without these, they extract to names

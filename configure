@@ -22,7 +22,7 @@ fi
 
 check_nvcc () {
   if ! command -v nvcc >/dev/null 2>&1 ; then
-    echo "# NVCC not found in PATH, configuring to stop after code generation."
+    echo "# NVCC not found in PATH, configuring to stop after code generation." >&2
     KUIPER_HAVE_NVCC=0
     return
   fi
@@ -40,12 +40,12 @@ check_nvcc () {
 EOF
 
   #177: variable "f" was declared but never referenced
-  echo "# Testing nvcc compilation..."
+  echo "# Testing nvcc compilation..." >&2
   if ! nvcc -arch=native -diag-suppress 177 -c $f -o /dev/null ; then
-    echo "# NVCC test file failed to build, configuring to stop after code generation."
+    echo "# NVCC test file failed to build, configuring to stop after code generation." >&2
     KUIPER_HAVE_NVCC=0
   else
-    echo "# NVCC ok"
+    echo "# NVCC ok" >&2
     KUIPER_HAVE_NVCC=1
   fi
   rm -f "$f"
@@ -63,12 +63,12 @@ check_tensor_cores () {
 EOF
 
   #177: variable "f" was declared but never referenced
-  echo "# Checking for tensor cores in nvcc..."
+  echo "# Checking for tensor cores in nvcc..." >&2
   if ! nvcc -arch=native -diag-suppress 177 -c $f -o /dev/null ; then
-    echo "# Tensor core test file failed to build, assuming no tensor cores."
+    echo "# Tensor core test file failed to build, assuming no tensor cores." >&2
     KUIPER_CFG_TENSORCORES=0
   else
-    echo "# The test built, assuming we have tensor cores."
+    echo "# The test built, assuming we have tensor cores." >&2
     KUIPER_CFG_TENSORCORES=1
   fi
   rm -f "$f"
@@ -85,7 +85,7 @@ vv () {
     if [ -v "$v" ]; then
       echo "export ${v}=${!v}" >> $out
       if $repeat; then
-        echo "export ${v}=${!v}"
+        echo "export ${v}=${!v}" >&2
       fi
     fi
   done

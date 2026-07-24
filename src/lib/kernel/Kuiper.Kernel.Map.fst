@@ -1,226 +1,368 @@
 module Kuiper.Kernel.Map
 
-(* Simple kernel: pointwise map of a function on an array. *)
-
 #lang-pulse
 
 open Kuiper
+open Kuiper.Seq.Common
 open Kuiper.Tensor
 open Kuiper.Tensor.Layout.Alg { l1_forward }
 open Kuiper.Shareable
 module SZ = Kuiper.SizeT
 module TMap = Kuiper.Kernel.TMap
 
+let shape1 (lena : nat) : shape 1 = lena @| INil
+
+unfold let index1 (#len : nat) (i : abs (shape1 len)) : natlt len =
+  let (j, ()) = i in
+  j
+
+inline_for_extraction noextract unfold
+let cindex1 (#len : erased nat) (i : conc (shape1 len)) : szlt len =
+  let (j, ()) = i in
+  j
+
+let cindex1_up (#len : erased nat) (i : conc (shape1 len))
+  : Lemma (cindex1 i == SZ.uint_to_t (index1 (up i)))
+  = ()
+
+instance triple_shareable
+  (ra : perm -> slprop) {| shareable ra |}
+  (rb : perm -> slprop) {| shareable rb |}
+  (rc : perm -> slprop) {| shareable rc |}
+  (fa fb fc : perm)
+  : shareable (fun fr -> ra (fa *. fr) ** rb (fb *. fr) ** rc (fc *. fr))
+  = double_shareable ra
+      (fun fr -> rb (fb *. fr) ** rc (fc *. fr))
+      fa 1.0R
+
 inline_for_extraction noextract
 fn map_gpu
   (#et : Type0)
-  (f: et -> et)
-  (lena : szp{ lena <= max_blocks * max_threads})
+  (f : et -> et)
+  (lena : szp { lena <= max_blocks * max_threads /\ lena > 0 })
   (#l : layout1 lena) {| ctlayout l |}
   (a : array1 et l { is_global a })
-  (#s: erased (chest1 et lena))
+  (#s : chest1 et lena)
   preserves cpu
-  requires  on gpu_loc (a |-> s)
-  ensures   on gpu_loc (a |-> chest_map f s)
+  requires on gpu_loc (a |-> s)
+  ensures  on gpu_loc (a |-> chest_map f s)
 {
   TMap.map_gpu (CCons lena CNil) f lena a;
 }
 
 inline_for_extraction noextract
-fn map_host
-  (#et : Type0) {| sized et |}
-  (f: et -> et)
-  (lena : szp{ lena <= max_blocks * max_threads})
-  (a : Pulse.Lib.Vec.lvec et lena)
-  (#s: erased (lseq et lena))
-  preserves cpu
-  requires  a |-> s
-  ensures   a |-> lseq_map f s
-{
-  let ga = alloc0 #et lena (l1_forward lena);
-  with em. assert on gpu_loc (ga |-> em);
-
-  (* Host -> device. *)
-  map_loc gpu_loc
-    #(ga |-> em)
-    #(core ga |-> to_seq (l1_forward lena) em)
-    fn _ { tensor_concr ga; };
-  gpu_memcpy_host_to_device (core ga) a lena;
-  map_loc gpu_loc
-    #(core ga |-> reveal s)
-    #(ga |-> from_seq (l1_forward lena) s)
-    fn _ {
-      tensor_abs' (l1_forward lena) (core ga);
-      rewrite (from_array (l1_forward lena) (core ga) |-> from_seq (l1_forward lena) s)
-           as (ga |-> from_seq (l1_forward lena) s);
-    };
-
-  map_gpu f lena ga;
-
-  (* Device -> host. *)
-  with res. assert on gpu_loc (ga |-> res);
-  map_loc gpu_loc
-    #(ga |-> res)
-    #(core ga |-> to_seq (l1_forward lena) res)
-    fn _ { tensor_concr ga; };
-  gpu_memcpy_device_to_host a (core ga) lena;
-  map_loc gpu_loc
-    #(core ga |-> to_seq (l1_forward lena) res)
-    #(ga |-> res)
-    fn _ {
-      tensor_abs (l1_forward lena) (core ga);
-      rewrite (from_array (l1_forward lena) (core ga) |-> reveal res)
-           as (ga |-> reveal res);
-    };
-  free ga;
-
-  assert pure (Seq.equal (to_seq (l1_forward lena) res) (lseq_map f s));
-  ();
-}
-
-(* Pull [on l] out of a [forall+], the reverse of the library's
-   [on_forevery_elim]. Inside the impersonation of [l] we own [loc l], which we
-   thread through the map with [forevery_map_extra] so each cell can shed its
-   [on l] wrapper. *)
-ghost
-fn on_forevery_intro (#a: Type0) {| enumerable a |} (p: a -> slprop) (l: loc_id)
-  requires forall+ (x:a). on l (p x)
-  ensures on l (forall+ (x:a). p x)
-{
-  ghost_impersonate l (forall+ (x:a). on l (p x)) (on l (forall+ (x:a). p x)) fn _ {
-    forevery_map_extra (loc l) (fun x -> on l (p x)) p fn x { on_elim (p x) };
-    on_intro (forall+ (x:a). p x);
-  };
-}
-
-(* Share the on-gpu tensor points-to into [n] fractional copies. We impersonate
-   the gpu location to run the raw [tensor_share_n], then distribute [on gpu_loc]
-   over the resulting [forall+]. *)
-ghost
-fn share_on_gpu
-  (#r : nat) (#d : shape r) (#et : Type0) (#lay : tlayout d)
-  (a : tensor et lay) (s : chest d et) (base : perm)
-  (n : pos) (#p : perm)
-  requires on gpu_loc (a |-> Frac (base *. p) s)
-  ensures  forall+ (_ : natlt n). on gpu_loc (a |-> Frac (base *. (p /. Real.of_int n)) s)
-{
-  ghost_impersonate gpu_loc
-    (on gpu_loc (a |-> Frac (base *. p) s))
-    (on gpu_loc (forall+ (_ : natlt n). a |-> Frac (base *. (p /. Real.of_int n)) s))
-    fn _ {
-      on_elim (a |-> Frac (base *. p) s);
-      tensor_share_n a n #(base *. p);
-      forevery_map
-        (fun (_ : natlt n) -> a |-> Frac ((base *. p) /. Real.of_int n) s)
-        (fun (_ : natlt n) -> a |-> Frac (base *. (p /. Real.of_int n)) s)
-        fn i {
-          rewrite (a |-> Frac ((base *. p) /. Real.of_int n) s)
-              as  (a |-> Frac (base *. (p /. Real.of_int n)) s);
-        };
-      on_intro (forall+ (_ : natlt n). a |-> Frac (base *. (p /. Real.of_int n)) s);
-    };
-  on_forevery_elim (fun (_ : natlt n) -> a |-> Frac (base *. (p /. Real.of_int n)) s) gpu_loc;
-}
-
-(* Gather [n] fractional copies of the on-gpu tensor points-to back into one.
-   The mirror of [share_on_gpu]: pull [on gpu_loc] out of the [forall+], then
-   impersonate the gpu location to run the raw [tensor_gather_n]. *)
-ghost
-fn gather_on_gpu
-  (#r : nat) (#d : shape r) (#et : Type0) (#lay : tlayout d)
-  (a : tensor et lay) (s : chest d et) (base : perm)
-  (n : pos) (#p : perm)
-  requires forall+ (_ : natlt n). on gpu_loc (a |-> Frac (base *. (p /. Real.of_int n)) s)
-  ensures  on gpu_loc (a |-> Frac (base *. p) s)
-{
-  on_forevery_intro (fun (_ : natlt n) -> a |-> Frac (base *. (p /. Real.of_int n)) s) gpu_loc;
-  ghost_impersonate gpu_loc
-    (on gpu_loc (forall+ (_ : natlt n). a |-> Frac (base *. (p /. Real.of_int n)) s))
-    (on gpu_loc (a |-> Frac (base *. p) s))
-    fn _ {
-      on_elim (forall+ (_ : natlt n). a |-> Frac (base *. (p /. Real.of_int n)) s);
-      forevery_map
-        (fun (_ : natlt n) -> a |-> Frac (base *. (p /. Real.of_int n)) s)
-        (fun (_ : natlt n) -> a |-> Frac ((base *. p) /. Real.of_int n) s)
-        fn i {
-          rewrite (a |-> Frac (base *. (p /. Real.of_int n)) s)
-              as  (a |-> Frac ((base *. p) /. Real.of_int n) s);
-        };
-      tensor_gather_n a n #(base *. p);
-      on_intro (a |-> Frac (base *. p) s);
-    };
-}
-
-instance shareable_tensor_pts_to
-  (#r : nat) (#d : shape r) (#et : Type0)
-  (#l : tlayout d)
-  (a : tensor et l)
-  (#s : chest d et)
-  (base : perm)
-  : shareable (fun fr -> on gpu_loc (a |-> Frac (base *. fr) s))
-  = {
-    _share_n  = (fun (n : pos) (#p : perm) -> share_on_gpu a s base n #p);
-    _gather_n = (fun (n : pos) (#p : perm) -> gather_on_gpu a s base n #p);
-  }
-
-(* Per-element binary map closure, hoisted to top level so it is
-   [inline_for_extraction] and gets inlined into the launched kernel body.
-   A nested [fn] cannot carry the [inline_for_extraction] flag and would
-   otherwise leak into the hoisted __global__ as a function-typed parameter,
-   which is not valid CUDA (mirrors [TMap.ff_from_pure]). *)
-inline_for_extraction noextract
-fn ff_from_binop
-  (#et : Type0)
-  (#lena : szp)
-  (f : et -> et -> et)
-  (#lb : layout1 lena) {| ctlayout lb |}
-  (b : array1 et lb)
-  (#fb : perm)
-  (#sb : erased (chest1 et lena))
-  (#fr: perm) (i : conc (lena @| INil)) (x : et)
+fn ff_to
+  (#it #ot : Type0) (#len : erased nat)
+  (f : it -> ot)
+  (#li : layout1 len) {| ctlayout li |}
+  (input : array1 it li)
+  (#si : chest1 it len) (#fr : perm)
+  (i : conc (shape1 len)) (x : ot)
   norewrite
-  preserves gpu ** on gpu_loc (b |-> Frac (fb *. fr) sb)
+  preserves gpu ** (input |-> Frac fr si)
+  returns r : ot
+  ensures pure (r == f (acc si (up i)))
+{
+  let y = tensor_read input i;
+  f y;
+}
+
+inline_for_extraction noextract
+fn map_gpu_to
+  (#it #ot : Type0)
+  (f : it -> ot)
+  (lena : szp { lena <= max_blocks * max_threads /\ lena > 0 })
+  (#li : layout1 lena) {| ctlayout li |}
+  (#lo : layout1 lena) {| ctlayout lo |}
+  (input : array1 it li { is_global input })
+  (output : array1 ot lo { is_global output })
+  (#si : chest1 it lena)
+  (#so : chest1 ot lena)
+  (#fi : perm)
+  norewrite
+  preserves cpu ** on gpu_loc (input |-> Frac fi si)
+  requires on gpu_loc (output |-> so)
+  ensures  on gpu_loc (output |-> mk1 (fun i -> f (acc1 si i)))
+{
+  launch_sync (TMap.kmap
+    (CCons lena CNil)
+    (fun fr -> input |-> Frac fr si)
+    #(tensor_pts_to_shareable input si)
+    (fun i _ r -> r == f (acc si i))
+    (ff_to f input)
+    lena output #so #_ #fi);
+  with so'. assert on gpu_loc (output |-> so');
+  assert pure (equal so' (mk1 (fun i -> f (acc1 si i))));
+}
+
+inline_for_extraction noextract
+fn ff2
+  (#et : Type0) (#len : erased nat)
+  (f : et -> et -> et)
+  (#lb : layout1 len) {| ctlayout lb |}
+  (b : array1 et lb)
+  (#sb : chest1 et len) (#fr : perm)
+  (i : conc (shape1 len)) (x : et)
+  norewrite
+  preserves gpu ** (b |-> Frac fr sb)
   returns r : et
   ensures pure (r == f x (acc sb (up i)))
 {
-  elim_gpu (b |-> Frac (fb *. fr) sb);
   let y = tensor_read b i;
-  let res = f x y;
-  intro_gpu (b |-> Frac (fb *. fr) sb);
-  res
+  f x y;
 }
 
 inline_for_extraction noextract
 fn map_gpu2
   (#et : Type0)
   (f : et -> et -> et)
-  (lena : szp { lena <= max_blocks * max_threads })
+  (lena : szp { lena <= max_blocks * max_threads /\ lena > 0 })
   (#la : layout1 lena) {| ctlayout la |}
   (#lb : layout1 lena) {| ctlayout lb |}
-  (a : array1 et la)
-  (b : array1 et lb)
-  (#_ : squash (is_global a))
-  (#_ : squash (is_global b))
-  (#sa : erased (chest1 et lena))
-  (#sb : erased (chest1 et lena))
+  (a : array1 et la { is_global a })
+  (b : array1 et lb { is_global b })
+  (#sa #sb : chest1 et lena)
   (#fb : perm)
   norewrite
   preserves cpu ** on gpu_loc (b |-> Frac fb sb)
-  requires  on gpu_loc (a |-> sa)
-  ensures   on gpu_loc (a |-> chest1_map2 f sa sb)
+  requires on gpu_loc (a |-> sa)
+  ensures  on gpu_loc (a |-> chest1_map2 f sa sb)
 {
-  rewrite on gpu_loc (b |-> Frac fb sb) as on gpu_loc (b |-> Frac (fb *. 1.0R) sb);
   launch_sync (TMap.kmap
     (CCons lena CNil)
-    (fun f -> on gpu_loc (b |-> Frac (fb *. f) sb))
-    #(shareable_tensor_pts_to #_ #_ #_ #lb b #sb fb)
-    (fun (i : abs (lena @| INil)) (x r : et) -> r == f x (acc sb i))
-    (ff_from_binop f b)
-    lena a #_ #_ #1.0R);
-  rewrite on gpu_loc (b |-> Frac (fb *. 1.0R) sb) as on gpu_loc (b |-> Frac fb sb);
-
+    (fun fr -> b |-> Frac fr sb)
+    #(tensor_pts_to_shareable b sb)
+    (fun i x r -> r == f x (acc sb i))
+    (ff2 f b)
+    lena a #sa #_ #fb);
   with sa'. assert on gpu_loc (a |-> sa');
-  assert pure (equal (chest1_map2 f sa sb) sa');
+  assert pure (equal sa' (chest1_map2 f sa sb));
+}
 
-  ()
+inline_for_extraction noextract
+fn ff2_to
+  (#at #bt #ot : Type0) (#len : erased nat)
+  (f : at -> bt -> ot)
+  (#la : layout1 len) (#lb : layout1 len) {| ctlayout la, ctlayout lb |}
+  (a : array1 at la) (b : array1 bt lb)
+  (#sa : chest1 at len) (#sb : chest1 bt len)
+  (#fa #fb #fr : perm)
+  (i : conc (shape1 len)) (x : ot)
+  norewrite
+  preserves gpu ** (a |-> Frac (fa *. fr) sa) ** (b |-> Frac (fb *. fr) sb)
+  returns r : ot
+  ensures pure (r == f (acc sa (up i)) (acc sb (up i)))
+{
+  let x = tensor_read a i;
+  let y = tensor_read b i;
+  f x y;
+}
+
+inline_for_extraction noextract
+fn map_gpu2_to
+  (#at #bt #ot : Type0)
+  (f : at -> bt -> ot)
+  (lena : szp { lena <= max_blocks * max_threads /\ lena > 0 })
+  (#la : layout1 lena) {| ctlayout la |}
+  (#lb : layout1 lena) {| ctlayout lb |}
+  (#lo : layout1 lena) {| ctlayout lo |}
+  (a : array1 at la { is_global a })
+  (b : array1 bt lb { is_global b })
+  (output : array1 ot lo { is_global output })
+  (#sa : chest1 at lena)
+  (#sb : chest1 bt lena)
+  (#so : chest1 ot lena)
+  (#fa #fb : perm)
+  norewrite
+  preserves cpu ** on gpu_loc (a |-> Frac fa sa) ** on gpu_loc (b |-> Frac fb sb)
+  requires on gpu_loc (output |-> so)
+  ensures  on gpu_loc (output |-> mk1 (fun i -> f (acc1 sa i) (acc1 sb i)))
+{
+  launch_sync (TMap.kmap
+    (CCons lena CNil)
+    (fun fr -> (a |-> Frac (fa *. fr) sa) ** (b |-> Frac (fb *. fr) sb))
+    #(double_shareable (fun fr -> a |-> Frac fr sa) (fun fr -> b |-> Frac fr sb) fa fb)
+    (fun i _ r -> r == f (acc sa i) (acc sb i))
+    (ff2_to f a b)
+    lena output #so #_ #1.0R);
+  with so'. assert on gpu_loc (output |-> so');
+  assert pure (equal so' (mk1 (fun i -> f (acc1 sa i) (acc1 sb i))));
+}
+
+inline_for_extraction noextract
+fn ff3
+  (#et : Type0) (#len : erased nat)
+  (f : et -> et -> et -> et)
+  (#lb : layout1 len) (#lc : layout1 len) {| ctlayout lb, ctlayout lc |}
+  (b : array1 et lb) (c : array1 et lc)
+  (#sb #sc : chest1 et len) (#fb #fc #fr : perm)
+  (i : conc (shape1 len)) (x : et)
+  norewrite
+  preserves gpu ** (b |-> Frac (fb *. fr) sb) ** (c |-> Frac (fc *. fr) sc)
+  returns r : et
+  ensures pure (r == f x (acc sb (up i)) (acc sc (up i)))
+{
+  let y = tensor_read b i;
+  let z = tensor_read c i;
+  f x y z;
+}
+
+inline_for_extraction noextract
+fn map_gpu3
+  (#et : Type0)
+  (f : et -> et -> et -> et)
+  (lena : szp { lena <= max_blocks * max_threads /\ lena > 0 })
+  (#la : layout1 lena) {| ctlayout la |}
+  (#lb : layout1 lena) {| ctlayout lb |}
+  (#lc : layout1 lena) {| ctlayout lc |}
+  (a : array1 et la { is_global a })
+  (b : array1 et lb { is_global b })
+  (c : array1 et lc { is_global c })
+  (#sa #sb #sc : chest1 et lena)
+  (#fb #fc : perm)
+  norewrite
+  preserves cpu ** on gpu_loc (b |-> Frac fb sb) ** on gpu_loc (c |-> Frac fc sc)
+  requires on gpu_loc (a |-> sa)
+  ensures  on gpu_loc (a |-> chest1_map3 f sa sb sc)
+{
+  launch_sync (TMap.kmap
+    (CCons lena CNil)
+    (fun fr -> (b |-> Frac (fb *. fr) sb) ** (c |-> Frac (fc *. fr) sc))
+    #(double_shareable (fun fr -> b |-> Frac fr sb) (fun fr -> c |-> Frac fr sc) fb fc)
+    (fun i x r -> r == f x (acc sb i) (acc sc i))
+    (ff3 f b c)
+    lena a #sa #_ #1.0R);
+  with sa'. assert on gpu_loc (a |-> sa');
+  assert pure (equal sa' (chest1_map3 f sa sb sc));
+}
+
+inline_for_extraction noextract
+fn ff3_to
+  (#at #bt #ct #ot : Type0) (#len : erased nat)
+  (f : at -> bt -> ct -> ot)
+  (#la : layout1 len) (#lb : layout1 len) (#lc : layout1 len) {| ctlayout la, ctlayout lb, ctlayout lc |}
+  (a : array1 at la) (b : array1 bt lb) (c : array1 ct lc)
+  (#sa : chest1 at len) (#sb : chest1 bt len) (#sc : chest1 ct len)
+  (#fa #fb #fc #fr : perm)
+  (i : conc (shape1 len)) (x : ot)
+  norewrite
+  preserves gpu ** (a |-> Frac (fa *. fr) sa) ** (b |-> Frac (fb *. fr) sb) ** (c |-> Frac (fc *. fr) sc)
+  returns r : ot
+  ensures pure (r == f (acc sa (up i)) (acc sb (up i)) (acc sc (up i)))
+{
+  let x = tensor_read a i;
+  let y = tensor_read b i;
+  let z = tensor_read c i;
+  f x y z;
+}
+
+inline_for_extraction noextract
+fn map_gpu3_to
+  (#at #bt #ct #ot : Type0)
+  (f : at -> bt -> ct -> ot)
+  (lena : szp { lena <= max_blocks * max_threads /\ lena > 0 })
+  (#la : layout1 lena) {| ctlayout la |}
+  (#lb : layout1 lena) {| ctlayout lb |}
+  (#lc : layout1 lena) {| ctlayout lc |}
+  (#lo : layout1 lena) {| ctlayout lo |}
+  (a : array1 at la { is_global a })
+  (b : array1 bt lb { is_global b })
+  (c : array1 ct lc { is_global c })
+  (output : array1 ot lo { is_global output })
+  (#sa : chest1 at lena)
+  (#sb : chest1 bt lena)
+  (#sc : chest1 ct lena)
+  (#so : chest1 ot lena)
+  (#fa #fb #fc : perm)
+  norewrite
+  preserves cpu ** on gpu_loc (a |-> Frac fa sa) ** on gpu_loc (b |-> Frac fb sb) ** on gpu_loc (c |-> Frac fc sc)
+  requires on gpu_loc (output |-> so)
+  ensures  on gpu_loc (output |-> mk1 (fun i -> f (acc1 sa i) (acc1 sb i) (acc1 sc i)))
+{
+  launch_sync (TMap.kmap
+    (CCons lena CNil)
+    (fun fr -> (a |-> Frac (fa *. fr) sa) ** ((b |-> Frac (fb *. fr) sb) ** (c |-> Frac (fc *. fr) sc)))
+    #(triple_shareable
+        (fun fr -> a |-> Frac fr sa)
+        (fun fr -> b |-> Frac fr sb)
+        (fun fr -> c |-> Frac fr sc)
+        fa fb fc)
+    (fun i _ r -> r == f (acc sa i) (acc sb i) (acc sc i))
+    (ff3_to f a b c)
+    lena output #so #_ #1.0R);
+  with so'. assert on gpu_loc (output |-> so');
+  assert pure (equal so' (mk1 (fun i -> f (acc1 sa i) (acc1 sb i) (acc1 sc i))));
+}
+
+inline_for_extraction noextract
+fn map_host
+  (#et : Type0) {| sized et |}
+  (f : et -> et)
+  (lena : szp { lena <= max_blocks * max_threads /\ lena > 0 })
+  (a : Pulse.Lib.Vec.lvec et lena)
+  (#s : erased (lseq et lena))
+  preserves cpu
+  requires a |-> s
+  ensures  a |-> lseq_map f s
+{
+  let ga = alloc0 #et lena (l1_forward lena);
+  with em. assert on gpu_loc (ga |-> em);
+  map_loc gpu_loc #(ga |-> em) #(core ga |-> to_seq (l1_forward lena) em)
+    fn _ { tensor_concr ga; };
+  gpu_memcpy_host_to_device (core ga) a lena;
+  map_loc gpu_loc #(core ga |-> reveal s) #(ga |-> from_seq (l1_forward lena) s)
+    fn _ {
+      tensor_abs' (l1_forward lena) (core ga);
+      rewrite (from_array (l1_forward lena) (core ga) |-> from_seq (l1_forward lena) s)
+           as (ga |-> from_seq (l1_forward lena) s);
+    };
+  map_gpu f lena ga;
+  with res. assert on gpu_loc (ga |-> res);
+  map_loc gpu_loc #(ga |-> res) #(core ga |-> to_seq (l1_forward lena) res)
+    fn _ { tensor_concr ga; };
+  gpu_memcpy_device_to_host a (core ga) lena;
+  map_loc gpu_loc #(core ga |-> to_seq (l1_forward lena) res) #(ga |-> res)
+    fn _ {
+      tensor_abs (l1_forward lena) (core ga);
+      rewrite (from_array (l1_forward lena) (core ga) |-> reveal res)
+           as (ga |-> res);
+    };
+  free ga;
+  assert pure (Seq.equal (to_seq (l1_forward lena) res) (lseq_map f s));
+}
+
+inline_for_extraction noextract
+fn ff_mapi
+  (#et : Type0) (#len : erased nat { SZ.fits len })
+  (f : et -> (i : SZ.t { SZ.v i < len }) -> et)
+  (#fr : perm) (i : conc (shape1 len)) (x : et)
+  norewrite
+  preserves gpu ** emp
+  returns r : et
+  ensures pure (r == mapi_value f x (index1 (up i)))
+{
+  cindex1_up i;
+  f x (cindex1 i);
+}
+
+inline_for_extraction noextract
+fn mapi_gpu
+  (#et : Type0)
+  (lena : szp { lena <= max_blocks * max_threads /\ lena <= 2147483648 /\ lena > 0 /\ SZ.fits lena })
+  (f : et -> (i : SZ.t { SZ.v i < lena }) -> et)
+  (#l : layout1 lena) {| ctlayout l |}
+  (a : array1 et l { is_global a })
+  (#s : chest1 et lena)
+  preserves cpu
+  requires on gpu_loc (a |-> s)
+  ensures  on gpu_loc (a |-> map_chest1i f s)
+{
+  launch_sync (TMap.kmap
+    (CCons lena CNil)
+    (fun _ -> emp)
+    (fun i x r -> r == mapi_value f x (index1 i))
+    (ff_mapi f)
+    lena a #s #_ #1.0R);
+  with s'. assert on gpu_loc (a |-> s');
+  assert pure (equal s' (map_chest1i f s));
 }

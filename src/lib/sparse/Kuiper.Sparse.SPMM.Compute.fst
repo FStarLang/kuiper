@@ -12,6 +12,7 @@ open Kuiper.Sparse.Common
 open Kuiper.Sparse.SPMM.Defs { chest2_tile_prop }
 open Kuiper.Array.Vectorized
 open Kuiper.Tensor.Layout.Alg { l2_row_major, c_l2_row_major }
+open Kuiper.Tensor.Layout.Slice
 open Kuiper.Tensor
 open Kuiper.Seq.Common { op_At_Bang }
 
@@ -84,6 +85,7 @@ fn scalar_prod
         forall (i : natlt n { i >= vix }).
           acc1 vy' i == acc1 vy i
       )
+      decreases (n - !ix)
   {
     let ixv = !ix;
     let cur = tensor_read y (cidx1 (ixv <: szlt n));
@@ -143,13 +145,14 @@ fn vmprod
             chest1_to_seq vy' @! i ==
             _dprod_acc (chest1_to_seq vy @! i) (chest1_to_seq vx) (ematrix_col vm i) vk
         )
+    decreases (rows - !k)
   {
     let kv = !k;
     let xk = tensor_read x (cidx1 (kv <: szlt rows));
     tensor_extract_row_ro m (v kv);
     scalar_prod
         y xk
-        #_ #(Kuiper.Tensor.ctlayout_slice _ 0 (v kv)) // should not be needed
+        #_ #(Kuiper.Tensor.Layout.Slice.ctlayout_slice _ 0 (v kv)) // should not be needed
         (tensor_row m (v kv));
     tensor_restore_row m (v kv);
 
@@ -559,6 +562,7 @@ fn fma_arr
              then fma x1 (vx2 @! (i - k)) (acc1 vy i)
              else acc1 vy i))
       )
+    decreases (n - !ix)
   {
     let ixv = !ix;
     // y[k + ix] += x1 * x2[ix]
@@ -689,6 +693,7 @@ fn load_vmprod_row
         vk <= n1 / chunk et /\
         Seq.equal (chest1_to_seq vy') (seq_load_vmprod_row (chest1_to_seq vy) x (chest1_to_seq vrow) j step vk)
       )
+    decreases (n1 /^ chunk et - !k)
   {
     assert pure (fits (j + !k * step * chunk et));
     lemma_divides_product (chunk et) !k;
@@ -770,6 +775,7 @@ fn load_vmprod
         vk <= to /\
         Seq.equal (chest1_to_seq vy') (seq_load_vmprod (chest1_to_seq vy) (chest1_to_seq velems) (cast_pos (chest1_to_seq vrow_ind)) em j step vk)
       )
+    decreases (to - !k)
   {
     let kv = !k;
     let kr = tensor_read row_ind (cidx1 (kv <: szlt m1));
@@ -784,7 +790,7 @@ fn load_vmprod
 
     load_vmprod_row
       y kx
-      #_ #_ #(Kuiper.Tensor.ctlayout_slice _ 0 (v kr)) // should not be needed
+      #_ #_ #(ctlayout_slice _ 0 (v kr)) // should not be needed
       (tensor_row m (v kr)) j step;
 
     tensor_restore_row m (v kr);

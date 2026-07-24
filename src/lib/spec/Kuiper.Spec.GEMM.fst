@@ -599,3 +599,58 @@ let bmatmul_is_bgemm
   : Lemma (bmmcomb comb2 m0 m1 m2 == batched_matmul m1 m2)
   = assert equal (bmmcomb comb2 m0 m1 m2) (batched_matmul m1 m2)
 #pop-options
+
+(* ===== General (multi-type, fused-map) GEMM spec: reduction lemmas ===== *)
+
+(* Mapping a chest by the identity is the identity. *)
+let chest_map_id (#r : nat) (#d : shape r) (#et : Type)
+  (c : chest d et)
+  : Lemma (chest_map (fun (x:et) -> x) c == c)
+          [SMTPat (chest_map (fun (x:et) -> x) c)]
+  = assert (chest_map (fun (x:et) -> x) c `equal` c)
+
+let ggemm_single_id
+  (#et : Type) {| scalar et |}
+  (comb : binop et)
+  (#rows #shared #columns : nat)
+  (m1 : chest2 et rows shared)
+  (m2 : chest2 et shared columns)
+  (m0 : chest2 et rows columns)
+  (row : nat{row < rows}) (col : nat{col < columns})
+  : Lemma (ggemm_single (fun (x:et) -> x) (fun (x:et) -> x) comb m1 m2 m0 row col
+           == gemm_single comb m1 m2 m0 row col)
+          [SMTPat (ggemm_single (fun (x:et) -> x) (fun (x:et) -> x) comb m1 m2 m0 row col)]
+  = ()
+
+let gmmcomb_id
+  (#et : Type) {| scalar et |}
+  (comb : binop et)
+  (#rows #shared #columns : nat)
+  (m0 : chest2 et rows columns)
+  (m1 : chest2 et rows shared)
+  (m2 : chest2 et shared columns)
+  : Lemma (gmmcomb (fun (x:et) -> x) (fun (x:et) -> x) comb m0 m1 m2
+           == mmcomb comb m0 m1 m2)
+          [SMTPat (gmmcomb (fun (x:et) -> x) (fun (x:et) -> x) comb m0 m1 m2)]
+  = assert equal (gmmcomb (fun (x:et) -> x) (fun (x:et) -> x) comb m0 m1 m2)
+                 (mmcomb comb m0 m1 m2)
+
+let gbmmcomb_id
+  (#et : Type) {| scalar et |}
+  (comb : binop et)
+  (#batch #rows #shared #cols : nat)
+  (c : chest3 et batch rows cols)
+  (a : chest3 et batch rows shared)
+  (b : chest3 et batch shared cols)
+  : Lemma (gbmmcomb (fun (x:et) -> x) (fun (x:et) -> x) comb c a b
+           == bmmcomb comb c a b)
+          [SMTPat (gbmmcomb (fun (x:et) -> x) (fun (x:et) -> x) comb c a b)]
+  = let aux (i : natlt batch)
+      : Lemma (gmmcomb (fun (x:et) -> x) (fun (x:et) -> x) comb
+                 (slice_page c i) (slice_page a i) (slice_page b i)
+               == mmcomb comb (slice_page c i) (slice_page a i) (slice_page b i))
+      = gmmcomb_id comb (slice_page c i) (slice_page a i) (slice_page b i)
+    in
+    Classical.forall_intro aux;
+    assert equal (gbmmcomb (fun (x:et) -> x) (fun (x:et) -> x) comb c a b)
+                 (bmmcomb comb c a b)

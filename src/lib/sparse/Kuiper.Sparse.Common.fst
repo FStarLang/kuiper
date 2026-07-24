@@ -9,6 +9,7 @@ open Kuiper.Array2.Strided { strided_row_major, aligned_strided_row_major }
 open FStar.Tactics.Typeclasses { no_method }
 open Kuiper.Array.Vectorized
 open Kuiper.Seq.Common { (@!) }
+open Kuiper.Tensor.Layout.Slice
 
 module SZ = FStar.SizeT
 module Chest = Kuiper.Chest

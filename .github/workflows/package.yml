@@ -1,0 +1,105 @@
+name: Build Kuiper package
+
+# Builds a self-contained Kuiper binary package (F* + Karamel + Z3 + verified
+# Kuiper library + everything needed to generate and build new kernels) and
+# uploads it as an artifact. Modeled on F*'s build-linux.yml.
+#
+# This is a reusable workflow, called by nightly-build.yml. It can also be run
+# manually via workflow_dispatch.
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        description: 'Git ref to build (default: the triggering ref)'
+        type: string
+        default: ''
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Git ref to build'
+        type: string
+        default: ''
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            arch: x86_64
+    runs-on: ${{ matrix.os }}
+    # The devcontainer image already has OPAM/OCaml, the F* build deps, and Z3.
+    # We do not need a GPU to verify and extract, so no --gpus here.
+    container:
+      image: mtzguido/pulse-cuda-devcontainer:latest
+    steps:
+      - run: find . -delete
+
+      - name: Check out repo
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.ref || '' }}
+          submodules: recursive
+          fetch-depth: 0
+
+      # Fixup HOME (https://github.com/actions/runner/issues/863)
+      - name: Setup HOME and PATH
+        run: |
+          echo "HOME=/home/vscode" >> $GITHUB_ENV
+          echo "PATH=/usr/local/bin/:$PATH" >> $GITHUB_ENV
+
+      - run: sudo apt-get update && sudo apt-get install -y indent unzip
+
+      - name: Read F* commit (for cache key)
+        id: fstarcommit
+        run: echo "FSTARCOMMIT=$(git -C FStar rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Try fetch cached F*/Karamel toolchain
+        id: fstarcache
+        uses: actions/cache/restore@v5
+        with:
+          path: inst
+          key: kuiper-toolchain-${{ runner.os }}-${{ runner.arch }}-${{ steps.fstarcommit.outputs.FSTARCOMMIT }}
+
+      - name: Fake toolchain touchfiles (cache hit)
+        if: ${{ steps.fstarcache.outputs.cache-hit == 'true' }}
+        run: |
+          touch .fstar.src.touch .fstar.touch .krml.src.touch .krml.touch
+
+      - name: Build F* and Karamel
+        run: |
+          eval $(opam env)
+          make -j$(nproc) -f verify.mk prepare
+
+      - name: Save toolchain
+        uses: actions/cache/save@v5
+        if: ${{ steps.fstarcache.outputs.cache-hit != 'true' }}
+        with:
+          path: inst
+          key: kuiper-toolchain-${{ runner.os }}-${{ runner.arch }}-${{ steps.fstarcommit.outputs.FSTARCOMMIT }}
+
+      - name: Verify Kuiper library
+        run: |
+          eval $(opam env)
+          make -kj$(nproc) -Otarget -f verify.mk verify-all
+
+      - name: Build the package
+        run: |
+          eval $(opam env)
+          KERNEL=$(uname -s)
+          ARCH=$(uname -m)
+          ./scripts/mk-package.sh "kuiper-$KERNEL-$ARCH"
+
+      - name: Smoke test the package
+        run: ./scripts/smoke-test-package.sh kuiper-*.tar.gz
+
+      - uses: actions/upload-artifact@v6
+        with:
+          name: package-${{ matrix.os }}-${{ matrix.arch }}
+          path: kuiper-*.tar.gz

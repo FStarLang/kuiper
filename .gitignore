@@ -10,6 +10,9 @@ dep.graph
 kuiper-bench
 kuiper-bench.tar.gz
 kuiper-src.tar.gz
+# Binary packages produced by scripts/mk-package.sh
+kuiper-*.tar.gz
+/.packaged
 _tmp
 
 # from tuning script

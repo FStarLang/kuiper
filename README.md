@@ -42,7 +42,68 @@ the verified kernels in `src/`, but may at times be slightly stale.
 There are test drivers for some of these files in `test/`. You also need to
 include the relevant Kuiper header files in `include/`.
 
-## Getting Started
+## Installing a binary package
+
+If you want to *write and build your own kernels* without compiling the whole
+toolchain from source, install a prebuilt Kuiper package. Each package is a
+self-contained tree bundling F\*, Karamel, Z3, and the verified Kuiper library —
+everything needed to verify, extract, and compile new kernels. Nightly packages
+are published as prereleases (tagged `nightly-*`) on this repository's
+[Releases page](https://github.com/FStarLang/kuiper/releases).
+
+The `install-kuiper.sh` script autodetects your OS and architecture:
+
+```bash
+# Latest nightly into ~/.local/kuiper, linking binaries into ~/.local/bin
+curl -fsSL https://raw.githubusercontent.com/FStarLang/kuiper/main/scripts/install-kuiper.sh \
+  | bash -s -- --nightly
+
+# Or, from a checkout:
+./scripts/install-kuiper.sh --nightly            # latest nightly
+./scripts/install-kuiper.sh --nightly --list     # list available nightlies
+./scripts/install-kuiper.sh --dest ~/kuiper      # custom location
+./scripts/install-kuiper.sh --help               # all options
+```
+
+Then work inside the installed tree (no OPAM/OCaml needed — only `nvcc` if you
+want to compile, and `indent` for CUDA post-processing):
+
+```bash
+cd ~/.local/kuiper
+make -j$(nproc)                                  # verify + extract everything
+./fstar.sh src/examples/Kuiper.Example.Add.fst   # verify a single file
+```
+
+See the package's own `README.md` for how to add and build a new kernel.
+
+Packages are produced by `make package` (see `scripts/mk-package.sh`) and built
+nightly by `.github/workflows/nightly-build.yml`.
+
+### Seeding a source checkout from a package
+
+If you have a source checkout and want to iterate on it *without* building the
+F\*/Karamel toolchain and re-verifying the whole library from scratch, seed it
+from a nightly package:
+
+```bash
+./scripts/seed-from-nightly.sh              # download the latest nightly and seed
+./scripts/seed-from-nightly.sh --tarball kuiper-Linux-x86_64.tar.gz
+./scripts/seed-from-nightly.sh --no-build   # seed only, don't run make
+./scripts/seed-from-nightly.sh --help       # all options
+```
+
+This copies the prebuilt toolchain (`inst/`), the extraction plugin, and the
+verified library (`obj/*.checked`) out of the package, marks the tree as
+`.packaged`, and adjusts timestamps so a subsequent `make` re-verifies **only
+the files whose sources differ from the package** (and whatever transitively
+depends on them). Files matching the package are reused as-is, so a clean
+checkout verifies almost instantly.
+
+> The script leaves a `.packaged` marker behind; `make` will then treat the
+> bundled toolchain as prebuilt instead of rebuilding it from the submodules.
+> Remove it (`rm .packaged`) to go back to full from-source builds.
+
+## Getting Started (from source)
 
 ### devcontainer (codespace)
 
@@ -129,6 +190,7 @@ Other useful targets:
 | `make test` | Run tests and compare against expected output |
 | `make accept` | Accept current test output as new expected |
 | `make dist` | Update the `dist/` snapshot from freshly extracted code |
+| `make package` | Build a self-contained binary package (`kuiper-<os>-<arch>.tar.gz`) |
 | `make lint` | Run C and F\* linters |
 | `make list-admits` | Find any `admit`/`assume`/`magic` in source |
 | `make wc` | Line counts for F\* source and generated CUDA |

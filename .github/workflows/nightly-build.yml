@@ -1,0 +1,80 @@
+name: Kuiper nightly build
+
+# Builds Kuiper binary packages and publishes them as a prerelease in THIS
+# repository, tagged nightly-<date>. Modeled on F*'s nightly-build.yml, but
+# publishing to the same repo instead of a separate kuiper-nightly repo, so it
+# can use the default GITHUB_TOKEN (no PAT and no second repo needed).
+#
+# Nightly releases are marked as prereleases and tagged `nightly-*`, so they are
+# easy to distinguish from real releases and never become the "latest" release.
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to build'
+        type: string
+        default: 'main'
+  schedule:
+    # Every day at 04:00 UTC (after the 'Advance submodules' job at 00:00).
+    - cron: '0 4 * * *'
+
+# Needed for the publish job to create tags and releases in this repo.
+permissions:
+  contents: write
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build:
+    uses: ./.github/workflows/package.yml
+    with:
+      ref: ${{ inputs.branch || 'main' }}
+
+  publish:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.branch || 'main' }}
+          fetch-depth: 0
+
+      - name: Set up variables
+        run: |
+          BRANCH="${{ inputs.branch || 'main' }}"
+          if [[ "$BRANCH" == "main" ]]; then
+            TAG=nightly-$(date -I)
+          else
+            TAG=nightly-${BRANCH}-$(date -I)
+          fi
+          SHA=$(git rev-parse HEAD)
+
+          echo "TAG=$TAG" >> $GITHUB_ENV
+          echo "SHA=$SHA" >> $GITHUB_ENV
+
+      - uses: actions/download-artifact@v7
+        with:
+          path: artifacts
+          merge-multiple: true
+          # ^ Download all package artifacts into the same dir. Each is a
+          # single file with a distinct platform suffix, so no clashes.
+
+      - name: Check that the Linux x86_64 package built
+        run: test -f artifacts/kuiper-Linux-x86_64.tar.gz
+
+      - name: Create prerelease with artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Replace any existing release+tag for today so re-runs are idempotent.
+          gh release delete "$TAG" --yes --cleanup-tag 2>/dev/null || true
+          gh release create "$TAG" artifacts/* \
+            --prerelease \
+            --generate-notes \
+            --target "$SHA" \
+            --title "Kuiper nightly $TAG"
+          echo "Published $TAG to ${{ github.repository }}"
