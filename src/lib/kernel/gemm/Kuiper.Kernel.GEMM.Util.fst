@@ -5,8 +5,10 @@ module Kuiper.Kernel.GEMM.Util
 open Kuiper
 open Pulse.Lib.Trade
 module MS = Kuiper.Spec.GEMM
+module C = Kuiper.Matrix.Casts
 open Kuiper.EMatrix
 module Chest = Kuiper.Chest
+open Kuiper.Shape
 
 (* Helper: for reals, sum(0 to base+n) = sum(0 to base) + sum over elements base..base+n-1 *)
 let rec __gmatmul_single_split
@@ -278,3 +280,60 @@ let gbmmcomb_approx_real
     in
     Classical.forall_intro (fun idx -> Classical.move_requires aux idx);
     ()
+
+(* ── Batch-one bridges between rank-2 and single-page rank-3 GEMM ────────── *)
+
+let c2_to_c3_approx
+  (#et : Type0) {| scalar et, real_like et |}
+  (a b : nat)
+  (af : squash (all_fit (a @| b @| INil)))
+  (e : chest2 et a b)
+  (r : chest2 real a b)
+  : Lemma (requires e %~ r)
+          (ensures C.c2_to_c3n a b af e %~ C.c2_to_c3n a b af r)
+  = introduce forall (idx : abs (1 @| a @| b @| INil)).
+      Chest.acc (C.c2_to_c3n a b af e) idx %~ Chest.acc (C.c2_to_c3n a b af r) idx
+    with (let (p, (i, (j, ()))) = idx in ())
+
+let c3_to_c2_approx
+  (#et : Type0) {| scalar et, real_like et |}
+  (a b : nat)
+  (af : squash (all_fit (a @| b @| INil)))
+  (e : chest3 et 1 a b)
+  (r : chest3 real 1 a b)
+  : Lemma (requires e %~ r)
+          (ensures C.c3_to_c2n a b af e %~ C.c3_to_c2n a b af r)
+  = introduce forall (idx : abs (a @| b @| INil)).
+      Chest.acc (C.c3_to_c2n a b af e) idx %~ Chest.acc (C.c3_to_c2n a b af r) idx
+    with (let (i, (j, ())) = idx in ())
+
+let batch1_gmmcomb
+  (#ta #tb #tc #tacc : Type0) {| scalar tacc |}
+  (mapA : ta -> tacc)
+  (mapB : tb -> tacc)
+  (comb : tc -> tacc -> tc)
+  (a1 a2 a3 : nat)
+  (afC : squash (all_fit (a1 @| a3 @| INil)))
+  (afA : squash (all_fit (a1 @| a2 @| INil)))
+  (afB : squash (all_fit (a2 @| a3 @| INil)))
+  (eC : chest2 tc a1 a3)
+  (eA : chest2 ta a1 a2)
+  (eB : chest2 tb a2 a3)
+  : Lemma (
+      C.c3_to_c2n a1 a3 afC
+        (MS.gbmmcomb mapA mapB comb
+          (C.c2_to_c3n a1 a3 afC eC)
+          (C.c2_to_c3n a1 a2 afA eA)
+          (C.c2_to_c3n a2 a3 afB eB))
+      == MS.gmmcomb mapA mapB comb eC eA eB)
+  =
+  C.c2_to_c3n_slice_page a1 a3 afC eC;
+  C.c2_to_c3n_slice_page a1 a2 afA eA;
+  C.c2_to_c3n_slice_page a2 a3 afB eB;
+  assert (Chest.equal
+      (C.c3_to_c2n a1 a3 afC
+        (MS.gbmmcomb mapA mapB comb
+          (C.c2_to_c3n a1 a3 afC eC)
+          (C.c2_to_c3n a1 a2 afA eA)
+          (C.c2_to_c3n a2 a3 afB eB)))
+      (MS.gmmcomb mapA mapB comb eC eA eB))

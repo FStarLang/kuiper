@@ -1440,231 +1440,6 @@ fn bmmcomb_gpu_approx
 
 
 
-(* ── Nat-typed rank-2 <-> single-page rank-3 casts ─────────────────────────
-   Mirrors Kuiper.Matrix.Casts.{cbij23,l2_to_l3,...} but with nat dimensions
-   (Tiled's matrix dims are [m*tile : nat], not szp), so the [all_fit] facts
-   must be threaded explicitly. *)
-
-inline_for_extraction noextract
-let cbij23n (a b : nat)
-  : (conc (a @| b @| INil) ==~ conc (1 @| a @| b @| INil)) =
-  mk_cbij
-    #(conc (a @| b @| INil))
-    #(conc (1 @| a @| b @| INil))
-    (function (i, (j, ())) -> (0sz, (i, (j, ()))))
-    (function (_, (i, (j, ()))) -> (i, (j, ())))
-    (fun (z, (_, (_, ()))) ->
-      FStar.SizeT.size_v_inj z;
-      ())
-    ez
-
-inline_for_extraction noextract
-let l2_to_l3n
-  (#a #b : nat)
-  (#l : layout2 a b)
-  {| cl : ctlayout l |}
-  : layout3 1 a b =
-  let _ = cl.all_fit in
-  C.layout_bij (C.bij_up (cbij23n a b)) l
-
-inline_for_extraction noextract
-instance cl2_to_cl3n
-  (#a #b : nat)
-  (#l : layout2 a b)
-  {| cl : ctlayout l |}
-  : ctlayout (l2_to_l3n #a #b #l) =
-  let _ = cl.all_fit in
-  C.clayout_bij (cbij23n a b) l
-
-let c2_to_c3n
-  (#et : Type0)
-  (a b : nat)
-  (af : squash (all_fit (a @| b @| INil)))
-  (s : chest2 et a b)
-  : chest3 et 1 a b =
-  C.chest_bij (C.bij_up (cbij23n a b)) s
-
-let c3_to_c2n
-  (#et : Type0)
-  (a b : nat)
-  (af : squash (all_fit (a @| b @| INil)))
-  (s : chest3 et 1 a b)
-  : chest2 et a b =
-  C.chest_bij (bij_sym (C.bij_up (cbij23n a b))) s
-
-let c2_to_c3n_roundtrip
-  (#et : Type0)
-  (a b : nat)
-  (af : squash (all_fit (a @| b @| INil)))
-  (s : chest2 et a b)
-  : Lemma (c3_to_c2n a b af (c2_to_c3n a b af s) == s)
-  =
-  Kuiper.Chest.lemma_equal_intro (c3_to_c2n a b af (c2_to_c3n a b af s)) s;
-  Kuiper.Chest.ext (c3_to_c2n a b af (c2_to_c3n a b af s)) s
-
-let c2_to_c3n_slice_page
-  (#et : Type0)
-  (a b : nat)
-  (af : squash (all_fit (a @| b @| INil)))
-  (s : chest2 et a b)
-  : Lemma (slice_page (c2_to_c3n a b af s) 0 == s)
-  =
-  Kuiper.Chest.lemma_equal_intro (slice_page (c2_to_c3n a b af s) 0) s;
-  Kuiper.Chest.ext (slice_page (c2_to_c3n a b af s) 0) s
-
-ghost
-fn t2_to_t3n
-  (#et : Type0)
-  (a b : nat)
-  (af : squash (all_fit (a @| b @| INil)))
-  (#l : layout2 a b)
-  {| ctlayout l |}
-  (g : tensor et l)
-  (#f : perm)
-  (#s : chest2 et a b)
-  requires
-    g |-> Frac f s
-  ensures
-    from_array (l2_to_l3n #a #b #l) (core g)
-      |-> Frac f (c2_to_c3n a b af s)
-{
-  C.tensor_abij (C.bij_up (cbij23n a b)) g;
-}
-
-ghost
-fn t3_to_t2n
-  (#et : Type0)
-  (a b : nat)
-  (af : squash (all_fit (a @| b @| INil)))
-  (#l : layout2 a b)
-  {| ctlayout l |}
-  (g : tensor et l)
-  (#f : perm)
-  (#s3 : chest3 et 1 a b)
-  requires
-    from_array (l2_to_l3n #a #b #l) (core g) |-> Frac f s3
-  ensures
-    g |-> Frac f (c3_to_c2n a b af s3)
-{
-  let g3 = from_array (l2_to_l3n #a #b #l) (core g);
-  rewrite each
-    from_array (l2_to_l3n #a #b #l) (core g)
-  as g3;
-  tensor_ilower g3;
-  let g2 = from_array l (core g3);
-  rewrite each core g3 as core g2;
-
-  let bij = C.bij_up (cbij23n a b);
-  forevery_iso (bij_sym bij)
-    (fun (idx3 : abs (1 @| a @| b @| INil)) ->
-      Kuiper.Array.pts_to_cell (core g2) #f
-        ((l2_to_l3n #a #b #l).imap.f idx3)
-        (Chest.acc s3 idx3));
-  forevery_ext
-    (fun (idx2 : abs (a @| b @| INil)) ->
-      Kuiper.Array.pts_to_cell (core g2) #f
-        ((l2_to_l3n #a #b #l).imap.f (bij.ff idx2))
-        (Chest.acc s3 (bij.ff idx2)))
-    (fun (idx2 : abs (a @| b @| INil)) ->
-      Kuiper.Array.pts_to_cell (core g2) #f
-        (l.imap.f idx2)
-        (Chest.acc (c3_to_c2n a b af s3) idx2));
-  tensor_iraise g2;
-  rewrite
-    (g2 |-> Frac f (c3_to_c2n a b af s3))
-  as
-    (g |-> Frac f (c3_to_c2n a b af s3));
-}
-
-ghost
-fn t3_to_t2n_ow
-  (#et : Type0)
-  (a b : nat)
-  (af : squash (all_fit (a @| b @| INil)))
-  (#l : layout2 a b)
-  {| ctlayout l |}
-  (g : tensor et l)
-  (#f : perm)
-  (#s : chest2 et a b)
-  requires
-    from_array (l2_to_l3n #a #b #l) (core g) |-> Frac f (c2_to_c3n a b af s)
-  ensures
-    g |-> Frac f s
-{
-  t3_to_t2n a b af g;
-  c2_to_c3n_roundtrip a b af s;
-  rewrite
-    (g |-> Frac f (c3_to_c2n a b af (c2_to_c3n a b af s)))
-  as
-    (g |-> Frac f s);
-}
-
-(* helper: extract the all_fit fact from a rank-2 ctlayout *)
-let layout2_all_fit
-  (#a #b : nat)
-  (l : layout2 a b)
-  {| cl : ctlayout l |}
-  : squash (all_fit (a @| b @| INil))
-  = cl.all_fit
-
-(* c2_to_c3n preserves the approximation relation (cellwise reindex). *)
-let c2_to_c3_approx
-  (#et : Type0) {| scalar et, real_like et |}
-  (a b : nat)
-  (af : squash (all_fit (a @| b @| INil)))
-  (e : chest2 et a b)
-  (r : chest2 real a b)
-  : Lemma (requires e %~ r)
-          (ensures c2_to_c3n a b af e %~ c2_to_c3n a b af r)
-  = introduce forall (idx : abs (1 @| a @| b @| INil)).
-      Chest.acc (c2_to_c3n a b af e) idx %~ Chest.acc (c2_to_c3n a b af r) idx
-    with (let (p, (i, (j, ()))) = idx in ())
-
-(* c3_to_c2n preserves the approximation relation (cellwise reindex). *)
-let c3_to_c2_approx
-  (#et : Type0) {| scalar et, real_like et |}
-  (a b : nat)
-  (af : squash (all_fit (a @| b @| INil)))
-  (e : chest3 et 1 a b)
-  (r : chest3 real 1 a b)
-  : Lemma (requires e %~ r)
-          (ensures c3_to_c2n a b af e %~ c3_to_c2n a b af r)
-  = introduce forall (idx : abs (a @| b @| INil)).
-      Chest.acc (c3_to_c2n a b af e) idx %~ Chest.acc (c3_to_c2n a b af r) idx
-    with (let (i, (j, ())) = idx in ())
-
-(* Lowering a one-page batched gmmcomb yields the rank-2 gmmcomb. *)
-let batch1_gmmcomb
-  (#ta #tb #tc #tacc : Type0) {| scalar tacc |}
-  (mapA : ta -> tacc)
-  (mapB : tb -> tacc)
-  (comb : tc -> tacc -> tc)
-  (a1 a2 a3 : nat)
-  (afC : squash (all_fit (a1 @| a3 @| INil)))
-  (afA : squash (all_fit (a1 @| a2 @| INil)))
-  (afB : squash (all_fit (a2 @| a3 @| INil)))
-  (eC : chest2 tc a1 a3)
-  (eA : chest2 ta a1 a2)
-  (eB : chest2 tb a2 a3)
-  : Lemma (
-      c3_to_c2n a1 a3 afC
-        (MS.gbmmcomb mapA mapB comb
-          (c2_to_c3n a1 a3 afC eC)
-          (c2_to_c3n a1 a2 afA eA)
-          (c2_to_c3n a2 a3 afB eB))
-      == MS.gmmcomb mapA mapB comb eC eA eB)
-  =
-  c2_to_c3n_slice_page a1 a3 afC eC;
-  c2_to_c3n_slice_page a1 a2 afA eA;
-  c2_to_c3n_slice_page a2 a3 afB eB;
-  assert (equal
-      (c3_to_c2n a1 a3 afC
-        (MS.gbmmcomb mapA mapB comb
-          (c2_to_c3n a1 a3 afC eC)
-          (c2_to_c3n a1 a2 afA eA)
-          (c2_to_c3n a2 a3 afB eB)))
-      (MS.gmmcomb mapA mapB comb eC eA eB))
-
 (* [bsize_req] at batch one follows from the rank-2 size requirement. *)
 let size_req_bsize1 (m n k tile : nat)
   : Lemma (requires m * n <= max_blocks) (ensures bsize_req 1 m n k tile)
@@ -1711,50 +1486,50 @@ fn gmmcomb_gpu_approx
       on gpu_loc (gC |-> eC') **
       pure (eC' %~ MS.gmmcomb mapA_r mapB_r comb_r rC rA rB))
 {
-  let afA : squash (all_fit ((m * tile) @| (k * tile) @| INil)) = layout2_all_fit lA;
-  let afB : squash (all_fit ((k * tile) @| (n * tile) @| INil)) = layout2_all_fit lB;
-  let afC : squash (all_fit ((m * tile) @| (n * tile) @| INil)) = layout2_all_fit lC;
+  let afA : squash (all_fit ((m * tile) @| (k * tile) @| INil)) = C.layout2_all_fit lA;
+  let afB : squash (all_fit ((k * tile) @| (n * tile) @| INil)) = C.layout2_all_fit lB;
+  let afC : squash (all_fit ((m * tile) @| (n * tile) @| INil)) = C.layout2_all_fit lC;
   size_req_bsize1 (SZ.v m) (SZ.v n) (SZ.v k) (SZ.v tile);
 
   (* cast_in: relayout the rank-2 ownership to its batch-one rank-3 view. *)
-  map_loc gpu_loc (fun () -> t2_to_t3n (m * tile) (k * tile) afA gA);
-  map_loc gpu_loc (fun () -> t2_to_t3n (k * tile) (n * tile) afB gB);
-  map_loc gpu_loc (fun () -> t2_to_t3n (m * tile) (n * tile) afC gC);
+  map_loc gpu_loc (fun () -> C.t2_to_t3n (m * tile) (k * tile) afA gA);
+  map_loc gpu_loc (fun () -> C.t2_to_t3n (k * tile) (n * tile) afB gB);
+  map_loc gpu_loc (fun () -> C.t2_to_t3n (m * tile) (n * tile) afC gC);
 
   (* carry the approximation facts to the rank-3 chests. *)
-  c2_to_c3_approx (m * tile) (k * tile) afA eA rA;
-  c2_to_c3_approx (k * tile) (n * tile) afB eB rB;
-  c2_to_c3_approx (m * tile) (n * tile) afC eC rC;
+  MU.c2_to_c3_approx (m * tile) (k * tile) afA eA rA;
+  MU.c2_to_c3_approx (k * tile) (n * tile) afB eB rB;
+  MU.c2_to_c3_approx (m * tile) (n * tile) afC eC rC;
 
   gbmmcomb_gpu_approx tile mapA mapB comb mapA_r mapB_r comb_r
     #1sz #m #n #k
-    #(l2_to_l3n #(m * tile) #(k * tile) #lA)
-    #(l2_to_l3n #(k * tile) #(n * tile) #lB)
-    #(l2_to_l3n #(m * tile) #(n * tile) #lC)
-    (relay gA (l2_to_l3n #(m * tile) #(k * tile) #lA))
-    (relay gB (l2_to_l3n #(k * tile) #(n * tile) #lB))
-    (relay gC (l2_to_l3n #(m * tile) #(n * tile) #lC))
-    (c2_to_c3n (m * tile) (k * tile) afA rA)
-    (c2_to_c3n (k * tile) (n * tile) afB rB)
-    (c2_to_c3n (m * tile) (n * tile) afC rC)
-    #(c2_to_c3n (m * tile) (k * tile) afA eA)
-    #(c2_to_c3n (k * tile) (n * tile) afB eB)
-    #(c2_to_c3n (m * tile) (n * tile) afC eC)
+    #(C.l2_to_l3n #(m * tile) #(k * tile) #lA)
+    #(C.l2_to_l3n #(k * tile) #(n * tile) #lB)
+    #(C.l2_to_l3n #(m * tile) #(n * tile) #lC)
+    (relay gA (C.l2_to_l3n #(m * tile) #(k * tile) #lA))
+    (relay gB (C.l2_to_l3n #(k * tile) #(n * tile) #lB))
+    (relay gC (C.l2_to_l3n #(m * tile) #(n * tile) #lC))
+    (C.c2_to_c3n (m * tile) (k * tile) afA rA)
+    (C.c2_to_c3n (k * tile) (n * tile) afB rB)
+    (C.c2_to_c3n (m * tile) (n * tile) afC rC)
+    #(C.c2_to_c3n (m * tile) (k * tile) afA eA)
+    #(C.c2_to_c3n (k * tile) (n * tile) afB eB)
+    #(C.c2_to_c3n (m * tile) (n * tile) afC eC)
     #fA #fB;
 
   (* restore the flat rank-2 views of A and B. *)
-  map_loc gpu_loc (fun () -> t3_to_t2n_ow (m * tile) (k * tile) afA gA);
-  map_loc gpu_loc (fun () -> t3_to_t2n_ow (k * tile) (n * tile) afB gB);
+  map_loc gpu_loc (fun () -> C.t3_to_t2n_ow (m * tile) (k * tile) afA gA);
+  map_loc gpu_loc (fun () -> C.t3_to_t2n_ow (k * tile) (n * tile) afB gB);
 
   (* cast_out for C: lower the batched result to the rank-2 gmmcomb post. *)
-  with eC3'. assert (on gpu_loc (relay gC (l2_to_l3n #(m * tile) #(n * tile) #lC) |-> eC3'));
-  map_loc gpu_loc (fun () -> t3_to_t2n (m * tile) (n * tile) afC gC);
-  c3_to_c2_approx (m * tile) (n * tile) afC eC3'
+  with eC3'. assert (on gpu_loc (relay gC (C.l2_to_l3n #(m * tile) #(n * tile) #lC) |-> eC3'));
+  map_loc gpu_loc (fun () -> C.t3_to_t2n (m * tile) (n * tile) afC gC);
+  MU.c3_to_c2_approx (m * tile) (n * tile) afC eC3'
     (MS.gbmmcomb mapA_r mapB_r comb_r
-      (c2_to_c3n (m * tile) (n * tile) afC rC)
-      (c2_to_c3n (m * tile) (k * tile) afA rA)
-      (c2_to_c3n (k * tile) (n * tile) afB rB));
-  batch1_gmmcomb mapA_r mapB_r comb_r
+      (C.c2_to_c3n (m * tile) (n * tile) afC rC)
+      (C.c2_to_c3n (m * tile) (k * tile) afA rA)
+      (C.c2_to_c3n (k * tile) (n * tile) afB rB));
+  MU.batch1_gmmcomb mapA_r mapB_r comb_r
     (m * tile) (k * tile) (n * tile) afC afA afB rC rA rB;
   ();
 }
