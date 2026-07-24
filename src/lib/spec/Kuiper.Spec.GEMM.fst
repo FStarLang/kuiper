@@ -10,6 +10,21 @@ let lincomb_approx2
           (ensures approx2 (lincomb alpha beta) (lincomb alpha_r beta_r))
           [SMTPat (approx2 (lincomb alpha beta) (lincomb alpha_r beta_r))]
   = ()
+  
+let lincomb_to_approx2
+  (#et_acc #et_cd : Type0)
+  {| scalar et_acc, real_like et_acc |}
+  {| scalar et_cd, real_like et_cd |}
+  {| float_cast et_cd et_acc, float_cast et_acc et_cd |}
+  (alpha beta : et_acc)
+  : Lemma (ensures
+      approx2
+        (lincomb_to #et_acc #et_cd alpha beta)
+        (rlincomb (to_real alpha) (to_real beta)))
+=
+  lincomb_approx2
+    alpha beta (to_real alpha) (to_real beta);
+  ()
 
 let rec __gmatmul_single
   (#t1 #t2 #t3 : Type)

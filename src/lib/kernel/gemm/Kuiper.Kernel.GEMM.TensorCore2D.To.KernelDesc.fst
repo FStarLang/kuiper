@@ -494,6 +494,25 @@ fn epilogue_fragment_from_warp
     assert pure (SZ.v idx / SZ.v wn < SZ.v wm);
     assert pure (SZ.v idx % SZ.v wn < SZ.v wn);
     assert pure (
+      (SZ.v idx % SZ.v wn) * SZ.v cols + SZ.v col
+      < SZ.v wn * SZ.v cols);
+    assert pure (
+      SZ.v warpCol + 1
+      <= SZ.v bn / (SZ.v wn * SZ.v cols));
+    FStar.Math.Lemmas.div_exact_r
+      (SZ.v bn) (SZ.v wn * SZ.v cols);
+    assert pure (
+      (SZ.v bn / (SZ.v wn * SZ.v cols))
+        * (SZ.v wn * SZ.v cols)
+      == SZ.v bn);
+    assert pure (
+      SZ.v warpCol * (SZ.v wn * SZ.v cols)
+        + (SZ.v idx % SZ.v wn) * SZ.v cols + SZ.v col
+      < (SZ.v warpCol + 1) * (SZ.v wn * SZ.v cols));
+    assert pure (
+      (SZ.v warpCol + 1) * (SZ.v wn * SZ.v cols)
+      <= SZ.v bn);
+    assert pure (
       SZ.v warpRow * (SZ.v wm * SZ.v rows)
         + (SZ.v idx / SZ.v wn) * SZ.v rows + SZ.v row
       < SZ.v bm);
@@ -1923,6 +1942,10 @@ fn teardown_to
         pure (eBlock %~
           ematrix_subtile (MS.mmcomb comb_r rC rA rB) bm bn br bc))
     fn br bc {
+      assert pure (
+        (br * (n / bn) + bc) / (n / bn) == br);
+      assert pure (
+        (br * (n / bn) + bc) % (n / bn) == bc);
       rewrite each block_tile gD (SZ.v bm) (SZ.v bn)
         (br * (n / bn) + bc)
         as array2_subtile gD (SZ.v bm) (SZ.v bn) br bc;

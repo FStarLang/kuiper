@@ -17,7 +17,7 @@ let warp_size = 32
 fn warp_barrier_wait
   ()
   (p q: natlt warp_size -> slprop)
-  (proof: unit -> stt_ghost unit emp_inames
+  (proof: stt_ghost unit emp_inames
     (requires forall+ (i:natlt warp_size). p i)
     (ensures  fun _ -> forall+ (i:natlt warp_size). q i))
   (#n: erased nat)

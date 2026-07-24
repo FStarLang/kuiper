@@ -22,15 +22,10 @@ open Pulse.Lib.Array
 open Pulse.Lib.Trade
 
 module SZ = Kuiper.SizeT
-module B = Kuiper.Barrier
 module T = Kuiper.Tensor
-module FB = Kuiper.Kernel.GEMM.FlipFlopBarrier2
 module CV2 = Kuiper.Kernel.GEMM.Copy.Vec2
-module BW = Kuiper.Barrier.Warp
 
 open Kuiper.Kernel.GEMM.TensorCore2D.KernelDesc
-
-
 open Kuiper.Kernel.GEMM.TensorCore2D.To.KernelDesc
 
 let output_fragment_post
@@ -56,11 +51,6 @@ let output_fragment_post
 let if_else_ (b : bool) (p q : slprop) : slprop =
   if_ b p ** if_ (not b) q
 
-ghost
-fn warp_emp_transform ()
-  requires forall+ (_ : natlt BW.warp_size). emp
-  ensures forall+ (_ : natlt BW.warp_size). emp
-{}
 
   ghost
   fn forevery_extract_replace_eqtype
@@ -410,11 +400,6 @@ fn epilogue_to
       scratch_tile bm bn bk tm tn nthr sh (SZ.v tid / warp_size)
     as sTile;
     mma_store accFrags.(!idx) sTile;
-
-    BW.warp_barrier_wait ()
-      (fun _ -> emp)
-      (fun _ -> emp)
-      warp_emp_transform;
 
     let rCFrag =
       ematrix_subtile rCWarp tm tn (SZ.v vidx / wn) (SZ.v vidx % wn);

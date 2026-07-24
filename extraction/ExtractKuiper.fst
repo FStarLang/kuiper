@@ -608,7 +608,7 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
     // Note: use of EBufSub relies on the type of gm unfolding to an array.
     // If IArray/VArray/any other layer defines a new inductive, karamel will complain.
     let gm = EBufSub (cb gm, offset) in
-    EApp (EQualified ([], "wmma::store_matrix_sync"), [ gm; fr; ldm; layout])
+    EApp (EQualified ([], "KPR_STORE_MATRIX_SYNC"), [ gm; fr; ldm; layout])
 
   (******** FLOAT ARITHMETIC *******)
 

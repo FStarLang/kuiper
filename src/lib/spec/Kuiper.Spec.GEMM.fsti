@@ -7,9 +7,21 @@ open Kuiper
 open Kuiper.Chest
 open Kuiper.EMatrix
 open Kuiper.EMatrix.Tiling
+open Kuiper.Float.Casts
 
 inline_for_extraction noextract
 let comb2 (#et:Type) (x y : et) : et = y
+
+// Out of place version of comb2 including casts
+let comb2_to (#et_acc #et_cd : Type0)
+  {| scalar et_acc, real_like et_acc |}
+  {| scalar et_cd, real_like et_cd |}
+  {| float_cast et_cd et_acc, float_cast et_acc et_cd |}
+  (x : et_cd) (y : et_acc)
+  : et_cd
+=
+  let x_acc : et_acc = fcast x in
+  fcast (comb2 x_acc y)
 
 inline_for_extraction noextract
 let lincomb
@@ -19,6 +31,21 @@ let lincomb
   (* x is the old value, y is the new computed value *)
   : et
   = add (mul beta x) (mul alpha y)
+
+// Out of place version of lincomb, including casts
+inline_for_extraction noextract
+let lincomb_to
+  (#et_acc #et_cd : Type0)
+  {| scalar et_acc, real_like et_acc |}
+  {| scalar et_cd, real_like et_cd |}
+  {| float_cast et_cd et_acc, float_cast et_acc et_cd |}
+  (alpha beta : et_acc)
+  (x : et_cd)
+  (y : et_acc)
+  : et_cd
+=
+  let x_acc : et_acc = fcast x in
+  fcast (lincomb alpha beta x_acc y)
 
 let rlincomb
   (alpha beta : real)
@@ -33,6 +60,17 @@ val lincomb_approx2
   : Lemma (requires alpha %~ alpha_r /\ beta %~ beta_r)
           (ensures approx2 (lincomb alpha beta) (rlincomb alpha_r beta_r))
           [SMTPat (approx2 (lincomb alpha beta) (rlincomb alpha_r beta_r))]
+
+val lincomb_to_approx2
+  (#et_acc #et_cd : Type0)
+  {| scalar et_acc, real_like et_acc |}
+  {| scalar et_cd, real_like et_cd |}
+  {| float_cast et_cd et_acc, float_cast et_acc et_cd |}
+  (alpha beta : et_acc)
+  : Lemma (ensures
+      approx2
+        (lincomb_to #et_acc #et_cd alpha beta)
+        (rlincomb (to_real alpha) (to_real beta)))
 
 (* These functions defined a matmul over potentially
 different types, which is useful to state a matmul

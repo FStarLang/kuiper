@@ -26,7 +26,6 @@ module B = Kuiper.Barrier
 module T = Kuiper.Tensor
 module FB = Kuiper.Kernel.GEMM.FlipFlopBarrier2
 module CV2 = Kuiper.Kernel.GEMM.Copy.Vec2
-module BW = Kuiper.Barrier.Warp
 
 open Kuiper.Kernel.GEMM.TensorCore2D.KernelDesc
 
