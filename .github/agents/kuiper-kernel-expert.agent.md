@@ -195,6 +195,15 @@ To resolve:
 - Propose use of shared memory or tensor cores when appropriate
 - Balance optimization with verification constraints
 
+## Extraction Quality (avoiding structs/tuples in generated CUDA)
+
+Concrete index tuples (e.g. `conc (batch @| rows @| cols @| INil)` values like `(page, (grow, (gcol, ())))`) and other tuple-typed `let` bindings that survive to extraction get emitted as C `struct`s in the generated CUDA, which is slow and ugly. To keep the generated code flat:
+
+- **Repeat the literal tuple at the call site instead of binding it.** A `let ci = (page, (grow, (gcol, ())))` passed to a function does NOT inline — Karamel keeps `ci` as a struct. Pass the literal `(page, (grow, (gcol, ())))` directly to each consumer. If you still need `ci` for proof/rewriting, keep the binding but add `assert rewrites_to ci (page, (grow, (gcol, ())))` so both the readable name and the inlined literal coexist.
+- **Use `[@@inline_let]` on tuple-typed `let`s inside layout lambdas** (e.g. the `cimap` in `c_subtile_layout`), so the reindexed tuple inlines rather than extracting as a struct.
+- **Make ghost index values `erased`.** Index bindings used only in specs/proofs (e.g. `let bidn : natlt (...) = SZ.v bid`) should be `let bidn : erased (natlt (...)) = SZ.v bid` — otherwise they extract as concrete tuples/values.
+- After changing extraction attributes, re-verify the module AND regenerate the `.cu` (`make obj/<Module_With_Dots_As_Underscores>.cu`) to confirm the structs are gone.
+
 ## Code Search Tips
 
 When searching for patterns in the codebase:
