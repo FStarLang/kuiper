@@ -78,12 +78,18 @@ uint64_t Kuiper_Example_Async1_main(void)
     uint64_t *r4 = Kuiper_Example_Async1_galloc(4ULL);
     uint64_t *r5 = Kuiper_Example_Async1_galloc(5ULL);
     uint64_t *r6 = Kuiper_Example_Async1_galloc(6ULL);
-    KPR_KCALL(__hoisted_main_0, 1U, 1U, 0U, r1);
-    KPR_KCALL(__hoisted_main_1, 1U, 1U, 0U, r2);
-    KPR_KCALL(__hoisted_main_2, 1U, 1U, 0U, r3);
-    KPR_KCALL(__hoisted_main_3, 1U, 1U, 0U, r4);
-    KPR_KCALL(__hoisted_main_4, 1U, 1U, 0U, r5);
-    KPR_KCALL(__hoisted_main_5, 1U, 1U, 0U, r6);
+    cudaStream_t s1 = KPR_FRESH_STREAM();
+    cudaStream_t s2 = KPR_FRESH_STREAM();
+    cudaStream_t s3 = KPR_FRESH_STREAM();
+    cudaStream_t s4 = KPR_FRESH_STREAM();
+    cudaStream_t s5 = KPR_FRESH_STREAM();
+    cudaStream_t s6 = KPR_FRESH_STREAM();
+    KPR_KCALL(__hoisted_main_0, 1U, 1U, 0U, s1, r1);
+    KPR_KCALL(__hoisted_main_1, 1U, 1U, 0U, s2, r2);
+    KPR_KCALL(__hoisted_main_2, 1U, 1U, 0U, s3, r3);
+    KPR_KCALL(__hoisted_main_3, 1U, 1U, 0U, s4, r4);
+    KPR_KCALL(__hoisted_main_4, 1U, 1U, 0U, s5, r5);
+    KPR_KCALL(__hoisted_main_5, 1U, 1U, 0U, s6, r6);
     MUST(cudaDeviceSynchronize());
     uint64_t v1 = Kuiper_Example_Async1_gread(r1);
     MUST(cudaFree(r1));
@@ -97,5 +103,11 @@ uint64_t Kuiper_Example_Async1_main(void)
     MUST(cudaFree(r5));
     uint64_t v6 = Kuiper_Example_Async1_gread(r6);
     MUST(cudaFree(r6));
+    MUST(cudaStreamDestroy(s1));
+    MUST(cudaStreamDestroy(s2));
+    MUST(cudaStreamDestroy(s3));
+    MUST(cudaStreamDestroy(s4));
+    MUST(cudaStreamDestroy(s5));
+    MUST(cudaStreamDestroy(s6));
     return v1 + v2 + v3 + v4 + v5 + v6;
 }

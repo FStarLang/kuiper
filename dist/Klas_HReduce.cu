@@ -35,13 +35,15 @@ half Klas_HReduce_reduce_f16_plus(uint32_t nth, uint32_t lena, half *a)
     half *x_ = a;
     half *out0 = (half *) KPR_GPU_ALLOC(sizeof(half), 1U);
     half *out = out0;
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(2U * nth);
     MUST(cudaFuncSetAttribute(__hoisted_reduce_f16_plus_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               2U * nth));
-    KPR_KCALL(__hoisted_reduce_f16_plus_0, 1U, nth, 2U * nth, nth, lena, x_,
+    KPR_KCALL(__hoisted_reduce_f16_plus_0, 1U, nth, 2U * nth, s, nth, lena, x_,
               out);
-    MUST(cudaDeviceSynchronize());
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
     half *local_out = (half *) KRML_HOST_MALLOC(sizeof(half));
     if (local_out != NULL)
         *local_out = __float2half_rn(0.0f);
@@ -87,13 +89,15 @@ float Klas_HReduce_reduce_f32_plus(uint32_t nth, uint32_t lena, float *a)
     float *x_ = a;
     float *out0 = (float *)KPR_GPU_ALLOC(sizeof(float), 1U);
     float *out = out0;
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(4U * nth);
     MUST(cudaFuncSetAttribute(__hoisted_reduce_f32_plus_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               4U * nth));
-    KPR_KCALL(__hoisted_reduce_f32_plus_0, 1U, nth, 4U * nth, nth, lena, x_,
+    KPR_KCALL(__hoisted_reduce_f32_plus_0, 1U, nth, 4U * nth, s, nth, lena, x_,
               out);
-    MUST(cudaDeviceSynchronize());
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
     float *local_out = (float *)KRML_HOST_MALLOC(sizeof(float));
     if (local_out != NULL)
         *local_out = 0.0f;
@@ -139,13 +143,15 @@ double Klas_HReduce_reduce_f64_plus(uint32_t nth, uint32_t lena, double *a)
     double *x_ = a;
     double *out0 = (double *)KPR_GPU_ALLOC(sizeof(double), 1U);
     double *out = out0;
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(8U * nth);
     MUST(cudaFuncSetAttribute(__hoisted_reduce_f64_plus_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               8U * nth));
-    KPR_KCALL(__hoisted_reduce_f64_plus_0, 1U, nth, 8U * nth, nth, lena, x_,
+    KPR_KCALL(__hoisted_reduce_f64_plus_0, 1U, nth, 8U * nth, s, nth, lena, x_,
               out);
-    MUST(cudaDeviceSynchronize());
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
     double *local_out = (double *)KRML_HOST_MALLOC(sizeof(double));
     if (local_out != NULL)
         *local_out = 0.0;
@@ -192,13 +198,15 @@ uint32_t Klas_HReduce_reduce_u32_plus(uint32_t nth, uint32_t lena, uint32_t *a)
     uint32_t *x_ = a;
     uint32_t *out0 = (uint32_t *) KPR_GPU_ALLOC(sizeof(uint32_t), 1U);
     uint32_t *out = out0;
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(4U * nth);
     MUST(cudaFuncSetAttribute(__hoisted_reduce_u32_plus_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               4U * nth));
-    KPR_KCALL(__hoisted_reduce_u32_plus_0, 1U, nth, 4U * nth, nth, lena, x_,
+    KPR_KCALL(__hoisted_reduce_u32_plus_0, 1U, nth, 4U * nth, s, nth, lena, x_,
               out);
-    MUST(cudaDeviceSynchronize());
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
     uint32_t *local_out = (uint32_t *) KRML_HOST_CALLOC(1U, sizeof(uint32_t));
     MUST(cudaMemcpy
          (local_out, out0, (uint32_t) sizeof(uint32_t),
@@ -244,13 +252,15 @@ uint64_t Klas_HReduce_reduce_u64_plus(uint32_t nth, uint32_t lena, uint64_t *a)
     uint64_t *x_ = a;
     uint64_t *out0 = (uint64_t *) KPR_GPU_ALLOC(sizeof(uint64_t), 1U);
     uint64_t *out = out0;
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(8U * nth);
     MUST(cudaFuncSetAttribute(__hoisted_reduce_u64_plus_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               8U * nth));
-    KPR_KCALL(__hoisted_reduce_u64_plus_0, 1U, nth, 8U * nth, nth, lena, x_,
+    KPR_KCALL(__hoisted_reduce_u64_plus_0, 1U, nth, 8U * nth, s, nth, lena, x_,
               out);
-    MUST(cudaDeviceSynchronize());
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
     uint64_t *local_out = (uint64_t *) KRML_HOST_CALLOC(1U, sizeof(uint64_t));
     MUST(cudaMemcpy
          (local_out, out0, (uint32_t) sizeof(uint64_t),

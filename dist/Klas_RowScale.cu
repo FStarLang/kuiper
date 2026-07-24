@@ -19,10 +19,12 @@ static void __hoisted_rowscale_f16_rowmajor_0(uint32_t m, uint32_t n, half *a,
 void Klas_RowScale_rowscale_f16_rowmajor(uint32_t m, uint32_t n, half *a,
                                          half *b)
 {
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_KCALL(__hoisted_rowscale_f16_rowmajor_0,
               m * n / 1024U + (uint32_t) (m * n % 1024U != 0U),
-              1024U, 0U, m, n, a, b);
-    MUST(cudaDeviceSynchronize());
+              1024U, 0U, s, m, n, a, b);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -43,10 +45,12 @@ static void __hoisted_rowscale_f16_colmajor_0(uint32_t m, uint32_t n, half *a,
 void Klas_RowScale_rowscale_f16_colmajor(uint32_t m, uint32_t n, half *a,
                                          half *b)
 {
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_KCALL(__hoisted_rowscale_f16_colmajor_0,
               m * n / 1024U + (uint32_t) (m * n % 1024U != 0U),
-              1024U, 0U, m, n, a, b);
-    MUST(cudaDeviceSynchronize());
+              1024U, 0U, s, m, n, a, b);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -66,10 +70,12 @@ static void __hoisted_rowscale_f32_rowmajor_0(uint32_t m, uint32_t n, float *a,
 void Klas_RowScale_rowscale_f32_rowmajor(uint32_t m, uint32_t n, float *a,
                                          float *b)
 {
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_KCALL(__hoisted_rowscale_f32_rowmajor_0,
               m * n / 1024U + (uint32_t) (m * n % 1024U != 0U),
-              1024U, 0U, m, n, a, b);
-    MUST(cudaDeviceSynchronize());
+              1024U, 0U, s, m, n, a, b);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -89,10 +95,12 @@ static void __hoisted_rowscale_f32_colmajor_0(uint32_t m, uint32_t n, float *a,
 void Klas_RowScale_rowscale_f32_colmajor(uint32_t m, uint32_t n, float *a,
                                          float *b)
 {
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_KCALL(__hoisted_rowscale_f32_colmajor_0,
               m * n / 1024U + (uint32_t) (m * n % 1024U != 0U),
-              1024U, 0U, m, n, a, b);
-    MUST(cudaDeviceSynchronize());
+              1024U, 0U, s, m, n, a, b);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -112,10 +120,12 @@ static void __hoisted_rowscale_f64_rowmajor_0(uint32_t m, uint32_t n, double *a,
 void Klas_RowScale_rowscale_f64_rowmajor(uint32_t m, uint32_t n, double *a,
                                          double *b)
 {
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_KCALL(__hoisted_rowscale_f64_rowmajor_0,
               m * n / 1024U + (uint32_t) (m * n % 1024U != 0U),
-              1024U, 0U, m, n, a, b);
-    MUST(cudaDeviceSynchronize());
+              1024U, 0U, s, m, n, a, b);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -135,8 +145,10 @@ static void __hoisted_rowscale_f64_colmajor_0(uint32_t m, uint32_t n, double *a,
 void Klas_RowScale_rowscale_f64_colmajor(uint32_t m, uint32_t n, double *a,
                                          double *b)
 {
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_KCALL(__hoisted_rowscale_f64_colmajor_0,
               m * n / 1024U + (uint32_t) (m * n % 1024U != 0U),
-              1024U, 0U, m, n, a, b);
-    MUST(cudaDeviceSynchronize());
+              1024U, 0U, s, m, n, a, b);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }

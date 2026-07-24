@@ -35,16 +35,13 @@ void __MUST(cudaError_t rc, const char * str, const char * func, const char *fna
  * All kernel calls extract to this. The shared memory will just
  * be zero if not used, etc.
  */
-#define KPR_KCALL(foo, nblk, nthr, e_size, ...)						\
+#define KPR_KCALL(foo, nblk, nthr, e_size, stream, ...)						\
 	do {										\
 		auto _nblk = (nblk);							\
 		auto _nthr = (nthr);							\
 		if (_nblk > 0 && _nthr > 0) {						\
-			cudaStream_t fresh;						\
-			cudaStreamCreate(&fresh);					\
-			foo<<<_nblk, _nthr, (e_size), fresh>>>(__VA_ARGS__);		\
+			foo<<<_nblk, _nthr, (e_size), stream>>>(__VA_ARGS__);\
 			__MUST(cudaGetLastError(), "kcall", __func__, __FILE__, __LINE__);\
-			cudaStreamDestroy(fresh); /* note: ok to destroy while running */;\
 		}									\
 	} while (0)
 
@@ -131,5 +128,18 @@ void INFO ()
 tuples or structs that are not evaluated away. Ideally these values would not be
 visible in the CUDA code at all. */
 #define KRML_CLITERAL(a) (a)
+
+static inline
+cudaStream_t KPR_FRESH_STREAM() {
+	cudaStream_t s;
+	// Kuiper-created streams must be blocking because cudaMemcpy host -> device is assumed
+	// to be blocking as far as the Kuiper semantics for it are concerned.
+	// In reality, cudaMemcpy host -> device does not have to block, but it is an operation 
+	// submitted to the NULL stream. Thus, only blocking streams are guaranteed to 
+	// synchronize with it first.
+	cudaError_t rc = cudaStreamCreate(&s);
+	__MUST(rc, "cudaStreamCreate", __func__, __FILE__, __LINE__);\
+	return s;
+}
 
 #endif /* KUIPER_H */

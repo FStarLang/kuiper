@@ -61,13 +61,20 @@ static void __hoisted_main_2(float *r, float *s1, float *s2)
 void Kuiper_Example_Async_GEMM_main(float *a, float *b, float *c1, float *d,
                                     float *r)
 {
+    cudaStream_t str1 = KPR_FRESH_STREAM();
+    cudaStream_t str2 = KPR_FRESH_STREAM();
     float *s1 = (float *)KPR_GPU_ALLOC(sizeof(float), 1048576U);
-    KPR_KCALL(__hoisted_main_0, 1024U, 1024U, 0U, a, b, s1);
+    KPR_KCALL(__hoisted_main_0, 1024U, 1024U, 0U, str1, a, b, s1);
     float *s2 = (float *)KPR_GPU_ALLOC(sizeof(float), 1048576U);
-    KPR_KCALL(__hoisted_main_1, 1024U, 1024U, 0U, c1, d, s2);
-    MUST(cudaDeviceSynchronize());
-    KPR_KCALL(__hoisted_main_2, 1024U, 1024U, 0U, r, s1, s2);
-    MUST(cudaDeviceSynchronize());
+    KPR_KCALL(__hoisted_main_1, 1024U, 1024U, 0U, str2, c1, d, s2);
+    MUST(cudaStreamSynchronize(str1));
+    MUST(cudaStreamSynchronize(str2));
+    cudaStream_t s = KPR_FRESH_STREAM();
+    KPR_KCALL(__hoisted_main_2, 1024U, 1024U, 0U, s, r, s1, s2);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
     MUST(cudaFree(s1));
     MUST(cudaFree(s2));
+    MUST(cudaStreamDestroy(str1));
+    MUST(cudaStreamDestroy(str2));
 }

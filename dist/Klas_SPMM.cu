@@ -92,14 +92,16 @@ Klas_SPMM_spmm_u32(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(1024U);
     MUST(cudaFuncSetAttribute(__hoisted_spmm_u32_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               1024U));
     KPR_KCALL(__hoisted_spmm_u32_0,
               rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)),
-              32U, 1024U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              32U, 1024U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -194,14 +196,16 @@ Klas_SPMM_spmm_f32(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(4096U);
     MUST(cudaFuncSetAttribute(__hoisted_spmm_f32_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               4096U));
     KPR_KCALL(__hoisted_spmm_f32_0,
               rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)),
-              64U, 4096U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              64U, 4096U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -294,14 +298,16 @@ Klas_SPMM_g_spmm_f32_16x16x16(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(128U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_16x16x16_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               128U));
     KPR_KCALL(__hoisted_g_spmm_f32_16x16x16_0,
               rows * (cols / 16U + (uint32_t) (cols % 16U != 0U)),
-              16U, 128U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              16U, 128U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -394,14 +400,16 @@ Klas_SPMM_g_spmm_f32_16x32x16(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(256U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_16x32x16_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               256U));
     KPR_KCALL(__hoisted_g_spmm_f32_16x32x16_0,
               rows * (cols / 16U + (uint32_t) (cols % 16U != 0U)),
-              16U, 256U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              16U, 256U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -494,14 +502,16 @@ Klas_SPMM_g_spmm_f32_16x64x16(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(512U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_16x64x16_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               512U));
     KPR_KCALL(__hoisted_g_spmm_f32_16x64x16_0,
               rows * (cols / 16U + (uint32_t) (cols % 16U != 0U)),
-              16U, 512U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              16U, 512U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -594,14 +604,16 @@ Klas_SPMM_g_spmm_f32_16x128x16(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(1024U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_16x128x16_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               1024U));
     KPR_KCALL(__hoisted_g_spmm_f32_16x128x16_0,
               rows * (cols / 16U + (uint32_t) (cols % 16U != 0U)),
-              16U, 1024U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              16U, 1024U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -694,14 +706,16 @@ Klas_SPMM_g_spmm_f32_16x256x16(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(2048U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_16x256x16_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               2048U));
     KPR_KCALL(__hoisted_g_spmm_f32_16x256x16_0,
               rows * (cols / 16U + (uint32_t) (cols % 16U != 0U)),
-              16U, 2048U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              16U, 2048U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -794,14 +808,16 @@ Klas_SPMM_g_spmm_f32_16x512x16(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(4096U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_16x512x16_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               4096U));
     KPR_KCALL(__hoisted_g_spmm_f32_16x512x16_0,
               rows * (cols / 16U + (uint32_t) (cols % 16U != 0U)),
-              16U, 4096U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              16U, 4096U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -895,14 +911,16 @@ Klas_SPMM_g_spmm_f32_32x16x16(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(128U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_32x16x16_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               128U));
     KPR_KCALL(__hoisted_g_spmm_f32_32x16x16_0,
               rows * (cols / 32U + (uint32_t) (cols % 32U != 0U)),
-              16U, 128U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              16U, 128U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -996,14 +1014,16 @@ Klas_SPMM_g_spmm_f32_32x32x16(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(256U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_32x32x16_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               256U));
     KPR_KCALL(__hoisted_g_spmm_f32_32x32x16_0,
               rows * (cols / 32U + (uint32_t) (cols % 32U != 0U)),
-              16U, 256U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              16U, 256U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -1096,14 +1116,16 @@ Klas_SPMM_g_spmm_f32_32x32x32(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(256U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_32x32x32_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               256U));
     KPR_KCALL(__hoisted_g_spmm_f32_32x32x32_0,
               rows * (cols / 32U + (uint32_t) (cols % 32U != 0U)),
-              32U, 256U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              32U, 256U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -1197,14 +1219,16 @@ Klas_SPMM_g_spmm_f32_32x64x16(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(512U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_32x64x16_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               512U));
     KPR_KCALL(__hoisted_g_spmm_f32_32x64x16_0,
               rows * (cols / 32U + (uint32_t) (cols % 32U != 0U)),
-              16U, 512U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              16U, 512U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -1297,14 +1321,16 @@ Klas_SPMM_g_spmm_f32_32x64x32(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(512U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_32x64x32_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               512U));
     KPR_KCALL(__hoisted_g_spmm_f32_32x64x32_0,
               rows * (cols / 32U + (uint32_t) (cols % 32U != 0U)),
-              32U, 512U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              32U, 512U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -1398,14 +1424,16 @@ Klas_SPMM_g_spmm_f32_32x128x16(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(1024U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_32x128x16_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               1024U));
     KPR_KCALL(__hoisted_g_spmm_f32_32x128x16_0,
               rows * (cols / 32U + (uint32_t) (cols % 32U != 0U)),
-              16U, 1024U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              16U, 1024U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -1498,14 +1526,16 @@ Klas_SPMM_g_spmm_f32_32x128x32(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(1024U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_32x128x32_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               1024U));
     KPR_KCALL(__hoisted_g_spmm_f32_32x128x32_0,
               rows * (cols / 32U + (uint32_t) (cols % 32U != 0U)),
-              32U, 1024U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              32U, 1024U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -1599,14 +1629,16 @@ Klas_SPMM_g_spmm_f32_32x256x16(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(2048U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_32x256x16_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               2048U));
     KPR_KCALL(__hoisted_g_spmm_f32_32x256x16_0,
               rows * (cols / 32U + (uint32_t) (cols % 32U != 0U)),
-              16U, 2048U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              16U, 2048U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -1699,14 +1731,16 @@ Klas_SPMM_g_spmm_f32_32x256x32(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(2048U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_32x256x32_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               2048U));
     KPR_KCALL(__hoisted_g_spmm_f32_32x256x32_0,
               rows * (cols / 32U + (uint32_t) (cols % 32U != 0U)),
-              32U, 2048U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              32U, 2048U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -1800,14 +1834,16 @@ Klas_SPMM_g_spmm_f32_32x512x16(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(4096U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_32x512x16_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               4096U));
     KPR_KCALL(__hoisted_g_spmm_f32_32x512x16_0,
               rows * (cols / 32U + (uint32_t) (cols % 32U != 0U)),
-              16U, 4096U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              16U, 4096U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -1900,14 +1936,16 @@ Klas_SPMM_g_spmm_f32_32x512x32(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(4096U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_32x512x32_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               4096U));
     KPR_KCALL(__hoisted_g_spmm_f32_32x512x32_0,
               rows * (cols / 32U + (uint32_t) (cols % 32U != 0U)),
-              32U, 4096U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              32U, 4096U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -2001,14 +2039,16 @@ Klas_SPMM_g_spmm_f32_64x16x16(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(128U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_64x16x16_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               128U));
     KPR_KCALL(__hoisted_g_spmm_f32_64x16x16_0,
               rows * (cols / 64U + (uint32_t) (cols % 64U != 0U)),
-              16U, 128U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              16U, 128U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -2102,14 +2142,16 @@ Klas_SPMM_g_spmm_f32_64x32x16(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(256U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_64x32x16_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               256U));
     KPR_KCALL(__hoisted_g_spmm_f32_64x32x16_0,
               rows * (cols / 64U + (uint32_t) (cols % 64U != 0U)),
-              16U, 256U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              16U, 256U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -2203,14 +2245,16 @@ Klas_SPMM_g_spmm_f32_64x32x32(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(256U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_64x32x32_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               256U));
     KPR_KCALL(__hoisted_g_spmm_f32_64x32x32_0,
               rows * (cols / 64U + (uint32_t) (cols % 64U != 0U)),
-              32U, 256U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              32U, 256U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -2304,14 +2348,16 @@ Klas_SPMM_g_spmm_f32_64x64x16(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(512U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_64x64x16_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               512U));
     KPR_KCALL(__hoisted_g_spmm_f32_64x64x16_0,
               rows * (cols / 64U + (uint32_t) (cols % 64U != 0U)),
-              16U, 512U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              16U, 512U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -2405,14 +2451,16 @@ Klas_SPMM_g_spmm_f32_64x64x32(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(512U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_64x64x32_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               512U));
     KPR_KCALL(__hoisted_g_spmm_f32_64x64x32_0,
               rows * (cols / 64U + (uint32_t) (cols % 64U != 0U)),
-              32U, 512U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              32U, 512U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -2505,14 +2553,16 @@ Klas_SPMM_g_spmm_f32_64x64x64(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(512U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_64x64x64_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               512U));
     KPR_KCALL(__hoisted_g_spmm_f32_64x64x64_0,
               rows * (cols / 64U + (uint32_t) (cols % 64U != 0U)),
-              64U, 512U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              64U, 512U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -2606,14 +2656,16 @@ Klas_SPMM_g_spmm_f32_64x128x16(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(1024U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_64x128x16_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               1024U));
     KPR_KCALL(__hoisted_g_spmm_f32_64x128x16_0,
               rows * (cols / 64U + (uint32_t) (cols % 64U != 0U)),
-              16U, 1024U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              16U, 1024U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -2707,14 +2759,16 @@ Klas_SPMM_g_spmm_f32_64x128x32(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(1024U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_64x128x32_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               1024U));
     KPR_KCALL(__hoisted_g_spmm_f32_64x128x32_0,
               rows * (cols / 64U + (uint32_t) (cols % 64U != 0U)),
-              32U, 1024U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              32U, 1024U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -2807,14 +2861,16 @@ Klas_SPMM_g_spmm_f32_64x128x64(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(1024U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_64x128x64_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               1024U));
     KPR_KCALL(__hoisted_g_spmm_f32_64x128x64_0,
               rows * (cols / 64U + (uint32_t) (cols % 64U != 0U)),
-              64U, 1024U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              64U, 1024U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -2908,14 +2964,16 @@ Klas_SPMM_g_spmm_f32_64x256x16(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(2048U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_64x256x16_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               2048U));
     KPR_KCALL(__hoisted_g_spmm_f32_64x256x16_0,
               rows * (cols / 64U + (uint32_t) (cols % 64U != 0U)),
-              16U, 2048U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              16U, 2048U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -3009,14 +3067,16 @@ Klas_SPMM_g_spmm_f32_64x256x32(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(2048U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_64x256x32_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               2048U));
     KPR_KCALL(__hoisted_g_spmm_f32_64x256x32_0,
               rows * (cols / 64U + (uint32_t) (cols % 64U != 0U)),
-              32U, 2048U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              32U, 2048U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -3109,14 +3169,16 @@ Klas_SPMM_g_spmm_f32_64x256x64(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(2048U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_64x256x64_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               2048U));
     KPR_KCALL(__hoisted_g_spmm_f32_64x256x64_0,
               rows * (cols / 64U + (uint32_t) (cols % 64U != 0U)),
-              64U, 2048U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              64U, 2048U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -3210,14 +3272,16 @@ Klas_SPMM_g_spmm_f32_64x512x16(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(4096U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_64x512x16_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               4096U));
     KPR_KCALL(__hoisted_g_spmm_f32_64x512x16_0,
               rows * (cols / 64U + (uint32_t) (cols % 64U != 0U)),
-              16U, 4096U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              16U, 4096U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -3311,14 +3375,16 @@ Klas_SPMM_g_spmm_f32_64x512x32(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(4096U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_64x512x32_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               4096U));
     KPR_KCALL(__hoisted_g_spmm_f32_64x512x32_0,
               rows * (cols / 64U + (uint32_t) (cols % 64U != 0U)),
-              32U, 4096U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              32U, 4096U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -3411,14 +3477,16 @@ Klas_SPMM_g_spmm_f32_64x512x64(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(4096U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_64x512x64_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               4096U));
     KPR_KCALL(__hoisted_g_spmm_f32_64x512x64_0,
               rows * (cols / 64U + (uint32_t) (cols % 64U != 0U)),
-              64U, 4096U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              64U, 4096U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -3513,14 +3581,16 @@ Klas_SPMM_g_spmm_f32_128x16x16(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(128U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_128x16x16_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               128U));
     KPR_KCALL(__hoisted_g_spmm_f32_128x16x16_0,
               rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)),
-              16U, 128U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              16U, 128U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -3615,14 +3685,16 @@ Klas_SPMM_g_spmm_f32_128x32x16(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(256U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_128x32x16_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               256U));
     KPR_KCALL(__hoisted_g_spmm_f32_128x32x16_0,
               rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)),
-              16U, 256U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              16U, 256U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -3717,14 +3789,16 @@ Klas_SPMM_g_spmm_f32_128x32x32(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(256U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_128x32x32_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               256U));
     KPR_KCALL(__hoisted_g_spmm_f32_128x32x32_0,
               rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)),
-              32U, 256U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              32U, 256U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -3819,14 +3893,16 @@ Klas_SPMM_g_spmm_f32_128x64x16(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(512U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_128x64x16_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               512U));
     KPR_KCALL(__hoisted_g_spmm_f32_128x64x16_0,
               rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)),
-              16U, 512U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              16U, 512U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -3921,14 +3997,16 @@ Klas_SPMM_g_spmm_f32_128x64x32(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(512U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_128x64x32_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               512U));
     KPR_KCALL(__hoisted_g_spmm_f32_128x64x32_0,
               rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)),
-              32U, 512U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              32U, 512U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -4023,14 +4101,16 @@ Klas_SPMM_g_spmm_f32_128x64x64(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(512U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_128x64x64_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               512U));
     KPR_KCALL(__hoisted_g_spmm_f32_128x64x64_0,
               rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)),
-              64U, 512U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              64U, 512U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -4125,14 +4205,16 @@ Klas_SPMM_g_spmm_f32_128x128x16(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(1024U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_128x128x16_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               1024U));
     KPR_KCALL(__hoisted_g_spmm_f32_128x128x16_0,
               rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)),
-              16U, 1024U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              16U, 1024U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -4227,14 +4309,16 @@ Klas_SPMM_g_spmm_f32_128x128x32(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(1024U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_128x128x32_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               1024U));
     KPR_KCALL(__hoisted_g_spmm_f32_128x128x32_0,
               rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)),
-              32U, 1024U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              32U, 1024U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -4329,14 +4413,16 @@ Klas_SPMM_g_spmm_f32_128x128x64(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(1024U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_128x128x64_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               1024U));
     KPR_KCALL(__hoisted_g_spmm_f32_128x128x64_0,
               rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)),
-              64U, 1024U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              64U, 1024U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -4430,14 +4516,16 @@ Klas_SPMM_g_spmm_f32_128x128x128(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(1024U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_128x128x128_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               1024U));
     KPR_KCALL(__hoisted_g_spmm_f32_128x128x128_0,
               rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)),
-              128U, 1024U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              128U, 1024U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -4532,14 +4620,16 @@ Klas_SPMM_g_spmm_f32_128x256x16(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(2048U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_128x256x16_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               2048U));
     KPR_KCALL(__hoisted_g_spmm_f32_128x256x16_0,
               rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)),
-              16U, 2048U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              16U, 2048U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -4634,14 +4724,16 @@ Klas_SPMM_g_spmm_f32_128x256x32(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(2048U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_128x256x32_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               2048U));
     KPR_KCALL(__hoisted_g_spmm_f32_128x256x32_0,
               rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)),
-              32U, 2048U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              32U, 2048U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -4736,14 +4828,16 @@ Klas_SPMM_g_spmm_f32_128x256x64(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(2048U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_128x256x64_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               2048U));
     KPR_KCALL(__hoisted_g_spmm_f32_128x256x64_0,
               rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)),
-              64U, 2048U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              64U, 2048U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -4837,14 +4931,16 @@ Klas_SPMM_g_spmm_f32_128x256x128(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(2048U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_128x256x128_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               2048U));
     KPR_KCALL(__hoisted_g_spmm_f32_128x256x128_0,
               rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)),
-              128U, 2048U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              128U, 2048U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -4939,14 +5035,16 @@ Klas_SPMM_g_spmm_f32_128x512x16(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(4096U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_128x512x16_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               4096U));
     KPR_KCALL(__hoisted_g_spmm_f32_128x512x16_0,
               rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)),
-              16U, 4096U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              16U, 4096U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -5041,14 +5139,16 @@ Klas_SPMM_g_spmm_f32_128x512x32(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(4096U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_128x512x32_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               4096U));
     KPR_KCALL(__hoisted_g_spmm_f32_128x512x32_0,
               rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)),
-              32U, 4096U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              32U, 4096U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -5143,14 +5243,16 @@ Klas_SPMM_g_spmm_f32_128x512x64(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(4096U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_128x512x64_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               4096U));
     KPR_KCALL(__hoisted_g_spmm_f32_128x512x64_0,
               rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)),
-              64U, 4096U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              64U, 4096U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -5244,14 +5346,16 @@ Klas_SPMM_g_spmm_f32_128x512x128(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(4096U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_128x512x128_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               4096U));
     KPR_KCALL(__hoisted_g_spmm_f32_128x512x128_0,
               rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)),
-              128U, 4096U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              128U, 4096U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -5346,14 +5450,16 @@ Klas_SPMM_g_spmm_f32_256x16x16(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(128U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_256x16x16_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               128U));
     KPR_KCALL(__hoisted_g_spmm_f32_256x16x16_0,
               rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)),
-              16U, 128U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              16U, 128U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -5448,14 +5554,16 @@ Klas_SPMM_g_spmm_f32_256x32x16(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(256U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_256x32x16_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               256U));
     KPR_KCALL(__hoisted_g_spmm_f32_256x32x16_0,
               rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)),
-              16U, 256U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              16U, 256U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -5550,14 +5658,16 @@ Klas_SPMM_g_spmm_f32_256x32x32(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(256U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_256x32x32_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               256U));
     KPR_KCALL(__hoisted_g_spmm_f32_256x32x32_0,
               rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)),
-              32U, 256U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              32U, 256U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -5652,14 +5762,16 @@ Klas_SPMM_g_spmm_f32_256x64x16(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(512U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_256x64x16_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               512U));
     KPR_KCALL(__hoisted_g_spmm_f32_256x64x16_0,
               rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)),
-              16U, 512U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              16U, 512U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -5754,14 +5866,16 @@ Klas_SPMM_g_spmm_f32_256x64x32(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(512U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_256x64x32_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               512U));
     KPR_KCALL(__hoisted_g_spmm_f32_256x64x32_0,
               rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)),
-              32U, 512U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              32U, 512U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -5856,14 +5970,16 @@ Klas_SPMM_g_spmm_f32_256x64x64(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(512U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_256x64x64_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               512U));
     KPR_KCALL(__hoisted_g_spmm_f32_256x64x64_0,
               rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)),
-              64U, 512U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              64U, 512U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -5958,14 +6074,16 @@ Klas_SPMM_g_spmm_f32_256x128x16(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(1024U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_256x128x16_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               1024U));
     KPR_KCALL(__hoisted_g_spmm_f32_256x128x16_0,
               rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)),
-              16U, 1024U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              16U, 1024U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -6060,14 +6178,16 @@ Klas_SPMM_g_spmm_f32_256x128x32(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(1024U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_256x128x32_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               1024U));
     KPR_KCALL(__hoisted_g_spmm_f32_256x128x32_0,
               rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)),
-              32U, 1024U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              32U, 1024U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -6162,14 +6282,16 @@ Klas_SPMM_g_spmm_f32_256x128x64(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(1024U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_256x128x64_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               1024U));
     KPR_KCALL(__hoisted_g_spmm_f32_256x128x64_0,
               rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)),
-              64U, 1024U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              64U, 1024U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -6264,14 +6386,16 @@ Klas_SPMM_g_spmm_f32_256x128x128(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(1024U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_256x128x128_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               1024U));
     KPR_KCALL(__hoisted_g_spmm_f32_256x128x128_0,
               rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)),
-              128U, 1024U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              128U, 1024U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -6366,14 +6490,16 @@ Klas_SPMM_g_spmm_f32_256x256x16(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(2048U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_256x256x16_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               2048U));
     KPR_KCALL(__hoisted_g_spmm_f32_256x256x16_0,
               rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)),
-              16U, 2048U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              16U, 2048U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -6468,14 +6594,16 @@ Klas_SPMM_g_spmm_f32_256x256x32(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(2048U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_256x256x32_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               2048U));
     KPR_KCALL(__hoisted_g_spmm_f32_256x256x32_0,
               rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)),
-              32U, 2048U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              32U, 2048U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -6570,14 +6698,16 @@ Klas_SPMM_g_spmm_f32_256x256x64(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(2048U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_256x256x64_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               2048U));
     KPR_KCALL(__hoisted_g_spmm_f32_256x256x64_0,
               rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)),
-              64U, 2048U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              64U, 2048U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -6672,14 +6802,16 @@ Klas_SPMM_g_spmm_f32_256x256x128(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(2048U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_256x256x128_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               2048U));
     KPR_KCALL(__hoisted_g_spmm_f32_256x256x128_0,
               rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)),
-              128U, 2048U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              128U, 2048U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -6773,14 +6905,16 @@ Klas_SPMM_g_spmm_f32_256x256x256(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(2048U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_256x256x256_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               2048U));
     KPR_KCALL(__hoisted_g_spmm_f32_256x256x256_0,
               rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)),
-              256U, 2048U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              256U, 2048U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -6875,14 +7009,16 @@ Klas_SPMM_g_spmm_f32_256x512x16(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(4096U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_256x512x16_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               4096U));
     KPR_KCALL(__hoisted_g_spmm_f32_256x512x16_0,
               rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)),
-              16U, 4096U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              16U, 4096U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -6977,14 +7113,16 @@ Klas_SPMM_g_spmm_f32_256x512x32(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(4096U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_256x512x32_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               4096U));
     KPR_KCALL(__hoisted_g_spmm_f32_256x512x32_0,
               rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)),
-              32U, 4096U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              32U, 4096U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -7079,14 +7217,16 @@ Klas_SPMM_g_spmm_f32_256x512x64(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(4096U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_256x512x64_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               4096U));
     KPR_KCALL(__hoisted_g_spmm_f32_256x512x64_0,
               rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)),
-              64U, 4096U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              64U, 4096U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -7181,14 +7321,16 @@ Klas_SPMM_g_spmm_f32_256x512x128(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(4096U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_256x512x128_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               4096U));
     KPR_KCALL(__hoisted_g_spmm_f32_256x512x128_0,
               rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)),
-              128U, 4096U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              128U, 4096U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -7282,14 +7424,16 @@ Klas_SPMM_g_spmm_f32_256x512x256(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(4096U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_256x512x256_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               4096U));
     KPR_KCALL(__hoisted_g_spmm_f32_256x512x256_0,
               rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)),
-              256U, 4096U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              256U, 4096U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -7384,14 +7528,16 @@ Klas_SPMM_g_spmm_f32_512x16x16(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(128U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_512x16x16_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               128U));
     KPR_KCALL(__hoisted_g_spmm_f32_512x16x16_0,
               rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)),
-              16U, 128U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              16U, 128U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -7486,14 +7632,16 @@ Klas_SPMM_g_spmm_f32_512x32x16(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(256U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_512x32x16_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               256U));
     KPR_KCALL(__hoisted_g_spmm_f32_512x32x16_0,
               rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)),
-              16U, 256U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              16U, 256U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -7588,14 +7736,16 @@ Klas_SPMM_g_spmm_f32_512x32x32(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(256U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_512x32x32_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               256U));
     KPR_KCALL(__hoisted_g_spmm_f32_512x32x32_0,
               rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)),
-              32U, 256U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              32U, 256U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -7690,14 +7840,16 @@ Klas_SPMM_g_spmm_f32_512x64x16(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(512U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_512x64x16_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               512U));
     KPR_KCALL(__hoisted_g_spmm_f32_512x64x16_0,
               rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)),
-              16U, 512U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              16U, 512U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -7792,14 +7944,16 @@ Klas_SPMM_g_spmm_f32_512x64x32(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(512U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_512x64x32_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               512U));
     KPR_KCALL(__hoisted_g_spmm_f32_512x64x32_0,
               rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)),
-              32U, 512U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              32U, 512U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -7894,14 +8048,16 @@ Klas_SPMM_g_spmm_f32_512x64x64(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(512U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_512x64x64_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               512U));
     KPR_KCALL(__hoisted_g_spmm_f32_512x64x64_0,
               rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)),
-              64U, 512U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              64U, 512U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -7996,14 +8152,16 @@ Klas_SPMM_g_spmm_f32_512x128x16(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(1024U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_512x128x16_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               1024U));
     KPR_KCALL(__hoisted_g_spmm_f32_512x128x16_0,
               rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)),
-              16U, 1024U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              16U, 1024U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -8098,14 +8256,16 @@ Klas_SPMM_g_spmm_f32_512x128x32(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(1024U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_512x128x32_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               1024U));
     KPR_KCALL(__hoisted_g_spmm_f32_512x128x32_0,
               rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)),
-              32U, 1024U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              32U, 1024U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -8200,14 +8360,16 @@ Klas_SPMM_g_spmm_f32_512x128x64(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(1024U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_512x128x64_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               1024U));
     KPR_KCALL(__hoisted_g_spmm_f32_512x128x64_0,
               rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)),
-              64U, 1024U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              64U, 1024U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -8302,14 +8464,16 @@ Klas_SPMM_g_spmm_f32_512x128x128(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(1024U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_512x128x128_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               1024U));
     KPR_KCALL(__hoisted_g_spmm_f32_512x128x128_0,
               rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)),
-              128U, 1024U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              128U, 1024U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -8404,14 +8568,16 @@ Klas_SPMM_g_spmm_f32_512x256x16(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(2048U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_512x256x16_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               2048U));
     KPR_KCALL(__hoisted_g_spmm_f32_512x256x16_0,
               rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)),
-              16U, 2048U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              16U, 2048U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -8506,14 +8672,16 @@ Klas_SPMM_g_spmm_f32_512x256x32(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(2048U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_512x256x32_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               2048U));
     KPR_KCALL(__hoisted_g_spmm_f32_512x256x32_0,
               rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)),
-              32U, 2048U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              32U, 2048U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -8608,14 +8776,16 @@ Klas_SPMM_g_spmm_f32_512x256x64(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(2048U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_512x256x64_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               2048U));
     KPR_KCALL(__hoisted_g_spmm_f32_512x256x64_0,
               rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)),
-              64U, 2048U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              64U, 2048U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -8710,14 +8880,16 @@ Klas_SPMM_g_spmm_f32_512x256x128(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(2048U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_512x256x128_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               2048U));
     KPR_KCALL(__hoisted_g_spmm_f32_512x256x128_0,
               rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)),
-              128U, 2048U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              128U, 2048U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -8812,14 +8984,16 @@ Klas_SPMM_g_spmm_f32_512x256x256(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(2048U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_512x256x256_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               2048U));
     KPR_KCALL(__hoisted_g_spmm_f32_512x256x256_0,
               rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)),
-              256U, 2048U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              256U, 2048U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -8914,14 +9088,16 @@ Klas_SPMM_g_spmm_f32_512x512x16(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(4096U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_512x512x16_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               4096U));
     KPR_KCALL(__hoisted_g_spmm_f32_512x512x16_0,
               rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)),
-              16U, 4096U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              16U, 4096U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -9016,14 +9192,16 @@ Klas_SPMM_g_spmm_f32_512x512x32(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(4096U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_512x512x32_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               4096U));
     KPR_KCALL(__hoisted_g_spmm_f32_512x512x32_0,
               rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)),
-              32U, 4096U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              32U, 4096U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -9118,14 +9296,16 @@ Klas_SPMM_g_spmm_f32_512x512x64(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(4096U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_512x512x64_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               4096U));
     KPR_KCALL(__hoisted_g_spmm_f32_512x512x64_0,
               rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)),
-              64U, 4096U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              64U, 4096U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -9220,14 +9400,16 @@ Klas_SPMM_g_spmm_f32_512x512x128(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(4096U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_512x512x128_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               4096U));
     KPR_KCALL(__hoisted_g_spmm_f32_512x512x128_0,
               rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)),
-              128U, 4096U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              128U, 4096U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -9322,14 +9504,16 @@ Klas_SPMM_g_spmm_f32_512x512x256(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(4096U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_512x512x256_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               4096U));
     KPR_KCALL(__hoisted_g_spmm_f32_512x512x256_0,
               rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)),
-              256U, 4096U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              256U, 4096U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -9423,12 +9607,14 @@ Klas_SPMM_g_spmm_f32_512x512x512(uint32_t rows,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(4096U);
     MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_512x512x512_0,
                               cudaFuncAttributeMaxDynamicSharedMemorySize,
                               4096U));
     KPR_KCALL(__hoisted_g_spmm_f32_512x512x512_0,
               rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)),
-              512U, 4096U, cols, gA, row_indices, gB, gC);
-    MUST(cudaDeviceSynchronize());
+              512U, 4096U, s, cols, gA, row_indices, gB, gC);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }

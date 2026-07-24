@@ -27,10 +27,13 @@ Kuiper_Example_Stencil_stencil3x3_f32_add_rr(uint32_t rows,
                                              uint32_t cols,
                                              float *gIn, float *gOut)
 {
+    uint32_t rows_sub2 = rows - 2U;
     uint32_t cols_sub2 = cols - 2U;
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_KCALL(__hoisted_stencil3x3_f32_add_rr_0,
-              (rows - 2U) * cols_sub2, 1U, 0U, gIn, gOut, cols_sub2);
-    MUST(cudaDeviceSynchronize());
+              rows_sub2 * cols_sub2, 1U, 0U, s, gIn, gOut, cols_sub2);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 __global__
@@ -62,7 +65,10 @@ Kuiper_Example_Stencil_stencil3x3_i32_add_mul2_rc(uint32_t rows,
 {
     uint32_t rows_sub2 = rows - 2U;
     uint32_t cols_sub2 = cols - 2U;
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_KCALL(__hoisted_stencil3x3_i32_add_mul2_rc_0,
-              rows_sub2 * cols_sub2, 1U, 0U, gIn, gOut, rows_sub2, cols_sub2);
-    MUST(cudaDeviceSynchronize());
+              rows_sub2 * cols_sub2,
+              1U, 0U, s, gIn, gOut, rows_sub2, cols_sub2);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }

@@ -12,6 +12,7 @@ include Kuiper.Real
 include Kuiper.ForEvery
 include Kuiper.Common
 include Kuiper.Epoch
+include Kuiper.Kernel.Stream
 include Kuiper.Assert
 include Kuiper.Base
 include Kuiper.Ref
@@ -52,8 +53,8 @@ unfold let sz2r (i:sz) : real = Real.of_int i
 
 (* Just an alias *)
 inline_for_extraction noextract
-unfold let launch #pre #post (k : kernel_desc pre post) #e =
-  launch_kernel_full #pre #post k #e
+unfold let launch #pre #post (k : kernel_desc pre post) (s: stream_t) #e =
+  launch_kernel_full #pre #post k s #e
 
 (* Just an alias *)
 inline_for_extraction noextract
