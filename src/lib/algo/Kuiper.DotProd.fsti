@@ -11,8 +11,8 @@ open Kuiper.EMatrix
 module MS = Kuiper.Spec.GEMM
 open Kuiper.Sum { sum }
 open Kuiper.Tensor
-open Kuiper.Shape { ( @| ), INil }
-open Kuiper.Chest { chest, chest_slice }
+open Kuiper.Shape { shape, ( @| ), ( @! ) }
+open Kuiper.Chest { chest, chest_slice, chest_map }
 open Kuiper.Container
 
 (* A simple dot product spec over sequences.
@@ -58,6 +58,17 @@ val chest1_dotprod_is_matmul_single
             MS.__matmul_single eA eB i j l)
           [SMTPat (chest1_dotprod' #k (chest_slice 0 i eA) (chest_slice 1 j eB) l)]
 
+(* Slicing a mapped chest equals mapping a sliced chest: [chest_map] commutes
+   with [chest_slice].  Lets the scalar [chest1_dotprod_is_matmul_single] fire
+   on the mapped matrices used by [gmatmul_dotprod]. *)
+val chest_map_slice_commute
+  (#et1 #et2 : Type0) (#r : nat) (#d : shape r)
+  (f : et1 -> et2)
+  (i : natlt r) (j : natlt (d @! i))
+  (s : chest d et1)
+  : Lemma (chest_slice i j (chest_map f s) == chest_map f (chest_slice i j s))
+          [SMTPat (chest_slice i j (chest_map f s))]
+
 (* Lemma: for reals, seq_dotprod equals Kuiper.Sum.sum *)
 val seq_dotprod_is_sum
   (#n : nat)
@@ -81,7 +92,30 @@ val seq_dotprod_is_matmul_single
             MS.__matmul_single eA eB i j k)
           [SMTPat (seq_dotprod' (ematrix_row eA i) (ematrix_col eB j) k)]
 
-(* A generic dot product between two array1 of the same length. *)
+(* General (fused-map, multi-type) dot product: reads A-cells of type [ta] and
+   B-cells of type [tb], maps each into the accumulation type [tacc] via
+   [mapA]/[mapB], and accumulates in [tacc]. *)
+inline_for_extraction noextract
+fn gdotprod
+  (#ta #tb #tacc : Type0) {| scalar tacc |}
+  (mapA : ta -> tacc) (mapB : tb -> tacc)
+  (#len : sz)
+  (#lA #lB : layout1 len)
+  {| ctlayout lA, ctlayout lB |}
+  (a : array1 ta lA)
+  (b : array1 tb lB)
+  (#sA : chest1 ta len) (#sB : chest1 tb len)
+  (#fA #fB : perm)
+  preserves
+    gpu **
+    a |-> Frac fA sA **
+    b |-> Frac fB sB
+  returns
+    res : tacc
+  ensures
+    pure (res == chest1_dotprod (chest_map mapA sA) (chest_map mapB sB))
+
+(* As above, with id maps. *)
 inline_for_extraction noextract
 fn dotprod
   (#et : Type0) {| scalar et |}
@@ -123,6 +157,31 @@ fn kahan_dotprod
     res : et
   ensures
     pure (res %~ chest1_dotprod rA rB)
+
+(* General (fused-map, multi-type) matmul cell: extract row i of A and column j
+   of B, then run [gdotprod] to obtain the fused dot product in [tacc]. *)
+inline_for_extraction noextract
+fn gmatmul_dotprod
+  (#ta #tb #tacc : Type0) {| scalar tacc |}
+  (mapA : ta -> tacc) (mapB : tb -> tacc)
+  (#m #n #k : sz)
+  (#lA : layout2 m k)
+  (#lB : layout2 k n)
+  {| ctlayout lA, ctlayout lB |}
+  (gA : array2 ta lA)
+  (gB : array2 tb lB)
+  (i : szlt m)
+  (j : szlt n)
+  (#eA : chest2 ta _ _) (#eB : chest2 tb _ _)
+  (#fA #fB : perm)
+  preserves
+    gpu **
+    gA |-> Frac fA eA **
+    gB |-> Frac fB eB
+  returns
+    res : tacc
+  ensures
+    pure (res == MS.matmul_single (chest_map mapA eA) (chest_map mapB eB) i j)
 
 (* Specialized to compute a cell of a matmul by extracting the appropriate row
 and column as Array1's, then calling dotprod above. *)

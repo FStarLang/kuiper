@@ -155,3 +155,126 @@ let bmmcomb_approx_real
     in
     Classical.forall_intro (fun idx -> Classical.move_requires aux idx);
     ()
+
+(* ===== General (fused-map, multi-type) approximation lemmas =====
+
+   These generalize [mmcomb_approx_real]/[bmmcomb_approx_real] to the
+   four-type, fused-map GEMM spec.  In the approximate world, each element
+   pre-map [mapE : et1 -> et2] is paired with a real counterpart
+   [mapR : real -> real] related by the function approximation [approx1 mapE mapR]
+   (i.e. [forall x r. x %~ r ==> mapE x %~ mapR r]).  Applying approximating
+   maps to approximating inputs yields approximating outputs. *)
+
+(* Mapping preserves approximation: if [approx1 mapE mapR] and [e %~ rr], then
+   [chest_map mapE e %~ chest_map mapR rr]. *)
+let chest_map_approx
+  (#et1 #et2 : Type0) {| scalar et1, real_like et1, scalar et2, real_like et2 |}
+  (mapE : et1 -> et2)
+  (mapR : real -> real)
+  (#rows #cols : nat)
+  (e : chest2 et1 rows cols)
+  (rr : chest2 real rows cols)
+  : Lemma
+    (requires approx1 mapE mapR /\ e %~ rr)
+    (ensures Chest.chest_map mapE e %~ Chest.chest_map mapR rr)
+  = let aux (idx : natlt rows & (natlt cols & unit))
+      : Lemma
+        (requires approx1 mapE mapR /\ e %~ rr)
+        (ensures Chest.acc (Chest.chest_map mapE e) idx %~ Chest.acc (Chest.chest_map mapR rr) idx)
+      = assert (Chest.acc e idx %~ Chest.acc rr idx);
+        ()
+    in
+    Classical.forall_intro (fun idx -> Classical.move_requires aux idx)
+
+(* General (fused-map, multi-type) rank-2 approximation: the element-level
+   [gmmcomb] over the mapped inputs approximates the real-level [gmmcomb] over
+   the real maps and real inputs. *)
+let gmmcomb_approx_real
+  (#ta #tb #tc #tacc : Type0)
+  {| scalar ta, real_like ta, scalar tb, real_like tb,
+     scalar tc, real_like tc, scalar tacc, real_like tacc |}
+  (mapA : ta -> tacc) (mapB : tb -> tacc)
+  (comb : tc -> tacc -> tc)
+  (mapA_r mapB_r : real -> real)
+  (comb_r : binop real)
+  (#rows #shared #cols : nat)
+  (eC : chest2 tc rows cols)
+  (eA : chest2 ta rows shared)
+  (eB : chest2 tb shared cols)
+  (rA : chest2 real rows shared)
+  (rB : chest2 real shared cols)
+  (rC : chest2 real rows cols)
+  : Lemma
+    (requires approx1 mapA mapA_r /\ approx1 mapB mapB_r /\ approx2 comb comb_r /\
+              eA %~ rA /\ eB %~ rB /\ eC %~ rC)
+    (ensures MS.gmmcomb mapA mapB comb eC eA eB
+             %~ MS.gmmcomb mapA_r mapB_r comb_r rC rA rB)
+  = chest_map_approx mapA mapA_r eA rA;
+    chest_map_approx mapB mapB_r eB rB;
+    let aux (idx : natlt rows & (natlt cols & unit))
+      : Lemma
+        (requires approx1 mapA mapA_r /\ approx1 mapB mapB_r /\ approx2 comb comb_r /\
+                  eA %~ rA /\ eB %~ rB /\ eC %~ rC /\
+                  Chest.chest_map mapA eA %~ Chest.chest_map mapA_r rA /\
+                  Chest.chest_map mapB eB %~ Chest.chest_map mapB_r rB)
+        (ensures acc2 (MS.gmmcomb mapA mapB comb eC eA eB) idx._1 idx._2._1
+                 %~ acc2 (MS.gmmcomb mapA_r mapB_r comb_r rC rA rB) idx._1 idx._2._1)
+      =
+        let (i, (j, ())) = idx in
+        __matmul_single_approx_real
+          (Chest.chest_map mapA eA) (Chest.chest_map mapB eB)
+          (Chest.chest_map mapA_r rA) (Chest.chest_map mapB_r rB)
+          i j shared;
+        assert (Chest.acc eC idx %~ Chest.acc rC idx);
+        assert (MS.matmul_single (Chest.chest_map mapA eA) (Chest.chest_map mapB eB) i j
+                %~ MS.matmul_single (Chest.chest_map mapA_r rA) (Chest.chest_map mapB_r rB) i j);
+        ()
+    in
+    Classical.forall_intro (fun idx -> Classical.move_requires aux idx)
+
+(* General (fused-map, multi-type) rank-3 batched approximation, reduced to
+   the rank-2 case per page. *)
+let gbmmcomb_approx_real
+  (#ta #tb #tc #tacc : Type0)
+  {| scalar ta, real_like ta, scalar tb, real_like tb,
+     scalar tc, real_like tc, scalar tacc, real_like tacc |}
+  (mapA : ta -> tacc) (mapB : tb -> tacc)
+  (comb : tc -> tacc -> tc)
+  (mapA_r mapB_r : real -> real)
+  (comb_r : binop real)
+  (#batch #m #n #k : nat)
+  (eA : chest3 ta batch m k)
+  (eB : chest3 tb batch k n)
+  (eC : chest3 tc batch m n)
+  (rA : chest3 real batch m k)
+  (rB : chest3 real batch k n)
+  (rC : chest3 real batch m n)
+  : Lemma
+    (requires approx1 mapA mapA_r /\ approx1 mapB mapB_r /\ approx2 comb comb_r /\
+              eA %~ rA /\ eB %~ rB /\ eC %~ rC)
+    (ensures MS.gbmmcomb mapA mapB comb eC eA eB
+             %~ MS.gbmmcomb mapA_r mapB_r comb_r rC rA rB)
+  = let aux (idx : natlt batch & (natlt m & (natlt n & unit)))
+      : Lemma
+        (requires approx1 mapA mapA_r /\ approx1 mapB mapB_r /\ approx2 comb comb_r /\
+                  eA %~ rA /\ eB %~ rB /\ eC %~ rC)
+        (ensures
+          acc3 (MS.gbmmcomb mapA mapB comb eC eA eB) idx._1 idx._2._1 idx._2._2._1
+          %~
+          acc3 (MS.gbmmcomb mapA_r mapB_r comb_r rC rA rB) idx._1 idx._2._1 idx._2._2._1)
+      =
+        let (page, (row, (col, ()))) = idx in
+        chest3_slice_page_approx eA rA page;
+        chest3_slice_page_approx eB rB page;
+        chest3_slice_page_approx eC rC page;
+        gmmcomb_approx_real mapA mapB comb mapA_r mapB_r comb_r
+          (slice_page eC page) (slice_page eA page) (slice_page eB page)
+          (slice_page rA page) (slice_page rB page) (slice_page rC page);
+        assert (acc2 (MS.gmmcomb mapA mapB comb
+                       (slice_page eC page) (slice_page eA page) (slice_page eB page)) row col
+                %~ acc2 (MS.gmmcomb mapA_r mapB_r comb_r
+                       (slice_page rC page) (slice_page rA page) (slice_page rB page)) row col);
+        ()
+    in
+    Classical.forall_intro (fun idx -> Classical.move_requires aux idx);
+    ()

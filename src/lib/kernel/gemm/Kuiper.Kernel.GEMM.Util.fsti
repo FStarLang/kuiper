@@ -138,3 +138,74 @@ val bmmcomb_approx_real
     (requires approx2 comb comb_r /\
               eA %~ rA /\ eB %~ rB /\ eC %~ rC)
     (ensures MS.bmmcomb comb eC eA eB %~ MS.bmmcomb comb_r rC rA rB)
+
+(* Approximation of a unary map: [f : a -> b] approximates the real map
+   [g : real -> real] iff it sends approximating inputs to approximating
+   outputs.  Unary analogue of [approx2], used for the fused input pre-maps. *)
+let approx1
+  (#a #b : Type0) {| scalar a, real_like a, scalar b, real_like b |}
+  (f : a -> b)
+  (g : real -> real)
+  : prop
+  = forall (x:a) (r:real). x %~ r ==> f x %~ g r
+
+(* Mapping preserves approximation: if [approx1 mapE mapR] and [e %~ rr], then
+   [chest_map mapE e %~ chest_map mapR rr]. *)
+val chest_map_approx
+  (#et1 #et2 : Type0) {| scalar et1, real_like et1, scalar et2, real_like et2 |}
+  (mapE : et1 -> et2)
+  (mapR : real -> real)
+  (#rows #cols : nat)
+  (e : chest2 et1 rows cols)
+  (rr : chest2 real rows cols)
+  : Lemma
+    (requires approx1 mapE mapR /\ e %~ rr)
+    (ensures Kuiper.Chest.chest_map mapE e %~ Kuiper.Chest.chest_map mapR rr)
+
+(* General (fused-map, multi-type) analogue of [mmcomb_approx_real]: if each
+   element pre-map approximates its real counterpart ([approx1 mapA mapA_r],
+   [approx1 mapB mapB_r]), [approx2 comb comb_r], and the inputs approximate the
+   real chests, then the element-level general combine [gmmcomb] approximates
+   its real-level counterpart. *)
+val gmmcomb_approx_real
+  (#ta #tb #tc #tacc : Type0)
+  {| scalar ta, real_like ta, scalar tb, real_like tb,
+     scalar tc, real_like tc, scalar tacc, real_like tacc |}
+  (mapA : ta -> tacc) (mapB : tb -> tacc)
+  (comb : tc -> tacc -> tc)
+  (mapA_r mapB_r : real -> real)
+  (comb_r : binop real)
+  (#rows #shared #cols : nat)
+  (eC : chest2 tc rows cols)
+  (eA : chest2 ta rows shared)
+  (eB : chest2 tb shared cols)
+  (rA : chest2 real rows shared)
+  (rB : chest2 real shared cols)
+  (rC : chest2 real rows cols)
+  : Lemma
+    (requires approx1 mapA mapA_r /\ approx1 mapB mapB_r /\ approx2 comb comb_r /\
+              eA %~ rA /\ eB %~ rB /\ eC %~ rC)
+    (ensures MS.gmmcomb mapA mapB comb eC eA eB
+             %~ MS.gmmcomb mapA_r mapB_r comb_r rC rA rB)
+
+(* Batched (rank-3) analogue of [gmmcomb_approx_real]. *)
+val gbmmcomb_approx_real
+  (#ta #tb #tc #tacc : Type0)
+  {| scalar ta, real_like ta, scalar tb, real_like tb,
+     scalar tc, real_like tc, scalar tacc, real_like tacc |}
+  (mapA : ta -> tacc) (mapB : tb -> tacc)
+  (comb : tc -> tacc -> tc)
+  (mapA_r mapB_r : real -> real)
+  (comb_r : binop real)
+  (#batch #m #n #k : nat)
+  (eA : chest3 ta batch m k)
+  (eB : chest3 tb batch k n)
+  (eC : chest3 tc batch m n)
+  (rA : chest3 real batch m k)
+  (rB : chest3 real batch k n)
+  (rC : chest3 real batch m n)
+  : Lemma
+    (requires approx1 mapA mapA_r /\ approx1 mapB mapB_r /\ approx2 comb comb_r /\
+              eA %~ rA /\ eB %~ rB /\ eC %~ rC)
+    (ensures MS.gbmmcomb mapA mapB comb eC eA eB
+             %~ MS.gbmmcomb mapA_r mapB_r comb_r rC rA rB)
