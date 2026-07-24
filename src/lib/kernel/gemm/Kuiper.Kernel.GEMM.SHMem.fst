@@ -920,7 +920,7 @@ fn bkf
                  (((SZ.v rest / SZ.v mcols * SZ.v tile + SZ.v brow) <: natlt (mrows * tile)),
                    (((SZ.v rest % SZ.v mcols * SZ.v tile + SZ.v bcol) <: natlt (mcols * tile)), ())))))
        as (tensor_pts_to_cell gC (up ci) (Chest.acc eC (up ci)));
-  let v0 = tensor_read_cell gC ci;
+  let v0 = tensor_read_cell gC (page, (grow_sz, (gcol_sz, ())));
   let v1 = comb v0 !sum;
   // Note: repeat ci here since the let binding above does not inline.
   // Not doing so means we get tuples (structs) in generated CUDA

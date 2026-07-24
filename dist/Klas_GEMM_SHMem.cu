@@ -811,16 +811,6 @@ Klas_GEMM_SHMem_g_matmul_u64_tile16_rrr(uint32_t m,
     MUST(cudaStreamDestroy(s));
 }
 
-typedef struct __uint32_t__uint32_t_______s {
-    uint32_t fst;
-    uint32_t snd;
-} __uint32_t__uint32_t______;
-
-typedef struct __uint32_t__uint32_t____uint32_t________s {
-    uint32_t fst;
-    __uint32_t__uint32_t______ snd;
-} __uint32_t__uint32_t____uint32_t_______;
-
 __global__
 /**
   hoisted when extracting g_gemm_f32_rrr
@@ -866,12 +856,7 @@ __hoisted_g_gemm_f32_rrr_0(uint32_t tile,
     }
     uint32_t grow_sz = blockIdx.x / nn * tile + threadIdx.x / tile;
     uint32_t gcol_sz = blockIdx.x % nn * tile + threadIdx.x % tile;
-    __uint32_t__uint32_t____uint32_t_______
-        scrut = {.fst = 0U,.snd = {.fst = grow_sz,.snd = gcol_sz} };
-    __uint32_t__uint32_t______ scrut0 = {.fst = scrut.snd.fst,.snd =
-            scrut.snd.snd };
-    gC[grow_sz * n + gcol_sz] =
-        beta * gC[scrut0.fst * n + scrut0.snd] + alpha * sum;
+    gC[grow_sz * n + gcol_sz] = beta * gC[grow_sz * n + gcol_sz] + alpha * sum;
 }
 
 void
@@ -945,12 +930,7 @@ __hoisted_g_gemm_f64_rrr_0(uint32_t tile,
     }
     uint32_t grow_sz = blockIdx.x / nn * tile + threadIdx.x / tile;
     uint32_t gcol_sz = blockIdx.x % nn * tile + threadIdx.x % tile;
-    __uint32_t__uint32_t____uint32_t_______
-        scrut = {.fst = 0U,.snd = {.fst = grow_sz,.snd = gcol_sz} };
-    __uint32_t__uint32_t______ scrut0 = {.fst = scrut.snd.fst,.snd =
-            scrut.snd.snd };
-    gC[grow_sz * n + gcol_sz] =
-        beta * gC[scrut0.fst * n + scrut0.snd] + alpha * sum;
+    gC[grow_sz * n + gcol_sz] = beta * gC[grow_sz * n + gcol_sz] + alpha * sum;
 }
 
 void
@@ -1023,13 +1003,7 @@ __hoisted_g_gemm_u32_rrr_0(uint32_t tile,
     }
     uint32_t grow_sz = blockIdx.x / nn * tile + threadIdx.x / tile;
     uint32_t gcol_sz = blockIdx.x % nn * tile + threadIdx.x % tile;
-    __uint32_t__uint32_t____uint32_t_______
-        scrut = {.fst = 0U,.snd = {.fst = grow_sz,.snd = gcol_sz}
-    };
-    __uint32_t__uint32_t______ scrut0 = {.fst = scrut.snd.fst,.snd =
-            scrut.snd.snd };
-    gC[grow_sz * n + gcol_sz] =
-        beta * gC[scrut0.fst * n + scrut0.snd] + alpha * sum;
+    gC[grow_sz * n + gcol_sz] = beta * gC[grow_sz * n + gcol_sz] + alpha * sum;
 }
 
 void
@@ -1103,13 +1077,7 @@ __hoisted_g_gemm_u64_rrr_0(uint32_t tile,
     }
     uint32_t grow_sz = blockIdx.x / nn * tile + threadIdx.x / tile;
     uint32_t gcol_sz = blockIdx.x % nn * tile + threadIdx.x % tile;
-    __uint32_t__uint32_t____uint32_t_______
-        scrut = {.fst = 0U,.snd = {.fst = grow_sz,.snd = gcol_sz}
-    };
-    __uint32_t__uint32_t______ scrut0 = {.fst = scrut.snd.fst,.snd =
-            scrut.snd.snd };
-    gC[grow_sz * n + gcol_sz] =
-        beta * gC[scrut0.fst * n + scrut0.snd] + alpha * sum;
+    gC[grow_sz * n + gcol_sz] = beta * gC[grow_sz * n + gcol_sz] + alpha * sum;
 }
 
 void
@@ -1184,12 +1152,7 @@ __hoisted_g_gemm_f32_tile32_rrr_0(float alpha,
     }
     uint32_t grow_sz = blockIdx.x / nn * 32U + threadIdx.x / 32U;
     uint32_t gcol_sz = blockIdx.x % nn * 32U + threadIdx.x % 32U;
-    __uint32_t__uint32_t____uint32_t_______
-        scrut = {.fst = 0U,.snd = {.fst = grow_sz,.snd = gcol_sz} };
-    __uint32_t__uint32_t______ scrut0 = {.fst = scrut.snd.fst,.snd =
-            scrut.snd.snd };
-    gC[grow_sz * n + gcol_sz] =
-        beta * gC[scrut0.fst * n + scrut0.snd] + alpha * sum;
+    gC[grow_sz * n + gcol_sz] = beta * gC[grow_sz * n + gcol_sz] + alpha * sum;
 }
 
 void
@@ -1259,12 +1222,7 @@ __hoisted_g_gemm_f64_tile32_rrr_0(double alpha,
     }
     uint32_t grow_sz = blockIdx.x / nn * 32U + threadIdx.x / 32U;
     uint32_t gcol_sz = blockIdx.x % nn * 32U + threadIdx.x % 32U;
-    __uint32_t__uint32_t____uint32_t_______
-        scrut = {.fst = 0U,.snd = {.fst = grow_sz,.snd = gcol_sz} };
-    __uint32_t__uint32_t______ scrut0 = {.fst = scrut.snd.fst,.snd =
-            scrut.snd.snd };
-    gC[grow_sz * n + gcol_sz] =
-        beta * gC[scrut0.fst * n + scrut0.snd] + alpha * sum;
+    gC[grow_sz * n + gcol_sz] = beta * gC[grow_sz * n + gcol_sz] + alpha * sum;
 }
 
 void
@@ -1333,13 +1291,7 @@ __hoisted_g_gemm_u32_tile32_rrr_0(uint32_t alpha,
     }
     uint32_t grow_sz = blockIdx.x / nn * 32U + threadIdx.x / 32U;
     uint32_t gcol_sz = blockIdx.x % nn * 32U + threadIdx.x % 32U;
-    __uint32_t__uint32_t____uint32_t_______
-        scrut = {.fst = 0U,.snd = {.fst = grow_sz,.snd = gcol_sz}
-    };
-    __uint32_t__uint32_t______ scrut0 = {.fst = scrut.snd.fst,.snd =
-            scrut.snd.snd };
-    gC[grow_sz * n + gcol_sz] =
-        beta * gC[scrut0.fst * n + scrut0.snd] + alpha * sum;
+    gC[grow_sz * n + gcol_sz] = beta * gC[grow_sz * n + gcol_sz] + alpha * sum;
 }
 
 void
@@ -1408,13 +1360,7 @@ __hoisted_g_gemm_u64_tile32_rrr_0(uint64_t alpha,
     }
     uint32_t grow_sz = blockIdx.x / nn * 32U + threadIdx.x / 32U;
     uint32_t gcol_sz = blockIdx.x % nn * 32U + threadIdx.x % 32U;
-    __uint32_t__uint32_t____uint32_t_______
-        scrut = {.fst = 0U,.snd = {.fst = grow_sz,.snd = gcol_sz}
-    };
-    __uint32_t__uint32_t______ scrut0 = {.fst = scrut.snd.fst,.snd =
-            scrut.snd.snd };
-    gC[grow_sz * n + gcol_sz] =
-        beta * gC[scrut0.fst * n + scrut0.snd] + alpha * sum;
+    gC[grow_sz * n + gcol_sz] = beta * gC[grow_sz * n + gcol_sz] + alpha * sum;
 }
 
 void
@@ -1484,12 +1430,7 @@ __hoisted_g_gemm_f32_tile16_rrr_0(float alpha,
     }
     uint32_t grow_sz = blockIdx.x / nn * 16U + threadIdx.x / 16U;
     uint32_t gcol_sz = blockIdx.x % nn * 16U + threadIdx.x % 16U;
-    __uint32_t__uint32_t____uint32_t_______
-        scrut = {.fst = 0U,.snd = {.fst = grow_sz,.snd = gcol_sz} };
-    __uint32_t__uint32_t______ scrut0 = {.fst = scrut.snd.fst,.snd =
-            scrut.snd.snd };
-    gC[grow_sz * n + gcol_sz] =
-        beta * gC[scrut0.fst * n + scrut0.snd] + alpha * sum;
+    gC[grow_sz * n + gcol_sz] = beta * gC[grow_sz * n + gcol_sz] + alpha * sum;
 }
 
 void
@@ -1559,12 +1500,7 @@ __hoisted_g_gemm_f64_tile16_rrr_0(double alpha,
     }
     uint32_t grow_sz = blockIdx.x / nn * 16U + threadIdx.x / 16U;
     uint32_t gcol_sz = blockIdx.x % nn * 16U + threadIdx.x % 16U;
-    __uint32_t__uint32_t____uint32_t_______
-        scrut = {.fst = 0U,.snd = {.fst = grow_sz,.snd = gcol_sz} };
-    __uint32_t__uint32_t______ scrut0 = {.fst = scrut.snd.fst,.snd =
-            scrut.snd.snd };
-    gC[grow_sz * n + gcol_sz] =
-        beta * gC[scrut0.fst * n + scrut0.snd] + alpha * sum;
+    gC[grow_sz * n + gcol_sz] = beta * gC[grow_sz * n + gcol_sz] + alpha * sum;
 }
 
 void
@@ -1633,13 +1569,7 @@ __hoisted_g_gemm_u32_tile16_rrr_0(uint32_t alpha,
     }
     uint32_t grow_sz = blockIdx.x / nn * 16U + threadIdx.x / 16U;
     uint32_t gcol_sz = blockIdx.x % nn * 16U + threadIdx.x % 16U;
-    __uint32_t__uint32_t____uint32_t_______
-        scrut = {.fst = 0U,.snd = {.fst = grow_sz,.snd = gcol_sz}
-    };
-    __uint32_t__uint32_t______ scrut0 = {.fst = scrut.snd.fst,.snd =
-            scrut.snd.snd };
-    gC[grow_sz * n + gcol_sz] =
-        beta * gC[scrut0.fst * n + scrut0.snd] + alpha * sum;
+    gC[grow_sz * n + gcol_sz] = beta * gC[grow_sz * n + gcol_sz] + alpha * sum;
 }
 
 void
@@ -1708,13 +1638,7 @@ __hoisted_g_gemm_u64_tile16_rrr_0(uint64_t alpha,
     }
     uint32_t grow_sz = blockIdx.x / nn * 16U + threadIdx.x / 16U;
     uint32_t gcol_sz = blockIdx.x % nn * 16U + threadIdx.x % 16U;
-    __uint32_t__uint32_t____uint32_t_______
-        scrut = {.fst = 0U,.snd = {.fst = grow_sz,.snd = gcol_sz}
-    };
-    __uint32_t__uint32_t______ scrut0 = {.fst = scrut.snd.fst,.snd =
-            scrut.snd.snd };
-    gC[grow_sz * n + gcol_sz] =
-        beta * gC[scrut0.fst * n + scrut0.snd] + alpha * sum;
+    gC[grow_sz * n + gcol_sz] = beta * gC[grow_sz * n + gcol_sz] + alpha * sum;
 }
 
 void
