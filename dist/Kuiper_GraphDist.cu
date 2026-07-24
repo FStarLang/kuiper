@@ -39,15 +39,17 @@ static void __hoisted_matmul_dist_gpu_0(uint32_t size, uint16_t *a, uint16_t *b)
             uint16_t __anf2 = sum;
             sum = add_(__anf2, mult(a[trow * size + vk], a[vk * size + tcol]));
         }
-        uint16_t s = sum;
-        b[trow * size + tcol] = add_(b[trow * size + tcol], s);
+        uint16_t s1 = sum;
+        b[trow * size + tcol] = add_(b[trow * size + tcol], s1);
     }
 }
 
 void Kuiper_GraphDist_matmul_dist_gpu(uint32_t size, uint16_t *a, uint16_t *b)
 {
+    cudaStream_t s = KPR_FRESH_STREAM();
     KPR_KCALL(__hoisted_matmul_dist_gpu_0,
               size * size / 1024U + (uint32_t) (size * size % 1024U != 0U),
-              1024U, 0U, size, a, b);
-    MUST(cudaDeviceSynchronize());
+              1024U, 0U, s, size, a, b);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }

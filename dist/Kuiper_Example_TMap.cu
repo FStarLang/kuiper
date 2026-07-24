@@ -13,8 +13,10 @@ static void __hoisted_incr_all_1d_0(uint32_t *a)
 
 void Kuiper_Example_TMap_incr_all_1d(uint32_t *a)
 {
-    KPR_KCALL(__hoisted_incr_all_1d_0, 1U, 1024U, 0U, a);
-    MUST(cudaDeviceSynchronize());
+    cudaStream_t s1 = KPR_FRESH_STREAM();
+    KPR_KCALL(__hoisted_incr_all_1d_0, 1U, 1024U, 0U, s1, a);
+    MUST(cudaStreamSynchronize(s1));
+    MUST(cudaStreamDestroy(s1));
 }
 
 typedef struct __uint32_t__uint32_t_______s {
@@ -41,6 +43,8 @@ static void __hoisted_incr_all_1d2_0(uint32_t *a)
 
 void Kuiper_Example_TMap_incr_all_1d2(uint32_t *a)
 {
-    KPR_KCALL(__hoisted_incr_all_1d2_0, 1024U, 1024U, 0U, a);
-    MUST(cudaDeviceSynchronize());
+    cudaStream_t s1 = KPR_FRESH_STREAM();
+    KPR_KCALL(__hoisted_incr_all_1d2_0, 1024U, 1024U, 0U, s1, a);
+    MUST(cudaStreamSynchronize(s1));
+    MUST(cudaStreamDestroy(s1));
 }

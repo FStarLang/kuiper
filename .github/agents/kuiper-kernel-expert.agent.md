@@ -46,7 +46,7 @@ When implementing proofs for a new kernel, study simpler implementations first:
 2. Use proper type annotations with Kuiper types (gpu_ref, gpu_array, f32, u64, etc.)
 3. Include separation logic assertions (requires/ensures clauses) that specify pre/post conditions
 4. Use gpu_read/gpu_write for references and proper memory operations
-5. Apply synchronization operations (gpu_barrier, sync_device) when coordinating threads
+5. Apply synchronization operations (gpu_barrier, sync_stream) when coordinating threads
 6. Structure kernels with appropriate GPU scoping (preserves gpu/cpu keywords)
 7. Handle memory transfers with gpu_memcpy_host_to_device and gpu_memcpy_device_to_host
 8. Use inline_for_extraction and noextract attributes appropriately
