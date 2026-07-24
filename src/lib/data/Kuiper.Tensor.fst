@@ -66,6 +66,17 @@ let tensor_pts_to
   : slprop
   = A.varray_pts_to a #f s
 
+let is_send_across_tensor
+  (#et : Type0) (#r : nat) (#d : shape r)
+  (#l : tlayout d)
+  (a : tensor et l)
+  (vis : visibility)
+  (#_ : squash (visibility_of (core a) == vis))
+  (#f : perm)
+  (s : chest d et)
+  : is_send_across vis (tensor_pts_to a #f s)
+= A.is_send_across_varray a vis #_ #f s
+
 instance is_send_across_global_tensor
   (#et : Type0) (#r : nat) (#d : shape r)
   (#l : tlayout d)

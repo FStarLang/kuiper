@@ -25,7 +25,7 @@ val mk_kernel
   {| scalar et_ab, has_vec_cpy et_ab, real_like et_ab |}
   {| scalar et_acc, real_like et_acc |}
   {| scalar et_cd, has_vec_cpy et_cd, real_like et_cd |}
-  (comb: et_acc -> et_cd -> et_cd)
+  (comb: et_cd -> et_acc -> et_cd)
   (comb_r : binop real { approx2 comb comb_r })
   (#m #n #k : szp)
   (#lA : layout2 m k) {| T.ctlayout lA |}
