@@ -15,7 +15,6 @@ open Kuiper.Array.Vectorized
 
 (* --- Barrier slprop definitions --- *)
 
-irreducible
 let barrier_in
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
   (p : parameters et { size_req p })
@@ -94,7 +93,6 @@ let barrier_in
       // DONE
     else emp
 
-irreducible
 let barrier_out
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
   (p : parameters et { size_req p })
@@ -182,7 +180,6 @@ let barrier_out
       // DONE
     else emp
 
-irreducible
 let barrier_contract
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
   (p : parameters et { size_req p })
@@ -202,59 +199,6 @@ let barrier_contract
     rin  = barrier_in p row_perm elems col_ind row_off elems_tile col_ind_tile bid;
     rout = barrier_out p row_perm elems col_ind row_off elems_tile col_ind_tile bid;
   }
-
-(* [barrier_contract] is [irreducible] so that Pulse's [check_slprop]
-   normalization does not descend into (and choke on) the contract's
-   construction when it appears under [B.barrier_tok] in a spec.  These two
-   ghost lemmas re-expose the (definitional) projections for use in the kernel
-   bodies, which must convert between the [barrier_in]/[barrier_out] forms
-   produced by the fold/unfold helpers and the [.rin]/[.rout] projections
-   expected by [B.barrier_wait]. *)
-ghost
-fn barrier_contract_rin
-  (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
-  (p : parameters et { size_req p })
-  (row_perm : permutation (natlt p.rows))
-  (#nnz : sz)
-  (elems : lseq et nnz)
-  (col_ind : lseq sz nnz)
-  (row_off : lseq sz (p.rows + 1))
-  (elems_tile : larray et p.blockItemsK)
-  (col_ind_tile : larray sz p.blockItemsK)
-  (#_ : squash (well_formed p col_ind row_off))
-  (#_ : squash ((chunk et * p.blockWidth) /? p.blockItemsK))
-  (#_ : squash ((chunk sz * p.blockWidth) /? p.blockItemsK))
-  (bid : natlt (nblocks p))
-  requires emp
-  ensures
-    pure ((barrier_contract p row_perm elems col_ind row_off elems_tile col_ind_tile bid).rin
-      == barrier_in p row_perm elems col_ind row_off elems_tile col_ind_tile bid)
-{
-  admit ()
-}
-
-ghost
-fn barrier_contract_rout
-  (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
-  (p : parameters et { size_req p })
-  (row_perm : permutation (natlt p.rows))
-  (#nnz : sz)
-  (elems : lseq et nnz)
-  (col_ind : lseq sz nnz)
-  (row_off : lseq sz (p.rows + 1))
-  (elems_tile : larray et p.blockItemsK)
-  (col_ind_tile : larray sz p.blockItemsK)
-  (#_ : squash (well_formed p col_ind row_off))
-  (#_ : squash ((chunk et * p.blockWidth) /? p.blockItemsK))
-  (#_ : squash ((chunk sz * p.blockWidth) /? p.blockItemsK))
-  (bid : natlt (nblocks p))
-  requires emp
-  ensures
-    pure ((barrier_contract p row_perm elems col_ind row_off elems_tile col_ind_tile bid).rout
-      == barrier_out p row_perm elems col_ind row_off elems_tile col_ind_tile bid)
-{
-  admit ()
-}
 
 (* --- Utility --- *)
 

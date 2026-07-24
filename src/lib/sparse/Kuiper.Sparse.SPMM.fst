@@ -886,8 +886,6 @@ fn sparse_load_main
       (Seq.slice col_ind
         (ri + idx * p.blockItemsK) (ri + idx * p.blockItemsK + p.blockItemsK))
 {
-  barrier_contract_rin p row_perm elems col_ind row_off elems_tile col_ind_tile bid;
-  barrier_contract_rout p row_perm elems col_ind row_off elems_tile col_ind_tile bid;
   let off : (o:sz{SZ.v o == SZ.v ri + SZ.v idx * SZ.v p.blockItemsK})
     = ri +^ idx *^ p.blockItemsK;
 
@@ -985,8 +983,6 @@ fn sparse_load_residue
       (Seq.slice col_ind (re - residue) re) **
     slice_live col_ind_tile #(1.0R /. p.blockWidth) residue p.blockItemsK
 {
-  barrier_contract_rin p row_perm elems col_ind row_off elems_tile col_ind_tile bid;
-  barrier_contract_rout p row_perm elems col_ind row_off elems_tile col_ind_tile bid;
   rewrite barrier_in p row_perm elems col_ind row_off
     elems_tile col_ind_tile bid (idx * 2) tid
   as (barrier_contract p row_perm elems col_ind row_off
@@ -1316,8 +1312,6 @@ fn kf_head
     //     (Seq.create (p.blockItemsX / p.blockWidth) zero)
     //     tid (bcol p bid)
 {
-  barrier_contract_rin p row_perm elems col_ind row_off elems_tile col_ind_tile bid;
-  barrier_contract_rout p row_perm elems col_ind row_off elems_tile col_ind_tile bid;
   offset_aligned_lemma_et' p gA.elems ri;
   assert pure (aligned' 16 gA.elems ri');
   load_array_vec elems_tile gA.elems ri' p.blockWidth tid;
