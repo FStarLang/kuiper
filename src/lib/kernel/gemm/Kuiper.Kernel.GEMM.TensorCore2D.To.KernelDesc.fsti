@@ -1,5 +1,4 @@
 module Kuiper.Kernel.GEMM.TensorCore2D.To.KernelDesc
-
 #lang-pulse
 
 open Kuiper
@@ -13,7 +12,6 @@ open Kuiper.Kernel.GEMM.Tiled.Common.Vec
 open Kuiper.TensorCore
 
 module SZ = Kuiper.SizeT
-module T = Kuiper.Tensor
 module MS = Kuiper.Spec.GEMM
 
 open Kuiper.Kernel.GEMM.TensorCore2D.KernelDesc
@@ -70,81 +68,6 @@ let epilogue_chest
   (eAcc : chest2 et_acc rows cols)
   : chest2 et_cd rows cols
 = mk2 (fun i j -> comb (acc2 eC i j) (acc2 eAcc i j))
-
-inline_for_extraction noextract
-fn epilogue_fragment_from_warp
-  (#et_cd #et_acc : Type0)
-  {| scd : scalar et_cd, real_like et_cd,
-     sacc : scalar et_acc, real_like et_acc |}
-  (comb : et_cd -> et_acc -> et_cd)
-  (comb_r : binop real { approx2 comb comb_r })
-  (#m #n : szp)
-  (c : array2 et_cd (rm m n))
-  (#_ : squash (SZ.fits (m * n)))
-  (bm bn rows cols wm wn : szp)
-  (#_ : squash (bm /?+ m /\ bn /?+ n /\
-                wm * rows /?+ bm /\ wn * cols /?+ bn))
-  (mrow : szlt (m / bm))
-  (mcol : szlt (n / bn))
-  (warpRow : szlt (bm / (wm * rows)))
-  (warpCol : szlt (bn / (wn * cols)))
-  (bid : szlt (m / bm * (n / bn)))
-  (wid : szlt (bm / (wm * rows) * (bn / (wn * cols))))
-  (#_ : squash (
-    SZ.v mrow == SZ.v bid / (SZ.v n / SZ.v bn) /\
-    SZ.v mcol == SZ.v bid % (SZ.v n / SZ.v bn) /\
-    SZ.v warpRow == SZ.v wid / (SZ.v bn / (SZ.v wn * SZ.v cols)) /\
-    SZ.v warpCol == SZ.v wid % (SZ.v bn / (SZ.v wn * SZ.v cols))))
-  (#fC : perm)
-  (#eC : chest2 et_cd m n)
-  (#rC : chest2 real m n)
-  (#_ : squash (eC %~ rC))
-  (#lAcc : layout2 rows cols) {| T.ctlayout lAcc |}
-  (acc : array2 et_acc lAcc)
-  (#eAcc : chest2 et_acc rows cols)
-  (#rAcc : chest2 real rows cols)
-  (#_ : squash (eAcc %~ rAcc))
-  (d : array2 et_cd (rm m n))
-  (idx : szlt (wm * wn))
-  (lane : szlt warp_size)
-  (#_ : squash (SZ.fits (rows * cols + warp_size)))
-  preserves
-    gpu **
-    c |-> Frac fC eC **
-    acc |-> Frac (1.0R /. warp_size) eAcc
-  requires
-    live_lane_cells
-      (output_fragment d bm bn rows cols wm wn
-        (SZ.v bid) (SZ.v wid) (SZ.v idx / wn) (SZ.v idx % wn))
-      lane
-  ensures
-    own_lane_cells
-      (output_fragment d bm bn rows cols wm wn
-        (SZ.v bid) (SZ.v wid) (SZ.v idx / wn) (SZ.v idx % wn))
-      (epilogue_chest comb
-        (ematrix_subtile
-          (ematrix_subtile
-            (ematrix_subtile eC bm bn (SZ.v mrow) (SZ.v mcol))
-            (wm * rows) (wn * cols) (SZ.v warpRow) (SZ.v warpCol))
-          rows cols (SZ.v idx / wn) (SZ.v idx % wn))
-        eAcc)
-      lane **
-    pure (
-      epilogue_chest comb
-        (ematrix_subtile
-          (ematrix_subtile
-            (ematrix_subtile eC bm bn (SZ.v mrow) (SZ.v mcol))
-            (wm * rows) (wn * cols) (SZ.v warpRow) (SZ.v warpCol))
-          rows cols (SZ.v idx / wn) (SZ.v idx % wn))
-        eAcc
-      %~
-      chest_comb comb_r
-        (ematrix_subtile
-          (ematrix_subtile
-            (ematrix_subtile rC bm bn (SZ.v mrow) (SZ.v mcol))
-            (wm * rows) (wn * cols) (SZ.v warpRow) (SZ.v warpCol))
-          rows cols (SZ.v idx / wn) (SZ.v idx % wn))
-        rAcc)
 
 inline_for_extraction noextract
 unfold let shmems_desc_to
@@ -564,44 +487,3 @@ fn block_teardown_to
       kpost1_to comb_r gA eA gB eB gC eC gD
         bm bn bk tm tn tk wm wn fA fB fC rA rB rC
         nblk nthr bid tid)
-
-ghost
-fn teardown_to
-  (#et_ab #et_cd : Type0)
-  {| scalar et_ab, scalar et_cd, real_like et_cd |}
-  (comb_r : binop real)
-  (#m #n #k : szp)
-  (#lA : layout2 m k)
-  (#lB : layout2 k n)
-  (gA : array2 et_ab lA)
-  (eA : chest2 et_ab m k)
-  (gB : array2 et_ab lB)
-  (eB : chest2 et_ab k n)
-  (gC : array2 et_cd (rm m n))
-  (eC : chest2 et_cd m n)
-  (gD : array2 et_cd (rm m n))
-  (#_ : squash (SZ.fits (m * n)))
-  (bm bn bk tm tn tk wm wn : szp{
-    constraints bm bn bk tm tn tk wm wn})
-  (#_ : squash (bm /?+ m /\ bn /?+ n))
-  (nblk : szp{SZ.v nblk == m / bm * (n / bn)})
-  (nthr : szp{
-    SZ.v nthr == bm / (wm * tm) * (bn / (wn * tn)) * warp_size})
-  (fA fB fC : perm)
-  (rA : chest2 real m k)
-  (rB : chest2 real k n)
-  (rC : chest2 real m n)
-  ()
-  norewrite
-  requires
-    (forall+ (bid : natlt nblk) (tid : natlt nthr).
-      kpost1_to comb_r gA eA gB eB gC eC gD
-        bm bn bk tm tn tk wm wn fA fB fC rA rB rC
-        nblk nthr bid tid) **
-    pure (SZ.fits ((rm m n).ulen))
-  ensures
-    gA |-> Frac fA eA **
-    gB |-> Frac fB eB **
-    gC |-> Frac fC eC **
-    (exists* (eD : chest2 et_cd m n).
-      gD |-> eD ** pure (eD %~ MS.mmcomb comb_r rC rA rB))

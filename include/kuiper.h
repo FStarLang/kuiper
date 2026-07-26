@@ -144,10 +144,10 @@ cudaStream_t KPR_FRESH_STREAM() {
 
 // A wrapper that adds a syncwarp after the store_matrix_sync, to match Kuiper's current
 // blocking tensor core store semantics
-#define KPR_STORE_MATRIX_SYNC(dst, src, ldm, layout) \ 
-	{ 
-		wmma::store_matrix_sync(dst, src, ldm, layout);
-		__syncwarp();
+#define KPR_STORE_MATRIX_SYNC(dst, src, ldm, layout) \
+	{ \
+		wmma::store_matrix_sync(dst, src, ldm, layout); \
+		__syncwarp(); \
 	}
 
 #endif /* KUIPER_H */

@@ -115,15 +115,12 @@ fn spec
   let rA = to_real_matrix eA;
   let rB = to_real_matrix eB;
   let rC = to_real_matrix eC;
-  let comb =
-    (fun (x : et_cd) (y : et_acc) ->
-      MS.lincomb_to #et_acc #et_cd alpha beta x y);
   let comb_r = MS.rlincomb (to_real alpha) (to_real beta);
   MS.lincomb_to_approx2 #et_acc #et_cd alpha beta;
 
   #set-options "--fuel 0 --ifuel 0 --z3refresh" {
   launch_sync (
-    K.mk_kernel comb comb_r
+    K.mk_kernel (MS.lincomb_to #et_acc #et_cd alpha beta) comb_r
       gA #eA gB #eB
       gC #_ #eC gD #eC
       bm bn bk tm tn tk wm wn
