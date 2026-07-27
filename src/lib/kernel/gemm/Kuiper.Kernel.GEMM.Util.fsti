@@ -253,3 +253,24 @@ val batch1_gmmcomb
           (C.c2_to_c3n a1 a2 afA eA)
           (C.c2_to_c3n a2 a3 afB eB))
       == MS.gmmcomb mapA mapB comb eC eA eB)
+
+(* Exact per-page bridge: the [page]-th rank-2 slice of the batched combined
+   spec [gbmmcomb] is the rank-2 [gmmcomb] over the page slices of the operands.
+   Element-level and EXACT (no approximation), the exact analogue of the
+   [batch1_gmmcomb] cast lemma, used to assemble the batched exact
+   postcondition per page. *)
+val gbmmcomb_slice_page
+  (#ta #tb #tc #tacc : Type0) {| scalar tacc |}
+  (mapA : ta -> tacc)
+  (mapB : tb -> tacc)
+  (comb : tc -> tacc -> tc)
+  (#batch #rows #shared #cols : nat)
+  (eC : chest3 tc batch rows cols)
+  (eA : chest3 ta batch rows shared)
+  (eB : chest3 tb batch shared cols)
+  (page : natlt batch)
+  : Lemma (Kuiper.Chest.slice_page (MS.gbmmcomb mapA mapB comb eC eA eB) page
+           == MS.gmmcomb mapA mapB comb
+                (Kuiper.Chest.slice_page eC page)
+                (Kuiper.Chest.slice_page eA page)
+                (Kuiper.Chest.slice_page eB page))

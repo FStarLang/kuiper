@@ -14,7 +14,6 @@ open Kuiper.Seq.Common
 open FStar.Seq
 open Kuiper.ForEvery
 
-module SZ = Kuiper.SizeT
 
 (* This is the single primitive for launching kernels, with the most general
 type and capabilities. There are many simpler versions in the Kuiper.Kernel module,
@@ -68,7 +67,7 @@ fn sync_device ()
   (frame: erased slprop)
   (p: erased slprop)
   (q: erased slprop)
-  (justif: 
+  (justif:
     ghost fn ()
       preserves sync_token
       requires frame ** p

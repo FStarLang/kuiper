@@ -51,17 +51,18 @@ let bp_sharing
   = m |-> Frac (1.0R /. nthr) em
 
 let barrier_p
-  (#et : Type0) {| sized et, has_vec_cpy et |}
+  (#etA : Type0) (#etB : Type0)
+  {| sized etA, has_vec_cpy etA, sized etB, has_vec_cpy etB |}
   (#rows #shared #cols : pos)
-  (eA : chest2 et rows shared)
-  (eB : chest2 et shared cols)
+  (eA : chest2 etA rows shared)
+  (eB : chest2 etB shared cols)
   (#bm : pos{bm /?+ rows})
   (#bk : pos{bk /?+ shared})
   (#bn : pos{bn /?+ cols})
   (#l1 : layout2 bm bk)
   (#l2 : layout2 bk bn)
-  (m1 : array2 et l1)
-  (m2 : array2 et l2)
+  (m1 : array2 etA l1)
+  (m2 : array2 etB l2)
   (nthr : pos)
   (bid : natlt (rows/bm * (cols/bn)))
   : B.barrier_side nthr =
@@ -78,17 +79,18 @@ let barrier_p
       own_strided_chunks m2 (ematrix_subtile eB bk bn (it / 2) mcol) nthr tid
 
 let barrier_q
-  (#et : Type0) {| sized et, has_vec_cpy et |}
+  (#etA : Type0) (#etB : Type0)
+  {| sized etA, has_vec_cpy etA, sized etB, has_vec_cpy etB |}
   (#rows #shared #cols : pos)
-  (eA : chest2 et rows shared)
-  (eB : chest2 et shared cols)
+  (eA : chest2 etA rows shared)
+  (eB : chest2 etB shared cols)
   (#bm : pos{bm /?+ rows})
   (#bk : pos{bk /?+ shared})
   (#bn : pos{bn /?+ cols})
   (#l1 : layout2 bm bk)
   (#l2 : layout2 bk bn)
-  (m1 : array2 et l1)
-  (m2 : array2 et l2)
+  (m1 : array2 etA l1)
+  (m2 : array2 etB l2)
   (nthr : pos)
   (bid : natlt (rows/bm * (cols/bn)))
   : B.barrier_side nthr =
@@ -105,17 +107,18 @@ let barrier_q
       bp_sharing m2 (ematrix_subtile eB bk bn (it / 2) mcol) nthr
 
 let contract
-  (#et : Type0) {| sized et, has_vec_cpy et |}
+  (#etA : Type0) (#etB : Type0)
+  {| sized etA, has_vec_cpy etA, sized etB, has_vec_cpy etB |}
   (#rows #shared #cols : pos)
-  (eA : chest2 et rows shared)
-  (eB : chest2 et shared cols)
+  (eA : chest2 etA rows shared)
+  (eB : chest2 etB shared cols)
   (#bm : pos{bm /?+ rows})
   (#bk : pos{bk /?+ shared})
   (#bn : pos{bn /?+ cols})
   (l1 : full_layout2 bm bk)
   (l2 : full_layout2 bk bn)
-  (sar1 : larray et (bm * bk))
-  (sar2 : larray et (bk * bn))
+  (sar1 : larray etA (bm * bk))
+  (sar2 : larray etB (bk * bn))
   (nthr : pos)
   (bid : natlt (rows/bm * (cols/bn)))
   : B.contract nthr =
@@ -125,17 +128,18 @@ let contract
 }
 
 let barrier_tok
-  (#et : Type0) {| sized et, has_vec_cpy et |}
+  (#etA : Type0) (#etB : Type0)
+  {| sized etA, has_vec_cpy etA, sized etB, has_vec_cpy etB |}
   (#rows #shared #cols : pos)
-  (eA : chest2 et rows shared)
-  (eB : chest2 et shared cols)
+  (eA : chest2 etA rows shared)
+  (eB : chest2 etB shared cols)
   (#bm : pos{bm /?+ rows})
   (#bk : pos{bk /?+ shared})
   (#bn : pos{bn /?+ cols})
   (l1 : full_layout2 bm bk)
   (l2 : full_layout2 bk bn)
-  (sar1 : larray et (bm * bk))
-  (sar2 : larray et (bk * bn))
+  (sar1 : larray etA (bm * bk))
+  (sar2 : larray etB (bk * bn))
   (nthr : pos)
   (bid : natlt (rows/bm * (cols/bn)))
   : slprop
@@ -144,23 +148,24 @@ let barrier_tok
 (* The proof of correctness. *)
 ghost
 fn barrier_p_to_q_transform
-  (#et : Type0) {| sized et, has_vec_cpy et |}
+  (#etA : Type0) (#etB : Type0)
+  {| sized etA, has_vec_cpy etA, sized etB, has_vec_cpy etB |}
   (#rows #shared #cols : pos)
-  (eA : chest2 et rows shared)
-  (eB : chest2 et shared cols)
+  (eA : chest2 etA rows shared)
+  (eB : chest2 etB shared cols)
   (#bm : pos{bm /?+ rows})
   (#bk : pos{bk /?+ shared})
   (#bn : pos{bn /?+ cols})
   (l1 : full_layout2 bm bk)
   (l2 : full_layout2 bk bn)
-  (sar1 : larray et (bm * bk))
-  (sar2 : larray et (bk * bn))
+  (sar1 : larray etA (bm * bk))
+  (sar2 : larray etB (bk * bn))
   (nthr : pos)
   (bid : natlt (rows/bm * (cols/bn)))
-  (#_ : squash (chunk et /?+ bn))
-  (#_ : squash (chunk et /?+ bk))
-  (#_ : squash (chunk et * nthr /?+ (bm * bk)))
-  (#_ : squash (chunk et * nthr /?+ (bk * bn)))
+  (#_ : squash (chunk etB /?+ bn))
+  (#_ : squash (chunk etA /?+ bk))
+  (#_ : squash (chunk etA * nthr /?+ (bm * bk)))
+  (#_ : squash (chunk etB * nthr /?+ (bk * bn)))
   (#_ : squash (SZ.fits (l1.ulen)))
   (#_ : squash (SZ.fits (l2.ulen)))
   (it : nat)
@@ -174,17 +179,18 @@ fn barrier_p_to_q_transform
 (* Per-thread helpers for odd iterations. *)
 ghost
 fn fold_barrier_p_odd
-  (#et : Type0) {| sized et, has_vec_cpy et |}
+  (#etA : Type0) (#etB : Type0)
+  {| sized etA, has_vec_cpy etA, sized etB, has_vec_cpy etB |}
   (#rows #shared #cols : pos)
-  (eA : chest2 et rows shared)
-  (eB : chest2 et shared cols)
+  (eA : chest2 etA rows shared)
+  (eB : chest2 etB shared cols)
   (#bm : pos{bm /?+ rows})
   (#bk : pos{bk /?+ shared})
   (#bn : pos{bn /?+ cols})
   (#l1 : layout2 bm bk)
   (#l2 : layout2 bk bn)
-  (m1 : array2 et l1)
-  (m2 : array2 et l2)
+  (m1 : array2 etA l1)
+  (m2 : array2 etB l2)
   (nthr : pos)
   (bid : natlt (rows/bm * (cols/bn)))
   (mrow : nat{mrow == bid / (cols/bn)})
@@ -199,17 +205,18 @@ fn fold_barrier_p_odd
 
 ghost
 fn unfold_barrier_q_odd
-  (#et : Type0) {| sized et, has_vec_cpy et |}
+  (#etA : Type0) (#etB : Type0)
+  {| sized etA, has_vec_cpy etA, sized etB, has_vec_cpy etB |}
   (#rows #shared #cols : pos)
-  (eA : chest2 et rows shared)
-  (eB : chest2 et shared cols)
+  (eA : chest2 etA rows shared)
+  (eB : chest2 etB shared cols)
   (#bm : pos{bm /?+ rows})
   (#bk : pos{bk /?+ shared})
   (#bn : pos{bn /?+ cols})
   (#l1 : layout2 bm bk)
   (#l2 : layout2 bk bn)
-  (m1 : array2 et l1)
-  (m2 : array2 et l2)
+  (m1 : array2 etA l1)
+  (m2 : array2 etB l2)
   (nthr : pos)
   (bid : natlt (rows/bm * (cols/bn)))
   (mrow : nat{mrow == bid / (cols/bn)})
@@ -225,17 +232,18 @@ fn unfold_barrier_q_odd
 (* Per-thread helpers for even iterations. *)
 ghost
 fn fold_barrier_p_even
-  (#et : Type0) {| sized et, has_vec_cpy et |}
+  (#etA : Type0) (#etB : Type0)
+  {| sized etA, has_vec_cpy etA, sized etB, has_vec_cpy etB |}
   (#rows #shared #cols : pos)
-  (eA : chest2 et rows shared)
-  (eB : chest2 et shared cols)
+  (eA : chest2 etA rows shared)
+  (eB : chest2 etB shared cols)
   (#bm : pos{bm /?+ rows})
   (#bk : pos{bk /?+ shared})
   (#bn : pos{bn /?+ cols})
   (#l1 : layout2 bm bk)
   (#l2 : layout2 bk bn)
-  (m1 : array2 et l1)
-  (m2 : array2 et l2)
+  (m1 : array2 etA l1)
+  (m2 : array2 etB l2)
   (nthr : pos)
   (bid : natlt (rows/bm * (cols/bn)))
   (bkIdx : natlt (shared / bk))
@@ -248,17 +256,18 @@ fn fold_barrier_p_even
 
 ghost
 fn unfold_barrier_q_even
-  (#et : Type0) {| sized et, has_vec_cpy et |}
+  (#etA : Type0) (#etB : Type0)
+  {| sized etA, has_vec_cpy etA, sized etB, has_vec_cpy etB |}
   (#rows #shared #cols : pos)
-  (eA : chest2 et rows shared)
-  (eB : chest2 et shared cols)
+  (eA : chest2 etA rows shared)
+  (eB : chest2 etB shared cols)
   (#bm : pos{bm /?+ rows})
   (#bk : pos{bk /?+ shared})
   (#bn : pos{bn /?+ cols})
   (#l1 : layout2 bm bk)
   (#l2 : layout2 bk bn)
-  (m1 : array2 et l1)
-  (m2 : array2 et l2)
+  (m1 : array2 etA l1)
+  (m2 : array2 etB l2)
   (nthr : pos)
   (bid : natlt (rows/bm * (cols/bn)))
   (bkIdx : natlt (shared / bk))

@@ -337,3 +337,47 @@ let batch1_gmmcomb
           (C.c2_to_c3n a1 a2 afA eA)
           (C.c2_to_c3n a2 a3 afB eB)))
       (MS.gmmcomb mapA mapB comb eC eA eB))
+
+let gbmmcomb_slice_page
+  (#ta #tb #tc #tacc : Type0) {| scalar tacc |}
+  (mapA : ta -> tacc)
+  (mapB : tb -> tacc)
+  (comb : tc -> tacc -> tc)
+  (#batch #rows #shared #cols : nat)
+  (eC : chest3 tc batch rows cols)
+  (eA : chest3 ta batch rows shared)
+  (eB : chest3 tb batch shared cols)
+  (page : natlt batch)
+  : Lemma (Chest.slice_page (MS.gbmmcomb mapA mapB comb eC eA eB) page
+           == MS.gmmcomb mapA mapB comb
+                (Chest.slice_page eC page)
+                (Chest.slice_page eA page)
+                (Chest.slice_page eB page))
+  = let aux (idx : natlt rows & (natlt cols & unit))
+      : Lemma
+        (ensures
+          acc2 (Chest.slice_page (MS.gbmmcomb mapA mapB comb eC eA eB) page)
+               idx._1 idx._2._1
+          ==
+          acc2 (MS.gmmcomb mapA mapB comb
+                  (Chest.slice_page eC page)
+                  (Chest.slice_page eA page)
+                  (Chest.slice_page eB page))
+               idx._1 idx._2._1)
+      =
+        let (i, (j, ())) = idx in
+        assert (Chest.acc (MS.gbmmcomb mapA mapB comb eC eA eB) (page, (i, (j, ())))
+                == acc2 (MS.gmmcomb mapA mapB comb
+                           (Chest.slice_page eC page)
+                           (Chest.slice_page eA page)
+                           (Chest.slice_page eB page)) i j);
+        ()
+    in
+    Classical.forall_intro aux;
+    assert (Chest.equal
+      (Chest.slice_page (MS.gbmmcomb mapA mapB comb eC eA eB) page)
+      (MS.gmmcomb mapA mapB comb
+         (Chest.slice_page eC page)
+         (Chest.slice_page eA page)
+         (Chest.slice_page eB page)))
+

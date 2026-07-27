@@ -24,7 +24,7 @@ fn launch_kernel_full_sync
   let s = fresh_stream ();
   get_epoch s ();
   launch_kernel_full k s;
-  sync_stream s; 
+  sync_stream s;
   redeem_pledge emp_inames (epoch_done s _) (on gpu_loc full_post);
   drop_ (epoch_done s _);
   drop_ (epoch_live s _);
