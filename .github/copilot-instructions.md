@@ -98,6 +98,7 @@ Both on their `gpu` branches — these are forked/branched versions with GPU-spe
 - Typeclass instances used concretely (e.g., `clayout`) must also be `inline_for_extraction noextract`
 - Interfaces (`.fsti`) need at least one `inline_for_extraction` item or extraction/inlining will fail; use `inline_for_extraction let () = ()` as a workaround
 - Avoid `erased (natlt z)` — instead write `n:(erased nat){n < z}` or use `enatlt` (erased is invariant w.r.t. types, causing brittle typechecking)
+- A spec-only `nat`/index *function argument* (used only to compute a ghost layout/spec, not needed at runtime) MUST be `erased` or extraction fails; supply the runtime value via a `{| concrete_sz x |}` typeclass instance instead of a concrete `nat` parameter (e.g. `Kuiper.Array2.Strided.Slice.slice_of_3`'s `page`)
 - Module naming: `Kuiper.Foo.Bar` maps to file `Kuiper.Foo.Bar.fst` (dots in filenames, not directories)
 - `.fst` = implementation, `.fsti` = interface; some `.fst` files are auto-generated from `.fst.sh` scripts
 - F\* flags include `--ext kuiper` (Kuiper-specific compiler extension) and `--z3version 4.13.3`

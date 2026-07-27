@@ -230,3 +230,123 @@ fn t3_to_t2
     from_array (l2_to_l3 d0 d1 #l) (core g) |-> Frac f s3
   ensures
     g |-> Frac f (c3_to_c2 d0 d1 s3)
+
+(* ── Nat-typed rank-2 <-> single-page rank-3 casts ─────────────────────────
+   Mirrors {cbij23,l2_to_l3,...} above but with nat dimensions (some kernels'
+   matrix dims are [m*tile : nat], not szp), so the [all_fit] facts must be
+   threaded explicitly. *)
+
+inline_for_extraction noextract
+let cbij23n (a b : nat)
+  : (conc (a @| b @| INil) ==~ conc (1 @| a @| b @| INil)) =
+  mk_cbij
+    #(conc (a @| b @| INil))
+    #(conc (1 @| a @| b @| INil))
+    (function (i, (j, ())) -> (0sz, (i, (j, ()))))
+    (function (_, (i, (j, ()))) -> (i, (j, ())))
+    (fun (z, (_, (_, ()))) ->
+      FStar.SizeT.size_v_inj z;
+      ())
+    ez
+
+inline_for_extraction noextract
+let l2_to_l3n
+  (#a #b : nat)
+  (#l : layout2 a b)
+  {| cl : ctlayout l |}
+  : layout3 1 a b =
+  let _ = cl.all_fit in
+  layout_bij (bij_up (cbij23n a b)) l
+
+inline_for_extraction noextract
+instance cl2_to_cl3n
+  (#a #b : nat)
+  (#l : layout2 a b)
+  {| cl : ctlayout l |}
+  : ctlayout (l2_to_l3n #a #b #l) =
+  let _ = cl.all_fit in
+  clayout_bij (cbij23n a b) l
+
+let c2_to_c3n
+  (#et : Type0)
+  (a b : nat)
+  (af : squash (all_fit (a @| b @| INil)))
+  (s : chest2 et a b)
+  : chest3 et 1 a b =
+  chest_bij (bij_up (cbij23n a b)) s
+
+let c3_to_c2n
+  (#et : Type0)
+  (a b : nat)
+  (af : squash (all_fit (a @| b @| INil)))
+  (s : chest3 et 1 a b)
+  : chest2 et a b =
+  chest_bij (bij_sym (bij_up (cbij23n a b))) s
+
+val c2_to_c3n_roundtrip
+  (#et : Type0)
+  (a b : nat)
+  (af : squash (all_fit (a @| b @| INil)))
+  (s : chest2 et a b)
+  : Lemma (c3_to_c2n a b af (c2_to_c3n a b af s) == s)
+
+val c2_to_c3n_slice_page
+  (#et : Type0)
+  (a b : nat)
+  (af : squash (all_fit (a @| b @| INil)))
+  (s : chest2 et a b)
+  : Lemma (slice_page (c2_to_c3n a b af s) 0 == s)
+
+ghost
+fn t2_to_t3n
+  (#et : Type0)
+  (a b : nat)
+  (af : squash (all_fit (a @| b @| INil)))
+  (#l : layout2 a b)
+  {| ctlayout l |}
+  (g : tensor et l)
+  (#f : perm)
+  (#s : chest2 et a b)
+  requires
+    g |-> Frac f s
+  ensures
+    from_array (l2_to_l3n #a #b #l) (core g)
+      |-> Frac f (c2_to_c3n a b af s)
+
+ghost
+fn t3_to_t2n
+  (#et : Type0)
+  (a b : nat)
+  (af : squash (all_fit (a @| b @| INil)))
+  (#l : layout2 a b)
+  {| ctlayout l |}
+  (g : tensor et l)
+  (#f : perm)
+  (#s3 : chest3 et 1 a b)
+  requires
+    from_array (l2_to_l3n #a #b #l) (core g) |-> Frac f s3
+  ensures
+    g |-> Frac f (c3_to_c2n a b af s3)
+
+ghost
+fn t3_to_t2n_ow
+  (#et : Type0)
+  (a b : nat)
+  (af : squash (all_fit (a @| b @| INil)))
+  (#l : layout2 a b)
+  {| ctlayout l |}
+  (g : tensor et l)
+  (#f : perm)
+  (#s : chest2 et a b)
+  requires
+    from_array (l2_to_l3n #a #b #l) (core g) |-> Frac f (c2_to_c3n a b af s)
+  ensures
+    g |-> Frac f s
+
+(* helper: extract the all_fit fact from a rank-2 ctlayout *)
+let layout2_all_fit
+  (#a #b : nat)
+  (l : layout2 a b)
+  {| cl : ctlayout l |}
+  : squash (all_fit (a @| b @| INil))
+  = cl.all_fit

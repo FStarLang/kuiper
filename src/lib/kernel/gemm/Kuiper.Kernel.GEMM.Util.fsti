@@ -4,6 +4,7 @@ module Kuiper.Kernel.GEMM.Util
 
 open Kuiper
 module MS = Kuiper.Spec.GEMM
+module C = Kuiper.Matrix.Casts
 open Kuiper.Chest
 open Kuiper.Shape
 open Kuiper.EMatrix
@@ -209,3 +210,67 @@ val gbmmcomb_approx_real
               eA %~ rA /\ eB %~ rB /\ eC %~ rC)
     (ensures MS.gbmmcomb mapA mapB comb eC eA eB
              %~ MS.gbmmcomb mapA_r mapB_r comb_r rC rA rB)
+
+(* ── Batch-one bridges between rank-2 and single-page rank-3 GEMM ────────── *)
+
+(* [c2_to_c3n] preserves the approximation relation (cellwise reindex). *)
+val c2_to_c3_approx
+  (#et : Type0) {| scalar et, real_like et |}
+  (a b : nat)
+  (af : squash (all_fit (a @| b @| INil)))
+  (e : chest2 et a b)
+  (r : chest2 real a b)
+  : Lemma (requires e %~ r)
+          (ensures C.c2_to_c3n a b af e %~ C.c2_to_c3n a b af r)
+
+(* [c3_to_c2n] preserves the approximation relation (cellwise reindex). *)
+val c3_to_c2_approx
+  (#et : Type0) {| scalar et, real_like et |}
+  (a b : nat)
+  (af : squash (all_fit (a @| b @| INil)))
+  (e : chest3 et 1 a b)
+  (r : chest3 real 1 a b)
+  : Lemma (requires e %~ r)
+          (ensures C.c3_to_c2n a b af e %~ C.c3_to_c2n a b af r)
+
+(* Lowering a one-page batched gmmcomb yields the rank-2 gmmcomb. *)
+val batch1_gmmcomb
+  (#ta #tb #tc #tacc : Type0) {| scalar tacc |}
+  (mapA : ta -> tacc)
+  (mapB : tb -> tacc)
+  (comb : tc -> tacc -> tc)
+  (a1 a2 a3 : nat)
+  (afC : squash (all_fit (a1 @| a3 @| INil)))
+  (afA : squash (all_fit (a1 @| a2 @| INil)))
+  (afB : squash (all_fit (a2 @| a3 @| INil)))
+  (eC : chest2 tc a1 a3)
+  (eA : chest2 ta a1 a2)
+  (eB : chest2 tb a2 a3)
+  : Lemma (
+      C.c3_to_c2n a1 a3 afC
+        (MS.gbmmcomb mapA mapB comb
+          (C.c2_to_c3n a1 a3 afC eC)
+          (C.c2_to_c3n a1 a2 afA eA)
+          (C.c2_to_c3n a2 a3 afB eB))
+      == MS.gmmcomb mapA mapB comb eC eA eB)
+
+(* Exact per-page bridge: the [page]-th rank-2 slice of the batched combined
+   spec [gbmmcomb] is the rank-2 [gmmcomb] over the page slices of the operands.
+   Element-level and EXACT (no approximation), the exact analogue of the
+   [batch1_gmmcomb] cast lemma, used to assemble the batched exact
+   postcondition per page. *)
+val gbmmcomb_slice_page
+  (#ta #tb #tc #tacc : Type0) {| scalar tacc |}
+  (mapA : ta -> tacc)
+  (mapB : tb -> tacc)
+  (comb : tc -> tacc -> tc)
+  (#batch #rows #shared #cols : nat)
+  (eC : chest3 tc batch rows cols)
+  (eA : chest3 ta batch rows shared)
+  (eB : chest3 tb batch shared cols)
+  (page : natlt batch)
+  : Lemma (Kuiper.Chest.slice_page (MS.gbmmcomb mapA mapB comb eC eA eB) page
+           == MS.gmmcomb mapA mapB comb
+                (Kuiper.Chest.slice_page eC page)
+                (Kuiper.Chest.slice_page eA page)
+                (Kuiper.Chest.slice_page eB page))

@@ -32,7 +32,7 @@ let c_subtile_layout
       all_fit = ();
       cimap = (fun (x : conc (trows @| tcols @| INil)) ->
                 match x with | (i, (j, ())) ->
-                let x' =
+                [@@inline_let] let x' =
                   (concr trows *^ concr tr +^ i,
                    (concr tcols *^ concr tc +^ j,
                     ())) in
