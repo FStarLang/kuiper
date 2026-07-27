@@ -712,8 +712,7 @@ fn kf_compute
   (#lA : layout2 m k)
   (#lB : layout2 k n)
   {| T.ctlayout lA, T.ctlayout lB |}
-  (str_A : strided_row_major lA)
-  (str_B : strided_row_major lB)
+  {| str_A : strided_row_major lA, str_B : strided_row_major lB |}
   (#_ : squash (aligned_strided_row_major (chunk ta) str_A))
   (#_ : squash (aligned_strided_row_major (chunk tb) str_B))
   (gA : array2 ta lA)
@@ -1504,6 +1503,7 @@ instance bkpost_block_sendable
 (* Term-level sz bridge: retype a [szlt nthr_v] thread index to the product form
    [szlt (bm/tm * (bn/tn))] that [kf_compute] expects.  Identity on the value,
    backed by [nthr_v]'s refinement so SMT connects the two bounds. *)
+inline_for_extraction noextract
 let nthr_to_prod_sz
   (bm tm bn tn : szp)
   (nthr_v : szp{SZ.v nthr_v == bm/tm * (bn/tn)})
@@ -1616,13 +1616,9 @@ fn bkf
   assert pure (aligned 16 (core gA_p));
   assert pure (aligned 16 (core gB_p));
 
-  (* Per-page strided instances + alignment facts for the vectorized copy. *)
-  let strA_p = slice_of_3 _ _ _ lA #s3A (SZ.v page);
-  let strB_p = slice_of_3 _ _ _ lB #s3B (SZ.v page);
+  (* Alignment facts for the vectorized copy. *)
   lemma_aligned_slice_of_3 _ _ _ lA #s3A (SZ.v page) (chunk ta);
   lemma_aligned_slice_of_3 _ _ _ lB #s3B (SZ.v page) (chunk tb);
-  assert pure (aligned_strided_row_major (chunk ta) strA_p);
-  assert pure (aligned_strided_row_major (chunk tb) strB_p);
 
   (* Product buffer, then run the C-independent compute core over the page. *)
   let mut rchProd : Pulse.Lib.Array.array tacc = [| zero #tacc #_ ; tm*^tn |];
@@ -1641,7 +1637,10 @@ fn bkf
   rewrite (gB_p |-> Frac (fB /. (Ghost.reveal (bt2d_nall_e batch m n bm bn tm tn))) (chest_slice 0 (SZ.v page) eB))
        as (gB_p |-> Frac (fB /. (Ghost.reveal (bt2d_nall_e batch m n bm bn tm tn))) eB_p);
 
-  kf_compute mapA mapB #m #n #k #_ #_ strA_p strB_p gA_p #eA_p gB_p #eB_p
+  kf_compute mapA mapB #m #n #k #_ #_ #_ #_
+    #(slice_of_3 _ _ _ lA #s3A (SZ.v page) ())
+    #(slice_of_3 _ _ _ lB #s3B (SZ.v page) ())
+    gA_p #eA_p gB_p #eB_p
     #(fA /. (Ghost.reveal (bt2d_nall_e batch m n bm bn tm tn)))
     #(fB /. (Ghost.reveal (bt2d_nall_e batch m n bm bn tm tn)))
     bm bn bk slA slB tm tn nthr sh rest (nthr_to_prod_sz bm tm bn tn nthr_v tid) rchProd ();

@@ -37,13 +37,13 @@ class strided_row_major_3 (#batch #rows #cols : erased nat) (l3 : layout3 batch 
 (* Per-page slice: given a rank-3 strided characterization, page p's slice is a
    rank-2 strided_row_major layout with offset = offset3 + pstride3*p, stride = rstride3. *)
 inline_for_extraction noextract
-val slice_of_3
+instance val slice_of_3
   (batch rows cols : erased nat)
   (l3 : layout3 batch rows cols)
   {| s3 : strided_row_major_3 l3 |}
-  (page : natlt batch)
+  (page : erased (natlt batch))
   {| cpage : concrete_sz page |}
-  (#_ : squash (SZ.fits (s3.offset3 + s3.pstride3 * page)))
+  (_ : squash (SZ.fits (s3.offset3 + s3.pstride3 * page)))
   : strided_row_major #rows #cols (tlayout_slice l3 0 page)
 
 val lemma_slice_of_3_offset
@@ -52,8 +52,8 @@ val lemma_slice_of_3_offset
   {| s3 : strided_row_major_3 l3 |}
   (page : natlt batch)
   {| cpage : concrete_sz page |}
-  (#sqf : squash (SZ.fits (s3.offset3 + s3.pstride3 * page)))
-  : Lemma (SZ.v (slice_of_3 batch rows cols l3 #s3 page #cpage #sqf).offset
+  (sqf : squash (SZ.fits (s3.offset3 + s3.pstride3 * page)))
+  : Lemma (SZ.v (slice_of_3 batch rows cols l3 #s3 page ()).offset
              == s3.offset3 + s3.pstride3 * page)
 
 val lemma_slice_of_3_stride
@@ -62,8 +62,8 @@ val lemma_slice_of_3_stride
   {| s3 : strided_row_major_3 l3 |}
   (page : natlt batch)
   {| cpage : concrete_sz page |}
-  (#sqf : squash (SZ.fits (s3.offset3 + s3.pstride3 * page)))
-  : Lemma (SZ.v (slice_of_3 batch rows cols l3 #s3 page #cpage #sqf).stride == SZ.v s3.rstride3)
+  (sqf : squash (SZ.fits (s3.offset3 + s3.pstride3 * page)))
+  : Lemma (SZ.v (slice_of_3 batch rows cols l3 #s3 page ()).stride == SZ.v s3.rstride3)
 
 val lemma_aligned_slice_of_3
   (batch rows cols : erased nat)
@@ -75,7 +75,7 @@ val lemma_aligned_slice_of_3
   (k : pos)
   : Lemma (requires k /?+ s3.rstride3 /\ k /?+ s3.offset3 /\ k /?+ s3.pstride3)
           (ensures aligned_strided_row_major k
-                     (slice_of_3 batch rows cols l3 #s3 page #cpage #sqf))
+                     (slice_of_3 batch rows cols l3 #s3 page ()))
 
 (* Instance for the concrete rank-3 row-major layout: cell (p,i,j) = p*(rows*cols) + i*cols + j.
    This makes the batched kernel genuinely callable at batch>1. *)

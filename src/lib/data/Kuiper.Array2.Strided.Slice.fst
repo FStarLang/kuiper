@@ -36,13 +36,13 @@ let slice3_cell_lemma
    rank-2 strided_row_major layout with offset = offset3 + pstride3*p, stride = rstride3. *)
 #push-options "--fuel 4 --ifuel 4 --z3rlimit 40"
 inline_for_extraction noextract
-let slice_of_3
+instance slice_of_3
   (batch rows cols : erased nat)
   (l3 : layout3 batch rows cols)
   {| s3 : strided_row_major_3 l3 |}
-  (page : natlt batch)
+  (page : erased (natlt batch))
   {| cpage : concrete_sz page |}
-  (#_ : squash (SZ.fits (s3.offset3 + s3.pstride3 * page)))
+  (_ : squash (SZ.fits (s3.offset3 + s3.pstride3 * page)))
   : strided_row_major #rows #cols (tlayout_slice l3 0 page) =
 {
   offset = s3.offset3 +^ s3.pstride3 *^ concr' cpage;
@@ -59,8 +59,8 @@ let lemma_slice_of_3_offset
   {| s3 : strided_row_major_3 l3 |}
   (page : natlt batch)
   {| cpage : concrete_sz page |}
-  (#sqf : squash (SZ.fits (s3.offset3 + s3.pstride3 * page)))
-  : Lemma (SZ.v (slice_of_3 batch rows cols l3 #s3 page #cpage #sqf).offset
+  (sqf : squash (SZ.fits (s3.offset3 + s3.pstride3 * page)))
+  : Lemma (SZ.v (slice_of_3 batch rows cols l3 #s3 page ()).offset
              == s3.offset3 + s3.pstride3 * page)
   = ()
 
@@ -70,8 +70,8 @@ let lemma_slice_of_3_stride
   {| s3 : strided_row_major_3 l3 |}
   (page : natlt batch)
   {| cpage : concrete_sz page |}
-  (#sqf : squash (SZ.fits (s3.offset3 + s3.pstride3 * page)))
-  : Lemma (SZ.v (slice_of_3 batch rows cols l3 #s3 page #cpage #sqf).stride == SZ.v s3.rstride3)
+  (sqf : squash (SZ.fits (s3.offset3 + s3.pstride3 * page)))
+  : Lemma (SZ.v (slice_of_3 batch rows cols l3 #s3 page ()).stride == SZ.v s3.rstride3)
   = ()
 
 let lemma_aligned_slice_of_3
@@ -84,9 +84,9 @@ let lemma_aligned_slice_of_3
   (k : pos)
   : Lemma (requires k /?+ s3.rstride3 /\ k /?+ s3.offset3 /\ k /?+ s3.pstride3)
           (ensures aligned_strided_row_major k
-                     (slice_of_3 batch rows cols l3 #s3 page #cpage #sqf))
-  = lemma_slice_of_3_offset batch rows cols l3 #s3 page #cpage #sqf;
-    lemma_slice_of_3_stride batch rows cols l3 #s3 page #cpage #sqf;
+                     (slice_of_3 batch rows cols l3 #s3 page ()))
+  = lemma_slice_of_3_offset batch rows cols l3 #s3 page #cpage sqf;
+    lemma_slice_of_3_stride batch rows cols l3 #s3 page #cpage sqf;
     lemma_divides_product_l k s3.pstride3 page;
     lemma_divides_sum k s3.offset3 (s3.pstride3 * page)
 

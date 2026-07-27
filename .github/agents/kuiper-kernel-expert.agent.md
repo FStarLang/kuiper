@@ -50,6 +50,7 @@ When implementing proofs for a new kernel, study simpler implementations first:
 6. Structure kernels with appropriate GPU scoping (preserves gpu/cpu keywords)
 7. Handle memory transfers with gpu_memcpy_host_to_device and gpu_memcpy_device_to_host
 8. Use inline_for_extraction and noextract attributes appropriately
+9. **Do not put an implicit argument (`#x` or `{| |}`) in the LAST position of a signature** — F* often fails to instantiate trailing implicits at a call site. Make the final parameter explicit (e.g. a `squash`/unit witness passed as `()`). Trailing implicits are only safe when a later explicit arg forces their inference.
 
 ## Proof Structure Patterns
 
@@ -202,6 +203,8 @@ Concrete index tuples (e.g. `conc (batch @| rows @| cols @| INil)` values like `
 - **Repeat the literal tuple at the call site instead of binding it.** A `let ci = (page, (grow, (gcol, ())))` passed to a function does NOT inline — Karamel keeps `ci` as a struct. Pass the literal `(page, (grow, (gcol, ())))` directly to each consumer. If you still need `ci` for proof/rewriting, keep the binding but add `assert rewrites_to ci (page, (grow, (gcol, ())))` so both the readable name and the inlined literal coexist.
 - **Use `[@@inline_let]` on tuple-typed `let`s inside layout lambdas** (e.g. the `cimap` in `c_subtile_layout`), so the reindexed tuple inlines rather than extracting as a struct.
 - **Make ghost index values `erased`.** Index bindings used only in specs/proofs (e.g. `let bidn : natlt (...) = SZ.v bid`) should be `let bidn : erased (natlt (...)) = SZ.v bid` — otherwise they extract as concrete tuples/values.
+- **Erase spec-only `nat`/index *function arguments*.** A `nat`/`natlt` parameter that is used only to compute a ghost layout/spec (not needed at runtime) must be declared `erased`, or extraction fails. Pair it with a `{| concrete_sz page |}` typeclass instance to recover the runtime value where genuinely needed, rather than taking a concrete `nat` parameter. Example: `Kuiper.Array2.Strided.Slice.slice_of_3` takes `(page : erased (natlt batch)) {| concrete_sz page |}` — an earlier `(page : natlt batch)` broke extraction. (This is the one place `erased (natlt z)` is the right pattern despite the general "avoid `erased (natlt z)`" guidance, because the arg must be erased for extraction.)
+- **Mark concrete helpers called from device code `inline_for_extraction noextract`.** Any top-level concrete function invoked from within a kernel (device) — e.g. a small `szp`/index bridge like `nthr_to_prod_sz` — must be `inline_for_extraction noextract`. Otherwise extraction forces you to annotate it as a device or host function; for trivial/identity bridges it is easier to just inline it.
 - After changing extraction attributes, re-verify the module AND regenerate the `.cu` (`make obj/<Module_With_Dots_As_Underscores>.cu`) to confirm the structs are gone.
 
 ## Code Search Tips
