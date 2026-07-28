@@ -154,6 +154,56 @@ let lem_j
     };
     ()
 
+(* The C-input warp tile that [setup] scatters (a subtile of eC within block
+   [bid], warp [wid]) approximates the corresponding warp subtile of the real
+   reference matrix rC.  This lets [kpre1] carry the C-input approximation that
+   the epilogue reads back to fuse the combine. *)
+let c_subtile_approx_lemma
+  (#et_c : Type0) {| scalar et_c |} {| real_like et_c |}
+  (#m #n : pos)
+  (bm bn bk
+   tm tn tk
+   wm wn : szp { constraints bm bn bk tm tn tk wm wn })
+  (#_ : squash (bm /?+ m))
+  (#_ : squash (bn /?+ n))
+  (#_ : squash (wm * tm /?+ m))
+  (#_ : squash (wn * tn /?+ n))
+  (eC : chest2 et_c m n)
+  (rC : chest2 real m n)
+  (nthr : pos{nthr == bm/(wm*tm) * (bn/(wn*tn)) * warp_size})
+  (bid : natlt (m/bm * (n/bn)))
+  (wid : natlt (nthr / warp_size))
+  : Lemma (requires eC %~ rC)
+          (ensures
+            ematrix_subtile
+              (ematrix_subtile eC bm bn (bid/(n/bn)) (bid%(n/bn)))
+              (wm*tm) (wn*tn)
+              (warp_tile_idx_rows (SZ.v bm) (SZ.v bn) (wm*tm) (wn*tn) wid)
+              (warp_tile_idx_cols (SZ.v bm) (SZ.v bn) (wm*tm) (wn*tn) wid)
+            %~
+            ematrix_subtile rC (wm*tm) (wn*tn)
+              (warp_tile_i bm bn bk tm tn tk wm wn nthr bid wid)
+              (warp_tile_j bm bn bk tm tn tk wm wn nthr bid wid))
+=
+  let bi = bid / (n/bn) in
+  let bj = bid % (n/bn) in
+  let wri = warp_tile_idx_rows (SZ.v bm) (SZ.v bn) (wm*tm) (wn*tn) wid in
+  let wrj = warp_tile_idx_cols (SZ.v bm) (SZ.v bn) (wm*tm) (wn*tn) wid in
+  let wti = warp_tile_i bm bn bk tm tn tk wm wn nthr bid wid in
+  let wtj = warp_tile_j bm bn bk tm tn tk wm wn nthr bid wid in
+  (* Exact divisibility: (bm/(wm*tm))*(wm*tm) == bm, idem for n. *)
+  Math.Lemmas.euclidean_division_definition bm (wm*tm);
+  Math.Lemmas.euclidean_division_definition bn (wn*tn);
+  assert (wti * (wm*tm) == bi * bm + wri * (wm*tm));
+  assert (wtj * (wn*tn) == bj * bn + wrj * (wn*tn));
+  let aux (i : natlt (wm*tm)) (j : natlt (wn*tn))
+    : Lemma (acc2 (ematrix_subtile
+                    (ematrix_subtile eC bm bn bi bj)
+                    (wm*tm) (wn*tn) wri wrj) i j
+             %~ acc2 (ematrix_subtile rC (wm*tm) (wn*tn) wti wtj) i j)
+  = () in
+  Classical.forall_intro_2 aux
+
 ghost
 fn gpu_slice_gather_underspec
   (#a : Type u#0)
@@ -230,6 +280,8 @@ fn setup
   (#_ : squash (bm /? m))
   (#_ : squash (bk /?+ k))
   (#_ : squash (bn /? n))
+  (#_ : squash (wm * tm /?+ m))
+  (#_ : squash (wn * tn /?+ n))
   (#_ : squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
   (#_ : squash (aligned 16 (core gA)))
   (#_ : squash (aligned 16 (core gB)))
@@ -339,6 +391,11 @@ fn setup
   {
     with tC.
       fold warp_tile_pts_to gC bm bn tm tn wm wn bid (tid/warp_size) tC;
+    c_subtile_approx_lemma bm bn bk tm tn tk wm wn eC rC nthr bid (tid/warp_size);
+    fold (warp_tile_approximates gC bm bn tm tn wm wn bid (tid/warp_size)
+      (ematrix_subtile rC (wm*tm) (wn*tn)
+        (warp_tile_i #(SZ.v m) #(SZ.v n) bm bn bk tm tn tk wm wn nthr bid (tid/warp_size))
+        (warp_tile_j #(SZ.v m) #(SZ.v n) bm bn bk tm tn tk wm wn nthr bid (tid/warp_size))));
   };
   forevery_map_2 _ _ aux;
   ()
@@ -366,6 +423,8 @@ fn block_setup
   (#_ : squash (bm /?+ m))
   (#_ : squash (bk /?+ k))
   (#_ : squash (bn /?+ n))
+  (#_ : squash (wm * tm /?+ m))
+  (#_ : squash (wn * tn /?+ n))
   (#_ : squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
   (nblk : szp{SZ.v nblk == m/bm * (n/bn)})
   (nthr : szp{SZ.v nthr == bm/(wm*tm) * (bn/(wn*tn)) * warp_size /\ nthr <= 1024})
@@ -425,6 +484,8 @@ fn block_teardown
   (nblk : szp{SZ.v nblk == m/bm * (n/bn)})
   (nthr : szp{SZ.v nthr == bm/(wm*tm) * (bn/(wn*tn)) * warp_size})
   (fA fB : perm)
+  (mapA mapB : real -> real)
+  (comb : real -> real -> real)
   (rA : chest2 real m k)
   (rB : chest2 real k n)
   (rC : chest2 real m n)
@@ -436,15 +497,15 @@ fn block_teardown
   norewrite
   requires
     (forall+ (tid : natlt nthr).
-      kpost gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr sh bid tid) **
+      kpost gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB mapA mapB comb rA rB rC nthr sh bid tid) **
     emp (* frame *)
   ensures
     live_c_shmems sh **
     (forall+ (tid : natlt nthr).
-      kpost1 gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr bid tid)
+      kpost1 gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB mapA mapB comb rA rB rC nthr bid tid)
 {
   forevery_unzip #(natlt nthr)
-    (fun tid -> kpost1 gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr bid tid)
+    (fun tid -> kpost1 gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB mapA mapB comb rA rB rC nthr bid tid)
     _;
 
   (* Restore and give back ownership of shared memory arrays. *)
@@ -543,6 +604,8 @@ fn rhs_is_constant_for_warps_approx
   (#_ : squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
   (nblk : pos{nblk == m/bm * (n/bn)})
   (nthr : pos{nthr == bm/(wm*tm) * (bn/(wn*tn)) * warp_size})
+  (mapA mapB : real -> real)
+  (comb : real -> real -> real)
   (rA : chest2 real m k)
   (rB : chest2 real k n)
   (rC : chest2 real m n)
@@ -555,14 +618,12 @@ fn rhs_is_constant_for_warps_approx
     forall+ (tid : natlt nthr).
       warp_tile_pts_to gC bm bn tm tn wm wn bid (tid / warp_size) (emf tid) **
       pure (emf tid %~
-        (MS.matmul (ematrix_subtile rA (wm*tm) k (warp_tile_i #m #n bm bn bk tm tn tk wm wn nthr bid (tid / warp_size)) 0)
-                   (ematrix_subtile rB k  (wn*tn) 0 (warp_tile_j #m #n bm bn bk tm tn tk wm wn nthr bid (tid / warp_size)))))
+        (wt_target mapA mapB comb bm bn bk tm tn tk wm wn rA rB rC nthr bid (tid / warp_size)))
   ensures
     forall+ (wid : natlt (nthr / warp_size)).
       warp_tile_pts_to_full gC bm bn tm tn wm wn bid wid (emf (wid * warp_size)) **
       pure (emf (wid * warp_size) %~
-        (MS.matmul (ematrix_subtile rA (wm*tm) k (warp_tile_i #m #n bm bn bk tm tn tk wm wn nthr bid wid) 0)
-                   (ematrix_subtile rB k  (wn*tn) 0 (warp_tile_j #m #n bm bn bk tm tn tk wm wn nthr bid wid))))
+        (wt_target mapA mapB comb bm bn bk tm tn tk wm wn rA rB rC nthr bid wid))
 {
   forevery_factor nthr (nthr / warp_size) warp_size _;
   ghost
@@ -571,13 +632,11 @@ fn rhs_is_constant_for_warps_approx
       forall+ (i : natlt warp_size).
         warp_tile_pts_to gC bm bn tm tn wm wn bid ((wid * warp_size + i) / warp_size) (emf (wid * warp_size + i)) **
         pure (emf (wid * warp_size + i) %~
-          (MS.matmul (ematrix_subtile rA (wm*tm) k (warp_tile_i #m #n bm bn bk tm tn tk wm wn nthr bid ((wid * warp_size + i) / warp_size)) 0)
-                     (ematrix_subtile rB k  (wn*tn) 0 (warp_tile_j #m #n bm bn bk tm tn tk wm wn nthr bid ((wid * warp_size + i) / warp_size)))))
+          (wt_target mapA mapB comb bm bn bk tm tn tk wm wn rA rB rC nthr bid ((wid * warp_size + i) / warp_size)))
     ensures
       warp_tile_pts_to_full gC bm bn tm tn wm wn bid wid (emf (wid * warp_size)) **
       pure (emf (wid * warp_size) %~
-        (MS.matmul (ematrix_subtile rA (wm*tm) k (warp_tile_i #m #n bm bn bk tm tn tk wm wn nthr bid wid) 0)
-                  (ematrix_subtile rB k  (wn*tn) 0 (warp_tile_j #m #n bm bn bk tm tn tk wm wn nthr bid wid))))
+        (wt_target mapA mapB comb bm bn bk tm tn tk wm wn rA rB rC nthr bid wid))
   {
     forevery_natlt_pop_shift _ _;
 
@@ -596,8 +655,7 @@ fn rhs_is_constant_for_warps_approx
       (warp_tile_pts_to gC bm bn tm tn wm wn bid wid em0)
       (fun i -> warp_tile_pts_to gC bm bn tm tn wm wn bid ((wid * warp_size + (i+1)) / warp_size) (emf (wid * warp_size + (i+1)))
         ** pure (emf (wid * warp_size + (i+1)) %~
-          (MS.matmul (ematrix_subtile rA (wm*tm) k (warp_tile_i #m #n bm bn bk tm tn tk wm wn nthr bid ((wid * warp_size + (i+1)) / warp_size)) 0)
-                     (ematrix_subtile rB k  (wn*tn) 0 (warp_tile_j #m #n bm bn bk tm tn tk wm wn nthr bid ((wid * warp_size + (i+1)) / warp_size))))))
+          (wt_target mapA mapB comb bm bn bk tm tn tk wm wn rA rB rC nthr bid ((wid * warp_size + (i+1)) / warp_size))))
       (fun i -> warp_tile_pts_to gC bm bn tm tn wm wn bid wid em0)
       // ^ NB: dropping the pure part above, it doesn't matter as we already have this fact about em0
       fn i {
@@ -635,8 +693,11 @@ let tiles_approx_lemma
   (#_ : squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
   (nblk : pos{nblk == m/bm * (n/bn)})
   (nthr : pos{nthr == bm/(wm*tm) * (bn/(wn*tn)) * warp_size})
+  (mapA mapB : real -> real)
+  (comb : real -> real -> real)
   (rA : chest2 real m k)
   (rB : chest2 real k n)
+  (rC : chest2 real m n)
   (#_ : squash (wm * tm /?+ m)) // obvious, but SMT is flaky
   (#_ : squash (wn * tn /?+ n)) // idem
   (eC' : chest2 et_c m n)
@@ -649,11 +710,10 @@ let tiles_approx_lemma
                     (fun tr tc -> emf (br * (n/bn) + bc) ((tr * (bn/(wn*tn)) + tc) * warp_size))))
           /\ (forall (bid : natlt nblk) (wid : natlt (nthr / warp_size)).
                 emf bid (wid * warp_size) %~
-                  (MS.matmul (ematrix_subtile rA (wm*tm) k (warp_tile_i #m #n bm bn bk tm tn tk wm wn nthr bid wid) 0)
-                            (ematrix_subtile rB k  (wn*tn) 0 (warp_tile_j #m #n bm bn bk tm tn tk wm wn nthr bid wid)))))
-          (ensures eC' %~ MS.matmul rA rB)
+                  (wt_target mapA mapB comb bm bn bk tm tn tk wm wn rA rB rC nthr bid wid)))
+          (ensures eC' %~ MS.gmmcomb mapA mapB comb rC rA rB)
 = let aux (i : natlt m) (j : natlt n)
-    : Lemma (acc2 eC' i j %~ acc2 (MS.matmul rA rB) i j)
+    : Lemma (acc2 eC' i j %~ acc2 (MS.gmmcomb mapA mapB comb rC rA rB) i j)
   =
     let bid : natlt nblk = bid_of_ij m n bm bn i j in
     let wid : natlt (nthr / warp_size) = wid_of_ij m n bm bn tm tn wm wn i j in
@@ -677,37 +737,34 @@ let tiles_approx_lemma
     assert (acc2 eC' i j == acc2 (emf bid (wid * warp_size)) ii jj);
     assert (acc2 eC' i j %~
       acc2
-        (MS.matmul (ematrix_subtile rA (wm*tm) k (warp_tile_i #m #n bm bn bk tm tn tk wm wn nthr bid wid) 0)
-                   (ematrix_subtile rB k  (wn*tn) 0 (warp_tile_j #m #n bm bn bk tm tn tk wm wn nthr bid wid)))
+        (wt_target mapA mapB comb bm bn bk tm tn tk wm wn rA rB rC nthr bid wid)
         ii jj);
 
-    MS.matmul_decompose_lemma rA rB (wm*tm) (wn*tn) (warp_tile_i #m #n bm bn bk tm tn tk wm wn nthr bid wid)
-                                                    (warp_tile_j #m #n bm bn bk tm tn tk wm wn nthr bid wid);
-    assert (acc2 eC' i j %~
-      acc2
-        (ematrix_subtile
-          (MS.matmul rA rB)
-          (wm*tm) (wn*tn)
-          (warp_tile_i #m #n bm bn bk tm tn tk wm wn nthr bid wid)
-          (warp_tile_j #m #n bm bn bk tm tn tk wm wn nthr bid wid))
-        ii jj);
-
+    (* The per-warp target [wt_target] combines the OLD C subtile (via [comb])
+       with the matmul of the pre-mapped input subtiles.  Line up its cell
+       (ii,jj) with the global gmmcomb cell (i,j). *)
+    let wti = warp_tile_i #m #n bm bn bk tm tn tk wm wn nthr bid wid in
+    let wtj = warp_tile_j #m #n bm bn bk tm tn tk wm wn nthr bid wid in
+    MS.matmul_decompose_lemma (Chest.chest_map mapA rA) (Chest.chest_map mapB rB)
+      (wm*tm) (wn*tn) wti wtj;
+    lem_i m n k bm bn bk tm tn tk wm wn nthr i j;
+    lem_j m n k bm bn bk tm tn tk wm wn nthr i j;
+    MS.lemma_matmul_index (Chest.chest_map mapA rA) (Chest.chest_map mapB rB) i j;
     calc (==) {
-      acc2
-        (ematrix_subtile
-          (MS.matmul rA rB)
-          (wm*tm) (wn*tn)
-          (warp_tile_i #m #n bm bn bk tm tn tk wm wn nthr bid wid)
-          (warp_tile_j #m #n bm bn bk tm tn tk wm wn nthr bid wid))
-        ii jj;
-      == {}
-      acc2
-        (MS.matmul rA rB)
-        (warp_tile_i #m #n bm bn bk tm tn tk wm wn nthr bid wid * (wm*tm) + ii)
-        (warp_tile_j #m #n bm bn bk tm tn tk wm wn nthr bid wid * (wn*tn) + jj);
-      == { lem_i m n k bm bn bk tm tn tk wm wn nthr i j;
-           lem_j m n k bm bn bk tm tn tk wm wn nthr i j }
-      acc2 (MS.matmul rA rB) i j;
+      acc2 (wt_target mapA mapB comb bm bn bk tm tn tk wm wn rA rB rC nthr bid wid) ii jj;
+      == { }
+      comb (acc2 (ematrix_subtile rC (wm*tm) (wn*tn) wti wtj) ii jj)
+           (acc2 (MS.matmul
+                   (ematrix_subtile (Chest.chest_map mapA rA) (wm*tm) k wti 0)
+                   (ematrix_subtile (Chest.chest_map mapB rB) k (wn*tn) 0 wtj)) ii jj);
+      == { }
+      comb (acc2 rC i j)
+           (acc2 (MS.matmul (Chest.chest_map mapA rA) (Chest.chest_map mapB rB)) i j);
+      == { }
+      comb (acc2 rC i j)
+           (MS.matmul_single (Chest.chest_map mapA rA) (Chest.chest_map mapB rB) i j);
+      == { }
+      acc2 (MS.gmmcomb mapA mapB comb rC rA rB) i j;
     };
 
     ()
@@ -736,6 +793,8 @@ fn reconstruct_from_warp_approx
   (#_ : squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
   (nblk : pos{nblk == m/bm * (n/bn)})
   (nthr : pos{nthr == bm/(wm*tm) * (bn/(wn*tn)) * warp_size})
+  (mapA mapB : real -> real)
+  (comb : real -> real -> real)
   (rA : chest2 real m k)
   (rB : chest2 real k n)
   (rC : chest2 real m n)
@@ -747,28 +806,24 @@ fn reconstruct_from_warp_approx
   requires
     forall+ (bid : natlt nblk) (tid : natlt nthr).
       warp_tile_approximates gC bm bn tm tn wm wn bid (tid / warp_size)
-        (MS.matmul (ematrix_subtile rA (wm*tm) k (warp_tile_i #m #n bm bn bk tm tn tk wm wn nthr bid (tid / warp_size)) 0)
-                   (ematrix_subtile rB k  (wn*tn) 0 (warp_tile_j #m #n bm bn bk tm tn tk wm wn nthr bid (tid / warp_size))))
+        (wt_target mapA mapB comb bm bn bk tm tn tk wm wn rA rB rC nthr bid (tid / warp_size))
   ensures
     exists* (eC' : chest2 et_c m n).
-      gC |-> eC' ** pure (eC' %~ MS.matmul rA rB)
+      gC |-> eC' ** pure (eC' %~ MS.gmmcomb mapA mapB comb rC rA rB)
 {
   (* Expose the existential. *)
   forevery_map_2 #(natlt nblk) #(natlt nthr)
     (fun bid tid ->
       warp_tile_approximates gC bm bn tm tn wm wn bid (tid / warp_size)
-        (MS.matmul (ematrix_subtile rA (wm*tm) k (warp_tile_i #m #n bm bn bk tm tn tk wm wn nthr bid (tid / warp_size)) 0)
-                   (ematrix_subtile rB k  (wn*tn) 0 (warp_tile_j #m #n bm bn bk tm tn tk wm wn nthr bid (tid / warp_size)))))
+        (wt_target mapA mapB comb bm bn bk tm tn tk wm wn rA rB rC nthr bid (tid / warp_size)))
     (fun bid tid ->
       exists* (em : chest2 et_c (wm*tm) (wn*tn)).
         warp_tile_pts_to gC bm bn tm tn wm wn bid (tid / warp_size) em **
         pure (em %~
-          (MS.matmul (ematrix_subtile rA (wm*tm) k (warp_tile_i #m #n bm bn bk tm tn tk wm wn nthr bid (tid / warp_size)) 0)
-                     (ematrix_subtile rB k  (wn*tn) 0 (warp_tile_j #m #n bm bn bk tm tn tk wm wn nthr bid (tid / warp_size))))))
+          (wt_target mapA mapB comb bm bn bk tm tn tk wm wn rA rB rC nthr bid (tid / warp_size))))
     fn bid tid {
       unfold warp_tile_approximates gC bm bn tm tn wm wn bid (tid / warp_size)
-        (MS.matmul (ematrix_subtile rA (wm*tm) k (warp_tile_i #m #n bm bn bk tm tn tk wm wn nthr bid (tid / warp_size)) 0)
-                   (ematrix_subtile rB k  (wn*tn) 0 (warp_tile_j #m #n bm bn bk tm tn tk wm wn nthr bid (tid / warp_size))));
+        (wt_target mapA mapB comb bm bn bk tm tn tk wm wn rA rB rC nthr bid (tid / warp_size));
     };
 
   (* Choice. *)
@@ -776,23 +831,20 @@ fn reconstruct_from_warp_approx
     (fun (bid : natlt nblk) (tid : natlt nthr) (em : chest2 et_c (wm*tm) (wn*tn)) ->
         warp_tile_pts_to gC bm bn tm tn wm wn bid (tid / warp_size) em **
         pure (em %~
-          (MS.matmul (ematrix_subtile rA (wm*tm) k (warp_tile_i #m #n bm bn bk tm tn tk wm wn nthr bid (tid / warp_size)) 0)
-                     (ematrix_subtile rB k  (wn*tn) 0 (warp_tile_j #m #n bm bn bk tm tn tk wm wn nthr bid (tid / warp_size))))));
+          (wt_target mapA mapB comb bm bn bk tm tn tk wm wn rA rB rC nthr bid (tid / warp_size))));
 
   (* Threads within a warp are uniform, factor and gather. *)
   forevery_map #(natlt nblk)
     (fun bid -> forall+ (tid : natlt nthr).
       warp_tile_pts_to gC bm bn tm tn wm wn bid (tid / warp_size) (emf bid tid) **
       pure (emf bid tid %~
-        (MS.matmul (ematrix_subtile rA (wm*tm) k (warp_tile_i #m #n bm bn bk tm tn tk wm wn nthr bid (tid / warp_size)) 0)
-                   (ematrix_subtile rB k  (wn*tn) 0 (warp_tile_j #m #n bm bn bk tm tn tk wm wn nthr bid (tid / warp_size))))))
+        (wt_target mapA mapB comb bm bn bk tm tn tk wm wn rA rB rC nthr bid (tid / warp_size))))
     (fun bid -> forall+ (wid : natlt (nthr / warp_size)).
       warp_tile_pts_to_full gC bm bn tm tn wm wn bid wid (emf bid (wid * warp_size)) **
       pure (emf bid (wid * warp_size) %~
-        (MS.matmul (ematrix_subtile rA (wm*tm) k (warp_tile_i #m #n bm bn bk tm tn tk wm wn nthr bid wid) 0)
-                   (ematrix_subtile rB k  (wn*tn) 0 (warp_tile_j #m #n bm bn bk tm tn tk wm wn nthr bid wid)))))
+        (wt_target mapA mapB comb bm bn bk tm tn tk wm wn rA rB rC nthr bid wid)))
     fn bid {
-      rhs_is_constant_for_warps_approx gC eA eB eC bm bn bk tm tn tk wm wn nblk nthr rA rB rC bid (emf bid);
+      rhs_is_constant_for_warps_approx gC eA eB eC bm bn bk tm tn tk wm wn nblk nthr mapA mapB comb rA rB rC bid (emf bid);
     };
 
   (* Now reconstruct the full matrix from the big tiles. *)
@@ -803,19 +855,16 @@ fn reconstruct_from_warp_approx
     (fun bid wid ->
       warp_tile_pts_to_full gC bm bn tm tn wm wn bid wid (emf bid (wid * warp_size)) **
       pure (emf bid (wid * warp_size) %~
-        (MS.matmul (ematrix_subtile rA (wm*tm) k (warp_tile_i #m #n bm bn bk tm tn tk wm wn nthr bid wid) 0)
-                   (ematrix_subtile rB k  (wn*tn) 0 (warp_tile_j #m #n bm bn bk tm tn tk wm wn nthr bid wid)))))
+        (wt_target mapA mapB comb bm bn bk tm tn tk wm wn rA rB rC nthr bid wid)))
     (fun bid wid ->
       emf bid (wid * warp_size) %~
-        (MS.matmul (ematrix_subtile rA (wm*tm) k (warp_tile_i #m #n bm bn bk tm tn tk wm wn nthr bid wid) 0)
-                   (ematrix_subtile rB k  (wn*tn) 0 (warp_tile_j #m #n bm bn bk tm tn tk wm wn nthr bid wid))))
+        (wt_target mapA mapB comb bm bn bk tm tn tk wm wn rA rB rC nthr bid wid))
     fn bid wid {
       ();
     };
   assert pure (forall (bid : natlt nblk) (wid : natlt (nthr / warp_size)).
     emf bid (wid * warp_size) %~
-      (MS.matmul (ematrix_subtile rA (wm*tm) k (warp_tile_i #m #n bm bn bk tm tn tk wm wn nthr bid wid) 0)
-                 (ematrix_subtile rB k  (wn*tn) 0 (warp_tile_j #m #n bm bn bk tm tn tk wm wn nthr bid wid))));
+      (wt_target mapA mapB comb bm bn bk tm tn tk wm wn rA rB rC nthr bid wid));
 
   (* Now drop the pures. *)
   forevery_map_2
@@ -823,8 +872,7 @@ fn reconstruct_from_warp_approx
     (fun bid wid ->
       warp_tile_pts_to_full gC bm bn tm tn wm wn bid wid (emf bid (wid * warp_size)) **
       pure (emf bid (wid * warp_size) %~
-        (MS.matmul (ematrix_subtile rA (wm*tm) k (warp_tile_i #m #n bm bn bk tm tn tk wm wn nthr bid wid) 0)
-                   (ematrix_subtile rB k  (wn*tn) 0 (warp_tile_j #m #n bm bn bk tm tn tk wm wn nthr bid wid)))))
+        (wt_target mapA mapB comb bm bn bk tm tn tk wm wn rA rB rC nthr bid wid)))
     (fun bid wid ->
       // warp_tile_pts_to_full gC bm bn tm tn wm wn bid wid (emf bid (wid * warp_size)))
       // tensor_pts_to
@@ -951,9 +999,9 @@ fn reconstruct_from_warp_approx
      functional post. *)
   with eC'. assert gC |-> eC';
 
-  tiles_approx_lemma bm bn bk tm tn tk wm wn nblk nthr rA rB eC' emf;
+  tiles_approx_lemma bm bn bk tm tn tk wm wn nblk nthr mapA mapB comb rA rB rC eC' emf;
 
-  assert pure (eC' %~ MS.matmul rA rB);
+  assert pure (eC' %~ MS.gmmcomb mapA mapB comb rC rA rB);
   ();
 }
 #pop-options
@@ -985,6 +1033,8 @@ fn teardown
   (#_ : squash (chunk et_ab * nthr /?+ (bm * bk)))
   (#_ : squash (chunk et_ab * nthr /?+ (bk * bn)))
   (fA fB : perm)
+  (mapA mapB : real -> real)
+  (comb : real -> real -> real)
   (rA : chest2 real m k)
   (rB : chest2 real k n)
   (rC : chest2 real m n)
@@ -995,13 +1045,13 @@ fn teardown
   requires
     (forall+ (bid : natlt nblk)
              (tid : natlt nthr).
-      kpost1 gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr bid tid) **
+      kpost1 gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB mapA mapB comb rA rB rC nthr bid tid) **
     pure (SZ.fits (lC.ulen)) // frame
   ensures
     gA |-> Frac fA eA **
     gB |-> Frac fB eB **
     (exists* (eC' : chest2 et_c m n).
-      gC |-> eC' ** pure (eC' %~ MS.matmul rA rB))
+      gC |-> eC' ** pure (eC' %~ MS.gmmcomb mapA mapB comb rC rA rB))
 {
   forevery_unfactor' (m/bm * (n/bn) * nthr) nblk nthr _;
   forevery_unzip _ _;
@@ -1015,8 +1065,7 @@ fn teardown
 
   assert forall+ (x : natlt (m / bm * (n / bn) * nthr)).
     warp_tile_approximates gC bm bn tm tn wm wn (x / nthr) (x % nthr / warp_size)
-      (MS.matmul (ematrix_subtile rA (wm*tm) k (warp_tile_i bm bn bk tm tn tk wm wn nthr (x / nthr) (x % nthr / warp_size)) 0)
-                 (ematrix_subtile rB k  (wn*tn) 0 (warp_tile_j bm bn bk tm tn tk wm wn nthr (x / nthr) (x % nthr / warp_size))));
+      (wt_target mapA mapB comb bm bn bk tm tn tk wm wn rA rB rC nthr (x / nthr) (x % nthr / warp_size));
 
   forevery_factor'
     (m/bm * (n/bn) * nthr)
@@ -1024,11 +1073,10 @@ fn teardown
     nthr
     (fun (bid : natlt (m/bm * (n/bn))) (tid : natlt nthr) ->
       warp_tile_approximates gC bm bn tm tn wm wn bid (tid / warp_size)
-        (MS.matmul (ematrix_subtile rA (wm*tm) k (warp_tile_i bm bn bk tm tn tk wm wn nthr bid (tid / warp_size)) 0)
-                  (ematrix_subtile rB k  (wn*tn) 0 (warp_tile_j bm bn bk tm tn tk wm wn nthr bid (tid / warp_size)))));
+        (wt_target mapA mapB comb bm bn bk tm tn tk wm wn rA rB rC nthr bid (tid / warp_size)));
 
   reconstruct_from_warp_approx
-    gC eA eB eC bm bn bk tm tn tk wm wn (m/bm * (n/bn)) nthr rA rB rC;
+    gC eA eB eC bm bn bk tm tn tk wm wn (m/bm * (n/bn)) nthr mapA mapB comb rA rB rC;
 
   ();
 }

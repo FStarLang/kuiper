@@ -1872,7 +1872,6 @@ fn bkf
   rewrite each eA_p as (slice_page eA (SZ.v bid % batch) <: chest2 ta m k);
   rewrite each eB_p as (slice_page eB (SZ.v bid % batch) <: chest2 tb k n);
   rewrite each (SZ.v rest) as (SZ.v bid / batch);
-  rewrite each (SZ.v page) as (SZ.v bid % batch);
 }
 #pop-options
 
