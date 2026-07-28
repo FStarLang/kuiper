@@ -203,6 +203,22 @@ fn mma_loadB
   ensures
     fr |-> m0
 
+fn mma_loadB_cm
+  (#et : Type)
+  (#m #n #k : erased nat)
+  (fr : fragment et FragB m n k FragLCM)
+  (#l : layout2 k n) {| strided_col_major l |}
+  (gm : array2 et l)
+  (#f : perm)
+  (#m0 : chest2 et k n)
+  (#f0 : erased (value_for et FragB m n k))
+  preserves
+    gm |-> Frac f m0
+  requires
+    fr |-> f0
+  ensures
+    fr |-> m0
+
 fn mma_loadAccum
   (#et : Type)
   (#m #n #k : erased nat)

@@ -185,12 +185,34 @@ instance val c_l3_batched_row_major
   (n : SZ.t{SZ.fits (m * n) /\ SZ.fits (r * (m * n))})
   : T.ctlayout (l3_batched_row_major r m n)
 
+val l3_batched_row_major_imap
+  (r : erased nat{SZ.fits r})
+  (m : SZ.t{SZ.fits (r * m)})
+  (n : SZ.t{SZ.fits (m * n) /\ SZ.fits (r * (m * n))})
+  (i : szlt r) (j : szlt m) (k : szlt n)
+  : Lemma (
+      (l3_batched_row_major r m n).imap.f
+        (SZ.v i, (SZ.v j, (SZ.v k, ()))) ==
+      SZ.v (
+        SZ.add (SZ.mul i (SZ.mul m n)) (SZ.add (SZ.mul j n) k)))
+
 inline_for_extraction noextract
 instance val c_l3_batched_col_major
   (r : erased nat{SZ.fits r})
   (m : SZ.t{SZ.fits (r * m)})
   (n : SZ.t{SZ.fits (m * n) /\ SZ.fits (r * (m * n))})
   : T.ctlayout (l3_batched_col_major r m n)
+
+val l3_batched_col_major_imap
+  (r : erased nat{SZ.fits r})
+  (m : SZ.t{SZ.fits (r * m)})
+  (n : SZ.t{SZ.fits (m * n) /\ SZ.fits (r * (m * n))})
+  (i : szlt r) (j : szlt m) (k : szlt n)
+  : Lemma (
+      (l3_batched_col_major r m n).imap.f
+        (SZ.v i, (SZ.v j, (SZ.v k, ()))) ==
+      SZ.v (
+        SZ.add (SZ.mul i (SZ.mul m n)) (SZ.add (SZ.mul k m) j)))
 
 inline_for_extraction noextract
 instance val c_l4_batched_row_major
@@ -199,3 +221,19 @@ instance val c_l4_batched_row_major
   (m : SZ.t{SZ.fits (r2 * m) /\ SZ.fits (r1 * (r2 * m))})
   (n : SZ.t{SZ.fits (m * n) /\ SZ.fits (r2 * (m * n)) /\ SZ.fits (r1 * (r2 * (m * n)))})
   : T.ctlayout (l4_batched_row_major r1 r2 m n)
+
+val l4_batched_row_major_imap
+  (r1: erased nat{SZ.fits r1})
+  (r2: SZ.t{SZ.fits (r1 * r2)})
+  (m : SZ.t{SZ.fits (r2 * m) /\ SZ.fits (r1 * (r2 * m))})
+  (n : SZ.t{
+    SZ.fits (m * n) /\
+    SZ.fits (r2 * (m * n)) /\
+    SZ.fits (r1 * (r2 * (m * n)))})
+  (i : szlt r1) (j : szlt r2) (k : szlt m) (l : szlt n)
+  : Lemma (
+      (l4_batched_row_major r1 r2 m n).imap.f
+        (SZ.v i, (SZ.v j, (SZ.v k, (SZ.v l, ())))) ==
+      SZ.v (
+        SZ.add (SZ.mul i (SZ.mul r2 (SZ.mul m n)))
+          (SZ.add (SZ.mul j (SZ.mul m n)) (SZ.add (SZ.mul k n) l))))
