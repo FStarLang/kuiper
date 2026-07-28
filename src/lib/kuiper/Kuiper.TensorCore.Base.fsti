@@ -171,6 +171,45 @@ fn mma_loadA
   ensures
     fr |-> m0
 
+(* Load A fragment while applying an elementwise device map [f] to every
+   element as it is loaded (e.g. a dequantization/scale/activation pre-map).
+   Assumed primitive: extraction realizes it as a load followed by an
+   elementwise map over the fragment's register array. *)
+fn mma_loadA_map
+  (#et : Type)
+  (#m #n #k : erased nat)
+  (f : et -> et)
+  (fr : fragment et FragA m n k FragLRM)
+  (#l : layout2 m k) {| strided_row_major l |}
+  (gm : array2 et l)
+  (#fp : perm)
+  (#m0 : chest2 et m k)
+  (#f0 : erased (value_for et FragA m n k))
+  preserves
+    gm |-> Frac fp m0
+  requires
+    fr |-> f0
+  ensures
+    fr |-> chest_map f m0
+
+(* Load B fragment while applying an elementwise device map [f]. *)
+fn mma_loadB_map
+  (#et : Type)
+  (#m #n #k : erased nat)
+  (f : et -> et)
+  (fr : fragment et FragB m n k FragLRM)
+  (#l : layout2 k n) {| strided_row_major l |}
+  (gm : array2 et l)
+  (#fp : perm)
+  (#m0 : chest2 et k n)
+  (#f0 : erased (value_for et FragB m n k))
+  preserves
+    gm |-> Frac fp m0
+  requires
+    fr |-> f0
+  ensures
+    fr |-> chest_map f m0
+
 fn mma_loadA_cm
   (#et : Type)
   (#m #n #k : erased nat)
@@ -256,6 +295,26 @@ fn mma_store
     gm |-> Frac (1.0R /. warp_size) m0
   ensures
     gm |-> Frac (1.0R /. warp_size) f0
+
+(* Store the accumulator fragment while combining, elementwise, with the value
+   already resident in [gm], using the device combine [g].  Read-modify-write:
+   the result cell is [g (old C cell) (accumulator cell)].  Needs the same warp
+   fraction as [mma_store] (all lanes of a warp cooperatively own the tile). *)
+fn mma_store_comb
+  (#et : Type)
+  (#m #n #k : erased nat)
+  (g : et -> et -> et)
+  (fr : fragment et FragAcc m n k FragLAcc)
+  (#l : layout2 m n) {| strided_row_major l |}
+  (gm : array2 et l)
+  (#f0 : erased (value_for et FragAcc m n k))
+  (#m0 : chest2 et m n)
+  preserves
+    fr |-> f0
+  requires
+    gm |-> Frac (1.0R /. warp_size) m0
+  ensures
+    gm |-> Frac (1.0R /. warp_size) (chest_comb g m0 f0)
 
 (* We should add checker support for this. *)
 fn with_fragment u#r

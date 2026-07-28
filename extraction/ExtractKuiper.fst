@@ -607,6 +607,53 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
     let gm = EBufSub (cb gm, offset) in
     EApp (EQualified ([], "wmma::store_matrix_sync"), [ gm; fr; ldm; layout])
 
+  // Load A/B fragment while applying an elementwise device map [fmap]. Mirrors
+  // the mma_loadA/mma_loadB cases (project offset/stride, bump the pointer) to
+  // build the wmma pointer/ldm, then defers the load + the elementwise register
+  // loop to the KPR_LOAD_MAP macro (see include/kuiper/tensorcores.h). All we
+  // emit here is the *mapped value*: [fmap] applied to the macro-bound register
+  // read [_kpr_in_v]. We CANNOT pass [fmap] as a runtime value (a bare
+  // lambda/EFun is not Low* and karamel refuses to translate it -- AstToCStar
+  // has no EFun case); emitting it *applied* lets karamel's simplifier
+  // beta-reduce the lambda, inlining the map body. [_kpr_in_v] is a free C
+  // identifier bound inside the macro loop (an unknown EQualified checks as
+  // TAny, exactly like the wmma::/KPR_ externals used throughout this file).
+  | "Kuiper.TensorCore.Base.mma_loadA_map", [et], [ m; n; k; fmap; fr; l; strided_l; gm; fp; m0; f0 ]
+  | "Kuiper.TensorCore.Base.mma_loadB_map", [et], [ m; n; k; fmap; fr; l; strided_l; gm; fp; m0; f0 ] ->
+    let et_ty = cb_ty et in
+    let ldm = cb <| get_strided_row_major_stride strided_l in
+    let offset = cb <| get_strided_row_major_offset strided_l in
+    // Note: use of EBufSub relies on the type of gm unfolding to an array.
+    let gm = EBufSub (cb gm, offset) in
+    let fr = cb fr in
+    let get_i = ECast (EQualified ([], "_kpr_in_v"), et_ty) in
+    let mapped = EApp (cb fmap, [ get_i ]) in
+    EApp (EQualified ([], "KPR_LOAD_MAP"), [ gm; fr; ldm; mapped ])
+
+  // Store the accumulator fragment while combining, elementwise, with the value
+  // already resident in [gm], using the device combine [gcomb]. Read-modify-write:
+  // result cell = gcomb (old C cell) (accumulator cell). The KPR_STORE_COMB macro
+  // owns the scratch-fragment copy, the old-tile load, the register loop, and the
+  // store; here we only build the *combined value*: [gcomb] applied to the
+  // macro-bound register reads [_kpr_old_v] (old C) and [_kpr_new_v]
+  // (accumulator). As above [gcomb] is applied (not passed) so the simplifier
+  // beta-reduces it. Referencing the reads as bare identifiers (bound inside the
+  // macro) rather than emitting KPR_FRAG_GET reads here is what lets an overwrite
+  // combine drop the unused [_kpr_old_v] cleanly: karamel treats a bare
+  // identifier as readonly, so it is dropped rather than hoisted out of the macro
+  // as a stray ignore statement referencing a name that only exists inside it.
+  | "Kuiper.TensorCore.Base.mma_store_comb", [et], [ m; n; k; gcomb; fr; l; strided_l; gm; f0; m0 ] ->
+    let et_ty = cb_ty et in
+    let ldm = cb <| get_strided_row_major_stride strided_l in
+    let offset = cb <| get_strided_row_major_offset strided_l in
+    // Note: use of EBufSub relies on the type of gm unfolding to an array.
+    let gm = EBufSub (cb gm, offset) in
+    let fr = cb fr in
+    let old_i = ECast (EQualified ([], "_kpr_old_v"), et_ty) in
+    let acc_i = ECast (EQualified ([], "_kpr_new_v"), et_ty) in
+    let combined = EApp (cb gcomb, [ old_i; acc_i ]) in
+    EApp (EQualified ([], "KPR_STORE_COMB"), [ gm; fr; ldm; combined ])
+
   (******** FLOAT ARITHMETIC *******)
 
    (* For halfs, using operators worked locally but failed on CI, probably

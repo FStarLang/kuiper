@@ -14,6 +14,7 @@ module MS = Kuiper.Spec.GEMM
 
 module SZ = Kuiper.SizeT
 module T = Kuiper.Tensor
+module MU = Kuiper.Kernel.GEMM.Util
 
 open Kuiper.Kernel.GEMM.TensorCore2D.KernelDesc { constraints }
 // ^ Only opened here for `constraints`? If so would be nice
@@ -68,6 +69,15 @@ val mk_kernel
   (rA : chest2 real m k)
   (rB : chest2 real k n)
   (rC : chest2 real m n)
+  // Fused elementwise pre-maps on the inputs and combine on the output, threaded
+  // in the REAL domain, plus their approximation-compatible DEVICE realizations.
+  (mapA mapB : real -> real)
+  (comb : real -> real -> real)
+  (emA emB : et_ab -> et_ab)
+  (ecomb : et_c -> et_c -> et_c)
+  (#_ : squash (MU.approx1 emA mapA))
+  (#_ : squash (MU.approx1 emB mapB))
+  (#_ : squash (Kuiper.Approximates.approx2 ecomb comb))
   (#_ : squash (wm * tm /?+ m)) // obvious, but SMT is flaky
   (#_ : squash (wn * tn /?+ n)) // idem
   ()
@@ -78,4 +88,4 @@ val mk_kernel
       (gA |-> Frac fA eA **
        gB |-> Frac fB eB **
        (exists* (eC' : chest2 et_c m n).
-         gC |-> eC' ** pure (eC' %~ MS.matmul rA rB)))
+         gC |-> eC' ** pure (eC' %~ MS.gmmcomb mapA mapB comb rC rA rB)))
