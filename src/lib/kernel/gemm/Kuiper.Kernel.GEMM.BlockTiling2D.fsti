@@ -32,6 +32,63 @@ module MU = Kuiper.Kernel.GEMM.Util
    [kernel_desc].  The rank-2 entries below are derived from these at
    [batch = 1] (via the page-0 layout bridge + nat rank-2⇄rank-3 casts). *)
 
+(* The batched kernel itself, as a [kernel_desc]: clients that need to launch
+asynchronously on their own stream (e.g. under CUDA graph capture, where a
+device sync is illegal) can [launch] this directly instead of going through the
+[*_gpu_*] entries below, which sync.  All the divisibility/alignment/tiling
+side-conditions are the same as for [gbmmcomb_gpu_exact]. *)
+inline_for_extraction noextract
+val bmk_kernel
+  (#ta #tb #tc #tacc : Type0)
+  {| scalar ta, scalar tb, scalar tc, scalar tacc, has_vec_cpy ta, has_vec_cpy tb |}
+  (mapA : ta -> tacc) (mapB : tb -> tacc)
+  (comb : tc -> tacc -> tc)
+  (#batch #m #n #k : szp)
+  (#lA : layout3 batch m k)
+  (#lB : layout3 batch k n)
+  (#lC : layout3 batch m n)
+  {| T.ctlayout lA, T.ctlayout lB, T.ctlayout lC |}
+  {| s3A : strided_row_major_3 lA, s3B : strided_row_major_3 lB |}
+  (#_ : squash (chunk ta /?+ s3A.rstride3 /\ chunk ta /?+ s3A.offset3 /\ chunk ta /?+ s3A.pstride3))
+  (#_ : squash (chunk tb /?+ s3B.rstride3 /\ chunk tb /?+ s3B.offset3 /\ chunk tb /?+ s3B.pstride3))
+  (#_ : squash (forall (p:natlt batch). SZ.fits (s3A.offset3 + s3A.pstride3 * p)))
+  (#_ : squash (forall (p:natlt batch). SZ.fits (s3B.offset3 + s3B.pstride3 * p)))
+  (gA : array3 ta lA { is_global gA })
+  (#fA : perm)
+  (#eA : chest3 ta batch m k)
+  (gB : array3 tb lB { is_global gB })
+  (#fB : perm)
+  (#eB : chest3 tb batch k n)
+  (gC : array3 tc lC { is_global gC })
+  (#eC : chest3 tc batch m n)
+  (bm : szp{bm /?+ m})
+  (bn : szp{bn /?+ n})
+  (bk : szp{bk /?+ k})
+  (#_ : squash (chunk tb /?+ bn))
+  (#_ : squash (chunk ta /?+ bk))
+  (#sqf : squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
+  (slA : full_layout2 bm bk)
+  (slB : full_layout2 bk bn)
+  {| T.ctlayout slA, T.ctlayout slB |}
+  (tm : szp{tm /?+ bm})
+  (tn : szp{tn /?+ bn})
+  (#_ : squash (SZ.fits (bm*bk + bm/tm*(bn/tn))))
+  (#_ : squash (SZ.fits (bk*bn + bm/tm*(bn/tn))))
+  (#_ : squash (chunk ta * (bm/tm * (bn/tn)) /?+ (bm * bk)))
+  (#_ : squash (chunk tb * (bm/tm * (bn/tn)) /?+ (bk * bn)))
+  (sq1 : squash (SZ.v m == (SZ.v m/SZ.v bm) * ((SZ.v bm/SZ.v tm) * SZ.v tm)))
+  (sq2 : squash (SZ.v n == (SZ.v n/SZ.v bn) * ((SZ.v bn/SZ.v tn) * SZ.v tn)))
+  (#_ : squash (SZ.fits (m * n)))
+  (nblk_v : szp{SZ.v nblk_v == batch * (m/bm * (n/bn))})
+  (nthr_v : szp{SZ.v nthr_v == bm/tm * (bn/tn)})
+  (#_ : squash (batch * (m/bm * (n/bn)) <= max_blocks
+               /\ (bm/tm * (bn/tn)) <= max_threads))
+  (#_ : squash (aligned 16 (core gA) /\ aligned 16 (core gB)))
+  ()
+  : kernel_desc
+      (gA |-> Frac fA eA ** gB |-> Frac fB eB ** gC |-> eC)
+      (gA |-> Frac fA eA ** gB |-> Frac fB eB ** gC |-> MS.gbmmcomb mapA mapB comb eC eA eB)
+
 inline_for_extraction noextract
 fn gbmmcomb_gpu_exact
   (#ta #tb #tc #tacc : Type0)

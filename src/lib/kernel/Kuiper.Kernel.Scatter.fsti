@@ -39,6 +39,28 @@ let chest_inj
   (eIdx : chest di (szlt (do @! dim))): prop
   = forall (i j : abs di). acc eIdx i == acc eIdx j ==> i == j
 
+(* The scatter kernel as a [kernel_desc], for asynchronous launches. *)
+inline_for_extraction noextract
+val scatter_kd
+  (#et : Type0) (#r : erased nat) (di do : shape r { shape_le di do }) (cdi : cshape di) (cdo : cshape do)
+  (dim : szlt r)
+  (#lInp #lIdx : tlayout di) (#lOut : tlayout do) {| ctlayout lInp, ctlayout lIdx, ctlayout lOut |}
+  (gInp : tensor et lInp { is_global gInp })
+  (gIdx : tensor (szlt (do @! (SZ.v dim))) lIdx { is_global gIdx })
+  (gOut : tensor et lOut { is_global gOut })
+  (n : sz { SZ.v n == sizeof di /\ n <= max_blocks * max_threads /\ n > 0 })
+  (eInp : chest di et)
+  (eIdx : chest di (szlt (do @! (SZ.v dim))) { chest_inj di do (SZ.v dim) eIdx })
+  (#eOut : chest do et)
+  (#fInp #fIdx : perm)
+  : kernel_desc
+      ((gInp |-> Frac fInp eInp) **
+        (gIdx |-> Frac fIdx (eIdx <: chest di (szlt (do @! (SZ.v dim))))) ** (gOut |-> eOut))
+      ((gInp |-> Frac fInp eInp) **
+        (gIdx |-> Frac fIdx (eIdx <: chest di (szlt (do @! (SZ.v dim))))) **
+        (exists* eOut'. (gOut |-> eOut') **
+           pure (vscatter_chest di do (SZ.v dim) eInp eIdx eOut')))
+
 inline_for_extraction noextract
 fn scatter_gpu
   (#et : Type0) (#r : erased nat) (di do : shape r { shape_le di do }) (cdi: cshape di) (cdo: cshape do)

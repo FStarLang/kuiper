@@ -385,3 +385,24 @@ val k1nb_as_kfull
   (#full_pre #full_post : slprop)
   (k : kernel_desc_1_n_barr full_pre full_post)
      : kernel_desc     full_pre full_post
+
+(* Weaken a kernel description: strengthen its precondition and weaken its
+postcondition through ghost implications. Lets a kernel module expose a
+[kernel_desc] with the same clean pre/post as its [launch_sync] wrapper, so
+clients can launch it asynchronously (on their own stream) without repeating
+the ownership massaging that wrapper does after the launch. *)
+inline_for_extraction noextract
+val kd_weaken
+  (#pre #post #pre' #post' : slprop)
+  (k : kernel_desc pre post)
+  (fpre  : ghost fn () requires pre' ensures pre)
+  (fpost : ghost fn () requires post ensures post')
+     : kernel_desc pre' post'
+
+(* [kd_weaken] with an unchanged precondition. *)
+inline_for_extraction noextract
+val kd_weaken_post
+  (#pre #post #post' : slprop)
+  (k : kernel_desc pre post)
+  (fpost : ghost fn () requires post ensures post')
+     : kernel_desc pre post'
