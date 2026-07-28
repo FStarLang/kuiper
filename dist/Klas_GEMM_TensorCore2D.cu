@@ -71,18 +71,19 @@ __hoisted_g_gemm_f16_f16_64x64x16_16x16x16_2x2_0(uint32_t shared,
             half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (16U * (threadIdx.x / 32U / 2U) * 32U +
-                              __anf010 * 16U + 16U * i0 * 16U), aFrags[i0], 16U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (16U * (threadIdx.x / 32U / 2U) * 32U +
+                                        __anf010 * 16U + 16U * i0 * 16U), 16U);
             uint32_t __anf011 = dotIdx;
             half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (64U * __anf011 * 16U +
-                              threadIdx.x / 32U % 2U * 32U + i1 * 16U),
-                             bFrags[i1], 64U, (half) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (64U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 2U * 32U +
+                                        i1 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -98,13 +99,14 @@ __hoisted_g_gemm_f16_f16_64x64x16_16x16x16_2x2_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 64U)) * 64U +
-                            blockIdx.x % (cols / 64U) * 64U +
-                            cols * (threadIdx.x / 32U / 2U) * 32U +
-                            threadIdx.x / 32U % 2U * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 2U + j], cols,
-                           (half) _kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 64U)) * 64U +
+                                     blockIdx.x % (cols / 64U) * 64U +
+                                     cols * (threadIdx.x / 32U / 2U) * 32U +
+                                     threadIdx.x / 32U % 2U * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 2U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -204,18 +206,19 @@ __hoisted_g_gemm_bf16_f32_64x64x16_16x16x16_2x2_0(uint32_t shared,
             __nv_bfloat16 *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (16U * (threadIdx.x / 32U / 2U) * 32U +
-                              __anf010 * 16U + 16U * i0 * 16U), aFrags[i0], 16U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (16U * (threadIdx.x / 32U / 2U) * 32U +
+                                        __anf010 * 16U + 16U * i0 * 16U), 16U);
             uint32_t __anf011 = dotIdx;
             __nv_bfloat16 *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (64U * __anf011 * 16U +
-                              threadIdx.x / 32U % 2U * 32U + i1 * 16U),
-                             bFrags[i1], 64U, (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (64U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 2U * 32U +
+                                        i1 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -231,13 +234,14 @@ __hoisted_g_gemm_bf16_f32_64x64x16_16x16x16_2x2_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 64U)) * 64U +
-                            blockIdx.x % (cols / 64U) * 64U +
-                            cols * (threadIdx.x / 32U / 2U) * 32U +
-                            threadIdx.x / 32U % 2U * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 2U + j], cols,
-                           (float)_kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 64U)) * 64U +
+                                     blockIdx.x % (cols / 64U) * 64U +
+                                     cols * (threadIdx.x / 32U / 2U) * 32U +
+                                     threadIdx.x / 32U % 2U * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 2U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -337,17 +341,17 @@ __hoisted_g_gemm_f16_f16_64x64x16_16x16x16_2x4_0(uint32_t shared,
             half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (16U * (threadIdx.x / 32U) * 32U + __anf010 * 16U +
-                              16U * i0 * 16U), aFrags[i0], 16U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (16U * (threadIdx.x / 32U) * 32U +
+                                        __anf010 * 16U + 16U * i0 * 16U), 16U);
             uint32_t __anf011 = dotIdx;
             half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (64U * __anf011 * 16U + i1 * 16U), bFrags[i1], 64U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (64U * __anf011 * 16U + i1 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -363,12 +367,13 @@ __hoisted_g_gemm_f16_f16_64x64x16_16x16x16_2x4_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 64U)) * 64U +
-                            blockIdx.x % (cols / 64U) * 64U +
-                            cols * (threadIdx.x / 32U) * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 4U + j], cols,
-                           (half) _kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 64U)) * 64U +
+                                     blockIdx.x % (cols / 64U) * 64U +
+                                     cols * (threadIdx.x / 32U) * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 4U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -468,17 +473,17 @@ __hoisted_g_gemm_bf16_f32_64x64x16_16x16x16_2x4_0(uint32_t shared,
             __nv_bfloat16 *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (16U * (threadIdx.x / 32U) * 32U + __anf010 * 16U +
-                              16U * i0 * 16U), aFrags[i0], 16U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (16U * (threadIdx.x / 32U) * 32U +
+                                        __anf010 * 16U + 16U * i0 * 16U), 16U);
             uint32_t __anf011 = dotIdx;
             __nv_bfloat16 *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (64U * __anf011 * 16U + i1 * 16U), bFrags[i1], 64U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (64U * __anf011 * 16U + i1 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -494,12 +499,13 @@ __hoisted_g_gemm_bf16_f32_64x64x16_16x16x16_2x4_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 64U)) * 64U +
-                            blockIdx.x % (cols / 64U) * 64U +
-                            cols * (threadIdx.x / 32U) * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 4U + j], cols,
-                           (float)_kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 64U)) * 64U +
+                                     blockIdx.x % (cols / 64U) * 64U +
+                                     cols * (threadIdx.x / 32U) * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 4U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -599,18 +605,19 @@ __hoisted_g_gemm_f16_f16_64x64x16_16x16x16_4x2_0(uint32_t shared,
             half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (16U * (threadIdx.x / 32U / 2U) * 64U +
-                              __anf010 * 16U + 16U * i0 * 16U), aFrags[i0], 16U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (16U * (threadIdx.x / 32U / 2U) * 64U +
+                                        __anf010 * 16U + 16U * i0 * 16U), 16U);
             uint32_t __anf011 = dotIdx;
             half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (64U * __anf011 * 16U +
-                              threadIdx.x / 32U % 2U * 32U + i1 * 16U),
-                             bFrags[i1], 64U, (half) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (64U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 2U * 32U +
+                                        i1 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -626,13 +633,14 @@ __hoisted_g_gemm_f16_f16_64x64x16_16x16x16_4x2_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 64U)) * 64U +
-                            blockIdx.x % (cols / 64U) * 64U +
-                            cols * (threadIdx.x / 32U / 2U) * 64U +
-                            threadIdx.x / 32U % 2U * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 2U + j], cols,
-                           (half) _kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 64U)) * 64U +
+                                     blockIdx.x % (cols / 64U) * 64U +
+                                     cols * (threadIdx.x / 32U / 2U) * 64U +
+                                     threadIdx.x / 32U % 2U * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 2U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -732,18 +740,19 @@ __hoisted_g_gemm_bf16_f32_64x64x16_16x16x16_4x2_0(uint32_t shared,
             __nv_bfloat16 *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (16U * (threadIdx.x / 32U / 2U) * 64U +
-                              __anf010 * 16U + 16U * i0 * 16U), aFrags[i0], 16U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (16U * (threadIdx.x / 32U / 2U) * 64U +
+                                        __anf010 * 16U + 16U * i0 * 16U), 16U);
             uint32_t __anf011 = dotIdx;
             __nv_bfloat16 *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (64U * __anf011 * 16U +
-                              threadIdx.x / 32U % 2U * 32U + i1 * 16U),
-                             bFrags[i1], 64U, (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (64U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 2U * 32U +
+                                        i1 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -759,13 +768,14 @@ __hoisted_g_gemm_bf16_f32_64x64x16_16x16x16_4x2_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 64U)) * 64U +
-                            blockIdx.x % (cols / 64U) * 64U +
-                            cols * (threadIdx.x / 32U / 2U) * 64U +
-                            threadIdx.x / 32U % 2U * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 2U + j], cols,
-                           (float)_kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 64U)) * 64U +
+                                     blockIdx.x % (cols / 64U) * 64U +
+                                     cols * (threadIdx.x / 32U / 2U) * 64U +
+                                     threadIdx.x / 32U % 2U * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 2U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -865,17 +875,17 @@ __hoisted_g_gemm_f16_f16_64x64x16_16x16x16_4x4_0(uint32_t shared,
             half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (16U * (threadIdx.x / 32U) * 64U + __anf010 * 16U +
-                              16U * i0 * 16U), aFrags[i0], 16U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (16U * (threadIdx.x / 32U) * 64U +
+                                        __anf010 * 16U + 16U * i0 * 16U), 16U);
             uint32_t __anf011 = dotIdx;
             half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (64U * __anf011 * 16U + i1 * 16U), bFrags[i1], 64U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (64U * __anf011 * 16U + i1 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -891,12 +901,13 @@ __hoisted_g_gemm_f16_f16_64x64x16_16x16x16_4x4_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 64U)) * 64U +
-                            blockIdx.x % (cols / 64U) * 64U +
-                            cols * (threadIdx.x / 32U) * 64U + cols * i * 16U +
-                            j * 16U), accFrags[i * 4U + j], cols,
-                           (half) _kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 64U)) * 64U +
+                                     blockIdx.x % (cols / 64U) * 64U +
+                                     cols * (threadIdx.x / 32U) * 64U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 4U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -997,17 +1008,17 @@ __hoisted_g_gemm_bf16_f32_64x64x16_16x16x16_4x4_0(uint32_t shared,
             __nv_bfloat16 *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (16U * (threadIdx.x / 32U) * 64U + __anf010 * 16U +
-                              16U * i0 * 16U), aFrags[i0], 16U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (16U * (threadIdx.x / 32U) * 64U +
+                                        __anf010 * 16U + 16U * i0 * 16U), 16U);
             uint32_t __anf011 = dotIdx;
             __nv_bfloat16 *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (64U * __anf011 * 16U + i1 * 16U), bFrags[i1], 64U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (64U * __anf011 * 16U + i1 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -1023,12 +1034,13 @@ __hoisted_g_gemm_bf16_f32_64x64x16_16x16x16_4x4_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 64U)) * 64U +
-                            blockIdx.x % (cols / 64U) * 64U +
-                            cols * (threadIdx.x / 32U) * 64U + cols * i * 16U +
-                            j * 16U), accFrags[i * 4U + j], cols,
-                           (float)_kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 64U)) * 64U +
+                                     blockIdx.x % (cols / 64U) * 64U +
+                                     cols * (threadIdx.x / 32U) * 64U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 4U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -1128,18 +1140,19 @@ __hoisted_g_gemm_f16_f16_64x64x32_16x16x16_2x2_0(uint32_t shared,
             half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (32U * (threadIdx.x / 32U / 2U) * 32U +
-                              __anf010 * 16U + 32U * i0 * 16U), aFrags[i0], 32U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (32U * (threadIdx.x / 32U / 2U) * 32U +
+                                        __anf010 * 16U + 32U * i0 * 16U), 32U);
             uint32_t __anf011 = dotIdx;
             half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (64U * __anf011 * 16U +
-                              threadIdx.x / 32U % 2U * 32U + i1 * 16U),
-                             bFrags[i1], 64U, (half) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (64U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 2U * 32U +
+                                        i1 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -1155,13 +1168,14 @@ __hoisted_g_gemm_f16_f16_64x64x32_16x16x16_2x2_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 64U)) * 64U +
-                            blockIdx.x % (cols / 64U) * 64U +
-                            cols * (threadIdx.x / 32U / 2U) * 32U +
-                            threadIdx.x / 32U % 2U * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 2U + j], cols,
-                           (half) _kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 64U)) * 64U +
+                                     blockIdx.x % (cols / 64U) * 64U +
+                                     cols * (threadIdx.x / 32U / 2U) * 32U +
+                                     threadIdx.x / 32U % 2U * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 2U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -1261,18 +1275,19 @@ __hoisted_g_gemm_bf16_f32_64x64x32_16x16x16_2x2_0(uint32_t shared,
             __nv_bfloat16 *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (32U * (threadIdx.x / 32U / 2U) * 32U +
-                              __anf010 * 16U + 32U * i0 * 16U), aFrags[i0], 32U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (32U * (threadIdx.x / 32U / 2U) * 32U +
+                                        __anf010 * 16U + 32U * i0 * 16U), 32U);
             uint32_t __anf011 = dotIdx;
             __nv_bfloat16 *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (64U * __anf011 * 16U +
-                              threadIdx.x / 32U % 2U * 32U + i1 * 16U),
-                             bFrags[i1], 64U, (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (64U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 2U * 32U +
+                                        i1 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -1288,13 +1303,14 @@ __hoisted_g_gemm_bf16_f32_64x64x32_16x16x16_2x2_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 64U)) * 64U +
-                            blockIdx.x % (cols / 64U) * 64U +
-                            cols * (threadIdx.x / 32U / 2U) * 32U +
-                            threadIdx.x / 32U % 2U * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 2U + j], cols,
-                           (float)_kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 64U)) * 64U +
+                                     blockIdx.x % (cols / 64U) * 64U +
+                                     cols * (threadIdx.x / 32U / 2U) * 32U +
+                                     threadIdx.x / 32U % 2U * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 2U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -1394,17 +1410,17 @@ __hoisted_g_gemm_f16_f16_64x64x32_16x16x16_2x4_0(uint32_t shared,
             half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (32U * (threadIdx.x / 32U) * 32U + __anf010 * 16U +
-                              32U * i0 * 16U), aFrags[i0], 32U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (32U * (threadIdx.x / 32U) * 32U +
+                                        __anf010 * 16U + 32U * i0 * 16U), 32U);
             uint32_t __anf011 = dotIdx;
             half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (64U * __anf011 * 16U + i1 * 16U), bFrags[i1], 64U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (64U * __anf011 * 16U + i1 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -1420,12 +1436,13 @@ __hoisted_g_gemm_f16_f16_64x64x32_16x16x16_2x4_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 64U)) * 64U +
-                            blockIdx.x % (cols / 64U) * 64U +
-                            cols * (threadIdx.x / 32U) * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 4U + j], cols,
-                           (half) _kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 64U)) * 64U +
+                                     blockIdx.x % (cols / 64U) * 64U +
+                                     cols * (threadIdx.x / 32U) * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 4U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -1525,17 +1542,17 @@ __hoisted_g_gemm_bf16_f32_64x64x32_16x16x16_2x4_0(uint32_t shared,
             __nv_bfloat16 *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (32U * (threadIdx.x / 32U) * 32U + __anf010 * 16U +
-                              32U * i0 * 16U), aFrags[i0], 32U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (32U * (threadIdx.x / 32U) * 32U +
+                                        __anf010 * 16U + 32U * i0 * 16U), 32U);
             uint32_t __anf011 = dotIdx;
             __nv_bfloat16 *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (64U * __anf011 * 16U + i1 * 16U), bFrags[i1], 64U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (64U * __anf011 * 16U + i1 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -1551,12 +1568,13 @@ __hoisted_g_gemm_bf16_f32_64x64x32_16x16x16_2x4_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 64U)) * 64U +
-                            blockIdx.x % (cols / 64U) * 64U +
-                            cols * (threadIdx.x / 32U) * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 4U + j], cols,
-                           (float)_kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 64U)) * 64U +
+                                     blockIdx.x % (cols / 64U) * 64U +
+                                     cols * (threadIdx.x / 32U) * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 4U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -1656,18 +1674,19 @@ __hoisted_g_gemm_f16_f16_64x64x32_16x16x16_4x2_0(uint32_t shared,
             half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (32U * (threadIdx.x / 32U / 2U) * 64U +
-                              __anf010 * 16U + 32U * i0 * 16U), aFrags[i0], 32U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (32U * (threadIdx.x / 32U / 2U) * 64U +
+                                        __anf010 * 16U + 32U * i0 * 16U), 32U);
             uint32_t __anf011 = dotIdx;
             half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (64U * __anf011 * 16U +
-                              threadIdx.x / 32U % 2U * 32U + i1 * 16U),
-                             bFrags[i1], 64U, (half) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (64U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 2U * 32U +
+                                        i1 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -1683,13 +1702,14 @@ __hoisted_g_gemm_f16_f16_64x64x32_16x16x16_4x2_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 64U)) * 64U +
-                            blockIdx.x % (cols / 64U) * 64U +
-                            cols * (threadIdx.x / 32U / 2U) * 64U +
-                            threadIdx.x / 32U % 2U * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 2U + j], cols,
-                           (half) _kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 64U)) * 64U +
+                                     blockIdx.x % (cols / 64U) * 64U +
+                                     cols * (threadIdx.x / 32U / 2U) * 64U +
+                                     threadIdx.x / 32U % 2U * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 2U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -1789,18 +1809,19 @@ __hoisted_g_gemm_bf16_f32_64x64x32_16x16x16_4x2_0(uint32_t shared,
             __nv_bfloat16 *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (32U * (threadIdx.x / 32U / 2U) * 64U +
-                              __anf010 * 16U + 32U * i0 * 16U), aFrags[i0], 32U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (32U * (threadIdx.x / 32U / 2U) * 64U +
+                                        __anf010 * 16U + 32U * i0 * 16U), 32U);
             uint32_t __anf011 = dotIdx;
             __nv_bfloat16 *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (64U * __anf011 * 16U +
-                              threadIdx.x / 32U % 2U * 32U + i1 * 16U),
-                             bFrags[i1], 64U, (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (64U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 2U * 32U +
+                                        i1 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -1816,13 +1837,14 @@ __hoisted_g_gemm_bf16_f32_64x64x32_16x16x16_4x2_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 64U)) * 64U +
-                            blockIdx.x % (cols / 64U) * 64U +
-                            cols * (threadIdx.x / 32U / 2U) * 64U +
-                            threadIdx.x / 32U % 2U * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 2U + j], cols,
-                           (float)_kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 64U)) * 64U +
+                                     blockIdx.x % (cols / 64U) * 64U +
+                                     cols * (threadIdx.x / 32U / 2U) * 64U +
+                                     threadIdx.x / 32U % 2U * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 2U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -1922,17 +1944,17 @@ __hoisted_g_gemm_f16_f16_64x64x32_16x16x16_4x4_0(uint32_t shared,
             half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (32U * (threadIdx.x / 32U) * 64U + __anf010 * 16U +
-                              32U * i0 * 16U), aFrags[i0], 32U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (32U * (threadIdx.x / 32U) * 64U +
+                                        __anf010 * 16U + 32U * i0 * 16U), 32U);
             uint32_t __anf011 = dotIdx;
             half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (64U * __anf011 * 16U + i1 * 16U), bFrags[i1], 64U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (64U * __anf011 * 16U + i1 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -1948,12 +1970,13 @@ __hoisted_g_gemm_f16_f16_64x64x32_16x16x16_4x4_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 64U)) * 64U +
-                            blockIdx.x % (cols / 64U) * 64U +
-                            cols * (threadIdx.x / 32U) * 64U + cols * i * 16U +
-                            j * 16U), accFrags[i * 4U + j], cols,
-                           (half) _kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 64U)) * 64U +
+                                     blockIdx.x % (cols / 64U) * 64U +
+                                     cols * (threadIdx.x / 32U) * 64U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 4U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -2054,17 +2077,17 @@ __hoisted_g_gemm_bf16_f32_64x64x32_16x16x16_4x4_0(uint32_t shared,
             __nv_bfloat16 *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (32U * (threadIdx.x / 32U) * 64U + __anf010 * 16U +
-                              32U * i0 * 16U), aFrags[i0], 32U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (32U * (threadIdx.x / 32U) * 64U +
+                                        __anf010 * 16U + 32U * i0 * 16U), 32U);
             uint32_t __anf011 = dotIdx;
             __nv_bfloat16 *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (64U * __anf011 * 16U + i1 * 16U), bFrags[i1], 64U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (64U * __anf011 * 16U + i1 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -2080,12 +2103,13 @@ __hoisted_g_gemm_bf16_f32_64x64x32_16x16x16_4x4_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 64U)) * 64U +
-                            blockIdx.x % (cols / 64U) * 64U +
-                            cols * (threadIdx.x / 32U) * 64U + cols * i * 16U +
-                            j * 16U), accFrags[i * 4U + j], cols,
-                           (float)_kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 64U)) * 64U +
+                                     blockIdx.x % (cols / 64U) * 64U +
+                                     cols * (threadIdx.x / 32U) * 64U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 4U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -2185,18 +2209,19 @@ __hoisted_g_gemm_f16_f16_64x64x64_16x16x16_2x2_0(uint32_t shared,
             half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (64U * (threadIdx.x / 32U / 2U) * 32U +
-                              __anf010 * 16U + 64U * i0 * 16U), aFrags[i0], 64U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (64U * (threadIdx.x / 32U / 2U) * 32U +
+                                        __anf010 * 16U + 64U * i0 * 16U), 64U);
             uint32_t __anf011 = dotIdx;
             half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (64U * __anf011 * 16U +
-                              threadIdx.x / 32U % 2U * 32U + i1 * 16U),
-                             bFrags[i1], 64U, (half) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (64U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 2U * 32U +
+                                        i1 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -2212,13 +2237,14 @@ __hoisted_g_gemm_f16_f16_64x64x64_16x16x16_2x2_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 64U)) * 64U +
-                            blockIdx.x % (cols / 64U) * 64U +
-                            cols * (threadIdx.x / 32U / 2U) * 32U +
-                            threadIdx.x / 32U % 2U * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 2U + j], cols,
-                           (half) _kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 64U)) * 64U +
+                                     blockIdx.x % (cols / 64U) * 64U +
+                                     cols * (threadIdx.x / 32U / 2U) * 32U +
+                                     threadIdx.x / 32U % 2U * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 2U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -2318,18 +2344,19 @@ __hoisted_g_gemm_bf16_f32_64x64x64_16x16x16_2x2_0(uint32_t shared,
             __nv_bfloat16 *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (64U * (threadIdx.x / 32U / 2U) * 32U +
-                              __anf010 * 16U + 64U * i0 * 16U), aFrags[i0], 64U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (64U * (threadIdx.x / 32U / 2U) * 32U +
+                                        __anf010 * 16U + 64U * i0 * 16U), 64U);
             uint32_t __anf011 = dotIdx;
             __nv_bfloat16 *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (64U * __anf011 * 16U +
-                              threadIdx.x / 32U % 2U * 32U + i1 * 16U),
-                             bFrags[i1], 64U, (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (64U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 2U * 32U +
+                                        i1 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -2345,13 +2372,14 @@ __hoisted_g_gemm_bf16_f32_64x64x64_16x16x16_2x2_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 64U)) * 64U +
-                            blockIdx.x % (cols / 64U) * 64U +
-                            cols * (threadIdx.x / 32U / 2U) * 32U +
-                            threadIdx.x / 32U % 2U * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 2U + j], cols,
-                           (float)_kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 64U)) * 64U +
+                                     blockIdx.x % (cols / 64U) * 64U +
+                                     cols * (threadIdx.x / 32U / 2U) * 32U +
+                                     threadIdx.x / 32U % 2U * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 2U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -2451,17 +2479,17 @@ __hoisted_g_gemm_f16_f16_64x64x64_16x16x16_2x4_0(uint32_t shared,
             half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (64U * (threadIdx.x / 32U) * 32U + __anf010 * 16U +
-                              64U * i0 * 16U), aFrags[i0], 64U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (64U * (threadIdx.x / 32U) * 32U +
+                                        __anf010 * 16U + 64U * i0 * 16U), 64U);
             uint32_t __anf011 = dotIdx;
             half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (64U * __anf011 * 16U + i1 * 16U), bFrags[i1], 64U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (64U * __anf011 * 16U + i1 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -2477,12 +2505,13 @@ __hoisted_g_gemm_f16_f16_64x64x64_16x16x16_2x4_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 64U)) * 64U +
-                            blockIdx.x % (cols / 64U) * 64U +
-                            cols * (threadIdx.x / 32U) * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 4U + j], cols,
-                           (half) _kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 64U)) * 64U +
+                                     blockIdx.x % (cols / 64U) * 64U +
+                                     cols * (threadIdx.x / 32U) * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 4U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -2582,17 +2611,17 @@ __hoisted_g_gemm_bf16_f32_64x64x64_16x16x16_2x4_0(uint32_t shared,
             __nv_bfloat16 *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (64U * (threadIdx.x / 32U) * 32U + __anf010 * 16U +
-                              64U * i0 * 16U), aFrags[i0], 64U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (64U * (threadIdx.x / 32U) * 32U +
+                                        __anf010 * 16U + 64U * i0 * 16U), 64U);
             uint32_t __anf011 = dotIdx;
             __nv_bfloat16 *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (64U * __anf011 * 16U + i1 * 16U), bFrags[i1], 64U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (64U * __anf011 * 16U + i1 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -2608,12 +2637,13 @@ __hoisted_g_gemm_bf16_f32_64x64x64_16x16x16_2x4_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 64U)) * 64U +
-                            blockIdx.x % (cols / 64U) * 64U +
-                            cols * (threadIdx.x / 32U) * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 4U + j], cols,
-                           (float)_kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 64U)) * 64U +
+                                     blockIdx.x % (cols / 64U) * 64U +
+                                     cols * (threadIdx.x / 32U) * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 4U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -2713,18 +2743,19 @@ __hoisted_g_gemm_f16_f16_64x64x64_16x16x16_4x2_0(uint32_t shared,
             half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (64U * (threadIdx.x / 32U / 2U) * 64U +
-                              __anf010 * 16U + 64U * i0 * 16U), aFrags[i0], 64U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (64U * (threadIdx.x / 32U / 2U) * 64U +
+                                        __anf010 * 16U + 64U * i0 * 16U), 64U);
             uint32_t __anf011 = dotIdx;
             half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (64U * __anf011 * 16U +
-                              threadIdx.x / 32U % 2U * 32U + i1 * 16U),
-                             bFrags[i1], 64U, (half) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (64U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 2U * 32U +
+                                        i1 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -2740,13 +2771,14 @@ __hoisted_g_gemm_f16_f16_64x64x64_16x16x16_4x2_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 64U)) * 64U +
-                            blockIdx.x % (cols / 64U) * 64U +
-                            cols * (threadIdx.x / 32U / 2U) * 64U +
-                            threadIdx.x / 32U % 2U * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 2U + j], cols,
-                           (half) _kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 64U)) * 64U +
+                                     blockIdx.x % (cols / 64U) * 64U +
+                                     cols * (threadIdx.x / 32U / 2U) * 64U +
+                                     threadIdx.x / 32U % 2U * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 2U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -2846,18 +2878,19 @@ __hoisted_g_gemm_bf16_f32_64x64x64_16x16x16_4x2_0(uint32_t shared,
             __nv_bfloat16 *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (64U * (threadIdx.x / 32U / 2U) * 64U +
-                              __anf010 * 16U + 64U * i0 * 16U), aFrags[i0], 64U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (64U * (threadIdx.x / 32U / 2U) * 64U +
+                                        __anf010 * 16U + 64U * i0 * 16U), 64U);
             uint32_t __anf011 = dotIdx;
             __nv_bfloat16 *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (64U * __anf011 * 16U +
-                              threadIdx.x / 32U % 2U * 32U + i1 * 16U),
-                             bFrags[i1], 64U, (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (64U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 2U * 32U +
+                                        i1 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -2873,13 +2906,14 @@ __hoisted_g_gemm_bf16_f32_64x64x64_16x16x16_4x2_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 64U)) * 64U +
-                            blockIdx.x % (cols / 64U) * 64U +
-                            cols * (threadIdx.x / 32U / 2U) * 64U +
-                            threadIdx.x / 32U % 2U * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 2U + j], cols,
-                           (float)_kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 64U)) * 64U +
+                                     blockIdx.x % (cols / 64U) * 64U +
+                                     cols * (threadIdx.x / 32U / 2U) * 64U +
+                                     threadIdx.x / 32U % 2U * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 2U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -2979,17 +3013,17 @@ __hoisted_g_gemm_f16_f16_64x64x64_16x16x16_4x4_0(uint32_t shared,
             half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (64U * (threadIdx.x / 32U) * 64U + __anf010 * 16U +
-                              64U * i0 * 16U), aFrags[i0], 64U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (64U * (threadIdx.x / 32U) * 64U +
+                                        __anf010 * 16U + 64U * i0 * 16U), 64U);
             uint32_t __anf011 = dotIdx;
             half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (64U * __anf011 * 16U + i1 * 16U), bFrags[i1], 64U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (64U * __anf011 * 16U + i1 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -3005,12 +3039,13 @@ __hoisted_g_gemm_f16_f16_64x64x64_16x16x16_4x4_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 64U)) * 64U +
-                            blockIdx.x % (cols / 64U) * 64U +
-                            cols * (threadIdx.x / 32U) * 64U + cols * i * 16U +
-                            j * 16U), accFrags[i * 4U + j], cols,
-                           (half) _kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 64U)) * 64U +
+                                     blockIdx.x % (cols / 64U) * 64U +
+                                     cols * (threadIdx.x / 32U) * 64U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 4U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -3111,17 +3146,17 @@ __hoisted_g_gemm_bf16_f32_64x64x64_16x16x16_4x4_0(uint32_t shared,
             __nv_bfloat16 *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (64U * (threadIdx.x / 32U) * 64U + __anf010 * 16U +
-                              64U * i0 * 16U), aFrags[i0], 64U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (64U * (threadIdx.x / 32U) * 64U +
+                                        __anf010 * 16U + 64U * i0 * 16U), 64U);
             uint32_t __anf011 = dotIdx;
             __nv_bfloat16 *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (64U * __anf011 * 16U + i1 * 16U), bFrags[i1], 64U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (64U * __anf011 * 16U + i1 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -3137,12 +3172,13 @@ __hoisted_g_gemm_bf16_f32_64x64x64_16x16x16_4x4_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 64U)) * 64U +
-                            blockIdx.x % (cols / 64U) * 64U +
-                            cols * (threadIdx.x / 32U) * 64U + cols * i * 16U +
-                            j * 16U), accFrags[i * 4U + j], cols,
-                           (float)_kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 64U)) * 64U +
+                                     blockIdx.x % (cols / 64U) * 64U +
+                                     cols * (threadIdx.x / 32U) * 64U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 4U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -3242,18 +3278,19 @@ __hoisted_g_gemm_f16_f16_64x128x16_16x16x16_2x4_0(uint32_t shared,
             half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (16U * (threadIdx.x / 32U / 2U) * 32U +
-                              __anf010 * 16U + 16U * i0 * 16U), aFrags[i0], 16U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (16U * (threadIdx.x / 32U / 2U) * 32U +
+                                        __anf010 * 16U + 16U * i0 * 16U), 16U);
             uint32_t __anf011 = dotIdx;
             half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U +
-                              threadIdx.x / 32U % 2U * 64U + i1 * 16U),
-                             bFrags[i1], 128U, (half) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 2U * 64U +
+                                        i1 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -3269,13 +3306,14 @@ __hoisted_g_gemm_f16_f16_64x128x16_16x16x16_2x4_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 64U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U / 2U) * 32U +
-                            threadIdx.x / 32U % 2U * 64U + cols * i * 16U +
-                            j * 16U), accFrags[i * 4U + j], cols,
-                           (half) _kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) * 64U +
+                                     blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U / 2U) * 32U +
+                                     threadIdx.x / 32U % 2U * 64U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 4U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -3375,18 +3413,19 @@ __hoisted_g_gemm_bf16_f32_64x128x16_16x16x16_2x4_0(uint32_t shared,
             __nv_bfloat16 *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (16U * (threadIdx.x / 32U / 2U) * 32U +
-                              __anf010 * 16U + 16U * i0 * 16U), aFrags[i0], 16U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (16U * (threadIdx.x / 32U / 2U) * 32U +
+                                        __anf010 * 16U + 16U * i0 * 16U), 16U);
             uint32_t __anf011 = dotIdx;
             __nv_bfloat16 *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U +
-                              threadIdx.x / 32U % 2U * 64U + i1 * 16U),
-                             bFrags[i1], 128U, (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 2U * 64U +
+                                        i1 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -3402,13 +3441,14 @@ __hoisted_g_gemm_bf16_f32_64x128x16_16x16x16_2x4_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 64U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U / 2U) * 32U +
-                            threadIdx.x / 32U % 2U * 64U + cols * i * 16U +
-                            j * 16U), accFrags[i * 4U + j], cols,
-                           (float)_kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) * 64U +
+                                     blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U / 2U) * 32U +
+                                     threadIdx.x / 32U % 2U * 64U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 4U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -3508,17 +3548,18 @@ __hoisted_g_gemm_f16_f16_64x128x16_16x16x16_2x8_0(uint32_t shared,
             half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (16U * (threadIdx.x / 32U) * 32U + __anf010 * 16U +
-                              16U * i0 * 16U), aFrags[i0], 16U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (16U * (threadIdx.x / 32U) * 32U +
+                                        __anf010 * 16U + 16U * i0 * 16U), 16U);
             uint32_t __anf011 = dotIdx;
             half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 8U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U + i1 * 16U), bFrags[i1],
-                             128U, (half) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U + i1 * 16U),
+                                       128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -3534,12 +3575,13 @@ __hoisted_g_gemm_f16_f16_64x128x16_16x16x16_2x8_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 8U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 64U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U) * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 8U + j], cols,
-                           (half) _kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) * 64U +
+                                     blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U) * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 8U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -3640,17 +3682,18 @@ __hoisted_g_gemm_bf16_f32_64x128x16_16x16x16_2x8_0(uint32_t shared,
             __nv_bfloat16 *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (16U * (threadIdx.x / 32U) * 32U + __anf010 * 16U +
-                              16U * i0 * 16U), aFrags[i0], 16U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (16U * (threadIdx.x / 32U) * 32U +
+                                        __anf010 * 16U + 16U * i0 * 16U), 16U);
             uint32_t __anf011 = dotIdx;
             __nv_bfloat16 *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 8U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U + i1 * 16U), bFrags[i1],
-                             128U, (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U + i1 * 16U),
+                                       128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -3666,12 +3709,13 @@ __hoisted_g_gemm_bf16_f32_64x128x16_16x16x16_2x8_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 8U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 64U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U) * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 8U + j], cols,
-                           (float)_kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) * 64U +
+                                     blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U) * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 8U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -3771,18 +3815,19 @@ __hoisted_g_gemm_f16_f16_64x128x16_16x16x16_4x2_0(uint32_t shared,
             half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (16U * (threadIdx.x / 32U / 4U) * 64U +
-                              __anf010 * 16U + 16U * i0 * 16U), aFrags[i0], 16U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (16U * (threadIdx.x / 32U / 4U) * 64U +
+                                        __anf010 * 16U + 16U * i0 * 16U), 16U);
             uint32_t __anf011 = dotIdx;
             half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U +
-                              threadIdx.x / 32U % 4U * 32U + i1 * 16U),
-                             bFrags[i1], 128U, (half) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 4U * 32U +
+                                        i1 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -3798,13 +3843,14 @@ __hoisted_g_gemm_f16_f16_64x128x16_16x16x16_4x2_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 64U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U / 4U) * 64U +
-                            threadIdx.x / 32U % 4U * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 2U + j], cols,
-                           (half) _kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) * 64U +
+                                     blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U / 4U) * 64U +
+                                     threadIdx.x / 32U % 4U * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 2U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -3904,18 +3950,19 @@ __hoisted_g_gemm_bf16_f32_64x128x16_16x16x16_4x2_0(uint32_t shared,
             __nv_bfloat16 *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (16U * (threadIdx.x / 32U / 4U) * 64U +
-                              __anf010 * 16U + 16U * i0 * 16U), aFrags[i0], 16U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (16U * (threadIdx.x / 32U / 4U) * 64U +
+                                        __anf010 * 16U + 16U * i0 * 16U), 16U);
             uint32_t __anf011 = dotIdx;
             __nv_bfloat16 *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U +
-                              threadIdx.x / 32U % 4U * 32U + i1 * 16U),
-                             bFrags[i1], 128U, (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 4U * 32U +
+                                        i1 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -3931,13 +3978,14 @@ __hoisted_g_gemm_bf16_f32_64x128x16_16x16x16_4x2_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 64U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U / 4U) * 64U +
-                            threadIdx.x / 32U % 4U * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 2U + j], cols,
-                           (float)_kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) * 64U +
+                                     blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U / 4U) * 64U +
+                                     threadIdx.x / 32U % 4U * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 2U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -4037,18 +4085,19 @@ __hoisted_g_gemm_f16_f16_64x128x16_16x16x16_4x4_0(uint32_t shared,
             half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (16U * (threadIdx.x / 32U / 2U) * 64U +
-                              __anf010 * 16U + 16U * i0 * 16U), aFrags[i0], 16U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (16U * (threadIdx.x / 32U / 2U) * 64U +
+                                        __anf010 * 16U + 16U * i0 * 16U), 16U);
             uint32_t __anf011 = dotIdx;
             half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U +
-                              threadIdx.x / 32U % 2U * 64U + i1 * 16U),
-                             bFrags[i1], 128U, (half) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 2U * 64U +
+                                        i1 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -4064,13 +4113,14 @@ __hoisted_g_gemm_f16_f16_64x128x16_16x16x16_4x4_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 64U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U / 2U) * 64U +
-                            threadIdx.x / 32U % 2U * 64U + cols * i * 16U +
-                            j * 16U), accFrags[i * 4U + j], cols,
-                           (half) _kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) * 64U +
+                                     blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U / 2U) * 64U +
+                                     threadIdx.x / 32U % 2U * 64U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 4U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -4171,18 +4221,19 @@ __hoisted_g_gemm_bf16_f32_64x128x16_16x16x16_4x4_0(uint32_t shared,
             __nv_bfloat16 *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (16U * (threadIdx.x / 32U / 2U) * 64U +
-                              __anf010 * 16U + 16U * i0 * 16U), aFrags[i0], 16U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (16U * (threadIdx.x / 32U / 2U) * 64U +
+                                        __anf010 * 16U + 16U * i0 * 16U), 16U);
             uint32_t __anf011 = dotIdx;
             __nv_bfloat16 *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U +
-                              threadIdx.x / 32U % 2U * 64U + i1 * 16U),
-                             bFrags[i1], 128U, (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 2U * 64U +
+                                        i1 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -4198,13 +4249,14 @@ __hoisted_g_gemm_bf16_f32_64x128x16_16x16x16_4x4_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 64U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U / 2U) * 64U +
-                            threadIdx.x / 32U % 2U * 64U + cols * i * 16U +
-                            j * 16U), accFrags[i * 4U + j], cols,
-                           (float)_kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) * 64U +
+                                     blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U / 2U) * 64U +
+                                     threadIdx.x / 32U % 2U * 64U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 4U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -4304,17 +4356,18 @@ __hoisted_g_gemm_f16_f16_64x128x16_16x16x16_4x8_0(uint32_t shared,
             half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (16U * (threadIdx.x / 32U) * 64U + __anf010 * 16U +
-                              16U * i0 * 16U), aFrags[i0], 16U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (16U * (threadIdx.x / 32U) * 64U +
+                                        __anf010 * 16U + 16U * i0 * 16U), 16U);
             uint32_t __anf011 = dotIdx;
             half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 8U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U + i1 * 16U), bFrags[i1],
-                             128U, (half) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U + i1 * 16U),
+                                       128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -4330,12 +4383,13 @@ __hoisted_g_gemm_f16_f16_64x128x16_16x16x16_4x8_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 8U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 64U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U) * 64U + cols * i * 16U +
-                            j * 16U), accFrags[i * 8U + j], cols,
-                           (half) _kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) * 64U +
+                                     blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U) * 64U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 8U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -4436,17 +4490,18 @@ __hoisted_g_gemm_bf16_f32_64x128x16_16x16x16_4x8_0(uint32_t shared,
             __nv_bfloat16 *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (16U * (threadIdx.x / 32U) * 64U + __anf010 * 16U +
-                              16U * i0 * 16U), aFrags[i0], 16U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (16U * (threadIdx.x / 32U) * 64U +
+                                        __anf010 * 16U + 16U * i0 * 16U), 16U);
             uint32_t __anf011 = dotIdx;
             __nv_bfloat16 *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 8U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U + i1 * 16U), bFrags[i1],
-                             128U, (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U + i1 * 16U),
+                                       128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -4462,12 +4517,13 @@ __hoisted_g_gemm_bf16_f32_64x128x16_16x16x16_4x8_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 8U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 64U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U) * 64U + cols * i * 16U +
-                            j * 16U), accFrags[i * 8U + j], cols,
-                           (float)_kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) * 64U +
+                                     blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U) * 64U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 8U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -4567,18 +4623,19 @@ __hoisted_g_gemm_f16_f16_64x128x32_16x16x16_2x2_0(uint32_t shared,
             half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (32U * (threadIdx.x / 32U / 4U) * 32U +
-                              __anf010 * 16U + 32U * i0 * 16U), aFrags[i0], 32U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (32U * (threadIdx.x / 32U / 4U) * 32U +
+                                        __anf010 * 16U + 32U * i0 * 16U), 32U);
             uint32_t __anf011 = dotIdx;
             half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U +
-                              threadIdx.x / 32U % 4U * 32U + i1 * 16U),
-                             bFrags[i1], 128U, (half) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 4U * 32U +
+                                        i1 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -4594,13 +4651,14 @@ __hoisted_g_gemm_f16_f16_64x128x32_16x16x16_2x2_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 64U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U / 4U) * 32U +
-                            threadIdx.x / 32U % 4U * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 2U + j], cols,
-                           (half) _kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) * 64U +
+                                     blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U / 4U) * 32U +
+                                     threadIdx.x / 32U % 4U * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 2U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -4700,18 +4758,19 @@ __hoisted_g_gemm_bf16_f32_64x128x32_16x16x16_2x2_0(uint32_t shared,
             __nv_bfloat16 *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (32U * (threadIdx.x / 32U / 4U) * 32U +
-                              __anf010 * 16U + 32U * i0 * 16U), aFrags[i0], 32U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (32U * (threadIdx.x / 32U / 4U) * 32U +
+                                        __anf010 * 16U + 32U * i0 * 16U), 32U);
             uint32_t __anf011 = dotIdx;
             __nv_bfloat16 *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U +
-                              threadIdx.x / 32U % 4U * 32U + i1 * 16U),
-                             bFrags[i1], 128U, (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 4U * 32U +
+                                        i1 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -4727,13 +4786,14 @@ __hoisted_g_gemm_bf16_f32_64x128x32_16x16x16_2x2_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 64U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U / 4U) * 32U +
-                            threadIdx.x / 32U % 4U * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 2U + j], cols,
-                           (float)_kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) * 64U +
+                                     blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U / 4U) * 32U +
+                                     threadIdx.x / 32U % 4U * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 2U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -4833,18 +4893,19 @@ __hoisted_g_gemm_f16_f16_64x128x32_16x16x16_2x4_0(uint32_t shared,
             half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (32U * (threadIdx.x / 32U / 2U) * 32U +
-                              __anf010 * 16U + 32U * i0 * 16U), aFrags[i0], 32U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (32U * (threadIdx.x / 32U / 2U) * 32U +
+                                        __anf010 * 16U + 32U * i0 * 16U), 32U);
             uint32_t __anf011 = dotIdx;
             half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U +
-                              threadIdx.x / 32U % 2U * 64U + i1 * 16U),
-                             bFrags[i1], 128U, (half) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 2U * 64U +
+                                        i1 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -4860,13 +4921,14 @@ __hoisted_g_gemm_f16_f16_64x128x32_16x16x16_2x4_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 64U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U / 2U) * 32U +
-                            threadIdx.x / 32U % 2U * 64U + cols * i * 16U +
-                            j * 16U), accFrags[i * 4U + j], cols,
-                           (half) _kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) * 64U +
+                                     blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U / 2U) * 32U +
+                                     threadIdx.x / 32U % 2U * 64U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 4U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -4966,18 +5028,19 @@ __hoisted_g_gemm_bf16_f32_64x128x32_16x16x16_2x4_0(uint32_t shared,
             __nv_bfloat16 *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (32U * (threadIdx.x / 32U / 2U) * 32U +
-                              __anf010 * 16U + 32U * i0 * 16U), aFrags[i0], 32U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (32U * (threadIdx.x / 32U / 2U) * 32U +
+                                        __anf010 * 16U + 32U * i0 * 16U), 32U);
             uint32_t __anf011 = dotIdx;
             __nv_bfloat16 *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U +
-                              threadIdx.x / 32U % 2U * 64U + i1 * 16U),
-                             bFrags[i1], 128U, (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 2U * 64U +
+                                        i1 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -4993,13 +5056,14 @@ __hoisted_g_gemm_bf16_f32_64x128x32_16x16x16_2x4_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 64U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U / 2U) * 32U +
-                            threadIdx.x / 32U % 2U * 64U + cols * i * 16U +
-                            j * 16U), accFrags[i * 4U + j], cols,
-                           (float)_kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) * 64U +
+                                     blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U / 2U) * 32U +
+                                     threadIdx.x / 32U % 2U * 64U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 4U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -5099,17 +5163,18 @@ __hoisted_g_gemm_f16_f16_64x128x32_16x16x16_2x8_0(uint32_t shared,
             half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (32U * (threadIdx.x / 32U) * 32U + __anf010 * 16U +
-                              32U * i0 * 16U), aFrags[i0], 32U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (32U * (threadIdx.x / 32U) * 32U +
+                                        __anf010 * 16U + 32U * i0 * 16U), 32U);
             uint32_t __anf011 = dotIdx;
             half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 8U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U + i1 * 16U), bFrags[i1],
-                             128U, (half) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U + i1 * 16U),
+                                       128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -5125,12 +5190,13 @@ __hoisted_g_gemm_f16_f16_64x128x32_16x16x16_2x8_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 8U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 64U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U) * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 8U + j], cols,
-                           (half) _kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) * 64U +
+                                     blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U) * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 8U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -5231,17 +5297,18 @@ __hoisted_g_gemm_bf16_f32_64x128x32_16x16x16_2x8_0(uint32_t shared,
             __nv_bfloat16 *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (32U * (threadIdx.x / 32U) * 32U + __anf010 * 16U +
-                              32U * i0 * 16U), aFrags[i0], 32U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (32U * (threadIdx.x / 32U) * 32U +
+                                        __anf010 * 16U + 32U * i0 * 16U), 32U);
             uint32_t __anf011 = dotIdx;
             __nv_bfloat16 *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 8U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U + i1 * 16U), bFrags[i1],
-                             128U, (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U + i1 * 16U),
+                                       128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -5257,12 +5324,13 @@ __hoisted_g_gemm_bf16_f32_64x128x32_16x16x16_2x8_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 8U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 64U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U) * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 8U + j], cols,
-                           (float)_kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) * 64U +
+                                     blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U) * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 8U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -5362,18 +5430,19 @@ __hoisted_g_gemm_f16_f16_64x128x32_16x16x16_4x2_0(uint32_t shared,
             half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (32U * (threadIdx.x / 32U / 4U) * 64U +
-                              __anf010 * 16U + 32U * i0 * 16U), aFrags[i0], 32U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (32U * (threadIdx.x / 32U / 4U) * 64U +
+                                        __anf010 * 16U + 32U * i0 * 16U), 32U);
             uint32_t __anf011 = dotIdx;
             half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U +
-                              threadIdx.x / 32U % 4U * 32U + i1 * 16U),
-                             bFrags[i1], 128U, (half) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 4U * 32U +
+                                        i1 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -5389,13 +5458,14 @@ __hoisted_g_gemm_f16_f16_64x128x32_16x16x16_4x2_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 64U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U / 4U) * 64U +
-                            threadIdx.x / 32U % 4U * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 2U + j], cols,
-                           (half) _kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) * 64U +
+                                     blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U / 4U) * 64U +
+                                     threadIdx.x / 32U % 4U * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 2U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -5495,18 +5565,19 @@ __hoisted_g_gemm_bf16_f32_64x128x32_16x16x16_4x2_0(uint32_t shared,
             __nv_bfloat16 *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (32U * (threadIdx.x / 32U / 4U) * 64U +
-                              __anf010 * 16U + 32U * i0 * 16U), aFrags[i0], 32U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (32U * (threadIdx.x / 32U / 4U) * 64U +
+                                        __anf010 * 16U + 32U * i0 * 16U), 32U);
             uint32_t __anf011 = dotIdx;
             __nv_bfloat16 *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U +
-                              threadIdx.x / 32U % 4U * 32U + i1 * 16U),
-                             bFrags[i1], 128U, (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 4U * 32U +
+                                        i1 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -5522,13 +5593,14 @@ __hoisted_g_gemm_bf16_f32_64x128x32_16x16x16_4x2_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 64U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U / 4U) * 64U +
-                            threadIdx.x / 32U % 4U * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 2U + j], cols,
-                           (float)_kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) * 64U +
+                                     blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U / 4U) * 64U +
+                                     threadIdx.x / 32U % 4U * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 2U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -5628,18 +5700,19 @@ __hoisted_g_gemm_f16_f16_64x128x32_16x16x16_4x4_0(uint32_t shared,
             half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (32U * (threadIdx.x / 32U / 2U) * 64U +
-                              __anf010 * 16U + 32U * i0 * 16U), aFrags[i0], 32U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (32U * (threadIdx.x / 32U / 2U) * 64U +
+                                        __anf010 * 16U + 32U * i0 * 16U), 32U);
             uint32_t __anf011 = dotIdx;
             half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U +
-                              threadIdx.x / 32U % 2U * 64U + i1 * 16U),
-                             bFrags[i1], 128U, (half) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 2U * 64U +
+                                        i1 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -5655,13 +5728,14 @@ __hoisted_g_gemm_f16_f16_64x128x32_16x16x16_4x4_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 64U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U / 2U) * 64U +
-                            threadIdx.x / 32U % 2U * 64U + cols * i * 16U +
-                            j * 16U), accFrags[i * 4U + j], cols,
-                           (half) _kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) * 64U +
+                                     blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U / 2U) * 64U +
+                                     threadIdx.x / 32U % 2U * 64U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 4U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -5762,18 +5836,19 @@ __hoisted_g_gemm_bf16_f32_64x128x32_16x16x16_4x4_0(uint32_t shared,
             __nv_bfloat16 *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (32U * (threadIdx.x / 32U / 2U) * 64U +
-                              __anf010 * 16U + 32U * i0 * 16U), aFrags[i0], 32U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (32U * (threadIdx.x / 32U / 2U) * 64U +
+                                        __anf010 * 16U + 32U * i0 * 16U), 32U);
             uint32_t __anf011 = dotIdx;
             __nv_bfloat16 *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U +
-                              threadIdx.x / 32U % 2U * 64U + i1 * 16U),
-                             bFrags[i1], 128U, (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 2U * 64U +
+                                        i1 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -5789,13 +5864,14 @@ __hoisted_g_gemm_bf16_f32_64x128x32_16x16x16_4x4_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 64U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U / 2U) * 64U +
-                            threadIdx.x / 32U % 2U * 64U + cols * i * 16U +
-                            j * 16U), accFrags[i * 4U + j], cols,
-                           (float)_kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) * 64U +
+                                     blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U / 2U) * 64U +
+                                     threadIdx.x / 32U % 2U * 64U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 4U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -5895,17 +5971,18 @@ __hoisted_g_gemm_f16_f16_64x128x32_16x16x16_4x8_0(uint32_t shared,
             half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (32U * (threadIdx.x / 32U) * 64U + __anf010 * 16U +
-                              32U * i0 * 16U), aFrags[i0], 32U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (32U * (threadIdx.x / 32U) * 64U +
+                                        __anf010 * 16U + 32U * i0 * 16U), 32U);
             uint32_t __anf011 = dotIdx;
             half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 8U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U + i1 * 16U), bFrags[i1],
-                             128U, (half) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U + i1 * 16U),
+                                       128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -5921,12 +5998,13 @@ __hoisted_g_gemm_f16_f16_64x128x32_16x16x16_4x8_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 8U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 64U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U) * 64U + cols * i * 16U +
-                            j * 16U), accFrags[i * 8U + j], cols,
-                           (half) _kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) * 64U +
+                                     blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U) * 64U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 8U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -6027,17 +6105,18 @@ __hoisted_g_gemm_bf16_f32_64x128x32_16x16x16_4x8_0(uint32_t shared,
             __nv_bfloat16 *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (32U * (threadIdx.x / 32U) * 64U + __anf010 * 16U +
-                              32U * i0 * 16U), aFrags[i0], 32U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (32U * (threadIdx.x / 32U) * 64U +
+                                        __anf010 * 16U + 32U * i0 * 16U), 32U);
             uint32_t __anf011 = dotIdx;
             __nv_bfloat16 *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 8U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U + i1 * 16U), bFrags[i1],
-                             128U, (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U + i1 * 16U),
+                                       128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -6053,12 +6132,13 @@ __hoisted_g_gemm_bf16_f32_64x128x32_16x16x16_4x8_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 8U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 64U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U) * 64U + cols * i * 16U +
-                            j * 16U), accFrags[i * 8U + j], cols,
-                           (float)_kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) * 64U +
+                                     blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U) * 64U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 8U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -6158,18 +6238,19 @@ __hoisted_g_gemm_f16_f16_64x128x64_16x16x16_2x2_0(uint32_t shared,
             half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (64U * (threadIdx.x / 32U / 4U) * 32U +
-                              __anf010 * 16U + 64U * i0 * 16U), aFrags[i0], 64U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (64U * (threadIdx.x / 32U / 4U) * 32U +
+                                        __anf010 * 16U + 64U * i0 * 16U), 64U);
             uint32_t __anf011 = dotIdx;
             half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U +
-                              threadIdx.x / 32U % 4U * 32U + i1 * 16U),
-                             bFrags[i1], 128U, (half) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 4U * 32U +
+                                        i1 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -6185,13 +6266,14 @@ __hoisted_g_gemm_f16_f16_64x128x64_16x16x16_2x2_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 64U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U / 4U) * 32U +
-                            threadIdx.x / 32U % 4U * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 2U + j], cols,
-                           (half) _kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) * 64U +
+                                     blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U / 4U) * 32U +
+                                     threadIdx.x / 32U % 4U * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 2U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -6291,18 +6373,19 @@ __hoisted_g_gemm_bf16_f32_64x128x64_16x16x16_2x2_0(uint32_t shared,
             __nv_bfloat16 *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (64U * (threadIdx.x / 32U / 4U) * 32U +
-                              __anf010 * 16U + 64U * i0 * 16U), aFrags[i0], 64U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (64U * (threadIdx.x / 32U / 4U) * 32U +
+                                        __anf010 * 16U + 64U * i0 * 16U), 64U);
             uint32_t __anf011 = dotIdx;
             __nv_bfloat16 *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U +
-                              threadIdx.x / 32U % 4U * 32U + i1 * 16U),
-                             bFrags[i1], 128U, (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 4U * 32U +
+                                        i1 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -6318,13 +6401,14 @@ __hoisted_g_gemm_bf16_f32_64x128x64_16x16x16_2x2_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 64U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U / 4U) * 32U +
-                            threadIdx.x / 32U % 4U * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 2U + j], cols,
-                           (float)_kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) * 64U +
+                                     blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U / 4U) * 32U +
+                                     threadIdx.x / 32U % 4U * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 2U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -6424,18 +6508,19 @@ __hoisted_g_gemm_f16_f16_64x128x64_16x16x16_2x4_0(uint32_t shared,
             half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (64U * (threadIdx.x / 32U / 2U) * 32U +
-                              __anf010 * 16U + 64U * i0 * 16U), aFrags[i0], 64U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (64U * (threadIdx.x / 32U / 2U) * 32U +
+                                        __anf010 * 16U + 64U * i0 * 16U), 64U);
             uint32_t __anf011 = dotIdx;
             half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U +
-                              threadIdx.x / 32U % 2U * 64U + i1 * 16U),
-                             bFrags[i1], 128U, (half) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 2U * 64U +
+                                        i1 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -6451,13 +6536,14 @@ __hoisted_g_gemm_f16_f16_64x128x64_16x16x16_2x4_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 64U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U / 2U) * 32U +
-                            threadIdx.x / 32U % 2U * 64U + cols * i * 16U +
-                            j * 16U), accFrags[i * 4U + j], cols,
-                           (half) _kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) * 64U +
+                                     blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U / 2U) * 32U +
+                                     threadIdx.x / 32U % 2U * 64U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 4U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -6557,18 +6643,19 @@ __hoisted_g_gemm_bf16_f32_64x128x64_16x16x16_2x4_0(uint32_t shared,
             __nv_bfloat16 *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (64U * (threadIdx.x / 32U / 2U) * 32U +
-                              __anf010 * 16U + 64U * i0 * 16U), aFrags[i0], 64U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (64U * (threadIdx.x / 32U / 2U) * 32U +
+                                        __anf010 * 16U + 64U * i0 * 16U), 64U);
             uint32_t __anf011 = dotIdx;
             __nv_bfloat16 *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U +
-                              threadIdx.x / 32U % 2U * 64U + i1 * 16U),
-                             bFrags[i1], 128U, (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 2U * 64U +
+                                        i1 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -6584,13 +6671,14 @@ __hoisted_g_gemm_bf16_f32_64x128x64_16x16x16_2x4_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 64U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U / 2U) * 32U +
-                            threadIdx.x / 32U % 2U * 64U + cols * i * 16U +
-                            j * 16U), accFrags[i * 4U + j], cols,
-                           (float)_kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) * 64U +
+                                     blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U / 2U) * 32U +
+                                     threadIdx.x / 32U % 2U * 64U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 4U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -6690,17 +6778,18 @@ __hoisted_g_gemm_f16_f16_64x128x64_16x16x16_2x8_0(uint32_t shared,
             half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (64U * (threadIdx.x / 32U) * 32U + __anf010 * 16U +
-                              64U * i0 * 16U), aFrags[i0], 64U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (64U * (threadIdx.x / 32U) * 32U +
+                                        __anf010 * 16U + 64U * i0 * 16U), 64U);
             uint32_t __anf011 = dotIdx;
             half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 8U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U + i1 * 16U), bFrags[i1],
-                             128U, (half) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U + i1 * 16U),
+                                       128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -6716,12 +6805,13 @@ __hoisted_g_gemm_f16_f16_64x128x64_16x16x16_2x8_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 8U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 64U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U) * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 8U + j], cols,
-                           (half) _kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) * 64U +
+                                     blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U) * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 8U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -6822,17 +6912,18 @@ __hoisted_g_gemm_bf16_f32_64x128x64_16x16x16_2x8_0(uint32_t shared,
             __nv_bfloat16 *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (64U * (threadIdx.x / 32U) * 32U + __anf010 * 16U +
-                              64U * i0 * 16U), aFrags[i0], 64U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (64U * (threadIdx.x / 32U) * 32U +
+                                        __anf010 * 16U + 64U * i0 * 16U), 64U);
             uint32_t __anf011 = dotIdx;
             __nv_bfloat16 *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 8U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U + i1 * 16U), bFrags[i1],
-                             128U, (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U + i1 * 16U),
+                                       128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -6848,12 +6939,13 @@ __hoisted_g_gemm_bf16_f32_64x128x64_16x16x16_2x8_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 8U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 64U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U) * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 8U + j], cols,
-                           (float)_kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) * 64U +
+                                     blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U) * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 8U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -6953,18 +7045,19 @@ __hoisted_g_gemm_f16_f16_64x128x64_16x16x16_4x2_0(uint32_t shared,
             half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (64U * (threadIdx.x / 32U / 4U) * 64U +
-                              __anf010 * 16U + 64U * i0 * 16U), aFrags[i0], 64U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (64U * (threadIdx.x / 32U / 4U) * 64U +
+                                        __anf010 * 16U + 64U * i0 * 16U), 64U);
             uint32_t __anf011 = dotIdx;
             half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U +
-                              threadIdx.x / 32U % 4U * 32U + i1 * 16U),
-                             bFrags[i1], 128U, (half) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 4U * 32U +
+                                        i1 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -6980,13 +7073,14 @@ __hoisted_g_gemm_f16_f16_64x128x64_16x16x16_4x2_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 64U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U / 4U) * 64U +
-                            threadIdx.x / 32U % 4U * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 2U + j], cols,
-                           (half) _kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) * 64U +
+                                     blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U / 4U) * 64U +
+                                     threadIdx.x / 32U % 4U * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 2U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -7086,18 +7180,19 @@ __hoisted_g_gemm_bf16_f32_64x128x64_16x16x16_4x2_0(uint32_t shared,
             __nv_bfloat16 *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (64U * (threadIdx.x / 32U / 4U) * 64U +
-                              __anf010 * 16U + 64U * i0 * 16U), aFrags[i0], 64U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (64U * (threadIdx.x / 32U / 4U) * 64U +
+                                        __anf010 * 16U + 64U * i0 * 16U), 64U);
             uint32_t __anf011 = dotIdx;
             __nv_bfloat16 *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U +
-                              threadIdx.x / 32U % 4U * 32U + i1 * 16U),
-                             bFrags[i1], 128U, (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 4U * 32U +
+                                        i1 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -7113,13 +7208,14 @@ __hoisted_g_gemm_bf16_f32_64x128x64_16x16x16_4x2_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 64U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U / 4U) * 64U +
-                            threadIdx.x / 32U % 4U * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 2U + j], cols,
-                           (float)_kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) * 64U +
+                                     blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U / 4U) * 64U +
+                                     threadIdx.x / 32U % 4U * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 2U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -7219,18 +7315,19 @@ __hoisted_g_gemm_f16_f16_64x128x64_16x16x16_4x4_0(uint32_t shared,
             half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (64U * (threadIdx.x / 32U / 2U) * 64U +
-                              __anf010 * 16U + 64U * i0 * 16U), aFrags[i0], 64U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (64U * (threadIdx.x / 32U / 2U) * 64U +
+                                        __anf010 * 16U + 64U * i0 * 16U), 64U);
             uint32_t __anf011 = dotIdx;
             half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U +
-                              threadIdx.x / 32U % 2U * 64U + i1 * 16U),
-                             bFrags[i1], 128U, (half) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 2U * 64U +
+                                        i1 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -7246,13 +7343,14 @@ __hoisted_g_gemm_f16_f16_64x128x64_16x16x16_4x4_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 64U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U / 2U) * 64U +
-                            threadIdx.x / 32U % 2U * 64U + cols * i * 16U +
-                            j * 16U), accFrags[i * 4U + j], cols,
-                           (half) _kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) * 64U +
+                                     blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U / 2U) * 64U +
+                                     threadIdx.x / 32U % 2U * 64U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 4U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -7353,18 +7451,19 @@ __hoisted_g_gemm_bf16_f32_64x128x64_16x16x16_4x4_0(uint32_t shared,
             __nv_bfloat16 *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (64U * (threadIdx.x / 32U / 2U) * 64U +
-                              __anf010 * 16U + 64U * i0 * 16U), aFrags[i0], 64U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (64U * (threadIdx.x / 32U / 2U) * 64U +
+                                        __anf010 * 16U + 64U * i0 * 16U), 64U);
             uint32_t __anf011 = dotIdx;
             __nv_bfloat16 *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U +
-                              threadIdx.x / 32U % 2U * 64U + i1 * 16U),
-                             bFrags[i1], 128U, (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 2U * 64U +
+                                        i1 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -7380,13 +7479,14 @@ __hoisted_g_gemm_bf16_f32_64x128x64_16x16x16_4x4_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 64U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U / 2U) * 64U +
-                            threadIdx.x / 32U % 2U * 64U + cols * i * 16U +
-                            j * 16U), accFrags[i * 4U + j], cols,
-                           (float)_kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) * 64U +
+                                     blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U / 2U) * 64U +
+                                     threadIdx.x / 32U % 2U * 64U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 4U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -7486,17 +7586,18 @@ __hoisted_g_gemm_f16_f16_64x128x64_16x16x16_4x8_0(uint32_t shared,
             half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (64U * (threadIdx.x / 32U) * 64U + __anf010 * 16U +
-                              64U * i0 * 16U), aFrags[i0], 64U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (64U * (threadIdx.x / 32U) * 64U +
+                                        __anf010 * 16U + 64U * i0 * 16U), 64U);
             uint32_t __anf011 = dotIdx;
             half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 8U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U + i1 * 16U), bFrags[i1],
-                             128U, (half) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U + i1 * 16U),
+                                       128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -7512,12 +7613,13 @@ __hoisted_g_gemm_f16_f16_64x128x64_16x16x16_4x8_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 8U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 64U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U) * 64U + cols * i * 16U +
-                            j * 16U), accFrags[i * 8U + j], cols,
-                           (half) _kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) * 64U +
+                                     blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U) * 64U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 8U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -7618,17 +7720,18 @@ __hoisted_g_gemm_bf16_f32_64x128x64_16x16x16_4x8_0(uint32_t shared,
             __nv_bfloat16 *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (64U * (threadIdx.x / 32U) * 64U + __anf010 * 16U +
-                              64U * i0 * 16U), aFrags[i0], 64U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (64U * (threadIdx.x / 32U) * 64U +
+                                        __anf010 * 16U + 64U * i0 * 16U), 64U);
             uint32_t __anf011 = dotIdx;
             __nv_bfloat16 *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 8U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U + i1 * 16U), bFrags[i1],
-                             128U, (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U + i1 * 16U),
+                                       128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -7644,12 +7747,13 @@ __hoisted_g_gemm_bf16_f32_64x128x64_16x16x16_4x8_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 8U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 64U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U) * 64U + cols * i * 16U +
-                            j * 16U), accFrags[i * 8U + j], cols,
-                           (float)_kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) * 64U +
+                                     blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U) * 64U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 8U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -7749,17 +7853,17 @@ __hoisted_g_gemm_f16_f16_128x64x16_16x16x16_2x4_0(uint32_t shared,
             half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (16U * (threadIdx.x / 32U) * 32U + __anf010 * 16U +
-                              16U * i0 * 16U), aFrags[i0], 16U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (16U * (threadIdx.x / 32U) * 32U +
+                                        __anf010 * 16U + 16U * i0 * 16U), 16U);
             uint32_t __anf011 = dotIdx;
             half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (64U * __anf011 * 16U + i1 * 16U), bFrags[i1], 64U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (64U * __anf011 * 16U + i1 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -7775,12 +7879,13 @@ __hoisted_g_gemm_f16_f16_128x64x16_16x16x16_2x4_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 64U)) * 128U +
-                            blockIdx.x % (cols / 64U) * 64U +
-                            cols * (threadIdx.x / 32U) * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 4U + j], cols,
-                           (half) _kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 64U)) * 128U +
+                                     blockIdx.x % (cols / 64U) * 64U +
+                                     cols * (threadIdx.x / 32U) * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 4U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -7880,17 +7985,17 @@ __hoisted_g_gemm_bf16_f32_128x64x16_16x16x16_2x4_0(uint32_t shared,
             __nv_bfloat16 *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (16U * (threadIdx.x / 32U) * 32U + __anf010 * 16U +
-                              16U * i0 * 16U), aFrags[i0], 16U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (16U * (threadIdx.x / 32U) * 32U +
+                                        __anf010 * 16U + 16U * i0 * 16U), 16U);
             uint32_t __anf011 = dotIdx;
             __nv_bfloat16 *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (64U * __anf011 * 16U + i1 * 16U), bFrags[i1], 64U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (64U * __anf011 * 16U + i1 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -7906,12 +8011,13 @@ __hoisted_g_gemm_bf16_f32_128x64x16_16x16x16_2x4_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 64U)) * 128U +
-                            blockIdx.x % (cols / 64U) * 64U +
-                            cols * (threadIdx.x / 32U) * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 4U + j], cols,
-                           (float)_kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 64U)) * 128U +
+                                     blockIdx.x % (cols / 64U) * 64U +
+                                     cols * (threadIdx.x / 32U) * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 4U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -8011,18 +8117,19 @@ __hoisted_g_gemm_f16_f16_128x64x16_16x16x16_4x2_0(uint32_t shared,
             half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (16U * (threadIdx.x / 32U / 2U) * 64U +
-                              __anf010 * 16U + 16U * i0 * 16U), aFrags[i0], 16U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (16U * (threadIdx.x / 32U / 2U) * 64U +
+                                        __anf010 * 16U + 16U * i0 * 16U), 16U);
             uint32_t __anf011 = dotIdx;
             half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (64U * __anf011 * 16U +
-                              threadIdx.x / 32U % 2U * 32U + i1 * 16U),
-                             bFrags[i1], 64U, (half) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (64U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 2U * 32U +
+                                        i1 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -8038,13 +8145,14 @@ __hoisted_g_gemm_f16_f16_128x64x16_16x16x16_4x2_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 64U)) * 128U +
-                            blockIdx.x % (cols / 64U) * 64U +
-                            cols * (threadIdx.x / 32U / 2U) * 64U +
-                            threadIdx.x / 32U % 2U * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 2U + j], cols,
-                           (half) _kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 64U)) * 128U +
+                                     blockIdx.x % (cols / 64U) * 64U +
+                                     cols * (threadIdx.x / 32U / 2U) * 64U +
+                                     threadIdx.x / 32U % 2U * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 2U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -8144,18 +8252,19 @@ __hoisted_g_gemm_bf16_f32_128x64x16_16x16x16_4x2_0(uint32_t shared,
             __nv_bfloat16 *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (16U * (threadIdx.x / 32U / 2U) * 64U +
-                              __anf010 * 16U + 16U * i0 * 16U), aFrags[i0], 16U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (16U * (threadIdx.x / 32U / 2U) * 64U +
+                                        __anf010 * 16U + 16U * i0 * 16U), 16U);
             uint32_t __anf011 = dotIdx;
             __nv_bfloat16 *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (64U * __anf011 * 16U +
-                              threadIdx.x / 32U % 2U * 32U + i1 * 16U),
-                             bFrags[i1], 64U, (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (64U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 2U * 32U +
+                                        i1 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -8171,13 +8280,14 @@ __hoisted_g_gemm_bf16_f32_128x64x16_16x16x16_4x2_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 64U)) * 128U +
-                            blockIdx.x % (cols / 64U) * 64U +
-                            cols * (threadIdx.x / 32U / 2U) * 64U +
-                            threadIdx.x / 32U % 2U * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 2U + j], cols,
-                           (float)_kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 64U)) * 128U +
+                                     blockIdx.x % (cols / 64U) * 64U +
+                                     cols * (threadIdx.x / 32U / 2U) * 64U +
+                                     threadIdx.x / 32U % 2U * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 2U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -8277,17 +8387,17 @@ __hoisted_g_gemm_f16_f16_128x64x16_16x16x16_4x4_0(uint32_t shared,
             half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (16U * (threadIdx.x / 32U) * 64U + __anf010 * 16U +
-                              16U * i0 * 16U), aFrags[i0], 16U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (16U * (threadIdx.x / 32U) * 64U +
+                                        __anf010 * 16U + 16U * i0 * 16U), 16U);
             uint32_t __anf011 = dotIdx;
             half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (64U * __anf011 * 16U + i1 * 16U), bFrags[i1], 64U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (64U * __anf011 * 16U + i1 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -8303,12 +8413,13 @@ __hoisted_g_gemm_f16_f16_128x64x16_16x16x16_4x4_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 64U)) * 128U +
-                            blockIdx.x % (cols / 64U) * 64U +
-                            cols * (threadIdx.x / 32U) * 64U + cols * i * 16U +
-                            j * 16U), accFrags[i * 4U + j], cols,
-                           (half) _kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 64U)) * 128U +
+                                     blockIdx.x % (cols / 64U) * 64U +
+                                     cols * (threadIdx.x / 32U) * 64U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 4U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -8409,17 +8520,17 @@ __hoisted_g_gemm_bf16_f32_128x64x16_16x16x16_4x4_0(uint32_t shared,
             __nv_bfloat16 *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (16U * (threadIdx.x / 32U) * 64U + __anf010 * 16U +
-                              16U * i0 * 16U), aFrags[i0], 16U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (16U * (threadIdx.x / 32U) * 64U +
+                                        __anf010 * 16U + 16U * i0 * 16U), 16U);
             uint32_t __anf011 = dotIdx;
             __nv_bfloat16 *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (64U * __anf011 * 16U + i1 * 16U), bFrags[i1], 64U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (64U * __anf011 * 16U + i1 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -8435,12 +8546,13 @@ __hoisted_g_gemm_bf16_f32_128x64x16_16x16x16_4x4_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 64U)) * 128U +
-                            blockIdx.x % (cols / 64U) * 64U +
-                            cols * (threadIdx.x / 32U) * 64U + cols * i * 16U +
-                            j * 16U), accFrags[i * 4U + j], cols,
-                           (float)_kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 64U)) * 128U +
+                                     blockIdx.x % (cols / 64U) * 64U +
+                                     cols * (threadIdx.x / 32U) * 64U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 4U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -8540,18 +8652,19 @@ __hoisted_g_gemm_f16_f16_128x64x16_16x16x16_8x2_0(uint32_t shared,
             half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (16U * (threadIdx.x / 32U / 2U) * 128U +
-                              __anf010 * 16U + 16U * i0 * 16U), aFrags[i0], 16U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (16U * (threadIdx.x / 32U / 2U) * 128U +
+                                        __anf010 * 16U + 16U * i0 * 16U), 16U);
             uint32_t __anf011 = dotIdx;
             half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (64U * __anf011 * 16U +
-                              threadIdx.x / 32U % 2U * 32U + i1 * 16U),
-                             bFrags[i1], 64U, (half) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (64U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 2U * 32U +
+                                        i1 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -8567,13 +8680,14 @@ __hoisted_g_gemm_f16_f16_128x64x16_16x16x16_8x2_0(uint32_t shared,
     for (; i < 8U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 64U)) * 128U +
-                            blockIdx.x % (cols / 64U) * 64U +
-                            cols * (threadIdx.x / 32U / 2U) * 128U +
-                            threadIdx.x / 32U % 2U * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 2U + j], cols,
-                           (half) _kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 64U)) * 128U +
+                                     blockIdx.x % (cols / 64U) * 64U +
+                                     cols * (threadIdx.x / 32U / 2U) * 128U +
+                                     threadIdx.x / 32U % 2U * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 2U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -8674,18 +8788,19 @@ __hoisted_g_gemm_bf16_f32_128x64x16_16x16x16_8x2_0(uint32_t shared,
             __nv_bfloat16 *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (16U * (threadIdx.x / 32U / 2U) * 128U +
-                              __anf010 * 16U + 16U * i0 * 16U), aFrags[i0], 16U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (16U * (threadIdx.x / 32U / 2U) * 128U +
+                                        __anf010 * 16U + 16U * i0 * 16U), 16U);
             uint32_t __anf011 = dotIdx;
             __nv_bfloat16 *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (64U * __anf011 * 16U +
-                              threadIdx.x / 32U % 2U * 32U + i1 * 16U),
-                             bFrags[i1], 64U, (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (64U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 2U * 32U +
+                                        i1 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -8701,13 +8816,14 @@ __hoisted_g_gemm_bf16_f32_128x64x16_16x16x16_8x2_0(uint32_t shared,
     for (; i < 8U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 64U)) * 128U +
-                            blockIdx.x % (cols / 64U) * 64U +
-                            cols * (threadIdx.x / 32U / 2U) * 128U +
-                            threadIdx.x / 32U % 2U * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 2U + j], cols,
-                           (float)_kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 64U)) * 128U +
+                                     blockIdx.x % (cols / 64U) * 64U +
+                                     cols * (threadIdx.x / 32U / 2U) * 128U +
+                                     threadIdx.x / 32U % 2U * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 2U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -8807,17 +8923,17 @@ __hoisted_g_gemm_f16_f16_128x64x16_16x16x16_8x4_0(uint32_t shared,
             half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (16U * (threadIdx.x / 32U) * 128U +
-                              __anf010 * 16U + 16U * i0 * 16U), aFrags[i0], 16U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (16U * (threadIdx.x / 32U) * 128U +
+                                        __anf010 * 16U + 16U * i0 * 16U), 16U);
             uint32_t __anf011 = dotIdx;
             half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (64U * __anf011 * 16U + i1 * 16U), bFrags[i1], 64U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (64U * __anf011 * 16U + i1 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -8833,12 +8949,13 @@ __hoisted_g_gemm_f16_f16_128x64x16_16x16x16_8x4_0(uint32_t shared,
     for (; i < 8U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 64U)) * 128U +
-                            blockIdx.x % (cols / 64U) * 64U +
-                            cols * (threadIdx.x / 32U) * 128U + cols * i * 16U +
-                            j * 16U), accFrags[i * 4U + j], cols,
-                           (half) _kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 64U)) * 128U +
+                                     blockIdx.x % (cols / 64U) * 64U +
+                                     cols * (threadIdx.x / 32U) * 128U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 4U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -8939,17 +9056,17 @@ __hoisted_g_gemm_bf16_f32_128x64x16_16x16x16_8x4_0(uint32_t shared,
             __nv_bfloat16 *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (16U * (threadIdx.x / 32U) * 128U +
-                              __anf010 * 16U + 16U * i0 * 16U), aFrags[i0], 16U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (16U * (threadIdx.x / 32U) * 128U +
+                                        __anf010 * 16U + 16U * i0 * 16U), 16U);
             uint32_t __anf011 = dotIdx;
             __nv_bfloat16 *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (64U * __anf011 * 16U + i1 * 16U), bFrags[i1], 64U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (64U * __anf011 * 16U + i1 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -8965,12 +9082,13 @@ __hoisted_g_gemm_bf16_f32_128x64x16_16x16x16_8x4_0(uint32_t shared,
     for (; i < 8U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 64U)) * 128U +
-                            blockIdx.x % (cols / 64U) * 64U +
-                            cols * (threadIdx.x / 32U) * 128U + cols * i * 16U +
-                            j * 16U), accFrags[i * 4U + j], cols,
-                           (float)_kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 64U)) * 128U +
+                                     blockIdx.x % (cols / 64U) * 64U +
+                                     cols * (threadIdx.x / 32U) * 128U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 4U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -9070,18 +9188,19 @@ __hoisted_g_gemm_f16_f16_128x64x32_16x16x16_2x2_0(uint32_t shared,
             half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (32U * (threadIdx.x / 32U / 2U) * 32U +
-                              __anf010 * 16U + 32U * i0 * 16U), aFrags[i0], 32U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (32U * (threadIdx.x / 32U / 2U) * 32U +
+                                        __anf010 * 16U + 32U * i0 * 16U), 32U);
             uint32_t __anf011 = dotIdx;
             half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (64U * __anf011 * 16U +
-                              threadIdx.x / 32U % 2U * 32U + i1 * 16U),
-                             bFrags[i1], 64U, (half) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (64U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 2U * 32U +
+                                        i1 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -9097,13 +9216,14 @@ __hoisted_g_gemm_f16_f16_128x64x32_16x16x16_2x2_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 64U)) * 128U +
-                            blockIdx.x % (cols / 64U) * 64U +
-                            cols * (threadIdx.x / 32U / 2U) * 32U +
-                            threadIdx.x / 32U % 2U * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 2U + j], cols,
-                           (half) _kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 64U)) * 128U +
+                                     blockIdx.x % (cols / 64U) * 64U +
+                                     cols * (threadIdx.x / 32U / 2U) * 32U +
+                                     threadIdx.x / 32U % 2U * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 2U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -9203,18 +9323,19 @@ __hoisted_g_gemm_bf16_f32_128x64x32_16x16x16_2x2_0(uint32_t shared,
             __nv_bfloat16 *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (32U * (threadIdx.x / 32U / 2U) * 32U +
-                              __anf010 * 16U + 32U * i0 * 16U), aFrags[i0], 32U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (32U * (threadIdx.x / 32U / 2U) * 32U +
+                                        __anf010 * 16U + 32U * i0 * 16U), 32U);
             uint32_t __anf011 = dotIdx;
             __nv_bfloat16 *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (64U * __anf011 * 16U +
-                              threadIdx.x / 32U % 2U * 32U + i1 * 16U),
-                             bFrags[i1], 64U, (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (64U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 2U * 32U +
+                                        i1 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -9230,13 +9351,14 @@ __hoisted_g_gemm_bf16_f32_128x64x32_16x16x16_2x2_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 64U)) * 128U +
-                            blockIdx.x % (cols / 64U) * 64U +
-                            cols * (threadIdx.x / 32U / 2U) * 32U +
-                            threadIdx.x / 32U % 2U * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 2U + j], cols,
-                           (float)_kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 64U)) * 128U +
+                                     blockIdx.x % (cols / 64U) * 64U +
+                                     cols * (threadIdx.x / 32U / 2U) * 32U +
+                                     threadIdx.x / 32U % 2U * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 2U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -9336,17 +9458,17 @@ __hoisted_g_gemm_f16_f16_128x64x32_16x16x16_2x4_0(uint32_t shared,
             half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (32U * (threadIdx.x / 32U) * 32U + __anf010 * 16U +
-                              32U * i0 * 16U), aFrags[i0], 32U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (32U * (threadIdx.x / 32U) * 32U +
+                                        __anf010 * 16U + 32U * i0 * 16U), 32U);
             uint32_t __anf011 = dotIdx;
             half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (64U * __anf011 * 16U + i1 * 16U), bFrags[i1], 64U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (64U * __anf011 * 16U + i1 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -9362,12 +9484,13 @@ __hoisted_g_gemm_f16_f16_128x64x32_16x16x16_2x4_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 64U)) * 128U +
-                            blockIdx.x % (cols / 64U) * 64U +
-                            cols * (threadIdx.x / 32U) * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 4U + j], cols,
-                           (half) _kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 64U)) * 128U +
+                                     blockIdx.x % (cols / 64U) * 64U +
+                                     cols * (threadIdx.x / 32U) * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 4U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -9467,17 +9590,17 @@ __hoisted_g_gemm_bf16_f32_128x64x32_16x16x16_2x4_0(uint32_t shared,
             __nv_bfloat16 *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (32U * (threadIdx.x / 32U) * 32U + __anf010 * 16U +
-                              32U * i0 * 16U), aFrags[i0], 32U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (32U * (threadIdx.x / 32U) * 32U +
+                                        __anf010 * 16U + 32U * i0 * 16U), 32U);
             uint32_t __anf011 = dotIdx;
             __nv_bfloat16 *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (64U * __anf011 * 16U + i1 * 16U), bFrags[i1], 64U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (64U * __anf011 * 16U + i1 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -9493,12 +9616,13 @@ __hoisted_g_gemm_bf16_f32_128x64x32_16x16x16_2x4_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 64U)) * 128U +
-                            blockIdx.x % (cols / 64U) * 64U +
-                            cols * (threadIdx.x / 32U) * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 4U + j], cols,
-                           (float)_kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 64U)) * 128U +
+                                     blockIdx.x % (cols / 64U) * 64U +
+                                     cols * (threadIdx.x / 32U) * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 4U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -9598,18 +9722,19 @@ __hoisted_g_gemm_f16_f16_128x64x32_16x16x16_4x2_0(uint32_t shared,
             half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (32U * (threadIdx.x / 32U / 2U) * 64U +
-                              __anf010 * 16U + 32U * i0 * 16U), aFrags[i0], 32U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (32U * (threadIdx.x / 32U / 2U) * 64U +
+                                        __anf010 * 16U + 32U * i0 * 16U), 32U);
             uint32_t __anf011 = dotIdx;
             half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (64U * __anf011 * 16U +
-                              threadIdx.x / 32U % 2U * 32U + i1 * 16U),
-                             bFrags[i1], 64U, (half) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (64U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 2U * 32U +
+                                        i1 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -9625,13 +9750,14 @@ __hoisted_g_gemm_f16_f16_128x64x32_16x16x16_4x2_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 64U)) * 128U +
-                            blockIdx.x % (cols / 64U) * 64U +
-                            cols * (threadIdx.x / 32U / 2U) * 64U +
-                            threadIdx.x / 32U % 2U * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 2U + j], cols,
-                           (half) _kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 64U)) * 128U +
+                                     blockIdx.x % (cols / 64U) * 64U +
+                                     cols * (threadIdx.x / 32U / 2U) * 64U +
+                                     threadIdx.x / 32U % 2U * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 2U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -9731,18 +9857,19 @@ __hoisted_g_gemm_bf16_f32_128x64x32_16x16x16_4x2_0(uint32_t shared,
             __nv_bfloat16 *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (32U * (threadIdx.x / 32U / 2U) * 64U +
-                              __anf010 * 16U + 32U * i0 * 16U), aFrags[i0], 32U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (32U * (threadIdx.x / 32U / 2U) * 64U +
+                                        __anf010 * 16U + 32U * i0 * 16U), 32U);
             uint32_t __anf011 = dotIdx;
             __nv_bfloat16 *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (64U * __anf011 * 16U +
-                              threadIdx.x / 32U % 2U * 32U + i1 * 16U),
-                             bFrags[i1], 64U, (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (64U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 2U * 32U +
+                                        i1 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -9758,13 +9885,14 @@ __hoisted_g_gemm_bf16_f32_128x64x32_16x16x16_4x2_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 64U)) * 128U +
-                            blockIdx.x % (cols / 64U) * 64U +
-                            cols * (threadIdx.x / 32U / 2U) * 64U +
-                            threadIdx.x / 32U % 2U * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 2U + j], cols,
-                           (float)_kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 64U)) * 128U +
+                                     blockIdx.x % (cols / 64U) * 64U +
+                                     cols * (threadIdx.x / 32U / 2U) * 64U +
+                                     threadIdx.x / 32U % 2U * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 2U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -9864,17 +9992,17 @@ __hoisted_g_gemm_f16_f16_128x64x32_16x16x16_4x4_0(uint32_t shared,
             half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (32U * (threadIdx.x / 32U) * 64U + __anf010 * 16U +
-                              32U * i0 * 16U), aFrags[i0], 32U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (32U * (threadIdx.x / 32U) * 64U +
+                                        __anf010 * 16U + 32U * i0 * 16U), 32U);
             uint32_t __anf011 = dotIdx;
             half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (64U * __anf011 * 16U + i1 * 16U), bFrags[i1], 64U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (64U * __anf011 * 16U + i1 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -9890,12 +10018,13 @@ __hoisted_g_gemm_f16_f16_128x64x32_16x16x16_4x4_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 64U)) * 128U +
-                            blockIdx.x % (cols / 64U) * 64U +
-                            cols * (threadIdx.x / 32U) * 64U + cols * i * 16U +
-                            j * 16U), accFrags[i * 4U + j], cols,
-                           (half) _kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 64U)) * 128U +
+                                     blockIdx.x % (cols / 64U) * 64U +
+                                     cols * (threadIdx.x / 32U) * 64U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 4U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -9996,17 +10125,17 @@ __hoisted_g_gemm_bf16_f32_128x64x32_16x16x16_4x4_0(uint32_t shared,
             __nv_bfloat16 *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (32U * (threadIdx.x / 32U) * 64U + __anf010 * 16U +
-                              32U * i0 * 16U), aFrags[i0], 32U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (32U * (threadIdx.x / 32U) * 64U +
+                                        __anf010 * 16U + 32U * i0 * 16U), 32U);
             uint32_t __anf011 = dotIdx;
             __nv_bfloat16 *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (64U * __anf011 * 16U + i1 * 16U), bFrags[i1], 64U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (64U * __anf011 * 16U + i1 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -10022,12 +10151,13 @@ __hoisted_g_gemm_bf16_f32_128x64x32_16x16x16_4x4_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 64U)) * 128U +
-                            blockIdx.x % (cols / 64U) * 64U +
-                            cols * (threadIdx.x / 32U) * 64U + cols * i * 16U +
-                            j * 16U), accFrags[i * 4U + j], cols,
-                           (float)_kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 64U)) * 128U +
+                                     blockIdx.x % (cols / 64U) * 64U +
+                                     cols * (threadIdx.x / 32U) * 64U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 4U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -10127,18 +10257,19 @@ __hoisted_g_gemm_f16_f16_128x64x32_16x16x16_8x2_0(uint32_t shared,
             half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (32U * (threadIdx.x / 32U / 2U) * 128U +
-                              __anf010 * 16U + 32U * i0 * 16U), aFrags[i0], 32U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (32U * (threadIdx.x / 32U / 2U) * 128U +
+                                        __anf010 * 16U + 32U * i0 * 16U), 32U);
             uint32_t __anf011 = dotIdx;
             half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (64U * __anf011 * 16U +
-                              threadIdx.x / 32U % 2U * 32U + i1 * 16U),
-                             bFrags[i1], 64U, (half) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (64U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 2U * 32U +
+                                        i1 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -10154,13 +10285,14 @@ __hoisted_g_gemm_f16_f16_128x64x32_16x16x16_8x2_0(uint32_t shared,
     for (; i < 8U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 64U)) * 128U +
-                            blockIdx.x % (cols / 64U) * 64U +
-                            cols * (threadIdx.x / 32U / 2U) * 128U +
-                            threadIdx.x / 32U % 2U * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 2U + j], cols,
-                           (half) _kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 64U)) * 128U +
+                                     blockIdx.x % (cols / 64U) * 64U +
+                                     cols * (threadIdx.x / 32U / 2U) * 128U +
+                                     threadIdx.x / 32U % 2U * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 2U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -10261,18 +10393,19 @@ __hoisted_g_gemm_bf16_f32_128x64x32_16x16x16_8x2_0(uint32_t shared,
             __nv_bfloat16 *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (32U * (threadIdx.x / 32U / 2U) * 128U +
-                              __anf010 * 16U + 32U * i0 * 16U), aFrags[i0], 32U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (32U * (threadIdx.x / 32U / 2U) * 128U +
+                                        __anf010 * 16U + 32U * i0 * 16U), 32U);
             uint32_t __anf011 = dotIdx;
             __nv_bfloat16 *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (64U * __anf011 * 16U +
-                              threadIdx.x / 32U % 2U * 32U + i1 * 16U),
-                             bFrags[i1], 64U, (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (64U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 2U * 32U +
+                                        i1 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -10288,13 +10421,14 @@ __hoisted_g_gemm_bf16_f32_128x64x32_16x16x16_8x2_0(uint32_t shared,
     for (; i < 8U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 64U)) * 128U +
-                            blockIdx.x % (cols / 64U) * 64U +
-                            cols * (threadIdx.x / 32U / 2U) * 128U +
-                            threadIdx.x / 32U % 2U * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 2U + j], cols,
-                           (float)_kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 64U)) * 128U +
+                                     blockIdx.x % (cols / 64U) * 64U +
+                                     cols * (threadIdx.x / 32U / 2U) * 128U +
+                                     threadIdx.x / 32U % 2U * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 2U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -10394,17 +10528,17 @@ __hoisted_g_gemm_f16_f16_128x64x32_16x16x16_8x4_0(uint32_t shared,
             half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (32U * (threadIdx.x / 32U) * 128U +
-                              __anf010 * 16U + 32U * i0 * 16U), aFrags[i0], 32U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (32U * (threadIdx.x / 32U) * 128U +
+                                        __anf010 * 16U + 32U * i0 * 16U), 32U);
             uint32_t __anf011 = dotIdx;
             half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (64U * __anf011 * 16U + i1 * 16U), bFrags[i1], 64U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (64U * __anf011 * 16U + i1 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -10420,12 +10554,13 @@ __hoisted_g_gemm_f16_f16_128x64x32_16x16x16_8x4_0(uint32_t shared,
     for (; i < 8U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 64U)) * 128U +
-                            blockIdx.x % (cols / 64U) * 64U +
-                            cols * (threadIdx.x / 32U) * 128U + cols * i * 16U +
-                            j * 16U), accFrags[i * 4U + j], cols,
-                           (half) _kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 64U)) * 128U +
+                                     blockIdx.x % (cols / 64U) * 64U +
+                                     cols * (threadIdx.x / 32U) * 128U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 4U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -10526,17 +10661,17 @@ __hoisted_g_gemm_bf16_f32_128x64x32_16x16x16_8x4_0(uint32_t shared,
             __nv_bfloat16 *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (32U * (threadIdx.x / 32U) * 128U +
-                              __anf010 * 16U + 32U * i0 * 16U), aFrags[i0], 32U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (32U * (threadIdx.x / 32U) * 128U +
+                                        __anf010 * 16U + 32U * i0 * 16U), 32U);
             uint32_t __anf011 = dotIdx;
             __nv_bfloat16 *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (64U * __anf011 * 16U + i1 * 16U), bFrags[i1], 64U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (64U * __anf011 * 16U + i1 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -10552,12 +10687,13 @@ __hoisted_g_gemm_bf16_f32_128x64x32_16x16x16_8x4_0(uint32_t shared,
     for (; i < 8U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 64U)) * 128U +
-                            blockIdx.x % (cols / 64U) * 64U +
-                            cols * (threadIdx.x / 32U) * 128U + cols * i * 16U +
-                            j * 16U), accFrags[i * 4U + j], cols,
-                           (float)_kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 64U)) * 128U +
+                                     blockIdx.x % (cols / 64U) * 64U +
+                                     cols * (threadIdx.x / 32U) * 128U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 4U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -10657,18 +10793,19 @@ __hoisted_g_gemm_f16_f16_128x64x64_16x16x16_2x2_0(uint32_t shared,
             half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (64U * (threadIdx.x / 32U / 2U) * 32U +
-                              __anf010 * 16U + 64U * i0 * 16U), aFrags[i0], 64U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (64U * (threadIdx.x / 32U / 2U) * 32U +
+                                        __anf010 * 16U + 64U * i0 * 16U), 64U);
             uint32_t __anf011 = dotIdx;
             half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (64U * __anf011 * 16U +
-                              threadIdx.x / 32U % 2U * 32U + i1 * 16U),
-                             bFrags[i1], 64U, (half) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (64U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 2U * 32U +
+                                        i1 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -10684,13 +10821,14 @@ __hoisted_g_gemm_f16_f16_128x64x64_16x16x16_2x2_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 64U)) * 128U +
-                            blockIdx.x % (cols / 64U) * 64U +
-                            cols * (threadIdx.x / 32U / 2U) * 32U +
-                            threadIdx.x / 32U % 2U * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 2U + j], cols,
-                           (half) _kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 64U)) * 128U +
+                                     blockIdx.x % (cols / 64U) * 64U +
+                                     cols * (threadIdx.x / 32U / 2U) * 32U +
+                                     threadIdx.x / 32U % 2U * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 2U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -10790,18 +10928,19 @@ __hoisted_g_gemm_bf16_f32_128x64x64_16x16x16_2x2_0(uint32_t shared,
             __nv_bfloat16 *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (64U * (threadIdx.x / 32U / 2U) * 32U +
-                              __anf010 * 16U + 64U * i0 * 16U), aFrags[i0], 64U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (64U * (threadIdx.x / 32U / 2U) * 32U +
+                                        __anf010 * 16U + 64U * i0 * 16U), 64U);
             uint32_t __anf011 = dotIdx;
             __nv_bfloat16 *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (64U * __anf011 * 16U +
-                              threadIdx.x / 32U % 2U * 32U + i1 * 16U),
-                             bFrags[i1], 64U, (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (64U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 2U * 32U +
+                                        i1 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -10817,13 +10956,14 @@ __hoisted_g_gemm_bf16_f32_128x64x64_16x16x16_2x2_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 64U)) * 128U +
-                            blockIdx.x % (cols / 64U) * 64U +
-                            cols * (threadIdx.x / 32U / 2U) * 32U +
-                            threadIdx.x / 32U % 2U * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 2U + j], cols,
-                           (float)_kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 64U)) * 128U +
+                                     blockIdx.x % (cols / 64U) * 64U +
+                                     cols * (threadIdx.x / 32U / 2U) * 32U +
+                                     threadIdx.x / 32U % 2U * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 2U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -10923,17 +11063,17 @@ __hoisted_g_gemm_f16_f16_128x64x64_16x16x16_2x4_0(uint32_t shared,
             half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (64U * (threadIdx.x / 32U) * 32U + __anf010 * 16U +
-                              64U * i0 * 16U), aFrags[i0], 64U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (64U * (threadIdx.x / 32U) * 32U +
+                                        __anf010 * 16U + 64U * i0 * 16U), 64U);
             uint32_t __anf011 = dotIdx;
             half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (64U * __anf011 * 16U + i1 * 16U), bFrags[i1], 64U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (64U * __anf011 * 16U + i1 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -10949,12 +11089,13 @@ __hoisted_g_gemm_f16_f16_128x64x64_16x16x16_2x4_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 64U)) * 128U +
-                            blockIdx.x % (cols / 64U) * 64U +
-                            cols * (threadIdx.x / 32U) * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 4U + j], cols,
-                           (half) _kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 64U)) * 128U +
+                                     blockIdx.x % (cols / 64U) * 64U +
+                                     cols * (threadIdx.x / 32U) * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 4U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -11054,17 +11195,17 @@ __hoisted_g_gemm_bf16_f32_128x64x64_16x16x16_2x4_0(uint32_t shared,
             __nv_bfloat16 *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (64U * (threadIdx.x / 32U) * 32U + __anf010 * 16U +
-                              64U * i0 * 16U), aFrags[i0], 64U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (64U * (threadIdx.x / 32U) * 32U +
+                                        __anf010 * 16U + 64U * i0 * 16U), 64U);
             uint32_t __anf011 = dotIdx;
             __nv_bfloat16 *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (64U * __anf011 * 16U + i1 * 16U), bFrags[i1], 64U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (64U * __anf011 * 16U + i1 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -11080,12 +11221,13 @@ __hoisted_g_gemm_bf16_f32_128x64x64_16x16x16_2x4_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 64U)) * 128U +
-                            blockIdx.x % (cols / 64U) * 64U +
-                            cols * (threadIdx.x / 32U) * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 4U + j], cols,
-                           (float)_kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 64U)) * 128U +
+                                     blockIdx.x % (cols / 64U) * 64U +
+                                     cols * (threadIdx.x / 32U) * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 4U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -11185,18 +11327,19 @@ __hoisted_g_gemm_f16_f16_128x64x64_16x16x16_4x2_0(uint32_t shared,
             half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (64U * (threadIdx.x / 32U / 2U) * 64U +
-                              __anf010 * 16U + 64U * i0 * 16U), aFrags[i0], 64U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (64U * (threadIdx.x / 32U / 2U) * 64U +
+                                        __anf010 * 16U + 64U * i0 * 16U), 64U);
             uint32_t __anf011 = dotIdx;
             half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (64U * __anf011 * 16U +
-                              threadIdx.x / 32U % 2U * 32U + i1 * 16U),
-                             bFrags[i1], 64U, (half) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (64U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 2U * 32U +
+                                        i1 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -11212,13 +11355,14 @@ __hoisted_g_gemm_f16_f16_128x64x64_16x16x16_4x2_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 64U)) * 128U +
-                            blockIdx.x % (cols / 64U) * 64U +
-                            cols * (threadIdx.x / 32U / 2U) * 64U +
-                            threadIdx.x / 32U % 2U * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 2U + j], cols,
-                           (half) _kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 64U)) * 128U +
+                                     blockIdx.x % (cols / 64U) * 64U +
+                                     cols * (threadIdx.x / 32U / 2U) * 64U +
+                                     threadIdx.x / 32U % 2U * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 2U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -11318,18 +11462,19 @@ __hoisted_g_gemm_bf16_f32_128x64x64_16x16x16_4x2_0(uint32_t shared,
             __nv_bfloat16 *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (64U * (threadIdx.x / 32U / 2U) * 64U +
-                              __anf010 * 16U + 64U * i0 * 16U), aFrags[i0], 64U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (64U * (threadIdx.x / 32U / 2U) * 64U +
+                                        __anf010 * 16U + 64U * i0 * 16U), 64U);
             uint32_t __anf011 = dotIdx;
             __nv_bfloat16 *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (64U * __anf011 * 16U +
-                              threadIdx.x / 32U % 2U * 32U + i1 * 16U),
-                             bFrags[i1], 64U, (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (64U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 2U * 32U +
+                                        i1 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -11345,13 +11490,14 @@ __hoisted_g_gemm_bf16_f32_128x64x64_16x16x16_4x2_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 64U)) * 128U +
-                            blockIdx.x % (cols / 64U) * 64U +
-                            cols * (threadIdx.x / 32U / 2U) * 64U +
-                            threadIdx.x / 32U % 2U * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 2U + j], cols,
-                           (float)_kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 64U)) * 128U +
+                                     blockIdx.x % (cols / 64U) * 64U +
+                                     cols * (threadIdx.x / 32U / 2U) * 64U +
+                                     threadIdx.x / 32U % 2U * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 2U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -11451,17 +11597,17 @@ __hoisted_g_gemm_f16_f16_128x64x64_16x16x16_4x4_0(uint32_t shared,
             half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (64U * (threadIdx.x / 32U) * 64U + __anf010 * 16U +
-                              64U * i0 * 16U), aFrags[i0], 64U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (64U * (threadIdx.x / 32U) * 64U +
+                                        __anf010 * 16U + 64U * i0 * 16U), 64U);
             uint32_t __anf011 = dotIdx;
             half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (64U * __anf011 * 16U + i1 * 16U), bFrags[i1], 64U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (64U * __anf011 * 16U + i1 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -11477,12 +11623,13 @@ __hoisted_g_gemm_f16_f16_128x64x64_16x16x16_4x4_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 64U)) * 128U +
-                            blockIdx.x % (cols / 64U) * 64U +
-                            cols * (threadIdx.x / 32U) * 64U + cols * i * 16U +
-                            j * 16U), accFrags[i * 4U + j], cols,
-                           (half) _kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 64U)) * 128U +
+                                     blockIdx.x % (cols / 64U) * 64U +
+                                     cols * (threadIdx.x / 32U) * 64U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 4U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -11583,17 +11730,17 @@ __hoisted_g_gemm_bf16_f32_128x64x64_16x16x16_4x4_0(uint32_t shared,
             __nv_bfloat16 *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (64U * (threadIdx.x / 32U) * 64U + __anf010 * 16U +
-                              64U * i0 * 16U), aFrags[i0], 64U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (64U * (threadIdx.x / 32U) * 64U +
+                                        __anf010 * 16U + 64U * i0 * 16U), 64U);
             uint32_t __anf011 = dotIdx;
             __nv_bfloat16 *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (64U * __anf011 * 16U + i1 * 16U), bFrags[i1], 64U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (64U * __anf011 * 16U + i1 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -11609,12 +11756,13 @@ __hoisted_g_gemm_bf16_f32_128x64x64_16x16x16_4x4_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 64U)) * 128U +
-                            blockIdx.x % (cols / 64U) * 64U +
-                            cols * (threadIdx.x / 32U) * 64U + cols * i * 16U +
-                            j * 16U), accFrags[i * 4U + j], cols,
-                           (float)_kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 64U)) * 128U +
+                                     blockIdx.x % (cols / 64U) * 64U +
+                                     cols * (threadIdx.x / 32U) * 64U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 4U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -11714,18 +11862,19 @@ __hoisted_g_gemm_f16_f16_128x64x64_16x16x16_8x2_0(uint32_t shared,
             half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (64U * (threadIdx.x / 32U / 2U) * 128U +
-                              __anf010 * 16U + 64U * i0 * 16U), aFrags[i0], 64U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (64U * (threadIdx.x / 32U / 2U) * 128U +
+                                        __anf010 * 16U + 64U * i0 * 16U), 64U);
             uint32_t __anf011 = dotIdx;
             half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (64U * __anf011 * 16U +
-                              threadIdx.x / 32U % 2U * 32U + i1 * 16U),
-                             bFrags[i1], 64U, (half) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (64U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 2U * 32U +
+                                        i1 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -11741,13 +11890,14 @@ __hoisted_g_gemm_f16_f16_128x64x64_16x16x16_8x2_0(uint32_t shared,
     for (; i < 8U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 64U)) * 128U +
-                            blockIdx.x % (cols / 64U) * 64U +
-                            cols * (threadIdx.x / 32U / 2U) * 128U +
-                            threadIdx.x / 32U % 2U * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 2U + j], cols,
-                           (half) _kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 64U)) * 128U +
+                                     blockIdx.x % (cols / 64U) * 64U +
+                                     cols * (threadIdx.x / 32U / 2U) * 128U +
+                                     threadIdx.x / 32U % 2U * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 2U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -11848,18 +11998,19 @@ __hoisted_g_gemm_bf16_f32_128x64x64_16x16x16_8x2_0(uint32_t shared,
             __nv_bfloat16 *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (64U * (threadIdx.x / 32U / 2U) * 128U +
-                              __anf010 * 16U + 64U * i0 * 16U), aFrags[i0], 64U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (64U * (threadIdx.x / 32U / 2U) * 128U +
+                                        __anf010 * 16U + 64U * i0 * 16U), 64U);
             uint32_t __anf011 = dotIdx;
             __nv_bfloat16 *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (64U * __anf011 * 16U +
-                              threadIdx.x / 32U % 2U * 32U + i1 * 16U),
-                             bFrags[i1], 64U, (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (64U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 2U * 32U +
+                                        i1 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -11875,13 +12026,14 @@ __hoisted_g_gemm_bf16_f32_128x64x64_16x16x16_8x2_0(uint32_t shared,
     for (; i < 8U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 64U)) * 128U +
-                            blockIdx.x % (cols / 64U) * 64U +
-                            cols * (threadIdx.x / 32U / 2U) * 128U +
-                            threadIdx.x / 32U % 2U * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 2U + j], cols,
-                           (float)_kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 64U)) * 128U +
+                                     blockIdx.x % (cols / 64U) * 64U +
+                                     cols * (threadIdx.x / 32U / 2U) * 128U +
+                                     threadIdx.x / 32U % 2U * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 2U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -11981,17 +12133,17 @@ __hoisted_g_gemm_f16_f16_128x64x64_16x16x16_8x4_0(uint32_t shared,
             half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (64U * (threadIdx.x / 32U) * 128U +
-                              __anf010 * 16U + 64U * i0 * 16U), aFrags[i0], 64U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (64U * (threadIdx.x / 32U) * 128U +
+                                        __anf010 * 16U + 64U * i0 * 16U), 64U);
             uint32_t __anf011 = dotIdx;
             half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (64U * __anf011 * 16U + i1 * 16U), bFrags[i1], 64U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (64U * __anf011 * 16U + i1 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -12007,12 +12159,13 @@ __hoisted_g_gemm_f16_f16_128x64x64_16x16x16_8x4_0(uint32_t shared,
     for (; i < 8U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 64U)) * 128U +
-                            blockIdx.x % (cols / 64U) * 64U +
-                            cols * (threadIdx.x / 32U) * 128U + cols * i * 16U +
-                            j * 16U), accFrags[i * 4U + j], cols,
-                           (half) _kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 64U)) * 128U +
+                                     blockIdx.x % (cols / 64U) * 64U +
+                                     cols * (threadIdx.x / 32U) * 128U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 4U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -12113,17 +12266,17 @@ __hoisted_g_gemm_bf16_f32_128x64x64_16x16x16_8x4_0(uint32_t shared,
             __nv_bfloat16 *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (64U * (threadIdx.x / 32U) * 128U +
-                              __anf010 * 16U + 64U * i0 * 16U), aFrags[i0], 64U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (64U * (threadIdx.x / 32U) * 128U +
+                                        __anf010 * 16U + 64U * i0 * 16U), 64U);
             uint32_t __anf011 = dotIdx;
             __nv_bfloat16 *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (64U * __anf011 * 16U + i1 * 16U), bFrags[i1], 64U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (64U * __anf011 * 16U + i1 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -12139,12 +12292,13 @@ __hoisted_g_gemm_bf16_f32_128x64x64_16x16x16_8x4_0(uint32_t shared,
     for (; i < 8U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 64U)) * 128U +
-                            blockIdx.x % (cols / 64U) * 64U +
-                            cols * (threadIdx.x / 32U) * 128U + cols * i * 16U +
-                            j * 16U), accFrags[i * 4U + j], cols,
-                           (float)_kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 64U)) * 128U +
+                                     blockIdx.x % (cols / 64U) * 64U +
+                                     cols * (threadIdx.x / 32U) * 128U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 4U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -12244,18 +12398,19 @@ __hoisted_g_gemm_f16_f16_128x128x16_16x16x16_2x4_0(uint32_t shared,
             half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (16U * (threadIdx.x / 32U / 2U) * 32U +
-                              __anf010 * 16U + 16U * i0 * 16U), aFrags[i0], 16U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (16U * (threadIdx.x / 32U / 2U) * 32U +
+                                        __anf010 * 16U + 16U * i0 * 16U), 16U);
             uint32_t __anf011 = dotIdx;
             half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U +
-                              threadIdx.x / 32U % 2U * 64U + i1 * 16U),
-                             bFrags[i1], 128U, (half) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 2U * 64U +
+                                        i1 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -12271,13 +12426,14 @@ __hoisted_g_gemm_f16_f16_128x128x16_16x16x16_2x4_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 128U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U / 2U) * 32U +
-                            threadIdx.x / 32U % 2U * 64U + cols * i * 16U +
-                            j * 16U), accFrags[i * 4U + j], cols,
-                           (half) _kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) *
+                                     128U + blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U / 2U) * 32U +
+                                     threadIdx.x / 32U % 2U * 64U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 4U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -12379,18 +12535,19 @@ __hoisted_g_gemm_bf16_f32_128x128x16_16x16x16_2x4_0(uint32_t shared,
             __nv_bfloat16 *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (16U * (threadIdx.x / 32U / 2U) * 32U +
-                              __anf010 * 16U + 16U * i0 * 16U), aFrags[i0], 16U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (16U * (threadIdx.x / 32U / 2U) * 32U +
+                                        __anf010 * 16U + 16U * i0 * 16U), 16U);
             uint32_t __anf011 = dotIdx;
             __nv_bfloat16 *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U +
-                              threadIdx.x / 32U % 2U * 64U + i1 * 16U),
-                             bFrags[i1], 128U, (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 2U * 64U +
+                                        i1 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -12406,13 +12563,14 @@ __hoisted_g_gemm_bf16_f32_128x128x16_16x16x16_2x4_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 128U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U / 2U) * 32U +
-                            threadIdx.x / 32U % 2U * 64U + cols * i * 16U +
-                            j * 16U), accFrags[i * 4U + j], cols,
-                           (float)_kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) *
+                                     128U + blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U / 2U) * 32U +
+                                     threadIdx.x / 32U % 2U * 64U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 4U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -12513,17 +12671,18 @@ __hoisted_g_gemm_f16_f16_128x128x16_16x16x16_2x8_0(uint32_t shared,
             half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (16U * (threadIdx.x / 32U) * 32U + __anf010 * 16U +
-                              16U * i0 * 16U), aFrags[i0], 16U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (16U * (threadIdx.x / 32U) * 32U +
+                                        __anf010 * 16U + 16U * i0 * 16U), 16U);
             uint32_t __anf011 = dotIdx;
             half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 8U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U + i1 * 16U), bFrags[i1],
-                             128U, (half) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U + i1 * 16U),
+                                       128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -12539,12 +12698,13 @@ __hoisted_g_gemm_f16_f16_128x128x16_16x16x16_2x8_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 8U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 128U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U) * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 8U + j], cols,
-                           (half) _kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) *
+                                     128U + blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U) * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 8U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -12647,17 +12807,18 @@ __hoisted_g_gemm_bf16_f32_128x128x16_16x16x16_2x8_0(uint32_t shared,
             __nv_bfloat16 *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (16U * (threadIdx.x / 32U) * 32U + __anf010 * 16U +
-                              16U * i0 * 16U), aFrags[i0], 16U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (16U * (threadIdx.x / 32U) * 32U +
+                                        __anf010 * 16U + 16U * i0 * 16U), 16U);
             uint32_t __anf011 = dotIdx;
             __nv_bfloat16 *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 8U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U + i1 * 16U), bFrags[i1],
-                             128U, (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U + i1 * 16U),
+                                       128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -12673,12 +12834,13 @@ __hoisted_g_gemm_bf16_f32_128x128x16_16x16x16_2x8_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 8U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 128U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U) * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 8U + j], cols,
-                           (float)_kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) *
+                                     128U + blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U) * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 8U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -12779,18 +12941,19 @@ __hoisted_g_gemm_f16_f16_128x128x16_16x16x16_4x2_0(uint32_t shared,
             half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (16U * (threadIdx.x / 32U / 4U) * 64U +
-                              __anf010 * 16U + 16U * i0 * 16U), aFrags[i0], 16U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (16U * (threadIdx.x / 32U / 4U) * 64U +
+                                        __anf010 * 16U + 16U * i0 * 16U), 16U);
             uint32_t __anf011 = dotIdx;
             half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U +
-                              threadIdx.x / 32U % 4U * 32U + i1 * 16U),
-                             bFrags[i1], 128U, (half) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 4U * 32U +
+                                        i1 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -12806,13 +12969,14 @@ __hoisted_g_gemm_f16_f16_128x128x16_16x16x16_4x2_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 128U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U / 4U) * 64U +
-                            threadIdx.x / 32U % 4U * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 2U + j], cols,
-                           (half) _kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) *
+                                     128U + blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U / 4U) * 64U +
+                                     threadIdx.x / 32U % 4U * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 2U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -12914,18 +13078,19 @@ __hoisted_g_gemm_bf16_f32_128x128x16_16x16x16_4x2_0(uint32_t shared,
             __nv_bfloat16 *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (16U * (threadIdx.x / 32U / 4U) * 64U +
-                              __anf010 * 16U + 16U * i0 * 16U), aFrags[i0], 16U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (16U * (threadIdx.x / 32U / 4U) * 64U +
+                                        __anf010 * 16U + 16U * i0 * 16U), 16U);
             uint32_t __anf011 = dotIdx;
             __nv_bfloat16 *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U +
-                              threadIdx.x / 32U % 4U * 32U + i1 * 16U),
-                             bFrags[i1], 128U, (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 4U * 32U +
+                                        i1 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -12941,13 +13106,14 @@ __hoisted_g_gemm_bf16_f32_128x128x16_16x16x16_4x2_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 128U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U / 4U) * 64U +
-                            threadIdx.x / 32U % 4U * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 2U + j], cols,
-                           (float)_kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) *
+                                     128U + blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U / 4U) * 64U +
+                                     threadIdx.x / 32U % 4U * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 2U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -13048,18 +13214,19 @@ __hoisted_g_gemm_f16_f16_128x128x16_16x16x16_4x4_0(uint32_t shared,
             half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (16U * (threadIdx.x / 32U / 2U) * 64U +
-                              __anf010 * 16U + 16U * i0 * 16U), aFrags[i0], 16U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (16U * (threadIdx.x / 32U / 2U) * 64U +
+                                        __anf010 * 16U + 16U * i0 * 16U), 16U);
             uint32_t __anf011 = dotIdx;
             half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U +
-                              threadIdx.x / 32U % 2U * 64U + i1 * 16U),
-                             bFrags[i1], 128U, (half) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 2U * 64U +
+                                        i1 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -13075,13 +13242,14 @@ __hoisted_g_gemm_f16_f16_128x128x16_16x16x16_4x4_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 128U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U / 2U) * 64U +
-                            threadIdx.x / 32U % 2U * 64U + cols * i * 16U +
-                            j * 16U), accFrags[i * 4U + j], cols,
-                           (half) _kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) *
+                                     128U + blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U / 2U) * 64U +
+                                     threadIdx.x / 32U % 2U * 64U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 4U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -13184,18 +13352,19 @@ __hoisted_g_gemm_bf16_f32_128x128x16_16x16x16_4x4_0(uint32_t shared,
             __nv_bfloat16 *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (16U * (threadIdx.x / 32U / 2U) * 64U +
-                              __anf010 * 16U + 16U * i0 * 16U), aFrags[i0], 16U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (16U * (threadIdx.x / 32U / 2U) * 64U +
+                                        __anf010 * 16U + 16U * i0 * 16U), 16U);
             uint32_t __anf011 = dotIdx;
             __nv_bfloat16 *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U +
-                              threadIdx.x / 32U % 2U * 64U + i1 * 16U),
-                             bFrags[i1], 128U, (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 2U * 64U +
+                                        i1 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -13211,13 +13380,14 @@ __hoisted_g_gemm_bf16_f32_128x128x16_16x16x16_4x4_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 128U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U / 2U) * 64U +
-                            threadIdx.x / 32U % 2U * 64U + cols * i * 16U +
-                            j * 16U), accFrags[i * 4U + j], cols,
-                           (float)_kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) *
+                                     128U + blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U / 2U) * 64U +
+                                     threadIdx.x / 32U % 2U * 64U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 4U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -13318,17 +13488,18 @@ __hoisted_g_gemm_f16_f16_128x128x16_16x16x16_4x8_0(uint32_t shared,
             half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (16U * (threadIdx.x / 32U) * 64U + __anf010 * 16U +
-                              16U * i0 * 16U), aFrags[i0], 16U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (16U * (threadIdx.x / 32U) * 64U +
+                                        __anf010 * 16U + 16U * i0 * 16U), 16U);
             uint32_t __anf011 = dotIdx;
             half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 8U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U + i1 * 16U), bFrags[i1],
-                             128U, (half) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U + i1 * 16U),
+                                       128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -13344,12 +13515,13 @@ __hoisted_g_gemm_f16_f16_128x128x16_16x16x16_4x8_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 8U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 128U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U) * 64U + cols * i * 16U +
-                            j * 16U), accFrags[i * 8U + j], cols,
-                           (half) _kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) *
+                                     128U + blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U) * 64U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 8U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -13452,17 +13624,18 @@ __hoisted_g_gemm_bf16_f32_128x128x16_16x16x16_4x8_0(uint32_t shared,
             __nv_bfloat16 *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (16U * (threadIdx.x / 32U) * 64U + __anf010 * 16U +
-                              16U * i0 * 16U), aFrags[i0], 16U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (16U * (threadIdx.x / 32U) * 64U +
+                                        __anf010 * 16U + 16U * i0 * 16U), 16U);
             uint32_t __anf011 = dotIdx;
             __nv_bfloat16 *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 8U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U + i1 * 16U), bFrags[i1],
-                             128U, (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U + i1 * 16U),
+                                       128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -13478,12 +13651,13 @@ __hoisted_g_gemm_bf16_f32_128x128x16_16x16x16_4x8_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 8U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 128U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U) * 64U + cols * i * 16U +
-                            j * 16U), accFrags[i * 8U + j], cols,
-                           (float)_kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) *
+                                     128U + blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U) * 64U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 8U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -13584,18 +13758,19 @@ __hoisted_g_gemm_f16_f16_128x128x16_16x16x16_8x2_0(uint32_t shared,
             half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (16U * (threadIdx.x / 32U / 4U) * 128U +
-                              __anf010 * 16U + 16U * i0 * 16U), aFrags[i0], 16U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (16U * (threadIdx.x / 32U / 4U) * 128U +
+                                        __anf010 * 16U + 16U * i0 * 16U), 16U);
             uint32_t __anf011 = dotIdx;
             half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U +
-                              threadIdx.x / 32U % 4U * 32U + i1 * 16U),
-                             bFrags[i1], 128U, (half) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 4U * 32U +
+                                        i1 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -13611,13 +13786,14 @@ __hoisted_g_gemm_f16_f16_128x128x16_16x16x16_8x2_0(uint32_t shared,
     for (; i < 8U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 128U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U / 4U) * 128U +
-                            threadIdx.x / 32U % 4U * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 2U + j], cols,
-                           (half) _kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) *
+                                     128U + blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U / 4U) * 128U +
+                                     threadIdx.x / 32U % 4U * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 2U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -13720,18 +13896,19 @@ __hoisted_g_gemm_bf16_f32_128x128x16_16x16x16_8x2_0(uint32_t shared,
             __nv_bfloat16 *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (16U * (threadIdx.x / 32U / 4U) * 128U +
-                              __anf010 * 16U + 16U * i0 * 16U), aFrags[i0], 16U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (16U * (threadIdx.x / 32U / 4U) * 128U +
+                                        __anf010 * 16U + 16U * i0 * 16U), 16U);
             uint32_t __anf011 = dotIdx;
             __nv_bfloat16 *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U +
-                              threadIdx.x / 32U % 4U * 32U + i1 * 16U),
-                             bFrags[i1], 128U, (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 4U * 32U +
+                                        i1 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -13747,13 +13924,14 @@ __hoisted_g_gemm_bf16_f32_128x128x16_16x16x16_8x2_0(uint32_t shared,
     for (; i < 8U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 128U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U / 4U) * 128U +
-                            threadIdx.x / 32U % 4U * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 2U + j], cols,
-                           (float)_kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) *
+                                     128U + blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U / 4U) * 128U +
+                                     threadIdx.x / 32U % 4U * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 2U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -13854,18 +14032,19 @@ __hoisted_g_gemm_f16_f16_128x128x16_16x16x16_8x4_0(uint32_t shared,
             half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (16U * (threadIdx.x / 32U / 2U) * 128U +
-                              __anf010 * 16U + 16U * i0 * 16U), aFrags[i0], 16U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (16U * (threadIdx.x / 32U / 2U) * 128U +
+                                        __anf010 * 16U + 16U * i0 * 16U), 16U);
             uint32_t __anf011 = dotIdx;
             half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U +
-                              threadIdx.x / 32U % 2U * 64U + i1 * 16U),
-                             bFrags[i1], 128U, (half) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 2U * 64U +
+                                        i1 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -13881,13 +14060,14 @@ __hoisted_g_gemm_f16_f16_128x128x16_16x16x16_8x4_0(uint32_t shared,
     for (; i < 8U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 128U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U / 2U) * 128U +
-                            threadIdx.x / 32U % 2U * 64U + cols * i * 16U +
-                            j * 16U), accFrags[i * 4U + j], cols,
-                           (half) _kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) *
+                                     128U + blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U / 2U) * 128U +
+                                     threadIdx.x / 32U % 2U * 64U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 4U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -13990,18 +14170,19 @@ __hoisted_g_gemm_bf16_f32_128x128x16_16x16x16_8x4_0(uint32_t shared,
             __nv_bfloat16 *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (16U * (threadIdx.x / 32U / 2U) * 128U +
-                              __anf010 * 16U + 16U * i0 * 16U), aFrags[i0], 16U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (16U * (threadIdx.x / 32U / 2U) * 128U +
+                                        __anf010 * 16U + 16U * i0 * 16U), 16U);
             uint32_t __anf011 = dotIdx;
             __nv_bfloat16 *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U +
-                              threadIdx.x / 32U % 2U * 64U + i1 * 16U),
-                             bFrags[i1], 128U, (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 2U * 64U +
+                                        i1 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -14017,13 +14198,14 @@ __hoisted_g_gemm_bf16_f32_128x128x16_16x16x16_8x4_0(uint32_t shared,
     for (; i < 8U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 128U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U / 2U) * 128U +
-                            threadIdx.x / 32U % 2U * 64U + cols * i * 16U +
-                            j * 16U), accFrags[i * 4U + j], cols,
-                           (float)_kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) *
+                                     128U + blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U / 2U) * 128U +
+                                     threadIdx.x / 32U % 2U * 64U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 4U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -14124,17 +14306,18 @@ __hoisted_g_gemm_f16_f16_128x128x16_16x16x16_8x8_0(uint32_t shared,
             half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (16U * (threadIdx.x / 32U) * 128U +
-                              __anf010 * 16U + 16U * i0 * 16U), aFrags[i0], 16U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (16U * (threadIdx.x / 32U) * 128U +
+                                        __anf010 * 16U + 16U * i0 * 16U), 16U);
             uint32_t __anf011 = dotIdx;
             half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 8U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U + i1 * 16U), bFrags[i1],
-                             128U, (half) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U + i1 * 16U),
+                                       128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -14150,12 +14333,13 @@ __hoisted_g_gemm_f16_f16_128x128x16_16x16x16_8x8_0(uint32_t shared,
     for (; i < 8U; i++) {
         uint32_t j = 0U;
         for (; j < 8U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 128U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U) * 128U + cols * i * 16U +
-                            j * 16U), accFrags[i * 8U + j], cols,
-                           (half) _kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) *
+                                     128U + blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U) * 128U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 8U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -14258,17 +14442,18 @@ __hoisted_g_gemm_bf16_f32_128x128x16_16x16x16_8x8_0(uint32_t shared,
             __nv_bfloat16 *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (16U * (threadIdx.x / 32U) * 128U +
-                              __anf010 * 16U + 16U * i0 * 16U), aFrags[i0], 16U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (16U * (threadIdx.x / 32U) * 128U +
+                                        __anf010 * 16U + 16U * i0 * 16U), 16U);
             uint32_t __anf011 = dotIdx;
             __nv_bfloat16 *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 8U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U + i1 * 16U), bFrags[i1],
-                             128U, (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U + i1 * 16U),
+                                       128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -14284,12 +14469,13 @@ __hoisted_g_gemm_bf16_f32_128x128x16_16x16x16_8x8_0(uint32_t shared,
     for (; i < 8U; i++) {
         uint32_t j = 0U;
         for (; j < 8U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 128U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U) * 128U + cols * i * 16U +
-                            j * 16U), accFrags[i * 8U + j], cols,
-                           (float)_kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) *
+                                     128U + blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U) * 128U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 8U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -14390,18 +14576,19 @@ __hoisted_g_gemm_f16_f16_128x128x32_16x16x16_2x2_0(uint32_t shared,
             half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (32U * (threadIdx.x / 32U / 4U) * 32U +
-                              __anf010 * 16U + 32U * i0 * 16U), aFrags[i0], 32U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (32U * (threadIdx.x / 32U / 4U) * 32U +
+                                        __anf010 * 16U + 32U * i0 * 16U), 32U);
             uint32_t __anf011 = dotIdx;
             half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U +
-                              threadIdx.x / 32U % 4U * 32U + i1 * 16U),
-                             bFrags[i1], 128U, (half) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 4U * 32U +
+                                        i1 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -14417,13 +14604,14 @@ __hoisted_g_gemm_f16_f16_128x128x32_16x16x16_2x2_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 128U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U / 4U) * 32U +
-                            threadIdx.x / 32U % 4U * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 2U + j], cols,
-                           (half) _kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) *
+                                     128U + blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U / 4U) * 32U +
+                                     threadIdx.x / 32U % 4U * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 2U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -14525,18 +14713,19 @@ __hoisted_g_gemm_bf16_f32_128x128x32_16x16x16_2x2_0(uint32_t shared,
             __nv_bfloat16 *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (32U * (threadIdx.x / 32U / 4U) * 32U +
-                              __anf010 * 16U + 32U * i0 * 16U), aFrags[i0], 32U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (32U * (threadIdx.x / 32U / 4U) * 32U +
+                                        __anf010 * 16U + 32U * i0 * 16U), 32U);
             uint32_t __anf011 = dotIdx;
             __nv_bfloat16 *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U +
-                              threadIdx.x / 32U % 4U * 32U + i1 * 16U),
-                             bFrags[i1], 128U, (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 4U * 32U +
+                                        i1 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -14552,13 +14741,14 @@ __hoisted_g_gemm_bf16_f32_128x128x32_16x16x16_2x2_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 128U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U / 4U) * 32U +
-                            threadIdx.x / 32U % 4U * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 2U + j], cols,
-                           (float)_kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) *
+                                     128U + blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U / 4U) * 32U +
+                                     threadIdx.x / 32U % 4U * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 2U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -14659,18 +14849,19 @@ __hoisted_g_gemm_f16_f16_128x128x32_16x16x16_2x4_0(uint32_t shared,
             half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (32U * (threadIdx.x / 32U / 2U) * 32U +
-                              __anf010 * 16U + 32U * i0 * 16U), aFrags[i0], 32U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (32U * (threadIdx.x / 32U / 2U) * 32U +
+                                        __anf010 * 16U + 32U * i0 * 16U), 32U);
             uint32_t __anf011 = dotIdx;
             half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U +
-                              threadIdx.x / 32U % 2U * 64U + i1 * 16U),
-                             bFrags[i1], 128U, (half) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 2U * 64U +
+                                        i1 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -14686,13 +14877,14 @@ __hoisted_g_gemm_f16_f16_128x128x32_16x16x16_2x4_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 128U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U / 2U) * 32U +
-                            threadIdx.x / 32U % 2U * 64U + cols * i * 16U +
-                            j * 16U), accFrags[i * 4U + j], cols,
-                           (half) _kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) *
+                                     128U + blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U / 2U) * 32U +
+                                     threadIdx.x / 32U % 2U * 64U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 4U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -14794,18 +14986,19 @@ __hoisted_g_gemm_bf16_f32_128x128x32_16x16x16_2x4_0(uint32_t shared,
             __nv_bfloat16 *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (32U * (threadIdx.x / 32U / 2U) * 32U +
-                              __anf010 * 16U + 32U * i0 * 16U), aFrags[i0], 32U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (32U * (threadIdx.x / 32U / 2U) * 32U +
+                                        __anf010 * 16U + 32U * i0 * 16U), 32U);
             uint32_t __anf011 = dotIdx;
             __nv_bfloat16 *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U +
-                              threadIdx.x / 32U % 2U * 64U + i1 * 16U),
-                             bFrags[i1], 128U, (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 2U * 64U +
+                                        i1 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -14821,13 +15014,14 @@ __hoisted_g_gemm_bf16_f32_128x128x32_16x16x16_2x4_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 128U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U / 2U) * 32U +
-                            threadIdx.x / 32U % 2U * 64U + cols * i * 16U +
-                            j * 16U), accFrags[i * 4U + j], cols,
-                           (float)_kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) *
+                                     128U + blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U / 2U) * 32U +
+                                     threadIdx.x / 32U % 2U * 64U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 4U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -14928,17 +15122,18 @@ __hoisted_g_gemm_f16_f16_128x128x32_16x16x16_2x8_0(uint32_t shared,
             half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (32U * (threadIdx.x / 32U) * 32U + __anf010 * 16U +
-                              32U * i0 * 16U), aFrags[i0], 32U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (32U * (threadIdx.x / 32U) * 32U +
+                                        __anf010 * 16U + 32U * i0 * 16U), 32U);
             uint32_t __anf011 = dotIdx;
             half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 8U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U + i1 * 16U), bFrags[i1],
-                             128U, (half) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U + i1 * 16U),
+                                       128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -14954,12 +15149,13 @@ __hoisted_g_gemm_f16_f16_128x128x32_16x16x16_2x8_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 8U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 128U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U) * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 8U + j], cols,
-                           (half) _kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) *
+                                     128U + blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U) * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 8U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -15062,17 +15258,18 @@ __hoisted_g_gemm_bf16_f32_128x128x32_16x16x16_2x8_0(uint32_t shared,
             __nv_bfloat16 *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (32U * (threadIdx.x / 32U) * 32U + __anf010 * 16U +
-                              32U * i0 * 16U), aFrags[i0], 32U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (32U * (threadIdx.x / 32U) * 32U +
+                                        __anf010 * 16U + 32U * i0 * 16U), 32U);
             uint32_t __anf011 = dotIdx;
             __nv_bfloat16 *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 8U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U + i1 * 16U), bFrags[i1],
-                             128U, (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U + i1 * 16U),
+                                       128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -15088,12 +15285,13 @@ __hoisted_g_gemm_bf16_f32_128x128x32_16x16x16_2x8_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 8U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 128U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U) * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 8U + j], cols,
-                           (float)_kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) *
+                                     128U + blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U) * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 8U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -15194,18 +15392,19 @@ __hoisted_g_gemm_f16_f16_128x128x32_16x16x16_4x2_0(uint32_t shared,
             half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (32U * (threadIdx.x / 32U / 4U) * 64U +
-                              __anf010 * 16U + 32U * i0 * 16U), aFrags[i0], 32U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (32U * (threadIdx.x / 32U / 4U) * 64U +
+                                        __anf010 * 16U + 32U * i0 * 16U), 32U);
             uint32_t __anf011 = dotIdx;
             half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U +
-                              threadIdx.x / 32U % 4U * 32U + i1 * 16U),
-                             bFrags[i1], 128U, (half) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 4U * 32U +
+                                        i1 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -15221,13 +15420,14 @@ __hoisted_g_gemm_f16_f16_128x128x32_16x16x16_4x2_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 128U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U / 4U) * 64U +
-                            threadIdx.x / 32U % 4U * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 2U + j], cols,
-                           (half) _kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) *
+                                     128U + blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U / 4U) * 64U +
+                                     threadIdx.x / 32U % 4U * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 2U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -15329,18 +15529,19 @@ __hoisted_g_gemm_bf16_f32_128x128x32_16x16x16_4x2_0(uint32_t shared,
             __nv_bfloat16 *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (32U * (threadIdx.x / 32U / 4U) * 64U +
-                              __anf010 * 16U + 32U * i0 * 16U), aFrags[i0], 32U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (32U * (threadIdx.x / 32U / 4U) * 64U +
+                                        __anf010 * 16U + 32U * i0 * 16U), 32U);
             uint32_t __anf011 = dotIdx;
             __nv_bfloat16 *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U +
-                              threadIdx.x / 32U % 4U * 32U + i1 * 16U),
-                             bFrags[i1], 128U, (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 4U * 32U +
+                                        i1 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -15356,13 +15557,14 @@ __hoisted_g_gemm_bf16_f32_128x128x32_16x16x16_4x2_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 128U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U / 4U) * 64U +
-                            threadIdx.x / 32U % 4U * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 2U + j], cols,
-                           (float)_kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) *
+                                     128U + blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U / 4U) * 64U +
+                                     threadIdx.x / 32U % 4U * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 2U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -15463,18 +15665,19 @@ __hoisted_g_gemm_f16_f16_128x128x32_16x16x16_4x4_0(uint32_t shared,
             half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (32U * (threadIdx.x / 32U / 2U) * 64U +
-                              __anf010 * 16U + 32U * i0 * 16U), aFrags[i0], 32U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (32U * (threadIdx.x / 32U / 2U) * 64U +
+                                        __anf010 * 16U + 32U * i0 * 16U), 32U);
             uint32_t __anf011 = dotIdx;
             half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U +
-                              threadIdx.x / 32U % 2U * 64U + i1 * 16U),
-                             bFrags[i1], 128U, (half) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 2U * 64U +
+                                        i1 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -15490,13 +15693,14 @@ __hoisted_g_gemm_f16_f16_128x128x32_16x16x16_4x4_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 128U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U / 2U) * 64U +
-                            threadIdx.x / 32U % 2U * 64U + cols * i * 16U +
-                            j * 16U), accFrags[i * 4U + j], cols,
-                           (half) _kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) *
+                                     128U + blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U / 2U) * 64U +
+                                     threadIdx.x / 32U % 2U * 64U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 4U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -15599,18 +15803,19 @@ __hoisted_g_gemm_bf16_f32_128x128x32_16x16x16_4x4_0(uint32_t shared,
             __nv_bfloat16 *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (32U * (threadIdx.x / 32U / 2U) * 64U +
-                              __anf010 * 16U + 32U * i0 * 16U), aFrags[i0], 32U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (32U * (threadIdx.x / 32U / 2U) * 64U +
+                                        __anf010 * 16U + 32U * i0 * 16U), 32U);
             uint32_t __anf011 = dotIdx;
             __nv_bfloat16 *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U +
-                              threadIdx.x / 32U % 2U * 64U + i1 * 16U),
-                             bFrags[i1], 128U, (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 2U * 64U +
+                                        i1 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -15626,13 +15831,14 @@ __hoisted_g_gemm_bf16_f32_128x128x32_16x16x16_4x4_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 128U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U / 2U) * 64U +
-                            threadIdx.x / 32U % 2U * 64U + cols * i * 16U +
-                            j * 16U), accFrags[i * 4U + j], cols,
-                           (float)_kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) *
+                                     128U + blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U / 2U) * 64U +
+                                     threadIdx.x / 32U % 2U * 64U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 4U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -15733,17 +15939,18 @@ __hoisted_g_gemm_f16_f16_128x128x32_16x16x16_4x8_0(uint32_t shared,
             half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (32U * (threadIdx.x / 32U) * 64U + __anf010 * 16U +
-                              32U * i0 * 16U), aFrags[i0], 32U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (32U * (threadIdx.x / 32U) * 64U +
+                                        __anf010 * 16U + 32U * i0 * 16U), 32U);
             uint32_t __anf011 = dotIdx;
             half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 8U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U + i1 * 16U), bFrags[i1],
-                             128U, (half) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U + i1 * 16U),
+                                       128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -15759,12 +15966,13 @@ __hoisted_g_gemm_f16_f16_128x128x32_16x16x16_4x8_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 8U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 128U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U) * 64U + cols * i * 16U +
-                            j * 16U), accFrags[i * 8U + j], cols,
-                           (half) _kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) *
+                                     128U + blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U) * 64U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 8U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -15867,17 +16075,18 @@ __hoisted_g_gemm_bf16_f32_128x128x32_16x16x16_4x8_0(uint32_t shared,
             __nv_bfloat16 *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (32U * (threadIdx.x / 32U) * 64U + __anf010 * 16U +
-                              32U * i0 * 16U), aFrags[i0], 32U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (32U * (threadIdx.x / 32U) * 64U +
+                                        __anf010 * 16U + 32U * i0 * 16U), 32U);
             uint32_t __anf011 = dotIdx;
             __nv_bfloat16 *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 8U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U + i1 * 16U), bFrags[i1],
-                             128U, (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U + i1 * 16U),
+                                       128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -15893,12 +16102,13 @@ __hoisted_g_gemm_bf16_f32_128x128x32_16x16x16_4x8_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 8U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 128U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U) * 64U + cols * i * 16U +
-                            j * 16U), accFrags[i * 8U + j], cols,
-                           (float)_kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) *
+                                     128U + blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U) * 64U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 8U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -15999,18 +16209,19 @@ __hoisted_g_gemm_f16_f16_128x128x32_16x16x16_8x2_0(uint32_t shared,
             half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (32U * (threadIdx.x / 32U / 4U) * 128U +
-                              __anf010 * 16U + 32U * i0 * 16U), aFrags[i0], 32U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (32U * (threadIdx.x / 32U / 4U) * 128U +
+                                        __anf010 * 16U + 32U * i0 * 16U), 32U);
             uint32_t __anf011 = dotIdx;
             half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U +
-                              threadIdx.x / 32U % 4U * 32U + i1 * 16U),
-                             bFrags[i1], 128U, (half) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 4U * 32U +
+                                        i1 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -16026,13 +16237,14 @@ __hoisted_g_gemm_f16_f16_128x128x32_16x16x16_8x2_0(uint32_t shared,
     for (; i < 8U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 128U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U / 4U) * 128U +
-                            threadIdx.x / 32U % 4U * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 2U + j], cols,
-                           (half) _kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) *
+                                     128U + blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U / 4U) * 128U +
+                                     threadIdx.x / 32U % 4U * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 2U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -16135,18 +16347,19 @@ __hoisted_g_gemm_bf16_f32_128x128x32_16x16x16_8x2_0(uint32_t shared,
             __nv_bfloat16 *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (32U * (threadIdx.x / 32U / 4U) * 128U +
-                              __anf010 * 16U + 32U * i0 * 16U), aFrags[i0], 32U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (32U * (threadIdx.x / 32U / 4U) * 128U +
+                                        __anf010 * 16U + 32U * i0 * 16U), 32U);
             uint32_t __anf011 = dotIdx;
             __nv_bfloat16 *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U +
-                              threadIdx.x / 32U % 4U * 32U + i1 * 16U),
-                             bFrags[i1], 128U, (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 4U * 32U +
+                                        i1 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -16162,13 +16375,14 @@ __hoisted_g_gemm_bf16_f32_128x128x32_16x16x16_8x2_0(uint32_t shared,
     for (; i < 8U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 128U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U / 4U) * 128U +
-                            threadIdx.x / 32U % 4U * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 2U + j], cols,
-                           (float)_kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) *
+                                     128U + blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U / 4U) * 128U +
+                                     threadIdx.x / 32U % 4U * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 2U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -16269,18 +16483,19 @@ __hoisted_g_gemm_f16_f16_128x128x32_16x16x16_8x4_0(uint32_t shared,
             half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (32U * (threadIdx.x / 32U / 2U) * 128U +
-                              __anf010 * 16U + 32U * i0 * 16U), aFrags[i0], 32U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (32U * (threadIdx.x / 32U / 2U) * 128U +
+                                        __anf010 * 16U + 32U * i0 * 16U), 32U);
             uint32_t __anf011 = dotIdx;
             half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U +
-                              threadIdx.x / 32U % 2U * 64U + i1 * 16U),
-                             bFrags[i1], 128U, (half) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 2U * 64U +
+                                        i1 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -16296,13 +16511,14 @@ __hoisted_g_gemm_f16_f16_128x128x32_16x16x16_8x4_0(uint32_t shared,
     for (; i < 8U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 128U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U / 2U) * 128U +
-                            threadIdx.x / 32U % 2U * 64U + cols * i * 16U +
-                            j * 16U), accFrags[i * 4U + j], cols,
-                           (half) _kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) *
+                                     128U + blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U / 2U) * 128U +
+                                     threadIdx.x / 32U % 2U * 64U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 4U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -16405,18 +16621,19 @@ __hoisted_g_gemm_bf16_f32_128x128x32_16x16x16_8x4_0(uint32_t shared,
             __nv_bfloat16 *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (32U * (threadIdx.x / 32U / 2U) * 128U +
-                              __anf010 * 16U + 32U * i0 * 16U), aFrags[i0], 32U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (32U * (threadIdx.x / 32U / 2U) * 128U +
+                                        __anf010 * 16U + 32U * i0 * 16U), 32U);
             uint32_t __anf011 = dotIdx;
             __nv_bfloat16 *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U +
-                              threadIdx.x / 32U % 2U * 64U + i1 * 16U),
-                             bFrags[i1], 128U, (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 2U * 64U +
+                                        i1 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -16432,13 +16649,14 @@ __hoisted_g_gemm_bf16_f32_128x128x32_16x16x16_8x4_0(uint32_t shared,
     for (; i < 8U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 128U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U / 2U) * 128U +
-                            threadIdx.x / 32U % 2U * 64U + cols * i * 16U +
-                            j * 16U), accFrags[i * 4U + j], cols,
-                           (float)_kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) *
+                                     128U + blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U / 2U) * 128U +
+                                     threadIdx.x / 32U % 2U * 64U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 4U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -16539,17 +16757,18 @@ __hoisted_g_gemm_f16_f16_128x128x32_16x16x16_8x8_0(uint32_t shared,
             half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (32U * (threadIdx.x / 32U) * 128U +
-                              __anf010 * 16U + 32U * i0 * 16U), aFrags[i0], 32U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (32U * (threadIdx.x / 32U) * 128U +
+                                        __anf010 * 16U + 32U * i0 * 16U), 32U);
             uint32_t __anf011 = dotIdx;
             half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 8U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U + i1 * 16U), bFrags[i1],
-                             128U, (half) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U + i1 * 16U),
+                                       128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -16565,12 +16784,13 @@ __hoisted_g_gemm_f16_f16_128x128x32_16x16x16_8x8_0(uint32_t shared,
     for (; i < 8U; i++) {
         uint32_t j = 0U;
         for (; j < 8U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 128U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U) * 128U + cols * i * 16U +
-                            j * 16U), accFrags[i * 8U + j], cols,
-                           (half) _kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) *
+                                     128U + blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U) * 128U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 8U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -16673,17 +16893,18 @@ __hoisted_g_gemm_bf16_f32_128x128x32_16x16x16_8x8_0(uint32_t shared,
             __nv_bfloat16 *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (32U * (threadIdx.x / 32U) * 128U +
-                              __anf010 * 16U + 32U * i0 * 16U), aFrags[i0], 32U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (32U * (threadIdx.x / 32U) * 128U +
+                                        __anf010 * 16U + 32U * i0 * 16U), 32U);
             uint32_t __anf011 = dotIdx;
             __nv_bfloat16 *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 8U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U + i1 * 16U), bFrags[i1],
-                             128U, (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U + i1 * 16U),
+                                       128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -16699,12 +16920,13 @@ __hoisted_g_gemm_bf16_f32_128x128x32_16x16x16_8x8_0(uint32_t shared,
     for (; i < 8U; i++) {
         uint32_t j = 0U;
         for (; j < 8U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 128U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U) * 128U + cols * i * 16U +
-                            j * 16U), accFrags[i * 8U + j], cols,
-                           (float)_kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) *
+                                     128U + blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U) * 128U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 8U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -16805,18 +17027,19 @@ __hoisted_g_gemm_f16_f16_128x128x64_16x16x16_2x2_0(uint32_t shared,
             half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (64U * (threadIdx.x / 32U / 4U) * 32U +
-                              __anf010 * 16U + 64U * i0 * 16U), aFrags[i0], 64U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (64U * (threadIdx.x / 32U / 4U) * 32U +
+                                        __anf010 * 16U + 64U * i0 * 16U), 64U);
             uint32_t __anf011 = dotIdx;
             half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U +
-                              threadIdx.x / 32U % 4U * 32U + i1 * 16U),
-                             bFrags[i1], 128U, (half) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 4U * 32U +
+                                        i1 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -16832,13 +17055,14 @@ __hoisted_g_gemm_f16_f16_128x128x64_16x16x16_2x2_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 128U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U / 4U) * 32U +
-                            threadIdx.x / 32U % 4U * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 2U + j], cols,
-                           (half) _kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) *
+                                     128U + blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U / 4U) * 32U +
+                                     threadIdx.x / 32U % 4U * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 2U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -16940,18 +17164,19 @@ __hoisted_g_gemm_bf16_f32_128x128x64_16x16x16_2x2_0(uint32_t shared,
             __nv_bfloat16 *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (64U * (threadIdx.x / 32U / 4U) * 32U +
-                              __anf010 * 16U + 64U * i0 * 16U), aFrags[i0], 64U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (64U * (threadIdx.x / 32U / 4U) * 32U +
+                                        __anf010 * 16U + 64U * i0 * 16U), 64U);
             uint32_t __anf011 = dotIdx;
             __nv_bfloat16 *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U +
-                              threadIdx.x / 32U % 4U * 32U + i1 * 16U),
-                             bFrags[i1], 128U, (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 4U * 32U +
+                                        i1 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -16967,13 +17192,14 @@ __hoisted_g_gemm_bf16_f32_128x128x64_16x16x16_2x2_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 128U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U / 4U) * 32U +
-                            threadIdx.x / 32U % 4U * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 2U + j], cols,
-                           (float)_kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) *
+                                     128U + blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U / 4U) * 32U +
+                                     threadIdx.x / 32U % 4U * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 2U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -17074,18 +17300,19 @@ __hoisted_g_gemm_f16_f16_128x128x64_16x16x16_2x4_0(uint32_t shared,
             half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (64U * (threadIdx.x / 32U / 2U) * 32U +
-                              __anf010 * 16U + 64U * i0 * 16U), aFrags[i0], 64U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (64U * (threadIdx.x / 32U / 2U) * 32U +
+                                        __anf010 * 16U + 64U * i0 * 16U), 64U);
             uint32_t __anf011 = dotIdx;
             half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U +
-                              threadIdx.x / 32U % 2U * 64U + i1 * 16U),
-                             bFrags[i1], 128U, (half) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 2U * 64U +
+                                        i1 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -17101,13 +17328,14 @@ __hoisted_g_gemm_f16_f16_128x128x64_16x16x16_2x4_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 128U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U / 2U) * 32U +
-                            threadIdx.x / 32U % 2U * 64U + cols * i * 16U +
-                            j * 16U), accFrags[i * 4U + j], cols,
-                           (half) _kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) *
+                                     128U + blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U / 2U) * 32U +
+                                     threadIdx.x / 32U % 2U * 64U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 4U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -17209,18 +17437,19 @@ __hoisted_g_gemm_bf16_f32_128x128x64_16x16x16_2x4_0(uint32_t shared,
             __nv_bfloat16 *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (64U * (threadIdx.x / 32U / 2U) * 32U +
-                              __anf010 * 16U + 64U * i0 * 16U), aFrags[i0], 64U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (64U * (threadIdx.x / 32U / 2U) * 32U +
+                                        __anf010 * 16U + 64U * i0 * 16U), 64U);
             uint32_t __anf011 = dotIdx;
             __nv_bfloat16 *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U +
-                              threadIdx.x / 32U % 2U * 64U + i1 * 16U),
-                             bFrags[i1], 128U, (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 2U * 64U +
+                                        i1 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -17236,13 +17465,14 @@ __hoisted_g_gemm_bf16_f32_128x128x64_16x16x16_2x4_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 128U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U / 2U) * 32U +
-                            threadIdx.x / 32U % 2U * 64U + cols * i * 16U +
-                            j * 16U), accFrags[i * 4U + j], cols,
-                           (float)_kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) *
+                                     128U + blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U / 2U) * 32U +
+                                     threadIdx.x / 32U % 2U * 64U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 4U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -17343,17 +17573,18 @@ __hoisted_g_gemm_f16_f16_128x128x64_16x16x16_2x8_0(uint32_t shared,
             half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (64U * (threadIdx.x / 32U) * 32U + __anf010 * 16U +
-                              64U * i0 * 16U), aFrags[i0], 64U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (64U * (threadIdx.x / 32U) * 32U +
+                                        __anf010 * 16U + 64U * i0 * 16U), 64U);
             uint32_t __anf011 = dotIdx;
             half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 8U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U + i1 * 16U), bFrags[i1],
-                             128U, (half) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U + i1 * 16U),
+                                       128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -17369,12 +17600,13 @@ __hoisted_g_gemm_f16_f16_128x128x64_16x16x16_2x8_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 8U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 128U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U) * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 8U + j], cols,
-                           (half) _kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) *
+                                     128U + blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U) * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 8U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -17477,17 +17709,18 @@ __hoisted_g_gemm_bf16_f32_128x128x64_16x16x16_2x8_0(uint32_t shared,
             __nv_bfloat16 *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (64U * (threadIdx.x / 32U) * 32U + __anf010 * 16U +
-                              64U * i0 * 16U), aFrags[i0], 64U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (64U * (threadIdx.x / 32U) * 32U +
+                                        __anf010 * 16U + 64U * i0 * 16U), 64U);
             uint32_t __anf011 = dotIdx;
             __nv_bfloat16 *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 8U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U + i1 * 16U), bFrags[i1],
-                             128U, (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U + i1 * 16U),
+                                       128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -17503,12 +17736,13 @@ __hoisted_g_gemm_bf16_f32_128x128x64_16x16x16_2x8_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 8U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 128U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U) * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 8U + j], cols,
-                           (float)_kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) *
+                                     128U + blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U) * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 8U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -17609,18 +17843,19 @@ __hoisted_g_gemm_f16_f16_128x128x64_16x16x16_4x2_0(uint32_t shared,
             half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (64U * (threadIdx.x / 32U / 4U) * 64U +
-                              __anf010 * 16U + 64U * i0 * 16U), aFrags[i0], 64U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (64U * (threadIdx.x / 32U / 4U) * 64U +
+                                        __anf010 * 16U + 64U * i0 * 16U), 64U);
             uint32_t __anf011 = dotIdx;
             half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U +
-                              threadIdx.x / 32U % 4U * 32U + i1 * 16U),
-                             bFrags[i1], 128U, (half) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 4U * 32U +
+                                        i1 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -17636,13 +17871,14 @@ __hoisted_g_gemm_f16_f16_128x128x64_16x16x16_4x2_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 128U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U / 4U) * 64U +
-                            threadIdx.x / 32U % 4U * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 2U + j], cols,
-                           (half) _kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) *
+                                     128U + blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U / 4U) * 64U +
+                                     threadIdx.x / 32U % 4U * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 2U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -17744,18 +17980,19 @@ __hoisted_g_gemm_bf16_f32_128x128x64_16x16x16_4x2_0(uint32_t shared,
             __nv_bfloat16 *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (64U * (threadIdx.x / 32U / 4U) * 64U +
-                              __anf010 * 16U + 64U * i0 * 16U), aFrags[i0], 64U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (64U * (threadIdx.x / 32U / 4U) * 64U +
+                                        __anf010 * 16U + 64U * i0 * 16U), 64U);
             uint32_t __anf011 = dotIdx;
             __nv_bfloat16 *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U +
-                              threadIdx.x / 32U % 4U * 32U + i1 * 16U),
-                             bFrags[i1], 128U, (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 4U * 32U +
+                                        i1 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -17771,13 +18008,14 @@ __hoisted_g_gemm_bf16_f32_128x128x64_16x16x16_4x2_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 128U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U / 4U) * 64U +
-                            threadIdx.x / 32U % 4U * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 2U + j], cols,
-                           (float)_kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) *
+                                     128U + blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U / 4U) * 64U +
+                                     threadIdx.x / 32U % 4U * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 2U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -17878,18 +18116,19 @@ __hoisted_g_gemm_f16_f16_128x128x64_16x16x16_4x4_0(uint32_t shared,
             half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (64U * (threadIdx.x / 32U / 2U) * 64U +
-                              __anf010 * 16U + 64U * i0 * 16U), aFrags[i0], 64U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (64U * (threadIdx.x / 32U / 2U) * 64U +
+                                        __anf010 * 16U + 64U * i0 * 16U), 64U);
             uint32_t __anf011 = dotIdx;
             half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U +
-                              threadIdx.x / 32U % 2U * 64U + i1 * 16U),
-                             bFrags[i1], 128U, (half) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 2U * 64U +
+                                        i1 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -17905,13 +18144,14 @@ __hoisted_g_gemm_f16_f16_128x128x64_16x16x16_4x4_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 128U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U / 2U) * 64U +
-                            threadIdx.x / 32U % 2U * 64U + cols * i * 16U +
-                            j * 16U), accFrags[i * 4U + j], cols,
-                           (half) _kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) *
+                                     128U + blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U / 2U) * 64U +
+                                     threadIdx.x / 32U % 2U * 64U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 4U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -18014,18 +18254,19 @@ __hoisted_g_gemm_bf16_f32_128x128x64_16x16x16_4x4_0(uint32_t shared,
             __nv_bfloat16 *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (64U * (threadIdx.x / 32U / 2U) * 64U +
-                              __anf010 * 16U + 64U * i0 * 16U), aFrags[i0], 64U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (64U * (threadIdx.x / 32U / 2U) * 64U +
+                                        __anf010 * 16U + 64U * i0 * 16U), 64U);
             uint32_t __anf011 = dotIdx;
             __nv_bfloat16 *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U +
-                              threadIdx.x / 32U % 2U * 64U + i1 * 16U),
-                             bFrags[i1], 128U, (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 2U * 64U +
+                                        i1 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -18041,13 +18282,14 @@ __hoisted_g_gemm_bf16_f32_128x128x64_16x16x16_4x4_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 128U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U / 2U) * 64U +
-                            threadIdx.x / 32U % 2U * 64U + cols * i * 16U +
-                            j * 16U), accFrags[i * 4U + j], cols,
-                           (float)_kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) *
+                                     128U + blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U / 2U) * 64U +
+                                     threadIdx.x / 32U % 2U * 64U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 4U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -18148,17 +18390,18 @@ __hoisted_g_gemm_f16_f16_128x128x64_16x16x16_4x8_0(uint32_t shared,
             half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (64U * (threadIdx.x / 32U) * 64U + __anf010 * 16U +
-                              64U * i0 * 16U), aFrags[i0], 64U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (64U * (threadIdx.x / 32U) * 64U +
+                                        __anf010 * 16U + 64U * i0 * 16U), 64U);
             uint32_t __anf011 = dotIdx;
             half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 8U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U + i1 * 16U), bFrags[i1],
-                             128U, (half) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U + i1 * 16U),
+                                       128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -18174,12 +18417,13 @@ __hoisted_g_gemm_f16_f16_128x128x64_16x16x16_4x8_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 8U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 128U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U) * 64U + cols * i * 16U +
-                            j * 16U), accFrags[i * 8U + j], cols,
-                           (half) _kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) *
+                                     128U + blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U) * 64U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 8U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -18282,17 +18526,18 @@ __hoisted_g_gemm_bf16_f32_128x128x64_16x16x16_4x8_0(uint32_t shared,
             __nv_bfloat16 *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (64U * (threadIdx.x / 32U) * 64U + __anf010 * 16U +
-                              64U * i0 * 16U), aFrags[i0], 64U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (64U * (threadIdx.x / 32U) * 64U +
+                                        __anf010 * 16U + 64U * i0 * 16U), 64U);
             uint32_t __anf011 = dotIdx;
             __nv_bfloat16 *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 8U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U + i1 * 16U), bFrags[i1],
-                             128U, (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U + i1 * 16U),
+                                       128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -18308,12 +18553,13 @@ __hoisted_g_gemm_bf16_f32_128x128x64_16x16x16_4x8_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 8U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 128U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U) * 64U + cols * i * 16U +
-                            j * 16U), accFrags[i * 8U + j], cols,
-                           (float)_kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) *
+                                     128U + blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U) * 64U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 8U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -18414,18 +18660,19 @@ __hoisted_g_gemm_f16_f16_128x128x64_16x16x16_8x2_0(uint32_t shared,
             half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (64U * (threadIdx.x / 32U / 4U) * 128U +
-                              __anf010 * 16U + 64U * i0 * 16U), aFrags[i0], 64U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (64U * (threadIdx.x / 32U / 4U) * 128U +
+                                        __anf010 * 16U + 64U * i0 * 16U), 64U);
             uint32_t __anf011 = dotIdx;
             half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U +
-                              threadIdx.x / 32U % 4U * 32U + i1 * 16U),
-                             bFrags[i1], 128U, (half) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 4U * 32U +
+                                        i1 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -18441,13 +18688,14 @@ __hoisted_g_gemm_f16_f16_128x128x64_16x16x16_8x2_0(uint32_t shared,
     for (; i < 8U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 128U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U / 4U) * 128U +
-                            threadIdx.x / 32U % 4U * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 2U + j], cols,
-                           (half) _kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) *
+                                     128U + blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U / 4U) * 128U +
+                                     threadIdx.x / 32U % 4U * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 2U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -18550,18 +18798,19 @@ __hoisted_g_gemm_bf16_f32_128x128x64_16x16x16_8x2_0(uint32_t shared,
             __nv_bfloat16 *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (64U * (threadIdx.x / 32U / 4U) * 128U +
-                              __anf010 * 16U + 64U * i0 * 16U), aFrags[i0], 64U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (64U * (threadIdx.x / 32U / 4U) * 128U +
+                                        __anf010 * 16U + 64U * i0 * 16U), 64U);
             uint32_t __anf011 = dotIdx;
             __nv_bfloat16 *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U +
-                              threadIdx.x / 32U % 4U * 32U + i1 * 16U),
-                             bFrags[i1], 128U, (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 4U * 32U +
+                                        i1 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -18577,13 +18826,14 @@ __hoisted_g_gemm_bf16_f32_128x128x64_16x16x16_8x2_0(uint32_t shared,
     for (; i < 8U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 128U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U / 4U) * 128U +
-                            threadIdx.x / 32U % 4U * 32U + cols * i * 16U +
-                            j * 16U), accFrags[i * 2U + j], cols,
-                           (float)_kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) *
+                                     128U + blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U / 4U) * 128U +
+                                     threadIdx.x / 32U % 4U * 32U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 2U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -18684,18 +18934,19 @@ __hoisted_g_gemm_f16_f16_128x128x64_16x16x16_8x4_0(uint32_t shared,
             half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (64U * (threadIdx.x / 32U / 2U) * 128U +
-                              __anf010 * 16U + 64U * i0 * 16U), aFrags[i0], 64U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (64U * (threadIdx.x / 32U / 2U) * 128U +
+                                        __anf010 * 16U + 64U * i0 * 16U), 64U);
             uint32_t __anf011 = dotIdx;
             half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U +
-                              threadIdx.x / 32U % 2U * 64U + i1 * 16U),
-                             bFrags[i1], 128U, (half) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 2U * 64U +
+                                        i1 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -18711,13 +18962,14 @@ __hoisted_g_gemm_f16_f16_128x128x64_16x16x16_8x4_0(uint32_t shared,
     for (; i < 8U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 128U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U / 2U) * 128U +
-                            threadIdx.x / 32U % 2U * 64U + cols * i * 16U +
-                            j * 16U), accFrags[i * 4U + j], cols,
-                           (half) _kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) *
+                                     128U + blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U / 2U) * 128U +
+                                     threadIdx.x / 32U % 2U * 64U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 4U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -18820,18 +19072,19 @@ __hoisted_g_gemm_bf16_f32_128x128x64_16x16x16_8x4_0(uint32_t shared,
             __nv_bfloat16 *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (64U * (threadIdx.x / 32U / 2U) * 128U +
-                              __anf010 * 16U + 64U * i0 * 16U), aFrags[i0], 64U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (64U * (threadIdx.x / 32U / 2U) * 128U +
+                                        __anf010 * 16U + 64U * i0 * 16U), 64U);
             uint32_t __anf011 = dotIdx;
             __nv_bfloat16 *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U +
-                              threadIdx.x / 32U % 2U * 64U + i1 * 16U),
-                             bFrags[i1], 128U, (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U +
+                                        threadIdx.x / 32U % 2U * 64U +
+                                        i1 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -18847,13 +19100,14 @@ __hoisted_g_gemm_bf16_f32_128x128x64_16x16x16_8x4_0(uint32_t shared,
     for (; i < 8U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 128U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U / 2U) * 128U +
-                            threadIdx.x / 32U % 2U * 64U + cols * i * 16U +
-                            j * 16U), accFrags[i * 4U + j], cols,
-                           (float)_kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) *
+                                     128U + blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U / 2U) * 128U +
+                                     threadIdx.x / 32U % 2U * 64U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 4U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -18954,17 +19208,18 @@ __hoisted_g_gemm_f16_f16_128x128x64_16x16x16_8x8_0(uint32_t shared,
             half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (64U * (threadIdx.x / 32U) * 128U +
-                              __anf010 * 16U + 64U * i0 * 16U), aFrags[i0], 64U,
-                             (half) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (64U * (threadIdx.x / 32U) * 128U +
+                                        __anf010 * 16U + 64U * i0 * 16U), 64U);
             uint32_t __anf011 = dotIdx;
             half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 8U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U + i1 * 16U), bFrags[i1],
-                             128U, (half) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U + i1 * 16U),
+                                       128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -18980,12 +19235,13 @@ __hoisted_g_gemm_f16_f16_128x128x64_16x16x16_8x8_0(uint32_t shared,
     for (; i < 8U; i++) {
         uint32_t j = 0U;
         for (; j < 8U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 128U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U) * 128U + cols * i * 16U +
-                            j * 16U), accFrags[i * 8U + j], cols,
-                           (half) _kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) *
+                                     128U + blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U) * 128U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 8U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 
@@ -19088,17 +19344,18 @@ __hoisted_g_gemm_bf16_f32_128x128x64_16x16x16_8x8_0(uint32_t shared,
             __nv_bfloat16 *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++)
-                KPR_LOAD_MAP(tile_for_tc_a_tiles +
-                             (64U * (threadIdx.x / 32U) * 128U +
-                              __anf010 * 16U + 64U * i0 * 16U), aFrags[i0], 64U,
-                             (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(aFrags[i0],
+                                       tile_for_tc_a_tiles +
+                                       (64U * (threadIdx.x / 32U) * 128U +
+                                        __anf010 * 16U + 64U * i0 * 16U), 64U);
             uint32_t __anf011 = dotIdx;
             __nv_bfloat16 *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 8U; i1++)
-                KPR_LOAD_MAP(tile_for_tc_b_tiles +
-                             (128U * __anf011 * 16U + i1 * 16U), bFrags[i1],
-                             128U, (__nv_bfloat16) _kpr_in_v);
+                wmma::load_matrix_sync(bFrags[i1],
+                                       tile_for_tc_b_tiles +
+                                       (128U * __anf011 * 16U + i1 * 16U),
+                                       128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -19114,12 +19371,13 @@ __hoisted_g_gemm_bf16_f32_128x128x64_16x16x16_8x8_0(uint32_t shared,
     for (; i < 8U; i++) {
         uint32_t j = 0U;
         for (; j < 8U; j++)
-            KPR_STORE_COMB(gC +
-                           (cols * (blockIdx.x / (cols / 128U)) * 128U +
-                            blockIdx.x % (cols / 128U) * 128U +
-                            cols * (threadIdx.x / 32U) * 128U + cols * i * 16U +
-                            j * 16U), accFrags[i * 8U + j], cols,
-                           (float)_kpr_new_v);
+            wmma::store_matrix_sync(gC +
+                                    (cols * (blockIdx.x / (cols / 128U)) *
+                                     128U + blockIdx.x % (cols / 128U) * 128U +
+                                     cols * (threadIdx.x / 32U) * 128U +
+                                     cols * i * 16U + j * 16U),
+                                    accFrags[i * 8U + j], cols,
+                                    wmma::mem_row_major);
     }
 }
 

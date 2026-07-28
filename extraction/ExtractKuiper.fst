@@ -500,6 +500,39 @@ let kpr_translate_alloc_fragment (cb : mlexpr -> ML expr) et knd m n k layout =
     in
       EApp (EQualified ([], "kpr_fragment"), args)
 
+// Structural detection of trivial elementwise maps/combines so we can extract
+// them to plain wmma load/store calls instead of the KPR_LOAD_MAP/KPR_STORE_COMB
+// macros. A device map extracts to [fun x -> x] exactly when it is the identity;
+// a device combine extracts to [fun old new -> new] exactly when it is the
+// trivial overwrite (Kuiper.Spec.GEMM.comb2). In both cases the elementwise
+// register loop is a no-op, so the mapped load degenerates to a plain load and
+// the read-modify-write store degenerates to a plain store (no old-tile load).
+// Detection is purely structural and conservative: any shape we do not recognise
+// falls back to the macro, which is always correct.
+let rec collect_fun_binders (e:mlexpr) : list mlbinder & mlexpr =
+  match e.expr with
+  | MLE_Fun (bs, body) ->
+    let bs', body = collect_fun_binders body in
+    (bs @ bs', body)
+  | _ -> ([], e)
+
+// Does [body] just return the [which]-th binder of [bs] (0-based)?
+let returns_binder (bs:list mlbinder) (body:mlexpr) (which:nat) : bool =
+  match body.expr with
+  | MLE_Var v ->
+    (match List.Tot.nth bs which with
+     | Some b -> v = b.mlbinder_name
+     | None -> false)
+  | _ -> false
+
+let is_identity_map (f:mlexpr) : bool =
+  let bs, body = collect_fun_binders f in
+  List.Tot.length bs = 1 && returns_binder bs body 0
+
+let is_overwrite_comb (g:mlexpr) : bool =
+  let bs, body = collect_fun_binders g in
+  List.Tot.length bs = 2 && returns_binder bs body 1
+
 let kpr_translate_expr : translate_expr_t = fun env e ->
   let e = flatten_app e in
   if !dbg
@@ -626,9 +659,14 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
     // Note: use of EBufSub relies on the type of gm unfolding to an array.
     let gm = EBufSub (cb gm, offset) in
     let fr = cb fr in
-    let get_i = ECast (EQualified ([], "_kpr_in_v"), et_ty) in
-    let mapped = EApp (cb fmap, [ get_i ]) in
-    EApp (EQualified ([], "KPR_LOAD_MAP"), [ gm; fr; ldm; mapped ])
+    if is_identity_map fmap then
+      // Identity map: the register loop is a no-op, so this is a plain load.
+      EApp (EQualified ([], "wmma::load_matrix_sync"), [ fr; gm; ldm ])
+    else begin
+      let get_i = ECast (EQualified ([], "_kpr_in_v"), et_ty) in
+      let mapped = EApp (cb fmap, [ get_i ]) in
+      EApp (EQualified ([], "KPR_LOAD_MAP"), [ gm; fr; ldm; mapped ])
+    end
 
   // Store the accumulator fragment while combining, elementwise, with the value
   // already resident in [gm], using the device combine [gcomb]. Read-modify-write:
@@ -649,10 +687,17 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
     // Note: use of EBufSub relies on the type of gm unfolding to an array.
     let gm = EBufSub (cb gm, offset) in
     let fr = cb fr in
-    let old_i = ECast (EQualified ([], "_kpr_old_v"), et_ty) in
-    let acc_i = ECast (EQualified ([], "_kpr_new_v"), et_ty) in
-    let combined = EApp (cb gcomb, [ old_i; acc_i ]) in
-    EApp (EQualified ([], "KPR_STORE_COMB"), [ gm; fr; ldm; combined ])
+    let layout = EQualified ([], "wmma::mem_row_major") in
+    if is_overwrite_comb gcomb then
+      // Trivial overwrite combine: the read-modify-write degenerates to a plain
+      // store (identical to mma_store), so we skip the old-tile load and loop.
+      EApp (EQualified ([], "wmma::store_matrix_sync"), [ gm; fr; ldm; layout ])
+    else begin
+      let old_i = ECast (EQualified ([], "_kpr_old_v"), et_ty) in
+      let acc_i = ECast (EQualified ([], "_kpr_new_v"), et_ty) in
+      let combined = EApp (cb gcomb, [ old_i; acc_i ]) in
+      EApp (EQualified ([], "KPR_STORE_COMB"), [ gm; fr; ldm; combined ])
+    end
 
   (******** FLOAT ARITHMETIC *******)
 
