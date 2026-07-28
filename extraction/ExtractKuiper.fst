@@ -544,6 +544,8 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
 
   | "Kuiper.Barrier.barrier_wait", [], [ _unit; _n; _contract; _it; _tid ] ->
     EApp (EQualified ([], "__syncthreads"), [ EUnit ])
+  | "Kuiper.Barrier.Warp.warp_barrier_wait", [], [ _unit; _p; _q; _proof; _n; _tid ] ->
+    EApp (EQualified ([], "__syncwarp"), [ EUnit ])
 
   (******** TENSOR CORE OPERATIONS, FRAGMENTS, ETC ********)
 
@@ -557,7 +559,8 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
 
   | "Kuiper.TensorCore.Base.mma_loadA", [et], [ m; n; k; fr; l; strided_l; gm; f; m0; f0 ]
   | "Kuiper.TensorCore.Base.mma_loadA_cm", [et], [ m; n; k; fr; l; strided_l; gm; f; m0; f0 ]
-  | "Kuiper.TensorCore.Base.mma_loadB", [et], [ m; n; k; fr; l; strided_l; gm; f; m0; f0 ] ->
+  | "Kuiper.TensorCore.Base.mma_loadB", [et], [ m; n; k; fr; l; strided_l; gm; f; m0; f0 ]
+  | "Kuiper.TensorCore.Base.mma_loadB_cm", [et], [ m; n; k; fr; l; strided_l; gm; f; m0; f0 ] ->
     let fr = cb fr in
     let ldm = cb <| get_strided_row_major_stride strided_l in
     let offset = cb <| get_strided_row_major_offset strided_l in
@@ -605,7 +608,10 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
     // Note: use of EBufSub relies on the type of gm unfolding to an array.
     // If IArray/VArray/any other layer defines a new inductive, karamel will complain.
     let gm = EBufSub (cb gm, offset) in
-    EApp (EQualified ([], "wmma::store_matrix_sync"), [ gm; fr; ldm; layout])
+    ESequence [
+      EApp (EQualified ([], "wmma::store_matrix_sync"), [ gm; fr; ldm; layout ]);
+      EApp (EQualified ([], "__syncwarp"), [ EUnit ]);
+    ]
 
   (******** FLOAT ARITHMETIC *******)
 

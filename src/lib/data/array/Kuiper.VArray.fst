@@ -88,6 +88,19 @@ let varray_pts_to
   =
     a |-> Frac f (vw.ctn.acc v)
 
+let is_send_across_varray
+  (#et : Type0)
+  (#st : Type0)
+  (#vw : aview et st)
+  (x : varray vw)
+  (vis : visibility)
+  (#_ : squash (visibility_of (core x) == vis))
+  (#f : perm)
+  (v : st)
+  : is_send_across vis (varray_pts_to x #f v)
+=
+  IArray.is_send_across_iarray x vis #_ #f (vw.ctn.acc v)
+
 instance is_send_across_global_varray
   (#et:Type0)
   (#st : Type0)

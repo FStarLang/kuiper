@@ -99,6 +99,17 @@ val varray_pts_to
   (v : st)
   : slprop
 
+val is_send_across_varray
+  (#et : Type0)
+  (#st : Type0)
+  (#vw : aview et st)
+  (x : varray vw)
+  (vis : visibility)
+  (#_ : squash (visibility_of (core x) == vis))
+  (#f : perm)
+  (v : st)
+  : is_send_across vis (varray_pts_to x #f v)
+
 instance
 val is_send_across_global_varray
   (#et:Type0)
