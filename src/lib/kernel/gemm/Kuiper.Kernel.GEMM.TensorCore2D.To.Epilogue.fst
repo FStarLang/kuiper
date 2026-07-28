@@ -25,10 +25,10 @@ module SZ = Kuiper.SizeT
 
 open Kuiper.Kernel.GEMM.TensorCore2D.KernelDesc
 open Kuiper.Kernel.GEMM.TensorCore2D.To.KernelDesc
-open Kuiper.Kernel.GEMM.TensorCore2D.To.KernelDesc.Epilogue
 open Kuiper.Kernel.GEMM.TensorCore2D.To.EpilogueState
 open Kuiper.Kernel.GEMM.TensorCore2D.To.EpilogueLoopStep
 
+#push-options "--split_queries no"
 inline_for_extraction noextract
 fn epilogue_to
   (#et_ab #et_cd #et_acc : Type0)
@@ -378,3 +378,4 @@ fn epilogue_to
           ((tid / warp_size) % (d.bn / (d.wn * d.tn))))
         rAcc);
 }
+#pop-options

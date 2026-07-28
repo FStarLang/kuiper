@@ -11,7 +11,6 @@ open Kuiper.Spec.GEMM
 open Kuiper.Tensor.Tiling
 
 open Kuiper.Kernel.GEMM.TensorCore2D.KernelDesc { constraints }
-open Kuiper.Kernel.GEMM.TensorCore2D.To.KLoopState
 
 [@@"opaque_to_smt"]
 let partial_matmul_step
