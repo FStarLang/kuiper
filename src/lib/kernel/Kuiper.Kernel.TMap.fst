@@ -179,6 +179,55 @@ fn ff_from_pure u#a
   f x;
 }
 
+ghost
+fn map_kd_pre
+  (#et : Type0) (#r : erased nat) (#d : shape r)
+  (#l : tlayout d)
+  (a : tensor et l)
+  (#s : chest d et)
+  ()
+  norewrite
+  requires (a |-> s)
+  ensures  emp ** (a |-> s)
+{
+  ()
+}
+
+ghost
+fn map_kd_post
+  (#et : Type0) (#r : erased nat) (#d : shape r)
+  (f : et -> et)
+  (#l : tlayout d)
+  (a : tensor et l)
+  (#s : chest d et)
+  ()
+  norewrite
+  requires
+    emp ** (exists* s'. a |-> s' **
+      pure (chest_foralli (fun i x -> vf_equal f i (acc s i) x) s'))
+  ensures (a |-> chest_map f s)
+{
+  with s'. assert (a |-> s');
+  assert pure (Kuiper.Chest.equal s' (chest_map f s));
+  ()
+}
+
+(* The map kernel as a [kernel_desc], so clients can launch it on their own
+stream (asynchronously) instead of going through [map_gpu]'s blocking launch. *)
+inline_for_extraction noextract
+let map_kd
+  (#et : Type0) (#r : erased nat) (#d : shape r) (cd : cshape d)
+  (f : et -> et)
+  (#l : tlayout d) {| ctlayout l |}
+  (n : szp{SZ.v n == sizeof d /\ n <= max_blocks * max_threads})
+  (a : tensor et l { is_global a })
+  (#s : chest d et)
+  : kernel_desc (a |-> s) (a |-> chest_map f s)
+  = kd_weaken
+      (kmap cd (fun _ -> emp) (vf_equal f) (ff_from_pure f) n a #s #_ #1.0R)
+      (map_kd_pre a #s)
+      (map_kd_post f a #s)
+
 inline_for_extraction noextract
 fn map_gpu
   (#et : Type0) (#r : erased nat) (#d : shape r) (cd : cshape d)
@@ -191,8 +240,6 @@ fn map_gpu
   requires  on gpu_loc (a |-> s)
   ensures   on gpu_loc (a |-> chest_map f s)
 {
-  launch_sync (kmap cd (fun _ -> emp) (vf_equal f) (ff_from_pure f) n a #s #_ #1.0R);
-  with s'. assert on gpu_loc (a |-> s');
-  assert pure (Kuiper.Chest.equal s' (chest_map f s));
+  launch_sync (map_kd cd f n a #s);
   ()
 }

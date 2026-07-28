@@ -13,6 +13,7 @@ inline_for_extraction noextract
 let comb2 (#et:Type) (x y : et) : et = y
 
 // Out of place version of comb2 including casts
+inline_for_extraction noextract
 let comb2_to (#et_acc #et_cd : Type0)
   {| scalar et_acc, real_like et_acc |}
   {| scalar et_cd, real_like et_cd |}
