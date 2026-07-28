@@ -82,6 +82,21 @@ let iarray_pts_to
     (forall+ (i : vw.ait).
       iarray_pts_to_cell a #f i (v i))
 
+let is_send_across_iarray
+  (#et : Type0)
+  (#vw : aiview)
+  (x : iarray et vw)
+  (vis : visibility)
+  (#_ : squash (visibility_of (core x) == vis))
+  (#f : perm)
+  (v : vw.ait -> GTot et)
+  : is_send_across vis (iarray_pts_to x #f v)
+=
+  let i :
+    is_send_across (visibility_of (core x)) (iarray_pts_to x #f v) =
+    solve in
+  i
+
 instance is_send_across_global_iarray
   (#et:Type0)
   (#vw : aiview)

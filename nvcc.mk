@@ -79,9 +79,8 @@ extract-all: $(patsubst %,obj/%.cu,$(subst .,_,$(basename $(notdir $(EXTRACT))))
 extract-all: $(patsubst %,obj/%.h, $(subst .,_,$(basename $(notdir $(EXTRACT)))))
 
 EXTRACT_MINIMAL := $(EXTRACT)
-EXTRACT_MINIMAL := $(filter-out src/klas/Kuiper.GEMM.TensorCore2D.fst, $(EXTRACT_MINIMAL))
-EXTRACT_MINIMAL := $(filter-out src/klas/Kuiper.GEMM.TensorCore.fst, $(EXTRACT_MINIMAL))
-EXTRACT_MINIMAL := $(filter-out src/examples/Kuiper.Example.TensorCore.fst, $(EXTRACT_MINIMAL))
+TENSORCORE_EXTRACT := $(foreach f,$(EXTRACT),$(if $(findstring TensorCore,$(f)),$(f)))
+EXTRACT_MINIMAL := $(filter-out $(TENSORCORE_EXTRACT), $(EXTRACT_MINIMAL))
 
 extract-minimal: $(patsubst %,obj/%.cu,$(subst .,_,$(basename $(notdir $(EXTRACT_MINIMAL)))))
 extract-minimal: $(patsubst %,obj/%.h, $(subst .,_,$(basename $(notdir $(EXTRACT_MINIMAL)))))

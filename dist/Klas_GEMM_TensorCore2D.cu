@@ -99,14 +99,14 @@ __hoisted_g_gemm_f16_f16_64x64x16_16x16x16_2x2_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 64U)) * 64U +
-                                     blockIdx.x % (cols / 64U) * 64U +
-                                     cols * (threadIdx.x / 32U / 2U) * 32U +
-                                     threadIdx.x / 32U % 2U * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 2U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 64U)) * 64U +
+                                   blockIdx.x % (cols / 64U) * 64U +
+                                   cols * (threadIdx.x / 32U / 2U) * 32U +
+                                   threadIdx.x / 32U % 2U * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 2U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -234,14 +234,14 @@ __hoisted_g_gemm_bf16_f32_64x64x16_16x16x16_2x2_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 64U)) * 64U +
-                                     blockIdx.x % (cols / 64U) * 64U +
-                                     cols * (threadIdx.x / 32U / 2U) * 32U +
-                                     threadIdx.x / 32U % 2U * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 2U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 64U)) * 64U +
+                                   blockIdx.x % (cols / 64U) * 64U +
+                                   cols * (threadIdx.x / 32U / 2U) * 32U +
+                                   threadIdx.x / 32U % 2U * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 2U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -367,13 +367,13 @@ __hoisted_g_gemm_f16_f16_64x64x16_16x16x16_2x4_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 64U)) * 64U +
-                                     blockIdx.x % (cols / 64U) * 64U +
-                                     cols * (threadIdx.x / 32U) * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 4U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 64U)) * 64U +
+                                   blockIdx.x % (cols / 64U) * 64U +
+                                   cols * (threadIdx.x / 32U) * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 4U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -499,13 +499,13 @@ __hoisted_g_gemm_bf16_f32_64x64x16_16x16x16_2x4_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 64U)) * 64U +
-                                     blockIdx.x % (cols / 64U) * 64U +
-                                     cols * (threadIdx.x / 32U) * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 4U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 64U)) * 64U +
+                                   blockIdx.x % (cols / 64U) * 64U +
+                                   cols * (threadIdx.x / 32U) * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 4U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -633,14 +633,14 @@ __hoisted_g_gemm_f16_f16_64x64x16_16x16x16_4x2_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 64U)) * 64U +
-                                     blockIdx.x % (cols / 64U) * 64U +
-                                     cols * (threadIdx.x / 32U / 2U) * 64U +
-                                     threadIdx.x / 32U % 2U * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 2U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 64U)) * 64U +
+                                   blockIdx.x % (cols / 64U) * 64U +
+                                   cols * (threadIdx.x / 32U / 2U) * 64U +
+                                   threadIdx.x / 32U % 2U * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 2U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -768,14 +768,14 @@ __hoisted_g_gemm_bf16_f32_64x64x16_16x16x16_4x2_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 64U)) * 64U +
-                                     blockIdx.x % (cols / 64U) * 64U +
-                                     cols * (threadIdx.x / 32U / 2U) * 64U +
-                                     threadIdx.x / 32U % 2U * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 2U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 64U)) * 64U +
+                                   blockIdx.x % (cols / 64U) * 64U +
+                                   cols * (threadIdx.x / 32U / 2U) * 64U +
+                                   threadIdx.x / 32U % 2U * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 2U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -901,13 +901,13 @@ __hoisted_g_gemm_f16_f16_64x64x16_16x16x16_4x4_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 64U)) * 64U +
-                                     blockIdx.x % (cols / 64U) * 64U +
-                                     cols * (threadIdx.x / 32U) * 64U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 4U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 64U)) * 64U +
+                                   blockIdx.x % (cols / 64U) * 64U +
+                                   cols * (threadIdx.x / 32U) * 64U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 4U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -1034,13 +1034,13 @@ __hoisted_g_gemm_bf16_f32_64x64x16_16x16x16_4x4_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 64U)) * 64U +
-                                     blockIdx.x % (cols / 64U) * 64U +
-                                     cols * (threadIdx.x / 32U) * 64U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 4U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 64U)) * 64U +
+                                   blockIdx.x % (cols / 64U) * 64U +
+                                   cols * (threadIdx.x / 32U) * 64U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 4U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -1168,14 +1168,14 @@ __hoisted_g_gemm_f16_f16_64x64x32_16x16x16_2x2_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 64U)) * 64U +
-                                     blockIdx.x % (cols / 64U) * 64U +
-                                     cols * (threadIdx.x / 32U / 2U) * 32U +
-                                     threadIdx.x / 32U % 2U * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 2U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 64U)) * 64U +
+                                   blockIdx.x % (cols / 64U) * 64U +
+                                   cols * (threadIdx.x / 32U / 2U) * 32U +
+                                   threadIdx.x / 32U % 2U * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 2U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -1303,14 +1303,14 @@ __hoisted_g_gemm_bf16_f32_64x64x32_16x16x16_2x2_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 64U)) * 64U +
-                                     blockIdx.x % (cols / 64U) * 64U +
-                                     cols * (threadIdx.x / 32U / 2U) * 32U +
-                                     threadIdx.x / 32U % 2U * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 2U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 64U)) * 64U +
+                                   blockIdx.x % (cols / 64U) * 64U +
+                                   cols * (threadIdx.x / 32U / 2U) * 32U +
+                                   threadIdx.x / 32U % 2U * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 2U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -1436,13 +1436,13 @@ __hoisted_g_gemm_f16_f16_64x64x32_16x16x16_2x4_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 64U)) * 64U +
-                                     blockIdx.x % (cols / 64U) * 64U +
-                                     cols * (threadIdx.x / 32U) * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 4U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 64U)) * 64U +
+                                   blockIdx.x % (cols / 64U) * 64U +
+                                   cols * (threadIdx.x / 32U) * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 4U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -1568,13 +1568,13 @@ __hoisted_g_gemm_bf16_f32_64x64x32_16x16x16_2x4_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 64U)) * 64U +
-                                     blockIdx.x % (cols / 64U) * 64U +
-                                     cols * (threadIdx.x / 32U) * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 4U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 64U)) * 64U +
+                                   blockIdx.x % (cols / 64U) * 64U +
+                                   cols * (threadIdx.x / 32U) * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 4U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -1702,14 +1702,14 @@ __hoisted_g_gemm_f16_f16_64x64x32_16x16x16_4x2_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 64U)) * 64U +
-                                     blockIdx.x % (cols / 64U) * 64U +
-                                     cols * (threadIdx.x / 32U / 2U) * 64U +
-                                     threadIdx.x / 32U % 2U * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 2U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 64U)) * 64U +
+                                   blockIdx.x % (cols / 64U) * 64U +
+                                   cols * (threadIdx.x / 32U / 2U) * 64U +
+                                   threadIdx.x / 32U % 2U * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 2U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -1837,14 +1837,14 @@ __hoisted_g_gemm_bf16_f32_64x64x32_16x16x16_4x2_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 64U)) * 64U +
-                                     blockIdx.x % (cols / 64U) * 64U +
-                                     cols * (threadIdx.x / 32U / 2U) * 64U +
-                                     threadIdx.x / 32U % 2U * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 2U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 64U)) * 64U +
+                                   blockIdx.x % (cols / 64U) * 64U +
+                                   cols * (threadIdx.x / 32U / 2U) * 64U +
+                                   threadIdx.x / 32U % 2U * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 2U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -1970,13 +1970,13 @@ __hoisted_g_gemm_f16_f16_64x64x32_16x16x16_4x4_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 64U)) * 64U +
-                                     blockIdx.x % (cols / 64U) * 64U +
-                                     cols * (threadIdx.x / 32U) * 64U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 4U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 64U)) * 64U +
+                                   blockIdx.x % (cols / 64U) * 64U +
+                                   cols * (threadIdx.x / 32U) * 64U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 4U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -2103,13 +2103,13 @@ __hoisted_g_gemm_bf16_f32_64x64x32_16x16x16_4x4_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 64U)) * 64U +
-                                     blockIdx.x % (cols / 64U) * 64U +
-                                     cols * (threadIdx.x / 32U) * 64U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 4U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 64U)) * 64U +
+                                   blockIdx.x % (cols / 64U) * 64U +
+                                   cols * (threadIdx.x / 32U) * 64U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 4U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -2237,14 +2237,14 @@ __hoisted_g_gemm_f16_f16_64x64x64_16x16x16_2x2_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 64U)) * 64U +
-                                     blockIdx.x % (cols / 64U) * 64U +
-                                     cols * (threadIdx.x / 32U / 2U) * 32U +
-                                     threadIdx.x / 32U % 2U * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 2U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 64U)) * 64U +
+                                   blockIdx.x % (cols / 64U) * 64U +
+                                   cols * (threadIdx.x / 32U / 2U) * 32U +
+                                   threadIdx.x / 32U % 2U * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 2U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -2372,14 +2372,14 @@ __hoisted_g_gemm_bf16_f32_64x64x64_16x16x16_2x2_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 64U)) * 64U +
-                                     blockIdx.x % (cols / 64U) * 64U +
-                                     cols * (threadIdx.x / 32U / 2U) * 32U +
-                                     threadIdx.x / 32U % 2U * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 2U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 64U)) * 64U +
+                                   blockIdx.x % (cols / 64U) * 64U +
+                                   cols * (threadIdx.x / 32U / 2U) * 32U +
+                                   threadIdx.x / 32U % 2U * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 2U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -2505,13 +2505,13 @@ __hoisted_g_gemm_f16_f16_64x64x64_16x16x16_2x4_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 64U)) * 64U +
-                                     blockIdx.x % (cols / 64U) * 64U +
-                                     cols * (threadIdx.x / 32U) * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 4U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 64U)) * 64U +
+                                   blockIdx.x % (cols / 64U) * 64U +
+                                   cols * (threadIdx.x / 32U) * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 4U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -2637,13 +2637,13 @@ __hoisted_g_gemm_bf16_f32_64x64x64_16x16x16_2x4_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 64U)) * 64U +
-                                     blockIdx.x % (cols / 64U) * 64U +
-                                     cols * (threadIdx.x / 32U) * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 4U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 64U)) * 64U +
+                                   blockIdx.x % (cols / 64U) * 64U +
+                                   cols * (threadIdx.x / 32U) * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 4U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -2771,14 +2771,14 @@ __hoisted_g_gemm_f16_f16_64x64x64_16x16x16_4x2_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 64U)) * 64U +
-                                     blockIdx.x % (cols / 64U) * 64U +
-                                     cols * (threadIdx.x / 32U / 2U) * 64U +
-                                     threadIdx.x / 32U % 2U * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 2U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 64U)) * 64U +
+                                   blockIdx.x % (cols / 64U) * 64U +
+                                   cols * (threadIdx.x / 32U / 2U) * 64U +
+                                   threadIdx.x / 32U % 2U * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 2U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -2906,14 +2906,14 @@ __hoisted_g_gemm_bf16_f32_64x64x64_16x16x16_4x2_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 64U)) * 64U +
-                                     blockIdx.x % (cols / 64U) * 64U +
-                                     cols * (threadIdx.x / 32U / 2U) * 64U +
-                                     threadIdx.x / 32U % 2U * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 2U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 64U)) * 64U +
+                                   blockIdx.x % (cols / 64U) * 64U +
+                                   cols * (threadIdx.x / 32U / 2U) * 64U +
+                                   threadIdx.x / 32U % 2U * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 2U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -3039,13 +3039,13 @@ __hoisted_g_gemm_f16_f16_64x64x64_16x16x16_4x4_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 64U)) * 64U +
-                                     blockIdx.x % (cols / 64U) * 64U +
-                                     cols * (threadIdx.x / 32U) * 64U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 4U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 64U)) * 64U +
+                                   blockIdx.x % (cols / 64U) * 64U +
+                                   cols * (threadIdx.x / 32U) * 64U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 4U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -3172,13 +3172,13 @@ __hoisted_g_gemm_bf16_f32_64x64x64_16x16x16_4x4_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 64U)) * 64U +
-                                     blockIdx.x % (cols / 64U) * 64U +
-                                     cols * (threadIdx.x / 32U) * 64U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 4U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 64U)) * 64U +
+                                   blockIdx.x % (cols / 64U) * 64U +
+                                   cols * (threadIdx.x / 32U) * 64U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 4U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -3306,14 +3306,14 @@ __hoisted_g_gemm_f16_f16_64x128x16_16x16x16_2x4_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) * 64U +
-                                     blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U / 2U) * 32U +
-                                     threadIdx.x / 32U % 2U * 64U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 4U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 64U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U / 2U) * 32U +
+                                   threadIdx.x / 32U % 2U * 64U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 4U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -3441,14 +3441,14 @@ __hoisted_g_gemm_bf16_f32_64x128x16_16x16x16_2x4_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) * 64U +
-                                     blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U / 2U) * 32U +
-                                     threadIdx.x / 32U % 2U * 64U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 4U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 64U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U / 2U) * 32U +
+                                   threadIdx.x / 32U % 2U * 64U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 4U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -3575,13 +3575,13 @@ __hoisted_g_gemm_f16_f16_64x128x16_16x16x16_2x8_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 8U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) * 64U +
-                                     blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U) * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 8U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 64U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U) * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 8U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -3709,13 +3709,13 @@ __hoisted_g_gemm_bf16_f32_64x128x16_16x16x16_2x8_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 8U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) * 64U +
-                                     blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U) * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 8U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 64U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U) * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 8U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -3843,14 +3843,14 @@ __hoisted_g_gemm_f16_f16_64x128x16_16x16x16_4x2_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) * 64U +
-                                     blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U / 4U) * 64U +
-                                     threadIdx.x / 32U % 4U * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 2U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 64U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U / 4U) * 64U +
+                                   threadIdx.x / 32U % 4U * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 2U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -3978,14 +3978,14 @@ __hoisted_g_gemm_bf16_f32_64x128x16_16x16x16_4x2_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) * 64U +
-                                     blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U / 4U) * 64U +
-                                     threadIdx.x / 32U % 4U * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 2U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 64U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U / 4U) * 64U +
+                                   threadIdx.x / 32U % 4U * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 2U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -4113,14 +4113,14 @@ __hoisted_g_gemm_f16_f16_64x128x16_16x16x16_4x4_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) * 64U +
-                                     blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U / 2U) * 64U +
-                                     threadIdx.x / 32U % 2U * 64U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 4U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 64U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U / 2U) * 64U +
+                                   threadIdx.x / 32U % 2U * 64U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 4U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -4249,14 +4249,14 @@ __hoisted_g_gemm_bf16_f32_64x128x16_16x16x16_4x4_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) * 64U +
-                                     blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U / 2U) * 64U +
-                                     threadIdx.x / 32U % 2U * 64U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 4U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 64U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U / 2U) * 64U +
+                                   threadIdx.x / 32U % 2U * 64U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 4U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -4383,13 +4383,13 @@ __hoisted_g_gemm_f16_f16_64x128x16_16x16x16_4x8_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 8U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) * 64U +
-                                     blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U) * 64U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 8U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 64U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U) * 64U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 8U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -4517,13 +4517,13 @@ __hoisted_g_gemm_bf16_f32_64x128x16_16x16x16_4x8_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 8U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) * 64U +
-                                     blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U) * 64U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 8U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 64U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U) * 64U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 8U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -4651,14 +4651,14 @@ __hoisted_g_gemm_f16_f16_64x128x32_16x16x16_2x2_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) * 64U +
-                                     blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U / 4U) * 32U +
-                                     threadIdx.x / 32U % 4U * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 2U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 64U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U / 4U) * 32U +
+                                   threadIdx.x / 32U % 4U * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 2U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -4786,14 +4786,14 @@ __hoisted_g_gemm_bf16_f32_64x128x32_16x16x16_2x2_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) * 64U +
-                                     blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U / 4U) * 32U +
-                                     threadIdx.x / 32U % 4U * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 2U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 64U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U / 4U) * 32U +
+                                   threadIdx.x / 32U % 4U * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 2U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -4921,14 +4921,14 @@ __hoisted_g_gemm_f16_f16_64x128x32_16x16x16_2x4_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) * 64U +
-                                     blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U / 2U) * 32U +
-                                     threadIdx.x / 32U % 2U * 64U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 4U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 64U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U / 2U) * 32U +
+                                   threadIdx.x / 32U % 2U * 64U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 4U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -5056,14 +5056,14 @@ __hoisted_g_gemm_bf16_f32_64x128x32_16x16x16_2x4_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) * 64U +
-                                     blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U / 2U) * 32U +
-                                     threadIdx.x / 32U % 2U * 64U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 4U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 64U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U / 2U) * 32U +
+                                   threadIdx.x / 32U % 2U * 64U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 4U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -5190,13 +5190,13 @@ __hoisted_g_gemm_f16_f16_64x128x32_16x16x16_2x8_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 8U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) * 64U +
-                                     blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U) * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 8U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 64U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U) * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 8U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -5324,13 +5324,13 @@ __hoisted_g_gemm_bf16_f32_64x128x32_16x16x16_2x8_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 8U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) * 64U +
-                                     blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U) * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 8U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 64U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U) * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 8U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -5458,14 +5458,14 @@ __hoisted_g_gemm_f16_f16_64x128x32_16x16x16_4x2_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) * 64U +
-                                     blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U / 4U) * 64U +
-                                     threadIdx.x / 32U % 4U * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 2U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 64U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U / 4U) * 64U +
+                                   threadIdx.x / 32U % 4U * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 2U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -5593,14 +5593,14 @@ __hoisted_g_gemm_bf16_f32_64x128x32_16x16x16_4x2_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) * 64U +
-                                     blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U / 4U) * 64U +
-                                     threadIdx.x / 32U % 4U * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 2U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 64U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U / 4U) * 64U +
+                                   threadIdx.x / 32U % 4U * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 2U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -5728,14 +5728,14 @@ __hoisted_g_gemm_f16_f16_64x128x32_16x16x16_4x4_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) * 64U +
-                                     blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U / 2U) * 64U +
-                                     threadIdx.x / 32U % 2U * 64U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 4U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 64U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U / 2U) * 64U +
+                                   threadIdx.x / 32U % 2U * 64U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 4U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -5864,14 +5864,14 @@ __hoisted_g_gemm_bf16_f32_64x128x32_16x16x16_4x4_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) * 64U +
-                                     blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U / 2U) * 64U +
-                                     threadIdx.x / 32U % 2U * 64U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 4U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 64U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U / 2U) * 64U +
+                                   threadIdx.x / 32U % 2U * 64U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 4U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -5998,13 +5998,13 @@ __hoisted_g_gemm_f16_f16_64x128x32_16x16x16_4x8_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 8U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) * 64U +
-                                     blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U) * 64U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 8U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 64U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U) * 64U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 8U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -6132,13 +6132,13 @@ __hoisted_g_gemm_bf16_f32_64x128x32_16x16x16_4x8_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 8U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) * 64U +
-                                     blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U) * 64U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 8U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 64U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U) * 64U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 8U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -6266,14 +6266,14 @@ __hoisted_g_gemm_f16_f16_64x128x64_16x16x16_2x2_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) * 64U +
-                                     blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U / 4U) * 32U +
-                                     threadIdx.x / 32U % 4U * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 2U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 64U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U / 4U) * 32U +
+                                   threadIdx.x / 32U % 4U * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 2U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -6401,14 +6401,14 @@ __hoisted_g_gemm_bf16_f32_64x128x64_16x16x16_2x2_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) * 64U +
-                                     blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U / 4U) * 32U +
-                                     threadIdx.x / 32U % 4U * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 2U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 64U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U / 4U) * 32U +
+                                   threadIdx.x / 32U % 4U * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 2U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -6536,14 +6536,14 @@ __hoisted_g_gemm_f16_f16_64x128x64_16x16x16_2x4_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) * 64U +
-                                     blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U / 2U) * 32U +
-                                     threadIdx.x / 32U % 2U * 64U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 4U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 64U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U / 2U) * 32U +
+                                   threadIdx.x / 32U % 2U * 64U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 4U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -6671,14 +6671,14 @@ __hoisted_g_gemm_bf16_f32_64x128x64_16x16x16_2x4_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) * 64U +
-                                     blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U / 2U) * 32U +
-                                     threadIdx.x / 32U % 2U * 64U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 4U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 64U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U / 2U) * 32U +
+                                   threadIdx.x / 32U % 2U * 64U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 4U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -6805,13 +6805,13 @@ __hoisted_g_gemm_f16_f16_64x128x64_16x16x16_2x8_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 8U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) * 64U +
-                                     blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U) * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 8U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 64U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U) * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 8U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -6939,13 +6939,13 @@ __hoisted_g_gemm_bf16_f32_64x128x64_16x16x16_2x8_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 8U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) * 64U +
-                                     blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U) * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 8U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 64U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U) * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 8U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -7073,14 +7073,14 @@ __hoisted_g_gemm_f16_f16_64x128x64_16x16x16_4x2_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) * 64U +
-                                     blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U / 4U) * 64U +
-                                     threadIdx.x / 32U % 4U * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 2U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 64U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U / 4U) * 64U +
+                                   threadIdx.x / 32U % 4U * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 2U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -7208,14 +7208,14 @@ __hoisted_g_gemm_bf16_f32_64x128x64_16x16x16_4x2_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) * 64U +
-                                     blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U / 4U) * 64U +
-                                     threadIdx.x / 32U % 4U * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 2U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 64U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U / 4U) * 64U +
+                                   threadIdx.x / 32U % 4U * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 2U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -7343,14 +7343,14 @@ __hoisted_g_gemm_f16_f16_64x128x64_16x16x16_4x4_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) * 64U +
-                                     blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U / 2U) * 64U +
-                                     threadIdx.x / 32U % 2U * 64U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 4U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 64U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U / 2U) * 64U +
+                                   threadIdx.x / 32U % 2U * 64U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 4U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -7479,14 +7479,14 @@ __hoisted_g_gemm_bf16_f32_64x128x64_16x16x16_4x4_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) * 64U +
-                                     blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U / 2U) * 64U +
-                                     threadIdx.x / 32U % 2U * 64U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 4U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 64U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U / 2U) * 64U +
+                                   threadIdx.x / 32U % 2U * 64U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 4U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -7613,13 +7613,13 @@ __hoisted_g_gemm_f16_f16_64x128x64_16x16x16_4x8_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 8U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) * 64U +
-                                     blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U) * 64U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 8U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 64U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U) * 64U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 8U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -7747,13 +7747,13 @@ __hoisted_g_gemm_bf16_f32_64x128x64_16x16x16_4x8_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 8U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) * 64U +
-                                     blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U) * 64U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 8U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 64U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U) * 64U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 8U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -7879,13 +7879,13 @@ __hoisted_g_gemm_f16_f16_128x64x16_16x16x16_2x4_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 64U)) * 128U +
-                                     blockIdx.x % (cols / 64U) * 64U +
-                                     cols * (threadIdx.x / 32U) * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 4U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 64U)) * 128U +
+                                   blockIdx.x % (cols / 64U) * 64U +
+                                   cols * (threadIdx.x / 32U) * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 4U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -8011,13 +8011,13 @@ __hoisted_g_gemm_bf16_f32_128x64x16_16x16x16_2x4_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 64U)) * 128U +
-                                     blockIdx.x % (cols / 64U) * 64U +
-                                     cols * (threadIdx.x / 32U) * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 4U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 64U)) * 128U +
+                                   blockIdx.x % (cols / 64U) * 64U +
+                                   cols * (threadIdx.x / 32U) * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 4U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -8145,14 +8145,14 @@ __hoisted_g_gemm_f16_f16_128x64x16_16x16x16_4x2_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 64U)) * 128U +
-                                     blockIdx.x % (cols / 64U) * 64U +
-                                     cols * (threadIdx.x / 32U / 2U) * 64U +
-                                     threadIdx.x / 32U % 2U * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 2U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 64U)) * 128U +
+                                   blockIdx.x % (cols / 64U) * 64U +
+                                   cols * (threadIdx.x / 32U / 2U) * 64U +
+                                   threadIdx.x / 32U % 2U * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 2U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -8280,14 +8280,14 @@ __hoisted_g_gemm_bf16_f32_128x64x16_16x16x16_4x2_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 64U)) * 128U +
-                                     blockIdx.x % (cols / 64U) * 64U +
-                                     cols * (threadIdx.x / 32U / 2U) * 64U +
-                                     threadIdx.x / 32U % 2U * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 2U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 64U)) * 128U +
+                                   blockIdx.x % (cols / 64U) * 64U +
+                                   cols * (threadIdx.x / 32U / 2U) * 64U +
+                                   threadIdx.x / 32U % 2U * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 2U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -8413,13 +8413,13 @@ __hoisted_g_gemm_f16_f16_128x64x16_16x16x16_4x4_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 64U)) * 128U +
-                                     blockIdx.x % (cols / 64U) * 64U +
-                                     cols * (threadIdx.x / 32U) * 64U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 4U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 64U)) * 128U +
+                                   blockIdx.x % (cols / 64U) * 64U +
+                                   cols * (threadIdx.x / 32U) * 64U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 4U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -8546,13 +8546,13 @@ __hoisted_g_gemm_bf16_f32_128x64x16_16x16x16_4x4_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 64U)) * 128U +
-                                     blockIdx.x % (cols / 64U) * 64U +
-                                     cols * (threadIdx.x / 32U) * 64U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 4U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 64U)) * 128U +
+                                   blockIdx.x % (cols / 64U) * 64U +
+                                   cols * (threadIdx.x / 32U) * 64U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 4U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -8680,14 +8680,14 @@ __hoisted_g_gemm_f16_f16_128x64x16_16x16x16_8x2_0(uint32_t shared,
     for (; i < 8U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 64U)) * 128U +
-                                     blockIdx.x % (cols / 64U) * 64U +
-                                     cols * (threadIdx.x / 32U / 2U) * 128U +
-                                     threadIdx.x / 32U % 2U * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 2U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 64U)) * 128U +
+                                   blockIdx.x % (cols / 64U) * 64U +
+                                   cols * (threadIdx.x / 32U / 2U) * 128U +
+                                   threadIdx.x / 32U % 2U * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 2U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -8816,14 +8816,14 @@ __hoisted_g_gemm_bf16_f32_128x64x16_16x16x16_8x2_0(uint32_t shared,
     for (; i < 8U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 64U)) * 128U +
-                                     blockIdx.x % (cols / 64U) * 64U +
-                                     cols * (threadIdx.x / 32U / 2U) * 128U +
-                                     threadIdx.x / 32U % 2U * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 2U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 64U)) * 128U +
+                                   blockIdx.x % (cols / 64U) * 64U +
+                                   cols * (threadIdx.x / 32U / 2U) * 128U +
+                                   threadIdx.x / 32U % 2U * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 2U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -8949,13 +8949,13 @@ __hoisted_g_gemm_f16_f16_128x64x16_16x16x16_8x4_0(uint32_t shared,
     for (; i < 8U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 64U)) * 128U +
-                                     blockIdx.x % (cols / 64U) * 64U +
-                                     cols * (threadIdx.x / 32U) * 128U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 4U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 64U)) * 128U +
+                                   blockIdx.x % (cols / 64U) * 64U +
+                                   cols * (threadIdx.x / 32U) * 128U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 4U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -9082,13 +9082,13 @@ __hoisted_g_gemm_bf16_f32_128x64x16_16x16x16_8x4_0(uint32_t shared,
     for (; i < 8U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 64U)) * 128U +
-                                     blockIdx.x % (cols / 64U) * 64U +
-                                     cols * (threadIdx.x / 32U) * 128U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 4U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 64U)) * 128U +
+                                   blockIdx.x % (cols / 64U) * 64U +
+                                   cols * (threadIdx.x / 32U) * 128U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 4U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -9216,14 +9216,14 @@ __hoisted_g_gemm_f16_f16_128x64x32_16x16x16_2x2_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 64U)) * 128U +
-                                     blockIdx.x % (cols / 64U) * 64U +
-                                     cols * (threadIdx.x / 32U / 2U) * 32U +
-                                     threadIdx.x / 32U % 2U * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 2U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 64U)) * 128U +
+                                   blockIdx.x % (cols / 64U) * 64U +
+                                   cols * (threadIdx.x / 32U / 2U) * 32U +
+                                   threadIdx.x / 32U % 2U * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 2U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -9351,14 +9351,14 @@ __hoisted_g_gemm_bf16_f32_128x64x32_16x16x16_2x2_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 64U)) * 128U +
-                                     blockIdx.x % (cols / 64U) * 64U +
-                                     cols * (threadIdx.x / 32U / 2U) * 32U +
-                                     threadIdx.x / 32U % 2U * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 2U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 64U)) * 128U +
+                                   blockIdx.x % (cols / 64U) * 64U +
+                                   cols * (threadIdx.x / 32U / 2U) * 32U +
+                                   threadIdx.x / 32U % 2U * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 2U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -9484,13 +9484,13 @@ __hoisted_g_gemm_f16_f16_128x64x32_16x16x16_2x4_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 64U)) * 128U +
-                                     blockIdx.x % (cols / 64U) * 64U +
-                                     cols * (threadIdx.x / 32U) * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 4U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 64U)) * 128U +
+                                   blockIdx.x % (cols / 64U) * 64U +
+                                   cols * (threadIdx.x / 32U) * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 4U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -9616,13 +9616,13 @@ __hoisted_g_gemm_bf16_f32_128x64x32_16x16x16_2x4_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 64U)) * 128U +
-                                     blockIdx.x % (cols / 64U) * 64U +
-                                     cols * (threadIdx.x / 32U) * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 4U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 64U)) * 128U +
+                                   blockIdx.x % (cols / 64U) * 64U +
+                                   cols * (threadIdx.x / 32U) * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 4U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -9750,14 +9750,14 @@ __hoisted_g_gemm_f16_f16_128x64x32_16x16x16_4x2_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 64U)) * 128U +
-                                     blockIdx.x % (cols / 64U) * 64U +
-                                     cols * (threadIdx.x / 32U / 2U) * 64U +
-                                     threadIdx.x / 32U % 2U * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 2U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 64U)) * 128U +
+                                   blockIdx.x % (cols / 64U) * 64U +
+                                   cols * (threadIdx.x / 32U / 2U) * 64U +
+                                   threadIdx.x / 32U % 2U * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 2U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -9885,14 +9885,14 @@ __hoisted_g_gemm_bf16_f32_128x64x32_16x16x16_4x2_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 64U)) * 128U +
-                                     blockIdx.x % (cols / 64U) * 64U +
-                                     cols * (threadIdx.x / 32U / 2U) * 64U +
-                                     threadIdx.x / 32U % 2U * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 2U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 64U)) * 128U +
+                                   blockIdx.x % (cols / 64U) * 64U +
+                                   cols * (threadIdx.x / 32U / 2U) * 64U +
+                                   threadIdx.x / 32U % 2U * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 2U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -10018,13 +10018,13 @@ __hoisted_g_gemm_f16_f16_128x64x32_16x16x16_4x4_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 64U)) * 128U +
-                                     blockIdx.x % (cols / 64U) * 64U +
-                                     cols * (threadIdx.x / 32U) * 64U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 4U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 64U)) * 128U +
+                                   blockIdx.x % (cols / 64U) * 64U +
+                                   cols * (threadIdx.x / 32U) * 64U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 4U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -10151,13 +10151,13 @@ __hoisted_g_gemm_bf16_f32_128x64x32_16x16x16_4x4_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 64U)) * 128U +
-                                     blockIdx.x % (cols / 64U) * 64U +
-                                     cols * (threadIdx.x / 32U) * 64U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 4U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 64U)) * 128U +
+                                   blockIdx.x % (cols / 64U) * 64U +
+                                   cols * (threadIdx.x / 32U) * 64U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 4U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -10285,14 +10285,14 @@ __hoisted_g_gemm_f16_f16_128x64x32_16x16x16_8x2_0(uint32_t shared,
     for (; i < 8U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 64U)) * 128U +
-                                     blockIdx.x % (cols / 64U) * 64U +
-                                     cols * (threadIdx.x / 32U / 2U) * 128U +
-                                     threadIdx.x / 32U % 2U * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 2U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 64U)) * 128U +
+                                   blockIdx.x % (cols / 64U) * 64U +
+                                   cols * (threadIdx.x / 32U / 2U) * 128U +
+                                   threadIdx.x / 32U % 2U * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 2U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -10421,14 +10421,14 @@ __hoisted_g_gemm_bf16_f32_128x64x32_16x16x16_8x2_0(uint32_t shared,
     for (; i < 8U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 64U)) * 128U +
-                                     blockIdx.x % (cols / 64U) * 64U +
-                                     cols * (threadIdx.x / 32U / 2U) * 128U +
-                                     threadIdx.x / 32U % 2U * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 2U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 64U)) * 128U +
+                                   blockIdx.x % (cols / 64U) * 64U +
+                                   cols * (threadIdx.x / 32U / 2U) * 128U +
+                                   threadIdx.x / 32U % 2U * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 2U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -10554,13 +10554,13 @@ __hoisted_g_gemm_f16_f16_128x64x32_16x16x16_8x4_0(uint32_t shared,
     for (; i < 8U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 64U)) * 128U +
-                                     blockIdx.x % (cols / 64U) * 64U +
-                                     cols * (threadIdx.x / 32U) * 128U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 4U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 64U)) * 128U +
+                                   blockIdx.x % (cols / 64U) * 64U +
+                                   cols * (threadIdx.x / 32U) * 128U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 4U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -10687,13 +10687,13 @@ __hoisted_g_gemm_bf16_f32_128x64x32_16x16x16_8x4_0(uint32_t shared,
     for (; i < 8U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 64U)) * 128U +
-                                     blockIdx.x % (cols / 64U) * 64U +
-                                     cols * (threadIdx.x / 32U) * 128U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 4U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 64U)) * 128U +
+                                   blockIdx.x % (cols / 64U) * 64U +
+                                   cols * (threadIdx.x / 32U) * 128U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 4U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -10821,14 +10821,14 @@ __hoisted_g_gemm_f16_f16_128x64x64_16x16x16_2x2_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 64U)) * 128U +
-                                     blockIdx.x % (cols / 64U) * 64U +
-                                     cols * (threadIdx.x / 32U / 2U) * 32U +
-                                     threadIdx.x / 32U % 2U * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 2U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 64U)) * 128U +
+                                   blockIdx.x % (cols / 64U) * 64U +
+                                   cols * (threadIdx.x / 32U / 2U) * 32U +
+                                   threadIdx.x / 32U % 2U * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 2U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -10956,14 +10956,14 @@ __hoisted_g_gemm_bf16_f32_128x64x64_16x16x16_2x2_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 64U)) * 128U +
-                                     blockIdx.x % (cols / 64U) * 64U +
-                                     cols * (threadIdx.x / 32U / 2U) * 32U +
-                                     threadIdx.x / 32U % 2U * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 2U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 64U)) * 128U +
+                                   blockIdx.x % (cols / 64U) * 64U +
+                                   cols * (threadIdx.x / 32U / 2U) * 32U +
+                                   threadIdx.x / 32U % 2U * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 2U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -11089,13 +11089,13 @@ __hoisted_g_gemm_f16_f16_128x64x64_16x16x16_2x4_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 64U)) * 128U +
-                                     blockIdx.x % (cols / 64U) * 64U +
-                                     cols * (threadIdx.x / 32U) * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 4U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 64U)) * 128U +
+                                   blockIdx.x % (cols / 64U) * 64U +
+                                   cols * (threadIdx.x / 32U) * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 4U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -11221,13 +11221,13 @@ __hoisted_g_gemm_bf16_f32_128x64x64_16x16x16_2x4_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 64U)) * 128U +
-                                     blockIdx.x % (cols / 64U) * 64U +
-                                     cols * (threadIdx.x / 32U) * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 4U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 64U)) * 128U +
+                                   blockIdx.x % (cols / 64U) * 64U +
+                                   cols * (threadIdx.x / 32U) * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 4U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -11355,14 +11355,14 @@ __hoisted_g_gemm_f16_f16_128x64x64_16x16x16_4x2_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 64U)) * 128U +
-                                     blockIdx.x % (cols / 64U) * 64U +
-                                     cols * (threadIdx.x / 32U / 2U) * 64U +
-                                     threadIdx.x / 32U % 2U * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 2U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 64U)) * 128U +
+                                   blockIdx.x % (cols / 64U) * 64U +
+                                   cols * (threadIdx.x / 32U / 2U) * 64U +
+                                   threadIdx.x / 32U % 2U * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 2U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -11490,14 +11490,14 @@ __hoisted_g_gemm_bf16_f32_128x64x64_16x16x16_4x2_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 64U)) * 128U +
-                                     blockIdx.x % (cols / 64U) * 64U +
-                                     cols * (threadIdx.x / 32U / 2U) * 64U +
-                                     threadIdx.x / 32U % 2U * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 2U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 64U)) * 128U +
+                                   blockIdx.x % (cols / 64U) * 64U +
+                                   cols * (threadIdx.x / 32U / 2U) * 64U +
+                                   threadIdx.x / 32U % 2U * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 2U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -11623,13 +11623,13 @@ __hoisted_g_gemm_f16_f16_128x64x64_16x16x16_4x4_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 64U)) * 128U +
-                                     blockIdx.x % (cols / 64U) * 64U +
-                                     cols * (threadIdx.x / 32U) * 64U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 4U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 64U)) * 128U +
+                                   blockIdx.x % (cols / 64U) * 64U +
+                                   cols * (threadIdx.x / 32U) * 64U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 4U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -11756,13 +11756,13 @@ __hoisted_g_gemm_bf16_f32_128x64x64_16x16x16_4x4_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 64U)) * 128U +
-                                     blockIdx.x % (cols / 64U) * 64U +
-                                     cols * (threadIdx.x / 32U) * 64U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 4U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 64U)) * 128U +
+                                   blockIdx.x % (cols / 64U) * 64U +
+                                   cols * (threadIdx.x / 32U) * 64U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 4U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -11890,14 +11890,14 @@ __hoisted_g_gemm_f16_f16_128x64x64_16x16x16_8x2_0(uint32_t shared,
     for (; i < 8U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 64U)) * 128U +
-                                     blockIdx.x % (cols / 64U) * 64U +
-                                     cols * (threadIdx.x / 32U / 2U) * 128U +
-                                     threadIdx.x / 32U % 2U * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 2U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 64U)) * 128U +
+                                   blockIdx.x % (cols / 64U) * 64U +
+                                   cols * (threadIdx.x / 32U / 2U) * 128U +
+                                   threadIdx.x / 32U % 2U * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 2U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -12026,14 +12026,14 @@ __hoisted_g_gemm_bf16_f32_128x64x64_16x16x16_8x2_0(uint32_t shared,
     for (; i < 8U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 64U)) * 128U +
-                                     blockIdx.x % (cols / 64U) * 64U +
-                                     cols * (threadIdx.x / 32U / 2U) * 128U +
-                                     threadIdx.x / 32U % 2U * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 2U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 64U)) * 128U +
+                                   blockIdx.x % (cols / 64U) * 64U +
+                                   cols * (threadIdx.x / 32U / 2U) * 128U +
+                                   threadIdx.x / 32U % 2U * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 2U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -12159,13 +12159,13 @@ __hoisted_g_gemm_f16_f16_128x64x64_16x16x16_8x4_0(uint32_t shared,
     for (; i < 8U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 64U)) * 128U +
-                                     blockIdx.x % (cols / 64U) * 64U +
-                                     cols * (threadIdx.x / 32U) * 128U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 4U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 64U)) * 128U +
+                                   blockIdx.x % (cols / 64U) * 64U +
+                                   cols * (threadIdx.x / 32U) * 128U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 4U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -12292,13 +12292,13 @@ __hoisted_g_gemm_bf16_f32_128x64x64_16x16x16_8x4_0(uint32_t shared,
     for (; i < 8U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 64U)) * 128U +
-                                     blockIdx.x % (cols / 64U) * 64U +
-                                     cols * (threadIdx.x / 32U) * 128U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 4U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 64U)) * 128U +
+                                   blockIdx.x % (cols / 64U) * 64U +
+                                   cols * (threadIdx.x / 32U) * 128U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 4U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -12426,14 +12426,14 @@ __hoisted_g_gemm_f16_f16_128x128x16_16x16x16_2x4_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) *
-                                     128U + blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U / 2U) * 32U +
-                                     threadIdx.x / 32U % 2U * 64U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 4U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 128U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U / 2U) * 32U +
+                                   threadIdx.x / 32U % 2U * 64U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 4U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -12563,14 +12563,14 @@ __hoisted_g_gemm_bf16_f32_128x128x16_16x16x16_2x4_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) *
-                                     128U + blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U / 2U) * 32U +
-                                     threadIdx.x / 32U % 2U * 64U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 4U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 128U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U / 2U) * 32U +
+                                   threadIdx.x / 32U % 2U * 64U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 4U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -12698,13 +12698,13 @@ __hoisted_g_gemm_f16_f16_128x128x16_16x16x16_2x8_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 8U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) *
-                                     128U + blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U) * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 8U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 128U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U) * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 8U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -12834,13 +12834,13 @@ __hoisted_g_gemm_bf16_f32_128x128x16_16x16x16_2x8_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 8U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) *
-                                     128U + blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U) * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 8U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 128U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U) * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 8U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -12969,14 +12969,14 @@ __hoisted_g_gemm_f16_f16_128x128x16_16x16x16_4x2_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) *
-                                     128U + blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U / 4U) * 64U +
-                                     threadIdx.x / 32U % 4U * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 2U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 128U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U / 4U) * 64U +
+                                   threadIdx.x / 32U % 4U * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 2U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -13106,14 +13106,14 @@ __hoisted_g_gemm_bf16_f32_128x128x16_16x16x16_4x2_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) *
-                                     128U + blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U / 4U) * 64U +
-                                     threadIdx.x / 32U % 4U * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 2U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 128U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U / 4U) * 64U +
+                                   threadIdx.x / 32U % 4U * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 2U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -13242,14 +13242,14 @@ __hoisted_g_gemm_f16_f16_128x128x16_16x16x16_4x4_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) *
-                                     128U + blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U / 2U) * 64U +
-                                     threadIdx.x / 32U % 2U * 64U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 4U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 128U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U / 2U) * 64U +
+                                   threadIdx.x / 32U % 2U * 64U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 4U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -13380,14 +13380,14 @@ __hoisted_g_gemm_bf16_f32_128x128x16_16x16x16_4x4_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) *
-                                     128U + blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U / 2U) * 64U +
-                                     threadIdx.x / 32U % 2U * 64U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 4U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 128U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U / 2U) * 64U +
+                                   threadIdx.x / 32U % 2U * 64U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 4U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -13515,13 +13515,13 @@ __hoisted_g_gemm_f16_f16_128x128x16_16x16x16_4x8_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 8U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) *
-                                     128U + blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U) * 64U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 8U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 128U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U) * 64U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 8U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -13651,13 +13651,13 @@ __hoisted_g_gemm_bf16_f32_128x128x16_16x16x16_4x8_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 8U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) *
-                                     128U + blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U) * 64U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 8U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 128U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U) * 64U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 8U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -13786,14 +13786,14 @@ __hoisted_g_gemm_f16_f16_128x128x16_16x16x16_8x2_0(uint32_t shared,
     for (; i < 8U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) *
-                                     128U + blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U / 4U) * 128U +
-                                     threadIdx.x / 32U % 4U * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 2U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 128U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U / 4U) * 128U +
+                                   threadIdx.x / 32U % 4U * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 2U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -13924,14 +13924,14 @@ __hoisted_g_gemm_bf16_f32_128x128x16_16x16x16_8x2_0(uint32_t shared,
     for (; i < 8U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) *
-                                     128U + blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U / 4U) * 128U +
-                                     threadIdx.x / 32U % 4U * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 2U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 128U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U / 4U) * 128U +
+                                   threadIdx.x / 32U % 4U * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 2U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -14060,14 +14060,14 @@ __hoisted_g_gemm_f16_f16_128x128x16_16x16x16_8x4_0(uint32_t shared,
     for (; i < 8U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) *
-                                     128U + blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U / 2U) * 128U +
-                                     threadIdx.x / 32U % 2U * 64U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 4U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 128U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U / 2U) * 128U +
+                                   threadIdx.x / 32U % 2U * 64U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 4U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -14198,14 +14198,14 @@ __hoisted_g_gemm_bf16_f32_128x128x16_16x16x16_8x4_0(uint32_t shared,
     for (; i < 8U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) *
-                                     128U + blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U / 2U) * 128U +
-                                     threadIdx.x / 32U % 2U * 64U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 4U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 128U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U / 2U) * 128U +
+                                   threadIdx.x / 32U % 2U * 64U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 4U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -14333,13 +14333,13 @@ __hoisted_g_gemm_f16_f16_128x128x16_16x16x16_8x8_0(uint32_t shared,
     for (; i < 8U; i++) {
         uint32_t j = 0U;
         for (; j < 8U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) *
-                                     128U + blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U) * 128U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 8U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 128U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U) * 128U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 8U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -14469,13 +14469,13 @@ __hoisted_g_gemm_bf16_f32_128x128x16_16x16x16_8x8_0(uint32_t shared,
     for (; i < 8U; i++) {
         uint32_t j = 0U;
         for (; j < 8U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) *
-                                     128U + blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U) * 128U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 8U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 128U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U) * 128U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 8U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -14604,14 +14604,14 @@ __hoisted_g_gemm_f16_f16_128x128x32_16x16x16_2x2_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) *
-                                     128U + blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U / 4U) * 32U +
-                                     threadIdx.x / 32U % 4U * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 2U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 128U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U / 4U) * 32U +
+                                   threadIdx.x / 32U % 4U * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 2U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -14741,14 +14741,14 @@ __hoisted_g_gemm_bf16_f32_128x128x32_16x16x16_2x2_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) *
-                                     128U + blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U / 4U) * 32U +
-                                     threadIdx.x / 32U % 4U * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 2U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 128U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U / 4U) * 32U +
+                                   threadIdx.x / 32U % 4U * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 2U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -14877,14 +14877,14 @@ __hoisted_g_gemm_f16_f16_128x128x32_16x16x16_2x4_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) *
-                                     128U + blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U / 2U) * 32U +
-                                     threadIdx.x / 32U % 2U * 64U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 4U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 128U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U / 2U) * 32U +
+                                   threadIdx.x / 32U % 2U * 64U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 4U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -15014,14 +15014,14 @@ __hoisted_g_gemm_bf16_f32_128x128x32_16x16x16_2x4_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) *
-                                     128U + blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U / 2U) * 32U +
-                                     threadIdx.x / 32U % 2U * 64U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 4U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 128U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U / 2U) * 32U +
+                                   threadIdx.x / 32U % 2U * 64U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 4U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -15149,13 +15149,13 @@ __hoisted_g_gemm_f16_f16_128x128x32_16x16x16_2x8_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 8U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) *
-                                     128U + blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U) * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 8U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 128U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U) * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 8U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -15285,13 +15285,13 @@ __hoisted_g_gemm_bf16_f32_128x128x32_16x16x16_2x8_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 8U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) *
-                                     128U + blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U) * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 8U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 128U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U) * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 8U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -15420,14 +15420,14 @@ __hoisted_g_gemm_f16_f16_128x128x32_16x16x16_4x2_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) *
-                                     128U + blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U / 4U) * 64U +
-                                     threadIdx.x / 32U % 4U * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 2U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 128U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U / 4U) * 64U +
+                                   threadIdx.x / 32U % 4U * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 2U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -15557,14 +15557,14 @@ __hoisted_g_gemm_bf16_f32_128x128x32_16x16x16_4x2_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) *
-                                     128U + blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U / 4U) * 64U +
-                                     threadIdx.x / 32U % 4U * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 2U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 128U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U / 4U) * 64U +
+                                   threadIdx.x / 32U % 4U * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 2U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -15693,14 +15693,14 @@ __hoisted_g_gemm_f16_f16_128x128x32_16x16x16_4x4_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) *
-                                     128U + blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U / 2U) * 64U +
-                                     threadIdx.x / 32U % 2U * 64U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 4U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 128U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U / 2U) * 64U +
+                                   threadIdx.x / 32U % 2U * 64U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 4U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -15831,14 +15831,14 @@ __hoisted_g_gemm_bf16_f32_128x128x32_16x16x16_4x4_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) *
-                                     128U + blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U / 2U) * 64U +
-                                     threadIdx.x / 32U % 2U * 64U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 4U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 128U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U / 2U) * 64U +
+                                   threadIdx.x / 32U % 2U * 64U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 4U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -15966,13 +15966,13 @@ __hoisted_g_gemm_f16_f16_128x128x32_16x16x16_4x8_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 8U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) *
-                                     128U + blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U) * 64U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 8U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 128U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U) * 64U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 8U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -16102,13 +16102,13 @@ __hoisted_g_gemm_bf16_f32_128x128x32_16x16x16_4x8_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 8U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) *
-                                     128U + blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U) * 64U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 8U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 128U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U) * 64U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 8U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -16237,14 +16237,14 @@ __hoisted_g_gemm_f16_f16_128x128x32_16x16x16_8x2_0(uint32_t shared,
     for (; i < 8U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) *
-                                     128U + blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U / 4U) * 128U +
-                                     threadIdx.x / 32U % 4U * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 2U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 128U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U / 4U) * 128U +
+                                   threadIdx.x / 32U % 4U * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 2U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -16375,14 +16375,14 @@ __hoisted_g_gemm_bf16_f32_128x128x32_16x16x16_8x2_0(uint32_t shared,
     for (; i < 8U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) *
-                                     128U + blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U / 4U) * 128U +
-                                     threadIdx.x / 32U % 4U * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 2U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 128U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U / 4U) * 128U +
+                                   threadIdx.x / 32U % 4U * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 2U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -16511,14 +16511,14 @@ __hoisted_g_gemm_f16_f16_128x128x32_16x16x16_8x4_0(uint32_t shared,
     for (; i < 8U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) *
-                                     128U + blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U / 2U) * 128U +
-                                     threadIdx.x / 32U % 2U * 64U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 4U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 128U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U / 2U) * 128U +
+                                   threadIdx.x / 32U % 2U * 64U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 4U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -16649,14 +16649,14 @@ __hoisted_g_gemm_bf16_f32_128x128x32_16x16x16_8x4_0(uint32_t shared,
     for (; i < 8U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) *
-                                     128U + blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U / 2U) * 128U +
-                                     threadIdx.x / 32U % 2U * 64U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 4U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 128U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U / 2U) * 128U +
+                                   threadIdx.x / 32U % 2U * 64U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 4U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -16784,13 +16784,13 @@ __hoisted_g_gemm_f16_f16_128x128x32_16x16x16_8x8_0(uint32_t shared,
     for (; i < 8U; i++) {
         uint32_t j = 0U;
         for (; j < 8U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) *
-                                     128U + blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U) * 128U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 8U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 128U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U) * 128U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 8U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -16920,13 +16920,13 @@ __hoisted_g_gemm_bf16_f32_128x128x32_16x16x16_8x8_0(uint32_t shared,
     for (; i < 8U; i++) {
         uint32_t j = 0U;
         for (; j < 8U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) *
-                                     128U + blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U) * 128U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 8U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 128U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U) * 128U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 8U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -17055,14 +17055,14 @@ __hoisted_g_gemm_f16_f16_128x128x64_16x16x16_2x2_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) *
-                                     128U + blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U / 4U) * 32U +
-                                     threadIdx.x / 32U % 4U * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 2U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 128U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U / 4U) * 32U +
+                                   threadIdx.x / 32U % 4U * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 2U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -17192,14 +17192,14 @@ __hoisted_g_gemm_bf16_f32_128x128x64_16x16x16_2x2_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) *
-                                     128U + blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U / 4U) * 32U +
-                                     threadIdx.x / 32U % 4U * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 2U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 128U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U / 4U) * 32U +
+                                   threadIdx.x / 32U % 4U * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 2U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -17328,14 +17328,14 @@ __hoisted_g_gemm_f16_f16_128x128x64_16x16x16_2x4_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) *
-                                     128U + blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U / 2U) * 32U +
-                                     threadIdx.x / 32U % 2U * 64U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 4U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 128U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U / 2U) * 32U +
+                                   threadIdx.x / 32U % 2U * 64U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 4U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -17465,14 +17465,14 @@ __hoisted_g_gemm_bf16_f32_128x128x64_16x16x16_2x4_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) *
-                                     128U + blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U / 2U) * 32U +
-                                     threadIdx.x / 32U % 2U * 64U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 4U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 128U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U / 2U) * 32U +
+                                   threadIdx.x / 32U % 2U * 64U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 4U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -17600,13 +17600,13 @@ __hoisted_g_gemm_f16_f16_128x128x64_16x16x16_2x8_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 8U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) *
-                                     128U + blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U) * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 8U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 128U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U) * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 8U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -17736,13 +17736,13 @@ __hoisted_g_gemm_bf16_f32_128x128x64_16x16x16_2x8_0(uint32_t shared,
     for (; i < 2U; i++) {
         uint32_t j = 0U;
         for (; j < 8U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) *
-                                     128U + blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U) * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 8U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 128U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U) * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 8U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -17871,14 +17871,14 @@ __hoisted_g_gemm_f16_f16_128x128x64_16x16x16_4x2_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) *
-                                     128U + blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U / 4U) * 64U +
-                                     threadIdx.x / 32U % 4U * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 2U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 128U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U / 4U) * 64U +
+                                   threadIdx.x / 32U % 4U * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 2U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -18008,14 +18008,14 @@ __hoisted_g_gemm_bf16_f32_128x128x64_16x16x16_4x2_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) *
-                                     128U + blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U / 4U) * 64U +
-                                     threadIdx.x / 32U % 4U * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 2U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 128U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U / 4U) * 64U +
+                                   threadIdx.x / 32U % 4U * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 2U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -18144,14 +18144,14 @@ __hoisted_g_gemm_f16_f16_128x128x64_16x16x16_4x4_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) *
-                                     128U + blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U / 2U) * 64U +
-                                     threadIdx.x / 32U % 2U * 64U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 4U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 128U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U / 2U) * 64U +
+                                   threadIdx.x / 32U % 2U * 64U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 4U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -18282,14 +18282,14 @@ __hoisted_g_gemm_bf16_f32_128x128x64_16x16x16_4x4_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) *
-                                     128U + blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U / 2U) * 64U +
-                                     threadIdx.x / 32U % 2U * 64U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 4U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 128U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U / 2U) * 64U +
+                                   threadIdx.x / 32U % 2U * 64U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 4U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -18417,13 +18417,13 @@ __hoisted_g_gemm_f16_f16_128x128x64_16x16x16_4x8_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 8U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) *
-                                     128U + blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U) * 64U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 8U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 128U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U) * 64U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 8U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -18553,13 +18553,13 @@ __hoisted_g_gemm_bf16_f32_128x128x64_16x16x16_4x8_0(uint32_t shared,
     for (; i < 4U; i++) {
         uint32_t j = 0U;
         for (; j < 8U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) *
-                                     128U + blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U) * 64U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 8U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 128U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U) * 64U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 8U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -18688,14 +18688,14 @@ __hoisted_g_gemm_f16_f16_128x128x64_16x16x16_8x2_0(uint32_t shared,
     for (; i < 8U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) *
-                                     128U + blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U / 4U) * 128U +
-                                     threadIdx.x / 32U % 4U * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 2U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 128U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U / 4U) * 128U +
+                                   threadIdx.x / 32U % 4U * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 2U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -18826,14 +18826,14 @@ __hoisted_g_gemm_bf16_f32_128x128x64_16x16x16_8x2_0(uint32_t shared,
     for (; i < 8U; i++) {
         uint32_t j = 0U;
         for (; j < 2U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) *
-                                     128U + blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U / 4U) * 128U +
-                                     threadIdx.x / 32U % 4U * 32U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 2U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 128U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U / 4U) * 128U +
+                                   threadIdx.x / 32U % 4U * 32U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 2U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -18962,14 +18962,14 @@ __hoisted_g_gemm_f16_f16_128x128x64_16x16x16_8x4_0(uint32_t shared,
     for (; i < 8U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) *
-                                     128U + blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U / 2U) * 128U +
-                                     threadIdx.x / 32U % 2U * 64U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 4U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 128U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U / 2U) * 128U +
+                                   threadIdx.x / 32U % 2U * 64U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 4U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -19100,14 +19100,14 @@ __hoisted_g_gemm_bf16_f32_128x128x64_16x16x16_8x4_0(uint32_t shared,
     for (; i < 8U; i++) {
         uint32_t j = 0U;
         for (; j < 4U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) *
-                                     128U + blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U / 2U) * 128U +
-                                     threadIdx.x / 32U % 2U * 64U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 4U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 128U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U / 2U) * 128U +
+                                   threadIdx.x / 32U % 2U * 64U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 4U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -19235,13 +19235,13 @@ __hoisted_g_gemm_f16_f16_128x128x64_16x16x16_8x8_0(uint32_t shared,
     for (; i < 8U; i++) {
         uint32_t j = 0U;
         for (; j < 8U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) *
-                                     128U + blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U) * 128U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 8U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 128U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U) * 128U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 8U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
@@ -19371,13 +19371,13 @@ __hoisted_g_gemm_bf16_f32_128x128x64_16x16x16_8x8_0(uint32_t shared,
     for (; i < 8U; i++) {
         uint32_t j = 0U;
         for (; j < 8U; j++)
-            wmma::store_matrix_sync(gC +
-                                    (cols * (blockIdx.x / (cols / 128U)) *
-                                     128U + blockIdx.x % (cols / 128U) * 128U +
-                                     cols * (threadIdx.x / 32U) * 128U +
-                                     cols * i * 16U + j * 16U),
-                                    accFrags[i * 8U + j], cols,
-                                    wmma::mem_row_major);
+            KPR_STORE_MATRIX_SYNC(gC +
+                                  (cols * (blockIdx.x / (cols / 128U)) * 128U +
+                                   blockIdx.x % (cols / 128U) * 128U +
+                                   cols * (threadIdx.x / 32U) * 128U +
+                                   cols * i * 16U + j * 16U),
+                                  accFrags[i * 8U + j], cols,
+                                  wmma::mem_row_major);
     }
 }
 
