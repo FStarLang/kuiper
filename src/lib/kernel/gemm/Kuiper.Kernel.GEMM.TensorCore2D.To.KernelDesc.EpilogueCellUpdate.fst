@@ -15,7 +15,7 @@ module T = Kuiper.Tensor
 
 open Kuiper.Kernel.GEMM.TensorCore2D.KernelDesc
 open Kuiper.Kernel.GEMM.TensorCore2D.To.KernelDesc
-open Kuiper.Kernel.GEMM.TensorCore2D.To.KernelDesc.EpilogueCellAccess
+open Kuiper.Kernel.GEMM.TensorCore2D.To.KernelDesc.EpilogueCell
 
 let epilogue_fragment_target
   (#et_cd #et_acc : Type0)

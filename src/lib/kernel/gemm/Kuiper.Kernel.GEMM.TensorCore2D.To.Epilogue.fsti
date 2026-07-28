@@ -10,10 +10,10 @@ open Kuiper.Tensor.Layout.Alg { l2_row_major as rm }
 open Kuiper.TensorCore
 open Pulse.Lib.Array
 
-
 open Kuiper.Kernel.GEMM.TensorCore2D.KernelDesc
 open Kuiper.Kernel.GEMM.TensorCore2D.To.KernelDesc
 open Kuiper.Kernel.GEMM.TensorCore2D.To.EpilogueState
+open Kuiper.Kernel.GEMM.TensorCore2D.To.EpilogueLoopStep
 
 inline_for_extraction noextract
 fn epilogue_to

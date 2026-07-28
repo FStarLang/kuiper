@@ -34,6 +34,7 @@ let fragarrayAcc_approximates
         Seq.index em (i * wn + j) %~
           ematrix_subtile rm tm tn i j)
 
+inline_for_extraction noextract
 noeq type epilogue_dims (m n : szp) = {
   bm : szp;
   bn : szp;
@@ -159,4 +160,3 @@ let output_epilogue_state
 = forall+ (idx : natlt (wm * wn)).
     output_fragment_state_at
       gD bm bn tm tn wm wn bid wid lane rD done idx
-

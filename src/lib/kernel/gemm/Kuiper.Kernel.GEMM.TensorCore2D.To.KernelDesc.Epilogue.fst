@@ -182,6 +182,7 @@ fn epilogue_fragment_from_warp
       mrow mcol warpRow warpCol bid wid
       acc d idx lane eD0 eTarget !flat;
     let vflat = !flat;
+    Math.Lemmas.add_div_mod_1 (SZ.v vflat) warp_size;
     assert pure (SZ.v vflat < SZ.v vflat + warp_size);
     assert pure (
       SZ.v (vflat +^ warp_size) == SZ.v vflat + warp_size);

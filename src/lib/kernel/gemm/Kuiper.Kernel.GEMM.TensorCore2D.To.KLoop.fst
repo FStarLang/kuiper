@@ -34,7 +34,6 @@ open Kuiper.Kernel.GEMM.TensorCore2D.KernelDesc
 open Kuiper.Kernel.GEMM.TensorCore2D.To.KernelDesc
 open Kuiper.Kernel.GEMM.TensorCore2D.To.EpilogueState
 open Kuiper.Kernel.GEMM.TensorCore2D.To.Fragments
-open Kuiper.Kernel.GEMM.TensorCore2D.To.KLoopState
 open Kuiper.Kernel.GEMM.TensorCore2D.To.KLoopInvariant
 
 inline_for_extraction noextract

@@ -13,6 +13,7 @@ module SZ = Kuiper.SizeT
 
 open Kuiper.Kernel.GEMM.TensorCore2D.KernelDesc
 open Kuiper.Kernel.GEMM.TensorCore2D.To.KernelDesc
+open Kuiper.Kernel.GEMM.TensorCore2D.To.KernelDesc.Epilogue
 open Kuiper.Kernel.GEMM.TensorCore2D.To.EpilogueState
 
 inline_for_extraction noextract

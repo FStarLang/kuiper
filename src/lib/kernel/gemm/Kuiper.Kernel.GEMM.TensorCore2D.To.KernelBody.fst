@@ -31,10 +31,8 @@ open Kuiper.Kernel.GEMM.TensorCore2D.To.KernelDesc
 open Kuiper.Kernel.GEMM.TensorCore2D.To.Epilogue
 open Kuiper.Kernel.GEMM.TensorCore2D.To.KLoop
 open Kuiper.Kernel.GEMM.TensorCore2D.To.Finish
-open Kuiper.Kernel.GEMM.TensorCore2D.To.PrepareEpilogue
-open Kuiper.Kernel.GEMM.TensorCore2D.To.Setup
 
-#push-options "--split_queries always"
+#push-options "--split_queries no"
 inline_for_extraction noextract
 fn kf
   (#et_ab #et_cd #et_acc : Type0)
@@ -134,8 +132,22 @@ fn kf
   let wid = tid /^ warp_size;
   let warpRow : szlt (bm / (wm * tm)) = wid /^ (bn /^ (wn *^ tn));
   let warpCol : szlt (bn / (wn * tn)) = wid %^ (bn /^ (wn *^ tn));
+  Kuiper.Divides.lemma_div_product (wm * tm) bm m;
+  FStar.Math.Lemmas.lemma_eucl_div_bound
+    warpRow mrow (bm / (wm * tm));
+  FStar.Math.Lemmas.lemma_mult_le_left
+    (bm / (wm * tm)) (mrow + 1) (m / bm);
+  assert pure (
+    mrow * (bm / (wm * tm)) + warpRow < m / (wm * tm));
   let gwRow : enatlt (m / (wm * tm)) =
     mrow * (bm / (wm * tm)) + warpRow;
+  Kuiper.Divides.lemma_div_product (wn * tn) bn n;
+  FStar.Math.Lemmas.lemma_eucl_div_bound
+    warpCol mcol (bn / (wn * tn));
+  FStar.Math.Lemmas.lemma_mult_le_left
+    (bn / (wn * tn)) (mcol + 1) (n / bn);
+  assert pure (
+    mcol * (bn / (wn * tn)) + warpCol < n / (wn * tn));
   let gwCol : enatlt (n / (wn * tn)) =
     mcol * (bn / (wn * tn)) + warpCol;
 
