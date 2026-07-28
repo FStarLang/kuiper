@@ -697,7 +697,10 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
     if is_overwrite_comb gcomb then
       // Trivial overwrite combine: the read-modify-write degenerates to a plain
       // store (identical to mma_store), so we skip the old-tile load and loop.
-      EApp (EQualified ([], "wmma::store_matrix_sync"), [ gm; fr; ldm; layout ])
+      ESequence [
+        EApp (EQualified ([], "wmma::store_matrix_sync"), [ gm; fr; ldm; layout ]);
+        EApp (EQualified ([], "__syncwarp"), [ EUnit ]);
+      ]
     else begin
       let old_i = ECast (EQualified ([], "_kpr_old_v"), et_ty) in
       let acc_i = ECast (EQualified ([], "_kpr_new_v"), et_ty) in

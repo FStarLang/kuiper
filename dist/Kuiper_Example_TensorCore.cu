@@ -15,7 +15,8 @@ inline
     wmma::load_matrix_sync(fb, m2, 16U);
     wmma::fill_fragment(fc, __float2half_rn(0.0f));
     wmma::mma_sync(fc, fa, fb, fc);
-    KPR_STORE_MATRIX_SYNC(m3, fc, 16U, wmma::mem_row_major);
+    wmma::store_matrix_sync(m3, fc, 16U, wmma::mem_row_major);
+    __syncwarp();
 }
 
 inline
@@ -35,5 +36,6 @@ inline
     wmma::load_matrix_sync(fb, t2 + 784U, 48U);
     wmma::fill_fragment(fc, __float2half_rn(0.0f));
     wmma::mma_sync(fc, fa, fb, fc);
-    KPR_STORE_MATRIX_SYNC(t3 + 784U, fc, 48U, wmma::mem_row_major);
+    wmma::store_matrix_sync(t3 + 784U, fc, 48U, wmma::mem_row_major);
+    __syncwarp();
 }
