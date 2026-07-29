@@ -7,6 +7,10 @@ const char *progname = NULL;
 #define cet et
 #endif
 
+#ifndef aet
+#define aet cet
+#endif
+
 double et2double(et v)
 {
 #if et_is_half == 1
@@ -55,12 +59,18 @@ cet *cpu_mul(size_t rows, size_t shared, size_t cols, et *m1, et *m2)
 }
 
 cet *cpu_sgemm(size_t rows, size_t shared, size_t cols, et *m1_cpu, et *m2_cpu,
-               cet *m3_cpu, cet alpha, cet beta)
+               cet *m3_cpu, aet alpha, aet beta)
 {
     cet *mm = cpu_mul(rows, shared, cols, m1_cpu, m2_cpu);
     for (int i = 0; i < rows; i++) {
         for (int j = 0; j < cols; j++) {
+#if defined(aet_is_float) && aet_is_float == 1
+            mm[i * cols + j] =
+                alpha * cet2double(mm[i * cols + j]) +
+                beta * cet2double(m3_cpu[i * cols + j]);
+#else
             mm[i * cols + j] = alpha * mm[i * cols + j] + beta * m3_cpu[i * cols + j];
+#endif
             // printf("GG gemm @ (%d,%d) = %g\n", i, j, __half2float(mm[i * cols + j]));
         }
     }
