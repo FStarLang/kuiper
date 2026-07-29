@@ -68,10 +68,10 @@ val lincomb_to_approx2
   {| scalar et_cd, real_like et_cd |}
   {| float_cast et_cd et_acc, float_cast et_acc et_cd |}
   (alpha beta : et_acc)
-  : Lemma (ensures
-      approx2
-        (lincomb_to #et_acc #et_cd alpha beta)
-        (rlincomb (to_real alpha) (to_real beta)))
+  : Lemma (approx2 (lincomb_to #et_acc #et_cd alpha beta)
+                   (rlincomb (to_real alpha) (to_real beta)))
+          [SMTPat (approx2 (lincomb_to #et_acc #et_cd alpha beta)
+                           (rlincomb (to_real alpha) (to_real beta)))]
 
 (* These functions defined a matmul over potentially
 different types, which is useful to state a matmul

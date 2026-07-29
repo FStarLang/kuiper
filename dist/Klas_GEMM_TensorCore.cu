@@ -86,6 +86,7 @@ __hoisted_g_gemm_f16_f16_64x64x16_16x16x16_0(uint32_t shared,
                              cols * (threadIdx.x / 32U / 4U) * 16U +
                              threadIdx.x / 32U % 4U * 16U), accumFrag, cols,
                             wmma::mem_row_major);
+    __syncwarp();
 }
 
 void
@@ -196,6 +197,7 @@ __hoisted_g_gemm_f16_f16_32x32x32_32x8x16_0(uint32_t shared,
                              cols * (threadIdx.x / 32U / 4U) * 32U +
                              threadIdx.x / 32U % 4U * 8U), accumFrag, cols,
                             wmma::mem_row_major);
+    __syncwarp();
 }
 
 void
@@ -302,6 +304,7 @@ __hoisted_g_gemm_f16_f16_32x32x32_8x32x16_0(uint32_t shared,
                              blockIdx.x % (cols / 32U) * 32U +
                              cols * (threadIdx.x / 32U) * 8U), accumFrag, cols,
                             wmma::mem_row_major);
+    __syncwarp();
 }
 
 void
@@ -408,6 +411,7 @@ __hoisted_g_gemm_f16_f16_32x8x16_32x8x16_0(uint32_t shared,
                              blockIdx.x % (cols / 8U) * 8U +
                              cols * (threadIdx.x / 32U) * 32U), accumFrag, cols,
                             wmma::mem_row_major);
+    __syncwarp();
 }
 
 void
@@ -514,6 +518,7 @@ __hoisted_g_gemm_f16_f16_8x32x16_8x32x16_0(uint32_t shared,
                              blockIdx.x % (cols / 32U) * 32U +
                              cols * (threadIdx.x / 32U) * 8U), accumFrag, cols,
                             wmma::mem_row_major);
+    __syncwarp();
 }
 
 void
@@ -625,6 +630,7 @@ __hoisted_g_gemm_f16_f16_64x64x64_16x16x16_0(uint32_t shared,
                              cols * (threadIdx.x / 32U / 4U) * 16U +
                              threadIdx.x / 32U % 4U * 16U), accumFrag, cols,
                             wmma::mem_row_major);
+    __syncwarp();
 }
 
 void
@@ -735,6 +741,7 @@ __hoisted_g_gemm_f16_f16_64x64x64_32x8x16_0(uint32_t shared,
                              cols * (threadIdx.x / 32U / 8U) * 32U +
                              threadIdx.x / 32U % 8U * 8U), accumFrag, cols,
                             wmma::mem_row_major);
+    __syncwarp();
 }
 
 void
@@ -846,6 +853,7 @@ __hoisted_g_gemm_f16_f16_64x64x64_8x32x16_0(uint32_t shared,
                              cols * (threadIdx.x / 32U / 2U) * 8U +
                              threadIdx.x / 32U % 2U * 32U), accumFrag, cols,
                             wmma::mem_row_major);
+    __syncwarp();
 }
 
 void
@@ -957,6 +965,7 @@ __hoisted_g_gemm_f16_f16_32x32x32_16x16x16_0(uint32_t shared,
                              cols * (threadIdx.x / 32U / 2U) * 16U +
                              threadIdx.x / 32U % 2U * 16U), accumFrag, cols,
                             wmma::mem_row_major);
+    __syncwarp();
 }
 
 void
@@ -1063,6 +1072,7 @@ __hoisted_g_gemm_f16_f16_16x16x16_16x16x16_0(uint32_t shared,
                              blockIdx.x % (cols / 16U) * 16U +
                              cols * (threadIdx.x / 32U) * 16U), accumFrag, cols,
                             wmma::mem_row_major);
+    __syncwarp();
 }
 
 void
@@ -1174,6 +1184,7 @@ __hoisted_g_gemm_f16_f32_32x32x32_16x16x16_0(uint32_t shared,
                              cols * (threadIdx.x / 32U / 2U) * 16U +
                              threadIdx.x / 32U % 2U * 16U), accumFrag, cols,
                             wmma::mem_row_major);
+    __syncwarp();
 }
 
 void

@@ -17,6 +17,7 @@ open Kuiper.Kernel.GEMM.Tiled.Common.Vec
 module MS = Kuiper.Spec.GEMM
 module SZ = Kuiper.SizeT
 module T = Kuiper.Tensor
+module Chest = Kuiper.Chest
 
 // Using 1.0R /. x can lead to many odd SMT failures...
 // work around it. We should investigate why and fix it.
@@ -95,6 +96,80 @@ let warp_tile_approximates
     warp_tile_pts_to gC bm bn tm tn wm wn bid wid em **
     pure (em %~ rm)
 
+let warp_tile_i
+  (#m #n : pos)
+  (bm bn bk
+   tm tn tk
+   wm wn : pos { constraints bm bn bk tm tn tk wm wn })
+  (#_ : squash (bm /?+ m))
+  (#_ : squash (bn /?+ n))
+  (nthr : nat {nthr == bm/(wm*tm)*(bn/(wn*tn))*warp_size})
+  (bid : natlt (m/bm * (n/bn)))
+  (wid : natlt (nthr / warp_size)) // warp ID
+  : GTot (natlt (m / (wm*tm)))
+  =
+    let tile_i = bid / (n/bn) in
+    let tile_j = bid % (n/bn) in
+    assert (wid < (bm/(wm*tm)) * (bn/(wn*tn)));
+    let subtile_i = wid / (bn/(wn*tn)) in
+    let subtile_j = wid % (bn/(wn*tn)) in
+    (* Z3 takes some convincing.... *)
+    assert (subtile_i < (bm/(wm*tm)));
+    assert (tile_i < m/bm);
+    assert (tile_i * (bm / (wm*tm)) < m/(wm*tm));
+    tile_i * (bm / (wm*tm)) + subtile_i
+
+let warp_tile_j
+  (#m #n : pos)
+  (bm bn bk
+   tm tn tk
+   wm wn : pos { constraints bm bn bk tm tn tk wm wn })
+  (#_ : squash (bm /?+ m))
+  (#_ : squash (bn /?+ n))
+  (nthr : nat {nthr == bm/(wm*tm)*(bn/(wn*tn))*warp_size})
+  (bid : natlt (m/bm * (n/bn)))
+  (wid : natlt (nthr / warp_size)) // warp ID
+  : GTot (natlt (n / (wn*tn)))
+  =
+    let tile_i = bid / (n/bn) in
+    let tile_j = bid % (n/bn) in
+    let subtile_i = wid / (bn/(wn*tn)) in
+    let subtile_j = wid % (bn/(wn*tn)) in
+    tile_j * (bn / (wn*tn)) + subtile_j
+
+(* Per-warp real reference tile: the fused-map/combine target that a single
+   warp's accumulator must approximate.  It combines the OLD C subtile [rC]
+   (via [comb]) with the matmul of the pre-mapped input subtiles ([mapA]/[mapB]
+   applied elementwise with [chest_map]).  Gathering these over all warps and
+   blocks yields [MS.gmmcomb mapA mapB comb rC rA rB]. *)
+let wt_target
+  (#m #n #k : pos)
+  (mapA mapB : real -> real)
+  (comb : real -> real -> real)
+  (bm bn bk
+   tm tn tk
+   wm wn : szp { constraints bm bn bk tm tn tk wm wn })
+  (#_ : squash (bm /?+ m))
+  (#_ : squash (bn /?+ n))
+  (#_ : squash (wm * tm /?+ m))
+  (#_ : squash (wn * tn /?+ n))
+  (rA : chest2 real m k)
+  (rB : chest2 real k n)
+  (rC : chest2 real m n)
+  (nthr : nat {nthr == bm/(wm*tm)*(bn/(wn*tn))*warp_size})
+  (bid : natlt (m/bm * (n/bn)))
+  (wid : natlt (nthr / warp_size))
+  : chest2 real (wm*tm) (wn*tn)
+  = Chest.chest_comb comb
+      (ematrix_subtile rC (wm*tm) (wn*tn)
+        (warp_tile_i bm bn bk tm tn tk wm wn nthr bid wid)
+        (warp_tile_j bm bn bk tm tn tk wm wn nthr bid wid))
+      (MS.matmul
+        (ematrix_subtile (Chest.chest_map mapA rA) (wm*tm) k
+          (warp_tile_i bm bn bk tm tn tk wm wn nthr bid wid) 0)
+        (ematrix_subtile (Chest.chest_map mapB rB) k (wn*tn)
+          0 (warp_tile_j bm bn bk tm tn tk wm wn nthr bid wid)))
+
 unfold
 let kpre1
   (#et_ab #et_c : Type0)
@@ -116,6 +191,8 @@ let kpre1
   (#_ : squash (bm /?+ m))
   (#_ : squash (bk /?+ k))
   (#_ : squash (bn /?+ n))
+  (#_ : squash (wm * tm /?+ m))
+  (#_ : squash (wn * tn /?+ n))
   (fA fB : perm)
   (rA : chest2 real m k)
   (rB : chest2 real k n)
@@ -127,10 +204,12 @@ let kpre1
   =
   gA |-> Frac (fA /. (m/bm * (n/bn) * nthr)) eA **
   gB |-> Frac (fB /. (m/bm * (n/bn) * nthr)) eB **
-  (exists* tC.
-    warp_tile_pts_to gC bm bn tm tn wm wn bid (tid/warp_size) tC) **
-  // ^ Missing functional spec, but not a problem until
-  // we make this an actual GEMM instead of a matmul.
+  warp_tile_approximates gC bm bn tm tn wm wn bid (tid/warp_size)
+    (ematrix_subtile rC (wm*tm) (wn*tn)
+      (warp_tile_i bm bn bk tm tn tk wm wn nthr bid (tid/warp_size))
+      (warp_tile_j bm bn bk tm tn tk wm wn nthr bid (tid/warp_size))) **
+  // ^ The C input tile approximates the corresponding subtile of the real
+  // reference matrix rC; the epilogue reads it back to fuse the combine.
   pure (aligned 16 (core gA)) **
   pure (aligned 16 (core gB)) **
   pure (eA %~ rA) **
@@ -158,6 +237,8 @@ let kpre
   (#_ : squash (bm /?+ m))
   (#_ : squash (bk /?+ k))
   (#_ : squash (bn /?+ n))
+  (#_ : squash (wm * tm /?+ m))
+  (#_ : squash (wn * tn /?+ n))
   (#_ : squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
   (fA fB : perm)
   (rA : chest2 real m k)
@@ -194,6 +275,8 @@ fn setup
   (#_ : squash (bm /? m))
   (#_ : squash (bk /?+ k))
   (#_ : squash (bn /? n))
+  (#_ : squash (wm * tm /?+ m))
+  (#_ : squash (wn * tn /?+ n))
   (#_ : squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
   (#_ : squash (aligned 16 (core gA)))
   (#_ : squash (aligned 16 (core gB)))
@@ -237,6 +320,8 @@ fn block_setup
   (#_ : squash (bm /?+ m))
   (#_ : squash (bk /?+ k))
   (#_ : squash (bn /?+ n))
+  (#_ : squash (wm * tm /?+ m))
+  (#_ : squash (wn * tn /?+ n))
   (#_ : squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
   (nblk : szp{SZ.v nblk == m/bm * (n/bn)})
   (nthr : szp{SZ.v nthr == bm/(wm*tm) * (bn/(wn*tn)) * warp_size /\ nthr <= 1024})
@@ -286,46 +371,6 @@ let warp_tile_ematrix
       (warp_tile_idx_rows m n trows tcols wid)
       (warp_tile_idx_cols m n trows tcols wid)
 
-let warp_tile_i
-  (#m #n : pos)
-  (bm bn bk
-   tm tn tk
-   wm wn : pos { constraints bm bn bk tm tn tk wm wn })
-  (#_ : squash (bm /?+ m))
-  (#_ : squash (bn /?+ n))
-  (nthr : nat {nthr == bm/(wm*tm)*(bn/(wn*tn))*warp_size})
-  (bid : natlt (m/bm * (n/bn)))
-  (wid : natlt (nthr / warp_size)) // warp ID
-  : GTot (natlt (m / (wm*tm)))
-  =
-    let tile_i = bid / (n/bn) in
-    let tile_j = bid % (n/bn) in
-    assert (wid < (bm/(wm*tm)) * (bn/(wn*tn)));
-    let subtile_i = wid / (bn/(wn*tn)) in
-    let subtile_j = wid % (bn/(wn*tn)) in
-    (* Z3 takes some convincing.... *)
-    assert (subtile_i < (bm/(wm*tm)));
-    assert (tile_i < m/bm);
-    assert (tile_i * (bm / (wm*tm)) < m/(wm*tm));
-    tile_i * (bm / (wm*tm)) + subtile_i
-
-let warp_tile_j
-  (#m #n : pos)
-  (bm bn bk
-   tm tn tk
-   wm wn : pos { constraints bm bn bk tm tn tk wm wn })
-  (#_ : squash (bm /?+ m))
-  (#_ : squash (bn /?+ n))
-  (nthr : nat {nthr == bm/(wm*tm)*(bn/(wn*tn))*warp_size})
-  (bid : natlt (m/bm * (n/bn)))
-  (wid : natlt (nthr / warp_size)) // warp ID
-  : GTot (natlt (n / (wn*tn)))
-  =
-    let tile_i = bid / (n/bn) in
-    let tile_j = bid % (n/bn) in
-    let subtile_i = wid / (bn/(wn*tn)) in
-    let subtile_j = wid % (bn/(wn*tn)) in
-    tile_j * (bn / (wn*tn)) + subtile_j
 
 unfold
 let kpost1
@@ -349,6 +394,8 @@ let kpost1
   (#_ : squash (bk /?+ k))
   (#_ : squash (bn /?+ n))
   (fA fB : perm)
+  (mapA mapB : real -> real)
+  (comb : real -> real -> real)
   (rA : chest2 real m k)
   (rB : chest2 real k n)
   (rC : chest2 real m n)
@@ -362,8 +409,7 @@ let kpost1
   gA |-> Frac (fA /. (m/bm * (n/bn) * nthr)) eA **
   gB |-> Frac (fB /. (m/bm * (n/bn) * nthr)) eB **
   warp_tile_approximates gC bm bn tm tn wm wn bid (tid / warp_size)
-    (MS.matmul (ematrix_subtile rA (wm*tm) k (warp_tile_i bm bn bk tm tn tk wm wn nthr bid (tid / warp_size)) 0)
-               (ematrix_subtile rB k  (wn*tn) 0 (warp_tile_j bm bn bk tm tn tk wm wn nthr bid (tid / warp_size))))
+    (wt_target mapA mapB comb bm bn bk tm tn tk wm wn rA rB rC nthr bid (tid / warp_size))
 
 unfold
 let kpost
@@ -392,6 +438,8 @@ let kpost
   (#_ : squash (bn /?+ n))
   (#_ : squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
   (fA fB : perm)
+  (mapA mapB : real -> real)
+  (comb : real -> real -> real)
   (rA : chest2 real m k)
   (rB : chest2 real k n)
   (rC : chest2 real m n)
@@ -403,7 +451,7 @@ let kpost
   (tid : natlt nthr)
   : slprop
   =
-  kpost1 gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr bid tid **
+  kpost1 gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB mapA mapB comb rA rB rC nthr bid tid **
   live_c_shmems sh #(precip nthr)
 
 ghost
@@ -431,6 +479,8 @@ fn block_teardown
   (nblk : szp{SZ.v nblk == m/bm * (n/bn)})
   (nthr : szp{SZ.v nthr == bm/(wm*tm) * (bn/(wn*tn)) * warp_size})
   (fA fB : perm)
+  (mapA mapB : real -> real)
+  (comb : real -> real -> real)
   (rA : chest2 real m k)
   (rB : chest2 real k n)
   (rC : chest2 real m n)
@@ -442,12 +492,12 @@ fn block_teardown
   norewrite
   requires
     (forall+ (tid : natlt nthr).
-      kpost gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr sh bid tid) **
+      kpost gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB mapA mapB comb rA rB rC nthr sh bid tid) **
     emp
   ensures
     live_c_shmems sh **
     (forall+ (tid : natlt nthr).
-      kpost1 gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr bid tid)
+      kpost1 gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB mapA mapB comb rA rB rC nthr bid tid)
 
 ghost
 fn teardown
@@ -476,6 +526,8 @@ fn teardown
   (#_ : squash (chunk et_ab * nthr /?+ (bm * bk)))
   (#_ : squash (chunk et_ab * nthr /?+ (bk * bn)))
   (fA fB : perm)
+  (mapA mapB : real -> real)
+  (comb : real -> real -> real)
   (rA : chest2 real m k)
   (rB : chest2 real k n)
   (rC : chest2 real m n)
@@ -486,10 +538,10 @@ fn teardown
   requires
     (forall+ (bid : natlt nblk)
              (tid : natlt nthr).
-      kpost1 gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr bid tid) **
+      kpost1 gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB mapA mapB comb rA rB rC nthr bid tid) **
     pure (SZ.fits (lC.ulen)) // frame
   ensures
     gA |-> Frac fA eA **
     gB |-> Frac fB eB **
     (exists* (eC' : chest2 et_c m n).
-      gC |-> eC' ** pure (eC' %~ MS.matmul rA rB))
+      gC |-> eC' ** pure (eC' %~ MS.gmmcomb mapA mapB comb rC rA rB))

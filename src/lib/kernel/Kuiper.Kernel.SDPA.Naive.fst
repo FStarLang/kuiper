@@ -397,6 +397,8 @@ fn sdpa_naive
   (#lV: tlayout    (n @| h @| s @| ev @| INil) { is_full lV })
   (#lbias: tlayout (n @| h @| l @| s @| INil)  { is_full lbias })
   {| ctlayout lQ, ctlayout lK, ctlayout lV, ctlayout lbias,
+  // TODO: fix all these ugly manual instances; 
+  // extraction is just having problems with the fold/bijection layouts
      cQf : ctlayout (tlayout_fold_outer lQ),
      cKTf : ctlayout (
        tlayout_fold_outer (tlayout_bij (transpose4_2 n h s e) lK)),
