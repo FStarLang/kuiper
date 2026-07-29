@@ -517,7 +517,7 @@ let rec collect_fun_binders (e:mlexpr) : list mlbinder & mlexpr =
   | _ -> ([], e)
 
 // Does [body] just return the [which]-th binder of [bs] (0-based)?
-let returns_binder (bs:list mlbinder) (body:mlexpr) (which:nat) : bool =
+let returns_binder (bs:list mlbinder) (body:mlexpr) (which:nat) : ML bool =
   match body.expr with
   | MLE_Var v ->
     (match List.Tot.nth bs which with
@@ -525,13 +525,28 @@ let returns_binder (bs:list mlbinder) (body:mlexpr) (which:nat) : bool =
      | None -> false)
   | _ -> false
 
-let is_identity_map (f:mlexpr) : bool =
+let is_identity_map (f:mlexpr) : ML bool =
   let bs, body = collect_fun_binders f in
   List.Tot.length bs = 1 && returns_binder bs body 0
 
-let is_overwrite_comb (g:mlexpr) : bool =
+(* Is this `fun x y -> x`? *)
+let is_overwrite_comb (g:mlexpr) : ML bool =
   let bs, body = collect_fun_binders g in
-  List.Tot.length bs = 2 && returns_binder bs body 1
+  List.Tot.length bs = 2 && returns_binder bs body 0
+
+let beta_reduce_literal (f : mlexpr) (a : mlexpr) : ML mlexpr =
+  let x, body = get_one_binder f in
+  let body = ml_subst body x.mlbinder_name a in
+  body
+
+let inline_alias_let (e : mlexpr) : ML mlexpr =
+  match e.expr with
+  | MLE_Let ((NonRec, [{ mllb_name = x; mllb_def = def; }]), body) ->
+    (match def.expr with
+     | MLE_Var _
+     | MLE_Name _ -> ml_subst body x def
+     | _ -> e)
+  | _ -> e
 
 let kpr_translate_expr : translate_expr_t = fun env e ->
   let e = flatten_app e in
@@ -590,17 +605,6 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
       EApp (EQualified ([], "KPR_INIT"),
         [kpr_translate_alloc_fragment cb et knd m n k layout])
 
-  | "Kuiper.TensorCore.Base.mma_loadA", [et], [ m; n; k; fr; l; strided_l; gm; f; m0; f0 ]
-  | "Kuiper.TensorCore.Base.mma_loadA_cm", [et], [ m; n; k; fr; l; strided_l; gm; f; m0; f0 ]
-  | "Kuiper.TensorCore.Base.mma_loadB", [et], [ m; n; k; fr; l; strided_l; gm; f; m0; f0 ]
-  | "Kuiper.TensorCore.Base.mma_loadB_cm", [et], [ m; n; k; fr; l; strided_l; gm; f; m0; f0 ] ->
-    let fr = cb fr in
-    let ldm = cb <| get_strided_row_major_stride strided_l in
-    let offset = cb <| get_strided_row_major_offset strided_l in
-    // Note: use of EBufSub relies on the type of gm unfolding to an array.
-    // If IArray/VArray/any other layer defines a new inductive, karamel will complain.
-    let gm = EBufSub (cb gm, offset) in
-    EApp (EQualified ([], "wmma::load_matrix_sync"), [ fr; gm; ldm ])
 
   | "Kuiper.TensorCore.Base.mma_loadAccum", [et], [m; n; k; fr; l; strided_l; gm; f; m0; f0 ] ->
     // TODO remove duplicated code
@@ -633,19 +637,6 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
       text "unexpected types in mma_sync:" ^/^ pp e
     ]
 
-  | "Kuiper.TensorCore.Base.mma_store", [et], [ m; n; k; fr; l; strided_l; gm; f0; m0 ] ->
-    let fr = cb fr in
-    let layout = EQualified ([], "wmma::mem_row_major") in // FAKE the API only supports this one for now
-    let ldm = cb <| get_strided_row_major_stride strided_l in
-    let offset = cb <| get_strided_row_major_offset strided_l in
-    // Note: use of EBufSub relies on the type of gm unfolding to an array.
-    // If IArray/VArray/any other layer defines a new inductive, karamel will complain.
-    let gm = EBufSub (cb gm, offset) in
-    ESequence [
-      EApp (EQualified ([], "wmma::store_matrix_sync"), [ gm; fr; ldm; layout ]);
-      EApp (EQualified ([], "__syncwarp"), [ EUnit ]);
-    ]
-
   // Load A/B fragment while applying an elementwise device map [fmap]. Mirrors
   // the mma_loadA/mma_loadB cases (project offset/stride, bump the pointer) to
   // build the wmma pointer/ldm, then defers the load + the elementwise register
@@ -657,12 +648,15 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
   // beta-reduce the lambda, inlining the map body. [_kpr_in_v] is a free C
   // identifier bound inside the macro loop (an unknown EQualified checks as
   // TAny, exactly like the wmma::/KPR_ externals used throughout this file).
-  | "Kuiper.TensorCore.Base.mma_loadA_map", [et], [ m; n; k; fmap; fr; l; strided_l; gm; fp; m0; f0 ]
-  | "Kuiper.TensorCore.Base.mma_loadB_map", [et], [ m; n; k; fmap; fr; l; strided_l; gm; fp; m0; f0 ] ->
+  | "Kuiper.TensorCore.Base.mma_loadA_map",    [et], [ m; n; k; fmap; fr; l; strided_l; gm; fp; m0; f0 ]
+  | "Kuiper.TensorCore.Base.mma_loadB_map",    [et], [ m; n; k; fmap; fr; l; strided_l; gm; fp; m0; f0 ]
+  | "Kuiper.TensorCore.Base.mma_loadA_map_cm", [et], [ m; n; k; fmap; fr; l; strided_l; gm; fp; m0; f0 ]
+  | "Kuiper.TensorCore.Base.mma_loadB_map_cm", [et], [ m; n; k; fmap; fr; l; strided_l; gm; fp; m0; f0 ] ->
     let et_ty = cb_ty et in
     let ldm = cb <| get_strided_row_major_stride strided_l in
     let offset = cb <| get_strided_row_major_offset strided_l in
     // Note: use of EBufSub relies on the type of gm unfolding to an array.
+    // If IArray/VArray/any other layer defines a new inductive, karamel will complain.
     let gm = EBufSub (cb gm, offset) in
     let fr = cb fr in
     if is_identity_map fmap then
@@ -680,20 +674,28 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
   // owns the scratch-fragment copy, the old-tile load, the register loop, and the
   // store; here we only build the *combined value*: [gcomb] applied to the
   // macro-bound register reads [_kpr_old_v] (old C) and [_kpr_new_v]
-  // (accumulator). As above [gcomb] is applied (not passed) so the simplifier
-  // beta-reduces it. Referencing the reads as bare identifiers (bound inside the
-  // macro) rather than emitting KPR_FRAG_GET reads here is what lets an overwrite
-  // combine drop the unused [_kpr_old_v] cleanly: karamel treats a bare
-  // identifier as readonly, so it is dropped rather than hoisted out of the macro
-  // as a stray ignore statement referencing a name that only exists inside it.
-  | "Kuiper.TensorCore.Base.mma_store_comb", [et], [ m; n; k; gcomb; fr; l; strided_l; gm; f0; m0 ] ->
-    let et_ty = cb_ty et in
+  // (accumulator). We beta-reduce the literal [gcomb] before translating it.
+  // Referencing the reads as bare identifiers (bound inside the macro) rather
+  // than emitting KPR_FRAG_GET reads here is what lets an overwrite combine drop
+  // the unused [_kpr_old_v] cleanly: karamel treats a bare identifier as readonly,
+  // so it is dropped rather than hoisted out of the macro as a stray ignore
+  // statement referencing a name that only exists inside it.
+  // FIXME: the second case below is wrong, et_acc is a type, but apparently
+  // we are detecting it as an erased expression and slapping a unit (expression)
+  // argument for it.
+  | "Kuiper.TensorCore.Base.mma_store_comb", [et_c; et], [ m; n; k; gcomb; fr; l; strided_l; gm; f0; m0 ]
+  | "Kuiper.TensorCore.Base.mma_store_comb", [et_c], [ et; m; n; k; gcomb; fr; l; strided_l; gm; f0; m0 ]
+  ->
+    // let et = cb_ty et in
+    // let et_c = cb_ty et_c in
     let ldm = cb <| get_strided_row_major_stride strided_l in
     let offset = cb <| get_strided_row_major_offset strided_l in
     // Note: use of EBufSub relies on the type of gm unfolding to an array.
+    // If IArray/VArray/any other layer defines a new inductive, karamel will complain.
     let gm = EBufSub (cb gm, offset) in
     let fr = cb fr in
     let layout = EQualified ([], "wmma::mem_row_major") in
+    let gcomb = ml_visit unmagic inline_alias_let gcomb in // simplify gcomb a bit, remove casts and aliasing
     if is_overwrite_comb gcomb then
       // Trivial overwrite combine: the read-modify-write degenerates to a plain
       // store (identical to mma_store), so we skip the old-tile load and loop.
@@ -702,9 +704,13 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
         EApp (EQualified ([], "__syncwarp"), [ EUnit ]);
       ]
     else begin
-      let old_i = ECast (EQualified ([], "_kpr_old_v"), et_ty) in
-      let acc_i = ECast (EQualified ([], "_kpr_new_v"), et_ty) in
-      let combined = EApp (cb gcomb, [ old_i; acc_i ]) in
+      let combined =
+        let t_new = with_ty MLTY_Top <| MLE_Name ([], "_kpr_new_v") in
+        let t_old = with_ty et_c <| MLE_Name ([], "_kpr_old_v") in
+        let applied = beta_reduce_literal (beta_reduce_literal gcomb t_new) t_old in
+        let applied = ml_visit unmagic inline_alias_let applied in
+        cb applied
+      in
       EApp (EQualified ([], "KPR_STORE_COMB"), [ gm; fr; ldm; combined ])
     end
 

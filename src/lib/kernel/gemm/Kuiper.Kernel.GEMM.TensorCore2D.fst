@@ -724,6 +724,22 @@ let em_fade_comb_tiles_full
 = assert (equal (em_fade_comb_tiles comb tm tn wm wn wm idxJ rm1 rm2) (Chest.chest_comb comb rm1 rm2))
 #pop-options
 
+let em_fade_comb_current_subtile_approximates
+  (#et : Type0) {| scalar et, real_like et |}
+  (comb : real -> real -> real)
+  (tm tn wm wn : pos)
+  (idxI : natlt wm)
+  (idxJ : natlt wn)
+  (em : chest2 et (wm*tm) (wn*tn))
+  (rm1 rm2 : chest2 real (wm*tm) (wn*tn))
+  : Lemma
+    (requires em %~ em_fade_comb_tiles comb tm tn wm wn idxI idxJ rm1 rm2)
+    (ensures ematrix_subtile em tm tn idxI idxJ
+             %~ ematrix_subtile rm1 tm tn idxI idxJ)
+= lemma_approximates_intro
+    (ematrix_subtile em tm tn idxI idxJ)
+    (ematrix_subtile rm1 tm tn idxI idxJ)
+
 #push-options "--z3rlimit 80 --split_queries always"
 let lemma_update_tile_fade_comb_approximates
   (#et : Type0) {| scalar et, real_like et|}
@@ -747,6 +763,8 @@ let lemma_update_tile_fade_comb_approximates
 =
   // The (idxI, idxJ) tile is still uncombined in the pre-state fade, so its
   // subtile of [em] approximates [ematrix_subtile rm1 tm tn idxI idxJ].
+  em_fade_comb_current_subtile_approximates
+    comb tm tn wm wn idxI idxJ em rm1 rm2;
   chest_comb_approx ecomb comb
     (ematrix_subtile em tm tn idxI idxJ) etile
     (ematrix_subtile rm1 tm tn idxI idxJ) (ematrix_subtile rm2 tm tn idxI idxJ);
@@ -841,7 +859,7 @@ fn epilogue
       array_fragment_pts_to_ref accumFrags;
       array_fragment_extract_ro accumFrags idx;
       // Read-modify-write: combine the resident C tile with the accumulator.
-      mma_store_comb ecomb accumFrags.(idx) tc_tile;
+      mma_store_comb (fun acc old -> ecomb old acc) accumFrags.(idx) tc_tile;
 
       // The tile now holds the fused combine of the resident C tile [m0] with
       // the accumulator [f0]; instantiate the [array2_extract_tile_st] trade at

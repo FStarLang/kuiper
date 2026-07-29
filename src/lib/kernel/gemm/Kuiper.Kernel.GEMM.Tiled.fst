@@ -788,6 +788,29 @@ fn bkf
     (mrow <: natlt m) (brow <: natlt tile) (mcol <: natlt n) (bcol <: natlt tile);
   chest_flat42_cell (chest_slice 0 (SZ.v page) eC)
     (mrow <: natlt m) (brow <: natlt tile) (mcol <: natlt n) (bcol <: natlt tile);
+  assert (pure (
+    Chest.acc (chest_slice 0 (SZ.v page) eC)
+      ((SZ.v mrow <: natlt m),
+       ((SZ.v mcol <: natlt n),
+        ((SZ.v brow <: natlt tile), ((SZ.v bcol <: natlt tile), ()))))
+    %~
+    Chest.acc (chest_slice 0 (SZ.v page) rC)
+      ((SZ.v mrow <: natlt m),
+       ((SZ.v mcol <: natlt n),
+        ((SZ.v brow <: natlt tile), ((SZ.v bcol <: natlt tile), ()))))));
+  assert (pure (
+    v0 %~
+    Chest.acc
+      (chest_flat42 #real #m #n #tile #tile (chest_slice 0 (SZ.v page) rC))
+      ((SZ.v mrow * SZ.v tile + SZ.v brow <: natlt (m * tile)),
+       ((SZ.v mcol * SZ.v tile + SZ.v bcol <: natlt (n * tile)), ()))));
+  assert (pure (
+    v1 %~ MS.ggemm_single #real #real #real #real mapA_r mapB_r comb_r
+      (chest_flat42 #real #m #k #tile #tile (chest_slice 0 (SZ.v page) rA))
+      (chest_flat42 #real #k #n #tile #tile (chest_slice 0 (SZ.v page) rB))
+      (chest_flat42 #real #m #n #tile #tile (chest_slice 0 (SZ.v page) rC))
+      (SZ.v mrow * SZ.v tile + SZ.v brow <: natlt (m * tile))
+      (SZ.v mcol * SZ.v tile + SZ.v bcol <: natlt (n * tile))));
 
   fold bkpost mapA mapB comb mapA_r mapB_r comb_r tile gA gB gC eA eB eC rA rB rC fA fB bid tid;
   ()

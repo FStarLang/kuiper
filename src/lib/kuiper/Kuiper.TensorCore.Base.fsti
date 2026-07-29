@@ -155,22 +155,6 @@ fn mma_sync'
   ensures
     fc |-> emma ec ea eb
 
-fn mma_loadA
-  (#et : Type)
-  (#m #n #k : erased nat)
-  (fr : fragment et FragA m n k FragLRM)
-  (#l : layout2 m k) {| strided_row_major l |}
-  (gm : array2 et l)
-  (#f : perm)
-  (#m0 : chest2 et m k)
-  (#f0 : erased (value_for et FragA m n k))
-  preserves
-    gm |-> Frac f m0
-  requires
-    fr |-> f0
-  ensures
-    fr |-> m0
-
 (* Load A fragment while applying an elementwise device map [f] to every
    element as it is loaded (e.g. a dequantization/scale/activation pre-map).
    Assumed primitive: extraction realizes it as a load followed by an
@@ -181,6 +165,23 @@ fn mma_loadA_map
   (f : et -> et)
   (fr : fragment et FragA m n k FragLRM)
   (#l : layout2 m k) {| strided_row_major l |}
+  (gm : array2 et l)
+  (#fp : perm)
+  (#m0 : chest2 et m k)
+  (#f0 : erased (value_for et FragA m n k))
+  preserves
+    gm |-> Frac fp m0
+  requires
+    fr |-> f0
+  ensures
+    fr |-> chest_map f m0
+
+fn mma_loadA_map_cm
+  (#et : Type)
+  (#m #n #k : erased nat)
+  (f : et -> et)
+  (fr : fragment et FragA m n k FragLCM)
+  (#l : layout2 m k) {| strided_col_major l |}
   (gm : array2 et l)
   (#fp : perm)
   (#m0 : chest2 et m k)
@@ -210,53 +211,22 @@ fn mma_loadB_map
   ensures
     fr |-> chest_map f m0
 
-fn mma_loadA_cm
+fn mma_loadB_map_cm
   (#et : Type)
   (#m #n #k : erased nat)
-  (fr : fragment et FragA m n k FragLCM)
-  (#l : layout2 m k) {| strided_col_major l |}
-  (gm : array2 et l)
-  (#f : perm)
-  (#m0 : chest2 et m k)
-  (#f0 : erased (value_for et FragA m n k))
-  preserves
-    gm |-> Frac f m0
-  requires
-    fr |-> f0
-  ensures
-    fr |-> m0
-
-fn mma_loadB
-  (#et : Type)
-  (#m #n #k : erased nat)
-  (fr : fragment et FragB m n k FragLRM)
-  (#l : layout2 k n) {| strided_row_major l |}
-  (gm : array2 et l)
-  (#f : perm)
-  (#m0 : chest2 et k n)
-  (#f0 : erased (value_for et FragB m n k))
-  preserves
-    gm |-> Frac f m0
-  requires
-    fr |-> f0
-  ensures
-    fr |-> m0
-
-fn mma_loadB_cm
-  (#et : Type)
-  (#m #n #k : erased nat)
+  (f : et -> et)
   (fr : fragment et FragB m n k FragLCM)
   (#l : layout2 k n) {| strided_col_major l |}
   (gm : array2 et l)
-  (#f : perm)
+  (#fp : perm)
   (#m0 : chest2 et k n)
   (#f0 : erased (value_for et FragB m n k))
   preserves
-    gm |-> Frac f m0
+    gm |-> Frac fp m0
   requires
     fr |-> f0
   ensures
-    fr |-> m0
+    fr |-> chest_map f m0
 
 fn mma_loadAccum
   (#et : Type)
@@ -297,40 +267,25 @@ fn mma_fill
   requires fr |-> v0
   ensures  fr |-> fill_value i
 
-fn mma_store
-  (#et : Type)
-  (#m #n #k : erased nat)
-  (fr : fragment et FragAcc m n k FragLAcc)
-  (#l : layout2 m n) {| strided_row_major l |}
-  (gm : array2 et l)
-  (#f0 : erased (value_for et FragAcc m n k))
-  (#m0 : chest2 et m n)
-  preserves
-    fr |-> f0
-  requires
-    gm |-> Frac (1.0R /. warp_size) m0
-  ensures
-    gm |-> Frac (1.0R /. warp_size) f0
-
 (* Store the accumulator fragment while combining, elementwise, with the value
    already resident in [gm], using the device combine [g].  Read-modify-write:
    the result cell is [g (old C cell) (accumulator cell)].  Needs the same warp
    fraction as [mma_store] (all lanes of a warp cooperatively own the tile). *)
 fn mma_store_comb
-  (#et : Type)
+  (#et_c #et : Type)
   (#m #n #k : erased nat)
-  (g : et -> et -> et)
+  (g : et -> et_c -> et_c)
   (fr : fragment et FragAcc m n k FragLAcc)
   (#l : layout2 m n) {| strided_row_major l |}
-  (gm : array2 et l)
+  (gm : array2 et_c l)
   (#f0 : erased (value_for et FragAcc m n k))
-  (#m0 : chest2 et m n)
+  (#m0 : chest2 et_c m n)
   preserves
     fr |-> f0
   requires
     gm |-> Frac (1.0R /. warp_size) m0
   ensures
-    gm |-> Frac (1.0R /. warp_size) (chest_comb g m0 f0)
+    gm |-> Frac (1.0R /. warp_size) (chest_comb g f0 m0)
 
 (* We should add checker support for this. *)
 fn with_fragment u#r
