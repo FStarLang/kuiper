@@ -1,14 +1,17 @@
 # Relational validation of matmul kernels
 
-**Goal:** Show that several differently-bracketed floating-point matmul CUDA
+**Goal:** Show that a range of differently-implemented floating-point matmul CUDA
 kernels are *algebraically equivalent* (ignoring floating-point rounding) by
 giving each a **verified Kuiper witness** that is
 
 1. **bit-for-bit identical** to the CUDA kernel, and
-2. proves the **same precise spec**: `eC' %~ MS.matmul rA rB`
-   (the f32 result approximates the order-independent real-valued matmul).
+2. proves a **precise real-valued spec**. For most kernels this is
+   `eC' %~ MS.matmul rA rB` (the f32 result approximates the order-independent
+   real matmul); the two variant kernels prove a simple function of it — a
+   transpose (`mtranspose (MS.matmul rA rB)`, #7) or the general affine SGEMM
+   result (`α·(MS.matmul rA rB) + β·C`, #8).
 
-## The five kernels, each with a verified witness
+## The eight kernels, each with a verified witness
 
 | # | Kernel    | Accumulation order            | Witness source                         |
 |---|-----------|-------------------------------|----------------------------------------|
@@ -38,15 +41,21 @@ combine instantiated to `fun old prod -> α·prod + β·old`.
 
 ## Key results
 
-- **All five witnesses verify** with no `admit` / `assume` / `lax` — fully
-  proved (each: "All verification conditions discharged successfully").
-- All five `.fsti` spec bodies are **byte-identical** except the size
-  precondition — making the "same spec" claim visually obvious.
-- A unified driver **`bitcmp.cu`** (10 kernels) confirms each `impN ≡ kwN`
-  bit-for-bit across many shapes, while the kernels mutually differ in their
-  floating-point results (FP non-associativity). **Suite PASSES.**
-  - `imp5` matches `imp3` only when `k <= 16` (≤ 2 tiles), where tiled and
-    tiled+Kahan coincide; otherwise all five bracketings differ.
+- **All eight witnesses verify** (nine modules, counting `KWitness7b`) with no
+  `admit` / `assume` / `lax` — fully proved (each: "All verification conditions
+  discharged successfully").
+- The **`.fsti` spec bodies of kernels 1–6 are byte-identical** except the size
+  precondition — making the "same spec" claim visually obvious. Kernels 7 and 8
+  deliberately differ: #7 ensures `mtranspose (MS.matmul rA rB)` and #8 ensures
+  the affine `gemm_real α β rA rB C`.
+- A unified driver **`bitcmp.cu`** covers kernels **1–5** (10 kernels: `imp1..5`
+  + `kw1..5`) and confirms each `impN ≡ kwN` bit-for-bit across many shapes,
+  while the kernels mutually differ in their floating-point results (FP
+  non-associativity). **Suite PASSES.** Kernels 6, 7, and 8 are validated by
+  standalone bit-equivalence harnesses (see their notes below), not the driver.
+  - `imp5` matches `imp3` only when `k <= 16` (a single 16-wide tile), where the
+    Kahan compensation has nothing to correct; otherwise all five bracketings
+    differ.
 
 ## Notable engineering
 
@@ -64,6 +73,20 @@ combine instantiated to `fun old prod -> α·prod + β·old`.
   defeated SMT) even with both preconditions asserted; extracting the per-cell
   work into `cell_value` discharged it in a minimal context, with identical
   extraction.
+- **KWitness6** (shared-memory tiled) accumulates into a single running `sum`
+  across tiles — plain forward order — so it reuses the naive forward kernel and
+  is bit-equivalent to kw1: tiling for locality does not change the result.
+- **KWitness7** proves the transposed-store kernel; caught that the original
+  `C[c*n+r]` store was a correct transpose only for square output and fixed it to
+  `C[c*m+r]` (transpose of an m×n product is n×m). `KWitness7b` gives an
+  alternative that needs no transpose kernel or copy at all: it matmuls into a
+  **col-major view** of the output (`Kuiper.Ghost.TensorTranspose`) — a zero-cost
+  ghost view shift that erases, leaving a single matmul kernel.
+- **KWitness8** reuses the naive kernel with a custom per-cell combine
+  `fun old prod -> α·prod + β·old` for the affine SGEMM; the `approx2` refinement
+  on the real combiner needed a small explicit congruence lemma
+  (`a_mul`/`a_add`/`to_real_ok`) since SMT will not beta-reduce the combiner
+  lambdas on its own.
 
 ## Building and running the driver
 
@@ -77,7 +100,14 @@ nvcc -O2 -arch=native -I include -I obj -o bitcmp bitcmp.cu \
                                   # (A,B in imp1..imp5, kw1..kw5)
 ```
 
+Kernels 6, 7, and 8 are checked with standalone one-off harnesses (each compiles
+`impN.cu` against the extracted `obj/KWitnessN.cu` and bit-compares outputs across
+shapes — and, for #8, across `alpha`/`beta` values).
+
 ## Bottom line
 
-Five distinct floating-point bracketings (forward / reverse / tiled / Kahan /
-tiled+Kahan), all provably equal to the one real-valued matmul.
+Eight differently-implemented f32 matmul kernels — forward, reverse, tiled,
+Kahan, tiled+Kahan, shared-memory tiled, transposed-store, and a fully optimized
+2D block-tiling SGEMM with α/β — each with a verified Kuiper witness that is
+bit-for-bit identical and proves a precise real-valued spec (the order-independent
+matmul, or a transpose / affine function of it).
