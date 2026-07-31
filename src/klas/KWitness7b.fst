@@ -9,8 +9,9 @@ module KWitness7b
 
      1. ghost-reinterpret the n x m row-major output gC as an m x n COL-MAJOR matrix
         (row2col gC) -- a zero-cost view shift, no data moves;
-     2. run the EXISTING verified naive forward matmul (Kuiper.Kernel.GEMM.Naive1,
-        reused by KWitness1/KWitness6) writing A*B into that col-major view; and
+     2. run the rank-2 wrapper around the EXISTING verified naive forward matmul
+        (Kuiper.Kernel.GEMM.Naive1, reused by KWitness1/KWitness6), writing A*B
+        into that col-major view; and
      3. ghost-reinterpret back: the buffer now read row-major is exactly (A*B)^T.
 
    Because the matmul writes (A*B)[r][c] to the col-major offset c*m+r of gC's

@@ -28,6 +28,8 @@ open Kuiper.Chest
 open Kuiper.Bijection
 open Pulse.Lib.Trade
 module MS = Kuiper.Spec.GEMM
+module MU = Kuiper.Kernel.GEMM.Util
+module C = Kuiper.Matrix.Casts
 module SZ = Kuiper.SizeT
 
 (* Reshaping bridge between the 2-D nested index
@@ -632,4 +634,147 @@ fn bmmcomb_gpu_exact
     on gpu_loc (c |-> MS.bmmcomb comb eC eA eB)
 {
   gbmmcomb_gpu_exact (fun x -> x) (fun x -> x) comb batch m n k a b c;
+}
+
+(* Lowering a one-page batched [mmcomb] yields the rank-2 [mmcomb].
+   This proof bridge is internal to the rank-2 wrapper below. *)
+let batch1_bmmcomb
+  (#et : Type0) {| scalar et |}
+  (comb : binop et)
+  (rows shared cols : szp)
+  (eC : chest2 et rows cols)
+  (eA : chest2 et rows shared)
+  (eB : chest2 et shared cols)
+  : Lemma (
+      C.c3_to_c2 rows cols
+        (MS.bmmcomb comb
+          (C.c2_to_c3 rows cols eC)
+          (C.c2_to_c3 rows shared eA)
+          (C.c2_to_c3 shared cols eB))
+      == MS.mmcomb comb eC eA eB)
+  =
+  C.c2_to_c3_slice_page rows cols eC;
+  C.c2_to_c3_slice_page rows shared eA;
+  C.c2_to_c3_slice_page shared cols eB;
+  Kuiper.Chest.lemma_equal_intro
+    (C.c3_to_c2 rows cols
+      (MS.bmmcomb comb
+        (C.c2_to_c3 rows cols eC)
+        (C.c2_to_c3 rows shared eA)
+        (C.c2_to_c3 shared cols eB)))
+    (MS.mmcomb comb eC eA eB);
+  Kuiper.Chest.ext
+    (C.c3_to_c2 rows cols
+      (MS.bmmcomb comb
+        (C.c2_to_c3 rows cols eC)
+        (C.c2_to_c3 rows shared eA)
+        (C.c2_to_c3 shared cols eB)))
+    (MS.mmcomb comb eC eA eB)
+
+(* Rank-2 specialization of the exact batched Naive1 kernel.  The batch-one
+   call preserves the single [m * n]-block launch used by the batched kernel. *)
+inline_for_extraction noextract
+fn mmcomb_gpu_exact
+  (#et : Type0) {| scalar et |}
+  (comb : binop et)
+  (#m #n #k : szp)
+  (#lA : layout2 m k)
+  (#lB : layout2 k n)
+  (#lC : layout2 m n)
+  {| ctlayout lA, ctlayout lB, ctlayout lC |}
+  (gA : tensor et lA { is_global gA })
+  (gB : tensor et lB { is_global gB })
+  (gC : tensor et lC { is_global gC })
+  (#eA : chest2 et m k)
+  (#eB : chest2 et k n)
+  (#eC : chest2 et m n)
+  (#fA #fB : perm)
+  norewrite
+  preserves
+    cpu ** on gpu_loc (gA |-> Frac fA eA ** gB |-> Frac fB eB)
+  requires
+    pure (m * n <= max_blocks) **
+    on gpu_loc (gC |-> eC)
+  ensures
+    on gpu_loc (gC |-> MS.mmcomb comb eC eA eB)
+{
+  map_loc gpu_loc (fun () -> C.t2_to_t3 m k gA);
+  map_loc gpu_loc (fun () -> C.t2_to_t3 k n gB);
+  map_loc gpu_loc (fun () -> C.t2_to_t3 m n gC);
+
+  bmmcomb_gpu_exact comb 1sz m n k
+    (from_array (C.l2_to_l3 m k #lA) (core gA))
+    (from_array (C.l2_to_l3 k n #lB) (core gB))
+    (from_array (C.l2_to_l3 m n #lC) (core gC))
+    #(C.c2_to_c3 m k eA)
+    #(C.c2_to_c3 k n eB)
+    #(C.c2_to_c3 m n eC)
+    #fA #fB;
+
+  map_loc gpu_loc (fun () -> C.t3_to_t2 m k gA);
+  C.c2_to_c3_roundtrip m k eA;
+  rewrite each C.c3_to_c2 m k (C.c2_to_c3 m k eA) as eA;
+
+  map_loc gpu_loc (fun () -> C.t3_to_t2 k n gB);
+  C.c2_to_c3_roundtrip k n eB;
+  rewrite each C.c3_to_c2 k n (C.c2_to_c3 k n eB) as eB;
+
+  map_loc gpu_loc
+    #(from_array (C.l2_to_l3 m n #lC) (core gC)
+      |-> MS.bmmcomb comb
+            (C.c2_to_c3 m n eC)
+            (C.c2_to_c3 m k eA)
+            (C.c2_to_c3 k n eB))
+    #(gC |-> MS.mmcomb comb eC eA eB)
+    fn _ {
+      C.t3_to_t2 m n gC;
+      batch1_bmmcomb comb m k n eC eA eB;
+      rewrite
+        (gC |->
+          C.c3_to_c2 m n
+            (MS.bmmcomb comb
+              (C.c2_to_c3 m n eC)
+              (C.c2_to_c3 m k eA)
+              (C.c2_to_c3 k n eB)))
+      as
+        (gC |-> MS.mmcomb comb eC eA eB);
+    };
+}
+
+(* Approximate rank-2 GEMM with a caller-supplied output combine. *)
+inline_for_extraction noextract
+fn mmcomb_gpu_approx
+  (#et : Type0) {| scalar et, real_like et |}
+  (comb : binop et)
+  (comb_r : binop real { comb `approx2` comb_r })
+  (#m #n #k : szp)
+  (#lA : layout2 m k)
+  (#lB : layout2 k n)
+  (#lC : layout2 m n)
+  {| ctlayout lA, ctlayout lB, ctlayout lC |}
+  (gA : tensor et lA { is_global gA })
+  (gB : tensor et lB { is_global gB })
+  (gC : tensor et lC { is_global gC })
+  (rA : chest2 real m k)
+  (rB : chest2 real k n)
+  (rC : chest2 real m n)
+  (#eA : chest2 et m k)
+  (#eB : chest2 et k n)
+  (#eC : chest2 et m n)
+  (#fA #fB : perm)
+  norewrite
+  preserves
+    cpu ** on gpu_loc (gA |-> Frac fA eA ** gB |-> Frac fB eB)
+  requires
+    pure (m * n <= max_blocks) **
+    pure (eA %~ rA /\ eB %~ rB /\ eC %~ rC) **
+    on gpu_loc (gC |-> eC)
+  ensures
+    exists* (eC' : chest2 et m n).
+      on gpu_loc (gC |-> eC') **
+      pure (eC' %~ MS.mmcomb comb_r rC rA rB)
+{
+  mmcomb_gpu_exact comb gA gB gC;
+  MU.mmcomb_approx_real comb comb_r eC eA eB rA rB rC;
+  ()
 }
