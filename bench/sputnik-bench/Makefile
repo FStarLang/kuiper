@@ -22,8 +22,16 @@ clone:
 sputnik_spmm.o: $(SPUTNIK_DIR)/sputnik/spmm/cuda_spmm.cu.cc .cloned
 	$(NVCC) $(NVCC_FLAGS) -x cu -c $< -o $@
 
+# Keep the extracted CUDA synchronized with the Kuiper sources before deciding
+# whether the CUDA object itself needs rebuilding.
+.PHONY: kuiper_spmm_cuda
+kuiper_spmm_cuda:
+	$(MAKE) -C $(KUIPER_DIR) obj/Klas_SPMM.cu
+
+$(KUIPER_DIR)/obj/Klas_SPMM.cu: | kuiper_spmm_cuda
+
 # Kuiper SpMM object (from obj/, which has the latest build including f32)
-kuiper_spmm.o: $(KUIPER_DIR)/obj/Klas_SPMM.cu
+kuiper_spmm.o: $(KUIPER_DIR)/obj/Klas_SPMM.cu | kuiper_spmm_cuda
 	$(NVCC) $(NVCC_FLAGS) -c $< -o $@
 
 # Benchmark driver

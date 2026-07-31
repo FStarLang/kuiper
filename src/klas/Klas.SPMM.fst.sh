@@ -15,6 +15,13 @@ let spmm_u32 = inst u32 128sz 128sz 32sz
 // A fixed-name f32 variant for the test and quick benching
 let spmm_f32 = inst f32 512sz 512sz 64sz
 
+// Sputnik's f32 dispatcher uses 8, 16, 32, and 64-wide output tiles.
+let g_spmm_f32_32x4x1 = inst f32 32sz 4sz 1sz
+let g_spmm_f32_32x8x2 = inst f32 32sz 8sz 2sz
+let g_spmm_f32_32x16x4 = inst f32 32sz 16sz 4sz
+let g_spmm_f32_32x32x8 = inst f32 32sz 32sz 8sz
+let g_spmm_f32_32x64x8 = inst f32 32sz 64sz 8sz
+
 EOF
 
 # let spmm_u32 = inst u32 128sz 128sz 32sz
@@ -36,3 +43,75 @@ for blockItemsK in $all_blockItemsK; do
     done
   done
 done
+
+cat << EOF
+
+open Kuiper.Sparse
+module SZ = Kuiper.SizeT
+open Kuiper.Tensor
+open Kuiper.Tensor.Layout.Alg { l2_row_major as rm }
+open Kuiper.EMatrix
+module MS = Kuiper.Spec.GEMM
+
+// Klas has no predicated column tails, so select the largest Sputnik tile
+// that divides cols and use a float4-wide fallback.
+fn spmm_f32_dispatch
+  (rows shared cols : szp)
+  (gA : smatrix f32 (SZ.v rows) (SZ.v shared){is_global_smatrix gA})
+  (#_ : squash (aligned 16 gA.elems /\ aligned 16 gA.col_ind))
+  (#fA : perm)
+  (row_indices : larray sz rows)
+  (fri : perm)
+  (gB : array2 f32 (rm shared cols) { is_global gB})
+  (#_ : squash (aligned 16 (core gB)))
+  (#fB : perm)
+  (gC : array2 f32 (rm rows cols) { is_global gC})
+  (#_ : squash (aligned 16 (core gC)))
+  (elems : erased (lseq f32 gA.nnz))
+  (col_ind : erased (lseq sz gA.nnz))
+  (row_off : erased (lseq sz (rows + 1)))
+  (#eA : chest2 f32 rows shared)
+  (row_perm : permutation (natlt rows))
+  (#eB : chest2 f32 shared cols)
+  (#eC : chest2 f32 rows cols)
+  norewrite
+  preserves
+    cpu **
+    on gpu_loc (smatrix_pts_to' gA #fA elems col_ind row_off eA) **
+    on gpu_loc (row_indices |-> Frac fri (ordering row_perm)) **
+    on gpu_loc (gB |-> Frac fB eB)
+  requires
+    pure (4 /? cols) **
+    on gpu_loc (live gC) **
+    pure (
+      rows * (cols \`divup\` 4) <= max_blocks /\\
+      rows * (cols \`divup\` 8) <= max_blocks /\\
+      rows * (cols \`divup\` 16) <= max_blocks /\\
+      rows * (cols \`divup\` 32) <= max_blocks /\\
+      rows * (cols \`divup\` 64) <= max_blocks
+    ) **
+    pure (8 <= max_threads)
+  ensures on gpu_loc (gC |-> MS.matmul eA eB)
+{
+  if (cols %^ 64sz = 0sz) {
+    lemma_divides_mod 64 (SZ.v cols);
+    g_spmm_f32_32x64x8 rows shared cols gA row_indices fri gB gC
+      elems col_ind row_off #eA row_perm #eB #eC;
+  } else if (cols %^ 32sz = 0sz) {
+    lemma_divides_mod 32 (SZ.v cols);
+    g_spmm_f32_32x32x8 rows shared cols gA row_indices fri gB gC
+      elems col_ind row_off #eA row_perm #eB #eC;
+  } else if (cols %^ 16sz = 0sz) {
+    lemma_divides_mod 16 (SZ.v cols);
+    g_spmm_f32_32x16x4 rows shared cols gA row_indices fri gB gC
+      elems col_ind row_off #eA row_perm #eB #eC;
+  } else if (cols %^ 8sz = 0sz) {
+    lemma_divides_mod 8 (SZ.v cols);
+    g_spmm_f32_32x8x2 rows shared cols gA row_indices fri gB gC
+      elems col_ind row_off #eA row_perm #eB #eC;
+  } else {
+    g_spmm_f32_32x4x1 rows shared cols gA row_indices fri gB gC
+      elems col_ind row_off #eA row_perm #eB #eC;
+  }
+}
+EOF

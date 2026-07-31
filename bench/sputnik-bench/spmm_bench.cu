@@ -17,7 +17,7 @@
 
 #include <cuda_runtime.h>
 
-#define Klas_f Klas_SPMM_g_spmm_f32_512x512x64
+#define Klas_f Klas_SPMM_spmm_f32_dispatch
 
 /* Kuiper SpMM (f32) */
 #include "Klas_SPMM.h"
@@ -294,9 +294,9 @@ static void run_bench_csr(CSR &csr, int cols, const char *label,
     int rows   = csr.rows;
     int shared = csr.cols;
 
-    /* Kuiper requires cols to be a multiple of blockItemsX=128 */
-    if (cols % 128 != 0) {
-        fprintf(stderr, "SKIP %dx%dx%d @%s: cols must be multiple of 128 for Kuiper\n",
+    /* The dispatcher falls back to a float4-wide output tile. */
+    if (cols % 4 != 0) {
+        fprintf(stderr, "SKIP %dx%dx%d @%s: cols must be multiple of 4 for Kuiper\n",
                 rows, shared, cols, label);
         return;
     }
@@ -466,7 +466,7 @@ static void run_swizzle_test(int rows, int shared, int cols,
                              int avg_density_pct, SparsityShape shape,
                              int warmup, int iters)
 {
-    if (cols % 128 != 0) return;
+    if (cols % 4 != 0) return;
 
     CSR csr;
     gen_sparse_nonuniform(rows, shared, avg_density_pct, shape, csr);
@@ -570,6 +570,11 @@ int main(int argc, char **argv)
            "rows", "K", "cols", "density", "nnz",
            "Kuiper (float32)", "Sputnik (float32)", "K/S", "check");
     printf("%s\n", std::string(150, '-').c_str());
+
+    /* Exercise every branch of the Kuiper output-tile dispatcher. */
+    printf("\n--- Dispatcher tile widths ---\n");
+    for (int n : {4, 8, 16, 32, 64})
+        run_bench(32, 64, n, 50, warmup, iters);
 
     /* Square matrices at various sizes and densities */
     int sizes[]     = { 256, 512, 1024, 2048 };
