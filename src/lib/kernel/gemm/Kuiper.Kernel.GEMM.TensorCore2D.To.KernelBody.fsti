@@ -23,7 +23,7 @@ inline_for_extraction noextract
 fn kf
   (#et_ab #et_cd #et_acc : Type0)
   {| scalar et_ab, has_vec_cpy et_ab,
-     scalar et_cd, scalar et_acc |}
+     scalar et_cd, has_vec_cpy et_cd, scalar et_acc |}
   {| real_like et_ab, real_like et_cd, real_like et_acc |}
   (comb : et_cd -> et_acc -> et_cd)
   (comb_r : binop real { approx2 comb comb_r })
@@ -49,6 +49,8 @@ fn kf
   (#_ : squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
   (#_ : squash (chunk et_ab /?+ bn))
   (#_ : squash (chunk et_ab /?+ bk))
+  (#_ : squash (chunk et_cd /?+ n))
+  (#_ : squash (chunk et_cd /?+ tn))
   (#_ : squash (SZ.fits (m * k)))
   (#_ : squash (SZ.fits (m * n)))
   (#_ : squash (SZ.fits (k * n)))

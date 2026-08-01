@@ -26,8 +26,10 @@ fn spec
   (bm bn bk : szp)
   (#_ : squash (chunk et_ab /?+ bk))
   (#_ : squash (chunk et_ab /?+ bn))
+  (#_ : squash (chunk et_cd /?+ bn))
   (tm : szp{tm /?+ bm})
   (tn : szp{tn /?+ bn})
+  (#_ : squash (chunk et_cd /?+ tn))
   (tk : szp{tk /?+ bk})
   (wm : szp{wm * tm /?+ bm})
   (wn : szp{wn * tn /?+ bn})
@@ -53,6 +55,8 @@ fn spec
   (alpha beta : et_acc)
   (#_ : squash (aligned 16 (core gA)))
   (#_ : squash (aligned 16 (core gB)))
+  (#_ : squash (aligned 16 (core gC)))
+  (#_ : squash (aligned 16 (core gD)))
   (#eA : chest2 et_ab rows shared)
   (#eB : chest2 et_ab shared cols)
   (#eC : chest2 et_cd rows cols)
@@ -112,6 +116,9 @@ fn spec
   lemma_aligned_strided_row_major_l2_row_major
     #(SZ.v shared) #(SZ.v cols) (chunk et_ab);
 
+  lemma_divides_trans (chunk et_cd) bn cols;
+  assert pure (chunk et_cd /?+ cols);
+
   let rA = to_real_matrix eA;
   let rB = to_real_matrix eB;
   let rC = to_real_matrix eC;
@@ -124,7 +131,7 @@ fn spec
       gA #eA gB #eB
       gC #_ #eC gD #eC
       bm bn bk tm tn tk wm wn
-      #_ #_ #_ #_ #_ #_ #_ #_
+      #_ #_ #_ #_ #_ #_ #_ #_ #_ #_ #_ #_
       #fA #fB #fC
       nblk nthr
       #_ #_ #_ #_ #_ #_ #_ #_ #_ #_ #_ #_ #_

@@ -15,6 +15,7 @@ open Kuiper.TensorCore
 
 module SZ = Kuiper.SizeT
 module MS = Kuiper.Spec.GEMM
+module VG = Kuiper.Array2.Vectorized.Group
 
 open Kuiper.Kernel.GEMM.TensorCore2D.KernelDesc
 
@@ -23,35 +24,38 @@ open Kuiper.Kernel.GEMM.TensorCore2D.To.KernelDesc
 #push-options "--ifuel 1 --initial_fuel 0 --max_fuel 1 --z3rlimit 15"
 
 let in_lane_covers_all
+  (w : pos)
   (rows cols : nat)
   (ij : natlt rows & natlt cols)
-  : Lemma (exists lane. in_lane rows cols lane ij)
+  : Lemma (exists lane. in_lane w rows cols lane ij)
 = let lane : natlt warp_size =
-    (ij._1 * cols + ij._2) % warp_size in
-  assert (in_lane rows cols lane ij);
+    VG.group_of w cols ij._1 ij._2 % warp_size in
+  assert (in_lane w rows cols lane ij);
   ()
 
 let in_lane_no_overlap
+  (w : pos)
   (rows cols : nat)
   (ij : natlt rows & natlt cols)
   (lane1 lane2 : natlt warp_size)
   : Lemma
-      (requires in_lane rows cols lane1 ij /\ in_lane rows cols lane2 ij)
+      (requires in_lane w rows cols lane1 ij /\ in_lane w rows cols lane2 ij)
       (ensures lane1 == lane2)
 = ()
 
 let lane_coincide
-  (#et : Type0) {| scalar et |}
+  (#et : Type0) {| scalar et, hvc : has_vec_cpy et |}
   (#rows #cols : nat)
   (lane : natlt warp_size)
   (em1 em2 : chest2 et rows cols)
   : prop
 = forall (i : natlt rows) (j : natlt cols).
-    in_lane rows cols lane (i, j) ==> acc2 em1 i j == acc2 em2 i j
+    in_lane (chunk et #_ #hvc) rows cols lane (i, j) ==>
+      acc2 em1 i j == acc2 em2 i j
 
 ghost
 fn own_lane_cells_rw
-  (#et : Type0) {| scalar et |}
+  (#et : Type0) {| scalar et, hvc : has_vec_cpy et |}
   (#rows #cols : nat)
   (#l : layout2 rows cols)
   (m : array2 et l)
@@ -63,7 +67,8 @@ fn own_lane_cells_rw
 {
   unfold own_lane_cells m em1 lane;
   forevery_map
-    #(ij : (natlt rows & natlt cols){in_lane rows cols lane ij})
+    #(ij : (natlt rows & natlt cols){
+       in_lane (chunk et #_ #hvc) rows cols lane ij})
     (fun ij -> tensor_pts_to_cell m (idx2 ij._1 ij._2) (acc2 em1 ij._1 ij._2))
     (fun ij -> tensor_pts_to_cell m (idx2 ij._1 ij._2) (acc2 em2 ij._1 ij._2))
     fn ij {
@@ -77,7 +82,7 @@ fn own_lane_cells_rw
 
 ghost
 fn join_array2_from_lane_cells
-  (#et : Type0) {| scalar et |}
+  (#et : Type0) {| scalar et, hvc : has_vec_cpy et |}
   (#rows #cols : nat)
   (#l : layout2 rows cols)
   (#_ : squash (SZ.fits l.ulen))
@@ -89,19 +94,21 @@ fn join_array2_from_lane_cells
   forevery_map
     (fun lane -> own_lane_cells m em lane)
     (fun lane ->
-      forall+ (ij : (natlt rows & natlt cols){in_lane rows cols lane ij}).
+      forall+ (ij : (natlt rows & natlt cols){
+        in_lane (chunk et #_ #hvc) rows cols lane ij}).
         tensor_pts_to_cell m (idx2 ij._1 ij._2) (acc2 em ij._1 ij._2))
     fn lane { unfold own_lane_cells m em lane };
   forevery_join_or_n
-    (fun (lane : natlt warp_size) ij -> in_lane rows cols lane ij)
+    (fun (lane : natlt warp_size) ij ->
+       in_lane (chunk et #_ #hvc) rows cols lane ij)
     (fun ij -> tensor_pts_to_cell m (idx2 ij._1 ij._2) (acc2 em ij._1 ij._2));
-  Classical.forall_intro (in_lane_covers_all rows cols);
+  Classical.forall_intro (in_lane_covers_all (chunk et #_ #hvc) rows cols);
   Classical.forall_intro_3
     (fun ij lane1 -> Classical.move_requires
-      (in_lane_no_overlap rows cols ij lane1));
+      (in_lane_no_overlap (chunk et #_ #hvc) rows cols ij lane1));
   forevery_refine_ext #_
     #(fun (ij : natlt rows & natlt cols) ->
-      exists lane. in_lane rows cols lane ij)
+      exists lane. in_lane (chunk et #_ #hvc) rows cols lane ij)
     (fun _ -> True) _;
   forevery_unflatten' _;
   tensor_iraise2 m;
@@ -109,7 +116,7 @@ fn join_array2_from_lane_cells
 
 ghost
 fn join_lane_cells_approximates
-  (#et : Type0) {| scalar et, real_like et |}
+  (#et : Type0) {| scalar et, hvc : has_vec_cpy et, real_like et |}
   (#rows #cols : nat)
   (#l : layout2 rows cols)
   (#_ : squash (SZ.fits l.ulen))
@@ -127,7 +134,8 @@ fn join_lane_cells_approximates
     (fun lane em -> own_lane_cells m em lane ** pure (em %~ r));
   let em' : chest2 et rows cols =
     mk2 (fun i j ->
-      let lane : natlt warp_size = (i * cols + j) % warp_size in
+      let lane : natlt warp_size =
+        VG.group_of (chunk et #_ #hvc) cols i j % warp_size in
       acc2 (ff lane) i j);
   forevery_unzip
     (fun lane -> own_lane_cells m (ff lane) lane)
@@ -196,11 +204,11 @@ fn array2_untile_approximates
   assert pure (ematrix_from_tiles trows tcols ff %~ r);
 }
 
-#push-options "--split_queries no"
+#push-options "--split_queries no --z3rlimit 30"
 
 ghost
 fn gather_warp
-  (#et_cd : Type0) {| scalar et_cd, real_like et_cd |}
+  (#et_cd : Type0) {| scalar et_cd, has_vec_cpy et_cd, real_like et_cd |}
   (#m #n : szp)
   (gD : array2 et_cd (rm m n))
   (bm bn bk tm tn tk wm wn : szp {
@@ -315,7 +323,7 @@ fn gather_warp
 
 ghost
 fn gather_block
-  (#et_cd : Type0) {| scalar et_cd, real_like et_cd |}
+  (#et_cd : Type0) {| scalar et_cd, has_vec_cpy et_cd, real_like et_cd |}
   (#m #n : szp)
   (gD : array2 et_cd (rm m n))
   (bm bn bk tm tn tk wm wn : szp {
@@ -411,7 +419,7 @@ fn gather_block
 
 ghost
 fn gather_output
-  (#et_cd : Type0) {| scalar et_cd, real_like et_cd |}
+  (#et_cd : Type0) {| scalar et_cd, has_vec_cpy et_cd, real_like et_cd |}
   (comb_r : binop real)
   (#m #n #k : szp)
   (gD : array2 et_cd (rm m n))
@@ -580,7 +588,7 @@ fn gather_output
 
 let teardown_inputs_pre
   (#et_ab #et_cd : Type0)
-  {| scalar et_ab, scalar et_cd, real_like et_cd |}
+  {| scalar et_ab, scalar et_cd, has_vec_cpy et_cd, real_like et_cd |}
   (comb_r : binop real)
   (#m #n #k : szp)
   (#lA : layout2 m k)
@@ -608,7 +616,7 @@ let teardown_inputs_pre
 
 let teardown_inputs_post
   (#et_ab #et_cd : Type0)
-  {| scalar et_ab, scalar et_cd, real_like et_cd |}
+  {| scalar et_ab, scalar et_cd, has_vec_cpy et_cd, real_like et_cd |}
   (comb_r : binop real)
   (#m #n #k : szp)
   (#lA : layout2 m k)
@@ -644,7 +652,7 @@ let teardown_inputs_post
 ghost
 fn gather_kernel_outputs
   (#et_ab #et_cd : Type0)
-  {| scalar et_ab, scalar et_cd, real_like et_cd |}
+  {| scalar et_ab, scalar et_cd, has_vec_cpy et_cd, real_like et_cd |}
   (comb_r : binop real)
   (#m #n #k : szp)
   (#lA : layout2 m k)
@@ -770,7 +778,7 @@ fn gather_kernel_outputs
 ghost
 fn teardown_to
   (#et_ab #et_cd : Type0)
-  {| scalar et_ab, scalar et_cd, real_like et_cd |}
+  {| scalar et_ab, scalar et_cd, has_vec_cpy et_cd, real_like et_cd |}
   (comb_r : binop real)
   (#m #n #k : szp)
   (#lA : layout2 m k)

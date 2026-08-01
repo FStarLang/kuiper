@@ -22,32 +22,35 @@ open Pulse.Lib.Array
 open Pulse.Lib.Trade
 
 module SZ = Kuiper.SizeT
+module VG = Kuiper.Array2.Vectorized.Group
 
 open Kuiper.Kernel.GEMM.TensorCore2D.KernelDesc
 
 
 
 let in_lane_covers_all
+  (w : pos)
   (rows cols : nat)
   (ij : natlt rows & natlt cols)
-  : Lemma (exists lane. in_lane rows cols lane ij)
+  : Lemma (exists lane. in_lane w rows cols lane ij)
 = let lane : natlt warp_size =
-    (ij._1 * cols + ij._2) % warp_size in
-  assert (in_lane rows cols lane ij);
+    VG.group_of w cols ij._1 ij._2 % warp_size in
+  assert (in_lane w rows cols lane ij);
   ()
 
 let in_lane_no_overlap
+  (w : pos)
   (rows cols : nat)
   (ij : natlt rows & natlt cols)
   (lane1 lane2 : natlt warp_size)
   : Lemma
-      (requires in_lane rows cols lane1 ij /\ in_lane rows cols lane2 ij)
+      (requires in_lane w rows cols lane1 ij /\ in_lane w rows cols lane2 ij)
       (ensures lane1 == lane2)
 = ()
 
 ghost
 fn split_array2_into_lane_cells
-  (#et : Type0) {| scalar et |}
+  (#et : Type0) {| scalar et, hvc : has_vec_cpy et |}
   (#rows #cols : nat)
   (#l : layout2 rows cols)
   (m : array2 et l)
@@ -57,17 +60,18 @@ fn split_array2_into_lane_cells
 {
   tensor_ilower2 m;
   forevery_flatten _;
-  Classical.forall_intro (in_lane_covers_all rows cols);
+  Classical.forall_intro (in_lane_covers_all (chunk et #_ #hvc) rows cols);
   forevery_refine_ext #_ #(fun _ -> True)
-    (fun (ij : natlt rows & natlt cols) -> exists lane. in_lane rows cols lane ij) _;
+    (fun (ij : natlt rows & natlt cols) ->
+       exists lane. in_lane (chunk et #_ #hvc) rows cols lane ij) _;
   Classical.forall_intro_3
     (fun ij lane1 -> Classical.move_requires
-      (in_lane_no_overlap rows cols ij lane1));
+      (in_lane_no_overlap (chunk et #_ #hvc) rows cols ij lane1));
   forevery_split_or_n _ _;
   forevery_map
     (fun lane ->
       forall+ (ij : (natlt rows & natlt cols){
-        in_lane rows cols lane ij}).
+        in_lane (chunk et #_ #hvc) rows cols lane ij}).
         tensor_pts_to_cell m (idx2 ij._1 ij._2)
           (acc2 em ij._1 ij._2))
     (fun lane -> own_lane_cells m em lane)
@@ -77,7 +81,7 @@ fn split_array2_into_lane_cells
 #push-options "--z3rlimit 100 --fuel 1 --ifuel 1 --split_queries no"
 ghost
 fn split_output_to_lanes
-  (#et : Type0) {| scalar et |}
+  (#et : Type0) {| scalar et, has_vec_cpy et |}
   (#m #n : szp)
   (gD : array2 et (rm m n))
   (bm bn tm tn wm wn : szp)
@@ -262,7 +266,7 @@ ghost
 fn setup_to
   (#et_ab #et_cd : Type0)
   {| scalar et_ab, real_like et_ab,
-     scalar et_cd, real_like et_cd |}
+     scalar et_cd, has_vec_cpy et_cd, real_like et_cd |}
   (#m #n #k : szp)
   (#lA : layout2 m k)
   (#lB : layout2 k n)
@@ -275,6 +279,8 @@ fn setup_to
   (gC : array2 et_cd (rm m n))
   (eC : chest2 et_cd m n)
   (gD : array2 et_cd (rm m n))
+  (#_ : squash (aligned 16 (core gC)))
+  (#_ : squash (aligned 16 (core gD)))
   (#_ : squash (SZ.fits (m * n)))
   (bm bn bk tm tn tk wm wn : szp{
     constraints bm bn bk tm tn tk wm wn})
@@ -563,7 +569,7 @@ ghost
 fn block_setup_to
   (#et_ab #et_cd #et_acc : Type0)
   {| scalar et_ab, real_like et_ab,
-     scalar et_cd, real_like et_cd, scalar et_acc |}
+     scalar et_cd, has_vec_cpy et_cd, real_like et_cd, scalar et_acc |}
   (#m #n #k : szp)
   (#lA : layout2 m k)
   (#lB : layout2 k n)
@@ -661,7 +667,8 @@ fn block_setup_to
 ghost
 fn block_teardown_to
   (#et_ab #et_cd #et_acc : Type0)
-  {| scalar et_ab, scalar et_cd, real_like et_cd, scalar et_acc |}
+  {| scalar et_ab, scalar et_cd, has_vec_cpy et_cd, real_like et_cd,
+     scalar et_acc |}
   (comb_r : binop real)
   (#m #n #k : szp)
   (#lA : layout2 m k)

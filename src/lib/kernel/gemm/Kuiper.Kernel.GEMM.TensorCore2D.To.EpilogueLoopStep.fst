@@ -6,6 +6,7 @@ open Kuiper
 #set-options "--ifuel 1 --initial_fuel 0 --max_fuel 1"
 #set-options "--z3rlimit 15"
 
+open Kuiper.Array.Vectorized { has_vec_cpy, chunk }
 open Kuiper.EMatrix
 open Kuiper.Tensor
 open Kuiper.Array2.Strided
@@ -16,6 +17,7 @@ open Pulse.Lib.Array
 open Pulse.Lib.Trade
 
 module SZ = Kuiper.SizeT
+module T = Kuiper.Tensor
 
 open Kuiper.Kernel.GEMM.TensorCore2D.KernelDesc
 open Kuiper.Kernel.GEMM.TensorCore2D.To.KernelDesc
@@ -65,7 +67,7 @@ fn forevery_extract_replace_eqtype
 
 ghost
 fn output_epilogue_extract_step
-  (#et : Type0) {| scalar et, real_like et |}
+  (#et : Type0) {| scalar et, real_like et, has_vec_cpy et |}
   (#m #n : nat)
   (gD : array2 et (rm m n))
   (bm bn tm tn wm wn : pos)
@@ -107,11 +109,12 @@ fn output_epilogue_extract_step
 inline_for_extraction noextract
 fn epilogue_loop_step
   (#et_ab #et_cd #et_acc : Type0)
-  {| scalar et_ab, scalar et_cd, real_like et_cd,
+  {| scalar et_ab, scalar et_cd, real_like et_cd, has_vec_cpy et_cd,
      scalar et_acc, real_like et_acc |}
   (comb : et_cd -> et_acc -> et_cd)
   (comb_r : binop real { approx2 comb comb_r })
   (#m #n : szp)
+  {| str : strided_row_major (rm m n) |}
   (gC : array2 et_cd (rm m n))
   (#fC : perm)
   (#eC : chest2 et_cd m n)
@@ -127,6 +130,7 @@ fn epilogue_loop_step
     SZ.v nthr == bm / (wm * tm) * (bn / (wn * tn)) * warp_size })
   (#_ : squash (SZ.fits ((nthr / warp_size) * tm * tn)))
   (#_ : squash (SZ.fits (tm * tn + warp_size)))
+  (#_ : squash (chunk et_cd /?+ tn))
   (sh : c_shmems
     (shmems_desc_to et_ab et_acc bm bn bk tm tn nthr))
   (accFrags : array
@@ -147,6 +151,8 @@ fn epilogue_loop_step
   (done : szle (wm * wn) { SZ.v done < wm * wn })
   norewrite
   requires
+    pure (aligned 16 (T.core gC) /\ aligned 16 (T.core gD) /\
+          aligned_strided_row_major (chunk et_cd) str) **
     idx |-> done **
     epilogue_frame #et_ab #et_cd #et_acc
       #_ #_ #_ #_ #_
@@ -158,6 +164,8 @@ fn epilogue_loop_step
       (chest_comb comb_r rCWarp rAcc)
       (SZ.v done)
   ensures
+    pure (aligned 16 (T.core gC) /\ aligned 16 (T.core gD) /\
+          aligned_strided_row_major (chunk et_cd) str) **
     (exists* (next : szle (wm * wn)).
       idx |-> next **
       pure (SZ.v next == SZ.v done + 1)) **

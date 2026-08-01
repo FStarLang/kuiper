@@ -3,6 +3,7 @@ module Kuiper.Kernel.GEMM.TensorCore2D.To.EpilogueState
 #lang-pulse
 
 open Kuiper
+open Kuiper.Array.Vectorized { has_vec_cpy, chunk }
 open Kuiper.EMatrix
 open Kuiper.EMatrix.Tiling
 open Kuiper.Tensor
@@ -100,7 +101,7 @@ let epilogue_warp_input
     ((tid / warp_size) % (bn / (wn * tn)))
 
 let output_fragment_post
-  (#et : Type0) {| scalar et, real_like et |}
+  (#et : Type0) {| scalar et, real_like et, has_vec_cpy et |}
   (#m #n : nat)
   (gD : array2 et (rm m n))
   (bm bn tm tn wm wn : pos)
@@ -123,7 +124,7 @@ let if_else_ (b : bool) (p q : slprop) : slprop =
   if_ b p ** if_ (not b) q
 
 let output_fragment_state_at
-  (#et : Type0) {| scalar et, real_like et |}
+  (#et : Type0) {| scalar et, real_like et, has_vec_cpy et |}
   (#m #n : nat)
   (gD : array2 et (rm m n))
   (bm bn tm tn wm wn : pos)
@@ -145,7 +146,7 @@ let output_fragment_state_at
       lane)
 
 let output_epilogue_state
-  (#et : Type0) {| scalar et, real_like et |}
+  (#et : Type0) {| scalar et, real_like et, has_vec_cpy et |}
   (#m #n : nat)
   (gD : array2 et (rm m n))
   (bm bn tm tn wm wn : pos)

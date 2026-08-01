@@ -4,7 +4,7 @@ module Kuiper.Kernel.GEMM.TensorCore2D.To.Finish
 
 open Kuiper
 
-open Kuiper.Array.Vectorized { has_vec_cpy }
+open Kuiper.Array.Vectorized { has_vec_cpy, chunk }
 open Kuiper.EMatrix
 open Kuiper.EMatrix.Tiling
 open Kuiper.Tensor
@@ -125,7 +125,7 @@ ghost fn prepare_epilogue
 
 noextract
 ghost fn normalize_output
-  (#et_cd : Type0) {| scalar et_cd, real_like et_cd |}
+  (#et_cd : Type0) {| scalar et_cd, has_vec_cpy et_cd, real_like et_cd |}
   (comb_r : binop real)
   (#m #n #k : szp)
   (gD : array2 et_cd (rm m n))
@@ -297,11 +297,13 @@ ghost fn cleanup
 inline_for_extraction noextract
 fn finish
   (#et_ab #et_cd #et_acc : Type0)
-  {| scalar et_ab, has_vec_cpy et_ab, scalar et_cd, real_like et_cd,
+  {| scalar et_ab, has_vec_cpy et_ab,
+     scalar et_cd, has_vec_cpy et_cd, real_like et_cd,
      scalar et_acc, real_like et_acc |}
   (comb : et_cd -> et_acc -> et_cd)
   (comb_r : binop real { approx2 comb comb_r })
   (#m #n #k : szp)
+  {| str : strided_row_major (rm m n) |}
   (gC : array2 et_cd (rm m n))
   (#eC : chest2 et_cd m n)
   (gD : array2 et_cd (rm m n))
@@ -313,6 +315,7 @@ fn finish
   (#output_fits : squash (SZ.fits (m * n)))
   (#fragment_fits : squash (SZ.fits (tm * tn + warp_size)))
   (#tile_count_fits : squash (SZ.fits (wm * wn)))
+  (#_ : squash (chunk et_cd /?+ tn))
   (#fC : perm)
   (rA : chest2 real m k)
   (rB : chest2 real k n)
@@ -350,6 +353,9 @@ fn finish
       (ematrix_subtile rB k (wn * tn) 0
         (warp_tile_j #m #n bm bn bk tm tn tk wm wn
           nthr bid (tid / warp_size))) })
+  preserves
+    pure (aligned 16 (core gC) /\ aligned 16 (core gD) /\
+          aligned_strided_row_major (chunk et_cd) str)
   requires
     epilogue_frame #et_ab #et_cd #et_acc
       #_ #_ #_ #_ #_

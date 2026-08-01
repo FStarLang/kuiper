@@ -3,12 +3,16 @@ module Kuiper.Kernel.GEMM.TensorCore2D.To.Epilogue
 #lang-pulse
 
 open Kuiper
+open Kuiper.Array.Vectorized { has_vec_cpy, chunk }
+open Kuiper.Array2.Strided
 open Kuiper.EMatrix
 open Kuiper.EMatrix.Tiling
 open Kuiper.Tensor
 open Kuiper.Tensor.Layout.Alg { l2_row_major as rm }
 open Kuiper.TensorCore
 open Pulse.Lib.Array
+
+module T = Kuiper.Tensor
 
 open Kuiper.Kernel.GEMM.TensorCore2D.KernelDesc
 open Kuiper.Kernel.GEMM.TensorCore2D.To.KernelDesc
@@ -18,11 +22,12 @@ open Kuiper.Kernel.GEMM.TensorCore2D.To.EpilogueLoopStep
 inline_for_extraction noextract
 fn epilogue_to
   (#et_ab #et_cd #et_acc : Type0)
-  {| scalar et_ab, scalar et_cd, real_like et_cd,
+  {| scalar et_ab, scalar et_cd, real_like et_cd, has_vec_cpy et_cd,
      scalar et_acc, real_like et_acc |}
   (comb : et_cd -> et_acc -> et_cd)
   (comb_r : binop real { approx2 comb comb_r })
   (#m #n : szp)
+  {| str : strided_row_major (rm m n) |}
   (gC : array2 et_cd (rm m n))
   (#fC : perm)
   (#eC : chest2 et_cd m n)
@@ -37,7 +42,11 @@ fn epilogue_to
   (bid : szlt (m / d.bm * (n / d.bn)))
   (tid : szlt d.nthr)
   (#_ : squash (Pulse.Lib.Array.length accFrags == d.wm * d.wn))
+  (#_ : squash (chunk et_cd /?+ d.tn))
   norewrite
+  preserves
+    pure (aligned 16 (T.core gC) /\ aligned 16 (T.core gD) /\
+          aligned_strided_row_major (chunk et_cd) str)
   requires
     epilogue_frame #et_ab #et_cd #et_acc
       #_ #_ #_ #_ #_

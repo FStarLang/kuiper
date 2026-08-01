@@ -13,29 +13,37 @@ open Kuiper.TensorCore
 
 module SZ = Kuiper.SizeT
 module MS = Kuiper.Spec.GEMM
+module VG = Kuiper.Array2.Vectorized.Group
 
 open Kuiper.Kernel.GEMM.TensorCore2D.KernelDesc
 
+(* Lanes own *runs* of [w] consecutive cells: lane [lane] owns every
+   chunk group whose index is congruent to [lane] modulo [warp_size].
+   Taking [w] to be the vectorization width of [et] is what lets the
+   epilogue read and write each lane's share with a single 128-bit
+   access. *)
 let in_lane
+  (w : pos)
   (rows cols : nat)
   (lane : natlt warp_size)
   (ij : natlt rows & natlt cols)
   : prop
-= (ij._1 * cols + ij._2) % warp_size == lane
+= VG.group_of w cols ij._1 ij._2 % warp_size == lane
 
 let own_lane_cells
-  (#et : Type0) {| scalar et |}
+  (#et : Type0) {| scalar et, hvc : has_vec_cpy et |}
   (#rows #cols : nat)
   (#l : layout2 rows cols)
   ([@@@mkey] m : array2 et l)
   (em : chest2 et rows cols)
   (lane : natlt warp_size)
   : slprop
-= forall+ (ij : (natlt rows & natlt cols){in_lane rows cols lane ij}).
+= forall+ (ij : (natlt rows & natlt cols){
+    in_lane (chunk et #_ #hvc) rows cols lane ij}).
     tensor_pts_to_cell m (idx2 ij._1 ij._2) (acc2 em ij._1 ij._2)
 
 let live_lane_cells
-  (#et : Type0) {| scalar et |}
+  (#et : Type0) {| scalar et, has_vec_cpy et |}
   (#rows #cols : nat)
   (#l : layout2 rows cols)
   ([@@@mkey] m : array2 et l)
@@ -130,7 +138,7 @@ let scratch_tile_st
 = scratch_tile bm bn bk tm tn nthr sh (SZ.v wid)
 
 let output_lane_live
-  (#et : Type0) {| scalar et |}
+  (#et : Type0) {| scalar et, has_vec_cpy et |}
   (#m #n : nat)
   (gD : array2 et (rm m n))
   (bm bn tm tn wm wn : pos)
@@ -145,7 +153,7 @@ let output_lane_live
       (tid % warp_size)
 
 let output_lane_approximates
-  (#et : Type0) {| scalar et, real_like et |}
+  (#et : Type0) {| scalar et, has_vec_cpy et, real_like et |}
   (#m #n : nat)
   (gD : array2 et (rm m n))
   (bm bn tm tn wm wn : pos)
@@ -181,7 +189,7 @@ unfold
 let kpre1_to
   (#et_ab #et_cd : Type0)
   {| scalar et_ab, real_like et_ab,
-     scalar et_cd, real_like et_cd |}
+     scalar et_cd, has_vec_cpy et_cd, real_like et_cd |}
   (#m #n #k : szp)
   (#lA : layout2 m k)
   (#lB : layout2 k n)
@@ -211,6 +219,8 @@ let kpre1_to
   output_lane_live gD bm bn tm tn wm wn bid tid **
   pure (aligned 16 (core gA)) **
   pure (aligned 16 (core gB)) **
+  pure (aligned 16 (core gC)) **
+  pure (aligned 16 (core gD)) **
   pure (eA %~ rA) **
   pure (eB %~ rB) **
   pure (eC %~ rC)
@@ -218,7 +228,7 @@ let kpre1_to
 unfold
 let kpost1_to
   (#et_ab #et_cd : Type0)
-  {| scalar et_ab, scalar et_cd, real_like et_cd |}
+  {| scalar et_ab, scalar et_cd, has_vec_cpy et_cd, real_like et_cd |}
   (comb_r : binop real)
   (#m #n #k : szp)
   (#lA : layout2 m k)
@@ -276,7 +286,7 @@ unfold
 let kpre_to
   (#et_ab #et_cd #et_acc : Type0)
   {| scalar et_ab, real_like et_ab,
-     scalar et_cd, real_like et_cd, scalar et_acc |}
+     scalar et_cd, has_vec_cpy et_cd, real_like et_cd, scalar et_acc |}
   (#m #n #k : szp)
   (#lA : layout2 m k)
   (#lB : layout2 k n)
@@ -314,7 +324,8 @@ let kpre_to
 unfold
 let kpost_to
   (#et_ab #et_cd #et_acc : Type0)
-  {| scalar et_ab, scalar et_cd, real_like et_cd, scalar et_acc |}
+  {| scalar et_ab, scalar et_cd, has_vec_cpy et_cd, real_like et_cd,
+     scalar et_acc |}
   (comb_r : binop real)
   (#m #n #k : szp)
   (#lA : layout2 m k)
@@ -354,7 +365,7 @@ ghost
 fn setup_to
   (#et_ab #et_cd : Type0)
   {| scalar et_ab, real_like et_ab,
-     scalar et_cd, real_like et_cd |}
+     scalar et_cd, has_vec_cpy et_cd, real_like et_cd |}
   (#m #n #k : szp)
   (#lA : layout2 m k)
   (#lB : layout2 k n)
@@ -367,6 +378,8 @@ fn setup_to
   (gC : array2 et_cd (rm m n))
   (eC : chest2 et_cd m n)
   (gD : array2 et_cd (rm m n))
+  (#_ : squash (aligned 16 (core gC)))
+  (#_ : squash (aligned 16 (core gD)))
   (#_ : squash (SZ.fits (m * n)))
   (bm bn bk tm tn tk wm wn : szp{
     constraints bm bn bk tm tn tk wm wn})
@@ -396,7 +409,7 @@ ghost
 fn block_setup_to
   (#et_ab #et_cd #et_acc : Type0)
   {| scalar et_ab, real_like et_ab,
-     scalar et_cd, real_like et_cd, scalar et_acc |}
+     scalar et_cd, has_vec_cpy et_cd, real_like et_cd, scalar et_acc |}
   (#m #n #k : szp)
   (#lA : layout2 m k)
   (#lB : layout2 k n)
@@ -443,7 +456,8 @@ fn block_setup_to
 ghost
 fn block_teardown_to
   (#et_ab #et_cd #et_acc : Type0)
-  {| scalar et_ab, scalar et_cd, real_like et_cd, scalar et_acc |}
+  {| scalar et_ab, scalar et_cd, has_vec_cpy et_cd, real_like et_cd,
+     scalar et_acc |}
   (comb_r : binop real)
   (#m #n #k : szp)
   (#lA : layout2 m k)

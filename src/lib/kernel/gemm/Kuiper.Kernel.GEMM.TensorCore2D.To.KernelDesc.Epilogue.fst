@@ -23,6 +23,7 @@ open Pulse.Lib.Trade
 
 module SZ = Kuiper.SizeT
 module T = Kuiper.Tensor
+module VG = Kuiper.Array2.Vectorized.Group
 
 open Kuiper.Kernel.GEMM.TensorCore2D.KernelDesc
 
@@ -67,16 +68,18 @@ let ematrix_subtile_approximates
 inline_for_extraction noextract
 fn epilogue_fragment_from_warp
   (#et_cd #et_acc : Type0)
-  {| scd : scalar et_cd, real_like et_cd,
+  {| scd : scalar et_cd, real_like et_cd, hvc : has_vec_cpy et_cd,
      sacc : scalar et_acc, real_like et_acc |}
   (comb : et_cd -> et_acc -> et_cd)
   (comb_r : binop real { approx2 comb comb_r })
   (#m #n : szp)
+  {| str : strided_row_major (rm m n) |}
   (c : array2 et_cd (rm m n))
   (#_ : squash (SZ.fits (m * n)))
   (bm bn rows cols wm wn : szp)
   (#_ : squash (bm /?+ m /\ bn /?+ n /\
                 wm * rows /?+ bm /\ wn * cols /?+ bn))
+  (#_ : squash (chunk et_cd /?+ cols))
   (mrow : szlt (m / bm))
   (mcol : szlt (n / bn))
   (warpRow : szlt (bm / (wm * rows)))
@@ -105,6 +108,9 @@ fn epilogue_fragment_from_warp
     gpu **
     c |-> Frac fC eC **
     acc |-> Frac (1.0R /. warp_size) eAcc
+  requires
+    pure (aligned 16 (T.core c) /\ aligned 16 (T.core d) /\
+          aligned_strided_row_major (chunk et_cd) str)
   requires
     live_lane_cells
       (output_fragment d bm bn rows cols wm wn
@@ -163,41 +169,45 @@ fn epilogue_fragment_from_warp
       (SZ.v bid) (SZ.v wid) (SZ.v idx / wn) (SZ.v idx % wn))
     lane eD0 (lane_fade eD0 eTarget lane lane);
 
-  let area = rows *^ cols;
-  let mut flat : sz = lane;
-  while (!flat <^ area)
-    invariant live flat
-    invariant pure (!flat % warp_size == lane)
-    invariant pure (!flat <= rows * cols + warp_size)
+  // The lane owns whole runs of [chunk et_cd] contiguous cells, so the
+  // loop is indexed by chunk group rather than by flat cell index.
+  let area = rows *^ cols /^ chunk et_cd;
+  FStar.Math.Lib.slash_decr_axiom (SZ.v rows * SZ.v cols) (SZ.v (chunk et_cd));
+  assert pure (SZ.v area == VG.ngroups (chunk et_cd) rows cols);
+  let mut vg : sz = lane;
+  while (!vg <^ area)
+    invariant live vg
+    invariant pure (!vg % warp_size == lane)
+    invariant pure (!vg <= SZ.v area + warp_size)
     invariant
       own_lane_cells
         (output_fragment d bm bn rows cols wm wn
           (SZ.v bid) (SZ.v wid) (SZ.v idx / wn) (SZ.v idx % wn))
-        (lane_fade eD0 eTarget lane !flat)
+        (lane_fade eD0 eTarget lane !vg)
         lane
-    decreases (area + warp_size - !flat)
+    decreases (area + warp_size - !vg)
   {
     epilogue_fragment_step comb c
       bm bn rows cols wm wn
       mrow mcol warpRow warpCol bid wid
-      acc d idx lane eD0 eTarget !flat;
-    let vflat = !flat;
-    Math.Lemmas.add_div_mod_1 (SZ.v vflat) warp_size;
-    assert pure (SZ.v vflat < SZ.v vflat + warp_size);
+      acc d idx lane eD0 eTarget !vg;
+    let vvg = !vg;
+    Math.Lemmas.add_div_mod_1 (SZ.v vvg) warp_size;
+    assert pure (SZ.v vvg < SZ.v vvg + warp_size);
     assert pure (
-      SZ.v (vflat +^ warp_size) == SZ.v vflat + warp_size);
+      SZ.v (vvg +^ warp_size) == SZ.v vvg + warp_size);
     assert pure (
-      SZ.v area + warp_size - SZ.v (vflat +^ warp_size)
-        < SZ.v area + warp_size - SZ.v vflat);
-    flat := vflat +^ warp_size;
+      SZ.v area + warp_size - SZ.v (vvg +^ warp_size)
+        < SZ.v area + warp_size - SZ.v vvg);
+    vg := vvg +^ warp_size;
   };
 
-  lane_fade_done eD0 eTarget lane !flat;
+  lane_fade_done eD0 eTarget lane !vg;
   own_lane_cells_rw
     (output_fragment d bm bn rows cols wm wn
       (SZ.v bid) (SZ.v wid) (SZ.v idx / wn) (SZ.v idx % wn))
     lane
-    (lane_fade eD0 eTarget lane !flat)
+    (lane_fade eD0 eTarget lane !vg)
     eTarget;
   let eCBlock = ematrix_subtile eC bm bn (SZ.v mrow) (SZ.v mcol);
   let rCBlock = ematrix_subtile rC bm bn (SZ.v mrow) (SZ.v mcol);

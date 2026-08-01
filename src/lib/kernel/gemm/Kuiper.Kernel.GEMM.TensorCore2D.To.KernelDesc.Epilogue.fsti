@@ -22,16 +22,18 @@ open Kuiper.Kernel.GEMM.TensorCore2D.To.KernelDesc
 inline_for_extraction noextract
 fn epilogue_fragment_from_warp
   (#et_cd #et_acc : Type0)
-  {| scd : scalar et_cd, real_like et_cd,
+  {| scd : scalar et_cd, real_like et_cd, hvc : has_vec_cpy et_cd,
      sacc : scalar et_acc, real_like et_acc |}
   (comb : et_cd -> et_acc -> et_cd)
   (comb_r : binop real { approx2 comb comb_r })
   (#m #n : szp)
+  {| str : strided_row_major (rm m n) |}
   (c : array2 et_cd (rm m n))
   (#_ : squash (SZ.fits (m * n)))
   (bm bn rows cols wm wn : szp)
   (#_ : squash (bm /?+ m /\ bn /?+ n /\
                 wm * rows /?+ bm /\ wn * cols /?+ bn))
+  (#_ : squash (chunk et_cd /?+ cols))
   (mrow : szlt (m / bm))
   (mcol : szlt (n / bn))
   (warpRow : szlt (bm / (wm * rows)))
@@ -60,6 +62,9 @@ fn epilogue_fragment_from_warp
     gpu **
     c |-> Frac fC eC **
     acc |-> Frac (1.0R /. warp_size) eAcc
+  requires
+    pure (aligned 16 (T.core c) /\ aligned 16 (T.core d) /\
+          aligned_strided_row_major (chunk et_cd) str)
   requires
     live_lane_cells
       (output_fragment d bm bn rows cols wm wn

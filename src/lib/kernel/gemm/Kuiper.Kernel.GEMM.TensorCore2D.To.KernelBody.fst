@@ -37,7 +37,7 @@ inline_for_extraction noextract
 fn kf
   (#et_ab #et_cd #et_acc : Type0)
   {| scalar et_ab, has_vec_cpy et_ab,
-     scalar et_cd, scalar et_acc |}
+     scalar et_cd, has_vec_cpy et_cd, scalar et_acc |}
   {| real_like et_ab, real_like et_cd, real_like et_acc |}
   (comb : et_cd -> et_acc -> et_cd)
   (comb_r : binop real { approx2 comb comb_r })
@@ -63,6 +63,8 @@ fn kf
   (#_ : squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
   (#_ : squash (chunk et_ab /?+ bn))
   (#_ : squash (chunk et_ab /?+ bk))
+  (#_ : squash (chunk et_cd /?+ n))
+  (#_ : squash (chunk et_cd /?+ tn))
   (#_ : squash (SZ.fits (m * k)))
   (#_ : squash (SZ.fits (m * n)))
   (#_ : squash (SZ.fits (k * n)))
@@ -176,6 +178,8 @@ fn kf
     #m #n gC (fC /. (m / bm * (n / bn) * nthr)) eC rC
     bm bn bk tm tn tk wm wn nthr
     (sarA, (sarB, (sarAcc, sarTail))) accFrags rAcc'' tid;
+  lemma_aligned_strided_row_major_l2_row_major
+    #(SZ.v m) #(SZ.v n) #_ #_ (SZ.v (chunk et_cd));
   finish #et_ab #et_cd #et_acc comb comb_r
     gC gD
     bm bn bk tm tn tk wm wn

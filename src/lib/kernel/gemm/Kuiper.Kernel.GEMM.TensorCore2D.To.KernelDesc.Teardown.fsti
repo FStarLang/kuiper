@@ -22,7 +22,7 @@ open Kuiper.Kernel.GEMM.TensorCore2D.To.KernelDesc
 ghost
 fn teardown_to
   (#et_ab #et_cd : Type0)
-  {| scalar et_ab, scalar et_cd, real_like et_cd |}
+  {| scalar et_ab, scalar et_cd, has_vec_cpy et_cd, real_like et_cd |}
   (comb_r : binop real)
   (#m #n #k : szp)
   (#lA : layout2 m k)

@@ -3,6 +3,7 @@ module Kuiper.Kernel.GEMM.TensorCore2D.To.BaseSendable
 #lang-pulse
 
 open Kuiper
+open Kuiper.Array.Vectorized { has_vec_cpy }
 
 module SZ = Kuiper.SizeT
 
@@ -14,7 +15,7 @@ open Kuiper.Kernel.GEMM.TensorCore2D.To.KernelDesc
 val kpre1_sendable_to
   (#et_ab #et_cd : Type0)
   {| scalar et_ab, real_like et_ab,
-     scalar et_cd, real_like et_cd |}
+     scalar et_cd, has_vec_cpy et_cd, real_like et_cd |}
   (#m #n #k : szp)
   (#lA : layout2 m k)
   (#lB : layout2 k n)
@@ -44,7 +45,7 @@ val kpre1_sendable_to
 
 val kpost1_sendable_to
   (#et_ab #et_cd : Type0)
-  {| scalar et_ab, scalar et_cd, real_like et_cd |}
+  {| scalar et_ab, scalar et_cd, has_vec_cpy et_cd, real_like et_cd |}
   (comb_r : binop real)
   (#m #n #k : szp)
   (#lA : layout2 m k)

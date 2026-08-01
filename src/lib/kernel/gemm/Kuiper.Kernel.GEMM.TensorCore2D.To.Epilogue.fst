@@ -22,6 +22,7 @@ open Pulse.Lib.Array
 open Pulse.Lib.Trade
 
 module SZ = Kuiper.SizeT
+module T = Kuiper.Tensor
 
 open Kuiper.Kernel.GEMM.TensorCore2D.KernelDesc
 open Kuiper.Kernel.GEMM.TensorCore2D.To.KernelDesc
@@ -32,11 +33,12 @@ open Kuiper.Kernel.GEMM.TensorCore2D.To.EpilogueLoopStep
 inline_for_extraction noextract
 fn epilogue_to
   (#et_ab #et_cd #et_acc : Type0)
-  {| scalar et_ab, scalar et_cd, real_like et_cd,
+  {| scalar et_ab, scalar et_cd, real_like et_cd, has_vec_cpy et_cd,
      scalar et_acc, real_like et_acc |}
   (comb : et_cd -> et_acc -> et_cd)
   (comb_r : binop real { approx2 comb comb_r })
   (#m #n : szp)
+  {| str : strided_row_major (rm m n) |}
   (gC : array2 et_cd (rm m n))
   (#fC : perm)
   (#eC : chest2 et_cd m n)
@@ -51,7 +53,11 @@ fn epilogue_to
   (bid : szlt (m / d.bm * (n / d.bn)))
   (tid : szlt d.nthr)
   (#_ : squash (Pulse.Lib.Array.length accFrags == d.wm * d.wn))
+  (#_ : squash (chunk et_cd /?+ d.tn))
   norewrite
+  preserves
+    pure (aligned 16 (T.core gC) /\ aligned 16 (T.core gD) /\
+          aligned_strided_row_major (chunk et_cd) str)
   requires
     epilogue_frame #et_ab #et_cd #et_acc
       #_ #_ #_ #_ #_
@@ -302,6 +308,10 @@ fn epilogue_to
         gD bm bn tm tn wm wn bid wid lane
         (chest_comb comb_r rCWarp rAcc)
         (xy._1 * wn + xy._2);
+      Math.Lemmas.lemma_div_plus xy._2 xy._1 (SZ.v wn);
+      Math.Lemmas.lemma_mod_plus xy._2 xy._1 (SZ.v wn);
+      Math.Lemmas.small_division_lemma_1 xy._2 (SZ.v wn);
+      Math.Lemmas.small_mod xy._2 (SZ.v wn);
       assert pure (
         (xy._1 * wn + xy._2) / wn == xy._1);
       assert pure (

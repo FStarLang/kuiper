@@ -9,6 +9,7 @@ open Kuiper
 module SZ = Kuiper.SizeT
 module MS = Kuiper.Spec.GEMM
 
+open Kuiper.Array.Vectorized { has_vec_cpy }
 open Kuiper.Tensor
 open Kuiper.EMatrix
 open Kuiper.EMatrix.Tiling
@@ -17,8 +18,16 @@ open Kuiper.Kernel.GEMM.Tiled.Common.Vec
 open Kuiper.Kernel.GEMM.TensorCore2D.KernelDesc { constraints }
 open Kuiper.Kernel.GEMM.TensorCore2D.To.KernelDesc
 
+instance lane_cells_sendable
+  (#et : Type0) {| scalar et, has_vec_cpy et |}
+  (#rows #cols : nat) (#l : layout2 rows cols)
+  (a : array2 et l { is_global a })
+  (lane : natlt warp_size)
+  : is_send_across gpu_of (live_lane_cells a lane)
+= solve
+
 let output_lane_live_sendable_to
-  (#et : Type0) {| scalar et |}
+  (#et : Type0) {| scalar et, has_vec_cpy et |}
   (#m #n : szp)
   (gD : array2 et (rm m n) { is_global gD })
   (bm bn bk tm tn tk wm wn : szp {
@@ -57,7 +66,7 @@ let output_lane_live_sendable_to
   solve
 
 let output_lane_approximates_sendable_to
-  (#et : Type0) {| scalar et, real_like et |}
+  (#et : Type0) {| scalar et, has_vec_cpy et, real_like et |}
   (#m #n #k : szp)
   (comb_r : binop real)
   (gD : array2 et (rm m n) { is_global gD })
@@ -113,7 +122,7 @@ let output_lane_approximates_sendable_to
 let kpre1_sendable_to
   (#et_ab #et_cd : Type0)
   {| scalar et_ab, real_like et_ab,
-     scalar et_cd, real_like et_cd |}
+     scalar et_cd, has_vec_cpy et_cd, real_like et_cd |}
   (#m #n #k : szp)
   (#lA : layout2 m k)
   (#lB : layout2 k n)
@@ -150,11 +159,14 @@ let kpre1_sendable_to
   let pOutput = output_lane_live gD bm bn tm tn wm wn bid tid in
   let pAlignedA = pure (aligned 16 (core gA)) in
   let pAlignedB = pure (aligned 16 (core gB)) in
+  let pAlignedC = pure (aligned 16 (core gC)) in
+  let pAlignedD = pure (aligned 16 (core gD)) in
   let pApproxA = pure (eA %~ rA) in
   let pApproxB = pure (eB %~ rB) in
   let pApproxC = pure (eC %~ rC) in
   let pPure =
-    pAlignedA ** pAlignedB ** pApproxA ** pApproxB ** pApproxC in
+    pAlignedA ** pAlignedB ** pAlignedC ** pAlignedD **
+    pApproxA ** pApproxB ** pApproxC in
   let sendA : is_send_across block_of pA =
     send_across_if_send_across_gpu pA
       (is_send_across_global_tensor gA #(fA /. (nblk * nthr)) eA) in
@@ -170,6 +182,12 @@ let kpre1_sendable_to
   let sendAlignedB : is_send_across block_of pAlignedB =
     is_send_across_placeless pAlignedB
       #(placeless_pure (aligned 16 (core gB))) in
+  let sendAlignedC : is_send_across block_of pAlignedC =
+    is_send_across_placeless pAlignedC
+      #(placeless_pure (aligned 16 (core gC))) in
+  let sendAlignedD : is_send_across block_of pAlignedD =
+    is_send_across_placeless pAlignedD
+      #(placeless_pure (aligned 16 (core gD))) in
   let sendApproxA : is_send_across block_of pApproxA =
     is_send_across_placeless pApproxA #(placeless_pure (eA %~ rA)) in
   let sendApproxB : is_send_across block_of pApproxB =
@@ -181,13 +199,22 @@ let kpre1_sendable_to
   let sendApproxABC =
     is_send_across_star pApproxA (pApproxB ** pApproxC)
       #sendApproxA #sendApproxBC in
+  let sendAlignedDPure =
+    is_send_across_star pAlignedD
+      (pApproxA ** pApproxB ** pApproxC)
+      #sendAlignedD #sendApproxABC in
+  let sendAlignedCPure =
+    is_send_across_star pAlignedC
+      (pAlignedD ** pApproxA ** pApproxB ** pApproxC)
+      #sendAlignedC #sendAlignedDPure in
   let sendAlignedBPure =
     is_send_across_star pAlignedB
-      (pApproxA ** pApproxB ** pApproxC)
-      #sendAlignedB #sendApproxABC in
+      (pAlignedC ** pAlignedD ** pApproxA ** pApproxB ** pApproxC)
+      #sendAlignedB #sendAlignedCPure in
   let sendPure =
     is_send_across_star pAlignedA
-      (pAlignedB ** pApproxA ** pApproxB ** pApproxC)
+      (pAlignedB ** pAlignedC ** pAlignedD **
+       pApproxA ** pApproxB ** pApproxC)
       #sendAlignedA #sendAlignedBPure in
   let sendOutputPure =
     is_send_across_star pOutput pPure #output_send #sendPure in
@@ -199,7 +226,7 @@ let kpre1_sendable_to
 
 let kpost1_sendable_to
   (#et_ab #et_cd : Type0)
-  {| scalar et_ab, scalar et_cd, real_like et_cd |}
+  {| scalar et_ab, scalar et_cd, has_vec_cpy et_cd, real_like et_cd |}
   (comb_r : binop real)
   (#m #n #k : szp)
   (#lA : layout2 m k)
