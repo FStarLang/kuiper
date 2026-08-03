@@ -110,8 +110,8 @@ fn mma_store
   ensures
     gm |-> Frac (1.0R /. warp_size) f0
 {
-  mma_store_comb (fun x y -> x) fr gm;
-  assert pure (equal (chest_comb (fun x y -> x) f0 m0) f0);
+  mma_store_comb (fun x y -> y) fr gm;
+  assert pure (equal (chest_comb (fun x y -> y) m0 f0) f0);
   ();
 }
 

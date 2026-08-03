@@ -8,6 +8,7 @@ open Kuiper.Array2.Strided
 open Kuiper.Tensor.Layout.Alg { l2_row_major as rm }
 open Kuiper.TensorCore
 open Kuiper.Array.Vectorized { has_vec_cpy, chunk }
+open Kuiper.Float.Casts
 
 module SZ = Kuiper.SizeT
 
@@ -18,9 +19,10 @@ open Kuiper.Kernel.GEMM.TensorCore2D
 inline_for_extraction noextract
 fn spec
   // specialize
-  (et_ab et_c : Type0)
-  {| scalar et_ab, has_vec_cpy et_ab, scalar et_c |}
-  {| real_like et_ab, real_like et_c |}
+  (et_ab et_acc et_c : Type0)
+  {| scalar et_ab, has_vec_cpy et_ab, scalar et_acc, scalar et_c |}
+  {| real_like et_ab, real_like et_acc, real_like et_c |}
+  {| float_cast et_acc et_c |}
   (bm bn bk : szp)
   (#_ : squash (chunk et_ab /?+ bk))
   (#_ : squash (chunk et_ab /?+ bn))
@@ -36,8 +38,8 @@ fn spec
   (#_ : squash (SZ.fits (wn * tn)))
   (#_ : squash (valid_frag_et_dims et_ab FragA tm tn tk))
   (#_ : squash (valid_frag_et_dims et_ab FragB tm tn tk))
-  (#_ : squash (valid_frag_et_dims et_c FragAcc tm tn tk))
-  (#_ : squash (valid_frag_et_comb et_ab et_c))
+  (#_ : squash (valid_frag_et_dims et_acc FragAcc tm tn tk))
+  (#_ : squash (valid_frag_et_comb et_ab et_acc))
   (#_ : squash (SZ.fits (bm*bk + (bm/(wm*tm) * (bn/(wn*tn)) * warp_size) -1)))
   (#_ : squash (SZ.fits (bk*bn + (bm/(wm*tm) * (bn/(wn*tn)) * warp_size) -1)))
   (#_ : squash ((bm/(wm*tm) * (bn/(wn*tn)) * (SZ.v warp_size)) <= max_threads))
@@ -118,7 +120,11 @@ fn spec
   launch_sync (
     mk_kernel gA #eA gB #eB gC #_ #eC bm bn bk tm tn tk wm wn #_ #_ #_ #_ #_ #_ #_ #_ #fA #fB nblk nthr rA rB rC
       (fun (x:real) -> x) (fun (x:real) -> x) (MS.comb2 #real)
-      (fun (x:et_ab) -> x) (fun (x:et_ab) -> x) (MS.comb2 #et_c) ()
+      (fun (x:et_ab) -> x) (fun (x:et_ab) -> x)
+      // Overwrite combine: discard the resident C value and keep the
+      // accumulator, cast to the C element type (an identity cast when
+      // [et_acc == et_c]).
+      (fun (_c:et_c) (a:et_acc) -> fcast a) ()
   )};
   // Reduce the map-aware postcondition [gmmcomb id id comb2 rC rA rB] back to the
   // plain [matmul rA rB] this instance advertises.  These are SMTPat lemmas, but

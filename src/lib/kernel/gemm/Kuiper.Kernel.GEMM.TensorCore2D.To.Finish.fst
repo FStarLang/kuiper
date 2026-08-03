@@ -121,7 +121,10 @@ ghost fn prepare_epilogue
 }
 
 #push-options "--ifuel 1 --initial_fuel 0 --max_fuel 1"
-#push-options "--z3rlimit 15"
+// The pointwise [lemma_equal_intro rOutLocal rOutTarget] obligation below is a
+// nonlinear index-arithmetic query that only just fits in rlimit 15: it is
+// seed-sensitive and fails on unrelated context perturbations.
+#push-options "--z3rlimit 30"
 
 noextract
 ghost fn normalize_output

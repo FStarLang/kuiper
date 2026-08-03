@@ -22,9 +22,9 @@ open Kuiper.Kernel.GEMM.TensorCore2D.KernelDesc { constraints }
 
 inline_for_extraction noextract
 val mk_kernel
-  (#et_ab #et_c : Type0)
-  {| scalar et_ab, has_vec_cpy et_ab, scalar et_c |}
-  {| real_like et_ab, real_like et_c |}
+  (#et_ab #et_acc #et_c : Type0)
+  {| scalar et_ab, has_vec_cpy et_ab, scalar et_acc, scalar et_c |}
+  {| real_like et_ab, real_like et_acc, real_like et_c |}
   (#m #n #k : szp)
   (#lA : layout2 m k) {| T.ctlayout lA |}
   (gA : array2 et_ab lA { is_global gA })
@@ -60,8 +60,8 @@ val mk_kernel
   (#_ : squash (SZ.fits (wn * tn)))
   (#_ : squash (valid_frag_et_dims et_ab FragA tm tn tk))
   (#_ : squash (valid_frag_et_dims et_ab FragB tm tn tk))
-  (#_ : squash (valid_frag_et_dims et_c FragAcc tm tn tk))
-  (#_ : squash (valid_frag_et_comb et_ab et_c))
+  (#_ : squash (valid_frag_et_dims et_acc FragAcc tm tn tk))
+  (#_ : squash (valid_frag_et_comb et_ab et_acc))
   (#_ : squash (SZ.fits (bm*bk + nthr-1)))
   (#_ : squash (SZ.fits (bk*bn + nthr-1)))
   (#_ : squash (nblk <= max_blocks))
@@ -74,7 +74,10 @@ val mk_kernel
   (mapA mapB : real -> real)
   (comb : real -> real -> real)
   (emA emB : et_ab -> et_ab)
-  (ecomb : et_c -> et_c -> et_c)
+  // [ecomb] is the DEVICE realization of [comb]: it combines the resident C
+  // value (of type [et_c]) with the tensor-core accumulator value (of type
+  // [et_acc]), in that order, matching [mma_store_comb] and the spec [comb].
+  (ecomb : et_c -> et_acc -> et_c)
   (#_ : squash (MU.approx1 emA mapA))
   (#_ : squash (MU.approx1 emB mapB))
   (#_ : squash (Kuiper.Approximates.approx2 ecomb comb))

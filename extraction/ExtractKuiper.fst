@@ -529,10 +529,12 @@ let is_identity_map (f:mlexpr) : ML bool =
   let bs, body = collect_fun_binders f in
   List.Tot.length bs = 1 && returns_binder bs body 0
 
-(* Is this `fun x y -> x`? *)
+(* Is this `fun x y -> y`?  [mma_store_comb]'s combine takes the OLD C value
+   first and the accumulator value second, so an overwriting store is the
+   combine that returns its SECOND argument. *)
 let is_overwrite_comb (g:mlexpr) : ML bool =
   let bs, body = collect_fun_binders g in
-  List.Tot.length bs = 2 && returns_binder bs body 0
+  List.Tot.length bs = 2 && returns_binder bs body 1
 
 let beta_reduce_literal (f : mlexpr) (a : mlexpr) : ML mlexpr =
   let x, body = get_one_binder f in
@@ -707,7 +709,7 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
       let combined =
         let t_new = with_ty MLTY_Top <| MLE_Name ([], "_kpr_new_v") in
         let t_old = with_ty et_c <| MLE_Name ([], "_kpr_old_v") in
-        let applied = beta_reduce_literal (beta_reduce_literal gcomb t_new) t_old in
+        let applied = beta_reduce_literal (beta_reduce_literal gcomb t_old) t_new in
         let applied = ml_visit unmagic inline_alias_let applied in
         cb applied
       in

@@ -274,7 +274,7 @@ fn mma_fill
 fn mma_store_comb
   (#et_c #et : Type)
   (#m #n #k : erased nat)
-  (g : et -> et_c -> et_c)
+  (g : et_c -> et -> et_c)
   (fr : fragment et FragAcc m n k FragLAcc)
   (#l : layout2 m n) {| strided_row_major l |}
   (gm : array2 et_c l)
@@ -285,7 +285,7 @@ fn mma_store_comb
   requires
     gm |-> Frac (1.0R /. warp_size) m0
   ensures
-    gm |-> Frac (1.0R /. warp_size) (chest_comb g f0 m0)
+    gm |-> Frac (1.0R /. warp_size) (chest_comb g m0 f0)
 
 (* We should add checker support for this. *)
 fn with_fragment u#r

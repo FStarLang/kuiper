@@ -97,17 +97,20 @@ let chest_map_subtile_comm
 (* Elementwise combine preserves approximation: if [approx2 ecomb comb] and the
    two operand chests approximate their real references, then their combined
    chest approximates the real combine.  Cellwise consequence of [approx2].
-   Used at the epilogue to fuse the output combine. *)
+   Used at the epilogue to fuse the output combine.  [ecomb] is heterogeneous:
+   it combines the resident C value with the tensor-core accumulator value. *)
 let chest_comb_approx
-  (#et : Type0) {| scalar et, real_like et |}
-  (ecomb : et -> et -> et)
+  (#et_acc #et_c : Type0)
+  {| scalar et_acc, real_like et_acc, scalar et_c, real_like et_c |}
+  (ecomb : et_c -> et_acc -> et_c)
   (comb : real -> real -> real)
   (#rows #cols : nat)
-  (e1 e2 : chest2 et rows cols)
-  (r1 r2 : chest2 real rows cols)
+  (ec : chest2 et_c rows cols)
+  (eacc : chest2 et_acc rows cols)
+  (rc racc : chest2 real rows cols)
   : Lemma
-    (requires Kuiper.Approximates.approx2 ecomb comb /\ e1 %~ r1 /\ e2 %~ r2)
-    (ensures Chest.chest_comb ecomb e1 e2 %~ Chest.chest_comb comb r1 r2)
+    (requires Kuiper.Approximates.approx2 ecomb comb /\ ec %~ rc /\ eacc %~ racc)
+    (ensures Chest.chest_comb ecomb ec eacc %~ Chest.chest_comb comb rc racc)
 = ()
 
 inline_for_extraction noextract
@@ -742,14 +745,15 @@ let em_fade_comb_current_subtile_approximates
 
 #push-options "--z3rlimit 80 --split_queries always"
 let lemma_update_tile_fade_comb_approximates
-  (#et : Type0) {| scalar et, real_like et|}
-  (ecomb : et -> et -> et)
+  (#et_acc #et_c : Type0)
+  {| scalar et_acc, real_like et_acc, scalar et_c, real_like et_c |}
+  (ecomb : et_c -> et_acc -> et_c)
   (comb : real -> real -> real)
   (tm tn wm wn : pos)
   (idxI : natlt wm)
   (idxJ : natlt wn)
-  (em : chest2 et (wm*tm) (wn*tn))
-  (etile : chest2 et tm tn)
+  (em : chest2 et_c (wm*tm) (wn*tn))
+  (etile : chest2 et_acc tm tn)
   (rm1 rm2 : chest2 real (wm*tm) (wn*tn))
 : Lemma
   (requires
@@ -774,7 +778,8 @@ let lemma_update_tile_fade_comb_approximates
 #restart-solver
 inline_for_extraction noextract
 fn epilogue
-  (#et : Type0) {| scalar et, real_like et |}
+  (#et_acc #et_c : Type0)
+  {| scalar et_acc, real_like et_acc, scalar et_c, real_like et_c |}
   (#m : erased nat)
   // n is concretized so using size is more succinct
   (#n : sz)
@@ -784,14 +789,14 @@ fn epilogue
   (#_ : squash (bm /?+ m))
   (#_ : squash (bn /?+ n))
   (#_ : squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
-  (accumFrags : array (fragment et FragAcc tm tn tk FragLAcc))
+  (accumFrags : array (fragment et_acc FragAcc tm tn tk FragLAcc))
   (rAcc : chest2 real (wm*tm) (wn*tn))
-  (gC : array2 et (rm m n))
+  (gC : array2 et_c (rm m n))
   // Fused output combine: the real-domain [comb] and its approximation-compatible
   // device element combine [ecomb].  The stored result approximates
   // [chest_comb comb rCtile rAcc] (old C combined with the accumulator).
   (comb : real -> real -> real)
-  (ecomb : et -> et -> et)
+  (ecomb : et_c -> et_acc -> et_c)
   (rCtile : chest2 real (wm*tm) (wn*tn))
   (#_ : squash (Kuiper.Approximates.approx2 ecomb comb))
   // (#eC : chest2 et m n)
@@ -819,7 +824,7 @@ fn epilogue
     invariant
       live i
     invariant
-      exists* (eWarpTile: chest2 et (wm*tm) (wn*tn)).
+      exists* (eWarpTile: chest2 et_c (wm*tm) (wn*tn)).
         warp_tile_pts_to gC bm bn tm tn wm wn bid wid eWarpTile **
           pure (!i <= wm /\
             eWarpTile %~ (em_fade_comb_tiles comb tm tn wm wn !i 0 rCtile rAcc))
@@ -829,7 +834,7 @@ fn epilogue
     while (!j <^ wn)
       invariant live j
       invariant
-        exists* (eWarpTile: chest2 et (wm*tm) (wn*tn)).
+        exists* (eWarpTile: chest2 et_c (wm*tm) (wn*tn)).
           warp_tile_pts_to gC bm bn tm tn wm wn bid wid eWarpTile **
             pure (!i <= wm /\ !j <= wn /\
               eWarpTile %~ (em_fade_comb_tiles comb tm tn wm wn !i !j rCtile rAcc))
@@ -859,7 +864,9 @@ fn epilogue
       array_fragment_pts_to_ref accumFrags;
       array_fragment_extract_ro accumFrags idx;
       // Read-modify-write: combine the resident C tile with the accumulator.
-      mma_store_comb (fun acc old -> ecomb old acc) accumFrags.(idx) tc_tile;
+      // [ecomb] already has [mma_store_comb]'s argument order (resident C value
+      // first, accumulator second), so it is passed straight through.
+      mma_store_comb ecomb accumFrags.(idx) tc_tile;
 
       // The tile now holds the fused combine of the resident C tile [m0] with
       // the accumulator [f0]; instantiate the [array2_extract_tile_st] trade at
@@ -1245,8 +1252,8 @@ let subtile_approximates
 #restart-solver
 inline_for_extraction noextract
 fn ktile_advance
-  (#et_ab #et_c : Type0)
-  {| scalar et_ab, scalar et_c, real_like et_ab, real_like et_c |}
+  (#et_ab #et_acc : Type0)
+  {| scalar et_ab, scalar et_acc, real_like et_ab, real_like et_acc |}
   // NOTE: m n k are [szp] (sizet), NOT [nat].  kf's dims are sizet; the
   // sz->nat coercion [sizet_to_nat] is GTot, so taking [nat] params here would
   // make kf's stateful call to this fn GHOST (Pulse "Application of a stateful
@@ -1262,10 +1269,10 @@ fn ktile_advance
   (#_ : squash (bk /?+ k))
   (#_ : squash (wm * tm /?+ m))
   (#_ : squash (wn * tn /?+ n))
-  (#_ : squash (valid_frag_et_comb et_ab et_c))
+  (#_ : squash (valid_frag_et_comb et_ab et_acc))
   (aFrags     : array (fragment et_ab FragA tm tn tk FragLRM))
   (bFrags     : array (fragment et_ab FragB tm tn tk FragLRM))
-  (accFrags   : array (fragment et_c FragAcc tm tn tk FragLAcc))
+  (accFrags   : array (fragment et_acc FragAcc tm tn tk FragLAcc))
   (#_ : squash (Pulse.Lib.Array.length aFrags == wm))
   (#_ : squash (Pulse.Lib.Array.length bFrags == wn))
   (#_ : squash (Pulse.Lib.Array.length accFrags == wm*wn))
@@ -1345,9 +1352,9 @@ fn ktile_advance
 #restart-solver
 inline_for_extraction noextract
 fn kf
-  (#et_ab #et_c : Type0)
-  {| scalar et_ab, has_vec_cpy et_ab, sc : scalar et_c |}
-  {| real_like et_ab, real_like et_c |}
+  (#et_ab #et_acc #et_c : Type0)
+  {| scalar et_ab, has_vec_cpy et_ab, sc : scalar et_acc, scalar et_c |}
+  {| real_like et_ab, real_like et_acc, real_like et_c |}
   (#m #n #k : szp)
   (#lA : layout2 m k) {| T.ctlayout lA |}
   (gA : array2 et_ab lA)
@@ -1377,8 +1384,8 @@ fn kf
   (#_ : squash (SZ.fits (wn * tn)))
   (#_ : squash (valid_frag_et_dims et_ab FragA tm tn tk))
   (#_ : squash (valid_frag_et_dims et_ab FragB tm tn tk))
-  (#_ : squash (valid_frag_et_dims et_c FragAcc tm tn tk))
-  (#_ : squash (valid_frag_et_comb et_ab et_c))
+  (#_ : squash (valid_frag_et_dims et_acc FragAcc tm tn tk))
+  (#_ : squash (valid_frag_et_comb et_ab et_acc))
   (#fA #fB : perm)
   (rA : chest2 real m k)
   (rB : chest2 real k n)
@@ -1387,7 +1394,7 @@ fn kf
   (mapA mapB : real -> real)
   (comb : real -> real -> real)
   (emA emB : et_ab -> et_ab)
-  (ecomb : et_c -> et_c -> et_c)
+  (ecomb : et_c -> et_acc -> et_c)
   (#_ : squash (MU.approx1 emA mapA))
   (#_ : squash (MU.approx1 emB mapB))
   (#_ : squash (Kuiper.Approximates.approx2 ecomb comb))
@@ -1445,7 +1452,7 @@ fn kf
   (* Tensor core fragments *)
   let aFrags = __alloc_array_fragment et_ab FragA tm tn tk FragLRM wm;
   let bFrags = __alloc_array_fragment et_ab FragB tm tn tk FragLRM wn;
-  let accFrags = __alloc_array_fragment et_c FragAcc tm tn tk FragLAcc (wm *^ wn);
+  let accFrags = __alloc_array_fragment et_acc FragAcc tm tn tk FragLAcc (wm *^ wn);
 
   // Fill accumulators with 0
   populate_acc_with_zero tm tn tk wm wn accFrags;
@@ -1704,9 +1711,9 @@ fn kf
 #push-options "--fuel 1 --ifuel 1 --split_queries no --z3rlimit_factor 10"
 inline_for_extraction noextract
 let mk_kernel
-  (#et_ab #et_c : Type0)
-  {| scalar et_ab, has_vec_cpy et_ab, scalar et_c |}
-  {| real_like et_ab, real_like et_c |}
+  (#et_ab #et_acc #et_c : Type0)
+  {| scalar et_ab, has_vec_cpy et_ab, scalar et_acc, scalar et_c |}
+  {| real_like et_ab, real_like et_acc, real_like et_c |}
   (#m #n #k : szp)
   (#lA : layout2 m k) {| T.ctlayout lA |}
   (gA : array2 et_ab lA  { is_global gA })
@@ -1743,8 +1750,8 @@ let mk_kernel
   (#_ : squash (SZ.fits (wn * tn)))
   (#_ : squash (valid_frag_et_dims et_ab FragA tm tn tk))
   (#_ : squash (valid_frag_et_dims et_ab FragB tm tn tk))
-  (#_ : squash (valid_frag_et_dims et_c FragAcc tm tn tk))
-  (#_ : squash (valid_frag_et_comb et_ab et_c))
+  (#_ : squash (valid_frag_et_dims et_acc FragAcc tm tn tk))
+  (#_ : squash (valid_frag_et_comb et_ab et_acc))
   (#_ : squash (SZ.fits (bm*bk + nthr-1)))
   (#_ : squash (SZ.fits (bk*bn + nthr-1)))
   (#_ : squash (nblk <= max_blocks))
@@ -1757,7 +1764,10 @@ let mk_kernel
   (mapA mapB : real -> real)
   (comb : real -> real -> real)
   (emA emB : et_ab -> et_ab)
-  (ecomb : et_c -> et_c -> et_c)
+  // [ecomb] is the DEVICE realization of [comb]: it combines the resident C
+  // value (of type [et_c]) with the tensor-core accumulator value (of type
+  // [et_acc]), in that order, matching [mma_store_comb] and the spec [comb].
+  (ecomb : et_c -> et_acc -> et_c)
   (#_ : squash (MU.approx1 emA mapA))
   (#_ : squash (MU.approx1 emB mapB))
   (#_ : squash (Kuiper.Approximates.approx2 ecomb comb))

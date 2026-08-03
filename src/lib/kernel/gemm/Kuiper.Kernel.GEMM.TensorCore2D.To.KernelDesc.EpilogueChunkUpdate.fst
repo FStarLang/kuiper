@@ -370,7 +370,7 @@ fn epilogue_chunk_update
       then comb (acc2 eC (SZ.v globalRow) (SZ.v globalCol + x))
                 (acc2 eAcc (SZ.v row) (SZ.v col + x))
       else zero #et_cd)));
-    k := vk +^ 1sz;
+    k := !k +^ 1sz;
   };
 
   with so. assert obuf |-> so;

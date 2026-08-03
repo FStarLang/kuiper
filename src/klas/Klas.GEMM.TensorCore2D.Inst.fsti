@@ -8,6 +8,7 @@ open Kuiper.Array2.Strided
 open Kuiper.Tensor.Layout.Alg { l2_row_major as rm }
 open Kuiper.TensorCore
 open Kuiper.Array.Vectorized { has_vec_cpy, chunk }
+open Kuiper.Float.Casts { float_cast }
 module MS = Kuiper.Spec.GEMM
 
 module SZ = Kuiper.SizeT
@@ -15,9 +16,10 @@ module SZ = Kuiper.SizeT
 inline_for_extraction noextract
 fn spec
   // specialize
-  (et_ab et_c : Type0)
-  {| scalar et_ab, has_vec_cpy et_ab, scalar et_c |}
-  {| real_like et_ab, real_like et_c |}
+  (et_ab et_acc et_c : Type0)
+  {| scalar et_ab, has_vec_cpy et_ab, scalar et_acc, scalar et_c |}
+  {| real_like et_ab, real_like et_acc, real_like et_c |}
+  {| float_cast et_acc et_c |}
   (bm bn bk : szp)
   (#_ : squash (chunk et_ab /?+ bk))
   (#_ : squash (chunk et_ab /?+ bn))
@@ -33,8 +35,8 @@ fn spec
   (#_ : squash (SZ.fits (wn * tn)))
   (#_ : squash (valid_frag_et_dims et_ab FragA tm tn tk))
   (#_ : squash (valid_frag_et_dims et_ab FragB tm tn tk))
-  (#_ : squash (valid_frag_et_dims et_c FragAcc tm tn tk))
-  (#_ : squash (valid_frag_et_comb et_ab et_c))
+  (#_ : squash (valid_frag_et_dims et_acc FragAcc tm tn tk))
+  (#_ : squash (valid_frag_et_comb et_ab et_acc))
   (#_ : squash (SZ.fits (bm*bk + (bm/(wm*tm) * (bn/(wn*tn)) * 32) -1)))
   (#_ : squash (SZ.fits (bk*bn + (bm/(wm*tm) * (bn/(wn*tn)) * 32) -1)))
   (#_ : squash ((bm/(wm*tm) * (bn/(wn*tn)) * 32) <= max_threads))
