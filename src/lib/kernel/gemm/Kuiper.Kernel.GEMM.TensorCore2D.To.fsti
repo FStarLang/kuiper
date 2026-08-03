@@ -83,10 +83,10 @@ val mk_kernel
   : kernel_desc
       (gA |-> Frac fA eA ** pure (eA %~ rA) **
        gB |-> Frac fB eB ** pure (eB %~ rB) **
-       gC |-> Frac fC eC ** pure (eC %~ rC) ** 
+       gC |-> Frac fC eC ** pure (eC %~ rC) **
        live gD)
       (gA |-> Frac fA eA **
        gB |-> Frac fB eB **
-       gC |-> Frac fC eC ** 
+       gC |-> Frac fC eC **
        (exists* (eD' : chest2 et_cd m n).
          gD |-> eD' ** pure (eD' %~ MS.mmcomb comb_r rC rA rB)))

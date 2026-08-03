@@ -10,7 +10,7 @@ let lincomb_approx2
           (ensures approx2 (lincomb alpha beta) (lincomb alpha_r beta_r))
           [SMTPat (approx2 (lincomb alpha beta) (lincomb alpha_r beta_r))]
   = ()
-  
+
 let lincomb_to_approx2
   (#et_acc #et_cd : Type0)
   {| scalar et_acc, real_like et_acc |}

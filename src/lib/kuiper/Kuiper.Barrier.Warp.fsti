@@ -13,7 +13,7 @@ open Kuiper.SizeT
 let warp_size = 32
 
 (* Barrier_wait but for warps.  (__syncwarp())
-  TODO: implement properly using a contract that goes in the kernel description, 
+  TODO: implement properly using a contract that goes in the kernel description,
   instead of this inline proof that could be thread-dependent and thus unsound
   (not all threads agree on the barrier). *)
 fn warp_barrier_wait
