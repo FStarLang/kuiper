@@ -49,7 +49,7 @@ fn tensor_apply_bij
   (#r1 : nat) (#d1 : shape r1)
   (#r2 : nat) (#d2 : shape r2)
   (f : abs d1 =~ abs d2)
-  (#l : tlayout d1) {| is_full l |}
+  (#l : tlayout d1)
   (a : tensor et l)
   (#fp : perm) (#m : chest d1 et)
   requires
@@ -63,7 +63,7 @@ fn tensor_apply_bij_ro
   (#r1 : nat) (#d1 : shape r1)
   (#r2 : nat) (#d2 : shape r2)
   (f : abs d1 =~ abs d2)
-  (#l : tlayout d1) {| is_full l |}
+  (#l : tlayout d1)
   (a : tensor et l)
   (#fp : perm) (#m : chest d1 et)
   requires
@@ -81,7 +81,7 @@ fn tensor_apply_bij_ro_located
   (#r1 : nat) (#d1 : shape r1)
   (#r2 : nat) (#d2 : shape r2)
   (f : abs d1 =~ abs d2)
-  (#l : tlayout d1) {| is_full l |}
+  (#l : tlayout d1)
   (#loc: loc_id)
   (a : tensor et l)
   (#fp : perm) (#m : chest d1 et)
@@ -100,7 +100,7 @@ fn tensor_apply_bij_st
   (#r1 : nat) (#d1 : shape r1)
   (#r2 : nat) (#d2 : shape r2)
   (f : abs d1 =~ abs d2)
-  (#l : tlayout d1) {| is_full l |}
+  (#l : tlayout d1)
   (a : tensor et l)
   (#fp : perm) (#m : chest d1 et)
   requires
@@ -119,7 +119,7 @@ fn tensor_apply_bij_st_located
   (#r1 : nat) (#d1 : shape r1)
   (#r2 : nat) (#d2 : shape r2)
   (f : abs d1 =~ abs d2)
-  (#l : tlayout d1) {| is_full l |}
+  (#l : tlayout d1)
   (#loc: loc_id)
   (a : tensor et l)
   (#fp : perm) (#m : chest d1 et)
@@ -204,7 +204,7 @@ inline_for_extraction noextract
 fn tensor_fold_ro
   (#et : Type0)
   (#r: nat {r > 1}) (#d: shape r)
-  (#l: tlayout d { is_full l })
+  (#l: tlayout d)
   (a : tensor et l)
   (#f : perm) (#m : chest d et)
   requires
@@ -221,7 +221,7 @@ inline_for_extraction noextract
 fn tensor_fold_ro_located
   (#et : Type0)
   (#r: nat {r > 1}) (#d: shape r)
-  (#l: tlayout d { is_full l })
+  (#l: tlayout d)
   (#loc: loc_id)
   (a : tensor et l)
   (#f : perm) (#m : chest d et)
@@ -240,7 +240,7 @@ inline_for_extraction noextract
 fn tensor_fold_st
   (#et : Type0)
   (#r: nat {r > 1}) (#d: shape r)
-  (#l: tlayout d { is_full l })
+  (#l: tlayout d)
   (a : tensor et l)
   (#f : perm) (#m : chest d et)
   requires
@@ -258,7 +258,7 @@ inline_for_extraction noextract
 fn tensor_fold_st_located
   (#et : Type0)
   (#r: nat {r > 1}) (#d: shape r)
-  (#l: tlayout d { is_full l })
+  (#l: tlayout d)
   (#loc: loc_id)
   (a : tensor et l)
   (#f : perm) (#m : chest d et)
