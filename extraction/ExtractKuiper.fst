@@ -468,6 +468,16 @@ let extract_kcall (cb : mlexpr -> ML expr) (env : Krml.env) (kdesc : mlexpr) (st
   return <|
     ESequence [assert_shmem_size; shmem_setup; e']
 
+// The C spelling of a Kuiper float element type, as it appears inside a wmma
+// fragment type.
+let kpr_float_ctype (et : mlty) : ML expr =
+  match et with
+  | MLTY_Named ([], (["Kuiper"; "Float16"; "Base"], "t")) -> EQualified ([], "half")
+  | MLTY_Named ([], (["Kuiper"; "BFloat16"; "Base"], "t")) -> EQualified ([], "__nv_bfloat16")
+  | MLTY_Named ([], (["Kuiper"; "Float32"; "Base"], "t")) -> EQualified ([], "float")
+  | MLTY_Named ([], (["Kuiper"; "Float64"; "Base"], "t")) -> EQualified ([], "double")
+  | _ -> failwith "kpr_float_ctype: unsupported fragment element type"
+
 let kpr_translate_alloc_fragment (cb : mlexpr -> ML expr) et knd m n k layout =
     let knd =
       match cta knd with
@@ -487,13 +497,7 @@ let kpr_translate_alloc_fragment (cb : mlexpr -> ML expr) et knd m n k layout =
         text "unexpected layout in __alloc_fragment:" ^/^ pp layout
       ]
     in
-    let faketype =
-      match et with
-      | MLTY_Named ([], (["Kuiper"; "Float16"; "Base"], "t")) -> EQualified ([], "half")
-      | MLTY_Named ([], (["Kuiper"; "BFloat16"; "Base"], "t")) -> EQualified ([], "__nv_bfloat16")
-      | MLTY_Named ([], (["Kuiper"; "Float32"; "Base"], "t")) -> EQualified ([], "float")
-      | MLTY_Named ([], (["Kuiper"; "Float64"; "Base"], "t")) -> EQualified ([], "double")
-    in
+    let faketype = kpr_float_ctype et in
     let args =
       [ knd; cb m; cb n; cb k; faketype ]
       @ (match layout with | Some l -> [l] | None -> [])
@@ -713,7 +717,15 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
         let applied = ml_visit unmagic inline_alias_let applied in
         cb applied
       in
-      EApp (EQualified ([], "KPR_STORE_COMB"), [ gm; fr; ldm; combined ])
+      // The scratch fragment the macro loads the old tile into, and stores the
+      // result from, is typed by the DESTINATION element type, not by [fr]'s:
+      // wmma has no converting load/store, so a heterogeneous epilogue (f32
+      // accumulator into an f16 C) can only go through a fragment matching [gm].
+      // We can only supply the element type -- [m], [n] and [k] here are
+      // [erased nat] and extract to units -- so the macro recovers the fragment
+      // shape from [fr]'s own type.
+      EApp (EQualified ([], "KPR_STORE_COMB"),
+            [ gm; fr; ldm; combined; kpr_float_ctype et_c ])
     end
 
   (******** FLOAT ARITHMETIC *******)
