@@ -50,7 +50,7 @@ fn tensor_apply_bij
   (#r1 : nat) (#d1 : shape r1)
   (#r2 : nat) (#d2 : shape r2)
   (f : abs d1 =~ abs d2)
-  (#l : tlayout d1) {| is_full l |}
+  (#l : tlayout d1)
   (a : tensor et l)
   (#fp : perm) (#m : chest d1 et)
   requires
@@ -58,14 +58,16 @@ fn tensor_apply_bij
   ensures
     from_array (tlayout_bij f l) (core a) |-> Frac fp (mk d2 (fun a -> acc m (a <~| f)))
 {
-  sizeof_bijection f;
-  assert pure (tlayout_size l == tlayout_size (tlayout_bij f l));
-  tensor_concr a;
-  tensor_abs' (tlayout_bij f l) (core a);
-  assert pure (from_seq (tlayout_bij f l) (to_seq l m) `Kuiper.Chest.equal`
-               mk d2 (fun a -> acc m (a <~| f)));
+  tensor_ilower a;
+  forevery_iso f _;
+  forevery_ext #(abs d2)
+    (fun (i : abs d2) -> pts_to_cell (core a) #fp (l.imap.f (f.gg i)) (acc m (f.gg i)))
+    (fun (i : abs d2) -> pts_to_cell (core (from_array (tlayout_bij f l) (core a))) #fp ((tlayout_bij f l).imap.f i) (acc (mk d2 (fun a -> acc m (a <~| f))) i));
+  tensor_iraise (from_array (tlayout_bij f l) (core a));
   ()
 }
+
+#set-options "--split_queries always --print_implicits"
 
 ghost
 fn tensor_unapply_bij
@@ -73,7 +75,7 @@ fn tensor_unapply_bij
   (#r1 : nat) (#d1 : shape r1)
   (#r2 : nat) (#d2 : shape r2)
   (f : abs d1 =~ abs d2)
-  (#l : tlayout d1) {| is_full l |}
+  (#l : tlayout d1)
   (a : tensor et l)
   (#fp : perm) (#m' : chest d2 et)
   requires
@@ -81,21 +83,11 @@ fn tensor_unapply_bij
   ensures
     a |-> Frac fp (mk d1 (fun i -> acc m' (f.ff i)))
 {
-  let fa = from_array (tlayout_bij f l) (core a);
-  assert rewrites_to fa (from_array (tlayout_bij f l) (core a));
-  sizeof_bijection f;
-  tensor_concr fa;
-  tensor_abs' l (core fa);
-  assert pure (
-    from_seq l (to_seq (tlayout_bij f l) m')
-    `Kuiper.Chest.equal`
-    mk d1 (fun i -> acc m' (f.ff i)));
-  rewrite each
-    from_seq l (to_seq (tlayout_bij f l) m')
-  as
-    mk d1 (fun i -> acc m' (f.ff i));
-  assert pure (from_array l (core fa) == a);
-  rewrite each from_array l (core fa) as a;
+  tensor_apply_bij (bij_sym f) (from_array (tlayout_bij f l) (core a));
+  assume pure (tlayout_bij (bij_sym f) (tlayout_bij f l) == l); (* prove ! *)
+  rewrite each from_array (tlayout_bij (bij_sym f) (tlayout_bij f l)) (core (from_array (tlayout_bij f l) (core a))) as a;
+  rewrite each tlayout_bij (bij_sym f) (tlayout_bij f l) as l;
+  ();
 }
 
 ghost
@@ -104,7 +96,7 @@ fn tensor_apply_bij_st_core
   (#r1 : nat) (#d1 : shape r1)
   (#r2 : nat) (#d2 : shape r2)
   (f : abs d1 =~ abs d2)
-  (#l : tlayout d1) {| is_full l |}
+  (#l : tlayout d1)
   (a : tensor et l)
   (#fp : perm) (#m : chest d1 et)
   requires
@@ -151,7 +143,7 @@ fn tensor_apply_bij_ro_core
   (#r1 : nat) (#d1 : shape r1)
   (#r2 : nat) (#d2 : shape r2)
   (f : abs d1 =~ abs d2)
-  (#l : tlayout d1) {| is_full l |}
+  (#l : tlayout d1)
   (a : tensor et l)
   (#fp : perm) (#m : chest d1 et)
   requires
@@ -180,7 +172,7 @@ fn tensor_apply_bij_st_located_core
   (#r1 : nat) (#d1 : shape r1)
   (#r2 : nat) (#d2 : shape r2)
   (f : abs d1 =~ abs d2)
-  (#l : tlayout d1) {| is_full l |}
+  (#l : tlayout d1)
   (#loc: loc_id)
   (a : tensor et l)
   (#fp : perm) (#m : chest d1 et)
@@ -239,7 +231,7 @@ fn tensor_apply_bij_ro_located_core
   (#r1 : nat) (#d1 : shape r1)
   (#r2 : nat) (#d2 : shape r2)
   (f : abs d1 =~ abs d2)
-  (#l : tlayout d1) {| is_full l |}
+  (#l : tlayout d1)
   (#loc: loc_id)
   (a : tensor et l)
   (#fp : perm) (#m : chest d1 et)
@@ -269,7 +261,7 @@ fn tensor_apply_bij_ro
   (#r1 : nat) (#d1 : shape r1)
   (#r2 : nat) (#d2 : shape r2)
   (f : abs d1 =~ abs d2)
-  (#l : tlayout d1) {| is_full l |}
+  (#l : tlayout d1)
   (a : tensor et l)
   (#fp : perm) (#m : chest d1 et)
   requires
@@ -293,7 +285,7 @@ fn tensor_apply_bij_ro_located
   (#r1 : nat) (#d1 : shape r1)
   (#r2 : nat) (#d2 : shape r2)
   (f : abs d1 =~ abs d2)
-  (#l : tlayout d1) {| is_full l |}
+  (#l : tlayout d1)
   (#loc: loc_id)
   (a : tensor et l)
   (#fp : perm) (#m : chest d1 et)
@@ -318,7 +310,7 @@ fn tensor_apply_bij_st
   (#r1 : nat) (#d1 : shape r1)
   (#r2 : nat) (#d2 : shape r2)
   (f : abs d1 =~ abs d2)
-  (#l : tlayout d1) {| is_full l |}
+  (#l : tlayout d1)
   (a : tensor et l)
   (#fp : perm) (#m : chest d1 et)
   requires
@@ -343,7 +335,7 @@ fn tensor_apply_bij_st_located
   (#r1 : nat) (#d1 : shape r1)
   (#r2 : nat) (#d2 : shape r2)
   (f : abs d1 =~ abs d2)
-  (#l : tlayout d1) {| is_full l |}
+  (#l : tlayout d1)
   (#loc: loc_id)
   (a : tensor et l)
   (#fp : perm) (#m : chest d1 et)
@@ -490,7 +482,7 @@ inline_for_extraction noextract
 fn tensor_fold_ro
   (#et : Type0)
   (#r: nat {r > 1}) (#d: shape r)
-  (#l: tlayout d { is_full l })
+  (#l: tlayout d)
   (a : tensor et l)
   (#f : perm) (#m : chest d et)
   requires
@@ -510,7 +502,7 @@ inline_for_extraction noextract
 fn tensor_fold_ro_located
   (#et : Type0)
   (#r: nat {r > 1}) (#d: shape r)
-  (#l: tlayout d { is_full l })
+  (#l: tlayout d)
   (#loc: loc_id)
   (a : tensor et l)
   (#f : perm) (#m : chest d et)
@@ -531,7 +523,7 @@ inline_for_extraction noextract
 fn tensor_fold_st
   (#et : Type0)
   (#r: nat {r > 1}) (#d: shape r)
-  (#l: tlayout d { is_full l })
+  (#l: tlayout d)
   (a : tensor et l)
   (#f : perm) (#m : chest d et)
   requires
@@ -552,7 +544,7 @@ inline_for_extraction noextract
 fn tensor_fold_st_located
   (#et : Type0)
   (#r: nat {r > 1}) (#d: shape r)
-  (#l: tlayout d { is_full l })
+  (#l: tlayout d)
   (#loc: loc_id)
   (a : tensor et l)
   (#f : perm) (#m : chest d et)
