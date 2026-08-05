@@ -400,7 +400,7 @@ fn teardown
     ()
   };
   forevery_map_2
-    (fun r c -> tensor_pts_to_cell gC (idx2 (r) (c)) (MS.gemm_single comb eA eB eC r c))
+    (fun (r:natlt rows) (c:natlt cols) -> tensor_pts_to_cell gC (idx2 (r) (c)) (MS.gemm_single comb eA eB eC r c))
     _
     aux;
 

@@ -1,5 +1,6 @@
 module Kuiper.Kernel.OnlineSoftmaxDotprod
 
+module KS = Kuiper.Spec.Softmax
 #lang-pulse
 open Kuiper
 open Kuiper.Seq.Common
@@ -460,7 +461,7 @@ fn softmax_dotprod
     invariant pure (!sum_d %~ !gsum_d)
     invariant pure (!i > 0 ==> !max %~ !gmax)
     invariant pure (!i > 0 ==>
-      (reveal !gmax, reveal !gsum_n, reveal !gsum_d) ==
+      hide (reveal !gmax, reveal !gsum_n, reveal !gsum_d) ==
         seq_fold_left online_softmax_dotprod_real_iter (hide (ras @! 0, rbs @! 0, 1.0R)) (Seq.slice (reveal pairs) 1 (!i)))
     invariant pure (!i == 0sz ==>
       (!sum_n == zero /\ !sum_d == zero /\ !gsum_n == 0.0R /\ !gsum_d == 0.0R /\ !max == neg infinity /\ !gmax == ras @! 0))
@@ -529,7 +530,7 @@ fn softmax_dotprod
 
     i := !i `SZ.add` 1sz;
 
-    assert pure ((reveal gmax', reveal gsum_n', reveal gsum_d') ==
+    assert pure (hide (reveal gmax', reveal gsum_n', reveal gsum_d') ==
       seq_fold_left online_softmax_dotprod_real_iter (hide (ras @! 0, rbs @! 0, 1.0R)) (Seq.slice (reveal pairs) 1 (!i)));
     ()
   };

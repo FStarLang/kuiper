@@ -1,5 +1,6 @@
 module Kuiper.Kernel.HReduce.Max
 
+open Kuiper.Math.OnlineSoftmax { seq_max }
 (* Parallel single-block max reduction.
 
    This module is a port of Kuiper.Kernel.HReduce from a (+)/rsum reduction to

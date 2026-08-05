@@ -1,5 +1,6 @@
 module Kuiper.Enumerable
 
+open Kuiper.Injection
 #lang-pulse
 open Kuiper.Common
 open Kuiper.Bijection
@@ -62,7 +63,7 @@ let distinct_seq_enumerates_all (#a:Type) {| d : enumerable a |} (s:Seq.seq a {S
   (requires forall (x y: natlt (cardinal a #_)). x <> y ==> Seq.index s x =!= Seq.index s y)
   (ensures exists (i:natlt (cardinal a #_)). Seq.index s i == n)
 = introduce (forall (i:natlt (cardinal a #_)). Seq.index s i =!= n) ==> False
-  with _ . (
+  with (
     distinct_seq_greater_than_cardinal_impossible (Seq.snoc s n)
   )
 

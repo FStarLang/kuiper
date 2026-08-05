@@ -1,5 +1,7 @@
 module Kuiper.Kernel.GEMM.TensorCore2D
 
+module MS = Kuiper.Spec.GEMM
+open Kuiper.Kernel.GEMM.TensorCore2D.KernelDesc { constraints }
 #lang-pulse
 
 open Kuiper
@@ -740,6 +742,77 @@ let em_fade_comb_current_subtile_approximates
     (ematrix_subtile em tm tn idxI idxJ)
     (ematrix_subtile rm1 tm tn idxI idxJ)
 
+(* [%~] on a [chest2] quantifies over the *flat* index, so bridging a
+   per-tile approximation up to a whole-matrix one (or vice versa) needs an
+   explicit hop through that flat quantifier: Z3 does not chase the
+   [chest_approximates] forall through [ematrix_subtile]'s own [mk2] on its
+   own. These two lemmas do that hop once, generically, so the composite
+   lemma below only needs cheap, tile-granularity reasoning. *)
+let approximates_elim
+  (#et : Type0) {| scalar et, real_like et |}
+  (#rows #cols : nat)
+  (m1 : chest2 et rows cols)
+  (m2 : chest2 real rows cols)
+  (i : natlt rows) (j : natlt cols)
+  : Lemma (requires m1 %~ m2) (ensures Chest.acc2 m1 i j %~ Chest.acc2 m2 i j)
+= ()
+
+let ematrix_subtile_approximates
+  (#et : Type0) {| scalar et, real_like et |}
+  (#rows #cols : nat)
+  (m1 : chest2 et rows cols)
+  (m2 : chest2 real rows cols)
+  (trows : pos {trows /? rows})
+  (tcols : pos {tcols /? cols})
+  (tr : natlt (rows / trows))
+  (tc : natlt (cols / tcols))
+  : Lemma
+    (requires m1 %~ m2)
+    (ensures ematrix_subtile m1 trows tcols tr tc %~ ematrix_subtile m2 trows tcols tr tc)
+= ()
+
+let ematrix_subtile_approximates_forall
+  (#et : Type0) {| scalar et, real_like et |}
+  (#rows #cols : nat)
+  (m1 : chest2 et rows cols)
+  (m2 : chest2 real rows cols)
+  (trows : pos {trows /? rows})
+  (tcols : pos {tcols /? cols})
+  : Lemma
+    (requires forall (tr:natlt (rows/trows)) (tc:natlt (cols/tcols)).
+                ematrix_subtile m1 trows tcols tr tc %~ ematrix_subtile m2 trows tcols tr tc)
+    (ensures m1 %~ m2)
+= introduce forall (i:natlt rows) (j:natlt cols).
+    Chest.acc2 m1 i j %~ Chest.acc2 m2 i j
+  with begin
+    approximates_elim
+      (ematrix_subtile m1 trows tcols (i/trows) (j/tcols))
+      (ematrix_subtile m2 trows tcols (i/trows) (j/tcols))
+      (i%trows) (j%tcols)
+  end;
+  lemma_approximates_intro m1 m2
+
+(* Injectivity of the row-major flattening [tr*wn+tc] used by
+   [em_fade_comb_tiles]'s boundary test: two distinct tile indices never
+   land on the same flat index. Z3's own nonlinear-arithmetic search cannot
+   reliably derive this for symbolic [wn], so spell it out via
+   [FStar.Math.Lemmas]. *)
+let flat_idx_neq
+  (wn : pos) (idxI tr : nat) (idxJ tc : natlt wn)
+  : Lemma
+    (requires tr <> idxI \/ tc <> idxJ)
+    (ensures tr * wn + tc <> idxI * wn + idxJ)
+= if tr = idxI then ()
+  else if tr < idxI
+  then begin
+    FStar.Math.Lemmas.lemma_eucl_div_bound tc tr wn;
+    FStar.Math.Lemmas.lemma_mult_le_left wn (tr + 1) idxI
+  end
+  else begin
+    FStar.Math.Lemmas.lemma_eucl_div_bound idxJ idxI wn;
+    FStar.Math.Lemmas.lemma_mult_le_left wn (idxI + 1) tr
+  end
+
 #push-options "--z3rlimit 80 --split_queries always"
 let lemma_update_tile_fade_comb_approximates
   (#et : Type0) {| scalar et, real_like et|}
@@ -768,7 +841,34 @@ let lemma_update_tile_fade_comb_approximates
   chest_comb_approx ecomb comb
     (ematrix_subtile em tm tn idxI idxJ) etile
     (ematrix_subtile rm1 tm tn idxI idxJ) (ematrix_subtile rm2 tm tn idxI idxJ);
-  ()
+  // Reduce the whole-matrix goal to a per-tile one: for the just-written
+  // tile the two facts above already give what is needed (via
+  // [subtile_of_update_tile] and [tiles_from_subtiles_id]); for every other
+  // tile, its flat index differs from [idxI*wn+idxJ] (since (tr,tc) is not
+  // (idxI, idxJ) and columns are bounded by [wn]), so the fade's boundary
+  // test is unaffected by advancing [idxJ] to [idxJ + 1], and the tile is
+  // untouched by [update_tile].
+  introduce forall (tr:natlt wm) (tc:natlt wn).
+    ematrix_subtile
+      (update_tile em tm tn idxI idxJ
+        (Chest.chest_comb ecomb (ematrix_subtile em tm tn idxI idxJ) etile))
+      tm tn tr tc
+    %~ ematrix_subtile (em_fade_comb_tiles comb tm tn wm wn idxI (idxJ + 1) rm1 rm2) tm tn tr tc
+  with begin
+    if tr = idxI && tc = idxJ
+    then ()
+    else begin
+      flat_idx_neq wn idxI tr idxJ tc;
+      ematrix_subtile_approximates
+        em (em_fade_comb_tiles comb tm tn wm wn idxI idxJ rm1 rm2)
+        tm tn tr tc
+    end
+  end;
+  ematrix_subtile_approximates_forall
+    (update_tile em tm tn idxI idxJ
+      (Chest.chest_comb ecomb (ematrix_subtile em tm tn idxI idxJ) etile))
+    (em_fade_comb_tiles comb tm tn wm wn idxI (idxJ + 1) rm1 rm2)
+    tm tn
 #pop-options
 
 #restart-solver

@@ -1,4 +1,5 @@
 module Kuiper.EMatrix
+open Kuiper.Container
 #lang-pulse
 
 open Kuiper

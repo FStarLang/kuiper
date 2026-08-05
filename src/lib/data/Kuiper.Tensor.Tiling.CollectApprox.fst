@@ -1,4 +1,9 @@
 module Kuiper.Tensor.Tiling.CollectApprox
+open Kuiper
+open Kuiper.EMatrix
+module SZ = Kuiper.SizeT
+open Kuiper.Tensor
+open Kuiper.Tensor.Tiling
 #lang-pulse
 
 #set-options "--admit_smt_queries true"

@@ -2,6 +2,7 @@ module Kuiper.Kernel.HReduce.Block.Max
 
 friend Kuiper.Kernel.HReduce.Max
 
+open Kuiper.EMatrix
 #lang-pulse
 
 open Kuiper
@@ -792,7 +793,7 @@ let max_boundary_all
   = introduce forall (r : nat). r < rows ==>
       (acc1 sout' r) %~ chest1_max (chest_map pre_map_r (chest2_row vr r))
     with introduce _ ==> _
-    with _. (
+    with (
       max_row_bridge pre_map_r vr r;
       approximates_subst (acc1 sout' r)
         (seq_max (lseq_map pre_map_r (ematrix_row vr r)))

@@ -1,5 +1,6 @@
 module Kuiper.Kernel.GEMM.Naive2
 
+open Kuiper.Kernel.GEMMGPU.Type
 #lang-pulse
 
 open Kuiper
@@ -475,8 +476,8 @@ fn bteardown
           (acc (MS.gbmmcomb mapA mapB comb eC eA eB)
             (page, (row, (col, ())))))
     fn page {
-      forevery_map_2
-        (fun row col ->
+      forevery_map_2 #(natlt m) #(natlt n)
+        (fun (row : natlt m) (col : natlt n) ->
           pts_to_cell gC
             (page, (row, (col, ())))
             (MS.ggemm_single mapA mapB comb
@@ -484,7 +485,7 @@ fn bteardown
               (slice_page eB page)
               (slice_page eC page)
               row col))
-        (fun row col ->
+        (fun (row : natlt m) (col : natlt n) ->
           pts_to_cell gC
             (page, (row, (col, ())))
             (acc (MS.gbmmcomb mapA mapB comb eC eA eB)

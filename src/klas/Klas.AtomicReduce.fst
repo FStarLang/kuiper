@@ -1,5 +1,6 @@
 module Klas.AtomicReduce
 
+open Kuiper.Tensor.Layout.Alg { l1_forward }
 #lang-pulse
 open Kuiper
 module K = Kuiper.Kernel.AtomicReduce

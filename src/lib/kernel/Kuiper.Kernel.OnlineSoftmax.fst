@@ -199,7 +199,7 @@ fn kfonline_softmax
     invariant pure (!sum %~ !gsum)
     invariant pure (!i > 0 ==> !max %~ !gmax)
     invariant pure (!i > 0 ==> !i <= Seq.length ras /\
-      (reveal !gmax, reveal !gsum) ==
+      hide (reveal !gmax, reveal !gsum) ==
         seq_fold_left online_softmax_real_iter
         (hide (ras @! 0, 1.0R)) (Seq.slice (reveal ras) 1 (!i)))
     invariant pure (!i == 0sz ==>
@@ -264,10 +264,10 @@ fn kfonline_softmax
                    (hide (Seq.index ras 0, 1.0R)));
       ();
     } else {
-      assert pure ((reveal old_max, reveal old_sum) == seq_fold_left online_softmax_real_iter (hide (Seq.index ras 0, 1.0R)) (Seq.slice (reveal ras) 1 (!i - 1)));
-      assert pure ((reveal gmax', reveal gsum') == online_softmax_real_iter (reveal old_max, reveal old_sum) gx);
+      assert pure (hide (reveal old_max, reveal old_sum) == seq_fold_left online_softmax_real_iter (hide (Seq.index ras 0, 1.0R)) (Seq.slice (reveal ras) 1 (!i - 1)));
+      assert pure (hide (reveal gmax', reveal gsum') == online_softmax_real_iter (hide (reveal old_max, reveal old_sum)) gx);
       lemma_seq_fold_left_slice' (hide (ras @! 0, 1.0R)) online_softmax_real_iter (reveal ras) 1 (!i);
-      assert pure ((reveal gmax', reveal gsum') == seq_fold_left online_softmax_real_iter (hide (Seq.index ras 0, 1.0R)) (Seq.slice (reveal ras) 1 (!i)));
+      assert pure (hide (reveal gmax', reveal gsum') == seq_fold_left online_softmax_real_iter (hide (Seq.index ras 0, 1.0R)) (Seq.slice (reveal ras) 1 (!i)));
     };
   };
   let x = tensor_read a ((tid <: szlt lenab), ());

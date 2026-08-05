@@ -36,7 +36,3 @@ let merge_either (f1 : 'a -> GTot 'c) (f2 : 'b -> GTot 'c) (x : either 'a 'b) : 
 
 let left  (e : either 'a 'b{Inl? e}) : 'a = let Inl x = e in x
 let right (e : either 'a 'b{Inr? e}) : 'b = let Inr x = e in x
-
-val pigeon (n1:nat) (n2:nat{n2 < n1})
-  (f : natlt n1 -> GTot (natlt n2))
-  : Lemma (~ (is_inj f))

@@ -1,5 +1,8 @@
 module Kuiper.Kernel.GEMM.Tiled
 
+open Kuiper.Kernel.GEMMGPU.Type
+open Kuiper.Tensor.Layout { ctlayout }
+open Kuiper.Chest { chest3, chest2 }
 #set-options "--z3rlimit 20"
 #lang-pulse
 
@@ -565,6 +568,24 @@ let bmmcomb_flat_all
              row col
       with bmmcomb_flat_cell mapA_r mapB_r comb_r rA5 rB5 rC5 page row col
 
+(* Batched (chest3) analogue of [Kuiper.EMatrix.lemma_approximates_intro]:
+   bridges a pointwise per-cell approximation into the aggregate chest-level
+   [%~] fact via the [SMTPat] below.  [EMatrix] only provides this for
+   [chest2]; batched kernels need it at [chest3].
+   TODO(upstream): move to Kuiper.Chest / a batched EMatrix-like module. *)
+let chest3_approx_intro
+  (#et : Type0) {| scalar et, real_like et |}
+  (#batch #rows #cols : nat)
+  (m1 : chest3 et batch rows cols)
+  (m2 : chest3 real batch rows cols)
+  : Lemma (requires forall (p : natlt batch) (i : natlt rows) (j : natlt cols).
+                       acc3 m1 p i j %~ acc3 m2 p i j)
+          (ensures m1 %~ m2)
+          [SMTPat (m1 %~ m2)]
+  = introduce forall (idx : abs (batch @| rows @| cols @| INil)). acc m1 idx %~ acc m2 idx
+    with (let (p, (i, (j, ()))) = idx in
+          assert (acc3 m1 p i j %~ acc3 m2 p i j))
+
 (* ─── batched pre/post conditions (rank-5 cell) ───────────────────────────── *)
 
 unfold
@@ -1094,6 +1115,10 @@ fn bteardown
   (* Final batched matrix-level approximation, reduced cellwise to the per-page
      rank-4 ggemm_single facts already established. *)
   bmmcomb_flat_all mapA_r mapB_r comb_r rA rB rC;
+  assert pure (
+    forall (page : natlt batch) (row : natlt (m * tile)) (col : natlt (n * tile)).
+      acc3 (chest_flat53 eC') page row col %~
+      acc3 (MS.gbmmcomb mapA_r mapB_r comb_r (chest_flat53 rC) (chest_flat53 rA) (chest_flat53 rB)) page row col);
   assert pure (chest_flat53 eC' %~
                  MS.gbmmcomb mapA_r mapB_r comb_r (chest_flat53 rC) (chest_flat53 rA) (chest_flat53 rB));
   ();

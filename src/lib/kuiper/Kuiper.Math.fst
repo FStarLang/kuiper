@@ -1,5 +1,6 @@
 module Kuiper.Math
 
+include Kuiper.Divides
 module M = FStar.Math.Lemmas
 
 let even_odd (n : int) :

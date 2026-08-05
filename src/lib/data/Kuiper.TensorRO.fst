@@ -1,4 +1,7 @@
 module Kuiper.TensorRO
+include Kuiper.Shape
+include Kuiper.Chest
+include Kuiper.Tensor.Layout
 #lang-pulse
 
 open Kuiper

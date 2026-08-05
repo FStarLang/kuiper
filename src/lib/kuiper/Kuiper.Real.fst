@@ -1,5 +1,7 @@
 module Kuiper.Real
 
+include FStar.Real
+include FStar.Math.Exp
 open FStar.Real
 open Kuiper.Seq.Common
 open Kuiper.Common

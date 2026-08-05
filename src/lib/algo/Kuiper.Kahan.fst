@@ -1,5 +1,6 @@
 module Kuiper.Kahan
 
+open Kuiper.Sum { sum }
 #lang-pulse
 
 open Kuiper

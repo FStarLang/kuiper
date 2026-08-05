@@ -1,5 +1,8 @@
 module Klas.HReduce
 
+open Kuiper.Tensor
+open Kuiper.Seq.Common
+module SZ = FStar.SizeT
 #lang-pulse
 
 open Kuiper

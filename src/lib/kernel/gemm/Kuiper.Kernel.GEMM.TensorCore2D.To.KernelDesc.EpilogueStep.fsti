@@ -71,7 +71,26 @@ let lane_fade_step
       lane_coincide lane
         (upd2 (lane_fade em0 em1 lane flat) row col (acc2 em1 row col))
         (lane_fade em0 em1 lane (flat + warp_size)))
-= ()
+=
+  let row = flat / cols in
+  let col = flat % cols in
+  let a = upd2 (lane_fade em0 em1 lane flat) row col (acc2 em1 row col) in
+  let b = lane_fade em0 em1 lane (flat + warp_size) in
+  FStar.Math.Lemmas.lemma_div_mod flat cols;
+  introduce forall (i : natlt rows) (j : natlt cols).
+    in_lane rows cols lane (i, j) ==> acc2 a i j == acc2 b i j
+  with introduce _ ==> _
+  with (
+    if i = row && j = col then ()
+    else begin
+      let flat' = i * cols + j in
+      if flat' >= flat then begin
+        (if flat' = flat then lemma_eucl_unique cols row col i j);
+        (if flat' < flat + warp_size
+         then FStar.Math.Lemmas.lemma_mod_plus_injective warp_size flat (flat' - flat) 0)
+      end
+    end
+  )
 
 let lane_fade_done
   (#et : Type0) {| scalar et |}

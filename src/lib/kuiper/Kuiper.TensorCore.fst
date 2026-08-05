@@ -1,5 +1,8 @@
 module Kuiper.TensorCore
 
+open Kuiper.Tensor
+open Kuiper.Array2.Strided
+open Kuiper.Seq.Common { (@!) }
 #lang-pulse
 
 open Kuiper
@@ -157,7 +160,7 @@ fn array_fragment_extract
   with s. assert Pulse.Lib.Array.pts_to farr #f s;
 
   forevery_extract_if_eqtype i
-    (fun (x : natlt (Seq.length s)) -> (s @! x) |-> (ems @! x));
+    (fun (x : natlt (Seq.length ems)) -> (s @! x) |-> (ems @! x));
 
   ghost
   fn f_elim (em' : value_for et knd m n k)

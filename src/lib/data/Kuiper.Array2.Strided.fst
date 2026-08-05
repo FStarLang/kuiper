@@ -1,5 +1,8 @@
 module Kuiper.Array2.Strided
 
+open Kuiper.Tensor
+open Kuiper.Tensor.Tiling { subtile_layout }
+open FStar.Tactics.Typeclasses { no_method }
 #lang-pulse
 
 open Kuiper

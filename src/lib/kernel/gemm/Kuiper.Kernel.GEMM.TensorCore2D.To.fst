@@ -1,5 +1,7 @@
 module Kuiper.Kernel.GEMM.TensorCore2D.To
 
+module MS = Kuiper.Spec.GEMM
+open Kuiper.Kernel.GEMM.TensorCore2D.KernelDesc { constraints }
 #lang-pulse
 
 open Kuiper

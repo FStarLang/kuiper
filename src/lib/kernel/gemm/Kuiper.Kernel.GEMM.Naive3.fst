@@ -1,5 +1,6 @@
 module Kuiper.Kernel.GEMM.Naive3
 
+open Kuiper.Kernel.GEMMGPU.Type
 #set-options "--z3rlimit 20"
 
 #lang-pulse

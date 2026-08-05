@@ -1,5 +1,9 @@
 module Kuiper.View
 
+open Kuiper.Len
+open Kuiper.Container { container }
+open Kuiper.Injection
+open Kuiper.IView
 #lang-pulse
 
 open Kuiper

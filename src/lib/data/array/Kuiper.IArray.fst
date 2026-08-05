@@ -1,4 +1,5 @@
 module Kuiper.IArray
+open Kuiper.Bijection
 #lang-pulse
 
 open Kuiper

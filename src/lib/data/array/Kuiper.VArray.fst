@@ -1,4 +1,6 @@
 module Kuiper.VArray
+include Kuiper.View
+open Kuiper.View
 #lang-pulse
 
 open Kuiper
@@ -385,9 +387,7 @@ fn varray_cell_reindex
   ensures
     Cell a' i' |-> Frac f v
 {
-  unfold varray_pts_to_cell a #f i v;
   IArray.iarray_cell_reindex a i a' i';
-  fold varray_pts_to_cell a' #f i' v;
 }
 
 ghost
@@ -586,7 +586,7 @@ fn varray_alloc0
   returns
     a : varray vw
   ensures
-    exists* v. on gpu_loc (a |-> v)
+    exists* (v:st). on gpu_loc (a |-> v)
   ensures
     pure (is_global a) **
     pure (is_full_array (core a))
@@ -946,9 +946,7 @@ fn varray_write_cell
   ensures
     Cell a (ci_to_ai vw ci) |-> v1
 {
-  unfold varray_pts_to_cell a (ci_to_ai vw ci) v0;
   IArray.iarray_write_cell a ci v1;
-  fold varray_pts_to_cell a (ci_to_ai vw ci) v1;
 }
 
 inline_for_extraction noextract
@@ -968,7 +966,9 @@ fn varray_write_cell'
     Cell a (reveal ai) |-> reveal v1
 {
   rewrite each reveal ai as (ci_to_ai vw ci);
+  fold varray_pts_to_cell a (ci_to_ai vw ci) (reveal v0);
   varray_write_cell a ci v1;
+  unfold varray_pts_to_cell a (ci_to_ai vw ci) (reveal v1);
   rewrite each (ci_to_ai vw ci) as (reveal ai);
 }
 
@@ -1015,7 +1015,9 @@ fn varray_read_cell'
     pure (v == v0)
 {
   rewrite each reveal ai as (ci_to_ai vw i);
+  fold varray_pts_to_cell a #f (ci_to_ai vw i) (reveal v0);
   let res = varray_read_cell a i;
+  unfold varray_pts_to_cell a #f (ci_to_ai vw i) res;
   rewrite each (ci_to_ai vw i) as (reveal ai);
   res
 }

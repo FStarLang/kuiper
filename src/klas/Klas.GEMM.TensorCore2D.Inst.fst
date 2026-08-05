@@ -1,4 +1,5 @@
 module Klas.GEMM.TensorCore2D.Inst
+module MS = Kuiper.Spec.GEMM
 #lang-pulse
 
 open Kuiper

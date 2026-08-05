@@ -1,5 +1,7 @@
 module Kuiper.Kernel.GEMM.SHMem
 
+open Kuiper.Kernel.GEMMGPU.Type
+open Kuiper.Chest { chest2, chest3 }
 #lang-pulse
 
 open Kuiper

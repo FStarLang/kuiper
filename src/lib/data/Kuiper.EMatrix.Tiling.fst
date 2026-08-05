@@ -1,4 +1,5 @@
 module Kuiper.EMatrix.Tiling
+open Kuiper.Chest
 #lang-pulse
 
 open Kuiper

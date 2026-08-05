@@ -1,5 +1,6 @@
 module Kuiper.Tensor.Layout.Bijection
 
+open Pulse.Lib.Trade { (@==>) }
 (* Bijective layouts and specialized variants like folding dimensions. *)
 
 #lang-pulse

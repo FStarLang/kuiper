@@ -151,7 +151,7 @@ fn alloc0
   returns
     p : tensor et l
   ensures
-    exists* em. on gpu_loc (p |-> em)
+    exists* em. on gpu_loc (tensor_pts_to p em)
   ensures
     pure (is_global p) **
     pure (is_full_array (core p))
@@ -167,7 +167,7 @@ fn free
     cpu
   requires
     pure (is_full_array (core p)) **
-    on gpu_loc (p |-> em)
+    on gpu_loc (tensor_pts_to p em)
   ensures emp
 
 ghost
@@ -177,7 +177,7 @@ fn tensor_pts_to_ref
   (a : tensor et l)
   (#f : perm) (#s : chest d et)
   preserves
-    a |-> Frac f s
+    tensor_pts_to a #f s
   ensures
     pure (SZ.fits (tlayout_ulen l))
 
@@ -189,7 +189,7 @@ fn tensor_pts_to_ref_located
   (#loc : loc_id)
   (#f : perm) (#s : chest d et)
   preserves
-    on loc (a |-> Frac f s)
+    on loc (tensor_pts_to a #f s)
   ensures
     pure (SZ.fits (tlayout_ulen l))
 
@@ -216,7 +216,7 @@ fn tensor_concr
   (#s : chest d et)
   (#f : perm)
   requires
-    g |-> Frac f s
+    tensor_pts_to g #f s
   ensures
     core g |-> Frac f (to_seq l s)
 
@@ -231,7 +231,7 @@ fn tensor_abs
   requires
     p |-> Frac f (to_seq l s)
   ensures
-    from_array l p |-> Frac f s
+    tensor_pts_to (from_array l p) #f s
 
 ghost
 fn tensor_abs'
@@ -244,7 +244,7 @@ fn tensor_abs'
   requires
     p |-> Frac f s
   ensures
-    from_array l p |-> Frac f (from_seq l s)
+    tensor_pts_to (from_array l p) #f (from_seq l s)
 
 ghost
 fn tensor_share_n
@@ -253,9 +253,9 @@ fn tensor_share_n
   (a : tensor et l) (k : pos)
   (#f : perm) (#s : chest d et)
   requires
-    a |-> Frac f s
+    tensor_pts_to a #f s
   ensures
-    forall+ (_:natlt k). a |-> Frac (f /. k) s
+    forall+ (_:natlt k). tensor_pts_to a #(f /. k) s
 
 ghost
 fn tensor_gather_n
@@ -264,9 +264,9 @@ fn tensor_gather_n
   (a : tensor et l) (k : pos)
   (#f : perm) (#s : chest d et)
   requires
-    forall+ (_:natlt k). a |-> Frac (f /. k) s
+    forall+ (_:natlt k). tensor_pts_to a #(f /. k) s
   ensures
-    a |-> Frac f s
+    tensor_pts_to a #f s
 
 ghost
 fn tensor_gather_n_underspec
@@ -307,7 +307,7 @@ fn tensor_read
   (#f : perm)
   (#s : chest d et)
   preserves
-    a |-> Frac f s
+    tensor_pts_to a #f s
   returns
     v : et
   ensures
@@ -322,9 +322,9 @@ fn tensor_write
   (v : et)
   (#s : chest d et)
   requires
-    a |-> s
+    tensor_pts_to a s
   ensures
-    a |-> upd s (up i) v
+    tensor_pts_to a (upd s (up i) v)
 
 (* Syntax *)
 inline_for_extraction noextract
@@ -388,7 +388,7 @@ fn tensor_explode
   (#f : perm)
   (#s : chest d et)
   requires
-    a |-> Frac f s
+    tensor_pts_to a #f s
   ensures
     forall+ (i : abs d).
       Cell a i |-> Frac f (acc s i)
@@ -406,7 +406,7 @@ fn tensor_implode
     forall+ (i : abs d).
       Cell a i |-> Frac f (acc s i)
   ensures
-    a |-> Frac f s
+    tensor_pts_to a #f s
 
 ghost
 fn tensor_ilower
@@ -416,7 +416,7 @@ fn tensor_ilower
   (#f : perm)
   (#s : chest d et)
   requires
-    a |-> Frac f s
+    tensor_pts_to a #f s
   ensures
     pure (SZ.fits (tlayout_ulen l)) **
     (forall+ (i : abs d).
@@ -434,7 +434,7 @@ fn tensor_iraise
     (forall+ (i : abs d).
       pts_to_cell (core a) #f (l.imap.f i) (acc s i))
   ensures
-    a |-> Frac f s
+    tensor_pts_to a #f s
 
 inline_for_extraction noextract
 fn tensor_read_cell
@@ -445,7 +445,7 @@ fn tensor_read_cell
   (#f : perm)
   (#s : erased et)
   preserves
-    Cell a (up i) |-> Frac f s
+    tensor_pts_to_cell a #f (up i) s
   returns
     v : et
   ensures
@@ -460,9 +460,9 @@ fn tensor_write_cell
   (v : et)
   (#s : erased et)
   requires
-    Cell a (up i) |-> s
+    tensor_pts_to_cell a (up i) s
   ensures
-    Cell a (up i) |-> v
+    tensor_pts_to_cell a (up i) v
 
 (* Rank-2 conveniences over the (natlt rows & natlt cols) index pair. *)
 
@@ -473,7 +473,7 @@ fn tensor_explode2
   (#f : perm)
   (#s : chest2 et rows cols)
   requires
-    a |-> Frac f s
+    tensor_pts_to a #f s
   ensures
     forall+ (ij : natlt rows & natlt cols).
       Cell a (idx2 (fst ij) (snd ij)) |-> Frac f (acc s (idx2 (fst ij) (snd ij)))
@@ -490,7 +490,7 @@ fn tensor_implode2
     forall+ (ij : natlt rows & natlt cols).
       Cell a (idx2 (fst ij) (snd ij)) |-> Frac f (acc s (idx2 (fst ij) (snd ij)))
   ensures
-    a |-> Frac f s
+    tensor_pts_to a #f s
 
 ghost
 fn tensor_ilower2
@@ -499,7 +499,7 @@ fn tensor_ilower2
   (#f : perm)
   (#s : chest2 et rows cols)
   requires
-    a |-> Frac f s
+    tensor_pts_to a #f s
   ensures
     pure (SZ.fits (tlayout_ulen l)) **
     (forall+ (r : natlt rows) (c : natlt cols).
@@ -516,7 +516,7 @@ fn tensor_iraise2
     (forall+ (r : natlt rows) (c : natlt cols).
       Cell a (idx2 r c) |-> Frac f (acc s (idx2 r c)))
   ensures
-    a |-> Frac f s
+    tensor_pts_to a #f s
 
 // TODO: it should be possible to have just "pts_to_shareable" for any
 // types that have pts_to, no? or does that not hold?

@@ -1,4 +1,12 @@
 module Kuiper.Tensor
+include Kuiper.Shape
+include Kuiper.Chest
+include Kuiper.Tensor.Layout
+open Kuiper.Injection
+open Kuiper.Chest
+open FStar.Tactics.Typeclasses { no_method }
+open Pulse.Lib.Trade
+open Kuiper.Shareable
 #lang-pulse
 
 open Kuiper
@@ -98,15 +106,15 @@ fn alloc0
   returns
     p : tensor et l
   ensures
-    exists* em. on gpu_loc (p |-> em)
+    exists* em. on gpu_loc (tensor_pts_to p em)
   ensures
     pure (is_global p) **
     pure (is_full_array (core p))
 {
   let t = A.varray_alloc0 #et s (tensor_aview et l);
-  with em. assert on gpu_loc (A.varray_pts_to t em);
-  rewrite on gpu_loc (A.varray_pts_to t em)
-       as on gpu_loc (tensor_pts_to t em);
+  with em. assert on gpu_loc (A.varray_pts_to t #1.0R em);
+  rewrite on gpu_loc (A.varray_pts_to t #1.0R em)
+       as on gpu_loc (tensor_pts_to t #1.0R em);
   t
 }
 
@@ -121,11 +129,11 @@ fn free
     cpu
   requires
     pure (is_full_array (core p)) **
-    on gpu_loc (p |-> em)
+    on gpu_loc (tensor_pts_to p em)
   ensures emp
 {
-  rewrite on gpu_loc (tensor_pts_to p em)
-       as on gpu_loc (A.varray_pts_to p  em);
+  rewrite on gpu_loc (tensor_pts_to p #1.0R em)
+       as on gpu_loc (A.varray_pts_to p #1.0R em);
   A.varray_free p;
 }
 
@@ -136,7 +144,7 @@ fn tensor_pts_to_ref
   (a : tensor et l)
   (#f : perm) (#s : chest d et)
   preserves
-    a |-> Frac f s
+    tensor_pts_to a #f s
   ensures
     pure (SZ.fits (tlayout_ulen l))
 {
@@ -153,13 +161,13 @@ fn tensor_pts_to_ref_located
   (#loc : loc_id)
   (#f : perm) (#s : chest d et)
   preserves
-    on loc (a |-> Frac f s)
+    on loc (tensor_pts_to a #f s)
   ensures
     pure (SZ.fits (tlayout_ulen l))
 {
   map_loc loc
-    #(a |-> Frac f s)
-    #(a |-> Frac f s ** pure (SZ.fits (tlayout_ulen l)))
+  #(tensor_pts_to a #f s)
+  #(tensor_pts_to a #f s ** pure (SZ.fits (tlayout_ulen l)))
   fn _ {
     tensor_pts_to_ref a;
   };
@@ -195,7 +203,7 @@ fn tensor_concr
   (#s : chest d et)
   (#f : perm)
   requires
-    g |-> Frac f s
+    tensor_pts_to g #f s
   ensures
     core g |-> Frac f (to_seq l s)
 {
@@ -217,7 +225,7 @@ fn tensor_abs
   requires
     p |-> Frac f (to_seq l s)
   ensures
-    from_array l p |-> Frac f s
+    tensor_pts_to (from_array l p) #f s
 {
   to_seq_rel l s;
   rewrite
@@ -239,7 +247,7 @@ fn tensor_abs'
   requires
     p |-> Frac f s
   ensures
-    from_array l p |-> Frac f (from_seq l s)
+    tensor_pts_to (from_array l p) #f (from_seq l s)
 {
   rewrite each s as to_seq l (from_seq l s);
   tensor_abs l p;
@@ -252,9 +260,9 @@ fn tensor_share_n
   (a : tensor et l) (k : pos)
   (#f : perm) (#s : chest d et)
   requires
-    a |-> Frac f s
+    tensor_pts_to a #f s
   ensures
-    forall+ (_:natlt k). a |-> Frac (f /. k) s
+    forall+ (_:natlt k). tensor_pts_to a #(f /. k) s
 {
   unfold tensor_pts_to a #f s;
   A.varray_share_n a k;
@@ -271,9 +279,9 @@ fn tensor_gather_n
   (a : tensor et l) (k : pos)
   (#f : perm) (#s : chest d et)
   requires
-    forall+ (_:natlt k). a |-> Frac (f /. k) s
+    forall+ (_:natlt k). tensor_pts_to a #(f /. k) s
   ensures
-    a |-> Frac f s
+    tensor_pts_to a #f s
 {
   forevery_map
     (fun (i:natlt k) -> tensor_pts_to a #(f /. k) s)
@@ -324,7 +332,7 @@ fn tensor_read
   (#f : perm)
   (#s : chest d et)
   preserves
-    a |-> Frac f s
+    tensor_pts_to a #f s
   returns
     v : et
   ensures
@@ -345,9 +353,9 @@ fn tensor_write
   (v : et)
   (#s : chest d et)
   requires
-    a |-> s
+    tensor_pts_to a s
   ensures
-    a |-> upd s (up i) v
+    tensor_pts_to a (upd s (up i) v)
 {
   unfold tensor_pts_to a s;
   A.varray_write a i v;
@@ -389,7 +397,7 @@ fn tensor_explode
   (#f : perm)
   (#s : chest d et)
   requires
-    a |-> Frac f s
+    tensor_pts_to a #f s
   ensures
     forall+ (i : abs d).
       Cell a i |-> Frac f (acc s i)
@@ -420,7 +428,7 @@ fn tensor_implode
     forall+ (i : abs d).
       Cell a i |-> Frac f (acc s i)
   ensures
-    a |-> Frac f s
+    tensor_pts_to a #f s
 {
   forevery_ext
     (fun (i : abs d) ->
@@ -440,7 +448,7 @@ fn tensor_ilower
   (#f : perm)
   (#s : chest d et)
   requires
-    a |-> Frac f s
+    tensor_pts_to a #f s
   ensures
     pure (SZ.fits (tlayout_ulen l)) **
     (forall+ (i : abs d).
@@ -472,7 +480,7 @@ fn tensor_iraise
     (forall+ (i : abs d).
       pts_to_cell (core a) #f (l.imap.f i) (acc s i))
   ensures
-    a |-> Frac f s
+    tensor_pts_to a #f s
 {
   forevery_map
     (fun (i : abs d) -> pts_to_cell (core a) #f (l.imap.f i) (acc s i))
@@ -496,7 +504,7 @@ fn tensor_read_cell
   (#f : perm)
   (#s : erased et)
   preserves
-    Cell a (up i) |-> Frac f s
+    tensor_pts_to_cell a #f (up i) s
   returns
     v : et
   ensures
@@ -517,9 +525,9 @@ fn tensor_write_cell
   (v : et)
   (#s : erased et)
   requires
-    Cell a (up i) |-> s
+    tensor_pts_to_cell a (up i) s
   ensures
-    Cell a (up i) |-> v
+    tensor_pts_to_cell a (up i) v
 {
   unfold tensor_pts_to_cell a (up i) s;
   A.varray_write_cell a i v;
@@ -547,7 +555,7 @@ fn tensor_explode2
   (#f : perm)
   (#s : chest2 et rows cols)
   requires
-    a |-> Frac f s
+    tensor_pts_to a #f s
   ensures
     forall+ (ij : natlt rows & natlt cols).
       Cell a (idx2 (fst ij) (snd ij)) |-> Frac f (acc s (idx2 (fst ij) (snd ij)))
@@ -574,7 +582,7 @@ fn tensor_implode2
     forall+ (ij : natlt rows & natlt cols).
       Cell a (idx2 (fst ij) (snd ij)) |-> Frac f (acc s (idx2 (fst ij) (snd ij)))
   ensures
-    a |-> Frac f s
+    tensor_pts_to a #f s
 {
   forevery_iso #(natlt rows & natlt cols) #(abs (rows @| cols @| INil))
     (bij_sym abs_bij2)
@@ -595,7 +603,7 @@ fn tensor_ilower2
   (#f : perm)
   (#s : chest2 et rows cols)
   requires
-    a |-> Frac f s
+    tensor_pts_to a #f s
   ensures
     pure (SZ.fits (tlayout_ulen l)) **
     (forall+ (r : natlt rows) (c : natlt cols).
@@ -619,7 +627,7 @@ fn tensor_iraise2
     (forall+ (r : natlt rows) (c : natlt cols).
       Cell a (idx2 r c) |-> Frac f (acc s (idx2 r c)))
   ensures
-    a |-> Frac f s
+    tensor_pts_to a #f s
 {
   forevery_flatten'
     (fun (ij : natlt rows & natlt cols) ->

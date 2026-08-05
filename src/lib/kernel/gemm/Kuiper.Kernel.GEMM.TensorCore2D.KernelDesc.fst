@@ -1,5 +1,8 @@
 module Kuiper.Kernel.GEMM.TensorCore2D.KernelDesc
 
+open Kuiper.Math { even, odd }
+module MS = Kuiper.Spec.GEMM
+module Chest = Kuiper.Chest
 #lang-pulse
 
 (* This file is really awful in some places, and it shows that

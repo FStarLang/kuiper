@@ -20,6 +20,18 @@ open Kuiper.Kernel.GEMM.TensorCore2D.KernelDesc
 
 open Kuiper.Kernel.GEMM.TensorCore2D.To.KernelDesc
 
+(* (i * n + j) / n == i and (i * n + j) % n == j, when j < n. Kept as a
+   top-level pure lemma so the nonlinear division/modulo facts type-check in
+   a minimal context: inside the large ambient proof state of gather_block
+   and gather_output (with many size-refinement facts already in scope), Z3
+   does not reliably close this goal when it is asserted inline. *)
+let div_mod_of_mul_add (n : pos) (i : nat) (j : natlt n)
+  : Lemma ((i * n + j) / n == i /\ (i * n + j) % n == j)
+  = FStar.Math.Lemmas.lemma_div_plus j i n;
+    FStar.Math.Lemmas.small_div j n;
+    FStar.Math.Lemmas.lemma_mod_plus j i n;
+    FStar.Math.Lemmas.small_mod j n
+
 #push-options "--ifuel 1 --initial_fuel 0 --max_fuel 1 --z3rlimit 15"
 
 let in_lane_covers_all
@@ -196,7 +208,7 @@ fn array2_untile_approximates
   assert pure (ematrix_from_tiles trows tcols ff %~ r);
 }
 
-#push-options "--split_queries no"
+#push-options "--split_queries always"
 
 ghost
 fn gather_warp
@@ -267,7 +279,7 @@ fn gather_warp
           (output_fragment gD bm bn tm tn wm wn bid wid mi nj)
           eFrag lane **
         pure (eFrag %~ ematrix_subtile rWarp tm tn mi nj));
-  forevery_map_2
+  forevery_map_2 #(natlt wm) #(natlt wn)
     (fun mi nj ->
       forall+ (lane : natlt warp_size).
         exists* (eFrag : chest2 et_cd tm tn).
@@ -287,7 +299,7 @@ fn gather_warp
   let dWarp =
     warp_tile (block_tile gD (SZ.v bm) (SZ.v bn) bid)
       (wm * tm) (wn * tn) wid;
-  forevery_map_2
+  forevery_map_2 #(natlt wm) #(natlt wn)
     (fun mi nj ->
       exists* (eFrag : chest2 et_cd tm tn).
         output_fragment gD bm bn tm tn wm wn bid wid mi nj |-> eFrag **
@@ -396,10 +408,7 @@ fn gather_block
         pure (eWarp %~
           ematrix_subtile rBlock (wm * tm) (wn * tn) wr wc))
     fn wr wc {
-      assert pure (
-        (wr * (bn / (wn * tn)) + wc) / (bn / (wn * tn)) == wr);
-      assert pure (
-        (wr * (bn / (wn * tn)) + wc) % (bn / (wn * tn)) == wc);
+      div_mod_of_mul_add (bn / (wn * tn)) wr wc;
       rewrite each
         warp_tile dBlock (wm * tm) (wn * tn)
           (wr * (bn / (wn * tn)) + wc)
@@ -565,8 +574,7 @@ fn gather_output
         pure (eBlock %~
           ematrix_subtile (MS.mmcomb comb_r rC rA rB) bm bn br bc))
     fn br bc {
-      assert pure ((br * (n / bn) + bc) / (n / bn) == br);
-      assert pure ((br * (n / bn) + bc) % (n / bn) == bc);
+      div_mod_of_mul_add (n / bn) br bc;
       rewrite each block_tile gD (SZ.v bm) (SZ.v bn)
         (br * (n / bn) + bc)
       as array2_subtile gD (SZ.v bm) (SZ.v bn) br bc;

@@ -1,5 +1,10 @@
 module Kuiper.Spec.GEMM
 
+open Kuiper
+open Kuiper.Chest
+open Kuiper.EMatrix
+open Kuiper.EMatrix.Tiling
+open Kuiper.Float.Casts
 module Chest = Kuiper.Chest
 open Kuiper.Shape
 

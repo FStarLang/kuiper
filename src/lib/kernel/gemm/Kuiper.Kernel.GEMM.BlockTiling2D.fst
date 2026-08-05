@@ -1,5 +1,7 @@
 module Kuiper.Kernel.GEMM.BlockTiling2D
 
+open Kuiper.Kernel.GEMMGPU.Type
+open Kuiper.EMatrix
 #lang-pulse
 
 #set-options "--z3rlimit 60"

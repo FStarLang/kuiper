@@ -1,5 +1,6 @@
 module Kuiper.Tensor.Layout.Alg
 
+module T = Kuiper.Tensor
 (* Constructing tensor layouts algebraically. *)
 open Kuiper
 open Kuiper.Injection
@@ -195,7 +196,7 @@ instance c_l3_batched_col_major
   }
 #pop-options
 
-#push-options "--fuel 2 --ifuel 2 --z3rlimit 80"
+#push-options "--fuel 2 --ifuel 4 --z3rlimit 80"
 let l3_batched_col_major_imap
   (r : erased nat{SZ.fits r})
   (m : SZ.t{SZ.fits (r * m)})

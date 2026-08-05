@@ -1,5 +1,12 @@
 module Kuiper.DotProd
 
+open Kuiper.Tensor { ctlayout }
+open Kuiper.EMatrix
+module MS = Kuiper.Spec.GEMM
+open Kuiper.Sum { sum }
+open Kuiper.Shape { shape, ( @| ), ( @! ) }
+open Kuiper.Chest { chest, chest_slice, chest_map }
+open Kuiper.Container
 #lang-pulse
 
 open Kuiper

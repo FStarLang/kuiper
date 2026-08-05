@@ -32,10 +32,12 @@ let output_lane_live_sendable_to
   : is_send_across block_of (
       output_lane_live gD bm bn tm tn wm wn bid tid)
 =
+  FStar.Math.Lemmas.cancel_mul_div (SZ.v wm) (SZ.v tm);
+  FStar.Math.Lemmas.cancel_mul_div (SZ.v wn) (SZ.v tn);
   let wid :
     natlt (bm / (wm * tm) * (bn / (wn * tn))) =
-      tid / warp_size in
-  let lane : natlt warp_size = tid % warp_size in
+      tid / SZ.v warp_size in
+  let lane : natlt warp_size = tid % SZ.v warp_size in
   assert_norm (
     reveal (block_tile_idx_rows
       (SZ.v m) (SZ.v n) (SZ.v bm) (SZ.v bn) bid)
@@ -88,8 +90,8 @@ let output_lane_approximates_sendable_to
   FStar.Math.Lemmas.cancel_mul_div (SZ.v wn) (SZ.v tn);
   let wid :
     natlt (bm / (wm * tm) * (bn / (wn * tn))) =
-      tid / warp_size in
-  let lane : natlt warp_size = tid % warp_size in
+      tid / SZ.v warp_size in
+  let lane : natlt warp_size = tid % SZ.v warp_size in
   assert_norm (
     reveal (block_tile_idx_rows
       (SZ.v m) (SZ.v n) (SZ.v bm) (SZ.v bn) bid)
@@ -235,7 +237,7 @@ let kpost1_sendable_to
   FStar.Math.Lemmas.cancel_mul_div (SZ.v wn) (SZ.v tn);
   let wid :
     natlt (bm / (wm * tm) * (bn / (wn * tn))) =
-      tid / warp_size in
+      tid / SZ.v warp_size in
   assert_norm (
     reveal (block_tile_idx_rows
       (SZ.v m) (SZ.v n) (SZ.v bm) (SZ.v bn) bid)

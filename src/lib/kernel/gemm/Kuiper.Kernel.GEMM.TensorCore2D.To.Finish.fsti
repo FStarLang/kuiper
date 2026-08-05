@@ -163,6 +163,7 @@ ghost fn cleanup
   ensures
     shared_thread_live bm bn bk tm tn nthr sh tid
 
+#push-options "--z3rlimit 10"
 inline_for_extraction noextract
 fn finish
   (#et_ab #et_cd #et_acc : Type0)
@@ -189,6 +190,7 @@ fn finish
   (nthr : szp {
     SZ.v nthr == bm / (wm * tm) * (bn / (wn * tn)) * warp_size})
   (#scratch_fits : squash (SZ.fits ((nthr / warp_size) * tm * tn)))
+  (#warp_div : squash (warp_size /?+ nthr))
   (sh : c_shmems (shmems_desc_to et_ab et_acc bm bn bk tm tn nthr))
   (sA : array2 et_ab (rm bm bk) { core sA == fst sh })
   (sB : array2 et_ab (rm bk bn) { core sB == fst (snd sh) })
@@ -238,3 +240,4 @@ fn finish
         (ematrix_subtile (MS.mmcomb comb_r rC rA rB)
           bm bn mrow mcol)
         (wm * tm) (wn * tn) warpRow warpCol)
+#pop-options

@@ -1,4 +1,7 @@
 module Kuiper.Kernel
+include Kuiper.Kernel.Base
+include Kuiper.Kernel.Desc
+include Kuiper.Kernel.Casts
 #lang-pulse
 
 open Pulse.Lib.Core

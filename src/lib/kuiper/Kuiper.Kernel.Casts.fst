@@ -1,4 +1,7 @@
 module Kuiper.Kernel.Casts
+open Kuiper.SizeT
+module SZ = Kuiper.SizeT
+module B = Kuiper.Barrier
 #lang-pulse
 
 open Pulse.Lib.Core

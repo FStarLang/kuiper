@@ -1,5 +1,9 @@
 module Kuiper.Injection
 
+open Kuiper.Common
+open Kuiper.SizeT
+open FStar.Functions
+open FStar.SizeT { (/^), (%^), (+^), (-^), ( *^ )  }
 let inverse_f (#a #b : Type) (i : a @~> b) (y : image_of i) : GTot a =
   FStar.IndefiniteDescription.indefinite_description_ghost a
     (fun (x:a) -> i.f x == y)

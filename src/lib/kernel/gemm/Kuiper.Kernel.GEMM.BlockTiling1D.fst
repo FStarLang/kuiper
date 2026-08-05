@@ -1,5 +1,7 @@
 module Kuiper.Kernel.GEMM.BlockTiling1D
 
+open Kuiper.Kernel.GEMMGPU.Type
+open Kuiper.Chest { chest2, chest3 }
 #lang-pulse
 
 #set-options "--z3rlimit 40"

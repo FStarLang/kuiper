@@ -1,5 +1,6 @@
 module Kuiper.ForEvery
 
+open Pulse
 #lang-pulse
 open Kuiper.Common
 open Kuiper.Bijection
@@ -442,9 +443,11 @@ fn forevery_remove'
       cond (t2b (pred y)) (p y) emp **
       forall+ (z:a { f z /\ z =!= y /\ pred z }). p z)
     fn pred add g {
-      forevery_fill p (fun z -> f z /\ z =!= y /\ add z)
+      forevery_fill #a #(fun z -> f z /\ z =!= y /\ pred z) p (fun z -> f z /\ z =!= y /\ add z)
         fn x { g x };
-      forevery_refine_ext (fun (z: a) -> f z /\ ~(eq2 #a z y) /\ (pred z \/ add z <: prop)) p;
+      forevery_refine_ext #a
+        #(fun (z: a) -> (f z /\ z =!= y /\ pred z) \/ (f z /\ z =!= y /\ add z))
+        (fun (z: a) -> f z /\ ~(eq2 #a z y) /\ (pred z \/ add z <: prop)) p;
       let b = t2b (add y);
       if b {
         elim_cond_false (t2b (pred y)) (p y) emp;
@@ -678,8 +681,10 @@ fn forevery_refine_join
     (fun pred ->
       forall+ (x:a{(f x /\ pred x) \/ g x}). p x)
     fn pred add h {
-      forevery_fill p (fun z -> f z /\ add z) fn x { h x };
-      forevery_refine_ext #a (fun x -> f x /\ (pred x \/ add x) \/ g x) p;
+      forevery_fill #a #(fun x -> (f x /\ pred x) \/ g x) p (fun z -> f z /\ add z) fn x { h x };
+      forevery_refine_ext #a
+        #(fun x -> ((f x /\ pred x) \/ g x) \/ (f x /\ add x))
+        (fun x -> f x /\ (pred x \/ add x) \/ g x) p;
     }
     fn pred x {
       forevery_insert p x;
@@ -703,7 +708,7 @@ fn forevery_refine_join'
 {
   forevery_ext #(x:a{f x}) (fun x -> p x) (fun x -> when__ (f x \/ g x) (fun _ -> p x));
   forevery_ext #(x:a{g x}) (fun x -> p x) (fun x -> when__ (f x \/ g x) (fun _ -> p x));
-  forevery_refine_join (fun x -> when__ (f x \/ g x) (fun _ -> p x)) f g;
+  forevery_refine_join #a (fun x -> when__ (f x \/ g x) (fun _ -> p x)) f g;
   forevery_ext #(x:a{f x \/ g x}) (fun x -> when__ (f x \/ g x) (fun _ -> p x)) (fun x -> p x);
 }
 
@@ -1164,7 +1169,7 @@ fn forevery_natlt_restrict
   ensures
     forall+ (i: natlt n). p i
 {
-  forevery_refine_ext' #nat (fun i -> i < n) (fun i -> p i)
+  forevery_refine_ext' #nat #(fun i -> i < m /\ i < n) (fun i -> i < n) (fun i -> p (natlt_coerce i))
 }
 
 ghost
@@ -1178,7 +1183,7 @@ fn forevery_natlt_pop
   ensures
     p (n-1)
 {
-  forevery_refine_split p (fun i -> i < n-1);
+  forevery_refine_split p (fun (i: natlt n) -> i < n-1);
   forevery_singleton_elim' #(x: natlt n {~(b2t (x < n - 1))}) p (n-1);
   forevery_natlt_restrict #(n-1) n (fun i -> p (natlt_coerce i));
 }
@@ -1196,7 +1201,7 @@ fn forevery_natlt_push
 {
   forevery_natlt_extend #(n-1) n (fun i -> p (natlt_coerce i));
   forevery_singleton_intro' #(x: natlt n {~(b2t (x < n - 1))}) p (n-1);
-  forevery_refine_join p (fun i -> i < n - 1) _;
+  forevery_refine_join p (fun (i: natlt n) -> i < n - 1) _;
   forevery_unrefine p;
 }
 

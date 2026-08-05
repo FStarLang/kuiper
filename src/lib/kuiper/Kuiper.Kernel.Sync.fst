@@ -1,4 +1,11 @@
 module Kuiper.Kernel.Sync
+open Pulse.Lib.Core
+open Kuiper.Common
+open Kuiper.ForEvery
+open Kuiper.Base
+open Kuiper.SizeT
+include Kuiper.Kernel.Base
+include Kuiper.Kernel.Desc
 friend Kuiper.Array.Core // for gpu_array_alloc_vis, gpu_array_free_gen
 
 #lang-pulse

@@ -1,5 +1,8 @@
 module Kuiper.Barrier.RPM
 
+open Pulse
+open Kuiper.ForEvery
+open Kuiper.Common
 #lang-pulse
 
 open Pulse.Lib.Pervasives

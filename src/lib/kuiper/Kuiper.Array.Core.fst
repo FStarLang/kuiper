@@ -1,5 +1,6 @@
 module Kuiper.Array.Core
 
+open Kuiper.PtsTo
 #lang-pulse
 
 open Pulse.Lib.Vec

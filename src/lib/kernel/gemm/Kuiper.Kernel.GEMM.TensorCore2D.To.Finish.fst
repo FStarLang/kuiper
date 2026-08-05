@@ -121,7 +121,7 @@ ghost fn prepare_epilogue
 }
 
 #push-options "--ifuel 1 --initial_fuel 0 --max_fuel 1"
-#push-options "--z3rlimit 15"
+#push-options "--z3rlimit 50"
 
 noextract
 ghost fn normalize_output
@@ -320,6 +320,7 @@ fn finish
   (nthr : szp {
     SZ.v nthr == bm / (wm * tm) * (bn / (wn * tn)) * warp_size})
   (#scratch_fits : squash (SZ.fits ((nthr / warp_size) * tm * tn)))
+  (#warp_div : squash (warp_size /?+ nthr))
   (sh : c_shmems (shmems_desc_to et_ab et_acc bm bn bk tm tn nthr))
   (sA : array2 et_ab (rm bm bk) { core sA == fst sh })
   (sB : array2 et_ab (rm bk bn) { core sB == fst (snd sh) })

@@ -1,5 +1,6 @@
 module Kuiper.Kernel.GEMM.Util
 
+open Kuiper.Chest
 #lang-pulse
 
 open Kuiper

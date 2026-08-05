@@ -1,5 +1,16 @@
 module Kuiper.Approximates
 
+include Kuiper.Approximates.Base
+include Kuiper.Approximates.U8
+include Kuiper.Approximates.U16
+include Kuiper.Approximates.U32
+include Kuiper.Approximates.U64
+open FStar.Ghost
+open FStar.Seq
+open Pulse
+open Kuiper.Real
+open Kuiper.Seq.Common
+open Kuiper.Len
 open FStar.Real
 open Kuiper.Scalars
 

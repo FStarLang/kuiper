@@ -1,5 +1,6 @@
 module Kuiper.Kernel.FlashAttention.KernelDesc
 
+open Kuiper.Injection
 (* ─────────────────────────────────────────────────────────────────────────
    kernel_desc setup / teardown for FlashAttention.
 

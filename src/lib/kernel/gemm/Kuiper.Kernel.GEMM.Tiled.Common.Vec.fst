@@ -1,5 +1,6 @@
 module Kuiper.Kernel.GEMM.Tiled.Common.Vec
 
+open Kuiper.Array.Vectorized
 #lang-pulse
 
 open Kuiper

@@ -1,5 +1,8 @@
 module Kuiper.Seq.Common
 
+open Kuiper.Functions
+open Kuiper.Monoid
+open Kuiper.Common
 open FStar.Seq
 
 let lemma_view_seq_cons (x : 'a) (s : seq 'a) :

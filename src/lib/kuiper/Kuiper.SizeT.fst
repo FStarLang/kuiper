@@ -1,5 +1,9 @@
 module Kuiper.SizeT
 
+open Kuiper.Divides
+open Kuiper.Math
+module U32 = FStar.UInt32
+open FStar.SizeT { (/^), (+^), (-^) }
 module SZ = FStar.SizeT
 
 let fits_iff_u32 (x:nat)

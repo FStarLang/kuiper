@@ -1,5 +1,6 @@
 module Kuiper.Kernel.RowSoftmax
 
+open Kuiper.Tensor
 #lang-pulse
 open Kuiper
 open Kuiper.Real { exp }
@@ -300,7 +301,7 @@ let unshift_sums_correct
         (acc1 (Map.chest1_map2 (fun (s:et) (mx:et) -> mul s (fexp mx)) sums_v maxs_v) i)
         (chest1_rsum (chest_map exp (chest2_row ra i)))
     with introduce _ ==> _
-    with _. (
+    with (
       // chest2_row ra1 i is the original row shifted pointwise by [cs i] (chest level),
       // mirroring the shift reasoning in [row_softmax_shift_eq]
       Chest.lemma_equal_intro (chest2_row ra1 i)

@@ -1,5 +1,6 @@
 module Kuiper.Kernel.RowReduce
 
+open Kuiper.Tensor
 #lang-pulse
 
 open Kuiper
@@ -356,6 +357,15 @@ let hreduce_barrier_count (nth : pos) : GTot nat = log2 (2 * nth - 1)
 let min_tid_pow2_step (tid nth k : nat)
   : Lemma (requires tid < nth /\ pow2 k == 1)
           (ensures min (tid + pow2 k) nth == tid + 1)
+  = ()
+
+(* Quantifier-free arithmetic step, proved in a clean context (stable):
+   a half-open range of width 1 contains only its left endpoint. Proved as a
+   standalone lemma so its (trivial) SMT query is never merged into the large,
+   real-number-laden context of [kf_block]'s VC -- inlining the equivalent
+   [assert] there crashes Z3's linear-arithmetic solver. *)
+let singleton_range_eq (tid : nat)
+  : Lemma (forall (y:nat). tid <= y /\ y < tid + 1 ==> y == tid)
   = ()
 
 
@@ -839,7 +849,7 @@ fn kf_block
   (**)rsum_singleton_ (reveal vr_s @! SZ.v tid);
   (**)assert pure (rsum (Seq.slice (reveal vr_s) (SZ.v tid) (SZ.v tid + 1)) == (reveal vr_s @! SZ.v tid));
 
-  (**)assert pure (forall (y:nat). SZ.v tid <= y /\ y < SZ.v tid + 1 ==> y == SZ.v tid);
+  (**)singleton_range_eq (SZ.v tid);
   forevery_singleton_intro'
     #(x:nat{tid <= x /\ x < tid + 1})
     (fun x -> tensor_pts_to_cell sa ((x <: natlt nth), ()) (seq![psum] @! (x - tid)))

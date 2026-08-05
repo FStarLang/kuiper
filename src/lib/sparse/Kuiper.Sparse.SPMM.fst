@@ -845,13 +845,14 @@ fn teardown
       tensor_pts_to_cell gC (idx2 (r |~> row_perm) (c))
         (MS.matmul_single eA eB (r |~> row_perm) c)
   );
-  forevery_ext_2
-    (fun r c ->
+  forevery_ext_2 #(natlt p.rows) #(natlt p.cols)
+    (fun (r : natlt p.rows) (c : natlt p.cols) ->
       tensor_pts_to_cell gC
         (idx2 (row_perm.gg r |~> row_perm) (c))
         (MS.matmul_single eA eB (row_perm.gg r |~> row_perm) c)
     )
-    (fun r c -> tensor_pts_to_cell gC (idx2 (r) (c)) (acc2 (MS.matmul eA eB) r c));
+    (fun (r : natlt p.rows) (c : natlt p.cols) ->
+      tensor_pts_to_cell gC (idx2 (r) (c)) (acc2 (MS.matmul eA eB) r c));
   forevery_flatten _;
   forevery_ext
     (fun (rc : natlt p.rows & natlt p.cols) -> tensor_pts_to_cell gC (idx2 (rc._1) (rc._2)) (acc2 (MS.matmul eA eB) rc._1 rc._2))
