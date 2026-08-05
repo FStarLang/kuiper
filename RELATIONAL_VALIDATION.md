@@ -59,6 +59,23 @@ combine instantiated to `fun old prod -> α·prod + β·old`.
 
 ## Notable engineering
 
+- **Keep the public witness and specification audit surface minimal.** Temporary
+  buffers that have no semantic meaning at the top level should be allocated and
+  freed inside the verified function rather than supplied by its caller. They
+  should not appear as public parameters, preconditions, or postconditions. For
+  example, the UGS/SwiGLU witness internally owns both its FP32 projection
+  accumulator and FP16 rounded-projection buffer; its public contract exposes
+  only the input matrices and final output state. Exact intermediate properties
+  remain in the verified component contracts rather than the top-level contract.
+  This removes irrelevant runtime and ghost state from the portion a human must
+  review.
+- **Prefer Kuiper's `sz`-to-`nat` coercion in specifications.** A value of type
+  `sz`/`szp` can usually be written directly in arithmetic, chest dimensions,
+  bounds, and pure specifications. Use explicit `SZ.v` only when coercion does
+  not apply or when distinguishing the runtime `sz` representation is genuinely
+  important. Avoiding redundant `SZ.v` calls makes proof contracts substantially
+  smaller and easier to audit.
+
 - Caught a B-indexing bug in `imp3.cu` (`b[k0 + k1*n + col]` should be
   `b[(k0+k1)*n + col]`).
 - Built the reverse, tiled, and tiled+Kahan reductions from scratch — no
