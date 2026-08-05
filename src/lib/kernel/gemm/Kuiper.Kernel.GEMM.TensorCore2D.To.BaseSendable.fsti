@@ -9,6 +9,7 @@ module SZ = Kuiper.SizeT
 
 open Kuiper.Tensor
 open Kuiper.Tensor.Layout.Alg { l2_row_major as rm }
+module RO = Kuiper.TensorRO
 open Kuiper.Kernel.GEMM.TensorCore2D.KernelDesc { constraints }
 open Kuiper.Kernel.GEMM.TensorCore2D.To.KernelDesc
 
@@ -23,7 +24,8 @@ val kpre1_sendable_to
   (eA : chest2 et_ab m k)
   (gB : array2 et_ab lB { is_global gB })
   (eB : chest2 et_ab k n)
-  (gC : array2 et_cd (rm m n) { is_global gC })
+  (#lC : RO.vlayout2 m n)
+  (gC : RO.roarray2 et_cd lC { RO.is_global gC })
   (eC : chest2 et_cd m n)
   (gD : array2 et_cd (rm m n) { is_global gD })
   (bm bn bk tm tn tk wm wn : szp {
@@ -54,7 +56,8 @@ val kpost1_sendable_to
   (eA : chest2 et_ab m k)
   (gB : array2 et_ab lB { is_global gB })
   (eB : chest2 et_ab k n)
-  (gC : array2 et_cd (rm m n) { is_global gC })
+  (#lC : RO.vlayout2 m n)
+  (gC : RO.roarray2 et_cd lC { RO.is_global gC })
   (eC : chest2 et_cd m n)
   (gD : array2 et_cd (rm m n) { is_global gD })
   (bm bn bk tm tn tk wm wn : szp {

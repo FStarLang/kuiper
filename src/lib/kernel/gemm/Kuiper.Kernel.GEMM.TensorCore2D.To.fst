@@ -12,6 +12,8 @@ open Kuiper.Float16
 open Kuiper.Math { even, odd, even_2x, odd_2x1 }
 open Kuiper.Tensor
 open Kuiper.Array2.Strided
+open Kuiper.TensorRO { vtlayout_of_tlayout }
+module RO = Kuiper.TensorRO
 open Kuiper.Tensor.Tiling
 open Kuiper.Tensor.Layout.Alg { l2_row_major as rm }
 open Kuiper.Kernel.GEMM.Copy.Vec2
@@ -225,13 +227,16 @@ let mk_kernel
   (gA : array2 et_ab lA  { is_global gA })
   (#eA : chest2 et_ab m k)
   (#lB : layout2 k n) {| T.ctlayout lB |}
-  {| str_A : strided_row_major lA,
-     str_B : strided_row_major lB |}
+  {| str_A : strided_row_major (vtlayout_of_tlayout lA),
+     str_B : strided_row_major (vtlayout_of_tlayout lB) |}
   (#_ : squash (aligned_strided_row_major (chunk et_ab) str_A))
   (#_ : squash (aligned_strided_row_major (chunk et_ab) str_B))
   (gB : array2 et_ab lB { is_global gB })
   (#eB : chest2 et_ab k n)
-  (gC : array2 et_cd (rm m n) { is_global gC })
+  (#lC : RO.vlayout2 m n)
+  {| strC : strided_row_major lC |}
+  (#_ : squash (aligned_strided_row_major (chunk et_cd) strC))
+  (gC : RO.roarray2 et_cd lC { RO.is_global gC })
   (#mn_fits : squash (SZ.fits (m * n)))
   (#eC : chest2 et_cd m n)
   (gD : array2 et_cd (rm m n) { is_global gD })
@@ -246,7 +251,7 @@ let mk_kernel
   (#shared_fits : squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
   (#_ : squash (aligned 16 (core gA)))
   (#_ : squash (aligned 16 (core gB)))
-  (#_ : squash (aligned 16 (core gC)))
+  (#_ : squash (aligned 16 (RO.core gC)))
   (#_ : squash (aligned 16 (core gD)))
   (#_ : squash (chunk et_cd /?+ n))
   (#_ : squash (chunk et_cd /?+ tn))

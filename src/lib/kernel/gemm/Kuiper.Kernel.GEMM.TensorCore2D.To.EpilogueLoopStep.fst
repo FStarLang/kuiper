@@ -10,6 +10,8 @@ open Kuiper.Array.Vectorized { has_vec_cpy, chunk }
 open Kuiper.EMatrix
 open Kuiper.Tensor
 open Kuiper.Array2.Strided
+open Kuiper.TensorRO { vtlayout_of_tlayout }
+module RO = Kuiper.TensorRO
 open Kuiper.Tensor.Tiling
 open Kuiper.Tensor.Layout.Alg { l2_row_major as rm }
 open Kuiper.TensorCore
@@ -114,8 +116,10 @@ fn epilogue_loop_step
   (comb : et_cd -> et_acc -> et_cd)
   (comb_r : binop real { approx2 comb comb_r })
   (#m #n : szp)
-  {| str : strided_row_major (rm m n) |}
-  (gC : array2 et_cd (rm m n))
+  (#lC : RO.vlayout2 m n)
+  {| str : strided_row_major lC,
+     strD : strided_row_major (vtlayout_of_tlayout (rm m n)) |}
+  (gC : RO.roarray2 et_cd lC)
   (#fC : perm)
   (#eC : chest2 et_cd m n)
   (#rC : chest2 real m n)
@@ -151,8 +155,9 @@ fn epilogue_loop_step
   (done : szle (wm * wn) { SZ.v done < wm * wn })
   norewrite
   requires
-    pure (aligned 16 (T.core gC) /\ aligned 16 (T.core gD) /\
-          aligned_strided_row_major (chunk et_cd) str) **
+    pure (aligned 16 (RO.core gC) /\ aligned 16 (T.core gD) /\
+          aligned_strided_row_major (chunk et_cd) str /\
+          aligned_strided_row_major (chunk et_cd) strD) **
     idx |-> done **
     epilogue_frame #et_ab #et_cd #et_acc
       #_ #_ #_ #_ #_
@@ -164,8 +169,9 @@ fn epilogue_loop_step
       (chest_comb comb_r rCWarp rAcc)
       (SZ.v done)
   ensures
-    pure (aligned 16 (T.core gC) /\ aligned 16 (T.core gD) /\
-          aligned_strided_row_major (chunk et_cd) str) **
+    pure (aligned 16 (RO.core gC) /\ aligned 16 (T.core gD) /\
+          aligned_strided_row_major (chunk et_cd) str /\
+          aligned_strided_row_major (chunk et_cd) strD) **
     (exists* (next : szle (wm * wn)).
       idx |-> next **
       pure (SZ.v next == SZ.v done + 1)) **
@@ -261,6 +267,8 @@ fn epilogue_loop_step
   let eAccFrag : chest2 et_acc tm tn =
     Seq.Base.index eAccFrags done;
 
+  FStar.Math.Lemmas.euclidean_division_definition (SZ.v done) (SZ.v wn);
+  assert pure (SZ.v done == (SZ.v done / SZ.v wn) * SZ.v wn + SZ.v done % SZ.v wn);
   assert pure (eAccFrag %~ rAccFrag);
   epilogue_fragment_from_warp comb comb_r gC
     bm bn tm tn wm wn

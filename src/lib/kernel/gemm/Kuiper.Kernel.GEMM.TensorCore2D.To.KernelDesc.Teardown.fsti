@@ -9,6 +9,7 @@ open Kuiper.Tensor
 open Kuiper.Array2.Strided
 open Kuiper.Tensor.Tiling
 open Kuiper.Tensor.Layout.Alg { l2_row_major as rm }
+module RO = Kuiper.TensorRO
 open Kuiper.Kernel.GEMM.Tiled.Common.Vec
 open Kuiper.TensorCore
 
@@ -31,7 +32,8 @@ fn teardown_to
   (eA : chest2 et_ab m k)
   (gB : array2 et_ab lB)
   (eB : chest2 et_ab k n)
-  (gC : array2 et_cd (rm m n))
+  (#lC : RO.vlayout2 m n)
+  (gC : RO.roarray2 et_cd lC)
   (eC : chest2 et_cd m n)
   (gD : array2 et_cd (rm m n))
   (#_ : squash (SZ.fits (m * n)))

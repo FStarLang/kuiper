@@ -10,12 +10,14 @@ open Kuiper.Chest
 
 open Kuiper.Tensor { array2, layout2, idx2 }
 open Kuiper.Array2.Strided
+open Kuiper.TensorRO { vtlayout_of_tlayout }
+module RO = Kuiper.TensorRO
 module T = Kuiper.Tensor
 module SZ = Kuiper.SizeT
 
 let strided_row_major_contiguous
   (#rows #cols : erased nat)
-  (l : layout2 rows cols) {| d : strided_row_major l |}
+  (l : layout2 rows cols) {| d : strided_row_major (vtlayout_of_tlayout l) |}
   (i : natlt rows)
   (j1 j2 : natlt cols)
   : Lemma (cell_of_pos l i j2 - cell_of_pos l i j1 == j2 - j1)
@@ -27,7 +29,7 @@ let all_but_window l j k : natlt l -> prop =
 let get_slice_inv
   (#et:Type0) {| sized et, has_vec_cpy et |}
   (#rows #cols : nat)
-  (#l : layout2 rows cols) {| strided : strided_row_major l |}
+  (#l : layout2 rows cols) {| strided : strided_row_major (vtlayout_of_tlayout l) |}
   (gm : array2 et l)
   (i : natlt rows)
   (j : natlt (cols - chunk et + 1))
@@ -45,7 +47,7 @@ ghost
 fn __get_slice_step
   (#et:Type0) {| sized et, has_vec_cpy et |}
   (#rows #cols : nat)
-  (#l : layout2 rows cols) {| T.ctlayout l, strided : strided_row_major l |}
+  (#l : layout2 rows cols) {| T.ctlayout l, strided : strided_row_major (vtlayout_of_tlayout l) |}
   (gm : array2 et l)
   (i : nat {i < rows})
   (j : nat {j < cols - chunk et + 1})
@@ -90,7 +92,7 @@ ghost
 fn rec __get_slice
   (#et:Type0) {| sized et, has_vec_cpy et |}
   (#rows #cols : erased nat)
-  (#l : layout2 rows cols) {| T.ctlayout l, strided : strided_row_major l |}
+  (#l : layout2 rows cols) {| T.ctlayout l, strided : strided_row_major (vtlayout_of_tlayout l) |}
   (gm : array2 et l)
   (i : natlt rows)
   (j : natlt (cols - chunk et + 1))
@@ -115,7 +117,7 @@ ghost
 fn get_slice
   (#et:Type0) {| sized et, has_vec_cpy et |}
   (#rows #cols : erased nat)
-  (#l : layout2 rows cols) {| T.ctlayout l, strided : strided_row_major l |}
+  (#l : layout2 rows cols) {| T.ctlayout l, strided : strided_row_major (vtlayout_of_tlayout l) |}
   (gm : array2 et l)
   (i : nat{i < rows})
   (j : nat{j < cols - chunk et + 1})
@@ -185,7 +187,7 @@ ghost
 fn __unget_slice_step
   (#et:Type0) {| sized et, has_vec_cpy et |}
   (#rows #cols : nat)
-  (#l : layout2 rows cols) {| T.ctlayout l, strided : strided_row_major l |}
+  (#l : layout2 rows cols) {| T.ctlayout l, strided : strided_row_major (vtlayout_of_tlayout l) |}
   (gm : array2 et l)
   (i : nat {i < rows})
   (j : nat {j < cols - chunk et + 1})
@@ -226,7 +228,7 @@ ghost
 fn rec __unget_slice
   (#et:Type0) {| sized et, has_vec_cpy et |}
   (#rows #cols : erased nat)
-  (#l : layout2 rows cols) {| T.ctlayout l, strided : strided_row_major l |}
+  (#l : layout2 rows cols) {| T.ctlayout l, strided : strided_row_major (vtlayout_of_tlayout l) |}
   (gm : array2 et l)
   (i : natlt rows)
   (j : natlt (cols - chunk et + 1))
@@ -252,7 +254,7 @@ ghost
 fn unget_slice
   (#et:Type0) {| sized et, has_vec_cpy et |}
   (#rows #cols : erased nat)
-  (#l : layout2 rows cols) {| T.ctlayout l, strided : strided_row_major l |}
+  (#l : layout2 rows cols) {| T.ctlayout l, strided : strided_row_major (vtlayout_of_tlayout l) |}
   (gm : array2 et l)
   (i : nat{i < rows})
   (j : nat{j < cols - chunk et + 1})
@@ -351,7 +353,7 @@ inline_for_extraction noextract
 fn array2_vec_read
   (#et:Type0) {| sized et, has_vec_cpy et |}
   (#rows #cols : erased nat)
-  (#l : layout2 rows cols) {| T.ctlayout l, strided : strided_row_major l |}
+  (#l : layout2 rows cols) {| T.ctlayout l, strided : strided_row_major (vtlayout_of_tlayout l) |}
   (gm : array2 et l)
   (i : szlt rows)
   (j : szlt (cols - chunk et + 1))
@@ -483,7 +485,7 @@ ghost
 fn __row_cells_step
   (#et : Type0) {| sized et |}
   (#rows #cols : nat)
-  (#l : layout2 rows cols) {| strided : strided_row_major l |}
+  (#l : layout2 rows cols) {| strided : strided_row_major (vtlayout_of_tlayout l) |}
   (gm : array2 et l)
   (f : perm)
   (i : natlt rows)
@@ -524,7 +526,7 @@ ghost
 fn rec __row_cells_up
   (#et : Type0) {| sized et |}
   (#rows #cols : nat)
-  (#l : layout2 rows cols) {| strided : strided_row_major l |}
+  (#l : layout2 rows cols) {| strided : strided_row_major (vtlayout_of_tlayout l) |}
   (gm : array2 et l)
   (f : perm)
   (i : natlt rows)
@@ -552,7 +554,7 @@ ghost
 fn __row_cells_unstep
   (#et : Type0) {| sized et |}
   (#rows #cols : nat)
-  (#l : layout2 rows cols) {| strided : strided_row_major l |}
+  (#l : layout2 rows cols) {| strided : strided_row_major (vtlayout_of_tlayout l) |}
   (gm : array2 et l)
   (f : perm)
   (i : natlt rows)
@@ -595,7 +597,7 @@ ghost
 fn rec __row_cells_down
   (#et : Type0) {| sized et |}
   (#rows #cols : nat)
-  (#l : layout2 rows cols) {| strided : strided_row_major l |}
+  (#l : layout2 rows cols) {| strided : strided_row_major (vtlayout_of_tlayout l) |}
   (gm : array2 et l)
   (f : perm)
   (i : natlt rows)
@@ -623,7 +625,7 @@ ghost
 fn row_cells_to_slice
   (#et : Type0) {| sized et |}
   (#rows #cols : erased nat)
-  (#l : layout2 rows cols) {| T.ctlayout l, strided : strided_row_major l |}
+  (#l : layout2 rows cols) {| T.ctlayout l, strided : strided_row_major (vtlayout_of_tlayout l) |}
   (gm : array2 et l)
   (i : natlt rows)
   (j : nat)
@@ -679,7 +681,7 @@ ghost
 fn row_slice_to_cells
   (#et : Type0) {| sized et |}
   (#rows #cols : erased nat)
-  (#l : layout2 rows cols) {| T.ctlayout l, strided : strided_row_major l |}
+  (#l : layout2 rows cols) {| T.ctlayout l, strided : strided_row_major (vtlayout_of_tlayout l) |}
   (gm : array2 et l)
   (i : natlt rows)
   (j : nat)
@@ -740,7 +742,7 @@ inline_for_extraction noextract
 fn array2_vec_write_cells
   (#et:Type0) {| sized et, has_vec_cpy et |}
   (#rows #cols : erased nat)
-  (#l : layout2 rows cols) {| T.ctlayout l, strided : strided_row_major l |}
+  (#l : layout2 rows cols) {| T.ctlayout l, strided : strided_row_major (vtlayout_of_tlayout l) |}
   (gm : array2 et l)
   (i : szlt rows)
   (j : szlt (cols - chunk et + 1))
@@ -785,7 +787,7 @@ inline_for_extraction noextract
 fn array2_vec_write
   (#et:Type0) {| sized et, has_vec_cpy et |}
   (#rows #cols : erased nat)
-  (#l : layout2 rows cols) {| T.ctlayout l, strided : strided_row_major l |}
+  (#l : layout2 rows cols) {| T.ctlayout l, strided : strided_row_major (vtlayout_of_tlayout l) |}
   (gm : array2 et l)
   (i : szlt rows)
   (j : szlt (cols - chunk et + 1))
@@ -851,3 +853,57 @@ fn array2_vec_write
   unget_slice gm (SZ.v i) (SZ.v j) #1.0R #em';
 }
 #pop-options
+
+let vstrided_row_run
+  (#rows #cols : nat)
+  (l : RO.vlayout2 rows cols) {| d : strided_row_major l |}
+  (i : natlt rows)
+  (j : nat)
+  (w : nat { j + w <= cols })
+  : Lemma (forall (x : natlt w).
+             vcell_of_pos l i (j + x) == d.offset + d.stride * i + j + x)
+  = introduce forall (x : natlt w).
+                vcell_of_pos l i (j + x) == d.offset + d.stride * i + j + x
+    with d.pf i (j + x)
+
+inline_for_extraction noextract
+fn roarray2_vec_read
+  (#et:Type0) {| sized et, has_vec_cpy et |}
+  (#rows #cols : erased nat)
+  (#l : RO.vlayout2 rows cols) {| strided : strided_row_major l |}
+  (gm : RO.roarray2 et l)
+  (i : szlt rows)
+  (j : szlt (cols - chunk et + 1))
+  (#f : perm)
+  (#em : chest2 et rows cols)
+  (arr : array et)
+  (#s : erased (seq et))
+  preserves gpu
+  preserves gm |-> Frac f em
+  requires  pure (aligned' 16 (RO.core gm) (vcell_of_pos l i j))
+  requires  pure (aligned 16 arr)
+  requires  arr |-> s
+  requires  pure (Pulse.Lib.Array.length arr == chunk et)
+  ensures   arr |-> Seq.init_ghost (chunk et) (fun x -> acc2 em i (j + x))
+{
+  Pulse.Lib.Array.pts_to_len arr;
+  RO.tensor_to_raw gm;
+  with v. assert RO.core gm |-> Frac f v;
+
+  strided.pf i j;
+  strided.pf i (j + chunk et - 1);
+  vstrided_row_run l i j (chunk et);
+  assert pure (vcell_of_pos l i (j + chunk et - 1) < RO.vtlayout_ulen l);
+  let offset = strided.offset +^ strided.stride *^ i +^ j;
+
+  array_to_slice (RO.core gm);
+  array_to_slice arr;
+  array_vec_cpy arr 0sz (RO.core gm) offset;
+  with ds1. assert pts_to_slice arr 0 (chunk et) ds1;
+  slice_to_array arr;
+  slice_to_array (RO.core gm);
+  RO.raw_to_tensor gm em;
+
+  assert pure (Seq.equal ds1 (Seq.init_ghost (chunk et) (fun x -> acc2 em i (j + x))));
+  ();
+}

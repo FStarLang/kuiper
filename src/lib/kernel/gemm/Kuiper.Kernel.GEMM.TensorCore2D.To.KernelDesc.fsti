@@ -8,6 +8,7 @@ open Kuiper.Tensor
 open Kuiper.Array2.Strided
 open Kuiper.Tensor.Tiling
 open Kuiper.Tensor.Layout.Alg { l2_row_major as rm }
+module RO = Kuiper.TensorRO
 open Kuiper.Kernel.GEMM.Tiled.Common.Vec
 open Kuiper.TensorCore
 
@@ -197,7 +198,8 @@ let kpre1_to
   (eA : chest2 et_ab m k)
   (gB : array2 et_ab lB)
   (eB : chest2 et_ab k n)
-  (gC : array2 et_cd (rm m n))
+  (#lC : RO.vlayout2 m n)
+  (gC : RO.roarray2 et_cd lC)
   (eC : chest2 et_cd m n)
   (gD : array2 et_cd (rm m n))
   (bm bn bk tm tn tk wm wn : szp{
@@ -219,7 +221,7 @@ let kpre1_to
   output_lane_live gD bm bn tm tn wm wn bid tid **
   pure (aligned 16 (core gA)) **
   pure (aligned 16 (core gB)) **
-  pure (aligned 16 (core gC)) **
+  pure (aligned 16 (RO.core gC)) **
   pure (aligned 16 (core gD)) **
   pure (eA %~ rA) **
   pure (eB %~ rB) **
@@ -237,7 +239,8 @@ let kpost1_to
   (eA : chest2 et_ab m k)
   (gB : array2 et_ab lB)
   (eB : chest2 et_ab k n)
-  (gC : array2 et_cd (rm m n))
+  (#lC : RO.vlayout2 m n)
+  (gC : RO.roarray2 et_cd lC)
   (eC : chest2 et_cd m n)
   (gD : array2 et_cd (rm m n))
   (bm bn bk tm tn tk wm wn : szp{
@@ -294,7 +297,8 @@ let kpre_to
   (eA : chest2 et_ab m k)
   (gB : array2 et_ab lB)
   (eB : chest2 et_ab k n)
-  (gC : array2 et_cd (rm m n))
+  (#lC : RO.vlayout2 m n)
+  (gC : RO.roarray2 et_cd lC)
   (eC : chest2 et_cd m n)
   (gD : array2 et_cd (rm m n))
   (bm bn bk tm tn tk wm wn : szp{
@@ -334,7 +338,8 @@ let kpost_to
   (eA : chest2 et_ab m k)
   (gB : array2 et_ab lB)
   (eB : chest2 et_ab k n)
-  (gC : array2 et_cd (rm m n))
+  (#lC : RO.vlayout2 m n)
+  (gC : RO.roarray2 et_cd lC)
   (eC : chest2 et_cd m n)
   (gD : array2 et_cd (rm m n))
   (bm bn bk tm tn tk wm wn : szp{
@@ -375,10 +380,11 @@ fn setup_to
   (eB : chest2 et_ab k n)
   (#_ : squash (aligned 16 (core gA)))
   (#_ : squash (aligned 16 (core gB)))
-  (gC : array2 et_cd (rm m n))
+  (#lC : RO.vlayout2 m n)
+  (gC : RO.roarray2 et_cd lC)
   (eC : chest2 et_cd m n)
   (gD : array2 et_cd (rm m n))
-  (#_ : squash (aligned 16 (core gC)))
+  (#_ : squash (aligned 16 (RO.core gC)))
   (#_ : squash (aligned 16 (core gD)))
   (#_ : squash (SZ.fits (m * n)))
   (bm bn bk tm tn tk wm wn : szp{
@@ -417,7 +423,8 @@ fn block_setup_to
   (eA : chest2 et_ab m k)
   (gB : array2 et_ab lB)
   (eB : chest2 et_ab k n)
-  (gC : array2 et_cd (rm m n))
+  (#lC : RO.vlayout2 m n)
+  (gC : RO.roarray2 et_cd lC)
   (eC : chest2 et_cd m n)
   (gD : array2 et_cd (rm m n))
   (bm bn bk tm tn tk wm wn : szp{
@@ -466,7 +473,8 @@ fn block_teardown_to
   (eA : chest2 et_ab m k)
   (gB : array2 et_ab lB)
   (eB : chest2 et_ab k n)
-  (gC : array2 et_cd (rm m n))
+  (#lC : RO.vlayout2 m n)
+  (gC : RO.roarray2 et_cd lC)
   (eC : chest2 et_cd m n)
   (gD : array2 et_cd (rm m n))
   (bm bn bk tm tn tk wm wn : szp{

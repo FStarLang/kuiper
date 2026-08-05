@@ -8,6 +8,7 @@ open Kuiper.EMatrix
 
 open Kuiper.Tensor
 open Kuiper.Array2.Strided
+open Kuiper.TensorRO { vtlayout_of_tlayout }
 module T = Kuiper.Tensor
 module SZ = Kuiper.SizeT
 
@@ -118,7 +119,7 @@ fn cp_array2_vec
   (rows cols: sz)
   (#lsrc #ldst : layout2 rows cols)
   {| T.ctlayout lsrc, T.ctlayout ldst |}
-  {| src_str : strided_row_major lsrc |}
+  {| src_str : strided_row_major (vtlayout_of_tlayout lsrc) |}
   (src : array2 et lsrc)
   (#f : perm)
   (#esrc : chest2 et rows cols)

@@ -8,6 +8,8 @@ open Kuiper
 open Kuiper.Array.Vectorized { has_vec_cpy, chunk }
 open Kuiper.Array2.Vectorized
 open Kuiper.Array2.Strided
+open Kuiper.TensorRO { vtlayout_of_tlayout }
+module RO = Kuiper.TensorRO
 open Kuiper.EMatrix
 open Kuiper.EMatrix.Tiling
 open Kuiper.Tensor
@@ -225,8 +227,10 @@ fn epilogue_chunk_update
   {| scalar et_cd, hvc : has_vec_cpy et_cd, scalar et_acc |}
   (comb : et_cd -> et_acc -> et_cd)
   (#m #n : szp)
-  {| str : strided_row_major (rm m n) |}
-  (c : array2 et_cd (rm m n))
+  (#lC : RO.vlayout2 m n)
+  {| str : strided_row_major lC,
+     strD : strided_row_major (vtlayout_of_tlayout (rm m n)) |}
+  (c : RO.roarray2 et_cd lC)
   (#_ : squash (SZ.fits (m * n)))
   (bm bn rows cols wm wn : szp)
   (#_ : squash (bm /?+ m /\ bn /?+ n /\
@@ -271,8 +275,9 @@ fn epilogue_chunk_update
     c |-> Frac fC eC **
     acc |-> Frac (1.0R /. warp_size) eAcc
   requires
-    pure (aligned 16 (T.core c) /\ aligned 16 (T.core d) /\
-          aligned_strided_row_major (chunk et_cd) str)
+    pure (aligned 16 (RO.core c) /\ aligned 16 (T.core d) /\
+          aligned_strided_row_major (chunk et_cd) str /\
+          aligned_strided_row_major (chunk et_cd) strD)
   requires
     row_cells
       (output_fragment d bm bn rows cols wm wn
@@ -325,15 +330,23 @@ fn epilogue_chunk_update
   str.pf globalRow globalCol;
   divides_helper
     (chunk et_cd) str.offset str.stride (SZ.v globalRow) (SZ.v globalCol);
-  assert pure ((chunk et_cd) /? cell_of_pos (rm m n) (SZ.v globalRow) (SZ.v globalCol));
+  assert pure ((chunk et_cd) /? vcell_of_pos lC (SZ.v globalRow) (SZ.v globalCol));
   assert pure ((chunk et_cd) * size #et_cd == 16);
+  assert pure (
+    16 /?+ (vcell_of_pos lC (SZ.v globalRow) (SZ.v globalCol)
+            * size #et_cd));
+
+  strD.pf globalRow globalCol;
+  divides_helper
+    (chunk et_cd) strD.offset strD.stride (SZ.v globalRow) (SZ.v globalCol);
+  assert pure ((chunk et_cd) /? cell_of_pos (rm m n) (SZ.v globalRow) (SZ.v globalCol));
   assert pure (
     16 /?+ (cell_of_pos (rm m n) (SZ.v globalRow) (SZ.v globalCol)
             * size #et_cd));
 
   let mut cbuf = [| zero #et_cd #_; (chunk et_cd) |];
   assume pure (aligned 16 cbuf); // FIXME local arrays do not need alignment
-  array2_vec_read c globalRow globalCol cbuf;
+  roarray2_vec_read c globalRow globalCol cbuf;
 
   let mut obuf = [| zero #et_cd #_; (chunk et_cd) |];
   assume pure (aligned 16 obuf); // FIXME local arrays do not need alignment

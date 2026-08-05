@@ -12,6 +12,7 @@ open Kuiper.Float16
 open Kuiper.Math { even, odd, even_2x, odd_2x1 }
 open Kuiper.Tensor
 open Kuiper.Array2.Strided
+open Kuiper.TensorRO { vtlayout_of_tlayout }
 open Kuiper.Tensor.Tiling
 open Kuiper.Tensor.Layout.Alg { l2_row_major as rm }
 open Kuiper.Kernel.GEMM.Copy.Vec2
@@ -1360,8 +1361,8 @@ fn kf
   (gA : array2 et_ab lA)
   (#eA : chest2 et_ab m k)
   (#lB : layout2 k n) {| T.ctlayout lB |}
-  {| str_A : strided_row_major lA,
-     str_B : strided_row_major lB |}
+  {| str_A : strided_row_major (vtlayout_of_tlayout lA),
+     str_B : strided_row_major (vtlayout_of_tlayout lB) |}
   (#_ : squash (aligned_strided_row_major (chunk et_ab) str_A))
   (#_ : squash (aligned_strided_row_major (chunk et_ab) str_B))
   (gB : array2 et_ab lB)
@@ -1719,8 +1720,8 @@ let mk_kernel
   (gA : array2 et_ab lA  { is_global gA })
   (#eA : chest2 et_ab m k)
   (#lB : layout2 k n) {| T.ctlayout lB |}
-  {| str_A : strided_row_major lA,
-     str_B : strided_row_major lB |}
+  {| str_A : strided_row_major (vtlayout_of_tlayout lA),
+     str_B : strided_row_major (vtlayout_of_tlayout lB) |}
   (#_ : squash (aligned_strided_row_major (chunk et_ab) str_A))
   (#_ : squash (aligned_strided_row_major (chunk et_ab) str_B))
   (gB : array2 et_ab lB { is_global gB })

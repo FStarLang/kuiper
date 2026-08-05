@@ -14,6 +14,7 @@ open Kuiper.Tensor
 open Kuiper.Array2.Strided
 open Kuiper.Tensor.Tiling
 open Kuiper.Tensor.Layout.Alg { l2_row_major as rm }
+module RO = Kuiper.TensorRO
 open Kuiper.Kernel.GEMM.Copy.Vec2
 open Kuiper.Kernel.GEMM.Tiled.Common.Vec
 open Kuiper.Spec.GEMM
@@ -276,10 +277,11 @@ fn setup_to
   (eB : chest2 et_ab k n)
   (#_ : squash (aligned 16 (core gA)))
   (#_ : squash (aligned 16 (core gB)))
-  (gC : array2 et_cd (rm m n))
+  (#lC : RO.vlayout2 m n)
+  (gC : RO.roarray2 et_cd lC)
   (eC : chest2 et_cd m n)
   (gD : array2 et_cd (rm m n))
-  (#_ : squash (aligned 16 (core gC)))
+  (#_ : squash (aligned 16 (RO.core gC)))
   (#_ : squash (aligned 16 (core gD)))
   (#_ : squash (SZ.fits (m * n)))
   (bm bn bk tm tn tk wm wn : szp{
@@ -312,7 +314,7 @@ fn setup_to
   tensor_share_n gB (nblk * nthr);
   forevery_factor (nblk * nthr) nblk nthr
     (fun _ -> gB |-> Frac (fB /. (nblk * nthr)) eB);
-  tensor_share_n gC (nblk * nthr);
+  RO.tensor_share_n gC (nblk * nthr);
   forevery_factor (nblk * nthr) nblk nthr
     (fun _ -> gC |-> Frac (fC /. (nblk * nthr)) eC);
   split_output_to_lanes gD bm bn tm tn wm wn nblk nthr;
@@ -577,7 +579,8 @@ fn block_setup_to
   (eA : chest2 et_ab m k)
   (gB : array2 et_ab lB)
   (eB : chest2 et_ab k n)
-  (gC : array2 et_cd (rm m n))
+  (#lC : RO.vlayout2 m n)
+  (gC : RO.roarray2 et_cd lC)
   (eC : chest2 et_cd m n)
   (gD : array2 et_cd (rm m n))
   (bm bn bk tm tn tk wm wn : szp{
@@ -677,7 +680,8 @@ fn block_teardown_to
   (eA : chest2 et_ab m k)
   (gB : array2 et_ab lB)
   (eB : chest2 et_ab k n)
-  (gC : array2 et_cd (rm m n))
+  (#lC : RO.vlayout2 m n)
+  (gC : RO.roarray2 et_cd lC)
   (eC : chest2 et_cd m n)
   (gD : array2 et_cd (rm m n))
   (bm bn bk tm tn tk wm wn : szp{

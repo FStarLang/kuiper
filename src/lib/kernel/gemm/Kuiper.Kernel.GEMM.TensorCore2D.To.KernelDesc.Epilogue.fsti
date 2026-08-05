@@ -7,6 +7,8 @@ open Kuiper.Array.Vectorized { has_vec_cpy, chunk }
 open Kuiper.EMatrix
 open Kuiper.Tensor
 open Kuiper.Array2.Strided
+open Kuiper.TensorRO { vtlayout_of_tlayout }
+module RO = Kuiper.TensorRO
 open Kuiper.Tensor.Tiling
 open Kuiper.Tensor.Layout.Alg { l2_row_major as rm }
 open Kuiper.Kernel.GEMM.Tiled.Common.Vec
@@ -27,8 +29,10 @@ fn epilogue_fragment_from_warp
   (comb : et_cd -> et_acc -> et_cd)
   (comb_r : binop real { approx2 comb comb_r })
   (#m #n : szp)
-  {| str : strided_row_major (rm m n) |}
-  (c : array2 et_cd (rm m n))
+  (#lC : RO.vlayout2 m n)
+  {| str : strided_row_major lC,
+     strD : strided_row_major (vtlayout_of_tlayout (rm m n)) |}
+  (c : RO.roarray2 et_cd lC)
   (#_ : squash (SZ.fits (m * n)))
   (bm bn rows cols wm wn : szp)
   (#_ : squash (bm /?+ m /\ bn /?+ n /\
@@ -63,8 +67,9 @@ fn epilogue_fragment_from_warp
     c |-> Frac fC eC **
     acc |-> Frac (1.0R /. warp_size) eAcc
   requires
-    pure (aligned 16 (T.core c) /\ aligned 16 (T.core d) /\
-          aligned_strided_row_major (chunk et_cd) str)
+    pure (aligned 16 (RO.core c) /\ aligned 16 (T.core d) /\
+          aligned_strided_row_major (chunk et_cd) str /\
+          aligned_strided_row_major (chunk et_cd) strD)
   requires
     live_lane_cells
       (output_fragment d bm bn rows cols wm wn

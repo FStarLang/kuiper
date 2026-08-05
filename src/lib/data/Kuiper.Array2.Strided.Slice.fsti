@@ -10,6 +10,7 @@ open Kuiper.Tensor.Layout
 open Kuiper.Tensor.Layout.Alg
 open Kuiper.Tensor.Layout.Slice
 open Kuiper.Array2.Strided
+open Kuiper.TensorRO { vtlayout_of_tlayout }
 open Kuiper.Divides
 open Kuiper.Matrix.Casts
 module SZ = Kuiper.SizeT
@@ -19,7 +20,7 @@ open FStar.Tactics.Typeclasses { no_method }
 
 (* A rank-3 "row-major-like" strided characterization: cell (p,i,j) is an affine
    function offset + pstride*p + rstride*i + j. This lets us slice out a page and
-   obtain a rank-2 strided_row_major layout at a runtime page. *)
+   obtain a rank-2 strided_row_major (vtlayout_of_tlayout layout) at a runtime page. *)
 inline_for_extraction noextract
 class strided_row_major_3 (#batch #rows #cols : erased nat) (l3 : layout3 batch rows cols) = {
   [@@@no_method]
@@ -27,7 +28,7 @@ class strided_row_major_3 (#batch #rows #cols : erased nat) (l3 : layout3 batch 
   [@@@no_method]
   pstride3 : sz;
   [@@@no_method]
-  rstride3 : szp;
+  rstride3 : sz;
   [@@@no_method]
   pf3 : p:natlt batch -> i:natlt rows -> j:natlt cols ->
           squash (l3.imap.f (idx3 p i j)
@@ -35,7 +36,7 @@ class strided_row_major_3 (#batch #rows #cols : erased nat) (l3 : layout3 batch 
 }
 
 (* Per-page slice: given a rank-3 strided characterization, page p's slice is a
-   rank-2 strided_row_major layout with offset = offset3 + pstride3*p, stride = rstride3. *)
+   rank-2 strided_row_major (vtlayout_of_tlayout layout) with offset = offset3 + pstride3*p, stride = rstride3. *)
 inline_for_extraction noextract
 instance val slice_of_3
   (batch rows cols : erased nat)
@@ -44,7 +45,7 @@ instance val slice_of_3
   (page : erased (natlt batch))
   {| cpage : concrete_sz page |}
   (_ : squash (SZ.fits (s3.offset3 + s3.pstride3 * page)))
-  : strided_row_major #rows #cols (tlayout_slice l3 0 page)
+  : strided_row_major #rows #cols (vtlayout_of_tlayout (tlayout_slice l3 0 page))
 
 val lemma_slice_of_3_offset
   (batch rows cols : erased nat)
@@ -92,7 +93,7 @@ instance val strided_row_major_3_l3_batched
 inline_for_extraction noextract
 instance val strided_row_major_3_l2_to_l3n
   (#a #b : nat) (#l : layout2 a b) {| cl : ctlayout l |}
-  {| str : strided_row_major l |}
+  {| str : strided_row_major (vtlayout_of_tlayout l) |}
   : strided_row_major_3 (l2_to_l3n #a #b #l)
 
 (* Reveal lemma: the [batch = 1] cast instance's characterization fields are the
@@ -102,7 +103,7 @@ instance val strided_row_major_3_l2_to_l3n
    to the rank-2 [aligned_strided_row_major] hypothesis. *)
 val lemma_l2_to_l3n_fields
   (#a #b : nat) (#l : layout2 a b) {| cl : ctlayout l |}
-  {| str : strided_row_major l |}
+  {| str : strided_row_major (vtlayout_of_tlayout l) |}
   : Lemma ((strided_row_major_3_l2_to_l3n #a #b #l #cl #str).offset3 == str.offset /\
            (strided_row_major_3_l2_to_l3n #a #b #l #cl #str).pstride3 == 0sz /\
            (strided_row_major_3_l2_to_l3n #a #b #l #cl #str).rstride3 == str.stride)

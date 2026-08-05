@@ -14,6 +14,7 @@ open Kuiper.Tensor
 open Kuiper.EMatrix
 open Kuiper.EMatrix.Tiling
 open Kuiper.Tensor.Layout.Alg { l2_row_major as rm }
+module RO = Kuiper.TensorRO
 open Kuiper.Kernel.GEMM.Tiled.Common.Vec
 open Kuiper.Kernel.GEMM.TensorCore2D.KernelDesc { constraints }
 open Kuiper.Kernel.GEMM.TensorCore2D.To.KernelDesc
@@ -130,7 +131,8 @@ let kpre1_sendable_to
   (eA : chest2 et_ab m k)
   (gB : array2 et_ab lB { is_global gB })
   (eB : chest2 et_ab k n)
-  (gC : array2 et_cd (rm m n) { is_global gC })
+  (#lC : RO.vlayout2 m n)
+  (gC : RO.roarray2 et_cd lC { RO.is_global gC })
   (eC : chest2 et_cd m n)
   (gD : array2 et_cd (rm m n) { is_global gD })
   (bm bn bk tm tn tk wm wn : szp {
@@ -159,7 +161,7 @@ let kpre1_sendable_to
   let pOutput = output_lane_live gD bm bn tm tn wm wn bid tid in
   let pAlignedA = pure (aligned 16 (core gA)) in
   let pAlignedB = pure (aligned 16 (core gB)) in
-  let pAlignedC = pure (aligned 16 (core gC)) in
+  let pAlignedC = pure (aligned 16 (RO.core gC)) in
   let pAlignedD = pure (aligned 16 (core gD)) in
   let pApproxA = pure (eA %~ rA) in
   let pApproxB = pure (eB %~ rB) in
@@ -175,7 +177,7 @@ let kpre1_sendable_to
       (is_send_across_global_tensor gB #(fB /. (nblk * nthr)) eB) in
   let sendC : is_send_across block_of pC =
     send_across_if_send_across_gpu pC
-      (is_send_across_global_tensor gC #(fC /. (nblk * nthr)) eC) in
+      (RO.is_send_across_global_tensor gC #(fC /. (nblk * nthr)) eC) in
   let sendAlignedA : is_send_across block_of pAlignedA =
     is_send_across_placeless pAlignedA
       #(placeless_pure (aligned 16 (core gA))) in
@@ -184,7 +186,7 @@ let kpre1_sendable_to
       #(placeless_pure (aligned 16 (core gB))) in
   let sendAlignedC : is_send_across block_of pAlignedC =
     is_send_across_placeless pAlignedC
-      #(placeless_pure (aligned 16 (core gC))) in
+      #(placeless_pure (aligned 16 (RO.core gC))) in
   let sendAlignedD : is_send_across block_of pAlignedD =
     is_send_across_placeless pAlignedD
       #(placeless_pure (aligned 16 (core gD))) in
@@ -235,7 +237,8 @@ let kpost1_sendable_to
   (eA : chest2 et_ab m k)
   (gB : array2 et_ab lB { is_global gB })
   (eB : chest2 et_ab k n)
-  (gC : array2 et_cd (rm m n) { is_global gC })
+  (#lC : RO.vlayout2 m n)
+  (gC : RO.roarray2 et_cd lC { RO.is_global gC })
   (eC : chest2 et_cd m n)
   (gD : array2 et_cd (rm m n) { is_global gD })
   (bm bn bk tm tn tk wm wn : szp {
@@ -301,7 +304,7 @@ let kpost1_sendable_to
       (is_send_across_global_tensor gB #(fB /. (nblk * nthr)) eB) in
   let sendC : is_send_across block_of pC =
     send_across_if_send_across_gpu pC
-      (is_send_across_global_tensor gC #(fC /. (nblk * nthr)) eC) in
+      (RO.is_send_across_global_tensor gC #(fC /. (nblk * nthr)) eC) in
   let sendCOutput =
     is_send_across_star pC pOutput #sendC #output_send in
   let sendBC =

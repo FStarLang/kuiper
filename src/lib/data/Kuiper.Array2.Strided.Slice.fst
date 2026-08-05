@@ -10,6 +10,7 @@ open Kuiper.Tensor.Layout
 open Kuiper.Tensor.Layout.Alg
 open Kuiper.Tensor.Layout.Slice
 open Kuiper.Array2.Strided
+open Kuiper.TensorRO { vtlayout_of_tlayout }
 open Kuiper.Divides
 open Kuiper.Matrix.Casts
 module SZ = Kuiper.SizeT
@@ -17,7 +18,7 @@ open FStar.Tactics.Typeclasses { no_method }
 
 (* A rank-3 "row-major-like" strided characterization: cell (p,i,j) is an affine
    function offset + pstride*p + rstride*i + j. This lets us slice out a page and
-   obtain a rank-2 strided_row_major layout at a runtime page. *)
+   obtain a rank-2 strided_row_major (vtlayout_of_tlayout layout) at a runtime page. *)
 
 
 
@@ -33,7 +34,7 @@ let slice3_cell_lemma
 #pop-options
 
 (* Per-page slice: given a rank-3 strided characterization, page p's slice is a
-   rank-2 strided_row_major layout with offset = offset3 + pstride3*p, stride = rstride3. *)
+   rank-2 strided_row_major (vtlayout_of_tlayout layout) with offset = offset3 + pstride3*p, stride = rstride3. *)
 #push-options "--fuel 4 --ifuel 4 --z3rlimit 40"
 inline_for_extraction noextract
 instance slice_of_3
@@ -43,7 +44,7 @@ instance slice_of_3
   (page : erased (natlt batch))
   {| cpage : concrete_sz page |}
   (_ : squash (SZ.fits (s3.offset3 + s3.pstride3 * page)))
-  : strided_row_major #rows #cols (tlayout_slice l3 0 page) =
+  : strided_row_major #rows #cols (vtlayout_of_tlayout (tlayout_slice l3 0 page)) =
 {
   offset = s3.offset3 +^ s3.pstride3 *^ concr' cpage;
   stride = s3.rstride3;
@@ -130,7 +131,7 @@ let l2_to_l3n_page0_bridge
 inline_for_extraction noextract
 instance strided_row_major_3_l2_to_l3n
   (#a #b : nat) (#l : layout2 a b) {| cl : ctlayout l |}
-  {| str : strided_row_major l |}
+  {| str : strided_row_major (vtlayout_of_tlayout l) |}
   : strided_row_major_3 (l2_to_l3n #a #b #l) =
 {
   offset3 = str.offset;
@@ -143,7 +144,7 @@ instance strided_row_major_3_l2_to_l3n
 #push-options "--fuel 4 --ifuel 4 --z3rlimit 60"
 let lemma_l2_to_l3n_fields
   (#a #b : nat) (#l : layout2 a b) {| cl : ctlayout l |}
-  {| str : strided_row_major l |}
+  {| str : strided_row_major (vtlayout_of_tlayout l) |}
   : Lemma ((strided_row_major_3_l2_to_l3n #a #b #l #cl #str).offset3 == str.offset /\
            (strided_row_major_3_l2_to_l3n #a #b #l #cl #str).pstride3 == 0sz /\
            (strided_row_major_3_l2_to_l3n #a #b #l #cl #str).rstride3 == str.stride)

@@ -12,6 +12,8 @@ open Kuiper.Float16
 open Kuiper.Math { even, odd, even_2x, odd_2x1 }
 open Kuiper.Tensor
 open Kuiper.Array2.Strided
+open Kuiper.TensorRO { vtlayout_of_tlayout }
+module RO = Kuiper.TensorRO
 open Kuiper.Tensor.Tiling
 open Kuiper.Tensor.Layout.Alg { l2_row_major as rm }
 open Kuiper.Kernel.GEMM.Copy.Vec2
@@ -38,8 +40,10 @@ fn epilogue_to
   (comb : et_cd -> et_acc -> et_cd)
   (comb_r : binop real { approx2 comb comb_r })
   (#m #n : szp)
-  {| str : strided_row_major (rm m n) |}
-  (gC : array2 et_cd (rm m n))
+  (#lC : RO.vlayout2 m n)
+  {| str : strided_row_major lC,
+     strD : strided_row_major (vtlayout_of_tlayout (rm m n)) |}
+  (gC : RO.roarray2 et_cd lC)
   (#fC : perm)
   (#eC : chest2 et_cd m n)
   (#rC : chest2 real m n)
@@ -56,8 +60,9 @@ fn epilogue_to
   (#_ : squash (chunk et_cd /?+ d.tn))
   norewrite
   preserves
-    pure (aligned 16 (T.core gC) /\ aligned 16 (T.core gD) /\
-          aligned_strided_row_major (chunk et_cd) str)
+    pure (aligned 16 (RO.core gC) /\ aligned 16 (T.core gD) /\
+          aligned_strided_row_major (chunk et_cd) str /\
+          aligned_strided_row_major (chunk et_cd) strD)
   requires
     epilogue_frame #et_ab #et_cd #et_acc
       #_ #_ #_ #_ #_

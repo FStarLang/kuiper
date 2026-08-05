@@ -1,4 +1,4 @@
-module Klas.GEMM.TensorCore2D.To.Inst
+module Klas.GEMM.TensorCore2D.To.Bcast.Inst
 #lang-pulse
 
 open Kuiper
@@ -6,7 +6,8 @@ open Kuiper.Tensor
 open Kuiper.EMatrix
 open Kuiper.Array2.Strided
 open Kuiper.Tensor.Layout.Alg { l2_row_major as rm }
-open Kuiper.TensorRO { vtlayout_of_tlayout }
+open Kuiper.TensorRO { vtlayout_of_tlayout, extended_layout }
+open Kuiper.Tensor.Layout.Alg { l1_forward }
 module RO = Kuiper.TensorRO
 open Kuiper.TensorCore
 open Kuiper.Array.Vectorized { has_vec_cpy, chunk }
@@ -14,6 +15,7 @@ open Kuiper.Float.Casts { float_cast }
 module MS = Kuiper.Spec.GEMM
 
 module SZ = Kuiper.SizeT
+
 module K = Kuiper.Kernel.GEMM.TensorCore2D.To
 
 #push-options "--split_queries always --z3rlimit 40"
@@ -52,7 +54,7 @@ fn spec
   (rows shared cols : szp)
   (gA : array2 et_ab (rm rows shared) { is_global gA })
   (gB : array2 et_ab (rm shared cols) { is_global gB })
-  (gC : RO.roarray2 et_cd (vtlayout_of_tlayout (rm rows cols)) { RO.is_global gC })
+  (gC : RO.roarray2 et_cd (bcastC rows cols) { RO.is_global gC })
   (gD : array2 et_cd (rm rows cols) { is_global gD })
   (alpha beta : et_acc)
   (#_ : squash (aligned 16 (core gA)))
@@ -120,8 +122,8 @@ fn spec
 
   lemma_divides_trans (chunk et_cd) bn cols;
   assert pure (chunk et_cd /?+ cols);
-  lemma_aligned_strided_row_major_l2_row_major
-    #(SZ.v rows) #(SZ.v cols) (chunk et_cd);
+  lemma_aligned_mk_strided_row_major_bcast
+    #(SZ.v rows) #(SZ.v cols) (vtlayout_of_tlayout (l1_forward cols)) 0sz () (chunk et_cd);
 
   let rA = to_real_matrix eA;
   let rB = to_real_matrix eB;
@@ -129,10 +131,14 @@ fn spec
   let comb_r = MS.rlincomb (to_real alpha) (to_real beta);
   MS.lincomb_to_approx2 #et_acc #et_cd alpha beta;
 
+  assert pure (forall (i:natlt (SZ.v rows)) (j:natlt (SZ.v cols)).
+    vcell_of_pos (bcastC (SZ.v rows) (SZ.v cols)) i j == SZ.v 0sz + j);
+
   #set-options "--fuel 0 --ifuel 0 --z3refresh" {
   launch_sync (
     K.mk_kernel (MS.lincomb_to #et_acc #et_cd alpha beta) comb_r
       gA #eA gB #eB
+      #_ #(mk_strided_row_major_bcast (vtlayout_of_tlayout (l1_forward cols)) 0sz ()) #_
       gC #_ #eC gD #eC
       bm bn bk tm tn tk wm wn
       #_ #_ #_ #_ #_ #_ #_ #_ #_ #_ #_ #_

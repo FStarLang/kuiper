@@ -8,6 +8,8 @@ open Kuiper.EMatrix
 open Kuiper.EMatrix.Tiling
 open Kuiper.Tensor
 open Kuiper.Tensor.Layout.Alg { l2_row_major as rm }
+open Kuiper.TensorRO { vtlayout_of_tlayout }
+module RO = Kuiper.TensorRO
 open Kuiper.TensorCore
 open Pulse.Lib.Array
 
@@ -61,7 +63,8 @@ let epilogue_frame
   {| scalar et_ab, scalar et_cd, real_like et_cd,
      scalar et_acc, real_like et_acc |}
   (#m #n : szp)
-  (gC : array2 et_cd (rm m n))
+  (#lC : RO.vlayout2 m n)
+  (gC : RO.roarray2 et_cd lC)
   (fC : perm)
   (eC : chest2 et_cd m n)
   (rC : chest2 real m n)

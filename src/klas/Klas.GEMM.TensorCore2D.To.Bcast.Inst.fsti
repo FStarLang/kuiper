@@ -1,4 +1,4 @@
-module Klas.GEMM.TensorCore2D.To.Inst
+module Klas.GEMM.TensorCore2D.To.Bcast.Inst
 #lang-pulse
 
 open Kuiper
@@ -6,7 +6,8 @@ open Kuiper.Tensor
 open Kuiper.EMatrix
 open Kuiper.Array2.Strided
 open Kuiper.Tensor.Layout.Alg { l2_row_major as rm }
-open Kuiper.TensorRO { vtlayout_of_tlayout }
+open Kuiper.TensorRO { vtlayout_of_tlayout, extended_layout }
+open Kuiper.Tensor.Layout.Alg { l1_forward }
 module RO = Kuiper.TensorRO
 open Kuiper.TensorCore
 open Kuiper.Array.Vectorized { has_vec_cpy, chunk }
@@ -14,6 +15,11 @@ open Kuiper.Float.Casts { float_cast }
 module MS = Kuiper.Spec.GEMM
 
 module SZ = Kuiper.SizeT
+
+(* C is a length-[cols] bias vector broadcast down all [rows]. *)
+unfold
+let bcastC (rows cols : nat) = extended_layout (vtlayout_of_tlayout (l1_forward cols)) rows
+
 
 inline_for_extraction noextract
 fn spec
@@ -50,7 +56,7 @@ fn spec
   (rows shared cols : szp)
   (gA : array2 et_ab (rm rows shared) { is_global gA })
   (gB : array2 et_ab (rm shared cols) { is_global gB })
-  (gC : RO.roarray2 et_cd (vtlayout_of_tlayout (rm rows cols)) { RO.is_global gC })
+  (gC : RO.roarray2 et_cd (bcastC rows cols) { RO.is_global gC })
   (gD : array2 et_cd (rm rows cols) { is_global gD })
   (alpha beta : et_acc)
   (#_ : squash (aligned 16 (core gA)))

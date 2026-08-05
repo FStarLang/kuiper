@@ -10,6 +10,7 @@ open Kuiper.EMatrix { chest2 }
 open Kuiper.Math { even, odd, even_2x, odd_2x1 }
 open Kuiper.Array2.Strided
 open Kuiper.Array2.Strided.Slice
+open Kuiper.TensorRO { vtlayout_of_tlayout }
 open Kuiper.Tensor.Tiling
 open Kuiper.Tensor
 open Kuiper.Tensor.Layout.Slice
@@ -712,7 +713,7 @@ fn kf_compute
   (#lA : layout2 m k)
   (#lB : layout2 k n)
   {| T.ctlayout lA, T.ctlayout lB |}
-  {| str_A : strided_row_major lA, str_B : strided_row_major lB |}
+  {| str_A : strided_row_major (vtlayout_of_tlayout lA), str_B : strided_row_major (vtlayout_of_tlayout lB) |}
   (#_ : squash (aligned_strided_row_major (chunk ta) str_A))
   (#_ : squash (aligned_strided_row_major (chunk tb) str_B))
   (gA : array2 ta lA)
@@ -2884,8 +2885,8 @@ fn gmmcomb_gpu_exact
   (#lB : layout2 k n)
   (#lC : layout2 m n)
   {| T.ctlayout lA, T.ctlayout lB, T.ctlayout lC |}
-  {| str_A : strided_row_major lA,
-     str_B : strided_row_major lB |}
+  {| str_A : strided_row_major (vtlayout_of_tlayout lA),
+     str_B : strided_row_major (vtlayout_of_tlayout lB) |}
   (#_ : squash (aligned_strided_row_major (chunk ta) str_A))
   (#_ : squash (aligned_strided_row_major (chunk tb) str_B))
   (gA : array2 ta lA { is_global gA })
@@ -2979,8 +2980,8 @@ fn mmcomb_gpu_exact
   (#lB : layout2 k n)
   (#lC : layout2 m n)
   {| T.ctlayout lA, T.ctlayout lB, T.ctlayout lC |}
-  {| str_A : strided_row_major lA,
-     str_B : strided_row_major lB |}
+  {| str_A : strided_row_major (vtlayout_of_tlayout lA),
+     str_B : strided_row_major (vtlayout_of_tlayout lB) |}
   (#_ : squash (aligned_strided_row_major (chunk et) str_A))
   (#_ : squash (aligned_strided_row_major (chunk et) str_B))
   (gA : array2 et lA { is_global gA })
@@ -3039,8 +3040,8 @@ fn gmmcomb_gpu_approx
   (#lB : layout2 k n)
   (#lC : layout2 m n)
   {| T.ctlayout lA, T.ctlayout lB, T.ctlayout lC |}
-  {| str_A : strided_row_major lA,
-     str_B : strided_row_major lB |}
+  {| str_A : strided_row_major (vtlayout_of_tlayout lA),
+     str_B : strided_row_major (vtlayout_of_tlayout lB) |}
   (#_ : squash (aligned_strided_row_major (chunk ta) str_A))
   (#_ : squash (aligned_strided_row_major (chunk tb) str_B))
   (gA : array2 ta lA { is_global gA })
@@ -3102,8 +3103,8 @@ fn mmcomb_gpu_approx
   (#lB : layout2 k n)
   (#lC : layout2 m n)
   {| T.ctlayout lA, T.ctlayout lB, T.ctlayout lC |}
-  {| str_A : strided_row_major lA,
-     str_B : strided_row_major lB |}
+  {| str_A : strided_row_major (vtlayout_of_tlayout lA),
+     str_B : strided_row_major (vtlayout_of_tlayout lB) |}
   (#_ : squash (aligned_strided_row_major (chunk et) str_A))
   (#_ : squash (aligned_strided_row_major (chunk et) str_B))
   (gA : array2 et lA { is_global gA })
