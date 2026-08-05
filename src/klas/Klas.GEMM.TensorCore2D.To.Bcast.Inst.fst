@@ -16,9 +16,7 @@ module MS = Kuiper.Spec.GEMM
 
 module SZ = Kuiper.SizeT
 
-module K = Kuiper.Kernel.GEMM.TensorCore2D.To
 
-#push-options "--split_queries always --z3rlimit 40"
 inline_for_extraction noextract
 fn spec
   // specialize
@@ -37,8 +35,8 @@ fn spec
   (tk : szp{tk /?+ bk})
   (wm : szp{wm * tm /?+ bm})
   (wn : szp{wn * tn /?+ bn})
-  (#_ : squash (chunk et_ab * (bm/(wm*tm) * (bn/(wn*tn)) * warp_size) /?+ (bm * bk)))
-  (#_ : squash (chunk et_ab * (bm/(wm*tm) * (bn/(wn*tn)) * warp_size) /?+ (bk * bn)))
+  (#_ : squash (chunk et_ab * (bm/(wm*tm) * (bn/(wn*tn)) * 32) /?+ (bm * bk)))
+  (#_ : squash (chunk et_ab * (bm/(wm*tm) * (bn/(wn*tn)) * 32) /?+ (bk * bn)))
   (#_ : squash (SZ.fits (wm * wn)))
   (#_ : squash (SZ.fits (wm * tm)))
   (#_ : squash (SZ.fits (wn * tn)))
@@ -46,9 +44,9 @@ fn spec
   (#_ : squash (valid_frag_et_dims et_ab FragB tm tn tk))
   (#_ : squash (valid_frag_et_dims et_acc FragAcc tm tn tk))
   (#_ : squash (valid_frag_et_comb et_ab et_acc))
-  (#_ : squash (SZ.fits (bm*bk + (bm/(wm*tm) * (bn/(wn*tn)) * warp_size) - 1)))
-  (#_ : squash (SZ.fits (bk*bn + (bm/(wm*tm) * (bn/(wn*tn)) * warp_size) - 1)))
-  (#_ : squash ((bm/(wm*tm) * (bn/(wn*tn)) * (SZ.v warp_size)) <= max_threads))
+  (#_ : squash (SZ.fits (bm*bk + (bm/(wm*tm) * (bn/(wn*tn)) * 32) - 1)))
+  (#_ : squash (SZ.fits (bk*bn + (bm/(wm*tm) * (bn/(wn*tn)) * 32) - 1)))
+  (#_ : squash ((bm/(wm*tm) * (bn/(wn*tn)) * 32) <= max_threads))
 
   // do not specialize
   (rows shared cols : szp)
@@ -83,71 +81,8 @@ fn spec
         (to_real_matrix eA)
         (to_real_matrix eB))
 {
-  tensor_pts_to_ref_located gA;
-  tensor_pts_to_ref_located gB;
-  RO.tensor_pts_to_ref_located gC;
-  tensor_pts_to_ref_located gD;
-
-  dassert (bm %^ tm = 0sz);
-  dassert (bn %^ tn = 0sz);
-  dassert (bk %^ tk = 0sz);
-
-  dguard (rows   %^ bm = 0sz);
-  dguard (shared %^ bk = 0sz);
-  dguard (cols   %^ bn = 0sz);
-
-  lemma_divides_chain (wm * tm) bm rows;
-  lemma_divides_chain (wn * tn) bn cols;
-
-  let nblk = rows/^bm *^ (cols/^bn);
-  let nthr = bm/^(wm*^tm) *^ (bn/^(wn*^tn)) *^ warp_size;
-
-  assert pure ((rows/bm) * (cols/bn) == nblk);
-  assert pure ((rows/bm) * (cols/bn) <= max_blocks);
-  dassert (nblk <=^ SZ.uint_to_t 2097152);
-  assert pure (nblk <= max_blocks);
-
-  dassert ((bm *^ bk) %^ (chunk et_ab *^ nthr) = 0sz);
-  dassert ((bk *^ bn) %^ (chunk et_ab *^ nthr) = 0sz);
-
-  lemma_divides_trans (chunk et_ab) bk shared;
-  assert pure (chunk et_ab /?+ shared);
-  lemma_aligned_strided_row_major_l2_row_major
-    #(SZ.v rows) #(SZ.v shared) (chunk et_ab);
-
-  lemma_divides_trans (chunk et_ab) bn cols;
-  assert pure (chunk et_ab /?+ cols);
-  lemma_aligned_strided_row_major_l2_row_major
-    #(SZ.v shared) #(SZ.v cols) (chunk et_ab);
-
-  lemma_divides_trans (chunk et_cd) bn cols;
-  assert pure (chunk et_cd /?+ cols);
-  lemma_aligned_mk_strided_row_major_bcast
-    #(SZ.v rows) #(SZ.v cols) (vtlayout_of_tlayout (l1_forward cols)) 0sz () (chunk et_cd);
-
-  let rA = to_real_matrix eA;
-  let rB = to_real_matrix eB;
-  let rC = to_real_matrix eC;
-  let comb_r = MS.rlincomb (to_real alpha) (to_real beta);
-  MS.lincomb_to_approx2 #et_acc #et_cd alpha beta;
-
-  assert pure (forall (i:natlt (SZ.v rows)) (j:natlt (SZ.v cols)).
-    vcell_of_pos (bcastC (SZ.v rows) (SZ.v cols)) i j == SZ.v 0sz + j);
-
-  #set-options "--fuel 0 --ifuel 0 --z3refresh" {
-  launch_sync (
-    K.mk_kernel (MS.lincomb_to #et_acc #et_cd alpha beta) comb_r
-      gA #eA gB #eB
-      #_ #(mk_strided_row_major_bcast (vtlayout_of_tlayout (l1_forward cols)) 0sz ()) #_
-      gC #_ #eC gD #eC
-      bm bn bk tm tn tk wm wn
-      #_ #_ #_ #_ #_ #_ #_ #_ #_ #_ #_ #_
-      #fA #fB #fC
-      nblk nthr
-      #_ #_ #_ #_ #_ #_ #_ #_ #_ #_ #_ #_ #_
-      rA rB rC #_ #_ ()
-  )};
-
-  ()
+  lemma_aligned_strided_row_major_bcast_l1
+    #(SZ.v rows) #(SZ.v cols) (chunk et_cd);
+  Klas.GEMM.TensorCore2D.To.Inst.spec_gen et_ab et_acc et_cd bm bn bk tm tn tk wm wn
+    rows shared cols gA gB gC gD alpha beta
 }
-#pop-options

@@ -18,7 +18,7 @@ module K = Kuiper.Kernel.GEMM.TensorCore2D.To
 
 #push-options "--split_queries always --z3rlimit 40"
 inline_for_extraction noextract
-fn spec
+fn spec_gen
   // specialize
   (et_ab et_acc et_cd : Type0)
   {| scalar et_ab, has_vec_cpy et_ab, real_like et_ab |}
@@ -52,7 +52,10 @@ fn spec
   (rows shared cols : szp)
   (gA : array2 et_ab (rm rows shared) { is_global gA })
   (gB : array2 et_ab (rm shared cols) { is_global gB })
-  (gC : RO.roarray2 et_cd (vtlayout_of_tlayout (rm rows cols)) { RO.is_global gC })
+  (#lC : RO.vlayout2 rows cols)
+  {| strC : strided_row_major lC |}
+  (#_ : squash (aligned_strided_row_major (chunk et_cd) strC))
+  (gC : RO.roarray2 et_cd lC { RO.is_global gC })
   (gD : array2 et_cd (rm rows cols) { is_global gD })
   (alpha beta : et_acc)
   (#_ : squash (aligned 16 (core gA)))
@@ -120,8 +123,6 @@ fn spec
 
   lemma_divides_trans (chunk et_cd) bn cols;
   assert pure (chunk et_cd /?+ cols);
-  lemma_aligned_strided_row_major_l2_row_major
-    #(SZ.v rows) #(SZ.v cols) (chunk et_cd);
 
   let rA = to_real_matrix eA;
   let rB = to_real_matrix eB;
@@ -143,5 +144,79 @@ fn spec
   )};
 
   ()
+}
+#pop-options
+
+#push-options "--split_queries always --z3rlimit 40"
+inline_for_extraction noextract
+fn spec
+  // specialize
+  (et_ab et_acc et_cd : Type0)
+  {| scalar et_ab, has_vec_cpy et_ab, real_like et_ab |}
+  {| scalar et_acc, real_like et_acc |}
+  {| scalar et_cd, has_vec_cpy et_cd, real_like et_cd |}
+  {| float_cast et_cd et_acc, float_cast et_acc et_cd |}
+  (bm bn bk : szp)
+  (#_ : squash (chunk et_ab /?+ bk))
+  (#_ : squash (chunk et_ab /?+ bn))
+  (#_ : squash (chunk et_cd /?+ bn))
+  (tm : szp{tm /?+ bm})
+  (tn : szp{tn /?+ bn})
+  (#_ : squash (chunk et_cd /?+ tn))
+  (tk : szp{tk /?+ bk})
+  (wm : szp{wm * tm /?+ bm})
+  (wn : szp{wn * tn /?+ bn})
+  (#_ : squash (chunk et_ab * (bm/(wm*tm) * (bn/(wn*tn)) * warp_size) /?+ (bm * bk)))
+  (#_ : squash (chunk et_ab * (bm/(wm*tm) * (bn/(wn*tn)) * warp_size) /?+ (bk * bn)))
+  (#_ : squash (SZ.fits (wm * wn)))
+  (#_ : squash (SZ.fits (wm * tm)))
+  (#_ : squash (SZ.fits (wn * tn)))
+  (#_ : squash (valid_frag_et_dims et_ab FragA tm tn tk))
+  (#_ : squash (valid_frag_et_dims et_ab FragB tm tn tk))
+  (#_ : squash (valid_frag_et_dims et_acc FragAcc tm tn tk))
+  (#_ : squash (valid_frag_et_comb et_ab et_acc))
+  (#_ : squash (SZ.fits (bm*bk + (bm/(wm*tm) * (bn/(wn*tn)) * warp_size) - 1)))
+  (#_ : squash (SZ.fits (bk*bn + (bm/(wm*tm) * (bn/(wn*tn)) * warp_size) - 1)))
+  (#_ : squash ((bm/(wm*tm) * (bn/(wn*tn)) * (SZ.v warp_size)) <= max_threads))
+
+  // do not specialize
+  (rows shared cols : szp)
+  (gA : array2 et_ab (rm rows shared) { is_global gA })
+  (gB : array2 et_ab (rm shared cols) { is_global gB })
+  (gC : RO.roarray2 et_cd (vtlayout_of_tlayout (rm rows cols)) { RO.is_global gC })
+  (gD : array2 et_cd (rm rows cols) { is_global gD })
+  (alpha beta : et_acc)
+  (#_ : squash (aligned 16 (core gA)))
+  (#_ : squash (aligned 16 (core gB)))
+  (#_ : squash (aligned 16 (RO.core gC)))
+  (#_ : squash (aligned 16 (core gD)))
+  (#eA : chest2 et_ab rows shared)
+  (#eB : chest2 et_ab shared cols)
+  (#eC : chest2 et_cd rows cols)
+  (#fA #fB #fC : perm)
+  preserves
+    cpu **
+    pure ((rows/bm) * (cols/bn) <= max_blocks) **
+    on gpu_loc (gA |-> Frac fA eA) **
+    on gpu_loc (gB |-> Frac fB eB) **
+    on gpu_loc (gC |-> Frac fC eC)
+  requires
+    pure (SZ.fits (rows * cols)) **
+    on gpu_loc (live gD)
+  ensures
+    exists* eD'.
+      on gpu_loc (gD |-> eD') **
+      pure (eD' %~ MS.mmcomb
+        (MS.rlincomb (to_real alpha) (to_real beta))
+        (to_real_matrix eC)
+        (to_real_matrix eA)
+        (to_real_matrix eB))
+{
+  dguard (cols %^ bn = 0sz);
+  lemma_divides_trans (chunk et_cd) bn cols;
+  lemma_aligned_strided_row_major_l2_row_major
+    #(SZ.v rows) #(SZ.v cols) (chunk et_cd);
+  spec_gen et_ab et_acc et_cd bm bn bk tm tn tk wm wn
+    rows shared cols gA gB gC gD alpha beta
 }
 #pop-options

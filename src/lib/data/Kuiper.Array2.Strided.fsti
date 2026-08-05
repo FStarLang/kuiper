@@ -8,6 +8,7 @@ open Kuiper
 open Kuiper.Injection
 open Kuiper.Tensor
 open Kuiper.TensorRO { vlayout1, vlayout2, vtlayout_of_tlayout, extended_layout }
+open Kuiper.Tensor.Layout.Alg { l1_forward }
 open Kuiper.Tensor.Layout.Alg
 open Kuiper.Tensor.Tiling { subtile_layout }
 module SZ = Kuiper.SizeT
@@ -93,6 +94,14 @@ val mk_strided_row_major_bcast
   (pf : squash (forall (i:natlt rows) (j:natlt cols).
                   vcell_of_pos (extended_layout l rows) i j == SZ.v off + j))
   : strided_row_major (extended_layout l rows)
+
+(* The common case: a contiguous length-[cols] vector broadcast down [rows]. *)
+inline_for_extraction noextract
+instance val strided_row_major_bcast_l1 (#rows #cols : erased nat)
+  : strided_row_major (extended_layout (vtlayout_of_tlayout (l1_forward cols)) rows)
+
+val lemma_aligned_strided_row_major_bcast_l1 (#rows #cols : erased nat) (n : pos)
+  : Lemma (ensures aligned_strided_row_major n (strided_row_major_bcast_l1 #rows #cols))
 
 val lemma_aligned_mk_strided_row_major_bcast
   (#rows #cols : erased nat)

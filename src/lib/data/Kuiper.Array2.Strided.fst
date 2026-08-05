@@ -7,6 +7,7 @@ open Kuiper.Injection
 open Kuiper.Tensor { array2, layout2, full_layout2 }
 open Kuiper.Tensor.Layout.Alg
 open Kuiper.TensorRO { vlayout1, extended_layout }
+open Kuiper.Tensor.Layout.Alg { l1_forward }
 module SZ = Kuiper.SizeT
 open Kuiper.Tensor.Tiling { subtile_layout, tile_inj }
 
@@ -44,6 +45,19 @@ let mk_strided_row_major_bcast
   stride = 0sz;
   pf = (fun i j -> ());
 }
+
+inline_for_extraction noextract
+instance strided_row_major_bcast_l1 (#rows #cols : erased nat)
+  : strided_row_major (extended_layout (vtlayout_of_tlayout (l1_forward cols)) rows) =
+{
+  offset = 0sz;
+  stride = 0sz;
+  pf = (fun i j -> ());
+}
+
+let lemma_aligned_strided_row_major_bcast_l1 (#rows #cols : erased nat) (n : pos)
+  : Lemma (ensures aligned_strided_row_major n (strided_row_major_bcast_l1 #rows #cols))
+  = ()
 
 let lemma_aligned_mk_strided_row_major_bcast
   (#rows #cols : erased nat)
