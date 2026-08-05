@@ -59,9 +59,9 @@ inline_for_extraction noextract
 fn scalar_prod
   (#et : Type0) {| scalar et |}
   (#n : sz)
-  (#ly : layout1 n) {| ctlayout ly |}
-  (y : array1 et ly)
-  (#vy : chest1 et n)
+  // (#ly : layout1 n) {| ctlayout ly |}
+  (y : larray et n)
+  (#vy : erased (lseq et n))
   (k : et)
   (#lx : layout1 n) {| ctlayout lx |}
   (x : array1 et lx)
@@ -70,34 +70,37 @@ fn scalar_prod
   preserves gpu
   preserves x |-> Frac fx vx
   requires  y |-> vy
-  ensures   y |-> seq_to_chest1 (seq_scalar_prod (chest1_to_seq vy) k (chest1_to_seq vx))
+  // ensures   y |-> seq_to_chest1 (seq_scalar_prod (chest1_to_seq vy) k (chest1_to_seq vx))
+  ensures   y |-> seq_scalar_prod vy k (chest1_to_seq vx)
 {
   let mut ix : sz = 0sz;
 
   while (!ix <^ n)
-    invariant exists* vix (vy' : chest1 et n).
+    invariant exists* vix (vy' : lseq et n).
       ix |-> vix **
       y  |-> vy' **
       pure (
         vix <= n /\
         (forall (i : natlt n { i < vix }).
-          acc1 vy' i == seq_scalar_prod (chest1_to_seq vy) k (chest1_to_seq vx) @! i) /\
+          // acc1 vy' i == seq_scalar_prod (chest1_to_seq vy) k (chest1_to_seq vx) @! i) /\
+          vy' @! i == seq_scalar_prod vy k (chest1_to_seq vx) @! i) /\
         forall (i : natlt n { i >= vix }).
-          acc1 vy' i == acc1 vy i
+          // acc1 vy' i == acc1 vy i
+          vy' @! i == vy @! i
       )
       decreases (n - !ix)
   {
     let ixv = !ix;
-    let cur = tensor_read y (cidx1 (ixv <: szlt n));
+    let cur =  Pulse.Lib.Array.(y.(ixv));
     let xv = tensor_read x (cidx1 (ixv <: szlt n));
-    tensor_write y (cidx1 (ixv <: szlt n)) (cur `add` (k `mul` xv));
+    Pulse.Lib.Array.(y.(ixv) <- (cur `add` (k `mul` xv)));
     ix := !ix +^ 1sz;
   };
 
   with vy'. assert y |-> vy';
   assert pure (
-    equal vy'
-      (seq_to_chest1 (seq_scalar_prod (chest1_to_seq vy) k (chest1_to_seq vx)))
+    Seq.equal vy'
+      (seq_scalar_prod vy k (chest1_to_seq vx))
   );
 }
 
@@ -114,13 +117,13 @@ inline_for_extraction noextract
 fn vmprod
   (#et : Type0) {| scalar et |}
   (#rows #cols : sz)
-  (#ly : layout1 cols) {| ctlayout ly |}
-  (y : array1 et ly)
-  (#vy : chest1 et cols)
-  (#lx : layout1 rows) {| ctlayout lx |}
-  (x : array1 et lx)
+  // (#ly : layout1 cols) {| ctlayout ly |}
+  (y : larray et cols)
+  (#vy : erased (lseq et cols))
+  // (#lx : layout1 rows) {| ctlayout lx |}
+  (x : larray et rows)
   (#fx : perm)
-  (#vx : chest1 et rows)
+  (#vx : erased (lseq et rows))
   (#lm : layout2 rows cols) {| ctlayout lm |}
   (m : array2 et lm)
   (#fm : perm)
@@ -130,25 +133,26 @@ fn vmprod
   preserves x |-> Frac fx vx
   preserves m |-> Frac fm vm
   requires  y |-> vy
-  ensures   y |-> seq_to_chest1 (seq_vmprod (chest1_to_seq vy) (chest1_to_seq vx) vm)
+  ensures   y |-> seq_vmprod vy vx vm
 
 {
   let mut k : sz = 0sz;
   while (!k <^ rows)
     invariant
-      exists* vk (vy' : chest1 et cols).
+      exists* vk (vy' : lseq et cols).
         k |-> vk **
         y |-> vy' **
         pure (
           vk <= rows /\
           forall (i : natlt cols).
-            chest1_to_seq vy' @! i ==
-            _dprod_acc (chest1_to_seq vy @! i) (chest1_to_seq vx) (ematrix_col vm i) vk
+            vy' @! i ==
+            _dprod_acc (vy @! i) vx (ematrix_col vm i) vk
         )
     decreases (rows - !k)
   {
+    open Pulse.Lib.Array;
     let kv = !k;
-    let xk = tensor_read x (cidx1 (kv <: szlt rows));
+    let xk = x.(kv);
     tensor_extract_row_ro m (v kv);
     scalar_prod
         y xk
@@ -161,8 +165,8 @@ fn vmprod
 
   with vy'. assert y |-> vy';
   assert pure (
-    equal vy'
-      (seq_to_chest1 (seq_vmprod (chest1_to_seq vy) (chest1_to_seq vx) vm))
+    Seq.equal vy'
+      (seq_vmprod vy vx vm)
   );
 }
 
@@ -285,77 +289,30 @@ let tile_vmprod_lemma
 
 let tile_vmprod_prop_lemma0
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
-  (#m1 #n1 : nat { chunk et /? n1 })
+  (#n1 : nat { chunk et /? n1 })
   (acc : erased (lseq et n1))
-  (elems : erased (lseq et m1))
-  (row_ind : erased (lseq nat m1))
   (#m2 #n2 : nat {  chunk et /? n2 })
   (em2 : chest2 et m2 n2)
   (j : nat { chunk et /? j })
   (step : nat)
-  (#_ : squash (in_bounds 0 m2 row_ind))
 : Lemma
-  (requires m1 == 0)
-  (ensures tile_vmprod_prop acc elems row_ind em2 j step acc)
+  (requires true)
+  (ensures
+    tile_vmprod_prop
+      acc
+      (Seq.empty <: lseq et 0) Seq.empty
+      em2 j step acc
+  )
 = ()
-
-// let tile_result_cell_prop
-//   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
-//   (#rows #shared #cols : nat)
-//   (em1 : chest2 et rows shared)
-//   (i : natlt rows)
-//   (em2 : chest2 et shared cols)
-//   (j : nat)
-//   (step : nat)
-//   (#tlen : nat)
-//   (tile : lseq et tlen)
-//   (k1 : natlt tlen)
-// : prop
-// =
-//   let k2 = j + k1 / chunk et * step * chunk et + k1 % chunk et in
-//   k2 < cols ==>
-//   tile @! k1 == matmul_single em1 em2 i k2
-
-// let tile_result_prop
-//   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
-//   (#rows #shared #cols : nat)
-//   (em1 : chest2 et rows shared)
-//   (i : natlt rows)
-//   (em2 : chest2 et shared cols)
-//   (j : nat)
-//   (step : nat)
-//   (#tlen : nat)
-//   (tile : lseq et tlen)
-// : prop
-// =
-//   forall (k1 : natlt tlen).
-//     tile_result_cell_prop em1 i em2 j step tile k1
-
-// let tile_result_lemma'
-//   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
-//   (#rows #shared #cols : nat)
-//   (em1 : chest2 et rows shared)
-//   (i : natlt rows)
-//   (em2 : chest2 et shared cols)
-//   (j : nat)
-//   (step : nat)
-//   (#tlen : nat)
-//   (tile : lseq et tlen)
-//   (k1 : natlt tlen)
-// : Lemma true
-// = admit()
-
 
 let tile_mask_lemma
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
-  (#rows #shared #cols : nat { chunk et /? cols })
-  (em1 : chest2 et rows shared)
-  (i : natlt rows)
-  (#nnz : nat)
+  (#shared #cols : nat { chunk et /? cols })
+  (nnz : nat)
   (mask_len : natle nnz)
   (elems : erased (lseq et (nnz - mask_len)))
   (row_ind : erased (lseq nat nnz))
-  (#_ : squash (in_bounds 0 shared row_ind /\ sorted row_ind))
+  (#_ : squash (in_bounds 0 shared row_ind))
   (em2 : chest2 et shared cols)
   (j : nat { chunk et /? j })
   (step : nat)
@@ -412,7 +369,67 @@ let tile_mask_lemma
       else ()
   )
 
-let tile_result_lemma
+let vmprod_is_tile_
+  (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
+  (#rows #shared #cols : nat { chunk et /? cols })
+  (em1 : chest2 et rows shared)
+  (i : natlt rows)
+  (#nnz : nat)
+  (elems : erased (lseq et nnz))
+  (row_ind : erased (lseq nat nnz))
+  (#_ : squash (in_bounds 0 shared row_ind /\ sorted row_ind))
+  (em2 : chest2 et shared cols)
+  (j : nat { chunk et /? j })
+  (step : nat)
+  (#tlen : nat { chunk et /? tlen })
+  (tile : lseq et tlen)
+  (k : natlt (tlen / chunk et))
+  (#_: squash (offset_chunk et j k step < cols))
+: Lemma
+  (requires
+    unsparse _ _ elems row_ind == ematrix_row em1 i /\
+    tile_vmprod_prop
+      (Seq.create tlen zero)
+      elems row_ind
+      em2
+      j step
+      tile
+  )
+  (ensures is_ematrix_tile_at (matmul em1 em2) i j tile step k)
+=
+  let acc0 : lseq et tlen = Seq.create tlen zero in
+  let mm = matmul em1 em2 in
+  let s = seq_chunk tile (k * chunk et) in
+  let t = ematrix_row_chunk mm i (offset_chunk et j k step) in
+  introduce forall (x : natlt (chunk et #_ #solve)). s @! x == t @! x
+  with (
+    let k1 = k * chunk et + x in
+    let k2 = j + k1 / chunk et * step * chunk et + k1 % chunk et in
+
+    // TODO
+    assume k2 == offset_chunk et j k step + x;
+    // TODO
+    assume k2 < cols;
+
+    calc (==) {
+      s @! x;
+      == {}
+      tile @! k1;
+      == { assert tile_vmprod_cell_prop acc0 elems row_ind em2 j step nnz k1 tile }
+      sparse_dprod_acc zero elems row_ind (ematrix_col em2 k2);
+      == { sparse_dprod_lemma elems row_ind (ematrix_col em2 k2) }
+      dprod (ematrix_row em1 i) (ematrix_col em2 k2);
+      == { dprod_is_matmul_single em1 em2 i k2 }
+      matmul_single em1 em2 i k2;
+      == {}
+      acc2 mm i k2;
+      == { assert k2 == offset_chunk et j k step + x }
+      t @! x;
+    }
+  );
+  assert Seq.equal s t
+
+let vmprod_is_tile
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
   (#rows #shared #cols : nat { chunk et /? cols })
   (em1 : chest2 et rows shared)
@@ -436,21 +453,15 @@ let tile_result_lemma
       j step
       tile
   )
-  (ensures tile_result_prop #_ #_ #_ #solve em1 i em2 j step tile)
+  (ensures is_ematrix_tile #_ #_ #solve (matmul em1 em2) i j tile step)
 =
-  let tile0 : lseq et tlen = Seq.create tlen zero in
-  introduce forall (k1 : natlt tlen).
-    tile_result_cell_prop em1 i em2 j step tile k1
+  let mm = matmul em1 em2 in
+  introduce forall (k : natlt (tlen / chunk et)).
+    offset_chunk et j k step < cols ==>
+    is_ematrix_tile_at mm i j tile step k
   with (
-    let k2 = j + k1 / chunk et * step * chunk et + k1 % chunk et in
-    if k2 < cols
-      then calc (==) {
-        tile @! k1;
-        == { sparse_dprod_lemma elems row_ind (ematrix_col em2 k2) }
-        dprod (ematrix_row em1 i) (ematrix_col em2 k2);
-        == { dprod_is_matmul_single em1 em2 i k2 }
-        matmul_single em1 em2 i k2;
-      }
+    if offset_chunk et j k step < cols
+      then vmprod_is_tile_ em1 i elems row_ind em2 j step tile k #()
       else ()
   )
 
@@ -459,12 +470,12 @@ inline_for_extraction noextract
 fn tile_vmprod
   (#et : Type0) {| scalar et, sized et, hvc : has_vec_cpy et |}
   (#m1 #n1 : sz { chunk et /? n1 })
-  (#ly : layout1 n1) {| ctlayout ly |}
-  (y : array1 et ly)
-  (#vy : chest1 et n1)
+  // (#ly : layout1 n1) {| ctlayout ly |}
+  (y : larray et n1)
+  (#vy : erased (lseq et n1))
   (vy0 : erased (lseq et n1))
-  (#lx : layout1 m1) {| ctlayout lx |}
-  (x : array1 et lx)
+  // (#lx : layout1 m1) {| ctlayout lx |}
+  (x : larray et m1)
   (#fx : perm)
   (#nnz : erased nat)
   (elems : erased (lseq et nnz))
@@ -474,14 +485,15 @@ fn tile_vmprod
   (tm : array2 et ltm)
   (#tem : chest2 et m1 n1)
   (#ftm : perm)
-  (#m2 #n2 : nat {  chunk et /? n2 })
+  (#m2 #n2 : erased nat {  chunk et /? n2 })
   (gem : chest2 et m2 n2)
   (j : sz { chunk et /? j })
   (step : sz)
-  (#_ : squash (in_bounds 0 m2 row_ind /\ sorted row_ind))
+  (#_ : squash (in_bounds 0 m2 row_ind))
   norewrite
   preserves gpu
-  preserves x  |-> Frac fx (seq_to_chest1 (Seq.slice elems to (to + m1) <: lseq et m1))
+  // preserves x  |-> Frac fx (seq_to_chest1 (Seq.slice elems to (to + m1) <: lseq et m1))
+  preserves x  |-> Frac fx (Seq.slice elems to (to + m1) <: lseq et m1)
   preserves tm |-> Frac ftm tem
   requires  pure (chest2_tile_prop #_ #_ #hvc gem (Seq.slice row_ind to (to + m1)) j step tem)
   requires  y  |-> vy
@@ -492,9 +504,10 @@ fn tile_vmprod
         (Seq.slice elems 0 to <: lseq et to) (Seq.slice row_ind 0 to)
         gem
         j step
-        (chest1_to_seq vy)
+        // (chest1_to_seq vy)
+        vy
     )
-  ensures exists* (vy' : chest1 et n1).
+  ensures exists* (vy' : lseq et n1).
     y |-> vy' **
     pure (
       tile_vmprod_prop
@@ -502,11 +515,13 @@ fn tile_vmprod
         (Seq.slice elems 0 (to + m1) <: lseq et (to + m1)) (Seq.slice row_ind 0 (to + m1))
         gem
         j step
-        (chest1_to_seq vy')
+        // (chest1_to_seq vy')
+        vy'
     )
 {
   vmprod y x tm;
-  tile_vmprod_lemma (chest1_to_seq vy) vy0 elems row_ind to tem gem j step #_;
+  // tile_vmprod_lemma (chest1_to_seq vy) vy0 elems row_ind to tem gem j step #_;
+  tile_vmprod_lemma vy vy0 elems row_ind to tem gem j step #_;
   ();
 }
 
@@ -540,41 +555,44 @@ fn fma_arr
   (x2 : larray et n)
   (#vx2 : erased (lseq et n))
   (#sz_y : erased nat)
-  (#ly : layout1 sz_y) {| ctlayout ly |}
-  (y : array1 et ly)
-  (#vy : chest1 et sz_y)
+  // (#ly : layout1 sz_y) {| ctlayout ly |}
+  (y : larray et sz_y)
+  (#vy : erased (lseq et sz_y))
   (k : sz { k + n <= sz_y })
   preserves gpu
   preserves x2 |-> vx2
   requires  y |-> vy
-  ensures  y |-> seq_to_chest1 (seq_fma x1 vx2 (chest1_to_seq vy) k n)
+  // ensures  y |-> seq_to_chest1 (seq_fma x1 vx2 (chest1_to_seq vy) k n)
+  ensures  y |-> seq_fma x1 vx2 vy k n
 {
   let mut ix : sz = 0sz;
   while (!ix <^ n)
-    invariant exists* vix (vy' : chest1 et sz_y).
+    invariant exists* vix (vy' : lseq et sz_y).
       ix |-> vix **
       y |-> vy' **
       pure (
         vix <= n /\
         (forall (i : natlt sz_y).
-          acc1 vy' i ==
+          vy' @! i ==
             (if k <= i && i < k + vix
-             then fma x1 (vx2 @! (i - k)) (acc1 vy i)
-             else acc1 vy i))
+             then fma x1 (vx2 @! (i - k)) (vy @! i)
+             else vy @! i))
       )
     decreases (n - !ix)
   {
     let ixv = !ix;
     // y[k + ix] += x1 * x2[ix]
-    let x2v = Pulse.Lib.Array.(x2.(ixv));
-    let yv = tensor_read y (cidx1 (k +^ ixv <: szlt sz_y));
-    tensor_write y (cidx1 (k +^ ixv <: szlt sz_y)) (fma x1 x2v yv);
+    open Pulse.Lib.Array;
+    let x2v = x2.(ixv);
+    let yv =  y.(k +^ ixv <: szlt sz_y);
+    y.(k +^ ixv <: szlt sz_y) <- fma x1 x2v yv;
     ix := !ix +^ 1sz;
   };
 
   with vy'. assert y |-> vy';
   assert pure (
-    equal vy' (seq_to_chest1 (seq_fma x1 vx2 (chest1_to_seq vy) k n))
+    // equal vy' (seq_to_chest1 (seq_fma x1 vx2 (chest1_to_seq vy) k n))
+    Seq.equal vy' (seq_fma x1 vx2 vy k n)
   );
 }
 
@@ -601,9 +619,9 @@ inline_for_extraction noextract
 fn load_vmprod_chunk
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
   (#n1 : sz { chunk et /? n1 })
-  (#ly : layout1 n1) {| ctlayout ly |}
-  (y : array1 et ly)
-  (#vy : chest1 et n1)
+  // (#ly : layout1 n1) {| ctlayout ly |}
+  (y : larray et n1)
+  (#vy : erased (lseq et n1))
   (x : et)
   (#n2 : sz { chunk et /? n2 })
   (#lrow : layout1 n2) {| ctlayout lrow, clrow : cont_layout lrow |}
@@ -617,7 +635,8 @@ fn load_vmprod_chunk
   requires  pure (aligned 16 (core row))
   requires  pure (aligned_cont_layout (chunk et) clrow)
   requires  y |-> vy
-  ensures   y |-> seq_to_chest1 (seq_fma' (chunk et) x (chest1_to_seq vrow) (chest1_to_seq vy) k1 k2)
+  // ensures   y |-> seq_to_chest1 (seq_fma' (chunk et) x (chest1_to_seq vrow) (chest1_to_seq vy) k1 k2)
+  ensures   y |-> seq_fma' (chunk et) x (chest1_to_seq vrow) vy k1 k2
 {
   if (k2 <^ n2)
   {
@@ -664,9 +683,9 @@ inline_for_extraction noextract
 fn load_vmprod_row
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
   (#n1 : sz { chunk et /? n1 })
-  (#ly : layout1 n1) {| ctlayout ly |}
-  (y : array1 et ly)
-  (#vy : chest1 et n1)
+  // (#ly : layout1 n1) {| ctlayout ly |}
+  (y : larray et n1)
+  (#vy : erased (lseq et n1))
   (x : et)
   (#n2 : sz { chunk et /? n2 })
   (#lrow : layout1 n2) {| ctlayout lrow, clrow : cont_layout lrow |}
@@ -681,17 +700,19 @@ fn load_vmprod_row
   requires  pure (aligned_cont_layout (chunk et) clrow)
   requires  pure (fits (j + n1 * step))
   requires  y |-> vy
-  ensures   y |-> seq_to_chest1 (seq_load_vmprod_row (chest1_to_seq vy) x (chest1_to_seq vrow) j step (n1 / chunk et))
+  // ensures   y |-> seq_to_chest1 (seq_load_vmprod_row (chest1_to_seq vy) x (chest1_to_seq vrow) j step (n1 / chunk et))
+  ensures   y |-> seq_load_vmprod_row vy x (chest1_to_seq vrow) j step (n1 / chunk et)
 {
   let mut k : sz = 0sz;
 
   while (!k <^ n1 /^ chunk et)
-    invariant exists* vk (vy' : chest1 et n1).
+    invariant exists* vk (vy' : lseq et n1).
       k |-> vk **
       y |-> vy' **
       pure (
         vk <= n1 / chunk et /\
-        Seq.equal (chest1_to_seq vy') (seq_load_vmprod_row (chest1_to_seq vy) x (chest1_to_seq vrow) j step vk)
+        // Seq.equal (chest1_to_seq vy') (seq_load_vmprod_row (chest1_to_seq vy) x (chest1_to_seq vrow) j step vk)
+        Seq.equal vy' (seq_load_vmprod_row vy x (chest1_to_seq vrow) j step vk)
       )
     decreases (n1 /^ chunk et - !k)
   {
@@ -737,16 +758,11 @@ inline_for_extraction noextract
 fn load_vmprod
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
   (#m1 #n1 : sz { chunk et /? n1 })
-  (#ly : layout1 n1) {| ctlayout ly |}
-  // en realidad y es un larray... por el momento no podemos unificar
-  (y : array1 et ly)
-  (#vy : chest1 et n1)
-  (#lx  : layout1 m1) {| ctlayout lx |}
-  (elems : array1 et lx)
-  (row_ind : array1 sz lx)
+  (y : larray et n1)
+  (#vy : erased (lseq et n1))
+  (elems : larray et m1)
+  (row_ind : larray sz m1)
   (#fx : perm)
-  (#velems : chest1 et m1)
-  (#vrow_ind : chest1 sz m1)
   (#m2 #n2 : szp { chunk et /? n2 })
   (#lm : layout2 m2 n2) {| ctlayout lm, srm : strided_row_major lm |}
   (m : array2 et lm)
@@ -754,35 +770,40 @@ fn load_vmprod
   (#em : chest2 et m2 n2)
   (j : sz { chunk et /? j })
   (step : sz)
-  (#_ : squash (in_bounds 0 m2 (cast_pos (chest1_to_seq vrow_ind))))
   (to : szlt m1)
+  (#velems : erased (lseq et to))
+  (#vrow_ind : erased (lseq sz to))
+  (#_ : squash (in_bounds 0 m2 (cast_pos vrow_ind)))
   preserves gpu
-  preserves elems |-> Frac fx velems
-  preserves row_ind |-> Frac fx vrow_ind
+  preserves pts_to_slice elems   #fx 0 to velems
+  preserves pts_to_slice row_ind #fx 0 to vrow_ind
   preserves m |-> Frac fm em
   requires  pure (aligned 16 (core m) /\ aligned_strided_row_major (chunk et) srm)
   requires  pure (fits (j + n1 * step))
   requires  y |-> vy
-  ensures   y |-> seq_to_chest1 (seq_load_vmprod (chest1_to_seq vy) (chest1_to_seq velems) (cast_pos (chest1_to_seq vrow_ind)) em j step to)
+  // ensures   y |-> seq_to_chest1 (seq_load_vmprod (chest1_to_seq vy) (chest1_to_seq velems) (cast_pos (chest1_to_seq vrow_ind)) em j step to)
+  ensures   y |-> seq_load_vmprod vy velems (cast_pos vrow_ind) em j step to
 {
   let mut k : sz = 0sz;
 
   while (!k <^ to)
-    invariant exists* vk (vy' : chest1 et n1).
+    // invariant exists* vk (vy' : chest1 et n1).
+    invariant exists* vk (vy' : lseq et n1).
       k |-> vk **
       y |-> vy' **
       pure (
         vk <= to /\
-        Seq.equal (chest1_to_seq vy') (seq_load_vmprod (chest1_to_seq vy) (chest1_to_seq velems) (cast_pos (chest1_to_seq vrow_ind)) em j step vk)
+        // Seq.equal (chest1_to_seq vy') (seq_load_vmprod (chest1_to_seq vy) (chest1_to_seq velems) (cast_pos (chest1_to_seq vrow_ind)) em j step vk)
+        Seq.equal vy' (seq_load_vmprod vy velems (cast_pos vrow_ind) em j step vk)
       )
     decreases (to - !k)
   {
     let kv = !k;
-    let kr = tensor_read row_ind (cidx1 (kv <: szlt m1));
-    let kx = tensor_read elems (cidx1 (kv <: szlt m1));
+    let kr = slice_read row_ind kv;
+    let kx = slice_read elems kv;
 
     // [kr] indexes a valid row of [m] by the sparsity bound.
-    assert pure (v kr == cast_pos (chest1_to_seq vrow_ind) @! (v kv));
+    assert pure (v kr == cast_pos vrow_ind @! kv);
 
     tensor_extract_row_ro m (v kr);
     row_core_lemma m (v kr);
@@ -1223,18 +1244,15 @@ inline_for_extraction noextract
 fn tile_load_vmprod
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
   (#m1 #n1 : sz { chunk et /? n1 })
-  (#ly : layout1 n1) {| ctlayout ly |}
-  // en realidad y es un larray... por el momento no podemos unificar
-  (y : array1 et ly)
-  (#vy : chest1 et n1)
+  (y : larray et n1)
+  (#vy : erased (lseq et n1))
   (vy0 : erased (lseq et n1))
-  (#lx  : layout1 m1) {| ctlayout lx |}
-  (elems : array1 et lx)
-  (row_ind : array1 sz lx)
+  (elems : larray et m1)
+  (row_ind : larray sz m1)
   (#fx : perm)
   (#nnz : erased nat)
-  (#velems : lseq et nnz)
-  (#vrow_ind : lseq sz nnz)
+  (velems : erased (lseq et nnz))
+  (vrow_ind : erased (lseq sz nnz))
   (#m2 #n2 : szp { chunk et /? n2 })
   (#lm : layout2 m2 n2) {| ctlayout lm, srm : strided_row_major lm |}
   (m : array2 et lm)
@@ -1243,11 +1261,11 @@ fn tile_load_vmprod
   (j : sz { chunk et /? j })
   (step : sz)
   (#_ : squash (in_bounds 0 m2 (cast_pos vrow_ind)))
-  (from to : erased nat { from + m1 <= nnz })
+  (from to : erased nat { to <= nnz })
   (cant : szlt m1 { v cant == to - from })
   preserves gpu
-  preserves elems   |-> Frac fx (seq_to_chest1 (Seq.slice velems from (from + m1) <: lseq et m1))
-  preserves row_ind |-> Frac fx (seq_to_chest1 (Seq.slice vrow_ind from (from + m1) <: lseq sz m1))
+  preserves pts_to_slice elems #fx 0 cant (Seq.slice velems from to <: lseq et cant)
+  preserves pts_to_slice row_ind #fx 0 cant (Seq.slice vrow_ind from to <: lseq sz cant)
   preserves m |-> Frac fm em
   requires  pure (aligned 16 (core m) /\ aligned_strided_row_major (chunk et) srm)
   requires  pure (fits (j + n1 * step))
@@ -1260,29 +1278,30 @@ fn tile_load_vmprod
         (Seq.slice (cast_pos vrow_ind) 0 from)
         em
         j step
-        (chest1_to_seq vy)
+        vy
     )
-  ensures exists* (vy' : chest1 et n1).
+  ensures exists* (vy' : lseq et n1).
     y |-> vy' **
     pure (
       tile_vmprod_prop
         vy0
         (Seq.slice velems 0 to <: lseq et to)
         (Seq.slice (cast_pos vrow_ind) 0 to <: lseq nat to)
-        em j step (chest1_to_seq vy')
+        em j step vy'
     )
 {
   load_vmprod y elems row_ind m j step cant;
   seq_load_vmprod_step_lemma
-    m1
+    cant
     vy0
     velems (cast_pos vrow_ind)
     from (v cant)
-    em j step (chest1_to_seq vy);
+    em j step vy;
 
   assert pure (
     Seq.equal
-      (cast_pos #m1 (Seq.slice vrow_ind from (from + m1)))
-      (Seq.slice (cast_pos vrow_ind) from (from + m1))
+      (cast_pos #cant (Seq.slice vrow_ind from to))
+      (Seq.slice (cast_pos vrow_ind) from to)
   );
+  ();
 }

@@ -67,9 +67,13 @@ fn inst
   assert pure (chunk et /?+ cols);
   lemma_aligned_strided_row_major_l2_row_major #(SZ.v shared) #(SZ.v cols) (chunk et);
   lemma_aligned_strided_row_major_l2_row_major #(SZ.v rows) #(SZ.v cols) (chunk et);
+
+  // TODO
+  assume pure (fits (blockItemsK * (blockItemsX / blockWidth)));
   spmm #et
     rows shared cols
-    blockItemsK blockItemsX blockWidth (blockItemsX /^ blockWidth)
+    blockItemsK blockItemsX blockWidth
+    (blockItemsX /^ blockWidth) (blockItemsK *^ (blockItemsX /^ blockWidth))
     gA row_indices fri gB gC
     elems col_ind row_off
     #eA

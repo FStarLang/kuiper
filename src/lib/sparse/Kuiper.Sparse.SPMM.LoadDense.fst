@@ -174,7 +174,7 @@ fn matrix_tile_vec_cpy
   (step : szp)
   (row_ind : larray sz m1)
   (#fr : perm)
-  (#vrow_ind : lseq sz m1)
+  (#vrow_ind : erased (lseq sz m1))
   (#_: squash (in_bounds 0 m2 (cast_pos vrow_ind)))
   preserves gpu
   requires  a1 |-> em1
@@ -513,22 +513,21 @@ inline_for_extraction noextract
 fn load_dense_matrix
   (#et:Type0) {| sized et, has_vec_cpy et |}
   (#m1 #n1 : szp { chunk et /? n1 })
-  (l1 : layout2 m1 n1) {| ctlayout l1, srm1 : strided_row_major l1 |}
+  (#l1 : layout2 m1 n1) {| ctlayout l1, srm1 : strided_row_major l1 |}
   (a1 : array2 et l1)
-  (em1 : chest2 et m1 n1)
   (#m2 #n2 : szp { chunk et /? n2 })
-  (l2 : layout2 m2 n2) {| ctlayout l2, srm2 : strided_row_major l2 |}
+  (#l2 : layout2 m2 n2) {| ctlayout l2, srm2 : strided_row_major l2 |}
   (a2 : array2 et l2)
   (#f : perm)
-  (em2 : chest2 et m2 n2)
+  (#em2 : chest2 et m2 n2)
   (j : sz { chunk et /? j })
   (step : szp)
   (row_ind : larray sz m1)
   (#fr : perm)
-  (#vrow_ind : lseq sz m1)
+  (#vrow_ind : erased (lseq sz m1))
   (#_: squash (in_bounds 0 m2 (cast_pos vrow_ind)))
   preserves gpu
-  requires  a1 |-> em1
+  requires  live a1
   requires  pure (aligned 16 (core a1) /\ aligned_strided_row_major (chunk et) srm1)
   preserves a2 |-> Frac f em2
   requires  pure (aligned 16 (core a2) /\ aligned_strided_row_major (chunk et) srm2)
@@ -538,7 +537,8 @@ fn load_dense_matrix
     a1 |-> em1' **
     pure (chest2_tile_prop em2 (cast_pos vrow_ind) j step em1')
 {
-
+  // TODO al pedo usamos em1, solo queremos probar la prop
+  with em1. assert a1 |-> em1;
   matrix_tile_vec_cpy a1 a2 j step row_ind;
   chest2_tile_col_lemma em1 em2 (cast_pos vrow_ind) j step;
   chest2_tile_lemma em1 em2 (cast_pos vrow_ind) j step;

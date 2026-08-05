@@ -7,7 +7,6 @@ open Kuiper.Tensor
 open Kuiper.Tensor.Layout.Alg { l2_row_major as rm }
 open Kuiper.EMatrix
 open Kuiper.Array.Vectorized
-open Kuiper.Array2.Strided
 module MS = Kuiper.Spec.GEMM
 
 #lang-pulse

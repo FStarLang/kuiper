@@ -317,7 +317,7 @@ let aligned_cont_offset
 = ()
 
 #push-options "--split_queries always --z3rlimit 15"
-noextract
+inline_for_extraction noextract
 fn array_vec_cpy'
   (#et : Type u#0) {| sized et, has_vec_cpy et |}
   (#dst_sz : erased nat { 0 < dst_sz /\ chunk et /? dst_sz })
@@ -376,7 +376,7 @@ fn array_vec_cpy'
 #pop-options
 
 #push-options "--z3rlimit 10"
-noextract
+inline_for_extraction noextract
 fn array_vec_cpy_dh
   (#et : Type u#0) {| sized et, has_vec_cpy et |}
   (dst_arr : larray et (chunk et))
