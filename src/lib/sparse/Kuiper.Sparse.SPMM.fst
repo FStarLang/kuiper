@@ -2171,11 +2171,6 @@ fn spmm
   assert pure ((chunk et * blockWidth) /? blockItemsK);
   assert pure ((chunk sz * blockWidth) /? blockItemsK);
   
-  // las constraints srm y full_layout ==> ldt = l2_row_major
-  // construimos el layout aca por comodidad
-  let ldt = l2_row_major blockItemsK blockChunks;
-  let cldt = c_l2_row_major (SZ.v blockItemsK) blockChunks;
-  let srmdt = strided_row_major_l2_row_major #(SZ.v blockItemsK) #(SZ.v blockChunks);
   assume pure (chunk et /? blockChunks);
   lemma_aligned_strided_row_major_l2_row_major
     #(SZ.v blockItemsK) #(SZ.v blockChunks) (chunk et);
@@ -2183,7 +2178,7 @@ fn spmm
   launch_sync (
     kdesc #et #_
       ({ rows; shared; cols; blockItemsK; blockItemsX; blockWidth })
-      row_perm blockChunks #lB #_ #_ #lC dtsize ldt #cldt #srmdt
+      row_perm blockChunks #lB #_ #_ #lC dtsize (l2_row_major _ _) #(c_l2_row_major (SZ.v blockItemsK) blockChunks) #(strided_row_major_l2_row_major #(SZ.v blockItemsK) #(SZ.v blockChunks))
       gA row_indices gB gC elems col_ind row_off eA
       #eB #fA #fri #fB
   );
