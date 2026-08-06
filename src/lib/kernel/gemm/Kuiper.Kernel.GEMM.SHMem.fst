@@ -638,7 +638,7 @@ let bkpost
   live_c_shmems sh #(1.0R /. (tile * tile))
 
 (* ─── batched thread function (page-batched barrier GEMM) ──────────────────── *)
-#push-options "--z3rlimit 200 --fuel 1 --ifuel 1"
+#push-options "--z3rlimit 200 --fuel 1 --ifuel 1 --split_queries always --z3refresh"
 inline_for_extraction noextract
 fn bkf
   (tile : valid_tile)
@@ -776,12 +776,14 @@ fn bkf
     invariant live sa2 #(1.0R /. (tile * tile))
     decreases (mshared - !bk)
   {
-    array2_extract_tile_ro #ta #(mrows * tile) #(mshared * tile) gA_p tile tile mrow !bk;
-    let aTile = array2_subtile #ta #(mrows * tile) #(mshared * tile) gA_p (SZ.v tile) (SZ.v tile) (SZ.v mrow) (SZ.v !bk);
-    assert rewrites_to aTile (array2_subtile #ta #(mrows * tile) #(mshared * tile) gA_p (SZ.v tile) (SZ.v tile) (SZ.v mrow) (SZ.v !bk));
-    array2_extract_tile_ro #tb #(mshared * tile) #(mcols * tile) gB_p tile tile !bk mcol;
-    let bTile = array2_subtile #tb #(mshared * tile) #(mcols * tile) gB_p (SZ.v tile) (SZ.v tile) (SZ.v !bk) (SZ.v mcol);
-    assert rewrites_to bTile (array2_subtile #tb #(mshared * tile) #(mcols * tile) gB_p (SZ.v tile) (SZ.v tile) (SZ.v !bk) (SZ.v mcol));
+    (* Return the read-only view and its [rewrites_to] fact together.  Keeping
+       the erased tile indices out of the ambient loop context is important:
+       rebuilding the same subtile term separately makes every subsequent
+       invariant-maintenance query substantially more expensive. *)
+    let aTile = array2_extract_tile_ro' gA_p
+      (SZ.v tile) (SZ.v tile) (SZ.v mrow) (SZ.v !bk);
+    let bTile = array2_extract_tile_ro' gB_p
+      (SZ.v tile) (SZ.v tile) (SZ.v !bk) (SZ.v mcol);
 
     let v1 = tensor_read aTile ((brow <: szlt _), ((bcol <: szlt _), ()));
     let v2 = tensor_read bTile ((brow <: szlt _), ((bcol <: szlt _), ()));
@@ -1044,7 +1046,7 @@ fn bsetup
 }
 #pop-options
 
-#push-options "--z3rlimit 150 --ifuel 5"
+#push-options "--z3rlimit 150 --ifuel 5 --split_queries always --z3refresh"
 ghost
 fn bteardown
   (tile : valid_tile)
