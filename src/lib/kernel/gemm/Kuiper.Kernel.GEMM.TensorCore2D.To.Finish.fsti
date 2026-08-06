@@ -119,14 +119,8 @@ ghost fn normalize_output
           nthr bid (tid / warp_size))) })
   requires
     output_lane_approximates gD bm bn tm tn wm wn bid tid
-      (chest_comb comb_r
-        (ematrix_subtile
-          (ematrix_subtile rC bm bn
-            (bid / (n / bn)) (bid % (n / bn)))
-          (wm * tm) (wn * tn)
-          ((tid / warp_size) / (bn / (wn * tn)))
-          ((tid / warp_size) % (bn / (wn * tn))))
-        rAcc)
+      (epilogue_warp_output comb_r rC
+        bm bn tm tn wm wn bid tid rAcc)
   ensures
     output_lane_approximates gD bm bn tm tn wm wn bid tid
       (ematrix_subtile

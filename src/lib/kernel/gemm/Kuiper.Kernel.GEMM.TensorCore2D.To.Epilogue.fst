@@ -83,14 +83,8 @@ fn epilogue_to
       sh accFrags rAcc tid **
     output_lane_approximates
       gD d.bm d.bn d.tm d.tn d.wm d.wn bid tid
-      (chest_comb comb_r
-        (ematrix_subtile
-          (ematrix_subtile rC d.bm d.bn
-            (bid / (n / d.bn)) (bid % (n / d.bn)))
-          (d.wm * d.tm) (d.wn * d.tn)
-          ((tid / warp_size) / (d.bn / (d.wn * d.tn)))
-          ((tid / warp_size) % (d.bn / (d.wn * d.tn))))
-        rAcc)
+      (epilogue_warp_output comb_r rC
+        d.bm d.bn d.tm d.tn d.wm d.wn bid tid rAcc)
 {
   let bm = d.bm;
   let bn = d.bn;
@@ -386,13 +380,7 @@ fn epilogue_to
   as
     output_lane_approximates gD
       d.bm d.bn d.tm d.tn d.wm d.wn bid tid
-      (chest_comb comb_r
-        (ematrix_subtile
-          (ematrix_subtile rC d.bm d.bn
-            (bid / (n / d.bn)) (bid % (n / d.bn)))
-          (d.wm * d.tm) (d.wn * d.tn)
-          ((tid / warp_size) / (d.bn / (d.wn * d.tn)))
-          ((tid / warp_size) % (d.bn / (d.wn * d.tn))))
-        rAcc);
+      (epilogue_warp_output comb_r rC
+        d.bm d.bn d.tm d.tn d.wm d.wn bid tid rAcc);
 }
 #pop-options

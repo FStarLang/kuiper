@@ -189,6 +189,13 @@ To resolve:
    - Help it understand Euclidean division with `assert pure` statements
    - Use intermediate `let` bindings to simplify expressions
 
+4. **Distinguish SMT time from core typechecking time**: A very slow check is not necessarily a hard Z3 query
+   - First use query statistics or temporary admits to determine whether SMT is responsible
+   - If admitting queries does not remove the slowdown, profile F* core checking and normalization
+   - Large, repeated specification terms can make definitional equality trigger deep delta-reduction even when they are logically trivial
+   - Introduce a named pure abbreviation for the repeated term and use the same folded application across interfaces, implementations, and call sites; unfold it once inside the proof when needed
+   - Example: naming the expanded `chest_comb (ematrix_subtile (ematrix_subtile ...) ...)` epilogue output reduced `Kuiper.Kernel.GEMM.TensorCore2D.To.Finish` from 52 minutes to 26 seconds without changing the specification or extracted CUDA
+
 ## Optimizing Kernels
 
 - Suggest improvements to reduce thread divergence

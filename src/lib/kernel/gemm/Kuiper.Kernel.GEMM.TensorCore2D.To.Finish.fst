@@ -165,14 +165,8 @@ ghost fn normalize_output
           nthr bid (tid / warp_size))) })
   requires
     output_lane_approximates gD bm bn tm tn wm wn bid tid
-      (chest_comb comb_r
-        (ematrix_subtile
-          (ematrix_subtile rC bm bn
-            (bid / (n / bn)) (bid % (n / bn)))
-          (wm * tm) (wn * tn)
-          ((tid / warp_size) / (bn / (wn * tn)))
-          ((tid / warp_size) % (bn / (wn * tn))))
-        rAcc)
+      (epilogue_warp_output comb_r rC
+        bm bn tm tn wm wn bid tid rAcc)
   ensures
     output_lane_approximates gD bm bn tm tn wm wn bid tid
       (ematrix_subtile
@@ -194,27 +188,18 @@ ghost fn normalize_output
         (MS.mmcomb comb_r rC rA rB)
         bm bn mrow mcol)
       (wm * tm) (wn * tn) warpRow warpCol;
+  (* The precondition refers to the warp's output tile through the
+     [epilogue_warp_output] abbreviation.  Peel it off here, once, into
+     the spelled-out local [rOutLocal] used by the rest of the proof.
+     Keeping the abbreviation folded in the *specification* is what
+     keeps the call to this function (and to [epilogue_to]) cheap for
+     F*'s core typechecker: see the comment on [epilogue_warp_output]. *)
+  assert pure (
+    epilogue_warp_output comb_r rC
+      bm bn tm tn wm wn bid tid rAcc == rOutLocal);
   rewrite each
-    (SZ.v bid / (SZ.v n / SZ.v bn))
-  as SZ.v mrow;
-  rewrite each
-    (SZ.v bid % (SZ.v n / SZ.v bn))
-  as SZ.v mcol;
-  rewrite each
-    (SZ.v tid / warp_size)
-  as SZ.v wid;
-  rewrite each
-    (SZ.v wid / (SZ.v bn / (SZ.v wn * SZ.v tn)))
-  as SZ.v warpRow;
-  rewrite each
-    (SZ.v wid % (SZ.v bn / (SZ.v wn * SZ.v tn)))
-  as SZ.v warpCol;
-  rewrite each
-    (chest_comb comb_r
-      (ematrix_subtile
-        (ematrix_subtile rC bm bn mrow mcol)
-        (wm * tm) (wn * tn) warpRow warpCol)
-      rAcc)
+    (epilogue_warp_output comb_r rC
+      bm bn tm tn wm wn bid tid rAcc)
   as rOutLocal;
   assert pure (
     (SZ.v bm / (SZ.v wm * SZ.v tm)) *

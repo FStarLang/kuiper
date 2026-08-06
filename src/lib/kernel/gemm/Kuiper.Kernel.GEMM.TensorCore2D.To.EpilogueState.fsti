@@ -99,6 +99,36 @@ let epilogue_warp_input
     ((tid / warp_size) / (bn / (wn * tn)))
     ((tid / warp_size) % (bn / (wn * tn)))
 
+(* The real-valued tile that one warp writes to D: its slice of C
+   combined (pointwise, with [comb_r]) with its accumulator tile.
+
+   This is deliberately a *named* abbreviation rather than the
+   corresponding [chest_comb (ematrix_subtile (ematrix_subtile ...) ...)
+   ...] term written out inline.  F*'s core typechecker relates two
+   applications by comparing heads and then arguments pairwise; when all
+   arguments are scalars/variables that comparison is linear and
+   succeeds immediately.  Spelling the term out inline instead makes the
+   comparison of the two (definitionally equal, but syntactically
+   differently normalized) copies that Pulse produces at a call site
+   fail structurally, which sends the core checker into a full delta
+   dive through the [chest] representation -- costing tens of minutes on
+   [Kuiper.Kernel.GEMM.TensorCore2D.To.Finish.finish].  Do not inline
+   this definition into a specification. *)
+let epilogue_warp_output
+  (#m #n : nat)
+  (comb_r : binop real)
+  (rC : chest2 real m n)
+  (bm bn tm tn wm wn : pos)
+  (#_ : squash (bm /?+ m /\ bn /?+ n /\
+                wm * tm /?+ bm /\ wn * tn /?+ bn))
+  (bid : natlt (m / bm * (n / bn)))
+  (tid : natlt (bm / (wm * tm) * (bn / (wn * tn)) * warp_size))
+  (rAcc : chest2 real (wm * tm) (wn * tn))
+  : chest2 real (wm * tm) (wn * tn)
+= chest_comb comb_r
+    (epilogue_warp_input rC bm bn tm tn wm wn bid tid)
+    rAcc
+
 let output_fragment_post
   (#et : Type0) {| scalar et, real_like et |}
   (#m #n : nat)
