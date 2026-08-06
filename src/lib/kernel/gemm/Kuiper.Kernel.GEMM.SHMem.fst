@@ -195,7 +195,7 @@ let shmem_contract
     rout = barrier_q_cell mapA mapB tile eA eB bid sa1 sa2;
   }
 
-#push-options "--z3rlimit 80 --fuel 0 --ifuel 0"
+#push-options "--z3rlimit 40 --fuel 0 --ifuel 0"
 ghost
 fn barrier_p_to_q_cell_transform
   (#ta #tb #tacc : Type0) {| scalar tacc |}
@@ -435,6 +435,7 @@ let sbtile_gg_full (batch mrows mcols tile : nat)
   = assert_norm ((sbtile_idx_bij batch mrows mcols tile).gg (bid, tid)
                    == sbtile_cell_idx batch mrows mcols tile bid tid)
 
+#push-options "--z3rlimit 20"
 let sbtile_gg_all (batch mrows mcols tile : nat)
   : Lemma (forall (bid : natlt (batch * (mrows * mcols))) (tid : natlt (tile * tile)).
              (sbtile_idx_bij batch mrows mcols tile).gg (bid, tid)
@@ -444,6 +445,7 @@ let sbtile_gg_all (batch mrows mcols tile : nat)
         (sbtile_idx_bij batch mrows mcols tile).gg (bid, tid)
           == sbtile_cell_idx batch mrows mcols tile bid tid
       with sbtile_gg_full batch mrows mcols tile bid tid
+#pop-options
 
 (* A cell of the batched combined spec equals the per-page rank-2 [ggemm_single]
    cell.  Reduces the rank-3 [gbmmcomb] obligation cellwise/pagewise. *)
@@ -638,7 +640,7 @@ let bkpost
   live_c_shmems sh #(1.0R /. (tile * tile))
 
 (* ─── batched thread function (page-batched barrier GEMM) ──────────────────── *)
-#push-options "--z3rlimit 200 --fuel 1 --ifuel 1 --split_queries always --z3refresh"
+#push-options "--z3rlimit 40 --fuel 1 --ifuel 1 --split_queries always --z3refresh"
 inline_for_extraction noextract
 fn bkf
   (tile : valid_tile)
@@ -766,6 +768,10 @@ fn bkf
   let mut sum : tacc = zero;
   let mut bk  : szle mshared = 0sz;
 
+  FStar.Matrix.flattened_index_is_under_flattened_size
+    (SZ.v mrows) (SZ.v tile) (SZ.v mrow) (SZ.v brow);
+  FStar.Matrix.flattened_index_is_under_flattened_size
+    (SZ.v mcols) (SZ.v tile) (SZ.v mcol) (SZ.v bcol);
   let grow : erased (natlt (mrows * tile)) = hide (SZ.v mrow * SZ.v tile + SZ.v brow);
   let gcol : erased (natlt (mcols * tile)) = hide (SZ.v mcol * SZ.v tile + SZ.v bcol);
 
@@ -884,6 +890,7 @@ fn bkf
     assert (pure (
       MS.__gmatmul_single 0.0R ( *. ) ( +. ) (Chest.chest_map mapA_r (rA_p)) (Chest.chest_map mapB_r (rB_p)) grow gcol (SZ.v !bk * SZ.v tile + SZ.v tile)
       == r_partial +. r_subtile));
+    FStar.Math.Lemmas.distributivity_add_left (SZ.v !bk) 1 (SZ.v tile);
     assert (pure ((SZ.v !bk + 1) * SZ.v tile == SZ.v !bk * SZ.v tile + SZ.v tile));
 
     assert (pure (2 * (!bk + 1) == 2 * !bk + 1 + 1));
@@ -967,7 +974,7 @@ fn bkf
 
 (* ─── batched setup / teardown (ForEvery distribution) ────────────────────── *)
 
-#push-options "--z3rlimit 100"
+#push-options "--z3rlimit 40"
 ghost
 fn bsetup
   (tile : valid_tile)
@@ -1046,7 +1053,7 @@ fn bsetup
 }
 #pop-options
 
-#push-options "--z3rlimit 150 --ifuel 5 --split_queries always --z3refresh"
+#push-options "--z3rlimit 40 --ifuel 5 --split_queries always --z3refresh"
 ghost
 fn bteardown
   (tile : valid_tile)
@@ -1278,8 +1285,8 @@ fn bblock_teardown
 #pop-options
 
 (* ─── batched sendables ────────────────────────────────────────────────────── *)
-#push-options "--z3rlimit_factor 10 --fuel 1 --ifuel 1 --split_queries no"
-#push-options "--z3rlimit 100"
+#push-options "--z3rlimit_factor 1 --fuel 1 --ifuel 1 --split_queries no"
+#push-options "--z3rlimit 40"
 let bkpre_block_sendable
   (#ta #tb #tc #tacc : Type0)
   {| scalar ta, real_like ta, scalar tb, real_like tb,
