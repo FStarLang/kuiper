@@ -123,6 +123,7 @@ ghost fn prepare_epilogue
 #push-options "--ifuel 1 --initial_fuel 0 --max_fuel 1"
 #push-options "--z3rlimit 15"
 
+#push-options "--z3rlimit 30"
 noextract
 ghost fn normalize_output
   (#et_cd : Type0) {| scalar et_cd, real_like et_cd |}
@@ -244,6 +245,7 @@ ghost fn normalize_output
         bm bn mrow mcol)
       (wm * tm) (wn * tn) warpRow warpCol;
 }
+#pop-options
 
 #pop-options
 #pop-options

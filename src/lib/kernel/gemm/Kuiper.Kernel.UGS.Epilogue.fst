@@ -19,7 +19,7 @@ module Math = FStar.Math.Lemmas
    this codebase's existing style e.g. in [Kuiper.Kernel.RowSoftmax]). *)
 let epilogue_cell_approx (gate_h up_h : half) (gR uR : real)
   : Lemma (requires gate_h %~ gR /\ up_h %~ uR)
-          (ensures epilogue_cell gate_h up_h %~ real_epilogue_cell gR uR)
+          (ensures epilogue_cell gate_h up_h %~ real_swiglu gR uR)
   = let g : float = cast_f16_to_f32 gate_h in
     cast_f16_to_f32_ok gate_h gR;
     assert (v_approximates (zero #float) 0.0R);
@@ -51,49 +51,31 @@ let lemma_div_bound (k m n : nat)
       Math.lemma_div_le k (m * n - 1) n
     end
 
-(* If [n] is a positive multiple of [pair_group_n] and [c < n], then
-   [c / pair_group_n < n / pair_group_n]. *)
-let lemma_group_lt (n c : nat)
-  : Lemma (requires n % pair_group_n == 0 /\ n > 0 /\ c < n)
-          (ensures c / pair_group_n < n / pair_group_n)
-  = let ng = n / pair_group_n in
-    Math.lemma_div_mod n pair_group_n;
-    lemma_div_bound c ng pair_group_n
-
-let lemma_gate_up_bound (n c : nat)
-  : Lemma (requires n % pair_group_n == 0 /\ c < n)
-          (ensures gate_col_of c < 2 * n /\ up_col_of c < 2 * n)
-  = lemma_group_lt n c;
-    Math.lemma_div_mod n pair_group_n;
-    Math.lemma_mod_lt c pair_group_n
-
 (* Proof of [epilogue_matrix_approx]: for each output cell, extract the
-   gate/up cells' individual approximates facts from [vP %~ rP] (a
-   forall-quantified fact at [Kuiper.Chest]'s generic flattened [abs]
-   index, instantiated here at concrete row/gate-col and row/up-col
-   pairs), feed them to [epilogue_cell_approx], and collect the result
-   with [Kuiper.EMatrix.lemma_approximates_intro]. *)
+   corresponding gate/up approximation facts, feed them to
+   [epilogue_cell_approx], and collect the result. *)
 let epilogue_matrix_approx
-  (#m : nat) (n : nat { n % pair_group_n == 0 })
-  (vP : chest2 half m (2 * n))
-  (rP : chest2 real m (2 * n))
+  (#m #n : nat)
+  (vGate vUp : chest2 half m n)
+  (rGate rUp : chest2 real m n)
   (eOut : chest2 half m n)
   : Lemma (requires
-             vP %~ rP /\
+             vGate %~ rGate /\
+             vUp %~ rUp /\
              (forall (r : natlt m) (c : natlt n).
                 acc2 eOut r c ==
-                  epilogue_cell (acc2 vP r (gate_col_idx n c)) (acc2 vP r (up_col_idx n c))))
-          (ensures eOut %~ real_epilogue n rP)
+                  epilogue_cell (acc2 vGate r c) (acc2 vUp r c)))
+          (ensures eOut %~ chest_comb real_swiglu rGate rUp)
   = introduce forall (r : natlt m) (c : natlt n).
-      acc2 eOut r c %~ acc2 (real_epilogue n rP) r c
+      acc2 eOut r c %~ acc2 (chest_comb real_swiglu rGate rUp) r c
     with (
-      let gc = gate_col_idx n c in
-      let uc = up_col_idx n c in
-      assert (acc2 vP r gc %~ acc2 rP r gc);
-      assert (acc2 vP r uc %~ acc2 rP r uc);
-      epilogue_cell_approx (acc2 vP r gc) (acc2 vP r uc) (acc2 rP r gc) (acc2 rP r uc)
+      assert (acc2 vGate r c %~ acc2 rGate r c);
+      assert (acc2 vUp r c %~ acc2 rUp r c);
+      epilogue_cell_approx
+        (acc2 vGate r c) (acc2 vUp r c)
+        (acc2 rGate r c) (acc2 rUp r c)
     );
-    lemma_approximates_intro eOut (real_epilogue n rP)
+    lemma_approximates_intro eOut (chest_comb real_swiglu rGate rUp)
 
 (* [converted_before n2 k r c] holds iff the row-major-flattened index of
    cell [(r,c)] (in the [n]-wide output) is strictly less than the linear
@@ -109,53 +91,56 @@ let converted_before_last (m n r c : nat)
     Math.distributivity_sub_right n m 1
 
 let epilogue_final_forall
-  (m n n2 : nat) (vOut : chest2 half m n) (vP : chest2 half m n2) (vOut0 : chest2 half m n)
-  (pf : squash (n2 == 2 * n /\ n % pair_group_n == 0))
+  (m n : nat)
+  (vOut vGate vUp vOut0 : chest2 half m n)
   : Lemma
       (requires
         (forall (r : natlt m) (c : natlt n).
            acc2 vOut r c ==
              (if converted_before n (m * n) r c
-              then epilogue_cell (acc2 vP r (gate_col_idx n c)) (acc2 vP r (up_col_idx n c))
+              then epilogue_cell (acc2 vGate r c) (acc2 vUp r c)
               else acc2 vOut0 r c)))
       (ensures
         forall (r : natlt m) (c : natlt n).
           acc2 vOut r c ==
-            epilogue_cell (acc2 vP r (gate_col_idx n c)) (acc2 vP r (up_col_idx n c)))
+            epilogue_cell (acc2 vGate r c) (acc2 vUp r c))
   = introduce forall (r : natlt m) (c : natlt n).
-      acc2 vOut r c == epilogue_cell (acc2 vP r (gate_col_idx n c)) (acc2 vP r (up_col_idx n c))
+      acc2 vOut r c == epilogue_cell (acc2 vGate r c) (acc2 vUp r c)
     with converted_before_last m n r c
 
 inline_for_extraction noextract
 fn epilogue
-  (#m #n #n2 : szp)
-  (#_ : squash (SZ.v n2 == 2 * SZ.v n))
-  (#_ : squash (SZ.v n % pair_group_n == 0))
-  (#_ : squash (SZ.fits (SZ.v m * SZ.v n)))
-  (gP : array2 half (rm m n2) { is_global gP })
+  (#m #n : szp)
+  (#_ : squash (SZ.fits (m * n)))
+  (gGate : array2 half (rm m n) { is_global gGate })
+  (gUp : array2 half (rm m n) { is_global gUp })
   (gOut : array2 half (rm m n) { is_global gOut })
-  (#fP : perm)
-  (#vP : chest2 half (SZ.v m) (SZ.v n2))
-  (#vOut0 : chest2 half (SZ.v m) (SZ.v n))
+  (#fGate #fUp : perm)
+  (#vGate #vUp #vOut0 : chest2 half m n)
   requires
-    gpu ** gP |-> Frac fP vP ** gOut |-> vOut0
+    gpu **
+    gGate |-> Frac fGate vGate **
+    gUp |-> Frac fUp vUp **
+    gOut |-> vOut0
   ensures
-    gpu ** gP |-> Frac fP vP **
-    (exists* (vOut : chest2 half (SZ.v m) (SZ.v n)).
+    gpu **
+    gGate |-> Frac fGate vGate **
+    gUp |-> Frac fUp vUp **
+    (exists* (vOut : chest2 half m n).
       gOut |-> vOut **
       pure (
-        forall (r : natlt (SZ.v m)) (c : natlt (SZ.v n)).
+        forall (r : natlt m) (c : natlt n).
           acc2 vOut r c ==
-            epilogue_cell
-              (acc2 vP r (gate_col_idx (SZ.v n) c))
-              (acc2 vP r (up_col_idx (SZ.v n) c))))
+            epilogue_cell (acc2 vGate r c) (acc2 vUp r c)))
 {
   let mut k : sz = 0sz;
   let kend = m *^ n;
 
   while (!k <^ kend)
     invariant
-      gpu ** gP |-> Frac fP vP **
+      gpu **
+      gGate |-> Frac fGate vGate **
+      gUp |-> Frac fUp vUp **
       live k **
       pure (!k <= kend) **
       (exists* (vOut : chest2 half m n).
@@ -164,7 +149,7 @@ fn epilogue
           forall (r : natlt m) (c : natlt n).
             acc2 vOut r c ==
               (if converted_before n !k r c
-               then epilogue_cell (acc2 vP r (gate_col_idx n c)) (acc2 vP r (up_col_idx n c))
+               then epilogue_cell (acc2 vGate r c) (acc2 vUp r c)
                else acc2 vOut0 r c)))
     decreases (kend - !k)
   {
@@ -176,19 +161,8 @@ fn epilogue
     lemma_div_bound kv m n;
     assert pure (ri < m);
     let ri : szlt m = ri;
-    let group : sz = ci /^ 64sz;
-    let pos : sz = ci %^ 64sz;
-    let gc0 : sz = (128sz *^ group) +^ pos;
-    let uc0 : sz = gc0 +^ 64sz;
-    lemma_gate_up_bound n ci;
-    assert pure (SZ.v gc0 == gate_col_of ci);
-    assert pure (SZ.v uc0 == up_col_of ci);
-    assert pure (SZ.v gc0 < SZ.v n2);
-    assert pure (SZ.v uc0 < SZ.v n2);
-    let gc : szlt n2 = gc0;
-    let uc : szlt n2 = uc0;
-    let gate_h = tensor_read gP (cidx2 ri gc);
-    let up_h = tensor_read gP (cidx2 ri uc);
+    let gate_h = tensor_read gGate (cidx2 ri ci);
+    let up_h = tensor_read gUp (cidx2 ri ci);
     let y = epilogue_cell gate_h up_h;
     tensor_write gOut (cidx2 ri ci) y;
     k := kv +^ 1sz;
@@ -196,5 +170,5 @@ fn epilogue
   };
 
   with vOut. assert (gOut |-> vOut);
-  epilogue_final_forall m n n2 vOut vP vOut0 ();
+  epilogue_final_forall m n vOut vGate vUp vOut0;
 }

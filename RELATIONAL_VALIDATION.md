@@ -75,6 +75,13 @@ combine instantiated to `fun old prod -> α·prod + β·old`.
   not apply or when distinguishing the runtime `sz` representation is genuinely
   important. Avoiding redundant `SZ.v` calls makes proof contracts substantially
   smaller and easier to audit.
+- **Keep physical packing in layouts, not mathematical specifications.** The
+  UGS witness models `W_gate` and `W_up` as two ordinary K-by-N matrices and
+  states SwiGLU directly over their two matmuls. `Klas.UGS.WeightViews` alone
+  knows that the reference stores those matrices in alternating 64-column
+  groups inside one allocation. Its disjoint views provide zero-copy logical
+  matrices to the verified kernel while keeping packing out of the audit-facing
+  functional contract.
 
 - Caught a B-indexing bug in `imp3.cu` (`b[k0 + k1*n + col]` should be
   `b[(k0+k1)*n + col]`).

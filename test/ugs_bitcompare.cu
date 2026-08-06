@@ -1,4 +1,4 @@
-#include "Klas_UGS_SwiGLU.h"
+#include "Klas_UGS_Packed.h"
 
 #include <cuda_fp16.h>
 #include <cuda_runtime.h>
@@ -106,7 +106,7 @@ int main(int argc, char **argv)
     fill_half(a, a_count, 2023);
     fill_half(w, w_count, 2022);
 
-    Klas_UGS_SwiGLU_swiglu(m, k, n, a, w, output);
+    Klas_UGS_Packed_swiglu(m, k, n, a, w, w, output);
 
     std::vector<half> actual(out_count);
     CUDA_CHECK(cudaMemcpy(actual.data(), output, out_count * sizeof(half),

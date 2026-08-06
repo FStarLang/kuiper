@@ -5,7 +5,7 @@ module Klas.UGS.Projection
    is the projection-side ("Pass 1" / [projection_wmma_kernel]) witness
    foundation for wmma_reference/wmma_ugs.cu:
 
-     FP16 row-major A[M,K] @ FP16 row-major W[K,2N] via m16n16k16 WMMA,
+     FP16 row-major A[M,K] @ a logical FP16 W[K,N] via m16n16k16 WMMA,
      FP32 accumulation initialized to zero, K tiles visited in increasing
      order, result rounded to FP16 via __float2half_rn.
 
@@ -36,8 +36,9 @@ module Klas.UGS.Projection
      - [(m / 64) * (n2 / 64) <= max_blocks] (2^21): the projection uses
        one CUDA block per 64x64 output tile, so this bounds the output
        size.
-     - [gA]/[gW] must be 16-byte aligned (true of any cudaMalloc'd
-       pointer).
+     - [gA] must be 16-byte aligned. [gW] may use any executable layout;
+       this wrapper materializes it into internal row-major scratch
+       before invoking the vectorized tensor-core implementation.
      - [gPf32], the FP32 scratch accumulator array, and [gP], the FP16
        output array, are caller-provided scratch: their contents on entry
        are irrelevant, since [spec] zero-initializes and *overwrites*
@@ -58,6 +59,7 @@ module Klas.UGS.Projection
 
 open Kuiper
 open Kuiper.Tensor
+open Kuiper.Tensor.Layout
 open Kuiper.Tensor.Layout.Alg { l2_row_major as rm }
 open Kuiper.TensorCore
 open Kuiper.Float.Casts.Base
@@ -69,6 +71,7 @@ module MS = Kuiper.Spec.GEMM
 inline_for_extraction noextract
 fn projection
   (m k n2 : szp)
+  (#lW : layout2 k n2) {| ctlayout lW |}
   (#_ : squash (SZ.fits (m * k)))
   (#_ : squash (SZ.fits (k * n2)))
   (#_ : squash (SZ.fits (m * n2)))
@@ -76,11 +79,10 @@ fn projection
   (#_ : squash (SZ.v k % 16 == 0))
   (#_ : squash (SZ.v n2 % 64 == 0))
   (gA : array2 half (rm m k) { is_global gA })
-  (gW : array2 half (rm k n2) { is_global gW })
+  (gW : array2 half lW { is_global gW })
   (gPf32 : array2 float (rm m n2) { is_global gPf32 })
   (gP : array2 half (rm m n2) { is_global gP })
   (#_ : squash (aligned 16 (core gA)))
-  (#_ : squash (aligned 16 (core gW)))
   (#eA : chest2 half m k)
   (#eW : chest2 half k n2)
   (#eC0 : chest2 float m n2)

@@ -197,6 +197,7 @@ fn array2_untile_approximates
 }
 
 #push-options "--split_queries no"
+#push-options "--ifuel 2 --initial_fuel 1 --max_fuel 2 --z3rlimit 50"
 
 ghost
 fn gather_warp
@@ -280,6 +281,11 @@ fn gather_warp
         output_fragment gD bm bn tm tn wm wn bid wid mi nj |-> eFrag **
         pure (eFrag %~ ematrix_subtile rWarp tm tn mi nj))
     fn mi nj {
+      Math.Lemmas.lemma_div_exact (wm * tm) tm;
+      Math.Lemmas.lemma_div_exact (wn * tn) tn;
+      assert pure ((wm * tm) / tm == wm);
+      assert pure ((wn * tn) / tn == wn);
+      assert pure (wid < bm / (wm * tm) * (bn / (wn * tn)));
       join_lane_cells_approximates
         (output_fragment gD bm bn tm tn wm wn bid wid mi nj)
         (ematrix_subtile rWarp tm tn mi nj);
@@ -311,6 +317,7 @@ fn gather_warp
       (wm * tm) (wn * tn) wid;
 }
 
+#pop-options
 #pop-options
 
 ghost
