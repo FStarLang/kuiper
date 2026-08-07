@@ -1045,6 +1045,15 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
     let dst_arr = EBufSub (cb dst_arr, cb dst_off) in
     let src_arr = EBufSub (cb src_arr, cb src_off) in
     EApp (EQualified ([], "vec_memcpy"), [ dst_arr; src_arr; ])
+  | "Kuiper.PipelineCopy.array_vec_cpy_pipelined",
+    [ et ],
+    [ _sized; _has_vec_cpy;
+      dst_arr; dst_off; _dst_slice_i; _dst_slice_j;
+      src_arr; src_off; _src_slice_i; _src_slice_j;
+      _f; _ss; _ds; _sq1; _sq2; _sq3; _sq4; _b ] ->
+    let dst_arr = EBufSub (cb dst_arr, cb dst_off) in
+    let src_arr = EBufSub (cb src_arr, cb src_off) in
+    EApp (EQualified ([], "vec_memcpy_pipe"), [ dst_arr; src_arr; ])
 
   (******** ATOMIC OPS ********)
 
@@ -1073,6 +1082,13 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
     _MUST <| EApp (EQualified ([], "cudaStreamSynchronize"), [ cb stream ])
   | "Kuiper.Kernel.Base.sync_device", [], [_unit; _frame; _p; _q; _justif] ->
     _MUST <| EApp (EQualified ([], "cudaDeviceSynchronize"), [ EUnit ])
+
+  (******** PIPELINE OPS ********)
+  (* NB: both of these return void, so they must NOT be wrapped in MUST. *)
+  | "Kuiper.PipelineCopy.pipeline_commit", [], [_batch] ->
+    EApp (EQualified ([], "__pipeline_commit"), [EUnit])
+  | "Kuiper.PipelineCopy.pipeline_wait_all_prior", [], [_batch] ->
+    EApp (EQualified ([], "__pipeline_wait_prior"), [EConstant (Krml.UInt64, "0")])
 
   (* Misc stuff missing from F*? Without these, they extract to names
      and depend on being linked with that module. *)

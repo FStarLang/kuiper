@@ -7,6 +7,8 @@ module Kuiper.Array2.Vectorized
 open Kuiper
 open Kuiper.Array.Vectorized
 open Kuiper.Chest
+open Kuiper.PipelineCopy
+open Pulse.Lib.Pledge
 
 open Kuiper.Tensor { array2, layout2, idx2 }
 open Kuiper.Array2.Strided
@@ -907,3 +909,125 @@ fn roarray2_vec_read
   assert pure (Seq.equal ds1 (Seq.init_ghost (chunk et) (fun x -> acc2 em i (j + x))));
   ();
 }
+
+(* ---------------------------------------------------------------- *)
+(* Pipelined (asynchronous) vectorized read.                          *)
+(*                                                                    *)
+(* Same shape as [array2_vec_read], but the copy is issued through    *)
+(* CUDA's single-threaded async-copy pipeline: nothing is readable    *)
+(* until the batch [b] has been committed and waited for. All the     *)
+(* ownership therefore comes back under a pledge on [batch_done b].   *)
+(* ---------------------------------------------------------------- *)
+
+(* Bridge from Kuiper's location-indexed sendability to the plain
+   [is_send] required by the pledge combinators. Any [visibility] [vis]
+   satisfies [vis (process_of l) == vis l], so [process_of l ==
+   process_of l'] implies [vis l == vis l']. *)
+let send_of_vis (#vis : Pulse.Lib.Array.Core.visibility) (#p : slprop)
+  (i : Pulse.Lib.Send.is_send_across vis p)
+  : Pulse.Lib.Send.is_send p
+  = fun l l' -> i l l'
+
+(* Specialization of the above that gives typeclass resolution a handle:
+   [a] fixes the visibility, so the instance search for [p] proceeds
+   structurally through [**] / [forall+] / [pts_to_slice]. *)
+let send_of_array (#et : Type0) (a : array et) (p : slprop)
+  {| i : Pulse.Lib.Send.is_send_across (visibility_of a) p |}
+  : Pulse.Lib.Send.is_send p
+  = send_of_vis i
+
+(* The part of [gm]'s ownership that [get_slice] leaves behind: every cell
+   of row [i] outside the [chunk et]-wide window at column [j], plus every
+   cell of every other row. *)
+unfold
+let read_residual
+  (#et:Type0) {| _sz : sized et |}
+  (#rows #cols : nat)
+  (#l : layout2 rows cols)
+  (gm : array2 et l)
+  (f : perm)
+  (em : chest2 et rows cols)
+  (i : natlt rows)
+  (j : nat)
+  (w : nat)
+  : slprop
+= (forall+ (x : natlt cols{all_but_window cols j w x}).
+     pts_to_cell (T.core gm) #f (cell_of_pos l i x) (acc2 em i x)) **
+  (forall+ (r : natlt rows { ~ (eq2 #(natlt rows) r i) } ) (c : natlt cols).
+     pts_to_cell (T.core gm) #f (cell_of_pos l r c) (acc2 em r c))
+
+#push-options "--z3rlimit 30"
+inline_for_extraction noextract
+fn array2_vec_read_pipelined
+  (#et:Type0) {| sized et, has_vec_cpy et |}
+  (#rows #cols : erased nat)
+  (#l : layout2 rows cols) {| T.ctlayout l, strided : strided_row_major (vtlayout_of_tlayout l) |}
+  (gm : array2 et l)
+  (i : szlt rows)
+  (j : szlt (cols - chunk et + 1))
+  (#f : perm)
+  (#em : chest2 et rows cols)
+  (arr : array et)
+  (#s : erased (seq et))
+  (#b : pipeline_batch_t)
+  preserves gpu
+  preserves batch_live b
+  requires  gm |-> Frac f em
+  requires  pure (aligned' 16 (T.core gm) (cell_of_pos l i j))
+  requires  pure (aligned 16 arr)
+  requires  arr |-> s
+  requires  pure (Pulse.Lib.Array.length arr == chunk et)
+  ensures   pledge0 (batch_done b)
+              ((gm |-> Frac f em) **
+               (arr |-> Seq.init_ghost (chunk et) (fun x -> acc2 em i (j + x))))
+{
+  Pulse.Lib.Array.pts_to_len arr;
+
+  get_slice gm i j;
+
+  strided.pf i j;
+  strided.pf i (j + chunk et - 1);
+
+  let offset = strided.offset +^ strided.stride *^ i +^ j;
+
+  array_to_slice arr;
+  (* [is_full_slice] is a [pure] fact under the hood; we re-derive it inside
+     the pledge with [slice_to_array_full], so it can be dropped here. *)
+  drop_ (is_full_slice arr (Seq.length s));
+
+  array_vec_cpy_pipelined arr 0sz (T.core gm) offset;
+
+  with s'. assert
+    pledge0 (batch_done b)
+      ((pts_to_slice arr 0 (Seq.length s) s') **
+       (pts_to_slice (T.core gm) #f (cell_of_pos l i j) (cell_of_pos l i j + chunk et)
+          (Seq.init_ghost (chunk et) (fun x -> acc2 em i (j + x)))));
+
+  assert pure (Seq.equal s' (Seq.init_ghost (chunk et) (fun x -> acc2 em i (j + x))));
+
+  return_pledge (batch_done b) (read_residual gm f em i j (chunk et))
+    #(send_of_array (T.core gm) _);
+
+  join_pledge
+    ((pts_to_slice arr 0 (Seq.length s) s') **
+     (pts_to_slice (T.core gm) #f (cell_of_pos l i j) (cell_of_pos l i j + chunk et)
+        (Seq.init_ghost (chunk et) (fun x -> acc2 em i (j + x)))))
+    (read_residual gm f em i j (chunk et));
+
+  rewrite_pledge
+    (((pts_to_slice arr 0 (Seq.length s) s') **
+      (pts_to_slice (T.core gm) #f (cell_of_pos l i j) (cell_of_pos l i j + chunk et)
+         (Seq.init_ghost (chunk et) (fun x -> acc2 em i (j + x))))) **
+     (read_residual gm f em i j (chunk et)))
+    ((gm |-> Frac f em) **
+     (arr |-> Seq.init_ghost (chunk et) (fun x -> acc2 em (SZ.v i) (SZ.v j + x))))
+    #emp_inames
+    fn _ {
+      unget_slice gm i j;
+      slice_to_array_full arr;
+      ();
+    };
+
+  ();
+}
+#pop-options
