@@ -747,6 +747,7 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
   | "Kuiper.Float16.Base.lte",  [], [] -> EOp (Lte, Float16)
   | "Kuiper.Float16.Base.largest",  [], [] -> EConstant (Float16, "HLF_MAX")
   | "Kuiper.Float16.Base.infinity", [], [] -> EConstant (Float16, "HLF_INFINITY")
+  | "Kuiper.Float16.Base.fisfinite", [], [] -> EQualified ([], "kpr_hfisfinite")
   | "Kuiper.Float16.Base.of_int", [], [i] -> EApp (EQualified ([], "__ll2half_rn"), [cb i])
   | "Kuiper.Float16.Base.of_literal", [], [s] ->
     begin match s.expr with
@@ -767,6 +768,7 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
   | "Kuiper.BFloat16.Base.lte",  [], [] -> EOp (Lte, BFloat16)
   | "Kuiper.BFloat16.Base.largest",  [], [] -> EConstant (BFloat16, "__ushort_as_bfloat16(0x7F7F);")
   | "Kuiper.BFloat16.Base.infinity", [], [] -> EConstant (BFloat16, "__float2bfloat16(INFINITY);")
+  | "Kuiper.BFloat16.Base.fisfinite", [], [] -> EQualified ([], "kpr_bffisfinite")
   | "Kuiper.BFloat16.Base.of_literal", [], [s] ->
     begin match s.expr with
     | MLE_Const (MLC_String v) -> EConstant (BFloat16, v)
@@ -788,6 +790,7 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
   | "Kuiper.Float32.Base.valid",  [], [] -> EQualified ([], "kpr_fisvalid")
   | "Kuiper.Float32.Base.largest",  [], [] -> EConstant (Float32, "FLT_MAX")
   | "Kuiper.Float32.Base.infinity", [], [] -> EConstant (Float32, "INFINITY")
+  | "Kuiper.Float32.Base.fisfinite", [], [] -> EQualified ([], "isfinite")
   | "Kuiper.Float32.Base.of_literal", [], [s] ->
     begin match s.expr with
     | MLE_Const (MLC_String v) -> EConstant (Float32, v)
@@ -807,6 +810,7 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
   | "Kuiper.Float64.Base.eq",   [], [] -> EOp (Eq, Float64)
   | "Kuiper.Float64.Base.largest",  [], [] -> EConstant (Float64, "DBL_MAX")
   | "Kuiper.Float64.Base.infinity", [], [] -> EConstant (Float64, "INFINITY")
+  | "Kuiper.Float64.Base.fisfinite", [], [] -> EQualified ([], "isfinite")
   | "Kuiper.Float64.Base.of_int", [], [i] -> ECast (cb i, TInt Float64)
   | "Kuiper.Float64.Base.of_literal", [], [s] ->
     begin match s.expr with

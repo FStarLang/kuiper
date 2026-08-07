@@ -82,13 +82,13 @@ class floating (t : Type) = {
           (ensures zero `sub` (zero `sub` x) == x)
           [SMTPat (zero `sub` (zero `sub` x))];
 
-  (* x < y <==> -y <= -x.  NOTE: This is sound because we identify +0 and -0.
+  (* x < y <==> -y < -x.  NOTE: This is sound because we identify +0 and -0.
      Under strict IEEE 754 with distinct signed zeros, this would fail:
      lt (-0) (+0) is false, but lte (0-(+0)) (0-(-0)) = lte 0 0 = true. *)
   #[easy_fill ()]
   lt_neg_flip : (x : t) -> (y : t) ->
     Lemma (requires ~(NaN? (kind x)) /\ ~(NaN? (kind y)))
-          (ensures lt x y <==> lte (zero `sub` y) (zero `sub` x))
+          (ensures lt x y <==> lt (zero `sub` y) (zero `sub` x))
           [SMTPat (lt x y)];
 
   (* x < y <==> not (y <= x) *)
@@ -189,4 +189,11 @@ class floating (t : Type) = {
      primitive for extraction purposes only. *)
   copysign : t -> t -> t;
   fma : t -> t -> t -> t;
+  
+  fisfinite : t -> bool;
+
+  #[easy_fill ()]
+  fisfinite_spec : (x: t) ->
+    Lemma (ensures fisfinite x <==> Finite? (kind x))
+          [SMTPat (fisfinite x)];
 }

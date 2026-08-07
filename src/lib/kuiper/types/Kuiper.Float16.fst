@@ -30,7 +30,7 @@ instance is_floating : floating t = {
   fexp; flog; sqrt; rsqrt; sin; cos; tan; asin; acos; atan;
   sinh; cosh; tanh; ceil; floor; round; fabs; erf; log2;
   log10; exp2; pow; atan2; fmin; fmax; fmod; copysign;
-  fma;
+  fma; fisfinite
 }
 
 (* Approximation semantics is assumed. *)
