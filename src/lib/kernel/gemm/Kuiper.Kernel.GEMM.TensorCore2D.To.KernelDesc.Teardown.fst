@@ -32,6 +32,138 @@ let div_mod_of_mul_add (n : pos) (i : nat) (j : natlt n)
     FStar.Math.Lemmas.lemma_mod_plus j i n;
     FStar.Math.Lemmas.small_mod j n
 
+(* [teardown_block_output]/[teardown_warp_output]/[teardown_lane_output] name
+   the real-valued expected tile at, respectively, the block/warp/lane
+   granularity: the corresponding subtile of the full [MS.mmcomb comb_r rC rA
+   rB] result.
+
+   These are deliberately *named* abbreviations rather than the equivalent
+   [ematrix_subtile (ematrix_subtile (MS.mmcomb comb_r rC rA rB) ...) ...]
+   terms written out inline at every call site. gather_output threads this
+   value (or a subtile of it) through half a dozen [forevery_*] combinator
+   calls; spelling it out inline at each of those call sites makes every one
+   of those calls compare two large, differently-nested-but-definitionally-
+   equal copies of the [MS.mmcomb]/[ematrix_subtile] term, which sends F*'s
+   core typechecker into a deep delta dive through the [chest]
+   representation over and over. Naming the term once and reusing the exact
+   same (folded) application everywhere keeps those comparisons a cheap,
+   linear head/argument match instead. This is the same fix already applied
+   to [Kuiper.Kernel.GEMM.TensorCore2D.To.Finish]'s [epilogue_warp_output];
+   see that module for the original profiling writeup. Do not inline these
+   definitions into a specification. *)
+let teardown_block_output_at
+  (comb_r : binop real)
+  (#m #n #k : szp)
+  (bm bn bk tm tn tk wm wn : szp {
+    constraints bm bn bk tm tn tk wm wn })
+  (#_ : squash (bm /?+ m /\ bn /?+ n))
+  (rA : chest2 real m k)
+  (rB : chest2 real k n)
+  (rC : chest2 real m n)
+  (br : natlt (m / bm))
+  (bc : natlt (n / bn))
+  : chest2 real bm bn
+= ematrix_subtile (MS.mmcomb comb_r rC rA rB) bm bn br bc
+
+let teardown_block_output
+  (comb_r : binop real)
+  (#m #n #k : szp)
+  (bm bn bk tm tn tk wm wn : szp {
+    constraints bm bn bk tm tn tk wm wn })
+  (#_ : squash (bm /?+ m /\ bn /?+ n))
+  (nblk : szp { SZ.v nblk == m / bm * (n / bn) })
+  (rA : chest2 real m k)
+  (rB : chest2 real k n)
+  (rC : chest2 real m n)
+  (bid : natlt nblk)
+  : chest2 real bm bn
+= teardown_block_output_at comb_r bm bn bk tm tn tk wm wn rA rB rC
+    (bid / (n / bn)) (bid % (n / bn))
+
+(* One-step unfolding bridge from [teardown_block_output] to
+   [teardown_block_output_at], analogous to [teardown_lane_is_warp_output]
+   above and needed for the same reason at the [gather_output]/[teardown_to]
+   block-level [forevery_factor'] call. *)
+let teardown_block_is_block_at
+  (comb_r : binop real)
+  (#m #n #k : szp)
+  (bm bn bk tm tn tk wm wn : szp {
+    constraints bm bn bk tm tn tk wm wn })
+  (#_ : squash (bm /?+ m /\ bn /?+ n))
+  (nblk : szp { SZ.v nblk == m / bm * (n / bn) })
+  (rA : chest2 real m k)
+  (rB : chest2 real k n)
+  (rC : chest2 real m n)
+  (bid : natlt nblk)
+  : Lemma (teardown_block_output comb_r bm bn bk tm tn tk wm wn
+             nblk rA rB rC bid
+           == teardown_block_output_at comb_r bm bn bk tm tn tk wm wn
+             rA rB rC (bid / (n / bn)) (bid % (n / bn)))
+  = ()
+
+let teardown_warp_output
+  (comb_r : binop real)
+  (#m #n #k : szp)
+  (bm bn bk tm tn tk wm wn : szp {
+    constraints bm bn bk tm tn tk wm wn })
+  (#_ : squash (bm /?+ m /\ bn /?+ n))
+  (nblk : szp { SZ.v nblk == m / bm * (n / bn) })
+  (rA : chest2 real m k)
+  (rB : chest2 real k n)
+  (rC : chest2 real m n)
+  (bid : natlt nblk)
+  (wid : natlt (bm / (wm * tm) * (bn / (wn * tn))))
+  : chest2 real (wm * tm) (wn * tn)
+= ematrix_subtile
+    (teardown_block_output comb_r bm bn bk tm tn tk wm wn nblk rA rB rC bid)
+    (wm * tm) (wn * tn)
+    (wid / (bn / (wn * tn)))
+    (wid % (bn / (wn * tn)))
+
+let teardown_lane_output
+  (comb_r : binop real)
+  (#m #n #k : szp)
+  (bm bn bk tm tn tk wm wn : szp {
+    constraints bm bn bk tm tn tk wm wn })
+  (#_ : squash (bm /?+ m /\ bn /?+ n))
+  (nblk : szp { SZ.v nblk == m / bm * (n / bn) })
+  (nthr : szp {
+    SZ.v nthr == bm / (wm * tm) * (bn / (wn * tn)) * warp_size })
+  (rA : chest2 real m k)
+  (rB : chest2 real k n)
+  (rC : chest2 real m n)
+  (bid : natlt nblk)
+  (tid : natlt nthr)
+  : chest2 real (wm * tm) (wn * tn)
+= teardown_warp_output comb_r bm bn bk tm tn tk wm wn nblk rA rB rC bid
+    (tid / warp_size)
+
+(* [teardown_lane_output] is defined as exactly [teardown_warp_output] applied
+   to [tid / warp_size]; this one-step unfolding lemma lets call sites bridge
+   between the two named forms with a single cheap [()] proof (a definitional
+   unfold at the F* typechecker level) instead of asking the ambient SMT query
+   to rediscover that fact on its own (which, since neither name carries the
+   [unfold] qualifier, it does not do automatically). *)
+let teardown_lane_is_warp_output
+  (comb_r : binop real)
+  (#m #n #k : szp)
+  (bm bn bk tm tn tk wm wn : szp {
+    constraints bm bn bk tm tn tk wm wn })
+  (#_ : squash (bm /?+ m /\ bn /?+ n))
+  (nblk : szp { SZ.v nblk == m / bm * (n / bn) })
+  (nthr : szp {
+    SZ.v nthr == bm / (wm * tm) * (bn / (wn * tn)) * warp_size })
+  (rA : chest2 real m k)
+  (rB : chest2 real k n)
+  (rC : chest2 real m n)
+  (bid : natlt nblk)
+  (tid : natlt nthr)
+  : Lemma (teardown_lane_output comb_r bm bn bk tm tn tk wm wn
+             nblk nthr rA rB rC bid tid
+           == teardown_warp_output comb_r bm bn bk tm tn tk wm wn
+             nblk rA rB rC bid (tid / warp_size))
+  = ()
+
 #push-options "--ifuel 1 --initial_fuel 0 --max_fuel 1 --z3rlimit 15"
 
 let in_lane_covers_all
@@ -440,12 +572,8 @@ fn gather_output
   requires
     (forall+ (bid : natlt nblk) (tid : natlt nthr).
       output_lane_approximates gD bm bn tm tn wm wn bid tid
-        (ematrix_subtile
-          (ematrix_subtile (MS.mmcomb comb_r rC rA rB)
-            bm bn (bid / (n / bn)) (bid % (n / bn)))
-          (wm * tm) (wn * tn)
-          ((tid / warp_size) / (bn / (wn * tn)))
-          ((tid / warp_size) % (bn / (wn * tn))))) **
+        (teardown_lane_output comb_r bm bn bk tm tn tk wm wn
+          nblk nthr rA rB rC bid tid)) **
     pure (SZ.fits ((rm m n).ulen))
   ensures
     exists* (eD : chest2 et_cd m n).
@@ -455,83 +583,75 @@ fn gather_output
     (fun (bid : natlt nblk) ->
       forall+ (tid : natlt nthr).
         output_lane_approximates gD bm bn tm tn wm wn bid tid
-          (ematrix_subtile
-            (ematrix_subtile (MS.mmcomb comb_r rC rA rB)
-              bm bn (bid / (n / bn)) (bid % (n / bn)))
-            (wm * tm) (wn * tn)
-            ((tid / warp_size) / (bn / (wn * tn)))
-            ((tid / warp_size) % (bn / (wn * tn)))))
+          (teardown_lane_output comb_r bm bn bk tm tn tk wm wn
+            nblk nthr rA rB rC bid tid))
     (fun (bid : natlt nblk) ->
       exists* (eBlock : chest2 et_cd bm bn).
         block_tile gD (SZ.v bm) (SZ.v bn) bid |-> eBlock **
         pure (eBlock %~
-          ematrix_subtile (MS.mmcomb comb_r rC rA rB)
-            bm bn (bid / (n / bn)) (bid % (n / bn))))
+          teardown_block_output comb_r bm bn bk tm tn tk wm wn
+            nblk rA rB rC bid))
     fn bid {
-      forevery_ext
+      forevery_map
+        #(natlt nthr)
         (fun (tid : natlt nthr) ->
           output_lane_approximates gD bm bn tm tn wm wn bid tid
-            (ematrix_subtile
-              (ematrix_subtile (MS.mmcomb comb_r rC rA rB)
-                bm bn (bid / (n / bn)) (bid % (n / bn)))
-              (wm * tm) (wn * tn)
-              ((tid / warp_size) / (bn / (wn * tn)))
-              ((tid / warp_size) % (bn / (wn * tn)))))
+            (teardown_lane_output comb_r bm bn bk tm tn tk wm wn
+              nblk nthr rA rB rC bid tid))
         (fun (tid : natlt nthr) ->
           output_lane_approximates gD bm bn tm tn wm wn bid
             ((tid / warp_size) * warp_size + tid % warp_size)
-            (ematrix_subtile
-              (ematrix_subtile (MS.mmcomb comb_r rC rA rB)
-                bm bn (bid / (n / bn)) (bid % (n / bn)))
-              (wm * tm) (wn * tn)
-              ((tid / warp_size) / (bn / (wn * tn)))
-              ((tid / warp_size) % (bn / (wn * tn)))));
+            (teardown_warp_output comb_r bm bn bk tm tn tk wm wn
+              nblk rA rB rC bid (tid / warp_size)))
+        fn tid {
+          (* Bridge from the lane-indexed named form to the warp-indexed
+             named form with one cheap definitional-unfold lemma, instead of
+             letting the ambient SMT query try (and fail within budget) to
+             discover [teardown_lane_output ... tid == teardown_warp_output
+             ... (tid / warp_size)] on its own. *)
+          teardown_lane_is_warp_output comb_r bm bn bk tm tn tk wm wn
+            nblk nthr rA rB rC bid tid;
+          FStar.Math.Lemmas.euclidean_division_definition tid warp_size;
+          rewrite each
+            output_lane_approximates gD bm bn tm tn wm wn bid tid
+              (teardown_lane_output comb_r bm bn bk tm tn tk wm wn
+                nblk nthr rA rB rC bid tid)
+          as
+            output_lane_approximates gD bm bn tm tn wm wn bid
+              ((tid / warp_size) * warp_size + tid % warp_size)
+              (teardown_warp_output comb_r bm bn bk tm tn tk wm wn
+                nblk rA rB rC bid (tid / warp_size));
+        };
       forevery_factor' nthr (nthr / warp_size) warp_size
         (fun wid lane ->
           output_lane_approximates gD bm bn tm tn wm wn bid
             (wid * warp_size + lane)
-            (ematrix_subtile
-              (ematrix_subtile (MS.mmcomb comb_r rC rA rB)
-                bm bn (bid / (n / bn)) (bid % (n / bn)))
-              (wm * tm) (wn * tn)
-              (wid / (bn / (wn * tn)))
-              (wid % (bn / (wn * tn)))));
+            (teardown_warp_output comb_r bm bn bk tm tn tk wm wn
+              nblk rA rB rC bid wid));
       forevery_map
         (fun (wid : natlt (nthr / warp_size)) ->
           forall+ (lane : natlt warp_size).
             output_lane_approximates gD bm bn tm tn wm wn bid
               (wid * warp_size + lane)
-              (ematrix_subtile
-                (ematrix_subtile (MS.mmcomb comb_r rC rA rB)
-                  bm bn (bid / (n / bn)) (bid % (n / bn)))
-                (wm * tm) (wn * tn)
-                (wid / (bn / (wn * tn)))
-                (wid % (bn / (wn * tn)))))
+              (teardown_warp_output comb_r bm bn bk tm tn tk wm wn
+                nblk rA rB rC bid wid))
         (fun (wid : natlt (nthr / warp_size)) ->
           exists* (eWarp : chest2 et_cd (wm * tm) (wn * tn)).
             warp_tile (block_tile gD (SZ.v bm) (SZ.v bn) bid)
               (wm * tm) (wn * tn) wid |-> eWarp **
             pure (eWarp %~
-              ematrix_subtile
-                (ematrix_subtile (MS.mmcomb comb_r rC rA rB)
-                  bm bn (bid / (n / bn)) (bid % (n / bn)))
-                (wm * tm) (wn * tn)
-                (wid / (bn / (wn * tn)))
-                (wid % (bn / (wn * tn)))))
+              teardown_warp_output comb_r bm bn bk tm tn tk wm wn
+                nblk rA rB rC bid wid))
         fn wid {
           gather_warp gD bm bn bk tm tn tk wm wn
             nblk nthr bid wid
-            (ematrix_subtile
-              (ematrix_subtile (MS.mmcomb comb_r rC rA rB)
-                bm bn (bid / (n / bn)) (bid % (n / bn)))
-              (wm * tm) (wn * tn)
-              (wid / (bn / (wn * tn)))
-              (wid % (bn / (wn * tn))));
+            (teardown_warp_output comb_r bm bn bk tm tn tk wm wn
+              nblk rA rB rC bid wid);
         };
       gather_block gD bm bn bk tm tn tk wm wn
         nblk nthr bid
-        (ematrix_subtile (MS.mmcomb comb_r rC rA rB)
-          bm bn (bid / (n / bn)) (bid % (n / bn)));
+        (teardown_block_output comb_r bm bn bk tm tn tk wm wn
+          nblk rA rB rC bid);
     };
   forevery_map
     #(natlt nblk)
@@ -539,17 +659,36 @@ fn gather_output
       exists* (eBlock : chest2 et_cd bm bn).
         block_tile gD (SZ.v bm) (SZ.v bn) bid |-> eBlock **
         pure (eBlock %~
-          ematrix_subtile (MS.mmcomb comb_r rC rA rB)
-            bm bn (bid / (n / bn)) (bid % (n / bn))))
+          teardown_block_output comb_r bm bn bk tm tn tk wm wn
+            nblk rA rB rC bid))
     (fun (bid : natlt nblk) ->
       exists* (eBlock : chest2 et_cd bm bn).
         block_tile gD (SZ.v bm) (SZ.v bn)
           ((bid / (n / bn)) * (n / bn) + bid % (n / bn)) |-> eBlock **
         pure (eBlock %~
-          ematrix_subtile (MS.mmcomb comb_r rC rA rB)
-            bm bn (bid / (n / bn)) (bid % (n / bn))))
+          teardown_block_output_at comb_r bm bn bk tm tn tk wm wn
+            rA rB rC (bid / (n / bn)) (bid % (n / bn))))
     fn bid {
+      (* Bridge from the block-indexed named form to the (br,bc)-indexed
+         named form with one cheap definitional-unfold lemma, mirroring
+         [teardown_lane_is_warp_output] above, before the ambient index is
+         also rearranged so it lines up with [forevery_factor']'s shape. *)
+      teardown_block_is_block_at comb_r bm bn bk tm tn tk wm wn
+        nblk rA rB rC bid;
+      rewrite each
+        teardown_block_output comb_r bm bn bk tm tn tk wm wn nblk rA rB rC bid
+      as
+        teardown_block_output_at comb_r bm bn bk tm tn tk wm wn
+          rA rB rC (bid / (n / bn)) (bid % (n / bn));
       FStar.Math.Lemmas.euclidean_division_definition bid (n / bn);
+      (* This rewrite reports "No rewrites performed" (a harmless warning,
+         not an error): Pulse's rewrite tactic doesn't find a *syntactic*
+         [bid] occurrence to replace here (the name-swap rewrite above
+         already normalized the [pure] conjunct), but retaining the call
+         still matters -- removing it changes how Pulse discharges the
+         final index-equality obligation on the [block_tile gD ... bid]
+         hypothesis against this branch's [(bid/(n/bn))*(n/bn)+bid%(n/bn)]
+         postcondition index, and doing so causes verification to fail. *)
       rewrite each bid as
         ((bid / (n / bn)) * (n / bn) + bid % (n / bn));
     };
@@ -559,7 +698,8 @@ fn gather_output
         block_tile gD (SZ.v bm) (SZ.v bn)
           (br * (n / bn) + bc) |-> eBlock **
         pure (eBlock %~
-          ematrix_subtile (MS.mmcomb comb_r rC rA rB) bm bn br bc));
+          teardown_block_output_at comb_r bm bn bk tm tn tk wm wn
+            rA rB rC br bc));
   forevery_map_2
     #(natlt (m / bm)) #(natlt (n / bn))
     (fun br bc ->
@@ -567,12 +707,14 @@ fn gather_output
         block_tile gD (SZ.v bm) (SZ.v bn)
           (br * (n / bn) + bc) |-> eBlock **
         pure (eBlock %~
-          ematrix_subtile (MS.mmcomb comb_r rC rA rB) bm bn br bc))
+          teardown_block_output_at comb_r bm bn bk tm tn tk wm wn
+            rA rB rC br bc))
     (fun br bc ->
       exists* (eBlock : chest2 et_cd bm bn).
         array2_subtile gD (SZ.v bm) (SZ.v bn) br bc |-> eBlock **
         pure (eBlock %~
-          ematrix_subtile (MS.mmcomb comb_r rC rA rB) bm bn br bc))
+          teardown_block_output_at comb_r bm bn bk tm tn tk wm wn
+            rA rB rC br bc))
     fn br bc {
       div_mod_of_mul_add (n / bn) br bc;
       rewrite each block_tile gD (SZ.v bm) (SZ.v bn)
@@ -641,12 +783,8 @@ let teardown_inputs_post
   gC |-> Frac fC eC **
   (forall+ (bid : natlt nblk) (tid : natlt nthr).
     output_lane_approximates gD bm bn tm tn wm wn bid tid
-      (ematrix_subtile
-        (ematrix_subtile (MS.mmcomb comb_r rC rA rB)
-          bm bn (bid / (n / bn)) (bid % (n / bn)))
-        (wm * tm) (wn * tn)
-        ((tid / warp_size) / (bn / (wn * tn)))
-        ((tid / warp_size) % (bn / (wn * tn))))) **
+      (teardown_lane_output comb_r bm bn bk tm tn tk wm wn
+        nblk nthr rA rB rC bid tid)) **
   pure (SZ.fits ((rm m n).ulen))
 
 ghost
@@ -704,16 +842,27 @@ fn gather_kernel_outputs
       gC |-> Frac (fC /. (nblk * nthr)) eC **
       output_lane_approximates
         gD bm bn tm tn wm wn bid tid
+        (teardown_lane_output comb_r bm bn bk tm tn tk wm wn
+          nblk nthr rA rB rC bid tid))
+    fn bid tid {
+      unfold kpost1_to comb_r gA eA gB eB gC eC gD
+        bm bn bk tm tn tk wm wn fA fB fC rA rB rC
+        nblk nthr bid tid;
+      (* [kpost1_to] unfolds to the spelled-out nested [ematrix_subtile]
+         term (it has to stay [unfold] for its many other call sites); fold
+         it back into the named abbreviation here, once, so every
+         subsequent step below deals with the small, opaque
+         [teardown_lane_output] application instead. *)
+      rewrite each
         (ematrix_subtile
           (ematrix_subtile (MS.mmcomb comb_r rC rA rB)
             bm bn (bid / (n / bn)) (bid % (n / bn)))
           (wm * tm) (wn * tn)
           ((tid / warp_size) / (bn / (wn * tn)))
-          ((tid / warp_size) % (bn / (wn * tn)))))
-    fn bid tid {
-      unfold kpost1_to comb_r gA eA gB eB gC eC gD
-        bm bn bk tm tn tk wm wn fA fB fC rA rB rC
-        nblk nthr bid tid;
+          ((tid / warp_size) % (bn / (wn * tn))))
+      as
+        teardown_lane_output comb_r bm bn bk tm tn tk wm wn
+          nblk nthr rA rB rC bid tid;
     };
   forevery_unzip_2
     #(natlt nblk)
@@ -724,12 +873,8 @@ fn gather_kernel_outputs
       gC |-> Frac (fC /. (nblk * nthr)) eC **
       output_lane_approximates
         gD bm bn tm tn wm wn bid tid
-        (ematrix_subtile
-          (ematrix_subtile (MS.mmcomb comb_r rC rA rB)
-            bm bn (bid / (n / bn)) (bid % (n / bn)))
-          (wm * tm) (wn * tn)
-          ((tid / warp_size) / (bn / (wn * tn)))
-          ((tid / warp_size) % (bn / (wn * tn)))));
+        (teardown_lane_output comb_r bm bn bk tm tn tk wm wn
+          nblk nthr rA rB rC bid tid));
   forevery_unzip_2
     #(natlt nblk)
     #(natlt nthr)
@@ -738,12 +883,8 @@ fn gather_kernel_outputs
       gC |-> Frac (fC /. (nblk * nthr)) eC **
       output_lane_approximates
         gD bm bn tm tn wm wn bid tid
-        (ematrix_subtile
-          (ematrix_subtile (MS.mmcomb comb_r rC rA rB)
-            bm bn (bid / (n / bn)) (bid % (n / bn)))
-          (wm * tm) (wn * tn)
-          ((tid / warp_size) / (bn / (wn * tn)))
-          ((tid / warp_size) % (bn / (wn * tn)))));
+        (teardown_lane_output comb_r bm bn bk tm tn tk wm wn
+          nblk nthr rA rB rC bid tid));
   forevery_unzip_2
     #(natlt nblk)
     #(natlt nthr)
@@ -751,12 +892,8 @@ fn gather_kernel_outputs
     (fun bid tid ->
       output_lane_approximates
         gD bm bn tm tn wm wn bid tid
-        (ematrix_subtile
-          (ematrix_subtile (MS.mmcomb comb_r rC rA rB)
-            bm bn (bid / (n / bn)) (bid % (n / bn)))
-          (wm * tm) (wn * tn)
-          ((tid / warp_size) / (bn / (wn * tn)))
-          ((tid / warp_size) % (bn / (wn * tn)))));
+        (teardown_lane_output comb_r bm bn bk tm tn tk wm wn
+          nblk nthr rA rB rC bid tid));
 
   forevery_unfactor' (nblk * nthr) nblk nthr
     (fun _ _ -> gA |-> Frac (fA /. (nblk * nthr)) eA);

@@ -814,6 +814,25 @@ fn reconstruct_from_warp_approx
     exists* (eC' : chest2 et_c m n).
       gC |-> eC' ** pure (eC' %~ MS.gmmcomb mapA mapB comb rC rA rB)
 {
+  (* Name the two [wt_target ...] shapes used repeatedly below (11 literal
+     occurrences originally: 6 with the [(tid / warp_size)] argument, 5 with
+     [wid]). Each occurrence is a large application (through [Chest.chest_comb]
+     / [MS.matmul] / [ematrix_subtile] / [warp_tile_i]/[warp_tile_j]) that
+     forced F* to re-elaborate/re-compare the same huge term at every one of
+     the several [forevery_map]/[forevery_map_2]/[forevery_exists_2] call
+     sites below. Binding it once here and reusing the name keeps every
+     subsequent reference (the ones we control, i.e. everywhere except the
+     very first [forevery_map_2] precondition below, which must literally
+     match the ambient hypothesis coming from this function's own [requires])
+     a cheap name match instead. Same technique already applied to
+     [output_fragment] in [Kuiper.Kernel.GEMM.TensorCore2D.To.KernelDesc.fst]
+     ([split_output_to_lanes]). *)
+  let wtb_tid = (fun (bid : natlt nblk) (tid : natlt nthr) ->
+    wt_target mapA mapB comb bm bn bk tm tn tk wm wn rA rB rC nthr bid (tid / warp_size));
+  let wtb_wid = (fun (bid : natlt nblk) (wid : natlt (nthr / warp_size)) ->
+    wt_target mapA mapB comb bm bn bk tm tn tk wm wn rA rB rC nthr bid wid);
+
+
   (* Expose the existential. *)
   forevery_map_2 #(natlt nblk) #(natlt nthr)
     (fun bid tid ->
@@ -822,8 +841,7 @@ fn reconstruct_from_warp_approx
     (fun bid tid ->
       exists* (em : chest2 et_c (wm*tm) (wn*tn)).
         warp_tile_pts_to gC bm bn tm tn wm wn bid (tid / warp_size) em **
-        pure (em %~
-          (wt_target mapA mapB comb bm bn bk tm tn tk wm wn rA rB rC nthr bid (tid / warp_size))))
+        pure (em %~ (wtb_tid bid tid)))
     fn bid tid {
       unfold warp_tile_approximates gC bm bn tm tn wm wn bid (tid / warp_size)
         (wt_target mapA mapB comb bm bn bk tm tn tk wm wn rA rB rC nthr bid (tid / warp_size));
@@ -833,21 +851,36 @@ fn reconstruct_from_warp_approx
   let emf = forevery_exists_2
     (fun (bid : natlt nblk) (tid : natlt nthr) (em : chest2 et_c (wm*tm) (wn*tn)) ->
         warp_tile_pts_to gC bm bn tm tn wm wn bid (tid / warp_size) em **
-        pure (em %~
-          (wt_target mapA mapB comb bm bn bk tm tn tk wm wn rA rB rC nthr bid (tid / warp_size))));
+        pure (em %~ (wtb_tid bid tid)));
 
   (* Threads within a warp are uniform, factor and gather. *)
   forevery_map #(natlt nblk)
     (fun bid -> forall+ (tid : natlt nthr).
       warp_tile_pts_to gC bm bn tm tn wm wn bid (tid / warp_size) (emf bid tid) **
-      pure (emf bid tid %~
-        (wt_target mapA mapB comb bm bn bk tm tn tk wm wn rA rB rC nthr bid (tid / warp_size))))
+      pure (emf bid tid %~ (wtb_tid bid tid)))
     (fun bid -> forall+ (wid : natlt (nthr / warp_size)).
       warp_tile_pts_to_full gC bm bn tm tn wm wn bid wid (emf bid (wid * warp_size)) **
-      pure (emf bid (wid * warp_size) %~
-        (wt_target mapA mapB comb bm bn bk tm tn tk wm wn rA rB rC nthr bid wid)))
+      pure (emf bid (wid * warp_size) %~ (wtb_wid bid wid)))
     fn bid {
+      (* [rhs_is_constant_for_warps_approx]'s [requires] clause spells
+         [wt_target ...] out literally, so bridge back from the [wtb_tid]
+         abbreviation used above (cheap: definitional unfolding only, no
+         re-elaboration of the large term). *)
+      forevery_ext #(natlt nthr)
+        (fun tid ->
+          warp_tile_pts_to gC bm bn tm tn wm wn bid (tid / warp_size) (emf bid tid) **
+          pure (emf bid tid %~ (wtb_tid bid tid)))
+        (fun tid ->
+          warp_tile_pts_to gC bm bn tm tn wm wn bid (tid / warp_size) (emf bid tid) **
+          pure (emf bid tid %~ (wt_target mapA mapB comb bm bn bk tm tn tk wm wn rA rB rC nthr bid (tid / warp_size))));
       rhs_is_constant_for_warps_approx gC eA eB eC bm bn bk tm tn tk wm wn nblk nthr mapA mapB comb rA rB rC bid (emf bid);
+      forevery_ext #(natlt (nthr / warp_size))
+        (fun wid ->
+          warp_tile_pts_to_full gC bm bn tm tn wm wn bid wid (emf bid (wid * warp_size)) **
+          pure (emf bid (wid * warp_size) %~ (wt_target mapA mapB comb bm bn bk tm tn tk wm wn rA rB rC nthr bid wid)))
+        (fun wid ->
+          warp_tile_pts_to_full gC bm bn tm tn wm wn bid wid (emf bid (wid * warp_size)) **
+          pure (emf bid (wid * warp_size) %~ (wtb_wid bid wid)));
     };
 
   (* Now reconstruct the full matrix from the big tiles. *)
@@ -857,25 +890,21 @@ fn reconstruct_from_warp_approx
     #(natlt nblk) #(natlt (nthr / warp_size))
     (fun bid wid ->
       warp_tile_pts_to_full gC bm bn tm tn wm wn bid wid (emf bid (wid * warp_size)) **
-      pure (emf bid (wid * warp_size) %~
-        (wt_target mapA mapB comb bm bn bk tm tn tk wm wn rA rB rC nthr bid wid)))
+      pure (emf bid (wid * warp_size) %~ (wtb_wid bid wid)))
     (fun bid wid ->
-      emf bid (wid * warp_size) %~
-        (wt_target mapA mapB comb bm bn bk tm tn tk wm wn rA rB rC nthr bid wid))
+      emf bid (wid * warp_size) %~ (wtb_wid bid wid))
     fn bid wid {
       ();
     };
   assert pure (forall (bid : natlt nblk) (wid : natlt (nthr / warp_size)).
-    emf bid (wid * warp_size) %~
-      (wt_target mapA mapB comb bm bn bk tm tn tk wm wn rA rB rC nthr bid wid));
+    emf bid (wid * warp_size) %~ (wtb_wid bid wid));
 
   (* Now drop the pures. *)
   forevery_map_2
     #(natlt nblk) #(natlt (nthr / warp_size))
     (fun bid wid ->
       warp_tile_pts_to_full gC bm bn tm tn wm wn bid wid (emf bid (wid * warp_size)) **
-      pure (emf bid (wid * warp_size) %~
-        (wt_target mapA mapB comb bm bn bk tm tn tk wm wn rA rB rC nthr bid wid)))
+      pure (emf bid (wid * warp_size) %~ (wtb_wid bid wid)))
     (fun bid wid ->
       // warp_tile_pts_to_full gC bm bn tm tn wm wn bid wid (emf bid (wid * warp_size)))
       // tensor_pts_to

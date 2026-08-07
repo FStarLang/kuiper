@@ -196,27 +196,50 @@ fn split_output_to_lanes
                   (output_fragment gD bm bn tm tn wm wn bid wid mi nj)
                   lane)
             fn mi nj {
+              (* Name this application once, matching the [dBlock]/[dWarp]
+                 convention used above: [output_fragment gD bm bn tm tn wm wn
+                 bid wid mi nj] was previously spelled out inline at every
+                 one of the (originally 5) occurrences below, forcing F* to
+                 re-elaborate/re-compare this squash-carrying application
+                 (including its implicit refinement argument) from scratch
+                 at each site. Profiling this function with --query_stats
+                 showed the single most expensive query in the whole file
+                 (~24.8s) was exactly the innermost [fold live_lane_cells
+                 (output_fragment ...) lane] below, immediately after two
+                 other ~5-8s occurrences of the same application just above
+                 it. Binding [frag] once and reusing it keeps every
+                 subsequent reference a cheap name match instead. Same fix
+                 already applied to the analogous [teardown_*_output_at]
+                 abbreviations in
+                 Kuiper.Kernel.GEMM.TensorCore2D.To.KernelDesc.Teardown. *)
+              let frag = output_fragment gD bm bn tm tn wm wn bid wid mi nj;
               rewrite each
                 array2_subtile dWarp (SZ.v tm) (SZ.v tn) mi nj
-                as output_fragment gD bm bn tm tn wm wn bid wid mi nj;
-              split_array2_into_lane_cells
-                (output_fragment gD bm bn tm tn wm wn bid wid mi nj);
+                as frag;
+              split_array2_into_lane_cells frag;
               forevery_map
                 (fun lane ->
                   own_lane_cells
-                    (output_fragment gD bm bn tm tn wm wn
-                      bid wid mi nj)
+                    frag
                     (ematrix_subtile eWarp tm tn mi nj)
                     lane)
+                (fun lane -> live_lane_cells frag lane)
+                fn lane {
+                  fold live_lane_cells frag lane;
+                };
+              (* Convert back to the literal [output_fragment ...] form the
+                 enclosing [forevery_map_2]'s declared postcondition (above)
+                 is stated in terms of. Unlike the occurrences replaced by
+                 [frag] above, this equality is a single cheap unfold of the
+                 local let-binding (not a re-derivation of [output_fragment]'s
+                 squash argument), so doing it once here is far cheaper than
+                 the many inline occurrences it replaces. *)
+              forevery_ext
+                (fun lane -> live_lane_cells frag lane)
                 (fun lane ->
                   live_lane_cells
                     (output_fragment gD bm bn tm tn wm wn bid wid mi nj)
-                    lane)
-                fn lane {
-                  fold live_lane_cells
-                    (output_fragment gD bm bn tm tn wm wn bid wid mi nj)
-                    lane;
-                };
+                    lane);
             };
 
           forevery_map

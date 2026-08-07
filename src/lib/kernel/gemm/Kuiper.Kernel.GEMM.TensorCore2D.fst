@@ -1033,7 +1033,12 @@ ensures
   ()
 }
 
-#push-options "--z3rlimit 100"
+(* This lemma's single VC reliably fails the default fuel-0 attempt (burning
+   ~62s of its ~77s total wall time hitting the z3rlimit before F*'s
+   automatic retry logic re-tries at fuel 1, where it succeeds in ~14s).
+   Setting [--fuel 1 --ifuel 1] explicitly skips straight to the fuel level
+   that actually succeeds, avoiding that wasted first attempt entirely. *)
+#push-options "--z3rlimit 100 --fuel 1 --ifuel 1"
 let loop_invariant_lemma
   (m n k : nat)
   (bm bn bk
@@ -1443,6 +1448,14 @@ fn ktile_advance
 #pop-options
 
 #restart-solver
+(* At least two statements in [kf] (the [rewrite each sarA/sarB as fst
+   sh/fst (snd sh)] pair near the end, folding the shared-memory arrays back
+   into [sh]) reliably fail their default fuel-0 attempt -- one burns ~33.5s
+   before F*'s automatic retry succeeds at fuel 1 in ~1.3s, wasting ~32s of
+   wall time for nothing. Setting [--fuel 1 --ifuel 1] explicitly (matching
+   what [mk_kernel] below already does, and what these retries already prove
+   sufficient) skips that wasted first attempt for the whole function. *)
+#push-options "--fuel 1 --ifuel 1"
 inline_for_extraction noextract
 fn kf
   (#et_ab #et_c : Type0)
@@ -1799,6 +1812,7 @@ fn kf
 
   ()
 }
+#pop-options
 
 #restart-solver
 #push-options "--fuel 1 --ifuel 1 --split_queries no --z3rlimit_factor 10"
