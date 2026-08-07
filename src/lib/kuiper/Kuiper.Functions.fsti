@@ -17,14 +17,16 @@ let is_ac (#a:Type) (f : a -> a -> a) : prop =
 let is_neutral_for (#a:Type) (e : a) (f : a -> a -> a) : prop =
   forall x. f e x == x /\ f x e == x
 
-let is_semigroup (#a:Type) (e:a) (f : a -> a -> a) : prop =
-  is_associative f /\ is_neutral_for e f
+(* A semigroup is just an associative operation: no neutral element required. *)
+let is_semigroup (#a:Type) (f : a -> a -> a) : prop =
+  is_associative f
 
-let is_comm_semigroup (#a:Type) (e:a) (f : a -> a -> a) : prop =
-  is_semigroup e f /\ is_commutative f
+let is_comm_semigroup (#a:Type) (f : a -> a -> a) : prop =
+  is_semigroup f /\ is_commutative f
 
+(* A monoid is a semigroup with a neutral element. *)
 let is_monoid (#a:Type) (e : a) (f : a -> a -> a) : prop =
-  is_associative f /\ is_neutral_for e f
+  is_semigroup f /\ is_neutral_for e f
 
 let no_overlap (f1 : 'a -> GTot 'c) (f2 : 'b -> GTot 'c) : prop =
   forall (x1 : 'a) (x2 : 'b). f1 x1 =!= f2 x2
