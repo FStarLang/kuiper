@@ -90,8 +90,10 @@ val batch_done (b: pipeline_batch_t): slprop
    exiting the kernel, rather than leaving copies in flight into shared memory
    that is about to be reclaimed.
 
-   The flat-nat problem described above applies verbatim to `get_epoch` in
-   Kuiper.Epoch, which is still unfixed. *)
+   The flat-nat problem described above used to apply verbatim to `get_epoch` in
+   Kuiper.Epoch. That is now fixed: `get_epoch` is gone, and `init_epoch` mints
+   a stream's epoch counter exactly once by consuming the exclusive
+   `stream_fresh` token produced by `fresh_stream`. *)
 ghost
 fn get_batch ()
   returns b : pipeline_batch_t

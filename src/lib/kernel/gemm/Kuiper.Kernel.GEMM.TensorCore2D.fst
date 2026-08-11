@@ -744,6 +744,40 @@ let em_fade_comb_current_subtile_approximates
     (ematrix_subtile em tm tn idxI idxJ)
     (ematrix_subtile rm1 tm tn idxI idxJ)
 
+(* Flattening a tile index pair into [a * wn + b] is injective when [b < wn].
+   Z3 will not derive this on its own -- it is Euclidean division uniqueness,
+   which lands squarely in the nonlinear fragment -- so it has to be handed to
+   the fade lemmas explicitly. *)
+let flat_tile_index_inj
+  (wn : pos)
+  (a a' : nat)
+  (b b' : natlt wn)
+  : Lemma (requires a * wn + b == a' * wn + b')
+          (ensures  a == a' /\ b == b')
+= FStar.Math.Lemmas.lemma_div_plus b a wn;
+  FStar.Math.Lemmas.lemma_div_plus b' a' wn;
+  FStar.Math.Lemmas.lemma_mod_plus b a wn;
+  FStar.Math.Lemmas.lemma_mod_plus b' a' wn;
+  FStar.Math.Lemmas.small_div b wn;
+  FStar.Math.Lemmas.small_div b' wn;
+  FStar.Math.Lemmas.small_mod b wn;
+  FStar.Math.Lemmas.small_mod b' wn
+
+(* The only tile whose flat index equals [idxI * wn + idxJ] is [(idxI, idxJ)]
+   itself. This is what lets the fade lemmas conclude that every tile other than
+   the one being written falls on the same side of the [< idxI * wn + idxJ]
+   threshold before and after the threshold is bumped by one. *)
+let flat_tile_index_unique
+  (wm wn : pos)
+  (idxI : natlt wm)
+  (idxJ : natlt wn)
+  : Lemma (forall (a : natlt wm) (b : natlt wn).
+             a * wn + b == idxI * wn + idxJ ==> (a == idxI /\ b == idxJ))
+= introduce forall (a : natlt wm) (b : natlt wn).
+      a * wn + b == idxI * wn + idxJ ==> (a == idxI /\ b == idxJ)
+  with introduce _ ==> _
+  with _. flat_tile_index_inj wn a idxI b idxJ
+
 #push-options "--z3rlimit 80 --split_queries always"
 let lemma_update_tile_fade_comb_approximates
   (#et_acc #et_c : Type0)
@@ -766,6 +800,10 @@ let lemma_update_tile_fade_comb_approximates
       (Chest.chest_comb ecomb (ematrix_subtile em tm tn idxI idxJ) etile))
     %~ (em_fade_comb_tiles comb tm tn wm wn idxI (idxJ + 1) rm1 rm2))
 =
+  // Every tile other than (idxI, idxJ) sits on the same side of the fade
+  // threshold before and after it is bumped, since no other tile shares the
+  // flat index idxI * wn + idxJ.
+  flat_tile_index_unique wm wn idxI idxJ;
   // The (idxI, idxJ) tile is still uncombined in the pre-state fade, so its
   // subtile of [em] approximates [ematrix_subtile rm1 tm tn idxI idxJ].
   em_fade_comb_current_subtile_approximates

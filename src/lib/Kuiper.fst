@@ -51,9 +51,19 @@ unfold let en2r (i:erased nat) : real = Real.of_int i
 [@@coercion; pulse_unfold]
 unfold let sz2r (i:sz) : real = Real.of_int i
 
-(* Just an alias *)
+(* Launch on a stream, taking the kernel's precondition as an ordinary owned
+resource. The result is pledged at the stream's next queue position, so it can
+either be handed straight to [launch_pledged] on the same stream, or turned
+into a host-observable pledge with [pledge_flushed_done]. *)
 inline_for_extraction noextract
 unfold let launch #pre #post (k : kernel_desc pre post) (s: stream_t) #e =
+  launch_kernel_full_owned #pre #post k s #e
+
+(* Launch on a stream, consuming a precondition that a previous operation on
+the *same* stream has pledged. Needs no synchronization: the stream already
+orders this launch after whatever produced the precondition. *)
+inline_for_extraction noextract
+unfold let launch_pledged #pre #post (k : kernel_desc pre post) (s: stream_t) #e =
   launch_kernel_full #pre #post k s #e
 
 (* Just an alias *)

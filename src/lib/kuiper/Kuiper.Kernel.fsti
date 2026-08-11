@@ -5,10 +5,55 @@ inline_for_extraction noextract let _ = ()
 open Pulse.Lib.Core
 open Kuiper.Base
 open Kuiper.Epoch
+open Kuiper.Kernel.Stream
 include Kuiper.Kernel.Base
 include Kuiper.Kernel.Desc
 include Kuiper.Kernel.Casts
 open Pulse.Lib.Pledge
+
+(* Move a stream-ordered pledge later in the queue. Sound because
+[epoch_flushed] is downward closed: arriving by a later position is a weaker
+claim than arriving by an earlier one. Useful to bring two pledges obtained at
+different positions to a common position so they can be joined and handed to a
+single launch. *)
+ghost
+fn pledge_flushed_advance
+  (s: stream_t)
+  (e e' : epoch_t)
+  (#p : slprop)
+  requires pledge0 (epoch_flushed s e) p
+  requires pure (e <= e')
+  ensures  pledge0 (epoch_flushed s e') p
+
+(* Weaken a stream-ordered pledge into an ordinary host-observable one, to be
+redeemed after [sync_stream] or [sync_device]. This is the direction that
+always holds; there is no way back, which is what keeps non-stream-ordered
+effects from being fed to a later launch. *)
+ghost
+fn pledge_flushed_done
+  (s: stream_t)
+  (e : epoch_t)
+  (#p : slprop)
+  requires pledge0 (epoch_flushed s e) p
+  ensures  pledge0 (epoch_done s e) p
+
+(* Launch with a precondition owned outright on the host, rather than pledged.
+This is the way to start a chain of dependent launches; subsequent ones in the
+chain use [launch_kernel_full] directly and consume the pledge produced here. *)
+inline_for_extraction noextract
+fn launch_kernel_full_owned
+  (#full_pre : slprop)
+  (#full_post : slprop)
+  (k : kernel_desc full_pre full_post)
+  (s: stream_t)
+  (#e : epoch_t)
+  preserves cpu ** stream_live s
+  requires
+    epoch_live s e **
+    on gpu_loc full_pre
+  ensures
+    epoch_live s (epoch_next e) **
+    pledge0 (epoch_flushed s (epoch_next e)) (on gpu_loc full_post)
 
 inline_for_extraction noextract
 fn launch_kernel_full_sync

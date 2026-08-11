@@ -9,6 +9,58 @@ open Kuiper.Kernel.Stream
 open Pulse.Lib.Pledge
 open FStar.Tactics.Typeclasses { solve }
 
+ghost
+fn pledge_flushed_advance
+  (s: stream_t)
+  (e e' : epoch_t)
+  (#p : slprop)
+  requires pledge0 (epoch_flushed s e) p
+  requires pure (e <= e')
+  ensures  pledge0 (epoch_flushed s e') p
+{
+  make_pledge emp_inames (epoch_flushed s e') p (pledge0 (epoch_flushed s e) p)
+    fn _ {
+      flushed_lower s e' e;
+      redeem_pledge emp_inames (epoch_flushed s e) p;
+      drop_ (epoch_flushed s e);
+    };
+}
+
+ghost
+fn pledge_flushed_done
+  (s: stream_t)
+  (e : epoch_t)
+  (#p : slprop)
+  requires pledge0 (epoch_flushed s e) p
+  ensures  pledge0 (epoch_done s e) p
+{
+  make_pledge emp_inames (epoch_done s e) p (pledge0 (epoch_flushed s e) p)
+    fn _ {
+      done_flushed s e;
+      redeem_pledge emp_inames (epoch_flushed s e) p;
+      drop_ (epoch_flushed s e);
+    };
+}
+
+inline_for_extraction noextract
+fn launch_kernel_full_owned
+  (#full_pre : slprop)
+  (#full_post : slprop)
+  (k : kernel_desc full_pre full_post)
+  (s: stream_t)
+  (#e : epoch_t)
+  preserves cpu ** stream_live s
+  requires
+    epoch_live s e **
+    on gpu_loc full_pre
+  ensures
+    epoch_live s (epoch_next e) **
+    pledge0 (epoch_flushed s (epoch_next e)) (on gpu_loc full_post)
+{
+  return_pledge (epoch_flushed s e) (on gpu_loc full_pre) #solve;
+  launch_kernel_full k s;
+}
+
 inline_for_extraction noextract
 fn launch_kernel_full_sync
   (#full_pre : slprop)
@@ -22,10 +74,12 @@ fn launch_kernel_full_sync
     on gpu_loc full_post
 {
   let s = fresh_stream ();
-  get_epoch s ();
-  launch_kernel_full k s;
+  init_epoch s ();
+  launch_kernel_full_owned k s;
   sync_stream s;
-  redeem_pledge emp_inames (epoch_done s _) (on gpu_loc full_post);
+  done_flushed s _;
+  redeem_pledge emp_inames (epoch_flushed s _) (on gpu_loc full_post);
+  drop_ (epoch_flushed s _);
   drop_ (epoch_done s _);
   drop_ (epoch_live s _);
   destroy_stream s;

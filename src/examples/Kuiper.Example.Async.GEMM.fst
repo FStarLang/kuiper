@@ -15,13 +15,15 @@ module N = Kuiper.Kernel.GEMM.Naive2
 [@@allow_ambiguous]
 ghost
 fn redeem1 (s: stream_t) (e e' : epoch_t) (post : slprop)
-  requires epoch_done s e' ** pledge0 (epoch_done s e) post ** pure (e' >= e)
+  requires epoch_done s e' ** pledge0 (epoch_flushed s e) post ** pure (e' >= e)
   ensures  epoch_done s e' ** post
 {
-  done_lower s e' e;
+  done_flushed s e';
+  flushed_lower s e' e;
   unfold pledge0;
   redeem_pledge _ _ _;
-  drop_ (epoch_done s e);
+  drop_ (epoch_flushed s e);
+  drop_ (epoch_flushed s e');
 }
 
 let my_layout = l2_row_major 1024 1024
@@ -41,8 +43,8 @@ fn main (a b c d r : tensor f32 my_layout)
 {
   let str1 = fresh_stream ();
   let str2 = fresh_stream ();
-  let e1 = get_epoch str1 ();
-  let e2 = get_epoch str2 ();
+  let e1 = init_epoch str1 ();
+  let e2 = init_epoch str2 ();
 
   (* Begin computing A*B -> s1 *)
   let s1 = alloc0 #f32 (1024sz *^ 1024sz) my_layout;
@@ -82,8 +84,8 @@ fn main (a b c d r : tensor f32 my_layout)
   free s2;
 
   (* Drop ghost state *)
-  drop_ (epoch_done str1 e1);
-  drop_ (epoch_done str2 e2);
+  drop_ (epoch_done str1 _);
+  drop_ (epoch_done str2 _);
   with e. assert (epoch_live str1 e); drop_ (epoch_live str1 e);
   with e. assert (epoch_live str2 e); drop_ (epoch_live str2 e);
 
