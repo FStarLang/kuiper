@@ -7,6 +7,7 @@ module Kuiper.TensorCore.Base
 open Kuiper
 open Kuiper.Tensor
 open Kuiper.Array2.Strided
+open Kuiper.TensorRO { vtlayout_of_tlayout }
 open Kuiper.Chest
 open Kuiper.Spec.GEMM
 
@@ -164,7 +165,7 @@ fn mma_loadA_map
   (#m #n #k : erased nat)
   (f : et -> et)
   (fr : fragment et FragA m n k FragLRM)
-  (#l : layout2 m k) {| strided_row_major l |}
+  (#l : layout2 m k) {| strided_row_major (vtlayout_of_tlayout l) |}
   (gm : array2 et l)
   (#fp : perm)
   (#m0 : chest2 et m k)
@@ -181,7 +182,7 @@ fn mma_loadA_map_cm
   (#m #n #k : erased nat)
   (f : et -> et)
   (fr : fragment et FragA m n k FragLCM)
-  (#l : layout2 m k) {| strided_col_major l |}
+  (#l : layout2 m k) {| strided_col_major (vtlayout_of_tlayout l) |}
   (gm : array2 et l)
   (#fp : perm)
   (#m0 : chest2 et m k)
@@ -199,7 +200,7 @@ fn mma_loadB_map
   (#m #n #k : erased nat)
   (f : et -> et)
   (fr : fragment et FragB m n k FragLRM)
-  (#l : layout2 k n) {| strided_row_major l |}
+  (#l : layout2 k n) {| strided_row_major (vtlayout_of_tlayout l) |}
   (gm : array2 et l)
   (#fp : perm)
   (#m0 : chest2 et k n)
@@ -216,7 +217,7 @@ fn mma_loadB_map_cm
   (#m #n #k : erased nat)
   (f : et -> et)
   (fr : fragment et FragB m n k FragLCM)
-  (#l : layout2 k n) {| strided_col_major l |}
+  (#l : layout2 k n) {| strided_col_major (vtlayout_of_tlayout l) |}
   (gm : array2 et l)
   (#fp : perm)
   (#m0 : chest2 et k n)
@@ -232,7 +233,7 @@ fn mma_loadAccum
   (#et : Type)
   (#m #n #k : erased nat)
   (fr : fragment et FragAcc m n k FragLAcc)
-  (#l : layout2 m n) {| strided_row_major l |}
+  (#l : layout2 m n) {| strided_row_major (vtlayout_of_tlayout l) |}
   (gm : array2 et l)
   (#f : perm)
   (#m0 : chest2 et m n)
@@ -274,9 +275,9 @@ fn mma_fill
 fn mma_store_comb
   (#et_c #et : Type)
   (#m #n #k : erased nat)
-  (g : et -> et_c -> et_c)
+  (g : et_c -> et -> et_c)
   (fr : fragment et FragAcc m n k FragLAcc)
-  (#l : layout2 m n) {| strided_row_major l |}
+  (#l : layout2 m n) {| strided_row_major (vtlayout_of_tlayout l) |}
   (gm : array2 et_c l)
   (#f0 : erased (value_for et FragAcc m n k))
   (#m0 : chest2 et_c m n)
@@ -285,7 +286,7 @@ fn mma_store_comb
   requires
     gm |-> Frac (1.0R /. warp_size) m0
   ensures
-    gm |-> Frac (1.0R /. warp_size) (chest_comb g f0 m0)
+    gm |-> Frac (1.0R /. warp_size) (chest_comb g m0 f0)
 
 (* We should add checker support for this. *)
 fn with_fragment u#r

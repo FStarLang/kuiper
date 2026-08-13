@@ -141,3 +141,9 @@ val fmin : t -> t -> t
 val fmod : t -> t -> t
 val copysign : t -> t -> t
 val fma : t -> t -> t -> t
+
+val fisfinite : t -> bool
+
+val fisfinite_spec : (x: t) ->
+    Lemma (ensures fisfinite x <==> Finite? (kind x))
+          [SMTPat (fisfinite x)]

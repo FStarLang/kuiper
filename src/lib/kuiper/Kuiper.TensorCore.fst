@@ -6,6 +6,7 @@ open Kuiper.Seq.Common { (@!) }
 #lang-pulse
 
 open Kuiper
+open Kuiper.TensorRO { vtlayout_of_tlayout }
 open Pulse.Lib.Trade
 include Kuiper.TensorCore.Base
 
@@ -14,7 +15,7 @@ fn mma_loadA
   (#et : Type)
   (#m #n #k : erased nat)
   (fr : fragment et FragA m n k FragLRM)
-  (#l : layout2 m k) {| strided_row_major l |}
+  (#l : layout2 m k) {| strided_row_major (vtlayout_of_tlayout l) |}
   (gm : array2 et l)
   (#f : perm)
   (#m0 : chest2 et m k)
@@ -36,7 +37,7 @@ fn mma_loadA_cm
   (#et : Type)
   (#m #n #k : erased nat)
   (fr : fragment et FragA m n k FragLCM)
-  (#l : layout2 m k) {| strided_col_major l |}
+  (#l : layout2 m k) {| strided_col_major (vtlayout_of_tlayout l) |}
   (gm : array2 et l)
   (#f : perm)
   (#m0 : chest2 et m k)
@@ -58,7 +59,7 @@ fn mma_loadB
   (#et : Type)
   (#m #n #k : erased nat)
   (fr : fragment et FragB m n k FragLRM)
-  (#l : layout2 k n) {| strided_row_major l |}
+  (#l : layout2 k n) {| strided_row_major (vtlayout_of_tlayout l) |}
   (gm : array2 et l)
   (#f : perm)
   (#m0 : chest2 et k n)
@@ -80,7 +81,7 @@ fn mma_loadB_cm
   (#et : Type)
   (#m #n #k : erased nat)
   (fr : fragment et FragB m n k FragLCM)
-  (#l : layout2 k n) {| strided_col_major l |}
+  (#l : layout2 k n) {| strided_col_major (vtlayout_of_tlayout l) |}
   (gm : array2 et l)
   (#f : perm)
   (#m0 : chest2 et k n)
@@ -102,7 +103,7 @@ fn mma_store
   (#et : Type)
   (#m #n #k : erased nat)
   (fr : fragment et FragAcc m n k FragLAcc)
-  (#l : layout2 m n) {| strided_row_major l |}
+  (#l : layout2 m n) {| strided_row_major (vtlayout_of_tlayout l) |}
   (gm : array2 et l)
   (#f0 : erased (value_for et FragAcc m n k))
   (#m0 : chest2 et m n)
@@ -113,8 +114,8 @@ fn mma_store
   ensures
     gm |-> Frac (1.0R /. warp_size) f0
 {
-  mma_store_comb (fun x y -> x) fr gm;
-  assert pure (equal (chest_comb (fun x y -> x) f0 m0) f0);
+  mma_store_comb (fun x y -> y) fr gm;
+  assert pure (equal (chest_comb (fun x y -> y) m0 f0) f0);
   ();
 }
 

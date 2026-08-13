@@ -47,6 +47,7 @@ let test_copysign_f16 (x y : f16)   : f16 = copysign x y
 let test_fma_f16      (x y z : f16) : f16 = fma x y z
 let test_largest_f16  ()            : f16 = largest
 let test_infinity_f16 ()            : f16 = infinity
+let test_fisfinite_f16 (x : f16)    : bool = fisfinite x
 
 let test_sqrt_f32     (x : f32)     : f32 = sqrt x
 let test_rsqrt_f32    (x : f32)     : f32 = rsqrt x
@@ -76,6 +77,7 @@ let test_copysign_f32 (x y : f32)   : f32 = copysign x y
 let test_fma_f32      (x y z : f32) : f32 = fma x y z
 let test_largest_f32  ()            : f32 = largest
 let test_infinity_f32 ()            : f32 = infinity
+let test_fisfinite_f32 (x : f32)    : bool = fisfinite x
 
 let test_sqrt_f64     (x : f64)     : f64 = sqrt x
 let test_rsqrt_f64    (x : f64)     : f64 = rsqrt x
@@ -105,3 +107,4 @@ let test_copysign_f64 (x y : f64)   : f64 = copysign x y
 let test_fma_f64      (x y z : f64) : f64 = fma x y z
 let test_largest_f64  ()            : f64 = largest
 let test_infinity_f64 ()            : f64 = infinity
+let test_fisfinite_f64 (x : f64)    : bool = fisfinite x

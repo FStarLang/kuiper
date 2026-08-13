@@ -6,6 +6,7 @@ open Kuiper.Array.Vectorized
 open Kuiper
 open Kuiper.Tensor
 open Kuiper.Array2.Strided
+open Kuiper.TensorRO { vtlayout_of_tlayout }
 open Kuiper.Tensor.Tiling
 open Kuiper.Kernel.GEMM.Copy.Vec2
 open Kuiper.Array.Vectorized { has_vec_cpy, chunk }
@@ -40,8 +41,8 @@ fn copy_tiles_out_of_matrices_vec
   (#slB : layout2 bk bn) {| T.ctlayout slB |}
   (sA : array2 et slA)
   (sB : array2 et slB)
-  (#lA : layout2 m k) {| T.ctlayout lA, str_A : strided_row_major lA |}
-  (#lB : layout2 k n) {| T.ctlayout lB, str_B : strided_row_major lB |}
+  (#lA : layout2 m k) {| T.ctlayout lA, str_A : strided_row_major (vtlayout_of_tlayout lA) |}
+  (#lB : layout2 k n) {| T.ctlayout lB, str_B : strided_row_major (vtlayout_of_tlayout lB) |}
   (gA : array2 et lA)
   (#eA : chest2 et m k)
   (gB : array2 et lB)

@@ -54,13 +54,15 @@ open Pulse.Lib.Pledge
 [@@allow_ambiguous]
 ghost
 fn redeem1 (s: stream_t) (e e' : epoch_t) (post : slprop)
-  requires epoch_done s e' ** pledge0 (epoch_done s e) post ** pure (e' >= e)
+  requires epoch_done s e' ** pledge0 (epoch_flushed s e) post ** pure (e' >= e)
   ensures  epoch_done s e' ** post
 {
-  done_lower s e' e;
+  done_flushed s e';
+  flushed_lower s e' e;
   unfold pledge0;
   redeem_pledge _ _ _;
-  drop_ (epoch_done s e);
+  drop_ (epoch_flushed s e);
+  drop_ (epoch_flushed s e');
 }
 
 fn main (_:unit)
@@ -82,12 +84,12 @@ fn main (_:unit)
   let s4 = fresh_stream ();
   let s5 = fresh_stream ();
   let s6 = fresh_stream ();
-  let e1 = get_epoch s1 ();
-  let e2 = get_epoch s2 ();
-  let e3 = get_epoch s3 ();
-  let e4 = get_epoch s4 ();
-  let e5 = get_epoch s5 ();
-  let e6 = get_epoch s6 ();
+  let e1 = init_epoch s1 ();
+  let e2 = init_epoch s2 ();
+  let e3 = init_epoch s3 ();
+  let e4 = init_epoch s4 ();
+  let e5 = init_epoch s5 ();
+  let e6 = init_epoch s6 ();
   launch (kernel r1 #1uL) s1; //typeclass resolution doesn't resolve the implicit
   launch (kernel r2 #2uL) s2;
   launch (kernel r3 #3uL) s3;
@@ -98,11 +100,12 @@ fn main (_:unit)
   sync_device
     ()
     (stream_live s1 ** stream_live s2 ** stream_live s3 ** stream_live s4 ** stream_live s5 ** stream_live s6)
-    (epoch_live s1 e1 ** epoch_live s2 e2 ** epoch_live s3 e3 ** epoch_live s4 e4 ** epoch_live s5 e5 ** epoch_live s6 e6)
-    (epoch_done s1 e1 ** epoch_done s2 e2 ** epoch_done s3 e3 ** epoch_done s4 e4 ** epoch_done s5 e5 ** epoch_done s6 e6 **
-      (exists* (e1' e2' e3' e4' e5' e6': epoch_t).
-      epoch_live s1 e1' ** epoch_live s2 e2' ** epoch_live s3 e3' ** epoch_live s4 e4' ** epoch_live s5 e5' ** epoch_live s6 e6' **
-      pure (e1' >= e1 /\ e2' >= e2 /\ e3' >= e3 /\ e4' >= e4 /\ e5' >= e5 /\ e6' >= e6)))
+    (epoch_live s1 (epoch_next e1) ** epoch_live s2 (epoch_next e2) ** epoch_live s3 (epoch_next e3) **
+     epoch_live s4 (epoch_next e4) ** epoch_live s5 (epoch_next e5) ** epoch_live s6 (epoch_next e6))
+    (epoch_done s1 (epoch_next e1) ** epoch_done s2 (epoch_next e2) ** epoch_done s3 (epoch_next e3) **
+     epoch_done s4 (epoch_next e4) ** epoch_done s5 (epoch_next e5) ** epoch_done s6 (epoch_next e6) **
+     epoch_live s1 (epoch_next e1) ** epoch_live s2 (epoch_next e2) ** epoch_live s3 (epoch_next e3) **
+     epoch_live s4 (epoch_next e4) ** epoch_live s5 (epoch_next e5) ** epoch_live s6 (epoch_next e6))
     fn _ {
       sync_stream_ghost s1;
       sync_stream_ghost s2;

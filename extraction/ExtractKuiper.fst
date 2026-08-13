@@ -468,6 +468,16 @@ let extract_kcall (cb : mlexpr -> ML expr) (env : Krml.env) (kdesc : mlexpr) (st
   return <|
     ESequence [assert_shmem_size; shmem_setup; e']
 
+// The C spelling of a Kuiper float element type, as it appears inside a wmma
+// fragment type.
+let kpr_float_ctype (et : mlty) : ML expr =
+  match et with
+  | MLTY_Named ([], (["Kuiper"; "Float16"; "Base"], "t")) -> EQualified ([], "half")
+  | MLTY_Named ([], (["Kuiper"; "BFloat16"; "Base"], "t")) -> EQualified ([], "__nv_bfloat16")
+  | MLTY_Named ([], (["Kuiper"; "Float32"; "Base"], "t")) -> EQualified ([], "float")
+  | MLTY_Named ([], (["Kuiper"; "Float64"; "Base"], "t")) -> EQualified ([], "double")
+  | _ -> failwith "kpr_float_ctype: unsupported fragment element type"
+
 let kpr_translate_alloc_fragment (cb : mlexpr -> ML expr) et knd m n k layout =
     let knd =
       match cta knd with
@@ -487,13 +497,7 @@ let kpr_translate_alloc_fragment (cb : mlexpr -> ML expr) et knd m n k layout =
         text "unexpected layout in __alloc_fragment:" ^/^ pp layout
       ]
     in
-    let faketype =
-      match et with
-      | MLTY_Named ([], (["Kuiper"; "Float16"; "Base"], "t")) -> EQualified ([], "half")
-      | MLTY_Named ([], (["Kuiper"; "BFloat16"; "Base"], "t")) -> EQualified ([], "__nv_bfloat16")
-      | MLTY_Named ([], (["Kuiper"; "Float32"; "Base"], "t")) -> EQualified ([], "float")
-      | MLTY_Named ([], (["Kuiper"; "Float64"; "Base"], "t")) -> EQualified ([], "double")
-    in
+    let faketype = kpr_float_ctype et in
     let args =
       [ knd; cb m; cb n; cb k; faketype ]
       @ (match layout with | Some l -> [l] | None -> [])
@@ -529,10 +533,12 @@ let is_identity_map (f:mlexpr) : ML bool =
   let bs, body = collect_fun_binders f in
   List.Tot.length bs = 1 && returns_binder bs body 0
 
-(* Is this `fun x y -> x`? *)
+(* Is this `fun x y -> y`?  [mma_store_comb]'s combine takes the OLD C value
+   first and the accumulator value second, so an overwriting store is the
+   combine that returns its SECOND argument. *)
 let is_overwrite_comb (g:mlexpr) : ML bool =
   let bs, body = collect_fun_binders g in
-  List.Tot.length bs = 2 && returns_binder bs body 0
+  List.Tot.length bs = 2 && returns_binder bs body 1
 
 let beta_reduce_literal (f : mlexpr) (a : mlexpr) : ML mlexpr =
   let x, body = get_one_binder f in
@@ -707,11 +713,19 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
       let combined =
         let t_new = with_ty MLTY_Top <| MLE_Name ([], "_kpr_new_v") in
         let t_old = with_ty et_c <| MLE_Name ([], "_kpr_old_v") in
-        let applied = beta_reduce_literal (beta_reduce_literal gcomb t_new) t_old in
+        let applied = beta_reduce_literal (beta_reduce_literal gcomb t_old) t_new in
         let applied = ml_visit unmagic inline_alias_let applied in
         cb applied
       in
-      EApp (EQualified ([], "KPR_STORE_COMB"), [ gm; fr; ldm; combined ])
+      // The scratch fragment the macro loads the old tile into, and stores the
+      // result from, is typed by the DESTINATION element type, not by [fr]'s:
+      // wmma has no converting load/store, so a heterogeneous epilogue (f32
+      // accumulator into an f16 C) can only go through a fragment matching [gm].
+      // We can only supply the element type -- [m], [n] and [k] here are
+      // [erased nat] and extract to units -- so the macro recovers the fragment
+      // shape from [fr]'s own type.
+      EApp (EQualified ([], "KPR_STORE_COMB"),
+            [ gm; fr; ldm; combined; kpr_float_ctype et_c ])
     end
 
   (******** FLOAT ARITHMETIC *******)
@@ -733,6 +747,7 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
   | "Kuiper.Float16.Base.lte",  [], [] -> EOp (Lte, Float16)
   | "Kuiper.Float16.Base.largest",  [], [] -> EConstant (Float16, "HLF_MAX")
   | "Kuiper.Float16.Base.infinity", [], [] -> EConstant (Float16, "HLF_INFINITY")
+  | "Kuiper.Float16.Base.fisfinite", [], [] -> EQualified ([], "kpr_hfisfinite")
   | "Kuiper.Float16.Base.of_int", [], [i] -> EApp (EQualified ([], "__ll2half_rn"), [cb i])
   | "Kuiper.Float16.Base.of_literal", [], [s] ->
     begin match s.expr with
@@ -753,6 +768,7 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
   | "Kuiper.BFloat16.Base.lte",  [], [] -> EOp (Lte, BFloat16)
   | "Kuiper.BFloat16.Base.largest",  [], [] -> EConstant (BFloat16, "__ushort_as_bfloat16(0x7F7F);")
   | "Kuiper.BFloat16.Base.infinity", [], [] -> EConstant (BFloat16, "__float2bfloat16(INFINITY);")
+  | "Kuiper.BFloat16.Base.fisfinite", [], [] -> EQualified ([], "kpr_bffisfinite")
   | "Kuiper.BFloat16.Base.of_literal", [], [s] ->
     begin match s.expr with
     | MLE_Const (MLC_String v) -> EConstant (BFloat16, v)
@@ -774,6 +790,7 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
   | "Kuiper.Float32.Base.valid",  [], [] -> EQualified ([], "kpr_fisvalid")
   | "Kuiper.Float32.Base.largest",  [], [] -> EConstant (Float32, "FLT_MAX")
   | "Kuiper.Float32.Base.infinity", [], [] -> EConstant (Float32, "INFINITY")
+  | "Kuiper.Float32.Base.fisfinite", [], [] -> EQualified ([], "isfinite")
   | "Kuiper.Float32.Base.of_literal", [], [s] ->
     begin match s.expr with
     | MLE_Const (MLC_String v) -> EConstant (Float32, v)
@@ -793,6 +810,7 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
   | "Kuiper.Float64.Base.eq",   [], [] -> EOp (Eq, Float64)
   | "Kuiper.Float64.Base.largest",  [], [] -> EConstant (Float64, "DBL_MAX")
   | "Kuiper.Float64.Base.infinity", [], [] -> EConstant (Float64, "INFINITY")
+  | "Kuiper.Float64.Base.fisfinite", [], [] -> EQualified ([], "isfinite")
   | "Kuiper.Float64.Base.of_int", [], [i] -> ECast (cb i, TInt Float64)
   | "Kuiper.Float64.Base.of_literal", [], [s] ->
     begin match s.expr with
@@ -1031,6 +1049,15 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
     let dst_arr = EBufSub (cb dst_arr, cb dst_off) in
     let src_arr = EBufSub (cb src_arr, cb src_off) in
     EApp (EQualified ([], "vec_memcpy"), [ dst_arr; src_arr; ])
+  | "Kuiper.PipelineCopy.array_vec_cpy_pipelined",
+    [ et ],
+    [ _sized; _has_vec_cpy;
+      dst_arr; dst_off; _dst_slice_i; _dst_slice_j;
+      src_arr; src_off; _src_slice_i; _src_slice_j;
+      _f; _ss; _ds; _sq1; _sq2; _sq3; _sq4; _b ] ->
+    let dst_arr = EBufSub (cb dst_arr, cb dst_off) in
+    let src_arr = EBufSub (cb src_arr, cb src_off) in
+    EApp (EQualified ([], "vec_memcpy_pipe"), [ dst_arr; src_arr; ])
 
   (******** ATOMIC OPS ********)
 
@@ -1059,6 +1086,13 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
     _MUST <| EApp (EQualified ([], "cudaStreamSynchronize"), [ cb stream ])
   | "Kuiper.Kernel.Base.sync_device", [], [_unit; _frame; _p; _q; _justif] ->
     _MUST <| EApp (EQualified ([], "cudaDeviceSynchronize"), [ EUnit ])
+
+  (******** PIPELINE OPS ********)
+  (* NB: both of these return void, so they must NOT be wrapped in MUST. *)
+  | "Kuiper.PipelineCopy.pipeline_commit", [], [_batch] ->
+    EApp (EQualified ([], "__pipeline_commit"), [EUnit])
+  | "Kuiper.PipelineCopy.pipeline_wait_all_prior", [], [_batch] ->
+    EApp (EQualified ([], "__pipeline_wait_prior"), [EConstant (Krml.UInt64, "0")])
 
   (* Misc stuff missing from F*? Without these, they extract to names
      and depend on being linked with that module. *)

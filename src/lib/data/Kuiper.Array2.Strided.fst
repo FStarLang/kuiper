@@ -9,6 +9,8 @@ open Kuiper
 open Kuiper.Injection
 open Kuiper.Tensor { array2, layout2, full_layout2 }
 open Kuiper.Tensor.Layout.Alg
+open Kuiper.TensorRO { vlayout1, vtlayout_of_tlayout, extended_layout }
+open Kuiper.Tensor.Layout.Alg { l1_forward }
 module SZ = Kuiper.SizeT
 open Kuiper.Tensor.Tiling { subtile_layout, tile_inj }
 
@@ -18,7 +20,7 @@ inline_for_extraction noextract
 instance strided_row_major_l2_row_major (#rows #cols : erased nat)
   (#_ : squash (cols > 0))
   {| d : concrete_sz cols |}
-  : strided_row_major (l2_row_major rows cols) =
+  : strided_row_major (vtlayout_of_tlayout (l2_row_major rows cols)) =
 {
   offset = 0sz;
   stride = concr' d;
@@ -33,12 +35,47 @@ let lemma_aligned_strided_row_major_l2_row_major (#rows #cols : erased nat)
           (ensures aligned_strided_row_major n (strided_row_major_l2_row_major #rows #cols #_ #d))
   = ()
 
+inline_for_extraction noextract
+let mk_strided_row_major_bcast
+  (#rows #cols : erased nat)
+  (l : vlayout1 cols)
+  (off : sz)
+  (pf : squash (forall (i:natlt rows) (j:natlt cols).
+                  vcell_of_pos (extended_layout l rows) i j == SZ.v off + j))
+  : strided_row_major (extended_layout l rows) =
+{
+  offset = off;
+  stride = 0sz;
+  pf = (fun i j -> ());
+}
+
+inline_for_extraction noextract
+instance strided_row_major_bcast_l1 (#rows #cols : erased nat)
+  : strided_row_major (extended_layout (vtlayout_of_tlayout (l1_forward cols)) rows) =
+{
+  offset = 0sz;
+  stride = 0sz;
+  pf = (fun i j -> ());
+}
+
+let lemma_aligned_strided_row_major_bcast_l1 (#rows #cols : erased nat) (n : pos)
+  : Lemma (ensures aligned_strided_row_major n (strided_row_major_bcast_l1 #rows #cols))
+  = ()
+
+let lemma_aligned_mk_strided_row_major_bcast
+  (#rows #cols : erased nat)
+  (l : vlayout1 cols) (off : sz) (pf : squash _) (n : pos)
+  : Lemma (requires n /?+ SZ.v off)
+          (ensures aligned_strided_row_major n
+                     (mk_strided_row_major_bcast #rows #cols l off pf))
+  = ()
+
 (* Instance for l2_col_major: cell_of_pos = j * rows + i *)
 inline_for_extraction noextract
 instance strided_col_major_l2_col_major (#rows #cols : erased nat)
   (#_ : squash (rows > 0))
   {| d : concrete_sz rows |}
-  : strided_col_major (l2_col_major rows cols) =
+  : strided_col_major (vtlayout_of_tlayout (l2_col_major rows cols)) =
 {
   offset = 0sz;
   stride = concr' d;
@@ -52,7 +89,7 @@ let strided_row_major_subtile_offset
   (#rows #cols : erased nat)
   (l : layout2 rows cols)
   (#_ : squash (SZ.fits (l.ulen)))
-  {| sub : strided_row_major l |}
+  {| sub : strided_row_major (vtlayout_of_tlayout l) |}
   (trows : sz {trows > 0 /\ trows /?+ rows})
   (tcols : sz {tcols > 0 /\ tcols /?+ cols})
   (tr    : szlt (rows / trows))
@@ -67,7 +104,7 @@ let strided_row_major_subtile_offset
 let strided_row_major_subtile_proof
   (#rows #cols : nat)
   (l : layout2 rows cols)
-  {| sub : strided_row_major l |}
+  {| sub : strided_row_major (vtlayout_of_tlayout l) |}
   (trows : nat {trows > 0 /\ trows /?+ rows})
   (tcols : nat {tcols > 0 /\ tcols /?+ cols})
   (tr    : natlt (rows / trows))
@@ -99,7 +136,7 @@ inline_for_extraction noextract
 instance strided_row_major_subtile (#rows #cols : erased nat)
   (l : layout2 rows cols)
   (#_ : squash (SZ.fits (l.ulen)))
-  {| sub : strided_row_major l |}
+  {| sub : strided_row_major (vtlayout_of_tlayout l) |}
   (trows : erased int {0 < trows /\ trows /?+ rows})
   (tcols : erased int {0 < tcols /\ tcols /?+ cols})
   (tr    : erased int {0 <= tr /\ tr < rows / trows})
@@ -109,7 +146,7 @@ instance strided_row_major_subtile (#rows #cols : erased nat)
      c_tr    : concrete_sz tr,
      c_tc    : concrete_sz tc,
   |}
-  : strided_row_major (subtile_layout l trows tcols tr tc) =
+  : strided_row_major (vtlayout_of_tlayout (subtile_layout l trows tcols tr tc)) =
 {
   offset = strided_row_major_subtile_offset l (concr' c_trows) (concr' c_tcols) (concr' c_tr) (concr' c_tc);
   stride = sub.stride;
@@ -119,7 +156,7 @@ instance strided_row_major_subtile (#rows #cols : erased nat)
 let lemma_subtile_strided_row_major_offset
   (#rows #cols : erased nat)
   (l : layout2 rows cols)
-  {| sub : strided_row_major l |}
+  {| sub : strided_row_major (vtlayout_of_tlayout l) |}
   (trows : erased int {0 < trows /\ trows /?+ rows})
   (tcols : erased int {0 < tcols /\ tcols /?+ cols})
   (tr    : erased int {0 <= tr /\ tr < rows / trows})
@@ -140,7 +177,7 @@ let lemma_subtile_strided_row_major_offset
 let lemma_subtile_strided_row_major_stride
   (#rows #cols : erased nat)
   (l : layout2 rows cols)
-  {| sub : strided_row_major l |}
+  {| sub : strided_row_major (vtlayout_of_tlayout l) |}
   (trows : erased int {0 < trows /\ trows /?+ rows})
   (tcols : erased int {0 < tcols /\ tcols /?+ cols})
   (tr    : erased int {0 <= tr /\ tr < rows / trows})
@@ -164,7 +201,7 @@ let strided_col_major_subtile_offset
   (#rows #cols : erased nat)
   (l : layout2 rows cols)
   (#_ : squash (SZ.fits (l.ulen)))
-  {| sub : strided_col_major l |}
+  {| sub : strided_col_major (vtlayout_of_tlayout l) |}
   (trows : sz {trows > 0 /\ trows /?+ rows})
   (tcols : sz {tcols > 0 /\ tcols /?+ cols})
   (tr    : szlt (rows / trows))
@@ -179,7 +216,7 @@ let strided_col_major_subtile_offset
 let strided_col_major_subtile_proof
   (#rows #cols : nat)
   (l : layout2 rows cols)
-  {| sub : strided_col_major l |}
+  {| sub : strided_col_major (vtlayout_of_tlayout l) |}
   (trows : nat {trows > 0 /\ trows /?+ rows})
   (tcols : nat {tcols > 0 /\ tcols /?+ cols})
   (tr    : natlt (rows / trows))
@@ -211,7 +248,7 @@ inline_for_extraction noextract
 instance strided_col_major_subtile (#rows #cols : erased nat)
   (l : layout2 rows cols)
   (#_ : squash (SZ.fits (l.ulen)))
-  {| sub : strided_col_major l |}
+  {| sub : strided_col_major (vtlayout_of_tlayout l) |}
   (trows : erased int {0 < trows /\ trows /?+ rows})
   (tcols : erased int {0 < tcols /\ tcols /?+ cols})
   (tr    : erased int {0 <= tr /\ tr < rows / trows})
@@ -221,7 +258,7 @@ instance strided_col_major_subtile (#rows #cols : erased nat)
      c_tr    : concrete_sz tr,
      c_tc    : concrete_sz tc,
   |}
-  : strided_col_major (subtile_layout l trows tcols tr tc) =
+  : strided_col_major (vtlayout_of_tlayout (subtile_layout l trows tcols tr tc)) =
 {
   offset = strided_col_major_subtile_offset l (concr' c_trows) (concr' c_tcols) (concr' c_tr) (concr' c_tc);
   stride = sub.stride;
@@ -231,7 +268,7 @@ instance strided_col_major_subtile (#rows #cols : erased nat)
 let lemma_subtile_strided_col_major_offset
   (#rows #cols : erased nat)
   (l : layout2 rows cols)
-  {| sub : strided_col_major l |}
+  {| sub : strided_col_major (vtlayout_of_tlayout l) |}
   (trows : erased int {0 < trows /\ trows /?+ rows})
   (tcols : erased int {0 < tcols /\ tcols /?+ cols})
   (tr    : erased int {0 <= tr /\ tr < rows / trows})
@@ -252,7 +289,7 @@ let lemma_subtile_strided_col_major_offset
 let lemma_subtile_strided_col_major_stride
   (#rows #cols : erased nat)
   (l : layout2 rows cols)
-  {| sub : strided_col_major l |}
+  {| sub : strided_col_major (vtlayout_of_tlayout l) |}
   (trows : erased int {0 < trows /\ trows /?+ rows})
   (tcols : erased int {0 < tcols /\ tcols /?+ cols})
   (tr    : erased int {0 <= tr /\ tr < rows / trows})

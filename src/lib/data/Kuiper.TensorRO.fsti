@@ -667,3 +667,40 @@ fn rotensor_to_tensor
       (KT.tensor_pts_to t #f s)
   ensures
     KT.tensor_pts_to t #f s
+
+(* ------------------------------------------------------------------------ *)
+(* Raw (underlying-cell) borrow.
+
+   Whole-tensor ownership *is* ownership of the [ulen] backing cells, which are
+   never aliased, so it can always be exchanged for a plain array permission on
+   [core a].  This is the read-only replacement for the injective-only
+   [Kuiper.Tensor.tensor_ilower]: instead of a family of abstract cells (which
+   would double count under a broadcast layout), the caller gets the backing
+   sequence, related to the chest through the layout map. *)
+(* ------------------------------------------------------------------------ *)
+
+ghost
+fn tensor_to_raw
+  (#et : Type0) (#r : nat) (#d : shape r)
+  (#l : vtlayout d)
+  (a : rotensor et l)
+  (#f : perm) (#s : chest d et)
+  requires
+    a |-> Frac f s
+  ensures
+    exists* (v : lseq et (vtlayout_ulen l)).
+      core a |-> Frac f v **
+      pure (forall (i : abs d). acc s i == Seq.index v (l.imap i))
+
+ghost
+fn raw_to_tensor
+  (#et : Type0) (#r : nat) (#d : shape r)
+  (#l : vtlayout d)
+  (a : rotensor et l)
+  (s : chest d et)
+  (#f : perm) (#v : lseq et (vtlayout_ulen l))
+  requires
+    core a |-> Frac f v **
+    pure (forall (i : abs d). acc s i == Seq.index v (l.imap i))
+  ensures
+    a |-> Frac f s

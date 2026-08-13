@@ -71,6 +71,7 @@
 #define kpr_hround(f)     KPR_HFALL1(roundf, f)
 #define kpr_herf(f)       KPR_HFALL1(erff,   f)
 #define kpr_hlog10(f)     KPR_HFALL1(log10f, f)
+#define kpr_hfisfinite(f) KPR_HFALL1(isfinite,   f)
 
 /* ---- binary ops (no native intrinsic) -------------------------------- */
 
@@ -147,6 +148,7 @@
 #define kpr_bf16cosh(f)      KPR_BF16FALL1(coshf,  f)
 #define kpr_bf16round(f)     KPR_BF16FALL1(roundf, f)
 #define kpr_bf16erf(f)       KPR_BF16FALL1(erff,   f)
+#define kpr_bfisfinite(f)    KPR_BF16FALL1(isfinite,   f)
 
 /* ---- binary ops (no native intrinsic) -------------------------------- */
 

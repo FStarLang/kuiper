@@ -39,8 +39,14 @@ type kernel_desc (full_pre full_post : slprop) = {
   barrier_count    : bid:natlt nblk -> GTot nat;
   barrier_ok       : bid:natlt nblk -> ptrs:c_shmems shmems_desc -> B.barrier_transform (barrier_contract bid ptrs);
 
+  (* [sh] is refined by [c_shmems_inv]: the runtime always holds this fact when
+     it invokes [f] (see [Kuiper.Kernel.Sync]), and a kernel body needs it to
+     recover [is_block_array], hence the alignment of a shared buffer -- which
+     a cp.async/vectorized staging copy requires. Refining the binder is
+     backward compatible: an existing body taking an unrefined [sh] is still
+     assignable here by domain contravariance. *)
   f : (
-    sh : c_shmems shmems_desc ->
+    sh : c_shmems shmems_desc { c_shmems_inv sh } ->
     bid : szlt nblk ->
     tid : szlt nthr ->
     unit ->

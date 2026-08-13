@@ -817,3 +817,44 @@ fn rotensor_to_tensor
 {
   Trade.elim_trade (a |-> Frac f s) (KT.tensor_pts_to t #f s);
 }
+
+ghost
+fn tensor_to_raw
+  (#et : Type0) (#r : nat) (#d : shape r)
+  (#l : vtlayout d)
+  (a : rotensor et l)
+  (#f : perm) (#s : chest d et)
+  requires
+    a |-> Frac f s
+  ensures
+    exists* (v : lseq et (vtlayout_ulen l)).
+      core a |-> Frac f v **
+      pure (forall (i : abs d). acc s i == Seq.index v (l.imap i))
+{
+  tensor_pts_to_ref a;
+  unfold tensor_pts_to a #f s;
+  with v. assert IA.iarray_pts_to a #f v;
+  IA.iarray_end_ #et #(vtlayout_ulen l) a;
+}
+
+ghost
+fn raw_to_tensor
+  (#et : Type0) (#r : nat) (#d : shape r)
+  (#l : vtlayout d)
+  (a : rotensor et l)
+  (s : chest d et)
+  (#f : perm) (#v : lseq et (vtlayout_ulen l))
+  requires
+    core a |-> Frac f v **
+    pure (forall (i : abs d). acc s i == Seq.index v (l.imap i))
+  ensures
+    a |-> Frac f s
+{
+  IA.iarray_begin_ #et #(vtlayout_ulen l) (core a);
+  rewrite
+    IA.from_array (IV.raw_view #(vtlayout_ulen l)) (core a) |-> Frac f (IA.g_seq_acc v)
+  as
+    IA.iarray_pts_to a #f (IA.g_seq_acc v);
+  Chest.ext s (ro_chest l (IA.g_seq_acc v));
+  fold tensor_pts_to a #f s;
+}

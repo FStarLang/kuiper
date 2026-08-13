@@ -20,9 +20,7 @@ let comb2_to (#et_acc #et_cd : Type0)
   {| float_cast et_cd et_acc, float_cast et_acc et_cd |}
   (x : et_cd) (y : et_acc)
   : et_cd
-=
-  let x_acc : et_acc = fcast x in
-  fcast (comb2 x_acc y)
+= fcast y
 
 inline_for_extraction noextract
 let lincomb

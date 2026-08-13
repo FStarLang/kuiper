@@ -93,6 +93,9 @@ int main(int argc, char **argv)
     et *m1 = (et *) kpr_wait_alloc(sizeof(et), rows * shared);
     et *m2 = (et *) kpr_wait_alloc(sizeof(et), shared * cols);
     cet *m3 = (cet *) kpr_wait_alloc(sizeof(cet), rows * cols);
+#if defined(separate_output) && separate_output == 1
+    cet *m4 = (cet *) kpr_wait_alloc(sizeof(cet), rows * cols);
+#endif
 
     cudaMemcpy(m1, m1_cpu, rows * shared * sizeof(et), cudaMemcpyHostToDevice);
     cudaMemcpy(m2, m2_cpu, shared * cols * sizeof(et), cudaMemcpyHostToDevice);
@@ -100,7 +103,10 @@ int main(int argc, char **argv)
 
     cet *gold = NULL;
 
-#if et_is_half == 1 && mix_prec != 1
+#if defined(aet_is_float) && aet_is_float == 1
+    aet alpha = GEMM_ALPHA;
+    aet beta = GEMM_BETA;
+#elif et_is_half == 1 && mix_prec != 1
     half alpha = __float2half(GEMM_ALPHA);
     half beta = __float2half(GEMM_BETA);
 #elif et_is_half == 1 && mix_prec == 1
@@ -121,25 +127,33 @@ int main(int argc, char **argv)
 #define STR(x) #x
 #define XSTR(x) STR(x)
 
+#if defined(separate_output) && separate_output == 1
+#define CALL_F() F(PREARGS rows, shared, cols, m1, m2, m3, m4, alpha, beta)
+#define F_RESULT m4
+#else
+#define CALL_F() F(PREARGS rows, shared, cols, m1, m2, m3)
+#define F_RESULT m3
+#endif
+
     if (check) {
         TIME_void(gold = cpu_sgemm(rows, shared, cols, m1_cpu, m2_cpu, m3_cpu, alpha, beta), NULL);
 
-        F(PREARGS rows, shared, cols, m1, m2, m3);
+        CALL_F();
 
-        cmp(rows, cols, m3, gold);
+        cmp(rows, cols, F_RESULT, gold);
 
         free(gold);
     }
     // Warmup
     for (int l = 0; l < laps / 10; l++) {
-        F(PREARGS rows, shared, cols, m1, m2, m3);
+        CALL_F();
     }
 
     // Now the actual bench
     float t = 0;
     for (int l = 0; l < laps; l++) {
         float delta;
-        TIME_void(F(PREARGS rows, shared, cols, m1, m2, m3), &delta);
+        TIME_void(CALL_F(), &delta);
         t += delta;
     }
     uint64_t flops = laps * rows * shared * cols * 2.0;
@@ -151,6 +165,9 @@ int main(int argc, char **argv)
     cudaFree(m1);
     cudaFree(m2);
     cudaFree(m3);
+#if defined(separate_output) && separate_output == 1
+    cudaFree(m4);
+#endif
 
     printf("OK\n");
 

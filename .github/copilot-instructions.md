@@ -2,7 +2,7 @@
 
 Kuiper is a DSL for programming and verifying safe GPU kernels, built on F\* and Pulse. Code is written in Pulse (a separation-logic language embedded in F\*), verified for properties like data race freedom and functional correctness, then extracted to CUDA via Karamel.
 
-For detailed guidance on writing, reviewing, and debugging Kuiper kernel code, see [`.github/agents/kuiper-kernel-expert.agent.md`](.github/agents/kuiper-kernel-expert.agent.md).
+If available, use the kuiper-copilot agent to write and review Kuiper code.
 
 ## Build & Verify
 
@@ -33,6 +33,16 @@ This invokes F\* with all necessary include paths and flags. Verification can ta
 ```bash
 make ADMIT=1
 ```
+
+### Extracting a single file
+
+Given some module `Kuiper.My.Module.fst` anywhere in `src/`, extract it to a `.cu` file with:
+
+```bash
+make obj/Kuiper_My_Module.cu
+```
+
+Notice the replacement of `.` with `_`. 
 
 ### Extracting and compiling
 
