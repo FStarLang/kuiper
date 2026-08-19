@@ -226,7 +226,7 @@ echo-krml:
 	$(call msg,"DEPEND",$@)
 	$(Q)$(FSTAR) --codegen krml --already_cached 'FStar,LowStar,Prims,Pulse,PulseCore' --dep full $(ROOTS) -o $@.tmp
 	# HUGE HACK: append (not prepend!) a .plugin.touch dependency for every krml file.
-	$(sed) ':outer; /krml: \\$$/{n;:inner;/[^\\]$$/{s/.*/& .plugin.touch/; b outer};n;b inner}' < $@.tmp > $@
+	sed ':outer; /krml: \\$$/{n;:inner;/[^\\]$$/{s/.*/& .plugin.touch/; b outer};n;b inner}' < $@.tmp > $@
 	rm -f $@.tmp
 
 depgraph: depend.pdf
@@ -235,7 +235,7 @@ depend.pdf: .depend .force
 	$(FSTAR) --dep graph --codegen krml --already_cached 'FStar,LowStar,Prims,Pulse,PulseCore' $(ROOTS) $(DEPFLAGS) -o .depend.graph
 	./FStar/.scripts/simpl_graph.py .depend.graph > .depend.simpl
 	# Tweak ratio
-	$(sed) -i 's/^digraph{/& ratio=1;/' .depend.simpl
+	sed -i 's/^digraph{/& ratio=1;/' .depend.simpl
 	dot -Tpdf -o $@ .depend.simpl
 	echo "Wrote $@"
 
@@ -260,8 +260,8 @@ $(OUTDIR)/pre/%.cu $(OUTDIR)/pre/%.h &: $(OUTDIR)/%.krml .krml.touch
 # Do NOT use a wildcard without an extension or this can match
 # objects files and whatnot.
 $(OUTDIR)/%.cu: $(OUTDIR)/pre/%.cu scripts/fixup.sed
-	$(sed) -f scripts/fixup.sed $< | $(indent) -linux -i4 -nut > $@
+	sed -f scripts/fixup.sed $< | indent -linux -i4 -nut > $@
 $(OUTDIR)/%.h: $(OUTDIR)/pre/%.h scripts/fixup.sed
-	$(sed) -f scripts/fixup.sed $< | $(indent) -linux -i4 -nut > $@
+	sed -f scripts/fixup.sed $< | indent -linux -i4 -nut > $@
 
 include nvcc.mk
