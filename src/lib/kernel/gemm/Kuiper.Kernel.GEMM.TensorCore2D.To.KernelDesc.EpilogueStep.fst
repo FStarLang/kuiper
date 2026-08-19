@@ -48,7 +48,7 @@ fn own_lane_cells_rw
 }
 
 
-#push-options "--fuel 2 --ifuel 1 --z3rlimit 60 --split_queries no"
+#push-options "--fuel 2 --ifuel 1 --z3rlimit 60"
 inline_for_extraction noextract
 fn epilogue_fragment_step
   (#et_cd #et_acc : Type0)

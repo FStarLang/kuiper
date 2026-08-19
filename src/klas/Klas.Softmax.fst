@@ -42,6 +42,23 @@ let softmax_gpu_f16 lena = inst_gpu #f16 1024sz #lena
 let softmax_gpu_f32 lena = inst_gpu #f32 1024sz #lena
 let softmax_gpu_f64 lena = inst_gpu #f64 1024sz #lena
 
+(* Bridge from the chest-level approximation the kernel produces to the
+   seq-level one in [inst_cpu]'s postcondition.  This is kept as a standalone
+   lemma because in [inst_cpu]'s proof context the SMTPat of
+   [KS.lem_softmax_real_to_seq] rewrites [chest1_to_seq (softmax_real _)] to the
+   seq-level spec, and with F*'s one-query-per-obligation the index-wise link
+   back to the chest-level fact no longer gets instantiated. *)
+let to_seq_approx (#et : Type0) {| scalar et, real_like et |} (#n : nat)
+  (c : chest1 et n) (r : chest1 real n)
+  : Lemma (requires c %~ r)
+          (ensures to_seq (l1_forward n) c %~ chest1_to_seq r)
+  = introduce forall (i : natlt n).
+      Seq.index (to_seq (l1_forward n) c) i %~ Seq.index (chest1_to_seq r) i
+    with (
+      assert (Seq.index (chest1_to_seq r) i == acc1 r i);
+      assert (acc1 c i %~ acc1 r i)
+    )
+
 inline_for_extraction noextract
 fn inst_cpu
   (#et : Type0) {| floating et, real_like et, floating_real_like et |}
@@ -85,6 +102,7 @@ fn inst_cpu
            as (ga |-> reveal res);
     };
   free ga;
+  to_seq_approx res (KS.softmax_real (seq_to_chest1 ra));
   ()
 }
 

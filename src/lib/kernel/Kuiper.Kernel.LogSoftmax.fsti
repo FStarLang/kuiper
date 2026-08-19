@@ -9,8 +9,26 @@ module KS = Kuiper.Spec.Softmax
 open Kuiper.Tensor
 open Kuiper.Tensor.Layout.Alg { l1_forward }
 
+(* Every entry of [softmax_real] is [exp x] divided by a strictly positive sum,
+   hence strictly positive.  F* master emits one query per proof obligation, so
+   the E-matching that used to establish this for the [chest_refine] refinement
+   below no longer fires on its own: spell the argument out. *)
+let softmax_real_pos (#n : nat) (s : chest1 real n)
+  : Lemma (forall (i : abs (n @| INil)). acc (KS.softmax_real s) i >. 0.0R)
+  = introduce forall (i : abs (n @| INil)). acc (KS.softmax_real s) i >. 0.0R
+    with (
+      let (i0, ()) = i in
+      let exps = chest_map exp s in
+      let sq = chest1_to_seq exps in
+      assert (Seq.length sq == n /\ n > 0);
+      assert (forall (j : natlt n). Seq.index sq j == exp (acc1 s j));
+      Kuiper.Real.sum_non_zero sq 0.0R;
+      assert (chest1_rsum exps >. 0.0R)
+    )
+
 // Log of softmax.
 let log_softmax_real #n (s : chest1 real n) =
+  softmax_real_pos s;
   chest_map log (chest_refine (fun x -> x >. 0.0R) (KS.softmax_real s))
 
 unfold

@@ -527,6 +527,7 @@ let kpost
       exists* (v : et). out |-> v ** pure (v %~ seq_max (chest1_to_seq (chest_map pre_map_r vr)))
     )
 
+#push-options "--z3rlimit 40"
 inline_for_extraction
 fn iteration
   (#et:Type0) {| floating et, real_like et, floating_real_like et |}
@@ -653,6 +654,7 @@ fn iteration
     forevery_emp_elim _;
   }
 }
+#pop-options
 
 (* Number of barrier calls in the reduction loop: smallest k s.t. pow2 k >= nth *)
 let hreduce_barrier_count (nth : pos) : GTot nat = log2 (2 * nth - 1)

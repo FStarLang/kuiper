@@ -87,6 +87,13 @@ let barrier_contract
     rout = barrier_q (from_array l1 ar1) (from_array l2 ar2);
   }
 
+(* Projecting [rin]/[rout] out of the record literal built by [barrier_contract]
+   is no longer reduced for the SMT solver, so discharge those slprop equalities
+   by normalization instead. *)
+let unfold_barrier_contract () : FStar.Tactics.V2.Tac unit =
+  FStar.Tactics.V2.norm [delta_only [`%barrier_contract]; iota; primops];
+  Pulse.Lib.Core.slprop_equiv_norm ()
+
 (* Per-tid fold/unfold helpers that collapse the symbolic [even it] match in
    [barrier_p] via a runtime [if even it], discharging the impossible branch
    with [unreachable].  Needed because Pulse's [rewrite] cannot evaluate
@@ -209,7 +216,8 @@ fn barrier_p_to_rin
   rewrite each sa1 as (from_array l1 ar1);
   rewrite each sa2 as (from_array l2 ar2);
   rewrite barrier_p (from_array l1 ar1) (from_array l2 ar2) it tid
-       as (barrier_contract tile l1 l2 ar1 ar2).rin it tid;
+       as (barrier_contract tile l1 l2 ar1 ar2).rin it tid
+       by unfold_barrier_contract ();
 }
 
 ghost
@@ -228,7 +236,8 @@ fn rout_to_barrier_p
     barrier_p sa1 sa2 (it + 1) tid
 {
   rewrite (barrier_contract tile l1 l2 ar1 ar2).rout it tid
-       as barrier_q (from_array l1 ar1) (from_array l2 ar2) it tid;
+       as barrier_q (from_array l1 ar1) (from_array l2 ar2) it tid
+       by unfold_barrier_contract ();
   rewrite each (from_array l1 ar1) as sa1;
   rewrite each (from_array l2 ar2) as sa2;
   rewrite barrier_q sa1 sa2 it tid
@@ -630,7 +639,7 @@ let chest_slice_approx
     with ()
 
 (* The value at the direct arithmetic cell equals the acc2 of the page slice at grow/gcol. *)
-#push-options "--split_queries always"
+#push-options ""
 let acc_bridge
   (#tc : Type0)
   (batch mrows mcols tile : nat)
@@ -1476,7 +1485,7 @@ fn bblock_teardown
 }
 
 (* ─── batched sendables ────────────────────────────────────────────────────── *)
-#push-options "--z3rlimit_factor 10 --fuel 1 --ifuel 1 --split_queries no"
+#push-options "--z3rlimit_factor 10 --fuel 1 --ifuel 1"
 #push-options "--z3rlimit 100"
 let bkpre_block_sendable
   (#ta #tb #tc #tacc : Type0)

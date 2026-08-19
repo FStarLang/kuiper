@@ -13,6 +13,7 @@ open Kuiper.Chest
 open Pulse.Lib.Trade
 
 module SZ = Kuiper.SizeT
+module TAC = FStar.Tactics.V2
 
 
 inline_for_extraction noextract
@@ -68,7 +69,7 @@ fn tensor_apply_bij
   ()
 }
 
-#set-options "--split_queries always --print_implicits"
+#set-options "--print_implicits"
 
 ghost
 fn tensor_unapply_bij
@@ -479,6 +480,17 @@ fn tensor_unfold_outer
   tensor_implode (from_array l (core a));
 }
 
+(* The generic bijection lemmas produce chests of the shape
+   [mk (fold_outer d) (fun i -> acc m (i <~| fold_bij))], which is only
+   propositionally (not syntactically) equal to [fold_chest m]; the SMT solver
+   no longer sees this for free, so we prove it once here by extensionality. *)
+let fold_chest_bij_eq (#et : Type0) (#r: nat {r > 1}) (#d: shape r) (m : chest d et)
+  : Lemma (mk (fold_outer d) (fun (i : abs (fold_outer d)) -> acc m (i <~| fold_bij #r #d))
+           == fold_chest #et #r #d m)
+  = let lhs = mk (fold_outer d) (fun (i : abs (fold_outer d)) -> acc m (i <~| fold_bij #r #d)) in
+    Kuiper.Chest.lemma_equal_intro lhs (fold_chest #et #r #d m);
+    Kuiper.Chest.ext lhs (fold_chest #et #r #d m)
+
 inline_for_extraction noextract
 fn tensor_fold_ro
   (#et : Type0)
@@ -496,6 +508,7 @@ fn tensor_fold_ro
       (fa |-> Frac f (fold_chest m))
       (a |-> Frac f m)
 {
+  fold_chest_bij_eq #et #r #d m;
   tensor_apply_bij_ro fold_bij a
 }
 
@@ -517,8 +530,18 @@ fn tensor_fold_ro_located
       (on loc (fa |-> Frac f (fold_chest m)))
       (on loc (a |-> Frac f m))
 {
+  fold_chest_bij_eq #et #r #d m;
   tensor_apply_bij_ro_located fold_bij a
 }
+
+(* Normalizing [fold_bij.ff] to [fold_index] and [unfold_chest] to its [mk]
+   makes the two sides of the trade syntactically equal; the SMT solver cannot
+   do this itself since the chests appear under a [forall*] binder. *)
+let unfold_fold_tac () : TAC.Tac unit =
+  TAC.norm [delta_only [`%unfold_chest; `%fold_bij;
+                        `%Kuiper.Bijection.__proj__Mkbijection__item__ff];
+            iota; primops];
+  Pulse.Lib.Core.slprop_equiv_norm ()
 
 inline_for_extraction noextract
 fn tensor_fold_st
@@ -538,7 +561,15 @@ fn tensor_fold_st
       fa |-> Frac f m' @==>
       a |-> Frac f (unfold_chest m'))
 {
-  tensor_apply_bij_st fold_bij a
+  fold_chest_bij_eq #et #r #d m;
+  let fa = tensor_apply_bij_st fold_bij a;
+  rewrite (forall* (m' : chest (fold_outer d) et).
+             fa |-> Frac f m' @==>
+             a |-> Frac f (mk d (fun (i : abs d) -> acc m' ((fold_bij #r #d).ff i))))
+       as (forall* (m' : chest (fold_outer d) et).
+             fa |-> Frac f m' @==> a |-> Frac f (unfold_chest m'))
+       by unfold_fold_tac ();
+  fa
 }
 
 inline_for_extraction noextract
@@ -560,7 +591,15 @@ fn tensor_fold_st_located
       (on loc (fa |-> Frac f m')) @==>
       (on loc (a |-> Frac f (unfold_chest m'))))
 {
-  tensor_apply_bij_st_located fold_bij a
+  fold_chest_bij_eq #et #r #d m;
+  let fa = tensor_apply_bij_st_located fold_bij a;
+  rewrite (forall* (m' : chest (fold_outer d) et).
+             on loc (fa |-> Frac f m') @==>
+             on loc (a |-> Frac f (mk d (fun (i : abs d) -> acc m' ((fold_bij #r #d).ff i)))))
+       as (forall* (m' : chest (fold_outer d) et).
+             on loc (fa |-> Frac f m') @==> on loc (a |-> Frac f (unfold_chest m')))
+       by unfold_fold_tac ();
+  fa
 }
 
 let unfold_fold_chest_id (#et:Type0) (#r:nat{r>1}) (#d:shape r) (m : chest d et)

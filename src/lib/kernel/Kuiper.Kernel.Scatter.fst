@@ -173,7 +173,11 @@ let sphi_rel_inj (#et : Type0) (#r : erased nat) (di do : shape r { shape_le di 
       : Lemma (requires (sphi #et di do dim eIdx i1 == x /\ sphi #et di do dim eIdx i2 == x))
               (ensures  i1 == i2)
       = sphi_inj #et di do dim eIdx eIdxInj i1 i2 in
-    Classical.forall_intro_3 (fun i1 i2 x -> Classical.move_requires (aux i1 i2) x)
+    (* F* master cannot infer the predicate implicit of [forall_intro_3] (it
+       occurs only in the postcondition), so state the goal explicitly. *)
+    introduce forall (i1 i2 : abs di) (x : abs do).
+      (sphi #et di do dim eIdx i1 == x /\ sphi #et di do dim eIdx i2 == x) ==> i1 == i2
+    with introduce _ ==> _ with aux i1 i2 x
 
 (* ---------------------------------------------------------------------------
    The scatter kernel, built as a `kernel_desc_n` à la Kuiper.Kernel.TMap.kmap,

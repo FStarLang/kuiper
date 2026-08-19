@@ -63,6 +63,37 @@ fn forevery_extract_replace_eqtype
     };
 }
 
+(* [output_fragment_state_at] mentions [done] only through the boolean
+   [idx < done], so bumping [done] by one leaves every index other than [done]
+   itself unchanged.  Discharged here, in a small context: inferred inline as
+   the [#_ : squash (forall x. x =!= z ==> p1 x == p2 x)] witness of the
+   [forevery_extract_replace_eqtype] call below, the query times out. *)
+let output_fragment_state_at_bump
+  (#et : Type0) {| scalar et, real_like et |}
+  (#m #n : nat)
+  (gD : array2 et (rm m n))
+  (bm bn tm tn wm wn : pos)
+  (#pf : squash (bm /?+ m /\ bn /?+ n /\
+                 wm * tm /?+ bm /\ wn * tn /?+ bn))
+  (bid : natlt (m / bm * (n / bn)))
+  (wid : natlt (bm / (wm * tm) * (bn / (wn * tn))))
+  (lane : natlt warp_size)
+  (rD : chest2 real (wm * tm) (wn * tn))
+  (done : nat { done < wm * wn })
+  : Lemma
+    (forall (x : natlt (wm * wn)).
+       x =!= done ==>
+       output_fragment_state_at gD bm bn tm tn wm wn bid wid lane rD done x
+       == output_fragment_state_at gD bm bn tm tn wm wn bid wid lane rD (done + 1) x)
+= introduce forall (x : natlt (wm * wn)).
+      x =!= done ==>
+      output_fragment_state_at #_ #_ #_ #_ #_ gD bm bn tm tn wm wn #pf bid wid lane rD done x
+      == output_fragment_state_at #_ #_ #_ #_ #_ gD bm bn tm tn wm wn #pf bid wid lane rD (done + 1) x
+  with introduce _ ==> _
+  with begin
+    assert ((x < done) == (x < done + 1))
+  end
+
 ghost
 fn output_epilogue_extract_step
   (#et : Type0) {| scalar et, real_like et |}
@@ -94,6 +125,8 @@ fn output_epilogue_extract_step
           gD bm bn tm tn wm wn bid wid lane rD (SZ.v done + 1) idx)
 {
   unfold output_epilogue_state
+    gD bm bn tm tn wm wn bid wid lane rD (SZ.v done);
+  output_fragment_state_at_bump
     gD bm bn tm tn wm wn bid wid lane rD (SZ.v done);
   forevery_extract_replace_eqtype
     #(natlt (wm * wn))

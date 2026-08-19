@@ -10,7 +10,7 @@ open Kuiper.Bijection
 module SZ = Kuiper.SizeT
 module C = Kuiper.Matrix.Casts
 
-#set-options "--split_queries always"
+#set-options ""
 
 inline_for_extraction noextract
 let cbij (lena : szp)

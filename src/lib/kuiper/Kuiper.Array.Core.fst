@@ -733,7 +733,7 @@ fn array_slice_1
   }
 }
 
-#set-options "--split_queries always"
+#set-options ""
 ghost
 fn rec forall_cell_to_slice
   (#a:Type u#0)

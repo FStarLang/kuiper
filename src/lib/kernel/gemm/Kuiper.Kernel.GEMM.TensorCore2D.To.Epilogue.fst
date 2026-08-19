@@ -44,7 +44,18 @@ let div_mod_of_mul_add (n : pos) (i : nat) (j : natlt n)
     FStar.Math.Lemmas.lemma_mod_plus j i n;
     FStar.Math.Lemmas.small_mod j n
 
-#push-options "--split_queries no"
+(* [x / wn * wn + x % wn == x].  Needed in a *type-level* position (it is what
+   makes the reindexed [output_fragment_post] argument of the [forevery_ext]
+   below well-typed, and what makes the two indexed slprops equal), so it has
+   to be a trigger rather than a lemma call.  The pattern is the exact shape of
+   the goal, so it cannot fire spuriously. *)
+private let div_mul_mod_id_pat (a : nat) (b : pos)
+  : Lemma (a / b * b + a % b == a)
+    [SMTPat (a / b * b + a % b)]
+= FStar.Math.Lemmas.euclidean_division_definition a b;
+  FStar.Math.Lemmas.swap_mul b (a / b)
+
+#push-options ""
 inline_for_extraction noextract
 fn epilogue_to
   (#et_ab #et_cd #et_acc : Type0)

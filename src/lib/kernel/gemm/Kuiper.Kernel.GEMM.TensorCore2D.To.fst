@@ -213,7 +213,7 @@ let mk_kernel_arithmetic_facts
   FStar.Math.Lemmas.cancel_mul_div (SZ.v wm) (SZ.v tm);
   FStar.Math.Lemmas.cancel_mul_div (SZ.v wn) (SZ.v tn)
 
-#push-options "--fuel 1 --ifuel 1 --split_queries no --z3rlimit_factor 4"
+#push-options "--fuel 1 --ifuel 1 --z3rlimit_factor 4"
 inline_for_extraction noextract
 let mk_kernel
   (#et_ab #et_cd #et_acc : Type0)

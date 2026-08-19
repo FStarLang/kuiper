@@ -2,7 +2,7 @@ module Kuiper.Kernel.GEMM.TensorCore2D.To.KLoopInvariant
 
 open Kuiper
 
-#set-options "--z3rlimit 20 --fuel 1 --ifuel 1 --split_queries always"
+#set-options "--z3rlimit 20 --fuel 1 --ifuel 1"
 
 open Kuiper.Chest
 open Kuiper.EMatrix

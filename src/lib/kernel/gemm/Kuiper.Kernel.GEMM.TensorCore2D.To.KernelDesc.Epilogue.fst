@@ -63,7 +63,7 @@ let ematrix_subtile_approximates
 = ()
 
 
-#push-options "--split_queries no"
+#push-options ""
 inline_for_extraction noextract
 fn epilogue_fragment_from_warp
   (#et_cd #et_acc : Type0)

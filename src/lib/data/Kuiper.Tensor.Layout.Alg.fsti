@@ -203,6 +203,9 @@ instance val c_l3_batched_col_major
   (n : SZ.t{SZ.fits (m * n) /\ SZ.fits (r * (m * n))})
   : T.ctlayout (l3_batched_col_major r m n)
 
+(* The `fits` obligations in the type below are nonlinear (i*(m*n) + (k*m+j) < r*m*n),
+   so they need a bigger rlimit. *)
+#push-options "--z3rlimit 80"
 val l3_batched_col_major_imap
   (r : erased nat{SZ.fits r})
   (m : SZ.t{SZ.fits (r * m)})
@@ -213,6 +216,7 @@ val l3_batched_col_major_imap
         (SZ.v i, (SZ.v j, (SZ.v k, ()))) ==
       SZ.v (
         SZ.add (SZ.mul i (SZ.mul m n)) (SZ.add (SZ.mul k m) j)))
+#pop-options
 
 inline_for_extraction noextract
 instance val c_l4_batched_row_major

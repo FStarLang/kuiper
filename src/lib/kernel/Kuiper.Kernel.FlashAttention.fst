@@ -21,6 +21,13 @@ open Kuiper.Shape
 
 open Kuiper.Kernel.FlashAttention.KernelDesc
 
+(* Projecting [rin]/[rout] out of the record literal built by
+   [fa_barrier_contract] is no longer reduced for the SMT solver, so we
+   discharge those slprop equalities by normalization instead. *)
+let unfold_fa_contract () : FStar.Tactics.V2.Tac unit =
+  FStar.Tactics.V2.norm [delta_only [`%fa_barrier_contract]; iota; primops];
+  Pulse.Lib.Core.slprop_equiv_norm ()
+
 (* ── array1-over-tensor cell / ref shims ─────────────────────────────────────
    The old thin 1-D wrapper module was a thin layer over [Kuiper.Tensor].
    These helpers reproduce its 1-D single-cell extract/restore and cell/ref API
@@ -407,7 +414,7 @@ fn flashattention_kf_no_smem (#et : Type0) {| scalar et, floating et |}
 // The strided analogue of [subtile_of_update_tile] (which lives, exported,
 // in Kuiper.EMatrix.Tiling): reading back the tile we just wrote yields it.
 // The stride version is private to KernelDesc.fst, so we re-prove it here.
-#push-options "--split_queries always --z3rlimit 40"
+#push-options "--z3rlimit 40"
 let fa_subtile_of_update_stride_tile
   (#et : _)(#rows #cols : _)
   (em : chest2 et rows cols)
@@ -884,9 +891,15 @@ fn flashattention_kf_smem
     assert pure (even (2 * SZ.v vj));
     rewrite ((exists* (r:chest2 et 1 (SZ.v d)). array2_subtile sK 1 (SZ.v d) (SZ.v tid) 0 |-> Frac 1.0R r) **
              (exists* (r:chest2 et 1 (SZ.v d)). array2_subtile sV 1 (SZ.v d) (SZ.v tid) 0 |-> Frac 1.0R r))
-         as ((fa_barrier_contract n d nthr sK sV).rin (2 * SZ.v vj) (SZ.v tid));
+         as (fa_barrier_side_rin n d nthr sK sV (2 * SZ.v vj) (SZ.v tid));
+    rewrite (fa_barrier_side_rin n d nthr sK sV (2 * SZ.v vj) (SZ.v tid))
+         as ((fa_barrier_contract n d nthr sK sV).rin (2 * SZ.v vj) (SZ.v tid))
+         by unfold_fa_contract ();
     B.barrier_wait ();
     rewrite ((fa_barrier_contract n d nthr sK sV).rout (2 * SZ.v vj) (SZ.v tid))
+         as (fa_barrier_side_rout n d nthr sK sV (2 * SZ.v vj) (SZ.v tid))
+         by unfold_fa_contract ();
+    rewrite (fa_barrier_side_rout n d nthr sK sV (2 * SZ.v vj) (SZ.v tid))
          as ((exists* (x:chest2 et (SZ.v nthr) (SZ.v d)). sK |-> Frac (1.0R /. (SZ.v nthr)) x) **
              (exists* (y:chest2 et (SZ.v nthr) (SZ.v d)). sV |-> Frac (1.0R /. (SZ.v nthr)) y));
 
@@ -907,9 +920,15 @@ fn flashattention_kf_smem
     assert pure (odd (2 * SZ.v vj + 1));
     rewrite ((exists* (x:chest2 et (SZ.v nthr) (SZ.v d)). sK |-> Frac (1.0R /. (SZ.v nthr)) x) **
              (exists* (y:chest2 et (SZ.v nthr) (SZ.v d)). sV |-> Frac (1.0R /. (SZ.v nthr)) y))
-         as ((fa_barrier_contract n d nthr sK sV).rin (2 * SZ.v vj + 1) (SZ.v tid));
+         as (fa_barrier_side_rin n d nthr sK sV (2 * SZ.v vj + 1) (SZ.v tid));
+    rewrite (fa_barrier_side_rin n d nthr sK sV (2 * SZ.v vj + 1) (SZ.v tid))
+         as ((fa_barrier_contract n d nthr sK sV).rin (2 * SZ.v vj + 1) (SZ.v tid))
+         by unfold_fa_contract ();
     B.barrier_wait ();
     rewrite ((fa_barrier_contract n d nthr sK sV).rout (2 * SZ.v vj + 1) (SZ.v tid))
+         as (fa_barrier_side_rout n d nthr sK sV (2 * SZ.v vj + 1) (SZ.v tid))
+         by unfold_fa_contract ();
+    rewrite (fa_barrier_side_rout n d nthr sK sV (2 * SZ.v vj + 1) (SZ.v tid))
          as ((exists* (r:chest2 et 1 (SZ.v d)). array2_subtile sK 1 (SZ.v d) (SZ.v tid) 0 |-> Frac 1.0R r) **
              (exists* (r:chest2 et 1 (SZ.v d)). array2_subtile sV 1 (SZ.v d) (SZ.v tid) 0 |-> Frac 1.0R r));
 

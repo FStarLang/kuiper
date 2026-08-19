@@ -74,6 +74,118 @@ let fragarrayB_approximates (#et:Type0) {| scalar et, real_like et |}
         forall (i : natlt wn).
           (Seq.index eBs i) %~ (ematrix_subtile rm tk tn 0 i))
 
+(* Flatten a sub-tile of a sub-tile into a single sub-tile of the parent.
+   Cell [(i',j')] of the [i]-th [trows x tcols] tile of the [tr]-th
+   [(w*trows) x tcols] tile of [em] is cell [((tr*w+i)*trows + i',
+   tc*tcols + j')] of [em].  The nonlinear step
+   [tr*(w*trows) + i*trows == (tr*w+i)*trows] is no longer found by the split
+   queries, so it is supplied here by explicit multiplication lemmas. *)
+let subtile_of_subtile_eq
+  (#et : Type0)
+  (#rows #cols : nat)
+  (em : chest2 et rows cols)
+  (w : pos)
+  (trows : pos { w * trows /? rows /\ trows /? rows })
+  (tcols : pos { tcols /? cols })
+  (tr : natlt (rows / (w * trows)))
+  (i : natlt w)
+  (tc : natlt (cols / tcols))
+  (pf : squash (tr * w + i < rows / trows))
+  : Lemma (ematrix_subtile (ematrix_subtile em (w * trows) tcols tr tc) trows tcols i 0
+           == ematrix_subtile em trows tcols (tr * w + i) tc)
+= FStar.Math.Lemmas.paren_mul_right tr w trows;
+  FStar.Math.Lemmas.distributivity_add_left (tr * w) i trows;
+  Chest.ext (ematrix_subtile (ematrix_subtile em (w * trows) tcols tr tc) trows tcols i 0)
+            (ematrix_subtile em trows tcols (tr * w + i) tc)
+
+(* Symmetric version, tiling the column dimension. *)
+let subtile_of_subtile_eq_cols
+  (#et : Type0)
+  (#rows #cols : nat)
+  (em : chest2 et rows cols)
+  (w : pos)
+  (trows : pos { trows /? rows })
+  (tcols : pos { w * tcols /? cols /\ tcols /? cols })
+  (tr : natlt (rows / trows))
+  (tc : natlt (cols / (w * tcols)))
+  (j : natlt w)
+  (pf : squash (tc * w + j < cols / tcols))
+  : Lemma (ematrix_subtile (ematrix_subtile em trows (w * tcols) tr tc) trows tcols 0 j
+           == ematrix_subtile em trows tcols tr (tc * w + j))
+= FStar.Math.Lemmas.paren_mul_right tc w tcols;
+  FStar.Math.Lemmas.distributivity_add_left (tc * w) j tcols;
+  Chest.ext (ematrix_subtile (ematrix_subtile em trows (w * tcols) tr tc) trows tcols 0 j)
+            (ematrix_subtile em trows tcols tr (tc * w + j))
+
+(* [tr < rows/(w*trows)] and [i < w] imply [tr*w + i < rows/trows], because
+   [rows/trows == w * (rows/(w*trows))].  All the multiplication/division
+   rearrangements are spelled out: query splitting no longer finds them. *)
+let subtile_index_bound (rows : nat) (w trows : pos) (tr : nat)
+  : Lemma (requires w * trows /? rows /\ trows /? rows /\ tr < rows / (w * trows))
+          (ensures forall (i : natlt w). tr * w + i < rows / trows)
+= let q = rows / (w * trows) in
+  (* rows == (w * q) * trows, hence rows / trows == w * q *)
+  FStar.Math.Lemmas.paren_mul_right w trows q;
+  FStar.Math.Lemmas.swap_mul trows q;
+  FStar.Math.Lemmas.paren_mul_right w q trows;
+  FStar.Math.Lemmas.cancel_mul_div (w * q) trows;
+  (* (tr + 1) * w <= q * w *)
+  FStar.Math.Lemmas.lemma_mult_le_right w (tr + 1) q;
+  FStar.Math.Lemmas.distributivity_add_left tr 1 w;
+  FStar.Math.Lemmas.swap_mul q w
+
+(* [subtile_of_subtile_eq] for every sub-tile index at once. *)let subtile_of_subtile_eq_all
+  (#et : Type0)
+  (#rows #cols : nat)
+  (em : chest2 et rows cols)
+  (w : pos)
+  (trows : pos { w * trows /? rows /\ trows /? rows })
+  (tcols : pos { tcols /? cols })
+  (tr : natlt (rows / (w * trows)))
+  (tc : natlt (cols / tcols))
+  (pf : squash (forall (i : natlt w). tr * w + i < rows / trows))
+  : Lemma (forall (i : natlt w).
+             ematrix_subtile (ematrix_subtile em (w * trows) tcols tr tc) trows tcols i 0
+             == ematrix_subtile em trows tcols (tr * w + i) tc)
+= introduce forall (i : natlt w).
+      ematrix_subtile (ematrix_subtile em (w * trows) tcols tr tc) trows tcols i 0
+      == ematrix_subtile em trows tcols (tr * w + i) tc
+  with subtile_of_subtile_eq em w trows tcols tr i tc ()
+
+(* Column-dimension analogue of [subtile_of_subtile_eq_all]. *)
+let subtile_of_subtile_eq_all_cols
+  (#et : Type0)
+  (#rows #cols : nat)
+  (em : chest2 et rows cols)
+  (w : pos)
+  (trows : pos { trows /? rows })
+  (tcols : pos { w * tcols /? cols /\ tcols /? cols })
+  (tr : natlt (rows / trows))
+  (tc : natlt (cols / (w * tcols)))
+  (pf : squash (forall (j : natlt w). tc * w + j < cols / tcols))
+  : Lemma (forall (j : natlt w).
+             ematrix_subtile (ematrix_subtile em trows (w * tcols) tr tc) trows tcols 0 j
+             == ematrix_subtile em trows tcols tr (tc * w + j))
+= introduce forall (j : natlt w).
+      ematrix_subtile (ematrix_subtile em trows (w * tcols) tr tc) trows tcols 0 j
+      == ematrix_subtile em trows tcols tr (tc * w + j)
+  with subtile_of_subtile_eq_cols em w trows tcols tr tc j ()
+
+(* Taking a sub-tile preserves approximation (cellwise consequence of [%~]). *)
+let subtile_approx
+  (#et : Type0) {| scalar et, real_like et |}
+  (#rows #cols : nat)
+  (em : chest2 et rows cols)
+  (rr : chest2 real rows cols)
+  (trows : pos { trows /? rows })
+  (tcols : pos { tcols /? cols })
+  (tr : natlt (rows / trows))
+  (tc : natlt (cols / tcols))
+  : Lemma (requires em %~ rr)
+          (ensures ematrix_subtile em trows tcols tr tc
+                   %~ ematrix_subtile rr trows tcols tr tc)
+= ()
+
 (* [chest_map] commutes with [ematrix_subtile]: mapping every element of a
    matrix and then extracting a subtile equals extracting the subtile of the
    mapped matrix.  Both sides are cellwise [f (acc2 em (..))].  Used as the
@@ -169,6 +281,10 @@ ensures
       // fact that the loaded (unmapped) sub-tile approximates the real sub-tile
       // of [rm], the mapped fragment approximates [chest_map mapA] of the real
       // sub-tile, which equals the sub-tile of [chest_map mapA rm] (commutation).
+      // Flatten the nested sub-tile and transfer [em %~ rm] through it
+      // explicitly: neither step survives query splitting on its own.
+      subtile_of_subtile_eq em wm tm tk arow !i0 dotIdx ();
+      subtile_approx em rm tm tk (arow*wm + !i0) dotIdx;
       MU.chest_map_approx emA mapA
         (ematrix_subtile (ematrix_subtile em (wm*tm) tk arow dotIdx) tm tk !i0 0)
         (ematrix_subtile rm tm tk (arow*wm+ !i0) dotIdx);
@@ -182,6 +298,11 @@ ensures
       i0 := !i0 +^ 1sz;
     };
     ambig_trade_elim ();
+    // The loop invariant tracks each fragment against
+    // [ematrix_subtile (chest_map mapA rm) tm tk (arow*wm+i) dotIdx]; the fold
+    // wants the nested-sub-tile form.  Supply the flattening equality for all i.
+    subtile_index_bound bm wm tm arow;
+    subtile_of_subtile_eq_all (Chest.chest_map mapA rm) wm tm tk arow dotIdx ();
     fold fragarrayA_approximates wm frags
       (ematrix_subtile (Chest.chest_map mapA rm) (wm*tm) tk arow dotIdx);
     ()
@@ -257,6 +378,10 @@ ensures
       i1 := !i1 +^ 1sz;
     };
     ambig_trade_elim ();
+    // As in [populate_fragments_a]: supply the sub-tile flattening equality for
+    // all column indices so the loop invariant matches the folded predicate.
+    subtile_index_bound bn wn tn bcol;
+    subtile_of_subtile_eq_all_cols (Chest.chest_map mapB rm) wn tk tn dotIdx bcol ();
     fold fragarrayB_approximates wn frags
       (ematrix_subtile (Chest.chest_map mapB rm) tk (wn*tn) dotIdx bcol);
     ()
@@ -677,23 +802,6 @@ let em_fade_tiles_full
 = assert (equal (em_fade_tiles tm tn wm wn wm idxJ rm1 rm2) rm2)
 #pop-options
 
-#push-options "--z3rlimit 80 --split_queries always"
-let lemma_update_tile_fade_approximates
-  (#et : Type0) {| scalar et, real_like et|}
-  (tm tn wm wn : pos)
-  (idxI : natlt wm)
-  (idxJ : natlt wn)
-  (em : chest2 et (wm*tm) (wn*tn))
-  (etile : chest2 et tm tn)
-  (rm1 rm2 : chest2 real (wm*tm) (wn*tn))
-: Lemma
-  (requires
-    (em %~ (em_fade_tiles tm tn wm wn idxI idxJ rm1 rm2)) /\
-    (etile %~ (ematrix_subtile rm2 tm tn idxI idxJ)))
-  (ensures (update_tile em tm tn idxI idxJ etile) %~ (em_fade_tiles tm tn wm wn idxI (idxJ + 1) rm1 rm2))
-=
-  () // would be nice to spell it out probably
-#pop-options
 
 (* Combine-fade variant of [em_fade_tiles]: after storing tiles up to
    (idxI, idxJ) with the fused output combine, each already-written tile holds
@@ -716,14 +824,34 @@ let em_fade_comb_tiles
 
 // Once idxI reaches wm every tile is combined, so the whole matrix collapses to
 // [chest_comb comb rm1 rm2].  Proven extensionally, as [em_fade_tiles_full].
-#push-options "--z3rlimit 40"
+(* Every tile index (i/tm, j/tn) of a (wm*tm) x (wn*tn) matrix has flat index
+   below wm*wn, so once idxI = wm the fade's boundary test holds everywhere.
+   Stated explicitly: query splitting no longer lets Z3 find this nonlinear
+   bound on its own. *)
+let div_lt_pos (i : nat) (q w : pos) : Lemma (requires i < w * q) (ensures i / q < w)
+= if i / q >= w then begin
+    FStar.Math.Lemmas.lemma_mult_le_right q w (i/q);
+    FStar.Math.Lemmas.euclidean_division_definition i q
+  end
+
+let tile_flat_index_bound (tm tn wm wn : pos)
+  : Lemma (forall (i:natlt (wm*tm)) (j:natlt (wn*tn)). (i/tm)*wn + (j/tn) < wm*wn)
+= introduce forall (i:natlt (wm*tm)) (j:natlt (wn*tn)). (i/tm)*wn + (j/tn) < wm*wn
+  with begin
+    div_lt_pos i tm wm;
+    div_lt_pos j tn wn;
+    FStar.Math.Lemmas.lemma_mult_le_right wn (i/tm + 1) wm
+  end
+
+#push-options "--z3rlimit 200"
 let em_fade_comb_tiles_full
   (comb : real -> real -> real)
   (tm tn wm wn : pos)
   (idxJ : natle wn)
   (rm1 rm2 : chest2 real (wm*tm) (wn*tn))
 : Lemma (em_fade_comb_tiles comb tm tn wm wn wm idxJ rm1 rm2 == Chest.chest_comb comb rm1 rm2)
-= assert (equal (em_fade_comb_tiles comb tm tn wm wn wm idxJ rm1 rm2) (Chest.chest_comb comb rm1 rm2))
+= tile_flat_index_bound tm tn wm wn;
+  assert (equal (em_fade_comb_tiles comb tm tn wm wn wm idxJ rm1 rm2) (Chest.chest_comb comb rm1 rm2))
 #pop-options
 
 let em_fade_comb_current_subtile_approximates
@@ -813,7 +941,86 @@ let flat_idx_neq
     FStar.Math.Lemmas.lemma_mult_le_left wn (idxI + 1) tr
   end
 
-#push-options "--z3rlimit 80 --split_queries always"
+(* Advancing the fade threshold by one leaves every tile other than
+   [(idxI, idxJ)] untouched: its flat index differs from [idxI*wn+idxJ], so it
+   falls on the same side of both thresholds.  Isolated into its own lemma so
+   that the nonlinear [flat_idx_neq] step is discharged in a tiny context;
+   inlined into the proof below, Z3 diverges on it. *)
+#push-options "--z3rlimit 40"
+let fade_subtile_stable
+  (tm tn wm wn : pos)
+  (idxI : natlt wm)
+  (idxJ : natlt wn)
+  (rm1 rm2 : chest2 real (wm*tm) (wn*tn))
+  (tr : natlt wm)
+  (tc : natlt wn)
+  : Lemma
+    (requires tr <> idxI \/ tc <> idxJ)
+    (ensures ematrix_subtile (em_fade_tiles tm tn wm wn idxI (idxJ+1) rm1 rm2) tm tn tr tc
+          == ematrix_subtile (em_fade_tiles tm tn wm wn idxI idxJ rm1 rm2) tm tn tr tc)
+= flat_idx_neq wn idxI tr idxJ tc
+#pop-options
+
+#push-options "--z3rlimit 80"
+let lemma_update_tile_fade_approximates
+  (#et : Type0) {| scalar et, real_like et|}
+  (tm tn wm wn : pos)
+  (idxI : natlt wm)
+  (idxJ : natlt wn)
+  (em : chest2 et (wm*tm) (wn*tn))
+  (etile : chest2 et tm tn)
+  (rm1 rm2 : chest2 real (wm*tm) (wn*tn))
+: Lemma
+  (requires
+    (em %~ (em_fade_tiles tm tn wm wn idxI idxJ rm1 rm2)) /\
+    (etile %~ (ematrix_subtile rm2 tm tn idxI idxJ)))
+  (ensures (update_tile em tm tn idxI idxJ etile) %~ (em_fade_tiles tm tn wm wn idxI (idxJ + 1) rm1 rm2))
+=
+  // [ematrix_subtile]'s index refinements need [(wm*tm)/tm == wm] and
+  // [(wn*tn)/tn == wn]; supply them up front.
+  FStar.Math.Lemmas.cancel_mul_div wm tm;
+  FStar.Math.Lemmas.cancel_mul_div wn tn;
+  // Reduce the whole-matrix goal to a per-tile one: the just-written tile is
+  // exactly [etile]; every other tile is untouched by both [update_tile] and
+  // the threshold bump.
+  introduce forall (tr:natlt wm) (tc:natlt wn).
+    ematrix_subtile (update_tile em tm tn idxI idxJ etile) tm tn tr tc
+    %~ ematrix_subtile (em_fade_tiles tm tn wm wn idxI (idxJ + 1) rm1 rm2) tm tn tr tc
+  with begin
+    if tr = idxI && tc = idxJ
+    then ()
+    else begin
+      fade_subtile_stable tm tn wm wn idxI idxJ rm1 rm2 tr tc;
+      ematrix_subtile_approximates
+        em (em_fade_tiles tm tn wm wn idxI idxJ rm1 rm2) tm tn tr tc
+    end
+  end;
+  ematrix_subtile_approximates_forall
+    (update_tile em tm tn idxI idxJ etile)
+    (em_fade_tiles tm tn wm wn idxI (idxJ + 1) rm1 rm2)
+    tm tn
+#pop-options
+
+(* Same threshold-bump stability as [fade_subtile_stable], for the combine
+   fade.  Kept as a standalone lemma so the nonlinear [flat_idx_neq] step is
+   discharged in a small context. *)
+#push-options "--z3rlimit 40"
+let fade_comb_subtile_stable
+  (comb : real -> real -> real)
+  (tm tn wm wn : pos)
+  (idxI : natlt wm)
+  (idxJ : natlt wn)
+  (rm1 rm2 : chest2 real (wm*tm) (wn*tn))
+  (tr : natlt wm)
+  (tc : natlt wn)
+  : Lemma
+    (requires tr <> idxI \/ tc <> idxJ)
+    (ensures ematrix_subtile (em_fade_comb_tiles comb tm tn wm wn idxI (idxJ+1) rm1 rm2) tm tn tr tc
+          == ematrix_subtile (em_fade_comb_tiles comb tm tn wm wn idxI idxJ rm1 rm2) tm tn tr tc)
+= flat_idx_neq wn idxI tr idxJ tc
+#pop-options
+
+#push-options "--z3rlimit 80"
 let lemma_update_tile_fade_comb_approximates
   (#et : Type0) {| scalar et, real_like et|}
   (ecomb : et -> et -> et)
@@ -834,6 +1041,10 @@ let lemma_update_tile_fade_comb_approximates
       (Chest.chest_comb ecomb (ematrix_subtile em tm tn idxI idxJ) etile))
     %~ (em_fade_comb_tiles comb tm tn wm wn idxI (idxJ + 1) rm1 rm2))
 =
+  // [ematrix_subtile]'s index refinements need [(wm*tm)/tm == wm] and
+  // [(wn*tn)/tn == wn]; supply them up front.
+  FStar.Math.Lemmas.cancel_mul_div wm tm;
+  FStar.Math.Lemmas.cancel_mul_div wn tn;
   // The (idxI, idxJ) tile is still uncombined in the pre-state fade, so its
   // subtile of [em] approximates [ematrix_subtile rm1 tm tn idxI idxJ].
   em_fade_comb_current_subtile_approximates
@@ -858,7 +1069,7 @@ let lemma_update_tile_fade_comb_approximates
     if tr = idxI && tc = idxJ
     then ()
     else begin
-      flat_idx_neq wn idxI tr idxJ tc;
+      fade_comb_subtile_stable comb tm tn wm wn idxI idxJ rm1 rm2 tr tc;
       ematrix_subtile_approximates
         em (em_fade_comb_tiles comb tm tn wm wn idxI idxJ rm1 rm2)
         tm tn tr tc
@@ -1088,11 +1299,14 @@ let loop_invariant_lemma
       (wm * tm) * (mrow * (bm/(wm*tm)) + warpRow);
       == { Math.Lemmas.distributivity_add_right (wm*tm) (mrow * (bm/(wm*tm))) warpRow }
       (wm * tm) * (mrow * (bm/(wm*tm))) + (wm*tm)*warpRow;
-      == {}
+      == { // pure AC reassociation; spell it out, Z3 no longer finds it
+           Math.Lemmas.paren_mul_right (wm*tm) mrow (bm/(wm*tm));
+           Math.Lemmas.swap_mul (wm*tm) mrow;
+           Math.Lemmas.paren_mul_right mrow (wm*tm) (bm/(wm*tm)) }
       mrow * ((wm * tm) * (bm/(wm*tm))) + (wm*tm)*warpRow;
       == { Math.Lemmas.lemma_div_exact bm (wm*tm) }
       mrow * bm + (wm*tm)*warpRow;
-      == {}
+      == { Math.Lemmas.swap_mul mrow bm; Math.Lemmas.swap_mul (wm*tm) warpRow }
       bm * mrow + warpRow * (wm*tm);
     }
   in
@@ -1103,11 +1317,14 @@ let loop_invariant_lemma
       (wn * tn) * (mcol * (bn/(wn*tn)) + warpCol);
       == { Math.Lemmas.distributivity_add_right (wn*tn) (mcol * (bn/(wn*tn))) warpCol }
       (wn * tn) * (mcol * (bn/(wn*tn))) + (wn*tn)*warpCol;
-      == {}
+      == { // pure AC reassociation; spell it out, Z3 no longer finds it
+           Math.Lemmas.paren_mul_right (wn*tn) mcol (bn/(wn*tn));
+           Math.Lemmas.swap_mul (wn*tn) mcol;
+           Math.Lemmas.paren_mul_right mcol (wn*tn) (bn/(wn*tn)) }
       mcol * ((wn * tn) * (bn/(wn*tn))) + (wn*tn)*warpCol;
       == { Math.Lemmas.lemma_div_exact bn (wn*tn) }
       mcol * bn + (wn*tn)*warpCol;
-      == {}
+      == { Math.Lemmas.swap_mul mcol bn; Math.Lemmas.swap_mul (wn*tn) warpCol }
       bn * mcol + warpCol * (wn*tn);
     }
   in
@@ -1447,6 +1664,75 @@ fn ktile_advance
 }
 #pop-options
 
+(* [matmul_tiles_lemma]'s monoid-law arguments.  Inline [fun _ -> ()] lambdas
+   have their obligation checked in [kf]'s enormous context, where the query now
+   times out; discharging them once here, in a clean context, is cheap. *)
+let real_add_zero (x : real) : squash (add x zero == x /\ add zero x == x) = ()
+let real_add_assoc (x y z : real) : squash (add x (add y z) == add (add x y) z) = ()
+
+(* Bridge between [FB.barrier_p]/[FB.barrier_q], which are held over the *raised*
+   shared arrays [sa1 = from_array l1 sar1], and the barrier contract's
+   [.rin]/[.rout], which are stated over the *raw* arrays.  Neither the
+   [rewrites_to] substitution nor the projection out of the record literal built
+   by [FB.contract] reduces for the SMT solver anymore, so do the substitution
+   with [rewrite each] and the projection by normalization (same bridge as in
+   [Kuiper.Kernel.GEMM.TensorCore] / [BlockTiling2D]). *)
+let unfold_fb_contract () : FStar.Tactics.V2.Tac unit =
+  FStar.Tactics.V2.norm [delta_only [`%FB.contract]; iota; primops];
+  Pulse.Lib.Core.slprop_equiv_norm ()
+
+ghost
+fn bp_to_rin
+  (#etA #etB : Type0)
+  {| sized etA, has_vec_cpy etA, sized etB, has_vec_cpy etB |}
+  (#rows #shared #cols : pos)
+  (eA : chest2 etA rows shared)
+  (eB : chest2 etB shared cols)
+  (#bm : pos{bm /?+ rows}) (#bk : pos{bk /?+ shared}) (#bn : pos{bn /?+ cols})
+  (l1 : full_layout2 bm bk) (l2 : full_layout2 bk bn)
+  (sar1 : larray etA (bm * bk)) (sar2 : larray etB (bk * bn))
+  (sa1 : array2 etA l1) (sa2 : array2 etB l2)
+  (nthr : pos) (bid : natlt (rows/bm * (cols/bn)))
+  (it : nat) (tid : natlt nthr)
+  requires
+    FB.barrier_p eA eB sa1 sa2 nthr bid it tid **
+    pure (sa1 == from_array l1 sar1 /\ sa2 == from_array l2 sar2)
+  ensures
+    (FB.contract eA eB l1 l2 sar1 sar2 nthr bid).rin it tid
+{
+  rewrite each sa1 as (from_array l1 sar1);
+  rewrite each sa2 as (from_array l2 sar2);
+  rewrite FB.barrier_p eA eB (from_array l1 sar1) (from_array l2 sar2) nthr bid it tid
+       as (FB.contract eA eB l1 l2 sar1 sar2 nthr bid).rin it tid
+       by unfold_fb_contract ();
+}
+
+ghost
+fn rout_to_bq
+  (#etA #etB : Type0)
+  {| sized etA, has_vec_cpy etA, sized etB, has_vec_cpy etB |}
+  (#rows #shared #cols : pos)
+  (eA : chest2 etA rows shared)
+  (eB : chest2 etB shared cols)
+  (#bm : pos{bm /?+ rows}) (#bk : pos{bk /?+ shared}) (#bn : pos{bn /?+ cols})
+  (l1 : full_layout2 bm bk) (l2 : full_layout2 bk bn)
+  (sar1 : larray etA (bm * bk)) (sar2 : larray etB (bk * bn))
+  (sa1 : array2 etA l1) (sa2 : array2 etB l2)
+  (nthr : pos) (bid : natlt (rows/bm * (cols/bn)))
+  (it : nat) (tid : natlt nthr)
+  requires
+    (FB.contract eA eB l1 l2 sar1 sar2 nthr bid).rout it tid **
+    pure (sa1 == from_array l1 sar1 /\ sa2 == from_array l2 sar2)
+  ensures
+    FB.barrier_q eA eB sa1 sa2 nthr bid it tid
+{
+  rewrite (FB.contract eA eB l1 l2 sar1 sar2 nthr bid).rout it tid
+       as FB.barrier_q eA eB (from_array l1 sar1) (from_array l2 sar2) nthr bid it tid
+       by unfold_fb_contract ();
+  rewrite each (from_array l1 sar1) as sa1;
+  rewrite each (from_array l2 sar2) as sa2;
+}
+
 #restart-solver
 (* At least two statements in [kf] (the [rewrite each sarA/sarB as fst
    sh/fst (snd sh)] pair near the end, folding the shared-memory arrays back
@@ -1614,13 +1900,11 @@ fn kf
     assert pure (even (2 * !bkIdx));
 
     FB.fold_barrier_p_even eA eB sA sB nthr bid !bkIdx tid;
-    rewrite (FB.barrier_p eA eB sA sB nthr bid) (2 * !bkIdx) tid
-         as (FB.contract eA eB (rm bm bk) (rm bk bn) sarA sarB nthr bid).rin (2 * !bkIdx) tid;
+    bp_to_rin eA eB (rm bm bk) (rm bk bn) sarA sarB sA sB nthr bid (2 * !bkIdx) tid;
 
     B.barrier_wait ();
 
-    rewrite (FB.contract eA eB (rm bm bk) (rm bk bn) sarA sarB nthr bid).rout (2 * !bkIdx) tid
-         as (FB.barrier_q eA eB sA sB nthr bid) (2 * !bkIdx) tid;
+    rout_to_bq eA eB (rm bm bk) (rm bk bn) sarA sarB sA sB nthr bid (2 * !bkIdx) tid;
     FB.unfold_barrier_q_even eA eB sA sB nthr bid !bkIdx tid;
 
     // FlipFlopBarrier2 returns FB.live_strided_chunks; the copy helper consumes
@@ -1647,8 +1931,7 @@ fn kf
     odd_2x1 !bkIdx;
     assert (pure (odd (2 * !bkIdx + 1)));
     FB.fold_barrier_p_odd eA eB sA sB nthr bid mrow mcol !bkIdx tid;
-    rewrite (FB.barrier_p eA eB sA sB nthr bid) (2 * !bkIdx + 1) tid
-         as (FB.contract eA eB (rm bm bk) (rm bk bn) sarA sarB nthr bid).rin (2 * !bkIdx + 1) tid;
+    bp_to_rin eA eB (rm bm bk) (rm bk bn) sarA sarB sA sB nthr bid (2 * !bkIdx + 1) tid;
 
     B.barrier_wait ();
 
@@ -1657,8 +1940,7 @@ fn kf
     assert pure (odd (2 * !bkIdx + 1));
     assert pure ((2 * !bkIdx + 1) < 2 * k / bk);
     assert pure (even (2 * !bkIdx + 2));
-    rewrite (FB.contract eA eB (rm bm bk) (rm bk bn) sarA sarB nthr bid).rout (2 * !bkIdx + 1) tid
-         as (FB.barrier_q eA eB sA sB nthr bid) (2 * !bkIdx + 1) tid;
+    rout_to_bq eA eB (rm bm bk) (rm bk bn) sarA sarB sA sB nthr bid (2 * !bkIdx + 1) tid;
     FB.unfold_barrier_q_odd eA eB sA sB nthr bid mrow mcol !bkIdx tid;
 
     unfold FB.bp_sharing sA (ematrix_subtile eA bm bk mrow !bkIdx) nthr;
@@ -1732,7 +2014,7 @@ fn kf
   assert pure (gwRow == warp_tile_i #m #n bm bn bk tm tn tk wm wn nthr bid (tid / warp_size));
   assert pure (gwCol == warp_tile_j #m #n bm bn bk tm tn tk wm wn nthr bid (tid / warp_size));
 
-  matmul_tiles_lemma (fun _ -> ()) (fun _ _ _ -> ())
+  matmul_tiles_lemma real_add_zero real_add_assoc
     (wm*tm) (wn*tn) bk
     rAcc0 (Chest.chest_map mapA rA) (Chest.chest_map mapB rB)
     gwRow gwCol;
@@ -1815,7 +2097,7 @@ fn kf
 #pop-options
 
 #restart-solver
-#push-options "--fuel 1 --ifuel 1 --split_queries no --z3rlimit_factor 10"
+#push-options "--fuel 1 --ifuel 1 --z3rlimit_factor 10"
 inline_for_extraction noextract
 let mk_kernel
   (#et_ab #et_c : Type0)

@@ -121,7 +121,7 @@ ghost fn prepare_epilogue
 }
 
 #push-options "--ifuel 1 --initial_fuel 0 --max_fuel 1"
-#push-options "--z3rlimit 50"
+#push-options "--z3rlimit 200"
 
 noextract
 ghost fn normalize_output
@@ -207,10 +207,22 @@ ghost fn normalize_output
   assert pure (
     (SZ.v bn / (SZ.v wn * SZ.v tn)) *
       (SZ.v wn * SZ.v tn) == SZ.v bn);
+  // Spell out the two nonlinear rearrangements: with one query per proof
+  // obligation these are no longer found by E-matching alone.
+  FStar.Math.Lemmas.distributivity_add_left
+    (SZ.v mrow * (SZ.v bm / (SZ.v wm * SZ.v tm))) (SZ.v warpRow)
+    (SZ.v wm * SZ.v tm);
+  FStar.Math.Lemmas.paren_mul_right
+    (SZ.v mrow) (SZ.v bm / (SZ.v wm * SZ.v tm)) (SZ.v wm * SZ.v tm);
   assert pure (
     gwRow * (SZ.v wm * SZ.v tm) ==
     SZ.v mrow * SZ.v bm +
       SZ.v warpRow * (SZ.v wm * SZ.v tm));
+  FStar.Math.Lemmas.distributivity_add_left
+    (SZ.v mcol * (SZ.v bn / (SZ.v wn * SZ.v tn))) (SZ.v warpCol)
+    (SZ.v wn * SZ.v tn);
+  FStar.Math.Lemmas.paren_mul_right
+    (SZ.v mcol) (SZ.v bn / (SZ.v wn * SZ.v tn)) (SZ.v wn * SZ.v tn);
   assert pure (
     gwCol * (SZ.v wn * SZ.v tn) ==
     SZ.v mcol * SZ.v bn +

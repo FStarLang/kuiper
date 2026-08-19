@@ -461,6 +461,115 @@ let mul_add_inj (#n : pos) (a : nat) (b : natlt n) (c : nat) (d : natlt n)
     FStar.Math.Lemmas.division_addition_lemma d n c;
     FStar.Math.Lemmas.small_div d n
 
+(* Nonlinear index bounds: [x < a*b ==> x/a < b], and the global row of the
+   cell (block b, thread t, offset i) stays inside the matrix.  These are no
+   longer found automatically now that each obligation is its own SMT query. *)
+#push-options "--fuel 0 --ifuel 0 --z3rlimit 40"
+let div_lt_bound (x : nat) (a b : pos)
+  : Lemma (requires x < a * b) (ensures x / a < b)
+  = FStar.Math.Lemmas.lemma_div_mod x a;
+    if x / a >= b then FStar.Math.Lemmas.lemma_mult_le_right a b (x / a)
+
+let tile_glob_bound (m bm tm b t i : nat)
+  : Lemma (requires bm > 0 /\ tm > 0 /\ m % bm = 0 /\ bm % tm = 0 /\
+                    b < m / bm /\ t < bm / tm /\ i < tm)
+          (ensures b * bm + (t * tm + i) < m)
+  = FStar.Math.Lemmas.lemma_div_exact m bm;                    // m == bm * (m/bm)
+    FStar.Math.Lemmas.lemma_div_exact bm tm;                   // bm == tm * (bm/tm)
+    FStar.Math.Lemmas.distributivity_add_left t 1 tm;
+    FStar.Math.Lemmas.lemma_mult_le_right tm (t + 1) (bm / tm); // (t+1)*tm <= bm
+    FStar.Math.Lemmas.distributivity_add_left b 1 bm;
+    FStar.Math.Lemmas.lemma_mult_le_right bm (b + 1) (m / bm)   // (b+1)*bm <= m
+
+(* [a/b >= 0] and [a*b >= 0] for naturals: no longer available for free, and
+   needed where no explicit lemma call can be inserted. *)
+let div_nonneg_pat (a b : nat)
+  : Lemma (requires b > 0) (ensures a / b >= 0)
+          [SMTPat (a / b)]
+  = FStar.Math.Lemmas.nat_over_pos_is_nat a b
+
+(* Narrow shape: the global offset of a tile cell.  A bare [SMTPat (a*b)] fires
+   far too often and makes Z3 diverge. *)
+let tile_off_nonneg_pat (a b c : nat)
+  : Lemma (a * b + c >= 0)
+          [SMTPat (a * b + c)]
+  = FStar.Math.Lemmas.nat_times_nat_is_nat a b
+
+(* Triggered variants, for the goals that arise while typechecking a
+   *specification* (where no explicit lemma call can be inserted): both
+   orientations of the product, since the hypothesis may be [x < a*b] or
+   [x < b*a]. *)
+let div_lt_bound_pat_l (x a b : nat)
+  : Lemma (requires a > 0 /\ b > 0 /\ x < a * b) (ensures x / a < b)
+          [SMTPat (x / a); SMTPat (a * b)]
+  = div_lt_bound x a b
+
+let div_lt_bound_pat_r (x a b : nat)
+  : Lemma (requires a > 0 /\ b > 0 /\ x < b * a) (ensures x / a < b)
+          [SMTPat (x / a); SMTPat (b * a)]
+  = FStar.Math.Lemmas.swap_mul b a;
+    div_lt_bound x a b
+
+(* [SZ.rem]'s postcondition is stated as [a - (a/b)*b], not [a % b]; connecting
+   the two needs Euclid's division identity, which Z3 does not reliably find in
+   a large context.  Supply it once, in an empty context. *)
+let sz_rem_spec (a : SZ.t) (b : SZ.t{SZ.v b <> 0})
+  : Lemma (SZ.v (a %^ b) == SZ.v a % SZ.v b)
+  = FStar.Math.Lemmas.euclidean_division_definition (SZ.v a) (SZ.v b)
+
+(* Positivity of a product of positives, proved in an empty context. *)
+let mul_pos (a b : pos) : Lemma (a * b > 0) = ()
+
+(* Doubling preserves strict order; proved in an empty context because Z3 times
+   out on it inside the (very large) k-loop context. *)
+let lt_2x1 (a b : nat) : Lemma (requires a < b) (ensures 2 * a + 1 < 2 * b) = ()
+
+(* Trivial linear/Euclidean identities about the doubled barrier index.  They
+   are proved in an empty context: inside the k-loop the ambient context is so
+   large that Z3 times out even on these. *)
+let double_succ (a : nat) : Lemma (2 * (a + 1) == 2 * a + 2) = ()
+
+let div_2x1 (a : nat) : Lemma ((2 * a + 1) / 2 == a) = ()
+
+(* A positive divisor is no larger than what it divides. *)
+let divisor_le (d x : pos) : Lemma (requires x % d = 0) (ensures d <= x)
+  = FStar.Math.Lemmas.lemma_div_exact x d;
+    assert (x == d * (x / d));
+    assert (x / d >= 1);
+    FStar.Math.Lemmas.lemma_mult_le_left d 1 (x / d)
+
+(* Monotonicity of [SZ.fits] under a pointwise-smaller product.  Proved in an
+   empty context: Z3 diverges on this nonlinear goal in the kernel context. *)
+let fits_mul_le (a b c d : nat)
+  : Lemma (requires a <= c /\ b <= d /\ SZ.fits (c * d))
+          (ensures SZ.fits (a * b))
+  = FStar.Math.Lemmas.lemma_mult_le_left a b d;
+    FStar.Math.Lemmas.lemma_mult_le_right d a c
+
+(* [1/n > 0] for positive [n]: proved in an empty context, since Z3 tends to
+   diverge on this nonlinear real goal inside a large kernel context. *)
+let inv_pos (n : pos)
+  : Lemma (1.0R /. FStar.Real.of_int n >. 0.0R)
+  = ()
+
+(* Row-major index bound: [a < tm, b < tn ==> a*tn + b < tm*tn]. *)
+let idx2d_bound (a b tm tn : nat)
+  : Lemma (requires a < tm /\ b < tn) (ensures a * tn + b < tm * tn)
+  = FStar.Math.Lemmas.distributivity_add_left a 1 tn;
+    FStar.Math.Lemmas.lemma_mult_le_right tn (a + 1) tm
+
+let tile_glob_bound_pat (m bm tm b t i : nat)
+  : Lemma (requires bm > 0 /\ tm > 0 /\ m == (m/bm) * bm /\ bm == (bm/tm) * tm /\
+                    b < m / bm /\ t < bm / tm /\ i < tm)
+          (ensures b * bm + t * tm + i < m)
+          (* multipattern: [m] does not occur in the sum itself *)
+          [SMTPat (b * bm + t * tm + i); SMTPat (m / bm)]
+  = FStar.Math.Lemmas.distributivity_add_left t 1 tm;
+    FStar.Math.Lemmas.lemma_mult_le_right tm (t + 1) (bm / tm);
+    FStar.Math.Lemmas.distributivity_add_left b 1 bm;
+    FStar.Math.Lemmas.lemma_mult_le_right bm (b + 1) (m / bm)
+#pop-options
+
 (* ettile commutes with chest_comb (and thus mmcomb) pointwise.
    This needs normalization through ematrix_subtile → mk2 → acc2 chains. *)
 let ettile_matmul_pointwise
@@ -555,7 +664,12 @@ let ettile_mmcomb_pointwise
            comb (acc2 (ettile eC bm bn tm tn bid tid) i j)
                 (acc2 (ettile (MS.matmul (Kuiper.Chest.chest_map mapA eA) (Kuiper.Chest.chest_map mapB eB)) bm bn tm tn bid tid) i j))
           [SMTPat (acc2 (ettile (MS.gmmcomb mapA mapB comb eC eA eB) bm bn tm tn bid tid) i j)]
-  = let ro : nat = (bid/(n/bn))*bm + ((tid/(bn/tn))*tm + i) in
+  = (* [ro < m] / [co < n] for [lemma_matmul_index]'s refined arguments. *)
+    div_lt_bound bid (n/bn) (m/bm);
+    div_lt_bound tid (bn/tn) (bm/tm);
+    tile_glob_bound m bm tm (bid/(n/bn)) (tid/(bn/tn)) i;
+    tile_glob_bound n bn tn (bid%(n/bn)) (tid%(bn/tn)) j;
+    let ro : nat = (bid/(n/bn))*bm + ((tid/(bn/tn))*tm + i) in
     let co : nat = (bid%(n/bn))*bn + ((tid%(bn/tn))*tn + j) in
     MS.lemma_matmul_index (Kuiper.Chest.chest_map mapA eA) (Kuiper.Chest.chest_map mapB eB) ro co;
     assert_norm (acc2 (ettile (MS.gmmcomb mapA mapB comb eC eA eB) bm bn tm tn bid tid) i j ==
@@ -588,7 +702,69 @@ let epilogue_tile_lt_succ (tm : pos) (tn : pos) (rM : nat) (rN : nat{rN < tn})
        (i * tn + j < rM * tn + rN \/ (i == rM /\ j == rN)))
     with (lemma_eucl_lt_succ tn i j rM rN)
 
-#push-options "--z3rlimit 30"
+(* Row-major linearization facts used by [epilogue]'s loop invariants.  These
+   used to be discharged by a triggered lemma ([SMTPat (i*tn+j); SMTPat (r*tn)]),
+   but such a pattern fires on essentially every index expression in this module
+   and made Z3 diverge / time out non-deterministically.  They are now explicit
+   lemmas, proved in a minimal context and called at the two use sites. *)
+let row_lt_aux (tn : pos) (i j r : nat)
+  : Lemma (requires j < tn) (ensures (i * tn + j < r * tn) <==> i < r)
+  = if i < r
+    then (FStar.Math.Lemmas.distributivity_add_left i 1 tn;
+          FStar.Math.Lemmas.lemma_mult_le_right tn (i + 1) r)
+    else FStar.Math.Lemmas.lemma_mult_le_right tn r i
+
+let row_carry_aux (tn : pos) (i j r : nat)
+  : Lemma (requires j < tn) (ensures (i * tn + j < r * tn + tn) <==> i <= r)
+  = if i <= r
+    then FStar.Math.Lemmas.lemma_mult_le_right tn i r
+    else (FStar.Math.Lemmas.distributivity_add_left r 1 tn;
+          FStar.Math.Lemmas.lemma_mult_le_right tn (r + 1) i)
+
+let row_eq_aux (tn : pos) (i j r s : nat)
+  : Lemma (requires j < tn /\ s < tn)
+          (ensures (i * tn + j == r * tn + s) <==> (i == r /\ j == s))
+  = FStar.Math.Lemmas.lemma_div_plus j i tn;
+    FStar.Math.Lemmas.small_div j tn;
+    FStar.Math.Lemmas.lemma_mod_plus j i tn;
+    FStar.Math.Lemmas.small_mod j tn;
+    FStar.Math.Lemmas.lemma_div_plus s r tn;
+    FStar.Math.Lemmas.small_div s tn;
+    FStar.Math.Lemmas.lemma_mod_plus s r tn;
+    FStar.Math.Lemmas.small_mod s tn
+
+(* Inner-loop entry: at [resIdxN = 0] the linearized guard collapses to [i < rM]. *)
+let epilogue_row_lt (tm tn : pos) (rM : nat)
+  : Lemma (forall (i:natlt tm) (j:natlt tn). (i * tn + j < rM * tn) <==> i < rM)
+  = introduce forall (i:natlt tm) (j:natlt tn). (i * tn + j < rM * tn) <==> i < rM
+    with (row_lt_aux tn i j rM)
+
+(* Inner→outer bridge: at [resIdxN = tn] the guard collapses to [i <= rM]. *)
+let epilogue_row_carry (tm tn : pos) (rM : nat)
+  : Lemma (forall (i:natlt tm) (j:natlt tn).
+            (i * tn + j < rM * tn + tn) <==> i <= rM)
+  = introduce forall (i:natlt tm) (j:natlt tn).
+      (i * tn + j < rM * tn + tn) <==> i <= rM
+    with (row_carry_aux tn i j rM)
+
+(* Cell identification inside the tile. *)
+let epilogue_tile_eq (tm tn : pos) (rM : nat) (rN : nat{rN < tn})
+  : Lemma (forall (i:natlt tm) (j:natlt tn).
+            (i * tn + j == rM * tn + rN) <==> (i == rM /\ j == rN))
+  = introduce forall (i:natlt tm) (j:natlt tn).
+      (i * tn + j == rM * tn + rN) <==> (i == rM /\ j == rN)
+    with (row_eq_aux tn i j rM rN)
+
+(* Every in-tile (i,j) linearizes into [0, tm*tn): needed to instantiate the
+   [natlt (tm*tn)]-indexed precondition of [epilogue]. *)
+let epilogue_tile_idx_bound (tm tn : pos)
+  : Lemma (forall (i:natlt tm) (j:natlt tn). i * tn + j < tm * tn)
+  = introduce forall (i:natlt tm) (j:natlt tn). i * tn + j < tm * tn
+    with (idx2d_bound i j tm tn)
+
+(* Per-leaf rlimits: the epilogue's loop bodies now split into many small
+   queries in a large context. *)
+#push-options "--z3rlimit 300"
 inline_for_extraction noextract
 fn epilogue
   (#ta #tb #tc #tacc : Type0) {| scalar tc, scalar tacc |}
@@ -622,6 +798,7 @@ fn epilogue
 {
   (* Help the SMT connect vrch to the matmul subtile via div/mod *)
   epilogue_tile_div_mod tm tn;
+  epilogue_tile_idx_bound (SZ.v tm) (SZ.v tn);
   assert pure (forall (i:natlt tm) (j:natlt tn).
     vrch @! (i * tn + j) == acc2 (ettile (MS.matmul (Kuiper.Chest.chest_map mapA eA) (Kuiper.Chest.chest_map mapB eB)) bm bn tm tn bid tid) i j);
 
@@ -642,6 +819,8 @@ fn epilogue
            else acc2 eC_tile i j))
     decreases (tm - !resIdxM)
   {
+    (* Entry to the inner loop: the linearized guard at [resIdxN = 0]. *)
+    epilogue_row_lt (SZ.v tm) (SZ.v tn) (SZ.v !resIdxM);
     let mut resIdxN = 0sz;
     while (!resIdxN <^ tn)
       invariant live resIdxN ** pure (!resIdxN <= tn)
@@ -662,6 +841,7 @@ fn epilogue
       let vrm = !resIdxM;
       let vrn = !resIdxN;
       let v0 = tensor_read t_tile ((vrm <: szlt _), ((vrn <: szlt _), ()));
+      idx2d_bound (SZ.v vrm) (SZ.v vrn) (SZ.v tm) (SZ.v tn);
       let v1 = rchProd.(!resIdxM *^ tn +^ !resIdxN);
       let v' = comb v0 v1;
       tensor_write t_tile ((vrm <: szlt _), ((vrn <: szlt _), ())) v';
@@ -670,6 +850,7 @@ fn epilogue
          i*tn+j == resIdxM*tn+resIdxN iff i==resIdxM /\ j==resIdxN.
          This is needed so the SMT can connect upd2 to the linearized
          index comparison in the invariant. *)
+      epilogue_tile_eq (SZ.v tm) (SZ.v tn) (SZ.v !resIdxM) (SZ.v !resIdxN);
       assert pure (forall (i:natlt tm) (j:natlt tn).
         i * tn + j == !resIdxM * tn + !resIdxN <==> (i == !resIdxM /\ j == !resIdxN));
 
@@ -686,6 +867,7 @@ fn epilogue
     (* Bridge inner→outer: when resIdxN==tn, the linearized condition
        i*tn+j < resIdxM*tn+tn is equivalent to i <= resIdxM, and
        since j < tn, also to i < resIdxM+1. *)
+    epilogue_row_carry (SZ.v tm) (SZ.v tn) (SZ.v !resIdxM);
     assert pure (forall (i:natlt tm) (j:natlt tn).
       i * tn + j < !resIdxM * tn + tn <==> i <= !resIdxM);
 
@@ -704,7 +886,71 @@ fn epilogue
    buffer [rchProd].  Touches neither the output C nor [comb]; the caller writes
    C (subtile for [kf], cells for [bkf]).  The post-loop [rchProd] equals the
    exact matmul subtile of the [chest_map]-ped inputs. *)
-#push-options "--fuel 1 --ifuel 1"
+(* Bridge between [FB.barrier_p]/[FB.barrier_q], which are held over the *raised*
+   shared arrays [sA = from_array slA sarA], and the barrier contract's
+   [.rin]/[.rout], which are stated over the *raw* arrays.  Neither the
+   substitution nor the projection out of the record literal built by
+   [FB.contract] reduces for the SMT solver anymore, so do the substitution with
+   [rewrite each] and the projection by normalization. *)
+let unfold_fb_contract () : FStar.Tactics.V2.Tac unit =
+  FStar.Tactics.V2.norm [delta_only [`%FB.contract]; iota; primops];
+  Pulse.Lib.Core.slprop_equiv_norm ()
+
+ghost
+fn bp_to_rin
+  (#etA #etB : Type0)
+  {| sized etA, has_vec_cpy etA, sized etB, has_vec_cpy etB |}
+  (#rows #shared #cols : pos)
+  (eA : chest2 etA rows shared)
+  (eB : chest2 etB shared cols)
+  (#bm : pos{bm /?+ rows}) (#bk : pos{bk /?+ shared}) (#bn : pos{bn /?+ cols})
+  (l1 : full_layout2 bm bk) (l2 : full_layout2 bk bn)
+  (sar1 : larray etA (bm * bk)) (sar2 : larray etB (bk * bn))
+  (sa1 : array2 etA l1) (sa2 : array2 etB l2)
+  (nthr : pos) (bid : natlt (rows/bm * (cols/bn)))
+  (it : nat) (tid : natlt nthr)
+  requires
+    FB.barrier_p eA eB sa1 sa2 nthr bid it tid **
+    pure (sa1 == from_array l1 sar1 /\ sa2 == from_array l2 sar2)
+  ensures
+    (FB.contract eA eB l1 l2 sar1 sar2 nthr bid).rin it tid
+{
+  rewrite each sa1 as (from_array l1 sar1);
+  rewrite each sa2 as (from_array l2 sar2);
+  rewrite FB.barrier_p eA eB (from_array l1 sar1) (from_array l2 sar2) nthr bid it tid
+       as (FB.contract eA eB l1 l2 sar1 sar2 nthr bid).rin it tid
+       by unfold_fb_contract ();
+}
+
+ghost
+fn rout_to_bq
+  (#etA #etB : Type0)
+  {| sized etA, has_vec_cpy etA, sized etB, has_vec_cpy etB |}
+  (#rows #shared #cols : pos)
+  (eA : chest2 etA rows shared)
+  (eB : chest2 etB shared cols)
+  (#bm : pos{bm /?+ rows}) (#bk : pos{bk /?+ shared}) (#bn : pos{bn /?+ cols})
+  (l1 : full_layout2 bm bk) (l2 : full_layout2 bk bn)
+  (sar1 : larray etA (bm * bk)) (sar2 : larray etB (bk * bn))
+  (sa1 : array2 etA l1) (sa2 : array2 etB l2)
+  (nthr : pos) (bid : natlt (rows/bm * (cols/bn)))
+  (it : nat) (tid : natlt nthr)
+  requires
+    (FB.contract eA eB l1 l2 sar1 sar2 nthr bid).rout it tid **
+    pure (sa1 == from_array l1 sar1 /\ sa2 == from_array l2 sar2)
+  ensures
+    FB.barrier_q eA eB sa1 sa2 nthr bid it tid
+{
+  rewrite (FB.contract eA eB l1 l2 sar1 sar2 nthr bid).rout it tid
+       as FB.barrier_q eA eB (from_array l1 sar1) (from_array l2 sar2) nthr bid it tid
+       by unfold_fb_contract ();
+  rewrite each (from_array l1 sar1) as sa1;
+  rewrite each (from_array l2 sar2) as sa2;
+}
+
+(* Per-leaf rlimits: the k-loop body's many small goals each get their own
+   query, in a very large context. *)
+#push-options "--fuel 1 --ifuel 1 --z3rlimit 300"
 inline_for_extraction noextract
 fn kf_compute
   (#ta #tb #tacc : Type0)
@@ -793,11 +1039,36 @@ fn kf_compute
   let num_n_tiles = n /^ bn;
   let mrow = bid /^ num_n_tiles;
   let mcol = bid %^ num_n_tiles;
+  (* [bid < m/bm * (n/bn)] no longer yields the block-index bounds for free;
+     they are needed by [lemma_subtile_strided_row_major_offset]. *)
+  assert pure (SZ.v n / SZ.v bn > 0);
+  div_lt_bound (SZ.v bid) (SZ.v n / SZ.v bn) (SZ.v m / SZ.v bm);
+  FStar.Math.Lemmas.lemma_mod_lt (SZ.v bid) (SZ.v n / SZ.v bn);
+  sz_rem_spec bid num_n_tiles;
+  assert pure (SZ.v mrow < SZ.v m / SZ.v bm);
+  assert pure (SZ.v mcol < SZ.v n / SZ.v bn);
+  assert pure (SZ.v num_k_tiles == SZ.v k / SZ.v bk);
+  assert pure (SZ.v mrow == SZ.v bid / (SZ.v n / SZ.v bn));
+  assert pure (SZ.v mcol == SZ.v bid % (SZ.v n / SZ.v bn));
 
   let threadRow = tid /^ (bn/^tn);
   let threadCol = tid %^ (bn/^tn);
+  (* [tid < bm/tm * (bn/tn)] no longer yields [tid/(bn/tn) < bm/tm] for free. *)
+  assert pure (SZ.v bn / SZ.v tn > 0);
+  div_lt_bound (SZ.v tid) (SZ.v bn / SZ.v tn) (SZ.v bm / SZ.v tm);
+  FStar.Math.Lemmas.lemma_mod_lt (SZ.v tid) (SZ.v bn / SZ.v tn);
+  sz_rem_spec tid (bn /^ tn);
+  assert pure (SZ.v threadRow < SZ.v bm / SZ.v tm);
+  assert pure (SZ.v threadCol < SZ.v bn / SZ.v tn);
 
   (* register caches *)
+  divisor_le (SZ.v tm) (SZ.v bm);
+  divisor_le (SZ.v bm) (SZ.v m);
+  divisor_le (SZ.v tn) (SZ.v bn);
+  divisor_le (SZ.v bn) (SZ.v n);
+  FStar.Math.Lemmas.lemma_mult_le_left (SZ.v tm) (SZ.v tn) (SZ.v n);
+  FStar.Math.Lemmas.lemma_mult_le_right (SZ.v n) (SZ.v tm) (SZ.v m);
+  fits_mul_le (SZ.v tm) (SZ.v tn) (SZ.v m) (SZ.v n);
   assert pure (tm <= m);
   assert pure (tn <= n);
   assert pure (tm * tn <= m * n);
@@ -824,13 +1095,11 @@ fn kf_compute
   {
     even_2x !bkIdx;
     FB.fold_barrier_p_even eA eB sA sB nthr bid !bkIdx tid;
-    rewrite FB.barrier_p eA eB sA sB nthr bid (2 * !bkIdx) tid
-         as (FB.contract eA eB slA slB sarA sarB nthr bid).rin (2 * !bkIdx) tid;
+    bp_to_rin eA eB slA slB sarA sarB sA sB nthr bid (2 * !bkIdx) tid;
 
     B.barrier_wait ();
 
-    rewrite (FB.contract eA eB slA slB sarA sarB nthr bid).rout (2 * !bkIdx) tid
-         as (FB.barrier_q eA eB sA sB nthr bid (2 * !bkIdx) tid);
+    rout_to_bq eA eB slA slB sarA sarB sA sB nthr bid (2 * !bkIdx) tid;
     FB.unfold_barrier_q_even eA eB sA sB nthr bid !bkIdx tid;
 
     {
@@ -848,6 +1117,7 @@ fn kf_compute
       Kuiper.Divides.lemma_divides_sum (chunk ta) (str_A.offset + str_A.stride * (mrow * bm)) (!bkIdx * bk);
       assert pure (chunk ta /?+ (str_A.offset + str_A.stride * (mrow * bm) + (!bkIdx * bk)));
 
+      mul_pos (SZ.v bm) (SZ.v bk);
       CV2.cp_array2_vec bm bk tileA sA (bm/^tm *^ (bn/^tn)) tid;
 
       Trade.elim_trade _ _;
@@ -868,6 +1138,7 @@ fn kf_compute
       Kuiper.Divides.lemma_divides_sum (chunk tb) (str_B.offset + str_B.stride * (!bkIdx * bk)) (mcol * bn);
       assert pure (chunk tb /?+ (str_B.offset + str_B.stride * (!bkIdx * bk) + (mcol * bn)));
 
+      mul_pos (SZ.v bk) (SZ.v bn);
       CV2.cp_array2_vec bk bn tileB sB (bm/^tm *^ (bn/^tn)) tid;
 
       Trade.elim_trade _ _;
@@ -882,19 +1153,21 @@ fn kf_compute
     odd_2x1 !bkIdx;
     assert (pure (odd (2 * !bkIdx + 1)));
     FB.fold_barrier_p_odd eA eB sA sB nthr bid mrow mcol !bkIdx tid;
-    rewrite FB.barrier_p eA eB sA sB nthr bid (2 * !bkIdx + 1) tid
-         as (FB.contract eA eB slA slB sarA sarB nthr bid).rin (2 * !bkIdx + 1) tid;
+    bp_to_rin eA eB slA slB sarA sarB sA sB nthr bid (2 * !bkIdx + 1) tid;
 
     B.barrier_wait ();
 
     even_2x (SZ.v !bkIdx + 1);
+    double_succ (SZ.v !bkIdx);
     assert (pure (2 * (SZ.v !bkIdx + 1) == 2 * !bkIdx + 2));
     assert (pure (even (2 * !bkIdx + 2)));
     assert (pure (odd (2 * !bkIdx + 1)));
+    assert pure (SZ.v !bkIdx < SZ.v num_k_tiles);
+    lt_2x1 (SZ.v !bkIdx) (SZ.v num_k_tiles);
     assert pure ((2 * !bkIdx + 1) < (2 * (k /^ bk)));
+    div_2x1 (SZ.v !bkIdx);
     assert pure ((2 * !bkIdx + 1) / 2 == !bkIdx);
-    rewrite (FB.contract eA eB slA slB sarA sarB nthr bid).rout (2 * !bkIdx + 1) tid
-        as FB.barrier_q eA eB sA sB nthr bid (2 * !bkIdx + 1) tid;
+    rout_to_bq eA eB slA slB sarA sarB sA sB nthr bid (2 * !bkIdx + 1) tid;
     FB.unfold_barrier_q_odd eA eB sA sB nthr bid mrow mcol !bkIdx tid;
 
     unfold FB.bp_sharing sA (ematrix_subtile eA bm bk mrow !bkIdx) nthr;
@@ -902,6 +1175,7 @@ fn kf_compute
 
     with old_v. assert (rchProd |-> old_v);
     pts_to_len rchProd;
+    inv_pos nthr;
     subproducts2d mapA mapB bm bn bk tm tn rchProd sA sB threadRow threadCol;
     __bkIdx_loop_step mapA mapB eA eB bm bn bk tm tn mrow mcol threadRow threadCol !bkIdx old_v;
 
@@ -1117,7 +1391,7 @@ let bt2d_gg_all (batch m n : nat) (bm bn tm tn : pos)
       with bt2d_gg_full batch m n bm bn tm tn sq1 sq2 bid tid idx
 
 (* the value at the arithmetic cell equals the acc2 of the page slice at (grow, gcol) *)
-#push-options "--split_queries always --fuel 4 --ifuel 4"
+#push-options "--fuel 4 --ifuel 4 --z3rlimit 300"
 let bt2d_acc_bridge
   (#tc : Type0)
   (batch m n : nat) (bm bn tm tn : pos)
@@ -1239,8 +1513,8 @@ let bt2d_size_req_bsize1 (m n : nat) (bm bn tm tn : pos)
    [fB /. _] divisor: because [bt2d_nall_e] is not [unfold], the divisor stays an
    OPAQUE [pos] symbol in their VC, so the perm obligation is trivial ([>= 1] by
    refinement) instead of re-deriving the nonlinear product positivity.  This is
-   what keeps the merged [--split_queries no] kernel-descriptor record VC from
-   cascade-failing on [real <: perm] / nonzero-divisor obligations. *)
+   what keeps the merged kernel-descriptor record VC from cascade-failing on
+   [real <: perm] / nonzero-divisor obligations. *)
 #push-options "--fuel 1 --ifuel 1 --z3rlimit 60"
 [@@ "opaque_to_smt"]
 let bt2d_nall_e (batch m n : szp)
@@ -1428,7 +1702,7 @@ let bkpost
 
 
 (* ─── batched sendables ─── *)
-#push-options "--z3rlimit_factor 10 --fuel 1 --ifuel 1 --split_queries no"
+#push-options "--z3rlimit_factor 10 --fuel 1 --ifuel 1"
 #push-options "--z3rlimit 100"
 instance bkpre_block_sendable
   (#ta #tb #tc #tacc : Type0)
@@ -1514,7 +1788,7 @@ let nthr_to_prod_sz
   = tid
 
 (* ─── batched per-block compute (page-minor decode + cell writes) ─── *)
-#push-options "--z3rlimit 800 --z3rlimit_factor 4 --fuel 2 --ifuel 2 --split_queries no"
+#push-options "--z3rlimit 800 --z3rlimit_factor 4 --fuel 2 --ifuel 2"
 inline_for_extraction noextract
 fn bkf
   (#ta #tb #tc #tacc : Type0)
@@ -1622,7 +1896,14 @@ fn bkf
   lemma_aligned_slice_of_3 _ _ _ lA #s3A (SZ.v page) (chunk ta);
   lemma_aligned_slice_of_3 _ _ _ lB #s3B (SZ.v page) (chunk tb);
 
-  (* Product buffer, then run the C-independent compute core over the page. *)
+  (* Product buffer, then run the C-independent compute core over the page.
+     [SZ.fits (tm*tn)] follows from [tm <= bm <= m], [tn <= bn <= n] and
+     [SZ.fits (m*n)]; supplied explicitly since Z3 diverges on it here. *)
+  divisor_le (SZ.v tm) (SZ.v bm);
+  divisor_le (SZ.v bm) (SZ.v m);
+  divisor_le (SZ.v tn) (SZ.v bn);
+  divisor_le (SZ.v bn) (SZ.v n);
+  fits_mul_le (SZ.v tm) (SZ.v tn) (SZ.v m) (SZ.v n);
   let mut rchProd : Pulse.Lib.Array.array tacc = [| zero #tacc #_ ; tm*^tn |];
   pts_to_len rchProd;
 
@@ -1748,6 +2029,13 @@ fn bkf
     let tc = tid %^ (bn/^tn);
     let irow = ci0 /^ tn;
     let icol = ci0 %^ tn;
+    (* [SZ.rem]'s postcondition is [a - (a/b)*b], not [a % b].  Bridge each
+       remainder once here: without this the [gcol_sz] coordinate equality below
+       (the [%]-flavoured twin of the [grow_sz] one, which only uses [/]) makes
+       Z3 diverge on the Euclidean identity. *)
+    sz_rem_spec rest (n /^ bn);
+    sz_rem_spec tid (bn /^ tn);
+    sz_rem_spec ci0 tn;
     (* Tiling bounds so [grow_sz : szlt m] / [gcol_sz : szlt n] and the SZ ops fit. *)
     assert pure (SZ.v bm == (SZ.v bm / SZ.v tm) * SZ.v tm);
     assert pure (SZ.v bn == (SZ.v bn / SZ.v tn) * SZ.v tn);
@@ -2504,7 +2792,7 @@ fn bblock_teardown
 (* PATH A: the single product↔nblk / product↔nthr bridge, relocated into
    term-level pure calls with an isolated (non-merged) VC so SMT is actually
    consulted with the refinement in scope.  Inline coercions inside the giant
-   [--split_queries no] record VC do not get the [nblk_v]/[nthr_v] refinement
+   record VC do not get the [nblk_v]/[nthr_v] refinement
    connected to the product bound; these tiny lemmas discharge it locally. *)
 unfold
 let nblk_to_prod
@@ -2522,7 +2810,7 @@ let nthr_to_prod
   : natlt ((bm/tm) * (bn/tn))
   = tid
 
-#push-options "--z3rlimit_factor 4 --split_queries no --fuel 1 --ifuel 1"
+#push-options "--z3rlimit_factor 4 --fuel 1 --ifuel 1"
 inline_for_extraction noextract
 let bmk_kernel
   (#ta #tb #tc #tacc : Type0)
@@ -2874,7 +3162,12 @@ fn bmmcomb_gpu_approx
   ()
 }
 
-#push-options "--z3rlimit 600 --fuel 4 --ifuel 4"
+(* The triggered arithmetic lemmas near the top of this module are needed only
+   by the kernel proofs.  Here the goal is one big conjunction of [SZ.fits] and
+   divisibility facts about [bm*bk], [bm/tm*(bn/tn)], ... on which those
+   patterns fire relentlessly and make Z3 diverge, so drop them from the fact
+   set for this (purely administrative) rank-2 wrapper. *)
+#push-options "--z3rlimit 600 --fuel 4 --ifuel 4 --using_facts_from '* -Kuiper.Kernel.GEMM.BlockTiling2D.div_nonneg_pat -Kuiper.Kernel.GEMM.BlockTiling2D.tile_off_nonneg_pat -Kuiper.Kernel.GEMM.BlockTiling2D.div_lt_bound_pat_l -Kuiper.Kernel.GEMM.BlockTiling2D.div_lt_bound_pat_r -Kuiper.Kernel.GEMM.BlockTiling2D.tile_glob_bound_pat'"
 inline_for_extraction noextract
 fn gmmcomb_gpu_exact
   (#ta #tb #tc #tacc : Type0)

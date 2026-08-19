@@ -239,7 +239,7 @@ let rec dprod_acc_all_zeros
     then ()
     else dprod_acc_all_zeros acc s t from (to - 1)
 
-#push-options "--split_queries always"
+#push-options ""
 let rec _sparse_dprod_acc_lemma
   (#et : Type0) {| scalar et |}
   (acc : et)

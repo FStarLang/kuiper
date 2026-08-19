@@ -281,7 +281,7 @@ let update_stride_tile_self
           [SMTPat (update_stride_tile em srows scols tr tc (ematrix_stride_subtile em srows scols tr tc))]
 = assert (equal (update_stride_tile em srows scols tr tc (ematrix_stride_subtile em srows scols tr tc)) em)
 
-#push-options "--split_queries always --z3rlimit 20"
+#push-options "--z3rlimit 20"
 let subtile_of_update_stride_tile
   (#et : _)
   (#rows #cols : _)
@@ -305,7 +305,7 @@ let subtile_of_update_stride_tile
 
 (* ── array2-level ghost reshuffles ─────────────────────────────────────── *)
 
-#push-options "--z3rlimit 80 --split_queries always"
+#push-options "--z3rlimit 80"
 ghost
 fn array2_stride_tile
   (#et:Type0)
@@ -378,7 +378,7 @@ fn array2_stride_tile
 }
 #pop-options
 
-#push-options "--z3rlimit 40 --split_queries always"
+#push-options "--z3rlimit 40"
 ghost
 fn array2_stride_untile'
   (#et:Type0)
@@ -484,7 +484,7 @@ fn array2_stride_untile
             as em;
 }
 
-#push-options "--z3rlimit 40 --split_queries always"
+#push-options "--z3rlimit 40"
 ghost
 fn array2_extract_stride_tile
   (#et:Type0)
@@ -728,16 +728,16 @@ fn setup_fa
   // gl : strided columns {j*nthr + tid}.
   unfold (live gl); with el. assert (gl |-> el);
   array2_stride_tile gl 1 (SZ.v nthr);
-  forevery_singleton_elim #(natlt 1)
+  forevery_singleton_elim' #(natlt 1)
     (fun (tr:natlt 1) -> forall+ (tc:natlt (SZ.v nthr)).
-        array2_stride_subtile gl 1 (SZ.v nthr) tr tc |-> Frac 1.0R (ematrix_stride_subtile el 1 (SZ.v nthr) tr tc));
+        array2_stride_subtile gl 1 (SZ.v nthr) tr tc |-> Frac 1.0R (ematrix_stride_subtile el 1 (SZ.v nthr) tr tc)) 0;
 
   // gm : strided columns {j*nthr + tid}.
   unfold (live gm); with em. assert (gm |-> em);
   array2_stride_tile gm 1 (SZ.v nthr);
-  forevery_singleton_elim #(natlt 1)
+  forevery_singleton_elim' #(natlt 1)
     (fun (tr:natlt 1) -> forall+ (tc:natlt (SZ.v nthr)).
-        array2_stride_subtile gm 1 (SZ.v nthr) tr tc |-> Frac 1.0R (ematrix_stride_subtile em 1 (SZ.v nthr) tr tc));
+        array2_stride_subtile gm 1 (SZ.v nthr) tr tc |-> Frac 1.0R (ematrix_stride_subtile em 1 (SZ.v nthr) tr tc)) 0;
 
   // Bundle the 7 per-thread foreverys.
   forevery_zip3 #(natlt (SZ.v nthr))
@@ -851,9 +851,9 @@ fn teardown_fa
   let glfun = forevery_exists
     (fun (tid:natlt (SZ.v nthr)) (e:chest2 et 1 n) ->
         array2_stride_subtile gl 1 (SZ.v nthr) 0 tid |-> Frac 1.0R (ematrix_stride_subtile e 1 (SZ.v nthr) 0 tid));
-  forevery_singleton_intro #(natlt 1)
+  forevery_singleton_intro' #(natlt 1)
     (fun (tr:natlt 1) -> forall+ (tc:natlt (SZ.v nthr)).
-        array2_stride_subtile gl 1 (SZ.v nthr) tr tc |-> Frac 1.0R (ematrix_stride_subtile (glfun tc) 1 (SZ.v nthr) tr tc));
+        array2_stride_subtile gl 1 (SZ.v nthr) tr tc |-> Frac 1.0R (ematrix_stride_subtile (glfun tc) 1 (SZ.v nthr) tr tc)) 0;
   array2_stride_untile' gl 1 (SZ.v nthr)
     (fun (tr:natlt 1) (tc:natlt (SZ.v nthr)) ->
         ematrix_stride_subtile (glfun tc) 1 (SZ.v nthr) tr tc) #1.0R;
@@ -862,9 +862,9 @@ fn teardown_fa
   let gmfun = forevery_exists
     (fun (tid:natlt (SZ.v nthr)) (e:chest2 et 1 n) ->
         array2_stride_subtile gm 1 (SZ.v nthr) 0 tid |-> Frac 1.0R (ematrix_stride_subtile e 1 (SZ.v nthr) 0 tid));
-  forevery_singleton_intro #(natlt 1)
+  forevery_singleton_intro' #(natlt 1)
     (fun (tr:natlt 1) -> forall+ (tc:natlt (SZ.v nthr)).
-        array2_stride_subtile gm 1 (SZ.v nthr) tr tc |-> Frac 1.0R (ematrix_stride_subtile (gmfun tc) 1 (SZ.v nthr) tr tc));
+        array2_stride_subtile gm 1 (SZ.v nthr) tr tc |-> Frac 1.0R (ematrix_stride_subtile (gmfun tc) 1 (SZ.v nthr) tr tc)) 0;
   array2_stride_untile' gm 1 (SZ.v nthr)
     (fun (tr:natlt 1) (tc:natlt (SZ.v nthr)) ->
         ematrix_stride_subtile (gmfun tc) 1 (SZ.v nthr) tr tc) #1.0R;

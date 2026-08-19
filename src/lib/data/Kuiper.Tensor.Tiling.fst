@@ -15,7 +15,7 @@ module SZ = Kuiper.SizeT
 
 include Kuiper.EMatrix.Tiling
 
-#push-options "--split_queries always --z3rlimit 20"
+#push-options "--z3rlimit 20"
 inline_for_extraction noextract
 let c_subtile_layout
   (#rows #cols : erased nat)
@@ -92,7 +92,7 @@ let cell_convert_eq
     tensor_pts_to_cell_eq (array2_subtile gm trows tcols tr tc) (idx2 i j) f v;
     ()
 
-#push-options "--z3rlimit 80 --split_queries always"
+#push-options "--z3rlimit 80"
 ghost
 fn array2_tile
   (#et:Type0)
@@ -147,7 +147,7 @@ fn array2_tile
 }
 #pop-options
 
-#push-options "--z3rlimit 40 --split_queries always"
+#push-options "--z3rlimit 40"
 ghost
 fn array2_untile'
   (#et:Type0)
@@ -274,7 +274,7 @@ fn array2_untile_underspec
   array2_untile gm trows tcols;
 }
 
-#push-options "--z3rlimit 40 --split_queries always"
+#push-options "--z3rlimit 40"
 ghost
 fn array2_extract_tile
   (#et:Type0)

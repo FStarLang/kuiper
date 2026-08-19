@@ -90,6 +90,11 @@ let lem_is_global_iff_core
           [SMTPat (is_global a)]
   = ()
 
+(* [(uview l).ait] unfolds to [natlt l.ulen]; give the solver this fact. *)
+let uview_ait (#r : erased nat) (#d : shape r) (l : vtlayout d) (_ : unit)
+  : Lemma ((uview l).ait == natlt (vtlayout_ulen l))
+  = ()
+
 (* The chest determined by an underlying contents function through the layout
    map.  This is the only place the (non-injective) [l.imap] is used to relate
    abstract indices to underlying cells. *)
@@ -313,7 +318,11 @@ fn tensor_read
   unfold tensor_pts_to a #f s;
   let cm : szlt l.ulen = cv.cimap i;
   let res = IA.iarray_read #et #(uview l) #(cvtlayout_ciview cv) a cm;
-  assert pure (IV.ci_to_ai (uview l) cm == l.imap (up i));
+  (* [(uview l).ait] is definitionally [natlt l.ulen], but the solver no longer
+     sees through the projection; state the type equality and coerce. *)
+  uview_ait l ();
+  assert pure (coerce_eq #_ #(natlt (vtlayout_ulen l)) () (IV.ci_to_ai (uview l) cm)
+                 == l.imap (up i));
   fold tensor_pts_to a #f s;
   res
 }
@@ -515,10 +524,21 @@ let lem_ro_chest_bij_index
       [SMTPat (Chest.acc m i);
        SMTPat (Chest.acc (ro_chest l v) i);
        SMTPat (f.ff i)]
-  = assert (
+  = (* Spell out each step: the solver no longer gets the intermediate ground
+       terms from the sibling conjuncts of a merged query. *)
+    f.gg_ff i;
+    assert (
       Chest.acc (Chest.mk d2 (fun j -> Chest.acc m (j <~| f))) (f.ff i)
         == Chest.acc (ro_chest (vtlayout_bij f l) v) (f.ff i));
-    f.gg_ff i;
+    assert (
+      Chest.acc (Chest.mk d2 (fun j -> Chest.acc m (j <~| f))) (f.ff i)
+        == Chest.acc m (f.ff i <~| f));
+    assert (f.ff i <~| f == i);
+    assert (
+      Chest.acc (ro_chest (vtlayout_bij f l) v) (f.ff i)
+        == v ((vtlayout_bij f l).imap (f.ff i)));
+    assert ((vtlayout_bij f l).imap (f.ff i) == l.imap (f.gg (f.ff i)));
+    assert (Chest.acc (ro_chest l v) i == v (l.imap i));
     ()
 
 let lem_ro_chest_bij
@@ -534,9 +554,13 @@ let lem_ro_chest_bij
         Chest.mk d2 (fun j -> Chest.acc m (j <~| f))
           == ro_chest (vtlayout_bij f l) v)
       (ensures Chest.equal m (ro_chest l v))
+    (* The precondition of [lem_ro_chest_bij_index] does not depend on [i] and
+       holds here, so introduce the quantifier directly, giving the motive
+       explicitly (it is no longer inferable from the ambient query). *)
   = FStar.Classical.forall_intro
-      (FStar.Classical.move_requires
-        (fun i -> lem_ro_chest_bij_index f l v m i));
+      #(abs d1)
+      #(fun i -> Chest.acc m i == Chest.acc (ro_chest l v) i)
+      (fun i -> lem_ro_chest_bij_index f l v m i);
     assert (forall i. Chest.acc m i == Chest.acc (ro_chest l v) i);
     Chest.lemma_equal_intro m (ro_chest l v)
 
@@ -603,11 +627,23 @@ let lem_ro_chest_extended_index
       [SMTPat (Chest.acc m i);
        SMTPat (Chest.acc (ro_chest l v) i);
        SMTPat (Chest.acc (ro_chest (extended_layout l e) v) (0, i))]
-  = assert (
+  = (* Spell out each step: the solver no longer gets the intermediate ground
+       terms from the sibling conjuncts of a merged query. *)
+    assert (
       Chest.acc
         (Chest.mk (e @| d) (function (_, j) -> Chest.acc m j))
         (0, i)
         == Chest.acc (ro_chest (extended_layout l e) v) (0, i));
+    assert (
+      Chest.acc
+        (Chest.mk (e @| d) (function (_, j) -> Chest.acc m j))
+        (0, i)
+        == Chest.acc m i);
+    assert (
+      Chest.acc (ro_chest (extended_layout l e) v) (0, i)
+        == v ((extended_layout l e).imap (0, i)));
+    assert ((extended_layout l e).imap (0, i) == l.imap i);
+    assert (Chest.acc (ro_chest l v) i == v (l.imap i));
     ()
 
 let lem_ro_chest_extended
@@ -622,9 +658,11 @@ let lem_ro_chest_extended
         Chest.mk (e @| d) (function (_, j) -> Chest.acc m j)
           == ro_chest (extended_layout l e) v)
       (ensures Chest.equal m (ro_chest l v))
+    (* Motive given explicitly; the precondition does not depend on [i]. *)
   = FStar.Classical.forall_intro
-      (FStar.Classical.move_requires
-        (fun i -> lem_ro_chest_extended_index l v m e i));
+      #(abs d)
+      #(fun i -> Chest.acc m i == Chest.acc (ro_chest l v) i)
+      (fun i -> lem_ro_chest_extended_index l v m e i);
     assert (forall i. Chest.acc m i == Chest.acc (ro_chest l v) i);
     Chest.lemma_equal_intro m (ro_chest l v)
 

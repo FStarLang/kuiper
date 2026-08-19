@@ -324,8 +324,11 @@ let scaled_add_approx
     a_mul y scale ry (to_real scale);
     a_add x (y `mul` scale) rx (ry *. to_real scale)
   in
-  Classical.forall_intro_4
-    (fun x y rx ry -> Classical.move_requires (aux x y rx) ry)
+  (* F* master cannot infer the predicate implicit of [forall_intro_4] (it
+     occurs only in the postcondition), so state the goal explicitly. *)
+  introduce forall (x y : et) (rx ry : real).
+    (x %~ rx /\ y %~ ry) ==> (x `add` (y `mul` scale)) %~ (rx +. (ry *. to_real scale))
+  with introduce _ ==> _ with aux x y rx ry
 
 let comb2_approx
   (#et : Type0) {| scalar et, real_like et |}
@@ -336,12 +339,13 @@ let comb2_approx
         (ensures MS.comb2 x y %~ MS.comb2 rx ry) =
     ()
   in
-  Classical.forall_intro_4
-    (fun x y rx ry -> Classical.move_requires (aux x y rx) ry)
+  introduce forall (x y : et) (rx ry : real).
+    (x %~ rx /\ y %~ ry) ==> MS.comb2 x y %~ MS.comb2 rx ry
+  with introduce _ ==> _ with aux x y rx ry
 
 // TODO: this shouldn't require so much boilerplate...
 
-#push-options "--split_queries always"
+#push-options ""
 let transpose4_2 (d0 d1 d2 d3 : nat) :
   (abs (d0 @| d1 @| d2 @| d3 @| INil) =~ abs (d0 @| d1 @| d3 @| d2 @| INil)) =
 {
@@ -384,7 +388,7 @@ let ctlayout_bij_transpose
 
 #pop-options
 
-#set-options "--split_queries always --debug SMTFail"
+#set-options "--debug SMTFail"
 
 inline_for_extraction noextract
 fn sdpa_naive

@@ -32,7 +32,7 @@ open Kuiper.Kernel.GEMM.TensorCore2D.To.Epilogue
 open Kuiper.Kernel.GEMM.TensorCore2D.To.KLoop
 open Kuiper.Kernel.GEMM.TensorCore2D.To.Finish
 
-#push-options "--split_queries no"
+#push-options ""
 inline_for_extraction noextract
 fn kf
   (#et_ab #et_cd #et_acc : Type0)

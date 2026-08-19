@@ -78,7 +78,7 @@ let softmax_real_cell (#n : nat { n > 0 }) (row : Chest.chest1 real n) (j : natl
   = ()
 #pop-options
 
-#push-options "--fuel 4 --ifuel 2 --split_queries always"
+#push-options "--fuel 4 --ifuel 2"
 let acc2_row_softmax_real (#m : nat) (#n : nat { n > 0 })
   (ra : chest2 real m n) (i : natlt m) (j : natlt n)
   : Lemma (acc2 (row_softmax_real #m #n ra) i j
@@ -105,7 +105,7 @@ let acc2_row_softmax_real (#m : nat) (#n : nat { n > 0 })
    [row_softmax_real].  Note [s_row_broadcast f a b] applies [f (broadcast i)
    (cell i j)], so the row sum (the broadcast value) is [f]'s FIRST argument and
    we exponentiate the SECOND argument: [div (fexp cell) sum]. *)
-#push-options "--z3rlimit 60 --split_queries always"
+#push-options "--z3rlimit 60"
 let s_row_div_exp_approx_softmax
   (#et : Type0) {| floating et, real_like et, floating_real_like et |}
   (#m : nat) (#n : nat { n > 0 })

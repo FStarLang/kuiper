@@ -19,6 +19,15 @@ open Kuiper.Kernel.GEMM.TensorCore2D.KernelDesc
 open Kuiper.Kernel.GEMM.TensorCore2D.To.KernelDesc
 open Kuiper.Kernel.GEMM.TensorCore2D.To.EpilogueState
 
+(* The warp sub-tile dimensions [wm * tm] / [wn * tn] appear in *type*
+   positions (as the [pos] tile size of [ematrix_subtile]), where no lemma call
+   can be inserted.  With one SMT query per proof obligation the positivity of
+   the product is no longer around, so state it with a trigger narrow enough to
+   only fire on products of (positive) machine-integer values. *)
+let szp_mul_pos_pat (a b : szp)
+  : Lemma (SZ.v a * SZ.v b > 0) [SMTPat (SZ.v a * SZ.v b)]
+  = FStar.Math.Lemmas.lemma_mult_le_left (SZ.v a) 1 (SZ.v b)
+
 inline_for_extraction noextract
 fn setup
   (#et_ab #et_acc : Type0)

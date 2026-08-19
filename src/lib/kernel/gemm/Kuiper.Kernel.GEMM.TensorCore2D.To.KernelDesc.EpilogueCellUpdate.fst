@@ -3,7 +3,7 @@ module Kuiper.Kernel.GEMM.TensorCore2D.To.KernelDesc.EpilogueCellUpdate
 #lang-pulse
 
 open Kuiper
-#set-options "--ifuel 1 --initial_fuel 0 --max_fuel 1 --z3rlimit 60 --split_queries no"
+#set-options "--ifuel 1 --initial_fuel 0 --max_fuel 1 --z3rlimit 60"
 
 open Kuiper.EMatrix
 open Kuiper.EMatrix.Tiling
@@ -69,6 +69,44 @@ let epilogue_fragment_target_eq
           rows cols (idx / wn) (idx % wn))
         eAcc)
 = ()
+
+(* [acc2] of the epilogue target tile at a warp-local cell [(row, col)] is the
+   combine of the corresponding *global* C cell with the accumulator cell.
+   Peeling [epilogue_chest] plus the three nested [ematrix_subtile]s is a long
+   delta chain that, with one SMT query per proof obligation, no longer goes
+   through inside [epilogue_cell_update]'s Pulse proof state, so discharge it
+   here in a minimal context. *)
+#push-options "--z3rlimit 200"
+let epilogue_fragment_target_cell
+  (#et_cd #et_acc : Type0)
+  {| scalar et_cd, scalar et_acc |}
+  (comb : et_cd -> et_acc -> et_cd)
+  (#m #n : nat)
+  (eC : chest2 et_cd m n)
+  (bm bn rows cols wm wn : pos)
+  (#pf : squash (bm /?+ m /\ bn /?+ n /\
+                 wm * rows /?+ bm /\ wn * cols /?+ bn))
+  (mrow : natlt (m / bm))
+  (mcol : natlt (n / bn))
+  (warpRow : natlt (bm / (wm * rows)))
+  (warpCol : natlt (bn / (wn * cols)))
+  (idx : natlt (wm * wn))
+  (eAcc : chest2 et_acc rows cols)
+  (row : natlt rows)
+  (col : natlt cols)
+  (globalRow : natlt m)
+  (globalCol : natlt n)
+  (_ : squash (
+     globalRow == mrow * bm + warpRow * (wm * rows) + (idx / wn) * rows + row /\
+     globalCol == mcol * bn + warpCol * (wn * cols) + (idx % wn) * cols + col))
+  : Lemma (
+      acc2
+        (epilogue_fragment_target comb eC bm bn rows cols wm wn
+           mrow mcol warpRow warpCol idx eAcc)
+        row col
+      == comb (acc2 eC globalRow globalCol) (acc2 eAcc row col))
+= ()
+#pop-options
 
 inline_for_extraction noextract
 fn epilogue_cell_update
@@ -189,6 +227,9 @@ fn epilogue_cell_update
     (SZ.v row) (SZ.v col)
     (SZ.v globalRow) (SZ.v globalCol)
     1.0R dv;
+  epilogue_fragment_target_cell comb eC bm bn rows cols wm wn
+    (SZ.v mrow) (SZ.v mcol) (SZ.v warpRow) (SZ.v warpCol) (SZ.v idx) eAcc
+    (SZ.v row) (SZ.v col) (SZ.v globalRow) (SZ.v globalCol) ();
   rewrite each dv as
     acc2
       (epilogue_fragment_target comb eC

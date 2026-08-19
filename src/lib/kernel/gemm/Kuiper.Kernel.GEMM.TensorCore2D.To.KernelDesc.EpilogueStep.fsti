@@ -4,7 +4,7 @@ module Kuiper.Kernel.GEMM.TensorCore2D.To.KernelDesc.EpilogueStep
 
 open Kuiper
 #set-options "--ifuel 1 --initial_fuel 0 --max_fuel 1"
-#set-options "--z3rlimit 15 --split_queries always"
+#set-options "--z3rlimit 15"
 
 open Kuiper.EMatrix
 open Kuiper.Tensor

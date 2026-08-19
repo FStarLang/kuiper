@@ -14,6 +14,8 @@ open Kuiper.TensorCore
 module SZ = Kuiper.SizeT
 module MS = Kuiper.Spec.GEMM
 
+#set-options "--z3rlimit 40"
+
 open Kuiper.Kernel.GEMM.TensorCore2D.KernelDesc
 
 let in_lane
@@ -42,6 +44,24 @@ let live_lane_cells
   (lane : natlt warp_size)
   : slprop
 = exists* (em : chest2 et rows cols). own_lane_cells m em lane
+
+(* [wm * tm / tm == wm]: needed to see a [natlt wm] as a tile index of a
+   [wm * tm]-row tile.  With one SMT query per proof obligation this ground
+   fact is no longer around, so we state it with an explicit trigger. *)
+let mul_div_cancel_pat (a:nat) (b:pos)
+  : Lemma (a * b / b == a) [SMTPat (a * b / b)]
+  = FStar.Math.Lemmas.cancel_mul_div a b
+
+(* [a < p * q ==> a / q < p]: splitting a flat block/warp id into its two
+   components.  Same story: stated with a trigger in the vocabulary of the
+   goal so it still fires in the split queries. *)
+let div_lt_mul_pat (a:nat) (p:nat) (q:pos)
+  : Lemma (requires a < p * q) (ensures a / q < p)
+          [SMTPat (a / q); SMTPat (p * q)]
+  = if a / q >= p then begin
+      FStar.Math.Lemmas.lemma_mult_le_right q p (a / q);
+      FStar.Math.Lemmas.euclidean_division_definition a q
+    end
 
 inline_for_extraction noextract
 let output_fragment

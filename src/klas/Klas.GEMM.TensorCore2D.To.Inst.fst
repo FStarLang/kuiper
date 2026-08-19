@@ -14,7 +14,7 @@ module MS = Kuiper.Spec.GEMM
 module SZ = Kuiper.SizeT
 module K = Kuiper.Kernel.GEMM.TensorCore2D.To
 
-#push-options "--split_queries always --z3rlimit 40"
+#push-options "--z3rlimit 40"
 inline_for_extraction noextract
 fn spec
   // specialize

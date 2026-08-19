@@ -340,7 +340,7 @@ fn array2_untile_approximates
   assert pure (ematrix_from_tiles trows tcols ff %~ r);
 }
 
-#push-options "--split_queries always"
+#push-options ""
 
 ghost
 fn gather_warp
@@ -726,7 +726,7 @@ fn gather_output
 }
 
 #pop-options
-#push-options "--split_queries always"
+#push-options ""
 
 let teardown_inputs_pre
   (#et_ab #et_cd : Type0)

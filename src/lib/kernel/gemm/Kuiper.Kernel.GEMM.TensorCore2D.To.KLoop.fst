@@ -36,6 +36,20 @@ open Kuiper.Kernel.GEMM.TensorCore2D.To.EpilogueState
 open Kuiper.Kernel.GEMM.TensorCore2D.To.Fragments
 open Kuiper.Kernel.GEMM.TensorCore2D.To.KLoopInvariant
 
+(* [matmul_tiles_lemma]'s monoid-law arguments.  Inline [fun _ -> ()] lambdas
+   have their obligation checked in the caller's enormous context, where the
+   query now times out; discharging them once here, in a clean context, is
+   cheap.  (Same fix as in [Kuiper.Kernel.GEMM.TensorCore2D].) *)
+let real_add_zero (x : real) : squash (add x zero == x /\ add zero x == x) = ()
+let real_add_assoc (x y z : real) : squash (add x (add y z) == add (add x y) z) = ()
+
+(* Ditto for the "adding the zero matrix is the identity" fact needed to line
+   up [matmul_tiles_lemma]'s conclusion: in [k_loop]'s context the query times
+   out, in a clean context it is immediate. *)
+let matplus_zero_left (#r #c : nat) (x : chest2 real r c)
+  : Lemma (matplus (const _ 0.0R) x `equal` x)
+  = ()
+
 inline_for_extraction noextract
 fn populate_acc_with_zero
   (#et : Type0) {| sc : scalar et, real_like et |}
@@ -72,6 +86,69 @@ ensures
   };
   fold fragarrayAcc_approximates wm wn accumFrags (const _ 0.0R);
   ()
+}
+
+(* [FB.fold_barrier_p_*] produces [FB.barrier_p ...], but the barrier token is
+   stated in terms of the contract's [.rin]/[.rout], which are built over the
+   *raw* arrays.  Neither the projection out of the record literal built by
+   [FB.contract] nor the [from_array l (core sa)] substitution reduces for the
+   SMT solver anymore, so do the projection by normalization and the
+   substitution with [rewrite each] (same bridge as in
+   [Kuiper.Kernel.GEMM.TensorCore2D] / [BlockTiling2D]). *)
+let unfold_fb_contract () : FStar.Tactics.V2.Tac unit =
+  FStar.Tactics.V2.norm [delta_only [`%FB.contract]; iota; primops];
+  Pulse.Lib.Core.slprop_equiv_norm ()
+
+ghost
+fn bp_to_rin
+  (#etA #etB : Type0)
+  {| sized etA, has_vec_cpy etA, sized etB, has_vec_cpy etB |}
+  (#rows #shared #cols : pos)
+  (eA : chest2 etA rows shared)
+  (eB : chest2 etB shared cols)
+  (#bm : pos{bm /?+ rows}) (#bk : pos{bk /?+ shared}) (#bn : pos{bn /?+ cols})
+  (l1 : full_layout2 bm bk) (l2 : full_layout2 bk bn)
+  (sar1 : larray etA (bm * bk)) (sar2 : larray etB (bk * bn))
+  (sa1 : array2 etA l1) (sa2 : array2 etB l2)
+  (nthr : pos) (bid : natlt (rows/bm * (cols/bn)))
+  (it : nat) (tid : natlt nthr)
+  requires
+    FB.barrier_p eA eB sa1 sa2 nthr bid it tid **
+    pure (sa1 == from_array l1 sar1 /\ sa2 == from_array l2 sar2)
+  ensures
+    (FB.contract eA eB l1 l2 sar1 sar2 nthr bid).rin it tid
+{
+  rewrite each sa1 as (from_array l1 sar1);
+  rewrite each sa2 as (from_array l2 sar2);
+  rewrite FB.barrier_p eA eB (from_array l1 sar1) (from_array l2 sar2) nthr bid it tid
+       as (FB.contract eA eB l1 l2 sar1 sar2 nthr bid).rin it tid
+       by unfold_fb_contract ();
+}
+
+ghost
+fn rout_to_bq
+  (#etA #etB : Type0)
+  {| sized etA, has_vec_cpy etA, sized etB, has_vec_cpy etB |}
+  (#rows #shared #cols : pos)
+  (eA : chest2 etA rows shared)
+  (eB : chest2 etB shared cols)
+  (#bm : pos{bm /?+ rows}) (#bk : pos{bk /?+ shared}) (#bn : pos{bn /?+ cols})
+  (l1 : full_layout2 bm bk) (l2 : full_layout2 bk bn)
+  (sar1 : larray etA (bm * bk)) (sar2 : larray etB (bk * bn))
+  (sa1 : array2 etA l1) (sa2 : array2 etB l2)
+  (nthr : pos) (bid : natlt (rows/bm * (cols/bn)))
+  (it : nat) (tid : natlt nthr)
+  requires
+    (FB.contract eA eB l1 l2 sar1 sar2 nthr bid).rout it tid **
+    pure (sa1 == from_array l1 sar1 /\ sa2 == from_array l2 sar2)
+  ensures
+    FB.barrier_q eA eB sa1 sa2 nthr bid it tid
+{
+  rewrite (FB.contract eA eB l1 l2 sar1 sar2 nthr bid).rout it tid
+       as FB.barrier_q eA eB (from_array l1 sar1) (from_array l2 sar2) nthr bid it tid
+       by unfold_fb_contract ();
+  rewrite each (from_array l1 sar1) as sa1;
+  rewrite each (from_array l2 sar2) as sa2;
 }
 
 #push-options "--z3rlimit 30"
@@ -188,15 +265,11 @@ fn k_loop_step
   assert pure (even (2 * v));
 
   FB.fold_barrier_p_even eA eB sA sB nthr bid v tid;
-  rewrite (FB.barrier_p eA eB sA sB nthr bid) (2 * v) tid
-    as (FB.contract eA eB (rm bm bk) (rm bk bn)
-      (core sA) (core sB) nthr bid).rin (2 * v) tid;
+  bp_to_rin eA eB (rm bm bk) (rm bk bn) (core sA) (core sB) sA sB nthr bid (2 * v) tid;
 
   B.barrier_wait ();
 
-  rewrite (FB.contract eA eB (rm bm bk) (rm bk bn)
-      (core sA) (core sB) nthr bid).rout (2 * v) tid
-    as (FB.barrier_q eA eB sA sB nthr bid) (2 * v) tid;
+  rout_to_bq eA eB (rm bm bk) (rm bk bn) (core sA) (core sB) sA sB nthr bid (2 * v) tid;
   FB.unfold_barrier_q_even eA eB sA sB nthr bid v tid;
 
   unfold FB.live_strided_chunks sA nthr tid;
@@ -225,9 +298,7 @@ fn k_loop_step
   odd_2x1 v;
   assert pure (odd (2 * v + 1));
   FB.fold_barrier_p_odd eA eB sA sB nthr bid mrow mcol v tid;
-  rewrite (FB.barrier_p eA eB sA sB nthr bid) (2 * v + 1) tid
-    as (FB.contract eA eB (rm bm bk) (rm bk bn)
-      (core sA) (core sB) nthr bid).rin (2 * v + 1) tid;
+  bp_to_rin eA eB (rm bm bk) (rm bk bn) (core sA) (core sB) sA sB nthr bid (2 * v + 1) tid;
 
   B.barrier_wait ();
 
@@ -236,9 +307,7 @@ fn k_loop_step
   assert pure (odd (2 * v + 1));
   assert pure ((2 * v + 1) < 2 * k / bk);
   assert pure (even (2 * v + 2));
-  rewrite (FB.contract eA eB (rm bm bk) (rm bk bn)
-      (core sA) (core sB) nthr bid).rout (2 * v + 1) tid
-    as (FB.barrier_q eA eB sA sB nthr bid) (2 * v + 1) tid;
+  rout_to_bq eA eB (rm bm bk) (rm bk bn) (core sA) (core sB) sA sB nthr bid (2 * v + 1) tid;
   FB.unfold_barrier_q_odd eA eB sA sB nthr bid mrow mcol v tid;
 
   unfold FB.bp_sharing sA (ematrix_subtile eA bm bk mrow v) nthr;
@@ -364,8 +433,22 @@ fn compute_acc
     B.barrier_state (tile_barrier_iteration k bk)
 {
   let num_k_tiles = k /^ bk;
+  (* [mrow * (bm/(wm*tm)) + warpRow < m/(wm*tm)] (and its column analogue): the
+     nested block/warp tile index bound.  With one SMT query per proof
+     obligation the nonlinear steps are no longer found on their own, so spell
+     them out (same sequence as in [...To.KernelBody]). *)
+  Kuiper.Divides.lemma_div_product (wm * tm) bm m;
+  FStar.Math.Lemmas.lemma_eucl_div_bound
+    warpRow mrow (bm / (wm * tm));
+  FStar.Math.Lemmas.lemma_mult_le_left
+    (bm / (wm * tm)) (mrow + 1) (m / bm);
   let gwRow : enatlt (m / (wm * tm)) =
     mrow * (bm / (wm * tm)) + warpRow;
+  Kuiper.Divides.lemma_div_product (wn * tn) bn n;
+  FStar.Math.Lemmas.lemma_eucl_div_bound
+    warpCol mcol (bn / (wn * tn));
+  FStar.Math.Lemmas.lemma_mult_le_left
+    (bn / (wn * tn)) (mcol + 1) (n / bn);
   let gwCol : enatlt (n / (wn * tn)) =
     mcol * (bn / (wn * tn)) + warpCol;
 
@@ -425,7 +508,7 @@ fn compute_acc
     gwCol == warp_tile_j #m #n bm bn bk tm tn tk wm wn
       nthr bid (tid / warp_size));
 
-  matmul_tiles_lemma (fun _ -> ()) (fun _ _ _ -> ())
+  matmul_tiles_lemma real_add_zero real_add_assoc
     (wm * tm) (wn * tn) bk rAcc0 rA rB gwRow gwCol;
   let rAcc' : chest2 real (wm * tm) (wn * tn) =
     gmatmul_single rAcc0 matmul matplus
@@ -446,7 +529,7 @@ fn compute_acc
       (ematrix_subtile rB k (wn * tn) 0
         (warp_tile_j #m #n bm bn bk tm tn tk wm wn
           nthr bid (tid / warp_size)));
-  assert pure (matplus (const _ 0.0R) rAcc `equal` rAcc);
+  matplus_zero_left rAcc;
   assert pure (rAcc' == rAcc);
   rewrite
     fragarrayAcc_approximates wm wn accFrags

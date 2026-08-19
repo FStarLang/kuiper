@@ -4,7 +4,7 @@ module Kuiper.Kernel.GEMM.TensorCore2D.To.BaseSendable
 
 open Kuiper
 
-#set-options "--fuel 1 --ifuel 1 --z3rlimit 15 --split_queries no"
+#set-options "--fuel 1 --ifuel 1 --z3rlimit 15"
 
 module SZ = Kuiper.SizeT
 module MS = Kuiper.Spec.GEMM

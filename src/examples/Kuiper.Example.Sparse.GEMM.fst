@@ -68,7 +68,7 @@ let rec matmul_all_zeros_lemma
       matmul_all_zeros_lemma m1 m2 row col from (to - 1)
     )
 
-#push-options "--z3rlimit 40 --split_queries always"
+#push-options "--z3rlimit 40"
 let rec __matmul_dotprod_lemma
   (#et : Type0) {| scalar et |}
   (#nnz #rows #shared #cols : nat)

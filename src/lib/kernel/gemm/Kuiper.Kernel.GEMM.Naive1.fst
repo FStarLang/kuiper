@@ -103,7 +103,7 @@ let kpost
       ((gid / b) / n)
       ((gid / b) % n))
 
-#push-options "--z3rlimit 40 --split_queries always"
+#push-options "--z3rlimit 40"
 inline_for_extraction noextract
 fn kf
   (#ta #tb #tc #tacc : Type0) {| scalar tacc |}

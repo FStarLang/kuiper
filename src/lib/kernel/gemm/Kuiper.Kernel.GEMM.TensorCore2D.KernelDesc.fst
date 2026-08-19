@@ -157,6 +157,18 @@ let lem_j
     };
     ()
 
+(* [bid] splits into a row block index [bid/(n/bn)] and a column block index.
+   With one SMT query per proof obligation the bound [bid/(n/bn) < m/bm] is no
+   longer derived automatically inside the proof body, so we prove it here. *)
+#push-options "--fuel 0 --ifuel 0"
+private let div_lt_mul (a:nat) (p:nat) (q:pos)
+  : Lemma (requires a < p * q) (ensures a / q < p)
+  = if a / q >= p then begin
+      Math.Lemmas.lemma_mult_le_right q p (a / q);
+      Math.Lemmas.euclidean_division_definition a q
+    end
+#pop-options
+
 (* The C-input warp tile that [setup] scatters (a subtile of eC within block
    [bid], warp [wid]) approximates the corresponding warp subtile of the real
    reference matrix rC.  This lets [kpre1] carry the C-input approximation that
@@ -188,6 +200,7 @@ let c_subtile_approx_lemma
               (warp_tile_i bm bn bk tm tn tk wm wn nthr bid wid)
               (warp_tile_j bm bn bk tm tn tk wm wn nthr bid wid))
 =
+  div_lt_mul bid (m / SZ.v bm) (n / SZ.v bn);
   let bi = bid / (n/bn) in
   let bj = bid % (n/bn) in
   let wri = warp_tile_idx_rows (SZ.v bm) (SZ.v bn) (wm*tm) (wn*tn) wid in
@@ -682,7 +695,29 @@ let silly_helper_natlt_prod
   : Lemma (ensures x * q + y < p * q)
   = ()
 
-#push-options "--split_queries always" // Would be nice to avoid
+(* Triggered versions of the two nonlinear bounds used to flatten a
+   (row, col) tile pair into a block/thread id.  With one SMT query per proof
+   obligation these no longer come for free in type-level positions (where no
+   lemma call can be inserted), so we state them in the vocabulary of the
+   goal: the product [p * q] is available from the refinement of [nblk] /
+   [nthr]. *)
+#push-options "--fuel 0 --ifuel 0"
+let natlt_prod_pat (p q : nat) (x y : nat)
+  : Lemma (requires x < p /\ y < q)
+          (ensures x * q + y < p * q)
+          [SMTPat (x * q + y); SMTPat (p * q)]
+  = Math.Lemmas.lemma_mult_le_right q (x + 1) p
+
+(* Same bound, scaled by the warp size: this is the shape of the thread id. *)
+let natlt_prod_scaled_pat (p q : nat) (x y : nat) (c : pos)
+  : Lemma (requires x < p /\ y < q)
+          (ensures (x * q + y) * c < p * q * c)
+          [SMTPat ((x * q + y) * c); SMTPat (p * q * c)]
+  = Math.Lemmas.lemma_mult_le_right q (x + 1) p;
+    Math.Lemmas.lemma_mult_lt_right c (x * q + y) (p * q)
+#pop-options
+
+#push-options "" // Would be nice to avoid
 let tiles_approx_lemma
   (#et_c : Type0)
   {| scalar et_c |}

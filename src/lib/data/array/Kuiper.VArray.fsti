@@ -11,15 +11,20 @@ open Kuiper.Bijection
 open Kuiper.View
 module T = FStar.Tactics.V2
 module SZ = Kuiper.SizeT
-module F = FStar.FunctionalExtensionality
 
 let view_equiv (#et #st : Type)
   (vw1 vw2 : aview et st)
   : prop
 = vw1.iview.len == vw2.iview.len /\
   vw1.iview.ait == vw2.iview.ait /\
-  F.feq_g vw1.iview.step.imap.f vw2.iview.step.imap.f /\
-  (forall (x: st) (i: vw1.iview.ait). vw1.ctn.acc x i == vw2.ctn.acc x i) /\
+  (* NB: the index-type equality above is a hypothesis here, but F*'s unifier
+     would relate [vw1.iview.ait] and [vw2.iview.ait] by congruence on the
+     projector, generating the (unprovable) goal [vw1.iview == vw2.iview].
+     So we coerce explicitly using that hypothesis instead. *)
+  (forall (i: vw1.iview.ait).
+     vw1.iview.step.imap.f i == vw2.iview.step.imap.f (coerce_eq #_ #vw2.iview.ait () i)) /\
+  (forall (x: st) (i: vw1.iview.ait).
+     vw1.ctn.acc x i == vw2.ctn.acc x (coerce_eq #_ #vw2.iview.ait () i)) /\
   (* probably need more about the mappings in ctn *)
   True
 

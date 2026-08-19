@@ -74,7 +74,7 @@ fn foo_even (a : varray (even_view u32 100))
   returns   u32
 {
   // Actually reads index 20 (see generated code)
-  varray_read #_ #_ #_ #(_cview_even #_ _) a 10sz;
+  varray_read #_ #_ #_ #(_cview_even #_ _) a (coerce_eq #_ #_ () (10sz <: szlt 50));
   // Bad tc resolution due to the different shape
   // of the lengths in lseq. The one for a gets simplified
   // to 50, which does not unify with (?u+1)/2 in the instance.
@@ -88,7 +88,7 @@ fn foo_odd (a : varray (odd_view u32 100))
   ensures  a |-> v0
 {
   // Actually reads index 21 (see generated code)
-  varray_read #_ #_ #_ #(_cview_odd #_ _) a 10sz;
+  varray_read #_ #_ #_ #(_cview_odd #_ _) a (coerce_eq #_ #_ () (10sz <: szlt 50));
 }
 
 fn foo_odd_modify (a : varray (odd_view u32 100))
@@ -98,5 +98,5 @@ fn foo_odd_modify (a : varray (odd_view u32 100))
   ensures  a |-> (Seq.upd v0 10 42ul <: lseq u32 50)
 {
   // Actually writes into index 21 (see generated code)
-  varray_write #_ #_ #_ #(_cview_odd #_ _) a 10sz 42ul;
+  varray_write #_ #_ #_ #(_cview_odd #_ _) a (coerce_eq #_ #_ () (10sz <: szlt 50)) 42ul;
 }

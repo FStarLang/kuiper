@@ -77,7 +77,7 @@ let kpost
     pts_to_cell gC (gid / n, (gid % n, ())) v **
       pure (v %~ MS.gemm_single comb_r rA rB rC (gid / n) (gid % n))
 
-#set-options "--split_queries always"
+#set-options ""
 
 inline_for_extraction noextract
 fn kf

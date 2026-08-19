@@ -115,6 +115,13 @@ let barrier_contract
     rout = barrier_q p row_perm elems col_ind row_off elems_tile col_ind_tile bid;
   }
 
+(* Projecting [rin]/[rout] out of the record literal built by [barrier_contract]
+   is no longer reduced for the SMT solver, so we discharge those slprop
+   equalities by normalization instead. *)
+let unfold_barrier_contract () : FStar.Tactics.V2.Tac unit =
+  FStar.Tactics.V2.norm [delta_only [`%barrier_contract]; iota; primops];
+  Pulse.Lib.Core.slprop_equiv_norm ()
+
 unfold
 let kpre
   (#et : Type0) {| scalar et |}
@@ -627,6 +634,19 @@ fn block_teardown
   ();
 }
 
+(* Nonlinear bound relating a (row, column-block) pair to a flat block id.
+   With one SMT query per proof obligation Z3 no longer finds this on its own,
+   so we prove it once by an explicit multiplication lemma. *)
+let block_index_bound (p : parameters)
+  : Lemma (forall (r : natlt (SZ.v p.rows))
+                  (b : natlt (divup (SZ.v p.cols) (SZ.v p.blockItemsX))).
+             r * divup (SZ.v p.cols) (SZ.v p.blockItemsX) + b < nblocks_ p)
+  = introduce forall (r : natlt (SZ.v p.rows))
+                     (b : natlt (divup (SZ.v p.cols) (SZ.v p.blockItemsX))).
+      r * divup (SZ.v p.cols) (SZ.v p.blockItemsX) + b < nblocks_ p
+    with FStar.Math.Lemmas.lemma_mult_le_right
+           (divup (SZ.v p.cols) (SZ.v p.blockItemsX)) (r + 1) (SZ.v p.rows)
+
 ghost
 fn teardown
   (#et : Type0) {| scalar et |}
@@ -752,6 +772,7 @@ fn teardown
             )
         );
     };
+  block_index_bound p;
   forevery_factor (nblocks p) p.rows (divup p.cols p.blockItemsX) _;
   forevery_map #(natlt p.rows)
     (fun r ->
@@ -1016,7 +1037,8 @@ fn sparse_load
   rewrite barrier_p p row_perm elems col_ind row_off elems_tile col_ind_tile bid
             (idx * 2) tid
        as (barrier_contract p row_perm elems col_ind row_off
-            elems_tile col_ind_tile bid).rin (idx * 2) tid;
+            elems_tile col_ind_tile bid).rin (idx * 2) tid
+       by unfold_barrier_contract ();
 
   B.barrier_wait ();
 
@@ -1024,7 +1046,8 @@ fn sparse_load
             elems col_ind row_off elems_tile col_ind_tile bid).rout
             (idx * 2) tid
        as barrier_q p row_perm elems col_ind row_off elems_tile col_ind_tile bid
-            (idx * 2) tid;
+            (idx * 2) tid
+       by unfold_barrier_contract ();
 
   barrier_q_unfold_even p row_perm elems col_ind row_off elems_tile col_ind_tile
     bid ri re idx tid;
@@ -1044,7 +1067,8 @@ fn sparse_load
             (idx * 2 + 1) tid
        as (barrier_contract p row_perm
             elems col_ind row_off elems_tile col_ind_tile bid).rin
-            (idx * 2 + 1) tid;
+            (idx * 2 + 1) tid
+       by unfold_barrier_contract ();
 
   B.barrier_wait ();
 
@@ -1052,7 +1076,8 @@ fn sparse_load
             elems col_ind row_off elems_tile col_ind_tile bid).rout
             (idx * 2 + 1) tid
        as barrier_q p row_perm elems col_ind row_off elems_tile col_ind_tile bid
-            (idx * 2 + 1) tid;
+            (idx * 2 + 1) tid
+       by unfold_barrier_contract ();
 
   barrier_q_unfold_odd p row_perm elems col_ind row_off elems_tile col_ind_tile
     bid ri re idx tid;
@@ -1299,7 +1324,8 @@ fn sparse_load_residue
             (idx * 2) tid
        as (barrier_contract p row_perm
             elems col_ind row_off elems_tile col_ind_tile bid).rin
-            (idx * 2) tid;
+            (idx * 2) tid
+       by unfold_barrier_contract ();
 
   B.barrier_wait ();
 
@@ -1307,7 +1333,8 @@ fn sparse_load_residue
             elems col_ind row_off elems_tile col_ind_tile bid).rout
             (idx * 2) tid
        as barrier_q p row_perm elems col_ind row_off elems_tile col_ind_tile bid
-            (idx * 2) tid;
+            (idx * 2) tid
+       by unfold_barrier_contract ();
 
   barrier_q_unfold_even p row_perm elems col_ind row_off elems_tile col_ind_tile
     bid ri re idx tid;
@@ -1391,7 +1418,8 @@ fn sparse_load_residue
             (idx * 2 + 1) tid
        as (barrier_contract p row_perm
             elems col_ind row_off elems_tile col_ind_tile bid).rin
-            (idx * 2 + 1) tid;
+            (idx * 2 + 1) tid
+       by unfold_barrier_contract ();
 
   B.barrier_wait ();
 
@@ -1400,7 +1428,8 @@ fn sparse_load_residue
             (idx * 2 + 1) tid
        as barrier_q p row_perm
             elems col_ind row_off elems_tile col_ind_tile bid
-            (idx * 2 + 1) tid;
+            (idx * 2 + 1) tid
+       by unfold_barrier_contract ();
 
   barrier_q_unfold_odd_residue p row_perm
     elems col_ind row_off elems_tile col_ind_tile

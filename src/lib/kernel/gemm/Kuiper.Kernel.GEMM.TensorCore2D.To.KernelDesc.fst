@@ -74,7 +74,7 @@ fn split_array2_into_lane_cells
     fn lane { fold own_lane_cells m em lane };
 }
 
-#push-options "--z3rlimit 100 --fuel 1 --ifuel 1 --split_queries no"
+#push-options "--z3rlimit 100 --fuel 1 --ifuel 1"
 ghost
 fn split_output_to_lanes
   (#et : Type0) {| scalar et |}
@@ -280,7 +280,7 @@ fn split_output_to_lanes
 }
 #pop-options
 
-#push-options "--split_queries no"
+#push-options ""
 ghost
 fn setup_to
   (#et_ab #et_cd : Type0)
@@ -387,7 +387,7 @@ fn setup_to
 }
 #pop-options
 
-#push-options "--split_queries no"
+#push-options ""
 ghost
 fn split_scratch_to_threads
   (#et_ab #et_acc : Type0)
@@ -581,7 +581,7 @@ fn gather_scratch_from_threads
 }
 #pop-options
 
-#push-options "--split_queries no"
+#push-options ""
 ghost
 fn block_setup_to
   (#et_ab #et_cd #et_acc : Type0)

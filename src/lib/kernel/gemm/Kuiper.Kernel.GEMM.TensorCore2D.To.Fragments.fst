@@ -56,6 +56,105 @@ let fragarrayB_approximates (#et:Type0) {| scalar et, real_like et |}
         forall (i : natlt wn).
           (Seq.index eBs i) %~ (ematrix_subtile rm tk tn 0 i))
 
+#push-options "--z3rlimit 120"
+(* Flattening a nested sub-tile: the [i]-th [tm]-row sub-tile of the
+   [(w*tm)]-row tile [tr] is the [(tr*w+i)]-th [tm]-row sub-tile.  Used to
+   reconcile the loop invariant (which indexes [rm] directly) with the folded
+   [fragarray*_approximates] (which indexes the nested sub-tile).  Same helpers
+   as in [Kuiper.Kernel.GEMM.TensorCore2D]; with one SMT query per proof
+   obligation these equalities are no longer found on their own. *)
+let subtile_of_subtile_eq
+  (#et : Type0)
+  (#rows #cols : nat)
+  (em : chest2 et rows cols)
+  (w : pos)
+  (trows : pos { w * trows /? rows /\ trows /? rows })
+  (tcols : pos { tcols /? cols })
+  (tr : natlt (rows / (w * trows)))
+  (i : natlt w)
+  (tc : natlt (cols / tcols))
+  (pf : squash (tr * w + i < rows / trows))
+  : Lemma (ematrix_subtile (ematrix_subtile em (w * trows) tcols tr tc) trows tcols i 0
+           == ematrix_subtile em trows tcols (tr * w + i) tc)
+= FStar.Math.Lemmas.paren_mul_right tr w trows;
+  FStar.Math.Lemmas.distributivity_add_left (tr * w) i trows;
+  Kuiper.Chest.ext (ematrix_subtile (ematrix_subtile em (w * trows) tcols tr tc) trows tcols i 0)
+            (ematrix_subtile em trows tcols (tr * w + i) tc)
+
+(* Column-dimension analogue. *)
+let subtile_of_subtile_eq_cols
+  (#et : Type0)
+  (#rows #cols : nat)
+  (em : chest2 et rows cols)
+  (w : pos)
+  (trows : pos { trows /? rows })
+  (tcols : pos { w * tcols /? cols /\ tcols /? cols })
+  (tr : natlt (rows / trows))
+  (tc : natlt (cols / (w * tcols)))
+  (j : natlt w)
+  (pf : squash (tc * w + j < cols / tcols))
+  : Lemma (ematrix_subtile (ematrix_subtile em trows (w * tcols) tr tc) trows tcols 0 j
+           == ematrix_subtile em trows tcols tr (tc * w + j))
+= FStar.Math.Lemmas.paren_mul_right tc w tcols;
+  FStar.Math.Lemmas.distributivity_add_left (tc * w) j tcols;
+  Kuiper.Chest.ext (ematrix_subtile (ematrix_subtile em trows (w * tcols) tr tc) trows tcols 0 j)
+            (ematrix_subtile em trows tcols tr (tc * w + j))
+
+(* [tr < rows/(w*trows)] and [i < w] imply [tr*w + i < rows/trows], because
+   [rows/trows == w * (rows/(w*trows))].  All the multiplication/division
+   rearrangements are spelled out: query splitting no longer finds them. *)
+let subtile_index_bound (rows : nat) (w trows : pos) (tr : nat)
+  : Lemma (requires w * trows /? rows /\ trows /? rows /\ tr < rows / (w * trows))
+          (ensures forall (i : natlt w). tr * w + i < rows / trows)
+= let q = rows / (w * trows) in
+  FStar.Math.Lemmas.paren_mul_right w trows q;
+  FStar.Math.Lemmas.swap_mul trows q;
+  FStar.Math.Lemmas.paren_mul_right w q trows;
+  FStar.Math.Lemmas.cancel_mul_div (w * q) trows;
+  FStar.Math.Lemmas.lemma_mult_le_right w (tr + 1) q;
+  FStar.Math.Lemmas.distributivity_add_left tr 1 w;
+  FStar.Math.Lemmas.swap_mul q w
+
+(* [subtile_of_subtile_eq] for every sub-tile index at once. *)
+let subtile_of_subtile_eq_all
+  (#et : Type0)
+  (#rows #cols : nat)
+  (em : chest2 et rows cols)
+  (w : pos)
+  (trows : pos { w * trows /? rows /\ trows /? rows })
+  (tcols : pos { tcols /? cols })
+  (tr : natlt (rows / (w * trows)))
+  (tc : natlt (cols / tcols))
+  (pf : squash (forall (i : natlt w). tr * w + i < rows / trows))
+  : Lemma (forall (i : natlt w).
+             ematrix_subtile (ematrix_subtile em (w * trows) tcols tr tc) trows tcols i 0
+             == ematrix_subtile em trows tcols (tr * w + i) tc)
+= introduce forall (i : natlt w).
+      ematrix_subtile (ematrix_subtile em (w * trows) tcols tr tc) trows tcols i 0
+      == ematrix_subtile em trows tcols (tr * w + i) tc
+  with subtile_of_subtile_eq em w trows tcols tr i tc ()
+
+(* Column-dimension analogue of [subtile_of_subtile_eq_all]. *)
+let subtile_of_subtile_eq_all_cols
+  (#et : Type0)
+  (#rows #cols : nat)
+  (em : chest2 et rows cols)
+  (w : pos)
+  (trows : pos { trows /? rows })
+  (tcols : pos { w * tcols /? cols /\ tcols /? cols })
+  (tr : natlt (rows / trows))
+  (tc : natlt (cols / (w * tcols)))
+  (pf : squash (forall (j : natlt w). tc * w + j < cols / tcols))
+  : Lemma (forall (j : natlt w).
+             ematrix_subtile (ematrix_subtile em trows (w * tcols) tr tc) trows tcols 0 j
+             == ematrix_subtile em trows tcols tr (tc * w + j))
+= introduce forall (j : natlt w).
+      ematrix_subtile (ematrix_subtile em trows (w * tcols) tr tc) trows tcols 0 j
+      == ematrix_subtile em trows tcols tr (tc * w + j)
+  with subtile_of_subtile_eq_cols em w trows tcols tr tc j ()
+
+#pop-options
+
 #push-options "--z3rlimit 30"
 inline_for_extraction noextract
 fn populate_fragments_a
@@ -110,6 +209,11 @@ ensures
       i0 := !i0 +^ 1sz;
     };
     ambig_trade_elim ();
+    // The loop invariant tracks each fragment against
+    // [ematrix_subtile rm tm tk (arow*wm+i) dotIdx]; the fold wants the
+    // nested-sub-tile form.  Supply the flattening equality for all i.
+    subtile_index_bound bm wm tm arow;
+    subtile_of_subtile_eq_all rm wm tm tk arow dotIdx ();
     fold fragarrayA_approximates wm frags (ematrix_subtile rm (wm*tm) tk arow dotIdx);
     ()
 }
@@ -142,6 +246,9 @@ ensures
 
     let tile_for_tc_b_tiles = array2_extract_tile_ro' gm (SZ.v tk) (wn*tn) (SZ.v dotIdx) (SZ.v bcol);
     let mut i1 = 0sz;
+    // The loop invariant's [ematrix_subtile rm tk tn dotIdx (bcol*wn+i)] needs
+    // [bcol*wn+i < bn/tn] just to be well-typed; establish it up front.
+    subtile_index_bound bn wn tn bcol;
     while (!i1 <^ wn)
       invariant live i1
       invariant
@@ -163,12 +270,18 @@ ensures
 
       FStar.Math.Lemmas.paren_mul_right (SZ.v bcol) (SZ.v wn) (SZ.v tn);
       FStar.Math.Lemmas.distributivity_add_left (SZ.v bcol * SZ.v wn) (SZ.v !i1) (SZ.v tn);
+      // [elim_forall] yields the nested-sub-tile form on the [em] side; the
+      // invariant indexes [rm] directly.  Supply the flattening equality.
+      subtile_index_bound bn wn tn bcol;
+      subtile_of_subtile_eq_cols rm wn tk tn dotIdx bcol !i1 ();
       ambig_trade_elim ();
       ambig_trade_elim ();
 
       i1 := !i1 +^ 1sz;
     };
     ambig_trade_elim ();
+    subtile_index_bound bn wn tn bcol;
+    subtile_of_subtile_eq_all_cols rm wn tk tn dotIdx bcol ();
     fold fragarrayB_approximates wn frags (ematrix_subtile rm tk (wn*tn) dotIdx bcol);
     ()
 }

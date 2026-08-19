@@ -88,7 +88,7 @@ fn foo_even (a : varray (even_view u32 100))
   returns u32
   ensures  a |-> v0
 {
-  varray_read #_ #_ #_ #_cview_even a 10sz;
+  varray_read #_ #_ #_ #_cview_even a (coerce_eq #_ #_ () (10sz <: szlt 50));
 }
 
 fn foo_odd (a : varray (odd_view u32 100))
@@ -98,7 +98,7 @@ fn foo_odd (a : varray (odd_view u32 100))
   returns u32
   ensures  a |-> v0
 {
-  varray_read #_ #_ #_ #_cview_odd a 10sz;
+  varray_read #_ #_ #_ #_cview_odd a (coerce_eq #_ #_ () (10sz <: szlt 50));
 }
 
 fn write_even (a : varray (even_view u32 100))
@@ -107,7 +107,7 @@ fn write_even (a : varray (even_view u32 100))
   requires a |-> v0
   ensures  a |-> (Seq.upd v0 10 42ul <: lseq u32 50)
 {
-  varray_write #_ #_ #_ #_cview_even a 10sz 42ul;
+  varray_write #_ #_ #_ #_cview_even a (coerce_eq #_ #_ () (10sz <: szlt 50)) 42ul;
 }
 
 let vw = sum_aview (even_view u32 100) (odd_view u32 100)
@@ -149,7 +149,7 @@ fn test_simpler (a : larray u32 100)
   res
 }
 
-#push-options "--split_queries always"
+#push-options ""
 let surj_lemma' #et (#len:nat) (i : natlt len)
   : Lemma (exists (j : either (natlt ((len + 1) / 2)) (natlt (len / 2))).
              it_to_nat (sum_aview (even_view et len) (odd_view et len)) j == i)
@@ -169,7 +169,7 @@ let is_full (et:Type) (len:nat)
           [SMTPat (is_full_view (sum_aview (even_view et len) (odd_view et len)))]
   = IView.full_iff_cardinal (sum_aview (even_view et len) (odd_view et len)).iview #(solve <: enumerable _)
 
-#push-options "" // "--split_queries always"
+#push-options ""
 let lem_idx1 #et (#len : nat) (i : natlt len{i % 2 = 0})
   (#_ : squash (in_image (it_to_nat (sum_aview (even_view et len) (odd_view et len))) i)) // should come from surj_lemma
   : Lemma (it_of_nat (sum_aview (even_view et len) (odd_view et len)) i == Inl #(natlt ((len + 1)/ 2)) #(natlt (len / 2)) (i / 2))
@@ -197,7 +197,7 @@ let lem_idx2 #et (#len : nat) (i : natlt len{i % 2 = 1})
   ()
 #pop-options
 
-#push-options "--split_queries always --z3rlimit 10"
+#push-options "--z3rlimit 10"
 let merge_lemma #et (#len:nat) (sl : lseq et ((len + 1) / 2)) (sr : lseq et (len / 2))
   : Lemma (
             to_seq (sum_aview (even_view et len) (odd_view et len)) (sl, sr)
@@ -240,8 +240,8 @@ fn test_write (a : larray u32 100)
 
   let vl, vr = varray_split2 (even_view u32 100) (odd_view u32 100) (from_array vw a);
 
-  varray_write #_ #_ #_ #_cview_even vl 10sz 42ul;
-  varray_write #_ #_ #_ #_cview_odd  vr 20sz 43ul;
+  varray_write #_ #_ #_ #_cview_even vl (coerce_eq #_ #_ () (10sz <: szlt 50)) 42ul;
+  varray_write #_ #_ #_ #_cview_odd  vr (coerce_eq #_ #_ () (20sz <: szlt 50)) 43ul;
 
   let va = varray_join2 vl vr;
 

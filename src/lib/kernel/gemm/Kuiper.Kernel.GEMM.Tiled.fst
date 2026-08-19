@@ -327,7 +327,7 @@ let tile5_all_fit (batch m k : nat) (tile : nat)
     FStar.Math.Lemmas.lemma_mult_le_left m 1 tile;
     FStar.Math.Lemmas.lemma_mult_le_left k 1 tile
 
-#push-options "--split_queries always --z3rlimit 40"
+#push-options "--z3rlimit 40"
 inline_for_extraction noextract
 let c_tile5_layout
   (#batch : erased pos) (#m #k : erased pos) (tile : szp)
@@ -875,6 +875,120 @@ let btile_idx_bij (batch m n tile : nat)
              (bij_comm_size (m * n) batch))
           (bij_nat_prod #tile #tile))
 
+(* Forward computation of [btile_idx_bij]: the block index is page-minor,
+   [bid = (mrow*n + mcol)*batch + page], the thread index is [tid = a*tile + b]. *)
+let btile_idx_bij_ff_cell (batch m n tile : nat)
+  (pg : natlt batch) (mr : natlt m) (mc : natlt n) (a : natlt tile) (b : natlt tile)
+  : Lemma (let (bid, tid) = (btile_idx_bij batch m n tile).ff (pg, (mr, (mc, (a, (b, ()))))) in
+           bid == (mr * n + mc) * batch + pg /\ tid == a * tile + b)
+  = ()
+
+(* One cell of the [bteardown] correctness argument: the value stored by the
+   thread owning cell (page, row, col) approximates the rank-4 [ggemm_single]
+   spec of that page.  Since F* now emits one query per proof obligation, the
+   index algebra relating (page, row, col) to the (block, thread) pair has to be
+   spelled out explicitly rather than left to E-matching. *)
+#push-options "--z3rlimit 60"
+let bteardown_cell
+  (#tc : Type0) {| scalar tc, real_like tc |}
+  (mapA_r mapB_r : real -> real)
+  (comb_r : binop real)
+  (#batch #m #n #tile : pos) (#k : nat)
+  (rA : chest (batch @| m @| k @| tile @| tile @| INil) real)
+  (rB : chest (batch @| k @| n @| tile @| tile @| INil) real)
+  (rC : chest (batch @| m @| n @| tile @| tile @| INil) real)
+  (vf : natlt (batch * (m * n)) -> natlt (tile * tile) -> GTot tc)
+  (eC' : chest (batch @| m @| n @| tile @| tile @| INil) tc)
+  (page : natlt batch) (row : natlt (m * tile)) (col : natlt (n * tile))
+  : Lemma
+      (requires
+        eC' == Chest.mk (batch @| m @| n @| tile @| tile @| INil)
+                 (fun idx -> let (bid, tid) = (btile_idx_bij batch m n tile).ff idx in vf bid tid) /\
+        (forall (x : natlt (batch * (m * n))) (y : natlt (tile * tile)).
+           vf x y %~ MS.ggemm_single mapA_r mapB_r comb_r
+                       (chest_flat42 #real #m #k #tile #tile (chest_slice 0 (x % batch) rA))
+                       (chest_flat42 #real #k #n #tile #tile (chest_slice 0 (x % batch) rB))
+                       (chest_flat42 #real #m #n #tile #tile (chest_slice 0 (x % batch) rC))
+                       ((x / batch / n) * tile + y / tile) ((x / batch % n) * tile + y % tile)))
+      (ensures
+        Chest.acc3 (chest_flat53 eC') page row col %~
+        MS.ggemm_single mapA_r mapB_r comb_r
+          (chest_flat42 #real #m #k #tile #tile (chest_slice 0 page rA))
+          (chest_flat42 #real #k #n #tile #tile (chest_slice 0 page rB))
+          (chest_flat42 #real #m #n #tile #tile (chest_slice 0 page rC))
+          row col)
+  = let i1 : natlt m = row / tile in
+    let i2 : natlt tile = row % tile in
+    let j1 : natlt n = col / tile in
+    let j2 : natlt tile = col % tile in
+    chest_flat53_cell eC' page i1 i2 j1 j2;
+    btile_idx_bij_ff_cell batch m n tile page i1 j1 i2 j2;
+    let (bid, tid) = (btile_idx_bij batch m n tile).ff (page, (i1, (j1, (i2, (j2, ()))))) in
+    (* bid == (i1*n + j1)*batch + page, tid == i2*tile + j2; recover the
+       components by Euclidean division. *)
+    FStar.Math.Lemmas.lemma_mod_plus page (i1 * n + j1) batch;
+    FStar.Math.Lemmas.lemma_div_plus page (i1 * n + j1) batch;
+    FStar.Math.Lemmas.small_mod page batch;
+    FStar.Math.Lemmas.small_div page batch;
+    FStar.Math.Lemmas.lemma_mod_plus j1 i1 n;
+    FStar.Math.Lemmas.lemma_div_plus j1 i1 n;
+    FStar.Math.Lemmas.small_mod j1 n;
+    FStar.Math.Lemmas.small_div j1 n;
+    FStar.Math.Lemmas.lemma_mod_plus j2 i2 tile;
+    FStar.Math.Lemmas.lemma_div_plus j2 i2 tile;
+    FStar.Math.Lemmas.small_mod j2 tile;
+    FStar.Math.Lemmas.small_div j2 tile;
+    assert (bid % batch == page);
+    assert (bid / batch / n == i1);
+    assert (bid / batch % n == j1);
+    assert (tid / tile == i2);
+    assert (tid % tile == j2);
+    assert (Chest.acc eC' (page, (i1, (j1, (i2, (j2, ()))))) == vf bid tid);
+    assert (i1 * tile + i2 == row);
+    assert (j1 * tile + j2 == col)
+#pop-options
+
+(* Quantified form of [bteardown_cell], bridged to the rank-5 [gbmmcomb] spec
+   through [bmmcomb_flat_all]. *)
+(* The nonlinear in-range checks for the row/col index expressions in the
+   [requires] clause are now separate (per-leaf) queries and need more budget. *)
+#push-options "--z3rlimit 200"
+let bteardown_cells
+  (#tc : Type0) {| scalar tc, real_like tc |}
+  (mapA_r mapB_r : real -> real)
+  (comb_r : binop real)
+  (#batch #m #n #tile : pos) (#k : nat)
+  (rA : chest (batch @| m @| k @| tile @| tile @| INil) real)
+  (rB : chest (batch @| k @| n @| tile @| tile @| INil) real)
+  (rC : chest (batch @| m @| n @| tile @| tile @| INil) real)
+  (vf : natlt (batch * (m * n)) -> natlt (tile * tile) -> GTot tc)
+  (eC' : chest (batch @| m @| n @| tile @| tile @| INil) tc)
+  : Lemma
+      (requires
+        eC' == Chest.mk (batch @| m @| n @| tile @| tile @| INil)
+                 (fun idx -> let (bid, tid) = (btile_idx_bij batch m n tile).ff idx in vf bid tid) /\
+        (forall (x : natlt (batch * (m * n))) (y : natlt (tile * tile)).
+           vf x y %~ MS.ggemm_single mapA_r mapB_r comb_r
+                       (chest_flat42 #real #m #k #tile #tile (chest_slice 0 (x % batch) rA))
+                       (chest_flat42 #real #k #n #tile #tile (chest_slice 0 (x % batch) rB))
+                       (chest_flat42 #real #m #n #tile #tile (chest_slice 0 (x % batch) rC))
+                       ((x / batch / n) * tile + y / tile) ((x / batch % n) * tile + y % tile)))
+      (ensures
+        forall (page : natlt batch) (row : natlt (m * tile)) (col : natlt (n * tile)).
+          Chest.acc3 (chest_flat53 eC') page row col %~
+          Chest.acc3 (MS.gbmmcomb mapA_r mapB_r comb_r
+                        (chest_flat53 rC) (chest_flat53 rA) (chest_flat53 rB)) page row col)
+  = introduce
+      forall (page : natlt batch) (row : natlt (m * tile)) (col : natlt (n * tile)).
+        Chest.acc3 (chest_flat53 eC') page row col %~
+        Chest.acc3 (MS.gbmmcomb mapA_r mapB_r comb_r
+                      (chest_flat53 rC) (chest_flat53 rA) (chest_flat53 rB)) page row col
+      with begin
+        bteardown_cell mapA_r mapB_r comb_r rA rB rC vf eC' page row col;
+        bmmcomb_flat_cell mapA_r mapB_r comb_r rA rB rC page row col
+      end
+#pop-options
+
 (* ─── batched setup / teardown (ForEvery distribution) ────────────────────── *)
 
 ghost
@@ -1114,11 +1228,7 @@ fn bteardown
 
   (* Final batched matrix-level approximation, reduced cellwise to the per-page
      rank-4 ggemm_single facts already established. *)
-  bmmcomb_flat_all mapA_r mapB_r comb_r rA rB rC;
-  assert pure (
-    forall (page : natlt batch) (row : natlt (m * tile)) (col : natlt (n * tile)).
-      acc3 (chest_flat53 eC') page row col %~
-      acc3 (MS.gbmmcomb mapA_r mapB_r comb_r (chest_flat53 rC) (chest_flat53 rA) (chest_flat53 rB)) page row col);
+  bteardown_cells mapA_r mapB_r comb_r rA rB rC vf eC';
   assert pure (chest_flat53 eC' %~
                  MS.gbmmcomb mapA_r mapB_r comb_r (chest_flat53 rC) (chest_flat53 rA) (chest_flat53 rB));
   ();

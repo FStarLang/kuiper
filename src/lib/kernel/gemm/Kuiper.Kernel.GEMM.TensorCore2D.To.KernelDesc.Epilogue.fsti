@@ -19,6 +19,15 @@ open Kuiper.Kernel.GEMM.TensorCore2D.KernelDesc
 
 open Kuiper.Kernel.GEMM.TensorCore2D.To.KernelDesc
 
+#set-options "--z3rlimit 40"
+
+(* Nonnegativity of [idx / wn] in the type-level positions below: the upper
+   bound comes from [div_lt_mul_pat] in To.KernelDesc, but the [>= 0] half is
+   no longer picked up in the split queries. *)
+private let div_nonneg_pat (a:nat) (b:pos)
+  : Lemma (a / b >= 0) [SMTPat (a / b)]
+  = ()
+
 inline_for_extraction noextract
 fn epilogue_fragment_from_warp
   (#et_cd #et_acc : Type0)

@@ -14,6 +14,15 @@ open Kuiper.Tensor
 module SZ = Kuiper.SizeT
 module CV = Kuiper.Kernel.GEMM.Copy.Vec2
 
+(* [bp_sharing] is [m |-> Frac (1.0R /. nthr) em], which reaches [tensor_pts_to]
+   only after unfolding the [pts_to] typeclass instances.  These reductions no
+   longer happen inside the SMT-level slprop equality, so we do them by hand. *)
+let unfold_bp_sharing () : FStar.Tactics.V2.Tac unit =
+  FStar.Tactics.V2.norm [delta_attr [`%Pulse.Lib.Core.pulse_unfold];
+                         delta_only [`%bp_sharing];
+                         zeta; iota; primops];
+  Pulse.Lib.Core.slprop_equiv_norm ()
+
 (* ---- Strided chunk operations for Array2 ---- *)
 
 ghost
@@ -155,7 +164,10 @@ fn bp_sharing_to_own_strided_chunks
     forall+ (tid : natlt nthr).
       own_strided_chunks (from_array l sar) em nthr tid
 {
-  tensor_gather_n (from_array l sar) nthr;
+  rewrite (forall+ (_tid : natlt nthr). bp_sharing (from_array l sar) em nthr)
+       as (forall+ (_tid : natlt nthr). tensor_pts_to (from_array l sar) #(1.0R /. nthr) em)
+       by unfold_bp_sharing ();
+  tensor_gather_n (from_array l sar) nthr #1.0R;
   split_array2_into_strided_chunks (from_array l sar) nthr;
 }
 
@@ -176,7 +188,10 @@ fn own_strided_chunks_to_bp_sharing
       bp_sharing (from_array l sar) em nthr
 {
   join_array2_from_strided_chunks (from_array l sar) nthr;
-  tensor_share_n (from_array l sar) nthr;
+  tensor_share_n (from_array l sar) nthr #1.0R;
+  rewrite (forall+ (_tid : natlt nthr). tensor_pts_to (from_array l sar) #(1.0R /. nthr) em)
+       as (forall+ (_tid : natlt nthr). bp_sharing (from_array l sar) em nthr)
+       by unfold_bp_sharing ();
 }
 
 ghost
@@ -197,7 +212,12 @@ fn bp_sharing_to_own_strided_chunks_underspec
       exists* em.
         own_strided_chunks (from_array l sar) em nthr tid
 {
-  tensor_gather_n_underspec (from_array l sar) nthr;
+  rewrite (forall+ (_tid : natlt nthr). exists* (em : chest2 et rows cols).
+             bp_sharing (from_array l sar) em nthr)
+       as (forall+ (_tid : natlt nthr). exists* (em : chest2 et rows cols).
+             tensor_pts_to (from_array l sar) #(1.0R /. nthr) em)
+       by unfold_bp_sharing ();
+  tensor_gather_n_underspec (from_array l sar) nthr #1.0R;
   with em. assert from_array l sar |-> em;
   split_array2_into_strided_chunks (from_array l sar) nthr;
   forevery_map
@@ -225,11 +245,14 @@ fn own_strided_chunks_to_bp_sharing_underspec
 {
   join_array2_from_strided_chunks_underspec (from_array l sar) nthr;
   with em. assert from_array l sar |-> em;
-  tensor_share_n (from_array l sar) nthr;
+  tensor_share_n (from_array l sar) nthr #1.0R;
+  rewrite (forall+ (_tid : natlt nthr). tensor_pts_to (from_array l sar) #(1.0R /. nthr) em)
+       as (forall+ (_tid : natlt nthr). bp_sharing (from_array l sar) em nthr)
+       by unfold_bp_sharing ();
   forevery_map
-    (fun (tid : natlt nthr) -> from_array l sar |-> Frac (1.0R /. nthr) em)
+    (fun (tid : natlt nthr) -> bp_sharing (from_array l sar) em nthr)
     (fun (tid : natlt nthr) -> exists* em. bp_sharing (from_array l sar) em nthr)
-    fn tid { fold bp_sharing (from_array l sar) em nthr; };
+    fn tid { };
 }
 
 (* ---- Even/odd barrier transforms ---- *)
@@ -425,6 +448,27 @@ fn barrier_p_to_q_transform
 }
 
 (* ---- Per-thread fold/unfold helpers ---- *)
+
+(* Arithmetic facts needed to reduce the guards of [barrier_p]/[barrier_q] on
+   the concrete iterations [2*bkIdx] / [2*bkIdx+1].  They are stated with
+   triggers because the guards are re-checked wherever those definitions are
+   unfolded. *)
+#push-options "--fuel 0 --ifuel 0 --z3rlimit 20"
+let double_quot (shared bk : nat)
+  : Lemma (requires bk > 0 /\ shared % bk = 0)
+          (ensures 2 * shared / bk == 2 * (shared / bk))
+          [SMTPat (2 * shared / bk)]
+  = let q = shared / bk in
+    FStar.Math.Lemmas.lemma_div_exact shared bk;
+    assert (2 * shared == (2 * q) * bk);
+    FStar.Math.Lemmas.multiple_division_lemma (2 * q) bk
+
+let half_of_2x (x : nat) : Lemma ((2 * x) / 2 == x) [SMTPat ((2 * x) / 2)]
+  = FStar.Math.Lemmas.cancel_mul_div x 2
+
+let half_of_2x1 (x : nat) : Lemma ((2 * x + 1) / 2 == x) [SMTPat ((2 * x + 1) / 2)]
+  = FStar.Math.Lemmas.division_addition_lemma 1 2 x
+#pop-options
 
 #push-options "--fuel 2"
 ghost

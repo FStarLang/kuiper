@@ -103,7 +103,7 @@ let bkpost
       ((gid / b) / n)
       ((gid / b) % n))
 
-#push-options "--z3rlimit 40 --split_queries always"
+#push-options "--z3rlimit 40"
 inline_for_extraction noextract
 fn bkf
   (#ta #tb #tc #tacc : Type0) {| scalar tacc |}
@@ -751,7 +751,7 @@ let kdreframe
         setup    = kd_pre_compose  fwd kd;
         teardown = kd_post_compose bwd kd; }
 
-#push-options "--z3rlimit 40 --split_queries always"
+#push-options "--z3rlimit 40"
 
 (* Ghost step raising the rank-2 global ownership to the batch-one
    rank-3 view that [bkdesc]'s setup expects. *)

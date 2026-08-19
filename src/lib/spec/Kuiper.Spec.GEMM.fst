@@ -173,6 +173,7 @@ let lemma_matmul_index
 : Lemma (acc2 (matmul m1 m2) i j == matmul_single m1 m2 i j)
 = ()
 
+#push-options "--z3rlimit 40"
 let rec __matmul_single_tile
   (#et:Type) {| scalar et |}
   (#rows #shared #columns : nat)
@@ -192,6 +193,7 @@ let rec __matmul_single_tile
       (__matmul_single_tile tm tn tk m1 m2 trow tcol (to-1))
       (matmul (ematrix_subtile m1 tm tk trow (to-1))
               (ematrix_subtile m2 tk tn (to-1) tcol)))
+#pop-options
 
 let matmul_single_tile_zero_lemma
   (#et:Type) {| scalar et |}
@@ -345,6 +347,35 @@ let matmul_decompose_lemma
       trows tcolumns
       i j)
 
+(* The bounds [(to-1)*tshared <= shared] and [(to-1)*tshared + k <= shared] arise in
+   the *type* of __matmul_single_subtile_lemma' below, so they cannot be discharged
+   by an assert in its body. They are nonlinear, so we prove them once here and
+   expose them via a (narrowly triggered) SMT pattern. *)
+let mul_tile_bound (shared : pos) (tshared : pos) (t : nat)
+  : Lemma (requires tshared /? shared /\ t <= shared / tshared)
+          (ensures t * tshared <= shared /\
+                   (t < shared / tshared ==> t * tshared + tshared <= shared))
+          [SMTPat (t * tshared); SMTPat (shared / tshared)]
+  = let q = shared / tshared in
+    assert (tshared * q == shared);
+    FStar.Math.Lemmas.lemma_mult_le_left tshared t q;
+    FStar.Math.Lemmas.swap_mul tshared t;
+    if t < q then begin
+      FStar.Math.Lemmas.lemma_mult_le_left tshared (t + 1) q;
+      FStar.Math.Lemmas.distributivity_add_right tshared t 1
+    end
+
+(* Similarly: [shared / tshared <= shared] is needed at several call sites and is
+   not free for Z3 with a symbolic divisor. *)
+let div_le_self (shared : pos) (tshared : pos)
+  : Lemma (requires tshared /? shared)
+          (ensures shared / tshared <= shared)
+          [SMTPat (shared / tshared)]
+  = let q = shared / tshared in
+    assert (tshared * q == shared);
+    FStar.Math.Lemmas.lemma_mult_le_left q 1 tshared;
+    FStar.Math.Lemmas.swap_mul q tshared
+
 #push-options "--z3rlimit 40"
 let rec __matmul_single_subtile_lemma'
   (#et : Type) {| scalar et |}
@@ -394,6 +425,7 @@ let rec __matmul_single_subtile_lemma'
     pf2 x
   end
   else begin
+    assert (k > 0);
     matmul_single_lemma m1' m2' i' j' k;
     matmul_single_lemma m10 m20 i' j' ((to - 1) * tshared + k);
     pf3 x (__matmul_single m1' m2' i' j' (k - 1)) (mul (acc2 m1' i' (k-1)) (acc2 m2' (k-1) j'));
@@ -434,7 +466,8 @@ let __matmul_single_subtile_lemma
           j'
           (to * tshared)
       )
-= __matmul_single_subtile_lemma' pf2 pf3 trows tcols tshared m1 m2 i j i' j' to tshared
+= FStar.Math.Lemmas.distributivity_add_left (to - 1) 1 tshared;
+  __matmul_single_subtile_lemma' pf2 pf3 trows tcols tshared m1 m2 i j i' j' to tshared
 #pop-options
 
 #push-options "--z3rlimit 40"
@@ -578,6 +611,10 @@ let matmul_tiles_lemma
           i'j'
     )
   =
+    (* [(shared/tshared) * tshared == shared] is needed to line up the last step
+       of __matmul_tiles_lemma with [matmul_single]; nonlinear, so spell it out. *)
+    FStar.Math.Lemmas.swap_mul (shared / tshared) tshared;
+    assert ((shared / tshared) * tshared == shared);
     calc (==) {
       Chest.acc
         (gmatmul_single acc matmul matplus

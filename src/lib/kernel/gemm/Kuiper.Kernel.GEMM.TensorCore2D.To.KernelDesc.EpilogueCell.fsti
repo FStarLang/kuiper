@@ -4,7 +4,7 @@ module Kuiper.Kernel.GEMM.TensorCore2D.To.KernelDesc.EpilogueCell
 
 open Kuiper
 #set-options "--ifuel 1 --initial_fuel 0 --max_fuel 1"
-#set-options "--z3rlimit 15 --split_queries always"
+#set-options "--z3rlimit 15"
 
 open Kuiper.Tensor
 open Kuiper.Tensor.Tiling
@@ -13,6 +13,13 @@ open Kuiper.Kernel.GEMM.Tiled.Common.Vec
 
 open Kuiper.Kernel.GEMM.TensorCore2D.KernelDesc
 open Kuiper.Kernel.GEMM.TensorCore2D.To.KernelDesc
+
+(* [a * b % b == 0]: needed to see [tm] as a divisor of [wm * tm] in the
+   type-level position below, where no lemma call can be inserted.  With one
+   SMT query per proof obligation this ground fact is no longer around. *)
+private let mul_mod_cancel_pat (a:nat) (b:pos)
+  : Lemma ((a * b) % b == 0) [SMTPat ((a * b) % b)]
+  = FStar.Math.Lemmas.multiple_modulo_lemma a b
 
 let tiled_cell
   (extent : pos)
