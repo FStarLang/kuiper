@@ -55,10 +55,12 @@ endif
  realpath:=grealpath
  sed:=gsed
  indent:=gindent
+ nproc:=gnproc
 else
  realpath:=realpath
  sed:=sed
  indent:=indent
+ nproc:=nproc
 endif
 
 define msg =

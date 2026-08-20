@@ -47,14 +47,24 @@ fn smoke_incr (x : f32) returns f32 {
 EOF
 ./fstar.sh src/examples/Kuiper.Smoke.Test.fst
 
-if command -v indent >/dev/null 2>&1; then
+# macOS needs the GNU tools: gindent, and GNU make (as gmake) since the system
+# make is 3.81. See setup-mac.sh.
+if [ "$(uname -s)" = Darwin ]; then
+  INDENT=gindent
+  MAKE="${MAKE:-gmake}"
+else
+  INDENT=indent
+  MAKE="${MAKE:-make}"
+fi
+
+if command -v "$INDENT" >/dev/null 2>&1; then
   echo ">>> (3) Extracting a kernel to CUDA"
-  make obj/Kuiper_Example_Add.cu
+  "$MAKE" obj/Kuiper_Example_Add.cu
   test -f obj/Kuiper_Example_Add.cu
   echo ">>> Generated CUDA:"
   head -n 20 obj/Kuiper_Example_Add.cu
 else
-  echo ">>> (3) Skipping CUDA extraction ('indent' not installed)"
+  echo ">>> (3) Skipping CUDA extraction ('$INDENT' not installed)"
 fi
 
 echo ">>> Smoke test passed."

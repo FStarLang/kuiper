@@ -63,8 +63,14 @@ jobs:
           # ^ Download all package artifacts into the same dir. Each is a
           # single file with a distinct platform suffix, so no clashes.
 
-      - name: Check that the Linux x86_64 package built
-        run: test -f artifacts/kuiper-Linux-x86_64.tar.gz
+      - name: Check that all expected packages built
+        run: |
+          ls -l artifacts/
+          for f in kuiper-Linux-x86_64.tar.gz \
+                   kuiper-Darwin-arm64.tar.gz \
+                   kuiper-Darwin-x86_64.tar.gz; do
+            test -f "artifacts/$f" || { echo "missing $f"; exit 1; }
+          done
 
       - name: Create prerelease with artifacts
         env:

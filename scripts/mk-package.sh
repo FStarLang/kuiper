@@ -127,6 +127,8 @@ cp -a "$PLUGIN" "$PKG/extraction/dune/_build/default/"
 # Build system and helpers.
 cp -a Makefile verify.mk nvcc.mk .common.mk .configure.mk configure \
       fstar.sh krml.sh "$PKG/"
+# Referenced by README.md for macOS packages; harmless on Linux ones.
+cp -a setup-mac.sh "$PKG/" 2>/dev/null || true
 cp -a Cfg.fst.config.json "$PKG/" 2>/dev/null || true
 cp -a FOOTGUNS.txt "$PKG/" 2>/dev/null || true
 # Ship the dependency graph so the first `make` needn't regenerate it.
@@ -184,7 +186,8 @@ OUT="$ROOT/$BASENAME.tar.gz"
 rm -f "$OUT"
 msg "Creating $OUT"
 # -h resolves symlinks so the package is self-contained.
-tar czhf "$OUT" -C "$STAGE" kuiper
+# COPYFILE_DISABLE keeps macOS's bsdtar from adding ._* AppleDouble entries.
+COPYFILE_DISABLE=1 tar czhf "$OUT" -C "$STAGE" kuiper
 
 msg "Done."
 ls -l "$OUT"
