@@ -102,10 +102,6 @@ instance creverse_view et (len : erased nat{SZ.fits len}) {| sz_len : concrete_s
   };
 }
 
-(* NB: index arguments below go through [coerce_eq]: F* no longer sees through
-   the [.sch.cit] projection of the concrete view instance when checking a
-   literal index against it, so we let the solver discharge the (definitional)
-   type equality instead. *)
 (* Why does this work without the instance below? *)
 fn test (a : varray (normal_view u32 50))
   preserves gpu
