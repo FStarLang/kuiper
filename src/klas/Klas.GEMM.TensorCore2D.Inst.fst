@@ -9,6 +9,7 @@ open Kuiper.Array2.Strided
 open Kuiper.Tensor.Layout.Alg { l2_row_major as rm }
 open Kuiper.TensorCore
 open Kuiper.Array.Vectorized { has_vec_cpy, chunk }
+open Pulse.Lib.Pledge
 
 module SZ = Kuiper.SizeT
 
@@ -17,7 +18,7 @@ open Kuiper.Kernel.GEMM.TensorCore2D
 #push-options "--split_queries always --z3rlimit 40" // very slow without splitting? flaky nevertheless
 
 inline_for_extraction noextract
-fn spec
+fn spec_on_stream
   // specialize
   (et_ab et_c : Type0)
   {| scalar et_ab, has_vec_cpy et_ab, scalar et_c |}
@@ -48,6 +49,8 @@ fn spec
   (gA : array2 et_ab (rm rows shared) { is_global gA })
   (gB : array2 et_ab (rm shared cols) { is_global gB })
   (gC : array2 et_c (rm rows cols) { is_global gC })
+  (stream : stream_t)
+  (#epoch : epoch_t)
   (#_ : squash (aligned 16 (core gA)))
   (#_ : squash (aligned 16 (core gB)))
   (#eA : chest2 et_ab rows shared)
@@ -57,15 +60,22 @@ fn spec
   // non of these are are checked because the functions is only
   //  partially applied
   preserves
-    cpu **
+    cpu ** stream_live stream ** epoch_live stream epoch
+  requires
     pure ((rows/bm) * (cols/bn) <= max_blocks) **
     on gpu_loc (gA |-> Frac fA eA) **
-    on gpu_loc (gB |-> Frac fB eB)
-  requires
+    on gpu_loc (gB |-> Frac fB eB) **
     on gpu_loc (gC |-> eC)
   ensures
-    exists* eC'.
-      on gpu_loc (gC |-> eC') ** pure (eC' %~ MS.matmul (to_real_matrix eA) (to_real_matrix eB))
+    pledge0 (epoch_done stream epoch)
+      (on gpu_loc (
+        gA |-> Frac fA eA **
+        gB |-> Frac fB eB **
+        (exists* eC'.
+          gC |-> eC' **
+          pure (eC' %~ MS.gmmcomb
+            (fun (x:real) -> x) (fun (x:real) -> x) (MS.comb2 #real)
+            (to_real_matrix eC) (to_real_matrix eA) (to_real_matrix eB)))))
 {
   tensor_pts_to_ref_located gA;
   tensor_pts_to_ref_located gB;
@@ -107,26 +117,86 @@ fn spec
   assert pure (chunk et_ab /?+ cols);
   lemma_aligned_strided_row_major_l2_row_major #(SZ.v shared) #(SZ.v cols) (chunk et_ab);
 
-  (* Instead of threading through approximations, we here pick
-     real matrices that are (trivially) approximated
-     by the input ematrices, and call the function. This is mostly
-     to show that the approximation precondition is not a serious
-     requirement. *)
-  let rA = to_real_matrix eA;
-  let rB = to_real_matrix eB;
-  let rC = to_real_matrix eC;
   #set-options "--fuel 0 --ifuel 0 --z3refresh" {
-  launch_sync (
-    mk_kernel gA #eA gB #eB gC #_ #eC bm bn bk tm tn tk wm wn #_ #_ #_ #_ #_ #_ #_ #_ #fA #fB nblk nthr rA rB rC
-      (fun (x:real) -> x) (fun (x:real) -> x) (MS.comb2 #real)
-      (fun (x:et_ab) -> x) (fun (x:et_ab) -> x) (MS.comb2 #et_c) ()
-  )};
-  // Reduce the map-aware postcondition [gmmcomb id id comb2 rC rA rB] back to the
-  // plain [matmul rA rB] this instance advertises.  These are SMTPat lemmas, but
-  // invoke them explicitly so the reduction is available under [--fuel 0 --ifuel 0].
-  MS.gmmcomb_id (MS.comb2 #real) rC rA rB;
-  MS.matmul_is_gemm rC rA rB;
+    launch (
+      mk_kernel gA #eA gB #eB gC #_ #eC bm bn bk tm tn tk wm wn #_ #_ #_ #_ #_ #_ #_ #_ #fA #fB nblk nthr
+        (to_real_matrix eA) (to_real_matrix eB) (to_real_matrix eC)
+        (fun (x:real) -> x) (fun (x:real) -> x) (MS.comb2 #real)
+        (fun (x:et_ab) -> x) (fun (x:et_ab) -> x) (MS.comb2 #et_c) ()
+    ) stream
+  };
 
+  ()
+}
+
+(* Keep the synchronous API as a convenience wrapper around the stream-aware
+ * primitive so both launch paths share one instance proof. *)
+inline_for_extraction noextract
+fn spec
+  // specialize
+  (et_ab et_c : Type0)
+  {| scalar et_ab, has_vec_cpy et_ab, scalar et_c |}
+  {| real_like et_ab, real_like et_c |}
+  (bm bn bk : szp)
+  (#_ : squash (chunk et_ab /?+ bk))
+  (#_ : squash (chunk et_ab /?+ bn))
+  (tm : szp{tm /?+ bm})
+  (tn : szp{tn /?+ bn})
+  (tk : szp{tk /?+ bk})
+  (wm : szp{wm * tm /? bm})
+  (wn : szp{wn * tn /? bn})
+  (#_ : squash (chunk et_ab * (bm/(wm*tm) * (bn/(wn*tn)) * warp_size) /?+ (bm * bk)))
+  (#_ : squash (chunk et_ab * (bm/(wm*tm) * (bn/(wn*tn)) * warp_size) /?+ (bk * bn)))
+  (#_ : squash (SZ.fits (wm * wn)))
+  (#_ : squash (SZ.fits (wm * tm)))
+  (#_ : squash (SZ.fits (wn * tn)))
+  (#_ : squash (valid_frag_et_dims et_ab FragA tm tn tk))
+  (#_ : squash (valid_frag_et_dims et_ab FragB tm tn tk))
+  (#_ : squash (valid_frag_et_dims et_c FragAcc tm tn tk))
+  (#_ : squash (valid_frag_et_comb et_ab et_c))
+  (#_ : squash (SZ.fits (bm*bk + (bm/(wm*tm) * (bn/(wn*tn)) * warp_size) -1)))
+  (#_ : squash (SZ.fits (bk*bn + (bm/(wm*tm) * (bn/(wn*tn)) * warp_size) -1)))
+  (#_ : squash ((bm/(wm*tm) * (bn/(wn*tn)) * (SZ.v warp_size)) <= max_threads))
+
+  // do not specialize
+  (rows shared cols : szp)
+  (gA : array2 et_ab (rm rows shared) { is_global gA })
+  (gB : array2 et_ab (rm shared cols) { is_global gB })
+  (gC : array2 et_c (rm rows cols) { is_global gC })
+  (#_ : squash (aligned 16 (core gA)))
+  (#_ : squash (aligned 16 (core gB)))
+  (#eA : chest2 et_ab rows shared)
+  (#eB : chest2 et_ab shared cols)
+  (#eC : chest2 et_c rows cols)
+  (#fA #fB : perm)
+  preserves
+    cpu **
+    pure ((rows/bm) * (cols/bn) <= max_blocks) **
+    on gpu_loc (gA |-> Frac fA eA) **
+    on gpu_loc (gB |-> Frac fB eB)
+  requires
+    on gpu_loc (gC |-> eC)
+  ensures
+    exists* eC'.
+      on gpu_loc (gC |-> eC') ** pure (eC' %~ MS.matmul (to_real_matrix eA) (to_real_matrix eB))
+{
+  let stream = fresh_stream ();
+  get_epoch stream ();
+  spec_on_stream et_ab et_c bm bn bk tm tn tk wm wn
+    rows shared cols gA gB gC stream;
+  sync_stream stream;
+  redeem_pledge emp_inames (epoch_done stream _) _;
+
+  // Reduce the map-aware asynchronous postcondition back to the plain matmul
+  // postcondition advertised by this synchronous convenience API.
+  MS.gmmcomb_id (MS.comb2 #real)
+    (to_real_matrix eC) (to_real_matrix eA) (to_real_matrix eB);
+  MS.matmul_is_gemm
+    (to_real_matrix eC) (to_real_matrix eA) (to_real_matrix eB);
+
+  drop_ (epoch_done stream _);
+  drop_ (epoch_live stream _);
+  destroy_stream stream;
   ()
 }
 #pop-options
