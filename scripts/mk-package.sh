@@ -145,29 +145,9 @@ cp -a .depend "$PKG/" 2>/dev/null || true
 
 touch "$PKG/.packaged"
 
-# --- Strip binaries to save space -----------------------------------------
-
-if command -v strip >/dev/null 2>&1; then
-  msg "Stripping binaries"
-  # Careful: fstar.exe must keep its *global* symbols. The extraction plugin
-  # (kuiper_extr.cmxs) is dlopen'd and resolves its camlFStarC_* references
-  # against the executable. On ELF those symbols live in .dynsym (ocamlopt
-  # links dynlink-capable programs with --export-dynamic) and survive a plain
-  # strip, which only drops .symtab and the debug sections. Mach-O has no
-  # separate dynamic symbol table, so a default strip on an executable deletes
-  # every global not needed for dynamic linking, and loading the plugin then
-  # dies with:
-  #   symbol not found in flat namespace '_camlFStarC_Class_HasRange'
-  # `-x` removes local symbols only, which keeps the plugin working on both.
-  strip -x "$PKG"/inst/bin/* 2>/dev/null || true
-  strip "$PKG"/inst/lib/fstar/z3-*/bin/* 2>/dev/null || true
-
-  # Fail here, not three minutes later in the smoke test, if that ever regresses.
-  if command -v nm >/dev/null 2>&1 &&
-     ! nm "$PKG/inst/bin/fstar.exe" 2>/dev/null | grep -q camlFStarC_Class_HasRange; then
-    die "stripped fstar.exe lost its OCaml symbols: plugins would fail to load"
-  fi
-fi
+# Note, we used to strip binaries but that interferes with ocaml plugin
+# dynlinking in MacOS. I'm just removing the strip, maybe could be restored
+# at some point if we figure out how to keep the plugin working.
 
 # --- Metadata -------------------------------------------------------------
 
