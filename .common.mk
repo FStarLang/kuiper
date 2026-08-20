@@ -40,8 +40,31 @@ ramon not found:
   You can get it from: [https://github.com/mtzguido/ramon]
 endef
 
+# $(call check-bin,binary-name,package-name)
+define check-bin
+$(if $(shell command -v $(1) 2>/dev/null),,$(error "$(1)" not found; run ./setup-mac.sh, or: brew install $(2)))
+endef
+
+ifeq ($(shell uname -s),Darwin)
+ IS_MACOS:=1
+ifeq ($(filter clean clean-modules clean-full,$(MAKECMDGOALS)),)
+ $(call check-bin,grealpath,coreutils)
+ $(call check-bin,gsed,gnu-sed)
+ $(call check-bin,gindent,gnu-indent)
+endif
+ realpath:=grealpath
+ sed:=gsed
+ indent:=gindent
+ nproc:=gnproc
+else
+ realpath:=realpath
+ sed:=sed
+ indent:=indent
+ nproc:=nproc
+endif
+
 define msg =
-@printf "  %-8s  %s\n" $(1) $(if $(2),$(2),$(shell realpath --relative-to=. $<))
+@printf "  %-8s  %s\n" $(1) $(if $(2),$(2),$(shell $(realpath) --relative-to=. $<))
 endef
 
 # Passing RESOURCEMONITOR=1 will create .ramon files through the source tree with

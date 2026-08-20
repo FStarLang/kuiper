@@ -127,6 +127,8 @@ cp -a "$PLUGIN" "$PKG/extraction/dune/_build/default/"
 # Build system and helpers.
 cp -a Makefile verify.mk nvcc.mk .common.mk .configure.mk configure \
       fstar.sh krml.sh "$PKG/"
+# Referenced by README.md for macOS packages; harmless on Linux ones.
+cp -a setup-mac.sh "$PKG/" 2>/dev/null || true
 cp -a Cfg.fst.config.json "$PKG/" 2>/dev/null || true
 cp -a FOOTGUNS.txt "$PKG/" 2>/dev/null || true
 # Ship the dependency graph so the first `make` needn't regenerate it.
@@ -143,13 +145,9 @@ cp -a .depend "$PKG/" 2>/dev/null || true
 
 touch "$PKG/.packaged"
 
-# --- Strip binaries to save space -----------------------------------------
-
-if command -v strip >/dev/null 2>&1; then
-  msg "Stripping binaries"
-  strip "$PKG"/inst/bin/* 2>/dev/null || true
-  strip "$PKG"/inst/lib/fstar/z3-*/bin/* 2>/dev/null || true
-fi
+# Note, we used to strip binaries but that interferes with ocaml plugin
+# dynlinking in MacOS. I'm just removing the strip, maybe could be restored
+# at some point if we figure out how to keep the plugin working.
 
 # --- Metadata -------------------------------------------------------------
 
@@ -184,7 +182,8 @@ OUT="$ROOT/$BASENAME.tar.gz"
 rm -f "$OUT"
 msg "Creating $OUT"
 # -h resolves symlinks so the package is self-contained.
-tar czhf "$OUT" -C "$STAGE" kuiper
+# COPYFILE_DISABLE keeps macOS's bsdtar from adding ._* AppleDouble entries.
+COPYFILE_DISABLE=1 tar czhf "$OUT" -C "$STAGE" kuiper
 
 msg "Done."
 ls -l "$OUT"

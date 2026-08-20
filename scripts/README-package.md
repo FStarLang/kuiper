@@ -14,9 +14,25 @@ See `BUILD_INFO` for the exact commits and platform this package was built from.
 ## Requirements
 
 - A 64-bit Linux or macOS system matching this package's platform (see `BUILD_INFO`).
-- GNU Make and a POSIX shell.
+- GNU Make (>= 4.4) and a POSIX shell.
 - `nvcc` (the CUDA toolkit) and an NVIDIA GPU are only needed to *compile* and
   *run* kernels. You can verify and extract to CUDA source without them.
+
+On **macOS**, the build system needs the GNU tools rather than the BSD ones
+that ship with the system. Install them with
+
+```bash
+./setup-mac.sh     # brew install gnu-sed coreutils gnu-indent make
+```
+
+No `PATH` juggling is needed: the makefiles look the tools up under their
+Homebrew names (`gsed`, `grealpath`, `gindent`, `gnproc`). The one exception is
+`make` itself, which Homebrew installs as `gmake` — use that instead of the
+system `make` (3.81), which cannot parse these makefiles:
+
+```bash
+gmake -j$(sysctl -n hw.ncpu)
+```
 
 No OPAM/OCaml installation is required: the toolchain ships prebuilt.
 
