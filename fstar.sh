@@ -10,8 +10,8 @@ SNAME="$0"
 MAKE="${MAKE:-$(command -v gmake >/dev/null 2>&1 && echo gmake || echo make)}"
 
 gcmd () {
-	cd $(dirname $0)
+	cd $(dirname $SNAME)
 	V=1 "$MAKE" -s echo-fstar
 }
 
-exec $(gcmd) "$@"
+exec $(gcmd) --already_cached '*' "$@"
