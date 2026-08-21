@@ -2047,6 +2047,12 @@ fn bkf
     assert pure (SZ.v tc < SZ.v bn / SZ.v tn);
     assert pure (SZ.v irow < SZ.v tm);
     assert pure (SZ.v icol < SZ.v tn);
+    (* [tr * tm + irow < (bm/tm) * tm == bm] and likewise for the columns.
+       Nonlinear, so name the flattening lemma instead of leaving it to Z3. *)
+    FStar.Matrix.flattened_index_is_under_flattened_size
+      (SZ.v bm / SZ.v tm) (SZ.v tm) (SZ.v tr) (SZ.v irow);
+    FStar.Matrix.flattened_index_is_under_flattened_size
+      (SZ.v bn / SZ.v tn) (SZ.v tn) (SZ.v tc) (SZ.v icol);
     assert pure (SZ.v tr * SZ.v tm + SZ.v irow < SZ.v bm);
     assert pure (SZ.v br * SZ.v bm + SZ.v tr * SZ.v tm + SZ.v irow < SZ.v m);
     assert pure (SZ.v tc * SZ.v tn + SZ.v icol < SZ.v bn);

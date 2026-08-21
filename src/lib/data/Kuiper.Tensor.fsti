@@ -328,7 +328,7 @@ fn tensor_write
 
 (* Syntax *)
 inline_for_extraction noextract
-unfold let op_Array_Access
+unfold let ( .() )
   (#et : Type0) (#r : erased nat) (#d : shape r)
   (#l : tlayout d) {| ctlayout l |}
   (a : tensor et l)
@@ -339,7 +339,7 @@ unfold let op_Array_Access
 
 (* Syntax *)
 inline_for_extraction noextract
-unfold let op_Array_Assignment
+unfold let ( .()<- )
   (#et : Type0) (#r : erased nat) (#d : shape r)
   (#l : tlayout d) {| ctlayout l |}
   (a : tensor et l)

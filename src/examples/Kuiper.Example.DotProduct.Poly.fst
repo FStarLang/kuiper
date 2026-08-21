@@ -185,6 +185,7 @@ fn main (#et:Type0) {| scalar et |} (_:unit)
      invariant exists* (s:seq et). a2 |-> s ** pure (len s == size)
      decreases (m_size - !i)
   {
+    open Pulse.Lib.Vec; // Why is this needed?
     let v = !i;
     let va = !a;
     a1.(v) <- va;

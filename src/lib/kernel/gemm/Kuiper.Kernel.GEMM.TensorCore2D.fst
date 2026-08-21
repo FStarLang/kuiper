@@ -958,7 +958,12 @@ let fade_subtile_stable
     (requires tr <> idxI \/ tc <> idxJ)
     (ensures ematrix_subtile (em_fade_tiles tm tn wm wn idxI (idxJ+1) rm1 rm2) tm tn tr tc
           == ematrix_subtile (em_fade_tiles tm tn wm wn idxI idxJ rm1 rm2) tm tn tr tc)
-= flat_idx_neq wn idxI tr idxJ tc
+=
+  // [ematrix_subtile]'s index refinements need [(wm*tm)/tm == wm] and
+  // [(wn*tn)/tn == wn]; supply them up front, as the lemmas below do.
+  FStar.Math.Lemmas.cancel_mul_div wm tm;
+  FStar.Math.Lemmas.cancel_mul_div wn tn;
+  flat_idx_neq wn idxI tr idxJ tc
 #pop-options
 
 #push-options "--z3rlimit 80"
@@ -1017,7 +1022,10 @@ let fade_comb_subtile_stable
     (requires tr <> idxI \/ tc <> idxJ)
     (ensures ematrix_subtile (em_fade_comb_tiles comb tm tn wm wn idxI (idxJ+1) rm1 rm2) tm tn tr tc
           == ematrix_subtile (em_fade_comb_tiles comb tm tn wm wn idxI idxJ rm1 rm2) tm tn tr tc)
-= flat_idx_neq wn idxI tr idxJ tc
+=
+  FStar.Math.Lemmas.cancel_mul_div wm tm;
+  FStar.Math.Lemmas.cancel_mul_div wn tn;
+  flat_idx_neq wn idxI tr idxJ tc
 #pop-options
 
 #push-options "--z3rlimit 80"
@@ -1741,6 +1749,16 @@ fn rout_to_bq
    wall time for nothing. Setting [--fuel 1 --ifuel 1] explicitly (matching
    what [mk_kernel] below already does, and what these retries already prove
    sufficient) skips that wasted first attempt for the whole function. *)
+(* (2*k)/bk == 2*(k/bk) when bk divides k. Nonlinear, and hopeless to discharge
+   inside kf's context, so prove it standalone. (Mirrors the same lemma in
+   Kuiper.Kernel.GEMM.TensorCore2D.To.KLoop.) *)
+let lemma_double_div (k bk : pos)
+  : Lemma (requires bk /?+ k)
+          (ensures 2 * k / bk == 2 * (k / bk))
+  = Kuiper.Divides.lemma_nat_divides_pos_divides bk k;
+    assert (bk * (k / bk) == k);
+    FStar.Math.Lemmas.cancel_mul_div (2 * (k / bk)) bk
+
 #push-options "--fuel 1 --ifuel 1"
 inline_for_extraction noextract
 fn kf
@@ -1936,6 +1954,7 @@ fn kf
     B.barrier_wait ();
 
     even_2x (!bkIdx + 1);
+    lemma_double_div (SZ.v k) (SZ.v bk);
     assert pure (2 * (!bkIdx + 1) == 2 * !bkIdx + 2);
     assert pure (odd (2 * !bkIdx + 1));
     assert pure ((2 * !bkIdx + 1) < 2 * k / bk);

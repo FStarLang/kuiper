@@ -137,6 +137,8 @@ fn output_epilogue_extract_step
       gD bm bn tm tn wm wn bid wid lane rD (SZ.v done + 1));
 }
 
+(* The epilogue-state step below needs 4x the file's default rlimit. *)
+#push-options "--z3rlimit 60"
 inline_for_extraction noextract
 fn epilogue_loop_step
   (#et_ab #et_cd #et_acc : Type0)
@@ -363,3 +365,5 @@ fn epilogue_loop_step
     (chest_comb comb_r rCWarp rAcc) (SZ.v done + 1);
   idx := sz_succ !idx;
 }
+
+#pop-options

@@ -303,7 +303,7 @@ let arrayfragments_fade
     (matmul (ematrix_subtile rA tm tk i 0) (ematrix_subtile rB tk tn 0 j))
   else ematrix_subtile rAcc tm tn i j
 
-#push-options "--z3rlimit 80"
+#push-options "--z3rlimit 80 --z3refresh"
 inline_for_extraction noextract
 fn fragarray_mma
   (#et_ab #et_acc : Type0)

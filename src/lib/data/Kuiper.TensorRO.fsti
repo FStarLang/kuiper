@@ -255,7 +255,7 @@ fn tensor_read
 
 (* Syntax *)
 inline_for_extraction noextract
-unfold let op_Array_Access
+unfold let ( .() )
   (#et : Type0) (#r : erased nat) (#d : shape r)
   (#l : vtlayout d) {| cvtlayout l |}
   (a : rotensor et l)
@@ -266,7 +266,7 @@ unfold let op_Array_Access
 
 (* Syntax *)
 // inline_for_extraction noextract
-// unfold let op_Array_Assignment
+// unfold let ( .()<- )
 //   (#et : Type0) (#r : erased nat) (#d : shape r)
 //   (#l : vtlayout d) {| ctlayout l |}
 //   (a : rotensor et l)

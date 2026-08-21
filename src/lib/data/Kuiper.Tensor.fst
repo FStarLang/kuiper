@@ -385,7 +385,7 @@ let tcell (#et : Type0) (#r : nat) (#d : shape r)
   (i : abs d)
   (v : et)
   : slprop
-  = Pulse.Class.PtsTo.op_Bar_Subtraction_Greater
+  = Pulse.Class.PtsTo.op_Bar_Minus_Greater
       #_ #_ #(Pulse.Class.PtsTo.pts_to_frac _ _ (cell_pts_to #et #r #d #l))
       (Cell a i) (Frac f v)
 
@@ -394,7 +394,7 @@ let tcell (#et : Type0) (#r : nat) (#d : shape r)
    solver no longer does it on its own. *)
 let unfold_tensor_cell () : T.Tac unit =
   T.norm [delta_only [`%tensor_pts_to_cell;
-                      `%Pulse.Class.PtsTo.op_Bar_Subtraction_Greater;
+                      `%Pulse.Class.PtsTo.op_Bar_Minus_Greater;
                       `%Pulse.Class.PtsTo.pts_to;
                       `%Pulse.Class.PtsTo.pts_to_frac;
                       `%A.cell_pts_to];

@@ -221,7 +221,7 @@ fn mk_barrier_pre
         (array1_pts_to_slice_sum r tid (min (tid + pow2 it) nth) vr));
     forevery_ext
       (fun (i:natlt nth) ->
-        if_ (op_Equality #(natlt nth) i (tid - pow2 it))
+        if_ (op_Equals #(natlt nth) i (tid - pow2 it))
           (if_ (not (div_pow2 (it + 1) tid) && (div_pow2 it tid))
             (array1_pts_to_slice_sum r tid (min (tid + pow2 it) nth) vr)))
       (fun (i:natlt nth) -> barrier_matrix nth r vr it tid i);
@@ -276,11 +276,11 @@ fn iteration
   if (nextid <^ nth) {
     forevery_ext
       (fun (from: natlt nth) ->
-        if_ (op_Equality #int from (tid + pow2 it))
+        if_ (op_Equals #int from (tid + pow2 it))
           (if_ (not (div_pow2 (it + 1) from) && div_pow2 it from)
             (array1_pts_to_slice_sum r from (min (from + pow2 it) nth) vr)))
       (fun (from: natlt nth) ->
-        if_ (op_Equality #(natlt nth) from (tid + pow2 it))
+        if_ (op_Equals #(natlt nth) from (tid + pow2 it))
           (if_ (not (div_pow2 (it + 1) from) && (div_pow2 it from))
             (array1_pts_to_slice_sum r from (min (from + pow2 it) nth) vr)));
     forevery_if_elim #(natlt nth)
@@ -337,7 +337,7 @@ fn iteration
   } else {
     forevery_map
       (fun (from: natlt nth) ->
-        if_ (op_Equality #int from (tid + pow2 it))
+        if_ (op_Equals #int from (tid + pow2 it))
           (if_ (not (div_pow2 (it + 1) from) && div_pow2 it from)
             (array1_pts_to_slice_sum r from (min (from + pow2 it) nth) vr)))
       (fun from -> emp)
@@ -745,7 +745,7 @@ let kpre_block
   (tid : natlt nth)
   : slprop
   = x |-> Frac ((1.0R /. SZ.v rows) /. nth) sx **
-    if_ (op_Equality #nat tid 0) (
+    if_ (op_Equals #nat tid 0) (
       tensor_pts_to_cell output (abs_bij.gg (bid <: natlt (SZ.v rows))) (sout `acc1` bid)) **
     exists* (v : et). tensor_pts_to_cell (from_array (l1_forward nth) shmem._1) (abs_bij.gg (tid <: natlt nth)) v
 
@@ -769,7 +769,7 @@ let kpost_block
   (tid : natlt nth)
   : slprop
   = x |-> Frac ((1.0R /. SZ.v rows) /. nth) sx **
-    if_ (op_Equality #nat tid 0) (
+    if_ (op_Equals #nat tid 0) (
       live (from_array (l1_forward nth) shmem._1) **
       exists* (v : et).
         tensor_pts_to_cell output (abs_bij.gg (bid <: natlt (SZ.v rows))) (v) **
@@ -881,14 +881,14 @@ fn kf_block
   rewrite
     (if_ (div_pow2 it tid) (array1_pts_to_slice_sum sa tid (min (tid + pow2 it) nth) vr_s))
   as
-    (if_ (op_Equality #nat tid 0) (array1_pts_to_slice_sum sa 0 nth vr_s));
+    (if_ (op_Equals #nat tid 0) (array1_pts_to_slice_sum sa 0 nth vr_s));
 
   log2_hreduce (v nth) it;
   rewrite (B.barrier_state it) as (B.barrier_state (hreduce_barrier_count nth));
 
   if (tid = 0sz) {
-    if_elim_true' (op_Equality #nat tid 0) (array1_pts_to_slice_sum sa 0 nth vr_s);
-    if_elim_true' (op_Equality #nat tid 0)
+    if_elim_true' (op_Equals #nat tid 0) (array1_pts_to_slice_sum sa 0 nth vr_s);
+    if_elim_true' (op_Equals #nat tid 0)
       (tensor_pts_to_cell output (abs_bij.gg (SZ.v bid <: natlt (SZ.v rows))) (acc1 sout (SZ.v bid)));
     unfold array1_pts_to_slice_sum sa 0 nth vr_s;
     (**)strided_sum_is_sum pre_map_r (reveal vr_chest) nth;
@@ -914,7 +914,7 @@ fn kf_block
       (fun (i : Kuiper.Shape.abs (nth @| INil)) -> tensor_pts_to_cell sa i (acc (reveal css) i));
     tensor_implode sa;
     rewrite each sa as from_array (l1_forward nth) shmem._1;
-    if_intro_true' (op_Equality #nat tid 0) (
+    if_intro_true' (op_Equals #nat tid 0) (
       live (from_array (l1_forward nth) shmem._1) **
       exists* (v : et).
         tensor_pts_to_cell output (abs_bij.gg (SZ.v bid <: natlt (SZ.v rows))) (v) **
@@ -922,10 +922,10 @@ fn kf_block
     );
     fold kpost_block pre_map pre_map_r rows cols nth x output sx vr sout shmem (SZ.v bid) (SZ.v tid);
   } else {
-    if_elim_false' (op_Equality #nat tid 0) (array1_pts_to_slice_sum sa 0 nth vr_s);
-    if_elim_false' (op_Equality #nat tid 0)
+    if_elim_false' (op_Equals #nat tid 0) (array1_pts_to_slice_sum sa 0 nth vr_s);
+    if_elim_false' (op_Equals #nat tid 0)
       (tensor_pts_to_cell output (abs_bij.gg (SZ.v bid <: natlt (SZ.v rows))) (acc1 sout (SZ.v bid)));
-    if_intro_false' (op_Equality #nat tid 0) (
+    if_intro_false' (op_Equals #nat tid 0) (
       live (from_array (l1_forward nth) shmem._1) **
       exists* (v : et).
         tensor_pts_to_cell output (abs_bij.gg (SZ.v bid <: natlt (SZ.v rows))) (v) **
@@ -981,9 +981,9 @@ fn block_setup_block
   forevery_if_intro #(natlt nth) 0
     (fun _ -> tensor_pts_to_cell output (abs_bij.gg (bid <: natlt (SZ.v rows))) ((acc1 sout bid)));
   forevery_ext
-    (fun tid -> if_ (op_Equality #(natlt nth) tid 0)
+    (fun tid -> if_ (op_Equals #(natlt nth) tid 0)
        (tensor_pts_to_cell output (abs_bij.gg (bid <: natlt (SZ.v rows))) ((acc1 sout bid))))
-    (fun tid -> if_ (op_Equality #nat tid 0)
+    (fun tid -> if_ (op_Equals #nat tid 0)
        (tensor_pts_to_cell output (abs_bij.gg (bid <: natlt (SZ.v rows))) ((acc1 sout bid))));
 
   forevery_zip (fun _ -> x |-> Frac ((1.0R /. SZ.v rows) /. nth) sx) _;
@@ -995,7 +995,7 @@ fn block_setup_block
 
   forevery_zip #(natlt nth)
     (fun tid -> x |-> Frac ((1.0R /. SZ.v rows) /. nth) sx **
-                if_ (op_Equality #nat tid 0)
+                if_ (op_Equals #nat tid 0)
                   (tensor_pts_to_cell output (abs_bij.gg (bid <: natlt (SZ.v rows))) ((acc1 sout bid))))
     _;
 
@@ -1003,7 +1003,7 @@ fn block_setup_block
     #(natlt nth)
     (fun tid ->
       (x |-> Frac ((1.0R /. SZ.v rows) /. nth) sx **
-       if_ (op_Equality #nat tid 0)
+       if_ (op_Equals #nat tid 0)
          (tensor_pts_to_cell output (abs_bij.gg (bid <: natlt (SZ.v rows))) ((acc1 sout bid)))) **
       tensor_pts_to_cell (from_array (l1_forward nth) gsa) (abs_bij.gg (tid <: natlt nth))
         (acc (from_seq (l1_forward nth) vgsa) (abs_bij.gg (tid <: natlt nth)))
@@ -1051,13 +1051,13 @@ fn block_teardown_block
 
   forevery_ext #(natlt nth)
     (fun tid ->
-      if_ (op_Equality #nat tid 0) (
+      if_ (op_Equals #nat tid 0) (
         live (from_array (l1_forward nth) shmem._1) **
         exists* (v : et).
           tensor_pts_to_cell output (abs_bij.gg (bid <: natlt (SZ.v rows))) (v) **
           pure (v %~ chest1_rsum (chest_map pre_map_r (chest2_row vr bid)))))
     (fun tid ->
-      if_ (op_Equality #(natlt nth) tid 0) (
+      if_ (op_Equals #(natlt nth) tid 0) (
         live (from_array (l1_forward nth) shmem._1) **
         exists* (v : et).
           tensor_pts_to_cell output (abs_bij.gg (bid <: natlt (SZ.v rows))) (v) **

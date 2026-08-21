@@ -166,7 +166,7 @@ fn array_fragment_extract
   fn f_elim (em' : value_for et knd m n k)
     requires
       (forall+ (j : natlt (Seq.length ems)).
-        if op_Equality #(natlt (Seq.length ems)) j i then emp
+        if op_Equals #(natlt (Seq.length ems)) j i then emp
         else (s @! j) |-> (ems @! j))
     ensures
       (farr |-> Frac f s ** (s @! i) |-> em')
@@ -176,7 +176,7 @@ fn array_fragment_extract
     fn f_elim2 ()
       requires
         (forall+ (j : natlt (Seq.length ems)).
-          if op_Equality #(natlt (Seq.length ems)) j i then emp
+          if op_Equals #(natlt (Seq.length ems)) j i then emp
           else (s @! j) |-> (ems @! j)) **
         (farr |-> Frac f s ** (s @! i) |-> em')
       ensures
@@ -185,10 +185,10 @@ fn array_fragment_extract
       let ems' = Seq.upd ems i em';
       forevery_ext
         (fun (j : natlt (Seq.length ems)) ->
-          if op_Equality #(natlt (Seq.length ems)) j i then emp
+          if op_Equals #(natlt (Seq.length ems)) j i then emp
           else (s @! j) |-> (ems @! j))
         (fun (j : natlt (Seq.length ems')) ->
-          if op_Equality #(natlt (Seq.length ems)) j i then emp
+          if op_Equals #(natlt (Seq.length ems)) j i then emp
           else (s @! j) |-> (ems' @! j));
       forevery_unextract_if_eqtype #(natlt (Seq.length ems)) i
         (fun (j : natlt (Seq.length ems')) -> (s @! j) |-> (ems' @! j));

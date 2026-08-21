@@ -103,7 +103,7 @@ fn reduce1
 
   gpu_memcpy_device_to_host local_out out0 1sz;
 
-  let res = Pulse.Lib.Vec.op_Array_Access local_out 0sz;
+  let res = local_out.(0sz);
 
   assert pure (res %~ chest1_rsum (chest_map pre_map_r (chest2_row (C.c1_to_c2 vr) 0)));
   assert pure (equal (chest2_row (C.c1_to_c2 vr) 0) vr);

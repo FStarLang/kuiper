@@ -514,7 +514,7 @@ fn subproduct_cols
     exists* (acc' : lseq et tile).
       acc |-> acc'
 {
-  pts_to_len acc;
+  Pulse.Lib.Array.pts_to_len acc;
   let mut sk : sz = 0sz;
   while (!sk <^ tile)
     invariant live sk ** live acc
@@ -541,7 +541,7 @@ fn subproduct_cols
     };
     sk := !sk +^ 1sz;
   };
-  pts_to_len acc;
+  Pulse.Lib.Array.pts_to_len acc;
 }
 
 (* ═══════════════════════════════════════════════════════════════════════════
@@ -985,7 +985,7 @@ fn bkf
         (exists* (x : chest2 _ _ _). sa2 |-> Frac (1.0R /. tile) x)
     decreases (mshared - !bk)
   {
-    pts_to_len sums;
+    Pulse.Lib.Array.pts_to_len sums;
 
     assert pure (sa1 == from_array slA ar1 /\ sa2 == from_array slB ar2);
 
