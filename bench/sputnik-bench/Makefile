@@ -10,6 +10,9 @@ NVCC_FLAGS += -I $(KUIPER_DIR)/include
 NVCC_FLAGS += -I $(KUIPER_DIR)/obj
 NVCC_FLAGS += -DKUIPER_CFG_TENSORCORES=0
 
+# NVML, for the clock-stability check in the benchmark driver.
+LDFLAGS    += -lnvidia-ml
+
 .PHONY:
 clone:
 	git clone https://github.com/google-research/sputnik
@@ -44,7 +47,7 @@ spmm_bench.o: spmm_bench.cu spmm_bench_config.h .cloned
 	$(NVCC) $(NVCC_FLAGS) -I . -c $< -o $@
 
 spmm_bench: spmm_bench.o sputnik_spmm.o kuiper_spmm.o
-	$(NVCC) $(NVCC_FLAGS) -o $@ $^
+	$(NVCC) $(NVCC_FLAGS) -o $@ $^ $(LDFLAGS)
 
 .PHONY: clean
 clean:
