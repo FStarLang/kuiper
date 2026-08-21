@@ -37,9 +37,10 @@ half Klas_HReduce_reduce_f16_plus(uint32_t nth, uint32_t lena, half *a)
     half *out = out0;
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(2U * nth);
-    MUST(cudaFuncSetAttribute(__hoisted_reduce_f16_plus_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              2U * nth));
+    if (2U * nth >= 49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_reduce_f16_plus_0,
+                                  cudaFuncAttributeMaxDynamicSharedMemorySize,
+                                  2U * nth));
     KPR_KCALL(__hoisted_reduce_f16_plus_0, 1U, nth, 2U * nth, s, nth, lena, x_,
               out);
     MUST(cudaStreamSynchronize(s));
@@ -91,9 +92,10 @@ float Klas_HReduce_reduce_f32_plus(uint32_t nth, uint32_t lena, float *a)
     float *out = out0;
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(4U * nth);
-    MUST(cudaFuncSetAttribute(__hoisted_reduce_f32_plus_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              4U * nth));
+    if (4U * nth >= 49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_reduce_f32_plus_0,
+                                  cudaFuncAttributeMaxDynamicSharedMemorySize,
+                                  4U * nth));
     KPR_KCALL(__hoisted_reduce_f32_plus_0, 1U, nth, 4U * nth, s, nth, lena, x_,
               out);
     MUST(cudaStreamSynchronize(s));
@@ -145,9 +147,10 @@ double Klas_HReduce_reduce_f64_plus(uint32_t nth, uint32_t lena, double *a)
     double *out = out0;
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(8U * nth);
-    MUST(cudaFuncSetAttribute(__hoisted_reduce_f64_plus_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              8U * nth));
+    if (8U * nth >= 49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_reduce_f64_plus_0,
+                                  cudaFuncAttributeMaxDynamicSharedMemorySize,
+                                  8U * nth));
     KPR_KCALL(__hoisted_reduce_f64_plus_0, 1U, nth, 8U * nth, s, nth, lena, x_,
               out);
     MUST(cudaStreamSynchronize(s));
@@ -200,9 +203,10 @@ uint32_t Klas_HReduce_reduce_u32_plus(uint32_t nth, uint32_t lena, uint32_t *a)
     uint32_t *out = out0;
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(4U * nth);
-    MUST(cudaFuncSetAttribute(__hoisted_reduce_u32_plus_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              4U * nth));
+    if (4U * nth >= 49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_reduce_u32_plus_0,
+                                  cudaFuncAttributeMaxDynamicSharedMemorySize,
+                                  4U * nth));
     KPR_KCALL(__hoisted_reduce_u32_plus_0, 1U, nth, 4U * nth, s, nth, lena, x_,
               out);
     MUST(cudaStreamSynchronize(s));
@@ -254,9 +258,10 @@ uint64_t Klas_HReduce_reduce_u64_plus(uint32_t nth, uint32_t lena, uint64_t *a)
     uint64_t *out = out0;
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(8U * nth);
-    MUST(cudaFuncSetAttribute(__hoisted_reduce_u64_plus_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              8U * nth));
+    if (8U * nth >= 49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_reduce_u64_plus_0,
+                                  cudaFuncAttributeMaxDynamicSharedMemorySize,
+                                  8U * nth));
     KPR_KCALL(__hoisted_reduce_u64_plus_0, 1U, nth, 8U * nth, s, nth, lena, x_,
               out);
     MUST(cudaStreamSynchronize(s));

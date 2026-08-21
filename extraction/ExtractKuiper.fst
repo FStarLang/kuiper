@@ -330,6 +330,10 @@ let parse_shmem_desc (e : mlexpr) : ML (option (mlexpr & mlexpr)) =
     Format.print1 "Not a shmem_desc: %s\n" (mlexpr_to_string e);
     None
 
+(* The default limit on dynamic shared memory per block, in bytes. Raising it
+requires cudaFuncSetAttribute; at or below it, that call does nothing. *)
+let default_dynamic_shmem_limit : string = "49152" // 48KiB
+
 let extract_kcall (cb : mlexpr -> ML expr) (env : Krml.env) (kdesc : mlexpr) (stream : mlexpr) : ML (option expr) =
   let open FStarC.Class.Monad in
   let assoc' k v =
@@ -452,11 +456,28 @@ let extract_kcall (cb : mlexpr -> ML expr) (env : Krml.env) (kdesc : mlexpr) (st
       EUnit
   in
   let shmem_setup : expr =
+    (* cudaFuncSetAttribute is only needed to raise the dynamic shared memory
+    limit above the 48KiB default; at or below it the call does nothing. Guard
+    it on the size so that a kernel under the limit does not put a CUDA runtime
+    call in front of every launch.
+
+    The size is not a literal at this point -- it arrives as unfolded
+    arithmetic, e.g. EApp (EOp Add UInt32) [...] -- so we cannot decide here.
+    Emit the test and let karamel's constant_fold settle it: it reduces the
+    size, then the comparison, then drops the dead branch. For a kernel under
+    the limit nothing at all reaches the C output; for one over it, just the
+    call.
+
+    The test is >= so a kernel sitting exactly on the 48KiB default still opts
+    in; the call always succeeds at that size, so erring this way removes any
+    doubt about the boundary. *)
     if shmem_is_nonzero then
       let kk : expr = EQualified ([], "cudaFuncSetAttribute") in
       let aa : expr = EQualified ([], "cudaFuncAttributeMaxDynamicSharedMemorySize") in
-      _MUST <|
-        EApp (kk, [ cb hd; aa; smem_bytesz ])
+      let call : expr = _MUST <| EApp (kk, [ cb hd; aa; smem_bytesz ]) in
+      let limit : expr = EConstant (UInt32, default_dynamic_shmem_limit) in
+      let cond : expr = EApp (EOp (Gte, UInt32), [ smem_bytesz; limit ]) in
+      EIfThenElse (cond, call, EUnit)
     else
       EUnit
   in

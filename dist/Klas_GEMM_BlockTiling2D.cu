@@ -102,9 +102,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_f32_32x32x32_8x8(float alpha,
     KPR_GUARD(n % 32U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(8192U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_32x32x32_8x8_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              8192U));
     KPR_KCALL(__hoisted_g_gemm_f32_32x32x32_8x8_0,
               m / 32U * (n / 32U),
               16U, 8192U, s, alpha, beta, n, k, gA, gB, gC);
@@ -228,9 +225,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x32x32_8x8(__nv_bfloat16 alpha,
     KPR_GUARD(n % 32U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(4096U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_bf16_32x32x32_8x8_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              4096U));
     KPR_KCALL(__hoisted_g_gemm_bf16_32x32x32_8x8_0,
               m / 32U * (n / 32U),
               16U, 4096U, s, alpha, beta, n, k, gA, gB, gC);
@@ -341,9 +335,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_f32_32x32x32_8x16(float alpha,
     KPR_GUARD(n % 32U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(8192U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_32x32x32_8x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              8192U));
     KPR_KCALL(__hoisted_g_gemm_f32_32x32x32_8x16_0,
               m / 32U * (n / 32U), 8U, 8192U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
@@ -466,9 +457,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x32x32_8x16(__nv_bfloat16 alpha,
     KPR_GUARD(n % 32U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(4096U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_bf16_32x32x32_8x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              4096U));
     KPR_KCALL(__hoisted_g_gemm_bf16_32x32x32_8x16_0,
               m / 32U * (n / 32U), 8U, 4096U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
@@ -578,9 +566,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_f32_32x32x32_16x8(float alpha,
     KPR_GUARD(n % 32U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(8192U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_32x32x32_16x8_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              8192U));
     KPR_KCALL(__hoisted_g_gemm_f32_32x32x32_16x8_0,
               m / 32U * (n / 32U), 8U, 8192U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
@@ -703,9 +688,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x32x32_16x8(__nv_bfloat16 alpha,
     KPR_GUARD(n % 32U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(4096U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_bf16_32x32x32_16x8_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              4096U));
     KPR_KCALL(__hoisted_g_gemm_bf16_32x32x32_16x8_0,
               m / 32U * (n / 32U), 8U, 4096U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
@@ -815,9 +797,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_f32_32x32x32_16x16(float alpha,
     KPR_GUARD(n % 32U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(8192U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_32x32x32_16x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              8192U));
     KPR_KCALL(__hoisted_g_gemm_f32_32x32x32_16x16_0,
               m / 32U * (n / 32U), 4U, 8192U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
@@ -940,9 +919,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x32x32_16x16(__nv_bfloat16 alpha,
     KPR_GUARD(n % 32U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(4096U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_bf16_32x32x32_16x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              4096U));
     KPR_KCALL(__hoisted_g_gemm_bf16_32x32x32_16x16_0,
               m / 32U * (n / 32U), 4U, 4096U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
@@ -1050,9 +1026,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_f32_32x32x64_8x8(float alpha,
     KPR_GUARD(n % 32U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(16384U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_32x32x64_8x8_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              16384U));
     KPR_KCALL(__hoisted_g_gemm_f32_32x32x64_8x8_0,
               m / 32U * (n / 32U),
               16U, 16384U, s, alpha, beta, n, k, gA, gB, gC);
@@ -1176,9 +1149,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x32x64_8x8(__nv_bfloat16 alpha,
     KPR_GUARD(n % 32U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(8192U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_bf16_32x32x64_8x8_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              8192U));
     KPR_KCALL(__hoisted_g_gemm_bf16_32x32x64_8x8_0,
               m / 32U * (n / 32U),
               16U, 8192U, s, alpha, beta, n, k, gA, gB, gC);
@@ -1289,9 +1259,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_f32_32x32x64_8x16(float alpha,
     KPR_GUARD(n % 32U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(16384U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_32x32x64_8x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              16384U));
     KPR_KCALL(__hoisted_g_gemm_f32_32x32x64_8x16_0,
               m / 32U * (n / 32U),
               8U, 16384U, s, alpha, beta, n, k, gA, gB, gC);
@@ -1415,9 +1382,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x32x64_8x16(__nv_bfloat16 alpha,
     KPR_GUARD(n % 32U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(8192U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_bf16_32x32x64_8x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              8192U));
     KPR_KCALL(__hoisted_g_gemm_bf16_32x32x64_8x16_0,
               m / 32U * (n / 32U), 8U, 8192U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
@@ -1527,9 +1491,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_f32_32x32x64_16x8(float alpha,
     KPR_GUARD(n % 32U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(16384U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_32x32x64_16x8_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              16384U));
     KPR_KCALL(__hoisted_g_gemm_f32_32x32x64_16x8_0,
               m / 32U * (n / 32U),
               8U, 16384U, s, alpha, beta, n, k, gA, gB, gC);
@@ -1653,9 +1614,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x32x64_16x8(__nv_bfloat16 alpha,
     KPR_GUARD(n % 32U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(8192U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_bf16_32x32x64_16x8_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              8192U));
     KPR_KCALL(__hoisted_g_gemm_bf16_32x32x64_16x8_0,
               m / 32U * (n / 32U), 8U, 8192U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
@@ -1765,9 +1723,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_f32_32x32x64_16x16(float alpha,
     KPR_GUARD(n % 32U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(16384U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_32x32x64_16x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              16384U));
     KPR_KCALL(__hoisted_g_gemm_f32_32x32x64_16x16_0,
               m / 32U * (n / 32U),
               4U, 16384U, s, alpha, beta, n, k, gA, gB, gC);
@@ -1891,9 +1846,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x32x64_16x16(__nv_bfloat16 alpha,
     KPR_GUARD(n % 32U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(8192U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_bf16_32x32x64_16x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              8192U));
     KPR_KCALL(__hoisted_g_gemm_bf16_32x32x64_16x16_0,
               m / 32U * (n / 32U), 4U, 8192U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
@@ -2001,9 +1953,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_f32_32x64x32_8x8(float alpha,
     KPR_GUARD(n % 64U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(12288U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_32x64x32_8x8_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              12288U));
     KPR_KCALL(__hoisted_g_gemm_f32_32x64x32_8x8_0,
               m / 32U * (n / 64U),
               32U, 12288U, s, alpha, beta, n, k, gA, gB, gC);
@@ -2127,9 +2076,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x64x32_8x8(__nv_bfloat16 alpha,
     KPR_GUARD(n % 64U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(6144U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_bf16_32x64x32_8x8_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              6144U));
     KPR_KCALL(__hoisted_g_gemm_bf16_32x64x32_8x8_0,
               m / 32U * (n / 64U),
               32U, 6144U, s, alpha, beta, n, k, gA, gB, gC);
@@ -2240,9 +2186,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_f32_32x64x32_8x16(float alpha,
     KPR_GUARD(n % 64U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(12288U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_32x64x32_8x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              12288U));
     KPR_KCALL(__hoisted_g_gemm_f32_32x64x32_8x16_0,
               m / 32U * (n / 64U),
               16U, 12288U, s, alpha, beta, n, k, gA, gB, gC);
@@ -2366,9 +2309,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x64x32_8x16(__nv_bfloat16 alpha,
     KPR_GUARD(n % 64U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(6144U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_bf16_32x64x32_8x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              6144U));
     KPR_KCALL(__hoisted_g_gemm_bf16_32x64x32_8x16_0,
               m / 32U * (n / 64U),
               16U, 6144U, s, alpha, beta, n, k, gA, gB, gC);
@@ -2479,9 +2419,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_f32_32x64x32_16x8(float alpha,
     KPR_GUARD(n % 64U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(12288U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_32x64x32_16x8_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              12288U));
     KPR_KCALL(__hoisted_g_gemm_f32_32x64x32_16x8_0,
               m / 32U * (n / 64U),
               16U, 12288U, s, alpha, beta, n, k, gA, gB, gC);
@@ -2605,9 +2542,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x64x32_16x8(__nv_bfloat16 alpha,
     KPR_GUARD(n % 64U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(6144U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_bf16_32x64x32_16x8_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              6144U));
     KPR_KCALL(__hoisted_g_gemm_bf16_32x64x32_16x8_0,
               m / 32U * (n / 64U),
               16U, 6144U, s, alpha, beta, n, k, gA, gB, gC);
@@ -2718,9 +2652,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_f32_32x64x32_16x16(float alpha,
     KPR_GUARD(n % 64U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(12288U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_32x64x32_16x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              12288U));
     KPR_KCALL(__hoisted_g_gemm_f32_32x64x32_16x16_0,
               m / 32U * (n / 64U),
               8U, 12288U, s, alpha, beta, n, k, gA, gB, gC);
@@ -2844,9 +2775,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x64x32_16x16(__nv_bfloat16 alpha,
     KPR_GUARD(n % 64U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(6144U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_bf16_32x64x32_16x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              6144U));
     KPR_KCALL(__hoisted_g_gemm_bf16_32x64x32_16x16_0,
               m / 32U * (n / 64U), 8U, 6144U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
@@ -2954,9 +2882,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_f32_32x64x64_8x8(float alpha,
     KPR_GUARD(n % 64U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(24576U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_32x64x64_8x8_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              24576U));
     KPR_KCALL(__hoisted_g_gemm_f32_32x64x64_8x8_0,
               m / 32U * (n / 64U),
               32U, 24576U, s, alpha, beta, n, k, gA, gB, gC);
@@ -3080,9 +3005,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x64x64_8x8(__nv_bfloat16 alpha,
     KPR_GUARD(n % 64U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(12288U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_bf16_32x64x64_8x8_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              12288U));
     KPR_KCALL(__hoisted_g_gemm_bf16_32x64x64_8x8_0,
               m / 32U * (n / 64U),
               32U, 12288U, s, alpha, beta, n, k, gA, gB, gC);
@@ -3193,9 +3115,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_f32_32x64x64_8x16(float alpha,
     KPR_GUARD(n % 64U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(24576U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_32x64x64_8x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              24576U));
     KPR_KCALL(__hoisted_g_gemm_f32_32x64x64_8x16_0,
               m / 32U * (n / 64U),
               16U, 24576U, s, alpha, beta, n, k, gA, gB, gC);
@@ -3319,9 +3238,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x64x64_8x16(__nv_bfloat16 alpha,
     KPR_GUARD(n % 64U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(12288U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_bf16_32x64x64_8x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              12288U));
     KPR_KCALL(__hoisted_g_gemm_bf16_32x64x64_8x16_0,
               m / 32U * (n / 64U),
               16U, 12288U, s, alpha, beta, n, k, gA, gB, gC);
@@ -3432,9 +3348,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_f32_32x64x64_16x8(float alpha,
     KPR_GUARD(n % 64U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(24576U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_32x64x64_16x8_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              24576U));
     KPR_KCALL(__hoisted_g_gemm_f32_32x64x64_16x8_0,
               m / 32U * (n / 64U),
               16U, 24576U, s, alpha, beta, n, k, gA, gB, gC);
@@ -3558,9 +3471,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x64x64_16x8(__nv_bfloat16 alpha,
     KPR_GUARD(n % 64U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(12288U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_bf16_32x64x64_16x8_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              12288U));
     KPR_KCALL(__hoisted_g_gemm_bf16_32x64x64_16x8_0,
               m / 32U * (n / 64U),
               16U, 12288U, s, alpha, beta, n, k, gA, gB, gC);
@@ -3671,9 +3581,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_f32_32x64x64_16x16(float alpha,
     KPR_GUARD(n % 64U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(24576U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_32x64x64_16x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              24576U));
     KPR_KCALL(__hoisted_g_gemm_f32_32x64x64_16x16_0,
               m / 32U * (n / 64U),
               8U, 24576U, s, alpha, beta, n, k, gA, gB, gC);
@@ -3797,9 +3704,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x64x64_16x16(__nv_bfloat16 alpha,
     KPR_GUARD(n % 64U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(12288U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_bf16_32x64x64_16x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              12288U));
     KPR_KCALL(__hoisted_g_gemm_bf16_32x64x64_16x16_0,
               m / 32U * (n / 64U),
               8U, 12288U, s, alpha, beta, n, k, gA, gB, gC);
@@ -3910,9 +3814,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_f32_32x128x32_8x8(float alpha,
     KPR_GUARD(n % 128U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(20480U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_32x128x32_8x8_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              20480U));
     KPR_KCALL(__hoisted_g_gemm_f32_32x128x32_8x8_0,
               m / 32U * (n / 128U),
               64U, 20480U, s, alpha, beta, n, k, gA, gB, gC);
@@ -4036,9 +3937,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x128x32_8x8(__nv_bfloat16 alpha,
     KPR_GUARD(n % 128U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(10240U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_bf16_32x128x32_8x8_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              10240U));
     KPR_KCALL(__hoisted_g_gemm_bf16_32x128x32_8x8_0,
               m / 32U * (n / 128U),
               64U, 10240U, s, alpha, beta, n, k, gA, gB, gC);
@@ -4149,9 +4047,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_f32_32x128x32_8x16(float alpha,
     KPR_GUARD(n % 128U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(20480U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_32x128x32_8x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              20480U));
     KPR_KCALL(__hoisted_g_gemm_f32_32x128x32_8x16_0,
               m / 32U * (n / 128U),
               32U, 20480U, s, alpha, beta, n, k, gA, gB, gC);
@@ -4275,9 +4170,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x128x32_8x16(__nv_bfloat16 alpha,
     KPR_GUARD(n % 128U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(10240U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_bf16_32x128x32_8x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              10240U));
     KPR_KCALL(__hoisted_g_gemm_bf16_32x128x32_8x16_0,
               m / 32U * (n / 128U),
               32U, 10240U, s, alpha, beta, n, k, gA, gB, gC);
@@ -4388,9 +4280,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_f32_32x128x32_16x8(float alpha,
     KPR_GUARD(n % 128U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(20480U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_32x128x32_16x8_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              20480U));
     KPR_KCALL(__hoisted_g_gemm_f32_32x128x32_16x8_0,
               m / 32U * (n / 128U),
               32U, 20480U, s, alpha, beta, n, k, gA, gB, gC);
@@ -4514,9 +4403,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x128x32_16x8(__nv_bfloat16 alpha,
     KPR_GUARD(n % 128U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(10240U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_bf16_32x128x32_16x8_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              10240U));
     KPR_KCALL(__hoisted_g_gemm_bf16_32x128x32_16x8_0,
               m / 32U * (n / 128U),
               32U, 10240U, s, alpha, beta, n, k, gA, gB, gC);
@@ -4627,9 +4513,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_f32_32x128x32_16x16(float alpha,
     KPR_GUARD(n % 128U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(20480U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_32x128x32_16x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              20480U));
     KPR_KCALL(__hoisted_g_gemm_f32_32x128x32_16x16_0,
               m / 32U * (n / 128U),
               16U, 20480U, s, alpha, beta, n, k, gA, gB, gC);
@@ -4753,9 +4636,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x128x32_16x16(__nv_bfloat16 alpha,
     KPR_GUARD(n % 128U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(10240U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_bf16_32x128x32_16x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              10240U));
     KPR_KCALL(__hoisted_g_gemm_bf16_32x128x32_16x16_0,
               m / 32U * (n / 128U),
               16U, 10240U, s, alpha, beta, n, k, gA, gB, gC);
@@ -4866,9 +4746,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_f32_32x128x64_8x8(float alpha,
     KPR_GUARD(n % 128U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(40960U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_32x128x64_8x8_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              40960U));
     KPR_KCALL(__hoisted_g_gemm_f32_32x128x64_8x8_0,
               m / 32U * (n / 128U),
               64U, 40960U, s, alpha, beta, n, k, gA, gB, gC);
@@ -4992,9 +4869,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x128x64_8x8(__nv_bfloat16 alpha,
     KPR_GUARD(n % 128U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(20480U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_bf16_32x128x64_8x8_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              20480U));
     KPR_KCALL(__hoisted_g_gemm_bf16_32x128x64_8x8_0,
               m / 32U * (n / 128U),
               64U, 20480U, s, alpha, beta, n, k, gA, gB, gC);
@@ -5105,9 +4979,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_f32_32x128x64_8x16(float alpha,
     KPR_GUARD(n % 128U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(40960U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_32x128x64_8x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              40960U));
     KPR_KCALL(__hoisted_g_gemm_f32_32x128x64_8x16_0,
               m / 32U * (n / 128U),
               32U, 40960U, s, alpha, beta, n, k, gA, gB, gC);
@@ -5231,9 +5102,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x128x64_8x16(__nv_bfloat16 alpha,
     KPR_GUARD(n % 128U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(20480U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_bf16_32x128x64_8x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              20480U));
     KPR_KCALL(__hoisted_g_gemm_bf16_32x128x64_8x16_0,
               m / 32U * (n / 128U),
               32U, 20480U, s, alpha, beta, n, k, gA, gB, gC);
@@ -5344,9 +5212,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_f32_32x128x64_16x8(float alpha,
     KPR_GUARD(n % 128U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(40960U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_32x128x64_16x8_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              40960U));
     KPR_KCALL(__hoisted_g_gemm_f32_32x128x64_16x8_0,
               m / 32U * (n / 128U),
               32U, 40960U, s, alpha, beta, n, k, gA, gB, gC);
@@ -5470,9 +5335,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x128x64_16x8(__nv_bfloat16 alpha,
     KPR_GUARD(n % 128U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(20480U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_bf16_32x128x64_16x8_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              20480U));
     KPR_KCALL(__hoisted_g_gemm_bf16_32x128x64_16x8_0,
               m / 32U * (n / 128U),
               32U, 20480U, s, alpha, beta, n, k, gA, gB, gC);
@@ -5583,9 +5445,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_f32_32x128x64_16x16(float alpha,
     KPR_GUARD(n % 128U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(40960U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_32x128x64_16x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              40960U));
     KPR_KCALL(__hoisted_g_gemm_f32_32x128x64_16x16_0,
               m / 32U * (n / 128U),
               16U, 40960U, s, alpha, beta, n, k, gA, gB, gC);
@@ -5709,9 +5568,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x128x64_16x16(__nv_bfloat16 alpha,
     KPR_GUARD(n % 128U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(20480U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_bf16_32x128x64_16x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              20480U));
     KPR_KCALL(__hoisted_g_gemm_bf16_32x128x64_16x16_0,
               m / 32U * (n / 128U),
               16U, 20480U, s, alpha, beta, n, k, gA, gB, gC);
@@ -5820,9 +5676,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_f32_64x32x32_8x8(float alpha,
     KPR_GUARD(n % 32U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(12288U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_64x32x32_8x8_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              12288U));
     KPR_KCALL(__hoisted_g_gemm_f32_64x32x32_8x8_0,
               m / 64U * (n / 32U),
               32U, 12288U, s, alpha, beta, n, k, gA, gB, gC);
@@ -5946,9 +5799,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x32x32_8x8(__nv_bfloat16 alpha,
     KPR_GUARD(n % 32U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(6144U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_bf16_64x32x32_8x8_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              6144U));
     KPR_KCALL(__hoisted_g_gemm_bf16_64x32x32_8x8_0,
               m / 64U * (n / 32U),
               32U, 6144U, s, alpha, beta, n, k, gA, gB, gC);
@@ -6059,9 +5909,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_f32_64x32x32_8x16(float alpha,
     KPR_GUARD(n % 32U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(12288U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_64x32x32_8x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              12288U));
     KPR_KCALL(__hoisted_g_gemm_f32_64x32x32_8x16_0,
               m / 64U * (n / 32U),
               16U, 12288U, s, alpha, beta, n, k, gA, gB, gC);
@@ -6185,9 +6032,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x32x32_8x16(__nv_bfloat16 alpha,
     KPR_GUARD(n % 32U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(6144U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_bf16_64x32x32_8x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              6144U));
     KPR_KCALL(__hoisted_g_gemm_bf16_64x32x32_8x16_0,
               m / 64U * (n / 32U),
               16U, 6144U, s, alpha, beta, n, k, gA, gB, gC);
@@ -6298,9 +6142,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_f32_64x32x32_16x8(float alpha,
     KPR_GUARD(n % 32U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(12288U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_64x32x32_16x8_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              12288U));
     KPR_KCALL(__hoisted_g_gemm_f32_64x32x32_16x8_0,
               m / 64U * (n / 32U),
               16U, 12288U, s, alpha, beta, n, k, gA, gB, gC);
@@ -6424,9 +6265,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x32x32_16x8(__nv_bfloat16 alpha,
     KPR_GUARD(n % 32U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(6144U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_bf16_64x32x32_16x8_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              6144U));
     KPR_KCALL(__hoisted_g_gemm_bf16_64x32x32_16x8_0,
               m / 64U * (n / 32U),
               16U, 6144U, s, alpha, beta, n, k, gA, gB, gC);
@@ -6537,9 +6375,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_f32_64x32x32_16x16(float alpha,
     KPR_GUARD(n % 32U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(12288U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_64x32x32_16x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              12288U));
     KPR_KCALL(__hoisted_g_gemm_f32_64x32x32_16x16_0,
               m / 64U * (n / 32U),
               8U, 12288U, s, alpha, beta, n, k, gA, gB, gC);
@@ -6663,9 +6498,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x32x32_16x16(__nv_bfloat16 alpha,
     KPR_GUARD(n % 32U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(6144U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_bf16_64x32x32_16x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              6144U));
     KPR_KCALL(__hoisted_g_gemm_bf16_64x32x32_16x16_0,
               m / 64U * (n / 32U), 8U, 6144U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
@@ -6773,9 +6605,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_f32_64x32x64_8x8(float alpha,
     KPR_GUARD(n % 32U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(24576U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_64x32x64_8x8_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              24576U));
     KPR_KCALL(__hoisted_g_gemm_f32_64x32x64_8x8_0,
               m / 64U * (n / 32U),
               32U, 24576U, s, alpha, beta, n, k, gA, gB, gC);
@@ -6899,9 +6728,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x32x64_8x8(__nv_bfloat16 alpha,
     KPR_GUARD(n % 32U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(12288U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_bf16_64x32x64_8x8_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              12288U));
     KPR_KCALL(__hoisted_g_gemm_bf16_64x32x64_8x8_0,
               m / 64U * (n / 32U),
               32U, 12288U, s, alpha, beta, n, k, gA, gB, gC);
@@ -7012,9 +6838,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_f32_64x32x64_8x16(float alpha,
     KPR_GUARD(n % 32U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(24576U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_64x32x64_8x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              24576U));
     KPR_KCALL(__hoisted_g_gemm_f32_64x32x64_8x16_0,
               m / 64U * (n / 32U),
               16U, 24576U, s, alpha, beta, n, k, gA, gB, gC);
@@ -7138,9 +6961,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x32x64_8x16(__nv_bfloat16 alpha,
     KPR_GUARD(n % 32U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(12288U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_bf16_64x32x64_8x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              12288U));
     KPR_KCALL(__hoisted_g_gemm_bf16_64x32x64_8x16_0,
               m / 64U * (n / 32U),
               16U, 12288U, s, alpha, beta, n, k, gA, gB, gC);
@@ -7251,9 +7071,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_f32_64x32x64_16x8(float alpha,
     KPR_GUARD(n % 32U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(24576U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_64x32x64_16x8_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              24576U));
     KPR_KCALL(__hoisted_g_gemm_f32_64x32x64_16x8_0,
               m / 64U * (n / 32U),
               16U, 24576U, s, alpha, beta, n, k, gA, gB, gC);
@@ -7377,9 +7194,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x32x64_16x8(__nv_bfloat16 alpha,
     KPR_GUARD(n % 32U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(12288U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_bf16_64x32x64_16x8_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              12288U));
     KPR_KCALL(__hoisted_g_gemm_bf16_64x32x64_16x8_0,
               m / 64U * (n / 32U),
               16U, 12288U, s, alpha, beta, n, k, gA, gB, gC);
@@ -7490,9 +7304,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_f32_64x32x64_16x16(float alpha,
     KPR_GUARD(n % 32U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(24576U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_64x32x64_16x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              24576U));
     KPR_KCALL(__hoisted_g_gemm_f32_64x32x64_16x16_0,
               m / 64U * (n / 32U),
               8U, 24576U, s, alpha, beta, n, k, gA, gB, gC);
@@ -7616,9 +7427,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x32x64_16x16(__nv_bfloat16 alpha,
     KPR_GUARD(n % 32U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(12288U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_bf16_64x32x64_16x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              12288U));
     KPR_KCALL(__hoisted_g_gemm_bf16_64x32x64_16x16_0,
               m / 64U * (n / 32U),
               8U, 12288U, s, alpha, beta, n, k, gA, gB, gC);
@@ -7727,9 +7535,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_f32_64x64x32_8x8(float alpha,
     KPR_GUARD(n % 64U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(16384U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_64x64x32_8x8_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              16384U));
     KPR_KCALL(__hoisted_g_gemm_f32_64x64x32_8x8_0,
               m / 64U * (n / 64U),
               64U, 16384U, s, alpha, beta, n, k, gA, gB, gC);
@@ -7853,9 +7658,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x64x32_8x8(__nv_bfloat16 alpha,
     KPR_GUARD(n % 64U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(8192U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_bf16_64x64x32_8x8_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              8192U));
     KPR_KCALL(__hoisted_g_gemm_bf16_64x64x32_8x8_0,
               m / 64U * (n / 64U),
               64U, 8192U, s, alpha, beta, n, k, gA, gB, gC);
@@ -7966,9 +7768,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_f32_64x64x32_8x16(float alpha,
     KPR_GUARD(n % 64U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(16384U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_64x64x32_8x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              16384U));
     KPR_KCALL(__hoisted_g_gemm_f32_64x64x32_8x16_0,
               m / 64U * (n / 64U),
               32U, 16384U, s, alpha, beta, n, k, gA, gB, gC);
@@ -8092,9 +7891,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x64x32_8x16(__nv_bfloat16 alpha,
     KPR_GUARD(n % 64U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(8192U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_bf16_64x64x32_8x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              8192U));
     KPR_KCALL(__hoisted_g_gemm_bf16_64x64x32_8x16_0,
               m / 64U * (n / 64U),
               32U, 8192U, s, alpha, beta, n, k, gA, gB, gC);
@@ -8205,9 +8001,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_f32_64x64x32_16x8(float alpha,
     KPR_GUARD(n % 64U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(16384U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_64x64x32_16x8_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              16384U));
     KPR_KCALL(__hoisted_g_gemm_f32_64x64x32_16x8_0,
               m / 64U * (n / 64U),
               32U, 16384U, s, alpha, beta, n, k, gA, gB, gC);
@@ -8331,9 +8124,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x64x32_16x8(__nv_bfloat16 alpha,
     KPR_GUARD(n % 64U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(8192U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_bf16_64x64x32_16x8_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              8192U));
     KPR_KCALL(__hoisted_g_gemm_bf16_64x64x32_16x8_0,
               m / 64U * (n / 64U),
               32U, 8192U, s, alpha, beta, n, k, gA, gB, gC);
@@ -8444,9 +8234,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_f32_64x64x32_16x16(float alpha,
     KPR_GUARD(n % 64U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(16384U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_64x64x32_16x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              16384U));
     KPR_KCALL(__hoisted_g_gemm_f32_64x64x32_16x16_0,
               m / 64U * (n / 64U),
               16U, 16384U, s, alpha, beta, n, k, gA, gB, gC);
@@ -8570,9 +8357,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x64x32_16x16(__nv_bfloat16 alpha,
     KPR_GUARD(n % 64U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(8192U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_bf16_64x64x32_16x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              8192U));
     KPR_KCALL(__hoisted_g_gemm_bf16_64x64x32_16x16_0,
               m / 64U * (n / 64U),
               16U, 8192U, s, alpha, beta, n, k, gA, gB, gC);
@@ -8681,9 +8465,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_f32_64x64x64_8x8(float alpha,
     KPR_GUARD(n % 64U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(32768U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_64x64x64_8x8_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              32768U));
     KPR_KCALL(__hoisted_g_gemm_f32_64x64x64_8x8_0,
               m / 64U * (n / 64U),
               64U, 32768U, s, alpha, beta, n, k, gA, gB, gC);
@@ -8807,9 +8588,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x64x64_8x8(__nv_bfloat16 alpha,
     KPR_GUARD(n % 64U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(16384U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_bf16_64x64x64_8x8_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              16384U));
     KPR_KCALL(__hoisted_g_gemm_bf16_64x64x64_8x8_0,
               m / 64U * (n / 64U),
               64U, 16384U, s, alpha, beta, n, k, gA, gB, gC);
@@ -8920,9 +8698,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_f32_64x64x64_8x16(float alpha,
     KPR_GUARD(n % 64U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(32768U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_64x64x64_8x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              32768U));
     KPR_KCALL(__hoisted_g_gemm_f32_64x64x64_8x16_0,
               m / 64U * (n / 64U),
               32U, 32768U, s, alpha, beta, n, k, gA, gB, gC);
@@ -9046,9 +8821,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x64x64_8x16(__nv_bfloat16 alpha,
     KPR_GUARD(n % 64U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(16384U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_bf16_64x64x64_8x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              16384U));
     KPR_KCALL(__hoisted_g_gemm_bf16_64x64x64_8x16_0,
               m / 64U * (n / 64U),
               32U, 16384U, s, alpha, beta, n, k, gA, gB, gC);
@@ -9159,9 +8931,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_f32_64x64x64_16x8(float alpha,
     KPR_GUARD(n % 64U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(32768U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_64x64x64_16x8_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              32768U));
     KPR_KCALL(__hoisted_g_gemm_f32_64x64x64_16x8_0,
               m / 64U * (n / 64U),
               32U, 32768U, s, alpha, beta, n, k, gA, gB, gC);
@@ -9285,9 +9054,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x64x64_16x8(__nv_bfloat16 alpha,
     KPR_GUARD(n % 64U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(16384U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_bf16_64x64x64_16x8_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              16384U));
     KPR_KCALL(__hoisted_g_gemm_bf16_64x64x64_16x8_0,
               m / 64U * (n / 64U),
               32U, 16384U, s, alpha, beta, n, k, gA, gB, gC);
@@ -9398,9 +9164,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_f32_64x64x64_16x16(float alpha,
     KPR_GUARD(n % 64U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(32768U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_64x64x64_16x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              32768U));
     KPR_KCALL(__hoisted_g_gemm_f32_64x64x64_16x16_0,
               m / 64U * (n / 64U),
               16U, 32768U, s, alpha, beta, n, k, gA, gB, gC);
@@ -9524,9 +9287,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x64x64_16x16(__nv_bfloat16 alpha,
     KPR_GUARD(n % 64U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(16384U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_bf16_64x64x64_16x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              16384U));
     KPR_KCALL(__hoisted_g_gemm_bf16_64x64x64_16x16_0,
               m / 64U * (n / 64U),
               16U, 16384U, s, alpha, beta, n, k, gA, gB, gC);
@@ -9637,9 +9397,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_f32_64x128x32_8x8(float alpha,
     KPR_GUARD(n % 128U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(24576U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_64x128x32_8x8_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              24576U));
     KPR_KCALL(__hoisted_g_gemm_f32_64x128x32_8x8_0,
               m / 64U * (n / 128U),
               128U, 24576U, s, alpha, beta, n, k, gA, gB, gC);
@@ -9763,9 +9520,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x128x32_8x8(__nv_bfloat16 alpha,
     KPR_GUARD(n % 128U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(12288U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_bf16_64x128x32_8x8_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              12288U));
     KPR_KCALL(__hoisted_g_gemm_bf16_64x128x32_8x8_0,
               m / 64U * (n / 128U),
               128U, 12288U, s, alpha, beta, n, k, gA, gB, gC);
@@ -9876,9 +9630,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_f32_64x128x32_8x16(float alpha,
     KPR_GUARD(n % 128U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(24576U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_64x128x32_8x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              24576U));
     KPR_KCALL(__hoisted_g_gemm_f32_64x128x32_8x16_0,
               m / 64U * (n / 128U),
               64U, 24576U, s, alpha, beta, n, k, gA, gB, gC);
@@ -10002,9 +9753,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x128x32_8x16(__nv_bfloat16 alpha,
     KPR_GUARD(n % 128U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(12288U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_bf16_64x128x32_8x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              12288U));
     KPR_KCALL(__hoisted_g_gemm_bf16_64x128x32_8x16_0,
               m / 64U * (n / 128U),
               64U, 12288U, s, alpha, beta, n, k, gA, gB, gC);
@@ -10115,9 +9863,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_f32_64x128x32_16x8(float alpha,
     KPR_GUARD(n % 128U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(24576U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_64x128x32_16x8_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              24576U));
     KPR_KCALL(__hoisted_g_gemm_f32_64x128x32_16x8_0,
               m / 64U * (n / 128U),
               64U, 24576U, s, alpha, beta, n, k, gA, gB, gC);
@@ -10241,9 +9986,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x128x32_16x8(__nv_bfloat16 alpha,
     KPR_GUARD(n % 128U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(12288U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_bf16_64x128x32_16x8_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              12288U));
     KPR_KCALL(__hoisted_g_gemm_bf16_64x128x32_16x8_0,
               m / 64U * (n / 128U),
               64U, 12288U, s, alpha, beta, n, k, gA, gB, gC);
@@ -10354,9 +10096,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_f32_64x128x32_16x16(float alpha,
     KPR_GUARD(n % 128U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(24576U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_64x128x32_16x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              24576U));
     KPR_KCALL(__hoisted_g_gemm_f32_64x128x32_16x16_0,
               m / 64U * (n / 128U),
               32U, 24576U, s, alpha, beta, n, k, gA, gB, gC);
@@ -10480,9 +10219,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x128x32_16x16(__nv_bfloat16 alpha,
     KPR_GUARD(n % 128U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(12288U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_bf16_64x128x32_16x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              12288U));
     KPR_KCALL(__hoisted_g_gemm_bf16_64x128x32_16x16_0,
               m / 64U * (n / 128U),
               32U, 12288U, s, alpha, beta, n, k, gA, gB, gC);
@@ -10719,9 +10455,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x128x64_8x8(__nv_bfloat16 alpha,
     KPR_GUARD(n % 128U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(24576U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_bf16_64x128x64_8x8_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              24576U));
     KPR_KCALL(__hoisted_g_gemm_bf16_64x128x64_8x8_0,
               m / 64U * (n / 128U),
               128U, 24576U, s, alpha, beta, n, k, gA, gB, gC);
@@ -10958,9 +10691,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x128x64_8x16(__nv_bfloat16 alpha,
     KPR_GUARD(n % 128U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(24576U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_bf16_64x128x64_8x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              24576U));
     KPR_KCALL(__hoisted_g_gemm_bf16_64x128x64_8x16_0,
               m / 64U * (n / 128U),
               64U, 24576U, s, alpha, beta, n, k, gA, gB, gC);
@@ -11197,9 +10927,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x128x64_16x8(__nv_bfloat16 alpha,
     KPR_GUARD(n % 128U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(24576U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_bf16_64x128x64_16x8_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              24576U));
     KPR_KCALL(__hoisted_g_gemm_bf16_64x128x64_16x8_0,
               m / 64U * (n / 128U),
               64U, 24576U, s, alpha, beta, n, k, gA, gB, gC);
@@ -11436,9 +11163,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x128x64_16x16(__nv_bfloat16 alpha,
     KPR_GUARD(n % 128U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(24576U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_bf16_64x128x64_16x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              24576U));
     KPR_KCALL(__hoisted_g_gemm_bf16_64x128x64_16x16_0,
               m / 64U * (n / 128U),
               32U, 24576U, s, alpha, beta, n, k, gA, gB, gC);
@@ -11549,9 +11273,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_f32_128x32x32_8x8(float alpha,
     KPR_GUARD(n % 32U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(20480U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_128x32x32_8x8_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              20480U));
     KPR_KCALL(__hoisted_g_gemm_f32_128x32x32_8x8_0,
               m / 128U * (n / 32U),
               64U, 20480U, s, alpha, beta, n, k, gA, gB, gC);
@@ -11675,9 +11396,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x32x32_8x8(__nv_bfloat16 alpha,
     KPR_GUARD(n % 32U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(10240U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_bf16_128x32x32_8x8_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              10240U));
     KPR_KCALL(__hoisted_g_gemm_bf16_128x32x32_8x8_0,
               m / 128U * (n / 32U),
               64U, 10240U, s, alpha, beta, n, k, gA, gB, gC);
@@ -11788,9 +11506,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_f32_128x32x32_8x16(float alpha,
     KPR_GUARD(n % 32U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(20480U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_128x32x32_8x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              20480U));
     KPR_KCALL(__hoisted_g_gemm_f32_128x32x32_8x16_0,
               m / 128U * (n / 32U),
               32U, 20480U, s, alpha, beta, n, k, gA, gB, gC);
@@ -11914,9 +11629,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x32x32_8x16(__nv_bfloat16 alpha,
     KPR_GUARD(n % 32U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(10240U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_bf16_128x32x32_8x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              10240U));
     KPR_KCALL(__hoisted_g_gemm_bf16_128x32x32_8x16_0,
               m / 128U * (n / 32U),
               32U, 10240U, s, alpha, beta, n, k, gA, gB, gC);
@@ -12027,9 +11739,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_f32_128x32x32_16x8(float alpha,
     KPR_GUARD(n % 32U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(20480U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_128x32x32_16x8_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              20480U));
     KPR_KCALL(__hoisted_g_gemm_f32_128x32x32_16x8_0,
               m / 128U * (n / 32U),
               32U, 20480U, s, alpha, beta, n, k, gA, gB, gC);
@@ -12153,9 +11862,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x32x32_16x8(__nv_bfloat16 alpha,
     KPR_GUARD(n % 32U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(10240U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_bf16_128x32x32_16x8_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              10240U));
     KPR_KCALL(__hoisted_g_gemm_bf16_128x32x32_16x8_0,
               m / 128U * (n / 32U),
               32U, 10240U, s, alpha, beta, n, k, gA, gB, gC);
@@ -12266,9 +11972,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_f32_128x32x32_16x16(float alpha,
     KPR_GUARD(n % 32U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(20480U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_128x32x32_16x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              20480U));
     KPR_KCALL(__hoisted_g_gemm_f32_128x32x32_16x16_0,
               m / 128U * (n / 32U),
               16U, 20480U, s, alpha, beta, n, k, gA, gB, gC);
@@ -12392,9 +12095,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x32x32_16x16(__nv_bfloat16 alpha,
     KPR_GUARD(n % 32U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(10240U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_bf16_128x32x32_16x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              10240U));
     KPR_KCALL(__hoisted_g_gemm_bf16_128x32x32_16x16_0,
               m / 128U * (n / 32U),
               16U, 10240U, s, alpha, beta, n, k, gA, gB, gC);
@@ -12505,9 +12205,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_f32_128x32x64_8x8(float alpha,
     KPR_GUARD(n % 32U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(40960U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_128x32x64_8x8_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              40960U));
     KPR_KCALL(__hoisted_g_gemm_f32_128x32x64_8x8_0,
               m / 128U * (n / 32U),
               64U, 40960U, s, alpha, beta, n, k, gA, gB, gC);
@@ -12631,9 +12328,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x32x64_8x8(__nv_bfloat16 alpha,
     KPR_GUARD(n % 32U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(20480U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_bf16_128x32x64_8x8_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              20480U));
     KPR_KCALL(__hoisted_g_gemm_bf16_128x32x64_8x8_0,
               m / 128U * (n / 32U),
               64U, 20480U, s, alpha, beta, n, k, gA, gB, gC);
@@ -12744,9 +12438,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_f32_128x32x64_8x16(float alpha,
     KPR_GUARD(n % 32U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(40960U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_128x32x64_8x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              40960U));
     KPR_KCALL(__hoisted_g_gemm_f32_128x32x64_8x16_0,
               m / 128U * (n / 32U),
               32U, 40960U, s, alpha, beta, n, k, gA, gB, gC);
@@ -12870,9 +12561,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x32x64_8x16(__nv_bfloat16 alpha,
     KPR_GUARD(n % 32U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(20480U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_bf16_128x32x64_8x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              20480U));
     KPR_KCALL(__hoisted_g_gemm_bf16_128x32x64_8x16_0,
               m / 128U * (n / 32U),
               32U, 20480U, s, alpha, beta, n, k, gA, gB, gC);
@@ -12983,9 +12671,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_f32_128x32x64_16x8(float alpha,
     KPR_GUARD(n % 32U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(40960U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_128x32x64_16x8_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              40960U));
     KPR_KCALL(__hoisted_g_gemm_f32_128x32x64_16x8_0,
               m / 128U * (n / 32U),
               32U, 40960U, s, alpha, beta, n, k, gA, gB, gC);
@@ -13109,9 +12794,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x32x64_16x8(__nv_bfloat16 alpha,
     KPR_GUARD(n % 32U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(20480U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_bf16_128x32x64_16x8_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              20480U));
     KPR_KCALL(__hoisted_g_gemm_bf16_128x32x64_16x8_0,
               m / 128U * (n / 32U),
               32U, 20480U, s, alpha, beta, n, k, gA, gB, gC);
@@ -13222,9 +12904,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_f32_128x32x64_16x16(float alpha,
     KPR_GUARD(n % 32U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(40960U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_128x32x64_16x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              40960U));
     KPR_KCALL(__hoisted_g_gemm_f32_128x32x64_16x16_0,
               m / 128U * (n / 32U),
               16U, 40960U, s, alpha, beta, n, k, gA, gB, gC);
@@ -13348,9 +13027,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x32x64_16x16(__nv_bfloat16 alpha,
     KPR_GUARD(n % 32U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(20480U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_bf16_128x32x64_16x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              20480U));
     KPR_KCALL(__hoisted_g_gemm_bf16_128x32x64_16x16_0,
               m / 128U * (n / 32U),
               16U, 20480U, s, alpha, beta, n, k, gA, gB, gC);
@@ -13461,9 +13137,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_f32_128x64x32_8x8(float alpha,
     KPR_GUARD(n % 64U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(24576U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_128x64x32_8x8_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              24576U));
     KPR_KCALL(__hoisted_g_gemm_f32_128x64x32_8x8_0,
               m / 128U * (n / 64U),
               128U, 24576U, s, alpha, beta, n, k, gA, gB, gC);
@@ -13587,9 +13260,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x64x32_8x8(__nv_bfloat16 alpha,
     KPR_GUARD(n % 64U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(12288U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_bf16_128x64x32_8x8_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              12288U));
     KPR_KCALL(__hoisted_g_gemm_bf16_128x64x32_8x8_0,
               m / 128U * (n / 64U),
               128U, 12288U, s, alpha, beta, n, k, gA, gB, gC);
@@ -13700,9 +13370,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_f32_128x64x32_8x16(float alpha,
     KPR_GUARD(n % 64U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(24576U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_128x64x32_8x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              24576U));
     KPR_KCALL(__hoisted_g_gemm_f32_128x64x32_8x16_0,
               m / 128U * (n / 64U),
               64U, 24576U, s, alpha, beta, n, k, gA, gB, gC);
@@ -13826,9 +13493,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x64x32_8x16(__nv_bfloat16 alpha,
     KPR_GUARD(n % 64U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(12288U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_bf16_128x64x32_8x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              12288U));
     KPR_KCALL(__hoisted_g_gemm_bf16_128x64x32_8x16_0,
               m / 128U * (n / 64U),
               64U, 12288U, s, alpha, beta, n, k, gA, gB, gC);
@@ -13939,9 +13603,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_f32_128x64x32_16x8(float alpha,
     KPR_GUARD(n % 64U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(24576U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_128x64x32_16x8_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              24576U));
     KPR_KCALL(__hoisted_g_gemm_f32_128x64x32_16x8_0,
               m / 128U * (n / 64U),
               64U, 24576U, s, alpha, beta, n, k, gA, gB, gC);
@@ -14065,9 +13726,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x64x32_16x8(__nv_bfloat16 alpha,
     KPR_GUARD(n % 64U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(12288U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_bf16_128x64x32_16x8_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              12288U));
     KPR_KCALL(__hoisted_g_gemm_bf16_128x64x32_16x8_0,
               m / 128U * (n / 64U),
               64U, 12288U, s, alpha, beta, n, k, gA, gB, gC);
@@ -14178,9 +13836,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_f32_128x64x32_16x16(float alpha,
     KPR_GUARD(n % 64U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(24576U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_128x64x32_16x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              24576U));
     KPR_KCALL(__hoisted_g_gemm_f32_128x64x32_16x16_0,
               m / 128U * (n / 64U),
               32U, 24576U, s, alpha, beta, n, k, gA, gB, gC);
@@ -14304,9 +13959,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x64x32_16x16(__nv_bfloat16 alpha,
     KPR_GUARD(n % 64U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(12288U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_bf16_128x64x32_16x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              12288U));
     KPR_KCALL(__hoisted_g_gemm_bf16_128x64x32_16x16_0,
               m / 128U * (n / 64U),
               32U, 12288U, s, alpha, beta, n, k, gA, gB, gC);
@@ -14543,9 +14195,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x64x64_8x8(__nv_bfloat16 alpha,
     KPR_GUARD(n % 64U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(24576U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_bf16_128x64x64_8x8_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              24576U));
     KPR_KCALL(__hoisted_g_gemm_bf16_128x64x64_8x8_0,
               m / 128U * (n / 64U),
               128U, 24576U, s, alpha, beta, n, k, gA, gB, gC);
@@ -14782,9 +14431,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x64x64_8x16(__nv_bfloat16 alpha,
     KPR_GUARD(n % 64U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(24576U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_bf16_128x64x64_8x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              24576U));
     KPR_KCALL(__hoisted_g_gemm_bf16_128x64x64_8x16_0,
               m / 128U * (n / 64U),
               64U, 24576U, s, alpha, beta, n, k, gA, gB, gC);
@@ -15021,9 +14667,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x64x64_16x8(__nv_bfloat16 alpha,
     KPR_GUARD(n % 64U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(24576U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_bf16_128x64x64_16x8_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              24576U));
     KPR_KCALL(__hoisted_g_gemm_bf16_128x64x64_16x8_0,
               m / 128U * (n / 64U),
               64U, 24576U, s, alpha, beta, n, k, gA, gB, gC);
@@ -15260,9 +14903,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x64x64_16x16(__nv_bfloat16 alpha,
     KPR_GUARD(n % 64U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(24576U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_bf16_128x64x64_16x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              24576U));
     KPR_KCALL(__hoisted_g_gemm_bf16_128x64x64_16x16_0,
               m / 128U * (n / 64U),
               32U, 24576U, s, alpha, beta, n, k, gA, gB, gC);
@@ -15373,9 +15013,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_f32_128x128x32_8x8(float alpha,
     KPR_GUARD(n % 128U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(32768U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_128x128x32_8x8_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              32768U));
     KPR_KCALL(__hoisted_g_gemm_f32_128x128x32_8x8_0,
               m / 128U * (n / 128U),
               256U, 32768U, s, alpha, beta, n, k, gA, gB, gC);
@@ -15499,9 +15136,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x128x32_8x8(__nv_bfloat16 alpha,
     KPR_GUARD(n % 128U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(16384U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_bf16_128x128x32_8x8_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              16384U));
     KPR_KCALL(__hoisted_g_gemm_bf16_128x128x32_8x8_0,
               m / 128U * (n / 128U),
               256U, 16384U, s, alpha, beta, n, k, gA, gB, gC);
@@ -15612,9 +15246,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_f32_128x128x32_8x16(float alpha,
     KPR_GUARD(n % 128U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(32768U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_128x128x32_8x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              32768U));
     KPR_KCALL(__hoisted_g_gemm_f32_128x128x32_8x16_0,
               m / 128U * (n / 128U),
               128U, 32768U, s, alpha, beta, n, k, gA, gB, gC);
@@ -15738,9 +15369,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x128x32_8x16(__nv_bfloat16 alpha,
     KPR_GUARD(n % 128U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(16384U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_bf16_128x128x32_8x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              16384U));
     KPR_KCALL(__hoisted_g_gemm_bf16_128x128x32_8x16_0,
               m / 128U * (n / 128U),
               128U, 16384U, s, alpha, beta, n, k, gA, gB, gC);
@@ -15851,9 +15479,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_f32_128x128x32_16x8(float alpha,
     KPR_GUARD(n % 128U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(32768U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_128x128x32_16x8_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              32768U));
     KPR_KCALL(__hoisted_g_gemm_f32_128x128x32_16x8_0,
               m / 128U * (n / 128U),
               128U, 32768U, s, alpha, beta, n, k, gA, gB, gC);
@@ -15977,9 +15602,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x128x32_16x8(__nv_bfloat16 alpha,
     KPR_GUARD(n % 128U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(16384U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_bf16_128x128x32_16x8_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              16384U));
     KPR_KCALL(__hoisted_g_gemm_bf16_128x128x32_16x8_0,
               m / 128U * (n / 128U),
               128U, 16384U, s, alpha, beta, n, k, gA, gB, gC);
@@ -16090,9 +15712,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_f32_128x128x32_16x16(float alpha,
     KPR_GUARD(n % 128U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(32768U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_128x128x32_16x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              32768U));
     KPR_KCALL(__hoisted_g_gemm_f32_128x128x32_16x16_0,
               m / 128U * (n / 128U),
               64U, 32768U, s, alpha, beta, n, k, gA, gB, gC);
@@ -16216,9 +15835,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x128x32_16x16(__nv_bfloat16 alpha,
     KPR_GUARD(n % 128U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(16384U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_bf16_128x128x32_16x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              16384U));
     KPR_KCALL(__hoisted_g_gemm_bf16_128x128x32_16x16_0,
               m / 128U * (n / 128U),
               64U, 16384U, s, alpha, beta, n, k, gA, gB, gC);
@@ -16455,9 +16071,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x128x64_8x8(__nv_bfloat16 alpha,
     KPR_GUARD(n % 128U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(32768U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_bf16_128x128x64_8x8_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              32768U));
     KPR_KCALL(__hoisted_g_gemm_bf16_128x128x64_8x8_0,
               m / 128U * (n / 128U),
               256U, 32768U, s, alpha, beta, n, k, gA, gB, gC);
@@ -16694,9 +16307,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x128x64_8x16(__nv_bfloat16 alpha,
     KPR_GUARD(n % 128U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(32768U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_bf16_128x128x64_8x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              32768U));
     KPR_KCALL(__hoisted_g_gemm_bf16_128x128x64_8x16_0,
               m / 128U * (n / 128U),
               128U, 32768U, s, alpha, beta, n, k, gA, gB, gC);
@@ -16933,9 +16543,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x128x64_16x8(__nv_bfloat16 alpha,
     KPR_GUARD(n % 128U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(32768U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_bf16_128x128x64_16x8_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              32768U));
     KPR_KCALL(__hoisted_g_gemm_bf16_128x128x64_16x8_0,
               m / 128U * (n / 128U),
               128U, 32768U, s, alpha, beta, n, k, gA, gB, gC);
@@ -17172,9 +16779,6 @@ Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x128x64_16x16(__nv_bfloat16 alpha,
     KPR_GUARD(n % 128U == 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(32768U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_bf16_128x128x64_16x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              32768U));
     KPR_KCALL(__hoisted_g_gemm_bf16_128x128x64_16x16_0,
               m / 128U * (n / 128U),
               64U, 32768U, s, alpha, beta, n, k, gA, gB, gC);
