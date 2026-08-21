@@ -81,6 +81,19 @@ struct CSR {
 };
 
 /*
+ * Uniform random float in [0, 1).
+ *
+ * Deliberately NOT small integers: with integer operands every partial sum is
+ * exactly representable in fp32, so any accumulation order gives bit-identical
+ * results and the EXACT check below would be vacuous. Random mantissas make
+ * bit-exactness actually mean the two kernels accumulated in the same order.
+ */
+static float rand_unit(void)
+{
+    return (float)rand() / ((float)RAND_MAX + 1.0f);
+}
+
+/*
  * Build CSR from per-row density percentages.
  * Helper used by both uniform and non-uniform generators.
  */
@@ -103,8 +116,7 @@ static void gen_sparse_from_row_densities(int rows, int cols,
         int d = row_density_pct[i];
         for (int j = 0; j < cols; j++) {
             if (rand() % 100 < d) {
-                float v = 1.0f + (float)(rand() % 99);
-                csr.values.push_back(v);
+                csr.values.push_back(rand_unit());
                 csr.col_ind.push_back((uint32_t)j);
                 csr.col_ind_i.push_back(j);
             }
@@ -359,7 +371,7 @@ static void run_bench_csr(CSR &csr, int cols, const char *label,
     /* Dense B matrix (random float) */
     std::vector<float> B(shared * cols);
     for (int i = 0; i < shared * cols; i++)
-        B[i] = 1.0f + (float)(rand() % 99);
+        B[i] = rand_unit();
 
     /* Upload Kuiper data (float values, uint32_t indices) */
     Kuiper_Sparse_Matrix_smatrix__float dA_k;
@@ -414,8 +426,8 @@ static void run_bench_csr(CSR &csr, int cols, const char *label,
             float denom = fmaxf(fabsf(vk), fabsf(vs));
             float rel = (denom > 0) ? diff / denom : diff;
             if (rel > max_reldiff) max_reldiff = rel;
-            /* tolerance: fp32 accumulation order differs, allow small error */
-            if (rel > 1e-4f && diff > 1e-2f) {
+            /* tolerance: fp32 accumulation order may differ between kernels */
+            if (rel > 1e-4f && diff > 1e-5f) {
                 if (mismatches == 0)
                     fprintf(stderr,
                         "  MISMATCH at (%d,%d): kuiper=%.6f sputnik=%.6f "
@@ -426,8 +438,11 @@ static void run_bench_csr(CSR &csr, int cols, const char *label,
     }
 
     /*
-     * EXACT means every output word is bit-identical, i.e. the two kernels
-     * accumulated in the same order. OK means they agree within tolerance.
+     * EXACT means every output word is bit-identical. With random-mantissa
+     * operands fp32 addition is not associative, so this genuinely implies the
+     * two kernels accumulated in the same order -- which is what we want when
+     * Kuiper is meant to reproduce Sputnik's kernel exactly. OK means they
+     * agree only within tolerance, i.e. same result, different order.
      */
     char check[64];
     if (mismatches != 0)
@@ -553,7 +568,7 @@ static void run_swizzle_test(int rows, int shared, int cols,
     /* Dense B */
     std::vector<float> B(shared * cols);
     for (int i = 0; i < shared * cols; i++)
-        B[i] = 1.0f + (float)(rand() % 99);
+        B[i] = rand_unit();
 
     /* Upload shared data */
     Kuiper_Sparse_Matrix_smatrix__float dA_k;
