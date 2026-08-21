@@ -196,12 +196,22 @@ let kpost
 let divup_factor (n : nat) (d : pos) =
   (i : natlt (divup n d) & (j : natlt d {i * d + j < n }))
 
+let div_mod_of_mul_add (d : pos) (i : nat) (j : natlt d)
+  : Lemma ((i * d + j) / d == i /\ (i * d + j) % d == j)
+  = FStar.Math.Lemmas.lemma_div_plus j i d;
+    FStar.Math.Lemmas.small_div j d;
+    FStar.Math.Lemmas.lemma_mod_plus j i d;
+    FStar.Math.Lemmas.small_mod j d
+
 let bij_divup_factor (n : nat) (d : pos)
 : Kuiper.Bijection.bijection (natlt n) (divup_factor n d)
 =
 {
   ff = (fun (i : natlt n) -> (|i / d, i % d|) <: divup_factor n d);
   gg = (fun (|j, k|) -> j * d + k);
+  ff_gg = (fun (|j, k|) -> div_mod_of_mul_add d j k);
+  gg_ff = (fun i -> FStar.Math.Lemmas.lemma_div_mod i d;
+                    FStar.Math.Lemmas.swap_mul d (i / d));
 }
 
 ghost
