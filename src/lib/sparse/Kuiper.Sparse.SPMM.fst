@@ -2109,6 +2109,89 @@ let kdesc
 }
 
 inline_for_extraction noextract
+fn spmm_on
+  (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
+  (rows shared cols : szp { chunk et /? cols })
+  (blockItemsK : szp)
+  (blockItemsX : szp)
+  (blockWidth : (k : szp {
+    (k * chunk et) /? blockItemsK /\
+    (k * chunk sz) /? blockItemsK /\
+    (k * chunk et) /? blockItemsX
+  }))
+  (blockChunks : sz{SZ.v blockChunks == blockItemsX / blockWidth}) // Ver nota abajo
+  (dtsize : sz { SZ.v dtsize = blockItemsK * (blockItemsX / blockWidth) })
+  (#lB : layout2 shared cols) {| ctlayout lB, srmB : strided_row_major lB |}
+  (#lC : layout2 rows cols)   {| ctlayout lC, srmC : strided_row_major lC |}
+  (gA : smatrix et (SZ.v rows) (SZ.v shared){is_global_smatrix gA})
+  (#_ : squash (aligned 16 gA.elems /\ aligned 16 gA.col_ind))
+  (#fA : perm)
+  (row_indices : larray sz rows)
+  (fri : perm)
+  (gB : array2 et lB{is_global gB})
+  (#_ : squash (aligned 16 (core gB)))
+  (#_ : squash (aligned_strided_row_major (chunk et) srmB))
+  (#fB : perm)
+  (gC : array2 et lC{is_global gC})
+  (#_ : squash (aligned 16 (core gC)))
+  (#_ : squash (aligned_strided_row_major (chunk et) srmC))
+  // matriz sparse gA
+  (elems : erased (lseq et gA.nnz))
+  (col_ind : erased (lseq sz gA.nnz))
+  (row_off : erased (lseq sz (rows + 1)))
+  (#eA : chest2 et rows shared)
+  // permutacion de filas
+  (row_perm : permutation (natlt rows))
+  // matrices densas
+  (#eB : chest2 et shared cols)
+  (#eC : chest2 et rows cols)
+  //(#_ : size_req rows shared cols)
+  (s : stream_t)
+  (#e : epoch_t)
+  norewrite
+  preserves cpu ** stream_live s ** epoch_live s e
+  requires
+    pure (blockItemsX /? cols) **
+    on gpu_loc (smatrix_pts_to' gA #fA elems col_ind row_off eA) **
+    on gpu_loc (row_indices |-> Frac fri (ordering row_perm)) **
+    on gpu_loc (gB |-> Frac fB eB) **
+    on gpu_loc (live gC) **
+    pure (rows * (cols `divup` blockItemsX) <= max_blocks) **
+    pure (blockWidth <= max_threads)
+  ensures
+    pledge0 (epoch_done s e) (on gpu_loc (
+      smatrix_pts_to' gA #fA elems col_ind row_off eA **
+      row_indices |-> Frac fri (ordering row_perm) **
+      gB |-> Frac fB eB **
+      gC |-> MS.matmul eA eB
+    ))
+{
+  dguard (rows <^ 10000sz);
+  dguard (shared <^ 10000sz);
+  dguard (cols <^ 10000sz);
+  dguard (blockItemsK <^ 10000sz);
+  dguard (blockItemsX <^ 10000sz);
+  // ^ FIXME: propagate preconditions instead of dynamically aborting
+  assert pure (rows * (cols `divup` blockItemsX) <= max_blocks);
+  assert pure (size_req #et ({ rows; shared; cols; blockItemsK; blockItemsX; blockWidth }));
+  assert pure ((chunk et * blockWidth) /? blockItemsK);
+  assert pure ((chunk sz * blockWidth) /? blockItemsK);
+  
+  assume pure (chunk et /? blockChunks);
+  lemma_aligned_strided_row_major_l2_row_major
+    #(SZ.v blockItemsK) #(SZ.v blockChunks) (chunk et);
+
+  launch (
+    kdesc #et #_
+      ({ rows; shared; cols; blockItemsK; blockItemsX; blockWidth })
+      row_perm blockChunks #lB #_ #_ #lC dtsize (l2_row_major _ _) #(c_l2_row_major (SZ.v blockItemsK) blockChunks) #(strided_row_major_l2_row_major #(SZ.v blockItemsK) #(SZ.v blockChunks))
+      gA row_indices gB gC elems col_ind row_off eA
+      #eB #fA #fri #fB
+  ) s;
+}
+
+(* Same structure as Kuiper.Kernel.launch_kernel_full_sync, one level up. *)
+inline_for_extraction noextract
 fn spmm
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
   (rows shared cols : szp { chunk et /? cols })
@@ -2160,26 +2243,24 @@ fn spmm
     pure (blockWidth <= max_threads)
   ensures on gpu_loc (gC |-> MS.matmul eA eB)
 {
-  dguard (rows <^ 10000sz);
-  dguard (shared <^ 10000sz);
-  dguard (cols <^ 10000sz);
-  dguard (blockItemsK <^ 10000sz);
-  dguard (blockItemsX <^ 10000sz);
-  // ^ FIXME: propagate preconditions instead of dynamically aborting
-  assert pure (rows * (cols `divup` blockItemsX) <= max_blocks);
-  assert pure (size_req #et ({ rows; shared; cols; blockItemsK; blockItemsX; blockWidth }));
-  assert pure ((chunk et * blockWidth) /? blockItemsK);
-  assert pure ((chunk sz * blockWidth) /? blockItemsK);
-  
-  assume pure (chunk et /? blockChunks);
-  lemma_aligned_strided_row_major_l2_row_major
-    #(SZ.v blockItemsK) #(SZ.v blockChunks) (chunk et);
-
-  launch_sync (
-    kdesc #et #_
-      ({ rows; shared; cols; blockItemsK; blockItemsX; blockWidth })
-      row_perm blockChunks #lB #_ #_ #lC dtsize (l2_row_major _ _) #(c_l2_row_major (SZ.v blockItemsK) blockChunks) #(strided_row_major_l2_row_major #(SZ.v blockItemsK) #(SZ.v blockChunks))
-      gA row_indices gB gC elems col_ind row_off eA
-      #eB #fA #fri #fB
-  );
+  let s = fresh_stream ();
+  get_epoch s ();
+  spmm_on
+    rows shared cols
+    blockItemsK blockItemsX blockWidth
+    blockChunks dtsize
+    gA row_indices fri gB gC
+    elems col_ind row_off
+    #eA row_perm #eB #eC
+    s;
+  sync_stream s;
+  redeem_pledge emp_inames (epoch_done s _) (on gpu_loc (
+      smatrix_pts_to' gA #fA elems col_ind row_off eA **
+      row_indices |-> Frac fri (ordering row_perm) **
+      gB |-> Frac fB eB **
+      gC |-> MS.matmul eA eB
+  ));
+  drop_ (epoch_done s _);
+  drop_ (epoch_live s _);
+  destroy_stream s;
 }

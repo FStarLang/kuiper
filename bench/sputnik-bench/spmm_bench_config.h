@@ -79,6 +79,17 @@
 #define KLAS_SPMM_FN_(K, X, W) Klas_SPMM_g_spmm_f32_##K##x##X##x##W
 #define KLAS_SPMM_FN(K, X, W)  KLAS_SPMM_FN_(K, X, W)
 
+/*
+ * The stream-parametric variant of the same instance. It launches and returns
+ * without synchronizing, so the benchmark can issue every iteration into one
+ * stream and wait once -- the same thing Sputnik's CudaSpmmEx does. The
+ * synchronous entry point above instead creates a stream, launches,
+ * synchronizes and destroys the stream on every single call, which is a large
+ * fixed cost next to a kernel that can run in a few microseconds.
+ */
+#define KLAS_SPMM_FN_ON_(K, X, W) Klas_SPMM_g_spmm_f32_##K##x##X##x##W##_on
+#define KLAS_SPMM_FN_ON(K, X, W)  KLAS_SPMM_FN_ON_(K, X, W)
+
 /* The matching Sputnik configuration. */
 #define BENCH_SPUTNIK_CONFIG                                              \
     sputnik::SpmmConfig<float,  /* ScalarValue                          */ \

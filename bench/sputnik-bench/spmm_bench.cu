@@ -38,6 +38,12 @@
  */
 #define Klas_f KLAS_SPMM_FN(CFG_BLOCK_ITEMS_K, CFG_BLOCK_ITEMS_X, CFG_BLOCK_WIDTH)
 
+/*
+ * Asynchronous variant, taking a stream. Used for the timing loop so that
+ * Kuiper and Sputnik are measured under the same launch model.
+ */
+#define Klas_f_on KLAS_SPMM_FN_ON(CFG_BLOCK_ITEMS_K, CFG_BLOCK_ITEMS_X, CFG_BLOCK_WIDTH)
+
 /* Sputnik: the matching config, instantiated in sputnik_spmm_ex.cu. */
 typedef BENCH_SPUTNIK_CONFIG BenchConfig;
 
@@ -246,26 +252,37 @@ static float bench_kuiper(int rows, int shared, int cols,
                           float *dB, float *dC,
                           int warmup, int iters)
 {
+    /*
+     * Structurally identical to bench_sputnik below: one stream for the whole
+     * measurement, asynchronous launches, a single synchronize at the end.
+     * Using the synchronous entry point here would instead charge Kuiper a
+     * cudaStreamCreate/Synchronize/Destroy per iteration, which is not what
+     * Sputnik is being asked to do.
+     */
+    cudaStream_t stream;
+    CHECK_CUDA(cudaStreamCreate(&stream));
+
     for (int i = 0; i < warmup; i++) {
-        Klas_f(rows, shared, cols, dA, d_row_indices, dB, dC);
-        CHECK_CUDA(cudaDeviceSynchronize());
+        Klas_f_on(rows, shared, cols, dA, d_row_indices, dB, dC, stream);
+        CHECK_CUDA(cudaStreamSynchronize(stream));
     }
 
     cudaEvent_t start, stop;
     CHECK_CUDA(cudaEventCreate(&start));
     CHECK_CUDA(cudaEventCreate(&stop));
 
-    CHECK_CUDA(cudaEventRecord(start));
+    CHECK_CUDA(cudaEventRecord(start, stream));
     for (int i = 0; i < iters; i++) {
-        Klas_f(rows, shared, cols, dA, d_row_indices, dB, dC);
+        Klas_f_on(rows, shared, cols, dA, d_row_indices, dB, dC, stream);
     }
-    CHECK_CUDA(cudaEventRecord(stop));
+    CHECK_CUDA(cudaEventRecord(stop, stream));
     CHECK_CUDA(cudaEventSynchronize(stop));
 
     float ms = 0;
     CHECK_CUDA(cudaEventElapsedTime(&ms, start, stop));
     CHECK_CUDA(cudaEventDestroy(start));
     CHECK_CUDA(cudaEventDestroy(stop));
+    CHECK_CUDA(cudaStreamDestroy(stream));
     return ms / iters;
 }
 
