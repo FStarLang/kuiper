@@ -713,6 +713,17 @@ let bkpost
   live_c_shmems sh #(1.0R /. (tile * tile))
 
 (* ─── batched thread function (page-batched barrier GEMM) ──────────────────── *)
+(* [bk * tile <= mshared * tile] whenever [bk <= mshared]. [bkf]'s k-loop needs
+   this at three places, one of them the loop invariant itself -- which Pulse
+   typechecks with the counter universally quantified, so the bound cannot come
+   from a lemma call in the loop body. Nonlinear, hence stated with a pattern;
+   the two-term pattern keeps it from firing on unrelated products. *)
+let lemma_tile_scale_le (tile bk mshared : nat)
+  : Lemma (requires bk <= mshared)
+          (ensures bk * tile <= mshared * tile)
+          [SMTPat (bk * tile); SMTPat (mshared * tile)]
+  = FStar.Math.Lemmas.lemma_mult_le_right tile bk mshared
+
 #push-options "--z3rlimit 40 --fuel 1 --ifuel 1 --z3refresh"
 inline_for_extraction noextract
 fn bkf
@@ -1034,6 +1045,10 @@ fn bkf
   rewrite each ar2 as fst (snd sh);
 
   fold (bkpost1 mapA mapB comb mapA_r mapB_r comb_r tile gA gB gC eA eB eC rA rB rC fA fB bid tid);
+
+  (* [bid / batch < mrows * mcols]: nonlinear, so use the triggered helper
+     rather than leaving it to the ambient query. *)
+  div_lt_bound (SZ.v bid) (SZ.v batch) (SZ.v mrows * SZ.v mcols);
 
   (* Fold live_c_shmem for each shmem array *)
   rewrite (exists* v. pts_to (fst sh) #(1.0R /. (tile * tile)) v)

@@ -389,6 +389,7 @@ fn gather_warp
             eFrag lane **
           pure (eFrag %~ ematrix_subtile rWarp tm tn mi nj))
     fn lane {
+      div_mod_of_mul_add warp_size wid lane;
       assert pure ((wid * warp_size + lane) / warp_size == wid);
       assert pure ((wid * warp_size + lane) % warp_size == lane);
       unfold output_lane_approximates gD bm bn tm tn wm wn bid

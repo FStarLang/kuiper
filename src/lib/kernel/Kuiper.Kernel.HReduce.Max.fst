@@ -464,7 +464,7 @@ fn mk_barrier_pre
         (array1_pts_to_slice_max r tid (min (tid + pow2 it) nth) vr));
     forevery_ext
       (fun (i:natlt nth) ->
-        if_ (op_Equality #(natlt nth) i (tid - pow2 it))
+        if_ (op_Equals #(natlt nth) i (tid - pow2 it))
           (if_ (not (div_pow2 (it + 1) tid) && (div_pow2 it tid))
             (array1_pts_to_slice_max r tid (min (tid + pow2 it) nth) vr)))
       (fun (i:natlt nth) -> barrier_matrix nth r vr it tid i);
@@ -498,7 +498,7 @@ let kpre
   (tid : natlt nth)
   : slprop
   = a |-> Frac (1 /. nth) va **
-    if_ (op_Equality #nat tid 0) (live out) **
+    if_ (op_Equals #nat tid 0) (live out) **
     exists* (v : et).
       tensor_pts_to_cell (from_array (l1_forward nth) shmem._1) (tid, ()) v
 
@@ -522,7 +522,7 @@ let kpost
   (tid : natlt nth)
   : slprop
   = a |-> Frac (1 /. nth) va **
-    if_ (op_Equality #nat tid 0) (
+    if_ (op_Equals #nat tid 0) (
       live (from_array (l1_forward nth) shmem._1) **
       exists* (v : et). out |-> v ** pure (v %~ seq_max (chest1_to_seq (chest_map pre_map_r vr)))
     )
@@ -572,11 +572,11 @@ fn iteration
   if (nextid <^ nth) {
     forevery_ext
       (fun (from: natlt nth) ->
-        if_ (op_Equality #int from (tid + pow2 it))
+        if_ (op_Equals #int from (tid + pow2 it))
           (if_ (not (div_pow2 (it + 1) from) && div_pow2 it from)
             (array1_pts_to_slice_max r from (min (from + pow2 it) nth) vr)))
       (fun (from: natlt nth) ->
-        if_ (op_Equality #(natlt nth) from (tid + pow2 it))
+        if_ (op_Equals #(natlt nth) from (tid + pow2 it))
           (if_ (not (div_pow2 (it + 1) from) && (div_pow2 it from))
             (array1_pts_to_slice_max r from (min (from + pow2 it) nth) vr)));
     forevery_if_elim #(natlt nth)
@@ -643,7 +643,7 @@ fn iteration
   } else {
     forevery_map
       (fun (from: natlt nth) ->
-        if_ (op_Equality #int from (tid + pow2 it))
+        if_ (op_Equals #int from (tid + pow2 it))
           (if_ (not (div_pow2 (it + 1) from) && div_pow2 it from)
             (array1_pts_to_slice_max r from (min (from + pow2 it) nth) vr)))
       (fun from -> emp)
@@ -937,15 +937,15 @@ fn kf
   rewrite
     (if_ (div_pow2 it tid) (array1_pts_to_slice_max sa tid (min (tid + pow2 it) nth) vr_s))
   as
-    (if_ (op_Equality #nat tid 0) (array1_pts_to_slice_max sa 0 nth vr_s));
+    (if_ (op_Equals #nat tid 0) (array1_pts_to_slice_max sa 0 nth vr_s));
 
   log2_hreduce (v nth) it;
   rewrite (B.barrier_state it) as (B.barrier_state (hreduce_barrier_count nth));
 
   (* Thread zero owns the result at the end, and writes it out. *)
   if (tid = 0sz) {
-    if_elim_true' (op_Equality #nat tid 0) (array1_pts_to_slice_max sa 0 nth vr_s);
-    if_elim_true' (op_Equality #nat tid 0) (live out);
+    if_elim_true' (op_Equals #nat tid 0) (array1_pts_to_slice_max sa 0 nth vr_s);
+    if_elim_true' (op_Equals #nat tid 0) (live out);
     unfold array1_pts_to_slice_max sa 0 nth vr_s;
     (**)strided_max_is_max pre_map_r (chest1_to_seq vr) nth;
     (**)chest_map_to_seq_map pre_map_r vr;
@@ -964,15 +964,15 @@ fn kf
       (fun (i : abs (nth @| INil)) -> tensor_pts_to_cell sa i (acc (reveal css) i));
     tensor_implode sa #1.0R #(reveal css);
     rewrite each sa as from_array (l1_forward nth) shmem._1;
-    if_intro_true' (op_Equality #nat tid 0) (
+    if_intro_true' (op_Equals #nat tid 0) (
       live (from_array (l1_forward nth) shmem._1) **
       exists* (v : et). out |-> v ** pure (v %~ seq_max (chest1_to_seq (chest_map pre_map_r vr)))
     )
   } else {
     (* Nop, convince Pulse. *)
-    if_elim_false' (op_Equality #nat tid 0) (array1_pts_to_slice_max sa 0 nth vr_s);
-    if_elim_false' (op_Equality #nat tid 0) (live out);
-    if_intro_false' (op_Equality #nat tid 0) (
+    if_elim_false' (op_Equals #nat tid 0) (array1_pts_to_slice_max sa 0 nth vr_s);
+    if_elim_false' (op_Equals #nat tid 0) (live out);
+    if_intro_false' (op_Equals #nat tid 0) (
       live (from_array (l1_forward nth) shmem._1) **
       exists* (v : et). out |-> v ** pure (v %~ seq_max (chest1_to_seq (chest_map pre_map_r vr)))
     );
@@ -1019,8 +1019,8 @@ fn block_setup
   forevery_if_intro #(natlt nth) 0 (fun _ -> live out);
   (* Sad.*)
   forevery_ext
-    (fun tid -> if_ (op_Equality #(natlt nth) tid 0) (live out))
-    (fun tid -> if_ (op_Equality #nat tid 0) (live out));
+    (fun tid -> if_ (op_Equals #(natlt nth) tid 0) (live out))
+    (fun tid -> if_ (op_Equals #nat tid 0) (live out));
 
   forevery_zip (fun _ -> a |-> Frac (1 /. nth) va) _;
 
@@ -1030,14 +1030,14 @@ fn block_setup
   forevery_iso abs_bij _;
 
   forevery_zip #(natlt nth)
-    (fun tid -> a |-> Frac (1 /. nth) va ** if_ (op_Equality #nat tid 0) (live out))
+    (fun tid -> a |-> Frac (1 /. nth) va ** if_ (op_Equals #nat tid 0) (live out))
     _;
 
   forevery_map
     #(natlt nth)
     (fun tid ->
       (a |-> Frac (1 /. nth) va **
-       if_ (op_Equality #nat tid 0) (live out)) **
+       if_ (op_Equals #nat tid 0) (live out)) **
       Cell (from_array (l1_forward nth) gsa) (abs_bij.gg (tid <: natlt nth))
         |-> (acc (from_seq (l1_forward nth) vgsa) (abs_bij.gg (tid <: natlt nth)))
     )
@@ -1081,11 +1081,11 @@ fn block_teardown
   (* Sad.*)
   forevery_ext #(natlt nth)
     (fun tid ->
-      if_ (op_Equality #nat tid 0) (
+      if_ (op_Equals #nat tid 0) (
         live (from_array (l1_forward nth) shmem._1) **
         exists* (v : et). out |-> v ** pure (v %~ seq_max (chest1_to_seq (chest_map pre_map_r vr)))))
     (fun tid ->
-      if_ (op_Equality #(natlt nth) tid 0) (
+      if_ (op_Equals #(natlt nth) tid 0) (
         live (from_array (l1_forward nth) shmem._1) **
         exists* (v : et). out |-> v ** pure (v %~ seq_max (chest1_to_seq (chest_map pre_map_r vr)))));
 

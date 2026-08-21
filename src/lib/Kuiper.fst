@@ -4,7 +4,8 @@ include FStar.FunctionalExtensionality { (^->>), (^->) }
 
 include Pulse
 include Pulse.Lib.GhostReference { ref as gref, pts_to as gref_pts_to }
-include Pulse.Lib.Vec { vec, op_Array_Assignment, op_Array_Access }
+include Pulse.Lib.Vec
+include Pulse.Lib.Array
 
 include FStar.Seq { seq, lseq, cons, empty }
 

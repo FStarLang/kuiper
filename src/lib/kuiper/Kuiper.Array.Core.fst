@@ -444,7 +444,7 @@ fn rec gpu_memcpy_host_to_device'  //this is a CUDA primitive, so this definitio
       as on gpu_loc (dst_garr |-> (seq_blit gv dst_off v src_off cnt));
     ()
   } else {
-    let x = Pulse.Lib.Vec.op_Array_Access src_arr src_off;
+    let x = src_arr.(src_off);
     impersonate // model only
       unit
       gpu_loc
@@ -452,7 +452,7 @@ fn rec gpu_memcpy_host_to_device'  //this is a CUDA primitive, so this definitio
       (fun _ -> on gpu_loc (dst_garr |-> Seq.upd gv dst_off x))
       fn _ {
         on_elim _;
-        Pulse.Lib.Array.op_Array_Assignment dst_garr dst_off x;
+        dst_garr.(dst_off) <- x;
         on_intro (dst_garr |-> Seq.upd gv dst_off x);
         ()
       };
@@ -524,7 +524,7 @@ fn rec gpu_memcpy_device_to_host'  //this is a CUDA primitive, so this definitio
     cpu **
     on gpu_loc (src_garr |-> Frac f (v<:seq _))
   requires
-    (dst_arr |-> gv)
+    dst_arr |-> gv
   ensures
     exists* s'. dst_arr |-> s' **
     pure (s'==seq_blit gv dst_off v src_off cnt /\ Seq.length s' == reveal dst_sz)
@@ -543,11 +543,11 @@ fn rec gpu_memcpy_device_to_host'  //this is a CUDA primitive, so this definitio
       (fun res -> on gpu_loc (src_garr |-> Frac f (v<:seq _)) ** pure (res == Seq.index v src_off))
       fn _ {
         on_elim _;
-        let res = Pulse.Lib.Array.op_Array_Access src_garr src_off;
+        let res = src_garr.(src_off);
         on_intro (src_garr |-> Frac f (v<:seq _));
         res
       };
-    Pulse.Lib.Vec.op_Array_Assignment dst_arr dst_off x;
+    Pulse.Lib.Vec.(dst_arr.(dst_off) <- x);
     Pulse.Lib.Vec.pts_to_len dst_arr;
     gpu_memcpy_device_to_host' #a #_ #dst_sz dst_arr (dst_off +^ 1sz) src_garr (src_off +^ 1sz) (cnt -^ 1sz);
     with s' . assert (dst_arr |-> s');
@@ -733,7 +733,6 @@ fn array_slice_1
   }
 }
 
-#set-options ""
 ghost
 fn rec forall_cell_to_slice
   (#a:Type u#0)

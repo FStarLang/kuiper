@@ -1589,7 +1589,7 @@ fn store_out
   {| ctlayout lC |}
   (gC : array2 et lC)
   (out : larray et (p.blockItemsX /^ p.blockWidth))
-  (#v_out : erased (seq et){length out == len v_out})
+  (#v_out : erased (seq et){Pulse.Lib.Array.length out == len v_out})
   (bid : szlt (nblocks p))
   (tid : szlt p.blockWidth)
   (m_idx : szlt p.rows{SZ.v m_idx == (brow p bid |~> row_perm)})

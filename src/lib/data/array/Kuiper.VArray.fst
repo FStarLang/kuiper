@@ -93,7 +93,7 @@ let vcell (#et : Type) (#st : Type) (#vw : aview et st)
   (i : vw.iview.ait)
   (v : et)
   : slprop
-  = Pulse.Class.PtsTo.op_Bar_Subtraction_Greater
+  = Pulse.Class.PtsTo.op_Bar_Minus_Greater
       #_ #_ #(Pulse.Class.PtsTo.pts_to_frac _ _ (cell_pts_to #et #st #vw))
       (Cell a i) (Frac f v)
 
@@ -102,7 +102,7 @@ let vcell (#et : Type) (#st : Type) (#vw : aview et st)
    the solver no longer does it on its own. *)
 let unfold_varray_cell () : T.Tac unit =
   T.norm [delta_only [`%varray_pts_to_cell;
-                      `%Pulse.Class.PtsTo.op_Bar_Subtraction_Greater;
+                      `%Pulse.Class.PtsTo.op_Bar_Minus_Greater;
                       `%Pulse.Class.PtsTo.pts_to;
                       `%Pulse.Class.PtsTo.pts_to_frac;
                       `%IArray.cell_pts_to];

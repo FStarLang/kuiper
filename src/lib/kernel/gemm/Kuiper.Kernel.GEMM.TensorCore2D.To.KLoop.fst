@@ -151,7 +151,16 @@ fn rout_to_bq
   rewrite each (from_array l2 sar2) as sa2;
 }
 
-#push-options "--z3rlimit 30"
+(* (2*k)/bk == 2*(k/bk) when bk divides k. Nonlinear, and hopeless to
+   discharge inside k_loop_step's context, so prove it standalone. *)
+let lemma_double_div (k bk : pos)
+  : Lemma (requires bk /?+ k)
+          (ensures 2 * k / bk == 2 * (k / bk))
+  = Kuiper.Divides.lemma_nat_divides_pos_divides bk k;
+    assert (bk * (k / bk) == k);
+    FStar.Math.Lemmas.cancel_mul_div (2 * (k / bk)) bk
+
+#push-options "--z3rlimit 60"
 inline_for_extraction noextract
 fn k_loop_step
   (#et_ab #et_acc : Type0)
@@ -305,6 +314,7 @@ fn k_loop_step
   even_2x (v + 1);
   assert pure (2 * (v + 1) == 2 * v + 2);
   assert pure (odd (2 * v + 1));
+  lemma_double_div (SZ.v k) (SZ.v bk);
   assert pure ((2 * v + 1) < 2 * k / bk);
   assert pure (even (2 * v + 2));
   rout_to_bq eA eB (rm bm bk) (rm bk bn) (core sA) (core sB) sA sB nthr bid (2 * v + 1) tid;

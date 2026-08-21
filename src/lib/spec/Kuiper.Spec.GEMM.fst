@@ -470,6 +470,17 @@ let __matmul_single_subtile_lemma
   __matmul_single_subtile_lemma' pf2 pf3 trows tcols tshared m1 m2 i j i' j' to tshared
 #pop-options
 
+(* (to-1)*tshared is a nat and is bounded by shared. Both are nonlinear, and
+   __matmul_tiles_lemma's else branch already sits near its rlimit, so prove
+   them here in a minimal context instead of asserting them inline. *)
+let tile_offset_bound
+  (#shared : pos)
+  (tshared : pos{tshared /? shared})
+  (to : natle (shared / tshared){to > 0})
+  : Lemma ((to - 1) * tshared >= 0 /\ (to - 1) * tshared <= shared)
+  = FStar.Math.Lemmas.lemma_mult_le_right tshared 0 (to - 1);
+    FStar.Math.Lemmas.lemma_mult_le_right tshared (to - 1) (shared / tshared)
+
 #push-options "--z3rlimit 40"
 let rec __matmul_tiles_lemma
   (#et : Type) {| scalar et |}
@@ -512,6 +523,7 @@ let rec __matmul_tiles_lemma
         `add` zero;
       }
     ) else (
+      tile_offset_bound #shared tshared to;
       calc (==) {
         acc2 (__gmatmul_single acc matmul matplus
               (ematrix_tiled m1 trows tshared)
