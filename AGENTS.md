@@ -20,6 +20,16 @@ inherit it):
 eval $(opam env)
 ```
 
+**Always build in parallel.** Every make target here is parallel-safe, and
+verification is the bulk of the wall-clock time, so a serial run wastes most
+of the machine. Pass `-j` to *every* invocation, including `dist`, `test` and
+`extract-all` -- not just the default target:
+
+```bash
+make -skj32          # or -j$(nproc)
+make -skj32 dist
+```
+
 ```bash
 # First-time setup: build F* and Karamel
 make prepare
