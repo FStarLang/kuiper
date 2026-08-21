@@ -152,6 +152,100 @@ ensures
 (* ----------------------------------------------------------------------- *)
 (* The kernel: map over the output, reading from the two inputs. *)
 
+ghost
+fn cat_kd_pre
+  (#et : Type0) (#r : nat)
+  (dA dB : shape r) (#dout : shape r)
+  (#lA : tlayout dA) (#lB : tlayout dB) (#lOut : tlayout dout)
+  {| ctlayout lA, ctlayout lB |}
+  (gA : tensor et lA {is_global gA})
+  (gB : tensor et lB {is_global gB})
+  (gOut : tensor et lOut)
+  (eA : chest dA et)
+  (eB : chest dB et)
+  (#eOut : chest dout et)
+  (#fA #fB : perm)
+  ()
+  norewrite
+  requires
+    (gA |-> Frac fA eA) ** (gB |-> Frac fB eB) ** (gOut |-> eOut)
+  ensures
+    cat_frame dA dB #lA #lB gA gB eA eB fA fB 1.0R ** (gOut |-> eOut)
+{
+  ()
+}
+
+ghost
+fn cat_kd_post
+  (#et : Type0) (#r : nat)
+  (dA dB : shape r) (#dout : shape r)
+  (dim : natlt r)
+  (#lA : tlayout dA) (#lB : tlayout dB) (#lOut : tlayout dout)
+  {| ctlayout lA, ctlayout lB |}
+  (gA : tensor et lA {is_global gA})
+  (gB : tensor et lB {is_global gB})
+  (gOut : tensor et lOut)
+  (eA : chest dA et)
+  (eB : chest dB et)
+  (na : nat { na == dA @! dim })
+  (pf_sz : squash ((dout @! dim) == (dA @! dim) + (dB @! dim)))
+  (pfA : squash (modulo_i dim dA == modulo_i dim dout))
+  (pfB : squash (modulo_i dim dB == modulo_i dim dout))
+  (#eOut : chest dout et)
+  (#fA #fB : perm)
+  ()
+  norewrite
+  requires
+    cat_frame dA dB #lA #lB gA gB eA eB fA fB 1.0R **
+    (exists* eOut'. (gOut |-> eOut') **
+       pure (chest_foralli
+              (fun i x -> vcat dim dA dB dout eA eB na pf_sz pfA pfB i (acc eOut i) x)
+              eOut'))
+  ensures
+    (gA |-> Frac fA eA) ** (gB |-> Frac fB eB) **
+    (gOut |-> cat_chest dim dA dB dout eA eB na pf_sz pfA pfB)
+{
+  with eOut'. assert (gOut |-> eOut');
+  assert pure (Kuiper.Chest.equal eOut'
+                 (cat_chest dim dA dB dout eA eB na pf_sz pfA pfB));
+  ()
+}
+
+inline_for_extraction noextract
+let cat_kd
+  (#et : Type0) (#r : nat)
+  (dA dB dout : shape r)
+  (cdA : cshape dA) (cdB : cshape dB) (cdout : cshape dout)
+  (dim : natlt r) (dimsz : szlt r { SZ.v dimsz == dim })
+  (na : sz { SZ.v na == dA @! dim })
+  (pf_sz : squash ((dout @! dim) == (dA @! dim) + (dB @! dim)))
+  (pfA : squash (modulo_i dim dA == modulo_i dim dout))
+  (pfB : squash (modulo_i dim dB == modulo_i dim dout))
+  (#lA : tlayout dA) (#lB : tlayout dB) (#lOut : tlayout dout)
+  {| ctlayout lA, ctlayout lB, ctlayout lOut |}
+  (gA : tensor et lA {is_global gA})
+  (gB : tensor et lB {is_global gB})
+  (gOut : tensor et lOut {is_global gOut})
+  (n : sz {SZ.v n == sizeof dout /\ n <= max_blocks * max_threads /\ n > 0})
+  (eA : chest dA et)
+  (eB : chest dB et)
+  (#eOut : chest dout et)
+  (#fA #fB : perm)
+  : kernel_desc
+      ((gA |-> Frac fA eA) ** (gB |-> Frac fB eB) ** (gOut |-> eOut))
+      ((gA |-> Frac fA eA) ** (gB |-> Frac fB eB) **
+        (gOut |-> cat_chest dim dA dB dout eA eB (SZ.v na) pf_sz pfA pfB))
+  = kd_weaken
+      (kmap cdout
+        (cat_frame dA dB #lA #lB gA gB eA eB fA fB)
+        #(cat_frame_shareable dA dB #lA #lB gA gB eA eB fA fB)
+        (vcat dim dA dB dout eA eB (SZ.v na) pf_sz pfA pfB)
+        (fcat dim dimsz dA dB dout cdA cdB cdout #lA #lB gA gB na pf_sz pfA pfB eA eB)
+        n gOut #eOut #_ #1.0R)
+      (cat_kd_pre dA dB #dout #lA #lB #lOut gA gB gOut eA eB #eOut #fA #fB)
+      (cat_kd_post dA dB #dout dim #lA #lB #lOut gA gB gOut eA eB
+         (SZ.v na) pf_sz pfA pfB #eOut #fA #fB)
+
 inline_for_extraction noextract
 fn cat_gpu
   (#et : Type0) (#r : nat)

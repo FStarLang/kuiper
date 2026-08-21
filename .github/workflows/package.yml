@@ -2,10 +2,18 @@ name: Build Kuiper package
 
 # Builds a self-contained Kuiper binary package (F* + Karamel + Z3 + verified
 # Kuiper library + everything needed to generate and build new kernels) and
-# uploads it as an artifact. Modeled on F*'s build-linux.yml.
+# uploads it as an artifact. Modeled on F*'s build-linux.yml / build-macos.yml.
 #
 # This is a reusable workflow, called by nightly-build.yml. It can also be run
 # manually via workflow_dispatch.
+#
+# NOTE: this workflow deliberately does NOT use the devcontainer image that the
+# rest of our CI uses. That image is Ubuntu 24.04 (glibc 2.39), so the binaries
+# it produces refuse to run on anything older. Packages must be built on the
+# oldest platform we want to support, hence ubuntu-22.04 (glibc 2.35). Since we
+# are not in the devcontainer, this workflow installs the toolchain (OCaml,
+# opam deps, Z3, GNU tools) itself. No GPU/nvcc is needed: we only verify and
+# extract here.
 
 on:
   workflow_call:
@@ -31,16 +39,15 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-latest
-            arch: x86_64
+          # Oldest supported glibc wins: binaries built here run on newer
+          # distros too, but not the other way around.
+          - os: ubuntu-22.04
+          # Apple Silicon
+          - os: macos-14
+          # Intel Mac
+          - os: macos-15-intel
     runs-on: ${{ matrix.os }}
-    # The devcontainer image already has OPAM/OCaml, the F* build deps, and Z3.
-    # We do not need a GPU to verify and extract, so no --gpus here.
-    container:
-      image: mtzguido/pulse-cuda-devcontainer:latest
     steps:
-      - run: find . -delete
-
       - name: Check out repo
         uses: actions/checkout@v6
         with:
@@ -48,24 +55,56 @@ jobs:
           submodules: recursive
           fetch-depth: 0
 
-      # Fixup HOME (https://github.com/actions/runner/issues/863)
-      - name: Setup HOME and PATH
+      - name: Install system dependencies (Linux)
+        if: runner.os == 'Linux'
         run: |
-          echo "HOME=/home/vscode" >> $GITHUB_ENV
-          echo "PATH=/usr/local/bin/:$PATH" >> $GITHUB_ENV
+          sudo apt-get update && sudo apt-get install -y indent unzip
+          echo "MAKE=make" >> "$GITHUB_ENV"
+          echo "NPROC=$(nproc)" >> "$GITHUB_ENV"
 
-      - run: sudo apt-get update && sudo apt-get install -y indent unzip
+      - name: Install system dependencies (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          # The makefiles look up the GNU tools under their Homebrew names
+          # (gsed, grealpath, gindent, gnproc), so no PATH shadowing is needed.
+          ./setup-mac.sh
+          # GNU make is the exception: macOS ships make 3.81, which cannot even
+          # parse our makefiles. Homebrew installs it as `gmake`.
+          echo "MAKE=gmake" >> "$GITHUB_ENV"
+          echo "NPROC=$(sysctl -n hw.ncpu)" >> "$GITHUB_ENV"
 
-      - name: Read F* commit (for cache key)
-        id: fstarcommit
-        run: echo "FSTARCOMMIT=$(git -C FStar rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+      - uses: ocaml/setup-ocaml@v3
+        with:
+          ocaml-compiler: 5.3.0
 
+      - name: Install OCaml dependencies
+        run: |
+          opam install --yes --deps-only ./FStar/fstar.opam
+          # Karamel's extra build deps. We cannot use --deps-only on
+          # karamel.opam: it depends on the `fstar` opam package, while we
+          # build F* from the submodule.
+          opam install --yes ocamlfind ocamlbuild
+
+      - name: Install Z3
+        run: |
+          echo "$HOME/bin" >> "$GITHUB_PATH"
+          ./FStar/.scripts/get_fstar_z3.sh "$HOME/bin"
+
+      - name: Read toolchain commits (for cache key)
+        id: commits
+        run: |
+          echo "FSTARCOMMIT=$(git -C FStar rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          echo "KRMLCOMMIT=$(git -C karamel rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      # NB: the key includes matrix.os, not just runner.os/runner.arch: an
+      # ubuntu-24.04 toolchain and an ubuntu-22.04 one are both "Linux/X64" but
+      # are emphatically not interchangeable for packaging.
       - name: Try fetch cached F*/Karamel toolchain
         id: fstarcache
         uses: actions/cache/restore@v5
         with:
           path: inst
-          key: kuiper-toolchain-${{ runner.os }}-${{ runner.arch }}-${{ steps.fstarcommit.outputs.FSTARCOMMIT }}
+          key: kuiper-toolchain-${{ matrix.os }}-${{ steps.commits.outputs.FSTARCOMMIT }}-${{ steps.commits.outputs.KRMLCOMMIT }}
 
       - name: Fake toolchain touchfiles (cache hit)
         if: ${{ steps.fstarcache.outputs.cache-hit == 'true' }}
@@ -75,19 +114,19 @@ jobs:
       - name: Build F* and Karamel
         run: |
           eval $(opam env)
-          make -j$(nproc) -f verify.mk prepare
+          "$MAKE" -j"$NPROC" -f verify.mk prepare
 
       - name: Save toolchain
         uses: actions/cache/save@v5
         if: ${{ steps.fstarcache.outputs.cache-hit != 'true' }}
         with:
           path: inst
-          key: kuiper-toolchain-${{ runner.os }}-${{ runner.arch }}-${{ steps.fstarcommit.outputs.FSTARCOMMIT }}
+          key: kuiper-toolchain-${{ matrix.os }}-${{ steps.commits.outputs.FSTARCOMMIT }}-${{ steps.commits.outputs.KRMLCOMMIT }}
 
       - name: Verify Kuiper library
         run: |
           eval $(opam env)
-          make -kj$(nproc) -Otarget -f verify.mk verify-all
+          "$MAKE" -kj"$NPROC" -Otarget -f verify.mk verify-all ADMIT=1
 
       - name: Build the package
         run: |
@@ -101,5 +140,5 @@ jobs:
 
       - uses: actions/upload-artifact@v6
         with:
-          name: package-${{ matrix.os }}-${{ matrix.arch }}
+          name: package-${{ matrix.os }}
           path: kuiper-*.tar.gz

@@ -9,7 +9,7 @@ val stream_live (s: stream_t) : slprop
 
 noextract
 fn fresh_stream ()
-  returns s:stream_t 
+  returns s:stream_t
   ensures stream_live s
 
 noextract

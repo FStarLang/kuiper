@@ -1,5 +1,9 @@
 module Kuiper.Container
 
+open FStar.FunctionalExtensionality { (^->>), (^->) }
+open FStar.Seq
+open Kuiper.Bijection
+open FStar.Tactics.Typeclasses { fundeps }
 open FStar.Ghost
 open Kuiper
 

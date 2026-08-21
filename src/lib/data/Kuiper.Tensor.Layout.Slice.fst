@@ -143,7 +143,7 @@ fn tensor_extract_slice
   fn restore' (s' : chest (modulo_i i d) et)
     requires
       forall+ (j' : natlt (d @! i)). (
-        if op_Equality #(natlt (d @! i)) j' j
+        if op_Equals #(natlt (d @! i)) j' j
         then emp
         else
           forall+ (k : abs (modulo_i i d)).
@@ -157,7 +157,7 @@ fn tensor_extract_slice
       norewrite
       requires
         forall+ (j' : natlt (d @! i)). (
-          if op_Equality #(natlt (d @! i)) j' j
+          if op_Equals #(natlt (d @! i)) j' j
           then emp
           else
             forall+ (k : abs (modulo_i i d)).
@@ -174,14 +174,14 @@ fn tensor_extract_slice
       actual modified slice, so this is trivial. *)
       ghost fn rw1 (j' : natlt (d @! i))
         requires (
-          if op_Equality #(natlt (d @! i)) j' j
+          if op_Equals #(natlt (d @! i)) j' j
           then emp
           else
             forall+ (k : abs (modulo_i i d)).
               Cell a ((abs_bring_forward_bij i d).gg (j', k)) |-> Frac f (acc s ((abs_bring_forward_bij i d).gg (j', k)))
         )
         ensures (
-          if op_Equality #(natlt (d @! i)) j' j
+          if op_Equals #(natlt (d @! i)) j' j
           then emp
           else
             forall+ (k : abs (modulo_i i d)).
@@ -189,16 +189,16 @@ fn tensor_extract_slice
         )
       {
         if (j = j') {
-          rewrite each op_Equality #(natlt (d @! i)) j' j as true;
+          rewrite each op_Equals #(natlt (d @! i)) j' j as true;
           rewrite emp as
-            (if op_Equality #(natlt (d @! i)) j' j
+            (if op_Equals #(natlt (d @! i)) j' j
              then emp
              else
                forall+ (k : abs (modulo_i i d)).
                  Cell a ((abs_bring_forward_bij i d).gg (j', k)) |-> Frac f (acc new_s ((abs_bring_forward_bij i d).gg (j', k))));
           ()
         } else {
-          rewrite each op_Equality #(natlt (d @! i)) j' j as false;
+          rewrite each op_Equals #(natlt (d @! i)) j' j as false;
           forevery_map
             (fun (k : abs (modulo_i i d)) ->
               Cell a ((abs_bring_forward_bij i d).gg (j', k)) |-> Frac f (acc s ((abs_bring_forward_bij i d).gg (j', k))))
@@ -210,7 +210,7 @@ fn tensor_extract_slice
             forall+ (k : abs (modulo_i i d)).
               Cell a ((abs_bring_forward_bij i d).gg (j', k)) |-> Frac f (acc new_s ((abs_bring_forward_bij i d).gg (j', k)))
           as
-            (if op_Equality #(natlt (d @! i)) j' j
+            (if op_Equals #(natlt (d @! i)) j' j
              then emp
              else
                forall+ (k : abs (modulo_i i d)).

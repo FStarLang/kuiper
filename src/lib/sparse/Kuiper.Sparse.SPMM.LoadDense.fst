@@ -71,6 +71,7 @@ let lemma_fits_tile_offset
   (ensures fits (j + k * step * chunk et))
 = ()
 
+#push-options "--z3rlimit 20"
 let lemma_divides_tile_offset
   (et:Type0) {| sized et, has_vec_cpy et |}
   (j k step : sz { fits (j + k * step * chunk et) })
@@ -80,6 +81,7 @@ let lemma_divides_tile_offset
 =
   lemma_divides_product (chunk et) (k * step);
   lemma_divides_sum (chunk et) j (k * step * chunk et)
+#pop-options
 
 inline_for_extraction noextract
 fn tile_vec_cpy
@@ -277,7 +279,7 @@ let chest1_blit_lemma1
   lemma_divides_leq cnt n1 off1;
   lemma_divides_leq cnt n2 off2
 
-#push-options "--split_queries always"
+#push-options "--z3rlimit 20"
 let chest1_blit_lemma2
   (#a:Type)
   (#n1 : nat)
@@ -413,7 +415,7 @@ let chest2_tile_col
     else chest2_col em1 k1
 
 
-#push-options "--split_queries always"
+#push-options "--z3rlimit 20"
 let chest2_tile_col_lemma_
   (#et : Type0) {| sized et, has_vec_cpy et |}
   (#m1 #n1 : nat { chunk et /? n1 })

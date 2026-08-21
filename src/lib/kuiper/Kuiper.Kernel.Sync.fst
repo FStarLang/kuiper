@@ -1,4 +1,11 @@
 module Kuiper.Kernel.Sync
+open Pulse.Lib.Core
+open Kuiper.Common
+open Kuiper.ForEvery
+open Kuiper.Base
+open Kuiper.SizeT
+include Kuiper.Kernel.Base
+include Kuiper.Kernel.Desc
 friend Kuiper.Array.Core // for gpu_array_alloc_vis, gpu_array_free_gen
 
 #lang-pulse
@@ -25,6 +32,14 @@ let rec c_shmems_full (#ds : list SH.shmem_desc) (c : SH.c_shmems ds) : prop =
     c_shmem_full #d (fst c) /\
     c_shmems_full #ds (snd c)
 
+(* Destructing a [shmem_desc] and projecting its fields agree.  F* no longer
+   gets these facts for free (the [match] on [d] does not reduce when [d] is a
+   variable), so we state them as an explicit lemma. *)
+let c_shmem_eq (d : SH.shmem_desc)
+  : Lemma (SH.c_shmem d == larray d.ty d.len /\
+           SH.d_ty d == d.ty /\ SH.d_len d == d.len)
+  = let SH.SHArray ty len = d in ()
+
 // Models the allocation of per-block shared memory by the GPU runtime.
 noextract
 fn rec alloc_c_shmems
@@ -49,10 +64,11 @@ fn rec alloc_c_shmems
     Cons a q -> {
       let resq = alloc_c_shmems block_loc q;
       let resa' = Kuiper.Array.Core.gpu_array_alloc_vis #a.ty #a.sized a.len block_loc block_of;
-      let resa : SH.c_shmem a = coerce_eq () resa';
+      c_shmem_eq a;
+      let resa : larray a.ty a.len = resa';
       on_elim _;
-      rewrite each resa' as (resa <: larray a.ty a.len);
-      SH.fold_live_c_shmem resa;
+      rewrite each resa' as resa;
+      SH.fold_live_c_shmem #a resa;
       let res : SH.c_shmems d = (resa, resq);
       rewrite each resa as fst #(SH.c_shmem a) #(SH.c_shmems q) res;
       rewrite each resq as snd #(SH.c_shmem a) #(SH.c_shmems q) res;

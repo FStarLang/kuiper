@@ -1,5 +1,6 @@
 module Kuiper.Kernel.GEMM.Naive2
 
+open Kuiper.Kernel.GEMMGPU.Type
 #lang-pulse
 
 open Kuiper
@@ -102,7 +103,7 @@ let bkpost
       ((gid / b) / n)
       ((gid / b) % n))
 
-#push-options "--z3rlimit 40 --split_queries always"
+#push-options "--z3rlimit 40"
 inline_for_extraction noextract
 fn bkf
   (#ta #tb #tc #tacc : Type0) {| scalar tacc |}
@@ -475,8 +476,8 @@ fn bteardown
           (acc (MS.gbmmcomb mapA mapB comb eC eA eB)
             (page, (row, (col, ())))))
     fn page {
-      forevery_map_2
-        (fun row col ->
+      forevery_map_2 #(natlt m) #(natlt n)
+        (fun (row : natlt m) (col : natlt n) ->
           pts_to_cell gC
             (page, (row, (col, ())))
             (MS.ggemm_single mapA mapB comb
@@ -484,7 +485,7 @@ fn bteardown
               (slice_page eB page)
               (slice_page eC page)
               row col))
-        (fun row col ->
+        (fun (row : natlt m) (col : natlt n) ->
           pts_to_cell gC
             (page, (row, (col, ())))
             (acc (MS.gbmmcomb mapA mapB comb eC eA eB)
@@ -750,7 +751,7 @@ let kdreframe
         setup    = kd_pre_compose  fwd kd;
         teardown = kd_post_compose bwd kd; }
 
-#push-options "--z3rlimit 40 --split_queries always"
+#push-options "--z3rlimit 40"
 
 (* Ghost step raising the rank-2 global ownership to the batch-one
    rank-3 view that [bkdesc]'s setup expects. *)

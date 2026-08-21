@@ -383,6 +383,26 @@ fn gpu_memcpy_device_to_device
 
 
 ghost
+fn slice_concat
+  (#a:Type u#0)
+  (arr : array a)
+  (#[exact (`1.0R)] f : perm)
+  (#s1 #s2: erased (seq a))
+  (i n m:nat)
+  requires pts_to_slice arr #f i n s1 ** pts_to_slice arr #f n m s2
+  ensures  pts_to_slice arr #f i m (s1 @+ s2)
+
+ghost
+fn slice_split
+  (#a:Type u#0)
+  (arr : array a)
+  (#[exact (`1.0R)] f : perm)
+  (#s1 #s2: erased (seq a))
+  (i n m:nat)
+  requires pts_to_slice arr #f i m (s1 @+ s2) ** pure (i <= n /\ n <= m /\ (i + Seq.length s1 == n \/ n + Seq.length s2 == m))
+  ensures  pts_to_slice arr #f i n s1 ** pts_to_slice arr #f n m s2
+
+ghost
 fn array_slice_1
   (#a:Type u#0)
   (#sz:nat)
@@ -407,26 +427,6 @@ fn array_unslice_1
       pts_to_cell arr #f i (v @! i)
   ensures
     pts_to arr #f v
-
-ghost
-fn slice_concat
-  (#a:Type u#0)
-  (arr : array a)
-  (#[exact (`1.0R)] f : perm)
-  (#s1 #s2: erased (seq a))
-  (i n m:nat)
-  requires pts_to_slice arr #f i n s1 ** pts_to_slice arr #f n m s2
-  ensures  pts_to_slice arr #f i m (s1 @+ s2)
-
-ghost
-fn slice_split
-  (#a:Type u#0)
-  (arr : array a)
-  (#[exact (`1.0R)] f : perm)
-  (#s1 #s2: erased (seq a))
-  (i n m:nat)
-  requires pts_to_slice arr #f i m (s1 @+ s2) ** pure (i <= n /\ n <= m /\ (i + Seq.length s1 == n \/ n + Seq.length s2 == m))
-  ensures  pts_to_slice arr #f i n s1 ** pts_to_slice arr #f n m s2
 
 ghost
 fn slice_share
@@ -455,6 +455,19 @@ fn slice_gather
     pts_to_slice arr #f m n 'v
 
 ghost
+fn slice_pts_to_eq
+  (#a:Type u#0)
+  (arr : array a)
+  (m n:nat)
+  (#f1 f2 : perm)
+  (#v1 #v2 : seq a)
+  preserves
+    pts_to_slice arr #f1 m n v1 **
+    pts_to_slice arr #f2 m n v2
+  ensures
+    pure (v1 == v2)
+
+ghost
 fn slice_gather_underspec
   (#a : Type u#0)
   (arr : array a)
@@ -480,19 +493,6 @@ fn array_gather_underspec
   ensures
     exists* (v : seq a).
       arr |-> Frac f v
-
-ghost
-fn slice_pts_to_eq
-  (#a:Type u#0)
-  (arr : array a)
-  (m n:nat)
-  (#f1 f2 : perm)
-  (#v1 #v2 : seq a)
-  preserves
-    pts_to_slice arr #f1 m n v1 **
-    pts_to_slice arr #f2 m n v2
-  ensures
-    pure (v1 == v2)
 
 // val adjacent
 //   (#a : Type u#0)

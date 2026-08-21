@@ -31,7 +31,7 @@ open Kuiper.Seq.Common
 open Kuiper.Tensor
 open Kuiper.Tensor.Layout.Alg { l1_forward }
 
-#push-options "--split_queries always"
+#push-options ""
 let log_softmax_approx
     (#et:Type0) {| floating et, real_like et, floating_real_like et |}
     (#n:nat) (va:chest1 et n) (ra:chest1 real n { va %~ ra /\ n > 0 })

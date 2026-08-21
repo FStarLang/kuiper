@@ -4,7 +4,7 @@ module Kuiper.Example.Mul
 open Kuiper
 module U64 = FStar.UInt64
 
-unfold let op_String_Access = Seq.index
+unfold let ( .[] ) = Seq.index
 
 let smul (s1 : seq u64) (s2 : seq u64 { len s2 == len s1 })
   : GTot (sr : seq u64 { len sr == len s1 })

@@ -6,8 +6,8 @@
 # F="$1"
 # B="$(basename "$F")"
 
-# export O="$O --debug SMTFail --split_queries always"
+# export O="$O --debug SMTFail"
 # make -f verify.mk obj/$B.checked "$@"
 
 make prepare -j$(nproc)
-./fstar.sh --debug SMTFail --split_queries always "$@"
+./fstar.sh --debug SMTFail "$@"

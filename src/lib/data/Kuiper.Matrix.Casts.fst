@@ -1,4 +1,5 @@
 module Kuiper.Matrix.Casts
+open Kuiper.Injection
 #lang-pulse
 
 open Kuiper

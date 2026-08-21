@@ -16,6 +16,7 @@ inline
     wmma::fill_fragment(fc, __float2half_rn(0.0f));
     wmma::mma_sync(fc, fa, fb, fc);
     wmma::store_matrix_sync(m3, fc, 16U, wmma::mem_row_major);
+    __syncwarp();
 }
 
 inline
@@ -36,4 +37,5 @@ inline
     wmma::fill_fragment(fc, __float2half_rn(0.0f));
     wmma::mma_sync(fc, fa, fb, fc);
     wmma::store_matrix_sync(t3 + 784U, fc, 48U, wmma::mem_row_major);
+    __syncwarp();
 }

@@ -172,7 +172,7 @@ let block_lemma_off whole block k off
           (ensures k * block + off < whole)
   = ()
 
-#push-options "--z3rlimit 10"
+#push-options "--z3rlimit 30"
 let offset_aligned_lemma_et
   (#et : Type0) {| sized et, has_vec_cpy et |}
   (p : parameters et)
@@ -191,7 +191,6 @@ let offset_aligned_lemma_et
   prod_divides p.blockWidth (chunk et) p.blockItemsK;
   lineal_divides (chunk et) i' p.blockItemsK k;
   ()
-#pop-options
 
 let offset_aligned_lemma_sz
   (#et : Type0) {| sized et, has_vec_cpy et |}
@@ -211,6 +210,7 @@ let offset_aligned_lemma_sz
   prod_divides p.blockWidth (chunk sz) p.blockItemsK;
   lineal_divides (chunk sz) i' p.blockItemsK k;
   ()
+#pop-options
 
 // TODO mejores nombress
 let offset_aligned_lemma_et'

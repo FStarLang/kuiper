@@ -55,10 +55,10 @@ ensures
 {
   forevery_map #(natlt sz)
     (fun i -> pts_to_cell arr #f i (Seq.index s i))
-    (fun i -> pts_to_slice arr #f i (Prims.op_Addition i 1) seq![Seq.index s i])
+    (fun i -> pts_to_slice arr #f i (i + 1) seq![Seq.index s i])
     fn i {
       unfold pts_to_cell arr #f i (Seq.index s i);
-      with s'. assert pts_to_slice arr #f i (Prims.op_Addition i 1) s';
+      with s'. assert pts_to_slice arr #f i (i + 1) s';
       assert pure (reveal s' `Seq.equal` seq![Seq.index (reveal s) i]);
     };
   array_unslice_1 arr #f #s

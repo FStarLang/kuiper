@@ -308,8 +308,10 @@ let contributions_lemma
 
 let is_ac_from_ac_w (#t:Type) (#f: t -> t -> t) (ac : is_ac_w f)
   : Lemma (is_ac f)
-= FStar.Classical.forall_intro_2 (fun x y -> ac.comm x y);
-  FStar.Classical.forall_intro_3 (fun x y z -> ac.assoc x y z)
+= (* F* master cannot infer the predicate implicit of [forall_intro_n] (it
+     occurs only in the postcondition), so state the goals explicitly. *)
+  introduce forall (x:t) (y:t). f x y == f y x with ac.comm x y;
+  introduce forall (x:t) (y:t) (z:t). f (f x y) z == f x (f y z) with ac.assoc x y z
 
 let contributions_lemma_smt
   (#et : Type0) {| scalar et |} {| d : has_atomic_add et |}

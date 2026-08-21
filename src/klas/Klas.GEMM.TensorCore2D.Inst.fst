@@ -1,4 +1,5 @@
 module Klas.GEMM.TensorCore2D.Inst
+module MS = Kuiper.Spec.GEMM
 #lang-pulse
 
 open Kuiper
@@ -13,7 +14,7 @@ module SZ = Kuiper.SizeT
 
 open Kuiper.Kernel.GEMM.TensorCore2D
 
-#push-options "--split_queries always --z3rlimit 40" // very slow without splitting? flaky nevertheless
+#push-options "--z3rlimit 40" // very slow without splitting? flaky nevertheless
 
 inline_for_extraction noextract
 fn spec
@@ -116,8 +117,15 @@ fn spec
   let rC = to_real_matrix eC;
   #set-options "--fuel 0 --ifuel 0 --z3refresh" {
   launch_sync (
-    mk_kernel gA #eA gB #eB gC #_ #eC bm bn bk tm tn tk wm wn #_ #_ #_ #_ #_ #_ #_ #_ #fA #fB nblk nthr rA rB rC ()
+    mk_kernel gA #eA gB #eB gC #_ #eC bm bn bk tm tn tk wm wn #_ #_ #_ #_ #_ #_ #_ #_ #fA #fB nblk nthr rA rB rC
+      (fun (x:real) -> x) (fun (x:real) -> x) (MS.comb2 #real)
+      (fun (x:et_ab) -> x) (fun (x:et_ab) -> x) (MS.comb2 #et_c) ()
   )};
+  // Reduce the map-aware postcondition [gmmcomb id id comb2 rC rA rB] back to the
+  // plain [matmul rA rB] this instance advertises.  These are SMTPat lemmas, but
+  // invoke them explicitly so the reduction is available under [--fuel 0 --ifuel 0].
+  MS.gmmcomb_id (MS.comb2 #real) rC rA rB;
+  MS.matmul_is_gemm rC rA rB;
 
   ()
 }

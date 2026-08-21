@@ -1,5 +1,6 @@
 module Kuiper.Conditional
 
+open Kuiper.ForEvery
 #lang-pulse
 
 open Pulse.Lib.Pervasives

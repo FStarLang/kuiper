@@ -1,5 +1,10 @@
 module Kuiper.IView
 
+open Kuiper
+open Kuiper.Len
+open Kuiper.Bijection
+open Kuiper.Injection
+open FStar.Tactics.Typeclasses { no_method }
 #lang-pulse
 
 let full_iff_cardinal_1

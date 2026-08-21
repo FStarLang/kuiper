@@ -78,10 +78,11 @@ let chest_refine (#r : nat) (#d : shape r) (#et : Type)
   : chest d (x:et{p x})
   = mk _ #(x:et{p x}) fun i -> acc c i
 
-let chest_comb (#r : nat) (#d : shape r) (#et : Type)
-  (f : binop et)
-  (c1 c2 : chest d et)
-  : chest d et
+let chest_comb (#r : nat) (#d : shape r) (#t1 #t2 #t3 : Type)
+  (f : t1 -> t2 -> t3)
+  (c1 : chest d t1)
+  (c2 : chest d t2)
+  : chest d t3
   = mk _ fun i -> f (acc c1 i) (acc c2 i)
 
 val equal (#r : nat) (#d : shape r) (#et : Type)

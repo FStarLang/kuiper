@@ -4,6 +4,10 @@ module Kuiper.Sparse.SPMM
 
 open Kuiper
 open Kuiper.Sparse
+open Kuiper.Tensor
+open Kuiper.Array.Vectorized
+open Pulse.Lib.Pledge
+open Kuiper.Kernel.Base
 open Kuiper.Sparse.SPMM.LoadSparse
 open Kuiper.Sparse.SPMM.LoadDense
 open Kuiper.Sparse.SPMM.StoreDense
@@ -18,9 +22,6 @@ module MS = Kuiper.Spec.GEMM
 module SZ = Kuiper.SizeT
 module B = Kuiper.Barrier
 module Compute = Kuiper.Sparse.SPMM.Compute
-
-
-#push-options "--split_queries always"
 
 unfold
 let block_pre
@@ -96,6 +97,13 @@ let block_post
     (MS.matmul eA eB)
     (p.blockItemsX / p.blockWidth)
     p.blockWidth
+
+(* Projecting [rin]/[rout] out of the record literal built by [barrier_contract]
+   is no longer reduced for the SMT solver, so we discharge those slprop
+   equalities by normalization instead. *)
+let unfold_barrier_contract () : FStar.Tactics.V2.Tac unit =
+  FStar.Tactics.V2.norm [delta_only [`%barrier_contract]; iota; primops];
+  Pulse.Lib.Core.slprop_equiv_norm ()
 
 unfold
 let kpre
@@ -222,6 +230,7 @@ let lem_div2 (n : nat) (d : pos) (r : natlt d)
 = Math.Lemmas.lemma_mod_plus r n d
 //
 
+#push-options "--z3rlimit 30"
 ghost
 fn setup
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
@@ -392,6 +401,7 @@ fn setup
   admit();
 }
 
+#pop-options
 ghost
 fn block_setup
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
@@ -588,6 +598,19 @@ fn block_teardown
   ();
 }
 
+(* Nonlinear bound relating a (row, column-block) pair to a flat block id.
+   With one SMT query per proof obligation Z3 no longer finds this on its own,
+   so we prove it once by an explicit multiplication lemma. *)
+let block_index_bound #et {| sized et, has_vec_cpy et |} (p : parameters et)
+  : Lemma (forall (r : natlt (SZ.v p.rows))
+                  (b : natlt (divup (SZ.v p.cols) (SZ.v p.blockItemsX))).
+             r * divup (SZ.v p.cols) (SZ.v p.blockItemsX) + b < nblocks_ p)
+  = introduce forall (r : natlt (SZ.v p.rows))
+                     (b : natlt (divup (SZ.v p.cols) (SZ.v p.blockItemsX))).
+      r * divup (SZ.v p.cols) (SZ.v p.blockItemsX) + b < nblocks_ p
+    with FStar.Math.Lemmas.lemma_mult_le_right
+           (divup (SZ.v p.cols) (SZ.v p.blockItemsX)) (r + 1) (SZ.v p.rows)
+
 ghost
 fn teardown
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
@@ -724,6 +747,7 @@ fn teardown
       forevery_rw_size
         ((p.blockItemsX /^ p.blockWidth) * p.blockWidth) p.blockItemsX;
     };
+  block_index_bound p;
   forevery_factor (nblocks p) p.rows (divup p.cols p.blockItemsX) _;
   forevery_map #(natlt p.rows)
     (fun r ->
@@ -817,13 +841,14 @@ fn teardown
       tensor_pts_to_cell gC (idx2 (r |~> row_perm) (c))
         (MS.matmul_single eA eB (r |~> row_perm) c)
   );
-  forevery_ext_2
-    (fun r c ->
+  forevery_ext_2 #(natlt p.rows) #(natlt p.cols)
+    (fun (r : natlt p.rows) (c : natlt p.cols) ->
       tensor_pts_to_cell gC
         (idx2 (row_perm.gg r |~> row_perm) (c))
         (MS.matmul_single eA eB (row_perm.gg r |~> row_perm) c)
     )
-    (fun r c -> tensor_pts_to_cell gC (idx2 (r) (c)) (acc2 (MS.matmul eA eB) r c));
+    (fun (r : natlt p.rows) (c : natlt p.cols) ->
+      tensor_pts_to_cell gC (idx2 (r) (c)) (acc2 (MS.matmul eA eB) r c));
   forevery_flatten _;
   forevery_ext
     (fun (rc : natlt p.rows & natlt p.cols) -> tensor_pts_to_cell gC (idx2 (rc._1) (rc._2)) (acc2 (MS.matmul eA eB) rc._1 rc._2))
@@ -1273,7 +1298,7 @@ fn kf_head
 
   barrier_out_unfold_mask_post p row_perm elems col_ind row_off
     elems_tile col_ind_tile bid ri ri' re tid;
-  
+
   // TODO mejores nombres
   let elems'   : erased (lseq et (re - ri')) = Seq.create (ri - ri') zero @+ Seq.slice elems ri re;
   let col_ind' : erased (lseq nat (re - ri')) = Seq.slice (cast_pos col_ind) ri' re;
@@ -1539,7 +1564,14 @@ fn kf_main
       assume pure (chunk et /? p.cols);
       assert pure (in_bounds 0 p.shared row_ind);
       assert pure (!idx * p.blockItemsK + p.blockItemsK <= re - ri');
-      
+      // row_elems has length re - ri', so with the bound above the slice below
+      // has exactly the length tile_vmprod expects. Stated separately because
+      // as part of the call's query it times out.
+      assert pure (Seq.length row_elems == re - ri');
+      assert pure (
+        Seq.length (Seq.slice row_elems 0 (!idx * p.blockItemsK + p.blockItemsK))
+          == !idx * p.blockItemsK + p.blockItemsK);
+
       Compute.tile_vmprod
         out
         out0
@@ -1596,6 +1628,11 @@ fn kf_main
     barrier_in_fold_residue_pre p row_perm elems col_ind row_off
       elems_tile col_ind_tile bid ri' re tid;
 
+    // Loop exit: re - ri' == idx * blockItemsK + nnz with nnz < blockItemsK, so
+    // idx is exactly the quotient. Spelled out as Euclidean division because
+    // the solver no longer gets there unaided.
+    FStar.Math.Lemmas.small_division_lemma_1 (SZ.v !nnz) (SZ.v p.blockItemsK);
+    FStar.Math.Lemmas.lemma_div_plus (SZ.v !nnz) (SZ.v !idx) (SZ.v p.blockItemsK);
     assert pure (SZ.v !idx == (re - ri') / p.blockItemsK);
     rewrite barrier_in p row_perm elems col_ind row_off elems_tile col_ind_tile
       bid ((re - ri') / p.blockItemsK * 2) tid
@@ -1622,7 +1659,7 @@ fn kf_main
         Seq.empty
         (lslice' (cast_pos col_ind) ri (re - !nnz))
     );
-    
+
     barrier_in_fold_residue0_pre p row_perm elems col_ind row_off
       elems_tile col_ind_tile bid ri' re tid;
 
@@ -1736,7 +1773,7 @@ fn kf_residue
 
   sparse_load_residue p row_perm gA #_ #row_off #elems #col_ind #eA #fA
     elems_tile col_ind_tile bid ri ri' re tid idx residue;
-  
+
   assert pure (
     Seq.equal
       (Seq.slice elems (re - residue) re)
@@ -1754,7 +1791,7 @@ fn kf_residue
     row_elems row_ind
     gB n_idx p.blockWidth
     ((re - ri) - residue) (re - ri) residue;
-  
+
   assert pure (
     Seq.equal
       (Seq.slice row_elems 0 (re - ri))
@@ -2176,7 +2213,7 @@ fn spmm_on
   assert pure (size_req #et ({ rows; shared; cols; blockItemsK; blockItemsX; blockWidth }));
   assert pure ((chunk et * blockWidth) /? blockItemsK);
   assert pure ((chunk sz * blockWidth) /? blockItemsK);
-  
+
   assume pure (chunk et /? blockChunks);
   lemma_aligned_strided_row_major_l2_row_major
     #(SZ.v blockItemsK) #(SZ.v blockChunks) (chunk et);

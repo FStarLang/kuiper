@@ -257,7 +257,7 @@ let cancel (a b c : real) :
         (ensures  a /. b == c)
   = ()
 
-#set-options "--split_queries always"
+#set-options ""
 
 // (a,b) -> softmax(a) * b
 inline_for_extraction noextract

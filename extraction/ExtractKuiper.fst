@@ -330,6 +330,10 @@ let parse_shmem_desc (e : mlexpr) : ML (option (mlexpr & mlexpr)) =
     Format.print1 "Not a shmem_desc: %s\n" (mlexpr_to_string e);
     None
 
+(* The default limit on dynamic shared memory per block, in bytes. Raising it
+requires cudaFuncSetAttribute; at or below it, that call does nothing. *)
+let default_dynamic_shmem_limit : string = "49152" // 48KiB
+
 let extract_kcall (cb : mlexpr -> ML expr) (env : Krml.env) (kdesc : mlexpr) (stream : mlexpr) : ML (option expr) =
   let open FStarC.Class.Monad in
   let assoc' k v =
@@ -452,11 +456,28 @@ let extract_kcall (cb : mlexpr -> ML expr) (env : Krml.env) (kdesc : mlexpr) (st
       EUnit
   in
   let shmem_setup : expr =
+    (* cudaFuncSetAttribute is only needed to raise the dynamic shared memory
+    limit above the 48KiB default; at or below it the call does nothing. Guard
+    it on the size so that a kernel under the limit does not put a CUDA runtime
+    call in front of every launch.
+
+    The size is not a literal at this point -- it arrives as unfolded
+    arithmetic, e.g. EApp (EOp Add UInt32) [...] -- so we cannot decide here.
+    Emit the test and let karamel's constant_fold settle it: it reduces the
+    size, then the comparison, then drops the dead branch. For a kernel under
+    the limit nothing at all reaches the C output; for one over it, just the
+    call.
+
+    The test is >= so a kernel sitting exactly on the 48KiB default still opts
+    in; the call always succeeds at that size, so erring this way removes any
+    doubt about the boundary. *)
     if shmem_is_nonzero then
       let kk : expr = EQualified ([], "cudaFuncSetAttribute") in
       let aa : expr = EQualified ([], "cudaFuncAttributeMaxDynamicSharedMemorySize") in
-      _MUST <|
-        EApp (kk, [ cb hd; aa; smem_bytesz ])
+      let call : expr = _MUST <| EApp (kk, [ cb hd; aa; smem_bytesz ]) in
+      let limit : expr = EConstant (UInt32, default_dynamic_shmem_limit) in
+      let cond : expr = EApp (EOp (Gte, UInt32), [ smem_bytesz; limit ]) in
+      EIfThenElse (cond, call, EUnit)
     else
       EUnit
   in
@@ -499,6 +520,54 @@ let kpr_translate_alloc_fragment (cb : mlexpr -> ML expr) et knd m n k layout =
       @ (match layout with | Some l -> [l] | None -> [])
     in
       EApp (EQualified ([], "kpr_fragment"), args)
+
+// Structural detection of trivial elementwise maps/combines so we can extract
+// them to plain wmma load/store calls instead of the KPR_LOAD_MAP/KPR_STORE_COMB
+// macros. A device map extracts to [fun x -> x] exactly when it is the identity;
+// a device combine extracts to [fun old new -> new] exactly when it is the
+// trivial overwrite (Kuiper.Spec.GEMM.comb2). In both cases the elementwise
+// register loop is a no-op, so the mapped load degenerates to a plain load and
+// the read-modify-write store degenerates to a plain store (no old-tile load).
+// Detection is purely structural and conservative: any shape we do not recognise
+// falls back to the macro, which is always correct.
+let rec collect_fun_binders (e:mlexpr) : list mlbinder & mlexpr =
+  match e.expr with
+  | MLE_Fun (bs, body) ->
+    let bs', body = collect_fun_binders body in
+    (bs @ bs', body)
+  | _ -> ([], e)
+
+// Does [body] just return the [which]-th binder of [bs] (0-based)?
+let returns_binder (bs:list mlbinder) (body:mlexpr) (which:nat) : ML bool =
+  match body.expr with
+  | MLE_Var v ->
+    (match List.Tot.nth bs which with
+     | Some b -> v = b.mlbinder_name
+     | None -> false)
+  | _ -> false
+
+let is_identity_map (f:mlexpr) : ML bool =
+  let bs, body = collect_fun_binders f in
+  List.Tot.length bs = 1 && returns_binder bs body 0
+
+(* Is this `fun x y -> x`? *)
+let is_overwrite_comb (g:mlexpr) : ML bool =
+  let bs, body = collect_fun_binders g in
+  List.Tot.length bs = 2 && returns_binder bs body 0
+
+let beta_reduce_literal (f : mlexpr) (a : mlexpr) : ML mlexpr =
+  let x, body = get_one_binder f in
+  let body = ml_subst body x.mlbinder_name a in
+  body
+
+let inline_alias_let (e : mlexpr) : ML mlexpr =
+  match e.expr with
+  | MLE_Let ((NonRec, [{ mllb_name = x; mllb_def = def; }]), body) ->
+    (match def.expr with
+     | MLE_Var _
+     | MLE_Name _ -> ml_subst body x def
+     | _ -> e)
+  | _ -> e
 
 let kpr_translate_expr : translate_expr_t = fun env e ->
   let e = flatten_app e in
@@ -544,6 +613,8 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
 
   | "Kuiper.Barrier.barrier_wait", [], [ _unit; _n; _contract; _it; _tid ] ->
     EApp (EQualified ([], "__syncthreads"), [ EUnit ])
+  | "Kuiper.Barrier.Warp.warp_barrier_wait", [], [ _unit; _p; _q; _proof; _n; _tid ] ->
+    EApp (EQualified ([], "__syncwarp"), [ EUnit ])
 
   (******** TENSOR CORE OPERATIONS, FRAGMENTS, ETC ********)
 
@@ -555,16 +626,6 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
       EApp (EQualified ([], "KPR_INIT"),
         [kpr_translate_alloc_fragment cb et knd m n k layout])
 
-  | "Kuiper.TensorCore.Base.mma_loadA", [et], [ m; n; k; fr; l; strided_l; gm; f; m0; f0 ]
-  | "Kuiper.TensorCore.Base.mma_loadA_cm", [et], [ m; n; k; fr; l; strided_l; gm; f; m0; f0 ]
-  | "Kuiper.TensorCore.Base.mma_loadB", [et], [ m; n; k; fr; l; strided_l; gm; f; m0; f0 ] ->
-    let fr = cb fr in
-    let ldm = cb <| get_strided_row_major_stride strided_l in
-    let offset = cb <| get_strided_row_major_offset strided_l in
-    // Note: use of EBufSub relies on the type of gm unfolding to an array.
-    // If IArray/VArray/any other layer defines a new inductive, karamel will complain.
-    let gm = EBufSub (cb gm, offset) in
-    EApp (EQualified ([], "wmma::load_matrix_sync"), [ fr; gm; ldm ])
 
   | "Kuiper.TensorCore.Base.mma_loadAccum", [et], [m; n; k; fr; l; strided_l; gm; f; m0; f0 ] ->
     // TODO remove duplicated code
@@ -597,15 +658,82 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
       text "unexpected types in mma_sync:" ^/^ pp e
     ]
 
-  | "Kuiper.TensorCore.Base.mma_store", [et], [ m; n; k; fr; l; strided_l; gm; f0; m0 ] ->
-    let fr = cb fr in
-    let layout = EQualified ([], "wmma::mem_row_major") in // FAKE the API only supports this one for now
+  // Load A/B fragment while applying an elementwise device map [fmap]. Mirrors
+  // the mma_loadA/mma_loadB cases (project offset/stride, bump the pointer) to
+  // build the wmma pointer/ldm, then defers the load + the elementwise register
+  // loop to the KPR_LOAD_MAP macro (see include/kuiper/tensorcores.h). All we
+  // emit here is the *mapped value*: [fmap] applied to the macro-bound register
+  // read [_kpr_in_v]. We CANNOT pass [fmap] as a runtime value (a bare
+  // lambda/EFun is not Low* and karamel refuses to translate it -- AstToCStar
+  // has no EFun case); emitting it *applied* lets karamel's simplifier
+  // beta-reduce the lambda, inlining the map body. [_kpr_in_v] is a free C
+  // identifier bound inside the macro loop (an unknown EQualified checks as
+  // TAny, exactly like the wmma::/KPR_ externals used throughout this file).
+  | "Kuiper.TensorCore.Base.mma_loadA_map",    [et], [ m; n; k; fmap; fr; l; strided_l; gm; fp; m0; f0 ]
+  | "Kuiper.TensorCore.Base.mma_loadB_map",    [et], [ m; n; k; fmap; fr; l; strided_l; gm; fp; m0; f0 ]
+  | "Kuiper.TensorCore.Base.mma_loadA_map_cm", [et], [ m; n; k; fmap; fr; l; strided_l; gm; fp; m0; f0 ]
+  | "Kuiper.TensorCore.Base.mma_loadB_map_cm", [et], [ m; n; k; fmap; fr; l; strided_l; gm; fp; m0; f0 ] ->
+    let et_ty = cb_ty et in
     let ldm = cb <| get_strided_row_major_stride strided_l in
     let offset = cb <| get_strided_row_major_offset strided_l in
     // Note: use of EBufSub relies on the type of gm unfolding to an array.
     // If IArray/VArray/any other layer defines a new inductive, karamel will complain.
     let gm = EBufSub (cb gm, offset) in
-    EApp (EQualified ([], "wmma::store_matrix_sync"), [ gm; fr; ldm; layout])
+    let fr = cb fr in
+    if is_identity_map fmap then
+      // Identity map: the register loop is a no-op, so this is a plain load.
+      EApp (EQualified ([], "wmma::load_matrix_sync"), [ fr; gm; ldm ])
+    else begin
+      let get_i = ECast (EQualified ([], "_kpr_in_v"), et_ty) in
+      let mapped = EApp (cb fmap, [ get_i ]) in
+      EApp (EQualified ([], "KPR_LOAD_MAP"), [ gm; fr; ldm; mapped ])
+    end
+
+  // Store the accumulator fragment while combining, elementwise, with the value
+  // already resident in [gm], using the device combine [gcomb]. Read-modify-write:
+  // result cell = gcomb (old C cell) (accumulator cell). The KPR_STORE_COMB macro
+  // owns the scratch-fragment copy, the old-tile load, the register loop, and the
+  // store; here we only build the *combined value*: [gcomb] applied to the
+  // macro-bound register reads [_kpr_old_v] (old C) and [_kpr_new_v]
+  // (accumulator). We beta-reduce the literal [gcomb] before translating it.
+  // Referencing the reads as bare identifiers (bound inside the macro) rather
+  // than emitting KPR_FRAG_GET reads here is what lets an overwrite combine drop
+  // the unused [_kpr_old_v] cleanly: karamel treats a bare identifier as readonly,
+  // so it is dropped rather than hoisted out of the macro as a stray ignore
+  // statement referencing a name that only exists inside it.
+  // FIXME: the second case below is wrong, et_acc is a type, but apparently
+  // we are detecting it as an erased expression and slapping a unit (expression)
+  // argument for it.
+  | "Kuiper.TensorCore.Base.mma_store_comb", [et_c; et], [ m; n; k; gcomb; fr; l; strided_l; gm; f0; m0 ]
+  | "Kuiper.TensorCore.Base.mma_store_comb", [et_c], [ et; m; n; k; gcomb; fr; l; strided_l; gm; f0; m0 ]
+  ->
+    // let et = cb_ty et in
+    // let et_c = cb_ty et_c in
+    let ldm = cb <| get_strided_row_major_stride strided_l in
+    let offset = cb <| get_strided_row_major_offset strided_l in
+    // Note: use of EBufSub relies on the type of gm unfolding to an array.
+    // If IArray/VArray/any other layer defines a new inductive, karamel will complain.
+    let gm = EBufSub (cb gm, offset) in
+    let fr = cb fr in
+    let layout = EQualified ([], "wmma::mem_row_major") in
+    let gcomb = ml_visit unmagic inline_alias_let gcomb in // simplify gcomb a bit, remove casts and aliasing
+    if is_overwrite_comb gcomb then
+      // Trivial overwrite combine: the read-modify-write degenerates to a plain
+      // store (identical to mma_store), so we skip the old-tile load and loop.
+      ESequence [
+        EApp (EQualified ([], "wmma::store_matrix_sync"), [ gm; fr; ldm; layout ]);
+        EApp (EQualified ([], "__syncwarp"), [ EUnit ]);
+      ]
+    else begin
+      let combined =
+        let t_new = with_ty MLTY_Top <| MLE_Name ([], "_kpr_new_v") in
+        let t_old = with_ty et_c <| MLE_Name ([], "_kpr_old_v") in
+        let applied = beta_reduce_literal (beta_reduce_literal gcomb t_new) t_old in
+        let applied = ml_visit unmagic inline_alias_let applied in
+        cb applied
+      in
+      EApp (EQualified ([], "KPR_STORE_COMB"), [ gm; fr; ldm; combined ])
+    end
 
   (******** FLOAT ARITHMETIC *******)
 

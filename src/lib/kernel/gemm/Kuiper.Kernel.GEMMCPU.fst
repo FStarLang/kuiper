@@ -1,5 +1,8 @@
 module Kuiper.Kernel.GEMMCPU
 
+open Kuiper.Kernel.GEMMGPU.Type
+open Kuiper.EMatrix
+include Kuiper.Kernel.GEMMGPU.Type { size_req_t }
 #lang-pulse
 
 open Kuiper

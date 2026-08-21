@@ -36,6 +36,17 @@ instance triple_shareable
       fa 1.0R
 
 inline_for_extraction noextract
+let map_kd
+  (#et : Type0)
+  (f : et -> et)
+  (lena : szp { lena <= max_blocks * max_threads /\ lena > 0 })
+  (#l : layout1 lena) {| ctlayout l |}
+  (a : array1 et l { is_global a })
+  (#s : chest1 et lena)
+  : kernel_desc (a |-> s) (a |-> chest_map f s)
+  = TMap.map_kd (CCons lena CNil) f lena a #s
+
+inline_for_extraction noextract
 fn map_gpu
   (#et : Type0)
   (f : et -> et)
@@ -66,6 +77,57 @@ fn ff_to
   let y = tensor_read input i;
   f y;
 }
+
+ghost
+fn map_to_kd_post
+  (#it #ot : Type0)
+  (f : it -> ot)
+  (#lena : erased nat)
+  (#li : layout1 lena)
+  (#lo : layout1 lena)
+  (input : array1 it li)
+  (output : array1 ot lo)
+  (#si : chest1 it lena)
+  (#so : chest1 ot lena)
+  (#fi : perm)
+  ()
+  norewrite
+  requires
+    (input |-> Frac fi si) **
+    (exists* so'. (output |-> so') **
+       pure (chest_foralli (fun i x -> x == f (acc si i)) so'))
+  ensures
+    (input |-> Frac fi si) ** (output |-> mk1 (fun i -> f (acc1 si i)))
+{
+  with so'. assert (output |-> so');
+  assert pure (equal so' (mk1 (fun i -> f (acc1 si i))));
+  ()
+}
+
+inline_for_extraction noextract
+let map_to_kd
+  (#it #ot : Type0)
+  (f : it -> ot)
+  (lena : szp { lena <= max_blocks * max_threads /\ lena > 0 })
+  (#li : layout1 lena) {| ctlayout li |}
+  (#lo : layout1 lena) {| ctlayout lo |}
+  (input : array1 it li { is_global input })
+  (output : array1 ot lo { is_global output })
+  (#si : chest1 it lena)
+  (#so : chest1 ot lena)
+  (#fi : perm)
+  : kernel_desc
+      ((input |-> Frac fi si) ** (output |-> so))
+      ((input |-> Frac fi si) ** (output |-> mk1 (fun i -> f (acc1 si i))))
+  = kd_weaken_post
+      (TMap.kmap
+        (CCons lena CNil)
+        (fun fr -> input |-> Frac fr si)
+        #(tensor_pts_to_shareable input si)
+        (fun i _ r -> r == f (acc si i))
+        (ff_to f input)
+        lena output #so #_ #fi)
+      (map_to_kd_post f input output #si #so #fi)
 
 inline_for_extraction noextract
 fn map_gpu_to
@@ -111,6 +173,55 @@ fn ff2
   let y = tensor_read b i;
   f x y;
 }
+
+ghost
+fn map2_kd_post
+  (#et : Type0)
+  (f : et -> et -> et)
+  (#lena : erased nat)
+  (#la : layout1 lena)
+  (#lb : layout1 lena)
+  (a : array1 et la)
+  (b : array1 et lb)
+  (#sa #sb : chest1 et lena)
+  (#fb : perm)
+  ()
+  norewrite
+  requires
+    (b |-> Frac fb sb) **
+    (exists* sa'. (a |-> sa') **
+       pure (chest_foralli (fun i x -> x == f (acc sa i) (acc sb i)) sa'))
+  ensures
+    (b |-> Frac fb sb) ** (a |-> chest1_map2 f sa sb)
+{
+  with sa'. assert (a |-> sa');
+  assert pure (equal sa' (chest1_map2 f sa sb));
+  ()
+}
+
+inline_for_extraction noextract
+let map2_kd
+  (#et : Type0)
+  (f : et -> et -> et)
+  (lena : szp { lena <= max_blocks * max_threads /\ lena > 0 })
+  (#la : layout1 lena) {| ctlayout la |}
+  (#lb : layout1 lena) {| ctlayout lb |}
+  (a : array1 et la { is_global a })
+  (b : array1 et lb { is_global b })
+  (#sa #sb : chest1 et lena)
+  (#fb : perm)
+  : kernel_desc
+      ((b |-> Frac fb sb) ** (a |-> sa))
+      ((b |-> Frac fb sb) ** (a |-> chest1_map2 f sa sb))
+  = kd_weaken_post
+      (TMap.kmap
+        (CCons lena CNil)
+        (fun fr -> b |-> Frac fr sb)
+        #(tensor_pts_to_shareable b sb)
+        (fun i x r -> r == f x (acc sb i))
+        (ff2 f b)
+        lena a #sa #_ #fb)
+      (map2_kd_post f a b #sa #sb #fb)
 
 inline_for_extraction noextract
 fn map_gpu2
@@ -255,6 +366,88 @@ fn ff3_to
   let z = tensor_read c i;
   f x y z;
 }
+
+ghost
+fn map3_to_kd_pre
+  (#at #bt #ct #ot : Type0)
+  (#lena : erased nat)
+  (#la : layout1 lena) (#lb : layout1 lena) (#lc : layout1 lena) (#lo : layout1 lena)
+  (a : array1 at la) (b : array1 bt lb) (c : array1 ct lc) (output : array1 ot lo)
+  (#sa : chest1 at lena) (#sb : chest1 bt lena) (#sc : chest1 ct lena)
+  (#so : chest1 ot lena)
+  (#fa #fb #fc : perm)
+  ()
+  norewrite
+  requires
+    (a |-> Frac fa sa) ** (b |-> Frac fb sb) ** (c |-> Frac fc sc) ** (output |-> so)
+  ensures
+    ((a |-> Frac (fa *. 1.0R) sa) **
+      ((b |-> Frac (fb *. 1.0R) sb) ** (c |-> Frac (fc *. 1.0R) sc))) **
+    (output |-> so)
+{
+  ()
+}
+
+ghost
+fn map3_to_kd_post
+  (#at #bt #ct #ot : Type0)
+  (f : at -> bt -> ct -> ot)
+  (#lena : erased nat)
+  (#la : layout1 lena) (#lb : layout1 lena) (#lc : layout1 lena) (#lo : layout1 lena)
+  (a : array1 at la) (b : array1 bt lb) (c : array1 ct lc) (output : array1 ot lo)
+  (#sa : chest1 at lena) (#sb : chest1 bt lena) (#sc : chest1 ct lena)
+  (#so : chest1 ot lena)
+  (#fa #fb #fc : perm)
+  ()
+  norewrite
+  requires
+    ((a |-> Frac (fa *. 1.0R) sa) **
+      ((b |-> Frac (fb *. 1.0R) sb) ** (c |-> Frac (fc *. 1.0R) sc))) **
+    (exists* so'. (output |-> so') **
+       pure (chest_foralli (fun i x -> x == f (acc sa i) (acc sb i) (acc sc i)) so'))
+  ensures
+    (a |-> Frac fa sa) ** (b |-> Frac fb sb) ** (c |-> Frac fc sc) **
+    (output |-> mk1 (fun i -> f (acc1 sa i) (acc1 sb i) (acc1 sc i)))
+{
+  with so'. assert (output |-> so');
+  assert pure (equal so' (mk1 (fun i -> f (acc1 sa i) (acc1 sb i) (acc1 sc i))));
+  ()
+}
+
+inline_for_extraction noextract
+let map3_to_kd
+  (#at #bt #ct #ot : Type0)
+  (f : at -> bt -> ct -> ot)
+  (lena : szp { lena <= max_blocks * max_threads /\ lena > 0 })
+  (#la : layout1 lena) {| ctlayout la |}
+  (#lb : layout1 lena) {| ctlayout lb |}
+  (#lc : layout1 lena) {| ctlayout lc |}
+  (#lo : layout1 lena) {| ctlayout lo |}
+  (a : array1 at la { is_global a })
+  (b : array1 bt lb { is_global b })
+  (c : array1 ct lc { is_global c })
+  (output : array1 ot lo { is_global output })
+  (#sa : chest1 at lena) (#sb : chest1 bt lena) (#sc : chest1 ct lena)
+  (#so : chest1 ot lena)
+  (#fa #fb #fc : perm)
+  : kernel_desc
+      ((a |-> Frac fa sa) ** (b |-> Frac fb sb) ** (c |-> Frac fc sc) ** (output |-> so))
+      ((a |-> Frac fa sa) ** (b |-> Frac fb sb) ** (c |-> Frac fc sc) **
+        (output |-> mk1 (fun i -> f (acc1 sa i) (acc1 sb i) (acc1 sc i))))
+  = kd_weaken
+      (TMap.kmap
+        (CCons lena CNil)
+        (fun fr -> (a |-> Frac (fa *. fr) sa) ** ((b |-> Frac (fb *. fr) sb) ** (c |-> Frac (fc *. fr) sc)))
+        #(triple_shareable
+            (fun fr -> a |-> Frac fr sa)
+            (fun fr -> b |-> Frac fr sb)
+            (fun fr -> c |-> Frac fr sc)
+            fa fb fc)
+        (fun i _ r -> r == f (acc sa i) (acc sb i) (acc sc i))
+        (ff3_to f a b c)
+        lena output #so #_ #1.0R)
+      (map3_to_kd_pre a b c output #sa #sb #sc #so #fa #fb #fc)
+      (map3_to_kd_post f a b c output #sa #sb #sc #so #fa #fb #fc)
 
 inline_for_extraction noextract
 fn map_gpu3_to

@@ -1,5 +1,6 @@
 module Kuiper.Tensor.Layout
 
+open FStar.Tactics.Typeclasses { no_method }
 open Kuiper
 open Kuiper.Injection
 open Kuiper.Shape

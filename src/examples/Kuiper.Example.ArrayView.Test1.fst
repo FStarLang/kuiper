@@ -108,7 +108,7 @@ fn test (a : varray (normal_view u32 50))
   requires a |-> N 's
   returns  u32
   ensures  a |-> N 's
-{ varray_read #_ #_ #_ #solve_debug a 0sz; }
+{ varray_read #_ #_ #_ #solve_debug a (coerce_eq #_ #_ () (0sz <: SZ.szlt 50)); }
 
 inline_for_extraction noextract
 instance _ : concrete_sz 50 = { x = 50sz; }
@@ -118,14 +118,14 @@ fn test2 (a : varray (reverse_view u32 50sz))
   requires a |-> R 's
   returns  u32
   ensures  a |-> R 's
-{ varray_read #_ #_ #_ #(creverse_view _ _ #_) a 0sz; }
+{ varray_read #_ #_ #_ #(creverse_view _ _ #_) a (coerce_eq #_ #_ () (0sz <: SZ.szlt 50)); }
 
 fn write1 (a : varray (normal_view u32 50sz))
   preserves gpu
   requires  a |-> N 's
   ensures   a |-> N (Seq.upd 's 0 123ul)
 {
-  varray_write a 0sz 123ul;
+  varray_write a (coerce_eq #_ #_ () (0sz <: SZ.szlt 50)) 123ul;
 }
 
 fn write2 (a : varray (reverse_view u32 50sz))
@@ -134,7 +134,7 @@ fn write2 (a : varray (reverse_view u32 50sz))
   requires a |-> R s
   ensures  a |-> R (Seq.upd s 0 123ul)
 {
-  varray_write a 0sz 123ul;
+  varray_write a (coerce_eq #_ #_ () (0sz <: SZ.szlt 50)) 123ul;
   // varray_write #_ #_ #_ #_ #(creverse_view _ _) a 0sz 123ul;
   // assert (pure (Seq.equal
   //                (R?._0 ((reverse_view u32 50).ctn.upd (R s) (ci_to_ai (reverse_view u32 50) #(creverse_view u32 50sz) 0sz) 123ul))

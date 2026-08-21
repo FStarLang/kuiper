@@ -14,6 +14,15 @@ open Kuiper.Tensor
 module SZ = Kuiper.SizeT
 module CV = Kuiper.Kernel.GEMM.Copy.Vec2
 
+(* [bp_sharing] is [m |-> Frac (1.0R /. nthr) em], which reaches [tensor_pts_to]
+   only after unfolding the [pts_to] typeclass instances.  These reductions no
+   longer happen inside the SMT-level slprop equality, so we do them by hand. *)
+let unfold_bp_sharing () : FStar.Tactics.V2.Tac unit =
+  FStar.Tactics.V2.norm [delta_attr [`%Pulse.Lib.Core.pulse_unfold];
+                         delta_only [`%bp_sharing];
+                         zeta; iota; primops];
+  Pulse.Lib.Core.slprop_equiv_norm ()
+
 (* ---- Strided chunk operations for Array2 ---- *)
 
 ghost
@@ -155,7 +164,10 @@ fn bp_sharing_to_own_strided_chunks
     forall+ (tid : natlt nthr).
       own_strided_chunks (from_array l sar) em nthr tid
 {
-  tensor_gather_n (from_array l sar) nthr;
+  rewrite (forall+ (_tid : natlt nthr). bp_sharing (from_array l sar) em nthr)
+       as (forall+ (_tid : natlt nthr). tensor_pts_to (from_array l sar) #(1.0R /. nthr) em)
+       by unfold_bp_sharing ();
+  tensor_gather_n (from_array l sar) nthr #1.0R;
   split_array2_into_strided_chunks (from_array l sar) nthr;
 }
 
@@ -176,7 +188,10 @@ fn own_strided_chunks_to_bp_sharing
       bp_sharing (from_array l sar) em nthr
 {
   join_array2_from_strided_chunks (from_array l sar) nthr;
-  tensor_share_n (from_array l sar) nthr;
+  tensor_share_n (from_array l sar) nthr #1.0R;
+  rewrite (forall+ (_tid : natlt nthr). tensor_pts_to (from_array l sar) #(1.0R /. nthr) em)
+       as (forall+ (_tid : natlt nthr). bp_sharing (from_array l sar) em nthr)
+       by unfold_bp_sharing ();
 }
 
 ghost
@@ -197,7 +212,12 @@ fn bp_sharing_to_own_strided_chunks_underspec
       exists* em.
         own_strided_chunks (from_array l sar) em nthr tid
 {
-  tensor_gather_n_underspec (from_array l sar) nthr;
+  rewrite (forall+ (_tid : natlt nthr). exists* (em : chest2 et rows cols).
+             bp_sharing (from_array l sar) em nthr)
+       as (forall+ (_tid : natlt nthr). exists* (em : chest2 et rows cols).
+             tensor_pts_to (from_array l sar) #(1.0R /. nthr) em)
+       by unfold_bp_sharing ();
+  tensor_gather_n_underspec (from_array l sar) nthr #1.0R;
   with em. assert from_array l sar |-> em;
   split_array2_into_strided_chunks (from_array l sar) nthr;
   forevery_map
@@ -225,33 +245,37 @@ fn own_strided_chunks_to_bp_sharing_underspec
 {
   join_array2_from_strided_chunks_underspec (from_array l sar) nthr;
   with em. assert from_array l sar |-> em;
-  tensor_share_n (from_array l sar) nthr;
+  tensor_share_n (from_array l sar) nthr #1.0R;
+  rewrite (forall+ (_tid : natlt nthr). tensor_pts_to (from_array l sar) #(1.0R /. nthr) em)
+       as (forall+ (_tid : natlt nthr). bp_sharing (from_array l sar) em nthr)
+       by unfold_bp_sharing ();
   forevery_map
-    (fun (tid : natlt nthr) -> from_array l sar |-> Frac (1.0R /. nthr) em)
+    (fun (tid : natlt nthr) -> bp_sharing (from_array l sar) em nthr)
     (fun (tid : natlt nthr) -> exists* em. bp_sharing (from_array l sar) em nthr)
-    fn tid { fold bp_sharing (from_array l sar) em nthr; };
+    fn tid { };
 }
 
 (* ---- Even/odd barrier transforms ---- *)
 
 ghost
 fn even_barrier_p_to_q
-  (#et : Type0) {| sized et, has_vec_cpy et |}
+  (#etA : Type0) (#etB : Type0)
+  {| sized etA, has_vec_cpy etA, sized etB, has_vec_cpy etB |}
   (#rows #shared #cols : pos)
-  (eA : chest2 et rows shared)
-  (eB : chest2 et shared cols)
+  (eA : chest2 etA rows shared)
+  (eB : chest2 etB shared cols)
   (#bm : pos{bm /?+ rows})
   (#bk : pos{bk /?+ shared})
   (#bn : pos{bn /?+ cols})
   (l1 : full_layout2 bm bk)
   (l2 : full_layout2 bk bn)
-  (sar1 : larray et (bm * bk))
-  (sar2 : larray et (bk * bn))
+  (sar1 : larray etA (bm * bk))
+  (sar2 : larray etB (bk * bn))
   (nthr : pos)
-  (#_ : squash (chunk et /?+ bn))
-  (#_ : squash (chunk et /?+ bk))
-  (#_ : squash (chunk et * nthr /?+ (bm * bk)))
-  (#_ : squash (chunk et * nthr /?+ (bk * bn)))
+  (#_ : squash (chunk etB /?+ bn))
+  (#_ : squash (chunk etA /?+ bk))
+  (#_ : squash (chunk etA * nthr /?+ (bm * bk)))
+  (#_ : squash (chunk etB * nthr /?+ (bk * bn)))
   requires
     forall+ (tid : natlt nthr).
       (exists* em1. bp_sharing (from_array l1 sar1) em1 nthr) **
@@ -270,24 +294,25 @@ fn even_barrier_p_to_q
 
 ghost
 fn odd_barrier_p_to_q
-  (#et : Type0) {| sized et, has_vec_cpy et |}
+  (#etA : Type0) (#etB : Type0)
+  {| sized etA, has_vec_cpy etA, sized etB, has_vec_cpy etB |}
   (#rows #shared #cols : pos)
-  (eA : chest2 et rows shared)
-  (eB : chest2 et shared cols)
+  (eA : chest2 etA rows shared)
+  (eB : chest2 etB shared cols)
   (#bm : pos{bm /?+ rows})
   (#bk : pos{bk /?+ shared})
   (#bn : pos{bn /?+ cols})
   (l1 : full_layout2 bm bk)
   (l2 : full_layout2 bk bn)
-  (sar1 : larray et (bm * bk))
-  (sar2 : larray et (bk * bn))
+  (sar1 : larray etA (bm * bk))
+  (sar2 : larray etB (bk * bn))
   (nthr : pos)
   (bid : natlt (rows/bm * (cols/bn)))
   (it : natlt (2 * (shared / bk)))
-  (#_ : squash (chunk et /?+ bn))
-  (#_ : squash (chunk et /?+ bk))
-  (#_ : squash (chunk et * nthr /?+ (bm * bk)))
-  (#_ : squash (chunk et * nthr /?+ (bk * bn)))
+  (#_ : squash (chunk etB /?+ bn))
+  (#_ : squash (chunk etA /?+ bk))
+  (#_ : squash (chunk etA * nthr /?+ (bm * bk)))
+  (#_ : squash (chunk etB * nthr /?+ (bk * bn)))
   (#_ : squash (SZ.fits (l1.ulen)))
   (#_ : squash (SZ.fits (l2.ulen)))
   requires
@@ -312,23 +337,24 @@ fn odd_barrier_p_to_q
 
 ghost
 fn barrier_p_to_q_transform
-  (#et : Type0) {| sized et, has_vec_cpy et |}
+  (#etA : Type0) (#etB : Type0)
+  {| sized etA, has_vec_cpy etA, sized etB, has_vec_cpy etB |}
   (#rows #shared #cols : pos)
-  (eA : chest2 et rows shared)
-  (eB : chest2 et shared cols)
+  (eA : chest2 etA rows shared)
+  (eB : chest2 etB shared cols)
   (#bm : pos{bm /?+ rows})
   (#bk : pos{bk /?+ shared})
   (#bn : pos{bn /?+ cols})
   (l1 : full_layout2 bm bk)
   (l2 : full_layout2 bk bn)
-  (sar1 : larray et (bm * bk))
-  (sar2 : larray et (bk * bn))
+  (sar1 : larray etA (bm * bk))
+  (sar2 : larray etB (bk * bn))
   (nthr : pos)
   (bid : natlt (rows/bm * (cols/bn)))
-  (#_ : squash (chunk et /?+ bn))
-  (#_ : squash (chunk et /?+ bk))
-  (#_ : squash (chunk et * nthr /?+ (bm * bk)))
-  (#_ : squash (chunk et * nthr /?+ (bk * bn)))
+  (#_ : squash (chunk etB /?+ bn))
+  (#_ : squash (chunk etA /?+ bk))
+  (#_ : squash (chunk etA * nthr /?+ (bm * bk)))
+  (#_ : squash (chunk etB * nthr /?+ (bk * bn)))
   (#_ : squash (SZ.fits (l1.ulen)))
   (#_ : squash (SZ.fits (l2.ulen)))
   (it : nat)
@@ -423,20 +449,42 @@ fn barrier_p_to_q_transform
 
 (* ---- Per-thread fold/unfold helpers ---- *)
 
+(* Arithmetic facts needed to reduce the guards of [barrier_p]/[barrier_q] on
+   the concrete iterations [2*bkIdx] / [2*bkIdx+1].  They are stated with
+   triggers because the guards are re-checked wherever those definitions are
+   unfolded. *)
+#push-options "--fuel 0 --ifuel 0 --z3rlimit 20"
+let double_quot (shared bk : nat)
+  : Lemma (requires bk > 0 /\ shared % bk = 0)
+          (ensures 2 * shared / bk == 2 * (shared / bk))
+          [SMTPat (2 * shared / bk)]
+  = let q = shared / bk in
+    FStar.Math.Lemmas.lemma_div_exact shared bk;
+    assert (2 * shared == (2 * q) * bk);
+    FStar.Math.Lemmas.multiple_division_lemma (2 * q) bk
+
+let half_of_2x (x : nat) : Lemma ((2 * x) / 2 == x) [SMTPat ((2 * x) / 2)]
+  = FStar.Math.Lemmas.cancel_mul_div x 2
+
+let half_of_2x1 (x : nat) : Lemma ((2 * x + 1) / 2 == x) [SMTPat ((2 * x + 1) / 2)]
+  = FStar.Math.Lemmas.division_addition_lemma 1 2 x
+#pop-options
+
 #push-options "--fuel 2"
 ghost
 fn fold_barrier_p_odd
-  (#et : Type0) {| sized et, has_vec_cpy et |}
+  (#etA : Type0) (#etB : Type0)
+  {| sized etA, has_vec_cpy etA, sized etB, has_vec_cpy etB |}
   (#rows #shared #cols : pos)
-  (eA : chest2 et rows shared)
-  (eB : chest2 et shared cols)
+  (eA : chest2 etA rows shared)
+  (eB : chest2 etB shared cols)
   (#bm : pos{bm /?+ rows})
   (#bk : pos{bk /?+ shared})
   (#bn : pos{bn /?+ cols})
   (#l1 : layout2 bm bk)
   (#l2 : layout2 bk bn)
-  (m1 : array2 et l1)
-  (m2 : array2 et l2)
+  (m1 : array2 etA l1)
+  (m2 : array2 etB l2)
   (nthr : pos)
   (bid : natlt (rows/bm * (cols/bn)))
   (mrow : nat{mrow == bid / (cols/bn)})
@@ -460,17 +508,18 @@ fn fold_barrier_p_odd
 #push-options "--fuel 2"
 ghost
 fn unfold_barrier_q_odd
-  (#et : Type0) {| sized et, has_vec_cpy et |}
+  (#etA : Type0) (#etB : Type0)
+  {| sized etA, has_vec_cpy etA, sized etB, has_vec_cpy etB |}
   (#rows #shared #cols : pos)
-  (eA : chest2 et rows shared)
-  (eB : chest2 et shared cols)
+  (eA : chest2 etA rows shared)
+  (eB : chest2 etB shared cols)
   (#bm : pos{bm /?+ rows})
   (#bk : pos{bk /?+ shared})
   (#bn : pos{bn /?+ cols})
   (#l1 : layout2 bm bk)
   (#l2 : layout2 bk bn)
-  (m1 : array2 et l1)
-  (m2 : array2 et l2)
+  (m1 : array2 etA l1)
+  (m2 : array2 etB l2)
   (nthr : pos)
   (bid : natlt (rows/bm * (cols/bn)))
   (mrow : nat{mrow == bid / (cols/bn)})
@@ -494,17 +543,18 @@ fn unfold_barrier_q_odd
 #push-options "--fuel 2"
 ghost
 fn fold_barrier_p_even
-  (#et : Type0) {| sized et, has_vec_cpy et |}
+  (#etA : Type0) (#etB : Type0)
+  {| sized etA, has_vec_cpy etA, sized etB, has_vec_cpy etB |}
   (#rows #shared #cols : pos)
-  (eA : chest2 et rows shared)
-  (eB : chest2 et shared cols)
+  (eA : chest2 etA rows shared)
+  (eB : chest2 etB shared cols)
   (#bm : pos{bm /?+ rows})
   (#bk : pos{bk /?+ shared})
   (#bn : pos{bn /?+ cols})
   (#l1 : layout2 bm bk)
   (#l2 : layout2 bk bn)
-  (m1 : array2 et l1)
-  (m2 : array2 et l2)
+  (m1 : array2 etA l1)
+  (m2 : array2 etB l2)
   (nthr : pos)
   (bid : natlt (rows/bm * (cols/bn)))
   (bkIdx : natlt (shared / bk))
@@ -526,17 +576,18 @@ fn fold_barrier_p_even
 #push-options "--fuel 2"
 ghost
 fn unfold_barrier_q_even
-  (#et : Type0) {| sized et, has_vec_cpy et |}
+  (#etA : Type0) (#etB : Type0)
+  {| sized etA, has_vec_cpy etA, sized etB, has_vec_cpy etB |}
   (#rows #shared #cols : pos)
-  (eA : chest2 et rows shared)
-  (eB : chest2 et shared cols)
+  (eA : chest2 etA rows shared)
+  (eB : chest2 etB shared cols)
   (#bm : pos{bm /?+ rows})
   (#bk : pos{bk /?+ shared})
   (#bn : pos{bn /?+ cols})
   (#l1 : layout2 bm bk)
   (#l2 : layout2 bk bn)
-  (m1 : array2 et l1)
-  (m2 : array2 et l2)
+  (m1 : array2 etA l1)
+  (m2 : array2 etB l2)
   (nthr : pos)
   (bid : natlt (rows/bm * (cols/bn)))
   (bkIdx : natlt (shared / bk))

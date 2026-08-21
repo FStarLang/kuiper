@@ -15,7 +15,7 @@ open Kuiper.Kernel.RowSoftmax { row_softmax_real, row_softmax_gpu }
 open Kuiper.Bijection
 module C = Kuiper.Matrix.Casts
 
-#set-options "--split_queries always"
+#set-options ""
 
 (* The 1<->2 index bijection used to view a flat array as a 1-row matrix
    (same as in [Kuiper.Kernel.Reduce]). *)

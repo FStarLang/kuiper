@@ -173,7 +173,11 @@ let sphi_rel_inj (#et : Type0) (#r : erased nat) (di do : shape r { shape_le di 
       : Lemma (requires (sphi #et di do dim eIdx i1 == x /\ sphi #et di do dim eIdx i2 == x))
               (ensures  i1 == i2)
       = sphi_inj #et di do dim eIdx eIdxInj i1 i2 in
-    Classical.forall_intro_3 (fun i1 i2 x -> Classical.move_requires (aux i1 i2) x)
+    (* F* master cannot infer the predicate implicit of [forall_intro_3] (it
+       occurs only in the postcondition), so state the goal explicitly. *)
+    introduce forall (i1 i2 : abs di) (x : abs do).
+      (sphi #et di do dim eIdx i1 == x /\ sphi #et di do dim eIdx i2 == x) ==> i1 == i2
+    with introduce _ ==> _ with aux i1 i2 x
 
 (* ---------------------------------------------------------------------------
    The scatter kernel, built as a `kernel_desc_n` à la Kuiper.Kernel.TMap.kmap,
@@ -397,6 +401,84 @@ let scatter_kernel
     kpost_sendable = magic ();
     kpre_sendable  = magic ();
   } <: kernel_desc_n _ _
+
+ghost
+fn scatter_kd_pre
+  (#et : Type0) (#r : erased nat) (#di : shape r) (#do : shape r)
+  (cdi : cshape di)
+  (#lInp #lIdx : tlayout di) (#lOut : tlayout do) {| ctlayout lInp, ctlayout lIdx |}
+  (dim : szlt r)
+  (gInp : tensor et lInp { is_global gInp })
+  (gIdx : tensor (szlt (do @! (SZ.v dim))) lIdx { is_global gIdx })
+  (gOut : tensor et lOut)
+  (eInp : chest di et)
+  (eIdx : chest di (szlt (do @! (SZ.v dim))))
+  (#eOut : chest do et)
+  (fInp fIdx : perm)
+  ()
+  norewrite
+  requires
+    (gInp |-> Frac fInp eInp) ** (gIdx |-> Frac fIdx eIdx) ** (gOut |-> eOut)
+  ensures
+    scatter_frame di cdi #lInp #lIdx gInp gIdx eInp eIdx fInp fIdx (fInp +. fIdx) **
+    (gOut |-> eOut)
+{
+  ()
+}
+
+ghost
+fn scatter_kd_post
+  (#et : Type0) (#r : erased nat) (#di : shape r) (#do : shape r { shape_le di do })
+  (cdi : cshape di)
+  (#lInp #lIdx : tlayout di) (#lOut : tlayout do) {| ctlayout lInp, ctlayout lIdx |}
+  (dim : szlt r)
+  (gInp : tensor et lInp { is_global gInp })
+  (gIdx : tensor (szlt (do @! (SZ.v dim))) lIdx { is_global gIdx })
+  (gOut : tensor et lOut)
+  (eInp : chest di et)
+  (eIdx : chest di (szlt (do @! (SZ.v dim))))
+  (fInp fIdx : perm)
+  ()
+  norewrite
+  requires
+    scatter_frame di cdi #lInp #lIdx gInp gIdx eInp eIdx fInp fIdx (fInp +. fIdx) **
+    (exists* eOut'. (gOut |-> eOut') **
+       pure (vscatter_chest di do (SZ.v dim) eInp eIdx eOut'))
+  ensures
+    (gInp |-> Frac fInp eInp) ** (gIdx |-> Frac fIdx eIdx) **
+    (exists* eOut'. (gOut |-> eOut') **
+       pure (vscatter_chest di do (SZ.v dim) eInp eIdx eOut'))
+{
+  ()
+}
+
+inline_for_extraction noextract
+let scatter_kd
+  (#et : Type0) (#r : erased nat) (di do : shape r { shape_le di do }) (cdi : cshape di) (cdo : cshape do)
+  (dim : szlt r)
+  (#lInp #lIdx : tlayout di) (#lOut : tlayout do) {| ctlayout lInp, ctlayout lIdx, ctlayout lOut |}
+  (gInp : tensor et lInp { is_global gInp })
+  (gIdx : tensor (szlt (do @! (SZ.v dim))) lIdx { is_global gIdx })
+  (gOut : tensor et lOut { is_global gOut })
+  (n : sz { SZ.v n == sizeof di /\ n <= max_blocks * max_threads /\ n > 0 })
+  (eInp : chest di et)
+  (eIdx : chest di (szlt (do @! (SZ.v dim))) { chest_inj di do (SZ.v dim) eIdx })
+  (#eOut : chest do et)
+  (#fInp #fIdx : perm)
+  : kernel_desc
+      ((gInp |-> Frac fInp eInp) **
+        (gIdx |-> Frac fIdx (eIdx <: chest di (szlt (do @! (SZ.v dim))))) ** (gOut |-> eOut))
+      ((gInp |-> Frac fInp eInp) **
+        (gIdx |-> Frac fIdx (eIdx <: chest di (szlt (do @! (SZ.v dim))))) **
+        (exists* eOut'. (gOut |-> eOut') **
+           pure (vscatter_chest di do (SZ.v dim) eInp eIdx eOut')))
+  = let eIdxInj : (i : abs di -> (j : abs di { acc eIdx i == acc eIdx j }) -> squash (i == j)) =
+      (fun i j -> ()) in
+    kd_weaken
+      (scatter_kernel di do cdi cdo dim #lInp #lIdx #lOut gInp gIdx gOut n eInp eIdx eIdxInj
+         fInp fIdx #eOut #(fInp +. fIdx))
+      (scatter_kd_pre #et #r #di #do cdi #lInp #lIdx #lOut dim gInp gIdx gOut eInp eIdx #eOut fInp fIdx)
+      (scatter_kd_post #et #r #di #do cdi #lInp #lIdx #lOut dim gInp gIdx gOut eInp eIdx fInp fIdx)
 
 inline_for_extraction noextract
 fn scatter_gpu

@@ -1,5 +1,7 @@
 module Kuiper.Kernel.GEMM.SHMem
 
+open Kuiper.Kernel.GEMMGPU.Type
+open Kuiper.Chest { chest2, chest3 }
 #lang-pulse
 
 open Kuiper
@@ -18,6 +20,70 @@ module C = Kuiper.Matrix.Casts
 open Kuiper.Bijection
 open Kuiper.Chest
 module Chest = Kuiper.Chest
+
+(* The [pts_to] typeclass projection (and the [live_c_shmem] match on a concrete
+   [shmem_desc]) no longer reduce inside the SMT-level slprop equality, so we
+   discharge those [rewrite]s by normalization instead. *)
+let unfold_live_c_shmem_eq () : FStar.Tactics.V2.Tac unit =
+  FStar.Tactics.V2.norm [delta_attr [`%Pulse.Lib.Core.pulse_unfold];
+                         delta_only [`%Kuiper.SHMem.live_c_shmem];
+                         zeta; iota; primops];
+  Pulse.Lib.Core.slprop_equiv_norm ()
+
+(* [%~] on a [chest2] quantifies over the *flat* index, so Z3 no longer chases
+   that forall through [ematrix_subtile]'s own [mk2]; do the hop explicitly. *)
+let ematrix_subtile_approximates
+  (#et : Type0) {| scalar et, real_like et |}
+  (#rows #cols : nat)
+  (m1 : chest2 et rows cols)
+  (m2 : chest2 real rows cols)
+  (trows : pos {trows /? rows})
+  (tcols : pos {tcols /? cols})
+  (tr : natlt (rows / trows))
+  (tc : natlt (cols / tcols))
+  : Lemma (requires m1 %~ m2)
+          (ensures ematrix_subtile m1 trows tcols tr tc
+                   %~ ematrix_subtile m2 trows tcols tr tc)
+  = ()
+
+(* ── in-range facts for the tile index arithmetic ──────────────────────────
+   [bkpost1] (an [unfold] definition) indexes the per-page spec at
+   [(rest/mcols)*tile + tid/tile] / [(rest%mcols)*tile + tid%tile], so every use
+   site regenerates these nonlinear in-range obligations.  Since F* now emits one
+   SMT query per obligation, we prove them once and expose them as triggered
+   lemmas. *)
+#push-options "--fuel 0 --ifuel 0 --z3rlimit 40"
+let div_lt_bound (x : nat) (a b : pos)
+  : Lemma (requires x < a * b) (ensures x / a < b)
+  = FStar.Math.Lemmas.lemma_div_mod x a;
+    if x / a >= b then FStar.Math.Lemmas.lemma_mult_le_right a b (x / a)
+
+(* [ematrix_subtile] indices live in [(n * tile) / tile]; expose the
+   cancellation as a rewrite rule for all use sites. *)
+let cancel_tile_div (n tile : nat)
+  : Lemma (requires tile > 0) (ensures n * tile / tile == n)
+          [SMTPat (n * tile / tile)]
+  = FStar.Math.Lemmas.cancel_mul_div n tile
+
+let tile_grow_bound (batch mrows mcols tile bid i : nat)
+  : Lemma (requires batch > 0 /\ mrows > 0 /\ mcols > 0 /\ tile > 0 /\
+                    bid < batch * (mrows * mcols) /\ i < tile * tile)
+          (ensures bid / batch / mcols * tile + i / tile < mrows * tile)
+          [SMTPat (bid / batch / mcols * tile + i / tile); SMTPat (mrows * tile)]
+  = div_lt_bound bid batch (mrows * mcols);
+    div_lt_bound (bid / batch) mcols mrows;
+    div_lt_bound i tile tile;
+    FStar.Math.Lemmas.distributivity_add_left (bid / batch / mcols) 1 tile;
+    FStar.Math.Lemmas.lemma_mult_le_right tile (bid / batch / mcols + 1) mrows
+
+let tile_gcol_bound (mcols tile r i : nat)
+  : Lemma (requires mcols > 0 /\ tile > 0 /\ i < tile * tile)
+          (ensures r % mcols * tile + i % tile < mcols * tile)
+          [SMTPat (r % mcols * tile + i % tile)]
+  = FStar.Math.Lemmas.lemma_mod_lt r mcols;
+    FStar.Math.Lemmas.distributivity_add_left (r % mcols) 1 tile;
+    FStar.Math.Lemmas.lemma_mult_le_right tile (r % mcols + 1) mcols
+#pop-options
 
 let live_cell
   (#et : Type0)
@@ -107,6 +173,11 @@ let barrier_p_cell
     else
       let mrow = bid / mcols in
       let mcol = bid % mcols in
+      (* [ematrix_subtile] wants indices below [(mrows*tile)/tile] etc.;
+         supply the cancellation facts explicitly (nonlinear div). *)
+      FStar.Math.Lemmas.cancel_mul_div mrows (SZ.v tile);
+      FStar.Math.Lemmas.cancel_mul_div mshared (SZ.v tile);
+      FStar.Math.Lemmas.cancel_mul_div mcols (SZ.v tile);
       tensor_pts_to_cell sa1 (idx2 (tid/tile) (tid%tile)) (acc2 (Chest.chest_map mapA (ematrix_subtile eA tile tile mrow (it / 2))) (tid/tile) (tid%tile)) **
       tensor_pts_to_cell sa2 (idx2 (tid/tile) (tid%tile)) (acc2 (Chest.chest_map mapB (ematrix_subtile eB tile tile (it / 2) mcol)) (tid/tile) (tid%tile))
 
@@ -173,6 +244,10 @@ let barrier_q_cell
     else
       let mrow = bid / mcols in
       let mcol = bid % mcols in
+      (* same cancellation facts as in [barrier_p_cell] *)
+      FStar.Math.Lemmas.cancel_mul_div mrows (SZ.v tile);
+      FStar.Math.Lemmas.cancel_mul_div mshared (SZ.v tile);
+      FStar.Math.Lemmas.cancel_mul_div mcols (SZ.v tile);
       sa1 |-> Frac (1.0R /. (tile * tile)) (Chest.chest_map mapA (ematrix_subtile eA tile tile mrow (it / 2))) **
       sa2 |-> Frac (1.0R /. (tile * tile)) (Chest.chest_map mapB (ematrix_subtile eB tile tile (it / 2) mcol))
 
@@ -193,7 +268,7 @@ let shmem_contract
     rout = barrier_q_cell mapA mapB tile eA eB bid sa1 sa2;
   }
 
-#push-options "--z3rlimit 80 --fuel 0 --ifuel 0"
+#push-options "--z3rlimit 40 --fuel 0 --ifuel 0"
 ghost
 fn barrier_p_to_q_cell_transform
   (#ta #tb #tacc : Type0) {| scalar tacc |}
@@ -403,7 +478,7 @@ let chest_slice_approx
     with ()
 
 (* The value at the direct arithmetic cell equals the acc2 of the page slice at grow/gcol. *)
-#push-options "--split_queries always"
+#push-options ""
 let acc_bridge
   (#tc : Type0)
   (batch mrows mcols tile : nat)
@@ -433,6 +508,7 @@ let sbtile_gg_full (batch mrows mcols tile : nat)
   = assert_norm ((sbtile_idx_bij batch mrows mcols tile).gg (bid, tid)
                    == sbtile_cell_idx batch mrows mcols tile bid tid)
 
+#push-options "--z3rlimit 20"
 let sbtile_gg_all (batch mrows mcols tile : nat)
   : Lemma (forall (bid : natlt (batch * (mrows * mcols))) (tid : natlt (tile * tile)).
              (sbtile_idx_bij batch mrows mcols tile).gg (bid, tid)
@@ -442,6 +518,7 @@ let sbtile_gg_all (batch mrows mcols tile : nat)
         (sbtile_idx_bij batch mrows mcols tile).gg (bid, tid)
           == sbtile_cell_idx batch mrows mcols tile bid tid
       with sbtile_gg_full batch mrows mcols tile bid tid
+#pop-options
 
 (* A cell of the batched combined spec equals the per-page rank-2 [ggemm_single]
    cell.  Reduces the rank-3 [gbmmcomb] obligation cellwise/pagewise. *)
@@ -636,7 +713,18 @@ let bkpost
   live_c_shmems sh #(1.0R /. (tile * tile))
 
 (* ─── batched thread function (page-batched barrier GEMM) ──────────────────── *)
-#push-options "--z3rlimit 200 --fuel 1 --ifuel 1"
+(* [bk * tile <= mshared * tile] whenever [bk <= mshared]. [bkf]'s k-loop needs
+   this at three places, one of them the loop invariant itself -- which Pulse
+   typechecks with the counter universally quantified, so the bound cannot come
+   from a lemma call in the loop body. Nonlinear, hence stated with a pattern;
+   the two-term pattern keeps it from firing on unrelated products. *)
+let lemma_tile_scale_le (tile bk mshared : nat)
+  : Lemma (requires bk <= mshared)
+          (ensures bk * tile <= mshared * tile)
+          [SMTPat (bk * tile); SMTPat (mshared * tile)]
+  = FStar.Math.Lemmas.lemma_mult_le_right tile bk mshared
+
+#push-options "--z3rlimit 40 --fuel 1 --ifuel 1 --z3refresh"
 inline_for_extraction noextract
 fn bkf
   (tile : valid_tile)
@@ -703,9 +791,11 @@ fn bkf
   let (ar1, (ar2, _)) = sh;
 
   rewrite (live_c_shmem ar1 #(1.0R /. (tile * tile)))
-      as  (exists* v. pts_to ar1 #(1.0R /. (tile * tile)) v);
+      as  (exists* v. pts_to ar1 #(1.0R /. (tile * tile)) v)
+      by unfold_live_c_shmem_eq ();
   rewrite (live_c_shmem ar2 #(1.0R /. (tile * tile)))
-      as  (exists* v. pts_to ar2 #(1.0R /. (tile * tile)) v);
+      as  (exists* v. pts_to ar2 #(1.0R /. (tile * tile)) v)
+      by unfold_live_c_shmem_eq ();
 
   gpu_pts_to_ref ar1;
   gpu_pts_to_ref ar2;
@@ -764,6 +854,10 @@ fn bkf
   let mut sum : tacc = zero;
   let mut bk  : szle mshared = 0sz;
 
+  FStar.Matrix.flattened_index_is_under_flattened_size
+    (SZ.v mrows) (SZ.v tile) (SZ.v mrow) (SZ.v brow);
+  FStar.Matrix.flattened_index_is_under_flattened_size
+    (SZ.v mcols) (SZ.v tile) (SZ.v mcol) (SZ.v bcol);
   let grow : erased (natlt (mrows * tile)) = hide (SZ.v mrow * SZ.v tile + SZ.v brow);
   let gcol : erased (natlt (mcols * tile)) = hide (SZ.v mcol * SZ.v tile + SZ.v bcol);
 
@@ -774,12 +868,14 @@ fn bkf
     invariant live sa2 #(1.0R /. (tile * tile))
     decreases (mshared - !bk)
   {
-    array2_extract_tile_ro #ta #(mrows * tile) #(mshared * tile) gA_p tile tile mrow !bk;
-    let aTile = array2_subtile #ta #(mrows * tile) #(mshared * tile) gA_p (SZ.v tile) (SZ.v tile) (SZ.v mrow) (SZ.v !bk);
-    assert rewrites_to aTile (array2_subtile #ta #(mrows * tile) #(mshared * tile) gA_p (SZ.v tile) (SZ.v tile) (SZ.v mrow) (SZ.v !bk));
-    array2_extract_tile_ro #tb #(mshared * tile) #(mcols * tile) gB_p tile tile !bk mcol;
-    let bTile = array2_subtile #tb #(mshared * tile) #(mcols * tile) gB_p (SZ.v tile) (SZ.v tile) (SZ.v !bk) (SZ.v mcol);
-    assert rewrites_to bTile (array2_subtile #tb #(mshared * tile) #(mcols * tile) gB_p (SZ.v tile) (SZ.v tile) (SZ.v !bk) (SZ.v mcol));
+    (* Return the read-only view and its [rewrites_to] fact together.  Keeping
+       the erased tile indices out of the ambient loop context is important:
+       rebuilding the same subtile term separately makes every subsequent
+       invariant-maintenance query substantially more expensive. *)
+    let aTile = array2_extract_tile_ro' gA_p
+      (SZ.v tile) (SZ.v tile) (SZ.v mrow) (SZ.v !bk);
+    let bTile = array2_extract_tile_ro' gB_p
+      (SZ.v tile) (SZ.v tile) (SZ.v !bk) (SZ.v mcol);
 
     let v1 = tensor_read aTile ((brow <: szlt _), ((bcol <: szlt _), ()));
     let v2 = tensor_read bTile ((brow <: szlt _), ((bcol <: szlt _), ()));
@@ -857,6 +953,8 @@ fn bkf
     let sub_rB = ematrix_subtile (rB_p) tile tile (SZ.v !bk) (SZ.v mcol);
 
     (* Mapping the subtiles into [tacc] preserves the approximation. *)
+    ematrix_subtile_approximates (eA_p) (rA_p) tile tile (SZ.v mrow) (SZ.v !bk);
+    ematrix_subtile_approximates (eB_p) (rB_p) tile tile (SZ.v !bk) (SZ.v mcol);
     MU.chest_map_approx mapA mapA_r
       (ematrix_subtile (eA_p) tile tile (SZ.v mrow) (SZ.v !bk)) sub_rA;
     MU.chest_map_approx mapB mapB_r
@@ -880,6 +978,7 @@ fn bkf
     assert (pure (
       MS.__gmatmul_single 0.0R ( *. ) ( +. ) (Chest.chest_map mapA_r (rA_p)) (Chest.chest_map mapB_r (rB_p)) grow gcol (SZ.v !bk * SZ.v tile + SZ.v tile)
       == r_partial +. r_subtile));
+    FStar.Math.Lemmas.distributivity_add_left (SZ.v !bk) 1 (SZ.v tile);
     assert (pure ((SZ.v !bk + 1) * SZ.v tile == SZ.v !bk * SZ.v tile + SZ.v tile));
 
     assert (pure (2 * (!bk + 1) == 2 * !bk + 1 + 1));
@@ -947,11 +1046,17 @@ fn bkf
 
   fold (bkpost1 mapA mapB comb mapA_r mapB_r comb_r tile gA gB gC eA eB eC rA rB rC fA fB bid tid);
 
+  (* [bid / batch < mrows * mcols]: nonlinear, so use the triggered helper
+     rather than leaving it to the ambient query. *)
+  div_lt_bound (SZ.v bid) (SZ.v batch) (SZ.v mrows * SZ.v mcols);
+
   (* Fold live_c_shmem for each shmem array *)
   rewrite (exists* v. pts_to (fst sh) #(1.0R /. (tile * tile)) v)
-      as  (live_c_shmem (fst sh) #(1.0R /. (tile * tile)));
+      as  (live_c_shmem (fst sh) #(1.0R /. (tile * tile)))
+      by unfold_live_c_shmem_eq ();
   rewrite (exists* v. pts_to (fst (snd sh)) #(1.0R /. (tile * tile)) v)
-      as  (live_c_shmem (fst (snd sh)) #(1.0R /. (tile * tile)));
+      as  (live_c_shmem (fst (snd sh)) #(1.0R /. (tile * tile)))
+      by unfold_live_c_shmem_eq ();
 
   fold_live_c_shmems_nil (snd (snd sh)) #(1.0R /. (tile * tile));
   fold_live_c_shmems_cons (snd sh) #(1.0R /. (tile * tile));
@@ -963,7 +1068,7 @@ fn bkf
 
 (* ─── batched setup / teardown (ForEvery distribution) ────────────────────── *)
 
-#push-options "--z3rlimit 100"
+#push-options "--z3rlimit 40"
 ghost
 fn bsetup
   (tile : valid_tile)
@@ -1042,7 +1147,9 @@ fn bsetup
 }
 #pop-options
 
-#push-options "--z3rlimit 150 --ifuel 5"
+(* Per-leaf rlimits: the nonlinear in-range checks for the tile row/col index
+   expressions now form their own queries and need a larger budget. *)
+#push-options "--z3rlimit 200 --ifuel 5 --z3refresh"
 ghost
 fn bteardown
   (tile : valid_tile)
@@ -1274,8 +1381,8 @@ fn bblock_teardown
 #pop-options
 
 (* ─── batched sendables ────────────────────────────────────────────────────── *)
-#push-options "--z3rlimit_factor 10 --fuel 1 --ifuel 1 --split_queries no"
-#push-options "--z3rlimit 100"
+#push-options "--z3rlimit_factor 1 --fuel 1 --ifuel 1"
+#push-options "--z3rlimit 40"
 let bkpre_block_sendable
   (#ta #tb #tc #tacc : Type0)
   {| scalar ta, real_like ta, scalar tb, real_like tb,

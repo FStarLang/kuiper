@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 usage () {
 	echo "usage: $0 [<file>]" >&2
@@ -82,7 +82,7 @@ fi
 # Export whatever variables are needed.
 vv () {
   for v; do
-    if [ -v "$v" ]; then
+    if [ -n "${!v+set}" ]; then
       echo "export ${v}=${!v}" >> $out
       if $repeat; then
         echo "export ${v}=${!v}" >&2

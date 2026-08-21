@@ -25,6 +25,116 @@ module T = Kuiper.Tensor
 module FB = Kuiper.Kernel.GEMM.FlipFlopBarrier2
 module CV2 = Kuiper.Kernel.GEMM.Copy.Vec2
 
+(* [x < a * b ==> x / a < b].  Z3 no longer derives these nonlinear division
+   bounds on its own now that each proof obligation is its own query. *)
+#push-options "--fuel 0 --ifuel 0 --z3rlimit 20"
+let div_lt_bound (x : nat) (a b : pos)
+  : Lemma (requires x < a * b) (ensures x / a < b)
+  = FStar.Math.Lemmas.lemma_div_mod x a;
+    if x / a >= b then FStar.Math.Lemmas.lemma_mult_le_right a b (x / a)
+
+(* [a/b >= 0] for [a >= 0], [b > 0]: F* does not give this for free, and it is
+   needed inside specification lambdas (where no explicit call can be made). *)
+let div_nonneg_pat (a b : nat)
+  : Lemma (requires b > 0) (ensures a / b >= 0)
+          [SMTPat (a / b)]
+  = FStar.Math.Lemmas.nat_over_pos_is_nat a b
+
+(* Positivity of an exact quotient.  Triggered, because the goals that need it
+   (e.g. [bid / (n/bn) >= 0], which is unspecified when the divisor is 0) arise
+   inside specification lambdas, where ambient [assert pure] facts are not in
+   scope. *)
+let div_pos_pat (a b : nat)
+  : Lemma (requires a > 0 /\ b > 0 /\ a % b == 0) (ensures a / b > 0)
+          [SMTPat (a / b)]
+  = FStar.Math.Lemmas.lemma_div_exact a b
+
+(* Triggered variant, for the goals that arise *inside* lambdas (e.g. the
+   [forevery_map] bodies), where an explicit call cannot be inserted. *)
+let div_lt_bound_pat (x a b : nat)
+  : Lemma (requires a > 0 /\ b > 0 /\ x < b * a) (ensures x / a < b)
+          [SMTPat (x / a); SMTPat (b * a)]
+  = FStar.Math.Lemmas.swap_mul b a;
+    div_lt_bound x a b
+
+(* Associativity/commutativity of the 5-factor product relating the total
+   thread count to (blocks * threads-per-block); stated separately so it is
+   proved with an empty ambient context. *)
+let mul_ac4 (a b c d w : nat)
+  : Lemma ((b * a) * (d * c) * w == (a * c) * ((b * d) * w))
+  = ()
+
+(* Left cancellation of a positive factor, via [(k*x)/k == x]. *)
+let cancel_left (k x y : nat)
+  : Lemma (requires k > 0 /\ k * x == k * y) (ensures x == y)
+  = FStar.Math.Lemmas.swap_mul k x;
+    FStar.Math.Lemmas.swap_mul k y;
+    FStar.Math.Lemmas.multiple_division_lemma x k;
+    FStar.Math.Lemmas.multiple_division_lemma y k
+#pop-options
+
+(* Bridge between [FB.barrier_p]/[FB.barrier_q], which are held over the *raised*
+   shared arrays [sa1 = from_array l1 sar1], and the barrier contract's
+   [.rin]/[.rout], which are stated over the *raw* arrays.  Neither the
+   [rewrites_to] substitution nor the projection out of the record literal built
+   by [FB.contract] reduces for the SMT solver anymore, so do the substitution
+   with [rewrite each] and the projection by normalization. *)
+let unfold_fb_contract () : FStar.Tactics.V2.Tac unit =
+  FStar.Tactics.V2.norm [delta_only [`%FB.contract]; iota; primops];
+  Pulse.Lib.Core.slprop_equiv_norm ()
+
+ghost
+fn bp_to_rin
+  (#etA #etB : Type0)
+  {| sized etA, has_vec_cpy etA, sized etB, has_vec_cpy etB |}
+  (#rows #shared #cols : pos)
+  (eA : chest2 etA rows shared)
+  (eB : chest2 etB shared cols)
+  (#bm : pos{bm /?+ rows}) (#bk : pos{bk /?+ shared}) (#bn : pos{bn /?+ cols})
+  (l1 : full_layout2 bm bk) (l2 : full_layout2 bk bn)
+  (sar1 : larray etA (bm * bk)) (sar2 : larray etB (bk * bn))
+  (sa1 : array2 etA l1) (sa2 : array2 etB l2)
+  (nthr : pos) (bid : natlt (rows/bm * (cols/bn)))
+  (it : nat) (tid : natlt nthr)
+  requires
+    FB.barrier_p eA eB sa1 sa2 nthr bid it tid **
+    pure (sa1 == from_array l1 sar1 /\ sa2 == from_array l2 sar2)
+  ensures
+    (FB.contract eA eB l1 l2 sar1 sar2 nthr bid).rin it tid
+{
+  rewrite each sa1 as (from_array l1 sar1);
+  rewrite each sa2 as (from_array l2 sar2);
+  rewrite FB.barrier_p eA eB (from_array l1 sar1) (from_array l2 sar2) nthr bid it tid
+       as (FB.contract eA eB l1 l2 sar1 sar2 nthr bid).rin it tid
+       by unfold_fb_contract ();
+}
+
+ghost
+fn rout_to_bq
+  (#etA #etB : Type0)
+  {| sized etA, has_vec_cpy etA, sized etB, has_vec_cpy etB |}
+  (#rows #shared #cols : pos)
+  (eA : chest2 etA rows shared)
+  (eB : chest2 etB shared cols)
+  (#bm : pos{bm /?+ rows}) (#bk : pos{bk /?+ shared}) (#bn : pos{bn /?+ cols})
+  (l1 : full_layout2 bm bk) (l2 : full_layout2 bk bn)
+  (sar1 : larray etA (bm * bk)) (sar2 : larray etB (bk * bn))
+  (sa1 : array2 etA l1) (sa2 : array2 etB l2)
+  (nthr : pos) (bid : natlt (rows/bm * (cols/bn)))
+  (it : nat) (tid : natlt nthr)
+  requires
+    (FB.contract eA eB l1 l2 sar1 sar2 nthr bid).rout it tid **
+    pure (sa1 == from_array l1 sar1 /\ sa2 == from_array l2 sar2)
+  ensures
+    FB.barrier_q eA eB sa1 sa2 nthr bid it tid
+{
+  rewrite (FB.contract eA eB l1 l2 sar1 sar2 nthr bid).rout it tid
+       as FB.barrier_q eA eB (from_array l1 sar1) (from_array l2 sar2) nthr bid it tid
+       by unfold_fb_contract ();
+  rewrite each (from_array l1 sar1) as sa1;
+  rewrite each (from_array l2 sar2) as sa2;
+}
+
 let live_warp_tile
   (#et : Type0) {| scalar et |}
   // Since this is an slprop, I would like to not erase the nat.
@@ -277,7 +387,9 @@ fn epilogue
   ()
 }
 
-#push-options "--fuel 1 --ifuel 1"
+(* Per-leaf rlimits: the k-loop body's many small goals each get their own
+   query, in a very large context. *)
+#push-options "--fuel 1 --ifuel 1 --z3rlimit 300"
 inline_for_extraction noextract
 fn kf
   (#et_ab #et_c : Type0)
@@ -354,6 +466,12 @@ fn kf
   let num_n_tiles = n /^ bn;
   let mrow = bid /^ num_n_tiles;
   let mcol = bid %^ num_n_tiles;
+  (* [bid < m/bm * (n/bn)] no longer yields the block-index bounds for free. *)
+  assert pure (SZ.v n / SZ.v bn > 0);
+  div_lt_bound (SZ.v bid) (SZ.v n / SZ.v bn) (SZ.v m / SZ.v bm);
+  FStar.Math.Lemmas.lemma_mod_lt (SZ.v bid) (SZ.v n / SZ.v bn);
+  assert pure (SZ.v mrow < SZ.v m / SZ.v bm);
+  assert pure (SZ.v mcol < SZ.v n / SZ.v bn);
 
   let wid = tid /^ warp_size;
   let warpRow = wid /^ (bn/^tn);
@@ -366,6 +484,10 @@ fn kf
 
   (* get ownership over the thread's gC tile and load it into the accumulator *)
   unfold live_warp_tile #et_c;
+  (* [warp_tile] requires [tid/warp_size < bm/tm * (bn/tn)] and, through
+     [warp_tile_idx_rows], [tid/warp_size/(bn/tn) < bm/tm]. *)
+  div_lt_bound (SZ.v tid) (SZ.v warp_size) (SZ.v bm / SZ.v tm * (SZ.v bn / SZ.v tn));
+  div_lt_bound (SZ.v tid / SZ.v warp_size) (SZ.v bn / SZ.v tn) (SZ.v bm / SZ.v tm);
   let t_tile = warp_tile (block_tile gC (SZ.v bm) (SZ.v bn) (SZ.v bid)) (SZ.v tm) (SZ.v tn) (tid / warp_size);
   assert (rewrites_to t_tile (warp_tile (block_tile gC (SZ.v bm) (SZ.v bn) (SZ.v bid)) (SZ.v tm) (SZ.v tn) (tid / warp_size)));
   mma_loadAccum accumFrag t_tile;
@@ -391,13 +513,11 @@ fn kf
     assert pure ((2 * !bkIdx % 2 = 0) == true);
     assert pure (even (2 * !bkIdx));
     FB.fold_barrier_p_even eA eB sA sB nthr bid !bkIdx tid;
-    rewrite (FB.barrier_p eA eB sA sB nthr bid) (2 * !bkIdx) tid
-         as (FB.contract eA eB (rm bm bk) (rm bk bn) sarA sarB nthr bid).rin (2 * !bkIdx) tid;
+    bp_to_rin eA eB (rm bm bk) (rm bk bn) sarA sarB sA sB nthr bid (2 * !bkIdx) tid;
 
     B.barrier_wait ();
 
-    rewrite (FB.contract eA eB (rm bm bk) (rm bk bn) sarA sarB nthr bid).rout (2 * !bkIdx) tid
-         as (FB.barrier_q eA eB sA sB nthr bid) (2 * !bkIdx) tid;
+    rout_to_bq eA eB (rm bm bk) (rm bk bn) sarA sarB sA sB nthr bid (2 * !bkIdx) tid;
     FB.unfold_barrier_q_even eA eB sA sB nthr bid !bkIdx tid;
 
     // FlipFlopBarrier2 returns FB.live_strided_chunks; the copy helper consumes
@@ -422,8 +542,7 @@ fn kf
     odd_2x1 !bkIdx;
     assert (pure (odd (2 * !bkIdx + 1)));
     FB.fold_barrier_p_odd eA eB sA sB nthr bid mrow mcol !bkIdx tid;
-    rewrite FB.barrier_p eA eB sA sB nthr bid (2 * !bkIdx + 1) tid
-        as (FB.contract eA eB (rm bm bk) (rm bk bn) sarA sarB nthr bid).rin (2 * !bkIdx + 1) tid;
+    bp_to_rin eA eB (rm bm bk) (rm bk bn) sarA sarB sA sB nthr bid (2 * !bkIdx + 1) tid;
 
     B.barrier_wait ();
 
@@ -431,8 +550,7 @@ fn kf
     assert (pure (2 * (!bkIdx + 1) == 2 * !bkIdx + 2));
     assert (pure (even (2 * !bkIdx + 2)));
     assert (pure ((2 * !bkIdx + 1) / 2 == !bkIdx));
-    rewrite (FB.contract eA eB (rm bm bk) (rm bk bn) sarA sarB nthr bid).rout (2 * !bkIdx + 1) tid
-         as FB.barrier_q eA eB sA sB nthr bid (2 * !bkIdx + 1) tid;
+    rout_to_bq eA eB (rm bm bk) (rm bk bn) sarA sarB sA sB nthr bid (2 * !bkIdx + 1) tid;
     FB.unfold_barrier_q_odd eA eB sA sB nthr bid mrow mcol !bkIdx tid;
 
     unfold FB.bp_sharing sA (ematrix_subtile eA bm bk mrow !bkIdx) nthr;
@@ -445,6 +563,17 @@ fn kf
 
     bkIdx := !bkIdx +^ 1sz;
   };
+  (* Connect the loop's final counter to [k/bk] explicitly: the equality is
+     needed to match the postcondition's [barrier_state], and the solver no
+     longer closes that slprop equality on its own. *)
+  with vb. assert (B.barrier_state (2 * SZ.v vb));
+  assert pure (SZ.v vb <= SZ.v num_k_tiles);
+  assert pure (SZ.v num_k_tiles <= SZ.v vb);
+  assert pure (SZ.v vb == SZ.v num_k_tiles);
+  assert pure (SZ.v num_k_tiles == SZ.v k / SZ.v bk);
+  assert pure (SZ.v vb == SZ.v k / SZ.v bk);
+  rewrite B.barrier_state (2 * SZ.v vb)
+       as B.barrier_state (2 * (SZ.v k / SZ.v bk));
   with em1. unfold FB.bp_sharing sA em1 nthr;
   with em2. unfold FB.bp_sharing sB em2 nthr;
 
@@ -466,6 +595,9 @@ fn kf
 }
 #pop-options
 
+(* Per-leaf rlimits: [setup]'s index-refinement side goals are each their own
+   query now, in a large nonlinear context. *)
+#push-options "--z3rlimit 400"
 ghost
 fn setup
   (#et_ab #et_c : Type0)
@@ -513,6 +645,13 @@ fn setup
   let n_total = m/tm * (n/tn) * warp_size;
   let nblk_val = m/bm * (n/bn);
   let nthr_val = bm/tm * (bn/tn) * warp_size;
+  (* Positivity of the tile counts: needed for [x / (n/bn) >= 0] etc. inside the
+     specification lambdas below (division by a possibly-zero divisor is
+     unspecified, so [>= 0] does not hold for free). *)
+  assert pure (SZ.v m / SZ.v bm > 0);
+  assert pure (SZ.v n / SZ.v bn > 0);
+  assert pure (SZ.v bm / SZ.v tm > 0);
+  assert pure (SZ.v bn / SZ.v tn > 0);
 
   (* Step 1: Share gA/gB *)
   tensor_share_n gA n_total;
@@ -578,12 +717,26 @@ fn setup
 
   (* Step 4: Factor gA/gB to 2D *)
   (* Divisibility chain: n_total == nblk_val * nthr_val *)
+  (* tm | bm and bm | m give tm | m (and likewise for the columns). *)
+  Kuiper.Divides.lemma_divides_trans (SZ.v tm) (SZ.v bm) (SZ.v m);
+  Kuiper.Divides.lemma_divides_trans (SZ.v tn) (SZ.v bn) (SZ.v n);
+  FStar.Math.Lemmas.lemma_div_exact (SZ.v bm) (SZ.v tm);   // bm == tm * (bm/tm)
+  FStar.Math.Lemmas.lemma_div_exact (SZ.v bn) (SZ.v tn);   // bn == tn * (bn/tn)
   assert pure (tm * (bm/tm) * (m/bm) == bm * (m/bm));
+  FStar.Math.Lemmas.paren_mul_right (SZ.v tm) (SZ.v bm / SZ.v tm) (SZ.v m / SZ.v bm);
+  FStar.Math.Lemmas.lemma_div_exact (SZ.v m) (SZ.v bm);
+  FStar.Math.Lemmas.lemma_div_exact (SZ.v m) (SZ.v tm);
   assert pure (tm * ((bm/tm) * (m/bm)) == tm * (m/tm));
+  cancel_left (SZ.v tm) ((SZ.v bm / SZ.v tm) * (SZ.v m / SZ.v bm)) (SZ.v m / SZ.v tm);
   assert pure (m/tm == (bm/tm) * (m/bm));
   assert pure (tn * (bn/tn) * (n/bn) == bn * (n/bn));
+  FStar.Math.Lemmas.paren_mul_right (SZ.v tn) (SZ.v bn / SZ.v tn) (SZ.v n / SZ.v bn);
+  FStar.Math.Lemmas.lemma_div_exact (SZ.v n) (SZ.v bn);
+  FStar.Math.Lemmas.lemma_div_exact (SZ.v n) (SZ.v tn);
   assert pure (tn * ((bn/tn) * (n/bn)) == tn * (n/tn));
+  cancel_left (SZ.v tn) ((SZ.v bn / SZ.v tn) * (SZ.v n / SZ.v bn)) (SZ.v n / SZ.v tn);
   assert pure (n/tn == (bn/tn) * (n/bn));
+  mul_ac4 (m/bm) (bm/tm) (n/bn) (bn/tn) warp_size;
   assert pure (n_total == nblk_val * nthr_val);
 
   forevery_factor n_total nblk_val nthr_val
@@ -601,9 +754,19 @@ fn setup
         (SZ.v tm) (SZ.v tn)
         (warp_tile_idx_rows (SZ.v bm) (SZ.v bn) (SZ.v tm) (SZ.v tn) (tid/warp_size))
         (warp_tile_idx_cols (SZ.v bm) (SZ.v bn) (SZ.v tm) (SZ.v tn) (tid/warp_size))));
+  (* Spell out the second predicate instead of leaving it to unification: the
+     inferred hole was no longer well-typed (its binders lost their [natlt]
+     refinements). *)
   forevery_zip_2 #(natlt nblk_val) #(natlt nthr_val)
     (fun _bid -> fun _tid -> gA |-> Frac (fA /. n_total) eA)
-    _;
+    (fun (bid : natlt nblk_val) (tid : natlt nthr_val) ->
+      gB |-> Frac (fB /. n_total) eB **
+      warp_tile (block_tile gC (SZ.v bm) (SZ.v bn) bid) (SZ.v tm) (SZ.v tn) (tid/warp_size)
+        |-> Frac (1.0R /. warp_size)
+      (ematrix_subtile (ematrix_subtile eC (SZ.v bm) (SZ.v bn) (bid/(n/bn)) (bid%(n/bn)))
+        (SZ.v tm) (SZ.v tn)
+        (warp_tile_idx_rows (SZ.v bm) (SZ.v bn) (SZ.v tm) (SZ.v tn) (tid/warp_size))
+        (warp_tile_idx_cols (SZ.v bm) (SZ.v bn) (SZ.v tm) (SZ.v tn) (tid/warp_size))));
 
   (* Step 6: Fold into kpre1 *)
   forevery_map_2
@@ -625,6 +788,7 @@ fn setup
 
   forevery_rw_size2 nblk_val (SZ.v nblk) nthr_val (SZ.v nthr);
 }
+#pop-options
 
 ghost
 fn block_setup
@@ -763,6 +927,13 @@ fn teardown
 {
   let nblk_val = m/bm * (n/bn);
   let nthr_val = bm/tm * (bn/tn) * warp_size;
+  (* Positivity of the tile counts: needed for [x / (n/bn) >= 0] etc. inside the
+     specification lambdas below (division by a possibly-zero divisor is
+     unspecified, so [>= 0] does not hold for free). *)
+  assert pure (SZ.v m / SZ.v bm > 0);
+  assert pure (SZ.v n / SZ.v bn > 0);
+  assert pure (SZ.v bm / SZ.v tm > 0);
+  assert pure (SZ.v bn / SZ.v tn > 0);
 
   (* Step 1: Rewrite sizes *)
   forevery_rw_size2 (SZ.v nblk) nblk_val (SZ.v nthr) nthr_val;
@@ -781,12 +952,26 @@ fn teardown
       live_warp_tile gC bm bn tm tn bid (tid/warp_size));
 
   (* Step 3: Divisibility chain for flatten *)
+  (* tm | bm and bm | m give tm | m (and likewise for the columns). *)
+  Kuiper.Divides.lemma_divides_trans (SZ.v tm) (SZ.v bm) (SZ.v m);
+  Kuiper.Divides.lemma_divides_trans (SZ.v tn) (SZ.v bn) (SZ.v n);
+  FStar.Math.Lemmas.lemma_div_exact (SZ.v bm) (SZ.v tm);   // bm == tm * (bm/tm)
+  FStar.Math.Lemmas.lemma_div_exact (SZ.v bn) (SZ.v tn);   // bn == tn * (bn/tn)
   assert pure (tm * (bm/tm) * (m/bm) == bm * (m/bm));
-  assert pure (m/tm == (bm/tm) * (m/bm));
+  FStar.Math.Lemmas.paren_mul_right (SZ.v tm) (SZ.v bm / SZ.v tm) (SZ.v m / SZ.v bm);
+  FStar.Math.Lemmas.lemma_div_exact (SZ.v m) (SZ.v bm);
+  FStar.Math.Lemmas.lemma_div_exact (SZ.v m) (SZ.v tm);
   assert pure (tm * ((bm/tm) * (m/bm)) == tm * (m/tm));
+  cancel_left (SZ.v tm) ((SZ.v bm / SZ.v tm) * (SZ.v m / SZ.v bm)) (SZ.v m / SZ.v tm);
+  assert pure (m/tm == (bm/tm) * (m/bm));
   assert pure (tn * (bn/tn) * (n/bn) == bn * (n/bn));
-  // assert pure (tn * ((bn/tn) * (n/bn)) == tn * (n/tn));
+  FStar.Math.Lemmas.paren_mul_right (SZ.v tn) (SZ.v bn / SZ.v tn) (SZ.v n / SZ.v bn);
+  FStar.Math.Lemmas.lemma_div_exact (SZ.v n) (SZ.v bn);
+  FStar.Math.Lemmas.lemma_div_exact (SZ.v n) (SZ.v tn);
+  assert pure (tn * ((bn/tn) * (n/bn)) == tn * (n/tn));
+  cancel_left (SZ.v tn) ((SZ.v bn / SZ.v tn) * (SZ.v n / SZ.v bn)) (SZ.v n / SZ.v tn);
   assert pure (n/tn == (bn/tn) * (n/bn));
+  mul_ac4 (m/bm) (bm/tm) (n/bn) (bn/tn) warp_size;
   assert pure (m/tm * (n/tn) * warp_size == nblk_val * nthr_val);
 
   (* Step 4: Flatten gA/gB from 2D to 1D and gather *)

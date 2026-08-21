@@ -316,7 +316,7 @@ let aligned_cont_offset
   (ensures aligned' 16 (core a) (cl.offset + off))
 = ()
 
-#push-options "--split_queries always --z3rlimit 15"
+#push-options "--z3rlimit 15"
 inline_for_extraction noextract
 fn array_vec_cpy'
   (#et : Type u#0) {| sized et, has_vec_cpy et |}

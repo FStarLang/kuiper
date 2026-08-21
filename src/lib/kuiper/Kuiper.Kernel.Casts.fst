@@ -1,4 +1,7 @@
 module Kuiper.Kernel.Casts
+open Kuiper.SizeT
+module SZ = Kuiper.SizeT
+module B = Kuiper.Barrier
 #lang-pulse
 
 open Pulse.Lib.Core
@@ -662,3 +665,65 @@ let k1nb_as_kfull
     kpre_sendable = (fun _ _ _ -> k.kpre_sendable);
     kpost_sendable = (fun _ _ _ -> k.kpost_sendable);
   } <: kernel_desc full_pre full_post
+
+ghost
+fn kd_weaken_setup
+  (#pre #post #pre' : slprop)
+  (k : kernel_desc pre post)
+  (fpre : ghost fn () requires pre' ensures pre)
+  ()
+  norewrite
+  requires pre'
+  ensures
+    (forall+ (bid : natlt k.nblk). k.block_pre bid) **
+    k.frame
+{
+  fpre ();
+  let f = k.setup;
+  f ();
+}
+
+ghost
+fn kd_weaken_teardown
+  (#pre #post #post' : slprop)
+  (k : kernel_desc pre post)
+  (fpost : ghost fn () requires post ensures post')
+  ()
+  norewrite
+  requires
+    (forall+ (bid : natlt k.nblk). k.block_post bid) **
+    k.frame
+  ensures post'
+{
+  let f = k.teardown;
+  f ();
+  fpost ();
+}
+
+inline_for_extraction noextract
+let kd_weaken
+  (#pre #post #pre' #post' : slprop)
+  (k : kernel_desc pre post)
+  (fpre  : ghost fn () requires pre' ensures pre)
+  (fpost : ghost fn () requires post ensures post')
+     : kernel_desc pre' post'
+  = { k with
+      setup    = kd_weaken_setup k fpre;
+      teardown = kd_weaken_teardown k fpost }
+
+ghost
+fn kd_id (#p : slprop) ()
+  norewrite
+  requires p
+  ensures p
+{
+  ()
+}
+
+inline_for_extraction noextract
+let kd_weaken_post
+  (#pre #post #post' : slprop)
+  (k : kernel_desc pre post)
+  (fpost : ghost fn () requires post ensures post')
+     : kernel_desc pre post'
+  = kd_weaken k (kd_id #pre) fpost
