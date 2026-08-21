@@ -45,6 +45,11 @@ ci:
 depgraph:
 	+$(MAKE) -f verify.mk depgraph
 
+.PHONY: spmm-bench
+spmm-bench:
+	+$(MAKE) -C bench/sputnik-bench
+	./bench/sputnik-bench/spmm_bench
+
 .SUFFIXES:
 
 .PHONY: watch
