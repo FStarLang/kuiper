@@ -4,6 +4,11 @@
  * Compares the performance of Kuiper's verified SpMM kernel (f32)
  * against Google's Sputnik SpMM library. Both use CSR sparse format
  * with float32 values.
+ *
+ * Neither side goes through a dispatcher: both run one fixed tile
+ * configuration, chosen so the two kernels are parameterized identically.
+ * The configuration and the correspondence between Kuiper's and Sputnik's
+ * template parameters are documented in spmm_bench_config.h.
  */
 
 #include <cstdio>
@@ -17,13 +22,39 @@
 
 #include <cuda_runtime.h>
 
-#define Klas_f Klas_SPMM_spmm_f32_dispatch
+/* The one tile configuration both kernels are pinned to. */
+#include "spmm_bench_config.h"
 
 /* Kuiper SpMM (f32) */
 #include "Klas_SPMM.h"
 
 /* Sputnik SpMM */
 #include "sputnik/spmm/cuda_spmm.h"
+
+/*
+ * Kuiper: the generated instance for this tile shape, e.g.
+ * Klas_SPMM_g_spmm_f32_128x128x32.  NOT the dispatcher.
+ */
+#define Klas_f KLAS_SPMM_FN(CFG_BLOCK_ITEMS_K, CFG_BLOCK_ITEMS_X, CFG_BLOCK_WIDTH)
+
+/* Sputnik: the matching config, instantiated in sputnik_spmm_ex.cu. */
+typedef BENCH_SPUTNIK_CONFIG BenchConfig;
+
+/*
+ * Sputnik entry point for the benchmark. Calls the fixed kernel directly,
+ * bypassing CudaSpmm()'s kernel-selection heuristic.
+ */
+static cudaError_t sputnik_spmm(int m, int k, int n, int nonzeros,
+                                const int *row_indices, const float *values,
+                                const int *row_offsets,
+                                const int *column_indices, const float *dense,
+                                float *out, cudaStream_t stream)
+{
+    return sputnik::CudaSpmmEx<BenchConfig>(m, k, n, nonzeros, row_indices,
+                                            values, row_offsets, column_indices,
+                                            dense, /* bias = */ nullptr, out,
+                                            stream);
+}
 
 #define CHECK_CUDA(call)                                                     \
     do {                                                                     \
@@ -229,8 +260,9 @@ static float bench_sputnik(int m, int k, int n, int nnz,
     CHECK_CUDA(cudaStreamCreate(&stream));
 
     for (int i = 0; i < warmup; i++) {
-        sputnik::CudaSpmm(m, k, n, nnz, d_row_indices, d_values,
-                           d_row_offsets, d_col_indices, d_dense, d_out, stream);
+        CHECK_CUDA(sputnik_spmm(m, k, n, nnz, d_row_indices, d_values,
+                                d_row_offsets, d_col_indices, d_dense, d_out,
+                                stream));
         CHECK_CUDA(cudaStreamSynchronize(stream));
     }
 
@@ -240,8 +272,9 @@ static float bench_sputnik(int m, int k, int n, int nnz,
 
     CHECK_CUDA(cudaEventRecord(start, stream));
     for (int i = 0; i < iters; i++) {
-        sputnik::CudaSpmm(m, k, n, nnz, d_row_indices, d_values,
-                           d_row_offsets, d_col_indices, d_dense, d_out, stream);
+        CHECK_CUDA(sputnik_spmm(m, k, n, nnz, d_row_indices, d_values,
+                                d_row_offsets, d_col_indices, d_dense, d_out,
+                                stream));
     }
     CHECK_CUDA(cudaEventRecord(stop, stream));
     CHECK_CUDA(cudaEventSynchronize(stop));
@@ -294,10 +327,15 @@ static void run_bench_csr(CSR &csr, int cols, const char *label,
     int rows   = csr.rows;
     int shared = csr.cols;
 
-    /* The dispatcher falls back to a float4-wide output tile. */
-    if (cols % 4 != 0) {
-        fprintf(stderr, "SKIP %dx%dx%d @%s: cols must be multiple of 4 for Kuiper\n",
-                rows, shared, cols, label);
+    /*
+     * Kuiper does not predicate the column tail, so the n-dimension tile must
+     * divide cols exactly. Sputnik is run with kPredicateLoads = false for the
+     * same reason.
+     */
+    if (cols % CFG_BLOCK_ITEMS_X != 0) {
+        fprintf(stderr, "SKIP %dx%dx%d @%s: cols must be a multiple of "
+                "blockItemsX (%d)\n",
+                rows, shared, cols, label, CFG_BLOCK_ITEMS_X);
         return;
     }
 
@@ -333,9 +371,9 @@ static void run_bench_csr(CSR &csr, int cols, const char *label,
     {
         cudaStream_t s;
         CHECK_CUDA(cudaStreamCreate(&s));
-        sputnik::CudaSpmm(rows, shared, cols, csr.nnz,
-                           d_row_indices, d_values, d_row_offsets,
-                           d_col_indices, d_dense, d_out, s);
+        CHECK_CUDA(sputnik_spmm(rows, shared, cols, csr.nnz,
+                                d_row_indices, d_values, d_row_offsets,
+                                d_col_indices, d_dense, d_out, s));
         CHECK_CUDA(cudaStreamSynchronize(s));
         CHECK_CUDA(cudaStreamDestroy(s));
     }
@@ -466,7 +504,7 @@ static void run_swizzle_test(int rows, int shared, int cols,
                              int avg_density_pct, SparsityShape shape,
                              int warmup, int iters)
 {
-    if (cols % 4 != 0) return;
+    if (cols % CFG_BLOCK_ITEMS_X != 0) return;
 
     CSR csr;
     gen_sparse_nonuniform(rows, shared, avg_density_pct, shape, csr);
@@ -546,6 +584,32 @@ static void print_gpu_info()
            props.clockRate / 1000.0);
 }
 
+/*
+ * Print the fixed tile configuration both kernels run with, so a result table
+ * is self-describing.
+ */
+static void print_config()
+{
+    printf("Fixed configuration (no dispatcher on either side): %s\n",
+           BENCH_CONFIG_NAME);
+    printf("  blockItemsY = %d, blockItemsK = %d, blockItemsX = %d, "
+           "blockWidth = %d\n",
+           BenchConfig::kBlockItemsY, BenchConfig::kBlockItemsK,
+           BenchConfig::kBlockItemsX, BenchConfig::kBlockWidth);
+    printf("  Kuiper:  %s\n",
+           "Klas_SPMM_g_spmm_f32_" BENCH_CONFIG_NAME);
+    printf("  Sputnik: CudaSpmmEx<SpmmConfig<float, float4, float4, %d, %d, "
+           "%d, %d, %d, %s>>\n",
+           BenchConfig::kBlockItemsY, BenchConfig::kBlockItemsK,
+           BenchConfig::kBlockItemsX, BenchConfig::kBlockWidth,
+           BenchConfig::kResidueUnroll,
+           BenchConfig::kPredicateLoads ? "true" : "false");
+    printf("  %d threads/block, %d float4 per thread in the n-dimension\n",
+           BenchConfig::kThreadsPerBlock, BenchConfig::kThreadItemsX);
+    printf("  Problems whose cols is not a multiple of %d are skipped.\n\n",
+           CFG_BLOCK_ITEMS_X);
+}
+
 int main(int argc, char **argv)
 {
     int warmup = 5;
@@ -565,16 +629,17 @@ int main(int argc, char **argv)
 
     srand(42);
     print_gpu_info();
+    print_config();
 
     printf("%-6s %-6s %-6s %-16s %-8s  %-31s  %-31s  %-5s  %s\n",
            "rows", "K", "cols", "density", "nnz",
-           "Kuiper (float32)", "Sputnik (float32)", "K/S", "check");
+           "Kuiper (fixed cfg)", "Sputnik (fixed cfg)", "K/S", "check");
     printf("%s\n", std::string(150, '-').c_str());
 
-    /* Exercise every branch of the Kuiper output-tile dispatcher. */
-    printf("\n--- Dispatcher tile widths ---\n");
-    for (int n : {4, 8, 16, 32, 64})
-        run_bench(32, 64, n, 50, warmup, iters);
+    /* n-dimension sweep. cols must stay a multiple of blockItemsX. */
+    printf("\n--- n-dimension sweep ---\n");
+    for (int mult : {1, 2, 4, 8})
+        run_bench(128, 1024, CFG_BLOCK_ITEMS_X * mult, 10, warmup, iters);
 
     /* Square matrices at various sizes and densities */
     int sizes[]     = { 256, 512, 1024, 2048 };

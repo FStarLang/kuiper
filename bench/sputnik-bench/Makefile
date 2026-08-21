@@ -18,9 +18,14 @@ clone:
 	@[ -d $(SPUTNIK_DIR) ] || (echo '$(SPUTNIK_DIR) not found, run `make clone` to fetch it?'; false)
 	touch .cloned
 
-# Sputnik SpMM object
-sputnik_spmm.o: $(SPUTNIK_DIR)/sputnik/spmm/cuda_spmm.cu.cc .cloned
-	$(NVCC) $(NVCC_FLAGS) -x cu -c $< -o $@
+# Sputnik SpMM object.
+#
+# Built from our own TU, which #includes Sputnik's implementation and adds the
+# explicit CudaSpmmEx<> instantiation for the tile shape the benchmark pins.
+# Do NOT also compile cuda_spmm.cu.cc: it would define the same symbols.
+sputnik_spmm.o: sputnik_spmm_ex.cu spmm_bench_config.h \
+                $(SPUTNIK_DIR)/sputnik/spmm/cuda_spmm.cu.cc .cloned
+	$(NVCC) $(NVCC_FLAGS) -I . -c $< -o $@
 
 # Keep the extracted CUDA synchronized with the Kuiper sources before deciding
 # whether the CUDA object itself needs rebuilding.
@@ -35,8 +40,8 @@ kuiper_spmm.o: $(KUIPER_DIR)/obj/Klas_SPMM.cu | kuiper_spmm_cuda
 	$(NVCC) $(NVCC_FLAGS) -c $< -o $@
 
 # Benchmark driver
-spmm_bench.o: spmm_bench.cu .cloned
-	$(NVCC) $(NVCC_FLAGS) -c $< -o $@
+spmm_bench.o: spmm_bench.cu spmm_bench_config.h .cloned
+	$(NVCC) $(NVCC_FLAGS) -I . -c $< -o $@
 
 spmm_bench: spmm_bench.o sputnik_spmm.o kuiper_spmm.o
 	$(NVCC) $(NVCC_FLAGS) -o $@ $^
