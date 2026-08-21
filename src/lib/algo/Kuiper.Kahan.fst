@@ -11,7 +11,7 @@ let sum_step (len : nat) (vf : natlt len -> GTot real) (k : nat{k < len})
   : Lemma (sum 0 (k+1) vf == sum 0 k vf +. vf k)
   = sum_pop_right 0 (k+1) vf
 
-#push-options "--z3rlimit 20"
+#push-options "--z3rlimit 20 --fuel 1 --ifuel 1"
 inline_for_extraction noextract
 fn kahan_sum
   (#et : Type0) {| floating et, real_like et, floating_real_like et |}
@@ -40,10 +40,26 @@ fn kahan_sum
     decreases (len - !k)
   {
     let y = f !k;
-    let yc = y `sub` !c;
-    let t = !acc `add` yc;
+    let old_c = !c;
+    let old_acc = !acc;
+    let yc = y `sub` old_c;
+    sub_approx y old_c (vf !k) 0.0R;
+    let t = old_acc `add` yc;
+    a_add old_acc yc (sum 0 !k vf) (vf !k -. 0.0R);
     sum_step len vf !k;
-    c := (t `sub` !acc) `sub` yc;
+    assert pure (t %~ sum 0 (!k + 1) vf);
+
+    // Do not leave the approximation rules for this nested expression to
+    // SMT's quantifier matching.  On a busy context that made the final loop
+    // VC exhaust several successively larger solver limits.
+    let delta = t `sub` old_acc;
+    sub_approx t old_acc (sum 0 (!k + 1) vf) (sum 0 !k vf);
+    let new_c = delta `sub` yc;
+    sub_approx delta yc
+      (sum 0 (!k + 1) vf -. sum 0 !k vf)
+      (vf !k -. 0.0R);
+    assert pure (new_c %~ 0.0R);
+    c := new_c;
     acc := t;
     k   := !k +^ 1sz;
   };
