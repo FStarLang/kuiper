@@ -314,6 +314,23 @@ static T *gpu_zeros(size_t n)
 }
 
 /* ------------------------------------------------------------------ */
+/* Output comparison                                                   */
+/* ------------------------------------------------------------------ */
+
+/*
+ * Raw bit pattern of a float. Used to check for bit-identical output rather
+ * than IEEE equality: == would call +0.0 and -0.0 equal (they are not the same
+ * bit pattern, and tell us the two kernels accumulated differently) and would
+ * call a NaN different from itself.
+ */
+static inline uint32_t float_bits(float f)
+{
+    uint32_t u;
+    memcpy(&u, &f, sizeof(u));
+    return u;
+}
+
+/* ------------------------------------------------------------------ */
 /* Run one benchmark configuration                                     */
 /* ------------------------------------------------------------------ */
 
@@ -386,10 +403,13 @@ static void run_bench_csr(CSR &csr, int cols, const char *label,
 
     int mismatches = 0;
     float max_reldiff = 0;
+    bool bit_exact = true;
     for (int i = 0; i < rows; i++) {
         for (int j = 0; j < cols; j++) {
             float vk = C_kuiper[i * cols + j];
             float vs = C_sputnik[i * cols + j];
+            if (float_bits(vk) != float_bits(vs))
+                bit_exact = false;
             float diff = fabsf(vk - vs);
             float denom = fmaxf(fabsf(vk), fabsf(vs));
             float rel = (denom > 0) ? diff / denom : diff;
@@ -405,7 +425,17 @@ static void run_bench_csr(CSR &csr, int cols, const char *label,
         }
     }
 
-    const char *status = (mismatches == 0) ? "OK" : "FAIL";
+    /*
+     * EXACT means every output word is bit-identical, i.e. the two kernels
+     * accumulated in the same order. OK means they agree within tolerance.
+     */
+    char check[64];
+    if (mismatches != 0)
+        snprintf(check, sizeof(check), "FAIL (maxrel=%.1e)", max_reldiff);
+    else if (bit_exact)
+        snprintf(check, sizeof(check), "EXACT");
+    else
+        snprintf(check, sizeof(check), "OK (maxrel=%.1e)", max_reldiff);
 
     /* Effective FLOPs: 2 * nnz * cols (one mul + one add per nonzero per output col) */
     double flops = 2.0 * csr.nnz * cols;
@@ -423,11 +453,11 @@ static void run_bench_csr(CSR &csr, int cols, const char *label,
     printf("%-6d %-6d %-6d %-16s %-8d  "
            "%8.3f ms (%6.1f GFLOP/s)  "
            "%8.3f ms (%6.1f GFLOP/s)  "
-           "%.2fx  %s (maxrel=%.1e)\n",
+           "%6.2fx  %s\n",
            rows, shared, cols, label, csr.nnz,
            ms_kuiper, gflops_kuiper,
            ms_sputnik, gflops_sputnik,
-           speedup, status, max_reldiff);
+           speedup, check);
 
     /* Cleanup */
     cudaFree(dA_k.elems); cudaFree(dA_k.col_ind); cudaFree(dA_k.row_off);
@@ -631,10 +661,10 @@ int main(int argc, char **argv)
     print_gpu_info();
     print_config();
 
-    printf("%-6s %-6s %-6s %-16s %-8s  %-31s  %-31s  %-5s  %s\n",
+    printf("%-6s %-6s %-6s %-16s %-8s  %-28s  %-28s  %-7s  %s\n",
            "rows", "K", "cols", "density", "nnz",
            "Kuiper (fixed cfg)", "Sputnik (fixed cfg)", "K/S", "check");
-    printf("%s\n", std::string(150, '-').c_str());
+    printf("%s\n", std::string(138, '-').c_str());
 
     /* n-dimension sweep. cols must stay a multiple of blockItemsX. */
     printf("\n--- n-dimension sweep ---\n");
