@@ -24,6 +24,20 @@ let chunk (et : Type) {| sized et, hvc : has_vec_cpy et |} : szp =
   match hvc with
   | Mkhas_vec_cpy chunk #_ -> chunk
 
+#push-options "--admit_smt_queries true"
+unfold inline_for_extraction noextract
+instance has_vec_cpy_u8 : has_vec_cpy u8 = { _chunk = 16sz; _pf = ez; }
+
+unfold inline_for_extraction noextract
+instance has_vec_cpy_u16 : has_vec_cpy u16 = { _chunk = 8sz; _pf = ez; }
+
+unfold inline_for_extraction noextract
+instance has_vec_cpy_u32 : has_vec_cpy u32 = { _chunk = 4sz; _pf = ez; }
+
+unfold inline_for_extraction noextract
+instance has_vec_cpy_u64 : has_vec_cpy u64 = { _chunk = 2sz; _pf = ez; }
+
+#pop-options
 inline_for_extraction noextract
 instance has_vec_cpy_float : has_vec_cpy float =
   Kuiper.Float32.lem_sizeof ();

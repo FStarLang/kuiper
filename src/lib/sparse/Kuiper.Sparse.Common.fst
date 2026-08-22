@@ -1,15 +1,32 @@
 module Kuiper.Sparse.Common
 
 #lang-pulse
+
 open Kuiper
+open Kuiper.Tensor
+open Kuiper.Tensor.Layout.Alg { l1_forward }
+open Kuiper.Array2.Strided { strided_row_major, aligned_strided_row_major }
+open FStar.Tactics.Typeclasses { no_method }
+open Kuiper.Array.Vectorized
+open Kuiper.Seq.Common { (@!) }
+open Kuiper.Tensor.Layout.Slice
+
 module SZ = FStar.SizeT
+module Chest = Kuiper.Chest
 
 // This is here to force extraction.
 let _ = 1ul
 
-(* Misc *)
+(* Class instances *)
 
-let divup (n : nat) (d : pos) : GTot nat = ((n + d) - 1) / d
+inline_for_extraction noextract
+instance has_vec_cpy_sz : has_vec_cpy sz = { _chunk = 4sz; _pf = ez }
+
+(* Aritmetica *)
+
+let divup (n : int) (d : pos {n + d > 0}) : Tot nat = (n + d - 1) / d
+
+let round2 (k : pos) (n : nat) = (n / k) * k
 
 (* sdivup is implemented as (n + (d-1))/d. Associating
 that way usually performs more partial evaluation as d is usually
@@ -19,6 +36,132 @@ inline_for_extraction noextract
 let divup_ (n : sz) (d : szp)
 : Pure sz (requires fits (n + d)) (ensures fun r -> SZ.v r == divup n d)
 = sdivup n d
+
+(* en sputnik está especializado para potencias de 2: n & (k - 1) *)
+inline_for_extraction noextract
+let round2_  (k : szp) (n : sz)
+: Pure sz (requires true) (ensures fun r -> SZ.v r == round2 k n)
+= (n /^ k) *^ k
+
+let div2_lemma (a : nat)
+: Lemma (requires a % 2 <> 0) (ensures a % 2 == 1)
+= ()
+
+let div2_prod_odd (a b : nat)
+: Lemma
+  (requires a % 2 == 1 /\ b % 2 == 1)
+  (ensures (a * b) % 2 == 1)
+=
+  let p = a / 2 in
+  let q = b / 2 in
+
+  assert a * b = 2 * (p + q + 2*p*q) + 1;
+  assert (a * b) % 2 == 1
+
+
+let div2_lemma_prod (a b : nat)
+: Lemma (requires 2 /? (a * b)) (ensures 2 /? a \/ 2 /? b)
+=
+  if 2 /? a then ()
+  else if 2 /? b then ()
+  else (
+    div2_lemma a;
+    div2_lemma b;
+    div2_prod_odd a b
+  )
+
+let rec factor_pow2 (n : nat) (a b : nat)
+: Ghost (nat & nat)
+  (requires a * b == pow2 n)
+  (ensures fun (p, q) -> pow2 p == a /\ pow2 q == b)
+=
+  if n = 0
+    then (0, 0)
+    else (
+      assert a * b == 2 * pow2 (n - 1);
+      div2_lemma_prod a b;
+      if 2 /? a
+        then let (p, q) = factor_pow2 (n - 1) (a / 2) b in (p + 1, q)
+        else let (p, q) = factor_pow2 (n - 1) a (b / 2) in (p, q + 1)
+    )
+
+
+let pow2_div_log (n : nat) (a : nat)
+: Lemma (requires a /? pow2 n) (ensures exists r. pow2 r == a)
+= let _ = (factor_pow2 n a (pow2 n / a)) in ()
+
+let pow_div_lemma (n : nat) (a b : nat)
+: Lemma
+  (requires a /? (pow2 n) /\ b /? (pow2 n) /\ a <= b)
+  (ensures a /? b)
+= pow2_div_log n a; pow2_div_log n b
+
+let round2_lemma (a b : nat) (n : nat) (k : nat)
+: Lemma
+  (requires a /? pow2 k /\  b /? pow2 k /\ a <= b)
+  (ensures a /? round2 b n)
+=
+  pow_div_lemma k a b;
+  assert a /? b;
+  lemma_divides_product_r a (n / b) b;
+  assert a /? ((n / b) * b);
+  assert a /? round2 b n;
+  ()
+
+let round2_chunk_lemma
+  (a b : Type0) {| sized a, has_vec_cpy a, sized b, has_vec_cpy b |}
+  (n : nat)
+: Lemma
+  (requires true)
+  (ensures
+    chunk a /? round2 (max (chunk a) (chunk b)) n /\
+    chunk b /? round2 (max (chunk a) (chunk b)) n
+  )
+=
+  let m = max (chunk a) (chunk b) in
+  round2_lemma (chunk a) m n 4;
+  round2_lemma (chunk b) m n 4;
+  ()
+
+let intro_divides (a b c : nat)
+: Lemma (requires a * b = c) (ensures a /? c)
+= ()
+
+let prod_divides (a b c : pos)
+: Lemma (requires (a * b) /? c) (ensures a /? c /\ b /? c)
+=
+  let k = c / (a * b) in
+  intro_divides a (k * b) c;
+  intro_divides b (k * a) c;
+  ()
+
+let lineal_divides (d : pos) (a b k : nat)
+: Lemma (requires d /? a /\ d /? b) (ensures d /? (a + k * b) /\ d /? (k * b + a))
+=
+  lemma_divides_product_r d k b;
+  lemma_divides_sum d a (k * b)
+
+let prod_preserves_divides (c d : pos) (a : nat)
+: Lemma (requires c /? a) (ensures (c * d) /? (a * d))
+=
+  lemma_divides_product_l c a d;
+  lemma_divides_exact c (a * d);
+  intro_divides (c * d) (a / c) (a * d)
+
+let lemma_divides_leq
+  (d : pos)
+  (a b : nat)
+: Lemma
+  (requires d /? a /\ d /? b)
+  (ensures b < a <==> b + d <= a)
+= ()
+
+// ya esta definido pero pide que c sea pos??
+let lemma_divides_chain (a b : pos) (c : nat)
+  : Lemma (requires a /? b /\ b /? c)
+          (ensures a /? c)
+= ()
+
 
 (* Orderings *)
 
@@ -73,7 +216,6 @@ val zero_is_id_r
 
 (* Secuencias *)
 
-
 let map_seq_len (#a #b:Type) (f:a -> Tot b) (s:Seq.seq a)
   : Lemma (ensures len (Seq.map_seq f s) == len s)
           [SMTPat (Seq.map_seq f s)]
@@ -84,6 +226,288 @@ let my_map_seq_index (#a #b:Type) (f:a -> Tot b) (s:Seq.seq a) (i:nat{i < len s}
           [SMTPat (Seq.map_seq f s @! i)]
   = Seq.map_seq_index f s i
 
+let seq_chunk
+  (#et : Type0) {| sized et, has_vec_cpy et |}
+  (#n : nat)
+  (s : lseq et n)
+  (k : nat { k + chunk et <= n })
+: GTot (lseq et (chunk et))
+= Seq.slice s k (k + chunk et)
+
+
+
+(* Matrices *)
+
+open Kuiper.EMatrix
+open Kuiper.Chest
+
+let ematrix_from_rows
+  (#et : Type0)
+  (#rows #cols : erased nat)
+  (r : natlt rows -> GTot (lseq et cols))
+: chest2 et rows cols
+= Chest.mk2 fun i j -> r i `Seq.index` j
+
+// creo que me falta escribir esto para chest2
+let ematrix_from_rows_lemma
+  (#et : Type0)
+  (#rows #cols : erased nat)
+  (r : natlt rows -> GTot (lseq et cols))
+  (i : natlt rows)
+: Lemma (requires true) (ensures ematrix_row (ematrix_from_rows r) i == r i)
+  [SMTPat (ematrix_row (ematrix_from_rows r) i)]
+= assert ematrix_row (ematrix_from_rows r) i `Seq.equal` r i
+
+let ematrix_rows_equal
+  (#et : Type0)
+  (#rows #cols : erased nat)
+  (m1 m2 : chest2 et rows cols)
+: prop = forall i. ematrix_row m1 i == ematrix_row m2 i
+
+let ematrix_rows_equal_intro
+  (#et : Type0)
+  (#rows #cols : erased nat)
+  (m1 m2 : chest2 et rows cols)
+: Lemma (requires ematrix_rows_equal m1 m2) (ensures m1 == m2)
+  [SMTPat (ematrix_rows_equal m1 m2)]
+=
+  introduce forall i j. acc2 m1 i j == acc2 m2 i j
+  with (
+    assert acc2 m1 i j == ematrix_row m1 i @! j;
+    assert acc2 m2 i j == ematrix_row m2 i @! j
+  );
+  assert m1 `Chest.equal` m2
+
+let ematrix_from_cols
+  (#et : Type0)
+  (#rows #cols : erased nat)
+  (c : natlt cols -> GTot (lseq et rows))
+: chest2 et rows cols
+= Chest.mk2 fun i j -> c j @! i
+
+let ematrix_from_cols_lemma
+  (#et : Type0)
+  (#rows #cols : erased nat)
+  (c : natlt cols -> GTot (lseq et rows))
+  (j : natlt cols)
+: Lemma (requires true) (ensures ematrix_col (ematrix_from_cols c) j == c j)
+  [SMTPat (ematrix_col (ematrix_from_cols c) j)]
+= assert ematrix_col (ematrix_from_cols c) j `Seq.equal` c j
+
+let ematrix_cols_equal
+  (#et : Type0)
+  (#rows #cols : erased nat)
+  (m1 m2 : chest2 et rows cols)
+: prop = forall j. ematrix_col m1 j == ematrix_col m2 j
+
+let ematrix_cols_equal_intro
+  (#et : Type0)
+  (#rows #cols : erased nat)
+  (m1 m2 : chest2 et rows cols)
+: Lemma (requires ematrix_cols_equal m1 m2) (ensures m1 == m2)
+  [SMTPat (ematrix_cols_equal m1 m2)]
+=
+  introduce forall i j. acc2 m1 i j == acc2 m2 i j
+  with (
+    assert acc2 m1 i j == ematrix_col m1 j @! i;
+    assert acc2 m2 i j == ematrix_col m2 j @! i
+  );
+  assert m1 `Chest.equal` m2
+
+let ematrix_upd_row_f
+  (#et : Type0)
+  (#rows #cols : erased nat)
+  (em : chest2 et rows cols)
+  (i : natlt rows)
+  (new_row : lseq et cols)
+  (k : natlt rows)
+: GTot (lseq et cols)
+= if k == i then new_row else ematrix_row em k
+
+let chest2_upd_row_f
+  (#et : Type0)
+  (#rows #cols : erased nat)
+  (em : chest2 et rows cols)
+  (i : natlt rows)
+  (new_row : chest1 et cols)
+  (k : natlt rows)
+: GTot (chest1 et cols)
+= if k == i then new_row else chest2_row em k
+
+let ematrix_upd_row_lemma
+  (#et : Type0)
+  (#rows #cols : erased nat)
+  (em : chest2 et rows cols)
+  (i : natlt rows)
+  (new_row : lseq et cols)
+: Lemma
+  (requires true)
+  (ensures ematrix_upd_row em i new_row == ematrix_from_rows (ematrix_upd_row_f em i new_row))
+=
+  assert equal
+    (ematrix_upd_row em i new_row)
+    (ematrix_from_rows (ematrix_upd_row_f em i new_row))
+
+let chest2_upd_row
+  (#et : Type0)
+  (#rows #cols : erased nat)
+  (em : chest2 et rows cols)
+  (i : natlt rows)
+  (new_row : chest1 et cols)
+  : chest2 et rows cols
+  = mk2 fun i' j ->
+      if i' = i
+      then acc new_row (idx1 j)
+      else acc2 em i' j
+
+let chest2_from_rows
+  (#et : Type0)
+  (#rows #cols : erased nat)
+  (r : natlt rows -> GTot (chest1 et cols))
+: chest2 et rows cols
+= mk2 fun i j -> acc1 (r i) j
+
+let chest2_from_rows_lemma
+  (#et : Type0)
+  (#rows #cols : erased nat)
+  (r : natlt rows -> GTot (chest1 et cols))
+  (i : natlt rows)
+: Lemma (requires true) (ensures chest2_row (chest2_from_rows r) i == r i)
+  [SMTPat (chest2_row (chest2_from_rows r) i)]
+= assert chest2_row (chest2_from_rows r) i `equal` r i
+
+let chest2_rows_equal
+  (#et : Type0)
+  (#rows #cols : erased nat)
+  (m1 m2 : chest2 et rows cols)
+: prop = forall i. chest2_row m1 i == chest2_row m2 i
+
+let chest2_rows_equal_intro
+  (#et : Type0)
+  (#rows #cols : erased nat)
+  (m1 m2 : chest2 et rows cols)
+: Lemma (requires chest2_rows_equal m1 m2) (ensures m1 == m2)
+  [SMTPat (chest2_rows_equal m1 m2)]
+=
+  introduce forall i j. acc2 m1 i j == acc2 m2 i j
+  with (
+    assert acc2 m1 i j == acc1 (chest2_row m1 i) j;
+    assert acc2 m2 i j == acc1 (chest2_row m2 i) j
+  );
+  assert m1 `equal` m2
+
+let chest2_upd_row_lemma
+  (#et : Type0)
+  (#rows #cols : erased nat)
+  (em : chest2 et rows cols)
+  (i : natlt rows)
+  (new_row : chest1 et cols)
+: Lemma
+  (requires true)
+  (ensures chest2_upd_row em i new_row == chest2_from_rows (chest2_upd_row_f em i new_row))
+=
+  assert equal
+    (chest2_upd_row em i new_row)
+    (chest2_from_rows (chest2_upd_row_f em i new_row))
+
+let chest2_from_cols
+  (#et : Type0)
+  (#rows #cols : erased nat)
+  (c : natlt cols -> GTot (chest1 et rows))
+: chest2 et rows cols
+= Chest.mk2 fun i j -> acc1 (c j) i
+
+let chest2_from_cols_lemma
+  (#et : Type0)
+  (#rows #cols : erased nat)
+  (c : natlt cols -> GTot (chest1 et rows))
+  (j : natlt cols)
+: Lemma (requires true) (ensures chest2_col (chest2_from_cols c) j == c j)
+  [SMTPat (chest2_col (chest2_from_cols c) j)]
+= assert chest2_col (chest2_from_cols c) j `equal` c j
+
+let chest2_cols_equal
+  (#et : Type0)
+  (#rows #cols : erased nat)
+  (m1 m2 : chest2 et rows cols)
+: prop = forall j. chest2_col m1 j == chest2_col m2 j
+
+let chest2_cols_equal_intro
+  (#et : Type0)
+  (#rows #cols : erased nat)
+  (m1 m2 : chest2 et rows cols)
+: Lemma (requires chest2_cols_equal m1 m2) (ensures m1 == m2)
+  [SMTPat (chest2_cols_equal m1 m2)]
+=
+  introduce forall i j. acc2 m1 i j == acc2 m2 i j
+  with (
+    assert acc2 m1 i j == acc1 (chest2_col m1 j) i;
+    assert acc2 m2 i j == acc1 (chest2_col m2 j) i
+  );
+  assert m1 `equal` m2
+
+let ematrix_row_chunk_
+  (#et : Type0) {| sized et, has_vec_cpy et |}
+  (#rows #cols : nat)
+  (em : chest2 et rows cols)
+  (i : natlt rows)
+  (j : natlt cols { j + chunk et <= cols })
+: GTot (lseq et (chunk et))
+= Seq.init_ghost (chunk et) (fun k -> acc2 em i (j + k))
+
+let ematrix_row_chunk
+  (#et : Type0) {| sized et, has_vec_cpy et |}
+  // usamos pos y no nat porque garantiza que chunk et <= cols
+  (#rows #cols : pos { chunk et /? cols })
+  (em : chest2 et rows cols)
+  (i : natlt rows)
+  (j : natlt cols { chunk et /? j })
+: GTot (lseq et (chunk et))
+= ematrix_row_chunk_ em i j
+
+// TODO estas cosas son medio especificas, mover??
+let offset_chunk
+  (et : Type0) {| sized et, has_vec_cpy et |}
+  (j : nat { chunk et /? j })
+  (k : nat)
+  (nthr : nat)
+: Pure nat (requires true) (ensures divides (chunk et))
+=
+  lemma_divides_product (chunk et) (k * nthr);
+  lemma_divides_sum (chunk et) j (k * nthr * chunk et);
+  j + k * nthr * v (chunk et)
+
+let is_ematrix_tile_at
+  (#et : Type0) {| sized et, has_vec_cpy et |}
+  (#rows #cols : nat { chunk et /? cols })
+  (em : chest2 et rows cols)
+  (i : natlt rows)
+  (j : nat { chunk et /? j })
+  (#row_tile : nat { chunk et /? row_tile })
+  (s : lseq et row_tile)
+  (nthr : nat)
+  (k : natlt (row_tile / chunk et))
+: Pure prop
+  (requires offset_chunk et j k nthr < cols)
+  (ensures fun _ -> true)
+=
+  seq_chunk s (k * chunk et) ==
+  ematrix_row_chunk em i (offset_chunk et j k nthr)
+
+let is_ematrix_tile
+  (#et : Type0) {| sized et, has_vec_cpy et |}
+  (#rows #cols : nat { chunk et /? cols })
+  (em : chest2 et rows cols)
+  (i : natlt rows)
+  (j : nat { chunk et /? j })
+  (#row_tile : nat { chunk et /? row_tile })
+  (s : lseq et row_tile)
+  (nthr : nat)
+: prop
+=
+  forall (k : natlt (row_tile / chunk et)).
+    offset_chunk et j k nthr < cols ==>
+      is_ematrix_tile_at em i j s nthr k
 
 (* Propiedades sobre las posiciones de un array esparso *)
 
@@ -132,13 +556,29 @@ let valid_pos (#nnz l : nat) (s : lseq nat nnz) : prop
 = in_bounds 0 l s /\ sorted s
 
 let seq_make_sparse
-  (#et : Type0) {| scalar et |}
+  (#et : Type0)
   (#nnz #n : nat)
-  (pos : lseq nat nnz{valid_pos n pos})
+  (pos : lseq nat nnz{in_bounds 0 n pos})
   (s : lseq et n)
   : lseq et nnz
 =
   Seq.init nnz (fun i -> s @! (pos @! i))
+
+let seq_make_sparse_slice
+  (#et : Type0) {| scalar et |}
+  (#nnz #n : nat)
+  (pos : lseq nat nnz { in_bounds 0 n pos })
+  (i j : natle nnz { i <= j })
+  (s : lseq et n)
+: Lemma
+  (requires true)
+  (ensures
+    Seq.slice (seq_make_sparse pos s) i j ==
+    seq_make_sparse #_ #(j - i) #n (Seq.slice pos i j) s
+  )
+= assert
+    Seq.slice (seq_make_sparse pos s) i j `Seq.equal`
+    seq_make_sparse #_ #(j - i) #n (Seq.slice pos i j) s
 
 // renombrar a seq_unsparse
 let unsparse
@@ -153,3 +593,307 @@ let unsparse
     if mem i pos
       then elems @! index_mem i pos
       else zero
+
+
+(* Utils *)
+
+open Kuiper.Bijection
+
+let natlt_refined_bij (m n : nat)
+: bijection (a : natlt m {a < n}) (natlt (min m n))
+= {
+  ff = (fun (a : natlt m {a < n}) -> let a' : natlt (min m n) = a in a');
+  gg = (fun (b : natlt (min m n)) -> b);
+  ff_gg = (fun b -> ());
+  gg_ff = (fun a -> ())
+}
+
+let natlt_is_between (n : nat) : Lemma (natlt n == between 0 n)
+  =
+  FStar.RefinementExtensionality.refext
+    nat
+    (fun (x:nat) -> x < n)
+    (fun (x:nat) -> 0 <= x /\ x < n);
+  assert (x:nat{x < n} == x:nat{0 <= x /\ x < n});
+  assert (natlt n == x:nat{x < n});
+  assert_norm (between 0 n == x:nat{0 <= x /\ x < n});
+  ()
+
+inline_for_extraction noextract
+fn foreach
+  (n : sz)
+  (p q : natlt n -> slprop)
+  (#frame : slprop)
+  (f : (i : szlt n) -> stt unit (p i ** frame) (fun _ -> q i ** frame))
+  preserves
+    frame
+  requires
+    (forall+ (k : natlt n). p k)
+  ensures
+    (forall+ (k : natlt n). q k)
+{
+  natlt_is_between n;
+  assert pure (natlt n == between 0sz n);
+  forevery_rw_type (natlt n) (between 0sz n) p;
+  Kuiper.For.for_loop' 0sz n
+    p q
+    frame
+    fn x { f x };
+  forevery_rw_type (between 0sz n) (natlt n) q;
+}
+
+(* SL helpers *)
+
+ghost
+fn when__intro_true (p : prop) (q : slprop)
+  requires pure p
+  requires q
+  ensures when__ p (fun _ -> q)
+{
+  rewrite q as when__ p (fun _ -> q)
+}
+
+ghost
+fn when__intro_false (p : prop) (q : squash p -> slprop)
+  requires pure (~p)
+  ensures when__ p q
+{
+  rewrite emp as when__ p q
+}
+
+ghost
+fn when__elim_true (p : prop) (q : slprop)
+  requires pure p
+  requires when__ p (fun _ -> q)
+  ensures q
+{
+  rewrite when__ p (fun _ -> q) as q;
+}
+
+ghost
+fn when__elim_false (p : prop) (q : squash p -> slprop)
+  requires pure (~p)
+  requires when__ p q
+{
+  rewrite when__ p q as emp;
+}
+
+ghost
+fn forevery_refine_pred'
+  (#a:Type0)
+  (f: a -> prop)
+  (p: (x:a) -> squash (f x) -> slprop)
+  requires
+    forall+ (x:a). when__ (f x) (p x)
+  ensures
+    forall+ (x:a { f x }). p x ()
+{
+  forevery_refine_split (fun x -> when__ (f x) (p x)) f;
+  drop_ (forall+ (x:a { ~(f x) }). when__ (f x) (p x));
+  forevery_ext (fun (x:a { f x }) -> when__ (f x) (p x)) (fun x -> p x ());
+}
+
+let divup_factor (n : nat) (d : pos) =
+  (i : natlt (divup n d) & (j : natlt d {i * d + j < n }))
+
+let bij_divup_factor (n : nat) (d : pos)
+: Kuiper.Bijection.bijection (natlt n) (divup_factor n d)
+=
+{
+  ff = (fun (i : natlt n) -> (|i / d, i % d|) <: divup_factor n d);
+  gg = (fun (|j, k|) -> j * d + k);
+
+  ff_gg = (fun _ -> ());
+  gg_ff = (fun _ -> ());
+}
+
+ghost
+fn forevery_factor_
+  (n : nat)
+  (d : pos)
+  (p : natlt n -> slprop)
+  requires forall+ (i:natlt n). p i
+  ensures forall+ (i1:natlt (divup n d)) (i2:natlt d {i1 * d + i2 < n}).
+    p (i1 * d + i2)
+{
+  forevery_iso (bij_divup_factor n d) p;
+  forevery_ext #(divup_factor n d)
+    (fun q -> p ((bij_divup_factor n d).gg q))
+    (fun q -> p (q._1 * d + q._2));
+  forevery_unflatten_dep
+    #(natlt (divup n d)) #(fun i1 -> (i2 : natlt d {i1 * d + i2 < n}))
+    (fun i1 i2 -> p (i1 * d + i2));
+}
+
+ghost
+fn forevery_unfactor_
+  (n : nat)
+  (d : pos)
+  (p : natlt n -> slprop)
+  requires forall+ (i1:natlt (divup n d)) (i2:natlt d {i1 * d + i2 < n}).
+    p (i1 * d + i2)
+  ensures forall+ (i:natlt n). p i
+{
+  forevery_flatten_dep
+    #(natlt (divup n d)) #(fun i1 -> (i2 : natlt d {i1 * d + i2 < n}))
+    (fun i1 i2 -> p (i1 * d + i2));
+  forevery_iso (Kuiper.Bijection.bij_sym (bij_divup_factor n d )) _;
+  forevery_ext _ (fun i -> p i);
+}
+
+(* Tensors *) // tiene sentido que esté acá?
+
+let array_cell_of_pos (#n : nat)
+  (l : layout1 n) (i : natlt n) : GTot (natlt (tlayout_ulen l)) =
+  l.imap.f (i, ())
+
+inline_for_extraction noextract
+class cont_layout (#n : erased nat) (l : layout1 n) = {
+  [@@@no_method]
+  offset : sz;
+  [@@@no_method]
+  pf : i:natlt n -> squash (array_cell_of_pos l i == offset + i);
+}
+
+let aligned_cont_layout
+  (#n : erased nat)
+  (#l : layout1 n)
+  (k : pos)
+  (cl : cont_layout l)
+: prop = k /?+ cl.offset
+
+inline_for_extraction noextract
+instance cont_layout_l1_forward (#n : erased nat)
+  : cont_layout (l1_forward n) = {
+    offset  = 0sz;
+    pf = ez
+  }
+
+inline_for_extraction noextract
+instance cont_layout_strided_row_major
+  (#rows #cols : erased nat)
+  (l : layout2 rows cols { 0 < cols }) {| srm : strided_row_major l |}
+  (#_: squash (fits (tlayout_ulen l)))
+  (i : natlt rows)
+  {| conc_i : concrete_sz i |}
+  : cont_layout #cols (tlayout_slice l 0 i) = {
+    offset  = (srm.pf i 0; srm.offset +^ srm.stride *^ (concr' conc_i));
+    pf = srm.pf i;
+  }
+
+let aligned_cont_strided_row_major
+  (#rows #cols : erased nat { 0 < cols })
+  (l : layout2 rows cols) {| srm : strided_row_major l |}
+  (#_: squash (fits (tlayout_ulen l)))
+  (k : pos)
+  (i : szlt rows)
+: Lemma
+  (requires aligned_strided_row_major k srm)
+  (ensures aligned_cont_layout k (cont_layout_strided_row_major l i))
+=
+  srm.pf i 0;
+  lineal_divides k srm.offset srm.stride i
+
+// esto es cierto pero no lo puedo probar con la interfaz actual
+let row_core_lemma
+  (#et:Type0)
+  (#m #n : nat)
+  (#l : layout2 m n)
+  (a : array2 et l)
+  (i : natlt m)
+  : Lemma (requires true) (ensures core (sliceof a 0 i) == core a)
+  = ()
+
+
+// TODO mover todo esto
+open Pulse.Lib.Trade { (@==>) }
+
+inline_for_extraction noextract
+let tensor_row
+  (#et : Type0)
+  (#rows #cols : erased nat)
+  (#l : layout2 rows cols)
+  (a : array2 et l)
+  (i : erased nat { i < rows })
+  : array1 et #cols (tlayout_slice l 0 i)
+= sliceof a 0 i
+
+ghost
+fn tensor_extract_row
+  (#et : Type0)
+  (#rows #cols : nat)
+  (#l : layout2 rows cols)
+  (a : array2 et l)
+  (i : natlt rows)
+  (#f : perm)
+  (#s : chest2 et rows cols)
+  requires
+    a |-> Frac f s
+  ensures
+    tensor_row a i |-> Frac f (chest2_row s i) **
+    (forall* (s' : chest1 et cols).
+      tensor_row a i |-> Frac f s' @==>
+      a |-> Frac f (chest2_upd_row s i s'))
+{
+  tensor_extract_slice a 0 i;
+  rewrite each sliceof a 0 i as tensor_row a i;
+  rewrite each chest (modulo_i 0 (ICons rows (ICons cols INil))) et as chest1 et cols;
+  rewrite each modulo_i 0 (rows @| (cols @| INil)) as (cols @| INil);
+
+  Pulse.Lib.Forall.intro_forall
+    #_
+    #(fun (s' : chest1 et cols) ->
+      tensor_row a i |-> Frac f s' @==>
+      a |-> Frac f (chest2_upd_row s i s'))
+    (forall* (s' : chest1 et cols).
+      tensor_row a i |-> Frac f s' @==>
+      a |-> Frac f (chest_update_slice 0 i s s'))
+    fn s'{
+      Pulse.Lib.Forall.elim_forall s';
+      rewrite each chest_update_slice 0 i s s' as chest2_upd_row s i s';
+    };
+}
+
+ghost
+fn tensor_extract_row_ro
+  (#et : Type0)
+  (#rows #cols : nat)
+  (#l : layout2 rows cols)
+  (a : array2 et l)
+  (i : natlt rows)
+  (#f : perm)
+  (#s : chest2 et rows cols)
+  requires
+    a |-> Frac f s
+  ensures
+    factored
+      (tensor_row a i |-> Frac f (chest2_row s i))
+      (a |-> Frac f s)
+{
+  tensor_extract_row a i;
+  Pulse.Lib.Forall.elim_forall (chest_slice 0 i s <: chest1 et cols);
+  assert pure (
+    equal
+      (chest2_upd_row s i (chest2_row s i))
+      s
+  );
+}
+
+ghost
+fn tensor_restore_row
+  (#et : Type0)
+  (#rows #cols : nat)
+  (#l : layout2 rows cols)
+  (a : array2 et l)
+  (i : natlt rows)
+  (#f : perm)
+  (#s : chest2 et rows cols)
+  requires
+    factored
+      (tensor_row a i |-> Frac f (chest_slice 0 i s))
+      (a |-> Frac f s)
+  ensures
+    a |-> Frac f s
+{
+  Pulse.Lib.Trade.elim_trade _ _;
+}

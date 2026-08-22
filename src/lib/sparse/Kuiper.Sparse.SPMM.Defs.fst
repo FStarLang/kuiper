@@ -8,51 +8,44 @@ open Kuiper
 module SZ = Kuiper.SizeT
 open Kuiper.Sparse
 open Kuiper.Math { even, odd }
-
-let slice_live
-  (#et : Type0)
-  (#l : nat)
-  (a : larray et l)
-  (#[FStar.Tactics.exact (`1.0R)] f : perm)
-  (i j : nat)
-  : slprop
-  = exists* s. pts_to_slice a #f i j s
-
-let array_live_cell
-  (#et : Type0)
-  (#l : nat)
-  (a :larray et l)
-  (#[FStar.Tactics.exact (`1.0R)] f : perm)
-  (i : natlt l)
-  : slprop
-  = exists* v. pts_to_cell a #f i v
+open Kuiper.Array.Vectorized
 
 inline_for_extraction
-type parameters = {
+type parameters (et : Type0) {| sized et, has_vec_cpy et |} = {
   rows : szp;
   shared : szp;
-  cols : szp;
+  cols : (k : szp { chunk et /? k});
   blockItemsK : szp;
   blockItemsX : szp;
-  blockWidth : (k : szp {k /? blockItemsK /\ k /? blockItemsX});
+  blockWidth : (k : szp {
+    (k * chunk et) /? blockItemsK /\
+    (k * chunk sz) /? blockItemsK /\
+    (k * chunk et) /? blockItemsX
+  });
 }
 
-(* Shadow lseq to make it erased. *)
-let lseq (a:Type) (n:nat) = erased (Seq.lseq a n)
-
-
-let nblocks_ (p : parameters) : GTot pos
-// = p.rows * ((p.cols + p.blockItemsX - 1) / p.blockItemsX)
+let nblocks_
+  #et {| sized et, has_vec_cpy et |}
+  (p : parameters et)
+: GTot pos
 = p.rows * (p.cols `divup` p.blockItemsX)
 
-let nthreads_ (p : parameters) : GTot pos
+let nthreads_
+  #et {| sized et, has_vec_cpy et |}
+  (p : parameters et)
+: GTot pos
 = p.blockWidth
 
-let allthreads_ (p : parameters) : GTot pos
+let allthreads_
+  #et {| sized et, has_vec_cpy et |}
+  (p : parameters et)
+: GTot pos
 = nblocks_ p * nthreads_ p
 
 inline_for_extraction noextract
-let size_req (p : parameters) =
+let size_req
+  #et {| sized et, has_vec_cpy et |}
+  (p : parameters et) =
     nblocks_ p <= max_blocks /\
     p.blockWidth <= max_threads /\
     p.rows < 10000 /\
@@ -62,65 +55,113 @@ let size_req (p : parameters) =
     p.blockItemsX < 10000
 
 inline_for_extraction noextract
-let nblocks (p : parameters)
+let nblocks
+  #et {| sized et, has_vec_cpy et |}
+  (p : parameters et)
 : Pure (szle max_blocks)
   (requires size_req p)
   (ensures fun r -> SZ.v r == nblocks_ p)
 = p.rows *^ (p.cols `divup_` p.blockItemsX)
 
 inline_for_extraction noextract
-let nthreads (p : parameters{size_req p})
+let nthreads
+  #et {| sized et, has_vec_cpy et |}
+  (p : parameters et)
 : Pure (szle max_threads)
   (requires size_req p)
   (ensures fun r -> SZ.v r == nthreads_ p)
 = p.blockWidth
 
 inline_for_extraction noextract
-let allthreads (p : parameters{size_req p})
+let allthreads
+  #et {| sized et, has_vec_cpy et |}
+  (p : parameters et)
 : Pure sz
   (requires size_req p)
   (ensures fun r -> SZ.v r == allthreads_ p)
 = nblocks p *^ nthreads p
 
-let brow (p : parameters) (bid : natlt (nblocks_ p))
+let brow
+  #et {| sized et, has_vec_cpy et |}
+  (p : parameters et) (bid : natlt (nblocks_ p))
 : GTot (natlt p.rows)
 = bid / (p.cols `divup` p.blockItemsX)
 
 inline_for_extraction noextract
-let brow_ (p : parameters) (bid : szlt (nblocks_ p))
+let brow_
+  #et {| sized et, has_vec_cpy et |}
+  (p : parameters et) (bid : szlt (nblocks_ p))
   (#_ : squash (fits (p.cols + p.blockItemsX)))
 : Tot (m : sz {SZ.v m == brow p bid})
 = bid /^ (p.cols `divup_` p.blockItemsX)
 
-let bcol (p : parameters) (bid : natlt (nblocks_ p))
-: GTot (natlt p.cols)
+let bcol
+  #et {| sized et, has_vec_cpy et |}
+  (p : parameters et) (bid : natlt (nblocks_ p))
+: GTot (natlt p.cols) // por que Ghost?
 = (bid % (p.cols `divup` p.blockItemsX)) * p.blockItemsX
 
 inline_for_extraction noextract
-let bcol_ (p : parameters { size_req p }) (bid : szlt (nblocks_ p))
+let bcol_
+  #et {| sized et, has_vec_cpy et |}
+  (p : parameters et { size_req p }) (bid : szlt (nblocks_ p))
 : Tot (n : sz {SZ.v n == bcol p bid})
 = (bid %^ (p.cols `divup_` p.blockItemsX)) *^ p.blockItemsX
+
+noextract
+let tcol
+  (#et : Type0) {| sized et, has_vec_cpy et |}
+  (p : parameters et)
+  (bid : natlt (nblocks_ p))
+  (tid : nat)
+: Ghost nat (requires true) (ensures fun c -> chunk et /? c)
+=
+  lemma_divides_product (chunk et) tid;
+  assert chunk et /? (tid * chunk et);
+  lemma_divides_product p.blockItemsX (bid % (p.cols `divup` p.blockItemsX));
+  assert p.blockItemsX /? bcol p bid;
+  prod_divides (p.blockWidth) (chunk et) p.blockItemsX;
+  assert chunk et /? p.blockItemsX;
+  lemma_divides_chain (chunk et) p.blockItemsX (bcol p bid);
+  lemma_divides_sum (chunk et) (bcol p bid) (tid * chunk et);
+  bcol p bid + tid * chunk et
+
+inline_for_extraction noextract
+let tcol_
+  (#et : Type0) {| sized et, has_vec_cpy et |}
+  (p : parameters et { size_req p })
+  (bid : szlt (nblocks_ p))
+  (tid : szlt p.blockWidth)
+: Pure sz (requires true) (ensures fun c -> SZ.v c == tcol p bid tid)
+= bcol_ p bid +^ tid *^ chunk et
 
 // MAYBE definir threadItemsX?
 
 (* Description of shared memory used in this kernel. *)
 inline_for_extraction noextract
-let shmems_desc (et:Type0) {| sized et |}
-  (p : parameters) : list shmem_desc = [
+let shmems_desc
+  #et {| sized et, has_vec_cpy et |}
+  (p : parameters et)
+: list shmem_desc = [
   SHArray et p.blockItemsK;
   // TODO podemos parametrizar este tipo?
   SHArray sz p.blockItemsK;
 ]
 
+// esto no tiene sentido, pedir valid_smatrix y listo
 unfold
 let well_formed
-  (p : parameters)
+  #et {| sized et, has_vec_cpy et |}
+  (p : parameters et)
   (#nnz : sz)
   (col_ind : lseq sz nnz)
   (row_off : lseq sz (p.rows + 1))
 : prop
 = valid_smatrix p.rows p.shared (cast_pos col_ind) (cast_pos row_off)
 
+(* Lemas *)
+
+// TODO esto se usa?
 let block_lemma whole block k
   : Lemma (requires block /? whole /\ k * block < whole)
           (ensures k * block + block <= whole)
@@ -130,3 +171,96 @@ let block_lemma_off whole block k off
   : Lemma (requires block /? whole /\ k * block < whole /\ off < block)
           (ensures k * block + off < whole)
   = ()
+
+#push-options "--z3rlimit 30"
+let offset_aligned_lemma_et
+  (#et : Type0) {| sized et, has_vec_cpy et |}
+  (p : parameters et)
+  (#n : nat)
+  (x : larray et n { aligned 16 x })
+  (i k : nat)
+: Lemma
+  (requires true)
+  (ensures aligned' 16 x
+    (round2 (max (chunk et) (chunk sz)) i + k * p.blockItemsK)
+  )
+=
+  let i' = round2 (max (chunk et) (chunk sz)) i in
+  round2_chunk_lemma et sz i;
+  assert chunk et /? i';
+  prod_divides p.blockWidth (chunk et) p.blockItemsK;
+  lineal_divides (chunk et) i' p.blockItemsK k;
+  ()
+
+let offset_aligned_lemma_sz
+  (#et : Type0) {| sized et, has_vec_cpy et |}
+  (p : parameters et)
+  (#n : nat)
+  (x : larray sz n { aligned 16 x })
+  (i k : nat)
+: Lemma
+  (requires true)
+  (ensures aligned' 16 x
+    (round2 (max (chunk et) (chunk sz)) i + k * p.blockItemsK)
+  )
+=
+  let i' = round2 (max (chunk et) (chunk sz)) i in
+  round2_chunk_lemma et sz i;
+  assert chunk sz /? i';
+  prod_divides p.blockWidth (chunk sz) p.blockItemsK;
+  lineal_divides (chunk sz) i' p.blockItemsK k;
+  ()
+#pop-options
+
+// TODO mejores nombress
+let offset_aligned_lemma_et'
+  (#et : Type0) {| sized et, has_vec_cpy et |}
+  (p : parameters et)
+  (#n : nat)
+  (x : larray et n { aligned 16 x })
+  (i : nat)
+: Lemma
+  (requires true)
+  (ensures aligned' 16 x
+    (round2 (max (chunk et) (chunk sz)) i)
+  )
+=
+  let i' = round2 (max (chunk et) (chunk sz)) i in
+  round2_chunk_lemma et sz i;
+  assert chunk et /? i';
+  ()
+
+let offset_aligned_lemma_sz'
+  (#et : Type0) {| sized et, has_vec_cpy et |}
+  (p : parameters et)
+  (#n : nat)
+  (x : larray et n { aligned 16 x })
+  (i : nat)
+: Lemma
+  (requires true)
+  (ensures aligned' 16 x
+    (round2 (max (chunk et) (chunk sz)) i)
+  )
+=
+  let i' = round2 (max (chunk et) (chunk sz)) i in
+  round2_chunk_lemma et sz i;
+  assert chunk sz /? i';
+  ()
+
+open Kuiper.Chest
+open Kuiper.EMatrix
+
+let chest2_tile_prop
+  (#et : Type0) {| sized et, has_vec_cpy et |}
+  (#m1 #n1 : nat { chunk et /? n1 })
+  (#m2 #n2 : nat {  chunk et /? n2 })
+  (em2 : chest2 et m2 n2)
+  (row_ind : lseq nat m1 { in_bounds 0 m2 row_ind })
+  (j : nat { chunk et /? j })
+  (step : nat)
+  (em : chest2 et m1 n1)
+: GTot prop
+=
+  forall (k1 : natlt n1).
+    let k2 = j + k1 / chunk et * step * chunk et + k1 % chunk et in
+    k2 < n2 ==> chest2_col em k1 == seq_to_chest1 (seq_make_sparse row_ind (ematrix_col em2 k2))
