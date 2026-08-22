@@ -22,9 +22,10 @@ __hoisted_g_matmul_bf16_rrr_0(uint32_t m,
             uint32_t __anf0 = k1;
             __nv_bfloat16 y =
                 kpr_bf16mul(gA[trow * k + __anf0], gB[__anf0 * n + tcol]);
+            __nv_bfloat16 old_acc = acc;
             __nv_bfloat16 yc = kpr_bf16sub(y, c);
-            __nv_bfloat16 t = kpr_bf16add(acc, yc);
-            c = kpr_bf16sub(kpr_bf16sub(t, acc), yc);
+            __nv_bfloat16 t = kpr_bf16add(old_acc, yc);
+            c = kpr_bf16sub(kpr_bf16sub(t, old_acc), yc);
             acc = t;
         }
         gC[trow * n + tcol] = acc;
@@ -63,9 +64,10 @@ __hoisted_g_matmul_f32_rrr_0(uint32_t m,
         float c = 0.0f;
         for (; k1 < k; k1++) {
             uint32_t __anf0 = k1;
+            float old_acc = acc;
             float yc = gA[trow * k + __anf0] * gB[__anf0 * n + tcol] - c;
-            float t = acc + yc;
-            c = t - acc - yc;
+            float t = old_acc + yc;
+            c = t - old_acc - yc;
             acc = t;
         }
         gC[trow * n + tcol] = acc;
@@ -102,9 +104,10 @@ __hoisted_g_matmul_f64_rrr_0(uint32_t m,
         double c = 0.0;
         for (; k1 < k; k1++) {
             uint32_t __anf0 = k1;
+            double old_acc = acc;
             double yc = gA[trow * k + __anf0] * gB[__anf0 * n + tcol] - c;
-            double t = acc + yc;
-            c = t - acc - yc;
+            double t = old_acc + yc;
+            c = t - old_acc - yc;
             acc = t;
         }
         gC[trow * n + tcol] = acc;
@@ -146,9 +149,10 @@ __hoisted_g_matmul_bf16_ccc_0(uint32_t m,
             uint32_t __anf0 = k1;
             __nv_bfloat16 y =
                 kpr_bf16mul(gA[__anf0 * m + trow], gB[tcol * k + __anf0]);
+            __nv_bfloat16 old_acc = acc;
             __nv_bfloat16 yc = kpr_bf16sub(y, c);
-            __nv_bfloat16 t = kpr_bf16add(acc, yc);
-            c = kpr_bf16sub(kpr_bf16sub(t, acc), yc);
+            __nv_bfloat16 t = kpr_bf16add(old_acc, yc);
+            c = kpr_bf16sub(kpr_bf16sub(t, old_acc), yc);
             acc = t;
         }
         gC[tcol * m + trow] = acc;
@@ -187,9 +191,10 @@ __hoisted_g_matmul_f32_ccc_0(uint32_t m,
         float c = 0.0f;
         for (; k1 < k; k1++) {
             uint32_t __anf0 = k1;
+            float old_acc = acc;
             float yc = gA[__anf0 * m + trow] * gB[tcol * k + __anf0] - c;
-            float t = acc + yc;
-            c = t - acc - yc;
+            float t = old_acc + yc;
+            c = t - old_acc - yc;
             acc = t;
         }
         gC[tcol * m + trow] = acc;
@@ -226,9 +231,10 @@ __hoisted_g_matmul_f64_ccc_0(uint32_t m,
         double c = 0.0;
         for (; k1 < k; k1++) {
             uint32_t __anf0 = k1;
+            double old_acc = acc;
             double yc = gA[__anf0 * m + trow] * gB[tcol * k + __anf0] - c;
-            double t = acc + yc;
-            c = t - acc - yc;
+            double t = old_acc + yc;
+            c = t - old_acc - yc;
             acc = t;
         }
         gC[tcol * m + trow] = acc;
