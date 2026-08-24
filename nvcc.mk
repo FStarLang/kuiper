@@ -27,7 +27,7 @@ $(OUTDIR)/%.exe: $(OUTDIR)/%.o $(OUTDIR)/$$(call remove__, %).o
 
 .PHONY: nvidia-smi-check
 nvidia-smi-check:
-	nvidia-smi >/dev/null || (echo "*** nvidia-smi failed! Is CUDA set up properly?\n" >&2; false)
+	@out=$$(nvidia-smi 2>&1) || { printf '%s\n*** nvidia-smi failed! Is CUDA set up properly?\n' "$$out" >&2; false; }
 
 $(OUTDIR)/%.output: $(OUTDIR)/%.exe nvidia-smi-check
 	timeout -k 1 180 $< > $@
