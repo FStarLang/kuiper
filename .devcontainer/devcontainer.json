@@ -1,6 +1,6 @@
 {
   "name": "Default devcontainer",
-  "image": "mtzguido/pulse-cuda-devcontainer:latest",
+  "image": "ghcr.io/fstarlang/kuiper-base:latest",
   "customizations": {
     "vscode": {
       "extensions": [

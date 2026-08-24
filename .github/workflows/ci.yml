@@ -30,7 +30,7 @@ jobs:
   verify:
     runs-on: [self-hosted, linux, X64, cuda]
     container:
-      image: mtzguido/pulse-cuda-devcontainer:latest
+      image: ghcr.io/fstarlang/kuiper-base:latest
       options: --gpus all
     defaults:
       run:
@@ -151,7 +151,7 @@ jobs:
     needs: verify
     runs-on: [self-hosted, linux, X64, cuda]
     container:
-      image: mtzguido/pulse-cuda-devcontainer:latest
+      image: ghcr.io/fstarlang/kuiper-base:latest
       options: --gpus all
     defaults:
       run:
@@ -178,7 +178,7 @@ jobs:
     needs: verify
     runs-on: [self-hosted, linux, X64, cuda]
     container:
-      image: mtzguido/pulse-cuda-devcontainer:latest
+      image: ghcr.io/fstarlang/kuiper-base:latest
       options: --gpus all
     defaults:
       run:
