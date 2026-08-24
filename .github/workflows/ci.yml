@@ -28,10 +28,11 @@ concurrency:
 # and advance.yml.
 jobs:
   verify:
-    runs-on: [self-hosted, linux, X64, cuda]
+    # Verification and extraction need no GPU, so this runs on a GitHub-hosted
+    # runner.
+    runs-on: ubuntu-latest
     container:
-      image: ghcr.io/fstarlang/kuiper-base:latest
-      options: --gpus all
+      image: ghcr.io/fstarlang/kuiper-base-nocuda:latest
     defaults:
       run:
         shell: bash
@@ -40,6 +41,9 @@ jobs:
           whoami
           id
           env
+          echo "nproc: $(nproc)"
+          free -g || true
+          df -h . || true
 
       - run: find . -delete
       - name: Check out repo
@@ -59,9 +63,6 @@ jobs:
       - name: Get submodules
         run: |
           git submodule update --depth 1 --init --recursive
-
-      - name: Check CUDA
-        run: ./scripts/check-cuda.sh
 
       - name: Set debug mode
         if: ${{ inputs.debug }}
