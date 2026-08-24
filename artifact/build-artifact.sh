@@ -18,8 +18,10 @@ cp README.md $NAME/README.md
 # Remove devcontainer definition, we use code-server instead
 rm -rf $NAME/.devcontainer
 
-# Build the base image (shared with CI)
-docker build -t kuiper-base -f ../ci/Dockerfile ../ci/
+# Build the base image (shared with CI). The artifact ships nvcc so reviewers
+# can compile and run the kernels, so it needs the cuda stage, which is the one
+# published as kuiper-base; artifact/Dockerfile builds FROM that local tag.
+docker build --target cuda -t kuiper-base -f ../ci/Dockerfile ../ci/
 
 # Build the artifact image on top
 docker build -t $TAG .

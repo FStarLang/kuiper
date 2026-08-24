@@ -1,0 +1,88 @@
+name: Container image
+
+# Builds the two stages of ci/Dockerfile and publishes them to ghcr.io.
+#
+# The image is only rebuilt when ci/Dockerfile changes, or on demand. Note that
+# a rebuild re-resolves every unpinned apt and opam dependency, so it can vary in
+# ways not evident in the Dockerfile diff.
+
+on:
+  push:
+    branches:
+    - main
+    paths:
+    - ci/Dockerfile
+    - .github/workflows/container.yml
+  # Build (but do not publish) on PRs that touch the Dockerfile, so a broken
+  # one is caught before it lands rather than after.
+  pull_request:
+    paths:
+    - ci/Dockerfile
+    - .github/workflows/container.yml
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    env:
+      CUDA: ghcr.io/fstarlang/kuiper-base
+      NOCUDA: ghcr.io/fstarlang/kuiper-base-nocuda
+      # Publish everywhere except on pull_request, where GITHUB_TOKEN is
+      # read-only for forks and the point is just to prove it still builds.
+      PUSH: ${{ github.event_name != 'pull_request' }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Log in to ghcr.io
+        if: ${{ github.event_name != 'pull_request' }}
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # The build cache lives in ghcr.io next to the images, as a :buildcache
+      # tag on each. Storage is free and unpruned for public packages, and it
+      # keeps this workflow to one storage system -- in particular it stays out
+      # of the 10GB Actions cache that ci.yml uses for the prebuilt F*.
+      #
+      # cache-to is dropped on pull_request, where we never logged in and the
+      # token cannot write packages. A cache-from that misses (a first run, or
+      # a fork PR that cannot read a still-private package) is only a warning.
+
+      # Built first so the cuda stage below reuses these layers instead of
+      # redoing the opam install.
+      - name: Build nocuda image
+        uses: docker/build-push-action@v6
+        with:
+          context: ci
+          file: ci/Dockerfile
+          target: nocuda
+          push: ${{ env.PUSH }}
+          tags: |
+            ${{ env.NOCUDA }}:latest
+            ${{ env.NOCUDA }}:${{ github.sha }}
+          cache-from: type=registry,ref=${{ env.NOCUDA }}:buildcache
+          cache-to: ${{ env.PUSH == 'true' && format('type=registry,ref={0}:buildcache,mode=max', env.NOCUDA) || '' }}
+
+      # Reads the nocuda cache as well as its own, so an unchanged base stage
+      # costs only the CUDA apt install.
+      - name: Build CUDA image
+        uses: docker/build-push-action@v6
+        with:
+          context: ci
+          file: ci/Dockerfile
+          target: cuda
+          push: ${{ env.PUSH }}
+          tags: |
+            ${{ env.CUDA }}:latest
+            ${{ env.CUDA }}:${{ github.sha }}
+          cache-from: |
+            type=registry,ref=${{ env.NOCUDA }}:buildcache
+            type=registry,ref=${{ env.CUDA }}:buildcache
+          cache-to: ${{ env.PUSH == 'true' && format('type=registry,ref={0}:buildcache,mode=max', env.CUDA) || '' }}
