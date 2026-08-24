@@ -118,6 +118,9 @@ OTHERFLAGS += --admit_smt_queries true
 endif
 OTHERFLAGS += $O
 
+FSTAR_FLAGS += --include $(CURDIR)/$(CACHEDIR)
+# ^ The --cache_dir is included by default, but this is here for
+# when the script is being run out-of-tree, like from a package.
 FSTAR_FLAGS += --cache_dir $(CACHEDIR)
 FSTAR_FLAGS += --odir $(OUTDIR)
 FSTAR_FLAGS += --warn_error -274 # shadowing when opening, bogus
