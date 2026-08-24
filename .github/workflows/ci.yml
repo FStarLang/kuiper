@@ -1,9 +1,10 @@
 name: Test build
 
 on:
+  # Only main gets CI on push.
   push:
-    branches-ignore:
-    - _**
+    branches:
+    - main
   pull_request:
   workflow_dispatch:
     inputs:
@@ -15,6 +16,13 @@ on:
         description: Do not use stored cache
         type: boolean
         default: false
+
+# Supersede in-flight runs for the same PR instead of letting them pile up
+# behind each other on the single self-hosted runner. Not applied to `main`:
+# every commit there should produce its own bench-package artifact.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 # When updating this tag, also update .devcontainer/devcontainer.json
 # and advance.yml.

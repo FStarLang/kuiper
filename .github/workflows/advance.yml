@@ -28,10 +28,13 @@ on:
 # and ci.yml.
 jobs:
   build:
-    runs-on: [self-hosted, linux, X64, cuda]
+    # No GPU needed here: this job only verifies, extracts and regenerates
+    # dist/, and the CUDA tests it used to run are already covered by the CI
+    # run on the PR it opens below. Running on a GitHub-hosted runner keeps the
+    # nightly advance from occupying the single self-hosted runner for hours.
+    runs-on: ubuntu-latest
     container:
       image: mtzguido/pulse-cuda-devcontainer:latest
-      options: --gpus all
     defaults:
       run:
         shell: bash
@@ -102,12 +105,14 @@ jobs:
             echo MOVED=0 >>$GITHUB_ENV
           fi
 
-      - name: Test the build
+      - name: Build and regenerate dist/
         if: ${{ env.MOVED == '1' }}
         run: |
           eval $(opam env)
-          make -skj$(nproc) ci
-          make -skj$(nproc) dist
+          # We just regenerate dist admitting queries.  We will anyway open a PR
+          # that needs to pass CI, so there's not a big gain in testing
+          # everything again here.
+          make -skj$(nproc) dist ADMIT=1
           # Did something change?
           git add dist # must reset!
           git reset dist/BUILD_INFO # ignore build info changes
