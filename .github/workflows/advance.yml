@@ -1,12 +1,18 @@
 name: Advance submodules
 
-# This workflow uses KUIPER_ADVANCE_GH_TOKEN (a fine-grained PAT) to push
-# to the FStar and karamel submodule repos. To renew/recreate the token:
+# This workflow uses KUIPER_ADVANCE_GH_TOKEN (a fine-grained PAT) to push to
+# the FStar and karamel submodule repos, and to push the advance branch and
+# open its PR in this repo. It must be a PAT rather than GITHUB_TOKEN for the
+# latter: pushes and PRs made with GITHUB_TOKEN do not trigger workflow runs,
+# so the required `ciok` check would never appear and auto-merge would hang.
+# To renew/recreate the token:
 #
 # 1. Go to https://github.com/settings/personal-access-tokens/new
 # 2. Set resource owner to "FStarLang"
-# 3. Under "Repository access", select "FStarLang/FStar" and "FStarLang/karamel"
-# 4. Under "Permissions > Repository permissions > Contents", set to "Read and write"
+# 3. Under "Repository access", select "FStarLang/FStar", "FStarLang/karamel"
+#    and "FStarLang/kuiper"
+# 4. Under "Permissions > Repository permissions", set "Contents" to "Read and
+#    write" and "Pull requests" to "Read and write"
 # 5. Generate the token
 # 6. Update the secret at: https://github.com/FStarLang/kuiper/settings/secrets/actions
 #    (secret name: KUIPER_ADVANCE_GH_TOKEN)
@@ -62,8 +68,10 @@ jobs:
           git config --global user.name "Actions bot"
           git config --global user.email "none@none"
           # Credential persistence is disabled on checkout, so set an explicit
-          # token for pushing to this (kuiper) repository.
-          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
+          # token for pushing to this (kuiper) repository. We use the PAT and
+          # not GITHUB_TOKEN: a branch pushed with GITHUB_TOKEN does not start
+          # a CI run, and the advance PR needs one to be mergeable.
+          git remote set-url origin https://${{ secrets.KUIPER_ADVANCE_GH_TOKEN }}@github.com/${{ github.repository }}
 
       # This step is optional. It's here to remind us how to update the token,
       # since sadly they expire every year (just long enough to fully forget
@@ -76,7 +84,7 @@ jobs:
             echo "::error::KUIPER_ADVANCE_GH_TOKEN secret is not set. See instructions at the top of this workflow file."
             exit 1
           fi
-          for repo in FStarLang/FStar FStarLang/karamel; do
+          for repo in FStarLang/FStar FStarLang/karamel FStarLang/kuiper; do
             status=$(curl -s -o /dev/null -w '%{http_code}' \
               -H "Authorization: Bearer $TOKEN" \
               "https://api.github.com/repos/$repo/collaborators")
@@ -101,7 +109,7 @@ jobs:
           make -skj$(nproc) ci
           make -skj$(nproc) dist
           # Did something change?
-          git add dist # must rest!
+          git add dist # must reset!
           git reset dist/BUILD_INFO # ignore build info changes
           if ! git diff --quiet --cached dist; then
             echo DISTCHANGE=1 >>$GITHUB_ENV
@@ -111,8 +119,8 @@ jobs:
           fi
           git reset
 
-      - name: Push updated state, since there's no diff
-        if: ${{ env.MOVED == '1' && env.DISTCHANGE == '0' }}
+      - name: Push submodule objects
+        if: ${{ env.MOVED == '1' }}
         run: |
           # Use the token so we can push to these repos.
           for dir in FStar karamel; do
@@ -120,46 +128,53 @@ jobs:
             echo "in $(pwd)"
             R=$(git remote get-url origin | grep -Eo '[[:alnum:]]*/[[:alnum:]]*$')
             echo R=$R
-            echo before
-            git remote -v
-            git remote set-url origin https://${{secrets.KUIPER_ADVANCE_GH_TOKEN}}@github.com/$R
-            echo after
-            git remote -v
-            # Keep the _kuiper branch in sync with the pinned commit. The push
-            # to main below uses GITHUB_TOKEN and therefore won't trigger the
-            # sync-kuiper-branches workflow, so we update _kuiper here directly.
-            git push -f origin HEAD:refs/heads/_kuiper
+            git remote set-url origin https://${{ secrets.KUIPER_ADVANCE_GH_TOKEN }}@github.com/$R
             popd
           done
-          ./try-push.sh
+          # Make the rebased commits reachable on the remotes so the submodule
+          # pointers in the PR resolve. The _kuiper branches are *not* moved
+          # here: they track what main pins, so sync-kuiper-branches advances
+          # them when (and only when) this PR lands on main.
+          ./push-submodules.sh
 
-      - name: Push submodule commits to remotes and open PR
-        if: ${{ env.MOVED == '1' && env.DISTCHANGE == '1' }}
+      - name: Open the advance PR
+        if: ${{ env.MOVED == '1' }}
         env:
           GH_TOKEN: ${{ secrets.KUIPER_ADVANCE_GH_TOKEN }}
         run: |
-          # Push submodule commits so the SHAs are reachable when the PR is merged.
-          for dir in FStar karamel; do
-            pushd $dir
-            R=$(git remote get-url origin | grep -Eo '[[:alnum:]]*/[[:alnum:]]*$')
-            git remote set-url origin https://${{ secrets.KUIPER_ADVANCE_GH_TOKEN }}@github.com/$R
-            git push -f origin HEAD:refs/heads/_kuiper
-            popd
-          done
+          BRANCH=advance/submodules
 
-          # Create a branch with the submodule advance + dist changes.
-          BRANCH=advance/dist-update
+          if [ "$DISTCHANGE" = 1 ]; then
+            TITLE="Advance submodules (dist changed)"
+            BODY="Automated submodule advance. It also changes \`dist/\`, so auto-merge is *not* enabled: please review."
+          else
+            TITLE="Advance submodules"
+            BODY="Automated submodule advance, with no changes to \`dist/\`. Auto-merge is enabled: this merges itself once CI is green."
+          fi
+
           git checkout -b "$BRANCH"
-          git add .
-          git commit -m "Advance submodules (dist changed)"
+          if [ "$DISTCHANGE" = 1 ]; then
+            git add .
+          else
+            git add FStar karamel
+          fi
+          git commit -m "$TITLE"
           git push -f origin "$BRANCH"
 
-          # Create a new PR or update the existing one.
-          existing_pr=$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number' 2>/dev/null || true)
-          if [ -n "$existing_pr" ]; then
-            echo "Updated existing PR #$existing_pr"
+          # Create the PR, or reuse the one a previous run left open.
+          PR=$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number')
+          if [ -n "$PR" ]; then
+            gh pr edit "$PR" --title "$TITLE" --body "$BODY"
+            echo "Updated existing PR #$PR"
           else
-            gh pr create \
-              --title "Advance submodules (dist changed)" \
-              --body "Automated submodule advance detected changes in \`dist/\`. Please review."
+            gh pr create --title "$TITLE" --body "$BODY"
+            PR=$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number')
+          fi
+
+          if [ "$DISTCHANGE" = 1 ]; then
+            # A previous run may have armed auto-merge on this PR; a dist
+            # change needs a human to look at it.
+            gh pr merge "$PR" --disable-auto || true
+          else
+            gh pr merge "$PR" --auto --rebase
           fi
