@@ -10,8 +10,11 @@ NVCC_FLAGS += -I $(KUIPER_DIR)/include
 NVCC_FLAGS += -I $(KUIPER_DIR)/obj
 NVCC_FLAGS += -DKUIPER_CFG_TENSORCORES=0
 
-# NVML, for the clock-stability check in the benchmark driver.
-LDFLAGS    += -lnvidia-ml
+# NVML, for the clock-stability check in the benchmark driver. With the
+# toolkit from NVIDIA's repo the only libnvidia-ml.so in the image is the
+# link stub; the real one is injected by the container runtime.
+CUDA_HOME  := $(patsubst %/bin/nvcc,%,$(shell command -v nvcc))
+LDFLAGS    += $(addprefix -L,$(wildcard $(CUDA_HOME)/lib64/stubs)) -lnvidia-ml
 
 .PHONY:
 clone:
