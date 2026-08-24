@@ -8,7 +8,6 @@ open Kuiper.Math { even, odd }
 #lang-pulse
 
 open Kuiper
-module B = Kuiper.Barrier
 module SZ = Kuiper.SizeT
 open Kuiper.Sparse
 open Kuiper.Array.Vectorized
