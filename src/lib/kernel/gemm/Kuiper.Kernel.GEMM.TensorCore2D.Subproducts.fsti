@@ -1,27 +1,36 @@
-module Kuiper.Kernel.GEMM.TensorCore2D.To.Fragments
+module Kuiper.Kernel.GEMM.TensorCore2D.Subproducts
 
+open Kuiper.Kernel.GEMM.TensorCore2D.KernelDesc { constraints }
 #lang-pulse
 
 open Kuiper
 #set-options "--ifuel 1 --initial_fuel 0 --max_fuel 1"
-#set-options "--z3rlimit 15"
+#set-options "--z3rlimit 120"
 
+open Kuiper.Array.Vectorized { has_vec_cpy, chunk }
 open Kuiper.EMatrix
+open Kuiper.Float16
+open Kuiper.Math { even, odd, even_2x, odd_2x1 }
 open Kuiper.Tensor
+open Kuiper.Array2.Strided
 open Kuiper.Tensor.Tiling
 open Kuiper.Tensor.Layout.Alg { l2_row_major as rm }
+open Kuiper.Kernel.GEMM.Copy.Vec2
+open Kuiper.Kernel.GEMM.Tiled.Common.Vec
 open Kuiper.Spec.GEMM
 open Kuiper.TensorCore
+open Pulse.Lib.Array
+open Pulse.Lib.Trade
 
 module Chest = Kuiper.Chest
-module Acc = Kuiper.Kernel.GEMM.TensorCore2D.FragmentAcc
-module Generic = Kuiper.Kernel.GEMM.TensorCore2D.Subproducts
-module State = Kuiper.Kernel.GEMM.TensorCore2D.To.EpilogueState
+module MU = Kuiper.Kernel.GEMM.Util
 
-open Kuiper.Kernel.GEMM.TensorCore2D.KernelDesc { constraints }
-open Kuiper.Kernel.GEMM.TensorCore2D.To.EpilogueState
+open Kuiper.Kernel.GEMM.TensorCore2D.KernelDesc
+open Kuiper.Kernel.GEMM.TensorCore2D.ProofSupport
+open Kuiper.Kernel.GEMM.TensorCore2D.FragmentAcc
+open Kuiper.Kernel.GEMM.TensorCore2D.Populate
+open Kuiper.Kernel.GEMM.TensorCore2D.FragmentMMA
 
-// Transport an accumulator predicate across an extensional matrix equality.
 noextract
 ghost fn rewrite_fragarrayAcc
   (#et:Type0) {| scalar et, real_like et |}
@@ -33,11 +42,7 @@ ghost fn rewrite_fragarrayAcc
   (#_ : squash (mold == mnew))
   requires fragarrayAcc_approximates wm wn accumFrags mold
   ensures fragarrayAcc_approximates wm wn accumFrags mnew
-{
-  ()
-}
 
-// The To kernel is the identity-map specialization of the mapped pipeline.
 inline_for_extraction noextract
 fn subproducts_tc_2d
   (#et_ab #et_acc : Type0)
@@ -48,19 +53,23 @@ fn subproducts_tc_2d
   (aFrags     : array (fragment et_ab FragA tm tn tk FragLRM))
   (bFrags     : array (fragment et_ab FragB tm tn tk FragLRM))
   (accumFrags : array (fragment et_acc FragAcc tm tn tk FragLAcc))
+  (#_ : squash (Pulse.Lib.Array.length aFrags == wm))
+  (#_ : squash (Pulse.Lib.Array.length bFrags == wn))
+  (#_ : squash (Pulse.Lib.Array.length accumFrags == wm*wn))
   (gA : array2 et_ab (rm bm bk))
   (gB : array2 et_ab (rm bk bn))
   (#eA : chest2 et_ab bm bk)
   (#eB : chest2 et_ab bk bn)
   (rA : chest2 real bm bk {eA %~ rA})
   (rB : chest2 real bk bn {eB %~ rB})
+  (emA emB : et_ab -> et_ab)
+  (mapA mapB : real -> real)
+  (#_ : squash (MU.approx1 emA mapA))
+  (#_ : squash (MU.approx1 emB mapB))
   (rAcc : chest2 real (wm*tm) (wn*tn))
   (#fA #fB : perm)
   (arow : szlt (bm/(wm*tm)))
   (bcol : szlt (bn/(wn*tn)))
-  (#_ : squash (Pulse.Lib.Array.length aFrags == wm))
-  (#_ : squash (Pulse.Lib.Array.length bFrags == wn))
-  (#_ : squash (Pulse.Lib.Array.length accumFrags == wm*wn))
   preserves
     gpu **
     gA |-> Frac fA eA **
@@ -68,28 +77,11 @@ fn subproducts_tc_2d
   requires
     pure (valid_frag_et_comb et_ab et_acc)
   preserves
+    // aFrags and bFrags are swap space, we don't specify much about them
     live aFrags ** live bFrags
   requires
     fragarrayAcc_approximates wm wn accumFrags rAcc
   ensures
     fragarrayAcc_approximates wm wn accumFrags
-      (rAcc `matplus` matmul (ematrix_subtile rA (wm*tm) bk arow 0)
-                             (ematrix_subtile rB bk (wn*tn) 0 bcol))
-{
-  unfold State.fragarrayAcc_approximates wm wn accumFrags rAcc;
-  fold Acc.fragarrayAcc_approximates wm wn accumFrags rAcc;
-
-  Generic.subproducts_tc_2d bm bn bk tm tn tk wm wn
-    aFrags bFrags accumFrags gA gB rA rB
-    (fun (x:et_ab) -> x) (fun (x:et_ab) -> x)
-    (fun (x:real) -> x) (fun (x:real) -> x)
-    rAcc arow bcol;
-
-  assert pure (equal (Chest.chest_map (fun x -> x) rA) rA);
-  assert pure (equal (Chest.chest_map (fun x -> x) rB) rB);
-
-  unfold Acc.fragarrayAcc_approximates wm wn accumFrags;
-  fold State.fragarrayAcc_approximates wm wn accumFrags
-    (rAcc `matplus` matmul (ematrix_subtile rA (wm*tm) bk arow 0)
-                           (ematrix_subtile rB bk (wn*tn) 0 bcol));
-}
+      (rAcc `matplus` matmul (ematrix_subtile (Chest.chest_map mapA rA) (wm*tm) bk arow 0)
+                             (ematrix_subtile (Chest.chest_map mapB rB) bk (wn*tn) 0 bcol))
