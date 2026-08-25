@@ -94,6 +94,7 @@ fn kf
   ()
   requires
     gpu **
+    pure (c_shmems_inv sh) **
     kpre_to gA eA gB eB gC eC gD
       bm bn bk tm tn tk wm wn fA fB fC rA rB rC
       nblk nthr sh bid tid **

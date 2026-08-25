@@ -3,6 +3,8 @@ module Kuiper.Kernel.GEMM.TensorCore2D.To.KernelBody
 #lang-pulse
 
 open Kuiper
+(* Same budget as the implementation: the signature alone needs it. *)
+#set-options "--ifuel 1 --initial_fuel 0 --max_fuel 1 --z3rlimit 15"
 
 open Kuiper.Array.Vectorized { has_vec_cpy, chunk }
 open Kuiper.Tensor
@@ -80,6 +82,7 @@ fn kf
   ()
   requires
     gpu **
+    pure (c_shmems_inv sh) **
     kpre_to gA eA gB eB gC eC gD
       bm bn bk tm tn tk wm wn
       fA fB fC rA rB rC

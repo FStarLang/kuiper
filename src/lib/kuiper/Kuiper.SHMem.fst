@@ -72,7 +72,7 @@ ensures live_c_shmems c #f
   as (live_c_shmems c #f);
 }
 
-let rec is_send_across_live_c_shmems_ #ds (c:c_shmems ds) #f (pf:squash (c_shmems_inv c))
+let rec is_send_across_live_c_shmems_ #ds (c:c_shmems ds) #f (pf:squash (c_shmems_block_inv c))
 : is_send_across block_of (live_c_shmems #ds c #f)
 = match ds with
   | [] -> solve #(is_send_across block_of emp)
@@ -82,7 +82,7 @@ let rec is_send_across_live_c_shmems_ #ds (c:c_shmems ds) #f (pf:squash (c_shmem
     let f : is_send_across block_of (live_c_shmem #d (fst c) #f) = solve in
     is_send_across_star _ _ #f #s
 
-instance is_send_across_live_c_shmems #ds (c:c_shmems ds) #f (pf:squash (c_shmems_inv c))
+instance is_send_across_live_c_shmems #ds (c:c_shmems ds) #f (pf:squash (c_shmems_block_inv c))
 : is_send_across block_of (live_c_shmems #ds c #f)
 = is_send_across_live_c_shmems_ #ds c #f pf
 

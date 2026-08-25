@@ -48,7 +48,7 @@ fn rec alloc_c_shmems
   preserves loc block_loc
   returns res: SH.c_shmems d
   ensures SH.live_c_shmems res
-  ensures pure (SH.c_shmems_inv res /\ c_shmems_full res)
+  ensures pure (SH.c_shmems_block_inv res /\ c_shmems_full res)
   decreases d
 {
   match d {
@@ -87,7 +87,7 @@ fn rec free_c_shmems
   (res: SH.c_shmems d)
   preserves loc block_loc
   requires SH.live_c_shmems res
-  requires pure (SH.c_shmems_inv res /\ c_shmems_full res)
+  requires pure (SH.c_shmems_block_inv res /\ c_shmems_full res)
   decreases d
 {
   match d {
@@ -181,7 +181,7 @@ fn free_c_shmems'
   (res : SH.c_shmems d)
   preserves block_id 'x bid
   requires SH.live_c_shmems res
-  requires pure (SH.c_shmems_inv res /\ c_shmems_full res)
+  requires pure (SH.c_shmems_block_inv res /\ c_shmems_full res)
 {
   unfold block_id 'x bid;
   free_c_shmems _ d res;
@@ -204,6 +204,13 @@ fn run_block
 {
   unfold (block_id k.nblk bid);
   let sh = alloc_c_shmems _ k.shmems_desc;
+  (* Each block gets a single dynamic shared memory region, 16-byte aligned,
+  which the extracted code carves into the requested arrays in declaration
+  order (see KPR_SHMEM/KPR_SHMEM_AT in include/kuiper.h). The model allocates
+  them independently, so that layout is assumed here, as with the alignment of
+  cudaMalloc'd arrays. Taking the region to start at 0 is fine: only the
+  offsets within it are observable. *)
+  assume pure (SH.c_shmems_at sh 0);
   fold (block_id k.nblk bid);
   let _ : unit = Mkkernel_desc?.block_setup k sh bid ();
   run_block_threads k bid sh k.nthr;

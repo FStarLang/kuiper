@@ -68,12 +68,13 @@ fn adapt_kmn_kf
          kpost bid tid **
          thread_id nthr tid **
          block_id nblk bid)
-  (_ : c_shmems [])
+  (_sh : c_shmems [])
   (bid : szlt nblk)
   (tid : szlt nthr)
   ()
   requires
     gpu **
+    pure (c_shmems_inv _sh) **
     kpre bid tid **
     thread_id nthr tid **
     block_id nblk bid **
@@ -537,6 +538,7 @@ fn adapt_k1nb_kf
   ()
   requires
     gpu **
+    pure (c_shmems_inv _ptrs) **
     k.kpre tid **
     thread_id k.nthr tid **
     block_id 1sz _bid **

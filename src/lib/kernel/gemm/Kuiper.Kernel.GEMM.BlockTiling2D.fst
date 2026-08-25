@@ -1841,6 +1841,7 @@ fn bkf
   norewrite
   requires
     gpu **
+    pure (c_shmems_inv sh) **
     bkpre mapA mapB comb gA eA gB eB gC eC bm bn bk #sqf slA slB tm tn sq1 sq2 fA fB sh (SZ.v bid) (SZ.v tid) **
     thread_id (SZ.v nthr_v) tid **
     block_id (SZ.v nblk_v) bid **

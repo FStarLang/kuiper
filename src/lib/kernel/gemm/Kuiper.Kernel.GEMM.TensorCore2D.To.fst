@@ -106,10 +106,12 @@ let shmem_inv_components_to
       c_shmem_inv (fst (snd sh)) /\
       c_shmem_inv (fst (snd (snd sh))))
 =
+  (* Only the block-visibility half propagates down the tail: the alignment
+  half is about the region start, which the tail does not inherit. *)
   assert (c_shmem_inv (fst sh));
-  assert (c_shmems_inv (snd sh));
+  assert (c_shmems_block_inv (snd sh));
   assert (c_shmem_inv (fst (snd sh)));
-  assert (c_shmems_inv (snd (snd sh)));
+  assert (c_shmems_block_inv (snd (snd sh)));
   assert (c_shmem_inv (fst (snd (snd sh))));
   ()
 
