@@ -6,7 +6,7 @@
 #           extract, which is all the jobs on GitHub-hosted runners need; nvcc
 #           is neither available nor useful there. Published as
 #           ghcr.io/fstarlang/kuiper-base-nocuda. ~0.6GB compressed.
-#   cuda    nocuda plus nvidia-cuda-toolkit, for the jobs on the GPU runner,
+#   cuda    nocuda plus the CUDA toolkit, for the jobs on the GPU runner,
 #           the devcontainer, and the artifact. Published as
 #           ghcr.io/fstarlang/kuiper-base. ~4.2GB compressed.
 #
@@ -76,9 +76,21 @@ RUN echo 'eval $(opam env)' | tee --append $HOME/.profile $HOME/.bashrc $HOME/.b
 # Keeping it in its own stage lets the cloud jobs pull the nocuda image.
 FROM nocuda AS cuda
 
+# From NVIDIA's repo, not Ubuntu's nvidia-cuda-toolkit: the latter depends on
+# libnvidia-compute-NNN, which drops a libnvidia-ml.so into the image. When
+# that is newer than the host driver it shadows the NVML the container runtime
+# injects, and nvidia-smi dies with "Driver/library version mismatch".
+# Stay on 12.x: CUDA 13 dropped Pascal, which the CI GPU (P620, sm_61) is.
 USER root
-RUN apt-get update \
- && apt-get install -y nvidia-cuda-toolkit \
- && apt-get clean -y
+ARG CUDA_VERSION=12-6
+RUN curl -fsSLO https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86_64/cuda-keyring_1.1-1_all.deb \
+ && dpkg -i cuda-keyring_1.1-1_all.deb \
+ && rm cuda-keyring_1.1-1_all.deb \
+ && apt-get update \
+ && apt-get install -y --no-install-recommends cuda-toolkit-$CUDA_VERSION \
+ && apt-get clean -y \
+ && echo /usr/local/cuda/lib64 > /etc/ld.so.conf.d/cuda.conf \
+ && ldconfig
+ENV PATH=/usr/local/cuda/bin:$PATH
 ARG USER=vscode
 USER $USER
