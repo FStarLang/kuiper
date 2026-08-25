@@ -770,7 +770,7 @@ fn load_vmprod
   (#em : chest2 et m2 n2)
   (j : sz { chunk et /? j })
   (step : sz)
-  (to : szlt m1)
+  (to : szle m1)
   (#velems : erased (lseq et to))
   (#vrow_ind : erased (lseq sz to))
   (#_ : squash (in_bounds 0 m2 (cast_pos vrow_ind)))
@@ -1241,7 +1241,7 @@ let seq_load_vmprod_step_lemma
   )
 
 inline_for_extraction noextract
-fn tile_load_vmprod
+fn tile_fused_vmprod
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
   (#m1 #n1 : sz { chunk et /? n1 })
   (y : larray et n1)
@@ -1262,7 +1262,7 @@ fn tile_load_vmprod
   (step : sz)
   (#_ : squash (in_bounds 0 m2 (cast_pos vrow_ind)))
   (from to : erased nat { to <= nnz })
-  (cant : szlt m1 { v cant == to - from })
+  (cant : szle m1 { v cant == to - from })
   preserves gpu
   preserves pts_to_slice elems #fx 0 cant (Seq.slice velems from to <: lseq et cant)
   preserves pts_to_slice row_ind #fx 0 cant (Seq.slice vrow_ind from to <: lseq sz cant)

@@ -73,7 +73,7 @@ fn inst
   spmm #et
     rows shared cols
     blockItemsK blockItemsX blockWidth
-    (blockItemsX /^ blockWidth) (blockItemsK *^ (blockItemsX /^ blockWidth))
+    (blockItemsX /^ blockWidth)
     gA row_indices fri gB gC
     elems col_ind row_off
     #eA

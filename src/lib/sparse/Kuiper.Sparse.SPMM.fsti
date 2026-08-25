@@ -23,7 +23,6 @@ fn spmm
     (k * chunk et) /? blockItemsX
   }))
   (blockChunks : sz{SZ.v blockChunks == blockItemsX / blockWidth}) // Ver nota abajo
-  (dtsize : sz { SZ.v dtsize = blockItemsK * (blockItemsX / blockWidth) })
   (#lB : layout2 shared cols) {| ctlayout lB, srmB : strided_row_major lB |}
   (#lC : layout2 rows cols)   {| ctlayout lC, srmC : strided_row_major lC |}
   (gA : smatrix et (SZ.v rows) (SZ.v shared){is_global_smatrix gA})

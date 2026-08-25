@@ -155,7 +155,7 @@ fn tile_vmprod
 open Kuiper.Array2.Strided { strided_row_major, aligned_strided_row_major }
 
 inline_for_extraction noextract
-fn tile_load_vmprod
+fn tile_fused_vmprod
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
   (#m1 #n1 : sz { chunk et /? n1 })
   (y : larray et n1)
@@ -176,7 +176,7 @@ fn tile_load_vmprod
   (step : sz)
   (#_ : squash (in_bounds 0 m2 (cast_pos vrow_ind)))
   (from to : erased nat { to <= nnz })
-  (cant : szlt m1 { v cant == to - from })
+  (cant : szle m1 { v cant == to - from })
   preserves gpu
   // TODO aca solo tenemos una slice de estos arreglos
   // cambiar slprop
