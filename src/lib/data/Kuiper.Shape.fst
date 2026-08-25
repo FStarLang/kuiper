@@ -1,5 +1,7 @@
 module Kuiper.Shape
 
+open FStar.Ghost
+module SZ = Kuiper.SizeT
 open Kuiper.Bijection
 open Kuiper.Common
 open Kuiper.SizeT

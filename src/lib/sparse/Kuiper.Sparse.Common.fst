@@ -103,7 +103,9 @@ let round2_lemma (a b : nat) (n : nat) (k : nat)
 =
   pow_div_lemma k a b;
   assert a /? b;
-  assert b /? round2 b n;
+  lemma_divides_product_r a (n / b) b;
+  assert a /? ((n / b) * b);
+  assert a /? round2 b n;
   ()
 
 let round2_chunk_lemma
@@ -816,7 +818,6 @@ let tensor_row
   : array1 et #cols (tlayout_slice l 0 i)
 = sliceof a 0 i
 
-#push-options "--split_queries always"
 ghost
 fn tensor_extract_row
   (#et : Type0)

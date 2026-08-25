@@ -1,5 +1,6 @@
 module Kuiper.Kernel.GEMM.Util
 
+open Kuiper.Chest
 #lang-pulse
 
 open Kuiper
@@ -102,7 +103,11 @@ let mmcomb_approx_real
         assert (MS.matmul_single eA eB i j %~ MS.matmul_single rA rB i j);
         ()
     in
-    Classical.forall_intro (fun idx -> Classical.move_requires aux idx)
+    (* F* master can no longer infer the predicate implicit of [forall_intro]
+       (it occurs only in the postcondition), so state the goal explicitly. *)
+    introduce forall (idx : natlt rows & (natlt cols & unit)).
+      Chest.acc (MS.mmcomb comb eC eA eB) idx %~ Chest.acc (MS.mmcomb comb_r rC rA rB) idx
+    with aux idx
 
 let chest3_slice_page_approx
   (#et:Type) {| scalar et, real_like et |}
@@ -110,6 +115,8 @@ let chest3_slice_page_approx
   (e : chest3 et batch rows cols)
   (r : chest3 real batch rows cols)
   (page : natlt batch)
+  : Lemma (requires e %~ r)
+          (ensures slice_page e page %~ slice_page r page)
   = let aux (idx : natlt rows & (natlt cols & unit))
       : Lemma
         (requires e %~ r)
@@ -119,7 +126,9 @@ let chest3_slice_page_approx
         assert (Chest.acc e (page, (i, (j, ()))) %~ Chest.acc r (page, (i, (j, ()))));
         ()
     in
-    Classical.forall_intro (fun idx -> Classical.move_requires aux idx)
+    introduce forall (idx : natlt rows & (natlt cols & unit)).
+      Chest.acc (slice_page e page) idx %~ Chest.acc (slice_page r page) idx
+    with aux idx
 
 let bmmcomb_approx_real
   (#et:Type) {| scalar et, real_like et |}
@@ -155,8 +164,9 @@ let bmmcomb_approx_real
                 %~ acc2 (MS.mmcomb comb_r (slice_page rC page) (slice_page rA page) (slice_page rB page)) row col);
         ()
     in
-    Classical.forall_intro (fun idx -> Classical.move_requires aux idx);
-    ()
+    introduce forall (idx : natlt batch & (natlt m & (natlt n & unit))).
+      Chest.acc (MS.bmmcomb comb eC eA eB) idx %~ Chest.acc (MS.bmmcomb comb_r rC rA rB) idx
+    with aux idx
 
 (* ===== General (fused-map, multi-type) approximation lemmas =====
 
@@ -186,7 +196,9 @@ let chest_map_approx
       = assert (Chest.acc e idx %~ Chest.acc rr idx);
         ()
     in
-    Classical.forall_intro (fun idx -> Classical.move_requires aux idx)
+    introduce forall (idx : natlt rows & (natlt cols & unit)).
+      Chest.acc (Chest.chest_map mapE e) idx %~ Chest.acc (Chest.chest_map mapR rr) idx
+    with aux idx
 
 (* General (fused-map, multi-type) rank-2 approximation: the element-level
    [gmmcomb] over the mapped inputs approximates the real-level [gmmcomb] over
@@ -232,7 +244,10 @@ let gmmcomb_approx_real
                 %~ MS.matmul_single (Chest.chest_map mapA_r rA) (Chest.chest_map mapB_r rB) i j);
         ()
     in
-    Classical.forall_intro (fun idx -> Classical.move_requires aux idx)
+    introduce forall (idx : natlt rows & (natlt cols & unit)).
+      Chest.acc (MS.gmmcomb mapA mapB comb eC eA eB) idx
+      %~ Chest.acc (MS.gmmcomb mapA_r mapB_r comb_r rC rA rB) idx
+    with aux idx
 
 (* General (fused-map, multi-type) rank-3 batched approximation, reduced to
    the rank-2 case per page. *)
@@ -278,8 +293,10 @@ let gbmmcomb_approx_real
                        (slice_page rC page) (slice_page rA page) (slice_page rB page)) row col);
         ()
     in
-    Classical.forall_intro (fun idx -> Classical.move_requires aux idx);
-    ()
+    introduce forall (idx : natlt batch & (natlt m & (natlt n & unit))).
+      Chest.acc (MS.gbmmcomb mapA mapB comb eC eA eB) idx
+      %~ Chest.acc (MS.gbmmcomb mapA_r mapB_r comb_r rC rA rB) idx
+    with aux idx
 
 (* ── Batch-one bridges between rank-2 and single-page rank-3 GEMM ────────── *)
 
@@ -337,3 +354,47 @@ let batch1_gmmcomb
           (C.c2_to_c3n a1 a2 afA eA)
           (C.c2_to_c3n a2 a3 afB eB)))
       (MS.gmmcomb mapA mapB comb eC eA eB))
+
+let gbmmcomb_slice_page
+  (#ta #tb #tc #tacc : Type0) {| scalar tacc |}
+  (mapA : ta -> tacc)
+  (mapB : tb -> tacc)
+  (comb : tc -> tacc -> tc)
+  (#batch #rows #shared #cols : nat)
+  (eC : chest3 tc batch rows cols)
+  (eA : chest3 ta batch rows shared)
+  (eB : chest3 tb batch shared cols)
+  (page : natlt batch)
+  : Lemma (Chest.slice_page (MS.gbmmcomb mapA mapB comb eC eA eB) page
+           == MS.gmmcomb mapA mapB comb
+                (Chest.slice_page eC page)
+                (Chest.slice_page eA page)
+                (Chest.slice_page eB page))
+  = let aux (idx : natlt rows & (natlt cols & unit))
+      : Lemma
+        (ensures
+          acc2 (Chest.slice_page (MS.gbmmcomb mapA mapB comb eC eA eB) page)
+               idx._1 idx._2._1
+          ==
+          acc2 (MS.gmmcomb mapA mapB comb
+                  (Chest.slice_page eC page)
+                  (Chest.slice_page eA page)
+                  (Chest.slice_page eB page))
+               idx._1 idx._2._1)
+      =
+        let (i, (j, ())) = idx in
+        assert (Chest.acc (MS.gbmmcomb mapA mapB comb eC eA eB) (page, (i, (j, ())))
+                == acc2 (MS.gmmcomb mapA mapB comb
+                           (Chest.slice_page eC page)
+                           (Chest.slice_page eA page)
+                           (Chest.slice_page eB page)) i j);
+        ()
+    in
+    Classical.forall_intro aux;
+    assert (Chest.equal
+      (Chest.slice_page (MS.gbmmcomb mapA mapB comb eC eA eB) page)
+      (MS.gmmcomb mapA mapB comb
+         (Chest.slice_page eC page)
+         (Chest.slice_page eA page)
+         (Chest.slice_page eB page)))
+

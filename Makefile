@@ -45,6 +45,11 @@ ci:
 depgraph:
 	+$(MAKE) -f verify.mk depgraph
 
+.PHONY: spmm-bench
+spmm-bench:
+	+$(MAKE) -C bench/sputnik-bench
+	./bench/sputnik-bench/spmm_bench
+
 .SUFFIXES:
 
 .PHONY: watch
@@ -74,7 +79,7 @@ package:
 
 .PHONY: lint-c
 lint-c:
-	indent -linux -l100 -nut -i4 test/*.cu test/*.c.inc && rm -f test/*.cu~ test/*.c.inc~
+	$(indent) -linux -l100 -nut -i4 test/*.cu test/*.c.inc && rm -f test/*.cu~ test/*.c.inc~
 
 .PHONY: lint-fstar
 lint-fstar:
@@ -102,7 +107,7 @@ lint: lint-c lint-fstar lint-generated
 list-admits:
 	(git grep -n --color -w 'assume_\|assume\|admit\|tadmit\|magic\|--lax' src; \
 	find src -name \*.fsti | sort \
-		| sed 's/i$$//;/Kuiper.Kernel.Base.fst/d;/Kuiper.Base.fst/d;/Kuiper.\(Ref\|Array\|Array.Vectorized\|AtomicOps\).fst/d;/Kuiper.TensorCore.Base.fst/d;/Kuiper.\(Float[0-9]\+\|SizeT\).fst/d' \
+		| $(sed) 's/i$$//;/Kuiper.Kernel.Base.fst/d;/Kuiper.Base.fst/d;/Kuiper.\(Ref\|Array\|Array.Vectorized\|AtomicOps\).fst/d;/Kuiper.TensorCore.Base.fst/d;/Kuiper.\(Float[0-9]\+\|SizeT\).fst/d' \
 		| while read fn; do if [[ ! -f $$fn ]]; then echo Missing implementation file: $$fn; fi; done \
 	) | less -R
 

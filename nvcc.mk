@@ -27,7 +27,7 @@ $(OUTDIR)/%.exe: $(OUTDIR)/%.o $(OUTDIR)/$$(call remove__, %).o
 
 .PHONY: nvidia-smi-check
 nvidia-smi-check:
-	nvidia-smi >/dev/null || (echo "*** nvidia-smi failed! Is CUDA set up properly?\n" >&2; false)
+	@out=$$(nvidia-smi 2>&1) || { printf '%s\n*** nvidia-smi failed! Is CUDA set up properly?\n' "$$out" >&2; false; }
 
 $(OUTDIR)/%.output: $(OUTDIR)/%.exe nvidia-smi-check
 	timeout -k 1 180 $< > $@
@@ -79,9 +79,8 @@ extract-all: $(patsubst %,obj/%.cu,$(subst .,_,$(basename $(notdir $(EXTRACT))))
 extract-all: $(patsubst %,obj/%.h, $(subst .,_,$(basename $(notdir $(EXTRACT)))))
 
 EXTRACT_MINIMAL := $(EXTRACT)
-EXTRACT_MINIMAL := $(filter-out src/klas/Kuiper.GEMM.TensorCore2D.fst, $(EXTRACT_MINIMAL))
-EXTRACT_MINIMAL := $(filter-out src/klas/Kuiper.GEMM.TensorCore.fst, $(EXTRACT_MINIMAL))
-EXTRACT_MINIMAL := $(filter-out src/examples/Kuiper.Example.TensorCore.fst, $(EXTRACT_MINIMAL))
+TENSORCORE_EXTRACT := $(foreach f,$(EXTRACT),$(if $(findstring TensorCore,$(f)),$(f)))
+EXTRACT_MINIMAL := $(filter-out $(TENSORCORE_EXTRACT), $(EXTRACT_MINIMAL))
 
 extract-minimal: $(patsubst %,obj/%.cu,$(subst .,_,$(basename $(notdir $(EXTRACT_MINIMAL)))))
 extract-minimal: $(patsubst %,obj/%.h, $(subst .,_,$(basename $(notdir $(EXTRACT_MINIMAL)))))

@@ -88,6 +88,16 @@ val iarray_pts_to
   (v : (vw.ait -> GTot et))
   : slprop
 
+val is_send_across_iarray
+  (#et : Type0)
+  (#vw : aiview)
+  (x : iarray et vw)
+  (vis : visibility)
+  (#_ : squash (visibility_of (core x) == vis))
+  (#f : perm)
+  (v : vw.ait -> GTot et)
+  : is_send_across vis (iarray_pts_to x #f v)
+
 instance
 val is_send_across_global_iarray
   (#et:Type0)

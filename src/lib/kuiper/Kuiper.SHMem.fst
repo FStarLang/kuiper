@@ -1,5 +1,6 @@
 module Kuiper.SHMem
 
+module A = Pulse.Lib.Array
 #lang-pulse
 
 open Pulse.Lib.Core
@@ -131,7 +132,7 @@ fn fold_live_c_shmem #d (c:c_shmem d) #f
 
 ghost
 fn gpu_live_c_shmem_share_underspec
-    (#d:_) (c:c_shmem d) (#f:_) (#k:nat { k > 0 })
+    (#d:_) (c:c_shmem d) (#f:perm) (#k:nat { k > 0 })
 requires
   live_c_shmem c #f
 ensures
@@ -163,7 +164,7 @@ ensures
 
 ghost
 fn rec gpu_live_c_shmems_share_underspec
-  (#ds:_) (c:c_shmems ds) (#f:_) (#k:nat { k > 0 })
+  (#ds:_) (c:c_shmems ds) (#f:perm) (#k:nat { k > 0 })
   requires
     live_c_shmems c #f
   ensures

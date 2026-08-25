@@ -442,7 +442,7 @@ let thread_pts_to_tile_vec
   forall+ (k : natlt (row_tile / chunk et)).
     thread_pts_to_vec gm i j em nthr k
 
-
+#push-options "--z3rlimit 25"
 ghost
 fn fold_thread_pts_to_tile_vec
   (#et : Type0) {| sized et, has_vec_cpy et |}
@@ -468,7 +468,7 @@ fn fold_thread_pts_to_tile_vec
     };
   fold thread_pts_to_tile_vec gm i j em row_tile nthr;
 }
-
+#pop-options
 
 unfold
 let matrix_pts_to_cell_in_matrix_in_bounds
@@ -550,6 +550,7 @@ let thread_offset
   lineal_divides (chunk et) j (chunk et) tid;
   j + tid * v (chunk et)
 
+#push-options "--z3rlimit 25"
 ghost
 fn thread_pts_to_tile_vec_gather
   (#et : Type0) {| sized et, has_vec_cpy et |}
@@ -613,6 +614,7 @@ fn thread_pts_to_tile_vec_gather
     );
   fold gpu_pts_to_tile gm i j em (trow_tile * nthr);
 }
+#pop-options
 
 ghost
 fn gather_gpu_pts_to_tile_row

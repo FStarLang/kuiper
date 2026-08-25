@@ -1,4 +1,5 @@
 module Kuiper.EMatrix.Tiling
+open Kuiper.Chest
 #lang-pulse
 
 open Kuiper
@@ -21,7 +22,7 @@ let from_subtiles_id
   ()
 #pop-options
 
-#push-options "--z3rlimit 20 --fuel 0 --ifuel 0 --split_queries always --retry 5"
+#push-options "--z3rlimit 20 --fuel 0 --ifuel 0 --retry 5"
 let tiles_from_subtiles_id
   (#et : _)
   (#rows #cols : _)
@@ -51,7 +52,7 @@ let update_tile_self
           [SMTPat (update_tile em trows tcols tr tc (ematrix_subtile em trows tcols tr tc))]
 = assert (equal (update_tile em trows tcols tr tc (ematrix_subtile em trows tcols tr tc)) em)
 
-#push-options "--split_queries always"
+#push-options "--z3rlimit 40"
 let subtile_of_update_tile
   (#et : _)
   (#rows #cols : _)

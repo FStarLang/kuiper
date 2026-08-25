@@ -1,5 +1,6 @@
 module Kuiper.Kernel.OnlineSoftmaxDotprod
 
+module KS = Kuiper.Spec.Softmax
 #lang-pulse
 open Kuiper
 open Kuiper.Seq.Common
@@ -119,7 +120,7 @@ let exp_sub_mul (a b : real)
     }
 #pop-options
 
-#push-options "--split_queries always --z3rlimit 20"
+#push-options "--z3rlimit 20"
 (* Theorem 1 from the Online Softmax paper, generalised to dot-product.
    Both numerator and denominator accumulators, multiplied by [exp m],
    recover the "unshifted" running sums. *)
@@ -197,6 +198,25 @@ let rec rsum_init_dotprod_eq
 
 (* Distribute [summ] out of [seq_dotprod] when the first argument is a
    softmax with denominator [summ = rsum (seq_map exp ra)]. *)
+
+(* [((x /. s) *. y) *. s == x *. y].  Spelled out in two steps: Z3 diverges (at
+   100% CPU, without ever consuming rlimit) if asked to combine the
+   multiplicative shuffle with the division cancellation in one go. *)
+let r_shuffle (a b c : real)
+  : Lemma ((a *. b) *. c == (a *. c) *. b)
+  = ()
+
+let r_div_cancel (x s : real)
+  : Lemma (requires ~(s == 0.0R))
+          (ensures (x /. s) *. s == x)
+  = ()
+
+let r_div_mul_cancel (x y s : real)
+  : Lemma (requires ~(s == 0.0R))
+          (ensures ((x /. s) *. y) *. s == x *. y)
+  = r_shuffle (x /. s) y s;
+    r_div_cancel x s
+
 #push-options "--z3rlimit 20"
 let rec seq_dotprod_softmax_factor
   (#n: nat) (ra: lseq real n {n > 0}) (rb: lseq real n) (k: nat{k <= n})
@@ -213,7 +233,20 @@ let rec seq_dotprod_softmax_factor
     // [softmax_real_seq ra] unfolds to [seq_map (fun x -> exp x /. summ) ra].
     assert (Seq.equal (softmax_real_seq ra) (seq_map (fun (x:real) -> exp x /. summ) ra));
     if k = 0 then ()
-    else seq_dotprod_softmax_factor ra rb (k-1)
+    else (
+      seq_dotprod_softmax_factor ra rb (k-1);
+      (* The inductive step is a distribution followed by a cancellation of
+         [summ]; left to the solver it diverges in nonlinear real arithmetic,
+         so every algebraic step is an explicit lemma call. *)
+      let sm = softmax_real_seq ra in
+      let d0 = seq_dotprod' sm rb (k-1) in
+      let x = exp (ra @! (k-1)) in
+      let y = rb @! (k-1) in
+      assert (sm @! (k-1) == x /. summ);
+      assert (mra @! (k-1) == x);
+      r_distrib d0 ((x /. summ) *. y) summ;
+      r_div_mul_cancel x y summ
+    )
 #pop-options
 
 (* [rsum] of [seq_map exp_x_y pairs] equals the unshifted numerator
@@ -286,7 +319,7 @@ let pairs_is_cons (#n: nat) (ra rb: lseq real n { n > 0 })
     Seq.lemma_eq_intro (dotprod_pair_seq ra rb)
                        (Seq.cons (ra @! 0, rb @! 0) (seq_drop 1 (dotprod_pair_seq ra rb)))
 
-#push-options "--split_queries always"
+#push-options ""
 let real_online_softmax_dotprod_lemma
   (#n: nat) (ra rb: lseq real n { n > 0 })
   : Lemma (online_softmax_dotprod_real ra rb == seq_dotprod' (softmax_real_seq ra) rb n)
@@ -413,6 +446,9 @@ let rec chest1_dotprod_seq (#et : Type0) {| scalar et |} (#n : nat)
           (decreases k)
   = if k = 0 then () else chest1_dotprod_seq a b (k-1)
 
+(* Per-leaf-goal rlimits: the loop-invariant establishment below is now its own
+   query and needs a larger budget than the default. *)
+#push-options "--z3rlimit 200"
 inline_for_extraction noextract
 fn softmax_dotprod
   (#et : Type0) {| floating et, real_like et, floating_real_like et |}
@@ -460,7 +496,7 @@ fn softmax_dotprod
     invariant pure (!sum_d %~ !gsum_d)
     invariant pure (!i > 0 ==> !max %~ !gmax)
     invariant pure (!i > 0 ==>
-      (reveal !gmax, reveal !gsum_n, reveal !gsum_d) ==
+      hide (reveal !gmax, reveal !gsum_n, reveal !gsum_d) ==
         seq_fold_left online_softmax_dotprod_real_iter (hide (ras @! 0, rbs @! 0, 1.0R)) (Seq.slice (reveal pairs) 1 (!i)))
     invariant pure (!i == 0sz ==>
       (!sum_n == zero /\ !sum_d == zero /\ !gsum_n == 0.0R /\ !gsum_d == 0.0R /\ !max == neg infinity /\ !gmax == ras @! 0))
@@ -529,7 +565,7 @@ fn softmax_dotprod
 
     i := !i `SZ.add` 1sz;
 
-    assert pure ((reveal gmax', reveal gsum_n', reveal gsum_d') ==
+    assert pure (hide (reveal gmax', reveal gsum_n', reveal gsum_d') ==
       seq_fold_left online_softmax_dotprod_real_iter (hide (ras @! 0, rbs @! 0, 1.0R)) (Seq.slice (reveal pairs) 1 (!i)));
     ()
   };
@@ -543,6 +579,7 @@ fn softmax_dotprod
   assert pure (res %~ chest1_dotprod (softmax_real ra) rb);
   res
 }
+#pop-options
 
 let _test (len : szp{len <= max_blocks * max_threads}) =
   softmax_dotprod #f32 len #(l1_forward len)

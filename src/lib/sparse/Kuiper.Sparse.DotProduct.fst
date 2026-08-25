@@ -236,7 +236,6 @@ let rec _dprod_acc_mask_lemma
     then dprod_acc_all_zeros acc (Seq.create k zero @+ s) t 0 to
     else _dprod_acc_mask_lemma acc k s t (to - 1)
 
-#push-options "--split_queries always"
 let rec _sparse_dprod_acc_lemma
   (#et : Type0) {| scalar et |}
   (acc : et)
@@ -261,7 +260,6 @@ let rec _sparse_dprod_acc_lemma
     _sparse_dprod_acc_lemma acc elems pos t (to - 1);
     dprod_acc_all_zeros acc s t ((pos @! to - 1) + 1) (pos @! to)
   )
-#pop-options
 
 let sparse_dprod_acc_lemma
   (#et : Type0) {| scalar et |}

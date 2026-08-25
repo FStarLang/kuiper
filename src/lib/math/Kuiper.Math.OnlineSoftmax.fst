@@ -85,6 +85,11 @@ let r_distr_r (a b c : real) : Lemma (a *. (b +. c) == a *. b +. a *. c) = ()
 let r_distr_l (a b c : real{c =!= 0.0R}) : Lemma ((a +. b) /. c == a /. c +. b /. c) = ()
 let l_distr_r (a b c: real): Lemma ((a +. b) *. c == (a *. c) +. (b *. c)) = ()
 
+(* Directly-typed (non-[Lemma]) witness for [lem_online_softmax_adj]'s
+   [op_distrib_mul] implicit: passing the [Lemma] version above needs a
+   Lemma-to-squash subtyping coercion that the SMT solver no longer discharges. *)
+let l_distr_r' (a b c: real) : ((a +. b) *. c == (a *. c) +. (b *. c)) = ()
+
 let cancel_md (a : real) (b : real{b =!= 0.0R}) : Lemma (a *. b /. b == a) = ()
 let cancel_dm (a : real) (b : real{b =!= 0.0R}) : Lemma (a /. b *. b == a) = ()
 let abcd_adcb (a b c d : real{b =!= 0.0R /\ d =!= 0.0R})
@@ -92,6 +97,9 @@ let abcd_adcb (a b c d : real{b =!= 0.0R /\ d =!= 0.0R})
 
 let assoc_mul (a b c: real) : Lemma ((a *. b) *. c == a *. (b *. c)) = ()
 
+(* NB: fuel 0/ifuel 0 keeps the ambient Kuiper definitions out of this pure
+   real-arithmetic goal; otherwise Z3 diverges in nonlinear real arithmetic. *)
+#push-options "--fuel 0 --ifuel 0"
 let cancel_ddd (a b c : real{b =!= 0.0R /\ c =!= 0.0R}) : Lemma ((a /. c) /. (b /. c) == a /. b) =
   calc (==) {
     (a /. c) /. (b /. c);
@@ -100,13 +108,14 @@ let cancel_ddd (a b c : real{b =!= 0.0R /\ c =!= 0.0R}) : Lemma ((a /. c) /. (b 
     == {}
     a /. b;
   }
+#pop-options
 
 let assoc_mul_div (a b c : real{c =!= 0.0R}) : Lemma ((a *. b) /. c == a *. (b /. c)) =
   ()
 
 let mul_one_div (a : real) (b : real{b =!= 0.0R}) : Lemma (a *. (1.0R /. b) == a /. b) = ()
 
-#push-options "--split_queries always --z3rlimit 10"
+#push-options "--z3rlimit 10"
 let softmax_step #x (xst : st x) (xi : real) :
   res:(real & st (x @+ seq![xi]) & real)
    { (let (fxi,xst',adj) = res in
@@ -163,7 +172,7 @@ let seq_take_snoc (#a:Type) (s : seq a) (i : nat{i < len s})
   : Lemma (seq_take (i+1) s == seq_take i s @+ seq![s @! i])
   = Seq.lemma_eq_elim (seq_take (i+1) s) (seq_take i s @+ seq![s @! i])
 
-#push-options "--split_queries always --z3rlimit 10"
+#push-options "--z3rlimit 10"
 [@@"opaque_to_smt"] (* keep the body out of downstream (fragile) SMT contexts *)
 let softmax_stepi (#n:pos) (x : lseq real n) (i: pos{i < n}) (xst : st (seq_take i x)) :
   res:(real & st (seq_take (i+1) x) & real)
@@ -217,7 +226,7 @@ let rec lemma_seq_fold_left_distrib_mul
         seq_fold_left op acc s *. r;
       }
 
-#push-options "--split_queries always --z3rlimit 30"
+#push-options "--z3rlimit 30"
 let lem_online_softmax_adj
   (#n : pos)
   (x : lseq real n)
@@ -364,7 +373,7 @@ previous version which also goes through, but fails in LSP; maybe cleaner style?
 
 
 
-#push-options "--split_queries always --z3rlimit 30"
+#push-options "--z3rlimit 30"
 let lem_online_softmax_adj
   (#n : pos)
   (x : lseq real n)
@@ -545,7 +554,7 @@ let lem_smx_dotprod_fold_is_dotprod_smx (#n: pos) (x y: lseq real n):
     lem_smx_dotprod_is_dotprod' #n x y n
 
 
-#push-options "--split_queries always --z3rlimit 20"
+#push-options "--z3rlimit 20"
 let softmax_dotprod (#n: pos) (x y: lseq real n):
   (r: real {r == seq_dotprod (softmax_real_seq x) y}) =
   let k = dp_k #n y in
@@ -560,7 +569,7 @@ let softmax_dotprod (#n: pos) (x y: lseq real n):
       let (fxi,xst',adj) = softmax_stepi #n x i xst in
       let r' = r *. adj +. fxi *. (y @! i) in
       assert (r /. xst.d == (seq_fold_left (+.) 0.0R (seq_mapi (softmax_real_seq (seq_take i x)) k)));
-      lem_online_softmax_adj #n x i xst k #(dp_k_comm_div #n y) (+.) #l_distr_r #r;
+      lem_online_softmax_adj #n x i xst k #(dp_k_comm_div #n y) (+.) #l_distr_r' #r;
       aux #(i+1) xst' r'
     ) in
   assert (seq_take 1 x) @! 0 == x @! 0;

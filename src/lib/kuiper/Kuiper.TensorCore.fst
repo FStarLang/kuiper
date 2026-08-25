@@ -1,10 +1,122 @@
 module Kuiper.TensorCore
 
+open Kuiper.Tensor
+open Kuiper.Array2.Strided
+open Kuiper.Seq.Common { (@!) }
 #lang-pulse
 
 open Kuiper
 open Pulse.Lib.Trade
 include Kuiper.TensorCore.Base
+
+inline_for_extraction noextract
+fn mma_loadA
+  (#et : Type)
+  (#m #n #k : erased nat)
+  (fr : fragment et FragA m n k FragLRM)
+  (#l : layout2 m k) {| strided_row_major l |}
+  (gm : array2 et l)
+  (#f : perm)
+  (#m0 : chest2 et m k)
+  (#f0 : erased (value_for et FragA m n k))
+  preserves
+    gm |-> Frac f m0
+  requires
+    fr |-> f0
+  ensures
+    fr |-> m0
+{
+  mma_loadA_map (fun x -> x) fr gm;
+  assert pure (equal (chest_map (fun x -> x) m0) m0);
+  ();
+}
+
+inline_for_extraction noextract
+fn mma_loadA_cm
+  (#et : Type)
+  (#m #n #k : erased nat)
+  (fr : fragment et FragA m n k FragLCM)
+  (#l : layout2 m k) {| strided_col_major l |}
+  (gm : array2 et l)
+  (#f : perm)
+  (#m0 : chest2 et m k)
+  (#f0 : erased (value_for et FragA m n k))
+  preserves
+    gm |-> Frac f m0
+  requires
+    fr |-> f0
+  ensures
+    fr |-> m0
+{
+  mma_loadA_map_cm (fun x -> x) fr gm;
+  assert pure (equal (chest_map (fun x -> x) m0) m0);
+  ();
+}
+
+inline_for_extraction noextract
+fn mma_loadB
+  (#et : Type)
+  (#m #n #k : erased nat)
+  (fr : fragment et FragB m n k FragLRM)
+  (#l : layout2 k n) {| strided_row_major l |}
+  (gm : array2 et l)
+  (#f : perm)
+  (#m0 : chest2 et k n)
+  (#f0 : erased (value_for et FragB m n k))
+  preserves
+    gm |-> Frac f m0
+  requires
+    fr |-> f0
+  ensures
+    fr |-> m0
+{
+  mma_loadB_map (fun x -> x) fr gm;
+  assert pure (equal (chest_map (fun x -> x) m0) m0);
+  ();
+}
+
+inline_for_extraction noextract
+fn mma_loadB_cm
+  (#et : Type)
+  (#m #n #k : erased nat)
+  (fr : fragment et FragB m n k FragLCM)
+  (#l : layout2 k n) {| strided_col_major l |}
+  (gm : array2 et l)
+  (#f : perm)
+  (#m0 : chest2 et k n)
+  (#f0 : erased (value_for et FragB m n k))
+  preserves
+    gm |-> Frac f m0
+  requires
+    fr |-> f0
+  ensures
+    fr |-> m0
+{
+  mma_loadB_map_cm (fun x -> x) fr gm;
+  assert pure (equal (chest_map (fun x -> x) m0) m0);
+  ();
+}
+
+inline_for_extraction noextract
+fn mma_store
+  (#et : Type)
+  (#m #n #k : erased nat)
+  (fr : fragment et FragAcc m n k FragLAcc)
+  (#l : layout2 m n) {| strided_row_major l |}
+  (gm : array2 et l)
+  (#f0 : erased (value_for et FragAcc m n k))
+  (#m0 : chest2 et m n)
+  preserves
+    fr |-> f0
+  requires
+    gm |-> Frac (1.0R /. warp_size) m0
+  ensures
+    gm |-> Frac (1.0R /. warp_size) f0
+{
+  mma_store_comb (fun x y -> x) fr gm;
+  assert pure (equal (chest_comb (fun x y -> x) f0 m0) f0);
+  ();
+}
 
 ghost
 fn array_fragment_pts_to_ref
@@ -48,13 +160,13 @@ fn array_fragment_extract
   with s. assert Pulse.Lib.Array.pts_to farr #f s;
 
   forevery_extract_if_eqtype i
-    (fun (x : natlt (Seq.length s)) -> (s @! x) |-> (ems @! x));
+    (fun (x : natlt (Seq.length ems)) -> (s @! x) |-> (ems @! x));
 
   ghost
   fn f_elim (em' : value_for et knd m n k)
     requires
       (forall+ (j : natlt (Seq.length ems)).
-        if op_Equality #(natlt (Seq.length ems)) j i then emp
+        if op_Equals #(natlt (Seq.length ems)) j i then emp
         else (s @! j) |-> (ems @! j))
     ensures
       (farr |-> Frac f s ** (s @! i) |-> em')
@@ -64,7 +176,7 @@ fn array_fragment_extract
     fn f_elim2 ()
       requires
         (forall+ (j : natlt (Seq.length ems)).
-          if op_Equality #(natlt (Seq.length ems)) j i then emp
+          if op_Equals #(natlt (Seq.length ems)) j i then emp
           else (s @! j) |-> (ems @! j)) **
         (farr |-> Frac f s ** (s @! i) |-> em')
       ensures
@@ -73,10 +185,10 @@ fn array_fragment_extract
       let ems' = Seq.upd ems i em';
       forevery_ext
         (fun (j : natlt (Seq.length ems)) ->
-          if op_Equality #(natlt (Seq.length ems)) j i then emp
+          if op_Equals #(natlt (Seq.length ems)) j i then emp
           else (s @! j) |-> (ems @! j))
         (fun (j : natlt (Seq.length ems')) ->
-          if op_Equality #(natlt (Seq.length ems)) j i then emp
+          if op_Equals #(natlt (Seq.length ems)) j i then emp
           else (s @! j) |-> (ems' @! j));
       forevery_unextract_if_eqtype #(natlt (Seq.length ems)) i
         (fun (j : natlt (Seq.length ems')) -> (s @! j) |-> (ems' @! j));

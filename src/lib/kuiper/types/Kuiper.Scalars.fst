@@ -1,5 +1,8 @@
 module Kuiper.Scalars
 
+open Kuiper.Sized
+open FStar.Tactics.Typeclasses { solve, tcinstance }
+include Kuiper.Scalars.Base
 (* The default proofs here are very flaky. *)
 #set-options "--z3rlimit 1 --retry 4"
 

@@ -2,6 +2,7 @@ module Kuiper.Kernel.HReduce.Block.Max
 
 friend Kuiper.Kernel.HReduce.Max
 
+open Kuiper.EMatrix
 #lang-pulse
 
 open Kuiper
@@ -237,7 +238,7 @@ let kpre_block
   (tid : natlt nth)
   : slprop
   = x |-> Frac ((1.0R /. SZ.v rows) /. nth) sx **
-    if_ (op_Equality #nat tid 0) (Cell output ((bid, ()) <: abs (rows @| INil)) |-> (acc1 sout bid)) **
+    if_ (op_Equals #nat tid 0) (Cell output ((bid, ()) <: abs (rows @| INil)) |-> (acc1 sout bid)) **
     exists* (v : et). tensor_pts_to_cell (from_array (l1_forward nth) shmem._1) (tid, ()) v
 
 unfold
@@ -260,7 +261,7 @@ let kpost_block
   (tid : natlt nth)
   : slprop
   = x |-> Frac ((1.0R /. SZ.v rows) /. nth) sx **
-    if_ (op_Equality #nat tid 0) (
+    if_ (op_Equals #nat tid 0) (
       live (from_array (l1_forward nth) shmem._1) **
       exists* (v : et).
         Cell output ((bid, ()) <: abs (rows @| INil)) |-> v **
@@ -364,14 +365,14 @@ fn kf_block
   rewrite
     (if_ (div_pow2 it tid) (array1_pts_to_slice_max sa tid (min (tid + pow2 it) nth) vr_s))
   as
-    (if_ (op_Equality #nat tid 0) (array1_pts_to_slice_max sa 0 nth vr_s));
+    (if_ (op_Equals #nat tid 0) (array1_pts_to_slice_max sa 0 nth vr_s));
 
   log2_hreduce (v nth) it;
   rewrite (B.barrier_state it) as (B.barrier_state (hreduce_barrier_count nth));
 
   if (tid = 0sz) {
-    if_elim_true' (op_Equality #nat tid 0) (array1_pts_to_slice_max sa 0 nth vr_s);
-    if_elim_true' (op_Equality #nat tid 0) (Cell output (((SZ.v bid <: natlt rows), ()) <: abs (rows @| INil)) |-> (acc1 sout (SZ.v bid)));
+    if_elim_true' (op_Equals #nat tid 0) (array1_pts_to_slice_max sa 0 nth vr_s);
+    if_elim_true' (op_Equals #nat tid 0) (Cell output (((SZ.v bid <: natlt rows), ()) <: abs (rows @| INil)) |-> (acc1 sout (SZ.v bid)));
     unfold array1_pts_to_slice_max sa 0 nth vr_s;
     (**)strided_max_is_max pre_map_r vr_row nth;
     (**)assert (pure (Seq.equal (Seq.slice (reveal vr_s) 0 nth) (reveal vr_s)));
@@ -390,7 +391,7 @@ fn kf_block
       (fun (i : abs (nth @| INil)) -> tensor_pts_to_cell sa i (acc (reveal css) i));
     tensor_implode sa #1.0R #(reveal css);
     rewrite each sa as from_array (l1_forward nth) shmem._1;
-    if_intro_true' (op_Equality #nat tid 0) (
+    if_intro_true' (op_Equals #nat tid 0) (
       live (from_array (l1_forward nth) shmem._1) **
       exists* (v : et).
         Cell output (((SZ.v bid <: natlt rows), ()) <: abs (rows @| INil)) |-> v **
@@ -398,9 +399,9 @@ fn kf_block
     );
     fold kpost_block pre_map pre_map_r rows cols nth x output sx vr sout shmem (SZ.v bid) (SZ.v tid);
   } else {
-    if_elim_false' (op_Equality #nat tid 0) (array1_pts_to_slice_max sa 0 nth vr_s);
-    if_elim_false' (op_Equality #nat tid 0) (Cell output (((SZ.v bid <: natlt rows), ()) <: abs (rows @| INil)) |-> (acc1 sout (SZ.v bid)));
-    if_intro_false' (op_Equality #nat tid 0) (
+    if_elim_false' (op_Equals #nat tid 0) (array1_pts_to_slice_max sa 0 nth vr_s);
+    if_elim_false' (op_Equals #nat tid 0) (Cell output (((SZ.v bid <: natlt rows), ()) <: abs (rows @| INil)) |-> (acc1 sout (SZ.v bid)));
+    if_intro_false' (op_Equals #nat tid 0) (
       live (from_array (l1_forward nth) shmem._1) **
       exists* (v : et).
         Cell output (((SZ.v bid <: natlt rows), ()) <: abs (rows @| INil)) |-> v **
@@ -455,8 +456,8 @@ fn block_setup_block
   (* tid 0 gets the output cell *)
   forevery_if_intro #(natlt nth) 0 (fun _ -> Cell output ((bid, ()) <: abs (rows @| INil)) |-> (acc1 sout bid));
   forevery_ext
-    (fun tid -> if_ (op_Equality #(natlt nth) tid 0) (Cell output ((bid, ()) <: abs (rows @| INil)) |-> (acc1 sout bid)))
-    (fun tid -> if_ (op_Equality #nat tid 0) (Cell output ((bid, ()) <: abs (rows @| INil)) |-> (acc1 sout bid)));
+    (fun tid -> if_ (op_Equals #(natlt nth) tid 0) (Cell output ((bid, ()) <: abs (rows @| INil)) |-> (acc1 sout bid)))
+    (fun tid -> if_ (op_Equals #nat tid 0) (Cell output ((bid, ()) <: abs (rows @| INil)) |-> (acc1 sout bid)));
 
   forevery_zip (fun _ -> x |-> Frac ((1.0R /. SZ.v rows) /. nth) sx) _;
 
@@ -467,14 +468,14 @@ fn block_setup_block
 
   forevery_zip #(natlt nth)
     (fun tid -> x |-> Frac ((1.0R /. SZ.v rows) /. nth) sx **
-                if_ (op_Equality #nat tid 0) (Cell output ((bid, ()) <: abs (rows @| INil)) |-> (acc1 sout bid)))
+                if_ (op_Equals #nat tid 0) (Cell output ((bid, ()) <: abs (rows @| INil)) |-> (acc1 sout bid)))
     _;
 
   forevery_map
     #(natlt nth)
     (fun tid ->
       (x |-> Frac ((1.0R /. SZ.v rows) /. nth) sx **
-       if_ (op_Equality #nat tid 0) (Cell output ((bid, ()) <: abs (rows @| INil)) |-> (acc1 sout bid))) **
+       if_ (op_Equals #nat tid 0) (Cell output ((bid, ()) <: abs (rows @| INil)) |-> (acc1 sout bid))) **
       Cell (from_array (l1_forward nth) gsa) (abs_bij.gg (tid <: natlt nth))
         |-> (acc (from_seq (l1_forward nth) vgsa) (abs_bij.gg (tid <: natlt nth)))
     )
@@ -521,13 +522,13 @@ fn block_teardown_block
 
   forevery_ext #(natlt nth)
     (fun tid ->
-      if_ (op_Equality #nat tid 0) (
+      if_ (op_Equals #nat tid 0) (
         live (from_array (l1_forward nth) shmem._1) **
         exists* (v : et).
           Cell output ((bid, ()) <: abs (rows @| INil)) |-> v **
           pure (v %~ seq_max (lseq_map pre_map_r (ematrix_row vr bid)))))
     (fun tid ->
-      if_ (op_Equality #(natlt nth) tid 0) (
+      if_ (op_Equals #(natlt nth) tid 0) (
         live (from_array (l1_forward nth) shmem._1) **
         exists* (v : et).
           Cell output ((bid, ()) <: abs (rows @| INil)) |-> v **
@@ -792,7 +793,7 @@ let max_boundary_all
   = introduce forall (r : nat). r < rows ==>
       (acc1 sout' r) %~ chest1_max (chest_map pre_map_r (chest2_row vr r))
     with introduce _ ==> _
-    with _. (
+    with (
       max_row_bridge pre_map_r vr r;
       approximates_subst (acc1 sout' r)
         (seq_max (lseq_map pre_map_r (ematrix_row vr r)))

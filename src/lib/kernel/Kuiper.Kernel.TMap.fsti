@@ -34,6 +34,18 @@ val kmap
       (ensures  frame fr ** exists* s'. a |-> s' **
         pure (chest_foralli (fun i x -> vf i (acc s i) x) s'))
 
+(* The pointwise map kernel as a [kernel_desc], for clients that want to launch
+it asynchronously on their own stream rather than via [map_gpu]. *)
+inline_for_extraction noextract
+val map_kd
+  (#et : Type0) (#r : erased nat) (#d : shape r) (cd : cshape d)
+  (f : et -> et)
+  (#l : tlayout d) {| ctlayout l |}
+  (n : sz{SZ.v n == sizeof d /\ n <= max_blocks * max_threads /\ n > 0})
+  (a : tensor et l { is_global a })
+  (#s : chest d et)
+  : kernel_desc (a |-> s) (a |-> chest_map f s)
+
 inline_for_extraction noextract
 fn map_gpu
   (#et : Type0) (#r : erased nat) (#d : shape r) (cd : cshape d)

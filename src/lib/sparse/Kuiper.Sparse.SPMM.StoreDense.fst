@@ -16,6 +16,7 @@ open Kuiper.Tensor
 // TODO tiene sentido pensar en hacer esta operación sobre filas como Array1?
 // No se si cambia mucho porque a cada bloque no le toca una fila entera
 
+#push-options "--z3rlimit 20"
 let aligned_cell_strided_row_major
   (#et:Type0) {| sized et, has_vec_cpy et |}
   (#rows #cols : pos { chunk et /? cols })
@@ -34,6 +35,7 @@ let aligned_cell_strided_row_major
   lineal_divides (chunk et) strided.offset strided.stride i;
   lemma_divides_sum (chunk et) (strided.offset + strided.stride * i) j;
   ()
+#pop-options
 
 inline_for_extraction noextract
 fn matrix_vec_write_in_bounds

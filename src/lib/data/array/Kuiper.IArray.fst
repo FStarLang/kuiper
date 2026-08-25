@@ -1,4 +1,5 @@
 module Kuiper.IArray
+open Kuiper.Bijection
 #lang-pulse
 
 open Kuiper
@@ -81,6 +82,21 @@ let iarray_pts_to
   = pure (SZ.fits (len vw)) **
     (forall+ (i : vw.ait).
       iarray_pts_to_cell a #f i (v i))
+
+let is_send_across_iarray
+  (#et : Type0)
+  (#vw : aiview)
+  (x : iarray et vw)
+  (vis : visibility)
+  (#_ : squash (visibility_of (core x) == vis))
+  (#f : perm)
+  (v : vw.ait -> GTot et)
+  : is_send_across vis (iarray_pts_to x #f v)
+=
+  let i :
+    is_send_across (visibility_of (core x)) (iarray_pts_to x #f v) =
+    solve in
+  i
 
 instance is_send_across_global_iarray
   (#et:Type0)
@@ -169,6 +185,15 @@ fn iarray_implode
 }
 
 (* Begin viewing something abstractly, with the trivial view. *)
+let unfold_raw_view () : T.Tac unit =
+  T.norm [delta_only [`%iarray_pts_to_cell; `%from_array; `%core; `%g_seq_acc;
+                      `%raw_view; `%it_to_nat; `%Kuiper.Injection.op_Bar_Tilde_Greater;
+                      `%inj_id; `%Kuiper.Injection.cinj_id; `%Kuiper.Injection.mk_cinj;
+                      `%Kuiper.Common.natlt; `%FStar.Pervasives.id;
+                      `%Kuiper.Len.len; `%has_len_aiview; `%sum_aiview];
+          iota; primops];
+  slprop_equiv_norm ()
+
 ghost
 fn iarray_begin_
   (#et:Type0)
@@ -182,7 +207,14 @@ fn iarray_begin_
     from_array (raw_view #len) a |-> Frac f (g_seq_acc v)
 {
   B.array_slice_1 a;
-  fold iarray_pts_to (from_array (raw_view #len) a) #f (fun i -> v @! i);
+  (* The index type of the raw view is definitionally [natlt len], and its index
+     map is the identity, but the SMT solver does not see through these anymore;
+     do the conversion by normalization instead. *)
+  rewrite (forall+ (i: natlt (reveal len)). pts_to_cell a #f i (v @! i))
+       as (forall+ (i: (raw_view #len).ait).
+             iarray_pts_to_cell (from_array (raw_view #len) a) #f i (g_seq_acc v i))
+       by unfold_raw_view ();
+  fold iarray_pts_to (from_array (raw_view #len) a) #f (g_seq_acc v);
 }
 
 fn iarray_begin
@@ -215,11 +247,20 @@ fn iarray_end_
     core a |-> Frac f (Seq.init_ghost len v)
 {
   unfold iarray_pts_to a #f v;
+  (* [raw_view.ait] is definitionally [natlt len]; convert by normalization. *)
+  rewrite (forall+ (i: (raw_view #len).ait). iarray_pts_to_cell a #f i (v i))
+       as (forall+ (i: natlt (reveal len)). iarray_pts_to_cell a #f i (v i))
+       by unfold_raw_view ();
   forevery_ext
     (fun (i : natlt len) ->
       iarray_pts_to_cell a #f i (v i))
     (fun (i : natlt len) ->
       iarray_pts_to_cell a #f i (Seq.init_ghost len v @! i));
+  rewrite (forall+ (i: natlt (reveal len)).
+             iarray_pts_to_cell a #f i (Seq.init_ghost len v @! i))
+       as (forall+ (i: natlt (Kuiper.Len.len (raw_view #len))).
+             pts_to_cell (core a) #f i (Seq.init_ghost len v @! i))
+       by unfold_raw_view ();
   B.array_unslice_1 (core a);
 }
 
@@ -368,6 +409,11 @@ fn iarray_split2_
     (from_array vw2 (core a) |-> Frac f (v `oo` Inr))
 {
   unfold iarray_pts_to a #f v;
+  (* [(sum_aiview vw1 vw2).ait] is definitionally [either vw1.ait vw2.ait];
+     the solver no longer sees through the projection, so normalize. *)
+  rewrite (forall+ (i: (sum_aiview vw1 vw2 #()).ait). iarray_pts_to_cell a #f i (v i))
+       as (forall+ (i: either vw1.ait vw2.ait). iarray_pts_to_cell a #f i (v i))
+       by unfold_raw_view ();
   forevery_split_either #vw1.ait #vw2.ait _;
 
   forevery_ext #vw1.ait
@@ -558,6 +604,12 @@ fn iarray_pts_to_eq
   fold iarray_pts_to a #f2 v2;
 }
 
+(* The concrete index type of the raw schema is definitionally [szlt l], but the
+   solver no longer sees through the projection on its own. *)
+let raw_ciview_schema_cit (l : erased nat) (_ : squash (SZ.fits l))
+  : Lemma ((raw_ciview_schema l).cit == SZ.szlt (reveal l))
+  = ()
+
 inline_for_extraction noextract
 fn iarray_write_cell
   (#et:Type0)
@@ -572,12 +624,17 @@ fn iarray_write_cell
     Cell a (ci_to_ai vw ci) |-> v1
 {
   let ai : erased vw.ait = ci |> cw.sch.bij.gg; (* abstract index *)
-  let ni = cw.step.cimap.cf ci;                    (* numerical index *)
+  (* Ascribe the concrete index type: the solver no longer unfolds
+     [(raw_ciview_schema vw.len).cit] to [szlt vw.len] on its own. *)
+  let ni : SZ.szlt vw.len = cw.step.cimap.cf ci;   (* numerical index *)
   rewrite each ci_to_ai vw ci as ai;
 
   cw.step.compat ai;
-  assert pure ((cw.step.cimap.cf (cw.sch.bij.ff ai)) == SZ.uint_to_t (vw.step.imap.f ai));
-  assert pure (SZ.v (cw.step.cimap.cf (cw.sch.bij.ff ai)) == vw.step.imap.f ai);
+  raw_ciview_schema_cit vw.len cw.len_fits;
+  assert pure (coerce_eq #_ #(SZ.szlt vw.len) () (cw.step.cimap.cf (cw.sch.bij.ff ai))
+                 == SZ.uint_to_t (vw.step.imap.f ai));
+  assert pure (SZ.v (coerce_eq #_ #(SZ.szlt vw.len) () (cw.step.cimap.cf (cw.sch.bij.ff ai)))
+                 == vw.step.imap.f ai);
 
   unfold iarray_pts_to_cell a ai v0;
   rewrite each it_to_nat vw (reveal ai) as ni;
@@ -631,13 +688,18 @@ fn iarray_read_cell
     pure (v == v0)
 {
   let ai : erased vw.ait = ci |> cw.sch.bij.gg; (* abstract index *)
-  let ni = cw.step.cimap.cf ci;                    (* numerical index *)
+  (* Ascribe the concrete index type: the solver no longer unfolds
+     [(raw_ciview_schema vw.len).cit] to [szlt vw.len] on its own. *)
+  let ni : SZ.szlt vw.len = cw.step.cimap.cf ci;   (* numerical index *)
   rewrite each ci_to_ai vw ci as ai;
 
   cw.step.compat ai;
-  assert pure ((cw.step.cimap.cf (cw.sch.bij.ff ai)) == SZ.uint_to_t (vw.step.imap.f ai));
+  raw_ciview_schema_cit vw.len cw.len_fits;
+  assert pure (coerce_eq #_ #(SZ.szlt vw.len) () (cw.step.cimap.cf (cw.sch.bij.ff ai))
+                 == SZ.uint_to_t (vw.step.imap.f ai));
   (* ^ FIXME: this should be exactly what we get from the line above? *)
-  assert pure (SZ.v (cw.step.cimap.cf (cw.sch.bij.ff ai)) == vw.step.imap.f ai);
+  assert pure (SZ.v (coerce_eq #_ #(SZ.szlt vw.len) () (cw.step.cimap.cf (cw.sch.bij.ff ai)))
+                 == vw.step.imap.f ai);
 
   unfold iarray_pts_to_cell a #f ai v0;
   rewrite each it_to_nat vw (reveal ai) as ni;

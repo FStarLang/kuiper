@@ -22,6 +22,16 @@ let g_spmm_f32_32x16x4 = inst f32 32sz 16sz 4sz
 let g_spmm_f32_32x32x8 = inst f32 32sz 32sz 8sz
 let g_spmm_f32_32x64x8 = inst f32 32sz 64sz 8sz
 
+// Asynchronous, stream-parametric twins of the above. These take a stream and
+// return without synchronizing, so a caller can issue many SpMMs into one
+// stream and wait once -- the model Sputnik's CudaSpmm uses. See
+// Kuiper.Sparse.SPMM.spmm_on.
+let g_spmm_f32_32x4x1_on = inst_on f32 32sz 4sz 1sz
+let g_spmm_f32_32x8x2_on = inst_on f32 32sz 8sz 2sz
+let g_spmm_f32_32x16x4_on = inst_on f32 32sz 16sz 4sz
+let g_spmm_f32_32x32x8_on = inst_on f32 32sz 32sz 8sz
+let g_spmm_f32_32x64x8_on = inst_on f32 32sz 64sz 8sz
+
 EOF
 
 # let spmm_u32 = inst u32 128sz 128sz 32sz
@@ -40,6 +50,7 @@ for blockItemsK in $all_blockItemsK; do
       if [ $(( (blockItemsK / blockWidth) % 4 )) -ne 0 ]; then continue; fi
       if [ $(( (blockItemsX / blockWidth) % 4 )) -ne 0 ]; then continue; fi
       echo "let g_spmm_f32_${blockItemsK}x${blockItemsX}x${blockWidth} = inst f32 ${blockItemsK}sz ${blockItemsX}sz ${blockWidth}sz"
+      echo "let g_spmm_f32_${blockItemsK}x${blockItemsX}x${blockWidth}_on = inst_on f32 ${blockItemsK}sz ${blockItemsX}sz ${blockWidth}sz"
     done
   done
 done

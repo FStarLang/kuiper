@@ -68,7 +68,6 @@ fn main (_:unit)
   returns  _ : u64
   ensures  cpu
 {
-  open FStar.UInt64;
   let r1 = galloc 1uL;
   let r2 = galloc 2uL;
   let r3 = galloc 3uL;
@@ -147,7 +146,7 @@ fn main (_:unit)
   destroy_stream s5;
   destroy_stream s6;
 
-  let v = v1 +^ v2 +^ v3 +^ v4 +^ v5 +^ v6;
+  let v : U64.t = U64.(v1 + v2 + v3 + v4 + v5 + v6);
   assert (pure (UInt64.v v == 2 + 3 + 4 + 5 + 6 + 7));
   v
 }

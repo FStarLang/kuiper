@@ -1,4 +1,5 @@
 module Kuiper.Chest
+open Kuiper.Container
 #lang-pulse
 
 (* An erased trivial container from any index type to

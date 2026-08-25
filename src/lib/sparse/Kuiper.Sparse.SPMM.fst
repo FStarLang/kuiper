@@ -4,6 +4,10 @@ module Kuiper.Sparse.SPMM
 
 open Kuiper
 open Kuiper.Sparse
+open Kuiper.Tensor
+open Kuiper.Array.Vectorized
+open Pulse.Lib.Pledge
+open Kuiper.Kernel.Base
 open Kuiper.Sparse.SPMM.LoadSparse
 open Kuiper.Sparse.SPMM.StoreDense
 open Kuiper.Sparse.SPMM.Defs
@@ -17,9 +21,6 @@ module MS = Kuiper.Spec.GEMM
 module SZ = Kuiper.SizeT
 module B = Kuiper.Barrier
 module Compute = Kuiper.Sparse.SPMM.Compute
-
-
-#push-options "--split_queries always"
 
 unfold
 let block_pre
@@ -95,6 +96,13 @@ let block_post
     (MS.matmul eA eB)
     (p.blockItemsX / p.blockWidth)
     p.blockWidth
+
+(* Projecting [rin]/[rout] out of the record literal built by [barrier_contract]
+   is no longer reduced for the SMT solver, so we discharge those slprop
+   equalities by normalization instead. *)
+let unfold_barrier_contract () : FStar.Tactics.V2.Tac unit =
+  FStar.Tactics.V2.norm [delta_only [`%barrier_contract]; iota; primops];
+  Pulse.Lib.Core.slprop_equiv_norm ()
 
 unfold
 let kpre
@@ -221,6 +229,7 @@ let lem_div2 (n : nat) (d : pos) (r : natlt d)
 = Math.Lemmas.lemma_mod_plus r n d
 //
 
+#push-options "--z3rlimit 30"
 ghost
 fn setup
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
@@ -391,6 +400,7 @@ fn setup
   admit();
 }
 
+#pop-options
 ghost
 fn block_setup
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
@@ -587,6 +597,19 @@ fn block_teardown
   ();
 }
 
+(* Nonlinear bound relating a (row, column-block) pair to a flat block id.
+   With one SMT query per proof obligation Z3 no longer finds this on its own,
+   so we prove it once by an explicit multiplication lemma. *)
+let block_index_bound #et {| sized et, has_vec_cpy et |} (p : parameters et)
+  : Lemma (forall (r : natlt (SZ.v p.rows))
+                  (b : natlt (divup (SZ.v p.cols) (SZ.v p.blockItemsX))).
+             r * divup (SZ.v p.cols) (SZ.v p.blockItemsX) + b < nblocks_ p)
+  = introduce forall (r : natlt (SZ.v p.rows))
+                     (b : natlt (divup (SZ.v p.cols) (SZ.v p.blockItemsX))).
+      r * divup (SZ.v p.cols) (SZ.v p.blockItemsX) + b < nblocks_ p
+    with FStar.Math.Lemmas.lemma_mult_le_right
+           (divup (SZ.v p.cols) (SZ.v p.blockItemsX)) (r + 1) (SZ.v p.rows)
+
 ghost
 fn teardown
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
@@ -723,6 +746,7 @@ fn teardown
       forevery_rw_size
         ((p.blockItemsX /^ p.blockWidth) * p.blockWidth) p.blockItemsX;
     };
+  block_index_bound p;
   forevery_factor (nblocks p) p.rows (divup p.cols p.blockItemsX) _;
   forevery_map #(natlt p.rows)
     (fun r ->
@@ -816,13 +840,14 @@ fn teardown
       tensor_pts_to_cell gC (idx2 (r |~> row_perm) (c))
         (MS.matmul_single eA eB (r |~> row_perm) c)
   );
-  forevery_ext_2
-    (fun r c ->
+  forevery_ext_2 #(natlt p.rows) #(natlt p.cols)
+    (fun (r : natlt p.rows) (c : natlt p.cols) ->
       tensor_pts_to_cell gC
         (idx2 (row_perm.gg r |~> row_perm) (c))
         (MS.matmul_single eA eB (row_perm.gg r |~> row_perm) c)
     )
-    (fun r c -> tensor_pts_to_cell gC (idx2 (r) (c)) (acc2 (MS.matmul eA eB) r c));
+    (fun (r : natlt p.rows) (c : natlt p.cols) ->
+      tensor_pts_to_cell gC (idx2 (r) (c)) (acc2 (MS.matmul eA eB) r c));
   forevery_flatten _;
   forevery_ext
     (fun (rc : natlt p.rows & natlt p.cols) -> tensor_pts_to_cell gC (idx2 (rc._1) (rc._2)) (acc2 (MS.matmul eA eB) rc._1 rc._2))
@@ -1154,6 +1179,18 @@ let threadItemsX
   lem p.blockItemsX p.blockWidth (chunk et);
   p.blockItemsX / p.blockWidth
 
+(* tcol y la fila de un thread caen bien debajo de 2^32 por size_req. *)
+let tcol_fits
+  (#et : Type0) {| d : scalar et, sized et, hvc : has_vec_cpy et |}
+  (p : parameters et { size_req p })
+  (bid : natlt (nblocks_ p))
+  (tid : natlt p.blockWidth)
+: Lemma (fits (tcol p bid tid + p.blockItemsX / p.blockWidth * p.blockWidth))
+=
+  FStar.Math.Lemmas.lemma_mult_lt_right (chunk et) tid p.blockWidth;
+  assert (bcol p bid < p.cols);
+  assert (p.blockWidth * chunk et <= p.blockItemsX)
+
 // TODO refactorizar? Dividir en dos partes?
 #push-options "--z3rlimit 20"
 inline_for_extraction noextract
@@ -1266,7 +1303,7 @@ fn kf_head
 
   barrier_out_unfold_mask_post p row_perm elems col_ind row_off
     elems_tile col_ind_tile bid ri ri' re tid;
-  
+
   // TODO mejores nombres
   let elems'   : erased (lseq et (re - ri')) = Seq.create (ri - ri') zero @+ Seq.slice elems ri re;
   let col_ind' : erased (lseq sz (re - ri')) = Seq.slice col_ind ri' re;
@@ -1310,6 +1347,8 @@ fn kf_head
       (lslice (cast_pos col_ind) ri' p.blockItemsK)
   );
 
+  tcol_fits p bid tid;
+
   Compute.tile_fused_vmprod
     out
     (Seq.create (p.blockItemsX / p.blockWidth) d.zero <: lseq et (p.blockItemsX / p.blockWidth))
@@ -1324,7 +1363,7 @@ fn kf_head
 }
 
 #pop-options
-#push-options "--z3rlimit 40"
+#push-options "--z3rlimit 60"
 inline_for_extraction noextract
 fn kf_main
   (#et : Type0) {| d : scalar et, sized et, hvc : has_vec_cpy et |}
@@ -1397,6 +1436,8 @@ fn kf_main
     )
 
 {
+  tcol_fits p bid tid;
+
   let out0 : erased (lseq et (threadItemsX p)) =
     Seq.create (p.blockItemsX / p.blockWidth) zero;
 
@@ -1495,7 +1536,7 @@ fn kf_main
       assume pure (chunk et /? p.cols);
       assert pure (in_bounds 0 p.shared (cast_pos row_ind_));
       assert pure (!idx * p.blockItemsK + p.blockItemsK <= re - ri');
-      
+
       Compute.tile_fused_vmprod
         out
         out0
@@ -1551,6 +1592,11 @@ fn kf_main
     barrier_in_fold_residue_pre p row_perm elems col_ind row_off
       elems_tile col_ind_tile bid ri' re tid;
 
+    // Loop exit: re - ri' == idx * blockItemsK + nnz with nnz < blockItemsK, so
+    // idx is exactly the quotient. Spelled out as Euclidean division because
+    // the solver no longer gets there unaided.
+    FStar.Math.Lemmas.small_division_lemma_1 (SZ.v !nnz) (SZ.v p.blockItemsK);
+    FStar.Math.Lemmas.lemma_div_plus (SZ.v !nnz) (SZ.v !idx) (SZ.v p.blockItemsK);
     assert pure (SZ.v !idx == (re - ri') / p.blockItemsK);
     rewrite barrier_in p row_perm elems col_ind row_off elems_tile col_ind_tile
       bid ((re - ri') / p.blockItemsK * 2) tid
@@ -1577,7 +1623,7 @@ fn kf_main
         Seq.empty
         (lslice' (cast_pos col_ind) ri (re - !nnz))
     );
-    
+
     barrier_in_fold_residue0_pre p row_perm elems col_ind row_off
       elems_tile col_ind_tile bid ri' re tid;
 
@@ -1693,7 +1739,10 @@ fn kf_residue
 
   sparse_load_residue p row_perm gA #_ #row_off #elems #col_ind #eA #fA
     elems_tile col_ind_tile bid ri ri' re tid idx residue;
-  
+
+  Seq.slice_slice elems   ri re ((re - ri) - residue) (re - ri);
+  Seq.slice_slice col_ind ri re ((re - ri) - residue) (re - ri);
+
   assert pure (
     Seq.equal
       (Seq.slice elems (re - residue) re)
@@ -1705,13 +1754,15 @@ fn kf_residue
       (Seq.slice row_ind ((re - ri) - residue) (re - ri))
   );
 
+  tcol_fits p bid tid;
+
   Compute.tile_fused_vmprod
     out out0
     elems_tile col_ind_tile
     row_elems row_ind
     gB n_idx p.blockWidth
     ((re - ri) - residue) (re - ri) residue;
-  
+
   assert pure (
     Seq.equal
       (Seq.slice row_elems 0 (re - ri))
@@ -1816,6 +1867,7 @@ fn kf
   // let n_idx = bcol_ p bid;
   let n_idx = tcol_ p bid tid;
   assert rewrites_to n_idx (SZ.uint_to_t (tcol p bid tid));
+  tcol_fits p bid tid;
 
   let (elems_tile0, (col_ind_tile0, _)) = sh;
 
@@ -2047,6 +2099,88 @@ let kdesc
 }
 
 inline_for_extraction noextract
+fn spmm_on
+  (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
+  (rows shared cols : szp { chunk et /? cols })
+  (blockItemsK : szp)
+  (blockItemsX : szp)
+  (blockWidth : (k : szp {
+    (k * chunk et) /? blockItemsK /\
+    (k * chunk sz) /? blockItemsK /\
+    (k * chunk et) /? blockItemsX
+  }))
+  (blockChunks : sz{SZ.v blockChunks == blockItemsX / blockWidth}) // Ver nota abajo
+  (#lB : layout2 shared cols) {| ctlayout lB, srmB : strided_row_major lB |}
+  (#lC : layout2 rows cols)   {| ctlayout lC, srmC : strided_row_major lC |}
+  (gA : smatrix et (SZ.v rows) (SZ.v shared){is_global_smatrix gA})
+  (#_ : squash (aligned 16 gA.elems /\ aligned 16 gA.col_ind))
+  (#fA : perm)
+  (row_indices : larray sz rows)
+  (fri : perm)
+  (gB : array2 et lB{is_global gB})
+  (#_ : squash (aligned 16 (core gB)))
+  (#_ : squash (aligned_strided_row_major (chunk et) srmB))
+  (#fB : perm)
+  (gC : array2 et lC{is_global gC})
+  (#_ : squash (aligned 16 (core gC)))
+  (#_ : squash (aligned_strided_row_major (chunk et) srmC))
+  // matriz sparse gA
+  (elems : erased (lseq et gA.nnz))
+  (col_ind : erased (lseq sz gA.nnz))
+  (row_off : erased (lseq sz (rows + 1)))
+  (#eA : chest2 et rows shared)
+  // permutacion de filas
+  (row_perm : permutation (natlt rows))
+  // matrices densas
+  (#eB : chest2 et shared cols)
+  (#eC : chest2 et rows cols)
+  //(#_ : size_req rows shared cols)
+  (s : stream_t)
+  (#e : epoch_t)
+  norewrite
+  preserves cpu ** stream_live s ** epoch_live s e
+  requires
+    pure (blockItemsX /? cols) **
+    on gpu_loc (smatrix_pts_to' gA #fA elems col_ind row_off eA) **
+    on gpu_loc (row_indices |-> Frac fri (ordering row_perm)) **
+    on gpu_loc (gB |-> Frac fB eB) **
+    on gpu_loc (live gC) **
+    pure (rows * (cols `divup` blockItemsX) <= max_blocks) **
+    pure (blockWidth <= max_threads)
+  ensures
+    pledge0 (epoch_done s e) (on gpu_loc (
+      smatrix_pts_to' gA #fA elems col_ind row_off eA **
+      row_indices |-> Frac fri (ordering row_perm) **
+      gB |-> Frac fB eB **
+      gC |-> MS.matmul eA eB
+    ))
+{
+  dguard (rows <^ 10000sz);
+  dguard (shared <^ 10000sz);
+  dguard (cols <^ 10000sz);
+  dguard (blockItemsK <^ 10000sz);
+  dguard (blockItemsX <^ 10000sz);
+  // ^ FIXME: propagate preconditions instead of dynamically aborting
+  assert pure (rows * (cols `divup` blockItemsX) <= max_blocks);
+  assert pure (size_req #et ({ rows; shared; cols; blockItemsK; blockItemsX; blockWidth }));
+  assert pure ((chunk et * blockWidth) /? blockItemsK);
+  assert pure ((chunk sz * blockWidth) /? blockItemsK);
+
+  assume pure (chunk et /? blockChunks);
+  lemma_aligned_strided_row_major_l2_row_major
+    #(SZ.v blockItemsK) #(SZ.v blockChunks) (chunk et);
+
+  launch (
+    kdesc #et #_
+      ({ rows; shared; cols; blockItemsK; blockItemsX; blockWidth })
+      row_perm blockChunks #lB #_ #_ #lC
+      gA row_indices gB gC elems col_ind row_off eA
+      #eB #fA #fri #fB
+  ) s;
+}
+
+(* Same structure as Kuiper.Kernel.launch_kernel_full_sync, one level up. *)
+inline_for_extraction noextract
 fn spmm
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
   (rows shared cols : szp { chunk et /? cols })
@@ -2097,26 +2231,24 @@ fn spmm
     pure (blockWidth <= max_threads)
   ensures on gpu_loc (gC |-> MS.matmul eA eB)
 {
-  dguard (rows <^ 10000sz);
-  dguard (shared <^ 10000sz);
-  dguard (cols <^ 10000sz);
-  dguard (blockItemsK <^ 10000sz);
-  dguard (blockItemsX <^ 10000sz);
-  // ^ FIXME: propagate preconditions instead of dynamically aborting
-  assert pure (rows * (cols `divup` blockItemsX) <= max_blocks);
-  assert pure (size_req #et ({ rows; shared; cols; blockItemsK; blockItemsX; blockWidth }));
-  assert pure ((chunk et * blockWidth) /? blockItemsK);
-  assert pure ((chunk sz * blockWidth) /? blockItemsK);
-  
-  assume pure (chunk et /? blockChunks);
-  lemma_aligned_strided_row_major_l2_row_major
-    #(SZ.v blockItemsK) #(SZ.v blockChunks) (chunk et);
-
-  launch_sync (
-    kdesc #et #_
-      ({ rows; shared; cols; blockItemsK; blockItemsX; blockWidth })
-      row_perm blockChunks #lB #_ #_ #lC
-      gA row_indices gB gC elems col_ind row_off eA
-      #eB #fA #fri #fB
-  );
+  let s = fresh_stream ();
+  get_epoch s ();
+  spmm_on
+    rows shared cols
+    blockItemsK blockItemsX blockWidth
+    blockChunks
+    gA row_indices fri gB gC
+    elems col_ind row_off
+    #eA row_perm #eB #eC
+    s;
+  sync_stream s;
+  redeem_pledge emp_inames (epoch_done s _) (on gpu_loc (
+      smatrix_pts_to' gA #fA elems col_ind row_off eA **
+      row_indices |-> Frac fri (ordering row_perm) **
+      gB |-> Frac fB eB **
+      gC |-> MS.matmul eA eB
+  ));
+  drop_ (epoch_done s _);
+  drop_ (epoch_live s _);
+  destroy_stream s;
 }

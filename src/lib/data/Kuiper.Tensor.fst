@@ -1,4 +1,12 @@
 module Kuiper.Tensor
+include Kuiper.Shape
+include Kuiper.Chest
+include Kuiper.Tensor.Layout
+open Kuiper.Injection
+open Kuiper.Chest
+open FStar.Tactics.Typeclasses { no_method }
+open Pulse.Lib.Trade
+open Kuiper.Shareable
 #lang-pulse
 
 open Kuiper
@@ -66,6 +74,17 @@ let tensor_pts_to
   : slprop
   = A.varray_pts_to a #f s
 
+let is_send_across_tensor
+  (#et : Type0) (#r : nat) (#d : shape r)
+  (#l : tlayout d)
+  (a : tensor et l)
+  (vis : visibility)
+  (#_ : squash (visibility_of (core a) == vis))
+  (#f : perm)
+  (s : chest d et)
+  : is_send_across vis (tensor_pts_to a #f s)
+= A.is_send_across_varray a vis #_ #f s
+
 instance is_send_across_global_tensor
   (#et : Type0) (#r : nat) (#d : shape r)
   (#l : tlayout d)
@@ -87,15 +106,15 @@ fn alloc0
   returns
     p : tensor et l
   ensures
-    exists* em. on gpu_loc (p |-> em)
+    exists* em. on gpu_loc (tensor_pts_to p em)
   ensures
     pure (is_global p) **
     pure (is_full_array (core p))
 {
   let t = A.varray_alloc0 #et s (tensor_aview et l);
-  with em. assert on gpu_loc (A.varray_pts_to t em);
-  rewrite on gpu_loc (A.varray_pts_to t em)
-       as on gpu_loc (tensor_pts_to t em);
+  with em. assert on gpu_loc (A.varray_pts_to t #1.0R em);
+  rewrite on gpu_loc (A.varray_pts_to t #1.0R em)
+       as on gpu_loc (tensor_pts_to t #1.0R em);
   t
 }
 
@@ -110,11 +129,11 @@ fn free
     cpu
   requires
     pure (is_full_array (core p)) **
-    on gpu_loc (p |-> em)
+    on gpu_loc (tensor_pts_to p em)
   ensures emp
 {
-  rewrite on gpu_loc (tensor_pts_to p em)
-       as on gpu_loc (A.varray_pts_to p  em);
+  rewrite on gpu_loc (tensor_pts_to p #1.0R em)
+       as on gpu_loc (A.varray_pts_to p #1.0R em);
   A.varray_free p;
 }
 
@@ -125,7 +144,7 @@ fn tensor_pts_to_ref
   (a : tensor et l)
   (#f : perm) (#s : chest d et)
   preserves
-    a |-> Frac f s
+    tensor_pts_to a #f s
   ensures
     pure (SZ.fits (tlayout_ulen l))
 {
@@ -142,13 +161,13 @@ fn tensor_pts_to_ref_located
   (#loc : loc_id)
   (#f : perm) (#s : chest d et)
   preserves
-    on loc (a |-> Frac f s)
+    on loc (tensor_pts_to a #f s)
   ensures
     pure (SZ.fits (tlayout_ulen l))
 {
   map_loc loc
-    #(a |-> Frac f s)
-    #(a |-> Frac f s ** pure (SZ.fits (tlayout_ulen l)))
+  #(tensor_pts_to a #f s)
+  #(tensor_pts_to a #f s ** pure (SZ.fits (tlayout_ulen l)))
   fn _ {
     tensor_pts_to_ref a;
   };
@@ -184,7 +203,7 @@ fn tensor_concr
   (#s : chest d et)
   (#f : perm)
   requires
-    g |-> Frac f s
+    tensor_pts_to g #f s
   ensures
     core g |-> Frac f (to_seq l s)
 {
@@ -206,7 +225,7 @@ fn tensor_abs
   requires
     p |-> Frac f (to_seq l s)
   ensures
-    from_array l p |-> Frac f s
+    tensor_pts_to (from_array l p) #f s
 {
   to_seq_rel l s;
   rewrite
@@ -228,7 +247,7 @@ fn tensor_abs'
   requires
     p |-> Frac f s
   ensures
-    from_array l p |-> Frac f (from_seq l s)
+    tensor_pts_to (from_array l p) #f (from_seq l s)
 {
   rewrite each s as to_seq l (from_seq l s);
   tensor_abs l p;
@@ -241,9 +260,9 @@ fn tensor_share_n
   (a : tensor et l) (k : pos)
   (#f : perm) (#s : chest d et)
   requires
-    a |-> Frac f s
+    tensor_pts_to a #f s
   ensures
-    forall+ (_:natlt k). a |-> Frac (f /. k) s
+    forall+ (_:natlt k). tensor_pts_to a #(f /. k) s
 {
   unfold tensor_pts_to a #f s;
   A.varray_share_n a k;
@@ -260,9 +279,9 @@ fn tensor_gather_n
   (a : tensor et l) (k : pos)
   (#f : perm) (#s : chest d et)
   requires
-    forall+ (_:natlt k). a |-> Frac (f /. k) s
+    forall+ (_:natlt k). tensor_pts_to a #(f /. k) s
   ensures
-    a |-> Frac f s
+    tensor_pts_to a #f s
 {
   forevery_map
     (fun (i:natlt k) -> tensor_pts_to a #(f /. k) s)
@@ -313,7 +332,7 @@ fn tensor_read
   (#f : perm)
   (#s : chest d et)
   preserves
-    a |-> Frac f s
+    tensor_pts_to a #f s
   returns
     v : et
   ensures
@@ -334,9 +353,9 @@ fn tensor_write
   (v : et)
   (#s : chest d et)
   requires
-    a |-> s
+    tensor_pts_to a s
   ensures
-    a |-> upd s (up i) v
+    tensor_pts_to a (upd s (up i) v)
 {
   unfold tensor_pts_to a s;
   A.varray_write a i v;
@@ -353,11 +372,40 @@ let tensor_pts_to_cell
   : slprop
   = A.varray_pts_to_cell a #f i v
 
+(* [Cell a i |-> Frac f v], with the [cell_pts_to] instance of the interface
+   pinned explicitly.  In this file [tensor] is transparent, so the [|->]
+   notation would otherwise resolve to [A.cell_pts_to] and the resulting slprop,
+   while equal by unfolding, would no longer be recognized as equal to the one
+   in the interface (where [tensor] is abstract). *)
+unfold
+let tcell (#et : Type0) (#r : nat) (#d : shape r)
+  (#l : tlayout d)
+  (a : tensor et l)
+  (#[T.exact (`1.0R)] f : perm)
+  (i : abs d)
+  (v : et)
+  : slprop
+  = Pulse.Class.PtsTo.op_Bar_Minus_Greater
+      #_ #_ #(Pulse.Class.PtsTo.pts_to_frac _ _ (cell_pts_to #et #r #d #l))
+      (Cell a i) (Frac f v)
+
+(* [tensor_pts_to_cell] and [A.varray_pts_to_cell] are the same slprop, but are
+   built with the two different instances above; normalization bridges them, the
+   solver no longer does it on its own. *)
+let unfold_tensor_cell () : T.Tac unit =
+  T.norm [delta_only [`%tensor_pts_to_cell;
+                      `%Pulse.Class.PtsTo.op_Bar_Minus_Greater;
+                      `%Pulse.Class.PtsTo.pts_to;
+                      `%Pulse.Class.PtsTo.pts_to_frac;
+                      `%A.cell_pts_to];
+          iota; primops];
+  slprop_equiv_norm ()
+
 let tensor_pts_to_cell_eq
   (#et : Type0) (#r : nat) (#d : shape r)
   (#l : tlayout d)
   (a : tensor et l) (i : abs d) (f : perm) (v : et)
-  : Lemma (Cell a i |-> Frac f v
+  : Lemma (tcell a #f i v
            ==
            pts_to_cell (core a) #f (l.imap.f i) v)
   = A.varray_pts_to_cell_eq a i f v
@@ -378,10 +426,10 @@ fn tensor_explode
   (#f : perm)
   (#s : chest d et)
   requires
-    a |-> Frac f s
+    tensor_pts_to a #f s
   ensures
     forall+ (i : abs d).
-      Cell a i |-> Frac f (acc s i)
+      tcell a #f i (acc s i)
 
 {
   unfold tensor_pts_to a #f s;
@@ -393,6 +441,11 @@ fn tensor_explode
       Cell a i |-> Frac f ((tensor_aview et l).ctn.acc s i))
     (fun (i : abs d) ->
       Cell a i |-> Frac f (acc s i));
+  (* Bridge from [A.varray_pts_to_cell] (what [|->] means here) to
+     [tensor_pts_to_cell] (what it means in the interface). *)
+  rewrite (forall+ (i : abs d). Cell a i |-> Frac f (acc s i))
+       as (forall+ (i : abs d). tcell a #f i (acc s i))
+       by unfold_tensor_cell ();
   ();
 }
 
@@ -407,10 +460,13 @@ fn tensor_implode
     pure (SZ.fits (tlayout_ulen l))
   requires
     forall+ (i : abs d).
-      Cell a i |-> Frac f (acc s i)
+      tcell a #f i (acc s i)
   ensures
-    a |-> Frac f s
+    tensor_pts_to a #f s
 {
+  rewrite (forall+ (i : abs d). tcell a #f i (acc s i))
+       as (forall+ (i : abs d). Cell a i |-> Frac f (acc s i))
+       by unfold_tensor_cell ();
   forevery_ext
     (fun (i : abs d) ->
       Cell a i |-> Frac f (acc s i))
@@ -429,7 +485,7 @@ fn tensor_ilower
   (#f : perm)
   (#s : chest d et)
   requires
-    a |-> Frac f s
+    tensor_pts_to a #f s
   ensures
     pure (SZ.fits (tlayout_ulen l)) **
     (forall+ (i : abs d).
@@ -438,12 +494,12 @@ fn tensor_ilower
   tensor_pts_to_ref a;
   tensor_explode a;
   forevery_map
-    (fun (i : abs d) -> Cell a i |-> Frac f (acc s i))
+    (fun (i : abs d) -> tcell a #f i (acc s i))
     (fun (i : abs d) -> pts_to_cell (core a) #f (l.imap.f i) (acc s i))
     fn i {
       tensor_pts_to_cell_eq a i f (acc s i);
       rewrite
-        Cell a i |-> Frac f (acc s i)
+        tcell a #f i (acc s i)
       as
         pts_to_cell (core a) #f (l.imap.f i) (acc s i);
     };
@@ -461,17 +517,17 @@ fn tensor_iraise
     (forall+ (i : abs d).
       pts_to_cell (core a) #f (l.imap.f i) (acc s i))
   ensures
-    a |-> Frac f s
+    tensor_pts_to a #f s
 {
   forevery_map
     (fun (i : abs d) -> pts_to_cell (core a) #f (l.imap.f i) (acc s i))
-    (fun (i : abs d) -> Cell a i |-> Frac f (acc s i))
+    (fun (i : abs d) -> tcell a #f i (acc s i))
     fn i {
       tensor_pts_to_cell_eq a i f (acc s i);
       rewrite
         pts_to_cell (core a) #f (l.imap.f i) (acc s i)
       as
-        Cell a i |-> Frac f (acc s i);
+        tcell a #f i (acc s i);
     };
   tensor_implode a;
 }
@@ -485,7 +541,7 @@ fn tensor_read_cell
   (#f : perm)
   (#s : erased et)
   preserves
-    Cell a (up i) |-> Frac f s
+    tensor_pts_to_cell a #f (up i) s
   returns
     v : et
   ensures
@@ -506,9 +562,9 @@ fn tensor_write_cell
   (v : et)
   (#s : erased et)
   requires
-    Cell a (up i) |-> s
+    tensor_pts_to_cell a (up i) s
   ensures
-    Cell a (up i) |-> v
+    tensor_pts_to_cell a (up i) v
 {
   unfold tensor_pts_to_cell a (up i) s;
   A.varray_write_cell a i v;
@@ -536,19 +592,19 @@ fn tensor_explode2
   (#f : perm)
   (#s : chest2 et rows cols)
   requires
-    a |-> Frac f s
+    tensor_pts_to a #f s
   ensures
     forall+ (ij : natlt rows & natlt cols).
-      Cell a (idx2 (fst ij) (snd ij)) |-> Frac f (acc s (idx2 (fst ij) (snd ij)))
+      tcell a #f ((idx2 (fst ij) (snd ij))) ((acc s (idx2 (fst ij) (snd ij))))
 {
   tensor_explode a;
   forevery_iso #(abs (rows @| cols @| INil)) #(natlt rows & natlt cols)
-    abs_bij2 (fun (i : abs (rows @| cols @| INil)) -> Cell a i |-> Frac f (acc s i));
+    abs_bij2 (fun (i : abs (rows @| cols @| INil)) -> tcell a #f i (acc s i));
   forevery_ext
     (fun (ij : natlt rows & natlt cols) ->
-      Cell a (abs_bij2.gg ij) |-> Frac f (acc s (abs_bij2.gg ij)))
+      tcell a #f ((abs_bij2.gg ij)) ((acc s (abs_bij2.gg ij))))
     (fun (ij : natlt rows & natlt cols) ->
-      Cell a (idx2 (fst ij) (snd ij)) |-> Frac f (acc s (idx2 (fst ij) (snd ij))));
+      tcell a #f ((idx2 (fst ij) (snd ij))) ((acc s (idx2 (fst ij) (snd ij)))));
 }
 
 ghost
@@ -561,19 +617,19 @@ fn tensor_implode2
     pure (SZ.fits (tlayout_ulen l))
   requires
     forall+ (ij : natlt rows & natlt cols).
-      Cell a (idx2 (fst ij) (snd ij)) |-> Frac f (acc s (idx2 (fst ij) (snd ij)))
+      tcell a #f ((idx2 (fst ij) (snd ij))) ((acc s (idx2 (fst ij) (snd ij))))
   ensures
-    a |-> Frac f s
+    tensor_pts_to a #f s
 {
   forevery_iso #(natlt rows & natlt cols) #(abs (rows @| cols @| INil))
     (bij_sym abs_bij2)
     (fun (ij : natlt rows & natlt cols) ->
-      Cell a (idx2 (fst ij) (snd ij)) |-> Frac f (acc s (idx2 (fst ij) (snd ij))));
+      tcell a #f ((idx2 (fst ij) (snd ij))) ((acc s (idx2 (fst ij) (snd ij)))));
   forevery_ext
     (fun (i : abs (rows @| cols @| INil)) ->
-      Cell a (idx2 (fst ((bij_sym abs_bij2).gg i)) (snd ((bij_sym abs_bij2).gg i)))
-        |-> Frac f (acc s (idx2 (fst ((bij_sym abs_bij2).gg i)) (snd ((bij_sym abs_bij2).gg i)))))
-    (fun (i : abs (rows @| cols @| INil)) -> Cell a i |-> Frac f (acc s i));
+      tcell a #f (idx2 (fst ((bij_sym abs_bij2).gg i)) (snd ((bij_sym abs_bij2).gg i)))
+        (acc s (idx2 (fst ((bij_sym abs_bij2).gg i)) (snd ((bij_sym abs_bij2).gg i)))))
+    (fun (i : abs (rows @| cols @| INil)) -> tcell a #f i (acc s i));
   tensor_implode a;
 }
 
@@ -584,17 +640,17 @@ fn tensor_ilower2
   (#f : perm)
   (#s : chest2 et rows cols)
   requires
-    a |-> Frac f s
+    tensor_pts_to a #f s
   ensures
     pure (SZ.fits (tlayout_ulen l)) **
     (forall+ (r : natlt rows) (c : natlt cols).
-      Cell a (idx2 r c) |-> Frac f (acc s (idx2 r c)))
+      tcell a #f ((idx2 r c)) ((acc s (idx2 r c))))
 {
   tensor_pts_to_ref a;
   tensor_explode2 a;
   forevery_unflatten'
     (fun (ij : natlt rows & natlt cols) ->
-      Cell a (idx2 (fst ij) (snd ij)) |-> Frac f (acc s (idx2 (fst ij) (snd ij))));
+      tcell a #f ((idx2 (fst ij) (snd ij))) ((acc s (idx2 (fst ij) (snd ij)))));
 }
 
 ghost
@@ -606,13 +662,13 @@ fn tensor_iraise2
   requires
     pure (SZ.fits (tlayout_ulen l)) **
     (forall+ (r : natlt rows) (c : natlt cols).
-      Cell a (idx2 r c) |-> Frac f (acc s (idx2 r c)))
+      tcell a #f ((idx2 r c)) ((acc s (idx2 r c))))
   ensures
-    a |-> Frac f s
+    tensor_pts_to a #f s
 {
   forevery_flatten'
     (fun (ij : natlt rows & natlt cols) ->
-      Cell a (idx2 (fst ij) (snd ij)) |-> Frac f (acc s (idx2 (fst ij) (snd ij))));
+      tcell a #f ((idx2 (fst ij) (snd ij))) ((acc s (idx2 (fst ij) (snd ij)))));
   tensor_implode2 a;
 }
 
@@ -647,12 +703,12 @@ fn tensor_cell_to_ref
   (#f : perm)
   (#v : erased et)
   requires
-    Cell a i |-> Frac f v
+    tcell a #f (i) (v)
   ensures
     ref_of_tensor_cell a i |-> Frac f v
 {
   tensor_pts_to_cell_eq a i f v;
-  rewrite Cell a i |-> Frac f v
+  rewrite tcell a #f i v
        as pts_to_cell (core a) #f (l.imap.f i) v;
   Array.Core.array_cell_to_ref (core a) (l.imap.f i);
 }
@@ -668,10 +724,10 @@ fn tensor_cell_from_ref
   requires
     ref_of_tensor_cell a i |-> Frac f v
   ensures
-    Cell a i |-> Frac f v
+    tcell a #f (i) (v)
 {
   tensor_pts_to_cell_eq a i f v;
   Array.Core.array_cell_from_ref (core a) (l.imap.f i);
   rewrite pts_to_cell (core a) #f (l.imap.f i) v
-       as Cell a i |-> Frac f v;
+       as tcell a #f i v;
 }

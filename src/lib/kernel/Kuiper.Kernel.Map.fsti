@@ -22,6 +22,18 @@ unfold let chest1_map3
   : chest1 et len
   = mk1 (fun i -> f (acc1 a i) (acc1 b i) (acc1 c i))
 
+(* Kernel descriptors, for clients that want to launch these kernels
+asynchronously on their own stream instead of via the blocking [*_gpu] fns. *)
+inline_for_extraction noextract
+val map_kd
+  (#et : Type0)
+  (f : et -> et)
+  (lena : szp { lena <= max_blocks * max_threads /\ lena > 0 })
+  (#l : layout1 lena) {| ctlayout l |}
+  (a : array1 et l { is_global a })
+  (#s : chest1 et lena)
+  : kernel_desc (a |-> s) (a |-> chest_map f s)
+
 inline_for_extraction noextract
 fn map_gpu
   (#et : Type0)
@@ -33,6 +45,22 @@ fn map_gpu
   preserves cpu
   requires on gpu_loc (a |-> s)
   ensures  on gpu_loc (a |-> chest_map f s)
+
+inline_for_extraction noextract
+val map_to_kd
+  (#it #ot : Type0)
+  (f : it -> ot)
+  (lena : szp { lena <= max_blocks * max_threads /\ lena > 0 })
+  (#li : layout1 lena) {| ctlayout li |}
+  (#lo : layout1 lena) {| ctlayout lo |}
+  (input : array1 it li { is_global input })
+  (output : array1 ot lo { is_global output })
+  (#si : chest1 it lena)
+  (#so : chest1 ot lena)
+  (#fi : perm)
+  : kernel_desc
+      ((input |-> Frac fi si) ** (output |-> so))
+      ((input |-> Frac fi si) ** (output |-> mk1 (fun i -> f (acc1 si i))))
 
 inline_for_extraction noextract
 fn map_gpu_to
@@ -50,6 +78,21 @@ fn map_gpu_to
   preserves cpu ** on gpu_loc (input |-> Frac fi si)
   requires on gpu_loc (output |-> so)
   ensures  on gpu_loc (output |-> mk1 (fun i -> f (acc1 si i)))
+
+inline_for_extraction noextract
+val map2_kd
+  (#et : Type0)
+  (f : et -> et -> et)
+  (lena : szp { lena <= max_blocks * max_threads /\ lena > 0 })
+  (#la : layout1 lena) {| ctlayout la |}
+  (#lb : layout1 lena) {| ctlayout lb |}
+  (a : array1 et la { is_global a })
+  (b : array1 et lb { is_global b })
+  (#sa #sb : chest1 et lena)
+  (#fb : perm)
+  : kernel_desc
+      ((b |-> Frac fb sb) ** (a |-> sa))
+      ((b |-> Frac fb sb) ** (a |-> chest1_map2 f sa sb))
 
 inline_for_extraction noextract
 fn map_gpu2
@@ -104,6 +147,27 @@ fn map_gpu3
   preserves cpu ** on gpu_loc (b |-> Frac fb sb) ** on gpu_loc (c |-> Frac fc sc)
   requires on gpu_loc (a |-> sa)
   ensures  on gpu_loc (a |-> mk1 (fun i -> f (acc1 sa i) (acc1 sb i) (acc1 sc i)))
+
+inline_for_extraction noextract
+val map3_to_kd
+  (#at #bt #ct #ot : Type0)
+  (f : at -> bt -> ct -> ot)
+  (lena : szp { lena <= max_blocks * max_threads /\ lena > 0 })
+  (#la : layout1 lena) {| ctlayout la |}
+  (#lb : layout1 lena) {| ctlayout lb |}
+  (#lc : layout1 lena) {| ctlayout lc |}
+  (#lo : layout1 lena) {| ctlayout lo |}
+  (a : array1 at la { is_global a })
+  (b : array1 bt lb { is_global b })
+  (c : array1 ct lc { is_global c })
+  (output : array1 ot lo { is_global output })
+  (#sa : chest1 at lena) (#sb : chest1 bt lena) (#sc : chest1 ct lena)
+  (#so : chest1 ot lena)
+  (#fa #fb #fc : perm)
+  : kernel_desc
+      ((a |-> Frac fa sa) ** (b |-> Frac fb sb) ** (c |-> Frac fc sc) ** (output |-> so))
+      ((a |-> Frac fa sa) ** (b |-> Frac fb sb) ** (c |-> Frac fc sc) **
+        (output |-> mk1 (fun i -> f (acc1 sa i) (acc1 sb i) (acc1 sc i))))
 
 inline_for_extraction noextract
 fn map_gpu3_to

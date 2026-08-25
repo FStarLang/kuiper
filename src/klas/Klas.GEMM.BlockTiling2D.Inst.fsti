@@ -18,7 +18,7 @@ inline_for_extraction noextract
 fn spec
   (bm bn bk : szp)
   (tm : szp{tm /? bm})
-  (tn : szp{tn /? bn /\ (bm/tm * bn/tn <= max_threads)})
+  (tn : szp{tn /? bn /\ (bm/tm * (bn/tn) <= max_threads)})
   (#_ : squash (sz_fits (bm*bk + (bm/tm * (bn/tn)))))
   (#_ : squash (sz_fits (bk*bn + (bm/tm * (bn/tn)))))
   (et : Type0) {| scalar et, has_vec_cpy et |}

@@ -2,6 +2,9 @@
 
 set -uex
 
+# What driver are we on? (Not fatal: NVML can be broken while compute works.)
+nvidia-smi || echo "*** nvidia-smi failed"
+
 # Is nvcc installed?
 nvcc --version
 
@@ -13,7 +16,14 @@ trap cleanup EXIT
 # Basic test
 cat >tmp.cu <<EOF
 #include <stdio.h>
-#include <assert.h>
+
+#define CHECK(what) do { \
+    cudaError_t e = cudaGetLastError(); \
+    if (e != cudaSuccess) { \
+      fprintf(stderr, "%s: %s\n", what, cudaGetErrorString(e)); \
+      return 1; \
+    } \
+  } while (0)
 
 __global__ void helloCUDA()
 {
@@ -23,16 +33,14 @@ __global__ void helloCUDA()
 int main()
 {
     helloCUDA<<<1, 1>>>();
-    if (cudaGetLastError() != cudaSuccess)
-      assert(!"kcall");
+    CHECK("kcall");
     cudaDeviceSynchronize();
-    if (cudaGetLastError() != cudaSuccess)
-      assert(!"sync");
+    CHECK("sync");
     return 0;
 }
 EOF
 
-nvcc tmp.cu -o check.exe
+nvcc -arch=native tmp.cu -o check.exe
 ./check.exe
 
 # Now try with kuiper.h
@@ -49,6 +57,6 @@ EOF
 ./configure _env
 source _env
 rm -f _env
-nvcc -DKUIPER_CFG_TENSORCORES=${KUIPER_CFG_TENSORCORES} -I include/ tmp.cu -o check.exe
+nvcc -arch=native -DKUIPER_CFG_TENSORCORES=${KUIPER_CFG_TENSORCORES} -I include/ tmp.cu -o check.exe
 
 ./check.exe

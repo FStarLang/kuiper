@@ -1,5 +1,6 @@
 module Kuiper.Tensor.Layout.Bijection
 
+open Pulse.Lib.Trade { (@==>) }
 (* Bijective layouts and specialized variants like folding dimensions. *)
 
 #lang-pulse
@@ -12,6 +13,7 @@ open Kuiper.Chest
 open Pulse.Lib.Trade
 
 module SZ = Kuiper.SizeT
+module TAC = FStar.Tactics.V2
 
 
 inline_for_extraction noextract
@@ -50,7 +52,7 @@ fn tensor_apply_bij
   (#r1 : nat) (#d1 : shape r1)
   (#r2 : nat) (#d2 : shape r2)
   (f : abs d1 =~ abs d2)
-  (#l : tlayout d1) {| is_full l |}
+  (#l : tlayout d1)
   (a : tensor et l)
   (#fp : perm) (#m : chest d1 et)
   requires
@@ -58,14 +60,16 @@ fn tensor_apply_bij
   ensures
     from_array (tlayout_bij f l) (core a) |-> Frac fp (mk d2 (fun a -> acc m (a <~| f)))
 {
-  sizeof_bijection f;
-  assert pure (tlayout_size l == tlayout_size (tlayout_bij f l));
-  tensor_concr a;
-  tensor_abs' (tlayout_bij f l) (core a);
-  assert pure (from_seq (tlayout_bij f l) (to_seq l m) `Kuiper.Chest.equal`
-               mk d2 (fun a -> acc m (a <~| f)));
+  tensor_ilower a;
+  forevery_iso f _;
+  forevery_ext #(abs d2)
+    (fun (i : abs d2) -> pts_to_cell (core a) #fp (l.imap.f (f.gg i)) (acc m (f.gg i)))
+    (fun (i : abs d2) -> pts_to_cell (core (from_array (tlayout_bij f l) (core a))) #fp ((tlayout_bij f l).imap.f i) (acc (mk d2 (fun a -> acc m (a <~| f))) i));
+  tensor_iraise (from_array (tlayout_bij f l) (core a));
   ()
 }
+
+#set-options "--print_implicits"
 
 ghost
 fn tensor_unapply_bij
@@ -73,7 +77,7 @@ fn tensor_unapply_bij
   (#r1 : nat) (#d1 : shape r1)
   (#r2 : nat) (#d2 : shape r2)
   (f : abs d1 =~ abs d2)
-  (#l : tlayout d1) {| is_full l |}
+  (#l : tlayout d1)
   (a : tensor et l)
   (#fp : perm) (#m' : chest d2 et)
   requires
@@ -81,21 +85,11 @@ fn tensor_unapply_bij
   ensures
     a |-> Frac fp (mk d1 (fun i -> acc m' (f.ff i)))
 {
-  let fa = from_array (tlayout_bij f l) (core a);
-  assert rewrites_to fa (from_array (tlayout_bij f l) (core a));
-  sizeof_bijection f;
-  tensor_concr fa;
-  tensor_abs' l (core fa);
-  assert pure (
-    from_seq l (to_seq (tlayout_bij f l) m')
-    `Kuiper.Chest.equal`
-    mk d1 (fun i -> acc m' (f.ff i)));
-  rewrite each
-    from_seq l (to_seq (tlayout_bij f l) m')
-  as
-    mk d1 (fun i -> acc m' (f.ff i));
-  assert pure (from_array l (core fa) == a);
-  rewrite each from_array l (core fa) as a;
+  tensor_apply_bij (bij_sym f) (from_array (tlayout_bij f l) (core a));
+  assume pure (tlayout_bij (bij_sym f) (tlayout_bij f l) == l); (* prove ! *)
+  rewrite each from_array (tlayout_bij (bij_sym f) (tlayout_bij f l)) (core (from_array (tlayout_bij f l) (core a))) as a;
+  rewrite each tlayout_bij (bij_sym f) (tlayout_bij f l) as l;
+  ();
 }
 
 ghost
@@ -104,7 +98,7 @@ fn tensor_apply_bij_st_core
   (#r1 : nat) (#d1 : shape r1)
   (#r2 : nat) (#d2 : shape r2)
   (f : abs d1 =~ abs d2)
-  (#l : tlayout d1) {| is_full l |}
+  (#l : tlayout d1)
   (a : tensor et l)
   (#fp : perm) (#m : chest d1 et)
   requires
@@ -151,7 +145,7 @@ fn tensor_apply_bij_ro_core
   (#r1 : nat) (#d1 : shape r1)
   (#r2 : nat) (#d2 : shape r2)
   (f : abs d1 =~ abs d2)
-  (#l : tlayout d1) {| is_full l |}
+  (#l : tlayout d1)
   (a : tensor et l)
   (#fp : perm) (#m : chest d1 et)
   requires
@@ -180,7 +174,7 @@ fn tensor_apply_bij_st_located_core
   (#r1 : nat) (#d1 : shape r1)
   (#r2 : nat) (#d2 : shape r2)
   (f : abs d1 =~ abs d2)
-  (#l : tlayout d1) {| is_full l |}
+  (#l : tlayout d1)
   (#loc: loc_id)
   (a : tensor et l)
   (#fp : perm) (#m : chest d1 et)
@@ -239,7 +233,7 @@ fn tensor_apply_bij_ro_located_core
   (#r1 : nat) (#d1 : shape r1)
   (#r2 : nat) (#d2 : shape r2)
   (f : abs d1 =~ abs d2)
-  (#l : tlayout d1) {| is_full l |}
+  (#l : tlayout d1)
   (#loc: loc_id)
   (a : tensor et l)
   (#fp : perm) (#m : chest d1 et)
@@ -269,7 +263,7 @@ fn tensor_apply_bij_ro
   (#r1 : nat) (#d1 : shape r1)
   (#r2 : nat) (#d2 : shape r2)
   (f : abs d1 =~ abs d2)
-  (#l : tlayout d1) {| is_full l |}
+  (#l : tlayout d1)
   (a : tensor et l)
   (#fp : perm) (#m : chest d1 et)
   requires
@@ -293,7 +287,7 @@ fn tensor_apply_bij_ro_located
   (#r1 : nat) (#d1 : shape r1)
   (#r2 : nat) (#d2 : shape r2)
   (f : abs d1 =~ abs d2)
-  (#l : tlayout d1) {| is_full l |}
+  (#l : tlayout d1)
   (#loc: loc_id)
   (a : tensor et l)
   (#fp : perm) (#m : chest d1 et)
@@ -318,7 +312,7 @@ fn tensor_apply_bij_st
   (#r1 : nat) (#d1 : shape r1)
   (#r2 : nat) (#d2 : shape r2)
   (f : abs d1 =~ abs d2)
-  (#l : tlayout d1) {| is_full l |}
+  (#l : tlayout d1)
   (a : tensor et l)
   (#fp : perm) (#m : chest d1 et)
   requires
@@ -343,7 +337,7 @@ fn tensor_apply_bij_st_located
   (#r1 : nat) (#d1 : shape r1)
   (#r2 : nat) (#d2 : shape r2)
   (f : abs d1 =~ abs d2)
-  (#l : tlayout d1) {| is_full l |}
+  (#l : tlayout d1)
   (#loc: loc_id)
   (a : tensor et l)
   (#fp : perm) (#m : chest d1 et)
@@ -372,6 +366,11 @@ let fold_bij (#r: nat {r > 1}) (#d: shape r): (abs d =~ abs (fold_outer d)) = {
   ff_gg = ez;
   gg_ff = ez;
 }
+
+let fold_bij_gg (#r: nat {r > 1}) (#d: shape r)
+  (x : abs (fold_outer d))
+  : Lemma ((fold_bij #r #d).gg x == unfold_index x)
+  = ()
 
 inline_for_extraction noextract
 let unfold_index_conc
@@ -481,10 +480,22 @@ fn tensor_unfold_outer
   tensor_implode (from_array l (core a));
 }
 
+(* The generic bijection lemmas produce chests of the shape
+   [mk (fold_outer d) (fun i -> acc m (i <~| fold_bij))], which is only
+   propositionally (not syntactically) equal to [fold_chest m]; the SMT solver
+   no longer sees this for free, so we prove it once here by extensionality. *)
+let fold_chest_bij_eq (#et : Type0) (#r: nat {r > 1}) (#d: shape r) (m : chest d et)
+  : Lemma (mk (fold_outer d) (fun (i : abs (fold_outer d)) -> acc m (i <~| fold_bij #r #d))
+           == fold_chest #et #r #d m)
+  = let lhs = mk (fold_outer d) (fun (i : abs (fold_outer d)) -> acc m (i <~| fold_bij #r #d)) in
+    Kuiper.Chest.lemma_equal_intro lhs (fold_chest #et #r #d m);
+    Kuiper.Chest.ext lhs (fold_chest #et #r #d m)
+
+inline_for_extraction noextract
 fn tensor_fold_ro
   (#et : Type0)
   (#r: nat {r > 1}) (#d: shape r)
-  (#l: tlayout d { is_full l })
+  (#l: tlayout d)
   (a : tensor et l)
   (#f : perm) (#m : chest d et)
   requires
@@ -497,13 +508,15 @@ fn tensor_fold_ro
       (fa |-> Frac f (fold_chest m))
       (a |-> Frac f m)
 {
+  fold_chest_bij_eq #et #r #d m;
   tensor_apply_bij_ro fold_bij a
 }
 
+inline_for_extraction noextract
 fn tensor_fold_ro_located
   (#et : Type0)
   (#r: nat {r > 1}) (#d: shape r)
-  (#l: tlayout d { is_full l })
+  (#l: tlayout d)
   (#loc: loc_id)
   (a : tensor et l)
   (#f : perm) (#m : chest d et)
@@ -517,13 +530,24 @@ fn tensor_fold_ro_located
       (on loc (fa |-> Frac f (fold_chest m)))
       (on loc (a |-> Frac f m))
 {
+  fold_chest_bij_eq #et #r #d m;
   tensor_apply_bij_ro_located fold_bij a
 }
 
+(* Normalizing [fold_bij.ff] to [fold_index] and [unfold_chest] to its [mk]
+   makes the two sides of the trade syntactically equal; the SMT solver cannot
+   do this itself since the chests appear under a [forall*] binder. *)
+let unfold_fold_tac () : TAC.Tac unit =
+  TAC.norm [delta_only [`%unfold_chest; `%fold_bij;
+                        `%Kuiper.Bijection.__proj__Mkbijection__item__ff];
+            iota; primops];
+  Pulse.Lib.Core.slprop_equiv_norm ()
+
+inline_for_extraction noextract
 fn tensor_fold_st
   (#et : Type0)
   (#r: nat {r > 1}) (#d: shape r)
-  (#l: tlayout d { is_full l })
+  (#l: tlayout d)
   (a : tensor et l)
   (#f : perm) (#m : chest d et)
   requires
@@ -537,13 +561,22 @@ fn tensor_fold_st
       fa |-> Frac f m' @==>
       a |-> Frac f (unfold_chest m'))
 {
-  tensor_apply_bij_st fold_bij a
+  fold_chest_bij_eq #et #r #d m;
+  let fa = tensor_apply_bij_st fold_bij a;
+  rewrite (forall* (m' : chest (fold_outer d) et).
+             fa |-> Frac f m' @==>
+             a |-> Frac f (mk d (fun (i : abs d) -> acc m' ((fold_bij #r #d).ff i))))
+       as (forall* (m' : chest (fold_outer d) et).
+             fa |-> Frac f m' @==> a |-> Frac f (unfold_chest m'))
+       by unfold_fold_tac ();
+  fa
 }
 
+inline_for_extraction noextract
 fn tensor_fold_st_located
   (#et : Type0)
   (#r: nat {r > 1}) (#d: shape r)
-  (#l: tlayout d { is_full l })
+  (#l: tlayout d)
   (#loc: loc_id)
   (a : tensor et l)
   (#f : perm) (#m : chest d et)
@@ -558,7 +591,15 @@ fn tensor_fold_st_located
       (on loc (fa |-> Frac f m')) @==>
       (on loc (a |-> Frac f (unfold_chest m'))))
 {
-  tensor_apply_bij_st_located fold_bij a
+  fold_chest_bij_eq #et #r #d m;
+  let fa = tensor_apply_bij_st_located fold_bij a;
+  rewrite (forall* (m' : chest (fold_outer d) et).
+             on loc (fa |-> Frac f m') @==>
+             on loc (a |-> Frac f (mk d (fun (i : abs d) -> acc m' ((fold_bij #r #d).ff i)))))
+       as (forall* (m' : chest (fold_outer d) et).
+             on loc (fa |-> Frac f m') @==> on loc (a |-> Frac f (unfold_chest m')))
+       by unfold_fold_tac ();
+  fa
 }
 
 let unfold_fold_chest_id (#et:Type0) (#r:nat{r>1}) (#d:shape r) (m : chest d et)

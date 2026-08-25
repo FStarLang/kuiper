@@ -453,15 +453,15 @@ fn cp_array2_vec
        as own_strided_chunks dst (em_fade edst esrc nthr 0) nthr tid;
 
   let git = GR.alloc #nat 0;
-  while (!i <^ mlen)
+  while (!i < mlen)
     invariant
       live i ** live git **
-      pure (SZ.v !i == GR.read git * nthr * chunk et) **
-      pure (GR.read git <= (rows*cols) / (nthr * chunk et)) **
+      pure (SZ.v !i == GR.read git * SZ.v nthr * chunk et) **
+      pure (GR.read git <= (SZ.v rows * cols) / (nthr * chunk et)) **
       own_strided_chunks dst (em_fade edst esrc nthr (GR.read git)) nthr tid
-    decreases (mlen - !i)
+    decreases (mlen - SZ.v !i)
   {
-    assert pure (GR.read git < (rows*cols) / (chunk et * nthr));
+    assert pure (GR.read git < (SZ.v rows * cols) / (chunk et * nthr));
     let vi = !i;
     assert pure (vi + offset < mlen);
     let mut local = [| zero #et #_; chunk et |];
@@ -477,7 +477,7 @@ fn cp_array2_vec
     assert pure (row < rows);
     assert pure (col < cols - chunk et + 1);
 
-    assert pure (chunk et * size #et == 16);
+    assert pure (SZ.v (chunk et) * size #et == 16);
     src_str.pf row col;
     divides_helper (chunk et) src_str.offset src_str.stride row col;
     assert pure (chunk et /? cell_of_pos lsrc row col);
@@ -497,7 +497,7 @@ fn cp_array2_vec
           own_strided_chunks dst em' nthr tid **
           pure (Kuiper.Chest.equal em'
             (em_fade' edst esrc nthr ite row col !k))
-      decreases (chunk et - !k)
+      decreases (SZ.v (chunk et) - SZ.v !k)
     {
       with em'. unfold own_strided_chunks dst em' nthr tid;
       with vk . assert (pts_to k vk);
@@ -523,7 +523,7 @@ fn cp_array2_vec
                   (acc2 em' (reveal nrow) (reveal colpk));
 
       with s. assert local |-> s;
-      let v = Pulse.Lib.Array.op_Array_Access local !k #_ #s;
+      let v = Pulse.Lib.Array.op_Dot_Lparen_Rparen local !k #_ #s;
       let ridx : szlt rows = row;
       let cidx : szlt cols = col +^ !k;
       rewrite

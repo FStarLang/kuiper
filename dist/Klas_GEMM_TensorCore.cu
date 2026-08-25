@@ -34,7 +34,7 @@ __hoisted_g_gemm_f16_f16_64x64x16_16x16x16_0(uint32_t shared,
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
-        uint32_t __anf03 = bkIdx;
+        uint32_t __anf05 = bkIdx;
         half *tileA = gA;
         uint32_t i0 = 0U;
         for (; i0 < 1024U; i0 += nthr * 8U) {
@@ -44,7 +44,7 @@ __hoisted_g_gemm_f16_f16_64x64x16_16x16x16_0(uint32_t shared,
             uint32_t row = (i0 + threadIdx.x * 8U) / 16U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 16U;
             vec_memcpy(local,
-                       tileA + (shared * mrow * 64U + __anf03 * 16U +
+                       tileA + (shared * mrow * 64U + __anf05 * 16U +
                                 shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
@@ -59,7 +59,7 @@ __hoisted_g_gemm_f16_f16_64x64x16_16x16x16_0(uint32_t shared,
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
-                       tileB + (cols * __anf03 * 16U + mcol * 64U + cols * row +
+                       tileB + (cols * __anf05 * 16U + mcol * 64U + cols * row +
                                 col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
@@ -68,13 +68,13 @@ __hoisted_g_gemm_f16_f16_64x64x16_16x16x16_0(uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 1U; dotIdx++) {
-            uint32_t __anf09 = dotIdx;
+            uint32_t __anf013 = dotIdx;
             half *b_tile = sB;
             wmma::load_matrix_sync(aFrag,
                                    sA + (16U * (threadIdx.x / 32U / 4U) * 16U +
                                          dotIdx * 16U), 16U);
             wmma::load_matrix_sync(bFrag,
-                                   b_tile + (64U * __anf09 * 16U +
+                                   b_tile + (64U * __anf013 * 16U +
                                              threadIdx.x / 32U % 4U * 16U),
                                    64U);
             wmma::mma_sync(accumFrag, aFrag, bFrag, accumFrag);
@@ -86,6 +86,7 @@ __hoisted_g_gemm_f16_f16_64x64x16_16x16x16_0(uint32_t shared,
                              cols * (threadIdx.x / 32U / 4U) * 16U +
                              threadIdx.x / 32U % 4U * 16U), accumFrag, cols,
                             wmma::mem_row_major);
+    __syncwarp();
 }
 
 void
@@ -103,9 +104,6 @@ Klas_GEMM_TensorCore_g_gemm_f16_f16_64x64x16_16x16x16(uint32_t rows,
     KPR_ASSERT(nblk <= 2097152U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(4096U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f16_f16_64x64x16_16x16x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              4096U));
     KPR_KCALL(__hoisted_g_gemm_f16_f16_64x64x16_16x16x16_0,
               nblk, 512U, 4096U, s, shared, cols, gA, gB, gC, 512U);
     MUST(cudaStreamSynchronize(s));
@@ -145,7 +143,7 @@ __hoisted_g_gemm_f16_f16_32x32x32_32x8x16_0(uint32_t shared,
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
-        uint32_t __anf03 = bkIdx;
+        uint32_t __anf05 = bkIdx;
         half *tileA = gA;
         uint32_t i0 = 0U;
         for (; i0 < 1024U; i0 += nthr * 8U) {
@@ -155,7 +153,7 @@ __hoisted_g_gemm_f16_f16_32x32x32_32x8x16_0(uint32_t shared,
             uint32_t row = (i0 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
-                       tileA + (shared * mrow * 32U + __anf03 * 32U +
+                       tileA + (shared * mrow * 32U + __anf05 * 32U +
                                 shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
@@ -170,7 +168,7 @@ __hoisted_g_gemm_f16_f16_32x32x32_32x8x16_0(uint32_t shared,
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
-                       tileB + (cols * __anf03 * 32U + mcol * 32U + cols * row +
+                       tileB + (cols * __anf05 * 32U + mcol * 32U + cols * row +
                                 col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
@@ -179,13 +177,13 @@ __hoisted_g_gemm_f16_f16_32x32x32_32x8x16_0(uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 2U; dotIdx++) {
-            uint32_t __anf09 = dotIdx;
+            uint32_t __anf013 = dotIdx;
             half *b_tile = sB;
             wmma::load_matrix_sync(aFrag,
                                    sA + (32U * (threadIdx.x / 32U / 4U) * 32U +
                                          dotIdx * 16U), 32U);
             wmma::load_matrix_sync(bFrag,
-                                   b_tile + (32U * __anf09 * 16U +
+                                   b_tile + (32U * __anf013 * 16U +
                                              threadIdx.x / 32U % 4U * 8U), 32U);
             wmma::mma_sync(accumFrag, aFrag, bFrag, accumFrag);
         }
@@ -196,6 +194,7 @@ __hoisted_g_gemm_f16_f16_32x32x32_32x8x16_0(uint32_t shared,
                              cols * (threadIdx.x / 32U / 4U) * 32U +
                              threadIdx.x / 32U % 4U * 8U), accumFrag, cols,
                             wmma::mem_row_major);
+    __syncwarp();
 }
 
 void
@@ -213,9 +212,6 @@ Klas_GEMM_TensorCore_g_gemm_f16_f16_32x32x32_32x8x16(uint32_t rows,
     KPR_ASSERT(nblk <= 2097152U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(4096U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f16_f16_32x32x32_32x8x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              4096U));
     KPR_KCALL(__hoisted_g_gemm_f16_f16_32x32x32_32x8x16_0,
               nblk, 128U, 4096U, s, shared, cols, gA, gB, gC, 128U);
     MUST(cudaStreamSynchronize(s));
@@ -254,7 +250,7 @@ __hoisted_g_gemm_f16_f16_32x32x32_8x32x16_0(uint32_t shared,
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
-        uint32_t __anf03 = bkIdx;
+        uint32_t __anf05 = bkIdx;
         half *tileA = gA;
         uint32_t i0 = 0U;
         for (; i0 < 1024U; i0 += nthr * 8U) {
@@ -264,7 +260,7 @@ __hoisted_g_gemm_f16_f16_32x32x32_8x32x16_0(uint32_t shared,
             uint32_t row = (i0 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
-                       tileA + (shared * mrow * 32U + __anf03 * 32U +
+                       tileA + (shared * mrow * 32U + __anf05 * 32U +
                                 shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
@@ -279,7 +275,7 @@ __hoisted_g_gemm_f16_f16_32x32x32_8x32x16_0(uint32_t shared,
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
-                       tileB + (cols * __anf03 * 32U + mcol * 32U + cols * row +
+                       tileB + (cols * __anf05 * 32U + mcol * 32U + cols * row +
                                 col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
@@ -288,12 +284,12 @@ __hoisted_g_gemm_f16_f16_32x32x32_8x32x16_0(uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 2U; dotIdx++) {
-            uint32_t __anf09 = dotIdx;
+            uint32_t __anf013 = dotIdx;
             half *b_tile = sB;
             wmma::load_matrix_sync(aFrag,
                                    sA + (32U * (threadIdx.x / 32U) * 8U +
                                          dotIdx * 16U), 32U);
-            wmma::load_matrix_sync(bFrag, b_tile + 32U * __anf09 * 16U, 32U);
+            wmma::load_matrix_sync(bFrag, b_tile + 32U * __anf013 * 16U, 32U);
             wmma::mma_sync(accumFrag, aFrag, bFrag, accumFrag);
         }
     }
@@ -302,6 +298,7 @@ __hoisted_g_gemm_f16_f16_32x32x32_8x32x16_0(uint32_t shared,
                              blockIdx.x % (cols / 32U) * 32U +
                              cols * (threadIdx.x / 32U) * 8U), accumFrag, cols,
                             wmma::mem_row_major);
+    __syncwarp();
 }
 
 void
@@ -319,9 +316,6 @@ Klas_GEMM_TensorCore_g_gemm_f16_f16_32x32x32_8x32x16(uint32_t rows,
     KPR_ASSERT(nblk <= 2097152U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(4096U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f16_f16_32x32x32_8x32x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              4096U));
     KPR_KCALL(__hoisted_g_gemm_f16_f16_32x32x32_8x32x16_0,
               nblk, 128U, 4096U, s, shared, cols, gA, gB, gC, 128U);
     MUST(cudaStreamSynchronize(s));
@@ -360,7 +354,7 @@ __hoisted_g_gemm_f16_f16_32x8x16_32x8x16_0(uint32_t shared,
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
-        uint32_t __anf03 = bkIdx;
+        uint32_t __anf05 = bkIdx;
         half *tileA = gA;
         uint32_t i0 = 0U;
         for (; i0 < 512U; i0 += nthr * 8U) {
@@ -370,7 +364,7 @@ __hoisted_g_gemm_f16_f16_32x8x16_32x8x16_0(uint32_t shared,
             uint32_t row = (i0 + threadIdx.x * 8U) / 16U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 16U;
             vec_memcpy(local,
-                       tileA + (shared * mrow * 32U + __anf03 * 16U +
+                       tileA + (shared * mrow * 32U + __anf05 * 16U +
                                 shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
@@ -385,7 +379,7 @@ __hoisted_g_gemm_f16_f16_32x8x16_32x8x16_0(uint32_t shared,
             uint32_t row = (i + threadIdx.x * 8U) / 8U;
             uint32_t col = (i + threadIdx.x * 8U) % 8U;
             vec_memcpy(local,
-                       tileB + (cols * __anf03 * 16U + mcol * 8U + cols * row +
+                       tileB + (cols * __anf05 * 16U + mcol * 8U + cols * row +
                                 col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
@@ -394,12 +388,12 @@ __hoisted_g_gemm_f16_f16_32x8x16_32x8x16_0(uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 1U; dotIdx++) {
-            uint32_t __anf09 = dotIdx;
+            uint32_t __anf013 = dotIdx;
             half *b_tile = sB;
             wmma::load_matrix_sync(aFrag,
                                    sA + (16U * (threadIdx.x / 32U) * 32U +
                                          dotIdx * 16U), 16U);
-            wmma::load_matrix_sync(bFrag, b_tile + 8U * __anf09 * 16U, 8U);
+            wmma::load_matrix_sync(bFrag, b_tile + 8U * __anf013 * 16U, 8U);
             wmma::mma_sync(accumFrag, aFrag, bFrag, accumFrag);
         }
     }
@@ -408,6 +402,7 @@ __hoisted_g_gemm_f16_f16_32x8x16_32x8x16_0(uint32_t shared,
                              blockIdx.x % (cols / 8U) * 8U +
                              cols * (threadIdx.x / 32U) * 32U), accumFrag, cols,
                             wmma::mem_row_major);
+    __syncwarp();
 }
 
 void
@@ -425,9 +420,6 @@ Klas_GEMM_TensorCore_g_gemm_f16_f16_32x8x16_32x8x16(uint32_t rows,
     KPR_ASSERT(nblk <= 2097152U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(1280U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f16_f16_32x8x16_32x8x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              1280U));
     KPR_KCALL(__hoisted_g_gemm_f16_f16_32x8x16_32x8x16_0,
               nblk, 32U, 1280U, s, shared, cols, gA, gB, gC, 32U);
     MUST(cudaStreamSynchronize(s));
@@ -466,7 +458,7 @@ __hoisted_g_gemm_f16_f16_8x32x16_8x32x16_0(uint32_t shared,
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
-        uint32_t __anf03 = bkIdx;
+        uint32_t __anf05 = bkIdx;
         half *tileA = gA;
         uint32_t i0 = 0U;
         for (; i0 < 1024U; i0 += nthr * 8U) {
@@ -476,7 +468,7 @@ __hoisted_g_gemm_f16_f16_8x32x16_8x32x16_0(uint32_t shared,
             uint32_t row = (i0 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
-                       tileA + (shared * mrow * 32U + __anf03 * 32U +
+                       tileA + (shared * mrow * 32U + __anf05 * 32U +
                                 shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
@@ -491,7 +483,7 @@ __hoisted_g_gemm_f16_f16_8x32x16_8x32x16_0(uint32_t shared,
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
-                       tileB + (cols * __anf03 * 32U + mcol * 32U + cols * row +
+                       tileB + (cols * __anf05 * 32U + mcol * 32U + cols * row +
                                 col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
@@ -500,12 +492,12 @@ __hoisted_g_gemm_f16_f16_8x32x16_8x32x16_0(uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 2U; dotIdx++) {
-            uint32_t __anf09 = dotIdx;
+            uint32_t __anf013 = dotIdx;
             half *b_tile = sB;
             wmma::load_matrix_sync(aFrag,
                                    sA + (32U * (threadIdx.x / 32U) * 8U +
                                          dotIdx * 16U), 32U);
-            wmma::load_matrix_sync(bFrag, b_tile + 32U * __anf09 * 16U, 32U);
+            wmma::load_matrix_sync(bFrag, b_tile + 32U * __anf013 * 16U, 32U);
             wmma::mma_sync(accumFrag, aFrag, bFrag, accumFrag);
         }
     }
@@ -514,6 +506,7 @@ __hoisted_g_gemm_f16_f16_8x32x16_8x32x16_0(uint32_t shared,
                              blockIdx.x % (cols / 32U) * 32U +
                              cols * (threadIdx.x / 32U) * 8U), accumFrag, cols,
                             wmma::mem_row_major);
+    __syncwarp();
 }
 
 void
@@ -531,9 +524,6 @@ Klas_GEMM_TensorCore_g_gemm_f16_f16_8x32x16_8x32x16(uint32_t rows,
     KPR_ASSERT(nblk <= 2097152U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(4096U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f16_f16_8x32x16_8x32x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              4096U));
     KPR_KCALL(__hoisted_g_gemm_f16_f16_8x32x16_8x32x16_0,
               nblk, 128U, 4096U, s, shared, cols, gA, gB, gC, 128U);
     MUST(cudaStreamSynchronize(s));
@@ -573,7 +563,7 @@ __hoisted_g_gemm_f16_f16_64x64x64_16x16x16_0(uint32_t shared,
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
-        uint32_t __anf03 = bkIdx;
+        uint32_t __anf05 = bkIdx;
         half *tileA = gA;
         uint32_t i0 = 0U;
         for (; i0 < 4096U; i0 += nthr * 8U) {
@@ -583,7 +573,7 @@ __hoisted_g_gemm_f16_f16_64x64x64_16x16x16_0(uint32_t shared,
             uint32_t row = (i0 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
-                       tileA + (shared * mrow * 64U + __anf03 * 64U +
+                       tileA + (shared * mrow * 64U + __anf05 * 64U +
                                 shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
@@ -598,7 +588,7 @@ __hoisted_g_gemm_f16_f16_64x64x64_16x16x16_0(uint32_t shared,
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
-                       tileB + (cols * __anf03 * 64U + mcol * 64U + cols * row +
+                       tileB + (cols * __anf05 * 64U + mcol * 64U + cols * row +
                                 col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
@@ -607,13 +597,13 @@ __hoisted_g_gemm_f16_f16_64x64x64_16x16x16_0(uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 4U; dotIdx++) {
-            uint32_t __anf09 = dotIdx;
+            uint32_t __anf013 = dotIdx;
             half *b_tile = sB;
             wmma::load_matrix_sync(aFrag,
                                    sA + (64U * (threadIdx.x / 32U / 4U) * 16U +
                                          dotIdx * 16U), 64U);
             wmma::load_matrix_sync(bFrag,
-                                   b_tile + (64U * __anf09 * 16U +
+                                   b_tile + (64U * __anf013 * 16U +
                                              threadIdx.x / 32U % 4U * 16U),
                                    64U);
             wmma::mma_sync(accumFrag, aFrag, bFrag, accumFrag);
@@ -625,6 +615,7 @@ __hoisted_g_gemm_f16_f16_64x64x64_16x16x16_0(uint32_t shared,
                              cols * (threadIdx.x / 32U / 4U) * 16U +
                              threadIdx.x / 32U % 4U * 16U), accumFrag, cols,
                             wmma::mem_row_major);
+    __syncwarp();
 }
 
 void
@@ -642,9 +633,6 @@ Klas_GEMM_TensorCore_g_gemm_f16_f16_64x64x64_16x16x16(uint32_t rows,
     KPR_ASSERT(nblk <= 2097152U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(16384U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f16_f16_64x64x64_16x16x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              16384U));
     KPR_KCALL(__hoisted_g_gemm_f16_f16_64x64x64_16x16x16_0,
               nblk, 512U, 16384U, s, shared, cols, gA, gB, gC, 512U);
     MUST(cudaStreamSynchronize(s));
@@ -684,7 +672,7 @@ __hoisted_g_gemm_f16_f16_64x64x64_32x8x16_0(uint32_t shared,
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
-        uint32_t __anf03 = bkIdx;
+        uint32_t __anf05 = bkIdx;
         half *tileA = gA;
         uint32_t i0 = 0U;
         for (; i0 < 4096U; i0 += nthr * 8U) {
@@ -694,7 +682,7 @@ __hoisted_g_gemm_f16_f16_64x64x64_32x8x16_0(uint32_t shared,
             uint32_t row = (i0 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
-                       tileA + (shared * mrow * 64U + __anf03 * 64U +
+                       tileA + (shared * mrow * 64U + __anf05 * 64U +
                                 shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
@@ -709,7 +697,7 @@ __hoisted_g_gemm_f16_f16_64x64x64_32x8x16_0(uint32_t shared,
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
-                       tileB + (cols * __anf03 * 64U + mcol * 64U + cols * row +
+                       tileB + (cols * __anf05 * 64U + mcol * 64U + cols * row +
                                 col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
@@ -718,13 +706,13 @@ __hoisted_g_gemm_f16_f16_64x64x64_32x8x16_0(uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 4U; dotIdx++) {
-            uint32_t __anf09 = dotIdx;
+            uint32_t __anf013 = dotIdx;
             half *b_tile = sB;
             wmma::load_matrix_sync(aFrag,
                                    sA + (64U * (threadIdx.x / 32U / 8U) * 32U +
                                          dotIdx * 16U), 64U);
             wmma::load_matrix_sync(bFrag,
-                                   b_tile + (64U * __anf09 * 16U +
+                                   b_tile + (64U * __anf013 * 16U +
                                              threadIdx.x / 32U % 8U * 8U), 64U);
             wmma::mma_sync(accumFrag, aFrag, bFrag, accumFrag);
         }
@@ -735,6 +723,7 @@ __hoisted_g_gemm_f16_f16_64x64x64_32x8x16_0(uint32_t shared,
                              cols * (threadIdx.x / 32U / 8U) * 32U +
                              threadIdx.x / 32U % 8U * 8U), accumFrag, cols,
                             wmma::mem_row_major);
+    __syncwarp();
 }
 
 void
@@ -752,9 +741,6 @@ Klas_GEMM_TensorCore_g_gemm_f16_f16_64x64x64_32x8x16(uint32_t rows,
     KPR_ASSERT(nblk <= 2097152U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(16384U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f16_f16_64x64x64_32x8x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              16384U));
     KPR_KCALL(__hoisted_g_gemm_f16_f16_64x64x64_32x8x16_0,
               nblk, 512U, 16384U, s, shared, cols, gA, gB, gC, 512U);
     MUST(cudaStreamSynchronize(s));
@@ -794,7 +780,7 @@ __hoisted_g_gemm_f16_f16_64x64x64_8x32x16_0(uint32_t shared,
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
-        uint32_t __anf03 = bkIdx;
+        uint32_t __anf05 = bkIdx;
         half *tileA = gA;
         uint32_t i0 = 0U;
         for (; i0 < 4096U; i0 += nthr * 8U) {
@@ -804,7 +790,7 @@ __hoisted_g_gemm_f16_f16_64x64x64_8x32x16_0(uint32_t shared,
             uint32_t row = (i0 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
-                       tileA + (shared * mrow * 64U + __anf03 * 64U +
+                       tileA + (shared * mrow * 64U + __anf05 * 64U +
                                 shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
@@ -819,7 +805,7 @@ __hoisted_g_gemm_f16_f16_64x64x64_8x32x16_0(uint32_t shared,
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
-                       tileB + (cols * __anf03 * 64U + mcol * 64U + cols * row +
+                       tileB + (cols * __anf05 * 64U + mcol * 64U + cols * row +
                                 col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
@@ -828,13 +814,13 @@ __hoisted_g_gemm_f16_f16_64x64x64_8x32x16_0(uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 4U; dotIdx++) {
-            uint32_t __anf09 = dotIdx;
+            uint32_t __anf013 = dotIdx;
             half *b_tile = sB;
             wmma::load_matrix_sync(aFrag,
                                    sA + (64U * (threadIdx.x / 32U / 2U) * 8U +
                                          dotIdx * 16U), 64U);
             wmma::load_matrix_sync(bFrag,
-                                   b_tile + (64U * __anf09 * 16U +
+                                   b_tile + (64U * __anf013 * 16U +
                                              threadIdx.x / 32U % 2U * 32U),
                                    64U);
             wmma::mma_sync(accumFrag, aFrag, bFrag, accumFrag);
@@ -846,6 +832,7 @@ __hoisted_g_gemm_f16_f16_64x64x64_8x32x16_0(uint32_t shared,
                              cols * (threadIdx.x / 32U / 2U) * 8U +
                              threadIdx.x / 32U % 2U * 32U), accumFrag, cols,
                             wmma::mem_row_major);
+    __syncwarp();
 }
 
 void
@@ -863,9 +850,6 @@ Klas_GEMM_TensorCore_g_gemm_f16_f16_64x64x64_8x32x16(uint32_t rows,
     KPR_ASSERT(nblk <= 2097152U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(16384U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f16_f16_64x64x64_8x32x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              16384U));
     KPR_KCALL(__hoisted_g_gemm_f16_f16_64x64x64_8x32x16_0,
               nblk, 512U, 16384U, s, shared, cols, gA, gB, gC, 512U);
     MUST(cudaStreamSynchronize(s));
@@ -905,7 +889,7 @@ __hoisted_g_gemm_f16_f16_32x32x32_16x16x16_0(uint32_t shared,
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
-        uint32_t __anf03 = bkIdx;
+        uint32_t __anf05 = bkIdx;
         half *tileA = gA;
         uint32_t i0 = 0U;
         for (; i0 < 1024U; i0 += nthr * 8U) {
@@ -915,7 +899,7 @@ __hoisted_g_gemm_f16_f16_32x32x32_16x16x16_0(uint32_t shared,
             uint32_t row = (i0 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
-                       tileA + (shared * mrow * 32U + __anf03 * 32U +
+                       tileA + (shared * mrow * 32U + __anf05 * 32U +
                                 shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
@@ -930,7 +914,7 @@ __hoisted_g_gemm_f16_f16_32x32x32_16x16x16_0(uint32_t shared,
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
-                       tileB + (cols * __anf03 * 32U + mcol * 32U + cols * row +
+                       tileB + (cols * __anf05 * 32U + mcol * 32U + cols * row +
                                 col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
@@ -939,13 +923,13 @@ __hoisted_g_gemm_f16_f16_32x32x32_16x16x16_0(uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 2U; dotIdx++) {
-            uint32_t __anf09 = dotIdx;
+            uint32_t __anf013 = dotIdx;
             half *b_tile = sB;
             wmma::load_matrix_sync(aFrag,
                                    sA + (32U * (threadIdx.x / 32U / 2U) * 16U +
                                          dotIdx * 16U), 32U);
             wmma::load_matrix_sync(bFrag,
-                                   b_tile + (32U * __anf09 * 16U +
+                                   b_tile + (32U * __anf013 * 16U +
                                              threadIdx.x / 32U % 2U * 16U),
                                    32U);
             wmma::mma_sync(accumFrag, aFrag, bFrag, accumFrag);
@@ -957,6 +941,7 @@ __hoisted_g_gemm_f16_f16_32x32x32_16x16x16_0(uint32_t shared,
                              cols * (threadIdx.x / 32U / 2U) * 16U +
                              threadIdx.x / 32U % 2U * 16U), accumFrag, cols,
                             wmma::mem_row_major);
+    __syncwarp();
 }
 
 void
@@ -974,9 +959,6 @@ Klas_GEMM_TensorCore_g_gemm_f16_f16_32x32x32_16x16x16(uint32_t rows,
     KPR_ASSERT(nblk <= 2097152U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(4096U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f16_f16_32x32x32_16x16x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              4096U));
     KPR_KCALL(__hoisted_g_gemm_f16_f16_32x32x32_16x16x16_0,
               nblk, 128U, 4096U, s, shared, cols, gA, gB, gC, 128U);
     MUST(cudaStreamSynchronize(s));
@@ -1015,7 +997,7 @@ __hoisted_g_gemm_f16_f16_16x16x16_16x16x16_0(uint32_t shared,
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
-        uint32_t __anf03 = bkIdx;
+        uint32_t __anf05 = bkIdx;
         half *tileA = gA;
         uint32_t i0 = 0U;
         for (; i0 < 256U; i0 += nthr * 8U) {
@@ -1025,7 +1007,7 @@ __hoisted_g_gemm_f16_f16_16x16x16_16x16x16_0(uint32_t shared,
             uint32_t row = (i0 + threadIdx.x * 8U) / 16U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 16U;
             vec_memcpy(local,
-                       tileA + (shared * mrow * 16U + __anf03 * 16U +
+                       tileA + (shared * mrow * 16U + __anf05 * 16U +
                                 shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
@@ -1040,7 +1022,7 @@ __hoisted_g_gemm_f16_f16_16x16x16_16x16x16_0(uint32_t shared,
             uint32_t row = (i + threadIdx.x * 8U) / 16U;
             uint32_t col = (i + threadIdx.x * 8U) % 16U;
             vec_memcpy(local,
-                       tileB + (cols * __anf03 * 16U + mcol * 16U + cols * row +
+                       tileB + (cols * __anf05 * 16U + mcol * 16U + cols * row +
                                 col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
@@ -1049,12 +1031,12 @@ __hoisted_g_gemm_f16_f16_16x16x16_16x16x16_0(uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 1U; dotIdx++) {
-            uint32_t __anf09 = dotIdx;
+            uint32_t __anf013 = dotIdx;
             half *b_tile = sB;
             wmma::load_matrix_sync(aFrag,
                                    sA + (16U * (threadIdx.x / 32U) * 16U +
                                          dotIdx * 16U), 16U);
-            wmma::load_matrix_sync(bFrag, b_tile + 16U * __anf09 * 16U, 16U);
+            wmma::load_matrix_sync(bFrag, b_tile + 16U * __anf013 * 16U, 16U);
             wmma::mma_sync(accumFrag, aFrag, bFrag, accumFrag);
         }
     }
@@ -1063,6 +1045,7 @@ __hoisted_g_gemm_f16_f16_16x16x16_16x16x16_0(uint32_t shared,
                              blockIdx.x % (cols / 16U) * 16U +
                              cols * (threadIdx.x / 32U) * 16U), accumFrag, cols,
                             wmma::mem_row_major);
+    __syncwarp();
 }
 
 void
@@ -1080,9 +1063,6 @@ Klas_GEMM_TensorCore_g_gemm_f16_f16_16x16x16_16x16x16(uint32_t rows,
     KPR_ASSERT(nblk <= 2097152U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(1024U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f16_f16_16x16x16_16x16x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              1024U));
     KPR_KCALL(__hoisted_g_gemm_f16_f16_16x16x16_16x16x16_0,
               nblk, 32U, 1024U, s, shared, cols, gA, gB, gC, 32U);
     MUST(cudaStreamSynchronize(s));
@@ -1122,7 +1102,7 @@ __hoisted_g_gemm_f16_f32_32x32x32_16x16x16_0(uint32_t shared,
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
-        uint32_t __anf03 = bkIdx;
+        uint32_t __anf05 = bkIdx;
         half *tileA = gA;
         uint32_t i0 = 0U;
         for (; i0 < 1024U; i0 += nthr * 8U) {
@@ -1132,7 +1112,7 @@ __hoisted_g_gemm_f16_f32_32x32x32_16x16x16_0(uint32_t shared,
             uint32_t row = (i0 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
-                       tileA + (shared * mrow * 32U + __anf03 * 32U +
+                       tileA + (shared * mrow * 32U + __anf05 * 32U +
                                 shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
@@ -1147,7 +1127,7 @@ __hoisted_g_gemm_f16_f32_32x32x32_16x16x16_0(uint32_t shared,
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
-                       tileB + (cols * __anf03 * 32U + mcol * 32U + cols * row +
+                       tileB + (cols * __anf05 * 32U + mcol * 32U + cols * row +
                                 col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
@@ -1156,13 +1136,13 @@ __hoisted_g_gemm_f16_f32_32x32x32_16x16x16_0(uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 2U; dotIdx++) {
-            uint32_t __anf09 = dotIdx;
+            uint32_t __anf013 = dotIdx;
             half *b_tile = sB;
             wmma::load_matrix_sync(aFrag,
                                    sA + (32U * (threadIdx.x / 32U / 2U) * 16U +
                                          dotIdx * 16U), 32U);
             wmma::load_matrix_sync(bFrag,
-                                   b_tile + (32U * __anf09 * 16U +
+                                   b_tile + (32U * __anf013 * 16U +
                                              threadIdx.x / 32U % 2U * 16U),
                                    32U);
             wmma::mma_sync(accumFrag, aFrag, bFrag, accumFrag);
@@ -1174,6 +1154,7 @@ __hoisted_g_gemm_f16_f32_32x32x32_16x16x16_0(uint32_t shared,
                              cols * (threadIdx.x / 32U / 2U) * 16U +
                              threadIdx.x / 32U % 2U * 16U), accumFrag, cols,
                             wmma::mem_row_major);
+    __syncwarp();
 }
 
 void
@@ -1191,9 +1172,6 @@ Klas_GEMM_TensorCore_g_gemm_f16_f32_32x32x32_16x16x16(uint32_t rows,
     KPR_ASSERT(nblk <= 2097152U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(4096U);
-    MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f16_f32_32x32x32_16x16x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              4096U));
     KPR_KCALL(__hoisted_g_gemm_f16_f32_32x32x32_16x16x16_0,
               nblk, 128U, 4096U, s, shared, cols, gA, gB, gC, 128U);
     MUST(cudaStreamSynchronize(s));

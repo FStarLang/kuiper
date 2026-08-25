@@ -40,6 +40,33 @@ let cat_chest (#et: Type0) (#r : nat)
   : chest dout et
   = Kuiper.Chest.mk dout (abs_cat dim dA dB dout eA eB na pf_sz pfA pfB)
 
+(* The cat kernel as a [kernel_desc], for clients that want to launch it
+asynchronously on their own stream instead of via [cat_gpu]. *)
+inline_for_extraction noextract
+val cat_kd
+  (#et : Type0) (#r : nat)
+  (dA dB dout : shape r)
+  (cdA : cshape dA) (cdB : cshape dB) (cdout : cshape dout)
+  (dim : natlt r) (dimsz : szlt r { SZ.v dimsz == dim })
+  (na : sz { SZ.v na == dA @! dim })
+  (pf_sz : squash ((dout @! dim) == (dA @! dim) + (dB @! dim)))
+  (pfA : squash (modulo_i dim dA == modulo_i dim dout))
+  (pfB : squash (modulo_i dim dB == modulo_i dim dout))
+  (#lA : tlayout dA) (#lB : tlayout dB) (#lOut : tlayout dout)
+  {| ctlayout lA, ctlayout lB, ctlayout lOut |}
+  (gA : tensor et lA {is_global gA})
+  (gB : tensor et lB {is_global gB})
+  (gOut : tensor et lOut {is_global gOut})
+  (n : sz {SZ.v n == sizeof dout /\ n <= max_blocks * max_threads /\ n > 0})
+  (eA : chest dA et)
+  (eB : chest dB et)
+  (#eOut : chest dout et)
+  (#fA #fB : perm)
+  : kernel_desc
+      ((gA |-> Frac fA eA) ** (gB |-> Frac fB eB) ** (gOut |-> eOut))
+      ((gA |-> Frac fA eA) ** (gB |-> Frac fB eB) **
+        (gOut |-> cat_chest dim dA dB dout eA eB (SZ.v na) pf_sz pfA pfB))
+
 inline_for_extraction noextract
 fn cat_gpu
   (#et : Type0) (#r : nat)

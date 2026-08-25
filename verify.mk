@@ -77,8 +77,8 @@ karamel/Makefile:
 .krml.touch: .krml.src.touch karamel/Makefile
 	@echo KRML
 	@# karamel needs builtin rules which we disable, so clear MAKEFLAGS but still set -j
-	$(MAKE) MAKEFLAGS=-j$(shell nproc) -C karamel ADMIT=1 LOWSTAR=false
-	$(MAKE) MAKEFLAGS=-j$(shell nproc) -C karamel LOWSTAR=false PREFIX=$(CURDIR)/inst install
+	$(MAKE) MAKEFLAGS=-j$(shell $(nproc)) -C karamel ADMIT=1 LOWSTAR=false
+	$(MAKE) MAKEFLAGS=-j$(shell $(nproc)) -C karamel LOWSTAR=false PREFIX=$(CURDIR)/inst install
 	@touch .krml.src.touch # building will change files
 	@touch $@
 
@@ -118,8 +118,12 @@ OTHERFLAGS += --admit_smt_queries true
 endif
 OTHERFLAGS += $O
 
+FSTAR_FLAGS += --include $(CURDIR)/$(CACHEDIR)
+# ^ The --cache_dir is included by default, but this is here for
+# when the script is being run out-of-tree, like from a package.
 FSTAR_FLAGS += --cache_dir $(CACHEDIR)
 FSTAR_FLAGS += --odir $(OUTDIR)
+FSTAR_FLAGS += --warn_error -274 # shadowing when opening, bogus
 FSTAR_FLAGS += --warn_error -291 # inspect_ln warnings, benign
 FSTAR_FLAGS += --warn_error -249-321
 FSTAR_FLAGS += --warn_error @242@250 # 242, 250: abort if could not extract something
@@ -226,7 +230,7 @@ echo-krml:
 	$(call msg,"DEPEND",$@)
 	$(Q)$(FSTAR) --codegen krml --already_cached 'FStar,LowStar,Prims,Pulse,PulseCore' --dep full $(ROOTS) -o $@.tmp
 	# HUGE HACK: append (not prepend!) a .plugin.touch dependency for every krml file.
-	sed ':outer; /krml: \\$$/{n;:inner;/[^\\]$$/{s/.*/& .plugin.touch/; b outer};n;b inner}' < $@.tmp > $@
+	$(sed) ':outer; /krml: \\$$/{n;:inner;/[^\\]$$/{s/.*/& .plugin.touch/; b outer};n;b inner}' < $@.tmp > $@
 	rm -f $@.tmp
 
 depgraph: depend.pdf
@@ -235,7 +239,7 @@ depend.pdf: .depend .force
 	$(FSTAR) --dep graph --codegen krml --already_cached 'FStar,LowStar,Prims,Pulse,PulseCore' $(ROOTS) $(DEPFLAGS) -o .depend.graph
 	./FStar/.scripts/simpl_graph.py .depend.graph > .depend.simpl
 	# Tweak ratio
-	sed -i 's/^digraph{/& ratio=1;/' .depend.simpl
+	$(sed) -i 's/^digraph{/& ratio=1;/' .depend.simpl
 	dot -Tpdf -o $@ .depend.simpl
 	echo "Wrote $@"
 
@@ -260,8 +264,8 @@ $(OUTDIR)/pre/%.cu $(OUTDIR)/pre/%.h &: $(OUTDIR)/%.krml .krml.touch
 # Do NOT use a wildcard without an extension or this can match
 # objects files and whatnot.
 $(OUTDIR)/%.cu: $(OUTDIR)/pre/%.cu scripts/fixup.sed
-	sed -f scripts/fixup.sed $< | indent -linux -i4 -nut > $@
+	$(sed) -f scripts/fixup.sed $< | $(indent) -linux -i4 -nut > $@
 $(OUTDIR)/%.h: $(OUTDIR)/pre/%.h scripts/fixup.sed
-	sed -f scripts/fixup.sed $< | indent -linux -i4 -nut > $@
+	$(sed) -f scripts/fixup.sed $< | $(indent) -linux -i4 -nut > $@
 
 include nvcc.mk

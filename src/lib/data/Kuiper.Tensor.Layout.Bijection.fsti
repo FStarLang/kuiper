@@ -24,6 +24,15 @@ let tlayout_bij
       imap = inj_bij' f `Kuiper.Injection.inj_comp` l.imap;
   }
 
+let tlayout_bij_imap
+  (#r1 : nat) (#d1 : shape r1)
+  (#r2 : nat) (#d2 : shape r2)
+  (f : abs d1 =~ abs d2)
+  (l : tlayout d1)
+  (i : abs d2)
+  : Lemma ((tlayout_bij f l).imap.f i == l.imap.f (f.gg i))
+  = ()
+
 inline_for_extraction noextract
 instance val ctlayout_bij
   (#r1 : nat) (#d1 : shape r1)
@@ -40,7 +49,7 @@ fn tensor_apply_bij
   (#r1 : nat) (#d1 : shape r1)
   (#r2 : nat) (#d2 : shape r2)
   (f : abs d1 =~ abs d2)
-  (#l : tlayout d1) {| is_full l |}
+  (#l : tlayout d1)
   (a : tensor et l)
   (#fp : perm) (#m : chest d1 et)
   requires
@@ -54,7 +63,7 @@ fn tensor_apply_bij_ro
   (#r1 : nat) (#d1 : shape r1)
   (#r2 : nat) (#d2 : shape r2)
   (f : abs d1 =~ abs d2)
-  (#l : tlayout d1) {| is_full l |}
+  (#l : tlayout d1)
   (a : tensor et l)
   (#fp : perm) (#m : chest d1 et)
   requires
@@ -72,7 +81,7 @@ fn tensor_apply_bij_ro_located
   (#r1 : nat) (#d1 : shape r1)
   (#r2 : nat) (#d2 : shape r2)
   (f : abs d1 =~ abs d2)
-  (#l : tlayout d1) {| is_full l |}
+  (#l : tlayout d1)
   (#loc: loc_id)
   (a : tensor et l)
   (#fp : perm) (#m : chest d1 et)
@@ -91,7 +100,7 @@ fn tensor_apply_bij_st
   (#r1 : nat) (#d1 : shape r1)
   (#r2 : nat) (#d2 : shape r2)
   (f : abs d1 =~ abs d2)
-  (#l : tlayout d1) {| is_full l |}
+  (#l : tlayout d1)
   (a : tensor et l)
   (#fp : perm) (#m : chest d1 et)
   requires
@@ -110,7 +119,7 @@ fn tensor_apply_bij_st_located
   (#r1 : nat) (#d1 : shape r1)
   (#r2 : nat) (#d2 : shape r2)
   (f : abs d1 =~ abs d2)
-  (#l : tlayout d1) {| is_full l |}
+  (#l : tlayout d1)
   (#loc: loc_id)
   (a : tensor et l)
   (#fp : perm) (#m : chest d1 et)
@@ -142,6 +151,10 @@ let fold_index (#r: nat {r > 1}) (#d: shape r) (i : abs d): GTot (abs (fold_oute
 
 [@@erasable] // avoid silly warning
 val fold_bij (#r: nat {r > 1}) (#d: shape r): abs d =~ abs (fold_outer d)
+
+val fold_bij_gg (#r: nat {r > 1}) (#d: shape r)
+  (x : abs (fold_outer d))
+  : Lemma ((fold_bij #r #d).gg x == unfold_index x)
 
 let fold_chest (#et : Type0) (#r: nat {r > 1}) (#d: shape r) (m : chest d et): GTot (chest (fold_outer d) et) =
   mk (fold_outer d) (fun i -> acc m (unfold_index i))
@@ -187,10 +200,11 @@ fn tensor_unfold_outer
   ensures
     from_array l (core a) |-> Frac f (unfold_chest m)
 
+inline_for_extraction noextract
 fn tensor_fold_ro
   (#et : Type0)
   (#r: nat {r > 1}) (#d: shape r)
-  (#l: tlayout d { is_full l })
+  (#l: tlayout d)
   (a : tensor et l)
   (#f : perm) (#m : chest d et)
   requires
@@ -203,10 +217,11 @@ fn tensor_fold_ro
       (fa |-> Frac f (fold_chest m))
       (a |-> Frac f m)
 
+inline_for_extraction noextract
 fn tensor_fold_ro_located
   (#et : Type0)
   (#r: nat {r > 1}) (#d: shape r)
-  (#l: tlayout d { is_full l })
+  (#l: tlayout d)
   (#loc: loc_id)
   (a : tensor et l)
   (#f : perm) (#m : chest d et)
@@ -221,10 +236,11 @@ fn tensor_fold_ro_located
       (on loc (a |-> Frac f m))
 
 
+inline_for_extraction noextract
 fn tensor_fold_st
   (#et : Type0)
   (#r: nat {r > 1}) (#d: shape r)
-  (#l: tlayout d { is_full l })
+  (#l: tlayout d)
   (a : tensor et l)
   (#f : perm) (#m : chest d et)
   requires
@@ -238,10 +254,11 @@ fn tensor_fold_st
       fa |-> Frac f m' @==>
       a |-> Frac f (unfold_chest m'))
 
+inline_for_extraction noextract
 fn tensor_fold_st_located
   (#et : Type0)
   (#r: nat {r > 1}) (#d: shape r)
-  (#l: tlayout d { is_full l })
+  (#l: tlayout d)
   (#loc: loc_id)
   (a : tensor et l)
   (#f : perm) (#m : chest d et)

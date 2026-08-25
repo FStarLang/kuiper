@@ -9,7 +9,7 @@ open Kuiper.Array.Vectorized
 open Kuiper.Array2.Vectorized
 open Kuiper.EMatrix
 
-#push-options "--z3rlimit 10"
+#push-options "--z3rlimit 30"
 inline_for_extraction noextract
 fn load_array_vec
   (#et : Type0) {| sized et, has_vec_cpy et |}
@@ -42,6 +42,12 @@ fn load_array_vec
   )
   #(gpu ** y |-> Frac f s)
   fn k {
+    // This thread's k-th chunk ends at or before n: k < n / nthr / chunk et and
+    // tid < nthr give (k * nthr + tid) * chunk et < n, and nthr * chunk et
+    // divides n closes the gap to the end of the chunk. Spelled out because as
+    // a single query the nonlinear chain times out.
+    assert pure ((k * nthr + tid) * chunk et < n);
+    assert pure ((k * nthr + tid) * chunk et + chunk et <= n);
     array_vec_cpy_device
       x ((k *^ nthr +^ tid) *^ chunk et)
       y (i +^ ((k *^ nthr +^ tid) *^ chunk et));

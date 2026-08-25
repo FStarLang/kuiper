@@ -1,5 +1,9 @@
 module Kuiper.Bijection
 
+open Kuiper.SizeT
+open FStar.Ghost { erased }
+open FStar.SizeT { (/^), (%^), (+^), (-^), ( *^ )  }
+open Kuiper.Injection
 #lang-pulse
 
 open Kuiper.Common

@@ -58,7 +58,7 @@ fn reduce_u32
   preserves on gpu_loc (a |-> s)
   requires  pure (SZ.fits (len + 1024sz)) // Almost impossible to falsify
   returns   res : u32
-  ensures   pure (U32.v res == chest1_fold_left add zero s)
+  ensures   pure (U32.v res == U32.v (chest1_fold_left add zero s))
 {
   to_real_chest_is_approx s;
   let res = reduce #u32 len a #s (chest_map to_real s);

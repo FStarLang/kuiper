@@ -1,5 +1,6 @@
 module Kuiper.TradeHelpers
 
+open Pulse.Lib.Forall
 #lang-pulse
 open Pulse
 open Pulse.Lib.Trade

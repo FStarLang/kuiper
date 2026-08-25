@@ -1,5 +1,6 @@
 module Kuiper.Sparse.SPMM.Barrier
 
+open Kuiper.Math { even, odd }
 (* Barrier proof for SPMM kernel. Proves that barrier_p transforms to barrier_q. *)
 
 // TODO
@@ -7,7 +8,9 @@ module Kuiper.Sparse.SPMM.Barrier
 #lang-pulse
 
 open Kuiper
+module SZ = Kuiper.SizeT
 open Kuiper.Sparse
+open Kuiper.Array.Vectorized
 open Kuiper.Math { even, odd, even_2x, odd_2x1 }
 open Kuiper.Sparse.SPMM.Defs
 open Kuiper.Bijection { ( |~> ) }

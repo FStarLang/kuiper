@@ -37,7 +37,7 @@ let neq (#t:Type) {| scalar t |} (x : t) (y : t) : bool =
 
 (* This instance is a bit fake. Maybe we should remove it. It's useful
 to use MS.matmul on real matrices too. *)
-noextract
+inline_for_extraction noextract
 instance _ : scalar Real.real =
   let open FStar.Real in
   {
