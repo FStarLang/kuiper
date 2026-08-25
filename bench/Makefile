@@ -1,7 +1,7 @@
 .SUFFIXES:
 
 bench: runner.o sgemm.o
-	nvcc -O3 $^ -o $@ -lcublas
+	nvcc -arch=native -O3 $^ -o $@ -lcublas
 
 %.o: %.cu *.cuh
-	nvcc -O3 -I . -c $< -o $@
+	nvcc -arch=native -O3 -I . -c $< -o $@
