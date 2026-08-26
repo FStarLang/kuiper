@@ -237,6 +237,7 @@ fn epilogue_to
     rewrite each (SZ.v before + 1) as (SZ.v next);
   };
 
+  assert pure (SZ.v !idx == SZ.v wm * SZ.v wn);
   rewrite each !idx as (wm *^ wn);
   unfold output_epilogue_state
     gD bm bn tm tn wm wn bid wid lane

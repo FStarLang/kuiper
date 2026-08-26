@@ -120,6 +120,69 @@ ghost fn prepare_epilogue
     bm bn bk tm tn tk wm wn nthr sh accFrags rAcc tid;
 }
 
+#push-options "--fuel 1 --ifuel 1 --z3rlimit 100"
+let nested_comb_tile_eq
+  (#m #n : pos)
+  (comb_r : binop real)
+  (rC rM : chest2 real m n)
+  (bm : pos {bm /? m})
+  (bn : pos {bn /? n})
+  (wm_tm : pos {wm_tm /? bm})
+  (wn_tn : pos {wn_tn /? bn})
+  (mrow : natlt (m / bm))
+  (mcol : natlt (n / bn))
+  (warpRow : natlt (bm / wm_tm))
+  (warpCol : natlt (bn / wn_tn))
+  (gwRow : enatlt (m / wm_tm) {
+    gwRow * wm_tm == mrow * bm + warpRow * wm_tm })
+  (gwCol : enatlt (n / wn_tn) {
+    gwCol * wn_tn == mcol * bn + warpCol * wn_tn })
+  (rMTile : chest2 real wm_tm wn_tn {
+    rMTile == ematrix_subtile rM wm_tm wn_tn gwRow gwCol })
+  : Lemma (
+      chest_comb comb_r
+        (ematrix_subtile
+          (ematrix_subtile rC bm bn mrow mcol)
+          wm_tm wn_tn warpRow warpCol)
+        rMTile
+      ==
+      ematrix_subtile
+        (ematrix_subtile (chest_comb comb_r rC rM)
+          bm bn mrow mcol)
+        wm_tm wn_tn warpRow warpCol)
+  = let lhs =
+      chest_comb comb_r
+        (ematrix_subtile
+          (ematrix_subtile rC bm bn mrow mcol)
+          wm_tm wn_tn warpRow warpCol)
+        rMTile in
+    let rhs =
+      ematrix_subtile
+        (ematrix_subtile (chest_comb comb_r rC rM)
+          bm bn mrow mcol)
+        wm_tm wn_tn warpRow warpCol in
+    let aux (i : natlt wm_tm) (j : natlt wn_tn)
+      : Lemma (acc2 lhs i j == acc2 rhs i j)
+      = calc (==) {
+          acc2 lhs i j;
+          == {}
+          comb_r
+            (acc2 rC
+              (mrow * bm + warpRow * wm_tm + i)
+              (mcol * bn + warpCol * wn_tn + j))
+            (acc2 rMTile i j);
+          == {}
+          comb_r
+            (acc2 rC (gwRow * wm_tm + i) (gwCol * wn_tn + j))
+            (acc2 rM (gwRow * wm_tm + i) (gwCol * wn_tn + j));
+          == {}
+          acc2 rhs i j;
+        } in
+    Classical.forall_intro_2 aux;
+    Kuiper.EMatrix.lemma_equal_intro lhs rhs;
+    Kuiper.Chest.ext lhs rhs
+#pop-options
+
 #push-options "--ifuel 1 --initial_fuel 0 --max_fuel 1"
 #push-options "--z3rlimit 200"
 
@@ -227,8 +290,20 @@ ghost fn normalize_output
     gwCol * (SZ.v wn * SZ.v tn) ==
     SZ.v mcol * SZ.v bn +
       SZ.v warpCol * (SZ.v wn * SZ.v tn));
-  Kuiper.EMatrix.lemma_equal_intro rOutLocal rOutTarget;
-  Kuiper.Chest.ext rOutLocal rOutTarget;
+  assert pure (
+    warp_tile_i #m #n bm bn bk tm tn tk wm wn
+      nthr bid (tid / warp_size) == gwRow);
+  assert pure (
+    warp_tile_j #m #n bm bn bk tm tn tk wm wn
+      nthr bid (tid / warp_size) == gwCol);
+  let rMatmul =
+    ematrix_subtile (MS.matmul rA rB)
+      (wm * tm) (wn * tn) gwRow gwCol;
+  assert pure (rAcc == rMatmul);
+  nested_comb_tile_eq comb_r rC (MS.matmul rA rB)
+    bm bn (wm * tm) (wn * tn)
+    mrow mcol warpRow warpCol gwRow gwCol rMatmul;
+  assert pure (rOutLocal == rOutTarget);
   rewrite
     output_lane_approximates
       gD bm bn tm tn wm wn bid tid rOutLocal

@@ -678,6 +678,20 @@ let rec seq_load_vmprod_row
         (j + (k - 1) * step * ch)
     )
 
+(* Keep the divisibility proof in a small pure context.  Reconstructing this
+   refinement while elaborating the [SizeT] expression below is needlessly
+   expensive once the scalar/sized dictionaries carry canonicality proofs. *)
+#push-options "--z3rlimit 20"
+let lemma_divides_vmprod_offset
+  (et : Type0) {| sized et, has_vec_cpy et |}
+  (j k step : sz { fits (j + k * step * chunk et) })
+  : Lemma
+      (requires chunk et /? j)
+      (ensures chunk et /? (j +^ k *^ step *^ chunk et))
+  = lemma_divides_product (chunk et) (k * step);
+    lemma_divides_sum (chunk et) j (k * step * chunk et)
+#pop-options
+
 
 inline_for_extraction noextract
 fn load_vmprod_row
@@ -717,8 +731,7 @@ fn load_vmprod_row
     decreases (n1 /^ chunk et - !k)
   {
     assert pure (fits (j + !k * step * chunk et));
-    lemma_divides_product (chunk et) !k;
-    lineal_divides (chunk et) j (chunk et) (!k * step);
+    lemma_divides_vmprod_offset et j !k step;
 
     load_vmprod_chunk
       y x
@@ -903,6 +916,8 @@ let seq_fma_lemma'
 =
   if k2 < n
     then (
+      if cnt = 0 then () else lemma_divides_leq cnt n k2;
+      assert (k2 + cnt <= n);
       let y = seq_fma' cnt x1 x2 y0 k1 k2 in
       assert y == seq_fma x1 #cnt (Seq.slice x2 k2 (k2 + cnt)) y0 k1 cnt;
       introduce forall (ix : natlt cnt).

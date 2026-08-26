@@ -816,6 +816,7 @@ fn bkf
   let brow, bcol = s_divmod tile  tid;
   assert (pure (SZ.v page == SZ.v bid % batch));
   assert (pure (SZ.v rest == SZ.v bid / batch));
+  div_lt_bound (SZ.v bid) (SZ.v batch) (SZ.v mrows * SZ.v mcols);
   assert (pure (SZ.v mrow == (SZ.v bid / batch) / mcols));
   assert (pure (SZ.v mcol == (SZ.v bid / batch) % mcols));
   assert (pure (SZ.v brow == tid / tile));
@@ -1050,10 +1051,6 @@ fn bkf
   rewrite each ar2 as fst (snd sh);
 
   fold (bkpost1 mapA mapB comb mapA_r mapB_r comb_r tile gA gB gC eA eB eC rA rB rC fA fB bid tid);
-
-  (* [bid / batch < mrows * mcols]: nonlinear, so use the triggered helper
-     rather than leaving it to the ambient query. *)
-  div_lt_bound (SZ.v bid) (SZ.v batch) (SZ.v mrows * SZ.v mcols);
 
   (* Fold live_c_shmem for each shmem array *)
   rewrite (exists* v. pts_to (fst sh) #(1.0R /. (tile * tile)) v)

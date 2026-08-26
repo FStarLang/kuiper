@@ -466,7 +466,8 @@ fn cp_array2_vec
     assert pure (vi + offset < mlen);
     let mut local = [| zero #et #_; chunk et |];
 
-    assert pure (SZ.fits (!i + nthr * chunk et));
+    assert pure (SZ.fits (nthr * chunk et));
+    assert pure (SZ.fits (vi + nthr * chunk et));
     let row = (!i +^ offset) /^ cols; assert (rewrites_to row ((!i +^ offset) /^ cols));
     let col = (!i +^ offset) %^ cols; assert (rewrites_to col ((!i +^ offset) %^ cols));
     assert pure (chunk et /?+ cols);
