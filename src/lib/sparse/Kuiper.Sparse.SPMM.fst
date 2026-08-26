@@ -227,6 +227,10 @@ let lem_div1 (n : nat) (d : pos) (r : natlt d)
 let lem_div2 (n : nat) (d : pos) (r : natlt d)
 : Lemma (requires true) (ensures (n * d + r) % d == r)
 = Math.Lemmas.lemma_mod_plus r n d
+
+let barrier_step_lemma (i : nat)
+  : Lemma (i * 2 + 1 + 1 == (i + 1) * 2)
+  = ()
 //
 
 #push-options "--z3rlimit 30"
@@ -357,7 +361,11 @@ fn setup
     };
   forevery_iso (Kuiper.Bijection.bij_sym row_perm) _;
 
-  forevery_unfactor' (nblocks p) _ _ _;
+  (* Flatten column tiles outermost so adjacent block ids visit different rows
+     of the same dense-matrix panel, matching Sputnik's 2-D grid order. *)
+  forevery_commute _;
+  forevery_unfactor'
+    (nblocks p) (divup p.cols p.blockItemsX) p.rows _;
   forevery_ext_3
     #(natlt (nblocks p))
     #(natlt p.blockWidth)
@@ -597,18 +605,19 @@ fn block_teardown
   ();
 }
 
-(* Nonlinear bound relating a (row, column-block) pair to a flat block id.
+(* Nonlinear bound relating a (column-block, row) pair to a flat block id.
    With one SMT query per proof obligation Z3 no longer finds this on its own,
    so we prove it once by an explicit multiplication lemma. *)
 let block_index_bound #et {| sized et, has_vec_cpy et |} (p : parameters et)
   : Lemma (forall (r : natlt (SZ.v p.rows))
                   (b : natlt (divup (SZ.v p.cols) (SZ.v p.blockItemsX))).
-             r * divup (SZ.v p.cols) (SZ.v p.blockItemsX) + b < nblocks_ p)
+             b * SZ.v p.rows + r < nblocks_ p)
   = introduce forall (r : natlt (SZ.v p.rows))
                      (b : natlt (divup (SZ.v p.cols) (SZ.v p.blockItemsX))).
-      r * divup (SZ.v p.cols) (SZ.v p.blockItemsX) + b < nblocks_ p
+      b * SZ.v p.rows + r < nblocks_ p
     with FStar.Math.Lemmas.lemma_mult_le_right
-           (divup (SZ.v p.cols) (SZ.v p.blockItemsX)) (r + 1) (SZ.v p.rows)
+           (SZ.v p.rows) (b + 1)
+           (divup (SZ.v p.cols) (SZ.v p.blockItemsX))
 
 ghost
 fn teardown
@@ -747,20 +756,22 @@ fn teardown
         ((p.blockItemsX /^ p.blockWidth) * p.blockWidth) p.blockItemsX;
     };
   block_index_bound p;
-  forevery_factor (nblocks p) p.rows (divup p.cols p.blockItemsX) _;
+  forevery_factor
+    (nblocks p) (divup p.cols p.blockItemsX) p.rows _;
+  forevery_commute _;
   forevery_map #(natlt p.rows)
     (fun r ->
       forall+
         (b: natlt (divup p.cols p.blockItemsX))
         (ix : natlt p.blockItemsX).
         when__
-          (bcol p (r * divup p.cols p.blockItemsX + b) + ix < p.cols)
+          (bcol p (b * p.rows + r) + ix < p.cols)
           (fun _ ->
             tensor_pts_to_cell gC
-              (idx2 (brow p (r * divup p.cols p.blockItemsX + b) |~> row_perm) (bcol p (r * divup p.cols p.blockItemsX + b) + ix))
+              (idx2 (brow p (b * p.rows + r) |~> row_perm) (bcol p (b * p.rows + r) + ix))
               (MS.matmul_single eA eB
-                (brow p (r * divup p.cols p.blockItemsX + b) |~> row_perm)
-                (bcol p (r * divup p.cols p.blockItemsX + b) + ix)
+                (brow p (b * p.rows + r) |~> row_perm)
+                (bcol p (b * p.rows + r) + ix)
               )
           )
     )
@@ -773,13 +784,13 @@ fn teardown
       forevery_map_2 #(natlt (divup p.cols p.blockItemsX)) #(natlt p.blockItemsX)
         (fun b ix ->
           when__
-            (bcol p (r * divup p.cols p.blockItemsX + b) + ix < p.cols)
+            (bcol p (b * p.rows + r) + ix < p.cols)
             (fun _ ->
               tensor_pts_to_cell gC
-                (idx2 (brow p (r * divup p.cols p.blockItemsX + b) |~> row_perm) (bcol p (r * divup p.cols p.blockItemsX + b) + ix))
+                (idx2 (brow p (b * p.rows + r) |~> row_perm) (bcol p (b * p.rows + r) + ix))
                 (MS.matmul_single eA eB
-                  (brow p (r * divup p.cols p.blockItemsX + b) |~> row_perm)
-                  (bcol p (r * divup p.cols p.blockItemsX + b) + ix)
+                  (brow p (b * p.rows + r) |~> row_perm)
+                  (bcol p (b * p.rows + r) + ix)
                 )
             )
         )
@@ -793,11 +804,11 @@ fn teardown
             )
         )
         fn b ix {
-          lem_div1 r (divup p.cols p.blockItemsX) b;
-          rewrite each (brow p (r * divup p.cols p.blockItemsX + b))
+          lem_div2 b p.rows r;
+          rewrite each (brow p (b * p.rows + r))
             as r;
-          lem_div2 r (divup p.cols p.blockItemsX) b;
-          rewrite each (bcol p (r * divup p.cols p.blockItemsX + b))
+          lem_div1 b p.rows r;
+          rewrite each (bcol p (b * p.rows + r))
             as (b * p.blockItemsX);
         };
       forevery_map #(natlt (divup p.cols p.blockItemsX))
@@ -951,6 +962,7 @@ fn sparse_load_main
   barrier_out_unfold_main_post p row_perm elems col_ind row_off
     elems_tile col_ind_tile bid ri re idx tid;
 
+  barrier_step_lemma (SZ.v idx);
   ();
 
 }
@@ -1536,6 +1548,10 @@ fn kf_main
       assume pure (chunk et /? p.cols);
       assert pure (in_bounds 0 p.shared (cast_pos row_ind_));
       assert pure (!idx * p.blockItemsK + p.blockItemsK <= re - ri');
+      Seq.lemma_len_slice
+        row_elems 0 (!idx * p.blockItemsK + p.blockItemsK);
+      Seq.lemma_len_slice
+        row_ind_ 0 (!idx * p.blockItemsK + p.blockItemsK);
 
       Compute.tile_fused_vmprod
         out

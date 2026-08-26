@@ -85,7 +85,7 @@ let brow
   #et {| sized et, has_vec_cpy et |}
   (p : parameters et) (bid : natlt (nblocks_ p))
 : GTot (natlt p.rows)
-= bid / (p.cols `divup` p.blockItemsX)
+= bid % p.rows
 
 inline_for_extraction noextract
 let brow_
@@ -93,20 +93,20 @@ let brow_
   (p : parameters et) (bid : szlt (nblocks_ p))
   (#_ : squash (fits (p.cols + p.blockItemsX)))
 : Tot (m : sz {SZ.v m == brow p bid})
-= bid /^ (p.cols `divup_` p.blockItemsX)
+= bid %^ p.rows
 
 let bcol
   #et {| sized et, has_vec_cpy et |}
   (p : parameters et) (bid : natlt (nblocks_ p))
 : GTot (natlt p.cols) // por que Ghost?
-= (bid % (p.cols `divup` p.blockItemsX)) * p.blockItemsX
+= (bid / p.rows) * p.blockItemsX
 
 inline_for_extraction noextract
 let bcol_
   #et {| sized et, has_vec_cpy et |}
   (p : parameters et { size_req p }) (bid : szlt (nblocks_ p))
 : Tot (n : sz {SZ.v n == bcol p bid})
-= (bid %^ (p.cols `divup_` p.blockItemsX)) *^ p.blockItemsX
+= (bid /^ p.rows) *^ p.blockItemsX
 
 noextract
 let tcol
@@ -118,7 +118,7 @@ let tcol
 =
   lemma_divides_product (chunk et) tid;
   assert chunk et /? (tid * chunk et);
-  lemma_divides_product p.blockItemsX (bid % (p.cols `divup` p.blockItemsX));
+  lemma_divides_product p.blockItemsX (bid / p.rows);
   assert p.blockItemsX /? bcol p bid;
   prod_divides (p.blockWidth) (chunk et) p.blockItemsX;
   assert chunk et /? p.blockItemsX;
