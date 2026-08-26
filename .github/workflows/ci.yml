@@ -5,6 +5,7 @@ on:
   push:
     branches:
     - main
+    - canonical-sized-proof-fixes-ci
   pull_request:
   workflow_dispatch:
     inputs:
