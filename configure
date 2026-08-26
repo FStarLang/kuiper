@@ -20,6 +20,11 @@ fi
 
 # A really basic configure script.
 
+KUIPER_NVCC_ARCH=${KUIPER_NVCC_ARCH:-native}
+# Probe results exported by a previous .configure.output must not survive when
+# this invocation cannot run the corresponding device check.
+unset KUIPER_CFG_SHMEM_ALIGN16
+
 check_nvcc () {
   if ! command -v nvcc >/dev/null 2>&1 ; then
     echo "# NVCC not found in PATH, configuring to stop after code generation." >&2
@@ -41,14 +46,30 @@ EOF
 
   #177: variable "f" was declared but never referenced
   echo "# Testing nvcc compilation..." >&2
-  if ! nvcc -arch=native -diag-suppress 177 -c $f -o /dev/null ; then
+  log=$(mktemp)
+  if ! nvcc -arch="$KUIPER_NVCC_ARCH" -diag-suppress 177 -c $f -o /dev/null 2>"$log" ; then
+    cat "$log" >&2
     echo "# NVCC test file failed to build, configuring to stop after code generation." >&2
     KUIPER_HAVE_NVCC=0
+  elif [ "$KUIPER_NVCC_ARCH" = native ] &&
+       grep -Fq "Cannot find valid GPU for '-arch=native'" "$log"; then
+    # nvcc's no-device default is too old for Kuiper's half, BF16, and WMMA
+    # code.  Cross-compile for the first architecture supporting all three.
+    KUIPER_NVCC_ARCH=sm_80
+    echo "# No GPU visible to nvcc; cross-compiling for $KUIPER_NVCC_ARCH." >&2
+    if ! nvcc -arch="$KUIPER_NVCC_ARCH" -diag-suppress 177 -c $f -o /dev/null ; then
+      echo "# NVCC fallback architecture failed, configuring to stop after code generation." >&2
+      KUIPER_HAVE_NVCC=0
+    else
+      echo "# NVCC ok" >&2
+      KUIPER_HAVE_NVCC=1
+    fi
   else
+    cat "$log" >&2
     echo "# NVCC ok" >&2
     KUIPER_HAVE_NVCC=1
   fi
-  rm -f "$f"
+  rm -f "$f" "$log"
 }
 
 check_tensor_cores () {
@@ -64,7 +85,7 @@ EOF
 
   #177: variable "f" was declared but never referenced
   echo "# Checking for tensor cores in nvcc..." >&2
-  if ! nvcc -arch=native -diag-suppress 177 -c $f -o /dev/null ; then
+  if ! nvcc -arch="$KUIPER_NVCC_ARCH" -diag-suppress 177 -c $f -o /dev/null ; then
     echo "# Tensor core test file failed to build, assuming no tensor cores." >&2
     KUIPER_CFG_TENSORCORES=0
   else
@@ -112,7 +133,7 @@ check_shmem_alignment () {
 EOF
 
   echo "# Checking dynamic shared memory alignment..." >&2
-  if ! nvcc -arch=native -I include -DKUIPER_CFG_TENSORCORES=0 -o "$e" $f ; then
+  if ! nvcc -arch="$KUIPER_NVCC_ARCH" -I include -DKUIPER_CFG_TENSORCORES=0 -o "$e" $f ; then
     echo "# Alignment probe failed to build, skipping." >&2
     rm -f "$f" "$e"
     return
@@ -166,4 +187,4 @@ vv () {
 if [ "$out" != /dev/stdout ]; then
   rm -f "$out"
 fi
-vv KUIPER_HAVE_NVCC KUIPER_CFG_TENSORCORES KUIPER_CFG_SHMEM_ALIGN16
+vv KUIPER_HAVE_NVCC KUIPER_CFG_TENSORCORES KUIPER_CFG_SHMEM_ALIGN16 KUIPER_NVCC_ARCH

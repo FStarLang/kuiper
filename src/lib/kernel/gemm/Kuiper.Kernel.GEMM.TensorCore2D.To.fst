@@ -215,6 +215,11 @@ let mk_kernel_arithmetic_facts
   FStar.Math.Lemmas.cancel_mul_div (SZ.v wm) (SZ.v tm);
   FStar.Math.Lemmas.cancel_mul_div (SZ.v wn) (SZ.v tn)
 
+(* Keep nested quotient refinements cheap in the large [mk_kernel] context. *)
+private let div_nonneg_pat (a : nat) (b : pos)
+  : Lemma (a / b >= 0) [SMTPat (a / b)]
+  = FStar.Math.Lemmas.nat_over_pos_is_nat a b
+
 #push-options "--fuel 1 --ifuel 1 --z3rlimit_factor 4"
 inline_for_extraction noextract
 let mk_kernel

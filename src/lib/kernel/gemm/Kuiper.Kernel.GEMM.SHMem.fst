@@ -971,6 +971,12 @@ fn bkf
     let r_partial = MS.__gmatmul_single 0.0R ( *. ) ( +. ) (Chest.chest_map mapA_r (rA_p)) (Chest.chest_map mapB_r (rB_p)) grow gcol (SZ.v !bk * SZ.v tile);
     let r_subtile = MS.__gmatmul_single 0.0R ( *. ) ( +. ) (Chest.chest_map mapA_r sub_rA) (Chest.chest_map mapB_r sub_rB) brow bcol tile;
 
+    (* Spell out the nonlinear bound required by [__gmatmul_single_split]. *)
+    FStar.Math.Lemmas.lemma_mult_le_right
+      (SZ.v tile) (SZ.v !bk + 1) (SZ.v mshared);
+    FStar.Math.Lemmas.distributivity_add_left (SZ.v !bk) 1 (SZ.v tile);
+    assert (pure ((SZ.v !bk + 1) * SZ.v tile == SZ.v !bk * SZ.v tile + SZ.v tile));
+
     MU.__gmatmul_single_split
       (Chest.chest_map mapA_r (rA_p)) (Chest.chest_map mapB_r (rB_p))
       grow gcol (SZ.v !bk * SZ.v tile) tile
@@ -979,8 +985,6 @@ fn bkf
     assert (pure (
       MS.__gmatmul_single 0.0R ( *. ) ( +. ) (Chest.chest_map mapA_r (rA_p)) (Chest.chest_map mapB_r (rB_p)) grow gcol (SZ.v !bk * SZ.v tile + SZ.v tile)
       == r_partial +. r_subtile));
-    FStar.Math.Lemmas.distributivity_add_left (SZ.v !bk) 1 (SZ.v tile);
-    assert (pure ((SZ.v !bk + 1) * SZ.v tile == SZ.v !bk * SZ.v tile + SZ.v tile));
 
     assert (pure (2 * (!bk + 1) == 2 * !bk + 1 + 1));
 
