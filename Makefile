@@ -105,7 +105,8 @@ lint: lint-c lint-fstar lint-generated
 
 .PHONY: list-admits
 list-admits:
-	(git grep -n --color -w 'assume_\|assume\|admit\|tadmit\|magic\|--lax' src; \
+	(git ls-files -z -- ':(glob)src/**/*.fst' ':(glob)src/**/*.fsti' \
+		| xargs -0 python3 scripts/list-admits.py; \
 	find src -name \*.fsti | sort \
 		| $(sed) 's/i$$//;/Kuiper.Kernel.Base.fst/d;/Kuiper.Base.fst/d;/Kuiper.\(Ref\|Array\|Array.Vectorized\|AtomicOps\).fst/d;/Kuiper.TensorCore.Base.fst/d;/Kuiper.\(Float[0-9]\+\|SizeT\).fst/d' \
 		| while read fn; do if [[ ! -f $$fn ]]; then echo Missing implementation file: $$fn; fi; done \
