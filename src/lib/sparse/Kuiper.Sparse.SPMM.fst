@@ -1146,6 +1146,7 @@ let lslice'
 : lseq a (j - i)
 = Seq.slice s i j
 
+[@@"opaque_to_smt"]
 let seq_mask
   (#et : Type0) {| scalar et |}
   (k : nat)
@@ -1154,6 +1155,55 @@ let seq_mask
 : lseq et (k + n)
 = Seq.create k zero @+ s
 //
+
+let seq_mask_prefix
+  (#et : Type0) {| scalar et |}
+  (k : nat)
+  (#n : nat)
+  (s : lseq et n)
+  (m : nat { m <= n })
+: Lemma
+  (ensures
+    Seq.equal
+      (Seq.slice (seq_mask k s) 0 (k + m))
+      (Seq.create k zero @+ Seq.slice s 0 m))
+=
+  let prefix = Seq.create k zero in
+  reveal_opaque (`%seq_mask) (seq_mask k s);
+  FStar.Seq.Properties.append_slices prefix s;
+  Kuiper.Seq.Common.lem_append_slice (prefix @+ s) 0 k (k + m)
+
+let seq_mask_slice
+  (#et : Type0) {| scalar et |}
+  (k : nat)
+  (#n : nat)
+  (s : lseq et n)
+  (i j : nat { k <= i /\ i <= j /\ j <= k + n })
+: Lemma
+  (ensures
+    Seq.equal
+      (Seq.slice (seq_mask k s) i j)
+      (Seq.slice s (i - k) (j - k)))
+=
+  let prefix = Seq.create k zero in
+  reveal_opaque (`%seq_mask) (seq_mask k s);
+  FStar.Seq.Properties.append_slices prefix s
+
+let cast_pos_slice
+  (#n : nat)
+  (s : lseq sz n)
+  (i j : nat { i <= j /\ j <= n })
+: Lemma
+  (ensures
+    Seq.equal
+      (cast_pos #(j - i) (Seq.slice s i j))
+      (Seq.slice (cast_pos s) i j))
+=
+  assert (
+    Seq.equal
+      (cast_pos #(j - i) (Seq.slice s i j))
+      (Seq.slice (cast_pos s) i j)
+  )
 
 
 let lem0
@@ -1375,7 +1425,7 @@ fn kf_head
 }
 
 #pop-options
-#push-options "--z3rlimit 60"
+#push-options "--z3rlimit 20"
 inline_for_extraction noextract
 fn kf_main
   (#et : Type0) {| d : scalar et, sized et, hvc : has_vec_cpy et |}
@@ -1474,6 +1524,11 @@ fn kf_main
     idx := 1sz;
     nnz := !nnz -^ p.blockItemsK;
 
+    seq_mask_prefix
+      (ri - ri') row_elems_
+      (ri' + p.blockItemsK - ri);
+    Seq.slice_slice elems ri re 0 (ri' + p.blockItemsK - ri);
+
     assert pure (
       Seq.equal
         (Seq.create (ri - ri') zero @+ Seq.slice elems ri (ri' + p.blockItemsK))
@@ -1495,6 +1550,7 @@ fn kf_main
         eB n_idx p.blockWidth v_out
     );
 
+    #set-options "--z3refresh" {
     while (!nnz >=^ p.blockItemsK)
       invariant
         (exists* v_out.
@@ -1525,6 +1581,10 @@ fn kf_main
       with v_out. assert out |-> v_out;
       assert pure (len v_out == p.blockItemsX / p.blockWidth);
 
+      Seq.slice_slice col_ind ri' re
+        (!idx * p.blockItemsK)
+        (!idx * p.blockItemsK + p.blockItemsK);
+
       assert pure (
         Seq.equal
           (Seq.slice
@@ -1534,6 +1594,14 @@ fn kf_main
               (ri' + !idx * p.blockItemsK)
               (ri' + !idx * p.blockItemsK + p.blockItemsK))
       );
+
+      seq_mask_slice
+        (ri - ri') row_elems_
+        (!idx * p.blockItemsK)
+        (!idx * p.blockItemsK + p.blockItemsK);
+      Seq.slice_slice elems ri re
+        (!idx * p.blockItemsK - (ri - ri'))
+        (!idx * p.blockItemsK + p.blockItemsK - (ri - ri'));
 
       assert pure (
         Seq.equal
@@ -1553,26 +1621,47 @@ fn kf_main
       Seq.lemma_len_slice
         row_ind_ 0 (!idx * p.blockItemsK + p.blockItemsK);
 
-      Compute.tile_fused_vmprod
-        out
-        out0
-        elems_tile col_ind_tile #(1.0R /. p.blockWidth)
-        #(re - ri')
-        row_elems row_ind_
-        gB
-        n_idx p.blockWidth
-        (!idx * p.blockItemsK) (!idx * p.blockItemsK + p.blockItemsK)
-        p.blockItemsK;
+      let next_end : erased nat = SZ.v (!idx +^ 1sz) * SZ.v p.blockItemsK;
+
+      FStar.Math.Lemmas.distributivity_add_left
+        (SZ.v !idx) 1 (SZ.v p.blockItemsK);
+
+      #set-options "--z3rlimit 60" {
+        Compute.tile_fused_vmprod
+          out
+          out0
+          elems_tile col_ind_tile #(1.0R /. p.blockWidth)
+          #(re - ri')
+          row_elems row_ind_
+          gB
+          n_idx p.blockWidth
+          (!idx * p.blockItemsK) next_end
+          p.blockItemsK;
+      };
+
+      assert pure (
+        SZ.v (!nnz -^ p.blockItemsK) == re - ri' - next_end
+      );
 
       idx := !idx +^ 1sz;
       nnz := !nnz -^ p.blockItemsK;
 
-      ();
+      #set-options "--z3rlimit 60" { () };
+    };
     };
 
 
     with v_out. assert out |-> v_out;
 
+    assert pure (
+      (ri - ri') + (ri' + !idx * p.blockItemsK - ri)
+        == !idx * p.blockItemsK
+    );
+    seq_mask_prefix
+      (ri - ri') row_elems_
+      (ri' + !idx * p.blockItemsK - ri);
+
+    #set-options "--z3refresh" { () };
     assert pure (
       Seq.equal
         (lslice row_elems 0 (!idx * p.blockItemsK))
@@ -1596,6 +1685,15 @@ fn kf_main
         (lslice row_elems_ 0 (ri' + !idx * p.blockItemsK - ri))
         (Seq.slice elems ri (re - !nnz))
     );
+    cast_pos_slice col_ind ri' re;
+    Seq.slice_slice
+      (cast_pos row_ind_)
+      0 (!idx * p.blockItemsK)
+      (ri - ri') (!idx * p.blockItemsK);
+    Seq.slice_slice
+      (cast_pos col_ind)
+      ri' re
+      (ri - ri') (!idx * p.blockItemsK);
     assert pure (
       Seq.equal
         (Seq.slice
@@ -1619,6 +1717,7 @@ fn kf_main
     as barrier_in p row_perm elems col_ind row_off elems_tile col_ind_tile
       bid (!idx * 2) tid;
 
+    #set-options "--z3refresh" { () };
     ();
   }
   else {
@@ -1812,7 +1911,9 @@ fn kf
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
   (p : parameters et { size_req p })
   (row_perm : permutation (natlt p.rows))
-  (blockChunks : sz{SZ.v blockChunks == p.blockItemsX / p.blockWidth}) // Ver nota abajo
+  (blockChunks : sz{
+    SZ.v blockChunks == SZ.v p.blockItemsX / SZ.v p.blockWidth
+  }) // Ver nota abajo
   (#lB : layout2 p.shared p.cols) {| ctlayout lB, srmB : strided_row_major lB |}
   (#lC : layout2 p.rows p.cols)   {| ctlayout lC, srmC : strided_row_major lC |}
   (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
@@ -1996,7 +2097,9 @@ let kdesc
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
   (p : parameters et {size_req p})
   (row_perm : permutation (natlt p.rows))
-  (blockChunks : sz{SZ.v blockChunks == p.blockItemsX / p.blockWidth}) // Ver nota abajo
+  (blockChunks : sz{
+    SZ.v blockChunks == SZ.v p.blockItemsX / SZ.v p.blockWidth
+  }) // Ver nota abajo
   (#lB : layout2 p.shared p.cols) {| ctlayout lB, srmB : strided_row_major lB |}
   (#lC : layout2 p.rows p.cols)   {| ctlayout lC, srmC : strided_row_major lC |}
   (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared){is_global_smatrix gA})
@@ -2126,7 +2229,9 @@ fn spmm_on
     (k * chunk sz) /? blockItemsK /\
     (k * chunk et) /? blockItemsX
   }))
-  (blockChunks : sz{SZ.v blockChunks == blockItemsX / blockWidth}) // Ver nota abajo
+  (blockChunks : sz{
+    SZ.v blockChunks == SZ.v blockItemsX / SZ.v blockWidth
+  }) // Ver nota abajo
   (#lB : layout2 shared cols) {| ctlayout lB, srmB : strided_row_major lB |}
   (#lC : layout2 rows cols)   {| ctlayout lC, srmC : strided_row_major lC |}
   (gA : smatrix et (SZ.v rows) (SZ.v shared){is_global_smatrix gA})
@@ -2208,7 +2313,9 @@ fn spmm
     (k * chunk sz) /? blockItemsK /\
     (k * chunk et) /? blockItemsX
   }))
-  (blockChunks : sz{SZ.v blockChunks == blockItemsX / blockWidth}) // Ver nota abajo
+  (blockChunks : sz{
+    SZ.v blockChunks == SZ.v blockItemsX / SZ.v blockWidth
+  }) // Ver nota abajo
   (#lB : layout2 shared cols) {| ctlayout lB, srmB : strided_row_major lB |}
   (#lC : layout2 rows cols)   {| ctlayout lC, srmC : strided_row_major lC |}
   (gA : smatrix et (SZ.v rows) (SZ.v shared){is_global_smatrix gA})
