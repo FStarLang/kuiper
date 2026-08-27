@@ -1845,6 +1845,7 @@ fn kf
   norewrite
   requires
     gpu **
+    pure (c_shmems_inv sh) **
     kpre
       p row_perm
       gA row_indices gB gC

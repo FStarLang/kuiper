@@ -106,10 +106,12 @@ let shmem_inv_components_to
       c_shmem_inv (fst (snd sh)) /\
       c_shmem_inv (fst (snd (snd sh))))
 =
+  (* Only the block-visibility half propagates down the tail: the alignment
+  half is about the region start, which the tail does not inherit. *)
   assert (c_shmem_inv (fst sh));
-  assert (c_shmems_inv (snd sh));
+  assert (c_shmems_block_inv (snd sh));
   assert (c_shmem_inv (fst (snd sh)));
-  assert (c_shmems_inv (snd (snd sh)));
+  assert (c_shmems_block_inv (snd (snd sh)));
   assert (c_shmem_inv (fst (snd (snd sh))));
   ()
 
@@ -212,6 +214,11 @@ let mk_kernel_arithmetic_facts
 =
   FStar.Math.Lemmas.cancel_mul_div (SZ.v wm) (SZ.v tm);
   FStar.Math.Lemmas.cancel_mul_div (SZ.v wn) (SZ.v tn)
+
+(* Keep nested quotient refinements cheap in the large [mk_kernel] context. *)
+private let div_nonneg_pat (a : nat) (b : pos)
+  : Lemma (a / b >= 0) [SMTPat (a / b)]
+  = FStar.Math.Lemmas.nat_over_pos_is_nat a b
 
 #push-options "--fuel 1 --ifuel 1 --z3rlimit_factor 4"
 inline_for_extraction noextract

@@ -1,6 +1,7 @@
 module Kuiper.Sized
 
 module SZ = Kuiper.SizeT
+open Kuiper.Canonical
 
 (* Note: most times, the extraction plugin will generate sizeof expressions
 for the corresponding type, and not really use the number inside here. However,
@@ -17,10 +18,18 @@ class sized (t:Type) = {
   default: t;
 }
 
-inline_for_extraction noextract instance _ : sized UInt8.t  = { size = 1sz; default = 0uy }
-inline_for_extraction noextract instance _ : sized UInt16.t = { size = 2sz; default = 0us }
-inline_for_extraction noextract instance _ : sized UInt32.t = { size = 4sz; default = 0ul }
-inline_for_extraction noextract instance _ : sized UInt64.t = { size = 8sz; default = 0uL }
+inline_for_extraction noextract instance sizedu8  : sized UInt8.t  = { size = 1sz; default = 0uy }
+assume Canonical_sizedu8 : canonical sizedu8
+
+inline_for_extraction noextract instance sizedu16 : sized UInt16.t = { size = 2sz; default = 0us }
+assume Canonical_sizedu16 : canonical sizedu16
+
+inline_for_extraction noextract instance sizedu32 : sized UInt32.t = { size = 4sz; default = 0ul }
+assume Canonical_sizedu32 : canonical sizedu32
+
+inline_for_extraction noextract instance sizedu64 : sized UInt64.t = { size = 8sz; default = 0uL }
+assume Canonical_sizedu64 : canonical sizedu64
 
 (* Note, we extract F*'s SizeT into uint32_t. *)
-inline_for_extraction noextract instance _ : sized SizeT.t  = { size = 4sz; default = 0sz }
+inline_for_extraction noextract instance sizedsz : sized SizeT.t  = { size = 4sz; default = 0sz }
+assume Canonical_sizedsz : canonical sizedsz

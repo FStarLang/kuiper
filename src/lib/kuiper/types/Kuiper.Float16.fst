@@ -2,6 +2,7 @@ module Kuiper.Float16
 
 open FStar.Tactics.Typeclasses { solve }
 open Kuiper.Sized
+open Kuiper.Canonical
 open Kuiper.Scalars.Base
 open Kuiper.Floating.Base
 open Kuiper.Approximates.Base
@@ -11,7 +12,9 @@ open Kuiper.Float16.Base
 let t = Float16.Base.t
 
 inline_for_extraction noextract
-instance _ : sized t = { size = 2sz; default = zero }
+instance is_sized : sized t = { size = 2sz; default = zero }
+
+assume CanonicalSized : canonical is_sized
 
 inline_for_extraction noextract
 instance _ : scalar t = {

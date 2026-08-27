@@ -9,6 +9,7 @@ open Kuiper.Array
 open FStar.Tactics.V2
 open Kuiper.ForEvery
 open Kuiper.Common
+open Kuiper.Divides { (/?+) }
 module SZ = Kuiper.SizeT
 module T = FStar.Tactics
 module A = Pulse.Lib.Array
@@ -49,13 +50,37 @@ let c_shmem_inv (#d : shmem_desc) (c:c_shmem d) : prop =
   match d with
   | SHArray ty len -> is_block_array #ty c
 
-let rec c_shmems_inv (#ds : list shmem_desc) (c:c_shmems ds) : prop =
+let rec c_shmems_block_inv (#ds : list shmem_desc) (c:c_shmems ds) : prop =
   match ds with
   | [] -> True
   | d :: ds ->
     let c : c_shmem d & c_shmems ds = c in (* coerce *)
     c_shmem_inv #d (fst c) /\
-    c_shmems_inv #ds (snd c)
+    c_shmems_block_inv #ds (snd c)
+
+(* Bytes the runtime reserves for one request. *)
+let d_bytes (d : shmem_desc) : GTot nat =
+  let SHArray ty #s len = d in Kuiper.Sized.size #ty #s * len
+
+let c_shmem_at (#d : shmem_desc) (c : c_shmem d) (base : nat) : prop =
+  match d with
+  | SHArray ty len -> base_address #ty c == base
+
+(* There is a single shared memory region per block; each request is a slice
+of it, laid out consecutively in declaration order (see KPR_SHMEM_AT). *)
+let rec c_shmems_at (#ds : list shmem_desc) (c:c_shmems ds) (base : nat) : prop =
+  match ds with
+  | [] -> True
+  | d :: ds ->
+    let c : c_shmem d & c_shmems ds = c in (* coerce *)
+    c_shmem_at #d (fst c) base /\
+    c_shmems_at #ds (snd c) (base + d_bytes d)
+
+(* The region itself is 16-byte aligned, so the first request is too; the
+others only inherit whatever the preceding lengths leave. *)
+let c_shmems_inv (#ds : list shmem_desc) (c:c_shmems ds) : prop =
+  c_shmems_block_inv c /\
+  (exists (base:nat). 16 /?+ base /\ c_shmems_at c base)
 
 let live_c_shmem #d (c : c_shmem d) (#[T.exact (`1.0R)]f:_) : slprop =
   match d with
@@ -92,7 +117,7 @@ fn fold_live_c_shmems_cons #d #ds (c : c_shmems (d::ds)) (#[T.exact (`1.0R)]f:_)
   requires live_c_shmem #d (fst c) #f ** live_c_shmems #ds (snd c) #f
   ensures live_c_shmems c #f
 
-instance val is_send_across_live_c_shmems #ds (c:c_shmems ds) #f (pf:squash (c_shmems_inv c))
+instance val is_send_across_live_c_shmems #ds (c:c_shmems ds) #f (pf:squash (c_shmems_block_inv c))
 : is_send_across block_of (live_c_shmems #ds c #f)
 
 ghost

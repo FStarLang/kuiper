@@ -44,11 +44,11 @@ __hoisted_spmm_u32_0(uint32_t rows,
             uint32_t k1 = 0U;
             for (; k1 < 1U; k1++) {
                 uint32_t __anf1 = k1;
-                uint32_t __anf03 = k1;
-                if (n_idx + __anf03 * 32U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 32U * 4U < cols) {
                     uint32_t lchunk[4U] = { 0U };
                     vec_memcpy(lchunk,
-                               gB + (cols * kr + n_idx + __anf03 * 32U * 4U));
+                               gB + (cols * kr + n_idx + __anf02 * 32U * 4U));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -79,12 +79,12 @@ __hoisted_spmm_u32_0(uint32_t rows,
                 uint32_t k1 = 0U;
                 for (; k1 < 1U; k1++) {
                     uint32_t __anf11 = k1;
-                    uint32_t __anf08 = k1;
-                    if (n_idx + __anf08 * 32U * 4U < cols) {
+                    uint32_t __anf07 = k1;
+                    if (n_idx + __anf07 * 32U * 4U < cols) {
                         uint32_t lchunk[4U] = { 0U };
                         vec_memcpy(lchunk,
                                    gB + (cols * kr + n_idx +
-                                         __anf08 * 32U * 4U));
+                                         __anf07 * 32U * 4U));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -117,11 +117,11 @@ __hoisted_spmm_u32_0(uint32_t rows,
         uint32_t k1 = 0U;
         for (; k1 < 1U; k1++) {
             uint32_t __anf11 = k1;
-            uint32_t __anf03 = k1;
-            if (n_idx + __anf03 * 32U * 4U < cols) {
+            uint32_t __anf02 = k1;
+            if (n_idx + __anf02 * 32U * 4U < cols) {
                 uint32_t lchunk[4U] = { 0U };
                 vec_memcpy(lchunk,
-                           gB + (cols * kr + n_idx + __anf03 * 32U * 4U));
+                           gB + (cols * kr + n_idx + __anf02 * 32U * 4U));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -200,12 +200,12 @@ __hoisted_spmm_f32_0(uint32_t rows,
             uint32_t k1 = 0U;
             for (; k1 < 2U; k1++) {
                 uint32_t __anf1 = k1;
-                uint32_t __anf03 = k1;
-                if (n_idx + __anf03 * 64U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 64U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                               gB + (cols * kr + n_idx + __anf03 * 64U * 4U));
+                               gB + (cols * kr + n_idx + __anf02 * 64U * 4U));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -236,13 +236,13 @@ __hoisted_spmm_f32_0(uint32_t rows,
                 uint32_t k1 = 0U;
                 for (; k1 < 2U; k1++) {
                     uint32_t __anf11 = k1;
-                    uint32_t __anf08 = k1;
-                    if (n_idx + __anf08 * 64U * 4U < cols) {
+                    uint32_t __anf07 = k1;
+                    if (n_idx + __anf07 * 64U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
                                    gB + (cols * kr + n_idx +
-                                         __anf08 * 64U * 4U));
+                                         __anf07 * 64U * 4U));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -275,12 +275,12 @@ __hoisted_spmm_f32_0(uint32_t rows,
         uint32_t k1 = 0U;
         for (; k1 < 2U; k1++) {
             uint32_t __anf11 = k1;
-            uint32_t __anf03 = k1;
-            if (n_idx + __anf03 * 64U * 4U < cols) {
+            uint32_t __anf02 = k1;
+            if (n_idx + __anf02 * 64U * 4U < cols) {
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(lchunk,
-                           gB + (cols * kr + n_idx + __anf03 * 64U * 4U));
+                           gB + (cols * kr + n_idx + __anf02 * 64U * 4U));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -359,11 +359,11 @@ __hoisted_g_spmm_f32_32x4x1_0(uint32_t rows,
             uint32_t k1 = 0U;
             for (; k1 < 1U; k1++) {
                 uint32_t __anf1 = k1;
-                uint32_t __anf03 = k1;
-                if (n_idx + __anf03 * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(lchunk, gB + (cols * kr + n_idx + __anf03 * 4U));
+                    vec_memcpy(lchunk, gB + (cols * kr + n_idx + __anf02 * 4U));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -394,12 +394,12 @@ __hoisted_g_spmm_f32_32x4x1_0(uint32_t rows,
                 uint32_t k1 = 0U;
                 for (; k1 < 1U; k1++) {
                     uint32_t __anf11 = k1;
-                    uint32_t __anf08 = k1;
-                    if (n_idx + __anf08 * 4U < cols) {
+                    uint32_t __anf07 = k1;
+                    if (n_idx + __anf07 * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                                   gB + (cols * kr + n_idx + __anf08 * 4U));
+                                   gB + (cols * kr + n_idx + __anf07 * 4U));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -431,11 +431,11 @@ __hoisted_g_spmm_f32_32x4x1_0(uint32_t rows,
         uint32_t k1 = 0U;
         for (; k1 < 1U; k1++) {
             uint32_t __anf11 = k1;
-            uint32_t __anf03 = k1;
-            if (n_idx + __anf03 * 4U < cols) {
+            uint32_t __anf02 = k1;
+            if (n_idx + __anf02 * 4U < cols) {
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
-                vec_memcpy(lchunk, gB + (cols * kr + n_idx + __anf03 * 4U));
+                vec_memcpy(lchunk, gB + (cols * kr + n_idx + __anf02 * 4U));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -513,12 +513,12 @@ __hoisted_g_spmm_f32_32x8x2_0(uint32_t rows,
             uint32_t k1 = 0U;
             for (; k1 < 1U; k1++) {
                 uint32_t __anf1 = k1;
-                uint32_t __anf03 = k1;
-                if (n_idx + __anf03 * 2U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 2U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                               gB + (cols * kr + n_idx + __anf03 * 2U * 4U));
+                               gB + (cols * kr + n_idx + __anf02 * 2U * 4U));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -549,13 +549,13 @@ __hoisted_g_spmm_f32_32x8x2_0(uint32_t rows,
                 uint32_t k1 = 0U;
                 for (; k1 < 1U; k1++) {
                     uint32_t __anf11 = k1;
-                    uint32_t __anf08 = k1;
-                    if (n_idx + __anf08 * 2U * 4U < cols) {
+                    uint32_t __anf07 = k1;
+                    if (n_idx + __anf07 * 2U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
                                    gB + (cols * kr + n_idx +
-                                         __anf08 * 2U * 4U));
+                                         __anf07 * 2U * 4U));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -588,12 +588,12 @@ __hoisted_g_spmm_f32_32x8x2_0(uint32_t rows,
         uint32_t k1 = 0U;
         for (; k1 < 1U; k1++) {
             uint32_t __anf11 = k1;
-            uint32_t __anf03 = k1;
-            if (n_idx + __anf03 * 2U * 4U < cols) {
+            uint32_t __anf02 = k1;
+            if (n_idx + __anf02 * 2U * 4U < cols) {
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(lchunk,
-                           gB + (cols * kr + n_idx + __anf03 * 2U * 4U));
+                           gB + (cols * kr + n_idx + __anf02 * 2U * 4U));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -672,12 +672,12 @@ __hoisted_g_spmm_f32_32x16x4_0(uint32_t rows,
             uint32_t k1 = 0U;
             for (; k1 < 1U; k1++) {
                 uint32_t __anf1 = k1;
-                uint32_t __anf03 = k1;
-                if (n_idx + __anf03 * 4U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 4U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                               gB + (cols * kr + n_idx + __anf03 * 4U * 4U));
+                               gB + (cols * kr + n_idx + __anf02 * 4U * 4U));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -708,13 +708,13 @@ __hoisted_g_spmm_f32_32x16x4_0(uint32_t rows,
                 uint32_t k1 = 0U;
                 for (; k1 < 1U; k1++) {
                     uint32_t __anf11 = k1;
-                    uint32_t __anf08 = k1;
-                    if (n_idx + __anf08 * 4U * 4U < cols) {
+                    uint32_t __anf07 = k1;
+                    if (n_idx + __anf07 * 4U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
                                    gB + (cols * kr + n_idx +
-                                         __anf08 * 4U * 4U));
+                                         __anf07 * 4U * 4U));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -747,12 +747,12 @@ __hoisted_g_spmm_f32_32x16x4_0(uint32_t rows,
         uint32_t k1 = 0U;
         for (; k1 < 1U; k1++) {
             uint32_t __anf11 = k1;
-            uint32_t __anf03 = k1;
-            if (n_idx + __anf03 * 4U * 4U < cols) {
+            uint32_t __anf02 = k1;
+            if (n_idx + __anf02 * 4U * 4U < cols) {
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(lchunk,
-                           gB + (cols * kr + n_idx + __anf03 * 4U * 4U));
+                           gB + (cols * kr + n_idx + __anf02 * 4U * 4U));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -831,12 +831,12 @@ __hoisted_g_spmm_f32_32x32x8_0(uint32_t rows,
             uint32_t k1 = 0U;
             for (; k1 < 1U; k1++) {
                 uint32_t __anf1 = k1;
-                uint32_t __anf03 = k1;
-                if (n_idx + __anf03 * 8U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 8U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                               gB + (cols * kr + n_idx + __anf03 * 8U * 4U));
+                               gB + (cols * kr + n_idx + __anf02 * 8U * 4U));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -867,13 +867,13 @@ __hoisted_g_spmm_f32_32x32x8_0(uint32_t rows,
                 uint32_t k1 = 0U;
                 for (; k1 < 1U; k1++) {
                     uint32_t __anf11 = k1;
-                    uint32_t __anf08 = k1;
-                    if (n_idx + __anf08 * 8U * 4U < cols) {
+                    uint32_t __anf07 = k1;
+                    if (n_idx + __anf07 * 8U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
                                    gB + (cols * kr + n_idx +
-                                         __anf08 * 8U * 4U));
+                                         __anf07 * 8U * 4U));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -906,12 +906,12 @@ __hoisted_g_spmm_f32_32x32x8_0(uint32_t rows,
         uint32_t k1 = 0U;
         for (; k1 < 1U; k1++) {
             uint32_t __anf11 = k1;
-            uint32_t __anf03 = k1;
-            if (n_idx + __anf03 * 8U * 4U < cols) {
+            uint32_t __anf02 = k1;
+            if (n_idx + __anf02 * 8U * 4U < cols) {
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(lchunk,
-                           gB + (cols * kr + n_idx + __anf03 * 8U * 4U));
+                           gB + (cols * kr + n_idx + __anf02 * 8U * 4U));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -990,12 +990,12 @@ __hoisted_g_spmm_f32_32x64x8_0(uint32_t rows,
             uint32_t k1 = 0U;
             for (; k1 < 2U; k1++) {
                 uint32_t __anf1 = k1;
-                uint32_t __anf03 = k1;
-                if (n_idx + __anf03 * 8U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 8U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                               gB + (cols * kr + n_idx + __anf03 * 8U * 4U));
+                               gB + (cols * kr + n_idx + __anf02 * 8U * 4U));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -1026,13 +1026,13 @@ __hoisted_g_spmm_f32_32x64x8_0(uint32_t rows,
                 uint32_t k1 = 0U;
                 for (; k1 < 2U; k1++) {
                     uint32_t __anf11 = k1;
-                    uint32_t __anf08 = k1;
-                    if (n_idx + __anf08 * 8U * 4U < cols) {
+                    uint32_t __anf07 = k1;
+                    if (n_idx + __anf07 * 8U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
                                    gB + (cols * kr + n_idx +
-                                         __anf08 * 8U * 4U));
+                                         __anf07 * 8U * 4U));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -1065,12 +1065,12 @@ __hoisted_g_spmm_f32_32x64x8_0(uint32_t rows,
         uint32_t k1 = 0U;
         for (; k1 < 2U; k1++) {
             uint32_t __anf11 = k1;
-            uint32_t __anf03 = k1;
-            if (n_idx + __anf03 * 8U * 4U < cols) {
+            uint32_t __anf02 = k1;
+            if (n_idx + __anf02 * 8U * 4U < cols) {
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(lchunk,
-                           gB + (cols * kr + n_idx + __anf03 * 8U * 4U));
+                           gB + (cols * kr + n_idx + __anf02 * 8U * 4U));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -1149,11 +1149,11 @@ __hoisted_g_spmm_f32_32x4x1_on_0(uint32_t rows,
             uint32_t k1 = 0U;
             for (; k1 < 1U; k1++) {
                 uint32_t __anf1 = k1;
-                uint32_t __anf03 = k1;
-                if (n_idx + __anf03 * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(lchunk, gB + (cols * kr + n_idx + __anf03 * 4U));
+                    vec_memcpy(lchunk, gB + (cols * kr + n_idx + __anf02 * 4U));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -1184,12 +1184,12 @@ __hoisted_g_spmm_f32_32x4x1_on_0(uint32_t rows,
                 uint32_t k1 = 0U;
                 for (; k1 < 1U; k1++) {
                     uint32_t __anf11 = k1;
-                    uint32_t __anf08 = k1;
-                    if (n_idx + __anf08 * 4U < cols) {
+                    uint32_t __anf07 = k1;
+                    if (n_idx + __anf07 * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                                   gB + (cols * kr + n_idx + __anf08 * 4U));
+                                   gB + (cols * kr + n_idx + __anf07 * 4U));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -1221,11 +1221,11 @@ __hoisted_g_spmm_f32_32x4x1_on_0(uint32_t rows,
         uint32_t k1 = 0U;
         for (; k1 < 1U; k1++) {
             uint32_t __anf11 = k1;
-            uint32_t __anf03 = k1;
-            if (n_idx + __anf03 * 4U < cols) {
+            uint32_t __anf02 = k1;
+            if (n_idx + __anf02 * 4U < cols) {
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
-                vec_memcpy(lchunk, gB + (cols * kr + n_idx + __anf03 * 4U));
+                vec_memcpy(lchunk, gB + (cols * kr + n_idx + __anf02 * 4U));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -1301,12 +1301,12 @@ __hoisted_g_spmm_f32_32x8x2_on_0(uint32_t rows,
             uint32_t k1 = 0U;
             for (; k1 < 1U; k1++) {
                 uint32_t __anf1 = k1;
-                uint32_t __anf03 = k1;
-                if (n_idx + __anf03 * 2U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 2U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                               gB + (cols * kr + n_idx + __anf03 * 2U * 4U));
+                               gB + (cols * kr + n_idx + __anf02 * 2U * 4U));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -1337,13 +1337,13 @@ __hoisted_g_spmm_f32_32x8x2_on_0(uint32_t rows,
                 uint32_t k1 = 0U;
                 for (; k1 < 1U; k1++) {
                     uint32_t __anf11 = k1;
-                    uint32_t __anf08 = k1;
-                    if (n_idx + __anf08 * 2U * 4U < cols) {
+                    uint32_t __anf07 = k1;
+                    if (n_idx + __anf07 * 2U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
                                    gB + (cols * kr + n_idx +
-                                         __anf08 * 2U * 4U));
+                                         __anf07 * 2U * 4U));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -1376,12 +1376,12 @@ __hoisted_g_spmm_f32_32x8x2_on_0(uint32_t rows,
         uint32_t k1 = 0U;
         for (; k1 < 1U; k1++) {
             uint32_t __anf11 = k1;
-            uint32_t __anf03 = k1;
-            if (n_idx + __anf03 * 2U * 4U < cols) {
+            uint32_t __anf02 = k1;
+            if (n_idx + __anf02 * 2U * 4U < cols) {
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(lchunk,
-                           gB + (cols * kr + n_idx + __anf03 * 2U * 4U));
+                           gB + (cols * kr + n_idx + __anf02 * 2U * 4U));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -1458,12 +1458,12 @@ __hoisted_g_spmm_f32_32x16x4_on_0(uint32_t rows,
             uint32_t k1 = 0U;
             for (; k1 < 1U; k1++) {
                 uint32_t __anf1 = k1;
-                uint32_t __anf03 = k1;
-                if (n_idx + __anf03 * 4U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 4U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                               gB + (cols * kr + n_idx + __anf03 * 4U * 4U));
+                               gB + (cols * kr + n_idx + __anf02 * 4U * 4U));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -1494,13 +1494,13 @@ __hoisted_g_spmm_f32_32x16x4_on_0(uint32_t rows,
                 uint32_t k1 = 0U;
                 for (; k1 < 1U; k1++) {
                     uint32_t __anf11 = k1;
-                    uint32_t __anf08 = k1;
-                    if (n_idx + __anf08 * 4U * 4U < cols) {
+                    uint32_t __anf07 = k1;
+                    if (n_idx + __anf07 * 4U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
                                    gB + (cols * kr + n_idx +
-                                         __anf08 * 4U * 4U));
+                                         __anf07 * 4U * 4U));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -1533,12 +1533,12 @@ __hoisted_g_spmm_f32_32x16x4_on_0(uint32_t rows,
         uint32_t k1 = 0U;
         for (; k1 < 1U; k1++) {
             uint32_t __anf11 = k1;
-            uint32_t __anf03 = k1;
-            if (n_idx + __anf03 * 4U * 4U < cols) {
+            uint32_t __anf02 = k1;
+            if (n_idx + __anf02 * 4U * 4U < cols) {
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(lchunk,
-                           gB + (cols * kr + n_idx + __anf03 * 4U * 4U));
+                           gB + (cols * kr + n_idx + __anf02 * 4U * 4U));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -1615,12 +1615,12 @@ __hoisted_g_spmm_f32_32x32x8_on_0(uint32_t rows,
             uint32_t k1 = 0U;
             for (; k1 < 1U; k1++) {
                 uint32_t __anf1 = k1;
-                uint32_t __anf03 = k1;
-                if (n_idx + __anf03 * 8U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 8U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                               gB + (cols * kr + n_idx + __anf03 * 8U * 4U));
+                               gB + (cols * kr + n_idx + __anf02 * 8U * 4U));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -1651,13 +1651,13 @@ __hoisted_g_spmm_f32_32x32x8_on_0(uint32_t rows,
                 uint32_t k1 = 0U;
                 for (; k1 < 1U; k1++) {
                     uint32_t __anf11 = k1;
-                    uint32_t __anf08 = k1;
-                    if (n_idx + __anf08 * 8U * 4U < cols) {
+                    uint32_t __anf07 = k1;
+                    if (n_idx + __anf07 * 8U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
                                    gB + (cols * kr + n_idx +
-                                         __anf08 * 8U * 4U));
+                                         __anf07 * 8U * 4U));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -1690,12 +1690,12 @@ __hoisted_g_spmm_f32_32x32x8_on_0(uint32_t rows,
         uint32_t k1 = 0U;
         for (; k1 < 1U; k1++) {
             uint32_t __anf11 = k1;
-            uint32_t __anf03 = k1;
-            if (n_idx + __anf03 * 8U * 4U < cols) {
+            uint32_t __anf02 = k1;
+            if (n_idx + __anf02 * 8U * 4U < cols) {
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(lchunk,
-                           gB + (cols * kr + n_idx + __anf03 * 8U * 4U));
+                           gB + (cols * kr + n_idx + __anf02 * 8U * 4U));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -1772,12 +1772,12 @@ __hoisted_g_spmm_f32_32x64x8_on_0(uint32_t rows,
             uint32_t k1 = 0U;
             for (; k1 < 2U; k1++) {
                 uint32_t __anf1 = k1;
-                uint32_t __anf03 = k1;
-                if (n_idx + __anf03 * 8U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 8U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                               gB + (cols * kr + n_idx + __anf03 * 8U * 4U));
+                               gB + (cols * kr + n_idx + __anf02 * 8U * 4U));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -1808,13 +1808,13 @@ __hoisted_g_spmm_f32_32x64x8_on_0(uint32_t rows,
                 uint32_t k1 = 0U;
                 for (; k1 < 2U; k1++) {
                     uint32_t __anf11 = k1;
-                    uint32_t __anf08 = k1;
-                    if (n_idx + __anf08 * 8U * 4U < cols) {
+                    uint32_t __anf07 = k1;
+                    if (n_idx + __anf07 * 8U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
                                    gB + (cols * kr + n_idx +
-                                         __anf08 * 8U * 4U));
+                                         __anf07 * 8U * 4U));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -1847,12 +1847,12 @@ __hoisted_g_spmm_f32_32x64x8_on_0(uint32_t rows,
         uint32_t k1 = 0U;
         for (; k1 < 2U; k1++) {
             uint32_t __anf11 = k1;
-            uint32_t __anf03 = k1;
-            if (n_idx + __anf03 * 8U * 4U < cols) {
+            uint32_t __anf02 = k1;
+            if (n_idx + __anf02 * 8U * 4U < cols) {
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(lchunk,
-                           gB + (cols * kr + n_idx + __anf03 * 8U * 4U));
+                           gB + (cols * kr + n_idx + __anf02 * 8U * 4U));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -1929,12 +1929,12 @@ __hoisted_g_spmm_f32_64x64x16_0(uint32_t rows,
             uint32_t k1 = 0U;
             for (; k1 < 1U; k1++) {
                 uint32_t __anf1 = k1;
-                uint32_t __anf03 = k1;
-                if (n_idx + __anf03 * 16U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                               gB + (cols * kr + n_idx + __anf03 * 16U * 4U));
+                               gB + (cols * kr + n_idx + __anf02 * 16U * 4U));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -1965,13 +1965,13 @@ __hoisted_g_spmm_f32_64x64x16_0(uint32_t rows,
                 uint32_t k1 = 0U;
                 for (; k1 < 1U; k1++) {
                     uint32_t __anf11 = k1;
-                    uint32_t __anf08 = k1;
-                    if (n_idx + __anf08 * 16U * 4U < cols) {
+                    uint32_t __anf07 = k1;
+                    if (n_idx + __anf07 * 16U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
                                    gB + (cols * kr + n_idx +
-                                         __anf08 * 16U * 4U));
+                                         __anf07 * 16U * 4U));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -2004,12 +2004,12 @@ __hoisted_g_spmm_f32_64x64x16_0(uint32_t rows,
         uint32_t k1 = 0U;
         for (; k1 < 1U; k1++) {
             uint32_t __anf11 = k1;
-            uint32_t __anf03 = k1;
-            if (n_idx + __anf03 * 16U * 4U < cols) {
+            uint32_t __anf02 = k1;
+            if (n_idx + __anf02 * 16U * 4U < cols) {
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(lchunk,
-                           gB + (cols * kr + n_idx + __anf03 * 16U * 4U));
+                           gB + (cols * kr + n_idx + __anf02 * 16U * 4U));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -2088,12 +2088,12 @@ __hoisted_g_spmm_f32_64x64x16_on_0(uint32_t rows,
             uint32_t k1 = 0U;
             for (; k1 < 1U; k1++) {
                 uint32_t __anf1 = k1;
-                uint32_t __anf03 = k1;
-                if (n_idx + __anf03 * 16U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                               gB + (cols * kr + n_idx + __anf03 * 16U * 4U));
+                               gB + (cols * kr + n_idx + __anf02 * 16U * 4U));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -2124,13 +2124,13 @@ __hoisted_g_spmm_f32_64x64x16_on_0(uint32_t rows,
                 uint32_t k1 = 0U;
                 for (; k1 < 1U; k1++) {
                     uint32_t __anf11 = k1;
-                    uint32_t __anf08 = k1;
-                    if (n_idx + __anf08 * 16U * 4U < cols) {
+                    uint32_t __anf07 = k1;
+                    if (n_idx + __anf07 * 16U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
                                    gB + (cols * kr + n_idx +
-                                         __anf08 * 16U * 4U));
+                                         __anf07 * 16U * 4U));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -2163,12 +2163,12 @@ __hoisted_g_spmm_f32_64x64x16_on_0(uint32_t rows,
         uint32_t k1 = 0U;
         for (; k1 < 1U; k1++) {
             uint32_t __anf11 = k1;
-            uint32_t __anf03 = k1;
-            if (n_idx + __anf03 * 16U * 4U < cols) {
+            uint32_t __anf02 = k1;
+            if (n_idx + __anf02 * 16U * 4U < cols) {
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(lchunk,
-                           gB + (cols * kr + n_idx + __anf03 * 16U * 4U));
+                           gB + (cols * kr + n_idx + __anf02 * 16U * 4U));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -2245,12 +2245,12 @@ __hoisted_g_spmm_f32_64x128x16_0(uint32_t rows,
             uint32_t k1 = 0U;
             for (; k1 < 2U; k1++) {
                 uint32_t __anf1 = k1;
-                uint32_t __anf03 = k1;
-                if (n_idx + __anf03 * 16U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                               gB + (cols * kr + n_idx + __anf03 * 16U * 4U));
+                               gB + (cols * kr + n_idx + __anf02 * 16U * 4U));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -2281,13 +2281,13 @@ __hoisted_g_spmm_f32_64x128x16_0(uint32_t rows,
                 uint32_t k1 = 0U;
                 for (; k1 < 2U; k1++) {
                     uint32_t __anf11 = k1;
-                    uint32_t __anf08 = k1;
-                    if (n_idx + __anf08 * 16U * 4U < cols) {
+                    uint32_t __anf07 = k1;
+                    if (n_idx + __anf07 * 16U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
                                    gB + (cols * kr + n_idx +
-                                         __anf08 * 16U * 4U));
+                                         __anf07 * 16U * 4U));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -2320,12 +2320,12 @@ __hoisted_g_spmm_f32_64x128x16_0(uint32_t rows,
         uint32_t k1 = 0U;
         for (; k1 < 2U; k1++) {
             uint32_t __anf11 = k1;
-            uint32_t __anf03 = k1;
-            if (n_idx + __anf03 * 16U * 4U < cols) {
+            uint32_t __anf02 = k1;
+            if (n_idx + __anf02 * 16U * 4U < cols) {
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(lchunk,
-                           gB + (cols * kr + n_idx + __anf03 * 16U * 4U));
+                           gB + (cols * kr + n_idx + __anf02 * 16U * 4U));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -2404,12 +2404,12 @@ __hoisted_g_spmm_f32_64x128x16_on_0(uint32_t rows,
             uint32_t k1 = 0U;
             for (; k1 < 2U; k1++) {
                 uint32_t __anf1 = k1;
-                uint32_t __anf03 = k1;
-                if (n_idx + __anf03 * 16U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                               gB + (cols * kr + n_idx + __anf03 * 16U * 4U));
+                               gB + (cols * kr + n_idx + __anf02 * 16U * 4U));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -2440,13 +2440,13 @@ __hoisted_g_spmm_f32_64x128x16_on_0(uint32_t rows,
                 uint32_t k1 = 0U;
                 for (; k1 < 2U; k1++) {
                     uint32_t __anf11 = k1;
-                    uint32_t __anf08 = k1;
-                    if (n_idx + __anf08 * 16U * 4U < cols) {
+                    uint32_t __anf07 = k1;
+                    if (n_idx + __anf07 * 16U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
                                    gB + (cols * kr + n_idx +
-                                         __anf08 * 16U * 4U));
+                                         __anf07 * 16U * 4U));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -2479,12 +2479,12 @@ __hoisted_g_spmm_f32_64x128x16_on_0(uint32_t rows,
         uint32_t k1 = 0U;
         for (; k1 < 2U; k1++) {
             uint32_t __anf11 = k1;
-            uint32_t __anf03 = k1;
-            if (n_idx + __anf03 * 16U * 4U < cols) {
+            uint32_t __anf02 = k1;
+            if (n_idx + __anf02 * 16U * 4U < cols) {
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(lchunk,
-                           gB + (cols * kr + n_idx + __anf03 * 16U * 4U));
+                           gB + (cols * kr + n_idx + __anf02 * 16U * 4U));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -2561,12 +2561,12 @@ __hoisted_g_spmm_f32_64x256x16_0(uint32_t rows,
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++) {
                 uint32_t __anf1 = k1;
-                uint32_t __anf03 = k1;
-                if (n_idx + __anf03 * 16U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                               gB + (cols * kr + n_idx + __anf03 * 16U * 4U));
+                               gB + (cols * kr + n_idx + __anf02 * 16U * 4U));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -2597,13 +2597,13 @@ __hoisted_g_spmm_f32_64x256x16_0(uint32_t rows,
                 uint32_t k1 = 0U;
                 for (; k1 < 4U; k1++) {
                     uint32_t __anf11 = k1;
-                    uint32_t __anf08 = k1;
-                    if (n_idx + __anf08 * 16U * 4U < cols) {
+                    uint32_t __anf07 = k1;
+                    if (n_idx + __anf07 * 16U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
                                    gB + (cols * kr + n_idx +
-                                         __anf08 * 16U * 4U));
+                                         __anf07 * 16U * 4U));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -2636,12 +2636,12 @@ __hoisted_g_spmm_f32_64x256x16_0(uint32_t rows,
         uint32_t k1 = 0U;
         for (; k1 < 4U; k1++) {
             uint32_t __anf11 = k1;
-            uint32_t __anf03 = k1;
-            if (n_idx + __anf03 * 16U * 4U < cols) {
+            uint32_t __anf02 = k1;
+            if (n_idx + __anf02 * 16U * 4U < cols) {
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(lchunk,
-                           gB + (cols * kr + n_idx + __anf03 * 16U * 4U));
+                           gB + (cols * kr + n_idx + __anf02 * 16U * 4U));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -2720,12 +2720,12 @@ __hoisted_g_spmm_f32_64x256x16_on_0(uint32_t rows,
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++) {
                 uint32_t __anf1 = k1;
-                uint32_t __anf03 = k1;
-                if (n_idx + __anf03 * 16U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                               gB + (cols * kr + n_idx + __anf03 * 16U * 4U));
+                               gB + (cols * kr + n_idx + __anf02 * 16U * 4U));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -2756,13 +2756,13 @@ __hoisted_g_spmm_f32_64x256x16_on_0(uint32_t rows,
                 uint32_t k1 = 0U;
                 for (; k1 < 4U; k1++) {
                     uint32_t __anf11 = k1;
-                    uint32_t __anf08 = k1;
-                    if (n_idx + __anf08 * 16U * 4U < cols) {
+                    uint32_t __anf07 = k1;
+                    if (n_idx + __anf07 * 16U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
                                    gB + (cols * kr + n_idx +
-                                         __anf08 * 16U * 4U));
+                                         __anf07 * 16U * 4U));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -2795,12 +2795,12 @@ __hoisted_g_spmm_f32_64x256x16_on_0(uint32_t rows,
         uint32_t k1 = 0U;
         for (; k1 < 4U; k1++) {
             uint32_t __anf11 = k1;
-            uint32_t __anf03 = k1;
-            if (n_idx + __anf03 * 16U * 4U < cols) {
+            uint32_t __anf02 = k1;
+            if (n_idx + __anf02 * 16U * 4U < cols) {
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(lchunk,
-                           gB + (cols * kr + n_idx + __anf03 * 16U * 4U));
+                           gB + (cols * kr + n_idx + __anf02 * 16U * 4U));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -2877,12 +2877,12 @@ __hoisted_g_spmm_f32_64x512x16_0(uint32_t rows,
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++) {
                 uint32_t __anf1 = k1;
-                uint32_t __anf03 = k1;
-                if (n_idx + __anf03 * 16U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                               gB + (cols * kr + n_idx + __anf03 * 16U * 4U));
+                               gB + (cols * kr + n_idx + __anf02 * 16U * 4U));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -2913,13 +2913,13 @@ __hoisted_g_spmm_f32_64x512x16_0(uint32_t rows,
                 uint32_t k1 = 0U;
                 for (; k1 < 8U; k1++) {
                     uint32_t __anf11 = k1;
-                    uint32_t __anf08 = k1;
-                    if (n_idx + __anf08 * 16U * 4U < cols) {
+                    uint32_t __anf07 = k1;
+                    if (n_idx + __anf07 * 16U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
                                    gB + (cols * kr + n_idx +
-                                         __anf08 * 16U * 4U));
+                                         __anf07 * 16U * 4U));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -2952,12 +2952,12 @@ __hoisted_g_spmm_f32_64x512x16_0(uint32_t rows,
         uint32_t k1 = 0U;
         for (; k1 < 8U; k1++) {
             uint32_t __anf11 = k1;
-            uint32_t __anf03 = k1;
-            if (n_idx + __anf03 * 16U * 4U < cols) {
+            uint32_t __anf02 = k1;
+            if (n_idx + __anf02 * 16U * 4U < cols) {
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(lchunk,
-                           gB + (cols * kr + n_idx + __anf03 * 16U * 4U));
+                           gB + (cols * kr + n_idx + __anf02 * 16U * 4U));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -3036,12 +3036,12 @@ __hoisted_g_spmm_f32_64x512x16_on_0(uint32_t rows,
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++) {
                 uint32_t __anf1 = k1;
-                uint32_t __anf03 = k1;
-                if (n_idx + __anf03 * 16U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                               gB + (cols * kr + n_idx + __anf03 * 16U * 4U));
+                               gB + (cols * kr + n_idx + __anf02 * 16U * 4U));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -3072,13 +3072,13 @@ __hoisted_g_spmm_f32_64x512x16_on_0(uint32_t rows,
                 uint32_t k1 = 0U;
                 for (; k1 < 8U; k1++) {
                     uint32_t __anf11 = k1;
-                    uint32_t __anf08 = k1;
-                    if (n_idx + __anf08 * 16U * 4U < cols) {
+                    uint32_t __anf07 = k1;
+                    if (n_idx + __anf07 * 16U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
                                    gB + (cols * kr + n_idx +
-                                         __anf08 * 16U * 4U));
+                                         __anf07 * 16U * 4U));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -3111,12 +3111,12 @@ __hoisted_g_spmm_f32_64x512x16_on_0(uint32_t rows,
         uint32_t k1 = 0U;
         for (; k1 < 8U; k1++) {
             uint32_t __anf11 = k1;
-            uint32_t __anf03 = k1;
-            if (n_idx + __anf03 * 16U * 4U < cols) {
+            uint32_t __anf02 = k1;
+            if (n_idx + __anf02 * 16U * 4U < cols) {
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(lchunk,
-                           gB + (cols * kr + n_idx + __anf03 * 16U * 4U));
+                           gB + (cols * kr + n_idx + __anf02 * 16U * 4U));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -3193,12 +3193,12 @@ __hoisted_g_spmm_f32_128x64x16_0(uint32_t rows,
             uint32_t k1 = 0U;
             for (; k1 < 1U; k1++) {
                 uint32_t __anf1 = k1;
-                uint32_t __anf03 = k1;
-                if (n_idx + __anf03 * 16U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                               gB + (cols * kr + n_idx + __anf03 * 16U * 4U));
+                               gB + (cols * kr + n_idx + __anf02 * 16U * 4U));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -3229,13 +3229,13 @@ __hoisted_g_spmm_f32_128x64x16_0(uint32_t rows,
                 uint32_t k1 = 0U;
                 for (; k1 < 1U; k1++) {
                     uint32_t __anf11 = k1;
-                    uint32_t __anf08 = k1;
-                    if (n_idx + __anf08 * 16U * 4U < cols) {
+                    uint32_t __anf07 = k1;
+                    if (n_idx + __anf07 * 16U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
                                    gB + (cols * kr + n_idx +
-                                         __anf08 * 16U * 4U));
+                                         __anf07 * 16U * 4U));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -3268,12 +3268,12 @@ __hoisted_g_spmm_f32_128x64x16_0(uint32_t rows,
         uint32_t k1 = 0U;
         for (; k1 < 1U; k1++) {
             uint32_t __anf11 = k1;
-            uint32_t __anf03 = k1;
-            if (n_idx + __anf03 * 16U * 4U < cols) {
+            uint32_t __anf02 = k1;
+            if (n_idx + __anf02 * 16U * 4U < cols) {
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(lchunk,
-                           gB + (cols * kr + n_idx + __anf03 * 16U * 4U));
+                           gB + (cols * kr + n_idx + __anf02 * 16U * 4U));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -3352,12 +3352,12 @@ __hoisted_g_spmm_f32_128x64x16_on_0(uint32_t rows,
             uint32_t k1 = 0U;
             for (; k1 < 1U; k1++) {
                 uint32_t __anf1 = k1;
-                uint32_t __anf03 = k1;
-                if (n_idx + __anf03 * 16U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                               gB + (cols * kr + n_idx + __anf03 * 16U * 4U));
+                               gB + (cols * kr + n_idx + __anf02 * 16U * 4U));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -3388,13 +3388,13 @@ __hoisted_g_spmm_f32_128x64x16_on_0(uint32_t rows,
                 uint32_t k1 = 0U;
                 for (; k1 < 1U; k1++) {
                     uint32_t __anf11 = k1;
-                    uint32_t __anf08 = k1;
-                    if (n_idx + __anf08 * 16U * 4U < cols) {
+                    uint32_t __anf07 = k1;
+                    if (n_idx + __anf07 * 16U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
                                    gB + (cols * kr + n_idx +
-                                         __anf08 * 16U * 4U));
+                                         __anf07 * 16U * 4U));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -3427,12 +3427,12 @@ __hoisted_g_spmm_f32_128x64x16_on_0(uint32_t rows,
         uint32_t k1 = 0U;
         for (; k1 < 1U; k1++) {
             uint32_t __anf11 = k1;
-            uint32_t __anf03 = k1;
-            if (n_idx + __anf03 * 16U * 4U < cols) {
+            uint32_t __anf02 = k1;
+            if (n_idx + __anf02 * 16U * 4U < cols) {
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(lchunk,
-                           gB + (cols * kr + n_idx + __anf03 * 16U * 4U));
+                           gB + (cols * kr + n_idx + __anf02 * 16U * 4U));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -3509,12 +3509,12 @@ __hoisted_g_spmm_f32_128x128x16_0(uint32_t rows,
             uint32_t k1 = 0U;
             for (; k1 < 2U; k1++) {
                 uint32_t __anf1 = k1;
-                uint32_t __anf03 = k1;
-                if (n_idx + __anf03 * 16U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                               gB + (cols * kr + n_idx + __anf03 * 16U * 4U));
+                               gB + (cols * kr + n_idx + __anf02 * 16U * 4U));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -3545,13 +3545,13 @@ __hoisted_g_spmm_f32_128x128x16_0(uint32_t rows,
                 uint32_t k1 = 0U;
                 for (; k1 < 2U; k1++) {
                     uint32_t __anf11 = k1;
-                    uint32_t __anf08 = k1;
-                    if (n_idx + __anf08 * 16U * 4U < cols) {
+                    uint32_t __anf07 = k1;
+                    if (n_idx + __anf07 * 16U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
                                    gB + (cols * kr + n_idx +
-                                         __anf08 * 16U * 4U));
+                                         __anf07 * 16U * 4U));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -3584,12 +3584,12 @@ __hoisted_g_spmm_f32_128x128x16_0(uint32_t rows,
         uint32_t k1 = 0U;
         for (; k1 < 2U; k1++) {
             uint32_t __anf11 = k1;
-            uint32_t __anf03 = k1;
-            if (n_idx + __anf03 * 16U * 4U < cols) {
+            uint32_t __anf02 = k1;
+            if (n_idx + __anf02 * 16U * 4U < cols) {
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(lchunk,
-                           gB + (cols * kr + n_idx + __anf03 * 16U * 4U));
+                           gB + (cols * kr + n_idx + __anf02 * 16U * 4U));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -3669,12 +3669,12 @@ __hoisted_g_spmm_f32_128x128x16_on_0(uint32_t rows,
             uint32_t k1 = 0U;
             for (; k1 < 2U; k1++) {
                 uint32_t __anf1 = k1;
-                uint32_t __anf03 = k1;
-                if (n_idx + __anf03 * 16U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                               gB + (cols * kr + n_idx + __anf03 * 16U * 4U));
+                               gB + (cols * kr + n_idx + __anf02 * 16U * 4U));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -3705,13 +3705,13 @@ __hoisted_g_spmm_f32_128x128x16_on_0(uint32_t rows,
                 uint32_t k1 = 0U;
                 for (; k1 < 2U; k1++) {
                     uint32_t __anf11 = k1;
-                    uint32_t __anf08 = k1;
-                    if (n_idx + __anf08 * 16U * 4U < cols) {
+                    uint32_t __anf07 = k1;
+                    if (n_idx + __anf07 * 16U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
                                    gB + (cols * kr + n_idx +
-                                         __anf08 * 16U * 4U));
+                                         __anf07 * 16U * 4U));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -3744,12 +3744,12 @@ __hoisted_g_spmm_f32_128x128x16_on_0(uint32_t rows,
         uint32_t k1 = 0U;
         for (; k1 < 2U; k1++) {
             uint32_t __anf11 = k1;
-            uint32_t __anf03 = k1;
-            if (n_idx + __anf03 * 16U * 4U < cols) {
+            uint32_t __anf02 = k1;
+            if (n_idx + __anf02 * 16U * 4U < cols) {
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(lchunk,
-                           gB + (cols * kr + n_idx + __anf03 * 16U * 4U));
+                           gB + (cols * kr + n_idx + __anf02 * 16U * 4U));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -3826,12 +3826,12 @@ __hoisted_g_spmm_f32_128x128x32_0(uint32_t rows,
             uint32_t k1 = 0U;
             for (; k1 < 1U; k1++) {
                 uint32_t __anf1 = k1;
-                uint32_t __anf03 = k1;
-                if (n_idx + __anf03 * 32U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 32U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                               gB + (cols * kr + n_idx + __anf03 * 32U * 4U));
+                               gB + (cols * kr + n_idx + __anf02 * 32U * 4U));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -3862,13 +3862,13 @@ __hoisted_g_spmm_f32_128x128x32_0(uint32_t rows,
                 uint32_t k1 = 0U;
                 for (; k1 < 1U; k1++) {
                     uint32_t __anf11 = k1;
-                    uint32_t __anf08 = k1;
-                    if (n_idx + __anf08 * 32U * 4U < cols) {
+                    uint32_t __anf07 = k1;
+                    if (n_idx + __anf07 * 32U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
                                    gB + (cols * kr + n_idx +
-                                         __anf08 * 32U * 4U));
+                                         __anf07 * 32U * 4U));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -3901,12 +3901,12 @@ __hoisted_g_spmm_f32_128x128x32_0(uint32_t rows,
         uint32_t k1 = 0U;
         for (; k1 < 1U; k1++) {
             uint32_t __anf11 = k1;
-            uint32_t __anf03 = k1;
-            if (n_idx + __anf03 * 32U * 4U < cols) {
+            uint32_t __anf02 = k1;
+            if (n_idx + __anf02 * 32U * 4U < cols) {
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(lchunk,
-                           gB + (cols * kr + n_idx + __anf03 * 32U * 4U));
+                           gB + (cols * kr + n_idx + __anf02 * 32U * 4U));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -3986,12 +3986,12 @@ __hoisted_g_spmm_f32_128x128x32_on_0(uint32_t rows,
             uint32_t k1 = 0U;
             for (; k1 < 1U; k1++) {
                 uint32_t __anf1 = k1;
-                uint32_t __anf03 = k1;
-                if (n_idx + __anf03 * 32U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 32U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                               gB + (cols * kr + n_idx + __anf03 * 32U * 4U));
+                               gB + (cols * kr + n_idx + __anf02 * 32U * 4U));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -4022,13 +4022,13 @@ __hoisted_g_spmm_f32_128x128x32_on_0(uint32_t rows,
                 uint32_t k1 = 0U;
                 for (; k1 < 1U; k1++) {
                     uint32_t __anf11 = k1;
-                    uint32_t __anf08 = k1;
-                    if (n_idx + __anf08 * 32U * 4U < cols) {
+                    uint32_t __anf07 = k1;
+                    if (n_idx + __anf07 * 32U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
                                    gB + (cols * kr + n_idx +
-                                         __anf08 * 32U * 4U));
+                                         __anf07 * 32U * 4U));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -4061,12 +4061,12 @@ __hoisted_g_spmm_f32_128x128x32_on_0(uint32_t rows,
         uint32_t k1 = 0U;
         for (; k1 < 1U; k1++) {
             uint32_t __anf11 = k1;
-            uint32_t __anf03 = k1;
-            if (n_idx + __anf03 * 32U * 4U < cols) {
+            uint32_t __anf02 = k1;
+            if (n_idx + __anf02 * 32U * 4U < cols) {
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(lchunk,
-                           gB + (cols * kr + n_idx + __anf03 * 32U * 4U));
+                           gB + (cols * kr + n_idx + __anf02 * 32U * 4U));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -4143,12 +4143,12 @@ __hoisted_g_spmm_f32_128x256x16_0(uint32_t rows,
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++) {
                 uint32_t __anf1 = k1;
-                uint32_t __anf03 = k1;
-                if (n_idx + __anf03 * 16U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                               gB + (cols * kr + n_idx + __anf03 * 16U * 4U));
+                               gB + (cols * kr + n_idx + __anf02 * 16U * 4U));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -4179,13 +4179,13 @@ __hoisted_g_spmm_f32_128x256x16_0(uint32_t rows,
                 uint32_t k1 = 0U;
                 for (; k1 < 4U; k1++) {
                     uint32_t __anf11 = k1;
-                    uint32_t __anf08 = k1;
-                    if (n_idx + __anf08 * 16U * 4U < cols) {
+                    uint32_t __anf07 = k1;
+                    if (n_idx + __anf07 * 16U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
                                    gB + (cols * kr + n_idx +
-                                         __anf08 * 16U * 4U));
+                                         __anf07 * 16U * 4U));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -4218,12 +4218,12 @@ __hoisted_g_spmm_f32_128x256x16_0(uint32_t rows,
         uint32_t k1 = 0U;
         for (; k1 < 4U; k1++) {
             uint32_t __anf11 = k1;
-            uint32_t __anf03 = k1;
-            if (n_idx + __anf03 * 16U * 4U < cols) {
+            uint32_t __anf02 = k1;
+            if (n_idx + __anf02 * 16U * 4U < cols) {
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(lchunk,
-                           gB + (cols * kr + n_idx + __anf03 * 16U * 4U));
+                           gB + (cols * kr + n_idx + __anf02 * 16U * 4U));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -4303,12 +4303,12 @@ __hoisted_g_spmm_f32_128x256x16_on_0(uint32_t rows,
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++) {
                 uint32_t __anf1 = k1;
-                uint32_t __anf03 = k1;
-                if (n_idx + __anf03 * 16U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                               gB + (cols * kr + n_idx + __anf03 * 16U * 4U));
+                               gB + (cols * kr + n_idx + __anf02 * 16U * 4U));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -4339,13 +4339,13 @@ __hoisted_g_spmm_f32_128x256x16_on_0(uint32_t rows,
                 uint32_t k1 = 0U;
                 for (; k1 < 4U; k1++) {
                     uint32_t __anf11 = k1;
-                    uint32_t __anf08 = k1;
-                    if (n_idx + __anf08 * 16U * 4U < cols) {
+                    uint32_t __anf07 = k1;
+                    if (n_idx + __anf07 * 16U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
                                    gB + (cols * kr + n_idx +
-                                         __anf08 * 16U * 4U));
+                                         __anf07 * 16U * 4U));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -4378,12 +4378,12 @@ __hoisted_g_spmm_f32_128x256x16_on_0(uint32_t rows,
         uint32_t k1 = 0U;
         for (; k1 < 4U; k1++) {
             uint32_t __anf11 = k1;
-            uint32_t __anf03 = k1;
-            if (n_idx + __anf03 * 16U * 4U < cols) {
+            uint32_t __anf02 = k1;
+            if (n_idx + __anf02 * 16U * 4U < cols) {
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(lchunk,
-                           gB + (cols * kr + n_idx + __anf03 * 16U * 4U));
+                           gB + (cols * kr + n_idx + __anf02 * 16U * 4U));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -4460,12 +4460,12 @@ __hoisted_g_spmm_f32_128x256x32_0(uint32_t rows,
             uint32_t k1 = 0U;
             for (; k1 < 2U; k1++) {
                 uint32_t __anf1 = k1;
-                uint32_t __anf03 = k1;
-                if (n_idx + __anf03 * 32U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 32U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                               gB + (cols * kr + n_idx + __anf03 * 32U * 4U));
+                               gB + (cols * kr + n_idx + __anf02 * 32U * 4U));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -4496,13 +4496,13 @@ __hoisted_g_spmm_f32_128x256x32_0(uint32_t rows,
                 uint32_t k1 = 0U;
                 for (; k1 < 2U; k1++) {
                     uint32_t __anf11 = k1;
-                    uint32_t __anf08 = k1;
-                    if (n_idx + __anf08 * 32U * 4U < cols) {
+                    uint32_t __anf07 = k1;
+                    if (n_idx + __anf07 * 32U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
                                    gB + (cols * kr + n_idx +
-                                         __anf08 * 32U * 4U));
+                                         __anf07 * 32U * 4U));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -4535,12 +4535,12 @@ __hoisted_g_spmm_f32_128x256x32_0(uint32_t rows,
         uint32_t k1 = 0U;
         for (; k1 < 2U; k1++) {
             uint32_t __anf11 = k1;
-            uint32_t __anf03 = k1;
-            if (n_idx + __anf03 * 32U * 4U < cols) {
+            uint32_t __anf02 = k1;
+            if (n_idx + __anf02 * 32U * 4U < cols) {
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(lchunk,
-                           gB + (cols * kr + n_idx + __anf03 * 32U * 4U));
+                           gB + (cols * kr + n_idx + __anf02 * 32U * 4U));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -4620,12 +4620,12 @@ __hoisted_g_spmm_f32_128x256x32_on_0(uint32_t rows,
             uint32_t k1 = 0U;
             for (; k1 < 2U; k1++) {
                 uint32_t __anf1 = k1;
-                uint32_t __anf03 = k1;
-                if (n_idx + __anf03 * 32U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 32U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                               gB + (cols * kr + n_idx + __anf03 * 32U * 4U));
+                               gB + (cols * kr + n_idx + __anf02 * 32U * 4U));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -4656,13 +4656,13 @@ __hoisted_g_spmm_f32_128x256x32_on_0(uint32_t rows,
                 uint32_t k1 = 0U;
                 for (; k1 < 2U; k1++) {
                     uint32_t __anf11 = k1;
-                    uint32_t __anf08 = k1;
-                    if (n_idx + __anf08 * 32U * 4U < cols) {
+                    uint32_t __anf07 = k1;
+                    if (n_idx + __anf07 * 32U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
                                    gB + (cols * kr + n_idx +
-                                         __anf08 * 32U * 4U));
+                                         __anf07 * 32U * 4U));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -4695,12 +4695,12 @@ __hoisted_g_spmm_f32_128x256x32_on_0(uint32_t rows,
         uint32_t k1 = 0U;
         for (; k1 < 2U; k1++) {
             uint32_t __anf11 = k1;
-            uint32_t __anf03 = k1;
-            if (n_idx + __anf03 * 32U * 4U < cols) {
+            uint32_t __anf02 = k1;
+            if (n_idx + __anf02 * 32U * 4U < cols) {
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(lchunk,
-                           gB + (cols * kr + n_idx + __anf03 * 32U * 4U));
+                           gB + (cols * kr + n_idx + __anf02 * 32U * 4U));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -4777,12 +4777,12 @@ __hoisted_g_spmm_f32_128x512x16_0(uint32_t rows,
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++) {
                 uint32_t __anf1 = k1;
-                uint32_t __anf03 = k1;
-                if (n_idx + __anf03 * 16U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                               gB + (cols * kr + n_idx + __anf03 * 16U * 4U));
+                               gB + (cols * kr + n_idx + __anf02 * 16U * 4U));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -4813,13 +4813,13 @@ __hoisted_g_spmm_f32_128x512x16_0(uint32_t rows,
                 uint32_t k1 = 0U;
                 for (; k1 < 8U; k1++) {
                     uint32_t __anf11 = k1;
-                    uint32_t __anf08 = k1;
-                    if (n_idx + __anf08 * 16U * 4U < cols) {
+                    uint32_t __anf07 = k1;
+                    if (n_idx + __anf07 * 16U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
                                    gB + (cols * kr + n_idx +
-                                         __anf08 * 16U * 4U));
+                                         __anf07 * 16U * 4U));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -4852,12 +4852,12 @@ __hoisted_g_spmm_f32_128x512x16_0(uint32_t rows,
         uint32_t k1 = 0U;
         for (; k1 < 8U; k1++) {
             uint32_t __anf11 = k1;
-            uint32_t __anf03 = k1;
-            if (n_idx + __anf03 * 16U * 4U < cols) {
+            uint32_t __anf02 = k1;
+            if (n_idx + __anf02 * 16U * 4U < cols) {
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(lchunk,
-                           gB + (cols * kr + n_idx + __anf03 * 16U * 4U));
+                           gB + (cols * kr + n_idx + __anf02 * 16U * 4U));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -4937,12 +4937,12 @@ __hoisted_g_spmm_f32_128x512x16_on_0(uint32_t rows,
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++) {
                 uint32_t __anf1 = k1;
-                uint32_t __anf03 = k1;
-                if (n_idx + __anf03 * 16U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                               gB + (cols * kr + n_idx + __anf03 * 16U * 4U));
+                               gB + (cols * kr + n_idx + __anf02 * 16U * 4U));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -4973,13 +4973,13 @@ __hoisted_g_spmm_f32_128x512x16_on_0(uint32_t rows,
                 uint32_t k1 = 0U;
                 for (; k1 < 8U; k1++) {
                     uint32_t __anf11 = k1;
-                    uint32_t __anf08 = k1;
-                    if (n_idx + __anf08 * 16U * 4U < cols) {
+                    uint32_t __anf07 = k1;
+                    if (n_idx + __anf07 * 16U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
                                    gB + (cols * kr + n_idx +
-                                         __anf08 * 16U * 4U));
+                                         __anf07 * 16U * 4U));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -5012,12 +5012,12 @@ __hoisted_g_spmm_f32_128x512x16_on_0(uint32_t rows,
         uint32_t k1 = 0U;
         for (; k1 < 8U; k1++) {
             uint32_t __anf11 = k1;
-            uint32_t __anf03 = k1;
-            if (n_idx + __anf03 * 16U * 4U < cols) {
+            uint32_t __anf02 = k1;
+            if (n_idx + __anf02 * 16U * 4U < cols) {
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(lchunk,
-                           gB + (cols * kr + n_idx + __anf03 * 16U * 4U));
+                           gB + (cols * kr + n_idx + __anf02 * 16U * 4U));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -5094,12 +5094,12 @@ __hoisted_g_spmm_f32_128x512x32_0(uint32_t rows,
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++) {
                 uint32_t __anf1 = k1;
-                uint32_t __anf03 = k1;
-                if (n_idx + __anf03 * 32U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 32U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                               gB + (cols * kr + n_idx + __anf03 * 32U * 4U));
+                               gB + (cols * kr + n_idx + __anf02 * 32U * 4U));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -5130,13 +5130,13 @@ __hoisted_g_spmm_f32_128x512x32_0(uint32_t rows,
                 uint32_t k1 = 0U;
                 for (; k1 < 4U; k1++) {
                     uint32_t __anf11 = k1;
-                    uint32_t __anf08 = k1;
-                    if (n_idx + __anf08 * 32U * 4U < cols) {
+                    uint32_t __anf07 = k1;
+                    if (n_idx + __anf07 * 32U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
                                    gB + (cols * kr + n_idx +
-                                         __anf08 * 32U * 4U));
+                                         __anf07 * 32U * 4U));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -5169,12 +5169,12 @@ __hoisted_g_spmm_f32_128x512x32_0(uint32_t rows,
         uint32_t k1 = 0U;
         for (; k1 < 4U; k1++) {
             uint32_t __anf11 = k1;
-            uint32_t __anf03 = k1;
-            if (n_idx + __anf03 * 32U * 4U < cols) {
+            uint32_t __anf02 = k1;
+            if (n_idx + __anf02 * 32U * 4U < cols) {
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(lchunk,
-                           gB + (cols * kr + n_idx + __anf03 * 32U * 4U));
+                           gB + (cols * kr + n_idx + __anf02 * 32U * 4U));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -5254,12 +5254,12 @@ __hoisted_g_spmm_f32_128x512x32_on_0(uint32_t rows,
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++) {
                 uint32_t __anf1 = k1;
-                uint32_t __anf03 = k1;
-                if (n_idx + __anf03 * 32U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 32U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                               gB + (cols * kr + n_idx + __anf03 * 32U * 4U));
+                               gB + (cols * kr + n_idx + __anf02 * 32U * 4U));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -5290,13 +5290,13 @@ __hoisted_g_spmm_f32_128x512x32_on_0(uint32_t rows,
                 uint32_t k1 = 0U;
                 for (; k1 < 4U; k1++) {
                     uint32_t __anf11 = k1;
-                    uint32_t __anf08 = k1;
-                    if (n_idx + __anf08 * 32U * 4U < cols) {
+                    uint32_t __anf07 = k1;
+                    if (n_idx + __anf07 * 32U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
                                    gB + (cols * kr + n_idx +
-                                         __anf08 * 32U * 4U));
+                                         __anf07 * 32U * 4U));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -5329,12 +5329,12 @@ __hoisted_g_spmm_f32_128x512x32_on_0(uint32_t rows,
         uint32_t k1 = 0U;
         for (; k1 < 4U; k1++) {
             uint32_t __anf11 = k1;
-            uint32_t __anf03 = k1;
-            if (n_idx + __anf03 * 32U * 4U < cols) {
+            uint32_t __anf02 = k1;
+            if (n_idx + __anf02 * 32U * 4U < cols) {
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(lchunk,
-                           gB + (cols * kr + n_idx + __anf03 * 32U * 4U));
+                           gB + (cols * kr + n_idx + __anf02 * 32U * 4U));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -5411,12 +5411,12 @@ __hoisted_g_spmm_f32_256x64x16_0(uint32_t rows,
             uint32_t k1 = 0U;
             for (; k1 < 1U; k1++) {
                 uint32_t __anf1 = k1;
-                uint32_t __anf03 = k1;
-                if (n_idx + __anf03 * 16U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                               gB + (cols * kr + n_idx + __anf03 * 16U * 4U));
+                               gB + (cols * kr + n_idx + __anf02 * 16U * 4U));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -5447,13 +5447,13 @@ __hoisted_g_spmm_f32_256x64x16_0(uint32_t rows,
                 uint32_t k1 = 0U;
                 for (; k1 < 1U; k1++) {
                     uint32_t __anf11 = k1;
-                    uint32_t __anf08 = k1;
-                    if (n_idx + __anf08 * 16U * 4U < cols) {
+                    uint32_t __anf07 = k1;
+                    if (n_idx + __anf07 * 16U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
                                    gB + (cols * kr + n_idx +
-                                         __anf08 * 16U * 4U));
+                                         __anf07 * 16U * 4U));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -5486,12 +5486,12 @@ __hoisted_g_spmm_f32_256x64x16_0(uint32_t rows,
         uint32_t k1 = 0U;
         for (; k1 < 1U; k1++) {
             uint32_t __anf11 = k1;
-            uint32_t __anf03 = k1;
-            if (n_idx + __anf03 * 16U * 4U < cols) {
+            uint32_t __anf02 = k1;
+            if (n_idx + __anf02 * 16U * 4U < cols) {
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(lchunk,
-                           gB + (cols * kr + n_idx + __anf03 * 16U * 4U));
+                           gB + (cols * kr + n_idx + __anf02 * 16U * 4U));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -5570,12 +5570,12 @@ __hoisted_g_spmm_f32_256x64x16_on_0(uint32_t rows,
             uint32_t k1 = 0U;
             for (; k1 < 1U; k1++) {
                 uint32_t __anf1 = k1;
-                uint32_t __anf03 = k1;
-                if (n_idx + __anf03 * 16U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                               gB + (cols * kr + n_idx + __anf03 * 16U * 4U));
+                               gB + (cols * kr + n_idx + __anf02 * 16U * 4U));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -5606,13 +5606,13 @@ __hoisted_g_spmm_f32_256x64x16_on_0(uint32_t rows,
                 uint32_t k1 = 0U;
                 for (; k1 < 1U; k1++) {
                     uint32_t __anf11 = k1;
-                    uint32_t __anf08 = k1;
-                    if (n_idx + __anf08 * 16U * 4U < cols) {
+                    uint32_t __anf07 = k1;
+                    if (n_idx + __anf07 * 16U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
                                    gB + (cols * kr + n_idx +
-                                         __anf08 * 16U * 4U));
+                                         __anf07 * 16U * 4U));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -5645,12 +5645,12 @@ __hoisted_g_spmm_f32_256x64x16_on_0(uint32_t rows,
         uint32_t k1 = 0U;
         for (; k1 < 1U; k1++) {
             uint32_t __anf11 = k1;
-            uint32_t __anf03 = k1;
-            if (n_idx + __anf03 * 16U * 4U < cols) {
+            uint32_t __anf02 = k1;
+            if (n_idx + __anf02 * 16U * 4U < cols) {
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(lchunk,
-                           gB + (cols * kr + n_idx + __anf03 * 16U * 4U));
+                           gB + (cols * kr + n_idx + __anf02 * 16U * 4U));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -5727,12 +5727,12 @@ __hoisted_g_spmm_f32_256x128x16_0(uint32_t rows,
             uint32_t k1 = 0U;
             for (; k1 < 2U; k1++) {
                 uint32_t __anf1 = k1;
-                uint32_t __anf03 = k1;
-                if (n_idx + __anf03 * 16U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                               gB + (cols * kr + n_idx + __anf03 * 16U * 4U));
+                               gB + (cols * kr + n_idx + __anf02 * 16U * 4U));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -5763,13 +5763,13 @@ __hoisted_g_spmm_f32_256x128x16_0(uint32_t rows,
                 uint32_t k1 = 0U;
                 for (; k1 < 2U; k1++) {
                     uint32_t __anf11 = k1;
-                    uint32_t __anf08 = k1;
-                    if (n_idx + __anf08 * 16U * 4U < cols) {
+                    uint32_t __anf07 = k1;
+                    if (n_idx + __anf07 * 16U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
                                    gB + (cols * kr + n_idx +
-                                         __anf08 * 16U * 4U));
+                                         __anf07 * 16U * 4U));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -5802,12 +5802,12 @@ __hoisted_g_spmm_f32_256x128x16_0(uint32_t rows,
         uint32_t k1 = 0U;
         for (; k1 < 2U; k1++) {
             uint32_t __anf11 = k1;
-            uint32_t __anf03 = k1;
-            if (n_idx + __anf03 * 16U * 4U < cols) {
+            uint32_t __anf02 = k1;
+            if (n_idx + __anf02 * 16U * 4U < cols) {
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(lchunk,
-                           gB + (cols * kr + n_idx + __anf03 * 16U * 4U));
+                           gB + (cols * kr + n_idx + __anf02 * 16U * 4U));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -5887,12 +5887,12 @@ __hoisted_g_spmm_f32_256x128x16_on_0(uint32_t rows,
             uint32_t k1 = 0U;
             for (; k1 < 2U; k1++) {
                 uint32_t __anf1 = k1;
-                uint32_t __anf03 = k1;
-                if (n_idx + __anf03 * 16U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                               gB + (cols * kr + n_idx + __anf03 * 16U * 4U));
+                               gB + (cols * kr + n_idx + __anf02 * 16U * 4U));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -5923,13 +5923,13 @@ __hoisted_g_spmm_f32_256x128x16_on_0(uint32_t rows,
                 uint32_t k1 = 0U;
                 for (; k1 < 2U; k1++) {
                     uint32_t __anf11 = k1;
-                    uint32_t __anf08 = k1;
-                    if (n_idx + __anf08 * 16U * 4U < cols) {
+                    uint32_t __anf07 = k1;
+                    if (n_idx + __anf07 * 16U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
                                    gB + (cols * kr + n_idx +
-                                         __anf08 * 16U * 4U));
+                                         __anf07 * 16U * 4U));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -5962,12 +5962,12 @@ __hoisted_g_spmm_f32_256x128x16_on_0(uint32_t rows,
         uint32_t k1 = 0U;
         for (; k1 < 2U; k1++) {
             uint32_t __anf11 = k1;
-            uint32_t __anf03 = k1;
-            if (n_idx + __anf03 * 16U * 4U < cols) {
+            uint32_t __anf02 = k1;
+            if (n_idx + __anf02 * 16U * 4U < cols) {
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(lchunk,
-                           gB + (cols * kr + n_idx + __anf03 * 16U * 4U));
+                           gB + (cols * kr + n_idx + __anf02 * 16U * 4U));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -6044,12 +6044,12 @@ __hoisted_g_spmm_f32_256x128x32_0(uint32_t rows,
             uint32_t k1 = 0U;
             for (; k1 < 1U; k1++) {
                 uint32_t __anf1 = k1;
-                uint32_t __anf03 = k1;
-                if (n_idx + __anf03 * 32U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 32U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                               gB + (cols * kr + n_idx + __anf03 * 32U * 4U));
+                               gB + (cols * kr + n_idx + __anf02 * 32U * 4U));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -6080,13 +6080,13 @@ __hoisted_g_spmm_f32_256x128x32_0(uint32_t rows,
                 uint32_t k1 = 0U;
                 for (; k1 < 1U; k1++) {
                     uint32_t __anf11 = k1;
-                    uint32_t __anf08 = k1;
-                    if (n_idx + __anf08 * 32U * 4U < cols) {
+                    uint32_t __anf07 = k1;
+                    if (n_idx + __anf07 * 32U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
                                    gB + (cols * kr + n_idx +
-                                         __anf08 * 32U * 4U));
+                                         __anf07 * 32U * 4U));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -6119,12 +6119,12 @@ __hoisted_g_spmm_f32_256x128x32_0(uint32_t rows,
         uint32_t k1 = 0U;
         for (; k1 < 1U; k1++) {
             uint32_t __anf11 = k1;
-            uint32_t __anf03 = k1;
-            if (n_idx + __anf03 * 32U * 4U < cols) {
+            uint32_t __anf02 = k1;
+            if (n_idx + __anf02 * 32U * 4U < cols) {
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(lchunk,
-                           gB + (cols * kr + n_idx + __anf03 * 32U * 4U));
+                           gB + (cols * kr + n_idx + __anf02 * 32U * 4U));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -6204,12 +6204,12 @@ __hoisted_g_spmm_f32_256x128x32_on_0(uint32_t rows,
             uint32_t k1 = 0U;
             for (; k1 < 1U; k1++) {
                 uint32_t __anf1 = k1;
-                uint32_t __anf03 = k1;
-                if (n_idx + __anf03 * 32U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 32U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                               gB + (cols * kr + n_idx + __anf03 * 32U * 4U));
+                               gB + (cols * kr + n_idx + __anf02 * 32U * 4U));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -6240,13 +6240,13 @@ __hoisted_g_spmm_f32_256x128x32_on_0(uint32_t rows,
                 uint32_t k1 = 0U;
                 for (; k1 < 1U; k1++) {
                     uint32_t __anf11 = k1;
-                    uint32_t __anf08 = k1;
-                    if (n_idx + __anf08 * 32U * 4U < cols) {
+                    uint32_t __anf07 = k1;
+                    if (n_idx + __anf07 * 32U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
                                    gB + (cols * kr + n_idx +
-                                         __anf08 * 32U * 4U));
+                                         __anf07 * 32U * 4U));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -6279,12 +6279,12 @@ __hoisted_g_spmm_f32_256x128x32_on_0(uint32_t rows,
         uint32_t k1 = 0U;
         for (; k1 < 1U; k1++) {
             uint32_t __anf11 = k1;
-            uint32_t __anf03 = k1;
-            if (n_idx + __anf03 * 32U * 4U < cols) {
+            uint32_t __anf02 = k1;
+            if (n_idx + __anf02 * 32U * 4U < cols) {
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(lchunk,
-                           gB + (cols * kr + n_idx + __anf03 * 32U * 4U));
+                           gB + (cols * kr + n_idx + __anf02 * 32U * 4U));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -6361,12 +6361,12 @@ __hoisted_g_spmm_f32_256x256x16_0(uint32_t rows,
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++) {
                 uint32_t __anf1 = k1;
-                uint32_t __anf03 = k1;
-                if (n_idx + __anf03 * 16U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                               gB + (cols * kr + n_idx + __anf03 * 16U * 4U));
+                               gB + (cols * kr + n_idx + __anf02 * 16U * 4U));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -6397,13 +6397,13 @@ __hoisted_g_spmm_f32_256x256x16_0(uint32_t rows,
                 uint32_t k1 = 0U;
                 for (; k1 < 4U; k1++) {
                     uint32_t __anf11 = k1;
-                    uint32_t __anf08 = k1;
-                    if (n_idx + __anf08 * 16U * 4U < cols) {
+                    uint32_t __anf07 = k1;
+                    if (n_idx + __anf07 * 16U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
                                    gB + (cols * kr + n_idx +
-                                         __anf08 * 16U * 4U));
+                                         __anf07 * 16U * 4U));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -6436,12 +6436,12 @@ __hoisted_g_spmm_f32_256x256x16_0(uint32_t rows,
         uint32_t k1 = 0U;
         for (; k1 < 4U; k1++) {
             uint32_t __anf11 = k1;
-            uint32_t __anf03 = k1;
-            if (n_idx + __anf03 * 16U * 4U < cols) {
+            uint32_t __anf02 = k1;
+            if (n_idx + __anf02 * 16U * 4U < cols) {
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(lchunk,
-                           gB + (cols * kr + n_idx + __anf03 * 16U * 4U));
+                           gB + (cols * kr + n_idx + __anf02 * 16U * 4U));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -6521,12 +6521,12 @@ __hoisted_g_spmm_f32_256x256x16_on_0(uint32_t rows,
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++) {
                 uint32_t __anf1 = k1;
-                uint32_t __anf03 = k1;
-                if (n_idx + __anf03 * 16U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                               gB + (cols * kr + n_idx + __anf03 * 16U * 4U));
+                               gB + (cols * kr + n_idx + __anf02 * 16U * 4U));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -6557,13 +6557,13 @@ __hoisted_g_spmm_f32_256x256x16_on_0(uint32_t rows,
                 uint32_t k1 = 0U;
                 for (; k1 < 4U; k1++) {
                     uint32_t __anf11 = k1;
-                    uint32_t __anf08 = k1;
-                    if (n_idx + __anf08 * 16U * 4U < cols) {
+                    uint32_t __anf07 = k1;
+                    if (n_idx + __anf07 * 16U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
                                    gB + (cols * kr + n_idx +
-                                         __anf08 * 16U * 4U));
+                                         __anf07 * 16U * 4U));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -6596,12 +6596,12 @@ __hoisted_g_spmm_f32_256x256x16_on_0(uint32_t rows,
         uint32_t k1 = 0U;
         for (; k1 < 4U; k1++) {
             uint32_t __anf11 = k1;
-            uint32_t __anf03 = k1;
-            if (n_idx + __anf03 * 16U * 4U < cols) {
+            uint32_t __anf02 = k1;
+            if (n_idx + __anf02 * 16U * 4U < cols) {
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(lchunk,
-                           gB + (cols * kr + n_idx + __anf03 * 16U * 4U));
+                           gB + (cols * kr + n_idx + __anf02 * 16U * 4U));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -6678,12 +6678,12 @@ __hoisted_g_spmm_f32_256x256x32_0(uint32_t rows,
             uint32_t k1 = 0U;
             for (; k1 < 2U; k1++) {
                 uint32_t __anf1 = k1;
-                uint32_t __anf03 = k1;
-                if (n_idx + __anf03 * 32U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 32U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                               gB + (cols * kr + n_idx + __anf03 * 32U * 4U));
+                               gB + (cols * kr + n_idx + __anf02 * 32U * 4U));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -6714,13 +6714,13 @@ __hoisted_g_spmm_f32_256x256x32_0(uint32_t rows,
                 uint32_t k1 = 0U;
                 for (; k1 < 2U; k1++) {
                     uint32_t __anf11 = k1;
-                    uint32_t __anf08 = k1;
-                    if (n_idx + __anf08 * 32U * 4U < cols) {
+                    uint32_t __anf07 = k1;
+                    if (n_idx + __anf07 * 32U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
                                    gB + (cols * kr + n_idx +
-                                         __anf08 * 32U * 4U));
+                                         __anf07 * 32U * 4U));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -6753,12 +6753,12 @@ __hoisted_g_spmm_f32_256x256x32_0(uint32_t rows,
         uint32_t k1 = 0U;
         for (; k1 < 2U; k1++) {
             uint32_t __anf11 = k1;
-            uint32_t __anf03 = k1;
-            if (n_idx + __anf03 * 32U * 4U < cols) {
+            uint32_t __anf02 = k1;
+            if (n_idx + __anf02 * 32U * 4U < cols) {
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(lchunk,
-                           gB + (cols * kr + n_idx + __anf03 * 32U * 4U));
+                           gB + (cols * kr + n_idx + __anf02 * 32U * 4U));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -6838,12 +6838,12 @@ __hoisted_g_spmm_f32_256x256x32_on_0(uint32_t rows,
             uint32_t k1 = 0U;
             for (; k1 < 2U; k1++) {
                 uint32_t __anf1 = k1;
-                uint32_t __anf03 = k1;
-                if (n_idx + __anf03 * 32U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 32U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                               gB + (cols * kr + n_idx + __anf03 * 32U * 4U));
+                               gB + (cols * kr + n_idx + __anf02 * 32U * 4U));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -6874,13 +6874,13 @@ __hoisted_g_spmm_f32_256x256x32_on_0(uint32_t rows,
                 uint32_t k1 = 0U;
                 for (; k1 < 2U; k1++) {
                     uint32_t __anf11 = k1;
-                    uint32_t __anf08 = k1;
-                    if (n_idx + __anf08 * 32U * 4U < cols) {
+                    uint32_t __anf07 = k1;
+                    if (n_idx + __anf07 * 32U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
                                    gB + (cols * kr + n_idx +
-                                         __anf08 * 32U * 4U));
+                                         __anf07 * 32U * 4U));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -6913,12 +6913,12 @@ __hoisted_g_spmm_f32_256x256x32_on_0(uint32_t rows,
         uint32_t k1 = 0U;
         for (; k1 < 2U; k1++) {
             uint32_t __anf11 = k1;
-            uint32_t __anf03 = k1;
-            if (n_idx + __anf03 * 32U * 4U < cols) {
+            uint32_t __anf02 = k1;
+            if (n_idx + __anf02 * 32U * 4U < cols) {
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(lchunk,
-                           gB + (cols * kr + n_idx + __anf03 * 32U * 4U));
+                           gB + (cols * kr + n_idx + __anf02 * 32U * 4U));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -6995,12 +6995,12 @@ __hoisted_g_spmm_f32_256x256x64_0(uint32_t rows,
             uint32_t k1 = 0U;
             for (; k1 < 1U; k1++) {
                 uint32_t __anf1 = k1;
-                uint32_t __anf03 = k1;
-                if (n_idx + __anf03 * 64U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 64U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                               gB + (cols * kr + n_idx + __anf03 * 64U * 4U));
+                               gB + (cols * kr + n_idx + __anf02 * 64U * 4U));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -7031,13 +7031,13 @@ __hoisted_g_spmm_f32_256x256x64_0(uint32_t rows,
                 uint32_t k1 = 0U;
                 for (; k1 < 1U; k1++) {
                     uint32_t __anf11 = k1;
-                    uint32_t __anf08 = k1;
-                    if (n_idx + __anf08 * 64U * 4U < cols) {
+                    uint32_t __anf07 = k1;
+                    if (n_idx + __anf07 * 64U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
                                    gB + (cols * kr + n_idx +
-                                         __anf08 * 64U * 4U));
+                                         __anf07 * 64U * 4U));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -7070,12 +7070,12 @@ __hoisted_g_spmm_f32_256x256x64_0(uint32_t rows,
         uint32_t k1 = 0U;
         for (; k1 < 1U; k1++) {
             uint32_t __anf11 = k1;
-            uint32_t __anf03 = k1;
-            if (n_idx + __anf03 * 64U * 4U < cols) {
+            uint32_t __anf02 = k1;
+            if (n_idx + __anf02 * 64U * 4U < cols) {
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(lchunk,
-                           gB + (cols * kr + n_idx + __anf03 * 64U * 4U));
+                           gB + (cols * kr + n_idx + __anf02 * 64U * 4U));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -7155,12 +7155,12 @@ __hoisted_g_spmm_f32_256x256x64_on_0(uint32_t rows,
             uint32_t k1 = 0U;
             for (; k1 < 1U; k1++) {
                 uint32_t __anf1 = k1;
-                uint32_t __anf03 = k1;
-                if (n_idx + __anf03 * 64U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 64U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                               gB + (cols * kr + n_idx + __anf03 * 64U * 4U));
+                               gB + (cols * kr + n_idx + __anf02 * 64U * 4U));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -7191,13 +7191,13 @@ __hoisted_g_spmm_f32_256x256x64_on_0(uint32_t rows,
                 uint32_t k1 = 0U;
                 for (; k1 < 1U; k1++) {
                     uint32_t __anf11 = k1;
-                    uint32_t __anf08 = k1;
-                    if (n_idx + __anf08 * 64U * 4U < cols) {
+                    uint32_t __anf07 = k1;
+                    if (n_idx + __anf07 * 64U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
                                    gB + (cols * kr + n_idx +
-                                         __anf08 * 64U * 4U));
+                                         __anf07 * 64U * 4U));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -7230,12 +7230,12 @@ __hoisted_g_spmm_f32_256x256x64_on_0(uint32_t rows,
         uint32_t k1 = 0U;
         for (; k1 < 1U; k1++) {
             uint32_t __anf11 = k1;
-            uint32_t __anf03 = k1;
-            if (n_idx + __anf03 * 64U * 4U < cols) {
+            uint32_t __anf02 = k1;
+            if (n_idx + __anf02 * 64U * 4U < cols) {
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(lchunk,
-                           gB + (cols * kr + n_idx + __anf03 * 64U * 4U));
+                           gB + (cols * kr + n_idx + __anf02 * 64U * 4U));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -7312,12 +7312,12 @@ __hoisted_g_spmm_f32_256x512x16_0(uint32_t rows,
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++) {
                 uint32_t __anf1 = k1;
-                uint32_t __anf03 = k1;
-                if (n_idx + __anf03 * 16U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                               gB + (cols * kr + n_idx + __anf03 * 16U * 4U));
+                               gB + (cols * kr + n_idx + __anf02 * 16U * 4U));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -7348,13 +7348,13 @@ __hoisted_g_spmm_f32_256x512x16_0(uint32_t rows,
                 uint32_t k1 = 0U;
                 for (; k1 < 8U; k1++) {
                     uint32_t __anf11 = k1;
-                    uint32_t __anf08 = k1;
-                    if (n_idx + __anf08 * 16U * 4U < cols) {
+                    uint32_t __anf07 = k1;
+                    if (n_idx + __anf07 * 16U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
                                    gB + (cols * kr + n_idx +
-                                         __anf08 * 16U * 4U));
+                                         __anf07 * 16U * 4U));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -7387,12 +7387,12 @@ __hoisted_g_spmm_f32_256x512x16_0(uint32_t rows,
         uint32_t k1 = 0U;
         for (; k1 < 8U; k1++) {
             uint32_t __anf11 = k1;
-            uint32_t __anf03 = k1;
-            if (n_idx + __anf03 * 16U * 4U < cols) {
+            uint32_t __anf02 = k1;
+            if (n_idx + __anf02 * 16U * 4U < cols) {
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(lchunk,
-                           gB + (cols * kr + n_idx + __anf03 * 16U * 4U));
+                           gB + (cols * kr + n_idx + __anf02 * 16U * 4U));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -7472,12 +7472,12 @@ __hoisted_g_spmm_f32_256x512x16_on_0(uint32_t rows,
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++) {
                 uint32_t __anf1 = k1;
-                uint32_t __anf03 = k1;
-                if (n_idx + __anf03 * 16U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                               gB + (cols * kr + n_idx + __anf03 * 16U * 4U));
+                               gB + (cols * kr + n_idx + __anf02 * 16U * 4U));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -7508,13 +7508,13 @@ __hoisted_g_spmm_f32_256x512x16_on_0(uint32_t rows,
                 uint32_t k1 = 0U;
                 for (; k1 < 8U; k1++) {
                     uint32_t __anf11 = k1;
-                    uint32_t __anf08 = k1;
-                    if (n_idx + __anf08 * 16U * 4U < cols) {
+                    uint32_t __anf07 = k1;
+                    if (n_idx + __anf07 * 16U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
                                    gB + (cols * kr + n_idx +
-                                         __anf08 * 16U * 4U));
+                                         __anf07 * 16U * 4U));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -7547,12 +7547,12 @@ __hoisted_g_spmm_f32_256x512x16_on_0(uint32_t rows,
         uint32_t k1 = 0U;
         for (; k1 < 8U; k1++) {
             uint32_t __anf11 = k1;
-            uint32_t __anf03 = k1;
-            if (n_idx + __anf03 * 16U * 4U < cols) {
+            uint32_t __anf02 = k1;
+            if (n_idx + __anf02 * 16U * 4U < cols) {
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(lchunk,
-                           gB + (cols * kr + n_idx + __anf03 * 16U * 4U));
+                           gB + (cols * kr + n_idx + __anf02 * 16U * 4U));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -7629,12 +7629,12 @@ __hoisted_g_spmm_f32_256x512x32_0(uint32_t rows,
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++) {
                 uint32_t __anf1 = k1;
-                uint32_t __anf03 = k1;
-                if (n_idx + __anf03 * 32U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 32U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                               gB + (cols * kr + n_idx + __anf03 * 32U * 4U));
+                               gB + (cols * kr + n_idx + __anf02 * 32U * 4U));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -7665,13 +7665,13 @@ __hoisted_g_spmm_f32_256x512x32_0(uint32_t rows,
                 uint32_t k1 = 0U;
                 for (; k1 < 4U; k1++) {
                     uint32_t __anf11 = k1;
-                    uint32_t __anf08 = k1;
-                    if (n_idx + __anf08 * 32U * 4U < cols) {
+                    uint32_t __anf07 = k1;
+                    if (n_idx + __anf07 * 32U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
                                    gB + (cols * kr + n_idx +
-                                         __anf08 * 32U * 4U));
+                                         __anf07 * 32U * 4U));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -7704,12 +7704,12 @@ __hoisted_g_spmm_f32_256x512x32_0(uint32_t rows,
         uint32_t k1 = 0U;
         for (; k1 < 4U; k1++) {
             uint32_t __anf11 = k1;
-            uint32_t __anf03 = k1;
-            if (n_idx + __anf03 * 32U * 4U < cols) {
+            uint32_t __anf02 = k1;
+            if (n_idx + __anf02 * 32U * 4U < cols) {
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(lchunk,
-                           gB + (cols * kr + n_idx + __anf03 * 32U * 4U));
+                           gB + (cols * kr + n_idx + __anf02 * 32U * 4U));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -7789,12 +7789,12 @@ __hoisted_g_spmm_f32_256x512x32_on_0(uint32_t rows,
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++) {
                 uint32_t __anf1 = k1;
-                uint32_t __anf03 = k1;
-                if (n_idx + __anf03 * 32U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 32U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                               gB + (cols * kr + n_idx + __anf03 * 32U * 4U));
+                               gB + (cols * kr + n_idx + __anf02 * 32U * 4U));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -7825,13 +7825,13 @@ __hoisted_g_spmm_f32_256x512x32_on_0(uint32_t rows,
                 uint32_t k1 = 0U;
                 for (; k1 < 4U; k1++) {
                     uint32_t __anf11 = k1;
-                    uint32_t __anf08 = k1;
-                    if (n_idx + __anf08 * 32U * 4U < cols) {
+                    uint32_t __anf07 = k1;
+                    if (n_idx + __anf07 * 32U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
                                    gB + (cols * kr + n_idx +
-                                         __anf08 * 32U * 4U));
+                                         __anf07 * 32U * 4U));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -7864,12 +7864,12 @@ __hoisted_g_spmm_f32_256x512x32_on_0(uint32_t rows,
         uint32_t k1 = 0U;
         for (; k1 < 4U; k1++) {
             uint32_t __anf11 = k1;
-            uint32_t __anf03 = k1;
-            if (n_idx + __anf03 * 32U * 4U < cols) {
+            uint32_t __anf02 = k1;
+            if (n_idx + __anf02 * 32U * 4U < cols) {
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(lchunk,
-                           gB + (cols * kr + n_idx + __anf03 * 32U * 4U));
+                           gB + (cols * kr + n_idx + __anf02 * 32U * 4U));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -7946,12 +7946,12 @@ __hoisted_g_spmm_f32_256x512x64_0(uint32_t rows,
             uint32_t k1 = 0U;
             for (; k1 < 2U; k1++) {
                 uint32_t __anf1 = k1;
-                uint32_t __anf03 = k1;
-                if (n_idx + __anf03 * 64U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 64U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                               gB + (cols * kr + n_idx + __anf03 * 64U * 4U));
+                               gB + (cols * kr + n_idx + __anf02 * 64U * 4U));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -7982,13 +7982,13 @@ __hoisted_g_spmm_f32_256x512x64_0(uint32_t rows,
                 uint32_t k1 = 0U;
                 for (; k1 < 2U; k1++) {
                     uint32_t __anf11 = k1;
-                    uint32_t __anf08 = k1;
-                    if (n_idx + __anf08 * 64U * 4U < cols) {
+                    uint32_t __anf07 = k1;
+                    if (n_idx + __anf07 * 64U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
                                    gB + (cols * kr + n_idx +
-                                         __anf08 * 64U * 4U));
+                                         __anf07 * 64U * 4U));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -8021,12 +8021,12 @@ __hoisted_g_spmm_f32_256x512x64_0(uint32_t rows,
         uint32_t k1 = 0U;
         for (; k1 < 2U; k1++) {
             uint32_t __anf11 = k1;
-            uint32_t __anf03 = k1;
-            if (n_idx + __anf03 * 64U * 4U < cols) {
+            uint32_t __anf02 = k1;
+            if (n_idx + __anf02 * 64U * 4U < cols) {
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(lchunk,
-                           gB + (cols * kr + n_idx + __anf03 * 64U * 4U));
+                           gB + (cols * kr + n_idx + __anf02 * 64U * 4U));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -8106,12 +8106,12 @@ __hoisted_g_spmm_f32_256x512x64_on_0(uint32_t rows,
             uint32_t k1 = 0U;
             for (; k1 < 2U; k1++) {
                 uint32_t __anf1 = k1;
-                uint32_t __anf03 = k1;
-                if (n_idx + __anf03 * 64U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 64U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                               gB + (cols * kr + n_idx + __anf03 * 64U * 4U));
+                               gB + (cols * kr + n_idx + __anf02 * 64U * 4U));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -8142,13 +8142,13 @@ __hoisted_g_spmm_f32_256x512x64_on_0(uint32_t rows,
                 uint32_t k1 = 0U;
                 for (; k1 < 2U; k1++) {
                     uint32_t __anf11 = k1;
-                    uint32_t __anf08 = k1;
-                    if (n_idx + __anf08 * 64U * 4U < cols) {
+                    uint32_t __anf07 = k1;
+                    if (n_idx + __anf07 * 64U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
                                    gB + (cols * kr + n_idx +
-                                         __anf08 * 64U * 4U));
+                                         __anf07 * 64U * 4U));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -8181,12 +8181,12 @@ __hoisted_g_spmm_f32_256x512x64_on_0(uint32_t rows,
         uint32_t k1 = 0U;
         for (; k1 < 2U; k1++) {
             uint32_t __anf11 = k1;
-            uint32_t __anf03 = k1;
-            if (n_idx + __anf03 * 64U * 4U < cols) {
+            uint32_t __anf02 = k1;
+            if (n_idx + __anf02 * 64U * 4U < cols) {
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(lchunk,
-                           gB + (cols * kr + n_idx + __anf03 * 64U * 4U));
+                           gB + (cols * kr + n_idx + __anf02 * 64U * 4U));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -8263,12 +8263,12 @@ __hoisted_g_spmm_f32_512x64x16_0(uint32_t rows,
             uint32_t k1 = 0U;
             for (; k1 < 1U; k1++) {
                 uint32_t __anf1 = k1;
-                uint32_t __anf03 = k1;
-                if (n_idx + __anf03 * 16U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                               gB + (cols * kr + n_idx + __anf03 * 16U * 4U));
+                               gB + (cols * kr + n_idx + __anf02 * 16U * 4U));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -8299,13 +8299,13 @@ __hoisted_g_spmm_f32_512x64x16_0(uint32_t rows,
                 uint32_t k1 = 0U;
                 for (; k1 < 1U; k1++) {
                     uint32_t __anf11 = k1;
-                    uint32_t __anf08 = k1;
-                    if (n_idx + __anf08 * 16U * 4U < cols) {
+                    uint32_t __anf07 = k1;
+                    if (n_idx + __anf07 * 16U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
                                    gB + (cols * kr + n_idx +
-                                         __anf08 * 16U * 4U));
+                                         __anf07 * 16U * 4U));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -8338,12 +8338,12 @@ __hoisted_g_spmm_f32_512x64x16_0(uint32_t rows,
         uint32_t k1 = 0U;
         for (; k1 < 1U; k1++) {
             uint32_t __anf11 = k1;
-            uint32_t __anf03 = k1;
-            if (n_idx + __anf03 * 16U * 4U < cols) {
+            uint32_t __anf02 = k1;
+            if (n_idx + __anf02 * 16U * 4U < cols) {
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(lchunk,
-                           gB + (cols * kr + n_idx + __anf03 * 16U * 4U));
+                           gB + (cols * kr + n_idx + __anf02 * 16U * 4U));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -8422,12 +8422,12 @@ __hoisted_g_spmm_f32_512x64x16_on_0(uint32_t rows,
             uint32_t k1 = 0U;
             for (; k1 < 1U; k1++) {
                 uint32_t __anf1 = k1;
-                uint32_t __anf03 = k1;
-                if (n_idx + __anf03 * 16U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                               gB + (cols * kr + n_idx + __anf03 * 16U * 4U));
+                               gB + (cols * kr + n_idx + __anf02 * 16U * 4U));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -8458,13 +8458,13 @@ __hoisted_g_spmm_f32_512x64x16_on_0(uint32_t rows,
                 uint32_t k1 = 0U;
                 for (; k1 < 1U; k1++) {
                     uint32_t __anf11 = k1;
-                    uint32_t __anf08 = k1;
-                    if (n_idx + __anf08 * 16U * 4U < cols) {
+                    uint32_t __anf07 = k1;
+                    if (n_idx + __anf07 * 16U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
                                    gB + (cols * kr + n_idx +
-                                         __anf08 * 16U * 4U));
+                                         __anf07 * 16U * 4U));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -8497,12 +8497,12 @@ __hoisted_g_spmm_f32_512x64x16_on_0(uint32_t rows,
         uint32_t k1 = 0U;
         for (; k1 < 1U; k1++) {
             uint32_t __anf11 = k1;
-            uint32_t __anf03 = k1;
-            if (n_idx + __anf03 * 16U * 4U < cols) {
+            uint32_t __anf02 = k1;
+            if (n_idx + __anf02 * 16U * 4U < cols) {
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(lchunk,
-                           gB + (cols * kr + n_idx + __anf03 * 16U * 4U));
+                           gB + (cols * kr + n_idx + __anf02 * 16U * 4U));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -8579,12 +8579,12 @@ __hoisted_g_spmm_f32_512x128x16_0(uint32_t rows,
             uint32_t k1 = 0U;
             for (; k1 < 2U; k1++) {
                 uint32_t __anf1 = k1;
-                uint32_t __anf03 = k1;
-                if (n_idx + __anf03 * 16U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                               gB + (cols * kr + n_idx + __anf03 * 16U * 4U));
+                               gB + (cols * kr + n_idx + __anf02 * 16U * 4U));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -8615,13 +8615,13 @@ __hoisted_g_spmm_f32_512x128x16_0(uint32_t rows,
                 uint32_t k1 = 0U;
                 for (; k1 < 2U; k1++) {
                     uint32_t __anf11 = k1;
-                    uint32_t __anf08 = k1;
-                    if (n_idx + __anf08 * 16U * 4U < cols) {
+                    uint32_t __anf07 = k1;
+                    if (n_idx + __anf07 * 16U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
                                    gB + (cols * kr + n_idx +
-                                         __anf08 * 16U * 4U));
+                                         __anf07 * 16U * 4U));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -8654,12 +8654,12 @@ __hoisted_g_spmm_f32_512x128x16_0(uint32_t rows,
         uint32_t k1 = 0U;
         for (; k1 < 2U; k1++) {
             uint32_t __anf11 = k1;
-            uint32_t __anf03 = k1;
-            if (n_idx + __anf03 * 16U * 4U < cols) {
+            uint32_t __anf02 = k1;
+            if (n_idx + __anf02 * 16U * 4U < cols) {
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(lchunk,
-                           gB + (cols * kr + n_idx + __anf03 * 16U * 4U));
+                           gB + (cols * kr + n_idx + __anf02 * 16U * 4U));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -8739,12 +8739,12 @@ __hoisted_g_spmm_f32_512x128x16_on_0(uint32_t rows,
             uint32_t k1 = 0U;
             for (; k1 < 2U; k1++) {
                 uint32_t __anf1 = k1;
-                uint32_t __anf03 = k1;
-                if (n_idx + __anf03 * 16U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                               gB + (cols * kr + n_idx + __anf03 * 16U * 4U));
+                               gB + (cols * kr + n_idx + __anf02 * 16U * 4U));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -8775,13 +8775,13 @@ __hoisted_g_spmm_f32_512x128x16_on_0(uint32_t rows,
                 uint32_t k1 = 0U;
                 for (; k1 < 2U; k1++) {
                     uint32_t __anf11 = k1;
-                    uint32_t __anf08 = k1;
-                    if (n_idx + __anf08 * 16U * 4U < cols) {
+                    uint32_t __anf07 = k1;
+                    if (n_idx + __anf07 * 16U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
                                    gB + (cols * kr + n_idx +
-                                         __anf08 * 16U * 4U));
+                                         __anf07 * 16U * 4U));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -8814,12 +8814,12 @@ __hoisted_g_spmm_f32_512x128x16_on_0(uint32_t rows,
         uint32_t k1 = 0U;
         for (; k1 < 2U; k1++) {
             uint32_t __anf11 = k1;
-            uint32_t __anf03 = k1;
-            if (n_idx + __anf03 * 16U * 4U < cols) {
+            uint32_t __anf02 = k1;
+            if (n_idx + __anf02 * 16U * 4U < cols) {
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(lchunk,
-                           gB + (cols * kr + n_idx + __anf03 * 16U * 4U));
+                           gB + (cols * kr + n_idx + __anf02 * 16U * 4U));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -8896,12 +8896,12 @@ __hoisted_g_spmm_f32_512x128x32_0(uint32_t rows,
             uint32_t k1 = 0U;
             for (; k1 < 1U; k1++) {
                 uint32_t __anf1 = k1;
-                uint32_t __anf03 = k1;
-                if (n_idx + __anf03 * 32U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 32U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                               gB + (cols * kr + n_idx + __anf03 * 32U * 4U));
+                               gB + (cols * kr + n_idx + __anf02 * 32U * 4U));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -8932,13 +8932,13 @@ __hoisted_g_spmm_f32_512x128x32_0(uint32_t rows,
                 uint32_t k1 = 0U;
                 for (; k1 < 1U; k1++) {
                     uint32_t __anf11 = k1;
-                    uint32_t __anf08 = k1;
-                    if (n_idx + __anf08 * 32U * 4U < cols) {
+                    uint32_t __anf07 = k1;
+                    if (n_idx + __anf07 * 32U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
                                    gB + (cols * kr + n_idx +
-                                         __anf08 * 32U * 4U));
+                                         __anf07 * 32U * 4U));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -8971,12 +8971,12 @@ __hoisted_g_spmm_f32_512x128x32_0(uint32_t rows,
         uint32_t k1 = 0U;
         for (; k1 < 1U; k1++) {
             uint32_t __anf11 = k1;
-            uint32_t __anf03 = k1;
-            if (n_idx + __anf03 * 32U * 4U < cols) {
+            uint32_t __anf02 = k1;
+            if (n_idx + __anf02 * 32U * 4U < cols) {
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(lchunk,
-                           gB + (cols * kr + n_idx + __anf03 * 32U * 4U));
+                           gB + (cols * kr + n_idx + __anf02 * 32U * 4U));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -9056,12 +9056,12 @@ __hoisted_g_spmm_f32_512x128x32_on_0(uint32_t rows,
             uint32_t k1 = 0U;
             for (; k1 < 1U; k1++) {
                 uint32_t __anf1 = k1;
-                uint32_t __anf03 = k1;
-                if (n_idx + __anf03 * 32U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 32U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                               gB + (cols * kr + n_idx + __anf03 * 32U * 4U));
+                               gB + (cols * kr + n_idx + __anf02 * 32U * 4U));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -9092,13 +9092,13 @@ __hoisted_g_spmm_f32_512x128x32_on_0(uint32_t rows,
                 uint32_t k1 = 0U;
                 for (; k1 < 1U; k1++) {
                     uint32_t __anf11 = k1;
-                    uint32_t __anf08 = k1;
-                    if (n_idx + __anf08 * 32U * 4U < cols) {
+                    uint32_t __anf07 = k1;
+                    if (n_idx + __anf07 * 32U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
                                    gB + (cols * kr + n_idx +
-                                         __anf08 * 32U * 4U));
+                                         __anf07 * 32U * 4U));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -9131,12 +9131,12 @@ __hoisted_g_spmm_f32_512x128x32_on_0(uint32_t rows,
         uint32_t k1 = 0U;
         for (; k1 < 1U; k1++) {
             uint32_t __anf11 = k1;
-            uint32_t __anf03 = k1;
-            if (n_idx + __anf03 * 32U * 4U < cols) {
+            uint32_t __anf02 = k1;
+            if (n_idx + __anf02 * 32U * 4U < cols) {
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(lchunk,
-                           gB + (cols * kr + n_idx + __anf03 * 32U * 4U));
+                           gB + (cols * kr + n_idx + __anf02 * 32U * 4U));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -9213,12 +9213,12 @@ __hoisted_g_spmm_f32_512x256x16_0(uint32_t rows,
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++) {
                 uint32_t __anf1 = k1;
-                uint32_t __anf03 = k1;
-                if (n_idx + __anf03 * 16U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                               gB + (cols * kr + n_idx + __anf03 * 16U * 4U));
+                               gB + (cols * kr + n_idx + __anf02 * 16U * 4U));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -9249,13 +9249,13 @@ __hoisted_g_spmm_f32_512x256x16_0(uint32_t rows,
                 uint32_t k1 = 0U;
                 for (; k1 < 4U; k1++) {
                     uint32_t __anf11 = k1;
-                    uint32_t __anf08 = k1;
-                    if (n_idx + __anf08 * 16U * 4U < cols) {
+                    uint32_t __anf07 = k1;
+                    if (n_idx + __anf07 * 16U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
                                    gB + (cols * kr + n_idx +
-                                         __anf08 * 16U * 4U));
+                                         __anf07 * 16U * 4U));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -9288,12 +9288,12 @@ __hoisted_g_spmm_f32_512x256x16_0(uint32_t rows,
         uint32_t k1 = 0U;
         for (; k1 < 4U; k1++) {
             uint32_t __anf11 = k1;
-            uint32_t __anf03 = k1;
-            if (n_idx + __anf03 * 16U * 4U < cols) {
+            uint32_t __anf02 = k1;
+            if (n_idx + __anf02 * 16U * 4U < cols) {
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(lchunk,
-                           gB + (cols * kr + n_idx + __anf03 * 16U * 4U));
+                           gB + (cols * kr + n_idx + __anf02 * 16U * 4U));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -9373,12 +9373,12 @@ __hoisted_g_spmm_f32_512x256x16_on_0(uint32_t rows,
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++) {
                 uint32_t __anf1 = k1;
-                uint32_t __anf03 = k1;
-                if (n_idx + __anf03 * 16U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                               gB + (cols * kr + n_idx + __anf03 * 16U * 4U));
+                               gB + (cols * kr + n_idx + __anf02 * 16U * 4U));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -9409,13 +9409,13 @@ __hoisted_g_spmm_f32_512x256x16_on_0(uint32_t rows,
                 uint32_t k1 = 0U;
                 for (; k1 < 4U; k1++) {
                     uint32_t __anf11 = k1;
-                    uint32_t __anf08 = k1;
-                    if (n_idx + __anf08 * 16U * 4U < cols) {
+                    uint32_t __anf07 = k1;
+                    if (n_idx + __anf07 * 16U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
                                    gB + (cols * kr + n_idx +
-                                         __anf08 * 16U * 4U));
+                                         __anf07 * 16U * 4U));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -9448,12 +9448,12 @@ __hoisted_g_spmm_f32_512x256x16_on_0(uint32_t rows,
         uint32_t k1 = 0U;
         for (; k1 < 4U; k1++) {
             uint32_t __anf11 = k1;
-            uint32_t __anf03 = k1;
-            if (n_idx + __anf03 * 16U * 4U < cols) {
+            uint32_t __anf02 = k1;
+            if (n_idx + __anf02 * 16U * 4U < cols) {
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(lchunk,
-                           gB + (cols * kr + n_idx + __anf03 * 16U * 4U));
+                           gB + (cols * kr + n_idx + __anf02 * 16U * 4U));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -9530,12 +9530,12 @@ __hoisted_g_spmm_f32_512x256x32_0(uint32_t rows,
             uint32_t k1 = 0U;
             for (; k1 < 2U; k1++) {
                 uint32_t __anf1 = k1;
-                uint32_t __anf03 = k1;
-                if (n_idx + __anf03 * 32U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 32U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                               gB + (cols * kr + n_idx + __anf03 * 32U * 4U));
+                               gB + (cols * kr + n_idx + __anf02 * 32U * 4U));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -9566,13 +9566,13 @@ __hoisted_g_spmm_f32_512x256x32_0(uint32_t rows,
                 uint32_t k1 = 0U;
                 for (; k1 < 2U; k1++) {
                     uint32_t __anf11 = k1;
-                    uint32_t __anf08 = k1;
-                    if (n_idx + __anf08 * 32U * 4U < cols) {
+                    uint32_t __anf07 = k1;
+                    if (n_idx + __anf07 * 32U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
                                    gB + (cols * kr + n_idx +
-                                         __anf08 * 32U * 4U));
+                                         __anf07 * 32U * 4U));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -9605,12 +9605,12 @@ __hoisted_g_spmm_f32_512x256x32_0(uint32_t rows,
         uint32_t k1 = 0U;
         for (; k1 < 2U; k1++) {
             uint32_t __anf11 = k1;
-            uint32_t __anf03 = k1;
-            if (n_idx + __anf03 * 32U * 4U < cols) {
+            uint32_t __anf02 = k1;
+            if (n_idx + __anf02 * 32U * 4U < cols) {
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(lchunk,
-                           gB + (cols * kr + n_idx + __anf03 * 32U * 4U));
+                           gB + (cols * kr + n_idx + __anf02 * 32U * 4U));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -9690,12 +9690,12 @@ __hoisted_g_spmm_f32_512x256x32_on_0(uint32_t rows,
             uint32_t k1 = 0U;
             for (; k1 < 2U; k1++) {
                 uint32_t __anf1 = k1;
-                uint32_t __anf03 = k1;
-                if (n_idx + __anf03 * 32U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 32U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                               gB + (cols * kr + n_idx + __anf03 * 32U * 4U));
+                               gB + (cols * kr + n_idx + __anf02 * 32U * 4U));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -9726,13 +9726,13 @@ __hoisted_g_spmm_f32_512x256x32_on_0(uint32_t rows,
                 uint32_t k1 = 0U;
                 for (; k1 < 2U; k1++) {
                     uint32_t __anf11 = k1;
-                    uint32_t __anf08 = k1;
-                    if (n_idx + __anf08 * 32U * 4U < cols) {
+                    uint32_t __anf07 = k1;
+                    if (n_idx + __anf07 * 32U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
                                    gB + (cols * kr + n_idx +
-                                         __anf08 * 32U * 4U));
+                                         __anf07 * 32U * 4U));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -9765,12 +9765,12 @@ __hoisted_g_spmm_f32_512x256x32_on_0(uint32_t rows,
         uint32_t k1 = 0U;
         for (; k1 < 2U; k1++) {
             uint32_t __anf11 = k1;
-            uint32_t __anf03 = k1;
-            if (n_idx + __anf03 * 32U * 4U < cols) {
+            uint32_t __anf02 = k1;
+            if (n_idx + __anf02 * 32U * 4U < cols) {
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(lchunk,
-                           gB + (cols * kr + n_idx + __anf03 * 32U * 4U));
+                           gB + (cols * kr + n_idx + __anf02 * 32U * 4U));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -9847,12 +9847,12 @@ __hoisted_g_spmm_f32_512x256x64_0(uint32_t rows,
             uint32_t k1 = 0U;
             for (; k1 < 1U; k1++) {
                 uint32_t __anf1 = k1;
-                uint32_t __anf03 = k1;
-                if (n_idx + __anf03 * 64U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 64U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                               gB + (cols * kr + n_idx + __anf03 * 64U * 4U));
+                               gB + (cols * kr + n_idx + __anf02 * 64U * 4U));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -9883,13 +9883,13 @@ __hoisted_g_spmm_f32_512x256x64_0(uint32_t rows,
                 uint32_t k1 = 0U;
                 for (; k1 < 1U; k1++) {
                     uint32_t __anf11 = k1;
-                    uint32_t __anf08 = k1;
-                    if (n_idx + __anf08 * 64U * 4U < cols) {
+                    uint32_t __anf07 = k1;
+                    if (n_idx + __anf07 * 64U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
                                    gB + (cols * kr + n_idx +
-                                         __anf08 * 64U * 4U));
+                                         __anf07 * 64U * 4U));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -9922,12 +9922,12 @@ __hoisted_g_spmm_f32_512x256x64_0(uint32_t rows,
         uint32_t k1 = 0U;
         for (; k1 < 1U; k1++) {
             uint32_t __anf11 = k1;
-            uint32_t __anf03 = k1;
-            if (n_idx + __anf03 * 64U * 4U < cols) {
+            uint32_t __anf02 = k1;
+            if (n_idx + __anf02 * 64U * 4U < cols) {
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(lchunk,
-                           gB + (cols * kr + n_idx + __anf03 * 64U * 4U));
+                           gB + (cols * kr + n_idx + __anf02 * 64U * 4U));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -10007,12 +10007,12 @@ __hoisted_g_spmm_f32_512x256x64_on_0(uint32_t rows,
             uint32_t k1 = 0U;
             for (; k1 < 1U; k1++) {
                 uint32_t __anf1 = k1;
-                uint32_t __anf03 = k1;
-                if (n_idx + __anf03 * 64U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 64U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                               gB + (cols * kr + n_idx + __anf03 * 64U * 4U));
+                               gB + (cols * kr + n_idx + __anf02 * 64U * 4U));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -10043,13 +10043,13 @@ __hoisted_g_spmm_f32_512x256x64_on_0(uint32_t rows,
                 uint32_t k1 = 0U;
                 for (; k1 < 1U; k1++) {
                     uint32_t __anf11 = k1;
-                    uint32_t __anf08 = k1;
-                    if (n_idx + __anf08 * 64U * 4U < cols) {
+                    uint32_t __anf07 = k1;
+                    if (n_idx + __anf07 * 64U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
                                    gB + (cols * kr + n_idx +
-                                         __anf08 * 64U * 4U));
+                                         __anf07 * 64U * 4U));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -10082,12 +10082,12 @@ __hoisted_g_spmm_f32_512x256x64_on_0(uint32_t rows,
         uint32_t k1 = 0U;
         for (; k1 < 1U; k1++) {
             uint32_t __anf11 = k1;
-            uint32_t __anf03 = k1;
-            if (n_idx + __anf03 * 64U * 4U < cols) {
+            uint32_t __anf02 = k1;
+            if (n_idx + __anf02 * 64U * 4U < cols) {
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(lchunk,
-                           gB + (cols * kr + n_idx + __anf03 * 64U * 4U));
+                           gB + (cols * kr + n_idx + __anf02 * 64U * 4U));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -10164,12 +10164,12 @@ __hoisted_g_spmm_f32_512x512x16_0(uint32_t rows,
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++) {
                 uint32_t __anf1 = k1;
-                uint32_t __anf03 = k1;
-                if (n_idx + __anf03 * 16U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                               gB + (cols * kr + n_idx + __anf03 * 16U * 4U));
+                               gB + (cols * kr + n_idx + __anf02 * 16U * 4U));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -10200,13 +10200,13 @@ __hoisted_g_spmm_f32_512x512x16_0(uint32_t rows,
                 uint32_t k1 = 0U;
                 for (; k1 < 8U; k1++) {
                     uint32_t __anf11 = k1;
-                    uint32_t __anf08 = k1;
-                    if (n_idx + __anf08 * 16U * 4U < cols) {
+                    uint32_t __anf07 = k1;
+                    if (n_idx + __anf07 * 16U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
                                    gB + (cols * kr + n_idx +
-                                         __anf08 * 16U * 4U));
+                                         __anf07 * 16U * 4U));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -10239,12 +10239,12 @@ __hoisted_g_spmm_f32_512x512x16_0(uint32_t rows,
         uint32_t k1 = 0U;
         for (; k1 < 8U; k1++) {
             uint32_t __anf11 = k1;
-            uint32_t __anf03 = k1;
-            if (n_idx + __anf03 * 16U * 4U < cols) {
+            uint32_t __anf02 = k1;
+            if (n_idx + __anf02 * 16U * 4U < cols) {
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(lchunk,
-                           gB + (cols * kr + n_idx + __anf03 * 16U * 4U));
+                           gB + (cols * kr + n_idx + __anf02 * 16U * 4U));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -10324,12 +10324,12 @@ __hoisted_g_spmm_f32_512x512x16_on_0(uint32_t rows,
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++) {
                 uint32_t __anf1 = k1;
-                uint32_t __anf03 = k1;
-                if (n_idx + __anf03 * 16U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                               gB + (cols * kr + n_idx + __anf03 * 16U * 4U));
+                               gB + (cols * kr + n_idx + __anf02 * 16U * 4U));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -10360,13 +10360,13 @@ __hoisted_g_spmm_f32_512x512x16_on_0(uint32_t rows,
                 uint32_t k1 = 0U;
                 for (; k1 < 8U; k1++) {
                     uint32_t __anf11 = k1;
-                    uint32_t __anf08 = k1;
-                    if (n_idx + __anf08 * 16U * 4U < cols) {
+                    uint32_t __anf07 = k1;
+                    if (n_idx + __anf07 * 16U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
                                    gB + (cols * kr + n_idx +
-                                         __anf08 * 16U * 4U));
+                                         __anf07 * 16U * 4U));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -10399,12 +10399,12 @@ __hoisted_g_spmm_f32_512x512x16_on_0(uint32_t rows,
         uint32_t k1 = 0U;
         for (; k1 < 8U; k1++) {
             uint32_t __anf11 = k1;
-            uint32_t __anf03 = k1;
-            if (n_idx + __anf03 * 16U * 4U < cols) {
+            uint32_t __anf02 = k1;
+            if (n_idx + __anf02 * 16U * 4U < cols) {
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(lchunk,
-                           gB + (cols * kr + n_idx + __anf03 * 16U * 4U));
+                           gB + (cols * kr + n_idx + __anf02 * 16U * 4U));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -10481,12 +10481,12 @@ __hoisted_g_spmm_f32_512x512x32_0(uint32_t rows,
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++) {
                 uint32_t __anf1 = k1;
-                uint32_t __anf03 = k1;
-                if (n_idx + __anf03 * 32U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 32U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                               gB + (cols * kr + n_idx + __anf03 * 32U * 4U));
+                               gB + (cols * kr + n_idx + __anf02 * 32U * 4U));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -10517,13 +10517,13 @@ __hoisted_g_spmm_f32_512x512x32_0(uint32_t rows,
                 uint32_t k1 = 0U;
                 for (; k1 < 4U; k1++) {
                     uint32_t __anf11 = k1;
-                    uint32_t __anf08 = k1;
-                    if (n_idx + __anf08 * 32U * 4U < cols) {
+                    uint32_t __anf07 = k1;
+                    if (n_idx + __anf07 * 32U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
                                    gB + (cols * kr + n_idx +
-                                         __anf08 * 32U * 4U));
+                                         __anf07 * 32U * 4U));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -10556,12 +10556,12 @@ __hoisted_g_spmm_f32_512x512x32_0(uint32_t rows,
         uint32_t k1 = 0U;
         for (; k1 < 4U; k1++) {
             uint32_t __anf11 = k1;
-            uint32_t __anf03 = k1;
-            if (n_idx + __anf03 * 32U * 4U < cols) {
+            uint32_t __anf02 = k1;
+            if (n_idx + __anf02 * 32U * 4U < cols) {
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(lchunk,
-                           gB + (cols * kr + n_idx + __anf03 * 32U * 4U));
+                           gB + (cols * kr + n_idx + __anf02 * 32U * 4U));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -10641,12 +10641,12 @@ __hoisted_g_spmm_f32_512x512x32_on_0(uint32_t rows,
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++) {
                 uint32_t __anf1 = k1;
-                uint32_t __anf03 = k1;
-                if (n_idx + __anf03 * 32U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 32U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                               gB + (cols * kr + n_idx + __anf03 * 32U * 4U));
+                               gB + (cols * kr + n_idx + __anf02 * 32U * 4U));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -10677,13 +10677,13 @@ __hoisted_g_spmm_f32_512x512x32_on_0(uint32_t rows,
                 uint32_t k1 = 0U;
                 for (; k1 < 4U; k1++) {
                     uint32_t __anf11 = k1;
-                    uint32_t __anf08 = k1;
-                    if (n_idx + __anf08 * 32U * 4U < cols) {
+                    uint32_t __anf07 = k1;
+                    if (n_idx + __anf07 * 32U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
                                    gB + (cols * kr + n_idx +
-                                         __anf08 * 32U * 4U));
+                                         __anf07 * 32U * 4U));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -10716,12 +10716,12 @@ __hoisted_g_spmm_f32_512x512x32_on_0(uint32_t rows,
         uint32_t k1 = 0U;
         for (; k1 < 4U; k1++) {
             uint32_t __anf11 = k1;
-            uint32_t __anf03 = k1;
-            if (n_idx + __anf03 * 32U * 4U < cols) {
+            uint32_t __anf02 = k1;
+            if (n_idx + __anf02 * 32U * 4U < cols) {
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(lchunk,
-                           gB + (cols * kr + n_idx + __anf03 * 32U * 4U));
+                           gB + (cols * kr + n_idx + __anf02 * 32U * 4U));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -10798,12 +10798,12 @@ __hoisted_g_spmm_f32_512x512x64_0(uint32_t rows,
             uint32_t k1 = 0U;
             for (; k1 < 2U; k1++) {
                 uint32_t __anf1 = k1;
-                uint32_t __anf03 = k1;
-                if (n_idx + __anf03 * 64U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 64U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                               gB + (cols * kr + n_idx + __anf03 * 64U * 4U));
+                               gB + (cols * kr + n_idx + __anf02 * 64U * 4U));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -10834,13 +10834,13 @@ __hoisted_g_spmm_f32_512x512x64_0(uint32_t rows,
                 uint32_t k1 = 0U;
                 for (; k1 < 2U; k1++) {
                     uint32_t __anf11 = k1;
-                    uint32_t __anf08 = k1;
-                    if (n_idx + __anf08 * 64U * 4U < cols) {
+                    uint32_t __anf07 = k1;
+                    if (n_idx + __anf07 * 64U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
                                    gB + (cols * kr + n_idx +
-                                         __anf08 * 64U * 4U));
+                                         __anf07 * 64U * 4U));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -10873,12 +10873,12 @@ __hoisted_g_spmm_f32_512x512x64_0(uint32_t rows,
         uint32_t k1 = 0U;
         for (; k1 < 2U; k1++) {
             uint32_t __anf11 = k1;
-            uint32_t __anf03 = k1;
-            if (n_idx + __anf03 * 64U * 4U < cols) {
+            uint32_t __anf02 = k1;
+            if (n_idx + __anf02 * 64U * 4U < cols) {
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(lchunk,
-                           gB + (cols * kr + n_idx + __anf03 * 64U * 4U));
+                           gB + (cols * kr + n_idx + __anf02 * 64U * 4U));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -10958,12 +10958,12 @@ __hoisted_g_spmm_f32_512x512x64_on_0(uint32_t rows,
             uint32_t k1 = 0U;
             for (; k1 < 2U; k1++) {
                 uint32_t __anf1 = k1;
-                uint32_t __anf03 = k1;
-                if (n_idx + __anf03 * 64U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 64U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                               gB + (cols * kr + n_idx + __anf03 * 64U * 4U));
+                               gB + (cols * kr + n_idx + __anf02 * 64U * 4U));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -10994,13 +10994,13 @@ __hoisted_g_spmm_f32_512x512x64_on_0(uint32_t rows,
                 uint32_t k1 = 0U;
                 for (; k1 < 2U; k1++) {
                     uint32_t __anf11 = k1;
-                    uint32_t __anf08 = k1;
-                    if (n_idx + __anf08 * 64U * 4U < cols) {
+                    uint32_t __anf07 = k1;
+                    if (n_idx + __anf07 * 64U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
                                    gB + (cols * kr + n_idx +
-                                         __anf08 * 64U * 4U));
+                                         __anf07 * 64U * 4U));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -11033,12 +11033,12 @@ __hoisted_g_spmm_f32_512x512x64_on_0(uint32_t rows,
         uint32_t k1 = 0U;
         for (; k1 < 2U; k1++) {
             uint32_t __anf11 = k1;
-            uint32_t __anf03 = k1;
-            if (n_idx + __anf03 * 64U * 4U < cols) {
+            uint32_t __anf02 = k1;
+            if (n_idx + __anf02 * 64U * 4U < cols) {
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(lchunk,
-                           gB + (cols * kr + n_idx + __anf03 * 64U * 4U));
+                           gB + (cols * kr + n_idx + __anf02 * 64U * 4U));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -11115,12 +11115,12 @@ __hoisted_g_spmm_f32_512x512x128_0(uint32_t rows,
             uint32_t k1 = 0U;
             for (; k1 < 1U; k1++) {
                 uint32_t __anf1 = k1;
-                uint32_t __anf03 = k1;
-                if (n_idx + __anf03 * 128U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 128U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                               gB + (cols * kr + n_idx + __anf03 * 128U * 4U));
+                               gB + (cols * kr + n_idx + __anf02 * 128U * 4U));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -11151,13 +11151,13 @@ __hoisted_g_spmm_f32_512x512x128_0(uint32_t rows,
                 uint32_t k1 = 0U;
                 for (; k1 < 1U; k1++) {
                     uint32_t __anf11 = k1;
-                    uint32_t __anf08 = k1;
-                    if (n_idx + __anf08 * 128U * 4U < cols) {
+                    uint32_t __anf07 = k1;
+                    if (n_idx + __anf07 * 128U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
                                    gB + (cols * kr + n_idx +
-                                         __anf08 * 128U * 4U));
+                                         __anf07 * 128U * 4U));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -11190,12 +11190,12 @@ __hoisted_g_spmm_f32_512x512x128_0(uint32_t rows,
         uint32_t k1 = 0U;
         for (; k1 < 1U; k1++) {
             uint32_t __anf11 = k1;
-            uint32_t __anf03 = k1;
-            if (n_idx + __anf03 * 128U * 4U < cols) {
+            uint32_t __anf02 = k1;
+            if (n_idx + __anf02 * 128U * 4U < cols) {
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(lchunk,
-                           gB + (cols * kr + n_idx + __anf03 * 128U * 4U));
+                           gB + (cols * kr + n_idx + __anf02 * 128U * 4U));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -11275,12 +11275,12 @@ __hoisted_g_spmm_f32_512x512x128_on_0(uint32_t rows,
             uint32_t k1 = 0U;
             for (; k1 < 1U; k1++) {
                 uint32_t __anf1 = k1;
-                uint32_t __anf03 = k1;
-                if (n_idx + __anf03 * 128U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 128U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                               gB + (cols * kr + n_idx + __anf03 * 128U * 4U));
+                               gB + (cols * kr + n_idx + __anf02 * 128U * 4U));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -11311,13 +11311,13 @@ __hoisted_g_spmm_f32_512x512x128_on_0(uint32_t rows,
                 uint32_t k1 = 0U;
                 for (; k1 < 1U; k1++) {
                     uint32_t __anf11 = k1;
-                    uint32_t __anf08 = k1;
-                    if (n_idx + __anf08 * 128U * 4U < cols) {
+                    uint32_t __anf07 = k1;
+                    if (n_idx + __anf07 * 128U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
                                    gB + (cols * kr + n_idx +
-                                         __anf08 * 128U * 4U));
+                                         __anf07 * 128U * 4U));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -11350,12 +11350,12 @@ __hoisted_g_spmm_f32_512x512x128_on_0(uint32_t rows,
         uint32_t k1 = 0U;
         for (; k1 < 1U; k1++) {
             uint32_t __anf11 = k1;
-            uint32_t __anf03 = k1;
-            if (n_idx + __anf03 * 128U * 4U < cols) {
+            uint32_t __anf02 = k1;
+            if (n_idx + __anf02 * 128U * 4U < cols) {
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(lchunk,
-                           gB + (cols * kr + n_idx + __anf03 * 128U * 4U));
+                           gB + (cols * kr + n_idx + __anf02 * 128U * 4U));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;

@@ -3,7 +3,8 @@
 NVCC_FLAGS += -O3
 NVCC_FLAGS += -I include
 NVCC_FLAGS += -I obj # needed for files in test/ only..
-NVCC_FLAGS += -arch=native
+NVCC_ARCH ?= $(if $(KUIPER_NVCC_ARCH),$(KUIPER_NVCC_ARCH),native)
+NVCC_FLAGS += -arch=$(NVCC_ARCH)
 NVCC_FLAGS += -DKUIPER_CFG_TENSORCORES=$(KUIPER_CFG_TENSORCORES)
 
 %.o: %.cu %.h include/*.h include/*/*.h

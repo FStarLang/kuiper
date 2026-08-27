@@ -874,6 +874,7 @@ fn kf
   ()
   requires
     gpu **
+    pure (c_shmems_inv shmem) **
     kpre pre_map pre_map_r nth lena a va vr out shmem bid tid **
     thread_id nth tid **
     block_id 1 bid **

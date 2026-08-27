@@ -541,6 +541,7 @@ fn flashattention_kf
   ()
   requires
     gpu **
+    pure (c_shmems_inv sh) **
     kpre_post_outer_fa n d nthr (gS_of_sh n d nthr lS sh) gK gV gQ gO gl gm eK eV eQ fK fV fQ (SZ.v tid) **
     thread_id nthr tid **
     block_id 1sz bid **
@@ -780,6 +781,7 @@ fn flashattention_kf_smem
   ()
   requires
     gpu **
+    pure (c_shmems_inv sh) **
     kpre_post_outer_fa_smem n d nthr
       (gS_of_sh' n d nthr lS sh) (sK_of_sh n d nthr lKV sh) (sV_of_sh n d nthr lKV sh) (sQ_of_sh n d nthr lKV sh)
       gK gV gQ gO gl gm eK eV eQ fK fV fQ (SZ.v tid) **

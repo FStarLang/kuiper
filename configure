@@ -20,6 +20,11 @@ fi
 
 # A really basic configure script.
 
+KUIPER_NVCC_ARCH=${KUIPER_NVCC_ARCH:-native}
+# Probe results exported by a previous .configure.output must not survive when
+# this invocation cannot run the corresponding device check.
+unset KUIPER_CFG_SHMEM_ALIGN16
+
 check_nvcc () {
   if ! command -v nvcc >/dev/null 2>&1 ; then
     echo "# NVCC not found in PATH, configuring to stop after code generation." >&2
@@ -41,14 +46,30 @@ EOF
 
   #177: variable "f" was declared but never referenced
   echo "# Testing nvcc compilation..." >&2
-  if ! nvcc -arch=native -diag-suppress 177 -c $f -o /dev/null ; then
+  log=$(mktemp)
+  if ! nvcc -arch="$KUIPER_NVCC_ARCH" -diag-suppress 177 -c $f -o /dev/null 2>"$log" ; then
+    cat "$log" >&2
     echo "# NVCC test file failed to build, configuring to stop after code generation." >&2
     KUIPER_HAVE_NVCC=0
+  elif [ "$KUIPER_NVCC_ARCH" = native ] &&
+       grep -Fq "Cannot find valid GPU for '-arch=native'" "$log"; then
+    # nvcc's no-device default is too old for Kuiper's half, BF16, and WMMA
+    # code.  Cross-compile for the first architecture supporting all three.
+    KUIPER_NVCC_ARCH=sm_80
+    echo "# No GPU visible to nvcc; cross-compiling for $KUIPER_NVCC_ARCH." >&2
+    if ! nvcc -arch="$KUIPER_NVCC_ARCH" -diag-suppress 177 -c $f -o /dev/null ; then
+      echo "# NVCC fallback architecture failed, configuring to stop after code generation." >&2
+      KUIPER_HAVE_NVCC=0
+    else
+      echo "# NVCC ok" >&2
+      KUIPER_HAVE_NVCC=1
+    fi
   else
+    cat "$log" >&2
     echo "# NVCC ok" >&2
     KUIPER_HAVE_NVCC=1
   fi
-  rm -f "$f"
+  rm -f "$f" "$log"
 }
 
 check_tensor_cores () {
@@ -64,7 +85,7 @@ EOF
 
   #177: variable "f" was declared but never referenced
   echo "# Checking for tensor cores in nvcc..." >&2
-  if ! nvcc -arch=native -diag-suppress 177 -c $f -o /dev/null ; then
+  if ! nvcc -arch="$KUIPER_NVCC_ARCH" -diag-suppress 177 -c $f -o /dev/null ; then
     echo "# Tensor core test file failed to build, assuming no tensor cores." >&2
     KUIPER_CFG_TENSORCORES=0
   else
@@ -74,9 +95,81 @@ EOF
   rm -f "$f"
 }
 
+# Kuiper carves the block's shared memory out of one region whose base it
+# assumes is 16-byte aligned (Kuiper.SHMem.c_shmems_inv). KPR_SHMEM asks for
+# that with __align__(16); this checks the device actually delivers it, using
+# the real macro so the check cannot drift from the header. Needs a GPU;
+# skipped when there is none, fatal when it fails.
+check_shmem_alignment () {
+  f=$(mktemp --suffix .cu)
+  e=$(mktemp)
+  cat >$f <<EOF
+  #include "kuiper.h"
+  #include <stdint.h>
+  __global__ void probe(unsigned long long *out) {
+    *out = (unsigned long long)(uintptr_t)KPR_SHMEM();
+  }
+  int main(void) {
+    unsigned long long *d, h;
+    /* Sizes that are not multiples of 16, in case the base tracks the request. */
+    const unsigned sizes[] = { 1, 3, 16, 17, 100, 1024 };
+    unsigned i;
+    if (cudaMalloc(&d, sizeof *d) != cudaSuccess)
+      return 2;
+    for (i = 0; i < sizeof sizes / sizeof sizes[0]; i++) {
+      probe<<<1, 1, sizes[i]>>>(d);
+      if (cudaDeviceSynchronize() != cudaSuccess)
+        return 2;
+      if (cudaMemcpy(&h, d, sizeof h, cudaMemcpyDeviceToHost) != cudaSuccess)
+        return 2;
+      if (h % 16 != 0) {
+        fprintf(stderr, "  dynamic shared memory base %#llx is not 16-byte aligned"
+                        " (dynamic size %u)\n", h, sizes[i]);
+        return 1;
+      }
+    }
+    return 0;
+  }
+EOF
+
+  echo "# Checking dynamic shared memory alignment..." >&2
+  if ! nvcc -arch="$KUIPER_NVCC_ARCH" -I include -DKUIPER_CFG_TENSORCORES=0 -o "$e" $f ; then
+    echo "# Alignment probe failed to build, skipping." >&2
+    rm -f "$f" "$e"
+    return
+  fi
+
+  "$e"
+  rc=$?
+  rm -f "$f" "$e"
+  case $rc in
+    0)
+      echo "# Dynamic shared memory is 16-byte aligned." >&2
+      KUIPER_CFG_SHMEM_ALIGN16=1
+      ;;
+    1)
+      echo "#" >&2
+      echo "# *** FATAL: the dynamic shared memory base is NOT 16-byte aligned on" >&2
+      echo "# *** this device, even though KPR_SHMEM declares it __align__(16)." >&2
+      echo "# *** Every verified kernel assumes it is (Kuiper.SHMem.c_shmems_inv)," >&2
+      echo "# *** so vectorized shared memory accesses would be silently wrong." >&2
+      echo "# *** This is a toolchain or driver bug. Please report it." >&2
+      echo "#" >&2
+      if [ "$out" != /dev/stdout ]; then
+        rm -f "$out"
+      fi
+      exit 1
+      ;;
+    *)
+      echo "# Could not run the probe (no GPU?), skipping." >&2
+      ;;
+  esac
+}
+
 check_nvcc
 if [ "$KUIPER_HAVE_NVCC" -eq 1 ]; then
   check_tensor_cores
+  check_shmem_alignment
 fi
 
 # Export whatever variables are needed.
@@ -94,4 +187,4 @@ vv () {
 if [ "$out" != /dev/stdout ]; then
   rm -f "$out"
 fi
-vv KUIPER_HAVE_NVCC KUIPER_CFG_TENSORCORES
+vv KUIPER_HAVE_NVCC KUIPER_CFG_TENSORCORES KUIPER_CFG_SHMEM_ALIGN16 KUIPER_NVCC_ARCH

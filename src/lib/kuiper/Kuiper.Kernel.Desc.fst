@@ -47,6 +47,9 @@ type kernel_desc (full_pre full_post : slprop) = {
     stt unit
       (requires
          gpu **
+         (* The layout of the block's shared memory: each request is a
+         block-visible array carved out of one 16-byte aligned region. *)
+         pure (c_shmems_inv sh) **
          kpre sh bid tid **
          thread_id nthr tid **
          block_id nblk bid **

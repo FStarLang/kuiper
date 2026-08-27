@@ -157,6 +157,7 @@ fn kf
   ()
   requires
     gpu **
+    pure (c_shmems_inv sh) **
     kpre gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr sh bid tid **
     thread_id nthr tid **
     block_id (m/bm * (n/bn)) bid **

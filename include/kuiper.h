@@ -45,9 +45,19 @@ void __MUST(cudaError_t rc, const char * str, const char * func, const char *fna
 		}									\
 	} while (0)
 
+/*
+ * Base of the block's dynamic shared memory region.
+ *
+ * CUDA documents no alignment guarantee for it -- the 256-byte guarantee in
+ * the programming guide covers global memory only. In practice nvcc emits
+ * .align 16 for extern __shared__ whatever the declared type, and clamps up
+ * to 16 even when asked for less, so we ask for it explicitly rather than
+ * lean on that. Kuiper.SHMem.c_shmems_inv assumes it; ./configure runs the
+ * macro on the device and refuses to configure if it does not hold.
+ */
 #define KPR_SHMEM()									\
 	({										\
-		extern __shared__ char a[];						\
+		extern __shared__ __align__(16) char a[];				\
 		(char*)a;								\
 	})
 

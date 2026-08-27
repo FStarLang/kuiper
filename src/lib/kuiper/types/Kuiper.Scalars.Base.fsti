@@ -1,6 +1,7 @@
 module Kuiper.Scalars.Base
 
 open Kuiper.Sized
+open Kuiper.Canonical
 open FStar.Tactics.Typeclasses { tcinstance }
 
 (* There are no scalar instances for signed ints, we do not have
@@ -8,7 +9,11 @@ total unconditional operations on them. *)
 
 inline_for_extraction noextract
 class scalar (t : Type) = {
-  [@@@tcinstance]is_sized : sized t;
+  (* Pinning the [sized] superclass to the canonical instance makes a
+  [sized t] resolved via [scalar t] and one resolved directly the same
+  instance -- see [Kuiper.Canonical]. *)
+  [@@@tcinstance]
+  is_sized : (x : sized t{canonical x});
 
   add : t -> t -> t;
   mul : t -> t -> t;
@@ -37,11 +42,22 @@ let neq (#t:Type) {| scalar t |} (x : t) (y : t) : bool =
 
 (* This instance is a bit fake. Maybe we should remove it. It's useful
 to use MS.matmul on real matrices too. *)
+(* Deliberately not an [instance]: it only needs a name for the [canonical]
+assumption below and for [is_sized] here. Exposing it to resolution would
+add a second candidate for [sized Real.real] alongside the one reached
+through [scalar Real.real], which is the very ambiguity [canonical] exists
+to remove. *)
+inline_for_extraction noextract
+let fake_sized_real : sized Real.real =
+  { size = 0sz; default = 0.0R }
+
+assume Canonical_fake_sized_real : canonical fake_sized_real
+
 inline_for_extraction noextract
 instance _ : scalar Real.real =
   let open FStar.Real in
   {
-    is_sized = { size = 0sz; default = 0.0R };
+    is_sized = fake_sized_real;
     add = ( +. );
     mul = ( *. );
     zero = 0.0R;

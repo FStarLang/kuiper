@@ -3,6 +3,7 @@ module Kuiper.GraphDist
 #lang-pulse
 open Kuiper
 open Kuiper.Scalars
+open Kuiper.Canonical
 module K = Kuiper.Kernel.GEMM.Naive2
 open Kuiper.Tensor
 open Kuiper.Tensor.Layout.Alg
@@ -61,9 +62,14 @@ let mult (x y : dist) : dist =
   else D (x.v `Scalars.add` y.v)
 
 inline_for_extraction noextract
+instance sized_dist : sized dist = { size = 2sz; default = D 0us }
+
+assume Canonical_sized_dist : canonical sized_dist
+
+inline_for_extraction noextract
 instance scalar_dist : scalar dist =
   {
-    is_sized = { size = 2sz; default = D 0us };
+    is_sized = sized_dist;
     zero = D 0us;
     one = D 1us;
     add = add';
