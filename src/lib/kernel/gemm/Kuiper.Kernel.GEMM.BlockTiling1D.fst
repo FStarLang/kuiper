@@ -612,6 +612,35 @@ let bbtile_idx_bij (batch mrows mcols tile : nat)
             (bij_prod (sflat_block mrows mcols batch)
                       (bij_flip #(natlt tile) #(natlt tile)))))
 
+(* Uses of [bbtile_cell_idx] in specification lambdas regenerate these
+   nonlinear bounds.  State them in the exact vocabulary of those goals so
+   the SMT solver can recover them without rediscovering the division proof. *)
+#push-options "--fuel 0 --ifuel 0 --z3rlimit 40"
+let bbtile_div_lt_bound (x : nat) (a b : pos)
+  : Lemma (requires x < a * b)
+          (ensures x / a < b)
+  = FStar.Math.Lemmas.lemma_div_mod x a;
+    if x / a >= b then FStar.Math.Lemmas.lemma_mult_le_right a b (x / a)
+
+let bbtile_grow_bound (batch mrows mcols tile bid ii : nat)
+  : Lemma (requires batch > 0 /\ mrows > 0 /\ mcols > 0 /\ tile > 0 /\
+                    bid < batch * (mrows * mcols) /\ ii < tile)
+          (ensures bid / batch / mcols * tile + ii < mrows * tile)
+          [SMTPat (bid / batch / mcols * tile + ii); SMTPat (mrows * tile)]
+  = bbtile_div_lt_bound bid batch (mrows * mcols);
+    bbtile_div_lt_bound (bid / batch) mcols mrows;
+    FStar.Math.Lemmas.distributivity_add_left (bid / batch / mcols) 1 tile;
+    FStar.Math.Lemmas.lemma_mult_le_right tile (bid / batch / mcols + 1) mrows
+
+let bbtile_gcol_bound (batch mcols tile bid tid : nat)
+  : Lemma (requires batch > 0 /\ mcols > 0 /\ tile > 0 /\ tid < tile)
+          (ensures bid / batch % mcols * tile + tid < mcols * tile)
+          [SMTPat (bid / batch % mcols * tile + tid)]
+  = FStar.Math.Lemmas.lemma_mod_lt (bid / batch) mcols;
+    FStar.Math.Lemmas.distributivity_add_left (bid / batch % mcols) 1 tile;
+    FStar.Math.Lemmas.lemma_mult_le_right tile (bid / batch % mcols + 1) mcols
+#pop-options
+
 (* The direct page-minor arithmetic cell index for the output tensor.
    [prod_ff] supplies the [< mrows*tile] / [< mcols*tile] bounds for free. *)
 unfold

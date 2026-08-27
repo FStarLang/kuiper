@@ -121,6 +121,46 @@ ghost fn prepare_epilogue
 }
 
 #push-options "--fuel 1 --ifuel 1 --z3rlimit 100"
+let tile_offset_bound
+  (whole : pos)
+  (tile : pos {tile /? whole})
+  (t : natlt (whole / tile))
+  (i : natlt tile)
+  : Lemma (t * tile + i < whole)
+  = Kuiper.Divides.lemma_divides_exact tile whole;
+    FStar.Matrix.flattened_index_is_under_flattened_size
+      (whole / tile) tile t i
+
+let subtile_acc2
+  (#et : Type)
+  (#rows #cols : nat)
+  (em : chest2 et rows cols)
+  (trows : pos {trows /? rows})
+  (tcols : pos {tcols /? cols})
+  (tr : natlt (rows / trows))
+  (tc : natlt (cols / tcols))
+  (i : natlt trows)
+  (j : natlt tcols)
+  : Lemma (
+      acc2 (ematrix_subtile em trows tcols tr tc) i j ==
+      acc2 em (tr * trows + i) (tc * tcols + j))
+  = Kuiper.EMatrix.macc_mkM
+      (fun i j -> acc2 em (tr * trows + i) (tc * tcols + j)) i j
+
+let chest_comb_acc2
+  (#m #n : nat)
+  (#t1 #t2 #t3 : Type)
+  (f : t1 -> t2 -> t3)
+  (c1 : chest2 t1 m n)
+  (c2 : chest2 t2 m n)
+  (i : natlt m)
+  (j : natlt n)
+  : Lemma (acc2 (chest_comb f c1 c2) i j == f (acc2 c1 i j) (acc2 c2 i j))
+  = Kuiper.Chest.acc_pat
+      (fun (ij : abs (m @| n @| INil)) ->
+        f (Kuiper.Chest.acc c1 ij) (Kuiper.Chest.acc c2 ij))
+      (i, (j, ()))
+
 let nested_comb_tile_eq
   (#m #n : pos)
   (comb_r : binop real)
@@ -163,7 +203,34 @@ let nested_comb_tile_eq
         wm_tm wn_tn warpRow warpCol in
     let aux (i : natlt wm_tm) (j : natlt wn_tn)
       : Lemma (acc2 lhs i j == acc2 rhs i j)
-      = calc (==) {
+      = assert (gwRow * wm_tm + i ==
+                  mrow * bm + warpRow * wm_tm + i);
+        assert (gwCol * wn_tn + j ==
+                  mcol * bn + warpCol * wn_tn + j);
+        tile_offset_bound bm wm_tm warpRow i;
+        tile_offset_bound bn wn_tn warpCol j;
+        tile_offset_bound m bm mrow (warpRow * wm_tm + i);
+        tile_offset_bound n bn mcol (warpCol * wn_tn + j);
+        subtile_acc2
+          (ematrix_subtile (chest_comb comb_r rC rM)
+            bm bn mrow mcol)
+          wm_tm wn_tn warpRow warpCol i j;
+        subtile_acc2 (chest_comb comb_r rC rM)
+          bm bn mrow mcol
+          (warpRow * wm_tm + i) (warpCol * wn_tn + j);
+        chest_comb_acc2 comb_r rC rM
+          (mrow * bm + warpRow * wm_tm + i)
+          (mcol * bn + warpCol * wn_tn + j);
+        assert (
+          acc2 rhs i j ==
+          comb_r
+            (acc2 rC
+              (mrow * bm + warpRow * wm_tm + i)
+              (mcol * bn + warpCol * wn_tn + j))
+            (acc2 rM
+              (mrow * bm + warpRow * wm_tm + i)
+              (mcol * bn + warpCol * wn_tn + j)));
+        calc (==) {
           acc2 lhs i j;
           == {}
           comb_r

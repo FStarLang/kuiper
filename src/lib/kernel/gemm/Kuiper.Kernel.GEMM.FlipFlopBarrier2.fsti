@@ -66,6 +66,19 @@ let half_lt_quot (it shared bk : nat)
     assert (2 * shared == (2 * q) * bk);
     FStar.Math.Lemmas.multiple_division_lemma (2 * q) bk; // ((2*q)*bk)/bk == 2*q
     FStar.Math.Lemmas.euclidean_division_definition it 2  // it == 2*(it/2) + it%2
+
+(* Splitting the flat block id by the column-block count gives a valid row
+   index.  Keep the quotient and product as triggers because [barrier_p] and
+   [barrier_q] are unfolded in downstream barrier proofs. *)
+let div_lt_mul_pat (a p : nat) (q : pos)
+  : Lemma (requires a < p * q)
+          (ensures 0 <= a / q /\ a / q < p)
+          [SMTPat (a / q); SMTPat (p * q)]
+  = FStar.Math.Lemmas.nat_over_pos_is_nat a q;
+    if a / q >= p then begin
+      FStar.Math.Lemmas.lemma_mult_le_right q p (a / q);
+      FStar.Math.Lemmas.euclidean_division_definition a q
+    end
 #pop-options
 
 let barrier_p
@@ -93,6 +106,7 @@ let barrier_p
     else
       let mrow = bid / (cols/bn) in
       let mcol = bid % (cols/bn) in
+      div_lt_mul_pat bid (rows/bm) (cols/bn);
       half_lt_quot it shared bk;
       own_strided_chunks m1 (ematrix_subtile eA bm bk mrow (it / 2)) nthr tid **
       own_strided_chunks m2 (ematrix_subtile eB bk bn (it / 2) mcol) nthr tid
@@ -122,6 +136,7 @@ let barrier_q
     else
       let mrow = bid / (cols/bn) in
       let mcol = bid % (cols/bn) in
+      div_lt_mul_pat bid (rows/bm) (cols/bn);
       half_lt_quot it shared bk;
       bp_sharing m1 (ematrix_subtile eA bm bk mrow (it / 2)) nthr **
       bp_sharing m2 (ematrix_subtile eB bk bn (it / 2) mcol) nthr
