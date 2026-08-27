@@ -97,18 +97,11 @@ let abcd_adcb (a b c d : real{b =!= 0.0R /\ d =!= 0.0R})
 
 let assoc_mul (a b c: real) : Lemma ((a *. b) *. c == a *. (b *. c)) = ()
 
-(* NB: fuel 0/ifuel 0 keeps the ambient Kuiper definitions out of this pure
-   real-arithmetic goal; otherwise Z3 diverges in nonlinear real arithmetic. *)
-#push-options "--fuel 0 --ifuel 0"
-let cancel_ddd (a b c : real{b =!= 0.0R /\ c =!= 0.0R}) : Lemma ((a /. c) /. (b /. c) == a /. b) =
-  calc (==) {
-    (a /. c) /. (b /. c);
-    == {}
-    (a /. c *. c) /. (b /. c *. c);
-    == {}
-    a /. b;
-  }
-#pop-options
+(* Keep this as a single real-arithmetic fact.  Decomposing it through two
+   nonlinear cancellation steps makes Z3 diverge before consuming rlimit. *)
+let cancel_ddd (a b c : real{b =!= 0.0R /\ c =!= 0.0R})
+  : Lemma ((a /. c) /. (b /. c) == a /. b)
+  = ()
 
 let assoc_mul_div (a b c : real{c =!= 0.0R}) : Lemma ((a *. b) /. c == a *. (b /. c)) =
   ()
