@@ -83,8 +83,7 @@ fn map_to_kd_post
   (#it #ot : Type0)
   (f : it -> ot)
   (#lena : erased nat)
-  (#li : layout1 lena)
-  (#lo : layout1 lena)
+  (#li #lo : layout1 lena)
   (input : array1 it li)
   (output : array1 ot lo)
   (#si : chest1 it lena)
@@ -179,8 +178,7 @@ fn map2_kd_post
   (#et : Type0)
   (f : et -> et -> et)
   (#lena : erased nat)
-  (#la : layout1 lena)
-  (#lb : layout1 lena)
+  (#la #lb : layout1 lena)
   (a : array1 et la)
   (b : array1 et lb)
   (#sa #sb : chest1 et lena)
@@ -254,7 +252,7 @@ inline_for_extraction noextract
 fn ff2_to
   (#at #bt #ot : Type0) (#len : erased nat)
   (f : at -> bt -> ot)
-  (#la : layout1 len) (#lb : layout1 len) {| ctlayout la, ctlayout lb |}
+  (#la #lb : layout1 len) {| ctlayout la, ctlayout lb |}
   (a : array1 at la) (b : array1 bt lb)
   (#sa : chest1 at len) (#sb : chest1 bt len)
   (#fa #fb #fr : perm)
@@ -304,7 +302,7 @@ inline_for_extraction noextract
 fn ff3
   (#et : Type0) (#len : erased nat)
   (f : et -> et -> et -> et)
-  (#lb : layout1 len) (#lc : layout1 len) {| ctlayout lb, ctlayout lc |}
+  (#lb #lc : layout1 len) {| ctlayout lb, ctlayout lc |}
   (b : array1 et lb) (c : array1 et lc)
   (#sb #sc : chest1 et len) (#fb #fc #fr : perm)
   (i : conc (shape1 len)) (x : et)
@@ -351,7 +349,7 @@ inline_for_extraction noextract
 fn ff3_to
   (#at #bt #ct #ot : Type0) (#len : erased nat)
   (f : at -> bt -> ct -> ot)
-  (#la : layout1 len) (#lb : layout1 len) (#lc : layout1 len) {| ctlayout la, ctlayout lb, ctlayout lc |}
+  (#la #lb #lc : layout1 len) {| ctlayout la, ctlayout lb, ctlayout lc |}
   (a : array1 at la) (b : array1 bt lb) (c : array1 ct lc)
   (#sa : chest1 at len) (#sb : chest1 bt len) (#sc : chest1 ct len)
   (#fa #fb #fc #fr : perm)
@@ -371,7 +369,7 @@ ghost
 fn map3_to_kd_pre
   (#at #bt #ct #ot : Type0)
   (#lena : erased nat)
-  (#la : layout1 lena) (#lb : layout1 lena) (#lc : layout1 lena) (#lo : layout1 lena)
+  (#la #lb #lc #lo : layout1 lena)
   (a : array1 at la) (b : array1 bt lb) (c : array1 ct lc) (output : array1 ot lo)
   (#sa : chest1 at lena) (#sb : chest1 bt lena) (#sc : chest1 ct lena)
   (#so : chest1 ot lena)
@@ -393,7 +391,7 @@ fn map3_to_kd_post
   (#at #bt #ct #ot : Type0)
   (f : at -> bt -> ct -> ot)
   (#lena : erased nat)
-  (#la : layout1 lena) (#lb : layout1 lena) (#lc : layout1 lena) (#lo : layout1 lena)
+  (#la #lb #lc #lo : layout1 lena)
   (a : array1 at la) (b : array1 bt lb) (c : array1 ct lc) (output : array1 ot lo)
   (#sa : chest1 at lena) (#sb : chest1 bt lena) (#sc : chest1 ct lena)
   (#so : chest1 ot lena)

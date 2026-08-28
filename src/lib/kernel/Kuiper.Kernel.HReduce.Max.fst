@@ -154,7 +154,7 @@ fn array1_read_from_slice
   (r : array1 et l)
   (#i #j : erased nat{i <= j /\ j <= len})
   (idx : sz{i <= idx /\ idx < j})
-  (#s : erased (chest1 et (j - i)))
+  (#s : chest1 et (j - i))
   preserves
     array1_pts_to_slice r i j s
   returns
@@ -178,7 +178,7 @@ fn array1_write_to_slice
   (r : array1 et l)
   (#i #j : erased nat{i <= j /\ j <= len})
   (idx : sz{i <= idx /\ idx < j})
-  (#s : erased (chest1 et (j - i)))
+  (#s : chest1 et (j - i))
   (v : et)
   requires
     array1_pts_to_slice r i j s
@@ -188,7 +188,7 @@ fn array1_write_to_slice
   unfold array1_pts_to_slice r i j s;
   forevery_extract' #(x:nat{i <= x /\ x < j}) (SZ.v idx) _;
   tensor_write_cell r ((idx <: szlt len), ()) v;
-  let s' : erased (chest1 et (j - i)) = upd1 s (idx - i) v;
+  let s' : chest1 et (j - i) = upd1 s (idx - i) v;
   Pulse.Lib.Forall.elim_forall
     (fun (x:nat{i <= x /\ x < j}) ->
       tensor_pts_to_cell r ((x <: natlt len), ()) (acc1 s' (x - i)));
@@ -872,8 +872,9 @@ fn kf
   (bid : szlt 1sz)
   (tid : szlt nth)
   ()
+  preserves
+    gpu
   requires
-    gpu **
     pure (c_shmems_inv shmem) **
     kpre pre_map pre_map_r nth lena a va vr out shmem bid tid **
     thread_id nth tid **
@@ -881,7 +882,6 @@ fn kf
     mbarrier_tok nth (barrier_matrix nth (from_array (l1_forward nth) shmem._1) (vr_partial_max pre_map_r (chest1_to_seq vr) nth)) **
     B.barrier_state 0
   ensures
-    gpu **
     kpost pre_map pre_map_r nth lena a va vr out shmem bid tid **
     thread_id nth tid **
     block_id 1 bid **
@@ -954,7 +954,7 @@ fn kf
     gpu_write out (array1_read_from_slice sa 0sz);
     with ss. assert array1_pts_to_slice sa 0 nth ss;
     unfold array1_pts_to_slice sa;
-    let css : erased (chest1 et nth) = hide (mk1 #et #nth (fun (k:natlt nth) -> acc1 ss k));
+    let css : chest1 et nth = hide (mk1 #et #nth (fun (k:natlt nth) -> acc1 ss k));
     (* Clean the index refinement [0<=k /\ k<nth] down to [k<nth] (= natlt nth),
        then reindex to the abstract tensor index and implode. *)
     forevery_refine_ext' #nat #(fun (k:nat) -> 0 <= k /\ k < nth) (fun (k:nat) -> k < nth) _;

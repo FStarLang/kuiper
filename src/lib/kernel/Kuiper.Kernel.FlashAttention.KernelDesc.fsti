@@ -390,8 +390,8 @@ let kpre_post_inner_fa
   (bc br: szp { bc /? n /\ br /? n })
   (lSt: layout1 bc)
   (lK lV lQ: layout2 n d)
-  (lOt: layout2 (n /^ br) d)
-  (llt lmt: layout1 (n /^ br))
+  (lOt: layout2 (n / br) d)
+  (llt lmt: layout1 (n / br))
   {| ctlayout lSt, ctlayout lK, ctlayout lV, ctlayout lQ, ctlayout lOt, ctlayout llt, ctlayout lmt |}
   (gSt: array1 et lSt)
   (gK: array2 et lK)
@@ -434,7 +434,7 @@ let kpre_post_outer_fa
   (gK |-> Frac (fK /. nthr) eK) **
   (gV |-> Frac (fV /. nthr) eV) **
   (gQ |-> Frac (fQ /. nthr) eQ) **
-  (exists* (eS : chest2 et nthr nthr) (eO : chest2 et n d) (el: chest2 et 1 n) (em: chest2 et 1 n).
+  (exists* (eS : chest2 et nthr nthr) (eO : chest2 et n d) (el em : chest2 et 1 n).
     array2_subtile gS 1 (SZ.v nthr) tid 0 |-> ematrix_subtile eS 1 (SZ.v nthr) tid 0 **
     array2_stride_subtile gl 1 (SZ.v nthr) 0 tid |-> ematrix_stride_subtile el 1 (SZ.v nthr) 0 tid **
     array2_stride_subtile gm 1 (SZ.v nthr) 0 tid |-> ematrix_stride_subtile em 1 (SZ.v nthr) 0 tid **

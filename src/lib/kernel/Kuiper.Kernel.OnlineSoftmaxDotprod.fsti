@@ -11,11 +11,9 @@ fn softmax_dotprod
   (#et : Type0) {| floating et, real_like et, floating_real_like et |}
   (len : szp{len <= max_blocks * max_threads})
   (#l : layout1 len) {| ctlayout l |}
-  (a : array1 et l)
-  (b : array1 et l)
+  (a b : array1 et l)
   (r : gpu_ref et)
-  (#va : chest1 et len)
-  (#vb : chest1 et len)
+  (#va #vb : chest1 et len)
   (ra : chest1 real len { va %~ ra })
   (rb : chest1 real len { vb %~ rb })
   (#fa #fb : perm)

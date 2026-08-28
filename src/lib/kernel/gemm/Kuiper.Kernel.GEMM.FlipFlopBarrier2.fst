@@ -259,7 +259,7 @@ fn own_strided_chunks_to_bp_sharing_underspec
 
 ghost
 fn even_barrier_p_to_q
-  (#etA : Type0) (#etB : Type0)
+  (#etA #etB : Type0)
   {| sized etA, has_vec_cpy etA, sized etB, has_vec_cpy etB |}
   (#rows #shared #cols : pos)
   (eA : chest2 etA rows shared)
@@ -294,7 +294,7 @@ fn even_barrier_p_to_q
 
 ghost
 fn odd_barrier_p_to_q
-  (#etA : Type0) (#etB : Type0)
+  (#etA #etB : Type0)
   {| sized etA, has_vec_cpy etA, sized etB, has_vec_cpy etB |}
   (#rows #shared #cols : pos)
   (eA : chest2 etA rows shared)
@@ -337,7 +337,7 @@ fn odd_barrier_p_to_q
 
 ghost
 fn barrier_p_to_q_transform
-  (#etA : Type0) (#etB : Type0)
+  (#etA #etB : Type0)
   {| sized etA, has_vec_cpy etA, sized etB, has_vec_cpy etB |}
   (#rows #shared #cols : pos)
   (eA : chest2 etA rows shared)
@@ -473,7 +473,7 @@ let half_of_2x1 (x : nat) : Lemma ((2 * x + 1) / 2 == x) [SMTPat ((2 * x + 1) / 
 #push-options "--fuel 2"
 ghost
 fn fold_barrier_p_odd
-  (#etA : Type0) (#etB : Type0)
+  (#etA #etB : Type0)
   {| sized etA, has_vec_cpy etA, sized etB, has_vec_cpy etB |}
   (#rows #shared #cols : pos)
   (eA : chest2 etA rows shared)
@@ -508,7 +508,7 @@ fn fold_barrier_p_odd
 #push-options "--fuel 2"
 ghost
 fn unfold_barrier_q_odd
-  (#etA : Type0) (#etB : Type0)
+  (#etA #etB : Type0)
   {| sized etA, has_vec_cpy etA, sized etB, has_vec_cpy etB |}
   (#rows #shared #cols : pos)
   (eA : chest2 etA rows shared)
@@ -543,7 +543,7 @@ fn unfold_barrier_q_odd
 #push-options "--fuel 2"
 ghost
 fn fold_barrier_p_even
-  (#etA : Type0) (#etB : Type0)
+  (#etA #etB : Type0)
   {| sized etA, has_vec_cpy etA, sized etB, has_vec_cpy etB |}
   (#rows #shared #cols : pos)
   (eA : chest2 etA rows shared)
@@ -576,7 +576,7 @@ fn fold_barrier_p_even
 #push-options "--fuel 2"
 ghost
 fn unfold_barrier_q_even
-  (#etA : Type0) (#etB : Type0)
+  (#etA #etB : Type0)
   {| sized etA, has_vec_cpy etA, sized etB, has_vec_cpy etB |}
   (#rows #shared #cols : pos)
   (eA : chest2 etA rows shared)

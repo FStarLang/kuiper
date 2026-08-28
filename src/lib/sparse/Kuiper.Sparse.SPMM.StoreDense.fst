@@ -79,8 +79,7 @@ inline_for_extraction noextract
 let offset_chunk_
   (et : Type0) {| sized et, has_vec_cpy et |}
   (j : sz { chunk et /? j })
-  (k : sz)
-  (nthr : sz)
+  (k nthr : sz)
 : Pure sz
   (requires fits (offset_chunk et j k nthr))
   (ensures fun r -> v r == offset_chunk et j k nthr)

@@ -264,11 +264,11 @@ fn kf
   (bid : szlt (rows * cols))
   ()
   norewrite
+  preserves
+    gpu
   requires
-    gpu **
     kpre comb gA gB gC eA eB eC fA fB bid
   ensures
-    gpu **
     kpost comb gA gB gC eA eB eC fA fB bid
 {
   let trow : sz = bid /^ cols; assert (rewrites_to trow (bid /^ cols));
@@ -287,6 +287,7 @@ fn setup
   (#et : Type0) {| scalar et |}
   (comb : binop et)
   (#rows #shared #cols : szp)
+  (nthr : szp { SZ.v nthr == rows * cols })
   (#lB : layout2 shared cols)
   (#lC : layout2 rows cols)
   {| ctlayout lB, ctlayout lC |}
@@ -305,36 +306,37 @@ fn setup
     gB |-> Frac fB eB **
     gC |-> eC
   ensures
-    (forall+ (rc : natlt (rows *^ cols)).
+    (forall+ (rc : natlt nthr).
       kpre comb gA gB gC eA eB eC fA fB rc) **
     emp (* frame *)
 {
   // Sharing the input matrices (splitting permissions)
-  smatrix_share_n gA (rows *^ cols);
-  tensor_share_n gB (rows *^ cols);
+  smatrix_share_n gA (rows * cols);
+  tensor_share_n gB (rows * cols);
 
   // Sharing the output matrix (splitting each cell)
   tensor_ilower2 gC;
 
-  forevery_unfactor' (rows *^ cols) rows cols (fun r c ->
+  forevery_unfactor' (rows * cols) rows cols (fun r c ->
     tensor_pts_to_cell gC (idx2 (r) (c)) (acc2 eC r c));
 
   // Join resources into a single bigstar
-  forevery_zip #(natlt2 rows cols)
-    (fun _ -> gB |-> Frac (fB /. (rows *^ cols)) eB)
+  forevery_zip #(natlt (rows * cols))
+    (fun _ -> gB |-> Frac (fB /. (rows * cols)) eB)
     (fun i -> tensor_pts_to_cell gC (idx2 ((i/cols <: natlt rows)) ((i%cols <: natlt cols))) (acc2 eC (i/cols) (i%cols)));
-  forevery_zip #(natlt2 rows cols)
-    (fun _ -> gA |-> Frac (fA /. (rows *^ cols)) eA)
+  forevery_zip #(natlt (rows * cols))
+    (fun _ -> gA |-> Frac (fA /. (rows * cols)) eA)
     _;
 
   (* We're done actually, but the encoding will not match the lambdas. *)
-  forevery_ext #(natlt2 rows cols)
+  forevery_ext #(natlt (rows * cols))
     (fun i ->
-      (gA |-> Frac (fA /. (rows *^ cols)) eA) **
-      (gB |-> Frac (fB /. (rows *^ cols)) eB) **
+      (gA |-> Frac (fA /. (rows * cols)) eA) **
+      (gB |-> Frac (fB /. (rows * cols)) eB) **
       tensor_pts_to_cell gC (idx2 ((i/cols <: natlt rows)) ((i%cols <: natlt cols))) (acc2 eC (i / cols) (i % cols)))
     (fun i ->
       kpre comb gA gB gC eA eB eC fA fB i);
+  forevery_rw_size (rows * cols) nthr;
 }
 
 ghost
@@ -342,6 +344,7 @@ fn teardown
   (#et : Type0) {| scalar et |}
   (comb : binop et)
   (#rows #shared #cols : szp)
+  (nthr : szp { SZ.v nthr == rows * cols })
   (#lB : layout2 shared cols)
   (#lC : layout2 rows cols)
   {| ctlayout lB, ctlayout lC |}
@@ -356,7 +359,7 @@ fn teardown
   ()
   norewrite
   requires
-    (forall+ (rc : natlt (rows *^ cols)).
+    (forall+ (rc : natlt nthr).
       kpost comb gA gB gC eA eB eC fA fB rc) **
     emp (* frame *)
   ensures
@@ -364,7 +367,7 @@ fn teardown
     gB |-> Frac fB eB **
     gC |-> chest_comb comb eC (MS.matmul eA eB)
 {
-  forevery_rw_size (rows *^ cols) (rows * cols);
+  forevery_rw_size nthr (rows * cols);
 
   forevery_unzip #(natlt (rows * cols)) _ _;
   forevery_unzip #(natlt (rows * cols)) _ _;
@@ -388,21 +391,8 @@ fn teardown
       tensor_pts_to_cell gC (idx2 (((r * cols + c) / cols <: natlt rows)) (((r * cols + c) % cols <: natlt cols)))
          (MS.gemm_single comb eA eB eC ((r * cols + c) / cols) ((r * cols + c) % cols)))
     (fun (r:natlt rows) (c:natlt cols) ->
-      tensor_pts_to_cell gC (idx2 (r) (c)) (MS.gemm_single comb eA eB eC r c));
-
-  ghost
-  fn aux (r:natlt rows) (c:natlt cols)
-    requires
-      tensor_pts_to_cell gC (idx2 (r) (c)) (MS.gemm_single comb eA eB eC r c)
-    ensures
-      tensor_pts_to_cell gC (idx2 (r) (c)) (acc2 (chest_comb comb eC (MS.matmul eA eB)) r c)
-  {
-    ()
-  };
-  forevery_map_2
-    (fun (r:natlt rows) (c:natlt cols) -> tensor_pts_to_cell gC (idx2 (r) (c)) (MS.gemm_single comb eA eB eC r c))
-    _
-    aux;
+      tensor_pts_to_cell gC (idx2 r c)
+        (acc2 (chest_comb comb eC (MS.matmul eA eB)) r c));
 
   tensor_iraise2 gC;
 }
@@ -430,18 +420,18 @@ let kdesc
       gA |-> Frac fA eA ** gB |-> Frac fB eB **
       gC |-> MS.mmcomb comb eC eA eB
     )
-= {
-  nthr = rows *^ cols;
+= [@@inline_let] let nthr : (x : szp { SZ.v x == rows * cols }) = rows *^ cols in {
+  nthr = nthr;
 
   frame = emp;
 
-  setup    = setup    comb gA gB gC;
-  teardown = teardown comb gA gB gC;
+  setup    = setup    comb nthr gA gB gC;
+  teardown = teardown comb nthr gA gB gC;
 
   kpre  = kpre  comb gA gB gC eA eB eC fA fB;
   kpost = kpost comb gA gB gC eA eB eC fA fB;
 
-  f = kf comb gA gB gC;
+  f = kf comb gA gB gC #eA #eB #eC #fA #fB;
 
   kpre_sendable = magic(); // fixme
   kpost_sendable = magic(); // fixme

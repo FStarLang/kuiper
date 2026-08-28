@@ -29,7 +29,7 @@ let rec from_vec_zero (#n:nat) (vec : FStar.BitVector.bv_t n)
           (ensures UInt.from_vec #n vec = 0)
   = if n = 0 then () else from_vec_zero #(n-1) (Seq.slice vec 0 (n-1))
 
-let sizet_and_div_pow2 (x:SZ.t) (y:SZ.t) (n:nat)
+let sizet_and_div_pow2 (x y : SZ.t) (n:nat)
   : Lemma (requires SZ.v y == pow2 n)
           (ensures SZ.v (sizet_and x (y -^ 1sz)) == SZ.v x % (pow2 n))
   = if n = 0 then (

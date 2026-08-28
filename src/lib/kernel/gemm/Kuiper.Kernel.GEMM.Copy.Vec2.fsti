@@ -13,8 +13,7 @@ module SZ = Kuiper.SizeT
 
 let in_chunk
   (chunk : pos)
-  (rows cols : nat)
-  (nthr : nat)
+  (rows cols nthr : nat)
   (tid : natlt nthr)
   (ij : (natlt rows & natlt cols))
   : prop

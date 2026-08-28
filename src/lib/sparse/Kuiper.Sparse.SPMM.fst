@@ -55,7 +55,7 @@ let block_pre
     (tcol p bid tid)
     (p.blockItemsX / p.blockWidth)
     p.blockWidth
-  // forall+ (k : natlt(p.blockItemsX /^ p.blockWidth)).
+  // forall+ (k : natlt(p.blockItemsX / p.blockWidth)).
   //   when__
   //     (bcol p bid + k * p.blockWidth + tid < p.cols)
   //     (fun _ -> matrix_live_cell
@@ -206,8 +206,7 @@ fn forevery_ext_3
 
 ghost
 fn forevery_assoc_2
-  (#a:Type0)
-  (#b:Type0)
+  (#a #b : Type0)
   (p1 p2 p3 : a -> b -> slprop)
   requires
     forall+ (x:a) (y:b). (p1 x y ** p2 x y) ** p3 x y
@@ -285,7 +284,7 @@ fn setup
     (fun r ->
       forall+
         (b : natlt (divup p.cols p.blockItemsX)) (tid : natlt p.blockWidth)
-        (k : natlt(p.blockItemsX /^ p.blockWidth)).
+        (k : natlt(p.blockItemsX / p.blockWidth)).
           when__ (b * p.blockItemsX + k * p.blockWidth + tid < p.cols)
             (fun _ ->
               matrix_live_cell gC r
@@ -305,7 +304,7 @@ fn setup
         (fun b ->
           forall+
             (tid : natlt p.blockWidth)
-            (k : natlt(p.blockItemsX /^ p.blockWidth)).
+            (k : natlt(p.blockItemsX / p.blockWidth)).
             when__ (b * p.blockItemsX + k * p.blockWidth + tid < p.cols)
               (fun _ ->
                 matrix_live_cell gC r
@@ -331,24 +330,24 @@ fn setup
 
           prod_divides p.blockWidth (chunk et) p.blockItemsX;
           forevery_rw_size p.blockItemsX
-            ((p.blockItemsX /^ p.blockWidth) * p.blockWidth);
+            ((p.blockItemsX / p.blockWidth) * p.blockWidth);
           forevery_factor
-            ((p.blockItemsX /^ p.blockWidth) * p.blockWidth)
-            (p.blockItemsX /^ p.blockWidth) p.blockWidth
+            ((p.blockItemsX / p.blockWidth) * p.blockWidth)
+            (p.blockItemsX / p.blockWidth) p.blockWidth
             (fun ix ->
               when__ (b * p.blockItemsX + ix < p.cols)
                 (fun _ -> matrix_live_cell gC r (b * p.blockItemsX + ix))
             );
 
           forevery_commute
-            #(natlt (p.blockItemsX /^ p.blockWidth)) #(natlt p.blockWidth)
+            #(natlt (p.blockItemsX / p.blockWidth)) #(natlt p.blockWidth)
             (fun k tid ->
               when__ (b * p.blockItemsX + (k * p.blockWidth + tid) < p.cols)
                 (fun _ -> matrix_live_cell gC r (b * p.blockItemsX + (k * p.blockWidth + tid)))
             );
           forevery_ext_2
             #(natlt p.blockWidth)
-            #(natlt (p.blockItemsX /^ p.blockWidth))
+            #(natlt (p.blockItemsX / p.blockWidth))
             (fun tid k ->
               when__ (b * p.blockItemsX + (k * p.blockWidth + tid) < p.cols)
                 (fun _ -> matrix_live_cell gC r (b * p.blockItemsX + (k * p.blockWidth + tid)))
@@ -369,7 +368,7 @@ fn setup
   forevery_ext_3
     #(natlt (nblocks p))
     #(natlt p.blockWidth)
-    #(natlt (p.blockItemsX /^ p.blockWidth))
+    #(natlt (p.blockItemsX / p.blockWidth))
     _
     (fun bid tid k ->
       when__ (bcol p bid + k * p.blockWidth + tid < p.cols)
@@ -687,7 +686,7 @@ fn teardown
     (fun bid ->
       forall+
         (tid: natlt p.blockWidth)
-        (k: natlt (p.blockItemsX /^ p.blockWidth)).
+        (k: natlt (p.blockItemsX / p.blockWidth)).
         when__ (bcol p bid + k * v p.blockWidth + tid < v p.cols)
           (fun _ ->
             tensor_pts_to_cell gC
@@ -713,7 +712,7 @@ fn teardown
     fn bid {
       forevery_ext_2
         #(natlt p.blockWidth)
-        #(natlt (p.blockItemsX /^ p.blockWidth))
+        #(natlt (p.blockItemsX / p.blockWidth))
         (fun tid k ->
           when__ (bcol p bid + k * v p.blockWidth + tid < v p.cols)
             (fun _ ->
@@ -738,8 +737,8 @@ fn teardown
       forevery_commute _;
       prod_divides p.blockWidth (chunk et) p.blockItemsX;
       forevery_unfactor
-        ((p.blockItemsX /^ p.blockWidth) * p.blockWidth)
-        (p.blockItemsX /^ p.blockWidth) p.blockWidth
+        ((p.blockItemsX / p.blockWidth) * p.blockWidth)
+        (p.blockItemsX / p.blockWidth) p.blockWidth
         (fun ix ->
           when__
             (bcol p bid + ix < p.cols)
@@ -753,7 +752,7 @@ fn teardown
             )
         );
       forevery_rw_size
-        ((p.blockItemsX /^ p.blockWidth) * p.blockWidth) p.blockItemsX;
+        ((p.blockItemsX / p.blockWidth) * p.blockWidth) p.blockItemsX;
     };
   block_index_bound p;
   forevery_factor
@@ -1944,8 +1943,9 @@ fn kf
   (tid : szlt p.blockWidth)
   ()
   norewrite
+  preserves
+    gpu
   requires
-    gpu **
     pure (c_shmems_inv sh) **
     kpre
       p row_perm
@@ -1963,7 +1963,6 @@ fn kf
     ) **
     B.barrier_state 0
   ensures
-    gpu **
     kpost
       p row_perm
       gA row_indices gB gC
@@ -2222,8 +2221,7 @@ inline_for_extraction noextract
 fn spmm_on
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
   (rows shared cols : szp { chunk et /? cols })
-  (blockItemsK : szp)
-  (blockItemsX : szp)
+  (blockItemsK blockItemsX : szp)
   (blockWidth : (k : szp {
     (k * chunk et) /? blockItemsK /\
     (k * chunk sz) /? blockItemsK /\
@@ -2306,8 +2304,7 @@ inline_for_extraction noextract
 fn spmm
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
   (rows shared cols : szp { chunk et /? cols })
-  (blockItemsK : szp)
-  (blockItemsX : szp)
+  (blockItemsK blockItemsX : szp)
   (blockWidth : (k : szp {
     (k * chunk et) /? blockItemsK /\
     (k * chunk sz) /? blockItemsK /\

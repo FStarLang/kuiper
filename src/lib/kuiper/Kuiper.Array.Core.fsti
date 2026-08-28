@@ -128,8 +128,7 @@ fn add_full_slice
   (a : array et)
   (#f : perm)
   (#s : seq et)
-  (i j : nat)
-  (n : nat)
+  (i j n : nat)
   requires
     pts_to_slice a #f i j s **
     pure (Pulse.Lib.Array.length a == n)
@@ -198,7 +197,7 @@ fn pts_to_slice_ref
   (#a:Type u#0)
   (#f : perm)
   (x:array a)
-  (i:nat) (j:nat)
+  (i j : nat)
   (#v : seq a)
   preserves pts_to_slice x #f i j v
   requires emp
@@ -233,8 +232,7 @@ fn gpu_array_free
 
 fn slice_read
   (#a : Type u#0)
-  (#i  : erased nat)
-  (#j  : erased nat)
+  (#i #j : erased nat)
   (r : array a)
   (#f : perm)
   (idx : SZ.t)
@@ -250,8 +248,7 @@ fn slice_read
 
 fn slice_write
   (#a:Type u#0)
-  (#i: erased nat)
-  (#j: erased nat)
+  (#i #j : erased nat)
   (r : array a)
   (idx : SZ.t)
   (v : a)
@@ -363,8 +360,7 @@ fn gpu_memcpy_device_to_device
   (#a:Type u#0)
   {| sized a |}
   (#sz : erased nat)
-  (dst_garr : larray a sz)
-  (src_garr : larray a sz)
+  (dst_garr src_garr : larray a sz)
   (cnt : SZ.t)
   (#f : perm)
   (#v : erased (seq a))

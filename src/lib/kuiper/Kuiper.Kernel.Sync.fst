@@ -118,8 +118,7 @@ let szlt_coerce #m #n (i: szlt n { i < m }) : szlt m = i
 noextract
 divergent
 fn rec run_block_threads
-  (#full_pre : slprop)
-  (#full_post : slprop)
+  (#full_pre #full_post : slprop)
   (k : kernel_desc full_pre full_post)
   (bid: szlt k.nblk)
   (sh: SH.c_shmems k.shmems_desc {SH.c_shmems_inv sh /\ c_shmems_full sh})
@@ -191,8 +190,7 @@ fn free_c_shmems'
 noextract
 divergent
 fn run_block
-  (#full_pre : slprop)
-  (#full_post : slprop)
+  (#full_pre #full_post : slprop)
   (k : kernel_desc full_pre full_post)
   (bid: szlt k.nblk)
   requires
@@ -222,8 +220,7 @@ fn run_block
 noextract
 divergent
 fn rec run_blocks
-  (#full_pre : slprop)
-  (#full_post : slprop)
+  (#full_pre #full_post : slprop)
   (k : kernel_desc full_pre full_post)
   (upto: sz { upto <= k.nblk})
 preserves gpu

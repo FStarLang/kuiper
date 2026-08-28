@@ -34,8 +34,7 @@ type constraints (bm bn bk tm tn tk wm wn : pos) : prop =
 
 let warp_tile_pts_to
   (#et : Type0) {| scalar et |}
-  (#m : nat)
-  (#n : nat)
+  (#m #n : nat)
   (#lC : layout2 m n)
   (gC : array2 et lC)
   (bm : pos{bm /?+ m})
@@ -56,8 +55,7 @@ let warp_tile_pts_to
 
 let warp_tile_pts_to_full
   (#et : Type0) {| scalar et |}
-  (#m : nat)
-  (#n : nat)
+  (#m #n : nat)
   (#lC : layout2 m n)
   (gC : array2 et lC)
   (bm : pos{bm /?+ m})
@@ -77,8 +75,7 @@ let warp_tile_pts_to_full
 
 let warp_tile_approximates
   (#et : Type0) {| scalar et, real_like et |}
-  (#m : nat)
-  (#n : nat)
+  (#m #n : nat)
   (#lC : layout2 m n)
   (gC : array2 et lC)
   (bm : pos{bm /?+ m})

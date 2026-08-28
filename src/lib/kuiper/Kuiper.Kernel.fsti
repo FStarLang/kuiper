@@ -24,8 +24,7 @@ fn launch_kernel_full_sync
 (* A helper for very simple kernels, mostly for unit tests. *)
 inline_for_extraction noextract
 fn launch_kernel_1
-  (#pre : slprop)
-  (#post : slprop)
+  (#pre #post : slprop)
   {| is_send_across gpu_of pre, is_send_across gpu_of post |}
   (k : fn () requires gpu ** pre
             ensures gpu ** post)

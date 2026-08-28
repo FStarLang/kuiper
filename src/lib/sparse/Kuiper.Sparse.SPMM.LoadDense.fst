@@ -62,8 +62,7 @@ let rec chest1_tile_cpy
 
 let lemma_fits_tile_offset
   (et:Type0) {| sized et, has_vec_cpy et |}
-  (n : nat)
-  (j : nat)
+  (n j : nat)
   (k : natlt (n / chunk et))
   (step : nat)
 : Lemma

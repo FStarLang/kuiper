@@ -86,7 +86,7 @@ let rec factor_pow2 (n : nat) (a b : nat)
     )
 
 
-let pow2_div_log (n : nat) (a : nat)
+let pow2_div_log (n a : nat)
 : Lemma (requires a /? pow2 n) (ensures exists r. pow2 r == a)
 = let _ = (factor_pow2 n a (pow2 n / a)) in ()
 
@@ -96,7 +96,7 @@ let pow_div_lemma (n : nat) (a b : nat)
   (ensures a /? b)
 = pow2_div_log n a; pow2_div_log n b
 
-let round2_lemma (a b : nat) (n : nat) (k : nat)
+let round2_lemma (a b n k : nat)
 : Lemma
   (requires a /? pow2 k /\  b /? pow2 k /\ a <= b)
   (ensures a /? round2 b n)
@@ -469,8 +469,7 @@ let ematrix_row_chunk
 let offset_chunk
   (et : Type0) {| sized et, has_vec_cpy et |}
   (j : nat { chunk et /? j })
-  (k : nat)
-  (nthr : nat)
+  (k nthr : nat)
 : Pure nat (requires true) (ensures divides (chunk et))
 =
   lemma_divides_product (chunk et) (k * nthr);

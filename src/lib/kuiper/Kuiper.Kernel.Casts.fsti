@@ -18,7 +18,7 @@ so they can be easily intro/elim'd when empty. *)
 (* MxN, no shared memory, no barrier *)
 noeq
 inline_for_extraction noextract
-type kernel_desc_m_n (full_pre : slprop) (full_post : slprop) = {
+type kernel_desc_m_n (full_pre full_post : slprop) = {
   nblk : (x : SZ.t { x <= max_blocks });
   nthr : (x : SZ.t { x <= max_threads });
 
@@ -101,7 +101,7 @@ type kernel_desc_m_n (full_pre : slprop) (full_post : slprop) = {
 into blocks/threads as needed. *)
 noeq
 inline_for_extraction noextract
-type kernel_desc_n (full_pre : slprop) (full_post : slprop) = {
+type kernel_desc_n (full_pre full_post : slprop) = {
   nthr : (x : SZ.t { x <= max_blocks * max_threads });
 
   frame : slprop;
@@ -150,7 +150,7 @@ type kernel_desc_n (full_pre : slprop) (full_post : slprop) = {
 (* 1xN, no shared memory, no barrier *)
 noeq
 inline_for_extraction noextract
-type kernel_desc_1_n (full_pre : slprop) (full_post : slprop) = {
+type kernel_desc_1_n (full_pre full_post : slprop) = {
   nthr : (x : SZ.t { x <= max_threads });
 
   frame : slprop;
@@ -201,7 +201,7 @@ type kernel_desc_1_n (full_pre : slprop) (full_post : slprop) = {
 (* 1xN, no shared memory, but with a barrier *)
 noeq
 inline_for_extraction noextract
-type kernel_desc_1_n_barr (full_pre : slprop) (full_post : slprop) = {
+type kernel_desc_1_n_barr (full_pre full_post : slprop) = {
   nthr : (x : SZ.t { x <= max_threads });
 
   frame : slprop;
@@ -261,7 +261,7 @@ type kernel_desc_1_n_barr (full_pre : slprop) (full_post : slprop) = {
 (* Mx1, no shared memory, no barrier *)
 noeq
 inline_for_extraction noextract
-type kernel_desc_m_1 (full_pre : slprop) (full_post : slprop) = {
+type kernel_desc_m_1 (full_pre full_post : slprop) = {
   nblk : (x : SZ.t { x <= max_blocks });
 
   frame : slprop;
@@ -310,7 +310,7 @@ type kernel_desc_m_1 (full_pre : slprop) (full_post : slprop) = {
 (* 1x1, no shared memory, no barrier *)
 noeq
 inline_for_extraction noextract
-type kernel_desc_1_1 (full_pre : slprop) (full_post : slprop) = {
+type kernel_desc_1_1 (full_pre full_post : slprop) = {
   f : (
     unit ->
     stt unit

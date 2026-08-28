@@ -234,12 +234,12 @@ fn kf
   (bid : szlt (size / 2))
   ()
   norewrite
+  preserves
+    gpu
   requires
-    gpu **
     kpre size a s bid **
     block_id (size /^ 2sz) bid
   ensures
-    gpu **
     kpost size a s bid **
     block_id (size /^ 2sz) bid
 {
@@ -259,6 +259,7 @@ ghost
 fn setup
   (#ty:Type0)
   (size:sz { size > 0sz /\ size % 2 == 0 /\ size < max_blocks })
+  (nblk : szp { SZ.v nblk == size / 2 })
   (a : larray ty size)
   (#s: erased (FStar.Seq.seq ty) { len s == SZ.v size })
   ()
@@ -266,29 +267,30 @@ fn setup
   requires
     a |-> s
   ensures
-    (forall+ (bid : natlt (size /^ 2sz)). kpre size a s bid) **
+    (forall+ (bid : natlt nblk). kpre size a s bid) **
     emp (* frame *)
 {
   explode_cells a;
   partition_cells a;
-  forevery_rw_type (natlt (size / 2)) (natlt (size /^ 2sz)) _;
+  forevery_rw_size (size / 2) nblk;
 }
 
 ghost
 fn teardown
   (#ty:Type0)
   (size:sz { size > 0sz /\ size % 2 == 0 /\ size < max_blocks })
+  (nblk : szp { SZ.v nblk == size / 2 })
   (a : larray ty size)
   (#s: erased (FStar.Seq.seq ty) { len s == SZ.v size })
   ()
   norewrite
   requires
-    (forall+ (bid : natlt (size /^ 2sz)). kpost size a s bid) **
+    (forall+ (bid : natlt nblk). kpost size a s bid) **
     emp (* frame *)
   ensures
     a |-> reverse_spec s
 {
-  forevery_rw_type (natlt (size /^ 2sz)) (natlt (size / 2)) _;
+  forevery_rw_size nblk (size / 2);
   partition_cells_inv a #1.0R #(reverse_spec s);
   implode_cells a
 }
@@ -303,11 +305,11 @@ let kdesc
   : kernel_desc_m_1
       (a |-> s)
       (a |-> reverse_spec s)
-  = {
-      nblk     = size /^ 2sz;
+  = [@@inline_let] let nblk : (x : szp { SZ.v x == size / 2 }) = size /^ 2sz in {
+      nblk     = nblk;
       f        = kf size a #s;
-      setup    = setup size a;
-      teardown = teardown size a;
+      setup    = setup size nblk a;
+      teardown = teardown size nblk a;
       kpre     = kpre size a s;
       kpost    = kpost size a s;
       frame    = emp;

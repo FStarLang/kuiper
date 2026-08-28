@@ -597,8 +597,7 @@ let rsum_seq_stride_step
 inline_for_extraction noextract
 fn read_at
   (#et:Type0) {| scalar et |}
-  (rows : szp)
-  (cols : szp)
+  (rows cols : szp)
   (#lin : layout2 rows cols) {| ctlayout lin |}
   (x : array2 et lin)
   (row : szlt rows)
@@ -654,8 +653,7 @@ fn sum_stride_map_2d
   (#et:Type0) {| scalar et, real_like et |}
   (pre_map : et -> et)
   (pre_map_r : real -> real { pre_map %~ pre_map_r })
-  (rows : szp)
-  (cols : szp)
+  (rows cols : szp)
   (#lin : layout2 rows cols) {| ctlayout lin |}
   (x : array2 et lin)
   (row : szlt rows)
@@ -798,8 +796,9 @@ fn kf_block
   (bid : szlt rows)
   (tid : szlt nth)
   ()
+  preserves
+    gpu
   requires
-    gpu **
     pure (c_shmems_inv shmem) **
     kpre_block pre_map pre_map_r rows cols nth x output sx vr sout shmem (SZ.v bid) (SZ.v tid) **
     thread_id nth tid **
@@ -808,7 +807,6 @@ fn kf_block
                        (vr_partial pre_map_r (chest2_row vr (SZ.v bid)) nth)) **
     B.barrier_state 0
   ensures
-    gpu **
     kpost_block pre_map pre_map_r rows cols nth x output sx vr sout shmem (SZ.v bid) (SZ.v tid) **
     thread_id nth tid **
     block_id rows bid **
@@ -900,7 +898,7 @@ fn kf_block
 
     with ss. assert array1_pts_to_slice sa 0 nth ss;
     unfold array1_pts_to_slice sa;
-    let css : erased (chest1 et nth) = hide (seq_to_chest1 (reveal ss));
+    let css : chest1 et nth = hide (seq_to_chest1 (reveal ss));
     (* Clean the index refinement [0<=k /\ k<nth] down to [k<nth] (= natlt nth),
        then reindex to the abstract tensor index and implode. *)
     forevery_refine_ext'
@@ -1172,8 +1170,8 @@ fn teardown_block_outer
          pure (v %~ chest1_rsum (chest_map pre_map_r (chest2_row vr bid))));
 
   (* Build a concrete chest carrying the cell values. *)
-  let sout' : erased (chest1 et (SZ.v rows)) =
-    hide (mk1 (fun (bid : natlt (SZ.v rows)) -> f bid));
+  let sout' : chest1 et rows =
+    hide (mk1 (fun (bid : natlt rows) -> f bid));
 
   (* Extract the per-row pure approximation fact across all bids. *)
   forevery_extract_pure

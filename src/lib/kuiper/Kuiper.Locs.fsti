@@ -65,12 +65,12 @@ and in thread_id, the first argument is always positive
 when this resource is actually live, but not placing that refinement
 here helps with inference in some places. *)
 [@@no_mkeys]
-let block_id (nblk : int) (bid : int) : slprop =
+let block_id (nblk bid : int) : slprop =
   exists* (l:loc_id). loc l ** pure (block_of l == block_id_loc bid /\ block_id_of l == bid)
 
 (* Token given to a particular thread within a block *)
 [@@no_mkeys]
-let thread_id (nthr : int) (tid : int) : slprop =
+let thread_id (nthr tid : int) : slprop =
   exists* (l:loc_id). loc l ** pure (thread_id_of l == tid)
 
 val is_cpu_loc (l:loc_id) : prop

@@ -21,8 +21,7 @@ let scale
 
 let _comb
   (#et:_) {| scalar et |}
-  (#n : nat)
-  (#acc_l : nat)
+  (#n #acc_l : nat)
   (acc : lseq et acc_l)
   (k : et)
   (s : lseq et n)
@@ -37,8 +36,7 @@ let _comb
 
 let _comb_lemma
   (#et:_) {| scalar et |}
-  (#n : nat)
-  (#acc_l : nat)
+  (#n #acc_l : nat)
   (acc : lseq et acc_l)
   (k : et)
   (s : lseq et n)
@@ -56,8 +54,7 @@ let _comb_lemma
 
 let comb
   (#et:_) {| scalar et |}
-  (#n : nat)
-  (#acc_l : nat)
+  (#n #acc_l : nat)
   (acc : lseq et acc_l)
   (k : et)
   (s : lseq et n)
@@ -239,7 +236,7 @@ let rec _dprod_acc_mask_lemma
 let rec _sparse_dprod_acc_lemma
   (#et : Type0) {| scalar et |}
   (acc : et)
-  (#n : nat) (#nnz : nat)
+  (#n #nnz : nat)
   (elems : lseq et nnz)
   (pos : lseq nat nnz)
   (t : lseq et n)
@@ -264,7 +261,7 @@ let rec _sparse_dprod_acc_lemma
 let sparse_dprod_acc_lemma
   (#et : Type0) {| scalar et |}
   (acc : et)
-  (#n : nat) (#nnz : nat)
+  (#n #nnz : nat)
   (elems : lseq et nnz)
   (pos : lseq nat nnz)
   (t : lseq et n)
@@ -328,7 +325,7 @@ let sparse_dprod_accum
 
 let sparse_dprod_lemma
   (#et : Type0) {| scalar et |}
-  (#n : nat) (#nnz : nat)
+  (#n #nnz : nat)
   (elems : lseq et nnz)
   (pos : lseq nat nnz)
   (t : lseq et n)
@@ -344,8 +341,7 @@ let sparse_dprod_lemma
 let rec sparse_dprod_slice_lemma
   (#et : Type0) {| scalar et |}
   (acc : et)
-  (#n : nat)
-  (#nnz : nat)
+  (#n #nnz : nat)
   (elems : lseq et nnz)
   (pos : lseq nat nnz)
   (t : lseq et n)

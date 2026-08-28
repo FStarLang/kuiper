@@ -534,8 +534,7 @@ let unsparse_row_lemma
 #push-options "--z3rlimit 40"
 let smatrix_extract_lemma
   (#et:Type0) {| scalar et |}
-  (#rows #cols : nat)
-  (#nnz : nat)
+  (#rows #cols #nnz : nat)
   (elems : lseq et nnz)
   (col_ind : lseq sz nnz)
   (row_off : lseq sz (rows + 1))

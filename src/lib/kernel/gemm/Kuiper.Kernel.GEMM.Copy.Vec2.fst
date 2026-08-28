@@ -224,8 +224,7 @@ fn join_array2_from_strided_chunks_underspec
 let em_fade
   (#et : Type0) {| scalar et, has_vec_cpy et |}
   (#rows #cols : pos)
-  (em1 : chest2 et rows cols)
-  (em2 : chest2 et rows cols)
+  (em1 em2 : chest2 et rows cols)
   (nthr : pos)
   (it : nat)
   : chest2 et rows cols
@@ -239,13 +238,10 @@ let em_fade
 let em_fade'
   (#et : Type0) {| scalar et, has_vec_cpy et |}
   (#rows #cols : pos)
-  (em1 : chest2 et rows cols)
-  (em2 : chest2 et rows cols)
+  (em1 em2 : chest2 et rows cols)
   (nthr : pos)
-  (it: nat)
-  (row : nat)
-  (col: nat)
-  (k: nat)
+  (it row : nat)
+  (col k : nat)
   : chest2 et rows cols
   = mk2 (fun i j ->
               let flat_idx = i * cols + j <: nat in
@@ -276,7 +272,7 @@ let divides_helper
 #push-options "--z3rlimit 16 --fuel 0 --ifuel 1"
 let cp_chunk_et_divides_col'
   (et : Type0) {| scalar et, has_vec_cpy et |}
-  (rows cols: pos) (nthr : pos) (tid: nat) (it: nat)
+  (rows cols nthr : pos) (tid it : nat)
   (sq: squash (chunk et /?+ cols /\ tid < nthr /\ it < (rows*cols) / (nthr * chunk et)))
 : Lemma (ensures (
     let i0 = it * nthr * chunk et in
@@ -297,7 +293,7 @@ let cp_chunk_et_divides_col'
 
 let cp_chunk_et_divides_col
   (et : Type0) {| scalar et, has_vec_cpy et |}
-  (rows cols: pos) (nthr : pos) (tid: nat) (it: nat)
+  (rows cols nthr : pos) (tid it : nat)
   (sq: squash (chunk et /?+ cols /\ tid < nthr /\ it < (rows*cols) / (nthr * chunk et)))
 : Lemma (ensures (
     let i0 = it * nthr * chunk et in
@@ -310,7 +306,7 @@ let cp_chunk_et_divides_col
 
 let cp_in_chunk
   (et : Type0) {| scalar et, has_vec_cpy et |}
-  (rows cols: pos) (nthr : pos) (tid: nat) (it: nat) (k: nat)
+  (rows cols nthr : pos) (tid it k : nat)
   (sq: squash (chunk et /?+ cols /\ tid < nthr /\
                it < (rows*cols) / (nthr * chunk et) /\ k < chunk et))
 : Lemma (ensures (
@@ -337,7 +333,7 @@ let cp_in_chunk
 
 let em_fade'_fade_aux
   (et : Type0) {| scalar et, has_vec_cpy et |}
-  (rows cols: pos) (nthr : pos) (tid: nat) (it: nat)
+  (rows cols nthr : pos) (tid it : nat)
   (sq: squash (chunk et /?+ cols /\ chunk et * nthr /?+ (rows * cols) /\
                tid < nthr /\ it < (rows*cols) / (nthr * chunk et)))
   (i j: nat)
@@ -374,8 +370,8 @@ let em_fade'_fade_aux
 let em_fade'_fade
   (#et : Type0) {| scalar et, has_vec_cpy et |}
   (#rows #cols: pos)
-  (esrc : chest2 et rows cols) (edst : chest2 et rows cols)
-  (nthr : pos) (tid: nat) (it: nat)
+  (esrc edst : chest2 et rows cols)
+  (nthr : pos) (tid it : nat)
   (sq: squash (chunk et /?+ cols /\ tid < nthr /\
                chunk et * nthr /?+ (rows * cols) /\ it < (rows*cols) / (nthr * chunk et)))
 : Lemma (ensures (

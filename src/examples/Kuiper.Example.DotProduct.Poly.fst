@@ -29,12 +29,12 @@ fn kf
   (tid : szlt size)
   ()
   norewrite
+  preserves
+    gpu
   requires
-    gpu **
     kpre size ga1 ga2 r tid **
     thread_id size tid
   ensures
-    gpu **
     kpost size ga1 ga2 r tid **
     thread_id size tid
 {

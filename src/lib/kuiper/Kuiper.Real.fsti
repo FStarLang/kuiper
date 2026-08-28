@@ -15,10 +15,10 @@ val rsum_append (s1 s2 : Seq.seq real)
 let rmax (x y: real) : real =
   if t2b (x >. y) then x else y
 
-val lem_rmax_comm (x: real) (y: real)
+val lem_rmax_comm (x y : real)
   : Lemma (ensures rmax x y == rmax y x)
 
-val lem_rmax_assoc (x: real) (y: real) (z: real)
+val lem_rmax_assoc (x y z : real)
   : Lemma (ensures rmax x (rmax y z) == rmax (rmax x y) z)
 
 val sum_non_zero

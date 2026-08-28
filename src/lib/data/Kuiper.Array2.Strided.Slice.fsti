@@ -81,7 +81,7 @@ val lemma_aligned_slice_of_3
    This makes the batched kernel genuinely callable at batch>1. *)
 inline_for_extraction noextract
 instance val strided_row_major_3_l3_batched
-  (batch : erased nat) (rows : erased nat) (cols : erased nat)
+  (batch rows cols : erased nat)
   (#_ : squash (cols > 0))
   {| crows : concrete_sz rows, ccols : concrete_sz cols |}
   (sqf : squash (SZ.fits (rows * cols)))

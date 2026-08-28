@@ -82,7 +82,7 @@ let div_lt_mul_pat (a p : nat) (q : pos)
 #pop-options
 
 let barrier_p
-  (#etA : Type0) (#etB : Type0)
+  (#etA #etB : Type0)
   {| sized etA, has_vec_cpy etA, sized etB, has_vec_cpy etB |}
   (#rows #shared #cols : pos)
   (eA : chest2 etA rows shared)
@@ -112,7 +112,7 @@ let barrier_p
       own_strided_chunks m2 (ematrix_subtile eB bk bn (it / 2) mcol) nthr tid
 
 let barrier_q
-  (#etA : Type0) (#etB : Type0)
+  (#etA #etB : Type0)
   {| sized etA, has_vec_cpy etA, sized etB, has_vec_cpy etB |}
   (#rows #shared #cols : pos)
   (eA : chest2 etA rows shared)
@@ -142,7 +142,7 @@ let barrier_q
       bp_sharing m2 (ematrix_subtile eB bk bn (it / 2) mcol) nthr
 
 let contract
-  (#etA : Type0) (#etB : Type0)
+  (#etA #etB : Type0)
   {| sized etA, has_vec_cpy etA, sized etB, has_vec_cpy etB |}
   (#rows #shared #cols : pos)
   (eA : chest2 etA rows shared)
@@ -163,7 +163,7 @@ let contract
 }
 
 let barrier_tok
-  (#etA : Type0) (#etB : Type0)
+  (#etA #etB : Type0)
   {| sized etA, has_vec_cpy etA, sized etB, has_vec_cpy etB |}
   (#rows #shared #cols : pos)
   (eA : chest2 etA rows shared)
@@ -183,7 +183,7 @@ let barrier_tok
 (* The proof of correctness. *)
 ghost
 fn barrier_p_to_q_transform
-  (#etA : Type0) (#etB : Type0)
+  (#etA #etB : Type0)
   {| sized etA, has_vec_cpy etA, sized etB, has_vec_cpy etB |}
   (#rows #shared #cols : pos)
   (eA : chest2 etA rows shared)
@@ -214,7 +214,7 @@ fn barrier_p_to_q_transform
 (* Per-thread helpers for odd iterations. *)
 ghost
 fn fold_barrier_p_odd
-  (#etA : Type0) (#etB : Type0)
+  (#etA #etB : Type0)
   {| sized etA, has_vec_cpy etA, sized etB, has_vec_cpy etB |}
   (#rows #shared #cols : pos)
   (eA : chest2 etA rows shared)
@@ -240,7 +240,7 @@ fn fold_barrier_p_odd
 
 ghost
 fn unfold_barrier_q_odd
-  (#etA : Type0) (#etB : Type0)
+  (#etA #etB : Type0)
   {| sized etA, has_vec_cpy etA, sized etB, has_vec_cpy etB |}
   (#rows #shared #cols : pos)
   (eA : chest2 etA rows shared)
@@ -267,7 +267,7 @@ fn unfold_barrier_q_odd
 (* Per-thread helpers for even iterations. *)
 ghost
 fn fold_barrier_p_even
-  (#etA : Type0) (#etB : Type0)
+  (#etA #etB : Type0)
   {| sized etA, has_vec_cpy etA, sized etB, has_vec_cpy etB |}
   (#rows #shared #cols : pos)
   (eA : chest2 etA rows shared)
@@ -291,7 +291,7 @@ fn fold_barrier_p_even
 
 ghost
 fn unfold_barrier_q_even
-  (#etA : Type0) (#etB : Type0)
+  (#etA #etB : Type0)
   {| sized etA, has_vec_cpy etA, sized etB, has_vec_cpy etB |}
   (#rows #shared #cols : pos)
   (eA : chest2 etA rows shared)

@@ -55,7 +55,7 @@ let mul_div_cancel_pat (a:nat) (b:pos)
 (* [a < p * q ==> a / q < p]: splitting a flat block/warp id into its two
    components.  Same story: stated with a trigger in the vocabulary of the
    goal so it still fires in the split queries. *)
-let div_lt_mul_pat (a:nat) (p:nat) (q:pos)
+let div_lt_mul_pat (a p : nat) (q:pos)
   : Lemma (requires a < p * q) (ensures a / q < p)
           [SMTPat (a / q); SMTPat (p * q)]
   = if a / q >= p then begin
@@ -146,7 +146,7 @@ let scratch_tile_st
   (#_ : squash (SZ.fits ((nthr / warp_size) * tm * tn)))
   (#_ : squash (warp_size /?+ nthr))
   (sh : c_shmems (shmems_desc_to et_ab et_acc bm bn bk tm tn nthr))
-  (wid : szlt (nthr /^ warp_size))
+  (wid : szlt (nthr / warp_size))
 = scratch_tile bm bn bk tm tn nthr sh (SZ.v wid)
 
 let output_lane_live

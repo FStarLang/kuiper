@@ -29,8 +29,7 @@ inline_for_extraction noextract
 fn spmm_on
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
   (rows shared cols : szp { chunk et /? cols })
-  (blockItemsK : szp)
-  (blockItemsX : szp)
+  (blockItemsK blockItemsX : szp)
   (blockWidth : (k : szp {
     (k * chunk et) /? blockItemsK /\
     (k * chunk sz) /? blockItemsK /\
@@ -89,8 +88,7 @@ inline_for_extraction noextract
 fn spmm
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
   (rows shared cols : szp { chunk et /? cols })
-  (blockItemsK : szp)
-  (blockItemsX : szp)
+  (blockItemsK blockItemsX : szp)
   (blockWidth : (k : szp {
     (k * chunk et) /? blockItemsK /\
     (k * chunk sz) /? blockItemsK /\

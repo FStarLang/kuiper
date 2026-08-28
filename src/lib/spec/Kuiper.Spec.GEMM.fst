@@ -351,7 +351,7 @@ let matmul_decompose_lemma
    the *type* of __matmul_single_subtile_lemma' below, so they cannot be discharged
    by an assert in its body. They are nonlinear, so we prove them once here and
    expose them via a (narrowly triggered) SMT pattern. *)
-let mul_tile_bound (shared : pos) (tshared : pos) (t : nat)
+let mul_tile_bound (shared tshared : pos) (t : nat)
   : Lemma (requires tshared /? shared /\ t <= shared / tshared)
           (ensures t * tshared <= shared /\
                    (t < shared / tshared ==> t * tshared + tshared <= shared))
@@ -367,7 +367,7 @@ let mul_tile_bound (shared : pos) (tshared : pos) (t : nat)
 
 (* Similarly: [shared / tshared <= shared] is needed at several call sites and is
    not free for Z3 with a symbolic divisor. *)
-let div_le_self (shared : pos) (tshared : pos)
+let div_le_self (shared tshared : pos)
   : Lemma (requires tshared /? shared)
           (ensures shared / tshared <= shared)
           [SMTPat (shared / tshared)]
@@ -381,8 +381,7 @@ let rec __matmul_single_subtile_lemma'
   (#et : Type) {| scalar et |}
   (pf2 : (x: et -> squash (add x zero == x /\ add zero x == x)))
   (pf3 : (x: et -> y: et -> z: et -> squash (add x (add y z) == add (add x y) z)))
-  (#rows : nat)
-  (#columns : nat)
+  (#rows #columns : nat)
   (#shared : pos)
   (trows : pos{trows /? rows})
   (tcols : pos{tcols /? columns})
@@ -436,8 +435,7 @@ let __matmul_single_subtile_lemma
   (#et : Type) {| scalar et |}
   (pf2 : (x: et -> squash (add x zero == x /\ add zero x == x)))
   (pf3 : (x: et -> y: et -> z: et -> squash (add x (add y z) == add (add x y) z)))
-  (#rows : nat)
-  (#columns : nat)
+  (#rows #columns : nat)
   (#shared : pos)
   (trows : pos{trows /? rows})
   (tcols : pos{tcols /? columns})

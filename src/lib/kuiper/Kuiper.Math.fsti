@@ -61,7 +61,7 @@ This is in GTot bool instead of prop to
 use if_ and friends, but it coincides exactly with `pow2 i /? x`. We
 state in the refinement to automatically use all SMTPats about /?.
 *)
-let div_pow2 (i:nat) (x:nat) : GTot (b:bool{b <==> pow2 i /? x}) =
+let div_pow2 (i x : nat) : GTot (b:bool{b <==> pow2 i /? x}) =
   (x % pow2 i) = 0
 
 val div_pow2_lemma (i j tid: nat):

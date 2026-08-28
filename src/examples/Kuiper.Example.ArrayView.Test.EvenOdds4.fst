@@ -22,10 +22,10 @@ open Kuiper.IView
 open Kuiper.View
 
 noextract
-let strided_ait (len : nat) (stride : nat) (offset : natlt stride) : Type =
+let strided_ait (len stride : nat) (offset : natlt stride) : Type =
   natlt ((len + stride - 1 - offset) / stride)
 
-let strided_step (len : nat) (stride : nat) (offset : natlt stride) :
+let strided_step (len stride : nat) (offset : natlt stride) :
   aiview_step
     (natlt ((len + stride - 1 - offset) / stride))
     (natlt len)

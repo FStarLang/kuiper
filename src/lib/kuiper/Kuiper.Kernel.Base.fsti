@@ -20,8 +20,7 @@ type and capabilities. There are many simpler versions in the Kuiper.Kernel modu
 all implemented using this one and without any extra assumptions. *)
 noextract
 fn launch_kernel_full
-  (#full_pre : slprop)
-  (#full_post : slprop)
+  (#full_pre #full_post : slprop)
   (k : kernel_desc full_pre full_post)
   (s: stream_t)
   (#e : epoch_t)
@@ -64,9 +63,7 @@ ghost fn sync_stream_ghost
 
 noextract
 fn sync_device ()
-  (frame: erased slprop)
-  (p: erased slprop)
-  (q: erased slprop)
+  (frame p q : erased slprop)
   (justif:
     ghost fn ()
       preserves sync_token

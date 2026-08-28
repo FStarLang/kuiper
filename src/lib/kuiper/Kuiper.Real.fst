@@ -18,11 +18,11 @@ let rsum_append (s1 s2 : Seq.seq real)
       seq_fold_left (+.) 0.0R s1 +. seq_fold_left (+.) 0.0R s2;
     }
 
-let lem_rmax_comm (x: real) (y: real)
+let lem_rmax_comm (x y : real)
   : Lemma (ensures rmax x y == rmax y x)
   = ()
 
-let lem_rmax_assoc (x: real) (y: real) (z: real)
+let lem_rmax_assoc (x y z : real)
   : Lemma (ensures rmax x (rmax y z) == rmax (rmax x y) z)
   = ()
 

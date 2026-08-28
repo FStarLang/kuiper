@@ -13,7 +13,7 @@ module SZ    = FStar.SizeT
 
 // Can we use divup here? It seems much harder on Z3.
 noextract
-let strided_view et (len : nat) (stride : nat) (offset : natlt stride) :
+let strided_view et (len stride : nat) (offset : natlt stride) :
   aview et (lseq et ((len + stride - 1 - offset) / stride))
 = {
   iview = {

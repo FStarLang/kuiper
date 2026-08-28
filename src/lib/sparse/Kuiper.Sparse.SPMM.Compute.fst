@@ -317,8 +317,7 @@ let tile_mask_lemma
   (j : nat { chunk et /? j })
   (step : nat)
   (#tlen : nat { chunk et /? tlen })
-  (tile0 : lseq et tlen)
-  (tile : lseq et tlen)
+  (tile0 tile : lseq et tlen)
 : Lemma
   (requires
     tile_vmprod_prop

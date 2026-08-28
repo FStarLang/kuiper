@@ -380,10 +380,8 @@ fn forevery_ext
 
 ghost
 fn forevery_ext_2
-  (#a:Type0)
-  (#b:Type0)
-  (f : a -> b -> slprop)
-  (g : a -> b -> slprop)
+  (#a #b : Type0)
+  (f g : a -> b -> slprop)
   requires
     pure (forall x y. f x y == g x y)
   requires
@@ -514,7 +512,7 @@ fn forevery_intro_pure (#a:Type0) (p: a -> prop)
 }
 
 ghost
-fn forevery_intro_pure_2 (#a:Type0) (#b:Type0) (p: a -> b -> prop)
+fn forevery_intro_pure_2 (#a #b : Type0) (p: a -> b -> prop)
   requires
     pure (forall x y. p x y)
   ensures
@@ -545,7 +543,7 @@ fn forevery_elim_pure (#a:Type0) (p: a -> prop)
 }
 
 ghost
-fn forevery_eilm_pure_2 (#a:Type0) (#b:Type0) (p: a -> b -> prop)
+fn forevery_eilm_pure_2 (#a #b : Type0) (p: a -> b -> prop)
   requires
     forall+ (x:a) (y:b). pure (p x y)
   ensures
@@ -869,8 +867,7 @@ instance forevery_duplicable #a (p: a -> slprop) {| (x:a -> duplicable (p x)) |}
 
 ghost
 fn forevery_iso
-  (#a:Type0)
-  (#b:Type0)
+  (#a #b : Type0)
   (bij : a =~ b)
   (p : a -> slprop)
   requires
@@ -905,8 +902,7 @@ let snd_bij_dep #a (#b : a -> Type) (x: a) : (b x =~ (xy: (x:a & b x) { x == xy.
 
 ghost
 fn forevery_flatten
-  (#a:Type0)
-  (#b:Type0)
+  (#a #b : Type0)
   (f : a -> b -> slprop)
   requires
     forall+ (x:a) (y:b). f x y
@@ -969,8 +965,7 @@ fn forevery_flatten_dep
 
 ghost
 fn forevery_flatten'
-  (#a:Type0)
-  (#b:Type0)
+  (#a #b : Type0)
   (f : a & b -> slprop)
   requires
     forall+ (x:a) (y:b). f (x, y)
@@ -983,8 +978,7 @@ fn forevery_flatten'
 
 ghost
 fn forevery_unflatten
-  (#a:Type0)
-  (#b:Type0)
+  (#a #b : Type0)
   (f : a -> b -> slprop)
   requires
     forall+ (xy : a & b). f xy._1 xy._2
@@ -1031,8 +1025,7 @@ fn forevery_unflatten
 
 ghost
 fn forevery_unflatten'
-  (#a:Type0)
-  (#b:Type0)
+  (#a #b : Type0)
   (f : a & b -> slprop)
   requires
     forall+ (xy : a & b). f xy
@@ -1117,8 +1110,7 @@ let swap_bij a b : (a & b =~ b & a) =
 
 ghost
 fn forevery_commute
-  (#a:Type0)
-  (#b:Type0)
+  (#a #b : Type0)
   (f : a -> b -> slprop)
   requires
     forall+ (x:a) (y:b). f x y
@@ -1133,8 +1125,7 @@ fn forevery_commute
 
 ghost
 fn forevery_iso_back
-  (#a:Type0)
-  (#b:Type0)
+  (#a #b : Type0)
   (bij : a =~ b)
   (p : a -> slprop)
   requires
@@ -1496,8 +1487,7 @@ fn forevery_rw_size2
 
 ghost
 fn forevery_factor
-  (n : nat)
-  (d1 : nat) (d2 : nat { n == d1 * d2 })
+  (n d1 : nat) (d2 : nat { n == d1 * d2 })
   (p : natlt n -> slprop)
   requires
     forall+ (i:natlt n). p i
@@ -1511,8 +1501,7 @@ fn forevery_factor
 
 ghost
 fn forevery_factor'
-  (n : nat)
-  (d1 : nat) (d2 : nat { n == d1 * d2 })
+  (n d1 : nat) (d2 : nat { n == d1 * d2 })
   (p : natlt d1 -> natlt d2 -> slprop)
   requires
     forall+ (i:natlt n). p (i/d2) (i%d2)
@@ -1528,8 +1517,7 @@ fn forevery_factor'
 
 ghost
 fn forevery_unfactor
-  (n : nat)
-  (d1 : nat) (d2 : nat { n == d1 * d2 })
+  (n d1 : nat) (d2 : nat { n == d1 * d2 })
   (p : natlt n -> slprop)
   requires
     forall+ (i1:natlt d1) (i2:natlt d2). p (i1 * d2 + i2)
@@ -1544,8 +1532,7 @@ fn forevery_unfactor
 
 ghost
 fn forevery_unfactor'
-  (n : nat)
-  (d1 : nat) (d2 : nat { n == d1 * d2 })
+  (n d1 : nat) (d2 : nat { n == d1 * d2 })
   (p : natlt d1 -> natlt d2 -> slprop)
   requires
     forall+ (i1:natlt d1) (i2:natlt d2). p i1 i2
@@ -1562,8 +1549,7 @@ fn forevery_unfactor'
 
 ghost
 fn forevery_map_2
-  (#a:Type0)
-  (#b:Type0)
+  (#a #b : Type0)
   (p1 p2 : a -> b -> slprop)
   (f : (x:a -> y:b -> stt_ghost unit emp_inames (p1 x y) (fun _ -> p2 x y)))
   requires
@@ -1597,8 +1583,7 @@ fn forevery_map'
 
 ghost
 fn forevery_zip_2
-  (#a:Type0)
-  (#b:Type0)
+  (#a #b : Type0)
   (p1 p2 : a -> b -> slprop)
   requires
     (forall+ (x:a) (y:b). p1 x y) **
@@ -1612,8 +1597,7 @@ fn forevery_zip_2
 
 ghost
 fn forevery_unzip_2
-  (#a:Type0)
-  (#b:Type0)
+  (#a #b : Type0)
   (p1 p2 : a -> b -> slprop)
   requires
     forall+ (x:a) (y:b). p1 x y ** p2 x y
@@ -1706,8 +1690,7 @@ fn forevery_extract'
 
 ghost
 fn forevery_extract_2
-  (#a:Type0)
-  (#b:Type0)
+  (#a #b : Type0)
   (z : a) (w : b)
   (p : a -> b -> slprop)
   requires
@@ -1808,8 +1791,7 @@ fn forevery_unextract_if_eqtype
 
 ghost
 fn forevery_extract_if_2
-  (#a:Type0)
-  (#b:Type0)
+  (#a #b : Type0)
   (z : a) (w : b)
   (p : a -> b -> slprop)
   requires
