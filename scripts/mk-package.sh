@@ -5,6 +5,7 @@
 # The package is a ready-to-use Kuiper tree bundling:
 #   - the F* + Karamel toolchain (inst/), prebuilt
 #   - Z3 4.13.3, bundled where F* expects it (inst/lib/fstar/z3-4.13.3/bin/z3)
+#   - a pinned clang-format executable (inst/bin/clang-format)
 #   - the verified Kuiper library (obj/*.checked) and its extraction plugin
 #   - all sources, headers, scripts and makefiles needed to write, verify,
 #     extract, and compile new kernels.
@@ -27,6 +28,7 @@
 #   KUIPER_TAG            Suffix for the default basename (default -<kernel>-<arch>)
 #   KUIPER_PACKAGE_Z3     If "false", do not bundle Z3.
 #   Z3_VERSION            Z3 version to bundle (default 4.13.3)
+#   CLANG_FORMAT_VERSION  clang-format version to bundle (default 19.1.7)
 
 set -euo pipefail
 
@@ -36,6 +38,7 @@ cd "$ROOT"
 KERNEL="$(uname -s)"
 ARCH="$(uname -m)"
 Z3_VERSION="${Z3_VERSION:-4.13.3}"
+CLANG_FORMAT_VERSION="${CLANG_FORMAT_VERSION:-19.1.7}"
 
 # Default tag and basename
 KUIPER_TAG="${KUIPER_TAG:--$KERNEL-$ARCH}"
@@ -50,6 +53,10 @@ die() { printf 'error: %s\n' "$*" >&2; exit 1; }
 
 [ -x inst/bin/fstar.exe ] || die "inst/bin/fstar.exe not found. Run 'make prepare' first."
 [ -x inst/bin/krml ]      || die "inst/bin/krml not found. Run 'make prepare' first."
+[ -x inst/bin/clang-format ] || die "inst/bin/clang-format not found. Run 'make prepare' first."
+formatter_version="$(inst/bin/clang-format --version)"
+[ "$formatter_version" = "clang-format version $CLANG_FORMAT_VERSION" ] || \
+  die "expected clang-format $CLANG_FORMAT_VERSION, found: $formatter_version"
 PLUGIN=extraction/dune/_build/default/kuiper_extr.cmxs
 [ -f "$PLUGIN" ]          || die "extraction plugin ($PLUGIN) not found. Run 'make prepare' first."
 if ! ls obj/*.checked >/dev/null 2>&1; then
@@ -65,7 +72,7 @@ mkdir -p "$PKG"
 
 msg "Staging Kuiper package in $PKG"
 
-# --- Toolchain (F* + Karamel) --------------------------------------------
+# --- Toolchain (F* + Karamel + clang-format) -----------------------------
 
 msg "Copying toolchain (inst/)"
 cp -a inst "$PKG/inst"
@@ -125,7 +132,7 @@ cp -a extraction/dune/dune extraction/dune/dune-project "$PKG/extraction/dune/" 
 cp -a "$PLUGIN" "$PKG/extraction/dune/_build/default/"
 
 # Build system and helpers.
-cp -a Makefile verify.mk nvcc.mk .common.mk .configure.mk configure \
+cp -a Makefile verify.mk nvcc.mk .common.mk .configure.mk .clang-format configure \
       fstar.sh krml.sh "$PKG/"
 # Referenced by README.md for macOS packages; harmless on Linux ones.
 cp -a setup-mac.sh "$PKG/" 2>/dev/null || true
@@ -163,6 +170,7 @@ Kuiper commit:  $commit
 F* commit:      $fstar_commit
 Karamel commit: $krml_commit
 Z3 version:     $Z3_VERSION
+clang-format:   $CLANG_FORMAT_VERSION
 EOF
 
 cp -a scripts/README-package.md "$PKG/README.md" 2>/dev/null || \

@@ -54,8 +54,6 @@ jobs:
           # below (resulting in a 403). We set explicit tokens per-push instead.
           persist-credentials: false
 
-      - run: sudo apt-get install -y indent
-
       - name: Install GitHub CLI
         run: |
           curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg

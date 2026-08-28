@@ -5,9 +5,9 @@ __global__
 /**
   hoisted when extracting test
 */
-static void __hoisted_test_0(void)
+static void
+__hoisted_test_0(void)
 {
-
 }
 
 void Kuiper_Example_ZeroKernel_test(void)

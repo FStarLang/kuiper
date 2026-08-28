@@ -8,8 +8,8 @@ bool ok = true;
 /* It would be nicer to write a purely-Pulse test. */
 
 #define TYPE uint64_t
-#define FUN  Klas_HReduce_reduce_u64_plus
-#define PR   "%" PRIu64
+#define FUN Klas_HReduce_reduce_u64_plus
+#define PR "%" PRIu64
 
 void test(int nth, int siz)
 {

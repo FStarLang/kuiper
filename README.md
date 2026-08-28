@@ -46,9 +46,10 @@ include the relevant Kuiper header files in `include/`.
 
 If you want to *write and build your own kernels* without compiling the whole
 toolchain from source, install a prebuilt Kuiper package. Each package is a
-self-contained tree bundling F\*, Karamel, Z3, and the verified Kuiper library —
-everything needed to verify, extract, and compile new kernels. Nightly packages
-are published as prereleases (tagged `nightly-*`) on this repository's
+self-contained tree bundling F\*, Karamel, Z3, a pinned `clang-format`, and the
+verified Kuiper library — everything needed to verify, extract, and compile new
+kernels. Nightly packages are published as prereleases (tagged `nightly-*`) on
+this repository's
 [Releases page](https://github.com/FStarLang/kuiper/releases).
 
 The `install-kuiper.sh` script autodetects your OS and architecture:
@@ -66,12 +67,13 @@ curl -fsSL https://raw.githubusercontent.com/FStarLang/kuiper/main/scripts/insta
 ```
 
 Then work inside the installed tree (no OPAM/OCaml needed — only `nvcc` if you
-want to compile, and `indent` for CUDA post-processing):
+want to compile; the pinned CUDA formatter is bundled):
 
 ```bash
 cd ~/.local/kuiper
 make -j$(nproc)                                  # verify + extract everything
 ./fstar.sh src/examples/Kuiper.Example.Add.fst   # verify a single file
+clang-format --version                           # bundled, pinned formatter
 ```
 
 See the package's own `README.md` for how to add and build a new kernel.
@@ -116,7 +118,7 @@ build F\* and Karamel:
 
 ```bash
 eval $(opam env)
-make prepare       # builds F* and Karamel (~10 min with -j)
+make prepare       # builds F*/Karamel and installs clang-format (~10 min with -j)
 ```
 
 The [F\* VS Code extension](https://github.com/FStarLang/fstar-vscode-assistant/)
@@ -125,6 +127,7 @@ is included. Use `Ctrl+.` to verify the file at the cursor position.
 ### Requirements
 - OCaml 5.4.0, OPAM, and some packages. (Other OCaml versions may work, but this is the one we test, YMMV.)
 - Z3 version 4.13.3
+- `curl` and Python 3 (to install the pinned `clang-format`)
 - NVCC (if you wish to _compile_ the kernels)
 - An Nvidia GPU (if you wish to _run_ the kernels)
 

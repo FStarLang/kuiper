@@ -37,4 +37,4 @@ double Kuiper_Example_FloatCasts_test_cast_bf16_f64(__nv_bfloat16 x);
 __nv_bfloat16 Kuiper_Example_FloatCasts_test_cast_f64_bf16(double x);
 
 #define Kuiper_Example_FloatCasts_H_DEFINED
-#endif                          /* Kuiper_Example_FloatCasts_H */
+#endif /* Kuiper_Example_FloatCasts_H */

@@ -6,8 +6,8 @@
 
 const char *progname = "Tune_Klas_SPMM";
 
-#define DEFAULT_LAPS   2
-#define DEFAULT_DIM    4096
+#define DEFAULT_LAPS 2
+#define DEFAULT_DIM 4096
 #define DEFAULT_DENSITY 10
 
 #define STR(x) #x
@@ -32,7 +32,9 @@ int main(int argc, char **argv)
     } else if (argc == 1) {
         /* use defaults */
     } else {
-        fprintf(stderr, "Usage: %s [<laps> <rows> <shared> <cols> <density%%>]\n", argv[0]);
+        fprintf(stderr,
+                "Usage: %s [<laps> <rows> <shared> <cols> <density%%>]\n",
+                argv[0]);
         return 1;
     }
 
@@ -49,13 +51,15 @@ int main(int argc, char **argv)
     uint32_t *row_indices = mk_row_indices(rows, A);
     float *B = mk_dense_matrix_f32(shared, cols, 50);
 
-    printf("+ NNZ = %u (%.1f%%)\n", A.nnz, 100.0 * A.nnz / ((double)rows * shared));
+    printf("+ NNZ = %u (%.1f%%)\n", A.nnz,
+           100.0 * A.nnz / ((double) rows * shared));
 
     /* Upload to device */
     smatrix_f32_t dA;
     uint32_t *drow_indices;
     float *dB, *dC;
-    upload_spmm_f32(rows, shared, cols, A, row_indices, B, &dA, &drow_indices, &dB, &dC);
+    upload_spmm_f32(rows, shared, cols, A, row_indices, B, &dA, &drow_indices,
+                    &dB, &dC);
 
     /* Warmup */
     for (int l = 0; l < laps / 10 + 1; l++) {
@@ -72,10 +76,11 @@ int main(int argc, char **argv)
         t += delta;
     }
 
-    /* FLOPS: 2 * nnz * cols (each nonzero contributes a multiply+add per output column) */
-    double flops = (double)laps * 2.0 * A.nnz * cols;
-    fprintf(stderr, ">> RES\t%s\t%.3f GFLOPS\t(%.3f ms avg)\n",
-            XSTR(stem), flops / t / 1e9, t / laps * 1000.0);
+    /* FLOPS: 2 * nnz * cols (each nonzero contributes a multiply+add per output
+     * column) */
+    double flops = (double) laps * 2.0 * A.nnz * cols;
+    fprintf(stderr, ">> RES\t%s\t%.3f GFLOPS\t(%.3f ms avg)\n", XSTR(stem),
+            flops / t / 1e9, t / laps * 1000.0);
 
     free_spmm_device_f32(dA, drow_indices, dB, dC);
     free(AD);

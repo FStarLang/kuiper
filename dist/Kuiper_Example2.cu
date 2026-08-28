@@ -5,9 +5,9 @@ __global__
 /**
   hoisted when extracting main
 */
-static void __hoisted_main_0(void)
+static void
+__hoisted_main_0(void)
 {
-
 }
 
 uint64_t Kuiper_Example2_main(void)

@@ -6,9 +6,9 @@
 
 #include "matmul_common.c.inc"
 
-#define DEFAULT_DIM   1024
-#define DEFAULT_TILE  32
-#define DEFAULT_LAPS  2
+#define DEFAULT_DIM 1024
+#define DEFAULT_TILE 32
+#define DEFAULT_LAPS 2
 
 int main(int argc, char **argv)
 {
@@ -30,7 +30,8 @@ int main(int argc, char **argv)
     } else if (argc == 1) {
         /* use defaults */
     } else {
-        fprintf(stderr, "Usage: %s [<laps> <rows> <shared> <columns>]\n", argv[0]);
+        fprintf(stderr, "Usage: %s [<laps> <rows> <shared> <columns>]\n",
+                argv[0]);
         return 1;
     }
 
@@ -70,25 +71,26 @@ int main(int argc, char **argv)
 
     et *gold = nullptr;
     if (check)
-        TIME_void(gold =
-                  cpu_sgemm(rows, shared, cols, m1_cpu, m2_cpu, m3_cpu,
-                            GEMM_ALPHA, GEMM_BETA), NULL);
+        TIME_void(gold = cpu_sgemm(rows, shared, cols, m1_cpu, m2_cpu, m3_cpu,
+                                   GEMM_ALPHA, GEMM_BETA),
+                  NULL);
     for (int l = 0; l < laps; l++) {
         float t;
         fprintf(stderr, "Static tile = 32\n");
-        TIME_void(TOKENPASTE3(stem, et_lbl, _tile32_rrr)
-                  (GEMM_ALPHA, GEMM_BETA, rows, shared, cols, m1, m2, m3), &t);
+        TIME_void(TOKENPASTE3(stem, et_lbl, _tile32_rrr)(
+                      GEMM_ALPHA, GEMM_BETA, rows, shared, cols, m1, m2, m3),
+                  &t);
         uint64_t flops = (rows * shared * cols * 2.0);
         // I think the below is more accurate, but I'm reusing the
         // same formula from the sgemm.cu benchsuite
         // uint64_t flops = (rows * shared * cols * 2.0 + rows * cols * 3) / t;
-        fprintf(stderr, "Estimated GFLOPS: %.3f\n", (double)flops / t / 1e9);
+        fprintf(stderr, "Estimated GFLOPS: %.3f\n", (double) flops / t / 1e9);
 
         if (check) {
             cmp(rows, cols, m3, gold);
-            cudaMemcpy(m3, m3_cpu, rows * cols * sizeof(et), cudaMemcpyHostToDevice);
+            cudaMemcpy(m3, m3_cpu, rows * cols * sizeof(et),
+                       cudaMemcpyHostToDevice);
         }
-
     }
     if (check)
         free(gold);

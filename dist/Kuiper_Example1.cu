@@ -5,7 +5,8 @@ __global__
 /**
   hoisted when extracting main
 */
-static void __hoisted_main_0(uint64_t *gr)
+static void
+__hoisted_main_0(uint64_t *gr)
 {
     (*gr)++;
 }

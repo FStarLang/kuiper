@@ -32,7 +32,6 @@ RUN apt-get update \
       wget \
       git \
       gnupg \
-      indent \
       sudo \
       libgmp-dev \
       opam \

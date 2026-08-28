@@ -5,7 +5,8 @@ __global__
 /**
   hoisted when extracting incr_all_1d
 */
-static void __hoisted_incr_all_1d_0(uint32_t *a)
+static void
+__hoisted_incr_all_1d_0(uint32_t *a)
 {
     if (1024U * blockIdx.x + threadIdx.x < 1024U)
         a[1024U * blockIdx.x + threadIdx.x]++;
@@ -28,17 +29,19 @@ __global__
 /**
   hoisted when extracting incr_all_1d2
 */
-static void __hoisted_incr_all_1d2_0(uint32_t *a)
+static void
+__hoisted_incr_all_1d2_0(uint32_t *a)
 {
     if (1024U * blockIdx.x + threadIdx.x < 1048576U)
-        a[(KRML_CLITERAL(__uint32_t__uint32_t______) {
-           .fst = (1024U * blockIdx.x + threadIdx.x) / 1024U,.snd =
-           (1024U * blockIdx.x + threadIdx.x) % 1024U}
-          ).fst * 1024U + (KRML_CLITERAL(__uint32_t__uint32_t______) {
-                           .fst =
-                           (1024U * blockIdx.x + threadIdx.x) / 1024U,.snd =
-                           (1024U * blockIdx.x + threadIdx.x) % 1024U}
-          ).snd]++;
+        a[(KRML_CLITERAL(__uint32_t__uint32_t______){
+               .fst = (1024U * blockIdx.x + threadIdx.x) / 1024U,
+               .snd = (1024U * blockIdx.x + threadIdx.x) % 1024U})
+                  .fst *
+              1024U +
+          (KRML_CLITERAL(__uint32_t__uint32_t______){
+               .fst = (1024U * blockIdx.x + threadIdx.x) / 1024U,
+               .snd = (1024U * blockIdx.x + threadIdx.x) % 1024U})
+              .snd]++;
 }
 
 void Kuiper_Example_TMap_incr_all_1d2(uint32_t *a)

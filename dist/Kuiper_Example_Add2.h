@@ -17,4 +17,4 @@ uint64_t Kuiper_Example_Add2_add_u64(uint64_t x, uint64_t y);
 uint64_t Kuiper_Example_Add2_add_u64_(uint64_t x, uint64_t y);
 
 #define Kuiper_Example_Add2_H_DEFINED
-#endif                          /* Kuiper_Example_Add2_H */
+#endif /* Kuiper_Example_Add2_H */

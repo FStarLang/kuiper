@@ -1,10 +1,7 @@
 
 #include "Kuiper_Example_TestFor.h"
 
-void Kuiper_Example_TestFor_g(uint32_t x)
-{
-    KRML_MAYBE_UNUSED_VAR(x);
-}
+void Kuiper_Example_TestFor_g(uint32_t x) { KRML_MAYBE_UNUSED_VAR(x); }
 
 void Kuiper_Example_TestFor_test(void)
 {

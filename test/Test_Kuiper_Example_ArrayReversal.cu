@@ -9,7 +9,7 @@
 typedef uint64_t u64;
 
 // Only even, >=2
-const int sizes[] = { 2, 4, 6, 8, 64, 128, 256, 512, 1024, 0 };
+const int sizes[] = {2, 4, 6, 8, 64, 128, 256, 512, 1024, 0};
 
 int main()
 {
@@ -34,7 +34,8 @@ int main()
 
         for (i = 0; i < n; i++) {
             if (a[i] != n - i - 1) {
-                printf("Error at %d: %" PRIu64 " != %" PRIu64 "\n", i, a[i], (u64) (n - i - 1));
+                printf("Error at %d: %" PRIu64 " != %" PRIu64 "\n", i, a[i],
+                       (u64) (n - i - 1));
                 return 1;
             }
         }

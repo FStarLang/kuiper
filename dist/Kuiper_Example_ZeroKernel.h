@@ -7,4 +7,4 @@
 void Kuiper_Example_ZeroKernel_test(void);
 
 #define Kuiper_Example_ZeroKernel_H_DEFINED
-#endif                          /* Kuiper_Example_ZeroKernel_H */
+#endif /* Kuiper_Example_ZeroKernel_H */

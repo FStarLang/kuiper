@@ -1,0 +1,16 @@
+---
+Language: Cpp
+BasedOnStyle: LLVM
+IndentWidth: 4
+ContinuationIndentWidth: 4
+TabWidth: 4
+UseTab: Never
+ColumnLimit: 80
+BreakBeforeBraces: Linux
+SortIncludes: Never
+SpaceAfterCStyleCast: true
+PointerAlignment: Right
+AttributeMacros:
+  - __global__
+  - __device__
+  - __host__

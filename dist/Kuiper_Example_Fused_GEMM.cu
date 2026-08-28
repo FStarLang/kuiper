@@ -28,16 +28,14 @@ __hoisted_gemm_sqrt_fused_0(uint32_t m, uint32_t n, uint32_t k, half *gA,
 /**
 C <- sqrt(A) @ B, with A, B, C in fp16 and the accumulation done in fp32.
 */
-void
-Kuiper_Example_Fused_GEMM_gemm_sqrt_fused(uint32_t m,
-                                          uint32_t n,
-                                          uint32_t k,
-                                          half *gA, half *gB, half *gC)
+void Kuiper_Example_Fused_GEMM_gemm_sqrt_fused(uint32_t m, uint32_t n,
+                                               uint32_t k, half *gA, half *gB,
+                                               half *gC)
 {
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_KCALL(__hoisted_gemm_sqrt_fused_0,
-              m * n / 1024U + (uint32_t) (m * n % 1024U != 0U),
-              1024U, 0U, s, m, n, k, gA, gB, gC);
+              m * n / 1024U + (uint32_t) (m * n % 1024U != 0U), 1024U, 0U, s, m,
+              n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }

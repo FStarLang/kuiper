@@ -5,7 +5,8 @@ __global__
 /**
   hoisted when extracting reduce_u32
 */
-static void __hoisted_reduce_u32_0(uint32_t *a, uint32_t *gr)
+static void
+__hoisted_reduce_u32_0(uint32_t *a, uint32_t *gr)
 {
     atomic_add_u32(gr, a[blockIdx.x]);
 }
@@ -28,7 +29,8 @@ __global__
 /**
   hoisted when extracting reduce_u64
 */
-static void __hoisted_reduce_u64_0(uint64_t *a, uint64_t *gr)
+static void
+__hoisted_reduce_u64_0(uint64_t *a, uint64_t *gr)
 {
     atomic_add_u64(gr, a[blockIdx.x]);
 }
@@ -51,7 +53,8 @@ __global__
 /**
   hoisted when extracting reduce_f32
 */
-static void __hoisted_reduce_f32_0(float *a, float *gr)
+static void
+__hoisted_reduce_f32_0(float *a, float *gr)
 {
     atomic_add_f32(gr, a[blockIdx.x]);
 }
@@ -59,7 +62,7 @@ static void __hoisted_reduce_f32_0(float *a, float *gr)
 float Klas_AtomicReduce_reduce_f32(uint32_t n, float *a)
 {
     float r = 0.0f;
-    float *gr = (float *)KPR_GPU_ALLOC(sizeof(float), 1U);
+    float *gr = (float *) KPR_GPU_ALLOC(sizeof(float), 1U);
     MUST(cudaMemcpy(gr, &r, sizeof(float), cudaMemcpyHostToDevice));
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_KCALL(__hoisted_reduce_f32_0, n, 1U, 0U, s, a, gr);
@@ -74,7 +77,8 @@ __global__
 /**
   hoisted when extracting reduce_f64
 */
-static void __hoisted_reduce_f64_0(double *a, double *gr)
+static void
+__hoisted_reduce_f64_0(double *a, double *gr)
 {
     atomic_add_f64(gr, a[blockIdx.x]);
 }
@@ -82,7 +86,7 @@ static void __hoisted_reduce_f64_0(double *a, double *gr)
 double Klas_AtomicReduce_reduce_f64(uint32_t n, double *a)
 {
     double r = 0.0;
-    double *gr = (double *)KPR_GPU_ALLOC(sizeof(double), 1U);
+    double *gr = (double *) KPR_GPU_ALLOC(sizeof(double), 1U);
     MUST(cudaMemcpy(gr, &r, sizeof(double), cudaMemcpyHostToDevice));
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_KCALL(__hoisted_reduce_f64_0, n, 1U, 0U, s, a, gr);

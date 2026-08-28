@@ -7,4 +7,4 @@
 extern uint32_t Kuiper_Example_ArrayView_Test_Modulo_x;
 
 #define Kuiper_Example_ArrayView_Test_Modulo_H_DEFINED
-#endif                          /* Kuiper_Example_ArrayView_Test_Modulo_H */
+#endif /* Kuiper_Example_ArrayView_Test_Modulo_H */

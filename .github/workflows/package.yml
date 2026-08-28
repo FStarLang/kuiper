@@ -58,7 +58,7 @@ jobs:
       - name: Install system dependencies (Linux)
         if: runner.os == 'Linux'
         run: |
-          sudo apt-get update && sudo apt-get install -y indent unzip
+          sudo apt-get update && sudo apt-get install -y unzip
           echo "MAKE=make" >> "$GITHUB_ENV"
           echo "NPROC=$(nproc)" >> "$GITHUB_ENV"
 
@@ -66,7 +66,7 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           # The makefiles look up the GNU tools under their Homebrew names
-          # (gsed, grealpath, gindent, gnproc), so no PATH shadowing is needed.
+          # (gsed, grealpath, gnproc), so no PATH shadowing is needed.
           ./setup-mac.sh
           # GNU make is the exception: macOS ships make 3.81, which cannot even
           # parse our makefiles. Homebrew installs it as `gmake`.

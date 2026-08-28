@@ -4,8 +4,8 @@
 
 #include "matmul_common.c.inc"
 
-#define DEFAULT_DIM   1024
-#define DEFAULT_LAPS  2
+#define DEFAULT_DIM 1024
+#define DEFAULT_LAPS 2
 /* This is slower, just do two laps when testing */
 
 int main(int argc, char **argv)
@@ -26,7 +26,9 @@ int main(int argc, char **argv)
     } else if (argc == 1) {
         /* use defaults */
     } else {
-        fprintf(stderr, "Usage: %s [<laps> <rows> <shared> <columns> <check>]\n", argv[0]);
+        fprintf(stderr,
+                "Usage: %s [<laps> <rows> <shared> <columns> <check>]\n",
+                argv[0]);
         return 1;
     }
 
@@ -64,9 +66,11 @@ int main(int argc, char **argv)
 
     for (int l = 0; l < laps; l++) {
         float t;
-        TIME_void(TOKENPASTE3(stem, et_lbl, _rrr)
-                  (rows, shared, cols, m1, m2, m3), &t);
-        fprintf(stderr, "Estimated GFLOPS: %.3f\n", (rows * shared * cols * 2.0) / t / 1e9);
+        TIME_void(
+            TOKENPASTE3(stem, et_lbl, _rrr)(rows, shared, cols, m1, m2, m3),
+            &t);
+        fprintf(stderr, "Estimated GFLOPS: %.3f\n",
+                (rows * shared * cols * 2.0) / t / 1e9);
         if (check)
             cmp(rows, cols, m3, m3_cpu);
     }

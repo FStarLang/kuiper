@@ -50,18 +50,28 @@ ifeq ($(shell uname -s),Darwin)
 ifeq ($(filter clean clean-modules clean-full,$(MAKECMDGOALS)),)
  $(call check-bin,grealpath,coreutils)
  $(call check-bin,gsed,gnu-sed)
- $(call check-bin,gindent,gnu-indent)
 endif
  realpath:=grealpath
  sed:=gsed
- indent:=gindent
  nproc:=gnproc
 else
  realpath:=realpath
  sed:=sed
- indent:=indent
  nproc:=nproc
 endif
+
+CLANG_FORMAT_VERSION := 19.1.7
+CLANG_FORMAT := $(CURDIR)/inst/bin/clang-format
+CLANG_FORMAT_FLAGS := --Werror --fail-on-incomplete-format \
+	--style=file:$(CURDIR)/.clang-format
+# Karamel starts generated files with multiple blank lines, which clang-format
+# intentionally preserves. Canonical output retains exactly one.
+NORMALIZE_LEADING_BLANKS := awk 'BEGIN { print "" } NF || seen { seen = 1; print }'
+
+$(CLANG_FORMAT): scripts/install-clang-format.sh
+	$(call msg,"INSTALL","clang-format $(CLANG_FORMAT_VERSION)")
+	$(Q)CLANG_FORMAT_VERSION=$(CLANG_FORMAT_VERSION) \
+		scripts/install-clang-format.sh $(CURDIR)/inst
 
 define msg =
 @printf "  %-8s  %s\n" $(1) $(if $(2),$(2),$(shell $(realpath) --relative-to=. $<))

@@ -22,7 +22,7 @@ int main()
     for (i = 0; i < N; i++) {
         uint32_t got = Kuiper_Example_CellRef_cell_get(a, (uint32_t) i);
         if (got != (uint32_t) (i * 10)) {
-            printf("get error at %d: %u != %u\n", i, got, (unsigned)(i * 10));
+            printf("get error at %d: %u != %u\n", i, got, (unsigned) (i * 10));
             return 1;
         }
     }
@@ -33,16 +33,19 @@ int main()
        the array: the underlying buffer is updated and a subsequent get
        reads the new value. */
     for (i = 0; i < N; i++)
-        Kuiper_Example_CellRef_array_set_via_ref(a, (uint32_t) i, (uint32_t) (i + 100));
+        Kuiper_Example_CellRef_array_set_via_ref(a, (uint32_t) i,
+                                                 (uint32_t) (i + 100));
 
     for (i = 0; i < N; i++) {
         if (a[i] != (uint32_t) (i + 100)) {
-            printf("set error at %d: %u != %u\n", i, a[i], (unsigned)(i + 100));
+            printf("set error at %d: %u != %u\n", i, a[i],
+                   (unsigned) (i + 100));
             return 1;
         }
         uint32_t got = Kuiper_Example_CellRef_cell_get(a, (uint32_t) i);
         if (got != (uint32_t) (i + 100)) {
-            printf("get-after-set error at %d: %u != %u\n", i, got, (unsigned)(i + 100));
+            printf("get-after-set error at %d: %u != %u\n", i, got,
+                   (unsigned) (i + 100));
             return 1;
         }
     }

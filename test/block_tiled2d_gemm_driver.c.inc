@@ -5,9 +5,9 @@
 
 #include "matmul_common.c.inc"
 
-#define DEFAULT_DIM   1024
+#define DEFAULT_DIM 1024
 // #define DEFAULT_TILE  32
-#define DEFAULT_LAPS  2
+#define DEFAULT_LAPS 2
 
 int main(int argc, char **argv)
 {
@@ -29,7 +29,9 @@ int main(int argc, char **argv)
     } else if (argc == 1) {
         /* use defaults */
     } else {
-        fprintf(stderr, "Usage: %s [<laps> <rows> <shared> <columns> <check flag>]\n", argv[0]);
+        fprintf(stderr,
+                "Usage: %s [<laps> <rows> <shared> <columns> <check flag>]\n",
+                argv[0]);
         return 1;
     }
 
@@ -74,9 +76,9 @@ int main(int argc, char **argv)
     et *gold = NULL;
     if (check) {
         // One extra lap if we're checking.
-        TIME_void(gold =
-                  cpu_sgemm(rows, shared, cols, m1_cpu, m2_cpu, m3_cpu,
-                            GEMM_ALPHA, GEMM_BETA), NULL);
+        TIME_void(gold = cpu_sgemm(rows, shared, cols, m1_cpu, m2_cpu, m3_cpu,
+                                   GEMM_ALPHA, GEMM_BETA),
+                  NULL);
 
         F(PREARGS GEMM_ALPHA, GEMM_BETA, rows, shared, cols, m1, m2, m3);
 
@@ -93,7 +95,9 @@ int main(int argc, char **argv)
     float t = 0;
     for (int l = 0; l < laps; l++) {
         float delta;
-        TIME_void(F(PREARGS GEMM_ALPHA, GEMM_BETA, rows, shared, cols, m1, m2, m3), &delta);
+        TIME_void(
+            F(PREARGS GEMM_ALPHA, GEMM_BETA, rows, shared, cols, m1, m2, m3),
+            &delta);
         t += delta;
     }
     uint64_t flops = laps * rows * shared * cols * 2.0;
@@ -101,7 +105,8 @@ int main(int argc, char **argv)
     // same formula from the sgemm.cu benchsuite
     // uint64_t flops = (rows * shared * cols * 2.0 + rows * cols * 3) / t;
 
-    fprintf(stderr, ">> RES\t%s\t%.3f GFLOPS\n", XSTR(F), (double)flops / t / 1e9);
+    fprintf(stderr, ">> RES\t%s\t%.3f GFLOPS\n", XSTR(F),
+            (double) flops / t / 1e9);
 
     cudaFree(m1);
     cudaFree(m2);
