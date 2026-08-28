@@ -62,7 +62,21 @@ let div_lt_bound_pat (x a b : nat)
    proved with an empty ambient context. *)
 let mul_ac4 (a b c d w : nat)
   : Lemma ((b * a) * (d * c) * w == (a * c) * ((b * d) * w))
-  = ()
+  = calc (==) {
+      (b * a) * (d * c) * w;
+      == { FStar.Math.Lemmas.swap_mul b a }
+      (a * b) * (d * c) * w;
+      == { FStar.Math.Lemmas.paren_mul_right a b (d * c) }
+      (a * (b * (d * c))) * w;
+      == { FStar.Math.Lemmas.paren_mul_right b d c }
+      (a * ((b * d) * c)) * w;
+      == { FStar.Math.Lemmas.swap_mul (b * d) c }
+      (a * (c * (b * d))) * w;
+      == { FStar.Math.Lemmas.paren_mul_right a c (b * d) }
+      ((a * c) * (b * d)) * w;
+      == { FStar.Math.Lemmas.paren_mul_right (a * c) (b * d) w }
+      (a * c) * ((b * d) * w);
+    }
 
 (* Left cancellation of a positive factor, via [(k*x)/k == x]. *)
 let cancel_left (k x y : nat)

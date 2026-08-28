@@ -45,6 +45,13 @@ let chest_comb_subtile
 
 let macc_ematrix_tiled #et #rows #cols em trows tcols i j = ()
 
+let div_mod_of_mul_add (n : pos) (q : nat) (r : natlt n)
+  : Lemma ((q * n + r) / n == q /\ (q * n + r) % n == r)
+  = FStar.Math.Lemmas.lemma_div_plus r q n;
+    FStar.Math.Lemmas.small_div r n;
+    FStar.Math.Lemmas.lemma_mod_plus r q n;
+    FStar.Math.Lemmas.small_mod r n
+
 #push-options "--z3rlimit 10"
 let from_subtiles_id
   (#et : _)
@@ -71,8 +78,22 @@ let tiles_from_subtiles_id
   : Lemma (ematrix_subtile (ematrix_from_tiles trows tcols f) trows tcols tr tc
            ==
            f tr tc)
-= assert (equal (ematrix_subtile (ematrix_from_tiles trows tcols f) trows tcols tr tc) (f tr tc));
-  ()
+= let lhs = ematrix_subtile (ematrix_from_tiles trows tcols f) trows tcols tr tc in
+  let rhs = f tr tc in
+  let aux (i : natlt trows) (j : natlt tcols)
+    : Lemma (acc2 lhs i j == acc2 rhs i j)
+    = div_mod_of_mul_add trows tr i;
+      div_mod_of_mul_add tcols tc j;
+      subtile_acc2 (ematrix_from_tiles trows tcols f)
+        trows tcols tr tc i j;
+      Kuiper.EMatrix.macc_mkM #et #rows #cols
+        (fun i j -> acc2 (f (i / trows) (j / tcols))
+          (i % trows) (j % tcols))
+        (tr * trows + i) (tc * tcols + j)
+  in
+  Classical.forall_intro_2 aux;
+  Kuiper.EMatrix.lemma_equal_intro lhs rhs;
+  Kuiper.Chest.ext lhs rhs
 #pop-options
 
 let update_tile_self
