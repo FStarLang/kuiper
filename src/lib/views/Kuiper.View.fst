@@ -14,7 +14,7 @@ let it_nat_rel #a #st (vw : aview a st) (i : vw.iview.ait)
   : Lemma (it_to_nat vw i == j <==> i == it_of_nat vw j)
   = IView.it_nat_rel vw.iview i j
 
-let to_from (#a:Type) (#st:Type)
+let to_from (#a #st : Type)
   (vw : aview a st { is_full_view vw })
   (s : lseq a (len vw))
   : Lemma (ensures to_seq vw (from_seq vw s) == s)
@@ -38,7 +38,7 @@ let to_from (#a:Type) (#st:Type)
     Classical.forall_intro aux;
     assert (Seq.equal s (to_seq vw (from_seq vw s)))
 
-let from_to (#a:Type) (#st:Type)
+let from_to (#a #st : Type)
   (vw : aview a st { is_full_view vw })
   (v : st)
   : Lemma (ensures from_seq vw (to_seq vw v) == v)
@@ -64,7 +64,7 @@ let from_to (#a:Type) (#st:Type)
   vw.ctn.ext (from_seq vw (to_seq vw v)) v ();
   ()
 
-let to_seq_upd (#a:Type) (#st:Type)
+let to_seq_upd (#a #st : Type)
   (vw : aview a st { is_full_view vw })
   (v : st)
   (i : vw.iview.ait)

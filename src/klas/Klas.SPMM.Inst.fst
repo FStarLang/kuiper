@@ -20,8 +20,7 @@ open Kuiper.Kernel.Base
 inline_for_extraction noextract
 fn inst_on
   (et : Type0) {| scalar et, sized et, has_vec_cpy et |}
-  (blockItemsK : szp)
-  (blockItemsX : szp)
+  (blockItemsK blockItemsX : szp)
   (blockWidth : (k : szp {
     (k * chunk et) /? blockItemsK /\
     (k * chunk sz) /? blockItemsK /\
@@ -93,8 +92,7 @@ fn inst_on
 inline_for_extraction noextract
 fn inst
   (et : Type0) {| scalar et, sized et, has_vec_cpy et |}
-  (blockItemsK : szp)
-  (blockItemsX : szp)
+  (blockItemsK blockItemsX : szp)
   (blockWidth : (k : szp {
     (k * chunk et) /? blockItemsK /\
     (k * chunk sz) /? blockItemsK /\

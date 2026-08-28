@@ -50,8 +50,7 @@ let rec contributions'
   (nn : nat)
   (v_done : lseq bool nn)
   (v_a : chest1 et nn)
-  (v_r : et)
-  (acc : et)
+  (v_r acc : et)
   (i : natle nn)
 : Tot prop (decreases i)
 =
@@ -217,7 +216,7 @@ let rec contributions_shift
   (#et : Type0) {| scalar et |} {| d : has_atomic_add et |}
   (ac : is_ac_w d.pure_op)
   (nn : nat) (v_done : lseq bool nn) (v_a : chest1 et nn)
-  (v_r : et) (acc : et) (x : et)
+  (v_r acc x : et)
   (i : natle nn)
   : Lemma (requires contributions' nn v_done v_a v_r acc i)
           (ensures  contributions' nn v_done v_a (d.pure_op x v_r) (d.pure_op x acc) i)
@@ -310,8 +309,8 @@ let is_ac_from_ac_w (#t:Type) (#f: t -> t -> t) (ac : is_ac_w f)
   : Lemma (is_ac f)
 = (* F* master cannot infer the predicate implicit of [forall_intro_n] (it
      occurs only in the postcondition), so state the goals explicitly. *)
-  introduce forall (x:t) (y:t). f x y == f y x with ac.comm x y;
-  introduce forall (x:t) (y:t) (z:t). f (f x y) z == f x (f y z) with ac.assoc x y z
+  introduce forall (x y : t). f x y == f y x with ac.comm x y;
+  introduce forall (x y z : t). f (f x y) z == f x (f y z) with ac.assoc x y z
 
 let contributions_lemma_smt
   (#et : Type0) {| scalar et |} {| d : has_atomic_add et |}
@@ -338,12 +337,12 @@ fn kf
   (c : CInv.cinv)
   (bid : szlt (SZ.v nn))
   ()
+  preserves
+    gpu
   requires
-    gpu **
     kpre (SZ.v nn) a v_a r done c bid **
     block_id (SZ.v nn) bid
   ensures
-    gpu **
     kpost (SZ.v nn) a v_a r done c bid **
     block_id (SZ.v nn) bid
 {

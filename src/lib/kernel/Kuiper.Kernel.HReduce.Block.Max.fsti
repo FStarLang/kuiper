@@ -30,7 +30,7 @@ fn reduce_batched_block_max
   (output : array1 et lout { is_global output })
   (#sx   : chest2 et   rows cols)
   (vr    : chest2 real rows cols)
-  (#sout : erased (chest1 et rows))
+  (#sout : chest1 et rows)
   preserves
     cpu **
     on gpu_loc (x |-> sx)

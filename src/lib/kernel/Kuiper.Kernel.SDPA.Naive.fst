@@ -94,8 +94,7 @@ let fold_chest3_row
 
 let sdpa_scores_spec
   (#n #h : szp)
-  (#l #s : szp)
-  (#e: szp)
+  (#l #s #e : szp)
   (rQ : chest4 real n h l e)
   (rK : chest4 real n h e s)
   (rS : chest4 real n h l s)
@@ -277,8 +276,7 @@ let sdpa_output_aux
 
 let sdpa_naive_aux
   (#n #h : szp { SZ.fits (n * h) })
-  (#l #s : szp)
-  (#e: szp)
+  (#l #s #e : szp)
   (rQ : chest4 real n h l e)
   (rK : chest4 real n h e s)
   (rS : chest4 real n h l s)
@@ -417,11 +415,11 @@ fn sdpa_naive
   (gbias : tensor et lbias { is_global gbias })
   (out   : tensor et (l4_batched_row_major n h l ev) { is_global out })
   (scale : et)
-  (#eQ : erased    (chest4 et n h l e))
-  (#eK : erased    (chest4 et n h s e))
-  (#eV : erased    (chest4 et n h s ev))
-  (#ebias : erased (chest4 et n h l s))
-  (#rKT : erased   (chest4 real n h e s))
+  (#eQ : chest4 et n h l e)
+  (#eK : chest4 et n h s e)
+  (#eV : chest4 et n h s ev)
+  (#ebias : chest4 et n h l s)
+  (#rKT : chest4 real n h e s)
   (#fQ #fK #fV : perm)
   norewrite
   preserves

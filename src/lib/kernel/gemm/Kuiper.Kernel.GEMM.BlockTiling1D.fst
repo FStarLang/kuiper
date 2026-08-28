@@ -281,8 +281,8 @@ fn even_barrier_p_to_q
   with em2. assert (m2 |-> em2);
   tensor_ilower2 m1;
   tensor_ilower2 m2;
-  forevery_commute (fun (r : natlt tile) (c : natlt tile) -> tensor_pts_to_cell m1 (idx2 r c) (acc2 em1 r c));
-  forevery_commute (fun (r : natlt tile) (c : natlt tile) -> tensor_pts_to_cell m2 (idx2 r c) (acc2 em2 r c));
+  forevery_commute (fun (r c : natlt tile) -> tensor_pts_to_cell m1 (idx2 r c) (acc2 em1 r c));
+  forevery_commute (fun (r c : natlt tile) -> tensor_pts_to_cell m2 (idx2 r c) (acc2 em2 r c));
   forevery_map
     (fun (c : natlt tile) -> forall+ (r : natlt tile). tensor_pts_to_cell m1 (idx2 r c) (acc2 em1 r c))
     (fun (c : natlt tile) -> own_1_col m1 c)
@@ -350,11 +350,11 @@ fn odd_barrier_p_to_q
     (fun (c : natlt tile) -> forall+ (r : natlt tile). exists* (x : et). Cell m2 (idx2 r c) |-> x)
     fn c { unfold own_1_col m2 c };
   (* Commute: forall+ c r -> forall+ r c *)
-  forevery_commute (fun (c : natlt tile) (r : natlt tile) -> exists* (x : et). Cell m1 (idx2 r c) |-> x);
-  forevery_commute (fun (c : natlt tile) (r : natlt tile) -> exists* (x : et). Cell m2 (idx2 r c) |-> x);
+  forevery_commute (fun (c r : natlt tile) -> exists* (x : et). Cell m1 (idx2 r c) |-> x);
+  forevery_commute (fun (c r : natlt tile) -> exists* (x : et). Cell m2 (idx2 r c) |-> x);
   (* Extract witnesses *)
-  let f1 = forevery_exists_2 (fun (r : natlt tile) (c : natlt tile) (x : et) -> Cell m1 (idx2 r c) |-> x);
-  let f2 = forevery_exists_2 (fun (r : natlt tile) (c : natlt tile) (x : et) -> Cell m2 (idx2 r c) |-> x);
+  let f1 = forevery_exists_2 (fun (r c : natlt tile) (x : et) -> Cell m1 (idx2 r c) |-> x);
+  let f2 = forevery_exists_2 (fun (r c : natlt tile) (x : et) -> Cell m2 (idx2 r c) |-> x);
   (* Construct ematrices from witness functions *)
   let em1 : chest2 et tile tile = mk2 f1;
   let em2 : chest2 et tile tile = mk2 f2;
@@ -496,7 +496,7 @@ fn subproduct_cols
   (#et : Type0) {| scalar et |}
   (tile : sz)
   (acc : array et)
-  (#l1 : layout2 tile tile) (#l2 : layout2 tile tile)
+  (#l1 #l2 : layout2 tile tile)
   {| T.ctlayout l1, T.ctlayout l2 |}
   (m1 : array2 et l1)
   (m2 : array2 et l2)
@@ -645,7 +645,7 @@ let bbtile_gcol_bound (batch mcols tile bid tid : nat)
    [prod_ff] supplies the [< mrows*tile] / [< mcols*tile] bounds for free. *)
 unfold
 let bbtile_cell_idx (batch mrows mcols tile : nat)
-  (bid : natlt (batch * (mrows * mcols))) (tid : natlt tile) (ii : natlt tile)
+  (bid : natlt (batch * (mrows * mcols))) (tid ii : natlt tile)
   : abs (batch @| (mrows * tile) @| (mcols * tile) @| INil)
   = let page = bid % batch in
     let rest = bid / batch in
@@ -673,7 +673,7 @@ let acc_bridge
   (#tc : Type0)
   (batch mrows mcols tile : nat)
   (e : chest3 tc batch (mrows * tile) (mcols * tile))
-  (bid : natlt (batch * (mrows * mcols))) (tid : natlt tile) (ii : natlt tile)
+  (bid : natlt (batch * (mrows * mcols))) (tid ii : natlt tile)
   : Lemma (
       Chest.acc e (bbtile_cell_idx batch mrows mcols tile bid tid ii)
         == acc2 (slice_page e (bid % batch))
@@ -692,18 +692,18 @@ let up3_lemma (#b #r #cc : nat) (p : szlt b) (g : szlt r) (co : szlt cc)
 
 (* The full block/thread/col bijection decodes to the direct arithmetic cell. *)
 let bbtile_gg_full (batch mrows mcols tile : nat)
-  (bid : natlt (batch * (mrows * mcols))) (tid : natlt tile) (ii : natlt tile)
+  (bid : natlt (batch * (mrows * mcols))) (tid ii : natlt tile)
   : Lemma ((bbtile_idx_bij batch mrows mcols tile).gg (bid, (tid, ii))
              == bbtile_cell_idx batch mrows mcols tile bid tid ii)
   = assert_norm ((bbtile_idx_bij batch mrows mcols tile).gg (bid, (tid, ii))
                    == bbtile_cell_idx batch mrows mcols tile bid tid ii)
 
 let bbtile_gg_all (batch mrows mcols tile : nat)
-  : Lemma (forall (bid : natlt (batch * (mrows * mcols))) (tid : natlt tile) (ii : natlt tile).
+  : Lemma (forall (bid : natlt (batch * (mrows * mcols))) (tid ii : natlt tile).
              (bbtile_idx_bij batch mrows mcols tile).gg (bid, (tid, ii))
                == bbtile_cell_idx batch mrows mcols tile bid tid ii)
   = introduce
-      forall (bid : natlt (batch * (mrows * mcols))) (tid : natlt tile) (ii : natlt tile).
+      forall (bid : natlt (batch * (mrows * mcols))) (tid ii : natlt tile).
         (bbtile_idx_bij batch mrows mcols tile).gg (bid, (tid, ii))
           == bbtile_cell_idx batch mrows mcols tile bid tid ii
       with bbtile_gg_full batch mrows mcols tile bid tid ii
@@ -949,8 +949,9 @@ fn bkf
   (tid : szlt tile)
   ()
   norewrite
+  preserves
+    gpu
   requires
-    gpu **
     pure (c_shmems_inv sh) **
     bkpre mapA mapB comb mapA_r mapB_r comb_r tile slA slB gA gB gC eA eB eC fA fB sh bid tid **
     thread_id tile tid **
@@ -958,7 +959,6 @@ fn bkf
     B.barrier_tok (barrier_contract tile slA slB (fst sh) (fst (snd sh))) **
     B.barrier_state 0
   ensures
-    gpu **
     bkpost mapA mapB comb mapA_r mapB_r comb_r tile slA slB gA gB gC eA eB eC rA rB rC fA fB sh bid tid **
     thread_id tile tid **
     block_id (batch * (mrows * mcols)) bid **
@@ -1146,6 +1146,7 @@ fn bsetup
   (mapA_r mapB_r : real -> real)
   (comb_r : binop real { comb `approx2` comb_r })
   (#batch #mrows #mshared #mcols : szp)
+  (nblk : szp { SZ.v nblk == batch * (mrows * mcols) })
   (#lA : layout3 batch (mrows   * tile) (mshared * tile))
   (#lB : layout3 batch (mshared * tile) (mcols   * tile))
   (#lC : layout3 batch (mrows   * tile) (mcols   * tile))
@@ -1164,7 +1165,7 @@ fn bsetup
     gB |-> Frac fB eB **
     gC |-> eC
   ensures
-    (forall+ (bid : natlt (batch *^ (mrows *^ mcols)))
+    (forall+ (bid : natlt nblk)
              (tid : natlt tile).
       bkpre1 mapA mapB comb mapA_r mapB_r comb_r tile gA gB gC eA eB eC fA fB bid tid) **
     emp
@@ -1191,19 +1192,19 @@ fn bsetup
          tensor_pts_to_cell gC ((bbtile_idx_bij batch mrows mcols tile).gg (bid, tt))
            (Chest.acc eC ((bbtile_idx_bij batch mrows mcols tile).gg (bid, tt))))
     (fun (bid : natlt (batch * (mrows * mcols))) ->
-       forall+ (tid : natlt tile) (ii : natlt tile).
+       forall+ (tid ii : natlt tile).
          exists* (v : tc). tensor_pts_to_cell gC (bbtile_cell_idx batch mrows mcols tile bid tid ii) v)
     fn bid {
       forevery_unflatten' _;
       forevery_ext_2 _
-        (fun (tid : natlt tile) (ii : natlt tile) ->
+        (fun (tid ii : natlt tile) ->
            tensor_pts_to_cell gC (bbtile_cell_idx batch mrows mcols tile bid tid ii)
              (Chest.acc eC (bbtile_cell_idx batch mrows mcols tile bid tid ii)));
       forevery_map_2
-        (fun (tid : natlt tile) (ii : natlt tile) ->
+        (fun (tid ii : natlt tile) ->
            tensor_pts_to_cell gC (bbtile_cell_idx batch mrows mcols tile bid tid ii)
              (Chest.acc eC (bbtile_cell_idx batch mrows mcols tile bid tid ii)))
-        (fun (tid : natlt tile) (ii : natlt tile) ->
+        (fun (tid ii : natlt tile) ->
            exists* (v : tc). tensor_pts_to_cell gC (bbtile_cell_idx batch mrows mcols tile bid tid ii) v)
         fn tid ii { (); };
     };
@@ -1226,7 +1227,7 @@ fn bsetup
     (fun (bid : natlt (batch * (mrows * mcols))) (tid : natlt tile) ->
        bkpre1 mapA mapB comb mapA_r mapB_r comb_r tile gA gB gC eA eB eC fA fB bid tid);
   forevery_rw_size2
-    (batch * (mrows * mcols)) (SZ.v (batch *^ (mrows *^ mcols)))
+    (batch * (mrows * mcols)) nblk
     tile tile;
   ();
 }
@@ -1245,6 +1246,7 @@ fn bteardown
   (mapA_r mapB_r : real -> real)
   (comb_r : binop real { comb `approx2` comb_r })
   (#batch #mrows #mshared #mcols : szp)
+  (nblk : szp { SZ.v nblk == batch * (mrows * mcols) })
   (#lA : layout3 batch (mrows   * tile) (mshared * tile))
   (#lB : layout3 batch (mshared * tile) (mcols   * tile))
   (#lC : layout3 batch (mrows   * tile) (mcols   * tile))
@@ -1262,7 +1264,7 @@ fn bteardown
   ()
   norewrite
   requires
-    (forall+ (bid : natlt (batch *^ (mrows *^ mcols)))
+    (forall+ (bid : natlt nblk)
              (tid : natlt tile).
       bkpost1 mapA mapB comb mapA_r mapB_r comb_r tile gA gB gC eA eB eC rA rB rC fA fB bid tid) **
     emp
@@ -1276,7 +1278,7 @@ fn bteardown
   let n_threads : nat = (batch * (mrows * mcols)) * tile;
 
   forevery_rw_size2
-    (SZ.v (batch *^ (mrows *^ mcols))) (batch * (mrows * mcols))
+    nblk (batch * (mrows * mcols))
     tile tile;
 
   (* Unfold bkpost1 to explicit form. *)
@@ -1317,7 +1319,7 @@ fn bteardown
      verified 2-level [forevery_exists_2]/[Chest.mk] sequence applies. *)
   forevery_map
     (fun (bid : natlt (batch * (mrows * mcols))) ->
-      forall+ (tid : natlt tile) (ii : natlt tile).
+      forall+ (tid ii : natlt tile).
         exists* (v : tc).
           tensor_pts_to_cell gC (bbtile_cell_idx batch mrows mcols tile bid tid ii) v **
           pure (v %~ MS.ggemm_single mapA_r mapB_r comb_r
@@ -1338,7 +1340,7 @@ fn bteardown
                   (((bid / batch) % mcols) * tile + (tcell / tile))))
     fn bid {
       forevery_unfactor' (tile * tile) tile tile
-        (fun (tid : natlt tile) (ii : natlt tile) ->
+        (fun (tid ii : natlt tile) ->
           exists* (v : tc).
             tensor_pts_to_cell gC (bbtile_cell_idx batch mrows mcols tile bid tid ii) v **
             pure (v %~ MS.ggemm_single mapA_r mapB_r comb_r
@@ -1676,8 +1678,9 @@ let bmk_kernel
         (exists* (eC' : chest3 tc batch (mrows * tile) (mcols * tile)).
           gC |-> eC' **
           pure (eC' %~ MS.gbmmcomb mapA_r mapB_r comb_r rC rA rB)))
-= {
-  nblk = batch *^ (mrows *^ mcols);
+= [@@inline_let] let nblk : (x : szp { SZ.v x == batch * (mrows * mcols) }) =
+    batch *^ (mrows *^ mcols) in {
+  nblk = nblk;
   nthr = tile;
 
   (* Barrier fields are CONTENT-AGNOSTIC (independent of the page), so they
@@ -1691,8 +1694,8 @@ let bmk_kernel
   frame = emp;
   block_pre  = (fun bid -> forall+ (tid : natlt tile). bkpre1  mapA mapB comb mapA_r mapB_r comb_r tile gA gB gC eA eB eC fA fB bid tid);
   block_post = (fun bid -> forall+ (tid : natlt tile). bkpost1 mapA mapB comb mapA_r mapB_r comb_r tile gA gB gC eA eB eC rA rB rC fA fB bid tid);
-  setup      = bsetup    tile mapA mapB comb mapA_r mapB_r comb_r gA gB gC;
-  teardown   = bteardown tile mapA mapB comb mapA_r mapB_r comb_r gA gB gC rA rB rC;
+  setup      = bsetup    tile mapA mapB comb mapA_r mapB_r comb_r nblk gA gB gC;
+  teardown   = bteardown tile mapA mapB comb mapA_r mapB_r comb_r nblk gA gB gC rA rB rC;
 
   block_frame    = (fun _ar _bid -> emp);
   block_setup    = bblock_setup    tile slA slB mapA mapB comb mapA_r mapB_r comb_r gA gB gC #_ #_ #_ #_ #eC;
@@ -1701,7 +1704,8 @@ let bmk_kernel
   kpre      = bkpre  mapA mapB comb mapA_r mapB_r comb_r tile slA slB gA gB gC eA eB eC fA fB;
   kpost     = bkpost mapA mapB comb mapA_r mapB_r comb_r tile slA slB gA gB gC eA eB eC rA rB rC fA fB;
 
-  f = bkf tile slA slB mapA mapB comb mapA_r mapB_r comb_r gA gB gC rA rB rC;
+  f = bkf tile slA slB mapA mapB comb mapA_r mapB_r comb_r
+        gA gB gC #eA #eB #eC rA rB rC #_ #fA #fB;
 
   block_pre_sendable=bblock_pre_gpu_sendable mapA mapB comb mapA_r mapB_r comb_r tile gA gB gC eA eB eC fA fB;
   block_post_sendable=bblock_post_gpu_sendable mapA mapB comb mapA_r mapB_r comb_r tile gA gB gC eA eB eC rA rB rC fA fB;

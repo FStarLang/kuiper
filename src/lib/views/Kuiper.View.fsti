@@ -54,7 +54,7 @@ Note how we say **nothing** about the high-level spec type. All that
 matters at runtime is the indexing structure. *)
 inline_for_extraction noextract
 unfold
-let cview (#et : Type0) (#st : Type0)
+let cview (#et #st : Type0)
   (avw : aview et st) = IView.ciview avw.iview
 
 noextract
@@ -85,7 +85,7 @@ let container_reindex (#mt #it #et : Type) (ctn : container mt it et)
   from_fun_ok = (fun f i -> ctn.from_fun_ok (fun i' -> f (bij.ff i')) (bij.gg i));
 }
 
-let reindex_view (#et : Type0) (#st : Type0)
+let reindex_view (#et #st : Type0)
   (vw : aview et st)
   (#ait' : Type)
   (bij : vw.iview.ait =~ ait')
@@ -107,7 +107,7 @@ let container_review (#mt #it #et : Type) (ctn : container mt it et)
   from_fun_ok = (fun f i -> ctn.from_fun_ok f i);
 }
 
-let review_view (#et : Type0) (#st : Type0)
+let review_view (#et #st : Type0)
   (vw : aview et st)
   (#st' : Type)
   (bij : st =~ st')
@@ -177,25 +177,25 @@ let to_seq
       reveal (vw.ctn.acc v (it_of_nat vw i))
 
 let from_seq
-  (#a:Type) (#st:Type)
+  (#a #st : Type)
   (vw : aview a st)
   (s : lseq a (len vw))
   : GTot st
   = vw.ctn.from_fun (fun i -> s @! it_to_nat vw i)
 
-val to_from (#a:Type) (#st:Type)
+val to_from (#a #st : Type)
   (vw : aview a st { is_full_view vw })
   (s : lseq a (len vw))
   : Lemma (ensures to_seq vw (from_seq vw s) == s)
           [SMTPat (to_seq vw (from_seq vw s))]
 
-val from_to (#a:Type) (#st:Type)
+val from_to (#a #st : Type)
   (vw : aview a st { is_full_view vw })
   (v : st)
   : Lemma (ensures from_seq vw (to_seq vw v) == v)
           [SMTPat (from_seq vw (to_seq vw v))]
 
-val to_seq_upd (#a:Type) (#st:Type)
+val to_seq_upd (#a #st : Type)
   (vw : aview a st { is_full_view vw })
   (v : st)
   (i : vw.iview.ait)
@@ -222,7 +222,7 @@ let no_overlap_fam
   = IView.no_overlap_fam n (fun i -> (vw i).iview)
 
 let sum_aview_fam
-  (#et : Type) (#st : Type)
+  (#et #st : Type)
   (n : pos)
   (vws : natlt n -> aview et st)
   (#_ : squash (no_overlap_fam n vws))

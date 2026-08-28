@@ -73,7 +73,7 @@ let vcat (#et: Type0) (#r : nat)
   (pf_sz : squash ((dout @! dim) == (dA @! dim) + (dB @! dim)))
   (pfA : squash (modulo_i dim dA == modulo_i dim dout))
   (pfB : squash (modulo_i dim dB == modulo_i dim dout))
-  (x : abs dout) (_old : et) (o : et)
+  (x : abs dout) (_old o : et)
   : prop
   = o == abs_cat dim dA dB dout eA eB na pf_sz pfA pfB x
 
@@ -88,7 +88,7 @@ let cat_frame (#et : Type0) (#r : erased nat) (dA dB : shape r)
   (gB : tensor et lB {is_global gB})
   (eA : chest dA et)
   (eB : chest dB et)
-  (fA fB : perm) (fr : perm) : slprop =
+  (fA fB fr : perm) : slprop =
     (tensor_pts_to gA #(fA *. fr) eA) **
     (tensor_pts_to gB #(fB *. fr) eB)
 
@@ -124,8 +124,7 @@ fn fcat
   (pfB : squash (modulo_i dim dB == modulo_i dim dout))
   (eA : chest dA et)
   (eB : chest dB et)
-  (#fA #fB : perm)
-  (#fr : perm) (i : conc dout) (x : et)
+  (#fA #fB #fr : perm) (i : conc dout) (x : et)
 norewrite
 preserves
   gpu **

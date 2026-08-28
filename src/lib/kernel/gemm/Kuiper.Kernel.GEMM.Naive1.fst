@@ -125,12 +125,12 @@ fn kf
   (gid : szlt (b * (m * n)))
   ()
   norewrite
+  preserves
+    gpu
   requires
-    gpu **
     kpre mapA mapB comb gA gB gC eA eB eC fA fB gid **
     block_id (b *^ (m *^ n)) gid
   ensures
-    gpu **
     kpost mapA mapB comb gA gB gC eA eB eC fA fB gid **
     block_id (b *^ (m *^ n)) gid
 {
@@ -139,7 +139,7 @@ fn kf
      the rank-2 entry point contains no batch arithmetic; for a dynamic
      batch it is a plain modulus/division with no runtime branch. *)
   let page : szlt b = gid %^ b; assert (rewrites_to page (gid %^ b));
-  let rest : szlt (m *^ n) = gid /^ b; assert (rewrites_to rest (gid /^ b));
+  let rest : szlt (m * n) = gid /^ b; assert (rewrites_to rest (gid /^ b));
   let trow : szlt m = rest /^ n; assert (rewrites_to trow (rest /^ n));
   let tcol : szlt n = rest %^ n; assert (rewrites_to tcol (rest %^ n));
 
@@ -204,6 +204,7 @@ fn setup
   (mapB : tb -> tacc)
   (comb : tc -> tacc -> tc)
   (#b #m #n #k : szp)
+  (nblk : szp { SZ.v nblk == b * (m * n) })
   (#lA : layout3 b m k)
   (#lB : layout3 b k n)
   (#lC : layout3 b m n)
@@ -223,13 +224,13 @@ fn setup
     gB |-> Frac fB eB **
     gC |-> eC
   ensures
-    (forall+ (gid : natlt (b *^ (m *^ n))).
+    (forall+ (gid : natlt nblk).
       kpre mapA mapB comb gA gB gC eA eB eC fA fB gid) **
     emp (* frame *)
 {
   // Split the read-only input tensors once per output cell.
-  tensor_share_n gA (b *^ (m *^ n));
-  tensor_share_n gB (b *^ (m *^ n));
+  tensor_share_n gA (b * (m * n));
+  tensor_share_n gB (b * (m * n));
 
   // Explode the output tensor into cells and reshape the rank-3 index.
   tensor_explode gC;
@@ -265,36 +266,36 @@ fn setup
           (page, (row, (col, ())))
           (acc eC (page, (row, (col, ())))))
     (fun page ->
-      forall+ (q : natlt (m *^ n)).
+      forall+ (q : natlt (m * n)).
         pts_to_cell gC
           (page, ((q / n <: natlt m), ((q % n <: natlt n), ())))
           (acc eC
             (page, ((q / n <: natlt m), ((q % n <: natlt n), ())))))
     fn page {
-      forevery_unfactor' (m *^ n) m n (fun row col ->
+      forevery_unfactor' (m * n) m n (fun row col ->
         pts_to_cell gC
           (page, (row, (col, ())))
           (acc eC (page, (row, (col, ())))));
     };
 
   // Reshape the replicated input permissions to the same page/local-cell space.
-  forevery_factor (b *^ (m *^ n)) b (m *^ n)
-    (fun _ -> gA |-> Frac (fA /. (b *^ (m *^ n))) eA);
-  forevery_factor (b *^ (m *^ n)) b (m *^ n)
-    (fun _ -> gB |-> Frac (fB /. (b *^ (m *^ n))) eB);
+  forevery_factor (b * (m * n)) b (m * n)
+    (fun _ -> gA |-> Frac (fA /. (b * (m * n))) eA);
+  forevery_factor (b * (m * n)) b (m * n)
+    (fun _ -> gB |-> Frac (fB /. (b * (m * n))) eB);
 
   // Attach A and B to every output cell before flattening to the global gid.
-  forevery_zip_2 #(natlt b) #(natlt (m *^ n))
-    (fun _ _ -> gB |-> Frac (fB /. (b *^ (m *^ n))) eB)
+  forevery_zip_2 #(natlt b) #(natlt (m * n))
+    (fun _ _ -> gB |-> Frac (fB /. (b * (m * n))) eB)
     (fun page q ->
       pts_to_cell gC
         (page, ((q / n <: natlt m), ((q % n <: natlt n), ())))
         (acc eC
           (page, ((q / n <: natlt m), ((q % n <: natlt n), ())))));
-  forevery_zip_2 #(natlt b) #(natlt (m *^ n))
-    (fun _ _ -> gA |-> Frac (fA /. (b *^ (m *^ n))) eA)
+  forevery_zip_2 #(natlt b) #(natlt (m * n))
+    (fun _ _ -> gA |-> Frac (fA /. (b * (m * n))) eA)
     (fun page q ->
-      gB |-> Frac (fB /. (b *^ (m *^ n))) eB **
+      gB |-> Frac (fB /. (b * (m * n))) eB **
       pts_to_cell gC
         (page, ((q / n <: natlt m), ((q % n <: natlt n), ())))
         (acc eC
@@ -303,25 +304,26 @@ fn setup
   // Transpose to (local-cell, page) nesting and flatten in *page-minor*
   // (batch-innermost) order: gid = rest * batch + page, matching the kf's
   // [page = gid % batch], [rest = gid / batch] decomposition.
-  forevery_commute #(natlt b) #(natlt (m *^ n))
+  forevery_commute #(natlt b) #(natlt (m * n))
     (fun page q ->
-      gA |-> Frac (fA /. (b *^ (m *^ n))) eA **
-      gB |-> Frac (fB /. (b *^ (m *^ n))) eB **
+      gA |-> Frac (fA /. (b * (m * n))) eA **
+      gB |-> Frac (fB /. (b * (m * n))) eB **
       pts_to_cell gC
         (page, ((q / n <: natlt m), ((q % n <: natlt n), ())))
         (acc eC
           (page, ((q / n <: natlt m), ((q % n <: natlt n), ())))));
 
-  forevery_unfactor' (b *^ (m *^ n)) (m *^ n) b (fun q page ->
-    gA |-> Frac (fA /. (b *^ (m *^ n))) eA **
-    gB |-> Frac (fB /. (b *^ (m *^ n))) eB **
+  forevery_unfactor' (b * (m * n)) (m * n) b (fun q page ->
+    gA |-> Frac (fA /. (b * (m * n))) eA **
+    gB |-> Frac (fB /. (b * (m * n))) eB **
     pts_to_cell gC
       (page, ((q / n <: natlt m), ((q % n <: natlt n), ())))
       (acc eC
         (page, ((q / n <: natlt m), ((q % n <: natlt n), ())))));
 
-  forevery_ext #(natlt (b *^ (m *^ n))) _
+  forevery_ext #(natlt (b * (m * n))) _
     (kpre mapA mapB comb gA gB gC eA eB eC fA fB);
+  forevery_rw_size (b * (m * n)) nblk;
   ()
 }
 
@@ -332,6 +334,7 @@ fn teardown
   (mapB : tb -> tacc)
   (comb : tc -> tacc -> tc)
   (#b #m #n #k : szp)
+  (nblk : szp { SZ.v nblk == b * (m * n) })
   (#lA : layout3 b m k)
   (#lB : layout3 b k n)
   (#lC : layout3 b m n)
@@ -347,7 +350,7 @@ fn teardown
   ()
   norewrite
   requires
-    (forall+ (gid : natlt (b *^ (m *^ n))).
+    (forall+ (gid : natlt nblk).
       kpost mapA mapB comb gA gB gC eA eB eC fA fB gid) **
     emp (* frame *)
   ensures
@@ -355,11 +358,12 @@ fn teardown
     gB |-> Frac fB eB **
     gC |-> MS.gbmmcomb mapA mapB comb eC eA eB
 {
+  forevery_rw_size nblk (b * (m * n));
   // First recover page-local cell index and page from the flat gid, in
   // *page-minor* order (page = gid % batch, rest = gid / batch), then
   // transpose back to (page, cell) nesting for the rest of the teardown.
   forevery_factor'
-    (b *^ (m *^ n)) (SZ.v m * SZ.v n) (SZ.v b)
+    (b * (m * n)) (m * n) b
     (fun q page ->
     gA |-> Frac (fA /. (b * (m * n))) eA **
     gB |-> Frac (fB /. (b * (m * n))) eB **
@@ -372,7 +376,7 @@ fn teardown
         (q / n)
         (q % n)));
 
-  forevery_commute #(natlt (SZ.v m * SZ.v n)) #(natlt b)
+  forevery_commute #(natlt (m * n)) #(natlt b)
     (fun q page ->
     gA |-> Frac (fA /. (b * (m * n))) eA **
     gB |-> Frac (fB /. (b * (m * n))) eB **
@@ -386,7 +390,7 @@ fn teardown
         (q % n)));
 
   // Separate the replicated inputs from the output cells in the nested space.
-  forevery_unzip_2 #(natlt b) #(natlt (SZ.v m * SZ.v n))
+  forevery_unzip_2 #(natlt b) #(natlt (m * n))
     (fun _ _ -> gA |-> Frac (fA /. (b * (m * n))) eA)
     (fun page q ->
       gB |-> Frac (fB /. (b * (m * n))) eB **
@@ -398,7 +402,7 @@ fn teardown
           (slice_page eC page)
           (q / n)
           (q % n)));
-  forevery_unzip_2 #(natlt b) #(natlt (SZ.v m * SZ.v n))
+  forevery_unzip_2 #(natlt b) #(natlt (m * n))
     (fun _ _ -> gB |-> Frac (fB /. (b * (m * n))) eB)
     (fun page q ->
       pts_to_cell gC
@@ -412,28 +416,19 @@ fn teardown
 
   // Flatten the input permissions again so tensor_gather_n can recombine them.
   forevery_unfactor
-    (b *^ (m *^ n)) (SZ.v b) (SZ.v m * SZ.v n)
+    (b * (m * n)) b (m * n)
     (fun _ -> gA |-> Frac (fA /. (b * (m * n))) eA);
   forevery_unfactor
-    (b *^ (m *^ n)) (SZ.v b) (SZ.v m * SZ.v n)
+    (b * (m * n)) b (m * n)
     (fun _ -> gB |-> Frac (fB /. (b * (m * n))) eB);
 
-  forevery_rw_type
-    (natlt (SZ.v (b *^ (m *^ n))))
-    (natlt (SZ.v b * (SZ.v m * SZ.v n)))
-    (fun _ -> gA |-> Frac (fA /. (SZ.v b * (SZ.v m * SZ.v n))) eA);
-  forevery_rw_type
-    (natlt (SZ.v (b *^ (m *^ n))))
-    (natlt (SZ.v b * (SZ.v m * SZ.v n)))
-    (fun _ -> gB |-> Frac (fB /. (SZ.v b * (SZ.v m * SZ.v n))) eB);
-
-  tensor_gather_n gA _;
-  tensor_gather_n gB _;
+  tensor_gather_n gA (b * (m * n));
+  tensor_gather_n gB (b * (m * n));
 
   // Recover page-local row/column indices.
   forevery_map #(natlt b)
     (fun page ->
-      forall+ (q : natlt (SZ.v m * SZ.v n)).
+      forall+ (q : natlt (m * n)).
         pts_to_cell gC
           (page, ((q / n <: natlt m), ((q % n <: natlt n), ())))
           (MS.ggemm_single mapA mapB comb
@@ -452,7 +447,7 @@ fn teardown
             (slice_page eC page)
             row col))
     fn page {
-      forevery_factor' (SZ.v m * SZ.v n) (SZ.v m) (SZ.v n)
+      forevery_factor' (m * n) m n
         (fun row col ->
         pts_to_cell gC
           (page, (row, (col, ())))
@@ -558,19 +553,19 @@ let kdesc
   : kernel_desc
     (gA |-> Frac fA eA ** gB |-> Frac fB eB ** gC |-> eC)
     (gA |-> Frac fA eA ** gB |-> Frac fB eB ** gC |-> MS.gbmmcomb mapA mapB comb eC eA eB)
-=
-{
-  nblk = b *^ (m *^ n);
+= [@@inline_let] let nblk : (x : szp { SZ.v x == b * (m * n) }) =
+    b *^ (m *^ n) in {
+  nblk = nblk;
 
   frame = emp;
 
-  setup    = setup    mapA mapB comb gA gB gC;
-  teardown = teardown mapA mapB comb gA gB gC;
+  setup    = setup    mapA mapB comb nblk gA gB gC;
+  teardown = teardown mapA mapB comb nblk gA gB gC;
 
   kpre  = kpre  mapA mapB comb gA gB gC eA eB eC fA fB;
   kpost = kpost mapA mapB comb gA gB gC eA eB eC fA fB;
 
-  f = kf mapA mapB comb gA gB gC;
+  f = kf mapA mapB comb gA gB gC #eA #eB #eC #fA #fB;
   kpre_sendable  = solve;
   kpost_sendable = solve;
 } <: kernel_desc_m_1 _ _

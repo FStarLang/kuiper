@@ -76,7 +76,7 @@ val sizet_and (x y : SZ.t) : SZ.t
 
 (* We should extend FStar.SizeT to allow bitoperations.
 This is very specialized. *)
-val sizet_and_div_pow2 (x:SZ.t) (y:SZ.t) (n:nat)
+val sizet_and_div_pow2 (x y : SZ.t) (n:nat)
   : Lemma (requires SZ.v y == pow2 n)
           (ensures SZ.v (sizet_and x (y -^ 1sz)) == SZ.v x % (pow2 n))
 

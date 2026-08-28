@@ -23,14 +23,14 @@ open Kuiper.EMatrix { chest2 }
 // }
 
 // inline_for_extraction noextract
-// let ( < ) (#t:Type) {| ord_raw t |} (x : t) (y : t) : bool =
+// let ( < ) (#t:Type) {| ord_raw t |} (x y : t) : bool =
 //   match  cmp x y with
 //   | Order.Lt -> true
   // | _ -> false
   // Order.Lt? (cmp x y)
 
 // inline_for_extraction noextract
-// let min (#t:Type) {| ord_raw t |} (x : t) (y : t) : t =
+// let min (#t:Type) {| ord_raw t |} (x y : t) : t =
 //   if x < y then x else y
 
 
@@ -120,8 +120,7 @@ fn matmul_dist_gpu
   (#size : szp)
   (a : tensor dist (l2_row_major size size) { is_global a })
   (b : tensor dist (l2_row_major size size) { is_global b })
-  (#ea : chest2 dist size size)
-  (#eb : chest2 dist size size)
+  (#ea #eb : chest2 dist size size)
   preserves
     cpu ** on gpu_loc (a |-> ea)
   requires

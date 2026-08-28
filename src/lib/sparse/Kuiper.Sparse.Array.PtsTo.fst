@@ -115,8 +115,7 @@ let thread_pts_to_chunks
   ([@@@mkey] x : larray et n)
   (#m : nat)
   (s : lseq et m)
-  (i : nat)
-  (nthr : nat)
+  (i nthr : nat)
   (tid : natlt nthr)
 : Pure slprop
   (requires (nthr * chunk et) /? n /\ i + n <= m)

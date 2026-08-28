@@ -21,6 +21,15 @@ open Kuiper.Shape
 
 open Kuiper.Kernel.FlashAttention.KernelDesc
 
+(* Keep the row-index arithmetic out of the nested ownership context below. *)
+let fa_tile_row_bound
+  (n br : pos)
+  (i : nat { i < n / br })
+  (tid : natlt br)
+  : Lemma (requires br /? n)
+          (ensures br * i + tid < n)
+  = Kuiper.Divides.lemma_divides_exact br n
+
 (* Projecting [rin]/[rout] out of the record literal built by
    [fa_barrier_contract] is no longer reduced for the SMT solver, so we
    discharge those slprop equalities by normalization instead. *)
@@ -228,7 +237,7 @@ fn flashattention_tile
   (gOit: array1 et lOit)
   (glit gmit: ref et)
   (#eKj #eVj: chest2 et bc d)
-  (#vQit #vOit: erased (chest1 et d))
+  (#vQit #vOit: chest1 et d)
   (#vlit #vmit: erased et)
   (#fKj #fVj #fQit: perm)
   requires
@@ -330,8 +339,8 @@ fn flashattention_kf_no_smem (#et : Type0) {| scalar et, floating et |}
   (bc br: szp { bc /? n /\ br /? n })
   (lSt: layout1 bc)
   (lK lV lQ: layout2 n d)
-  (lOt: layout2 (n /^ br) d)
-  (llt lmt: layout1 (n /^ br))
+  (lOt: layout2 (n / br) d)
+  (llt lmt: layout1 (n / br))
   {| ctlayout lSt, ctlayout lK, ctlayout lV, ctlayout lQ, ctlayout lOt, ctlayout llt, ctlayout lmt |}
   (gSt: array1 et lSt)
   (gK: array2 et lK)
@@ -369,6 +378,7 @@ fn flashattention_kf_no_smem (#et : Type0) {| scalar et, floating et |}
       with vmt. assert gmt |-> vmt;
       let ii = !i;
       let qi = br *^ ii +^ tid;
+      (**)fa_tile_row_bound n br ii tid;
 
       mextract_row_ro gQ qi;
       let gQit = mrow gQ (SZ.v qi);
@@ -539,8 +549,9 @@ fn flashattention_kf
   (bid : szlt 1sz)
   (tid : szlt nthr)
   ()
+  preserves
+    gpu
   requires
-    gpu **
     pure (c_shmems_inv sh) **
     kpre_post_outer_fa n d nthr (gS_of_sh n d nthr lS sh) gK gV gQ gO gl gm eK eV eQ fK fV fQ (SZ.v tid) **
     thread_id nthr tid **
@@ -548,7 +559,6 @@ fn flashattention_kf
     B.barrier_tok (B.empty_contract nthr) **
     B.barrier_state 0
   ensures
-    gpu **
     kpre_post_outer_fa n d nthr (gS_of_sh n d nthr lS sh) gK gV gQ gO gl gm eK eV eQ fK fV fQ (SZ.v tid) **
     thread_id nthr tid **
     block_id 1sz bid **
@@ -635,7 +645,7 @@ let kflashattention
     kpost = (fun sh _bid tid -> kpre_post_outer_fa n d nthr (gS_of_sh n d nthr lS sh) gK gV gQ gO gl gm eK eV eQ fK fV fQ tid);
     block_setup    = block_setup_fa n d nthr lS gK gV gQ gO gl gm eK eV eQ;
     block_teardown = block_teardown_fa n d nthr lS gK gV gQ gO gl gm eK eV eQ;
-    f = flashattention_kf n d nthr lS gK gV gQ gO gl gm eK eV eQ;
+    f = flashattention_kf n d nthr lS gK gV gQ gO gl gm eK eV eQ #fK #fV #fQ;
     block_pre_sendable  = (fun _ -> magic());
     block_post_sendable = (fun _ -> magic());
     kpre_sendable  = (fun _ _ _ _ -> magic());
@@ -677,7 +687,7 @@ fn flashattention_inner_smem
   (#et:Type0){| scalar et, floating et |}
   (n d nthr:szp{nthr/?n})
   (#lKV:full_layout2 nthr d)(#lQ:layout2 n d)(#lSt:layout1 nthr)(#lQrow:layout1 d)
-  (#lOt:layout2 (n /^ nthr) d)(#llt #lmt:layout1 (n /^ nthr))
+  (#lOt:layout2 (n / nthr) d)(#llt #lmt:layout1 (n / nthr))
   {| ctlayout lKV, ctlayout lQ, ctlayout lSt, ctlayout lQrow, ctlayout lOt, ctlayout llt, ctlayout lmt |}
   (sK sV:array2 et lKV)(gSt:array1 et lSt)(sQrow:array1 et lQrow)
   (gQ:array2 et lQ{Kuiper.Tensor.is_global gQ})(gOt:array2 et lOt)(glt:array1 et llt)(gmt:array1 et lmt)
@@ -779,8 +789,9 @@ fn flashattention_kf_smem
   (bid : szlt 1sz)
   (tid : szlt nthr)
   ()
+  preserves
+    gpu
   requires
-    gpu **
     pure (c_shmems_inv sh) **
     kpre_post_outer_fa_smem n d nthr
       (gS_of_sh' n d nthr lS sh) (sK_of_sh n d nthr lKV sh) (sV_of_sh n d nthr lKV sh) (sQ_of_sh n d nthr lKV sh)
@@ -790,7 +801,6 @@ fn flashattention_kf_smem
     B.barrier_tok (fa_barrier_contract n d nthr (sK_of_sh n d nthr lKV sh) (sV_of_sh n d nthr lKV sh)) **
     B.barrier_state 0
   ensures
-    gpu **
     kpre_post_outer_fa_smem n d nthr
       (gS_of_sh' n d nthr lS sh) (sK_of_sh n d nthr lKV sh) (sV_of_sh n d nthr lKV sh) (sQ_of_sh n d nthr lKV sh)
       gK gV gQ gO gl gm eK eV eQ fK fV fQ (SZ.v tid) **
@@ -1029,7 +1039,7 @@ let kflashattention_smem
     kpost = (fun sh _bid tid -> kpre_post_outer_fa_smem n d nthr (gS_of_sh' n d nthr lS sh) (sK_of_sh n d nthr lKV sh) (sV_of_sh n d nthr lKV sh) (sQ_of_sh n d nthr lKV sh) gK gV gQ gO gl gm eK eV eQ fK fV fQ tid);
     block_setup    = block_setup_fa_smem n d nthr lS lKV gK gV gQ gO gl gm eK eV eQ;
     block_teardown = block_teardown_fa_smem n d nthr lS lKV gK gV gQ gO gl gm eK eV eQ;
-    f = flashattention_kf_smem n d nthr lS lKV gK gV gQ gO gl gm eK eV eQ;
+    f = flashattention_kf_smem n d nthr lS lKV gK gV gQ gO gl gm eK eV eQ #fK #fV #fQ;
     block_pre_sendable  = (fun _ -> magic());
     block_post_sendable = (fun _ -> magic());
     kpre_sendable  = (fun _ _ _ _ -> magic());

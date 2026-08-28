@@ -14,8 +14,7 @@ open FStar.Tactics.Typeclasses { solve }
 
 inline_for_extraction noextract
 fn launch_kernel_full_sync
-  (#full_pre : slprop)
-  (#full_post : slprop)
+  (#full_pre #full_post : slprop)
   (k : kernel_desc full_pre full_post)
   requires
     cpu **
@@ -66,8 +65,7 @@ fn launch_kernel_full_sync
 
 inline_for_extraction noextract
 fn launch_kernel_1
-  (#pre : slprop)
-  (#post : slprop)
+  (#pre #post : slprop)
   {| is_send_across gpu_of pre, is_send_across gpu_of post |}
   (k : fn () requires gpu ** pre ensures gpu ** post)
   requires

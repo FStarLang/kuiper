@@ -29,15 +29,15 @@ class scalar (t : Type) = {
 (* Derived methods *)
 
 inline_for_extraction noextract
-let gt (#t:Type) {| scalar t |} (x : t) (y : t) : bool =
+let gt (#t:Type) {| scalar t |} (x y : t) : bool =
   lt y x
 
 inline_for_extraction noextract
-let gte (#t:Type) {| scalar t |} (x : t) (y : t) : bool =
+let gte (#t:Type) {| scalar t |} (x y : t) : bool =
   lte y x
 
 inline_for_extraction noextract
-let neq (#t:Type) {| scalar t |} (x : t) (y : t) : bool =
+let neq (#t:Type) {| scalar t |} (x y : t) : bool =
   not (eq x y)
 
 (* This instance is a bit fake. Maybe we should remove it. It's useful

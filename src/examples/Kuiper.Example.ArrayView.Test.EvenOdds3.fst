@@ -17,7 +17,7 @@ module SZ    = FStar.SizeT
 
 // Can we use divup here? It seems much harder on Z3.
 noextract
-let strided_view et (len : nat) (stride : nat) (offset : natlt stride) :
+let strided_view et (len stride : nat) (offset : natlt stride) :
   aview et (lseq et ((len + stride - 1 - offset) / stride))
 = {
   iview = {
@@ -149,7 +149,7 @@ let it_of_nat_lem (#len:nat) (i : natlt len)
   = it_of_nat_lem_1 #len i;
     ()
 
-let all_in_image (len:nat) (i : nat)
+let all_in_image (len i : nat)
   : Lemma (i < len ==> in_image (sum_aview (even_view u32 len) (odd_view u32 len)).iview.step.imap.f i)
           [SMTPat (in_image (sum_aview (even_view u32 len) (odd_view u32 len)).iview.step.imap.f i)]
   = if i < len then (let j = __it_of_nat #len i in it_of_nat_lem #len i)

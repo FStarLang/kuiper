@@ -426,8 +426,9 @@ fn kf
   (bid : szlt (m/bm * (n/bn)))
   (tid : szlt nthr)
   ()
+  preserves
+    gpu
   requires
-    gpu **
     pure (c_shmems_inv sh) **
     kpre gA eA gB eB gC bm bn bk tm tn tk fA fB nthr sh bid tid **
     thread_id (bm/tm * (bn/tn) * warp_size) tid **
@@ -435,7 +436,6 @@ fn kf
     B.barrier_tok (FB.contract eA eB (rm bm bk) (rm bk bn) (fst sh) (fst (snd sh)) nthr bid) **
     B.barrier_state 0
   ensures
-    gpu **
     kpost gA eA gB eB gC bm bn bk tm tn fA fB nthr sh bid tid **
     thread_id (bm/tm * (bn/tn) * warp_size) tid **
     block_id (m/bm * (n/bn)) bid **

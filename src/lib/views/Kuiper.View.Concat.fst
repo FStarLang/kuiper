@@ -13,9 +13,7 @@ module SZ = Kuiper.SizeT
 module IView = Kuiper.IView
 
 let aview_concat
-  (#a : Type)
-  (#st1 : Type)
-  (#st2 : Type)
+  (#a #st1 #st2 : Type)
   (vw1 : aview a st1)
   (vw2 : aview a st2)
   : aview a (st1 & st2) =
@@ -32,9 +30,7 @@ let aview_concat
 
 inline_for_extraction noextract
 instance cview_concat
-  (#a:Type)
-  (#st1 : Type)
-  (#st2 : Type)
+  (#a #st1 #st2 : Type)
   (#vw1 : aview a st1) (cw1 : cview vw1)
   (#vw2 : aview a st2) (cw2 : cview vw2)
   (* We need two extra things:

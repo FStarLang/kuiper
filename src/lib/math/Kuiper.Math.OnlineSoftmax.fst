@@ -194,7 +194,7 @@ let rec lemma_seq_fold_left_distrib_mul
   (op: real -> real -> real)
   (op_distrib_mul: (a: real) -> (b: real) -> (r: real) ->
     (a `op` b) *. r == (a *. r) `op` (b *. r))
-  (acc: real) (r: real) (s: Seq.seq real)
+  (acc r : real) (s: Seq.seq real)
   : Lemma
       (ensures seq_fold_left op (acc *. r) (seq_map (fun (e:real) -> e *. r) s)
                == seq_fold_left op acc s *. r)

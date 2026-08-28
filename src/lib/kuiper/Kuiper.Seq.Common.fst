@@ -59,7 +59,7 @@ let rec seq_fold_left_append (#a #b:Type) (f: b -> a -> b) (acc:b) (l0 l1:seq a)
     seq_fold_left_append f (f acc hd) tl l1
 
 let rec lemma_seq_fold_left_sum'
-  (#a:Type) (acc:a) (e:a) (f: a -> a -> a)
+  (#a:Type) (acc e : a) (f: a -> a -> a)
   (s1 s2 : seq a)
 : Lemma
   (requires is_monoid e f)

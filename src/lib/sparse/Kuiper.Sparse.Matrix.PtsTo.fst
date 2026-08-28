@@ -298,8 +298,7 @@ let thread_live_vec
   (gm : array2 et l)
   (i : natlt rows)
   (j : nat { chunk et /? j })
-  (row_tile : nat)
-  (nthr : nat)
+  (row_tile nthr : nat)
   (k : natlt (row_tile / chunk et))
 : slprop
 = matrix_live_vec_in_bounds gm i (offset_chunk et j k nthr)
@@ -311,8 +310,7 @@ let thread_live_tile_vec
   (gm : array2 et l)
   (i : natlt rows)
   (j : nat { chunk et /? j })
-  (row_tile : nat)
-  (nthr : nat)
+  (row_tile nthr : nat)
 : slprop
 =
   forall+ (k : natlt (row_tile / chunk et)).
@@ -380,8 +378,7 @@ let thread_pts_to_vec
   (i : natlt rows)
   (j : nat { chunk et /? j })
   (em : chest2 et rows cols)
-  (nthr : nat)
-  (k : nat)
+  (nthr k : nat)
 : slprop
 =
   matrix_pts_to_vec_in_matrix_in_bounds gm
@@ -435,8 +432,7 @@ let thread_pts_to_tile_vec
   (i : natlt rows)
   (j : nat { chunk et /? j })
   (em : chest2 et rows cols)
-  (row_tile : nat)
-  (nthr : nat)
+  (row_tile nthr : nat)
 : slprop
 =
   forall+ (k : natlt (row_tile / chunk et)).
@@ -543,8 +539,7 @@ fn unfold_matrix_pts_to_vec_in_matrix_in_bounds
 
 let thread_offset
   (et : Type0) {| sized et, has_vec_cpy et |}
-  (j : nat)
-  (tid : nat)
+  (j tid : nat)
 : Pure nat (requires chunk et /? j) (ensures fun off -> chunk et /? off)
 =
   lineal_divides (chunk et) j (chunk et) tid;

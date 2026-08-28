@@ -760,8 +760,9 @@ fn bkf
   (tid : szlt (tile  * tile))
   ()
   norewrite
+  preserves
+    gpu
   requires
-    gpu **
     pure (c_shmems_inv sh) **
     bkpre mapA mapB comb mapA_r mapB_r comb_r tile slA slB gA gB gC eA eB eC fA fB sh bid tid **
     thread_id (tile * tile) tid **
@@ -773,7 +774,6 @@ fn bkf
                      (from_array slA (fst sh)) (from_array slB (fst (snd sh)))) **
     B.barrier_state 0
   ensures
-    gpu **
     bkpost mapA mapB comb mapA_r mapB_r comb_r tile slA slB gA gB gC eA eB eC rA rB rC fA fB sh bid tid **
     thread_id (tile * tile) tid **
     block_id (batch * (mrows * mcols)) bid **
@@ -1083,6 +1083,8 @@ fn bsetup
   (mapA_r mapB_r : real -> real)
   (comb_r : binop real { comb `approx2` comb_r })
   (#batch #mrows #mshared #mcols : szp)
+  (nblk : szp { SZ.v nblk == batch * (mrows * mcols) })
+  (nthr : szp { SZ.v nthr == tile * tile })
   (#lA : layout3 batch (mrows   * tile) (mshared * tile))
   (#lB : layout3 batch (mshared * tile) (mcols   * tile))
   (#lC : layout3 batch (mrows   * tile) (mcols   * tile))
@@ -1101,8 +1103,8 @@ fn bsetup
     gB |-> Frac fB eB **
     gC |-> eC
   ensures
-    (forall+ (bid : natlt (batch *^ (mrows *^ mcols)))
-             (tid : natlt (tile *^ tile)).
+    (forall+ (bid : natlt nblk)
+             (tid : natlt nthr).
       bkpre1 mapA mapB comb mapA_r mapB_r comb_r tile gA gB gC eA eB eC fA fB bid tid) **
     emp
 {
@@ -1143,8 +1145,8 @@ fn bsetup
     (fun (bid : natlt (batch * (mrows * mcols))) (tid : natlt (tile * tile)) ->
        bkpre1 mapA mapB comb mapA_r mapB_r comb_r tile gA gB gC eA eB eC fA fB bid tid);
   forevery_rw_size2
-    (batch * (mrows * mcols)) (SZ.v (batch *^ (mrows *^ mcols)))
-    (tile * tile) (SZ.v (tile *^ tile));
+    (batch * (mrows * mcols)) nblk
+    (tile * tile) nthr;
   ();
 }
 #pop-options
@@ -1164,6 +1166,8 @@ fn bteardown
   (mapA_r mapB_r : real -> real)
   (comb_r : binop real { comb `approx2` comb_r })
   (#batch #mrows #mshared #mcols : szp)
+  (nblk : szp { SZ.v nblk == batch * (mrows * mcols) })
+  (nthr : szp { SZ.v nthr == tile * tile })
   (#lA : layout3 batch (mrows   * tile) (mshared * tile))
   (#lB : layout3 batch (mshared * tile) (mcols   * tile))
   (#lC : layout3 batch (mrows   * tile) (mcols   * tile))
@@ -1181,8 +1185,8 @@ fn bteardown
   ()
   norewrite
   requires
-    (forall+ (bid : natlt (batch *^ (mrows *^ mcols)))
-             (tid : natlt (tile *^ tile)).
+    (forall+ (bid : natlt nblk)
+             (tid : natlt nthr).
       bkpost1 mapA mapB comb mapA_r mapB_r comb_r tile gA gB gC eA eB eC rA rB rC fA fB bid tid) **
     emp
   ensures
@@ -1193,8 +1197,8 @@ fn bteardown
       pure (eC' %~ MS.gbmmcomb mapA_r mapB_r comb_r rC rA rB))
 {
   forevery_rw_size2
-    (SZ.v (batch *^ (mrows *^ mcols))) (batch * (mrows * mcols))
-    (SZ.v (tile *^ tile)) (tile * tile);
+    nblk (batch * (mrows * mcols))
+    nthr (tile * tile);
 
   forevery_unzip_2
     (fun (bid : natlt (batch * (mrows * mcols))) (tid : natlt (tile * tile)) ->
@@ -1298,6 +1302,7 @@ fn bblock_setup
   (mapA_r mapB_r : real -> real)
   (comb_r : binop real { comb `approx2` comb_r })
   (#batch #mrows #mshared #mcols : SZ.t)
+  (nthr : szp { SZ.v nthr == tile * tile })
   (#lA : layout3 batch (mrows   * tile) (mshared * tile))
   (#lB : layout3 batch (mshared * tile) (mcols   * tile))
   (#lC : layout3 batch (mrows   * tile) (mcols   * tile))
@@ -1315,19 +1320,20 @@ fn bblock_setup
   norewrite
   requires
     live_c_shmems sh **
-    (forall+ (tid : natlt2 tile  tile).
+    (forall+ (tid : natlt nthr).
       bkpre1 mapA mapB comb mapA_r mapB_r comb_r tile gA gB gC eA eB eC fA fB bid tid)
   ensures
-    (forall+ (tid : natlt2 tile  tile).
+    (forall+ (tid : natlt nthr).
       bkpre mapA mapB comb mapA_r mapB_r comb_r tile slA slB gA gB gC eA eB eC fA fB sh bid tid) **
     emp (* frame *)
 {
+  forevery_rw_size nthr (tile * tile);
   gpu_live_c_shmems_share_underspec sh #1.0R #(tile * tile);
-  forevery_rw_size (tile * tile) (SZ.v (tile *^ tile));
   forevery_zip
-    (fun (tid : natlt2 tile tile) ->
+    (fun (tid : natlt (tile * tile)) ->
       bkpre1 mapA mapB comb mapA_r mapB_r comb_r tile gA gB gC eA eB eC fA fB bid tid)
     _;
+  forevery_rw_size (tile * tile) nthr;
   ();
 }
 
@@ -1345,6 +1351,7 @@ fn bblock_teardown
   (mapA_r mapB_r : real -> real)
   (comb_r : binop real { comb `approx2` comb_r })
   (#batch #mrows #mshared #mcols : SZ.t)
+  (nthr : szp { SZ.v nthr == tile * tile })
   (#lA : layout3 batch (mrows   * tile) (mshared * tile))
   (#lB : layout3 batch (mshared * tile) (mcols   * tile))
   (#lC : layout3 batch (mrows   * tile) (mcols   * tile))
@@ -1364,21 +1371,21 @@ fn bblock_teardown
   ()
   norewrite
   requires
-    (forall+ (tid : natlt2 tile  tile).
+    (forall+ (tid : natlt nthr).
       bkpost mapA mapB comb mapA_r mapB_r comb_r tile slA slB gA gB gC eA eB eC rA rB rC fA fB sh bid tid) **
     emp (* frame *)
   ensures
     live_c_shmems sh **
-    (forall+ (tid : natlt2 tile  tile).
+    (forall+ (tid : natlt nthr).
       bkpost1 mapA mapB comb mapA_r mapB_r comb_r tile gA gB gC eA eB eC rA rB rC fA fB bid tid)
 {
-  forevery_rw_size (SZ.v (tile *^ tile)) (tile * tile);
+  forevery_rw_size nthr (tile * tile);
   forevery_unzip
     (fun (tid : natlt (tile * tile)) ->
       bkpost1 mapA mapB comb mapA_r mapB_r comb_r tile gA gB gC eA eB eC rA rB rC fA fB bid tid)
     _;
   gpu_live_c_shmems_gather_underspec sh #1.0R #(tile * tile);
-  forevery_rw_size (tile * tile) (SZ.v (tile *^ tile));
+  forevery_rw_size (tile * tile) nthr;
 }
 #pop-options
 
@@ -1470,7 +1477,7 @@ let bblock_pre_gpu_sendable
   (fA fB : perm)
   (bid : natlt (batch * (mrows * mcols)))
 : is_send_across gpu_of
-    (forall+ (tid : natlt2 tile tile).
+    (forall+ (tid : natlt (tile * tile)).
       bkpre1 mapA mapB comb mapA_r mapB_r comb_r tile gA gB gC eA eB eC fA fB bid tid)
 = solve
 
@@ -1501,7 +1508,7 @@ let bblock_post_gpu_sendable
   (fA fB : perm)
   (bid : natlt (batch * (mrows * mcols)))
 : is_send_across gpu_of
-    (forall+ (tid : natlt2 tile tile).
+    (forall+ (tid : natlt (tile * tile)).
       bkpost1 mapA mapB comb mapA_r mapB_r comb_r tile gA gB gC eA eB eC rA rB rC fA fB bid tid)
 = solve
 #pop-options
@@ -1548,9 +1555,11 @@ let bmk_kernel
         (exists* (eC' : chest3 tc batch (mrows * tile) (mcols * tile)).
           gC |-> eC' **
           pure (eC' %~ MS.gbmmcomb mapA_r mapB_r comb_r rC rA rB)))
-= {
-  nblk = batch *^ (mrows *^ mcols);
-  nthr = tile *^ tile;
+= [@@inline_let] let nblk : (x : szp { SZ.v x == batch * (mrows * mcols) }) =
+    batch *^ (mrows *^ mcols) in
+  [@@inline_let] let nthr : (x : szp { SZ.v x == tile * tile }) = tile *^ tile in {
+  nblk = nblk;
+  nthr = nthr;
 
   barrier_contract = (fun _bid ptrs ->
     shmem_contract mapA mapB tile
@@ -1569,19 +1578,20 @@ let bmk_kernel
   shmems_desc = shmems_desc tacc tile;
 
   frame = emp;
-  block_pre  = (fun bid -> forall+ (tid : natlt2 tile tile). bkpre1  mapA mapB comb mapA_r mapB_r comb_r tile gA gB gC eA eB eC fA fB bid tid);
-  block_post = (fun bid -> forall+ (tid : natlt2 tile tile). bkpost1 mapA mapB comb mapA_r mapB_r comb_r tile gA gB gC eA eB eC rA rB rC fA fB bid tid);
-  setup      = bsetup    tile mapA mapB comb mapA_r mapB_r comb_r gA gB gC;
-  teardown   = bteardown tile mapA mapB comb mapA_r mapB_r comb_r gA gB gC rA rB rC;
+  block_pre  = (fun bid -> forall+ (tid : natlt nthr). bkpre1  mapA mapB comb mapA_r mapB_r comb_r tile gA gB gC eA eB eC fA fB bid tid);
+  block_post = (fun bid -> forall+ (tid : natlt nthr). bkpost1 mapA mapB comb mapA_r mapB_r comb_r tile gA gB gC eA eB eC rA rB rC fA fB bid tid);
+  setup      = bsetup    tile mapA mapB comb mapA_r mapB_r comb_r nblk nthr gA gB gC;
+  teardown   = bteardown tile mapA mapB comb mapA_r mapB_r comb_r nblk nthr gA gB gC rA rB rC;
 
   block_frame    = (fun _ar _bid -> emp);
-  block_setup    = bblock_setup    tile slA slB mapA mapB comb mapA_r mapB_r comb_r gA gB gC #_ #_ #_ #_ #eC;
-  block_teardown = bblock_teardown tile slA slB mapA mapB comb mapA_r mapB_r comb_r gA gB gC #_ #_ #_ #_ #eC rA rB rC;
+  block_setup    = bblock_setup    tile slA slB mapA mapB comb mapA_r mapB_r comb_r nthr gA gB gC #_ #_ #_ #_ #eC;
+  block_teardown = bblock_teardown tile slA slB mapA mapB comb mapA_r mapB_r comb_r nthr gA gB gC #_ #_ #_ #_ #eC rA rB rC;
 
   kpre      = bkpre  mapA mapB comb mapA_r mapB_r comb_r tile slA slB gA gB gC eA eB eC fA fB;
   kpost     = bkpost mapA mapB comb mapA_r mapB_r comb_r tile slA slB gA gB gC eA eB eC rA rB rC fA fB;
 
-  f = bkf tile slA slB mapA mapB comb mapA_r mapB_r comb_r gA gB gC rA rB rC;
+  f = bkf tile slA slB mapA mapB comb mapA_r mapB_r comb_r
+        gA gB gC #eA #eB #eC rA rB rC #_ #_ #fA #fB;
 
   block_pre_sendable=bblock_pre_gpu_sendable mapA mapB comb mapA_r mapB_r comb_r tile slA slB gA gB gC eA eB eC fA fB;
   block_post_sendable=bblock_post_gpu_sendable mapA mapB comb mapA_r mapB_r comb_r tile slA slB gA gB gC eA eB eC rA rB rC fA fB;

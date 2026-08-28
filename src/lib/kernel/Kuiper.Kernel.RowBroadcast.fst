@@ -23,9 +23,9 @@ let kpre
   (#fA : perm)
   (#sa : chest1 ta m)
   (#sb : chest2 tb m n)
-  (tid : natlt (m *^ n))
+  (tid : natlt (m * n))
   : slprop
-  = a |-> Frac (fA /. (m *^ n)) sa **
+  = a |-> Frac (fA /. (m * n)) sa **
     Cell b (tid_to_cell m n tid) |-> acc2 sb (tid / n) (tid % n)
 
 unfold
@@ -40,9 +40,9 @@ let kpost
   (#fA : perm)
   (#sa : chest1 ta m)
   (#sb : chest2 tb m n)
-  (tid : natlt (m *^ n))
+  (tid : natlt (m * n))
   : slprop
-  = a |-> Frac (fA /. (m *^ n)) sa **
+  = a |-> Frac (fA /. (m * n)) sa **
     Cell b (tid_to_cell m n tid)
       |-> acc2 (s_row_broadcast f sa sb) (tid / n) (tid % n)
 
@@ -51,6 +51,7 @@ fn setup
   (#ta #tb : Type0)
   (f : ta -> tb -> tb)
   (m n : szp)
+  (nthr : szp { SZ.v nthr == m * n })
   (#la : layout1 m) {| ctlayout la |}
   (a : array1 ta la)
   (#lb : layout2 m n) {| ctlayout lb |}
@@ -64,27 +65,28 @@ fn setup
     a |-> Frac fA sa **
     b |-> sb
   ensures
-    (forall+ (tid : natlt (m *^ n)).
+    (forall+ (tid : natlt nthr).
       kpre f m n #la a #lb b #fA #sa #sb tid) **
     pure (SZ.fits (tlayout_ulen lb))
 {
   (* Share [a]'s fractional permission across all m*n threads, and explode the
      output matrix [b] into per-cell ownership reindexed by a flat thread id. *)
-  tensor_share_n a (m *^ n);
+  tensor_share_n a (m * n);
   tensor_ilower2 b;
-  forevery_unfactor' (m *^ n) m n
+  forevery_unfactor' (m * n) m n
     (fun r c -> Cell b (idx2 r c) |-> acc2 sb r c);
-  forevery_zip #(natlt (m *^ n))
-    (fun _ -> a |-> Frac (fA /. (m *^ n)) sa)
-    (fun (tid : natlt (m *^ n)) ->
+  forevery_zip #(natlt (m * n))
+    (fun _ -> a |-> Frac (fA /. (m * n)) sa)
+    (fun (tid : natlt (m * n)) ->
        Cell b (idx2 ((tid / n) <: natlt m) ((tid % n) <: natlt n))
          |-> acc2 sb (tid / n) (tid % n));
-  forevery_ext #(natlt (m *^ n))
-    (fun (tid : natlt (m *^ n)) ->
-       (a |-> Frac (fA /. (m *^ n)) sa) **
+  forevery_ext #(natlt (m * n))
+    (fun (tid : natlt (m * n)) ->
+       (a |-> Frac (fA /. (m * n)) sa) **
        (Cell b (idx2 ((tid / n) <: natlt m) ((tid % n) <: natlt n))
           |-> acc2 sb (tid / n) (tid % n)))
     (fun tid -> kpre f m n #la a #lb b #fA #sa #sb tid);
+  forevery_rw_size (m * n) nthr;
   ()
 }
 
@@ -93,6 +95,7 @@ fn teardown
   (#ta #tb : Type0)
   (f : ta -> tb -> tb)
   (m n : szp)
+  (nthr : szp { SZ.v nthr == m * n })
   (#la : layout1 m) {| ctlayout la |}
   (a : array1 ta la)
   (#lb : layout2 m n) {| ctlayout lb |}
@@ -103,7 +106,7 @@ fn teardown
   ()
   norewrite
   requires
-    (forall+ (tid : natlt (m *^ n)).
+    (forall+ (tid : natlt nthr).
       kpost f m n #la a #lb b #fA #sa #sb tid) **
     pure (SZ.fits (tlayout_ulen lb))
   ensures
@@ -112,15 +115,16 @@ fn teardown
 {
   (* Re-fold per-cell ownership of [b] (now holding [s_row_broadcast f sa sb])
      back into a tensor, and gather [a]'s shared fractions back to full. *)
-  forevery_ext #(natlt (m *^ n))
+  forevery_rw_size nthr (m * n);
+  forevery_ext #(natlt (m * n))
     (fun tid -> kpost f m n #la a #lb b #fA #sa #sb tid)
-    (fun (tid : natlt (m *^ n)) ->
-       (a |-> Frac (fA /. (m *^ n)) sa) **
+    (fun (tid : natlt (m * n)) ->
+       (a |-> Frac (fA /. (m * n)) sa) **
        (Cell b (idx2 ((tid / n) <: natlt m) ((tid % n) <: natlt n))
           |-> acc2 (s_row_broadcast f sa sb) (tid / n) (tid % n)));
-  forevery_unzip #(natlt (m *^ n)) _ _;
-  tensor_gather_n a (m *^ n);
-  forevery_factor' (m *^ n) m n
+  forevery_unzip #(natlt (m * n)) _ _;
+  tensor_gather_n a (m * n);
+  forevery_factor' (m * n) m n
     (fun r c -> Cell b (idx2 r c) |-> acc2 (s_row_broadcast f sa sb) r c);
   tensor_iraise2 b;
   ()
@@ -138,13 +142,13 @@ fn kf
   (#fA : perm)
   (#sa : chest1 ta m)
   (#sb : chest2 tb m n)
-  (tid : szlt (m *^ n))
+  (tid : szlt (m * n))
   ()
+  preserves
+    gpu
   requires
-    gpu **
     kpre f m n #la a #lb b #fA #sa #sb tid
   ensures
-    gpu **
     kpost f m n #la a #lb b #fA #sa #sb tid
 {
   let row : sz = tid /^ n; assert rewrites_to row (tid /^ n);
@@ -172,12 +176,12 @@ let kdesc
   (#sb : chest2 tb m n)
   : kernel_desc (requires a |-> Frac fA sa ** b |-> sb)
                 (ensures  a |-> Frac fA sa ** b |-> s_row_broadcast f sa sb)
-  = {
-    nthr = m *^ n;
-    f = kf f m n a b #fA #sa #sb;
+  = [@@inline_let] let nthr : (x : szp { SZ.v x == m * n }) = m *^ n in {
+    nthr = nthr;
+    f = (fun (tid : szlt nthr) -> kf f m n a b #fA #sa #sb tid);
     frame = pure (SZ.fits (tlayout_ulen lb));
-    teardown = teardown f m n a b #fA #sa #sb;
-    setup    = setup    f m n a b #fA #sa #sb;
+    teardown = teardown f m n nthr a b #fA #sa #sb;
+    setup    = setup    f m n nthr a b #fA #sa #sb;
     kpre  = kpre f m n #la a #lb b #fA #sa #sb;
     kpost = kpost f m n #la a #lb b #fA #sa #sb;
     kpre_sendable = solve;

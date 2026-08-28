@@ -29,9 +29,9 @@ let view_equiv (#et #st : Type)
   True
 
 inline_for_extraction
-val varray (#a : Type0) (#st : Type0) (vw : aview a st) : Type0
+val varray (#a #st : Type0) (vw : aview a st) : Type0
 
-val is_global (#a : Type0) (#st : Type0) (#vw : aview a st) (_ : varray vw) : prop
+val is_global (#a #st : Type0) (#vw : aview a st) (_ : varray vw) : prop
 
 inline_for_extraction noextract
 val from_array
@@ -43,8 +43,7 @@ val from_array
 
 inline_for_extraction noextract
 val core
-  (#a : Type)
-  (#st : Type) (#vw : aview a st)
+  (#a #st : Type) (#vw : aview a st)
   (g : varray vw)
   : larray a (len vw)
 
@@ -56,15 +55,13 @@ val lem_is_global_iff_core
           [SMTPat (is_global g)]
 
 val lem_from_array_core
-  (#a : Type)
-  (#st : Type) (#vw : aview a st)
+  (#a #st : Type) (#vw : aview a st)
   (arr : varray vw)
   : Lemma (ensures from_array vw (core arr) == arr)
           [SMTPat (core arr)]
 
 val lem_core_from_array
-  (#a : Type)
-  (#st : Type) (#vw : aview a st)
+  (#a #st : Type) (#vw : aview a st)
   (p : larray a (len vw))
   : Lemma (ensures core (from_array vw p) == p)
           [SMTPat (from_array vw p)]
@@ -91,7 +88,7 @@ val varray_pts_to_cell_eq
            pts_to_cell (core a) #f (vw.iview.step.imap.f i) v)
 
 [@@pulse_unfold; FStar.Tactics.Typeclasses.noinst]
-instance cell_pts_to (#et : Type) (#st : Type) (#vw : aview et st)
+instance cell_pts_to (#et #st : Type) (#vw : aview et st)
   : has_pts_to (cell (varray vw) vw.iview.ait) et
 = {
   pts_to = (fun (Cell ar i) #f v -> varray_pts_to_cell #et #st #vw ar #f i v);
@@ -105,8 +102,7 @@ val varray_pts_to
   : slprop
 
 val is_send_across_varray
-  (#et : Type0)
-  (#st : Type0)
+  (#et #st : Type0)
   (#vw : aview et st)
   (x : varray vw)
   (vis : visibility)
@@ -117,8 +113,7 @@ val is_send_across_varray
 
 instance
 val is_send_across_global_varray
-  (#et:Type0)
-  (#st : Type0)
+  (#et #st : Type0)
   (#vw : aview et st)
   (x: varray vw { is_global x })
   (#f : perm)
@@ -127,8 +122,7 @@ val is_send_across_global_varray
 
 instance
 val is_send_across_global_varray_cell
-  (#et:Type0)
-  (#st : Type0)
+  (#et #st : Type0)
   (#vw : aview et st)
   (a : varray vw { is_global a })
   (#f : perm)
@@ -137,15 +131,14 @@ val is_send_across_global_varray_cell
   : is_send_across gpu_of (varray_pts_to_cell a #f i v)
 
 unfold
-instance has_pts_to (#a:Type) (#st:Type) (#vw : aview a st)
+instance has_pts_to (#a #st : Type) (#vw : aview a st)
   : has_pts_to (varray vw) st = {
   pts_to = varray_pts_to;
 }
 
 ghost
 fn varray_pts_to_ref
-  (#t:Type0)
-  (#st:Type0)
+  (#t #st : Type0)
   (#vw : aview t st)
   (a : varray vw)
   (#f : perm)
@@ -157,7 +150,7 @@ fn varray_pts_to_ref
 
 ghost
 fn varray_explode
-  (#et : Type) (#st : Type)
+  (#et #st : Type)
   (#vw : aview et st)
   (a : varray vw)
   (#f : perm)
@@ -170,7 +163,7 @@ fn varray_explode
 
 ghost
 fn varray_implode
-  (#et : Type) (#st : Type)
+  (#et #st : Type)
   (#vw : aview et st)
   (a : varray vw)
   (#f : perm)
@@ -187,7 +180,7 @@ fn varray_implode
 is hidden in the view. *)
 ghost
 fn varray_reindex_
-  (#et : Type) (#st : Type)
+  (#et #st : Type)
   (#vw : aview et st)
   (#ait' : Type)
   (bij : vw.iview.ait =~ ait')
@@ -201,7 +194,7 @@ fn varray_reindex_
 
 inline_for_extraction noextract
 fn varray_reindex
-  (#et : Type) (#st : Type)
+  (#et #st : Type)
   (#vw : aview et st)
   (#ait' : Type)
   (bij : vw.iview.ait =~ ait')
@@ -218,7 +211,7 @@ fn varray_reindex
 
 ghost
 fn varray_review_
-  (#et : Type) (#st : Type)
+  (#et #st : Type)
   (#vw : aview et st)
   (#st' : Type)
   (bij : st =~ st')
@@ -232,7 +225,7 @@ fn varray_review_
 
 inline_for_extraction noextract
 fn varray_review
-  (#et : Type) (#st : Type)
+  (#et #st : Type)
   (#vw : aview et st)
   (#st' : Type)
   (bij : st =~ st')
@@ -320,7 +313,7 @@ fn varray_cell_reindex
 
 ghost
 fn varray_abs
-  (#et : Type0) (#st : Type0)
+  (#et #st : Type0)
   (vw : aview et st { is_full_view vw })
   (a : larray et (len vw))
   (#f : perm)
@@ -332,7 +325,7 @@ fn varray_abs
 
 ghost
 fn varray_abs'
-  (#et : Type0) (#st : Type0)
+  (#et #st : Type0)
   (vw : aview et st { is_full_view vw })
   (a : larray et (len vw))
   (#f : perm)
@@ -344,7 +337,7 @@ fn varray_abs'
 
 ghost
 fn varray_concr
-  (#et : Type0) (#st : Type0)
+  (#et #st : Type0)
   (#vw : aview et st { is_full_view vw })
   (a : varray vw)
   (#f : perm)
@@ -356,7 +349,7 @@ fn varray_concr
 
 ghost
 fn varray_iconcr
-  (#et : Type0) (#st : Type0)
+  (#et #st : Type0)
   (#vw : aview et st)
   (a : varray vw)
   (#f : perm)
@@ -370,7 +363,7 @@ fn varray_iconcr
 
 ghost
 fn varray_iabs
-  (#et : Type0) (#st : Type0)
+  (#et #st : Type0)
   (#vw : aview et st)
   (a : varray vw)
   (#f : perm)
@@ -400,7 +393,7 @@ fn varray_alloc0
 
 inline_for_extraction noextract
 fn varray_free
-  (#et : Type0) (#st : Type0)
+  (#et #st : Type0)
   (#vw : aview et st { is_full_view vw })
   (a : varray vw)
   (#v : erased st)
@@ -413,7 +406,7 @@ fn varray_free
 
 ghost
 fn varray_view_equiv_
-  (#et : Type) (#st : Type)
+  (#et #st : Type)
   (#vw : aview et st)
   (a : varray vw)
   (vw' : aview et st { view_equiv vw vw' })
@@ -426,7 +419,7 @@ fn varray_view_equiv_
 
 inline_for_extraction noextract
 fn varray_view_equiv
-  (#et : Type) (#st : Type)
+  (#et #st : Type)
   (#vw : aview et st)
   (a : varray vw)
   (vw' : aview et st { view_equiv vw vw' })
@@ -531,7 +524,7 @@ fn varray_join2
 
 ghost
 fn varray_share_n
-  (#et : Type) (#st : Type)
+  (#et #st : Type)
   (#vw : aview et st)
   (a : varray vw)
   (k : pos)
@@ -544,7 +537,7 @@ fn varray_share_n
 
 ghost
 fn varray_gather_n
-  (#et : Type) (#st : Type)
+  (#et #st : Type)
   (#vw : aview et st)
   (a : varray vw)
   (k : pos)
@@ -557,7 +550,7 @@ fn varray_gather_n
 
 ghost
 fn varray_pts_to_eq
-  (#et : Type) (#st : Type)
+  (#et #st : Type)
   (#vw : aview et st)
   (a : varray vw)
   (#f1 f2 : perm)
@@ -571,7 +564,7 @@ fn varray_pts_to_eq
 
 inline_for_extraction noextract
 fn varray_write_cell
-  (#et : Type) (#st : Type)
+  (#et #st : Type)
   (#vw : aview et st)
   {| cw : cview vw |}
   (a : varray vw)
@@ -585,7 +578,7 @@ fn varray_write_cell
 
 inline_for_extraction noextract
 fn varray_write_cell'
-  (#et : Type) (#st : Type)
+  (#et #st : Type)
   (#vw : aview et st)
   {| cw : cview vw |}
   (a : varray vw)
@@ -601,7 +594,7 @@ fn varray_write_cell'
 
 inline_for_extraction noextract
 fn varray_read_cell
-  (#et : Type) (#st : Type)
+  (#et #st : Type)
   (#vw : aview et st)
   {| cw : cview vw |}
   (a : varray vw)
@@ -618,7 +611,7 @@ fn varray_read_cell
 
 inline_for_extraction noextract
 fn varray_read_cell'
-  (#et : Type) (#st : Type)
+  (#et #st : Type)
   (#vw : aview et st)
   {| cw : cview vw |}
   (a : varray vw)
@@ -637,7 +630,7 @@ fn varray_read_cell'
 
 inline_for_extraction noextract
 fn varray_read
-  (#et : Type) (#st : Type)
+  (#et #st : Type)
   (#vw : aview et st)
   {| cw : cview vw |}
   (a : varray vw)
@@ -653,7 +646,7 @@ fn varray_read
 
 inline_for_extraction noextract
 fn varray_write
-  (#et : Type) (#st : Type)
+  (#et #st : Type)
   (#vw : aview et st)
   {| cw : cview vw |}
   (a : varray vw)

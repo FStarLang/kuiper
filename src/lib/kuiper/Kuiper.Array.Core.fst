@@ -43,7 +43,7 @@ let base_address (#a : Type u#0) (x : array a)
 : GTot nat
 = core_base_address x
 
-let mask_of (i j:nat) (n:nat) : prop = i <= n /\ n < j
+let mask_of (i j n : nat) : prop = i <= n /\ n < j
 
 (* Helper: convert seq a to seq (option a) with all Some *)
 let seq_to_opt (#a:Type) (s:seq a) : seq (option a) = Seq.init (Seq.length s) (fun i -> Some (Seq.index s i))
@@ -173,8 +173,7 @@ fn add_full_slice
   (a : array et)
   (#f : perm)
   (#s : seq et)
-  (i j : nat)
-  (n : nat)
+  (i j n : nat)
   requires
     pts_to_slice a #f i j s **
     pure (Pulse.Lib.Array.length a == n)
@@ -233,7 +232,7 @@ fn pts_to_slice_ref
   (#a:Type u#0)
   (#f : perm)
   (x : array a)
-  (i:nat) (j:nat)
+  (i j : nat)
   (#v : seq a)
   preserves pts_to_slice x #f i j v
   requires emp
@@ -249,7 +248,7 @@ fn pts_to_slice_ref_anywhere
   (#a:Type u#0)
   (#f : perm)
   (x : array a)
-  (i:nat) (j:nat)
+  (i j : nat)
   (#v : seq a)
   (#l:loc_id)
   preserves on l (pts_to_slice x #f i j v)
@@ -362,8 +361,7 @@ fn gpu_array_free
 [@@noextract_to "krml"]
 fn slice_read
   (#a : Type u#0)
-  (#i  : erased nat)
-  (#j  : erased nat)
+  (#i #j : erased nat)
   (r : array a)
   (#f : perm)
   (idx : SZ.t)
@@ -388,8 +386,7 @@ fn slice_read
 [@@noextract_to "krml"]
 fn slice_write
   (#a:Type u#0)
-  (#i: erased nat)
-  (#j: erased nat)
+  (#i #j : erased nat)
   (r : array a)
   (idx : SZ.t)
   (v : a)
@@ -596,8 +593,7 @@ fn rec gpu_memcpy_device_to_device  //this is a CUDA primitive, so this definiti
   (#a:Type u#0)
   {| sized a |}
   (#sz : erased nat)
-  (dst_arr : larray a sz)
-  (src_garr : larray a sz)
+  (dst_arr src_garr : larray a sz)
   (cnt : SZ.t)
   (#f : perm)
   (#v : erased (seq a))

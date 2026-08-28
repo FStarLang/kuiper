@@ -201,8 +201,7 @@ let mk_kernel_arithmetic_facts
   (#_ : squash (constraints bm bn bk tm tn tk wm wn))
   (#_ : squash (bm /?+ m))
   (#_ : squash (bn /?+ n))
-  (nblk : szp)
-  (nthr : szp)
+  (nblk nthr : szp)
   : Lemma (
       SZ.v wm * SZ.v tm / SZ.v tm == SZ.v wm /\
       SZ.v wn * SZ.v tn / SZ.v tn == SZ.v wn /\

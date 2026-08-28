@@ -57,13 +57,13 @@ type cit (tile : valid_tile) = either (szlt tile & (szlt tile & unit)) (szlt til
 let chk1 et (tile : valid_tile) = assert ((aview_2tile2 et tile).iview.ait == ait tile)
 let chk2 et (tile : valid_tile) = assert_norm ((ciview_2tile2 et tile).sch.cit == cit tile)
 
-let mkAIdx (#tile:valid_tile) (i : natlt 2) (j : natlt tile) (k : natlt tile) : ait tile =
+let mkAIdx (#tile:valid_tile) (i : natlt 2) (j k : natlt tile) : ait tile =
   match i with
   | 0 -> Inl (j, (k, ()))
   | 1 -> Inr (j, (k, ()))
 
 inline_for_extraction noextract
-let mkCIdx (#tile:valid_tile) (i : szlt 2) (j : szlt tile) (k : szlt tile) : cit tile =
+let mkCIdx (#tile:valid_tile) (i : szlt 2) (j k : szlt tile) : cit tile =
   (* FIXME!!!! A match with machine integers does not reduce.
      We have to use the if-then-else form to get C code out. *)
   if i = 0sz

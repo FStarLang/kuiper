@@ -99,13 +99,12 @@ fn kf
   (#s : chest d et)
   (i : szlt (sizeof d))
   ()
-  requires
+  preserves
     gpu **
-    frame fr **
+    frame fr
+  requires
     Cell a (unflatten d i) |-> acc s (unflatten d i)
   ensures
-    gpu **
-    frame fr **
     (exists* (v : et).
       Cell a (unflatten d i) |-> v **
       pure (vf (unflatten d i) (acc s (unflatten d i)) v))
@@ -163,7 +162,7 @@ let vf_equal
   (#et : Type)
   (#r : erased nat) (#d : shape r)
   (f : et -> et)
- : (abs d -> et -> et -> prop) = (fun (_ : abs d) (x : et) (r : et) -> r == f x)
+ : (abs d -> et -> et -> prop) = (fun (_ : abs d) (x r : et) -> r == f x)
 
 inline_for_extraction noextract
 fn ff_from_pure u#a

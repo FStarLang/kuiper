@@ -486,8 +486,7 @@ fn barrier_in_fold_residue_pre
 let _residue_pred0
   (blockItemsK : nat)
   (ri ri' re : nat)
-  (idx : nat)
-  (nnz : nat)
+  (idx nnz : nat)
 : prop
 =
   re - ri' < blockItemsK  /\
@@ -497,8 +496,7 @@ let _residue_pred0
 let _residue_pred
   (blockItemsK : pos)
   (ri ri' re : nat)
-  (idx : nat)
-  (residue : nat)
+  (idx residue : nat)
 : prop
 =
   re - ri' >= blockItemsK  /\
@@ -508,8 +506,7 @@ let _residue_pred
 let residue_pred
   (blockItemsK : pos)
   (ri ri' re : nat)
-  (idx : nat)
-  (residue : nat)
+  (idx residue : nat)
 : prop
 =
   _residue_pred0 blockItemsK ri ri' re idx residue \/

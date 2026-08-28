@@ -99,14 +99,14 @@ fn kf
   (rB : chest2 real k n{eB %~ rB})
   (rC : chest2 real m n{eC %~ rC})
   (fA fB : perm)
-  (gid : szlt (m *^ n))
+  (gid : szlt (m * n))
   ()
   norewrite
+  preserves
+    gpu
   requires
-    gpu **
     kpre comb comb_r gA gB gC eA eB eC rA rB rC fA fB gid
   ensures
-    gpu **
     kpost comb comb_r gA gB gC eA eB eC rA rB rC fA fB gid
 {
   let trow : szlt m = gid /^ n; assert (rewrites_to trow (gid /^ n));
@@ -127,6 +127,7 @@ fn setup
   (comb : binop et)
   (comb_r : binop real { comb `approx2` comb_r })
   (#m #n #k : szp)
+  (nthr : szp { SZ.v nthr == m * n })
   (#lA : layout2 m k)
   (#lB : layout2 k n)
   (#lC : layout2 m n)
@@ -148,13 +149,13 @@ fn setup
     gB |-> Frac fB eB **
     gC |-> eC
   ensures
-    (forall+ (gid : natlt (m *^ n)).
+    (forall+ (gid : natlt nthr).
       kpre comb comb_r gA gB gC eA eB eC rA rB rC fA fB gid) **
     emp (* frame *)
 {
   // Sharing the input matrices (splitting permissions)
-  tensor_share_n gA (m *^ n);
-  tensor_share_n gB (m *^ n);
+  tensor_share_n gA (m * n);
+  tensor_share_n gB (m * n);
 
   // Sharing the output matrix (splitting each cell)
   tensor_explode gC;
@@ -163,18 +164,19 @@ fn setup
     pts_to_cell gC (fst ij, (snd ij, ())) (acc eC (fst ij, (snd ij, ()))));
   forevery_unflatten' _;
 
-  forevery_unfactor' (m *^ n) m n (fun r c ->
+  forevery_unfactor' (m * n) m n (fun r c ->
     pts_to_cell gC (r, (c, ())) (acc eC (r, (c, ()))));
 
   // Join resources into a single bigstar
-  forevery_zip #(natlt2 m n)
-    (fun _ -> gB |-> Frac (fB /. (m *^ n)) eB)
+  forevery_zip #(natlt (m * n))
+    (fun _ -> gB |-> Frac (fB /. (m * n)) eB)
     (fun i -> pts_to_cell gC ((i/n <: natlt m), ((i%n <: natlt n), ())) (acc eC ((i/n <: natlt m), ((i%n <: natlt n), ()))));
-  forevery_zip #(natlt2 m n)
-    (fun _ -> gA |-> Frac (fA /. (m *^ n)) eA)
+  forevery_zip #(natlt (m * n))
+    (fun _ -> gA |-> Frac (fA /. (m * n)) eA)
     _;
 
-  forevery_ext #(natlt2 m n) _ (kpre comb comb_r gA gB gC eA eB eC rA rB rC fA fB);
+  forevery_ext #(natlt (m * n)) _ (kpre comb comb_r gA gB gC eA eB eC rA rB rC fA fB);
+  forevery_rw_size (m * n) nthr;
   ();
 }
 
@@ -184,6 +186,7 @@ fn teardown
   (comb : binop et)
   (comb_r : binop real { comb `approx2` comb_r })
   (#m #n #k : szp)
+  (nthr : szp { SZ.v nthr == m * n })
   (#lA : layout2 m k)
   (#lB : layout2 k n)
   (#lC : layout2 m n)
@@ -201,7 +204,7 @@ fn teardown
   ()
   norewrite
   requires
-    (forall+ (gid : natlt (m *^ n)).
+    (forall+ (gid : natlt nthr).
       kpost comb comb_r gA gB gC eA eB eC rA rB rC fA fB gid) **
     emp (* frame *)
   ensures
@@ -210,20 +213,16 @@ fn teardown
     (exists* (eC : chest2 et m n).
       gC |-> eC ** pure (eC %~ MS.mmcomb comb_r rC rA rB))
 {
+  forevery_rw_size nthr (m * n);
   forevery_unzip3
-    (fun (gid : natlt (m *^ n)) -> gA |-> Frac (fA /. (m * n)) eA)
-    (fun (gid : natlt (m *^ n)) -> gB |-> Frac (fB /. (m * n)) eB)
+    (fun (gid : natlt (m * n)) -> gA |-> Frac (fA /. (m * n)) eA)
+    (fun (gid : natlt (m * n)) -> gB |-> Frac (fB /. (m * n)) eB)
     _;
 
-  forevery_rw_type (natlt (m *^ n)) (natlt (m * n))
-    (fun _ -> gA |-> Frac (fA /. (v m * v n)) eA);
-  forevery_rw_type (natlt (m *^ n)) (natlt (m * n))
-    (fun _ -> gB |-> Frac (fB /. (v m * v n)) eB);
+  tensor_gather_n gA (m * n);
+  tensor_gather_n gB (m * n);
 
-  tensor_gather_n gA _;
-  tensor_gather_n gB _;
-
-  forevery_factor (m *^ n) m n _;
+  forevery_factor (m * n) m n _;
 
   let vf = forevery_exists_2 #(natlt m) #_ #(natlt n) _;
 
@@ -235,34 +234,22 @@ fn teardown
       pts_to_cell gC (r, (c, ())) (vf r c) **
         pure (vf r c %~ MS.gemm_single comb_r rA rB rC r c));
 
-  forevery_extract_pure_2
+  forevery_unzip_2
     (fun (r : natlt m) (c : natlt n) ->
-      pts_to_cell gC (r, (c, ())) (vf r c) **
-        pure (vf r c %~ MS.gemm_single comb_r rA rB rC r c))
+      pts_to_cell gC (r, (c, ())) (vf r c))
     (fun (r : natlt m) (c : natlt n) ->
-      vf r c %~ MS.gemm_single comb_r rA rB rC r c)
-    fn r c { (); };
+      pure (vf r c %~ MS.gemm_single comb_r rA rB rC r c));
+  forevery_eilm_pure_2
+    (fun (r : natlt m) (c : natlt n) ->
+      vf r c %~ MS.gemm_single comb_r rA rB rC r c);
 
   let eC' : chest2 et m n = mk2 (fun (r : natlt m) (c : natlt n) -> vf r c);
 
-  ghost
-  fn aux (r:natlt m) (c:natlt n)
-    requires
-      pts_to_cell gC (r, (c, ())) (vf r c) **
-        pure (vf r c %~ MS.gemm_single comb_r rA rB rC r c)
-    ensures
-      pts_to_cell gC (r, (c, ())) (acc eC' (r, (c, ())))
-  {
-    assert (pure (acc2 eC' r c == vf r c));
-    ()
-  };
-  forevery_map_2 #(natlt m) #(natlt n)
+  forevery_ext_2 #(natlt m) #(natlt n)
     (fun (r : natlt m) (c : natlt n) ->
-      pts_to_cell gC (r, (c, ())) (vf r c) **
-        pure (vf r c %~ MS.gemm_single comb_r rA rB rC r c))
+      pts_to_cell gC (r, (c, ())) (vf r c))
     (fun (r : natlt m) (c : natlt n) ->
-      pts_to_cell gC (r, (c, ())) (acc eC' (r, (c, ()))))
-    aux;
+      pts_to_cell gC (r, (c, ())) (acc eC' (r, (c, ()))));
 
   forevery_flatten' (fun (rc : natlt m & natlt n) ->
     pts_to_cell gC (fst rc, (snd rc, ())) (acc eC' (fst rc, (snd rc, ()))));
@@ -298,12 +285,11 @@ let kdesc
   : kernel_desc
     (gA |-> Frac fA eA ** gB |-> Frac fB eB ** gC |-> eC)
     (gA |-> Frac fA eA ** gB |-> Frac fB eB ** (exists* (eC : chest2 et m n). gC |-> eC ** pure (eC %~ MS.mmcomb comb_r rC rA rB)))
-=
-{
-  nthr     = m *^ n;
+= [@@inline_let] let nthr : (x : szp { SZ.v x == m * n }) = m *^ n in {
+  nthr     = nthr;
   frame    = emp;
-  setup    = setup    comb comb_r gA gB gC eA eB eC rA rB rC fA fB;
-  teardown = teardown comb comb_r gA gB gC eA eB eC rA rB rC fA fB;
+  setup    = setup    comb comb_r nthr gA gB gC eA eB eC rA rB rC fA fB;
+  teardown = teardown comb comb_r nthr gA gB gC eA eB eC rA rB rC fA fB;
   kpre     = kpre     comb comb_r gA gB gC eA eB eC rA rB rC fA fB;
   kpost    = kpost    comb comb_r gA gB gC eA eB eC rA rB rC fA fB;
   f        = kf       comb comb_r gA gB gC eA eB eC rA rB rC fA fB;

@@ -65,15 +65,15 @@ fn kf
   (#fIn : perm)
   (gOut : array2 et lOut)
   (#eIn : chest2 et (rows +^ 2sz) (cols +^ 2sz))
-  (bid : szlt (rows *^ cols))
+  (bid : szlt (rows * cols))
   ()
   norewrite
+  preserves
+    gpu
   requires
-    gpu **
     kpre stencil gIn fIn gOut eIn bid **
     block_id (rows *^ cols) bid
   ensures
-    gpu **
     kpost stencil gIn fIn gOut eIn bid **
     block_id (rows *^ cols) bid
 {
@@ -99,6 +99,7 @@ fn setup
   (#et : Type0) {| scalar et |}
   (stencil: (i: natlt 3) -> (j: natlt 3) -> et)
   (#rows #cols : szp)
+  (nblk : szp { SZ.v nblk == rows * cols })
   (#_ : squash (SZ.fits (rows + 2) /\ SZ.fits (cols + 2)))
   (#lIn : layout2 (rows +^ 2sz) (cols +^ 2sz))
   (#lOut : layout2 rows cols)
@@ -115,21 +116,21 @@ fn setup
     gIn |-> Frac fIn eIn **
     gOut |-> eOut
   ensures
-    (forall+ (rc : natlt (rows *^ cols)).
+    (forall+ (rc : natlt nblk).
       kpre stencil gIn fIn gOut eIn rc) **
     emp (* frame *)
 {
-  tensor_share_n gIn (rows *^ cols);
+  tensor_share_n gIn (rows * cols);
 
   tensor_ilower2 gOut;
 
-  forevery_unfactor' (rows *^ cols) rows cols (fun r c ->
+  forevery_unfactor' (rows * cols) rows cols (fun r c ->
     tensor_pts_to_cell gOut (idx2 r c) (acc2 eOut r c));
 
   ghost
-  fn hide_specific_val_behind_exists (rc: natlt (rows *^ cols))
+  fn hide_specific_val_behind_exists (rc: natlt (rows * cols))
     requires
-        tensor_pts_to_cell gOut (idx2 (rc / cols <: natlt rows) (rc % cols <: natlt cols)) (acc2 #_ #(SZ.v rows) #(SZ.v cols) eOut (rc / cols) (rc % cols))
+        tensor_pts_to_cell gOut (idx2 (rc / cols <: natlt rows) (rc % cols <: natlt cols)) (acc2 #_ #rows #cols eOut (rc / cols) (rc % cols))
     ensures
       (exists* vv. tensor_pts_to_cell gOut (idx2 (rc / cols <: natlt rows) (rc % cols <: natlt cols)) vv)
   {
@@ -138,33 +139,18 @@ fn setup
 
   forevery_map _ _ hide_specific_val_behind_exists;
 
-  forevery_zip #(natlt (rows *^ cols))
+  forevery_zip #(natlt (rows * cols))
     _
     (fun rc ->
       (exists* vv. tensor_pts_to_cell gOut (idx2 (rc / cols <: natlt rows) (rc % cols <: natlt cols)) vv));
 
-  ghost
-  fn hide_specific_val_behind_exists (rc: natlt (rows * cols))
-    requires
-      tensor_pts_to #et gIn #(fIn /. Real.of_int (SZ.v (SZ.mul rows cols))) eIn **
-        tensor_pts_to_cell gOut (idx2 (rc / cols <: natlt rows) (rc % cols <: natlt cols)) (acc2 eOut (rc / cols) (rc % cols))
-    ensures
-      tensor_pts_to #et gIn #(fIn /. Real.of_int (SZ.v (SZ.mul rows cols))) eIn **
-      (exists* vv. tensor_pts_to_cell gOut (idx2 (rc / cols <: natlt rows) (rc % cols <: natlt cols)) vv)
-  {
-    ()
-  };
-
-  (* We're done actually, but the encoding will not match the lambdas. *)
-  forevery_ext #(natlt2 rows cols)
+  forevery_ext #(natlt (rows * cols))
     (fun i ->
-    (* In the context, fractions are computed by mulitplying SizeT and then converting to nat, *)
-      (gIn |-> Frac (fIn /. (rows *^ cols)) eIn) **
+      (gIn |-> Frac (fIn /. (rows * cols)) eIn) **
       exists* vv. tensor_pts_to_cell gOut (idx2 (i/cols <: natlt rows) (i%cols <: natlt cols)) vv)
-    (* and the goal expects conversion to nat for each factor. *)
     (fun i ->
       kpre stencil gIn fIn gOut eIn i);
-
+  forevery_rw_size (rows * cols) nblk;
 }
 #pop-options
 
@@ -173,6 +159,7 @@ fn teardown
   (#et : Type0) {| scalar et |}
   (stencil: (i: natlt 3) -> (j: natlt 3) -> et)
   (#rows #cols : szp)
+  (nblk : szp { SZ.v nblk == rows * cols })
   (#_ : squash (SZ.fits (rows + 2) /\ SZ.fits (cols + 2)))
   (#lIn : layout2 (rows +^ 2sz) (cols +^ 2sz))
   (#lOut : layout2 rows cols)
@@ -185,23 +172,18 @@ fn teardown
   ()
   norewrite
   requires
-    (forall+ (tid : natlt (rows *^ cols)).
+    (forall+ (tid : natlt nblk).
       kpost stencil gIn fIn gOut eIn tid) **
     emp (* frame *)
   ensures
     gIn |-> Frac fIn eIn **
     (gOut |-> STS.stencil_result stencil eIn)
 {
-  forevery_unzip #(natlt2 rows cols) _ _;
+  forevery_rw_size nblk (rows * cols);
+  forevery_unzip #(natlt (rows * cols)) _ _;
+  tensor_gather_n gIn (rows * cols);
 
-  forevery_rw_type
-    (natlt (v (SizeT.mul rows cols)))
-    (natlt (v rows * v cols))
-    (fun _ ->
-      tensor_pts_to #et gIn #(fIn /. (v rows * v cols)) eIn);
-  tensor_gather_n gIn _;
-
-  forevery_factor (rows *^ cols) rows cols _;
+  forevery_factor (rows * cols) rows cols _;
 
   (* Simplify arithmetic expressions. *)
   assert (pure (forall (r c : nat). c < cols ==> (r * cols + c) / cols == r));
@@ -212,23 +194,8 @@ fn teardown
          (STS.stencil_result_at_idx #_ #_ #rows #cols stencil eIn
             ((r * cols + c) / cols) ((r * cols + c) % cols)))
     (fun (r:natlt rows) (c:natlt cols) ->
-      tensor_pts_to_cell gOut (idx2 r c) (
-        STS.stencil_result_at_idx #_ #_ #rows #cols stencil eIn r c));
-
-  ghost
-  fn convert_single_res_to_access_on_entire_res (r:natlt rows) (c:natlt cols)
-    requires
-      tensor_pts_to_cell gOut (idx2 r c) (STS.stencil_result_at_idx stencil eIn r c)
-    ensures
-      tensor_pts_to_cell gOut (idx2 r c) (acc2 (STS.stencil_result stencil eIn) r c)
-  {
-    ()
-  };
-
-  forevery_map_2 #(natlt rows) #(natlt cols)
-    (fun r c -> tensor_pts_to_cell gOut (idx2 r c) (STS.stencil_result_at_idx stencil eIn r c))
-    _
-    convert_single_res_to_access_on_entire_res;
+      tensor_pts_to_cell gOut (idx2 r c)
+        (acc2 (STS.stencil_result stencil eIn) r c));
 
   tensor_iraise2 gOut;
 }
@@ -252,18 +219,18 @@ let kdesc
   : kernel_desc_m_1
     (gIn |-> Frac fIn eIn ** gOut |-> eOut)
     (gIn |-> Frac fIn eIn ** gOut |-> STS.stencil_result stencil eIn)
-= {
-  nblk = rows *^ cols;
+= [@@inline_let] let nblk : (x : szp { SZ.v x == rows * cols }) = rows *^ cols in {
+  nblk = nblk;
 
   frame = emp;
 
-  setup    = setup    stencil gIn gOut;
-  teardown = teardown stencil gIn gOut;
+  setup    = setup    stencil nblk gIn gOut;
+  teardown = teardown stencil nblk gIn gOut;
 
   kpre  = kpre  stencil gIn fIn gOut eIn;
   kpost = kpost stencil gIn fIn gOut eIn;
 
-  f = kf stencil gIn gOut;
+  f = kf stencil gIn #fIn gOut #eIn;
   kpost_sendable=solve;
   kpre_sendable=solve;
 }

@@ -161,7 +161,7 @@ let lem_j
    With one SMT query per proof obligation the bound [bid/(n/bn) < m/bm] is no
    longer derived automatically inside the proof body, so we prove it here. *)
 #push-options "--fuel 0 --ifuel 0"
-private let div_lt_mul (a:nat) (p:nat) (q:pos)
+private let div_lt_mul (a p : nat) (q:pos)
   : Lemma (requires a < p * q) (ensures a / q < p)
   = if a / q >= p then begin
       Math.Lemmas.lemma_mult_le_right q p (a / q);
@@ -532,8 +532,7 @@ fn block_teardown
 ghost
 fn warp_tile_pts_to_eq
   (#et : Type0) {| scalar et |}
-  (#m : nat)
-  (#n : nat)
+  (#m #n : nat)
   (#lC : layout2 m n)
   (gC : array2 et lC)
   (bm : pos{bm /?+ m})
@@ -565,8 +564,7 @@ fn warp_tile_pts_to_eq
 ghost
 fn warp_tile_pts_to_gatherwarp
   (#et : Type0) {| scalar et |}
-  (#m : nat)
-  (#n : nat)
+  (#m #n : nat)
   (#lC : layout2 m n)
   (gC : array2 et lC)
   (bm : pos{bm /?+ m})

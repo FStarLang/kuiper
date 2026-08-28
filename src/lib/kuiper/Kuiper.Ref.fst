@@ -173,8 +173,7 @@ inline_for_extraction noextract
 fn gpu_memcpy_device_to_device
   (#a:Type u#0)
   {| sized a |}
-  (dst_r  : gpu_ref a)
-  (src_gr : gpu_ref a)
+  (dst_r src_gr : gpu_ref a)
   preserves cpu
   preserves on gpu_loc (src_gr |-> Frac 'f 'gv)
   requires on gpu_loc (dst_r |-> 'v)

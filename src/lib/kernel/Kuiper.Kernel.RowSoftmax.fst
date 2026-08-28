@@ -23,21 +23,21 @@ let clamp_threads (nth lena : szp)
   = if nth <=^ lena then nth else lena
 
 (* Push a [chest_map] through [chest1_to_seq] to the underlying [seq_map]. *)
-let chest1_to_seq_map_gen (#a #b : Type) (#n : nat) (f : a -> b) (c : Chest.chest1 a n)
+let chest1_to_seq_map_gen (#a #b : Type) (#n : nat) (f : a -> b) (c : chest1 a n)
   : Lemma (chest1_to_seq (chest_map f c) == seq_map f (chest1_to_seq c))
   = Seq.lemma_eq_elim (chest1_to_seq (chest_map f c)) (seq_map f (chest1_to_seq c))
 
 (* Bridge a chest1 row-sum-of-exp to its underlying seq form (no [ematrix_row]),
    so the seq real-arithmetic lemmas ([unshift_row_sum_real], [sum_non_zero]) can
    be reached from the chest-native specs. *)
-let chest_rowsum_exp_seq (#n : nat) (c : Chest.chest1 real n)
+let chest_rowsum_exp_seq (#n : nat) (c : chest1 real n)
   : Lemma (chest1_rsum (chest_map exp c) == rsum (seq_map exp (chest1_to_seq c)))
   = chest1_to_seq_map_gen exp c
 
 (* The row-sum-of-exp denominator is strictly positive (every summand [exp _] is
    positive), so the softmax division is well-defined.  Chest-native replacement
    for the seq [sum_non_zero] appeal. *)
-let chest1_rsum_exp_pos (#n : nat { n > 0 }) (c : Chest.chest1 real n)
+let chest1_rsum_exp_pos (#n : nat { n > 0 }) (c : chest1 real n)
   : Lemma (chest1_rsum (chest_map exp c) >. 0.0R)
   = chest_rowsum_exp_seq c;
     sum_non_zero (seq_map exp (chest1_to_seq c)) 0.0R
@@ -70,7 +70,7 @@ let mk1_cell (#et : Type) (#d0 : nat)
 #pop-options
 
 #push-options "--fuel 6 --ifuel 2"
-let softmax_real_cell (#n : nat { n > 0 }) (row : Chest.chest1 real n) (j : natlt n)
+let softmax_real_cell (#n : nat { n > 0 }) (row : chest1 real n) (j : natlt n)
   : Lemma
       (requires chest1_rsum (chest_map exp row) =!= 0.0R)
       (ensures acc1 (SM.softmax_real row) j
@@ -109,16 +109,16 @@ let acc2_row_softmax_real (#m : nat) (#n : nat { n > 0 })
 let s_row_div_exp_approx_softmax
   (#et : Type0) {| floating et, real_like et, floating_real_like et |}
   (#m : nat) (#n : nat { n > 0 })
-  (sums : Chest.chest1 et m) (sa : chest2 et m n) (ra : chest2 real m n)
+  (sums : chest1 et m) (sa : chest2 et m n) (ra : chest2 real m n)
   : Lemma
       (requires
         sa %~ ra /\
         (forall (i : nat). i < m ==>
           v_approximates (acc1 sums i)
                          (chest1_rsum (chest_map exp (chest2_row ra i)))))
-      (ensures RB.s_row_broadcast (fun (s:et) (aij:et) -> div (fexp aij) s) sums sa
+      (ensures RB.s_row_broadcast (fun (s aij : et) -> div (fexp aij) s) sums sa
                %~ row_softmax_real #m #n ra)
-  = let lhs = RB.s_row_broadcast (fun (s:et) (aij:et) -> div (fexp aij) s) sums sa in
+  = let lhs = RB.s_row_broadcast (fun (s aij : et) -> div (fexp aij) s) sums sa in
     let aux (idx : Kuiper.Shape.abs (m @| n @| INil))
       : Lemma (Chest.acc lhs idx %~ Chest.acc (row_softmax_real #m #n ra) idx) =
       let (i, (j, ())) = idx in
@@ -151,16 +151,16 @@ let s_row_div_exp_approx_softmax
 let subtract_approx
   (#et : Type0) {| floating et, real_like et, floating_real_like et |}
   (#m #n : nat)
-  (maxs : Chest.chest1 et m) (sa : chest2 et m n) (ra : chest2 real m n)
+  (maxs : chest1 et m) (sa : chest2 et m n) (ra : chest2 real m n)
   (cs : (i:nat{i<m}) -> GTot real)
   : Lemma
       (requires
         sa %~ ra /\
         (forall (i : nat). i < m ==> v_approximates (acc1 maxs i) (cs i)))
       (ensures
-        RB.s_row_broadcast (fun (mx:et) (aij:et) -> sub aij mx) maxs sa
+        RB.s_row_broadcast (fun (mx aij : et) -> sub aij mx) maxs sa
         %~ mk2 (fun i j -> acc2 ra i j -. cs i))
-  = let lhs = RB.s_row_broadcast (fun (mx:et) (aij:et) -> sub aij mx) maxs sa in
+  = let lhs = RB.s_row_broadcast (fun (mx aij : et) -> sub aij mx) maxs sa in
     let rhs = mk2 #real (fun (i:natlt m) (j:natlt n) -> acc2 ra i j -. cs i) in
     let aux (idx : Kuiper.Shape.abs (m @| n @| INil))
       : Lemma (Chest.acc lhs idx %~ Chest.acc rhs idx) =
@@ -255,7 +255,7 @@ fn row_softmax_gpu
      [row_softmax_real ra1]; shift invariance equates that with the spec
      [row_softmax_real ra]. *)
   let sa1 : chest2 et m n =
-    RB.s_row_broadcast (fun (mx:et) (aij:et) -> sub aij mx) maxs_v sa;
+    RB.s_row_broadcast (fun (mx aij : et) -> sub aij mx) maxs_v sa;
   s_row_div_exp_approx_softmax sums_v sa1 ra1;
   row_softmax_shift_eq #m #n ra cs;
   ()
@@ -280,7 +280,7 @@ let unshift_row_sum_real (row : Seq.seq real) (c : real)
 let unshift_sums_correct
   (#et : Type0) {| floating et, real_like et, floating_real_like et |}
   (#m #n : nat)
-  (sums_v maxs_v : Chest.chest1 et m)
+  (sums_v maxs_v : chest1 et m)
   (ra : chest2 real m n)
   (cs : (i:nat{i<m}) -> GTot real)
   : Lemma
@@ -293,12 +293,12 @@ let unshift_sums_correct
       (ensures
         (forall (i:nat). i < m ==>
           v_approximates
-            (acc1 (Map.chest1_map2 (fun (s:et) (mx:et) -> mul s (fexp mx)) sums_v maxs_v) i)
+            (acc1 (Map.chest1_map2 (fun (s mx : et) -> mul s (fexp mx)) sums_v maxs_v) i)
             (chest1_rsum (chest_map exp (chest2_row ra i)))))
   = let ra1 = mk2 #real #m #n (fun (i:natlt m) (j:natlt n) -> acc2 ra i j -. cs i) in
     introduce forall (i:nat). i < m ==>
       v_approximates
-        (acc1 (Map.chest1_map2 (fun (s:et) (mx:et) -> mul s (fexp mx)) sums_v maxs_v) i)
+        (acc1 (Map.chest1_map2 (fun (s mx : et) -> mul s (fexp mx)) sums_v maxs_v) i)
         (chest1_rsum (chest_map exp (chest2_row ra i)))
     with introduce _ ==> _
     with (
@@ -319,7 +319,7 @@ let unshift_sums_correct
       unshift_row_sum_real (chest1_to_seq (chest2_row ra i)) (cs i);
       // transport the approximation across that equality without touching the reals
       approx_subst
-        (acc1 (Map.chest1_map2 (fun (s:et) (mx:et) -> mul s (fexp mx)) sums_v maxs_v) i)
+        (acc1 (Map.chest1_map2 (fun (s mx : et) -> mul s (fexp mx)) sums_v maxs_v) i)
         (chest1_rsum (chest_map exp (chest2_row ra1 i)) *. exp (cs i))
         (chest1_rsum (chest_map exp (chest2_row ra i)))
     )
@@ -341,7 +341,7 @@ fn row_softmax_gpu_with_sum
   returns
     sums: (sums: array1 et (l1_forward m) { is_global sums })
   ensures
-    exists* (sa' : chest2 et m n) (esums : Chest.chest1 et m).
+    exists* (sa' : chest2 et m n) (esums : chest1 et m).
       on gpu_loc (a |-> sa') **
       on gpu_loc (sums |-> esums) **
       pure (sa' %~ row_softmax_real ra) **
@@ -385,10 +385,10 @@ fn row_softmax_gpu_with_sum
   (* Step 5: unshift the row sums back to the true (unshifted) scale:
      sums[i] := sums[i] * exp(maxs[i]).  Step 3 reduced the max-shifted matrix,
      so [sums] held [exp(-max_i) * true_sum_i]; this recovers [true_sum_i]. *)
-  Map.map_gpu2 (fun (s:et) (mx:et) -> mul s (fexp mx)) m sums maxs;
+  Map.map_gpu2 (fun (s mx : et) -> mul s (fexp mx)) m sums maxs;
   with sums_v2. assert (on gpu_loc (sums |-> sums_v2));
   assert pure (sums_v2
-    == Map.chest1_map2 (fun (s:et) (mx:et) -> mul s (fexp mx)) sums_v maxs_v);
+    == Map.chest1_map2 (fun (s mx : et) -> mul s (fexp mx)) sums_v maxs_v);
 
   Kuiper.Tensor.free maxs;
 
@@ -396,7 +396,7 @@ fn row_softmax_gpu_with_sum
      [row_softmax_real ra1]; shift invariance equates that with the spec
      [row_softmax_real ra]. *)
   let sa1 : chest2 et (SZ.v m) (SZ.v n) =
-    RB.s_row_broadcast (fun (mx:et) (aij:et) -> sub aij mx) maxs_v sa;
+    RB.s_row_broadcast (fun (mx aij : et) -> sub aij mx) maxs_v sa;
   s_row_div_exp_approx_softmax sums_v sa1 ra1;
   row_softmax_shift_eq #(SZ.v m) #(SZ.v n) ra cs;
 

@@ -21,10 +21,8 @@ let rec __gmatmul_single_split
   (base : nat{base <= shared})
   (n : nat{base + n <= shared})
   (#sub_n : nat{n <= sub_n})
-  (sub_m1 : chest2 real sub_n sub_n)
-  (sub_m2 : chest2 real sub_n sub_n)
-  (sub_row : natlt sub_n)
-  (sub_col : natlt sub_n)
+  (sub_m1 sub_m2 : chest2 real sub_n sub_n)
+  (sub_row sub_col : natlt sub_n)
   : Lemma
     (requires
       (forall (k:nat). k < n ==>

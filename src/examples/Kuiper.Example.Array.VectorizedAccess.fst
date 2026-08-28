@@ -58,11 +58,11 @@ fn kf
   (bid : szlt nblk)
   (tid : szlt nthr)
   ()
+preserves
+  gpu
 requires
-  gpu **
   kpre size a s nblk nthr bid tid
 ensures
-  gpu **
   kpost v size a s nblk nthr bid tid
 {
   open Pulse.Lib.Array;

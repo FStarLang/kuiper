@@ -8,7 +8,6 @@ open Kuiper
 open Kuiper.TensorRO
 open Kuiper.Tensor.Layout.Alg
 module KT = Kuiper.Tensor
-module Ch = Kuiper.Chest
 module SZ = Kuiper.SizeT
 
 (* Concrete instance crutch (mirrors Kuiper.Example.Tensor). *)
@@ -51,13 +50,13 @@ fn ex_broadcast_two_read
   (j1 : szlt e1)
   (j2 : szlt e2)
   (#f : perm)
-  (#s : Ch.chest1 u32 m)
+  (#s : chest1 u32 m)
   requires
     KT.tensor_pts_to t #f s ** pure (is_full (l1_forward m))
   returns
     v : u32
   ensures
-    KT.tensor_pts_to t #f s ** pure (v == Ch.acc1 s (SZ.v i))
+    KT.tensor_pts_to t #f s ** pure (v == acc1 s i)
 {
   let ro = tensor_to_rotensor t;
   let b1 = rotensor_add_dim_view ro e1;
@@ -76,13 +75,13 @@ fn ex_read_vec10_bcast
   (j1 : szlt 4)
   (j2 : szlt 7)
   (#f : perm)
-  (#s : Ch.chest1 u32 10)
+  (#s : chest1 u32 10)
   requires
     KT.tensor_pts_to t #f s ** pure (is_full (l1_forward 10))
   returns
     v : u32
   ensures
-    KT.tensor_pts_to t #f s ** pure (v == Ch.acc1 s (SZ.v i))
+    KT.tensor_pts_to t #f s ** pure (v == acc1 s i)
 {
   ex_broadcast_two_read #10 #4 #7 t i j1 j2
 }

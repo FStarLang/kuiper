@@ -76,7 +76,7 @@ let rsum_map_cons (f: real -> real) (x: real) (t: Seq.seq real)
 (* Theorem 1 from the Online Softmax paper (unshifted invariant form):
    The online normalizer computation correctly tracks the running max and,
    when multiplied by exp(max), equals the sum of exponentials. *)
-let rec fold_correct (m0: real) (d0: real) (s: Seq.seq real)
+let rec fold_correct (m0 d0 : real) (s: Seq.seq real)
   : Lemma (ensures (
       let r = reveal (seq_fold_left online_softmax_real_iter (hide (m0, d0)) s) in
       fst r == seq_fold_left rmax m0 s /\
@@ -135,9 +135,8 @@ let kpre
   (#et : Type0) {| floating et, real_like et |}
   (lenab : szp{ lenab <= max_blocks * max_threads})
   (#l : layout1 lenab) {| ctlayout l |} (* TODO: let them have different layouts *)
-  (a : array1 et l)
-  (b : array1 et l)
-  (#va : erased (chest1 et lenab))
+  (a b : array1 et l)
+  (#va : chest1 et lenab)
   (tid : natlt lenab)
   : slprop
 = (a |-> Frac (1 /. lenab) va) **
@@ -148,10 +147,9 @@ let kpost
   (#et : Type0) {| floating et, real_like et |}
   (lenab : szp{ lenab <= max_blocks * max_threads})
   (#l : layout1 lenab) {| ctlayout l |} (* TODO: let them have different layouts *)
-  (a : array1 et l)
-  (b : array1 et l)
-  (#va : erased (chest1 et lenab))
-  (ra : erased (chest1 real lenab) { va %~ ra })
+  (a b : array1 et l)
+  (#va : chest1 et lenab)
+  (ra : chest1 real lenab { va %~ ra })
   (tid : natlt lenab)
   : slprop
 = (a |-> Frac (1 /. lenab) va) **
@@ -169,10 +167,9 @@ fn kfonline_softmax
   (#et : Type0) {| floating et, real_like et, floating_real_like et |}
   (#lenab : szp{lenab <= max_blocks * max_threads})
   (#l : layout1 lenab) {| ctlayout l |} (* TODO: let them have different layouts *)
-  (a : array1 et l)
-  (b : array1 et l)
-  (#va : erased (chest1 et lenab))
-  (ra : erased (chest1 real lenab) { va %~ ra })
+  (a b : array1 et l)
+  (#va : chest1 et lenab)
+  (ra : chest1 real lenab { va %~ ra })
   (#_: squash (chest_forallb not_nan va))
   (tid : szlt lenab)
   ()
@@ -321,10 +318,9 @@ fn setup
   (#et : Type0) {| floating et, real_like et |}
   (#lenab : szp{lenab <= max_blocks * max_threads})
   (#l : layout1 lenab) {| ctlayout l |} (* TODO: let them have different layouts *)
-  (a : array1 et l)
-  (b : array1 et l)
-  (#va : erased (chest1 et lenab))
-  (ra : erased (chest1 real lenab) { va %~ ra })
+  (a b : array1 et l)
+  (#va : chest1 et lenab)
+  (ra : chest1 real lenab { va %~ ra })
   ()
   norewrite
   requires
@@ -357,10 +353,9 @@ fn teardown
   (#et : Type0) {| floating et, real_like et |}
   (#lenab : szp{lenab <= max_blocks * max_threads})
   (#l : layout1 lenab) {| ctlayout l |} (* TODO: let them have different layouts *)
-  (a : array1 et l)
-  (b : array1 et l)
-  (#va : erased (chest1 et lenab))
-  (ra : erased (chest1 real lenab) { va %~ ra })
+  (a b : array1 et l)
+  (#va : chest1 et lenab)
+  (ra : chest1 real lenab { va %~ ra })
   ()
   norewrite
   requires
@@ -384,8 +379,8 @@ let konline_softmax
   (#l : layout1 lenab) {| ctlayout l |} (* TODO: let them have different layouts *)
   (a : array1 et l { is_global a })
   (b : array1 et l { is_global b })
-  (#va : erased (chest1 et lenab))
-  (ra : erased (chest1 real lenab) { va %~ ra })
+  (#va : chest1 et lenab)
+  (ra : chest1 real lenab { va %~ ra })
   (#_: squash (chest_forallb not_nan va))
   : kernel_desc
       (requires a |-> va ** (exists* (vb : chest1 et lenab). b |-> vb))

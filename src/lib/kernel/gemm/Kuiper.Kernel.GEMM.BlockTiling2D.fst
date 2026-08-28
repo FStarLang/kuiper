@@ -46,8 +46,7 @@ let shmems_desc
 inline_for_extraction noextract
 let ttile
   (#et : Type0)
-  (#m : erased nat)
-  (#n : erased nat)
+  (#m #n : erased nat)
   (#lC : layout2 m n)
   (gC : array2 et lC)
   (bm : nat{bm > 0 /\ bm /?+ m})
@@ -61,8 +60,7 @@ let ttile
 
 let ettile
   (#et : Type0)
-  (#m : nat)
-  (#n : nat)
+  (#m #n : nat)
   (em : chest2 et m n)
   (bm : nat{bm > 0 /\ bm /?+ m})
   (bn : nat{bn > 0 /\ bn /?+ n})
@@ -96,7 +94,7 @@ let __gms
   (z : tacc)
   (m1 : chest2 ta m k)
   (m2 : chest2 tb k columns)
-  (row : nat) (col : nat) (to : nat)
+  (row col to : nat)
   : GTot tacc
   = if row < m && col < columns && to <= k
     then MS.__gmatmul_single z (__mulm mapA mapB) add m1 m2 row col to
@@ -112,7 +110,7 @@ let __gms_fwd
   (z : tacc)
   (m1 : chest2 ta m k)
   (m2 : chest2 tb k columns)
-  (row : nat) (col : nat) (d : nat)
+  (row col d : nat)
   : Lemma
     (requires row < m /\ col < columns /\ d < k)
     (ensures add (__gms mapA mapB z m1 m2 row col d)
@@ -574,8 +572,7 @@ let tile_glob_bound_pat (m bm tm b t i : nat)
    This needs normalization through ematrix_subtile → mk2 → acc2 chains. *)
 let ettile_matmul_pointwise
   (#et : Type0) {| scalar et |}
-  (#m #n : nat)
-  (#k : nat)
+  (#m #n #k : nat)
   (eA : chest2 et m k)
   (eB : chest2 et k n)
   (bm : nat{bm > 0 /\ bm /?+ m})
@@ -648,8 +645,7 @@ let ettile_mmcomb_pointwise
   (#ta #tb #tc #tacc : Type0) {| scalar tacc |}
   (mapA : ta -> tacc) (mapB : tb -> tacc)
   (comb : tc -> tacc -> tc)
-  (#m #n : nat)
-  (#k : nat)
+  (#m #n #k : nat)
   (eA : chest2 ta m k)
   (eB : chest2 tb k n)
   (eC : chest2 tc m n)
@@ -693,7 +689,7 @@ let epilogue_tile_div_mod (tm tn : pos)
           FStar.Math.Lemmas.lemma_mod_plus j i tn;
           FStar.Math.Lemmas.small_mod j tn)
 
-let epilogue_tile_lt_succ (tm : pos) (tn : pos) (rM : nat) (rN : nat{rN < tn})
+let epilogue_tile_lt_succ (tm tn : pos) (rM : nat) (rN : nat{rN < tn})
   : Lemma (forall (i:natlt tm) (j:natlt tn).
             (i * tn + j < rM * tn + rN + 1 <==>
              (i * tn + j < rM * tn + rN \/ (i == rM /\ j == rN))))
@@ -770,8 +766,7 @@ fn epilogue
   (#ta #tb #tc #tacc : Type0) {| scalar tc, scalar tacc |}
   (mapA : ta -> tacc) (mapB : tb -> tacc)
   (comb : tc -> tacc -> tc)
-  (#m #n : sz)
-  (#k : sz)
+  (#m #n #k : sz)
   (bm : szp{bm /?+ m})
   (bn : szp{bn /?+ n})
   (tm : szp{tm /?+ bm})
@@ -991,32 +986,27 @@ fn kf_compute
   (#vrch0 : erased (seq tacc))
   ()
   norewrite
-  requires
+  preserves
     gpu **
     gA |-> Frac fAe eA **
     gB |-> Frac fBe eB **
     live_c_shmems sh #(1.0R /. (bm/tm * (bn/tn))) **
-    (rchProd |-> vrch0) **
-    pure (Seq.length vrch0 == tm * tn /\ (forall (idx : natlt (tm * tn)). vrch0 @! idx == zero #tacc)) **
     pure (SZ.fits (m * n)) **
     pure (aligned 16 (core gA)) **
     pure (aligned 16 (core gB)) **
     thread_id (bm/tm * (bn/tn)) tid **
-    B.barrier_tok (FB.contract eA eB slA slB (fst sh) (fst (snd sh)) nthr bid) **
+    B.barrier_tok (FB.contract eA eB slA slB (fst sh) (fst (snd sh)) nthr bid)
+  requires
+    (rchProd |-> vrch0) **
+    pure (Seq.length vrch0 == tm * tn /\ (forall (idx : natlt (tm * tn)). vrch0 @! idx == zero #tacc)) **
     B.barrier_state 0
   ensures
-    gpu **
-    gA |-> Frac fAe eA **
-    gB |-> Frac fBe eB **
-    live_c_shmems sh #(1.0R /. (bm/tm * (bn/tn))) **
     (exists* (vrch : seq tacc).
       (rchProd |-> vrch) **
       pure (Seq.length vrch == tm * tn /\
         (forall (idx : natlt (tm * tn)).
           vrch @! idx ==
             acc2 (ettile (MS.matmul (Kuiper.Chest.chest_map mapA eA) (Kuiper.Chest.chest_map mapB eB)) bm bn tm tn bid tid) (idx / tn) (idx % tn)))) **
-    thread_id (bm/tm * (bn/tn)) tid **
-    B.barrier_tok (FB.contract eA eB slA slB (fst sh) (fst (snd sh)) nthr bid) **
     B.barrier_state (2 * (k / bk))
 {
   unfold_c_shmems sh (`%shmems_desc);
@@ -1839,8 +1829,9 @@ fn bkf
   (tid : szlt nthr_v)
   ()
   norewrite
+  preserves
+    gpu
   requires
-    gpu **
     pure (c_shmems_inv sh) **
     bkpre mapA mapB comb gA eA gB eB gC eC bm bn bk #sqf slA slB tm tn sq1 sq2 fA fB sh (SZ.v bid) (SZ.v tid) **
     thread_id (SZ.v nthr_v) tid **
@@ -1848,7 +1839,6 @@ fn bkf
     B.barrier_tok (FB.contract (slice_page eA (SZ.v bid % batch)) (slice_page eB (SZ.v bid % batch)) slA slB (fst sh) (fst (snd sh)) nthr (SZ.v bid / batch)) **
     B.barrier_state 0
   ensures
-    gpu **
     bkpost mapA mapB comb gA eA gB eB gC eC bm bn bk #sqf slA slB tm tn sq1 sq2 fA fB sh (SZ.v bid) (SZ.v tid) **
     thread_id (SZ.v nthr_v) tid **
     block_id (SZ.v nblk_v) bid **
@@ -1857,7 +1847,7 @@ fn bkf
 {
   (* Decode the page-minor block index. *)
   let page : szlt batch = bid %^ batch;
-  let rest : szlt (m/^bm *^ (n/^bn)) = bid /^ batch;
+  let rest : szlt (m / bm * (n / bn)) = bid /^ batch;
   assert (pure (SZ.v page == SZ.v bid % batch));
   assert (pure (SZ.v rest == SZ.v bid / batch));
 

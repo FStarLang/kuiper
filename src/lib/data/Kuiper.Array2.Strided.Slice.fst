@@ -103,7 +103,7 @@ let l3_batched_cell_lemma
 
 #push-options "--fuel 4 --ifuel 4 --z3rlimit 40"
 instance strided_row_major_3_l3_batched
-  (batch : erased nat) (rows : erased nat) (cols : erased nat)
+  (batch rows cols : erased nat)
   (#_ : squash (cols > 0))
   {| crows : concrete_sz rows, ccols : concrete_sz cols |}
   (sqf : squash (SZ.fits (rows * cols)))

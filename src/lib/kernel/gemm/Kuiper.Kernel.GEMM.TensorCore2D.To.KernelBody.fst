@@ -92,8 +92,9 @@ fn kf
   (bid : szlt (m / bm * (n / bn)))
   (tid : szlt nthr)
   ()
+  preserves
+    gpu
   requires
-    gpu **
     pure (c_shmems_inv sh) **
     kpre_to gA eA gB eB gC eC gD
       bm bn bk tm tn tk wm wn fA fB fC rA rB rC
@@ -105,7 +106,6 @@ fn kf
         (fst sh) (fst (snd sh)) nthr bid) **
     B.barrier_state 0
   ensures
-    gpu **
     kpost_to comb_r gA eA gB eB gC eC gD
       bm bn bk tm tn tk wm wn fA fB fC rA rB rC
       nblk nthr sh bid tid **

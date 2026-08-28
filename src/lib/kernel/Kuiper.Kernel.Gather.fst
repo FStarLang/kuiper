@@ -14,7 +14,7 @@ module SZ = Kuiper.SizeT
 
 let vfgather (#et: Type0) (#r : erased nat) (di do : shape r { shape_le di do }) (dim : natlt r)
   (eInp : chest do et) (eIdx : chest di (szlt (do @! dim)))
-  (x : abs di) (_: et) (o: et)
+  (x : abs di) (_ o : et)
   : prop
   = o == acc eInp (abs_set_at2 di do dim (acc eIdx x) x)
 
@@ -26,8 +26,7 @@ let gather_frame (#et : Type0) (#r : erased nat) (di do : shape r { shape_le di 
   (gIdx: tensor (szlt (do @! (SZ.v dim))) lIdx {is_global gIdx})
   (eInp: chest do et)
   (eIdx: chest di (szlt (do @! (SZ.v dim))))
-  (fInp fIdx: perm)
-  (fr: perm): slprop =
+  (fInp fIdx fr : perm): slprop =
     (tensor_pts_to gInp #(fInp *. fr) eInp) **
     (tensor_pts_to gIdx #(fIdx *. fr) eIdx)
 
@@ -55,8 +54,7 @@ fn fgather (#et : Type0) (#r : erased nat) (di do : shape r { shape_le di do }) 
   (gOut: tensor et lOut {is_global gOut})
   (eInp: chest do et)
   (eIdx: chest di (szlt (do @! (SZ.v dim))))
-  (#fInp #fIdx: perm)
-  (#fr: perm) (i: conc di) (x : et)
+  (#fInp #fIdx #fr : perm) (i: conc di) (x : et)
 norewrite
 preserves
   gpu **

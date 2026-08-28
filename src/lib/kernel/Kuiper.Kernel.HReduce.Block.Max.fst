@@ -64,8 +64,7 @@ let min_tid_pow2_step (tid nth k : nat)
 inline_for_extraction noextract
 fn read_at
   (#et:Type0) {| scalar et |}
-  (rows : szp)
-  (cols : szp)
+  (rows cols : szp)
   (#lin : layout2 rows cols) {| ctlayout lin |}
   (x : array2 et lin)
   (row : szlt rows)
@@ -115,8 +114,7 @@ fn max_stride_map_2d
   (#et:Type0) {| floating et, real_like et, floating_real_like et |}
   (pre_map : et -> et)
   (pre_map_r : real -> real { pre_map %~ pre_map_r })
-  (rows : szp)
-  (cols : szp)
+  (rows cols : szp)
   (#lin : layout2 rows cols) {| ctlayout lin |}
   (x : array2 et lin)
   (row : szlt rows)
@@ -285,13 +283,14 @@ fn kf_block
   (output : array1 et lout)
   (sx   : chest2 et   rows cols)
   (vr   : chest2 real rows cols { sx %~ vr })
-  (sout : erased (chest1 et rows))
+  (sout : chest1 et rows)
   (shmem : c_shmems [SHArray et nth])
   (bid : szlt rows)
   (tid : szlt nth)
   ()
+  preserves
+    gpu
   requires
-    gpu **
     pure (c_shmems_inv shmem) **
     kpre_block pre_map pre_map_r rows cols nth x output sx vr sout shmem (SZ.v bid) (SZ.v tid) **
     thread_id nth tid **
@@ -300,7 +299,6 @@ fn kf_block
                        (vr_partial_max pre_map_r (ematrix_row vr (SZ.v bid)) nth)) **
     B.barrier_state 0
   ensures
-    gpu **
     kpost_block pre_map pre_map_r rows cols nth x output sx vr sout shmem (SZ.v bid) (SZ.v tid) **
     thread_id nth tid **
     block_id rows bid **
@@ -383,7 +381,7 @@ fn kf_block
 
     with ss. assert array1_pts_to_slice sa 0 nth ss;
     unfold array1_pts_to_slice sa;
-    let css : erased (chest1 et nth) = hide (mk1 #et #nth (fun (k:natlt nth) -> acc1 ss k));
+    let css : chest1 et nth = hide (mk1 #et #nth (fun (k:natlt nth) -> acc1 ss k));
     forevery_refine_ext' #nat #(fun (k:nat) -> 0 <= k /\ k < nth) (fun (k:nat) -> k < nth) _;
     forevery_ext
       (fun (k:natlt nth) -> tensor_pts_to_cell sa ((k <: natlt nth), ()) (acc1 ss (k - 0)))
@@ -430,7 +428,7 @@ fn block_setup_block
   (output : array1 et lout)
   (sx   : chest2 et   rows cols)
   (vr   : chest2 real rows cols { sx %~ vr })
-  (sout : erased (chest1 et rows))
+  (sout : chest1 et rows)
   (shmem : c_shmems [SHArray et nth])
   (bid : natlt rows)
   ()
@@ -502,7 +500,7 @@ fn block_teardown_block
   (output : array1 et lout)
   (sx   : chest2 et   rows cols)
   (vr   : chest2 real rows cols { sx %~ vr })
-  (sout : erased (chest1 et rows))
+  (sout : chest1 et rows)
   (shmem : c_shmems [SHArray et nth])
   (bid : natlt rows)
   ()
@@ -567,7 +565,7 @@ fn setup_block_outer
   (output : array1 et lout)
   (sx   : chest2 et   rows cols)
   (vr   : chest2 real rows cols { sx %~ vr })
-  (sout : erased (chest1 et rows))
+  (sout : chest1 et rows)
   ()
   norewrite
   requires
@@ -608,7 +606,7 @@ fn teardown_block_outer
   (output : array1 et lout)
   (sx   : chest2 et   rows cols)
   (vr   : chest2 real rows cols { sx %~ vr })
-  (sout : erased (chest1 et rows))
+  (sout : chest1 et rows)
   ()
   norewrite
   requires
@@ -641,7 +639,7 @@ fn teardown_block_outer
          pure (v %~ seq_max (lseq_map pre_map_r (ematrix_row vr bid))));
 
   (* Build a concrete chest carrying the cell values. *)
-  let sout' : erased (chest1 et rows) =
+  let sout' : chest1 et rows =
     hide (mk1 #et #(SZ.v rows) (fun (bid : natlt rows) -> f bid));
 
   (* Extract the per-row pure approximation fact across all bids. *)
@@ -689,7 +687,7 @@ let kdesc_block
   (output : array1 et lout { is_global output })
   (sx   : chest2 et   rows cols)
   (vr   : chest2 real rows cols { sx %~ vr })
-  (sout : erased (chest1 et rows))
+  (sout : chest1 et rows)
   : kernel_desc
       (x |-> sx ** output |-> sout)
       (exists* (sout' : chest1 et rows).
@@ -815,7 +813,7 @@ fn reduce_batched_block_max
   (output : array1 et lout { is_global output })
   (#sx   : chest2 et   rows cols)
   (vr    : chest2 real rows cols)
-  (#sout : erased (chest1 et rows))
+  (#sout : chest1 et rows)
   preserves
     cpu **
     on gpu_loc (x |-> sx)

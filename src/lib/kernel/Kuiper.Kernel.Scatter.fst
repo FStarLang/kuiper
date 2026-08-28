@@ -143,8 +143,7 @@ let scatter_frame (#et #it : Type0) (#r : erased nat) (di : shape r) (cdi : csha
   (gIdx : tensor it lIdx { is_global gIdx })
   (eInp : chest di et)
   (eIdx : chest di it)
-  (fInp fIdx : perm)
-  (fr : perm) : slprop =
+  (fInp fIdx fr : perm) : slprop =
     (tensor_pts_to gInp #((fInp /. (fInp +. fIdx)) *. fr) eInp) **
     (tensor_pts_to gIdx #((fIdx /. (fInp +. fIdx)) *. fr) eIdx)
 
@@ -330,18 +329,17 @@ fn skf
   (n : sz { SZ.v n == sizeof di /\ n <= max_blocks * max_threads /\ n > 0 })
   (eInp : chest di et)
   (eIdx : chest di (szlt (do @! (SZ.v dim))))
-  (fInp fIdx : perm)
-  (pfr : perm)
+  (fInp fIdx pfr : perm)
   (#eOut : chest do et)
   (i : szlt (sizeof di))
   ()
+  preserves
+    gpu
   requires
-    gpu **
     scatter_frame di cdi #lInp #lIdx gInp gIdx eInp eIdx fInp fIdx pfr **
     (Cell gOut (sphi #et di do (SZ.v dim) eIdx (unflatten di (SZ.v i))) |->
        acc eOut (sphi #et di do (SZ.v dim) eIdx (unflatten di (SZ.v i))))
   ensures
-    gpu **
     scatter_frame di cdi #lInp #lIdx gInp gIdx eInp eIdx fInp fIdx pfr **
     (exists* (v : et).
       tensor_pts_to_cell gOut (sphi #et di do (SZ.v dim) eIdx (unflatten di (SZ.v i))) v **
@@ -404,7 +402,7 @@ let scatter_kernel
 
 ghost
 fn scatter_kd_pre
-  (#et : Type0) (#r : erased nat) (#di : shape r) (#do : shape r)
+  (#et : Type0) (#r : erased nat) (#di #do : shape r)
   (cdi : cshape di)
   (#lInp #lIdx : tlayout di) (#lOut : tlayout do) {| ctlayout lInp, ctlayout lIdx |}
   (dim : szlt r)

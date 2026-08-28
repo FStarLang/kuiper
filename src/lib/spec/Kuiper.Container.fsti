@@ -178,8 +178,7 @@ instance dep_ghost_map_container
     (sub idx).from_fun_ok (fun it' -> f (| idx, it' |)) it
   in
   let ext
-    (c1 : idx ^->> mt)
-    (c2 : idx ^->> mt)
+    (c1 c2 : idx ^->> mt)
     (_ : squash (forall (idx0 : (x:idx & i x)). acc c1 idx0 == acc c2 idx0))
     : squash (c1 == c2) =
     let aux (idx : idx) : Lemma (c1 idx == c2 idx) =

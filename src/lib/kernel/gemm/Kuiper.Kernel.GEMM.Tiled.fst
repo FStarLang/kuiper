@@ -139,8 +139,7 @@ fn gmatmul_tiled_dotprod_real
   (rB : chest4 real k n tile tile)
   (bi : szlt m)
   (bj : szlt n)
-  (i : szlt tile)
-  (j : szlt tile)
+  (i j : szlt tile)
   (#fA #fB : perm)
   preserves
     gpu ** gA |-> Frac fA eA ** gB |-> Frac fB eB
@@ -233,8 +232,7 @@ fn gmatmul_tiled_dotprod_real
 (* No op *)
 ghost
 fn block_setup
-  (nblk : nat)
-  (nthr : nat)
+  (nblk nthr : nat)
   (#p : natlt nblk -> slprop)
   (bid : natlt nblk)
   norewrite
@@ -319,7 +317,7 @@ let tile5_layout (#batch #m #k #tile : nat)
   = { ulen = l.ulen;
       imap = inj_comp (tile5_reshape_inj batch m k tile) l.imap; }
 
-let tile5_all_fit (batch m k : nat) (tile : nat)
+let tile5_all_fit (batch m k tile : nat)
   : Lemma (requires SZ.fits batch /\ SZ.fits (m * tile) /\ SZ.fits (k * tile) /\ m > 0 /\ k > 0 /\ tile > 0)
           (ensures all_fit (batch @| m @| k @| tile @| tile @| INil))
   = FStar.Math.Lemmas.lemma_mult_le_right tile 1 m;
@@ -711,13 +709,13 @@ fn bkf
   (tid : szlt (tile * tile))
   ()
   norewrite
+  preserves
+    gpu
   requires
-    gpu **
     bkpre mapA mapB comb mapA_r mapB_r comb_r tile gA gB gC eA eB eC rA rB rC fA fB bid tid **
     thread_id (tile * tile) tid **
     block_id (batch * (m * n)) bid
   ensures
-    gpu **
     bkpost mapA mapB comb mapA_r mapB_r comb_r tile gA gB gC eA eB eC rA rB rC fA fB bid tid **
     thread_id (tile * tile) tid **
     block_id (batch * (m * n)) bid
@@ -878,7 +876,7 @@ let btile_idx_bij (batch m n tile : nat)
 (* Forward computation of [btile_idx_bij]: the block index is page-minor,
    [bid = (mrow*n + mcol)*batch + page], the thread index is [tid = a*tile + b]. *)
 let btile_idx_bij_ff_cell (batch m n tile : nat)
-  (pg : natlt batch) (mr : natlt m) (mc : natlt n) (a : natlt tile) (b : natlt tile)
+  (pg : natlt batch) (mr : natlt m) (mc : natlt n) (a b : natlt tile)
   : Lemma (let (bid, tid) = (btile_idx_bij batch m n tile).ff (pg, (mr, (mc, (a, (b, ()))))) in
            bid == (mr * n + mc) * batch + pg /\ tid == a * tile + b)
   = ()
@@ -1003,6 +1001,8 @@ fn bsetup
   (comb_r : binop real { comb `approx2` comb_r })
   (#batch #m #n #k : szp)
   (tile : valid_tile)
+  (nblk : szp { SZ.v nblk == batch * (m * n) })
+  (nthr : szp { SZ.v nthr == tile * tile })
   (#_ : squash (batch * (m * n) <= max_blocks))
   (#lA : tlayout (batch @| m @| k @| tile @| tile @| INil))
   (#lB : tlayout (batch @| k @| n @| tile @| tile @| INil))
@@ -1025,8 +1025,8 @@ fn bsetup
     pure (eA %~ rA /\ eB %~ rB /\ eC %~ rC /\
           MU.approx1 mapA mapA_r /\ MU.approx1 mapB mapB_r)
   ensures
-    (forall+ (bid : natlt (batch *^ (m *^ n)))
-             (tid : natlt (tile *^ tile)).
+    (forall+ (bid : natlt nblk)
+             (tid : natlt nthr).
       bkpre mapA mapB comb mapA_r mapB_r comb_r tile gA gB gC eA eB eC rA rB rC fA fB bid tid) **
     emp
 {
@@ -1084,8 +1084,8 @@ fn bsetup
     (fun (bid : natlt (batch * (m * n))) (tid : natlt (tile * tile)) ->
        bkpre mapA mapB comb mapA_r mapB_r comb_r tile gA gB gC eA eB eC rA rB rC fA fB bid tid);
   forevery_rw_size2
-    (batch * (m * n)) (SZ.v (batch *^ (m *^ n)))
-    (tile * tile) (SZ.v (tile *^ tile));
+    (batch * (m * n)) nblk
+    (tile * tile) nthr;
   ();
 }
 
@@ -1102,6 +1102,8 @@ fn bteardown
   (comb_r : binop real { comb `approx2` comb_r })
   (#batch #m #n #k : szp)
   (tile : valid_tile)
+  (nblk : szp { SZ.v nblk == batch * (m * n) })
+  (nthr : szp { SZ.v nthr == tile * tile })
   (#_ : squash (batch * (m * n) <= max_blocks))
   (#lA : tlayout (batch @| m @| k @| tile @| tile @| INil))
   (#lB : tlayout (batch @| k @| n @| tile @| tile @| INil))
@@ -1120,8 +1122,8 @@ fn bteardown
   ()
   norewrite
   requires
-    (forall+ (bid : natlt (batch *^ (m *^ n)))
-             (tid : natlt (tile *^ tile)).
+    (forall+ (bid : natlt nblk)
+             (tid : natlt nthr).
       bkpost mapA mapB comb mapA_r mapB_r comb_r tile gA gB gC eA eB eC rA rB rC fA fB bid tid) **
     emp
   ensures
@@ -1133,8 +1135,8 @@ fn bteardown
               MS.gbmmcomb mapA_r mapB_r comb_r (chest_flat53 rC) (chest_flat53 rA) (chest_flat53 rB)))
 {
   forevery_rw_size2
-    (SZ.v (batch *^ (m *^ n))) (batch * (m * n))
-    (SZ.v (tile *^ tile)) (tile * tile);
+    nblk (batch * (m * n))
+    nthr (tile * tile);
 
   forevery_unzip_2
     (fun (bid : natlt (batch * (m * n))) (tid : natlt (tile * tile)) -> pure (eA %~ rA /\ eB %~ rB /\ eC %~ rC /\ MU.approx1 mapA mapA_r /\ MU.approx1 mapB mapB_r)) _;
@@ -1394,17 +1396,19 @@ let bmk_kernel
           gC |-> eC' **
           pure (chest_flat53 eC' %~
                   MS.gbmmcomb mapA_r mapB_r comb_r (chest_flat53 rC) (chest_flat53 rA) (chest_flat53 rB))))
-= {
-  nblk = batch *^ (m *^ n);
-  nthr = tile *^ tile;
+= [@@inline_let] let nblk : (x : szp { SZ.v x == batch * (m * n) }) =
+    batch *^ (m *^ n) in
+  [@@inline_let] let nthr : (x : szp { SZ.v x == tile * tile }) = tile *^ tile in {
+  nblk = nblk;
+  nthr = nthr;
 
   frame = emp;
   block_pre  =
-    (fun bid -> forall+ (tid : natlt2 tile tile). bkpre  mapA mapB comb mapA_r mapB_r comb_r tile gA gB gC eA eB eC rA rB rC fA fB bid tid);
+    (fun bid -> forall+ (tid : natlt nthr). bkpre  mapA mapB comb mapA_r mapB_r comb_r tile gA gB gC eA eB eC rA rB rC fA fB bid tid);
   block_post =
-    (fun bid -> forall+ (tid : natlt2 tile tile). bkpost mapA mapB comb mapA_r mapB_r comb_r tile gA gB gC eA eB eC rA rB rC fA fB bid tid);
-  setup     = bsetup    mapA mapB comb mapA_r mapB_r comb_r tile gA gB gC eA eB eC rA rB rC fA fB;
-  teardown  = bteardown mapA mapB comb mapA_r mapB_r comb_r tile gA gB gC eA eB eC rA rB rC fA fB;
+    (fun bid -> forall+ (tid : natlt nthr). bkpost mapA mapB comb mapA_r mapB_r comb_r tile gA gB gC eA eB eC rA rB rC fA fB bid tid);
+  setup     = bsetup    mapA mapB comb mapA_r mapB_r comb_r tile nblk nthr gA gB gC eA eB eC rA rB rC fA fB;
+  teardown  = bteardown mapA mapB comb mapA_r mapB_r comb_r tile nblk nthr gA gB gC eA eB eC rA rB rC fA fB;
 
   block_frame    = (fun _bid -> emp);
   block_setup    = block_setup (batch * (m * n)) (tile * tile);
