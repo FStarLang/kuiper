@@ -132,6 +132,7 @@ FSTAR_FLAGS += --ext kuiper
 FSTAR_FLAGS += --ext __unrefine
 FSTAR_FLAGS += --ext no_krml_private
 # FSTAR_FLAGS += --ext core_phase2
+FSTAR_FLAGS += --ext pulse:extra_simplify
 FSTAR_FLAGS += --warn_error -288 # using has_type (we only use it in SMT patterns)
 FSTAR_FLAGS += --warn_error -271 # arithmetic (+,-,*,/) in SMT patterns, benign & unavoidable in foundational lemmas
 # FSTAR_FLAGS += --ext krml_inline_all
