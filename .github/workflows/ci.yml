@@ -6,6 +6,10 @@ on:
     branches:
     - main
   pull_request:
+  # Merge queues test the queued changes on a synthetic branch. This event is
+  # required for the protected `ciok` check to run on that branch.
+  merge_group:
+    types: [checks_requested]
   workflow_dispatch:
     inputs:
       debug:
