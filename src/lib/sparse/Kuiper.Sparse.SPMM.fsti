@@ -36,7 +36,9 @@ fn spmm_on
     (k * chunk sz) /? blockItemsK /\
     (k * chunk et) /? blockItemsX
   }))
-  (blockChunks : sz{SZ.v blockChunks == blockItemsX / blockWidth}) // Ver nota abajo
+  (blockChunks : sz{
+    SZ.v blockChunks == SZ.v blockItemsX / SZ.v blockWidth
+  }) // Ver nota abajo
   (#lB : layout2 shared cols) {| ctlayout lB, srmB : strided_row_major lB |}
   (#lC : layout2 rows cols)   {| ctlayout lC, srmC : strided_row_major lC |}
   (gA : smatrix et (SZ.v rows) (SZ.v shared){is_global_smatrix gA})
@@ -94,7 +96,9 @@ fn spmm
     (k * chunk sz) /? blockItemsK /\
     (k * chunk et) /? blockItemsX
   }))
-  (blockChunks : sz{SZ.v blockChunks == blockItemsX / blockWidth}) // Ver nota abajo
+  (blockChunks : sz{
+    SZ.v blockChunks == SZ.v blockItemsX / SZ.v blockWidth
+  }) // Ver nota abajo
   (#lB : layout2 shared cols) {| ctlayout lB, srmB : strided_row_major lB |}
   (#lC : layout2 rows cols)   {| ctlayout lC, srmC : strided_row_major lC |}
   (gA : smatrix et (SZ.v rows) (SZ.v shared){is_global_smatrix gA})
