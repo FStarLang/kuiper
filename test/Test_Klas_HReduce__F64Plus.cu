@@ -8,8 +8,8 @@ bool ok = true;
 /* It would be nicer to write a purely-Pulse test. */
 
 #define TYPE double
-#define FUN  Klas_HReduce_reduce_f64_plus
-#define PR   "%lf"
+#define FUN Klas_HReduce_reduce_f64_plus
+#define PR "%lf"
 
 void test(int nth, int siz)
 {

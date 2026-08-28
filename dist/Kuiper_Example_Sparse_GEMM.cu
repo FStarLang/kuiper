@@ -6,8 +6,7 @@ __global__
   hoisted when extracting _gemm_u32_rr
 */
 static void
-__hoisted__gemm_u32_rr_0(uint32_t rows,
-                         uint32_t cols,
+__hoisted__gemm_u32_rr_0(uint32_t rows, uint32_t cols,
                          Kuiper_Sparse_Matrix_smatrix__uint32_t gA,
                          uint32_t *gB, uint32_t *gC)
 {
@@ -23,12 +22,9 @@ __hoisted__gemm_u32_rr_0(uint32_t rows,
     }
 }
 
-void
-Kuiper_Example_Sparse_GEMM__gemm_u32_rr(uint32_t rows,
-                                        uint32_t shared,
-                                        uint32_t cols,
-                                        Kuiper_Sparse_Matrix_smatrix__uint32_t
-                                        gA, uint32_t *gB, uint32_t *gC)
+void Kuiper_Example_Sparse_GEMM__gemm_u32_rr(
+    uint32_t rows, uint32_t shared, uint32_t cols,
+    Kuiper_Sparse_Matrix_smatrix__uint32_t gA, uint32_t *gB, uint32_t *gC)
 {
     KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();

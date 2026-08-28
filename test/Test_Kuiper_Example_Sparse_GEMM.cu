@@ -96,9 +96,12 @@ int main(int argc, char **argv)
     dA.col_ind = (uint32_t *) kpr_wait_alloc(sizeof dA.col_ind[0], A.nnz);
     dA.row_off = (uint32_t *) kpr_wait_alloc(sizeof dA.row_off[0], N + 1);
 
-    cudaMemcpy(dA.elems, A.elems, sizeof A.elems[0] * A.nnz, cudaMemcpyHostToDevice);
-    cudaMemcpy(dA.col_ind, A.col_ind, sizeof A.col_ind[0] * A.nnz, cudaMemcpyHostToDevice);
-    cudaMemcpy(dA.row_off, A.row_off, sizeof A.row_off[0] * (N + 1), cudaMemcpyHostToDevice);
+    cudaMemcpy(dA.elems, A.elems, sizeof A.elems[0] * A.nnz,
+               cudaMemcpyHostToDevice);
+    cudaMemcpy(dA.col_ind, A.col_ind, sizeof A.col_ind[0] * A.nnz,
+               cudaMemcpyHostToDevice);
+    cudaMemcpy(dA.row_off, A.row_off, sizeof A.row_off[0] * (N + 1),
+               cudaMemcpyHostToDevice);
 
     uint32_t *dB = (uint32_t *) kpr_wait_alloc(sizeof dB[0], N * N);
     cudaMemcpy(dB, B, sizeof B[0] * N * N, cudaMemcpyHostToDevice);
@@ -124,7 +127,8 @@ int main(int argc, char **argv)
     for (int i = 0; i < N; i++) {
         for (int j = 0; j < N; j++) {
             if (C[i * N + j] != CD[i * N + j]) {
-                printf("Mismatch at (%d,%d): %u != %u\n", i, j, C[i * N + j], CD[i * N + j]);
+                printf("Mismatch at (%d,%d): %u != %u\n", i, j, C[i * N + j],
+                       CD[i * N + j]);
                 return 1;
             }
         }

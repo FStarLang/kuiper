@@ -10,13 +10,11 @@ typedef struct Kuiper_Sparse_Array_sarray__uint32_t_s {
     uint32_t *pos;
 } Kuiper_Sparse_Array_sarray__uint32_t;
 
-void Kuiper_Example_Sparse_Example__id_u32(Kuiper_Sparse_Array_sarray__uint32_t
-                                           a);
+void Kuiper_Example_Sparse_Example__id_u32(
+    Kuiper_Sparse_Array_sarray__uint32_t a);
 
-void
-Kuiper_Example_Sparse_Example__scale_u32(uint32_t k,
-                                         Kuiper_Sparse_Array_sarray__uint32_t
-                                         a);
+void Kuiper_Example_Sparse_Example__scale_u32(
+    uint32_t k, Kuiper_Sparse_Array_sarray__uint32_t a);
 
 #define Kuiper_Example_Sparse_Example_H_DEFINED
-#endif                          /* Kuiper_Example_Sparse_Example_H */
+#endif /* Kuiper_Example_Sparse_Example_H */

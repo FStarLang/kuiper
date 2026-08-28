@@ -1,3 +1,5 @@
+.DEFAULT_GOAL := all
+
 include .common.mk
 
 SHELL := bash
@@ -78,8 +80,8 @@ package:
 	@./scripts/mk-package.sh $(if $(PACKAGE_NAME),$(PACKAGE_NAME),)
 
 .PHONY: lint-c
-lint-c:
-	$(indent) -linux -l100 -nut -i4 test/*.cu test/*.c.inc && rm -f test/*.cu~ test/*.c.inc~
+lint-c: $(CLANG_FORMAT)
+	$(CLANG_FORMAT) $(CLANG_FORMAT_FLAGS) -i test/*.cu test/*.c.inc
 
 .PHONY: lint-fstar
 lint-fstar:

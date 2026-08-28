@@ -11,12 +11,9 @@ typedef struct Kuiper_Sparse_Matrix_smatrix__uint32_t_s {
     uint32_t *row_off;
 } Kuiper_Sparse_Matrix_smatrix__uint32_t;
 
-void
-Kuiper_Example_Sparse_GEMM__gemm_u32_rr(uint32_t rows,
-                                        uint32_t shared,
-                                        uint32_t cols,
-                                        Kuiper_Sparse_Matrix_smatrix__uint32_t
-                                        gA, uint32_t * gB, uint32_t * gC);
+void Kuiper_Example_Sparse_GEMM__gemm_u32_rr(
+    uint32_t rows, uint32_t shared, uint32_t cols,
+    Kuiper_Sparse_Matrix_smatrix__uint32_t gA, uint32_t *gB, uint32_t *gC);
 
 #define Kuiper_Example_Sparse_GEMM_H_DEFINED
-#endif                          /* Kuiper_Example_Sparse_GEMM_H */
+#endif /* Kuiper_Example_Sparse_GEMM_H */

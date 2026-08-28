@@ -8,7 +8,8 @@
 
 typedef uint64_t u64;
 
-const int sizes[] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 64, 128, 256, 512, 1024, 10240, 0 };
+const int sizes[] = {1, 2,  3,   4,   5,   6,    7,     8,
+                     9, 64, 128, 256, 512, 1024, 10240, 0};
 
 int main()
 {
@@ -39,7 +40,6 @@ int main()
             printf("ERROR: should have been %" PRIu64 "\n", expected);
 
         free(a);
-
     }
     return 0;
 }

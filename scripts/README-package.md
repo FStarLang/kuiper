@@ -6,6 +6,7 @@ GPU kernels in Kuiper:
 
 - the F\* and Karamel toolchain (`inst/bin/fstar.exe`, `inst/bin/krml`),
 - Z3 (bundled under `inst/lib/fstar/`),
+- a pinned `clang-format` executable (`inst/bin/clang-format`),
 - the verified Kuiper library (`obj/*.checked`) and its extraction plugin,
 - all sources, CUDA headers (`include/`), and the build system.
 
@@ -22,13 +23,13 @@ On **macOS**, the build system needs the GNU tools rather than the BSD ones
 that ship with the system. Install them with
 
 ```bash
-./setup-mac.sh     # brew install gnu-sed coreutils gnu-indent make
+./setup-mac.sh     # brew install gnu-sed coreutils make
 ```
 
 No `PATH` juggling is needed: the makefiles look the tools up under their
-Homebrew names (`gsed`, `grealpath`, `gindent`, `gnproc`). The one exception is
-`make` itself, which Homebrew installs as `gmake` — use that instead of the
-system `make` (3.81), which cannot parse these makefiles:
+Homebrew names (`gsed`, `grealpath`, `gnproc`). The one exception is `make`
+itself, which Homebrew installs as `gmake` — use that instead of the system
+`make` (3.81), which cannot parse these makefiles:
 
 ```bash
 gmake -j$(sysctl -n hw.ncpu)
@@ -82,4 +83,5 @@ paths and flags. You can also call the binaries directly:
 ```bash
 ./inst/bin/fstar.exe --version
 ./inst/bin/krml -version
+./inst/bin/clang-format --version
 ```

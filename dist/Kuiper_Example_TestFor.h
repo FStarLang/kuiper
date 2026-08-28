@@ -15,4 +15,4 @@ void Kuiper_Example_TestFor_test_nested_lit(void);
 void Kuiper_Example_TestFor_test_nested_lit_shadowed(void);
 
 #define Kuiper_Example_TestFor_H_DEFINED
-#endif                          /* Kuiper_Example_TestFor_H */
+#endif /* Kuiper_Example_TestFor_H */

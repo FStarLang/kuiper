@@ -8,8 +8,8 @@ bool ok = true;
 /* It would be nicer to write a purely-Pulse test. */
 
 #define TYPE float
-#define FUN  Klas_HReduce_reduce_f32_plus
-#define PR   "%f"
+#define FUN Klas_HReduce_reduce_f32_plus
+#define PR "%f"
 
 void test(int nth, int siz)
 {

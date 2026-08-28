@@ -191,4 +191,4 @@ double Kuiper_Example_MathPrimitives_test_largest_f64(void);
 double Kuiper_Example_MathPrimitives_test_infinity_f64(void);
 
 #define Kuiper_Example_MathPrimitives_H_DEFINED
-#endif                          /* Kuiper_Example_MathPrimitives_H */
+#endif /* Kuiper_Example_MathPrimitives_H */

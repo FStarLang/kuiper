@@ -93,7 +93,7 @@ else
 endif
 
 .PHONY: prepare
-prepare: .fstar.touch .krml.touch .plugin.touch
+prepare: .fstar.touch .krml.touch .plugin.touch $(CLANG_FORMAT)
 
 AUTOGEN_SCRIPTS := $(shell find src -name '*.fst.sh')
 AUTOGEND := $(patsubst %.fst.sh,%.fst,$(AUTOGEN_SCRIPTS))
@@ -264,9 +264,13 @@ $(OUTDIR)/pre/%.cu $(OUTDIR)/pre/%.h &: $(OUTDIR)/%.krml .krml.touch
 # Postprocess via sed and generate the actual target
 # Do NOT use a wildcard without an extension or this can match
 # objects files and whatnot.
-$(OUTDIR)/%.cu: $(OUTDIR)/pre/%.cu scripts/fixup.sed
-	$(sed) -f scripts/fixup.sed $< | $(indent) -linux -i4 -nut > $@
-$(OUTDIR)/%.h: $(OUTDIR)/pre/%.h scripts/fixup.sed
-	$(sed) -f scripts/fixup.sed $< | $(indent) -linux -i4 -nut > $@
+$(OUTDIR)/%.cu: $(OUTDIR)/pre/%.cu scripts/fixup.sed .clang-format $(CLANG_FORMAT)
+	$(sed) -f scripts/fixup.sed $< | \
+		$(CLANG_FORMAT) $(CLANG_FORMAT_FLAGS) --assume-filename=$@ | \
+		$(NORMALIZE_LEADING_BLANKS) > $@
+$(OUTDIR)/%.h: $(OUTDIR)/pre/%.h scripts/fixup.sed .clang-format $(CLANG_FORMAT)
+	$(sed) -f scripts/fixup.sed $< | \
+		$(CLANG_FORMAT) $(CLANG_FORMAT_FLAGS) --assume-filename=$@ | \
+		$(NORMALIZE_LEADING_BLANKS) > $@
 
 include nvcc.mk

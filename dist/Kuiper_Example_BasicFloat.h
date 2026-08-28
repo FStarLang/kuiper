@@ -7,4 +7,4 @@
 float Kuiper_Example_BasicFloat_main(void);
 
 #define Kuiper_Example_BasicFloat_H_DEFINED
-#endif                          /* Kuiper_Example_BasicFloat_H */
+#endif /* Kuiper_Example_BasicFloat_H */

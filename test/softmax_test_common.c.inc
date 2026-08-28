@@ -100,8 +100,8 @@ static int check(const SCALAR *got, const double *ref, int n, const char *label)
     }
     g_tests_run++;
     if (fail_idx >= 0) {
-        fprintf(stderr, "FAIL %s: at [%d] got %g, ref %g (err %g)\n",
-                label, fail_idx, TO_DOUBLE(got[fail_idx]), ref[fail_idx], max_err);
+        fprintf(stderr, "FAIL %s: at [%d] got %g, ref %g (err %g)\n", label,
+                fail_idx, TO_DOUBLE(got[fail_idx]), ref[fail_idx], max_err);
         g_ok = 0;
         return 0;
     }
@@ -114,8 +114,8 @@ static void test_fixed(int n)
 #if !IS_INPLACE
     SCALAR *out = (SCALAR *) malloc(n * sizeof(SCALAR));
 #endif
-    double *din = (double *)malloc(n * sizeof(double));
-    double *dref = (double *)malloc(n * sizeof(double));
+    double *din = (double *) malloc(n * sizeof(double));
+    double *dref = (double *) malloc(n * sizeof(double));
 
     /* ramp pattern */
     fill_ramp(din, arr, n);
@@ -168,8 +168,8 @@ static void test_fixed(int n)
 static void test_variable(int nth, int n)
 {
     SCALAR *arr = (SCALAR *) malloc(n * sizeof(SCALAR));
-    double *din = (double *)malloc(n * sizeof(double));
-    double *dref = (double *)malloc(n * sizeof(double));
+    double *din = (double *) malloc(n * sizeof(double));
+    double *dref = (double *) malloc(n * sizeof(double));
 
     fill_ramp(din, arr, n);
 #if IS_LOGSOFTMAX
@@ -191,9 +191,8 @@ static void test_variable(int nth, int n)
 static int run_all_tests(void)
 {
     static const int lengths[] = {
-        1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
-        32, 64, 100, 128, 255, 256, 257,
-        512, 1000, 1023, 1024, 1025, 1500, 2000,
+        1,   2,   3,   4,   5,   6,   7,    8,    9,    10,   32,   64,
+        100, 128, 255, 256, 257, 512, 1000, 1023, 1024, 1025, 1500, 2000,
     };
     int nlens = sizeof lengths / sizeof lengths[0];
 
@@ -203,8 +202,9 @@ static int run_all_tests(void)
 
     /* Variable thread count tests */
 #if HAS_VARIABLE
-    static const int thread_counts[] = { 1, 32, 33, 64, 128, 255, 256, 512, 1000, 1024 };
-    static const int var_lengths[] = { 1, 10, 64, 255, 256, 512, 1024, 2000 };
+    static const int thread_counts[] = {1,   32,  33,  64,   128,
+                                        255, 256, 512, 1000, 1024};
+    static const int var_lengths[] = {1, 10, 64, 255, 256, 512, 1024, 2000};
     int nths = sizeof thread_counts / sizeof thread_counts[0];
     int nvlens = sizeof var_lengths / sizeof var_lengths[0];
 

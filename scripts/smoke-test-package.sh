@@ -4,9 +4,10 @@
 #
 # Extracts the tarball into a scratch directory and, using ONLY the bundled
 # toolchain (no opam env, no submodules), checks that:
-#   1. the bundled F* + Z3 can verify an existing example,
-#   2. a brand-new kernel module can be written and verified,
-#   3. (if `indent` is available) a kernel can be extracted to CUDA.
+#   1. the bundled toolchain and formatter execute,
+#   2. the bundled F* + Z3 can verify an existing example,
+#   3. a brand-new kernel module can be written and verified,
+#   4. a kernel can be extracted and formatted as CUDA.
 #
 # Usage: scripts/smoke-test-package.sh <package.tar.gz>
 
@@ -28,14 +29,16 @@ tar xzf "$PKG" -C "$WORK"
 cd "$WORK/kuiper"
 
 # Deliberately run without opam: a proper package must be self-contained.
-echo ">>> Toolchain versions"
+echo ">>> (1) Checking bundled executables"
 ./inst/bin/fstar.exe --version
 ./inst/bin/krml -version || true
+./inst/bin/clang-format --version
+test -f ./inst/share/licenses/clang-format/LICENSE.md
 
-echo ">>> (1) Verifying a bundled example"
+echo ">>> (2) Verifying a bundled example"
 ./fstar.sh src/examples/Kuiper.Example.Add.fst
 
-echo ">>> (2) Verifying a brand-new kernel"
+echo ">>> (3) Verifying a brand-new kernel"
 cat > src/examples/Kuiper.Smoke.Test.fst <<'EOF'
 module Kuiper.Smoke.Test
 #lang-pulse
@@ -47,24 +50,18 @@ fn smoke_incr (x : f32) returns f32 {
 EOF
 ./fstar.sh src/examples/Kuiper.Smoke.Test.fst
 
-# macOS needs the GNU tools: gindent, and GNU make (as gmake) since the system
-# make is 3.81. See setup-mac.sh.
+# macOS needs GNU make (as gmake) since the system make is 3.81. See
+# setup-mac.sh.
 if [ "$(uname -s)" = Darwin ]; then
-  INDENT=gindent
   MAKE="${MAKE:-gmake}"
 else
-  INDENT=indent
   MAKE="${MAKE:-make}"
 fi
 
-if command -v "$INDENT" >/dev/null 2>&1; then
-  echo ">>> (3) Extracting a kernel to CUDA"
-  "$MAKE" obj/Kuiper_Example_Add.cu
-  test -f obj/Kuiper_Example_Add.cu
-  echo ">>> Generated CUDA:"
-  head -n 20 obj/Kuiper_Example_Add.cu
-else
-  echo ">>> (3) Skipping CUDA extraction ('$INDENT' not installed)"
-fi
+echo ">>> (4) Extracting a kernel to CUDA"
+"$MAKE" obj/Kuiper_Example_Add.cu
+test -f obj/Kuiper_Example_Add.cu
+echo ">>> Generated CUDA:"
+head -n 20 obj/Kuiper_Example_Add.cu
 
 echo ">>> Smoke test passed."

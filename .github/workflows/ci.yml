@@ -62,8 +62,6 @@ jobs:
       # FIXME: env or path gets broken
       # - uses: mtzguido/set-opam-env@master
 
-      - run: sudo apt-get install -y indent
-
       - name: Get submodules
         run: |
           git submodule update --depth 1 --init --recursive

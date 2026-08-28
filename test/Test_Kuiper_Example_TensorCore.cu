@@ -27,8 +27,8 @@ int test1()
 
     for (int i = 0; i < 16; i++) {
         for (int j = 0; j < 16; j++) {
-            a[i][j] = __float2half((float)(i + j) / 4);
-            b[i][j] = __float2half((float)(i - j) / 4);
+            a[i][j] = __float2half((float) (i + j) / 4);
+            b[i][j] = __float2half((float) (i - j) / 4);
             c[i][j] = __float2half(0.0f);
         }
     }
@@ -45,7 +45,7 @@ int test1()
     cudaMemcpy(gb, b, sizeof(half) * 16 * 16, cudaMemcpyHostToDevice);
     cudaMemcpy(gc, c, sizeof(half) * 16 * 16, cudaMemcpyHostToDevice);
 
-    k <<< 1, 32 >>> (ga, gb, gc);
+    k<<<1, 32>>>(ga, gb, gc);
 
     cudaMemcpy(c, gc, sizeof(half) * 16 * 16, cudaMemcpyDeviceToHost);
 
@@ -67,9 +67,10 @@ int test1()
             /* check for equality just in case they are both zero */
             bool ok = (c[i][j] == c_check[i][j]) || rel <= 0.1;
             if (!ok) {
-                printf
-                    ("Mismatch at (%d, %d): GPU = %g, CPU = %g, relative error = %g\n",
-                     i, j, __half2float(c[i][j]), __half2float(c_check[i][j]), rel);
+                printf("Mismatch at (%d, %d): GPU = %g, CPU = %g, relative "
+                       "error = %g\n",
+                       i, j, __half2float(c[i][j]), __half2float(c_check[i][j]),
+                       rel);
             }
         }
     }
@@ -92,8 +93,8 @@ int test2()
 
     for (int i = 0; i < 48; i++) {
         for (int j = 0; j < 48; j++) {
-            a[i][j] = __float2half((float)(i + j) / 4);
-            b[i][j] = __float2half((float)(i - j) / 4);
+            a[i][j] = __float2half((float) (i + j) / 4);
+            b[i][j] = __float2half((float) (i - j) / 4);
             c[i][j] = __float2half(0.0f);
         }
     }
@@ -110,7 +111,7 @@ int test2()
     cudaMemcpy(gb, b, sizeof(half) * 48 * 48, cudaMemcpyHostToDevice);
     cudaMemcpy(gc, c, sizeof(half) * 48 * 48, cudaMemcpyHostToDevice);
 
-    k2 <<< 1, 32 >>> (ga, gb, gc);
+    k2<<<1, 32>>>(ga, gb, gc);
 
     cudaMemcpy(c, gc, sizeof(half) * 48 * 48, cudaMemcpyDeviceToHost);
 
@@ -133,9 +134,10 @@ int test2()
             /* check for equality just in case they are both zero */
             bool ok = (c[i][j] == c_check[i][j]) || rel <= 0.1;
             if (!ok) {
-                printf
-                    ("Mismatch at (%d, %d): GPU = %g, CPU = %g, relative error = %g\n",
-                     i, j, __half2float(c[i][j]), __half2float(c_check[i][j]), rel);
+                printf("Mismatch at (%d, %d): GPU = %g, CPU = %g, relative "
+                       "error = %g\n",
+                       i, j, __half2float(c[i][j]), __half2float(c_check[i][j]),
+                       rel);
             }
         }
     }

@@ -7,4 +7,4 @@
 uint64_t Kuiper_Example_OffsetMemcpy_main(void);
 
 #define Kuiper_Example_OffsetMemcpy_H_DEFINED
-#endif                          /* Kuiper_Example_OffsetMemcpy_H */
+#endif /* Kuiper_Example_OffsetMemcpy_H */

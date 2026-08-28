@@ -5,10 +5,10 @@ __global__
 /**
   hoisted when extracting row_softmax_rm_f32
 */
-static void __hoisted_row_softmax_rm_f32_0(uint32_t n, float *a, float *maxs,
-                                           uint32_t nthm)
+static void
+__hoisted_row_softmax_rm_f32_0(uint32_t n, float *a, float *maxs, uint32_t nthm)
 {
-    float *sa1 = (float *)KPR_SHMEM_AT(0U);
+    float *sa1 = (float *) KPR_SHMEM_AT(0U);
     float acc = a[blockIdx.x * n + threadIdx.x];
     uint32_t idx = threadIdx.x + nthm;
     for (; idx < n; idx += nthm)
@@ -20,8 +20,8 @@ static void __hoisted_row_softmax_rm_f32_0(uint32_t n, float *a, float *maxs,
         __syncthreads();
         uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf02);
         if (nextid < nthm)
-            if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (__anf02 + 1U)) -
-                 1U) == 0U)
+            if ((threadIdx.x &
+                 (uint32_t) (1U << (uint32_t) (__anf02 + 1U)) - 1U) == 0U)
                 sa1[threadIdx.x] = fmaxf(sa1[threadIdx.x], sa1[nextid]);
     }
     if (threadIdx.x == 0U)
@@ -32,8 +32,8 @@ __global__
 /**
   hoisted when extracting row_softmax_rm_f32
 */
-static void __hoisted_row_softmax_rm_f32_1(uint32_t m, uint32_t n, float *a,
-                                           float *maxs)
+static void
+__hoisted_row_softmax_rm_f32_1(uint32_t m, uint32_t n, float *a, float *maxs)
 {
     if (1024U * blockIdx.x + threadIdx.x < m * n) {
         uint32_t row = (1024U * blockIdx.x + threadIdx.x) / n;
@@ -46,10 +46,10 @@ __global__
 /**
   hoisted when extracting row_softmax_rm_f32
 */
-static void __hoisted_row_softmax_rm_f32_2(uint32_t n, uint32_t nth, float *a,
-                                           float *sums)
+static void
+__hoisted_row_softmax_rm_f32_2(uint32_t n, uint32_t nth, float *a, float *sums)
 {
-    float *sa1 = (float *)KPR_SHMEM_AT(0U);
+    float *sa1 = (float *) KPR_SHMEM_AT(0U);
     float acc = 0.0f;
     uint32_t idx = threadIdx.x;
     for (; idx < n; idx += nth) {
@@ -63,8 +63,8 @@ static void __hoisted_row_softmax_rm_f32_2(uint32_t n, uint32_t nth, float *a,
         __syncthreads();
         uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf02);
         if (nextid < nth)
-            if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (__anf02 + 1U)) -
-                 1U) == 0U)
+            if ((threadIdx.x &
+                 (uint32_t) (1U << (uint32_t) (__anf02 + 1U)) - 1U) == 0U)
                 sa1[threadIdx.x] += sa1[nextid];
     }
     if (threadIdx.x == 0U)
@@ -75,8 +75,8 @@ __global__
 /**
   hoisted when extracting row_softmax_rm_f32
 */
-static void __hoisted_row_softmax_rm_f32_3(uint32_t m, uint32_t n, float *a,
-                                           float *sums)
+static void
+__hoisted_row_softmax_rm_f32_3(uint32_t m, uint32_t n, float *a, float *sums)
 {
     if (1024U * blockIdx.x + threadIdx.x < m * n) {
         uint32_t row = (1024U * blockIdx.x + threadIdx.x) / n;
@@ -90,8 +90,8 @@ static void __hoisted_row_softmax_rm_f32_3(uint32_t m, uint32_t n, float *a,
 void Klas_RowSoftmax_row_softmax_rm_f32(uint32_t m, uint32_t n, uint32_t nth,
                                         float *a)
 {
-    float *maxs = (float *)KPR_GPU_ALLOC(sizeof(float), m);
-    float *sums = (float *)KPR_GPU_ALLOC(sizeof(float), m);
+    float *maxs = (float *) KPR_GPU_ALLOC(sizeof(float), m);
+    float *sums = (float *) KPR_GPU_ALLOC(sizeof(float), m);
     uint32_t nthm = nth <= n ? nth : n;
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(4U * nthm);
@@ -105,8 +105,8 @@ void Klas_RowSoftmax_row_softmax_rm_f32(uint32_t m, uint32_t n, uint32_t nth,
     MUST(cudaStreamDestroy(s));
     cudaStream_t s0 = KPR_FRESH_STREAM();
     KPR_KCALL(__hoisted_row_softmax_rm_f32_1,
-              m * n / 1024U + (uint32_t) (m * n % 1024U != 0U),
-              1024U, 0U, s0, m, n, a, maxs);
+              m * n / 1024U + (uint32_t) (m * n % 1024U != 0U), 1024U, 0U, s0,
+              m, n, a, maxs);
     MUST(cudaStreamSynchronize(s0));
     MUST(cudaStreamDestroy(s0));
     cudaStream_t s1 = KPR_FRESH_STREAM();
@@ -121,8 +121,8 @@ void Klas_RowSoftmax_row_softmax_rm_f32(uint32_t m, uint32_t n, uint32_t nth,
     MUST(cudaStreamDestroy(s1));
     cudaStream_t s2 = KPR_FRESH_STREAM();
     KPR_KCALL(__hoisted_row_softmax_rm_f32_3,
-              m * n / 1024U + (uint32_t) (m * n % 1024U != 0U),
-              1024U, 0U, s2, m, n, a, sums);
+              m * n / 1024U + (uint32_t) (m * n % 1024U != 0U), 1024U, 0U, s2,
+              m, n, a, sums);
     MUST(cudaStreamSynchronize(s2));
     MUST(cudaStreamDestroy(s2));
     MUST(cudaFree(sums));
@@ -133,10 +133,11 @@ __global__
 /**
   hoisted when extracting row_softmax_rm_f64
 */
-static void __hoisted_row_softmax_rm_f64_0(uint32_t n, double *a, double *maxs,
-                                           uint32_t nthm)
+static void
+__hoisted_row_softmax_rm_f64_0(uint32_t n, double *a, double *maxs,
+                               uint32_t nthm)
 {
-    double *sa1 = (double *)KPR_SHMEM_AT(0U);
+    double *sa1 = (double *) KPR_SHMEM_AT(0U);
     double acc = a[blockIdx.x * n + threadIdx.x];
     uint32_t idx = threadIdx.x + nthm;
     for (; idx < n; idx += nthm)
@@ -148,8 +149,8 @@ static void __hoisted_row_softmax_rm_f64_0(uint32_t n, double *a, double *maxs,
         __syncthreads();
         uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf02);
         if (nextid < nthm)
-            if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (__anf02 + 1U)) -
-                 1U) == 0U)
+            if ((threadIdx.x &
+                 (uint32_t) (1U << (uint32_t) (__anf02 + 1U)) - 1U) == 0U)
                 sa1[threadIdx.x] = fmax(sa1[threadIdx.x], sa1[nextid]);
     }
     if (threadIdx.x == 0U)
@@ -160,8 +161,8 @@ __global__
 /**
   hoisted when extracting row_softmax_rm_f64
 */
-static void __hoisted_row_softmax_rm_f64_1(uint32_t m, uint32_t n, double *a,
-                                           double *maxs)
+static void
+__hoisted_row_softmax_rm_f64_1(uint32_t m, uint32_t n, double *a, double *maxs)
 {
     if (1024U * blockIdx.x + threadIdx.x < m * n) {
         uint32_t row = (1024U * blockIdx.x + threadIdx.x) / n;
@@ -174,10 +175,11 @@ __global__
 /**
   hoisted when extracting row_softmax_rm_f64
 */
-static void __hoisted_row_softmax_rm_f64_2(uint32_t n, uint32_t nth, double *a,
-                                           double *sums)
+static void
+__hoisted_row_softmax_rm_f64_2(uint32_t n, uint32_t nth, double *a,
+                               double *sums)
 {
-    double *sa1 = (double *)KPR_SHMEM_AT(0U);
+    double *sa1 = (double *) KPR_SHMEM_AT(0U);
     double acc = 0.0;
     uint32_t idx = threadIdx.x;
     for (; idx < n; idx += nth) {
@@ -191,8 +193,8 @@ static void __hoisted_row_softmax_rm_f64_2(uint32_t n, uint32_t nth, double *a,
         __syncthreads();
         uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf02);
         if (nextid < nth)
-            if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (__anf02 + 1U)) -
-                 1U) == 0U)
+            if ((threadIdx.x &
+                 (uint32_t) (1U << (uint32_t) (__anf02 + 1U)) - 1U) == 0U)
                 sa1[threadIdx.x] += sa1[nextid];
     }
     if (threadIdx.x == 0U)
@@ -203,8 +205,8 @@ __global__
 /**
   hoisted when extracting row_softmax_rm_f64
 */
-static void __hoisted_row_softmax_rm_f64_3(uint32_t m, uint32_t n, double *a,
-                                           double *sums)
+static void
+__hoisted_row_softmax_rm_f64_3(uint32_t m, uint32_t n, double *a, double *sums)
 {
     if (1024U * blockIdx.x + threadIdx.x < m * n) {
         uint32_t row = (1024U * blockIdx.x + threadIdx.x) / n;
@@ -218,8 +220,8 @@ static void __hoisted_row_softmax_rm_f64_3(uint32_t m, uint32_t n, double *a,
 void Klas_RowSoftmax_row_softmax_rm_f64(uint32_t m, uint32_t n, uint32_t nth,
                                         double *a)
 {
-    double *maxs = (double *)KPR_GPU_ALLOC(sizeof(double), m);
-    double *sums = (double *)KPR_GPU_ALLOC(sizeof(double), m);
+    double *maxs = (double *) KPR_GPU_ALLOC(sizeof(double), m);
+    double *sums = (double *) KPR_GPU_ALLOC(sizeof(double), m);
     uint32_t nthm = nth <= n ? nth : n;
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(8U * nthm);
@@ -233,8 +235,8 @@ void Klas_RowSoftmax_row_softmax_rm_f64(uint32_t m, uint32_t n, uint32_t nth,
     MUST(cudaStreamDestroy(s));
     cudaStream_t s0 = KPR_FRESH_STREAM();
     KPR_KCALL(__hoisted_row_softmax_rm_f64_1,
-              m * n / 1024U + (uint32_t) (m * n % 1024U != 0U),
-              1024U, 0U, s0, m, n, a, maxs);
+              m * n / 1024U + (uint32_t) (m * n % 1024U != 0U), 1024U, 0U, s0,
+              m, n, a, maxs);
     MUST(cudaStreamSynchronize(s0));
     MUST(cudaStreamDestroy(s0));
     cudaStream_t s1 = KPR_FRESH_STREAM();
@@ -249,8 +251,8 @@ void Klas_RowSoftmax_row_softmax_rm_f64(uint32_t m, uint32_t n, uint32_t nth,
     MUST(cudaStreamDestroy(s1));
     cudaStream_t s2 = KPR_FRESH_STREAM();
     KPR_KCALL(__hoisted_row_softmax_rm_f64_3,
-              m * n / 1024U + (uint32_t) (m * n % 1024U != 0U),
-              1024U, 0U, s2, m, n, a, sums);
+              m * n / 1024U + (uint32_t) (m * n % 1024U != 0U), 1024U, 0U, s2,
+              m, n, a, sums);
     MUST(cudaStreamSynchronize(s2));
     MUST(cudaStreamDestroy(s2));
     MUST(cudaFree(sums));

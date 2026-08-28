@@ -31,7 +31,7 @@ make -skj32 dist
 ```
 
 ```bash
-# First-time setup: build F* and Karamel
+# First-time setup: build F* and Karamel, install pinned clang-format
 make prepare
 
 # Full build: verify all modules, extract to CUDA, compile with nvcc (if available)
@@ -78,7 +78,7 @@ make accept                  # accept current output as new expected
 ```bash
 make lint           # both C and F* linting
 make lint-fstar     # remove unused opens, trailing whitespace, check attrs
-make lint-c         # indent test/*.cu files
+make lint-c         # clang-format test/*.cu and test/*.c.inc files
 ```
 
 ## Architecture
@@ -87,7 +87,7 @@ make lint-c         # indent test/*.cu files
 
 1. **Verify**: F\*/Pulse source in `src/` is type-checked and verified (`obj/*.checked`)
 2. **Extract**: Verified modules are extracted to KreMLin IR (`obj/*.krml`) using an extraction plugin from `extraction/`
-3. **Compile to CUDA**: KreMLin (Karamel) translates `.krml` → `.cu`/`.h`, post-processed by `scripts/fixup.sed` and `indent`
+3. **Compile to CUDA**: KreMLin (Karamel) translates `.krml` → `.cu`/`.h`, post-processed by `scripts/fixup.sed` and the pinned `clang-format`
 4. **Build**: `nvcc` compiles the generated CUDA code (`nvcc.mk`)
 
 ### Source layout

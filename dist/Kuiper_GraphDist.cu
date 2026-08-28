@@ -27,7 +27,8 @@ __global__
 /**
   hoisted when extracting matmul_dist_gpu
 */
-static void __hoisted_matmul_dist_gpu_0(uint32_t size, uint16_t *a, uint16_t *b)
+static void
+__hoisted_matmul_dist_gpu_0(uint32_t size, uint16_t *a, uint16_t *b)
 {
     if (1024U * blockIdx.x + threadIdx.x < size * size) {
         uint32_t trow = (1024U * blockIdx.x + threadIdx.x) / size;

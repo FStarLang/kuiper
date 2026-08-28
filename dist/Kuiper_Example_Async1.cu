@@ -20,7 +20,8 @@ __global__
 /**
   hoisted when extracting main
 */
-static void __hoisted_main_0(uint64_t *r1)
+static void
+__hoisted_main_0(uint64_t *r1)
 {
     (*r1)++;
 }
@@ -29,7 +30,8 @@ __global__
 /**
   hoisted when extracting main
 */
-static void __hoisted_main_1(uint64_t *r2)
+static void
+__hoisted_main_1(uint64_t *r2)
 {
     (*r2)++;
 }
@@ -38,7 +40,8 @@ __global__
 /**
   hoisted when extracting main
 */
-static void __hoisted_main_2(uint64_t *r3)
+static void
+__hoisted_main_2(uint64_t *r3)
 {
     (*r3)++;
 }
@@ -47,7 +50,8 @@ __global__
 /**
   hoisted when extracting main
 */
-static void __hoisted_main_3(uint64_t *r4)
+static void
+__hoisted_main_3(uint64_t *r4)
 {
     (*r4)++;
 }
@@ -56,7 +60,8 @@ __global__
 /**
   hoisted when extracting main
 */
-static void __hoisted_main_4(uint64_t *r5)
+static void
+__hoisted_main_4(uint64_t *r5)
 {
     (*r5)++;
 }
@@ -65,7 +70,8 @@ __global__
 /**
   hoisted when extracting main
 */
-static void __hoisted_main_5(uint64_t *r6)
+static void
+__hoisted_main_5(uint64_t *r6)
 {
     (*r6)++;
 }

@@ -1,3 +1,5 @@
+.DEFAULT_GOAL := default
+
 include .common.mk
 include .configure.mk
 

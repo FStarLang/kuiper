@@ -3,8 +3,8 @@
 # Install Kuiper locally from GitHub releases.
 #
 # A Kuiper package is a self-contained tree bundling the F*/Karamel toolchain,
-# Z3, and the verified Kuiper library. This script autodetects your OS and
-# architecture, downloads the matching package, and unpacks it.
+# Z3, clang-format, and the verified Kuiper library. This script autodetects
+# your OS and architecture, downloads the matching package, and unpacks it.
 #
 # Supports two sources:
 #   - Official releases from FStarLang/kuiper
@@ -38,8 +38,8 @@ Version:
 
 Destination:
   --dest DIR           Install Kuiper into DIR (default: ~/.local/kuiper)
-  --link-dir DIR       Symlink the bundled binaries (fstar.exe, krml, z3) into
-                         DIR (default: ~/.local/bin)
+  --link-dir DIR       Symlink the bundled binaries (including fstar.exe, krml,
+                         z3, and clang-format) into DIR (default: ~/.local/bin)
   --no-link            Don't create symlinks
 
 Other:
