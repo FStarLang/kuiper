@@ -69,6 +69,24 @@ let silly_div_helper (p : pos)
   : Lemma ((a * p + b) / p == a)
   = ()
 
+(* Package the two flatten/unflatten facts once, outside the much larger Pulse
+   context in [reconstruct_from_warp_approx]. *)
+let tile_flatten_div_mod (rows : nat) (cols : pos)
+  : Lemma
+      ((forall (row : natlt rows) (col : natlt cols).
+          (row * cols + col) / cols == row) /\
+       (forall (row : natlt rows) (col : natlt cols).
+          (row * cols + col) % cols == col))
+=
+  let div_helper (row : natlt rows) (col : natlt cols)
+    : Lemma ((row * cols + col) / cols == row)
+    = silly_div_helper cols row col in
+  Classical.forall_intro_2 div_helper;
+  let mod_helper (row : natlt rows) (col : natlt cols)
+    : Lemma ((row * cols + col) % cols == col)
+    = silly_modulo_helper cols row col in
+  Classical.forall_intro_2 mod_helper
+
 let lem_i
   (m n k : nat)
   (bm bn bk
@@ -599,6 +617,9 @@ fn warp_tile_pts_to_gatherwarp
   ();
 }
 
+(* The relevant leaf goals need [ifuel 2].  Asking for it up front avoids two
+   doomed rlimit-sized attempts at [ifuel 1]. *)
+#push-options "--ifuel 2"
 ghost
 fn rhs_is_constant_for_warps_approx
   (#et_ab #et_c : Type0)
@@ -685,6 +706,7 @@ fn rhs_is_constant_for_warps_approx
   };
   forevery_map _ _ aux;
 }
+#pop-options
 
 let silly_helper_natlt_prod
   (p q : nat)
@@ -715,7 +737,7 @@ let natlt_prod_scaled_pat (p q : nat) (x y : nat) (c : pos)
     Math.Lemmas.lemma_mult_lt_right c (x * q + y) (p * q)
 #pop-options
 
-#push-options "" // Would be nice to avoid
+#push-options "--ifuel 2"
 let tiles_approx_lemma
   (#et_c : Type0)
   {| scalar et_c |}
@@ -809,7 +831,10 @@ let tiles_approx_lemma
   ()
 #pop-options
 
-#push-options "--z3rlimit 100 --retry 2" // the function below is pretty terribly performant
+(* This is a genuinely mixed workload: some leaves need more unfolding while
+   others become harder with it, so retain adaptive retries here.  The explicit
+   div/mod lemmas below keep routine arithmetic out of those retries. *)
+#push-options "--z3rlimit 100 --retry 2"
 ghost
 fn reconstruct_from_warp_approx
   (#et_ab #et_c : Type0)
@@ -975,10 +1000,7 @@ fn reconstruct_from_warp_approx
             (fun tr tc -> emf bid ((tr * (bn/(wn*tn)) + tc) * 32))))
     fn bid {
       forevery_factor (nthr / warp_size) (bm/(wm*tm)) (bn/(wn*tn)) _;
-      assert pure (forall (tr : natlt (bm/(wm*tm))) (tc : natlt (bn/(wn*tn))).
-                    (tr * (bn/(wn*tn)) + tc) / (bn/(wn*tn))  == tr);
-      assert pure (forall (tr : natlt (bm/(wm*tm))) (tc : natlt (bn/(wn*tn))).
-                    (tr * (bn/(wn*tn)) + tc) % (bn/(wn*tn))  == tc);
+      tile_flatten_div_mod (bm/(wm*tm)) (bn/(wn*tn));
       forevery_ext_2 #(natlt (bm/(wm*tm))) #(natlt (bn/(wn*tn)))
         (fun tr tc ->
           tensor_pts_to
@@ -1145,4 +1167,3 @@ fn teardown
 
   ();
 }
-

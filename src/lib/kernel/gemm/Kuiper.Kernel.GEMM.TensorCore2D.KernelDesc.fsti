@@ -93,6 +93,9 @@ let warp_tile_approximates
     warp_tile_pts_to gC bm bn tm tn wm wn bid wid em **
     pure (em %~ rm)
 
+(* This proof needs one extra unfolding step.  Starting it at [ifuel 1] makes
+   F* exhaust the full rlimit before retrying the same goal at [ifuel 2]. *)
+#push-options "--ifuel 2 --z3rlimit 10"
 let warp_tile_i
   (#m #n : pos)
   (bm bn bk
@@ -115,6 +118,7 @@ let warp_tile_i
     assert (tile_i < m/bm);
     assert (tile_i * (bm / (wm*tm)) < m/(wm*tm));
     tile_i * (bm / (wm*tm)) + subtile_i
+#pop-options
 
 let warp_tile_j
   (#m #n : pos)

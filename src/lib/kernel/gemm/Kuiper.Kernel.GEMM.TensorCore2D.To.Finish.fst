@@ -430,7 +430,7 @@ ghost fn cleanup
   fold shared_thread_live bm bn bk tm tn nthr sh tid;
 }
 
-#push-options "--ifuel 1 --initial_fuel 0 --max_fuel 1"
+#push-options "--fuel 1 --ifuel 1"
 #push-options "--z3rlimit 15"
 
 inline_for_extraction noextract

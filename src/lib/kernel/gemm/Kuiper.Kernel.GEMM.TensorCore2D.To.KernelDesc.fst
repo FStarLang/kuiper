@@ -581,7 +581,9 @@ fn gather_scratch_from_threads
 }
 #pop-options
 
-#push-options ""
+(* These bodies all need fuel 1; starting at fuel 0 only causes a failed first
+   attempt before the configured retry. *)
+#push-options "--fuel 1 --ifuel 1"
 ghost
 fn block_setup_to
   (#et_ab #et_cd #et_acc : Type0)
@@ -681,6 +683,7 @@ fn block_setup_to
 }
 #pop-options
 
+#push-options "--fuel 1 --ifuel 1"
 ghost
 fn block_teardown_to
   (#et_ab #et_cd #et_acc : Type0)
@@ -778,3 +781,4 @@ fn block_teardown_to
   fold_live_c_shmems_cons (snd sh) #1.0R;
   fold_live_c_shmems_cons sh #1.0R;
 }
+#pop-options
