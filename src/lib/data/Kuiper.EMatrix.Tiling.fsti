@@ -18,6 +18,36 @@ let ematrix_subtile
   mk2 fun i j ->
     acc2 em (tr * trows + i) (tc * tcols + j)
 
+val subtile_acc2
+  (#et : Type)
+  (#rows #cols : nat)
+  (em : chest2 et rows cols)
+  (trows : pos {trows /? rows})
+  (tcols : pos {tcols /? cols})
+  (tr : natlt (rows / trows))
+  (tc : natlt (cols / tcols))
+  (i : natlt trows)
+  (j : natlt tcols)
+  : Lemma (
+      acc2 (ematrix_subtile em trows tcols tr tc) i j
+      == acc2 em (tr * trows + i) (tc * tcols + j))
+
+val chest_comb_subtile
+  (#rows #cols : nat)
+  (#t1 #t2 #t3 : Type)
+  (f : t1 -> t2 -> t3)
+  (c1 : chest2 t1 rows cols)
+  (c2 : chest2 t2 rows cols)
+  (trows : pos {trows /? rows})
+  (tcols : pos {tcols /? cols})
+  (tr : natlt (rows / trows))
+  (tc : natlt (cols / tcols))
+  : Lemma (
+      ematrix_subtile (chest_comb f c1 c2) trows tcols tr tc
+      == chest_comb f
+          (ematrix_subtile c1 trows tcols tr tc)
+          (ematrix_subtile c2 trows tcols tr tc))
+
 let ematrix_tiled
   (#et : _)
   (#rows #cols : _)

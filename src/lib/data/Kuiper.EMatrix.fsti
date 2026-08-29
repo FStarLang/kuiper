@@ -71,6 +71,18 @@ val macc_mkM (#et:Type) (#rows #cols : nat)
   : Lemma (acc2 (mk2 f) i j == f i j)
           [SMTPat (acc2 (mk2 f) i j)]
 
+val chest_comb_acc2
+  (#rows #cols : nat)
+  (#t1 #t2 #t3 : Type)
+  (f : t1 -> t2 -> t3)
+  (c1 : chest2 t1 rows cols)
+  (c2 : chest2 t2 rows cols)
+  (i : natlt rows)
+  (j : natlt cols)
+  : Lemma (
+      acc2 (chest_comb f c1 c2) i j
+      == f (acc2 c1 i j) (acc2 c2 i j))
+
 val macc_mupd (#et:Type) (#rows #cols : nat)
   (m : chest2 et rows cols)
   (i : nat{i < rows}) (j : nat{j < cols}) (v : et)

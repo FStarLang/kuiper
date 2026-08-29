@@ -308,6 +308,8 @@ fn epilogue_loop_step
       (output_fragment gD bm bn tm tn wm wn
         bid wid (SZ.v done / wn) (SZ.v done % wn))
       eOut lane;
+  chest_comb_subtile comb_r rCWarp rAcc tm tn
+    (SZ.v done / SZ.v wn) (SZ.v done % SZ.v wn);
   fold output_fragment_post
     gD bm bn tm tn wm wn bid wid lane
     (chest_comb comb_r rCWarp rAcc) done;

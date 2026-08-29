@@ -131,36 +131,6 @@ let tile_offset_bound
     FStar.Matrix.flattened_index_is_under_flattened_size
       (whole / tile) tile t i
 
-let subtile_acc2
-  (#et : Type)
-  (#rows #cols : nat)
-  (em : chest2 et rows cols)
-  (trows : pos {trows /? rows})
-  (tcols : pos {tcols /? cols})
-  (tr : natlt (rows / trows))
-  (tc : natlt (cols / tcols))
-  (i : natlt trows)
-  (j : natlt tcols)
-  : Lemma (
-      acc2 (ematrix_subtile em trows tcols tr tc) i j ==
-      acc2 em (tr * trows + i) (tc * tcols + j))
-  = Kuiper.EMatrix.macc_mkM
-      (fun i j -> acc2 em (tr * trows + i) (tc * tcols + j)) i j
-
-let chest_comb_acc2
-  (#m #n : nat)
-  (#t1 #t2 #t3 : Type)
-  (f : t1 -> t2 -> t3)
-  (c1 : chest2 t1 m n)
-  (c2 : chest2 t2 m n)
-  (i : natlt m)
-  (j : natlt n)
-  : Lemma (acc2 (chest_comb f c1 c2) i j == f (acc2 c1 i j) (acc2 c2 i j))
-  = Kuiper.Chest.acc_pat
-      (fun (ij : abs (m @| n @| INil)) ->
-        f (Kuiper.Chest.acc c1 ij) (Kuiper.Chest.acc c2 ij))
-      (i, (j, ()))
-
 let nested_comb_tile_eq
   (#m #n : pos)
   (comb_r : binop real)
