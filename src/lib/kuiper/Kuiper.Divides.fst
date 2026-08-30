@@ -149,7 +149,9 @@ let lemma_div_product (a b c : pos)
   // Cancel a from both sides:
   calc (==) {
     (b/a) * (c/b) * a;
-    == {} // commutativity + associativity
+    == { M.paren_mul_right (b/a) (c/b) a;
+         M.swap_mul (c/b) a;
+         M.paren_mul_right (b/a) a (c/b) }
     (b/a) * a * (c/b);
     == {} // (b/a) * a == a * (b/a) == b
     b * (c/b);

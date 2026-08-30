@@ -70,13 +70,28 @@ let epilogue_fragment_target_eq
         eAcc)
 = ()
 
+let epilogue_chest_acc2
+  (#et_cd #et_acc : Type0)
+  {| scalar et_cd, scalar et_acc |}
+  (comb : et_cd -> et_acc -> et_cd)
+  (#rows #cols : nat)
+  (eC : chest2 et_cd rows cols)
+  (eAcc : chest2 et_acc rows cols)
+  (row : natlt rows)
+  (col : natlt cols)
+  : Lemma (
+      acc2 (epilogue_chest comb eC eAcc) row col
+      == comb (acc2 eC row col) (acc2 eAcc row col))
+= Kuiper.EMatrix.macc_mkM
+    (fun i j -> comb (acc2 eC i j) (acc2 eAcc i j)) row col
+
 (* [acc2] of the epilogue target tile at a warp-local cell [(row, col)] is the
    combine of the corresponding *global* C cell with the accumulator cell.
    Peeling [epilogue_chest] plus the three nested [ematrix_subtile]s is a long
    delta chain that, with one SMT query per proof obligation, no longer goes
    through inside [epilogue_cell_update]'s Pulse proof state, so discharge it
    here in a minimal context. *)
-#push-options "--z3rlimit 200"
+#push-options "--z3rlimit 20"
 let epilogue_fragment_target_cell
   (#et_cd #et_acc : Type0)
   {| scalar et_cd, scalar et_acc |}
@@ -105,7 +120,35 @@ let epilogue_fragment_target_cell
            mrow mcol warpRow warpCol idx eAcc)
         row col
       == comb (acc2 eC globalRow globalCol) (acc2 eAcc row col))
-= ()
+= epilogue_fragment_target_eq comb eC bm bn rows cols wm wn
+    mrow mcol warpRow warpCol idx eAcc;
+  let fragRow = tiled_cell (wm * rows) rows (idx / wn) row in
+  let fragCol = tiled_cell (wn * cols) cols (idx % wn) col in
+  let warpCellRow = tiled_cell bm (wm * rows) warpRow fragRow in
+  let warpCellCol = tiled_cell bn (wn * cols) warpCol fragCol in
+  let globalRow' = tiled_cell m bm mrow warpCellRow in
+  let globalCol' = tiled_cell n bn mcol warpCellCol in
+  assert (globalRow == globalRow');
+  assert (globalCol == globalCol');
+  epilogue_chest_acc2 comb
+    (ematrix_subtile
+      (ematrix_subtile
+        (ematrix_subtile eC bm bn mrow mcol)
+        (wm * rows) (wn * cols) warpRow warpCol)
+      rows cols (idx / wn) (idx % wn))
+    eAcc row col;
+  subtile_acc2
+    (ematrix_subtile
+      (ematrix_subtile eC bm bn mrow mcol)
+      (wm * rows) (wn * cols) warpRow warpCol)
+    rows cols (idx / wn) (idx % wn) row col;
+  subtile_acc2
+    (ematrix_subtile eC bm bn mrow mcol)
+    (wm * rows) (wn * cols) warpRow warpCol
+    fragRow fragCol;
+  subtile_acc2 eC bm bn mrow mcol
+    warpCellRow warpCellCol;
+  ()
 #pop-options
 
 inline_for_extraction noextract

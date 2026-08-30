@@ -154,7 +154,8 @@ let lemma_divides_leq
 : Lemma
   (requires d /? a /\ d /? b)
   (ensures b < a <==> b + d <= a)
-= ()
+= lemma_divides_exact d a;
+  lemma_divides_exact d b
 
 // ya esta definido pero pide que c sea pos??
 let lemma_divides_chain (a b : pos) (c : nat)

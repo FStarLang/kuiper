@@ -21,6 +21,11 @@ let chest1_roundtrip (#a:Type) (#n:nat) (c : chest1 a n)
   = lemma_equal_intro (seq_to_chest1 (chest1_to_seq c)) c;
     ext (seq_to_chest1 (chest1_to_seq c)) c
 
+(* Keep the field-algebra step out of the recursive fold's quantified context. *)
+let add_div (a b : real) (k : real { k =!= 0.0R })
+  : Lemma (a /. k +. b /. k == (a +. b) /. k)
+  = ()
+
 
 (* [seq_fold_left (+.)] commutes with pointwise division by a constant, scaling
    both the elements and the initial accumulator.  Generalizing over [acc] is
@@ -42,7 +47,7 @@ let rec fold_div_scale (acc : real) (k : real { k =!= 0.0R }) (s : Seq.seq real)
         seq_fold_left (+.) (acc /. k) s_mapped;
         == { }
         seq_fold_left (+.) ((acc /. k) +. (hd /. k)) (seq_map f tl);
-        == { }
+        == { add_div acc hd k }
         seq_fold_left (+.) ((acc +. hd) /. k) (seq_map f tl);
         == { fold_div_scale (acc +. hd) k tl }
         seq_fold_left (+.) (acc +. hd) tl /. k;
