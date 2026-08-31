@@ -100,6 +100,10 @@ class floating_real_like (a:Type) {| scalar a, floating a, real_like a |} = {
   log_approx : x:a -> r:real{r >. 0.0R} ->
                 Lemma (requires v_approximates x r)
                       (ensures v_approximates (flog x) (log r));
+
+  sqrt_approx : x:a -> r:FStar.Math.Sqrt.rnonneg ->
+                Lemma (requires v_approximates x r)
+                      (ensures v_approximates (sqrt x) (FStar.Math.Sqrt.sqrt r));
 }
 
 let fmax_approx_pat
@@ -154,3 +158,13 @@ let log_approx_pat
                        SMTPat (v_approximates x r);
                        SMTPat (has_type rr (floating_real_like a))]
   = log_approx x r
+
+let sqrt_approx_pat
+  (a:Type) {| scalar a, floating a, real_like a, rr : floating_real_like a |}
+  (x : a) (r : FStar.Math.Sqrt.rnonneg) :
+    Lemma (requires v_approximates x r)
+          (ensures v_approximates (sqrt x) (FStar.Math.Sqrt.sqrt r))
+          [SMTPat (sqrt x);
+           SMTPat (v_approximates x r);
+           SMTPat (has_type rr (floating_real_like a))]
+  = sqrt_approx x r
