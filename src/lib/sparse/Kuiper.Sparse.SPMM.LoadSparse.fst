@@ -9,6 +9,18 @@ open Kuiper.Array.Vectorized
 open Kuiper.Array2.Vectorized
 open Kuiper.EMatrix
 
+let load_array_vec_bounds
+  (n m i : nat)
+  (nthr ch : pos)
+  (tid : natlt nthr)
+  : Lemma
+      (requires nthr * ch /? n /\ i + n <= m)
+      (ensures forall (k : natlt (n / nthr / ch)).
+        i + (k * nthr + tid) * ch <= m - ch)
+  = introduce forall (k : natlt (n / nthr / ch)).
+      i + (k * nthr + tid) * ch <= m - ch
+    with ()
+
 #push-options "--z3rlimit 30"
 inline_for_extraction noextract
 fn load_array_vec
@@ -34,6 +46,7 @@ fn load_array_vec
 
   forevery_rw_size (n / (nthr * (chunk et))) (n /^ nthr /^ chunk et);
 
+  load_array_vec_bounds n m i nthr (chunk et) tid;
   foreach (n /^ nthr /^ chunk et)
   (fun k -> live_vec x ((k * nthr + tid) * chunk et))
   (fun k ->

@@ -8,6 +8,13 @@ open Kuiper.Array.Vectorized
 open Kuiper.Sparse.Common
 
 
+let chunk_cell_offset (k nthr tid ch i : nat)
+  : Lemma (k * (nthr * ch) + (tid * ch + i) ==
+      (k * nthr + tid) * ch + i /\
+      i + (k * nthr + tid) * ch == (k * nthr + tid) * ch + i)
+  = ()
+
+
 (* Live *)
 
 let slice_live
@@ -371,9 +378,26 @@ fn thread_share_chunks
             ((k * nthr + tid) * ch)
             ((k * nthr + tid) * ch + ch);
 
-          forevery_ext #(natlt ch)
-            _
-            (fun i -> pts_to_cell x ((k * nthr + tid) * ch + i) (v @! i));
+          forevery_map #(natlt ch)
+            (fun i ->
+              pts_to_cell x
+                (k * (nthr * ch) + (tid * ch + i))
+                (s @! k * (nthr * ch) + (tid * ch + i)))
+            (fun i ->
+              pts_to_cell x ((k * nthr + tid) * ch + i) (v @! i))
+            fn i {
+              chunk_cell_offset k nthr tid ch i;
+              Seq.lemma_index_slice s
+                ((k * nthr + tid) * ch)
+                ((k * nthr + tid) * ch + ch)
+                i;
+              rewrite each
+                (k * (nthr * ch) + (tid * ch + i))
+              as ((k * nthr + tid) * ch + i);
+              rewrite each
+                (s @! ((k * nthr + tid) * ch + i))
+              as (v @! i);
+            };
           forevery_rw_size ch
             (((k * nthr + tid) * ch) + ch - ((k * nthr + tid) * ch));
 

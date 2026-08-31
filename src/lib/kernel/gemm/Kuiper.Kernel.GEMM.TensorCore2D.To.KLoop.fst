@@ -312,7 +312,7 @@ fn k_loop_step
   B.barrier_wait ();
 
   even_2x (v + 1);
-  assert pure (2 * (v + 1) == 2 * v + 2);
+  Kuiper.Math.Silly.two_times_succ (SZ.v v);
   assert pure (odd (2 * v + 1));
   lemma_double_div (SZ.v k) (SZ.v bk);
   assert pure ((2 * v + 1) < 2 * k / bk);
