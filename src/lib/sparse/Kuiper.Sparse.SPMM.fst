@@ -104,6 +104,21 @@ let unfold_barrier_contract () : FStar.Tactics.V2.Tac unit =
   FStar.Tactics.V2.norm [delta_only [`%barrier_contract]; iota; primops];
   Pulse.Lib.Core.slprop_equiv_norm ()
 
+let barrier_phase_succ (idx : nat)
+  : Lemma (idx * 2 + 1 + 1 == (idx + 1) * 2)
+  = ()
+
+let spmm_idx_succ_fits
+  (idx : nat)
+  (block_items : pos)
+  (row_start row_end : nat)
+  : Lemma
+      (requires
+        idx * block_items + block_items <= row_end - row_start /\
+        FStar.SizeT.fits row_end)
+      (ensures FStar.SizeT.fits (idx + 1))
+  = FStar.SizeT.fits_lte (idx + 1) row_end
+
 unfold
 let kpre
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
@@ -1046,6 +1061,7 @@ fn sparse_load_residue
   as barrier_out p row_perm elems col_ind row_off
     elems_tile col_ind_tile bid (idx * 2 + 1) tid;
 
+  barrier_phase_succ (SZ.v idx);
   barrier_out_unfold_residue_post p row_perm elems col_ind row_off
     elems_tile col_ind_tile bid ri ri' re tid idx residue;
 }
@@ -1187,6 +1203,26 @@ let seq_mask_slice
   let prefix = Seq.create k zero in
   reveal_opaque (`%seq_mask) (seq_mask k s);
   FStar.Seq.Properties.append_slices prefix s
+
+let seq_mask_source_slice
+  (#et : Type0) {| scalar et |}
+  (#n : nat)
+  (elems : lseq et n)
+  (ri' ri re : nat { ri' <= ri /\ ri <= re /\ re <= n })
+  (row_elems_ : lseq et (re - ri) {
+    row_elems_ == Seq.slice elems ri re })
+  (row_elems : lseq et (re - ri') {
+    row_elems == seq_mask (ri - ri') row_elems_ })
+  (start stop : nat {
+    ri - ri' <= start /\ start <= stop /\ stop <= re - ri' })
+  : Lemma
+      (Seq.equal
+        (Seq.slice elems (ri' + start) (ri' + stop))
+        (Seq.slice row_elems start stop))
+  = seq_mask_slice (ri - ri') row_elems_ start stop;
+    Seq.slice_slice elems ri re
+      (start - (ri - ri')) (stop - (ri - ri'));
+    ()
 
 let cast_pos_slice
   (#n : nat)
@@ -1594,23 +1630,9 @@ fn kf_main
               (ri' + !idx * p.blockItemsK + p.blockItemsK))
       );
 
-      seq_mask_slice
-        (ri - ri') row_elems_
+      seq_mask_source_slice elems ri' ri re row_elems_ row_elems
         (!idx * p.blockItemsK)
         (!idx * p.blockItemsK + p.blockItemsK);
-      Seq.slice_slice elems ri re
-        (!idx * p.blockItemsK - (ri - ri'))
-        (!idx * p.blockItemsK + p.blockItemsK - (ri - ri'));
-
-      assert pure (
-        Seq.equal
-        (Seq.slice elems
-          (ri' + !idx * p.blockItemsK)
-          (ri' + !idx * p.blockItemsK + p.blockItemsK))
-        (Seq.slice row_elems
-          (!idx * p.blockItemsK)
-          (!idx * p.blockItemsK + p.blockItemsK))
-      );
       // TODO
       assume pure (chunk et /? p.cols);
       assert pure (in_bounds 0 p.shared (cast_pos row_ind_));
@@ -1642,6 +1664,8 @@ fn kf_main
         SZ.v (!nnz -^ p.blockItemsK) == re - ri' - next_end
       );
 
+      spmm_idx_succ_fits (SZ.v !idx) (SZ.v p.blockItemsK)
+        (SZ.v ri') (SZ.v re);
       idx := !idx +^ 1sz;
       nnz := !nnz -^ p.blockItemsK;
 

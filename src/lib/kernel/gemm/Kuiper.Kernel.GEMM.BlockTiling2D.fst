@@ -3234,6 +3234,8 @@ fn gmmcomb_gpu_exact
      obligations for the batched kernel reduce to [str_A]/[str_B] alignment. *)
   lemma_l2_to_l3n_fields #(SZ.v m) #(SZ.v k) #lA #_ #str_A;
   lemma_l2_to_l3n_fields #(SZ.v k) #(SZ.v n) #lB #_ #str_B;
+  FStar.Math.Lemmas.small_mod 0 (chunk ta);
+  FStar.Math.Lemmas.small_mod 0 (chunk tb);
 
   gbmmcomb_gpu_exact mapA mapB comb
     #1sz #m #n #k

@@ -32,6 +32,11 @@ let div_mod_of_mul_add (n : pos) (i : nat) (j : natlt n)
     FStar.Math.Lemmas.lemma_mod_plus j i n;
     FStar.Math.Lemmas.small_mod j n
 
+let flat_index_bound (m n : pos) (i : natlt m) (j : natlt n)
+  : Lemma (i * n + j < m * n)
+  = FStar.Math.Lemmas.lemma_eucl_div_bound j i n;
+    FStar.Math.Lemmas.lemma_mult_le_right n (i + 1) m
+
 (* [teardown_block_output]/[teardown_warp_output]/[teardown_lane_output] name
    the real-valued expected tile at, respectively, the block/warp/lane
    granularity: the corresponding subtile of the full [MS.mmcomb comb_r rC rA
@@ -541,6 +546,8 @@ fn gather_block
         pure (eWarp %~
           ematrix_subtile rBlock (wm * tm) (wn * tn) wr wc))
     fn wr wc {
+      flat_index_bound
+        (bm / (wm * tm)) (bn / (wn * tn)) wr wc;
       div_mod_of_mul_add (bn / (wn * tn)) wr wc;
       rewrite each
         warp_tile dBlock (wm * tm) (wn * tn)
