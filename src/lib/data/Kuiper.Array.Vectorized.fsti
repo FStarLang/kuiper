@@ -9,7 +9,6 @@ open Kuiper.Seq.Common { seq_blit }
 module SZ = Kuiper.SizeT
 
 inline_for_extraction noextract
-unfold
 class has_vec_cpy (et : Type) {| sized et |} = {
   [@@@FStar.Tactics.Typeclasses.no_method] _chunk : szp;
   #[Tactics.Easy.easy_fill ()]
