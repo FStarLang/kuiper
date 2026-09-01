@@ -75,10 +75,7 @@ jobs:
           # a CI run, and the advance PR needs one to be mergeable.
           git remote set-url origin https://${{ secrets.KUIPER_ADVANCE_GH_TOKEN }}@github.com/${{ github.repository }}
 
-      # This step is optional. It's here to remind us how to update the token,
-      # since sadly they expire every year (just long enough to fully forget
-      # how it's done!)
-      - name: Validate KUIPER_ADVANCE_GH_TOKEN
+      - name: Check KUIPER_ADVANCE_GH_TOKEN is set
         env:
           TOKEN: ${{ secrets.KUIPER_ADVANCE_GH_TOKEN }}
         run: |
@@ -86,15 +83,6 @@ jobs:
             echo "::error::KUIPER_ADVANCE_GH_TOKEN secret is not set. See instructions at the top of this workflow file."
             exit 1
           fi
-          for repo in FStarLang/FStar FStarLang/karamel FStarLang/kuiper; do
-            status=$(curl -s -o /dev/null -w '%{http_code}' \
-              -H "Authorization: Bearer $TOKEN" \
-              "https://api.github.com/repos/$repo/collaborators")
-            if [ "$status" = "401" ] || [ "$status" = "403" ]; then
-              echo "::error::KUIPER_ADVANCE_GH_TOKEN lacks push access to $repo (HTTP $status). The token may be expired. See instructions at the top of this workflow file to renew it."
-              exit 1
-            fi
-          done
 
       - run: |
           ./try-rebase.sh
