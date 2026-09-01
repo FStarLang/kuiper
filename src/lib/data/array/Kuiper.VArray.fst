@@ -61,7 +61,7 @@ let varray_pts_to_cell
   (#et #st : Type0)
   (#vw : aview et st)
   ([@@@mkey] a : varray vw)
-  (#[T.exact (`1.0R)] f : perm)
+  (#[full_default ()] f : perm)
   ([@@@mkey]i : vw.iview.ait)
   (v : et)
   : slprop
@@ -87,7 +87,7 @@ let varray_pts_to_cell_eq
 unfold
 let vcell (#et #st : Type) (#vw : aview et st)
   (a : varray vw)
-  (#[T.exact (`1.0R)] f : perm)
+  (#[full_default ()] f : perm)
   (i : vw.iview.ait)
   (v : et)
   : slprop
@@ -110,7 +110,7 @@ let unfold_varray_cell () : T.Tac unit =
 let varray_pts_to
   (#et:Type0) (#st:_) (#vw : aview et st)
   ([@@@mkey] a : varray vw)
-  (#[T.exact (`1.0R)] f : perm)
+  (#[full_default ()] f : perm)
   (v : st)
   : slprop
   =

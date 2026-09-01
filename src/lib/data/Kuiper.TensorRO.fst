@@ -17,7 +17,6 @@ module IA = Kuiper.IArray
 module IV = Kuiper.IView
 module KT = Kuiper.Tensor
 module SZ = Kuiper.SizeT
-module T = FStar.Tactics.V2
 module Trade = Pulse.Lib.Trade
 
 (* ------------------------------------------------------------------------ *)
@@ -109,7 +108,7 @@ let tensor_pts_to
   (#et : Type0) (#r : nat) (#d : shape r)
   (#l : vtlayout d)
   ([@@@mkey] a : rotensor et l)
-  (#[T.exact (`1.0R)] f : perm)
+  (#[full_default ()] f : perm)
   (s : chest d et)
   : slprop
   = exists* (v : natlt (vtlayout_ulen l) -> GTot et).
@@ -331,7 +330,7 @@ let tensor_pts_to_cell
   (#et : Type0) (#r : nat) (#d : shape r)
   (#l : vtlayout d)
   ([@@@mkey] a : rotensor et l)
-  (#[T.exact (`1.0R)] f : perm)
+  (#[full_default ()] f : perm)
   ([@@@mkey] i : abs d)
   (v : et)
   : slprop

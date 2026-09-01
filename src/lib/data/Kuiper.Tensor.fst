@@ -69,7 +69,7 @@ let tensor_pts_to
   (#et : Type0) (#r : nat) (#d : shape r)
   (#l : tlayout d)
   ([@@@mkey] a : tensor et l)
-  (#[T.exact (`1.0R)] f : perm)
+  (#[full_default ()] f : perm)
   (s : chest d et)
   : slprop
   = A.varray_pts_to a #f s
@@ -366,7 +366,7 @@ let tensor_pts_to_cell
   (#et : Type0) (#r : nat) (#d : shape r)
   (#l : tlayout d)
   ([@@@mkey] a : tensor et l)
-  (#[T.exact (`1.0R)] f : perm)
+  (#[full_default ()] f : perm)
   ([@@@mkey] i : abs d)
   (v : et)
   : slprop
@@ -381,7 +381,7 @@ unfold
 let tcell (#et : Type0) (#r : nat) (#d : shape r)
   (#l : tlayout d)
   (a : tensor et l)
-  (#[T.exact (`1.0R)] f : perm)
+  (#[full_default ()] f : perm)
   (i : abs d)
   (v : et)
   : slprop

@@ -66,7 +66,7 @@ let aligned' (n:pos)
 val pts_to_slice
   (#a:Type u#0)
   ([@@@mkey] x : array a)
-  (#[exact (`1.0R)] f : perm)
+  (#[full_default ()] f : perm)
   ([@@@mkey] i : nat)
   (j : nat)
   (v : seq a)
@@ -140,7 +140,7 @@ unfold
 let pts_to_cell
   (#a:Type u#0)
   ([@@@mkey] x : array a)
-  (#[exact (`1.0R)] f : perm)
+  (#[full_default ()] f : perm)
   ([@@@mkey] i : nat)
   (v : a)
 : slprop
@@ -152,7 +152,7 @@ let pts_to_cell
 //   (#a:Type u#0)
 //   (#sz:nat)
 //   ([@@@mkey] x : larray a sz)
-//   (#[exact (`1.0R)] f : perm)
+//   (#[full_default ()] f : perm)
 //   (v : seq a)
 // : slprop
 // =
@@ -161,7 +161,7 @@ let pts_to_cell
 instance val is_send_pts_to
   (#a:Type u#0)
   (x : array a)
-  (#[exact (`1.0R)] f : perm)
+  (#[full_default ()] f : perm)
   (v : seq a)
   : is_send_across
       (visibility_of x)
@@ -170,7 +170,7 @@ instance val is_send_pts_to
 instance val is_send_pts_to_slice
   (#a:Type u#0)
   (x : array a)
-  (#[exact (`1.0R)] f : perm)
+  (#[full_default ()] f : perm)
   (i j : nat)
   (v : seq a)
   : is_send_across
@@ -382,7 +382,7 @@ ghost
 fn slice_concat
   (#a:Type u#0)
   (arr : array a)
-  (#[exact (`1.0R)] f : perm)
+  (#[full_default ()] f : perm)
   (#s1 #s2: erased (seq a))
   (i n m:nat)
   requires pts_to_slice arr #f i n s1 ** pts_to_slice arr #f n m s2
@@ -392,7 +392,7 @@ ghost
 fn slice_split
   (#a:Type u#0)
   (arr : array a)
-  (#[exact (`1.0R)] f : perm)
+  (#[full_default ()] f : perm)
   (#s1 #s2: erased (seq a))
   (i n m:nat)
   requires pts_to_slice arr #f i m (s1 @+ s2) ** pure (i <= n /\ n <= m /\ (i + Seq.length s1 == n \/ n + Seq.length s2 == m))

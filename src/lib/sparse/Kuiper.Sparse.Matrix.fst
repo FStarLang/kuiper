@@ -134,7 +134,7 @@ let smatrix_pts_to'
   (#et:Type0) {| d : scalar et |}
   #rows #cols
   (m : smatrix et rows cols)
-  (#[Tactics.exact (`1.0R)] f : perm)
+  (#[full_default ()] f : perm)
   (v_elems   : lseq et m.nnz)
   (v_col_ind : lseq sz m.nnz)
   (v_row_off : lseq sz (rows + 1))
@@ -152,7 +152,7 @@ let smatrix_pts_to
   (#et:Type0) {| d : scalar et |}
   #rows #cols
   (m : smatrix et rows cols)
-  (#[Tactics.exact (`1.0R)] f : perm)
+  (#[full_default ()] f : perm)
   (e : chest2 et rows cols)
   : slprop
 =
@@ -170,7 +170,7 @@ fn unfold_smatrix
   (#et:Type0) {| d : scalar et |}
   #rows #cols
   (m : smatrix et rows cols)
-  (#[Tactics.exact (`1.0R)] f : perm)
+  (#[full_default ()] f : perm)
   (e : chest2 et rows cols)
   requires smatrix_pts_to m #f e
   ensures
@@ -187,7 +187,7 @@ fn fold_smatrix
   (#et:Type0) {| d : scalar et |}
   #rows #cols
   (m : smatrix et rows cols)
-  (#[Tactics.exact (`1.0R)] f : perm)
+  (#[full_default ()] f : perm)
   (v_elems    : lseq et m.nnz)
   (v_col_ind  : lseq sz m.nnz)
   (v_row_off  : lseq sz (rows + 1))
@@ -212,7 +212,7 @@ fn smatrix_share_n'
   (#et:Type0) {| d : scalar et |}
   #rows #cols
   (m : smatrix et rows cols)
-  (#[Tactics.exact (`1.0R)] f : perm)
+  (#[full_default ()] f : perm)
   (v_elems   : lseq et m.nnz)
   (v_col_ind : lseq sz m.nnz)
   (v_row_off : lseq sz (rows + 1))
@@ -299,7 +299,7 @@ fn smatrix_gather_n'
   (#et:Type0) {| d : scalar et |}
   #rows #cols
   (m : smatrix et rows cols)
-  (#[Tactics.exact (`1.0R)] f : perm)
+  (#[full_default ()] f : perm)
   (v_elems   : lseq et m.nnz)
   (v_col_ind : lseq sz m.nnz)
   (v_row_off : lseq sz (rows + 1))
@@ -410,7 +410,7 @@ fn gpu_array_cut
   (#a : Type u#0) {| sized a |}
   (#n : nat)
   (arr : larray a n)
-  (#[Tactics.exact (`1.0R)] f : perm)
+  (#[full_default ()] f : perm)
   (k : szle n)
   (#s : lseq a n)
   requires
@@ -427,7 +427,7 @@ fn gpu_array_paste
   (#a : Type u#0) {| sized a |}
   (#n : nat)
   (arr : larray a n)
-  (#[Tactics.exact (`1.0R)] f : perm)
+  (#[full_default ()] f : perm)
   (k : szle n)
   (#s : lseq a n)
   requires
@@ -444,7 +444,7 @@ fn gpu_array_paste'
   (#a : Type u#0) {| sized a |}
   (#n : nat)
   (arr : larray a n)
-  (#[Tactics.exact (`1.0R)] f : perm)
+  (#[full_default ()] f : perm)
   (k : szle n)
   (#s : lseq a k) (#t : lseq a (n - k))
   requires
@@ -646,7 +646,7 @@ fn smatrix_extract
   (#et:Type0) {| scalar et |}
   (#rows #cols : szp)
   (m : smatrix et (SZ.v rows) (SZ.v cols))
-  (#[Tactics.exact (`1.0R)] f : perm)
+  (#[full_default ()] f : perm)
   (e : chest2 et rows cols)
   (i : szlt rows)
   requires

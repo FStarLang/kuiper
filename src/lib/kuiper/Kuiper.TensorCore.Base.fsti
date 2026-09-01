@@ -10,7 +10,6 @@ open Kuiper.Array2.Strided
 open Kuiper.Chest
 open Kuiper.Spec.GEMM
 
-module T = FStar.Tactics.V2
 module SZ = Kuiper.SizeT
 
 type fragment_kind =
@@ -316,7 +315,7 @@ let array_fragment_pts_to
   (#m #n #k : nat)
   (#l : fragment_layout)
   ([@@@mkey] farr: array (fragment et knd m n k l))
-  (#[T.exact (`1.0R)] f : perm)
+  (#[full_default ()] f : perm)
   (ems : seq (value_for et knd m n k))
   : slprop =
     // have to use lseq here otherwise the last line does not type check

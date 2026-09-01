@@ -21,7 +21,7 @@ let slice_live
   (#et : Type0)
   (#l : nat)
   (a : larray et l)
-  (#[FStar.Tactics.exact (`1.0R)] f : perm)
+  (#[full_default ()] f : perm)
   (i j : nat)
   : slprop
   = exists* s. pts_to_slice a #f i j s
@@ -30,7 +30,7 @@ let array_live_cell
   (#et : Type0)
   (#l : nat)
   (a : larray et l)
-  (#[FStar.Tactics.exact (`1.0R)] f : perm)
+  (#[full_default ()] f : perm)
   (i : natlt l)
   : slprop
   // esto es medio choto
@@ -45,7 +45,7 @@ let pts_to_vec
   (#a:Type u#0) {| sized a, has_vec_cpy a |}
   (#sz:nat)
   ([@@@mkey] x:larray a sz)
-  (#[exact (`1.0R)] f : perm)
+  (#[full_default ()] f : perm)
   ([@@@mkey] i : nat)
   (v : seq a)
 : slprop
@@ -57,7 +57,7 @@ let pts_to_vec'
   (#a:Type) {| sized a, has_vec_cpy a |}
   (#sz:nat)
   ([@@@mkey] x:larray a sz)
-  (#[exact (`1.0R)] f : perm)
+  (#[full_default ()] f : perm)
   ([@@@mkey] i : nat)
   (v : seq a)
   (k : natle (len v - chunk a))
@@ -68,7 +68,7 @@ let live_vec
   (#a:Type) {| sized a, has_vec_cpy a |}
   (#l : nat)
   (x :larray a l)
-  (#[exact (`1.0R)] f : perm)
+  (#[full_default ()] f : perm)
   (i : nat)
 : slprop
 = exists* v. pts_to_vec x #f i v
