@@ -86,12 +86,16 @@ jobs:
             echo "::error::KUIPER_ADVANCE_GH_TOKEN secret is not set. See instructions at the top of this workflow file."
             exit 1
           fi
+          response=$(mktemp)
+          trap 'rm -f "$response"' EXIT
           for repo in FStarLang/FStar FStarLang/karamel FStarLang/kuiper; do
-            status=$(curl -s -o /dev/null -w '%{http_code}' \
+            status=$(curl -sS -o "$response" -w '%{http_code}' \
               -H "Authorization: Bearer $TOKEN" \
               "https://api.github.com/repos/$repo/collaborators")
             if [ "$status" = "401" ] || [ "$status" = "403" ]; then
               echo "::error::KUIPER_ADVANCE_GH_TOKEN lacks push access to $repo (HTTP $status). The token may be expired. See instructions at the top of this workflow file to renew it."
+              echo "GitHub API response:"
+              cat "$response"
               exit 1
             fi
           done
