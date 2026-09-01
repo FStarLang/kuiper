@@ -9,7 +9,6 @@ include Kuiper.View
 open Kuiper
 open Kuiper.Bijection
 open Kuiper.View
-module T = FStar.Tactics.V2
 module SZ = Kuiper.SizeT
 
 let view_equiv (#et #st : Type)
@@ -71,7 +70,7 @@ val varray_pts_to_cell
   (#et:Type)
   (#st:Type0) (#vw : aview et st)
   ([@@@mkey] a : varray vw)
-  (#[T.exact (`1.0R)] f : perm)
+  (#[full_default ()] f : perm)
   ([@@@mkey]i : vw.iview.ait)
   (v : et)
   : slprop
@@ -97,7 +96,7 @@ instance cell_pts_to (#et #st : Type) (#vw : aview et st)
 val varray_pts_to
   (#a:Type) (#st:_) (#vw : aview a st)
   ([@@@mkey] a : varray vw)
-  (#[T.exact (`1.0R)] f : perm)
+  (#[full_default ()] f : perm)
   (v : st)
   : slprop
 

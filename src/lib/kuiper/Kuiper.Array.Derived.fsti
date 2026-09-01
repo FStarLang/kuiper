@@ -47,7 +47,7 @@ pulse should only do weak unfolding. *)
 let gpu_pts_to_array1
   (#a:Type0)
   ([@@@mkey]arr : array a)
-  (#[exact (`1.0R)] f : perm)
+  (#[full_default ()] f : perm)
   ([@@@mkey]i:nat)
 : slprop =
   exists* s. pts_to_slice arr #f i (i+1) s
@@ -57,7 +57,7 @@ fn gpu_slice_split'
   (#a:Type u#0)
   (#sz:nat)
   (arr : larray a sz)
-  (#[exact (`1.0R)] f : perm)
+  (#[full_default ()] f : perm)
   (#s : erased (seq a))
   (i n : nat)
   (#_ : squash (0 <= n-i /\ n-i < length s))

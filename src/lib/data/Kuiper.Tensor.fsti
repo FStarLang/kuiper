@@ -15,7 +15,6 @@ open Pulse.Lib.Trade
 open Kuiper.Shareable
 
 module SZ = Kuiper.SizeT
-module T = FStar.Tactics.V2
 
 inline_for_extraction noextract
 val tensor (et : Type0) (#r : nat) (#d : shape r) (l : tlayout d) : Type0
@@ -108,7 +107,7 @@ val tensor_pts_to
   (#et : Type0) (#r : nat) (#d : shape r)
   (#l : tlayout d)
   ([@@@mkey] a : tensor et l)
-  (#[T.exact (`1.0R)] f : perm)
+  (#[full_default ()] f : perm)
   (s : chest d et)
   : slprop
 
@@ -352,7 +351,7 @@ val tensor_pts_to_cell
   (#et : Type0) (#r : nat) (#d : shape r)
   (#l : tlayout d)
   ([@@@mkey] a : tensor et l)
-  (#[T.exact (`1.0R)] f : perm)
+  (#[full_default ()] f : perm)
   ([@@@mkey] i : abs d)
   (v : et)
   : slprop

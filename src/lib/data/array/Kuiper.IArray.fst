@@ -56,7 +56,7 @@ let iarray_pts_to_cell
   (#et:Type0)
   (#vw : aiview)
   ([@@@mkey] a : iarray et vw)
-  (#[T.exact (`1.0R)] f : perm)
+  (#[full_default ()] f : perm)
   ([@@@mkey]i : vw.ait)
   (v : et)
   : slprop
@@ -76,7 +76,7 @@ let iarray_pts_to_cell_def
 let iarray_pts_to
   (#et:Type0) (#vw : aiview)
   ([@@@mkey] a : iarray et vw)
-  (#[T.exact (`1.0R)] f : perm)
+  (#[full_default ()] f : perm)
   (v : (vw.ait -> GTot et))
   : slprop
   = pure (SZ.fits (len vw)) **

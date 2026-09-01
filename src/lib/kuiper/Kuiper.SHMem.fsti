@@ -11,7 +11,6 @@ open Kuiper.ForEvery
 open Kuiper.Common
 open Kuiper.Divides { (/?+) }
 module SZ = Kuiper.SizeT
-module T = FStar.Tactics
 module A = Pulse.Lib.Array
 
 (* Description of one shared memory array "request" *)
@@ -82,7 +81,7 @@ let c_shmems_inv (#ds : list shmem_desc) (c:c_shmems ds) : prop =
   c_shmems_block_inv c /\
   (exists (base:nat). 16 /?+ base /\ c_shmems_at c base)
 
-let live_c_shmem #d (c : c_shmem d) (#[T.exact (`1.0R)]f:_) : slprop =
+let live_c_shmem #d (c : c_shmem d) (#[full_default ()]f:_) : slprop =
   match d with
   | SHArray ty len ->
     exists* (v : Seq.seq ty).
@@ -91,7 +90,7 @@ let live_c_shmem #d (c : c_shmem d) (#[T.exact (`1.0R)]f:_) : slprop =
 instance val is_send_across_live_c_shmem #d (c:c_shmem d) #f (_:squash (c_shmem_inv c))
 : is_send_across block_of (live_c_shmem #d c #f)
 
-let rec live_c_shmems #ds (c : c_shmems ds) (#[T.exact (`1.0R)]f:_) : slprop =
+let rec live_c_shmems #ds (c : c_shmems ds) (#[full_default ()]f:_) : slprop =
   match ds with
   | [] -> emp
   | d :: ds ->
@@ -99,21 +98,21 @@ let rec live_c_shmems #ds (c : c_shmems ds) (#[T.exact (`1.0R)]f:_) : slprop =
     live_c_shmem #d (fst c) #f ** live_c_shmems #ds (snd c) #f
 
 ghost
-fn unfold_live_c_shmems_nil (c : c_shmems []) (#[T.exact (`1.0R)]f:_)
+fn unfold_live_c_shmems_nil (c : c_shmems []) (#[full_default ()]f:_)
   requires live_c_shmems c #f
   ensures emp
 
 ghost
-fn fold_live_c_shmems_nil (c : c_shmems []) (#[T.exact (`1.0R)]f:_)
+fn fold_live_c_shmems_nil (c : c_shmems []) (#[full_default ()]f:_)
   ensures live_c_shmems c #f
 
 ghost
-fn unfold_live_c_shmems_cons #d #ds (c : c_shmems (d::ds)) (#[T.exact (`1.0R)]f:_)
+fn unfold_live_c_shmems_cons #d #ds (c : c_shmems (d::ds)) (#[full_default ()]f:_)
   requires live_c_shmems c #f
   ensures live_c_shmem #d (fst c) #f ** live_c_shmems #ds (snd c) #f
 
 ghost
-fn fold_live_c_shmems_cons #d #ds (c : c_shmems (d::ds)) (#[T.exact (`1.0R)]f:_)
+fn fold_live_c_shmems_cons #d #ds (c : c_shmems (d::ds)) (#[full_default ()]f:_)
   requires live_c_shmem #d (fst c) #f ** live_c_shmems #ds (snd c) #f
   ensures live_c_shmems c #f
 

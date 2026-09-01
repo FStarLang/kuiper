@@ -5,7 +5,6 @@ inline_for_extraction noextract let x = 1
 open Kuiper
 open Kuiper.Bijection
 open Kuiper.IView
-module T = FStar.Tactics.V2
 module SZ = Kuiper.SizeT
 
 let oplus (#a #b : Type) (f : a -> GTot b) (x : a) (y : b) : a -> GTot b =
@@ -59,7 +58,7 @@ val iarray_pts_to_cell
   (#et:Type)
   (#vw : aiview)
   ([@@@mkey] a : iarray et vw)
-  (#[T.exact (`1.0R)] f : perm)
+  (#[full_default ()] f : perm)
   ([@@@mkey]i : vw.ait)
   (v : et)
   : slprop
@@ -84,7 +83,7 @@ instance cell_pts_to (#et : Type) (#vw : aiview)
 val iarray_pts_to
   (#et:Type0) (#vw : aiview)
   ([@@@mkey] a : iarray et vw)
-  (#[T.exact (`1.0R)] f : perm)
+  (#[full_default ()] f : perm)
   (v : (vw.ait -> GTot et))
   : slprop
 

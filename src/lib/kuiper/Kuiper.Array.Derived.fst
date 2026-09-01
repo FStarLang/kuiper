@@ -61,7 +61,7 @@ fn gpu_slice_split'
   (#a:Type u#0)
   (#sz:nat)
   (arr : larray a sz)
-  (#[exact (`1.0R)] f : perm)
+  (#[full_default ()] f : perm)
   (#s : erased (seq a))
   (i n : nat)
   (#_ : squash (0 <= n-i /\ n-i < length s))

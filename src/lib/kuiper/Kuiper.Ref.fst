@@ -18,7 +18,7 @@ inline_for_extraction noextract
 let gpu_pts_to
   (#a:Type u#0)
   ([@@@mkey]x:gpu_ref a)
-  (#[exact (`1.0R)] f : perm)
+  (#[full_default ()] f : perm)
   (v : a)
   : slprop
   = Pulse.Lib.Array.pts_to x #f seq![v]

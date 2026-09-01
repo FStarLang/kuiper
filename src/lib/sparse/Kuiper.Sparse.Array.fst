@@ -37,7 +37,7 @@ unfold
 let sarray_pts_to'
   (#et:Type0) {| d : scalar et |} (#l : nat)
   (a : sarray et l)
-  (#[Tactics.exact (`1.0R)] f : perm)
+  (#[full_default ()] f : perm)
   (s : seq et)
   (v_elems : lseq et a.nnz)
   (v_pos   : lseq sz a.nnz)
@@ -52,7 +52,7 @@ let sarray_pts_to'
 let sarray_pts_to
   (#et:Type0) {| d : scalar et |} #l
   (a : sarray et l)
-  (#[Tactics.exact (`1.0R)] f : perm)
+  (#[full_default ()] f : perm)
   (s : seq et)
   : slprop
 =

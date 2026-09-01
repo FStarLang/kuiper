@@ -10,7 +10,6 @@ open Kuiper.Array
 open FStar.Tactics.V2
 open Kuiper.ForEvery
 open Kuiper.Common
-module T = FStar.Tactics
 
 //don't mark this an instance, to avoid clashing with other instances
 //for visibility_of, gpu_of
@@ -40,7 +39,7 @@ instance is_send_across_live_c_shmem #d (c:c_shmem d) #f (_:squash (c_shmem_inv 
     ff
 
 ghost
-fn unfold_live_c_shmems_nil (c : c_shmems []) (#[T.exact (`1.0R)]f:_)
+fn unfold_live_c_shmems_nil (c : c_shmems []) (#[full_default ()]f:_)
   requires live_c_shmems c #f
   ensures emp
 {
@@ -48,14 +47,14 @@ fn unfold_live_c_shmems_nil (c : c_shmems []) (#[T.exact (`1.0R)]f:_)
 }
 
 ghost
-fn fold_live_c_shmems_nil (c : c_shmems []) (#[T.exact (`1.0R)]f:_)
+fn fold_live_c_shmems_nil (c : c_shmems []) (#[full_default ()]f:_)
   ensures live_c_shmems c #f
 {
   rewrite emp as live_c_shmems c #f;
 }
 
 ghost
-fn unfold_live_c_shmems_cons #d #ds (c : c_shmems (d::ds)) (#[T.exact (`1.0R)]f:_)
+fn unfold_live_c_shmems_cons #d #ds (c : c_shmems (d::ds)) (#[full_default ()]f:_)
   requires live_c_shmems c #f
   ensures live_c_shmem #d (fst c) #f ** live_c_shmems #ds (snd c) #f
 {
@@ -64,7 +63,7 @@ fn unfold_live_c_shmems_cons #d #ds (c : c_shmems (d::ds)) (#[T.exact (`1.0R)]f:
 }
 
 ghost
-fn fold_live_c_shmems_cons #d #ds (c : c_shmems (d::ds)) (#[T.exact (`1.0R)]f:_)
+fn fold_live_c_shmems_cons #d #ds (c : c_shmems (d::ds)) (#[full_default ()]f:_)
 requires live_c_shmem #d (fst c) #f ** live_c_shmems #ds (snd c) #f
 ensures live_c_shmems c #f
 {
