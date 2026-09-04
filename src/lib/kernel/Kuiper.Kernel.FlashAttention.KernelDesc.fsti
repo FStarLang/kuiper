@@ -181,6 +181,21 @@ let is_array2_stride_subtile_global
 // stride.  This is the transpose, w.r.t. the (tile-index, in-tile-index)
 // split, of the contiguous tiling in [Kuiper.Tensor.Tiling].
 
+(* Bounds used while checking the [mk2] body below.  With split proof
+   obligations, the divisibility refinement is no longer enough for SMT to
+   reconstruct this tiled-cell bound on its own. *)
+private let stride_cell_bound
+  (whole : nat)
+  (stride : pos {stride /? whole})
+  (tile : natlt (whole / stride))
+  (cell : natlt stride)
+  : Lemma (tile * stride + cell < whole)
+          [SMTPat (tile * stride + cell); SMTPat (whole / stride)]
+  = FStar.Math.Lemmas.lemma_div_exact whole stride;
+    FStar.Math.Lemmas.distributivity_add_left tile 1 stride;
+    FStar.Math.Lemmas.lemma_mult_le_right
+      stride (tile + 1) (whole / stride)
+
 let ematrix_stride_subtile
   (#et : _)
   (#rows #cols : _)

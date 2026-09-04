@@ -1188,6 +1188,26 @@ let seq_mask_prefix
   FStar.Seq.Properties.append_slices prefix s;
   Kuiper.Seq.Common.lem_append_slice (prefix @+ s) 0 k (k + m)
 
+(* [seq_mask_prefix] stated through [lslice], with an explicitly equal stop.
+   Keeping this conversion in a small pure context avoids asking SMT to
+   unfold and normalize the same sequence expression in the full kernel
+   proof state. *)
+let seq_mask_lslice_prefix
+  (#et : Type0) {| scalar et |}
+  (k : nat)
+  (#n : nat)
+  (s : lseq et n)
+  (masked : lseq et (k + n) {masked == seq_mask k s})
+  (m : nat {m <= n})
+  (stop : nat {stop <= k + n})
+  (_ : squash (stop == k + m))
+  : Lemma
+      (Seq.equal
+        (lslice masked 0 stop)
+        (Seq.create k zero @+ lslice s 0 m))
+  = seq_mask_prefix k s m;
+    ()
+
 let seq_mask_slice
   (#et : Type0) {| scalar et |}
   (k : nat)
@@ -1680,19 +1700,10 @@ fn kf_main
       (ri - ri') + (ri' + !idx * p.blockItemsK - ri)
         == !idx * p.blockItemsK
     );
-    seq_mask_prefix
-      (ri - ri') row_elems_
-      (ri' + !idx * p.blockItemsK - ri);
-
-    #set-options "--z3refresh" { () };
-    assert pure (
-      Seq.equal
-        (lslice row_elems 0 (!idx * p.blockItemsK))
-        (Seq.append
-          (Seq.create (ri - ri') zero)
-          (lslice row_elems_ 0 (ri' + !idx * p.blockItemsK - ri))
-        )
-    );
+    seq_mask_lslice_prefix
+      (ri - ri') row_elems_ row_elems
+      (ri' + !idx * p.blockItemsK - ri)
+      (!idx * p.blockItemsK) ();
 
     Compute.tile_mask_lemma
       #_ #_ #_ #_ #_ #_

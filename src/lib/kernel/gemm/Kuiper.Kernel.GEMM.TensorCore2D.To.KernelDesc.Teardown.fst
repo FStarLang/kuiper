@@ -34,6 +34,7 @@ let div_mod_of_mul_add (n : pos) (i : nat) (j : natlt n)
 
 let flat_index_bound (m n : pos) (i : natlt m) (j : natlt n)
   : Lemma (i * n + j < m * n)
+          [SMTPat (i * n + j); SMTPat (m * n)]
   = FStar.Math.Lemmas.lemma_eucl_div_bound j i n;
     FStar.Math.Lemmas.lemma_mult_le_right n (i + 1) m
 

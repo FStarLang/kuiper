@@ -119,6 +119,21 @@ let __gms_fwd
     [SMTPat (__gms mapA mapB z m1 m2 row col (d + 1))]
   = MS.__gmatmul_single_lemma z (__mulm mapA mapB) add m1 m2 row col (d + 1)
 
+(* A prefix of a valid K tile remains within the full reduction dimension.
+   Keep this explicit: the recursive step passes the expression as a refined
+   argument, and split proof obligations no longer retain the needed quotient
+   arithmetic. *)
+let tile_prefix_bound
+  (whole : nat)
+  (tile : pos {tile /? whole})
+  (tile_idx : natlt (whole / tile))
+  (prefix : nat {prefix <= tile})
+  : Lemma (tile_idx * tile + prefix <= whole)
+  = FStar.Math.Lemmas.lemma_div_exact whole tile;
+    FStar.Math.Lemmas.distributivity_add_left tile_idx 1 tile;
+    FStar.Math.Lemmas.lemma_mult_le_right
+      tile (tile_idx + 1) (whole / tile)
+
 (* Tiled accumulation step: computing __gms on a subtile with the previous
    accumulation equals advancing the full accumulation by d more elements. *)
 let rec __gms_tiled_step
@@ -155,6 +170,7 @@ let rec __gms_tiled_step
         (ematrix_subtile eA bm bk mrow bkIdx)
         (ematrix_subtile eB bk bn bkIdx mcol)
         local_r local_c d;
+      tile_prefix_bound k bk bkIdx d;
       MS.__gmatmul_single_lemma
         (zero #tacc) (__mulm mapA mapB) add eA eB
         (mrow * bm + local_r) (mcol * bn + local_c)

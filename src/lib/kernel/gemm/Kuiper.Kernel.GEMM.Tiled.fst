@@ -881,6 +881,38 @@ let btile_idx_bij_ff_cell (batch m n tile : nat)
            bid == (mr * n + mc) * batch + pg /\ tid == a * tile + b)
   = ()
 
+(* Bounds needed while typechecking the per-thread specification below.  They
+   use exact triggers because there is no proof body in which to call them. *)
+#push-options "--fuel 0 --ifuel 0 --z3rlimit 40"
+let btile_div_lt_bound (x : nat) (a b : pos)
+  : Lemma (requires x < a * b) (ensures x / a < b)
+  = FStar.Math.Lemmas.lemma_div_mod x a;
+    if x / a >= b then FStar.Math.Lemmas.lemma_mult_le_right a b (x / a)
+
+let btile_div_mul_mod (x : nat) (d : pos)
+  : Lemma (x / d * d + x % d == x)
+  = FStar.Math.Lemmas.euclidean_division_definition x d
+
+let btile_grow_bound (batch m n tile x y : nat)
+  : Lemma (requires batch > 0 /\ m > 0 /\ n > 0 /\ tile > 0 /\
+                    x < batch * (m * n) /\ y < tile * tile)
+          (ensures x / batch / n * tile + y / tile < m * tile)
+          [SMTPat (x / batch / n * tile + y / tile); SMTPat (m * tile)]
+  = btile_div_lt_bound x batch (m * n);
+    btile_div_lt_bound (x / batch) n m;
+    btile_div_lt_bound y tile tile;
+    FStar.Math.Lemmas.distributivity_add_left (x / batch / n) 1 tile;
+    FStar.Math.Lemmas.lemma_mult_le_right tile (x / batch / n + 1) m
+
+let btile_gcol_bound (batch n tile x y : nat)
+  : Lemma (requires batch > 0 /\ n > 0 /\ tile > 0 /\ y < tile * tile)
+          (ensures x / batch % n * tile + y % tile < n * tile)
+          [SMTPat (x / batch % n * tile + y % tile)]
+  = FStar.Math.Lemmas.lemma_mod_lt (x / batch) n;
+    FStar.Math.Lemmas.distributivity_add_left (x / batch % n) 1 tile;
+    FStar.Math.Lemmas.lemma_mult_le_right tile (x / batch % n + 1) n
+#pop-options
+
 (* One cell of the [bteardown] correctness argument: the value stored by the
    thread owning cell (page, row, col) approximates the rank-4 [ggemm_single]
    spec of that page.  Since F* now emits one query per proof obligation, the
@@ -942,6 +974,8 @@ let bteardown_cell
     assert (tid / tile == i2);
     assert (tid % tile == j2);
     assert (Chest.acc eC' (page, (i1, (j1, (i2, (j2, ()))))) == vf bid tid);
+    btile_div_mul_mod row tile;
+    btile_div_mul_mod col tile;
     assert (i1 * tile + i2 == row);
     assert (j1 * tile + j2 == col)
 #pop-options

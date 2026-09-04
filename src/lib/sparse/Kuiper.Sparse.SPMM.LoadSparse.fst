@@ -66,6 +66,7 @@ fn load_array_vec
       y (i +^ ((k *^ nthr +^ tid) *^ chunk et));
   };
 
+  FStar.Math.Lemmas.division_multiplication_lemma n nthr (chunk et);
   forevery_rw_size (n /^ nthr /^ chunk et) (n / (nthr * (chunk et)));
 
   fold thread_pts_to_chunks x s i nthr tid;
