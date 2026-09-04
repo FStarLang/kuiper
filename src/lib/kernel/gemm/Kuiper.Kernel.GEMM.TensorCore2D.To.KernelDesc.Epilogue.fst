@@ -163,6 +163,7 @@ fn epilogue_fragment_from_warp
       (SZ.v bid) (SZ.v wid) (SZ.v idx / wn) (SZ.v idx % wn))
     lane eD0 (lane_fade eD0 eTarget lane lane);
 
+  FStar.Math.Lemmas.small_mod (SZ.v lane) warp_size;
   let area = rows *^ cols;
   let mut flat : sz = lane;
   while (!flat <^ area)

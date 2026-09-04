@@ -614,6 +614,13 @@ let seq_fma'
 
 open Kuiper.Sparse.Load { array_vec_cpy_dh }
 
+let chunk_end_bound (n k : nat) (ch : pos)
+  : Lemma (requires ch /? n /\ ch /? k /\ k < n)
+          (ensures k + ch <= n)
+= lemma_divides_exact ch k;
+  FStar.Math.Lemmas.swap_mul ch (k / ch);
+  Kuiper.Sparse.SPMM.Defs.block_lemma n ch (k / ch)
+
 inline_for_extraction noextract
 fn load_vmprod_chunk
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
@@ -645,6 +652,7 @@ fn load_vmprod_chunk
     assume pure (aligned 16 lchunk);
     rewrite (row |-> Frac frow vrow)
          as (row |-> Frac frow (seq_to_chest1 (chest1_to_seq vrow)));
+    chunk_end_bound n2 k2 (chunk et);
     array_vec_cpy_dh lchunk row k2;
     rewrite (row |-> Frac frow (seq_to_chest1 (chest1_to_seq vrow)))
          as (row |-> Frac frow vrow);

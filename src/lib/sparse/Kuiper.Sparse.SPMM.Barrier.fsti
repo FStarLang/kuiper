@@ -13,6 +13,13 @@ open Kuiper.Sparse.SPMM.Defs
 open Kuiper.Bijection { ( |~> ) }
 open Kuiper.Array.Vectorized
 
+(* Type-level barrier iteration expressions must be natural.  This explicit
+   triggered fact survives F*'s split proof obligations. *)
+private let div_times_two_nonneg_pat (a : nat) (b : pos)
+  : Lemma (a / b * 2 >= 0) [SMTPat (a / b * 2)]
+  = FStar.Math.Lemmas.nat_over_pos_is_nat a b;
+    FStar.Math.Lemmas.nat_times_nat_is_nat (a / b) 2
+
 (* --- Barrier slprop definitions --- *)
 
 let barrier_in

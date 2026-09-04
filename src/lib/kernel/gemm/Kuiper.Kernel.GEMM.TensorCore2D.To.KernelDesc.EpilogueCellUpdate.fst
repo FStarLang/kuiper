@@ -137,6 +137,7 @@ let epilogue_fragment_target_cell
         (wm * rows) (wn * cols) warpRow warpCol)
       rows cols (idx / wn) (idx % wn))
     eAcc row col;
+  FStar.Math.Lemmas.nat_over_pos_is_nat idx wn;
   subtile_acc2
     (ematrix_subtile
       (ematrix_subtile eC bm bn mrow mcol)

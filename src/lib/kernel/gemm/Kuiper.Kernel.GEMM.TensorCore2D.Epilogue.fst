@@ -36,6 +36,15 @@ let flat_fragment_index_bound (wm wn : pos) (i : natlt wm) (j : natlt wn)
 = FStar.Math.Lemmas.lemma_eucl_div_bound j i wn;
   FStar.Math.Lemmas.lemma_mult_le_right wn (i + 1) wm
 
+let flat_warp_row_bound (wid : nat) (warp_rows warp_cols : pos)
+  : Lemma (requires wid < warp_rows * warp_cols)
+          (ensures wid / warp_cols < warp_rows)
+= if wid / warp_cols >= warp_rows then begin
+    FStar.Math.Lemmas.lemma_mult_le_right
+      warp_cols warp_rows (wid / warp_cols);
+    FStar.Math.Lemmas.euclidean_division_definition wid warp_cols
+  end
+
 #push-options "--fuel 1 --ifuel 1"
 inline_for_extraction noextract
 fn epilogue
@@ -108,6 +117,8 @@ fn epilogue
 
       FStar.Math.Lemmas.cancel_mul_div wm tm;
       FStar.Math.Lemmas.cancel_mul_div wn tn;
+      flat_warp_row_bound wid
+        (bm / (wm * tm)) (bn / (wn * tn));
       let tc_tile = array2_extract_tile_st tile_for_tc_tiles (SZ.v tm) (SZ.v tn) (SZ.v !i) (SZ.v !j);
 
       let vi = !i;

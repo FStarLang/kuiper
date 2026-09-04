@@ -237,8 +237,12 @@ fn epilogue_to
     rewrite each (SZ.v before + 1) as (SZ.v next);
   };
 
-  assert pure (SZ.v !idx == SZ.v wm * SZ.v wn);
-  rewrite each !idx as (wm *^ wn);
+  let done = !idx;
+  assert pure (SZ.lt done (wm *^ wn) == false);
+  assert pure (SZ.v done <= SZ.v wm * SZ.v wn);
+  assert pure (not (SZ.v done < SZ.v wm * SZ.v wn));
+  assert pure (SZ.v done == SZ.v wm * SZ.v wn);
+  rewrite each done as (wm *^ wn);
   unfold output_epilogue_state
     gD bm bn tm tn wm wn bid wid lane
     (chest_comb comb_r rCWarp rAcc) (wm * wn);

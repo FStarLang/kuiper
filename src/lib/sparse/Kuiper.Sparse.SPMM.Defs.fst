@@ -106,7 +106,8 @@ let bcol_
   #et {| sized et, has_vec_cpy et |}
   (p : parameters et { size_req p }) (bid : szlt (nblocks_ p))
 : Tot (n : sz {SZ.v n == bcol p bid})
-= (bid /^ p.rows) *^ p.blockItemsX
+= FStar.SizeT.fits_at_least_16 (bcol p bid);
+  (bid /^ p.rows) *^ p.blockItemsX
 
 noextract
 let tcol
@@ -165,12 +166,16 @@ let well_formed
 let block_lemma whole block k
   : Lemma (requires block /? whole /\ k * block < whole)
           (ensures k * block + block <= whole)
-  = ()
+  = if block > 0 then begin
+      lemma_divides_exact block whole;
+      FStar.Math.Lemmas.multiplication_order_lemma k (whole / block) block;
+      FStar.Math.Lemmas.lemma_mult_le_right block (k + 1) (whole / block)
+    end
 
 let block_lemma_off whole block k off
   : Lemma (requires block /? whole /\ k * block < whole /\ off < block)
           (ensures k * block + off < whole)
-  = ()
+  = block_lemma whole block k
 
 #push-options "--z3rlimit 30"
 let offset_aligned_lemma_et

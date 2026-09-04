@@ -463,14 +463,36 @@ fn thread_gather_chunks
             ((k * nthr + tid) * ch + ch);
 
           forevery_rw_size _ ch;
-
-          forevery_ext #(natlt ch)
-            _
+          forevery_map #(natlt ch)
+            (fun j ->
+              pts_to_cell x ((k * nthr + tid) * ch + j)
+                (Seq.index
+                  (Seq.slice s
+                    (i + (k * nthr + tid) * ch)
+                    (i + (k * nthr + tid) * ch + ch))
+                  j)
+            )
             (fun j ->
               pts_to_cell x (k * (nthr * ch) + (tid * ch + j))
                 (s @! i + (k * (nthr * ch) + (tid * ch + j)))
-            );
-          ();
+            )
+            fn j {
+              chunk_cell_offset k nthr tid ch j;
+              Seq.lemma_index_slice s
+                (i + (k * nthr + tid) * ch)
+                (i + (k * nthr + tid) * ch + ch)
+                j;
+              rewrite each
+                ((k * nthr + tid) * ch + j)
+              as (k * (nthr * ch) + (tid * ch + j));
+              rewrite each
+                (Seq.index
+                  (Seq.slice s
+                    (i + (k * nthr + tid) * ch)
+                    (i + (k * nthr + tid) * ch + ch))
+                  j)
+              as (s @! i + (k * (nthr * ch) + (tid * ch + j)));
+            };
         };
       rewrite each (v (chunk et)) as ch;
       forevery_commute _;

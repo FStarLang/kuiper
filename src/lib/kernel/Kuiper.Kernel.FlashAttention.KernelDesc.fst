@@ -279,7 +279,30 @@ let update_stride_tile_self
            ==
            em)
           [SMTPat (update_stride_tile em srows scols tr tc (ematrix_stride_subtile em srows scols tr tc))]
-= assert (equal (update_stride_tile em srows scols tr tc (ematrix_stride_subtile em srows scols tr tc)) em)
+= let lhs =
+    update_stride_tile em srows scols tr tc
+      (ematrix_stride_subtile em srows scols tr tc) in
+  let aux (i : natlt rows) (j : natlt cols)
+    : Lemma (acc2 lhs i j == acc2 em i j)
+    = Kuiper.EMatrix.macc_mkM
+        (fun i j ->
+          if i % srows = tr && j % scols = tc then
+            acc2 (ematrix_stride_subtile em srows scols tr tc)
+              (i / srows) (j / scols)
+          else
+            acc2 em i j)
+        i j;
+      if i % srows = tr && j % scols = tc then begin
+        Kuiper.EMatrix.macc_mkM #et #(rows / srows) #(cols / scols)
+          (fun i j -> acc2 em (i * srows + tr) (j * scols + tc))
+          (i / srows) (j / scols);
+        FStar.Math.Lemmas.euclidean_division_definition i srows;
+        FStar.Math.Lemmas.euclidean_division_definition j scols
+      end
+  in
+  Classical.forall_intro_2 aux;
+  Kuiper.EMatrix.lemma_equal_intro lhs em;
+  Kuiper.Chest.ext lhs em
 
 #push-options "--z3rlimit 20"
 let subtile_of_update_stride_tile
