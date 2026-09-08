@@ -52,9 +52,14 @@ unfold let en2r (i:erased nat) : real = Real.of_int i
 [@@coercion; pulse_unfold]
 unfold let sz2r (i:sz) : real = Real.of_int i
 
-(* Just an alias *)
+(* Launch from an owned precondition, starting a stream-ordered chain. *)
 inline_for_extraction noextract
 unfold let launch #pre #post (k : kernel_desc pre post) (s: stream_t) #e =
+  launch_kernel_full_owned #pre #post k s #e
+
+(* Continue a chain using the preceding operation's pledged result. *)
+inline_for_extraction noextract
+unfold let launch_pledged #pre #post (k : kernel_desc pre post) (s: stream_t) #e =
   launch_kernel_full #pre #post k s #e
 
 (* Just an alias *)
