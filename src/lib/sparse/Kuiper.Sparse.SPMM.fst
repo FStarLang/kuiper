@@ -2293,8 +2293,9 @@ fn spmm_on
   (s : stream_t)
   (#e : epoch_t)
   norewrite
-  preserves cpu ** stream_live s ** epoch_live s e
+  preserves cpu ** stream_live s
   requires
+    epoch_live s e **
     pure (blockItemsX /? cols) **
     on gpu_loc (smatrix_pts_to' gA #fA elems col_ind row_off eA) **
     on gpu_loc (row_indices |-> Frac fri (ordering row_perm)) **
@@ -2303,7 +2304,8 @@ fn spmm_on
     pure (rows * (cols `divup` blockItemsX) <= max_blocks) **
     pure (blockWidth <= max_threads)
   ensures
-    pledge0 (epoch_done s e) (on gpu_loc (
+    epoch_live s (epoch_next e) **
+    pledge0 (epoch_done s (epoch_next e)) (on gpu_loc (
       smatrix_pts_to' gA #fA elems col_ind row_off eA **
       row_indices |-> Frac fri (ordering row_perm) **
       gB |-> Frac fB eB **
@@ -2388,7 +2390,7 @@ fn spmm
   ensures on gpu_loc (gC |-> MS.matmul eA eB)
 {
   let s = fresh_stream ();
-  get_epoch s ();
+  init_epoch s ();
   spmm_on
     rows shared cols
     blockItemsK blockItemsX blockWidth

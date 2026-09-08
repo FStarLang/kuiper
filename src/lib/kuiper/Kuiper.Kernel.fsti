@@ -5,10 +5,38 @@ inline_for_extraction noextract let _ = ()
 open Pulse.Lib.Core
 open Kuiper.Base
 open Kuiper.Epoch
+open Kuiper.Kernel.Stream
 include Kuiper.Kernel.Base
 include Kuiper.Kernel.Desc
 include Kuiper.Kernel.Casts
 open Pulse.Lib.Pledge
+
+(* Move a stream-ordered pledge later in the queue. This is useful for bringing
+pledges obtained at different positions to one position before joining them. *)
+ghost
+fn pledge_done_advance
+  (s: stream_t)
+  (e e' : epoch_t)
+  (#p : slprop)
+  requires pledge0 (epoch_done s e) p
+  requires pure (e <= e')
+  ensures  pledge0 (epoch_done s e') p
+
+(* Start a dependent launch chain from a precondition owned outright. Later
+launches in the chain consume the pledge through [launch_kernel_full]. *)
+inline_for_extraction noextract
+fn launch_kernel_full_owned
+  (#full_pre #full_post : slprop)
+  (k : kernel_desc full_pre full_post)
+  (s: stream_t)
+  (#e : epoch_t)
+  preserves cpu ** stream_live s
+  requires
+    epoch_live s e **
+    on gpu_loc full_pre
+  ensures
+    epoch_live s (epoch_next e) **
+    pledge0 (epoch_done s (epoch_next e)) (on gpu_loc full_post)
 
 inline_for_extraction noextract
 fn launch_kernel_full_sync

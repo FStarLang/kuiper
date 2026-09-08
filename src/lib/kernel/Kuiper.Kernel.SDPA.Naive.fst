@@ -386,8 +386,6 @@ let ctlayout_bij_transpose
 
 #pop-options
 
-#set-options "--debug SMTFail"
-
 inline_for_extraction noextract
 fn sdpa_naive
   (#et: Type0) {| floating et, real_like et, floating_real_like et |}
