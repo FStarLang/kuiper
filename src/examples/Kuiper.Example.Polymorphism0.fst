@@ -14,10 +14,9 @@ fn kswap
   requires gpu ** (r1 |-> 'v1) ** (r2 |-> 'v2)
   ensures  gpu ** (r1 |-> 'v2) ** (r2 |-> 'v1)
 {
-  let v1 = gpu_read r1;
-  let v2 = gpu_read r2;
-  gpu_write r1 v2;
-  gpu_write r2 v1;
+  let v1 = !r1;
+  r1 := !r2;
+  r2 := v1;
 }
 
 
@@ -38,4 +37,3 @@ fn kswap_F32
 {
   kswap r1 r2
 }
-

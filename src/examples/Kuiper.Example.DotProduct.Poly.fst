@@ -198,14 +198,14 @@ fn main (#et:Type0) {| scalar et |} (_:unit)
   let ga1 = gpu_array_alloc #et m_size;
   let ga2 = gpu_array_alloc #et m_size;
 
-  Kuiper.Array.gpu_memcpy_host_to_device ga1 a1 m_size;
-  Kuiper.Array.gpu_memcpy_host_to_device ga2 a2 m_size;
+  Kuiper.Array.memcpy_host_to_device ga1 a1 m_size;
+  Kuiper.Array.memcpy_host_to_device ga2 a2 m_size;
 
   let gr = gpu_array_alloc #et m_size;
 
   launch_sync (kdesc ga1 ga2 gr);
 
-  Kuiper.Array.gpu_memcpy_device_to_host ar gr m_size;
+  Kuiper.Array.memcpy_device_to_host ar gr m_size;
   gpu_array_free ga1;
   gpu_array_free ga2;
   gpu_array_free gr;

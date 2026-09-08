@@ -15,10 +15,9 @@ fn kswap
   requires gpu ** (r1 |-> v1 ** r2 |-> v2)
   ensures  gpu ** (r1 |-> v2 ** r2 |-> v1)
 {
-  let v1 = gpu_read r1;
-  let v2 = gpu_read r2;
-  gpu_write r1 v2;
-  gpu_write r2 v1;
+  let v1 = !r1;
+  r1 := !r2;
+  r2 := v1;
 }
 
 inline_for_extraction noextract
@@ -43,15 +42,15 @@ fn swap_via_gpu
   requires cpu ** (r1 |-> 'v1) ** (r2 |-> 'v2)
   ensures  cpu ** (r1 |-> 'v2) ** (r2 |-> 'v1)
 {
-  let gr1 = gpu_alloc0 #t ();
-  let gr2 = gpu_alloc0 #t ();
-  Kuiper.Ref.gpu_memcpy_host_to_device gr1 r1;
-  Kuiper.Ref.gpu_memcpy_host_to_device gr2 r2;
+  let gr1 = alloc0 #t ();
+  let gr2 = alloc0 #t ();
+  Kuiper.Ref.memcpy_host_to_device gr1 r1;
+  Kuiper.Ref.memcpy_host_to_device gr2 r2;
   launch_sync (kernel #t #'v1 #'v2 gr1 gr2);
-  Kuiper.Ref.gpu_memcpy_device_to_host r1 gr1;
-  Kuiper.Ref.gpu_memcpy_device_to_host r2 gr2;
-  gpu_free gr1;
-  gpu_free gr2;
+  Kuiper.Ref.memcpy_device_to_host r1 gr1;
+  Kuiper.Ref.memcpy_device_to_host r2 gr2;
+  free gr1;
+  free gr2;
 }
 
 

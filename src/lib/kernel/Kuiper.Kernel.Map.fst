@@ -500,7 +500,7 @@ fn map_host
   with em. assert on gpu_loc (ga |-> em);
   map_loc gpu_loc #(ga |-> em) #(core ga |-> to_seq (l1_forward lena) em)
     fn _ { tensor_concr ga; };
-  gpu_memcpy_host_to_device (core ga) a lena;
+  memcpy_host_to_device (core ga) a lena;
   map_loc gpu_loc #(core ga |-> reveal s) #(ga |-> from_seq (l1_forward lena) s)
     fn _ {
       tensor_abs' (l1_forward lena) (core ga);
@@ -511,7 +511,7 @@ fn map_host
   with res. assert on gpu_loc (ga |-> res);
   map_loc gpu_loc #(ga |-> res) #(core ga |-> to_seq (l1_forward lena) res)
     fn _ { tensor_concr ga; };
-  gpu_memcpy_device_to_host a (core ga) lena;
+  memcpy_device_to_host a (core ga) lena;
   map_loc gpu_loc #(core ga |-> to_seq (l1_forward lena) res) #(ga |-> res)
     fn _ {
       tensor_abs (l1_forward lena) (core ga);

@@ -14,8 +14,7 @@ fn kernel_f (r : gpu_ref u64) (#v : erased u64)
   requires gpu ** r |-> v
   ensures  gpu ** (r |-> U64.add_underspec v 1uL)
 {
-  let v = gpu_read r;
-  gpu_write r (U64.add_underspec v 1uL);
+  r := U64.add_underspec !r 1uL;
 }
 
 inline_for_extraction noextract
@@ -32,8 +31,8 @@ fn galloc (x : u64)
   ensures  on gpu_loc (r |-> x)
 {
   let mut r = x;
-  let gr = gpu_alloc0 #u64 ();
-  Kuiper.Ref.gpu_memcpy_host_to_device gr r;
+  let gr = alloc0 #u64 ();
+  Kuiper.Ref.memcpy_host_to_device gr r;
   gr
 }
 
@@ -44,9 +43,8 @@ fn gread (gr : gpu_ref u64) (#v0 : erased u64)
   ensures  on gpu_loc (gr |-> v) ** pure (v == v0)
 {
   let mut r = 0uL;
-  Kuiper.Ref.gpu_memcpy_device_to_host r gr;
-  let v = !r;
-  v
+  Kuiper.Ref.memcpy_device_to_host r gr;
+  !r;
 }
 
 open Pulse.Lib.Pledge
@@ -132,12 +130,12 @@ fn main (_:unit)
   drop_ (epoch_live s5 _);
   drop_ (epoch_live s6 _);
 
-  let v1 = gread r1; gpu_free r1;
-  let v2 = gread r2; gpu_free r2;
-  let v3 = gread r3; gpu_free r3;
-  let v4 = gread r4; gpu_free r4;
-  let v5 = gread r5; gpu_free r5;
-  let v6 = gread r6; gpu_free r6;
+  let v1 = gread r1; free r1;
+  let v2 = gread r2; free r2;
+  let v3 = gread r3; free r3;
+  let v4 = gread r4; free r4;
+  let v5 = gread r5; free r5;
+  let v6 = gread r6; free r6;
 
   destroy_stream s1;
   destroy_stream s2;
