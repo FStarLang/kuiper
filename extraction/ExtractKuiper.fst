@@ -961,11 +961,11 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
   (******** REFERENCES ********)
 
   (* Sadly these two are still primitive. *)
-  | "Kuiper.Ref.gpu_memcpy_host_to_device", [ty], [ sz; dst_gr; src_r; f; v; gv ] ->
+  | "Kuiper.Ref.memcpy_host_to_device", [ty], [ sz; dst_gr; src_r; f; v; gv ] ->
     let sz : expr = sizeof (cb_ty ty) in
     _MUST <| EApp (EQualified ([], "cudaMemcpy"), [ cb dst_gr; cb src_r; sz; cudaMemcpyHostToDevice ])
 
-  | "Kuiper.Ref.gpu_memcpy_device_to_host", [ty], [ sz; dst_r; src_gr; f; v; gv ] ->
+  | "Kuiper.Ref.memcpy_device_to_host", [ty], [ sz; dst_r; src_gr; f; v; gv ] ->
     let sz : expr = sizeof (cb_ty ty) in
     _MUST <| EApp (EQualified ([], "cudaMemcpy"), [ cb dst_r; cb src_gr; sz; cudaMemcpyDeviceToHost ])
 
@@ -988,12 +988,12 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
   | "Kuiper.Array.Core.slice_write", [ty], [ _i; _j; a; idx; v; _s ] ->
     EBufWrite (cb a, cb idx, cb v)
 
-  | "Kuiper.Array.Core.gpu_memcpy_host_to_device", [ty], [ sz; _elen; dst_ga; src_a; cnt; f; v; gv ] ->
+  | "Kuiper.Array.Core.memcpy_host_to_device", [ty], [ sz; _elen; dst_ga; src_a; cnt; f; v; gv ] ->
     let sz : expr = sizeof (cb_ty ty) in
     let bytesize : expr = mul_by_sz sz (cb cnt) in
     _MUST <| EApp (EQualified ([], "cudaMemcpy"), [ cb dst_ga; cb src_a; bytesize; cudaMemcpyHostToDevice ])
 
-  | "Kuiper.Array.Core.gpu_memcpy_host_to_device'", [ty],
+  | "Kuiper.Array.Core.memcpy_host_to_device'", [ty],
         [ sz; _dst_sz; dst_ga; dst_off; _src_sz; src_a; src_off; cnt; f; v; gv ] ->
     let sz : expr = sizeof (cb_ty ty) in
     let dst_off = cb dst_off in (* element offset, not byte offset *)
@@ -1005,13 +1005,13 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
     let bytesize : expr = mul_by_sz sz (cb cnt) in
     _MUST <| EApp (EQualified ([], "cudaMemcpy"), [ dst_ga; src_a; bytesize; cudaMemcpyHostToDevice ])
 
-  | "Kuiper.Array.Core.gpu_memcpy_device_to_host", [ty],
+  | "Kuiper.Array.Core.memcpy_device_to_host", [ty],
   [ sz; _elen; dst_a; src_ga; cnt; f; v; gv ] ->
     let sz : expr = sizeof (cb_ty ty) in
     let bytesize : expr = mul_by_sz sz (cb cnt) in
     _MUST <| EApp (EQualified ([], "cudaMemcpy"), [ cb dst_a; cb src_ga; bytesize; cudaMemcpyDeviceToHost ])
 
-  | "Kuiper.Array.Core.gpu_memcpy_device_to_host'", [ty],
+  | "Kuiper.Array.Core.memcpy_device_to_host'", [ty],
         [ sz; _dst_sz; dst_a; dst_off; _src_sz; src_ga; src_off; cnt; f; v; gv ] ->
     let sz : expr = sizeof (cb_ty ty) in
     let dst_off = cb dst_off in (* element offset, not byte offset *)
@@ -1023,12 +1023,12 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
     let bytesize : expr = mul_by_sz sz (cb cnt) in
     _MUST <| EApp (EQualified ([], "cudaMemcpy"), [ dst_ga; src_a; bytesize; cudaMemcpyDeviceToHost ])
 
-  | "Kuiper.Array.Core.gpu_memcpy_device_to_device", [ty], [ sz; _elen; dst_a; src_ga; cnt; f; v; gv ] ->
+  | "Kuiper.Array.Core.memcpy_device_to_device", [ty], [ sz; _elen; dst_a; src_ga; cnt; f; v; gv ] ->
     let sz : expr = sizeof (cb_ty ty) in
     let bytesize : expr = mul_by_sz sz (cb cnt) in
     _MUST <| EApp (EQualified ([], "cudaMemcpy"), [ cb dst_a; cb src_ga; bytesize; cudaMemcpyDeviceToDevice ])
 
-  | "Kuiper.Array.Core.gpu_memcpy_device_to_device'", [ty],
+  | "Kuiper.Array.Core.memcpy_device_to_device'", [ty],
         [ sz; _dst_sz; dst_ga; dst_off; _src_sz; src_ga; src_off; cnt; f; v; gv ] ->
     let sz : expr = sizeof (cb_ty ty) in
     let dst_off = cb dst_off in (* element offset, not byte offset *)

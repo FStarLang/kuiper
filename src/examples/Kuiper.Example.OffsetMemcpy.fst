@@ -1,6 +1,6 @@
 module Kuiper.Example.OffsetMemcpy
 
-(* Test that gpu_memcpy_host_to_device' and gpu_memcpy_device_to_host'
+(* Test that memcpy_host_to_device' and memcpy_device_to_host'
    correctly handle non-zero offsets. Catches the extraction bug where
    offsets were incorrectly multiplied by element size before EBufSub. *)
 
@@ -29,18 +29,18 @@ fn main (_:unit)
   (* GPU array of 8 u64s, initialized to zeros *)
   let ga = gpu_array_alloc #u64 8sz;
   let zeros = alloc 0uL 8sz;
-  Kuiper.Array.gpu_memcpy_host_to_device ga zeros 8sz;
+  Kuiper.Array.memcpy_host_to_device ga zeros 8sz;
   free zeros;
 
   (* h2d': copy 3 elements from src[1..4) to GPU[2..5)
      GPU becomes: [0, 0, 20, 30, 40, 0, 0, 0] *)
-  Kuiper.Array.gpu_memcpy_host_to_device' ga 2sz #8 src 1sz 3sz;
+  Kuiper.Array.memcpy_host_to_device' ga 2sz #8 src 1sz 3sz;
   free src;
 
   (* d2h': copy 3 elements from GPU[2..5) to dst[3..6)
      dst becomes: [0, 0, 0, 20, 30, 40, 0, 0] *)
   let dst = alloc 0uL 8sz;
-  Kuiper.Array.gpu_memcpy_device_to_host' #_ #_ #8 dst 3sz ga 2sz 3sz;
+  Kuiper.Array.memcpy_device_to_host' #_ #_ #8 dst 3sz ga 2sz 3sz;
   gpu_array_free ga;
 
   let r0 = dst.(3sz);

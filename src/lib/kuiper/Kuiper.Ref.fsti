@@ -34,7 +34,7 @@ instance has_pts_to_gpu_ref (a:Type) : has_pts_to (gpu_ref a) a = {
 }
 
 inline_for_extraction noextract
-fn gpu_alloc0
+fn alloc0
   (#a:Type u#0)
   {| sized a |}
   ()
@@ -43,7 +43,7 @@ fn gpu_alloc0
   returns  x : gpu_ref a
   ensures  exists* (v:a). on gpu_loc (x |-> v)
 
-// fn gpu_alloc
+// fn alloc
 //   (#a:Type u#0)
 //   {| sized a |}
 //   (v:a)
@@ -52,7 +52,7 @@ fn gpu_alloc0
 //   ensures  cpu ** gpu_pts_to x #1.0R v
 
 inline_for_extraction noextract
-fn gpu_free
+fn free
   (#a:Type u#0)
   (r : gpu_ref a)
   preserves cpu
@@ -60,18 +60,37 @@ fn gpu_free
   ensures emp
 
 inline_for_extraction noextract
-fn gpu_read
+fn read
   (#a:Type u#0)
   (r : gpu_ref a)
   (#f : perm)
   (#v0 : erased a)
   preserves r |-> Frac f v0
-  requires emp
+  returns  v : a
+  ensures  pure (v == reveal v0)
+
+(* alias for read *)
+inline_for_extraction noextract
+fn ( ! )
+  (#a:Type u#0)
+  (r : gpu_ref a)
+  (#f : perm)
+  (#v0 : erased a)
+  preserves r |-> Frac f v0
   returns  v : a
   ensures  pure (v == reveal v0)
 
 inline_for_extraction noextract
-fn gpu_write
+fn write
+  (#a:Type u#0)
+  (r : gpu_ref a)
+  (v : a)
+  requires  r |-> 'v0
+  ensures   r |-> v
+
+(* alias for write *)
+inline_for_extraction noextract
+fn ( := )
   (#a:Type u#0)
   (r : gpu_ref a)
   (v : a)
@@ -79,7 +98,7 @@ fn gpu_write
   ensures   r |-> v
 
 noextract
-fn gpu_memcpy_host_to_device
+fn memcpy_host_to_device
   (#a:Type u#0)
   {| sized a |}
   (dst_gr : gpu_ref a)
@@ -90,7 +109,7 @@ fn gpu_memcpy_host_to_device
   ensures   on gpu_loc (dst_gr |-> 'v)
 
 noextract
-fn gpu_memcpy_device_to_host
+fn memcpy_device_to_host
   (#a:Type u#0)
   {| sized a |}
   (dst_r  : ref a)
@@ -101,7 +120,7 @@ fn gpu_memcpy_device_to_host
   ensures  dst_r |-> 'gv
 
 inline_for_extraction noextract
-fn gpu_memcpy_device_to_device
+fn memcpy_device_to_device
   (#a:Type u#0)
   {| sized a |}
   (dst_r src_gr : gpu_ref a)

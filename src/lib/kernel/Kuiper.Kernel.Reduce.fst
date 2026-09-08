@@ -101,7 +101,7 @@ fn reduce1
 
   let local_out = Pulse.Lib.Vec.alloc #et zero 1sz;
 
-  gpu_memcpy_device_to_host local_out out0 1sz;
+  memcpy_device_to_host local_out out0 1sz;
 
   let res = local_out.(0sz);
 

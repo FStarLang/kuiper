@@ -73,7 +73,7 @@ instance is_send_across_gpu_ref
   = Kuiper.Array.Core.is_send_pts_to _ _
 
 inline_for_extraction noextract
-fn gpu_alloc0
+fn alloc0
   (#a:Type u#0)
   {| sized a |}
   ()
@@ -88,7 +88,7 @@ fn gpu_alloc0
   x
 }
 
-// fn gpu_alloc
+// fn alloc
 //   (#a:Type u#0)
 //   {| sized a |}
 //   (v:a)
@@ -97,7 +97,7 @@ fn gpu_alloc0
 //   ensures  cpu ** gpu_pts_to x #1.0R v
 
 inline_for_extraction noextract
-fn gpu_free
+fn free
   (#a:Type u#0)
   (r : gpu_ref a)
   preserves cpu
@@ -109,7 +109,7 @@ fn gpu_free
 }
 
 inline_for_extraction noextract
-fn gpu_read
+fn read
   (#a:Type u#0)
   (r : gpu_ref a)
   (#f : perm)
@@ -125,8 +125,10 @@ fn gpu_read
   x
 }
 
+let ( ! ) = read
+
 inline_for_extraction noextract
-fn gpu_write
+fn write
   (#a:Type u#0)
   (r : gpu_ref a)
   (v : a)
@@ -141,8 +143,10 @@ fn gpu_write
   fold gpu_pts_to r v;
 }
 
+let ( := ) = write
+
 noextract
-fn gpu_memcpy_host_to_device
+fn memcpy_host_to_device
   (#a:Type u#0)
   {| sized a |}
   (dst_gr : gpu_ref a)
@@ -156,7 +160,7 @@ fn gpu_memcpy_host_to_device
 }
 
 noextract
-fn gpu_memcpy_device_to_host
+fn memcpy_device_to_host
   (#a:Type u#0)
   {| sized a |}
   (dst_r  : ref a)
@@ -170,7 +174,7 @@ fn gpu_memcpy_device_to_host
 }
 
 inline_for_extraction noextract
-fn gpu_memcpy_device_to_device
+fn memcpy_device_to_device
   (#a:Type u#0)
   {| sized a |}
   (dst_r src_gr : gpu_ref a)
@@ -181,7 +185,7 @@ fn gpu_memcpy_device_to_device
 {
   _unfold_loc dst_r;
   _unfold_loc src_gr;
-  Kuiper.Array.Core.gpu_memcpy_device_to_device dst_r src_gr 1sz;
+  Kuiper.Array.Core.memcpy_device_to_device dst_r src_gr 1sz;
   _fold_loc dst_r;
   _fold_loc src_gr;
 }

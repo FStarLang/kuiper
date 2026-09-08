@@ -735,8 +735,8 @@ fn reduce
     pure (r == Kuiper.Seq.Common.seq_fold_left d.pure_op zero (chest1_to_seq v_a))
 {
   let mut r : et = zero;
-  let gr = gpu_alloc0 #et ();
-  Kuiper.Ref.gpu_memcpy_host_to_device #et #_ gr r;
+  let gr = Kuiper.Ref.alloc0 #et ();
+  Kuiper.Ref.memcpy_host_to_device #et #_ gr r;
 
   (* --- CPU-side invariant setup --- *)
 
@@ -832,9 +832,9 @@ fn reduce
   (* Drop ghost state *)
   drop_ (forall+ (i : natlt (SZ.v n)). (Seq.index done i) |-> true ** pure (Seq.index v_done i == true));
 
-  Kuiper.Ref.gpu_memcpy_device_to_host r gr #_ #_ #_;
+  Kuiper.Ref.memcpy_device_to_host r gr #_ #_ #_;
 
-  Kuiper.Ref.gpu_free gr;
+  free gr;
 
   let v = !r;
   v
