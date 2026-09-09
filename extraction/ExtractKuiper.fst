@@ -84,6 +84,7 @@ let kpr_translate_type_without_decay : translate_type_without_decay_t = fun env 
   | "Kuiper.Float16.Base.t",               [] -> TInt Float16
   | "Kuiper.BFloat16.Base.t",              [] -> TInt BFloat16
   | "Kuiper.Float32.Base.t",               [] -> TInt Float32
+  | "Kuiper.Float32.Exact.t",              [] -> TInt Float32
   | "Kuiper.Float64.Base.t",               [] -> TInt Float64
   | "Kuiper.Kernel.Stream.stream_t",       [] -> TQualified ([], "cudaStream_t")
   | _ -> raise NotSupportedByKrmlExtension
@@ -781,12 +782,32 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
     end
   | "Kuiper.BFloat16.Base.of_int", [], [i] -> EApp (EQualified ([], "__ll2bfloat16_rn"), [cb i])
 
+  // Exact binary32 operations have an independent bit-preserving model.
+  // In particular unary negation must not become subtraction from zero,
+  // and RN addition/division must retain their explicit CUDA intrinsics.
+  | "Kuiper.Float32.Exact.of_bits", [], [] -> EQualified ([], "__uint_as_float")
+  | "Kuiper.Float32.Exact.bits", [], [] -> EQualified ([], "__float_as_uint")
+  | "Kuiper.Float32.Exact.mul_rn", [], [] -> EQualified ([], "__fmul_rn")
+  | "Kuiper.Float32.Exact.fma", [], [] -> EQualified ([], "fmaf")
+  | "Kuiper.Float32.Exact.exp_fast", [], [] -> EQualified ([], "__expf")
+  | "Kuiper.Float32.Exact.div_fast", [], [] -> EQualified ([], "__fdividef")
+  | "Kuiper.Float32.Exact.le", [], [] -> EOp (Lte, Float32)
+  | "Kuiper.Float32.Exact.ge", [], [] -> EOp (Gte, Float32)
+  | "Kuiper.Float32.Exact.one", [], [] -> EConstant (Float32, "1.0f")
+  | "Kuiper.Float32.Exact.neg", [], [] -> EQualified ([], "kpr_f32_neg")
+  | "Kuiper.Float32.Exact.exp", [], [] -> EQualified ([], "expf")
+  | "Kuiper.Float32.Exact.add_rn", [], [] -> EQualified ([], "__fadd_rn")
+  | "Kuiper.Float32.Exact.div_rn", [], [] -> EQualified ([], "__fdiv_rn")
+
   | "Kuiper.Float32.Base.zero", [], [] -> EConstant (Float32, "0.0f")
   | "Kuiper.Float32.Base.one",  [], [] -> EConstant (Float32, "1.0f")
   | "Kuiper.Float32.Base.add",  [], [] -> EOp (Add, Float32)
   | "Kuiper.Float32.Base.mul",  [], [] -> EOp (Mult, Float32)
   | "Kuiper.Float32.Base.sub",  [], [] -> EOp (Sub, Float32)
   | "Kuiper.Float32.Base.div",  [], [] -> EOp (Div, Float32)
+  | "Kuiper.Float32.Base.neg", [], [] -> EQualified ([], "kpr_f32_neg")
+  | "Kuiper.Float32.Base.add_rn", [], [] -> EQualified ([], "__fadd_rn")
+  | "Kuiper.Float32.Base.div_rn", [], [] -> EQualified ([], "__fdiv_rn")
   | "Kuiper.Float32.Base.fexp", [], [] -> EQualified ([], "expf")
   | "Kuiper.Float32.Base.flog", [], [] -> EQualified ([], "logf")
   | "Kuiper.Float32.Base.eq",   [], [] -> EOp (Eq, Float32)

@@ -19,6 +19,10 @@
 #include <cuda_fp16.h>
 #include <cuda_bf16.h>
 
+/* Preserve CUDA unary negation, including signed zero and NaN behavior.
+ * The extraction IR has no unary floating-point negation constructor. */
+#define kpr_f32_neg(x) (-(x))
+
 #define HLF_MIN      __float2half(6.10352e-5f)
 #define HLF_MAX      __float2half(65504.0f)
 #define HLF_INFINITY __float2half(INFINITY)

@@ -40,4 +40,18 @@ instance is_floating : floating t = {
 instance is_real_like          : real_like t = magic()
 instance is_floating_real_like : floating_real_like t = magic()
 
+inline_for_extraction noextract
+let neg = Float32.Base.neg
+
+inline_for_extraction noextract
+let add_rn = Float32.Base.add_rn
+
+inline_for_extraction noextract
+let div_rn = Float32.Base.div_rn
+
+(* The explicit CUDA operations share that trusted approximation model. *)
+let neg_approx = magic()
+let add_rn_approx = magic()
+let div_rn_approx = magic()
+
 let lem_sizeof () = ()
