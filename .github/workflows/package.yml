@@ -5,7 +5,7 @@ name: Build Kuiper package
 # uploads it as an artifact. Modeled on F*'s build-linux.yml / build-macos.yml.
 #
 # This is a reusable workflow, called by nightly-build.yml. It can also be run
-# manually via workflow_dispatch.
+# manually via workflow_dispatch, with an optional tag to publish a prerelease.
 #
 # NOTE: this workflow deliberately does NOT use the devcontainer image that the
 # rest of our CI uses. That image is Ubuntu 24.04 (glibc 2.39), so the binaries
@@ -22,19 +22,61 @@ on:
         description: 'Git ref to build (default: the triggering ref)'
         type: string
         default: ''
+      tag:
+        description: 'Release tag to publish (leave empty for artifacts only)'
+        type: string
+        default: ''
   workflow_dispatch:
     inputs:
       ref:
         description: 'Git ref to build'
         type: string
         default: ''
+      tag:
+        description: 'Release tag to publish (leave empty for artifacts only)'
+        type: string
+        default: ''
+
+permissions:
+  contents: read
 
 defaults:
   run:
     shell: bash
 
 jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      sha: ${{ steps.commit.outputs.sha }}
+    steps:
+      - name: Check out the requested ref
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.ref || github.sha }}
+          fetch-depth: 0
+
+      - name: Resolve the build commit and validate the release tag
+        id: commit
+        env:
+          TAG: ${{ inputs.tag }}
+        run: |
+          SHA=$(git rev-parse HEAD)
+          echo "sha=$SHA" >> "$GITHUB_OUTPUT"
+          if [[ -n "$TAG" ]]; then
+            if [[ "$TAG" == -* ]] || ! git check-ref-format "refs/tags/$TAG"; then
+              echo "::error::Invalid release tag"
+              exit 1
+            fi
+            if git show-ref --verify --quiet "refs/tags/$TAG" && \
+               [[ "$(git rev-parse "refs/tags/$TAG^{commit}")" != "$SHA" ]]; then
+              echo "::error::Release tag already points to a different commit"
+              exit 1
+            fi
+          fi
+
   build:
+    needs: prepare
     strategy:
       fail-fast: false
       matrix:
@@ -51,7 +93,7 @@ jobs:
       - name: Check out repo
         uses: actions/checkout@v6
         with:
-          ref: ${{ inputs.ref || '' }}
+          ref: ${{ needs.prepare.outputs.sha }}
           submodules: recursive
           fetch-depth: 0
 
@@ -142,3 +184,41 @@ jobs:
         with:
           name: package-${{ matrix.os }}
           path: kuiper-*.tar.gz
+
+  publish:
+    if: ${{ inputs.tag != '' }}
+    needs: [prepare, build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Check out the build commit
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.prepare.outputs.sha }}
+
+      - uses: actions/download-artifact@v7
+        with:
+          pattern: package-*
+          path: artifacts
+          merge-multiple: true
+
+      - name: Check that all expected packages built
+        run: |
+          for f in kuiper-Linux-x86_64.tar.gz \
+                   kuiper-Darwin-arm64.tar.gz \
+                   kuiper-Darwin-x86_64.tar.gz; do
+            test -f "artifacts/$f" || { echo "missing $f"; exit 1; }
+          done
+
+      - name: Create prerelease with artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag }}
+          SHA: ${{ needs.prepare.outputs.sha }}
+        run: |
+          gh release create "$TAG" artifacts/* \
+            --prerelease \
+            --generate-notes \
+            --target "$SHA" \
+            --title "Kuiper $TAG"
