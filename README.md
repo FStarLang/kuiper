@@ -78,8 +78,21 @@ clang-format --version                           # bundled, pinned formatter
 
 See the package's own `README.md` for how to add and build a new kernel.
 
-Packages are produced by `make package` (see `scripts/mk-package.sh`) and built
-nightly by `.github/workflows/nightly-build.yml`.
+Packages are produced by `make -j$(nproc) package` (see `scripts/mk-package.sh`)
+and built nightly by `.github/workflows/nightly-build.yml`.
+
+To build and publish an extra package, open **Actions → Build Kuiper package →
+Run workflow**, set `ref` to the branch, tag, or commit to build, and enter a
+unique release `tag`. Or use the GitHub CLI:
+
+```bash
+gh workflow run package.yml -f ref=main -f tag=nightly-2026-09-09-extra
+```
+
+This publishes all three platform packages as a prerelease under that exact tag,
+pointing to the commit built. Use a fresh tag for each publication; existing
+releases are not replaced. Leave `tag` empty to only upload workflow artifacts.
+The daily nightly schedule continues as before.
 
 ### Seeding a source checkout from a package
 
