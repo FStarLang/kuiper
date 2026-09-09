@@ -446,9 +446,6 @@ let rec chest1_dotprod_seq (#et : Type0) {| scalar et |} (#n : nat)
           (decreases k)
   = if k = 0 then () else chest1_dotprod_seq a b (k-1)
 
-(* Per-leaf-goal rlimits: the loop-invariant establishment below is now its own
-   query and needs a larger budget than the default. *)
-#push-options "--z3rlimit 200"
 inline_for_extraction noextract
 fn softmax_dotprod
   (#et : Type0) {| floating et, real_like et, floating_real_like et |}
@@ -561,7 +558,12 @@ fn softmax_dotprod
 
     loop_inv_maintained ras rbs (!i) (reveal old_max) (reveal old_sum_n) (reveal old_sum_d);
 
-    i := !i `SZ.add` 1sz;
+    (* Establish the fold at the mathematical successor before updating the
+       machine index. Its refinement also rules out the initial i = 0 case. *)
+    assert pure (hide (reveal gmax', reveal gsum_n', reveal gsum_d') ==
+      seq_fold_left online_softmax_dotprod_real_iter (hide (ras @! 0, rbs @! 0, 1.0R)) (Seq.slice (reveal pairs) 1 (SZ.v vk + 1)));
+    let next_i : (v:sz{SZ.v v == SZ.v vk + 1}) = !i `SZ.add` 1sz;
+    i := next_i;
 
     assert pure (hide (reveal gmax', reveal gsum_n', reveal gsum_d') ==
       seq_fold_left online_softmax_dotprod_real_iter (hide (ras @! 0, rbs @! 0, 1.0R)) (Seq.slice (reveal pairs) 1 (!i)));
@@ -577,7 +579,6 @@ fn softmax_dotprod
   assert pure (res %~ chest1_dotprod (softmax_real ra) rb);
   res
 }
-#pop-options
 
 let _test (len : szp{len <= max_blocks * max_threads}) =
   softmax_dotprod #f32 len #(l1_forward len)
