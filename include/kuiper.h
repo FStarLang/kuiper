@@ -10,6 +10,11 @@
 
 #include <cuda_runtime.h>
 #include <cuda_fp16.h>
+
+/* Make Custard's custard_f16/custard_bf16 be CUDA's own 16-bit types, which
+   is what wmma::fragment is a template over.  Must precede the generated
+   header's narrow-float support block. */
+#include "kuiper/custard_f16_cuda.h"
 #include "kuiper/atomics.h"
 #include "kuiper/vectorops.h"
 #include "kuiper/math.h"
@@ -118,6 +123,57 @@ void * __KPR_GPU_ALLOC(size_t sz, size_t len, const char * str, const char *func
 #define KPR_GPU_ALLOC(sz, len)						\
 	__KPR_GPU_ALLOC(sz, len, "KPR_GPU_ALLOC(" #sz ", " #len ")", __func__, __FILE__, __LINE__)
 
+/* The rest of the device-memory runtime, for the Custard extraction (section
+   79).  The Krml plugin emitted cudaFree/cudaMemcpy calls inline; the Custard
+   rules go through these so that the call site is named in a MUST() failure
+   the same way KPR_GPU_ALLOC's is. */
+
+#define KPR_GPU_FREE(p)							\
+	__MUST(cudaFree(p), "KPR_GPU_FREE(" #p ")", __func__, __FILE__, __LINE__)
+
+#define KPR_SYNC_DEVICE()						\
+	__MUST(cudaDeviceSynchronize(), "KPR_SYNC_DEVICE()", __func__,	\
+	       __FILE__, __LINE__)
+
+#define KPR_MEMCPY_H2D(dst, src, bytes)					\
+	__MUST(cudaMemcpy(dst, src, bytes, cudaMemcpyHostToDevice),	\
+	       "KPR_MEMCPY_H2D(" #dst ", " #src ", " #bytes ")",		\
+	       __func__, __FILE__, __LINE__)
+
+#define KPR_MEMCPY_D2H(dst, src, bytes)					\
+	__MUST(cudaMemcpy(dst, src, bytes, cudaMemcpyDeviceToHost),	\
+	       "KPR_MEMCPY_D2H(" #dst ", " #src ", " #bytes ")",		\
+	       __func__, __FILE__, __LINE__)
+
+#define KPR_MEMCPY_D2D(dst, src, bytes)					\
+	__MUST(cudaMemcpy(dst, src, bytes, cudaMemcpyDeviceToDevice),	\
+	       "KPR_MEMCPY_D2D(" #dst ", " #src ", " #bytes ")",		\
+	       __func__, __FILE__, __LINE__)
+
+/*
+ * Raise the dynamic shared memory cap for one kernel.
+ *
+ * cudaFuncSetAttribute is only needed above the 48KiB default; at or below it
+ * the call does nothing, so the test keeps a CUDA runtime call out of the
+ * common path.  [bytes] is a compile-time constant at every call site the
+ * extraction produces, so nvcc folds the branch away entirely.
+ *
+ * The test is >= so a kernel sitting exactly on the default still opts in:
+ * the call always succeeds at that size, which removes any doubt about the
+ * boundary.
+ */
+#define KPR_SET_MAX_DYN_SHMEM(k, bytes)					\
+	do {								\
+		if ((size_t)(bytes) >= 49152) {				\
+			__MUST(cudaFuncSetAttribute(			\
+			         (const void *)(k),			\
+			         cudaFuncAttributeMaxDynamicSharedMemorySize, \
+			         (int)(bytes)),				\
+			       "KPR_SET_MAX_DYN_SHMEM(" #k ", " #bytes ")", \
+			       __func__, __FILE__, __LINE__);		\
+		}							\
+	} while (0)
+
 static inline
 void INFO ()
 {
@@ -153,3 +209,6 @@ cudaStream_t KPR_FRESH_STREAM() {
 }
 
 #endif /* KUIPER_H */
+
+#define KPR_MUST_stream_destroy(s) MUST(cudaStreamDestroy(s))
+#define KPR_MUST_stream_sync(s)    MUST(cudaStreamSynchronize(s))

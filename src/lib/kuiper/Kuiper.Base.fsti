@@ -6,9 +6,10 @@ include Kuiper.Locs
 open Pulse.Lib.Core
 module SZ = Kuiper.SizeT
 
-(* This should be 2^31-1, or 2^30. We constrain this more than normal due to our
-hack about interpreting size_t as uint32_t in karamel (see Kuiper.SizeT). When
-that is gone, this should be increased. *)
+(* This should be 2^31-1, or 2^30. We constrain this more than normal due to the
+SizeTFitsU32 assumption (see Kuiper.SizeT), inherited from the days when
+extraction narrowed size_t to uint32_t. When that is gone, this should be
+increased. *)
 unfold
 let max_blocks : SZ.t = SZ.uint_to_t 2097152
 

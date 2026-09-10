@@ -69,6 +69,10 @@ EXTRACT += $(wildcard src/examples/*.fst)
 EXTRACT += $(wildcard src/klas/*.fst)
 EXTRACT += src/lib/graph/Kuiper.GraphDist.fst
 NOEXTRACT :=
+# ARPort declares nothing but the C vocabulary the extraction rules emit
+# (KPR_KCALL, KPR_SHMEM_AT, the wmma:: names, ...).  It is a leaf that every
+# other module pulls in, never an entry point of its own.
+NOEXTRACT += src/examples/Kuiper.Example.ARPort.fst
 
 # The Inst.fst modules just contain an instantiation function, not to be extracted.
 INST_MODULES := $(foreach f,$(EXTRACT),$(if $(findstring Inst.fst,$(f)),$(f)))
@@ -76,8 +80,10 @@ EXTRACT := $(filter-out $(INST_MODULES),$(EXTRACT))
 
 EXTRACT := $(filter-out $(NOEXTRACT),$(EXTRACT))
 
-extract-all: $(patsubst %,obj/%.cu,$(subst .,_,$(basename $(notdir $(EXTRACT)))))
-extract-all: $(patsubst %,obj/%.h, $(subst .,_,$(basename $(notdir $(EXTRACT)))))
+EXTRACTED_CU := $(patsubst %,$(OUTDIR)/%.cu,$(subst .,_,$(basename $(notdir $(EXTRACT)))))
+EXTRACTED_H  := $(patsubst %,$(OUTDIR)/%.h, $(subst .,_,$(basename $(notdir $(EXTRACT)))))
+
+extract-all: $(EXTRACTED_CU) $(EXTRACTED_H)
 
 EXTRACT_MINIMAL := $(EXTRACT)
 TENSORCORE_EXTRACT := $(foreach f,$(EXTRACT),$(if $(findstring TensorCore,$(f)),$(f)))

@@ -31,6 +31,8 @@ fn launch_kernel_full
     pledge0 (epoch_done s e) (on gpu_loc full_post)
 
 noextract
+[@@FStar.Attributes.custard_extern "KPR_MUST_stream_sync";
+   FStar.Attributes.custard_c_header "kuiper.h"]
 fn sync_stream
   (s: stream_t)
   (#e:epoch_t)

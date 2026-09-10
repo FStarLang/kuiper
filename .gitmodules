@@ -3,11 +3,6 @@
 	url = ../FStar
 	branch = kuiper
 	depth = 1
-[submodule "karamel"]
-	path = karamel
-	url = ../karamel
-	branch = kuiper
-	depth = 1
 [submodule "bench/SGEMM_CUDA"]
 	path = bench/SGEMM_CUDA
 	url = https://github.com/siboehm/SGEMM_CUDA

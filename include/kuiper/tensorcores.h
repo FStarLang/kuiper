@@ -58,4 +58,15 @@ using namespace nvcuda;
     wmma::store_matrix_sync((gm), (fr), (ldm), wmma::mem_row_major);           \
   } while (0)
 
+// Section 66 (Custard).  Two spellings whose trailing argument is a fixed
+// token rather than a value.  Custard requires every symbol a rule refers to
+// to be a declaration in the program (error 379), so a bare
+// wmma::mem_row_major cannot be synthesized at the call site the way the
+// karamel plugin does it.  Wrapping the token in a macro is what keeps the
+// rule referring only to declarations.
+#define KPR_LOAD_ACCUM(fr, gm, ldm)                                            \
+  wmma::load_matrix_sync((fr), (gm), (ldm), wmma::mem_row_major)
+#define KPR_STORE(gm, fr, ldm)                                                 \
+  wmma::store_matrix_sync((gm), (fr), (ldm), wmma::mem_row_major)
+
 #endif /* KUIPER_TENSORCORES_H */

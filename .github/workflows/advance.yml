@@ -1,7 +1,7 @@
 name: Advance submodules
 
 # This workflow uses KUIPER_ADVANCE_GH_TOKEN (a fine-grained PAT) to push to
-# the FStar and karamel submodule repos, and to push the advance branch and
+# the FStar submodule repo, and to push the advance branch and
 # open its PR in this repo. It must be a PAT rather than GITHUB_TOKEN for the
 # latter: pushes and PRs made with GITHUB_TOKEN do not trigger workflow runs,
 # so the required `ciok` check would never appear and auto-merge would hang.
@@ -9,7 +9,7 @@ name: Advance submodules
 #
 # 1. Go to https://github.com/settings/personal-access-tokens/new
 # 2. Set resource owner to "FStarLang"
-# 3. Under "Repository access", select "FStarLang/FStar", "FStarLang/karamel"
+# 3. Under "Repository access", select "FStarLang/FStar"
 #    and "FStarLang/kuiper"
 # 4. Under "Permissions > Repository permissions", set "Contents" to "Read and
 #    write" and "Pull requests" to "Read and write"
@@ -50,7 +50,7 @@ jobs:
           fetch-depth: 0
           # Don't persist the github-actions[bot] credentials: checkout injects
           # them as an http.extraheader into each submodule's git config, which
-          # would override the PAT in the push URLs we use for FStar/karamel
+          # would override the PAT in the push URL we use for FStar
           # below (resulting in a 403). We set explicit tokens per-push instead.
           persist-credentials: false
 
@@ -115,7 +115,7 @@ jobs:
         if: ${{ env.MOVED == '1' }}
         run: |
           # Use the token so we can push to these repos.
-          for dir in FStar karamel; do
+          for dir in FStar; do
             pushd $dir
             echo "in $(pwd)"
             R=$(git remote get-url origin | grep -Eo '[[:alnum:]]*/[[:alnum:]]*$')
@@ -148,7 +148,7 @@ jobs:
           if [ "$DISTCHANGE" = 1 ]; then
             git add .
           else
-            git add FStar karamel
+            git add FStar
           fi
           git commit -m "$TITLE"
           git push -f origin "$BRANCH"

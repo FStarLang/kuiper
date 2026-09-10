@@ -9,7 +9,11 @@ const char *progname = __FILE__;
 
 #define N 128
 
-typedef Kuiper_Sparse_Matrix_smatrix__uint32_t smatrix_t;
+typedef Kuiper_Sparse_Matrix_smatrix__uint32 smatrix_t;
+
+/* The CSR index arrays are `sz` in the F* source, i.e. size_t once extracted.
+ */
+typedef size_t spmm_idx_t;
 
 uint32_t *mk_dense_matrix()
 {
@@ -32,8 +36,8 @@ smatrix_t sparsify_matrix(uint32_t *M)
     }
 
     uint32_t *elems = (uint32_t *) malloc(nnz * sizeof elems[0]);
-    uint32_t *col_ind = (uint32_t *) malloc(nnz * sizeof col_ind[0]);
-    uint32_t *row_off = (uint32_t *) malloc((N + 1) * sizeof row_off[0]);
+    spmm_idx_t *col_ind = (spmm_idx_t *) malloc(nnz * sizeof col_ind[0]);
+    spmm_idx_t *row_off = (spmm_idx_t *) malloc((N + 1) * sizeof row_off[0]);
 
     uint32_t idx = 0;
     row_off[0] = 0;
@@ -49,7 +53,7 @@ smatrix_t sparsify_matrix(uint32_t *M)
     }
     assert(idx == nnz);
 
-    Kuiper_Sparse_Matrix_smatrix__uint32_t smat;
+    Kuiper_Sparse_Matrix_smatrix__uint32 smat;
     smat.nnz = nnz;
     smat.elems = elems;
     smat.col_ind = col_ind;
@@ -93,8 +97,8 @@ int main(int argc, char **argv)
     smatrix_t dA;
     dA.nnz = A.nnz;
     dA.elems = (uint32_t *) kpr_wait_alloc(sizeof dA.elems[0], A.nnz);
-    dA.col_ind = (uint32_t *) kpr_wait_alloc(sizeof dA.col_ind[0], A.nnz);
-    dA.row_off = (uint32_t *) kpr_wait_alloc(sizeof dA.row_off[0], N + 1);
+    dA.col_ind = (spmm_idx_t *) kpr_wait_alloc(sizeof dA.col_ind[0], A.nnz);
+    dA.row_off = (spmm_idx_t *) kpr_wait_alloc(sizeof dA.row_off[0], N + 1);
 
     cudaMemcpy(dA.elems, A.elems, sizeof A.elems[0] * A.nnz,
                cudaMemcpyHostToDevice);

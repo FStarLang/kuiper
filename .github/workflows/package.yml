@@ -1,6 +1,6 @@
 name: Build Kuiper package
 
-# Builds a self-contained Kuiper binary package (F* + Karamel + Z3 + verified
+# Builds a self-contained Kuiper binary package (F* + Z3 + verified
 # Kuiper library + everything needed to generate and build new kernels) and
 # uploads it as an artifact. Modeled on F*'s build-linux.yml / build-macos.yml.
 #
@@ -80,10 +80,6 @@ jobs:
       - name: Install OCaml dependencies
         run: |
           opam install --yes --deps-only ./FStar/fstar.opam
-          # Karamel's extra build deps. We cannot use --deps-only on
-          # karamel.opam: it depends on the `fstar` opam package, while we
-          # build F* from the submodule.
-          opam install --yes ocamlfind ocamlbuild
 
       - name: Install Z3
         run: |
@@ -94,24 +90,23 @@ jobs:
         id: commits
         run: |
           echo "FSTARCOMMIT=$(git -C FStar rev-parse HEAD)" >> "$GITHUB_OUTPUT"
-          echo "KRMLCOMMIT=$(git -C karamel rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
       # NB: the key includes matrix.os, not just runner.os/runner.arch: an
       # ubuntu-24.04 toolchain and an ubuntu-22.04 one are both "Linux/X64" but
       # are emphatically not interchangeable for packaging.
-      - name: Try fetch cached F*/Karamel toolchain
+      - name: Try fetch cached F* toolchain
         id: fstarcache
         uses: actions/cache/restore@v5
         with:
           path: inst
-          key: kuiper-toolchain-${{ matrix.os }}-${{ steps.commits.outputs.FSTARCOMMIT }}-${{ steps.commits.outputs.KRMLCOMMIT }}
+          key: kuiper-toolchain-${{ matrix.os }}-${{ steps.commits.outputs.FSTARCOMMIT }}
 
       - name: Fake toolchain touchfiles (cache hit)
         if: ${{ steps.fstarcache.outputs.cache-hit == 'true' }}
         run: |
-          touch .fstar.src.touch .fstar.touch .krml.src.touch .krml.touch
+          touch .fstar.src.touch .fstar.touch
 
-      - name: Build F* and Karamel
+      - name: Build F*
         run: |
           eval $(opam env)
           "$MAKE" -j"$NPROC" -f verify.mk prepare
@@ -121,7 +116,7 @@ jobs:
         if: ${{ steps.fstarcache.outputs.cache-hit != 'true' }}
         with:
           path: inst
-          key: kuiper-toolchain-${{ matrix.os }}-${{ steps.commits.outputs.FSTARCOMMIT }}-${{ steps.commits.outputs.KRMLCOMMIT }}
+          key: kuiper-toolchain-${{ matrix.os }}-${{ steps.commits.outputs.FSTARCOMMIT }}
 
       - name: Verify Kuiper library
         run: |
