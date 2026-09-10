@@ -21,14 +21,14 @@ __hoisted_stencil3x3_f32_add_rr_0(float *gIn, float *gOut, uint32_t cols_sub2)
                               gIn[(i + 2U) * (cols_sub2 + 2U) + j + 2U] * 1.0f;
 }
 
-void Kuiper_Example_Stencil_stencil3x3_f32_add_rr(uint32_t rows, uint32_t cols,
-                                                  float *gIn, float *gOut)
+void Kuiper_Example_Stencil_stencil3x3_f32_add_rr(
+    uint32_t rows, uint32_t cols, float *gIn, float *gOut)
 {
     uint32_t rows_sub2 = rows - 2U;
     uint32_t cols_sub2 = cols - 2U;
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_KCALL(__hoisted_stencil3x3_f32_add_rr_0, rows_sub2 * cols_sub2, 1U, 0U,
-              s, gIn, gOut, cols_sub2);
+        s, gIn, gOut, cols_sub2);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -38,8 +38,8 @@ __global__
   hoisted when extracting stencil3x3_i32_add_mul2_rc
 */
 static void
-__hoisted_stencil3x3_i32_add_mul2_rc_0(uint32_t *gIn, uint32_t *gOut,
-                                       uint32_t rows_sub2, uint32_t cols_sub2)
+__hoisted_stencil3x3_i32_add_mul2_rc_0(
+    uint32_t *gIn, uint32_t *gOut, uint32_t rows_sub2, uint32_t cols_sub2)
 {
     uint32_t i = blockIdx.x / cols_sub2;
     uint32_t j = blockIdx.x % cols_sub2;
@@ -54,16 +54,14 @@ __hoisted_stencil3x3_i32_add_mul2_rc_0(uint32_t *gIn, uint32_t *gOut,
                               gIn[(i + 2U) * (cols_sub2 + 2U) + j + 2U];
 }
 
-void Kuiper_Example_Stencil_stencil3x3_i32_add_mul2_rc(uint32_t rows,
-                                                       uint32_t cols,
-                                                       uint32_t *gIn,
-                                                       uint32_t *gOut)
+void Kuiper_Example_Stencil_stencil3x3_i32_add_mul2_rc(
+    uint32_t rows, uint32_t cols, uint32_t *gIn, uint32_t *gOut)
 {
     uint32_t rows_sub2 = rows - 2U;
     uint32_t cols_sub2 = cols - 2U;
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_KCALL(__hoisted_stencil3x3_i32_add_mul2_rc_0, rows_sub2 * cols_sub2, 1U,
-              0U, s, gIn, gOut, rows_sub2, cols_sub2);
+        0U, s, gIn, gOut, rows_sub2, cols_sub2);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }

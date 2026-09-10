@@ -36,12 +36,12 @@ __hoisted_incr_all_1d2_0(uint32_t *a)
         a[(KRML_CLITERAL(__uint32_t__uint32_t______){
                .fst = (1024U * blockIdx.x + threadIdx.x) / 1024U,
                .snd = (1024U * blockIdx.x + threadIdx.x) % 1024U})
-                  .fst *
-              1024U +
-          (KRML_CLITERAL(__uint32_t__uint32_t______){
-               .fst = (1024U * blockIdx.x + threadIdx.x) / 1024U,
-               .snd = (1024U * blockIdx.x + threadIdx.x) % 1024U})
-              .snd]++;
+                    .fst *
+                1024U +
+            (KRML_CLITERAL(__uint32_t__uint32_t______){
+                 .fst = (1024U * blockIdx.x + threadIdx.x) / 1024U,
+                 .snd = (1024U * blockIdx.x + threadIdx.x) % 1024U})
+                .snd]++;
 }
 
 void Kuiper_Example_TMap_incr_all_1d2(uint32_t *a)

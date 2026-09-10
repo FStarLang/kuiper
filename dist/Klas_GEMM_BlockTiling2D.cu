@@ -7,7 +7,7 @@ __global__
 */
 static void
 __hoisted_g_gemm_f32_32x32x32_8x8_0(float alpha, float beta, uint32_t n,
-                                    uint32_t k, float *gA, float *gB, float *gC)
+    uint32_t k, float *gA, float *gB, float *gC)
 {
     float *gA_p = gA;
     float *gB_p = gB;
@@ -30,8 +30,8 @@ __hoisted_g_gemm_f32_32x32x32_8x8_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i0 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 32U;
-            vec_memcpy(local, tileA + (k * mrow * 32U + __anf05 * 32U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 32U + __anf05 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sA[(col + k1) * 32U + row] = local[k1];
@@ -44,8 +44,8 @@ __hoisted_g_gemm_f32_32x32x32_8x8_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
-            vec_memcpy(local, tileB + (n * __anf08 * 32U + mcol * 32U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 32U + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sB[row * 32U + col + k1] = local[k1];
@@ -86,9 +86,7 @@ __hoisted_g_gemm_f32_32x32x32_8x8_0(float alpha, float beta, uint32_t n,
 }
 
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_32x32x32_8x8(float alpha, float beta,
-                                                     uint32_t m, uint32_t n,
-                                                     uint32_t k, float *gA,
-                                                     float *gB, float *gC)
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC)
 {
     KPR_GUARD(m % 32U == 0U);
     KPR_GUARD(k % 32U == 0U);
@@ -96,7 +94,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_f32_32x32x32_8x8(float alpha, float beta,
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(8192U);
     KPR_KCALL(__hoisted_g_gemm_f32_32x32x32_8x8_0, m / 32U * (n / 32U), 16U,
-              8192U, s, alpha, beta, n, k, gA, gB, gC);
+        8192U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -107,8 +105,8 @@ __global__
 */
 static void
 __hoisted_g_gemm_bf16_32x32x32_8x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
-                                     uint32_t n, uint32_t k, __nv_bfloat16 *gA,
-                                     __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+    uint32_t n, uint32_t k, __nv_bfloat16 *gA, __nv_bfloat16 *gB,
+    __nv_bfloat16 *gC)
 {
     __nv_bfloat16 *gA_p = gA;
     __nv_bfloat16 *gB_p = gB;
@@ -133,8 +131,8 @@ __hoisted_g_gemm_bf16_32x32x32_8x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, tileA + (k * mrow * 32U + __anf05 * 32U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 32U + __anf05 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sA[(col + k1) * 32U + row] = local[k1];
@@ -148,8 +146,8 @@ __hoisted_g_gemm_bf16_32x32x32_8x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, tileB + (n * __anf08 * 32U + mcol * 32U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 32U + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sB[row * 32U + col + k1] = local[k1];
@@ -195,9 +193,9 @@ __hoisted_g_gemm_bf16_32x32x32_8x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
     }
 }
 
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x32x32_8x8(
-    __nv_bfloat16 alpha, __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k,
-    __nv_bfloat16 *gA, __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x32x32_8x8(__nv_bfloat16 alpha,
+    __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k, __nv_bfloat16 *gA,
+    __nv_bfloat16 *gB, __nv_bfloat16 *gC)
 {
     KPR_GUARD(m % 32U == 0U);
     KPR_GUARD(k % 32U == 0U);
@@ -205,7 +203,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x32x32_8x8(
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(4096U);
     KPR_KCALL(__hoisted_g_gemm_bf16_32x32x32_8x8_0, m / 32U * (n / 32U), 16U,
-              4096U, s, alpha, beta, n, k, gA, gB, gC);
+        4096U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -216,8 +214,7 @@ __global__
 */
 static void
 __hoisted_g_gemm_f32_32x32x32_8x16_0(float alpha, float beta, uint32_t n,
-                                     uint32_t k, float *gA, float *gB,
-                                     float *gC)
+    uint32_t k, float *gA, float *gB, float *gC)
 {
     float *gA_p = gA;
     float *gB_p = gB;
@@ -240,8 +237,8 @@ __hoisted_g_gemm_f32_32x32x32_8x16_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i0 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 32U;
-            vec_memcpy(local, tileA + (k * mrow * 32U + __anf05 * 32U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 32U + __anf05 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sA[(col + k1) * 32U + row] = local[k1];
@@ -254,8 +251,8 @@ __hoisted_g_gemm_f32_32x32x32_8x16_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
-            vec_memcpy(local, tileB + (n * __anf08 * 32U + mcol * 32U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 32U + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sB[row * 32U + col + k1] = local[k1];
@@ -296,9 +293,7 @@ __hoisted_g_gemm_f32_32x32x32_8x16_0(float alpha, float beta, uint32_t n,
 }
 
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_32x32x32_8x16(float alpha, float beta,
-                                                      uint32_t m, uint32_t n,
-                                                      uint32_t k, float *gA,
-                                                      float *gB, float *gC)
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC)
 {
     KPR_GUARD(m % 32U == 0U);
     KPR_GUARD(k % 32U == 0U);
@@ -306,7 +301,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_f32_32x32x32_8x16(float alpha, float beta,
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(8192U);
     KPR_KCALL(__hoisted_g_gemm_f32_32x32x32_8x16_0, m / 32U * (n / 32U), 8U,
-              8192U, s, alpha, beta, n, k, gA, gB, gC);
+        8192U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -317,8 +312,8 @@ __global__
 */
 static void
 __hoisted_g_gemm_bf16_32x32x32_8x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
-                                      uint32_t n, uint32_t k, __nv_bfloat16 *gA,
-                                      __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+    uint32_t n, uint32_t k, __nv_bfloat16 *gA, __nv_bfloat16 *gB,
+    __nv_bfloat16 *gC)
 {
     __nv_bfloat16 *gA_p = gA;
     __nv_bfloat16 *gB_p = gB;
@@ -343,8 +338,8 @@ __hoisted_g_gemm_bf16_32x32x32_8x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, tileA + (k * mrow * 32U + __anf05 * 32U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 32U + __anf05 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sA[(col + k1) * 32U + row] = local[k1];
@@ -358,8 +353,8 @@ __hoisted_g_gemm_bf16_32x32x32_8x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, tileB + (n * __anf08 * 32U + mcol * 32U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 32U + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sB[row * 32U + col + k1] = local[k1];
@@ -405,9 +400,9 @@ __hoisted_g_gemm_bf16_32x32x32_8x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
     }
 }
 
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x32x32_8x16(
-    __nv_bfloat16 alpha, __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k,
-    __nv_bfloat16 *gA, __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x32x32_8x16(__nv_bfloat16 alpha,
+    __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k, __nv_bfloat16 *gA,
+    __nv_bfloat16 *gB, __nv_bfloat16 *gC)
 {
     KPR_GUARD(m % 32U == 0U);
     KPR_GUARD(k % 32U == 0U);
@@ -415,7 +410,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x32x32_8x16(
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(4096U);
     KPR_KCALL(__hoisted_g_gemm_bf16_32x32x32_8x16_0, m / 32U * (n / 32U), 8U,
-              4096U, s, alpha, beta, n, k, gA, gB, gC);
+        4096U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -426,8 +421,7 @@ __global__
 */
 static void
 __hoisted_g_gemm_f32_32x32x32_16x8_0(float alpha, float beta, uint32_t n,
-                                     uint32_t k, float *gA, float *gB,
-                                     float *gC)
+    uint32_t k, float *gA, float *gB, float *gC)
 {
     float *gA_p = gA;
     float *gB_p = gB;
@@ -450,8 +444,8 @@ __hoisted_g_gemm_f32_32x32x32_16x8_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i0 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 32U;
-            vec_memcpy(local, tileA + (k * mrow * 32U + __anf05 * 32U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 32U + __anf05 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sA[(col + k1) * 32U + row] = local[k1];
@@ -464,8 +458,8 @@ __hoisted_g_gemm_f32_32x32x32_16x8_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
-            vec_memcpy(local, tileB + (n * __anf08 * 32U + mcol * 32U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 32U + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sB[row * 32U + col + k1] = local[k1];
@@ -506,9 +500,7 @@ __hoisted_g_gemm_f32_32x32x32_16x8_0(float alpha, float beta, uint32_t n,
 }
 
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_32x32x32_16x8(float alpha, float beta,
-                                                      uint32_t m, uint32_t n,
-                                                      uint32_t k, float *gA,
-                                                      float *gB, float *gC)
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC)
 {
     KPR_GUARD(m % 32U == 0U);
     KPR_GUARD(k % 32U == 0U);
@@ -516,7 +508,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_f32_32x32x32_16x8(float alpha, float beta,
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(8192U);
     KPR_KCALL(__hoisted_g_gemm_f32_32x32x32_16x8_0, m / 32U * (n / 32U), 8U,
-              8192U, s, alpha, beta, n, k, gA, gB, gC);
+        8192U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -527,8 +519,8 @@ __global__
 */
 static void
 __hoisted_g_gemm_bf16_32x32x32_16x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
-                                      uint32_t n, uint32_t k, __nv_bfloat16 *gA,
-                                      __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+    uint32_t n, uint32_t k, __nv_bfloat16 *gA, __nv_bfloat16 *gB,
+    __nv_bfloat16 *gC)
 {
     __nv_bfloat16 *gA_p = gA;
     __nv_bfloat16 *gB_p = gB;
@@ -553,8 +545,8 @@ __hoisted_g_gemm_bf16_32x32x32_16x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, tileA + (k * mrow * 32U + __anf05 * 32U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 32U + __anf05 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sA[(col + k1) * 32U + row] = local[k1];
@@ -568,8 +560,8 @@ __hoisted_g_gemm_bf16_32x32x32_16x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, tileB + (n * __anf08 * 32U + mcol * 32U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 32U + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sB[row * 32U + col + k1] = local[k1];
@@ -615,9 +607,9 @@ __hoisted_g_gemm_bf16_32x32x32_16x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
     }
 }
 
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x32x32_16x8(
-    __nv_bfloat16 alpha, __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k,
-    __nv_bfloat16 *gA, __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x32x32_16x8(__nv_bfloat16 alpha,
+    __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k, __nv_bfloat16 *gA,
+    __nv_bfloat16 *gB, __nv_bfloat16 *gC)
 {
     KPR_GUARD(m % 32U == 0U);
     KPR_GUARD(k % 32U == 0U);
@@ -625,7 +617,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x32x32_16x8(
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(4096U);
     KPR_KCALL(__hoisted_g_gemm_bf16_32x32x32_16x8_0, m / 32U * (n / 32U), 8U,
-              4096U, s, alpha, beta, n, k, gA, gB, gC);
+        4096U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -636,8 +628,7 @@ __global__
 */
 static void
 __hoisted_g_gemm_f32_32x32x32_16x16_0(float alpha, float beta, uint32_t n,
-                                      uint32_t k, float *gA, float *gB,
-                                      float *gC)
+    uint32_t k, float *gA, float *gB, float *gC)
 {
     float *gA_p = gA;
     float *gB_p = gB;
@@ -660,8 +651,8 @@ __hoisted_g_gemm_f32_32x32x32_16x16_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i0 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 32U;
-            vec_memcpy(local, tileA + (k * mrow * 32U + __anf05 * 32U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 32U + __anf05 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sA[(col + k1) * 32U + row] = local[k1];
@@ -674,8 +665,8 @@ __hoisted_g_gemm_f32_32x32x32_16x16_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
-            vec_memcpy(local, tileB + (n * __anf08 * 32U + mcol * 32U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 32U + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sB[row * 32U + col + k1] = local[k1];
@@ -716,9 +707,7 @@ __hoisted_g_gemm_f32_32x32x32_16x16_0(float alpha, float beta, uint32_t n,
 }
 
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_32x32x32_16x16(float alpha, float beta,
-                                                       uint32_t m, uint32_t n,
-                                                       uint32_t k, float *gA,
-                                                       float *gB, float *gC)
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC)
 {
     KPR_GUARD(m % 32U == 0U);
     KPR_GUARD(k % 32U == 0U);
@@ -726,7 +715,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_f32_32x32x32_16x16(float alpha, float beta,
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(8192U);
     KPR_KCALL(__hoisted_g_gemm_f32_32x32x32_16x16_0, m / 32U * (n / 32U), 4U,
-              8192U, s, alpha, beta, n, k, gA, gB, gC);
+        8192U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -737,9 +726,8 @@ __global__
 */
 static void
 __hoisted_g_gemm_bf16_32x32x32_16x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
-                                       uint32_t n, uint32_t k,
-                                       __nv_bfloat16 *gA, __nv_bfloat16 *gB,
-                                       __nv_bfloat16 *gC)
+    uint32_t n, uint32_t k, __nv_bfloat16 *gA, __nv_bfloat16 *gB,
+    __nv_bfloat16 *gC)
 {
     __nv_bfloat16 *gA_p = gA;
     __nv_bfloat16 *gB_p = gB;
@@ -764,8 +752,8 @@ __hoisted_g_gemm_bf16_32x32x32_16x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, tileA + (k * mrow * 32U + __anf05 * 32U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 32U + __anf05 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sA[(col + k1) * 32U + row] = local[k1];
@@ -779,8 +767,8 @@ __hoisted_g_gemm_bf16_32x32x32_16x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, tileB + (n * __anf08 * 32U + mcol * 32U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 32U + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sB[row * 32U + col + k1] = local[k1];
@@ -826,9 +814,9 @@ __hoisted_g_gemm_bf16_32x32x32_16x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
     }
 }
 
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x32x32_16x16(
-    __nv_bfloat16 alpha, __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k,
-    __nv_bfloat16 *gA, __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x32x32_16x16(__nv_bfloat16 alpha,
+    __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k, __nv_bfloat16 *gA,
+    __nv_bfloat16 *gB, __nv_bfloat16 *gC)
 {
     KPR_GUARD(m % 32U == 0U);
     KPR_GUARD(k % 32U == 0U);
@@ -836,7 +824,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x32x32_16x16(
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(4096U);
     KPR_KCALL(__hoisted_g_gemm_bf16_32x32x32_16x16_0, m / 32U * (n / 32U), 4U,
-              4096U, s, alpha, beta, n, k, gA, gB, gC);
+        4096U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -847,7 +835,7 @@ __global__
 */
 static void
 __hoisted_g_gemm_f32_32x32x64_8x8_0(float alpha, float beta, uint32_t n,
-                                    uint32_t k, float *gA, float *gB, float *gC)
+    uint32_t k, float *gA, float *gB, float *gC)
 {
     float *gA_p = gA;
     float *gB_p = gB;
@@ -870,8 +858,8 @@ __hoisted_g_gemm_f32_32x32x64_8x8_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i0 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 64U;
-            vec_memcpy(local, tileA + (k * mrow * 32U + __anf05 * 64U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 32U + __anf05 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sA[(col + k1) * 32U + row] = local[k1];
@@ -884,8 +872,8 @@ __hoisted_g_gemm_f32_32x32x64_8x8_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
-            vec_memcpy(local, tileB + (n * __anf08 * 64U + mcol * 32U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 64U + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sB[row * 32U + col + k1] = local[k1];
@@ -926,9 +914,7 @@ __hoisted_g_gemm_f32_32x32x64_8x8_0(float alpha, float beta, uint32_t n,
 }
 
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_32x32x64_8x8(float alpha, float beta,
-                                                     uint32_t m, uint32_t n,
-                                                     uint32_t k, float *gA,
-                                                     float *gB, float *gC)
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC)
 {
     KPR_GUARD(m % 32U == 0U);
     KPR_GUARD(k % 64U == 0U);
@@ -936,7 +922,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_f32_32x32x64_8x8(float alpha, float beta,
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(16384U);
     KPR_KCALL(__hoisted_g_gemm_f32_32x32x64_8x8_0, m / 32U * (n / 32U), 16U,
-              16384U, s, alpha, beta, n, k, gA, gB, gC);
+        16384U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -947,8 +933,8 @@ __global__
 */
 static void
 __hoisted_g_gemm_bf16_32x32x64_8x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
-                                     uint32_t n, uint32_t k, __nv_bfloat16 *gA,
-                                     __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+    uint32_t n, uint32_t k, __nv_bfloat16 *gA, __nv_bfloat16 *gB,
+    __nv_bfloat16 *gC)
 {
     __nv_bfloat16 *gA_p = gA;
     __nv_bfloat16 *gB_p = gB;
@@ -973,8 +959,8 @@ __hoisted_g_gemm_bf16_32x32x64_8x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, tileA + (k * mrow * 32U + __anf05 * 64U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 32U + __anf05 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sA[(col + k1) * 32U + row] = local[k1];
@@ -988,8 +974,8 @@ __hoisted_g_gemm_bf16_32x32x64_8x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, tileB + (n * __anf08 * 64U + mcol * 32U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 64U + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sB[row * 32U + col + k1] = local[k1];
@@ -1035,9 +1021,9 @@ __hoisted_g_gemm_bf16_32x32x64_8x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
     }
 }
 
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x32x64_8x8(
-    __nv_bfloat16 alpha, __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k,
-    __nv_bfloat16 *gA, __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x32x64_8x8(__nv_bfloat16 alpha,
+    __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k, __nv_bfloat16 *gA,
+    __nv_bfloat16 *gB, __nv_bfloat16 *gC)
 {
     KPR_GUARD(m % 32U == 0U);
     KPR_GUARD(k % 64U == 0U);
@@ -1045,7 +1031,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x32x64_8x8(
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(8192U);
     KPR_KCALL(__hoisted_g_gemm_bf16_32x32x64_8x8_0, m / 32U * (n / 32U), 16U,
-              8192U, s, alpha, beta, n, k, gA, gB, gC);
+        8192U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -1056,8 +1042,7 @@ __global__
 */
 static void
 __hoisted_g_gemm_f32_32x32x64_8x16_0(float alpha, float beta, uint32_t n,
-                                     uint32_t k, float *gA, float *gB,
-                                     float *gC)
+    uint32_t k, float *gA, float *gB, float *gC)
 {
     float *gA_p = gA;
     float *gB_p = gB;
@@ -1080,8 +1065,8 @@ __hoisted_g_gemm_f32_32x32x64_8x16_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i0 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 64U;
-            vec_memcpy(local, tileA + (k * mrow * 32U + __anf05 * 64U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 32U + __anf05 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sA[(col + k1) * 32U + row] = local[k1];
@@ -1094,8 +1079,8 @@ __hoisted_g_gemm_f32_32x32x64_8x16_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
-            vec_memcpy(local, tileB + (n * __anf08 * 64U + mcol * 32U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 64U + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sB[row * 32U + col + k1] = local[k1];
@@ -1136,9 +1121,7 @@ __hoisted_g_gemm_f32_32x32x64_8x16_0(float alpha, float beta, uint32_t n,
 }
 
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_32x32x64_8x16(float alpha, float beta,
-                                                      uint32_t m, uint32_t n,
-                                                      uint32_t k, float *gA,
-                                                      float *gB, float *gC)
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC)
 {
     KPR_GUARD(m % 32U == 0U);
     KPR_GUARD(k % 64U == 0U);
@@ -1146,7 +1129,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_f32_32x32x64_8x16(float alpha, float beta,
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(16384U);
     KPR_KCALL(__hoisted_g_gemm_f32_32x32x64_8x16_0, m / 32U * (n / 32U), 8U,
-              16384U, s, alpha, beta, n, k, gA, gB, gC);
+        16384U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -1157,8 +1140,8 @@ __global__
 */
 static void
 __hoisted_g_gemm_bf16_32x32x64_8x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
-                                      uint32_t n, uint32_t k, __nv_bfloat16 *gA,
-                                      __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+    uint32_t n, uint32_t k, __nv_bfloat16 *gA, __nv_bfloat16 *gB,
+    __nv_bfloat16 *gC)
 {
     __nv_bfloat16 *gA_p = gA;
     __nv_bfloat16 *gB_p = gB;
@@ -1183,8 +1166,8 @@ __hoisted_g_gemm_bf16_32x32x64_8x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, tileA + (k * mrow * 32U + __anf05 * 64U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 32U + __anf05 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sA[(col + k1) * 32U + row] = local[k1];
@@ -1198,8 +1181,8 @@ __hoisted_g_gemm_bf16_32x32x64_8x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, tileB + (n * __anf08 * 64U + mcol * 32U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 64U + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sB[row * 32U + col + k1] = local[k1];
@@ -1245,9 +1228,9 @@ __hoisted_g_gemm_bf16_32x32x64_8x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
     }
 }
 
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x32x64_8x16(
-    __nv_bfloat16 alpha, __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k,
-    __nv_bfloat16 *gA, __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x32x64_8x16(__nv_bfloat16 alpha,
+    __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k, __nv_bfloat16 *gA,
+    __nv_bfloat16 *gB, __nv_bfloat16 *gC)
 {
     KPR_GUARD(m % 32U == 0U);
     KPR_GUARD(k % 64U == 0U);
@@ -1255,7 +1238,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x32x64_8x16(
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(8192U);
     KPR_KCALL(__hoisted_g_gemm_bf16_32x32x64_8x16_0, m / 32U * (n / 32U), 8U,
-              8192U, s, alpha, beta, n, k, gA, gB, gC);
+        8192U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -1266,8 +1249,7 @@ __global__
 */
 static void
 __hoisted_g_gemm_f32_32x32x64_16x8_0(float alpha, float beta, uint32_t n,
-                                     uint32_t k, float *gA, float *gB,
-                                     float *gC)
+    uint32_t k, float *gA, float *gB, float *gC)
 {
     float *gA_p = gA;
     float *gB_p = gB;
@@ -1290,8 +1272,8 @@ __hoisted_g_gemm_f32_32x32x64_16x8_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i0 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 64U;
-            vec_memcpy(local, tileA + (k * mrow * 32U + __anf05 * 64U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 32U + __anf05 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sA[(col + k1) * 32U + row] = local[k1];
@@ -1304,8 +1286,8 @@ __hoisted_g_gemm_f32_32x32x64_16x8_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
-            vec_memcpy(local, tileB + (n * __anf08 * 64U + mcol * 32U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 64U + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sB[row * 32U + col + k1] = local[k1];
@@ -1346,9 +1328,7 @@ __hoisted_g_gemm_f32_32x32x64_16x8_0(float alpha, float beta, uint32_t n,
 }
 
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_32x32x64_16x8(float alpha, float beta,
-                                                      uint32_t m, uint32_t n,
-                                                      uint32_t k, float *gA,
-                                                      float *gB, float *gC)
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC)
 {
     KPR_GUARD(m % 32U == 0U);
     KPR_GUARD(k % 64U == 0U);
@@ -1356,7 +1336,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_f32_32x32x64_16x8(float alpha, float beta,
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(16384U);
     KPR_KCALL(__hoisted_g_gemm_f32_32x32x64_16x8_0, m / 32U * (n / 32U), 8U,
-              16384U, s, alpha, beta, n, k, gA, gB, gC);
+        16384U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -1367,8 +1347,8 @@ __global__
 */
 static void
 __hoisted_g_gemm_bf16_32x32x64_16x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
-                                      uint32_t n, uint32_t k, __nv_bfloat16 *gA,
-                                      __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+    uint32_t n, uint32_t k, __nv_bfloat16 *gA, __nv_bfloat16 *gB,
+    __nv_bfloat16 *gC)
 {
     __nv_bfloat16 *gA_p = gA;
     __nv_bfloat16 *gB_p = gB;
@@ -1393,8 +1373,8 @@ __hoisted_g_gemm_bf16_32x32x64_16x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, tileA + (k * mrow * 32U + __anf05 * 64U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 32U + __anf05 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sA[(col + k1) * 32U + row] = local[k1];
@@ -1408,8 +1388,8 @@ __hoisted_g_gemm_bf16_32x32x64_16x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, tileB + (n * __anf08 * 64U + mcol * 32U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 64U + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sB[row * 32U + col + k1] = local[k1];
@@ -1455,9 +1435,9 @@ __hoisted_g_gemm_bf16_32x32x64_16x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
     }
 }
 
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x32x64_16x8(
-    __nv_bfloat16 alpha, __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k,
-    __nv_bfloat16 *gA, __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x32x64_16x8(__nv_bfloat16 alpha,
+    __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k, __nv_bfloat16 *gA,
+    __nv_bfloat16 *gB, __nv_bfloat16 *gC)
 {
     KPR_GUARD(m % 32U == 0U);
     KPR_GUARD(k % 64U == 0U);
@@ -1465,7 +1445,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x32x64_16x8(
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(8192U);
     KPR_KCALL(__hoisted_g_gemm_bf16_32x32x64_16x8_0, m / 32U * (n / 32U), 8U,
-              8192U, s, alpha, beta, n, k, gA, gB, gC);
+        8192U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -1476,8 +1456,7 @@ __global__
 */
 static void
 __hoisted_g_gemm_f32_32x32x64_16x16_0(float alpha, float beta, uint32_t n,
-                                      uint32_t k, float *gA, float *gB,
-                                      float *gC)
+    uint32_t k, float *gA, float *gB, float *gC)
 {
     float *gA_p = gA;
     float *gB_p = gB;
@@ -1500,8 +1479,8 @@ __hoisted_g_gemm_f32_32x32x64_16x16_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i0 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 64U;
-            vec_memcpy(local, tileA + (k * mrow * 32U + __anf05 * 64U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 32U + __anf05 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sA[(col + k1) * 32U + row] = local[k1];
@@ -1514,8 +1493,8 @@ __hoisted_g_gemm_f32_32x32x64_16x16_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
-            vec_memcpy(local, tileB + (n * __anf08 * 64U + mcol * 32U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 64U + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sB[row * 32U + col + k1] = local[k1];
@@ -1556,9 +1535,7 @@ __hoisted_g_gemm_f32_32x32x64_16x16_0(float alpha, float beta, uint32_t n,
 }
 
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_32x32x64_16x16(float alpha, float beta,
-                                                       uint32_t m, uint32_t n,
-                                                       uint32_t k, float *gA,
-                                                       float *gB, float *gC)
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC)
 {
     KPR_GUARD(m % 32U == 0U);
     KPR_GUARD(k % 64U == 0U);
@@ -1566,7 +1543,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_f32_32x32x64_16x16(float alpha, float beta,
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(16384U);
     KPR_KCALL(__hoisted_g_gemm_f32_32x32x64_16x16_0, m / 32U * (n / 32U), 4U,
-              16384U, s, alpha, beta, n, k, gA, gB, gC);
+        16384U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -1577,9 +1554,8 @@ __global__
 */
 static void
 __hoisted_g_gemm_bf16_32x32x64_16x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
-                                       uint32_t n, uint32_t k,
-                                       __nv_bfloat16 *gA, __nv_bfloat16 *gB,
-                                       __nv_bfloat16 *gC)
+    uint32_t n, uint32_t k, __nv_bfloat16 *gA, __nv_bfloat16 *gB,
+    __nv_bfloat16 *gC)
 {
     __nv_bfloat16 *gA_p = gA;
     __nv_bfloat16 *gB_p = gB;
@@ -1604,8 +1580,8 @@ __hoisted_g_gemm_bf16_32x32x64_16x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, tileA + (k * mrow * 32U + __anf05 * 64U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 32U + __anf05 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sA[(col + k1) * 32U + row] = local[k1];
@@ -1619,8 +1595,8 @@ __hoisted_g_gemm_bf16_32x32x64_16x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, tileB + (n * __anf08 * 64U + mcol * 32U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 64U + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sB[row * 32U + col + k1] = local[k1];
@@ -1666,9 +1642,9 @@ __hoisted_g_gemm_bf16_32x32x64_16x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
     }
 }
 
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x32x64_16x16(
-    __nv_bfloat16 alpha, __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k,
-    __nv_bfloat16 *gA, __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x32x64_16x16(__nv_bfloat16 alpha,
+    __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k, __nv_bfloat16 *gA,
+    __nv_bfloat16 *gB, __nv_bfloat16 *gC)
 {
     KPR_GUARD(m % 32U == 0U);
     KPR_GUARD(k % 64U == 0U);
@@ -1676,7 +1652,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x32x64_16x16(
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(8192U);
     KPR_KCALL(__hoisted_g_gemm_bf16_32x32x64_16x16_0, m / 32U * (n / 32U), 4U,
-              8192U, s, alpha, beta, n, k, gA, gB, gC);
+        8192U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -1687,7 +1663,7 @@ __global__
 */
 static void
 __hoisted_g_gemm_f32_32x64x32_8x8_0(float alpha, float beta, uint32_t n,
-                                    uint32_t k, float *gA, float *gB, float *gC)
+    uint32_t k, float *gA, float *gB, float *gC)
 {
     float *gA_p = gA;
     float *gB_p = gB;
@@ -1710,8 +1686,8 @@ __hoisted_g_gemm_f32_32x64x32_8x8_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i0 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 32U;
-            vec_memcpy(local, tileA + (k * mrow * 32U + __anf05 * 32U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 32U + __anf05 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sA[(col + k1) * 32U + row] = local[k1];
@@ -1724,8 +1700,8 @@ __hoisted_g_gemm_f32_32x64x32_8x8_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
-            vec_memcpy(local, tileB + (n * __anf08 * 32U + mcol * 64U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 32U + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sB[row * 64U + col + k1] = local[k1];
@@ -1766,9 +1742,7 @@ __hoisted_g_gemm_f32_32x64x32_8x8_0(float alpha, float beta, uint32_t n,
 }
 
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_32x64x32_8x8(float alpha, float beta,
-                                                     uint32_t m, uint32_t n,
-                                                     uint32_t k, float *gA,
-                                                     float *gB, float *gC)
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC)
 {
     KPR_GUARD(m % 32U == 0U);
     KPR_GUARD(k % 32U == 0U);
@@ -1776,7 +1750,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_f32_32x64x32_8x8(float alpha, float beta,
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(12288U);
     KPR_KCALL(__hoisted_g_gemm_f32_32x64x32_8x8_0, m / 32U * (n / 64U), 32U,
-              12288U, s, alpha, beta, n, k, gA, gB, gC);
+        12288U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -1787,8 +1761,8 @@ __global__
 */
 static void
 __hoisted_g_gemm_bf16_32x64x32_8x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
-                                     uint32_t n, uint32_t k, __nv_bfloat16 *gA,
-                                     __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+    uint32_t n, uint32_t k, __nv_bfloat16 *gA, __nv_bfloat16 *gB,
+    __nv_bfloat16 *gC)
 {
     __nv_bfloat16 *gA_p = gA;
     __nv_bfloat16 *gB_p = gB;
@@ -1813,8 +1787,8 @@ __hoisted_g_gemm_bf16_32x64x32_8x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, tileA + (k * mrow * 32U + __anf05 * 32U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 32U + __anf05 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sA[(col + k1) * 32U + row] = local[k1];
@@ -1828,8 +1802,8 @@ __hoisted_g_gemm_bf16_32x64x32_8x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, tileB + (n * __anf08 * 32U + mcol * 64U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 32U + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sB[row * 64U + col + k1] = local[k1];
@@ -1875,9 +1849,9 @@ __hoisted_g_gemm_bf16_32x64x32_8x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
     }
 }
 
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x64x32_8x8(
-    __nv_bfloat16 alpha, __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k,
-    __nv_bfloat16 *gA, __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x64x32_8x8(__nv_bfloat16 alpha,
+    __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k, __nv_bfloat16 *gA,
+    __nv_bfloat16 *gB, __nv_bfloat16 *gC)
 {
     KPR_GUARD(m % 32U == 0U);
     KPR_GUARD(k % 32U == 0U);
@@ -1885,7 +1859,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x64x32_8x8(
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(6144U);
     KPR_KCALL(__hoisted_g_gemm_bf16_32x64x32_8x8_0, m / 32U * (n / 64U), 32U,
-              6144U, s, alpha, beta, n, k, gA, gB, gC);
+        6144U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -1896,8 +1870,7 @@ __global__
 */
 static void
 __hoisted_g_gemm_f32_32x64x32_8x16_0(float alpha, float beta, uint32_t n,
-                                     uint32_t k, float *gA, float *gB,
-                                     float *gC)
+    uint32_t k, float *gA, float *gB, float *gC)
 {
     float *gA_p = gA;
     float *gB_p = gB;
@@ -1920,8 +1893,8 @@ __hoisted_g_gemm_f32_32x64x32_8x16_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i0 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 32U;
-            vec_memcpy(local, tileA + (k * mrow * 32U + __anf05 * 32U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 32U + __anf05 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sA[(col + k1) * 32U + row] = local[k1];
@@ -1934,8 +1907,8 @@ __hoisted_g_gemm_f32_32x64x32_8x16_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
-            vec_memcpy(local, tileB + (n * __anf08 * 32U + mcol * 64U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 32U + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sB[row * 64U + col + k1] = local[k1];
@@ -1976,9 +1949,7 @@ __hoisted_g_gemm_f32_32x64x32_8x16_0(float alpha, float beta, uint32_t n,
 }
 
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_32x64x32_8x16(float alpha, float beta,
-                                                      uint32_t m, uint32_t n,
-                                                      uint32_t k, float *gA,
-                                                      float *gB, float *gC)
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC)
 {
     KPR_GUARD(m % 32U == 0U);
     KPR_GUARD(k % 32U == 0U);
@@ -1986,7 +1957,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_f32_32x64x32_8x16(float alpha, float beta,
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(12288U);
     KPR_KCALL(__hoisted_g_gemm_f32_32x64x32_8x16_0, m / 32U * (n / 64U), 16U,
-              12288U, s, alpha, beta, n, k, gA, gB, gC);
+        12288U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -1997,8 +1968,8 @@ __global__
 */
 static void
 __hoisted_g_gemm_bf16_32x64x32_8x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
-                                      uint32_t n, uint32_t k, __nv_bfloat16 *gA,
-                                      __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+    uint32_t n, uint32_t k, __nv_bfloat16 *gA, __nv_bfloat16 *gB,
+    __nv_bfloat16 *gC)
 {
     __nv_bfloat16 *gA_p = gA;
     __nv_bfloat16 *gB_p = gB;
@@ -2023,8 +1994,8 @@ __hoisted_g_gemm_bf16_32x64x32_8x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, tileA + (k * mrow * 32U + __anf05 * 32U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 32U + __anf05 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sA[(col + k1) * 32U + row] = local[k1];
@@ -2038,8 +2009,8 @@ __hoisted_g_gemm_bf16_32x64x32_8x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, tileB + (n * __anf08 * 32U + mcol * 64U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 32U + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sB[row * 64U + col + k1] = local[k1];
@@ -2085,9 +2056,9 @@ __hoisted_g_gemm_bf16_32x64x32_8x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
     }
 }
 
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x64x32_8x16(
-    __nv_bfloat16 alpha, __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k,
-    __nv_bfloat16 *gA, __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x64x32_8x16(__nv_bfloat16 alpha,
+    __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k, __nv_bfloat16 *gA,
+    __nv_bfloat16 *gB, __nv_bfloat16 *gC)
 {
     KPR_GUARD(m % 32U == 0U);
     KPR_GUARD(k % 32U == 0U);
@@ -2095,7 +2066,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x64x32_8x16(
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(6144U);
     KPR_KCALL(__hoisted_g_gemm_bf16_32x64x32_8x16_0, m / 32U * (n / 64U), 16U,
-              6144U, s, alpha, beta, n, k, gA, gB, gC);
+        6144U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -2106,8 +2077,7 @@ __global__
 */
 static void
 __hoisted_g_gemm_f32_32x64x32_16x8_0(float alpha, float beta, uint32_t n,
-                                     uint32_t k, float *gA, float *gB,
-                                     float *gC)
+    uint32_t k, float *gA, float *gB, float *gC)
 {
     float *gA_p = gA;
     float *gB_p = gB;
@@ -2130,8 +2100,8 @@ __hoisted_g_gemm_f32_32x64x32_16x8_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i0 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 32U;
-            vec_memcpy(local, tileA + (k * mrow * 32U + __anf05 * 32U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 32U + __anf05 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sA[(col + k1) * 32U + row] = local[k1];
@@ -2144,8 +2114,8 @@ __hoisted_g_gemm_f32_32x64x32_16x8_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
-            vec_memcpy(local, tileB + (n * __anf08 * 32U + mcol * 64U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 32U + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sB[row * 64U + col + k1] = local[k1];
@@ -2186,9 +2156,7 @@ __hoisted_g_gemm_f32_32x64x32_16x8_0(float alpha, float beta, uint32_t n,
 }
 
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_32x64x32_16x8(float alpha, float beta,
-                                                      uint32_t m, uint32_t n,
-                                                      uint32_t k, float *gA,
-                                                      float *gB, float *gC)
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC)
 {
     KPR_GUARD(m % 32U == 0U);
     KPR_GUARD(k % 32U == 0U);
@@ -2196,7 +2164,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_f32_32x64x32_16x8(float alpha, float beta,
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(12288U);
     KPR_KCALL(__hoisted_g_gemm_f32_32x64x32_16x8_0, m / 32U * (n / 64U), 16U,
-              12288U, s, alpha, beta, n, k, gA, gB, gC);
+        12288U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -2207,8 +2175,8 @@ __global__
 */
 static void
 __hoisted_g_gemm_bf16_32x64x32_16x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
-                                      uint32_t n, uint32_t k, __nv_bfloat16 *gA,
-                                      __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+    uint32_t n, uint32_t k, __nv_bfloat16 *gA, __nv_bfloat16 *gB,
+    __nv_bfloat16 *gC)
 {
     __nv_bfloat16 *gA_p = gA;
     __nv_bfloat16 *gB_p = gB;
@@ -2233,8 +2201,8 @@ __hoisted_g_gemm_bf16_32x64x32_16x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, tileA + (k * mrow * 32U + __anf05 * 32U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 32U + __anf05 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sA[(col + k1) * 32U + row] = local[k1];
@@ -2248,8 +2216,8 @@ __hoisted_g_gemm_bf16_32x64x32_16x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, tileB + (n * __anf08 * 32U + mcol * 64U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 32U + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sB[row * 64U + col + k1] = local[k1];
@@ -2295,9 +2263,9 @@ __hoisted_g_gemm_bf16_32x64x32_16x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
     }
 }
 
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x64x32_16x8(
-    __nv_bfloat16 alpha, __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k,
-    __nv_bfloat16 *gA, __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x64x32_16x8(__nv_bfloat16 alpha,
+    __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k, __nv_bfloat16 *gA,
+    __nv_bfloat16 *gB, __nv_bfloat16 *gC)
 {
     KPR_GUARD(m % 32U == 0U);
     KPR_GUARD(k % 32U == 0U);
@@ -2305,7 +2273,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x64x32_16x8(
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(6144U);
     KPR_KCALL(__hoisted_g_gemm_bf16_32x64x32_16x8_0, m / 32U * (n / 64U), 16U,
-              6144U, s, alpha, beta, n, k, gA, gB, gC);
+        6144U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -2316,8 +2284,7 @@ __global__
 */
 static void
 __hoisted_g_gemm_f32_32x64x32_16x16_0(float alpha, float beta, uint32_t n,
-                                      uint32_t k, float *gA, float *gB,
-                                      float *gC)
+    uint32_t k, float *gA, float *gB, float *gC)
 {
     float *gA_p = gA;
     float *gB_p = gB;
@@ -2340,8 +2307,8 @@ __hoisted_g_gemm_f32_32x64x32_16x16_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i0 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 32U;
-            vec_memcpy(local, tileA + (k * mrow * 32U + __anf05 * 32U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 32U + __anf05 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sA[(col + k1) * 32U + row] = local[k1];
@@ -2354,8 +2321,8 @@ __hoisted_g_gemm_f32_32x64x32_16x16_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
-            vec_memcpy(local, tileB + (n * __anf08 * 32U + mcol * 64U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 32U + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sB[row * 64U + col + k1] = local[k1];
@@ -2396,9 +2363,7 @@ __hoisted_g_gemm_f32_32x64x32_16x16_0(float alpha, float beta, uint32_t n,
 }
 
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_32x64x32_16x16(float alpha, float beta,
-                                                       uint32_t m, uint32_t n,
-                                                       uint32_t k, float *gA,
-                                                       float *gB, float *gC)
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC)
 {
     KPR_GUARD(m % 32U == 0U);
     KPR_GUARD(k % 32U == 0U);
@@ -2406,7 +2371,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_f32_32x64x32_16x16(float alpha, float beta,
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(12288U);
     KPR_KCALL(__hoisted_g_gemm_f32_32x64x32_16x16_0, m / 32U * (n / 64U), 8U,
-              12288U, s, alpha, beta, n, k, gA, gB, gC);
+        12288U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -2417,9 +2382,8 @@ __global__
 */
 static void
 __hoisted_g_gemm_bf16_32x64x32_16x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
-                                       uint32_t n, uint32_t k,
-                                       __nv_bfloat16 *gA, __nv_bfloat16 *gB,
-                                       __nv_bfloat16 *gC)
+    uint32_t n, uint32_t k, __nv_bfloat16 *gA, __nv_bfloat16 *gB,
+    __nv_bfloat16 *gC)
 {
     __nv_bfloat16 *gA_p = gA;
     __nv_bfloat16 *gB_p = gB;
@@ -2444,8 +2408,8 @@ __hoisted_g_gemm_bf16_32x64x32_16x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, tileA + (k * mrow * 32U + __anf05 * 32U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 32U + __anf05 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sA[(col + k1) * 32U + row] = local[k1];
@@ -2459,8 +2423,8 @@ __hoisted_g_gemm_bf16_32x64x32_16x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, tileB + (n * __anf08 * 32U + mcol * 64U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 32U + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sB[row * 64U + col + k1] = local[k1];
@@ -2506,9 +2470,9 @@ __hoisted_g_gemm_bf16_32x64x32_16x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
     }
 }
 
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x64x32_16x16(
-    __nv_bfloat16 alpha, __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k,
-    __nv_bfloat16 *gA, __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x64x32_16x16(__nv_bfloat16 alpha,
+    __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k, __nv_bfloat16 *gA,
+    __nv_bfloat16 *gB, __nv_bfloat16 *gC)
 {
     KPR_GUARD(m % 32U == 0U);
     KPR_GUARD(k % 32U == 0U);
@@ -2516,7 +2480,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x64x32_16x16(
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(6144U);
     KPR_KCALL(__hoisted_g_gemm_bf16_32x64x32_16x16_0, m / 32U * (n / 64U), 8U,
-              6144U, s, alpha, beta, n, k, gA, gB, gC);
+        6144U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -2527,7 +2491,7 @@ __global__
 */
 static void
 __hoisted_g_gemm_f32_32x64x64_8x8_0(float alpha, float beta, uint32_t n,
-                                    uint32_t k, float *gA, float *gB, float *gC)
+    uint32_t k, float *gA, float *gB, float *gC)
 {
     float *gA_p = gA;
     float *gB_p = gB;
@@ -2550,8 +2514,8 @@ __hoisted_g_gemm_f32_32x64x64_8x8_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i0 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 64U;
-            vec_memcpy(local, tileA + (k * mrow * 32U + __anf05 * 64U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 32U + __anf05 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sA[(col + k1) * 32U + row] = local[k1];
@@ -2564,8 +2528,8 @@ __hoisted_g_gemm_f32_32x64x64_8x8_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
-            vec_memcpy(local, tileB + (n * __anf08 * 64U + mcol * 64U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 64U + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sB[row * 64U + col + k1] = local[k1];
@@ -2606,9 +2570,7 @@ __hoisted_g_gemm_f32_32x64x64_8x8_0(float alpha, float beta, uint32_t n,
 }
 
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_32x64x64_8x8(float alpha, float beta,
-                                                     uint32_t m, uint32_t n,
-                                                     uint32_t k, float *gA,
-                                                     float *gB, float *gC)
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC)
 {
     KPR_GUARD(m % 32U == 0U);
     KPR_GUARD(k % 64U == 0U);
@@ -2616,7 +2578,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_f32_32x64x64_8x8(float alpha, float beta,
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(24576U);
     KPR_KCALL(__hoisted_g_gemm_f32_32x64x64_8x8_0, m / 32U * (n / 64U), 32U,
-              24576U, s, alpha, beta, n, k, gA, gB, gC);
+        24576U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -2627,8 +2589,8 @@ __global__
 */
 static void
 __hoisted_g_gemm_bf16_32x64x64_8x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
-                                     uint32_t n, uint32_t k, __nv_bfloat16 *gA,
-                                     __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+    uint32_t n, uint32_t k, __nv_bfloat16 *gA, __nv_bfloat16 *gB,
+    __nv_bfloat16 *gC)
 {
     __nv_bfloat16 *gA_p = gA;
     __nv_bfloat16 *gB_p = gB;
@@ -2653,8 +2615,8 @@ __hoisted_g_gemm_bf16_32x64x64_8x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, tileA + (k * mrow * 32U + __anf05 * 64U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 32U + __anf05 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sA[(col + k1) * 32U + row] = local[k1];
@@ -2668,8 +2630,8 @@ __hoisted_g_gemm_bf16_32x64x64_8x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, tileB + (n * __anf08 * 64U + mcol * 64U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 64U + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sB[row * 64U + col + k1] = local[k1];
@@ -2715,9 +2677,9 @@ __hoisted_g_gemm_bf16_32x64x64_8x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
     }
 }
 
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x64x64_8x8(
-    __nv_bfloat16 alpha, __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k,
-    __nv_bfloat16 *gA, __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x64x64_8x8(__nv_bfloat16 alpha,
+    __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k, __nv_bfloat16 *gA,
+    __nv_bfloat16 *gB, __nv_bfloat16 *gC)
 {
     KPR_GUARD(m % 32U == 0U);
     KPR_GUARD(k % 64U == 0U);
@@ -2725,7 +2687,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x64x64_8x8(
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(12288U);
     KPR_KCALL(__hoisted_g_gemm_bf16_32x64x64_8x8_0, m / 32U * (n / 64U), 32U,
-              12288U, s, alpha, beta, n, k, gA, gB, gC);
+        12288U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -2736,8 +2698,7 @@ __global__
 */
 static void
 __hoisted_g_gemm_f32_32x64x64_8x16_0(float alpha, float beta, uint32_t n,
-                                     uint32_t k, float *gA, float *gB,
-                                     float *gC)
+    uint32_t k, float *gA, float *gB, float *gC)
 {
     float *gA_p = gA;
     float *gB_p = gB;
@@ -2760,8 +2721,8 @@ __hoisted_g_gemm_f32_32x64x64_8x16_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i0 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 64U;
-            vec_memcpy(local, tileA + (k * mrow * 32U + __anf05 * 64U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 32U + __anf05 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sA[(col + k1) * 32U + row] = local[k1];
@@ -2774,8 +2735,8 @@ __hoisted_g_gemm_f32_32x64x64_8x16_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
-            vec_memcpy(local, tileB + (n * __anf08 * 64U + mcol * 64U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 64U + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sB[row * 64U + col + k1] = local[k1];
@@ -2816,9 +2777,7 @@ __hoisted_g_gemm_f32_32x64x64_8x16_0(float alpha, float beta, uint32_t n,
 }
 
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_32x64x64_8x16(float alpha, float beta,
-                                                      uint32_t m, uint32_t n,
-                                                      uint32_t k, float *gA,
-                                                      float *gB, float *gC)
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC)
 {
     KPR_GUARD(m % 32U == 0U);
     KPR_GUARD(k % 64U == 0U);
@@ -2826,7 +2785,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_f32_32x64x64_8x16(float alpha, float beta,
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(24576U);
     KPR_KCALL(__hoisted_g_gemm_f32_32x64x64_8x16_0, m / 32U * (n / 64U), 16U,
-              24576U, s, alpha, beta, n, k, gA, gB, gC);
+        24576U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -2837,8 +2796,8 @@ __global__
 */
 static void
 __hoisted_g_gemm_bf16_32x64x64_8x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
-                                      uint32_t n, uint32_t k, __nv_bfloat16 *gA,
-                                      __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+    uint32_t n, uint32_t k, __nv_bfloat16 *gA, __nv_bfloat16 *gB,
+    __nv_bfloat16 *gC)
 {
     __nv_bfloat16 *gA_p = gA;
     __nv_bfloat16 *gB_p = gB;
@@ -2863,8 +2822,8 @@ __hoisted_g_gemm_bf16_32x64x64_8x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, tileA + (k * mrow * 32U + __anf05 * 64U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 32U + __anf05 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sA[(col + k1) * 32U + row] = local[k1];
@@ -2878,8 +2837,8 @@ __hoisted_g_gemm_bf16_32x64x64_8x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, tileB + (n * __anf08 * 64U + mcol * 64U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 64U + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sB[row * 64U + col + k1] = local[k1];
@@ -2925,9 +2884,9 @@ __hoisted_g_gemm_bf16_32x64x64_8x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
     }
 }
 
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x64x64_8x16(
-    __nv_bfloat16 alpha, __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k,
-    __nv_bfloat16 *gA, __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x64x64_8x16(__nv_bfloat16 alpha,
+    __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k, __nv_bfloat16 *gA,
+    __nv_bfloat16 *gB, __nv_bfloat16 *gC)
 {
     KPR_GUARD(m % 32U == 0U);
     KPR_GUARD(k % 64U == 0U);
@@ -2935,7 +2894,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x64x64_8x16(
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(12288U);
     KPR_KCALL(__hoisted_g_gemm_bf16_32x64x64_8x16_0, m / 32U * (n / 64U), 16U,
-              12288U, s, alpha, beta, n, k, gA, gB, gC);
+        12288U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -2946,8 +2905,7 @@ __global__
 */
 static void
 __hoisted_g_gemm_f32_32x64x64_16x8_0(float alpha, float beta, uint32_t n,
-                                     uint32_t k, float *gA, float *gB,
-                                     float *gC)
+    uint32_t k, float *gA, float *gB, float *gC)
 {
     float *gA_p = gA;
     float *gB_p = gB;
@@ -2970,8 +2928,8 @@ __hoisted_g_gemm_f32_32x64x64_16x8_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i0 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 64U;
-            vec_memcpy(local, tileA + (k * mrow * 32U + __anf05 * 64U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 32U + __anf05 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sA[(col + k1) * 32U + row] = local[k1];
@@ -2984,8 +2942,8 @@ __hoisted_g_gemm_f32_32x64x64_16x8_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
-            vec_memcpy(local, tileB + (n * __anf08 * 64U + mcol * 64U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 64U + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sB[row * 64U + col + k1] = local[k1];
@@ -3026,9 +2984,7 @@ __hoisted_g_gemm_f32_32x64x64_16x8_0(float alpha, float beta, uint32_t n,
 }
 
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_32x64x64_16x8(float alpha, float beta,
-                                                      uint32_t m, uint32_t n,
-                                                      uint32_t k, float *gA,
-                                                      float *gB, float *gC)
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC)
 {
     KPR_GUARD(m % 32U == 0U);
     KPR_GUARD(k % 64U == 0U);
@@ -3036,7 +2992,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_f32_32x64x64_16x8(float alpha, float beta,
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(24576U);
     KPR_KCALL(__hoisted_g_gemm_f32_32x64x64_16x8_0, m / 32U * (n / 64U), 16U,
-              24576U, s, alpha, beta, n, k, gA, gB, gC);
+        24576U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -3047,8 +3003,8 @@ __global__
 */
 static void
 __hoisted_g_gemm_bf16_32x64x64_16x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
-                                      uint32_t n, uint32_t k, __nv_bfloat16 *gA,
-                                      __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+    uint32_t n, uint32_t k, __nv_bfloat16 *gA, __nv_bfloat16 *gB,
+    __nv_bfloat16 *gC)
 {
     __nv_bfloat16 *gA_p = gA;
     __nv_bfloat16 *gB_p = gB;
@@ -3073,8 +3029,8 @@ __hoisted_g_gemm_bf16_32x64x64_16x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, tileA + (k * mrow * 32U + __anf05 * 64U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 32U + __anf05 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sA[(col + k1) * 32U + row] = local[k1];
@@ -3088,8 +3044,8 @@ __hoisted_g_gemm_bf16_32x64x64_16x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, tileB + (n * __anf08 * 64U + mcol * 64U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 64U + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sB[row * 64U + col + k1] = local[k1];
@@ -3135,9 +3091,9 @@ __hoisted_g_gemm_bf16_32x64x64_16x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
     }
 }
 
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x64x64_16x8(
-    __nv_bfloat16 alpha, __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k,
-    __nv_bfloat16 *gA, __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x64x64_16x8(__nv_bfloat16 alpha,
+    __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k, __nv_bfloat16 *gA,
+    __nv_bfloat16 *gB, __nv_bfloat16 *gC)
 {
     KPR_GUARD(m % 32U == 0U);
     KPR_GUARD(k % 64U == 0U);
@@ -3145,7 +3101,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x64x64_16x8(
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(12288U);
     KPR_KCALL(__hoisted_g_gemm_bf16_32x64x64_16x8_0, m / 32U * (n / 64U), 16U,
-              12288U, s, alpha, beta, n, k, gA, gB, gC);
+        12288U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -3156,8 +3112,7 @@ __global__
 */
 static void
 __hoisted_g_gemm_f32_32x64x64_16x16_0(float alpha, float beta, uint32_t n,
-                                      uint32_t k, float *gA, float *gB,
-                                      float *gC)
+    uint32_t k, float *gA, float *gB, float *gC)
 {
     float *gA_p = gA;
     float *gB_p = gB;
@@ -3180,8 +3135,8 @@ __hoisted_g_gemm_f32_32x64x64_16x16_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i0 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 64U;
-            vec_memcpy(local, tileA + (k * mrow * 32U + __anf05 * 64U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 32U + __anf05 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sA[(col + k1) * 32U + row] = local[k1];
@@ -3194,8 +3149,8 @@ __hoisted_g_gemm_f32_32x64x64_16x16_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
-            vec_memcpy(local, tileB + (n * __anf08 * 64U + mcol * 64U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 64U + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sB[row * 64U + col + k1] = local[k1];
@@ -3236,9 +3191,7 @@ __hoisted_g_gemm_f32_32x64x64_16x16_0(float alpha, float beta, uint32_t n,
 }
 
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_32x64x64_16x16(float alpha, float beta,
-                                                       uint32_t m, uint32_t n,
-                                                       uint32_t k, float *gA,
-                                                       float *gB, float *gC)
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC)
 {
     KPR_GUARD(m % 32U == 0U);
     KPR_GUARD(k % 64U == 0U);
@@ -3246,7 +3199,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_f32_32x64x64_16x16(float alpha, float beta,
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(24576U);
     KPR_KCALL(__hoisted_g_gemm_f32_32x64x64_16x16_0, m / 32U * (n / 64U), 8U,
-              24576U, s, alpha, beta, n, k, gA, gB, gC);
+        24576U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -3257,9 +3210,8 @@ __global__
 */
 static void
 __hoisted_g_gemm_bf16_32x64x64_16x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
-                                       uint32_t n, uint32_t k,
-                                       __nv_bfloat16 *gA, __nv_bfloat16 *gB,
-                                       __nv_bfloat16 *gC)
+    uint32_t n, uint32_t k, __nv_bfloat16 *gA, __nv_bfloat16 *gB,
+    __nv_bfloat16 *gC)
 {
     __nv_bfloat16 *gA_p = gA;
     __nv_bfloat16 *gB_p = gB;
@@ -3284,8 +3236,8 @@ __hoisted_g_gemm_bf16_32x64x64_16x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, tileA + (k * mrow * 32U + __anf05 * 64U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 32U + __anf05 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sA[(col + k1) * 32U + row] = local[k1];
@@ -3299,8 +3251,8 @@ __hoisted_g_gemm_bf16_32x64x64_16x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, tileB + (n * __anf08 * 64U + mcol * 64U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 64U + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sB[row * 64U + col + k1] = local[k1];
@@ -3346,9 +3298,9 @@ __hoisted_g_gemm_bf16_32x64x64_16x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
     }
 }
 
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x64x64_16x16(
-    __nv_bfloat16 alpha, __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k,
-    __nv_bfloat16 *gA, __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x64x64_16x16(__nv_bfloat16 alpha,
+    __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k, __nv_bfloat16 *gA,
+    __nv_bfloat16 *gB, __nv_bfloat16 *gC)
 {
     KPR_GUARD(m % 32U == 0U);
     KPR_GUARD(k % 64U == 0U);
@@ -3356,7 +3308,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x64x64_16x16(
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(12288U);
     KPR_KCALL(__hoisted_g_gemm_bf16_32x64x64_16x16_0, m / 32U * (n / 64U), 8U,
-              12288U, s, alpha, beta, n, k, gA, gB, gC);
+        12288U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -3367,8 +3319,7 @@ __global__
 */
 static void
 __hoisted_g_gemm_f32_32x128x32_8x8_0(float alpha, float beta, uint32_t n,
-                                     uint32_t k, float *gA, float *gB,
-                                     float *gC)
+    uint32_t k, float *gA, float *gB, float *gC)
 {
     float *gA_p = gA;
     float *gB_p = gB;
@@ -3391,8 +3342,8 @@ __hoisted_g_gemm_f32_32x128x32_8x8_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i0 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 32U;
-            vec_memcpy(local, tileA + (k * mrow * 32U + __anf05 * 32U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 32U + __anf05 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sA[(col + k1) * 32U + row] = local[k1];
@@ -3405,8 +3356,8 @@ __hoisted_g_gemm_f32_32x128x32_8x8_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i + threadIdx.x * 4U) / 128U;
             uint32_t col = (i + threadIdx.x * 4U) % 128U;
-            vec_memcpy(local, tileB + (n * __anf08 * 32U + mcol * 128U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 32U + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sB[row * 128U + col + k1] = local[k1];
@@ -3447,9 +3398,7 @@ __hoisted_g_gemm_f32_32x128x32_8x8_0(float alpha, float beta, uint32_t n,
 }
 
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_32x128x32_8x8(float alpha, float beta,
-                                                      uint32_t m, uint32_t n,
-                                                      uint32_t k, float *gA,
-                                                      float *gB, float *gC)
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC)
 {
     KPR_GUARD(m % 32U == 0U);
     KPR_GUARD(k % 32U == 0U);
@@ -3457,7 +3406,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_f32_32x128x32_8x8(float alpha, float beta,
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(20480U);
     KPR_KCALL(__hoisted_g_gemm_f32_32x128x32_8x8_0, m / 32U * (n / 128U), 64U,
-              20480U, s, alpha, beta, n, k, gA, gB, gC);
+        20480U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -3468,8 +3417,8 @@ __global__
 */
 static void
 __hoisted_g_gemm_bf16_32x128x32_8x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
-                                      uint32_t n, uint32_t k, __nv_bfloat16 *gA,
-                                      __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+    uint32_t n, uint32_t k, __nv_bfloat16 *gA, __nv_bfloat16 *gB,
+    __nv_bfloat16 *gC)
 {
     __nv_bfloat16 *gA_p = gA;
     __nv_bfloat16 *gB_p = gB;
@@ -3494,8 +3443,8 @@ __hoisted_g_gemm_bf16_32x128x32_8x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, tileA + (k * mrow * 32U + __anf05 * 32U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 32U + __anf05 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sA[(col + k1) * 32U + row] = local[k1];
@@ -3509,8 +3458,8 @@ __hoisted_g_gemm_bf16_32x128x32_8x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
-            vec_memcpy(local, tileB + (n * __anf08 * 32U + mcol * 128U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 32U + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sB[row * 128U + col + k1] = local[k1];
@@ -3556,9 +3505,9 @@ __hoisted_g_gemm_bf16_32x128x32_8x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
     }
 }
 
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x128x32_8x8(
-    __nv_bfloat16 alpha, __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k,
-    __nv_bfloat16 *gA, __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x128x32_8x8(__nv_bfloat16 alpha,
+    __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k, __nv_bfloat16 *gA,
+    __nv_bfloat16 *gB, __nv_bfloat16 *gC)
 {
     KPR_GUARD(m % 32U == 0U);
     KPR_GUARD(k % 32U == 0U);
@@ -3566,7 +3515,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x128x32_8x8(
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(10240U);
     KPR_KCALL(__hoisted_g_gemm_bf16_32x128x32_8x8_0, m / 32U * (n / 128U), 64U,
-              10240U, s, alpha, beta, n, k, gA, gB, gC);
+        10240U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -3577,8 +3526,7 @@ __global__
 */
 static void
 __hoisted_g_gemm_f32_32x128x32_8x16_0(float alpha, float beta, uint32_t n,
-                                      uint32_t k, float *gA, float *gB,
-                                      float *gC)
+    uint32_t k, float *gA, float *gB, float *gC)
 {
     float *gA_p = gA;
     float *gB_p = gB;
@@ -3601,8 +3549,8 @@ __hoisted_g_gemm_f32_32x128x32_8x16_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i0 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 32U;
-            vec_memcpy(local, tileA + (k * mrow * 32U + __anf05 * 32U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 32U + __anf05 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sA[(col + k1) * 32U + row] = local[k1];
@@ -3615,8 +3563,8 @@ __hoisted_g_gemm_f32_32x128x32_8x16_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i + threadIdx.x * 4U) / 128U;
             uint32_t col = (i + threadIdx.x * 4U) % 128U;
-            vec_memcpy(local, tileB + (n * __anf08 * 32U + mcol * 128U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 32U + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sB[row * 128U + col + k1] = local[k1];
@@ -3657,9 +3605,7 @@ __hoisted_g_gemm_f32_32x128x32_8x16_0(float alpha, float beta, uint32_t n,
 }
 
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_32x128x32_8x16(float alpha, float beta,
-                                                       uint32_t m, uint32_t n,
-                                                       uint32_t k, float *gA,
-                                                       float *gB, float *gC)
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC)
 {
     KPR_GUARD(m % 32U == 0U);
     KPR_GUARD(k % 32U == 0U);
@@ -3667,7 +3613,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_f32_32x128x32_8x16(float alpha, float beta,
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(20480U);
     KPR_KCALL(__hoisted_g_gemm_f32_32x128x32_8x16_0, m / 32U * (n / 128U), 32U,
-              20480U, s, alpha, beta, n, k, gA, gB, gC);
+        20480U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -3678,9 +3624,8 @@ __global__
 */
 static void
 __hoisted_g_gemm_bf16_32x128x32_8x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
-                                       uint32_t n, uint32_t k,
-                                       __nv_bfloat16 *gA, __nv_bfloat16 *gB,
-                                       __nv_bfloat16 *gC)
+    uint32_t n, uint32_t k, __nv_bfloat16 *gA, __nv_bfloat16 *gB,
+    __nv_bfloat16 *gC)
 {
     __nv_bfloat16 *gA_p = gA;
     __nv_bfloat16 *gB_p = gB;
@@ -3705,8 +3650,8 @@ __hoisted_g_gemm_bf16_32x128x32_8x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, tileA + (k * mrow * 32U + __anf05 * 32U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 32U + __anf05 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sA[(col + k1) * 32U + row] = local[k1];
@@ -3720,8 +3665,8 @@ __hoisted_g_gemm_bf16_32x128x32_8x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
-            vec_memcpy(local, tileB + (n * __anf08 * 32U + mcol * 128U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 32U + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sB[row * 128U + col + k1] = local[k1];
@@ -3767,9 +3712,9 @@ __hoisted_g_gemm_bf16_32x128x32_8x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
     }
 }
 
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x128x32_8x16(
-    __nv_bfloat16 alpha, __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k,
-    __nv_bfloat16 *gA, __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x128x32_8x16(__nv_bfloat16 alpha,
+    __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k, __nv_bfloat16 *gA,
+    __nv_bfloat16 *gB, __nv_bfloat16 *gC)
 {
     KPR_GUARD(m % 32U == 0U);
     KPR_GUARD(k % 32U == 0U);
@@ -3777,7 +3722,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x128x32_8x16(
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(10240U);
     KPR_KCALL(__hoisted_g_gemm_bf16_32x128x32_8x16_0, m / 32U * (n / 128U), 32U,
-              10240U, s, alpha, beta, n, k, gA, gB, gC);
+        10240U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -3788,8 +3733,7 @@ __global__
 */
 static void
 __hoisted_g_gemm_f32_32x128x32_16x8_0(float alpha, float beta, uint32_t n,
-                                      uint32_t k, float *gA, float *gB,
-                                      float *gC)
+    uint32_t k, float *gA, float *gB, float *gC)
 {
     float *gA_p = gA;
     float *gB_p = gB;
@@ -3812,8 +3756,8 @@ __hoisted_g_gemm_f32_32x128x32_16x8_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i0 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 32U;
-            vec_memcpy(local, tileA + (k * mrow * 32U + __anf05 * 32U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 32U + __anf05 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sA[(col + k1) * 32U + row] = local[k1];
@@ -3826,8 +3770,8 @@ __hoisted_g_gemm_f32_32x128x32_16x8_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i + threadIdx.x * 4U) / 128U;
             uint32_t col = (i + threadIdx.x * 4U) % 128U;
-            vec_memcpy(local, tileB + (n * __anf08 * 32U + mcol * 128U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 32U + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sB[row * 128U + col + k1] = local[k1];
@@ -3868,9 +3812,7 @@ __hoisted_g_gemm_f32_32x128x32_16x8_0(float alpha, float beta, uint32_t n,
 }
 
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_32x128x32_16x8(float alpha, float beta,
-                                                       uint32_t m, uint32_t n,
-                                                       uint32_t k, float *gA,
-                                                       float *gB, float *gC)
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC)
 {
     KPR_GUARD(m % 32U == 0U);
     KPR_GUARD(k % 32U == 0U);
@@ -3878,7 +3820,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_f32_32x128x32_16x8(float alpha, float beta,
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(20480U);
     KPR_KCALL(__hoisted_g_gemm_f32_32x128x32_16x8_0, m / 32U * (n / 128U), 32U,
-              20480U, s, alpha, beta, n, k, gA, gB, gC);
+        20480U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -3889,9 +3831,8 @@ __global__
 */
 static void
 __hoisted_g_gemm_bf16_32x128x32_16x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
-                                       uint32_t n, uint32_t k,
-                                       __nv_bfloat16 *gA, __nv_bfloat16 *gB,
-                                       __nv_bfloat16 *gC)
+    uint32_t n, uint32_t k, __nv_bfloat16 *gA, __nv_bfloat16 *gB,
+    __nv_bfloat16 *gC)
 {
     __nv_bfloat16 *gA_p = gA;
     __nv_bfloat16 *gB_p = gB;
@@ -3916,8 +3857,8 @@ __hoisted_g_gemm_bf16_32x128x32_16x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, tileA + (k * mrow * 32U + __anf05 * 32U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 32U + __anf05 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sA[(col + k1) * 32U + row] = local[k1];
@@ -3931,8 +3872,8 @@ __hoisted_g_gemm_bf16_32x128x32_16x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
-            vec_memcpy(local, tileB + (n * __anf08 * 32U + mcol * 128U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 32U + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sB[row * 128U + col + k1] = local[k1];
@@ -3978,9 +3919,9 @@ __hoisted_g_gemm_bf16_32x128x32_16x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
     }
 }
 
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x128x32_16x8(
-    __nv_bfloat16 alpha, __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k,
-    __nv_bfloat16 *gA, __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x128x32_16x8(__nv_bfloat16 alpha,
+    __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k, __nv_bfloat16 *gA,
+    __nv_bfloat16 *gB, __nv_bfloat16 *gC)
 {
     KPR_GUARD(m % 32U == 0U);
     KPR_GUARD(k % 32U == 0U);
@@ -3988,7 +3929,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x128x32_16x8(
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(10240U);
     KPR_KCALL(__hoisted_g_gemm_bf16_32x128x32_16x8_0, m / 32U * (n / 128U), 32U,
-              10240U, s, alpha, beta, n, k, gA, gB, gC);
+        10240U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -3999,8 +3940,7 @@ __global__
 */
 static void
 __hoisted_g_gemm_f32_32x128x32_16x16_0(float alpha, float beta, uint32_t n,
-                                       uint32_t k, float *gA, float *gB,
-                                       float *gC)
+    uint32_t k, float *gA, float *gB, float *gC)
 {
     float *gA_p = gA;
     float *gB_p = gB;
@@ -4023,8 +3963,8 @@ __hoisted_g_gemm_f32_32x128x32_16x16_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i0 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 32U;
-            vec_memcpy(local, tileA + (k * mrow * 32U + __anf05 * 32U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 32U + __anf05 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sA[(col + k1) * 32U + row] = local[k1];
@@ -4037,8 +3977,8 @@ __hoisted_g_gemm_f32_32x128x32_16x16_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i + threadIdx.x * 4U) / 128U;
             uint32_t col = (i + threadIdx.x * 4U) % 128U;
-            vec_memcpy(local, tileB + (n * __anf08 * 32U + mcol * 128U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 32U + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sB[row * 128U + col + k1] = local[k1];
@@ -4079,9 +4019,7 @@ __hoisted_g_gemm_f32_32x128x32_16x16_0(float alpha, float beta, uint32_t n,
 }
 
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_32x128x32_16x16(float alpha, float beta,
-                                                        uint32_t m, uint32_t n,
-                                                        uint32_t k, float *gA,
-                                                        float *gB, float *gC)
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC)
 {
     KPR_GUARD(m % 32U == 0U);
     KPR_GUARD(k % 32U == 0U);
@@ -4089,7 +4027,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_f32_32x128x32_16x16(float alpha, float beta,
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(20480U);
     KPR_KCALL(__hoisted_g_gemm_f32_32x128x32_16x16_0, m / 32U * (n / 128U), 16U,
-              20480U, s, alpha, beta, n, k, gA, gB, gC);
+        20480U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -4100,9 +4038,8 @@ __global__
 */
 static void
 __hoisted_g_gemm_bf16_32x128x32_16x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
-                                        uint32_t n, uint32_t k,
-                                        __nv_bfloat16 *gA, __nv_bfloat16 *gB,
-                                        __nv_bfloat16 *gC)
+    uint32_t n, uint32_t k, __nv_bfloat16 *gA, __nv_bfloat16 *gB,
+    __nv_bfloat16 *gC)
 {
     __nv_bfloat16 *gA_p = gA;
     __nv_bfloat16 *gB_p = gB;
@@ -4127,8 +4064,8 @@ __hoisted_g_gemm_bf16_32x128x32_16x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, tileA + (k * mrow * 32U + __anf05 * 32U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 32U + __anf05 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sA[(col + k1) * 32U + row] = local[k1];
@@ -4142,8 +4079,8 @@ __hoisted_g_gemm_bf16_32x128x32_16x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
-            vec_memcpy(local, tileB + (n * __anf08 * 32U + mcol * 128U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 32U + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sB[row * 128U + col + k1] = local[k1];
@@ -4189,9 +4126,9 @@ __hoisted_g_gemm_bf16_32x128x32_16x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
     }
 }
 
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x128x32_16x16(
-    __nv_bfloat16 alpha, __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k,
-    __nv_bfloat16 *gA, __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x128x32_16x16(__nv_bfloat16 alpha,
+    __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k, __nv_bfloat16 *gA,
+    __nv_bfloat16 *gB, __nv_bfloat16 *gC)
 {
     KPR_GUARD(m % 32U == 0U);
     KPR_GUARD(k % 32U == 0U);
@@ -4199,7 +4136,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x128x32_16x16(
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(10240U);
     KPR_KCALL(__hoisted_g_gemm_bf16_32x128x32_16x16_0, m / 32U * (n / 128U),
-              16U, 10240U, s, alpha, beta, n, k, gA, gB, gC);
+        16U, 10240U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -4210,8 +4147,7 @@ __global__
 */
 static void
 __hoisted_g_gemm_f32_32x128x64_8x8_0(float alpha, float beta, uint32_t n,
-                                     uint32_t k, float *gA, float *gB,
-                                     float *gC)
+    uint32_t k, float *gA, float *gB, float *gC)
 {
     float *gA_p = gA;
     float *gB_p = gB;
@@ -4234,8 +4170,8 @@ __hoisted_g_gemm_f32_32x128x64_8x8_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i0 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 64U;
-            vec_memcpy(local, tileA + (k * mrow * 32U + __anf05 * 64U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 32U + __anf05 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sA[(col + k1) * 32U + row] = local[k1];
@@ -4248,8 +4184,8 @@ __hoisted_g_gemm_f32_32x128x64_8x8_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i + threadIdx.x * 4U) / 128U;
             uint32_t col = (i + threadIdx.x * 4U) % 128U;
-            vec_memcpy(local, tileB + (n * __anf08 * 64U + mcol * 128U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 64U + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sB[row * 128U + col + k1] = local[k1];
@@ -4290,9 +4226,7 @@ __hoisted_g_gemm_f32_32x128x64_8x8_0(float alpha, float beta, uint32_t n,
 }
 
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_32x128x64_8x8(float alpha, float beta,
-                                                      uint32_t m, uint32_t n,
-                                                      uint32_t k, float *gA,
-                                                      float *gB, float *gC)
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC)
 {
     KPR_GUARD(m % 32U == 0U);
     KPR_GUARD(k % 64U == 0U);
@@ -4300,7 +4234,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_f32_32x128x64_8x8(float alpha, float beta,
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(40960U);
     KPR_KCALL(__hoisted_g_gemm_f32_32x128x64_8x8_0, m / 32U * (n / 128U), 64U,
-              40960U, s, alpha, beta, n, k, gA, gB, gC);
+        40960U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -4311,8 +4245,8 @@ __global__
 */
 static void
 __hoisted_g_gemm_bf16_32x128x64_8x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
-                                      uint32_t n, uint32_t k, __nv_bfloat16 *gA,
-                                      __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+    uint32_t n, uint32_t k, __nv_bfloat16 *gA, __nv_bfloat16 *gB,
+    __nv_bfloat16 *gC)
 {
     __nv_bfloat16 *gA_p = gA;
     __nv_bfloat16 *gB_p = gB;
@@ -4337,8 +4271,8 @@ __hoisted_g_gemm_bf16_32x128x64_8x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, tileA + (k * mrow * 32U + __anf05 * 64U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 32U + __anf05 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sA[(col + k1) * 32U + row] = local[k1];
@@ -4352,8 +4286,8 @@ __hoisted_g_gemm_bf16_32x128x64_8x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
-            vec_memcpy(local, tileB + (n * __anf08 * 64U + mcol * 128U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 64U + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sB[row * 128U + col + k1] = local[k1];
@@ -4399,9 +4333,9 @@ __hoisted_g_gemm_bf16_32x128x64_8x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
     }
 }
 
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x128x64_8x8(
-    __nv_bfloat16 alpha, __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k,
-    __nv_bfloat16 *gA, __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x128x64_8x8(__nv_bfloat16 alpha,
+    __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k, __nv_bfloat16 *gA,
+    __nv_bfloat16 *gB, __nv_bfloat16 *gC)
 {
     KPR_GUARD(m % 32U == 0U);
     KPR_GUARD(k % 64U == 0U);
@@ -4409,7 +4343,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x128x64_8x8(
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(20480U);
     KPR_KCALL(__hoisted_g_gemm_bf16_32x128x64_8x8_0, m / 32U * (n / 128U), 64U,
-              20480U, s, alpha, beta, n, k, gA, gB, gC);
+        20480U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -4420,8 +4354,7 @@ __global__
 */
 static void
 __hoisted_g_gemm_f32_32x128x64_8x16_0(float alpha, float beta, uint32_t n,
-                                      uint32_t k, float *gA, float *gB,
-                                      float *gC)
+    uint32_t k, float *gA, float *gB, float *gC)
 {
     float *gA_p = gA;
     float *gB_p = gB;
@@ -4444,8 +4377,8 @@ __hoisted_g_gemm_f32_32x128x64_8x16_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i0 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 64U;
-            vec_memcpy(local, tileA + (k * mrow * 32U + __anf05 * 64U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 32U + __anf05 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sA[(col + k1) * 32U + row] = local[k1];
@@ -4458,8 +4391,8 @@ __hoisted_g_gemm_f32_32x128x64_8x16_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i + threadIdx.x * 4U) / 128U;
             uint32_t col = (i + threadIdx.x * 4U) % 128U;
-            vec_memcpy(local, tileB + (n * __anf08 * 64U + mcol * 128U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 64U + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sB[row * 128U + col + k1] = local[k1];
@@ -4500,9 +4433,7 @@ __hoisted_g_gemm_f32_32x128x64_8x16_0(float alpha, float beta, uint32_t n,
 }
 
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_32x128x64_8x16(float alpha, float beta,
-                                                       uint32_t m, uint32_t n,
-                                                       uint32_t k, float *gA,
-                                                       float *gB, float *gC)
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC)
 {
     KPR_GUARD(m % 32U == 0U);
     KPR_GUARD(k % 64U == 0U);
@@ -4510,7 +4441,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_f32_32x128x64_8x16(float alpha, float beta,
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(40960U);
     KPR_KCALL(__hoisted_g_gemm_f32_32x128x64_8x16_0, m / 32U * (n / 128U), 32U,
-              40960U, s, alpha, beta, n, k, gA, gB, gC);
+        40960U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -4521,9 +4452,8 @@ __global__
 */
 static void
 __hoisted_g_gemm_bf16_32x128x64_8x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
-                                       uint32_t n, uint32_t k,
-                                       __nv_bfloat16 *gA, __nv_bfloat16 *gB,
-                                       __nv_bfloat16 *gC)
+    uint32_t n, uint32_t k, __nv_bfloat16 *gA, __nv_bfloat16 *gB,
+    __nv_bfloat16 *gC)
 {
     __nv_bfloat16 *gA_p = gA;
     __nv_bfloat16 *gB_p = gB;
@@ -4548,8 +4478,8 @@ __hoisted_g_gemm_bf16_32x128x64_8x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, tileA + (k * mrow * 32U + __anf05 * 64U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 32U + __anf05 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sA[(col + k1) * 32U + row] = local[k1];
@@ -4563,8 +4493,8 @@ __hoisted_g_gemm_bf16_32x128x64_8x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
-            vec_memcpy(local, tileB + (n * __anf08 * 64U + mcol * 128U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 64U + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sB[row * 128U + col + k1] = local[k1];
@@ -4610,9 +4540,9 @@ __hoisted_g_gemm_bf16_32x128x64_8x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
     }
 }
 
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x128x64_8x16(
-    __nv_bfloat16 alpha, __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k,
-    __nv_bfloat16 *gA, __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x128x64_8x16(__nv_bfloat16 alpha,
+    __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k, __nv_bfloat16 *gA,
+    __nv_bfloat16 *gB, __nv_bfloat16 *gC)
 {
     KPR_GUARD(m % 32U == 0U);
     KPR_GUARD(k % 64U == 0U);
@@ -4620,7 +4550,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x128x64_8x16(
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(20480U);
     KPR_KCALL(__hoisted_g_gemm_bf16_32x128x64_8x16_0, m / 32U * (n / 128U), 32U,
-              20480U, s, alpha, beta, n, k, gA, gB, gC);
+        20480U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -4631,8 +4561,7 @@ __global__
 */
 static void
 __hoisted_g_gemm_f32_32x128x64_16x8_0(float alpha, float beta, uint32_t n,
-                                      uint32_t k, float *gA, float *gB,
-                                      float *gC)
+    uint32_t k, float *gA, float *gB, float *gC)
 {
     float *gA_p = gA;
     float *gB_p = gB;
@@ -4655,8 +4584,8 @@ __hoisted_g_gemm_f32_32x128x64_16x8_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i0 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 64U;
-            vec_memcpy(local, tileA + (k * mrow * 32U + __anf05 * 64U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 32U + __anf05 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sA[(col + k1) * 32U + row] = local[k1];
@@ -4669,8 +4598,8 @@ __hoisted_g_gemm_f32_32x128x64_16x8_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i + threadIdx.x * 4U) / 128U;
             uint32_t col = (i + threadIdx.x * 4U) % 128U;
-            vec_memcpy(local, tileB + (n * __anf08 * 64U + mcol * 128U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 64U + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sB[row * 128U + col + k1] = local[k1];
@@ -4711,9 +4640,7 @@ __hoisted_g_gemm_f32_32x128x64_16x8_0(float alpha, float beta, uint32_t n,
 }
 
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_32x128x64_16x8(float alpha, float beta,
-                                                       uint32_t m, uint32_t n,
-                                                       uint32_t k, float *gA,
-                                                       float *gB, float *gC)
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC)
 {
     KPR_GUARD(m % 32U == 0U);
     KPR_GUARD(k % 64U == 0U);
@@ -4721,7 +4648,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_f32_32x128x64_16x8(float alpha, float beta,
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(40960U);
     KPR_KCALL(__hoisted_g_gemm_f32_32x128x64_16x8_0, m / 32U * (n / 128U), 32U,
-              40960U, s, alpha, beta, n, k, gA, gB, gC);
+        40960U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -4732,9 +4659,8 @@ __global__
 */
 static void
 __hoisted_g_gemm_bf16_32x128x64_16x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
-                                       uint32_t n, uint32_t k,
-                                       __nv_bfloat16 *gA, __nv_bfloat16 *gB,
-                                       __nv_bfloat16 *gC)
+    uint32_t n, uint32_t k, __nv_bfloat16 *gA, __nv_bfloat16 *gB,
+    __nv_bfloat16 *gC)
 {
     __nv_bfloat16 *gA_p = gA;
     __nv_bfloat16 *gB_p = gB;
@@ -4759,8 +4685,8 @@ __hoisted_g_gemm_bf16_32x128x64_16x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, tileA + (k * mrow * 32U + __anf05 * 64U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 32U + __anf05 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sA[(col + k1) * 32U + row] = local[k1];
@@ -4774,8 +4700,8 @@ __hoisted_g_gemm_bf16_32x128x64_16x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
-            vec_memcpy(local, tileB + (n * __anf08 * 64U + mcol * 128U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 64U + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sB[row * 128U + col + k1] = local[k1];
@@ -4821,9 +4747,9 @@ __hoisted_g_gemm_bf16_32x128x64_16x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
     }
 }
 
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x128x64_16x8(
-    __nv_bfloat16 alpha, __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k,
-    __nv_bfloat16 *gA, __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x128x64_16x8(__nv_bfloat16 alpha,
+    __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k, __nv_bfloat16 *gA,
+    __nv_bfloat16 *gB, __nv_bfloat16 *gC)
 {
     KPR_GUARD(m % 32U == 0U);
     KPR_GUARD(k % 64U == 0U);
@@ -4831,7 +4757,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x128x64_16x8(
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(20480U);
     KPR_KCALL(__hoisted_g_gemm_bf16_32x128x64_16x8_0, m / 32U * (n / 128U), 32U,
-              20480U, s, alpha, beta, n, k, gA, gB, gC);
+        20480U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -4842,8 +4768,7 @@ __global__
 */
 static void
 __hoisted_g_gemm_f32_32x128x64_16x16_0(float alpha, float beta, uint32_t n,
-                                       uint32_t k, float *gA, float *gB,
-                                       float *gC)
+    uint32_t k, float *gA, float *gB, float *gC)
 {
     float *gA_p = gA;
     float *gB_p = gB;
@@ -4866,8 +4791,8 @@ __hoisted_g_gemm_f32_32x128x64_16x16_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i0 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 64U;
-            vec_memcpy(local, tileA + (k * mrow * 32U + __anf05 * 64U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 32U + __anf05 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sA[(col + k1) * 32U + row] = local[k1];
@@ -4880,8 +4805,8 @@ __hoisted_g_gemm_f32_32x128x64_16x16_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i + threadIdx.x * 4U) / 128U;
             uint32_t col = (i + threadIdx.x * 4U) % 128U;
-            vec_memcpy(local, tileB + (n * __anf08 * 64U + mcol * 128U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 64U + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sB[row * 128U + col + k1] = local[k1];
@@ -4922,9 +4847,7 @@ __hoisted_g_gemm_f32_32x128x64_16x16_0(float alpha, float beta, uint32_t n,
 }
 
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_32x128x64_16x16(float alpha, float beta,
-                                                        uint32_t m, uint32_t n,
-                                                        uint32_t k, float *gA,
-                                                        float *gB, float *gC)
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC)
 {
     KPR_GUARD(m % 32U == 0U);
     KPR_GUARD(k % 64U == 0U);
@@ -4932,7 +4855,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_f32_32x128x64_16x16(float alpha, float beta,
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(40960U);
     KPR_KCALL(__hoisted_g_gemm_f32_32x128x64_16x16_0, m / 32U * (n / 128U), 16U,
-              40960U, s, alpha, beta, n, k, gA, gB, gC);
+        40960U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -4943,9 +4866,8 @@ __global__
 */
 static void
 __hoisted_g_gemm_bf16_32x128x64_16x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
-                                        uint32_t n, uint32_t k,
-                                        __nv_bfloat16 *gA, __nv_bfloat16 *gB,
-                                        __nv_bfloat16 *gC)
+    uint32_t n, uint32_t k, __nv_bfloat16 *gA, __nv_bfloat16 *gB,
+    __nv_bfloat16 *gC)
 {
     __nv_bfloat16 *gA_p = gA;
     __nv_bfloat16 *gB_p = gB;
@@ -4970,8 +4892,8 @@ __hoisted_g_gemm_bf16_32x128x64_16x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, tileA + (k * mrow * 32U + __anf05 * 64U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 32U + __anf05 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sA[(col + k1) * 32U + row] = local[k1];
@@ -4985,8 +4907,8 @@ __hoisted_g_gemm_bf16_32x128x64_16x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
-            vec_memcpy(local, tileB + (n * __anf08 * 64U + mcol * 128U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 64U + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sB[row * 128U + col + k1] = local[k1];
@@ -5032,9 +4954,9 @@ __hoisted_g_gemm_bf16_32x128x64_16x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
     }
 }
 
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x128x64_16x16(
-    __nv_bfloat16 alpha, __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k,
-    __nv_bfloat16 *gA, __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x128x64_16x16(__nv_bfloat16 alpha,
+    __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k, __nv_bfloat16 *gA,
+    __nv_bfloat16 *gB, __nv_bfloat16 *gC)
 {
     KPR_GUARD(m % 32U == 0U);
     KPR_GUARD(k % 64U == 0U);
@@ -5042,7 +4964,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x128x64_16x16(
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(20480U);
     KPR_KCALL(__hoisted_g_gemm_bf16_32x128x64_16x16_0, m / 32U * (n / 128U),
-              16U, 20480U, s, alpha, beta, n, k, gA, gB, gC);
+        16U, 20480U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -5053,7 +4975,7 @@ __global__
 */
 static void
 __hoisted_g_gemm_f32_64x32x32_8x8_0(float alpha, float beta, uint32_t n,
-                                    uint32_t k, float *gA, float *gB, float *gC)
+    uint32_t k, float *gA, float *gB, float *gC)
 {
     float *gA_p = gA;
     float *gB_p = gB;
@@ -5076,8 +4998,8 @@ __hoisted_g_gemm_f32_64x32x32_8x8_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i0 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 32U;
-            vec_memcpy(local, tileA + (k * mrow * 64U + __anf05 * 32U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 64U + __anf05 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sA[(col + k1) * 64U + row] = local[k1];
@@ -5090,8 +5012,8 @@ __hoisted_g_gemm_f32_64x32x32_8x8_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
-            vec_memcpy(local, tileB + (n * __anf08 * 32U + mcol * 32U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 32U + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sB[row * 32U + col + k1] = local[k1];
@@ -5132,9 +5054,7 @@ __hoisted_g_gemm_f32_64x32x32_8x8_0(float alpha, float beta, uint32_t n,
 }
 
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_64x32x32_8x8(float alpha, float beta,
-                                                     uint32_t m, uint32_t n,
-                                                     uint32_t k, float *gA,
-                                                     float *gB, float *gC)
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC)
 {
     KPR_GUARD(m % 64U == 0U);
     KPR_GUARD(k % 32U == 0U);
@@ -5142,7 +5062,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_f32_64x32x32_8x8(float alpha, float beta,
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(12288U);
     KPR_KCALL(__hoisted_g_gemm_f32_64x32x32_8x8_0, m / 64U * (n / 32U), 32U,
-              12288U, s, alpha, beta, n, k, gA, gB, gC);
+        12288U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -5153,8 +5073,8 @@ __global__
 */
 static void
 __hoisted_g_gemm_bf16_64x32x32_8x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
-                                     uint32_t n, uint32_t k, __nv_bfloat16 *gA,
-                                     __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+    uint32_t n, uint32_t k, __nv_bfloat16 *gA, __nv_bfloat16 *gB,
+    __nv_bfloat16 *gC)
 {
     __nv_bfloat16 *gA_p = gA;
     __nv_bfloat16 *gB_p = gB;
@@ -5179,8 +5099,8 @@ __hoisted_g_gemm_bf16_64x32x32_8x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, tileA + (k * mrow * 64U + __anf05 * 32U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 64U + __anf05 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sA[(col + k1) * 64U + row] = local[k1];
@@ -5194,8 +5114,8 @@ __hoisted_g_gemm_bf16_64x32x32_8x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, tileB + (n * __anf08 * 32U + mcol * 32U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 32U + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sB[row * 32U + col + k1] = local[k1];
@@ -5241,9 +5161,9 @@ __hoisted_g_gemm_bf16_64x32x32_8x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
     }
 }
 
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x32x32_8x8(
-    __nv_bfloat16 alpha, __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k,
-    __nv_bfloat16 *gA, __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x32x32_8x8(__nv_bfloat16 alpha,
+    __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k, __nv_bfloat16 *gA,
+    __nv_bfloat16 *gB, __nv_bfloat16 *gC)
 {
     KPR_GUARD(m % 64U == 0U);
     KPR_GUARD(k % 32U == 0U);
@@ -5251,7 +5171,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x32x32_8x8(
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(6144U);
     KPR_KCALL(__hoisted_g_gemm_bf16_64x32x32_8x8_0, m / 64U * (n / 32U), 32U,
-              6144U, s, alpha, beta, n, k, gA, gB, gC);
+        6144U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -5262,8 +5182,7 @@ __global__
 */
 static void
 __hoisted_g_gemm_f32_64x32x32_8x16_0(float alpha, float beta, uint32_t n,
-                                     uint32_t k, float *gA, float *gB,
-                                     float *gC)
+    uint32_t k, float *gA, float *gB, float *gC)
 {
     float *gA_p = gA;
     float *gB_p = gB;
@@ -5286,8 +5205,8 @@ __hoisted_g_gemm_f32_64x32x32_8x16_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i0 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 32U;
-            vec_memcpy(local, tileA + (k * mrow * 64U + __anf05 * 32U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 64U + __anf05 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sA[(col + k1) * 64U + row] = local[k1];
@@ -5300,8 +5219,8 @@ __hoisted_g_gemm_f32_64x32x32_8x16_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
-            vec_memcpy(local, tileB + (n * __anf08 * 32U + mcol * 32U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 32U + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sB[row * 32U + col + k1] = local[k1];
@@ -5342,9 +5261,7 @@ __hoisted_g_gemm_f32_64x32x32_8x16_0(float alpha, float beta, uint32_t n,
 }
 
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_64x32x32_8x16(float alpha, float beta,
-                                                      uint32_t m, uint32_t n,
-                                                      uint32_t k, float *gA,
-                                                      float *gB, float *gC)
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC)
 {
     KPR_GUARD(m % 64U == 0U);
     KPR_GUARD(k % 32U == 0U);
@@ -5352,7 +5269,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_f32_64x32x32_8x16(float alpha, float beta,
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(12288U);
     KPR_KCALL(__hoisted_g_gemm_f32_64x32x32_8x16_0, m / 64U * (n / 32U), 16U,
-              12288U, s, alpha, beta, n, k, gA, gB, gC);
+        12288U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -5363,8 +5280,8 @@ __global__
 */
 static void
 __hoisted_g_gemm_bf16_64x32x32_8x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
-                                      uint32_t n, uint32_t k, __nv_bfloat16 *gA,
-                                      __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+    uint32_t n, uint32_t k, __nv_bfloat16 *gA, __nv_bfloat16 *gB,
+    __nv_bfloat16 *gC)
 {
     __nv_bfloat16 *gA_p = gA;
     __nv_bfloat16 *gB_p = gB;
@@ -5389,8 +5306,8 @@ __hoisted_g_gemm_bf16_64x32x32_8x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, tileA + (k * mrow * 64U + __anf05 * 32U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 64U + __anf05 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sA[(col + k1) * 64U + row] = local[k1];
@@ -5404,8 +5321,8 @@ __hoisted_g_gemm_bf16_64x32x32_8x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, tileB + (n * __anf08 * 32U + mcol * 32U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 32U + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sB[row * 32U + col + k1] = local[k1];
@@ -5451,9 +5368,9 @@ __hoisted_g_gemm_bf16_64x32x32_8x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
     }
 }
 
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x32x32_8x16(
-    __nv_bfloat16 alpha, __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k,
-    __nv_bfloat16 *gA, __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x32x32_8x16(__nv_bfloat16 alpha,
+    __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k, __nv_bfloat16 *gA,
+    __nv_bfloat16 *gB, __nv_bfloat16 *gC)
 {
     KPR_GUARD(m % 64U == 0U);
     KPR_GUARD(k % 32U == 0U);
@@ -5461,7 +5378,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x32x32_8x16(
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(6144U);
     KPR_KCALL(__hoisted_g_gemm_bf16_64x32x32_8x16_0, m / 64U * (n / 32U), 16U,
-              6144U, s, alpha, beta, n, k, gA, gB, gC);
+        6144U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -5472,8 +5389,7 @@ __global__
 */
 static void
 __hoisted_g_gemm_f32_64x32x32_16x8_0(float alpha, float beta, uint32_t n,
-                                     uint32_t k, float *gA, float *gB,
-                                     float *gC)
+    uint32_t k, float *gA, float *gB, float *gC)
 {
     float *gA_p = gA;
     float *gB_p = gB;
@@ -5496,8 +5412,8 @@ __hoisted_g_gemm_f32_64x32x32_16x8_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i0 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 32U;
-            vec_memcpy(local, tileA + (k * mrow * 64U + __anf05 * 32U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 64U + __anf05 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sA[(col + k1) * 64U + row] = local[k1];
@@ -5510,8 +5426,8 @@ __hoisted_g_gemm_f32_64x32x32_16x8_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
-            vec_memcpy(local, tileB + (n * __anf08 * 32U + mcol * 32U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 32U + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sB[row * 32U + col + k1] = local[k1];
@@ -5552,9 +5468,7 @@ __hoisted_g_gemm_f32_64x32x32_16x8_0(float alpha, float beta, uint32_t n,
 }
 
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_64x32x32_16x8(float alpha, float beta,
-                                                      uint32_t m, uint32_t n,
-                                                      uint32_t k, float *gA,
-                                                      float *gB, float *gC)
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC)
 {
     KPR_GUARD(m % 64U == 0U);
     KPR_GUARD(k % 32U == 0U);
@@ -5562,7 +5476,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_f32_64x32x32_16x8(float alpha, float beta,
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(12288U);
     KPR_KCALL(__hoisted_g_gemm_f32_64x32x32_16x8_0, m / 64U * (n / 32U), 16U,
-              12288U, s, alpha, beta, n, k, gA, gB, gC);
+        12288U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -5573,8 +5487,8 @@ __global__
 */
 static void
 __hoisted_g_gemm_bf16_64x32x32_16x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
-                                      uint32_t n, uint32_t k, __nv_bfloat16 *gA,
-                                      __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+    uint32_t n, uint32_t k, __nv_bfloat16 *gA, __nv_bfloat16 *gB,
+    __nv_bfloat16 *gC)
 {
     __nv_bfloat16 *gA_p = gA;
     __nv_bfloat16 *gB_p = gB;
@@ -5599,8 +5513,8 @@ __hoisted_g_gemm_bf16_64x32x32_16x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, tileA + (k * mrow * 64U + __anf05 * 32U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 64U + __anf05 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sA[(col + k1) * 64U + row] = local[k1];
@@ -5614,8 +5528,8 @@ __hoisted_g_gemm_bf16_64x32x32_16x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, tileB + (n * __anf08 * 32U + mcol * 32U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 32U + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sB[row * 32U + col + k1] = local[k1];
@@ -5661,9 +5575,9 @@ __hoisted_g_gemm_bf16_64x32x32_16x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
     }
 }
 
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x32x32_16x8(
-    __nv_bfloat16 alpha, __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k,
-    __nv_bfloat16 *gA, __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x32x32_16x8(__nv_bfloat16 alpha,
+    __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k, __nv_bfloat16 *gA,
+    __nv_bfloat16 *gB, __nv_bfloat16 *gC)
 {
     KPR_GUARD(m % 64U == 0U);
     KPR_GUARD(k % 32U == 0U);
@@ -5671,7 +5585,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x32x32_16x8(
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(6144U);
     KPR_KCALL(__hoisted_g_gemm_bf16_64x32x32_16x8_0, m / 64U * (n / 32U), 16U,
-              6144U, s, alpha, beta, n, k, gA, gB, gC);
+        6144U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -5682,8 +5596,7 @@ __global__
 */
 static void
 __hoisted_g_gemm_f32_64x32x32_16x16_0(float alpha, float beta, uint32_t n,
-                                      uint32_t k, float *gA, float *gB,
-                                      float *gC)
+    uint32_t k, float *gA, float *gB, float *gC)
 {
     float *gA_p = gA;
     float *gB_p = gB;
@@ -5706,8 +5619,8 @@ __hoisted_g_gemm_f32_64x32x32_16x16_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i0 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 32U;
-            vec_memcpy(local, tileA + (k * mrow * 64U + __anf05 * 32U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 64U + __anf05 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sA[(col + k1) * 64U + row] = local[k1];
@@ -5720,8 +5633,8 @@ __hoisted_g_gemm_f32_64x32x32_16x16_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
-            vec_memcpy(local, tileB + (n * __anf08 * 32U + mcol * 32U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 32U + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sB[row * 32U + col + k1] = local[k1];
@@ -5762,9 +5675,7 @@ __hoisted_g_gemm_f32_64x32x32_16x16_0(float alpha, float beta, uint32_t n,
 }
 
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_64x32x32_16x16(float alpha, float beta,
-                                                       uint32_t m, uint32_t n,
-                                                       uint32_t k, float *gA,
-                                                       float *gB, float *gC)
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC)
 {
     KPR_GUARD(m % 64U == 0U);
     KPR_GUARD(k % 32U == 0U);
@@ -5772,7 +5683,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_f32_64x32x32_16x16(float alpha, float beta,
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(12288U);
     KPR_KCALL(__hoisted_g_gemm_f32_64x32x32_16x16_0, m / 64U * (n / 32U), 8U,
-              12288U, s, alpha, beta, n, k, gA, gB, gC);
+        12288U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -5783,9 +5694,8 @@ __global__
 */
 static void
 __hoisted_g_gemm_bf16_64x32x32_16x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
-                                       uint32_t n, uint32_t k,
-                                       __nv_bfloat16 *gA, __nv_bfloat16 *gB,
-                                       __nv_bfloat16 *gC)
+    uint32_t n, uint32_t k, __nv_bfloat16 *gA, __nv_bfloat16 *gB,
+    __nv_bfloat16 *gC)
 {
     __nv_bfloat16 *gA_p = gA;
     __nv_bfloat16 *gB_p = gB;
@@ -5810,8 +5720,8 @@ __hoisted_g_gemm_bf16_64x32x32_16x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, tileA + (k * mrow * 64U + __anf05 * 32U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 64U + __anf05 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sA[(col + k1) * 64U + row] = local[k1];
@@ -5825,8 +5735,8 @@ __hoisted_g_gemm_bf16_64x32x32_16x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, tileB + (n * __anf08 * 32U + mcol * 32U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 32U + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sB[row * 32U + col + k1] = local[k1];
@@ -5872,9 +5782,9 @@ __hoisted_g_gemm_bf16_64x32x32_16x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
     }
 }
 
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x32x32_16x16(
-    __nv_bfloat16 alpha, __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k,
-    __nv_bfloat16 *gA, __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x32x32_16x16(__nv_bfloat16 alpha,
+    __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k, __nv_bfloat16 *gA,
+    __nv_bfloat16 *gB, __nv_bfloat16 *gC)
 {
     KPR_GUARD(m % 64U == 0U);
     KPR_GUARD(k % 32U == 0U);
@@ -5882,7 +5792,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x32x32_16x16(
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(6144U);
     KPR_KCALL(__hoisted_g_gemm_bf16_64x32x32_16x16_0, m / 64U * (n / 32U), 8U,
-              6144U, s, alpha, beta, n, k, gA, gB, gC);
+        6144U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -5893,7 +5803,7 @@ __global__
 */
 static void
 __hoisted_g_gemm_f32_64x32x64_8x8_0(float alpha, float beta, uint32_t n,
-                                    uint32_t k, float *gA, float *gB, float *gC)
+    uint32_t k, float *gA, float *gB, float *gC)
 {
     float *gA_p = gA;
     float *gB_p = gB;
@@ -5916,8 +5826,8 @@ __hoisted_g_gemm_f32_64x32x64_8x8_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i0 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 64U;
-            vec_memcpy(local, tileA + (k * mrow * 64U + __anf05 * 64U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 64U + __anf05 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sA[(col + k1) * 64U + row] = local[k1];
@@ -5930,8 +5840,8 @@ __hoisted_g_gemm_f32_64x32x64_8x8_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
-            vec_memcpy(local, tileB + (n * __anf08 * 64U + mcol * 32U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 64U + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sB[row * 32U + col + k1] = local[k1];
@@ -5972,9 +5882,7 @@ __hoisted_g_gemm_f32_64x32x64_8x8_0(float alpha, float beta, uint32_t n,
 }
 
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_64x32x64_8x8(float alpha, float beta,
-                                                     uint32_t m, uint32_t n,
-                                                     uint32_t k, float *gA,
-                                                     float *gB, float *gC)
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC)
 {
     KPR_GUARD(m % 64U == 0U);
     KPR_GUARD(k % 64U == 0U);
@@ -5982,7 +5890,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_f32_64x32x64_8x8(float alpha, float beta,
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(24576U);
     KPR_KCALL(__hoisted_g_gemm_f32_64x32x64_8x8_0, m / 64U * (n / 32U), 32U,
-              24576U, s, alpha, beta, n, k, gA, gB, gC);
+        24576U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -5993,8 +5901,8 @@ __global__
 */
 static void
 __hoisted_g_gemm_bf16_64x32x64_8x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
-                                     uint32_t n, uint32_t k, __nv_bfloat16 *gA,
-                                     __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+    uint32_t n, uint32_t k, __nv_bfloat16 *gA, __nv_bfloat16 *gB,
+    __nv_bfloat16 *gC)
 {
     __nv_bfloat16 *gA_p = gA;
     __nv_bfloat16 *gB_p = gB;
@@ -6019,8 +5927,8 @@ __hoisted_g_gemm_bf16_64x32x64_8x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, tileA + (k * mrow * 64U + __anf05 * 64U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 64U + __anf05 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sA[(col + k1) * 64U + row] = local[k1];
@@ -6034,8 +5942,8 @@ __hoisted_g_gemm_bf16_64x32x64_8x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, tileB + (n * __anf08 * 64U + mcol * 32U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 64U + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sB[row * 32U + col + k1] = local[k1];
@@ -6081,9 +5989,9 @@ __hoisted_g_gemm_bf16_64x32x64_8x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
     }
 }
 
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x32x64_8x8(
-    __nv_bfloat16 alpha, __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k,
-    __nv_bfloat16 *gA, __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x32x64_8x8(__nv_bfloat16 alpha,
+    __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k, __nv_bfloat16 *gA,
+    __nv_bfloat16 *gB, __nv_bfloat16 *gC)
 {
     KPR_GUARD(m % 64U == 0U);
     KPR_GUARD(k % 64U == 0U);
@@ -6091,7 +5999,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x32x64_8x8(
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(12288U);
     KPR_KCALL(__hoisted_g_gemm_bf16_64x32x64_8x8_0, m / 64U * (n / 32U), 32U,
-              12288U, s, alpha, beta, n, k, gA, gB, gC);
+        12288U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -6102,8 +6010,7 @@ __global__
 */
 static void
 __hoisted_g_gemm_f32_64x32x64_8x16_0(float alpha, float beta, uint32_t n,
-                                     uint32_t k, float *gA, float *gB,
-                                     float *gC)
+    uint32_t k, float *gA, float *gB, float *gC)
 {
     float *gA_p = gA;
     float *gB_p = gB;
@@ -6126,8 +6033,8 @@ __hoisted_g_gemm_f32_64x32x64_8x16_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i0 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 64U;
-            vec_memcpy(local, tileA + (k * mrow * 64U + __anf05 * 64U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 64U + __anf05 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sA[(col + k1) * 64U + row] = local[k1];
@@ -6140,8 +6047,8 @@ __hoisted_g_gemm_f32_64x32x64_8x16_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
-            vec_memcpy(local, tileB + (n * __anf08 * 64U + mcol * 32U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 64U + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sB[row * 32U + col + k1] = local[k1];
@@ -6182,9 +6089,7 @@ __hoisted_g_gemm_f32_64x32x64_8x16_0(float alpha, float beta, uint32_t n,
 }
 
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_64x32x64_8x16(float alpha, float beta,
-                                                      uint32_t m, uint32_t n,
-                                                      uint32_t k, float *gA,
-                                                      float *gB, float *gC)
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC)
 {
     KPR_GUARD(m % 64U == 0U);
     KPR_GUARD(k % 64U == 0U);
@@ -6192,7 +6097,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_f32_64x32x64_8x16(float alpha, float beta,
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(24576U);
     KPR_KCALL(__hoisted_g_gemm_f32_64x32x64_8x16_0, m / 64U * (n / 32U), 16U,
-              24576U, s, alpha, beta, n, k, gA, gB, gC);
+        24576U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -6203,8 +6108,8 @@ __global__
 */
 static void
 __hoisted_g_gemm_bf16_64x32x64_8x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
-                                      uint32_t n, uint32_t k, __nv_bfloat16 *gA,
-                                      __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+    uint32_t n, uint32_t k, __nv_bfloat16 *gA, __nv_bfloat16 *gB,
+    __nv_bfloat16 *gC)
 {
     __nv_bfloat16 *gA_p = gA;
     __nv_bfloat16 *gB_p = gB;
@@ -6229,8 +6134,8 @@ __hoisted_g_gemm_bf16_64x32x64_8x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, tileA + (k * mrow * 64U + __anf05 * 64U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 64U + __anf05 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sA[(col + k1) * 64U + row] = local[k1];
@@ -6244,8 +6149,8 @@ __hoisted_g_gemm_bf16_64x32x64_8x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, tileB + (n * __anf08 * 64U + mcol * 32U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 64U + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sB[row * 32U + col + k1] = local[k1];
@@ -6291,9 +6196,9 @@ __hoisted_g_gemm_bf16_64x32x64_8x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
     }
 }
 
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x32x64_8x16(
-    __nv_bfloat16 alpha, __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k,
-    __nv_bfloat16 *gA, __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x32x64_8x16(__nv_bfloat16 alpha,
+    __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k, __nv_bfloat16 *gA,
+    __nv_bfloat16 *gB, __nv_bfloat16 *gC)
 {
     KPR_GUARD(m % 64U == 0U);
     KPR_GUARD(k % 64U == 0U);
@@ -6301,7 +6206,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x32x64_8x16(
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(12288U);
     KPR_KCALL(__hoisted_g_gemm_bf16_64x32x64_8x16_0, m / 64U * (n / 32U), 16U,
-              12288U, s, alpha, beta, n, k, gA, gB, gC);
+        12288U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -6312,8 +6217,7 @@ __global__
 */
 static void
 __hoisted_g_gemm_f32_64x32x64_16x8_0(float alpha, float beta, uint32_t n,
-                                     uint32_t k, float *gA, float *gB,
-                                     float *gC)
+    uint32_t k, float *gA, float *gB, float *gC)
 {
     float *gA_p = gA;
     float *gB_p = gB;
@@ -6336,8 +6240,8 @@ __hoisted_g_gemm_f32_64x32x64_16x8_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i0 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 64U;
-            vec_memcpy(local, tileA + (k * mrow * 64U + __anf05 * 64U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 64U + __anf05 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sA[(col + k1) * 64U + row] = local[k1];
@@ -6350,8 +6254,8 @@ __hoisted_g_gemm_f32_64x32x64_16x8_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
-            vec_memcpy(local, tileB + (n * __anf08 * 64U + mcol * 32U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 64U + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sB[row * 32U + col + k1] = local[k1];
@@ -6392,9 +6296,7 @@ __hoisted_g_gemm_f32_64x32x64_16x8_0(float alpha, float beta, uint32_t n,
 }
 
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_64x32x64_16x8(float alpha, float beta,
-                                                      uint32_t m, uint32_t n,
-                                                      uint32_t k, float *gA,
-                                                      float *gB, float *gC)
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC)
 {
     KPR_GUARD(m % 64U == 0U);
     KPR_GUARD(k % 64U == 0U);
@@ -6402,7 +6304,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_f32_64x32x64_16x8(float alpha, float beta,
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(24576U);
     KPR_KCALL(__hoisted_g_gemm_f32_64x32x64_16x8_0, m / 64U * (n / 32U), 16U,
-              24576U, s, alpha, beta, n, k, gA, gB, gC);
+        24576U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -6413,8 +6315,8 @@ __global__
 */
 static void
 __hoisted_g_gemm_bf16_64x32x64_16x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
-                                      uint32_t n, uint32_t k, __nv_bfloat16 *gA,
-                                      __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+    uint32_t n, uint32_t k, __nv_bfloat16 *gA, __nv_bfloat16 *gB,
+    __nv_bfloat16 *gC)
 {
     __nv_bfloat16 *gA_p = gA;
     __nv_bfloat16 *gB_p = gB;
@@ -6439,8 +6341,8 @@ __hoisted_g_gemm_bf16_64x32x64_16x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, tileA + (k * mrow * 64U + __anf05 * 64U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 64U + __anf05 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sA[(col + k1) * 64U + row] = local[k1];
@@ -6454,8 +6356,8 @@ __hoisted_g_gemm_bf16_64x32x64_16x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, tileB + (n * __anf08 * 64U + mcol * 32U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 64U + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sB[row * 32U + col + k1] = local[k1];
@@ -6501,9 +6403,9 @@ __hoisted_g_gemm_bf16_64x32x64_16x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
     }
 }
 
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x32x64_16x8(
-    __nv_bfloat16 alpha, __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k,
-    __nv_bfloat16 *gA, __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x32x64_16x8(__nv_bfloat16 alpha,
+    __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k, __nv_bfloat16 *gA,
+    __nv_bfloat16 *gB, __nv_bfloat16 *gC)
 {
     KPR_GUARD(m % 64U == 0U);
     KPR_GUARD(k % 64U == 0U);
@@ -6511,7 +6413,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x32x64_16x8(
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(12288U);
     KPR_KCALL(__hoisted_g_gemm_bf16_64x32x64_16x8_0, m / 64U * (n / 32U), 16U,
-              12288U, s, alpha, beta, n, k, gA, gB, gC);
+        12288U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -6522,8 +6424,7 @@ __global__
 */
 static void
 __hoisted_g_gemm_f32_64x32x64_16x16_0(float alpha, float beta, uint32_t n,
-                                      uint32_t k, float *gA, float *gB,
-                                      float *gC)
+    uint32_t k, float *gA, float *gB, float *gC)
 {
     float *gA_p = gA;
     float *gB_p = gB;
@@ -6546,8 +6447,8 @@ __hoisted_g_gemm_f32_64x32x64_16x16_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i0 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 64U;
-            vec_memcpy(local, tileA + (k * mrow * 64U + __anf05 * 64U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 64U + __anf05 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sA[(col + k1) * 64U + row] = local[k1];
@@ -6560,8 +6461,8 @@ __hoisted_g_gemm_f32_64x32x64_16x16_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
-            vec_memcpy(local, tileB + (n * __anf08 * 64U + mcol * 32U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 64U + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sB[row * 32U + col + k1] = local[k1];
@@ -6602,9 +6503,7 @@ __hoisted_g_gemm_f32_64x32x64_16x16_0(float alpha, float beta, uint32_t n,
 }
 
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_64x32x64_16x16(float alpha, float beta,
-                                                       uint32_t m, uint32_t n,
-                                                       uint32_t k, float *gA,
-                                                       float *gB, float *gC)
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC)
 {
     KPR_GUARD(m % 64U == 0U);
     KPR_GUARD(k % 64U == 0U);
@@ -6612,7 +6511,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_f32_64x32x64_16x16(float alpha, float beta,
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(24576U);
     KPR_KCALL(__hoisted_g_gemm_f32_64x32x64_16x16_0, m / 64U * (n / 32U), 8U,
-              24576U, s, alpha, beta, n, k, gA, gB, gC);
+        24576U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -6623,9 +6522,8 @@ __global__
 */
 static void
 __hoisted_g_gemm_bf16_64x32x64_16x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
-                                       uint32_t n, uint32_t k,
-                                       __nv_bfloat16 *gA, __nv_bfloat16 *gB,
-                                       __nv_bfloat16 *gC)
+    uint32_t n, uint32_t k, __nv_bfloat16 *gA, __nv_bfloat16 *gB,
+    __nv_bfloat16 *gC)
 {
     __nv_bfloat16 *gA_p = gA;
     __nv_bfloat16 *gB_p = gB;
@@ -6650,8 +6548,8 @@ __hoisted_g_gemm_bf16_64x32x64_16x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, tileA + (k * mrow * 64U + __anf05 * 64U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 64U + __anf05 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sA[(col + k1) * 64U + row] = local[k1];
@@ -6665,8 +6563,8 @@ __hoisted_g_gemm_bf16_64x32x64_16x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, tileB + (n * __anf08 * 64U + mcol * 32U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 64U + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sB[row * 32U + col + k1] = local[k1];
@@ -6712,9 +6610,9 @@ __hoisted_g_gemm_bf16_64x32x64_16x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
     }
 }
 
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x32x64_16x16(
-    __nv_bfloat16 alpha, __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k,
-    __nv_bfloat16 *gA, __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x32x64_16x16(__nv_bfloat16 alpha,
+    __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k, __nv_bfloat16 *gA,
+    __nv_bfloat16 *gB, __nv_bfloat16 *gC)
 {
     KPR_GUARD(m % 64U == 0U);
     KPR_GUARD(k % 64U == 0U);
@@ -6722,7 +6620,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x32x64_16x16(
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(12288U);
     KPR_KCALL(__hoisted_g_gemm_bf16_64x32x64_16x16_0, m / 64U * (n / 32U), 8U,
-              12288U, s, alpha, beta, n, k, gA, gB, gC);
+        12288U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -6733,7 +6631,7 @@ __global__
 */
 static void
 __hoisted_g_gemm_f32_64x64x32_8x8_0(float alpha, float beta, uint32_t n,
-                                    uint32_t k, float *gA, float *gB, float *gC)
+    uint32_t k, float *gA, float *gB, float *gC)
 {
     float *gA_p = gA;
     float *gB_p = gB;
@@ -6756,8 +6654,8 @@ __hoisted_g_gemm_f32_64x64x32_8x8_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i0 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 32U;
-            vec_memcpy(local, tileA + (k * mrow * 64U + __anf05 * 32U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 64U + __anf05 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sA[(col + k1) * 64U + row] = local[k1];
@@ -6770,8 +6668,8 @@ __hoisted_g_gemm_f32_64x64x32_8x8_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
-            vec_memcpy(local, tileB + (n * __anf08 * 32U + mcol * 64U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 32U + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sB[row * 64U + col + k1] = local[k1];
@@ -6812,9 +6710,7 @@ __hoisted_g_gemm_f32_64x64x32_8x8_0(float alpha, float beta, uint32_t n,
 }
 
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_64x64x32_8x8(float alpha, float beta,
-                                                     uint32_t m, uint32_t n,
-                                                     uint32_t k, float *gA,
-                                                     float *gB, float *gC)
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC)
 {
     KPR_GUARD(m % 64U == 0U);
     KPR_GUARD(k % 32U == 0U);
@@ -6822,7 +6718,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_f32_64x64x32_8x8(float alpha, float beta,
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(16384U);
     KPR_KCALL(__hoisted_g_gemm_f32_64x64x32_8x8_0, m / 64U * (n / 64U), 64U,
-              16384U, s, alpha, beta, n, k, gA, gB, gC);
+        16384U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -6833,8 +6729,8 @@ __global__
 */
 static void
 __hoisted_g_gemm_bf16_64x64x32_8x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
-                                     uint32_t n, uint32_t k, __nv_bfloat16 *gA,
-                                     __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+    uint32_t n, uint32_t k, __nv_bfloat16 *gA, __nv_bfloat16 *gB,
+    __nv_bfloat16 *gC)
 {
     __nv_bfloat16 *gA_p = gA;
     __nv_bfloat16 *gB_p = gB;
@@ -6859,8 +6755,8 @@ __hoisted_g_gemm_bf16_64x64x32_8x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, tileA + (k * mrow * 64U + __anf05 * 32U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 64U + __anf05 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sA[(col + k1) * 64U + row] = local[k1];
@@ -6874,8 +6770,8 @@ __hoisted_g_gemm_bf16_64x64x32_8x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, tileB + (n * __anf08 * 32U + mcol * 64U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 32U + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sB[row * 64U + col + k1] = local[k1];
@@ -6921,9 +6817,9 @@ __hoisted_g_gemm_bf16_64x64x32_8x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
     }
 }
 
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x64x32_8x8(
-    __nv_bfloat16 alpha, __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k,
-    __nv_bfloat16 *gA, __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x64x32_8x8(__nv_bfloat16 alpha,
+    __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k, __nv_bfloat16 *gA,
+    __nv_bfloat16 *gB, __nv_bfloat16 *gC)
 {
     KPR_GUARD(m % 64U == 0U);
     KPR_GUARD(k % 32U == 0U);
@@ -6931,7 +6827,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x64x32_8x8(
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(8192U);
     KPR_KCALL(__hoisted_g_gemm_bf16_64x64x32_8x8_0, m / 64U * (n / 64U), 64U,
-              8192U, s, alpha, beta, n, k, gA, gB, gC);
+        8192U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -6942,8 +6838,7 @@ __global__
 */
 static void
 __hoisted_g_gemm_f32_64x64x32_8x16_0(float alpha, float beta, uint32_t n,
-                                     uint32_t k, float *gA, float *gB,
-                                     float *gC)
+    uint32_t k, float *gA, float *gB, float *gC)
 {
     float *gA_p = gA;
     float *gB_p = gB;
@@ -6966,8 +6861,8 @@ __hoisted_g_gemm_f32_64x64x32_8x16_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i0 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 32U;
-            vec_memcpy(local, tileA + (k * mrow * 64U + __anf05 * 32U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 64U + __anf05 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sA[(col + k1) * 64U + row] = local[k1];
@@ -6980,8 +6875,8 @@ __hoisted_g_gemm_f32_64x64x32_8x16_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
-            vec_memcpy(local, tileB + (n * __anf08 * 32U + mcol * 64U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 32U + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sB[row * 64U + col + k1] = local[k1];
@@ -7022,9 +6917,7 @@ __hoisted_g_gemm_f32_64x64x32_8x16_0(float alpha, float beta, uint32_t n,
 }
 
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_64x64x32_8x16(float alpha, float beta,
-                                                      uint32_t m, uint32_t n,
-                                                      uint32_t k, float *gA,
-                                                      float *gB, float *gC)
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC)
 {
     KPR_GUARD(m % 64U == 0U);
     KPR_GUARD(k % 32U == 0U);
@@ -7032,7 +6925,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_f32_64x64x32_8x16(float alpha, float beta,
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(16384U);
     KPR_KCALL(__hoisted_g_gemm_f32_64x64x32_8x16_0, m / 64U * (n / 64U), 32U,
-              16384U, s, alpha, beta, n, k, gA, gB, gC);
+        16384U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -7043,8 +6936,8 @@ __global__
 */
 static void
 __hoisted_g_gemm_bf16_64x64x32_8x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
-                                      uint32_t n, uint32_t k, __nv_bfloat16 *gA,
-                                      __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+    uint32_t n, uint32_t k, __nv_bfloat16 *gA, __nv_bfloat16 *gB,
+    __nv_bfloat16 *gC)
 {
     __nv_bfloat16 *gA_p = gA;
     __nv_bfloat16 *gB_p = gB;
@@ -7069,8 +6962,8 @@ __hoisted_g_gemm_bf16_64x64x32_8x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, tileA + (k * mrow * 64U + __anf05 * 32U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 64U + __anf05 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sA[(col + k1) * 64U + row] = local[k1];
@@ -7084,8 +6977,8 @@ __hoisted_g_gemm_bf16_64x64x32_8x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, tileB + (n * __anf08 * 32U + mcol * 64U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 32U + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sB[row * 64U + col + k1] = local[k1];
@@ -7131,9 +7024,9 @@ __hoisted_g_gemm_bf16_64x64x32_8x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
     }
 }
 
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x64x32_8x16(
-    __nv_bfloat16 alpha, __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k,
-    __nv_bfloat16 *gA, __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x64x32_8x16(__nv_bfloat16 alpha,
+    __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k, __nv_bfloat16 *gA,
+    __nv_bfloat16 *gB, __nv_bfloat16 *gC)
 {
     KPR_GUARD(m % 64U == 0U);
     KPR_GUARD(k % 32U == 0U);
@@ -7141,7 +7034,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x64x32_8x16(
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(8192U);
     KPR_KCALL(__hoisted_g_gemm_bf16_64x64x32_8x16_0, m / 64U * (n / 64U), 32U,
-              8192U, s, alpha, beta, n, k, gA, gB, gC);
+        8192U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -7152,8 +7045,7 @@ __global__
 */
 static void
 __hoisted_g_gemm_f32_64x64x32_16x8_0(float alpha, float beta, uint32_t n,
-                                     uint32_t k, float *gA, float *gB,
-                                     float *gC)
+    uint32_t k, float *gA, float *gB, float *gC)
 {
     float *gA_p = gA;
     float *gB_p = gB;
@@ -7176,8 +7068,8 @@ __hoisted_g_gemm_f32_64x64x32_16x8_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i0 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 32U;
-            vec_memcpy(local, tileA + (k * mrow * 64U + __anf05 * 32U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 64U + __anf05 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sA[(col + k1) * 64U + row] = local[k1];
@@ -7190,8 +7082,8 @@ __hoisted_g_gemm_f32_64x64x32_16x8_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
-            vec_memcpy(local, tileB + (n * __anf08 * 32U + mcol * 64U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 32U + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sB[row * 64U + col + k1] = local[k1];
@@ -7232,9 +7124,7 @@ __hoisted_g_gemm_f32_64x64x32_16x8_0(float alpha, float beta, uint32_t n,
 }
 
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_64x64x32_16x8(float alpha, float beta,
-                                                      uint32_t m, uint32_t n,
-                                                      uint32_t k, float *gA,
-                                                      float *gB, float *gC)
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC)
 {
     KPR_GUARD(m % 64U == 0U);
     KPR_GUARD(k % 32U == 0U);
@@ -7242,7 +7132,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_f32_64x64x32_16x8(float alpha, float beta,
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(16384U);
     KPR_KCALL(__hoisted_g_gemm_f32_64x64x32_16x8_0, m / 64U * (n / 64U), 32U,
-              16384U, s, alpha, beta, n, k, gA, gB, gC);
+        16384U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -7253,8 +7143,8 @@ __global__
 */
 static void
 __hoisted_g_gemm_bf16_64x64x32_16x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
-                                      uint32_t n, uint32_t k, __nv_bfloat16 *gA,
-                                      __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+    uint32_t n, uint32_t k, __nv_bfloat16 *gA, __nv_bfloat16 *gB,
+    __nv_bfloat16 *gC)
 {
     __nv_bfloat16 *gA_p = gA;
     __nv_bfloat16 *gB_p = gB;
@@ -7279,8 +7169,8 @@ __hoisted_g_gemm_bf16_64x64x32_16x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, tileA + (k * mrow * 64U + __anf05 * 32U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 64U + __anf05 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sA[(col + k1) * 64U + row] = local[k1];
@@ -7294,8 +7184,8 @@ __hoisted_g_gemm_bf16_64x64x32_16x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, tileB + (n * __anf08 * 32U + mcol * 64U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 32U + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sB[row * 64U + col + k1] = local[k1];
@@ -7341,9 +7231,9 @@ __hoisted_g_gemm_bf16_64x64x32_16x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
     }
 }
 
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x64x32_16x8(
-    __nv_bfloat16 alpha, __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k,
-    __nv_bfloat16 *gA, __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x64x32_16x8(__nv_bfloat16 alpha,
+    __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k, __nv_bfloat16 *gA,
+    __nv_bfloat16 *gB, __nv_bfloat16 *gC)
 {
     KPR_GUARD(m % 64U == 0U);
     KPR_GUARD(k % 32U == 0U);
@@ -7351,7 +7241,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x64x32_16x8(
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(8192U);
     KPR_KCALL(__hoisted_g_gemm_bf16_64x64x32_16x8_0, m / 64U * (n / 64U), 32U,
-              8192U, s, alpha, beta, n, k, gA, gB, gC);
+        8192U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -7362,8 +7252,7 @@ __global__
 */
 static void
 __hoisted_g_gemm_f32_64x64x32_16x16_0(float alpha, float beta, uint32_t n,
-                                      uint32_t k, float *gA, float *gB,
-                                      float *gC)
+    uint32_t k, float *gA, float *gB, float *gC)
 {
     float *gA_p = gA;
     float *gB_p = gB;
@@ -7386,8 +7275,8 @@ __hoisted_g_gemm_f32_64x64x32_16x16_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i0 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 32U;
-            vec_memcpy(local, tileA + (k * mrow * 64U + __anf05 * 32U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 64U + __anf05 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sA[(col + k1) * 64U + row] = local[k1];
@@ -7400,8 +7289,8 @@ __hoisted_g_gemm_f32_64x64x32_16x16_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
-            vec_memcpy(local, tileB + (n * __anf08 * 32U + mcol * 64U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 32U + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sB[row * 64U + col + k1] = local[k1];
@@ -7442,9 +7331,7 @@ __hoisted_g_gemm_f32_64x64x32_16x16_0(float alpha, float beta, uint32_t n,
 }
 
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_64x64x32_16x16(float alpha, float beta,
-                                                       uint32_t m, uint32_t n,
-                                                       uint32_t k, float *gA,
-                                                       float *gB, float *gC)
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC)
 {
     KPR_GUARD(m % 64U == 0U);
     KPR_GUARD(k % 32U == 0U);
@@ -7452,7 +7339,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_f32_64x64x32_16x16(float alpha, float beta,
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(16384U);
     KPR_KCALL(__hoisted_g_gemm_f32_64x64x32_16x16_0, m / 64U * (n / 64U), 16U,
-              16384U, s, alpha, beta, n, k, gA, gB, gC);
+        16384U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -7463,9 +7350,8 @@ __global__
 */
 static void
 __hoisted_g_gemm_bf16_64x64x32_16x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
-                                       uint32_t n, uint32_t k,
-                                       __nv_bfloat16 *gA, __nv_bfloat16 *gB,
-                                       __nv_bfloat16 *gC)
+    uint32_t n, uint32_t k, __nv_bfloat16 *gA, __nv_bfloat16 *gB,
+    __nv_bfloat16 *gC)
 {
     __nv_bfloat16 *gA_p = gA;
     __nv_bfloat16 *gB_p = gB;
@@ -7490,8 +7376,8 @@ __hoisted_g_gemm_bf16_64x64x32_16x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, tileA + (k * mrow * 64U + __anf05 * 32U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 64U + __anf05 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sA[(col + k1) * 64U + row] = local[k1];
@@ -7505,8 +7391,8 @@ __hoisted_g_gemm_bf16_64x64x32_16x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, tileB + (n * __anf08 * 32U + mcol * 64U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 32U + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sB[row * 64U + col + k1] = local[k1];
@@ -7552,9 +7438,9 @@ __hoisted_g_gemm_bf16_64x64x32_16x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
     }
 }
 
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x64x32_16x16(
-    __nv_bfloat16 alpha, __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k,
-    __nv_bfloat16 *gA, __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x64x32_16x16(__nv_bfloat16 alpha,
+    __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k, __nv_bfloat16 *gA,
+    __nv_bfloat16 *gB, __nv_bfloat16 *gC)
 {
     KPR_GUARD(m % 64U == 0U);
     KPR_GUARD(k % 32U == 0U);
@@ -7562,7 +7448,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x64x32_16x16(
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(8192U);
     KPR_KCALL(__hoisted_g_gemm_bf16_64x64x32_16x16_0, m / 64U * (n / 64U), 16U,
-              8192U, s, alpha, beta, n, k, gA, gB, gC);
+        8192U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -7573,7 +7459,7 @@ __global__
 */
 static void
 __hoisted_g_gemm_f32_64x64x64_8x8_0(float alpha, float beta, uint32_t n,
-                                    uint32_t k, float *gA, float *gB, float *gC)
+    uint32_t k, float *gA, float *gB, float *gC)
 {
     float *gA_p = gA;
     float *gB_p = gB;
@@ -7596,8 +7482,8 @@ __hoisted_g_gemm_f32_64x64x64_8x8_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i0 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 64U;
-            vec_memcpy(local, tileA + (k * mrow * 64U + __anf05 * 64U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 64U + __anf05 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sA[(col + k1) * 64U + row] = local[k1];
@@ -7610,8 +7496,8 @@ __hoisted_g_gemm_f32_64x64x64_8x8_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
-            vec_memcpy(local, tileB + (n * __anf08 * 64U + mcol * 64U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 64U + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sB[row * 64U + col + k1] = local[k1];
@@ -7652,9 +7538,7 @@ __hoisted_g_gemm_f32_64x64x64_8x8_0(float alpha, float beta, uint32_t n,
 }
 
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_64x64x64_8x8(float alpha, float beta,
-                                                     uint32_t m, uint32_t n,
-                                                     uint32_t k, float *gA,
-                                                     float *gB, float *gC)
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC)
 {
     KPR_GUARD(m % 64U == 0U);
     KPR_GUARD(k % 64U == 0U);
@@ -7662,7 +7546,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_f32_64x64x64_8x8(float alpha, float beta,
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(32768U);
     KPR_KCALL(__hoisted_g_gemm_f32_64x64x64_8x8_0, m / 64U * (n / 64U), 64U,
-              32768U, s, alpha, beta, n, k, gA, gB, gC);
+        32768U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -7673,8 +7557,8 @@ __global__
 */
 static void
 __hoisted_g_gemm_bf16_64x64x64_8x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
-                                     uint32_t n, uint32_t k, __nv_bfloat16 *gA,
-                                     __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+    uint32_t n, uint32_t k, __nv_bfloat16 *gA, __nv_bfloat16 *gB,
+    __nv_bfloat16 *gC)
 {
     __nv_bfloat16 *gA_p = gA;
     __nv_bfloat16 *gB_p = gB;
@@ -7699,8 +7583,8 @@ __hoisted_g_gemm_bf16_64x64x64_8x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, tileA + (k * mrow * 64U + __anf05 * 64U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 64U + __anf05 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sA[(col + k1) * 64U + row] = local[k1];
@@ -7714,8 +7598,8 @@ __hoisted_g_gemm_bf16_64x64x64_8x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, tileB + (n * __anf08 * 64U + mcol * 64U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 64U + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sB[row * 64U + col + k1] = local[k1];
@@ -7761,9 +7645,9 @@ __hoisted_g_gemm_bf16_64x64x64_8x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
     }
 }
 
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x64x64_8x8(
-    __nv_bfloat16 alpha, __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k,
-    __nv_bfloat16 *gA, __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x64x64_8x8(__nv_bfloat16 alpha,
+    __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k, __nv_bfloat16 *gA,
+    __nv_bfloat16 *gB, __nv_bfloat16 *gC)
 {
     KPR_GUARD(m % 64U == 0U);
     KPR_GUARD(k % 64U == 0U);
@@ -7771,7 +7655,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x64x64_8x8(
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(16384U);
     KPR_KCALL(__hoisted_g_gemm_bf16_64x64x64_8x8_0, m / 64U * (n / 64U), 64U,
-              16384U, s, alpha, beta, n, k, gA, gB, gC);
+        16384U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -7782,8 +7666,7 @@ __global__
 */
 static void
 __hoisted_g_gemm_f32_64x64x64_8x16_0(float alpha, float beta, uint32_t n,
-                                     uint32_t k, float *gA, float *gB,
-                                     float *gC)
+    uint32_t k, float *gA, float *gB, float *gC)
 {
     float *gA_p = gA;
     float *gB_p = gB;
@@ -7806,8 +7689,8 @@ __hoisted_g_gemm_f32_64x64x64_8x16_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i0 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 64U;
-            vec_memcpy(local, tileA + (k * mrow * 64U + __anf05 * 64U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 64U + __anf05 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sA[(col + k1) * 64U + row] = local[k1];
@@ -7820,8 +7703,8 @@ __hoisted_g_gemm_f32_64x64x64_8x16_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
-            vec_memcpy(local, tileB + (n * __anf08 * 64U + mcol * 64U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 64U + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sB[row * 64U + col + k1] = local[k1];
@@ -7862,9 +7745,7 @@ __hoisted_g_gemm_f32_64x64x64_8x16_0(float alpha, float beta, uint32_t n,
 }
 
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_64x64x64_8x16(float alpha, float beta,
-                                                      uint32_t m, uint32_t n,
-                                                      uint32_t k, float *gA,
-                                                      float *gB, float *gC)
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC)
 {
     KPR_GUARD(m % 64U == 0U);
     KPR_GUARD(k % 64U == 0U);
@@ -7872,7 +7753,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_f32_64x64x64_8x16(float alpha, float beta,
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(32768U);
     KPR_KCALL(__hoisted_g_gemm_f32_64x64x64_8x16_0, m / 64U * (n / 64U), 32U,
-              32768U, s, alpha, beta, n, k, gA, gB, gC);
+        32768U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -7883,8 +7764,8 @@ __global__
 */
 static void
 __hoisted_g_gemm_bf16_64x64x64_8x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
-                                      uint32_t n, uint32_t k, __nv_bfloat16 *gA,
-                                      __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+    uint32_t n, uint32_t k, __nv_bfloat16 *gA, __nv_bfloat16 *gB,
+    __nv_bfloat16 *gC)
 {
     __nv_bfloat16 *gA_p = gA;
     __nv_bfloat16 *gB_p = gB;
@@ -7909,8 +7790,8 @@ __hoisted_g_gemm_bf16_64x64x64_8x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, tileA + (k * mrow * 64U + __anf05 * 64U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 64U + __anf05 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sA[(col + k1) * 64U + row] = local[k1];
@@ -7924,8 +7805,8 @@ __hoisted_g_gemm_bf16_64x64x64_8x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, tileB + (n * __anf08 * 64U + mcol * 64U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 64U + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sB[row * 64U + col + k1] = local[k1];
@@ -7971,9 +7852,9 @@ __hoisted_g_gemm_bf16_64x64x64_8x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
     }
 }
 
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x64x64_8x16(
-    __nv_bfloat16 alpha, __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k,
-    __nv_bfloat16 *gA, __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x64x64_8x16(__nv_bfloat16 alpha,
+    __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k, __nv_bfloat16 *gA,
+    __nv_bfloat16 *gB, __nv_bfloat16 *gC)
 {
     KPR_GUARD(m % 64U == 0U);
     KPR_GUARD(k % 64U == 0U);
@@ -7981,7 +7862,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x64x64_8x16(
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(16384U);
     KPR_KCALL(__hoisted_g_gemm_bf16_64x64x64_8x16_0, m / 64U * (n / 64U), 32U,
-              16384U, s, alpha, beta, n, k, gA, gB, gC);
+        16384U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -7992,8 +7873,7 @@ __global__
 */
 static void
 __hoisted_g_gemm_f32_64x64x64_16x8_0(float alpha, float beta, uint32_t n,
-                                     uint32_t k, float *gA, float *gB,
-                                     float *gC)
+    uint32_t k, float *gA, float *gB, float *gC)
 {
     float *gA_p = gA;
     float *gB_p = gB;
@@ -8016,8 +7896,8 @@ __hoisted_g_gemm_f32_64x64x64_16x8_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i0 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 64U;
-            vec_memcpy(local, tileA + (k * mrow * 64U + __anf05 * 64U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 64U + __anf05 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sA[(col + k1) * 64U + row] = local[k1];
@@ -8030,8 +7910,8 @@ __hoisted_g_gemm_f32_64x64x64_16x8_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
-            vec_memcpy(local, tileB + (n * __anf08 * 64U + mcol * 64U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 64U + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sB[row * 64U + col + k1] = local[k1];
@@ -8072,9 +7952,7 @@ __hoisted_g_gemm_f32_64x64x64_16x8_0(float alpha, float beta, uint32_t n,
 }
 
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_64x64x64_16x8(float alpha, float beta,
-                                                      uint32_t m, uint32_t n,
-                                                      uint32_t k, float *gA,
-                                                      float *gB, float *gC)
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC)
 {
     KPR_GUARD(m % 64U == 0U);
     KPR_GUARD(k % 64U == 0U);
@@ -8082,7 +7960,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_f32_64x64x64_16x8(float alpha, float beta,
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(32768U);
     KPR_KCALL(__hoisted_g_gemm_f32_64x64x64_16x8_0, m / 64U * (n / 64U), 32U,
-              32768U, s, alpha, beta, n, k, gA, gB, gC);
+        32768U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -8093,8 +7971,8 @@ __global__
 */
 static void
 __hoisted_g_gemm_bf16_64x64x64_16x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
-                                      uint32_t n, uint32_t k, __nv_bfloat16 *gA,
-                                      __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+    uint32_t n, uint32_t k, __nv_bfloat16 *gA, __nv_bfloat16 *gB,
+    __nv_bfloat16 *gC)
 {
     __nv_bfloat16 *gA_p = gA;
     __nv_bfloat16 *gB_p = gB;
@@ -8119,8 +7997,8 @@ __hoisted_g_gemm_bf16_64x64x64_16x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, tileA + (k * mrow * 64U + __anf05 * 64U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 64U + __anf05 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sA[(col + k1) * 64U + row] = local[k1];
@@ -8134,8 +8012,8 @@ __hoisted_g_gemm_bf16_64x64x64_16x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, tileB + (n * __anf08 * 64U + mcol * 64U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 64U + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sB[row * 64U + col + k1] = local[k1];
@@ -8181,9 +8059,9 @@ __hoisted_g_gemm_bf16_64x64x64_16x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
     }
 }
 
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x64x64_16x8(
-    __nv_bfloat16 alpha, __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k,
-    __nv_bfloat16 *gA, __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x64x64_16x8(__nv_bfloat16 alpha,
+    __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k, __nv_bfloat16 *gA,
+    __nv_bfloat16 *gB, __nv_bfloat16 *gC)
 {
     KPR_GUARD(m % 64U == 0U);
     KPR_GUARD(k % 64U == 0U);
@@ -8191,7 +8069,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x64x64_16x8(
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(16384U);
     KPR_KCALL(__hoisted_g_gemm_bf16_64x64x64_16x8_0, m / 64U * (n / 64U), 32U,
-              16384U, s, alpha, beta, n, k, gA, gB, gC);
+        16384U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -8202,8 +8080,7 @@ __global__
 */
 static void
 __hoisted_g_gemm_f32_64x64x64_16x16_0(float alpha, float beta, uint32_t n,
-                                      uint32_t k, float *gA, float *gB,
-                                      float *gC)
+    uint32_t k, float *gA, float *gB, float *gC)
 {
     float *gA_p = gA;
     float *gB_p = gB;
@@ -8226,8 +8103,8 @@ __hoisted_g_gemm_f32_64x64x64_16x16_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i0 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 64U;
-            vec_memcpy(local, tileA + (k * mrow * 64U + __anf05 * 64U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 64U + __anf05 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sA[(col + k1) * 64U + row] = local[k1];
@@ -8240,8 +8117,8 @@ __hoisted_g_gemm_f32_64x64x64_16x16_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
-            vec_memcpy(local, tileB + (n * __anf08 * 64U + mcol * 64U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 64U + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sB[row * 64U + col + k1] = local[k1];
@@ -8282,9 +8159,7 @@ __hoisted_g_gemm_f32_64x64x64_16x16_0(float alpha, float beta, uint32_t n,
 }
 
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_64x64x64_16x16(float alpha, float beta,
-                                                       uint32_t m, uint32_t n,
-                                                       uint32_t k, float *gA,
-                                                       float *gB, float *gC)
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC)
 {
     KPR_GUARD(m % 64U == 0U);
     KPR_GUARD(k % 64U == 0U);
@@ -8292,7 +8167,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_f32_64x64x64_16x16(float alpha, float beta,
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(32768U);
     KPR_KCALL(__hoisted_g_gemm_f32_64x64x64_16x16_0, m / 64U * (n / 64U), 16U,
-              32768U, s, alpha, beta, n, k, gA, gB, gC);
+        32768U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -8303,9 +8178,8 @@ __global__
 */
 static void
 __hoisted_g_gemm_bf16_64x64x64_16x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
-                                       uint32_t n, uint32_t k,
-                                       __nv_bfloat16 *gA, __nv_bfloat16 *gB,
-                                       __nv_bfloat16 *gC)
+    uint32_t n, uint32_t k, __nv_bfloat16 *gA, __nv_bfloat16 *gB,
+    __nv_bfloat16 *gC)
 {
     __nv_bfloat16 *gA_p = gA;
     __nv_bfloat16 *gB_p = gB;
@@ -8330,8 +8204,8 @@ __hoisted_g_gemm_bf16_64x64x64_16x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, tileA + (k * mrow * 64U + __anf05 * 64U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 64U + __anf05 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sA[(col + k1) * 64U + row] = local[k1];
@@ -8345,8 +8219,8 @@ __hoisted_g_gemm_bf16_64x64x64_16x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, tileB + (n * __anf08 * 64U + mcol * 64U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 64U + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sB[row * 64U + col + k1] = local[k1];
@@ -8392,9 +8266,9 @@ __hoisted_g_gemm_bf16_64x64x64_16x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
     }
 }
 
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x64x64_16x16(
-    __nv_bfloat16 alpha, __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k,
-    __nv_bfloat16 *gA, __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x64x64_16x16(__nv_bfloat16 alpha,
+    __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k, __nv_bfloat16 *gA,
+    __nv_bfloat16 *gB, __nv_bfloat16 *gC)
 {
     KPR_GUARD(m % 64U == 0U);
     KPR_GUARD(k % 64U == 0U);
@@ -8402,7 +8276,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x64x64_16x16(
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(16384U);
     KPR_KCALL(__hoisted_g_gemm_bf16_64x64x64_16x16_0, m / 64U * (n / 64U), 16U,
-              16384U, s, alpha, beta, n, k, gA, gB, gC);
+        16384U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -8413,8 +8287,7 @@ __global__
 */
 static void
 __hoisted_g_gemm_f32_64x128x32_8x8_0(float alpha, float beta, uint32_t n,
-                                     uint32_t k, float *gA, float *gB,
-                                     float *gC)
+    uint32_t k, float *gA, float *gB, float *gC)
 {
     float *gA_p = gA;
     float *gB_p = gB;
@@ -8437,8 +8310,8 @@ __hoisted_g_gemm_f32_64x128x32_8x8_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i0 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 32U;
-            vec_memcpy(local, tileA + (k * mrow * 64U + __anf05 * 32U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 64U + __anf05 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sA[(col + k1) * 64U + row] = local[k1];
@@ -8451,8 +8324,8 @@ __hoisted_g_gemm_f32_64x128x32_8x8_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i + threadIdx.x * 4U) / 128U;
             uint32_t col = (i + threadIdx.x * 4U) % 128U;
-            vec_memcpy(local, tileB + (n * __anf08 * 32U + mcol * 128U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 32U + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sB[row * 128U + col + k1] = local[k1];
@@ -8493,9 +8366,7 @@ __hoisted_g_gemm_f32_64x128x32_8x8_0(float alpha, float beta, uint32_t n,
 }
 
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_64x128x32_8x8(float alpha, float beta,
-                                                      uint32_t m, uint32_t n,
-                                                      uint32_t k, float *gA,
-                                                      float *gB, float *gC)
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC)
 {
     KPR_GUARD(m % 64U == 0U);
     KPR_GUARD(k % 32U == 0U);
@@ -8503,7 +8374,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_f32_64x128x32_8x8(float alpha, float beta,
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(24576U);
     KPR_KCALL(__hoisted_g_gemm_f32_64x128x32_8x8_0, m / 64U * (n / 128U), 128U,
-              24576U, s, alpha, beta, n, k, gA, gB, gC);
+        24576U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -8514,8 +8385,8 @@ __global__
 */
 static void
 __hoisted_g_gemm_bf16_64x128x32_8x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
-                                      uint32_t n, uint32_t k, __nv_bfloat16 *gA,
-                                      __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+    uint32_t n, uint32_t k, __nv_bfloat16 *gA, __nv_bfloat16 *gB,
+    __nv_bfloat16 *gC)
 {
     __nv_bfloat16 *gA_p = gA;
     __nv_bfloat16 *gB_p = gB;
@@ -8540,8 +8411,8 @@ __hoisted_g_gemm_bf16_64x128x32_8x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, tileA + (k * mrow * 64U + __anf05 * 32U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 64U + __anf05 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sA[(col + k1) * 64U + row] = local[k1];
@@ -8555,8 +8426,8 @@ __hoisted_g_gemm_bf16_64x128x32_8x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
-            vec_memcpy(local, tileB + (n * __anf08 * 32U + mcol * 128U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 32U + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sB[row * 128U + col + k1] = local[k1];
@@ -8602,9 +8473,9 @@ __hoisted_g_gemm_bf16_64x128x32_8x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
     }
 }
 
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x128x32_8x8(
-    __nv_bfloat16 alpha, __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k,
-    __nv_bfloat16 *gA, __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x128x32_8x8(__nv_bfloat16 alpha,
+    __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k, __nv_bfloat16 *gA,
+    __nv_bfloat16 *gB, __nv_bfloat16 *gC)
 {
     KPR_GUARD(m % 64U == 0U);
     KPR_GUARD(k % 32U == 0U);
@@ -8612,7 +8483,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x128x32_8x8(
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(12288U);
     KPR_KCALL(__hoisted_g_gemm_bf16_64x128x32_8x8_0, m / 64U * (n / 128U), 128U,
-              12288U, s, alpha, beta, n, k, gA, gB, gC);
+        12288U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -8623,8 +8494,7 @@ __global__
 */
 static void
 __hoisted_g_gemm_f32_64x128x32_8x16_0(float alpha, float beta, uint32_t n,
-                                      uint32_t k, float *gA, float *gB,
-                                      float *gC)
+    uint32_t k, float *gA, float *gB, float *gC)
 {
     float *gA_p = gA;
     float *gB_p = gB;
@@ -8647,8 +8517,8 @@ __hoisted_g_gemm_f32_64x128x32_8x16_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i0 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 32U;
-            vec_memcpy(local, tileA + (k * mrow * 64U + __anf05 * 32U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 64U + __anf05 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sA[(col + k1) * 64U + row] = local[k1];
@@ -8661,8 +8531,8 @@ __hoisted_g_gemm_f32_64x128x32_8x16_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i + threadIdx.x * 4U) / 128U;
             uint32_t col = (i + threadIdx.x * 4U) % 128U;
-            vec_memcpy(local, tileB + (n * __anf08 * 32U + mcol * 128U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 32U + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sB[row * 128U + col + k1] = local[k1];
@@ -8703,9 +8573,7 @@ __hoisted_g_gemm_f32_64x128x32_8x16_0(float alpha, float beta, uint32_t n,
 }
 
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_64x128x32_8x16(float alpha, float beta,
-                                                       uint32_t m, uint32_t n,
-                                                       uint32_t k, float *gA,
-                                                       float *gB, float *gC)
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC)
 {
     KPR_GUARD(m % 64U == 0U);
     KPR_GUARD(k % 32U == 0U);
@@ -8713,7 +8581,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_f32_64x128x32_8x16(float alpha, float beta,
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(24576U);
     KPR_KCALL(__hoisted_g_gemm_f32_64x128x32_8x16_0, m / 64U * (n / 128U), 64U,
-              24576U, s, alpha, beta, n, k, gA, gB, gC);
+        24576U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -8724,9 +8592,8 @@ __global__
 */
 static void
 __hoisted_g_gemm_bf16_64x128x32_8x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
-                                       uint32_t n, uint32_t k,
-                                       __nv_bfloat16 *gA, __nv_bfloat16 *gB,
-                                       __nv_bfloat16 *gC)
+    uint32_t n, uint32_t k, __nv_bfloat16 *gA, __nv_bfloat16 *gB,
+    __nv_bfloat16 *gC)
 {
     __nv_bfloat16 *gA_p = gA;
     __nv_bfloat16 *gB_p = gB;
@@ -8751,8 +8618,8 @@ __hoisted_g_gemm_bf16_64x128x32_8x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, tileA + (k * mrow * 64U + __anf05 * 32U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 64U + __anf05 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sA[(col + k1) * 64U + row] = local[k1];
@@ -8766,8 +8633,8 @@ __hoisted_g_gemm_bf16_64x128x32_8x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
-            vec_memcpy(local, tileB + (n * __anf08 * 32U + mcol * 128U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 32U + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sB[row * 128U + col + k1] = local[k1];
@@ -8813,9 +8680,9 @@ __hoisted_g_gemm_bf16_64x128x32_8x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
     }
 }
 
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x128x32_8x16(
-    __nv_bfloat16 alpha, __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k,
-    __nv_bfloat16 *gA, __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x128x32_8x16(__nv_bfloat16 alpha,
+    __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k, __nv_bfloat16 *gA,
+    __nv_bfloat16 *gB, __nv_bfloat16 *gC)
 {
     KPR_GUARD(m % 64U == 0U);
     KPR_GUARD(k % 32U == 0U);
@@ -8823,7 +8690,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x128x32_8x16(
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(12288U);
     KPR_KCALL(__hoisted_g_gemm_bf16_64x128x32_8x16_0, m / 64U * (n / 128U), 64U,
-              12288U, s, alpha, beta, n, k, gA, gB, gC);
+        12288U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -8834,8 +8701,7 @@ __global__
 */
 static void
 __hoisted_g_gemm_f32_64x128x32_16x8_0(float alpha, float beta, uint32_t n,
-                                      uint32_t k, float *gA, float *gB,
-                                      float *gC)
+    uint32_t k, float *gA, float *gB, float *gC)
 {
     float *gA_p = gA;
     float *gB_p = gB;
@@ -8858,8 +8724,8 @@ __hoisted_g_gemm_f32_64x128x32_16x8_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i0 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 32U;
-            vec_memcpy(local, tileA + (k * mrow * 64U + __anf05 * 32U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 64U + __anf05 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sA[(col + k1) * 64U + row] = local[k1];
@@ -8872,8 +8738,8 @@ __hoisted_g_gemm_f32_64x128x32_16x8_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i + threadIdx.x * 4U) / 128U;
             uint32_t col = (i + threadIdx.x * 4U) % 128U;
-            vec_memcpy(local, tileB + (n * __anf08 * 32U + mcol * 128U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 32U + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sB[row * 128U + col + k1] = local[k1];
@@ -8914,9 +8780,7 @@ __hoisted_g_gemm_f32_64x128x32_16x8_0(float alpha, float beta, uint32_t n,
 }
 
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_64x128x32_16x8(float alpha, float beta,
-                                                       uint32_t m, uint32_t n,
-                                                       uint32_t k, float *gA,
-                                                       float *gB, float *gC)
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC)
 {
     KPR_GUARD(m % 64U == 0U);
     KPR_GUARD(k % 32U == 0U);
@@ -8924,7 +8788,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_f32_64x128x32_16x8(float alpha, float beta,
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(24576U);
     KPR_KCALL(__hoisted_g_gemm_f32_64x128x32_16x8_0, m / 64U * (n / 128U), 64U,
-              24576U, s, alpha, beta, n, k, gA, gB, gC);
+        24576U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -8935,9 +8799,8 @@ __global__
 */
 static void
 __hoisted_g_gemm_bf16_64x128x32_16x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
-                                       uint32_t n, uint32_t k,
-                                       __nv_bfloat16 *gA, __nv_bfloat16 *gB,
-                                       __nv_bfloat16 *gC)
+    uint32_t n, uint32_t k, __nv_bfloat16 *gA, __nv_bfloat16 *gB,
+    __nv_bfloat16 *gC)
 {
     __nv_bfloat16 *gA_p = gA;
     __nv_bfloat16 *gB_p = gB;
@@ -8962,8 +8825,8 @@ __hoisted_g_gemm_bf16_64x128x32_16x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, tileA + (k * mrow * 64U + __anf05 * 32U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 64U + __anf05 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sA[(col + k1) * 64U + row] = local[k1];
@@ -8977,8 +8840,8 @@ __hoisted_g_gemm_bf16_64x128x32_16x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
-            vec_memcpy(local, tileB + (n * __anf08 * 32U + mcol * 128U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 32U + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sB[row * 128U + col + k1] = local[k1];
@@ -9024,9 +8887,9 @@ __hoisted_g_gemm_bf16_64x128x32_16x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
     }
 }
 
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x128x32_16x8(
-    __nv_bfloat16 alpha, __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k,
-    __nv_bfloat16 *gA, __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x128x32_16x8(__nv_bfloat16 alpha,
+    __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k, __nv_bfloat16 *gA,
+    __nv_bfloat16 *gB, __nv_bfloat16 *gC)
 {
     KPR_GUARD(m % 64U == 0U);
     KPR_GUARD(k % 32U == 0U);
@@ -9034,7 +8897,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x128x32_16x8(
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(12288U);
     KPR_KCALL(__hoisted_g_gemm_bf16_64x128x32_16x8_0, m / 64U * (n / 128U), 64U,
-              12288U, s, alpha, beta, n, k, gA, gB, gC);
+        12288U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -9045,8 +8908,7 @@ __global__
 */
 static void
 __hoisted_g_gemm_f32_64x128x32_16x16_0(float alpha, float beta, uint32_t n,
-                                       uint32_t k, float *gA, float *gB,
-                                       float *gC)
+    uint32_t k, float *gA, float *gB, float *gC)
 {
     float *gA_p = gA;
     float *gB_p = gB;
@@ -9069,8 +8931,8 @@ __hoisted_g_gemm_f32_64x128x32_16x16_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i0 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 32U;
-            vec_memcpy(local, tileA + (k * mrow * 64U + __anf05 * 32U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 64U + __anf05 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sA[(col + k1) * 64U + row] = local[k1];
@@ -9083,8 +8945,8 @@ __hoisted_g_gemm_f32_64x128x32_16x16_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i + threadIdx.x * 4U) / 128U;
             uint32_t col = (i + threadIdx.x * 4U) % 128U;
-            vec_memcpy(local, tileB + (n * __anf08 * 32U + mcol * 128U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 32U + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sB[row * 128U + col + k1] = local[k1];
@@ -9125,9 +8987,7 @@ __hoisted_g_gemm_f32_64x128x32_16x16_0(float alpha, float beta, uint32_t n,
 }
 
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_64x128x32_16x16(float alpha, float beta,
-                                                        uint32_t m, uint32_t n,
-                                                        uint32_t k, float *gA,
-                                                        float *gB, float *gC)
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC)
 {
     KPR_GUARD(m % 64U == 0U);
     KPR_GUARD(k % 32U == 0U);
@@ -9135,7 +8995,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_f32_64x128x32_16x16(float alpha, float beta,
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(24576U);
     KPR_KCALL(__hoisted_g_gemm_f32_64x128x32_16x16_0, m / 64U * (n / 128U), 32U,
-              24576U, s, alpha, beta, n, k, gA, gB, gC);
+        24576U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -9146,9 +9006,8 @@ __global__
 */
 static void
 __hoisted_g_gemm_bf16_64x128x32_16x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
-                                        uint32_t n, uint32_t k,
-                                        __nv_bfloat16 *gA, __nv_bfloat16 *gB,
-                                        __nv_bfloat16 *gC)
+    uint32_t n, uint32_t k, __nv_bfloat16 *gA, __nv_bfloat16 *gB,
+    __nv_bfloat16 *gC)
 {
     __nv_bfloat16 *gA_p = gA;
     __nv_bfloat16 *gB_p = gB;
@@ -9173,8 +9032,8 @@ __hoisted_g_gemm_bf16_64x128x32_16x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, tileA + (k * mrow * 64U + __anf05 * 32U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 64U + __anf05 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sA[(col + k1) * 64U + row] = local[k1];
@@ -9188,8 +9047,8 @@ __hoisted_g_gemm_bf16_64x128x32_16x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
-            vec_memcpy(local, tileB + (n * __anf08 * 32U + mcol * 128U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 32U + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sB[row * 128U + col + k1] = local[k1];
@@ -9235,9 +9094,9 @@ __hoisted_g_gemm_bf16_64x128x32_16x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
     }
 }
 
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x128x32_16x16(
-    __nv_bfloat16 alpha, __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k,
-    __nv_bfloat16 *gA, __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x128x32_16x16(__nv_bfloat16 alpha,
+    __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k, __nv_bfloat16 *gA,
+    __nv_bfloat16 *gB, __nv_bfloat16 *gC)
 {
     KPR_GUARD(m % 64U == 0U);
     KPR_GUARD(k % 32U == 0U);
@@ -9245,7 +9104,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x128x32_16x16(
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(12288U);
     KPR_KCALL(__hoisted_g_gemm_bf16_64x128x32_16x16_0, m / 64U * (n / 128U),
-              32U, 12288U, s, alpha, beta, n, k, gA, gB, gC);
+        32U, 12288U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -9256,8 +9115,7 @@ __global__
 */
 static void
 __hoisted_g_gemm_f32_64x128x64_8x8_0(float alpha, float beta, uint32_t n,
-                                     uint32_t k, float *gA, float *gB,
-                                     float *gC)
+    uint32_t k, float *gA, float *gB, float *gC)
 {
     float *gA_p = gA;
     float *gB_p = gB;
@@ -9280,8 +9138,8 @@ __hoisted_g_gemm_f32_64x128x64_8x8_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i0 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 64U;
-            vec_memcpy(local, tileA + (k * mrow * 64U + __anf05 * 64U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 64U + __anf05 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sA[(col + k1) * 64U + row] = local[k1];
@@ -9294,8 +9152,8 @@ __hoisted_g_gemm_f32_64x128x64_8x8_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i + threadIdx.x * 4U) / 128U;
             uint32_t col = (i + threadIdx.x * 4U) % 128U;
-            vec_memcpy(local, tileB + (n * __anf08 * 64U + mcol * 128U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 64U + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sB[row * 128U + col + k1] = local[k1];
@@ -9336,9 +9194,7 @@ __hoisted_g_gemm_f32_64x128x64_8x8_0(float alpha, float beta, uint32_t n,
 }
 
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_64x128x64_8x8(float alpha, float beta,
-                                                      uint32_t m, uint32_t n,
-                                                      uint32_t k, float *gA,
-                                                      float *gB, float *gC)
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC)
 {
     KPR_GUARD(m % 64U == 0U);
     KPR_GUARD(k % 64U == 0U);
@@ -9346,10 +9202,9 @@ void Klas_GEMM_BlockTiling2D_g_gemm_f32_64x128x64_8x8(float alpha, float beta,
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(49152U);
     MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_64x128x64_8x8_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              49152U));
+        cudaFuncAttributeMaxDynamicSharedMemorySize, 49152U));
     KPR_KCALL(__hoisted_g_gemm_f32_64x128x64_8x8_0, m / 64U * (n / 128U), 128U,
-              49152U, s, alpha, beta, n, k, gA, gB, gC);
+        49152U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -9360,8 +9215,8 @@ __global__
 */
 static void
 __hoisted_g_gemm_bf16_64x128x64_8x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
-                                      uint32_t n, uint32_t k, __nv_bfloat16 *gA,
-                                      __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+    uint32_t n, uint32_t k, __nv_bfloat16 *gA, __nv_bfloat16 *gB,
+    __nv_bfloat16 *gC)
 {
     __nv_bfloat16 *gA_p = gA;
     __nv_bfloat16 *gB_p = gB;
@@ -9386,8 +9241,8 @@ __hoisted_g_gemm_bf16_64x128x64_8x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, tileA + (k * mrow * 64U + __anf05 * 64U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 64U + __anf05 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sA[(col + k1) * 64U + row] = local[k1];
@@ -9401,8 +9256,8 @@ __hoisted_g_gemm_bf16_64x128x64_8x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
-            vec_memcpy(local, tileB + (n * __anf08 * 64U + mcol * 128U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 64U + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sB[row * 128U + col + k1] = local[k1];
@@ -9448,9 +9303,9 @@ __hoisted_g_gemm_bf16_64x128x64_8x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
     }
 }
 
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x128x64_8x8(
-    __nv_bfloat16 alpha, __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k,
-    __nv_bfloat16 *gA, __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x128x64_8x8(__nv_bfloat16 alpha,
+    __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k, __nv_bfloat16 *gA,
+    __nv_bfloat16 *gB, __nv_bfloat16 *gC)
 {
     KPR_GUARD(m % 64U == 0U);
     KPR_GUARD(k % 64U == 0U);
@@ -9458,7 +9313,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x128x64_8x8(
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(24576U);
     KPR_KCALL(__hoisted_g_gemm_bf16_64x128x64_8x8_0, m / 64U * (n / 128U), 128U,
-              24576U, s, alpha, beta, n, k, gA, gB, gC);
+        24576U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -9469,8 +9324,7 @@ __global__
 */
 static void
 __hoisted_g_gemm_f32_64x128x64_8x16_0(float alpha, float beta, uint32_t n,
-                                      uint32_t k, float *gA, float *gB,
-                                      float *gC)
+    uint32_t k, float *gA, float *gB, float *gC)
 {
     float *gA_p = gA;
     float *gB_p = gB;
@@ -9493,8 +9347,8 @@ __hoisted_g_gemm_f32_64x128x64_8x16_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i0 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 64U;
-            vec_memcpy(local, tileA + (k * mrow * 64U + __anf05 * 64U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 64U + __anf05 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sA[(col + k1) * 64U + row] = local[k1];
@@ -9507,8 +9361,8 @@ __hoisted_g_gemm_f32_64x128x64_8x16_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i + threadIdx.x * 4U) / 128U;
             uint32_t col = (i + threadIdx.x * 4U) % 128U;
-            vec_memcpy(local, tileB + (n * __anf08 * 64U + mcol * 128U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 64U + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sB[row * 128U + col + k1] = local[k1];
@@ -9549,9 +9403,7 @@ __hoisted_g_gemm_f32_64x128x64_8x16_0(float alpha, float beta, uint32_t n,
 }
 
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_64x128x64_8x16(float alpha, float beta,
-                                                       uint32_t m, uint32_t n,
-                                                       uint32_t k, float *gA,
-                                                       float *gB, float *gC)
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC)
 {
     KPR_GUARD(m % 64U == 0U);
     KPR_GUARD(k % 64U == 0U);
@@ -9559,10 +9411,9 @@ void Klas_GEMM_BlockTiling2D_g_gemm_f32_64x128x64_8x16(float alpha, float beta,
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(49152U);
     MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_64x128x64_8x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              49152U));
+        cudaFuncAttributeMaxDynamicSharedMemorySize, 49152U));
     KPR_KCALL(__hoisted_g_gemm_f32_64x128x64_8x16_0, m / 64U * (n / 128U), 64U,
-              49152U, s, alpha, beta, n, k, gA, gB, gC);
+        49152U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -9573,9 +9424,8 @@ __global__
 */
 static void
 __hoisted_g_gemm_bf16_64x128x64_8x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
-                                       uint32_t n, uint32_t k,
-                                       __nv_bfloat16 *gA, __nv_bfloat16 *gB,
-                                       __nv_bfloat16 *gC)
+    uint32_t n, uint32_t k, __nv_bfloat16 *gA, __nv_bfloat16 *gB,
+    __nv_bfloat16 *gC)
 {
     __nv_bfloat16 *gA_p = gA;
     __nv_bfloat16 *gB_p = gB;
@@ -9600,8 +9450,8 @@ __hoisted_g_gemm_bf16_64x128x64_8x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, tileA + (k * mrow * 64U + __anf05 * 64U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 64U + __anf05 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sA[(col + k1) * 64U + row] = local[k1];
@@ -9615,8 +9465,8 @@ __hoisted_g_gemm_bf16_64x128x64_8x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
-            vec_memcpy(local, tileB + (n * __anf08 * 64U + mcol * 128U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 64U + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sB[row * 128U + col + k1] = local[k1];
@@ -9662,9 +9512,9 @@ __hoisted_g_gemm_bf16_64x128x64_8x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
     }
 }
 
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x128x64_8x16(
-    __nv_bfloat16 alpha, __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k,
-    __nv_bfloat16 *gA, __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x128x64_8x16(__nv_bfloat16 alpha,
+    __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k, __nv_bfloat16 *gA,
+    __nv_bfloat16 *gB, __nv_bfloat16 *gC)
 {
     KPR_GUARD(m % 64U == 0U);
     KPR_GUARD(k % 64U == 0U);
@@ -9672,7 +9522,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x128x64_8x16(
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(24576U);
     KPR_KCALL(__hoisted_g_gemm_bf16_64x128x64_8x16_0, m / 64U * (n / 128U), 64U,
-              24576U, s, alpha, beta, n, k, gA, gB, gC);
+        24576U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -9683,8 +9533,7 @@ __global__
 */
 static void
 __hoisted_g_gemm_f32_64x128x64_16x8_0(float alpha, float beta, uint32_t n,
-                                      uint32_t k, float *gA, float *gB,
-                                      float *gC)
+    uint32_t k, float *gA, float *gB, float *gC)
 {
     float *gA_p = gA;
     float *gB_p = gB;
@@ -9707,8 +9556,8 @@ __hoisted_g_gemm_f32_64x128x64_16x8_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i0 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 64U;
-            vec_memcpy(local, tileA + (k * mrow * 64U + __anf05 * 64U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 64U + __anf05 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sA[(col + k1) * 64U + row] = local[k1];
@@ -9721,8 +9570,8 @@ __hoisted_g_gemm_f32_64x128x64_16x8_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i + threadIdx.x * 4U) / 128U;
             uint32_t col = (i + threadIdx.x * 4U) % 128U;
-            vec_memcpy(local, tileB + (n * __anf08 * 64U + mcol * 128U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 64U + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sB[row * 128U + col + k1] = local[k1];
@@ -9763,9 +9612,7 @@ __hoisted_g_gemm_f32_64x128x64_16x8_0(float alpha, float beta, uint32_t n,
 }
 
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_64x128x64_16x8(float alpha, float beta,
-                                                       uint32_t m, uint32_t n,
-                                                       uint32_t k, float *gA,
-                                                       float *gB, float *gC)
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC)
 {
     KPR_GUARD(m % 64U == 0U);
     KPR_GUARD(k % 64U == 0U);
@@ -9773,10 +9620,9 @@ void Klas_GEMM_BlockTiling2D_g_gemm_f32_64x128x64_16x8(float alpha, float beta,
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(49152U);
     MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_64x128x64_16x8_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              49152U));
+        cudaFuncAttributeMaxDynamicSharedMemorySize, 49152U));
     KPR_KCALL(__hoisted_g_gemm_f32_64x128x64_16x8_0, m / 64U * (n / 128U), 64U,
-              49152U, s, alpha, beta, n, k, gA, gB, gC);
+        49152U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -9787,9 +9633,8 @@ __global__
 */
 static void
 __hoisted_g_gemm_bf16_64x128x64_16x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
-                                       uint32_t n, uint32_t k,
-                                       __nv_bfloat16 *gA, __nv_bfloat16 *gB,
-                                       __nv_bfloat16 *gC)
+    uint32_t n, uint32_t k, __nv_bfloat16 *gA, __nv_bfloat16 *gB,
+    __nv_bfloat16 *gC)
 {
     __nv_bfloat16 *gA_p = gA;
     __nv_bfloat16 *gB_p = gB;
@@ -9814,8 +9659,8 @@ __hoisted_g_gemm_bf16_64x128x64_16x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, tileA + (k * mrow * 64U + __anf05 * 64U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 64U + __anf05 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sA[(col + k1) * 64U + row] = local[k1];
@@ -9829,8 +9674,8 @@ __hoisted_g_gemm_bf16_64x128x64_16x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
-            vec_memcpy(local, tileB + (n * __anf08 * 64U + mcol * 128U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 64U + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sB[row * 128U + col + k1] = local[k1];
@@ -9876,9 +9721,9 @@ __hoisted_g_gemm_bf16_64x128x64_16x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
     }
 }
 
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x128x64_16x8(
-    __nv_bfloat16 alpha, __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k,
-    __nv_bfloat16 *gA, __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x128x64_16x8(__nv_bfloat16 alpha,
+    __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k, __nv_bfloat16 *gA,
+    __nv_bfloat16 *gB, __nv_bfloat16 *gC)
 {
     KPR_GUARD(m % 64U == 0U);
     KPR_GUARD(k % 64U == 0U);
@@ -9886,7 +9731,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x128x64_16x8(
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(24576U);
     KPR_KCALL(__hoisted_g_gemm_bf16_64x128x64_16x8_0, m / 64U * (n / 128U), 64U,
-              24576U, s, alpha, beta, n, k, gA, gB, gC);
+        24576U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -9897,8 +9742,7 @@ __global__
 */
 static void
 __hoisted_g_gemm_f32_64x128x64_16x16_0(float alpha, float beta, uint32_t n,
-                                       uint32_t k, float *gA, float *gB,
-                                       float *gC)
+    uint32_t k, float *gA, float *gB, float *gC)
 {
     float *gA_p = gA;
     float *gB_p = gB;
@@ -9921,8 +9765,8 @@ __hoisted_g_gemm_f32_64x128x64_16x16_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i0 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 64U;
-            vec_memcpy(local, tileA + (k * mrow * 64U + __anf05 * 64U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 64U + __anf05 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sA[(col + k1) * 64U + row] = local[k1];
@@ -9935,8 +9779,8 @@ __hoisted_g_gemm_f32_64x128x64_16x16_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i + threadIdx.x * 4U) / 128U;
             uint32_t col = (i + threadIdx.x * 4U) % 128U;
-            vec_memcpy(local, tileB + (n * __anf08 * 64U + mcol * 128U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 64U + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sB[row * 128U + col + k1] = local[k1];
@@ -9977,9 +9821,7 @@ __hoisted_g_gemm_f32_64x128x64_16x16_0(float alpha, float beta, uint32_t n,
 }
 
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_64x128x64_16x16(float alpha, float beta,
-                                                        uint32_t m, uint32_t n,
-                                                        uint32_t k, float *gA,
-                                                        float *gB, float *gC)
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC)
 {
     KPR_GUARD(m % 64U == 0U);
     KPR_GUARD(k % 64U == 0U);
@@ -9987,10 +9829,9 @@ void Klas_GEMM_BlockTiling2D_g_gemm_f32_64x128x64_16x16(float alpha, float beta,
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(49152U);
     MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_64x128x64_16x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              49152U));
+        cudaFuncAttributeMaxDynamicSharedMemorySize, 49152U));
     KPR_KCALL(__hoisted_g_gemm_f32_64x128x64_16x16_0, m / 64U * (n / 128U), 32U,
-              49152U, s, alpha, beta, n, k, gA, gB, gC);
+        49152U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -10001,9 +9842,8 @@ __global__
 */
 static void
 __hoisted_g_gemm_bf16_64x128x64_16x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
-                                        uint32_t n, uint32_t k,
-                                        __nv_bfloat16 *gA, __nv_bfloat16 *gB,
-                                        __nv_bfloat16 *gC)
+    uint32_t n, uint32_t k, __nv_bfloat16 *gA, __nv_bfloat16 *gB,
+    __nv_bfloat16 *gC)
 {
     __nv_bfloat16 *gA_p = gA;
     __nv_bfloat16 *gB_p = gB;
@@ -10028,8 +9868,8 @@ __hoisted_g_gemm_bf16_64x128x64_16x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, tileA + (k * mrow * 64U + __anf05 * 64U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 64U + __anf05 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sA[(col + k1) * 64U + row] = local[k1];
@@ -10043,8 +9883,8 @@ __hoisted_g_gemm_bf16_64x128x64_16x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
-            vec_memcpy(local, tileB + (n * __anf08 * 64U + mcol * 128U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 64U + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sB[row * 128U + col + k1] = local[k1];
@@ -10090,9 +9930,9 @@ __hoisted_g_gemm_bf16_64x128x64_16x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
     }
 }
 
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x128x64_16x16(
-    __nv_bfloat16 alpha, __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k,
-    __nv_bfloat16 *gA, __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x128x64_16x16(__nv_bfloat16 alpha,
+    __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k, __nv_bfloat16 *gA,
+    __nv_bfloat16 *gB, __nv_bfloat16 *gC)
 {
     KPR_GUARD(m % 64U == 0U);
     KPR_GUARD(k % 64U == 0U);
@@ -10100,7 +9940,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x128x64_16x16(
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(24576U);
     KPR_KCALL(__hoisted_g_gemm_bf16_64x128x64_16x16_0, m / 64U * (n / 128U),
-              32U, 24576U, s, alpha, beta, n, k, gA, gB, gC);
+        32U, 24576U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -10111,8 +9951,7 @@ __global__
 */
 static void
 __hoisted_g_gemm_f32_128x32x32_8x8_0(float alpha, float beta, uint32_t n,
-                                     uint32_t k, float *gA, float *gB,
-                                     float *gC)
+    uint32_t k, float *gA, float *gB, float *gC)
 {
     float *gA_p = gA;
     float *gB_p = gB;
@@ -10135,8 +9974,8 @@ __hoisted_g_gemm_f32_128x32x32_8x8_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i0 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 32U;
-            vec_memcpy(local, tileA + (k * mrow * 128U + __anf05 * 32U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 128U + __anf05 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sA[(col + k1) * 128U + row] = local[k1];
@@ -10149,8 +9988,8 @@ __hoisted_g_gemm_f32_128x32x32_8x8_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
-            vec_memcpy(local, tileB + (n * __anf08 * 32U + mcol * 32U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 32U + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sB[row * 32U + col + k1] = local[k1];
@@ -10191,9 +10030,7 @@ __hoisted_g_gemm_f32_128x32x32_8x8_0(float alpha, float beta, uint32_t n,
 }
 
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_128x32x32_8x8(float alpha, float beta,
-                                                      uint32_t m, uint32_t n,
-                                                      uint32_t k, float *gA,
-                                                      float *gB, float *gC)
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC)
 {
     KPR_GUARD(m % 128U == 0U);
     KPR_GUARD(k % 32U == 0U);
@@ -10201,7 +10038,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_f32_128x32x32_8x8(float alpha, float beta,
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(20480U);
     KPR_KCALL(__hoisted_g_gemm_f32_128x32x32_8x8_0, m / 128U * (n / 32U), 64U,
-              20480U, s, alpha, beta, n, k, gA, gB, gC);
+        20480U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -10212,8 +10049,8 @@ __global__
 */
 static void
 __hoisted_g_gemm_bf16_128x32x32_8x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
-                                      uint32_t n, uint32_t k, __nv_bfloat16 *gA,
-                                      __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+    uint32_t n, uint32_t k, __nv_bfloat16 *gA, __nv_bfloat16 *gB,
+    __nv_bfloat16 *gC)
 {
     __nv_bfloat16 *gA_p = gA;
     __nv_bfloat16 *gB_p = gB;
@@ -10238,8 +10075,8 @@ __hoisted_g_gemm_bf16_128x32x32_8x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, tileA + (k * mrow * 128U + __anf05 * 32U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 128U + __anf05 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sA[(col + k1) * 128U + row] = local[k1];
@@ -10253,8 +10090,8 @@ __hoisted_g_gemm_bf16_128x32x32_8x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, tileB + (n * __anf08 * 32U + mcol * 32U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 32U + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sB[row * 32U + col + k1] = local[k1];
@@ -10300,9 +10137,9 @@ __hoisted_g_gemm_bf16_128x32x32_8x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
     }
 }
 
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x32x32_8x8(
-    __nv_bfloat16 alpha, __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k,
-    __nv_bfloat16 *gA, __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x32x32_8x8(__nv_bfloat16 alpha,
+    __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k, __nv_bfloat16 *gA,
+    __nv_bfloat16 *gB, __nv_bfloat16 *gC)
 {
     KPR_GUARD(m % 128U == 0U);
     KPR_GUARD(k % 32U == 0U);
@@ -10310,7 +10147,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x32x32_8x8(
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(10240U);
     KPR_KCALL(__hoisted_g_gemm_bf16_128x32x32_8x8_0, m / 128U * (n / 32U), 64U,
-              10240U, s, alpha, beta, n, k, gA, gB, gC);
+        10240U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -10321,8 +10158,7 @@ __global__
 */
 static void
 __hoisted_g_gemm_f32_128x32x32_8x16_0(float alpha, float beta, uint32_t n,
-                                      uint32_t k, float *gA, float *gB,
-                                      float *gC)
+    uint32_t k, float *gA, float *gB, float *gC)
 {
     float *gA_p = gA;
     float *gB_p = gB;
@@ -10345,8 +10181,8 @@ __hoisted_g_gemm_f32_128x32x32_8x16_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i0 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 32U;
-            vec_memcpy(local, tileA + (k * mrow * 128U + __anf05 * 32U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 128U + __anf05 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sA[(col + k1) * 128U + row] = local[k1];
@@ -10359,8 +10195,8 @@ __hoisted_g_gemm_f32_128x32x32_8x16_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
-            vec_memcpy(local, tileB + (n * __anf08 * 32U + mcol * 32U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 32U + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sB[row * 32U + col + k1] = local[k1];
@@ -10401,9 +10237,7 @@ __hoisted_g_gemm_f32_128x32x32_8x16_0(float alpha, float beta, uint32_t n,
 }
 
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_128x32x32_8x16(float alpha, float beta,
-                                                       uint32_t m, uint32_t n,
-                                                       uint32_t k, float *gA,
-                                                       float *gB, float *gC)
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC)
 {
     KPR_GUARD(m % 128U == 0U);
     KPR_GUARD(k % 32U == 0U);
@@ -10411,7 +10245,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_f32_128x32x32_8x16(float alpha, float beta,
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(20480U);
     KPR_KCALL(__hoisted_g_gemm_f32_128x32x32_8x16_0, m / 128U * (n / 32U), 32U,
-              20480U, s, alpha, beta, n, k, gA, gB, gC);
+        20480U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -10422,9 +10256,8 @@ __global__
 */
 static void
 __hoisted_g_gemm_bf16_128x32x32_8x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
-                                       uint32_t n, uint32_t k,
-                                       __nv_bfloat16 *gA, __nv_bfloat16 *gB,
-                                       __nv_bfloat16 *gC)
+    uint32_t n, uint32_t k, __nv_bfloat16 *gA, __nv_bfloat16 *gB,
+    __nv_bfloat16 *gC)
 {
     __nv_bfloat16 *gA_p = gA;
     __nv_bfloat16 *gB_p = gB;
@@ -10449,8 +10282,8 @@ __hoisted_g_gemm_bf16_128x32x32_8x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, tileA + (k * mrow * 128U + __anf05 * 32U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 128U + __anf05 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sA[(col + k1) * 128U + row] = local[k1];
@@ -10464,8 +10297,8 @@ __hoisted_g_gemm_bf16_128x32x32_8x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, tileB + (n * __anf08 * 32U + mcol * 32U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 32U + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sB[row * 32U + col + k1] = local[k1];
@@ -10511,9 +10344,9 @@ __hoisted_g_gemm_bf16_128x32x32_8x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
     }
 }
 
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x32x32_8x16(
-    __nv_bfloat16 alpha, __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k,
-    __nv_bfloat16 *gA, __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x32x32_8x16(__nv_bfloat16 alpha,
+    __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k, __nv_bfloat16 *gA,
+    __nv_bfloat16 *gB, __nv_bfloat16 *gC)
 {
     KPR_GUARD(m % 128U == 0U);
     KPR_GUARD(k % 32U == 0U);
@@ -10521,7 +10354,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x32x32_8x16(
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(10240U);
     KPR_KCALL(__hoisted_g_gemm_bf16_128x32x32_8x16_0, m / 128U * (n / 32U), 32U,
-              10240U, s, alpha, beta, n, k, gA, gB, gC);
+        10240U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -10532,8 +10365,7 @@ __global__
 */
 static void
 __hoisted_g_gemm_f32_128x32x32_16x8_0(float alpha, float beta, uint32_t n,
-                                      uint32_t k, float *gA, float *gB,
-                                      float *gC)
+    uint32_t k, float *gA, float *gB, float *gC)
 {
     float *gA_p = gA;
     float *gB_p = gB;
@@ -10556,8 +10388,8 @@ __hoisted_g_gemm_f32_128x32x32_16x8_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i0 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 32U;
-            vec_memcpy(local, tileA + (k * mrow * 128U + __anf05 * 32U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 128U + __anf05 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sA[(col + k1) * 128U + row] = local[k1];
@@ -10570,8 +10402,8 @@ __hoisted_g_gemm_f32_128x32x32_16x8_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
-            vec_memcpy(local, tileB + (n * __anf08 * 32U + mcol * 32U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 32U + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sB[row * 32U + col + k1] = local[k1];
@@ -10612,9 +10444,7 @@ __hoisted_g_gemm_f32_128x32x32_16x8_0(float alpha, float beta, uint32_t n,
 }
 
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_128x32x32_16x8(float alpha, float beta,
-                                                       uint32_t m, uint32_t n,
-                                                       uint32_t k, float *gA,
-                                                       float *gB, float *gC)
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC)
 {
     KPR_GUARD(m % 128U == 0U);
     KPR_GUARD(k % 32U == 0U);
@@ -10622,7 +10452,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_f32_128x32x32_16x8(float alpha, float beta,
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(20480U);
     KPR_KCALL(__hoisted_g_gemm_f32_128x32x32_16x8_0, m / 128U * (n / 32U), 32U,
-              20480U, s, alpha, beta, n, k, gA, gB, gC);
+        20480U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -10633,9 +10463,8 @@ __global__
 */
 static void
 __hoisted_g_gemm_bf16_128x32x32_16x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
-                                       uint32_t n, uint32_t k,
-                                       __nv_bfloat16 *gA, __nv_bfloat16 *gB,
-                                       __nv_bfloat16 *gC)
+    uint32_t n, uint32_t k, __nv_bfloat16 *gA, __nv_bfloat16 *gB,
+    __nv_bfloat16 *gC)
 {
     __nv_bfloat16 *gA_p = gA;
     __nv_bfloat16 *gB_p = gB;
@@ -10660,8 +10489,8 @@ __hoisted_g_gemm_bf16_128x32x32_16x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, tileA + (k * mrow * 128U + __anf05 * 32U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 128U + __anf05 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sA[(col + k1) * 128U + row] = local[k1];
@@ -10675,8 +10504,8 @@ __hoisted_g_gemm_bf16_128x32x32_16x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, tileB + (n * __anf08 * 32U + mcol * 32U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 32U + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sB[row * 32U + col + k1] = local[k1];
@@ -10722,9 +10551,9 @@ __hoisted_g_gemm_bf16_128x32x32_16x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
     }
 }
 
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x32x32_16x8(
-    __nv_bfloat16 alpha, __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k,
-    __nv_bfloat16 *gA, __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x32x32_16x8(__nv_bfloat16 alpha,
+    __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k, __nv_bfloat16 *gA,
+    __nv_bfloat16 *gB, __nv_bfloat16 *gC)
 {
     KPR_GUARD(m % 128U == 0U);
     KPR_GUARD(k % 32U == 0U);
@@ -10732,7 +10561,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x32x32_16x8(
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(10240U);
     KPR_KCALL(__hoisted_g_gemm_bf16_128x32x32_16x8_0, m / 128U * (n / 32U), 32U,
-              10240U, s, alpha, beta, n, k, gA, gB, gC);
+        10240U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -10743,8 +10572,7 @@ __global__
 */
 static void
 __hoisted_g_gemm_f32_128x32x32_16x16_0(float alpha, float beta, uint32_t n,
-                                       uint32_t k, float *gA, float *gB,
-                                       float *gC)
+    uint32_t k, float *gA, float *gB, float *gC)
 {
     float *gA_p = gA;
     float *gB_p = gB;
@@ -10767,8 +10595,8 @@ __hoisted_g_gemm_f32_128x32x32_16x16_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i0 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 32U;
-            vec_memcpy(local, tileA + (k * mrow * 128U + __anf05 * 32U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 128U + __anf05 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sA[(col + k1) * 128U + row] = local[k1];
@@ -10781,8 +10609,8 @@ __hoisted_g_gemm_f32_128x32x32_16x16_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
-            vec_memcpy(local, tileB + (n * __anf08 * 32U + mcol * 32U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 32U + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sB[row * 32U + col + k1] = local[k1];
@@ -10823,9 +10651,7 @@ __hoisted_g_gemm_f32_128x32x32_16x16_0(float alpha, float beta, uint32_t n,
 }
 
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_128x32x32_16x16(float alpha, float beta,
-                                                        uint32_t m, uint32_t n,
-                                                        uint32_t k, float *gA,
-                                                        float *gB, float *gC)
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC)
 {
     KPR_GUARD(m % 128U == 0U);
     KPR_GUARD(k % 32U == 0U);
@@ -10833,7 +10659,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_f32_128x32x32_16x16(float alpha, float beta,
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(20480U);
     KPR_KCALL(__hoisted_g_gemm_f32_128x32x32_16x16_0, m / 128U * (n / 32U), 16U,
-              20480U, s, alpha, beta, n, k, gA, gB, gC);
+        20480U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -10844,9 +10670,8 @@ __global__
 */
 static void
 __hoisted_g_gemm_bf16_128x32x32_16x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
-                                        uint32_t n, uint32_t k,
-                                        __nv_bfloat16 *gA, __nv_bfloat16 *gB,
-                                        __nv_bfloat16 *gC)
+    uint32_t n, uint32_t k, __nv_bfloat16 *gA, __nv_bfloat16 *gB,
+    __nv_bfloat16 *gC)
 {
     __nv_bfloat16 *gA_p = gA;
     __nv_bfloat16 *gB_p = gB;
@@ -10871,8 +10696,8 @@ __hoisted_g_gemm_bf16_128x32x32_16x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, tileA + (k * mrow * 128U + __anf05 * 32U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 128U + __anf05 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sA[(col + k1) * 128U + row] = local[k1];
@@ -10886,8 +10711,8 @@ __hoisted_g_gemm_bf16_128x32x32_16x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, tileB + (n * __anf08 * 32U + mcol * 32U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 32U + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sB[row * 32U + col + k1] = local[k1];
@@ -10933,9 +10758,9 @@ __hoisted_g_gemm_bf16_128x32x32_16x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
     }
 }
 
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x32x32_16x16(
-    __nv_bfloat16 alpha, __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k,
-    __nv_bfloat16 *gA, __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x32x32_16x16(__nv_bfloat16 alpha,
+    __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k, __nv_bfloat16 *gA,
+    __nv_bfloat16 *gB, __nv_bfloat16 *gC)
 {
     KPR_GUARD(m % 128U == 0U);
     KPR_GUARD(k % 32U == 0U);
@@ -10943,7 +10768,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x32x32_16x16(
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(10240U);
     KPR_KCALL(__hoisted_g_gemm_bf16_128x32x32_16x16_0, m / 128U * (n / 32U),
-              16U, 10240U, s, alpha, beta, n, k, gA, gB, gC);
+        16U, 10240U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -10954,8 +10779,7 @@ __global__
 */
 static void
 __hoisted_g_gemm_f32_128x32x64_8x8_0(float alpha, float beta, uint32_t n,
-                                     uint32_t k, float *gA, float *gB,
-                                     float *gC)
+    uint32_t k, float *gA, float *gB, float *gC)
 {
     float *gA_p = gA;
     float *gB_p = gB;
@@ -10978,8 +10802,8 @@ __hoisted_g_gemm_f32_128x32x64_8x8_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i0 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 64U;
-            vec_memcpy(local, tileA + (k * mrow * 128U + __anf05 * 64U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 128U + __anf05 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sA[(col + k1) * 128U + row] = local[k1];
@@ -10992,8 +10816,8 @@ __hoisted_g_gemm_f32_128x32x64_8x8_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
-            vec_memcpy(local, tileB + (n * __anf08 * 64U + mcol * 32U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 64U + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sB[row * 32U + col + k1] = local[k1];
@@ -11034,9 +10858,7 @@ __hoisted_g_gemm_f32_128x32x64_8x8_0(float alpha, float beta, uint32_t n,
 }
 
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_128x32x64_8x8(float alpha, float beta,
-                                                      uint32_t m, uint32_t n,
-                                                      uint32_t k, float *gA,
-                                                      float *gB, float *gC)
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC)
 {
     KPR_GUARD(m % 128U == 0U);
     KPR_GUARD(k % 64U == 0U);
@@ -11044,7 +10866,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_f32_128x32x64_8x8(float alpha, float beta,
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(40960U);
     KPR_KCALL(__hoisted_g_gemm_f32_128x32x64_8x8_0, m / 128U * (n / 32U), 64U,
-              40960U, s, alpha, beta, n, k, gA, gB, gC);
+        40960U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -11055,8 +10877,8 @@ __global__
 */
 static void
 __hoisted_g_gemm_bf16_128x32x64_8x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
-                                      uint32_t n, uint32_t k, __nv_bfloat16 *gA,
-                                      __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+    uint32_t n, uint32_t k, __nv_bfloat16 *gA, __nv_bfloat16 *gB,
+    __nv_bfloat16 *gC)
 {
     __nv_bfloat16 *gA_p = gA;
     __nv_bfloat16 *gB_p = gB;
@@ -11081,8 +10903,8 @@ __hoisted_g_gemm_bf16_128x32x64_8x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, tileA + (k * mrow * 128U + __anf05 * 64U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 128U + __anf05 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sA[(col + k1) * 128U + row] = local[k1];
@@ -11096,8 +10918,8 @@ __hoisted_g_gemm_bf16_128x32x64_8x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, tileB + (n * __anf08 * 64U + mcol * 32U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 64U + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sB[row * 32U + col + k1] = local[k1];
@@ -11143,9 +10965,9 @@ __hoisted_g_gemm_bf16_128x32x64_8x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
     }
 }
 
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x32x64_8x8(
-    __nv_bfloat16 alpha, __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k,
-    __nv_bfloat16 *gA, __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x32x64_8x8(__nv_bfloat16 alpha,
+    __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k, __nv_bfloat16 *gA,
+    __nv_bfloat16 *gB, __nv_bfloat16 *gC)
 {
     KPR_GUARD(m % 128U == 0U);
     KPR_GUARD(k % 64U == 0U);
@@ -11153,7 +10975,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x32x64_8x8(
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(20480U);
     KPR_KCALL(__hoisted_g_gemm_bf16_128x32x64_8x8_0, m / 128U * (n / 32U), 64U,
-              20480U, s, alpha, beta, n, k, gA, gB, gC);
+        20480U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -11164,8 +10986,7 @@ __global__
 */
 static void
 __hoisted_g_gemm_f32_128x32x64_8x16_0(float alpha, float beta, uint32_t n,
-                                      uint32_t k, float *gA, float *gB,
-                                      float *gC)
+    uint32_t k, float *gA, float *gB, float *gC)
 {
     float *gA_p = gA;
     float *gB_p = gB;
@@ -11188,8 +11009,8 @@ __hoisted_g_gemm_f32_128x32x64_8x16_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i0 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 64U;
-            vec_memcpy(local, tileA + (k * mrow * 128U + __anf05 * 64U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 128U + __anf05 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sA[(col + k1) * 128U + row] = local[k1];
@@ -11202,8 +11023,8 @@ __hoisted_g_gemm_f32_128x32x64_8x16_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
-            vec_memcpy(local, tileB + (n * __anf08 * 64U + mcol * 32U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 64U + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sB[row * 32U + col + k1] = local[k1];
@@ -11244,9 +11065,7 @@ __hoisted_g_gemm_f32_128x32x64_8x16_0(float alpha, float beta, uint32_t n,
 }
 
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_128x32x64_8x16(float alpha, float beta,
-                                                       uint32_t m, uint32_t n,
-                                                       uint32_t k, float *gA,
-                                                       float *gB, float *gC)
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC)
 {
     KPR_GUARD(m % 128U == 0U);
     KPR_GUARD(k % 64U == 0U);
@@ -11254,7 +11073,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_f32_128x32x64_8x16(float alpha, float beta,
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(40960U);
     KPR_KCALL(__hoisted_g_gemm_f32_128x32x64_8x16_0, m / 128U * (n / 32U), 32U,
-              40960U, s, alpha, beta, n, k, gA, gB, gC);
+        40960U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -11265,9 +11084,8 @@ __global__
 */
 static void
 __hoisted_g_gemm_bf16_128x32x64_8x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
-                                       uint32_t n, uint32_t k,
-                                       __nv_bfloat16 *gA, __nv_bfloat16 *gB,
-                                       __nv_bfloat16 *gC)
+    uint32_t n, uint32_t k, __nv_bfloat16 *gA, __nv_bfloat16 *gB,
+    __nv_bfloat16 *gC)
 {
     __nv_bfloat16 *gA_p = gA;
     __nv_bfloat16 *gB_p = gB;
@@ -11292,8 +11110,8 @@ __hoisted_g_gemm_bf16_128x32x64_8x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, tileA + (k * mrow * 128U + __anf05 * 64U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 128U + __anf05 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sA[(col + k1) * 128U + row] = local[k1];
@@ -11307,8 +11125,8 @@ __hoisted_g_gemm_bf16_128x32x64_8x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, tileB + (n * __anf08 * 64U + mcol * 32U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 64U + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sB[row * 32U + col + k1] = local[k1];
@@ -11354,9 +11172,9 @@ __hoisted_g_gemm_bf16_128x32x64_8x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
     }
 }
 
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x32x64_8x16(
-    __nv_bfloat16 alpha, __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k,
-    __nv_bfloat16 *gA, __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x32x64_8x16(__nv_bfloat16 alpha,
+    __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k, __nv_bfloat16 *gA,
+    __nv_bfloat16 *gB, __nv_bfloat16 *gC)
 {
     KPR_GUARD(m % 128U == 0U);
     KPR_GUARD(k % 64U == 0U);
@@ -11364,7 +11182,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x32x64_8x16(
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(20480U);
     KPR_KCALL(__hoisted_g_gemm_bf16_128x32x64_8x16_0, m / 128U * (n / 32U), 32U,
-              20480U, s, alpha, beta, n, k, gA, gB, gC);
+        20480U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -11375,8 +11193,7 @@ __global__
 */
 static void
 __hoisted_g_gemm_f32_128x32x64_16x8_0(float alpha, float beta, uint32_t n,
-                                      uint32_t k, float *gA, float *gB,
-                                      float *gC)
+    uint32_t k, float *gA, float *gB, float *gC)
 {
     float *gA_p = gA;
     float *gB_p = gB;
@@ -11399,8 +11216,8 @@ __hoisted_g_gemm_f32_128x32x64_16x8_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i0 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 64U;
-            vec_memcpy(local, tileA + (k * mrow * 128U + __anf05 * 64U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 128U + __anf05 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sA[(col + k1) * 128U + row] = local[k1];
@@ -11413,8 +11230,8 @@ __hoisted_g_gemm_f32_128x32x64_16x8_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
-            vec_memcpy(local, tileB + (n * __anf08 * 64U + mcol * 32U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 64U + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sB[row * 32U + col + k1] = local[k1];
@@ -11455,9 +11272,7 @@ __hoisted_g_gemm_f32_128x32x64_16x8_0(float alpha, float beta, uint32_t n,
 }
 
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_128x32x64_16x8(float alpha, float beta,
-                                                       uint32_t m, uint32_t n,
-                                                       uint32_t k, float *gA,
-                                                       float *gB, float *gC)
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC)
 {
     KPR_GUARD(m % 128U == 0U);
     KPR_GUARD(k % 64U == 0U);
@@ -11465,7 +11280,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_f32_128x32x64_16x8(float alpha, float beta,
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(40960U);
     KPR_KCALL(__hoisted_g_gemm_f32_128x32x64_16x8_0, m / 128U * (n / 32U), 32U,
-              40960U, s, alpha, beta, n, k, gA, gB, gC);
+        40960U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -11476,9 +11291,8 @@ __global__
 */
 static void
 __hoisted_g_gemm_bf16_128x32x64_16x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
-                                       uint32_t n, uint32_t k,
-                                       __nv_bfloat16 *gA, __nv_bfloat16 *gB,
-                                       __nv_bfloat16 *gC)
+    uint32_t n, uint32_t k, __nv_bfloat16 *gA, __nv_bfloat16 *gB,
+    __nv_bfloat16 *gC)
 {
     __nv_bfloat16 *gA_p = gA;
     __nv_bfloat16 *gB_p = gB;
@@ -11503,8 +11317,8 @@ __hoisted_g_gemm_bf16_128x32x64_16x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, tileA + (k * mrow * 128U + __anf05 * 64U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 128U + __anf05 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sA[(col + k1) * 128U + row] = local[k1];
@@ -11518,8 +11332,8 @@ __hoisted_g_gemm_bf16_128x32x64_16x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, tileB + (n * __anf08 * 64U + mcol * 32U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 64U + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sB[row * 32U + col + k1] = local[k1];
@@ -11565,9 +11379,9 @@ __hoisted_g_gemm_bf16_128x32x64_16x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
     }
 }
 
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x32x64_16x8(
-    __nv_bfloat16 alpha, __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k,
-    __nv_bfloat16 *gA, __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x32x64_16x8(__nv_bfloat16 alpha,
+    __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k, __nv_bfloat16 *gA,
+    __nv_bfloat16 *gB, __nv_bfloat16 *gC)
 {
     KPR_GUARD(m % 128U == 0U);
     KPR_GUARD(k % 64U == 0U);
@@ -11575,7 +11389,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x32x64_16x8(
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(20480U);
     KPR_KCALL(__hoisted_g_gemm_bf16_128x32x64_16x8_0, m / 128U * (n / 32U), 32U,
-              20480U, s, alpha, beta, n, k, gA, gB, gC);
+        20480U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -11586,8 +11400,7 @@ __global__
 */
 static void
 __hoisted_g_gemm_f32_128x32x64_16x16_0(float alpha, float beta, uint32_t n,
-                                       uint32_t k, float *gA, float *gB,
-                                       float *gC)
+    uint32_t k, float *gA, float *gB, float *gC)
 {
     float *gA_p = gA;
     float *gB_p = gB;
@@ -11610,8 +11423,8 @@ __hoisted_g_gemm_f32_128x32x64_16x16_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i0 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 64U;
-            vec_memcpy(local, tileA + (k * mrow * 128U + __anf05 * 64U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 128U + __anf05 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sA[(col + k1) * 128U + row] = local[k1];
@@ -11624,8 +11437,8 @@ __hoisted_g_gemm_f32_128x32x64_16x16_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
-            vec_memcpy(local, tileB + (n * __anf08 * 64U + mcol * 32U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 64U + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sB[row * 32U + col + k1] = local[k1];
@@ -11666,9 +11479,7 @@ __hoisted_g_gemm_f32_128x32x64_16x16_0(float alpha, float beta, uint32_t n,
 }
 
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_128x32x64_16x16(float alpha, float beta,
-                                                        uint32_t m, uint32_t n,
-                                                        uint32_t k, float *gA,
-                                                        float *gB, float *gC)
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC)
 {
     KPR_GUARD(m % 128U == 0U);
     KPR_GUARD(k % 64U == 0U);
@@ -11676,7 +11487,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_f32_128x32x64_16x16(float alpha, float beta,
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(40960U);
     KPR_KCALL(__hoisted_g_gemm_f32_128x32x64_16x16_0, m / 128U * (n / 32U), 16U,
-              40960U, s, alpha, beta, n, k, gA, gB, gC);
+        40960U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -11687,9 +11498,8 @@ __global__
 */
 static void
 __hoisted_g_gemm_bf16_128x32x64_16x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
-                                        uint32_t n, uint32_t k,
-                                        __nv_bfloat16 *gA, __nv_bfloat16 *gB,
-                                        __nv_bfloat16 *gC)
+    uint32_t n, uint32_t k, __nv_bfloat16 *gA, __nv_bfloat16 *gB,
+    __nv_bfloat16 *gC)
 {
     __nv_bfloat16 *gA_p = gA;
     __nv_bfloat16 *gB_p = gB;
@@ -11714,8 +11524,8 @@ __hoisted_g_gemm_bf16_128x32x64_16x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, tileA + (k * mrow * 128U + __anf05 * 64U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 128U + __anf05 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sA[(col + k1) * 128U + row] = local[k1];
@@ -11729,8 +11539,8 @@ __hoisted_g_gemm_bf16_128x32x64_16x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, tileB + (n * __anf08 * 64U + mcol * 32U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 64U + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sB[row * 32U + col + k1] = local[k1];
@@ -11776,9 +11586,9 @@ __hoisted_g_gemm_bf16_128x32x64_16x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
     }
 }
 
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x32x64_16x16(
-    __nv_bfloat16 alpha, __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k,
-    __nv_bfloat16 *gA, __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x32x64_16x16(__nv_bfloat16 alpha,
+    __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k, __nv_bfloat16 *gA,
+    __nv_bfloat16 *gB, __nv_bfloat16 *gC)
 {
     KPR_GUARD(m % 128U == 0U);
     KPR_GUARD(k % 64U == 0U);
@@ -11786,7 +11596,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x32x64_16x16(
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(20480U);
     KPR_KCALL(__hoisted_g_gemm_bf16_128x32x64_16x16_0, m / 128U * (n / 32U),
-              16U, 20480U, s, alpha, beta, n, k, gA, gB, gC);
+        16U, 20480U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -11797,8 +11607,7 @@ __global__
 */
 static void
 __hoisted_g_gemm_f32_128x64x32_8x8_0(float alpha, float beta, uint32_t n,
-                                     uint32_t k, float *gA, float *gB,
-                                     float *gC)
+    uint32_t k, float *gA, float *gB, float *gC)
 {
     float *gA_p = gA;
     float *gB_p = gB;
@@ -11821,8 +11630,8 @@ __hoisted_g_gemm_f32_128x64x32_8x8_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i0 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 32U;
-            vec_memcpy(local, tileA + (k * mrow * 128U + __anf05 * 32U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 128U + __anf05 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sA[(col + k1) * 128U + row] = local[k1];
@@ -11835,8 +11644,8 @@ __hoisted_g_gemm_f32_128x64x32_8x8_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
-            vec_memcpy(local, tileB + (n * __anf08 * 32U + mcol * 64U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 32U + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sB[row * 64U + col + k1] = local[k1];
@@ -11877,9 +11686,7 @@ __hoisted_g_gemm_f32_128x64x32_8x8_0(float alpha, float beta, uint32_t n,
 }
 
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_128x64x32_8x8(float alpha, float beta,
-                                                      uint32_t m, uint32_t n,
-                                                      uint32_t k, float *gA,
-                                                      float *gB, float *gC)
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC)
 {
     KPR_GUARD(m % 128U == 0U);
     KPR_GUARD(k % 32U == 0U);
@@ -11887,7 +11694,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_f32_128x64x32_8x8(float alpha, float beta,
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(24576U);
     KPR_KCALL(__hoisted_g_gemm_f32_128x64x32_8x8_0, m / 128U * (n / 64U), 128U,
-              24576U, s, alpha, beta, n, k, gA, gB, gC);
+        24576U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -11898,8 +11705,8 @@ __global__
 */
 static void
 __hoisted_g_gemm_bf16_128x64x32_8x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
-                                      uint32_t n, uint32_t k, __nv_bfloat16 *gA,
-                                      __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+    uint32_t n, uint32_t k, __nv_bfloat16 *gA, __nv_bfloat16 *gB,
+    __nv_bfloat16 *gC)
 {
     __nv_bfloat16 *gA_p = gA;
     __nv_bfloat16 *gB_p = gB;
@@ -11924,8 +11731,8 @@ __hoisted_g_gemm_bf16_128x64x32_8x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, tileA + (k * mrow * 128U + __anf05 * 32U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 128U + __anf05 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sA[(col + k1) * 128U + row] = local[k1];
@@ -11939,8 +11746,8 @@ __hoisted_g_gemm_bf16_128x64x32_8x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, tileB + (n * __anf08 * 32U + mcol * 64U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 32U + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sB[row * 64U + col + k1] = local[k1];
@@ -11986,9 +11793,9 @@ __hoisted_g_gemm_bf16_128x64x32_8x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
     }
 }
 
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x64x32_8x8(
-    __nv_bfloat16 alpha, __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k,
-    __nv_bfloat16 *gA, __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x64x32_8x8(__nv_bfloat16 alpha,
+    __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k, __nv_bfloat16 *gA,
+    __nv_bfloat16 *gB, __nv_bfloat16 *gC)
 {
     KPR_GUARD(m % 128U == 0U);
     KPR_GUARD(k % 32U == 0U);
@@ -11996,7 +11803,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x64x32_8x8(
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(12288U);
     KPR_KCALL(__hoisted_g_gemm_bf16_128x64x32_8x8_0, m / 128U * (n / 64U), 128U,
-              12288U, s, alpha, beta, n, k, gA, gB, gC);
+        12288U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -12007,8 +11814,7 @@ __global__
 */
 static void
 __hoisted_g_gemm_f32_128x64x32_8x16_0(float alpha, float beta, uint32_t n,
-                                      uint32_t k, float *gA, float *gB,
-                                      float *gC)
+    uint32_t k, float *gA, float *gB, float *gC)
 {
     float *gA_p = gA;
     float *gB_p = gB;
@@ -12031,8 +11837,8 @@ __hoisted_g_gemm_f32_128x64x32_8x16_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i0 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 32U;
-            vec_memcpy(local, tileA + (k * mrow * 128U + __anf05 * 32U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 128U + __anf05 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sA[(col + k1) * 128U + row] = local[k1];
@@ -12045,8 +11851,8 @@ __hoisted_g_gemm_f32_128x64x32_8x16_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
-            vec_memcpy(local, tileB + (n * __anf08 * 32U + mcol * 64U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 32U + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sB[row * 64U + col + k1] = local[k1];
@@ -12087,9 +11893,7 @@ __hoisted_g_gemm_f32_128x64x32_8x16_0(float alpha, float beta, uint32_t n,
 }
 
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_128x64x32_8x16(float alpha, float beta,
-                                                       uint32_t m, uint32_t n,
-                                                       uint32_t k, float *gA,
-                                                       float *gB, float *gC)
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC)
 {
     KPR_GUARD(m % 128U == 0U);
     KPR_GUARD(k % 32U == 0U);
@@ -12097,7 +11901,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_f32_128x64x32_8x16(float alpha, float beta,
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(24576U);
     KPR_KCALL(__hoisted_g_gemm_f32_128x64x32_8x16_0, m / 128U * (n / 64U), 64U,
-              24576U, s, alpha, beta, n, k, gA, gB, gC);
+        24576U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -12108,9 +11912,8 @@ __global__
 */
 static void
 __hoisted_g_gemm_bf16_128x64x32_8x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
-                                       uint32_t n, uint32_t k,
-                                       __nv_bfloat16 *gA, __nv_bfloat16 *gB,
-                                       __nv_bfloat16 *gC)
+    uint32_t n, uint32_t k, __nv_bfloat16 *gA, __nv_bfloat16 *gB,
+    __nv_bfloat16 *gC)
 {
     __nv_bfloat16 *gA_p = gA;
     __nv_bfloat16 *gB_p = gB;
@@ -12135,8 +11938,8 @@ __hoisted_g_gemm_bf16_128x64x32_8x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, tileA + (k * mrow * 128U + __anf05 * 32U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 128U + __anf05 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sA[(col + k1) * 128U + row] = local[k1];
@@ -12150,8 +11953,8 @@ __hoisted_g_gemm_bf16_128x64x32_8x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, tileB + (n * __anf08 * 32U + mcol * 64U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 32U + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sB[row * 64U + col + k1] = local[k1];
@@ -12197,9 +12000,9 @@ __hoisted_g_gemm_bf16_128x64x32_8x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
     }
 }
 
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x64x32_8x16(
-    __nv_bfloat16 alpha, __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k,
-    __nv_bfloat16 *gA, __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x64x32_8x16(__nv_bfloat16 alpha,
+    __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k, __nv_bfloat16 *gA,
+    __nv_bfloat16 *gB, __nv_bfloat16 *gC)
 {
     KPR_GUARD(m % 128U == 0U);
     KPR_GUARD(k % 32U == 0U);
@@ -12207,7 +12010,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x64x32_8x16(
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(12288U);
     KPR_KCALL(__hoisted_g_gemm_bf16_128x64x32_8x16_0, m / 128U * (n / 64U), 64U,
-              12288U, s, alpha, beta, n, k, gA, gB, gC);
+        12288U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -12218,8 +12021,7 @@ __global__
 */
 static void
 __hoisted_g_gemm_f32_128x64x32_16x8_0(float alpha, float beta, uint32_t n,
-                                      uint32_t k, float *gA, float *gB,
-                                      float *gC)
+    uint32_t k, float *gA, float *gB, float *gC)
 {
     float *gA_p = gA;
     float *gB_p = gB;
@@ -12242,8 +12044,8 @@ __hoisted_g_gemm_f32_128x64x32_16x8_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i0 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 32U;
-            vec_memcpy(local, tileA + (k * mrow * 128U + __anf05 * 32U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 128U + __anf05 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sA[(col + k1) * 128U + row] = local[k1];
@@ -12256,8 +12058,8 @@ __hoisted_g_gemm_f32_128x64x32_16x8_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
-            vec_memcpy(local, tileB + (n * __anf08 * 32U + mcol * 64U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 32U + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sB[row * 64U + col + k1] = local[k1];
@@ -12298,9 +12100,7 @@ __hoisted_g_gemm_f32_128x64x32_16x8_0(float alpha, float beta, uint32_t n,
 }
 
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_128x64x32_16x8(float alpha, float beta,
-                                                       uint32_t m, uint32_t n,
-                                                       uint32_t k, float *gA,
-                                                       float *gB, float *gC)
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC)
 {
     KPR_GUARD(m % 128U == 0U);
     KPR_GUARD(k % 32U == 0U);
@@ -12308,7 +12108,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_f32_128x64x32_16x8(float alpha, float beta,
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(24576U);
     KPR_KCALL(__hoisted_g_gemm_f32_128x64x32_16x8_0, m / 128U * (n / 64U), 64U,
-              24576U, s, alpha, beta, n, k, gA, gB, gC);
+        24576U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -12319,9 +12119,8 @@ __global__
 */
 static void
 __hoisted_g_gemm_bf16_128x64x32_16x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
-                                       uint32_t n, uint32_t k,
-                                       __nv_bfloat16 *gA, __nv_bfloat16 *gB,
-                                       __nv_bfloat16 *gC)
+    uint32_t n, uint32_t k, __nv_bfloat16 *gA, __nv_bfloat16 *gB,
+    __nv_bfloat16 *gC)
 {
     __nv_bfloat16 *gA_p = gA;
     __nv_bfloat16 *gB_p = gB;
@@ -12346,8 +12145,8 @@ __hoisted_g_gemm_bf16_128x64x32_16x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, tileA + (k * mrow * 128U + __anf05 * 32U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 128U + __anf05 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sA[(col + k1) * 128U + row] = local[k1];
@@ -12361,8 +12160,8 @@ __hoisted_g_gemm_bf16_128x64x32_16x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, tileB + (n * __anf08 * 32U + mcol * 64U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 32U + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sB[row * 64U + col + k1] = local[k1];
@@ -12408,9 +12207,9 @@ __hoisted_g_gemm_bf16_128x64x32_16x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
     }
 }
 
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x64x32_16x8(
-    __nv_bfloat16 alpha, __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k,
-    __nv_bfloat16 *gA, __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x64x32_16x8(__nv_bfloat16 alpha,
+    __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k, __nv_bfloat16 *gA,
+    __nv_bfloat16 *gB, __nv_bfloat16 *gC)
 {
     KPR_GUARD(m % 128U == 0U);
     KPR_GUARD(k % 32U == 0U);
@@ -12418,7 +12217,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x64x32_16x8(
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(12288U);
     KPR_KCALL(__hoisted_g_gemm_bf16_128x64x32_16x8_0, m / 128U * (n / 64U), 64U,
-              12288U, s, alpha, beta, n, k, gA, gB, gC);
+        12288U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -12429,8 +12228,7 @@ __global__
 */
 static void
 __hoisted_g_gemm_f32_128x64x32_16x16_0(float alpha, float beta, uint32_t n,
-                                       uint32_t k, float *gA, float *gB,
-                                       float *gC)
+    uint32_t k, float *gA, float *gB, float *gC)
 {
     float *gA_p = gA;
     float *gB_p = gB;
@@ -12453,8 +12251,8 @@ __hoisted_g_gemm_f32_128x64x32_16x16_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i0 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 32U;
-            vec_memcpy(local, tileA + (k * mrow * 128U + __anf05 * 32U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 128U + __anf05 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sA[(col + k1) * 128U + row] = local[k1];
@@ -12467,8 +12265,8 @@ __hoisted_g_gemm_f32_128x64x32_16x16_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
-            vec_memcpy(local, tileB + (n * __anf08 * 32U + mcol * 64U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 32U + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sB[row * 64U + col + k1] = local[k1];
@@ -12509,9 +12307,7 @@ __hoisted_g_gemm_f32_128x64x32_16x16_0(float alpha, float beta, uint32_t n,
 }
 
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_128x64x32_16x16(float alpha, float beta,
-                                                        uint32_t m, uint32_t n,
-                                                        uint32_t k, float *gA,
-                                                        float *gB, float *gC)
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC)
 {
     KPR_GUARD(m % 128U == 0U);
     KPR_GUARD(k % 32U == 0U);
@@ -12519,7 +12315,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_f32_128x64x32_16x16(float alpha, float beta,
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(24576U);
     KPR_KCALL(__hoisted_g_gemm_f32_128x64x32_16x16_0, m / 128U * (n / 64U), 32U,
-              24576U, s, alpha, beta, n, k, gA, gB, gC);
+        24576U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -12530,9 +12326,8 @@ __global__
 */
 static void
 __hoisted_g_gemm_bf16_128x64x32_16x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
-                                        uint32_t n, uint32_t k,
-                                        __nv_bfloat16 *gA, __nv_bfloat16 *gB,
-                                        __nv_bfloat16 *gC)
+    uint32_t n, uint32_t k, __nv_bfloat16 *gA, __nv_bfloat16 *gB,
+    __nv_bfloat16 *gC)
 {
     __nv_bfloat16 *gA_p = gA;
     __nv_bfloat16 *gB_p = gB;
@@ -12557,8 +12352,8 @@ __hoisted_g_gemm_bf16_128x64x32_16x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, tileA + (k * mrow * 128U + __anf05 * 32U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 128U + __anf05 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sA[(col + k1) * 128U + row] = local[k1];
@@ -12572,8 +12367,8 @@ __hoisted_g_gemm_bf16_128x64x32_16x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, tileB + (n * __anf08 * 32U + mcol * 64U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 32U + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sB[row * 64U + col + k1] = local[k1];
@@ -12619,9 +12414,9 @@ __hoisted_g_gemm_bf16_128x64x32_16x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
     }
 }
 
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x64x32_16x16(
-    __nv_bfloat16 alpha, __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k,
-    __nv_bfloat16 *gA, __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x64x32_16x16(__nv_bfloat16 alpha,
+    __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k, __nv_bfloat16 *gA,
+    __nv_bfloat16 *gB, __nv_bfloat16 *gC)
 {
     KPR_GUARD(m % 128U == 0U);
     KPR_GUARD(k % 32U == 0U);
@@ -12629,7 +12424,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x64x32_16x16(
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(12288U);
     KPR_KCALL(__hoisted_g_gemm_bf16_128x64x32_16x16_0, m / 128U * (n / 64U),
-              32U, 12288U, s, alpha, beta, n, k, gA, gB, gC);
+        32U, 12288U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -12640,8 +12435,7 @@ __global__
 */
 static void
 __hoisted_g_gemm_f32_128x64x64_8x8_0(float alpha, float beta, uint32_t n,
-                                     uint32_t k, float *gA, float *gB,
-                                     float *gC)
+    uint32_t k, float *gA, float *gB, float *gC)
 {
     float *gA_p = gA;
     float *gB_p = gB;
@@ -12664,8 +12458,8 @@ __hoisted_g_gemm_f32_128x64x64_8x8_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i0 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 64U;
-            vec_memcpy(local, tileA + (k * mrow * 128U + __anf05 * 64U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 128U + __anf05 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sA[(col + k1) * 128U + row] = local[k1];
@@ -12678,8 +12472,8 @@ __hoisted_g_gemm_f32_128x64x64_8x8_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
-            vec_memcpy(local, tileB + (n * __anf08 * 64U + mcol * 64U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 64U + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sB[row * 64U + col + k1] = local[k1];
@@ -12720,9 +12514,7 @@ __hoisted_g_gemm_f32_128x64x64_8x8_0(float alpha, float beta, uint32_t n,
 }
 
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_128x64x64_8x8(float alpha, float beta,
-                                                      uint32_t m, uint32_t n,
-                                                      uint32_t k, float *gA,
-                                                      float *gB, float *gC)
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC)
 {
     KPR_GUARD(m % 128U == 0U);
     KPR_GUARD(k % 64U == 0U);
@@ -12730,10 +12522,9 @@ void Klas_GEMM_BlockTiling2D_g_gemm_f32_128x64x64_8x8(float alpha, float beta,
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(49152U);
     MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_128x64x64_8x8_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              49152U));
+        cudaFuncAttributeMaxDynamicSharedMemorySize, 49152U));
     KPR_KCALL(__hoisted_g_gemm_f32_128x64x64_8x8_0, m / 128U * (n / 64U), 128U,
-              49152U, s, alpha, beta, n, k, gA, gB, gC);
+        49152U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -12744,8 +12535,8 @@ __global__
 */
 static void
 __hoisted_g_gemm_bf16_128x64x64_8x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
-                                      uint32_t n, uint32_t k, __nv_bfloat16 *gA,
-                                      __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+    uint32_t n, uint32_t k, __nv_bfloat16 *gA, __nv_bfloat16 *gB,
+    __nv_bfloat16 *gC)
 {
     __nv_bfloat16 *gA_p = gA;
     __nv_bfloat16 *gB_p = gB;
@@ -12770,8 +12561,8 @@ __hoisted_g_gemm_bf16_128x64x64_8x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, tileA + (k * mrow * 128U + __anf05 * 64U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 128U + __anf05 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sA[(col + k1) * 128U + row] = local[k1];
@@ -12785,8 +12576,8 @@ __hoisted_g_gemm_bf16_128x64x64_8x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, tileB + (n * __anf08 * 64U + mcol * 64U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 64U + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sB[row * 64U + col + k1] = local[k1];
@@ -12832,9 +12623,9 @@ __hoisted_g_gemm_bf16_128x64x64_8x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
     }
 }
 
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x64x64_8x8(
-    __nv_bfloat16 alpha, __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k,
-    __nv_bfloat16 *gA, __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x64x64_8x8(__nv_bfloat16 alpha,
+    __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k, __nv_bfloat16 *gA,
+    __nv_bfloat16 *gB, __nv_bfloat16 *gC)
 {
     KPR_GUARD(m % 128U == 0U);
     KPR_GUARD(k % 64U == 0U);
@@ -12842,7 +12633,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x64x64_8x8(
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(24576U);
     KPR_KCALL(__hoisted_g_gemm_bf16_128x64x64_8x8_0, m / 128U * (n / 64U), 128U,
-              24576U, s, alpha, beta, n, k, gA, gB, gC);
+        24576U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -12853,8 +12644,7 @@ __global__
 */
 static void
 __hoisted_g_gemm_f32_128x64x64_8x16_0(float alpha, float beta, uint32_t n,
-                                      uint32_t k, float *gA, float *gB,
-                                      float *gC)
+    uint32_t k, float *gA, float *gB, float *gC)
 {
     float *gA_p = gA;
     float *gB_p = gB;
@@ -12877,8 +12667,8 @@ __hoisted_g_gemm_f32_128x64x64_8x16_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i0 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 64U;
-            vec_memcpy(local, tileA + (k * mrow * 128U + __anf05 * 64U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 128U + __anf05 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sA[(col + k1) * 128U + row] = local[k1];
@@ -12891,8 +12681,8 @@ __hoisted_g_gemm_f32_128x64x64_8x16_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
-            vec_memcpy(local, tileB + (n * __anf08 * 64U + mcol * 64U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 64U + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sB[row * 64U + col + k1] = local[k1];
@@ -12933,9 +12723,7 @@ __hoisted_g_gemm_f32_128x64x64_8x16_0(float alpha, float beta, uint32_t n,
 }
 
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_128x64x64_8x16(float alpha, float beta,
-                                                       uint32_t m, uint32_t n,
-                                                       uint32_t k, float *gA,
-                                                       float *gB, float *gC)
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC)
 {
     KPR_GUARD(m % 128U == 0U);
     KPR_GUARD(k % 64U == 0U);
@@ -12943,10 +12731,9 @@ void Klas_GEMM_BlockTiling2D_g_gemm_f32_128x64x64_8x16(float alpha, float beta,
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(49152U);
     MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_128x64x64_8x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              49152U));
+        cudaFuncAttributeMaxDynamicSharedMemorySize, 49152U));
     KPR_KCALL(__hoisted_g_gemm_f32_128x64x64_8x16_0, m / 128U * (n / 64U), 64U,
-              49152U, s, alpha, beta, n, k, gA, gB, gC);
+        49152U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -12957,9 +12744,8 @@ __global__
 */
 static void
 __hoisted_g_gemm_bf16_128x64x64_8x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
-                                       uint32_t n, uint32_t k,
-                                       __nv_bfloat16 *gA, __nv_bfloat16 *gB,
-                                       __nv_bfloat16 *gC)
+    uint32_t n, uint32_t k, __nv_bfloat16 *gA, __nv_bfloat16 *gB,
+    __nv_bfloat16 *gC)
 {
     __nv_bfloat16 *gA_p = gA;
     __nv_bfloat16 *gB_p = gB;
@@ -12984,8 +12770,8 @@ __hoisted_g_gemm_bf16_128x64x64_8x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, tileA + (k * mrow * 128U + __anf05 * 64U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 128U + __anf05 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sA[(col + k1) * 128U + row] = local[k1];
@@ -12999,8 +12785,8 @@ __hoisted_g_gemm_bf16_128x64x64_8x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, tileB + (n * __anf08 * 64U + mcol * 64U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 64U + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sB[row * 64U + col + k1] = local[k1];
@@ -13046,9 +12832,9 @@ __hoisted_g_gemm_bf16_128x64x64_8x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
     }
 }
 
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x64x64_8x16(
-    __nv_bfloat16 alpha, __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k,
-    __nv_bfloat16 *gA, __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x64x64_8x16(__nv_bfloat16 alpha,
+    __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k, __nv_bfloat16 *gA,
+    __nv_bfloat16 *gB, __nv_bfloat16 *gC)
 {
     KPR_GUARD(m % 128U == 0U);
     KPR_GUARD(k % 64U == 0U);
@@ -13056,7 +12842,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x64x64_8x16(
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(24576U);
     KPR_KCALL(__hoisted_g_gemm_bf16_128x64x64_8x16_0, m / 128U * (n / 64U), 64U,
-              24576U, s, alpha, beta, n, k, gA, gB, gC);
+        24576U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -13067,8 +12853,7 @@ __global__
 */
 static void
 __hoisted_g_gemm_f32_128x64x64_16x8_0(float alpha, float beta, uint32_t n,
-                                      uint32_t k, float *gA, float *gB,
-                                      float *gC)
+    uint32_t k, float *gA, float *gB, float *gC)
 {
     float *gA_p = gA;
     float *gB_p = gB;
@@ -13091,8 +12876,8 @@ __hoisted_g_gemm_f32_128x64x64_16x8_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i0 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 64U;
-            vec_memcpy(local, tileA + (k * mrow * 128U + __anf05 * 64U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 128U + __anf05 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sA[(col + k1) * 128U + row] = local[k1];
@@ -13105,8 +12890,8 @@ __hoisted_g_gemm_f32_128x64x64_16x8_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
-            vec_memcpy(local, tileB + (n * __anf08 * 64U + mcol * 64U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 64U + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sB[row * 64U + col + k1] = local[k1];
@@ -13147,9 +12932,7 @@ __hoisted_g_gemm_f32_128x64x64_16x8_0(float alpha, float beta, uint32_t n,
 }
 
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_128x64x64_16x8(float alpha, float beta,
-                                                       uint32_t m, uint32_t n,
-                                                       uint32_t k, float *gA,
-                                                       float *gB, float *gC)
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC)
 {
     KPR_GUARD(m % 128U == 0U);
     KPR_GUARD(k % 64U == 0U);
@@ -13157,10 +12940,9 @@ void Klas_GEMM_BlockTiling2D_g_gemm_f32_128x64x64_16x8(float alpha, float beta,
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(49152U);
     MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_128x64x64_16x8_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              49152U));
+        cudaFuncAttributeMaxDynamicSharedMemorySize, 49152U));
     KPR_KCALL(__hoisted_g_gemm_f32_128x64x64_16x8_0, m / 128U * (n / 64U), 64U,
-              49152U, s, alpha, beta, n, k, gA, gB, gC);
+        49152U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -13171,9 +12953,8 @@ __global__
 */
 static void
 __hoisted_g_gemm_bf16_128x64x64_16x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
-                                       uint32_t n, uint32_t k,
-                                       __nv_bfloat16 *gA, __nv_bfloat16 *gB,
-                                       __nv_bfloat16 *gC)
+    uint32_t n, uint32_t k, __nv_bfloat16 *gA, __nv_bfloat16 *gB,
+    __nv_bfloat16 *gC)
 {
     __nv_bfloat16 *gA_p = gA;
     __nv_bfloat16 *gB_p = gB;
@@ -13198,8 +12979,8 @@ __hoisted_g_gemm_bf16_128x64x64_16x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, tileA + (k * mrow * 128U + __anf05 * 64U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 128U + __anf05 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sA[(col + k1) * 128U + row] = local[k1];
@@ -13213,8 +12994,8 @@ __hoisted_g_gemm_bf16_128x64x64_16x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, tileB + (n * __anf08 * 64U + mcol * 64U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 64U + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sB[row * 64U + col + k1] = local[k1];
@@ -13260,9 +13041,9 @@ __hoisted_g_gemm_bf16_128x64x64_16x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
     }
 }
 
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x64x64_16x8(
-    __nv_bfloat16 alpha, __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k,
-    __nv_bfloat16 *gA, __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x64x64_16x8(__nv_bfloat16 alpha,
+    __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k, __nv_bfloat16 *gA,
+    __nv_bfloat16 *gB, __nv_bfloat16 *gC)
 {
     KPR_GUARD(m % 128U == 0U);
     KPR_GUARD(k % 64U == 0U);
@@ -13270,7 +13051,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x64x64_16x8(
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(24576U);
     KPR_KCALL(__hoisted_g_gemm_bf16_128x64x64_16x8_0, m / 128U * (n / 64U), 64U,
-              24576U, s, alpha, beta, n, k, gA, gB, gC);
+        24576U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -13281,8 +13062,7 @@ __global__
 */
 static void
 __hoisted_g_gemm_f32_128x64x64_16x16_0(float alpha, float beta, uint32_t n,
-                                       uint32_t k, float *gA, float *gB,
-                                       float *gC)
+    uint32_t k, float *gA, float *gB, float *gC)
 {
     float *gA_p = gA;
     float *gB_p = gB;
@@ -13305,8 +13085,8 @@ __hoisted_g_gemm_f32_128x64x64_16x16_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i0 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 64U;
-            vec_memcpy(local, tileA + (k * mrow * 128U + __anf05 * 64U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 128U + __anf05 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sA[(col + k1) * 128U + row] = local[k1];
@@ -13319,8 +13099,8 @@ __hoisted_g_gemm_f32_128x64x64_16x16_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
-            vec_memcpy(local, tileB + (n * __anf08 * 64U + mcol * 64U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 64U + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sB[row * 64U + col + k1] = local[k1];
@@ -13361,9 +13141,7 @@ __hoisted_g_gemm_f32_128x64x64_16x16_0(float alpha, float beta, uint32_t n,
 }
 
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_128x64x64_16x16(float alpha, float beta,
-                                                        uint32_t m, uint32_t n,
-                                                        uint32_t k, float *gA,
-                                                        float *gB, float *gC)
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC)
 {
     KPR_GUARD(m % 128U == 0U);
     KPR_GUARD(k % 64U == 0U);
@@ -13371,10 +13149,9 @@ void Klas_GEMM_BlockTiling2D_g_gemm_f32_128x64x64_16x16(float alpha, float beta,
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(49152U);
     MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_128x64x64_16x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              49152U));
+        cudaFuncAttributeMaxDynamicSharedMemorySize, 49152U));
     KPR_KCALL(__hoisted_g_gemm_f32_128x64x64_16x16_0, m / 128U * (n / 64U), 32U,
-              49152U, s, alpha, beta, n, k, gA, gB, gC);
+        49152U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -13385,9 +13162,8 @@ __global__
 */
 static void
 __hoisted_g_gemm_bf16_128x64x64_16x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
-                                        uint32_t n, uint32_t k,
-                                        __nv_bfloat16 *gA, __nv_bfloat16 *gB,
-                                        __nv_bfloat16 *gC)
+    uint32_t n, uint32_t k, __nv_bfloat16 *gA, __nv_bfloat16 *gB,
+    __nv_bfloat16 *gC)
 {
     __nv_bfloat16 *gA_p = gA;
     __nv_bfloat16 *gB_p = gB;
@@ -13412,8 +13188,8 @@ __hoisted_g_gemm_bf16_128x64x64_16x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, tileA + (k * mrow * 128U + __anf05 * 64U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 128U + __anf05 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sA[(col + k1) * 128U + row] = local[k1];
@@ -13427,8 +13203,8 @@ __hoisted_g_gemm_bf16_128x64x64_16x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, tileB + (n * __anf08 * 64U + mcol * 64U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 64U + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sB[row * 64U + col + k1] = local[k1];
@@ -13474,9 +13250,9 @@ __hoisted_g_gemm_bf16_128x64x64_16x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
     }
 }
 
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x64x64_16x16(
-    __nv_bfloat16 alpha, __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k,
-    __nv_bfloat16 *gA, __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x64x64_16x16(__nv_bfloat16 alpha,
+    __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k, __nv_bfloat16 *gA,
+    __nv_bfloat16 *gB, __nv_bfloat16 *gC)
 {
     KPR_GUARD(m % 128U == 0U);
     KPR_GUARD(k % 64U == 0U);
@@ -13484,7 +13260,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x64x64_16x16(
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(24576U);
     KPR_KCALL(__hoisted_g_gemm_bf16_128x64x64_16x16_0, m / 128U * (n / 64U),
-              32U, 24576U, s, alpha, beta, n, k, gA, gB, gC);
+        32U, 24576U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -13495,8 +13271,7 @@ __global__
 */
 static void
 __hoisted_g_gemm_f32_128x128x32_8x8_0(float alpha, float beta, uint32_t n,
-                                      uint32_t k, float *gA, float *gB,
-                                      float *gC)
+    uint32_t k, float *gA, float *gB, float *gC)
 {
     float *gA_p = gA;
     float *gB_p = gB;
@@ -13519,8 +13294,8 @@ __hoisted_g_gemm_f32_128x128x32_8x8_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i0 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 32U;
-            vec_memcpy(local, tileA + (k * mrow * 128U + __anf05 * 32U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 128U + __anf05 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sA[(col + k1) * 128U + row] = local[k1];
@@ -13533,8 +13308,8 @@ __hoisted_g_gemm_f32_128x128x32_8x8_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i + threadIdx.x * 4U) / 128U;
             uint32_t col = (i + threadIdx.x * 4U) % 128U;
-            vec_memcpy(local, tileB + (n * __anf08 * 32U + mcol * 128U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 32U + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sB[row * 128U + col + k1] = local[k1];
@@ -13575,9 +13350,7 @@ __hoisted_g_gemm_f32_128x128x32_8x8_0(float alpha, float beta, uint32_t n,
 }
 
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_128x128x32_8x8(float alpha, float beta,
-                                                       uint32_t m, uint32_t n,
-                                                       uint32_t k, float *gA,
-                                                       float *gB, float *gC)
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC)
 {
     KPR_GUARD(m % 128U == 0U);
     KPR_GUARD(k % 32U == 0U);
@@ -13585,7 +13358,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_f32_128x128x32_8x8(float alpha, float beta,
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(32768U);
     KPR_KCALL(__hoisted_g_gemm_f32_128x128x32_8x8_0, m / 128U * (n / 128U),
-              256U, 32768U, s, alpha, beta, n, k, gA, gB, gC);
+        256U, 32768U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -13596,9 +13369,8 @@ __global__
 */
 static void
 __hoisted_g_gemm_bf16_128x128x32_8x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
-                                       uint32_t n, uint32_t k,
-                                       __nv_bfloat16 *gA, __nv_bfloat16 *gB,
-                                       __nv_bfloat16 *gC)
+    uint32_t n, uint32_t k, __nv_bfloat16 *gA, __nv_bfloat16 *gB,
+    __nv_bfloat16 *gC)
 {
     __nv_bfloat16 *gA_p = gA;
     __nv_bfloat16 *gB_p = gB;
@@ -13623,8 +13395,8 @@ __hoisted_g_gemm_bf16_128x128x32_8x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, tileA + (k * mrow * 128U + __anf05 * 32U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 128U + __anf05 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sA[(col + k1) * 128U + row] = local[k1];
@@ -13638,8 +13410,8 @@ __hoisted_g_gemm_bf16_128x128x32_8x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
-            vec_memcpy(local, tileB + (n * __anf08 * 32U + mcol * 128U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 32U + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sB[row * 128U + col + k1] = local[k1];
@@ -13685,9 +13457,9 @@ __hoisted_g_gemm_bf16_128x128x32_8x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
     }
 }
 
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x128x32_8x8(
-    __nv_bfloat16 alpha, __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k,
-    __nv_bfloat16 *gA, __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x128x32_8x8(__nv_bfloat16 alpha,
+    __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k, __nv_bfloat16 *gA,
+    __nv_bfloat16 *gB, __nv_bfloat16 *gC)
 {
     KPR_GUARD(m % 128U == 0U);
     KPR_GUARD(k % 32U == 0U);
@@ -13695,7 +13467,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x128x32_8x8(
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(16384U);
     KPR_KCALL(__hoisted_g_gemm_bf16_128x128x32_8x8_0, m / 128U * (n / 128U),
-              256U, 16384U, s, alpha, beta, n, k, gA, gB, gC);
+        256U, 16384U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -13706,8 +13478,7 @@ __global__
 */
 static void
 __hoisted_g_gemm_f32_128x128x32_8x16_0(float alpha, float beta, uint32_t n,
-                                       uint32_t k, float *gA, float *gB,
-                                       float *gC)
+    uint32_t k, float *gA, float *gB, float *gC)
 {
     float *gA_p = gA;
     float *gB_p = gB;
@@ -13730,8 +13501,8 @@ __hoisted_g_gemm_f32_128x128x32_8x16_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i0 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 32U;
-            vec_memcpy(local, tileA + (k * mrow * 128U + __anf05 * 32U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 128U + __anf05 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sA[(col + k1) * 128U + row] = local[k1];
@@ -13744,8 +13515,8 @@ __hoisted_g_gemm_f32_128x128x32_8x16_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i + threadIdx.x * 4U) / 128U;
             uint32_t col = (i + threadIdx.x * 4U) % 128U;
-            vec_memcpy(local, tileB + (n * __anf08 * 32U + mcol * 128U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 32U + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sB[row * 128U + col + k1] = local[k1];
@@ -13786,9 +13557,7 @@ __hoisted_g_gemm_f32_128x128x32_8x16_0(float alpha, float beta, uint32_t n,
 }
 
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_128x128x32_8x16(float alpha, float beta,
-                                                        uint32_t m, uint32_t n,
-                                                        uint32_t k, float *gA,
-                                                        float *gB, float *gC)
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC)
 {
     KPR_GUARD(m % 128U == 0U);
     KPR_GUARD(k % 32U == 0U);
@@ -13796,7 +13565,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_f32_128x128x32_8x16(float alpha, float beta,
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(32768U);
     KPR_KCALL(__hoisted_g_gemm_f32_128x128x32_8x16_0, m / 128U * (n / 128U),
-              128U, 32768U, s, alpha, beta, n, k, gA, gB, gC);
+        128U, 32768U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -13807,9 +13576,8 @@ __global__
 */
 static void
 __hoisted_g_gemm_bf16_128x128x32_8x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
-                                        uint32_t n, uint32_t k,
-                                        __nv_bfloat16 *gA, __nv_bfloat16 *gB,
-                                        __nv_bfloat16 *gC)
+    uint32_t n, uint32_t k, __nv_bfloat16 *gA, __nv_bfloat16 *gB,
+    __nv_bfloat16 *gC)
 {
     __nv_bfloat16 *gA_p = gA;
     __nv_bfloat16 *gB_p = gB;
@@ -13834,8 +13602,8 @@ __hoisted_g_gemm_bf16_128x128x32_8x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, tileA + (k * mrow * 128U + __anf05 * 32U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 128U + __anf05 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sA[(col + k1) * 128U + row] = local[k1];
@@ -13849,8 +13617,8 @@ __hoisted_g_gemm_bf16_128x128x32_8x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
-            vec_memcpy(local, tileB + (n * __anf08 * 32U + mcol * 128U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 32U + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sB[row * 128U + col + k1] = local[k1];
@@ -13896,9 +13664,9 @@ __hoisted_g_gemm_bf16_128x128x32_8x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
     }
 }
 
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x128x32_8x16(
-    __nv_bfloat16 alpha, __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k,
-    __nv_bfloat16 *gA, __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x128x32_8x16(__nv_bfloat16 alpha,
+    __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k, __nv_bfloat16 *gA,
+    __nv_bfloat16 *gB, __nv_bfloat16 *gC)
 {
     KPR_GUARD(m % 128U == 0U);
     KPR_GUARD(k % 32U == 0U);
@@ -13906,7 +13674,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x128x32_8x16(
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(16384U);
     KPR_KCALL(__hoisted_g_gemm_bf16_128x128x32_8x16_0, m / 128U * (n / 128U),
-              128U, 16384U, s, alpha, beta, n, k, gA, gB, gC);
+        128U, 16384U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -13917,8 +13685,7 @@ __global__
 */
 static void
 __hoisted_g_gemm_f32_128x128x32_16x8_0(float alpha, float beta, uint32_t n,
-                                       uint32_t k, float *gA, float *gB,
-                                       float *gC)
+    uint32_t k, float *gA, float *gB, float *gC)
 {
     float *gA_p = gA;
     float *gB_p = gB;
@@ -13941,8 +13708,8 @@ __hoisted_g_gemm_f32_128x128x32_16x8_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i0 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 32U;
-            vec_memcpy(local, tileA + (k * mrow * 128U + __anf05 * 32U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 128U + __anf05 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sA[(col + k1) * 128U + row] = local[k1];
@@ -13955,8 +13722,8 @@ __hoisted_g_gemm_f32_128x128x32_16x8_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i + threadIdx.x * 4U) / 128U;
             uint32_t col = (i + threadIdx.x * 4U) % 128U;
-            vec_memcpy(local, tileB + (n * __anf08 * 32U + mcol * 128U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 32U + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sB[row * 128U + col + k1] = local[k1];
@@ -13997,9 +13764,7 @@ __hoisted_g_gemm_f32_128x128x32_16x8_0(float alpha, float beta, uint32_t n,
 }
 
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_128x128x32_16x8(float alpha, float beta,
-                                                        uint32_t m, uint32_t n,
-                                                        uint32_t k, float *gA,
-                                                        float *gB, float *gC)
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC)
 {
     KPR_GUARD(m % 128U == 0U);
     KPR_GUARD(k % 32U == 0U);
@@ -14007,7 +13772,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_f32_128x128x32_16x8(float alpha, float beta,
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(32768U);
     KPR_KCALL(__hoisted_g_gemm_f32_128x128x32_16x8_0, m / 128U * (n / 128U),
-              128U, 32768U, s, alpha, beta, n, k, gA, gB, gC);
+        128U, 32768U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -14018,9 +13783,8 @@ __global__
 */
 static void
 __hoisted_g_gemm_bf16_128x128x32_16x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
-                                        uint32_t n, uint32_t k,
-                                        __nv_bfloat16 *gA, __nv_bfloat16 *gB,
-                                        __nv_bfloat16 *gC)
+    uint32_t n, uint32_t k, __nv_bfloat16 *gA, __nv_bfloat16 *gB,
+    __nv_bfloat16 *gC)
 {
     __nv_bfloat16 *gA_p = gA;
     __nv_bfloat16 *gB_p = gB;
@@ -14045,8 +13809,8 @@ __hoisted_g_gemm_bf16_128x128x32_16x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, tileA + (k * mrow * 128U + __anf05 * 32U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 128U + __anf05 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sA[(col + k1) * 128U + row] = local[k1];
@@ -14060,8 +13824,8 @@ __hoisted_g_gemm_bf16_128x128x32_16x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
-            vec_memcpy(local, tileB + (n * __anf08 * 32U + mcol * 128U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 32U + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sB[row * 128U + col + k1] = local[k1];
@@ -14107,9 +13871,9 @@ __hoisted_g_gemm_bf16_128x128x32_16x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
     }
 }
 
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x128x32_16x8(
-    __nv_bfloat16 alpha, __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k,
-    __nv_bfloat16 *gA, __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x128x32_16x8(__nv_bfloat16 alpha,
+    __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k, __nv_bfloat16 *gA,
+    __nv_bfloat16 *gB, __nv_bfloat16 *gC)
 {
     KPR_GUARD(m % 128U == 0U);
     KPR_GUARD(k % 32U == 0U);
@@ -14117,7 +13881,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x128x32_16x8(
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(16384U);
     KPR_KCALL(__hoisted_g_gemm_bf16_128x128x32_16x8_0, m / 128U * (n / 128U),
-              128U, 16384U, s, alpha, beta, n, k, gA, gB, gC);
+        128U, 16384U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -14128,8 +13892,7 @@ __global__
 */
 static void
 __hoisted_g_gemm_f32_128x128x32_16x16_0(float alpha, float beta, uint32_t n,
-                                        uint32_t k, float *gA, float *gB,
-                                        float *gC)
+    uint32_t k, float *gA, float *gB, float *gC)
 {
     float *gA_p = gA;
     float *gB_p = gB;
@@ -14152,8 +13915,8 @@ __hoisted_g_gemm_f32_128x128x32_16x16_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i0 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 32U;
-            vec_memcpy(local, tileA + (k * mrow * 128U + __anf05 * 32U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 128U + __anf05 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sA[(col + k1) * 128U + row] = local[k1];
@@ -14166,8 +13929,8 @@ __hoisted_g_gemm_f32_128x128x32_16x16_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i + threadIdx.x * 4U) / 128U;
             uint32_t col = (i + threadIdx.x * 4U) % 128U;
-            vec_memcpy(local, tileB + (n * __anf08 * 32U + mcol * 128U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 32U + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sB[row * 128U + col + k1] = local[k1];
@@ -14208,10 +13971,8 @@ __hoisted_g_gemm_f32_128x128x32_16x16_0(float alpha, float beta, uint32_t n,
 }
 
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_128x128x32_16x16(float alpha,
-                                                         float beta, uint32_t m,
-                                                         uint32_t n, uint32_t k,
-                                                         float *gA, float *gB,
-                                                         float *gC)
+    float beta, uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB,
+    float *gC)
 {
     KPR_GUARD(m % 128U == 0U);
     KPR_GUARD(k % 32U == 0U);
@@ -14219,7 +13980,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_f32_128x128x32_16x16(float alpha,
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(32768U);
     KPR_KCALL(__hoisted_g_gemm_f32_128x128x32_16x16_0, m / 128U * (n / 128U),
-              64U, 32768U, s, alpha, beta, n, k, gA, gB, gC);
+        64U, 32768U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -14230,9 +13991,8 @@ __global__
 */
 static void
 __hoisted_g_gemm_bf16_128x128x32_16x16_0(__nv_bfloat16 alpha,
-                                         __nv_bfloat16 beta, uint32_t n,
-                                         uint32_t k, __nv_bfloat16 *gA,
-                                         __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+    __nv_bfloat16 beta, uint32_t n, uint32_t k, __nv_bfloat16 *gA,
+    __nv_bfloat16 *gB, __nv_bfloat16 *gC)
 {
     __nv_bfloat16 *gA_p = gA;
     __nv_bfloat16 *gB_p = gB;
@@ -14257,8 +14017,8 @@ __hoisted_g_gemm_bf16_128x128x32_16x16_0(__nv_bfloat16 alpha,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, tileA + (k * mrow * 128U + __anf05 * 32U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 128U + __anf05 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sA[(col + k1) * 128U + row] = local[k1];
@@ -14272,8 +14032,8 @@ __hoisted_g_gemm_bf16_128x128x32_16x16_0(__nv_bfloat16 alpha,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
-            vec_memcpy(local, tileB + (n * __anf08 * 32U + mcol * 128U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 32U + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sB[row * 128U + col + k1] = local[k1];
@@ -14319,9 +14079,9 @@ __hoisted_g_gemm_bf16_128x128x32_16x16_0(__nv_bfloat16 alpha,
     }
 }
 
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x128x32_16x16(
-    __nv_bfloat16 alpha, __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k,
-    __nv_bfloat16 *gA, __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x128x32_16x16(__nv_bfloat16 alpha,
+    __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k, __nv_bfloat16 *gA,
+    __nv_bfloat16 *gB, __nv_bfloat16 *gC)
 {
     KPR_GUARD(m % 128U == 0U);
     KPR_GUARD(k % 32U == 0U);
@@ -14329,7 +14089,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x128x32_16x16(
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(16384U);
     KPR_KCALL(__hoisted_g_gemm_bf16_128x128x32_16x16_0, m / 128U * (n / 128U),
-              64U, 16384U, s, alpha, beta, n, k, gA, gB, gC);
+        64U, 16384U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -14340,8 +14100,7 @@ __global__
 */
 static void
 __hoisted_g_gemm_f32_128x128x64_8x8_0(float alpha, float beta, uint32_t n,
-                                      uint32_t k, float *gA, float *gB,
-                                      float *gC)
+    uint32_t k, float *gA, float *gB, float *gC)
 {
     float *gA_p = gA;
     float *gB_p = gB;
@@ -14364,8 +14123,8 @@ __hoisted_g_gemm_f32_128x128x64_8x8_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i0 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 64U;
-            vec_memcpy(local, tileA + (k * mrow * 128U + __anf05 * 64U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 128U + __anf05 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sA[(col + k1) * 128U + row] = local[k1];
@@ -14378,8 +14137,8 @@ __hoisted_g_gemm_f32_128x128x64_8x8_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i + threadIdx.x * 4U) / 128U;
             uint32_t col = (i + threadIdx.x * 4U) % 128U;
-            vec_memcpy(local, tileB + (n * __anf08 * 64U + mcol * 128U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 64U + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sB[row * 128U + col + k1] = local[k1];
@@ -14420,9 +14179,7 @@ __hoisted_g_gemm_f32_128x128x64_8x8_0(float alpha, float beta, uint32_t n,
 }
 
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_128x128x64_8x8(float alpha, float beta,
-                                                       uint32_t m, uint32_t n,
-                                                       uint32_t k, float *gA,
-                                                       float *gB, float *gC)
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC)
 {
     KPR_GUARD(m % 128U == 0U);
     KPR_GUARD(k % 64U == 0U);
@@ -14430,10 +14187,9 @@ void Klas_GEMM_BlockTiling2D_g_gemm_f32_128x128x64_8x8(float alpha, float beta,
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(65536U);
     MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_128x128x64_8x8_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              65536U));
+        cudaFuncAttributeMaxDynamicSharedMemorySize, 65536U));
     KPR_KCALL(__hoisted_g_gemm_f32_128x128x64_8x8_0, m / 128U * (n / 128U),
-              256U, 65536U, s, alpha, beta, n, k, gA, gB, gC);
+        256U, 65536U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -14444,9 +14200,8 @@ __global__
 */
 static void
 __hoisted_g_gemm_bf16_128x128x64_8x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
-                                       uint32_t n, uint32_t k,
-                                       __nv_bfloat16 *gA, __nv_bfloat16 *gB,
-                                       __nv_bfloat16 *gC)
+    uint32_t n, uint32_t k, __nv_bfloat16 *gA, __nv_bfloat16 *gB,
+    __nv_bfloat16 *gC)
 {
     __nv_bfloat16 *gA_p = gA;
     __nv_bfloat16 *gB_p = gB;
@@ -14471,8 +14226,8 @@ __hoisted_g_gemm_bf16_128x128x64_8x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, tileA + (k * mrow * 128U + __anf05 * 64U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 128U + __anf05 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sA[(col + k1) * 128U + row] = local[k1];
@@ -14486,8 +14241,8 @@ __hoisted_g_gemm_bf16_128x128x64_8x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
-            vec_memcpy(local, tileB + (n * __anf08 * 64U + mcol * 128U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 64U + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sB[row * 128U + col + k1] = local[k1];
@@ -14533,9 +14288,9 @@ __hoisted_g_gemm_bf16_128x128x64_8x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
     }
 }
 
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x128x64_8x8(
-    __nv_bfloat16 alpha, __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k,
-    __nv_bfloat16 *gA, __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x128x64_8x8(__nv_bfloat16 alpha,
+    __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k, __nv_bfloat16 *gA,
+    __nv_bfloat16 *gB, __nv_bfloat16 *gC)
 {
     KPR_GUARD(m % 128U == 0U);
     KPR_GUARD(k % 64U == 0U);
@@ -14543,7 +14298,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x128x64_8x8(
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(32768U);
     KPR_KCALL(__hoisted_g_gemm_bf16_128x128x64_8x8_0, m / 128U * (n / 128U),
-              256U, 32768U, s, alpha, beta, n, k, gA, gB, gC);
+        256U, 32768U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -14554,8 +14309,7 @@ __global__
 */
 static void
 __hoisted_g_gemm_f32_128x128x64_8x16_0(float alpha, float beta, uint32_t n,
-                                       uint32_t k, float *gA, float *gB,
-                                       float *gC)
+    uint32_t k, float *gA, float *gB, float *gC)
 {
     float *gA_p = gA;
     float *gB_p = gB;
@@ -14578,8 +14332,8 @@ __hoisted_g_gemm_f32_128x128x64_8x16_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i0 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 64U;
-            vec_memcpy(local, tileA + (k * mrow * 128U + __anf05 * 64U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 128U + __anf05 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sA[(col + k1) * 128U + row] = local[k1];
@@ -14592,8 +14346,8 @@ __hoisted_g_gemm_f32_128x128x64_8x16_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i + threadIdx.x * 4U) / 128U;
             uint32_t col = (i + threadIdx.x * 4U) % 128U;
-            vec_memcpy(local, tileB + (n * __anf08 * 64U + mcol * 128U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 64U + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sB[row * 128U + col + k1] = local[k1];
@@ -14634,9 +14388,7 @@ __hoisted_g_gemm_f32_128x128x64_8x16_0(float alpha, float beta, uint32_t n,
 }
 
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_128x128x64_8x16(float alpha, float beta,
-                                                        uint32_t m, uint32_t n,
-                                                        uint32_t k, float *gA,
-                                                        float *gB, float *gC)
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC)
 {
     KPR_GUARD(m % 128U == 0U);
     KPR_GUARD(k % 64U == 0U);
@@ -14644,10 +14396,9 @@ void Klas_GEMM_BlockTiling2D_g_gemm_f32_128x128x64_8x16(float alpha, float beta,
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(65536U);
     MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_128x128x64_8x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              65536U));
+        cudaFuncAttributeMaxDynamicSharedMemorySize, 65536U));
     KPR_KCALL(__hoisted_g_gemm_f32_128x128x64_8x16_0, m / 128U * (n / 128U),
-              128U, 65536U, s, alpha, beta, n, k, gA, gB, gC);
+        128U, 65536U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -14658,9 +14409,8 @@ __global__
 */
 static void
 __hoisted_g_gemm_bf16_128x128x64_8x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
-                                        uint32_t n, uint32_t k,
-                                        __nv_bfloat16 *gA, __nv_bfloat16 *gB,
-                                        __nv_bfloat16 *gC)
+    uint32_t n, uint32_t k, __nv_bfloat16 *gA, __nv_bfloat16 *gB,
+    __nv_bfloat16 *gC)
 {
     __nv_bfloat16 *gA_p = gA;
     __nv_bfloat16 *gB_p = gB;
@@ -14685,8 +14435,8 @@ __hoisted_g_gemm_bf16_128x128x64_8x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, tileA + (k * mrow * 128U + __anf05 * 64U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 128U + __anf05 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sA[(col + k1) * 128U + row] = local[k1];
@@ -14700,8 +14450,8 @@ __hoisted_g_gemm_bf16_128x128x64_8x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
-            vec_memcpy(local, tileB + (n * __anf08 * 64U + mcol * 128U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 64U + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sB[row * 128U + col + k1] = local[k1];
@@ -14747,9 +14497,9 @@ __hoisted_g_gemm_bf16_128x128x64_8x16_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
     }
 }
 
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x128x64_8x16(
-    __nv_bfloat16 alpha, __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k,
-    __nv_bfloat16 *gA, __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x128x64_8x16(__nv_bfloat16 alpha,
+    __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k, __nv_bfloat16 *gA,
+    __nv_bfloat16 *gB, __nv_bfloat16 *gC)
 {
     KPR_GUARD(m % 128U == 0U);
     KPR_GUARD(k % 64U == 0U);
@@ -14757,7 +14507,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x128x64_8x16(
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(32768U);
     KPR_KCALL(__hoisted_g_gemm_bf16_128x128x64_8x16_0, m / 128U * (n / 128U),
-              128U, 32768U, s, alpha, beta, n, k, gA, gB, gC);
+        128U, 32768U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -14768,8 +14518,7 @@ __global__
 */
 static void
 __hoisted_g_gemm_f32_128x128x64_16x8_0(float alpha, float beta, uint32_t n,
-                                       uint32_t k, float *gA, float *gB,
-                                       float *gC)
+    uint32_t k, float *gA, float *gB, float *gC)
 {
     float *gA_p = gA;
     float *gB_p = gB;
@@ -14792,8 +14541,8 @@ __hoisted_g_gemm_f32_128x128x64_16x8_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i0 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 64U;
-            vec_memcpy(local, tileA + (k * mrow * 128U + __anf05 * 64U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 128U + __anf05 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sA[(col + k1) * 128U + row] = local[k1];
@@ -14806,8 +14555,8 @@ __hoisted_g_gemm_f32_128x128x64_16x8_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i + threadIdx.x * 4U) / 128U;
             uint32_t col = (i + threadIdx.x * 4U) % 128U;
-            vec_memcpy(local, tileB + (n * __anf08 * 64U + mcol * 128U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 64U + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sB[row * 128U + col + k1] = local[k1];
@@ -14848,9 +14597,7 @@ __hoisted_g_gemm_f32_128x128x64_16x8_0(float alpha, float beta, uint32_t n,
 }
 
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_128x128x64_16x8(float alpha, float beta,
-                                                        uint32_t m, uint32_t n,
-                                                        uint32_t k, float *gA,
-                                                        float *gB, float *gC)
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC)
 {
     KPR_GUARD(m % 128U == 0U);
     KPR_GUARD(k % 64U == 0U);
@@ -14858,10 +14605,9 @@ void Klas_GEMM_BlockTiling2D_g_gemm_f32_128x128x64_16x8(float alpha, float beta,
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(65536U);
     MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_128x128x64_16x8_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              65536U));
+        cudaFuncAttributeMaxDynamicSharedMemorySize, 65536U));
     KPR_KCALL(__hoisted_g_gemm_f32_128x128x64_16x8_0, m / 128U * (n / 128U),
-              128U, 65536U, s, alpha, beta, n, k, gA, gB, gC);
+        128U, 65536U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -14872,9 +14618,8 @@ __global__
 */
 static void
 __hoisted_g_gemm_bf16_128x128x64_16x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
-                                        uint32_t n, uint32_t k,
-                                        __nv_bfloat16 *gA, __nv_bfloat16 *gB,
-                                        __nv_bfloat16 *gC)
+    uint32_t n, uint32_t k, __nv_bfloat16 *gA, __nv_bfloat16 *gB,
+    __nv_bfloat16 *gC)
 {
     __nv_bfloat16 *gA_p = gA;
     __nv_bfloat16 *gB_p = gB;
@@ -14899,8 +14644,8 @@ __hoisted_g_gemm_bf16_128x128x64_16x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, tileA + (k * mrow * 128U + __anf05 * 64U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 128U + __anf05 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sA[(col + k1) * 128U + row] = local[k1];
@@ -14914,8 +14659,8 @@ __hoisted_g_gemm_bf16_128x128x64_16x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
-            vec_memcpy(local, tileB + (n * __anf08 * 64U + mcol * 128U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 64U + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sB[row * 128U + col + k1] = local[k1];
@@ -14961,9 +14706,9 @@ __hoisted_g_gemm_bf16_128x128x64_16x8_0(__nv_bfloat16 alpha, __nv_bfloat16 beta,
     }
 }
 
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x128x64_16x8(
-    __nv_bfloat16 alpha, __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k,
-    __nv_bfloat16 *gA, __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x128x64_16x8(__nv_bfloat16 alpha,
+    __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k, __nv_bfloat16 *gA,
+    __nv_bfloat16 *gB, __nv_bfloat16 *gC)
 {
     KPR_GUARD(m % 128U == 0U);
     KPR_GUARD(k % 64U == 0U);
@@ -14971,7 +14716,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x128x64_16x8(
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(32768U);
     KPR_KCALL(__hoisted_g_gemm_bf16_128x128x64_16x8_0, m / 128U * (n / 128U),
-              128U, 32768U, s, alpha, beta, n, k, gA, gB, gC);
+        128U, 32768U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -14982,8 +14727,7 @@ __global__
 */
 static void
 __hoisted_g_gemm_f32_128x128x64_16x16_0(float alpha, float beta, uint32_t n,
-                                        uint32_t k, float *gA, float *gB,
-                                        float *gC)
+    uint32_t k, float *gA, float *gB, float *gC)
 {
     float *gA_p = gA;
     float *gB_p = gB;
@@ -15006,8 +14750,8 @@ __hoisted_g_gemm_f32_128x128x64_16x16_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i0 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 64U;
-            vec_memcpy(local, tileA + (k * mrow * 128U + __anf05 * 64U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 128U + __anf05 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sA[(col + k1) * 128U + row] = local[k1];
@@ -15020,8 +14764,8 @@ __hoisted_g_gemm_f32_128x128x64_16x16_0(float alpha, float beta, uint32_t n,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i + threadIdx.x * 4U) / 128U;
             uint32_t col = (i + threadIdx.x * 4U) % 128U;
-            vec_memcpy(local, tileB + (n * __anf08 * 64U + mcol * 128U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 64U + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sB[row * 128U + col + k1] = local[k1];
@@ -15062,10 +14806,8 @@ __hoisted_g_gemm_f32_128x128x64_16x16_0(float alpha, float beta, uint32_t n,
 }
 
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_128x128x64_16x16(float alpha,
-                                                         float beta, uint32_t m,
-                                                         uint32_t n, uint32_t k,
-                                                         float *gA, float *gB,
-                                                         float *gC)
+    float beta, uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB,
+    float *gC)
 {
     KPR_GUARD(m % 128U == 0U);
     KPR_GUARD(k % 64U == 0U);
@@ -15073,10 +14815,9 @@ void Klas_GEMM_BlockTiling2D_g_gemm_f32_128x128x64_16x16(float alpha,
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(65536U);
     MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_128x128x64_16x16_0,
-                              cudaFuncAttributeMaxDynamicSharedMemorySize,
-                              65536U));
+        cudaFuncAttributeMaxDynamicSharedMemorySize, 65536U));
     KPR_KCALL(__hoisted_g_gemm_f32_128x128x64_16x16_0, m / 128U * (n / 128U),
-              64U, 65536U, s, alpha, beta, n, k, gA, gB, gC);
+        64U, 65536U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -15087,9 +14828,8 @@ __global__
 */
 static void
 __hoisted_g_gemm_bf16_128x128x64_16x16_0(__nv_bfloat16 alpha,
-                                         __nv_bfloat16 beta, uint32_t n,
-                                         uint32_t k, __nv_bfloat16 *gA,
-                                         __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+    __nv_bfloat16 beta, uint32_t n, uint32_t k, __nv_bfloat16 *gA,
+    __nv_bfloat16 *gB, __nv_bfloat16 *gC)
 {
     __nv_bfloat16 *gA_p = gA;
     __nv_bfloat16 *gB_p = gB;
@@ -15114,8 +14854,8 @@ __hoisted_g_gemm_bf16_128x128x64_16x16_0(__nv_bfloat16 alpha,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, tileA + (k * mrow * 128U + __anf05 * 64U +
-                                       k * row + col));
+            vec_memcpy(local,
+                tileA + (k * mrow * 128U + __anf05 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sA[(col + k1) * 128U + row] = local[k1];
@@ -15129,8 +14869,8 @@ __hoisted_g_gemm_bf16_128x128x64_16x16_0(__nv_bfloat16 alpha,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
-            vec_memcpy(local, tileB + (n * __anf08 * 64U + mcol * 128U +
-                                       n * row + col));
+            vec_memcpy(local,
+                tileB + (n * __anf08 * 64U + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sB[row * 128U + col + k1] = local[k1];
@@ -15176,9 +14916,9 @@ __hoisted_g_gemm_bf16_128x128x64_16x16_0(__nv_bfloat16 alpha,
     }
 }
 
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x128x64_16x16(
-    __nv_bfloat16 alpha, __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k,
-    __nv_bfloat16 *gA, __nv_bfloat16 *gB, __nv_bfloat16 *gC)
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x128x64_16x16(__nv_bfloat16 alpha,
+    __nv_bfloat16 beta, uint32_t m, uint32_t n, uint32_t k, __nv_bfloat16 *gA,
+    __nv_bfloat16 *gB, __nv_bfloat16 *gC)
 {
     KPR_GUARD(m % 128U == 0U);
     KPR_GUARD(k % 64U == 0U);
@@ -15186,7 +14926,7 @@ void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x128x64_16x16(
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_SHMEM_FITS(32768U);
     KPR_KCALL(__hoisted_g_gemm_bf16_128x128x64_16x16_0, m / 128U * (n / 128U),
-              64U, 32768U, s, alpha, beta, n, k, gA, gB, gC);
+        64U, 32768U, s, alpha, beta, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
