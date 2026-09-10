@@ -81,6 +81,7 @@ let kpr_translate_type_without_decay : translate_type_without_decay_t = fun env 
     //    expand to the proper templated type.
     TQualified ([], "auto_AMP") // sed subtitutes this to auto&
 
+  | "Kuiper.TensorCore.WGMMA.fragment",    [] -> TQualified ([], "auto_AMP")
   | "Kuiper.Float16.Base.t",               [] -> TInt Float16
   | "Kuiper.BFloat16.Base.t",              [] -> TInt BFloat16
   | "Kuiper.Float32.Base.t",               [] -> TInt Float32
@@ -617,6 +618,24 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
     EApp (EQualified ([], "__syncwarp"), [ EUnit ])
 
   (******** TENSOR CORE OPERATIONS, FRAGMENTS, ETC ********)
+
+  | "Kuiper.TensorCore.WGMMA.alloc_fragment", [], [ _unit ] ->
+    EApp (EQualified ([], "KPR_INIT"), [EQualified ([], "kpr_wgmma_fragment")])
+
+  | "Kuiper.TensorCore.WGMMA.fill", [], [ fr; x; _v ] ->
+    EApp (EQualified ([], "kpr_wgmma_fill"), [cb fr; cb x])
+
+  | "Kuiper.TensorCore.WGMMA.load_accum", [], [ fr; _; strided_l; c; _; _; _ ]
+  | "Kuiper.TensorCore.WGMMA.store", [], [ fr; _; strided_l; c; _; _ ] ->
+    let name, _, _ = Some?.v x in
+    let op = if name = "Kuiper.TensorCore.WGMMA.load_accum"
+             then "kpr_wgmma_load_accum" else "kpr_wgmma_store" in
+    let stride = cb <| get_strided_row_major_stride strided_l in
+    let offset = cb <| get_strided_row_major_offset strided_l in
+    EApp (EQualified ([], op), [cb fr; EBufSub (cb c, offset); stride])
+
+  | "Kuiper.TensorCore.WGMMA.mma_sync", [], [ a; b; fr; _fa; _fb; _va; _vb; _vc ] ->
+    EApp (EQualified ([], "kpr_wgmma_mma_sync"), [cb a; cb b; cb fr])
 
   | "Kuiper.TensorCore.Base.__alloc_array_fragment", [et], [ knd; m; n; k; layout; size ] ->
       EApp (EQualified ([], "KPR_INIT_ARR"),

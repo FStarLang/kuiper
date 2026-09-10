@@ -56,7 +56,7 @@ cet *cpu_mul(size_t rows, size_t shared, size_t cols, et *m1, et *m2)
 }
 
 cet *cpu_sgemm(size_t rows, size_t shared, size_t cols, et *m1_cpu, et *m2_cpu,
-               cet *m3_cpu, cet alpha, cet beta)
+    cet *m3_cpu, cet alpha, cet beta)
 {
     cet *mm = cpu_mul(rows, shared, cols, m1_cpu, m2_cpu);
     for (int i = 0; i < rows; i++) {
@@ -80,8 +80,8 @@ void cmp(size_t rows, size_t cols, cet *m1_gpu, cet *m2)
     double sum_rel = 0.0;
     size_t nrel = 0;
     cet *m1 = (cet *) calloc(sizeof(cet), rows * cols);
-    MUST(cudaMemcpy(m1, m1_gpu, rows * cols * sizeof(cet),
-                    cudaMemcpyDeviceToHost));
+    MUST(cudaMemcpy(
+        m1, m1_gpu, rows * cols * sizeof(cet), cudaMemcpyDeviceToHost));
     for (i = 0; i < rows; i++) {
         for (j = 0; j < cols; j++) {
             double vm1 = cet2double(m1[i * cols + j]);
@@ -103,18 +103,18 @@ void cmp(size_t rows, size_t cols, cet *m1_gpu, cet *m2)
             if (!ok) {
                 fprintf(stderr, "diff=%g, vm1=%g, vm2=%g\n", diff, vm1, vm2);
                 fprintf(stderr, "Error at pos (%d, %d): %g != %g\n", i, j, vm1,
-                        vm2);
+                    vm2);
                 fprintf(stderr,
-                        "::error::%s -- Error at pos (%d, %d): %g (gpu) != %g "
-                        "(cpu)\n",
-                        progname, i, j, vm1, vm2);
+                    "::error::%s -- Error at pos (%d, %d): %g (gpu) != %g "
+                    "(cpu)\n",
+                    progname, i, j, vm1, vm2);
                 nerrs++;
                 if (nerrs >= 10) {
                     fprintf(stderr,
-                            ">> max relative error: %.4f%%, avg relative "
-                            "error: %.4f%% (%zu cells)\n",
-                            max_rel * 100.0,
-                            nrel > 0 ? sum_rel / nrel * 100.0 : 0.0, nrel);
+                        ">> max relative error: %.4f%%, avg relative "
+                        "error: %.4f%% (%zu cells)\n",
+                        max_rel * 100.0,
+                        nrel > 0 ? sum_rel / nrel * 100.0 : 0.0, nrel);
                     free(m1);
                     exit(1);
                 }
@@ -122,8 +122,8 @@ void cmp(size_t rows, size_t cols, cet *m1_gpu, cet *m2)
         }
     }
     fprintf(stderr,
-            ">> max relative error: %.4f%%, avg relative error: %.4f%% (%zu "
-            "cells)\n",
-            max_rel * 100.0, nrel > 0 ? sum_rel / nrel * 100.0 : 0.0, nrel);
+        ">> max relative error: %.4f%%, avg relative error: %.4f%% (%zu "
+        "cells)\n",
+        max_rel * 100.0, nrel > 0 ? sum_rel / nrel * 100.0 : 0.0, nrel);
     free(m1);
 }

@@ -30,8 +30,7 @@ int main(int argc, char **argv)
         /* use defaults */
     } else {
         fprintf(stderr,
-                "Usage: %s [<laps> <rows> <shared> <columns> <check>]\n",
-                argv[0]);
+            "Usage: %s [<laps> <rows> <shared> <columns> <check>]\n", argv[0]);
         return 1;
     }
 
@@ -72,14 +71,14 @@ int main(int argc, char **argv)
     et *gold = NULL;
     if (check)
         TIME_void(gold = cpu_sgemm(rows, shared, cols, m1_cpu, m2_cpu, m3_cpu,
-                                   GEMM_ALPHA, GEMM_BETA),
-                  NULL);
+                      GEMM_ALPHA, GEMM_BETA),
+            NULL);
     for (int l = 0; l < laps; l++) {
         float t;
         // fprintf(stderr, "Static tile = 32\n");
         TIME_void(TOKENPASTE3(stem, et_lbl, _tiles64x8_8x64_rc8_rrr)(
                       GEMM_ALPHA, GEMM_BETA, rows, shared, cols, m1, m2, m3),
-                  &t);
+            &t);
         uint64_t flops = (rows * shared * cols * 2.0);
         // I think the below is more accurate, but I'm reusing the
         // same formula from the sgemm.cu benchsuite
@@ -88,8 +87,8 @@ int main(int argc, char **argv)
 
         if (check) {
             cmp(rows, cols, m3, gold);
-            cudaMemcpy(m3, m3_cpu, rows * cols * sizeof(et),
-                       cudaMemcpyHostToDevice);
+            cudaMemcpy(
+                m3, m3_cpu, rows * cols * sizeof(et), cudaMemcpyHostToDevice);
         }
     }
     if (check)

@@ -149,11 +149,11 @@ static uint32_t *mk_row_indices(int rows, smatrix_t A)
     std::iota(swizzle_staging.begin(), swizzle_staging.end(), 0);
 
     std::sort(swizzle_staging.begin(), swizzle_staging.end(),
-              [&A](int idx_a, int idx_b) {
-                  uint32_t length_a = A.row_off[idx_a + 1] - A.row_off[idx_a];
-                  uint32_t length_b = A.row_off[idx_b + 1] - A.row_off[idx_b];
-                  return length_a > length_b;
-              });
+        [&A](int idx_a, int idx_b) {
+            uint32_t length_a = A.row_off[idx_a + 1] - A.row_off[idx_a];
+            uint32_t length_b = A.row_off[idx_b + 1] - A.row_off[idx_b];
+            return length_a > length_b;
+        });
 
     memcpy(row_indices, swizzle_staging.data(), sizeof(row_indices[0]) * rows);
 
@@ -163,26 +163,25 @@ static uint32_t *mk_row_indices(int rows, smatrix_t A)
 /* Upload a u32 sparse matrix + dense B to the GPU. Caller must free device
  * pointers. */
 static void upload_spmm_u32(int rows, int shared, int cols, smatrix_u32_t A,
-                            uint32_t *row_indices, uint32_t *B,
-                            smatrix_u32_t *dA_out, uint32_t **drow_indices_out,
-                            uint32_t **dB_out, uint32_t **dC_out)
+    uint32_t *row_indices, uint32_t *B, smatrix_u32_t *dA_out,
+    uint32_t **drow_indices_out, uint32_t **dB_out, uint32_t **dC_out)
 {
     smatrix_u32_t dA;
     dA.nnz = A.nnz;
     dA.elems =
         (uint32_t *) kpr_wait_alloc(sizeof dA.elems[0], A.nnz > 0 ? A.nnz : 1);
-    dA.col_ind = (uint32_t *) kpr_wait_alloc(sizeof dA.col_ind[0],
-                                             A.nnz > 0 ? A.nnz : 1);
+    dA.col_ind = (uint32_t *) kpr_wait_alloc(
+        sizeof dA.col_ind[0], A.nnz > 0 ? A.nnz : 1);
     dA.row_off = (uint32_t *) kpr_wait_alloc(sizeof dA.row_off[0], rows + 1);
 
     if (A.nnz > 0) {
         MUST(cudaMemcpy(dA.elems, A.elems, sizeof A.elems[0] * A.nnz,
-                        cudaMemcpyHostToDevice));
+            cudaMemcpyHostToDevice));
         MUST(cudaMemcpy(dA.col_ind, A.col_ind, sizeof A.col_ind[0] * A.nnz,
-                        cudaMemcpyHostToDevice));
+            cudaMemcpyHostToDevice));
     }
     MUST(cudaMemcpy(dA.row_off, A.row_off, sizeof A.row_off[0] * (rows + 1),
-                    cudaMemcpyHostToDevice));
+        cudaMemcpyHostToDevice));
 
     uint32_t *dB = (uint32_t *) kpr_wait_alloc(sizeof dB[0], shared * cols);
     MUST(
@@ -190,7 +189,7 @@ static void upload_spmm_u32(int rows, int shared, int cols, smatrix_u32_t A,
     uint32_t *drow_indices =
         (uint32_t *) kpr_wait_alloc(sizeof row_indices[0], rows);
     MUST(cudaMemcpy(drow_indices, row_indices, sizeof row_indices[0] * rows,
-                    cudaMemcpyHostToDevice));
+        cudaMemcpyHostToDevice));
     uint32_t *dC = (uint32_t *) kpr_wait_alloc(sizeof dC[0], rows * cols);
     MUST(cudaMemset(dC, 0, sizeof dC[0] * rows * cols));
 
@@ -203,26 +202,25 @@ static void upload_spmm_u32(int rows, int shared, int cols, smatrix_u32_t A,
 /* Upload a f32 sparse matrix + dense B to the GPU. Caller must free device
  * pointers. */
 static void upload_spmm_f32(int rows, int shared, int cols, smatrix_f32_t A,
-                            uint32_t *row_indices, float *B,
-                            smatrix_f32_t *dA_out, uint32_t **drow_indices_out,
-                            float **dB_out, float **dC_out)
+    uint32_t *row_indices, float *B, smatrix_f32_t *dA_out,
+    uint32_t **drow_indices_out, float **dB_out, float **dC_out)
 {
     smatrix_f32_t dA;
     dA.nnz = A.nnz;
     dA.elems =
         (float *) kpr_wait_alloc(sizeof dA.elems[0], A.nnz > 0 ? A.nnz : 1);
-    dA.col_ind = (uint32_t *) kpr_wait_alloc(sizeof dA.col_ind[0],
-                                             A.nnz > 0 ? A.nnz : 1);
+    dA.col_ind = (uint32_t *) kpr_wait_alloc(
+        sizeof dA.col_ind[0], A.nnz > 0 ? A.nnz : 1);
     dA.row_off = (uint32_t *) kpr_wait_alloc(sizeof dA.row_off[0], rows + 1);
 
     if (A.nnz > 0) {
         MUST(cudaMemcpy(dA.elems, A.elems, sizeof A.elems[0] * A.nnz,
-                        cudaMemcpyHostToDevice));
+            cudaMemcpyHostToDevice));
         MUST(cudaMemcpy(dA.col_ind, A.col_ind, sizeof A.col_ind[0] * A.nnz,
-                        cudaMemcpyHostToDevice));
+            cudaMemcpyHostToDevice));
     }
     MUST(cudaMemcpy(dA.row_off, A.row_off, sizeof A.row_off[0] * (rows + 1),
-                    cudaMemcpyHostToDevice));
+        cudaMemcpyHostToDevice));
 
     float *dB = (float *) kpr_wait_alloc(sizeof dB[0], shared * cols);
     MUST(
@@ -230,7 +228,7 @@ static void upload_spmm_f32(int rows, int shared, int cols, smatrix_f32_t A,
     uint32_t *drow_indices =
         (uint32_t *) kpr_wait_alloc(sizeof row_indices[0], rows);
     MUST(cudaMemcpy(drow_indices, row_indices, sizeof row_indices[0] * rows,
-                    cudaMemcpyHostToDevice));
+        cudaMemcpyHostToDevice));
     float *dC = (float *) kpr_wait_alloc(sizeof dC[0], rows * cols);
     MUST(cudaMemset(dC, 0, sizeof dC[0] * rows * cols));
 
@@ -240,8 +238,8 @@ static void upload_spmm_f32(int rows, int shared, int cols, smatrix_f32_t A,
     *dC_out = dC;
 }
 
-static void free_spmm_device_u32(smatrix_u32_t dA, uint32_t *drow_indices,
-                                 uint32_t *dB, uint32_t *dC)
+static void free_spmm_device_u32(
+    smatrix_u32_t dA, uint32_t *drow_indices, uint32_t *dB, uint32_t *dC)
 {
     cudaFree(dA.elems);
     cudaFree(dA.col_ind);
@@ -251,8 +249,8 @@ static void free_spmm_device_u32(smatrix_u32_t dA, uint32_t *drow_indices,
     cudaFree(dC);
 }
 
-static void free_spmm_device_f32(smatrix_f32_t dA, uint32_t *drow_indices,
-                                 float *dB, float *dC)
+static void free_spmm_device_f32(
+    smatrix_f32_t dA, uint32_t *drow_indices, float *dB, float *dC)
 {
     cudaFree(dA.elems);
     cudaFree(dA.col_ind);
