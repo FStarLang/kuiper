@@ -605,3 +605,61 @@ fn unfold_barrier_q_even
     live_strided_chunks m2 nthr tid;
 }
 #pop-options
+
+(* Bridge raised shared tensors to the raw-array barrier contract. Normalize
+   the contract projection explicitly, since SMT does not reduce it reliably. *)
+private let unfold_fb_contract () : FStar.Tactics.V2.Tac unit =
+  FStar.Tactics.V2.norm [delta_only [`%contract]; iota; primops];
+  Pulse.Lib.Core.slprop_equiv_norm ()
+
+ghost
+fn bp_to_rin
+  (#etA #etB : Type0)
+  {| sized etA, has_vec_cpy etA, sized etB, has_vec_cpy etB |}
+  (#rows #shared #cols : pos)
+  (eA : chest2 etA rows shared)
+  (eB : chest2 etB shared cols)
+  (#bm : pos{bm /?+ rows}) (#bk : pos{bk /?+ shared}) (#bn : pos{bn /?+ cols})
+  (l1 : full_layout2 bm bk) (l2 : full_layout2 bk bn)
+  (sar1 : larray etA (bm * bk)) (sar2 : larray etB (bk * bn))
+  (sa1 : array2 etA l1) (sa2 : array2 etB l2)
+  (nthr : pos) (bid : natlt (rows/bm * (cols/bn)))
+  (it : nat) (tid : natlt nthr)
+  requires
+    barrier_p eA eB sa1 sa2 nthr bid it tid **
+    pure (sa1 == from_array l1 sar1 /\ sa2 == from_array l2 sar2)
+  ensures
+    (contract eA eB l1 l2 sar1 sar2 nthr bid).rin it tid
+{
+  rewrite each sa1 as (from_array l1 sar1);
+  rewrite each sa2 as (from_array l2 sar2);
+  rewrite barrier_p eA eB (from_array l1 sar1) (from_array l2 sar2) nthr bid it tid
+       as (contract eA eB l1 l2 sar1 sar2 nthr bid).rin it tid
+       by unfold_fb_contract ();
+}
+
+ghost
+fn rout_to_bq
+  (#etA #etB : Type0)
+  {| sized etA, has_vec_cpy etA, sized etB, has_vec_cpy etB |}
+  (#rows #shared #cols : pos)
+  (eA : chest2 etA rows shared)
+  (eB : chest2 etB shared cols)
+  (#bm : pos{bm /?+ rows}) (#bk : pos{bk /?+ shared}) (#bn : pos{bn /?+ cols})
+  (l1 : full_layout2 bm bk) (l2 : full_layout2 bk bn)
+  (sar1 : larray etA (bm * bk)) (sar2 : larray etB (bk * bn))
+  (sa1 : array2 etA l1) (sa2 : array2 etB l2)
+  (nthr : pos) (bid : natlt (rows/bm * (cols/bn)))
+  (it : nat) (tid : natlt nthr)
+  requires
+    (contract eA eB l1 l2 sar1 sar2 nthr bid).rout it tid **
+    pure (sa1 == from_array l1 sar1 /\ sa2 == from_array l2 sar2)
+  ensures
+    barrier_q eA eB sa1 sa2 nthr bid it tid
+{
+  rewrite (contract eA eB l1 l2 sar1 sar2 nthr bid).rout it tid
+       as barrier_q eA eB (from_array l1 sar1) (from_array l2 sar2) nthr bid it tid
+       by unfold_fb_contract ();
+  rewrite each (from_array l1 sar1) as sa1;
+  rewrite each (from_array l2 sar2) as sa2;
+}
