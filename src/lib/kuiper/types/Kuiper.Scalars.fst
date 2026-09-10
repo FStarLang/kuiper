@@ -46,3 +46,8 @@ instance is_scalar_u64 : scalar UInt64.t =
     mul = mul_mod;
     zero; one; lt; lte; eq;
   }
+
+let lem_sizeof_u8  () = ()
+let lem_sizeof_u16 () = ()
+let lem_sizeof_u32 () = ()
+let lem_sizeof_u64 () = ()

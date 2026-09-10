@@ -89,6 +89,22 @@ let l1_to_l2 (#len : nat) (l : layout1 len)
   : layout2 1 len
   = layout_bij (bij12 len) l
 
+(* Construct the concrete index map for the same abstract layout used by
+   [t1_to_t2], so callers do not need a second concrete bijection. *)
+inline_for_extraction noextract
+instance cl1_to_cl2
+  (#len : erased nat)
+  (#l : layout1 len)
+  {| cl : ctlayout l |}
+  ()
+  : ctlayout (l1_to_l2 l) = {
+    ulen_fits = ();
+    all_fit = ();
+    cimap = (fun (idx : conc (1 @| len @| INil)) ->
+      let (_, (i, ())) = idx in
+      cl.cimap (i, ()));
+  }
+
 let c1_to_c2
   (#et : Type0) (#len : nat)
   (c1 : chest1 et len)
@@ -131,6 +147,26 @@ fn t2_to_t1
     a |-> Frac f s
   ensures
     relay a (l2_to_l1 l) |-> Frac f (c2_to_c1 s)
+
+val c1_to_c2_roundtrip
+  (#et : Type0) (#len : nat)
+  (s : chest1 et len)
+  : Lemma (c2_to_c1 (c1_to_c2 s) == s)
+
+(* Restore the original tensor by transporting its cells through the inverse
+   bijection. This does not require equality of two layout records. *)
+ghost
+fn t2_to_t1_restore
+  (#et : Type0)
+  (#len : nat)
+  (#l : layout1 len)
+  (a : array1 et l)
+  (#s : chest2 et 1 len)
+  (#f : perm)
+  requires
+    relay a (l1_to_l2 l) |-> Frac f s
+  ensures
+    a |-> Frac f (c2_to_c1 s)
 
 (* ----- Rank-2 <-> single-page ("batch-one") rank-3 -----
 

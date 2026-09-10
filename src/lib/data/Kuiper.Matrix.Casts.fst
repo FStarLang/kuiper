@@ -87,6 +87,42 @@ fn t2_to_t1
   rewrite each chest_bij (bij_sym (bij12 len)) s as c2_to_c1 s;
 }
 
+let c1_to_c2_roundtrip
+  (#et : Type0) (#len : nat)
+  (s : chest1 et len)
+  : Lemma (c2_to_c1 (c1_to_c2 s) == s)
+  =
+  Kuiper.Chest.lemma_equal_intro (c2_to_c1 (c1_to_c2 s)) s;
+  Kuiper.Chest.ext (c2_to_c1 (c1_to_c2 s)) s
+
+ghost
+fn t2_to_t1_restore
+  (#et : Type0)
+  (#len : nat)
+  (#l : layout1 len)
+  (a : array1 et l)
+  (#s : chest2 et 1 len)
+  (#f : perm)
+  requires
+    relay a (l1_to_l2 l) |-> Frac f s
+  ensures
+    a |-> Frac f (c2_to_c1 s)
+{
+  tensor_ilower (relay a (l1_to_l2 l));
+  rewrite each core (relay a (l1_to_l2 l)) as core a;
+  forevery_iso (bij_sym (bij12 len))
+    (fun (i : abs (1 @| len @| INil)) ->
+      pts_to_cell (core a) #f ((l1_to_l2 l).imap.f i) (acc s i));
+  forevery_ext
+    (fun (i : abs (len @| INil)) ->
+      pts_to_cell (core a) #f
+        ((l1_to_l2 l).imap.f ((bij12 len).ff i))
+        (acc s ((bij12 len).ff i)))
+    (fun (i : abs (len @| INil)) ->
+      pts_to_cell (core a) #f (l.imap.f i) (acc (c2_to_c1 s) i));
+  tensor_iraise a;
+}
+
 let c2_to_c3_roundtrip
   (#et : Type0)
   (d0 d1 : szp)

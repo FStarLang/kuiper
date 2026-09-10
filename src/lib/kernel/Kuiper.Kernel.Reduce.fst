@@ -6,26 +6,11 @@ open Kuiper
 open Kuiper.Tensor
 open Kuiper.Tensor.Layout.Alg
 open Kuiper.Kernel.RowReduce { row_reduce }
-open Kuiper.Bijection
 module SZ = Kuiper.SizeT
 module C = Kuiper.Matrix.Casts
 
 #set-options ""
 
-inline_for_extraction noextract
-let cbij (lena : szp)
-  : (conc (lena @| INil) ==~ conc (1 @| lena @| INil)) =
-  mk_cbij
-    #(conc (lena @| INil))
-    #(conc (1 @| lena @| INil))
-    (function (i, ()) -> (0sz, (i, ())))
-    (function (_, (i, ())) -> (i, ()))
-    ez
-    ez
-
-// Very VERY tedious to reuse the per-row kernel for a flat array.
-// But possible.
-// We should kill the remaining admits, and refactor cbij to avoid spurious diamonds.
 inline_for_extraction noextract
 fn reduce1
   (#et : Type0) {| scalar et, real_like et |}
@@ -67,26 +52,16 @@ fn reduce1
       with s'. assert out |-> s';
       assert pure (equal s' (mk1 (fun _ -> Seq.index s 0)));
     };
-  assume pure (C.l1_to_l2 l == C.layout_bij (C.bij_up (cbij len)) l);
-  (* ^ FIXME, diamonds *)
   row_reduce #et pre_map pre_map_r 1sz len nth
-    #_ #(C.clayout_bij (cbij _) _) #_ #_
+    #_ #(C.cl1_to_cl2 ()) #_ #_
     x' out (C.c1_to_c2 vr);
 
   map_loc gpu_loc
     #(x' |-> C.c1_to_c2 sx)
     #(x |-> sx)
     fn _ {
-      C.t2_to_t1 x';
-      assert relay (relay x (C.l1_to_l2 l)) (C.l2_to_l1 (C.l1_to_l2 l))
-               |-> C.c2_to_c1 (C.c1_to_c2 sx);
-      assert pure (equal (C.c2_to_c1 (C.c1_to_c2 sx)) sx);
-      assert relay (relay x (C.l1_to_l2 l)) (C.l2_to_l1 (C.l1_to_l2 l))
-               |-> sx;
-      assume pure (C.l2_to_l1 (C.l1_to_l2 l) == l); // sigh, extensionality of layouts
-      rewrite each
-        relay (relay x (C.l1_to_l2 l)) (C.l2_to_l1 (C.l1_to_l2 l))
-      as x;
+      C.t2_to_t1_restore x;
+      C.c1_to_c2_roundtrip sx;
       ()
     };
 
