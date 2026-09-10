@@ -29,21 +29,6 @@ open Kuiper.Kernel.GEMM.TensorCore2D.To.KernelDesc
 open Kuiper.Kernel.GEMM.TensorCore2D.To.EpilogueState
 open Kuiper.Kernel.GEMM.TensorCore2D.To.EpilogueLoopStep
 
-(* (i * n + j) / n == i and (i * n + j) % n == j, when j < n. Kept as a
-   top-level pure lemma so the nonlinear division/modulo facts type-check in
-   a minimal context: inside [epilogue_to]'s large ambient proof state (with
-   many size_layout SMTPats already in scope) Z3 does not reliably close
-   this goal when it is asserted inline.
-   TODO: consider upstreaming to the Kuiper library and reusing from
-   Kuiper.Kernel.GEMM.BlockTiling2D's near-identical [epilogue_tile_div_mod]
-   if a third call site appears. *)
-let div_mod_of_mul_add (n : pos) (i : nat) (j : natlt n)
-  : Lemma ((i * n + j) / n == i /\ (i * n + j) % n == j)
-  = FStar.Math.Lemmas.lemma_div_plus j i n;
-    FStar.Math.Lemmas.small_div j n;
-    FStar.Math.Lemmas.lemma_mod_plus j i n;
-    FStar.Math.Lemmas.small_mod j n
-
 (* [x / wn * wn + x % wn == x].  Needed in a *type-level* position (it is what
    makes the reindexed [output_fragment_post] argument of the [forevery_ext]
    below well-typed, and what makes the two indexed slprops equal), so it has
@@ -328,7 +313,7 @@ fn epilogue_to
         gD bm bn tm tn wm wn bid wid lane
         (chest_comb comb_r rCWarp rAcc)
         (xy._1 * wn + xy._2);
-      div_mod_of_mul_add wn xy._1 xy._2;
+      Kuiper.Math.div_mod_of_mul_add wn xy._1 xy._2;
       assert pure (
         (xy._1 * wn + xy._2) / wn == xy._1);
       assert pure (

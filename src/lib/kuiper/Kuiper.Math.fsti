@@ -17,6 +17,10 @@ val even_2x (n : int) :
 val odd_2x1 (n : int) :
   Lemma (ensures odd (2 * n + 1))
 
+(* Call explicitly to keep division/modulo proofs out of large SMT contexts. *)
+val div_mod_of_mul_add (n : pos) (q : nat) (r : nat{r < n})
+  : Lemma ((q * n + r) / n == q /\ (q * n + r) % n == r)
+
 let rec log2 (n:pos) : GTot (r:nat{r < n}) =
   if n = 1 then 0 else 1 + log2 (n / 2)
 

@@ -700,10 +700,7 @@ let epilogue_tile_div_mod (tm tn : pos)
             (i * tn + j) / tn == i /\ (i * tn + j) % tn == j)
   = introduce forall (i:natlt tm) (j:natlt tn).
       (i * tn + j) / tn == i /\ (i * tn + j) % tn == j
-    with (FStar.Math.Lemmas.lemma_div_plus j i tn;
-          FStar.Math.Lemmas.small_div j tn;
-          FStar.Math.Lemmas.lemma_mod_plus j i tn;
-          FStar.Math.Lemmas.small_mod j tn)
+    with Kuiper.Math.div_mod_of_mul_add tn i j
 
 let epilogue_tile_lt_succ (tm tn : pos) (rM : nat) (rN : nat{rN < tn})
   : Lemma (forall (i:natlt tm) (j:natlt tn).

@@ -20,18 +20,6 @@ open Kuiper.Kernel.GEMM.TensorCore2D.KernelDesc
 
 open Kuiper.Kernel.GEMM.TensorCore2D.To.KernelDesc
 
-(* (i * n + j) / n == i and (i * n + j) % n == j, when j < n. Kept as a
-   top-level pure lemma so the nonlinear division/modulo facts type-check in
-   a minimal context: inside the large ambient proof state of gather_block
-   and gather_output (with many size-refinement facts already in scope), Z3
-   does not reliably close this goal when it is asserted inline. *)
-let div_mod_of_mul_add (n : pos) (i : nat) (j : natlt n)
-  : Lemma ((i * n + j) / n == i /\ (i * n + j) % n == j)
-  = FStar.Math.Lemmas.lemma_div_plus j i n;
-    FStar.Math.Lemmas.small_div j n;
-    FStar.Math.Lemmas.lemma_mod_plus j i n;
-    FStar.Math.Lemmas.small_mod j n
-
 let flat_index_bound (m n : pos) (i : natlt m) (j : natlt n)
   : Lemma (i * n + j < m * n)
           [SMTPat (i * n + j); SMTPat (m * n)]
@@ -395,7 +383,7 @@ fn gather_warp
             eFrag lane **
           pure (eFrag %~ ematrix_subtile rWarp tm tn mi nj))
     fn lane {
-      div_mod_of_mul_add warp_size wid lane;
+      Kuiper.Math.div_mod_of_mul_add warp_size wid lane;
       assert pure ((wid * warp_size + lane) / warp_size == wid);
       assert pure ((wid * warp_size + lane) % warp_size == lane);
       unfold output_lane_approximates gD bm bn tm tn wm wn bid
@@ -549,7 +537,7 @@ fn gather_block
     fn wr wc {
       flat_index_bound
         (bm / (wm * tm)) (bn / (wn * tn)) wr wc;
-      div_mod_of_mul_add (bn / (wn * tn)) wr wc;
+      Kuiper.Math.div_mod_of_mul_add (bn / (wn * tn)) wr wc;
       rewrite each
         warp_tile dBlock (wm * tm) (wn * tn)
           (wr * (bn / (wn * tn)) + wc)
@@ -725,7 +713,7 @@ fn gather_output
           teardown_block_output_at comb_r bm bn bk tm tn tk wm wn
             rA rB rC br bc))
     fn br bc {
-      div_mod_of_mul_add (n / bn) br bc;
+      Kuiper.Math.div_mod_of_mul_add (n / bn) br bc;
       rewrite each block_tile gD (SZ.v bm) (SZ.v bn)
         (br * (n / bn) + bc)
       as array2_subtile gD (SZ.v bm) (SZ.v bn) br bc;
