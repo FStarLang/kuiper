@@ -735,41 +735,6 @@ let bbtile_gg2_all (batch mrows mcols tile : nat)
           == bbtile_cell_idx batch mrows mcols tile bid (tc / tile) (tc % tile)
       with bbtile_gg2_full batch mrows mcols tile bid tc
 
-(* A cell of the batched combined spec equals the per-page rank-2 [ggemm_single]
-   cell.  Reduces the rank-3 [gbmmcomb] obligation cellwise/pagewise. *)
-let bmmcomb_cell_shmem
-  (mapA_r mapB_r : real -> real)
-  (comb_r : binop real)
-  (#batch #bm #bs #bn : nat)
-  (rA : chest3 real batch bm bs)
-  (rB : chest3 real batch bs bn)
-  (rC : chest3 real batch bm bn)
-  (page : natlt batch) (row : natlt bm) (col : natlt bn)
-  : Lemma
-      (Chest.acc (MS.gbmmcomb mapA_r mapB_r comb_r rC rA rB) (page, (row, (col, ())))
-        == MS.ggemm_single mapA_r mapB_r comb_r
-             (slice_page rA page) (slice_page rB page) (slice_page rC page) row col)
-  = ()
-
-let bmmcomb_all_shmem
-  (mapA_r mapB_r : real -> real)
-  (comb_r : binop real)
-  (#batch #bm #bs #bn : nat)
-  (rA : chest3 real batch bm bs)
-  (rB : chest3 real batch bs bn)
-  (rC : chest3 real batch bm bn)
-  : Lemma
-      (forall (page : natlt batch) (row : natlt bm) (col : natlt bn).
-        Chest.acc (MS.gbmmcomb mapA_r mapB_r comb_r rC rA rB) (page, (row, (col, ())))
-          == MS.ggemm_single mapA_r mapB_r comb_r
-               (slice_page rA page) (slice_page rB page) (slice_page rC page) row col)
-  = introduce
-      forall (page : natlt batch) (row : natlt bm) (col : natlt bn).
-        Chest.acc (MS.gbmmcomb mapA_r mapB_r comb_r rC rA rB) (page, (row, (col, ())))
-          == MS.ggemm_single mapA_r mapB_r comb_r
-               (slice_page rA page) (slice_page rB page) (slice_page rC page) row col
-      with bmmcomb_cell_shmem mapA_r mapB_r comb_r rA rB rC page row col
-
 (* ─── batched per-block predicates ─────────────────────────────────────────── *)
 (* without shmem ownership *)
 unfold
@@ -1417,7 +1382,7 @@ fn bteardown
   tensor_implode gC;
 
   (* Final batched matrix-level approximation, reduced cellwise/pagewise. *)
-  bmmcomb_all_shmem mapA_r mapB_r comb_r rA rB rC;
+  MU.gbmmcomb_all mapA_r mapB_r comb_r rA rB rC;
   assert pure (eC' %~ MS.gbmmcomb mapA_r mapB_r comb_r rC rA rB);
   ();
 }
