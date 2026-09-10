@@ -58,8 +58,8 @@ __hoisted_main_2(float *r, float *s1, float *s2)
     }
 }
 
-void Kuiper_Example_Async_GEMM_main(float *a, float *b, float *c1, float *d,
-                                    float *r)
+void Kuiper_Example_Async_GEMM_main(
+    float *a, float *b, float *c1, float *d, float *r)
 {
     cudaStream_t str1 = KPR_FRESH_STREAM();
     cudaStream_t str2 = KPR_FRESH_STREAM();

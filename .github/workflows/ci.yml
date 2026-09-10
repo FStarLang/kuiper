@@ -234,7 +234,8 @@ jobs:
           diff_output=$(diff -ru --exclude=BUILD_INFO dist/ obj/ 2>&1) || true
           if [ -n "$diff_output" ]; then
             echo "::warning::dist/ is out of date. Run 'make dist' and commit the changes."
-            echo "$diff_output" | head -100
+            # Avoid SIGPIPE under pipefail when truncating a large diff.
+            head -n 100 <<< "$diff_output"
           else
             echo "dist/ is up to date."
           fi

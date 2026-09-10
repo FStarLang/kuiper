@@ -6,8 +6,8 @@ __global__
   hoisted when extracting g_matmul_f32_rrr
 */
 static void
-__hoisted_g_matmul_f32_rrr_0(uint32_t n, uint32_t k, float *gA, float *gB,
-                             float *gC)
+__hoisted_g_matmul_f32_rrr_0(
+    uint32_t n, uint32_t k, float *gA, float *gB, float *gC)
 {
     uint32_t trow = blockIdx.x / n;
     uint32_t tcol = blockIdx.x % n;
@@ -20,8 +20,8 @@ __hoisted_g_matmul_f32_rrr_0(uint32_t n, uint32_t k, float *gA, float *gB,
     gC[trow * n + tcol] = sum;
 }
 
-void Klas_GEMM_Naive1_g_matmul_f32_rrr(uint32_t m, uint32_t n, uint32_t k,
-                                       float *gA, float *gB, float *gC)
+void Klas_GEMM_Naive1_g_matmul_f32_rrr(
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC)
 {
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_KCALL(__hoisted_g_matmul_f32_rrr_0, m * n, 1U, 0U, s, n, k, gA, gB, gC);
@@ -34,8 +34,8 @@ __global__
   hoisted when extracting g_matmul_f64_rrr
 */
 static void
-__hoisted_g_matmul_f64_rrr_0(uint32_t n, uint32_t k, double *gA, double *gB,
-                             double *gC)
+__hoisted_g_matmul_f64_rrr_0(
+    uint32_t n, uint32_t k, double *gA, double *gB, double *gC)
 {
     uint32_t trow = blockIdx.x / n;
     uint32_t tcol = blockIdx.x % n;
@@ -48,8 +48,8 @@ __hoisted_g_matmul_f64_rrr_0(uint32_t n, uint32_t k, double *gA, double *gB,
     gC[trow * n + tcol] = sum;
 }
 
-void Klas_GEMM_Naive1_g_matmul_f64_rrr(uint32_t m, uint32_t n, uint32_t k,
-                                       double *gA, double *gB, double *gC)
+void Klas_GEMM_Naive1_g_matmul_f64_rrr(
+    uint32_t m, uint32_t n, uint32_t k, double *gA, double *gB, double *gC)
 {
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_KCALL(__hoisted_g_matmul_f64_rrr_0, m * n, 1U, 0U, s, n, k, gA, gB, gC);
@@ -62,8 +62,8 @@ __global__
   hoisted when extracting g_matmul_u32_rrr
 */
 static void
-__hoisted_g_matmul_u32_rrr_0(uint32_t n, uint32_t k, uint32_t *gA, uint32_t *gB,
-                             uint32_t *gC)
+__hoisted_g_matmul_u32_rrr_0(
+    uint32_t n, uint32_t k, uint32_t *gA, uint32_t *gB, uint32_t *gC)
 {
     uint32_t trow = blockIdx.x / n;
     uint32_t tcol = blockIdx.x % n;
@@ -77,7 +77,7 @@ __hoisted_g_matmul_u32_rrr_0(uint32_t n, uint32_t k, uint32_t *gA, uint32_t *gB,
 }
 
 void Klas_GEMM_Naive1_g_matmul_u32_rrr(uint32_t m, uint32_t n, uint32_t k,
-                                       uint32_t *gA, uint32_t *gB, uint32_t *gC)
+    uint32_t *gA, uint32_t *gB, uint32_t *gC)
 {
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_KCALL(__hoisted_g_matmul_u32_rrr_0, m * n, 1U, 0U, s, n, k, gA, gB, gC);
@@ -90,8 +90,8 @@ __global__
   hoisted when extracting g_matmul_u64_rrr
 */
 static void
-__hoisted_g_matmul_u64_rrr_0(uint32_t n, uint32_t k, uint64_t *gA, uint64_t *gB,
-                             uint64_t *gC)
+__hoisted_g_matmul_u64_rrr_0(
+    uint32_t n, uint32_t k, uint64_t *gA, uint64_t *gB, uint64_t *gC)
 {
     uint32_t trow = blockIdx.x / n;
     uint32_t tcol = blockIdx.x % n;
@@ -105,7 +105,7 @@ __hoisted_g_matmul_u64_rrr_0(uint32_t n, uint32_t k, uint64_t *gA, uint64_t *gB,
 }
 
 void Klas_GEMM_Naive1_g_matmul_u64_rrr(uint32_t m, uint32_t n, uint32_t k,
-                                       uint64_t *gA, uint64_t *gB, uint64_t *gC)
+    uint64_t *gA, uint64_t *gB, uint64_t *gC)
 {
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_KCALL(__hoisted_g_matmul_u64_rrr_0, m * n, 1U, 0U, s, n, k, gA, gB, gC);
@@ -118,8 +118,8 @@ __global__
   hoisted when extracting g_matmul_f32_ccc
 */
 static void
-__hoisted_g_matmul_f32_ccc_0(uint32_t m, uint32_t n, uint32_t k, float *gA,
-                             float *gB, float *gC)
+__hoisted_g_matmul_f32_ccc_0(
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC)
 {
     uint32_t trow = blockIdx.x / n;
     uint32_t tcol = blockIdx.x % n;
@@ -132,12 +132,12 @@ __hoisted_g_matmul_f32_ccc_0(uint32_t m, uint32_t n, uint32_t k, float *gA,
     gC[tcol * m + trow] = sum;
 }
 
-void Klas_GEMM_Naive1_g_matmul_f32_ccc(uint32_t m, uint32_t n, uint32_t k,
-                                       float *gA, float *gB, float *gC)
+void Klas_GEMM_Naive1_g_matmul_f32_ccc(
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC)
 {
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_KCALL(__hoisted_g_matmul_f32_ccc_0, m * n, 1U, 0U, s, m, n, k, gA, gB,
-              gC);
+    KPR_KCALL(
+        __hoisted_g_matmul_f32_ccc_0, m * n, 1U, 0U, s, m, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -147,8 +147,8 @@ __global__
   hoisted when extracting g_matmul_f64_ccc
 */
 static void
-__hoisted_g_matmul_f64_ccc_0(uint32_t m, uint32_t n, uint32_t k, double *gA,
-                             double *gB, double *gC)
+__hoisted_g_matmul_f64_ccc_0(
+    uint32_t m, uint32_t n, uint32_t k, double *gA, double *gB, double *gC)
 {
     uint32_t trow = blockIdx.x / n;
     uint32_t tcol = blockIdx.x % n;
@@ -161,12 +161,12 @@ __hoisted_g_matmul_f64_ccc_0(uint32_t m, uint32_t n, uint32_t k, double *gA,
     gC[tcol * m + trow] = sum;
 }
 
-void Klas_GEMM_Naive1_g_matmul_f64_ccc(uint32_t m, uint32_t n, uint32_t k,
-                                       double *gA, double *gB, double *gC)
+void Klas_GEMM_Naive1_g_matmul_f64_ccc(
+    uint32_t m, uint32_t n, uint32_t k, double *gA, double *gB, double *gC)
 {
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_KCALL(__hoisted_g_matmul_f64_ccc_0, m * n, 1U, 0U, s, m, n, k, gA, gB,
-              gC);
+    KPR_KCALL(
+        __hoisted_g_matmul_f64_ccc_0, m * n, 1U, 0U, s, m, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -177,7 +177,7 @@ __global__
 */
 static void
 __hoisted_g_matmul_u32_ccc_0(uint32_t m, uint32_t n, uint32_t k, uint32_t *gA,
-                             uint32_t *gB, uint32_t *gC)
+    uint32_t *gB, uint32_t *gC)
 {
     uint32_t trow = blockIdx.x / n;
     uint32_t tcol = blockIdx.x % n;
@@ -191,11 +191,11 @@ __hoisted_g_matmul_u32_ccc_0(uint32_t m, uint32_t n, uint32_t k, uint32_t *gA,
 }
 
 void Klas_GEMM_Naive1_g_matmul_u32_ccc(uint32_t m, uint32_t n, uint32_t k,
-                                       uint32_t *gA, uint32_t *gB, uint32_t *gC)
+    uint32_t *gA, uint32_t *gB, uint32_t *gC)
 {
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_KCALL(__hoisted_g_matmul_u32_ccc_0, m * n, 1U, 0U, s, m, n, k, gA, gB,
-              gC);
+    KPR_KCALL(
+        __hoisted_g_matmul_u32_ccc_0, m * n, 1U, 0U, s, m, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -206,7 +206,7 @@ __global__
 */
 static void
 __hoisted_g_matmul_u64_ccc_0(uint32_t m, uint32_t n, uint32_t k, uint64_t *gA,
-                             uint64_t *gB, uint64_t *gC)
+    uint64_t *gB, uint64_t *gC)
 {
     uint32_t trow = blockIdx.x / n;
     uint32_t tcol = blockIdx.x % n;
@@ -220,11 +220,11 @@ __hoisted_g_matmul_u64_ccc_0(uint32_t m, uint32_t n, uint32_t k, uint64_t *gA,
 }
 
 void Klas_GEMM_Naive1_g_matmul_u64_ccc(uint32_t m, uint32_t n, uint32_t k,
-                                       uint64_t *gA, uint64_t *gB, uint64_t *gC)
+    uint64_t *gA, uint64_t *gB, uint64_t *gC)
 {
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_KCALL(__hoisted_g_matmul_u64_ccc_0, m * n, 1U, 0U, s, m, n, k, gA, gB,
-              gC);
+    KPR_KCALL(
+        __hoisted_g_matmul_u64_ccc_0, m * n, 1U, 0U, s, m, n, k, gA, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -235,7 +235,7 @@ __global__
 */
 static void
 __hoisted_batched_matmul_f32_0(uint32_t batch, uint32_t m, uint32_t n,
-                               uint32_t k, float *a, float *b, float *c)
+    uint32_t k, float *a, float *b, float *c)
 {
     uint32_t page = blockIdx.x % batch;
     uint32_t rest = blockIdx.x / batch;
@@ -252,12 +252,11 @@ __hoisted_batched_matmul_f32_0(uint32_t batch, uint32_t m, uint32_t n,
 }
 
 void Klas_GEMM_Naive1_batched_matmul_f32(uint32_t batch, uint32_t m, uint32_t n,
-                                         uint32_t k, float *a, float *b,
-                                         float *c)
+    uint32_t k, float *a, float *b, float *c)
 {
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_KCALL(__hoisted_batched_matmul_f32_0, batch * m * n, 1U, 0U, s, batch,
-              m, n, k, a, b, c);
+        m, n, k, a, b, c);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -268,8 +267,7 @@ __global__
 */
 static void
 __hoisted_batched_gemm_f32_0(float alpha, float beta, uint32_t batch,
-                             uint32_t m, uint32_t n, uint32_t k, float *a,
-                             float *b, float *c)
+    uint32_t m, uint32_t n, uint32_t k, float *a, float *b, float *c)
 {
     uint32_t page = blockIdx.x % batch;
     uint32_t rest = blockIdx.x / batch;
@@ -288,12 +286,11 @@ __hoisted_batched_gemm_f32_0(float alpha, float beta, uint32_t batch,
 }
 
 void Klas_GEMM_Naive1_batched_gemm_f32(float alpha, float beta, uint32_t batch,
-                                       uint32_t m, uint32_t n, uint32_t k,
-                                       float *a, float *b, float *c)
+    uint32_t m, uint32_t n, uint32_t k, float *a, float *b, float *c)
 {
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_KCALL(__hoisted_batched_gemm_f32_0, batch * m * n, 1U, 0U, s, alpha,
-              beta, batch, m, n, k, a, b, c);
+        beta, batch, m, n, k, a, b, c);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }

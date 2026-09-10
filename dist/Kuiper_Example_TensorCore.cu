@@ -1,10 +1,8 @@
 
 #include "Kuiper_Example_TensorCore.h"
 
-inline
-
-    __device__ void
-    Kuiper_Example_TensorCore_test(half *m1, half *m2, half *m3)
+inline __device__ void Kuiper_Example_TensorCore_test(
+    half *m1, half *m2, half *m3)
 {
     auto &fa = KPR_INIT(
         kpr_fragment(wmma::matrix_a, 16U, 16U, 16U, half, wmma::row_major));
@@ -19,10 +17,8 @@ inline
     __syncwarp();
 }
 
-inline
-
-    __device__ void
-    Kuiper_Example_TensorCore_test2(half *m1, half *m2, half *m3)
+inline __device__ void Kuiper_Example_TensorCore_test2(
+    half *m1, half *m2, half *m3)
 {
     auto &fa = KPR_INIT(
         kpr_fragment(wmma::matrix_a, 16U, 16U, 16U, half, wmma::row_major));
