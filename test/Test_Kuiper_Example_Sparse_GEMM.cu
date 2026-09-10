@@ -11,9 +11,10 @@ const char *progname = __FILE__;
 
 typedef Kuiper_Sparse_Matrix_smatrix__uint32 smatrix_t;
 
-/* The CSR index arrays are `sz` in the F* source, i.e. size_t once extracted.
- */
-typedef size_t spmm_idx_t;
+/* The CSR index arrays are `sz` in the F* source; how that is spelled in C
+ * depends on --custard_sizet_width (see custard.mk), so take it from the
+ * extracted struct rather than restating it here. */
+typedef __typeof__(((smatrix_t *) 0)->col_ind[0]) spmm_idx_t;
 
 uint32_t *mk_dense_matrix()
 {

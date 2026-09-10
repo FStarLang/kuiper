@@ -13,6 +13,11 @@ CUSTARD_FLAGS += --codegen Custard
 CUSTARD_FLAGS += --custard_backend C
 CUSTARD_FLAGS += --custard_monomorphize_types true
 CUSTARD_FLAGS += --custard_norm_budget 200000000
+# Kuiper assumes FStar.SizeT.fits_u32 (Kuiper.SizeT.fsti, SizeTFitsU32), which
+# is what licenses narrowing every index to 32 bits.  This is a performance
+# choice, not a correctness-neutral one: it is what karamel did, and without it
+# register pressure across the extracted kernels rises by about 4%.
+CUSTARD_FLAGS += --custard_sizet_width 32
 CUSTARD_FLAGS += --load_cmxs $(PLUGIN)
 # Every dependency is already checked by the verify step; extraction must not
 # re-check anything, or a single module's extraction pulls in the whole tree.

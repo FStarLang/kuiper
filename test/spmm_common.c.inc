@@ -15,9 +15,11 @@
 typedef Kuiper_Sparse_Matrix_smatrix__uint32 smatrix_u32_t;
 typedef Kuiper_Sparse_Matrix_smatrix__float32 smatrix_f32_t;
 
-/* The CSR index arrays (col_ind, row_off) and the row permutation are `sz`
- * in the F* source, so the extracted code spells them size_t. */
-typedef size_t spmm_idx_t;
+/* The CSR index arrays (col_ind, row_off) and the row permutation are `sz` in
+ * the F* source.  How that is spelled in C depends on --custard_sizet_width
+ * (see custard.mk), so take it from the extracted struct rather than restating
+ * it here. */
+typedef __typeof__(((smatrix_u32_t *) 0)->col_ind[0]) spmm_idx_t;
 
 static uint32_t *mk_dense_matrix_u32(int rows, int cols, int density_pct)
 {
