@@ -22,12 +22,12 @@ __device__ __forceinline__ void kpr_wgmma_fill(kpr_wgmma_fragment &d, float x)
 __device__ __forceinline__ unsigned kpr_wgmma_thread()
 {
     return (threadIdx.x +
-            blockDim.x * (threadIdx.y + blockDim.y * threadIdx.z)) %
+               blockDim.x * (threadIdx.y + blockDim.y * threadIdx.z)) %
            128;
 }
 
-__device__ __forceinline__ void
-kpr_wgmma_load_accum(kpr_wgmma_fragment &d, const float *c, uint32_t stride)
+__device__ __forceinline__ void kpr_wgmma_load_accum(
+    kpr_wgmma_fragment &d, const float *c, uint32_t stride)
 {
     unsigned t = kpr_wgmma_thread();
     unsigned row = (t / 32) * 16 + (t % 32) / 4;
@@ -38,8 +38,8 @@ kpr_wgmma_load_accum(kpr_wgmma_fragment &d, const float *c, uint32_t stride)
     d.x[3] = c[(row + 8) * stride + col + 1];
 }
 
-__device__ __forceinline__ void kpr_wgmma_store(const kpr_wgmma_fragment &d,
-                                                float *c, uint32_t stride)
+__device__ __forceinline__ void kpr_wgmma_store(
+    const kpr_wgmma_fragment &d, float *c, uint32_t stride)
 {
     unsigned t = kpr_wgmma_thread();
     unsigned row = (t / 32) * 16 + (t % 32) / 4;
@@ -70,9 +70,8 @@ extern "C" __device__ void __kuiper_wgmma_requires_sm_90a__();
 // writes (including the producer-side async proxy fence and synchronization).
 // No block barrier is hidden here. Waiting before return also keeps operand
 // lifetimes and register accesses consistent with the sequential Pulse spec.
-__device__ __forceinline__ void kpr_wgmma_mma_sync(const __nv_bfloat16 *a,
-                                                   const __nv_bfloat16 *b,
-                                                   kpr_wgmma_fragment &d)
+__device__ __forceinline__ void kpr_wgmma_mma_sync(
+    const __nv_bfloat16 *a, const __nv_bfloat16 *b, kpr_wgmma_fragment &d)
 {
 #if defined(__CUDA_ARCH__) && defined(__CUDA_ARCH_FEAT_SM90_ALL)
     uint64_t da = kpr_wgmma_descriptor(a);
@@ -86,9 +85,9 @@ __device__ __forceinline__ void kpr_wgmma_mma_sync(const __nv_bfloat16 *a,
                  "  wgmma.commit_group.sync.aligned;\n"
                  "  wgmma.wait_group.sync.aligned 0;\n"
                  "}\n"
-                 : "+f"(d.x[0]), "+f"(d.x[1]), "+f"(d.x[2]), "+f"(d.x[3])
-                 : "l"(da), "l"(db)
-                 : "memory");
+        : "+f"(d.x[0]), "+f"(d.x[1]), "+f"(d.x[2]), "+f"(d.x[3])
+        : "l"(da), "l"(db)
+        : "memory");
 #elif defined(__CUDA_ARCH__)
     __kuiper_wgmma_requires_sm_90a__();
 #endif

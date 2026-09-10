@@ -4,8 +4,8 @@
 // from Pulse. The driver supplies the unmodelled collective execution setup.
 #include "Kuiper_Example_TensorCore_WGMMA.cu"
 
-__global__ void wgmma_test(const __nv_bfloat16 *a, const __nv_bfloat16 *b,
-                           float *c, bool accumulate)
+__global__ void wgmma_test(
+    const __nv_bfloat16 *a, const __nv_bfloat16 *b, float *c, bool accumulate)
 {
     // Two independent warpgroups, with a multidimensional block, exercise
     // both the accumulator lane mapping and operand isolation.
@@ -26,8 +26,8 @@ __global__ void wgmma_test(const __nv_bfloat16 *a, const __nv_bfloat16 *b,
     asm volatile("fence.proxy.async.shared::cta;" ::: "memory");
     __syncthreads();
     if (accumulate)
-        Kuiper_Example_TensorCore_WGMMA_accumulate_twice(sa[wg], sb[wg],
-                                                         c + wg * 512);
+        Kuiper_Example_TensorCore_WGMMA_accumulate_twice(
+            sa[wg], sb[wg], c + wg * 512);
     else
         Kuiper_Example_TensorCore_WGMMA_multiply(sa[wg], sb[wg], c + wg * 512);
 }
@@ -70,9 +70,9 @@ int main()
                         accumulate ? initial[i] + 2 * product : product;
                     if (result[i] != expected) {
                         fprintf(stderr,
-                                "WGMMA mismatch: accumulate=%d wg=%d (%d,%d): "
-                                "%g != %g\n",
-                                accumulate, wg, row, col, result[i], expected);
+                            "WGMMA mismatch: accumulate=%d wg=%d (%d,%d): "
+                            "%g != %g\n",
+                            accumulate, wg, row, col, result[i], expected);
                         return 1;
                     }
                 }
