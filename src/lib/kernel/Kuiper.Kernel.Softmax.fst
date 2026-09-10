@@ -9,26 +9,11 @@ module Kuiper.Kernel.Softmax
 
 open Kuiper
 open Kuiper.Tensor
-open Kuiper.Tensor.Layout.Alg { l1_forward }
 open Kuiper.Spec.Softmax
 open Kuiper.Kernel.RowSoftmax { row_softmax_real, row_softmax_gpu }
-open Kuiper.Bijection
 module C = Kuiper.Matrix.Casts
 
 #set-options ""
-
-(* The 1<->2 index bijection used to view a flat array as a 1-row matrix
-   (same as in [Kuiper.Kernel.Reduce]). *)
-inline_for_extraction noextract
-let cbij (lena : szp)
-  : (conc (lena @| INil) ==~ conc (1 @| lena @| INil)) =
-  mk_cbij
-    #(conc (lena @| INil))
-    #(conc (1 @| lena @| INil))
-    (function (i, ()) -> (0sz, (i, ())))
-    (function (_, (i, ())) -> (i, ()))
-    ez
-    ez
 
 (* Spec bridge: the row-softmax of the [1 x lena] embedding of [ra], cast back
    to 1-D, is exactly the 1-D [softmax_real ra]. *)
@@ -67,12 +52,9 @@ fn softmax_gpu
     fn _ {
       C.t1_to_t2 a;
     };
-  assume pure (C.l1_to_l2 l == C.layout_bij (C.bij_up (cbij lena)) l);
-  (* ^ FIXME, diamonds (as in Kuiper.Kernel.Reduce) *)
-
   (* Run the per-row kernel on the single row. *)
   row_softmax_gpu #et 1sz lena nth
-    #_ #(C.clayout_bij (cbij _) _) a' (C.c1_to_c2 ra);
+    #_ #(C.cl1_to_cl2 ()) a' (C.c1_to_c2 ra);
   with sa'. assert on gpu_loc (a' |-> sa');
 
   (* Cast the result back to 1-D. *)
@@ -80,14 +62,7 @@ fn softmax_gpu
     #(a' |-> sa')
     #(a |-> C.c2_to_c1 sa')
     fn _ {
-      C.t2_to_t1 a';
-      assert relay (relay a (C.l1_to_l2 l)) (C.l2_to_l1 (C.l1_to_l2 l))
-               |-> C.c2_to_c1 sa';
-      assume pure (C.l2_to_l1 (C.l1_to_l2 l) == l); // sigh, extensionality of layouts
-      rewrite each
-        relay (relay a (C.l1_to_l2 l)) (C.l2_to_l1 (C.l1_to_l2 l))
-      as a;
-      ()
+      C.t2_to_t1_restore a;
     };
 
   softmax_via_row_spec ra;
