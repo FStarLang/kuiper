@@ -69,8 +69,6 @@ fn tensor_apply_bij
   ()
 }
 
-#set-options "--print_implicits"
-
 ghost
 fn tensor_unapply_bij
   (#et : Type0)
@@ -85,11 +83,18 @@ fn tensor_unapply_bij
   ensures
     a |-> Frac fp (mk d1 (fun i -> acc m' (f.ff i)))
 {
-  tensor_apply_bij (bij_sym f) (from_array (tlayout_bij f l) (core a));
-  assume pure (tlayout_bij (bij_sym f) (tlayout_bij f l) == l); (* prove ! *)
-  rewrite each from_array (tlayout_bij (bij_sym f) (tlayout_bij f l)) (core (from_array (tlayout_bij f l) (core a))) as a;
-  rewrite each tlayout_bij (bij_sym f) (tlayout_bij f l) as l;
-  ();
+  (* Reindex cell ownership through the inverse bijection, then restore a. *)
+  tensor_ilower (from_array (tlayout_bij f l) (core a));
+  rewrite each core (from_array (tlayout_bij f l) (core a)) as core a;
+  forevery_iso (bij_sym f)
+    (fun (i : abs d2) ->
+      pts_to_cell (core a) #fp ((tlayout_bij f l).imap.f i) (acc m' i));
+  forevery_ext
+    (fun (i : abs d1) ->
+      pts_to_cell (core a) #fp ((tlayout_bij f l).imap.f (f.ff i)) (acc m' (f.ff i)))
+    (fun (i : abs d1) ->
+      pts_to_cell (core a) #fp (l.imap.f i) (acc (mk d1 (fun j -> acc m' (f.ff j))) i));
+  tensor_iraise a;
 }
 
 ghost
