@@ -44,6 +44,27 @@ CUSTARD_FN __nv_bfloat16 kpr_bf16_from_bits(unsigned short b) {
   return r;
 }
 
+/* On the device the formats are native: __half and __nv_bfloat16 carry
+   operator overloads that compile to a single hardware instruction, and
+   routing through float instead costs a cvt each way and an extra live
+   register per operand.  Off the device (and on architectures with no
+   native support) the same overloads are unavailable or emulated, so there
+   we do the round-trip explicitly.  This is the dispatch kuiper/math.h
+   already uses for kpr_bf16mul and friends; the two must agree, since a
+   kernel can reach both.
+
+   The operator overloads are used rather than __hmul/__hadd because the
+   intrinsics do not compile on devices without native bf16 support, while
+   the overloads degrade to the f32 round-trip by themselves. */
+#ifdef __CUDA_ARCH__
+#define KPR_F16_BIN(nm, op)                                                    \
+  CUSTARD_FN custard_f16 custard_f16_##nm(custard_f16 a, custard_f16 b) {      \
+    return a op b;                                                             \
+  }                                                                            \
+  CUSTARD_FN custard_bf16 custard_bf16_##nm(custard_bf16 a, custard_bf16 b) {  \
+    return a op b;                                                             \
+  }
+#else
 #define KPR_F16_BIN(nm, op)                                                    \
   CUSTARD_FN custard_f16 custard_f16_##nm(custard_f16 a, custard_f16 b) {      \
     return __float2half(__half2float(a) op __half2float(b));                   \
@@ -51,12 +72,22 @@ CUSTARD_FN __nv_bfloat16 kpr_bf16_from_bits(unsigned short b) {
   CUSTARD_FN custard_bf16 custard_bf16_##nm(custard_bf16 a, custard_bf16 b) {  \
     return __float2bfloat16(__bfloat162float(a) op __bfloat162float(b));       \
   }
+#endif
 
 KPR_F16_BIN(add, +)
 KPR_F16_BIN(sub, -)
 KPR_F16_BIN(mul, *)
 KPR_F16_BIN(div, /)
 
+#ifdef __CUDA_ARCH__
+#define KPR_F16_CMP(nm, op)                                                    \
+  CUSTARD_FN bool custard_f16_##nm(custard_f16 a, custard_f16 b) {             \
+    return a op b;                                                             \
+  }                                                                            \
+  CUSTARD_FN bool custard_bf16_##nm(custard_bf16 a, custard_bf16 b) {          \
+    return a op b;                                                             \
+  }
+#else
 #define KPR_F16_CMP(nm, op)                                                    \
   CUSTARD_FN bool custard_f16_##nm(custard_f16 a, custard_f16 b) {             \
     return __half2float(a) op __half2float(b);                                 \
@@ -64,6 +95,7 @@ KPR_F16_BIN(div, /)
   CUSTARD_FN bool custard_bf16_##nm(custard_bf16 a, custard_bf16 b) {          \
     return __bfloat162float(a) op __bfloat162float(b);                         \
   }
+#endif
 
 KPR_F16_CMP(eq, ==)
 KPR_F16_CMP(lt, <)
