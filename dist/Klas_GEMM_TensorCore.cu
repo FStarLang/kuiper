@@ -67,23 +67,15 @@ __global__ static void kuiper_kernel_0(uint32_t shared, uint32_t cols,
         cols);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
         uint32_t mlen = 1024;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_f16 *local;
-            custard_f16 _cbuf3[8] = {CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U),
+            custard_f16 local[8] = {CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U),
                 CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U),
                 CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U)};
-            local = _cbuf3;
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 16);
             uint32_t __anf02 = i;
@@ -93,11 +85,8 @@ __global__ static void kuiper_kernel_0(uint32_t shared, uint32_t cols,
                      (shared * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k = 0;
             while (k < 8) {
-                (void) (k);
-                (void) (k);
                 uint32_t __anf03 = k;
                 custard_f16 v = local[__anf03];
                 uint32_t __anf04 = k;
@@ -114,12 +103,9 @@ __global__ static void kuiper_kernel_0(uint32_t shared, uint32_t cols,
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_f16 *local_1;
-            custard_f16 _cbuf7[8] = {CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U),
+            custard_f16 local_1[8] = {CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U),
                 CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U),
                 CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U)};
-            local_1 = _cbuf7;
             uint32_t __anf01_1 = i1;
             uint32_t row_1 = ((__anf01_1 + offset1_1) / 64);
             uint32_t __anf02_1 = i1;
@@ -128,11 +114,8 @@ __global__ static void kuiper_kernel_0(uint32_t shared, uint32_t cols,
                                     (cols * row_1)) +
                                 col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                (void) (k_1);
-                (void) (k_1);
                 uint32_t __anf03_1 = k_1;
                 custard_f16 v_1 = local_1[__anf03_1];
                 uint32_t __anf04_1 = k_1;
@@ -145,13 +128,7 @@ __global__ static void kuiper_kernel_0(uint32_t shared, uint32_t cols,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + (nthr * 8));
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 1) {
             uint32_t __anf01_2 = dotIdx;
@@ -219,23 +196,15 @@ __global__ static void kuiper_kernel_1(uint32_t shared, uint32_t cols,
         cols);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
         uint32_t mlen = 1024;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_f16 *local;
-            custard_f16 _cbuf3[8] = {CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U),
+            custard_f16 local[8] = {CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U),
                 CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U),
                 CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U)};
-            local = _cbuf3;
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -245,11 +214,8 @@ __global__ static void kuiper_kernel_1(uint32_t shared, uint32_t cols,
                      (shared * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k = 0;
             while (k < 8) {
-                (void) (k);
-                (void) (k);
                 uint32_t __anf03 = k;
                 custard_f16 v = local[__anf03];
                 uint32_t __anf04 = k;
@@ -266,12 +232,9 @@ __global__ static void kuiper_kernel_1(uint32_t shared, uint32_t cols,
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_f16 *local_1;
-            custard_f16 _cbuf7[8] = {CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U),
+            custard_f16 local_1[8] = {CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U),
                 CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U),
                 CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U)};
-            local_1 = _cbuf7;
             uint32_t __anf01_1 = i1;
             uint32_t row_1 = ((__anf01_1 + offset1_1) / 32);
             uint32_t __anf02_1 = i1;
@@ -280,11 +243,8 @@ __global__ static void kuiper_kernel_1(uint32_t shared, uint32_t cols,
                                     (cols * row_1)) +
                                 col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                (void) (k_1);
-                (void) (k_1);
                 uint32_t __anf03_1 = k_1;
                 custard_f16 v_1 = local_1[__anf03_1];
                 uint32_t __anf04_1 = k_1;
@@ -297,13 +257,7 @@ __global__ static void kuiper_kernel_1(uint32_t shared, uint32_t cols,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + (nthr * 8));
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 2) {
             uint32_t __anf01_2 = dotIdx;
@@ -371,23 +325,15 @@ __global__ static void kuiper_kernel_2(uint32_t shared, uint32_t cols,
         cols);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
         uint32_t mlen = 1024;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_f16 *local;
-            custard_f16 _cbuf3[8] = {CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U),
+            custard_f16 local[8] = {CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U),
                 CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U),
                 CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U)};
-            local = _cbuf3;
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -397,11 +343,8 @@ __global__ static void kuiper_kernel_2(uint32_t shared, uint32_t cols,
                      (shared * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k = 0;
             while (k < 8) {
-                (void) (k);
-                (void) (k);
                 uint32_t __anf03 = k;
                 custard_f16 v = local[__anf03];
                 uint32_t __anf04 = k;
@@ -418,12 +361,9 @@ __global__ static void kuiper_kernel_2(uint32_t shared, uint32_t cols,
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_f16 *local_1;
-            custard_f16 _cbuf7[8] = {CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U),
+            custard_f16 local_1[8] = {CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U),
                 CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U),
                 CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U)};
-            local_1 = _cbuf7;
             uint32_t __anf01_1 = i1;
             uint32_t row_1 = ((__anf01_1 + offset1_1) / 32);
             uint32_t __anf02_1 = i1;
@@ -432,11 +372,8 @@ __global__ static void kuiper_kernel_2(uint32_t shared, uint32_t cols,
                                     (cols * row_1)) +
                                 col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                (void) (k_1);
-                (void) (k_1);
                 uint32_t __anf03_1 = k_1;
                 custard_f16 v_1 = local_1[__anf03_1];
                 uint32_t __anf04_1 = k_1;
@@ -449,13 +386,7 @@ __global__ static void kuiper_kernel_2(uint32_t shared, uint32_t cols,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + (nthr * 8));
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 2) {
             uint32_t __anf01_2 = dotIdx;
@@ -523,23 +454,15 @@ __global__ static void kuiper_kernel_3(uint32_t shared, uint32_t cols,
         cols);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
         uint32_t mlen = 512;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_f16 *local;
-            custard_f16 _cbuf3[8] = {CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U),
+            custard_f16 local[8] = {CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U),
                 CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U),
                 CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U)};
-            local = _cbuf3;
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 16);
             uint32_t __anf02 = i;
@@ -549,11 +472,8 @@ __global__ static void kuiper_kernel_3(uint32_t shared, uint32_t cols,
                      (shared * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k = 0;
             while (k < 8) {
-                (void) (k);
-                (void) (k);
                 uint32_t __anf03 = k;
                 custard_f16 v = local[__anf03];
                 uint32_t __anf04 = k;
@@ -570,12 +490,9 @@ __global__ static void kuiper_kernel_3(uint32_t shared, uint32_t cols,
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_f16 *local_1;
-            custard_f16 _cbuf7[8] = {CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U),
+            custard_f16 local_1[8] = {CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U),
                 CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U),
                 CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U)};
-            local_1 = _cbuf7;
             uint32_t __anf01_1 = i1;
             uint32_t row_1 = ((__anf01_1 + offset1_1) / 8);
             uint32_t __anf02_1 = i1;
@@ -584,11 +501,8 @@ __global__ static void kuiper_kernel_3(uint32_t shared, uint32_t cols,
                                     (cols * row_1)) +
                                 col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                (void) (k_1);
-                (void) (k_1);
                 uint32_t __anf03_1 = k_1;
                 custard_f16 v_1 = local_1[__anf03_1];
                 uint32_t __anf04_1 = k_1;
@@ -601,13 +515,7 @@ __global__ static void kuiper_kernel_3(uint32_t shared, uint32_t cols,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + (nthr * 8));
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 1) {
             uint32_t __anf01_2 = dotIdx;
@@ -675,23 +583,15 @@ __global__ static void kuiper_kernel_4(uint32_t shared, uint32_t cols,
         cols);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
         uint32_t mlen = 1024;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_f16 *local;
-            custard_f16 _cbuf3[8] = {CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U),
+            custard_f16 local[8] = {CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U),
                 CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U),
                 CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U)};
-            local = _cbuf3;
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -701,11 +601,8 @@ __global__ static void kuiper_kernel_4(uint32_t shared, uint32_t cols,
                      (shared * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k = 0;
             while (k < 8) {
-                (void) (k);
-                (void) (k);
                 uint32_t __anf03 = k;
                 custard_f16 v = local[__anf03];
                 uint32_t __anf04 = k;
@@ -722,12 +619,9 @@ __global__ static void kuiper_kernel_4(uint32_t shared, uint32_t cols,
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_f16 *local_1;
-            custard_f16 _cbuf7[8] = {CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U),
+            custard_f16 local_1[8] = {CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U),
                 CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U),
                 CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U)};
-            local_1 = _cbuf7;
             uint32_t __anf01_1 = i1;
             uint32_t row_1 = ((__anf01_1 + offset1_1) / 32);
             uint32_t __anf02_1 = i1;
@@ -736,11 +630,8 @@ __global__ static void kuiper_kernel_4(uint32_t shared, uint32_t cols,
                                     (cols * row_1)) +
                                 col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                (void) (k_1);
-                (void) (k_1);
                 uint32_t __anf03_1 = k_1;
                 custard_f16 v_1 = local_1[__anf03_1];
                 uint32_t __anf04_1 = k_1;
@@ -753,13 +644,7 @@ __global__ static void kuiper_kernel_4(uint32_t shared, uint32_t cols,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + (nthr * 8));
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 2) {
             uint32_t __anf01_2 = dotIdx;
@@ -827,23 +712,15 @@ __global__ static void kuiper_kernel_5(uint32_t shared, uint32_t cols,
         cols);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_f16 *local;
-            custard_f16 _cbuf3[8] = {CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U),
+            custard_f16 local[8] = {CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U),
                 CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U),
                 CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U)};
-            local = _cbuf3;
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -853,11 +730,8 @@ __global__ static void kuiper_kernel_5(uint32_t shared, uint32_t cols,
                      (shared * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k = 0;
             while (k < 8) {
-                (void) (k);
-                (void) (k);
                 uint32_t __anf03 = k;
                 custard_f16 v = local[__anf03];
                 uint32_t __anf04 = k;
@@ -874,12 +748,9 @@ __global__ static void kuiper_kernel_5(uint32_t shared, uint32_t cols,
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_f16 *local_1;
-            custard_f16 _cbuf7[8] = {CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U),
+            custard_f16 local_1[8] = {CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U),
                 CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U),
                 CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U)};
-            local_1 = _cbuf7;
             uint32_t __anf01_1 = i1;
             uint32_t row_1 = ((__anf01_1 + offset1_1) / 64);
             uint32_t __anf02_1 = i1;
@@ -888,11 +759,8 @@ __global__ static void kuiper_kernel_5(uint32_t shared, uint32_t cols,
                                     (cols * row_1)) +
                                 col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                (void) (k_1);
-                (void) (k_1);
                 uint32_t __anf03_1 = k_1;
                 custard_f16 v_1 = local_1[__anf03_1];
                 uint32_t __anf04_1 = k_1;
@@ -905,13 +773,7 @@ __global__ static void kuiper_kernel_5(uint32_t shared, uint32_t cols,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + (nthr * 8));
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 4) {
             uint32_t __anf01_2 = dotIdx;
@@ -979,23 +841,15 @@ __global__ static void kuiper_kernel_6(uint32_t shared, uint32_t cols,
         cols);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_f16 *local;
-            custard_f16 _cbuf3[8] = {CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U),
+            custard_f16 local[8] = {CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U),
                 CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U),
                 CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U)};
-            local = _cbuf3;
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -1005,11 +859,8 @@ __global__ static void kuiper_kernel_6(uint32_t shared, uint32_t cols,
                      (shared * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k = 0;
             while (k < 8) {
-                (void) (k);
-                (void) (k);
                 uint32_t __anf03 = k;
                 custard_f16 v = local[__anf03];
                 uint32_t __anf04 = k;
@@ -1026,12 +877,9 @@ __global__ static void kuiper_kernel_6(uint32_t shared, uint32_t cols,
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_f16 *local_1;
-            custard_f16 _cbuf7[8] = {CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U),
+            custard_f16 local_1[8] = {CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U),
                 CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U),
                 CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U)};
-            local_1 = _cbuf7;
             uint32_t __anf01_1 = i1;
             uint32_t row_1 = ((__anf01_1 + offset1_1) / 64);
             uint32_t __anf02_1 = i1;
@@ -1040,11 +888,8 @@ __global__ static void kuiper_kernel_6(uint32_t shared, uint32_t cols,
                                     (cols * row_1)) +
                                 col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                (void) (k_1);
-                (void) (k_1);
                 uint32_t __anf03_1 = k_1;
                 custard_f16 v_1 = local_1[__anf03_1];
                 uint32_t __anf04_1 = k_1;
@@ -1057,13 +902,7 @@ __global__ static void kuiper_kernel_6(uint32_t shared, uint32_t cols,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + (nthr * 8));
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 4) {
             uint32_t __anf01_2 = dotIdx;
@@ -1131,23 +970,15 @@ __global__ static void kuiper_kernel_7(uint32_t shared, uint32_t cols,
         cols);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_f16 *local;
-            custard_f16 _cbuf3[8] = {CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U),
+            custard_f16 local[8] = {CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U),
                 CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U),
                 CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U)};
-            local = _cbuf3;
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -1157,11 +988,8 @@ __global__ static void kuiper_kernel_7(uint32_t shared, uint32_t cols,
                      (shared * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k = 0;
             while (k < 8) {
-                (void) (k);
-                (void) (k);
                 uint32_t __anf03 = k;
                 custard_f16 v = local[__anf03];
                 uint32_t __anf04 = k;
@@ -1178,12 +1006,9 @@ __global__ static void kuiper_kernel_7(uint32_t shared, uint32_t cols,
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_f16 *local_1;
-            custard_f16 _cbuf7[8] = {CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U),
+            custard_f16 local_1[8] = {CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U),
                 CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U),
                 CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U)};
-            local_1 = _cbuf7;
             uint32_t __anf01_1 = i1;
             uint32_t row_1 = ((__anf01_1 + offset1_1) / 64);
             uint32_t __anf02_1 = i1;
@@ -1192,11 +1017,8 @@ __global__ static void kuiper_kernel_7(uint32_t shared, uint32_t cols,
                                     (cols * row_1)) +
                                 col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                (void) (k_1);
-                (void) (k_1);
                 uint32_t __anf03_1 = k_1;
                 custard_f16 v_1 = local_1[__anf03_1];
                 uint32_t __anf04_1 = k_1;
@@ -1209,13 +1031,7 @@ __global__ static void kuiper_kernel_7(uint32_t shared, uint32_t cols,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + (nthr * 8));
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 4) {
             uint32_t __anf01_2 = dotIdx;
@@ -1283,23 +1099,15 @@ __global__ static void kuiper_kernel_8(uint32_t shared, uint32_t cols,
         cols);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
         uint32_t mlen = 1024;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_f16 *local;
-            custard_f16 _cbuf3[8] = {CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U),
+            custard_f16 local[8] = {CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U),
                 CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U),
                 CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U)};
-            local = _cbuf3;
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -1309,11 +1117,8 @@ __global__ static void kuiper_kernel_8(uint32_t shared, uint32_t cols,
                      (shared * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k = 0;
             while (k < 8) {
-                (void) (k);
-                (void) (k);
                 uint32_t __anf03 = k;
                 custard_f16 v = local[__anf03];
                 uint32_t __anf04 = k;
@@ -1330,12 +1135,9 @@ __global__ static void kuiper_kernel_8(uint32_t shared, uint32_t cols,
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_f16 *local_1;
-            custard_f16 _cbuf7[8] = {CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U),
+            custard_f16 local_1[8] = {CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U),
                 CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U),
                 CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U)};
-            local_1 = _cbuf7;
             uint32_t __anf01_1 = i1;
             uint32_t row_1 = ((__anf01_1 + offset1_1) / 32);
             uint32_t __anf02_1 = i1;
@@ -1344,11 +1146,8 @@ __global__ static void kuiper_kernel_8(uint32_t shared, uint32_t cols,
                                     (cols * row_1)) +
                                 col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                (void) (k_1);
-                (void) (k_1);
                 uint32_t __anf03_1 = k_1;
                 custard_f16 v_1 = local_1[__anf03_1];
                 uint32_t __anf04_1 = k_1;
@@ -1361,13 +1160,7 @@ __global__ static void kuiper_kernel_8(uint32_t shared, uint32_t cols,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + (nthr * 8));
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 2) {
             uint32_t __anf01_2 = dotIdx;
@@ -1435,23 +1228,15 @@ __global__ static void kuiper_kernel_9(uint32_t shared, uint32_t cols,
         cols);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
         uint32_t mlen = 256;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_f16 *local;
-            custard_f16 _cbuf3[8] = {CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U),
+            custard_f16 local[8] = {CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U),
                 CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U),
                 CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U)};
-            local = _cbuf3;
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 16);
             uint32_t __anf02 = i;
@@ -1461,11 +1246,8 @@ __global__ static void kuiper_kernel_9(uint32_t shared, uint32_t cols,
                      (shared * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k = 0;
             while (k < 8) {
-                (void) (k);
-                (void) (k);
                 uint32_t __anf03 = k;
                 custard_f16 v = local[__anf03];
                 uint32_t __anf04 = k;
@@ -1482,12 +1264,9 @@ __global__ static void kuiper_kernel_9(uint32_t shared, uint32_t cols,
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_f16 *local_1;
-            custard_f16 _cbuf7[8] = {CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U),
+            custard_f16 local_1[8] = {CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U),
                 CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U),
                 CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U)};
-            local_1 = _cbuf7;
             uint32_t __anf01_1 = i1;
             uint32_t row_1 = ((__anf01_1 + offset1_1) / 16);
             uint32_t __anf02_1 = i1;
@@ -1496,11 +1275,8 @@ __global__ static void kuiper_kernel_9(uint32_t shared, uint32_t cols,
                                     (cols * row_1)) +
                                 col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                (void) (k_1);
-                (void) (k_1);
                 uint32_t __anf03_1 = k_1;
                 custard_f16 v_1 = local_1[__anf03_1];
                 uint32_t __anf04_1 = k_1;
@@ -1513,13 +1289,7 @@ __global__ static void kuiper_kernel_9(uint32_t shared, uint32_t cols,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + (nthr * 8));
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 1) {
             uint32_t __anf01_2 = dotIdx;
@@ -1586,23 +1356,15 @@ __global__ static void kuiper_kernel_10(uint32_t shared, uint32_t cols,
         cols);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
         uint32_t mlen = 1024;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_f16 *local;
-            custard_f16 _cbuf3[8] = {CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U),
+            custard_f16 local[8] = {CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U),
                 CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U),
                 CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U)};
-            local = _cbuf3;
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -1612,11 +1374,8 @@ __global__ static void kuiper_kernel_10(uint32_t shared, uint32_t cols,
                      (shared * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k = 0;
             while (k < 8) {
-                (void) (k);
-                (void) (k);
                 uint32_t __anf03 = k;
                 custard_f16 v = local[__anf03];
                 uint32_t __anf04 = k;
@@ -1633,12 +1392,9 @@ __global__ static void kuiper_kernel_10(uint32_t shared, uint32_t cols,
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_f16 *local_1;
-            custard_f16 _cbuf7[8] = {CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U),
+            custard_f16 local_1[8] = {CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U),
                 CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U),
                 CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U), CUSTARD_F16_LIT(0U)};
-            local_1 = _cbuf7;
             uint32_t __anf01_1 = i1;
             uint32_t row_1 = ((__anf01_1 + offset1_1) / 32);
             uint32_t __anf02_1 = i1;
@@ -1647,11 +1403,8 @@ __global__ static void kuiper_kernel_10(uint32_t shared, uint32_t cols,
                                     (cols * row_1)) +
                                 col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                (void) (k_1);
-                (void) (k_1);
                 uint32_t __anf03_1 = k_1;
                 custard_f16 v_1 = local_1[__anf03_1];
                 uint32_t __anf04_1 = k_1;
@@ -1664,13 +1417,7 @@ __global__ static void kuiper_kernel_10(uint32_t shared, uint32_t cols,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + (nthr * 8));
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 2) {
             uint32_t __anf01_2 = dotIdx;

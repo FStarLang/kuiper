@@ -380,14 +380,12 @@ __global__ static void kuiper_kernel_0(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float *rchProd;
-    float _cbuf1[64] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+    float rchProd[64] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 32);
     uint32_t mrow = (rest / num_n_tiles);
@@ -396,23 +394,13 @@ __global__ static void kuiper_kernel_0(float *gA, float *gB, uint32_t k,
     uint32_t threadCol = (tid % 4);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 1024;
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            float *local;
-            float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local = _cbuf5;
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -422,11 +410,8 @@ __global__ static void kuiper_kernel_0(float *gA, float *gB, uint32_t k,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 float v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -440,17 +425,11 @@ __global__ static void kuiper_kernel_0(float *gA, float *gB, uint32_t k,
             i = (vi + 64);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 1024;
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            float *local_1;
-            float _cbuf9[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local_1 = _cbuf9;
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 32);
             uint32_t __anf03_1 = i1;
@@ -460,11 +439,8 @@ __global__ static void kuiper_kernel_0(float *gA, float *gB, uint32_t k,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 4) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 float v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -477,24 +453,11 @@ __global__ static void kuiper_kernel_0(float *gA, float *gB, uint32_t k,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 64);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            float *rAcol;
-            float _cbuf13[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rAcol = _cbuf13;
-            float *rBrow;
-            float _cbuf15[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rBrow = _cbuf15;
+            float rAcol[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -536,12 +499,9 @@ __global__ static void kuiper_kernel_0(float *gA, float *gB, uint32_t k,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 64) {
         uint32_t ci0 = cctr;
@@ -583,8 +543,7 @@ __global__ static void kuiper_kernel_1(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    custard_bf16 *rchProd;
-    custard_bf16 _cbuf1[64] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
+    custard_bf16 rchProd[64] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -606,7 +565,6 @@ __global__ static void kuiper_kernel_1(custard_bf16 *gA, custard_bf16 *gB,
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 32);
     uint32_t mrow = (rest / num_n_tiles);
@@ -615,27 +573,16 @@ __global__ static void kuiper_kernel_1(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t threadCol = (tid % 4);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 1024;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_bf16 *local;
-            custard_bf16 _cbuf5[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            local = _cbuf5;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -645,11 +592,8 @@ __global__ static void kuiper_kernel_1(custard_bf16 *gA, custard_bf16 *gB,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 custard_bf16 v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -663,21 +607,15 @@ __global__ static void kuiper_kernel_1(custard_bf16 *gA, custard_bf16 *gB,
             i = (vi + 128);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 1024;
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_bf16 *local_1;
-            custard_bf16 _cbuf9[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            local_1 = _cbuf9;
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 32);
             uint32_t __anf03_1 = i1;
@@ -687,11 +625,8 @@ __global__ static void kuiper_kernel_1(custard_bf16 *gA, custard_bf16 *gB,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 8) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 custard_bf16 v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -704,32 +639,17 @@ __global__ static void kuiper_kernel_1(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 128);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            custard_bf16 *rAcol;
-            custard_bf16 _cbuf13[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rAcol[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            rAcol = _cbuf13;
-            custard_bf16 *rBrow;
-            custard_bf16 _cbuf15[8] = {CUSTARD_BF16_LIT(0U),
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
+            custard_bf16 rBrow[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            rBrow = _cbuf15;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -772,12 +692,9 @@ __global__ static void kuiper_kernel_1(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 64) {
         uint32_t ci0 = cctr;
@@ -819,12 +736,10 @@ __global__ static void kuiper_kernel_2(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float *rchProd;
-    float _cbuf1[128];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 128; _ci2++) {
-        _cbuf1[_ci2] = 0.0f;
+    float rchProd[128];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
+        rchProd[_ci1] = 0.0f;
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 32);
     uint32_t mrow = (rest / num_n_tiles);
@@ -833,23 +748,13 @@ __global__ static void kuiper_kernel_2(float *gA, float *gB, uint32_t k,
     uint32_t threadCol = (tid % 2);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 1024;
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            float *local;
-            float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local = _cbuf5;
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -859,11 +764,8 @@ __global__ static void kuiper_kernel_2(float *gA, float *gB, uint32_t k,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 float v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -877,17 +779,11 @@ __global__ static void kuiper_kernel_2(float *gA, float *gB, uint32_t k,
             i = (vi + 32);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 1024;
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            float *local_1;
-            float _cbuf9[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local_1 = _cbuf9;
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 32);
             uint32_t __anf03_1 = i1;
@@ -897,11 +793,8 @@ __global__ static void kuiper_kernel_2(float *gA, float *gB, uint32_t k,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 4) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 float v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -914,25 +807,12 @@ __global__ static void kuiper_kernel_2(float *gA, float *gB, uint32_t k,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 32);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            float *rAcol;
-            float _cbuf13[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rAcol = _cbuf13;
-            float *rBrow;
-            float _cbuf15[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            float rAcol[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rBrow = _cbuf15;
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -974,12 +854,9 @@ __global__ static void kuiper_kernel_2(float *gA, float *gB, uint32_t k,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 128) {
         uint32_t ci0 = cctr;
@@ -1021,12 +898,10 @@ __global__ static void kuiper_kernel_3(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    custard_bf16 *rchProd;
-    custard_bf16 _cbuf1[128];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 128; _ci2++) {
-        _cbuf1[_ci2] = CUSTARD_BF16_LIT(0U);
+    custard_bf16 rchProd[128];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
+        rchProd[_ci1] = CUSTARD_BF16_LIT(0U);
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 32);
     uint32_t mrow = (rest / num_n_tiles);
@@ -1035,27 +910,16 @@ __global__ static void kuiper_kernel_3(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t threadCol = (tid % 2);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 1024;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_bf16 *local;
-            custard_bf16 _cbuf5[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            local = _cbuf5;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -1065,11 +929,8 @@ __global__ static void kuiper_kernel_3(custard_bf16 *gA, custard_bf16 *gB,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 custard_bf16 v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -1083,21 +944,15 @@ __global__ static void kuiper_kernel_3(custard_bf16 *gA, custard_bf16 *gB,
             i = (vi + 64);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 1024;
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_bf16 *local_1;
-            custard_bf16 _cbuf9[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            local_1 = _cbuf9;
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 32);
             uint32_t __anf03_1 = i1;
@@ -1107,11 +962,8 @@ __global__ static void kuiper_kernel_3(custard_bf16 *gA, custard_bf16 *gB,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 8) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 custard_bf16 v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -1124,27 +976,14 @@ __global__ static void kuiper_kernel_3(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 64);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            custard_bf16 *rAcol;
-            custard_bf16 _cbuf13[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rAcol[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            rAcol = _cbuf13;
-            custard_bf16 *rBrow;
-            custard_bf16 _cbuf15[16] = {CUSTARD_BF16_LIT(0U),
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
+            custard_bf16 rBrow[16] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -1153,7 +992,6 @@ __global__ static void kuiper_kernel_3(custard_bf16 *gA, custard_bf16 *gB,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            rBrow = _cbuf15;
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -1196,12 +1034,9 @@ __global__ static void kuiper_kernel_3(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 128) {
         uint32_t ci0 = cctr;
@@ -1243,12 +1078,10 @@ __global__ static void kuiper_kernel_4(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float *rchProd;
-    float _cbuf1[128];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 128; _ci2++) {
-        _cbuf1[_ci2] = 0.0f;
+    float rchProd[128];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
+        rchProd[_ci1] = 0.0f;
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 32);
     uint32_t mrow = (rest / num_n_tiles);
@@ -1257,23 +1090,13 @@ __global__ static void kuiper_kernel_4(float *gA, float *gB, uint32_t k,
     uint32_t threadCol = (tid % 4);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 1024;
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            float *local;
-            float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local = _cbuf5;
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -1283,11 +1106,8 @@ __global__ static void kuiper_kernel_4(float *gA, float *gB, uint32_t k,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 float v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -1301,17 +1121,11 @@ __global__ static void kuiper_kernel_4(float *gA, float *gB, uint32_t k,
             i = (vi + 32);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 1024;
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            float *local_1;
-            float _cbuf9[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local_1 = _cbuf9;
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 32);
             uint32_t __anf03_1 = i1;
@@ -1321,11 +1135,8 @@ __global__ static void kuiper_kernel_4(float *gA, float *gB, uint32_t k,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 4) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 float v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -1338,25 +1149,12 @@ __global__ static void kuiper_kernel_4(float *gA, float *gB, uint32_t k,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 32);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            float *rAcol;
-            float _cbuf13[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            float rAcol[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rAcol = _cbuf13;
-            float *rBrow;
-            float _cbuf15[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rBrow = _cbuf15;
+            float rBrow[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -1398,12 +1196,9 @@ __global__ static void kuiper_kernel_4(float *gA, float *gB, uint32_t k,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 128) {
         uint32_t ci0 = cctr;
@@ -1445,12 +1240,10 @@ __global__ static void kuiper_kernel_5(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    custard_bf16 *rchProd;
-    custard_bf16 _cbuf1[128];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 128; _ci2++) {
-        _cbuf1[_ci2] = CUSTARD_BF16_LIT(0U);
+    custard_bf16 rchProd[128];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
+        rchProd[_ci1] = CUSTARD_BF16_LIT(0U);
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 32);
     uint32_t mrow = (rest / num_n_tiles);
@@ -1459,27 +1252,16 @@ __global__ static void kuiper_kernel_5(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t threadCol = (tid % 4);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 1024;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_bf16 *local;
-            custard_bf16 _cbuf5[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            local = _cbuf5;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -1489,11 +1271,8 @@ __global__ static void kuiper_kernel_5(custard_bf16 *gA, custard_bf16 *gB,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 custard_bf16 v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -1507,21 +1286,15 @@ __global__ static void kuiper_kernel_5(custard_bf16 *gA, custard_bf16 *gB,
             i = (vi + 64);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 1024;
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_bf16 *local_1;
-            custard_bf16 _cbuf9[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            local_1 = _cbuf9;
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 32);
             uint32_t __anf03_1 = i1;
@@ -1531,11 +1304,8 @@ __global__ static void kuiper_kernel_5(custard_bf16 *gA, custard_bf16 *gB,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 8) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 custard_bf16 v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -1548,20 +1318,10 @@ __global__ static void kuiper_kernel_5(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 64);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            custard_bf16 *rAcol;
-            custard_bf16 _cbuf13[16] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rAcol[16] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -1570,14 +1330,10 @@ __global__ static void kuiper_kernel_5(custard_bf16 *gA, custard_bf16 *gB,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            rAcol = _cbuf13;
-            custard_bf16 *rBrow;
-            custard_bf16 _cbuf15[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rBrow[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            rBrow = _cbuf15;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -1620,12 +1376,9 @@ __global__ static void kuiper_kernel_5(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 128) {
         uint32_t ci0 = cctr;
@@ -1667,12 +1420,10 @@ __global__ static void kuiper_kernel_6(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float *rchProd;
-    float _cbuf1[256];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 256; _ci2++) {
-        _cbuf1[_ci2] = 0.0f;
+    float rchProd[256];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 256; _ci1++) {
+        rchProd[_ci1] = 0.0f;
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 32);
     uint32_t mrow = (rest / num_n_tiles);
@@ -1681,23 +1432,13 @@ __global__ static void kuiper_kernel_6(float *gA, float *gB, uint32_t k,
     uint32_t threadCol = (tid % 2);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 1024;
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            float *local;
-            float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local = _cbuf5;
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -1707,11 +1448,8 @@ __global__ static void kuiper_kernel_6(float *gA, float *gB, uint32_t k,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 float v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -1725,17 +1463,11 @@ __global__ static void kuiper_kernel_6(float *gA, float *gB, uint32_t k,
             i = (vi + 16);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 1024;
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            float *local_1;
-            float _cbuf9[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local_1 = _cbuf9;
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 32);
             uint32_t __anf03_1 = i1;
@@ -1745,11 +1477,8 @@ __global__ static void kuiper_kernel_6(float *gA, float *gB, uint32_t k,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 4) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 float v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -1762,26 +1491,13 @@ __global__ static void kuiper_kernel_6(float *gA, float *gB, uint32_t k,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 16);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            float *rAcol;
-            float _cbuf13[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            float rAcol[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rAcol = _cbuf13;
-            float *rBrow;
-            float _cbuf15[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            float rBrow[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rBrow = _cbuf15;
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -1823,12 +1539,9 @@ __global__ static void kuiper_kernel_6(float *gA, float *gB, uint32_t k,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 256) {
         uint32_t ci0 = cctr;
@@ -1870,12 +1583,10 @@ __global__ static void kuiper_kernel_7(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    custard_bf16 *rchProd;
-    custard_bf16 _cbuf1[256];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 256; _ci2++) {
-        _cbuf1[_ci2] = CUSTARD_BF16_LIT(0U);
+    custard_bf16 rchProd[256];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 256; _ci1++) {
+        rchProd[_ci1] = CUSTARD_BF16_LIT(0U);
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 32);
     uint32_t mrow = (rest / num_n_tiles);
@@ -1884,27 +1595,16 @@ __global__ static void kuiper_kernel_7(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t threadCol = (tid % 2);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 1024;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_bf16 *local;
-            custard_bf16 _cbuf5[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            local = _cbuf5;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -1914,11 +1614,8 @@ __global__ static void kuiper_kernel_7(custard_bf16 *gA, custard_bf16 *gB,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 custard_bf16 v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -1932,21 +1629,15 @@ __global__ static void kuiper_kernel_7(custard_bf16 *gA, custard_bf16 *gB,
             i = (vi + 32);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 1024;
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_bf16 *local_1;
-            custard_bf16 _cbuf9[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            local_1 = _cbuf9;
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 32);
             uint32_t __anf03_1 = i1;
@@ -1956,11 +1647,8 @@ __global__ static void kuiper_kernel_7(custard_bf16 *gA, custard_bf16 *gB,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 8) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 custard_bf16 v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -1973,20 +1661,10 @@ __global__ static void kuiper_kernel_7(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 32);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            custard_bf16 *rAcol;
-            custard_bf16 _cbuf13[16] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rAcol[16] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -1995,9 +1673,7 @@ __global__ static void kuiper_kernel_7(custard_bf16 *gA, custard_bf16 *gB,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            rAcol = _cbuf13;
-            custard_bf16 *rBrow;
-            custard_bf16 _cbuf15[16] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rBrow[16] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -2006,7 +1682,6 @@ __global__ static void kuiper_kernel_7(custard_bf16 *gA, custard_bf16 *gB,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            rBrow = _cbuf15;
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -2049,12 +1724,9 @@ __global__ static void kuiper_kernel_7(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 256) {
         uint32_t ci0 = cctr;
@@ -2096,14 +1768,12 @@ __global__ static void kuiper_kernel_8(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float *rchProd;
-    float _cbuf1[64] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+    float rchProd[64] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 32);
     uint32_t mrow = (rest / num_n_tiles);
@@ -2112,23 +1782,13 @@ __global__ static void kuiper_kernel_8(float *gA, float *gB, uint32_t k,
     uint32_t threadCol = (tid % 4);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 2048;
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            float *local;
-            float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local = _cbuf5;
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -2138,11 +1798,8 @@ __global__ static void kuiper_kernel_8(float *gA, float *gB, uint32_t k,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 float v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -2156,17 +1813,11 @@ __global__ static void kuiper_kernel_8(float *gA, float *gB, uint32_t k,
             i = (vi + 64);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 2048;
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            float *local_1;
-            float _cbuf9[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local_1 = _cbuf9;
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 32);
             uint32_t __anf03_1 = i1;
@@ -2176,11 +1827,8 @@ __global__ static void kuiper_kernel_8(float *gA, float *gB, uint32_t k,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 4) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 float v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -2193,24 +1841,11 @@ __global__ static void kuiper_kernel_8(float *gA, float *gB, uint32_t k,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 64);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            float *rAcol;
-            float _cbuf13[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rAcol = _cbuf13;
-            float *rBrow;
-            float _cbuf15[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rBrow = _cbuf15;
+            float rAcol[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -2252,12 +1887,9 @@ __global__ static void kuiper_kernel_8(float *gA, float *gB, uint32_t k,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 64) {
         uint32_t ci0 = cctr;
@@ -2299,8 +1931,7 @@ __global__ static void kuiper_kernel_9(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    custard_bf16 *rchProd;
-    custard_bf16 _cbuf1[64] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
+    custard_bf16 rchProd[64] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -2322,7 +1953,6 @@ __global__ static void kuiper_kernel_9(custard_bf16 *gA, custard_bf16 *gB,
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 32);
     uint32_t mrow = (rest / num_n_tiles);
@@ -2331,27 +1961,16 @@ __global__ static void kuiper_kernel_9(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t threadCol = (tid % 4);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 2048;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_bf16 *local;
-            custard_bf16 _cbuf5[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            local = _cbuf5;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -2361,11 +1980,8 @@ __global__ static void kuiper_kernel_9(custard_bf16 *gA, custard_bf16 *gB,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 custard_bf16 v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -2379,21 +1995,15 @@ __global__ static void kuiper_kernel_9(custard_bf16 *gA, custard_bf16 *gB,
             i = (vi + 128);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 2048;
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_bf16 *local_1;
-            custard_bf16 _cbuf9[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            local_1 = _cbuf9;
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 32);
             uint32_t __anf03_1 = i1;
@@ -2403,11 +2013,8 @@ __global__ static void kuiper_kernel_9(custard_bf16 *gA, custard_bf16 *gB,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 8) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 custard_bf16 v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -2420,32 +2027,17 @@ __global__ static void kuiper_kernel_9(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 128);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            custard_bf16 *rAcol;
-            custard_bf16 _cbuf13[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rAcol[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            rAcol = _cbuf13;
-            custard_bf16 *rBrow;
-            custard_bf16 _cbuf15[8] = {CUSTARD_BF16_LIT(0U),
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
+            custard_bf16 rBrow[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            rBrow = _cbuf15;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -2488,12 +2080,9 @@ __global__ static void kuiper_kernel_9(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 64) {
         uint32_t ci0 = cctr;
@@ -2535,12 +2124,10 @@ __global__ static void kuiper_kernel_10(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float *rchProd;
-    float _cbuf1[128];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 128; _ci2++) {
-        _cbuf1[_ci2] = 0.0f;
+    float rchProd[128];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
+        rchProd[_ci1] = 0.0f;
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 32);
     uint32_t mrow = (rest / num_n_tiles);
@@ -2549,23 +2136,13 @@ __global__ static void kuiper_kernel_10(float *gA, float *gB, uint32_t k,
     uint32_t threadCol = (tid % 2);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 2048;
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            float *local;
-            float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local = _cbuf5;
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -2575,11 +2152,8 @@ __global__ static void kuiper_kernel_10(float *gA, float *gB, uint32_t k,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 float v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -2593,17 +2167,11 @@ __global__ static void kuiper_kernel_10(float *gA, float *gB, uint32_t k,
             i = (vi + 32);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 2048;
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            float *local_1;
-            float _cbuf9[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local_1 = _cbuf9;
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 32);
             uint32_t __anf03_1 = i1;
@@ -2613,11 +2181,8 @@ __global__ static void kuiper_kernel_10(float *gA, float *gB, uint32_t k,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 4) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 float v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -2630,25 +2195,12 @@ __global__ static void kuiper_kernel_10(float *gA, float *gB, uint32_t k,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 32);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            float *rAcol;
-            float _cbuf13[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rAcol = _cbuf13;
-            float *rBrow;
-            float _cbuf15[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            float rAcol[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rBrow = _cbuf15;
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -2690,12 +2242,9 @@ __global__ static void kuiper_kernel_10(float *gA, float *gB, uint32_t k,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 128) {
         uint32_t ci0 = cctr;
@@ -2737,12 +2286,10 @@ __global__ static void kuiper_kernel_11(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    custard_bf16 *rchProd;
-    custard_bf16 _cbuf1[128];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 128; _ci2++) {
-        _cbuf1[_ci2] = CUSTARD_BF16_LIT(0U);
+    custard_bf16 rchProd[128];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
+        rchProd[_ci1] = CUSTARD_BF16_LIT(0U);
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 32);
     uint32_t mrow = (rest / num_n_tiles);
@@ -2751,27 +2298,16 @@ __global__ static void kuiper_kernel_11(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t threadCol = (tid % 2);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 2048;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_bf16 *local;
-            custard_bf16 _cbuf5[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            local = _cbuf5;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -2781,11 +2317,8 @@ __global__ static void kuiper_kernel_11(custard_bf16 *gA, custard_bf16 *gB,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 custard_bf16 v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -2799,21 +2332,15 @@ __global__ static void kuiper_kernel_11(custard_bf16 *gA, custard_bf16 *gB,
             i = (vi + 64);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 2048;
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_bf16 *local_1;
-            custard_bf16 _cbuf9[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            local_1 = _cbuf9;
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 32);
             uint32_t __anf03_1 = i1;
@@ -2823,11 +2350,8 @@ __global__ static void kuiper_kernel_11(custard_bf16 *gA, custard_bf16 *gB,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 8) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 custard_bf16 v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -2840,27 +2364,14 @@ __global__ static void kuiper_kernel_11(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 64);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            custard_bf16 *rAcol;
-            custard_bf16 _cbuf13[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rAcol[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            rAcol = _cbuf13;
-            custard_bf16 *rBrow;
-            custard_bf16 _cbuf15[16] = {CUSTARD_BF16_LIT(0U),
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
+            custard_bf16 rBrow[16] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -2869,7 +2380,6 @@ __global__ static void kuiper_kernel_11(custard_bf16 *gA, custard_bf16 *gB,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            rBrow = _cbuf15;
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -2912,12 +2422,9 @@ __global__ static void kuiper_kernel_11(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 128) {
         uint32_t ci0 = cctr;
@@ -2959,12 +2466,10 @@ __global__ static void kuiper_kernel_12(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float *rchProd;
-    float _cbuf1[128];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 128; _ci2++) {
-        _cbuf1[_ci2] = 0.0f;
+    float rchProd[128];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
+        rchProd[_ci1] = 0.0f;
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 32);
     uint32_t mrow = (rest / num_n_tiles);
@@ -2973,23 +2478,13 @@ __global__ static void kuiper_kernel_12(float *gA, float *gB, uint32_t k,
     uint32_t threadCol = (tid % 4);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 2048;
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            float *local;
-            float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local = _cbuf5;
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -2999,11 +2494,8 @@ __global__ static void kuiper_kernel_12(float *gA, float *gB, uint32_t k,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 float v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -3017,17 +2509,11 @@ __global__ static void kuiper_kernel_12(float *gA, float *gB, uint32_t k,
             i = (vi + 32);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 2048;
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            float *local_1;
-            float _cbuf9[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local_1 = _cbuf9;
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 32);
             uint32_t __anf03_1 = i1;
@@ -3037,11 +2523,8 @@ __global__ static void kuiper_kernel_12(float *gA, float *gB, uint32_t k,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 4) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 float v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -3054,25 +2537,12 @@ __global__ static void kuiper_kernel_12(float *gA, float *gB, uint32_t k,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 32);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            float *rAcol;
-            float _cbuf13[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            float rAcol[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rAcol = _cbuf13;
-            float *rBrow;
-            float _cbuf15[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rBrow = _cbuf15;
+            float rBrow[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -3114,12 +2584,9 @@ __global__ static void kuiper_kernel_12(float *gA, float *gB, uint32_t k,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 128) {
         uint32_t ci0 = cctr;
@@ -3161,12 +2628,10 @@ __global__ static void kuiper_kernel_13(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    custard_bf16 *rchProd;
-    custard_bf16 _cbuf1[128];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 128; _ci2++) {
-        _cbuf1[_ci2] = CUSTARD_BF16_LIT(0U);
+    custard_bf16 rchProd[128];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
+        rchProd[_ci1] = CUSTARD_BF16_LIT(0U);
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 32);
     uint32_t mrow = (rest / num_n_tiles);
@@ -3175,27 +2640,16 @@ __global__ static void kuiper_kernel_13(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t threadCol = (tid % 4);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 2048;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_bf16 *local;
-            custard_bf16 _cbuf5[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            local = _cbuf5;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -3205,11 +2659,8 @@ __global__ static void kuiper_kernel_13(custard_bf16 *gA, custard_bf16 *gB,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 custard_bf16 v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -3223,21 +2674,15 @@ __global__ static void kuiper_kernel_13(custard_bf16 *gA, custard_bf16 *gB,
             i = (vi + 64);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 2048;
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_bf16 *local_1;
-            custard_bf16 _cbuf9[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            local_1 = _cbuf9;
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 32);
             uint32_t __anf03_1 = i1;
@@ -3247,11 +2692,8 @@ __global__ static void kuiper_kernel_13(custard_bf16 *gA, custard_bf16 *gB,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 8) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 custard_bf16 v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -3264,20 +2706,10 @@ __global__ static void kuiper_kernel_13(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 64);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            custard_bf16 *rAcol;
-            custard_bf16 _cbuf13[16] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rAcol[16] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -3286,14 +2718,10 @@ __global__ static void kuiper_kernel_13(custard_bf16 *gA, custard_bf16 *gB,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            rAcol = _cbuf13;
-            custard_bf16 *rBrow;
-            custard_bf16 _cbuf15[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rBrow[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            rBrow = _cbuf15;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -3336,12 +2764,9 @@ __global__ static void kuiper_kernel_13(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 128) {
         uint32_t ci0 = cctr;
@@ -3383,12 +2808,10 @@ __global__ static void kuiper_kernel_14(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float *rchProd;
-    float _cbuf1[256];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 256; _ci2++) {
-        _cbuf1[_ci2] = 0.0f;
+    float rchProd[256];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 256; _ci1++) {
+        rchProd[_ci1] = 0.0f;
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 32);
     uint32_t mrow = (rest / num_n_tiles);
@@ -3397,23 +2820,13 @@ __global__ static void kuiper_kernel_14(float *gA, float *gB, uint32_t k,
     uint32_t threadCol = (tid % 2);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 2048;
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            float *local;
-            float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local = _cbuf5;
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -3423,11 +2836,8 @@ __global__ static void kuiper_kernel_14(float *gA, float *gB, uint32_t k,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 float v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -3441,17 +2851,11 @@ __global__ static void kuiper_kernel_14(float *gA, float *gB, uint32_t k,
             i = (vi + 16);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 2048;
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            float *local_1;
-            float _cbuf9[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local_1 = _cbuf9;
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 32);
             uint32_t __anf03_1 = i1;
@@ -3461,11 +2865,8 @@ __global__ static void kuiper_kernel_14(float *gA, float *gB, uint32_t k,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 4) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 float v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -3478,26 +2879,13 @@ __global__ static void kuiper_kernel_14(float *gA, float *gB, uint32_t k,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 16);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            float *rAcol;
-            float _cbuf13[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            float rAcol[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rAcol = _cbuf13;
-            float *rBrow;
-            float _cbuf15[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            float rBrow[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rBrow = _cbuf15;
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -3539,12 +2927,9 @@ __global__ static void kuiper_kernel_14(float *gA, float *gB, uint32_t k,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 256) {
         uint32_t ci0 = cctr;
@@ -3586,12 +2971,10 @@ __global__ static void kuiper_kernel_15(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    custard_bf16 *rchProd;
-    custard_bf16 _cbuf1[256];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 256; _ci2++) {
-        _cbuf1[_ci2] = CUSTARD_BF16_LIT(0U);
+    custard_bf16 rchProd[256];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 256; _ci1++) {
+        rchProd[_ci1] = CUSTARD_BF16_LIT(0U);
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 32);
     uint32_t mrow = (rest / num_n_tiles);
@@ -3600,27 +2983,16 @@ __global__ static void kuiper_kernel_15(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t threadCol = (tid % 2);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 2048;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_bf16 *local;
-            custard_bf16 _cbuf5[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            local = _cbuf5;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -3630,11 +3002,8 @@ __global__ static void kuiper_kernel_15(custard_bf16 *gA, custard_bf16 *gB,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 custard_bf16 v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -3648,21 +3017,15 @@ __global__ static void kuiper_kernel_15(custard_bf16 *gA, custard_bf16 *gB,
             i = (vi + 32);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 2048;
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_bf16 *local_1;
-            custard_bf16 _cbuf9[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            local_1 = _cbuf9;
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 32);
             uint32_t __anf03_1 = i1;
@@ -3672,11 +3035,8 @@ __global__ static void kuiper_kernel_15(custard_bf16 *gA, custard_bf16 *gB,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 8) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 custard_bf16 v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -3689,20 +3049,10 @@ __global__ static void kuiper_kernel_15(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 32);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            custard_bf16 *rAcol;
-            custard_bf16 _cbuf13[16] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rAcol[16] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -3711,9 +3061,7 @@ __global__ static void kuiper_kernel_15(custard_bf16 *gA, custard_bf16 *gB,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            rAcol = _cbuf13;
-            custard_bf16 *rBrow;
-            custard_bf16 _cbuf15[16] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rBrow[16] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -3722,7 +3070,6 @@ __global__ static void kuiper_kernel_15(custard_bf16 *gA, custard_bf16 *gB,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            rBrow = _cbuf15;
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -3765,12 +3112,9 @@ __global__ static void kuiper_kernel_15(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 256) {
         uint32_t ci0 = cctr;
@@ -3812,14 +3156,12 @@ __global__ static void kuiper_kernel_16(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float *rchProd;
-    float _cbuf1[64] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+    float rchProd[64] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 64);
     uint32_t mrow = (rest / num_n_tiles);
@@ -3828,23 +3170,13 @@ __global__ static void kuiper_kernel_16(float *gA, float *gB, uint32_t k,
     uint32_t threadCol = (tid % 8);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 1024;
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            float *local;
-            float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local = _cbuf5;
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -3854,11 +3186,8 @@ __global__ static void kuiper_kernel_16(float *gA, float *gB, uint32_t k,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 float v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -3872,17 +3201,11 @@ __global__ static void kuiper_kernel_16(float *gA, float *gB, uint32_t k,
             i = (vi + 128);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 2048;
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            float *local_1;
-            float _cbuf9[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local_1 = _cbuf9;
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 64);
             uint32_t __anf03_1 = i1;
@@ -3892,11 +3215,8 @@ __global__ static void kuiper_kernel_16(float *gA, float *gB, uint32_t k,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 4) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 float v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -3909,24 +3229,11 @@ __global__ static void kuiper_kernel_16(float *gA, float *gB, uint32_t k,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 128);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            float *rAcol;
-            float _cbuf13[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rAcol = _cbuf13;
-            float *rBrow;
-            float _cbuf15[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rBrow = _cbuf15;
+            float rAcol[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -3968,12 +3275,9 @@ __global__ static void kuiper_kernel_16(float *gA, float *gB, uint32_t k,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 64) {
         uint32_t ci0 = cctr;
@@ -4015,8 +3319,7 @@ __global__ static void kuiper_kernel_17(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    custard_bf16 *rchProd;
-    custard_bf16 _cbuf1[64] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
+    custard_bf16 rchProd[64] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -4038,7 +3341,6 @@ __global__ static void kuiper_kernel_17(custard_bf16 *gA, custard_bf16 *gB,
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 64);
     uint32_t mrow = (rest / num_n_tiles);
@@ -4047,27 +3349,16 @@ __global__ static void kuiper_kernel_17(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t threadCol = (tid % 8);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 1024;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_bf16 *local;
-            custard_bf16 _cbuf5[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            local = _cbuf5;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -4077,11 +3368,8 @@ __global__ static void kuiper_kernel_17(custard_bf16 *gA, custard_bf16 *gB,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 custard_bf16 v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -4095,21 +3383,15 @@ __global__ static void kuiper_kernel_17(custard_bf16 *gA, custard_bf16 *gB,
             i = (vi + 256);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 2048;
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_bf16 *local_1;
-            custard_bf16 _cbuf9[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            local_1 = _cbuf9;
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 64);
             uint32_t __anf03_1 = i1;
@@ -4119,11 +3401,8 @@ __global__ static void kuiper_kernel_17(custard_bf16 *gA, custard_bf16 *gB,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 8) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 custard_bf16 v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -4136,32 +3415,17 @@ __global__ static void kuiper_kernel_17(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 256);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            custard_bf16 *rAcol;
-            custard_bf16 _cbuf13[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rAcol[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            rAcol = _cbuf13;
-            custard_bf16 *rBrow;
-            custard_bf16 _cbuf15[8] = {CUSTARD_BF16_LIT(0U),
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
+            custard_bf16 rBrow[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            rBrow = _cbuf15;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -4204,12 +3468,9 @@ __global__ static void kuiper_kernel_17(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 64) {
         uint32_t ci0 = cctr;
@@ -4251,12 +3512,10 @@ __global__ static void kuiper_kernel_18(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float *rchProd;
-    float _cbuf1[128];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 128; _ci2++) {
-        _cbuf1[_ci2] = 0.0f;
+    float rchProd[128];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
+        rchProd[_ci1] = 0.0f;
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 64);
     uint32_t mrow = (rest / num_n_tiles);
@@ -4265,23 +3524,13 @@ __global__ static void kuiper_kernel_18(float *gA, float *gB, uint32_t k,
     uint32_t threadCol = (tid % 4);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 1024;
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            float *local;
-            float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local = _cbuf5;
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -4291,11 +3540,8 @@ __global__ static void kuiper_kernel_18(float *gA, float *gB, uint32_t k,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 float v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -4309,17 +3555,11 @@ __global__ static void kuiper_kernel_18(float *gA, float *gB, uint32_t k,
             i = (vi + 64);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 2048;
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            float *local_1;
-            float _cbuf9[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local_1 = _cbuf9;
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 64);
             uint32_t __anf03_1 = i1;
@@ -4329,11 +3569,8 @@ __global__ static void kuiper_kernel_18(float *gA, float *gB, uint32_t k,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 4) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 float v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -4346,25 +3583,12 @@ __global__ static void kuiper_kernel_18(float *gA, float *gB, uint32_t k,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 64);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            float *rAcol;
-            float _cbuf13[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rAcol = _cbuf13;
-            float *rBrow;
-            float _cbuf15[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            float rAcol[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rBrow = _cbuf15;
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -4406,12 +3630,9 @@ __global__ static void kuiper_kernel_18(float *gA, float *gB, uint32_t k,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 128) {
         uint32_t ci0 = cctr;
@@ -4453,12 +3674,10 @@ __global__ static void kuiper_kernel_19(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    custard_bf16 *rchProd;
-    custard_bf16 _cbuf1[128];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 128; _ci2++) {
-        _cbuf1[_ci2] = CUSTARD_BF16_LIT(0U);
+    custard_bf16 rchProd[128];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
+        rchProd[_ci1] = CUSTARD_BF16_LIT(0U);
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 64);
     uint32_t mrow = (rest / num_n_tiles);
@@ -4467,27 +3686,16 @@ __global__ static void kuiper_kernel_19(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t threadCol = (tid % 4);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 1024;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_bf16 *local;
-            custard_bf16 _cbuf5[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            local = _cbuf5;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -4497,11 +3705,8 @@ __global__ static void kuiper_kernel_19(custard_bf16 *gA, custard_bf16 *gB,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 custard_bf16 v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -4515,21 +3720,15 @@ __global__ static void kuiper_kernel_19(custard_bf16 *gA, custard_bf16 *gB,
             i = (vi + 128);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 2048;
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_bf16 *local_1;
-            custard_bf16 _cbuf9[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            local_1 = _cbuf9;
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 64);
             uint32_t __anf03_1 = i1;
@@ -4539,11 +3738,8 @@ __global__ static void kuiper_kernel_19(custard_bf16 *gA, custard_bf16 *gB,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 8) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 custard_bf16 v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -4556,27 +3752,14 @@ __global__ static void kuiper_kernel_19(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 128);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            custard_bf16 *rAcol;
-            custard_bf16 _cbuf13[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rAcol[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            rAcol = _cbuf13;
-            custard_bf16 *rBrow;
-            custard_bf16 _cbuf15[16] = {CUSTARD_BF16_LIT(0U),
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
+            custard_bf16 rBrow[16] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -4585,7 +3768,6 @@ __global__ static void kuiper_kernel_19(custard_bf16 *gA, custard_bf16 *gB,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            rBrow = _cbuf15;
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -4628,12 +3810,9 @@ __global__ static void kuiper_kernel_19(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 128) {
         uint32_t ci0 = cctr;
@@ -4675,12 +3854,10 @@ __global__ static void kuiper_kernel_20(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float *rchProd;
-    float _cbuf1[128];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 128; _ci2++) {
-        _cbuf1[_ci2] = 0.0f;
+    float rchProd[128];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
+        rchProd[_ci1] = 0.0f;
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 64);
     uint32_t mrow = (rest / num_n_tiles);
@@ -4689,23 +3866,13 @@ __global__ static void kuiper_kernel_20(float *gA, float *gB, uint32_t k,
     uint32_t threadCol = (tid % 8);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 1024;
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            float *local;
-            float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local = _cbuf5;
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -4715,11 +3882,8 @@ __global__ static void kuiper_kernel_20(float *gA, float *gB, uint32_t k,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 float v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -4733,17 +3897,11 @@ __global__ static void kuiper_kernel_20(float *gA, float *gB, uint32_t k,
             i = (vi + 64);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 2048;
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            float *local_1;
-            float _cbuf9[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local_1 = _cbuf9;
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 64);
             uint32_t __anf03_1 = i1;
@@ -4753,11 +3911,8 @@ __global__ static void kuiper_kernel_20(float *gA, float *gB, uint32_t k,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 4) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 float v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -4770,25 +3925,12 @@ __global__ static void kuiper_kernel_20(float *gA, float *gB, uint32_t k,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 64);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            float *rAcol;
-            float _cbuf13[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            float rAcol[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rAcol = _cbuf13;
-            float *rBrow;
-            float _cbuf15[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rBrow = _cbuf15;
+            float rBrow[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -4830,12 +3972,9 @@ __global__ static void kuiper_kernel_20(float *gA, float *gB, uint32_t k,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 128) {
         uint32_t ci0 = cctr;
@@ -4877,12 +4016,10 @@ __global__ static void kuiper_kernel_21(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    custard_bf16 *rchProd;
-    custard_bf16 _cbuf1[128];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 128; _ci2++) {
-        _cbuf1[_ci2] = CUSTARD_BF16_LIT(0U);
+    custard_bf16 rchProd[128];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
+        rchProd[_ci1] = CUSTARD_BF16_LIT(0U);
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 64);
     uint32_t mrow = (rest / num_n_tiles);
@@ -4891,27 +4028,16 @@ __global__ static void kuiper_kernel_21(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t threadCol = (tid % 8);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 1024;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_bf16 *local;
-            custard_bf16 _cbuf5[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            local = _cbuf5;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -4921,11 +4047,8 @@ __global__ static void kuiper_kernel_21(custard_bf16 *gA, custard_bf16 *gB,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 custard_bf16 v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -4939,21 +4062,15 @@ __global__ static void kuiper_kernel_21(custard_bf16 *gA, custard_bf16 *gB,
             i = (vi + 128);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 2048;
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_bf16 *local_1;
-            custard_bf16 _cbuf9[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            local_1 = _cbuf9;
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 64);
             uint32_t __anf03_1 = i1;
@@ -4963,11 +4080,8 @@ __global__ static void kuiper_kernel_21(custard_bf16 *gA, custard_bf16 *gB,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 8) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 custard_bf16 v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -4980,20 +4094,10 @@ __global__ static void kuiper_kernel_21(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 128);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            custard_bf16 *rAcol;
-            custard_bf16 _cbuf13[16] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rAcol[16] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -5002,14 +4106,10 @@ __global__ static void kuiper_kernel_21(custard_bf16 *gA, custard_bf16 *gB,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            rAcol = _cbuf13;
-            custard_bf16 *rBrow;
-            custard_bf16 _cbuf15[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rBrow[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            rBrow = _cbuf15;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -5052,12 +4152,9 @@ __global__ static void kuiper_kernel_21(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 128) {
         uint32_t ci0 = cctr;
@@ -5099,12 +4196,10 @@ __global__ static void kuiper_kernel_22(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float *rchProd;
-    float _cbuf1[256];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 256; _ci2++) {
-        _cbuf1[_ci2] = 0.0f;
+    float rchProd[256];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 256; _ci1++) {
+        rchProd[_ci1] = 0.0f;
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 64);
     uint32_t mrow = (rest / num_n_tiles);
@@ -5113,23 +4208,13 @@ __global__ static void kuiper_kernel_22(float *gA, float *gB, uint32_t k,
     uint32_t threadCol = (tid % 4);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 1024;
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            float *local;
-            float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local = _cbuf5;
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -5139,11 +4224,8 @@ __global__ static void kuiper_kernel_22(float *gA, float *gB, uint32_t k,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 float v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -5157,17 +4239,11 @@ __global__ static void kuiper_kernel_22(float *gA, float *gB, uint32_t k,
             i = (vi + 32);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 2048;
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            float *local_1;
-            float _cbuf9[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local_1 = _cbuf9;
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 64);
             uint32_t __anf03_1 = i1;
@@ -5177,11 +4253,8 @@ __global__ static void kuiper_kernel_22(float *gA, float *gB, uint32_t k,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 4) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 float v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -5194,26 +4267,13 @@ __global__ static void kuiper_kernel_22(float *gA, float *gB, uint32_t k,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 32);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            float *rAcol;
-            float _cbuf13[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            float rAcol[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rAcol = _cbuf13;
-            float *rBrow;
-            float _cbuf15[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            float rBrow[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rBrow = _cbuf15;
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -5255,12 +4315,9 @@ __global__ static void kuiper_kernel_22(float *gA, float *gB, uint32_t k,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 256) {
         uint32_t ci0 = cctr;
@@ -5302,12 +4359,10 @@ __global__ static void kuiper_kernel_23(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    custard_bf16 *rchProd;
-    custard_bf16 _cbuf1[256];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 256; _ci2++) {
-        _cbuf1[_ci2] = CUSTARD_BF16_LIT(0U);
+    custard_bf16 rchProd[256];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 256; _ci1++) {
+        rchProd[_ci1] = CUSTARD_BF16_LIT(0U);
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 64);
     uint32_t mrow = (rest / num_n_tiles);
@@ -5316,27 +4371,16 @@ __global__ static void kuiper_kernel_23(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t threadCol = (tid % 4);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 1024;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_bf16 *local;
-            custard_bf16 _cbuf5[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            local = _cbuf5;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -5346,11 +4390,8 @@ __global__ static void kuiper_kernel_23(custard_bf16 *gA, custard_bf16 *gB,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 custard_bf16 v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -5364,21 +4405,15 @@ __global__ static void kuiper_kernel_23(custard_bf16 *gA, custard_bf16 *gB,
             i = (vi + 64);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 2048;
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_bf16 *local_1;
-            custard_bf16 _cbuf9[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            local_1 = _cbuf9;
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 64);
             uint32_t __anf03_1 = i1;
@@ -5388,11 +4423,8 @@ __global__ static void kuiper_kernel_23(custard_bf16 *gA, custard_bf16 *gB,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 8) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 custard_bf16 v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -5405,20 +4437,10 @@ __global__ static void kuiper_kernel_23(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 64);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            custard_bf16 *rAcol;
-            custard_bf16 _cbuf13[16] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rAcol[16] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -5427,9 +4449,7 @@ __global__ static void kuiper_kernel_23(custard_bf16 *gA, custard_bf16 *gB,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            rAcol = _cbuf13;
-            custard_bf16 *rBrow;
-            custard_bf16 _cbuf15[16] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rBrow[16] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -5438,7 +4458,6 @@ __global__ static void kuiper_kernel_23(custard_bf16 *gA, custard_bf16 *gB,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            rBrow = _cbuf15;
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -5481,12 +4500,9 @@ __global__ static void kuiper_kernel_23(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 256) {
         uint32_t ci0 = cctr;
@@ -5528,14 +4544,12 @@ __global__ static void kuiper_kernel_24(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float *rchProd;
-    float _cbuf1[64] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+    float rchProd[64] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 64);
     uint32_t mrow = (rest / num_n_tiles);
@@ -5544,23 +4558,13 @@ __global__ static void kuiper_kernel_24(float *gA, float *gB, uint32_t k,
     uint32_t threadCol = (tid % 8);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 2048;
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            float *local;
-            float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local = _cbuf5;
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -5570,11 +4574,8 @@ __global__ static void kuiper_kernel_24(float *gA, float *gB, uint32_t k,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 float v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -5588,17 +4589,11 @@ __global__ static void kuiper_kernel_24(float *gA, float *gB, uint32_t k,
             i = (vi + 128);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 4096;
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            float *local_1;
-            float _cbuf9[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local_1 = _cbuf9;
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 64);
             uint32_t __anf03_1 = i1;
@@ -5608,11 +4603,8 @@ __global__ static void kuiper_kernel_24(float *gA, float *gB, uint32_t k,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 4) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 float v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -5625,24 +4617,11 @@ __global__ static void kuiper_kernel_24(float *gA, float *gB, uint32_t k,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 128);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            float *rAcol;
-            float _cbuf13[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rAcol = _cbuf13;
-            float *rBrow;
-            float _cbuf15[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rBrow = _cbuf15;
+            float rAcol[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -5684,12 +4663,9 @@ __global__ static void kuiper_kernel_24(float *gA, float *gB, uint32_t k,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 64) {
         uint32_t ci0 = cctr;
@@ -5731,8 +4707,7 @@ __global__ static void kuiper_kernel_25(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    custard_bf16 *rchProd;
-    custard_bf16 _cbuf1[64] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
+    custard_bf16 rchProd[64] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -5754,7 +4729,6 @@ __global__ static void kuiper_kernel_25(custard_bf16 *gA, custard_bf16 *gB,
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 64);
     uint32_t mrow = (rest / num_n_tiles);
@@ -5763,27 +4737,16 @@ __global__ static void kuiper_kernel_25(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t threadCol = (tid % 8);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 2048;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_bf16 *local;
-            custard_bf16 _cbuf5[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            local = _cbuf5;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -5793,11 +4756,8 @@ __global__ static void kuiper_kernel_25(custard_bf16 *gA, custard_bf16 *gB,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 custard_bf16 v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -5811,21 +4771,15 @@ __global__ static void kuiper_kernel_25(custard_bf16 *gA, custard_bf16 *gB,
             i = (vi + 256);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 4096;
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_bf16 *local_1;
-            custard_bf16 _cbuf9[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            local_1 = _cbuf9;
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 64);
             uint32_t __anf03_1 = i1;
@@ -5835,11 +4789,8 @@ __global__ static void kuiper_kernel_25(custard_bf16 *gA, custard_bf16 *gB,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 8) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 custard_bf16 v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -5852,32 +4803,17 @@ __global__ static void kuiper_kernel_25(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 256);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            custard_bf16 *rAcol;
-            custard_bf16 _cbuf13[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rAcol[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            rAcol = _cbuf13;
-            custard_bf16 *rBrow;
-            custard_bf16 _cbuf15[8] = {CUSTARD_BF16_LIT(0U),
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
+            custard_bf16 rBrow[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            rBrow = _cbuf15;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -5920,12 +4856,9 @@ __global__ static void kuiper_kernel_25(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 64) {
         uint32_t ci0 = cctr;
@@ -5967,12 +4900,10 @@ __global__ static void kuiper_kernel_26(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float *rchProd;
-    float _cbuf1[128];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 128; _ci2++) {
-        _cbuf1[_ci2] = 0.0f;
+    float rchProd[128];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
+        rchProd[_ci1] = 0.0f;
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 64);
     uint32_t mrow = (rest / num_n_tiles);
@@ -5981,23 +4912,13 @@ __global__ static void kuiper_kernel_26(float *gA, float *gB, uint32_t k,
     uint32_t threadCol = (tid % 4);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 2048;
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            float *local;
-            float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local = _cbuf5;
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -6007,11 +4928,8 @@ __global__ static void kuiper_kernel_26(float *gA, float *gB, uint32_t k,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 float v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -6025,17 +4943,11 @@ __global__ static void kuiper_kernel_26(float *gA, float *gB, uint32_t k,
             i = (vi + 64);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 4096;
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            float *local_1;
-            float _cbuf9[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local_1 = _cbuf9;
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 64);
             uint32_t __anf03_1 = i1;
@@ -6045,11 +4957,8 @@ __global__ static void kuiper_kernel_26(float *gA, float *gB, uint32_t k,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 4) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 float v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -6062,25 +4971,12 @@ __global__ static void kuiper_kernel_26(float *gA, float *gB, uint32_t k,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 64);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            float *rAcol;
-            float _cbuf13[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rAcol = _cbuf13;
-            float *rBrow;
-            float _cbuf15[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            float rAcol[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rBrow = _cbuf15;
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -6122,12 +5018,9 @@ __global__ static void kuiper_kernel_26(float *gA, float *gB, uint32_t k,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 128) {
         uint32_t ci0 = cctr;
@@ -6169,12 +5062,10 @@ __global__ static void kuiper_kernel_27(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    custard_bf16 *rchProd;
-    custard_bf16 _cbuf1[128];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 128; _ci2++) {
-        _cbuf1[_ci2] = CUSTARD_BF16_LIT(0U);
+    custard_bf16 rchProd[128];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
+        rchProd[_ci1] = CUSTARD_BF16_LIT(0U);
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 64);
     uint32_t mrow = (rest / num_n_tiles);
@@ -6183,27 +5074,16 @@ __global__ static void kuiper_kernel_27(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t threadCol = (tid % 4);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 2048;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_bf16 *local;
-            custard_bf16 _cbuf5[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            local = _cbuf5;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -6213,11 +5093,8 @@ __global__ static void kuiper_kernel_27(custard_bf16 *gA, custard_bf16 *gB,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 custard_bf16 v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -6231,21 +5108,15 @@ __global__ static void kuiper_kernel_27(custard_bf16 *gA, custard_bf16 *gB,
             i = (vi + 128);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 4096;
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_bf16 *local_1;
-            custard_bf16 _cbuf9[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            local_1 = _cbuf9;
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 64);
             uint32_t __anf03_1 = i1;
@@ -6255,11 +5126,8 @@ __global__ static void kuiper_kernel_27(custard_bf16 *gA, custard_bf16 *gB,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 8) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 custard_bf16 v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -6272,27 +5140,14 @@ __global__ static void kuiper_kernel_27(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 128);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            custard_bf16 *rAcol;
-            custard_bf16 _cbuf13[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rAcol[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            rAcol = _cbuf13;
-            custard_bf16 *rBrow;
-            custard_bf16 _cbuf15[16] = {CUSTARD_BF16_LIT(0U),
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
+            custard_bf16 rBrow[16] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -6301,7 +5156,6 @@ __global__ static void kuiper_kernel_27(custard_bf16 *gA, custard_bf16 *gB,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            rBrow = _cbuf15;
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -6344,12 +5198,9 @@ __global__ static void kuiper_kernel_27(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 128) {
         uint32_t ci0 = cctr;
@@ -6391,12 +5242,10 @@ __global__ static void kuiper_kernel_28(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float *rchProd;
-    float _cbuf1[128];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 128; _ci2++) {
-        _cbuf1[_ci2] = 0.0f;
+    float rchProd[128];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
+        rchProd[_ci1] = 0.0f;
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 64);
     uint32_t mrow = (rest / num_n_tiles);
@@ -6405,23 +5254,13 @@ __global__ static void kuiper_kernel_28(float *gA, float *gB, uint32_t k,
     uint32_t threadCol = (tid % 8);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 2048;
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            float *local;
-            float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local = _cbuf5;
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -6431,11 +5270,8 @@ __global__ static void kuiper_kernel_28(float *gA, float *gB, uint32_t k,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 float v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -6449,17 +5285,11 @@ __global__ static void kuiper_kernel_28(float *gA, float *gB, uint32_t k,
             i = (vi + 64);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 4096;
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            float *local_1;
-            float _cbuf9[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local_1 = _cbuf9;
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 64);
             uint32_t __anf03_1 = i1;
@@ -6469,11 +5299,8 @@ __global__ static void kuiper_kernel_28(float *gA, float *gB, uint32_t k,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 4) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 float v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -6486,25 +5313,12 @@ __global__ static void kuiper_kernel_28(float *gA, float *gB, uint32_t k,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 64);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            float *rAcol;
-            float _cbuf13[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            float rAcol[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rAcol = _cbuf13;
-            float *rBrow;
-            float _cbuf15[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rBrow = _cbuf15;
+            float rBrow[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -6546,12 +5360,9 @@ __global__ static void kuiper_kernel_28(float *gA, float *gB, uint32_t k,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 128) {
         uint32_t ci0 = cctr;
@@ -6593,12 +5404,10 @@ __global__ static void kuiper_kernel_29(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    custard_bf16 *rchProd;
-    custard_bf16 _cbuf1[128];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 128; _ci2++) {
-        _cbuf1[_ci2] = CUSTARD_BF16_LIT(0U);
+    custard_bf16 rchProd[128];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
+        rchProd[_ci1] = CUSTARD_BF16_LIT(0U);
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 64);
     uint32_t mrow = (rest / num_n_tiles);
@@ -6607,27 +5416,16 @@ __global__ static void kuiper_kernel_29(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t threadCol = (tid % 8);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 2048;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_bf16 *local;
-            custard_bf16 _cbuf5[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            local = _cbuf5;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -6637,11 +5435,8 @@ __global__ static void kuiper_kernel_29(custard_bf16 *gA, custard_bf16 *gB,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 custard_bf16 v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -6655,21 +5450,15 @@ __global__ static void kuiper_kernel_29(custard_bf16 *gA, custard_bf16 *gB,
             i = (vi + 128);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 4096;
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_bf16 *local_1;
-            custard_bf16 _cbuf9[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            local_1 = _cbuf9;
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 64);
             uint32_t __anf03_1 = i1;
@@ -6679,11 +5468,8 @@ __global__ static void kuiper_kernel_29(custard_bf16 *gA, custard_bf16 *gB,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 8) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 custard_bf16 v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -6696,20 +5482,10 @@ __global__ static void kuiper_kernel_29(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 128);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            custard_bf16 *rAcol;
-            custard_bf16 _cbuf13[16] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rAcol[16] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -6718,14 +5494,10 @@ __global__ static void kuiper_kernel_29(custard_bf16 *gA, custard_bf16 *gB,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            rAcol = _cbuf13;
-            custard_bf16 *rBrow;
-            custard_bf16 _cbuf15[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rBrow[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            rBrow = _cbuf15;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -6768,12 +5540,9 @@ __global__ static void kuiper_kernel_29(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 128) {
         uint32_t ci0 = cctr;
@@ -6815,12 +5584,10 @@ __global__ static void kuiper_kernel_30(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float *rchProd;
-    float _cbuf1[256];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 256; _ci2++) {
-        _cbuf1[_ci2] = 0.0f;
+    float rchProd[256];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 256; _ci1++) {
+        rchProd[_ci1] = 0.0f;
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 64);
     uint32_t mrow = (rest / num_n_tiles);
@@ -6829,23 +5596,13 @@ __global__ static void kuiper_kernel_30(float *gA, float *gB, uint32_t k,
     uint32_t threadCol = (tid % 4);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 2048;
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            float *local;
-            float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local = _cbuf5;
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -6855,11 +5612,8 @@ __global__ static void kuiper_kernel_30(float *gA, float *gB, uint32_t k,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 float v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -6873,17 +5627,11 @@ __global__ static void kuiper_kernel_30(float *gA, float *gB, uint32_t k,
             i = (vi + 32);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 4096;
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            float *local_1;
-            float _cbuf9[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local_1 = _cbuf9;
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 64);
             uint32_t __anf03_1 = i1;
@@ -6893,11 +5641,8 @@ __global__ static void kuiper_kernel_30(float *gA, float *gB, uint32_t k,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 4) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 float v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -6910,26 +5655,13 @@ __global__ static void kuiper_kernel_30(float *gA, float *gB, uint32_t k,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 32);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            float *rAcol;
-            float _cbuf13[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            float rAcol[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rAcol = _cbuf13;
-            float *rBrow;
-            float _cbuf15[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            float rBrow[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rBrow = _cbuf15;
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -6971,12 +5703,9 @@ __global__ static void kuiper_kernel_30(float *gA, float *gB, uint32_t k,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 256) {
         uint32_t ci0 = cctr;
@@ -7018,12 +5747,10 @@ __global__ static void kuiper_kernel_31(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    custard_bf16 *rchProd;
-    custard_bf16 _cbuf1[256];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 256; _ci2++) {
-        _cbuf1[_ci2] = CUSTARD_BF16_LIT(0U);
+    custard_bf16 rchProd[256];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 256; _ci1++) {
+        rchProd[_ci1] = CUSTARD_BF16_LIT(0U);
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 64);
     uint32_t mrow = (rest / num_n_tiles);
@@ -7032,27 +5759,16 @@ __global__ static void kuiper_kernel_31(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t threadCol = (tid % 4);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 2048;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_bf16 *local;
-            custard_bf16 _cbuf5[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            local = _cbuf5;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -7062,11 +5778,8 @@ __global__ static void kuiper_kernel_31(custard_bf16 *gA, custard_bf16 *gB,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 custard_bf16 v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -7080,21 +5793,15 @@ __global__ static void kuiper_kernel_31(custard_bf16 *gA, custard_bf16 *gB,
             i = (vi + 64);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 4096;
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_bf16 *local_1;
-            custard_bf16 _cbuf9[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            local_1 = _cbuf9;
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 64);
             uint32_t __anf03_1 = i1;
@@ -7104,11 +5811,8 @@ __global__ static void kuiper_kernel_31(custard_bf16 *gA, custard_bf16 *gB,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 8) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 custard_bf16 v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -7121,20 +5825,10 @@ __global__ static void kuiper_kernel_31(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 64);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            custard_bf16 *rAcol;
-            custard_bf16 _cbuf13[16] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rAcol[16] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -7143,9 +5837,7 @@ __global__ static void kuiper_kernel_31(custard_bf16 *gA, custard_bf16 *gB,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            rAcol = _cbuf13;
-            custard_bf16 *rBrow;
-            custard_bf16 _cbuf15[16] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rBrow[16] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -7154,7 +5846,6 @@ __global__ static void kuiper_kernel_31(custard_bf16 *gA, custard_bf16 *gB,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            rBrow = _cbuf15;
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -7197,12 +5888,9 @@ __global__ static void kuiper_kernel_31(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 256) {
         uint32_t ci0 = cctr;
@@ -7244,14 +5932,12 @@ __global__ static void kuiper_kernel_32(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float *rchProd;
-    float _cbuf1[64] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+    float rchProd[64] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 128);
     uint32_t mrow = (rest / num_n_tiles);
@@ -7260,23 +5946,13 @@ __global__ static void kuiper_kernel_32(float *gA, float *gB, uint32_t k,
     uint32_t threadCol = (tid % 16);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 1024;
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            float *local;
-            float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local = _cbuf5;
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -7286,11 +5962,8 @@ __global__ static void kuiper_kernel_32(float *gA, float *gB, uint32_t k,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 float v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -7304,17 +5977,11 @@ __global__ static void kuiper_kernel_32(float *gA, float *gB, uint32_t k,
             i = (vi + 256);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 4096;
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            float *local_1;
-            float _cbuf9[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local_1 = _cbuf9;
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 128);
             uint32_t __anf03_1 = i1;
@@ -7324,11 +5991,8 @@ __global__ static void kuiper_kernel_32(float *gA, float *gB, uint32_t k,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 4) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 float v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -7341,24 +6005,11 @@ __global__ static void kuiper_kernel_32(float *gA, float *gB, uint32_t k,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 256);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            float *rAcol;
-            float _cbuf13[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rAcol = _cbuf13;
-            float *rBrow;
-            float _cbuf15[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rBrow = _cbuf15;
+            float rAcol[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -7400,12 +6051,9 @@ __global__ static void kuiper_kernel_32(float *gA, float *gB, uint32_t k,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 64) {
         uint32_t ci0 = cctr;
@@ -7447,8 +6095,7 @@ __global__ static void kuiper_kernel_33(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    custard_bf16 *rchProd;
-    custard_bf16 _cbuf1[64] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
+    custard_bf16 rchProd[64] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -7470,7 +6117,6 @@ __global__ static void kuiper_kernel_33(custard_bf16 *gA, custard_bf16 *gB,
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 128);
     uint32_t mrow = (rest / num_n_tiles);
@@ -7479,27 +6125,16 @@ __global__ static void kuiper_kernel_33(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t threadCol = (tid % 16);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 1024;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_bf16 *local;
-            custard_bf16 _cbuf5[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            local = _cbuf5;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -7509,11 +6144,8 @@ __global__ static void kuiper_kernel_33(custard_bf16 *gA, custard_bf16 *gB,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 custard_bf16 v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -7527,21 +6159,15 @@ __global__ static void kuiper_kernel_33(custard_bf16 *gA, custard_bf16 *gB,
             i = (vi + 512);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 4096;
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_bf16 *local_1;
-            custard_bf16 _cbuf9[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            local_1 = _cbuf9;
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 128);
             uint32_t __anf03_1 = i1;
@@ -7551,11 +6177,8 @@ __global__ static void kuiper_kernel_33(custard_bf16 *gA, custard_bf16 *gB,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 8) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 custard_bf16 v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -7568,32 +6191,17 @@ __global__ static void kuiper_kernel_33(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 512);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            custard_bf16 *rAcol;
-            custard_bf16 _cbuf13[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rAcol[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            rAcol = _cbuf13;
-            custard_bf16 *rBrow;
-            custard_bf16 _cbuf15[8] = {CUSTARD_BF16_LIT(0U),
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
+            custard_bf16 rBrow[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            rBrow = _cbuf15;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -7636,12 +6244,9 @@ __global__ static void kuiper_kernel_33(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 64) {
         uint32_t ci0 = cctr;
@@ -7683,12 +6288,10 @@ __global__ static void kuiper_kernel_34(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float *rchProd;
-    float _cbuf1[128];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 128; _ci2++) {
-        _cbuf1[_ci2] = 0.0f;
+    float rchProd[128];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
+        rchProd[_ci1] = 0.0f;
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 128);
     uint32_t mrow = (rest / num_n_tiles);
@@ -7697,23 +6300,13 @@ __global__ static void kuiper_kernel_34(float *gA, float *gB, uint32_t k,
     uint32_t threadCol = (tid % 8);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 1024;
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            float *local;
-            float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local = _cbuf5;
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -7723,11 +6316,8 @@ __global__ static void kuiper_kernel_34(float *gA, float *gB, uint32_t k,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 float v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -7741,17 +6331,11 @@ __global__ static void kuiper_kernel_34(float *gA, float *gB, uint32_t k,
             i = (vi + 128);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 4096;
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            float *local_1;
-            float _cbuf9[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local_1 = _cbuf9;
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 128);
             uint32_t __anf03_1 = i1;
@@ -7761,11 +6345,8 @@ __global__ static void kuiper_kernel_34(float *gA, float *gB, uint32_t k,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 4) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 float v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -7778,25 +6359,12 @@ __global__ static void kuiper_kernel_34(float *gA, float *gB, uint32_t k,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 128);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            float *rAcol;
-            float _cbuf13[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rAcol = _cbuf13;
-            float *rBrow;
-            float _cbuf15[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            float rAcol[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rBrow = _cbuf15;
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -7838,12 +6406,9 @@ __global__ static void kuiper_kernel_34(float *gA, float *gB, uint32_t k,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 128) {
         uint32_t ci0 = cctr;
@@ -7885,12 +6450,10 @@ __global__ static void kuiper_kernel_35(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    custard_bf16 *rchProd;
-    custard_bf16 _cbuf1[128];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 128; _ci2++) {
-        _cbuf1[_ci2] = CUSTARD_BF16_LIT(0U);
+    custard_bf16 rchProd[128];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
+        rchProd[_ci1] = CUSTARD_BF16_LIT(0U);
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 128);
     uint32_t mrow = (rest / num_n_tiles);
@@ -7899,27 +6462,16 @@ __global__ static void kuiper_kernel_35(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t threadCol = (tid % 8);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 1024;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_bf16 *local;
-            custard_bf16 _cbuf5[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            local = _cbuf5;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -7929,11 +6481,8 @@ __global__ static void kuiper_kernel_35(custard_bf16 *gA, custard_bf16 *gB,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 custard_bf16 v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -7947,21 +6496,15 @@ __global__ static void kuiper_kernel_35(custard_bf16 *gA, custard_bf16 *gB,
             i = (vi + 256);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 4096;
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_bf16 *local_1;
-            custard_bf16 _cbuf9[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            local_1 = _cbuf9;
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 128);
             uint32_t __anf03_1 = i1;
@@ -7971,11 +6514,8 @@ __global__ static void kuiper_kernel_35(custard_bf16 *gA, custard_bf16 *gB,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 8) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 custard_bf16 v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -7988,27 +6528,14 @@ __global__ static void kuiper_kernel_35(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 256);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            custard_bf16 *rAcol;
-            custard_bf16 _cbuf13[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rAcol[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            rAcol = _cbuf13;
-            custard_bf16 *rBrow;
-            custard_bf16 _cbuf15[16] = {CUSTARD_BF16_LIT(0U),
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
+            custard_bf16 rBrow[16] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -8017,7 +6544,6 @@ __global__ static void kuiper_kernel_35(custard_bf16 *gA, custard_bf16 *gB,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            rBrow = _cbuf15;
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -8060,12 +6586,9 @@ __global__ static void kuiper_kernel_35(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 128) {
         uint32_t ci0 = cctr;
@@ -8107,12 +6630,10 @@ __global__ static void kuiper_kernel_36(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float *rchProd;
-    float _cbuf1[128];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 128; _ci2++) {
-        _cbuf1[_ci2] = 0.0f;
+    float rchProd[128];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
+        rchProd[_ci1] = 0.0f;
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 128);
     uint32_t mrow = (rest / num_n_tiles);
@@ -8121,23 +6642,13 @@ __global__ static void kuiper_kernel_36(float *gA, float *gB, uint32_t k,
     uint32_t threadCol = (tid % 16);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 1024;
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            float *local;
-            float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local = _cbuf5;
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -8147,11 +6658,8 @@ __global__ static void kuiper_kernel_36(float *gA, float *gB, uint32_t k,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 float v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -8165,17 +6673,11 @@ __global__ static void kuiper_kernel_36(float *gA, float *gB, uint32_t k,
             i = (vi + 128);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 4096;
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            float *local_1;
-            float _cbuf9[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local_1 = _cbuf9;
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 128);
             uint32_t __anf03_1 = i1;
@@ -8185,11 +6687,8 @@ __global__ static void kuiper_kernel_36(float *gA, float *gB, uint32_t k,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 4) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 float v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -8202,25 +6701,12 @@ __global__ static void kuiper_kernel_36(float *gA, float *gB, uint32_t k,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 128);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            float *rAcol;
-            float _cbuf13[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            float rAcol[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rAcol = _cbuf13;
-            float *rBrow;
-            float _cbuf15[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rBrow = _cbuf15;
+            float rBrow[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -8262,12 +6748,9 @@ __global__ static void kuiper_kernel_36(float *gA, float *gB, uint32_t k,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 128) {
         uint32_t ci0 = cctr;
@@ -8309,12 +6792,10 @@ __global__ static void kuiper_kernel_37(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    custard_bf16 *rchProd;
-    custard_bf16 _cbuf1[128];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 128; _ci2++) {
-        _cbuf1[_ci2] = CUSTARD_BF16_LIT(0U);
+    custard_bf16 rchProd[128];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
+        rchProd[_ci1] = CUSTARD_BF16_LIT(0U);
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 128);
     uint32_t mrow = (rest / num_n_tiles);
@@ -8323,27 +6804,16 @@ __global__ static void kuiper_kernel_37(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t threadCol = (tid % 16);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 1024;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_bf16 *local;
-            custard_bf16 _cbuf5[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            local = _cbuf5;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -8353,11 +6823,8 @@ __global__ static void kuiper_kernel_37(custard_bf16 *gA, custard_bf16 *gB,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 custard_bf16 v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -8371,21 +6838,15 @@ __global__ static void kuiper_kernel_37(custard_bf16 *gA, custard_bf16 *gB,
             i = (vi + 256);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 4096;
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_bf16 *local_1;
-            custard_bf16 _cbuf9[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            local_1 = _cbuf9;
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 128);
             uint32_t __anf03_1 = i1;
@@ -8395,11 +6856,8 @@ __global__ static void kuiper_kernel_37(custard_bf16 *gA, custard_bf16 *gB,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 8) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 custard_bf16 v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -8412,20 +6870,10 @@ __global__ static void kuiper_kernel_37(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 256);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            custard_bf16 *rAcol;
-            custard_bf16 _cbuf13[16] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rAcol[16] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -8434,14 +6882,10 @@ __global__ static void kuiper_kernel_37(custard_bf16 *gA, custard_bf16 *gB,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            rAcol = _cbuf13;
-            custard_bf16 *rBrow;
-            custard_bf16 _cbuf15[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rBrow[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            rBrow = _cbuf15;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -8484,12 +6928,9 @@ __global__ static void kuiper_kernel_37(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 128) {
         uint32_t ci0 = cctr;
@@ -8531,12 +6972,10 @@ __global__ static void kuiper_kernel_38(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float *rchProd;
-    float _cbuf1[256];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 256; _ci2++) {
-        _cbuf1[_ci2] = 0.0f;
+    float rchProd[256];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 256; _ci1++) {
+        rchProd[_ci1] = 0.0f;
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 128);
     uint32_t mrow = (rest / num_n_tiles);
@@ -8545,23 +6984,13 @@ __global__ static void kuiper_kernel_38(float *gA, float *gB, uint32_t k,
     uint32_t threadCol = (tid % 8);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 1024;
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            float *local;
-            float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local = _cbuf5;
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -8571,11 +7000,8 @@ __global__ static void kuiper_kernel_38(float *gA, float *gB, uint32_t k,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 float v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -8589,17 +7015,11 @@ __global__ static void kuiper_kernel_38(float *gA, float *gB, uint32_t k,
             i = (vi + 64);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 4096;
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            float *local_1;
-            float _cbuf9[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local_1 = _cbuf9;
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 128);
             uint32_t __anf03_1 = i1;
@@ -8609,11 +7029,8 @@ __global__ static void kuiper_kernel_38(float *gA, float *gB, uint32_t k,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 4) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 float v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -8626,26 +7043,13 @@ __global__ static void kuiper_kernel_38(float *gA, float *gB, uint32_t k,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 64);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            float *rAcol;
-            float _cbuf13[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            float rAcol[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rAcol = _cbuf13;
-            float *rBrow;
-            float _cbuf15[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            float rBrow[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rBrow = _cbuf15;
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -8687,12 +7091,9 @@ __global__ static void kuiper_kernel_38(float *gA, float *gB, uint32_t k,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 256) {
         uint32_t ci0 = cctr;
@@ -8734,12 +7135,10 @@ __global__ static void kuiper_kernel_39(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    custard_bf16 *rchProd;
-    custard_bf16 _cbuf1[256];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 256; _ci2++) {
-        _cbuf1[_ci2] = CUSTARD_BF16_LIT(0U);
+    custard_bf16 rchProd[256];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 256; _ci1++) {
+        rchProd[_ci1] = CUSTARD_BF16_LIT(0U);
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 128);
     uint32_t mrow = (rest / num_n_tiles);
@@ -8748,27 +7147,16 @@ __global__ static void kuiper_kernel_39(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t threadCol = (tid % 8);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 1024;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_bf16 *local;
-            custard_bf16 _cbuf5[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            local = _cbuf5;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -8778,11 +7166,8 @@ __global__ static void kuiper_kernel_39(custard_bf16 *gA, custard_bf16 *gB,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 custard_bf16 v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -8796,21 +7181,15 @@ __global__ static void kuiper_kernel_39(custard_bf16 *gA, custard_bf16 *gB,
             i = (vi + 128);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 4096;
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_bf16 *local_1;
-            custard_bf16 _cbuf9[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            local_1 = _cbuf9;
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 128);
             uint32_t __anf03_1 = i1;
@@ -8820,11 +7199,8 @@ __global__ static void kuiper_kernel_39(custard_bf16 *gA, custard_bf16 *gB,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 8) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 custard_bf16 v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -8837,20 +7213,10 @@ __global__ static void kuiper_kernel_39(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 128);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            custard_bf16 *rAcol;
-            custard_bf16 _cbuf13[16] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rAcol[16] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -8859,9 +7225,7 @@ __global__ static void kuiper_kernel_39(custard_bf16 *gA, custard_bf16 *gB,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            rAcol = _cbuf13;
-            custard_bf16 *rBrow;
-            custard_bf16 _cbuf15[16] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rBrow[16] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -8870,7 +7234,6 @@ __global__ static void kuiper_kernel_39(custard_bf16 *gA, custard_bf16 *gB,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            rBrow = _cbuf15;
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -8913,12 +7276,9 @@ __global__ static void kuiper_kernel_39(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 256) {
         uint32_t ci0 = cctr;
@@ -8960,14 +7320,12 @@ __global__ static void kuiper_kernel_40(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float *rchProd;
-    float _cbuf1[64] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+    float rchProd[64] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 128);
     uint32_t mrow = (rest / num_n_tiles);
@@ -8976,23 +7334,13 @@ __global__ static void kuiper_kernel_40(float *gA, float *gB, uint32_t k,
     uint32_t threadCol = (tid % 16);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 2048;
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            float *local;
-            float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local = _cbuf5;
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -9002,11 +7350,8 @@ __global__ static void kuiper_kernel_40(float *gA, float *gB, uint32_t k,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 float v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -9020,17 +7365,11 @@ __global__ static void kuiper_kernel_40(float *gA, float *gB, uint32_t k,
             i = (vi + 256);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 8192;
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            float *local_1;
-            float _cbuf9[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local_1 = _cbuf9;
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 128);
             uint32_t __anf03_1 = i1;
@@ -9040,11 +7379,8 @@ __global__ static void kuiper_kernel_40(float *gA, float *gB, uint32_t k,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 4) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 float v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -9057,24 +7393,11 @@ __global__ static void kuiper_kernel_40(float *gA, float *gB, uint32_t k,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 256);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            float *rAcol;
-            float _cbuf13[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rAcol = _cbuf13;
-            float *rBrow;
-            float _cbuf15[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rBrow = _cbuf15;
+            float rAcol[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -9116,12 +7439,9 @@ __global__ static void kuiper_kernel_40(float *gA, float *gB, uint32_t k,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 64) {
         uint32_t ci0 = cctr;
@@ -9163,8 +7483,7 @@ __global__ static void kuiper_kernel_41(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    custard_bf16 *rchProd;
-    custard_bf16 _cbuf1[64] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
+    custard_bf16 rchProd[64] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -9186,7 +7505,6 @@ __global__ static void kuiper_kernel_41(custard_bf16 *gA, custard_bf16 *gB,
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 128);
     uint32_t mrow = (rest / num_n_tiles);
@@ -9195,27 +7513,16 @@ __global__ static void kuiper_kernel_41(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t threadCol = (tid % 16);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 2048;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_bf16 *local;
-            custard_bf16 _cbuf5[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            local = _cbuf5;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -9225,11 +7532,8 @@ __global__ static void kuiper_kernel_41(custard_bf16 *gA, custard_bf16 *gB,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 custard_bf16 v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -9243,21 +7547,15 @@ __global__ static void kuiper_kernel_41(custard_bf16 *gA, custard_bf16 *gB,
             i = (vi + 512);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 8192;
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_bf16 *local_1;
-            custard_bf16 _cbuf9[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            local_1 = _cbuf9;
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 128);
             uint32_t __anf03_1 = i1;
@@ -9267,11 +7565,8 @@ __global__ static void kuiper_kernel_41(custard_bf16 *gA, custard_bf16 *gB,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 8) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 custard_bf16 v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -9284,32 +7579,17 @@ __global__ static void kuiper_kernel_41(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 512);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            custard_bf16 *rAcol;
-            custard_bf16 _cbuf13[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rAcol[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            rAcol = _cbuf13;
-            custard_bf16 *rBrow;
-            custard_bf16 _cbuf15[8] = {CUSTARD_BF16_LIT(0U),
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
+            custard_bf16 rBrow[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            rBrow = _cbuf15;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -9352,12 +7632,9 @@ __global__ static void kuiper_kernel_41(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 64) {
         uint32_t ci0 = cctr;
@@ -9399,12 +7676,10 @@ __global__ static void kuiper_kernel_42(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float *rchProd;
-    float _cbuf1[128];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 128; _ci2++) {
-        _cbuf1[_ci2] = 0.0f;
+    float rchProd[128];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
+        rchProd[_ci1] = 0.0f;
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 128);
     uint32_t mrow = (rest / num_n_tiles);
@@ -9413,23 +7688,13 @@ __global__ static void kuiper_kernel_42(float *gA, float *gB, uint32_t k,
     uint32_t threadCol = (tid % 8);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 2048;
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            float *local;
-            float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local = _cbuf5;
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -9439,11 +7704,8 @@ __global__ static void kuiper_kernel_42(float *gA, float *gB, uint32_t k,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 float v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -9457,17 +7719,11 @@ __global__ static void kuiper_kernel_42(float *gA, float *gB, uint32_t k,
             i = (vi + 128);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 8192;
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            float *local_1;
-            float _cbuf9[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local_1 = _cbuf9;
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 128);
             uint32_t __anf03_1 = i1;
@@ -9477,11 +7733,8 @@ __global__ static void kuiper_kernel_42(float *gA, float *gB, uint32_t k,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 4) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 float v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -9494,25 +7747,12 @@ __global__ static void kuiper_kernel_42(float *gA, float *gB, uint32_t k,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 128);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            float *rAcol;
-            float _cbuf13[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rAcol = _cbuf13;
-            float *rBrow;
-            float _cbuf15[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            float rAcol[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rBrow = _cbuf15;
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -9554,12 +7794,9 @@ __global__ static void kuiper_kernel_42(float *gA, float *gB, uint32_t k,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 128) {
         uint32_t ci0 = cctr;
@@ -9601,12 +7838,10 @@ __global__ static void kuiper_kernel_43(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    custard_bf16 *rchProd;
-    custard_bf16 _cbuf1[128];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 128; _ci2++) {
-        _cbuf1[_ci2] = CUSTARD_BF16_LIT(0U);
+    custard_bf16 rchProd[128];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
+        rchProd[_ci1] = CUSTARD_BF16_LIT(0U);
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 128);
     uint32_t mrow = (rest / num_n_tiles);
@@ -9615,27 +7850,16 @@ __global__ static void kuiper_kernel_43(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t threadCol = (tid % 8);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 2048;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_bf16 *local;
-            custard_bf16 _cbuf5[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            local = _cbuf5;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -9645,11 +7869,8 @@ __global__ static void kuiper_kernel_43(custard_bf16 *gA, custard_bf16 *gB,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 custard_bf16 v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -9663,21 +7884,15 @@ __global__ static void kuiper_kernel_43(custard_bf16 *gA, custard_bf16 *gB,
             i = (vi + 256);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 8192;
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_bf16 *local_1;
-            custard_bf16 _cbuf9[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            local_1 = _cbuf9;
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 128);
             uint32_t __anf03_1 = i1;
@@ -9687,11 +7902,8 @@ __global__ static void kuiper_kernel_43(custard_bf16 *gA, custard_bf16 *gB,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 8) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 custard_bf16 v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -9704,27 +7916,14 @@ __global__ static void kuiper_kernel_43(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 256);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            custard_bf16 *rAcol;
-            custard_bf16 _cbuf13[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rAcol[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            rAcol = _cbuf13;
-            custard_bf16 *rBrow;
-            custard_bf16 _cbuf15[16] = {CUSTARD_BF16_LIT(0U),
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
+            custard_bf16 rBrow[16] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -9733,7 +7932,6 @@ __global__ static void kuiper_kernel_43(custard_bf16 *gA, custard_bf16 *gB,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            rBrow = _cbuf15;
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -9776,12 +7974,9 @@ __global__ static void kuiper_kernel_43(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 128) {
         uint32_t ci0 = cctr;
@@ -9823,12 +8018,10 @@ __global__ static void kuiper_kernel_44(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float *rchProd;
-    float _cbuf1[128];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 128; _ci2++) {
-        _cbuf1[_ci2] = 0.0f;
+    float rchProd[128];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
+        rchProd[_ci1] = 0.0f;
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 128);
     uint32_t mrow = (rest / num_n_tiles);
@@ -9837,23 +8030,13 @@ __global__ static void kuiper_kernel_44(float *gA, float *gB, uint32_t k,
     uint32_t threadCol = (tid % 16);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 2048;
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            float *local;
-            float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local = _cbuf5;
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -9863,11 +8046,8 @@ __global__ static void kuiper_kernel_44(float *gA, float *gB, uint32_t k,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 float v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -9881,17 +8061,11 @@ __global__ static void kuiper_kernel_44(float *gA, float *gB, uint32_t k,
             i = (vi + 128);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 8192;
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            float *local_1;
-            float _cbuf9[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local_1 = _cbuf9;
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 128);
             uint32_t __anf03_1 = i1;
@@ -9901,11 +8075,8 @@ __global__ static void kuiper_kernel_44(float *gA, float *gB, uint32_t k,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 4) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 float v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -9918,25 +8089,12 @@ __global__ static void kuiper_kernel_44(float *gA, float *gB, uint32_t k,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 128);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            float *rAcol;
-            float _cbuf13[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            float rAcol[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rAcol = _cbuf13;
-            float *rBrow;
-            float _cbuf15[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rBrow = _cbuf15;
+            float rBrow[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -9978,12 +8136,9 @@ __global__ static void kuiper_kernel_44(float *gA, float *gB, uint32_t k,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 128) {
         uint32_t ci0 = cctr;
@@ -10025,12 +8180,10 @@ __global__ static void kuiper_kernel_45(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    custard_bf16 *rchProd;
-    custard_bf16 _cbuf1[128];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 128; _ci2++) {
-        _cbuf1[_ci2] = CUSTARD_BF16_LIT(0U);
+    custard_bf16 rchProd[128];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
+        rchProd[_ci1] = CUSTARD_BF16_LIT(0U);
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 128);
     uint32_t mrow = (rest / num_n_tiles);
@@ -10039,27 +8192,16 @@ __global__ static void kuiper_kernel_45(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t threadCol = (tid % 16);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 2048;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_bf16 *local;
-            custard_bf16 _cbuf5[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            local = _cbuf5;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -10069,11 +8211,8 @@ __global__ static void kuiper_kernel_45(custard_bf16 *gA, custard_bf16 *gB,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 custard_bf16 v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -10087,21 +8226,15 @@ __global__ static void kuiper_kernel_45(custard_bf16 *gA, custard_bf16 *gB,
             i = (vi + 256);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 8192;
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_bf16 *local_1;
-            custard_bf16 _cbuf9[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            local_1 = _cbuf9;
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 128);
             uint32_t __anf03_1 = i1;
@@ -10111,11 +8244,8 @@ __global__ static void kuiper_kernel_45(custard_bf16 *gA, custard_bf16 *gB,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 8) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 custard_bf16 v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -10128,20 +8258,10 @@ __global__ static void kuiper_kernel_45(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 256);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            custard_bf16 *rAcol;
-            custard_bf16 _cbuf13[16] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rAcol[16] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -10150,14 +8270,10 @@ __global__ static void kuiper_kernel_45(custard_bf16 *gA, custard_bf16 *gB,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            rAcol = _cbuf13;
-            custard_bf16 *rBrow;
-            custard_bf16 _cbuf15[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rBrow[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            rBrow = _cbuf15;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -10200,12 +8316,9 @@ __global__ static void kuiper_kernel_45(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 128) {
         uint32_t ci0 = cctr;
@@ -10247,12 +8360,10 @@ __global__ static void kuiper_kernel_46(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float *rchProd;
-    float _cbuf1[256];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 256; _ci2++) {
-        _cbuf1[_ci2] = 0.0f;
+    float rchProd[256];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 256; _ci1++) {
+        rchProd[_ci1] = 0.0f;
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 128);
     uint32_t mrow = (rest / num_n_tiles);
@@ -10261,23 +8372,13 @@ __global__ static void kuiper_kernel_46(float *gA, float *gB, uint32_t k,
     uint32_t threadCol = (tid % 8);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 2048;
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            float *local;
-            float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local = _cbuf5;
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -10287,11 +8388,8 @@ __global__ static void kuiper_kernel_46(float *gA, float *gB, uint32_t k,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 float v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -10305,17 +8403,11 @@ __global__ static void kuiper_kernel_46(float *gA, float *gB, uint32_t k,
             i = (vi + 64);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 8192;
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            float *local_1;
-            float _cbuf9[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local_1 = _cbuf9;
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 128);
             uint32_t __anf03_1 = i1;
@@ -10325,11 +8417,8 @@ __global__ static void kuiper_kernel_46(float *gA, float *gB, uint32_t k,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 4) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 float v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -10342,26 +8431,13 @@ __global__ static void kuiper_kernel_46(float *gA, float *gB, uint32_t k,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 64);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            float *rAcol;
-            float _cbuf13[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            float rAcol[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rAcol = _cbuf13;
-            float *rBrow;
-            float _cbuf15[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            float rBrow[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rBrow = _cbuf15;
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -10403,12 +8479,9 @@ __global__ static void kuiper_kernel_46(float *gA, float *gB, uint32_t k,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 256) {
         uint32_t ci0 = cctr;
@@ -10450,12 +8523,10 @@ __global__ static void kuiper_kernel_47(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    custard_bf16 *rchProd;
-    custard_bf16 _cbuf1[256];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 256; _ci2++) {
-        _cbuf1[_ci2] = CUSTARD_BF16_LIT(0U);
+    custard_bf16 rchProd[256];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 256; _ci1++) {
+        rchProd[_ci1] = CUSTARD_BF16_LIT(0U);
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 128);
     uint32_t mrow = (rest / num_n_tiles);
@@ -10464,27 +8535,16 @@ __global__ static void kuiper_kernel_47(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t threadCol = (tid % 8);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 2048;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_bf16 *local;
-            custard_bf16 _cbuf5[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            local = _cbuf5;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -10494,11 +8554,8 @@ __global__ static void kuiper_kernel_47(custard_bf16 *gA, custard_bf16 *gB,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 custard_bf16 v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -10512,21 +8569,15 @@ __global__ static void kuiper_kernel_47(custard_bf16 *gA, custard_bf16 *gB,
             i = (vi + 128);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 8192;
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_bf16 *local_1;
-            custard_bf16 _cbuf9[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            local_1 = _cbuf9;
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 128);
             uint32_t __anf03_1 = i1;
@@ -10536,11 +8587,8 @@ __global__ static void kuiper_kernel_47(custard_bf16 *gA, custard_bf16 *gB,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 8) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 custard_bf16 v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -10553,20 +8601,10 @@ __global__ static void kuiper_kernel_47(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 128);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            custard_bf16 *rAcol;
-            custard_bf16 _cbuf13[16] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rAcol[16] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -10575,9 +8613,7 @@ __global__ static void kuiper_kernel_47(custard_bf16 *gA, custard_bf16 *gB,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            rAcol = _cbuf13;
-            custard_bf16 *rBrow;
-            custard_bf16 _cbuf15[16] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rBrow[16] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -10586,7 +8622,6 @@ __global__ static void kuiper_kernel_47(custard_bf16 *gA, custard_bf16 *gB,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            rBrow = _cbuf15;
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -10629,12 +8664,9 @@ __global__ static void kuiper_kernel_47(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 256) {
         uint32_t ci0 = cctr;
@@ -10676,14 +8708,12 @@ __global__ static void kuiper_kernel_48(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float *rchProd;
-    float _cbuf1[64] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+    float rchProd[64] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 32);
     uint32_t mrow = (rest / num_n_tiles);
@@ -10692,23 +8722,13 @@ __global__ static void kuiper_kernel_48(float *gA, float *gB, uint32_t k,
     uint32_t threadCol = (tid % 4);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 2048;
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            float *local;
-            float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local = _cbuf5;
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -10718,11 +8738,8 @@ __global__ static void kuiper_kernel_48(float *gA, float *gB, uint32_t k,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 float v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -10736,17 +8753,11 @@ __global__ static void kuiper_kernel_48(float *gA, float *gB, uint32_t k,
             i = (vi + 128);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 1024;
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            float *local_1;
-            float _cbuf9[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local_1 = _cbuf9;
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 32);
             uint32_t __anf03_1 = i1;
@@ -10756,11 +8767,8 @@ __global__ static void kuiper_kernel_48(float *gA, float *gB, uint32_t k,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 4) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 float v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -10773,24 +8781,11 @@ __global__ static void kuiper_kernel_48(float *gA, float *gB, uint32_t k,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 128);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            float *rAcol;
-            float _cbuf13[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rAcol = _cbuf13;
-            float *rBrow;
-            float _cbuf15[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rBrow = _cbuf15;
+            float rAcol[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -10832,12 +8827,9 @@ __global__ static void kuiper_kernel_48(float *gA, float *gB, uint32_t k,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 64) {
         uint32_t ci0 = cctr;
@@ -10879,8 +8871,7 @@ __global__ static void kuiper_kernel_49(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    custard_bf16 *rchProd;
-    custard_bf16 _cbuf1[64] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
+    custard_bf16 rchProd[64] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -10902,7 +8893,6 @@ __global__ static void kuiper_kernel_49(custard_bf16 *gA, custard_bf16 *gB,
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 32);
     uint32_t mrow = (rest / num_n_tiles);
@@ -10911,27 +8901,16 @@ __global__ static void kuiper_kernel_49(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t threadCol = (tid % 4);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 2048;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_bf16 *local;
-            custard_bf16 _cbuf5[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            local = _cbuf5;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -10941,11 +8920,8 @@ __global__ static void kuiper_kernel_49(custard_bf16 *gA, custard_bf16 *gB,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 custard_bf16 v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -10959,21 +8935,15 @@ __global__ static void kuiper_kernel_49(custard_bf16 *gA, custard_bf16 *gB,
             i = (vi + 256);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 1024;
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_bf16 *local_1;
-            custard_bf16 _cbuf9[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            local_1 = _cbuf9;
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 32);
             uint32_t __anf03_1 = i1;
@@ -10983,11 +8953,8 @@ __global__ static void kuiper_kernel_49(custard_bf16 *gA, custard_bf16 *gB,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 8) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 custard_bf16 v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -11000,32 +8967,17 @@ __global__ static void kuiper_kernel_49(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 256);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            custard_bf16 *rAcol;
-            custard_bf16 _cbuf13[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rAcol[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            rAcol = _cbuf13;
-            custard_bf16 *rBrow;
-            custard_bf16 _cbuf15[8] = {CUSTARD_BF16_LIT(0U),
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
+            custard_bf16 rBrow[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            rBrow = _cbuf15;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -11068,12 +9020,9 @@ __global__ static void kuiper_kernel_49(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 64) {
         uint32_t ci0 = cctr;
@@ -11115,12 +9064,10 @@ __global__ static void kuiper_kernel_50(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float *rchProd;
-    float _cbuf1[128];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 128; _ci2++) {
-        _cbuf1[_ci2] = 0.0f;
+    float rchProd[128];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
+        rchProd[_ci1] = 0.0f;
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 32);
     uint32_t mrow = (rest / num_n_tiles);
@@ -11129,23 +9076,13 @@ __global__ static void kuiper_kernel_50(float *gA, float *gB, uint32_t k,
     uint32_t threadCol = (tid % 2);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 2048;
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            float *local;
-            float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local = _cbuf5;
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -11155,11 +9092,8 @@ __global__ static void kuiper_kernel_50(float *gA, float *gB, uint32_t k,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 float v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -11173,17 +9107,11 @@ __global__ static void kuiper_kernel_50(float *gA, float *gB, uint32_t k,
             i = (vi + 64);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 1024;
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            float *local_1;
-            float _cbuf9[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local_1 = _cbuf9;
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 32);
             uint32_t __anf03_1 = i1;
@@ -11193,11 +9121,8 @@ __global__ static void kuiper_kernel_50(float *gA, float *gB, uint32_t k,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 4) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 float v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -11210,25 +9135,12 @@ __global__ static void kuiper_kernel_50(float *gA, float *gB, uint32_t k,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 64);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            float *rAcol;
-            float _cbuf13[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rAcol = _cbuf13;
-            float *rBrow;
-            float _cbuf15[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            float rAcol[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rBrow = _cbuf15;
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -11270,12 +9182,9 @@ __global__ static void kuiper_kernel_50(float *gA, float *gB, uint32_t k,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 128) {
         uint32_t ci0 = cctr;
@@ -11317,12 +9226,10 @@ __global__ static void kuiper_kernel_51(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    custard_bf16 *rchProd;
-    custard_bf16 _cbuf1[128];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 128; _ci2++) {
-        _cbuf1[_ci2] = CUSTARD_BF16_LIT(0U);
+    custard_bf16 rchProd[128];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
+        rchProd[_ci1] = CUSTARD_BF16_LIT(0U);
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 32);
     uint32_t mrow = (rest / num_n_tiles);
@@ -11331,27 +9238,16 @@ __global__ static void kuiper_kernel_51(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t threadCol = (tid % 2);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 2048;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_bf16 *local;
-            custard_bf16 _cbuf5[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            local = _cbuf5;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -11361,11 +9257,8 @@ __global__ static void kuiper_kernel_51(custard_bf16 *gA, custard_bf16 *gB,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 custard_bf16 v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -11379,21 +9272,15 @@ __global__ static void kuiper_kernel_51(custard_bf16 *gA, custard_bf16 *gB,
             i = (vi + 128);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 1024;
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_bf16 *local_1;
-            custard_bf16 _cbuf9[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            local_1 = _cbuf9;
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 32);
             uint32_t __anf03_1 = i1;
@@ -11403,11 +9290,8 @@ __global__ static void kuiper_kernel_51(custard_bf16 *gA, custard_bf16 *gB,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 8) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 custard_bf16 v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -11420,27 +9304,14 @@ __global__ static void kuiper_kernel_51(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 128);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            custard_bf16 *rAcol;
-            custard_bf16 _cbuf13[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rAcol[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            rAcol = _cbuf13;
-            custard_bf16 *rBrow;
-            custard_bf16 _cbuf15[16] = {CUSTARD_BF16_LIT(0U),
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
+            custard_bf16 rBrow[16] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -11449,7 +9320,6 @@ __global__ static void kuiper_kernel_51(custard_bf16 *gA, custard_bf16 *gB,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            rBrow = _cbuf15;
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -11492,12 +9362,9 @@ __global__ static void kuiper_kernel_51(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 128) {
         uint32_t ci0 = cctr;
@@ -11539,12 +9406,10 @@ __global__ static void kuiper_kernel_52(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float *rchProd;
-    float _cbuf1[128];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 128; _ci2++) {
-        _cbuf1[_ci2] = 0.0f;
+    float rchProd[128];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
+        rchProd[_ci1] = 0.0f;
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 32);
     uint32_t mrow = (rest / num_n_tiles);
@@ -11553,23 +9418,13 @@ __global__ static void kuiper_kernel_52(float *gA, float *gB, uint32_t k,
     uint32_t threadCol = (tid % 4);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 2048;
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            float *local;
-            float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local = _cbuf5;
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -11579,11 +9434,8 @@ __global__ static void kuiper_kernel_52(float *gA, float *gB, uint32_t k,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 float v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -11597,17 +9449,11 @@ __global__ static void kuiper_kernel_52(float *gA, float *gB, uint32_t k,
             i = (vi + 64);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 1024;
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            float *local_1;
-            float _cbuf9[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local_1 = _cbuf9;
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 32);
             uint32_t __anf03_1 = i1;
@@ -11617,11 +9463,8 @@ __global__ static void kuiper_kernel_52(float *gA, float *gB, uint32_t k,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 4) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 float v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -11634,25 +9477,12 @@ __global__ static void kuiper_kernel_52(float *gA, float *gB, uint32_t k,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 64);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            float *rAcol;
-            float _cbuf13[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            float rAcol[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rAcol = _cbuf13;
-            float *rBrow;
-            float _cbuf15[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rBrow = _cbuf15;
+            float rBrow[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -11694,12 +9524,9 @@ __global__ static void kuiper_kernel_52(float *gA, float *gB, uint32_t k,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 128) {
         uint32_t ci0 = cctr;
@@ -11741,12 +9568,10 @@ __global__ static void kuiper_kernel_53(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    custard_bf16 *rchProd;
-    custard_bf16 _cbuf1[128];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 128; _ci2++) {
-        _cbuf1[_ci2] = CUSTARD_BF16_LIT(0U);
+    custard_bf16 rchProd[128];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
+        rchProd[_ci1] = CUSTARD_BF16_LIT(0U);
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 32);
     uint32_t mrow = (rest / num_n_tiles);
@@ -11755,27 +9580,16 @@ __global__ static void kuiper_kernel_53(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t threadCol = (tid % 4);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 2048;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_bf16 *local;
-            custard_bf16 _cbuf5[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            local = _cbuf5;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -11785,11 +9599,8 @@ __global__ static void kuiper_kernel_53(custard_bf16 *gA, custard_bf16 *gB,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 custard_bf16 v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -11803,21 +9614,15 @@ __global__ static void kuiper_kernel_53(custard_bf16 *gA, custard_bf16 *gB,
             i = (vi + 128);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 1024;
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_bf16 *local_1;
-            custard_bf16 _cbuf9[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            local_1 = _cbuf9;
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 32);
             uint32_t __anf03_1 = i1;
@@ -11827,11 +9632,8 @@ __global__ static void kuiper_kernel_53(custard_bf16 *gA, custard_bf16 *gB,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 8) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 custard_bf16 v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -11844,20 +9646,10 @@ __global__ static void kuiper_kernel_53(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 128);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            custard_bf16 *rAcol;
-            custard_bf16 _cbuf13[16] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rAcol[16] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -11866,14 +9658,10 @@ __global__ static void kuiper_kernel_53(custard_bf16 *gA, custard_bf16 *gB,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            rAcol = _cbuf13;
-            custard_bf16 *rBrow;
-            custard_bf16 _cbuf15[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rBrow[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            rBrow = _cbuf15;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -11916,12 +9704,9 @@ __global__ static void kuiper_kernel_53(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 128) {
         uint32_t ci0 = cctr;
@@ -11963,12 +9748,10 @@ __global__ static void kuiper_kernel_54(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float *rchProd;
-    float _cbuf1[256];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 256; _ci2++) {
-        _cbuf1[_ci2] = 0.0f;
+    float rchProd[256];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 256; _ci1++) {
+        rchProd[_ci1] = 0.0f;
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 32);
     uint32_t mrow = (rest / num_n_tiles);
@@ -11977,23 +9760,13 @@ __global__ static void kuiper_kernel_54(float *gA, float *gB, uint32_t k,
     uint32_t threadCol = (tid % 2);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 2048;
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            float *local;
-            float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local = _cbuf5;
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -12003,11 +9776,8 @@ __global__ static void kuiper_kernel_54(float *gA, float *gB, uint32_t k,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 float v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -12021,17 +9791,11 @@ __global__ static void kuiper_kernel_54(float *gA, float *gB, uint32_t k,
             i = (vi + 32);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 1024;
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            float *local_1;
-            float _cbuf9[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local_1 = _cbuf9;
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 32);
             uint32_t __anf03_1 = i1;
@@ -12041,11 +9805,8 @@ __global__ static void kuiper_kernel_54(float *gA, float *gB, uint32_t k,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 4) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 float v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -12058,26 +9819,13 @@ __global__ static void kuiper_kernel_54(float *gA, float *gB, uint32_t k,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 32);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            float *rAcol;
-            float _cbuf13[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            float rAcol[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rAcol = _cbuf13;
-            float *rBrow;
-            float _cbuf15[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            float rBrow[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rBrow = _cbuf15;
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -12119,12 +9867,9 @@ __global__ static void kuiper_kernel_54(float *gA, float *gB, uint32_t k,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 256) {
         uint32_t ci0 = cctr;
@@ -12166,12 +9911,10 @@ __global__ static void kuiper_kernel_55(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    custard_bf16 *rchProd;
-    custard_bf16 _cbuf1[256];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 256; _ci2++) {
-        _cbuf1[_ci2] = CUSTARD_BF16_LIT(0U);
+    custard_bf16 rchProd[256];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 256; _ci1++) {
+        rchProd[_ci1] = CUSTARD_BF16_LIT(0U);
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 32);
     uint32_t mrow = (rest / num_n_tiles);
@@ -12180,27 +9923,16 @@ __global__ static void kuiper_kernel_55(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t threadCol = (tid % 2);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 2048;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_bf16 *local;
-            custard_bf16 _cbuf5[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            local = _cbuf5;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -12210,11 +9942,8 @@ __global__ static void kuiper_kernel_55(custard_bf16 *gA, custard_bf16 *gB,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 custard_bf16 v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -12228,21 +9957,15 @@ __global__ static void kuiper_kernel_55(custard_bf16 *gA, custard_bf16 *gB,
             i = (vi + 64);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 1024;
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_bf16 *local_1;
-            custard_bf16 _cbuf9[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            local_1 = _cbuf9;
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 32);
             uint32_t __anf03_1 = i1;
@@ -12252,11 +9975,8 @@ __global__ static void kuiper_kernel_55(custard_bf16 *gA, custard_bf16 *gB,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 8) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 custard_bf16 v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -12269,20 +9989,10 @@ __global__ static void kuiper_kernel_55(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 64);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            custard_bf16 *rAcol;
-            custard_bf16 _cbuf13[16] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rAcol[16] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -12291,9 +10001,7 @@ __global__ static void kuiper_kernel_55(custard_bf16 *gA, custard_bf16 *gB,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            rAcol = _cbuf13;
-            custard_bf16 *rBrow;
-            custard_bf16 _cbuf15[16] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rBrow[16] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -12302,7 +10010,6 @@ __global__ static void kuiper_kernel_55(custard_bf16 *gA, custard_bf16 *gB,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            rBrow = _cbuf15;
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -12345,12 +10052,9 @@ __global__ static void kuiper_kernel_55(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 256) {
         uint32_t ci0 = cctr;
@@ -12392,14 +10096,12 @@ __global__ static void kuiper_kernel_56(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float *rchProd;
-    float _cbuf1[64] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+    float rchProd[64] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 32);
     uint32_t mrow = (rest / num_n_tiles);
@@ -12408,23 +10110,13 @@ __global__ static void kuiper_kernel_56(float *gA, float *gB, uint32_t k,
     uint32_t threadCol = (tid % 4);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            float *local;
-            float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local = _cbuf5;
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -12434,11 +10126,8 @@ __global__ static void kuiper_kernel_56(float *gA, float *gB, uint32_t k,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 float v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -12452,17 +10141,11 @@ __global__ static void kuiper_kernel_56(float *gA, float *gB, uint32_t k,
             i = (vi + 128);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 2048;
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            float *local_1;
-            float _cbuf9[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local_1 = _cbuf9;
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 32);
             uint32_t __anf03_1 = i1;
@@ -12472,11 +10155,8 @@ __global__ static void kuiper_kernel_56(float *gA, float *gB, uint32_t k,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 4) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 float v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -12489,24 +10169,11 @@ __global__ static void kuiper_kernel_56(float *gA, float *gB, uint32_t k,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 128);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            float *rAcol;
-            float _cbuf13[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rAcol = _cbuf13;
-            float *rBrow;
-            float _cbuf15[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rBrow = _cbuf15;
+            float rAcol[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -12548,12 +10215,9 @@ __global__ static void kuiper_kernel_56(float *gA, float *gB, uint32_t k,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 64) {
         uint32_t ci0 = cctr;
@@ -12595,8 +10259,7 @@ __global__ static void kuiper_kernel_57(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    custard_bf16 *rchProd;
-    custard_bf16 _cbuf1[64] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
+    custard_bf16 rchProd[64] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -12618,7 +10281,6 @@ __global__ static void kuiper_kernel_57(custard_bf16 *gA, custard_bf16 *gB,
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 32);
     uint32_t mrow = (rest / num_n_tiles);
@@ -12627,27 +10289,16 @@ __global__ static void kuiper_kernel_57(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t threadCol = (tid % 4);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_bf16 *local;
-            custard_bf16 _cbuf5[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            local = _cbuf5;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -12657,11 +10308,8 @@ __global__ static void kuiper_kernel_57(custard_bf16 *gA, custard_bf16 *gB,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 custard_bf16 v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -12675,21 +10323,15 @@ __global__ static void kuiper_kernel_57(custard_bf16 *gA, custard_bf16 *gB,
             i = (vi + 256);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 2048;
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_bf16 *local_1;
-            custard_bf16 _cbuf9[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            local_1 = _cbuf9;
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 32);
             uint32_t __anf03_1 = i1;
@@ -12699,11 +10341,8 @@ __global__ static void kuiper_kernel_57(custard_bf16 *gA, custard_bf16 *gB,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 8) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 custard_bf16 v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -12716,32 +10355,17 @@ __global__ static void kuiper_kernel_57(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 256);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            custard_bf16 *rAcol;
-            custard_bf16 _cbuf13[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rAcol[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            rAcol = _cbuf13;
-            custard_bf16 *rBrow;
-            custard_bf16 _cbuf15[8] = {CUSTARD_BF16_LIT(0U),
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
+            custard_bf16 rBrow[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            rBrow = _cbuf15;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -12784,12 +10408,9 @@ __global__ static void kuiper_kernel_57(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 64) {
         uint32_t ci0 = cctr;
@@ -12831,12 +10452,10 @@ __global__ static void kuiper_kernel_58(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float *rchProd;
-    float _cbuf1[128];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 128; _ci2++) {
-        _cbuf1[_ci2] = 0.0f;
+    float rchProd[128];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
+        rchProd[_ci1] = 0.0f;
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 32);
     uint32_t mrow = (rest / num_n_tiles);
@@ -12845,23 +10464,13 @@ __global__ static void kuiper_kernel_58(float *gA, float *gB, uint32_t k,
     uint32_t threadCol = (tid % 2);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            float *local;
-            float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local = _cbuf5;
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -12871,11 +10480,8 @@ __global__ static void kuiper_kernel_58(float *gA, float *gB, uint32_t k,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 float v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -12889,17 +10495,11 @@ __global__ static void kuiper_kernel_58(float *gA, float *gB, uint32_t k,
             i = (vi + 64);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 2048;
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            float *local_1;
-            float _cbuf9[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local_1 = _cbuf9;
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 32);
             uint32_t __anf03_1 = i1;
@@ -12909,11 +10509,8 @@ __global__ static void kuiper_kernel_58(float *gA, float *gB, uint32_t k,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 4) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 float v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -12926,25 +10523,12 @@ __global__ static void kuiper_kernel_58(float *gA, float *gB, uint32_t k,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 64);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            float *rAcol;
-            float _cbuf13[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rAcol = _cbuf13;
-            float *rBrow;
-            float _cbuf15[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            float rAcol[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rBrow = _cbuf15;
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -12986,12 +10570,9 @@ __global__ static void kuiper_kernel_58(float *gA, float *gB, uint32_t k,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 128) {
         uint32_t ci0 = cctr;
@@ -13033,12 +10614,10 @@ __global__ static void kuiper_kernel_59(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    custard_bf16 *rchProd;
-    custard_bf16 _cbuf1[128];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 128; _ci2++) {
-        _cbuf1[_ci2] = CUSTARD_BF16_LIT(0U);
+    custard_bf16 rchProd[128];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
+        rchProd[_ci1] = CUSTARD_BF16_LIT(0U);
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 32);
     uint32_t mrow = (rest / num_n_tiles);
@@ -13047,27 +10626,16 @@ __global__ static void kuiper_kernel_59(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t threadCol = (tid % 2);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_bf16 *local;
-            custard_bf16 _cbuf5[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            local = _cbuf5;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -13077,11 +10645,8 @@ __global__ static void kuiper_kernel_59(custard_bf16 *gA, custard_bf16 *gB,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 custard_bf16 v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -13095,21 +10660,15 @@ __global__ static void kuiper_kernel_59(custard_bf16 *gA, custard_bf16 *gB,
             i = (vi + 128);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 2048;
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_bf16 *local_1;
-            custard_bf16 _cbuf9[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            local_1 = _cbuf9;
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 32);
             uint32_t __anf03_1 = i1;
@@ -13119,11 +10678,8 @@ __global__ static void kuiper_kernel_59(custard_bf16 *gA, custard_bf16 *gB,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 8) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 custard_bf16 v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -13136,27 +10692,14 @@ __global__ static void kuiper_kernel_59(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 128);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            custard_bf16 *rAcol;
-            custard_bf16 _cbuf13[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rAcol[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            rAcol = _cbuf13;
-            custard_bf16 *rBrow;
-            custard_bf16 _cbuf15[16] = {CUSTARD_BF16_LIT(0U),
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
+            custard_bf16 rBrow[16] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -13165,7 +10708,6 @@ __global__ static void kuiper_kernel_59(custard_bf16 *gA, custard_bf16 *gB,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            rBrow = _cbuf15;
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -13208,12 +10750,9 @@ __global__ static void kuiper_kernel_59(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 128) {
         uint32_t ci0 = cctr;
@@ -13255,12 +10794,10 @@ __global__ static void kuiper_kernel_60(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float *rchProd;
-    float _cbuf1[128];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 128; _ci2++) {
-        _cbuf1[_ci2] = 0.0f;
+    float rchProd[128];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
+        rchProd[_ci1] = 0.0f;
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 32);
     uint32_t mrow = (rest / num_n_tiles);
@@ -13269,23 +10806,13 @@ __global__ static void kuiper_kernel_60(float *gA, float *gB, uint32_t k,
     uint32_t threadCol = (tid % 4);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            float *local;
-            float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local = _cbuf5;
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -13295,11 +10822,8 @@ __global__ static void kuiper_kernel_60(float *gA, float *gB, uint32_t k,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 float v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -13313,17 +10837,11 @@ __global__ static void kuiper_kernel_60(float *gA, float *gB, uint32_t k,
             i = (vi + 64);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 2048;
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            float *local_1;
-            float _cbuf9[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local_1 = _cbuf9;
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 32);
             uint32_t __anf03_1 = i1;
@@ -13333,11 +10851,8 @@ __global__ static void kuiper_kernel_60(float *gA, float *gB, uint32_t k,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 4) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 float v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -13350,25 +10865,12 @@ __global__ static void kuiper_kernel_60(float *gA, float *gB, uint32_t k,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 64);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            float *rAcol;
-            float _cbuf13[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            float rAcol[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rAcol = _cbuf13;
-            float *rBrow;
-            float _cbuf15[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rBrow = _cbuf15;
+            float rBrow[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -13410,12 +10912,9 @@ __global__ static void kuiper_kernel_60(float *gA, float *gB, uint32_t k,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 128) {
         uint32_t ci0 = cctr;
@@ -13457,12 +10956,10 @@ __global__ static void kuiper_kernel_61(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    custard_bf16 *rchProd;
-    custard_bf16 _cbuf1[128];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 128; _ci2++) {
-        _cbuf1[_ci2] = CUSTARD_BF16_LIT(0U);
+    custard_bf16 rchProd[128];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
+        rchProd[_ci1] = CUSTARD_BF16_LIT(0U);
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 32);
     uint32_t mrow = (rest / num_n_tiles);
@@ -13471,27 +10968,16 @@ __global__ static void kuiper_kernel_61(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t threadCol = (tid % 4);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_bf16 *local;
-            custard_bf16 _cbuf5[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            local = _cbuf5;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -13501,11 +10987,8 @@ __global__ static void kuiper_kernel_61(custard_bf16 *gA, custard_bf16 *gB,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 custard_bf16 v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -13519,21 +11002,15 @@ __global__ static void kuiper_kernel_61(custard_bf16 *gA, custard_bf16 *gB,
             i = (vi + 128);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 2048;
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_bf16 *local_1;
-            custard_bf16 _cbuf9[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            local_1 = _cbuf9;
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 32);
             uint32_t __anf03_1 = i1;
@@ -13543,11 +11020,8 @@ __global__ static void kuiper_kernel_61(custard_bf16 *gA, custard_bf16 *gB,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 8) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 custard_bf16 v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -13560,20 +11034,10 @@ __global__ static void kuiper_kernel_61(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 128);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            custard_bf16 *rAcol;
-            custard_bf16 _cbuf13[16] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rAcol[16] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -13582,14 +11046,10 @@ __global__ static void kuiper_kernel_61(custard_bf16 *gA, custard_bf16 *gB,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            rAcol = _cbuf13;
-            custard_bf16 *rBrow;
-            custard_bf16 _cbuf15[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rBrow[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            rBrow = _cbuf15;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -13632,12 +11092,9 @@ __global__ static void kuiper_kernel_61(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 128) {
         uint32_t ci0 = cctr;
@@ -13679,12 +11136,10 @@ __global__ static void kuiper_kernel_62(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float *rchProd;
-    float _cbuf1[256];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 256; _ci2++) {
-        _cbuf1[_ci2] = 0.0f;
+    float rchProd[256];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 256; _ci1++) {
+        rchProd[_ci1] = 0.0f;
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 32);
     uint32_t mrow = (rest / num_n_tiles);
@@ -13693,23 +11148,13 @@ __global__ static void kuiper_kernel_62(float *gA, float *gB, uint32_t k,
     uint32_t threadCol = (tid % 2);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            float *local;
-            float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local = _cbuf5;
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -13719,11 +11164,8 @@ __global__ static void kuiper_kernel_62(float *gA, float *gB, uint32_t k,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 float v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -13737,17 +11179,11 @@ __global__ static void kuiper_kernel_62(float *gA, float *gB, uint32_t k,
             i = (vi + 32);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 2048;
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            float *local_1;
-            float _cbuf9[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local_1 = _cbuf9;
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 32);
             uint32_t __anf03_1 = i1;
@@ -13757,11 +11193,8 @@ __global__ static void kuiper_kernel_62(float *gA, float *gB, uint32_t k,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 4) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 float v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -13774,26 +11207,13 @@ __global__ static void kuiper_kernel_62(float *gA, float *gB, uint32_t k,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 32);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            float *rAcol;
-            float _cbuf13[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            float rAcol[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rAcol = _cbuf13;
-            float *rBrow;
-            float _cbuf15[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            float rBrow[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rBrow = _cbuf15;
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -13835,12 +11255,9 @@ __global__ static void kuiper_kernel_62(float *gA, float *gB, uint32_t k,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 256) {
         uint32_t ci0 = cctr;
@@ -13882,12 +11299,10 @@ __global__ static void kuiper_kernel_63(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    custard_bf16 *rchProd;
-    custard_bf16 _cbuf1[256];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 256; _ci2++) {
-        _cbuf1[_ci2] = CUSTARD_BF16_LIT(0U);
+    custard_bf16 rchProd[256];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 256; _ci1++) {
+        rchProd[_ci1] = CUSTARD_BF16_LIT(0U);
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 32);
     uint32_t mrow = (rest / num_n_tiles);
@@ -13896,27 +11311,16 @@ __global__ static void kuiper_kernel_63(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t threadCol = (tid % 2);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_bf16 *local;
-            custard_bf16 _cbuf5[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            local = _cbuf5;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -13926,11 +11330,8 @@ __global__ static void kuiper_kernel_63(custard_bf16 *gA, custard_bf16 *gB,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 custard_bf16 v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -13944,21 +11345,15 @@ __global__ static void kuiper_kernel_63(custard_bf16 *gA, custard_bf16 *gB,
             i = (vi + 64);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 2048;
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_bf16 *local_1;
-            custard_bf16 _cbuf9[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            local_1 = _cbuf9;
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 32);
             uint32_t __anf03_1 = i1;
@@ -13968,11 +11363,8 @@ __global__ static void kuiper_kernel_63(custard_bf16 *gA, custard_bf16 *gB,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 8) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 custard_bf16 v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -13985,20 +11377,10 @@ __global__ static void kuiper_kernel_63(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 64);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            custard_bf16 *rAcol;
-            custard_bf16 _cbuf13[16] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rAcol[16] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -14007,9 +11389,7 @@ __global__ static void kuiper_kernel_63(custard_bf16 *gA, custard_bf16 *gB,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            rAcol = _cbuf13;
-            custard_bf16 *rBrow;
-            custard_bf16 _cbuf15[16] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rBrow[16] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -14018,7 +11398,6 @@ __global__ static void kuiper_kernel_63(custard_bf16 *gA, custard_bf16 *gB,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            rBrow = _cbuf15;
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -14061,12 +11440,9 @@ __global__ static void kuiper_kernel_63(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 256) {
         uint32_t ci0 = cctr;
@@ -14108,14 +11484,12 @@ __global__ static void kuiper_kernel_64(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float *rchProd;
-    float _cbuf1[64] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+    float rchProd[64] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 64);
     uint32_t mrow = (rest / num_n_tiles);
@@ -14124,23 +11498,13 @@ __global__ static void kuiper_kernel_64(float *gA, float *gB, uint32_t k,
     uint32_t threadCol = (tid % 8);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 2048;
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            float *local;
-            float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local = _cbuf5;
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -14150,11 +11514,8 @@ __global__ static void kuiper_kernel_64(float *gA, float *gB, uint32_t k,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 float v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -14168,17 +11529,11 @@ __global__ static void kuiper_kernel_64(float *gA, float *gB, uint32_t k,
             i = (vi + 256);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 2048;
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            float *local_1;
-            float _cbuf9[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local_1 = _cbuf9;
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 64);
             uint32_t __anf03_1 = i1;
@@ -14188,11 +11543,8 @@ __global__ static void kuiper_kernel_64(float *gA, float *gB, uint32_t k,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 4) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 float v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -14205,24 +11557,11 @@ __global__ static void kuiper_kernel_64(float *gA, float *gB, uint32_t k,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 256);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            float *rAcol;
-            float _cbuf13[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rAcol = _cbuf13;
-            float *rBrow;
-            float _cbuf15[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rBrow = _cbuf15;
+            float rAcol[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -14264,12 +11603,9 @@ __global__ static void kuiper_kernel_64(float *gA, float *gB, uint32_t k,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 64) {
         uint32_t ci0 = cctr;
@@ -14311,8 +11647,7 @@ __global__ static void kuiper_kernel_65(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    custard_bf16 *rchProd;
-    custard_bf16 _cbuf1[64] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
+    custard_bf16 rchProd[64] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -14334,7 +11669,6 @@ __global__ static void kuiper_kernel_65(custard_bf16 *gA, custard_bf16 *gB,
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 64);
     uint32_t mrow = (rest / num_n_tiles);
@@ -14343,27 +11677,16 @@ __global__ static void kuiper_kernel_65(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t threadCol = (tid % 8);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 2048;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_bf16 *local;
-            custard_bf16 _cbuf5[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            local = _cbuf5;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -14373,11 +11696,8 @@ __global__ static void kuiper_kernel_65(custard_bf16 *gA, custard_bf16 *gB,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 custard_bf16 v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -14391,21 +11711,15 @@ __global__ static void kuiper_kernel_65(custard_bf16 *gA, custard_bf16 *gB,
             i = (vi + 512);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 2048;
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_bf16 *local_1;
-            custard_bf16 _cbuf9[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            local_1 = _cbuf9;
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 64);
             uint32_t __anf03_1 = i1;
@@ -14415,11 +11729,8 @@ __global__ static void kuiper_kernel_65(custard_bf16 *gA, custard_bf16 *gB,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 8) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 custard_bf16 v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -14432,32 +11743,17 @@ __global__ static void kuiper_kernel_65(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 512);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            custard_bf16 *rAcol;
-            custard_bf16 _cbuf13[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rAcol[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            rAcol = _cbuf13;
-            custard_bf16 *rBrow;
-            custard_bf16 _cbuf15[8] = {CUSTARD_BF16_LIT(0U),
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
+            custard_bf16 rBrow[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            rBrow = _cbuf15;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -14500,12 +11796,9 @@ __global__ static void kuiper_kernel_65(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 64) {
         uint32_t ci0 = cctr;
@@ -14547,12 +11840,10 @@ __global__ static void kuiper_kernel_66(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float *rchProd;
-    float _cbuf1[128];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 128; _ci2++) {
-        _cbuf1[_ci2] = 0.0f;
+    float rchProd[128];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
+        rchProd[_ci1] = 0.0f;
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 64);
     uint32_t mrow = (rest / num_n_tiles);
@@ -14561,23 +11852,13 @@ __global__ static void kuiper_kernel_66(float *gA, float *gB, uint32_t k,
     uint32_t threadCol = (tid % 4);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 2048;
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            float *local;
-            float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local = _cbuf5;
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -14587,11 +11868,8 @@ __global__ static void kuiper_kernel_66(float *gA, float *gB, uint32_t k,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 float v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -14605,17 +11883,11 @@ __global__ static void kuiper_kernel_66(float *gA, float *gB, uint32_t k,
             i = (vi + 128);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 2048;
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            float *local_1;
-            float _cbuf9[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local_1 = _cbuf9;
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 64);
             uint32_t __anf03_1 = i1;
@@ -14625,11 +11897,8 @@ __global__ static void kuiper_kernel_66(float *gA, float *gB, uint32_t k,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 4) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 float v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -14642,25 +11911,12 @@ __global__ static void kuiper_kernel_66(float *gA, float *gB, uint32_t k,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 128);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            float *rAcol;
-            float _cbuf13[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rAcol = _cbuf13;
-            float *rBrow;
-            float _cbuf15[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            float rAcol[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rBrow = _cbuf15;
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -14702,12 +11958,9 @@ __global__ static void kuiper_kernel_66(float *gA, float *gB, uint32_t k,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 128) {
         uint32_t ci0 = cctr;
@@ -14749,12 +12002,10 @@ __global__ static void kuiper_kernel_67(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    custard_bf16 *rchProd;
-    custard_bf16 _cbuf1[128];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 128; _ci2++) {
-        _cbuf1[_ci2] = CUSTARD_BF16_LIT(0U);
+    custard_bf16 rchProd[128];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
+        rchProd[_ci1] = CUSTARD_BF16_LIT(0U);
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 64);
     uint32_t mrow = (rest / num_n_tiles);
@@ -14763,27 +12014,16 @@ __global__ static void kuiper_kernel_67(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t threadCol = (tid % 4);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 2048;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_bf16 *local;
-            custard_bf16 _cbuf5[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            local = _cbuf5;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -14793,11 +12033,8 @@ __global__ static void kuiper_kernel_67(custard_bf16 *gA, custard_bf16 *gB,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 custard_bf16 v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -14811,21 +12048,15 @@ __global__ static void kuiper_kernel_67(custard_bf16 *gA, custard_bf16 *gB,
             i = (vi + 256);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 2048;
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_bf16 *local_1;
-            custard_bf16 _cbuf9[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            local_1 = _cbuf9;
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 64);
             uint32_t __anf03_1 = i1;
@@ -14835,11 +12066,8 @@ __global__ static void kuiper_kernel_67(custard_bf16 *gA, custard_bf16 *gB,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 8) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 custard_bf16 v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -14852,27 +12080,14 @@ __global__ static void kuiper_kernel_67(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 256);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            custard_bf16 *rAcol;
-            custard_bf16 _cbuf13[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rAcol[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            rAcol = _cbuf13;
-            custard_bf16 *rBrow;
-            custard_bf16 _cbuf15[16] = {CUSTARD_BF16_LIT(0U),
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
+            custard_bf16 rBrow[16] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -14881,7 +12096,6 @@ __global__ static void kuiper_kernel_67(custard_bf16 *gA, custard_bf16 *gB,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            rBrow = _cbuf15;
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -14924,12 +12138,9 @@ __global__ static void kuiper_kernel_67(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 128) {
         uint32_t ci0 = cctr;
@@ -14971,12 +12182,10 @@ __global__ static void kuiper_kernel_68(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float *rchProd;
-    float _cbuf1[128];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 128; _ci2++) {
-        _cbuf1[_ci2] = 0.0f;
+    float rchProd[128];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
+        rchProd[_ci1] = 0.0f;
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 64);
     uint32_t mrow = (rest / num_n_tiles);
@@ -14985,23 +12194,13 @@ __global__ static void kuiper_kernel_68(float *gA, float *gB, uint32_t k,
     uint32_t threadCol = (tid % 8);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 2048;
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            float *local;
-            float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local = _cbuf5;
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -15011,11 +12210,8 @@ __global__ static void kuiper_kernel_68(float *gA, float *gB, uint32_t k,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 float v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -15029,17 +12225,11 @@ __global__ static void kuiper_kernel_68(float *gA, float *gB, uint32_t k,
             i = (vi + 128);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 2048;
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            float *local_1;
-            float _cbuf9[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local_1 = _cbuf9;
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 64);
             uint32_t __anf03_1 = i1;
@@ -15049,11 +12239,8 @@ __global__ static void kuiper_kernel_68(float *gA, float *gB, uint32_t k,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 4) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 float v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -15066,25 +12253,12 @@ __global__ static void kuiper_kernel_68(float *gA, float *gB, uint32_t k,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 128);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            float *rAcol;
-            float _cbuf13[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            float rAcol[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rAcol = _cbuf13;
-            float *rBrow;
-            float _cbuf15[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rBrow = _cbuf15;
+            float rBrow[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -15126,12 +12300,9 @@ __global__ static void kuiper_kernel_68(float *gA, float *gB, uint32_t k,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 128) {
         uint32_t ci0 = cctr;
@@ -15173,12 +12344,10 @@ __global__ static void kuiper_kernel_69(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    custard_bf16 *rchProd;
-    custard_bf16 _cbuf1[128];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 128; _ci2++) {
-        _cbuf1[_ci2] = CUSTARD_BF16_LIT(0U);
+    custard_bf16 rchProd[128];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
+        rchProd[_ci1] = CUSTARD_BF16_LIT(0U);
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 64);
     uint32_t mrow = (rest / num_n_tiles);
@@ -15187,27 +12356,16 @@ __global__ static void kuiper_kernel_69(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t threadCol = (tid % 8);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 2048;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_bf16 *local;
-            custard_bf16 _cbuf5[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            local = _cbuf5;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -15217,11 +12375,8 @@ __global__ static void kuiper_kernel_69(custard_bf16 *gA, custard_bf16 *gB,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 custard_bf16 v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -15235,21 +12390,15 @@ __global__ static void kuiper_kernel_69(custard_bf16 *gA, custard_bf16 *gB,
             i = (vi + 256);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 2048;
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_bf16 *local_1;
-            custard_bf16 _cbuf9[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            local_1 = _cbuf9;
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 64);
             uint32_t __anf03_1 = i1;
@@ -15259,11 +12408,8 @@ __global__ static void kuiper_kernel_69(custard_bf16 *gA, custard_bf16 *gB,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 8) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 custard_bf16 v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -15276,20 +12422,10 @@ __global__ static void kuiper_kernel_69(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 256);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            custard_bf16 *rAcol;
-            custard_bf16 _cbuf13[16] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rAcol[16] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -15298,14 +12434,10 @@ __global__ static void kuiper_kernel_69(custard_bf16 *gA, custard_bf16 *gB,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            rAcol = _cbuf13;
-            custard_bf16 *rBrow;
-            custard_bf16 _cbuf15[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rBrow[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            rBrow = _cbuf15;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -15348,12 +12480,9 @@ __global__ static void kuiper_kernel_69(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 128) {
         uint32_t ci0 = cctr;
@@ -15395,12 +12524,10 @@ __global__ static void kuiper_kernel_70(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float *rchProd;
-    float _cbuf1[256];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 256; _ci2++) {
-        _cbuf1[_ci2] = 0.0f;
+    float rchProd[256];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 256; _ci1++) {
+        rchProd[_ci1] = 0.0f;
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 64);
     uint32_t mrow = (rest / num_n_tiles);
@@ -15409,23 +12536,13 @@ __global__ static void kuiper_kernel_70(float *gA, float *gB, uint32_t k,
     uint32_t threadCol = (tid % 4);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 2048;
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            float *local;
-            float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local = _cbuf5;
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -15435,11 +12552,8 @@ __global__ static void kuiper_kernel_70(float *gA, float *gB, uint32_t k,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 float v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -15453,17 +12567,11 @@ __global__ static void kuiper_kernel_70(float *gA, float *gB, uint32_t k,
             i = (vi + 64);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 2048;
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            float *local_1;
-            float _cbuf9[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local_1 = _cbuf9;
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 64);
             uint32_t __anf03_1 = i1;
@@ -15473,11 +12581,8 @@ __global__ static void kuiper_kernel_70(float *gA, float *gB, uint32_t k,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 4) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 float v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -15490,26 +12595,13 @@ __global__ static void kuiper_kernel_70(float *gA, float *gB, uint32_t k,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 64);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            float *rAcol;
-            float _cbuf13[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            float rAcol[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rAcol = _cbuf13;
-            float *rBrow;
-            float _cbuf15[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            float rBrow[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rBrow = _cbuf15;
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -15551,12 +12643,9 @@ __global__ static void kuiper_kernel_70(float *gA, float *gB, uint32_t k,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 256) {
         uint32_t ci0 = cctr;
@@ -15598,12 +12687,10 @@ __global__ static void kuiper_kernel_71(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    custard_bf16 *rchProd;
-    custard_bf16 _cbuf1[256];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 256; _ci2++) {
-        _cbuf1[_ci2] = CUSTARD_BF16_LIT(0U);
+    custard_bf16 rchProd[256];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 256; _ci1++) {
+        rchProd[_ci1] = CUSTARD_BF16_LIT(0U);
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 64);
     uint32_t mrow = (rest / num_n_tiles);
@@ -15612,27 +12699,16 @@ __global__ static void kuiper_kernel_71(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t threadCol = (tid % 4);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 2048;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_bf16 *local;
-            custard_bf16 _cbuf5[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            local = _cbuf5;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -15642,11 +12718,8 @@ __global__ static void kuiper_kernel_71(custard_bf16 *gA, custard_bf16 *gB,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 custard_bf16 v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -15660,21 +12733,15 @@ __global__ static void kuiper_kernel_71(custard_bf16 *gA, custard_bf16 *gB,
             i = (vi + 128);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 2048;
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_bf16 *local_1;
-            custard_bf16 _cbuf9[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            local_1 = _cbuf9;
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 64);
             uint32_t __anf03_1 = i1;
@@ -15684,11 +12751,8 @@ __global__ static void kuiper_kernel_71(custard_bf16 *gA, custard_bf16 *gB,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 8) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 custard_bf16 v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -15701,20 +12765,10 @@ __global__ static void kuiper_kernel_71(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 128);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            custard_bf16 *rAcol;
-            custard_bf16 _cbuf13[16] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rAcol[16] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -15723,9 +12777,7 @@ __global__ static void kuiper_kernel_71(custard_bf16 *gA, custard_bf16 *gB,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            rAcol = _cbuf13;
-            custard_bf16 *rBrow;
-            custard_bf16 _cbuf15[16] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rBrow[16] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -15734,7 +12786,6 @@ __global__ static void kuiper_kernel_71(custard_bf16 *gA, custard_bf16 *gB,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            rBrow = _cbuf15;
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -15777,12 +12828,9 @@ __global__ static void kuiper_kernel_71(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 256) {
         uint32_t ci0 = cctr;
@@ -15824,14 +12872,12 @@ __global__ static void kuiper_kernel_72(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float *rchProd;
-    float _cbuf1[64] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+    float rchProd[64] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 64);
     uint32_t mrow = (rest / num_n_tiles);
@@ -15840,23 +12886,13 @@ __global__ static void kuiper_kernel_72(float *gA, float *gB, uint32_t k,
     uint32_t threadCol = (tid % 8);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            float *local;
-            float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local = _cbuf5;
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -15866,11 +12902,8 @@ __global__ static void kuiper_kernel_72(float *gA, float *gB, uint32_t k,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 float v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -15884,17 +12917,11 @@ __global__ static void kuiper_kernel_72(float *gA, float *gB, uint32_t k,
             i = (vi + 256);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 4096;
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            float *local_1;
-            float _cbuf9[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local_1 = _cbuf9;
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 64);
             uint32_t __anf03_1 = i1;
@@ -15904,11 +12931,8 @@ __global__ static void kuiper_kernel_72(float *gA, float *gB, uint32_t k,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 4) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 float v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -15921,24 +12945,11 @@ __global__ static void kuiper_kernel_72(float *gA, float *gB, uint32_t k,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 256);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            float *rAcol;
-            float _cbuf13[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rAcol = _cbuf13;
-            float *rBrow;
-            float _cbuf15[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rBrow = _cbuf15;
+            float rAcol[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -15980,12 +12991,9 @@ __global__ static void kuiper_kernel_72(float *gA, float *gB, uint32_t k,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 64) {
         uint32_t ci0 = cctr;
@@ -16027,8 +13035,7 @@ __global__ static void kuiper_kernel_73(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    custard_bf16 *rchProd;
-    custard_bf16 _cbuf1[64] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
+    custard_bf16 rchProd[64] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -16050,7 +13057,6 @@ __global__ static void kuiper_kernel_73(custard_bf16 *gA, custard_bf16 *gB,
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 64);
     uint32_t mrow = (rest / num_n_tiles);
@@ -16059,27 +13065,16 @@ __global__ static void kuiper_kernel_73(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t threadCol = (tid % 8);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_bf16 *local;
-            custard_bf16 _cbuf5[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            local = _cbuf5;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -16089,11 +13084,8 @@ __global__ static void kuiper_kernel_73(custard_bf16 *gA, custard_bf16 *gB,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 custard_bf16 v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -16107,21 +13099,15 @@ __global__ static void kuiper_kernel_73(custard_bf16 *gA, custard_bf16 *gB,
             i = (vi + 512);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 4096;
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_bf16 *local_1;
-            custard_bf16 _cbuf9[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            local_1 = _cbuf9;
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 64);
             uint32_t __anf03_1 = i1;
@@ -16131,11 +13117,8 @@ __global__ static void kuiper_kernel_73(custard_bf16 *gA, custard_bf16 *gB,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 8) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 custard_bf16 v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -16148,32 +13131,17 @@ __global__ static void kuiper_kernel_73(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 512);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            custard_bf16 *rAcol;
-            custard_bf16 _cbuf13[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rAcol[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            rAcol = _cbuf13;
-            custard_bf16 *rBrow;
-            custard_bf16 _cbuf15[8] = {CUSTARD_BF16_LIT(0U),
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
+            custard_bf16 rBrow[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            rBrow = _cbuf15;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -16216,12 +13184,9 @@ __global__ static void kuiper_kernel_73(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 64) {
         uint32_t ci0 = cctr;
@@ -16263,12 +13228,10 @@ __global__ static void kuiper_kernel_74(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float *rchProd;
-    float _cbuf1[128];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 128; _ci2++) {
-        _cbuf1[_ci2] = 0.0f;
+    float rchProd[128];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
+        rchProd[_ci1] = 0.0f;
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 64);
     uint32_t mrow = (rest / num_n_tiles);
@@ -16277,23 +13240,13 @@ __global__ static void kuiper_kernel_74(float *gA, float *gB, uint32_t k,
     uint32_t threadCol = (tid % 4);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            float *local;
-            float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local = _cbuf5;
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -16303,11 +13256,8 @@ __global__ static void kuiper_kernel_74(float *gA, float *gB, uint32_t k,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 float v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -16321,17 +13271,11 @@ __global__ static void kuiper_kernel_74(float *gA, float *gB, uint32_t k,
             i = (vi + 128);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 4096;
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            float *local_1;
-            float _cbuf9[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local_1 = _cbuf9;
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 64);
             uint32_t __anf03_1 = i1;
@@ -16341,11 +13285,8 @@ __global__ static void kuiper_kernel_74(float *gA, float *gB, uint32_t k,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 4) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 float v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -16358,25 +13299,12 @@ __global__ static void kuiper_kernel_74(float *gA, float *gB, uint32_t k,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 128);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            float *rAcol;
-            float _cbuf13[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rAcol = _cbuf13;
-            float *rBrow;
-            float _cbuf15[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            float rAcol[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rBrow = _cbuf15;
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -16418,12 +13346,9 @@ __global__ static void kuiper_kernel_74(float *gA, float *gB, uint32_t k,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 128) {
         uint32_t ci0 = cctr;
@@ -16465,12 +13390,10 @@ __global__ static void kuiper_kernel_75(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    custard_bf16 *rchProd;
-    custard_bf16 _cbuf1[128];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 128; _ci2++) {
-        _cbuf1[_ci2] = CUSTARD_BF16_LIT(0U);
+    custard_bf16 rchProd[128];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
+        rchProd[_ci1] = CUSTARD_BF16_LIT(0U);
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 64);
     uint32_t mrow = (rest / num_n_tiles);
@@ -16479,27 +13402,16 @@ __global__ static void kuiper_kernel_75(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t threadCol = (tid % 4);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_bf16 *local;
-            custard_bf16 _cbuf5[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            local = _cbuf5;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -16509,11 +13421,8 @@ __global__ static void kuiper_kernel_75(custard_bf16 *gA, custard_bf16 *gB,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 custard_bf16 v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -16527,21 +13436,15 @@ __global__ static void kuiper_kernel_75(custard_bf16 *gA, custard_bf16 *gB,
             i = (vi + 256);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 4096;
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_bf16 *local_1;
-            custard_bf16 _cbuf9[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            local_1 = _cbuf9;
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 64);
             uint32_t __anf03_1 = i1;
@@ -16551,11 +13454,8 @@ __global__ static void kuiper_kernel_75(custard_bf16 *gA, custard_bf16 *gB,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 8) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 custard_bf16 v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -16568,27 +13468,14 @@ __global__ static void kuiper_kernel_75(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 256);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            custard_bf16 *rAcol;
-            custard_bf16 _cbuf13[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rAcol[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            rAcol = _cbuf13;
-            custard_bf16 *rBrow;
-            custard_bf16 _cbuf15[16] = {CUSTARD_BF16_LIT(0U),
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
+            custard_bf16 rBrow[16] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -16597,7 +13484,6 @@ __global__ static void kuiper_kernel_75(custard_bf16 *gA, custard_bf16 *gB,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            rBrow = _cbuf15;
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -16640,12 +13526,9 @@ __global__ static void kuiper_kernel_75(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 128) {
         uint32_t ci0 = cctr;
@@ -16687,12 +13570,10 @@ __global__ static void kuiper_kernel_76(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float *rchProd;
-    float _cbuf1[128];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 128; _ci2++) {
-        _cbuf1[_ci2] = 0.0f;
+    float rchProd[128];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
+        rchProd[_ci1] = 0.0f;
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 64);
     uint32_t mrow = (rest / num_n_tiles);
@@ -16701,23 +13582,13 @@ __global__ static void kuiper_kernel_76(float *gA, float *gB, uint32_t k,
     uint32_t threadCol = (tid % 8);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            float *local;
-            float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local = _cbuf5;
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -16727,11 +13598,8 @@ __global__ static void kuiper_kernel_76(float *gA, float *gB, uint32_t k,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 float v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -16745,17 +13613,11 @@ __global__ static void kuiper_kernel_76(float *gA, float *gB, uint32_t k,
             i = (vi + 128);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 4096;
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            float *local_1;
-            float _cbuf9[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local_1 = _cbuf9;
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 64);
             uint32_t __anf03_1 = i1;
@@ -16765,11 +13627,8 @@ __global__ static void kuiper_kernel_76(float *gA, float *gB, uint32_t k,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 4) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 float v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -16782,25 +13641,12 @@ __global__ static void kuiper_kernel_76(float *gA, float *gB, uint32_t k,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 128);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            float *rAcol;
-            float _cbuf13[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            float rAcol[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rAcol = _cbuf13;
-            float *rBrow;
-            float _cbuf15[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rBrow = _cbuf15;
+            float rBrow[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -16842,12 +13688,9 @@ __global__ static void kuiper_kernel_76(float *gA, float *gB, uint32_t k,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 128) {
         uint32_t ci0 = cctr;
@@ -16889,12 +13732,10 @@ __global__ static void kuiper_kernel_77(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    custard_bf16 *rchProd;
-    custard_bf16 _cbuf1[128];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 128; _ci2++) {
-        _cbuf1[_ci2] = CUSTARD_BF16_LIT(0U);
+    custard_bf16 rchProd[128];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
+        rchProd[_ci1] = CUSTARD_BF16_LIT(0U);
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 64);
     uint32_t mrow = (rest / num_n_tiles);
@@ -16903,27 +13744,16 @@ __global__ static void kuiper_kernel_77(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t threadCol = (tid % 8);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_bf16 *local;
-            custard_bf16 _cbuf5[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            local = _cbuf5;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -16933,11 +13763,8 @@ __global__ static void kuiper_kernel_77(custard_bf16 *gA, custard_bf16 *gB,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 custard_bf16 v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -16951,21 +13778,15 @@ __global__ static void kuiper_kernel_77(custard_bf16 *gA, custard_bf16 *gB,
             i = (vi + 256);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 4096;
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_bf16 *local_1;
-            custard_bf16 _cbuf9[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            local_1 = _cbuf9;
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 64);
             uint32_t __anf03_1 = i1;
@@ -16975,11 +13796,8 @@ __global__ static void kuiper_kernel_77(custard_bf16 *gA, custard_bf16 *gB,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 8) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 custard_bf16 v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -16992,20 +13810,10 @@ __global__ static void kuiper_kernel_77(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 256);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            custard_bf16 *rAcol;
-            custard_bf16 _cbuf13[16] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rAcol[16] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -17014,14 +13822,10 @@ __global__ static void kuiper_kernel_77(custard_bf16 *gA, custard_bf16 *gB,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            rAcol = _cbuf13;
-            custard_bf16 *rBrow;
-            custard_bf16 _cbuf15[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rBrow[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            rBrow = _cbuf15;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -17064,12 +13868,9 @@ __global__ static void kuiper_kernel_77(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 128) {
         uint32_t ci0 = cctr;
@@ -17111,12 +13912,10 @@ __global__ static void kuiper_kernel_78(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float *rchProd;
-    float _cbuf1[256];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 256; _ci2++) {
-        _cbuf1[_ci2] = 0.0f;
+    float rchProd[256];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 256; _ci1++) {
+        rchProd[_ci1] = 0.0f;
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 64);
     uint32_t mrow = (rest / num_n_tiles);
@@ -17125,23 +13924,13 @@ __global__ static void kuiper_kernel_78(float *gA, float *gB, uint32_t k,
     uint32_t threadCol = (tid % 4);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            float *local;
-            float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local = _cbuf5;
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -17151,11 +13940,8 @@ __global__ static void kuiper_kernel_78(float *gA, float *gB, uint32_t k,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 float v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -17169,17 +13955,11 @@ __global__ static void kuiper_kernel_78(float *gA, float *gB, uint32_t k,
             i = (vi + 64);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 4096;
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            float *local_1;
-            float _cbuf9[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local_1 = _cbuf9;
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 64);
             uint32_t __anf03_1 = i1;
@@ -17189,11 +13969,8 @@ __global__ static void kuiper_kernel_78(float *gA, float *gB, uint32_t k,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 4) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 float v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -17206,26 +13983,13 @@ __global__ static void kuiper_kernel_78(float *gA, float *gB, uint32_t k,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 64);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            float *rAcol;
-            float _cbuf13[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            float rAcol[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rAcol = _cbuf13;
-            float *rBrow;
-            float _cbuf15[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            float rBrow[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rBrow = _cbuf15;
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -17267,12 +14031,9 @@ __global__ static void kuiper_kernel_78(float *gA, float *gB, uint32_t k,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 256) {
         uint32_t ci0 = cctr;
@@ -17314,12 +14075,10 @@ __global__ static void kuiper_kernel_79(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    custard_bf16 *rchProd;
-    custard_bf16 _cbuf1[256];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 256; _ci2++) {
-        _cbuf1[_ci2] = CUSTARD_BF16_LIT(0U);
+    custard_bf16 rchProd[256];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 256; _ci1++) {
+        rchProd[_ci1] = CUSTARD_BF16_LIT(0U);
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 64);
     uint32_t mrow = (rest / num_n_tiles);
@@ -17328,27 +14087,16 @@ __global__ static void kuiper_kernel_79(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t threadCol = (tid % 4);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_bf16 *local;
-            custard_bf16 _cbuf5[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            local = _cbuf5;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -17358,11 +14106,8 @@ __global__ static void kuiper_kernel_79(custard_bf16 *gA, custard_bf16 *gB,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 custard_bf16 v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -17376,21 +14121,15 @@ __global__ static void kuiper_kernel_79(custard_bf16 *gA, custard_bf16 *gB,
             i = (vi + 128);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 4096;
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_bf16 *local_1;
-            custard_bf16 _cbuf9[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            local_1 = _cbuf9;
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 64);
             uint32_t __anf03_1 = i1;
@@ -17400,11 +14139,8 @@ __global__ static void kuiper_kernel_79(custard_bf16 *gA, custard_bf16 *gB,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 8) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 custard_bf16 v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -17417,20 +14153,10 @@ __global__ static void kuiper_kernel_79(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 128);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            custard_bf16 *rAcol;
-            custard_bf16 _cbuf13[16] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rAcol[16] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -17439,9 +14165,7 @@ __global__ static void kuiper_kernel_79(custard_bf16 *gA, custard_bf16 *gB,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            rAcol = _cbuf13;
-            custard_bf16 *rBrow;
-            custard_bf16 _cbuf15[16] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rBrow[16] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -17450,7 +14174,6 @@ __global__ static void kuiper_kernel_79(custard_bf16 *gA, custard_bf16 *gB,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            rBrow = _cbuf15;
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -17493,12 +14216,9 @@ __global__ static void kuiper_kernel_79(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 256) {
         uint32_t ci0 = cctr;
@@ -17540,14 +14260,12 @@ __global__ static void kuiper_kernel_80(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float *rchProd;
-    float _cbuf1[64] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+    float rchProd[64] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 128);
     uint32_t mrow = (rest / num_n_tiles);
@@ -17556,23 +14274,13 @@ __global__ static void kuiper_kernel_80(float *gA, float *gB, uint32_t k,
     uint32_t threadCol = (tid % 16);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 2048;
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            float *local;
-            float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local = _cbuf5;
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -17582,11 +14290,8 @@ __global__ static void kuiper_kernel_80(float *gA, float *gB, uint32_t k,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 float v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -17600,17 +14305,11 @@ __global__ static void kuiper_kernel_80(float *gA, float *gB, uint32_t k,
             i = (vi + 512);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 4096;
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            float *local_1;
-            float _cbuf9[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local_1 = _cbuf9;
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 128);
             uint32_t __anf03_1 = i1;
@@ -17620,11 +14319,8 @@ __global__ static void kuiper_kernel_80(float *gA, float *gB, uint32_t k,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 4) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 float v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -17637,24 +14333,11 @@ __global__ static void kuiper_kernel_80(float *gA, float *gB, uint32_t k,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 512);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            float *rAcol;
-            float _cbuf13[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rAcol = _cbuf13;
-            float *rBrow;
-            float _cbuf15[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rBrow = _cbuf15;
+            float rAcol[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -17696,12 +14379,9 @@ __global__ static void kuiper_kernel_80(float *gA, float *gB, uint32_t k,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 64) {
         uint32_t ci0 = cctr;
@@ -17743,8 +14423,7 @@ __global__ static void kuiper_kernel_81(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    custard_bf16 *rchProd;
-    custard_bf16 _cbuf1[64] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
+    custard_bf16 rchProd[64] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -17766,7 +14445,6 @@ __global__ static void kuiper_kernel_81(custard_bf16 *gA, custard_bf16 *gB,
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 128);
     uint32_t mrow = (rest / num_n_tiles);
@@ -17775,27 +14453,16 @@ __global__ static void kuiper_kernel_81(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t threadCol = (tid % 16);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 2048;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_bf16 *local;
-            custard_bf16 _cbuf5[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            local = _cbuf5;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -17805,11 +14472,8 @@ __global__ static void kuiper_kernel_81(custard_bf16 *gA, custard_bf16 *gB,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 custard_bf16 v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -17823,21 +14487,15 @@ __global__ static void kuiper_kernel_81(custard_bf16 *gA, custard_bf16 *gB,
             i = (vi + 1024);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 4096;
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_bf16 *local_1;
-            custard_bf16 _cbuf9[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            local_1 = _cbuf9;
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 128);
             uint32_t __anf03_1 = i1;
@@ -17847,11 +14505,8 @@ __global__ static void kuiper_kernel_81(custard_bf16 *gA, custard_bf16 *gB,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 8) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 custard_bf16 v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -17864,32 +14519,17 @@ __global__ static void kuiper_kernel_81(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 1024);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            custard_bf16 *rAcol;
-            custard_bf16 _cbuf13[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rAcol[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            rAcol = _cbuf13;
-            custard_bf16 *rBrow;
-            custard_bf16 _cbuf15[8] = {CUSTARD_BF16_LIT(0U),
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
+            custard_bf16 rBrow[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            rBrow = _cbuf15;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -17932,12 +14572,9 @@ __global__ static void kuiper_kernel_81(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 64) {
         uint32_t ci0 = cctr;
@@ -17979,12 +14616,10 @@ __global__ static void kuiper_kernel_82(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float *rchProd;
-    float _cbuf1[128];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 128; _ci2++) {
-        _cbuf1[_ci2] = 0.0f;
+    float rchProd[128];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
+        rchProd[_ci1] = 0.0f;
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 128);
     uint32_t mrow = (rest / num_n_tiles);
@@ -17993,23 +14628,13 @@ __global__ static void kuiper_kernel_82(float *gA, float *gB, uint32_t k,
     uint32_t threadCol = (tid % 8);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 2048;
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            float *local;
-            float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local = _cbuf5;
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -18019,11 +14644,8 @@ __global__ static void kuiper_kernel_82(float *gA, float *gB, uint32_t k,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 float v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -18037,17 +14659,11 @@ __global__ static void kuiper_kernel_82(float *gA, float *gB, uint32_t k,
             i = (vi + 256);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 4096;
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            float *local_1;
-            float _cbuf9[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local_1 = _cbuf9;
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 128);
             uint32_t __anf03_1 = i1;
@@ -18057,11 +14673,8 @@ __global__ static void kuiper_kernel_82(float *gA, float *gB, uint32_t k,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 4) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 float v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -18074,25 +14687,12 @@ __global__ static void kuiper_kernel_82(float *gA, float *gB, uint32_t k,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 256);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            float *rAcol;
-            float _cbuf13[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rAcol = _cbuf13;
-            float *rBrow;
-            float _cbuf15[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            float rAcol[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rBrow = _cbuf15;
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -18134,12 +14734,9 @@ __global__ static void kuiper_kernel_82(float *gA, float *gB, uint32_t k,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 128) {
         uint32_t ci0 = cctr;
@@ -18181,12 +14778,10 @@ __global__ static void kuiper_kernel_83(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    custard_bf16 *rchProd;
-    custard_bf16 _cbuf1[128];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 128; _ci2++) {
-        _cbuf1[_ci2] = CUSTARD_BF16_LIT(0U);
+    custard_bf16 rchProd[128];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
+        rchProd[_ci1] = CUSTARD_BF16_LIT(0U);
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 128);
     uint32_t mrow = (rest / num_n_tiles);
@@ -18195,27 +14790,16 @@ __global__ static void kuiper_kernel_83(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t threadCol = (tid % 8);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 2048;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_bf16 *local;
-            custard_bf16 _cbuf5[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            local = _cbuf5;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -18225,11 +14809,8 @@ __global__ static void kuiper_kernel_83(custard_bf16 *gA, custard_bf16 *gB,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 custard_bf16 v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -18243,21 +14824,15 @@ __global__ static void kuiper_kernel_83(custard_bf16 *gA, custard_bf16 *gB,
             i = (vi + 512);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 4096;
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_bf16 *local_1;
-            custard_bf16 _cbuf9[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            local_1 = _cbuf9;
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 128);
             uint32_t __anf03_1 = i1;
@@ -18267,11 +14842,8 @@ __global__ static void kuiper_kernel_83(custard_bf16 *gA, custard_bf16 *gB,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 8) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 custard_bf16 v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -18284,27 +14856,14 @@ __global__ static void kuiper_kernel_83(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 512);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            custard_bf16 *rAcol;
-            custard_bf16 _cbuf13[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rAcol[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            rAcol = _cbuf13;
-            custard_bf16 *rBrow;
-            custard_bf16 _cbuf15[16] = {CUSTARD_BF16_LIT(0U),
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
+            custard_bf16 rBrow[16] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -18313,7 +14872,6 @@ __global__ static void kuiper_kernel_83(custard_bf16 *gA, custard_bf16 *gB,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            rBrow = _cbuf15;
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -18356,12 +14914,9 @@ __global__ static void kuiper_kernel_83(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 128) {
         uint32_t ci0 = cctr;
@@ -18403,12 +14958,10 @@ __global__ static void kuiper_kernel_84(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float *rchProd;
-    float _cbuf1[128];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 128; _ci2++) {
-        _cbuf1[_ci2] = 0.0f;
+    float rchProd[128];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
+        rchProd[_ci1] = 0.0f;
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 128);
     uint32_t mrow = (rest / num_n_tiles);
@@ -18417,23 +14970,13 @@ __global__ static void kuiper_kernel_84(float *gA, float *gB, uint32_t k,
     uint32_t threadCol = (tid % 16);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 2048;
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            float *local;
-            float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local = _cbuf5;
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -18443,11 +14986,8 @@ __global__ static void kuiper_kernel_84(float *gA, float *gB, uint32_t k,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 float v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -18461,17 +15001,11 @@ __global__ static void kuiper_kernel_84(float *gA, float *gB, uint32_t k,
             i = (vi + 256);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 4096;
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            float *local_1;
-            float _cbuf9[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local_1 = _cbuf9;
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 128);
             uint32_t __anf03_1 = i1;
@@ -18481,11 +15015,8 @@ __global__ static void kuiper_kernel_84(float *gA, float *gB, uint32_t k,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 4) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 float v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -18498,25 +15029,12 @@ __global__ static void kuiper_kernel_84(float *gA, float *gB, uint32_t k,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 256);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            float *rAcol;
-            float _cbuf13[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            float rAcol[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rAcol = _cbuf13;
-            float *rBrow;
-            float _cbuf15[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rBrow = _cbuf15;
+            float rBrow[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -18558,12 +15076,9 @@ __global__ static void kuiper_kernel_84(float *gA, float *gB, uint32_t k,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 128) {
         uint32_t ci0 = cctr;
@@ -18605,12 +15120,10 @@ __global__ static void kuiper_kernel_85(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    custard_bf16 *rchProd;
-    custard_bf16 _cbuf1[128];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 128; _ci2++) {
-        _cbuf1[_ci2] = CUSTARD_BF16_LIT(0U);
+    custard_bf16 rchProd[128];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
+        rchProd[_ci1] = CUSTARD_BF16_LIT(0U);
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 128);
     uint32_t mrow = (rest / num_n_tiles);
@@ -18619,27 +15132,16 @@ __global__ static void kuiper_kernel_85(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t threadCol = (tid % 16);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 2048;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_bf16 *local;
-            custard_bf16 _cbuf5[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            local = _cbuf5;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -18649,11 +15151,8 @@ __global__ static void kuiper_kernel_85(custard_bf16 *gA, custard_bf16 *gB,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 custard_bf16 v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -18667,21 +15166,15 @@ __global__ static void kuiper_kernel_85(custard_bf16 *gA, custard_bf16 *gB,
             i = (vi + 512);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 4096;
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_bf16 *local_1;
-            custard_bf16 _cbuf9[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            local_1 = _cbuf9;
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 128);
             uint32_t __anf03_1 = i1;
@@ -18691,11 +15184,8 @@ __global__ static void kuiper_kernel_85(custard_bf16 *gA, custard_bf16 *gB,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 8) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 custard_bf16 v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -18708,20 +15198,10 @@ __global__ static void kuiper_kernel_85(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 512);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            custard_bf16 *rAcol;
-            custard_bf16 _cbuf13[16] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rAcol[16] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -18730,14 +15210,10 @@ __global__ static void kuiper_kernel_85(custard_bf16 *gA, custard_bf16 *gB,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            rAcol = _cbuf13;
-            custard_bf16 *rBrow;
-            custard_bf16 _cbuf15[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rBrow[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            rBrow = _cbuf15;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -18780,12 +15256,9 @@ __global__ static void kuiper_kernel_85(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 128) {
         uint32_t ci0 = cctr;
@@ -18827,12 +15300,10 @@ __global__ static void kuiper_kernel_86(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float *rchProd;
-    float _cbuf1[256];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 256; _ci2++) {
-        _cbuf1[_ci2] = 0.0f;
+    float rchProd[256];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 256; _ci1++) {
+        rchProd[_ci1] = 0.0f;
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 128);
     uint32_t mrow = (rest / num_n_tiles);
@@ -18841,23 +15312,13 @@ __global__ static void kuiper_kernel_86(float *gA, float *gB, uint32_t k,
     uint32_t threadCol = (tid % 8);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 2048;
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            float *local;
-            float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local = _cbuf5;
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -18867,11 +15328,8 @@ __global__ static void kuiper_kernel_86(float *gA, float *gB, uint32_t k,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 float v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -18885,17 +15343,11 @@ __global__ static void kuiper_kernel_86(float *gA, float *gB, uint32_t k,
             i = (vi + 128);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 4096;
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            float *local_1;
-            float _cbuf9[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local_1 = _cbuf9;
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 128);
             uint32_t __anf03_1 = i1;
@@ -18905,11 +15357,8 @@ __global__ static void kuiper_kernel_86(float *gA, float *gB, uint32_t k,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 4) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 float v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -18922,26 +15371,13 @@ __global__ static void kuiper_kernel_86(float *gA, float *gB, uint32_t k,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 128);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            float *rAcol;
-            float _cbuf13[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            float rAcol[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rAcol = _cbuf13;
-            float *rBrow;
-            float _cbuf15[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            float rBrow[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rBrow = _cbuf15;
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -18983,12 +15419,9 @@ __global__ static void kuiper_kernel_86(float *gA, float *gB, uint32_t k,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 256) {
         uint32_t ci0 = cctr;
@@ -19030,12 +15463,10 @@ __global__ static void kuiper_kernel_87(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    custard_bf16 *rchProd;
-    custard_bf16 _cbuf1[256];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 256; _ci2++) {
-        _cbuf1[_ci2] = CUSTARD_BF16_LIT(0U);
+    custard_bf16 rchProd[256];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 256; _ci1++) {
+        rchProd[_ci1] = CUSTARD_BF16_LIT(0U);
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 128);
     uint32_t mrow = (rest / num_n_tiles);
@@ -19044,27 +15475,16 @@ __global__ static void kuiper_kernel_87(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t threadCol = (tid % 8);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 2048;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_bf16 *local;
-            custard_bf16 _cbuf5[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            local = _cbuf5;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -19074,11 +15494,8 @@ __global__ static void kuiper_kernel_87(custard_bf16 *gA, custard_bf16 *gB,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 custard_bf16 v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -19092,21 +15509,15 @@ __global__ static void kuiper_kernel_87(custard_bf16 *gA, custard_bf16 *gB,
             i = (vi + 256);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 4096;
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_bf16 *local_1;
-            custard_bf16 _cbuf9[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            local_1 = _cbuf9;
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 128);
             uint32_t __anf03_1 = i1;
@@ -19116,11 +15527,8 @@ __global__ static void kuiper_kernel_87(custard_bf16 *gA, custard_bf16 *gB,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 8) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 custard_bf16 v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -19133,20 +15541,10 @@ __global__ static void kuiper_kernel_87(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 256);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            custard_bf16 *rAcol;
-            custard_bf16 _cbuf13[16] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rAcol[16] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -19155,9 +15553,7 @@ __global__ static void kuiper_kernel_87(custard_bf16 *gA, custard_bf16 *gB,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            rAcol = _cbuf13;
-            custard_bf16 *rBrow;
-            custard_bf16 _cbuf15[16] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rBrow[16] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -19166,7 +15562,6 @@ __global__ static void kuiper_kernel_87(custard_bf16 *gA, custard_bf16 *gB,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            rBrow = _cbuf15;
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -19209,12 +15604,9 @@ __global__ static void kuiper_kernel_87(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 256) {
         uint32_t ci0 = cctr;
@@ -19256,14 +15648,12 @@ __global__ static void kuiper_kernel_88(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float *rchProd;
-    float _cbuf1[64] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+    float rchProd[64] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 128);
     uint32_t mrow = (rest / num_n_tiles);
@@ -19272,23 +15662,13 @@ __global__ static void kuiper_kernel_88(float *gA, float *gB, uint32_t k,
     uint32_t threadCol = (tid % 16);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            float *local;
-            float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local = _cbuf5;
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -19298,11 +15678,8 @@ __global__ static void kuiper_kernel_88(float *gA, float *gB, uint32_t k,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 float v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -19316,17 +15693,11 @@ __global__ static void kuiper_kernel_88(float *gA, float *gB, uint32_t k,
             i = (vi + 512);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 8192;
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            float *local_1;
-            float _cbuf9[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local_1 = _cbuf9;
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 128);
             uint32_t __anf03_1 = i1;
@@ -19336,11 +15707,8 @@ __global__ static void kuiper_kernel_88(float *gA, float *gB, uint32_t k,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 4) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 float v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -19353,24 +15721,11 @@ __global__ static void kuiper_kernel_88(float *gA, float *gB, uint32_t k,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 512);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            float *rAcol;
-            float _cbuf13[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rAcol = _cbuf13;
-            float *rBrow;
-            float _cbuf15[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rBrow = _cbuf15;
+            float rAcol[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -19412,12 +15767,9 @@ __global__ static void kuiper_kernel_88(float *gA, float *gB, uint32_t k,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 64) {
         uint32_t ci0 = cctr;
@@ -19459,8 +15811,7 @@ __global__ static void kuiper_kernel_89(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    custard_bf16 *rchProd;
-    custard_bf16 _cbuf1[64] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
+    custard_bf16 rchProd[64] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -19482,7 +15833,6 @@ __global__ static void kuiper_kernel_89(custard_bf16 *gA, custard_bf16 *gB,
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 128);
     uint32_t mrow = (rest / num_n_tiles);
@@ -19491,27 +15841,16 @@ __global__ static void kuiper_kernel_89(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t threadCol = (tid % 16);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_bf16 *local;
-            custard_bf16 _cbuf5[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            local = _cbuf5;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -19521,11 +15860,8 @@ __global__ static void kuiper_kernel_89(custard_bf16 *gA, custard_bf16 *gB,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 custard_bf16 v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -19539,21 +15875,15 @@ __global__ static void kuiper_kernel_89(custard_bf16 *gA, custard_bf16 *gB,
             i = (vi + 1024);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 8192;
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_bf16 *local_1;
-            custard_bf16 _cbuf9[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            local_1 = _cbuf9;
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 128);
             uint32_t __anf03_1 = i1;
@@ -19563,11 +15893,8 @@ __global__ static void kuiper_kernel_89(custard_bf16 *gA, custard_bf16 *gB,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 8) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 custard_bf16 v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -19580,32 +15907,17 @@ __global__ static void kuiper_kernel_89(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 1024);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            custard_bf16 *rAcol;
-            custard_bf16 _cbuf13[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rAcol[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            rAcol = _cbuf13;
-            custard_bf16 *rBrow;
-            custard_bf16 _cbuf15[8] = {CUSTARD_BF16_LIT(0U),
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
+            custard_bf16 rBrow[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            rBrow = _cbuf15;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -19648,12 +15960,9 @@ __global__ static void kuiper_kernel_89(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 64) {
         uint32_t ci0 = cctr;
@@ -19695,12 +16004,10 @@ __global__ static void kuiper_kernel_90(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float *rchProd;
-    float _cbuf1[128];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 128; _ci2++) {
-        _cbuf1[_ci2] = 0.0f;
+    float rchProd[128];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
+        rchProd[_ci1] = 0.0f;
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 128);
     uint32_t mrow = (rest / num_n_tiles);
@@ -19709,23 +16016,13 @@ __global__ static void kuiper_kernel_90(float *gA, float *gB, uint32_t k,
     uint32_t threadCol = (tid % 8);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            float *local;
-            float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local = _cbuf5;
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -19735,11 +16032,8 @@ __global__ static void kuiper_kernel_90(float *gA, float *gB, uint32_t k,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 float v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -19753,17 +16047,11 @@ __global__ static void kuiper_kernel_90(float *gA, float *gB, uint32_t k,
             i = (vi + 256);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 8192;
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            float *local_1;
-            float _cbuf9[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local_1 = _cbuf9;
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 128);
             uint32_t __anf03_1 = i1;
@@ -19773,11 +16061,8 @@ __global__ static void kuiper_kernel_90(float *gA, float *gB, uint32_t k,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 4) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 float v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -19790,25 +16075,12 @@ __global__ static void kuiper_kernel_90(float *gA, float *gB, uint32_t k,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 256);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            float *rAcol;
-            float _cbuf13[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rAcol = _cbuf13;
-            float *rBrow;
-            float _cbuf15[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            float rAcol[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rBrow = _cbuf15;
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -19850,12 +16122,9 @@ __global__ static void kuiper_kernel_90(float *gA, float *gB, uint32_t k,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 128) {
         uint32_t ci0 = cctr;
@@ -19897,12 +16166,10 @@ __global__ static void kuiper_kernel_91(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    custard_bf16 *rchProd;
-    custard_bf16 _cbuf1[128];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 128; _ci2++) {
-        _cbuf1[_ci2] = CUSTARD_BF16_LIT(0U);
+    custard_bf16 rchProd[128];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
+        rchProd[_ci1] = CUSTARD_BF16_LIT(0U);
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 128);
     uint32_t mrow = (rest / num_n_tiles);
@@ -19911,27 +16178,16 @@ __global__ static void kuiper_kernel_91(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t threadCol = (tid % 8);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_bf16 *local;
-            custard_bf16 _cbuf5[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            local = _cbuf5;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -19941,11 +16197,8 @@ __global__ static void kuiper_kernel_91(custard_bf16 *gA, custard_bf16 *gB,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 custard_bf16 v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -19959,21 +16212,15 @@ __global__ static void kuiper_kernel_91(custard_bf16 *gA, custard_bf16 *gB,
             i = (vi + 512);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 8192;
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_bf16 *local_1;
-            custard_bf16 _cbuf9[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            local_1 = _cbuf9;
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 128);
             uint32_t __anf03_1 = i1;
@@ -19983,11 +16230,8 @@ __global__ static void kuiper_kernel_91(custard_bf16 *gA, custard_bf16 *gB,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 8) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 custard_bf16 v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -20000,27 +16244,14 @@ __global__ static void kuiper_kernel_91(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 512);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            custard_bf16 *rAcol;
-            custard_bf16 _cbuf13[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rAcol[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            rAcol = _cbuf13;
-            custard_bf16 *rBrow;
-            custard_bf16 _cbuf15[16] = {CUSTARD_BF16_LIT(0U),
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
+            custard_bf16 rBrow[16] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -20029,7 +16260,6 @@ __global__ static void kuiper_kernel_91(custard_bf16 *gA, custard_bf16 *gB,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            rBrow = _cbuf15;
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -20072,12 +16302,9 @@ __global__ static void kuiper_kernel_91(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 128) {
         uint32_t ci0 = cctr;
@@ -20119,12 +16346,10 @@ __global__ static void kuiper_kernel_92(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float *rchProd;
-    float _cbuf1[128];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 128; _ci2++) {
-        _cbuf1[_ci2] = 0.0f;
+    float rchProd[128];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
+        rchProd[_ci1] = 0.0f;
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 128);
     uint32_t mrow = (rest / num_n_tiles);
@@ -20133,23 +16358,13 @@ __global__ static void kuiper_kernel_92(float *gA, float *gB, uint32_t k,
     uint32_t threadCol = (tid % 16);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            float *local;
-            float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local = _cbuf5;
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -20159,11 +16374,8 @@ __global__ static void kuiper_kernel_92(float *gA, float *gB, uint32_t k,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 float v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -20177,17 +16389,11 @@ __global__ static void kuiper_kernel_92(float *gA, float *gB, uint32_t k,
             i = (vi + 256);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 8192;
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            float *local_1;
-            float _cbuf9[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local_1 = _cbuf9;
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 128);
             uint32_t __anf03_1 = i1;
@@ -20197,11 +16403,8 @@ __global__ static void kuiper_kernel_92(float *gA, float *gB, uint32_t k,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 4) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 float v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -20214,25 +16417,12 @@ __global__ static void kuiper_kernel_92(float *gA, float *gB, uint32_t k,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 256);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            float *rAcol;
-            float _cbuf13[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            float rAcol[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rAcol = _cbuf13;
-            float *rBrow;
-            float _cbuf15[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rBrow = _cbuf15;
+            float rBrow[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -20274,12 +16464,9 @@ __global__ static void kuiper_kernel_92(float *gA, float *gB, uint32_t k,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 128) {
         uint32_t ci0 = cctr;
@@ -20321,12 +16508,10 @@ __global__ static void kuiper_kernel_93(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    custard_bf16 *rchProd;
-    custard_bf16 _cbuf1[128];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 128; _ci2++) {
-        _cbuf1[_ci2] = CUSTARD_BF16_LIT(0U);
+    custard_bf16 rchProd[128];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
+        rchProd[_ci1] = CUSTARD_BF16_LIT(0U);
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 128);
     uint32_t mrow = (rest / num_n_tiles);
@@ -20335,27 +16520,16 @@ __global__ static void kuiper_kernel_93(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t threadCol = (tid % 16);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_bf16 *local;
-            custard_bf16 _cbuf5[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            local = _cbuf5;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -20365,11 +16539,8 @@ __global__ static void kuiper_kernel_93(custard_bf16 *gA, custard_bf16 *gB,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 custard_bf16 v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -20383,21 +16554,15 @@ __global__ static void kuiper_kernel_93(custard_bf16 *gA, custard_bf16 *gB,
             i = (vi + 512);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 8192;
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_bf16 *local_1;
-            custard_bf16 _cbuf9[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            local_1 = _cbuf9;
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 128);
             uint32_t __anf03_1 = i1;
@@ -20407,11 +16572,8 @@ __global__ static void kuiper_kernel_93(custard_bf16 *gA, custard_bf16 *gB,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 8) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 custard_bf16 v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -20424,20 +16586,10 @@ __global__ static void kuiper_kernel_93(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 512);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            custard_bf16 *rAcol;
-            custard_bf16 _cbuf13[16] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rAcol[16] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -20446,14 +16598,10 @@ __global__ static void kuiper_kernel_93(custard_bf16 *gA, custard_bf16 *gB,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            rAcol = _cbuf13;
-            custard_bf16 *rBrow;
-            custard_bf16 _cbuf15[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rBrow[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            rBrow = _cbuf15;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -20496,12 +16644,9 @@ __global__ static void kuiper_kernel_93(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 128) {
         uint32_t ci0 = cctr;
@@ -20543,12 +16688,10 @@ __global__ static void kuiper_kernel_94(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float *rchProd;
-    float _cbuf1[256];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 256; _ci2++) {
-        _cbuf1[_ci2] = 0.0f;
+    float rchProd[256];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 256; _ci1++) {
+        rchProd[_ci1] = 0.0f;
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 128);
     uint32_t mrow = (rest / num_n_tiles);
@@ -20557,23 +16700,13 @@ __global__ static void kuiper_kernel_94(float *gA, float *gB, uint32_t k,
     uint32_t threadCol = (tid % 8);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            float *local;
-            float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local = _cbuf5;
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -20583,11 +16716,8 @@ __global__ static void kuiper_kernel_94(float *gA, float *gB, uint32_t k,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 float v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -20601,17 +16731,11 @@ __global__ static void kuiper_kernel_94(float *gA, float *gB, uint32_t k,
             i = (vi + 128);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 8192;
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            float *local_1;
-            float _cbuf9[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local_1 = _cbuf9;
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 128);
             uint32_t __anf03_1 = i1;
@@ -20621,11 +16745,8 @@ __global__ static void kuiper_kernel_94(float *gA, float *gB, uint32_t k,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 4) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 float v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -20638,26 +16759,13 @@ __global__ static void kuiper_kernel_94(float *gA, float *gB, uint32_t k,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 128);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            float *rAcol;
-            float _cbuf13[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            float rAcol[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rAcol = _cbuf13;
-            float *rBrow;
-            float _cbuf15[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            float rBrow[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rBrow = _cbuf15;
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -20699,12 +16807,9 @@ __global__ static void kuiper_kernel_94(float *gA, float *gB, uint32_t k,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 256) {
         uint32_t ci0 = cctr;
@@ -20746,12 +16851,10 @@ __global__ static void kuiper_kernel_95(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    custard_bf16 *rchProd;
-    custard_bf16 _cbuf1[256];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 256; _ci2++) {
-        _cbuf1[_ci2] = CUSTARD_BF16_LIT(0U);
+    custard_bf16 rchProd[256];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 256; _ci1++) {
+        rchProd[_ci1] = CUSTARD_BF16_LIT(0U);
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 128);
     uint32_t mrow = (rest / num_n_tiles);
@@ -20760,27 +16863,16 @@ __global__ static void kuiper_kernel_95(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t threadCol = (tid % 8);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_bf16 *local;
-            custard_bf16 _cbuf5[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            local = _cbuf5;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -20790,11 +16882,8 @@ __global__ static void kuiper_kernel_95(custard_bf16 *gA, custard_bf16 *gB,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 custard_bf16 v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -20808,21 +16897,15 @@ __global__ static void kuiper_kernel_95(custard_bf16 *gA, custard_bf16 *gB,
             i = (vi + 256);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 8192;
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_bf16 *local_1;
-            custard_bf16 _cbuf9[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            local_1 = _cbuf9;
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 128);
             uint32_t __anf03_1 = i1;
@@ -20832,11 +16915,8 @@ __global__ static void kuiper_kernel_95(custard_bf16 *gA, custard_bf16 *gB,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 8) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 custard_bf16 v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -20849,20 +16929,10 @@ __global__ static void kuiper_kernel_95(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 256);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            custard_bf16 *rAcol;
-            custard_bf16 _cbuf13[16] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rAcol[16] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -20871,9 +16941,7 @@ __global__ static void kuiper_kernel_95(custard_bf16 *gA, custard_bf16 *gB,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            rAcol = _cbuf13;
-            custard_bf16 *rBrow;
-            custard_bf16 _cbuf15[16] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rBrow[16] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -20882,7 +16950,6 @@ __global__ static void kuiper_kernel_95(custard_bf16 *gA, custard_bf16 *gB,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            rBrow = _cbuf15;
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -20925,12 +16992,9 @@ __global__ static void kuiper_kernel_95(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 256) {
         uint32_t ci0 = cctr;
@@ -20972,14 +17036,12 @@ __global__ static void kuiper_kernel_96(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float *rchProd;
-    float _cbuf1[64] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+    float rchProd[64] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 32);
     uint32_t mrow = (rest / num_n_tiles);
@@ -20988,23 +17050,13 @@ __global__ static void kuiper_kernel_96(float *gA, float *gB, uint32_t k,
     uint32_t threadCol = (tid % 4);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            float *local;
-            float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local = _cbuf5;
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -21014,11 +17066,8 @@ __global__ static void kuiper_kernel_96(float *gA, float *gB, uint32_t k,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 float v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -21032,17 +17081,11 @@ __global__ static void kuiper_kernel_96(float *gA, float *gB, uint32_t k,
             i = (vi + 256);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 1024;
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            float *local_1;
-            float _cbuf9[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local_1 = _cbuf9;
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 32);
             uint32_t __anf03_1 = i1;
@@ -21052,11 +17095,8 @@ __global__ static void kuiper_kernel_96(float *gA, float *gB, uint32_t k,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 4) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 float v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -21069,24 +17109,11 @@ __global__ static void kuiper_kernel_96(float *gA, float *gB, uint32_t k,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 256);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            float *rAcol;
-            float _cbuf13[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rAcol = _cbuf13;
-            float *rBrow;
-            float _cbuf15[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rBrow = _cbuf15;
+            float rAcol[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -21128,12 +17155,9 @@ __global__ static void kuiper_kernel_96(float *gA, float *gB, uint32_t k,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 64) {
         uint32_t ci0 = cctr;
@@ -21175,8 +17199,7 @@ __global__ static void kuiper_kernel_97(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    custard_bf16 *rchProd;
-    custard_bf16 _cbuf1[64] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
+    custard_bf16 rchProd[64] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -21198,7 +17221,6 @@ __global__ static void kuiper_kernel_97(custard_bf16 *gA, custard_bf16 *gB,
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 32);
     uint32_t mrow = (rest / num_n_tiles);
@@ -21207,27 +17229,16 @@ __global__ static void kuiper_kernel_97(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t threadCol = (tid % 4);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_bf16 *local;
-            custard_bf16 _cbuf5[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            local = _cbuf5;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -21237,11 +17248,8 @@ __global__ static void kuiper_kernel_97(custard_bf16 *gA, custard_bf16 *gB,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 custard_bf16 v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -21255,21 +17263,15 @@ __global__ static void kuiper_kernel_97(custard_bf16 *gA, custard_bf16 *gB,
             i = (vi + 512);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 1024;
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_bf16 *local_1;
-            custard_bf16 _cbuf9[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            local_1 = _cbuf9;
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 32);
             uint32_t __anf03_1 = i1;
@@ -21279,11 +17281,8 @@ __global__ static void kuiper_kernel_97(custard_bf16 *gA, custard_bf16 *gB,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 8) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 custard_bf16 v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -21296,32 +17295,17 @@ __global__ static void kuiper_kernel_97(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 512);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            custard_bf16 *rAcol;
-            custard_bf16 _cbuf13[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rAcol[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            rAcol = _cbuf13;
-            custard_bf16 *rBrow;
-            custard_bf16 _cbuf15[8] = {CUSTARD_BF16_LIT(0U),
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
+            custard_bf16 rBrow[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            rBrow = _cbuf15;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -21364,12 +17348,9 @@ __global__ static void kuiper_kernel_97(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 64) {
         uint32_t ci0 = cctr;
@@ -21411,12 +17392,10 @@ __global__ static void kuiper_kernel_98(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float *rchProd;
-    float _cbuf1[128];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 128; _ci2++) {
-        _cbuf1[_ci2] = 0.0f;
+    float rchProd[128];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
+        rchProd[_ci1] = 0.0f;
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 32);
     uint32_t mrow = (rest / num_n_tiles);
@@ -21425,23 +17404,13 @@ __global__ static void kuiper_kernel_98(float *gA, float *gB, uint32_t k,
     uint32_t threadCol = (tid % 2);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            float *local;
-            float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local = _cbuf5;
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -21451,11 +17420,8 @@ __global__ static void kuiper_kernel_98(float *gA, float *gB, uint32_t k,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 float v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -21469,17 +17435,11 @@ __global__ static void kuiper_kernel_98(float *gA, float *gB, uint32_t k,
             i = (vi + 128);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 1024;
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            float *local_1;
-            float _cbuf9[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local_1 = _cbuf9;
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 32);
             uint32_t __anf03_1 = i1;
@@ -21489,11 +17449,8 @@ __global__ static void kuiper_kernel_98(float *gA, float *gB, uint32_t k,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 4) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 float v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -21506,25 +17463,12 @@ __global__ static void kuiper_kernel_98(float *gA, float *gB, uint32_t k,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 128);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            float *rAcol;
-            float _cbuf13[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rAcol = _cbuf13;
-            float *rBrow;
-            float _cbuf15[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            float rAcol[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rBrow = _cbuf15;
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -21566,12 +17510,9 @@ __global__ static void kuiper_kernel_98(float *gA, float *gB, uint32_t k,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 128) {
         uint32_t ci0 = cctr;
@@ -21613,12 +17554,10 @@ __global__ static void kuiper_kernel_99(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    custard_bf16 *rchProd;
-    custard_bf16 _cbuf1[128];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 128; _ci2++) {
-        _cbuf1[_ci2] = CUSTARD_BF16_LIT(0U);
+    custard_bf16 rchProd[128];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
+        rchProd[_ci1] = CUSTARD_BF16_LIT(0U);
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 32);
     uint32_t mrow = (rest / num_n_tiles);
@@ -21627,27 +17566,16 @@ __global__ static void kuiper_kernel_99(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t threadCol = (tid % 2);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_bf16 *local;
-            custard_bf16 _cbuf5[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            local = _cbuf5;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -21657,11 +17585,8 @@ __global__ static void kuiper_kernel_99(custard_bf16 *gA, custard_bf16 *gB,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 custard_bf16 v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -21675,21 +17600,15 @@ __global__ static void kuiper_kernel_99(custard_bf16 *gA, custard_bf16 *gB,
             i = (vi + 256);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 1024;
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_bf16 *local_1;
-            custard_bf16 _cbuf9[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            local_1 = _cbuf9;
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 32);
             uint32_t __anf03_1 = i1;
@@ -21699,11 +17618,8 @@ __global__ static void kuiper_kernel_99(custard_bf16 *gA, custard_bf16 *gB,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 8) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 custard_bf16 v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -21716,27 +17632,14 @@ __global__ static void kuiper_kernel_99(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 256);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            custard_bf16 *rAcol;
-            custard_bf16 _cbuf13[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rAcol[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            rAcol = _cbuf13;
-            custard_bf16 *rBrow;
-            custard_bf16 _cbuf15[16] = {CUSTARD_BF16_LIT(0U),
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
+            custard_bf16 rBrow[16] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -21745,7 +17648,6 @@ __global__ static void kuiper_kernel_99(custard_bf16 *gA, custard_bf16 *gB,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            rBrow = _cbuf15;
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -21788,12 +17690,9 @@ __global__ static void kuiper_kernel_99(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 128) {
         uint32_t ci0 = cctr;
@@ -21835,12 +17734,10 @@ __global__ static void kuiper_kernel_100(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float *rchProd;
-    float _cbuf1[128];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 128; _ci2++) {
-        _cbuf1[_ci2] = 0.0f;
+    float rchProd[128];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
+        rchProd[_ci1] = 0.0f;
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 32);
     uint32_t mrow = (rest / num_n_tiles);
@@ -21849,23 +17746,13 @@ __global__ static void kuiper_kernel_100(float *gA, float *gB, uint32_t k,
     uint32_t threadCol = (tid % 4);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            float *local;
-            float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local = _cbuf5;
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -21875,11 +17762,8 @@ __global__ static void kuiper_kernel_100(float *gA, float *gB, uint32_t k,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 float v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -21893,17 +17777,11 @@ __global__ static void kuiper_kernel_100(float *gA, float *gB, uint32_t k,
             i = (vi + 128);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 1024;
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            float *local_1;
-            float _cbuf9[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local_1 = _cbuf9;
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 32);
             uint32_t __anf03_1 = i1;
@@ -21913,11 +17791,8 @@ __global__ static void kuiper_kernel_100(float *gA, float *gB, uint32_t k,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 4) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 float v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -21930,25 +17805,12 @@ __global__ static void kuiper_kernel_100(float *gA, float *gB, uint32_t k,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 128);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            float *rAcol;
-            float _cbuf13[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            float rAcol[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rAcol = _cbuf13;
-            float *rBrow;
-            float _cbuf15[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rBrow = _cbuf15;
+            float rBrow[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -21990,12 +17852,9 @@ __global__ static void kuiper_kernel_100(float *gA, float *gB, uint32_t k,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 128) {
         uint32_t ci0 = cctr;
@@ -22037,12 +17896,10 @@ __global__ static void kuiper_kernel_101(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    custard_bf16 *rchProd;
-    custard_bf16 _cbuf1[128];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 128; _ci2++) {
-        _cbuf1[_ci2] = CUSTARD_BF16_LIT(0U);
+    custard_bf16 rchProd[128];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
+        rchProd[_ci1] = CUSTARD_BF16_LIT(0U);
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 32);
     uint32_t mrow = (rest / num_n_tiles);
@@ -22051,27 +17908,16 @@ __global__ static void kuiper_kernel_101(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t threadCol = (tid % 4);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_bf16 *local;
-            custard_bf16 _cbuf5[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            local = _cbuf5;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -22081,11 +17927,8 @@ __global__ static void kuiper_kernel_101(custard_bf16 *gA, custard_bf16 *gB,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 custard_bf16 v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -22099,21 +17942,15 @@ __global__ static void kuiper_kernel_101(custard_bf16 *gA, custard_bf16 *gB,
             i = (vi + 256);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 1024;
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_bf16 *local_1;
-            custard_bf16 _cbuf9[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            local_1 = _cbuf9;
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 32);
             uint32_t __anf03_1 = i1;
@@ -22123,11 +17960,8 @@ __global__ static void kuiper_kernel_101(custard_bf16 *gA, custard_bf16 *gB,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 8) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 custard_bf16 v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -22140,20 +17974,10 @@ __global__ static void kuiper_kernel_101(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 256);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            custard_bf16 *rAcol;
-            custard_bf16 _cbuf13[16] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rAcol[16] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -22162,14 +17986,10 @@ __global__ static void kuiper_kernel_101(custard_bf16 *gA, custard_bf16 *gB,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            rAcol = _cbuf13;
-            custard_bf16 *rBrow;
-            custard_bf16 _cbuf15[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rBrow[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            rBrow = _cbuf15;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -22212,12 +18032,9 @@ __global__ static void kuiper_kernel_101(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 128) {
         uint32_t ci0 = cctr;
@@ -22259,12 +18076,10 @@ __global__ static void kuiper_kernel_102(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float *rchProd;
-    float _cbuf1[256];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 256; _ci2++) {
-        _cbuf1[_ci2] = 0.0f;
+    float rchProd[256];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 256; _ci1++) {
+        rchProd[_ci1] = 0.0f;
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 32);
     uint32_t mrow = (rest / num_n_tiles);
@@ -22273,23 +18088,13 @@ __global__ static void kuiper_kernel_102(float *gA, float *gB, uint32_t k,
     uint32_t threadCol = (tid % 2);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            float *local;
-            float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local = _cbuf5;
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -22299,11 +18104,8 @@ __global__ static void kuiper_kernel_102(float *gA, float *gB, uint32_t k,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 float v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -22317,17 +18119,11 @@ __global__ static void kuiper_kernel_102(float *gA, float *gB, uint32_t k,
             i = (vi + 64);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 1024;
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            float *local_1;
-            float _cbuf9[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local_1 = _cbuf9;
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 32);
             uint32_t __anf03_1 = i1;
@@ -22337,11 +18133,8 @@ __global__ static void kuiper_kernel_102(float *gA, float *gB, uint32_t k,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 4) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 float v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -22354,26 +18147,13 @@ __global__ static void kuiper_kernel_102(float *gA, float *gB, uint32_t k,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 64);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            float *rAcol;
-            float _cbuf13[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            float rAcol[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rAcol = _cbuf13;
-            float *rBrow;
-            float _cbuf15[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            float rBrow[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rBrow = _cbuf15;
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -22415,12 +18195,9 @@ __global__ static void kuiper_kernel_102(float *gA, float *gB, uint32_t k,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 256) {
         uint32_t ci0 = cctr;
@@ -22462,12 +18239,10 @@ __global__ static void kuiper_kernel_103(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    custard_bf16 *rchProd;
-    custard_bf16 _cbuf1[256];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 256; _ci2++) {
-        _cbuf1[_ci2] = CUSTARD_BF16_LIT(0U);
+    custard_bf16 rchProd[256];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 256; _ci1++) {
+        rchProd[_ci1] = CUSTARD_BF16_LIT(0U);
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 32);
     uint32_t mrow = (rest / num_n_tiles);
@@ -22476,27 +18251,16 @@ __global__ static void kuiper_kernel_103(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t threadCol = (tid % 2);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_bf16 *local;
-            custard_bf16 _cbuf5[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            local = _cbuf5;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -22506,11 +18270,8 @@ __global__ static void kuiper_kernel_103(custard_bf16 *gA, custard_bf16 *gB,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 custard_bf16 v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -22524,21 +18285,15 @@ __global__ static void kuiper_kernel_103(custard_bf16 *gA, custard_bf16 *gB,
             i = (vi + 128);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 1024;
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_bf16 *local_1;
-            custard_bf16 _cbuf9[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            local_1 = _cbuf9;
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 32);
             uint32_t __anf03_1 = i1;
@@ -22548,11 +18303,8 @@ __global__ static void kuiper_kernel_103(custard_bf16 *gA, custard_bf16 *gB,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 8) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 custard_bf16 v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -22565,20 +18317,10 @@ __global__ static void kuiper_kernel_103(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 128);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            custard_bf16 *rAcol;
-            custard_bf16 _cbuf13[16] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rAcol[16] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -22587,9 +18329,7 @@ __global__ static void kuiper_kernel_103(custard_bf16 *gA, custard_bf16 *gB,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            rAcol = _cbuf13;
-            custard_bf16 *rBrow;
-            custard_bf16 _cbuf15[16] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rBrow[16] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -22598,7 +18338,6 @@ __global__ static void kuiper_kernel_103(custard_bf16 *gA, custard_bf16 *gB,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            rBrow = _cbuf15;
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -22641,12 +18380,9 @@ __global__ static void kuiper_kernel_103(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 256) {
         uint32_t ci0 = cctr;
@@ -22688,14 +18424,12 @@ __global__ static void kuiper_kernel_104(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float *rchProd;
-    float _cbuf1[64] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+    float rchProd[64] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 32);
     uint32_t mrow = (rest / num_n_tiles);
@@ -22704,23 +18438,13 @@ __global__ static void kuiper_kernel_104(float *gA, float *gB, uint32_t k,
     uint32_t threadCol = (tid % 4);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 8192;
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            float *local;
-            float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local = _cbuf5;
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -22730,11 +18454,8 @@ __global__ static void kuiper_kernel_104(float *gA, float *gB, uint32_t k,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 float v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -22748,17 +18469,11 @@ __global__ static void kuiper_kernel_104(float *gA, float *gB, uint32_t k,
             i = (vi + 256);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 2048;
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            float *local_1;
-            float _cbuf9[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local_1 = _cbuf9;
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 32);
             uint32_t __anf03_1 = i1;
@@ -22768,11 +18483,8 @@ __global__ static void kuiper_kernel_104(float *gA, float *gB, uint32_t k,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 4) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 float v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -22785,24 +18497,11 @@ __global__ static void kuiper_kernel_104(float *gA, float *gB, uint32_t k,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 256);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            float *rAcol;
-            float _cbuf13[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rAcol = _cbuf13;
-            float *rBrow;
-            float _cbuf15[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rBrow = _cbuf15;
+            float rAcol[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -22844,12 +18543,9 @@ __global__ static void kuiper_kernel_104(float *gA, float *gB, uint32_t k,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 64) {
         uint32_t ci0 = cctr;
@@ -22891,8 +18587,7 @@ __global__ static void kuiper_kernel_105(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    custard_bf16 *rchProd;
-    custard_bf16 _cbuf1[64] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
+    custard_bf16 rchProd[64] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -22914,7 +18609,6 @@ __global__ static void kuiper_kernel_105(custard_bf16 *gA, custard_bf16 *gB,
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 32);
     uint32_t mrow = (rest / num_n_tiles);
@@ -22923,27 +18617,16 @@ __global__ static void kuiper_kernel_105(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t threadCol = (tid % 4);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 8192;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_bf16 *local;
-            custard_bf16 _cbuf5[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            local = _cbuf5;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -22953,11 +18636,8 @@ __global__ static void kuiper_kernel_105(custard_bf16 *gA, custard_bf16 *gB,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 custard_bf16 v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -22971,21 +18651,15 @@ __global__ static void kuiper_kernel_105(custard_bf16 *gA, custard_bf16 *gB,
             i = (vi + 512);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 2048;
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_bf16 *local_1;
-            custard_bf16 _cbuf9[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            local_1 = _cbuf9;
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 32);
             uint32_t __anf03_1 = i1;
@@ -22995,11 +18669,8 @@ __global__ static void kuiper_kernel_105(custard_bf16 *gA, custard_bf16 *gB,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 8) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 custard_bf16 v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -23012,32 +18683,17 @@ __global__ static void kuiper_kernel_105(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 512);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            custard_bf16 *rAcol;
-            custard_bf16 _cbuf13[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rAcol[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            rAcol = _cbuf13;
-            custard_bf16 *rBrow;
-            custard_bf16 _cbuf15[8] = {CUSTARD_BF16_LIT(0U),
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
+            custard_bf16 rBrow[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            rBrow = _cbuf15;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -23080,12 +18736,9 @@ __global__ static void kuiper_kernel_105(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 64) {
         uint32_t ci0 = cctr;
@@ -23127,12 +18780,10 @@ __global__ static void kuiper_kernel_106(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float *rchProd;
-    float _cbuf1[128];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 128; _ci2++) {
-        _cbuf1[_ci2] = 0.0f;
+    float rchProd[128];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
+        rchProd[_ci1] = 0.0f;
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 32);
     uint32_t mrow = (rest / num_n_tiles);
@@ -23141,23 +18792,13 @@ __global__ static void kuiper_kernel_106(float *gA, float *gB, uint32_t k,
     uint32_t threadCol = (tid % 2);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 8192;
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            float *local;
-            float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local = _cbuf5;
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -23167,11 +18808,8 @@ __global__ static void kuiper_kernel_106(float *gA, float *gB, uint32_t k,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 float v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -23185,17 +18823,11 @@ __global__ static void kuiper_kernel_106(float *gA, float *gB, uint32_t k,
             i = (vi + 128);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 2048;
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            float *local_1;
-            float _cbuf9[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local_1 = _cbuf9;
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 32);
             uint32_t __anf03_1 = i1;
@@ -23205,11 +18837,8 @@ __global__ static void kuiper_kernel_106(float *gA, float *gB, uint32_t k,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 4) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 float v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -23222,25 +18851,12 @@ __global__ static void kuiper_kernel_106(float *gA, float *gB, uint32_t k,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 128);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            float *rAcol;
-            float _cbuf13[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rAcol = _cbuf13;
-            float *rBrow;
-            float _cbuf15[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            float rAcol[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rBrow = _cbuf15;
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -23282,12 +18898,9 @@ __global__ static void kuiper_kernel_106(float *gA, float *gB, uint32_t k,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 128) {
         uint32_t ci0 = cctr;
@@ -23329,12 +18942,10 @@ __global__ static void kuiper_kernel_107(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    custard_bf16 *rchProd;
-    custard_bf16 _cbuf1[128];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 128; _ci2++) {
-        _cbuf1[_ci2] = CUSTARD_BF16_LIT(0U);
+    custard_bf16 rchProd[128];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
+        rchProd[_ci1] = CUSTARD_BF16_LIT(0U);
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 32);
     uint32_t mrow = (rest / num_n_tiles);
@@ -23343,27 +18954,16 @@ __global__ static void kuiper_kernel_107(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t threadCol = (tid % 2);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 8192;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_bf16 *local;
-            custard_bf16 _cbuf5[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            local = _cbuf5;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -23373,11 +18973,8 @@ __global__ static void kuiper_kernel_107(custard_bf16 *gA, custard_bf16 *gB,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 custard_bf16 v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -23391,21 +18988,15 @@ __global__ static void kuiper_kernel_107(custard_bf16 *gA, custard_bf16 *gB,
             i = (vi + 256);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 2048;
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_bf16 *local_1;
-            custard_bf16 _cbuf9[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            local_1 = _cbuf9;
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 32);
             uint32_t __anf03_1 = i1;
@@ -23415,11 +19006,8 @@ __global__ static void kuiper_kernel_107(custard_bf16 *gA, custard_bf16 *gB,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 8) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 custard_bf16 v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -23432,27 +19020,14 @@ __global__ static void kuiper_kernel_107(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 256);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            custard_bf16 *rAcol;
-            custard_bf16 _cbuf13[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rAcol[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            rAcol = _cbuf13;
-            custard_bf16 *rBrow;
-            custard_bf16 _cbuf15[16] = {CUSTARD_BF16_LIT(0U),
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
+            custard_bf16 rBrow[16] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -23461,7 +19036,6 @@ __global__ static void kuiper_kernel_107(custard_bf16 *gA, custard_bf16 *gB,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            rBrow = _cbuf15;
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -23504,12 +19078,9 @@ __global__ static void kuiper_kernel_107(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 128) {
         uint32_t ci0 = cctr;
@@ -23551,12 +19122,10 @@ __global__ static void kuiper_kernel_108(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float *rchProd;
-    float _cbuf1[128];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 128; _ci2++) {
-        _cbuf1[_ci2] = 0.0f;
+    float rchProd[128];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
+        rchProd[_ci1] = 0.0f;
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 32);
     uint32_t mrow = (rest / num_n_tiles);
@@ -23565,23 +19134,13 @@ __global__ static void kuiper_kernel_108(float *gA, float *gB, uint32_t k,
     uint32_t threadCol = (tid % 4);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 8192;
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            float *local;
-            float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local = _cbuf5;
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -23591,11 +19150,8 @@ __global__ static void kuiper_kernel_108(float *gA, float *gB, uint32_t k,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 float v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -23609,17 +19165,11 @@ __global__ static void kuiper_kernel_108(float *gA, float *gB, uint32_t k,
             i = (vi + 128);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 2048;
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            float *local_1;
-            float _cbuf9[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local_1 = _cbuf9;
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 32);
             uint32_t __anf03_1 = i1;
@@ -23629,11 +19179,8 @@ __global__ static void kuiper_kernel_108(float *gA, float *gB, uint32_t k,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 4) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 float v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -23646,25 +19193,12 @@ __global__ static void kuiper_kernel_108(float *gA, float *gB, uint32_t k,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 128);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            float *rAcol;
-            float _cbuf13[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            float rAcol[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rAcol = _cbuf13;
-            float *rBrow;
-            float _cbuf15[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rBrow = _cbuf15;
+            float rBrow[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -23706,12 +19240,9 @@ __global__ static void kuiper_kernel_108(float *gA, float *gB, uint32_t k,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 128) {
         uint32_t ci0 = cctr;
@@ -23753,12 +19284,10 @@ __global__ static void kuiper_kernel_109(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    custard_bf16 *rchProd;
-    custard_bf16 _cbuf1[128];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 128; _ci2++) {
-        _cbuf1[_ci2] = CUSTARD_BF16_LIT(0U);
+    custard_bf16 rchProd[128];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
+        rchProd[_ci1] = CUSTARD_BF16_LIT(0U);
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 32);
     uint32_t mrow = (rest / num_n_tiles);
@@ -23767,27 +19296,16 @@ __global__ static void kuiper_kernel_109(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t threadCol = (tid % 4);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 8192;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_bf16 *local;
-            custard_bf16 _cbuf5[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            local = _cbuf5;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -23797,11 +19315,8 @@ __global__ static void kuiper_kernel_109(custard_bf16 *gA, custard_bf16 *gB,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 custard_bf16 v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -23815,21 +19330,15 @@ __global__ static void kuiper_kernel_109(custard_bf16 *gA, custard_bf16 *gB,
             i = (vi + 256);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 2048;
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_bf16 *local_1;
-            custard_bf16 _cbuf9[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            local_1 = _cbuf9;
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 32);
             uint32_t __anf03_1 = i1;
@@ -23839,11 +19348,8 @@ __global__ static void kuiper_kernel_109(custard_bf16 *gA, custard_bf16 *gB,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 8) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 custard_bf16 v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -23856,20 +19362,10 @@ __global__ static void kuiper_kernel_109(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 256);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            custard_bf16 *rAcol;
-            custard_bf16 _cbuf13[16] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rAcol[16] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -23878,14 +19374,10 @@ __global__ static void kuiper_kernel_109(custard_bf16 *gA, custard_bf16 *gB,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            rAcol = _cbuf13;
-            custard_bf16 *rBrow;
-            custard_bf16 _cbuf15[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rBrow[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            rBrow = _cbuf15;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -23928,12 +19420,9 @@ __global__ static void kuiper_kernel_109(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 128) {
         uint32_t ci0 = cctr;
@@ -23975,12 +19464,10 @@ __global__ static void kuiper_kernel_110(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float *rchProd;
-    float _cbuf1[256];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 256; _ci2++) {
-        _cbuf1[_ci2] = 0.0f;
+    float rchProd[256];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 256; _ci1++) {
+        rchProd[_ci1] = 0.0f;
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 32);
     uint32_t mrow = (rest / num_n_tiles);
@@ -23989,23 +19476,13 @@ __global__ static void kuiper_kernel_110(float *gA, float *gB, uint32_t k,
     uint32_t threadCol = (tid % 2);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 8192;
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            float *local;
-            float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local = _cbuf5;
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -24015,11 +19492,8 @@ __global__ static void kuiper_kernel_110(float *gA, float *gB, uint32_t k,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 float v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -24033,17 +19507,11 @@ __global__ static void kuiper_kernel_110(float *gA, float *gB, uint32_t k,
             i = (vi + 64);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 2048;
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            float *local_1;
-            float _cbuf9[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local_1 = _cbuf9;
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 32);
             uint32_t __anf03_1 = i1;
@@ -24053,11 +19521,8 @@ __global__ static void kuiper_kernel_110(float *gA, float *gB, uint32_t k,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 4) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 float v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -24070,26 +19535,13 @@ __global__ static void kuiper_kernel_110(float *gA, float *gB, uint32_t k,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 64);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            float *rAcol;
-            float _cbuf13[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            float rAcol[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rAcol = _cbuf13;
-            float *rBrow;
-            float _cbuf15[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            float rBrow[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rBrow = _cbuf15;
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -24131,12 +19583,9 @@ __global__ static void kuiper_kernel_110(float *gA, float *gB, uint32_t k,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 256) {
         uint32_t ci0 = cctr;
@@ -24178,12 +19627,10 @@ __global__ static void kuiper_kernel_111(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    custard_bf16 *rchProd;
-    custard_bf16 _cbuf1[256];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 256; _ci2++) {
-        _cbuf1[_ci2] = CUSTARD_BF16_LIT(0U);
+    custard_bf16 rchProd[256];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 256; _ci1++) {
+        rchProd[_ci1] = CUSTARD_BF16_LIT(0U);
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 32);
     uint32_t mrow = (rest / num_n_tiles);
@@ -24192,27 +19639,16 @@ __global__ static void kuiper_kernel_111(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t threadCol = (tid % 2);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 8192;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_bf16 *local;
-            custard_bf16 _cbuf5[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            local = _cbuf5;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -24222,11 +19658,8 @@ __global__ static void kuiper_kernel_111(custard_bf16 *gA, custard_bf16 *gB,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 custard_bf16 v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -24240,21 +19673,15 @@ __global__ static void kuiper_kernel_111(custard_bf16 *gA, custard_bf16 *gB,
             i = (vi + 128);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 2048;
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_bf16 *local_1;
-            custard_bf16 _cbuf9[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            local_1 = _cbuf9;
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 32);
             uint32_t __anf03_1 = i1;
@@ -24264,11 +19691,8 @@ __global__ static void kuiper_kernel_111(custard_bf16 *gA, custard_bf16 *gB,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 8) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 custard_bf16 v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -24281,20 +19705,10 @@ __global__ static void kuiper_kernel_111(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 128);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            custard_bf16 *rAcol;
-            custard_bf16 _cbuf13[16] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rAcol[16] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -24303,9 +19717,7 @@ __global__ static void kuiper_kernel_111(custard_bf16 *gA, custard_bf16 *gB,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            rAcol = _cbuf13;
-            custard_bf16 *rBrow;
-            custard_bf16 _cbuf15[16] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rBrow[16] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -24314,7 +19726,6 @@ __global__ static void kuiper_kernel_111(custard_bf16 *gA, custard_bf16 *gB,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            rBrow = _cbuf15;
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -24357,12 +19768,9 @@ __global__ static void kuiper_kernel_111(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 256) {
         uint32_t ci0 = cctr;
@@ -24404,14 +19812,12 @@ __global__ static void kuiper_kernel_112(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float *rchProd;
-    float _cbuf1[64] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+    float rchProd[64] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 64);
     uint32_t mrow = (rest / num_n_tiles);
@@ -24420,23 +19826,13 @@ __global__ static void kuiper_kernel_112(float *gA, float *gB, uint32_t k,
     uint32_t threadCol = (tid % 8);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            float *local;
-            float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local = _cbuf5;
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -24446,11 +19842,8 @@ __global__ static void kuiper_kernel_112(float *gA, float *gB, uint32_t k,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 float v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -24464,17 +19857,11 @@ __global__ static void kuiper_kernel_112(float *gA, float *gB, uint32_t k,
             i = (vi + 512);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 2048;
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            float *local_1;
-            float _cbuf9[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local_1 = _cbuf9;
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 64);
             uint32_t __anf03_1 = i1;
@@ -24484,11 +19871,8 @@ __global__ static void kuiper_kernel_112(float *gA, float *gB, uint32_t k,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 4) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 float v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -24501,24 +19885,11 @@ __global__ static void kuiper_kernel_112(float *gA, float *gB, uint32_t k,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 512);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            float *rAcol;
-            float _cbuf13[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rAcol = _cbuf13;
-            float *rBrow;
-            float _cbuf15[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rBrow = _cbuf15;
+            float rAcol[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -24560,12 +19931,9 @@ __global__ static void kuiper_kernel_112(float *gA, float *gB, uint32_t k,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 64) {
         uint32_t ci0 = cctr;
@@ -24607,8 +19975,7 @@ __global__ static void kuiper_kernel_113(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    custard_bf16 *rchProd;
-    custard_bf16 _cbuf1[64] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
+    custard_bf16 rchProd[64] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -24630,7 +19997,6 @@ __global__ static void kuiper_kernel_113(custard_bf16 *gA, custard_bf16 *gB,
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 64);
     uint32_t mrow = (rest / num_n_tiles);
@@ -24639,27 +20005,16 @@ __global__ static void kuiper_kernel_113(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t threadCol = (tid % 8);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_bf16 *local;
-            custard_bf16 _cbuf5[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            local = _cbuf5;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -24669,11 +20024,8 @@ __global__ static void kuiper_kernel_113(custard_bf16 *gA, custard_bf16 *gB,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 custard_bf16 v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -24687,21 +20039,15 @@ __global__ static void kuiper_kernel_113(custard_bf16 *gA, custard_bf16 *gB,
             i = (vi + 1024);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 2048;
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_bf16 *local_1;
-            custard_bf16 _cbuf9[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            local_1 = _cbuf9;
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 64);
             uint32_t __anf03_1 = i1;
@@ -24711,11 +20057,8 @@ __global__ static void kuiper_kernel_113(custard_bf16 *gA, custard_bf16 *gB,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 8) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 custard_bf16 v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -24728,32 +20071,17 @@ __global__ static void kuiper_kernel_113(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 1024);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            custard_bf16 *rAcol;
-            custard_bf16 _cbuf13[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rAcol[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            rAcol = _cbuf13;
-            custard_bf16 *rBrow;
-            custard_bf16 _cbuf15[8] = {CUSTARD_BF16_LIT(0U),
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
+            custard_bf16 rBrow[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            rBrow = _cbuf15;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -24796,12 +20124,9 @@ __global__ static void kuiper_kernel_113(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 64) {
         uint32_t ci0 = cctr;
@@ -24843,12 +20168,10 @@ __global__ static void kuiper_kernel_114(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float *rchProd;
-    float _cbuf1[128];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 128; _ci2++) {
-        _cbuf1[_ci2] = 0.0f;
+    float rchProd[128];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
+        rchProd[_ci1] = 0.0f;
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 64);
     uint32_t mrow = (rest / num_n_tiles);
@@ -24857,23 +20180,13 @@ __global__ static void kuiper_kernel_114(float *gA, float *gB, uint32_t k,
     uint32_t threadCol = (tid % 4);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            float *local;
-            float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local = _cbuf5;
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -24883,11 +20196,8 @@ __global__ static void kuiper_kernel_114(float *gA, float *gB, uint32_t k,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 float v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -24901,17 +20211,11 @@ __global__ static void kuiper_kernel_114(float *gA, float *gB, uint32_t k,
             i = (vi + 256);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 2048;
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            float *local_1;
-            float _cbuf9[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local_1 = _cbuf9;
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 64);
             uint32_t __anf03_1 = i1;
@@ -24921,11 +20225,8 @@ __global__ static void kuiper_kernel_114(float *gA, float *gB, uint32_t k,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 4) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 float v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -24938,25 +20239,12 @@ __global__ static void kuiper_kernel_114(float *gA, float *gB, uint32_t k,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 256);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            float *rAcol;
-            float _cbuf13[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rAcol = _cbuf13;
-            float *rBrow;
-            float _cbuf15[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            float rAcol[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rBrow = _cbuf15;
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -24998,12 +20286,9 @@ __global__ static void kuiper_kernel_114(float *gA, float *gB, uint32_t k,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 128) {
         uint32_t ci0 = cctr;
@@ -25045,12 +20330,10 @@ __global__ static void kuiper_kernel_115(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    custard_bf16 *rchProd;
-    custard_bf16 _cbuf1[128];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 128; _ci2++) {
-        _cbuf1[_ci2] = CUSTARD_BF16_LIT(0U);
+    custard_bf16 rchProd[128];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
+        rchProd[_ci1] = CUSTARD_BF16_LIT(0U);
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 64);
     uint32_t mrow = (rest / num_n_tiles);
@@ -25059,27 +20342,16 @@ __global__ static void kuiper_kernel_115(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t threadCol = (tid % 4);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_bf16 *local;
-            custard_bf16 _cbuf5[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            local = _cbuf5;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -25089,11 +20361,8 @@ __global__ static void kuiper_kernel_115(custard_bf16 *gA, custard_bf16 *gB,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 custard_bf16 v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -25107,21 +20376,15 @@ __global__ static void kuiper_kernel_115(custard_bf16 *gA, custard_bf16 *gB,
             i = (vi + 512);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 2048;
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_bf16 *local_1;
-            custard_bf16 _cbuf9[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            local_1 = _cbuf9;
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 64);
             uint32_t __anf03_1 = i1;
@@ -25131,11 +20394,8 @@ __global__ static void kuiper_kernel_115(custard_bf16 *gA, custard_bf16 *gB,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 8) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 custard_bf16 v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -25148,27 +20408,14 @@ __global__ static void kuiper_kernel_115(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 512);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            custard_bf16 *rAcol;
-            custard_bf16 _cbuf13[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rAcol[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            rAcol = _cbuf13;
-            custard_bf16 *rBrow;
-            custard_bf16 _cbuf15[16] = {CUSTARD_BF16_LIT(0U),
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
+            custard_bf16 rBrow[16] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -25177,7 +20424,6 @@ __global__ static void kuiper_kernel_115(custard_bf16 *gA, custard_bf16 *gB,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            rBrow = _cbuf15;
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -25220,12 +20466,9 @@ __global__ static void kuiper_kernel_115(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 128) {
         uint32_t ci0 = cctr;
@@ -25267,12 +20510,10 @@ __global__ static void kuiper_kernel_116(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float *rchProd;
-    float _cbuf1[128];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 128; _ci2++) {
-        _cbuf1[_ci2] = 0.0f;
+    float rchProd[128];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
+        rchProd[_ci1] = 0.0f;
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 64);
     uint32_t mrow = (rest / num_n_tiles);
@@ -25281,23 +20522,13 @@ __global__ static void kuiper_kernel_116(float *gA, float *gB, uint32_t k,
     uint32_t threadCol = (tid % 8);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            float *local;
-            float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local = _cbuf5;
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -25307,11 +20538,8 @@ __global__ static void kuiper_kernel_116(float *gA, float *gB, uint32_t k,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 float v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -25325,17 +20553,11 @@ __global__ static void kuiper_kernel_116(float *gA, float *gB, uint32_t k,
             i = (vi + 256);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 2048;
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            float *local_1;
-            float _cbuf9[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local_1 = _cbuf9;
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 64);
             uint32_t __anf03_1 = i1;
@@ -25345,11 +20567,8 @@ __global__ static void kuiper_kernel_116(float *gA, float *gB, uint32_t k,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 4) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 float v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -25362,25 +20581,12 @@ __global__ static void kuiper_kernel_116(float *gA, float *gB, uint32_t k,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 256);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            float *rAcol;
-            float _cbuf13[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            float rAcol[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rAcol = _cbuf13;
-            float *rBrow;
-            float _cbuf15[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rBrow = _cbuf15;
+            float rBrow[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -25422,12 +20628,9 @@ __global__ static void kuiper_kernel_116(float *gA, float *gB, uint32_t k,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 128) {
         uint32_t ci0 = cctr;
@@ -25469,12 +20672,10 @@ __global__ static void kuiper_kernel_117(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    custard_bf16 *rchProd;
-    custard_bf16 _cbuf1[128];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 128; _ci2++) {
-        _cbuf1[_ci2] = CUSTARD_BF16_LIT(0U);
+    custard_bf16 rchProd[128];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
+        rchProd[_ci1] = CUSTARD_BF16_LIT(0U);
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 64);
     uint32_t mrow = (rest / num_n_tiles);
@@ -25483,27 +20684,16 @@ __global__ static void kuiper_kernel_117(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t threadCol = (tid % 8);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_bf16 *local;
-            custard_bf16 _cbuf5[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            local = _cbuf5;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -25513,11 +20703,8 @@ __global__ static void kuiper_kernel_117(custard_bf16 *gA, custard_bf16 *gB,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 custard_bf16 v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -25531,21 +20718,15 @@ __global__ static void kuiper_kernel_117(custard_bf16 *gA, custard_bf16 *gB,
             i = (vi + 512);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 2048;
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_bf16 *local_1;
-            custard_bf16 _cbuf9[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            local_1 = _cbuf9;
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 64);
             uint32_t __anf03_1 = i1;
@@ -25555,11 +20736,8 @@ __global__ static void kuiper_kernel_117(custard_bf16 *gA, custard_bf16 *gB,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 8) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 custard_bf16 v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -25572,20 +20750,10 @@ __global__ static void kuiper_kernel_117(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 512);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            custard_bf16 *rAcol;
-            custard_bf16 _cbuf13[16] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rAcol[16] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -25594,14 +20762,10 @@ __global__ static void kuiper_kernel_117(custard_bf16 *gA, custard_bf16 *gB,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            rAcol = _cbuf13;
-            custard_bf16 *rBrow;
-            custard_bf16 _cbuf15[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rBrow[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            rBrow = _cbuf15;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -25644,12 +20808,9 @@ __global__ static void kuiper_kernel_117(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 128) {
         uint32_t ci0 = cctr;
@@ -25691,12 +20852,10 @@ __global__ static void kuiper_kernel_118(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float *rchProd;
-    float _cbuf1[256];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 256; _ci2++) {
-        _cbuf1[_ci2] = 0.0f;
+    float rchProd[256];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 256; _ci1++) {
+        rchProd[_ci1] = 0.0f;
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 64);
     uint32_t mrow = (rest / num_n_tiles);
@@ -25705,23 +20864,13 @@ __global__ static void kuiper_kernel_118(float *gA, float *gB, uint32_t k,
     uint32_t threadCol = (tid % 4);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            float *local;
-            float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local = _cbuf5;
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -25731,11 +20880,8 @@ __global__ static void kuiper_kernel_118(float *gA, float *gB, uint32_t k,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 float v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -25749,17 +20895,11 @@ __global__ static void kuiper_kernel_118(float *gA, float *gB, uint32_t k,
             i = (vi + 128);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 2048;
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            float *local_1;
-            float _cbuf9[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local_1 = _cbuf9;
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 64);
             uint32_t __anf03_1 = i1;
@@ -25769,11 +20909,8 @@ __global__ static void kuiper_kernel_118(float *gA, float *gB, uint32_t k,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 4) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 float v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -25786,26 +20923,13 @@ __global__ static void kuiper_kernel_118(float *gA, float *gB, uint32_t k,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 128);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            float *rAcol;
-            float _cbuf13[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            float rAcol[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rAcol = _cbuf13;
-            float *rBrow;
-            float _cbuf15[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            float rBrow[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rBrow = _cbuf15;
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -25847,12 +20971,9 @@ __global__ static void kuiper_kernel_118(float *gA, float *gB, uint32_t k,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 256) {
         uint32_t ci0 = cctr;
@@ -25894,12 +21015,10 @@ __global__ static void kuiper_kernel_119(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    custard_bf16 *rchProd;
-    custard_bf16 _cbuf1[256];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 256; _ci2++) {
-        _cbuf1[_ci2] = CUSTARD_BF16_LIT(0U);
+    custard_bf16 rchProd[256];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 256; _ci1++) {
+        rchProd[_ci1] = CUSTARD_BF16_LIT(0U);
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 64);
     uint32_t mrow = (rest / num_n_tiles);
@@ -25908,27 +21027,16 @@ __global__ static void kuiper_kernel_119(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t threadCol = (tid % 4);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_bf16 *local;
-            custard_bf16 _cbuf5[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            local = _cbuf5;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -25938,11 +21046,8 @@ __global__ static void kuiper_kernel_119(custard_bf16 *gA, custard_bf16 *gB,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 custard_bf16 v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -25956,21 +21061,15 @@ __global__ static void kuiper_kernel_119(custard_bf16 *gA, custard_bf16 *gB,
             i = (vi + 256);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 2048;
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_bf16 *local_1;
-            custard_bf16 _cbuf9[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            local_1 = _cbuf9;
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 64);
             uint32_t __anf03_1 = i1;
@@ -25980,11 +21079,8 @@ __global__ static void kuiper_kernel_119(custard_bf16 *gA, custard_bf16 *gB,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 8) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 custard_bf16 v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -25997,20 +21093,10 @@ __global__ static void kuiper_kernel_119(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 256);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            custard_bf16 *rAcol;
-            custard_bf16 _cbuf13[16] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rAcol[16] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -26019,9 +21105,7 @@ __global__ static void kuiper_kernel_119(custard_bf16 *gA, custard_bf16 *gB,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            rAcol = _cbuf13;
-            custard_bf16 *rBrow;
-            custard_bf16 _cbuf15[16] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rBrow[16] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -26030,7 +21114,6 @@ __global__ static void kuiper_kernel_119(custard_bf16 *gA, custard_bf16 *gB,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            rBrow = _cbuf15;
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -26073,12 +21156,9 @@ __global__ static void kuiper_kernel_119(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 256) {
         uint32_t ci0 = cctr;
@@ -26120,14 +21200,12 @@ __global__ static void kuiper_kernel_120(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float *rchProd;
-    float _cbuf1[64] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+    float rchProd[64] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 64);
     uint32_t mrow = (rest / num_n_tiles);
@@ -26136,23 +21214,13 @@ __global__ static void kuiper_kernel_120(float *gA, float *gB, uint32_t k,
     uint32_t threadCol = (tid % 8);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 8192;
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            float *local;
-            float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local = _cbuf5;
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -26162,11 +21230,8 @@ __global__ static void kuiper_kernel_120(float *gA, float *gB, uint32_t k,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 float v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -26180,17 +21245,11 @@ __global__ static void kuiper_kernel_120(float *gA, float *gB, uint32_t k,
             i = (vi + 512);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 4096;
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            float *local_1;
-            float _cbuf9[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local_1 = _cbuf9;
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 64);
             uint32_t __anf03_1 = i1;
@@ -26200,11 +21259,8 @@ __global__ static void kuiper_kernel_120(float *gA, float *gB, uint32_t k,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 4) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 float v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -26217,24 +21273,11 @@ __global__ static void kuiper_kernel_120(float *gA, float *gB, uint32_t k,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 512);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            float *rAcol;
-            float _cbuf13[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rAcol = _cbuf13;
-            float *rBrow;
-            float _cbuf15[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rBrow = _cbuf15;
+            float rAcol[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -26276,12 +21319,9 @@ __global__ static void kuiper_kernel_120(float *gA, float *gB, uint32_t k,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 64) {
         uint32_t ci0 = cctr;
@@ -26323,8 +21363,7 @@ __global__ static void kuiper_kernel_121(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    custard_bf16 *rchProd;
-    custard_bf16 _cbuf1[64] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
+    custard_bf16 rchProd[64] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -26346,7 +21385,6 @@ __global__ static void kuiper_kernel_121(custard_bf16 *gA, custard_bf16 *gB,
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 64);
     uint32_t mrow = (rest / num_n_tiles);
@@ -26355,27 +21393,16 @@ __global__ static void kuiper_kernel_121(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t threadCol = (tid % 8);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 8192;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_bf16 *local;
-            custard_bf16 _cbuf5[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            local = _cbuf5;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -26385,11 +21412,8 @@ __global__ static void kuiper_kernel_121(custard_bf16 *gA, custard_bf16 *gB,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 custard_bf16 v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -26403,21 +21427,15 @@ __global__ static void kuiper_kernel_121(custard_bf16 *gA, custard_bf16 *gB,
             i = (vi + 1024);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 4096;
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_bf16 *local_1;
-            custard_bf16 _cbuf9[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            local_1 = _cbuf9;
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 64);
             uint32_t __anf03_1 = i1;
@@ -26427,11 +21445,8 @@ __global__ static void kuiper_kernel_121(custard_bf16 *gA, custard_bf16 *gB,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 8) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 custard_bf16 v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -26444,32 +21459,17 @@ __global__ static void kuiper_kernel_121(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 1024);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            custard_bf16 *rAcol;
-            custard_bf16 _cbuf13[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rAcol[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            rAcol = _cbuf13;
-            custard_bf16 *rBrow;
-            custard_bf16 _cbuf15[8] = {CUSTARD_BF16_LIT(0U),
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
+            custard_bf16 rBrow[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            rBrow = _cbuf15;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -26512,12 +21512,9 @@ __global__ static void kuiper_kernel_121(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 64) {
         uint32_t ci0 = cctr;
@@ -26559,12 +21556,10 @@ __global__ static void kuiper_kernel_122(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float *rchProd;
-    float _cbuf1[128];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 128; _ci2++) {
-        _cbuf1[_ci2] = 0.0f;
+    float rchProd[128];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
+        rchProd[_ci1] = 0.0f;
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 64);
     uint32_t mrow = (rest / num_n_tiles);
@@ -26573,23 +21568,13 @@ __global__ static void kuiper_kernel_122(float *gA, float *gB, uint32_t k,
     uint32_t threadCol = (tid % 4);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 8192;
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            float *local;
-            float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local = _cbuf5;
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -26599,11 +21584,8 @@ __global__ static void kuiper_kernel_122(float *gA, float *gB, uint32_t k,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 float v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -26617,17 +21599,11 @@ __global__ static void kuiper_kernel_122(float *gA, float *gB, uint32_t k,
             i = (vi + 256);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 4096;
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            float *local_1;
-            float _cbuf9[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local_1 = _cbuf9;
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 64);
             uint32_t __anf03_1 = i1;
@@ -26637,11 +21613,8 @@ __global__ static void kuiper_kernel_122(float *gA, float *gB, uint32_t k,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 4) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 float v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -26654,25 +21627,12 @@ __global__ static void kuiper_kernel_122(float *gA, float *gB, uint32_t k,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 256);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            float *rAcol;
-            float _cbuf13[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rAcol = _cbuf13;
-            float *rBrow;
-            float _cbuf15[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            float rAcol[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rBrow = _cbuf15;
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -26714,12 +21674,9 @@ __global__ static void kuiper_kernel_122(float *gA, float *gB, uint32_t k,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 128) {
         uint32_t ci0 = cctr;
@@ -26761,12 +21718,10 @@ __global__ static void kuiper_kernel_123(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    custard_bf16 *rchProd;
-    custard_bf16 _cbuf1[128];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 128; _ci2++) {
-        _cbuf1[_ci2] = CUSTARD_BF16_LIT(0U);
+    custard_bf16 rchProd[128];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
+        rchProd[_ci1] = CUSTARD_BF16_LIT(0U);
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 64);
     uint32_t mrow = (rest / num_n_tiles);
@@ -26775,27 +21730,16 @@ __global__ static void kuiper_kernel_123(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t threadCol = (tid % 4);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 8192;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_bf16 *local;
-            custard_bf16 _cbuf5[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            local = _cbuf5;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -26805,11 +21749,8 @@ __global__ static void kuiper_kernel_123(custard_bf16 *gA, custard_bf16 *gB,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 custard_bf16 v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -26823,21 +21764,15 @@ __global__ static void kuiper_kernel_123(custard_bf16 *gA, custard_bf16 *gB,
             i = (vi + 512);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 4096;
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_bf16 *local_1;
-            custard_bf16 _cbuf9[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            local_1 = _cbuf9;
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 64);
             uint32_t __anf03_1 = i1;
@@ -26847,11 +21782,8 @@ __global__ static void kuiper_kernel_123(custard_bf16 *gA, custard_bf16 *gB,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 8) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 custard_bf16 v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -26864,27 +21796,14 @@ __global__ static void kuiper_kernel_123(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 512);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            custard_bf16 *rAcol;
-            custard_bf16 _cbuf13[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rAcol[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            rAcol = _cbuf13;
-            custard_bf16 *rBrow;
-            custard_bf16 _cbuf15[16] = {CUSTARD_BF16_LIT(0U),
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
+            custard_bf16 rBrow[16] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -26893,7 +21812,6 @@ __global__ static void kuiper_kernel_123(custard_bf16 *gA, custard_bf16 *gB,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            rBrow = _cbuf15;
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -26936,12 +21854,9 @@ __global__ static void kuiper_kernel_123(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 128) {
         uint32_t ci0 = cctr;
@@ -26983,12 +21898,10 @@ __global__ static void kuiper_kernel_124(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float *rchProd;
-    float _cbuf1[128];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 128; _ci2++) {
-        _cbuf1[_ci2] = 0.0f;
+    float rchProd[128];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
+        rchProd[_ci1] = 0.0f;
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 64);
     uint32_t mrow = (rest / num_n_tiles);
@@ -26997,23 +21910,13 @@ __global__ static void kuiper_kernel_124(float *gA, float *gB, uint32_t k,
     uint32_t threadCol = (tid % 8);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 8192;
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            float *local;
-            float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local = _cbuf5;
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -27023,11 +21926,8 @@ __global__ static void kuiper_kernel_124(float *gA, float *gB, uint32_t k,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 float v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -27041,17 +21941,11 @@ __global__ static void kuiper_kernel_124(float *gA, float *gB, uint32_t k,
             i = (vi + 256);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 4096;
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            float *local_1;
-            float _cbuf9[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local_1 = _cbuf9;
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 64);
             uint32_t __anf03_1 = i1;
@@ -27061,11 +21955,8 @@ __global__ static void kuiper_kernel_124(float *gA, float *gB, uint32_t k,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 4) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 float v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -27078,25 +21969,12 @@ __global__ static void kuiper_kernel_124(float *gA, float *gB, uint32_t k,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 256);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            float *rAcol;
-            float _cbuf13[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            float rAcol[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rAcol = _cbuf13;
-            float *rBrow;
-            float _cbuf15[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rBrow = _cbuf15;
+            float rBrow[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -27138,12 +22016,9 @@ __global__ static void kuiper_kernel_124(float *gA, float *gB, uint32_t k,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 128) {
         uint32_t ci0 = cctr;
@@ -27185,12 +22060,10 @@ __global__ static void kuiper_kernel_125(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    custard_bf16 *rchProd;
-    custard_bf16 _cbuf1[128];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 128; _ci2++) {
-        _cbuf1[_ci2] = CUSTARD_BF16_LIT(0U);
+    custard_bf16 rchProd[128];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
+        rchProd[_ci1] = CUSTARD_BF16_LIT(0U);
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 64);
     uint32_t mrow = (rest / num_n_tiles);
@@ -27199,27 +22072,16 @@ __global__ static void kuiper_kernel_125(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t threadCol = (tid % 8);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 8192;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_bf16 *local;
-            custard_bf16 _cbuf5[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            local = _cbuf5;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -27229,11 +22091,8 @@ __global__ static void kuiper_kernel_125(custard_bf16 *gA, custard_bf16 *gB,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 custard_bf16 v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -27247,21 +22106,15 @@ __global__ static void kuiper_kernel_125(custard_bf16 *gA, custard_bf16 *gB,
             i = (vi + 512);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 4096;
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_bf16 *local_1;
-            custard_bf16 _cbuf9[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            local_1 = _cbuf9;
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 64);
             uint32_t __anf03_1 = i1;
@@ -27271,11 +22124,8 @@ __global__ static void kuiper_kernel_125(custard_bf16 *gA, custard_bf16 *gB,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 8) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 custard_bf16 v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -27288,20 +22138,10 @@ __global__ static void kuiper_kernel_125(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 512);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            custard_bf16 *rAcol;
-            custard_bf16 _cbuf13[16] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rAcol[16] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -27310,14 +22150,10 @@ __global__ static void kuiper_kernel_125(custard_bf16 *gA, custard_bf16 *gB,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            rAcol = _cbuf13;
-            custard_bf16 *rBrow;
-            custard_bf16 _cbuf15[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rBrow[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            rBrow = _cbuf15;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -27360,12 +22196,9 @@ __global__ static void kuiper_kernel_125(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 128) {
         uint32_t ci0 = cctr;
@@ -27407,12 +22240,10 @@ __global__ static void kuiper_kernel_126(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float *rchProd;
-    float _cbuf1[256];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 256; _ci2++) {
-        _cbuf1[_ci2] = 0.0f;
+    float rchProd[256];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 256; _ci1++) {
+        rchProd[_ci1] = 0.0f;
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 64);
     uint32_t mrow = (rest / num_n_tiles);
@@ -27421,23 +22252,13 @@ __global__ static void kuiper_kernel_126(float *gA, float *gB, uint32_t k,
     uint32_t threadCol = (tid % 4);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 8192;
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            float *local;
-            float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local = _cbuf5;
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -27447,11 +22268,8 @@ __global__ static void kuiper_kernel_126(float *gA, float *gB, uint32_t k,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 float v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -27465,17 +22283,11 @@ __global__ static void kuiper_kernel_126(float *gA, float *gB, uint32_t k,
             i = (vi + 128);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 4096;
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            float *local_1;
-            float _cbuf9[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local_1 = _cbuf9;
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 64);
             uint32_t __anf03_1 = i1;
@@ -27485,11 +22297,8 @@ __global__ static void kuiper_kernel_126(float *gA, float *gB, uint32_t k,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 4) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 float v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -27502,26 +22311,13 @@ __global__ static void kuiper_kernel_126(float *gA, float *gB, uint32_t k,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 128);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            float *rAcol;
-            float _cbuf13[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            float rAcol[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rAcol = _cbuf13;
-            float *rBrow;
-            float _cbuf15[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            float rBrow[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rBrow = _cbuf15;
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -27563,12 +22359,9 @@ __global__ static void kuiper_kernel_126(float *gA, float *gB, uint32_t k,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 256) {
         uint32_t ci0 = cctr;
@@ -27610,12 +22403,10 @@ __global__ static void kuiper_kernel_127(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    custard_bf16 *rchProd;
-    custard_bf16 _cbuf1[256];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 256; _ci2++) {
-        _cbuf1[_ci2] = CUSTARD_BF16_LIT(0U);
+    custard_bf16 rchProd[256];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 256; _ci1++) {
+        rchProd[_ci1] = CUSTARD_BF16_LIT(0U);
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 64);
     uint32_t mrow = (rest / num_n_tiles);
@@ -27624,27 +22415,16 @@ __global__ static void kuiper_kernel_127(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t threadCol = (tid % 4);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 8192;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_bf16 *local;
-            custard_bf16 _cbuf5[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            local = _cbuf5;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -27654,11 +22434,8 @@ __global__ static void kuiper_kernel_127(custard_bf16 *gA, custard_bf16 *gB,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 custard_bf16 v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -27672,21 +22449,15 @@ __global__ static void kuiper_kernel_127(custard_bf16 *gA, custard_bf16 *gB,
             i = (vi + 256);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 4096;
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_bf16 *local_1;
-            custard_bf16 _cbuf9[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            local_1 = _cbuf9;
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 64);
             uint32_t __anf03_1 = i1;
@@ -27696,11 +22467,8 @@ __global__ static void kuiper_kernel_127(custard_bf16 *gA, custard_bf16 *gB,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 8) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 custard_bf16 v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -27713,20 +22481,10 @@ __global__ static void kuiper_kernel_127(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 256);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            custard_bf16 *rAcol;
-            custard_bf16 _cbuf13[16] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rAcol[16] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -27735,9 +22493,7 @@ __global__ static void kuiper_kernel_127(custard_bf16 *gA, custard_bf16 *gB,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            rAcol = _cbuf13;
-            custard_bf16 *rBrow;
-            custard_bf16 _cbuf15[16] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rBrow[16] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -27746,7 +22502,6 @@ __global__ static void kuiper_kernel_127(custard_bf16 *gA, custard_bf16 *gB,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            rBrow = _cbuf15;
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -27789,12 +22544,9 @@ __global__ static void kuiper_kernel_127(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 256) {
         uint32_t ci0 = cctr;
@@ -27836,14 +22588,12 @@ __global__ static void kuiper_kernel_128(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float *rchProd;
-    float _cbuf1[64] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+    float rchProd[64] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 128);
     uint32_t mrow = (rest / num_n_tiles);
@@ -27852,23 +22602,13 @@ __global__ static void kuiper_kernel_128(float *gA, float *gB, uint32_t k,
     uint32_t threadCol = (tid % 16);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            float *local;
-            float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local = _cbuf5;
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -27878,11 +22618,8 @@ __global__ static void kuiper_kernel_128(float *gA, float *gB, uint32_t k,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 float v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -27896,17 +22633,11 @@ __global__ static void kuiper_kernel_128(float *gA, float *gB, uint32_t k,
             i = (vi + 1024);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 4096;
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            float *local_1;
-            float _cbuf9[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local_1 = _cbuf9;
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 128);
             uint32_t __anf03_1 = i1;
@@ -27916,11 +22647,8 @@ __global__ static void kuiper_kernel_128(float *gA, float *gB, uint32_t k,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 4) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 float v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -27933,24 +22661,11 @@ __global__ static void kuiper_kernel_128(float *gA, float *gB, uint32_t k,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 1024);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            float *rAcol;
-            float _cbuf13[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rAcol = _cbuf13;
-            float *rBrow;
-            float _cbuf15[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rBrow = _cbuf15;
+            float rAcol[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -27992,12 +22707,9 @@ __global__ static void kuiper_kernel_128(float *gA, float *gB, uint32_t k,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 64) {
         uint32_t ci0 = cctr;
@@ -28039,8 +22751,7 @@ __global__ static void kuiper_kernel_129(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    custard_bf16 *rchProd;
-    custard_bf16 _cbuf1[64] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
+    custard_bf16 rchProd[64] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -28062,7 +22773,6 @@ __global__ static void kuiper_kernel_129(custard_bf16 *gA, custard_bf16 *gB,
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 128);
     uint32_t mrow = (rest / num_n_tiles);
@@ -28071,27 +22781,16 @@ __global__ static void kuiper_kernel_129(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t threadCol = (tid % 16);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_bf16 *local;
-            custard_bf16 _cbuf5[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            local = _cbuf5;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -28101,11 +22800,8 @@ __global__ static void kuiper_kernel_129(custard_bf16 *gA, custard_bf16 *gB,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 custard_bf16 v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -28119,21 +22815,15 @@ __global__ static void kuiper_kernel_129(custard_bf16 *gA, custard_bf16 *gB,
             i = (vi + 2048);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 4096;
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_bf16 *local_1;
-            custard_bf16 _cbuf9[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            local_1 = _cbuf9;
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 128);
             uint32_t __anf03_1 = i1;
@@ -28143,11 +22833,8 @@ __global__ static void kuiper_kernel_129(custard_bf16 *gA, custard_bf16 *gB,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 8) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 custard_bf16 v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -28160,32 +22847,17 @@ __global__ static void kuiper_kernel_129(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 2048);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            custard_bf16 *rAcol;
-            custard_bf16 _cbuf13[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rAcol[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            rAcol = _cbuf13;
-            custard_bf16 *rBrow;
-            custard_bf16 _cbuf15[8] = {CUSTARD_BF16_LIT(0U),
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
+            custard_bf16 rBrow[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            rBrow = _cbuf15;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -28228,12 +22900,9 @@ __global__ static void kuiper_kernel_129(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 64) {
         uint32_t ci0 = cctr;
@@ -28275,12 +22944,10 @@ __global__ static void kuiper_kernel_130(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float *rchProd;
-    float _cbuf1[128];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 128; _ci2++) {
-        _cbuf1[_ci2] = 0.0f;
+    float rchProd[128];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
+        rchProd[_ci1] = 0.0f;
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 128);
     uint32_t mrow = (rest / num_n_tiles);
@@ -28289,23 +22956,13 @@ __global__ static void kuiper_kernel_130(float *gA, float *gB, uint32_t k,
     uint32_t threadCol = (tid % 8);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            float *local;
-            float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local = _cbuf5;
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -28315,11 +22972,8 @@ __global__ static void kuiper_kernel_130(float *gA, float *gB, uint32_t k,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 float v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -28333,17 +22987,11 @@ __global__ static void kuiper_kernel_130(float *gA, float *gB, uint32_t k,
             i = (vi + 512);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 4096;
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            float *local_1;
-            float _cbuf9[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local_1 = _cbuf9;
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 128);
             uint32_t __anf03_1 = i1;
@@ -28353,11 +23001,8 @@ __global__ static void kuiper_kernel_130(float *gA, float *gB, uint32_t k,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 4) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 float v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -28370,25 +23015,12 @@ __global__ static void kuiper_kernel_130(float *gA, float *gB, uint32_t k,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 512);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            float *rAcol;
-            float _cbuf13[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rAcol = _cbuf13;
-            float *rBrow;
-            float _cbuf15[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            float rAcol[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rBrow = _cbuf15;
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -28430,12 +23062,9 @@ __global__ static void kuiper_kernel_130(float *gA, float *gB, uint32_t k,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 128) {
         uint32_t ci0 = cctr;
@@ -28477,12 +23106,10 @@ __global__ static void kuiper_kernel_131(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    custard_bf16 *rchProd;
-    custard_bf16 _cbuf1[128];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 128; _ci2++) {
-        _cbuf1[_ci2] = CUSTARD_BF16_LIT(0U);
+    custard_bf16 rchProd[128];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
+        rchProd[_ci1] = CUSTARD_BF16_LIT(0U);
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 128);
     uint32_t mrow = (rest / num_n_tiles);
@@ -28491,27 +23118,16 @@ __global__ static void kuiper_kernel_131(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t threadCol = (tid % 8);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_bf16 *local;
-            custard_bf16 _cbuf5[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            local = _cbuf5;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -28521,11 +23137,8 @@ __global__ static void kuiper_kernel_131(custard_bf16 *gA, custard_bf16 *gB,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 custard_bf16 v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -28539,21 +23152,15 @@ __global__ static void kuiper_kernel_131(custard_bf16 *gA, custard_bf16 *gB,
             i = (vi + 1024);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 4096;
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_bf16 *local_1;
-            custard_bf16 _cbuf9[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            local_1 = _cbuf9;
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 128);
             uint32_t __anf03_1 = i1;
@@ -28563,11 +23170,8 @@ __global__ static void kuiper_kernel_131(custard_bf16 *gA, custard_bf16 *gB,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 8) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 custard_bf16 v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -28580,27 +23184,14 @@ __global__ static void kuiper_kernel_131(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 1024);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            custard_bf16 *rAcol;
-            custard_bf16 _cbuf13[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rAcol[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            rAcol = _cbuf13;
-            custard_bf16 *rBrow;
-            custard_bf16 _cbuf15[16] = {CUSTARD_BF16_LIT(0U),
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
+            custard_bf16 rBrow[16] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -28609,7 +23200,6 @@ __global__ static void kuiper_kernel_131(custard_bf16 *gA, custard_bf16 *gB,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            rBrow = _cbuf15;
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -28652,12 +23242,9 @@ __global__ static void kuiper_kernel_131(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 128) {
         uint32_t ci0 = cctr;
@@ -28699,12 +23286,10 @@ __global__ static void kuiper_kernel_132(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float *rchProd;
-    float _cbuf1[128];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 128; _ci2++) {
-        _cbuf1[_ci2] = 0.0f;
+    float rchProd[128];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
+        rchProd[_ci1] = 0.0f;
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 128);
     uint32_t mrow = (rest / num_n_tiles);
@@ -28713,23 +23298,13 @@ __global__ static void kuiper_kernel_132(float *gA, float *gB, uint32_t k,
     uint32_t threadCol = (tid % 16);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            float *local;
-            float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local = _cbuf5;
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -28739,11 +23314,8 @@ __global__ static void kuiper_kernel_132(float *gA, float *gB, uint32_t k,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 float v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -28757,17 +23329,11 @@ __global__ static void kuiper_kernel_132(float *gA, float *gB, uint32_t k,
             i = (vi + 512);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 4096;
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            float *local_1;
-            float _cbuf9[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local_1 = _cbuf9;
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 128);
             uint32_t __anf03_1 = i1;
@@ -28777,11 +23343,8 @@ __global__ static void kuiper_kernel_132(float *gA, float *gB, uint32_t k,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 4) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 float v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -28794,25 +23357,12 @@ __global__ static void kuiper_kernel_132(float *gA, float *gB, uint32_t k,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 512);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            float *rAcol;
-            float _cbuf13[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            float rAcol[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rAcol = _cbuf13;
-            float *rBrow;
-            float _cbuf15[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rBrow = _cbuf15;
+            float rBrow[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -28854,12 +23404,9 @@ __global__ static void kuiper_kernel_132(float *gA, float *gB, uint32_t k,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 128) {
         uint32_t ci0 = cctr;
@@ -28901,12 +23448,10 @@ __global__ static void kuiper_kernel_133(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    custard_bf16 *rchProd;
-    custard_bf16 _cbuf1[128];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 128; _ci2++) {
-        _cbuf1[_ci2] = CUSTARD_BF16_LIT(0U);
+    custard_bf16 rchProd[128];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
+        rchProd[_ci1] = CUSTARD_BF16_LIT(0U);
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 128);
     uint32_t mrow = (rest / num_n_tiles);
@@ -28915,27 +23460,16 @@ __global__ static void kuiper_kernel_133(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t threadCol = (tid % 16);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_bf16 *local;
-            custard_bf16 _cbuf5[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            local = _cbuf5;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -28945,11 +23479,8 @@ __global__ static void kuiper_kernel_133(custard_bf16 *gA, custard_bf16 *gB,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 custard_bf16 v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -28963,21 +23494,15 @@ __global__ static void kuiper_kernel_133(custard_bf16 *gA, custard_bf16 *gB,
             i = (vi + 1024);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 4096;
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_bf16 *local_1;
-            custard_bf16 _cbuf9[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            local_1 = _cbuf9;
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 128);
             uint32_t __anf03_1 = i1;
@@ -28987,11 +23512,8 @@ __global__ static void kuiper_kernel_133(custard_bf16 *gA, custard_bf16 *gB,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 8) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 custard_bf16 v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -29004,20 +23526,10 @@ __global__ static void kuiper_kernel_133(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 1024);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            custard_bf16 *rAcol;
-            custard_bf16 _cbuf13[16] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rAcol[16] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -29026,14 +23538,10 @@ __global__ static void kuiper_kernel_133(custard_bf16 *gA, custard_bf16 *gB,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            rAcol = _cbuf13;
-            custard_bf16 *rBrow;
-            custard_bf16 _cbuf15[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rBrow[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            rBrow = _cbuf15;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -29076,12 +23584,9 @@ __global__ static void kuiper_kernel_133(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 128) {
         uint32_t ci0 = cctr;
@@ -29123,12 +23628,10 @@ __global__ static void kuiper_kernel_134(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float *rchProd;
-    float _cbuf1[256];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 256; _ci2++) {
-        _cbuf1[_ci2] = 0.0f;
+    float rchProd[256];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 256; _ci1++) {
+        rchProd[_ci1] = 0.0f;
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 128);
     uint32_t mrow = (rest / num_n_tiles);
@@ -29137,23 +23640,13 @@ __global__ static void kuiper_kernel_134(float *gA, float *gB, uint32_t k,
     uint32_t threadCol = (tid % 8);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            float *local;
-            float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local = _cbuf5;
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -29163,11 +23656,8 @@ __global__ static void kuiper_kernel_134(float *gA, float *gB, uint32_t k,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 float v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -29181,17 +23671,11 @@ __global__ static void kuiper_kernel_134(float *gA, float *gB, uint32_t k,
             i = (vi + 256);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 4096;
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            float *local_1;
-            float _cbuf9[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local_1 = _cbuf9;
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 128);
             uint32_t __anf03_1 = i1;
@@ -29201,11 +23685,8 @@ __global__ static void kuiper_kernel_134(float *gA, float *gB, uint32_t k,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 4) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 float v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -29218,26 +23699,13 @@ __global__ static void kuiper_kernel_134(float *gA, float *gB, uint32_t k,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 256);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            float *rAcol;
-            float _cbuf13[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            float rAcol[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rAcol = _cbuf13;
-            float *rBrow;
-            float _cbuf15[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            float rBrow[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rBrow = _cbuf15;
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -29279,12 +23747,9 @@ __global__ static void kuiper_kernel_134(float *gA, float *gB, uint32_t k,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 256) {
         uint32_t ci0 = cctr;
@@ -29326,12 +23791,10 @@ __global__ static void kuiper_kernel_135(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    custard_bf16 *rchProd;
-    custard_bf16 _cbuf1[256];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 256; _ci2++) {
-        _cbuf1[_ci2] = CUSTARD_BF16_LIT(0U);
+    custard_bf16 rchProd[256];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 256; _ci1++) {
+        rchProd[_ci1] = CUSTARD_BF16_LIT(0U);
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 128);
     uint32_t mrow = (rest / num_n_tiles);
@@ -29340,27 +23803,16 @@ __global__ static void kuiper_kernel_135(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t threadCol = (tid % 8);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_bf16 *local;
-            custard_bf16 _cbuf5[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            local = _cbuf5;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -29370,11 +23822,8 @@ __global__ static void kuiper_kernel_135(custard_bf16 *gA, custard_bf16 *gB,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 custard_bf16 v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -29388,21 +23837,15 @@ __global__ static void kuiper_kernel_135(custard_bf16 *gA, custard_bf16 *gB,
             i = (vi + 512);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 4096;
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_bf16 *local_1;
-            custard_bf16 _cbuf9[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            local_1 = _cbuf9;
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 128);
             uint32_t __anf03_1 = i1;
@@ -29412,11 +23855,8 @@ __global__ static void kuiper_kernel_135(custard_bf16 *gA, custard_bf16 *gB,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 8) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 custard_bf16 v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -29429,20 +23869,10 @@ __global__ static void kuiper_kernel_135(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 512);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            custard_bf16 *rAcol;
-            custard_bf16 _cbuf13[16] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rAcol[16] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -29451,9 +23881,7 @@ __global__ static void kuiper_kernel_135(custard_bf16 *gA, custard_bf16 *gB,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            rAcol = _cbuf13;
-            custard_bf16 *rBrow;
-            custard_bf16 _cbuf15[16] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rBrow[16] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -29462,7 +23890,6 @@ __global__ static void kuiper_kernel_135(custard_bf16 *gA, custard_bf16 *gB,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            rBrow = _cbuf15;
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -29505,12 +23932,9 @@ __global__ static void kuiper_kernel_135(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 256) {
         uint32_t ci0 = cctr;
@@ -29552,14 +23976,12 @@ __global__ static void kuiper_kernel_136(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float *rchProd;
-    float _cbuf1[64] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+    float rchProd[64] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 128);
     uint32_t mrow = (rest / num_n_tiles);
@@ -29568,23 +23990,13 @@ __global__ static void kuiper_kernel_136(float *gA, float *gB, uint32_t k,
     uint32_t threadCol = (tid % 16);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 8192;
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            float *local;
-            float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local = _cbuf5;
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -29594,11 +24006,8 @@ __global__ static void kuiper_kernel_136(float *gA, float *gB, uint32_t k,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 float v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -29612,17 +24021,11 @@ __global__ static void kuiper_kernel_136(float *gA, float *gB, uint32_t k,
             i = (vi + 1024);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 8192;
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            float *local_1;
-            float _cbuf9[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local_1 = _cbuf9;
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 128);
             uint32_t __anf03_1 = i1;
@@ -29632,11 +24035,8 @@ __global__ static void kuiper_kernel_136(float *gA, float *gB, uint32_t k,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 4) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 float v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -29649,24 +24049,11 @@ __global__ static void kuiper_kernel_136(float *gA, float *gB, uint32_t k,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 1024);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            float *rAcol;
-            float _cbuf13[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rAcol = _cbuf13;
-            float *rBrow;
-            float _cbuf15[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rBrow = _cbuf15;
+            float rAcol[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -29708,12 +24095,9 @@ __global__ static void kuiper_kernel_136(float *gA, float *gB, uint32_t k,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 64) {
         uint32_t ci0 = cctr;
@@ -29755,8 +24139,7 @@ __global__ static void kuiper_kernel_137(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    custard_bf16 *rchProd;
-    custard_bf16 _cbuf1[64] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
+    custard_bf16 rchProd[64] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -29778,7 +24161,6 @@ __global__ static void kuiper_kernel_137(custard_bf16 *gA, custard_bf16 *gB,
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
         CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 128);
     uint32_t mrow = (rest / num_n_tiles);
@@ -29787,27 +24169,16 @@ __global__ static void kuiper_kernel_137(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t threadCol = (tid % 16);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 8192;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_bf16 *local;
-            custard_bf16 _cbuf5[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            local = _cbuf5;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -29817,11 +24188,8 @@ __global__ static void kuiper_kernel_137(custard_bf16 *gA, custard_bf16 *gB,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 custard_bf16 v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -29835,21 +24203,15 @@ __global__ static void kuiper_kernel_137(custard_bf16 *gA, custard_bf16 *gB,
             i = (vi + 2048);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 8192;
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_bf16 *local_1;
-            custard_bf16 _cbuf9[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            local_1 = _cbuf9;
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 128);
             uint32_t __anf03_1 = i1;
@@ -29859,11 +24221,8 @@ __global__ static void kuiper_kernel_137(custard_bf16 *gA, custard_bf16 *gB,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 8) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 custard_bf16 v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -29876,32 +24235,17 @@ __global__ static void kuiper_kernel_137(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 2048);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            custard_bf16 *rAcol;
-            custard_bf16 _cbuf13[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rAcol[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            rAcol = _cbuf13;
-            custard_bf16 *rBrow;
-            custard_bf16 _cbuf15[8] = {CUSTARD_BF16_LIT(0U),
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
+            custard_bf16 rBrow[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            rBrow = _cbuf15;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -29944,12 +24288,9 @@ __global__ static void kuiper_kernel_137(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 64) {
         uint32_t ci0 = cctr;
@@ -29991,12 +24332,10 @@ __global__ static void kuiper_kernel_138(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float *rchProd;
-    float _cbuf1[128];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 128; _ci2++) {
-        _cbuf1[_ci2] = 0.0f;
+    float rchProd[128];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
+        rchProd[_ci1] = 0.0f;
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 128);
     uint32_t mrow = (rest / num_n_tiles);
@@ -30005,23 +24344,13 @@ __global__ static void kuiper_kernel_138(float *gA, float *gB, uint32_t k,
     uint32_t threadCol = (tid % 8);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 8192;
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            float *local;
-            float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local = _cbuf5;
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -30031,11 +24360,8 @@ __global__ static void kuiper_kernel_138(float *gA, float *gB, uint32_t k,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 float v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -30049,17 +24375,11 @@ __global__ static void kuiper_kernel_138(float *gA, float *gB, uint32_t k,
             i = (vi + 512);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 8192;
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            float *local_1;
-            float _cbuf9[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local_1 = _cbuf9;
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 128);
             uint32_t __anf03_1 = i1;
@@ -30069,11 +24389,8 @@ __global__ static void kuiper_kernel_138(float *gA, float *gB, uint32_t k,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 4) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 float v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -30086,25 +24403,12 @@ __global__ static void kuiper_kernel_138(float *gA, float *gB, uint32_t k,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 512);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            float *rAcol;
-            float _cbuf13[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rAcol = _cbuf13;
-            float *rBrow;
-            float _cbuf15[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            float rAcol[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rBrow = _cbuf15;
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -30146,12 +24450,9 @@ __global__ static void kuiper_kernel_138(float *gA, float *gB, uint32_t k,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 128) {
         uint32_t ci0 = cctr;
@@ -30193,12 +24494,10 @@ __global__ static void kuiper_kernel_139(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    custard_bf16 *rchProd;
-    custard_bf16 _cbuf1[128];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 128; _ci2++) {
-        _cbuf1[_ci2] = CUSTARD_BF16_LIT(0U);
+    custard_bf16 rchProd[128];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
+        rchProd[_ci1] = CUSTARD_BF16_LIT(0U);
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 128);
     uint32_t mrow = (rest / num_n_tiles);
@@ -30207,27 +24506,16 @@ __global__ static void kuiper_kernel_139(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t threadCol = (tid % 8);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 8192;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_bf16 *local;
-            custard_bf16 _cbuf5[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            local = _cbuf5;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -30237,11 +24525,8 @@ __global__ static void kuiper_kernel_139(custard_bf16 *gA, custard_bf16 *gB,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 custard_bf16 v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -30255,21 +24540,15 @@ __global__ static void kuiper_kernel_139(custard_bf16 *gA, custard_bf16 *gB,
             i = (vi + 1024);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 8192;
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_bf16 *local_1;
-            custard_bf16 _cbuf9[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            local_1 = _cbuf9;
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 128);
             uint32_t __anf03_1 = i1;
@@ -30279,11 +24558,8 @@ __global__ static void kuiper_kernel_139(custard_bf16 *gA, custard_bf16 *gB,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 8) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 custard_bf16 v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -30296,27 +24572,14 @@ __global__ static void kuiper_kernel_139(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 1024);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            custard_bf16 *rAcol;
-            custard_bf16 _cbuf13[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rAcol[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            rAcol = _cbuf13;
-            custard_bf16 *rBrow;
-            custard_bf16 _cbuf15[16] = {CUSTARD_BF16_LIT(0U),
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
+            custard_bf16 rBrow[16] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -30325,7 +24588,6 @@ __global__ static void kuiper_kernel_139(custard_bf16 *gA, custard_bf16 *gB,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            rBrow = _cbuf15;
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -30368,12 +24630,9 @@ __global__ static void kuiper_kernel_139(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 128) {
         uint32_t ci0 = cctr;
@@ -30415,12 +24674,10 @@ __global__ static void kuiper_kernel_140(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float *rchProd;
-    float _cbuf1[128];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 128; _ci2++) {
-        _cbuf1[_ci2] = 0.0f;
+    float rchProd[128];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
+        rchProd[_ci1] = 0.0f;
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 128);
     uint32_t mrow = (rest / num_n_tiles);
@@ -30429,23 +24686,13 @@ __global__ static void kuiper_kernel_140(float *gA, float *gB, uint32_t k,
     uint32_t threadCol = (tid % 16);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 8192;
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            float *local;
-            float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local = _cbuf5;
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -30455,11 +24702,8 @@ __global__ static void kuiper_kernel_140(float *gA, float *gB, uint32_t k,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 float v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -30473,17 +24717,11 @@ __global__ static void kuiper_kernel_140(float *gA, float *gB, uint32_t k,
             i = (vi + 512);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 8192;
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            float *local_1;
-            float _cbuf9[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local_1 = _cbuf9;
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 128);
             uint32_t __anf03_1 = i1;
@@ -30493,11 +24731,8 @@ __global__ static void kuiper_kernel_140(float *gA, float *gB, uint32_t k,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 4) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 float v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -30510,25 +24745,12 @@ __global__ static void kuiper_kernel_140(float *gA, float *gB, uint32_t k,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 512);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            float *rAcol;
-            float _cbuf13[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            float rAcol[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rAcol = _cbuf13;
-            float *rBrow;
-            float _cbuf15[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rBrow = _cbuf15;
+            float rBrow[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -30570,12 +24792,9 @@ __global__ static void kuiper_kernel_140(float *gA, float *gB, uint32_t k,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 128) {
         uint32_t ci0 = cctr;
@@ -30617,12 +24836,10 @@ __global__ static void kuiper_kernel_141(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    custard_bf16 *rchProd;
-    custard_bf16 _cbuf1[128];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 128; _ci2++) {
-        _cbuf1[_ci2] = CUSTARD_BF16_LIT(0U);
+    custard_bf16 rchProd[128];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
+        rchProd[_ci1] = CUSTARD_BF16_LIT(0U);
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 128);
     uint32_t mrow = (rest / num_n_tiles);
@@ -30631,27 +24848,16 @@ __global__ static void kuiper_kernel_141(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t threadCol = (tid % 16);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 8192;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_bf16 *local;
-            custard_bf16 _cbuf5[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            local = _cbuf5;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -30661,11 +24867,8 @@ __global__ static void kuiper_kernel_141(custard_bf16 *gA, custard_bf16 *gB,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 custard_bf16 v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -30679,21 +24882,15 @@ __global__ static void kuiper_kernel_141(custard_bf16 *gA, custard_bf16 *gB,
             i = (vi + 1024);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 8192;
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_bf16 *local_1;
-            custard_bf16 _cbuf9[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            local_1 = _cbuf9;
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 128);
             uint32_t __anf03_1 = i1;
@@ -30703,11 +24900,8 @@ __global__ static void kuiper_kernel_141(custard_bf16 *gA, custard_bf16 *gB,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 8) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 custard_bf16 v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -30720,20 +24914,10 @@ __global__ static void kuiper_kernel_141(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 1024);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            custard_bf16 *rAcol;
-            custard_bf16 _cbuf13[16] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rAcol[16] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -30742,14 +24926,10 @@ __global__ static void kuiper_kernel_141(custard_bf16 *gA, custard_bf16 *gB,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            rAcol = _cbuf13;
-            custard_bf16 *rBrow;
-            custard_bf16 _cbuf15[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rBrow[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            rBrow = _cbuf15;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -30792,12 +24972,9 @@ __global__ static void kuiper_kernel_141(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 128) {
         uint32_t ci0 = cctr;
@@ -30839,12 +25016,10 @@ __global__ static void kuiper_kernel_142(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float *rchProd;
-    float _cbuf1[256];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 256; _ci2++) {
-        _cbuf1[_ci2] = 0.0f;
+    float rchProd[256];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 256; _ci1++) {
+        rchProd[_ci1] = 0.0f;
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 128);
     uint32_t mrow = (rest / num_n_tiles);
@@ -30853,23 +25028,13 @@ __global__ static void kuiper_kernel_142(float *gA, float *gB, uint32_t k,
     uint32_t threadCol = (tid % 8);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 8192;
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            float *local;
-            float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local = _cbuf5;
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -30879,11 +25044,8 @@ __global__ static void kuiper_kernel_142(float *gA, float *gB, uint32_t k,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 float v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -30897,17 +25059,11 @@ __global__ static void kuiper_kernel_142(float *gA, float *gB, uint32_t k,
             i = (vi + 256);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 8192;
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            float *local_1;
-            float _cbuf9[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            local_1 = _cbuf9;
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 128);
             uint32_t __anf03_1 = i1;
@@ -30917,11 +25073,8 @@ __global__ static void kuiper_kernel_142(float *gA, float *gB, uint32_t k,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 4) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 float v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -30934,26 +25087,13 @@ __global__ static void kuiper_kernel_142(float *gA, float *gB, uint32_t k,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 256);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            float *rAcol;
-            float _cbuf13[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            float rAcol[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rAcol = _cbuf13;
-            float *rBrow;
-            float _cbuf15[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            float rBrow[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-            rBrow = _cbuf15;
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -30995,12 +25135,9 @@ __global__ static void kuiper_kernel_142(float *gA, float *gB, uint32_t k,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 256) {
         uint32_t ci0 = cctr;
@@ -31042,12 +25179,10 @@ __global__ static void kuiper_kernel_143(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    custard_bf16 *rchProd;
-    custard_bf16 _cbuf1[256];
-    for (size_t _ci2 = 0; _ci2 < (size_t) 256; _ci2++) {
-        _cbuf1[_ci2] = CUSTARD_BF16_LIT(0U);
+    custard_bf16 rchProd[256];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 256; _ci1++) {
+        rchProd[_ci1] = CUSTARD_BF16_LIT(0U);
     }
-    rchProd = _cbuf1;
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 128);
     uint32_t mrow = (rest / num_n_tiles);
@@ -31056,27 +25191,16 @@ __global__ static void kuiper_kernel_143(custard_bf16 *gA, custard_bf16 *gB,
     uint32_t threadCol = (tid % 8);
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf0 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen = 8192;
         uint32_t offset = (tid * 8);
         uint32_t i = 0;
         while (i < mlen) {
-            (void) (i);
-            custard_bf16 *local;
-            custard_bf16 _cbuf5[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local[8] = {CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
-                CUSTARD_BF16_LIT(0U)};
-            local = _cbuf5;
+                CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -31086,11 +25210,8 @@ __global__ static void kuiper_kernel_143(custard_bf16 *gA, custard_bf16 *gB,
                      (k * row)) +
                     col);
             vec_memcpy((local + 0), (gA + offset1));
-            (void) (i);
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
-                (void) (k1);
                 uint32_t __anf03 = k1;
                 custard_bf16 v = local[__anf03];
                 uint32_t __anf04 = k1;
@@ -31104,21 +25225,15 @@ __global__ static void kuiper_kernel_143(custard_bf16 *gA, custard_bf16 *gB,
             i = (vi + 512);
         }
         uint32_t __anf01_1 = bkIdx;
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t mlen1 = 8192;
         uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            (void) (i1);
-            custard_bf16 *local_1;
-            custard_bf16 _cbuf9[8] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            local_1 = _cbuf9;
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 128);
             uint32_t __anf03_1 = i1;
@@ -31128,11 +25243,8 @@ __global__ static void kuiper_kernel_143(custard_bf16 *gA, custard_bf16 *gB,
                      (n * row_1)) +
                     col_1);
             vec_memcpy((local_1 + 0), (gB + offset2));
-            (void) (i1);
             uint32_t k1_1 = 0;
             while (k1_1 < 8) {
-                (void) (k1_1);
-                (void) (k1_1);
                 uint32_t __anf04_1 = k1_1;
                 custard_bf16 v_1 = local_1[__anf04_1];
                 uint32_t __anf05_1 = k1_1;
@@ -31145,20 +25257,10 @@ __global__ static void kuiper_kernel_143(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 512);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         __syncthreads();
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            custard_bf16 *rAcol;
-            custard_bf16 _cbuf13[16] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rAcol[16] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -31167,9 +25269,7 @@ __global__ static void kuiper_kernel_143(custard_bf16 *gA, custard_bf16 *gB,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            rAcol = _cbuf13;
-            custard_bf16 *rBrow;
-            custard_bf16 _cbuf15[16] = {CUSTARD_BF16_LIT(0U),
+            custard_bf16 rBrow[16] = {CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
@@ -31178,7 +25278,6 @@ __global__ static void kuiper_kernel_143(custard_bf16 *gA, custard_bf16 *gB,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            rBrow = _cbuf15;
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -31221,12 +25320,9 @@ __global__ static void kuiper_kernel_143(custard_bf16 *gA, custard_bf16 *gB,
             uint32_t __anf02_5 = dotIdx;
             dotIdx = (__anf02_5 + 1);
         }
-        (void) (bkIdx);
-        (void) (bkIdx);
         uint32_t __anf02_6 = bkIdx;
         bkIdx = (__anf02_6 + 1);
     }
-    (void) (bkIdx);
     uint32_t cctr = 0;
     while (cctr < 256) {
         uint32_t ci0 = cctr;

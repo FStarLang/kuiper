@@ -3,15 +3,13 @@
 
 uint64_t Kuiper_Example_OffsetMemcpy_main(void)
 {
-    uint64_t *src;
-    uint64_t *_cbuf1 = (uint64_t *) malloc(8 * sizeof(uint64_t));
-    if (_cbuf1 == NULL) {
+    uint64_t *src = (uint64_t *) malloc(8 * sizeof(uint64_t));
+    if (src == NULL) {
         abort();
     }
-    for (size_t _ci2 = 0; _ci2 < (size_t) 8; _ci2++) {
-        _cbuf1[_ci2] = 0;
+    for (size_t _ci1 = 0; _ci1 < (size_t) 8; _ci1++) {
+        src[_ci1] = 0;
     }
-    src = _cbuf1;
     src[0] = 10;
     src[1] = 20;
     src[2] = 30;
@@ -22,28 +20,24 @@ uint64_t Kuiper_Example_OffsetMemcpy_main(void)
     src[7] = 80;
     uint8_t *tmp1 = (uint8_t *) KPR_GPU_ALLOC(((uint32_t) 8U), ((uint32_t) 8U));
     uint64_t *ga = (uint64_t *) tmp1;
-    uint64_t *zeros;
-    uint64_t *_cbuf3 = (uint64_t *) malloc(8 * sizeof(uint64_t));
-    if (_cbuf3 == NULL) {
+    uint64_t *zeros = (uint64_t *) malloc(8 * sizeof(uint64_t));
+    if (zeros == NULL) {
         abort();
     }
-    for (size_t _ci4 = 0; _ci4 < (size_t) 8; _ci4++) {
-        _cbuf3[_ci4] = 0;
+    for (size_t _ci2 = 0; _ci2 < (size_t) 8; _ci2++) {
+        zeros[_ci2] = 0;
     }
-    zeros = _cbuf3;
     KPR_MEMCPY_H2D(ga, zeros, (((uint32_t) 8U) * ((uint32_t) 8U)));
     free(zeros);
     KPR_MEMCPY_H2D((ga + 2), (src + 1), (((uint32_t) 8U) * ((uint32_t) 3U)));
     free(src);
-    uint64_t *dst;
-    uint64_t *_cbuf5 = (uint64_t *) malloc(8 * sizeof(uint64_t));
-    if (_cbuf5 == NULL) {
+    uint64_t *dst = (uint64_t *) malloc(8 * sizeof(uint64_t));
+    if (dst == NULL) {
         abort();
     }
-    for (size_t _ci6 = 0; _ci6 < (size_t) 8; _ci6++) {
-        _cbuf5[_ci6] = 0;
+    for (size_t _ci3 = 0; _ci3 < (size_t) 8; _ci3++) {
+        dst[_ci3] = 0;
     }
-    dst = _cbuf5;
     KPR_MEMCPY_D2H((dst + 3), (ga + 2), (((uint32_t) 8U) * ((uint32_t) 3U)));
     KPR_GPU_FREE(ga);
     uint64_t r0 = dst[3];

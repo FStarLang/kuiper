@@ -39,14 +39,14 @@ __global__ static void kuiper_kernel_1(float *gr1, float *gr2)
 }
 
 __device__ void Kuiper_Example_Polymorphism1_kswap_U64(
-    uint64_t *r1, uint64_t *eta)
+    uint64_t *r1, uint64_t *r2)
 {
-    Kuiper_Example_Polymorphism1_kswap__t(r1, eta);
+    Kuiper_Example_Polymorphism1_kswap__t(r1, r2);
 }
 
-__device__ void Kuiper_Example_Polymorphism1_kswap_F32(float *r1, float *eta)
+__device__ void Kuiper_Example_Polymorphism1_kswap_F32(float *r1, float *r2)
 {
-    Kuiper_Example_Polymorphism1_kswap__t_1(r1, eta);
+    Kuiper_Example_Polymorphism1_kswap__t_1(r1, r2);
 }
 
 void Kuiper_Example_Polymorphism1_swap_U64(uint64_t *r1, uint64_t *r2)

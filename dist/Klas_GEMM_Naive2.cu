@@ -46,8 +46,6 @@ __global__ static void kuiper_kernel_0(
             uint32_t __anf01 = k1;
             k1 = (__anf01 + 1);
         }
-        uint32_t ni_1 = ((trow * n) + tcol);
-        (void) (gC[ni_1]);
         uint32_t ni1_1 = ((trow * n) + tcol);
         gC[ni1_1] = sum;
     }
@@ -77,8 +75,6 @@ __global__ static void kuiper_kernel_1(
             uint32_t __anf01 = k1;
             k1 = (__anf01 + 1);
         }
-        uint32_t ni_1 = ((trow * n) + tcol);
-        (void) (gC[ni_1]);
         uint32_t ni1_1 = ((trow * n) + tcol);
         gC[ni1_1] = sum;
     }
@@ -108,8 +104,6 @@ __global__ static void kuiper_kernel_2(uint32_t m, uint32_t n, uint32_t k,
             uint32_t __anf01 = k1;
             k1 = (__anf01 + 1);
         }
-        uint32_t ni_1 = ((trow * n) + tcol);
-        (void) (gC[ni_1]);
         uint32_t ni1_1 = ((trow * n) + tcol);
         gC[ni1_1] = sum;
     }
@@ -139,8 +133,6 @@ __global__ static void kuiper_kernel_3(uint32_t m, uint32_t n, uint32_t k,
             uint32_t __anf01 = k1;
             k1 = (__anf01 + 1);
         }
-        uint32_t ni_1 = ((trow * n) + tcol);
-        (void) (gC[ni_1]);
         uint32_t ni1_1 = ((trow * n) + tcol);
         gC[ni1_1] = sum;
     }
@@ -170,8 +162,6 @@ __global__ static void kuiper_kernel_4(
             uint32_t __anf01 = k1;
             k1 = (__anf01 + 1);
         }
-        uint32_t ni_1 = ((tcol * m) + trow);
-        (void) (gC[ni_1]);
         uint32_t ni1_1 = ((tcol * m) + trow);
         gC[ni1_1] = sum;
     }
@@ -201,8 +191,6 @@ __global__ static void kuiper_kernel_5(
             uint32_t __anf01 = k1;
             k1 = (__anf01 + 1);
         }
-        uint32_t ni_1 = ((tcol * m) + trow);
-        (void) (gC[ni_1]);
         uint32_t ni1_1 = ((tcol * m) + trow);
         gC[ni1_1] = sum;
     }
@@ -232,8 +220,6 @@ __global__ static void kuiper_kernel_6(uint32_t m, uint32_t n, uint32_t k,
             uint32_t __anf01 = k1;
             k1 = (__anf01 + 1);
         }
-        uint32_t ni_1 = ((tcol * m) + trow);
-        (void) (gC[ni_1]);
         uint32_t ni1_1 = ((tcol * m) + trow);
         gC[ni1_1] = sum;
     }
@@ -263,8 +249,6 @@ __global__ static void kuiper_kernel_7(uint32_t m, uint32_t n, uint32_t k,
             uint32_t __anf01 = k1;
             k1 = (__anf01 + 1);
         }
-        uint32_t ni_1 = ((tcol * m) + trow);
-        (void) (gC[ni_1]);
         uint32_t ni1_1 = ((tcol * m) + trow);
         gC[ni1_1] = sum;
     }
@@ -295,8 +279,6 @@ __global__ static void kuiper_kernel_8(uint32_t batch, uint32_t m, uint32_t n,
             uint32_t __anf01 = k1;
             k1 = (__anf01 + 1);
         }
-        uint32_t ni_1 = ((page * (m * n)) + ((trow * n) + tcol));
-        (void) (c[ni_1]);
         uint32_t ni1_1 = ((page * (m * n)) + ((trow * n) + tcol));
         c[ni1_1] = sum;
     }

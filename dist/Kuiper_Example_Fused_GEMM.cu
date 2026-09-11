@@ -29,8 +29,6 @@ __global__ static void kuiper_kernel_0(uint32_t m, uint32_t n, uint32_t k,
             uint32_t __anf01 = k1;
             k1 = (__anf01 + 1);
         }
-        uint32_t ni_1 = ((trow * n) + tcol);
-        (void) (gC[ni_1]);
         custard_f16 v1 = kpr_cast_f32_to_f16(sum);
         uint32_t ni1_1 = ((trow * n) + tcol);
         gC[ni1_1] = v1;

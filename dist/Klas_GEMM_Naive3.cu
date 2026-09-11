@@ -37,25 +37,14 @@ __global__ static void kuiper_kernel_0(uint32_t m, uint32_t n, uint32_t k,
             custard_bf16 old_c = c;
             custard_bf16 old_acc = acc;
             custard_bf16 yc = custard_bf16_sub(y, old_c);
-            (void) (k1);
             custard_bf16 t = custard_bf16_add(old_acc, yc);
-            (void) (k1);
-            (void) (k1);
-            (void) (k1);
             custard_bf16 delta = custard_bf16_sub(t, old_acc);
-            (void) (k1);
-            (void) (k1);
             custard_bf16 new_c = custard_bf16_sub(delta, yc);
-            (void) (k1);
-            (void) (k1);
-            (void) (k1);
             c = new_c;
             acc = t;
             uint32_t __anf02 = k1;
             k1 = (__anf02 + 1);
         }
-        uint32_t ni_1 = ((trow * n) + tcol);
-        (void) (gC[ni_1]);
         uint32_t ni1_1 = ((trow * n) + tcol);
         gC[ni1_1] = acc;
     }
@@ -84,25 +73,14 @@ __global__ static void kuiper_kernel_1(
             float old_c = c;
             float old_acc = acc;
             float yc = (y - old_c);
-            (void) (k1);
             float t = (old_acc + yc);
-            (void) (k1);
-            (void) (k1);
-            (void) (k1);
             float delta = (t - old_acc);
-            (void) (k1);
-            (void) (k1);
             float new_c = (delta - yc);
-            (void) (k1);
-            (void) (k1);
-            (void) (k1);
             c = new_c;
             acc = t;
             uint32_t __anf02 = k1;
             k1 = (__anf02 + 1);
         }
-        uint32_t ni_1 = ((trow * n) + tcol);
-        (void) (gC[ni_1]);
         uint32_t ni1_1 = ((trow * n) + tcol);
         gC[ni1_1] = acc;
     }
@@ -131,25 +109,14 @@ __global__ static void kuiper_kernel_2(
             double old_c = c;
             double old_acc = acc;
             double yc = (y - old_c);
-            (void) (k1);
             double t = (old_acc + yc);
-            (void) (k1);
-            (void) (k1);
-            (void) (k1);
             double delta = (t - old_acc);
-            (void) (k1);
-            (void) (k1);
             double new_c = (delta - yc);
-            (void) (k1);
-            (void) (k1);
-            (void) (k1);
             c = new_c;
             acc = t;
             uint32_t __anf02 = k1;
             k1 = (__anf02 + 1);
         }
-        uint32_t ni_1 = ((trow * n) + tcol);
-        (void) (gC[ni_1]);
         uint32_t ni1_1 = ((trow * n) + tcol);
         gC[ni1_1] = acc;
     }
@@ -178,25 +145,14 @@ __global__ static void kuiper_kernel_3(uint32_t m, uint32_t n, custard_bf16 *gA,
             custard_bf16 old_c = c;
             custard_bf16 old_acc = acc;
             custard_bf16 yc = custard_bf16_sub(y, old_c);
-            (void) (k1);
             custard_bf16 t = custard_bf16_add(old_acc, yc);
-            (void) (k1);
-            (void) (k1);
-            (void) (k1);
             custard_bf16 delta = custard_bf16_sub(t, old_acc);
-            (void) (k1);
-            (void) (k1);
             custard_bf16 new_c = custard_bf16_sub(delta, yc);
-            (void) (k1);
-            (void) (k1);
-            (void) (k1);
             c = new_c;
             acc = t;
             uint32_t __anf02 = k1;
             k1 = (__anf02 + 1);
         }
-        uint32_t ni_1 = ((tcol * m) + trow);
-        (void) (gC[ni_1]);
         uint32_t ni1_1 = ((tcol * m) + trow);
         gC[ni1_1] = acc;
     }
@@ -225,25 +181,14 @@ __global__ static void kuiper_kernel_4(
             float old_c = c;
             float old_acc = acc;
             float yc = (y - old_c);
-            (void) (k1);
             float t = (old_acc + yc);
-            (void) (k1);
-            (void) (k1);
-            (void) (k1);
             float delta = (t - old_acc);
-            (void) (k1);
-            (void) (k1);
             float new_c = (delta - yc);
-            (void) (k1);
-            (void) (k1);
-            (void) (k1);
             c = new_c;
             acc = t;
             uint32_t __anf02 = k1;
             k1 = (__anf02 + 1);
         }
-        uint32_t ni_1 = ((tcol * m) + trow);
-        (void) (gC[ni_1]);
         uint32_t ni1_1 = ((tcol * m) + trow);
         gC[ni1_1] = acc;
     }
@@ -272,25 +217,14 @@ __global__ static void kuiper_kernel_5(
             double old_c = c;
             double old_acc = acc;
             double yc = (y - old_c);
-            (void) (k1);
             double t = (old_acc + yc);
-            (void) (k1);
-            (void) (k1);
-            (void) (k1);
             double delta = (t - old_acc);
-            (void) (k1);
-            (void) (k1);
             double new_c = (delta - yc);
-            (void) (k1);
-            (void) (k1);
-            (void) (k1);
             c = new_c;
             acc = t;
             uint32_t __anf02 = k1;
             k1 = (__anf02 + 1);
         }
-        uint32_t ni_1 = ((tcol * m) + trow);
-        (void) (gC[ni_1]);
         uint32_t ni1_1 = ((tcol * m) + trow);
         gC[ni1_1] = acc;
     }

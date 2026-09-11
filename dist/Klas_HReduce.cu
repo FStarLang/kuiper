@@ -33,7 +33,6 @@ __global__ static void kuiper_kernel_0(
                     ._1 = idx_raw}};
         uint32_t ni = tmp2._2._1;
         custard_f16 v = x_[ni];
-        (void) (acc);
         custard_f16 __anf0 = acc;
         acc = custard_f16_add(__anf0, v);
         uint32_t __anf01 = idx;
@@ -41,9 +40,6 @@ __global__ static void kuiper_kernel_0(
     }
     shmem._1[tid] = acc;
     uint32_t n = 0;
-    (void) (n);
-    (void) (n);
-    (void) (n);
     while ((uint32_t) (((uint32_t) 1U) << (uint32_t) n) < nth) {
         uint32_t __anf0_1 = n;
         __syncthreads();
@@ -91,7 +87,6 @@ __global__ static void kuiper_kernel_1(
                     ._1 = idx_raw}};
         uint32_t ni = tmp2._2._1;
         float v = x_[ni];
-        (void) (acc);
         float __anf0 = acc;
         acc = (__anf0 + v);
         uint32_t __anf01 = idx;
@@ -99,9 +94,6 @@ __global__ static void kuiper_kernel_1(
     }
     shmem._1[tid] = acc;
     uint32_t n = 0;
-    (void) (n);
-    (void) (n);
-    (void) (n);
     while ((uint32_t) (((uint32_t) 1U) << (uint32_t) n) < nth) {
         uint32_t __anf0_1 = n;
         __syncthreads();
@@ -149,7 +141,6 @@ __global__ static void kuiper_kernel_2(
                     ._1 = idx_raw}};
         uint32_t ni = tmp2._2._1;
         double v = x_[ni];
-        (void) (acc);
         double __anf0 = acc;
         acc = (__anf0 + v);
         uint32_t __anf01 = idx;
@@ -157,9 +148,6 @@ __global__ static void kuiper_kernel_2(
     }
     shmem._1[tid] = acc;
     uint32_t n = 0;
-    (void) (n);
-    (void) (n);
-    (void) (n);
     while ((uint32_t) (((uint32_t) 1U) << (uint32_t) n) < nth) {
         uint32_t __anf0_1 = n;
         __syncthreads();
@@ -207,7 +195,6 @@ __global__ static void kuiper_kernel_3(
                     ._1 = idx_raw}};
         uint32_t ni = tmp2._2._1;
         uint32_t v = x_[ni];
-        (void) (acc);
         uint32_t __anf0 = acc;
         acc = (__anf0 + v);
         uint32_t __anf01 = idx;
@@ -215,9 +202,6 @@ __global__ static void kuiper_kernel_3(
     }
     shmem._1[tid] = acc;
     uint32_t n = 0;
-    (void) (n);
-    (void) (n);
-    (void) (n);
     while ((uint32_t) (((uint32_t) 1U) << (uint32_t) n) < nth) {
         uint32_t __anf0_1 = n;
         __syncthreads();
@@ -265,7 +249,6 @@ __global__ static void kuiper_kernel_4(
                     ._1 = idx_raw}};
         uint32_t ni = tmp2._2._1;
         uint64_t v = x_[ni];
-        (void) (acc);
         uint64_t __anf0 = acc;
         acc = (__anf0 + v);
         uint32_t __anf01 = idx;
@@ -273,9 +256,6 @@ __global__ static void kuiper_kernel_4(
     }
     shmem._1[tid] = acc;
     uint32_t n = 0;
-    (void) (n);
-    (void) (n);
-    (void) (n);
     while ((uint32_t) (((uint32_t) 1U) << (uint32_t) n) < nth) {
         uint32_t __anf0_1 = n;
         __syncthreads();
@@ -317,15 +297,13 @@ custard_f16 Klas_HReduce_reduce_f16_plus(
         a, nth, out0);
     KPR_MUST_stream_sync(s);
     KPR_MUST_stream_destroy(s);
-    custard_f16 *local_out;
-    custard_f16 *_cbuf1 = (custard_f16 *) malloc(1 * sizeof(custard_f16));
-    if (_cbuf1 == NULL) {
+    custard_f16 *local_out = (custard_f16 *) malloc(1 * sizeof(custard_f16));
+    if (local_out == NULL) {
         abort();
     }
-    for (size_t _ci2 = 0; _ci2 < (size_t) 1; _ci2++) {
-        _cbuf1[_ci2] = CUSTARD_F16_LIT(0U);
+    for (size_t _ci1 = 0; _ci1 < (size_t) 1; _ci1++) {
+        local_out[_ci1] = CUSTARD_F16_LIT(0U);
     }
-    local_out = _cbuf1;
     KPR_MEMCPY_D2H(local_out, out0, (((uint32_t) 2U) * ((uint32_t) 1U)));
     custard_f16 res = local_out[0];
     free(local_out);
@@ -347,15 +325,13 @@ float Klas_HReduce_reduce_f32_plus(uint32_t nth, uint32_t lena, float *a)
         a, nth, out0);
     KPR_MUST_stream_sync(s);
     KPR_MUST_stream_destroy(s);
-    float *local_out;
-    float *_cbuf1 = (float *) malloc(1 * sizeof(float));
-    if (_cbuf1 == NULL) {
+    float *local_out = (float *) malloc(1 * sizeof(float));
+    if (local_out == NULL) {
         abort();
     }
-    for (size_t _ci2 = 0; _ci2 < (size_t) 1; _ci2++) {
-        _cbuf1[_ci2] = 0.0f;
+    for (size_t _ci1 = 0; _ci1 < (size_t) 1; _ci1++) {
+        local_out[_ci1] = 0.0f;
     }
-    local_out = _cbuf1;
     KPR_MEMCPY_D2H(local_out, out0, (((uint32_t) 4U) * ((uint32_t) 1U)));
     float res = local_out[0];
     free(local_out);
@@ -377,15 +353,13 @@ double Klas_HReduce_reduce_f64_plus(uint32_t nth, uint32_t lena, double *a)
         a, nth, out0);
     KPR_MUST_stream_sync(s);
     KPR_MUST_stream_destroy(s);
-    double *local_out;
-    double *_cbuf1 = (double *) malloc(1 * sizeof(double));
-    if (_cbuf1 == NULL) {
+    double *local_out = (double *) malloc(1 * sizeof(double));
+    if (local_out == NULL) {
         abort();
     }
-    for (size_t _ci2 = 0; _ci2 < (size_t) 1; _ci2++) {
-        _cbuf1[_ci2] = 0.0;
+    for (size_t _ci1 = 0; _ci1 < (size_t) 1; _ci1++) {
+        local_out[_ci1] = 0.0;
     }
-    local_out = _cbuf1;
     KPR_MEMCPY_D2H(local_out, out0, (((uint32_t) 8U) * ((uint32_t) 1U)));
     double res = local_out[0];
     free(local_out);
@@ -407,15 +381,13 @@ uint32_t Klas_HReduce_reduce_u32_plus(uint32_t nth, uint32_t lena, uint32_t *a)
         a, nth, out0);
     KPR_MUST_stream_sync(s);
     KPR_MUST_stream_destroy(s);
-    uint32_t *local_out;
-    uint32_t *_cbuf1 = (uint32_t *) malloc(1 * sizeof(uint32_t));
-    if (_cbuf1 == NULL) {
+    uint32_t *local_out = (uint32_t *) malloc(1 * sizeof(uint32_t));
+    if (local_out == NULL) {
         abort();
     }
-    for (size_t _ci2 = 0; _ci2 < (size_t) 1; _ci2++) {
-        _cbuf1[_ci2] = 0;
+    for (size_t _ci1 = 0; _ci1 < (size_t) 1; _ci1++) {
+        local_out[_ci1] = 0;
     }
-    local_out = _cbuf1;
     KPR_MEMCPY_D2H(local_out, out0, (((uint32_t) 4U) * ((uint32_t) 1U)));
     uint32_t res = local_out[0];
     free(local_out);
@@ -437,15 +409,13 @@ uint64_t Klas_HReduce_reduce_u64_plus(uint32_t nth, uint32_t lena, uint64_t *a)
         a, nth, out0);
     KPR_MUST_stream_sync(s);
     KPR_MUST_stream_destroy(s);
-    uint64_t *local_out;
-    uint64_t *_cbuf1 = (uint64_t *) malloc(1 * sizeof(uint64_t));
-    if (_cbuf1 == NULL) {
+    uint64_t *local_out = (uint64_t *) malloc(1 * sizeof(uint64_t));
+    if (local_out == NULL) {
         abort();
     }
-    for (size_t _ci2 = 0; _ci2 < (size_t) 1; _ci2++) {
-        _cbuf1[_ci2] = 0;
+    for (size_t _ci1 = 0; _ci1 < (size_t) 1; _ci1++) {
+        local_out[_ci1] = 0;
     }
-    local_out = _cbuf1;
     KPR_MEMCPY_D2H(local_out, out0, (((uint32_t) 8U) * ((uint32_t) 1U)));
     uint64_t res = local_out[0];
     free(local_out);

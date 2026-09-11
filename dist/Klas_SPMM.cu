@@ -893,9 +893,7 @@ __global__ static void kuiper_kernel_0(uint32_t *row_indices, uint32_t rows,
     uint32_t ri_ = ((ri / 4) * 4);
     uint32_t nnz = (re - ri_);
     uint32_t idx = 0;
-    uint32_t *out;
-    uint32_t _cbuf1[4] = {0};
-    out = _cbuf1;
+    uint32_t out[4] = {0};
     uint32_t __anf0 = nnz;
     if (__anf0 >= 128) {
         Kuiper_For_for_loop___0(rows, shared, cols, gA, tid, sh._1, ri);
@@ -910,13 +908,10 @@ __global__ static void kuiper_kernel_0(uint32_t *row_indices, uint32_t rows,
             uint32_t kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 1) {
-                (void) (k1);
                 uint32_t __anf1 = k1;
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 32) * 4)) < cols) {
-                    uint32_t *lchunk;
-                    uint32_t _cbuf5[4] = {0};
-                    lchunk = _cbuf5;
+                    uint32_t lchunk[4] = {0};
                     vec_memcpy((lchunk + 0),
                         (gB + ((0 + (cols * kr)) +
                                   (n_idx + ((__anf01 * 32) * 4)))));
@@ -947,15 +942,6 @@ __global__ static void kuiper_kernel_0(uint32_t *row_indices, uint32_t rows,
             Kuiper_For_for_loop___4(
                 rows, shared, cols, gA, tid, sh._2._1, ri, __anf02_2);
             __syncthreads();
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
             uint32_t k1_1 = 0;
             while (k1_1 < 128) {
                 uint32_t kv_1 = k1_1;
@@ -963,13 +949,10 @@ __global__ static void kuiper_kernel_0(uint32_t *row_indices, uint32_t rows,
                 uint32_t kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 1) {
-                    (void) (k2);
                     uint32_t __anf1_1 = k2;
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 32) * 4)) < cols) {
-                        uint32_t *lchunk_1;
-                        uint32_t _cbuf11[4] = {0};
-                        lchunk_1 = _cbuf11;
+                        uint32_t lchunk_1[4] = {0};
                         vec_memcpy((lchunk_1 + 0),
                             (gB + ((0 + (cols * kr_1)) +
                                       (n_idx + ((__anf03 * 32) * 4)))));
@@ -990,28 +973,15 @@ __global__ static void kuiper_kernel_0(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf03_1 = k1_1;
                 k1_1 = (__anf03_1 + 1);
             }
-            (void) (idx);
             uint32_t __anf03_2 = idx;
             idx = (__anf03_2 + 1);
             uint32_t __anf04_2 = nnz;
             nnz = (__anf04_2 - 128);
         }
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (nnz);
-        (void) (nnz);
-        (void) (idx);
     } else {
         idx = 0;
         nnz = (re - ri);
     }
-    (void) (idx);
     __syncthreads();
     Kuiper_For_for_loop___5(
         rows, shared, cols, gA, tid, sh._1, sh._2._1, re, nnz);
@@ -1023,13 +993,10 @@ __global__ static void kuiper_kernel_0(uint32_t *row_indices, uint32_t rows,
         uint32_t kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 1) {
-            (void) (k1_2);
             uint32_t __anf1_2 = k1_2;
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 32) * 4)) < cols) {
-                uint32_t *lchunk_2;
-                uint32_t _cbuf16[4] = {0};
-                lchunk_2 = _cbuf16;
+                uint32_t lchunk_2[4] = {0};
                 vec_memcpy((lchunk_2 + 0),
                     (gB + ((0 + (cols * kr_2)) +
                               (n_idx + ((__anf02_3 * 32) * 4)))));
@@ -1196,9 +1163,7 @@ __global__ static void kuiper_kernel_1(uint32_t *row_indices, uint32_t rows,
     uint32_t ri_ = ((ri / 4) * 4);
     uint32_t nnz = (re - ri_);
     uint32_t idx = 0;
-    float *out;
-    float _cbuf1[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-    out = _cbuf1;
+    float out[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t __anf0 = nnz;
     if (__anf0 >= 512) {
         Kuiper_For_for_loop___7(rows, shared, cols, gA, tid, sh._1, ri);
@@ -1213,13 +1178,10 @@ __global__ static void kuiper_kernel_1(uint32_t *row_indices, uint32_t rows,
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 2) {
-                (void) (k1);
                 uint32_t __anf1 = k1;
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 64) * 4)) < cols) {
-                    float *lchunk;
-                    float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                    lchunk = _cbuf5;
+                    float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                     vec_memcpy((lchunk + 0),
                         (gB + ((0 + (cols * kr)) +
                                   (n_idx + ((__anf01 * 64) * 4)))));
@@ -1250,15 +1212,6 @@ __global__ static void kuiper_kernel_1(uint32_t *row_indices, uint32_t rows,
             Kuiper_For_for_loop___11(
                 rows, shared, cols, gA, tid, sh._2._1, ri, __anf02_2);
             __syncthreads();
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
             uint32_t k1_1 = 0;
             while (k1_1 < 512) {
                 uint32_t kv_1 = k1_1;
@@ -1266,13 +1219,10 @@ __global__ static void kuiper_kernel_1(uint32_t *row_indices, uint32_t rows,
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 2) {
-                    (void) (k2);
                     uint32_t __anf1_1 = k2;
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 64) * 4)) < cols) {
-                        float *lchunk_1;
-                        float _cbuf11[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                        lchunk_1 = _cbuf11;
+                        float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                         vec_memcpy((lchunk_1 + 0),
                             (gB + ((0 + (cols * kr_1)) +
                                       (n_idx + ((__anf03 * 64) * 4)))));
@@ -1293,28 +1243,15 @@ __global__ static void kuiper_kernel_1(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf03_1 = k1_1;
                 k1_1 = (__anf03_1 + 1);
             }
-            (void) (idx);
             uint32_t __anf03_2 = idx;
             idx = (__anf03_2 + 1);
             uint32_t __anf04_2 = nnz;
             nnz = (__anf04_2 - 512);
         }
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (nnz);
-        (void) (nnz);
-        (void) (idx);
     } else {
         idx = 0;
         nnz = (re - ri);
     }
-    (void) (idx);
     __syncthreads();
     Kuiper_For_for_loop___12(
         rows, shared, cols, gA, tid, sh._1, sh._2._1, re, nnz);
@@ -1326,13 +1263,10 @@ __global__ static void kuiper_kernel_1(uint32_t *row_indices, uint32_t rows,
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 2) {
-            (void) (k1_2);
             uint32_t __anf1_2 = k1_2;
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 64) * 4)) < cols) {
-                float *lchunk_2;
-                float _cbuf16[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                lchunk_2 = _cbuf16;
+                float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 vec_memcpy((lchunk_2 + 0),
                     (gB + ((0 + (cols * kr_2)) +
                               (n_idx + ((__anf02_3 * 64) * 4)))));
@@ -1498,9 +1432,7 @@ __global__ static void kuiper_kernel_2(uint32_t *row_indices, uint32_t rows,
     uint32_t ri_ = ((ri / 4) * 4);
     uint32_t nnz = (re - ri_);
     uint32_t idx = 0;
-    float *out;
-    float _cbuf1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-    out = _cbuf1;
+    float out[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t __anf0 = nnz;
     if (__anf0 >= 32) {
         Kuiper_For_for_loop___14(rows, shared, cols, gA, tid, sh._1, ri);
@@ -1515,13 +1447,10 @@ __global__ static void kuiper_kernel_2(uint32_t *row_indices, uint32_t rows,
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 1) {
-                (void) (k1);
                 uint32_t __anf1 = k1;
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 1) * 4)) < cols) {
-                    float *lchunk;
-                    float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                    lchunk = _cbuf5;
+                    float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                     vec_memcpy((lchunk + 0),
                         (gB + ((0 + (cols * kr)) +
                                   (n_idx + ((__anf01 * 1) * 4)))));
@@ -1552,15 +1481,6 @@ __global__ static void kuiper_kernel_2(uint32_t *row_indices, uint32_t rows,
             Kuiper_For_for_loop___18(
                 rows, shared, cols, gA, tid, sh._2._1, ri, __anf02_2);
             __syncthreads();
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
             uint32_t k1_1 = 0;
             while (k1_1 < 32) {
                 uint32_t kv_1 = k1_1;
@@ -1568,13 +1488,10 @@ __global__ static void kuiper_kernel_2(uint32_t *row_indices, uint32_t rows,
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 1) {
-                    (void) (k2);
                     uint32_t __anf1_1 = k2;
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 1) * 4)) < cols) {
-                        float *lchunk_1;
-                        float _cbuf11[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                        lchunk_1 = _cbuf11;
+                        float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                         vec_memcpy((lchunk_1 + 0),
                             (gB + ((0 + (cols * kr_1)) +
                                       (n_idx + ((__anf03 * 1) * 4)))));
@@ -1595,28 +1512,15 @@ __global__ static void kuiper_kernel_2(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf03_1 = k1_1;
                 k1_1 = (__anf03_1 + 1);
             }
-            (void) (idx);
             uint32_t __anf03_2 = idx;
             idx = (__anf03_2 + 1);
             uint32_t __anf04_2 = nnz;
             nnz = (__anf04_2 - 32);
         }
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (nnz);
-        (void) (nnz);
-        (void) (idx);
     } else {
         idx = 0;
         nnz = (re - ri);
     }
-    (void) (idx);
     __syncthreads();
     Kuiper_For_for_loop___19(
         rows, shared, cols, gA, tid, sh._1, sh._2._1, re, nnz);
@@ -1628,13 +1532,10 @@ __global__ static void kuiper_kernel_2(uint32_t *row_indices, uint32_t rows,
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 1) {
-            (void) (k1_2);
             uint32_t __anf1_2 = k1_2;
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 1) * 4)) < cols) {
-                float *lchunk_2;
-                float _cbuf16[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                lchunk_2 = _cbuf16;
+                float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 vec_memcpy((lchunk_2 + 0),
                     (gB + ((0 + (cols * kr_2)) +
                               (n_idx + ((__anf02_3 * 1) * 4)))));
@@ -1800,9 +1701,7 @@ __global__ static void kuiper_kernel_3(uint32_t *row_indices, uint32_t rows,
     uint32_t ri_ = ((ri / 4) * 4);
     uint32_t nnz = (re - ri_);
     uint32_t idx = 0;
-    float *out;
-    float _cbuf1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-    out = _cbuf1;
+    float out[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t __anf0 = nnz;
     if (__anf0 >= 32) {
         Kuiper_For_for_loop___21(rows, shared, cols, gA, tid, sh._1, ri);
@@ -1817,13 +1716,10 @@ __global__ static void kuiper_kernel_3(uint32_t *row_indices, uint32_t rows,
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 1) {
-                (void) (k1);
                 uint32_t __anf1 = k1;
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 2) * 4)) < cols) {
-                    float *lchunk;
-                    float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                    lchunk = _cbuf5;
+                    float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                     vec_memcpy((lchunk + 0),
                         (gB + ((0 + (cols * kr)) +
                                   (n_idx + ((__anf01 * 2) * 4)))));
@@ -1854,15 +1750,6 @@ __global__ static void kuiper_kernel_3(uint32_t *row_indices, uint32_t rows,
             Kuiper_For_for_loop___25(
                 rows, shared, cols, gA, tid, sh._2._1, ri, __anf02_2);
             __syncthreads();
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
             uint32_t k1_1 = 0;
             while (k1_1 < 32) {
                 uint32_t kv_1 = k1_1;
@@ -1870,13 +1757,10 @@ __global__ static void kuiper_kernel_3(uint32_t *row_indices, uint32_t rows,
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 1) {
-                    (void) (k2);
                     uint32_t __anf1_1 = k2;
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 2) * 4)) < cols) {
-                        float *lchunk_1;
-                        float _cbuf11[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                        lchunk_1 = _cbuf11;
+                        float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                         vec_memcpy((lchunk_1 + 0),
                             (gB + ((0 + (cols * kr_1)) +
                                       (n_idx + ((__anf03 * 2) * 4)))));
@@ -1897,28 +1781,15 @@ __global__ static void kuiper_kernel_3(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf03_1 = k1_1;
                 k1_1 = (__anf03_1 + 1);
             }
-            (void) (idx);
             uint32_t __anf03_2 = idx;
             idx = (__anf03_2 + 1);
             uint32_t __anf04_2 = nnz;
             nnz = (__anf04_2 - 32);
         }
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (nnz);
-        (void) (nnz);
-        (void) (idx);
     } else {
         idx = 0;
         nnz = (re - ri);
     }
-    (void) (idx);
     __syncthreads();
     Kuiper_For_for_loop___26(
         rows, shared, cols, gA, tid, sh._1, sh._2._1, re, nnz);
@@ -1930,13 +1801,10 @@ __global__ static void kuiper_kernel_3(uint32_t *row_indices, uint32_t rows,
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 1) {
-            (void) (k1_2);
             uint32_t __anf1_2 = k1_2;
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 2) * 4)) < cols) {
-                float *lchunk_2;
-                float _cbuf16[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                lchunk_2 = _cbuf16;
+                float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 vec_memcpy((lchunk_2 + 0),
                     (gB + ((0 + (cols * kr_2)) +
                               (n_idx + ((__anf02_3 * 2) * 4)))));
@@ -2102,9 +1970,7 @@ __global__ static void kuiper_kernel_4(uint32_t *row_indices, uint32_t rows,
     uint32_t ri_ = ((ri / 4) * 4);
     uint32_t nnz = (re - ri_);
     uint32_t idx = 0;
-    float *out;
-    float _cbuf1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-    out = _cbuf1;
+    float out[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t __anf0 = nnz;
     if (__anf0 >= 32) {
         Kuiper_For_for_loop___28(rows, shared, cols, gA, tid, sh._1, ri);
@@ -2119,13 +1985,10 @@ __global__ static void kuiper_kernel_4(uint32_t *row_indices, uint32_t rows,
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 1) {
-                (void) (k1);
                 uint32_t __anf1 = k1;
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 4) * 4)) < cols) {
-                    float *lchunk;
-                    float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                    lchunk = _cbuf5;
+                    float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                     vec_memcpy((lchunk + 0),
                         (gB + ((0 + (cols * kr)) +
                                   (n_idx + ((__anf01 * 4) * 4)))));
@@ -2156,15 +2019,6 @@ __global__ static void kuiper_kernel_4(uint32_t *row_indices, uint32_t rows,
             Kuiper_For_for_loop___32(
                 rows, shared, cols, gA, tid, sh._2._1, ri, __anf02_2);
             __syncthreads();
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
             uint32_t k1_1 = 0;
             while (k1_1 < 32) {
                 uint32_t kv_1 = k1_1;
@@ -2172,13 +2026,10 @@ __global__ static void kuiper_kernel_4(uint32_t *row_indices, uint32_t rows,
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 1) {
-                    (void) (k2);
                     uint32_t __anf1_1 = k2;
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 4) * 4)) < cols) {
-                        float *lchunk_1;
-                        float _cbuf11[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                        lchunk_1 = _cbuf11;
+                        float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                         vec_memcpy((lchunk_1 + 0),
                             (gB + ((0 + (cols * kr_1)) +
                                       (n_idx + ((__anf03 * 4) * 4)))));
@@ -2199,28 +2050,15 @@ __global__ static void kuiper_kernel_4(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf03_1 = k1_1;
                 k1_1 = (__anf03_1 + 1);
             }
-            (void) (idx);
             uint32_t __anf03_2 = idx;
             idx = (__anf03_2 + 1);
             uint32_t __anf04_2 = nnz;
             nnz = (__anf04_2 - 32);
         }
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (nnz);
-        (void) (nnz);
-        (void) (idx);
     } else {
         idx = 0;
         nnz = (re - ri);
     }
-    (void) (idx);
     __syncthreads();
     Kuiper_For_for_loop___33(
         rows, shared, cols, gA, tid, sh._1, sh._2._1, re, nnz);
@@ -2232,13 +2070,10 @@ __global__ static void kuiper_kernel_4(uint32_t *row_indices, uint32_t rows,
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 1) {
-            (void) (k1_2);
             uint32_t __anf1_2 = k1_2;
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 4) * 4)) < cols) {
-                float *lchunk_2;
-                float _cbuf16[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                lchunk_2 = _cbuf16;
+                float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 vec_memcpy((lchunk_2 + 0),
                     (gB + ((0 + (cols * kr_2)) +
                               (n_idx + ((__anf02_3 * 4) * 4)))));
@@ -2404,9 +2239,7 @@ __global__ static void kuiper_kernel_5(uint32_t *row_indices, uint32_t rows,
     uint32_t ri_ = ((ri / 4) * 4);
     uint32_t nnz = (re - ri_);
     uint32_t idx = 0;
-    float *out;
-    float _cbuf1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-    out = _cbuf1;
+    float out[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t __anf0 = nnz;
     if (__anf0 >= 32) {
         Kuiper_For_for_loop___35(rows, shared, cols, gA, tid, sh._1, ri);
@@ -2421,13 +2254,10 @@ __global__ static void kuiper_kernel_5(uint32_t *row_indices, uint32_t rows,
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 1) {
-                (void) (k1);
                 uint32_t __anf1 = k1;
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 8) * 4)) < cols) {
-                    float *lchunk;
-                    float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                    lchunk = _cbuf5;
+                    float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                     vec_memcpy((lchunk + 0),
                         (gB + ((0 + (cols * kr)) +
                                   (n_idx + ((__anf01 * 8) * 4)))));
@@ -2458,15 +2288,6 @@ __global__ static void kuiper_kernel_5(uint32_t *row_indices, uint32_t rows,
             Kuiper_For_for_loop___39(
                 rows, shared, cols, gA, tid, sh._2._1, ri, __anf02_2);
             __syncthreads();
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
             uint32_t k1_1 = 0;
             while (k1_1 < 32) {
                 uint32_t kv_1 = k1_1;
@@ -2474,13 +2295,10 @@ __global__ static void kuiper_kernel_5(uint32_t *row_indices, uint32_t rows,
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 1) {
-                    (void) (k2);
                     uint32_t __anf1_1 = k2;
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 8) * 4)) < cols) {
-                        float *lchunk_1;
-                        float _cbuf11[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                        lchunk_1 = _cbuf11;
+                        float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                         vec_memcpy((lchunk_1 + 0),
                             (gB + ((0 + (cols * kr_1)) +
                                       (n_idx + ((__anf03 * 8) * 4)))));
@@ -2501,28 +2319,15 @@ __global__ static void kuiper_kernel_5(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf03_1 = k1_1;
                 k1_1 = (__anf03_1 + 1);
             }
-            (void) (idx);
             uint32_t __anf03_2 = idx;
             idx = (__anf03_2 + 1);
             uint32_t __anf04_2 = nnz;
             nnz = (__anf04_2 - 32);
         }
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (nnz);
-        (void) (nnz);
-        (void) (idx);
     } else {
         idx = 0;
         nnz = (re - ri);
     }
-    (void) (idx);
     __syncthreads();
     Kuiper_For_for_loop___40(
         rows, shared, cols, gA, tid, sh._1, sh._2._1, re, nnz);
@@ -2534,13 +2339,10 @@ __global__ static void kuiper_kernel_5(uint32_t *row_indices, uint32_t rows,
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 1) {
-            (void) (k1_2);
             uint32_t __anf1_2 = k1_2;
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 8) * 4)) < cols) {
-                float *lchunk_2;
-                float _cbuf16[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                lchunk_2 = _cbuf16;
+                float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 vec_memcpy((lchunk_2 + 0),
                     (gB + ((0 + (cols * kr_2)) +
                               (n_idx + ((__anf02_3 * 8) * 4)))));
@@ -2694,9 +2496,7 @@ __global__ static void kuiper_kernel_6(uint32_t *row_indices, uint32_t rows,
     uint32_t ri_ = ((ri / 4) * 4);
     uint32_t nnz = (re - ri_);
     uint32_t idx = 0;
-    float *out;
-    float _cbuf1[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-    out = _cbuf1;
+    float out[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t __anf0 = nnz;
     if (__anf0 >= 32) {
         Kuiper_For_for_loop___42(rows, shared, cols, gA, tid, sh._1, ri);
@@ -2711,13 +2511,10 @@ __global__ static void kuiper_kernel_6(uint32_t *row_indices, uint32_t rows,
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 2) {
-                (void) (k1);
                 uint32_t __anf1 = k1;
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 8) * 4)) < cols) {
-                    float *lchunk;
-                    float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                    lchunk = _cbuf5;
+                    float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                     vec_memcpy((lchunk + 0),
                         (gB + ((0 + (cols * kr)) +
                                   (n_idx + ((__anf01 * 8) * 4)))));
@@ -2748,15 +2545,6 @@ __global__ static void kuiper_kernel_6(uint32_t *row_indices, uint32_t rows,
             Kuiper_For_for_loop___45(
                 rows, shared, cols, gA, tid, sh._2._1, ri, __anf02_2);
             __syncthreads();
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
             uint32_t k1_1 = 0;
             while (k1_1 < 32) {
                 uint32_t kv_1 = k1_1;
@@ -2764,13 +2552,10 @@ __global__ static void kuiper_kernel_6(uint32_t *row_indices, uint32_t rows,
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 2) {
-                    (void) (k2);
                     uint32_t __anf1_1 = k2;
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 8) * 4)) < cols) {
-                        float *lchunk_1;
-                        float _cbuf11[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                        lchunk_1 = _cbuf11;
+                        float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                         vec_memcpy((lchunk_1 + 0),
                             (gB + ((0 + (cols * kr_1)) +
                                       (n_idx + ((__anf03 * 8) * 4)))));
@@ -2791,28 +2576,15 @@ __global__ static void kuiper_kernel_6(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf03_1 = k1_1;
                 k1_1 = (__anf03_1 + 1);
             }
-            (void) (idx);
             uint32_t __anf03_2 = idx;
             idx = (__anf03_2 + 1);
             uint32_t __anf04_2 = nnz;
             nnz = (__anf04_2 - 32);
         }
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (nnz);
-        (void) (nnz);
-        (void) (idx);
     } else {
         idx = 0;
         nnz = (re - ri);
     }
-    (void) (idx);
     __syncthreads();
     Kuiper_For_for_loop___46(
         rows, shared, cols, gA, tid, sh._1, sh._2._1, re, nnz);
@@ -2824,13 +2596,10 @@ __global__ static void kuiper_kernel_6(uint32_t *row_indices, uint32_t rows,
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 2) {
-            (void) (k1_2);
             uint32_t __anf1_2 = k1_2;
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 8) * 4)) < cols) {
-                float *lchunk_2;
-                float _cbuf16[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                lchunk_2 = _cbuf16;
+                float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 vec_memcpy((lchunk_2 + 0),
                     (gB + ((0 + (cols * kr_2)) +
                               (n_idx + ((__anf02_3 * 8) * 4)))));
@@ -2877,9 +2646,7 @@ __global__ static void kuiper_kernel_7(uint32_t *row_indices, uint32_t rows,
     uint32_t ri_ = ((ri / 4) * 4);
     uint32_t nnz = (re - ri_);
     uint32_t idx = 0;
-    float *out;
-    float _cbuf1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-    out = _cbuf1;
+    float out[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t __anf0 = nnz;
     if (__anf0 >= 32) {
         Kuiper_For_for_loop___14(rows, shared, cols, gA, tid, sh._1, ri);
@@ -2894,13 +2661,10 @@ __global__ static void kuiper_kernel_7(uint32_t *row_indices, uint32_t rows,
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 1) {
-                (void) (k1);
                 uint32_t __anf1 = k1;
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 1) * 4)) < cols) {
-                    float *lchunk;
-                    float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                    lchunk = _cbuf5;
+                    float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                     vec_memcpy((lchunk + 0),
                         (gB + ((0 + (cols * kr)) +
                                   (n_idx + ((__anf01 * 1) * 4)))));
@@ -2931,15 +2695,6 @@ __global__ static void kuiper_kernel_7(uint32_t *row_indices, uint32_t rows,
             Kuiper_For_for_loop___18(
                 rows, shared, cols, gA, tid, sh._2._1, ri, __anf02_2);
             __syncthreads();
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
             uint32_t k1_1 = 0;
             while (k1_1 < 32) {
                 uint32_t kv_1 = k1_1;
@@ -2947,13 +2702,10 @@ __global__ static void kuiper_kernel_7(uint32_t *row_indices, uint32_t rows,
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 1) {
-                    (void) (k2);
                     uint32_t __anf1_1 = k2;
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 1) * 4)) < cols) {
-                        float *lchunk_1;
-                        float _cbuf11[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                        lchunk_1 = _cbuf11;
+                        float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                         vec_memcpy((lchunk_1 + 0),
                             (gB + ((0 + (cols * kr_1)) +
                                       (n_idx + ((__anf03 * 1) * 4)))));
@@ -2974,28 +2726,15 @@ __global__ static void kuiper_kernel_7(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf03_1 = k1_1;
                 k1_1 = (__anf03_1 + 1);
             }
-            (void) (idx);
             uint32_t __anf03_2 = idx;
             idx = (__anf03_2 + 1);
             uint32_t __anf04_2 = nnz;
             nnz = (__anf04_2 - 32);
         }
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (nnz);
-        (void) (nnz);
-        (void) (idx);
     } else {
         idx = 0;
         nnz = (re - ri);
     }
-    (void) (idx);
     __syncthreads();
     Kuiper_For_for_loop___19(
         rows, shared, cols, gA, tid, sh._1, sh._2._1, re, nnz);
@@ -3007,13 +2746,10 @@ __global__ static void kuiper_kernel_7(uint32_t *row_indices, uint32_t rows,
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 1) {
-            (void) (k1_2);
             uint32_t __anf1_2 = k1_2;
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 1) * 4)) < cols) {
-                float *lchunk_2;
-                float _cbuf16[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                lchunk_2 = _cbuf16;
+                float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 vec_memcpy((lchunk_2 + 0),
                     (gB + ((0 + (cols * kr_2)) +
                               (n_idx + ((__anf02_3 * 1) * 4)))));
@@ -3060,9 +2796,7 @@ __global__ static void kuiper_kernel_8(uint32_t *row_indices, uint32_t rows,
     uint32_t ri_ = ((ri / 4) * 4);
     uint32_t nnz = (re - ri_);
     uint32_t idx = 0;
-    float *out;
-    float _cbuf1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-    out = _cbuf1;
+    float out[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t __anf0 = nnz;
     if (__anf0 >= 32) {
         Kuiper_For_for_loop___21(rows, shared, cols, gA, tid, sh._1, ri);
@@ -3077,13 +2811,10 @@ __global__ static void kuiper_kernel_8(uint32_t *row_indices, uint32_t rows,
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 1) {
-                (void) (k1);
                 uint32_t __anf1 = k1;
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 2) * 4)) < cols) {
-                    float *lchunk;
-                    float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                    lchunk = _cbuf5;
+                    float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                     vec_memcpy((lchunk + 0),
                         (gB + ((0 + (cols * kr)) +
                                   (n_idx + ((__anf01 * 2) * 4)))));
@@ -3114,15 +2845,6 @@ __global__ static void kuiper_kernel_8(uint32_t *row_indices, uint32_t rows,
             Kuiper_For_for_loop___25(
                 rows, shared, cols, gA, tid, sh._2._1, ri, __anf02_2);
             __syncthreads();
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
             uint32_t k1_1 = 0;
             while (k1_1 < 32) {
                 uint32_t kv_1 = k1_1;
@@ -3130,13 +2852,10 @@ __global__ static void kuiper_kernel_8(uint32_t *row_indices, uint32_t rows,
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 1) {
-                    (void) (k2);
                     uint32_t __anf1_1 = k2;
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 2) * 4)) < cols) {
-                        float *lchunk_1;
-                        float _cbuf11[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                        lchunk_1 = _cbuf11;
+                        float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                         vec_memcpy((lchunk_1 + 0),
                             (gB + ((0 + (cols * kr_1)) +
                                       (n_idx + ((__anf03 * 2) * 4)))));
@@ -3157,28 +2876,15 @@ __global__ static void kuiper_kernel_8(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf03_1 = k1_1;
                 k1_1 = (__anf03_1 + 1);
             }
-            (void) (idx);
             uint32_t __anf03_2 = idx;
             idx = (__anf03_2 + 1);
             uint32_t __anf04_2 = nnz;
             nnz = (__anf04_2 - 32);
         }
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (nnz);
-        (void) (nnz);
-        (void) (idx);
     } else {
         idx = 0;
         nnz = (re - ri);
     }
-    (void) (idx);
     __syncthreads();
     Kuiper_For_for_loop___26(
         rows, shared, cols, gA, tid, sh._1, sh._2._1, re, nnz);
@@ -3190,13 +2896,10 @@ __global__ static void kuiper_kernel_8(uint32_t *row_indices, uint32_t rows,
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 1) {
-            (void) (k1_2);
             uint32_t __anf1_2 = k1_2;
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 2) * 4)) < cols) {
-                float *lchunk_2;
-                float _cbuf16[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                lchunk_2 = _cbuf16;
+                float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 vec_memcpy((lchunk_2 + 0),
                     (gB + ((0 + (cols * kr_2)) +
                               (n_idx + ((__anf02_3 * 2) * 4)))));
@@ -3243,9 +2946,7 @@ __global__ static void kuiper_kernel_9(uint32_t *row_indices, uint32_t rows,
     uint32_t ri_ = ((ri / 4) * 4);
     uint32_t nnz = (re - ri_);
     uint32_t idx = 0;
-    float *out;
-    float _cbuf1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-    out = _cbuf1;
+    float out[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t __anf0 = nnz;
     if (__anf0 >= 32) {
         Kuiper_For_for_loop___28(rows, shared, cols, gA, tid, sh._1, ri);
@@ -3260,13 +2961,10 @@ __global__ static void kuiper_kernel_9(uint32_t *row_indices, uint32_t rows,
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 1) {
-                (void) (k1);
                 uint32_t __anf1 = k1;
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 4) * 4)) < cols) {
-                    float *lchunk;
-                    float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                    lchunk = _cbuf5;
+                    float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                     vec_memcpy((lchunk + 0),
                         (gB + ((0 + (cols * kr)) +
                                   (n_idx + ((__anf01 * 4) * 4)))));
@@ -3297,15 +2995,6 @@ __global__ static void kuiper_kernel_9(uint32_t *row_indices, uint32_t rows,
             Kuiper_For_for_loop___32(
                 rows, shared, cols, gA, tid, sh._2._1, ri, __anf02_2);
             __syncthreads();
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
             uint32_t k1_1 = 0;
             while (k1_1 < 32) {
                 uint32_t kv_1 = k1_1;
@@ -3313,13 +3002,10 @@ __global__ static void kuiper_kernel_9(uint32_t *row_indices, uint32_t rows,
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 1) {
-                    (void) (k2);
                     uint32_t __anf1_1 = k2;
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 4) * 4)) < cols) {
-                        float *lchunk_1;
-                        float _cbuf11[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                        lchunk_1 = _cbuf11;
+                        float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                         vec_memcpy((lchunk_1 + 0),
                             (gB + ((0 + (cols * kr_1)) +
                                       (n_idx + ((__anf03 * 4) * 4)))));
@@ -3340,28 +3026,15 @@ __global__ static void kuiper_kernel_9(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf03_1 = k1_1;
                 k1_1 = (__anf03_1 + 1);
             }
-            (void) (idx);
             uint32_t __anf03_2 = idx;
             idx = (__anf03_2 + 1);
             uint32_t __anf04_2 = nnz;
             nnz = (__anf04_2 - 32);
         }
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (nnz);
-        (void) (nnz);
-        (void) (idx);
     } else {
         idx = 0;
         nnz = (re - ri);
     }
-    (void) (idx);
     __syncthreads();
     Kuiper_For_for_loop___33(
         rows, shared, cols, gA, tid, sh._1, sh._2._1, re, nnz);
@@ -3373,13 +3046,10 @@ __global__ static void kuiper_kernel_9(uint32_t *row_indices, uint32_t rows,
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 1) {
-            (void) (k1_2);
             uint32_t __anf1_2 = k1_2;
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 4) * 4)) < cols) {
-                float *lchunk_2;
-                float _cbuf16[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                lchunk_2 = _cbuf16;
+                float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 vec_memcpy((lchunk_2 + 0),
                     (gB + ((0 + (cols * kr_2)) +
                               (n_idx + ((__anf02_3 * 4) * 4)))));
@@ -3426,9 +3096,7 @@ __global__ static void kuiper_kernel_10(uint32_t *row_indices, uint32_t rows,
     uint32_t ri_ = ((ri / 4) * 4);
     uint32_t nnz = (re - ri_);
     uint32_t idx = 0;
-    float *out;
-    float _cbuf1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-    out = _cbuf1;
+    float out[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t __anf0 = nnz;
     if (__anf0 >= 32) {
         Kuiper_For_for_loop___35(rows, shared, cols, gA, tid, sh._1, ri);
@@ -3443,13 +3111,10 @@ __global__ static void kuiper_kernel_10(uint32_t *row_indices, uint32_t rows,
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 1) {
-                (void) (k1);
                 uint32_t __anf1 = k1;
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 8) * 4)) < cols) {
-                    float *lchunk;
-                    float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                    lchunk = _cbuf5;
+                    float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                     vec_memcpy((lchunk + 0),
                         (gB + ((0 + (cols * kr)) +
                                   (n_idx + ((__anf01 * 8) * 4)))));
@@ -3480,15 +3145,6 @@ __global__ static void kuiper_kernel_10(uint32_t *row_indices, uint32_t rows,
             Kuiper_For_for_loop___39(
                 rows, shared, cols, gA, tid, sh._2._1, ri, __anf02_2);
             __syncthreads();
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
             uint32_t k1_1 = 0;
             while (k1_1 < 32) {
                 uint32_t kv_1 = k1_1;
@@ -3496,13 +3152,10 @@ __global__ static void kuiper_kernel_10(uint32_t *row_indices, uint32_t rows,
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 1) {
-                    (void) (k2);
                     uint32_t __anf1_1 = k2;
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 8) * 4)) < cols) {
-                        float *lchunk_1;
-                        float _cbuf11[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                        lchunk_1 = _cbuf11;
+                        float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                         vec_memcpy((lchunk_1 + 0),
                             (gB + ((0 + (cols * kr_1)) +
                                       (n_idx + ((__anf03 * 8) * 4)))));
@@ -3523,28 +3176,15 @@ __global__ static void kuiper_kernel_10(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf03_1 = k1_1;
                 k1_1 = (__anf03_1 + 1);
             }
-            (void) (idx);
             uint32_t __anf03_2 = idx;
             idx = (__anf03_2 + 1);
             uint32_t __anf04_2 = nnz;
             nnz = (__anf04_2 - 32);
         }
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (nnz);
-        (void) (nnz);
-        (void) (idx);
     } else {
         idx = 0;
         nnz = (re - ri);
     }
-    (void) (idx);
     __syncthreads();
     Kuiper_For_for_loop___40(
         rows, shared, cols, gA, tid, sh._1, sh._2._1, re, nnz);
@@ -3556,13 +3196,10 @@ __global__ static void kuiper_kernel_10(uint32_t *row_indices, uint32_t rows,
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 1) {
-            (void) (k1_2);
             uint32_t __anf1_2 = k1_2;
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 8) * 4)) < cols) {
-                float *lchunk_2;
-                float _cbuf16[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                lchunk_2 = _cbuf16;
+                float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 vec_memcpy((lchunk_2 + 0),
                     (gB + ((0 + (cols * kr_2)) +
                               (n_idx + ((__anf02_3 * 8) * 4)))));
@@ -3609,9 +3246,7 @@ __global__ static void kuiper_kernel_11(uint32_t *row_indices, uint32_t rows,
     uint32_t ri_ = ((ri / 4) * 4);
     uint32_t nnz = (re - ri_);
     uint32_t idx = 0;
-    float *out;
-    float _cbuf1[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-    out = _cbuf1;
+    float out[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t __anf0 = nnz;
     if (__anf0 >= 32) {
         Kuiper_For_for_loop___42(rows, shared, cols, gA, tid, sh._1, ri);
@@ -3626,13 +3261,10 @@ __global__ static void kuiper_kernel_11(uint32_t *row_indices, uint32_t rows,
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 2) {
-                (void) (k1);
                 uint32_t __anf1 = k1;
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 8) * 4)) < cols) {
-                    float *lchunk;
-                    float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                    lchunk = _cbuf5;
+                    float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                     vec_memcpy((lchunk + 0),
                         (gB + ((0 + (cols * kr)) +
                                   (n_idx + ((__anf01 * 8) * 4)))));
@@ -3663,15 +3295,6 @@ __global__ static void kuiper_kernel_11(uint32_t *row_indices, uint32_t rows,
             Kuiper_For_for_loop___45(
                 rows, shared, cols, gA, tid, sh._2._1, ri, __anf02_2);
             __syncthreads();
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
             uint32_t k1_1 = 0;
             while (k1_1 < 32) {
                 uint32_t kv_1 = k1_1;
@@ -3679,13 +3302,10 @@ __global__ static void kuiper_kernel_11(uint32_t *row_indices, uint32_t rows,
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 2) {
-                    (void) (k2);
                     uint32_t __anf1_1 = k2;
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 8) * 4)) < cols) {
-                        float *lchunk_1;
-                        float _cbuf11[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                        lchunk_1 = _cbuf11;
+                        float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                         vec_memcpy((lchunk_1 + 0),
                             (gB + ((0 + (cols * kr_1)) +
                                       (n_idx + ((__anf03 * 8) * 4)))));
@@ -3706,28 +3326,15 @@ __global__ static void kuiper_kernel_11(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf03_1 = k1_1;
                 k1_1 = (__anf03_1 + 1);
             }
-            (void) (idx);
             uint32_t __anf03_2 = idx;
             idx = (__anf03_2 + 1);
             uint32_t __anf04_2 = nnz;
             nnz = (__anf04_2 - 32);
         }
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (nnz);
-        (void) (nnz);
-        (void) (idx);
     } else {
         idx = 0;
         nnz = (re - ri);
     }
-    (void) (idx);
     __syncthreads();
     Kuiper_For_for_loop___46(
         rows, shared, cols, gA, tid, sh._1, sh._2._1, re, nnz);
@@ -3739,13 +3346,10 @@ __global__ static void kuiper_kernel_11(uint32_t *row_indices, uint32_t rows,
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 2) {
-            (void) (k1_2);
             uint32_t __anf1_2 = k1_2;
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 8) * 4)) < cols) {
-                float *lchunk_2;
-                float _cbuf16[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                lchunk_2 = _cbuf16;
+                float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 vec_memcpy((lchunk_2 + 0),
                     (gB + ((0 + (cols * kr_2)) +
                               (n_idx + ((__anf02_3 * 8) * 4)))));
@@ -3911,9 +3515,7 @@ __global__ static void kuiper_kernel_12(uint32_t *row_indices, uint32_t rows,
     uint32_t ri_ = ((ri / 4) * 4);
     uint32_t nnz = (re - ri_);
     uint32_t idx = 0;
-    float *out;
-    float _cbuf1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-    out = _cbuf1;
+    float out[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t __anf0 = nnz;
     if (__anf0 >= 64) {
         Kuiper_For_for_loop___48(rows, shared, cols, gA, tid, sh._1, ri);
@@ -3928,13 +3530,10 @@ __global__ static void kuiper_kernel_12(uint32_t *row_indices, uint32_t rows,
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 1) {
-                (void) (k1);
                 uint32_t __anf1 = k1;
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 16) * 4)) < cols) {
-                    float *lchunk;
-                    float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                    lchunk = _cbuf5;
+                    float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                     vec_memcpy((lchunk + 0),
                         (gB + ((0 + (cols * kr)) +
                                   (n_idx + ((__anf01 * 16) * 4)))));
@@ -3965,15 +3564,6 @@ __global__ static void kuiper_kernel_12(uint32_t *row_indices, uint32_t rows,
             Kuiper_For_for_loop___52(
                 rows, shared, cols, gA, tid, sh._2._1, ri, __anf02_2);
             __syncthreads();
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
             uint32_t k1_1 = 0;
             while (k1_1 < 64) {
                 uint32_t kv_1 = k1_1;
@@ -3981,13 +3571,10 @@ __global__ static void kuiper_kernel_12(uint32_t *row_indices, uint32_t rows,
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 1) {
-                    (void) (k2);
                     uint32_t __anf1_1 = k2;
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 16) * 4)) < cols) {
-                        float *lchunk_1;
-                        float _cbuf11[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                        lchunk_1 = _cbuf11;
+                        float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                         vec_memcpy((lchunk_1 + 0),
                             (gB + ((0 + (cols * kr_1)) +
                                       (n_idx + ((__anf03 * 16) * 4)))));
@@ -4008,28 +3595,15 @@ __global__ static void kuiper_kernel_12(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf03_1 = k1_1;
                 k1_1 = (__anf03_1 + 1);
             }
-            (void) (idx);
             uint32_t __anf03_2 = idx;
             idx = (__anf03_2 + 1);
             uint32_t __anf04_2 = nnz;
             nnz = (__anf04_2 - 64);
         }
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (nnz);
-        (void) (nnz);
-        (void) (idx);
     } else {
         idx = 0;
         nnz = (re - ri);
     }
-    (void) (idx);
     __syncthreads();
     Kuiper_For_for_loop___53(
         rows, shared, cols, gA, tid, sh._1, sh._2._1, re, nnz);
@@ -4041,13 +3615,10 @@ __global__ static void kuiper_kernel_12(uint32_t *row_indices, uint32_t rows,
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 1) {
-            (void) (k1_2);
             uint32_t __anf1_2 = k1_2;
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 16) * 4)) < cols) {
-                float *lchunk_2;
-                float _cbuf16[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                lchunk_2 = _cbuf16;
+                float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 vec_memcpy((lchunk_2 + 0),
                     (gB + ((0 + (cols * kr_2)) +
                               (n_idx + ((__anf02_3 * 16) * 4)))));
@@ -4094,9 +3665,7 @@ __global__ static void kuiper_kernel_13(uint32_t *row_indices, uint32_t rows,
     uint32_t ri_ = ((ri / 4) * 4);
     uint32_t nnz = (re - ri_);
     uint32_t idx = 0;
-    float *out;
-    float _cbuf1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-    out = _cbuf1;
+    float out[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t __anf0 = nnz;
     if (__anf0 >= 64) {
         Kuiper_For_for_loop___48(rows, shared, cols, gA, tid, sh._1, ri);
@@ -4111,13 +3680,10 @@ __global__ static void kuiper_kernel_13(uint32_t *row_indices, uint32_t rows,
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 1) {
-                (void) (k1);
                 uint32_t __anf1 = k1;
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 16) * 4)) < cols) {
-                    float *lchunk;
-                    float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                    lchunk = _cbuf5;
+                    float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                     vec_memcpy((lchunk + 0),
                         (gB + ((0 + (cols * kr)) +
                                   (n_idx + ((__anf01 * 16) * 4)))));
@@ -4148,15 +3714,6 @@ __global__ static void kuiper_kernel_13(uint32_t *row_indices, uint32_t rows,
             Kuiper_For_for_loop___52(
                 rows, shared, cols, gA, tid, sh._2._1, ri, __anf02_2);
             __syncthreads();
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
             uint32_t k1_1 = 0;
             while (k1_1 < 64) {
                 uint32_t kv_1 = k1_1;
@@ -4164,13 +3721,10 @@ __global__ static void kuiper_kernel_13(uint32_t *row_indices, uint32_t rows,
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 1) {
-                    (void) (k2);
                     uint32_t __anf1_1 = k2;
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 16) * 4)) < cols) {
-                        float *lchunk_1;
-                        float _cbuf11[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                        lchunk_1 = _cbuf11;
+                        float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                         vec_memcpy((lchunk_1 + 0),
                             (gB + ((0 + (cols * kr_1)) +
                                       (n_idx + ((__anf03 * 16) * 4)))));
@@ -4191,28 +3745,15 @@ __global__ static void kuiper_kernel_13(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf03_1 = k1_1;
                 k1_1 = (__anf03_1 + 1);
             }
-            (void) (idx);
             uint32_t __anf03_2 = idx;
             idx = (__anf03_2 + 1);
             uint32_t __anf04_2 = nnz;
             nnz = (__anf04_2 - 64);
         }
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (nnz);
-        (void) (nnz);
-        (void) (idx);
     } else {
         idx = 0;
         nnz = (re - ri);
     }
-    (void) (idx);
     __syncthreads();
     Kuiper_For_for_loop___53(
         rows, shared, cols, gA, tid, sh._1, sh._2._1, re, nnz);
@@ -4224,13 +3765,10 @@ __global__ static void kuiper_kernel_13(uint32_t *row_indices, uint32_t rows,
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 1) {
-            (void) (k1_2);
             uint32_t __anf1_2 = k1_2;
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 16) * 4)) < cols) {
-                float *lchunk_2;
-                float _cbuf16[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                lchunk_2 = _cbuf16;
+                float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 vec_memcpy((lchunk_2 + 0),
                     (gB + ((0 + (cols * kr_2)) +
                               (n_idx + ((__anf02_3 * 16) * 4)))));
@@ -4385,9 +3923,7 @@ __global__ static void kuiper_kernel_14(uint32_t *row_indices, uint32_t rows,
     uint32_t ri_ = ((ri / 4) * 4);
     uint32_t nnz = (re - ri_);
     uint32_t idx = 0;
-    float *out;
-    float _cbuf1[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-    out = _cbuf1;
+    float out[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t __anf0 = nnz;
     if (__anf0 >= 64) {
         Kuiper_For_for_loop___55(rows, shared, cols, gA, tid, sh._1, ri);
@@ -4402,13 +3938,10 @@ __global__ static void kuiper_kernel_14(uint32_t *row_indices, uint32_t rows,
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 2) {
-                (void) (k1);
                 uint32_t __anf1 = k1;
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 16) * 4)) < cols) {
-                    float *lchunk;
-                    float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                    lchunk = _cbuf5;
+                    float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                     vec_memcpy((lchunk + 0),
                         (gB + ((0 + (cols * kr)) +
                                   (n_idx + ((__anf01 * 16) * 4)))));
@@ -4439,15 +3972,6 @@ __global__ static void kuiper_kernel_14(uint32_t *row_indices, uint32_t rows,
             Kuiper_For_for_loop___58(
                 rows, shared, cols, gA, tid, sh._2._1, ri, __anf02_2);
             __syncthreads();
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
             uint32_t k1_1 = 0;
             while (k1_1 < 64) {
                 uint32_t kv_1 = k1_1;
@@ -4455,13 +3979,10 @@ __global__ static void kuiper_kernel_14(uint32_t *row_indices, uint32_t rows,
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 2) {
-                    (void) (k2);
                     uint32_t __anf1_1 = k2;
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 16) * 4)) < cols) {
-                        float *lchunk_1;
-                        float _cbuf11[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                        lchunk_1 = _cbuf11;
+                        float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                         vec_memcpy((lchunk_1 + 0),
                             (gB + ((0 + (cols * kr_1)) +
                                       (n_idx + ((__anf03 * 16) * 4)))));
@@ -4482,28 +4003,15 @@ __global__ static void kuiper_kernel_14(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf03_1 = k1_1;
                 k1_1 = (__anf03_1 + 1);
             }
-            (void) (idx);
             uint32_t __anf03_2 = idx;
             idx = (__anf03_2 + 1);
             uint32_t __anf04_2 = nnz;
             nnz = (__anf04_2 - 64);
         }
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (nnz);
-        (void) (nnz);
-        (void) (idx);
     } else {
         idx = 0;
         nnz = (re - ri);
     }
-    (void) (idx);
     __syncthreads();
     Kuiper_For_for_loop___59(
         rows, shared, cols, gA, tid, sh._1, sh._2._1, re, nnz);
@@ -4515,13 +4023,10 @@ __global__ static void kuiper_kernel_14(uint32_t *row_indices, uint32_t rows,
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 2) {
-            (void) (k1_2);
             uint32_t __anf1_2 = k1_2;
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 16) * 4)) < cols) {
-                float *lchunk_2;
-                float _cbuf16[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                lchunk_2 = _cbuf16;
+                float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 vec_memcpy((lchunk_2 + 0),
                     (gB + ((0 + (cols * kr_2)) +
                               (n_idx + ((__anf02_3 * 16) * 4)))));
@@ -4568,9 +4073,7 @@ __global__ static void kuiper_kernel_15(uint32_t *row_indices, uint32_t rows,
     uint32_t ri_ = ((ri / 4) * 4);
     uint32_t nnz = (re - ri_);
     uint32_t idx = 0;
-    float *out;
-    float _cbuf1[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-    out = _cbuf1;
+    float out[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t __anf0 = nnz;
     if (__anf0 >= 64) {
         Kuiper_For_for_loop___55(rows, shared, cols, gA, tid, sh._1, ri);
@@ -4585,13 +4088,10 @@ __global__ static void kuiper_kernel_15(uint32_t *row_indices, uint32_t rows,
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 2) {
-                (void) (k1);
                 uint32_t __anf1 = k1;
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 16) * 4)) < cols) {
-                    float *lchunk;
-                    float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                    lchunk = _cbuf5;
+                    float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                     vec_memcpy((lchunk + 0),
                         (gB + ((0 + (cols * kr)) +
                                   (n_idx + ((__anf01 * 16) * 4)))));
@@ -4622,15 +4122,6 @@ __global__ static void kuiper_kernel_15(uint32_t *row_indices, uint32_t rows,
             Kuiper_For_for_loop___58(
                 rows, shared, cols, gA, tid, sh._2._1, ri, __anf02_2);
             __syncthreads();
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
             uint32_t k1_1 = 0;
             while (k1_1 < 64) {
                 uint32_t kv_1 = k1_1;
@@ -4638,13 +4129,10 @@ __global__ static void kuiper_kernel_15(uint32_t *row_indices, uint32_t rows,
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 2) {
-                    (void) (k2);
                     uint32_t __anf1_1 = k2;
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 16) * 4)) < cols) {
-                        float *lchunk_1;
-                        float _cbuf11[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                        lchunk_1 = _cbuf11;
+                        float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                         vec_memcpy((lchunk_1 + 0),
                             (gB + ((0 + (cols * kr_1)) +
                                       (n_idx + ((__anf03 * 16) * 4)))));
@@ -4665,28 +4153,15 @@ __global__ static void kuiper_kernel_15(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf03_1 = k1_1;
                 k1_1 = (__anf03_1 + 1);
             }
-            (void) (idx);
             uint32_t __anf03_2 = idx;
             idx = (__anf03_2 + 1);
             uint32_t __anf04_2 = nnz;
             nnz = (__anf04_2 - 64);
         }
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (nnz);
-        (void) (nnz);
-        (void) (idx);
     } else {
         idx = 0;
         nnz = (re - ri);
     }
-    (void) (idx);
     __syncthreads();
     Kuiper_For_for_loop___59(
         rows, shared, cols, gA, tid, sh._1, sh._2._1, re, nnz);
@@ -4698,13 +4173,10 @@ __global__ static void kuiper_kernel_15(uint32_t *row_indices, uint32_t rows,
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 2) {
-            (void) (k1_2);
             uint32_t __anf1_2 = k1_2;
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 16) * 4)) < cols) {
-                float *lchunk_2;
-                float _cbuf16[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                lchunk_2 = _cbuf16;
+                float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 vec_memcpy((lchunk_2 + 0),
                     (gB + ((0 + (cols * kr_2)) +
                               (n_idx + ((__anf02_3 * 16) * 4)))));
@@ -4859,10 +4331,8 @@ __global__ static void kuiper_kernel_16(uint32_t *row_indices, uint32_t rows,
     uint32_t ri_ = ((ri / 4) * 4);
     uint32_t nnz = (re - ri_);
     uint32_t idx = 0;
-    float *out;
-    float _cbuf1[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-    out = _cbuf1;
+    float out[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t __anf0 = nnz;
     if (__anf0 >= 64) {
         Kuiper_For_for_loop___61(rows, shared, cols, gA, tid, sh._1, ri);
@@ -4877,13 +4347,10 @@ __global__ static void kuiper_kernel_16(uint32_t *row_indices, uint32_t rows,
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
                 uint32_t __anf1 = k1;
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 16) * 4)) < cols) {
-                    float *lchunk;
-                    float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                    lchunk = _cbuf5;
+                    float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                     vec_memcpy((lchunk + 0),
                         (gB + ((0 + (cols * kr)) +
                                   (n_idx + ((__anf01 * 16) * 4)))));
@@ -4914,15 +4381,6 @@ __global__ static void kuiper_kernel_16(uint32_t *row_indices, uint32_t rows,
             Kuiper_For_for_loop___64(
                 rows, shared, cols, gA, tid, sh._2._1, ri, __anf02_2);
             __syncthreads();
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
             uint32_t k1_1 = 0;
             while (k1_1 < 64) {
                 uint32_t kv_1 = k1_1;
@@ -4930,13 +4388,10 @@ __global__ static void kuiper_kernel_16(uint32_t *row_indices, uint32_t rows,
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 4) {
-                    (void) (k2);
                     uint32_t __anf1_1 = k2;
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 16) * 4)) < cols) {
-                        float *lchunk_1;
-                        float _cbuf11[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                        lchunk_1 = _cbuf11;
+                        float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                         vec_memcpy((lchunk_1 + 0),
                             (gB + ((0 + (cols * kr_1)) +
                                       (n_idx + ((__anf03 * 16) * 4)))));
@@ -4957,28 +4412,15 @@ __global__ static void kuiper_kernel_16(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf03_1 = k1_1;
                 k1_1 = (__anf03_1 + 1);
             }
-            (void) (idx);
             uint32_t __anf03_2 = idx;
             idx = (__anf03_2 + 1);
             uint32_t __anf04_2 = nnz;
             nnz = (__anf04_2 - 64);
         }
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (nnz);
-        (void) (nnz);
-        (void) (idx);
     } else {
         idx = 0;
         nnz = (re - ri);
     }
-    (void) (idx);
     __syncthreads();
     Kuiper_For_for_loop___65(
         rows, shared, cols, gA, tid, sh._1, sh._2._1, re, nnz);
@@ -4990,13 +4432,10 @@ __global__ static void kuiper_kernel_16(uint32_t *row_indices, uint32_t rows,
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 4) {
-            (void) (k1_2);
             uint32_t __anf1_2 = k1_2;
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 16) * 4)) < cols) {
-                float *lchunk_2;
-                float _cbuf16[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                lchunk_2 = _cbuf16;
+                float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 vec_memcpy((lchunk_2 + 0),
                     (gB + ((0 + (cols * kr_2)) +
                               (n_idx + ((__anf02_3 * 16) * 4)))));
@@ -5043,10 +4482,8 @@ __global__ static void kuiper_kernel_17(uint32_t *row_indices, uint32_t rows,
     uint32_t ri_ = ((ri / 4) * 4);
     uint32_t nnz = (re - ri_);
     uint32_t idx = 0;
-    float *out;
-    float _cbuf1[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-    out = _cbuf1;
+    float out[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t __anf0 = nnz;
     if (__anf0 >= 64) {
         Kuiper_For_for_loop___61(rows, shared, cols, gA, tid, sh._1, ri);
@@ -5061,13 +4498,10 @@ __global__ static void kuiper_kernel_17(uint32_t *row_indices, uint32_t rows,
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
                 uint32_t __anf1 = k1;
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 16) * 4)) < cols) {
-                    float *lchunk;
-                    float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                    lchunk = _cbuf5;
+                    float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                     vec_memcpy((lchunk + 0),
                         (gB + ((0 + (cols * kr)) +
                                   (n_idx + ((__anf01 * 16) * 4)))));
@@ -5098,15 +4532,6 @@ __global__ static void kuiper_kernel_17(uint32_t *row_indices, uint32_t rows,
             Kuiper_For_for_loop___64(
                 rows, shared, cols, gA, tid, sh._2._1, ri, __anf02_2);
             __syncthreads();
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
             uint32_t k1_1 = 0;
             while (k1_1 < 64) {
                 uint32_t kv_1 = k1_1;
@@ -5114,13 +4539,10 @@ __global__ static void kuiper_kernel_17(uint32_t *row_indices, uint32_t rows,
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 4) {
-                    (void) (k2);
                     uint32_t __anf1_1 = k2;
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 16) * 4)) < cols) {
-                        float *lchunk_1;
-                        float _cbuf11[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                        lchunk_1 = _cbuf11;
+                        float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                         vec_memcpy((lchunk_1 + 0),
                             (gB + ((0 + (cols * kr_1)) +
                                       (n_idx + ((__anf03 * 16) * 4)))));
@@ -5141,28 +4563,15 @@ __global__ static void kuiper_kernel_17(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf03_1 = k1_1;
                 k1_1 = (__anf03_1 + 1);
             }
-            (void) (idx);
             uint32_t __anf03_2 = idx;
             idx = (__anf03_2 + 1);
             uint32_t __anf04_2 = nnz;
             nnz = (__anf04_2 - 64);
         }
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (nnz);
-        (void) (nnz);
-        (void) (idx);
     } else {
         idx = 0;
         nnz = (re - ri);
     }
-    (void) (idx);
     __syncthreads();
     Kuiper_For_for_loop___65(
         rows, shared, cols, gA, tid, sh._1, sh._2._1, re, nnz);
@@ -5174,13 +4583,10 @@ __global__ static void kuiper_kernel_17(uint32_t *row_indices, uint32_t rows,
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 4) {
-            (void) (k1_2);
             uint32_t __anf1_2 = k1_2;
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 16) * 4)) < cols) {
-                float *lchunk_2;
-                float _cbuf16[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                lchunk_2 = _cbuf16;
+                float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 vec_memcpy((lchunk_2 + 0),
                     (gB + ((0 + (cols * kr_2)) +
                               (n_idx + ((__anf02_3 * 16) * 4)))));
@@ -5335,11 +4741,9 @@ __global__ static void kuiper_kernel_18(uint32_t *row_indices, uint32_t rows,
     uint32_t ri_ = ((ri / 4) * 4);
     uint32_t nnz = (re - ri_);
     uint32_t idx = 0;
-    float *out;
-    float _cbuf1[32] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+    float out[32] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-    out = _cbuf1;
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t __anf0 = nnz;
     if (__anf0 >= 64) {
         Kuiper_For_for_loop___67(rows, shared, cols, gA, tid, sh._1, ri);
@@ -5354,13 +4758,10 @@ __global__ static void kuiper_kernel_18(uint32_t *row_indices, uint32_t rows,
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
                 uint32_t __anf1 = k1;
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 16) * 4)) < cols) {
-                    float *lchunk;
-                    float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                    lchunk = _cbuf5;
+                    float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                     vec_memcpy((lchunk + 0),
                         (gB + ((0 + (cols * kr)) +
                                   (n_idx + ((__anf01 * 16) * 4)))));
@@ -5391,15 +4792,6 @@ __global__ static void kuiper_kernel_18(uint32_t *row_indices, uint32_t rows,
             Kuiper_For_for_loop___70(
                 rows, shared, cols, gA, tid, sh._2._1, ri, __anf02_2);
             __syncthreads();
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
             uint32_t k1_1 = 0;
             while (k1_1 < 64) {
                 uint32_t kv_1 = k1_1;
@@ -5407,13 +4799,10 @@ __global__ static void kuiper_kernel_18(uint32_t *row_indices, uint32_t rows,
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 8) {
-                    (void) (k2);
                     uint32_t __anf1_1 = k2;
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 16) * 4)) < cols) {
-                        float *lchunk_1;
-                        float _cbuf11[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                        lchunk_1 = _cbuf11;
+                        float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                         vec_memcpy((lchunk_1 + 0),
                             (gB + ((0 + (cols * kr_1)) +
                                       (n_idx + ((__anf03 * 16) * 4)))));
@@ -5434,28 +4823,15 @@ __global__ static void kuiper_kernel_18(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf03_1 = k1_1;
                 k1_1 = (__anf03_1 + 1);
             }
-            (void) (idx);
             uint32_t __anf03_2 = idx;
             idx = (__anf03_2 + 1);
             uint32_t __anf04_2 = nnz;
             nnz = (__anf04_2 - 64);
         }
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (nnz);
-        (void) (nnz);
-        (void) (idx);
     } else {
         idx = 0;
         nnz = (re - ri);
     }
-    (void) (idx);
     __syncthreads();
     Kuiper_For_for_loop___71(
         rows, shared, cols, gA, tid, sh._1, sh._2._1, re, nnz);
@@ -5467,13 +4843,10 @@ __global__ static void kuiper_kernel_18(uint32_t *row_indices, uint32_t rows,
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 8) {
-            (void) (k1_2);
             uint32_t __anf1_2 = k1_2;
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 16) * 4)) < cols) {
-                float *lchunk_2;
-                float _cbuf16[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                lchunk_2 = _cbuf16;
+                float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 vec_memcpy((lchunk_2 + 0),
                     (gB + ((0 + (cols * kr_2)) +
                               (n_idx + ((__anf02_3 * 16) * 4)))));
@@ -5520,11 +4893,9 @@ __global__ static void kuiper_kernel_19(uint32_t *row_indices, uint32_t rows,
     uint32_t ri_ = ((ri / 4) * 4);
     uint32_t nnz = (re - ri_);
     uint32_t idx = 0;
-    float *out;
-    float _cbuf1[32] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+    float out[32] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-    out = _cbuf1;
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t __anf0 = nnz;
     if (__anf0 >= 64) {
         Kuiper_For_for_loop___67(rows, shared, cols, gA, tid, sh._1, ri);
@@ -5539,13 +4910,10 @@ __global__ static void kuiper_kernel_19(uint32_t *row_indices, uint32_t rows,
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
                 uint32_t __anf1 = k1;
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 16) * 4)) < cols) {
-                    float *lchunk;
-                    float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                    lchunk = _cbuf5;
+                    float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                     vec_memcpy((lchunk + 0),
                         (gB + ((0 + (cols * kr)) +
                                   (n_idx + ((__anf01 * 16) * 4)))));
@@ -5576,15 +4944,6 @@ __global__ static void kuiper_kernel_19(uint32_t *row_indices, uint32_t rows,
             Kuiper_For_for_loop___70(
                 rows, shared, cols, gA, tid, sh._2._1, ri, __anf02_2);
             __syncthreads();
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
             uint32_t k1_1 = 0;
             while (k1_1 < 64) {
                 uint32_t kv_1 = k1_1;
@@ -5592,13 +4951,10 @@ __global__ static void kuiper_kernel_19(uint32_t *row_indices, uint32_t rows,
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 8) {
-                    (void) (k2);
                     uint32_t __anf1_1 = k2;
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 16) * 4)) < cols) {
-                        float *lchunk_1;
-                        float _cbuf11[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                        lchunk_1 = _cbuf11;
+                        float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                         vec_memcpy((lchunk_1 + 0),
                             (gB + ((0 + (cols * kr_1)) +
                                       (n_idx + ((__anf03 * 16) * 4)))));
@@ -5619,28 +4975,15 @@ __global__ static void kuiper_kernel_19(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf03_1 = k1_1;
                 k1_1 = (__anf03_1 + 1);
             }
-            (void) (idx);
             uint32_t __anf03_2 = idx;
             idx = (__anf03_2 + 1);
             uint32_t __anf04_2 = nnz;
             nnz = (__anf04_2 - 64);
         }
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (nnz);
-        (void) (nnz);
-        (void) (idx);
     } else {
         idx = 0;
         nnz = (re - ri);
     }
-    (void) (idx);
     __syncthreads();
     Kuiper_For_for_loop___71(
         rows, shared, cols, gA, tid, sh._1, sh._2._1, re, nnz);
@@ -5652,13 +4995,10 @@ __global__ static void kuiper_kernel_19(uint32_t *row_indices, uint32_t rows,
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 8) {
-            (void) (k1_2);
             uint32_t __anf1_2 = k1_2;
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 16) * 4)) < cols) {
-                float *lchunk_2;
-                float _cbuf16[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                lchunk_2 = _cbuf16;
+                float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 vec_memcpy((lchunk_2 + 0),
                     (gB + ((0 + (cols * kr_2)) +
                               (n_idx + ((__anf02_3 * 16) * 4)))));
@@ -5775,9 +5115,7 @@ __global__ static void kuiper_kernel_20(uint32_t *row_indices, uint32_t rows,
     uint32_t ri_ = ((ri / 4) * 4);
     uint32_t nnz = (re - ri_);
     uint32_t idx = 0;
-    float *out;
-    float _cbuf1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-    out = _cbuf1;
+    float out[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t __anf0 = nnz;
     if (__anf0 >= 128) {
         Kuiper_For_for_loop___73(rows, shared, cols, gA, tid, sh._1, ri);
@@ -5792,13 +5130,10 @@ __global__ static void kuiper_kernel_20(uint32_t *row_indices, uint32_t rows,
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 1) {
-                (void) (k1);
                 uint32_t __anf1 = k1;
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 16) * 4)) < cols) {
-                    float *lchunk;
-                    float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                    lchunk = _cbuf5;
+                    float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                     vec_memcpy((lchunk + 0),
                         (gB + ((0 + (cols * kr)) +
                                   (n_idx + ((__anf01 * 16) * 4)))));
@@ -5829,15 +5164,6 @@ __global__ static void kuiper_kernel_20(uint32_t *row_indices, uint32_t rows,
             Kuiper_For_for_loop___76(
                 rows, shared, cols, gA, tid, sh._2._1, ri, __anf02_2);
             __syncthreads();
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
             uint32_t k1_1 = 0;
             while (k1_1 < 128) {
                 uint32_t kv_1 = k1_1;
@@ -5845,13 +5171,10 @@ __global__ static void kuiper_kernel_20(uint32_t *row_indices, uint32_t rows,
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 1) {
-                    (void) (k2);
                     uint32_t __anf1_1 = k2;
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 16) * 4)) < cols) {
-                        float *lchunk_1;
-                        float _cbuf11[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                        lchunk_1 = _cbuf11;
+                        float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                         vec_memcpy((lchunk_1 + 0),
                             (gB + ((0 + (cols * kr_1)) +
                                       (n_idx + ((__anf03 * 16) * 4)))));
@@ -5872,28 +5195,15 @@ __global__ static void kuiper_kernel_20(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf03_1 = k1_1;
                 k1_1 = (__anf03_1 + 1);
             }
-            (void) (idx);
             uint32_t __anf03_2 = idx;
             idx = (__anf03_2 + 1);
             uint32_t __anf04_2 = nnz;
             nnz = (__anf04_2 - 128);
         }
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (nnz);
-        (void) (nnz);
-        (void) (idx);
     } else {
         idx = 0;
         nnz = (re - ri);
     }
-    (void) (idx);
     __syncthreads();
     Kuiper_For_for_loop___53(
         rows, shared, cols, gA, tid, sh._1, sh._2._1, re, nnz);
@@ -5905,13 +5215,10 @@ __global__ static void kuiper_kernel_20(uint32_t *row_indices, uint32_t rows,
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 1) {
-            (void) (k1_2);
             uint32_t __anf1_2 = k1_2;
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 16) * 4)) < cols) {
-                float *lchunk_2;
-                float _cbuf16[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                lchunk_2 = _cbuf16;
+                float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 vec_memcpy((lchunk_2 + 0),
                     (gB + ((0 + (cols * kr_2)) +
                               (n_idx + ((__anf02_3 * 16) * 4)))));
@@ -5958,9 +5265,7 @@ __global__ static void kuiper_kernel_21(uint32_t *row_indices, uint32_t rows,
     uint32_t ri_ = ((ri / 4) * 4);
     uint32_t nnz = (re - ri_);
     uint32_t idx = 0;
-    float *out;
-    float _cbuf1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-    out = _cbuf1;
+    float out[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t __anf0 = nnz;
     if (__anf0 >= 128) {
         Kuiper_For_for_loop___73(rows, shared, cols, gA, tid, sh._1, ri);
@@ -5975,13 +5280,10 @@ __global__ static void kuiper_kernel_21(uint32_t *row_indices, uint32_t rows,
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 1) {
-                (void) (k1);
                 uint32_t __anf1 = k1;
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 16) * 4)) < cols) {
-                    float *lchunk;
-                    float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                    lchunk = _cbuf5;
+                    float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                     vec_memcpy((lchunk + 0),
                         (gB + ((0 + (cols * kr)) +
                                   (n_idx + ((__anf01 * 16) * 4)))));
@@ -6012,15 +5314,6 @@ __global__ static void kuiper_kernel_21(uint32_t *row_indices, uint32_t rows,
             Kuiper_For_for_loop___76(
                 rows, shared, cols, gA, tid, sh._2._1, ri, __anf02_2);
             __syncthreads();
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
             uint32_t k1_1 = 0;
             while (k1_1 < 128) {
                 uint32_t kv_1 = k1_1;
@@ -6028,13 +5321,10 @@ __global__ static void kuiper_kernel_21(uint32_t *row_indices, uint32_t rows,
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 1) {
-                    (void) (k2);
                     uint32_t __anf1_1 = k2;
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 16) * 4)) < cols) {
-                        float *lchunk_1;
-                        float _cbuf11[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                        lchunk_1 = _cbuf11;
+                        float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                         vec_memcpy((lchunk_1 + 0),
                             (gB + ((0 + (cols * kr_1)) +
                                       (n_idx + ((__anf03 * 16) * 4)))));
@@ -6055,28 +5345,15 @@ __global__ static void kuiper_kernel_21(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf03_1 = k1_1;
                 k1_1 = (__anf03_1 + 1);
             }
-            (void) (idx);
             uint32_t __anf03_2 = idx;
             idx = (__anf03_2 + 1);
             uint32_t __anf04_2 = nnz;
             nnz = (__anf04_2 - 128);
         }
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (nnz);
-        (void) (nnz);
-        (void) (idx);
     } else {
         idx = 0;
         nnz = (re - ri);
     }
-    (void) (idx);
     __syncthreads();
     Kuiper_For_for_loop___53(
         rows, shared, cols, gA, tid, sh._1, sh._2._1, re, nnz);
@@ -6088,13 +5365,10 @@ __global__ static void kuiper_kernel_21(uint32_t *row_indices, uint32_t rows,
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 1) {
-            (void) (k1_2);
             uint32_t __anf1_2 = k1_2;
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 16) * 4)) < cols) {
-                float *lchunk_2;
-                float _cbuf16[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                lchunk_2 = _cbuf16;
+                float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 vec_memcpy((lchunk_2 + 0),
                     (gB + ((0 + (cols * kr_2)) +
                               (n_idx + ((__anf02_3 * 16) * 4)))));
@@ -6211,9 +5485,7 @@ __global__ static void kuiper_kernel_22(uint32_t *row_indices, uint32_t rows,
     uint32_t ri_ = ((ri / 4) * 4);
     uint32_t nnz = (re - ri_);
     uint32_t idx = 0;
-    float *out;
-    float _cbuf1[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-    out = _cbuf1;
+    float out[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t __anf0 = nnz;
     if (__anf0 >= 128) {
         Kuiper_For_for_loop___77(rows, shared, cols, gA, tid, sh._1, ri);
@@ -6228,13 +5500,10 @@ __global__ static void kuiper_kernel_22(uint32_t *row_indices, uint32_t rows,
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 2) {
-                (void) (k1);
                 uint32_t __anf1 = k1;
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 16) * 4)) < cols) {
-                    float *lchunk;
-                    float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                    lchunk = _cbuf5;
+                    float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                     vec_memcpy((lchunk + 0),
                         (gB + ((0 + (cols * kr)) +
                                   (n_idx + ((__anf01 * 16) * 4)))));
@@ -6265,15 +5534,6 @@ __global__ static void kuiper_kernel_22(uint32_t *row_indices, uint32_t rows,
             Kuiper_For_for_loop___80(
                 rows, shared, cols, gA, tid, sh._2._1, ri, __anf02_2);
             __syncthreads();
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
             uint32_t k1_1 = 0;
             while (k1_1 < 128) {
                 uint32_t kv_1 = k1_1;
@@ -6281,13 +5541,10 @@ __global__ static void kuiper_kernel_22(uint32_t *row_indices, uint32_t rows,
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 2) {
-                    (void) (k2);
                     uint32_t __anf1_1 = k2;
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 16) * 4)) < cols) {
-                        float *lchunk_1;
-                        float _cbuf11[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                        lchunk_1 = _cbuf11;
+                        float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                         vec_memcpy((lchunk_1 + 0),
                             (gB + ((0 + (cols * kr_1)) +
                                       (n_idx + ((__anf03 * 16) * 4)))));
@@ -6308,28 +5565,15 @@ __global__ static void kuiper_kernel_22(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf03_1 = k1_1;
                 k1_1 = (__anf03_1 + 1);
             }
-            (void) (idx);
             uint32_t __anf03_2 = idx;
             idx = (__anf03_2 + 1);
             uint32_t __anf04_2 = nnz;
             nnz = (__anf04_2 - 128);
         }
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (nnz);
-        (void) (nnz);
-        (void) (idx);
     } else {
         idx = 0;
         nnz = (re - ri);
     }
-    (void) (idx);
     __syncthreads();
     Kuiper_For_for_loop___59(
         rows, shared, cols, gA, tid, sh._1, sh._2._1, re, nnz);
@@ -6341,13 +5585,10 @@ __global__ static void kuiper_kernel_22(uint32_t *row_indices, uint32_t rows,
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 2) {
-            (void) (k1_2);
             uint32_t __anf1_2 = k1_2;
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 16) * 4)) < cols) {
-                float *lchunk_2;
-                float _cbuf16[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                lchunk_2 = _cbuf16;
+                float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 vec_memcpy((lchunk_2 + 0),
                     (gB + ((0 + (cols * kr_2)) +
                               (n_idx + ((__anf02_3 * 16) * 4)))));
@@ -6394,9 +5635,7 @@ __global__ static void kuiper_kernel_23(uint32_t *row_indices, uint32_t rows,
     uint32_t ri_ = ((ri / 4) * 4);
     uint32_t nnz = (re - ri_);
     uint32_t idx = 0;
-    float *out;
-    float _cbuf1[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-    out = _cbuf1;
+    float out[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t __anf0 = nnz;
     if (__anf0 >= 128) {
         Kuiper_For_for_loop___77(rows, shared, cols, gA, tid, sh._1, ri);
@@ -6411,13 +5650,10 @@ __global__ static void kuiper_kernel_23(uint32_t *row_indices, uint32_t rows,
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 2) {
-                (void) (k1);
                 uint32_t __anf1 = k1;
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 16) * 4)) < cols) {
-                    float *lchunk;
-                    float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                    lchunk = _cbuf5;
+                    float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                     vec_memcpy((lchunk + 0),
                         (gB + ((0 + (cols * kr)) +
                                   (n_idx + ((__anf01 * 16) * 4)))));
@@ -6448,15 +5684,6 @@ __global__ static void kuiper_kernel_23(uint32_t *row_indices, uint32_t rows,
             Kuiper_For_for_loop___80(
                 rows, shared, cols, gA, tid, sh._2._1, ri, __anf02_2);
             __syncthreads();
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
             uint32_t k1_1 = 0;
             while (k1_1 < 128) {
                 uint32_t kv_1 = k1_1;
@@ -6464,13 +5691,10 @@ __global__ static void kuiper_kernel_23(uint32_t *row_indices, uint32_t rows,
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 2) {
-                    (void) (k2);
                     uint32_t __anf1_1 = k2;
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 16) * 4)) < cols) {
-                        float *lchunk_1;
-                        float _cbuf11[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                        lchunk_1 = _cbuf11;
+                        float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                         vec_memcpy((lchunk_1 + 0),
                             (gB + ((0 + (cols * kr_1)) +
                                       (n_idx + ((__anf03 * 16) * 4)))));
@@ -6491,28 +5715,15 @@ __global__ static void kuiper_kernel_23(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf03_1 = k1_1;
                 k1_1 = (__anf03_1 + 1);
             }
-            (void) (idx);
             uint32_t __anf03_2 = idx;
             idx = (__anf03_2 + 1);
             uint32_t __anf04_2 = nnz;
             nnz = (__anf04_2 - 128);
         }
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (nnz);
-        (void) (nnz);
-        (void) (idx);
     } else {
         idx = 0;
         nnz = (re - ri);
     }
-    (void) (idx);
     __syncthreads();
     Kuiper_For_for_loop___59(
         rows, shared, cols, gA, tid, sh._1, sh._2._1, re, nnz);
@@ -6524,13 +5735,10 @@ __global__ static void kuiper_kernel_23(uint32_t *row_indices, uint32_t rows,
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 2) {
-            (void) (k1_2);
             uint32_t __anf1_2 = k1_2;
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 16) * 4)) < cols) {
-                float *lchunk_2;
-                float _cbuf16[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                lchunk_2 = _cbuf16;
+                float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 vec_memcpy((lchunk_2 + 0),
                     (gB + ((0 + (cols * kr_2)) +
                               (n_idx + ((__anf02_3 * 16) * 4)))));
@@ -6697,9 +5905,7 @@ __global__ static void kuiper_kernel_24(uint32_t *row_indices, uint32_t rows,
     uint32_t ri_ = ((ri / 4) * 4);
     uint32_t nnz = (re - ri_);
     uint32_t idx = 0;
-    float *out;
-    float _cbuf1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-    out = _cbuf1;
+    float out[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t __anf0 = nnz;
     if (__anf0 >= 128) {
         Kuiper_For_for_loop___81(rows, shared, cols, gA, tid, sh._1, ri);
@@ -6714,13 +5920,10 @@ __global__ static void kuiper_kernel_24(uint32_t *row_indices, uint32_t rows,
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 1) {
-                (void) (k1);
                 uint32_t __anf1 = k1;
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 32) * 4)) < cols) {
-                    float *lchunk;
-                    float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                    lchunk = _cbuf5;
+                    float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                     vec_memcpy((lchunk + 0),
                         (gB + ((0 + (cols * kr)) +
                                   (n_idx + ((__anf01 * 32) * 4)))));
@@ -6751,15 +5954,6 @@ __global__ static void kuiper_kernel_24(uint32_t *row_indices, uint32_t rows,
             Kuiper_For_for_loop___85(
                 rows, shared, cols, gA, tid, sh._2._1, ri, __anf02_2);
             __syncthreads();
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
             uint32_t k1_1 = 0;
             while (k1_1 < 128) {
                 uint32_t kv_1 = k1_1;
@@ -6767,13 +5961,10 @@ __global__ static void kuiper_kernel_24(uint32_t *row_indices, uint32_t rows,
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 1) {
-                    (void) (k2);
                     uint32_t __anf1_1 = k2;
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 32) * 4)) < cols) {
-                        float *lchunk_1;
-                        float _cbuf11[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                        lchunk_1 = _cbuf11;
+                        float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                         vec_memcpy((lchunk_1 + 0),
                             (gB + ((0 + (cols * kr_1)) +
                                       (n_idx + ((__anf03 * 32) * 4)))));
@@ -6794,28 +5985,15 @@ __global__ static void kuiper_kernel_24(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf03_1 = k1_1;
                 k1_1 = (__anf03_1 + 1);
             }
-            (void) (idx);
             uint32_t __anf03_2 = idx;
             idx = (__anf03_2 + 1);
             uint32_t __anf04_2 = nnz;
             nnz = (__anf04_2 - 128);
         }
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (nnz);
-        (void) (nnz);
-        (void) (idx);
     } else {
         idx = 0;
         nnz = (re - ri);
     }
-    (void) (idx);
     __syncthreads();
     Kuiper_For_for_loop___86(
         rows, shared, cols, gA, tid, sh._1, sh._2._1, re, nnz);
@@ -6827,13 +6005,10 @@ __global__ static void kuiper_kernel_24(uint32_t *row_indices, uint32_t rows,
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 1) {
-            (void) (k1_2);
             uint32_t __anf1_2 = k1_2;
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 32) * 4)) < cols) {
-                float *lchunk_2;
-                float _cbuf16[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                lchunk_2 = _cbuf16;
+                float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 vec_memcpy((lchunk_2 + 0),
                     (gB + ((0 + (cols * kr_2)) +
                               (n_idx + ((__anf02_3 * 32) * 4)))));
@@ -6880,9 +6055,7 @@ __global__ static void kuiper_kernel_25(uint32_t *row_indices, uint32_t rows,
     uint32_t ri_ = ((ri / 4) * 4);
     uint32_t nnz = (re - ri_);
     uint32_t idx = 0;
-    float *out;
-    float _cbuf1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-    out = _cbuf1;
+    float out[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t __anf0 = nnz;
     if (__anf0 >= 128) {
         Kuiper_For_for_loop___81(rows, shared, cols, gA, tid, sh._1, ri);
@@ -6897,13 +6070,10 @@ __global__ static void kuiper_kernel_25(uint32_t *row_indices, uint32_t rows,
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 1) {
-                (void) (k1);
                 uint32_t __anf1 = k1;
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 32) * 4)) < cols) {
-                    float *lchunk;
-                    float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                    lchunk = _cbuf5;
+                    float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                     vec_memcpy((lchunk + 0),
                         (gB + ((0 + (cols * kr)) +
                                   (n_idx + ((__anf01 * 32) * 4)))));
@@ -6934,15 +6104,6 @@ __global__ static void kuiper_kernel_25(uint32_t *row_indices, uint32_t rows,
             Kuiper_For_for_loop___85(
                 rows, shared, cols, gA, tid, sh._2._1, ri, __anf02_2);
             __syncthreads();
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
             uint32_t k1_1 = 0;
             while (k1_1 < 128) {
                 uint32_t kv_1 = k1_1;
@@ -6950,13 +6111,10 @@ __global__ static void kuiper_kernel_25(uint32_t *row_indices, uint32_t rows,
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 1) {
-                    (void) (k2);
                     uint32_t __anf1_1 = k2;
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 32) * 4)) < cols) {
-                        float *lchunk_1;
-                        float _cbuf11[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                        lchunk_1 = _cbuf11;
+                        float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                         vec_memcpy((lchunk_1 + 0),
                             (gB + ((0 + (cols * kr_1)) +
                                       (n_idx + ((__anf03 * 32) * 4)))));
@@ -6977,28 +6135,15 @@ __global__ static void kuiper_kernel_25(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf03_1 = k1_1;
                 k1_1 = (__anf03_1 + 1);
             }
-            (void) (idx);
             uint32_t __anf03_2 = idx;
             idx = (__anf03_2 + 1);
             uint32_t __anf04_2 = nnz;
             nnz = (__anf04_2 - 128);
         }
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (nnz);
-        (void) (nnz);
-        (void) (idx);
     } else {
         idx = 0;
         nnz = (re - ri);
     }
-    (void) (idx);
     __syncthreads();
     Kuiper_For_for_loop___86(
         rows, shared, cols, gA, tid, sh._1, sh._2._1, re, nnz);
@@ -7010,13 +6155,10 @@ __global__ static void kuiper_kernel_25(uint32_t *row_indices, uint32_t rows,
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 1) {
-            (void) (k1_2);
             uint32_t __anf1_2 = k1_2;
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 32) * 4)) < cols) {
-                float *lchunk_2;
-                float _cbuf16[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                lchunk_2 = _cbuf16;
+                float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 vec_memcpy((lchunk_2 + 0),
                     (gB + ((0 + (cols * kr_2)) +
                               (n_idx + ((__anf02_3 * 32) * 4)))));
@@ -7133,10 +6275,8 @@ __global__ static void kuiper_kernel_26(uint32_t *row_indices, uint32_t rows,
     uint32_t ri_ = ((ri / 4) * 4);
     uint32_t nnz = (re - ri_);
     uint32_t idx = 0;
-    float *out;
-    float _cbuf1[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-    out = _cbuf1;
+    float out[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t __anf0 = nnz;
     if (__anf0 >= 128) {
         Kuiper_For_for_loop___88(rows, shared, cols, gA, tid, sh._1, ri);
@@ -7151,13 +6291,10 @@ __global__ static void kuiper_kernel_26(uint32_t *row_indices, uint32_t rows,
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
                 uint32_t __anf1 = k1;
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 16) * 4)) < cols) {
-                    float *lchunk;
-                    float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                    lchunk = _cbuf5;
+                    float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                     vec_memcpy((lchunk + 0),
                         (gB + ((0 + (cols * kr)) +
                                   (n_idx + ((__anf01 * 16) * 4)))));
@@ -7188,15 +6325,6 @@ __global__ static void kuiper_kernel_26(uint32_t *row_indices, uint32_t rows,
             Kuiper_For_for_loop___91(
                 rows, shared, cols, gA, tid, sh._2._1, ri, __anf02_2);
             __syncthreads();
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
             uint32_t k1_1 = 0;
             while (k1_1 < 128) {
                 uint32_t kv_1 = k1_1;
@@ -7204,13 +6332,10 @@ __global__ static void kuiper_kernel_26(uint32_t *row_indices, uint32_t rows,
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 4) {
-                    (void) (k2);
                     uint32_t __anf1_1 = k2;
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 16) * 4)) < cols) {
-                        float *lchunk_1;
-                        float _cbuf11[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                        lchunk_1 = _cbuf11;
+                        float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                         vec_memcpy((lchunk_1 + 0),
                             (gB + ((0 + (cols * kr_1)) +
                                       (n_idx + ((__anf03 * 16) * 4)))));
@@ -7231,28 +6356,15 @@ __global__ static void kuiper_kernel_26(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf03_1 = k1_1;
                 k1_1 = (__anf03_1 + 1);
             }
-            (void) (idx);
             uint32_t __anf03_2 = idx;
             idx = (__anf03_2 + 1);
             uint32_t __anf04_2 = nnz;
             nnz = (__anf04_2 - 128);
         }
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (nnz);
-        (void) (nnz);
-        (void) (idx);
     } else {
         idx = 0;
         nnz = (re - ri);
     }
-    (void) (idx);
     __syncthreads();
     Kuiper_For_for_loop___65(
         rows, shared, cols, gA, tid, sh._1, sh._2._1, re, nnz);
@@ -7264,13 +6376,10 @@ __global__ static void kuiper_kernel_26(uint32_t *row_indices, uint32_t rows,
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 4) {
-            (void) (k1_2);
             uint32_t __anf1_2 = k1_2;
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 16) * 4)) < cols) {
-                float *lchunk_2;
-                float _cbuf16[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                lchunk_2 = _cbuf16;
+                float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 vec_memcpy((lchunk_2 + 0),
                     (gB + ((0 + (cols * kr_2)) +
                               (n_idx + ((__anf02_3 * 16) * 4)))));
@@ -7317,10 +6426,8 @@ __global__ static void kuiper_kernel_27(uint32_t *row_indices, uint32_t rows,
     uint32_t ri_ = ((ri / 4) * 4);
     uint32_t nnz = (re - ri_);
     uint32_t idx = 0;
-    float *out;
-    float _cbuf1[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-    out = _cbuf1;
+    float out[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t __anf0 = nnz;
     if (__anf0 >= 128) {
         Kuiper_For_for_loop___88(rows, shared, cols, gA, tid, sh._1, ri);
@@ -7335,13 +6442,10 @@ __global__ static void kuiper_kernel_27(uint32_t *row_indices, uint32_t rows,
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
                 uint32_t __anf1 = k1;
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 16) * 4)) < cols) {
-                    float *lchunk;
-                    float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                    lchunk = _cbuf5;
+                    float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                     vec_memcpy((lchunk + 0),
                         (gB + ((0 + (cols * kr)) +
                                   (n_idx + ((__anf01 * 16) * 4)))));
@@ -7372,15 +6476,6 @@ __global__ static void kuiper_kernel_27(uint32_t *row_indices, uint32_t rows,
             Kuiper_For_for_loop___91(
                 rows, shared, cols, gA, tid, sh._2._1, ri, __anf02_2);
             __syncthreads();
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
             uint32_t k1_1 = 0;
             while (k1_1 < 128) {
                 uint32_t kv_1 = k1_1;
@@ -7388,13 +6483,10 @@ __global__ static void kuiper_kernel_27(uint32_t *row_indices, uint32_t rows,
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 4) {
-                    (void) (k2);
                     uint32_t __anf1_1 = k2;
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 16) * 4)) < cols) {
-                        float *lchunk_1;
-                        float _cbuf11[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                        lchunk_1 = _cbuf11;
+                        float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                         vec_memcpy((lchunk_1 + 0),
                             (gB + ((0 + (cols * kr_1)) +
                                       (n_idx + ((__anf03 * 16) * 4)))));
@@ -7415,28 +6507,15 @@ __global__ static void kuiper_kernel_27(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf03_1 = k1_1;
                 k1_1 = (__anf03_1 + 1);
             }
-            (void) (idx);
             uint32_t __anf03_2 = idx;
             idx = (__anf03_2 + 1);
             uint32_t __anf04_2 = nnz;
             nnz = (__anf04_2 - 128);
         }
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (nnz);
-        (void) (nnz);
-        (void) (idx);
     } else {
         idx = 0;
         nnz = (re - ri);
     }
-    (void) (idx);
     __syncthreads();
     Kuiper_For_for_loop___65(
         rows, shared, cols, gA, tid, sh._1, sh._2._1, re, nnz);
@@ -7448,13 +6527,10 @@ __global__ static void kuiper_kernel_27(uint32_t *row_indices, uint32_t rows,
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 4) {
-            (void) (k1_2);
             uint32_t __anf1_2 = k1_2;
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 16) * 4)) < cols) {
-                float *lchunk_2;
-                float _cbuf16[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                lchunk_2 = _cbuf16;
+                float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 vec_memcpy((lchunk_2 + 0),
                     (gB + ((0 + (cols * kr_2)) +
                               (n_idx + ((__anf02_3 * 16) * 4)))));
@@ -7609,9 +6685,7 @@ __global__ static void kuiper_kernel_28(uint32_t *row_indices, uint32_t rows,
     uint32_t ri_ = ((ri / 4) * 4);
     uint32_t nnz = (re - ri_);
     uint32_t idx = 0;
-    float *out;
-    float _cbuf1[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-    out = _cbuf1;
+    float out[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t __anf0 = nnz;
     if (__anf0 >= 128) {
         Kuiper_For_for_loop___92(rows, shared, cols, gA, tid, sh._1, ri);
@@ -7626,13 +6700,10 @@ __global__ static void kuiper_kernel_28(uint32_t *row_indices, uint32_t rows,
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 2) {
-                (void) (k1);
                 uint32_t __anf1 = k1;
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 32) * 4)) < cols) {
-                    float *lchunk;
-                    float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                    lchunk = _cbuf5;
+                    float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                     vec_memcpy((lchunk + 0),
                         (gB + ((0 + (cols * kr)) +
                                   (n_idx + ((__anf01 * 32) * 4)))));
@@ -7663,15 +6734,6 @@ __global__ static void kuiper_kernel_28(uint32_t *row_indices, uint32_t rows,
             Kuiper_For_for_loop___95(
                 rows, shared, cols, gA, tid, sh._2._1, ri, __anf02_2);
             __syncthreads();
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
             uint32_t k1_1 = 0;
             while (k1_1 < 128) {
                 uint32_t kv_1 = k1_1;
@@ -7679,13 +6741,10 @@ __global__ static void kuiper_kernel_28(uint32_t *row_indices, uint32_t rows,
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 2) {
-                    (void) (k2);
                     uint32_t __anf1_1 = k2;
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 32) * 4)) < cols) {
-                        float *lchunk_1;
-                        float _cbuf11[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                        lchunk_1 = _cbuf11;
+                        float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                         vec_memcpy((lchunk_1 + 0),
                             (gB + ((0 + (cols * kr_1)) +
                                       (n_idx + ((__anf03 * 32) * 4)))));
@@ -7706,28 +6765,15 @@ __global__ static void kuiper_kernel_28(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf03_1 = k1_1;
                 k1_1 = (__anf03_1 + 1);
             }
-            (void) (idx);
             uint32_t __anf03_2 = idx;
             idx = (__anf03_2 + 1);
             uint32_t __anf04_2 = nnz;
             nnz = (__anf04_2 - 128);
         }
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (nnz);
-        (void) (nnz);
-        (void) (idx);
     } else {
         idx = 0;
         nnz = (re - ri);
     }
-    (void) (idx);
     __syncthreads();
     Kuiper_For_for_loop___96(
         rows, shared, cols, gA, tid, sh._1, sh._2._1, re, nnz);
@@ -7739,13 +6785,10 @@ __global__ static void kuiper_kernel_28(uint32_t *row_indices, uint32_t rows,
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 2) {
-            (void) (k1_2);
             uint32_t __anf1_2 = k1_2;
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 32) * 4)) < cols) {
-                float *lchunk_2;
-                float _cbuf16[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                lchunk_2 = _cbuf16;
+                float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 vec_memcpy((lchunk_2 + 0),
                     (gB + ((0 + (cols * kr_2)) +
                               (n_idx + ((__anf02_3 * 32) * 4)))));
@@ -7792,9 +6835,7 @@ __global__ static void kuiper_kernel_29(uint32_t *row_indices, uint32_t rows,
     uint32_t ri_ = ((ri / 4) * 4);
     uint32_t nnz = (re - ri_);
     uint32_t idx = 0;
-    float *out;
-    float _cbuf1[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-    out = _cbuf1;
+    float out[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t __anf0 = nnz;
     if (__anf0 >= 128) {
         Kuiper_For_for_loop___92(rows, shared, cols, gA, tid, sh._1, ri);
@@ -7809,13 +6850,10 @@ __global__ static void kuiper_kernel_29(uint32_t *row_indices, uint32_t rows,
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 2) {
-                (void) (k1);
                 uint32_t __anf1 = k1;
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 32) * 4)) < cols) {
-                    float *lchunk;
-                    float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                    lchunk = _cbuf5;
+                    float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                     vec_memcpy((lchunk + 0),
                         (gB + ((0 + (cols * kr)) +
                                   (n_idx + ((__anf01 * 32) * 4)))));
@@ -7846,15 +6884,6 @@ __global__ static void kuiper_kernel_29(uint32_t *row_indices, uint32_t rows,
             Kuiper_For_for_loop___95(
                 rows, shared, cols, gA, tid, sh._2._1, ri, __anf02_2);
             __syncthreads();
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
             uint32_t k1_1 = 0;
             while (k1_1 < 128) {
                 uint32_t kv_1 = k1_1;
@@ -7862,13 +6891,10 @@ __global__ static void kuiper_kernel_29(uint32_t *row_indices, uint32_t rows,
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 2) {
-                    (void) (k2);
                     uint32_t __anf1_1 = k2;
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 32) * 4)) < cols) {
-                        float *lchunk_1;
-                        float _cbuf11[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                        lchunk_1 = _cbuf11;
+                        float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                         vec_memcpy((lchunk_1 + 0),
                             (gB + ((0 + (cols * kr_1)) +
                                       (n_idx + ((__anf03 * 32) * 4)))));
@@ -7889,28 +6915,15 @@ __global__ static void kuiper_kernel_29(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf03_1 = k1_1;
                 k1_1 = (__anf03_1 + 1);
             }
-            (void) (idx);
             uint32_t __anf03_2 = idx;
             idx = (__anf03_2 + 1);
             uint32_t __anf04_2 = nnz;
             nnz = (__anf04_2 - 128);
         }
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (nnz);
-        (void) (nnz);
-        (void) (idx);
     } else {
         idx = 0;
         nnz = (re - ri);
     }
-    (void) (idx);
     __syncthreads();
     Kuiper_For_for_loop___96(
         rows, shared, cols, gA, tid, sh._1, sh._2._1, re, nnz);
@@ -7922,13 +6935,10 @@ __global__ static void kuiper_kernel_29(uint32_t *row_indices, uint32_t rows,
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 2) {
-            (void) (k1_2);
             uint32_t __anf1_2 = k1_2;
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 32) * 4)) < cols) {
-                float *lchunk_2;
-                float _cbuf16[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                lchunk_2 = _cbuf16;
+                float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 vec_memcpy((lchunk_2 + 0),
                     (gB + ((0 + (cols * kr_2)) +
                               (n_idx + ((__anf02_3 * 32) * 4)))));
@@ -8045,11 +7055,9 @@ __global__ static void kuiper_kernel_30(uint32_t *row_indices, uint32_t rows,
     uint32_t ri_ = ((ri / 4) * 4);
     uint32_t nnz = (re - ri_);
     uint32_t idx = 0;
-    float *out;
-    float _cbuf1[32] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+    float out[32] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-    out = _cbuf1;
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t __anf0 = nnz;
     if (__anf0 >= 128) {
         Kuiper_For_for_loop___98(rows, shared, cols, gA, tid, sh._1, ri);
@@ -8064,13 +7072,10 @@ __global__ static void kuiper_kernel_30(uint32_t *row_indices, uint32_t rows,
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
                 uint32_t __anf1 = k1;
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 16) * 4)) < cols) {
-                    float *lchunk;
-                    float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                    lchunk = _cbuf5;
+                    float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                     vec_memcpy((lchunk + 0),
                         (gB + ((0 + (cols * kr)) +
                                   (n_idx + ((__anf01 * 16) * 4)))));
@@ -8101,15 +7106,6 @@ __global__ static void kuiper_kernel_30(uint32_t *row_indices, uint32_t rows,
             Kuiper_For_for_loop___101(
                 rows, shared, cols, gA, tid, sh._2._1, ri, __anf02_2);
             __syncthreads();
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
             uint32_t k1_1 = 0;
             while (k1_1 < 128) {
                 uint32_t kv_1 = k1_1;
@@ -8117,13 +7113,10 @@ __global__ static void kuiper_kernel_30(uint32_t *row_indices, uint32_t rows,
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 8) {
-                    (void) (k2);
                     uint32_t __anf1_1 = k2;
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 16) * 4)) < cols) {
-                        float *lchunk_1;
-                        float _cbuf11[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                        lchunk_1 = _cbuf11;
+                        float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                         vec_memcpy((lchunk_1 + 0),
                             (gB + ((0 + (cols * kr_1)) +
                                       (n_idx + ((__anf03 * 16) * 4)))));
@@ -8144,28 +7137,15 @@ __global__ static void kuiper_kernel_30(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf03_1 = k1_1;
                 k1_1 = (__anf03_1 + 1);
             }
-            (void) (idx);
             uint32_t __anf03_2 = idx;
             idx = (__anf03_2 + 1);
             uint32_t __anf04_2 = nnz;
             nnz = (__anf04_2 - 128);
         }
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (nnz);
-        (void) (nnz);
-        (void) (idx);
     } else {
         idx = 0;
         nnz = (re - ri);
     }
-    (void) (idx);
     __syncthreads();
     Kuiper_For_for_loop___71(
         rows, shared, cols, gA, tid, sh._1, sh._2._1, re, nnz);
@@ -8177,13 +7157,10 @@ __global__ static void kuiper_kernel_30(uint32_t *row_indices, uint32_t rows,
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 8) {
-            (void) (k1_2);
             uint32_t __anf1_2 = k1_2;
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 16) * 4)) < cols) {
-                float *lchunk_2;
-                float _cbuf16[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                lchunk_2 = _cbuf16;
+                float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 vec_memcpy((lchunk_2 + 0),
                     (gB + ((0 + (cols * kr_2)) +
                               (n_idx + ((__anf02_3 * 16) * 4)))));
@@ -8230,11 +7207,9 @@ __global__ static void kuiper_kernel_31(uint32_t *row_indices, uint32_t rows,
     uint32_t ri_ = ((ri / 4) * 4);
     uint32_t nnz = (re - ri_);
     uint32_t idx = 0;
-    float *out;
-    float _cbuf1[32] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+    float out[32] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-    out = _cbuf1;
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t __anf0 = nnz;
     if (__anf0 >= 128) {
         Kuiper_For_for_loop___98(rows, shared, cols, gA, tid, sh._1, ri);
@@ -8249,13 +7224,10 @@ __global__ static void kuiper_kernel_31(uint32_t *row_indices, uint32_t rows,
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
                 uint32_t __anf1 = k1;
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 16) * 4)) < cols) {
-                    float *lchunk;
-                    float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                    lchunk = _cbuf5;
+                    float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                     vec_memcpy((lchunk + 0),
                         (gB + ((0 + (cols * kr)) +
                                   (n_idx + ((__anf01 * 16) * 4)))));
@@ -8286,15 +7258,6 @@ __global__ static void kuiper_kernel_31(uint32_t *row_indices, uint32_t rows,
             Kuiper_For_for_loop___101(
                 rows, shared, cols, gA, tid, sh._2._1, ri, __anf02_2);
             __syncthreads();
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
             uint32_t k1_1 = 0;
             while (k1_1 < 128) {
                 uint32_t kv_1 = k1_1;
@@ -8302,13 +7265,10 @@ __global__ static void kuiper_kernel_31(uint32_t *row_indices, uint32_t rows,
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 8) {
-                    (void) (k2);
                     uint32_t __anf1_1 = k2;
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 16) * 4)) < cols) {
-                        float *lchunk_1;
-                        float _cbuf11[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                        lchunk_1 = _cbuf11;
+                        float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                         vec_memcpy((lchunk_1 + 0),
                             (gB + ((0 + (cols * kr_1)) +
                                       (n_idx + ((__anf03 * 16) * 4)))));
@@ -8329,28 +7289,15 @@ __global__ static void kuiper_kernel_31(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf03_1 = k1_1;
                 k1_1 = (__anf03_1 + 1);
             }
-            (void) (idx);
             uint32_t __anf03_2 = idx;
             idx = (__anf03_2 + 1);
             uint32_t __anf04_2 = nnz;
             nnz = (__anf04_2 - 128);
         }
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (nnz);
-        (void) (nnz);
-        (void) (idx);
     } else {
         idx = 0;
         nnz = (re - ri);
     }
-    (void) (idx);
     __syncthreads();
     Kuiper_For_for_loop___71(
         rows, shared, cols, gA, tid, sh._1, sh._2._1, re, nnz);
@@ -8362,13 +7309,10 @@ __global__ static void kuiper_kernel_31(uint32_t *row_indices, uint32_t rows,
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 8) {
-            (void) (k1_2);
             uint32_t __anf1_2 = k1_2;
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 16) * 4)) < cols) {
-                float *lchunk_2;
-                float _cbuf16[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                lchunk_2 = _cbuf16;
+                float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 vec_memcpy((lchunk_2 + 0),
                     (gB + ((0 + (cols * kr_2)) +
                               (n_idx + ((__anf02_3 * 16) * 4)))));
@@ -8523,10 +7467,8 @@ __global__ static void kuiper_kernel_32(uint32_t *row_indices, uint32_t rows,
     uint32_t ri_ = ((ri / 4) * 4);
     uint32_t nnz = (re - ri_);
     uint32_t idx = 0;
-    float *out;
-    float _cbuf1[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-    out = _cbuf1;
+    float out[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t __anf0 = nnz;
     if (__anf0 >= 128) {
         Kuiper_For_for_loop___102(rows, shared, cols, gA, tid, sh._1, ri);
@@ -8541,13 +7483,10 @@ __global__ static void kuiper_kernel_32(uint32_t *row_indices, uint32_t rows,
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
                 uint32_t __anf1 = k1;
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 32) * 4)) < cols) {
-                    float *lchunk;
-                    float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                    lchunk = _cbuf5;
+                    float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                     vec_memcpy((lchunk + 0),
                         (gB + ((0 + (cols * kr)) +
                                   (n_idx + ((__anf01 * 32) * 4)))));
@@ -8578,15 +7517,6 @@ __global__ static void kuiper_kernel_32(uint32_t *row_indices, uint32_t rows,
             Kuiper_For_for_loop___105(
                 rows, shared, cols, gA, tid, sh._2._1, ri, __anf02_2);
             __syncthreads();
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
             uint32_t k1_1 = 0;
             while (k1_1 < 128) {
                 uint32_t kv_1 = k1_1;
@@ -8594,13 +7524,10 @@ __global__ static void kuiper_kernel_32(uint32_t *row_indices, uint32_t rows,
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 4) {
-                    (void) (k2);
                     uint32_t __anf1_1 = k2;
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 32) * 4)) < cols) {
-                        float *lchunk_1;
-                        float _cbuf11[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                        lchunk_1 = _cbuf11;
+                        float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                         vec_memcpy((lchunk_1 + 0),
                             (gB + ((0 + (cols * kr_1)) +
                                       (n_idx + ((__anf03 * 32) * 4)))));
@@ -8621,28 +7548,15 @@ __global__ static void kuiper_kernel_32(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf03_1 = k1_1;
                 k1_1 = (__anf03_1 + 1);
             }
-            (void) (idx);
             uint32_t __anf03_2 = idx;
             idx = (__anf03_2 + 1);
             uint32_t __anf04_2 = nnz;
             nnz = (__anf04_2 - 128);
         }
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (nnz);
-        (void) (nnz);
-        (void) (idx);
     } else {
         idx = 0;
         nnz = (re - ri);
     }
-    (void) (idx);
     __syncthreads();
     Kuiper_For_for_loop___106(
         rows, shared, cols, gA, tid, sh._1, sh._2._1, re, nnz);
@@ -8654,13 +7568,10 @@ __global__ static void kuiper_kernel_32(uint32_t *row_indices, uint32_t rows,
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 4) {
-            (void) (k1_2);
             uint32_t __anf1_2 = k1_2;
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 32) * 4)) < cols) {
-                float *lchunk_2;
-                float _cbuf16[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                lchunk_2 = _cbuf16;
+                float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 vec_memcpy((lchunk_2 + 0),
                     (gB + ((0 + (cols * kr_2)) +
                               (n_idx + ((__anf02_3 * 32) * 4)))));
@@ -8707,10 +7618,8 @@ __global__ static void kuiper_kernel_33(uint32_t *row_indices, uint32_t rows,
     uint32_t ri_ = ((ri / 4) * 4);
     uint32_t nnz = (re - ri_);
     uint32_t idx = 0;
-    float *out;
-    float _cbuf1[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-    out = _cbuf1;
+    float out[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t __anf0 = nnz;
     if (__anf0 >= 128) {
         Kuiper_For_for_loop___102(rows, shared, cols, gA, tid, sh._1, ri);
@@ -8725,13 +7634,10 @@ __global__ static void kuiper_kernel_33(uint32_t *row_indices, uint32_t rows,
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
                 uint32_t __anf1 = k1;
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 32) * 4)) < cols) {
-                    float *lchunk;
-                    float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                    lchunk = _cbuf5;
+                    float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                     vec_memcpy((lchunk + 0),
                         (gB + ((0 + (cols * kr)) +
                                   (n_idx + ((__anf01 * 32) * 4)))));
@@ -8762,15 +7668,6 @@ __global__ static void kuiper_kernel_33(uint32_t *row_indices, uint32_t rows,
             Kuiper_For_for_loop___105(
                 rows, shared, cols, gA, tid, sh._2._1, ri, __anf02_2);
             __syncthreads();
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
             uint32_t k1_1 = 0;
             while (k1_1 < 128) {
                 uint32_t kv_1 = k1_1;
@@ -8778,13 +7675,10 @@ __global__ static void kuiper_kernel_33(uint32_t *row_indices, uint32_t rows,
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 4) {
-                    (void) (k2);
                     uint32_t __anf1_1 = k2;
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 32) * 4)) < cols) {
-                        float *lchunk_1;
-                        float _cbuf11[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                        lchunk_1 = _cbuf11;
+                        float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                         vec_memcpy((lchunk_1 + 0),
                             (gB + ((0 + (cols * kr_1)) +
                                       (n_idx + ((__anf03 * 32) * 4)))));
@@ -8805,28 +7699,15 @@ __global__ static void kuiper_kernel_33(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf03_1 = k1_1;
                 k1_1 = (__anf03_1 + 1);
             }
-            (void) (idx);
             uint32_t __anf03_2 = idx;
             idx = (__anf03_2 + 1);
             uint32_t __anf04_2 = nnz;
             nnz = (__anf04_2 - 128);
         }
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (nnz);
-        (void) (nnz);
-        (void) (idx);
     } else {
         idx = 0;
         nnz = (re - ri);
     }
-    (void) (idx);
     __syncthreads();
     Kuiper_For_for_loop___106(
         rows, shared, cols, gA, tid, sh._1, sh._2._1, re, nnz);
@@ -8838,13 +7719,10 @@ __global__ static void kuiper_kernel_33(uint32_t *row_indices, uint32_t rows,
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 4) {
-            (void) (k1_2);
             uint32_t __anf1_2 = k1_2;
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 32) * 4)) < cols) {
-                float *lchunk_2;
-                float _cbuf16[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                lchunk_2 = _cbuf16;
+                float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 vec_memcpy((lchunk_2 + 0),
                     (gB + ((0 + (cols * kr_2)) +
                               (n_idx + ((__anf02_3 * 32) * 4)))));
@@ -8961,9 +7839,7 @@ __global__ static void kuiper_kernel_34(uint32_t *row_indices, uint32_t rows,
     uint32_t ri_ = ((ri / 4) * 4);
     uint32_t nnz = (re - ri_);
     uint32_t idx = 0;
-    float *out;
-    float _cbuf1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-    out = _cbuf1;
+    float out[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t __anf0 = nnz;
     if (__anf0 >= 256) {
         Kuiper_For_for_loop___108(rows, shared, cols, gA, tid, sh._1, ri);
@@ -8978,13 +7854,10 @@ __global__ static void kuiper_kernel_34(uint32_t *row_indices, uint32_t rows,
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 1) {
-                (void) (k1);
                 uint32_t __anf1 = k1;
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 16) * 4)) < cols) {
-                    float *lchunk;
-                    float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                    lchunk = _cbuf5;
+                    float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                     vec_memcpy((lchunk + 0),
                         (gB + ((0 + (cols * kr)) +
                                   (n_idx + ((__anf01 * 16) * 4)))));
@@ -9015,15 +7888,6 @@ __global__ static void kuiper_kernel_34(uint32_t *row_indices, uint32_t rows,
             Kuiper_For_for_loop___111(
                 rows, shared, cols, gA, tid, sh._2._1, ri, __anf02_2);
             __syncthreads();
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
             uint32_t k1_1 = 0;
             while (k1_1 < 256) {
                 uint32_t kv_1 = k1_1;
@@ -9031,13 +7895,10 @@ __global__ static void kuiper_kernel_34(uint32_t *row_indices, uint32_t rows,
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 1) {
-                    (void) (k2);
                     uint32_t __anf1_1 = k2;
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 16) * 4)) < cols) {
-                        float *lchunk_1;
-                        float _cbuf11[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                        lchunk_1 = _cbuf11;
+                        float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                         vec_memcpy((lchunk_1 + 0),
                             (gB + ((0 + (cols * kr_1)) +
                                       (n_idx + ((__anf03 * 16) * 4)))));
@@ -9058,28 +7919,15 @@ __global__ static void kuiper_kernel_34(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf03_1 = k1_1;
                 k1_1 = (__anf03_1 + 1);
             }
-            (void) (idx);
             uint32_t __anf03_2 = idx;
             idx = (__anf03_2 + 1);
             uint32_t __anf04_2 = nnz;
             nnz = (__anf04_2 - 256);
         }
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (nnz);
-        (void) (nnz);
-        (void) (idx);
     } else {
         idx = 0;
         nnz = (re - ri);
     }
-    (void) (idx);
     __syncthreads();
     Kuiper_For_for_loop___53(
         rows, shared, cols, gA, tid, sh._1, sh._2._1, re, nnz);
@@ -9091,13 +7939,10 @@ __global__ static void kuiper_kernel_34(uint32_t *row_indices, uint32_t rows,
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 1) {
-            (void) (k1_2);
             uint32_t __anf1_2 = k1_2;
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 16) * 4)) < cols) {
-                float *lchunk_2;
-                float _cbuf16[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                lchunk_2 = _cbuf16;
+                float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 vec_memcpy((lchunk_2 + 0),
                     (gB + ((0 + (cols * kr_2)) +
                               (n_idx + ((__anf02_3 * 16) * 4)))));
@@ -9144,9 +7989,7 @@ __global__ static void kuiper_kernel_35(uint32_t *row_indices, uint32_t rows,
     uint32_t ri_ = ((ri / 4) * 4);
     uint32_t nnz = (re - ri_);
     uint32_t idx = 0;
-    float *out;
-    float _cbuf1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-    out = _cbuf1;
+    float out[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t __anf0 = nnz;
     if (__anf0 >= 256) {
         Kuiper_For_for_loop___108(rows, shared, cols, gA, tid, sh._1, ri);
@@ -9161,13 +8004,10 @@ __global__ static void kuiper_kernel_35(uint32_t *row_indices, uint32_t rows,
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 1) {
-                (void) (k1);
                 uint32_t __anf1 = k1;
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 16) * 4)) < cols) {
-                    float *lchunk;
-                    float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                    lchunk = _cbuf5;
+                    float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                     vec_memcpy((lchunk + 0),
                         (gB + ((0 + (cols * kr)) +
                                   (n_idx + ((__anf01 * 16) * 4)))));
@@ -9198,15 +8038,6 @@ __global__ static void kuiper_kernel_35(uint32_t *row_indices, uint32_t rows,
             Kuiper_For_for_loop___111(
                 rows, shared, cols, gA, tid, sh._2._1, ri, __anf02_2);
             __syncthreads();
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
             uint32_t k1_1 = 0;
             while (k1_1 < 256) {
                 uint32_t kv_1 = k1_1;
@@ -9214,13 +8045,10 @@ __global__ static void kuiper_kernel_35(uint32_t *row_indices, uint32_t rows,
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 1) {
-                    (void) (k2);
                     uint32_t __anf1_1 = k2;
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 16) * 4)) < cols) {
-                        float *lchunk_1;
-                        float _cbuf11[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                        lchunk_1 = _cbuf11;
+                        float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                         vec_memcpy((lchunk_1 + 0),
                             (gB + ((0 + (cols * kr_1)) +
                                       (n_idx + ((__anf03 * 16) * 4)))));
@@ -9241,28 +8069,15 @@ __global__ static void kuiper_kernel_35(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf03_1 = k1_1;
                 k1_1 = (__anf03_1 + 1);
             }
-            (void) (idx);
             uint32_t __anf03_2 = idx;
             idx = (__anf03_2 + 1);
             uint32_t __anf04_2 = nnz;
             nnz = (__anf04_2 - 256);
         }
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (nnz);
-        (void) (nnz);
-        (void) (idx);
     } else {
         idx = 0;
         nnz = (re - ri);
     }
-    (void) (idx);
     __syncthreads();
     Kuiper_For_for_loop___53(
         rows, shared, cols, gA, tid, sh._1, sh._2._1, re, nnz);
@@ -9274,13 +8089,10 @@ __global__ static void kuiper_kernel_35(uint32_t *row_indices, uint32_t rows,
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 1) {
-            (void) (k1_2);
             uint32_t __anf1_2 = k1_2;
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 16) * 4)) < cols) {
-                float *lchunk_2;
-                float _cbuf16[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                lchunk_2 = _cbuf16;
+                float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 vec_memcpy((lchunk_2 + 0),
                     (gB + ((0 + (cols * kr_2)) +
                               (n_idx + ((__anf02_3 * 16) * 4)))));
@@ -9397,9 +8209,7 @@ __global__ static void kuiper_kernel_36(uint32_t *row_indices, uint32_t rows,
     uint32_t ri_ = ((ri / 4) * 4);
     uint32_t nnz = (re - ri_);
     uint32_t idx = 0;
-    float *out;
-    float _cbuf1[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-    out = _cbuf1;
+    float out[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t __anf0 = nnz;
     if (__anf0 >= 256) {
         Kuiper_For_for_loop___112(rows, shared, cols, gA, tid, sh._1, ri);
@@ -9414,13 +8224,10 @@ __global__ static void kuiper_kernel_36(uint32_t *row_indices, uint32_t rows,
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 2) {
-                (void) (k1);
                 uint32_t __anf1 = k1;
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 16) * 4)) < cols) {
-                    float *lchunk;
-                    float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                    lchunk = _cbuf5;
+                    float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                     vec_memcpy((lchunk + 0),
                         (gB + ((0 + (cols * kr)) +
                                   (n_idx + ((__anf01 * 16) * 4)))));
@@ -9451,15 +8258,6 @@ __global__ static void kuiper_kernel_36(uint32_t *row_indices, uint32_t rows,
             Kuiper_For_for_loop___115(
                 rows, shared, cols, gA, tid, sh._2._1, ri, __anf02_2);
             __syncthreads();
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
             uint32_t k1_1 = 0;
             while (k1_1 < 256) {
                 uint32_t kv_1 = k1_1;
@@ -9467,13 +8265,10 @@ __global__ static void kuiper_kernel_36(uint32_t *row_indices, uint32_t rows,
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 2) {
-                    (void) (k2);
                     uint32_t __anf1_1 = k2;
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 16) * 4)) < cols) {
-                        float *lchunk_1;
-                        float _cbuf11[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                        lchunk_1 = _cbuf11;
+                        float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                         vec_memcpy((lchunk_1 + 0),
                             (gB + ((0 + (cols * kr_1)) +
                                       (n_idx + ((__anf03 * 16) * 4)))));
@@ -9494,28 +8289,15 @@ __global__ static void kuiper_kernel_36(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf03_1 = k1_1;
                 k1_1 = (__anf03_1 + 1);
             }
-            (void) (idx);
             uint32_t __anf03_2 = idx;
             idx = (__anf03_2 + 1);
             uint32_t __anf04_2 = nnz;
             nnz = (__anf04_2 - 256);
         }
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (nnz);
-        (void) (nnz);
-        (void) (idx);
     } else {
         idx = 0;
         nnz = (re - ri);
     }
-    (void) (idx);
     __syncthreads();
     Kuiper_For_for_loop___59(
         rows, shared, cols, gA, tid, sh._1, sh._2._1, re, nnz);
@@ -9527,13 +8309,10 @@ __global__ static void kuiper_kernel_36(uint32_t *row_indices, uint32_t rows,
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 2) {
-            (void) (k1_2);
             uint32_t __anf1_2 = k1_2;
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 16) * 4)) < cols) {
-                float *lchunk_2;
-                float _cbuf16[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                lchunk_2 = _cbuf16;
+                float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 vec_memcpy((lchunk_2 + 0),
                     (gB + ((0 + (cols * kr_2)) +
                               (n_idx + ((__anf02_3 * 16) * 4)))));
@@ -9580,9 +8359,7 @@ __global__ static void kuiper_kernel_37(uint32_t *row_indices, uint32_t rows,
     uint32_t ri_ = ((ri / 4) * 4);
     uint32_t nnz = (re - ri_);
     uint32_t idx = 0;
-    float *out;
-    float _cbuf1[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-    out = _cbuf1;
+    float out[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t __anf0 = nnz;
     if (__anf0 >= 256) {
         Kuiper_For_for_loop___112(rows, shared, cols, gA, tid, sh._1, ri);
@@ -9597,13 +8374,10 @@ __global__ static void kuiper_kernel_37(uint32_t *row_indices, uint32_t rows,
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 2) {
-                (void) (k1);
                 uint32_t __anf1 = k1;
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 16) * 4)) < cols) {
-                    float *lchunk;
-                    float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                    lchunk = _cbuf5;
+                    float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                     vec_memcpy((lchunk + 0),
                         (gB + ((0 + (cols * kr)) +
                                   (n_idx + ((__anf01 * 16) * 4)))));
@@ -9634,15 +8408,6 @@ __global__ static void kuiper_kernel_37(uint32_t *row_indices, uint32_t rows,
             Kuiper_For_for_loop___115(
                 rows, shared, cols, gA, tid, sh._2._1, ri, __anf02_2);
             __syncthreads();
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
             uint32_t k1_1 = 0;
             while (k1_1 < 256) {
                 uint32_t kv_1 = k1_1;
@@ -9650,13 +8415,10 @@ __global__ static void kuiper_kernel_37(uint32_t *row_indices, uint32_t rows,
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 2) {
-                    (void) (k2);
                     uint32_t __anf1_1 = k2;
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 16) * 4)) < cols) {
-                        float *lchunk_1;
-                        float _cbuf11[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                        lchunk_1 = _cbuf11;
+                        float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                         vec_memcpy((lchunk_1 + 0),
                             (gB + ((0 + (cols * kr_1)) +
                                       (n_idx + ((__anf03 * 16) * 4)))));
@@ -9677,28 +8439,15 @@ __global__ static void kuiper_kernel_37(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf03_1 = k1_1;
                 k1_1 = (__anf03_1 + 1);
             }
-            (void) (idx);
             uint32_t __anf03_2 = idx;
             idx = (__anf03_2 + 1);
             uint32_t __anf04_2 = nnz;
             nnz = (__anf04_2 - 256);
         }
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (nnz);
-        (void) (nnz);
-        (void) (idx);
     } else {
         idx = 0;
         nnz = (re - ri);
     }
-    (void) (idx);
     __syncthreads();
     Kuiper_For_for_loop___59(
         rows, shared, cols, gA, tid, sh._1, sh._2._1, re, nnz);
@@ -9710,13 +8459,10 @@ __global__ static void kuiper_kernel_37(uint32_t *row_indices, uint32_t rows,
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 2) {
-            (void) (k1_2);
             uint32_t __anf1_2 = k1_2;
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 16) * 4)) < cols) {
-                float *lchunk_2;
-                float _cbuf16[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                lchunk_2 = _cbuf16;
+                float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 vec_memcpy((lchunk_2 + 0),
                     (gB + ((0 + (cols * kr_2)) +
                               (n_idx + ((__anf02_3 * 16) * 4)))));
@@ -9833,9 +8579,7 @@ __global__ static void kuiper_kernel_38(uint32_t *row_indices, uint32_t rows,
     uint32_t ri_ = ((ri / 4) * 4);
     uint32_t nnz = (re - ri_);
     uint32_t idx = 0;
-    float *out;
-    float _cbuf1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-    out = _cbuf1;
+    float out[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t __anf0 = nnz;
     if (__anf0 >= 256) {
         Kuiper_For_for_loop___116(rows, shared, cols, gA, tid, sh._1, ri);
@@ -9850,13 +8594,10 @@ __global__ static void kuiper_kernel_38(uint32_t *row_indices, uint32_t rows,
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 1) {
-                (void) (k1);
                 uint32_t __anf1 = k1;
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 32) * 4)) < cols) {
-                    float *lchunk;
-                    float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                    lchunk = _cbuf5;
+                    float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                     vec_memcpy((lchunk + 0),
                         (gB + ((0 + (cols * kr)) +
                                   (n_idx + ((__anf01 * 32) * 4)))));
@@ -9887,15 +8628,6 @@ __global__ static void kuiper_kernel_38(uint32_t *row_indices, uint32_t rows,
             Kuiper_For_for_loop___119(
                 rows, shared, cols, gA, tid, sh._2._1, ri, __anf02_2);
             __syncthreads();
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
             uint32_t k1_1 = 0;
             while (k1_1 < 256) {
                 uint32_t kv_1 = k1_1;
@@ -9903,13 +8635,10 @@ __global__ static void kuiper_kernel_38(uint32_t *row_indices, uint32_t rows,
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 1) {
-                    (void) (k2);
                     uint32_t __anf1_1 = k2;
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 32) * 4)) < cols) {
-                        float *lchunk_1;
-                        float _cbuf11[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                        lchunk_1 = _cbuf11;
+                        float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                         vec_memcpy((lchunk_1 + 0),
                             (gB + ((0 + (cols * kr_1)) +
                                       (n_idx + ((__anf03 * 32) * 4)))));
@@ -9930,28 +8659,15 @@ __global__ static void kuiper_kernel_38(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf03_1 = k1_1;
                 k1_1 = (__anf03_1 + 1);
             }
-            (void) (idx);
             uint32_t __anf03_2 = idx;
             idx = (__anf03_2 + 1);
             uint32_t __anf04_2 = nnz;
             nnz = (__anf04_2 - 256);
         }
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (nnz);
-        (void) (nnz);
-        (void) (idx);
     } else {
         idx = 0;
         nnz = (re - ri);
     }
-    (void) (idx);
     __syncthreads();
     Kuiper_For_for_loop___86(
         rows, shared, cols, gA, tid, sh._1, sh._2._1, re, nnz);
@@ -9963,13 +8679,10 @@ __global__ static void kuiper_kernel_38(uint32_t *row_indices, uint32_t rows,
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 1) {
-            (void) (k1_2);
             uint32_t __anf1_2 = k1_2;
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 32) * 4)) < cols) {
-                float *lchunk_2;
-                float _cbuf16[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                lchunk_2 = _cbuf16;
+                float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 vec_memcpy((lchunk_2 + 0),
                     (gB + ((0 + (cols * kr_2)) +
                               (n_idx + ((__anf02_3 * 32) * 4)))));
@@ -10016,9 +8729,7 @@ __global__ static void kuiper_kernel_39(uint32_t *row_indices, uint32_t rows,
     uint32_t ri_ = ((ri / 4) * 4);
     uint32_t nnz = (re - ri_);
     uint32_t idx = 0;
-    float *out;
-    float _cbuf1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-    out = _cbuf1;
+    float out[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t __anf0 = nnz;
     if (__anf0 >= 256) {
         Kuiper_For_for_loop___116(rows, shared, cols, gA, tid, sh._1, ri);
@@ -10033,13 +8744,10 @@ __global__ static void kuiper_kernel_39(uint32_t *row_indices, uint32_t rows,
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 1) {
-                (void) (k1);
                 uint32_t __anf1 = k1;
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 32) * 4)) < cols) {
-                    float *lchunk;
-                    float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                    lchunk = _cbuf5;
+                    float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                     vec_memcpy((lchunk + 0),
                         (gB + ((0 + (cols * kr)) +
                                   (n_idx + ((__anf01 * 32) * 4)))));
@@ -10070,15 +8778,6 @@ __global__ static void kuiper_kernel_39(uint32_t *row_indices, uint32_t rows,
             Kuiper_For_for_loop___119(
                 rows, shared, cols, gA, tid, sh._2._1, ri, __anf02_2);
             __syncthreads();
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
             uint32_t k1_1 = 0;
             while (k1_1 < 256) {
                 uint32_t kv_1 = k1_1;
@@ -10086,13 +8785,10 @@ __global__ static void kuiper_kernel_39(uint32_t *row_indices, uint32_t rows,
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 1) {
-                    (void) (k2);
                     uint32_t __anf1_1 = k2;
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 32) * 4)) < cols) {
-                        float *lchunk_1;
-                        float _cbuf11[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                        lchunk_1 = _cbuf11;
+                        float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                         vec_memcpy((lchunk_1 + 0),
                             (gB + ((0 + (cols * kr_1)) +
                                       (n_idx + ((__anf03 * 32) * 4)))));
@@ -10113,28 +8809,15 @@ __global__ static void kuiper_kernel_39(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf03_1 = k1_1;
                 k1_1 = (__anf03_1 + 1);
             }
-            (void) (idx);
             uint32_t __anf03_2 = idx;
             idx = (__anf03_2 + 1);
             uint32_t __anf04_2 = nnz;
             nnz = (__anf04_2 - 256);
         }
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (nnz);
-        (void) (nnz);
-        (void) (idx);
     } else {
         idx = 0;
         nnz = (re - ri);
     }
-    (void) (idx);
     __syncthreads();
     Kuiper_For_for_loop___86(
         rows, shared, cols, gA, tid, sh._1, sh._2._1, re, nnz);
@@ -10146,13 +8829,10 @@ __global__ static void kuiper_kernel_39(uint32_t *row_indices, uint32_t rows,
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 1) {
-            (void) (k1_2);
             uint32_t __anf1_2 = k1_2;
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 32) * 4)) < cols) {
-                float *lchunk_2;
-                float _cbuf16[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                lchunk_2 = _cbuf16;
+                float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 vec_memcpy((lchunk_2 + 0),
                     (gB + ((0 + (cols * kr_2)) +
                               (n_idx + ((__anf02_3 * 32) * 4)))));
@@ -10269,10 +8949,8 @@ __global__ static void kuiper_kernel_40(uint32_t *row_indices, uint32_t rows,
     uint32_t ri_ = ((ri / 4) * 4);
     uint32_t nnz = (re - ri_);
     uint32_t idx = 0;
-    float *out;
-    float _cbuf1[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-    out = _cbuf1;
+    float out[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t __anf0 = nnz;
     if (__anf0 >= 256) {
         Kuiper_For_for_loop___120(rows, shared, cols, gA, tid, sh._1, ri);
@@ -10287,13 +8965,10 @@ __global__ static void kuiper_kernel_40(uint32_t *row_indices, uint32_t rows,
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
                 uint32_t __anf1 = k1;
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 16) * 4)) < cols) {
-                    float *lchunk;
-                    float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                    lchunk = _cbuf5;
+                    float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                     vec_memcpy((lchunk + 0),
                         (gB + ((0 + (cols * kr)) +
                                   (n_idx + ((__anf01 * 16) * 4)))));
@@ -10324,15 +8999,6 @@ __global__ static void kuiper_kernel_40(uint32_t *row_indices, uint32_t rows,
             Kuiper_For_for_loop___123(
                 rows, shared, cols, gA, tid, sh._2._1, ri, __anf02_2);
             __syncthreads();
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
             uint32_t k1_1 = 0;
             while (k1_1 < 256) {
                 uint32_t kv_1 = k1_1;
@@ -10340,13 +9006,10 @@ __global__ static void kuiper_kernel_40(uint32_t *row_indices, uint32_t rows,
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 4) {
-                    (void) (k2);
                     uint32_t __anf1_1 = k2;
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 16) * 4)) < cols) {
-                        float *lchunk_1;
-                        float _cbuf11[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                        lchunk_1 = _cbuf11;
+                        float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                         vec_memcpy((lchunk_1 + 0),
                             (gB + ((0 + (cols * kr_1)) +
                                       (n_idx + ((__anf03 * 16) * 4)))));
@@ -10367,28 +9030,15 @@ __global__ static void kuiper_kernel_40(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf03_1 = k1_1;
                 k1_1 = (__anf03_1 + 1);
             }
-            (void) (idx);
             uint32_t __anf03_2 = idx;
             idx = (__anf03_2 + 1);
             uint32_t __anf04_2 = nnz;
             nnz = (__anf04_2 - 256);
         }
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (nnz);
-        (void) (nnz);
-        (void) (idx);
     } else {
         idx = 0;
         nnz = (re - ri);
     }
-    (void) (idx);
     __syncthreads();
     Kuiper_For_for_loop___65(
         rows, shared, cols, gA, tid, sh._1, sh._2._1, re, nnz);
@@ -10400,13 +9050,10 @@ __global__ static void kuiper_kernel_40(uint32_t *row_indices, uint32_t rows,
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 4) {
-            (void) (k1_2);
             uint32_t __anf1_2 = k1_2;
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 16) * 4)) < cols) {
-                float *lchunk_2;
-                float _cbuf16[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                lchunk_2 = _cbuf16;
+                float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 vec_memcpy((lchunk_2 + 0),
                     (gB + ((0 + (cols * kr_2)) +
                               (n_idx + ((__anf02_3 * 16) * 4)))));
@@ -10453,10 +9100,8 @@ __global__ static void kuiper_kernel_41(uint32_t *row_indices, uint32_t rows,
     uint32_t ri_ = ((ri / 4) * 4);
     uint32_t nnz = (re - ri_);
     uint32_t idx = 0;
-    float *out;
-    float _cbuf1[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-    out = _cbuf1;
+    float out[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t __anf0 = nnz;
     if (__anf0 >= 256) {
         Kuiper_For_for_loop___120(rows, shared, cols, gA, tid, sh._1, ri);
@@ -10471,13 +9116,10 @@ __global__ static void kuiper_kernel_41(uint32_t *row_indices, uint32_t rows,
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
                 uint32_t __anf1 = k1;
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 16) * 4)) < cols) {
-                    float *lchunk;
-                    float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                    lchunk = _cbuf5;
+                    float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                     vec_memcpy((lchunk + 0),
                         (gB + ((0 + (cols * kr)) +
                                   (n_idx + ((__anf01 * 16) * 4)))));
@@ -10508,15 +9150,6 @@ __global__ static void kuiper_kernel_41(uint32_t *row_indices, uint32_t rows,
             Kuiper_For_for_loop___123(
                 rows, shared, cols, gA, tid, sh._2._1, ri, __anf02_2);
             __syncthreads();
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
             uint32_t k1_1 = 0;
             while (k1_1 < 256) {
                 uint32_t kv_1 = k1_1;
@@ -10524,13 +9157,10 @@ __global__ static void kuiper_kernel_41(uint32_t *row_indices, uint32_t rows,
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 4) {
-                    (void) (k2);
                     uint32_t __anf1_1 = k2;
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 16) * 4)) < cols) {
-                        float *lchunk_1;
-                        float _cbuf11[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                        lchunk_1 = _cbuf11;
+                        float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                         vec_memcpy((lchunk_1 + 0),
                             (gB + ((0 + (cols * kr_1)) +
                                       (n_idx + ((__anf03 * 16) * 4)))));
@@ -10551,28 +9181,15 @@ __global__ static void kuiper_kernel_41(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf03_1 = k1_1;
                 k1_1 = (__anf03_1 + 1);
             }
-            (void) (idx);
             uint32_t __anf03_2 = idx;
             idx = (__anf03_2 + 1);
             uint32_t __anf04_2 = nnz;
             nnz = (__anf04_2 - 256);
         }
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (nnz);
-        (void) (nnz);
-        (void) (idx);
     } else {
         idx = 0;
         nnz = (re - ri);
     }
-    (void) (idx);
     __syncthreads();
     Kuiper_For_for_loop___65(
         rows, shared, cols, gA, tid, sh._1, sh._2._1, re, nnz);
@@ -10584,13 +9201,10 @@ __global__ static void kuiper_kernel_41(uint32_t *row_indices, uint32_t rows,
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 4) {
-            (void) (k1_2);
             uint32_t __anf1_2 = k1_2;
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 16) * 4)) < cols) {
-                float *lchunk_2;
-                float _cbuf16[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                lchunk_2 = _cbuf16;
+                float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 vec_memcpy((lchunk_2 + 0),
                     (gB + ((0 + (cols * kr_2)) +
                               (n_idx + ((__anf02_3 * 16) * 4)))));
@@ -10707,9 +9321,7 @@ __global__ static void kuiper_kernel_42(uint32_t *row_indices, uint32_t rows,
     uint32_t ri_ = ((ri / 4) * 4);
     uint32_t nnz = (re - ri_);
     uint32_t idx = 0;
-    float *out;
-    float _cbuf1[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-    out = _cbuf1;
+    float out[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t __anf0 = nnz;
     if (__anf0 >= 256) {
         Kuiper_For_for_loop___124(rows, shared, cols, gA, tid, sh._1, ri);
@@ -10724,13 +9336,10 @@ __global__ static void kuiper_kernel_42(uint32_t *row_indices, uint32_t rows,
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 2) {
-                (void) (k1);
                 uint32_t __anf1 = k1;
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 32) * 4)) < cols) {
-                    float *lchunk;
-                    float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                    lchunk = _cbuf5;
+                    float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                     vec_memcpy((lchunk + 0),
                         (gB + ((0 + (cols * kr)) +
                                   (n_idx + ((__anf01 * 32) * 4)))));
@@ -10761,15 +9370,6 @@ __global__ static void kuiper_kernel_42(uint32_t *row_indices, uint32_t rows,
             Kuiper_For_for_loop___127(
                 rows, shared, cols, gA, tid, sh._2._1, ri, __anf02_2);
             __syncthreads();
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
             uint32_t k1_1 = 0;
             while (k1_1 < 256) {
                 uint32_t kv_1 = k1_1;
@@ -10777,13 +9377,10 @@ __global__ static void kuiper_kernel_42(uint32_t *row_indices, uint32_t rows,
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 2) {
-                    (void) (k2);
                     uint32_t __anf1_1 = k2;
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 32) * 4)) < cols) {
-                        float *lchunk_1;
-                        float _cbuf11[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                        lchunk_1 = _cbuf11;
+                        float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                         vec_memcpy((lchunk_1 + 0),
                             (gB + ((0 + (cols * kr_1)) +
                                       (n_idx + ((__anf03 * 32) * 4)))));
@@ -10804,28 +9401,15 @@ __global__ static void kuiper_kernel_42(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf03_1 = k1_1;
                 k1_1 = (__anf03_1 + 1);
             }
-            (void) (idx);
             uint32_t __anf03_2 = idx;
             idx = (__anf03_2 + 1);
             uint32_t __anf04_2 = nnz;
             nnz = (__anf04_2 - 256);
         }
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (nnz);
-        (void) (nnz);
-        (void) (idx);
     } else {
         idx = 0;
         nnz = (re - ri);
     }
-    (void) (idx);
     __syncthreads();
     Kuiper_For_for_loop___96(
         rows, shared, cols, gA, tid, sh._1, sh._2._1, re, nnz);
@@ -10837,13 +9421,10 @@ __global__ static void kuiper_kernel_42(uint32_t *row_indices, uint32_t rows,
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 2) {
-            (void) (k1_2);
             uint32_t __anf1_2 = k1_2;
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 32) * 4)) < cols) {
-                float *lchunk_2;
-                float _cbuf16[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                lchunk_2 = _cbuf16;
+                float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 vec_memcpy((lchunk_2 + 0),
                     (gB + ((0 + (cols * kr_2)) +
                               (n_idx + ((__anf02_3 * 32) * 4)))));
@@ -10890,9 +9471,7 @@ __global__ static void kuiper_kernel_43(uint32_t *row_indices, uint32_t rows,
     uint32_t ri_ = ((ri / 4) * 4);
     uint32_t nnz = (re - ri_);
     uint32_t idx = 0;
-    float *out;
-    float _cbuf1[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-    out = _cbuf1;
+    float out[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t __anf0 = nnz;
     if (__anf0 >= 256) {
         Kuiper_For_for_loop___124(rows, shared, cols, gA, tid, sh._1, ri);
@@ -10907,13 +9486,10 @@ __global__ static void kuiper_kernel_43(uint32_t *row_indices, uint32_t rows,
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 2) {
-                (void) (k1);
                 uint32_t __anf1 = k1;
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 32) * 4)) < cols) {
-                    float *lchunk;
-                    float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                    lchunk = _cbuf5;
+                    float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                     vec_memcpy((lchunk + 0),
                         (gB + ((0 + (cols * kr)) +
                                   (n_idx + ((__anf01 * 32) * 4)))));
@@ -10944,15 +9520,6 @@ __global__ static void kuiper_kernel_43(uint32_t *row_indices, uint32_t rows,
             Kuiper_For_for_loop___127(
                 rows, shared, cols, gA, tid, sh._2._1, ri, __anf02_2);
             __syncthreads();
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
             uint32_t k1_1 = 0;
             while (k1_1 < 256) {
                 uint32_t kv_1 = k1_1;
@@ -10960,13 +9527,10 @@ __global__ static void kuiper_kernel_43(uint32_t *row_indices, uint32_t rows,
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 2) {
-                    (void) (k2);
                     uint32_t __anf1_1 = k2;
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 32) * 4)) < cols) {
-                        float *lchunk_1;
-                        float _cbuf11[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                        lchunk_1 = _cbuf11;
+                        float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                         vec_memcpy((lchunk_1 + 0),
                             (gB + ((0 + (cols * kr_1)) +
                                       (n_idx + ((__anf03 * 32) * 4)))));
@@ -10987,28 +9551,15 @@ __global__ static void kuiper_kernel_43(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf03_1 = k1_1;
                 k1_1 = (__anf03_1 + 1);
             }
-            (void) (idx);
             uint32_t __anf03_2 = idx;
             idx = (__anf03_2 + 1);
             uint32_t __anf04_2 = nnz;
             nnz = (__anf04_2 - 256);
         }
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (nnz);
-        (void) (nnz);
-        (void) (idx);
     } else {
         idx = 0;
         nnz = (re - ri);
     }
-    (void) (idx);
     __syncthreads();
     Kuiper_For_for_loop___96(
         rows, shared, cols, gA, tid, sh._1, sh._2._1, re, nnz);
@@ -11020,13 +9571,10 @@ __global__ static void kuiper_kernel_43(uint32_t *row_indices, uint32_t rows,
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 2) {
-            (void) (k1_2);
             uint32_t __anf1_2 = k1_2;
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 32) * 4)) < cols) {
-                float *lchunk_2;
-                float _cbuf16[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                lchunk_2 = _cbuf16;
+                float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 vec_memcpy((lchunk_2 + 0),
                     (gB + ((0 + (cols * kr_2)) +
                               (n_idx + ((__anf02_3 * 32) * 4)))));
@@ -11181,9 +9729,7 @@ __global__ static void kuiper_kernel_44(uint32_t *row_indices, uint32_t rows,
     uint32_t ri_ = ((ri / 4) * 4);
     uint32_t nnz = (re - ri_);
     uint32_t idx = 0;
-    float *out;
-    float _cbuf1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-    out = _cbuf1;
+    float out[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t __anf0 = nnz;
     if (__anf0 >= 256) {
         Kuiper_For_for_loop___128(rows, shared, cols, gA, tid, sh._1, ri);
@@ -11198,13 +9744,10 @@ __global__ static void kuiper_kernel_44(uint32_t *row_indices, uint32_t rows,
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 1) {
-                (void) (k1);
                 uint32_t __anf1 = k1;
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 64) * 4)) < cols) {
-                    float *lchunk;
-                    float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                    lchunk = _cbuf5;
+                    float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                     vec_memcpy((lchunk + 0),
                         (gB + ((0 + (cols * kr)) +
                                   (n_idx + ((__anf01 * 64) * 4)))));
@@ -11235,15 +9778,6 @@ __global__ static void kuiper_kernel_44(uint32_t *row_indices, uint32_t rows,
             Kuiper_For_for_loop___131(
                 rows, shared, cols, gA, tid, sh._2._1, ri, __anf02_2);
             __syncthreads();
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
             uint32_t k1_1 = 0;
             while (k1_1 < 256) {
                 uint32_t kv_1 = k1_1;
@@ -11251,13 +9785,10 @@ __global__ static void kuiper_kernel_44(uint32_t *row_indices, uint32_t rows,
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 1) {
-                    (void) (k2);
                     uint32_t __anf1_1 = k2;
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 64) * 4)) < cols) {
-                        float *lchunk_1;
-                        float _cbuf11[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                        lchunk_1 = _cbuf11;
+                        float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                         vec_memcpy((lchunk_1 + 0),
                             (gB + ((0 + (cols * kr_1)) +
                                       (n_idx + ((__anf03 * 64) * 4)))));
@@ -11278,28 +9809,15 @@ __global__ static void kuiper_kernel_44(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf03_1 = k1_1;
                 k1_1 = (__anf03_1 + 1);
             }
-            (void) (idx);
             uint32_t __anf03_2 = idx;
             idx = (__anf03_2 + 1);
             uint32_t __anf04_2 = nnz;
             nnz = (__anf04_2 - 256);
         }
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (nnz);
-        (void) (nnz);
-        (void) (idx);
     } else {
         idx = 0;
         nnz = (re - ri);
     }
-    (void) (idx);
     __syncthreads();
     Kuiper_For_for_loop___132(
         rows, shared, cols, gA, tid, sh._1, sh._2._1, re, nnz);
@@ -11311,13 +9829,10 @@ __global__ static void kuiper_kernel_44(uint32_t *row_indices, uint32_t rows,
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 1) {
-            (void) (k1_2);
             uint32_t __anf1_2 = k1_2;
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 64) * 4)) < cols) {
-                float *lchunk_2;
-                float _cbuf16[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                lchunk_2 = _cbuf16;
+                float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 vec_memcpy((lchunk_2 + 0),
                     (gB + ((0 + (cols * kr_2)) +
                               (n_idx + ((__anf02_3 * 64) * 4)))));
@@ -11364,9 +9879,7 @@ __global__ static void kuiper_kernel_45(uint32_t *row_indices, uint32_t rows,
     uint32_t ri_ = ((ri / 4) * 4);
     uint32_t nnz = (re - ri_);
     uint32_t idx = 0;
-    float *out;
-    float _cbuf1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-    out = _cbuf1;
+    float out[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t __anf0 = nnz;
     if (__anf0 >= 256) {
         Kuiper_For_for_loop___128(rows, shared, cols, gA, tid, sh._1, ri);
@@ -11381,13 +9894,10 @@ __global__ static void kuiper_kernel_45(uint32_t *row_indices, uint32_t rows,
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 1) {
-                (void) (k1);
                 uint32_t __anf1 = k1;
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 64) * 4)) < cols) {
-                    float *lchunk;
-                    float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                    lchunk = _cbuf5;
+                    float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                     vec_memcpy((lchunk + 0),
                         (gB + ((0 + (cols * kr)) +
                                   (n_idx + ((__anf01 * 64) * 4)))));
@@ -11418,15 +9928,6 @@ __global__ static void kuiper_kernel_45(uint32_t *row_indices, uint32_t rows,
             Kuiper_For_for_loop___131(
                 rows, shared, cols, gA, tid, sh._2._1, ri, __anf02_2);
             __syncthreads();
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
             uint32_t k1_1 = 0;
             while (k1_1 < 256) {
                 uint32_t kv_1 = k1_1;
@@ -11434,13 +9935,10 @@ __global__ static void kuiper_kernel_45(uint32_t *row_indices, uint32_t rows,
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 1) {
-                    (void) (k2);
                     uint32_t __anf1_1 = k2;
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 64) * 4)) < cols) {
-                        float *lchunk_1;
-                        float _cbuf11[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                        lchunk_1 = _cbuf11;
+                        float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                         vec_memcpy((lchunk_1 + 0),
                             (gB + ((0 + (cols * kr_1)) +
                                       (n_idx + ((__anf03 * 64) * 4)))));
@@ -11461,28 +9959,15 @@ __global__ static void kuiper_kernel_45(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf03_1 = k1_1;
                 k1_1 = (__anf03_1 + 1);
             }
-            (void) (idx);
             uint32_t __anf03_2 = idx;
             idx = (__anf03_2 + 1);
             uint32_t __anf04_2 = nnz;
             nnz = (__anf04_2 - 256);
         }
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (nnz);
-        (void) (nnz);
-        (void) (idx);
     } else {
         idx = 0;
         nnz = (re - ri);
     }
-    (void) (idx);
     __syncthreads();
     Kuiper_For_for_loop___132(
         rows, shared, cols, gA, tid, sh._1, sh._2._1, re, nnz);
@@ -11494,13 +9979,10 @@ __global__ static void kuiper_kernel_45(uint32_t *row_indices, uint32_t rows,
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 1) {
-            (void) (k1_2);
             uint32_t __anf1_2 = k1_2;
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 64) * 4)) < cols) {
-                float *lchunk_2;
-                float _cbuf16[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                lchunk_2 = _cbuf16;
+                float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 vec_memcpy((lchunk_2 + 0),
                     (gB + ((0 + (cols * kr_2)) +
                               (n_idx + ((__anf02_3 * 64) * 4)))));
@@ -11617,11 +10099,9 @@ __global__ static void kuiper_kernel_46(uint32_t *row_indices, uint32_t rows,
     uint32_t ri_ = ((ri / 4) * 4);
     uint32_t nnz = (re - ri_);
     uint32_t idx = 0;
-    float *out;
-    float _cbuf1[32] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+    float out[32] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-    out = _cbuf1;
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t __anf0 = nnz;
     if (__anf0 >= 256) {
         Kuiper_For_for_loop___134(rows, shared, cols, gA, tid, sh._1, ri);
@@ -11636,13 +10116,10 @@ __global__ static void kuiper_kernel_46(uint32_t *row_indices, uint32_t rows,
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
                 uint32_t __anf1 = k1;
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 16) * 4)) < cols) {
-                    float *lchunk;
-                    float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                    lchunk = _cbuf5;
+                    float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                     vec_memcpy((lchunk + 0),
                         (gB + ((0 + (cols * kr)) +
                                   (n_idx + ((__anf01 * 16) * 4)))));
@@ -11673,15 +10150,6 @@ __global__ static void kuiper_kernel_46(uint32_t *row_indices, uint32_t rows,
             Kuiper_For_for_loop___137(
                 rows, shared, cols, gA, tid, sh._2._1, ri, __anf02_2);
             __syncthreads();
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
             uint32_t k1_1 = 0;
             while (k1_1 < 256) {
                 uint32_t kv_1 = k1_1;
@@ -11689,13 +10157,10 @@ __global__ static void kuiper_kernel_46(uint32_t *row_indices, uint32_t rows,
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 8) {
-                    (void) (k2);
                     uint32_t __anf1_1 = k2;
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 16) * 4)) < cols) {
-                        float *lchunk_1;
-                        float _cbuf11[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                        lchunk_1 = _cbuf11;
+                        float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                         vec_memcpy((lchunk_1 + 0),
                             (gB + ((0 + (cols * kr_1)) +
                                       (n_idx + ((__anf03 * 16) * 4)))));
@@ -11716,28 +10181,15 @@ __global__ static void kuiper_kernel_46(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf03_1 = k1_1;
                 k1_1 = (__anf03_1 + 1);
             }
-            (void) (idx);
             uint32_t __anf03_2 = idx;
             idx = (__anf03_2 + 1);
             uint32_t __anf04_2 = nnz;
             nnz = (__anf04_2 - 256);
         }
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (nnz);
-        (void) (nnz);
-        (void) (idx);
     } else {
         idx = 0;
         nnz = (re - ri);
     }
-    (void) (idx);
     __syncthreads();
     Kuiper_For_for_loop___71(
         rows, shared, cols, gA, tid, sh._1, sh._2._1, re, nnz);
@@ -11749,13 +10201,10 @@ __global__ static void kuiper_kernel_46(uint32_t *row_indices, uint32_t rows,
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 8) {
-            (void) (k1_2);
             uint32_t __anf1_2 = k1_2;
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 16) * 4)) < cols) {
-                float *lchunk_2;
-                float _cbuf16[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                lchunk_2 = _cbuf16;
+                float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 vec_memcpy((lchunk_2 + 0),
                     (gB + ((0 + (cols * kr_2)) +
                               (n_idx + ((__anf02_3 * 16) * 4)))));
@@ -11802,11 +10251,9 @@ __global__ static void kuiper_kernel_47(uint32_t *row_indices, uint32_t rows,
     uint32_t ri_ = ((ri / 4) * 4);
     uint32_t nnz = (re - ri_);
     uint32_t idx = 0;
-    float *out;
-    float _cbuf1[32] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+    float out[32] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-    out = _cbuf1;
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t __anf0 = nnz;
     if (__anf0 >= 256) {
         Kuiper_For_for_loop___134(rows, shared, cols, gA, tid, sh._1, ri);
@@ -11821,13 +10268,10 @@ __global__ static void kuiper_kernel_47(uint32_t *row_indices, uint32_t rows,
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
                 uint32_t __anf1 = k1;
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 16) * 4)) < cols) {
-                    float *lchunk;
-                    float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                    lchunk = _cbuf5;
+                    float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                     vec_memcpy((lchunk + 0),
                         (gB + ((0 + (cols * kr)) +
                                   (n_idx + ((__anf01 * 16) * 4)))));
@@ -11858,15 +10302,6 @@ __global__ static void kuiper_kernel_47(uint32_t *row_indices, uint32_t rows,
             Kuiper_For_for_loop___137(
                 rows, shared, cols, gA, tid, sh._2._1, ri, __anf02_2);
             __syncthreads();
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
             uint32_t k1_1 = 0;
             while (k1_1 < 256) {
                 uint32_t kv_1 = k1_1;
@@ -11874,13 +10309,10 @@ __global__ static void kuiper_kernel_47(uint32_t *row_indices, uint32_t rows,
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 8) {
-                    (void) (k2);
                     uint32_t __anf1_1 = k2;
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 16) * 4)) < cols) {
-                        float *lchunk_1;
-                        float _cbuf11[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                        lchunk_1 = _cbuf11;
+                        float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                         vec_memcpy((lchunk_1 + 0),
                             (gB + ((0 + (cols * kr_1)) +
                                       (n_idx + ((__anf03 * 16) * 4)))));
@@ -11901,28 +10333,15 @@ __global__ static void kuiper_kernel_47(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf03_1 = k1_1;
                 k1_1 = (__anf03_1 + 1);
             }
-            (void) (idx);
             uint32_t __anf03_2 = idx;
             idx = (__anf03_2 + 1);
             uint32_t __anf04_2 = nnz;
             nnz = (__anf04_2 - 256);
         }
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (nnz);
-        (void) (nnz);
-        (void) (idx);
     } else {
         idx = 0;
         nnz = (re - ri);
     }
-    (void) (idx);
     __syncthreads();
     Kuiper_For_for_loop___71(
         rows, shared, cols, gA, tid, sh._1, sh._2._1, re, nnz);
@@ -11934,13 +10353,10 @@ __global__ static void kuiper_kernel_47(uint32_t *row_indices, uint32_t rows,
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 8) {
-            (void) (k1_2);
             uint32_t __anf1_2 = k1_2;
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 16) * 4)) < cols) {
-                float *lchunk_2;
-                float _cbuf16[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                lchunk_2 = _cbuf16;
+                float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 vec_memcpy((lchunk_2 + 0),
                     (gB + ((0 + (cols * kr_2)) +
                               (n_idx + ((__anf02_3 * 16) * 4)))));
@@ -12057,10 +10473,8 @@ __global__ static void kuiper_kernel_48(uint32_t *row_indices, uint32_t rows,
     uint32_t ri_ = ((ri / 4) * 4);
     uint32_t nnz = (re - ri_);
     uint32_t idx = 0;
-    float *out;
-    float _cbuf1[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-    out = _cbuf1;
+    float out[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t __anf0 = nnz;
     if (__anf0 >= 256) {
         Kuiper_For_for_loop___138(rows, shared, cols, gA, tid, sh._1, ri);
@@ -12075,13 +10489,10 @@ __global__ static void kuiper_kernel_48(uint32_t *row_indices, uint32_t rows,
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
                 uint32_t __anf1 = k1;
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 32) * 4)) < cols) {
-                    float *lchunk;
-                    float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                    lchunk = _cbuf5;
+                    float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                     vec_memcpy((lchunk + 0),
                         (gB + ((0 + (cols * kr)) +
                                   (n_idx + ((__anf01 * 32) * 4)))));
@@ -12112,15 +10523,6 @@ __global__ static void kuiper_kernel_48(uint32_t *row_indices, uint32_t rows,
             Kuiper_For_for_loop___141(
                 rows, shared, cols, gA, tid, sh._2._1, ri, __anf02_2);
             __syncthreads();
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
             uint32_t k1_1 = 0;
             while (k1_1 < 256) {
                 uint32_t kv_1 = k1_1;
@@ -12128,13 +10530,10 @@ __global__ static void kuiper_kernel_48(uint32_t *row_indices, uint32_t rows,
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 4) {
-                    (void) (k2);
                     uint32_t __anf1_1 = k2;
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 32) * 4)) < cols) {
-                        float *lchunk_1;
-                        float _cbuf11[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                        lchunk_1 = _cbuf11;
+                        float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                         vec_memcpy((lchunk_1 + 0),
                             (gB + ((0 + (cols * kr_1)) +
                                       (n_idx + ((__anf03 * 32) * 4)))));
@@ -12155,28 +10554,15 @@ __global__ static void kuiper_kernel_48(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf03_1 = k1_1;
                 k1_1 = (__anf03_1 + 1);
             }
-            (void) (idx);
             uint32_t __anf03_2 = idx;
             idx = (__anf03_2 + 1);
             uint32_t __anf04_2 = nnz;
             nnz = (__anf04_2 - 256);
         }
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (nnz);
-        (void) (nnz);
-        (void) (idx);
     } else {
         idx = 0;
         nnz = (re - ri);
     }
-    (void) (idx);
     __syncthreads();
     Kuiper_For_for_loop___106(
         rows, shared, cols, gA, tid, sh._1, sh._2._1, re, nnz);
@@ -12188,13 +10574,10 @@ __global__ static void kuiper_kernel_48(uint32_t *row_indices, uint32_t rows,
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 4) {
-            (void) (k1_2);
             uint32_t __anf1_2 = k1_2;
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 32) * 4)) < cols) {
-                float *lchunk_2;
-                float _cbuf16[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                lchunk_2 = _cbuf16;
+                float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 vec_memcpy((lchunk_2 + 0),
                     (gB + ((0 + (cols * kr_2)) +
                               (n_idx + ((__anf02_3 * 32) * 4)))));
@@ -12241,10 +10624,8 @@ __global__ static void kuiper_kernel_49(uint32_t *row_indices, uint32_t rows,
     uint32_t ri_ = ((ri / 4) * 4);
     uint32_t nnz = (re - ri_);
     uint32_t idx = 0;
-    float *out;
-    float _cbuf1[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-    out = _cbuf1;
+    float out[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t __anf0 = nnz;
     if (__anf0 >= 256) {
         Kuiper_For_for_loop___138(rows, shared, cols, gA, tid, sh._1, ri);
@@ -12259,13 +10640,10 @@ __global__ static void kuiper_kernel_49(uint32_t *row_indices, uint32_t rows,
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
                 uint32_t __anf1 = k1;
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 32) * 4)) < cols) {
-                    float *lchunk;
-                    float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                    lchunk = _cbuf5;
+                    float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                     vec_memcpy((lchunk + 0),
                         (gB + ((0 + (cols * kr)) +
                                   (n_idx + ((__anf01 * 32) * 4)))));
@@ -12296,15 +10674,6 @@ __global__ static void kuiper_kernel_49(uint32_t *row_indices, uint32_t rows,
             Kuiper_For_for_loop___141(
                 rows, shared, cols, gA, tid, sh._2._1, ri, __anf02_2);
             __syncthreads();
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
             uint32_t k1_1 = 0;
             while (k1_1 < 256) {
                 uint32_t kv_1 = k1_1;
@@ -12312,13 +10681,10 @@ __global__ static void kuiper_kernel_49(uint32_t *row_indices, uint32_t rows,
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 4) {
-                    (void) (k2);
                     uint32_t __anf1_1 = k2;
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 32) * 4)) < cols) {
-                        float *lchunk_1;
-                        float _cbuf11[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                        lchunk_1 = _cbuf11;
+                        float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                         vec_memcpy((lchunk_1 + 0),
                             (gB + ((0 + (cols * kr_1)) +
                                       (n_idx + ((__anf03 * 32) * 4)))));
@@ -12339,28 +10705,15 @@ __global__ static void kuiper_kernel_49(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf03_1 = k1_1;
                 k1_1 = (__anf03_1 + 1);
             }
-            (void) (idx);
             uint32_t __anf03_2 = idx;
             idx = (__anf03_2 + 1);
             uint32_t __anf04_2 = nnz;
             nnz = (__anf04_2 - 256);
         }
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (nnz);
-        (void) (nnz);
-        (void) (idx);
     } else {
         idx = 0;
         nnz = (re - ri);
     }
-    (void) (idx);
     __syncthreads();
     Kuiper_For_for_loop___106(
         rows, shared, cols, gA, tid, sh._1, sh._2._1, re, nnz);
@@ -12372,13 +10725,10 @@ __global__ static void kuiper_kernel_49(uint32_t *row_indices, uint32_t rows,
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 4) {
-            (void) (k1_2);
             uint32_t __anf1_2 = k1_2;
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 32) * 4)) < cols) {
-                float *lchunk_2;
-                float _cbuf16[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                lchunk_2 = _cbuf16;
+                float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 vec_memcpy((lchunk_2 + 0),
                     (gB + ((0 + (cols * kr_2)) +
                               (n_idx + ((__anf02_3 * 32) * 4)))));
@@ -12495,9 +10845,7 @@ __global__ static void kuiper_kernel_50(uint32_t *row_indices, uint32_t rows,
     uint32_t ri_ = ((ri / 4) * 4);
     uint32_t nnz = (re - ri_);
     uint32_t idx = 0;
-    float *out;
-    float _cbuf1[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-    out = _cbuf1;
+    float out[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t __anf0 = nnz;
     if (__anf0 >= 256) {
         Kuiper_For_for_loop___142(rows, shared, cols, gA, tid, sh._1, ri);
@@ -12512,13 +10860,10 @@ __global__ static void kuiper_kernel_50(uint32_t *row_indices, uint32_t rows,
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 2) {
-                (void) (k1);
                 uint32_t __anf1 = k1;
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 64) * 4)) < cols) {
-                    float *lchunk;
-                    float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                    lchunk = _cbuf5;
+                    float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                     vec_memcpy((lchunk + 0),
                         (gB + ((0 + (cols * kr)) +
                                   (n_idx + ((__anf01 * 64) * 4)))));
@@ -12549,15 +10894,6 @@ __global__ static void kuiper_kernel_50(uint32_t *row_indices, uint32_t rows,
             Kuiper_For_for_loop___145(
                 rows, shared, cols, gA, tid, sh._2._1, ri, __anf02_2);
             __syncthreads();
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
             uint32_t k1_1 = 0;
             while (k1_1 < 256) {
                 uint32_t kv_1 = k1_1;
@@ -12565,13 +10901,10 @@ __global__ static void kuiper_kernel_50(uint32_t *row_indices, uint32_t rows,
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 2) {
-                    (void) (k2);
                     uint32_t __anf1_1 = k2;
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 64) * 4)) < cols) {
-                        float *lchunk_1;
-                        float _cbuf11[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                        lchunk_1 = _cbuf11;
+                        float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                         vec_memcpy((lchunk_1 + 0),
                             (gB + ((0 + (cols * kr_1)) +
                                       (n_idx + ((__anf03 * 64) * 4)))));
@@ -12592,28 +10925,15 @@ __global__ static void kuiper_kernel_50(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf03_1 = k1_1;
                 k1_1 = (__anf03_1 + 1);
             }
-            (void) (idx);
             uint32_t __anf03_2 = idx;
             idx = (__anf03_2 + 1);
             uint32_t __anf04_2 = nnz;
             nnz = (__anf04_2 - 256);
         }
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (nnz);
-        (void) (nnz);
-        (void) (idx);
     } else {
         idx = 0;
         nnz = (re - ri);
     }
-    (void) (idx);
     __syncthreads();
     Kuiper_For_for_loop___12(
         rows, shared, cols, gA, tid, sh._1, sh._2._1, re, nnz);
@@ -12625,13 +10945,10 @@ __global__ static void kuiper_kernel_50(uint32_t *row_indices, uint32_t rows,
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 2) {
-            (void) (k1_2);
             uint32_t __anf1_2 = k1_2;
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 64) * 4)) < cols) {
-                float *lchunk_2;
-                float _cbuf16[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                lchunk_2 = _cbuf16;
+                float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 vec_memcpy((lchunk_2 + 0),
                     (gB + ((0 + (cols * kr_2)) +
                               (n_idx + ((__anf02_3 * 64) * 4)))));
@@ -12678,9 +10995,7 @@ __global__ static void kuiper_kernel_51(uint32_t *row_indices, uint32_t rows,
     uint32_t ri_ = ((ri / 4) * 4);
     uint32_t nnz = (re - ri_);
     uint32_t idx = 0;
-    float *out;
-    float _cbuf1[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-    out = _cbuf1;
+    float out[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t __anf0 = nnz;
     if (__anf0 >= 256) {
         Kuiper_For_for_loop___142(rows, shared, cols, gA, tid, sh._1, ri);
@@ -12695,13 +11010,10 @@ __global__ static void kuiper_kernel_51(uint32_t *row_indices, uint32_t rows,
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 2) {
-                (void) (k1);
                 uint32_t __anf1 = k1;
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 64) * 4)) < cols) {
-                    float *lchunk;
-                    float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                    lchunk = _cbuf5;
+                    float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                     vec_memcpy((lchunk + 0),
                         (gB + ((0 + (cols * kr)) +
                                   (n_idx + ((__anf01 * 64) * 4)))));
@@ -12732,15 +11044,6 @@ __global__ static void kuiper_kernel_51(uint32_t *row_indices, uint32_t rows,
             Kuiper_For_for_loop___145(
                 rows, shared, cols, gA, tid, sh._2._1, ri, __anf02_2);
             __syncthreads();
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
             uint32_t k1_1 = 0;
             while (k1_1 < 256) {
                 uint32_t kv_1 = k1_1;
@@ -12748,13 +11051,10 @@ __global__ static void kuiper_kernel_51(uint32_t *row_indices, uint32_t rows,
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 2) {
-                    (void) (k2);
                     uint32_t __anf1_1 = k2;
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 64) * 4)) < cols) {
-                        float *lchunk_1;
-                        float _cbuf11[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                        lchunk_1 = _cbuf11;
+                        float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                         vec_memcpy((lchunk_1 + 0),
                             (gB + ((0 + (cols * kr_1)) +
                                       (n_idx + ((__anf03 * 64) * 4)))));
@@ -12775,28 +11075,15 @@ __global__ static void kuiper_kernel_51(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf03_1 = k1_1;
                 k1_1 = (__anf03_1 + 1);
             }
-            (void) (idx);
             uint32_t __anf03_2 = idx;
             idx = (__anf03_2 + 1);
             uint32_t __anf04_2 = nnz;
             nnz = (__anf04_2 - 256);
         }
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (nnz);
-        (void) (nnz);
-        (void) (idx);
     } else {
         idx = 0;
         nnz = (re - ri);
     }
-    (void) (idx);
     __syncthreads();
     Kuiper_For_for_loop___12(
         rows, shared, cols, gA, tid, sh._1, sh._2._1, re, nnz);
@@ -12808,13 +11095,10 @@ __global__ static void kuiper_kernel_51(uint32_t *row_indices, uint32_t rows,
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 2) {
-            (void) (k1_2);
             uint32_t __anf1_2 = k1_2;
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 64) * 4)) < cols) {
-                float *lchunk_2;
-                float _cbuf16[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                lchunk_2 = _cbuf16;
+                float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 vec_memcpy((lchunk_2 + 0),
                     (gB + ((0 + (cols * kr_2)) +
                               (n_idx + ((__anf02_3 * 64) * 4)))));
@@ -12931,9 +11215,7 @@ __global__ static void kuiper_kernel_52(uint32_t *row_indices, uint32_t rows,
     uint32_t ri_ = ((ri / 4) * 4);
     uint32_t nnz = (re - ri_);
     uint32_t idx = 0;
-    float *out;
-    float _cbuf1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-    out = _cbuf1;
+    float out[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t __anf0 = nnz;
     if (__anf0 >= 512) {
         Kuiper_For_for_loop___146(rows, shared, cols, gA, tid, sh._1, ri);
@@ -12948,13 +11230,10 @@ __global__ static void kuiper_kernel_52(uint32_t *row_indices, uint32_t rows,
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 1) {
-                (void) (k1);
                 uint32_t __anf1 = k1;
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 16) * 4)) < cols) {
-                    float *lchunk;
-                    float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                    lchunk = _cbuf5;
+                    float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                     vec_memcpy((lchunk + 0),
                         (gB + ((0 + (cols * kr)) +
                                   (n_idx + ((__anf01 * 16) * 4)))));
@@ -12985,15 +11264,6 @@ __global__ static void kuiper_kernel_52(uint32_t *row_indices, uint32_t rows,
             Kuiper_For_for_loop___149(
                 rows, shared, cols, gA, tid, sh._2._1, ri, __anf02_2);
             __syncthreads();
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
             uint32_t k1_1 = 0;
             while (k1_1 < 512) {
                 uint32_t kv_1 = k1_1;
@@ -13001,13 +11271,10 @@ __global__ static void kuiper_kernel_52(uint32_t *row_indices, uint32_t rows,
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 1) {
-                    (void) (k2);
                     uint32_t __anf1_1 = k2;
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 16) * 4)) < cols) {
-                        float *lchunk_1;
-                        float _cbuf11[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                        lchunk_1 = _cbuf11;
+                        float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                         vec_memcpy((lchunk_1 + 0),
                             (gB + ((0 + (cols * kr_1)) +
                                       (n_idx + ((__anf03 * 16) * 4)))));
@@ -13028,28 +11295,15 @@ __global__ static void kuiper_kernel_52(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf03_1 = k1_1;
                 k1_1 = (__anf03_1 + 1);
             }
-            (void) (idx);
             uint32_t __anf03_2 = idx;
             idx = (__anf03_2 + 1);
             uint32_t __anf04_2 = nnz;
             nnz = (__anf04_2 - 512);
         }
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (nnz);
-        (void) (nnz);
-        (void) (idx);
     } else {
         idx = 0;
         nnz = (re - ri);
     }
-    (void) (idx);
     __syncthreads();
     Kuiper_For_for_loop___53(
         rows, shared, cols, gA, tid, sh._1, sh._2._1, re, nnz);
@@ -13061,13 +11315,10 @@ __global__ static void kuiper_kernel_52(uint32_t *row_indices, uint32_t rows,
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 1) {
-            (void) (k1_2);
             uint32_t __anf1_2 = k1_2;
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 16) * 4)) < cols) {
-                float *lchunk_2;
-                float _cbuf16[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                lchunk_2 = _cbuf16;
+                float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 vec_memcpy((lchunk_2 + 0),
                     (gB + ((0 + (cols * kr_2)) +
                               (n_idx + ((__anf02_3 * 16) * 4)))));
@@ -13114,9 +11365,7 @@ __global__ static void kuiper_kernel_53(uint32_t *row_indices, uint32_t rows,
     uint32_t ri_ = ((ri / 4) * 4);
     uint32_t nnz = (re - ri_);
     uint32_t idx = 0;
-    float *out;
-    float _cbuf1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-    out = _cbuf1;
+    float out[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t __anf0 = nnz;
     if (__anf0 >= 512) {
         Kuiper_For_for_loop___146(rows, shared, cols, gA, tid, sh._1, ri);
@@ -13131,13 +11380,10 @@ __global__ static void kuiper_kernel_53(uint32_t *row_indices, uint32_t rows,
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 1) {
-                (void) (k1);
                 uint32_t __anf1 = k1;
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 16) * 4)) < cols) {
-                    float *lchunk;
-                    float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                    lchunk = _cbuf5;
+                    float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                     vec_memcpy((lchunk + 0),
                         (gB + ((0 + (cols * kr)) +
                                   (n_idx + ((__anf01 * 16) * 4)))));
@@ -13168,15 +11414,6 @@ __global__ static void kuiper_kernel_53(uint32_t *row_indices, uint32_t rows,
             Kuiper_For_for_loop___149(
                 rows, shared, cols, gA, tid, sh._2._1, ri, __anf02_2);
             __syncthreads();
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
             uint32_t k1_1 = 0;
             while (k1_1 < 512) {
                 uint32_t kv_1 = k1_1;
@@ -13184,13 +11421,10 @@ __global__ static void kuiper_kernel_53(uint32_t *row_indices, uint32_t rows,
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 1) {
-                    (void) (k2);
                     uint32_t __anf1_1 = k2;
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 16) * 4)) < cols) {
-                        float *lchunk_1;
-                        float _cbuf11[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                        lchunk_1 = _cbuf11;
+                        float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                         vec_memcpy((lchunk_1 + 0),
                             (gB + ((0 + (cols * kr_1)) +
                                       (n_idx + ((__anf03 * 16) * 4)))));
@@ -13211,28 +11445,15 @@ __global__ static void kuiper_kernel_53(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf03_1 = k1_1;
                 k1_1 = (__anf03_1 + 1);
             }
-            (void) (idx);
             uint32_t __anf03_2 = idx;
             idx = (__anf03_2 + 1);
             uint32_t __anf04_2 = nnz;
             nnz = (__anf04_2 - 512);
         }
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (nnz);
-        (void) (nnz);
-        (void) (idx);
     } else {
         idx = 0;
         nnz = (re - ri);
     }
-    (void) (idx);
     __syncthreads();
     Kuiper_For_for_loop___53(
         rows, shared, cols, gA, tid, sh._1, sh._2._1, re, nnz);
@@ -13244,13 +11465,10 @@ __global__ static void kuiper_kernel_53(uint32_t *row_indices, uint32_t rows,
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 1) {
-            (void) (k1_2);
             uint32_t __anf1_2 = k1_2;
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 16) * 4)) < cols) {
-                float *lchunk_2;
-                float _cbuf16[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                lchunk_2 = _cbuf16;
+                float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 vec_memcpy((lchunk_2 + 0),
                     (gB + ((0 + (cols * kr_2)) +
                               (n_idx + ((__anf02_3 * 16) * 4)))));
@@ -13367,9 +11585,7 @@ __global__ static void kuiper_kernel_54(uint32_t *row_indices, uint32_t rows,
     uint32_t ri_ = ((ri / 4) * 4);
     uint32_t nnz = (re - ri_);
     uint32_t idx = 0;
-    float *out;
-    float _cbuf1[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-    out = _cbuf1;
+    float out[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t __anf0 = nnz;
     if (__anf0 >= 512) {
         Kuiper_For_for_loop___150(rows, shared, cols, gA, tid, sh._1, ri);
@@ -13384,13 +11600,10 @@ __global__ static void kuiper_kernel_54(uint32_t *row_indices, uint32_t rows,
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 2) {
-                (void) (k1);
                 uint32_t __anf1 = k1;
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 16) * 4)) < cols) {
-                    float *lchunk;
-                    float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                    lchunk = _cbuf5;
+                    float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                     vec_memcpy((lchunk + 0),
                         (gB + ((0 + (cols * kr)) +
                                   (n_idx + ((__anf01 * 16) * 4)))));
@@ -13421,15 +11634,6 @@ __global__ static void kuiper_kernel_54(uint32_t *row_indices, uint32_t rows,
             Kuiper_For_for_loop___153(
                 rows, shared, cols, gA, tid, sh._2._1, ri, __anf02_2);
             __syncthreads();
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
             uint32_t k1_1 = 0;
             while (k1_1 < 512) {
                 uint32_t kv_1 = k1_1;
@@ -13437,13 +11641,10 @@ __global__ static void kuiper_kernel_54(uint32_t *row_indices, uint32_t rows,
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 2) {
-                    (void) (k2);
                     uint32_t __anf1_1 = k2;
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 16) * 4)) < cols) {
-                        float *lchunk_1;
-                        float _cbuf11[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                        lchunk_1 = _cbuf11;
+                        float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                         vec_memcpy((lchunk_1 + 0),
                             (gB + ((0 + (cols * kr_1)) +
                                       (n_idx + ((__anf03 * 16) * 4)))));
@@ -13464,28 +11665,15 @@ __global__ static void kuiper_kernel_54(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf03_1 = k1_1;
                 k1_1 = (__anf03_1 + 1);
             }
-            (void) (idx);
             uint32_t __anf03_2 = idx;
             idx = (__anf03_2 + 1);
             uint32_t __anf04_2 = nnz;
             nnz = (__anf04_2 - 512);
         }
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (nnz);
-        (void) (nnz);
-        (void) (idx);
     } else {
         idx = 0;
         nnz = (re - ri);
     }
-    (void) (idx);
     __syncthreads();
     Kuiper_For_for_loop___59(
         rows, shared, cols, gA, tid, sh._1, sh._2._1, re, nnz);
@@ -13497,13 +11685,10 @@ __global__ static void kuiper_kernel_54(uint32_t *row_indices, uint32_t rows,
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 2) {
-            (void) (k1_2);
             uint32_t __anf1_2 = k1_2;
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 16) * 4)) < cols) {
-                float *lchunk_2;
-                float _cbuf16[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                lchunk_2 = _cbuf16;
+                float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 vec_memcpy((lchunk_2 + 0),
                     (gB + ((0 + (cols * kr_2)) +
                               (n_idx + ((__anf02_3 * 16) * 4)))));
@@ -13550,9 +11735,7 @@ __global__ static void kuiper_kernel_55(uint32_t *row_indices, uint32_t rows,
     uint32_t ri_ = ((ri / 4) * 4);
     uint32_t nnz = (re - ri_);
     uint32_t idx = 0;
-    float *out;
-    float _cbuf1[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-    out = _cbuf1;
+    float out[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t __anf0 = nnz;
     if (__anf0 >= 512) {
         Kuiper_For_for_loop___150(rows, shared, cols, gA, tid, sh._1, ri);
@@ -13567,13 +11750,10 @@ __global__ static void kuiper_kernel_55(uint32_t *row_indices, uint32_t rows,
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 2) {
-                (void) (k1);
                 uint32_t __anf1 = k1;
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 16) * 4)) < cols) {
-                    float *lchunk;
-                    float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                    lchunk = _cbuf5;
+                    float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                     vec_memcpy((lchunk + 0),
                         (gB + ((0 + (cols * kr)) +
                                   (n_idx + ((__anf01 * 16) * 4)))));
@@ -13604,15 +11784,6 @@ __global__ static void kuiper_kernel_55(uint32_t *row_indices, uint32_t rows,
             Kuiper_For_for_loop___153(
                 rows, shared, cols, gA, tid, sh._2._1, ri, __anf02_2);
             __syncthreads();
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
             uint32_t k1_1 = 0;
             while (k1_1 < 512) {
                 uint32_t kv_1 = k1_1;
@@ -13620,13 +11791,10 @@ __global__ static void kuiper_kernel_55(uint32_t *row_indices, uint32_t rows,
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 2) {
-                    (void) (k2);
                     uint32_t __anf1_1 = k2;
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 16) * 4)) < cols) {
-                        float *lchunk_1;
-                        float _cbuf11[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                        lchunk_1 = _cbuf11;
+                        float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                         vec_memcpy((lchunk_1 + 0),
                             (gB + ((0 + (cols * kr_1)) +
                                       (n_idx + ((__anf03 * 16) * 4)))));
@@ -13647,28 +11815,15 @@ __global__ static void kuiper_kernel_55(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf03_1 = k1_1;
                 k1_1 = (__anf03_1 + 1);
             }
-            (void) (idx);
             uint32_t __anf03_2 = idx;
             idx = (__anf03_2 + 1);
             uint32_t __anf04_2 = nnz;
             nnz = (__anf04_2 - 512);
         }
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (nnz);
-        (void) (nnz);
-        (void) (idx);
     } else {
         idx = 0;
         nnz = (re - ri);
     }
-    (void) (idx);
     __syncthreads();
     Kuiper_For_for_loop___59(
         rows, shared, cols, gA, tid, sh._1, sh._2._1, re, nnz);
@@ -13680,13 +11835,10 @@ __global__ static void kuiper_kernel_55(uint32_t *row_indices, uint32_t rows,
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 2) {
-            (void) (k1_2);
             uint32_t __anf1_2 = k1_2;
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 16) * 4)) < cols) {
-                float *lchunk_2;
-                float _cbuf16[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                lchunk_2 = _cbuf16;
+                float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 vec_memcpy((lchunk_2 + 0),
                     (gB + ((0 + (cols * kr_2)) +
                               (n_idx + ((__anf02_3 * 16) * 4)))));
@@ -13803,9 +11955,7 @@ __global__ static void kuiper_kernel_56(uint32_t *row_indices, uint32_t rows,
     uint32_t ri_ = ((ri / 4) * 4);
     uint32_t nnz = (re - ri_);
     uint32_t idx = 0;
-    float *out;
-    float _cbuf1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-    out = _cbuf1;
+    float out[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t __anf0 = nnz;
     if (__anf0 >= 512) {
         Kuiper_For_for_loop___154(rows, shared, cols, gA, tid, sh._1, ri);
@@ -13820,13 +11970,10 @@ __global__ static void kuiper_kernel_56(uint32_t *row_indices, uint32_t rows,
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 1) {
-                (void) (k1);
                 uint32_t __anf1 = k1;
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 32) * 4)) < cols) {
-                    float *lchunk;
-                    float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                    lchunk = _cbuf5;
+                    float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                     vec_memcpy((lchunk + 0),
                         (gB + ((0 + (cols * kr)) +
                                   (n_idx + ((__anf01 * 32) * 4)))));
@@ -13857,15 +12004,6 @@ __global__ static void kuiper_kernel_56(uint32_t *row_indices, uint32_t rows,
             Kuiper_For_for_loop___157(
                 rows, shared, cols, gA, tid, sh._2._1, ri, __anf02_2);
             __syncthreads();
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
             uint32_t k1_1 = 0;
             while (k1_1 < 512) {
                 uint32_t kv_1 = k1_1;
@@ -13873,13 +12011,10 @@ __global__ static void kuiper_kernel_56(uint32_t *row_indices, uint32_t rows,
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 1) {
-                    (void) (k2);
                     uint32_t __anf1_1 = k2;
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 32) * 4)) < cols) {
-                        float *lchunk_1;
-                        float _cbuf11[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                        lchunk_1 = _cbuf11;
+                        float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                         vec_memcpy((lchunk_1 + 0),
                             (gB + ((0 + (cols * kr_1)) +
                                       (n_idx + ((__anf03 * 32) * 4)))));
@@ -13900,28 +12035,15 @@ __global__ static void kuiper_kernel_56(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf03_1 = k1_1;
                 k1_1 = (__anf03_1 + 1);
             }
-            (void) (idx);
             uint32_t __anf03_2 = idx;
             idx = (__anf03_2 + 1);
             uint32_t __anf04_2 = nnz;
             nnz = (__anf04_2 - 512);
         }
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (nnz);
-        (void) (nnz);
-        (void) (idx);
     } else {
         idx = 0;
         nnz = (re - ri);
     }
-    (void) (idx);
     __syncthreads();
     Kuiper_For_for_loop___86(
         rows, shared, cols, gA, tid, sh._1, sh._2._1, re, nnz);
@@ -13933,13 +12055,10 @@ __global__ static void kuiper_kernel_56(uint32_t *row_indices, uint32_t rows,
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 1) {
-            (void) (k1_2);
             uint32_t __anf1_2 = k1_2;
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 32) * 4)) < cols) {
-                float *lchunk_2;
-                float _cbuf16[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                lchunk_2 = _cbuf16;
+                float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 vec_memcpy((lchunk_2 + 0),
                     (gB + ((0 + (cols * kr_2)) +
                               (n_idx + ((__anf02_3 * 32) * 4)))));
@@ -13986,9 +12105,7 @@ __global__ static void kuiper_kernel_57(uint32_t *row_indices, uint32_t rows,
     uint32_t ri_ = ((ri / 4) * 4);
     uint32_t nnz = (re - ri_);
     uint32_t idx = 0;
-    float *out;
-    float _cbuf1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-    out = _cbuf1;
+    float out[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t __anf0 = nnz;
     if (__anf0 >= 512) {
         Kuiper_For_for_loop___154(rows, shared, cols, gA, tid, sh._1, ri);
@@ -14003,13 +12120,10 @@ __global__ static void kuiper_kernel_57(uint32_t *row_indices, uint32_t rows,
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 1) {
-                (void) (k1);
                 uint32_t __anf1 = k1;
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 32) * 4)) < cols) {
-                    float *lchunk;
-                    float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                    lchunk = _cbuf5;
+                    float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                     vec_memcpy((lchunk + 0),
                         (gB + ((0 + (cols * kr)) +
                                   (n_idx + ((__anf01 * 32) * 4)))));
@@ -14040,15 +12154,6 @@ __global__ static void kuiper_kernel_57(uint32_t *row_indices, uint32_t rows,
             Kuiper_For_for_loop___157(
                 rows, shared, cols, gA, tid, sh._2._1, ri, __anf02_2);
             __syncthreads();
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
             uint32_t k1_1 = 0;
             while (k1_1 < 512) {
                 uint32_t kv_1 = k1_1;
@@ -14056,13 +12161,10 @@ __global__ static void kuiper_kernel_57(uint32_t *row_indices, uint32_t rows,
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 1) {
-                    (void) (k2);
                     uint32_t __anf1_1 = k2;
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 32) * 4)) < cols) {
-                        float *lchunk_1;
-                        float _cbuf11[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                        lchunk_1 = _cbuf11;
+                        float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                         vec_memcpy((lchunk_1 + 0),
                             (gB + ((0 + (cols * kr_1)) +
                                       (n_idx + ((__anf03 * 32) * 4)))));
@@ -14083,28 +12185,15 @@ __global__ static void kuiper_kernel_57(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf03_1 = k1_1;
                 k1_1 = (__anf03_1 + 1);
             }
-            (void) (idx);
             uint32_t __anf03_2 = idx;
             idx = (__anf03_2 + 1);
             uint32_t __anf04_2 = nnz;
             nnz = (__anf04_2 - 512);
         }
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (nnz);
-        (void) (nnz);
-        (void) (idx);
     } else {
         idx = 0;
         nnz = (re - ri);
     }
-    (void) (idx);
     __syncthreads();
     Kuiper_For_for_loop___86(
         rows, shared, cols, gA, tid, sh._1, sh._2._1, re, nnz);
@@ -14116,13 +12205,10 @@ __global__ static void kuiper_kernel_57(uint32_t *row_indices, uint32_t rows,
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 1) {
-            (void) (k1_2);
             uint32_t __anf1_2 = k1_2;
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 32) * 4)) < cols) {
-                float *lchunk_2;
-                float _cbuf16[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                lchunk_2 = _cbuf16;
+                float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 vec_memcpy((lchunk_2 + 0),
                     (gB + ((0 + (cols * kr_2)) +
                               (n_idx + ((__anf02_3 * 32) * 4)))));
@@ -14239,10 +12325,8 @@ __global__ static void kuiper_kernel_58(uint32_t *row_indices, uint32_t rows,
     uint32_t ri_ = ((ri / 4) * 4);
     uint32_t nnz = (re - ri_);
     uint32_t idx = 0;
-    float *out;
-    float _cbuf1[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-    out = _cbuf1;
+    float out[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t __anf0 = nnz;
     if (__anf0 >= 512) {
         Kuiper_For_for_loop___158(rows, shared, cols, gA, tid, sh._1, ri);
@@ -14257,13 +12341,10 @@ __global__ static void kuiper_kernel_58(uint32_t *row_indices, uint32_t rows,
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
                 uint32_t __anf1 = k1;
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 16) * 4)) < cols) {
-                    float *lchunk;
-                    float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                    lchunk = _cbuf5;
+                    float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                     vec_memcpy((lchunk + 0),
                         (gB + ((0 + (cols * kr)) +
                                   (n_idx + ((__anf01 * 16) * 4)))));
@@ -14294,15 +12375,6 @@ __global__ static void kuiper_kernel_58(uint32_t *row_indices, uint32_t rows,
             Kuiper_For_for_loop___161(
                 rows, shared, cols, gA, tid, sh._2._1, ri, __anf02_2);
             __syncthreads();
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
             uint32_t k1_1 = 0;
             while (k1_1 < 512) {
                 uint32_t kv_1 = k1_1;
@@ -14310,13 +12382,10 @@ __global__ static void kuiper_kernel_58(uint32_t *row_indices, uint32_t rows,
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 4) {
-                    (void) (k2);
                     uint32_t __anf1_1 = k2;
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 16) * 4)) < cols) {
-                        float *lchunk_1;
-                        float _cbuf11[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                        lchunk_1 = _cbuf11;
+                        float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                         vec_memcpy((lchunk_1 + 0),
                             (gB + ((0 + (cols * kr_1)) +
                                       (n_idx + ((__anf03 * 16) * 4)))));
@@ -14337,28 +12406,15 @@ __global__ static void kuiper_kernel_58(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf03_1 = k1_1;
                 k1_1 = (__anf03_1 + 1);
             }
-            (void) (idx);
             uint32_t __anf03_2 = idx;
             idx = (__anf03_2 + 1);
             uint32_t __anf04_2 = nnz;
             nnz = (__anf04_2 - 512);
         }
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (nnz);
-        (void) (nnz);
-        (void) (idx);
     } else {
         idx = 0;
         nnz = (re - ri);
     }
-    (void) (idx);
     __syncthreads();
     Kuiper_For_for_loop___65(
         rows, shared, cols, gA, tid, sh._1, sh._2._1, re, nnz);
@@ -14370,13 +12426,10 @@ __global__ static void kuiper_kernel_58(uint32_t *row_indices, uint32_t rows,
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 4) {
-            (void) (k1_2);
             uint32_t __anf1_2 = k1_2;
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 16) * 4)) < cols) {
-                float *lchunk_2;
-                float _cbuf16[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                lchunk_2 = _cbuf16;
+                float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 vec_memcpy((lchunk_2 + 0),
                     (gB + ((0 + (cols * kr_2)) +
                               (n_idx + ((__anf02_3 * 16) * 4)))));
@@ -14423,10 +12476,8 @@ __global__ static void kuiper_kernel_59(uint32_t *row_indices, uint32_t rows,
     uint32_t ri_ = ((ri / 4) * 4);
     uint32_t nnz = (re - ri_);
     uint32_t idx = 0;
-    float *out;
-    float _cbuf1[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-    out = _cbuf1;
+    float out[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t __anf0 = nnz;
     if (__anf0 >= 512) {
         Kuiper_For_for_loop___158(rows, shared, cols, gA, tid, sh._1, ri);
@@ -14441,13 +12492,10 @@ __global__ static void kuiper_kernel_59(uint32_t *row_indices, uint32_t rows,
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
                 uint32_t __anf1 = k1;
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 16) * 4)) < cols) {
-                    float *lchunk;
-                    float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                    lchunk = _cbuf5;
+                    float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                     vec_memcpy((lchunk + 0),
                         (gB + ((0 + (cols * kr)) +
                                   (n_idx + ((__anf01 * 16) * 4)))));
@@ -14478,15 +12526,6 @@ __global__ static void kuiper_kernel_59(uint32_t *row_indices, uint32_t rows,
             Kuiper_For_for_loop___161(
                 rows, shared, cols, gA, tid, sh._2._1, ri, __anf02_2);
             __syncthreads();
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
             uint32_t k1_1 = 0;
             while (k1_1 < 512) {
                 uint32_t kv_1 = k1_1;
@@ -14494,13 +12533,10 @@ __global__ static void kuiper_kernel_59(uint32_t *row_indices, uint32_t rows,
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 4) {
-                    (void) (k2);
                     uint32_t __anf1_1 = k2;
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 16) * 4)) < cols) {
-                        float *lchunk_1;
-                        float _cbuf11[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                        lchunk_1 = _cbuf11;
+                        float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                         vec_memcpy((lchunk_1 + 0),
                             (gB + ((0 + (cols * kr_1)) +
                                       (n_idx + ((__anf03 * 16) * 4)))));
@@ -14521,28 +12557,15 @@ __global__ static void kuiper_kernel_59(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf03_1 = k1_1;
                 k1_1 = (__anf03_1 + 1);
             }
-            (void) (idx);
             uint32_t __anf03_2 = idx;
             idx = (__anf03_2 + 1);
             uint32_t __anf04_2 = nnz;
             nnz = (__anf04_2 - 512);
         }
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (nnz);
-        (void) (nnz);
-        (void) (idx);
     } else {
         idx = 0;
         nnz = (re - ri);
     }
-    (void) (idx);
     __syncthreads();
     Kuiper_For_for_loop___65(
         rows, shared, cols, gA, tid, sh._1, sh._2._1, re, nnz);
@@ -14554,13 +12577,10 @@ __global__ static void kuiper_kernel_59(uint32_t *row_indices, uint32_t rows,
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 4) {
-            (void) (k1_2);
             uint32_t __anf1_2 = k1_2;
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 16) * 4)) < cols) {
-                float *lchunk_2;
-                float _cbuf16[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                lchunk_2 = _cbuf16;
+                float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 vec_memcpy((lchunk_2 + 0),
                     (gB + ((0 + (cols * kr_2)) +
                               (n_idx + ((__anf02_3 * 16) * 4)))));
@@ -14677,9 +12697,7 @@ __global__ static void kuiper_kernel_60(uint32_t *row_indices, uint32_t rows,
     uint32_t ri_ = ((ri / 4) * 4);
     uint32_t nnz = (re - ri_);
     uint32_t idx = 0;
-    float *out;
-    float _cbuf1[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-    out = _cbuf1;
+    float out[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t __anf0 = nnz;
     if (__anf0 >= 512) {
         Kuiper_For_for_loop___162(rows, shared, cols, gA, tid, sh._1, ri);
@@ -14694,13 +12712,10 @@ __global__ static void kuiper_kernel_60(uint32_t *row_indices, uint32_t rows,
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 2) {
-                (void) (k1);
                 uint32_t __anf1 = k1;
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 32) * 4)) < cols) {
-                    float *lchunk;
-                    float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                    lchunk = _cbuf5;
+                    float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                     vec_memcpy((lchunk + 0),
                         (gB + ((0 + (cols * kr)) +
                                   (n_idx + ((__anf01 * 32) * 4)))));
@@ -14731,15 +12746,6 @@ __global__ static void kuiper_kernel_60(uint32_t *row_indices, uint32_t rows,
             Kuiper_For_for_loop___165(
                 rows, shared, cols, gA, tid, sh._2._1, ri, __anf02_2);
             __syncthreads();
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
             uint32_t k1_1 = 0;
             while (k1_1 < 512) {
                 uint32_t kv_1 = k1_1;
@@ -14747,13 +12753,10 @@ __global__ static void kuiper_kernel_60(uint32_t *row_indices, uint32_t rows,
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 2) {
-                    (void) (k2);
                     uint32_t __anf1_1 = k2;
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 32) * 4)) < cols) {
-                        float *lchunk_1;
-                        float _cbuf11[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                        lchunk_1 = _cbuf11;
+                        float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                         vec_memcpy((lchunk_1 + 0),
                             (gB + ((0 + (cols * kr_1)) +
                                       (n_idx + ((__anf03 * 32) * 4)))));
@@ -14774,28 +12777,15 @@ __global__ static void kuiper_kernel_60(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf03_1 = k1_1;
                 k1_1 = (__anf03_1 + 1);
             }
-            (void) (idx);
             uint32_t __anf03_2 = idx;
             idx = (__anf03_2 + 1);
             uint32_t __anf04_2 = nnz;
             nnz = (__anf04_2 - 512);
         }
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (nnz);
-        (void) (nnz);
-        (void) (idx);
     } else {
         idx = 0;
         nnz = (re - ri);
     }
-    (void) (idx);
     __syncthreads();
     Kuiper_For_for_loop___96(
         rows, shared, cols, gA, tid, sh._1, sh._2._1, re, nnz);
@@ -14807,13 +12797,10 @@ __global__ static void kuiper_kernel_60(uint32_t *row_indices, uint32_t rows,
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 2) {
-            (void) (k1_2);
             uint32_t __anf1_2 = k1_2;
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 32) * 4)) < cols) {
-                float *lchunk_2;
-                float _cbuf16[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                lchunk_2 = _cbuf16;
+                float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 vec_memcpy((lchunk_2 + 0),
                     (gB + ((0 + (cols * kr_2)) +
                               (n_idx + ((__anf02_3 * 32) * 4)))));
@@ -14860,9 +12847,7 @@ __global__ static void kuiper_kernel_61(uint32_t *row_indices, uint32_t rows,
     uint32_t ri_ = ((ri / 4) * 4);
     uint32_t nnz = (re - ri_);
     uint32_t idx = 0;
-    float *out;
-    float _cbuf1[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-    out = _cbuf1;
+    float out[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t __anf0 = nnz;
     if (__anf0 >= 512) {
         Kuiper_For_for_loop___162(rows, shared, cols, gA, tid, sh._1, ri);
@@ -14877,13 +12862,10 @@ __global__ static void kuiper_kernel_61(uint32_t *row_indices, uint32_t rows,
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 2) {
-                (void) (k1);
                 uint32_t __anf1 = k1;
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 32) * 4)) < cols) {
-                    float *lchunk;
-                    float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                    lchunk = _cbuf5;
+                    float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                     vec_memcpy((lchunk + 0),
                         (gB + ((0 + (cols * kr)) +
                                   (n_idx + ((__anf01 * 32) * 4)))));
@@ -14914,15 +12896,6 @@ __global__ static void kuiper_kernel_61(uint32_t *row_indices, uint32_t rows,
             Kuiper_For_for_loop___165(
                 rows, shared, cols, gA, tid, sh._2._1, ri, __anf02_2);
             __syncthreads();
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
             uint32_t k1_1 = 0;
             while (k1_1 < 512) {
                 uint32_t kv_1 = k1_1;
@@ -14930,13 +12903,10 @@ __global__ static void kuiper_kernel_61(uint32_t *row_indices, uint32_t rows,
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 2) {
-                    (void) (k2);
                     uint32_t __anf1_1 = k2;
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 32) * 4)) < cols) {
-                        float *lchunk_1;
-                        float _cbuf11[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                        lchunk_1 = _cbuf11;
+                        float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                         vec_memcpy((lchunk_1 + 0),
                             (gB + ((0 + (cols * kr_1)) +
                                       (n_idx + ((__anf03 * 32) * 4)))));
@@ -14957,28 +12927,15 @@ __global__ static void kuiper_kernel_61(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf03_1 = k1_1;
                 k1_1 = (__anf03_1 + 1);
             }
-            (void) (idx);
             uint32_t __anf03_2 = idx;
             idx = (__anf03_2 + 1);
             uint32_t __anf04_2 = nnz;
             nnz = (__anf04_2 - 512);
         }
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (nnz);
-        (void) (nnz);
-        (void) (idx);
     } else {
         idx = 0;
         nnz = (re - ri);
     }
-    (void) (idx);
     __syncthreads();
     Kuiper_For_for_loop___96(
         rows, shared, cols, gA, tid, sh._1, sh._2._1, re, nnz);
@@ -14990,13 +12947,10 @@ __global__ static void kuiper_kernel_61(uint32_t *row_indices, uint32_t rows,
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 2) {
-            (void) (k1_2);
             uint32_t __anf1_2 = k1_2;
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 32) * 4)) < cols) {
-                float *lchunk_2;
-                float _cbuf16[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                lchunk_2 = _cbuf16;
+                float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 vec_memcpy((lchunk_2 + 0),
                     (gB + ((0 + (cols * kr_2)) +
                               (n_idx + ((__anf02_3 * 32) * 4)))));
@@ -15113,9 +13067,7 @@ __global__ static void kuiper_kernel_62(uint32_t *row_indices, uint32_t rows,
     uint32_t ri_ = ((ri / 4) * 4);
     uint32_t nnz = (re - ri_);
     uint32_t idx = 0;
-    float *out;
-    float _cbuf1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-    out = _cbuf1;
+    float out[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t __anf0 = nnz;
     if (__anf0 >= 512) {
         Kuiper_For_for_loop___166(rows, shared, cols, gA, tid, sh._1, ri);
@@ -15130,13 +13082,10 @@ __global__ static void kuiper_kernel_62(uint32_t *row_indices, uint32_t rows,
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 1) {
-                (void) (k1);
                 uint32_t __anf1 = k1;
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 64) * 4)) < cols) {
-                    float *lchunk;
-                    float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                    lchunk = _cbuf5;
+                    float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                     vec_memcpy((lchunk + 0),
                         (gB + ((0 + (cols * kr)) +
                                   (n_idx + ((__anf01 * 64) * 4)))));
@@ -15167,15 +13116,6 @@ __global__ static void kuiper_kernel_62(uint32_t *row_indices, uint32_t rows,
             Kuiper_For_for_loop___169(
                 rows, shared, cols, gA, tid, sh._2._1, ri, __anf02_2);
             __syncthreads();
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
             uint32_t k1_1 = 0;
             while (k1_1 < 512) {
                 uint32_t kv_1 = k1_1;
@@ -15183,13 +13123,10 @@ __global__ static void kuiper_kernel_62(uint32_t *row_indices, uint32_t rows,
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 1) {
-                    (void) (k2);
                     uint32_t __anf1_1 = k2;
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 64) * 4)) < cols) {
-                        float *lchunk_1;
-                        float _cbuf11[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                        lchunk_1 = _cbuf11;
+                        float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                         vec_memcpy((lchunk_1 + 0),
                             (gB + ((0 + (cols * kr_1)) +
                                       (n_idx + ((__anf03 * 64) * 4)))));
@@ -15210,28 +13147,15 @@ __global__ static void kuiper_kernel_62(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf03_1 = k1_1;
                 k1_1 = (__anf03_1 + 1);
             }
-            (void) (idx);
             uint32_t __anf03_2 = idx;
             idx = (__anf03_2 + 1);
             uint32_t __anf04_2 = nnz;
             nnz = (__anf04_2 - 512);
         }
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (nnz);
-        (void) (nnz);
-        (void) (idx);
     } else {
         idx = 0;
         nnz = (re - ri);
     }
-    (void) (idx);
     __syncthreads();
     Kuiper_For_for_loop___132(
         rows, shared, cols, gA, tid, sh._1, sh._2._1, re, nnz);
@@ -15243,13 +13167,10 @@ __global__ static void kuiper_kernel_62(uint32_t *row_indices, uint32_t rows,
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 1) {
-            (void) (k1_2);
             uint32_t __anf1_2 = k1_2;
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 64) * 4)) < cols) {
-                float *lchunk_2;
-                float _cbuf16[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                lchunk_2 = _cbuf16;
+                float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 vec_memcpy((lchunk_2 + 0),
                     (gB + ((0 + (cols * kr_2)) +
                               (n_idx + ((__anf02_3 * 64) * 4)))));
@@ -15296,9 +13217,7 @@ __global__ static void kuiper_kernel_63(uint32_t *row_indices, uint32_t rows,
     uint32_t ri_ = ((ri / 4) * 4);
     uint32_t nnz = (re - ri_);
     uint32_t idx = 0;
-    float *out;
-    float _cbuf1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-    out = _cbuf1;
+    float out[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t __anf0 = nnz;
     if (__anf0 >= 512) {
         Kuiper_For_for_loop___166(rows, shared, cols, gA, tid, sh._1, ri);
@@ -15313,13 +13232,10 @@ __global__ static void kuiper_kernel_63(uint32_t *row_indices, uint32_t rows,
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 1) {
-                (void) (k1);
                 uint32_t __anf1 = k1;
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 64) * 4)) < cols) {
-                    float *lchunk;
-                    float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                    lchunk = _cbuf5;
+                    float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                     vec_memcpy((lchunk + 0),
                         (gB + ((0 + (cols * kr)) +
                                   (n_idx + ((__anf01 * 64) * 4)))));
@@ -15350,15 +13266,6 @@ __global__ static void kuiper_kernel_63(uint32_t *row_indices, uint32_t rows,
             Kuiper_For_for_loop___169(
                 rows, shared, cols, gA, tid, sh._2._1, ri, __anf02_2);
             __syncthreads();
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
             uint32_t k1_1 = 0;
             while (k1_1 < 512) {
                 uint32_t kv_1 = k1_1;
@@ -15366,13 +13273,10 @@ __global__ static void kuiper_kernel_63(uint32_t *row_indices, uint32_t rows,
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 1) {
-                    (void) (k2);
                     uint32_t __anf1_1 = k2;
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 64) * 4)) < cols) {
-                        float *lchunk_1;
-                        float _cbuf11[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                        lchunk_1 = _cbuf11;
+                        float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                         vec_memcpy((lchunk_1 + 0),
                             (gB + ((0 + (cols * kr_1)) +
                                       (n_idx + ((__anf03 * 64) * 4)))));
@@ -15393,28 +13297,15 @@ __global__ static void kuiper_kernel_63(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf03_1 = k1_1;
                 k1_1 = (__anf03_1 + 1);
             }
-            (void) (idx);
             uint32_t __anf03_2 = idx;
             idx = (__anf03_2 + 1);
             uint32_t __anf04_2 = nnz;
             nnz = (__anf04_2 - 512);
         }
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (nnz);
-        (void) (nnz);
-        (void) (idx);
     } else {
         idx = 0;
         nnz = (re - ri);
     }
-    (void) (idx);
     __syncthreads();
     Kuiper_For_for_loop___132(
         rows, shared, cols, gA, tid, sh._1, sh._2._1, re, nnz);
@@ -15426,13 +13317,10 @@ __global__ static void kuiper_kernel_63(uint32_t *row_indices, uint32_t rows,
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 1) {
-            (void) (k1_2);
             uint32_t __anf1_2 = k1_2;
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 64) * 4)) < cols) {
-                float *lchunk_2;
-                float _cbuf16[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                lchunk_2 = _cbuf16;
+                float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 vec_memcpy((lchunk_2 + 0),
                     (gB + ((0 + (cols * kr_2)) +
                               (n_idx + ((__anf02_3 * 64) * 4)))));
@@ -15549,11 +13437,9 @@ __global__ static void kuiper_kernel_64(uint32_t *row_indices, uint32_t rows,
     uint32_t ri_ = ((ri / 4) * 4);
     uint32_t nnz = (re - ri_);
     uint32_t idx = 0;
-    float *out;
-    float _cbuf1[32] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+    float out[32] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-    out = _cbuf1;
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t __anf0 = nnz;
     if (__anf0 >= 512) {
         Kuiper_For_for_loop___170(rows, shared, cols, gA, tid, sh._1, ri);
@@ -15568,13 +13454,10 @@ __global__ static void kuiper_kernel_64(uint32_t *row_indices, uint32_t rows,
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
                 uint32_t __anf1 = k1;
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 16) * 4)) < cols) {
-                    float *lchunk;
-                    float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                    lchunk = _cbuf5;
+                    float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                     vec_memcpy((lchunk + 0),
                         (gB + ((0 + (cols * kr)) +
                                   (n_idx + ((__anf01 * 16) * 4)))));
@@ -15605,15 +13488,6 @@ __global__ static void kuiper_kernel_64(uint32_t *row_indices, uint32_t rows,
             Kuiper_For_for_loop___173(
                 rows, shared, cols, gA, tid, sh._2._1, ri, __anf02_2);
             __syncthreads();
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
             uint32_t k1_1 = 0;
             while (k1_1 < 512) {
                 uint32_t kv_1 = k1_1;
@@ -15621,13 +13495,10 @@ __global__ static void kuiper_kernel_64(uint32_t *row_indices, uint32_t rows,
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 8) {
-                    (void) (k2);
                     uint32_t __anf1_1 = k2;
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 16) * 4)) < cols) {
-                        float *lchunk_1;
-                        float _cbuf11[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                        lchunk_1 = _cbuf11;
+                        float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                         vec_memcpy((lchunk_1 + 0),
                             (gB + ((0 + (cols * kr_1)) +
                                       (n_idx + ((__anf03 * 16) * 4)))));
@@ -15648,28 +13519,15 @@ __global__ static void kuiper_kernel_64(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf03_1 = k1_1;
                 k1_1 = (__anf03_1 + 1);
             }
-            (void) (idx);
             uint32_t __anf03_2 = idx;
             idx = (__anf03_2 + 1);
             uint32_t __anf04_2 = nnz;
             nnz = (__anf04_2 - 512);
         }
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (nnz);
-        (void) (nnz);
-        (void) (idx);
     } else {
         idx = 0;
         nnz = (re - ri);
     }
-    (void) (idx);
     __syncthreads();
     Kuiper_For_for_loop___71(
         rows, shared, cols, gA, tid, sh._1, sh._2._1, re, nnz);
@@ -15681,13 +13539,10 @@ __global__ static void kuiper_kernel_64(uint32_t *row_indices, uint32_t rows,
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 8) {
-            (void) (k1_2);
             uint32_t __anf1_2 = k1_2;
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 16) * 4)) < cols) {
-                float *lchunk_2;
-                float _cbuf16[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                lchunk_2 = _cbuf16;
+                float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 vec_memcpy((lchunk_2 + 0),
                     (gB + ((0 + (cols * kr_2)) +
                               (n_idx + ((__anf02_3 * 16) * 4)))));
@@ -15734,11 +13589,9 @@ __global__ static void kuiper_kernel_65(uint32_t *row_indices, uint32_t rows,
     uint32_t ri_ = ((ri / 4) * 4);
     uint32_t nnz = (re - ri_);
     uint32_t idx = 0;
-    float *out;
-    float _cbuf1[32] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+    float out[32] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-    out = _cbuf1;
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t __anf0 = nnz;
     if (__anf0 >= 512) {
         Kuiper_For_for_loop___170(rows, shared, cols, gA, tid, sh._1, ri);
@@ -15753,13 +13606,10 @@ __global__ static void kuiper_kernel_65(uint32_t *row_indices, uint32_t rows,
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 8) {
-                (void) (k1);
                 uint32_t __anf1 = k1;
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 16) * 4)) < cols) {
-                    float *lchunk;
-                    float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                    lchunk = _cbuf5;
+                    float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                     vec_memcpy((lchunk + 0),
                         (gB + ((0 + (cols * kr)) +
                                   (n_idx + ((__anf01 * 16) * 4)))));
@@ -15790,15 +13640,6 @@ __global__ static void kuiper_kernel_65(uint32_t *row_indices, uint32_t rows,
             Kuiper_For_for_loop___173(
                 rows, shared, cols, gA, tid, sh._2._1, ri, __anf02_2);
             __syncthreads();
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
             uint32_t k1_1 = 0;
             while (k1_1 < 512) {
                 uint32_t kv_1 = k1_1;
@@ -15806,13 +13647,10 @@ __global__ static void kuiper_kernel_65(uint32_t *row_indices, uint32_t rows,
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 8) {
-                    (void) (k2);
                     uint32_t __anf1_1 = k2;
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 16) * 4)) < cols) {
-                        float *lchunk_1;
-                        float _cbuf11[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                        lchunk_1 = _cbuf11;
+                        float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                         vec_memcpy((lchunk_1 + 0),
                             (gB + ((0 + (cols * kr_1)) +
                                       (n_idx + ((__anf03 * 16) * 4)))));
@@ -15833,28 +13671,15 @@ __global__ static void kuiper_kernel_65(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf03_1 = k1_1;
                 k1_1 = (__anf03_1 + 1);
             }
-            (void) (idx);
             uint32_t __anf03_2 = idx;
             idx = (__anf03_2 + 1);
             uint32_t __anf04_2 = nnz;
             nnz = (__anf04_2 - 512);
         }
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (nnz);
-        (void) (nnz);
-        (void) (idx);
     } else {
         idx = 0;
         nnz = (re - ri);
     }
-    (void) (idx);
     __syncthreads();
     Kuiper_For_for_loop___71(
         rows, shared, cols, gA, tid, sh._1, sh._2._1, re, nnz);
@@ -15866,13 +13691,10 @@ __global__ static void kuiper_kernel_65(uint32_t *row_indices, uint32_t rows,
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 8) {
-            (void) (k1_2);
             uint32_t __anf1_2 = k1_2;
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 16) * 4)) < cols) {
-                float *lchunk_2;
-                float _cbuf16[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                lchunk_2 = _cbuf16;
+                float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 vec_memcpy((lchunk_2 + 0),
                     (gB + ((0 + (cols * kr_2)) +
                               (n_idx + ((__anf02_3 * 16) * 4)))));
@@ -15989,10 +13811,8 @@ __global__ static void kuiper_kernel_66(uint32_t *row_indices, uint32_t rows,
     uint32_t ri_ = ((ri / 4) * 4);
     uint32_t nnz = (re - ri_);
     uint32_t idx = 0;
-    float *out;
-    float _cbuf1[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-    out = _cbuf1;
+    float out[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t __anf0 = nnz;
     if (__anf0 >= 512) {
         Kuiper_For_for_loop___174(rows, shared, cols, gA, tid, sh._1, ri);
@@ -16007,13 +13827,10 @@ __global__ static void kuiper_kernel_66(uint32_t *row_indices, uint32_t rows,
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
                 uint32_t __anf1 = k1;
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 32) * 4)) < cols) {
-                    float *lchunk;
-                    float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                    lchunk = _cbuf5;
+                    float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                     vec_memcpy((lchunk + 0),
                         (gB + ((0 + (cols * kr)) +
                                   (n_idx + ((__anf01 * 32) * 4)))));
@@ -16044,15 +13861,6 @@ __global__ static void kuiper_kernel_66(uint32_t *row_indices, uint32_t rows,
             Kuiper_For_for_loop___177(
                 rows, shared, cols, gA, tid, sh._2._1, ri, __anf02_2);
             __syncthreads();
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
             uint32_t k1_1 = 0;
             while (k1_1 < 512) {
                 uint32_t kv_1 = k1_1;
@@ -16060,13 +13868,10 @@ __global__ static void kuiper_kernel_66(uint32_t *row_indices, uint32_t rows,
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 4) {
-                    (void) (k2);
                     uint32_t __anf1_1 = k2;
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 32) * 4)) < cols) {
-                        float *lchunk_1;
-                        float _cbuf11[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                        lchunk_1 = _cbuf11;
+                        float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                         vec_memcpy((lchunk_1 + 0),
                             (gB + ((0 + (cols * kr_1)) +
                                       (n_idx + ((__anf03 * 32) * 4)))));
@@ -16087,28 +13892,15 @@ __global__ static void kuiper_kernel_66(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf03_1 = k1_1;
                 k1_1 = (__anf03_1 + 1);
             }
-            (void) (idx);
             uint32_t __anf03_2 = idx;
             idx = (__anf03_2 + 1);
             uint32_t __anf04_2 = nnz;
             nnz = (__anf04_2 - 512);
         }
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (nnz);
-        (void) (nnz);
-        (void) (idx);
     } else {
         idx = 0;
         nnz = (re - ri);
     }
-    (void) (idx);
     __syncthreads();
     Kuiper_For_for_loop___106(
         rows, shared, cols, gA, tid, sh._1, sh._2._1, re, nnz);
@@ -16120,13 +13912,10 @@ __global__ static void kuiper_kernel_66(uint32_t *row_indices, uint32_t rows,
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 4) {
-            (void) (k1_2);
             uint32_t __anf1_2 = k1_2;
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 32) * 4)) < cols) {
-                float *lchunk_2;
-                float _cbuf16[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                lchunk_2 = _cbuf16;
+                float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 vec_memcpy((lchunk_2 + 0),
                     (gB + ((0 + (cols * kr_2)) +
                               (n_idx + ((__anf02_3 * 32) * 4)))));
@@ -16173,10 +13962,8 @@ __global__ static void kuiper_kernel_67(uint32_t *row_indices, uint32_t rows,
     uint32_t ri_ = ((ri / 4) * 4);
     uint32_t nnz = (re - ri_);
     uint32_t idx = 0;
-    float *out;
-    float _cbuf1[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-    out = _cbuf1;
+    float out[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t __anf0 = nnz;
     if (__anf0 >= 512) {
         Kuiper_For_for_loop___174(rows, shared, cols, gA, tid, sh._1, ri);
@@ -16191,13 +13978,10 @@ __global__ static void kuiper_kernel_67(uint32_t *row_indices, uint32_t rows,
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 4) {
-                (void) (k1);
                 uint32_t __anf1 = k1;
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 32) * 4)) < cols) {
-                    float *lchunk;
-                    float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                    lchunk = _cbuf5;
+                    float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                     vec_memcpy((lchunk + 0),
                         (gB + ((0 + (cols * kr)) +
                                   (n_idx + ((__anf01 * 32) * 4)))));
@@ -16228,15 +14012,6 @@ __global__ static void kuiper_kernel_67(uint32_t *row_indices, uint32_t rows,
             Kuiper_For_for_loop___177(
                 rows, shared, cols, gA, tid, sh._2._1, ri, __anf02_2);
             __syncthreads();
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
             uint32_t k1_1 = 0;
             while (k1_1 < 512) {
                 uint32_t kv_1 = k1_1;
@@ -16244,13 +14019,10 @@ __global__ static void kuiper_kernel_67(uint32_t *row_indices, uint32_t rows,
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 4) {
-                    (void) (k2);
                     uint32_t __anf1_1 = k2;
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 32) * 4)) < cols) {
-                        float *lchunk_1;
-                        float _cbuf11[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                        lchunk_1 = _cbuf11;
+                        float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                         vec_memcpy((lchunk_1 + 0),
                             (gB + ((0 + (cols * kr_1)) +
                                       (n_idx + ((__anf03 * 32) * 4)))));
@@ -16271,28 +14043,15 @@ __global__ static void kuiper_kernel_67(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf03_1 = k1_1;
                 k1_1 = (__anf03_1 + 1);
             }
-            (void) (idx);
             uint32_t __anf03_2 = idx;
             idx = (__anf03_2 + 1);
             uint32_t __anf04_2 = nnz;
             nnz = (__anf04_2 - 512);
         }
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (nnz);
-        (void) (nnz);
-        (void) (idx);
     } else {
         idx = 0;
         nnz = (re - ri);
     }
-    (void) (idx);
     __syncthreads();
     Kuiper_For_for_loop___106(
         rows, shared, cols, gA, tid, sh._1, sh._2._1, re, nnz);
@@ -16304,13 +14063,10 @@ __global__ static void kuiper_kernel_67(uint32_t *row_indices, uint32_t rows,
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 4) {
-            (void) (k1_2);
             uint32_t __anf1_2 = k1_2;
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 32) * 4)) < cols) {
-                float *lchunk_2;
-                float _cbuf16[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                lchunk_2 = _cbuf16;
+                float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 vec_memcpy((lchunk_2 + 0),
                     (gB + ((0 + (cols * kr_2)) +
                               (n_idx + ((__anf02_3 * 32) * 4)))));
@@ -16357,9 +14113,7 @@ __global__ static void kuiper_kernel_68(uint32_t *row_indices, uint32_t rows,
     uint32_t ri_ = ((ri / 4) * 4);
     uint32_t nnz = (re - ri_);
     uint32_t idx = 0;
-    float *out;
-    float _cbuf1[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-    out = _cbuf1;
+    float out[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t __anf0 = nnz;
     if (__anf0 >= 512) {
         Kuiper_For_for_loop___7(rows, shared, cols, gA, tid, sh._1, ri);
@@ -16374,13 +14128,10 @@ __global__ static void kuiper_kernel_68(uint32_t *row_indices, uint32_t rows,
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 2) {
-                (void) (k1);
                 uint32_t __anf1 = k1;
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 64) * 4)) < cols) {
-                    float *lchunk;
-                    float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                    lchunk = _cbuf5;
+                    float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                     vec_memcpy((lchunk + 0),
                         (gB + ((0 + (cols * kr)) +
                                   (n_idx + ((__anf01 * 64) * 4)))));
@@ -16411,15 +14162,6 @@ __global__ static void kuiper_kernel_68(uint32_t *row_indices, uint32_t rows,
             Kuiper_For_for_loop___11(
                 rows, shared, cols, gA, tid, sh._2._1, ri, __anf02_2);
             __syncthreads();
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
             uint32_t k1_1 = 0;
             while (k1_1 < 512) {
                 uint32_t kv_1 = k1_1;
@@ -16427,13 +14169,10 @@ __global__ static void kuiper_kernel_68(uint32_t *row_indices, uint32_t rows,
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 2) {
-                    (void) (k2);
                     uint32_t __anf1_1 = k2;
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 64) * 4)) < cols) {
-                        float *lchunk_1;
-                        float _cbuf11[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                        lchunk_1 = _cbuf11;
+                        float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                         vec_memcpy((lchunk_1 + 0),
                             (gB + ((0 + (cols * kr_1)) +
                                       (n_idx + ((__anf03 * 64) * 4)))));
@@ -16454,28 +14193,15 @@ __global__ static void kuiper_kernel_68(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf03_1 = k1_1;
                 k1_1 = (__anf03_1 + 1);
             }
-            (void) (idx);
             uint32_t __anf03_2 = idx;
             idx = (__anf03_2 + 1);
             uint32_t __anf04_2 = nnz;
             nnz = (__anf04_2 - 512);
         }
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (nnz);
-        (void) (nnz);
-        (void) (idx);
     } else {
         idx = 0;
         nnz = (re - ri);
     }
-    (void) (idx);
     __syncthreads();
     Kuiper_For_for_loop___12(
         rows, shared, cols, gA, tid, sh._1, sh._2._1, re, nnz);
@@ -16487,13 +14213,10 @@ __global__ static void kuiper_kernel_68(uint32_t *row_indices, uint32_t rows,
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 2) {
-            (void) (k1_2);
             uint32_t __anf1_2 = k1_2;
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 64) * 4)) < cols) {
-                float *lchunk_2;
-                float _cbuf16[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                lchunk_2 = _cbuf16;
+                float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 vec_memcpy((lchunk_2 + 0),
                     (gB + ((0 + (cols * kr_2)) +
                               (n_idx + ((__anf02_3 * 64) * 4)))));
@@ -16540,9 +14263,7 @@ __global__ static void kuiper_kernel_69(uint32_t *row_indices, uint32_t rows,
     uint32_t ri_ = ((ri / 4) * 4);
     uint32_t nnz = (re - ri_);
     uint32_t idx = 0;
-    float *out;
-    float _cbuf1[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-    out = _cbuf1;
+    float out[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t __anf0 = nnz;
     if (__anf0 >= 512) {
         Kuiper_For_for_loop___7(rows, shared, cols, gA, tid, sh._1, ri);
@@ -16557,13 +14278,10 @@ __global__ static void kuiper_kernel_69(uint32_t *row_indices, uint32_t rows,
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 2) {
-                (void) (k1);
                 uint32_t __anf1 = k1;
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 64) * 4)) < cols) {
-                    float *lchunk;
-                    float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                    lchunk = _cbuf5;
+                    float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                     vec_memcpy((lchunk + 0),
                         (gB + ((0 + (cols * kr)) +
                                   (n_idx + ((__anf01 * 64) * 4)))));
@@ -16594,15 +14312,6 @@ __global__ static void kuiper_kernel_69(uint32_t *row_indices, uint32_t rows,
             Kuiper_For_for_loop___11(
                 rows, shared, cols, gA, tid, sh._2._1, ri, __anf02_2);
             __syncthreads();
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
             uint32_t k1_1 = 0;
             while (k1_1 < 512) {
                 uint32_t kv_1 = k1_1;
@@ -16610,13 +14319,10 @@ __global__ static void kuiper_kernel_69(uint32_t *row_indices, uint32_t rows,
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 2) {
-                    (void) (k2);
                     uint32_t __anf1_1 = k2;
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 64) * 4)) < cols) {
-                        float *lchunk_1;
-                        float _cbuf11[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                        lchunk_1 = _cbuf11;
+                        float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                         vec_memcpy((lchunk_1 + 0),
                             (gB + ((0 + (cols * kr_1)) +
                                       (n_idx + ((__anf03 * 64) * 4)))));
@@ -16637,28 +14343,15 @@ __global__ static void kuiper_kernel_69(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf03_1 = k1_1;
                 k1_1 = (__anf03_1 + 1);
             }
-            (void) (idx);
             uint32_t __anf03_2 = idx;
             idx = (__anf03_2 + 1);
             uint32_t __anf04_2 = nnz;
             nnz = (__anf04_2 - 512);
         }
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (nnz);
-        (void) (nnz);
-        (void) (idx);
     } else {
         idx = 0;
         nnz = (re - ri);
     }
-    (void) (idx);
     __syncthreads();
     Kuiper_For_for_loop___12(
         rows, shared, cols, gA, tid, sh._1, sh._2._1, re, nnz);
@@ -16670,13 +14363,10 @@ __global__ static void kuiper_kernel_69(uint32_t *row_indices, uint32_t rows,
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 2) {
-            (void) (k1_2);
             uint32_t __anf1_2 = k1_2;
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 64) * 4)) < cols) {
-                float *lchunk_2;
-                float _cbuf16[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                lchunk_2 = _cbuf16;
+                float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 vec_memcpy((lchunk_2 + 0),
                     (gB + ((0 + (cols * kr_2)) +
                               (n_idx + ((__anf02_3 * 64) * 4)))));
@@ -16844,9 +14534,7 @@ __global__ static void kuiper_kernel_70(uint32_t *row_indices, uint32_t rows,
     uint32_t ri_ = ((ri / 4) * 4);
     uint32_t nnz = (re - ri_);
     uint32_t idx = 0;
-    float *out;
-    float _cbuf1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-    out = _cbuf1;
+    float out[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t __anf0 = nnz;
     if (__anf0 >= 512) {
         Kuiper_For_for_loop___178(rows, shared, cols, gA, tid, sh._1, ri);
@@ -16861,13 +14549,10 @@ __global__ static void kuiper_kernel_70(uint32_t *row_indices, uint32_t rows,
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 1) {
-                (void) (k1);
                 uint32_t __anf1 = k1;
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 128) * 4)) < cols) {
-                    float *lchunk;
-                    float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                    lchunk = _cbuf5;
+                    float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                     vec_memcpy((lchunk + 0),
                         (gB + ((0 + (cols * kr)) +
                                   (n_idx + ((__anf01 * 128) * 4)))));
@@ -16898,15 +14583,6 @@ __global__ static void kuiper_kernel_70(uint32_t *row_indices, uint32_t rows,
             Kuiper_For_for_loop___182(
                 rows, shared, cols, gA, tid, sh._2._1, ri, __anf02_2);
             __syncthreads();
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
             uint32_t k1_1 = 0;
             while (k1_1 < 512) {
                 uint32_t kv_1 = k1_1;
@@ -16914,13 +14590,10 @@ __global__ static void kuiper_kernel_70(uint32_t *row_indices, uint32_t rows,
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 1) {
-                    (void) (k2);
                     uint32_t __anf1_1 = k2;
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 128) * 4)) < cols) {
-                        float *lchunk_1;
-                        float _cbuf11[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                        lchunk_1 = _cbuf11;
+                        float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                         vec_memcpy((lchunk_1 + 0),
                             (gB + ((0 + (cols * kr_1)) +
                                       (n_idx + ((__anf03 * 128) * 4)))));
@@ -16941,28 +14614,15 @@ __global__ static void kuiper_kernel_70(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf03_1 = k1_1;
                 k1_1 = (__anf03_1 + 1);
             }
-            (void) (idx);
             uint32_t __anf03_2 = idx;
             idx = (__anf03_2 + 1);
             uint32_t __anf04_2 = nnz;
             nnz = (__anf04_2 - 512);
         }
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (nnz);
-        (void) (nnz);
-        (void) (idx);
     } else {
         idx = 0;
         nnz = (re - ri);
     }
-    (void) (idx);
     __syncthreads();
     Kuiper_For_for_loop___183(
         rows, shared, cols, gA, tid, sh._1, sh._2._1, re, nnz);
@@ -16974,13 +14634,10 @@ __global__ static void kuiper_kernel_70(uint32_t *row_indices, uint32_t rows,
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 1) {
-            (void) (k1_2);
             uint32_t __anf1_2 = k1_2;
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 128) * 4)) < cols) {
-                float *lchunk_2;
-                float _cbuf16[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                lchunk_2 = _cbuf16;
+                float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 vec_memcpy((lchunk_2 + 0),
                     (gB + ((0 + (cols * kr_2)) +
                               (n_idx + ((__anf02_3 * 128) * 4)))));
@@ -17027,9 +14684,7 @@ __global__ static void kuiper_kernel_71(uint32_t *row_indices, uint32_t rows,
     uint32_t ri_ = ((ri / 4) * 4);
     uint32_t nnz = (re - ri_);
     uint32_t idx = 0;
-    float *out;
-    float _cbuf1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-    out = _cbuf1;
+    float out[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t __anf0 = nnz;
     if (__anf0 >= 512) {
         Kuiper_For_for_loop___178(rows, shared, cols, gA, tid, sh._1, ri);
@@ -17044,13 +14699,10 @@ __global__ static void kuiper_kernel_71(uint32_t *row_indices, uint32_t rows,
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 1) {
-                (void) (k1);
                 uint32_t __anf1 = k1;
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 128) * 4)) < cols) {
-                    float *lchunk;
-                    float _cbuf5[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                    lchunk = _cbuf5;
+                    float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                     vec_memcpy((lchunk + 0),
                         (gB + ((0 + (cols * kr)) +
                                   (n_idx + ((__anf01 * 128) * 4)))));
@@ -17081,15 +14733,6 @@ __global__ static void kuiper_kernel_71(uint32_t *row_indices, uint32_t rows,
             Kuiper_For_for_loop___182(
                 rows, shared, cols, gA, tid, sh._2._1, ri, __anf02_2);
             __syncthreads();
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
-            (void) (idx);
             uint32_t k1_1 = 0;
             while (k1_1 < 512) {
                 uint32_t kv_1 = k1_1;
@@ -17097,13 +14740,10 @@ __global__ static void kuiper_kernel_71(uint32_t *row_indices, uint32_t rows,
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 1) {
-                    (void) (k2);
                     uint32_t __anf1_1 = k2;
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 128) * 4)) < cols) {
-                        float *lchunk_1;
-                        float _cbuf11[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                        lchunk_1 = _cbuf11;
+                        float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                         vec_memcpy((lchunk_1 + 0),
                             (gB + ((0 + (cols * kr_1)) +
                                       (n_idx + ((__anf03 * 128) * 4)))));
@@ -17124,28 +14764,15 @@ __global__ static void kuiper_kernel_71(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf03_1 = k1_1;
                 k1_1 = (__anf03_1 + 1);
             }
-            (void) (idx);
             uint32_t __anf03_2 = idx;
             idx = (__anf03_2 + 1);
             uint32_t __anf04_2 = nnz;
             nnz = (__anf04_2 - 512);
         }
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
-        (void) (nnz);
-        (void) (nnz);
-        (void) (idx);
     } else {
         idx = 0;
         nnz = (re - ri);
     }
-    (void) (idx);
     __syncthreads();
     Kuiper_For_for_loop___183(
         rows, shared, cols, gA, tid, sh._1, sh._2._1, re, nnz);
@@ -17157,13 +14784,10 @@ __global__ static void kuiper_kernel_71(uint32_t *row_indices, uint32_t rows,
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 1) {
-            (void) (k1_2);
             uint32_t __anf1_2 = k1_2;
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 128) * 4)) < cols) {
-                float *lchunk_2;
-                float _cbuf16[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                lchunk_2 = _cbuf16;
+                float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 vec_memcpy((lchunk_2 + 0),
                     (gB + ((0 + (cols * kr_2)) +
                               (n_idx + ((__anf02_3 * 128) * 4)))));

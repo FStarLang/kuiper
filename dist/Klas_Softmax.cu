@@ -106,7 +106,6 @@ __global__ static void kuiper_kernel_0(
     custard_f16 acc = v0;
     uint32_t idx = (tid + nthm);
     while (idx < lena) {
-        (void) (idx);
         uint32_t idx_raw = idx;
         FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp3 =
             (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
@@ -115,20 +114,13 @@ __global__ static void kuiper_kernel_0(
                     ._1 = idx_raw}};
         uint32_t ni1 = tmp3._2._1;
         custard_f16 v = a_[ni1];
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
         custard_f16 __anf0 = acc;
         acc = kpr_hfmax(__anf0, v);
         uint32_t __anf01 = idx;
         idx = (__anf01 + nthm);
     }
-    (void) (idx);
     shmem._1[tid] = acc;
     uint32_t n = 0;
-    (void) (n);
-    (void) (n);
-    (void) (n);
     while ((uint32_t) (((uint32_t) 1U) << (uint32_t) n) < nthm) {
         uint32_t __anf0_1 = n;
         __syncthreads();
@@ -205,7 +197,6 @@ __global__ static void kuiper_kernel_2(
         uint32_t ni = tmp2._2._1;
         custard_f16 v = a_[ni];
         custard_f16 v_ = hexp(v);
-        (void) (acc);
         custard_f16 __anf0 = acc;
         acc = custard_f16_add(__anf0, v_);
         uint32_t __anf01 = idx;
@@ -213,9 +204,6 @@ __global__ static void kuiper_kernel_2(
     }
     shmem._1[tid] = acc;
     uint32_t n = 0;
-    (void) (n);
-    (void) (n);
-    (void) (n);
     while ((uint32_t) (((uint32_t) 1U) << (uint32_t) n) < nth) {
         uint32_t __anf0_1 = n;
         __syncthreads();
@@ -289,7 +277,6 @@ __global__ static void kuiper_kernel_4(
     float acc = v0;
     uint32_t idx = (tid + nthm);
     while (idx < lena) {
-        (void) (idx);
         uint32_t idx_raw = idx;
         FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp3 =
             (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
@@ -298,20 +285,13 @@ __global__ static void kuiper_kernel_4(
                     ._1 = idx_raw}};
         uint32_t ni1 = tmp3._2._1;
         float v = a_[ni1];
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
         float __anf0 = acc;
         acc = fmaxf(__anf0, v);
         uint32_t __anf01 = idx;
         idx = (__anf01 + nthm);
     }
-    (void) (idx);
     shmem._1[tid] = acc;
     uint32_t n = 0;
-    (void) (n);
-    (void) (n);
-    (void) (n);
     while ((uint32_t) (((uint32_t) 1U) << (uint32_t) n) < nthm) {
         uint32_t __anf0_1 = n;
         __syncthreads();
@@ -387,7 +367,6 @@ __global__ static void kuiper_kernel_6(
         uint32_t ni = tmp2._2._1;
         float v = a_[ni];
         float v_ = expf(v);
-        (void) (acc);
         float __anf0 = acc;
         acc = (__anf0 + v_);
         uint32_t __anf01 = idx;
@@ -395,9 +374,6 @@ __global__ static void kuiper_kernel_6(
     }
     shmem._1[tid] = acc;
     uint32_t n = 0;
-    (void) (n);
-    (void) (n);
-    (void) (n);
     while ((uint32_t) (((uint32_t) 1U) << (uint32_t) n) < nth) {
         uint32_t __anf0_1 = n;
         __syncthreads();
@@ -470,7 +446,6 @@ __global__ static void kuiper_kernel_8(
     double acc = v0;
     uint32_t idx = (tid + nthm);
     while (idx < lena) {
-        (void) (idx);
         uint32_t idx_raw = idx;
         FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp3 =
             (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
@@ -479,20 +454,13 @@ __global__ static void kuiper_kernel_8(
                     ._1 = idx_raw}};
         uint32_t ni1 = tmp3._2._1;
         double v = a_[ni1];
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
         double __anf0 = acc;
         acc = fmax(__anf0, v);
         uint32_t __anf01 = idx;
         idx = (__anf01 + nthm);
     }
-    (void) (idx);
     shmem._1[tid] = acc;
     uint32_t n = 0;
-    (void) (n);
-    (void) (n);
-    (void) (n);
     while ((uint32_t) (((uint32_t) 1U) << (uint32_t) n) < nthm) {
         uint32_t __anf0_1 = n;
         __syncthreads();
@@ -568,7 +536,6 @@ __global__ static void kuiper_kernel_10(
         uint32_t ni = tmp2._2._1;
         double v = a_[ni];
         double v_ = exp(v);
-        (void) (acc);
         double __anf0 = acc;
         acc = (__anf0 + v_);
         uint32_t __anf01 = idx;
@@ -576,9 +543,6 @@ __global__ static void kuiper_kernel_10(
     }
     shmem._1[tid] = acc;
     uint32_t n = 0;
-    (void) (n);
-    (void) (n);
-    (void) (n);
     while ((uint32_t) (((uint32_t) 1U) << (uint32_t) n) < nth) {
         uint32_t __anf0_1 = n;
         __syncthreads();
@@ -651,7 +615,6 @@ __global__ static void kuiper_kernel_12(
     custard_f16 acc = v0;
     uint32_t idx = (tid + nthm);
     while (idx < lena) {
-        (void) (idx);
         uint32_t idx_raw = idx;
         FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp3 =
             (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
@@ -660,20 +623,13 @@ __global__ static void kuiper_kernel_12(
                     ._1 = idx_raw}};
         uint32_t ni1 = tmp3._2._1;
         custard_f16 v = a_[ni1];
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
         custard_f16 __anf0 = acc;
         acc = kpr_hfmax(__anf0, v);
         uint32_t __anf01 = idx;
         idx = (__anf01 + nthm);
     }
-    (void) (idx);
     shmem._1[tid] = acc;
     uint32_t n = 0;
-    (void) (n);
-    (void) (n);
-    (void) (n);
     while ((uint32_t) (((uint32_t) 1U) << (uint32_t) n) < nthm) {
         uint32_t __anf0_1 = n;
         __syncthreads();
@@ -750,7 +706,6 @@ __global__ static void kuiper_kernel_14(
         uint32_t ni = tmp2._2._1;
         custard_f16 v = a_[ni];
         custard_f16 v_ = hexp(v);
-        (void) (acc);
         custard_f16 __anf0 = acc;
         acc = custard_f16_add(__anf0, v_);
         uint32_t __anf01 = idx;
@@ -758,9 +713,6 @@ __global__ static void kuiper_kernel_14(
     }
     shmem._1[tid] = acc;
     uint32_t n = 0;
-    (void) (n);
-    (void) (n);
-    (void) (n);
     while ((uint32_t) (((uint32_t) 1U) << (uint32_t) n) < 1024) {
         uint32_t __anf0_1 = n;
         __syncthreads();
@@ -834,7 +786,6 @@ __global__ static void kuiper_kernel_16(
     float acc = v0;
     uint32_t idx = (tid + nthm);
     while (idx < lena) {
-        (void) (idx);
         uint32_t idx_raw = idx;
         FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp3 =
             (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
@@ -843,20 +794,13 @@ __global__ static void kuiper_kernel_16(
                     ._1 = idx_raw}};
         uint32_t ni1 = tmp3._2._1;
         float v = a_[ni1];
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
         float __anf0 = acc;
         acc = fmaxf(__anf0, v);
         uint32_t __anf01 = idx;
         idx = (__anf01 + nthm);
     }
-    (void) (idx);
     shmem._1[tid] = acc;
     uint32_t n = 0;
-    (void) (n);
-    (void) (n);
-    (void) (n);
     while ((uint32_t) (((uint32_t) 1U) << (uint32_t) n) < nthm) {
         uint32_t __anf0_1 = n;
         __syncthreads();
@@ -931,7 +875,6 @@ __global__ static void kuiper_kernel_18(uint32_t lena, float *a_, float *sums)
         uint32_t ni = tmp2._2._1;
         float v = a_[ni];
         float v_ = expf(v);
-        (void) (acc);
         float __anf0 = acc;
         acc = (__anf0 + v_);
         uint32_t __anf01 = idx;
@@ -939,9 +882,6 @@ __global__ static void kuiper_kernel_18(uint32_t lena, float *a_, float *sums)
     }
     shmem._1[tid] = acc;
     uint32_t n = 0;
-    (void) (n);
-    (void) (n);
-    (void) (n);
     while ((uint32_t) (((uint32_t) 1U) << (uint32_t) n) < 1024) {
         uint32_t __anf0_1 = n;
         __syncthreads();
@@ -1014,7 +954,6 @@ __global__ static void kuiper_kernel_20(
     double acc = v0;
     uint32_t idx = (tid + nthm);
     while (idx < lena) {
-        (void) (idx);
         uint32_t idx_raw = idx;
         FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp3 =
             (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
@@ -1023,20 +962,13 @@ __global__ static void kuiper_kernel_20(
                     ._1 = idx_raw}};
         uint32_t ni1 = tmp3._2._1;
         double v = a_[ni1];
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
         double __anf0 = acc;
         acc = fmax(__anf0, v);
         uint32_t __anf01 = idx;
         idx = (__anf01 + nthm);
     }
-    (void) (idx);
     shmem._1[tid] = acc;
     uint32_t n = 0;
-    (void) (n);
-    (void) (n);
-    (void) (n);
     while ((uint32_t) (((uint32_t) 1U) << (uint32_t) n) < nthm) {
         uint32_t __anf0_1 = n;
         __syncthreads();
@@ -1111,7 +1043,6 @@ __global__ static void kuiper_kernel_22(uint32_t lena, double *a_, double *sums)
         uint32_t ni = tmp2._2._1;
         double v = a_[ni];
         double v_ = exp(v);
-        (void) (acc);
         double __anf0 = acc;
         acc = (__anf0 + v_);
         uint32_t __anf01 = idx;
@@ -1119,9 +1050,6 @@ __global__ static void kuiper_kernel_22(uint32_t lena, double *a_, double *sums)
     }
     shmem._1[tid] = acc;
     uint32_t n = 0;
-    (void) (n);
-    (void) (n);
-    (void) (n);
     while ((uint32_t) (((uint32_t) 1U) << (uint32_t) n) < 1024) {
         uint32_t __anf0_1 = n;
         __syncthreads();
@@ -1194,7 +1122,6 @@ __global__ static void kuiper_kernel_24(
     custard_f16 acc = v0;
     uint32_t idx = (tid + nthm);
     while (idx < lena) {
-        (void) (idx);
         uint32_t idx_raw = idx;
         FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp3 =
             (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
@@ -1203,20 +1130,13 @@ __global__ static void kuiper_kernel_24(
                     ._1 = idx_raw}};
         uint32_t ni1 = tmp3._2._1;
         custard_f16 v = a_[ni1];
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
         custard_f16 __anf0 = acc;
         acc = kpr_hfmax(__anf0, v);
         uint32_t __anf01 = idx;
         idx = (__anf01 + nthm);
     }
-    (void) (idx);
     shmem._1[tid] = acc;
     uint32_t n = 0;
-    (void) (n);
-    (void) (n);
-    (void) (n);
     while ((uint32_t) (((uint32_t) 1U) << (uint32_t) n) < nthm) {
         uint32_t __anf0_1 = n;
         __syncthreads();
@@ -1293,7 +1213,6 @@ __global__ static void kuiper_kernel_26(
         uint32_t ni = tmp2._2._1;
         custard_f16 v = a_[ni];
         custard_f16 v_ = hexp(v);
-        (void) (acc);
         custard_f16 __anf0 = acc;
         acc = custard_f16_add(__anf0, v_);
         uint32_t __anf01 = idx;
@@ -1301,9 +1220,6 @@ __global__ static void kuiper_kernel_26(
     }
     shmem._1[tid] = acc;
     uint32_t n = 0;
-    (void) (n);
-    (void) (n);
-    (void) (n);
     while ((uint32_t) (((uint32_t) 1U) << (uint32_t) n) < nth) {
         uint32_t __anf0_1 = n;
         __syncthreads();
@@ -1377,7 +1293,6 @@ __global__ static void kuiper_kernel_28(
     float acc = v0;
     uint32_t idx = (tid + nthm);
     while (idx < lena) {
-        (void) (idx);
         uint32_t idx_raw = idx;
         FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp3 =
             (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
@@ -1386,20 +1301,13 @@ __global__ static void kuiper_kernel_28(
                     ._1 = idx_raw}};
         uint32_t ni1 = tmp3._2._1;
         float v = a_[ni1];
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
         float __anf0 = acc;
         acc = fmaxf(__anf0, v);
         uint32_t __anf01 = idx;
         idx = (__anf01 + nthm);
     }
-    (void) (idx);
     shmem._1[tid] = acc;
     uint32_t n = 0;
-    (void) (n);
-    (void) (n);
-    (void) (n);
     while ((uint32_t) (((uint32_t) 1U) << (uint32_t) n) < nthm) {
         uint32_t __anf0_1 = n;
         __syncthreads();
@@ -1475,7 +1383,6 @@ __global__ static void kuiper_kernel_30(
         uint32_t ni = tmp2._2._1;
         float v = a_[ni];
         float v_ = expf(v);
-        (void) (acc);
         float __anf0 = acc;
         acc = (__anf0 + v_);
         uint32_t __anf01 = idx;
@@ -1483,9 +1390,6 @@ __global__ static void kuiper_kernel_30(
     }
     shmem._1[tid] = acc;
     uint32_t n = 0;
-    (void) (n);
-    (void) (n);
-    (void) (n);
     while ((uint32_t) (((uint32_t) 1U) << (uint32_t) n) < nth) {
         uint32_t __anf0_1 = n;
         __syncthreads();
@@ -1558,7 +1462,6 @@ __global__ static void kuiper_kernel_32(
     double acc = v0;
     uint32_t idx = (tid + nthm);
     while (idx < lena) {
-        (void) (idx);
         uint32_t idx_raw = idx;
         FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp3 =
             (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
@@ -1567,20 +1470,13 @@ __global__ static void kuiper_kernel_32(
                     ._1 = idx_raw}};
         uint32_t ni1 = tmp3._2._1;
         double v = a_[ni1];
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
         double __anf0 = acc;
         acc = fmax(__anf0, v);
         uint32_t __anf01 = idx;
         idx = (__anf01 + nthm);
     }
-    (void) (idx);
     shmem._1[tid] = acc;
     uint32_t n = 0;
-    (void) (n);
-    (void) (n);
-    (void) (n);
     while ((uint32_t) (((uint32_t) 1U) << (uint32_t) n) < nthm) {
         uint32_t __anf0_1 = n;
         __syncthreads();
@@ -1656,7 +1552,6 @@ __global__ static void kuiper_kernel_34(
         uint32_t ni = tmp2._2._1;
         double v = a_[ni];
         double v_ = exp(v);
-        (void) (acc);
         double __anf0 = acc;
         acc = (__anf0 + v_);
         uint32_t __anf01 = idx;
@@ -1664,9 +1559,6 @@ __global__ static void kuiper_kernel_34(
     }
     shmem._1[tid] = acc;
     uint32_t n = 0;
-    (void) (n);
-    (void) (n);
-    (void) (n);
     while ((uint32_t) (((uint32_t) 1U) << (uint32_t) n) < nth) {
         uint32_t __anf0_1 = n;
         __syncthreads();
@@ -1739,7 +1631,6 @@ __global__ static void kuiper_kernel_36(
     custard_f16 acc = v0;
     uint32_t idx = (tid + nthm);
     while (idx < lena) {
-        (void) (idx);
         uint32_t idx_raw = idx;
         FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp3 =
             (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
@@ -1748,20 +1639,13 @@ __global__ static void kuiper_kernel_36(
                     ._1 = idx_raw}};
         uint32_t ni1 = tmp3._2._1;
         custard_f16 v = a_[ni1];
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
         custard_f16 __anf0 = acc;
         acc = kpr_hfmax(__anf0, v);
         uint32_t __anf01 = idx;
         idx = (__anf01 + nthm);
     }
-    (void) (idx);
     shmem._1[tid] = acc;
     uint32_t n = 0;
-    (void) (n);
-    (void) (n);
-    (void) (n);
     while ((uint32_t) (((uint32_t) 1U) << (uint32_t) n) < nthm) {
         uint32_t __anf0_1 = n;
         __syncthreads();
@@ -1838,7 +1722,6 @@ __global__ static void kuiper_kernel_38(
         uint32_t ni = tmp2._2._1;
         custard_f16 v = a_[ni];
         custard_f16 v_ = hexp(v);
-        (void) (acc);
         custard_f16 __anf0 = acc;
         acc = custard_f16_add(__anf0, v_);
         uint32_t __anf01 = idx;
@@ -1846,9 +1729,6 @@ __global__ static void kuiper_kernel_38(
     }
     shmem._1[tid] = acc;
     uint32_t n = 0;
-    (void) (n);
-    (void) (n);
-    (void) (n);
     while ((uint32_t) (((uint32_t) 1U) << (uint32_t) n) < 1024) {
         uint32_t __anf0_1 = n;
         __syncthreads();
@@ -1922,7 +1802,6 @@ __global__ static void kuiper_kernel_40(
     float acc = v0;
     uint32_t idx = (tid + nthm);
     while (idx < lena) {
-        (void) (idx);
         uint32_t idx_raw = idx;
         FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp3 =
             (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
@@ -1931,20 +1810,13 @@ __global__ static void kuiper_kernel_40(
                     ._1 = idx_raw}};
         uint32_t ni1 = tmp3._2._1;
         float v = a_[ni1];
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
         float __anf0 = acc;
         acc = fmaxf(__anf0, v);
         uint32_t __anf01 = idx;
         idx = (__anf01 + nthm);
     }
-    (void) (idx);
     shmem._1[tid] = acc;
     uint32_t n = 0;
-    (void) (n);
-    (void) (n);
-    (void) (n);
     while ((uint32_t) (((uint32_t) 1U) << (uint32_t) n) < nthm) {
         uint32_t __anf0_1 = n;
         __syncthreads();
@@ -2019,7 +1891,6 @@ __global__ static void kuiper_kernel_42(uint32_t lena, float *a_, float *sums)
         uint32_t ni = tmp2._2._1;
         float v = a_[ni];
         float v_ = expf(v);
-        (void) (acc);
         float __anf0 = acc;
         acc = (__anf0 + v_);
         uint32_t __anf01 = idx;
@@ -2027,9 +1898,6 @@ __global__ static void kuiper_kernel_42(uint32_t lena, float *a_, float *sums)
     }
     shmem._1[tid] = acc;
     uint32_t n = 0;
-    (void) (n);
-    (void) (n);
-    (void) (n);
     while ((uint32_t) (((uint32_t) 1U) << (uint32_t) n) < 1024) {
         uint32_t __anf0_1 = n;
         __syncthreads();
@@ -2102,7 +1970,6 @@ __global__ static void kuiper_kernel_44(
     double acc = v0;
     uint32_t idx = (tid + nthm);
     while (idx < lena) {
-        (void) (idx);
         uint32_t idx_raw = idx;
         FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp3 =
             (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
@@ -2111,20 +1978,13 @@ __global__ static void kuiper_kernel_44(
                     ._1 = idx_raw}};
         uint32_t ni1 = tmp3._2._1;
         double v = a_[ni1];
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
         double __anf0 = acc;
         acc = fmax(__anf0, v);
         uint32_t __anf01 = idx;
         idx = (__anf01 + nthm);
     }
-    (void) (idx);
     shmem._1[tid] = acc;
     uint32_t n = 0;
-    (void) (n);
-    (void) (n);
-    (void) (n);
     while ((uint32_t) (((uint32_t) 1U) << (uint32_t) n) < nthm) {
         uint32_t __anf0_1 = n;
         __syncthreads();
@@ -2199,7 +2059,6 @@ __global__ static void kuiper_kernel_46(uint32_t lena, double *a_, double *sums)
         uint32_t ni = tmp2._2._1;
         double v = a_[ni];
         double v_ = exp(v);
-        (void) (acc);
         double __anf0 = acc;
         acc = (__anf0 + v_);
         uint32_t __anf01 = idx;
@@ -2207,9 +2066,6 @@ __global__ static void kuiper_kernel_46(uint32_t lena, double *a_, double *sums)
     }
     shmem._1[tid] = acc;
     uint32_t n = 0;
-    (void) (n);
-    (void) (n);
-    (void) (n);
     while ((uint32_t) (((uint32_t) 1U) << (uint32_t) n) < 1024) {
         uint32_t __anf0_1 = n;
         __syncthreads();

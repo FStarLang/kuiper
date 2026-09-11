@@ -33,24 +33,16 @@ __global__ static void kuiper_kernel_0(
     float acc = v0;
     uint32_t idx = (tid + nthm);
     while (idx < n) {
-        (void) (idx);
         uint32_t idx_raw = idx;
         uint32_t ni1 = ((bid * n) + idx_raw);
         float v = a[ni1];
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
         float __anf0 = acc;
         acc = fmaxf(__anf0, v);
         uint32_t __anf01 = idx;
         idx = (__anf01 + nthm);
     }
-    (void) (idx);
     shmem._1[tid] = acc;
     uint32_t n1 = 0;
-    (void) (n1);
-    (void) (n1);
-    (void) (n1);
     while ((uint32_t) (((uint32_t) 1U) << (uint32_t) n1) < nthm) {
         uint32_t __anf0_1 = n1;
         __syncthreads();
@@ -112,7 +104,6 @@ __global__ static void kuiper_kernel_2(
         uint32_t ni = ((bid * n) + idx_raw);
         float v = a[ni];
         float v_ = expf(v);
-        (void) (acc);
         float __anf0 = acc;
         acc = (__anf0 + v_);
         uint32_t __anf01 = idx;
@@ -120,9 +111,6 @@ __global__ static void kuiper_kernel_2(
     }
     shmem._1[tid] = acc;
     uint32_t n1 = 0;
-    (void) (n1);
-    (void) (n1);
-    (void) (n1);
     while ((uint32_t) (((uint32_t) 1U) << (uint32_t) n1) < nth) {
         uint32_t __anf0_1 = n1;
         __syncthreads();
@@ -182,24 +170,16 @@ __global__ static void kuiper_kernel_4(
     double acc = v0;
     uint32_t idx = (tid + nthm);
     while (idx < n) {
-        (void) (idx);
         uint32_t idx_raw = idx;
         uint32_t ni1 = ((bid * n) + idx_raw);
         double v = a[ni1];
-        (void) (idx);
-        (void) (idx);
-        (void) (idx);
         double __anf0 = acc;
         acc = fmax(__anf0, v);
         uint32_t __anf01 = idx;
         idx = (__anf01 + nthm);
     }
-    (void) (idx);
     shmem._1[tid] = acc;
     uint32_t n1 = 0;
-    (void) (n1);
-    (void) (n1);
-    (void) (n1);
     while ((uint32_t) (((uint32_t) 1U) << (uint32_t) n1) < nthm) {
         uint32_t __anf0_1 = n1;
         __syncthreads();
@@ -261,7 +241,6 @@ __global__ static void kuiper_kernel_6(
         uint32_t ni = ((bid * n) + idx_raw);
         double v = a[ni];
         double v_ = exp(v);
-        (void) (acc);
         double __anf0 = acc;
         acc = (__anf0 + v_);
         uint32_t __anf01 = idx;
@@ -269,9 +248,6 @@ __global__ static void kuiper_kernel_6(
     }
     shmem._1[tid] = acc;
     uint32_t n1 = 0;
-    (void) (n1);
-    (void) (n1);
-    (void) (n1);
     while ((uint32_t) (((uint32_t) 1U) << (uint32_t) n1) < nth) {
         uint32_t __anf0_1 = n1;
         __syncthreads();

@@ -60,7 +60,6 @@ __global__ static void kuiper_kernel_0(
         uint32_t ni = tmp2._2._1;
         custard_f16 v = x_[ni];
         custard_f16 v_ = hexp(v);
-        (void) (acc);
         custard_f16 __anf0 = acc;
         acc = custard_f16_add(__anf0, v_);
         uint32_t __anf01 = idx;
@@ -68,9 +67,6 @@ __global__ static void kuiper_kernel_0(
     }
     shmem._1[tid] = acc;
     uint32_t n = 0;
-    (void) (n);
-    (void) (n);
-    (void) (n);
     while ((uint32_t) (((uint32_t) 1U) << (uint32_t) n) < nth) {
         uint32_t __anf0_1 = n;
         __syncthreads();
@@ -145,7 +141,6 @@ __global__ static void kuiper_kernel_2(
         uint32_t ni = tmp2._2._1;
         float v = x_[ni];
         float v_ = expf(v);
-        (void) (acc);
         float __anf0 = acc;
         acc = (__anf0 + v_);
         uint32_t __anf01 = idx;
@@ -153,9 +148,6 @@ __global__ static void kuiper_kernel_2(
     }
     shmem._1[tid] = acc;
     uint32_t n = 0;
-    (void) (n);
-    (void) (n);
-    (void) (n);
     while ((uint32_t) (((uint32_t) 1U) << (uint32_t) n) < nth) {
         uint32_t __anf0_1 = n;
         __syncthreads();
@@ -229,7 +221,6 @@ __global__ static void kuiper_kernel_4(
         uint32_t ni = tmp2._2._1;
         double v = x_[ni];
         double v_ = exp(v);
-        (void) (acc);
         double __anf0 = acc;
         acc = (__anf0 + v_);
         uint32_t __anf01 = idx;
@@ -237,9 +228,6 @@ __global__ static void kuiper_kernel_4(
     }
     shmem._1[tid] = acc;
     uint32_t n = 0;
-    (void) (n);
-    (void) (n);
-    (void) (n);
     while ((uint32_t) (((uint32_t) 1U) << (uint32_t) n) < nth) {
         uint32_t __anf0_1 = n;
         __syncthreads();
@@ -313,7 +301,6 @@ __global__ static void kuiper_kernel_6(
         uint32_t ni = tmp2._2._1;
         custard_f16 v = x_[ni];
         custard_f16 v_ = hexp(v);
-        (void) (acc);
         custard_f16 __anf0 = acc;
         acc = custard_f16_add(__anf0, v_);
         uint32_t __anf01 = idx;
@@ -321,9 +308,6 @@ __global__ static void kuiper_kernel_6(
     }
     shmem._1[tid] = acc;
     uint32_t n = 0;
-    (void) (n);
-    (void) (n);
-    (void) (n);
     while ((uint32_t) (((uint32_t) 1U) << (uint32_t) n) < 1024) {
         uint32_t __anf0_1 = n;
         __syncthreads();
@@ -397,7 +381,6 @@ __global__ static void kuiper_kernel_8(uint32_t lena, float *x_, float *out)
         uint32_t ni = tmp2._2._1;
         float v = x_[ni];
         float v_ = expf(v);
-        (void) (acc);
         float __anf0 = acc;
         acc = (__anf0 + v_);
         uint32_t __anf01 = idx;
@@ -405,9 +388,6 @@ __global__ static void kuiper_kernel_8(uint32_t lena, float *x_, float *out)
     }
     shmem._1[tid] = acc;
     uint32_t n = 0;
-    (void) (n);
-    (void) (n);
-    (void) (n);
     while ((uint32_t) (((uint32_t) 1U) << (uint32_t) n) < 1024) {
         uint32_t __anf0_1 = n;
         __syncthreads();
@@ -480,7 +460,6 @@ __global__ static void kuiper_kernel_10(uint32_t lena, double *x_, double *out)
         uint32_t ni = tmp2._2._1;
         double v = x_[ni];
         double v_ = exp(v);
-        (void) (acc);
         double __anf0 = acc;
         acc = (__anf0 + v_);
         uint32_t __anf01 = idx;
@@ -488,9 +467,6 @@ __global__ static void kuiper_kernel_10(uint32_t lena, double *x_, double *out)
     }
     shmem._1[tid] = acc;
     uint32_t n = 0;
-    (void) (n);
-    (void) (n);
-    (void) (n);
     while ((uint32_t) (((uint32_t) 1U) << (uint32_t) n) < 1024) {
         uint32_t __anf0_1 = n;
         __syncthreads();
@@ -564,7 +540,6 @@ __global__ static void kuiper_kernel_12(
         uint32_t ni = tmp2._2._1;
         custard_f16 v = x_[ni];
         custard_f16 v_ = hexp(v);
-        (void) (acc);
         custard_f16 __anf0 = acc;
         acc = custard_f16_add(__anf0, v_);
         uint32_t __anf01 = idx;
@@ -572,9 +547,6 @@ __global__ static void kuiper_kernel_12(
     }
     shmem._1[tid] = acc;
     uint32_t n = 0;
-    (void) (n);
-    (void) (n);
-    (void) (n);
     while ((uint32_t) (((uint32_t) 1U) << (uint32_t) n) < nth) {
         uint32_t __anf0_1 = n;
         __syncthreads();
@@ -649,7 +621,6 @@ __global__ static void kuiper_kernel_14(
         uint32_t ni = tmp2._2._1;
         float v = x_[ni];
         float v_ = expf(v);
-        (void) (acc);
         float __anf0 = acc;
         acc = (__anf0 + v_);
         uint32_t __anf01 = idx;
@@ -657,9 +628,6 @@ __global__ static void kuiper_kernel_14(
     }
     shmem._1[tid] = acc;
     uint32_t n = 0;
-    (void) (n);
-    (void) (n);
-    (void) (n);
     while ((uint32_t) (((uint32_t) 1U) << (uint32_t) n) < nth) {
         uint32_t __anf0_1 = n;
         __syncthreads();
@@ -733,7 +701,6 @@ __global__ static void kuiper_kernel_16(
         uint32_t ni = tmp2._2._1;
         double v = x_[ni];
         double v_ = exp(v);
-        (void) (acc);
         double __anf0 = acc;
         acc = (__anf0 + v_);
         uint32_t __anf01 = idx;
@@ -741,9 +708,6 @@ __global__ static void kuiper_kernel_16(
     }
     shmem._1[tid] = acc;
     uint32_t n = 0;
-    (void) (n);
-    (void) (n);
-    (void) (n);
     while ((uint32_t) (((uint32_t) 1U) << (uint32_t) n) < nth) {
         uint32_t __anf0_1 = n;
         __syncthreads();
@@ -817,7 +781,6 @@ __global__ static void kuiper_kernel_18(
         uint32_t ni = tmp2._2._1;
         custard_f16 v = x_[ni];
         custard_f16 v_ = hexp(v);
-        (void) (acc);
         custard_f16 __anf0 = acc;
         acc = custard_f16_add(__anf0, v_);
         uint32_t __anf01 = idx;
@@ -825,9 +788,6 @@ __global__ static void kuiper_kernel_18(
     }
     shmem._1[tid] = acc;
     uint32_t n = 0;
-    (void) (n);
-    (void) (n);
-    (void) (n);
     while ((uint32_t) (((uint32_t) 1U) << (uint32_t) n) < 1024) {
         uint32_t __anf0_1 = n;
         __syncthreads();
@@ -901,7 +861,6 @@ __global__ static void kuiper_kernel_20(uint32_t lena, float *x_, float *out)
         uint32_t ni = tmp2._2._1;
         float v = x_[ni];
         float v_ = expf(v);
-        (void) (acc);
         float __anf0 = acc;
         acc = (__anf0 + v_);
         uint32_t __anf01 = idx;
@@ -909,9 +868,6 @@ __global__ static void kuiper_kernel_20(uint32_t lena, float *x_, float *out)
     }
     shmem._1[tid] = acc;
     uint32_t n = 0;
-    (void) (n);
-    (void) (n);
-    (void) (n);
     while ((uint32_t) (((uint32_t) 1U) << (uint32_t) n) < 1024) {
         uint32_t __anf0_1 = n;
         __syncthreads();
@@ -984,7 +940,6 @@ __global__ static void kuiper_kernel_22(uint32_t lena, double *x_, double *out)
         uint32_t ni = tmp2._2._1;
         double v = x_[ni];
         double v_ = exp(v);
-        (void) (acc);
         double __anf0 = acc;
         acc = (__anf0 + v_);
         uint32_t __anf01 = idx;
@@ -992,9 +947,6 @@ __global__ static void kuiper_kernel_22(uint32_t lena, double *x_, double *out)
     }
     shmem._1[tid] = acc;
     uint32_t n = 0;
-    (void) (n);
-    (void) (n);
-    (void) (n);
     while ((uint32_t) (((uint32_t) 1U) << (uint32_t) n) < 1024) {
         uint32_t __anf0_1 = n;
         __syncthreads();
@@ -1058,26 +1010,24 @@ void Klas_LogSoftmax_log_softmax_gpu_n_f16(
         a, nth, out0);
     KPR_MUST_stream_sync(s);
     KPR_MUST_stream_destroy(s);
-    custard_f16 *local_out;
-    custard_f16 *_cbuf1 = (custard_f16 *) malloc(1 * sizeof(custard_f16));
-    if (_cbuf1 == NULL) {
+    custard_f16 *local_out = (custard_f16 *) malloc(1 * sizeof(custard_f16));
+    if (local_out == NULL) {
         abort();
     }
-    for (size_t _ci2 = 0; _ci2 < (size_t) 1; _ci2++) {
-        _cbuf1[_ci2] = CUSTARD_F16_LIT(0U);
+    for (size_t _ci1 = 0; _ci1 < (size_t) 1; _ci1++) {
+        local_out[_ci1] = CUSTARD_F16_LIT(0U);
     }
-    local_out = _cbuf1;
     KPR_MEMCPY_D2H(local_out, out0, (((uint32_t) 2U) * ((uint32_t) 1U)));
     custard_f16 res = local_out[0];
     free(local_out);
     KPR_GPU_FREE(out0);
     cudaStream_t s1 = KPR_FRESH_STREAM();
-    uint32_t _ct3;
+    uint32_t _ct2;
     if ((lena % 1024) != 0)
-        _ct3 = 1;
+        _ct2 = 1;
     else
-        _ct3 = 0;
-    KPR_KCALL(kuiper_kernel_1, ((lena / 1024) + _ct3), ((uint32_t) 1024U),
+        _ct2 = 0;
+    KPR_KCALL(kuiper_kernel_1, ((lena / 1024) + _ct2), ((uint32_t) 1024U),
         ((uint32_t) 0U), s1, lena, a, res);
     KPR_MUST_stream_sync(s1);
     KPR_MUST_stream_destroy(s1);
@@ -1095,26 +1045,24 @@ void Klas_LogSoftmax_log_softmax_gpu_n_f32(
         a, nth, out0);
     KPR_MUST_stream_sync(s);
     KPR_MUST_stream_destroy(s);
-    float *local_out;
-    float *_cbuf1 = (float *) malloc(1 * sizeof(float));
-    if (_cbuf1 == NULL) {
+    float *local_out = (float *) malloc(1 * sizeof(float));
+    if (local_out == NULL) {
         abort();
     }
-    for (size_t _ci2 = 0; _ci2 < (size_t) 1; _ci2++) {
-        _cbuf1[_ci2] = 0.0f;
+    for (size_t _ci1 = 0; _ci1 < (size_t) 1; _ci1++) {
+        local_out[_ci1] = 0.0f;
     }
-    local_out = _cbuf1;
     KPR_MEMCPY_D2H(local_out, out0, (((uint32_t) 4U) * ((uint32_t) 1U)));
     float res = local_out[0];
     free(local_out);
     KPR_GPU_FREE(out0);
     cudaStream_t s1 = KPR_FRESH_STREAM();
-    uint32_t _ct3;
+    uint32_t _ct2;
     if ((lena % 1024) != 0)
-        _ct3 = 1;
+        _ct2 = 1;
     else
-        _ct3 = 0;
-    KPR_KCALL(kuiper_kernel_3, ((lena / 1024) + _ct3), ((uint32_t) 1024U),
+        _ct2 = 0;
+    KPR_KCALL(kuiper_kernel_3, ((lena / 1024) + _ct2), ((uint32_t) 1024U),
         ((uint32_t) 0U), s1, lena, a, res);
     KPR_MUST_stream_sync(s1);
     KPR_MUST_stream_destroy(s1);
@@ -1132,26 +1080,24 @@ void Klas_LogSoftmax_log_softmax_gpu_n_f64(
         a, nth, out0);
     KPR_MUST_stream_sync(s);
     KPR_MUST_stream_destroy(s);
-    double *local_out;
-    double *_cbuf1 = (double *) malloc(1 * sizeof(double));
-    if (_cbuf1 == NULL) {
+    double *local_out = (double *) malloc(1 * sizeof(double));
+    if (local_out == NULL) {
         abort();
     }
-    for (size_t _ci2 = 0; _ci2 < (size_t) 1; _ci2++) {
-        _cbuf1[_ci2] = 0.0;
+    for (size_t _ci1 = 0; _ci1 < (size_t) 1; _ci1++) {
+        local_out[_ci1] = 0.0;
     }
-    local_out = _cbuf1;
     KPR_MEMCPY_D2H(local_out, out0, (((uint32_t) 8U) * ((uint32_t) 1U)));
     double res = local_out[0];
     free(local_out);
     KPR_GPU_FREE(out0);
     cudaStream_t s1 = KPR_FRESH_STREAM();
-    uint32_t _ct3;
+    uint32_t _ct2;
     if ((lena % 1024) != 0)
-        _ct3 = 1;
+        _ct2 = 1;
     else
-        _ct3 = 0;
-    KPR_KCALL(kuiper_kernel_5, ((lena / 1024) + _ct3), ((uint32_t) 1024U),
+        _ct2 = 0;
+    KPR_KCALL(kuiper_kernel_5, ((lena / 1024) + _ct2), ((uint32_t) 1024U),
         ((uint32_t) 0U), s1, lena, a, res);
     KPR_MUST_stream_sync(s1);
     KPR_MUST_stream_destroy(s1);
@@ -1169,26 +1115,24 @@ void Klas_LogSoftmax_log_softmax_gpu_f16(uint32_t lena, custard_f16 *a)
         (0 + (((uint32_t) 2U) * ((uint32_t) 1024U))), s, lena, a, out0);
     KPR_MUST_stream_sync(s);
     KPR_MUST_stream_destroy(s);
-    custard_f16 *local_out;
-    custard_f16 *_cbuf1 = (custard_f16 *) malloc(1 * sizeof(custard_f16));
-    if (_cbuf1 == NULL) {
+    custard_f16 *local_out = (custard_f16 *) malloc(1 * sizeof(custard_f16));
+    if (local_out == NULL) {
         abort();
     }
-    for (size_t _ci2 = 0; _ci2 < (size_t) 1; _ci2++) {
-        _cbuf1[_ci2] = CUSTARD_F16_LIT(0U);
+    for (size_t _ci1 = 0; _ci1 < (size_t) 1; _ci1++) {
+        local_out[_ci1] = CUSTARD_F16_LIT(0U);
     }
-    local_out = _cbuf1;
     KPR_MEMCPY_D2H(local_out, out0, (((uint32_t) 2U) * ((uint32_t) 1U)));
     custard_f16 res = local_out[0];
     free(local_out);
     KPR_GPU_FREE(out0);
     cudaStream_t s1 = KPR_FRESH_STREAM();
-    uint32_t _ct3;
+    uint32_t _ct2;
     if ((lena % 1024) != 0)
-        _ct3 = 1;
+        _ct2 = 1;
     else
-        _ct3 = 0;
-    KPR_KCALL(kuiper_kernel_7, ((lena / 1024) + _ct3), ((uint32_t) 1024U),
+        _ct2 = 0;
+    KPR_KCALL(kuiper_kernel_7, ((lena / 1024) + _ct2), ((uint32_t) 1024U),
         ((uint32_t) 0U), s1, lena, a, res);
     KPR_MUST_stream_sync(s1);
     KPR_MUST_stream_destroy(s1);
@@ -1206,26 +1150,24 @@ void Klas_LogSoftmax_log_softmax_gpu_f32(uint32_t lena, float *a)
         (0 + (((uint32_t) 4U) * ((uint32_t) 1024U))), s, lena, a, out0);
     KPR_MUST_stream_sync(s);
     KPR_MUST_stream_destroy(s);
-    float *local_out;
-    float *_cbuf1 = (float *) malloc(1 * sizeof(float));
-    if (_cbuf1 == NULL) {
+    float *local_out = (float *) malloc(1 * sizeof(float));
+    if (local_out == NULL) {
         abort();
     }
-    for (size_t _ci2 = 0; _ci2 < (size_t) 1; _ci2++) {
-        _cbuf1[_ci2] = 0.0f;
+    for (size_t _ci1 = 0; _ci1 < (size_t) 1; _ci1++) {
+        local_out[_ci1] = 0.0f;
     }
-    local_out = _cbuf1;
     KPR_MEMCPY_D2H(local_out, out0, (((uint32_t) 4U) * ((uint32_t) 1U)));
     float res = local_out[0];
     free(local_out);
     KPR_GPU_FREE(out0);
     cudaStream_t s1 = KPR_FRESH_STREAM();
-    uint32_t _ct3;
+    uint32_t _ct2;
     if ((lena % 1024) != 0)
-        _ct3 = 1;
+        _ct2 = 1;
     else
-        _ct3 = 0;
-    KPR_KCALL(kuiper_kernel_9, ((lena / 1024) + _ct3), ((uint32_t) 1024U),
+        _ct2 = 0;
+    KPR_KCALL(kuiper_kernel_9, ((lena / 1024) + _ct2), ((uint32_t) 1024U),
         ((uint32_t) 0U), s1, lena, a, res);
     KPR_MUST_stream_sync(s1);
     KPR_MUST_stream_destroy(s1);
@@ -1243,26 +1185,24 @@ void Klas_LogSoftmax_log_softmax_gpu_f64(uint32_t lena, double *a)
         (0 + (((uint32_t) 8U) * ((uint32_t) 1024U))), s, lena, a, out0);
     KPR_MUST_stream_sync(s);
     KPR_MUST_stream_destroy(s);
-    double *local_out;
-    double *_cbuf1 = (double *) malloc(1 * sizeof(double));
-    if (_cbuf1 == NULL) {
+    double *local_out = (double *) malloc(1 * sizeof(double));
+    if (local_out == NULL) {
         abort();
     }
-    for (size_t _ci2 = 0; _ci2 < (size_t) 1; _ci2++) {
-        _cbuf1[_ci2] = 0.0;
+    for (size_t _ci1 = 0; _ci1 < (size_t) 1; _ci1++) {
+        local_out[_ci1] = 0.0;
     }
-    local_out = _cbuf1;
     KPR_MEMCPY_D2H(local_out, out0, (((uint32_t) 8U) * ((uint32_t) 1U)));
     double res = local_out[0];
     free(local_out);
     KPR_GPU_FREE(out0);
     cudaStream_t s1 = KPR_FRESH_STREAM();
-    uint32_t _ct3;
+    uint32_t _ct2;
     if ((lena % 1024) != 0)
-        _ct3 = 1;
+        _ct2 = 1;
     else
-        _ct3 = 0;
-    KPR_KCALL(kuiper_kernel_11, ((lena / 1024) + _ct3), ((uint32_t) 1024U),
+        _ct2 = 0;
+    KPR_KCALL(kuiper_kernel_11, ((lena / 1024) + _ct2), ((uint32_t) 1024U),
         ((uint32_t) 0U), s1, lena, a, res);
     KPR_MUST_stream_sync(s1);
     KPR_MUST_stream_destroy(s1);
@@ -1283,26 +1223,24 @@ void Klas_LogSoftmax_log_softmax_n_f16(
         ga, nth, out0);
     KPR_MUST_stream_sync(s);
     KPR_MUST_stream_destroy(s);
-    custard_f16 *local_out;
-    custard_f16 *_cbuf1 = (custard_f16 *) malloc(1 * sizeof(custard_f16));
-    if (_cbuf1 == NULL) {
+    custard_f16 *local_out = (custard_f16 *) malloc(1 * sizeof(custard_f16));
+    if (local_out == NULL) {
         abort();
     }
-    for (size_t _ci2 = 0; _ci2 < (size_t) 1; _ci2++) {
-        _cbuf1[_ci2] = CUSTARD_F16_LIT(0U);
+    for (size_t _ci1 = 0; _ci1 < (size_t) 1; _ci1++) {
+        local_out[_ci1] = CUSTARD_F16_LIT(0U);
     }
-    local_out = _cbuf1;
     KPR_MEMCPY_D2H(local_out, out0, (((uint32_t) 2U) * ((uint32_t) 1U)));
     custard_f16 res = local_out[0];
     free(local_out);
     KPR_GPU_FREE(out0);
     cudaStream_t s1 = KPR_FRESH_STREAM();
-    uint32_t _ct3;
+    uint32_t _ct2;
     if ((lena % 1024) != 0)
-        _ct3 = 1;
+        _ct2 = 1;
     else
-        _ct3 = 0;
-    KPR_KCALL(kuiper_kernel_13, ((lena / 1024) + _ct3), ((uint32_t) 1024U),
+        _ct2 = 0;
+    KPR_KCALL(kuiper_kernel_13, ((lena / 1024) + _ct2), ((uint32_t) 1024U),
         ((uint32_t) 0U), s1, lena, ga, res);
     KPR_MUST_stream_sync(s1);
     KPR_MUST_stream_destroy(s1);
@@ -1324,26 +1262,24 @@ void Klas_LogSoftmax_log_softmax_n_f32(uint32_t nth, uint32_t lena, float *a)
         ga, nth, out0);
     KPR_MUST_stream_sync(s);
     KPR_MUST_stream_destroy(s);
-    float *local_out;
-    float *_cbuf1 = (float *) malloc(1 * sizeof(float));
-    if (_cbuf1 == NULL) {
+    float *local_out = (float *) malloc(1 * sizeof(float));
+    if (local_out == NULL) {
         abort();
     }
-    for (size_t _ci2 = 0; _ci2 < (size_t) 1; _ci2++) {
-        _cbuf1[_ci2] = 0.0f;
+    for (size_t _ci1 = 0; _ci1 < (size_t) 1; _ci1++) {
+        local_out[_ci1] = 0.0f;
     }
-    local_out = _cbuf1;
     KPR_MEMCPY_D2H(local_out, out0, (((uint32_t) 4U) * ((uint32_t) 1U)));
     float res = local_out[0];
     free(local_out);
     KPR_GPU_FREE(out0);
     cudaStream_t s1 = KPR_FRESH_STREAM();
-    uint32_t _ct3;
+    uint32_t _ct2;
     if ((lena % 1024) != 0)
-        _ct3 = 1;
+        _ct2 = 1;
     else
-        _ct3 = 0;
-    KPR_KCALL(kuiper_kernel_15, ((lena / 1024) + _ct3), ((uint32_t) 1024U),
+        _ct2 = 0;
+    KPR_KCALL(kuiper_kernel_15, ((lena / 1024) + _ct2), ((uint32_t) 1024U),
         ((uint32_t) 0U), s1, lena, ga, res);
     KPR_MUST_stream_sync(s1);
     KPR_MUST_stream_destroy(s1);
@@ -1365,26 +1301,24 @@ void Klas_LogSoftmax_log_softmax_n_f64(uint32_t nth, uint32_t lena, double *a)
         ga, nth, out0);
     KPR_MUST_stream_sync(s);
     KPR_MUST_stream_destroy(s);
-    double *local_out;
-    double *_cbuf1 = (double *) malloc(1 * sizeof(double));
-    if (_cbuf1 == NULL) {
+    double *local_out = (double *) malloc(1 * sizeof(double));
+    if (local_out == NULL) {
         abort();
     }
-    for (size_t _ci2 = 0; _ci2 < (size_t) 1; _ci2++) {
-        _cbuf1[_ci2] = 0.0;
+    for (size_t _ci1 = 0; _ci1 < (size_t) 1; _ci1++) {
+        local_out[_ci1] = 0.0;
     }
-    local_out = _cbuf1;
     KPR_MEMCPY_D2H(local_out, out0, (((uint32_t) 8U) * ((uint32_t) 1U)));
     double res = local_out[0];
     free(local_out);
     KPR_GPU_FREE(out0);
     cudaStream_t s1 = KPR_FRESH_STREAM();
-    uint32_t _ct3;
+    uint32_t _ct2;
     if ((lena % 1024) != 0)
-        _ct3 = 1;
+        _ct2 = 1;
     else
-        _ct3 = 0;
-    KPR_KCALL(kuiper_kernel_17, ((lena / 1024) + _ct3), ((uint32_t) 1024U),
+        _ct2 = 0;
+    KPR_KCALL(kuiper_kernel_17, ((lena / 1024) + _ct2), ((uint32_t) 1024U),
         ((uint32_t) 0U), s1, lena, ga, res);
     KPR_MUST_stream_sync(s1);
     KPR_MUST_stream_destroy(s1);
@@ -1407,26 +1341,24 @@ void Klas_LogSoftmax_log_softmax_f16(uint32_t lena, custard_f16 *a)
         (0 + (((uint32_t) 2U) * ((uint32_t) 1024U))), s, lena, ga, out0);
     KPR_MUST_stream_sync(s);
     KPR_MUST_stream_destroy(s);
-    custard_f16 *local_out;
-    custard_f16 *_cbuf1 = (custard_f16 *) malloc(1 * sizeof(custard_f16));
-    if (_cbuf1 == NULL) {
+    custard_f16 *local_out = (custard_f16 *) malloc(1 * sizeof(custard_f16));
+    if (local_out == NULL) {
         abort();
     }
-    for (size_t _ci2 = 0; _ci2 < (size_t) 1; _ci2++) {
-        _cbuf1[_ci2] = CUSTARD_F16_LIT(0U);
+    for (size_t _ci1 = 0; _ci1 < (size_t) 1; _ci1++) {
+        local_out[_ci1] = CUSTARD_F16_LIT(0U);
     }
-    local_out = _cbuf1;
     KPR_MEMCPY_D2H(local_out, out0, (((uint32_t) 2U) * ((uint32_t) 1U)));
     custard_f16 res = local_out[0];
     free(local_out);
     KPR_GPU_FREE(out0);
     cudaStream_t s1 = KPR_FRESH_STREAM();
-    uint32_t _ct3;
+    uint32_t _ct2;
     if ((lena % 1024) != 0)
-        _ct3 = 1;
+        _ct2 = 1;
     else
-        _ct3 = 0;
-    KPR_KCALL(kuiper_kernel_19, ((lena / 1024) + _ct3), ((uint32_t) 1024U),
+        _ct2 = 0;
+    KPR_KCALL(kuiper_kernel_19, ((lena / 1024) + _ct2), ((uint32_t) 1024U),
         ((uint32_t) 0U), s1, lena, ga, res);
     KPR_MUST_stream_sync(s1);
     KPR_MUST_stream_destroy(s1);
@@ -1449,26 +1381,24 @@ void Klas_LogSoftmax_log_softmax_f32(uint32_t lena, float *a)
         (0 + (((uint32_t) 4U) * ((uint32_t) 1024U))), s, lena, ga, out0);
     KPR_MUST_stream_sync(s);
     KPR_MUST_stream_destroy(s);
-    float *local_out;
-    float *_cbuf1 = (float *) malloc(1 * sizeof(float));
-    if (_cbuf1 == NULL) {
+    float *local_out = (float *) malloc(1 * sizeof(float));
+    if (local_out == NULL) {
         abort();
     }
-    for (size_t _ci2 = 0; _ci2 < (size_t) 1; _ci2++) {
-        _cbuf1[_ci2] = 0.0f;
+    for (size_t _ci1 = 0; _ci1 < (size_t) 1; _ci1++) {
+        local_out[_ci1] = 0.0f;
     }
-    local_out = _cbuf1;
     KPR_MEMCPY_D2H(local_out, out0, (((uint32_t) 4U) * ((uint32_t) 1U)));
     float res = local_out[0];
     free(local_out);
     KPR_GPU_FREE(out0);
     cudaStream_t s1 = KPR_FRESH_STREAM();
-    uint32_t _ct3;
+    uint32_t _ct2;
     if ((lena % 1024) != 0)
-        _ct3 = 1;
+        _ct2 = 1;
     else
-        _ct3 = 0;
-    KPR_KCALL(kuiper_kernel_21, ((lena / 1024) + _ct3), ((uint32_t) 1024U),
+        _ct2 = 0;
+    KPR_KCALL(kuiper_kernel_21, ((lena / 1024) + _ct2), ((uint32_t) 1024U),
         ((uint32_t) 0U), s1, lena, ga, res);
     KPR_MUST_stream_sync(s1);
     KPR_MUST_stream_destroy(s1);
@@ -1491,26 +1421,24 @@ void Klas_LogSoftmax_log_softmax_f64(uint32_t lena, double *a)
         (0 + (((uint32_t) 8U) * ((uint32_t) 1024U))), s, lena, ga, out0);
     KPR_MUST_stream_sync(s);
     KPR_MUST_stream_destroy(s);
-    double *local_out;
-    double *_cbuf1 = (double *) malloc(1 * sizeof(double));
-    if (_cbuf1 == NULL) {
+    double *local_out = (double *) malloc(1 * sizeof(double));
+    if (local_out == NULL) {
         abort();
     }
-    for (size_t _ci2 = 0; _ci2 < (size_t) 1; _ci2++) {
-        _cbuf1[_ci2] = 0.0;
+    for (size_t _ci1 = 0; _ci1 < (size_t) 1; _ci1++) {
+        local_out[_ci1] = 0.0;
     }
-    local_out = _cbuf1;
     KPR_MEMCPY_D2H(local_out, out0, (((uint32_t) 8U) * ((uint32_t) 1U)));
     double res = local_out[0];
     free(local_out);
     KPR_GPU_FREE(out0);
     cudaStream_t s1 = KPR_FRESH_STREAM();
-    uint32_t _ct3;
+    uint32_t _ct2;
     if ((lena % 1024) != 0)
-        _ct3 = 1;
+        _ct2 = 1;
     else
-        _ct3 = 0;
-    KPR_KCALL(kuiper_kernel_23, ((lena / 1024) + _ct3), ((uint32_t) 1024U),
+        _ct2 = 0;
+    KPR_KCALL(kuiper_kernel_23, ((lena / 1024) + _ct2), ((uint32_t) 1024U),
         ((uint32_t) 0U), s1, lena, ga, res);
     KPR_MUST_stream_sync(s1);
     KPR_MUST_stream_destroy(s1);

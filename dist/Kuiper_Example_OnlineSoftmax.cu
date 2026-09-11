@@ -15,31 +15,20 @@ __global__ static void kuiper_kernel_0(uint32_t len, float *a, float *b)
         uint32_t i = 0;
         float sum = 0.0f;
         float max = (0.0f - INFINITY);
-        custard_unit gsum = ((custard_unit) 0);
-        custard_unit gmax = ((custard_unit) 0);
         while (i < len) {
             uint32_t vk = i;
             float x = a[vk];
-            (void) (gsum);
-            (void) (gmax);
             float __anf0 = max;
             float max_ = fmaxf(__anf0, x);
-            (void) (gmax);
             float __anf01 = max;
             float y1 = expf((__anf01 - max_));
-            (void) (gmax);
             float y2 = expf((x - max_));
             float __anf02 = sum;
             float sum_ = ((__anf02 * y1) + y2);
-            (void) (gsum);
             max = max_;
-            gmax = ((custard_unit) 0);
             sum = sum_;
-            gsum = ((custard_unit) 0);
             uint32_t __anf03 = i;
             i = (__anf03 + 1);
-            if (!(i == 1))
-                (void) (i);
         }
         float x_1 = a[gid];
         float y = (expf((x_1 - max)) / sum);
@@ -58,32 +47,21 @@ __global__ static void kuiper_kernel_1(
         uint32_t i = 0;
         custard_f16 sum = CUSTARD_F16_LIT(0U);
         custard_f16 max = custard_f16_sub(CUSTARD_F16_LIT(0U), HLF_INFINITY);
-        custard_unit gsum = ((custard_unit) 0);
-        custard_unit gmax = ((custard_unit) 0);
         while (i < len) {
             uint32_t vk = i;
             custard_f16 x = a[vk];
-            (void) (gsum);
-            (void) (gmax);
             custard_f16 __anf0 = max;
             custard_f16 max_ = kpr_hfmax(__anf0, x);
-            (void) (gmax);
             custard_f16 __anf01 = max;
             custard_f16 y1 = hexp(custard_f16_sub(__anf01, max_));
-            (void) (gmax);
             custard_f16 y2 = hexp(custard_f16_sub(x, max_));
             custard_f16 __anf02 = sum;
             custard_f16 sum_ =
                 custard_f16_add(custard_f16_mul(__anf02, y1), y2);
-            (void) (gsum);
             max = max_;
-            gmax = ((custard_unit) 0);
             sum = sum_;
-            gsum = ((custard_unit) 0);
             uint32_t __anf03 = i;
             i = (__anf03 + 1);
-            if (!(i == 1))
-                (void) (i);
         }
         custard_f16 x_1 = a[gid];
         custard_f16 y = custard_f16_div(hexp(custard_f16_sub(x_1, max)), sum);

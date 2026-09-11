@@ -28,8 +28,6 @@ __global__ static void kuiper_kernel_0(float *a, float *b, float *s1)
             uint32_t __anf01 = k;
             k = (__anf01 + 1);
         }
-        uint32_t ni_1 = ((trow * 1024) + tcol);
-        (void) (s1[ni_1]);
         uint32_t ni1_1 = ((trow * 1024) + tcol);
         s1[ni1_1] = sum;
     }
@@ -58,8 +56,6 @@ __global__ static void kuiper_kernel_1(float *c, float *d, float *s2)
             uint32_t __anf01 = k;
             k = (__anf01 + 1);
         }
-        uint32_t ni_1 = ((trow * 1024) + tcol);
-        (void) (s2[ni_1]);
         uint32_t ni1_1 = ((trow * 1024) + tcol);
         s2[ni1_1] = sum;
     }
@@ -88,8 +84,6 @@ __global__ static void kuiper_kernel_2(float *s1, float *s2, float *r)
             uint32_t __anf01 = k;
             k = (__anf01 + 1);
         }
-        uint32_t ni_1 = ((trow * 1024) + tcol);
-        (void) (r[ni_1]);
         uint32_t ni1_1 = ((trow * 1024) + tcol);
         r[ni1_1] = sum;
     }

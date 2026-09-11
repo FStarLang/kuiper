@@ -30,8 +30,6 @@ __global__ static void kuiper_kernel_0(uint32_t rows, uint32_t cols,
             uint32_t __anf03 = k;
             k = (__anf03 + 1);
         }
-        uint32_t ni_1 = ((trow * cols) + tcol);
-        (void) (gC[ni_1]);
         uint32_t ni1 = ((trow * cols) + tcol);
         gC[ni1] = dp;
     }

@@ -97,11 +97,16 @@ KPR_F16_BIN(div, /)
   }
 #endif
 
+/* The names are Custard's, not C's: it emits eq/neq/lt/lte/gt/gte
+   (FStarC.Custard.PrintC.fst).  Kuiper's kernels do not currently compare
+   16-bit floats, so a missing one would stay invisible until the first
+   kernel that did. */
 KPR_F16_CMP(eq, ==)
+KPR_F16_CMP(neq, !=)
 KPR_F16_CMP(lt, <)
-KPR_F16_CMP(le, <=)
+KPR_F16_CMP(lte, <=)
 KPR_F16_CMP(gt, >)
-KPR_F16_CMP(ge, >=)
+KPR_F16_CMP(gte, >=)
 
 CUSTARD_FN custard_f16 custard_f16_of_i64(int64_t v) {
   return __float2half((float)v);

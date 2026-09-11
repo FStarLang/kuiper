@@ -7,7 +7,6 @@ static void Kuiper_For_for_loop___uint_to_t(uint32_t *tmp, uint32_t tmp1)
 {
     uint32_t i = 0;
     while (i < 10) {
-        (void) (i);
         uint32_t v = tmp[0];
         tmp[0] = (v + tmp1);
         uint32_t __anf0 = i;

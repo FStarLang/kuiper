@@ -7,9 +7,7 @@ __global__ static void kuiper_kernel_0(float *a, float two);
 __global__ static void kuiper_kernel_0(float *a, float two)
 {
     uint32_t global_idx = 0;
-    float *local;
-    float _cbuf1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-    local = _cbuf1;
+    float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     vec_memcpy((local + 0), (a + global_idx));
     float __anf0 = local[0];
     local[0] = (two * __anf0);

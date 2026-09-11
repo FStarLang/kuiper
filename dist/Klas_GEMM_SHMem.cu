@@ -91,16 +91,12 @@ __global__ static void kuiper_kernel_0(uint32_t nn, uint32_t tile, float *gA,
         uint32_t ni1 = ((((tile * __anf01) + _letpattern2._1) * n) +
                         ((tile * _letpattern1._2) + _letpattern2._2));
         float v2 = gB[ni1];
-        (void) (bk);
-        (void) (bk);
         __syncthreads();
         uint32_t ni2 = ((_letpattern2._1 * tile) + _letpattern2._2);
         sh._1[ni2] = v1;
         uint32_t ni3 = ((_letpattern2._1 * tile) + _letpattern2._2);
         sh._2._1[ni3] = v2;
-        (void) (bk);
         __syncthreads();
-        (void) (bk);
         uint32_t k1 = 0;
         float sum1 = 0.0f;
         while (k1 < tile) {
@@ -116,25 +112,11 @@ __global__ static void kuiper_kernel_0(uint32_t nn, uint32_t tile, float *gA,
         }
         float s = sum;
         sum = (s + sum1);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
         uint32_t __anf02_1 = bk;
         bk = (__anf02_1 + 1);
     }
     uint32_t grow_sz = ((_letpattern1._1 * tile) + _letpattern2._1);
     uint32_t gcol_sz = ((_letpattern1._2 * tile) + _letpattern2._2);
-    uint32_t ni_1 = ((grow_sz * n) + gcol_sz);
-    (void) (gC[ni_1]);
     uint32_t ni1_1 = ((grow_sz * n) + gcol_sz);
     gC[ni1_1] = sum;
 }
@@ -172,16 +154,12 @@ __global__ static void kuiper_kernel_1(uint32_t nn, uint32_t tile, double *gA,
         uint32_t ni1 = ((((tile * __anf01) + _letpattern2._1) * n) +
                         ((tile * _letpattern1._2) + _letpattern2._2));
         double v2 = gB[ni1];
-        (void) (bk);
-        (void) (bk);
         __syncthreads();
         uint32_t ni2 = ((_letpattern2._1 * tile) + _letpattern2._2);
         sh._1[ni2] = v1;
         uint32_t ni3 = ((_letpattern2._1 * tile) + _letpattern2._2);
         sh._2._1[ni3] = v2;
-        (void) (bk);
         __syncthreads();
-        (void) (bk);
         uint32_t k1 = 0;
         double sum1 = 0.0;
         while (k1 < tile) {
@@ -197,25 +175,11 @@ __global__ static void kuiper_kernel_1(uint32_t nn, uint32_t tile, double *gA,
         }
         double s = sum;
         sum = (s + sum1);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
         uint32_t __anf02_1 = bk;
         bk = (__anf02_1 + 1);
     }
     uint32_t grow_sz = ((_letpattern1._1 * tile) + _letpattern2._1);
     uint32_t gcol_sz = ((_letpattern1._2 * tile) + _letpattern2._2);
-    uint32_t ni_1 = ((grow_sz * n) + gcol_sz);
-    (void) (gC[ni_1]);
     uint32_t ni1_1 = ((grow_sz * n) + gcol_sz);
     gC[ni1_1] = sum;
 }
@@ -253,16 +217,12 @@ __global__ static void kuiper_kernel_2(uint32_t nn, uint32_t tile, uint32_t *gA,
         uint32_t ni1 = ((((tile * __anf01) + _letpattern2._1) * n) +
                         ((tile * _letpattern1._2) + _letpattern2._2));
         uint32_t v2 = gB[ni1];
-        (void) (bk);
-        (void) (bk);
         __syncthreads();
         uint32_t ni2 = ((_letpattern2._1 * tile) + _letpattern2._2);
         sh._1[ni2] = v1;
         uint32_t ni3 = ((_letpattern2._1 * tile) + _letpattern2._2);
         sh._2._1[ni3] = v2;
-        (void) (bk);
         __syncthreads();
-        (void) (bk);
         uint32_t k1 = 0;
         uint32_t sum1 = 0;
         while (k1 < tile) {
@@ -278,25 +238,11 @@ __global__ static void kuiper_kernel_2(uint32_t nn, uint32_t tile, uint32_t *gA,
         }
         uint32_t s = sum;
         sum = (s + sum1);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
         uint32_t __anf02_1 = bk;
         bk = (__anf02_1 + 1);
     }
     uint32_t grow_sz = ((_letpattern1._1 * tile) + _letpattern2._1);
     uint32_t gcol_sz = ((_letpattern1._2 * tile) + _letpattern2._2);
-    uint32_t ni_1 = ((grow_sz * n) + gcol_sz);
-    (void) (gC[ni_1]);
     uint32_t ni1_1 = ((grow_sz * n) + gcol_sz);
     gC[ni1_1] = sum;
 }
@@ -334,16 +280,12 @@ __global__ static void kuiper_kernel_3(uint32_t nn, uint32_t tile, uint64_t *gA,
         uint32_t ni1 = ((((tile * __anf01) + _letpattern2._1) * n) +
                         ((tile * _letpattern1._2) + _letpattern2._2));
         uint64_t v2 = gB[ni1];
-        (void) (bk);
-        (void) (bk);
         __syncthreads();
         uint32_t ni2 = ((_letpattern2._1 * tile) + _letpattern2._2);
         sh._1[ni2] = v1;
         uint32_t ni3 = ((_letpattern2._1 * tile) + _letpattern2._2);
         sh._2._1[ni3] = v2;
-        (void) (bk);
         __syncthreads();
-        (void) (bk);
         uint32_t k1 = 0;
         uint64_t sum1 = 0;
         while (k1 < tile) {
@@ -359,25 +301,11 @@ __global__ static void kuiper_kernel_3(uint32_t nn, uint32_t tile, uint64_t *gA,
         }
         uint64_t s = sum;
         sum = (s + sum1);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
         uint32_t __anf02_1 = bk;
         bk = (__anf02_1 + 1);
     }
     uint32_t grow_sz = ((_letpattern1._1 * tile) + _letpattern2._1);
     uint32_t gcol_sz = ((_letpattern1._2 * tile) + _letpattern2._2);
-    uint32_t ni_1 = ((grow_sz * n) + gcol_sz);
-    (void) (gC[ni_1]);
     uint32_t ni1_1 = ((grow_sz * n) + gcol_sz);
     gC[ni1_1] = sum;
 }
@@ -416,16 +344,12 @@ __global__ static void kuiper_kernel_4(uint32_t nn, float *gA, float *gB,
         uint32_t ni1 = ((((32 * __anf01) + _letpattern2._1) * n) +
                         ((32 * _letpattern1._2) + _letpattern2._2));
         float v2 = gB[ni1];
-        (void) (bk);
-        (void) (bk);
         __syncthreads();
         uint32_t ni2 = ((_letpattern2._1 * 32) + _letpattern2._2);
         sh._1[ni2] = v1;
         uint32_t ni3 = ((_letpattern2._1 * 32) + _letpattern2._2);
         sh._2._1[ni3] = v2;
-        (void) (bk);
         __syncthreads();
-        (void) (bk);
         uint32_t k1 = 0;
         float sum1 = 0.0f;
         while (k1 < 32) {
@@ -441,25 +365,11 @@ __global__ static void kuiper_kernel_4(uint32_t nn, float *gA, float *gB,
         }
         float s = sum;
         sum = (s + sum1);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
         uint32_t __anf02_1 = bk;
         bk = (__anf02_1 + 1);
     }
     uint32_t grow_sz = ((_letpattern1._1 * 32) + _letpattern2._1);
     uint32_t gcol_sz = ((_letpattern1._2 * 32) + _letpattern2._2);
-    uint32_t ni_1 = ((grow_sz * n) + gcol_sz);
-    (void) (gC[ni_1]);
     uint32_t ni1_1 = ((grow_sz * n) + gcol_sz);
     gC[ni1_1] = sum;
 }
@@ -498,16 +408,12 @@ __global__ static void kuiper_kernel_5(uint32_t nn, double *gA, double *gB,
         uint32_t ni1 = ((((32 * __anf01) + _letpattern2._1) * n) +
                         ((32 * _letpattern1._2) + _letpattern2._2));
         double v2 = gB[ni1];
-        (void) (bk);
-        (void) (bk);
         __syncthreads();
         uint32_t ni2 = ((_letpattern2._1 * 32) + _letpattern2._2);
         sh._1[ni2] = v1;
         uint32_t ni3 = ((_letpattern2._1 * 32) + _letpattern2._2);
         sh._2._1[ni3] = v2;
-        (void) (bk);
         __syncthreads();
-        (void) (bk);
         uint32_t k1 = 0;
         double sum1 = 0.0;
         while (k1 < 32) {
@@ -523,25 +429,11 @@ __global__ static void kuiper_kernel_5(uint32_t nn, double *gA, double *gB,
         }
         double s = sum;
         sum = (s + sum1);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
         uint32_t __anf02_1 = bk;
         bk = (__anf02_1 + 1);
     }
     uint32_t grow_sz = ((_letpattern1._1 * 32) + _letpattern2._1);
     uint32_t gcol_sz = ((_letpattern1._2 * 32) + _letpattern2._2);
-    uint32_t ni_1 = ((grow_sz * n) + gcol_sz);
-    (void) (gC[ni_1]);
     uint32_t ni1_1 = ((grow_sz * n) + gcol_sz);
     gC[ni1_1] = sum;
 }
@@ -580,16 +472,12 @@ __global__ static void kuiper_kernel_6(uint32_t nn, uint32_t *gA, uint32_t *gB,
         uint32_t ni1 = ((((32 * __anf01) + _letpattern2._1) * n) +
                         ((32 * _letpattern1._2) + _letpattern2._2));
         uint32_t v2 = gB[ni1];
-        (void) (bk);
-        (void) (bk);
         __syncthreads();
         uint32_t ni2 = ((_letpattern2._1 * 32) + _letpattern2._2);
         sh._1[ni2] = v1;
         uint32_t ni3 = ((_letpattern2._1 * 32) + _letpattern2._2);
         sh._2._1[ni3] = v2;
-        (void) (bk);
         __syncthreads();
-        (void) (bk);
         uint32_t k1 = 0;
         uint32_t sum1 = 0;
         while (k1 < 32) {
@@ -605,25 +493,11 @@ __global__ static void kuiper_kernel_6(uint32_t nn, uint32_t *gA, uint32_t *gB,
         }
         uint32_t s = sum;
         sum = (s + sum1);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
         uint32_t __anf02_1 = bk;
         bk = (__anf02_1 + 1);
     }
     uint32_t grow_sz = ((_letpattern1._1 * 32) + _letpattern2._1);
     uint32_t gcol_sz = ((_letpattern1._2 * 32) + _letpattern2._2);
-    uint32_t ni_1 = ((grow_sz * n) + gcol_sz);
-    (void) (gC[ni_1]);
     uint32_t ni1_1 = ((grow_sz * n) + gcol_sz);
     gC[ni1_1] = sum;
 }
@@ -662,16 +536,12 @@ __global__ static void kuiper_kernel_7(uint32_t nn, uint64_t *gA, uint64_t *gB,
         uint32_t ni1 = ((((32 * __anf01) + _letpattern2._1) * n) +
                         ((32 * _letpattern1._2) + _letpattern2._2));
         uint64_t v2 = gB[ni1];
-        (void) (bk);
-        (void) (bk);
         __syncthreads();
         uint32_t ni2 = ((_letpattern2._1 * 32) + _letpattern2._2);
         sh._1[ni2] = v1;
         uint32_t ni3 = ((_letpattern2._1 * 32) + _letpattern2._2);
         sh._2._1[ni3] = v2;
-        (void) (bk);
         __syncthreads();
-        (void) (bk);
         uint32_t k1 = 0;
         uint64_t sum1 = 0;
         while (k1 < 32) {
@@ -687,25 +557,11 @@ __global__ static void kuiper_kernel_7(uint32_t nn, uint64_t *gA, uint64_t *gB,
         }
         uint64_t s = sum;
         sum = (s + sum1);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
         uint32_t __anf02_1 = bk;
         bk = (__anf02_1 + 1);
     }
     uint32_t grow_sz = ((_letpattern1._1 * 32) + _letpattern2._1);
     uint32_t gcol_sz = ((_letpattern1._2 * 32) + _letpattern2._2);
-    uint32_t ni_1 = ((grow_sz * n) + gcol_sz);
-    (void) (gC[ni_1]);
     uint32_t ni1_1 = ((grow_sz * n) + gcol_sz);
     gC[ni1_1] = sum;
 }
@@ -744,16 +600,12 @@ __global__ static void kuiper_kernel_8(uint32_t nn, float *gA, float *gB,
         uint32_t ni1 = ((((16 * __anf01) + _letpattern2._1) * n) +
                         ((16 * _letpattern1._2) + _letpattern2._2));
         float v2 = gB[ni1];
-        (void) (bk);
-        (void) (bk);
         __syncthreads();
         uint32_t ni2 = ((_letpattern2._1 * 16) + _letpattern2._2);
         sh._1[ni2] = v1;
         uint32_t ni3 = ((_letpattern2._1 * 16) + _letpattern2._2);
         sh._2._1[ni3] = v2;
-        (void) (bk);
         __syncthreads();
-        (void) (bk);
         uint32_t k1 = 0;
         float sum1 = 0.0f;
         while (k1 < 16) {
@@ -769,25 +621,11 @@ __global__ static void kuiper_kernel_8(uint32_t nn, float *gA, float *gB,
         }
         float s = sum;
         sum = (s + sum1);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
         uint32_t __anf02_1 = bk;
         bk = (__anf02_1 + 1);
     }
     uint32_t grow_sz = ((_letpattern1._1 * 16) + _letpattern2._1);
     uint32_t gcol_sz = ((_letpattern1._2 * 16) + _letpattern2._2);
-    uint32_t ni_1 = ((grow_sz * n) + gcol_sz);
-    (void) (gC[ni_1]);
     uint32_t ni1_1 = ((grow_sz * n) + gcol_sz);
     gC[ni1_1] = sum;
 }
@@ -826,16 +664,12 @@ __global__ static void kuiper_kernel_9(uint32_t nn, double *gA, double *gB,
         uint32_t ni1 = ((((16 * __anf01) + _letpattern2._1) * n) +
                         ((16 * _letpattern1._2) + _letpattern2._2));
         double v2 = gB[ni1];
-        (void) (bk);
-        (void) (bk);
         __syncthreads();
         uint32_t ni2 = ((_letpattern2._1 * 16) + _letpattern2._2);
         sh._1[ni2] = v1;
         uint32_t ni3 = ((_letpattern2._1 * 16) + _letpattern2._2);
         sh._2._1[ni3] = v2;
-        (void) (bk);
         __syncthreads();
-        (void) (bk);
         uint32_t k1 = 0;
         double sum1 = 0.0;
         while (k1 < 16) {
@@ -851,25 +685,11 @@ __global__ static void kuiper_kernel_9(uint32_t nn, double *gA, double *gB,
         }
         double s = sum;
         sum = (s + sum1);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
         uint32_t __anf02_1 = bk;
         bk = (__anf02_1 + 1);
     }
     uint32_t grow_sz = ((_letpattern1._1 * 16) + _letpattern2._1);
     uint32_t gcol_sz = ((_letpattern1._2 * 16) + _letpattern2._2);
-    uint32_t ni_1 = ((grow_sz * n) + gcol_sz);
-    (void) (gC[ni_1]);
     uint32_t ni1_1 = ((grow_sz * n) + gcol_sz);
     gC[ni1_1] = sum;
 }
@@ -908,16 +728,12 @@ __global__ static void kuiper_kernel_10(uint32_t nn, uint32_t *gA, uint32_t *gB,
         uint32_t ni1 = ((((16 * __anf01) + _letpattern2._1) * n) +
                         ((16 * _letpattern1._2) + _letpattern2._2));
         uint32_t v2 = gB[ni1];
-        (void) (bk);
-        (void) (bk);
         __syncthreads();
         uint32_t ni2 = ((_letpattern2._1 * 16) + _letpattern2._2);
         sh._1[ni2] = v1;
         uint32_t ni3 = ((_letpattern2._1 * 16) + _letpattern2._2);
         sh._2._1[ni3] = v2;
-        (void) (bk);
         __syncthreads();
-        (void) (bk);
         uint32_t k1 = 0;
         uint32_t sum1 = 0;
         while (k1 < 16) {
@@ -933,25 +749,11 @@ __global__ static void kuiper_kernel_10(uint32_t nn, uint32_t *gA, uint32_t *gB,
         }
         uint32_t s = sum;
         sum = (s + sum1);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
         uint32_t __anf02_1 = bk;
         bk = (__anf02_1 + 1);
     }
     uint32_t grow_sz = ((_letpattern1._1 * 16) + _letpattern2._1);
     uint32_t gcol_sz = ((_letpattern1._2 * 16) + _letpattern2._2);
-    uint32_t ni_1 = ((grow_sz * n) + gcol_sz);
-    (void) (gC[ni_1]);
     uint32_t ni1_1 = ((grow_sz * n) + gcol_sz);
     gC[ni1_1] = sum;
 }
@@ -990,16 +792,12 @@ __global__ static void kuiper_kernel_11(uint32_t nn, uint64_t *gA, uint64_t *gB,
         uint32_t ni1 = ((((16 * __anf01) + _letpattern2._1) * n) +
                         ((16 * _letpattern1._2) + _letpattern2._2));
         uint64_t v2 = gB[ni1];
-        (void) (bk);
-        (void) (bk);
         __syncthreads();
         uint32_t ni2 = ((_letpattern2._1 * 16) + _letpattern2._2);
         sh._1[ni2] = v1;
         uint32_t ni3 = ((_letpattern2._1 * 16) + _letpattern2._2);
         sh._2._1[ni3] = v2;
-        (void) (bk);
         __syncthreads();
-        (void) (bk);
         uint32_t k1 = 0;
         uint64_t sum1 = 0;
         while (k1 < 16) {
@@ -1015,25 +813,11 @@ __global__ static void kuiper_kernel_11(uint32_t nn, uint64_t *gA, uint64_t *gB,
         }
         uint64_t s = sum;
         sum = (s + sum1);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
         uint32_t __anf02_1 = bk;
         bk = (__anf02_1 + 1);
     }
     uint32_t grow_sz = ((_letpattern1._1 * 16) + _letpattern2._1);
     uint32_t gcol_sz = ((_letpattern1._2 * 16) + _letpattern2._2);
-    uint32_t ni_1 = ((grow_sz * n) + gcol_sz);
-    (void) (gC[ni_1]);
     uint32_t ni1_1 = ((grow_sz * n) + gcol_sz);
     gC[ni1_1] = sum;
 }
@@ -1072,16 +856,12 @@ __global__ static void kuiper_kernel_12(uint32_t nn, uint32_t tile, float *gA,
         uint32_t ni1 = ((((tile * __anf01) + _letpattern2._1) * n) +
                         ((tile * _letpattern1._2) + _letpattern2._2));
         float v2 = gB[ni1];
-        (void) (bk);
-        (void) (bk);
         __syncthreads();
         uint32_t ni2 = ((_letpattern2._1 * tile) + _letpattern2._2);
         sh._1[ni2] = v1;
         uint32_t ni3 = ((_letpattern2._1 * tile) + _letpattern2._2);
         sh._2._1[ni3] = v2;
-        (void) (bk);
         __syncthreads();
-        (void) (bk);
         uint32_t k1 = 0;
         float sum1 = 0.0f;
         while (k1 < tile) {
@@ -1097,18 +877,6 @@ __global__ static void kuiper_kernel_12(uint32_t nn, uint32_t tile, float *gA,
         }
         float s = sum;
         sum = (s + sum1);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
         uint32_t __anf02_1 = bk;
         bk = (__anf02_1 + 1);
     }
@@ -1155,16 +923,12 @@ __global__ static void kuiper_kernel_13(uint32_t nn, uint32_t tile, double *gA,
         uint32_t ni1 = ((((tile * __anf01) + _letpattern2._1) * n) +
                         ((tile * _letpattern1._2) + _letpattern2._2));
         double v2 = gB[ni1];
-        (void) (bk);
-        (void) (bk);
         __syncthreads();
         uint32_t ni2 = ((_letpattern2._1 * tile) + _letpattern2._2);
         sh._1[ni2] = v1;
         uint32_t ni3 = ((_letpattern2._1 * tile) + _letpattern2._2);
         sh._2._1[ni3] = v2;
-        (void) (bk);
         __syncthreads();
-        (void) (bk);
         uint32_t k1 = 0;
         double sum1 = 0.0;
         while (k1 < tile) {
@@ -1180,18 +944,6 @@ __global__ static void kuiper_kernel_13(uint32_t nn, uint32_t tile, double *gA,
         }
         double s = sum;
         sum = (s + sum1);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
         uint32_t __anf02_1 = bk;
         bk = (__anf02_1 + 1);
     }
@@ -1238,16 +990,12 @@ __global__ static void kuiper_kernel_14(uint32_t nn, uint32_t tile,
         uint32_t ni1 = ((((tile * __anf01) + _letpattern2._1) * n) +
                         ((tile * _letpattern1._2) + _letpattern2._2));
         uint32_t v2 = gB[ni1];
-        (void) (bk);
-        (void) (bk);
         __syncthreads();
         uint32_t ni2 = ((_letpattern2._1 * tile) + _letpattern2._2);
         sh._1[ni2] = v1;
         uint32_t ni3 = ((_letpattern2._1 * tile) + _letpattern2._2);
         sh._2._1[ni3] = v2;
-        (void) (bk);
         __syncthreads();
-        (void) (bk);
         uint32_t k1 = 0;
         uint32_t sum1 = 0;
         while (k1 < tile) {
@@ -1263,18 +1011,6 @@ __global__ static void kuiper_kernel_14(uint32_t nn, uint32_t tile,
         }
         uint32_t s = sum;
         sum = (s + sum1);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
         uint32_t __anf02_1 = bk;
         bk = (__anf02_1 + 1);
     }
@@ -1321,16 +1057,12 @@ __global__ static void kuiper_kernel_15(uint32_t nn, uint32_t tile,
         uint32_t ni1 = ((((tile * __anf01) + _letpattern2._1) * n) +
                         ((tile * _letpattern1._2) + _letpattern2._2));
         uint64_t v2 = gB[ni1];
-        (void) (bk);
-        (void) (bk);
         __syncthreads();
         uint32_t ni2 = ((_letpattern2._1 * tile) + _letpattern2._2);
         sh._1[ni2] = v1;
         uint32_t ni3 = ((_letpattern2._1 * tile) + _letpattern2._2);
         sh._2._1[ni3] = v2;
-        (void) (bk);
         __syncthreads();
-        (void) (bk);
         uint32_t k1 = 0;
         uint64_t sum1 = 0;
         while (k1 < tile) {
@@ -1346,18 +1078,6 @@ __global__ static void kuiper_kernel_15(uint32_t nn, uint32_t tile,
         }
         uint64_t s = sum;
         sum = (s + sum1);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
         uint32_t __anf02_1 = bk;
         bk = (__anf02_1 + 1);
     }
@@ -1404,16 +1124,12 @@ __global__ static void kuiper_kernel_16(uint32_t nn, float *gA, float *gB,
         uint32_t ni1 = ((((32 * __anf01) + _letpattern2._1) * n) +
                         ((32 * _letpattern1._2) + _letpattern2._2));
         float v2 = gB[ni1];
-        (void) (bk);
-        (void) (bk);
         __syncthreads();
         uint32_t ni2 = ((_letpattern2._1 * 32) + _letpattern2._2);
         sh._1[ni2] = v1;
         uint32_t ni3 = ((_letpattern2._1 * 32) + _letpattern2._2);
         sh._2._1[ni3] = v2;
-        (void) (bk);
         __syncthreads();
-        (void) (bk);
         uint32_t k1 = 0;
         float sum1 = 0.0f;
         while (k1 < 32) {
@@ -1429,18 +1145,6 @@ __global__ static void kuiper_kernel_16(uint32_t nn, float *gA, float *gB,
         }
         float s = sum;
         sum = (s + sum1);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
         uint32_t __anf02_1 = bk;
         bk = (__anf02_1 + 1);
     }
@@ -1487,16 +1191,12 @@ __global__ static void kuiper_kernel_17(uint32_t nn, double *gA, double *gB,
         uint32_t ni1 = ((((32 * __anf01) + _letpattern2._1) * n) +
                         ((32 * _letpattern1._2) + _letpattern2._2));
         double v2 = gB[ni1];
-        (void) (bk);
-        (void) (bk);
         __syncthreads();
         uint32_t ni2 = ((_letpattern2._1 * 32) + _letpattern2._2);
         sh._1[ni2] = v1;
         uint32_t ni3 = ((_letpattern2._1 * 32) + _letpattern2._2);
         sh._2._1[ni3] = v2;
-        (void) (bk);
         __syncthreads();
-        (void) (bk);
         uint32_t k1 = 0;
         double sum1 = 0.0;
         while (k1 < 32) {
@@ -1512,18 +1212,6 @@ __global__ static void kuiper_kernel_17(uint32_t nn, double *gA, double *gB,
         }
         double s = sum;
         sum = (s + sum1);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
         uint32_t __anf02_1 = bk;
         bk = (__anf02_1 + 1);
     }
@@ -1571,16 +1259,12 @@ __global__ static void kuiper_kernel_18(uint32_t nn, uint32_t *gA, uint32_t *gB,
         uint32_t ni1 = ((((32 * __anf01) + _letpattern2._1) * n) +
                         ((32 * _letpattern1._2) + _letpattern2._2));
         uint32_t v2 = gB[ni1];
-        (void) (bk);
-        (void) (bk);
         __syncthreads();
         uint32_t ni2 = ((_letpattern2._1 * 32) + _letpattern2._2);
         sh._1[ni2] = v1;
         uint32_t ni3 = ((_letpattern2._1 * 32) + _letpattern2._2);
         sh._2._1[ni3] = v2;
-        (void) (bk);
         __syncthreads();
-        (void) (bk);
         uint32_t k1 = 0;
         uint32_t sum1 = 0;
         while (k1 < 32) {
@@ -1596,18 +1280,6 @@ __global__ static void kuiper_kernel_18(uint32_t nn, uint32_t *gA, uint32_t *gB,
         }
         uint32_t s = sum;
         sum = (s + sum1);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
         uint32_t __anf02_1 = bk;
         bk = (__anf02_1 + 1);
     }
@@ -1655,16 +1327,12 @@ __global__ static void kuiper_kernel_19(uint32_t nn, uint64_t *gA, uint64_t *gB,
         uint32_t ni1 = ((((32 * __anf01) + _letpattern2._1) * n) +
                         ((32 * _letpattern1._2) + _letpattern2._2));
         uint64_t v2 = gB[ni1];
-        (void) (bk);
-        (void) (bk);
         __syncthreads();
         uint32_t ni2 = ((_letpattern2._1 * 32) + _letpattern2._2);
         sh._1[ni2] = v1;
         uint32_t ni3 = ((_letpattern2._1 * 32) + _letpattern2._2);
         sh._2._1[ni3] = v2;
-        (void) (bk);
         __syncthreads();
-        (void) (bk);
         uint32_t k1 = 0;
         uint64_t sum1 = 0;
         while (k1 < 32) {
@@ -1680,18 +1348,6 @@ __global__ static void kuiper_kernel_19(uint32_t nn, uint64_t *gA, uint64_t *gB,
         }
         uint64_t s = sum;
         sum = (s + sum1);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
         uint32_t __anf02_1 = bk;
         bk = (__anf02_1 + 1);
     }
@@ -1738,16 +1394,12 @@ __global__ static void kuiper_kernel_20(uint32_t nn, float *gA, float *gB,
         uint32_t ni1 = ((((16 * __anf01) + _letpattern2._1) * n) +
                         ((16 * _letpattern1._2) + _letpattern2._2));
         float v2 = gB[ni1];
-        (void) (bk);
-        (void) (bk);
         __syncthreads();
         uint32_t ni2 = ((_letpattern2._1 * 16) + _letpattern2._2);
         sh._1[ni2] = v1;
         uint32_t ni3 = ((_letpattern2._1 * 16) + _letpattern2._2);
         sh._2._1[ni3] = v2;
-        (void) (bk);
         __syncthreads();
-        (void) (bk);
         uint32_t k1 = 0;
         float sum1 = 0.0f;
         while (k1 < 16) {
@@ -1763,18 +1415,6 @@ __global__ static void kuiper_kernel_20(uint32_t nn, float *gA, float *gB,
         }
         float s = sum;
         sum = (s + sum1);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
         uint32_t __anf02_1 = bk;
         bk = (__anf02_1 + 1);
     }
@@ -1821,16 +1461,12 @@ __global__ static void kuiper_kernel_21(uint32_t nn, double *gA, double *gB,
         uint32_t ni1 = ((((16 * __anf01) + _letpattern2._1) * n) +
                         ((16 * _letpattern1._2) + _letpattern2._2));
         double v2 = gB[ni1];
-        (void) (bk);
-        (void) (bk);
         __syncthreads();
         uint32_t ni2 = ((_letpattern2._1 * 16) + _letpattern2._2);
         sh._1[ni2] = v1;
         uint32_t ni3 = ((_letpattern2._1 * 16) + _letpattern2._2);
         sh._2._1[ni3] = v2;
-        (void) (bk);
         __syncthreads();
-        (void) (bk);
         uint32_t k1 = 0;
         double sum1 = 0.0;
         while (k1 < 16) {
@@ -1846,18 +1482,6 @@ __global__ static void kuiper_kernel_21(uint32_t nn, double *gA, double *gB,
         }
         double s = sum;
         sum = (s + sum1);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
         uint32_t __anf02_1 = bk;
         bk = (__anf02_1 + 1);
     }
@@ -1905,16 +1529,12 @@ __global__ static void kuiper_kernel_22(uint32_t nn, uint32_t *gA, uint32_t *gB,
         uint32_t ni1 = ((((16 * __anf01) + _letpattern2._1) * n) +
                         ((16 * _letpattern1._2) + _letpattern2._2));
         uint32_t v2 = gB[ni1];
-        (void) (bk);
-        (void) (bk);
         __syncthreads();
         uint32_t ni2 = ((_letpattern2._1 * 16) + _letpattern2._2);
         sh._1[ni2] = v1;
         uint32_t ni3 = ((_letpattern2._1 * 16) + _letpattern2._2);
         sh._2._1[ni3] = v2;
-        (void) (bk);
         __syncthreads();
-        (void) (bk);
         uint32_t k1 = 0;
         uint32_t sum1 = 0;
         while (k1 < 16) {
@@ -1930,18 +1550,6 @@ __global__ static void kuiper_kernel_22(uint32_t nn, uint32_t *gA, uint32_t *gB,
         }
         uint32_t s = sum;
         sum = (s + sum1);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
         uint32_t __anf02_1 = bk;
         bk = (__anf02_1 + 1);
     }
@@ -1989,16 +1597,12 @@ __global__ static void kuiper_kernel_23(uint32_t nn, uint64_t *gA, uint64_t *gB,
         uint32_t ni1 = ((((16 * __anf01) + _letpattern2._1) * n) +
                         ((16 * _letpattern1._2) + _letpattern2._2));
         uint64_t v2 = gB[ni1];
-        (void) (bk);
-        (void) (bk);
         __syncthreads();
         uint32_t ni2 = ((_letpattern2._1 * 16) + _letpattern2._2);
         sh._1[ni2] = v1;
         uint32_t ni3 = ((_letpattern2._1 * 16) + _letpattern2._2);
         sh._2._1[ni3] = v2;
-        (void) (bk);
         __syncthreads();
-        (void) (bk);
         uint32_t k1 = 0;
         uint64_t sum1 = 0;
         while (k1 < 16) {
@@ -2014,18 +1618,6 @@ __global__ static void kuiper_kernel_23(uint32_t nn, uint64_t *gA, uint64_t *gB,
         }
         uint64_t s = sum;
         sum = (s + sum1);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
-        (void) (bk);
         uint32_t __anf02_1 = bk;
         bk = (__anf02_1 + 1);
     }
