@@ -1,6 +1,15 @@
 #ifndef KUIPER_TENSORCORES_H
 #define KUIPER_TENSORCORES_H 1
 
+/* Custard emits the union of every registered external's header into each
+   generated header, so a unit with no tensor-core code still includes this
+   one.  It therefore has to be harmless on a target without tensor cores:
+   [nvcuda] would not exist there and even [using namespace nvcuda] is an
+   error.  Same guard as kuiper.h applies to this include.  Modules that do
+   use tensor cores are excluded from the build entirely in that
+   configuration (nvcc.mk). */
+#if (!defined(KUIPER_CFG_TENSORCORES) || KUIPER_CFG_TENSORCORES)
+
 #include <mma.h>
 #include "wgmma.h"
 using namespace nvcuda;
@@ -69,5 +78,7 @@ using namespace nvcuda;
   wmma::load_matrix_sync((fr), (gm), (ldm), wmma::mem_row_major)
 #define KPR_STORE(gm, fr, ldm)                                                 \
   wmma::store_matrix_sync((gm), (fr), (ldm), wmma::mem_row_major)
+
+#endif /* KUIPER_CFG_TENSORCORES */
 
 #endif /* KUIPER_TENSORCORES_H */
