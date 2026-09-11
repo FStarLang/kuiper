@@ -21,6 +21,14 @@ CUSTARD_FLAGS += --custard_sizet_width 32
 CUSTARD_FLAGS += --load_cmxs $(PLUGIN)
 # Every dependency is already checked by the verify step; extraction must not
 # re-check anything, or a single module's extraction pulls in the whole tree.
+# Under --already_cached a missing .checked is not rebuilt but is an error
+# (317), so extraction must not start before verification has produced them.
+# Hence the prerequisites on the rule below.  Checking a module needs only the
+# .fsti.checked of its dependencies, but Custard inlines across modules and so
+# needs their .fst.checked too -- a larger set than .depend records for the
+# module's own .checked, and the reason that alone is not enough.  The whole
+# set is order-only: it sequences extraction after verification without making
+# every module re-extract whenever any other one changes.
 CUSTARD_FLAGS += --already_cached '*'
 CUSTARD_FLAGS += $(CUSTARD_OTHERFLAGS)
 
@@ -33,7 +41,7 @@ CUSTARD_FLAGS += $(CUSTARD_OTHERFLAGS)
 # Output lands in $(OUTDIR)/pre/; verify.mk formats it into $(OUTDIR)/.
 define custard_rule
 $(OUTDIR)/pre/$(subst .,_,$(basename $(notdir $1))).cu \
-$(OUTDIR)/pre/$(subst .,_,$(basename $(notdir $1))).h &: $1 .plugin.touch | .fstar.touch
+$(OUTDIR)/pre/$(subst .,_,$(basename $(notdir $1))).h &: $1 $(OUTDIR)/$(notdir $1).checked .plugin.touch | .fstar.touch $(MY_CHECKED_FILES)
 	$$(call msg,"CUSTARD")
 	@mkdir -p $(OUTDIR)/pre
 	$$(Q)$$(FSTAR) $$(CUSTARD_FLAGS) --odir $(OUTDIR)/pre			\
