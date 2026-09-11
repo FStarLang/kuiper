@@ -18,12 +18,13 @@ typedef uint8_t custard_unit;
 #endif
 #include "kuiper.h"
 #include "kuiper/tensorcores.h"
+#include "kuiper/wgmma.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-void Kuiper_Example_TestFor_g(size_t x);
+void Kuiper_Example_TestFor_g(uint32_t x);
 void Kuiper_Example_TestFor_test(void);
 void Kuiper_Example_TestFor_test_nested(void);
 void Kuiper_Example_TestFor_test_nested_lit(void);

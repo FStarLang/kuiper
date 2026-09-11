@@ -18,6 +18,7 @@ typedef uint8_t custard_unit;
 #endif
 #include "kuiper.h"
 #include "kuiper/tensorcores.h"
+#include "kuiper/wgmma.h"
 
 /* Section 66: the two 16-bit floating-point formats.
 
@@ -224,8 +225,8 @@ CUSTARD_FN custard_bf16 custard_bf16_of_i64(int64_t x)
 #define CUSTARD__F16_BIN(nm, op)                                               \
     CUSTARD_FN custard_f16 custard_f16_##nm(custard_f16 a, custard_f16 b)      \
     {                                                                          \
-        return custard_f16_of_f32(custard_f16_to_f32(a)                        \
-                                      op custard_f16_to_f32(b));               \
+        return custard_f16_of_f32(                                             \
+            custard_f16_to_f32(a) op custard_f16_to_f32(b));                   \
     }
 #define CUSTARD__F16_CMP(nm, op)                                               \
     CUSTARD_FN bool custard_f16_##nm(custard_f16 a, custard_f16 b)             \
@@ -235,8 +236,8 @@ CUSTARD_FN custard_bf16 custard_bf16_of_i64(int64_t x)
 #define CUSTARD__BF16_BIN(nm, op)                                              \
     CUSTARD_FN custard_bf16 custard_bf16_##nm(custard_bf16 a, custard_bf16 b)  \
     {                                                                          \
-        return custard_bf16_of_f32(custard_bf16_to_f32(a)                      \
-                                       op custard_bf16_to_f32(b));             \
+        return custard_bf16_of_f32(                                            \
+            custard_bf16_to_f32(a) op custard_bf16_to_f32(b));                 \
     }
 #define CUSTARD__BF16_CMP(nm, op)                                              \
     CUSTARD_FN bool custard_bf16_##nm(custard_bf16 a, custard_bf16 b)          \
@@ -273,6 +274,10 @@ extern "C" {
 
 typedef struct FStar_Pervasives_Native_tuple2__float16_ptr_unit_s
     FStar_Pervasives_Native_tuple2__float16_ptr_unit;
+typedef struct FStar_Pervasives_Native_tuple2__uintsize_unit_s
+    FStar_Pervasives_Native_tuple2__uintsize_unit;
+typedef struct FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit_s
+    FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit;
 typedef struct FStar_Pervasives_Native_tuple2__float32_ptr_unit_s
     FStar_Pervasives_Native_tuple2__float32_ptr_unit;
 typedef struct FStar_Pervasives_Native_tuple2__float64_ptr_unit_s
@@ -284,6 +289,13 @@ typedef struct FStar_Pervasives_Native_tuple2__uint64_ptr_unit_s
 
 struct FStar_Pervasives_Native_tuple2__float16_ptr_unit_s {
     custard_f16 *_1;
+};
+struct FStar_Pervasives_Native_tuple2__uintsize_unit_s {
+    uint32_t _1;
+};
+struct FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit_s {
+    uint32_t _1;
+    FStar_Pervasives_Native_tuple2__uintsize_unit _2;
 };
 struct FStar_Pervasives_Native_tuple2__float32_ptr_unit_s {
     float *_1;
@@ -298,12 +310,12 @@ struct FStar_Pervasives_Native_tuple2__uint64_ptr_unit_s {
     uint64_t *_1;
 };
 
-custard_f16 Klas_HReduce_reduce_f16_plus(size_t nth, size_t lena,
-                                         custard_f16 *a);
-float Klas_HReduce_reduce_f32_plus(size_t nth, size_t lena, float *a);
-double Klas_HReduce_reduce_f64_plus(size_t nth, size_t lena, double *a);
-uint32_t Klas_HReduce_reduce_u32_plus(size_t nth, size_t lena, uint32_t *a);
-uint64_t Klas_HReduce_reduce_u64_plus(size_t nth, size_t lena, uint64_t *a);
+custard_f16 Klas_HReduce_reduce_f16_plus(
+    uint32_t nth, uint32_t lena, custard_f16 *a);
+float Klas_HReduce_reduce_f32_plus(uint32_t nth, uint32_t lena, float *a);
+double Klas_HReduce_reduce_f64_plus(uint32_t nth, uint32_t lena, double *a);
+uint32_t Klas_HReduce_reduce_u32_plus(uint32_t nth, uint32_t lena, uint32_t *a);
+uint64_t Klas_HReduce_reduce_u64_plus(uint32_t nth, uint32_t lena, uint64_t *a);
 
 #ifdef __cplusplus
 }

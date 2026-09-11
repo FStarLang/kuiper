@@ -8,29 +8,29 @@ __global__ static void kuiper_kernel_2(float *s1, float *s2, float *r);
 /* hoisted by the Custard Kuiper rule */
 __global__ static void kuiper_kernel_0(float *a, float *b, float *s1)
 {
-    size_t bid = blockIdx.x;
-    size_t tid = threadIdx.x;
-    size_t gid = ((1024 * bid) + tid);
-    if (gid < 1048576ULL) {
-        size_t rest = (gid / 1);
-        size_t trow = (rest / 1024);
-        size_t tcol = (rest % 1024);
-        size_t k = 0;
+    uint32_t bid = blockIdx.x;
+    uint32_t tid = threadIdx.x;
+    uint32_t gid = ((1024 * bid) + tid);
+    if (gid < 1048576U) {
+        uint32_t rest = (gid / 1);
+        uint32_t trow = (rest / 1024);
+        uint32_t tcol = (rest % 1024);
+        uint32_t k = 0;
         float sum = 0.0f;
         while (k < 1024) {
-            size_t vk = k;
+            uint32_t vk = k;
             float __anf2 = sum;
-            size_t ni = ((trow * 1024) + vk);
+            uint32_t ni = ((trow * 1024) + vk);
             float __anf1 = a[ni];
-            size_t ni1 = ((vk * 1024) + tcol);
+            uint32_t ni1 = ((vk * 1024) + tcol);
             float __anf0 = b[ni1];
             sum = (__anf2 + (__anf1 * __anf0));
-            size_t __anf01 = k;
+            uint32_t __anf01 = k;
             k = (__anf01 + 1);
         }
-        size_t ni_1 = ((trow * 1024) + tcol);
+        uint32_t ni_1 = ((trow * 1024) + tcol);
         (void) (s1[ni_1]);
-        size_t ni1_1 = ((trow * 1024) + tcol);
+        uint32_t ni1_1 = ((trow * 1024) + tcol);
         s1[ni1_1] = sum;
     }
 }
@@ -38,29 +38,29 @@ __global__ static void kuiper_kernel_0(float *a, float *b, float *s1)
 /* hoisted by the Custard Kuiper rule */
 __global__ static void kuiper_kernel_1(float *c, float *d, float *s2)
 {
-    size_t bid = blockIdx.x;
-    size_t tid = threadIdx.x;
-    size_t gid = ((1024 * bid) + tid);
-    if (gid < 1048576ULL) {
-        size_t rest = (gid / 1);
-        size_t trow = (rest / 1024);
-        size_t tcol = (rest % 1024);
-        size_t k = 0;
+    uint32_t bid = blockIdx.x;
+    uint32_t tid = threadIdx.x;
+    uint32_t gid = ((1024 * bid) + tid);
+    if (gid < 1048576U) {
+        uint32_t rest = (gid / 1);
+        uint32_t trow = (rest / 1024);
+        uint32_t tcol = (rest % 1024);
+        uint32_t k = 0;
         float sum = 0.0f;
         while (k < 1024) {
-            size_t vk = k;
+            uint32_t vk = k;
             float __anf2 = sum;
-            size_t ni = ((trow * 1024) + vk);
+            uint32_t ni = ((trow * 1024) + vk);
             float __anf1 = c[ni];
-            size_t ni1 = ((vk * 1024) + tcol);
+            uint32_t ni1 = ((vk * 1024) + tcol);
             float __anf0 = d[ni1];
             sum = (__anf2 + (__anf1 * __anf0));
-            size_t __anf01 = k;
+            uint32_t __anf01 = k;
             k = (__anf01 + 1);
         }
-        size_t ni_1 = ((trow * 1024) + tcol);
+        uint32_t ni_1 = ((trow * 1024) + tcol);
         (void) (s2[ni_1]);
-        size_t ni1_1 = ((trow * 1024) + tcol);
+        uint32_t ni1_1 = ((trow * 1024) + tcol);
         s2[ni1_1] = sum;
     }
 }
@@ -68,53 +68,53 @@ __global__ static void kuiper_kernel_1(float *c, float *d, float *s2)
 /* hoisted by the Custard Kuiper rule */
 __global__ static void kuiper_kernel_2(float *s1, float *s2, float *r)
 {
-    size_t bid = blockIdx.x;
-    size_t tid = threadIdx.x;
-    size_t gid = ((1024 * bid) + tid);
-    if (gid < 1048576ULL) {
-        size_t rest = (gid / 1);
-        size_t trow = (rest / 1024);
-        size_t tcol = (rest % 1024);
-        size_t k = 0;
+    uint32_t bid = blockIdx.x;
+    uint32_t tid = threadIdx.x;
+    uint32_t gid = ((1024 * bid) + tid);
+    if (gid < 1048576U) {
+        uint32_t rest = (gid / 1);
+        uint32_t trow = (rest / 1024);
+        uint32_t tcol = (rest % 1024);
+        uint32_t k = 0;
         float sum = 0.0f;
         while (k < 1024) {
-            size_t vk = k;
+            uint32_t vk = k;
             float __anf2 = sum;
-            size_t ni = ((trow * 1024) + vk);
+            uint32_t ni = ((trow * 1024) + vk);
             float __anf1 = s1[ni];
-            size_t ni1 = ((vk * 1024) + tcol);
+            uint32_t ni1 = ((vk * 1024) + tcol);
             float __anf0 = s2[ni1];
             sum = (__anf2 + (__anf1 * __anf0));
-            size_t __anf01 = k;
+            uint32_t __anf01 = k;
             k = (__anf01 + 1);
         }
-        size_t ni_1 = ((trow * 1024) + tcol);
+        uint32_t ni_1 = ((trow * 1024) + tcol);
         (void) (r[ni_1]);
-        size_t ni1_1 = ((trow * 1024) + tcol);
+        uint32_t ni1_1 = ((trow * 1024) + tcol);
         r[ni1_1] = sum;
     }
 }
 
-void Kuiper_Example_Async_GEMM_main(float *a, float *b, float *c, float *d,
-                                    float *r)
+void Kuiper_Example_Async_GEMM_main(
+    float *a, float *b, float *c, float *d, float *r)
 {
     cudaStream_t str1 = KPR_FRESH_STREAM();
     cudaStream_t str2 = KPR_FRESH_STREAM();
     uint8_t *tmp =
-        (uint8_t *) KPR_GPU_ALLOC(((size_t) 4ULL), ((size_t) 1048576ULL));
+        (uint8_t *) KPR_GPU_ALLOC(((uint32_t) 4U), ((uint32_t) 1048576U));
     float *s1 = (float *) tmp;
-    KPR_KCALL(kuiper_kernel_0, ((size_t) 1024ULL), ((size_t) 1024ULL),
-              ((size_t) 0ULL), str1, a, b, s1);
+    KPR_KCALL(kuiper_kernel_0, ((uint32_t) 1024U), ((uint32_t) 1024U),
+        ((uint32_t) 0U), str1, a, b, s1);
     uint8_t *tmp1 =
-        (uint8_t *) KPR_GPU_ALLOC(((size_t) 4ULL), ((size_t) 1048576ULL));
+        (uint8_t *) KPR_GPU_ALLOC(((uint32_t) 4U), ((uint32_t) 1048576U));
     float *s2 = (float *) tmp1;
-    KPR_KCALL(kuiper_kernel_1, ((size_t) 1024ULL), ((size_t) 1024ULL),
-              ((size_t) 0ULL), str2, c, d, s2);
+    KPR_KCALL(kuiper_kernel_1, ((uint32_t) 1024U), ((uint32_t) 1024U),
+        ((uint32_t) 0U), str2, c, d, s2);
     KPR_MUST_stream_sync(str1);
     KPR_MUST_stream_sync(str2);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_KCALL(kuiper_kernel_2, ((size_t) 1024ULL), ((size_t) 1024ULL),
-              ((size_t) 0ULL), s, s1, s2, r);
+    KPR_KCALL(kuiper_kernel_2, ((uint32_t) 1024U), ((uint32_t) 1024U),
+        ((uint32_t) 0U), s, s1, s2, r);
     KPR_MUST_stream_sync(s);
     KPR_MUST_stream_destroy(s);
     KPR_GPU_FREE(s1);

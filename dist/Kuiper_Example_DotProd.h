@@ -18,15 +18,14 @@ typedef uint8_t custard_unit;
 #endif
 #include "kuiper.h"
 #include "kuiper/tensorcores.h"
+#include "kuiper/wgmma.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-float Kuiper_Example_DotProd_matmul_dotprod_via_slice_f32(size_t m, size_t n,
-                                                          size_t k, float *gA,
-                                                          float *gB, size_t i,
-                                                          size_t j);
+float Kuiper_Example_DotProd_matmul_dotprod_via_slice_f32(uint32_t m,
+    uint32_t n, uint32_t k, float *gA, float *gB, uint32_t i, uint32_t j);
 
 #ifdef __cplusplus
 }

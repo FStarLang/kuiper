@@ -35,7 +35,7 @@ fn copy_from_vec
     #(core gm |-> to_seq l em)
     fn () { tensor_concr gm; };
   Pulse.Lib.Vec.pts_to_len a;
-  gpu_memcpy_host_to_device (core gm) a (m *^ n);
+  memcpy_host_to_device (core gm) a (m *^ n);
   map_loc gpu_loc
     #(core gm |-> s)
     #(gm |-> from_seq l s)
@@ -71,7 +71,7 @@ fn copy_to_vec
     #(gm |-> em)
     #(core gm |-> Frac 1.0R (to_seq l em))
     fn () { tensor_concr gm; };
-  gpu_memcpy_device_to_host a (core gm) (m *^ n);
+  memcpy_device_to_host a (core gm) (m *^ n);
   map_loc gpu_loc
     #(core gm |-> Frac 1.0R (to_seq l em))
     #(gm |-> em)

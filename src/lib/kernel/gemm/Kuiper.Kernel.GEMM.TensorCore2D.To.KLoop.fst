@@ -95,62 +95,6 @@ ensures
    SMT solver anymore, so do the projection by normalization and the
    substitution with [rewrite each] (same bridge as in
    [Kuiper.Kernel.GEMM.TensorCore2D] / [BlockTiling2D]). *)
-let unfold_fb_contract () : FStar.Tactics.V2.Tac unit =
-  FStar.Tactics.V2.norm [delta_only [`%FB.contract]; iota; primops];
-  Pulse.Lib.Core.slprop_equiv_norm ()
-
-ghost
-fn bp_to_rin
-  (#etA #etB : Type0)
-  {| sized etA, has_vec_cpy etA, sized etB, has_vec_cpy etB |}
-  (#rows #shared #cols : pos)
-  (eA : chest2 etA rows shared)
-  (eB : chest2 etB shared cols)
-  (#bm : pos{bm /?+ rows}) (#bk : pos{bk /?+ shared}) (#bn : pos{bn /?+ cols})
-  (l1 : full_layout2 bm bk) (l2 : full_layout2 bk bn)
-  (sar1 : larray etA (bm * bk)) (sar2 : larray etB (bk * bn))
-  (sa1 : array2 etA l1) (sa2 : array2 etB l2)
-  (nthr : pos) (bid : natlt (rows/bm * (cols/bn)))
-  (it : nat) (tid : natlt nthr)
-  requires
-    FB.barrier_p eA eB sa1 sa2 nthr bid it tid **
-    pure (sa1 == from_array l1 sar1 /\ sa2 == from_array l2 sar2)
-  ensures
-    (FB.contract eA eB l1 l2 sar1 sar2 nthr bid).rin it tid
-{
-  rewrite each sa1 as (from_array l1 sar1);
-  rewrite each sa2 as (from_array l2 sar2);
-  rewrite FB.barrier_p eA eB (from_array l1 sar1) (from_array l2 sar2) nthr bid it tid
-       as (FB.contract eA eB l1 l2 sar1 sar2 nthr bid).rin it tid
-       by unfold_fb_contract ();
-}
-
-ghost
-fn rout_to_bq
-  (#etA #etB : Type0)
-  {| sized etA, has_vec_cpy etA, sized etB, has_vec_cpy etB |}
-  (#rows #shared #cols : pos)
-  (eA : chest2 etA rows shared)
-  (eB : chest2 etB shared cols)
-  (#bm : pos{bm /?+ rows}) (#bk : pos{bk /?+ shared}) (#bn : pos{bn /?+ cols})
-  (l1 : full_layout2 bm bk) (l2 : full_layout2 bk bn)
-  (sar1 : larray etA (bm * bk)) (sar2 : larray etB (bk * bn))
-  (sa1 : array2 etA l1) (sa2 : array2 etB l2)
-  (nthr : pos) (bid : natlt (rows/bm * (cols/bn)))
-  (it : nat) (tid : natlt nthr)
-  requires
-    (FB.contract eA eB l1 l2 sar1 sar2 nthr bid).rout it tid **
-    pure (sa1 == from_array l1 sar1 /\ sa2 == from_array l2 sar2)
-  ensures
-    FB.barrier_q eA eB sa1 sa2 nthr bid it tid
-{
-  rewrite (FB.contract eA eB l1 l2 sar1 sar2 nthr bid).rout it tid
-       as FB.barrier_q eA eB (from_array l1 sar1) (from_array l2 sar2) nthr bid it tid
-       by unfold_fb_contract ();
-  rewrite each (from_array l1 sar1) as sa1;
-  rewrite each (from_array l2 sar2) as sa2;
-}
-
 (* (2*k)/bk == 2*(k/bk) when bk divides k. Nonlinear, and hopeless to
    discharge inside k_loop_step's context, so prove it standalone. *)
 let lemma_double_div (k bk : pos)
@@ -274,11 +218,11 @@ fn k_loop_step
   assert pure (even (2 * v));
 
   FB.fold_barrier_p_even eA eB sA sB nthr bid v tid;
-  bp_to_rin eA eB (rm bm bk) (rm bk bn) (core sA) (core sB) sA sB nthr bid (2 * v) tid;
+  FB.bp_to_rin eA eB (rm bm bk) (rm bk bn) (core sA) (core sB) sA sB nthr bid (2 * v) tid;
 
   B.barrier_wait ();
 
-  rout_to_bq eA eB (rm bm bk) (rm bk bn) (core sA) (core sB) sA sB nthr bid (2 * v) tid;
+  FB.rout_to_bq eA eB (rm bm bk) (rm bk bn) (core sA) (core sB) sA sB nthr bid (2 * v) tid;
   FB.unfold_barrier_q_even eA eB sA sB nthr bid v tid;
 
   unfold FB.live_strided_chunks sA nthr tid;
@@ -307,7 +251,7 @@ fn k_loop_step
   odd_2x1 v;
   assert pure (odd (2 * v + 1));
   FB.fold_barrier_p_odd eA eB sA sB nthr bid mrow mcol v tid;
-  bp_to_rin eA eB (rm bm bk) (rm bk bn) (core sA) (core sB) sA sB nthr bid (2 * v + 1) tid;
+  FB.bp_to_rin eA eB (rm bm bk) (rm bk bn) (core sA) (core sB) sA sB nthr bid (2 * v + 1) tid;
 
   B.barrier_wait ();
 
@@ -317,7 +261,7 @@ fn k_loop_step
   lemma_double_div (SZ.v k) (SZ.v bk);
   assert pure ((2 * v + 1) < 2 * k / bk);
   assert pure (even (2 * v + 2));
-  rout_to_bq eA eB (rm bm bk) (rm bk bn) (core sA) (core sB) sA sB nthr bid (2 * v + 1) tid;
+  FB.rout_to_bq eA eB (rm bm bk) (rm bk bn) (core sA) (core sB) sA sB nthr bid (2 * v + 1) tid;
   FB.unfold_barrier_q_odd eA eB sA sB nthr bid mrow mcol v tid;
 
   unfold FB.bp_sharing sA (ematrix_subtile eA bm bk mrow v) nthr;

@@ -1187,7 +1187,7 @@ fn varray_from_array
   // let len = cw.clen;
   Pulse.Lib.Vec.pts_to_len a;
   map_loc gpu_loc (fun () -> varray_concr va);
-  B.gpu_memcpy_host_to_device (core va) a clen;
+  B.memcpy_host_to_device (core va) a clen;
   map_loc gpu_loc (fun () -> varray_abs_alt' vw _ (core va));
   rewrite each from_array vw (core va) as va;
   ();
@@ -1213,7 +1213,7 @@ fn varray_to_array
 {
   Pulse.Lib.Vec.pts_to_len a;
   map_loc gpu_loc (fun () -> varray_concr va);
-  B.gpu_memcpy_device_to_host a (core va) clen;
+  B.memcpy_device_to_host a (core va) clen;
   map_loc gpu_loc (fun () -> varray_abs' vw (core va));
   rewrite each
     (from_array vw (core va) |-> from_seq vw (to_seq vw v))

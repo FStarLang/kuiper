@@ -19,6 +19,7 @@ typedef uint8_t custard_unit;
 #include "kuiper.h"
 #include "kuiper/tensorcores.h"
 #include "kuiper/math.h"
+#include "kuiper/wgmma.h"
 
 /* Section 66: the two 16-bit floating-point formats.
 
@@ -225,8 +226,8 @@ CUSTARD_FN custard_bf16 custard_bf16_of_i64(int64_t x)
 #define CUSTARD__F16_BIN(nm, op)                                               \
     CUSTARD_FN custard_f16 custard_f16_##nm(custard_f16 a, custard_f16 b)      \
     {                                                                          \
-        return custard_f16_of_f32(custard_f16_to_f32(a)                        \
-                                      op custard_f16_to_f32(b));               \
+        return custard_f16_of_f32(                                             \
+            custard_f16_to_f32(a) op custard_f16_to_f32(b));                   \
     }
 #define CUSTARD__F16_CMP(nm, op)                                               \
     CUSTARD_FN bool custard_f16_##nm(custard_f16 a, custard_f16 b)             \
@@ -236,8 +237,8 @@ CUSTARD_FN custard_bf16 custard_bf16_of_i64(int64_t x)
 #define CUSTARD__BF16_BIN(nm, op)                                              \
     CUSTARD_FN custard_bf16 custard_bf16_##nm(custard_bf16 a, custard_bf16 b)  \
     {                                                                          \
-        return custard_bf16_of_f32(custard_bf16_to_f32(a)                      \
-                                       op custard_bf16_to_f32(b));             \
+        return custard_bf16_of_f32(                                            \
+            custard_bf16_to_f32(a) op custard_bf16_to_f32(b));                 \
     }
 #define CUSTARD__BF16_CMP(nm, op)                                              \
     CUSTARD_FN bool custard_bf16_##nm(custard_bf16 a, custard_bf16 b)          \
@@ -301,221 +302,293 @@ struct FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr_s {
 };
 
 void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_2x2(
-    size_t rows, size_t shared, size_t cols, custard_bf16 *gA, custard_bf16 *gB,
-    custard_bf16 *gC, custard_bf16 *gD, float alpha, float beta);
+    uint32_t rows, uint32_t shared, uint32_t cols, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC, custard_bf16 *gD, float alpha,
+    float beta);
 void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_2x4(
-    size_t rows, size_t shared, size_t cols, custard_bf16 *gA, custard_bf16 *gB,
-    custard_bf16 *gC, custard_bf16 *gD, float alpha, float beta);
+    uint32_t rows, uint32_t shared, uint32_t cols, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC, custard_bf16 *gD, float alpha,
+    float beta);
 void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_4x2(
-    size_t rows, size_t shared, size_t cols, custard_bf16 *gA, custard_bf16 *gB,
-    custard_bf16 *gC, custard_bf16 *gD, float alpha, float beta);
+    uint32_t rows, uint32_t shared, uint32_t cols, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC, custard_bf16 *gD, float alpha,
+    float beta);
 void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_4x4(
-    size_t rows, size_t shared, size_t cols, custard_bf16 *gA, custard_bf16 *gB,
-    custard_bf16 *gC, custard_bf16 *gD, float alpha, float beta);
+    uint32_t rows, uint32_t shared, uint32_t cols, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC, custard_bf16 *gD, float alpha,
+    float beta);
 void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_2x2(
-    size_t rows, size_t shared, size_t cols, custard_bf16 *gA, custard_bf16 *gB,
-    custard_bf16 *gC, custard_bf16 *gD, float alpha, float beta);
+    uint32_t rows, uint32_t shared, uint32_t cols, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC, custard_bf16 *gD, float alpha,
+    float beta);
 void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_2x4(
-    size_t rows, size_t shared, size_t cols, custard_bf16 *gA, custard_bf16 *gB,
-    custard_bf16 *gC, custard_bf16 *gD, float alpha, float beta);
+    uint32_t rows, uint32_t shared, uint32_t cols, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC, custard_bf16 *gD, float alpha,
+    float beta);
 void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_4x2(
-    size_t rows, size_t shared, size_t cols, custard_bf16 *gA, custard_bf16 *gB,
-    custard_bf16 *gC, custard_bf16 *gD, float alpha, float beta);
+    uint32_t rows, uint32_t shared, uint32_t cols, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC, custard_bf16 *gD, float alpha,
+    float beta);
 void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_4x4(
-    size_t rows, size_t shared, size_t cols, custard_bf16 *gA, custard_bf16 *gB,
-    custard_bf16 *gC, custard_bf16 *gD, float alpha, float beta);
+    uint32_t rows, uint32_t shared, uint32_t cols, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC, custard_bf16 *gD, float alpha,
+    float beta);
 void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_2x2(
-    size_t rows, size_t shared, size_t cols, custard_bf16 *gA, custard_bf16 *gB,
-    custard_bf16 *gC, custard_bf16 *gD, float alpha, float beta);
+    uint32_t rows, uint32_t shared, uint32_t cols, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC, custard_bf16 *gD, float alpha,
+    float beta);
 void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_2x4(
-    size_t rows, size_t shared, size_t cols, custard_bf16 *gA, custard_bf16 *gB,
-    custard_bf16 *gC, custard_bf16 *gD, float alpha, float beta);
+    uint32_t rows, uint32_t shared, uint32_t cols, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC, custard_bf16 *gD, float alpha,
+    float beta);
 void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_4x2(
-    size_t rows, size_t shared, size_t cols, custard_bf16 *gA, custard_bf16 *gB,
-    custard_bf16 *gC, custard_bf16 *gD, float alpha, float beta);
+    uint32_t rows, uint32_t shared, uint32_t cols, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC, custard_bf16 *gD, float alpha,
+    float beta);
 void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_4x4(
-    size_t rows, size_t shared, size_t cols, custard_bf16 *gA, custard_bf16 *gB,
-    custard_bf16 *gC, custard_bf16 *gD, float alpha, float beta);
+    uint32_t rows, uint32_t shared, uint32_t cols, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC, custard_bf16 *gD, float alpha,
+    float beta);
 void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_2x4(
-    size_t rows, size_t shared, size_t cols, custard_bf16 *gA, custard_bf16 *gB,
-    custard_bf16 *gC, custard_bf16 *gD, float alpha, float beta);
+    uint32_t rows, uint32_t shared, uint32_t cols, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC, custard_bf16 *gD, float alpha,
+    float beta);
 void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_2x8(
-    size_t rows, size_t shared, size_t cols, custard_bf16 *gA, custard_bf16 *gB,
-    custard_bf16 *gC, custard_bf16 *gD, float alpha, float beta);
+    uint32_t rows, uint32_t shared, uint32_t cols, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC, custard_bf16 *gD, float alpha,
+    float beta);
 void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_4x2(
-    size_t rows, size_t shared, size_t cols, custard_bf16 *gA, custard_bf16 *gB,
-    custard_bf16 *gC, custard_bf16 *gD, float alpha, float beta);
+    uint32_t rows, uint32_t shared, uint32_t cols, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC, custard_bf16 *gD, float alpha,
+    float beta);
 void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_4x4(
-    size_t rows, size_t shared, size_t cols, custard_bf16 *gA, custard_bf16 *gB,
-    custard_bf16 *gC, custard_bf16 *gD, float alpha, float beta);
+    uint32_t rows, uint32_t shared, uint32_t cols, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC, custard_bf16 *gD, float alpha,
+    float beta);
 void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_4x8(
-    size_t rows, size_t shared, size_t cols, custard_bf16 *gA, custard_bf16 *gB,
-    custard_bf16 *gC, custard_bf16 *gD, float alpha, float beta);
+    uint32_t rows, uint32_t shared, uint32_t cols, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC, custard_bf16 *gD, float alpha,
+    float beta);
 void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_2x2(
-    size_t rows, size_t shared, size_t cols, custard_bf16 *gA, custard_bf16 *gB,
-    custard_bf16 *gC, custard_bf16 *gD, float alpha, float beta);
+    uint32_t rows, uint32_t shared, uint32_t cols, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC, custard_bf16 *gD, float alpha,
+    float beta);
 void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_2x4(
-    size_t rows, size_t shared, size_t cols, custard_bf16 *gA, custard_bf16 *gB,
-    custard_bf16 *gC, custard_bf16 *gD, float alpha, float beta);
+    uint32_t rows, uint32_t shared, uint32_t cols, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC, custard_bf16 *gD, float alpha,
+    float beta);
 void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_2x8(
-    size_t rows, size_t shared, size_t cols, custard_bf16 *gA, custard_bf16 *gB,
-    custard_bf16 *gC, custard_bf16 *gD, float alpha, float beta);
+    uint32_t rows, uint32_t shared, uint32_t cols, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC, custard_bf16 *gD, float alpha,
+    float beta);
 void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_4x2(
-    size_t rows, size_t shared, size_t cols, custard_bf16 *gA, custard_bf16 *gB,
-    custard_bf16 *gC, custard_bf16 *gD, float alpha, float beta);
+    uint32_t rows, uint32_t shared, uint32_t cols, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC, custard_bf16 *gD, float alpha,
+    float beta);
 void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_4x4(
-    size_t rows, size_t shared, size_t cols, custard_bf16 *gA, custard_bf16 *gB,
-    custard_bf16 *gC, custard_bf16 *gD, float alpha, float beta);
+    uint32_t rows, uint32_t shared, uint32_t cols, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC, custard_bf16 *gD, float alpha,
+    float beta);
 void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_4x8(
-    size_t rows, size_t shared, size_t cols, custard_bf16 *gA, custard_bf16 *gB,
-    custard_bf16 *gC, custard_bf16 *gD, float alpha, float beta);
+    uint32_t rows, uint32_t shared, uint32_t cols, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC, custard_bf16 *gD, float alpha,
+    float beta);
 void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_2x2(
-    size_t rows, size_t shared, size_t cols, custard_bf16 *gA, custard_bf16 *gB,
-    custard_bf16 *gC, custard_bf16 *gD, float alpha, float beta);
+    uint32_t rows, uint32_t shared, uint32_t cols, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC, custard_bf16 *gD, float alpha,
+    float beta);
 void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_2x4(
-    size_t rows, size_t shared, size_t cols, custard_bf16 *gA, custard_bf16 *gB,
-    custard_bf16 *gC, custard_bf16 *gD, float alpha, float beta);
+    uint32_t rows, uint32_t shared, uint32_t cols, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC, custard_bf16 *gD, float alpha,
+    float beta);
 void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_2x8(
-    size_t rows, size_t shared, size_t cols, custard_bf16 *gA, custard_bf16 *gB,
-    custard_bf16 *gC, custard_bf16 *gD, float alpha, float beta);
+    uint32_t rows, uint32_t shared, uint32_t cols, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC, custard_bf16 *gD, float alpha,
+    float beta);
 void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_4x2(
-    size_t rows, size_t shared, size_t cols, custard_bf16 *gA, custard_bf16 *gB,
-    custard_bf16 *gC, custard_bf16 *gD, float alpha, float beta);
+    uint32_t rows, uint32_t shared, uint32_t cols, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC, custard_bf16 *gD, float alpha,
+    float beta);
 void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_4x4(
-    size_t rows, size_t shared, size_t cols, custard_bf16 *gA, custard_bf16 *gB,
-    custard_bf16 *gC, custard_bf16 *gD, float alpha, float beta);
+    uint32_t rows, uint32_t shared, uint32_t cols, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC, custard_bf16 *gD, float alpha,
+    float beta);
 void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_4x8(
-    size_t rows, size_t shared, size_t cols, custard_bf16 *gA, custard_bf16 *gB,
-    custard_bf16 *gC, custard_bf16 *gD, float alpha, float beta);
+    uint32_t rows, uint32_t shared, uint32_t cols, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC, custard_bf16 *gD, float alpha,
+    float beta);
 void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_2x4(
-    size_t rows, size_t shared, size_t cols, custard_bf16 *gA, custard_bf16 *gB,
-    custard_bf16 *gC, custard_bf16 *gD, float alpha, float beta);
+    uint32_t rows, uint32_t shared, uint32_t cols, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC, custard_bf16 *gD, float alpha,
+    float beta);
 void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_4x2(
-    size_t rows, size_t shared, size_t cols, custard_bf16 *gA, custard_bf16 *gB,
-    custard_bf16 *gC, custard_bf16 *gD, float alpha, float beta);
+    uint32_t rows, uint32_t shared, uint32_t cols, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC, custard_bf16 *gD, float alpha,
+    float beta);
 void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_4x4(
-    size_t rows, size_t shared, size_t cols, custard_bf16 *gA, custard_bf16 *gB,
-    custard_bf16 *gC, custard_bf16 *gD, float alpha, float beta);
+    uint32_t rows, uint32_t shared, uint32_t cols, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC, custard_bf16 *gD, float alpha,
+    float beta);
 void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_8x2(
-    size_t rows, size_t shared, size_t cols, custard_bf16 *gA, custard_bf16 *gB,
-    custard_bf16 *gC, custard_bf16 *gD, float alpha, float beta);
+    uint32_t rows, uint32_t shared, uint32_t cols, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC, custard_bf16 *gD, float alpha,
+    float beta);
 void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_8x4(
-    size_t rows, size_t shared, size_t cols, custard_bf16 *gA, custard_bf16 *gB,
-    custard_bf16 *gC, custard_bf16 *gD, float alpha, float beta);
+    uint32_t rows, uint32_t shared, uint32_t cols, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC, custard_bf16 *gD, float alpha,
+    float beta);
 void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_2x2(
-    size_t rows, size_t shared, size_t cols, custard_bf16 *gA, custard_bf16 *gB,
-    custard_bf16 *gC, custard_bf16 *gD, float alpha, float beta);
+    uint32_t rows, uint32_t shared, uint32_t cols, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC, custard_bf16 *gD, float alpha,
+    float beta);
 void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_2x4(
-    size_t rows, size_t shared, size_t cols, custard_bf16 *gA, custard_bf16 *gB,
-    custard_bf16 *gC, custard_bf16 *gD, float alpha, float beta);
+    uint32_t rows, uint32_t shared, uint32_t cols, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC, custard_bf16 *gD, float alpha,
+    float beta);
 void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_4x2(
-    size_t rows, size_t shared, size_t cols, custard_bf16 *gA, custard_bf16 *gB,
-    custard_bf16 *gC, custard_bf16 *gD, float alpha, float beta);
+    uint32_t rows, uint32_t shared, uint32_t cols, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC, custard_bf16 *gD, float alpha,
+    float beta);
 void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_4x4(
-    size_t rows, size_t shared, size_t cols, custard_bf16 *gA, custard_bf16 *gB,
-    custard_bf16 *gC, custard_bf16 *gD, float alpha, float beta);
+    uint32_t rows, uint32_t shared, uint32_t cols, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC, custard_bf16 *gD, float alpha,
+    float beta);
 void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_8x2(
-    size_t rows, size_t shared, size_t cols, custard_bf16 *gA, custard_bf16 *gB,
-    custard_bf16 *gC, custard_bf16 *gD, float alpha, float beta);
+    uint32_t rows, uint32_t shared, uint32_t cols, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC, custard_bf16 *gD, float alpha,
+    float beta);
 void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_8x4(
-    size_t rows, size_t shared, size_t cols, custard_bf16 *gA, custard_bf16 *gB,
-    custard_bf16 *gC, custard_bf16 *gD, float alpha, float beta);
+    uint32_t rows, uint32_t shared, uint32_t cols, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC, custard_bf16 *gD, float alpha,
+    float beta);
 void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_2x2(
-    size_t rows, size_t shared, size_t cols, custard_bf16 *gA, custard_bf16 *gB,
-    custard_bf16 *gC, custard_bf16 *gD, float alpha, float beta);
+    uint32_t rows, uint32_t shared, uint32_t cols, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC, custard_bf16 *gD, float alpha,
+    float beta);
 void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_2x4(
-    size_t rows, size_t shared, size_t cols, custard_bf16 *gA, custard_bf16 *gB,
-    custard_bf16 *gC, custard_bf16 *gD, float alpha, float beta);
+    uint32_t rows, uint32_t shared, uint32_t cols, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC, custard_bf16 *gD, float alpha,
+    float beta);
 void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_4x2(
-    size_t rows, size_t shared, size_t cols, custard_bf16 *gA, custard_bf16 *gB,
-    custard_bf16 *gC, custard_bf16 *gD, float alpha, float beta);
+    uint32_t rows, uint32_t shared, uint32_t cols, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC, custard_bf16 *gD, float alpha,
+    float beta);
 void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_4x4(
-    size_t rows, size_t shared, size_t cols, custard_bf16 *gA, custard_bf16 *gB,
-    custard_bf16 *gC, custard_bf16 *gD, float alpha, float beta);
+    uint32_t rows, uint32_t shared, uint32_t cols, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC, custard_bf16 *gD, float alpha,
+    float beta);
 void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_8x2(
-    size_t rows, size_t shared, size_t cols, custard_bf16 *gA, custard_bf16 *gB,
-    custard_bf16 *gC, custard_bf16 *gD, float alpha, float beta);
+    uint32_t rows, uint32_t shared, uint32_t cols, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC, custard_bf16 *gD, float alpha,
+    float beta);
 void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_8x4(
-    size_t rows, size_t shared, size_t cols, custard_bf16 *gA, custard_bf16 *gB,
-    custard_bf16 *gC, custard_bf16 *gD, float alpha, float beta);
+    uint32_t rows, uint32_t shared, uint32_t cols, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC, custard_bf16 *gD, float alpha,
+    float beta);
 void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_2x4(
-    size_t rows, size_t shared, size_t cols, custard_bf16 *gA, custard_bf16 *gB,
-    custard_bf16 *gC, custard_bf16 *gD, float alpha, float beta);
+    uint32_t rows, uint32_t shared, uint32_t cols, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC, custard_bf16 *gD, float alpha,
+    float beta);
 void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_2x8(
-    size_t rows, size_t shared, size_t cols, custard_bf16 *gA, custard_bf16 *gB,
-    custard_bf16 *gC, custard_bf16 *gD, float alpha, float beta);
+    uint32_t rows, uint32_t shared, uint32_t cols, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC, custard_bf16 *gD, float alpha,
+    float beta);
 void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_4x2(
-    size_t rows, size_t shared, size_t cols, custard_bf16 *gA, custard_bf16 *gB,
-    custard_bf16 *gC, custard_bf16 *gD, float alpha, float beta);
+    uint32_t rows, uint32_t shared, uint32_t cols, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC, custard_bf16 *gD, float alpha,
+    float beta);
 void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_4x4(
-    size_t rows, size_t shared, size_t cols, custard_bf16 *gA, custard_bf16 *gB,
-    custard_bf16 *gC, custard_bf16 *gD, float alpha, float beta);
+    uint32_t rows, uint32_t shared, uint32_t cols, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC, custard_bf16 *gD, float alpha,
+    float beta);
 void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_4x8(
-    size_t rows, size_t shared, size_t cols, custard_bf16 *gA, custard_bf16 *gB,
-    custard_bf16 *gC, custard_bf16 *gD, float alpha, float beta);
+    uint32_t rows, uint32_t shared, uint32_t cols, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC, custard_bf16 *gD, float alpha,
+    float beta);
 void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_8x2(
-    size_t rows, size_t shared, size_t cols, custard_bf16 *gA, custard_bf16 *gB,
-    custard_bf16 *gC, custard_bf16 *gD, float alpha, float beta);
+    uint32_t rows, uint32_t shared, uint32_t cols, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC, custard_bf16 *gD, float alpha,
+    float beta);
 void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_8x4(
-    size_t rows, size_t shared, size_t cols, custard_bf16 *gA, custard_bf16 *gB,
-    custard_bf16 *gC, custard_bf16 *gD, float alpha, float beta);
+    uint32_t rows, uint32_t shared, uint32_t cols, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC, custard_bf16 *gD, float alpha,
+    float beta);
 void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_8x8(
-    size_t rows, size_t shared, size_t cols, custard_bf16 *gA, custard_bf16 *gB,
-    custard_bf16 *gC, custard_bf16 *gD, float alpha, float beta);
+    uint32_t rows, uint32_t shared, uint32_t cols, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC, custard_bf16 *gD, float alpha,
+    float beta);
 void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_2x2(
-    size_t rows, size_t shared, size_t cols, custard_bf16 *gA, custard_bf16 *gB,
-    custard_bf16 *gC, custard_bf16 *gD, float alpha, float beta);
+    uint32_t rows, uint32_t shared, uint32_t cols, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC, custard_bf16 *gD, float alpha,
+    float beta);
 void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_2x4(
-    size_t rows, size_t shared, size_t cols, custard_bf16 *gA, custard_bf16 *gB,
-    custard_bf16 *gC, custard_bf16 *gD, float alpha, float beta);
+    uint32_t rows, uint32_t shared, uint32_t cols, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC, custard_bf16 *gD, float alpha,
+    float beta);
 void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_2x8(
-    size_t rows, size_t shared, size_t cols, custard_bf16 *gA, custard_bf16 *gB,
-    custard_bf16 *gC, custard_bf16 *gD, float alpha, float beta);
+    uint32_t rows, uint32_t shared, uint32_t cols, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC, custard_bf16 *gD, float alpha,
+    float beta);
 void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_4x2(
-    size_t rows, size_t shared, size_t cols, custard_bf16 *gA, custard_bf16 *gB,
-    custard_bf16 *gC, custard_bf16 *gD, float alpha, float beta);
+    uint32_t rows, uint32_t shared, uint32_t cols, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC, custard_bf16 *gD, float alpha,
+    float beta);
 void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_4x4(
-    size_t rows, size_t shared, size_t cols, custard_bf16 *gA, custard_bf16 *gB,
-    custard_bf16 *gC, custard_bf16 *gD, float alpha, float beta);
+    uint32_t rows, uint32_t shared, uint32_t cols, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC, custard_bf16 *gD, float alpha,
+    float beta);
 void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_4x8(
-    size_t rows, size_t shared, size_t cols, custard_bf16 *gA, custard_bf16 *gB,
-    custard_bf16 *gC, custard_bf16 *gD, float alpha, float beta);
+    uint32_t rows, uint32_t shared, uint32_t cols, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC, custard_bf16 *gD, float alpha,
+    float beta);
 void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_8x2(
-    size_t rows, size_t shared, size_t cols, custard_bf16 *gA, custard_bf16 *gB,
-    custard_bf16 *gC, custard_bf16 *gD, float alpha, float beta);
+    uint32_t rows, uint32_t shared, uint32_t cols, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC, custard_bf16 *gD, float alpha,
+    float beta);
 void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_8x4(
-    size_t rows, size_t shared, size_t cols, custard_bf16 *gA, custard_bf16 *gB,
-    custard_bf16 *gC, custard_bf16 *gD, float alpha, float beta);
+    uint32_t rows, uint32_t shared, uint32_t cols, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC, custard_bf16 *gD, float alpha,
+    float beta);
 void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_8x8(
-    size_t rows, size_t shared, size_t cols, custard_bf16 *gA, custard_bf16 *gB,
-    custard_bf16 *gC, custard_bf16 *gD, float alpha, float beta);
+    uint32_t rows, uint32_t shared, uint32_t cols, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC, custard_bf16 *gD, float alpha,
+    float beta);
 void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_2x2(
-    size_t rows, size_t shared, size_t cols, custard_bf16 *gA, custard_bf16 *gB,
-    custard_bf16 *gC, custard_bf16 *gD, float alpha, float beta);
+    uint32_t rows, uint32_t shared, uint32_t cols, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC, custard_bf16 *gD, float alpha,
+    float beta);
 void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_2x4(
-    size_t rows, size_t shared, size_t cols, custard_bf16 *gA, custard_bf16 *gB,
-    custard_bf16 *gC, custard_bf16 *gD, float alpha, float beta);
+    uint32_t rows, uint32_t shared, uint32_t cols, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC, custard_bf16 *gD, float alpha,
+    float beta);
 void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_2x8(
-    size_t rows, size_t shared, size_t cols, custard_bf16 *gA, custard_bf16 *gB,
-    custard_bf16 *gC, custard_bf16 *gD, float alpha, float beta);
+    uint32_t rows, uint32_t shared, uint32_t cols, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC, custard_bf16 *gD, float alpha,
+    float beta);
 void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_4x2(
-    size_t rows, size_t shared, size_t cols, custard_bf16 *gA, custard_bf16 *gB,
-    custard_bf16 *gC, custard_bf16 *gD, float alpha, float beta);
+    uint32_t rows, uint32_t shared, uint32_t cols, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC, custard_bf16 *gD, float alpha,
+    float beta);
 void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_4x4(
-    size_t rows, size_t shared, size_t cols, custard_bf16 *gA, custard_bf16 *gB,
-    custard_bf16 *gC, custard_bf16 *gD, float alpha, float beta);
+    uint32_t rows, uint32_t shared, uint32_t cols, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC, custard_bf16 *gD, float alpha,
+    float beta);
 void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_4x8(
-    size_t rows, size_t shared, size_t cols, custard_bf16 *gA, custard_bf16 *gB,
-    custard_bf16 *gC, custard_bf16 *gD, float alpha, float beta);
+    uint32_t rows, uint32_t shared, uint32_t cols, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC, custard_bf16 *gD, float alpha,
+    float beta);
 void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_8x2(
-    size_t rows, size_t shared, size_t cols, custard_bf16 *gA, custard_bf16 *gB,
-    custard_bf16 *gC, custard_bf16 *gD, float alpha, float beta);
+    uint32_t rows, uint32_t shared, uint32_t cols, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC, custard_bf16 *gD, float alpha,
+    float beta);
 void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_8x4(
-    size_t rows, size_t shared, size_t cols, custard_bf16 *gA, custard_bf16 *gB,
-    custard_bf16 *gC, custard_bf16 *gD, float alpha, float beta);
+    uint32_t rows, uint32_t shared, uint32_t cols, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC, custard_bf16 *gD, float alpha,
+    float beta);
 void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_8x8(
-    size_t rows, size_t shared, size_t cols, custard_bf16 *gA, custard_bf16 *gB,
-    custard_bf16 *gC, custard_bf16 *gD, float alpha, float beta);
+    uint32_t rows, uint32_t shared, uint32_t cols, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC, custard_bf16 *gD, float alpha,
+    float beta);
 
 #ifdef __cplusplus
 }

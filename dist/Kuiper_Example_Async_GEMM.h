@@ -18,13 +18,14 @@ typedef uint8_t custard_unit;
 #endif
 #include "kuiper.h"
 #include "kuiper/tensorcores.h"
+#include "kuiper/wgmma.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-void Kuiper_Example_Async_GEMM_main(float *a, float *b, float *c, float *d,
-                                    float *r);
+void Kuiper_Example_Async_GEMM_main(
+    float *a, float *b, float *c, float *d, float *r);
 
 #ifdef __cplusplus
 }

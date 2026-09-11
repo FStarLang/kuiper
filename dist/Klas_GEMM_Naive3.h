@@ -18,6 +18,7 @@ typedef uint8_t custard_unit;
 #endif
 #include "kuiper.h"
 #include "kuiper/tensorcores.h"
+#include "kuiper/wgmma.h"
 
 /* Section 66: the two 16-bit floating-point formats.
 
@@ -224,8 +225,8 @@ CUSTARD_FN custard_bf16 custard_bf16_of_i64(int64_t x)
 #define CUSTARD__F16_BIN(nm, op)                                               \
     CUSTARD_FN custard_f16 custard_f16_##nm(custard_f16 a, custard_f16 b)      \
     {                                                                          \
-        return custard_f16_of_f32(custard_f16_to_f32(a)                        \
-                                      op custard_f16_to_f32(b));               \
+        return custard_f16_of_f32(                                             \
+            custard_f16_to_f32(a) op custard_f16_to_f32(b));                   \
     }
 #define CUSTARD__F16_CMP(nm, op)                                               \
     CUSTARD_FN bool custard_f16_##nm(custard_f16 a, custard_f16 b)             \
@@ -235,8 +236,8 @@ CUSTARD_FN custard_bf16 custard_bf16_of_i64(int64_t x)
 #define CUSTARD__BF16_BIN(nm, op)                                              \
     CUSTARD_FN custard_bf16 custard_bf16_##nm(custard_bf16 a, custard_bf16 b)  \
     {                                                                          \
-        return custard_bf16_of_f32(custard_bf16_to_f32(a)                      \
-                                       op custard_bf16_to_f32(b));             \
+        return custard_bf16_of_f32(                                            \
+            custard_bf16_to_f32(a) op custard_bf16_to_f32(b));                 \
     }
 #define CUSTARD__BF16_CMP(nm, op)                                              \
     CUSTARD_FN bool custard_bf16_##nm(custard_bf16 a, custard_bf16 b)          \
@@ -271,20 +272,18 @@ CUSTARD__BF16_CMP(gte, >=)
 extern "C" {
 #endif
 
-void Klas_GEMM_Naive3_g_matmul_bf16_rrr(size_t m, size_t n, size_t k,
-                                        custard_bf16 *gA, custard_bf16 *gB,
-                                        custard_bf16 *gC);
-void Klas_GEMM_Naive3_g_matmul_f32_rrr(size_t m, size_t n, size_t k, float *gA,
-                                       float *gB, float *gC);
-void Klas_GEMM_Naive3_g_matmul_f64_rrr(size_t m, size_t n, size_t k, double *gA,
-                                       double *gB, double *gC);
-void Klas_GEMM_Naive3_g_matmul_bf16_ccc(size_t m, size_t n, size_t k,
-                                        custard_bf16 *gA, custard_bf16 *gB,
-                                        custard_bf16 *gC);
-void Klas_GEMM_Naive3_g_matmul_f32_ccc(size_t m, size_t n, size_t k, float *gA,
-                                       float *gB, float *gC);
-void Klas_GEMM_Naive3_g_matmul_f64_ccc(size_t m, size_t n, size_t k, double *gA,
-                                       double *gB, double *gC);
+void Klas_GEMM_Naive3_g_matmul_bf16_rrr(uint32_t m, uint32_t n, uint32_t k,
+    custard_bf16 *gA, custard_bf16 *gB, custard_bf16 *gC);
+void Klas_GEMM_Naive3_g_matmul_f32_rrr(
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_Naive3_g_matmul_f64_rrr(
+    uint32_t m, uint32_t n, uint32_t k, double *gA, double *gB, double *gC);
+void Klas_GEMM_Naive3_g_matmul_bf16_ccc(uint32_t m, uint32_t n, uint32_t k,
+    custard_bf16 *gA, custard_bf16 *gB, custard_bf16 *gC);
+void Klas_GEMM_Naive3_g_matmul_f32_ccc(
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_Naive3_g_matmul_f64_ccc(
+    uint32_t m, uint32_t n, uint32_t k, double *gA, double *gB, double *gC);
 
 #ifdef __cplusplus
 }

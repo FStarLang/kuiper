@@ -397,7 +397,7 @@ let rec arrows (args:list cty) (res:cty) : cty =
    (ExtractKuiper.fst:964-1030) and this plugin did not, so they kept their
    [admit]/Pulse bodies.  Three different wrong things came out:
 
-     - [Kuiper.Ref.gpu_memcpy_*] and [Kuiper.Assert.dguard] are [admit]s, so
+     - [Kuiper.Ref.memcpy_*] and [Kuiper.Assert.dguard] are [admit]s, so
        they became [abort()] -- loud, but every kernel driver dies at the
        first host/device transfer.
      - [gpu_array_free] became [(void)r;] -- a silent leak.
@@ -436,7 +436,7 @@ let memcpy_call (macro:string) (dst src bytes : expr) : ML expr =
             [pointee dst.ty; pointee src.ty] in
   mk (EApp (f, [dst; src; bytes])) TUnit E_Impure
 
-(* [Kuiper.Ref.gpu_memcpy_{host_to_device,device_to_host}]: one element, so
+(* [Kuiper.Ref.memcpy_*]: one element, so
    the count is 1 and the byte size is the [sized] width alone. *)
 let ref_memcpy (macro:string) : list cty -> list expr -> ML expr =
   fun _tys args ->
@@ -445,7 +445,7 @@ let ref_memcpy (macro:string) : list cty -> list expr -> ML expr =
   | _ -> failwith ("KuiperCustard: " ^ macro ^ " arity "
                    ^ show (List.length args))
 
-(* [Kuiper.Array.Core.gpu_memcpy_*], unprimed: [sized; dst; src; cnt]. *)
+(* [Kuiper.Array.Core.memcpy_*], unprimed: [sized; dst; src; cnt]. *)
 let arr_memcpy (macro:string) : list cty -> list expr -> ML expr =
   fun _tys args ->
   match args with
@@ -453,7 +453,7 @@ let arr_memcpy (macro:string) : list cty -> list expr -> ML expr =
   | _ -> failwith ("KuiperCustard: " ^ macro ^ " arity "
                    ^ show (List.length args))
 
-(* [Kuiper.Array.Core.gpu_memcpy_*']: the offsets are in *elements*, so they
+(* [Kuiper.Array.Core.memcpy_*']: the offsets are in *elements*, so they
    go through [BufSub] and not into the byte count (ExtractKuiper.fst:999). *)
 let arr_memcpy' (macro:string) : list cty -> list expr -> ML expr =
   fun _tys args ->
@@ -635,6 +635,54 @@ let mma_probe (nm:string) (tys : list cty) (args : list expr) : ML expr =
     " args=[" ^ String.concat "; " (List.map (fun (e:expr) -> tag e ^ ":" ^ show e.ty ^ "=" ^ show e) args) ^ "]");
   mk (EConst CUnit) TUnit E_Impure
 
+(* ---------------------------------------------------------------- WGMMA --
+
+   Hopper's warpgroup MMA.  Unlike the wmma fragment, whose C++ type is a
+   template instantiation that has to be reassembled from the kind, the
+   dimensions and the layout, [kpr_wgmma_fragment] is a plain named struct
+   (include/kuiper/wgmma.h), so the type is spelled by the [custard_extern]
+   on [Kuiper.TensorCore.WGMMA.fragment] and there is nothing to compute. *)
+let wgmma_frag_cty : cty =
+  TApp ({ ns = ["Kuiper"; "TensorCore"; "WGMMA"]; id = "fragment"; spec = None }, [])
+
+(* An uninitialized local of the fragment type.  The Krml plugin had to emit
+   [KPR_INIT(kpr_wgmma_fragment)] because it spelled the type [auto]. *)
+let wgmma_alloc_fragment (_tys : list cty) (args : list expr) : ML expr =
+  match args with
+  | [_unit] -> mk EAny wgmma_frag_cty E_Pure
+  | _ -> failwith ("KuiperCustard: wgmma alloc_fragment arity "
+                   ^ show (List.length args))
+
+let wgmma_fill (_tys : list cty) (args : list expr) : ML expr =
+  match args with
+  | [fr; x] ->
+    let f = ext "kpr_wgmma_fill" (arrows [fr.ty; x.ty] TUnit) [fr.ty] in
+    mk (EApp (f, [fr; x])) TUnit E_Impure
+  | _ -> failwith ("KuiperCustard: wgmma fill arity " ^ show (List.length args))
+
+(* [load_accum] and [store] differ only in the direction, and both take the
+   accumulator tile as a strided row-major [array2]: the offset bumps the
+   pointer and the stride is passed alongside. *)
+let wgmma_mem (macro:string) : list cty -> list expr -> ML expr =
+  fun _tys args ->
+  match args with
+  | [fr; sl; c] ->
+    let (off, ldm) = strided_off_stride sl in
+    let c = bufsub c off in
+    let f = ext macro (arrows [fr.ty; c.ty; ldm.ty] TUnit) [fr.ty; elem_ty c.ty] in
+    mk (EApp (f, [fr; c; ldm])) TUnit E_Impure
+  | _ -> failwith ("KuiperCustard: wgmma " ^ macro ^ " arity "
+                   ^ show (List.length args))
+
+let wgmma_mma_sync (_tys : list cty) (args : list expr) : ML expr =
+  match args with
+  | [a; b; fr] ->
+    let f = ext "kpr_wgmma_mma_sync" (arrows [a.ty; b.ty; fr.ty] TUnit)
+              [fr.ty; elem_ty a.ty] in
+    mk (EApp (f, [a; b; fr])) TUnit E_Impure
+  | _ -> failwith ("KuiperCustard: wgmma mma_sync arity "
+                   ^ show (List.length args))
+
 let _ =
   B.register_rule (Ident.lid_of_str "Kuiper.TensorCore.Base.mma_sync'")
                   (B.Rule_prim (7, mma_sync));
@@ -673,25 +721,36 @@ let _ =
   B.register_rule (Ident.lid_of_str "Kuiper.Array.Vectorized.array_vec_cpy")
                   (B.Rule_prim (10, vec_cpy));
 
-  (* Section 79: the host-side runtime. *)
-  B.register_rule (Ident.lid_of_str "Kuiper.Ref.gpu_memcpy_host_to_device")
+(* Section 79: the host-side runtime. *)
+  B.register_rule (Ident.lid_of_str "Kuiper.Ref.memcpy_host_to_device")
                   (B.Rule_prim (3, ref_memcpy "kpr_memcpy_h2d"));
-  B.register_rule (Ident.lid_of_str "Kuiper.Ref.gpu_memcpy_device_to_host")
+  B.register_rule (Ident.lid_of_str "Kuiper.Ref.memcpy_device_to_host")
                   (B.Rule_prim (3, ref_memcpy "kpr_memcpy_d2h"));
-  B.register_rule (Ident.lid_of_str "Kuiper.Array.Core.gpu_memcpy_host_to_device")
+  B.register_rule (Ident.lid_of_str "Kuiper.Ref.memcpy_device_to_device")
+                  (B.Rule_prim (3, ref_memcpy "kpr_memcpy_d2d"));
+  B.register_rule (Ident.lid_of_str "Kuiper.Array.Core.memcpy_host_to_device")
                   (B.Rule_prim (4, arr_memcpy "kpr_memcpy_h2d"));
-  B.register_rule (Ident.lid_of_str "Kuiper.Array.Core.gpu_memcpy_device_to_host")
+  B.register_rule (Ident.lid_of_str "Kuiper.Array.Core.memcpy_device_to_host")
                   (B.Rule_prim (4, arr_memcpy "kpr_memcpy_d2h"));
-  B.register_rule (Ident.lid_of_str "Kuiper.Array.Core.gpu_memcpy_device_to_device")
+  B.register_rule (Ident.lid_of_str "Kuiper.Array.Core.memcpy_device_to_device")
                   (B.Rule_prim (4, arr_memcpy "kpr_memcpy_d2d"));
-  B.register_rule (Ident.lid_of_str "Kuiper.Array.Core.gpu_memcpy_host_to_device'")
+  B.register_rule (Ident.lid_of_str "Kuiper.Array.Core.memcpy_host_to_device'")
                   (B.Rule_prim (6, arr_memcpy' "kpr_memcpy_h2d"));
-  B.register_rule (Ident.lid_of_str "Kuiper.Array.Core.gpu_memcpy_device_to_host'")
+  B.register_rule (Ident.lid_of_str "Kuiper.Array.Core.memcpy_device_to_host'")
                   (B.Rule_prim (6, arr_memcpy' "kpr_memcpy_d2h"));
-  B.register_rule (Ident.lid_of_str "Kuiper.Array.Core.gpu_memcpy_device_to_device'")
-                  (B.Rule_prim (6, arr_memcpy' "kpr_memcpy_d2d"));
   B.register_rule (Ident.lid_of_str "Kuiper.Array.Core.gpu_array_free")
                   (B.Rule_prim (1, gpu_array_free));
+  (* Section 96: Hopper WGMMA. *)
+  B.register_rule (Ident.lid_of_str "Kuiper.TensorCore.WGMMA.alloc_fragment")
+                  (B.Rule_prim (1, wgmma_alloc_fragment));
+  B.register_rule (Ident.lid_of_str "Kuiper.TensorCore.WGMMA.fill")
+                  (B.Rule_prim (2, wgmma_fill));
+  B.register_rule (Ident.lid_of_str "Kuiper.TensorCore.WGMMA.load_accum")
+                  (B.Rule_prim (3, wgmma_mem "kpr_wgmma_load_accum"));
+  B.register_rule (Ident.lid_of_str "Kuiper.TensorCore.WGMMA.store")
+                  (B.Rule_prim (3, wgmma_mem "kpr_wgmma_store"));
+  B.register_rule (Ident.lid_of_str "Kuiper.TensorCore.WGMMA.mma_sync")
+                  (B.Rule_prim (3, wgmma_mma_sync));
   B.register_rule (Ident.lid_of_str "Kuiper.Array.Core.get_ref_of_array_cell")
                   (B.Rule_prim (2, get_ref_of_array_cell));
   B.register_rule (Ident.lid_of_str "Kuiper.Assert.dguard")
@@ -723,8 +782,13 @@ let _ =
   B.register_root (Ident.lid_of_str ("Kuiper.Example.ARPort.kpr_load_ab"));
   B.register_root (Ident.lid_of_str ("Kuiper.Example.ARPort.kpr_load_accum"));
   B.register_root (Ident.lid_of_str ("Kuiper.Example.ARPort.kpr_fill"));
+  B.register_root (Ident.lid_of_str ("Kuiper.Example.ARPort.kpr_wgmma_fill"));
+  B.register_root (Ident.lid_of_str ("Kuiper.Example.ARPort.kpr_wgmma_load_accum"));
+  B.register_root (Ident.lid_of_str ("Kuiper.Example.ARPort.kpr_wgmma_store"));
+  B.register_root (Ident.lid_of_str ("Kuiper.Example.ARPort.kpr_wgmma_mma_sync"));
   (* Section 69: the rule names these type declarations directly. *)
   B.register_root (Ident.lid_of_str ("Kuiper.TensorCore.Base.wmma_fragment"));
+  B.register_root (Ident.lid_of_str ("Kuiper.TensorCore.WGMMA.fragment"));
   B.register_root (Ident.lid_of_str ("Kuiper.TensorCore.Base.ty_matrix_a"));
   B.register_root (Ident.lid_of_str ("Kuiper.TensorCore.Base.ty_matrix_b"));
   B.register_root (Ident.lid_of_str ("Kuiper.TensorCore.Base.ty_accumulator"));

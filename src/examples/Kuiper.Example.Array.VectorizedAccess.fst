@@ -106,7 +106,7 @@ fn hf (v : V.vec float)
   open Pulse.Lib.Array;
   let a = gpu_array_alloc #float 4sz;
 
-  gpu_memcpy_host_to_device a v 4sz;
+  memcpy_host_to_device a v 4sz;
 
   with s. assert v |-> s;
   assert (pure (Seq.equal s (slice s 0 4)));
@@ -128,7 +128,7 @@ fn hf (v : V.vec float)
     #(pts_to a s')
     fn _ {};
 
-  gpu_memcpy_device_to_host v a 4sz;
+  memcpy_device_to_host v a 4sz;
 
   gpu_array_free a;
 }

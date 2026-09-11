@@ -129,45 +129,44 @@ custard_f16 Kuiper_Example_MathPrimitives_test_exp2_f16(custard_f16 x)
     return kpr_hexp2(x);
 }
 
-custard_f16 Kuiper_Example_MathPrimitives_test_pow_f16(custard_f16 x,
-                                                       custard_f16 eta)
+custard_f16 Kuiper_Example_MathPrimitives_test_pow_f16(
+    custard_f16 x, custard_f16 eta)
 {
     return kpr_hpow(x, eta);
 }
 
-custard_f16 Kuiper_Example_MathPrimitives_test_atan2_f16(custard_f16 x,
-                                                         custard_f16 eta)
+custard_f16 Kuiper_Example_MathPrimitives_test_atan2_f16(
+    custard_f16 x, custard_f16 eta)
 {
     return kpr_hatan2(x, eta);
 }
 
-custard_f16 Kuiper_Example_MathPrimitives_test_fmin_f16(custard_f16 x,
-                                                        custard_f16 eta)
+custard_f16 Kuiper_Example_MathPrimitives_test_fmin_f16(
+    custard_f16 x, custard_f16 eta)
 {
     return kpr_hfmin(x, eta);
 }
 
-custard_f16 Kuiper_Example_MathPrimitives_test_fmax_f16(custard_f16 x,
-                                                        custard_f16 eta)
+custard_f16 Kuiper_Example_MathPrimitives_test_fmax_f16(
+    custard_f16 x, custard_f16 eta)
 {
     return kpr_hfmax(x, eta);
 }
 
-custard_f16 Kuiper_Example_MathPrimitives_test_fmod_f16(custard_f16 x,
-                                                        custard_f16 eta)
+custard_f16 Kuiper_Example_MathPrimitives_test_fmod_f16(
+    custard_f16 x, custard_f16 eta)
 {
     return kpr_hfmod(x, eta);
 }
 
-custard_f16 Kuiper_Example_MathPrimitives_test_copysign_f16(custard_f16 x,
-                                                            custard_f16 eta)
+custard_f16 Kuiper_Example_MathPrimitives_test_copysign_f16(
+    custard_f16 x, custard_f16 eta)
 {
     return kpr_hcopysign(x, eta);
 }
 
-custard_f16 Kuiper_Example_MathPrimitives_test_fma_f16(custard_f16 x,
-                                                       custard_f16 eta,
-                                                       custard_f16 eta1)
+custard_f16 Kuiper_Example_MathPrimitives_test_fma_f16(
+    custard_f16 x, custard_f16 eta, custard_f16 eta1)
 {
     return kpr_hfma(x, eta, eta1);
 }
@@ -351,8 +350,8 @@ double Kuiper_Example_MathPrimitives_test_copysign_f64(double x, double eta)
     return copysign(x, eta);
 }
 
-double Kuiper_Example_MathPrimitives_test_fma_f64(double x, double eta,
-                                                  double eta1)
+double Kuiper_Example_MathPrimitives_test_fma_f64(
+    double x, double eta, double eta1)
 {
     return fma(x, eta, eta1);
 }

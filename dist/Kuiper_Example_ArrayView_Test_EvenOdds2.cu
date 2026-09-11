@@ -3,27 +3,27 @@
 
 uint32_t Kuiper_Example_ArrayView_Test_EvenOdds2_foo_even(uint32_t *a)
 {
-    size_t ni = 20;
+    uint32_t ni = 20;
     return a[ni];
 }
 
 uint32_t Kuiper_Example_ArrayView_Test_EvenOdds2_foo_odd(uint32_t *a)
 {
-    size_t ni = 21;
+    uint32_t ni = 21;
     return a[ni];
 }
 
 void Kuiper_Example_ArrayView_Test_EvenOdds2_write_even(uint32_t *a)
 {
-    size_t ni = 20;
+    uint32_t ni = 20;
     a[ni] = 42;
 }
 
 uint32_t Kuiper_Example_ArrayView_Test_EvenOdds2_test_simpler(uint32_t *a)
 {
     FStar_Pervasives_Native_tuple2__uint32_ptr_uint32_ptr _letpattern =
-        (FStar_Pervasives_Native_tuple2__uint32_ptr_uint32_ptr) {._1 = a,
-                                                                 ._2 = a};
+        (FStar_Pervasives_Native_tuple2__uint32_ptr_uint32_ptr) {
+            ._1 = a, ._2 = a};
     uint32_t x =
         Kuiper_Example_ArrayView_Test_EvenOdds2_foo_even(_letpattern._1);
     uint32_t y =
@@ -34,10 +34,10 @@ uint32_t Kuiper_Example_ArrayView_Test_EvenOdds2_test_simpler(uint32_t *a)
 void Kuiper_Example_ArrayView_Test_EvenOdds2_test_write(uint32_t *a)
 {
     FStar_Pervasives_Native_tuple2__uint32_ptr_uint32_ptr _letpattern =
-        (FStar_Pervasives_Native_tuple2__uint32_ptr_uint32_ptr) {._1 = a,
-                                                                 ._2 = a};
-    size_t ni = 20;
+        (FStar_Pervasives_Native_tuple2__uint32_ptr_uint32_ptr) {
+            ._1 = a, ._2 = a};
+    uint32_t ni = 20;
     _letpattern._1[ni] = 42;
-    size_t ni1 = 41;
+    uint32_t ni1 = 41;
     _letpattern._2[ni1] = 43;
 }

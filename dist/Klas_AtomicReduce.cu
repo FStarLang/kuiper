@@ -9,7 +9,7 @@ __global__ static void kuiper_kernel_3(double *a, double *gr);
 /* hoisted by the Custard Kuiper rule */
 __global__ static void kuiper_kernel_0(uint32_t *a, uint32_t *gr)
 {
-    size_t bid = blockIdx.x;
+    uint32_t bid = blockIdx.x;
     uint32_t v = a[bid];
     (void) (atomic_add_u32(gr, v));
 }
@@ -17,7 +17,7 @@ __global__ static void kuiper_kernel_0(uint32_t *a, uint32_t *gr)
 /* hoisted by the Custard Kuiper rule */
 __global__ static void kuiper_kernel_1(uint64_t *a, uint64_t *gr)
 {
-    size_t bid = blockIdx.x;
+    uint32_t bid = blockIdx.x;
     uint64_t v = a[bid];
     (void) (atomic_add_u64(gr, v));
 }
@@ -25,7 +25,7 @@ __global__ static void kuiper_kernel_1(uint64_t *a, uint64_t *gr)
 /* hoisted by the Custard Kuiper rule */
 __global__ static void kuiper_kernel_2(float *a, float *gr)
 {
-    size_t bid = blockIdx.x;
+    uint32_t bid = blockIdx.x;
     float v = a[bid];
     (void) (atomic_add_f32(gr, v));
 }
@@ -33,67 +33,67 @@ __global__ static void kuiper_kernel_2(float *a, float *gr)
 /* hoisted by the Custard Kuiper rule */
 __global__ static void kuiper_kernel_3(double *a, double *gr)
 {
-    size_t bid = blockIdx.x;
+    uint32_t bid = blockIdx.x;
     double v = a[bid];
     (void) (atomic_add_f64(gr, v));
 }
 
-uint32_t Klas_AtomicReduce_reduce_u32(size_t n, uint32_t *a)
+uint32_t Klas_AtomicReduce_reduce_u32(uint32_t n, uint32_t *a)
 {
     uint32_t r = 0;
-    uint8_t *tmp = (uint8_t *) KPR_GPU_ALLOC(((size_t) 4ULL), ((size_t) 1ULL));
+    uint8_t *tmp = (uint8_t *) KPR_GPU_ALLOC(((uint32_t) 4U), ((uint32_t) 1U));
     uint32_t *gr = (uint32_t *) tmp;
-    KPR_MEMCPY_H2D(gr, &r, ((size_t) 4ULL));
+    KPR_MEMCPY_H2D(gr, &r, ((uint32_t) 4U));
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_KCALL(kuiper_kernel_0, n, ((size_t) 1ULL), ((size_t) 0ULL), s, a, gr);
+    KPR_KCALL(kuiper_kernel_0, n, ((uint32_t) 1U), ((uint32_t) 0U), s, a, gr);
     KPR_MUST_stream_sync(s);
     KPR_MUST_stream_destroy(s);
-    KPR_MEMCPY_D2H(&r, gr, ((size_t) 4ULL));
+    KPR_MEMCPY_D2H(&r, gr, ((uint32_t) 4U));
     KPR_GPU_FREE(gr);
     return r;
 }
 
-uint64_t Klas_AtomicReduce_reduce_u64(size_t n, uint64_t *a)
+uint64_t Klas_AtomicReduce_reduce_u64(uint32_t n, uint64_t *a)
 {
     uint64_t r = 0;
-    uint8_t *tmp = (uint8_t *) KPR_GPU_ALLOC(((size_t) 8ULL), ((size_t) 1ULL));
+    uint8_t *tmp = (uint8_t *) KPR_GPU_ALLOC(((uint32_t) 8U), ((uint32_t) 1U));
     uint64_t *gr = (uint64_t *) tmp;
-    KPR_MEMCPY_H2D(gr, &r, ((size_t) 8ULL));
+    KPR_MEMCPY_H2D(gr, &r, ((uint32_t) 8U));
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_KCALL(kuiper_kernel_1, n, ((size_t) 1ULL), ((size_t) 0ULL), s, a, gr);
+    KPR_KCALL(kuiper_kernel_1, n, ((uint32_t) 1U), ((uint32_t) 0U), s, a, gr);
     KPR_MUST_stream_sync(s);
     KPR_MUST_stream_destroy(s);
-    KPR_MEMCPY_D2H(&r, gr, ((size_t) 8ULL));
+    KPR_MEMCPY_D2H(&r, gr, ((uint32_t) 8U));
     KPR_GPU_FREE(gr);
     return r;
 }
 
-float Klas_AtomicReduce_reduce_f32(size_t n, float *a)
+float Klas_AtomicReduce_reduce_f32(uint32_t n, float *a)
 {
     float r = 0.0f;
-    uint8_t *tmp = (uint8_t *) KPR_GPU_ALLOC(((size_t) 4ULL), ((size_t) 1ULL));
+    uint8_t *tmp = (uint8_t *) KPR_GPU_ALLOC(((uint32_t) 4U), ((uint32_t) 1U));
     float *gr = (float *) tmp;
-    KPR_MEMCPY_H2D(gr, &r, ((size_t) 4ULL));
+    KPR_MEMCPY_H2D(gr, &r, ((uint32_t) 4U));
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_KCALL(kuiper_kernel_2, n, ((size_t) 1ULL), ((size_t) 0ULL), s, a, gr);
+    KPR_KCALL(kuiper_kernel_2, n, ((uint32_t) 1U), ((uint32_t) 0U), s, a, gr);
     KPR_MUST_stream_sync(s);
     KPR_MUST_stream_destroy(s);
-    KPR_MEMCPY_D2H(&r, gr, ((size_t) 4ULL));
+    KPR_MEMCPY_D2H(&r, gr, ((uint32_t) 4U));
     KPR_GPU_FREE(gr);
     return r;
 }
 
-double Klas_AtomicReduce_reduce_f64(size_t n, double *a)
+double Klas_AtomicReduce_reduce_f64(uint32_t n, double *a)
 {
     double r = 0.0;
-    uint8_t *tmp = (uint8_t *) KPR_GPU_ALLOC(((size_t) 8ULL), ((size_t) 1ULL));
+    uint8_t *tmp = (uint8_t *) KPR_GPU_ALLOC(((uint32_t) 8U), ((uint32_t) 1U));
     double *gr = (double *) tmp;
-    KPR_MEMCPY_H2D(gr, &r, ((size_t) 8ULL));
+    KPR_MEMCPY_H2D(gr, &r, ((uint32_t) 8U));
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_KCALL(kuiper_kernel_3, n, ((size_t) 1ULL), ((size_t) 0ULL), s, a, gr);
+    KPR_KCALL(kuiper_kernel_3, n, ((uint32_t) 1U), ((uint32_t) 0U), s, a, gr);
     KPR_MUST_stream_sync(s);
     KPR_MUST_stream_destroy(s);
-    KPR_MEMCPY_D2H(&r, gr, ((size_t) 8ULL));
+    KPR_MEMCPY_D2H(&r, gr, ((uint32_t) 8U));
     KPR_GPU_FREE(gr);
     return r;
 }

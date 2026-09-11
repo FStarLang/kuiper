@@ -263,7 +263,7 @@ fn slice_write
         pure (s' == Seq.upd s (SZ.v idx - i) v))
 
 (* blit *)
-fn gpu_memcpy_host_to_device'
+fn memcpy_host_to_device'
   (#a:Type u#0)
   {| sized a |}
   (#dst_sz : erased nat)
@@ -286,7 +286,7 @@ fn gpu_memcpy_host_to_device'
       on gpu_loc (dst_garr |-> s') **
       pure (s' == seq_blit gv dst_off v src_off cnt /\ Seq.length s' == reveal dst_sz)
 
-fn gpu_memcpy_host_to_device
+fn memcpy_host_to_device
   (#a:Type u#0)
   {| sized a |}
   (#sz : erased nat)
@@ -309,7 +309,7 @@ fn gpu_memcpy_host_to_device
     pure (Seq.length v == reveal sz)
 
 (* blit *)
-fn gpu_memcpy_device_to_host'
+fn memcpy_device_to_host'
   (#a:Type u#0)
   {| sized a |}
   (#dst_sz : erased nat)
@@ -334,7 +334,7 @@ fn gpu_memcpy_device_to_host'
     exists* s'. dst_arr |-> s' **
     pure (s'==seq_blit gv dst_off v src_off cnt /\ Seq.length s' == reveal dst_sz)
 
-fn gpu_memcpy_device_to_host
+fn memcpy_device_to_host
   (#a:Type u#0)
   {| sized a |}
   (#sz : erased nat)
@@ -356,7 +356,7 @@ fn gpu_memcpy_device_to_host
     dst_arr |-> gv **
     pure (Seq.length gv == reveal sz)
 
-fn gpu_memcpy_device_to_device
+fn memcpy_device_to_device
   (#a:Type u#0)
   {| sized a |}
   (#sz : erased nat)

@@ -18,15 +18,16 @@ typedef uint8_t custard_unit;
 #endif
 #include "kuiper.h"
 #include "kuiper/tensorcores.h"
+#include "kuiper/wgmma.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-uint32_t Kuiper_Example_CellRef_cell_get(uint32_t *a, size_t i);
-void Kuiper_Example_CellRef_cell_set(uint32_t *a, size_t i, uint32_t w);
-void Kuiper_Example_CellRef_array_set_via_ref(uint32_t *a, size_t j,
-                                              uint32_t w);
+uint32_t Kuiper_Example_CellRef_cell_get(uint32_t *a, uint32_t i);
+void Kuiper_Example_CellRef_cell_set(uint32_t *a, uint32_t i, uint32_t w);
+void Kuiper_Example_CellRef_array_set_via_ref(
+    uint32_t *a, uint32_t j, uint32_t w);
 
 #ifdef __cplusplus
 }

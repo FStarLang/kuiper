@@ -6,12 +6,9 @@ __global__ static void kuiper_kernel_0(float *a, float two);
 /* hoisted by the Custard Kuiper rule */
 __global__ static void kuiper_kernel_0(float *a, float two)
 {
-    size_t global_idx = 0;
+    uint32_t global_idx = 0;
     float *local;
-    float _cbuf1[4];
-    for (size_t _ci2 = 0; _ci2 < 4; _ci2++) {
-        _cbuf1[_ci2] = 0.0f;
-    }
+    float _cbuf1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     local = _cbuf1;
     vec_memcpy((local + 0), (a + global_idx));
     float __anf0 = local[0];
@@ -27,15 +24,15 @@ __global__ static void kuiper_kernel_0(float *a, float two)
 
 void Kuiper_Example_Array_VectorizedAccess_hf(float *v)
 {
-    uint8_t *tmp = (uint8_t *) KPR_GPU_ALLOC(((size_t) 4ULL), ((size_t) 4ULL));
+    uint8_t *tmp = (uint8_t *) KPR_GPU_ALLOC(((uint32_t) 4U), ((uint32_t) 4U));
     float *a = (float *) tmp;
-    KPR_MEMCPY_H2D(a, v, (((size_t) 4ULL) * ((size_t) 4ULL)));
+    KPR_MEMCPY_H2D(a, v, (((uint32_t) 4U) * ((uint32_t) 4U)));
     float two = (1.0f + 1.0f);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_KCALL(kuiper_kernel_0, ((size_t) 1ULL), ((size_t) 1ULL),
-              ((size_t) 0ULL), s, a, two);
+    KPR_KCALL(kuiper_kernel_0, ((uint32_t) 1U), ((uint32_t) 1U),
+        ((uint32_t) 0U), s, a, two);
     KPR_MUST_stream_sync(s);
     KPR_MUST_stream_destroy(s);
-    KPR_MEMCPY_D2H(v, a, (((size_t) 4ULL) * ((size_t) 4ULL)));
+    KPR_MEMCPY_D2H(v, a, (((uint32_t) 4U) * ((uint32_t) 4U)));
     KPR_GPU_FREE(a);
 }

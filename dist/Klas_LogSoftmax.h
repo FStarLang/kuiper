@@ -19,6 +19,7 @@ typedef uint8_t custard_unit;
 #include "kuiper.h"
 #include "kuiper/math.h"
 #include "kuiper/tensorcores.h"
+#include "kuiper/wgmma.h"
 
 /* Section 66: the two 16-bit floating-point formats.
 
@@ -225,8 +226,8 @@ CUSTARD_FN custard_bf16 custard_bf16_of_i64(int64_t x)
 #define CUSTARD__F16_BIN(nm, op)                                               \
     CUSTARD_FN custard_f16 custard_f16_##nm(custard_f16 a, custard_f16 b)      \
     {                                                                          \
-        return custard_f16_of_f32(custard_f16_to_f32(a)                        \
-                                      op custard_f16_to_f32(b));               \
+        return custard_f16_of_f32(                                             \
+            custard_f16_to_f32(a) op custard_f16_to_f32(b));                   \
     }
 #define CUSTARD__F16_CMP(nm, op)                                               \
     CUSTARD_FN bool custard_f16_##nm(custard_f16 a, custard_f16 b)             \
@@ -236,8 +237,8 @@ CUSTARD_FN custard_bf16 custard_bf16_of_i64(int64_t x)
 #define CUSTARD__BF16_BIN(nm, op)                                              \
     CUSTARD_FN custard_bf16 custard_bf16_##nm(custard_bf16 a, custard_bf16 b)  \
     {                                                                          \
-        return custard_bf16_of_f32(custard_bf16_to_f32(a)                      \
-                                       op custard_bf16_to_f32(b));             \
+        return custard_bf16_of_f32(                                            \
+            custard_bf16_to_f32(a) op custard_bf16_to_f32(b));                 \
     }
 #define CUSTARD__BF16_CMP(nm, op)                                              \
     CUSTARD_FN bool custard_bf16_##nm(custard_bf16 a, custard_bf16 b)          \
@@ -276,6 +277,8 @@ typedef struct FStar_Pervasives_Native_tuple2__float16_ptr_unit_s
     FStar_Pervasives_Native_tuple2__float16_ptr_unit;
 typedef struct FStar_Pervasives_Native_tuple2__uintsize_unit_s
     FStar_Pervasives_Native_tuple2__uintsize_unit;
+typedef struct FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit_s
+    FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit;
 typedef struct FStar_Pervasives_Native_tuple2__float32_ptr_unit_s
     FStar_Pervasives_Native_tuple2__float32_ptr_unit;
 typedef struct FStar_Pervasives_Native_tuple2__float64_ptr_unit_s
@@ -285,7 +288,11 @@ struct FStar_Pervasives_Native_tuple2__float16_ptr_unit_s {
     custard_f16 *_1;
 };
 struct FStar_Pervasives_Native_tuple2__uintsize_unit_s {
-    size_t _1;
+    uint32_t _1;
+};
+struct FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit_s {
+    uint32_t _1;
+    FStar_Pervasives_Native_tuple2__uintsize_unit _2;
 };
 struct FStar_Pervasives_Native_tuple2__float32_ptr_unit_s {
     float *_1;
@@ -294,19 +301,22 @@ struct FStar_Pervasives_Native_tuple2__float64_ptr_unit_s {
     double *_1;
 };
 
-void Klas_LogSoftmax_log_softmax_gpu_n_f16(size_t nth, size_t lena,
-                                           custard_f16 *a);
-void Klas_LogSoftmax_log_softmax_gpu_n_f32(size_t nth, size_t lena, float *a);
-void Klas_LogSoftmax_log_softmax_gpu_n_f64(size_t nth, size_t lena, double *a);
-void Klas_LogSoftmax_log_softmax_gpu_f16(size_t lena, custard_f16 *a);
-void Klas_LogSoftmax_log_softmax_gpu_f32(size_t lena, float *a);
-void Klas_LogSoftmax_log_softmax_gpu_f64(size_t lena, double *a);
-void Klas_LogSoftmax_log_softmax_n_f16(size_t nth, size_t lena, custard_f16 *a);
-void Klas_LogSoftmax_log_softmax_n_f32(size_t nth, size_t lena, float *a);
-void Klas_LogSoftmax_log_softmax_n_f64(size_t nth, size_t lena, double *a);
-void Klas_LogSoftmax_log_softmax_f16(size_t lena, custard_f16 *a);
-void Klas_LogSoftmax_log_softmax_f32(size_t lena, float *a);
-void Klas_LogSoftmax_log_softmax_f64(size_t lena, double *a);
+void Klas_LogSoftmax_log_softmax_gpu_n_f16(
+    uint32_t nth, uint32_t lena, custard_f16 *a);
+void Klas_LogSoftmax_log_softmax_gpu_n_f32(
+    uint32_t nth, uint32_t lena, float *a);
+void Klas_LogSoftmax_log_softmax_gpu_n_f64(
+    uint32_t nth, uint32_t lena, double *a);
+void Klas_LogSoftmax_log_softmax_gpu_f16(uint32_t lena, custard_f16 *a);
+void Klas_LogSoftmax_log_softmax_gpu_f32(uint32_t lena, float *a);
+void Klas_LogSoftmax_log_softmax_gpu_f64(uint32_t lena, double *a);
+void Klas_LogSoftmax_log_softmax_n_f16(
+    uint32_t nth, uint32_t lena, custard_f16 *a);
+void Klas_LogSoftmax_log_softmax_n_f32(uint32_t nth, uint32_t lena, float *a);
+void Klas_LogSoftmax_log_softmax_n_f64(uint32_t nth, uint32_t lena, double *a);
+void Klas_LogSoftmax_log_softmax_f16(uint32_t lena, custard_f16 *a);
+void Klas_LogSoftmax_log_softmax_f32(uint32_t lena, float *a);
+void Klas_LogSoftmax_log_softmax_f64(uint32_t lena, double *a);
 
 #ifdef __cplusplus
 }

@@ -18,6 +18,7 @@ typedef uint8_t custard_unit;
 #endif
 #include "kuiper/tensorcores.h"
 #include "kuiper.h"
+#include "kuiper/wgmma.h"
 
 /* Section 66: the two 16-bit floating-point formats.
 
@@ -224,8 +225,8 @@ CUSTARD_FN custard_bf16 custard_bf16_of_i64(int64_t x)
 #define CUSTARD__F16_BIN(nm, op)                                               \
     CUSTARD_FN custard_f16 custard_f16_##nm(custard_f16 a, custard_f16 b)      \
     {                                                                          \
-        return custard_f16_of_f32(custard_f16_to_f32(a)                        \
-                                      op custard_f16_to_f32(b));               \
+        return custard_f16_of_f32(                                             \
+            custard_f16_to_f32(a) op custard_f16_to_f32(b));                   \
     }
 #define CUSTARD__F16_CMP(nm, op)                                               \
     CUSTARD_FN bool custard_f16_##nm(custard_f16 a, custard_f16 b)             \
@@ -235,8 +236,8 @@ CUSTARD_FN custard_bf16 custard_bf16_of_i64(int64_t x)
 #define CUSTARD__BF16_BIN(nm, op)                                              \
     CUSTARD_FN custard_bf16 custard_bf16_##nm(custard_bf16 a, custard_bf16 b)  \
     {                                                                          \
-        return custard_bf16_of_f32(custard_bf16_to_f32(a)                      \
-                                       op custard_bf16_to_f32(b));             \
+        return custard_bf16_of_f32(                                            \
+            custard_bf16_to_f32(a) op custard_bf16_to_f32(b));                 \
     }
 #define CUSTARD__BF16_CMP(nm, op)                                              \
     CUSTARD_FN bool custard_bf16_##nm(custard_bf16 a, custard_bf16 b)          \
@@ -271,12 +272,10 @@ CUSTARD__BF16_CMP(gte, >=)
 extern "C" {
 #endif
 
-inline __device__ void Kuiper_Example_TensorCore_test(custard_f16 *m1,
-                                                      custard_f16 *m2,
-                                                      custard_f16 *m3);
-inline __device__ void Kuiper_Example_TensorCore_test2(custard_f16 *m1,
-                                                       custard_f16 *m2,
-                                                       custard_f16 *m3);
+inline __device__ void Kuiper_Example_TensorCore_test(
+    custard_f16 *m1, custard_f16 *m2, custard_f16 *m3);
+inline __device__ void Kuiper_Example_TensorCore_test2(
+    custard_f16 *m1, custard_f16 *m2, custard_f16 *m3);
 
 #ifdef __cplusplus
 }

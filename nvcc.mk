@@ -47,6 +47,12 @@ $(OUTDIR)/%.accept: $(OUTDIR)/%.output
 
 TESTS+=$(notdir $(basename $(wildcard test/Test_*.cu)))
 
+# WGMMA is architecture-specific. Keep the Hopper runtime test opt-in;
+# extraction and verification of its example remain part of the normal build.
+ifneq ($(NVCC_ARCH),sm_90a)
+NOTEST += Test_Kuiper_Example_TensorCore_WGMMA
+endif
+
 # NOTEST += Test_Kuiper_Softmax__F16
 ifeq ($(KUIPER_CFG_TENSORCORES),0)
 NOTEST += $(foreach f,$(TESTS),$(if $(findstring TensorCore,$(f)),$(f)))

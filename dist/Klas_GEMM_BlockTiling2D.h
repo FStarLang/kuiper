@@ -18,6 +18,7 @@ typedef uint8_t custard_unit;
 #endif
 #include "kuiper.h"
 #include "kuiper/tensorcores.h"
+#include "kuiper/wgmma.h"
 
 /* Section 66: the two 16-bit floating-point formats.
 
@@ -224,8 +225,8 @@ CUSTARD_FN custard_bf16 custard_bf16_of_i64(int64_t x)
 #define CUSTARD__F16_BIN(nm, op)                                               \
     CUSTARD_FN custard_f16 custard_f16_##nm(custard_f16 a, custard_f16 b)      \
     {                                                                          \
-        return custard_f16_of_f32(custard_f16_to_f32(a)                        \
-                                      op custard_f16_to_f32(b));               \
+        return custard_f16_of_f32(                                             \
+            custard_f16_to_f32(a) op custard_f16_to_f32(b));                   \
     }
 #define CUSTARD__F16_CMP(nm, op)                                               \
     CUSTARD_FN bool custard_f16_##nm(custard_f16 a, custard_f16 b)             \
@@ -235,8 +236,8 @@ CUSTARD_FN custard_bf16 custard_bf16_of_i64(int64_t x)
 #define CUSTARD__BF16_BIN(nm, op)                                              \
     CUSTARD_FN custard_bf16 custard_bf16_##nm(custard_bf16 a, custard_bf16 b)  \
     {                                                                          \
-        return custard_bf16_of_f32(custard_bf16_to_f32(a)                      \
-                                       op custard_bf16_to_f32(b));             \
+        return custard_bf16_of_f32(                                            \
+            custard_bf16_to_f32(a) op custard_bf16_to_f32(b));                 \
     }
 #define CUSTARD__BF16_CMP(nm, op)                                              \
     CUSTARD_FN bool custard_bf16_##nm(custard_bf16 a, custard_bf16 b)          \
@@ -298,511 +299,367 @@ struct FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_unit_s {
 };
 
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_32x32x32_8x8(float alpha, float beta,
-                                                     size_t m, size_t n,
-                                                     size_t k, float *gA,
-                                                     float *gB, float *gC);
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x32x32_8x8(
-    custard_bf16 alpha, custard_bf16 beta, size_t m, size_t n, size_t k,
-    custard_bf16 *gA, custard_bf16 *gB, custard_bf16 *gC);
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x32x32_8x8(custard_bf16 alpha,
+    custard_bf16 beta, uint32_t m, uint32_t n, uint32_t k, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC);
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_32x32x32_8x16(float alpha, float beta,
-                                                      size_t m, size_t n,
-                                                      size_t k, float *gA,
-                                                      float *gB, float *gC);
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x32x32_8x16(
-    custard_bf16 alpha, custard_bf16 beta, size_t m, size_t n, size_t k,
-    custard_bf16 *gA, custard_bf16 *gB, custard_bf16 *gC);
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x32x32_8x16(custard_bf16 alpha,
+    custard_bf16 beta, uint32_t m, uint32_t n, uint32_t k, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC);
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_32x32x32_16x8(float alpha, float beta,
-                                                      size_t m, size_t n,
-                                                      size_t k, float *gA,
-                                                      float *gB, float *gC);
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x32x32_16x8(
-    custard_bf16 alpha, custard_bf16 beta, size_t m, size_t n, size_t k,
-    custard_bf16 *gA, custard_bf16 *gB, custard_bf16 *gC);
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x32x32_16x8(custard_bf16 alpha,
+    custard_bf16 beta, uint32_t m, uint32_t n, uint32_t k, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC);
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_32x32x32_16x16(float alpha, float beta,
-                                                       size_t m, size_t n,
-                                                       size_t k, float *gA,
-                                                       float *gB, float *gC);
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x32x32_16x16(
-    custard_bf16 alpha, custard_bf16 beta, size_t m, size_t n, size_t k,
-    custard_bf16 *gA, custard_bf16 *gB, custard_bf16 *gC);
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x32x32_16x16(custard_bf16 alpha,
+    custard_bf16 beta, uint32_t m, uint32_t n, uint32_t k, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC);
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_32x32x64_8x8(float alpha, float beta,
-                                                     size_t m, size_t n,
-                                                     size_t k, float *gA,
-                                                     float *gB, float *gC);
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x32x64_8x8(
-    custard_bf16 alpha, custard_bf16 beta, size_t m, size_t n, size_t k,
-    custard_bf16 *gA, custard_bf16 *gB, custard_bf16 *gC);
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x32x64_8x8(custard_bf16 alpha,
+    custard_bf16 beta, uint32_t m, uint32_t n, uint32_t k, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC);
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_32x32x64_8x16(float alpha, float beta,
-                                                      size_t m, size_t n,
-                                                      size_t k, float *gA,
-                                                      float *gB, float *gC);
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x32x64_8x16(
-    custard_bf16 alpha, custard_bf16 beta, size_t m, size_t n, size_t k,
-    custard_bf16 *gA, custard_bf16 *gB, custard_bf16 *gC);
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x32x64_8x16(custard_bf16 alpha,
+    custard_bf16 beta, uint32_t m, uint32_t n, uint32_t k, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC);
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_32x32x64_16x8(float alpha, float beta,
-                                                      size_t m, size_t n,
-                                                      size_t k, float *gA,
-                                                      float *gB, float *gC);
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x32x64_16x8(
-    custard_bf16 alpha, custard_bf16 beta, size_t m, size_t n, size_t k,
-    custard_bf16 *gA, custard_bf16 *gB, custard_bf16 *gC);
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x32x64_16x8(custard_bf16 alpha,
+    custard_bf16 beta, uint32_t m, uint32_t n, uint32_t k, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC);
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_32x32x64_16x16(float alpha, float beta,
-                                                       size_t m, size_t n,
-                                                       size_t k, float *gA,
-                                                       float *gB, float *gC);
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x32x64_16x16(
-    custard_bf16 alpha, custard_bf16 beta, size_t m, size_t n, size_t k,
-    custard_bf16 *gA, custard_bf16 *gB, custard_bf16 *gC);
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x32x64_16x16(custard_bf16 alpha,
+    custard_bf16 beta, uint32_t m, uint32_t n, uint32_t k, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC);
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_32x64x32_8x8(float alpha, float beta,
-                                                     size_t m, size_t n,
-                                                     size_t k, float *gA,
-                                                     float *gB, float *gC);
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x64x32_8x8(
-    custard_bf16 alpha, custard_bf16 beta, size_t m, size_t n, size_t k,
-    custard_bf16 *gA, custard_bf16 *gB, custard_bf16 *gC);
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x64x32_8x8(custard_bf16 alpha,
+    custard_bf16 beta, uint32_t m, uint32_t n, uint32_t k, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC);
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_32x64x32_8x16(float alpha, float beta,
-                                                      size_t m, size_t n,
-                                                      size_t k, float *gA,
-                                                      float *gB, float *gC);
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x64x32_8x16(
-    custard_bf16 alpha, custard_bf16 beta, size_t m, size_t n, size_t k,
-    custard_bf16 *gA, custard_bf16 *gB, custard_bf16 *gC);
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x64x32_8x16(custard_bf16 alpha,
+    custard_bf16 beta, uint32_t m, uint32_t n, uint32_t k, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC);
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_32x64x32_16x8(float alpha, float beta,
-                                                      size_t m, size_t n,
-                                                      size_t k, float *gA,
-                                                      float *gB, float *gC);
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x64x32_16x8(
-    custard_bf16 alpha, custard_bf16 beta, size_t m, size_t n, size_t k,
-    custard_bf16 *gA, custard_bf16 *gB, custard_bf16 *gC);
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x64x32_16x8(custard_bf16 alpha,
+    custard_bf16 beta, uint32_t m, uint32_t n, uint32_t k, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC);
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_32x64x32_16x16(float alpha, float beta,
-                                                       size_t m, size_t n,
-                                                       size_t k, float *gA,
-                                                       float *gB, float *gC);
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x64x32_16x16(
-    custard_bf16 alpha, custard_bf16 beta, size_t m, size_t n, size_t k,
-    custard_bf16 *gA, custard_bf16 *gB, custard_bf16 *gC);
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x64x32_16x16(custard_bf16 alpha,
+    custard_bf16 beta, uint32_t m, uint32_t n, uint32_t k, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC);
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_32x64x64_8x8(float alpha, float beta,
-                                                     size_t m, size_t n,
-                                                     size_t k, float *gA,
-                                                     float *gB, float *gC);
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x64x64_8x8(
-    custard_bf16 alpha, custard_bf16 beta, size_t m, size_t n, size_t k,
-    custard_bf16 *gA, custard_bf16 *gB, custard_bf16 *gC);
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x64x64_8x8(custard_bf16 alpha,
+    custard_bf16 beta, uint32_t m, uint32_t n, uint32_t k, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC);
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_32x64x64_8x16(float alpha, float beta,
-                                                      size_t m, size_t n,
-                                                      size_t k, float *gA,
-                                                      float *gB, float *gC);
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x64x64_8x16(
-    custard_bf16 alpha, custard_bf16 beta, size_t m, size_t n, size_t k,
-    custard_bf16 *gA, custard_bf16 *gB, custard_bf16 *gC);
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x64x64_8x16(custard_bf16 alpha,
+    custard_bf16 beta, uint32_t m, uint32_t n, uint32_t k, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC);
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_32x64x64_16x8(float alpha, float beta,
-                                                      size_t m, size_t n,
-                                                      size_t k, float *gA,
-                                                      float *gB, float *gC);
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x64x64_16x8(
-    custard_bf16 alpha, custard_bf16 beta, size_t m, size_t n, size_t k,
-    custard_bf16 *gA, custard_bf16 *gB, custard_bf16 *gC);
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x64x64_16x8(custard_bf16 alpha,
+    custard_bf16 beta, uint32_t m, uint32_t n, uint32_t k, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC);
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_32x64x64_16x16(float alpha, float beta,
-                                                       size_t m, size_t n,
-                                                       size_t k, float *gA,
-                                                       float *gB, float *gC);
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x64x64_16x16(
-    custard_bf16 alpha, custard_bf16 beta, size_t m, size_t n, size_t k,
-    custard_bf16 *gA, custard_bf16 *gB, custard_bf16 *gC);
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x64x64_16x16(custard_bf16 alpha,
+    custard_bf16 beta, uint32_t m, uint32_t n, uint32_t k, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC);
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_32x128x32_8x8(float alpha, float beta,
-                                                      size_t m, size_t n,
-                                                      size_t k, float *gA,
-                                                      float *gB, float *gC);
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x128x32_8x8(
-    custard_bf16 alpha, custard_bf16 beta, size_t m, size_t n, size_t k,
-    custard_bf16 *gA, custard_bf16 *gB, custard_bf16 *gC);
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x128x32_8x8(custard_bf16 alpha,
+    custard_bf16 beta, uint32_t m, uint32_t n, uint32_t k, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC);
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_32x128x32_8x16(float alpha, float beta,
-                                                       size_t m, size_t n,
-                                                       size_t k, float *gA,
-                                                       float *gB, float *gC);
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x128x32_8x16(
-    custard_bf16 alpha, custard_bf16 beta, size_t m, size_t n, size_t k,
-    custard_bf16 *gA, custard_bf16 *gB, custard_bf16 *gC);
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x128x32_8x16(custard_bf16 alpha,
+    custard_bf16 beta, uint32_t m, uint32_t n, uint32_t k, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC);
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_32x128x32_16x8(float alpha, float beta,
-                                                       size_t m, size_t n,
-                                                       size_t k, float *gA,
-                                                       float *gB, float *gC);
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x128x32_16x8(
-    custard_bf16 alpha, custard_bf16 beta, size_t m, size_t n, size_t k,
-    custard_bf16 *gA, custard_bf16 *gB, custard_bf16 *gC);
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x128x32_16x8(custard_bf16 alpha,
+    custard_bf16 beta, uint32_t m, uint32_t n, uint32_t k, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC);
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_32x128x32_16x16(float alpha, float beta,
-                                                        size_t m, size_t n,
-                                                        size_t k, float *gA,
-                                                        float *gB, float *gC);
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x128x32_16x16(
-    custard_bf16 alpha, custard_bf16 beta, size_t m, size_t n, size_t k,
-    custard_bf16 *gA, custard_bf16 *gB, custard_bf16 *gC);
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x128x32_16x16(custard_bf16 alpha,
+    custard_bf16 beta, uint32_t m, uint32_t n, uint32_t k, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC);
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_32x128x64_8x8(float alpha, float beta,
-                                                      size_t m, size_t n,
-                                                      size_t k, float *gA,
-                                                      float *gB, float *gC);
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x128x64_8x8(
-    custard_bf16 alpha, custard_bf16 beta, size_t m, size_t n, size_t k,
-    custard_bf16 *gA, custard_bf16 *gB, custard_bf16 *gC);
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x128x64_8x8(custard_bf16 alpha,
+    custard_bf16 beta, uint32_t m, uint32_t n, uint32_t k, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC);
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_32x128x64_8x16(float alpha, float beta,
-                                                       size_t m, size_t n,
-                                                       size_t k, float *gA,
-                                                       float *gB, float *gC);
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x128x64_8x16(
-    custard_bf16 alpha, custard_bf16 beta, size_t m, size_t n, size_t k,
-    custard_bf16 *gA, custard_bf16 *gB, custard_bf16 *gC);
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x128x64_8x16(custard_bf16 alpha,
+    custard_bf16 beta, uint32_t m, uint32_t n, uint32_t k, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC);
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_32x128x64_16x8(float alpha, float beta,
-                                                       size_t m, size_t n,
-                                                       size_t k, float *gA,
-                                                       float *gB, float *gC);
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x128x64_16x8(
-    custard_bf16 alpha, custard_bf16 beta, size_t m, size_t n, size_t k,
-    custard_bf16 *gA, custard_bf16 *gB, custard_bf16 *gC);
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x128x64_16x8(custard_bf16 alpha,
+    custard_bf16 beta, uint32_t m, uint32_t n, uint32_t k, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC);
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_32x128x64_16x16(float alpha, float beta,
-                                                        size_t m, size_t n,
-                                                        size_t k, float *gA,
-                                                        float *gB, float *gC);
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x128x64_16x16(
-    custard_bf16 alpha, custard_bf16 beta, size_t m, size_t n, size_t k,
-    custard_bf16 *gA, custard_bf16 *gB, custard_bf16 *gC);
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x128x64_16x16(custard_bf16 alpha,
+    custard_bf16 beta, uint32_t m, uint32_t n, uint32_t k, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC);
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_64x32x32_8x8(float alpha, float beta,
-                                                     size_t m, size_t n,
-                                                     size_t k, float *gA,
-                                                     float *gB, float *gC);
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x32x32_8x8(
-    custard_bf16 alpha, custard_bf16 beta, size_t m, size_t n, size_t k,
-    custard_bf16 *gA, custard_bf16 *gB, custard_bf16 *gC);
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x32x32_8x8(custard_bf16 alpha,
+    custard_bf16 beta, uint32_t m, uint32_t n, uint32_t k, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC);
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_64x32x32_8x16(float alpha, float beta,
-                                                      size_t m, size_t n,
-                                                      size_t k, float *gA,
-                                                      float *gB, float *gC);
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x32x32_8x16(
-    custard_bf16 alpha, custard_bf16 beta, size_t m, size_t n, size_t k,
-    custard_bf16 *gA, custard_bf16 *gB, custard_bf16 *gC);
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x32x32_8x16(custard_bf16 alpha,
+    custard_bf16 beta, uint32_t m, uint32_t n, uint32_t k, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC);
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_64x32x32_16x8(float alpha, float beta,
-                                                      size_t m, size_t n,
-                                                      size_t k, float *gA,
-                                                      float *gB, float *gC);
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x32x32_16x8(
-    custard_bf16 alpha, custard_bf16 beta, size_t m, size_t n, size_t k,
-    custard_bf16 *gA, custard_bf16 *gB, custard_bf16 *gC);
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x32x32_16x8(custard_bf16 alpha,
+    custard_bf16 beta, uint32_t m, uint32_t n, uint32_t k, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC);
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_64x32x32_16x16(float alpha, float beta,
-                                                       size_t m, size_t n,
-                                                       size_t k, float *gA,
-                                                       float *gB, float *gC);
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x32x32_16x16(
-    custard_bf16 alpha, custard_bf16 beta, size_t m, size_t n, size_t k,
-    custard_bf16 *gA, custard_bf16 *gB, custard_bf16 *gC);
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x32x32_16x16(custard_bf16 alpha,
+    custard_bf16 beta, uint32_t m, uint32_t n, uint32_t k, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC);
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_64x32x64_8x8(float alpha, float beta,
-                                                     size_t m, size_t n,
-                                                     size_t k, float *gA,
-                                                     float *gB, float *gC);
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x32x64_8x8(
-    custard_bf16 alpha, custard_bf16 beta, size_t m, size_t n, size_t k,
-    custard_bf16 *gA, custard_bf16 *gB, custard_bf16 *gC);
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x32x64_8x8(custard_bf16 alpha,
+    custard_bf16 beta, uint32_t m, uint32_t n, uint32_t k, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC);
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_64x32x64_8x16(float alpha, float beta,
-                                                      size_t m, size_t n,
-                                                      size_t k, float *gA,
-                                                      float *gB, float *gC);
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x32x64_8x16(
-    custard_bf16 alpha, custard_bf16 beta, size_t m, size_t n, size_t k,
-    custard_bf16 *gA, custard_bf16 *gB, custard_bf16 *gC);
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x32x64_8x16(custard_bf16 alpha,
+    custard_bf16 beta, uint32_t m, uint32_t n, uint32_t k, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC);
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_64x32x64_16x8(float alpha, float beta,
-                                                      size_t m, size_t n,
-                                                      size_t k, float *gA,
-                                                      float *gB, float *gC);
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x32x64_16x8(
-    custard_bf16 alpha, custard_bf16 beta, size_t m, size_t n, size_t k,
-    custard_bf16 *gA, custard_bf16 *gB, custard_bf16 *gC);
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x32x64_16x8(custard_bf16 alpha,
+    custard_bf16 beta, uint32_t m, uint32_t n, uint32_t k, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC);
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_64x32x64_16x16(float alpha, float beta,
-                                                       size_t m, size_t n,
-                                                       size_t k, float *gA,
-                                                       float *gB, float *gC);
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x32x64_16x16(
-    custard_bf16 alpha, custard_bf16 beta, size_t m, size_t n, size_t k,
-    custard_bf16 *gA, custard_bf16 *gB, custard_bf16 *gC);
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x32x64_16x16(custard_bf16 alpha,
+    custard_bf16 beta, uint32_t m, uint32_t n, uint32_t k, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC);
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_64x64x32_8x8(float alpha, float beta,
-                                                     size_t m, size_t n,
-                                                     size_t k, float *gA,
-                                                     float *gB, float *gC);
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x64x32_8x8(
-    custard_bf16 alpha, custard_bf16 beta, size_t m, size_t n, size_t k,
-    custard_bf16 *gA, custard_bf16 *gB, custard_bf16 *gC);
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x64x32_8x8(custard_bf16 alpha,
+    custard_bf16 beta, uint32_t m, uint32_t n, uint32_t k, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC);
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_64x64x32_8x16(float alpha, float beta,
-                                                      size_t m, size_t n,
-                                                      size_t k, float *gA,
-                                                      float *gB, float *gC);
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x64x32_8x16(
-    custard_bf16 alpha, custard_bf16 beta, size_t m, size_t n, size_t k,
-    custard_bf16 *gA, custard_bf16 *gB, custard_bf16 *gC);
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x64x32_8x16(custard_bf16 alpha,
+    custard_bf16 beta, uint32_t m, uint32_t n, uint32_t k, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC);
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_64x64x32_16x8(float alpha, float beta,
-                                                      size_t m, size_t n,
-                                                      size_t k, float *gA,
-                                                      float *gB, float *gC);
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x64x32_16x8(
-    custard_bf16 alpha, custard_bf16 beta, size_t m, size_t n, size_t k,
-    custard_bf16 *gA, custard_bf16 *gB, custard_bf16 *gC);
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x64x32_16x8(custard_bf16 alpha,
+    custard_bf16 beta, uint32_t m, uint32_t n, uint32_t k, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC);
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_64x64x32_16x16(float alpha, float beta,
-                                                       size_t m, size_t n,
-                                                       size_t k, float *gA,
-                                                       float *gB, float *gC);
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x64x32_16x16(
-    custard_bf16 alpha, custard_bf16 beta, size_t m, size_t n, size_t k,
-    custard_bf16 *gA, custard_bf16 *gB, custard_bf16 *gC);
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x64x32_16x16(custard_bf16 alpha,
+    custard_bf16 beta, uint32_t m, uint32_t n, uint32_t k, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC);
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_64x64x64_8x8(float alpha, float beta,
-                                                     size_t m, size_t n,
-                                                     size_t k, float *gA,
-                                                     float *gB, float *gC);
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x64x64_8x8(
-    custard_bf16 alpha, custard_bf16 beta, size_t m, size_t n, size_t k,
-    custard_bf16 *gA, custard_bf16 *gB, custard_bf16 *gC);
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x64x64_8x8(custard_bf16 alpha,
+    custard_bf16 beta, uint32_t m, uint32_t n, uint32_t k, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC);
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_64x64x64_8x16(float alpha, float beta,
-                                                      size_t m, size_t n,
-                                                      size_t k, float *gA,
-                                                      float *gB, float *gC);
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x64x64_8x16(
-    custard_bf16 alpha, custard_bf16 beta, size_t m, size_t n, size_t k,
-    custard_bf16 *gA, custard_bf16 *gB, custard_bf16 *gC);
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x64x64_8x16(custard_bf16 alpha,
+    custard_bf16 beta, uint32_t m, uint32_t n, uint32_t k, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC);
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_64x64x64_16x8(float alpha, float beta,
-                                                      size_t m, size_t n,
-                                                      size_t k, float *gA,
-                                                      float *gB, float *gC);
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x64x64_16x8(
-    custard_bf16 alpha, custard_bf16 beta, size_t m, size_t n, size_t k,
-    custard_bf16 *gA, custard_bf16 *gB, custard_bf16 *gC);
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x64x64_16x8(custard_bf16 alpha,
+    custard_bf16 beta, uint32_t m, uint32_t n, uint32_t k, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC);
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_64x64x64_16x16(float alpha, float beta,
-                                                       size_t m, size_t n,
-                                                       size_t k, float *gA,
-                                                       float *gB, float *gC);
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x64x64_16x16(
-    custard_bf16 alpha, custard_bf16 beta, size_t m, size_t n, size_t k,
-    custard_bf16 *gA, custard_bf16 *gB, custard_bf16 *gC);
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x64x64_16x16(custard_bf16 alpha,
+    custard_bf16 beta, uint32_t m, uint32_t n, uint32_t k, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC);
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_64x128x32_8x8(float alpha, float beta,
-                                                      size_t m, size_t n,
-                                                      size_t k, float *gA,
-                                                      float *gB, float *gC);
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x128x32_8x8(
-    custard_bf16 alpha, custard_bf16 beta, size_t m, size_t n, size_t k,
-    custard_bf16 *gA, custard_bf16 *gB, custard_bf16 *gC);
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x128x32_8x8(custard_bf16 alpha,
+    custard_bf16 beta, uint32_t m, uint32_t n, uint32_t k, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC);
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_64x128x32_8x16(float alpha, float beta,
-                                                       size_t m, size_t n,
-                                                       size_t k, float *gA,
-                                                       float *gB, float *gC);
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x128x32_8x16(
-    custard_bf16 alpha, custard_bf16 beta, size_t m, size_t n, size_t k,
-    custard_bf16 *gA, custard_bf16 *gB, custard_bf16 *gC);
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x128x32_8x16(custard_bf16 alpha,
+    custard_bf16 beta, uint32_t m, uint32_t n, uint32_t k, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC);
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_64x128x32_16x8(float alpha, float beta,
-                                                       size_t m, size_t n,
-                                                       size_t k, float *gA,
-                                                       float *gB, float *gC);
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x128x32_16x8(
-    custard_bf16 alpha, custard_bf16 beta, size_t m, size_t n, size_t k,
-    custard_bf16 *gA, custard_bf16 *gB, custard_bf16 *gC);
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x128x32_16x8(custard_bf16 alpha,
+    custard_bf16 beta, uint32_t m, uint32_t n, uint32_t k, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC);
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_64x128x32_16x16(float alpha, float beta,
-                                                        size_t m, size_t n,
-                                                        size_t k, float *gA,
-                                                        float *gB, float *gC);
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x128x32_16x16(
-    custard_bf16 alpha, custard_bf16 beta, size_t m, size_t n, size_t k,
-    custard_bf16 *gA, custard_bf16 *gB, custard_bf16 *gC);
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x128x32_16x16(custard_bf16 alpha,
+    custard_bf16 beta, uint32_t m, uint32_t n, uint32_t k, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC);
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_64x128x64_8x8(float alpha, float beta,
-                                                      size_t m, size_t n,
-                                                      size_t k, float *gA,
-                                                      float *gB, float *gC);
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x128x64_8x8(
-    custard_bf16 alpha, custard_bf16 beta, size_t m, size_t n, size_t k,
-    custard_bf16 *gA, custard_bf16 *gB, custard_bf16 *gC);
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x128x64_8x8(custard_bf16 alpha,
+    custard_bf16 beta, uint32_t m, uint32_t n, uint32_t k, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC);
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_64x128x64_8x16(float alpha, float beta,
-                                                       size_t m, size_t n,
-                                                       size_t k, float *gA,
-                                                       float *gB, float *gC);
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x128x64_8x16(
-    custard_bf16 alpha, custard_bf16 beta, size_t m, size_t n, size_t k,
-    custard_bf16 *gA, custard_bf16 *gB, custard_bf16 *gC);
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x128x64_8x16(custard_bf16 alpha,
+    custard_bf16 beta, uint32_t m, uint32_t n, uint32_t k, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC);
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_64x128x64_16x8(float alpha, float beta,
-                                                       size_t m, size_t n,
-                                                       size_t k, float *gA,
-                                                       float *gB, float *gC);
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x128x64_16x8(
-    custard_bf16 alpha, custard_bf16 beta, size_t m, size_t n, size_t k,
-    custard_bf16 *gA, custard_bf16 *gB, custard_bf16 *gC);
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x128x64_16x8(custard_bf16 alpha,
+    custard_bf16 beta, uint32_t m, uint32_t n, uint32_t k, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC);
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_64x128x64_16x16(float alpha, float beta,
-                                                        size_t m, size_t n,
-                                                        size_t k, float *gA,
-                                                        float *gB, float *gC);
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x128x64_16x16(
-    custard_bf16 alpha, custard_bf16 beta, size_t m, size_t n, size_t k,
-    custard_bf16 *gA, custard_bf16 *gB, custard_bf16 *gC);
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_64x128x64_16x16(custard_bf16 alpha,
+    custard_bf16 beta, uint32_t m, uint32_t n, uint32_t k, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC);
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_128x32x32_8x8(float alpha, float beta,
-                                                      size_t m, size_t n,
-                                                      size_t k, float *gA,
-                                                      float *gB, float *gC);
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x32x32_8x8(
-    custard_bf16 alpha, custard_bf16 beta, size_t m, size_t n, size_t k,
-    custard_bf16 *gA, custard_bf16 *gB, custard_bf16 *gC);
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x32x32_8x8(custard_bf16 alpha,
+    custard_bf16 beta, uint32_t m, uint32_t n, uint32_t k, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC);
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_128x32x32_8x16(float alpha, float beta,
-                                                       size_t m, size_t n,
-                                                       size_t k, float *gA,
-                                                       float *gB, float *gC);
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x32x32_8x16(
-    custard_bf16 alpha, custard_bf16 beta, size_t m, size_t n, size_t k,
-    custard_bf16 *gA, custard_bf16 *gB, custard_bf16 *gC);
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x32x32_8x16(custard_bf16 alpha,
+    custard_bf16 beta, uint32_t m, uint32_t n, uint32_t k, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC);
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_128x32x32_16x8(float alpha, float beta,
-                                                       size_t m, size_t n,
-                                                       size_t k, float *gA,
-                                                       float *gB, float *gC);
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x32x32_16x8(
-    custard_bf16 alpha, custard_bf16 beta, size_t m, size_t n, size_t k,
-    custard_bf16 *gA, custard_bf16 *gB, custard_bf16 *gC);
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x32x32_16x8(custard_bf16 alpha,
+    custard_bf16 beta, uint32_t m, uint32_t n, uint32_t k, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC);
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_128x32x32_16x16(float alpha, float beta,
-                                                        size_t m, size_t n,
-                                                        size_t k, float *gA,
-                                                        float *gB, float *gC);
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x32x32_16x16(
-    custard_bf16 alpha, custard_bf16 beta, size_t m, size_t n, size_t k,
-    custard_bf16 *gA, custard_bf16 *gB, custard_bf16 *gC);
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x32x32_16x16(custard_bf16 alpha,
+    custard_bf16 beta, uint32_t m, uint32_t n, uint32_t k, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC);
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_128x32x64_8x8(float alpha, float beta,
-                                                      size_t m, size_t n,
-                                                      size_t k, float *gA,
-                                                      float *gB, float *gC);
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x32x64_8x8(
-    custard_bf16 alpha, custard_bf16 beta, size_t m, size_t n, size_t k,
-    custard_bf16 *gA, custard_bf16 *gB, custard_bf16 *gC);
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x32x64_8x8(custard_bf16 alpha,
+    custard_bf16 beta, uint32_t m, uint32_t n, uint32_t k, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC);
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_128x32x64_8x16(float alpha, float beta,
-                                                       size_t m, size_t n,
-                                                       size_t k, float *gA,
-                                                       float *gB, float *gC);
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x32x64_8x16(
-    custard_bf16 alpha, custard_bf16 beta, size_t m, size_t n, size_t k,
-    custard_bf16 *gA, custard_bf16 *gB, custard_bf16 *gC);
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x32x64_8x16(custard_bf16 alpha,
+    custard_bf16 beta, uint32_t m, uint32_t n, uint32_t k, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC);
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_128x32x64_16x8(float alpha, float beta,
-                                                       size_t m, size_t n,
-                                                       size_t k, float *gA,
-                                                       float *gB, float *gC);
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x32x64_16x8(
-    custard_bf16 alpha, custard_bf16 beta, size_t m, size_t n, size_t k,
-    custard_bf16 *gA, custard_bf16 *gB, custard_bf16 *gC);
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x32x64_16x8(custard_bf16 alpha,
+    custard_bf16 beta, uint32_t m, uint32_t n, uint32_t k, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC);
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_128x32x64_16x16(float alpha, float beta,
-                                                        size_t m, size_t n,
-                                                        size_t k, float *gA,
-                                                        float *gB, float *gC);
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x32x64_16x16(
-    custard_bf16 alpha, custard_bf16 beta, size_t m, size_t n, size_t k,
-    custard_bf16 *gA, custard_bf16 *gB, custard_bf16 *gC);
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x32x64_16x16(custard_bf16 alpha,
+    custard_bf16 beta, uint32_t m, uint32_t n, uint32_t k, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC);
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_128x64x32_8x8(float alpha, float beta,
-                                                      size_t m, size_t n,
-                                                      size_t k, float *gA,
-                                                      float *gB, float *gC);
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x64x32_8x8(
-    custard_bf16 alpha, custard_bf16 beta, size_t m, size_t n, size_t k,
-    custard_bf16 *gA, custard_bf16 *gB, custard_bf16 *gC);
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x64x32_8x8(custard_bf16 alpha,
+    custard_bf16 beta, uint32_t m, uint32_t n, uint32_t k, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC);
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_128x64x32_8x16(float alpha, float beta,
-                                                       size_t m, size_t n,
-                                                       size_t k, float *gA,
-                                                       float *gB, float *gC);
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x64x32_8x16(
-    custard_bf16 alpha, custard_bf16 beta, size_t m, size_t n, size_t k,
-    custard_bf16 *gA, custard_bf16 *gB, custard_bf16 *gC);
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x64x32_8x16(custard_bf16 alpha,
+    custard_bf16 beta, uint32_t m, uint32_t n, uint32_t k, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC);
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_128x64x32_16x8(float alpha, float beta,
-                                                       size_t m, size_t n,
-                                                       size_t k, float *gA,
-                                                       float *gB, float *gC);
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x64x32_16x8(
-    custard_bf16 alpha, custard_bf16 beta, size_t m, size_t n, size_t k,
-    custard_bf16 *gA, custard_bf16 *gB, custard_bf16 *gC);
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x64x32_16x8(custard_bf16 alpha,
+    custard_bf16 beta, uint32_t m, uint32_t n, uint32_t k, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC);
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_128x64x32_16x16(float alpha, float beta,
-                                                        size_t m, size_t n,
-                                                        size_t k, float *gA,
-                                                        float *gB, float *gC);
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x64x32_16x16(
-    custard_bf16 alpha, custard_bf16 beta, size_t m, size_t n, size_t k,
-    custard_bf16 *gA, custard_bf16 *gB, custard_bf16 *gC);
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x64x32_16x16(custard_bf16 alpha,
+    custard_bf16 beta, uint32_t m, uint32_t n, uint32_t k, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC);
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_128x64x64_8x8(float alpha, float beta,
-                                                      size_t m, size_t n,
-                                                      size_t k, float *gA,
-                                                      float *gB, float *gC);
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x64x64_8x8(
-    custard_bf16 alpha, custard_bf16 beta, size_t m, size_t n, size_t k,
-    custard_bf16 *gA, custard_bf16 *gB, custard_bf16 *gC);
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x64x64_8x8(custard_bf16 alpha,
+    custard_bf16 beta, uint32_t m, uint32_t n, uint32_t k, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC);
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_128x64x64_8x16(float alpha, float beta,
-                                                       size_t m, size_t n,
-                                                       size_t k, float *gA,
-                                                       float *gB, float *gC);
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x64x64_8x16(
-    custard_bf16 alpha, custard_bf16 beta, size_t m, size_t n, size_t k,
-    custard_bf16 *gA, custard_bf16 *gB, custard_bf16 *gC);
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x64x64_8x16(custard_bf16 alpha,
+    custard_bf16 beta, uint32_t m, uint32_t n, uint32_t k, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC);
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_128x64x64_16x8(float alpha, float beta,
-                                                       size_t m, size_t n,
-                                                       size_t k, float *gA,
-                                                       float *gB, float *gC);
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x64x64_16x8(
-    custard_bf16 alpha, custard_bf16 beta, size_t m, size_t n, size_t k,
-    custard_bf16 *gA, custard_bf16 *gB, custard_bf16 *gC);
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x64x64_16x8(custard_bf16 alpha,
+    custard_bf16 beta, uint32_t m, uint32_t n, uint32_t k, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC);
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_128x64x64_16x16(float alpha, float beta,
-                                                        size_t m, size_t n,
-                                                        size_t k, float *gA,
-                                                        float *gB, float *gC);
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x64x64_16x16(
-    custard_bf16 alpha, custard_bf16 beta, size_t m, size_t n, size_t k,
-    custard_bf16 *gA, custard_bf16 *gB, custard_bf16 *gC);
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x64x64_16x16(custard_bf16 alpha,
+    custard_bf16 beta, uint32_t m, uint32_t n, uint32_t k, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC);
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_128x128x32_8x8(float alpha, float beta,
-                                                       size_t m, size_t n,
-                                                       size_t k, float *gA,
-                                                       float *gB, float *gC);
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x128x32_8x8(
-    custard_bf16 alpha, custard_bf16 beta, size_t m, size_t n, size_t k,
-    custard_bf16 *gA, custard_bf16 *gB, custard_bf16 *gC);
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x128x32_8x8(custard_bf16 alpha,
+    custard_bf16 beta, uint32_t m, uint32_t n, uint32_t k, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC);
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_128x128x32_8x16(float alpha, float beta,
-                                                        size_t m, size_t n,
-                                                        size_t k, float *gA,
-                                                        float *gB, float *gC);
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x128x32_8x16(
-    custard_bf16 alpha, custard_bf16 beta, size_t m, size_t n, size_t k,
-    custard_bf16 *gA, custard_bf16 *gB, custard_bf16 *gC);
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x128x32_8x16(custard_bf16 alpha,
+    custard_bf16 beta, uint32_t m, uint32_t n, uint32_t k, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC);
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_128x128x32_16x8(float alpha, float beta,
-                                                        size_t m, size_t n,
-                                                        size_t k, float *gA,
-                                                        float *gB, float *gC);
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x128x32_16x8(
-    custard_bf16 alpha, custard_bf16 beta, size_t m, size_t n, size_t k,
-    custard_bf16 *gA, custard_bf16 *gB, custard_bf16 *gC);
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x128x32_16x8(custard_bf16 alpha,
+    custard_bf16 beta, uint32_t m, uint32_t n, uint32_t k, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC);
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_128x128x32_16x16(float alpha,
-                                                         float beta, size_t m,
-                                                         size_t n, size_t k,
-                                                         float *gA, float *gB,
-                                                         float *gC);
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x128x32_16x16(
-    custard_bf16 alpha, custard_bf16 beta, size_t m, size_t n, size_t k,
-    custard_bf16 *gA, custard_bf16 *gB, custard_bf16 *gC);
+    float beta, uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB,
+    float *gC);
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x128x32_16x16(custard_bf16 alpha,
+    custard_bf16 beta, uint32_t m, uint32_t n, uint32_t k, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC);
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_128x128x64_8x8(float alpha, float beta,
-                                                       size_t m, size_t n,
-                                                       size_t k, float *gA,
-                                                       float *gB, float *gC);
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x128x64_8x8(
-    custard_bf16 alpha, custard_bf16 beta, size_t m, size_t n, size_t k,
-    custard_bf16 *gA, custard_bf16 *gB, custard_bf16 *gC);
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x128x64_8x8(custard_bf16 alpha,
+    custard_bf16 beta, uint32_t m, uint32_t n, uint32_t k, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC);
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_128x128x64_8x16(float alpha, float beta,
-                                                        size_t m, size_t n,
-                                                        size_t k, float *gA,
-                                                        float *gB, float *gC);
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x128x64_8x16(
-    custard_bf16 alpha, custard_bf16 beta, size_t m, size_t n, size_t k,
-    custard_bf16 *gA, custard_bf16 *gB, custard_bf16 *gC);
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x128x64_8x16(custard_bf16 alpha,
+    custard_bf16 beta, uint32_t m, uint32_t n, uint32_t k, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC);
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_128x128x64_16x8(float alpha, float beta,
-                                                        size_t m, size_t n,
-                                                        size_t k, float *gA,
-                                                        float *gB, float *gC);
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x128x64_16x8(
-    custard_bf16 alpha, custard_bf16 beta, size_t m, size_t n, size_t k,
-    custard_bf16 *gA, custard_bf16 *gB, custard_bf16 *gC);
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x128x64_16x8(custard_bf16 alpha,
+    custard_bf16 beta, uint32_t m, uint32_t n, uint32_t k, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC);
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_128x128x64_16x16(float alpha,
-                                                         float beta, size_t m,
-                                                         size_t n, size_t k,
-                                                         float *gA, float *gB,
-                                                         float *gC);
-void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x128x64_16x16(
-    custard_bf16 alpha, custard_bf16 beta, size_t m, size_t n, size_t k,
-    custard_bf16 *gA, custard_bf16 *gB, custard_bf16 *gC);
+    float beta, uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB,
+    float *gC);
+void Klas_GEMM_BlockTiling2D_g_gemm_bf16_128x128x64_16x16(custard_bf16 alpha,
+    custard_bf16 beta, uint32_t m, uint32_t n, uint32_t k, custard_bf16 *gA,
+    custard_bf16 *gB, custard_bf16 *gC);
 
 #ifdef __cplusplus
 }

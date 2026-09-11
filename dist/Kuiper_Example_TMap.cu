@@ -7,21 +7,21 @@ __global__ static void kuiper_kernel_1(uint32_t *a);
 /* hoisted by the Custard Kuiper rule */
 __global__ static void kuiper_kernel_0(uint32_t *a)
 {
-    size_t bid = blockIdx.x;
-    size_t tid = threadIdx.x;
-    size_t gid = ((1024 * bid) + tid);
+    uint32_t bid = blockIdx.x;
+    uint32_t tid = threadIdx.x;
+    uint32_t gid = ((1024 * bid) + tid);
     if (gid < 1024) {
-        size_t ni;
+        uint32_t ni;
         FStar_Pervasives_Native_tuple2__uintsize_unit _ct1;
-        size_t major = (gid / 1);
+        uint32_t major = (gid / 1);
         _ct1 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {._1 = major};
         FStar_Pervasives_Native_tuple2__uintsize_unit _cs2 = _ct1;
         ni = _cs2._1;
         uint32_t x = a[ni];
         uint32_t __anf0 = (1 + x);
-        size_t ni1;
+        uint32_t ni1;
         FStar_Pervasives_Native_tuple2__uintsize_unit _ct3;
-        size_t major_1 = (gid / 1);
+        uint32_t major_1 = (gid / 1);
         _ct3 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {._1 = major_1};
         FStar_Pervasives_Native_tuple2__uintsize_unit _cs4 = _ct3;
         ni1 = _cs4._1;
@@ -32,16 +32,16 @@ __global__ static void kuiper_kernel_0(uint32_t *a)
 /* hoisted by the Custard Kuiper rule */
 __global__ static void kuiper_kernel_1(uint32_t *a)
 {
-    size_t bid = blockIdx.x;
-    size_t tid = threadIdx.x;
-    size_t gid = ((1024 * bid) + tid);
-    if (gid < 1048576ULL) {
-        size_t ni;
+    uint32_t bid = blockIdx.x;
+    uint32_t tid = threadIdx.x;
+    uint32_t gid = ((1024 * bid) + tid);
+    if (gid < 1048576U) {
+        uint32_t ni;
         FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit _ct1;
-        size_t major = (gid / 1024);
-        size_t minor = (gid % 1024);
+        uint32_t major = (gid / 1024);
+        uint32_t minor = (gid % 1024);
         FStar_Pervasives_Native_tuple2__uintsize_unit _ct2;
-        size_t major1 = (minor / 1);
+        uint32_t major1 = (minor / 1);
         _ct2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {._1 = major1};
         _ct1 = (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
             ._1 = major, ._2 = _ct2};
@@ -50,12 +50,12 @@ __global__ static void kuiper_kernel_1(uint32_t *a)
         ni = ((_cs3._1 * 1024) + _cs3._2._1);
         uint32_t x = a[ni];
         uint32_t __anf0 = (1 + x);
-        size_t ni1;
+        uint32_t ni1;
         FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit _ct4;
-        size_t major_1 = (gid / 1024);
-        size_t minor_1 = (gid % 1024);
+        uint32_t major_1 = (gid / 1024);
+        uint32_t minor_1 = (gid % 1024);
         FStar_Pervasives_Native_tuple2__uintsize_unit _ct5;
-        size_t major1_1 = (minor_1 / 1);
+        uint32_t major1_1 = (minor_1 / 1);
         _ct5 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {._1 = major1_1};
         _ct4 = (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
             ._1 = major_1, ._2 = _ct5};
@@ -69,8 +69,8 @@ __global__ static void kuiper_kernel_1(uint32_t *a)
 void Kuiper_Example_TMap_incr_all_1d(uint32_t *a)
 {
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_KCALL(kuiper_kernel_0, ((size_t) 1ULL), ((size_t) 1024ULL),
-              ((size_t) 0ULL), s, a);
+    KPR_KCALL(kuiper_kernel_0, ((uint32_t) 1U), ((uint32_t) 1024U),
+        ((uint32_t) 0U), s, a);
     KPR_MUST_stream_sync(s);
     KPR_MUST_stream_destroy(s);
 }
@@ -78,8 +78,8 @@ void Kuiper_Example_TMap_incr_all_1d(uint32_t *a)
 void Kuiper_Example_TMap_incr_all_1d2(uint32_t *a)
 {
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_KCALL(kuiper_kernel_1, ((size_t) 1024ULL), ((size_t) 1024ULL),
-              ((size_t) 0ULL), s, a);
+    KPR_KCALL(kuiper_kernel_1, ((uint32_t) 1024U), ((uint32_t) 1024U),
+        ((uint32_t) 0U), s, a);
     KPR_MUST_stream_sync(s);
     KPR_MUST_stream_destroy(s);
 }

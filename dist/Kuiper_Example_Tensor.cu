@@ -5,12 +5,12 @@ void Kuiper_Example_Tensor_test0(uint32_t *m) { (void) m; }
 
 uint32_t Kuiper_Example_Tensor_test1(uint32_t *m)
 {
-    size_t ni = 22;
+    uint32_t ni = 22;
     return m[ni];
 }
 
 void Kuiper_Example_Tensor_test2(uint32_t *m)
 {
-    size_t ni = 22;
+    uint32_t ni = 22;
     m[ni] = 42;
 }

@@ -18,6 +18,7 @@ typedef uint8_t custard_unit;
 #endif
 #include "kuiper.h"
 #include "kuiper/tensorcores.h"
+#include "kuiper/wgmma.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -27,15 +28,15 @@ typedef struct Kuiper_Sparse_Matrix_smatrix__uint32_s
     Kuiper_Sparse_Matrix_smatrix__uint32;
 
 struct Kuiper_Sparse_Matrix_smatrix__uint32_s {
-    size_t nnz;
+    uint32_t nnz;
     uint32_t *elems;
-    size_t *col_ind;
-    size_t *row_off;
+    uint32_t *col_ind;
+    uint32_t *row_off;
 };
 
-void Kuiper_Example_Sparse_GEMM__gemm_u32_rr(
-    size_t rows, size_t shared, size_t cols,
-    Kuiper_Sparse_Matrix_smatrix__uint32 gA, uint32_t *gB, uint32_t *gC);
+void Kuiper_Example_Sparse_GEMM__gemm_u32_rr(uint32_t rows, uint32_t shared,
+    uint32_t cols, Kuiper_Sparse_Matrix_smatrix__uint32 gA, uint32_t *gB,
+    uint32_t *gC);
 
 #ifdef __cplusplus
 }

@@ -20,6 +20,7 @@ typedef uint8_t custard_unit;
 #include "math.h"
 #include "kuiper/math.h"
 #include "kuiper/tensorcores.h"
+#include "kuiper/wgmma.h"
 
 /* Section 66: the two 16-bit floating-point formats.
 
@@ -226,8 +227,8 @@ CUSTARD_FN custard_bf16 custard_bf16_of_i64(int64_t x)
 #define CUSTARD__F16_BIN(nm, op)                                               \
     CUSTARD_FN custard_f16 custard_f16_##nm(custard_f16 a, custard_f16 b)      \
     {                                                                          \
-        return custard_f16_of_f32(custard_f16_to_f32(a)                        \
-                                      op custard_f16_to_f32(b));               \
+        return custard_f16_of_f32(                                             \
+            custard_f16_to_f32(a) op custard_f16_to_f32(b));                   \
     }
 #define CUSTARD__F16_CMP(nm, op)                                               \
     CUSTARD_FN bool custard_f16_##nm(custard_f16 a, custard_f16 b)             \
@@ -237,8 +238,8 @@ CUSTARD_FN custard_bf16 custard_bf16_of_i64(int64_t x)
 #define CUSTARD__BF16_BIN(nm, op)                                              \
     CUSTARD_FN custard_bf16 custard_bf16_##nm(custard_bf16 a, custard_bf16 b)  \
     {                                                                          \
-        return custard_bf16_of_f32(custard_bf16_to_f32(a)                      \
-                                       op custard_bf16_to_f32(b));             \
+        return custard_bf16_of_f32(                                            \
+            custard_bf16_to_f32(a) op custard_bf16_to_f32(b));                 \
     }
 #define CUSTARD__BF16_CMP(nm, op)                                              \
     CUSTARD_FN bool custard_bf16_##nm(custard_bf16 a, custard_bf16 b)          \
@@ -273,9 +274,9 @@ CUSTARD__BF16_CMP(gte, >=)
 extern "C" {
 #endif
 
-void Kuiper_Example_OnlineSoftmax__test(size_t len, float *a, float *b);
-void Kuiper_Example_OnlineSoftmax__testh(size_t len, custard_f16 *a,
-                                         custard_f16 *b);
+void Kuiper_Example_OnlineSoftmax__test(uint32_t len, float *a, float *b);
+void Kuiper_Example_OnlineSoftmax__testh(
+    uint32_t len, custard_f16 *a, custard_f16 *b);
 
 #ifdef __cplusplus
 }

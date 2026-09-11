@@ -3,12 +3,12 @@
 
 uint32_t Kuiper_Example_Array1_test1(uint32_t *m)
 {
-    size_t ni = 1;
+    uint32_t ni = 1;
     return m[ni];
 }
 
 void Kuiper_Example_Array1_test2(uint32_t *m)
 {
-    size_t ni = 1;
+    uint32_t ni = 1;
     m[ni] = 42;
 }

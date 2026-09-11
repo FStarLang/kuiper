@@ -3,13 +3,13 @@
 
 void Kuiper_Example_Sparse_Example__id_u32(Kuiper_Sparse_Array_sarray__uint32 a)
 {
-    size_t i = 0;
+    uint32_t i = 0;
     while (i < a.nnz) {
-        size_t __anf0 = i;
+        uint32_t __anf0 = i;
         uint32_t v = a.elems[__anf0];
-        size_t __anf01 = i;
+        uint32_t __anf01 = i;
         a.elems[__anf01] = v;
-        size_t __anf02 = i;
+        uint32_t __anf02 = i;
         i = (__anf02 + 1);
     }
 }
@@ -17,13 +17,13 @@ void Kuiper_Example_Sparse_Example__id_u32(Kuiper_Sparse_Array_sarray__uint32 a)
 void Kuiper_Example_Sparse_Example__scale_u32(
     uint32_t k, Kuiper_Sparse_Array_sarray__uint32 a)
 {
-    size_t i = 0;
+    uint32_t i = 0;
     while (i < a.nnz) {
-        size_t __anf0 = i;
+        uint32_t __anf0 = i;
         uint32_t v = a.elems[__anf0];
-        size_t __anf01 = i;
+        uint32_t __anf01 = i;
         a.elems[__anf01] = (k * v);
-        size_t __anf02 = i;
+        uint32_t __anf02 = i;
         i = (__anf02 + 1);
     }
 }

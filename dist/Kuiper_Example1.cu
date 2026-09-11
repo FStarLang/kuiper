@@ -6,22 +6,22 @@ __global__ static void kuiper_kernel_0(uint64_t *gr);
 /* hoisted by the Custard Kuiper rule */
 __global__ static void kuiper_kernel_0(uint64_t *gr)
 {
-    uint64_t v = gr[0];
-    gr[0] = (v + 1);
+    uint64_t __anf0 = gr[0];
+    gr[0] = (__anf0 + 1);
 }
 
 uint64_t Kuiper_Example1_main(void)
 {
     uint64_t r = 1;
-    uint8_t *tmp1 = (uint8_t *) KPR_GPU_ALLOC(((size_t) 8ULL), ((size_t) 1ULL));
+    uint8_t *tmp1 = (uint8_t *) KPR_GPU_ALLOC(((uint32_t) 8U), ((uint32_t) 1U));
     uint64_t *gr = (uint64_t *) tmp1;
-    KPR_MEMCPY_H2D(gr, &r, ((size_t) 8ULL));
+    KPR_MEMCPY_H2D(gr, &r, ((uint32_t) 8U));
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_KCALL(kuiper_kernel_0, ((size_t) 1ULL), ((size_t) 1ULL),
-              ((size_t) 0ULL), s, gr);
+    KPR_KCALL(kuiper_kernel_0, ((uint32_t) 1U), ((uint32_t) 1U),
+        ((uint32_t) 0U), s, gr);
     KPR_MUST_stream_sync(s);
     KPR_MUST_stream_destroy(s);
-    KPR_MEMCPY_D2H(&r, gr, ((size_t) 8ULL));
+    KPR_MEMCPY_D2H(&r, gr, ((uint32_t) 8U));
     KPR_GPU_FREE(gr);
     return r;
 }

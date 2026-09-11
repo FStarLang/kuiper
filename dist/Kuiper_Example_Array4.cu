@@ -5,28 +5,28 @@ void Kuiper_Example_Array4_test0(uint32_t *m) { (void) m; }
 
 uint32_t Kuiper_Example_Array4_test1(uint32_t *m)
 {
-    size_t sub_i = 0;
-    size_t offset = 4;
-    size_t sub_i1 = (offset + sub_i);
-    size_t offset1 = 30;
-    size_t sub_i2 = (offset1 + sub_i1);
-    size_t offset2 = 200;
-    size_t sub_i3 = (offset2 + sub_i2);
-    size_t offset3 = 1000;
-    size_t ni = (offset3 + sub_i3);
+    uint32_t sub_i = 0;
+    uint32_t offset = 4;
+    uint32_t sub_i1 = (offset + sub_i);
+    uint32_t offset1 = 30;
+    uint32_t sub_i2 = (offset1 + sub_i1);
+    uint32_t offset2 = 200;
+    uint32_t sub_i3 = (offset2 + sub_i2);
+    uint32_t offset3 = 1000;
+    uint32_t ni = (offset3 + sub_i3);
     return m[ni];
 }
 
 void Kuiper_Example_Array4_test2(uint32_t *m)
 {
-    size_t sub_i = 0;
-    size_t offset = 4;
-    size_t sub_i1 = (offset + sub_i);
-    size_t offset1 = 30;
-    size_t sub_i2 = (offset1 + sub_i1);
-    size_t offset2 = 200;
-    size_t sub_i3 = (offset2 + sub_i2);
-    size_t offset3 = 1000;
-    size_t ni = (offset3 + sub_i3);
+    uint32_t sub_i = 0;
+    uint32_t offset = 4;
+    uint32_t sub_i1 = (offset + sub_i);
+    uint32_t offset1 = 30;
+    uint32_t sub_i2 = (offset1 + sub_i1);
+    uint32_t offset2 = 200;
+    uint32_t sub_i3 = (offset2 + sub_i2);
+    uint32_t offset3 = 1000;
+    uint32_t ni = (offset3 + sub_i3);
     m[ni] = 42;
 }

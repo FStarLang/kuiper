@@ -9,8 +9,8 @@ __global__ static void kuiper_kernel_0(void) {}
 uint64_t Kuiper_Example2_main(void)
 {
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_KCALL(kuiper_kernel_0, ((size_t) 1ULL), ((size_t) 1ULL),
-              ((size_t) 0ULL), s);
+    KPR_KCALL(
+        kuiper_kernel_0, ((uint32_t) 1U), ((uint32_t) 1U), ((uint32_t) 0U), s);
     KPR_MUST_stream_sync(s);
     KPR_MUST_stream_destroy(s);
     return 1;

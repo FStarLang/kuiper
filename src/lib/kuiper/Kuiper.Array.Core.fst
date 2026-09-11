@@ -407,7 +407,7 @@ fn slice_write
   fold (pts_to_slice #a r #1.0R i j (Seq.upd s (SZ.v idx - i) v));
 }
 
-fn rec gpu_memcpy_host_to_device'  //this is a CUDA primitive, so this definition is a model only, not meant for extraction
+fn rec memcpy_host_to_device'  //this is a CUDA primitive, so this definition is a model only, not meant for extraction
   (#a:Type u#0)
   {| sized a |}
   (#dst_sz : erased nat)
@@ -454,7 +454,7 @@ fn rec gpu_memcpy_host_to_device'  //this is a CUDA primitive, so this definitio
         ()
       };
     Pulse.Lib.Vec.pts_to_len src_arr;
-    gpu_memcpy_host_to_device' dst_garr (dst_off +^ 1sz) #src_sz src_arr (src_off +^ 1sz) (cnt -^ 1sz) #f #v #(Seq.upd gv dst_off x);
+    memcpy_host_to_device' dst_garr (dst_off +^ 1sz) #src_sz src_arr (src_off +^ 1sz) (cnt -^ 1sz) #f #v #(Seq.upd gv dst_off x);
     with s' . assert (on gpu_loc (dst_garr |-> s'));
     assert pure (Seq.equal s' (seq_blit gv dst_off v src_off cnt));
     ()
@@ -462,7 +462,7 @@ fn rec gpu_memcpy_host_to_device'  //this is a CUDA primitive, so this definitio
 }
 
 
-fn gpu_memcpy_host_to_device
+fn memcpy_host_to_device
   (#a:Type u#0)
   {| sized a |}
   (#sz : erased nat)
@@ -493,7 +493,7 @@ fn gpu_memcpy_host_to_device
       Pulse.Lib.Array.PtsTo.pts_to_len dst_garr;
       on_intro (dst_garr |-> gv);
     };
-  gpu_memcpy_host_to_device' dst_garr 0sz #sz src_arr 0sz cnt;
+  memcpy_host_to_device' dst_garr 0sz #sz src_arr 0sz cnt;
   assert pure (Seq.equal v (seq_blit gv 0sz v 0sz cnt));
   with ss.
     rewrite (on gpu_loc (dst_garr |-> ss))
@@ -501,7 +501,7 @@ fn gpu_memcpy_host_to_device
 }
 
 (* blit *)
-fn rec gpu_memcpy_device_to_host'  //this is a CUDA primitive, so this definition is a model only, not meant for extraction
+fn rec memcpy_device_to_host'  //this is a CUDA primitive, so this definition is a model only, not meant for extraction
   (#a:Type u#0)
   {| sized a |}
   (#dst_sz : erased nat)
@@ -546,14 +546,14 @@ fn rec gpu_memcpy_device_to_host'  //this is a CUDA primitive, so this definitio
       };
     Pulse.Lib.Vec.(dst_arr.(dst_off) <- x);
     Pulse.Lib.Vec.pts_to_len dst_arr;
-    gpu_memcpy_device_to_host' #a #_ #dst_sz dst_arr (dst_off +^ 1sz) src_garr (src_off +^ 1sz) (cnt -^ 1sz);
+    memcpy_device_to_host' #a #_ #dst_sz dst_arr (dst_off +^ 1sz) src_garr (src_off +^ 1sz) (cnt -^ 1sz);
     with s' . assert (dst_arr |-> s');
     assert pure (Seq.equal s' (seq_blit gv dst_off v src_off cnt));
     ()
   }
 }
 
-fn gpu_memcpy_device_to_host
+fn memcpy_device_to_host
   (#a:Type u#0)
   {| sized a |}
   (#sz : erased nat)
@@ -584,12 +584,12 @@ fn gpu_memcpy_device_to_host
       Pulse.Lib.Array.PtsTo.pts_to_len src_garr;
       on_intro (src_garr |-> Frac f gv);
     };
-  gpu_memcpy_device_to_host' #_ #_ #sz dst_arr 0sz #sz src_garr 0sz cnt;
+  memcpy_device_to_host' #_ #_ #sz dst_arr 0sz #sz src_garr 0sz cnt;
   assert pure (Seq.equal gv (seq_blit v 0sz gv 0sz cnt));
 }
 
 
-fn rec gpu_memcpy_device_to_device  //this is a CUDA primitive, so this definition is a model only, not meant for extraction
+fn rec memcpy_device_to_device  //this is a CUDA primitive, so this definition is a model only, not meant for extraction
   (#a:Type u#0)
   {| sized a |}
   (#sz : erased nat)
@@ -611,7 +611,7 @@ fn rec gpu_memcpy_device_to_device  //this is a CUDA primitive, so this definiti
     pure (Seq.length gv == reveal sz)
   decreases SZ.v cnt
 {
-  impersonate // gpu_memcpy_device_to_device is a CUDA primitive, so this definition is only a model
+  impersonate // memcpy_device_to_device is a CUDA primitive, so this definition is only a model
     unit
     gpu_loc
     (on gpu_loc (src_garr |-> Frac f gv) **

@@ -18,6 +18,7 @@ typedef uint8_t custard_unit;
 #endif
 #include "kuiper.h"
 #include "kuiper/tensorcores.h"
+#include "kuiper/wgmma.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -25,7 +26,7 @@ extern "C" {
 
 __device__ uint16_t Kuiper_GraphDist_add_(uint16_t x, uint16_t y);
 __device__ uint16_t Kuiper_GraphDist_mult(uint16_t x, uint16_t y);
-void Kuiper_GraphDist_matmul_dist_gpu(size_t size, uint16_t *a, uint16_t *b);
+void Kuiper_GraphDist_matmul_dist_gpu(uint32_t size, uint16_t *a, uint16_t *b);
 
 #ifdef __cplusplus
 }

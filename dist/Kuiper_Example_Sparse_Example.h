@@ -18,6 +18,7 @@ typedef uint8_t custard_unit;
 #endif
 #include "kuiper.h"
 #include "kuiper/tensorcores.h"
+#include "kuiper/wgmma.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -27,9 +28,9 @@ typedef struct Kuiper_Sparse_Array_sarray__uint32_s
     Kuiper_Sparse_Array_sarray__uint32;
 
 struct Kuiper_Sparse_Array_sarray__uint32_s {
-    size_t nnz;
+    uint32_t nnz;
     uint32_t *elems;
-    size_t *pos;
+    uint32_t *pos;
 };
 
 void Kuiper_Example_Sparse_Example__id_u32(

@@ -6,22 +6,22 @@ __global__ static void kuiper_kernel_0(float *gr);
 /* hoisted by the Custard Kuiper rule */
 __global__ static void kuiper_kernel_0(float *gr)
 {
-    float v = gr[0];
-    gr[0] = (v + 1.0f);
+    float __anf0 = gr[0];
+    gr[0] = (__anf0 + 1.0f);
 }
 
 float Kuiper_Example_BasicFloat_main(void)
 {
     float r = 0.0f;
-    uint8_t *tmp1 = (uint8_t *) KPR_GPU_ALLOC(((size_t) 4ULL), ((size_t) 1ULL));
+    uint8_t *tmp1 = (uint8_t *) KPR_GPU_ALLOC(((uint32_t) 4U), ((uint32_t) 1U));
     float *gr = (float *) tmp1;
-    KPR_MEMCPY_H2D(gr, &r, ((size_t) 4ULL));
+    KPR_MEMCPY_H2D(gr, &r, ((uint32_t) 4U));
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_KCALL(kuiper_kernel_0, ((size_t) 1ULL), ((size_t) 1ULL),
-              ((size_t) 0ULL), s, gr);
+    KPR_KCALL(kuiper_kernel_0, ((uint32_t) 1U), ((uint32_t) 1U),
+        ((uint32_t) 0U), s, gr);
     KPR_MUST_stream_sync(s);
     KPR_MUST_stream_destroy(s);
-    KPR_MEMCPY_D2H(&r, gr, ((size_t) 4ULL));
+    KPR_MEMCPY_D2H(&r, gr, ((uint32_t) 4U));
     KPR_GPU_FREE(gr);
     return r;
 }

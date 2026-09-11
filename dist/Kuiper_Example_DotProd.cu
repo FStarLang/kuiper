@@ -4,23 +4,21 @@
 /* Compute the (i,j) element of the matrix product of A and B by extracting the
 i-th row of A and the j-th column of B, then computing their dot product. The
 resulting code looks just like the usual implementation. */
-float Kuiper_Example_DotProd_matmul_dotprod_via_slice_f32(size_t m, size_t n,
-                                                          size_t k, float *gA,
-                                                          float *gB, size_t i,
-                                                          size_t j)
+float Kuiper_Example_DotProd_matmul_dotprod_via_slice_f32(uint32_t m,
+    uint32_t n, uint32_t k, float *gA, float *gB, uint32_t i, uint32_t j)
 {
     (void) m;
-    size_t k1 = 0;
+    uint32_t k1 = 0;
     float sum = 0.0f;
     while (k1 < k) {
-        size_t vk = k1;
+        uint32_t vk = k1;
         float __anf2 = sum;
-        size_t ni = ((i * k) + vk);
+        uint32_t ni = ((i * k) + vk);
         float __anf1 = gA[ni];
-        size_t ni1 = ((vk * n) + j);
+        uint32_t ni1 = ((vk * n) + j);
         float __anf0 = gB[ni1];
         sum = (__anf2 + (__anf1 * __anf0));
-        size_t __anf01 = k1;
+        uint32_t __anf01 = k1;
         k1 = (__anf01 + 1);
     }
     return sum;

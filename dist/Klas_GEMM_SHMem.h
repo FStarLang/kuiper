@@ -18,6 +18,7 @@ typedef uint8_t custard_unit;
 #endif
 #include "kuiper.h"
 #include "kuiper/tensorcores.h"
+#include "kuiper/wgmma.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -54,8 +55,8 @@ struct FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_float32_ptr_unit_s {
     FStar_Pervasives_Native_tuple2__float32_ptr_unit _2;
 };
 struct FStar_Pervasives_Native_tuple2__uintsize_uintsize_s {
-    size_t _1;
-    size_t _2;
+    uint32_t _1;
+    uint32_t _2;
 };
 struct FStar_Pervasives_Native_tuple2__float64_ptr_unit_s {
     double *_1;
@@ -79,76 +80,60 @@ struct FStar_Pervasives_Native_tuple2__uint64_ptr_tuple2_uint64_ptr_unit_s {
     FStar_Pervasives_Native_tuple2__uint64_ptr_unit _2;
 };
 
-void Klas_GEMM_SHMem_g_matmul_f32_rrr(size_t tile, size_t m, size_t n, size_t k,
-                                      float *gA, float *gB, float *gC);
-void Klas_GEMM_SHMem_g_matmul_f64_rrr(size_t tile, size_t m, size_t n, size_t k,
-                                      double *gA, double *gB, double *gC);
-void Klas_GEMM_SHMem_g_matmul_u32_rrr(size_t tile, size_t m, size_t n, size_t k,
-                                      uint32_t *gA, uint32_t *gB, uint32_t *gC);
-void Klas_GEMM_SHMem_g_matmul_u64_rrr(size_t tile, size_t m, size_t n, size_t k,
-                                      uint64_t *gA, uint64_t *gB, uint64_t *gC);
-void Klas_GEMM_SHMem_g_matmul_f32_tile32_rrr(size_t m, size_t n, size_t k,
-                                             float *gA, float *gB, float *gC);
-void Klas_GEMM_SHMem_g_matmul_f64_tile32_rrr(size_t m, size_t n, size_t k,
-                                             double *gA, double *gB,
-                                             double *gC);
-void Klas_GEMM_SHMem_g_matmul_u32_tile32_rrr(size_t m, size_t n, size_t k,
-                                             uint32_t *gA, uint32_t *gB,
-                                             uint32_t *gC);
-void Klas_GEMM_SHMem_g_matmul_u64_tile32_rrr(size_t m, size_t n, size_t k,
-                                             uint64_t *gA, uint64_t *gB,
-                                             uint64_t *gC);
-void Klas_GEMM_SHMem_g_matmul_f32_tile16_rrr(size_t m, size_t n, size_t k,
-                                             float *gA, float *gB, float *gC);
-void Klas_GEMM_SHMem_g_matmul_f64_tile16_rrr(size_t m, size_t n, size_t k,
-                                             double *gA, double *gB,
-                                             double *gC);
-void Klas_GEMM_SHMem_g_matmul_u32_tile16_rrr(size_t m, size_t n, size_t k,
-                                             uint32_t *gA, uint32_t *gB,
-                                             uint32_t *gC);
-void Klas_GEMM_SHMem_g_matmul_u64_tile16_rrr(size_t m, size_t n, size_t k,
-                                             uint64_t *gA, uint64_t *gB,
-                                             uint64_t *gC);
-void Klas_GEMM_SHMem_g_gemm_f32_rrr(size_t tile, float alpha, float beta,
-                                    size_t m, size_t n, size_t k, float *gA,
-                                    float *gB, float *gC);
-void Klas_GEMM_SHMem_g_gemm_f64_rrr(size_t tile, double alpha, double beta,
-                                    size_t m, size_t n, size_t k, double *gA,
-                                    double *gB, double *gC);
-void Klas_GEMM_SHMem_g_gemm_u32_rrr(size_t tile, uint32_t alpha, uint32_t beta,
-                                    size_t m, size_t n, size_t k, uint32_t *gA,
-                                    uint32_t *gB, uint32_t *gC);
-void Klas_GEMM_SHMem_g_gemm_u64_rrr(size_t tile, uint64_t alpha, uint64_t beta,
-                                    size_t m, size_t n, size_t k, uint64_t *gA,
-                                    uint64_t *gB, uint64_t *gC);
-void Klas_GEMM_SHMem_g_gemm_f32_tile32_rrr(float alpha, float beta, size_t m,
-                                           size_t n, size_t k, float *gA,
-                                           float *gB, float *gC);
-void Klas_GEMM_SHMem_g_gemm_f64_tile32_rrr(double alpha, double beta, size_t m,
-                                           size_t n, size_t k, double *gA,
-                                           double *gB, double *gC);
+void Klas_GEMM_SHMem_g_matmul_f32_rrr(uint32_t tile, uint32_t m, uint32_t n,
+    uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_SHMem_g_matmul_f64_rrr(uint32_t tile, uint32_t m, uint32_t n,
+    uint32_t k, double *gA, double *gB, double *gC);
+void Klas_GEMM_SHMem_g_matmul_u32_rrr(uint32_t tile, uint32_t m, uint32_t n,
+    uint32_t k, uint32_t *gA, uint32_t *gB, uint32_t *gC);
+void Klas_GEMM_SHMem_g_matmul_u64_rrr(uint32_t tile, uint32_t m, uint32_t n,
+    uint32_t k, uint64_t *gA, uint64_t *gB, uint64_t *gC);
+void Klas_GEMM_SHMem_g_matmul_f32_tile32_rrr(
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_SHMem_g_matmul_f64_tile32_rrr(
+    uint32_t m, uint32_t n, uint32_t k, double *gA, double *gB, double *gC);
+void Klas_GEMM_SHMem_g_matmul_u32_tile32_rrr(uint32_t m, uint32_t n, uint32_t k,
+    uint32_t *gA, uint32_t *gB, uint32_t *gC);
+void Klas_GEMM_SHMem_g_matmul_u64_tile32_rrr(uint32_t m, uint32_t n, uint32_t k,
+    uint64_t *gA, uint64_t *gB, uint64_t *gC);
+void Klas_GEMM_SHMem_g_matmul_f32_tile16_rrr(
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_SHMem_g_matmul_f64_tile16_rrr(
+    uint32_t m, uint32_t n, uint32_t k, double *gA, double *gB, double *gC);
+void Klas_GEMM_SHMem_g_matmul_u32_tile16_rrr(uint32_t m, uint32_t n, uint32_t k,
+    uint32_t *gA, uint32_t *gB, uint32_t *gC);
+void Klas_GEMM_SHMem_g_matmul_u64_tile16_rrr(uint32_t m, uint32_t n, uint32_t k,
+    uint64_t *gA, uint64_t *gB, uint64_t *gC);
+void Klas_GEMM_SHMem_g_gemm_f32_rrr(uint32_t tile, float alpha, float beta,
+    uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_SHMem_g_gemm_f64_rrr(uint32_t tile, double alpha, double beta,
+    uint32_t m, uint32_t n, uint32_t k, double *gA, double *gB, double *gC);
+void Klas_GEMM_SHMem_g_gemm_u32_rrr(uint32_t tile, uint32_t alpha,
+    uint32_t beta, uint32_t m, uint32_t n, uint32_t k, uint32_t *gA,
+    uint32_t *gB, uint32_t *gC);
+void Klas_GEMM_SHMem_g_gemm_u64_rrr(uint32_t tile, uint64_t alpha,
+    uint64_t beta, uint32_t m, uint32_t n, uint32_t k, uint64_t *gA,
+    uint64_t *gB, uint64_t *gC);
+void Klas_GEMM_SHMem_g_gemm_f32_tile32_rrr(float alpha, float beta, uint32_t m,
+    uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_SHMem_g_gemm_f64_tile32_rrr(double alpha, double beta,
+    uint32_t m, uint32_t n, uint32_t k, double *gA, double *gB, double *gC);
 void Klas_GEMM_SHMem_g_gemm_u32_tile32_rrr(uint32_t alpha, uint32_t beta,
-                                           size_t m, size_t n, size_t k,
-                                           uint32_t *gA, uint32_t *gB,
-                                           uint32_t *gC);
+    uint32_t m, uint32_t n, uint32_t k, uint32_t *gA, uint32_t *gB,
+    uint32_t *gC);
 void Klas_GEMM_SHMem_g_gemm_u64_tile32_rrr(uint64_t alpha, uint64_t beta,
-                                           size_t m, size_t n, size_t k,
-                                           uint64_t *gA, uint64_t *gB,
-                                           uint64_t *gC);
-void Klas_GEMM_SHMem_g_gemm_f32_tile16_rrr(float alpha, float beta, size_t m,
-                                           size_t n, size_t k, float *gA,
-                                           float *gB, float *gC);
-void Klas_GEMM_SHMem_g_gemm_f64_tile16_rrr(double alpha, double beta, size_t m,
-                                           size_t n, size_t k, double *gA,
-                                           double *gB, double *gC);
+    uint32_t m, uint32_t n, uint32_t k, uint64_t *gA, uint64_t *gB,
+    uint64_t *gC);
+void Klas_GEMM_SHMem_g_gemm_f32_tile16_rrr(float alpha, float beta, uint32_t m,
+    uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
+void Klas_GEMM_SHMem_g_gemm_f64_tile16_rrr(double alpha, double beta,
+    uint32_t m, uint32_t n, uint32_t k, double *gA, double *gB, double *gC);
 void Klas_GEMM_SHMem_g_gemm_u32_tile16_rrr(uint32_t alpha, uint32_t beta,
-                                           size_t m, size_t n, size_t k,
-                                           uint32_t *gA, uint32_t *gB,
-                                           uint32_t *gC);
+    uint32_t m, uint32_t n, uint32_t k, uint32_t *gA, uint32_t *gB,
+    uint32_t *gC);
 void Klas_GEMM_SHMem_g_gemm_u64_tile16_rrr(uint64_t alpha, uint64_t beta,
-                                           size_t m, size_t n, size_t k,
-                                           uint64_t *gA, uint64_t *gB,
-                                           uint64_t *gC);
+    uint32_t m, uint32_t n, uint32_t k, uint64_t *gA, uint64_t *gB,
+    uint64_t *gC);
 
 #ifdef __cplusplus
 }

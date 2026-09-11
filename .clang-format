@@ -3,6 +3,7 @@ Language: Cpp
 BasedOnStyle: LLVM
 IndentWidth: 4
 ContinuationIndentWidth: 4
+AlignAfterOpenBracket: DontAlign
 TabWidth: 4
 UseTab: Never
 ColumnLimit: 80

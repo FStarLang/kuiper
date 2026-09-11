@@ -18,16 +18,16 @@ typedef uint8_t custard_unit;
 #endif
 #include "kuiper.h"
 #include "kuiper/tensorcores.h"
+#include "kuiper/wgmma.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-void Kuiper_Example_Stencil_stencil3x3_f32_add_rr(size_t rows, size_t cols,
-                                                  float *gIn, float *gOut);
-void Kuiper_Example_Stencil_stencil3x3_i32_add_mul2_rc(size_t rows, size_t cols,
-                                                       uint32_t *gIn,
-                                                       uint32_t *gOut);
+void Kuiper_Example_Stencil_stencil3x3_f32_add_rr(
+    uint32_t rows, uint32_t cols, float *gIn, float *gOut);
+void Kuiper_Example_Stencil_stencil3x3_i32_add_mul2_rc(
+    uint32_t rows, uint32_t cols, uint32_t *gIn, uint32_t *gOut);
 
 #ifdef __cplusplus
 }

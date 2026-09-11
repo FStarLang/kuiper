@@ -3,18 +3,18 @@
 
 uint32_t Kuiper_Example_ArrayView_Test_EvenOdds_foo_even(uint32_t *a)
 {
-    size_t ni = 20;
+    uint32_t ni = 20;
     return a[ni];
 }
 
 uint32_t Kuiper_Example_ArrayView_Test_EvenOdds_foo_odd(uint32_t *a)
 {
-    size_t ni = 21;
+    uint32_t ni = 21;
     return a[ni];
 }
 
 void Kuiper_Example_ArrayView_Test_EvenOdds_foo_odd_modify(uint32_t *a)
 {
-    size_t ni = 21;
+    uint32_t ni = 21;
     a[ni] = 42;
 }

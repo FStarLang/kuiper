@@ -18,6 +18,7 @@ typedef uint8_t custard_unit;
 #endif
 #include "kuiper.h"
 #include "kuiper/tensorcores.h"
+#include "kuiper/wgmma.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -37,284 +38,248 @@ typedef struct
         FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit;
 
 struct Kuiper_Sparse_Matrix_smatrix__uint32_s {
-    size_t nnz;
+    uint32_t nnz;
     uint32_t *elems;
-    size_t *col_ind;
-    size_t *row_off;
+    uint32_t *col_ind;
+    uint32_t *row_off;
 };
 struct FStar_Pervasives_Native_tuple2__uintsize_ptr_unit_s {
-    size_t *_1;
+    uint32_t *_1;
 };
 struct FStar_Pervasives_Native_tuple2__uint32_ptr_tuple2_uintsize_ptr_unit_s {
     uint32_t *_1;
     FStar_Pervasives_Native_tuple2__uintsize_ptr_unit _2;
 };
 struct Kuiper_Sparse_Matrix_smatrix__float32_s {
-    size_t nnz;
+    uint32_t nnz;
     float *elems;
-    size_t *col_ind;
-    size_t *row_off;
+    uint32_t *col_ind;
+    uint32_t *row_off;
 };
 struct FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit_s {
     float *_1;
     FStar_Pervasives_Native_tuple2__uintsize_ptr_unit _2;
 };
 
-void Klas_SPMM_spmm_u32(size_t rows, size_t shared, size_t cols,
-                        Kuiper_Sparse_Matrix_smatrix__uint32 gA,
-                        size_t *row_indices, uint32_t *gB, uint32_t *gC);
-void Klas_SPMM_spmm_f32(size_t rows, size_t shared, size_t cols,
-                        Kuiper_Sparse_Matrix_smatrix__float32 gA,
-                        size_t *row_indices, float *gB, float *gC);
-void Klas_SPMM_g_spmm_f32_32x4x1(size_t rows, size_t shared, size_t cols,
-                                 Kuiper_Sparse_Matrix_smatrix__float32 gA,
-                                 size_t *row_indices, float *gB, float *gC);
-void Klas_SPMM_g_spmm_f32_32x8x2(size_t rows, size_t shared, size_t cols,
-                                 Kuiper_Sparse_Matrix_smatrix__float32 gA,
-                                 size_t *row_indices, float *gB, float *gC);
-void Klas_SPMM_g_spmm_f32_32x16x4(size_t rows, size_t shared, size_t cols,
-                                  Kuiper_Sparse_Matrix_smatrix__float32 gA,
-                                  size_t *row_indices, float *gB, float *gC);
-void Klas_SPMM_g_spmm_f32_32x32x8(size_t rows, size_t shared, size_t cols,
-                                  Kuiper_Sparse_Matrix_smatrix__float32 gA,
-                                  size_t *row_indices, float *gB, float *gC);
-void Klas_SPMM_g_spmm_f32_32x64x8(size_t rows, size_t shared, size_t cols,
-                                  Kuiper_Sparse_Matrix_smatrix__float32 gA,
-                                  size_t *row_indices, float *gB, float *gC);
-void Klas_SPMM_g_spmm_f32_32x4x1_on(size_t rows, size_t shared, size_t cols,
-                                    Kuiper_Sparse_Matrix_smatrix__float32 gA,
-                                    size_t *row_indices, float *gB, float *gC,
-                                    cudaStream_t s);
-void Klas_SPMM_g_spmm_f32_32x8x2_on(size_t rows, size_t shared, size_t cols,
-                                    Kuiper_Sparse_Matrix_smatrix__float32 gA,
-                                    size_t *row_indices, float *gB, float *gC,
-                                    cudaStream_t s);
-void Klas_SPMM_g_spmm_f32_32x16x4_on(size_t rows, size_t shared, size_t cols,
-                                     Kuiper_Sparse_Matrix_smatrix__float32 gA,
-                                     size_t *row_indices, float *gB, float *gC,
-                                     cudaStream_t s);
-void Klas_SPMM_g_spmm_f32_32x32x8_on(size_t rows, size_t shared, size_t cols,
-                                     Kuiper_Sparse_Matrix_smatrix__float32 gA,
-                                     size_t *row_indices, float *gB, float *gC,
-                                     cudaStream_t s);
-void Klas_SPMM_g_spmm_f32_32x64x8_on(size_t rows, size_t shared, size_t cols,
-                                     Kuiper_Sparse_Matrix_smatrix__float32 gA,
-                                     size_t *row_indices, float *gB, float *gC,
-                                     cudaStream_t s);
-void Klas_SPMM_g_spmm_f32_64x64x16(size_t rows, size_t shared, size_t cols,
-                                   Kuiper_Sparse_Matrix_smatrix__float32 gA,
-                                   size_t *row_indices, float *gB, float *gC);
-void Klas_SPMM_g_spmm_f32_64x64x16_on(size_t rows, size_t shared, size_t cols,
-                                      Kuiper_Sparse_Matrix_smatrix__float32 gA,
-                                      size_t *row_indices, float *gB, float *gC,
-                                      cudaStream_t s);
-void Klas_SPMM_g_spmm_f32_64x128x16(size_t rows, size_t shared, size_t cols,
-                                    Kuiper_Sparse_Matrix_smatrix__float32 gA,
-                                    size_t *row_indices, float *gB, float *gC);
-void Klas_SPMM_g_spmm_f32_64x128x16_on(size_t rows, size_t shared, size_t cols,
-                                       Kuiper_Sparse_Matrix_smatrix__float32 gA,
-                                       size_t *row_indices, float *gB,
-                                       float *gC, cudaStream_t s);
-void Klas_SPMM_g_spmm_f32_64x256x16(size_t rows, size_t shared, size_t cols,
-                                    Kuiper_Sparse_Matrix_smatrix__float32 gA,
-                                    size_t *row_indices, float *gB, float *gC);
-void Klas_SPMM_g_spmm_f32_64x256x16_on(size_t rows, size_t shared, size_t cols,
-                                       Kuiper_Sparse_Matrix_smatrix__float32 gA,
-                                       size_t *row_indices, float *gB,
-                                       float *gC, cudaStream_t s);
-void Klas_SPMM_g_spmm_f32_64x512x16(size_t rows, size_t shared, size_t cols,
-                                    Kuiper_Sparse_Matrix_smatrix__float32 gA,
-                                    size_t *row_indices, float *gB, float *gC);
-void Klas_SPMM_g_spmm_f32_64x512x16_on(size_t rows, size_t shared, size_t cols,
-                                       Kuiper_Sparse_Matrix_smatrix__float32 gA,
-                                       size_t *row_indices, float *gB,
-                                       float *gC, cudaStream_t s);
-void Klas_SPMM_g_spmm_f32_128x64x16(size_t rows, size_t shared, size_t cols,
-                                    Kuiper_Sparse_Matrix_smatrix__float32 gA,
-                                    size_t *row_indices, float *gB, float *gC);
-void Klas_SPMM_g_spmm_f32_128x64x16_on(size_t rows, size_t shared, size_t cols,
-                                       Kuiper_Sparse_Matrix_smatrix__float32 gA,
-                                       size_t *row_indices, float *gB,
-                                       float *gC, cudaStream_t s);
-void Klas_SPMM_g_spmm_f32_128x128x16(size_t rows, size_t shared, size_t cols,
-                                     Kuiper_Sparse_Matrix_smatrix__float32 gA,
-                                     size_t *row_indices, float *gB, float *gC);
-void Klas_SPMM_g_spmm_f32_128x128x16_on(
-    size_t rows, size_t shared, size_t cols,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, size_t *row_indices, float *gB,
-    float *gC, cudaStream_t s);
-void Klas_SPMM_g_spmm_f32_128x128x32(size_t rows, size_t shared, size_t cols,
-                                     Kuiper_Sparse_Matrix_smatrix__float32 gA,
-                                     size_t *row_indices, float *gB, float *gC);
-void Klas_SPMM_g_spmm_f32_128x128x32_on(
-    size_t rows, size_t shared, size_t cols,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, size_t *row_indices, float *gB,
-    float *gC, cudaStream_t s);
-void Klas_SPMM_g_spmm_f32_128x256x16(size_t rows, size_t shared, size_t cols,
-                                     Kuiper_Sparse_Matrix_smatrix__float32 gA,
-                                     size_t *row_indices, float *gB, float *gC);
-void Klas_SPMM_g_spmm_f32_128x256x16_on(
-    size_t rows, size_t shared, size_t cols,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, size_t *row_indices, float *gB,
-    float *gC, cudaStream_t s);
-void Klas_SPMM_g_spmm_f32_128x256x32(size_t rows, size_t shared, size_t cols,
-                                     Kuiper_Sparse_Matrix_smatrix__float32 gA,
-                                     size_t *row_indices, float *gB, float *gC);
-void Klas_SPMM_g_spmm_f32_128x256x32_on(
-    size_t rows, size_t shared, size_t cols,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, size_t *row_indices, float *gB,
-    float *gC, cudaStream_t s);
-void Klas_SPMM_g_spmm_f32_128x512x16(size_t rows, size_t shared, size_t cols,
-                                     Kuiper_Sparse_Matrix_smatrix__float32 gA,
-                                     size_t *row_indices, float *gB, float *gC);
-void Klas_SPMM_g_spmm_f32_128x512x16_on(
-    size_t rows, size_t shared, size_t cols,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, size_t *row_indices, float *gB,
-    float *gC, cudaStream_t s);
-void Klas_SPMM_g_spmm_f32_128x512x32(size_t rows, size_t shared, size_t cols,
-                                     Kuiper_Sparse_Matrix_smatrix__float32 gA,
-                                     size_t *row_indices, float *gB, float *gC);
-void Klas_SPMM_g_spmm_f32_128x512x32_on(
-    size_t rows, size_t shared, size_t cols,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, size_t *row_indices, float *gB,
-    float *gC, cudaStream_t s);
-void Klas_SPMM_g_spmm_f32_256x64x16(size_t rows, size_t shared, size_t cols,
-                                    Kuiper_Sparse_Matrix_smatrix__float32 gA,
-                                    size_t *row_indices, float *gB, float *gC);
-void Klas_SPMM_g_spmm_f32_256x64x16_on(size_t rows, size_t shared, size_t cols,
-                                       Kuiper_Sparse_Matrix_smatrix__float32 gA,
-                                       size_t *row_indices, float *gB,
-                                       float *gC, cudaStream_t s);
-void Klas_SPMM_g_spmm_f32_256x128x16(size_t rows, size_t shared, size_t cols,
-                                     Kuiper_Sparse_Matrix_smatrix__float32 gA,
-                                     size_t *row_indices, float *gB, float *gC);
-void Klas_SPMM_g_spmm_f32_256x128x16_on(
-    size_t rows, size_t shared, size_t cols,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, size_t *row_indices, float *gB,
-    float *gC, cudaStream_t s);
-void Klas_SPMM_g_spmm_f32_256x128x32(size_t rows, size_t shared, size_t cols,
-                                     Kuiper_Sparse_Matrix_smatrix__float32 gA,
-                                     size_t *row_indices, float *gB, float *gC);
-void Klas_SPMM_g_spmm_f32_256x128x32_on(
-    size_t rows, size_t shared, size_t cols,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, size_t *row_indices, float *gB,
-    float *gC, cudaStream_t s);
-void Klas_SPMM_g_spmm_f32_256x256x16(size_t rows, size_t shared, size_t cols,
-                                     Kuiper_Sparse_Matrix_smatrix__float32 gA,
-                                     size_t *row_indices, float *gB, float *gC);
-void Klas_SPMM_g_spmm_f32_256x256x16_on(
-    size_t rows, size_t shared, size_t cols,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, size_t *row_indices, float *gB,
-    float *gC, cudaStream_t s);
-void Klas_SPMM_g_spmm_f32_256x256x32(size_t rows, size_t shared, size_t cols,
-                                     Kuiper_Sparse_Matrix_smatrix__float32 gA,
-                                     size_t *row_indices, float *gB, float *gC);
-void Klas_SPMM_g_spmm_f32_256x256x32_on(
-    size_t rows, size_t shared, size_t cols,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, size_t *row_indices, float *gB,
-    float *gC, cudaStream_t s);
-void Klas_SPMM_g_spmm_f32_256x256x64(size_t rows, size_t shared, size_t cols,
-                                     Kuiper_Sparse_Matrix_smatrix__float32 gA,
-                                     size_t *row_indices, float *gB, float *gC);
-void Klas_SPMM_g_spmm_f32_256x256x64_on(
-    size_t rows, size_t shared, size_t cols,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, size_t *row_indices, float *gB,
-    float *gC, cudaStream_t s);
-void Klas_SPMM_g_spmm_f32_256x512x16(size_t rows, size_t shared, size_t cols,
-                                     Kuiper_Sparse_Matrix_smatrix__float32 gA,
-                                     size_t *row_indices, float *gB, float *gC);
-void Klas_SPMM_g_spmm_f32_256x512x16_on(
-    size_t rows, size_t shared, size_t cols,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, size_t *row_indices, float *gB,
-    float *gC, cudaStream_t s);
-void Klas_SPMM_g_spmm_f32_256x512x32(size_t rows, size_t shared, size_t cols,
-                                     Kuiper_Sparse_Matrix_smatrix__float32 gA,
-                                     size_t *row_indices, float *gB, float *gC);
-void Klas_SPMM_g_spmm_f32_256x512x32_on(
-    size_t rows, size_t shared, size_t cols,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, size_t *row_indices, float *gB,
-    float *gC, cudaStream_t s);
-void Klas_SPMM_g_spmm_f32_256x512x64(size_t rows, size_t shared, size_t cols,
-                                     Kuiper_Sparse_Matrix_smatrix__float32 gA,
-                                     size_t *row_indices, float *gB, float *gC);
-void Klas_SPMM_g_spmm_f32_256x512x64_on(
-    size_t rows, size_t shared, size_t cols,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, size_t *row_indices, float *gB,
-    float *gC, cudaStream_t s);
-void Klas_SPMM_g_spmm_f32_512x64x16(size_t rows, size_t shared, size_t cols,
-                                    Kuiper_Sparse_Matrix_smatrix__float32 gA,
-                                    size_t *row_indices, float *gB, float *gC);
-void Klas_SPMM_g_spmm_f32_512x64x16_on(size_t rows, size_t shared, size_t cols,
-                                       Kuiper_Sparse_Matrix_smatrix__float32 gA,
-                                       size_t *row_indices, float *gB,
-                                       float *gC, cudaStream_t s);
-void Klas_SPMM_g_spmm_f32_512x128x16(size_t rows, size_t shared, size_t cols,
-                                     Kuiper_Sparse_Matrix_smatrix__float32 gA,
-                                     size_t *row_indices, float *gB, float *gC);
-void Klas_SPMM_g_spmm_f32_512x128x16_on(
-    size_t rows, size_t shared, size_t cols,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, size_t *row_indices, float *gB,
-    float *gC, cudaStream_t s);
-void Klas_SPMM_g_spmm_f32_512x128x32(size_t rows, size_t shared, size_t cols,
-                                     Kuiper_Sparse_Matrix_smatrix__float32 gA,
-                                     size_t *row_indices, float *gB, float *gC);
-void Klas_SPMM_g_spmm_f32_512x128x32_on(
-    size_t rows, size_t shared, size_t cols,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, size_t *row_indices, float *gB,
-    float *gC, cudaStream_t s);
-void Klas_SPMM_g_spmm_f32_512x256x16(size_t rows, size_t shared, size_t cols,
-                                     Kuiper_Sparse_Matrix_smatrix__float32 gA,
-                                     size_t *row_indices, float *gB, float *gC);
-void Klas_SPMM_g_spmm_f32_512x256x16_on(
-    size_t rows, size_t shared, size_t cols,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, size_t *row_indices, float *gB,
-    float *gC, cudaStream_t s);
-void Klas_SPMM_g_spmm_f32_512x256x32(size_t rows, size_t shared, size_t cols,
-                                     Kuiper_Sparse_Matrix_smatrix__float32 gA,
-                                     size_t *row_indices, float *gB, float *gC);
-void Klas_SPMM_g_spmm_f32_512x256x32_on(
-    size_t rows, size_t shared, size_t cols,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, size_t *row_indices, float *gB,
-    float *gC, cudaStream_t s);
-void Klas_SPMM_g_spmm_f32_512x256x64(size_t rows, size_t shared, size_t cols,
-                                     Kuiper_Sparse_Matrix_smatrix__float32 gA,
-                                     size_t *row_indices, float *gB, float *gC);
-void Klas_SPMM_g_spmm_f32_512x256x64_on(
-    size_t rows, size_t shared, size_t cols,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, size_t *row_indices, float *gB,
-    float *gC, cudaStream_t s);
-void Klas_SPMM_g_spmm_f32_512x512x16(size_t rows, size_t shared, size_t cols,
-                                     Kuiper_Sparse_Matrix_smatrix__float32 gA,
-                                     size_t *row_indices, float *gB, float *gC);
-void Klas_SPMM_g_spmm_f32_512x512x16_on(
-    size_t rows, size_t shared, size_t cols,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, size_t *row_indices, float *gB,
-    float *gC, cudaStream_t s);
-void Klas_SPMM_g_spmm_f32_512x512x32(size_t rows, size_t shared, size_t cols,
-                                     Kuiper_Sparse_Matrix_smatrix__float32 gA,
-                                     size_t *row_indices, float *gB, float *gC);
-void Klas_SPMM_g_spmm_f32_512x512x32_on(
-    size_t rows, size_t shared, size_t cols,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, size_t *row_indices, float *gB,
-    float *gC, cudaStream_t s);
-void Klas_SPMM_g_spmm_f32_512x512x64(size_t rows, size_t shared, size_t cols,
-                                     Kuiper_Sparse_Matrix_smatrix__float32 gA,
-                                     size_t *row_indices, float *gB, float *gC);
-void Klas_SPMM_g_spmm_f32_512x512x64_on(
-    size_t rows, size_t shared, size_t cols,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, size_t *row_indices, float *gB,
-    float *gC, cudaStream_t s);
-void Klas_SPMM_g_spmm_f32_512x512x128(size_t rows, size_t shared, size_t cols,
-                                      Kuiper_Sparse_Matrix_smatrix__float32 gA,
-                                      size_t *row_indices, float *gB,
-                                      float *gC);
-void Klas_SPMM_g_spmm_f32_512x512x128_on(
-    size_t rows, size_t shared, size_t cols,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, size_t *row_indices, float *gB,
-    float *gC, cudaStream_t s);
-void Klas_SPMM_spmm_f32_dispatch(size_t rows, size_t shared, size_t cols,
-                                 Kuiper_Sparse_Matrix_smatrix__float32 gA,
-                                 size_t *row_indices, float *gB, float *gC);
+void Klas_SPMM_spmm_u32(uint32_t rows, uint32_t shared, uint32_t cols,
+    Kuiper_Sparse_Matrix_smatrix__uint32 gA, uint32_t *row_indices,
+    uint32_t *gB, uint32_t *gC);
+void Klas_SPMM_spmm_f32(uint32_t rows, uint32_t shared, uint32_t cols,
+    Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t *row_indices, float *gB,
+    float *gC);
+void Klas_SPMM_g_spmm_f32_32x4x1(uint32_t rows, uint32_t shared, uint32_t cols,
+    Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t *row_indices, float *gB,
+    float *gC);
+void Klas_SPMM_g_spmm_f32_32x8x2(uint32_t rows, uint32_t shared, uint32_t cols,
+    Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t *row_indices, float *gB,
+    float *gC);
+void Klas_SPMM_g_spmm_f32_32x16x4(uint32_t rows, uint32_t shared, uint32_t cols,
+    Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t *row_indices, float *gB,
+    float *gC);
+void Klas_SPMM_g_spmm_f32_32x32x8(uint32_t rows, uint32_t shared, uint32_t cols,
+    Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t *row_indices, float *gB,
+    float *gC);
+void Klas_SPMM_g_spmm_f32_32x64x8(uint32_t rows, uint32_t shared, uint32_t cols,
+    Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t *row_indices, float *gB,
+    float *gC);
+void Klas_SPMM_g_spmm_f32_32x4x1_on(uint32_t rows, uint32_t shared,
+    uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float32 gA,
+    uint32_t *row_indices, float *gB, float *gC, cudaStream_t s);
+void Klas_SPMM_g_spmm_f32_32x8x2_on(uint32_t rows, uint32_t shared,
+    uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float32 gA,
+    uint32_t *row_indices, float *gB, float *gC, cudaStream_t s);
+void Klas_SPMM_g_spmm_f32_32x16x4_on(uint32_t rows, uint32_t shared,
+    uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float32 gA,
+    uint32_t *row_indices, float *gB, float *gC, cudaStream_t s);
+void Klas_SPMM_g_spmm_f32_32x32x8_on(uint32_t rows, uint32_t shared,
+    uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float32 gA,
+    uint32_t *row_indices, float *gB, float *gC, cudaStream_t s);
+void Klas_SPMM_g_spmm_f32_32x64x8_on(uint32_t rows, uint32_t shared,
+    uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float32 gA,
+    uint32_t *row_indices, float *gB, float *gC, cudaStream_t s);
+void Klas_SPMM_g_spmm_f32_64x64x16(uint32_t rows, uint32_t shared,
+    uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float32 gA,
+    uint32_t *row_indices, float *gB, float *gC);
+void Klas_SPMM_g_spmm_f32_64x64x16_on(uint32_t rows, uint32_t shared,
+    uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float32 gA,
+    uint32_t *row_indices, float *gB, float *gC, cudaStream_t s);
+void Klas_SPMM_g_spmm_f32_64x128x16(uint32_t rows, uint32_t shared,
+    uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float32 gA,
+    uint32_t *row_indices, float *gB, float *gC);
+void Klas_SPMM_g_spmm_f32_64x128x16_on(uint32_t rows, uint32_t shared,
+    uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float32 gA,
+    uint32_t *row_indices, float *gB, float *gC, cudaStream_t s);
+void Klas_SPMM_g_spmm_f32_64x256x16(uint32_t rows, uint32_t shared,
+    uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float32 gA,
+    uint32_t *row_indices, float *gB, float *gC);
+void Klas_SPMM_g_spmm_f32_64x256x16_on(uint32_t rows, uint32_t shared,
+    uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float32 gA,
+    uint32_t *row_indices, float *gB, float *gC, cudaStream_t s);
+void Klas_SPMM_g_spmm_f32_64x512x16(uint32_t rows, uint32_t shared,
+    uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float32 gA,
+    uint32_t *row_indices, float *gB, float *gC);
+void Klas_SPMM_g_spmm_f32_64x512x16_on(uint32_t rows, uint32_t shared,
+    uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float32 gA,
+    uint32_t *row_indices, float *gB, float *gC, cudaStream_t s);
+void Klas_SPMM_g_spmm_f32_128x64x16(uint32_t rows, uint32_t shared,
+    uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float32 gA,
+    uint32_t *row_indices, float *gB, float *gC);
+void Klas_SPMM_g_spmm_f32_128x64x16_on(uint32_t rows, uint32_t shared,
+    uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float32 gA,
+    uint32_t *row_indices, float *gB, float *gC, cudaStream_t s);
+void Klas_SPMM_g_spmm_f32_128x128x16(uint32_t rows, uint32_t shared,
+    uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float32 gA,
+    uint32_t *row_indices, float *gB, float *gC);
+void Klas_SPMM_g_spmm_f32_128x128x16_on(uint32_t rows, uint32_t shared,
+    uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float32 gA,
+    uint32_t *row_indices, float *gB, float *gC, cudaStream_t s);
+void Klas_SPMM_g_spmm_f32_128x128x32(uint32_t rows, uint32_t shared,
+    uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float32 gA,
+    uint32_t *row_indices, float *gB, float *gC);
+void Klas_SPMM_g_spmm_f32_128x128x32_on(uint32_t rows, uint32_t shared,
+    uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float32 gA,
+    uint32_t *row_indices, float *gB, float *gC, cudaStream_t s);
+void Klas_SPMM_g_spmm_f32_128x256x16(uint32_t rows, uint32_t shared,
+    uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float32 gA,
+    uint32_t *row_indices, float *gB, float *gC);
+void Klas_SPMM_g_spmm_f32_128x256x16_on(uint32_t rows, uint32_t shared,
+    uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float32 gA,
+    uint32_t *row_indices, float *gB, float *gC, cudaStream_t s);
+void Klas_SPMM_g_spmm_f32_128x256x32(uint32_t rows, uint32_t shared,
+    uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float32 gA,
+    uint32_t *row_indices, float *gB, float *gC);
+void Klas_SPMM_g_spmm_f32_128x256x32_on(uint32_t rows, uint32_t shared,
+    uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float32 gA,
+    uint32_t *row_indices, float *gB, float *gC, cudaStream_t s);
+void Klas_SPMM_g_spmm_f32_128x512x16(uint32_t rows, uint32_t shared,
+    uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float32 gA,
+    uint32_t *row_indices, float *gB, float *gC);
+void Klas_SPMM_g_spmm_f32_128x512x16_on(uint32_t rows, uint32_t shared,
+    uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float32 gA,
+    uint32_t *row_indices, float *gB, float *gC, cudaStream_t s);
+void Klas_SPMM_g_spmm_f32_128x512x32(uint32_t rows, uint32_t shared,
+    uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float32 gA,
+    uint32_t *row_indices, float *gB, float *gC);
+void Klas_SPMM_g_spmm_f32_128x512x32_on(uint32_t rows, uint32_t shared,
+    uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float32 gA,
+    uint32_t *row_indices, float *gB, float *gC, cudaStream_t s);
+void Klas_SPMM_g_spmm_f32_256x64x16(uint32_t rows, uint32_t shared,
+    uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float32 gA,
+    uint32_t *row_indices, float *gB, float *gC);
+void Klas_SPMM_g_spmm_f32_256x64x16_on(uint32_t rows, uint32_t shared,
+    uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float32 gA,
+    uint32_t *row_indices, float *gB, float *gC, cudaStream_t s);
+void Klas_SPMM_g_spmm_f32_256x128x16(uint32_t rows, uint32_t shared,
+    uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float32 gA,
+    uint32_t *row_indices, float *gB, float *gC);
+void Klas_SPMM_g_spmm_f32_256x128x16_on(uint32_t rows, uint32_t shared,
+    uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float32 gA,
+    uint32_t *row_indices, float *gB, float *gC, cudaStream_t s);
+void Klas_SPMM_g_spmm_f32_256x128x32(uint32_t rows, uint32_t shared,
+    uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float32 gA,
+    uint32_t *row_indices, float *gB, float *gC);
+void Klas_SPMM_g_spmm_f32_256x128x32_on(uint32_t rows, uint32_t shared,
+    uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float32 gA,
+    uint32_t *row_indices, float *gB, float *gC, cudaStream_t s);
+void Klas_SPMM_g_spmm_f32_256x256x16(uint32_t rows, uint32_t shared,
+    uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float32 gA,
+    uint32_t *row_indices, float *gB, float *gC);
+void Klas_SPMM_g_spmm_f32_256x256x16_on(uint32_t rows, uint32_t shared,
+    uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float32 gA,
+    uint32_t *row_indices, float *gB, float *gC, cudaStream_t s);
+void Klas_SPMM_g_spmm_f32_256x256x32(uint32_t rows, uint32_t shared,
+    uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float32 gA,
+    uint32_t *row_indices, float *gB, float *gC);
+void Klas_SPMM_g_spmm_f32_256x256x32_on(uint32_t rows, uint32_t shared,
+    uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float32 gA,
+    uint32_t *row_indices, float *gB, float *gC, cudaStream_t s);
+void Klas_SPMM_g_spmm_f32_256x256x64(uint32_t rows, uint32_t shared,
+    uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float32 gA,
+    uint32_t *row_indices, float *gB, float *gC);
+void Klas_SPMM_g_spmm_f32_256x256x64_on(uint32_t rows, uint32_t shared,
+    uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float32 gA,
+    uint32_t *row_indices, float *gB, float *gC, cudaStream_t s);
+void Klas_SPMM_g_spmm_f32_256x512x16(uint32_t rows, uint32_t shared,
+    uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float32 gA,
+    uint32_t *row_indices, float *gB, float *gC);
+void Klas_SPMM_g_spmm_f32_256x512x16_on(uint32_t rows, uint32_t shared,
+    uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float32 gA,
+    uint32_t *row_indices, float *gB, float *gC, cudaStream_t s);
+void Klas_SPMM_g_spmm_f32_256x512x32(uint32_t rows, uint32_t shared,
+    uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float32 gA,
+    uint32_t *row_indices, float *gB, float *gC);
+void Klas_SPMM_g_spmm_f32_256x512x32_on(uint32_t rows, uint32_t shared,
+    uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float32 gA,
+    uint32_t *row_indices, float *gB, float *gC, cudaStream_t s);
+void Klas_SPMM_g_spmm_f32_256x512x64(uint32_t rows, uint32_t shared,
+    uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float32 gA,
+    uint32_t *row_indices, float *gB, float *gC);
+void Klas_SPMM_g_spmm_f32_256x512x64_on(uint32_t rows, uint32_t shared,
+    uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float32 gA,
+    uint32_t *row_indices, float *gB, float *gC, cudaStream_t s);
+void Klas_SPMM_g_spmm_f32_512x64x16(uint32_t rows, uint32_t shared,
+    uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float32 gA,
+    uint32_t *row_indices, float *gB, float *gC);
+void Klas_SPMM_g_spmm_f32_512x64x16_on(uint32_t rows, uint32_t shared,
+    uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float32 gA,
+    uint32_t *row_indices, float *gB, float *gC, cudaStream_t s);
+void Klas_SPMM_g_spmm_f32_512x128x16(uint32_t rows, uint32_t shared,
+    uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float32 gA,
+    uint32_t *row_indices, float *gB, float *gC);
+void Klas_SPMM_g_spmm_f32_512x128x16_on(uint32_t rows, uint32_t shared,
+    uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float32 gA,
+    uint32_t *row_indices, float *gB, float *gC, cudaStream_t s);
+void Klas_SPMM_g_spmm_f32_512x128x32(uint32_t rows, uint32_t shared,
+    uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float32 gA,
+    uint32_t *row_indices, float *gB, float *gC);
+void Klas_SPMM_g_spmm_f32_512x128x32_on(uint32_t rows, uint32_t shared,
+    uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float32 gA,
+    uint32_t *row_indices, float *gB, float *gC, cudaStream_t s);
+void Klas_SPMM_g_spmm_f32_512x256x16(uint32_t rows, uint32_t shared,
+    uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float32 gA,
+    uint32_t *row_indices, float *gB, float *gC);
+void Klas_SPMM_g_spmm_f32_512x256x16_on(uint32_t rows, uint32_t shared,
+    uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float32 gA,
+    uint32_t *row_indices, float *gB, float *gC, cudaStream_t s);
+void Klas_SPMM_g_spmm_f32_512x256x32(uint32_t rows, uint32_t shared,
+    uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float32 gA,
+    uint32_t *row_indices, float *gB, float *gC);
+void Klas_SPMM_g_spmm_f32_512x256x32_on(uint32_t rows, uint32_t shared,
+    uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float32 gA,
+    uint32_t *row_indices, float *gB, float *gC, cudaStream_t s);
+void Klas_SPMM_g_spmm_f32_512x256x64(uint32_t rows, uint32_t shared,
+    uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float32 gA,
+    uint32_t *row_indices, float *gB, float *gC);
+void Klas_SPMM_g_spmm_f32_512x256x64_on(uint32_t rows, uint32_t shared,
+    uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float32 gA,
+    uint32_t *row_indices, float *gB, float *gC, cudaStream_t s);
+void Klas_SPMM_g_spmm_f32_512x512x16(uint32_t rows, uint32_t shared,
+    uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float32 gA,
+    uint32_t *row_indices, float *gB, float *gC);
+void Klas_SPMM_g_spmm_f32_512x512x16_on(uint32_t rows, uint32_t shared,
+    uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float32 gA,
+    uint32_t *row_indices, float *gB, float *gC, cudaStream_t s);
+void Klas_SPMM_g_spmm_f32_512x512x32(uint32_t rows, uint32_t shared,
+    uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float32 gA,
+    uint32_t *row_indices, float *gB, float *gC);
+void Klas_SPMM_g_spmm_f32_512x512x32_on(uint32_t rows, uint32_t shared,
+    uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float32 gA,
+    uint32_t *row_indices, float *gB, float *gC, cudaStream_t s);
+void Klas_SPMM_g_spmm_f32_512x512x64(uint32_t rows, uint32_t shared,
+    uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float32 gA,
+    uint32_t *row_indices, float *gB, float *gC);
+void Klas_SPMM_g_spmm_f32_512x512x64_on(uint32_t rows, uint32_t shared,
+    uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float32 gA,
+    uint32_t *row_indices, float *gB, float *gC, cudaStream_t s);
+void Klas_SPMM_g_spmm_f32_512x512x128(uint32_t rows, uint32_t shared,
+    uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float32 gA,
+    uint32_t *row_indices, float *gB, float *gC);
+void Klas_SPMM_g_spmm_f32_512x512x128_on(uint32_t rows, uint32_t shared,
+    uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float32 gA,
+    uint32_t *row_indices, float *gB, float *gC, cudaStream_t s);
+void Klas_SPMM_spmm_f32_dispatch(uint32_t rows, uint32_t shared, uint32_t cols,
+    Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t *row_indices, float *gB,
+    float *gC);
 
 #ifdef __cplusplus
 }

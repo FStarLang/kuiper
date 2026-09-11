@@ -19,15 +19,16 @@ typedef uint8_t custard_unit;
 #include "kuiper.h"
 #include "kuiper/atomics.h"
 #include "kuiper/tensorcores.h"
+#include "kuiper/wgmma.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-uint32_t Klas_AtomicReduce_reduce_u32(size_t n, uint32_t *a);
-uint64_t Klas_AtomicReduce_reduce_u64(size_t n, uint64_t *a);
-float Klas_AtomicReduce_reduce_f32(size_t n, float *a);
-double Klas_AtomicReduce_reduce_f64(size_t n, double *a);
+uint32_t Klas_AtomicReduce_reduce_u32(uint32_t n, uint32_t *a);
+uint64_t Klas_AtomicReduce_reduce_u64(uint32_t n, uint64_t *a);
+float Klas_AtomicReduce_reduce_f32(uint32_t n, float *a);
+double Klas_AtomicReduce_reduce_f64(uint32_t n, double *a);
 
 #ifdef __cplusplus
 }

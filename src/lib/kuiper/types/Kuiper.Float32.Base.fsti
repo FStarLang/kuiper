@@ -67,7 +67,7 @@ val neg_neg : (x : t) ->
 
 val lt_neg_flip : (x : t) -> (y : t) ->
     Lemma (requires ~(NaN? (kind x)) /\ ~(NaN? (kind y)))
-          (ensures lt x y <==> lte (zero `sub` y) (zero `sub` x))
+          (ensures lt x y <==> lt (zero `sub` y) (zero `sub` x))
           [SMTPat (lt x y)]
 
 val negate_lt_is_lte : (x : t) -> (y : t) ->

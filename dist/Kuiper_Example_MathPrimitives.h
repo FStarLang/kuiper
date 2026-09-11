@@ -21,6 +21,7 @@ typedef uint8_t custard_unit;
 #include "math.h"
 #include "kuiper.h"
 #include "kuiper/tensorcores.h"
+#include "kuiper/wgmma.h"
 
 /* Section 66: the two 16-bit floating-point formats.
 
@@ -227,8 +228,8 @@ CUSTARD_FN custard_bf16 custard_bf16_of_i64(int64_t x)
 #define CUSTARD__F16_BIN(nm, op)                                               \
     CUSTARD_FN custard_f16 custard_f16_##nm(custard_f16 a, custard_f16 b)      \
     {                                                                          \
-        return custard_f16_of_f32(custard_f16_to_f32(a)                        \
-                                      op custard_f16_to_f32(b));               \
+        return custard_f16_of_f32(                                             \
+            custard_f16_to_f32(a) op custard_f16_to_f32(b));                   \
     }
 #define CUSTARD__F16_CMP(nm, op)                                               \
     CUSTARD_FN bool custard_f16_##nm(custard_f16 a, custard_f16 b)             \
@@ -238,8 +239,8 @@ CUSTARD_FN custard_bf16 custard_bf16_of_i64(int64_t x)
 #define CUSTARD__BF16_BIN(nm, op)                                              \
     CUSTARD_FN custard_bf16 custard_bf16_##nm(custard_bf16 a, custard_bf16 b)  \
     {                                                                          \
-        return custard_bf16_of_f32(custard_bf16_to_f32(a)                      \
-                                       op custard_bf16_to_f32(b));             \
+        return custard_bf16_of_f32(                                            \
+            custard_bf16_to_f32(a) op custard_bf16_to_f32(b));                 \
     }
 #define CUSTARD__BF16_CMP(nm, op)                                              \
     CUSTARD_FN bool custard_bf16_##nm(custard_bf16 a, custard_bf16 b)          \
@@ -302,21 +303,20 @@ custard_f16 Kuiper_Example_MathPrimitives_test_erf_f16(custard_f16 x);
 custard_f16 Kuiper_Example_MathPrimitives_test_log2_f16(custard_f16 x);
 custard_f16 Kuiper_Example_MathPrimitives_test_log10_f16(custard_f16 x);
 custard_f16 Kuiper_Example_MathPrimitives_test_exp2_f16(custard_f16 x);
-custard_f16 Kuiper_Example_MathPrimitives_test_pow_f16(custard_f16 x,
-                                                       custard_f16 eta);
-custard_f16 Kuiper_Example_MathPrimitives_test_atan2_f16(custard_f16 x,
-                                                         custard_f16 eta);
-custard_f16 Kuiper_Example_MathPrimitives_test_fmin_f16(custard_f16 x,
-                                                        custard_f16 eta);
-custard_f16 Kuiper_Example_MathPrimitives_test_fmax_f16(custard_f16 x,
-                                                        custard_f16 eta);
-custard_f16 Kuiper_Example_MathPrimitives_test_fmod_f16(custard_f16 x,
-                                                        custard_f16 eta);
-custard_f16 Kuiper_Example_MathPrimitives_test_copysign_f16(custard_f16 x,
-                                                            custard_f16 eta);
-custard_f16 Kuiper_Example_MathPrimitives_test_fma_f16(custard_f16 x,
-                                                       custard_f16 eta,
-                                                       custard_f16 eta1);
+custard_f16 Kuiper_Example_MathPrimitives_test_pow_f16(
+    custard_f16 x, custard_f16 eta);
+custard_f16 Kuiper_Example_MathPrimitives_test_atan2_f16(
+    custard_f16 x, custard_f16 eta);
+custard_f16 Kuiper_Example_MathPrimitives_test_fmin_f16(
+    custard_f16 x, custard_f16 eta);
+custard_f16 Kuiper_Example_MathPrimitives_test_fmax_f16(
+    custard_f16 x, custard_f16 eta);
+custard_f16 Kuiper_Example_MathPrimitives_test_fmod_f16(
+    custard_f16 x, custard_f16 eta);
+custard_f16 Kuiper_Example_MathPrimitives_test_copysign_f16(
+    custard_f16 x, custard_f16 eta);
+custard_f16 Kuiper_Example_MathPrimitives_test_fma_f16(
+    custard_f16 x, custard_f16 eta, custard_f16 eta1);
 custard_f16 Kuiper_Example_MathPrimitives_test_largest_f16(void);
 custard_f16 Kuiper_Example_MathPrimitives_test_infinity_f16(void);
 float Kuiper_Example_MathPrimitives_test_sqrt_f32(float x);
@@ -344,8 +344,8 @@ float Kuiper_Example_MathPrimitives_test_fmin_f32(float x, float eta);
 float Kuiper_Example_MathPrimitives_test_fmax_f32(float x, float eta);
 float Kuiper_Example_MathPrimitives_test_fmod_f32(float x, float eta);
 float Kuiper_Example_MathPrimitives_test_copysign_f32(float x, float eta);
-float Kuiper_Example_MathPrimitives_test_fma_f32(float x, float eta,
-                                                 float eta1);
+float Kuiper_Example_MathPrimitives_test_fma_f32(
+    float x, float eta, float eta1);
 float Kuiper_Example_MathPrimitives_test_largest_f32(void);
 float Kuiper_Example_MathPrimitives_test_infinity_f32(void);
 double Kuiper_Example_MathPrimitives_test_sqrt_f64(double x);
@@ -373,8 +373,8 @@ double Kuiper_Example_MathPrimitives_test_fmin_f64(double x, double eta);
 double Kuiper_Example_MathPrimitives_test_fmax_f64(double x, double eta);
 double Kuiper_Example_MathPrimitives_test_fmod_f64(double x, double eta);
 double Kuiper_Example_MathPrimitives_test_copysign_f64(double x, double eta);
-double Kuiper_Example_MathPrimitives_test_fma_f64(double x, double eta,
-                                                  double eta1);
+double Kuiper_Example_MathPrimitives_test_fma_f64(
+    double x, double eta, double eta1);
 double Kuiper_Example_MathPrimitives_test_largest_f64(void);
 double Kuiper_Example_MathPrimitives_test_infinity_f64(void);
 

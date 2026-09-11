@@ -19,6 +19,7 @@ typedef uint8_t custard_unit;
 #include "kuiper.h"
 #include "kuiper/math.h"
 #include "kuiper/tensorcores.h"
+#include "kuiper/wgmma.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -36,10 +37,10 @@ struct FStar_Pervasives_Native_tuple2__float64_ptr_unit_s {
     double *_1;
 };
 
-void Klas_RowSoftmax_row_softmax_rm_f32(size_t m, size_t n, size_t nth,
-                                        float *a);
-void Klas_RowSoftmax_row_softmax_rm_f64(size_t m, size_t n, size_t nth,
-                                        double *a);
+void Klas_RowSoftmax_row_softmax_rm_f32(
+    uint32_t m, uint32_t n, uint32_t nth, float *a);
+void Klas_RowSoftmax_row_softmax_rm_f64(
+    uint32_t m, uint32_t n, uint32_t nth, double *a);
 
 #ifdef __cplusplus
 }

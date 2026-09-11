@@ -8,8 +8,8 @@ static int g_ok = 1;
 static int g_tests = 0;
 static bool do_check = 1;
 
-static void cpu_matmul(float *A, float *B, float *C, int rows, int shared,
-                       int cols)
+static void cpu_matmul(
+    float *A, float *B, float *C, int rows, int shared, int cols)
 {
     for (int i = 0; i < rows; i++)
         for (int j = 0; j < cols; j++) {
@@ -20,8 +20,8 @@ static void cpu_matmul(float *A, float *B, float *C, int rows, int shared,
         }
 }
 
-static void run_spmm(const char *label, float *AD, int rows, int shared,
-                     int cols)
+static void run_spmm(
+    const char *label, float *AD, int rows, int shared, int cols)
 {
     smatrix_t A = sparsify_f32(AD, rows, shared);
     spmm_idx_t *row_indices = mk_row_indices(rows, A);
@@ -34,18 +34,17 @@ static void run_spmm(const char *label, float *AD, int rows, int shared,
     smatrix_t dA;
     spmm_idx_t *drow_indices;
     float *dB, *dC;
-    upload_spmm_f32(rows, shared, cols, A, row_indices, B, &dA, &drow_indices,
-                    &dB, &dC);
+    upload_spmm_f32(
+        rows, shared, cols, A, row_indices, B, &dA, &drow_indices, &dB, &dC);
 
     float t;
-    TIME_void(Klas_SPMM_spmm_f32(rows, shared, cols, dA, drow_indices, dB, dC),
-              &t);
+    TIME_void(
+        Klas_SPMM_spmm_f32(rows, shared, cols, dA, drow_indices, dB, dC), &t);
     fprintf(stderr,
-            ">>> RES (rows=%d, shared=%d, cols=%d, sparsity=%.2f%%) \t GFLOPS: "
-            "%.3f\n",
-            rows, shared, cols,
-            (1.0 - (double) A.nnz / (rows * shared)) * 100.0,
-            (A.nnz * cols * 2.0) / t / 1e9);
+        ">>> RES (rows=%d, shared=%d, cols=%d, sparsity=%.2f%%) \t GFLOPS: "
+        "%.3f\n",
+        rows, shared, cols, (1.0 - (double) A.nnz / (rows * shared)) * 100.0,
+        (A.nnz * cols * 2.0) / t / 1e9);
 
     float *C = (float *) calloc(rows * cols, sizeof C[0]);
     MUST(cudaMemcpy(C, dC, sizeof C[0] * rows * cols, cudaMemcpyDeviceToHost));
@@ -61,15 +60,15 @@ static void run_spmm(const char *label, float *AD, int rows, int shared,
             if (fabs(C[i] - CD[i]) > atol + rtol * fabs(CD[i])) {
                 if (mismatches == 0)
                     fprintf(stderr,
-                            "FAIL %s: first mismatch at (%d,%d): "
-                            "got %f, ref %f\n",
-                            label, i / cols, i % cols, C[i], CD[i]);
+                        "FAIL %s: first mismatch at (%d,%d): "
+                        "got %f, ref %f\n",
+                        label, i / cols, i % cols, C[i], CD[i]);
                 mismatches++;
             }
         }
         if (mismatches > 0) {
             fprintf(stderr, "FAIL %s: %d mismatches out of %d\n", label,
-                    mismatches, rows * cols);
+                mismatches, rows * cols);
             g_ok = 0;
         }
     }
@@ -87,7 +86,7 @@ static void test_random(int rows, int shared, int cols, int density_pct)
 {
     char label[128];
     snprintf(label, sizeof label, "random(%dx%dx%d, %d%%)", rows, shared, cols,
-             density_pct);
+        density_pct);
     float *AD = mk_dense_matrix_f32(rows, shared, density_pct);
     run_spmm(label, AD, rows, shared, cols);
     free(AD);
@@ -114,8 +113,8 @@ static void test_empty(int rows, int shared, int cols)
 static void test_single_per_row(int rows, int shared, int cols)
 {
     char label[128];
-    snprintf(label, sizeof label, "single_per_row(%dx%dx%d)", rows, shared,
-             cols);
+    snprintf(
+        label, sizeof label, "single_per_row(%dx%dx%d)", rows, shared, cols);
     float *AD = mk_single_per_row_f32(rows, shared);
     run_spmm(label, AD, rows, shared, cols);
     free(AD);

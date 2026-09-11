@@ -18,6 +18,7 @@ typedef uint8_t custard_unit;
 #endif
 #include "kuiper.h"
 #include "kuiper/tensorcores.h"
+#include "kuiper/wgmma.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -32,20 +33,20 @@ typedef struct
         FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_tuple2_uintsize_unit;
 
 struct FStar_Pervasives_Native_tuple2__uintsize_unit_s {
-    size_t _1;
+    uint32_t _1;
 };
 struct FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit_s {
-    size_t _1;
+    uint32_t _1;
     FStar_Pervasives_Native_tuple2__uintsize_unit _2;
 };
 struct
     FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_tuple2_uintsize_unit_s {
-    size_t _1;
+    uint32_t _1;
     FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit _2;
 };
 
-uint32_t Kuiper_Example_TensorRO_ex_read_vec10_bcast(uint32_t *t, size_t i,
-                                                     size_t j1, size_t j2);
+uint32_t Kuiper_Example_TensorRO_ex_read_vec10_bcast(
+    uint32_t *t, uint32_t i, uint32_t j1, uint32_t j2);
 
 #ifdef __cplusplus
 }

@@ -45,10 +45,10 @@ When implementing proofs for a new kernel, study simpler implementations first:
 1. Always include the `#lang-pulse` directive at the module top
 2. Use proper type annotations with Kuiper types (gpu_ref, gpu_array, f32, u64, etc.)
 3. Include separation logic assertions (requires/ensures clauses) that specify pre/post conditions
-4. Use gpu_read/gpu_write for references and proper memory operations
+4. Use !/:= (aliases for read/write) for references and proper memory operations
 5. Apply synchronization operations (gpu_barrier, sync_stream) when coordinating threads
 6. Structure kernels with appropriate GPU scoping (preserves gpu/cpu keywords)
-7. Handle memory transfers with gpu_memcpy_host_to_device and gpu_memcpy_device_to_host
+7. Handle memory transfers with memcpy_host_to_device and memcpy_device_to_host
 8. Use inline_for_extraction and noextract attributes appropriately
 9. **Do not put an implicit argument (`#x` or `{| |}`) in the LAST position of a signature** — F* often fails to instantiate trailing implicits at a call site. Make the final parameter explicit (e.g. a `squash`/unit witness passed as `()`). Trailing implicits are only safe when a later explicit arg forces their inference.
 

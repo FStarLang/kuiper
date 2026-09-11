@@ -18,13 +18,14 @@ typedef uint8_t custard_unit;
 #endif
 #include "kuiper.h"
 #include "kuiper/tensorcores.h"
+#include "kuiper/wgmma.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-__device__ void Kuiper_Example_Mul_kf(uint64_t *a1, uint64_t *a2, uint64_t *ar,
-                                      size_t bid);
+__device__ void Kuiper_Example_Mul_kf(
+    uint64_t *a1, uint64_t *a2, uint64_t *ar, uint32_t bid);
 
 #ifdef __cplusplus
 }

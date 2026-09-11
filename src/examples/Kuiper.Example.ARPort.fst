@@ -278,6 +278,31 @@ assume val kpr_set_max_dyn_shmem (k : unit -> FStar.All.ML unit)
    only the type argument -- so the C type of a fragment local cannot be
    spelled from its Custard type alone.  This is the probe for that: a
    fragment-typed local has to be *declared*, and this is what declares it. *)
+(* Hopper WGMMA.  Unlike the wmma entry points these take the fragment by
+   reference in C++ and are ordinary functions rather than macros, so the
+   [custard_extern] name is the function's own. *)
+[@@FStar.Attributes.custard_extern "kpr_wgmma_fill";
+   FStar.Attributes.custard_c_header "kuiper/wgmma.h"]
+assume val kpr_wgmma_fill (#f : Type0) (fr : f) (x : Kuiper.Float32.t)
+  : FStar.All.ML unit
+
+[@@FStar.Attributes.custard_extern "kpr_wgmma_load_accum";
+   FStar.Attributes.custard_c_header "kuiper/wgmma.h"]
+assume val kpr_wgmma_load_accum (#f #a : Type0) (fr : f)
+                                (c : Pulse.Lib.Array.array a)
+                                (stride : Kuiper.SizeT.t) : FStar.All.ML unit
+
+[@@FStar.Attributes.custard_extern "kpr_wgmma_store";
+   FStar.Attributes.custard_c_header "kuiper/wgmma.h"]
+assume val kpr_wgmma_store (#f #a : Type0) (fr : f)
+                           (c : Pulse.Lib.Array.array a)
+                           (stride : Kuiper.SizeT.t) : FStar.All.ML unit
+
+[@@FStar.Attributes.custard_extern "kpr_wgmma_mma_sync";
+   FStar.Attributes.custard_c_header "kuiper/wgmma.h"]
+assume val kpr_wgmma_mma_sync (#f #a : Type0) (a_ b_ : Pulse.Lib.Array.array a)
+                              (fr : f) : FStar.All.ML unit
+
 [@@FStar.Attributes.custard_extern "wmma::mma_sync";
    FStar.Attributes.custard_c_header "kuiper/tensorcores.h"]
 assume val kpr_mma_sync (#a : Type0) (d x y c : a) : FStar.All.ML unit

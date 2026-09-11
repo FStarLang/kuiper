@@ -11,58 +11,58 @@ __global__ static void kuiper_kernel_5(uint64_t *r6);
 /* hoisted by the Custard Kuiper rule */
 __global__ static void kuiper_kernel_0(uint64_t *r1)
 {
-    uint64_t v = r1[0];
-    r1[0] = (v + 1);
+    uint64_t __anf0 = r1[0];
+    r1[0] = (__anf0 + 1);
 }
 
 /* hoisted by the Custard Kuiper rule */
 __global__ static void kuiper_kernel_1(uint64_t *r2)
 {
-    uint64_t v = r2[0];
-    r2[0] = (v + 1);
+    uint64_t __anf0 = r2[0];
+    r2[0] = (__anf0 + 1);
 }
 
 /* hoisted by the Custard Kuiper rule */
 __global__ static void kuiper_kernel_2(uint64_t *r3)
 {
-    uint64_t v = r3[0];
-    r3[0] = (v + 1);
+    uint64_t __anf0 = r3[0];
+    r3[0] = (__anf0 + 1);
 }
 
 /* hoisted by the Custard Kuiper rule */
 __global__ static void kuiper_kernel_3(uint64_t *r4)
 {
-    uint64_t v = r4[0];
-    r4[0] = (v + 1);
+    uint64_t __anf0 = r4[0];
+    r4[0] = (__anf0 + 1);
 }
 
 /* hoisted by the Custard Kuiper rule */
 __global__ static void kuiper_kernel_4(uint64_t *r5)
 {
-    uint64_t v = r5[0];
-    r5[0] = (v + 1);
+    uint64_t __anf0 = r5[0];
+    r5[0] = (__anf0 + 1);
 }
 
 /* hoisted by the Custard Kuiper rule */
 __global__ static void kuiper_kernel_5(uint64_t *r6)
 {
-    uint64_t v = r6[0];
-    r6[0] = (v + 1);
+    uint64_t __anf0 = r6[0];
+    r6[0] = (__anf0 + 1);
 }
 
 uint64_t *Kuiper_Example_Async1_galloc(uint64_t x)
 {
     uint64_t r = x;
-    uint8_t *tmp = (uint8_t *) KPR_GPU_ALLOC(((size_t) 8ULL), ((size_t) 1ULL));
+    uint8_t *tmp = (uint8_t *) KPR_GPU_ALLOC(((uint32_t) 8U), ((uint32_t) 1U));
     uint64_t *gr = (uint64_t *) tmp;
-    KPR_MEMCPY_H2D(gr, &r, ((size_t) 8ULL));
+    KPR_MEMCPY_H2D(gr, &r, ((uint32_t) 8U));
     return gr;
 }
 
 uint64_t Kuiper_Example_Async1_gread(uint64_t *gr)
 {
     uint64_t r = 0;
-    KPR_MEMCPY_D2H(&r, gr, ((size_t) 8ULL));
+    KPR_MEMCPY_D2H(&r, gr, ((uint32_t) 8U));
     return r;
 }
 
@@ -80,18 +80,18 @@ uint64_t Kuiper_Example_Async1_main(void)
     cudaStream_t s4 = KPR_FRESH_STREAM();
     cudaStream_t s5 = KPR_FRESH_STREAM();
     cudaStream_t s6 = KPR_FRESH_STREAM();
-    KPR_KCALL(kuiper_kernel_0, ((size_t) 1ULL), ((size_t) 1ULL),
-              ((size_t) 0ULL), s1, r1);
-    KPR_KCALL(kuiper_kernel_1, ((size_t) 1ULL), ((size_t) 1ULL),
-              ((size_t) 0ULL), s2, r2);
-    KPR_KCALL(kuiper_kernel_2, ((size_t) 1ULL), ((size_t) 1ULL),
-              ((size_t) 0ULL), s3, r3);
-    KPR_KCALL(kuiper_kernel_3, ((size_t) 1ULL), ((size_t) 1ULL),
-              ((size_t) 0ULL), s4, r4);
-    KPR_KCALL(kuiper_kernel_4, ((size_t) 1ULL), ((size_t) 1ULL),
-              ((size_t) 0ULL), s5, r5);
-    KPR_KCALL(kuiper_kernel_5, ((size_t) 1ULL), ((size_t) 1ULL),
-              ((size_t) 0ULL), s6, r6);
+    KPR_KCALL(kuiper_kernel_0, ((uint32_t) 1U), ((uint32_t) 1U),
+        ((uint32_t) 0U), s1, r1);
+    KPR_KCALL(kuiper_kernel_1, ((uint32_t) 1U), ((uint32_t) 1U),
+        ((uint32_t) 0U), s2, r2);
+    KPR_KCALL(kuiper_kernel_2, ((uint32_t) 1U), ((uint32_t) 1U),
+        ((uint32_t) 0U), s3, r3);
+    KPR_KCALL(kuiper_kernel_3, ((uint32_t) 1U), ((uint32_t) 1U),
+        ((uint32_t) 0U), s4, r4);
+    KPR_KCALL(kuiper_kernel_4, ((uint32_t) 1U), ((uint32_t) 1U),
+        ((uint32_t) 0U), s5, r5);
+    KPR_KCALL(kuiper_kernel_5, ((uint32_t) 1U), ((uint32_t) 1U),
+        ((uint32_t) 0U), s6, r6);
     KPR_SYNC_DEVICE();
     uint64_t v1 = Kuiper_Example_Async1_gread(r1);
     KPR_GPU_FREE(r1);
