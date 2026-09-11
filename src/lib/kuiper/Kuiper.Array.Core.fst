@@ -358,7 +358,7 @@ fn gpu_array_free
   gpu_array_free_gen r gpu_loc
 }
 
-[@@noextract_to "krml"]
+[@@noextract_to "Custard"]
 fn slice_read
   (#a : Type u#0)
   (#i #j : erased nat)
@@ -383,7 +383,7 @@ fn slice_read
   v
 }
 
-[@@noextract_to "krml"]
+[@@noextract_to "Custard"]
 fn slice_write
   (#a:Type u#0)
   (#i #j : erased nat)

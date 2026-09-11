@@ -54,7 +54,7 @@ fn rec alloc_c_shmems
   match d {
     norewrite
     Nil -> {
-      let res : SH.c_shmems d = 0;
+      let res : SH.c_shmems d = ();
       SH.fold_live_c_shmems_nil res #1.0R;
       rewrite SH.live_c_shmems #[] res
         as SH.live_c_shmems res;

@@ -31,7 +31,6 @@ cd "$WORK/kuiper"
 # Deliberately run without opam: a proper package must be self-contained.
 echo ">>> (1) Checking bundled executables"
 ./inst/bin/fstar.exe --version
-./inst/bin/krml -version || true
 ./inst/bin/clang-format --version
 test -f ./inst/share/licenses/clang-format/LICENSE.md
 

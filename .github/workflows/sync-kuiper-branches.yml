@@ -1,6 +1,6 @@
 name: Sync _kuiper branches
 
-# On every push to main, force the _kuiper branch of the FStar and karamel
+# On every push to main, force the _kuiper branch of the FStar
 # repos to point at the exact commit currently pinned by the submodule. This
 # keeps those SHAs reachable on a named branch (e.g. for CI of forks or so the
 # objects are not garbage-collected).
@@ -27,7 +27,7 @@ jobs:
           submodules: recursive
           # Avoid persisting the github-actions[bot] credentials, which are
           # stored as an http.extraheader and would override the PAT in the
-          # push URL below (causing a 403 to FStarLang/FStar and karamel).
+          # push URL below (causing a 403 to FStarLang/FStar).
           persist-credentials: false
 
       - name: Validate KUIPER_ADVANCE_GH_TOKEN
@@ -44,7 +44,7 @@ jobs:
           TOKEN: ${{ secrets.KUIPER_ADVANCE_GH_TOKEN }}
         run: |
           set -eux
-          for dir in FStar karamel; do
+          for dir in FStar; do
             pushd "$dir"
             R=$(git remote get-url origin | grep -Eo '[[:alnum:]]*/[[:alnum:]]*$')
             git push -f "https://${TOKEN}@github.com/$R" HEAD:refs/heads/_kuiper

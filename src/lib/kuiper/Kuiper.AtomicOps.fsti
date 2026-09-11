@@ -13,6 +13,8 @@ open Kuiper.Scalars
 // fixme? No faa for signed ints, needs overflow check or wrapping
 // addition
 
+[@@FStar.Attributes.custard_extern "atomic_add_u32";
+   FStar.Attributes.custard_c_header "kuiper/atomics.h"]
 noextract
 atomic
 fn gpu_faa_u32
@@ -24,6 +26,8 @@ fn gpu_faa_u32
   ensures  r |-> add i 'v0
   ensures  pure (old == reveal 'v0)
 
+[@@FStar.Attributes.custard_extern "atomic_add_u64";
+   FStar.Attributes.custard_c_header "kuiper/atomics.h"]
 noextract
 atomic
 fn gpu_faa_u64
@@ -35,6 +39,8 @@ fn gpu_faa_u64
   ensures  r |-> add i 'v0
   ensures  pure (old == reveal 'v0)
 
+[@@FStar.Attributes.custard_extern "atomic_add_f32";
+   FStar.Attributes.custard_c_header "kuiper/atomics.h"]
 noextract
 atomic
 fn gpu_faa_f32
@@ -46,6 +52,8 @@ fn gpu_faa_f32
   ensures  r |-> add i 'v0
   ensures  pure (old == reveal 'v0)
 
+[@@FStar.Attributes.custard_extern "atomic_add_f64";
+   FStar.Attributes.custard_c_header "kuiper/atomics.h"]
 noextract
 atomic
 fn gpu_faa_f64

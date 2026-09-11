@@ -11,61 +11,85 @@ module BF16 = Kuiper.BFloat16
 module F32 = Kuiper.Float32
 module F64 = Kuiper.Float64
 
+[@@FStar.Attributes.custard_extern "kpr_cast_f16_to_f32";
+   FStar.Attributes.custard_c_header "kuiper/math.h"]
 val cast_f16_to_f32 : F16.t -> F32.t
 val cast_f16_to_f32_ok :
   x:F16.t -> y:real -> Lemma (requires x %~ y) (ensures cast_f16_to_f32 x %~ y)
                              [SMTPat (cast_f16_to_f32 x %~ y)]
 
+[@@FStar.Attributes.custard_extern "kpr_cast_f16_to_f64";
+   FStar.Attributes.custard_c_header "kuiper/math.h"]
 val cast_f16_to_f64 : F16.t -> F64.t
 val cast_f16_to_f64_ok :
   x:F16.t -> y:real -> Lemma (requires x %~ y) (ensures cast_f16_to_f64 x %~ y)
                              [SMTPat (cast_f16_to_f64 x %~ y)]
 
+[@@FStar.Attributes.custard_extern "kpr_cast_f32_to_f16";
+   FStar.Attributes.custard_c_header "kuiper/math.h"]
 val cast_f32_to_f16 : F32.t -> F16.t
 val cast_f32_to_f16_ok :
   x:F32.t -> y:real -> Lemma (requires x %~ y) (ensures cast_f32_to_f16 x %~ y)
                              [SMTPat (cast_f32_to_f16 x %~ y)]
 
+[@@FStar.Attributes.custard_extern "kpr_cast_f32_to_f64";
+   FStar.Attributes.custard_c_header "kuiper/math.h"]
 val cast_f32_to_f64 : F32.t -> F64.t
 val cast_f32_to_f64_ok :
   x:F32.t -> y:real -> Lemma (requires x %~ y) (ensures cast_f32_to_f64 x %~ y)
                              [SMTPat (cast_f32_to_f64 x %~ y)]
 
+[@@FStar.Attributes.custard_extern "kpr_cast_bf16_to_f32";
+   FStar.Attributes.custard_c_header "kuiper/math.h"]
 val cast_bf16_to_f32 : BF16.t -> F32.t
 val cast_bf16_to_f32_ok :
   x:BF16.t -> y:real -> Lemma (requires x %~ y) (ensures cast_bf16_to_f32 x %~ y)
                              [SMTPat (cast_bf16_to_f32 x %~ y)]
 
+[@@FStar.Attributes.custard_extern "kpr_cast_f32_to_bf16";
+   FStar.Attributes.custard_c_header "kuiper/math.h"]
 val cast_f32_to_bf16 : F32.t -> BF16.t
 val cast_f32_to_bf16_ok :
   x:F32.t -> y:real -> Lemma (requires x %~ y) (ensures cast_f32_to_bf16 x %~ y)
                              [SMTPat (cast_f32_to_bf16 x %~ y)]
 
+[@@FStar.Attributes.custard_extern "kpr_cast_f16_to_bf16";
+   FStar.Attributes.custard_c_header "kuiper/math.h"]
 val cast_f16_to_bf16 : F16.t -> BF16.t
 val cast_f16_to_bf16_ok :
   x:F16.t -> y:real -> Lemma (requires x %~ y) (ensures cast_f16_to_bf16 x %~ y)
                              [SMTPat (cast_f16_to_bf16 x %~ y)]
 
+[@@FStar.Attributes.custard_extern "kpr_cast_bf16_to_f16";
+   FStar.Attributes.custard_c_header "kuiper/math.h"]
 val cast_bf16_to_f16 : BF16.t -> F16.t
 val cast_bf16_to_f16_ok :
   x:BF16.t -> y:real -> Lemma (requires x %~ y) (ensures cast_bf16_to_f16 x %~ y)
                              [SMTPat (cast_bf16_to_f16 x %~ y)]
 
+[@@FStar.Attributes.custard_extern "kpr_cast_bf16_to_f64";
+   FStar.Attributes.custard_c_header "kuiper/math.h"]
 val cast_bf16_to_f64 : BF16.t -> F64.t
 val cast_bf16_to_f64_ok :
   x:BF16.t -> y:real -> Lemma (requires x %~ y) (ensures cast_bf16_to_f64 x %~ y)
                              [SMTPat (cast_bf16_to_f64 x %~ y)]
 
+[@@FStar.Attributes.custard_extern "kpr_cast_f64_to_bf16";
+   FStar.Attributes.custard_c_header "kuiper/math.h"]
 val cast_f64_to_bf16 : F64.t -> BF16.t
 val cast_f64_to_bf16_ok :
   x:F64.t -> y:real -> Lemma (requires x %~ y) (ensures cast_f64_to_bf16 x %~ y)
                              [SMTPat (cast_f64_to_bf16 x %~ y)]
 
+[@@FStar.Attributes.custard_extern "kpr_cast_f64_to_f16";
+   FStar.Attributes.custard_c_header "kuiper/math.h"]
 val cast_f64_to_f16 : F64.t -> F16.t
 val cast_f64_to_f16_ok :
   x:F64.t -> y:real -> Lemma (requires x %~ y) (ensures cast_f64_to_f16 x %~ y)
                              [SMTPat (cast_f64_to_f16 x %~ y)]
 
+[@@FStar.Attributes.custard_extern "kpr_cast_f64_to_f32";
+   FStar.Attributes.custard_c_header "kuiper/math.h"]
 val cast_f64_to_f32 : F64.t -> F32.t
 val cast_f64_to_f32_ok :
   x:F64.t -> y:real -> Lemma (requires x %~ y) (ensures cast_f64_to_f32 x %~ y)
