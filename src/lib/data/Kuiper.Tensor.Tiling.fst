@@ -105,6 +105,7 @@ fn array2_tile
   (#f : perm)
   requires
     gm |-> Frac f em
+  ensures array_exists (core gm)
   ensures
     forall+
       (tr : natlt (rows / trows))
@@ -149,7 +150,7 @@ fn array2_tile
 
 #push-options "--z3rlimit 40"
 ghost
-fn array2_untile'
+fn array2_untile_with_exists'
   (#et:Type0)
   (#rows #cols : nat)
   (#l : layout2 rows cols)
@@ -158,6 +159,7 @@ fn array2_untile'
   (tcols : pos { tcols /? cols })
   (tf : natlt (rows / trows) -> natlt (cols / tcols) -> chest2 et trows tcols)
   (#f : perm)
+  requires array_exists (core gm)
   requires
     pure (SZ.fits (l.ulen))
   requires
@@ -206,9 +208,70 @@ fn array2_untile'
   forevery_unfactor_2 rows (rows / trows) trows
     cols (cols / tcols) tcols
     (fun i j -> tensor_pts_to_cell gm #f (idx2 i j) (acc2 em i j));
-  tensor_iraise2 gm;
+  tensor_iraise2_with_exists gm;
 }
+
+ghost
+fn array2_untile'
+  (#et:Type0)
+  (#rows #cols : nat)
+  (#l : layout2 rows cols)
+  (gm : array2 et l)
+  (trows : pos { trows /? rows })
+  (tcols : pos { tcols /? cols })
+  (tf : natlt (rows / trows) -> natlt (cols / tcols) -> chest2 et trows tcols)
+  (#f : perm)
+  requires pure (nonempty (abs ((rows / trows) @| (cols / tcols) @| INil)))
+  requires
+    pure (SZ.fits (l.ulen))
+  requires
+    forall+
+      (tr : natlt (rows / trows))
+      (tc : natlt (cols / tcols)).
+      (array2_subtile gm trows tcols tr tc |-> Frac f (tf tr tc))
+  ensures
+    gm |-> Frac f (ematrix_from_tiles trows tcols tf)
+{
+  let first = nonempty_elim (abs ((rows / trows) @| (cols / tcols) @| INil));
+  let tr = first._1;
+  let tc = first._2._1;
+  forevery_extract_2 tr tc _;
+  tensor_ilower2 (array2_subtile gm trows tcols tr tc);
+  tensor_iraise2_with_exists (array2_subtile gm trows tcols tr tc);
+  rewrite array_exists (core (array2_subtile gm trows tcols tr tc))
+    as array_exists (core gm);
+  Pulse.Lib.Trade.elim_trade _ _;
+  array2_untile_with_exists' gm trows tcols tf;
+}
+
 #pop-options
+
+ghost
+fn array2_untile_with_exists
+  (#et:Type0)
+  (#rows #cols : nat)
+  (#l : layout2 rows cols)
+  (gm : array2 et l)
+  (trows : pos { trows /? rows })
+  (tcols : pos { tcols /? cols })
+  (#em : chest2 et rows cols)
+  (#f : perm)
+  requires array_exists (core gm)
+  requires
+    pure (SZ.fits (l.ulen))
+  requires
+    forall+
+      (tr : natlt (rows / trows))
+      (tc : natlt (cols / tcols)).
+        array2_subtile gm trows tcols tr tc |-> Frac f (ematrix_subtile em trows tcols tr tc)
+  ensures
+    gm |-> Frac f em
+{
+  array2_untile_with_exists' gm trows tcols _;
+  from_subtiles_id em trows tcols;
+  rewrite each ematrix_from_tiles trows tcols (ematrix_subtile em trows tcols)
+            as em;
+}
 
 ghost
 fn array2_untile
@@ -220,6 +283,7 @@ fn array2_untile
   (tcols : pos { tcols /? cols })
   (#em : chest2 et rows cols)
   (#f : perm)
+  requires pure (nonempty (abs ((rows / trows) @| (cols / tcols) @| INil)))
   requires
     pure (SZ.fits (l.ulen))
   requires
@@ -237,7 +301,7 @@ fn array2_untile
 }
 
 ghost
-fn array2_untile_underspec
+fn array2_untile_underspec_with_exists
   (#et:Type0)
   (#rows #cols : nat)
   (#l : layout2 rows cols)
@@ -245,6 +309,7 @@ fn array2_untile_underspec
   (trows : pos { trows /? rows })
   (tcols : pos { tcols /? cols })
   (#f : perm)
+  requires array_exists (core gm)
   requires
     pure (SZ.fits (l.ulen))
   requires
@@ -256,22 +321,39 @@ fn array2_untile_underspec
   ensures
     exists* (em : chest2 et rows cols). gm |-> Frac f em
 {
-  forevery_flatten _;
-  let cf = forevery_exists #(natlt (rows / trows) & natlt (cols / tcols)) _;
-  let em = ematrix_from_tiles trows tcols (fun x y -> cf (x,y));
-  ghost
-  fn aux (rc : natlt (rows / trows) & natlt (cols / tcols))
-    requires
-      array2_subtile gm trows tcols (fst rc) (snd rc) |-> Frac f (cf rc)
-    ensures
-      array2_subtile gm trows tcols (fst rc) (snd rc) |-> Frac f (ematrix_subtile em trows tcols (fst rc) (snd rc))
-  {
-    rewrite each cf rc as ematrix_subtile em trows tcols (fst rc) (snd rc);
-  };
-  forevery_map _ _ aux;
-  forevery_unflatten #(natlt (rows / trows)) #(natlt (cols / tcols))
-    (fun r c -> array2_subtile gm trows tcols r c |-> Frac f (ematrix_subtile em trows tcols r c));
-  array2_untile gm trows tcols;
+  let tf = forevery_exists_2
+    (fun (tr : natlt (rows / trows)) (tc : natlt (cols / tcols))
+         (em : chest2 et trows tcols) ->
+      array2_subtile gm trows tcols tr tc |-> Frac f em);
+  array2_untile_with_exists' gm trows tcols tf;
+}
+
+ghost
+fn array2_untile_underspec
+  (#et:Type0)
+  (#rows #cols : nat)
+  (#l : layout2 rows cols)
+  (gm : array2 et l)
+  (trows : pos { trows /? rows })
+  (tcols : pos { tcols /? cols })
+  (#f : perm)
+  requires pure (nonempty (abs ((rows / trows) @| (cols / tcols) @| INil)))
+  requires
+    pure (SZ.fits (l.ulen))
+  requires
+    forall+
+      (tr : natlt (rows / trows))
+      (tc : natlt (cols / tcols)).
+        (exists* (em : chest2 et trows tcols).
+          array2_subtile gm trows tcols tr tc |-> Frac f em)
+  ensures
+    exists* (em : chest2 et rows cols). gm |-> Frac f em
+{
+  let tf = forevery_exists_2
+    (fun (tr : natlt (rows / trows)) (tc : natlt (cols / tcols))
+         (em : chest2 et trows tcols) ->
+      array2_subtile gm trows tcols tr tc |-> Frac f em);
+  array2_untile' gm trows tcols tf;
 }
 
 #push-options "--z3rlimit 40"
@@ -448,6 +530,7 @@ fn array2_explode_tiled
   (#em : chest2 et rows cols)
   requires
     gm |-> em
+  ensures array_exists (core gm)
   ensures
     forall+ (tr : natlt (rows / trows)) (tc : natlt (cols / tcols))
             (i : natlt trows) (j : natlt tcols).
@@ -491,6 +574,7 @@ fn array2_implode_tiled
   (trows : pos { trows /? rows })
   (tcols : pos { tcols /? cols })
   (val_fn : natlt (rows / trows) -> natlt (cols / tcols) -> natlt trows -> natlt tcols -> GTot et)
+  requires array_exists (core gm)
   requires
     pure (SZ.fits (l.ulen))
   requires
@@ -528,5 +612,5 @@ fn array2_implode_tiled
     tensor_iraise2 (array2_subtile gm trows tcols tr tc);
   };
   forevery_map_2 _ _ aux;
-  array2_untile gm trows tcols;
+  array2_untile_with_exists gm trows tcols;
 }

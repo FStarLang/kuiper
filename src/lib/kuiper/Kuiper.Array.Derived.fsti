@@ -71,5 +71,7 @@ fn gpu_array_unslice_1'
   (#sz:nat)
   (arr : larray a sz)
   (#f : perm)
-  requires forall+ (i: natlt sz). exists* v. pts_to_cell arr #f i v
+  requires array_exists arr
+  requires
+    (forall+ (i: natlt sz). exists* v. pts_to_cell arr #f i v)
   ensures  exists* v. pts_to arr #f v

@@ -111,6 +111,7 @@ fn explode2
   (#f : perm)
   (#s : chest2 et m n)
   requires a |-> Frac f s
+  ensures array_exists (core a)
   ensures
     forall+ (r : natlt m) (c : natlt n).
       tensor_pts_to_cell a #f (idx2 r c) (acc2 s r c)
@@ -127,6 +128,7 @@ fn implode2
   (a : array2 et l)
   (#f : perm)
   (#s : chest2 et m n)
+  requires pure (nonempty (abs (m @| n @| INil)))
   requires
     pure (SZ.fits (l.ulen))
   requires

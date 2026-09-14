@@ -13,7 +13,6 @@ open Kuiper.Array2.Strided
 module T = Kuiper.Tensor
 module SZ = Kuiper.SizeT
 
-
 inline_for_extraction noextract
 fn load_cell
   (#et : Type0)
@@ -133,12 +132,13 @@ fn matrix_vec_store
 
   forevery_rw_size (chunk et) ((offset + chunk et) - offset);
   strided.pf i (j + chunk et - 1);
-  array_unslice_1' (core gm) offset (offset + chunk et);
+  cells_to_nonempty_slice (core gm) offset (offset + chunk et);
   fold live_vec (core gm) offset;
 
   array_vec_cpy_local (core gm) offset arr k;
 
-  array_slice_1' (core gm) offset (offset + chunk et);
+  slice_to_cells (core gm) offset (offset + chunk et);
+
   forevery_rw_size ((offset + chunk et) - offset) (chunk et);
   forevery_map #(natlt (chunk et))
     (fun x ->
@@ -268,7 +268,7 @@ fn lower_cont
     };
   cl.pf (sz - 1);
   forevery_rw_size sz ((cl.offset + sz) - cl.offset);
-  array_unslice_1' (core a) cl.offset (cl.offset + sz);
+  cells_to_nonempty_slice (core a) cl.offset (cl.offset + sz);
 }
 
 ghost
@@ -285,7 +285,8 @@ fn raise_cont
 {
   let s' = seq_to_chest1 s;
   cl.pf (sz - 1);
-  array_slice_1' (core a) cl.offset (cl.offset + sz);
+  slice_to_cells (core a) cl.offset (cl.offset + sz);
+
   forevery_rw_size ((cl.offset + sz) - cl.offset) sz;
   forevery_map #(natlt sz)
     (fun i ->
@@ -299,7 +300,7 @@ fn raise_cont
     };
   forevery_abs1_iso_back #sz
     (fun i -> tensor_pts_to_cell a #f i (acc s' i));
-  tensor_implode a;
+  tensor_implode_with_exists a;
 }
 
 let aligned_cont_offset

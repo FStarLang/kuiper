@@ -427,6 +427,7 @@ fn tensor_explode
   (#s : chest d et)
   requires
     tensor_pts_to a #f s
+  ensures array_exists (core a)
   ensures
     forall+ (i : abs d).
       tcell a #f i (acc s i)
@@ -450,12 +451,42 @@ fn tensor_explode
 }
 
 ghost
+fn tensor_implode_with_exists
+  (#et : Type0) (#r : nat) (#d : shape r)
+  (#l : tlayout d)
+  (a : tensor et l)
+  (#f : perm)
+  (#s : chest d et)
+  requires array_exists (core a)
+  requires
+    pure (SZ.fits (tlayout_ulen l))
+  requires
+    forall+ (i : abs d).
+      tcell a #f i (acc s i)
+  ensures
+    tensor_pts_to a #f s
+{
+  rewrite (forall+ (i : abs d). tcell a #f i (acc s i))
+       as (forall+ (i : abs d). Cell a i |-> Frac f (acc s i))
+       by unfold_tensor_cell ();
+  forevery_ext
+    (fun (i : abs d) ->
+      Cell a i |-> Frac f (acc s i))
+    (fun (i : abs d) ->
+      Cell a i |-> Frac f ((tensor_aview et l).ctn.acc s i));
+  forevery_rw_type _ (tensor_aview et l).iview.ait _;
+  A.varray_implode_with_exists a;
+  fold tensor_pts_to a #f s;
+}
+
+ghost
 fn tensor_implode
   (#et : Type0) (#r : nat) (#d : shape r)
   (#l : tlayout d)
   (a : tensor et l)
   (#f : perm)
   (#s : chest d et)
+  requires pure (nonempty (abs d))
   requires
     pure (SZ.fits (tlayout_ulen l))
   requires
@@ -486,6 +517,7 @@ fn tensor_ilower
   (#s : chest d et)
   requires
     tensor_pts_to a #f s
+  ensures array_exists (core a)
   ensures
     pure (SZ.fits (tlayout_ulen l)) **
     (forall+ (i : abs d).
@@ -512,6 +544,7 @@ fn tensor_iraise
   (a : tensor et l)
   (#f : perm)
   (#s : chest d et)
+  requires array_exists (core a)
   requires
     pure (SZ.fits (tlayout_ulen l)) **
     (forall+ (i : abs d).
@@ -529,7 +562,7 @@ fn tensor_iraise
       as
         tcell a #f i (acc s i);
     };
-  tensor_implode a;
+  tensor_implode_with_exists a;
 }
 
 inline_for_extraction noextract
@@ -593,6 +626,7 @@ fn tensor_explode2
   (#s : chest2 et rows cols)
   requires
     tensor_pts_to a #f s
+  ensures array_exists (core a)
   ensures
     forall+ (ij : natlt rows & natlt cols).
       tcell a #f ((idx2 (fst ij) (snd ij))) ((acc s (idx2 (fst ij) (snd ij))))
@@ -608,11 +642,39 @@ fn tensor_explode2
 }
 
 ghost
+fn tensor_implode2_with_exists
+  (#et : Type0) (#rows #cols : nat) (#l : layout2 rows cols)
+  (a : tensor et l)
+  (#f : perm)
+  (#s : chest2 et rows cols)
+  requires array_exists (core a)
+  requires
+    pure (SZ.fits (tlayout_ulen l))
+  requires
+    forall+ (ij : natlt rows & natlt cols).
+      tcell a #f ((idx2 (fst ij) (snd ij))) ((acc s (idx2 (fst ij) (snd ij))))
+  ensures
+    tensor_pts_to a #f s
+{
+  forevery_iso #(natlt rows & natlt cols) #(abs (rows @| cols @| INil))
+    (bij_sym abs_bij2)
+    (fun (ij : natlt rows & natlt cols) ->
+      tcell a #f ((idx2 (fst ij) (snd ij))) ((acc s (idx2 (fst ij) (snd ij)))));
+  forevery_ext
+    (fun (i : abs (rows @| cols @| INil)) ->
+      tcell a #f (idx2 (fst ((bij_sym abs_bij2).gg i)) (snd ((bij_sym abs_bij2).gg i)))
+        (acc s (idx2 (fst ((bij_sym abs_bij2).gg i)) (snd ((bij_sym abs_bij2).gg i)))))
+    (fun (i : abs (rows @| cols @| INil)) -> tcell a #f i (acc s i));
+  tensor_implode_with_exists a;
+}
+
+ghost
 fn tensor_implode2
   (#et : Type0) (#rows #cols : nat) (#l : layout2 rows cols)
   (a : tensor et l)
   (#f : perm)
   (#s : chest2 et rows cols)
+  requires pure (nonempty (abs (rows @| cols @| INil)))
   requires
     pure (SZ.fits (tlayout_ulen l))
   requires
@@ -641,6 +703,7 @@ fn tensor_ilower2
   (#s : chest2 et rows cols)
   requires
     tensor_pts_to a #f s
+  ensures array_exists (core a)
   ensures
     pure (SZ.fits (tlayout_ulen l)) **
     (forall+ (r : natlt rows) (c : natlt cols).
@@ -654,11 +717,32 @@ fn tensor_ilower2
 }
 
 ghost
+fn tensor_iraise2_with_exists
+  (#et : Type0) (#rows #cols : nat) (#l : layout2 rows cols)
+  (a : tensor et l)
+  (#f : perm)
+  (#s : chest2 et rows cols)
+  requires array_exists (core a)
+  requires
+    pure (SZ.fits (tlayout_ulen l)) **
+    (forall+ (r : natlt rows) (c : natlt cols).
+      tcell a #f ((idx2 r c)) ((acc s (idx2 r c))))
+  ensures
+    tensor_pts_to a #f s
+{
+  forevery_flatten'
+    (fun (ij : natlt rows & natlt cols) ->
+      tcell a #f ((idx2 (fst ij) (snd ij))) ((acc s (idx2 (fst ij) (snd ij)))));
+  tensor_implode2_with_exists a;
+}
+
+ghost
 fn tensor_iraise2
   (#et : Type0) (#rows #cols : nat) (#l : layout2 rows cols)
   (a : tensor et l)
   (#f : perm)
   (#s : chest2 et rows cols)
+  requires pure (nonempty (abs (rows @| cols @| INil)))
   requires
     pure (SZ.fits (tlayout_ulen l)) **
     (forall+ (r : natlt rows) (c : natlt cols).

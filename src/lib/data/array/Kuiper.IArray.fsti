@@ -146,6 +146,9 @@ fn iarray_ext
   requires a |-> Frac f v1
   ensures  a |-> Frac f v2
 
+(* Exposing cells also exposes the allocation witness. Retain it for
+   [iarray_implode_with_exists] when the index type may be empty.
+   [iarray_implode] recovers the witness from a cell in a nonempty index type. *)
 ghost
 fn iarray_explode
   (#et:Type)
@@ -155,10 +158,27 @@ fn iarray_explode
   (#v : (vw.ait -> GTot et))
   requires
     a |-> Frac f v
+  ensures array_exists (core a)
   ensures
     forall+ (i : vw.ait).
       Cell a i |-> Frac f (v i)
 
+ghost
+fn iarray_implode_with_exists
+  (#et:Type)
+  (#vw : aiview)
+  (a : iarray et vw)
+  (#f : perm)
+  (#v : (vw.ait -> GTot et))
+  requires pure (SZ.fits (len vw))
+  requires array_exists (core a)
+  requires
+    forall+ (i : vw.ait).
+      Cell a i |-> Frac f (v i)
+  ensures
+    a |-> Frac f v
+
+(* With a nonempty index type, one owned cell supplies the allocation witness. *)
 ghost
 fn iarray_implode
   (#et:Type)
@@ -167,6 +187,7 @@ fn iarray_implode
   (#f : perm)
   (#v : (vw.ait -> GTot et))
   requires pure (SZ.fits (len vw))
+  requires pure (nonempty vw.ait)
   requires
     forall+ (i : vw.ait).
       Cell a i |-> Frac f (v i)

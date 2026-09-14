@@ -93,6 +93,7 @@ fn explode1
   (#f : perm)
   (#s : chest1 et len)
   requires a |-> Frac f s
+  ensures array_exists (core a)
   ensures
     forall+ (i : natlt len).
       Cell a (idx1 i) |-> Frac f (acc1 s i)
@@ -109,6 +110,7 @@ fn implode1
   (a : array1 et l)
   (#f : perm)
   (#s : chest1 et len)
+  requires pure (nonempty (abs (len @| INil)))
   requires
     pure (SZ.fits (tlayout_ulen l))
   requires

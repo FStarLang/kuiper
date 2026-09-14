@@ -174,6 +174,7 @@ fn varray_explode
   (#v : st)
   requires
     a |-> Frac f v
+  ensures array_exists (core a)
   ensures
     (* NB: the [has_pts_to] instance is given explicitly.  In this file [varray]
        is transparent, so [Cell a i |-> ...] would resolve to
@@ -192,12 +193,36 @@ fn varray_explode
 }
 
 ghost
+fn varray_implode_with_exists
+  (#et #st : Type)
+  (#vw : aview et st)
+  (a : varray vw)
+  (#f : perm)
+  (#v : st)
+  requires array_exists (core a)
+  requires
+    pure (SZ.fits (len vw))
+  requires
+    forall+ (i : vw.iview.ait).
+      vcell a #f i (vw.ctn.acc v i)
+  ensures
+    a |-> Frac f v
+{
+  rewrite (forall+ (i : vw.iview.ait). varray_pts_to_cell a #f i (vw.ctn.acc v i))
+       as (forall+ (i : vw.iview.ait). IArray.iarray_pts_to_cell a #f i (vw.ctn.acc v i))
+       by unfold_varray_cell ();
+  IArray.iarray_implode_with_exists a;
+  fold varray_pts_to a #f v;
+}
+
+ghost
 fn varray_implode
   (#et #st : Type)
   (#vw : aview et st)
   (a : varray vw)
   (#f : perm)
   (#v : st)
+  requires pure (nonempty vw.iview.ait)
   requires
     pure (SZ.fits (len vw))
   requires
@@ -494,7 +519,8 @@ fn varray_abs
       rewrite each vw1.ctn.acc (to_seq vw v) i
                 as vw.ctn.acc v i';
     };
-  varray_implode (from_array vw a) #f;
+  rewrite array_exists (core a1) as array_exists (core (from_array vw a));
+  varray_implode_with_exists (from_array vw a) #f;
 }
 
 ghost
@@ -576,7 +602,7 @@ fn varray_concr
       ()
   };
 
-  array_unslice_1 (core a) #f #(to_seq vw v);
+  array_unslice_1_with_exists (core a) #f #(to_seq vw v);
   ()
 }
 
@@ -589,6 +615,7 @@ fn varray_iconcr
   (#v : erased st)
   requires
     a |-> Frac f v
+  ensures array_exists (core a)
   ensures
     pure (SZ.fits (len vw)) **
     (forall+ (i : vw.iview.ait).
@@ -621,6 +648,7 @@ fn varray_iabs
   (a : varray vw)
   (#f : perm)
   (#v : erased st)
+  requires array_exists (core a)
   requires
     pure (SZ.fits (len vw)) **
     (forall+ (i : vw.iview.ait).
@@ -642,7 +670,7 @@ fn varray_iabs
       Cell a i |-> Frac f (vw.ctn.acc v i);
   };
   forevery_map _ _ aux;
-  IArray.iarray_implode a;
+  IArray.iarray_implode_with_exists a;
   fold varray_pts_to a #f v;
 }
 
@@ -708,7 +736,8 @@ fn varray_view_equiv_
       varray_cell_reindex a i (from_array vw' (core a)) i';
       rewrite each vw.ctn.acc v i as vw'.ctn.acc v i';
     };
-  varray_implode (from_array vw' (core a));
+  rewrite array_exists (core a) as array_exists (core (from_array vw' (core a)));
+  varray_implode_with_exists (from_array vw' (core a));
 }
 
 inline_for_extraction noextract
@@ -898,7 +927,7 @@ fn varray_join2_
     (fun (i: vw2.iview.ait) -> varray_pts_to_cell ar #f i (vw2.ctn.acc v2 i));
   (* Use [forevery_map'], which allows the index type to change to a
      propositionally equal one: the resulting [forall+] must be stated over
-     [(sum_aview vw1 vw2).iview.ait] (as [varray_implode] expects), and the
+     [(sum_aview vw1 vw2).iview.ait] (as [varray_implode_with_exists] expects), and the
      solver no longer identifies that with [either ...] after the fact. *)
   sum_aview_ait_eq vw1 vw2 ();
   forevery_map'
@@ -930,7 +959,9 @@ fn varray_join2_
         }
       }
     };
-  varray_implode (from_array (sum_aview vw1 vw2) (core al)) #f #(v1, v2);
+  rewrite array_exists (core al)
+    as array_exists (core (from_array (sum_aview vw1 vw2) (core al)));
+  varray_implode_with_exists (from_array (sum_aview vw1 vw2) (core al)) #f #(v1, v2);
 }
 
 inline_for_extraction noextract

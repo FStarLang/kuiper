@@ -65,6 +65,8 @@ fn tensor_apply_bij
   forevery_ext #(abs d2)
     (fun (i : abs d2) -> pts_to_cell (core a) #fp (l.imap.f (f.gg i)) (acc m (f.gg i)))
     (fun (i : abs d2) -> pts_to_cell (core (from_array (tlayout_bij f l) (core a))) #fp ((tlayout_bij f l).imap.f i) (acc (mk d2 (fun a -> acc m (a <~| f))) i));
+  rewrite array_exists (core a)
+    as array_exists (core (from_array (tlayout_bij f l) (core a)));
   tensor_iraise (from_array (tlayout_bij f l) (core a));
   ()
 }
@@ -436,7 +438,8 @@ fn tensor_fold_outer
           |-> Frac f (acc (fold_chest m) j);
     };
 
-  tensor_implode (from_array (tlayout_fold_outer l) (core a));
+  rewrite array_exists (core a) as array_exists (core (from_array (tlayout_fold_outer l) (core a)));
+  tensor_implode_with_exists (from_array (tlayout_fold_outer l) (core a));
 }
 
 ghost
@@ -477,7 +480,8 @@ fn tensor_unfold_outer
           |-> Frac f (acc (unfold_chest m) i);
     };
 
-  tensor_implode (from_array l (core a));
+  rewrite array_exists (core a) as array_exists (core (from_array l (core a)));
+  tensor_implode_with_exists (from_array l (core a));
 }
 
 (* The generic bijection lemmas produce chests of the shape

@@ -151,36 +151,6 @@ let thread_live_chunks
 
 open Kuiper.Bijection
 
-// TODO por que esto no está definido?
-ghost
-fn array_slice_1'
-  (#a:Type u#0)
-  (#sz:nat)
-  (arr : larray a sz)
-  (#f : perm)
-  (i j : natle sz)
-  (#v : erased (seq a){ Seq.length v == j - i })
-  requires pts_to_slice arr #f i j v
-  ensures  forall+ (k: natlt (j - i)). pts_to_cell arr #f (i + k) (v @! k)
-{
-  admit()
-}
-
-ghost
-fn array_unslice_1'
-  (#a:Type u#0)
-  (#sz:nat)
-  (arr : larray a sz)
-  (#f : perm)
-  (i j : natle sz)
-  (#v : erased (seq a) { Seq.length v == j - i })
-  // considerar usar n con n == j - i para no tener que reescribir el forall+
-  requires forall+ (k: natlt (j - i)). pts_to_cell arr #f (i + k) (v @! k)
-  ensures pts_to_slice arr #f i j v
-{
-  admit();
-}
-
 let share_thread_ff
   (n : nat) (nthr : pos) (k : natlt n)
 : (tid : natlt nthr & natlt ((n + (nthr - 1) - tid) / nthr))
@@ -214,13 +184,15 @@ fn thread_slice_share
   (#m : nat)
   (nthr : pos)
   requires slice_live x i j
-  ensures forall+ (tid : natlt nthr). thread_slice_live x i j nthr tid
+  ensures
+    (forall+ (tid : natlt nthr). thread_slice_live x i j nthr tid) **
+    array_exists x
 {
   unfold slice_live;
   with s. assert pts_to_slice x i j s;
   pts_to_slice_ref x i j;
 
-  array_slice_1' x i j;
+  slice_to_cells x i j;
   forevery_iso (share_thread_bij (j - i) nthr) _;
   forevery_ext
     (fun r ->
@@ -259,7 +231,9 @@ fn thread_slice_gather
   (s : lseq et m)
   (k : natle (m - (j - i)))
   (nthr : pos)
-  requires forall+ (tid : natlt nthr). thread_slice_pts_to x i j s k nthr tid
+  requires array_exists x
+  requires
+    (forall+ (tid : natlt nthr). thread_slice_pts_to x i j s k nthr tid)
   ensures pts_to_slice x i j (Seq.slice s k (k + (j - i)))
 {
   let s' = Seq.slice s k (k + (j - i));
@@ -291,7 +265,7 @@ fn thread_slice_gather
   forevery_iso_back (share_thread_bij (j - i) nthr)
     (fun r -> pts_to_cell x (i + r) (s' @! r));
 
-  array_unslice_1' x i j;
+  cells_to_slice x i j;
 }
 
 ghost
@@ -302,7 +276,9 @@ fn thread_slice_gather_value
   (i j : natle n { i <= j })
   (v : et)
   (nthr : pos)
-  requires forall+ (tid : natlt nthr). thread_slice_pts_to_value x i j v nthr tid
+  requires array_exists x
+  requires
+    (forall+ (tid : natlt nthr). thread_slice_pts_to_value x i j v nthr tid)
   ensures pts_to_slice x i j (Seq.create (j - i) v)
 {
   let s = Seq.create (j - i) v;
@@ -330,7 +306,7 @@ fn thread_slice_gather_value
   forevery_iso_back (share_thread_bij (j - i) nthr)
     (fun r -> pts_to_cell x (i + r) (s @! r));
 
-  array_unslice_1' x i j;
+  cells_to_slice x i j;
 }
 
 ghost
@@ -341,7 +317,9 @@ fn thread_share_chunks
   (nthr : pos)
   (#_: squash ((nthr * chunk et) /? n))
   requires live x
-  ensures forall+ (tid : natlt nthr). thread_live_chunks x nthr tid
+  ensures
+    (forall+ (tid : natlt nthr). thread_live_chunks x nthr tid) **
+    array_exists x
 {
   array_to_slice x;
   with s. assert pts_to_slice x 0 n s;
@@ -401,7 +379,7 @@ fn thread_share_chunks
           forevery_rw_size ch
             (((k * nthr + tid) * ch) + ch - ((k * nthr + tid) * ch));
 
-          array_unslice_1' x
+          cells_to_nonempty_slice x
             ((k * nthr + tid) * ch)
             ((k * nthr + tid) * ch + ch);
 
@@ -432,7 +410,9 @@ fn thread_gather_chunks
   (i : natle (m - n))
   (nthr : pos)
   (#_: squash ((nthr * chunk et) /? n))
-  requires forall+ (tid : natlt nthr). thread_pts_to_chunks x s i nthr tid
+  requires array_exists x
+  requires
+    (forall+ (tid : natlt nthr). thread_pts_to_chunks x s i nthr tid)
   ensures x |-> Seq.slice s i (i + n)
 {
   let ch = v (chunk et);
@@ -458,7 +438,7 @@ fn thread_gather_chunks
         fn k {
           rewrite each (v (chunk et)) as ch;
 
-          array_slice_1' x
+          slice_to_cells x
             ((k * nthr + tid) * ch)
             ((k * nthr + tid) * ch + ch);
 
@@ -512,5 +492,5 @@ fn thread_gather_chunks
     (fun (k : natlt n) ->
       pts_to_cell x k (Seq.slice s i (i + n) @! k)
     );
-  array_unslice_1 x;
+  array_unslice_1_with_exists x;
 }
