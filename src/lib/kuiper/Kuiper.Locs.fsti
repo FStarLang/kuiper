@@ -9,11 +9,12 @@ module T = FStar.Tactics.V2
 open Pulse.Lib.Array.Core { visibility }
 
 val gpu_of : visibility
-val gpu_of_idem (l:loc_id) : Lemma (gpu_of (gpu_of l) == l)
+// Visibility maps are projections to a representative, not involutions.
+val gpu_of_idem (l:loc_id) : Lemma (gpu_of (gpu_of l) == gpu_of l)
 val gpu_id_of : loc_id -> GTot int
 
 val block_of : visibility
-val block_of_idem (l:loc_id) : Lemma (block_of (block_of l) == l)
+val block_of_idem (l:loc_id) : Lemma (block_of (block_of l) == block_of l)
 val block_id_of : loc_id -> GTot int
 
 val gpu_id_loc (gpu_id:int) : l:loc_id { gpu_of l == l }
@@ -103,29 +104,27 @@ ensures norm steps p
 }
 
 ghost
-fn elim_gpu (p : slprop)
+fn elim_gpu (p : slprop) {| sendable: is_send_across gpu_of p |} ()
   preserves gpu
   requires on gpu_loc p
   ensures p
 {
   unfold gpu;
   with l. assert (loc l);
-  gpu_of_idem l;
-  rewrite (on gpu_loc p) as (on l p);
+  is_send_across_elim gpu_of p #sendable #gpu_loc l;
   on_elim p;
   fold gpu;
 }
 
 ghost
-fn intro_gpu (p : slprop)
+fn intro_gpu (p : slprop) {| sendable: is_send_across gpu_of p |} ()
   preserves gpu
   requires p
   ensures on gpu_loc p
 {
   unfold gpu;
   with l. assert (loc l);
-  gpu_of_idem l;
   on_intro p;
-  rewrite (on l p) as (on gpu_loc p);
+  is_send_across_elim gpu_of p #sendable #l gpu_loc;
   fold gpu;
 }
