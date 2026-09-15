@@ -5,6 +5,22 @@ include Kuiper.Floating.Base
 (* Derived methods *)
 
 inline_for_extraction noextract
+let ieee_eq (#t:Type) {| floating t |} (x y:t) : bool = eq x y
+
+let ieee_eq_nonzero_is_exact (#t:Type) {| floating t |} (x y:t)
+  : Lemma (requires ieee_eq x y /\ (~(is_zero x) \/ ~(is_zero y)))
+          (ensures x == y)
+  = eq_spec x y
+
+let bit_eq_refl (#t:Type) {| floating t |} (x:t)
+  : Lemma (bit_eq x x)
+  = bit_eq_spec x x
+
+let ieee_eq_refl (#t:Type) {| floating t |} (x:t)
+  : Lemma (ieee_eq x x <==> ~(NaN? (kind x)))
+  = eq_spec x x
+
+inline_for_extraction noextract
 let neg (#t:Type) {| floating t |} (x : t) : t =
   zero `sub` x
 

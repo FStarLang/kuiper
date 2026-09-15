@@ -20,9 +20,13 @@ class floating (t : Type) = {
   sub : t -> t -> t;
   div : t -> t -> t;
 
+  (* Exact representation comparison, including NaN signs and payloads.
+     The scalar superclass's eq remains IEEE numerical comparison. *)
+  bit_eq : t -> t -> bool;
+
   of_int : Int64.t -> t;
 
-  (* Build a value from a decimal/hex literal string. Extracts to a C
+  (* Build a value from a decimal literal string. Extracts to a C
      floating constant of the appropriate type. *)
   of_literal : string -> t;
 
@@ -30,6 +34,7 @@ class floating (t : Type) = {
   #[easy_fill ()] of_int_one  : squash (of_int 1L == one);
 
   kind : t -> fkind;
+  is_zero : t -> GTot bool;
 
   (* NOTE: We do not model a "smallest positive value" here. Whether that
      means the smallest subnormal or the smallest normal depends on whether
@@ -42,6 +47,8 @@ class floating (t : Type) = {
   #[easy_fill()] kind_zero     : squash (kind zero == Finite);
   #[easy_fill()] kind_largest  : squash (kind largest  == Finite);
   #[easy_fill()] kind_infinity : squash (kind infinity == Infinite);
+  #[easy_fill()] zero_is_zero : squash (is_zero zero);
+  #[easy_fill()] one_is_nonzero : squash (~(is_zero one));
 
   (* Laws.
 
@@ -49,25 +56,34 @@ class floating (t : Type) = {
      (round-to-nearest-even). They may not hold under CUDA's --use_fast_math
      or explicit rounding-mode intrinsics (__fadd_rd, __fmul_ru, etc.).
 
-     NOTE: We intentionally do not distinguish +0 and -0. The abstract type
-     identifies them (i.e., propositional equality == conflates both zeros).
-     This is sound for most GPU kernel verification but means copysign and
-     signbit cannot be faithfully axiomatized without extending the model.
-     See the note on copysign below.
+     Propositional equality distinguishes every representation, including
+     signed zeros and NaN payloads. IEEE comparison identifies the two zero
+     signs and is false for NaNs, so it does not imply substitutable equality.
   *)
 
-  (* Equality is sound, at least for non-NaNs. *)
+  #[easy_fill ()]
+  bit_eq_spec : (x : t) -> (y : t) ->
+    Lemma (bit_eq x y <==> x == y)
+          [SMTPat (bit_eq x y)];
+
+  #[easy_fill ()]
+  is_zero_spec : (x : t) ->
+    Lemma (requires is_zero x)
+          (ensures kind x == Finite)
+          [SMTPat (is_zero x)];
+
   #[easy_fill ()]
   eq_spec : (x : t) -> (y : t) ->
-    Lemma (requires ~(NaN? (kind x)) /\ ~(NaN? (kind y)))
-          (ensures eq x y <==> x == y)
+    Lemma (eq x y <==>
+      (~(NaN? (kind x)) /\ ~(NaN? (kind y)) /\
+       (x == y \/ (is_zero x /\ is_zero y))))
           [SMTPat (eq x y)];
 
-  (* x <= y <==> x < y or x == y *)
+  (* x <= y <==> x < y or IEEE equality *)
   #[easy_fill ()]
   lte_is_lt_or_eq : (x : t) -> (y : t) ->
     Lemma (requires ~(NaN? (kind x)) /\ ~(NaN? (kind y)))
-          (ensures lte x y <==> lt x y \/ x == y)
+          (ensures lte x y <==> lt x y \/ eq x y)
           [SMTPat (lte x y)];
 
   #[easy_fill ()]
@@ -75,16 +91,14 @@ class floating (t : Type) = {
     Lemma (ensures kind (zero `sub` x) == kind x)
           [SMTPat (zero `sub` x)];
 
-  (* -(-x) == x . *)
+  (* Negation expressed as zero subtraction preserves numerical values. *)
   #[easy_fill ()]
   neg_neg : (x : t) ->
     Lemma (requires ~(NaN? (kind x)))
-          (ensures zero `sub` (zero `sub` x) == x)
+          (ensures eq (zero `sub` (zero `sub` x)) x)
           [SMTPat (zero `sub` (zero `sub` x))];
 
-  (* x < y <==> -y <= -x.  NOTE: This is sound because we identify +0 and -0.
-     Under strict IEEE 754 with distinct signed zeros, this would fail:
-     lt (-0) (+0) is false, but lte (0-(+0)) (0-(-0)) = lte 0 0 = true. *)
+  (* x < y <==> -y < -x, using numerical ordering. *)
   #[easy_fill ()]
   lt_neg_flip : (x : t) -> (y : t) ->
     Lemma (requires ~(NaN? (kind x)) /\ ~(NaN? (kind y)))
@@ -98,29 +112,31 @@ class floating (t : Type) = {
           (ensures lt x y <==> not (lte y x))
           [SMTPat (lt x y)];
 
-  (* Addition commutes. *)
+  (* Exact commutativity excludes NaN results, whose payloads are unspecified. *)
   #[easy_fill ()]
   add_comm : (x : t) -> (y : t) ->
-    Lemma (requires ~(NaN? (kind x)) /\ ~(NaN? (kind y)))
+    Lemma (requires ~(NaN? (kind x)) /\ ~(NaN? (kind y)) /\
+                    ~(NaN? (kind (add x y))))
           (ensures add x y == add y x)
           [SMTPat (add x y)];
 
   #[easy_fill ()]
   mul_comm : (x : t) -> (y : t) ->
-    Lemma (requires ~(NaN? (kind x)) /\ ~(NaN? (kind y)))
+    Lemma (requires ~(NaN? (kind x)) /\ ~(NaN? (kind y)) /\
+                    ~(NaN? (kind (mul x y))))
           (ensures mul x y == mul y x)
           [SMTPat (mul x y)];
 
   #[easy_fill ()]
   add_zero : (x : t) ->
     Lemma (requires ~(NaN? (kind x)))
-          (ensures add x zero == x)
+          (ensures eq (add x zero) x)
           [SMTPat (add x zero)];
 
   #[easy_fill ()]
   mul_zero : (x : t) ->
     Lemma (requires Finite? (kind x))
-          (ensures mul x zero == zero)
+          (ensures eq (mul x zero) zero)
           [SMTPat (mul x zero)];
 
   #[easy_fill ()]
@@ -132,8 +148,9 @@ class floating (t : Type) = {
   (* sub is add-of-negation. FIXME: adding the pattern breaks proofs. *)
   #[easy_fill ()]
   sub_is_add_neg : (x : t) -> (y : t) ->
-    Lemma (requires ~(NaN? (kind x)) /\ ~(NaN? (kind y)))
-          (ensures sub x y == add x (zero `sub` y));
+    Lemma (requires ~(NaN? (kind x)) /\ ~(NaN? (kind y)) /\
+                    ~(NaN? (kind (sub x y))))
+          (ensures eq (sub x y) (add x (zero `sub` y)));
           // [SMTPat (sub x y)]
 
   #[easy_fill ()]
@@ -154,7 +171,7 @@ class floating (t : Type) = {
   #[easy_fill ()]
   fmax_spec : (x : t) -> (y : t) ->
     Lemma (requires ~(NaN? (kind x)) /\ ~(NaN? (kind y)))
-          (ensures fmax x y == (if lt x y then y else x))
+          (ensures eq (fmax x y) (if lt x y then y else x))
           [SMTPat (fmax x y)];
 
   fexp : t -> t;
@@ -182,11 +199,7 @@ class floating (t : Type) = {
   atan2 : t -> t -> t;
   fmin : t -> t -> t;
   fmod : t -> t -> t;
-  (* NOTE: copysign is inherently about the sign bit, which our model cannot
-     faithfully express since we identify +0 and -0. Any axiomatization of
-     copysign would require extending fkind or the abstract type to
-     distinguish signs. For now, copysign is provided as an unaxiomatized
-     primitive for extraction purposes only. *)
+  (* Additional sign-bit laws can be specified without collapsing signed zeros. *)
   copysign : t -> t -> t;
   fma : t -> t -> t -> t;
 }

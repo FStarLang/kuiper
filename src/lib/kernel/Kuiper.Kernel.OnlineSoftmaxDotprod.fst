@@ -517,14 +517,13 @@ fn softmax_dotprod
     let y1 = fexp (!max `sub` max');
     let gy1 = exp (reveal !gmax -. reveal gmax');
     assert pure (!gsum_n == 0.0R \/ y1 %~ gy1);
+    assert pure (!gsum_d == 0.0R \/ y1 %~ gy1);
 
-    (* At this point, we cannot prove y1 is finite. It may not be,
-       in the first iteration, since !max was -infinity
-       and !max - max' would underflow and return -INFINITY.
-       But, exp(-INFINITY) is define to be zero, so we should be good
-       in that case too. TODO: extend the scalar (or floating) class
-       with a notion of the infinities that allows to prove this. *)
-    assume pure (is_finite y1);
+    (* Initially both sums approximate real zero. Any real witness for y1
+       then gives zero real products, without identifying signed zeros. *)
+    to_real_ok y1;
+    a_mul !sum_n y1 (reveal !gsum_n) (to_real y1);
+    a_mul !sum_d y1 (reveal !gsum_d) (to_real y1);
     assert pure ( (!sum_n `mul` y1)  %~  (reveal (!gsum_n) *. gy1) );
     assert pure ( (!sum_d `mul` y1)  %~  (reveal (!gsum_d) *. gy1) );
 
