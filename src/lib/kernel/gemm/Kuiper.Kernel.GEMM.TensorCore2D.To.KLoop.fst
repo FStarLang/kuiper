@@ -269,6 +269,9 @@ fn k_loop_step
 
   let rA_sub = ematrix_subtile rA bm bk mrow v;
   let rB_sub = ematrix_subtile rB bk bn v mcol;
+  // Establish the tile approximations before checking subproducts in this large context.
+  Kuiper.Kernel.GEMM.TensorCore2D.FragmentAcc.subtile_approx eA rA bm bk mrow v;
+  Kuiper.Kernel.GEMM.TensorCore2D.FragmentAcc.subtile_approx eB rB bk bn v mcol;
   with rAcc. assert fragarrayAcc_approximates wm wn accFrags rAcc;
   subproducts_tc_2d bm bn bk tm tn tk wm wn
     aFrags bFrags accFrags sA sB

@@ -118,18 +118,19 @@ type kernel_desc (full_pre full_post : slprop) = {
   );
 
   (*
-    setup: consumes full_post and produces on gpu_loc (forall+ i. block_pre i))
+    The launch context ctx records the GPU and the nblk/nthr dimensions.
+    setup consumes full_pre and produces on gpu_loc (forall+ i. block_pre i).
 
-    Then, at location (block_id_loc i),
-    we consume (block_pre i) (which can be send to block_id_loc i)
+    Then, at location (block_id_loc ctx i),
+    we consume (block_pre i) (which can be sent to block_id_loc ctx i)
     and run block_setup to produce
-    on (block_id_loc i) (forall+ j. kpre i j)
+    on (block_id_loc ctx i) (forall+ j. kpre i j)
 
-    Finally, we run a thread at (thread_id_loc i j)
-    and (kpre i j) to (thread_id_loc i j) and obtain
-    (kpost i j) at (thread_id_loc i j)
+    Finally, we run a thread at (thread_id_loc ctx i j)
+    and send (kpre i j) to (thread_id_loc ctx i j) and obtain
+    (kpost i j) at (thread_id_loc ctx i j)
 
-    We can send (kpost i j) to block (block_id_loc i)
+    We can send (kpost i j) to block (block_id_loc ctx i)
     and use block_teardown to (block_post i)
     and then send that to gpu_loc to run teardown
     and obtain full_post
