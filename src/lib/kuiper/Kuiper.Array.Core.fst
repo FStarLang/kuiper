@@ -106,6 +106,66 @@ let pts_to_slice
             (* ^ Needed ? *)
             )
 
+(* The empty mask keeps the allocation resource. Its fraction is immaterial;
+   [mask_empty_perm] proves this directly in Pulse's array model. *)
+let array_exists (#a : Type0) (arr : array a) : slprop =
+  exists* (s : erased (seq (option a))).
+    A.pts_to_mask arr #1.0R s (fun _ -> False)
+
+ghost
+fn duplicate_array_exists (#a : Type0) (arr : array a) ()
+  requires array_exists arr
+  ensures array_exists arr ** array_exists arr
+{
+  unfold array_exists arr;
+  with s. assert A.pts_to_mask arr #1.0R s (fun _ -> False);
+  A.split_mask arr #1.0R #s #(fun _ -> False) (fun _ -> False);
+  A.mask_mext arr #1.0R #s #(A.mask_isect (fun _ -> False) (fun _ -> False)) (fun _ -> False);
+  A.mask_mext arr #1.0R #s #(A.mask_diff (fun _ -> False) (fun _ -> False)) (fun _ -> False);
+  fold array_exists arr;
+  fold array_exists arr;
+}
+
+instance duplicable_array_exists (#a : Type0) (arr : array a)
+  : Pulse.Class.Duplicable.duplicable (array_exists arr) =
+  { dup_f = duplicate_array_exists arr }
+
+instance is_send_across_array_exists (#a : Type0) (arr : array a)
+  : is_send_across (visibility_of arr) (array_exists arr) = solve
+
+ghost
+fn slice_array_exists
+  (#a : Type0) (arr : array a) (#f : perm)
+  (i j : nat) (#v : seq a)
+  preserves pts_to_slice arr #f i j v
+  ensures array_exists arr ** pure (j <= A.length arr)
+{
+  unfold pts_to_slice arr #f i j v;
+  with s. assert A.pts_to_mask arr #f s (mask_of i j);
+  A.pts_to_mask_len arr;
+  A.split_mask arr #f #s #(mask_of i j) (fun _ -> False);
+  A.mask_mext arr #f #s #(A.mask_isect (mask_of i j) (fun _ -> False)) (fun _ -> False);
+  A.mask_empty_perm arr #f #s #(fun _ -> False) 1.0R;
+  fold array_exists arr;
+  A.mask_mext arr #f #s #(A.mask_diff (mask_of i j) (fun _ -> False)) (mask_of i j);
+  fold pts_to_slice arr #f i j v;
+}
+
+ghost
+fn empty_slice
+  (#a : Type0) (arr : array a) (f : perm) (i : nat{i <= A.length arr})
+  requires array_exists arr
+  ensures pts_to_slice arr #f i i seq![]
+{
+  unfold array_exists arr;
+  with s. assert A.pts_to_mask arr #1.0R s (fun _ -> False);
+  A.pts_to_mask_len arr;
+  A.mask_empty_perm arr #1.0R #s #(fun _ -> False) f;
+  A.mask_mext arr (mask_of i i);
+  assert pure (seq_from_opt (Seq.slice s i i) `Seq.equal` (seq![] <: seq a));
+  fold pts_to_slice arr #f i i seq![];
+}
+
 [@@pulse_intro]
 ghost
 fn array_to_slice
@@ -703,55 +763,24 @@ fn rec forall_slice_to_cell
 }
 
 ghost
-fn array_slice_1
-  (#a:Type u#0)
-  (#sz:nat)
-  (arr : larray a sz)
-  (#f : perm)
-  (#v : erased (seq a) { Seq.length v == sz })
-  requires pts_to arr #f v
-  ensures  forall+ (i: natlt sz). pts_to_cell arr #f i (v @! i)
-{
-  array_to_slice arr;
-  drop_ (is_full_slice arr _);
-  if (sz = 0) {
-    drop_ (pts_to_slice arr #f 0 (Seq.length v) v);
-    forevery_intro_false #(natlt sz) (fun i -> pts_to_cell arr #f i (v @! i));
-    forevery_unrefine _;
-  } else {
-    rewrite pts_to_slice arr #f 0 (Seq.length v) v
-      as pts_to_slice arr #f 0 (0 + sz) (Seq.slice v 0 sz);
-    forall_slice_to_cell arr 0 sz;
-    forevery_unrefine _;
-    rewrite each (Seq.length v) as sz;
-    forevery_ext #(natlt sz) _ (fun i -> pts_to_cell arr #f i (v @! i));
-    ()
-  }
-}
-
-ghost
 fn rec forall_cell_to_slice
   (#a:Type u#0)
-  (#sz : nat)
-  (arr : larray a sz)
-  (i0 : natle sz)
+  (arr : array a)
+  (i0 : nat)
   (#f : perm)
   (#v : erased (seq a))
-  (j: nat { 0 <= j /\ j <= Seq.length v })
+  (j: nat { 0 < j /\ j <= Seq.length v })
   requires forall+ (i: natlt (Seq.length v) { i < j }). pts_to_cell arr #f (i0 + i) (v @! i)
   ensures pts_to_slice arr #f i0 (i0 + j) (Seq.slice v 0 j)
   decreases j
 {
-  if (j = 0) {
+  if (j = 1) {
+    forevery_remove' #(natlt (Seq.length v)) (fun i -> i < j)
+      (fun i -> pts_to_cell arr #f (i0 + i) (v @! i)) 0;
     forevery_elim_empty _;
-    (* This is fake. We should take some resource stating that the
-    array in fact exists. *)
-    assume exists* ss. A.pts_to_mask arr #f ss (mask_of i0 i0);
-    with ss. assert A.pts_to_mask arr #f ss (mask_of i0 i0);
-    A.pts_to_mask_len arr;
-    assert pure (Seq.length ss == sz);
-    assert pure (Seq.slice ss i0 i0 `Seq.equal` seq![]);
-    fold pts_to_slice arr #f i0 i0 seq![];
+    assert pure (Seq.equal (Seq.slice v 0 j) seq![Seq.index v 0]);
+    rewrite pts_to_cell arr #f (i0 + 0) (v @! 0)
+      as pts_to_slice arr #f i0 (i0 + j) (Seq.slice v 0 j);
   } else {
     let j' : natlt (Seq.length v) = j - 1;
     forevery_remove' #(natlt (Seq.length v)) (fun (i: natlt (Seq.length v)) -> i < j) (fun (i: natlt (Seq.length v)) -> pts_to_cell arr #f (i0 + i) (v @! i)) j';
@@ -765,27 +794,126 @@ fn rec forall_cell_to_slice
 }
 
 ghost
-fn array_unslice_1
-  (#a : Type u#0)
-  (#sz : nat)
-  (arr : larray a sz)
-  (#f : perm)
-  (#v : erased (seq a) { Seq.length v == sz })
-  // requires
-    // is_full_slice arr sz
-  requires
-    forall+ (i: natlt sz). pts_to_cell arr #f i (v @! i)
+fn slice_to_cells
+  (#a : Type0)
+  (arr : array a) (#f : perm)
+  (i : nat) (j : nat{i <= j})
+  (#v : erased (seq a){Seq.length v == j - i})
+  requires pts_to_slice arr #f i j v
   ensures
-    pts_to arr #f v
+    (forall+ (k : natlt (j - i)). pts_to_cell arr #f (i + k) (v @! k)) **
+    array_exists arr ** pure (j <= A.length arr)
 {
-  rewrite each sz as Seq.length v;
-  forevery_ext #(natlt (Seq.length v)) _ (fun i -> pts_to_cell arr #f (0 + i) (v @! i));
-  forevery_refine_split #(natlt (Seq.length v)) _ (fun i -> i < sz);
-  forevery_refine_join #(natlt (Seq.length v)) _ (fun i -> i < sz) _;
-  forevery_refine_ext #(natlt (Seq.length v)) (fun i -> i < sz) _;
-  fold is_full_slice arr sz; // arr : larray a sz, so length arr == sz
-  forall_cell_to_slice #a #sz arr 0 sz;
-  ()
+  slice_array_exists arr i j;
+  if (i = j) {
+    assert pure (Seq.equal v seq![]);
+    rewrite pts_to_slice arr #f i j v as pts_to_slice arr #f i i seq![];
+    forevery_intro_false #(natlt (j - i)) (fun k -> pts_to_cell arr #f (i + k) (v @! k));
+    forevery_unrefine _;
+    drop_ (pts_to_slice arr #f i i seq![]);
+  } else {
+    rewrite pts_to_slice arr #f i j v
+      as pts_to_slice arr #f i (i + (j - i)) (Seq.slice v 0 (j - i));
+    forall_slice_to_cell arr i (j - i);
+    forevery_unrefine _;
+    rewrite each (Seq.length v) as (j - i);
+    forevery_ext #(natlt (j - i)) _ (fun k -> pts_to_cell arr #f (i + k) (v @! k));
+  }
+}
+
+(* Nonempty cell collections already contain an allocation witness. *)
+ghost
+fn cells_to_nonempty_slice
+  (#a : Type0)
+  (arr : array a) (#f : perm)
+  (i : nat) (j : nat{i < j})
+  (#v : erased (seq a){Seq.length v == j - i})
+  requires forall+ (k : natlt (j - i)). pts_to_cell arr #f (i + k) (v @! k)
+  ensures pts_to_slice arr #f i j v
+{
+  rewrite each (j - i) as (Seq.length v);
+  forevery_refine_split #(natlt (Seq.length v)) _ (fun k -> k < j - i);
+  forevery_refine_join #(natlt (Seq.length v)) _ (fun k -> k < j - i) _;
+  forevery_refine_ext #(natlt (Seq.length v)) (fun k -> k < j - i) _;
+  forall_cell_to_slice arr i (j - i);
+  rewrite pts_to_slice arr #f i (i + (j - i)) (Seq.slice v 0 (j - i))
+    as pts_to_slice arr #f i j v;
+}
+
+ghost
+fn cells_to_slice
+  (#a : Type0)
+  (arr : array a) (#f : perm)
+  (i : nat) (j : nat{i <= j})
+  (#v : erased (seq a){Seq.length v == j - i})
+  requires pure (j <= A.length arr)
+  requires array_exists arr
+  requires
+    (forall+ (k : natlt (j - i)). pts_to_cell arr #f (i + k) (v @! k))
+  ensures pts_to_slice arr #f i j v
+{
+  if (i = j) {
+    forevery_elim_empty _;
+    empty_slice arr f i;
+    assert pure (Seq.equal v seq![]);
+    rewrite pts_to_slice arr #f i i seq![] as pts_to_slice arr #f i j v;
+  } else {
+    cells_to_nonempty_slice arr #f i j;
+  }
+}
+
+ghost
+fn array_slice_1
+  (#a : Type0) (#sz : nat)
+  (arr : larray a sz) (#f : perm)
+  (#v : erased (seq a){Seq.length v == sz})
+  requires pts_to arr #f v
+  ensures
+    (forall+ (i : natlt sz). pts_to_cell arr #f i (v @! i)) **
+    array_exists arr
+{
+  array_to_slice arr;
+  drop_ (is_full_slice arr (Seq.length v));
+  slice_to_cells arr #f 0 sz;
+  forevery_rw_size (sz - 0) sz;
+  forevery_ext #(natlt sz) _ (fun i -> pts_to_cell arr #f i (v @! i));
+}
+
+ghost
+fn array_unslice_1_with_exists
+  (#a : Type0) (#sz : nat)
+  (arr : larray a sz) (#f : perm)
+  (#v : erased (seq a){Seq.length v == sz})
+  requires array_exists arr
+  requires
+    (forall+ (i : natlt sz). pts_to_cell arr #f i (v @! i))
+  ensures pts_to arr #f v
+{
+  forevery_ext #(natlt sz)
+    (fun i -> pts_to_cell arr #f i (v @! i))
+    (fun i -> pts_to_cell arr #f (0 + i) (v @! i));
+  forevery_rw_size sz (sz - 0);
+  cells_to_slice arr #f 0 sz;
+  slice_to_array_full arr;
+}
+
+ghost
+fn array_unslice_1
+  (#a : Type0) (#sz : nat)
+  (arr : larray a sz) (#f : perm)
+  (#v : erased (seq a){Seq.length v == sz})
+  requires pure (nonempty (natlt sz))
+  requires
+    (forall+ (i : natlt sz). pts_to_cell arr #f i (v @! i))
+  ensures pts_to arr #f v
+{
+  let _ = nonempty_elim (natlt sz);
+  forevery_ext #(natlt sz)
+    (fun i -> pts_to_cell arr #f i (v @! i))
+    (fun i -> pts_to_cell arr #f (0 + i) (v @! i));
+  forevery_rw_size sz (sz - 0);
+  cells_to_nonempty_slice arr #f 0 sz;
+  slice_to_array_full arr;
 }
 
 ghost

@@ -221,6 +221,7 @@ fn join_array2_from_lane_cells
   (#_ : squash (SZ.fits l.ulen))
   (m : array2 et l)
   (#em : chest2 et rows cols)
+  requires pure (nonempty (abs (rows @| cols @| INil)))
   requires forall+ (lane : natlt warp_size). own_lane_cells m em lane
   ensures m |-> em
 {
@@ -253,6 +254,7 @@ fn join_lane_cells_approximates
   (#_ : squash (SZ.fits l.ulen))
   (m : array2 et l)
   (r : chest2 real rows cols)
+  requires pure (nonempty (abs (rows @| cols @| INil)))
   requires
     forall+ (lane : natlt warp_size).
       exists* (em : chest2 et rows cols).
@@ -296,6 +298,7 @@ fn array2_untile_approximates
   (#_ : squash (SZ.fits l.ulen))
   (#_ : squash (SZ.fits (rows / trows)))
   (#_ : squash (SZ.fits (cols / tcols)))
+  requires pure (nonempty (abs ((rows / trows) @| (cols / tcols) @| INil)))
   requires
     forall+ (tr : natlt (rows / trows))
              (tc : natlt (cols / tcols)).

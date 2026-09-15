@@ -117,6 +117,7 @@ fn split_array2_into_strided_chunks
   (nthr : pos)
   requires
     m |-> em
+  ensures array_exists (core m)
   ensures
     pure (SZ.fits (l.ulen))
   ensures
@@ -149,6 +150,7 @@ fn join_array2_from_strided_chunks
   (m : array2 et l)
   (#em : chest2 et rows cols)
   (nthr : pos)
+  requires array_exists (core m)
   requires
     pure (SZ.fits (l.ulen))
   requires
@@ -172,7 +174,7 @@ fn join_array2_from_strided_chunks
       exists tid. in_chunk (chunk et #_ #hvc) rows cols nthr tid ij)
     (fun _ -> True) _;
   forevery_unflatten' _;
-  tensor_iraise2 m;
+  tensor_iraise2_with_exists m;
 }
 
 ghost
@@ -182,6 +184,7 @@ fn join_array2_from_strided_chunks_underspec
   (#l : layout2 rows cols)
   (m : array2 et l)
   (nthr : pos)
+  requires array_exists (core m)
   requires
     pure (SZ.fits (l.ulen))
   requires

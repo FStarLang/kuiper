@@ -64,7 +64,9 @@ fn gpu_array_slice_1_underspec
   (#f : perm)
   (#v : erased (seq a))
   requires arr |-> Frac f v
-  ensures  forall+ (i: natlt sz). gpu_pts_to_array1 arr #f i
+  ensures
+    (forall+ (i: natlt sz). gpu_pts_to_array1 arr #f i) **
+    array_exists arr
 {
   gpu_pts_to_ref arr;
   array_slice_1 arr;
@@ -81,7 +83,9 @@ fn gpu_array_unslice_1_underspec
   (#sz:nat)
   (arr : larray a sz)
   (#f : perm)
-  requires forall+ (i: natlt sz). gpu_pts_to_array1 arr #f i
+  requires pure (nonempty (natlt sz))
+  requires
+    forall+ (i: natlt sz). gpu_pts_to_array1 arr #f i
   ensures exists* (v : seq a). arr |-> Frac f v
 {
   forevery_map
@@ -139,11 +143,11 @@ fn block_teardown
   forevery_unzip3 _ _ _;
 
   // Unslicing
+  let _ = nonempty_intro (0 <: natlt (SZ.v m_size));
   (**)gpu_array_unslice_1_underspec ga1;
   (**)gpu_array_unslice_1_underspec ga2;
   (**)gpu_array_unslice_1_underspec gr;
 }
-
 
 inline_for_extraction noextract
 let kdesc (#et:Type) {| scalar et |}

@@ -156,9 +156,26 @@ fn varray_explode
   (#v : st)
   requires
     a |-> Frac f v
+  ensures array_exists (core a)
   ensures
     forall+ (i : vw.iview.ait).
       Cell a i |-> Frac f (vw.ctn.acc v i)
+
+ghost
+fn varray_implode_with_exists
+  (#et #st : Type)
+  (#vw : aview et st)
+  (a : varray vw)
+  (#f : perm)
+  (#v : st)
+  requires array_exists (core a)
+  requires
+    pure (SZ.fits (len vw))
+  requires
+    forall+ (i : vw.iview.ait).
+      Cell a i |-> Frac f (vw.ctn.acc v i)
+  ensures
+    a |-> Frac f v
 
 ghost
 fn varray_implode
@@ -167,6 +184,7 @@ fn varray_implode
   (a : varray vw)
   (#f : perm)
   (#v : st)
+  requires pure (nonempty vw.iview.ait)
   requires
     pure (SZ.fits (len vw))
   requires
@@ -355,6 +373,7 @@ fn varray_iconcr
   (#v : erased st)
   requires
     a |-> Frac f v
+  ensures array_exists (core a)
   ensures
     pure (SZ.fits (len vw)) **
     (forall+ (i : vw.iview.ait).
@@ -367,6 +386,7 @@ fn varray_iabs
   (a : varray vw)
   (#f : perm)
   (#v : erased st)
+  requires array_exists (core a)
   requires
     pure (SZ.fits (len vw)) **
     (forall+ (i : vw.iview.ait).

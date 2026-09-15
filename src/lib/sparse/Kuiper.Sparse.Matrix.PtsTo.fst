@@ -653,6 +653,7 @@ fn gather_gpu_pts_to_tile
   (gm : array2 et l)
   (em : chest2 et rows cols)
   (row_tile : pos)
+  requires array_exists (core gm)
   requires pure (fits (tlayout_ulen l))
   requires forall+ (r : natlt rows) (b : natlt (cols `divup` row_tile)).
     gpu_pts_to_tile gm r (b * row_tile) em row_tile
@@ -670,5 +671,5 @@ fn gather_gpu_pts_to_tile
     fn r {
       gather_gpu_pts_to_tile_row gm r em row_tile
     };
-  tensor_iraise2 gm;
+  tensor_iraise2_with_exists gm;
 }

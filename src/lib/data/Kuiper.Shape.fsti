@@ -340,6 +340,19 @@ let rec unflatten
       let minor : natlt (sizeof t) = x % sizeof t in
       (major, unflatten t minor)
 
+(* Positive shapes have an abstract index, usable by nonempty cell helpers. *)
+let abs_nonempty (#r : nat) (d : shape r)
+  : Lemma (requires 0 < sizeof d)
+          (ensures nonempty (abs d))
+          [SMTPat (nonempty (abs d))]
+  = let _ = nonempty_intro (unflatten d 0) in ()
+
+let abs_cons_nonempty (#r : nat) (h : nat) (t : shape r)
+  : Lemma (requires h > 0 /\ nonempty (abs t))
+          (ensures nonempty (abs (h @| t)))
+          [SMTPat (nonempty (abs (h @| t)))]
+  = let _ = nonempty_intro ((0, nonempty_elim (abs t)) <: abs (h @| t)) in ()
+
 [@@strict_on_arguments [1]]
 inline_for_extraction noextract
 let rec flatten
@@ -422,6 +435,12 @@ let rec abs_le (#r : nat) (d1 d2 : shape r { shape_le d1 d2 }) (x: abs d1)
     | ICons _ _ ->
       let i1, i2 = x <: natlt (d1 @! 0) & abs (tail d1) in
       ((i1 <: natlt (d2 @! 0)), abs_le (tail d1) (tail d2) i2)
+
+let abs_le_nonempty (#r : nat) (d1 d2 : shape r)
+  : Lemma (requires shape_le d1 d2 /\ nonempty (abs d1))
+          (ensures nonempty (abs d2))
+          [SMTPat (shape_le d1 d2); SMTPat (nonempty (abs d2))]
+  = let _ = nonempty_intro (abs_le d1 d2 (nonempty_elim (abs d1))) in ()
 
 // Concrete counterpart of abs_le, commuting with up. The recursion is driven by
 // the (non-erasable) cshapes: matching the erasable `shape` directly to build an

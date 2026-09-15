@@ -73,13 +73,16 @@ let iarray_pts_to_cell_def
             pts_to_cell (core a) #f (it_to_nat vw i) v)
   = ()
 
+(* Keep allocation identity even when the view has no indices. Cell ownership
+   still carries the access fraction; this witness is freely duplicable. *)
 let iarray_pts_to
   (#et:Type0) (#vw : aiview)
   ([@@@mkey] a : iarray et vw)
   (#[full_default ()] f : perm)
   (v : (vw.ait -> GTot et))
   : slprop
-  = pure (SZ.fits (len vw)) **
+  = array_exists (core a) **
+    pure (SZ.fits (len vw)) **
     (forall+ (i : vw.ait).
       iarray_pts_to_cell a #f i (v i))
 
@@ -160,11 +163,30 @@ fn iarray_explode
   (#v : (vw.ait -> GTot et))
   requires
     a |-> Frac f v
+  ensures array_exists (core a)
   ensures
     forall+ (i : vw.ait).
       Cell a i |-> Frac f (v i)
 {
   unfold iarray_pts_to a #f v;
+}
+
+ghost
+fn iarray_implode_with_exists
+  (#et:Type)
+  (#vw : aiview)
+  (a : iarray et vw)
+  (#f : perm)
+  (#v : (vw.ait -> GTot et))
+  requires pure (SZ.fits (len vw))
+  requires array_exists (core a)
+  requires
+    forall+ (i : vw.ait).
+      Cell a i |-> Frac f (v i)
+  ensures
+    a |-> Frac f v
+{
+  fold iarray_pts_to a #f v;
 }
 
 ghost
@@ -175,13 +197,21 @@ fn iarray_implode
   (#f : perm)
   (#v : (vw.ait -> GTot et))
   requires pure (SZ.fits (len vw))
+  requires pure (nonempty vw.ait)
   requires
     forall+ (i : vw.ait).
       Cell a i |-> Frac f (v i)
   ensures
     a |-> Frac f v
 {
-  fold iarray_pts_to a #f v;
+  let i = nonempty_elim vw.ait;
+  forevery_remove (fun (j : vw.ait) -> iarray_pts_to_cell a #f j (v j)) i;
+  unfold iarray_pts_to_cell a #f i (v i);
+  slice_array_exists (core a) (it_to_nat vw i) (it_to_nat vw i + 1);
+  fold iarray_pts_to_cell a #f i (v i);
+  forevery_insert (fun (j : vw.ait) -> iarray_pts_to_cell a #f j (v j)) i;
+  forevery_unrefine _;
+  iarray_implode_with_exists a;
 }
 
 (* Begin viewing something abstractly, with the trivial view. *)
@@ -261,7 +291,7 @@ fn iarray_end_
        as (forall+ (i: natlt (Kuiper.Len.len (raw_view #len))).
              pts_to_cell (core a) #f i (Seq.init_ghost len v @! i))
        by unfold_raw_view ();
-  B.array_unslice_1 (core a);
+  B.array_unslice_1_with_exists (core a);
 }
 
 fn iarray_end
@@ -302,7 +332,7 @@ fn iarray_end2_
     (fun i -> iarray_pts_to_cell a #f (b.gg i) (v (b.gg i)))
     (fun i -> pts_to_cell (core a) #f i (s @! i));
 
-  B.array_unslice_1 (core a);
+  B.array_unslice_1_with_exists (core a);
 }
 
 inline_for_extraction noextract
@@ -466,6 +496,7 @@ fn iarray_split_n
   forevery_unflatten_dep' #(natlt n) #(fun i -> (vws i).ait) _;
   ghost
   fn aux (i : natlt n)
+    preserves array_exists (core a)
     requires
       forall+ (j : (vws i).ait).
         iarray_pts_to_cell a #f (| i, j |) (v (| i, j |))
@@ -486,7 +517,7 @@ fn iarray_split_n
     fold iarray_pts_to (from_array (vws i) (core a)) #f (fun j -> v (| i, j |));
     ()
   };
-  forevery_map _ _ aux;
+  forevery_map_extra (array_exists (core a)) _ _ aux;
   ();
 }
 
@@ -512,7 +543,7 @@ fn iarray_share_n
     fn i { slice_share (core a) _ _ k };
 
   forevery_commute _;
-  forevery_map #(natlt k)
+  forevery_map_extra #(natlt k) (array_exists (core a))
     (fun _ -> forall+ (x:vw.ait).
       pts_to_slice (core a) #(f /. Real.of_int k) (it_to_nat vw x) (it_to_nat vw x + 1) seq![v x])
     (fun _ -> a |-> Frac (f /. Real.of_int k) v)

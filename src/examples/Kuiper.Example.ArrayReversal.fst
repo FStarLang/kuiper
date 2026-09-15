@@ -30,7 +30,8 @@ fn explode_cells
 requires
   arr |-> Frac f s
 ensures
-  forall+ (i: natlt sz). pts_to_cell arr #f i (Seq.index s i)
+  (forall+ (i: natlt sz). pts_to_cell arr #f i (Seq.index s i)) **
+  array_exists arr
 {
   array_slice_1 arr;
   forevery_map #(natlt sz)
@@ -48,6 +49,7 @@ fn implode_cells
   (arr : larray a sz)
   (#f : perm)
   (#s : lseq a sz)
+requires pure (nonempty (natlt sz))
 requires
   forall+ (i:natlt sz). pts_to_cell arr #f i (Seq.index s i)
 ensures
@@ -292,6 +294,7 @@ fn teardown
 {
   forevery_rw_size nblk (size / 2);
   partition_cells_inv a #1.0R #(reverse_spec s);
+  let _ = nonempty_intro (0 <: natlt (SZ.v size));
   implode_cells a
 }
 

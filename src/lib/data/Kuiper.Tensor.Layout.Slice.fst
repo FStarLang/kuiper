@@ -137,7 +137,8 @@ fn tensor_extract_slice
   };
   forevery_map _ _ to_slice_cell;
 
-  tensor_implode (sliceof a i j);
+  rewrite array_exists (core a) as array_exists (core (sliceof a i j));
+  tensor_implode_with_exists (sliceof a i j);
 
   ghost
   fn restore' (s' : chest (modulo_i i d) et)
@@ -253,7 +254,8 @@ fn tensor_extract_slice
       forevery_iso_back (abs_bring_forward_bij i d)
         (fun (idx : abs d) -> Cell a idx |-> Frac f (acc new_s idx));
 
-      tensor_implode a;
+      rewrite array_exists (core (sliceof a i j)) as array_exists (core a);
+      tensor_implode_with_exists a;
     };
     Pulse.Lib.Trade.intro_trade _ _ _ restore;
   };

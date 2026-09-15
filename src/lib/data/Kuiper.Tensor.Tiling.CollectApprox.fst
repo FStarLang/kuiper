@@ -31,6 +31,7 @@ fn array2_collect_approx_tiled
   (ntr : nat { ntr == rows / trows })
   (ntc : nat { ntc == cols / tcols })
   (spec_fn : natlt rows -> natlt cols -> et -> prop)
+  requires array_exists (core gm)
   requires
     pure (SZ.fits (l.ulen))
   requires
