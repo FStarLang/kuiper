@@ -14,35 +14,6 @@ module SZ = Kuiper.SizeT
 module W = Pulse.Lib.WithPure
 module CInv = Pulse.Lib.CancellableInvariant
 
-(* These should go somewhere in the library *)
-ghost
-fn bring (p : slprop)
-  preserves gpu
-  requires  on gpu_loc p
-  ensures   p
-{
-  unfold gpu;
-  with l. assert (loc l);
-  gpu_of_idem l;
-  rewrite (on gpu_loc p) as (on l p);
-  on_elim p;
-  fold gpu;
-}
-
-ghost
-fn putback (p : slprop)
-  preserves gpu
-  requires  p
-  ensures   on gpu_loc p
-{
-  unfold gpu;
-  with l. assert (loc l);
-  gpu_of_idem l;
-  on_intro p;
-  rewrite (on l p) as (on gpu_loc p);
-  fold gpu;
-}
-
 (* Relating a sequence of erased bools to v_r. Essentially, v_r containts
 exaclty the contributions of the indices i where Seq.index v_done i is true. *)
 let rec contributions'
@@ -368,9 +339,9 @@ fn kf
     unfold inv_p nn v_a r done;
     unfold inv_p' nn v_a r done;
     with v_r. assert on gpu_loc (r |-> v_r);
-    bring (r |-> v_r);
+    Kuiper.Locs.elim_gpu (r |-> v_r) ();
     let _ = atomic_add r v;
-    putback (r |-> (d.pure_op v v_r));
+    Kuiper.Locs.intro_gpu (r |-> (d.pure_op v v_r)) ();
     forevery_ghost_upd_lemma nn done _ _;
     fold inv_p' nn v_a r done _ _;
     fold inv_p nn v_a r done;
