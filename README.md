@@ -216,6 +216,24 @@ To verify a single file:
 ./fstar.sh src/path/to/Module.fst
 ```
 
+### Floating-point equality
+
+For `f16`, `bf16`, `f32`, and `f64`, `Kuiper.Floating.ieee_eq` compares numerical
+values: the two zero signs compare equal, and NaNs never compare equal. The
+existing `eq` operation retains this behavior. `Kuiper.Floating.bit_eq` compares
+representations, including zero signs and NaN payloads, and corresponds to F\*
+propositional equality (`==`). Only bit equality supports arbitrary substitution
+in proofs; for example, reciprocals distinguish positive and negative zero.
+
+Zero identities such as `mul_zero` and `add_zero` therefore guarantee IEEE
+equality. Real approximation respects IEEE equality without identifying the
+underlying representations. Internally, `f32` and `f64` reuse `FStar.Float32` and
+`FStar.Float64`; the 16-bit formats retain Kuiper's CUDA primitives.
+
+The proof regressions run with `make -j$(nproc) verify`. To check the extracted
+API on the CPU and GPU, run
+`make -j$(nproc) obj/Test_Kuiper_Example_FloatEquality.test`.
+
 ### Project Structure
 
 Kuiper source lives under `src/`. The core library (`src/lib/kuiper/`) provides

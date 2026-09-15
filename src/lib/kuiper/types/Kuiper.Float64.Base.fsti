@@ -4,31 +4,30 @@ module Kuiper.Float64.Base
 
 open Kuiper.Floating.Base
 
-new
-val t : Type0
+(* Reuse F* native types and primitives. The laws below specify the
+   CUDA interpretation of these otherwise abstract operations. *)
+module F = FStar.Float64
 
-val zero : t
-val one : t
+inline_for_extraction let t = F.t
+inline_for_extraction let zero = F.zero
+inline_for_extraction let one = F.one
+inline_for_extraction let add = F.add
+inline_for_extraction let mul = F.mul
+inline_for_extraction let lt = F.lt
+inline_for_extraction let lte = F.lte
+inline_for_extraction let sub = F.sub
+inline_for_extraction let div = F.div
+inline_for_extraction let of_int = F.of_int
+inline_for_extraction let of_literal = F.of_literal
+inline_for_extraction let bit_eq = F.bit_eq
+inline_for_extraction let ieee_eq = F.ieee_eq
+inline_for_extraction let eq = ieee_eq
 
-val add : t -> t -> t
-val mul : t -> t -> t
-
-val lt : t -> t -> bool
-val lte : t -> t -> bool
-val eq : t -> t -> bool
-
-val sub : t -> t -> t
-val div : t -> t -> t
-
-val of_int       : Int64.t -> t
-val of_int_zero  : squash (of_int 0L == zero)
-val of_int_one   : squash (of_int 1L == one)
-
-(* Float literal from a string. Must be called with a concrete string;
-   replaced during extraction with the corresponding C constant. *)
-val of_literal : string -> t
+val of_int_zero : squash (of_int 0L == zero)
+val of_int_one : squash (of_int 1L == one)
 
 val kind : t -> fkind
+val is_zero : t -> GTot bool
 
 val largest : t
 val infinity : t
@@ -37,15 +36,27 @@ val kind_one      : squash (kind one == Finite)
 val kind_zero     : squash (kind zero == Finite)
 val kind_largest  : squash (kind largest  == Finite)
 val kind_infinity : squash (kind infinity == Infinite)
+val zero_is_zero : squash (is_zero zero)
+val one_is_nonzero : squash (~(is_zero one))
+
+val bit_eq_spec : (x:t) -> (y:t) ->
+    Lemma (bit_eq x y <==> x == y)
+          [SMTPat (bit_eq x y)]
+
+val is_zero_spec : (x:t) ->
+    Lemma (requires is_zero x)
+          (ensures kind x == Finite)
+          [SMTPat (is_zero x)]
 
 val eq_spec : (x : t) -> (y : t) ->
-    Lemma (requires ~(NaN? (kind x)) /\ ~(NaN? (kind y)))
-          (ensures eq x y <==> x == y)
+    Lemma (eq x y <==>
+      (~(NaN? (kind x)) /\ ~(NaN? (kind y)) /\
+       (x == y \/ (is_zero x /\ is_zero y))))
           [SMTPat (eq x y)]
 
 val lte_is_lt_or_eq : (x : t) -> (y : t) ->
     Lemma (requires ~(NaN? (kind x)) /\ ~(NaN? (kind y)))
-          (ensures lte x y <==> lt x y \/ x == y)
+          (ensures lte x y <==> lt x y \/ eq x y)
           [SMTPat (lte x y)]
 
 val neg_kind : (x : t) ->
@@ -54,7 +65,7 @@ val neg_kind : (x : t) ->
 
 val neg_neg : (x : t) ->
     Lemma (requires ~(NaN? (kind x)))
-          (ensures zero `sub` (zero `sub` x) == x)
+          (ensures eq (zero `sub` (zero `sub` x)) x)
           [SMTPat (zero `sub` (zero `sub` x))]
 
 val lt_neg_flip : (x : t) -> (y : t) ->
@@ -68,23 +79,25 @@ val negate_lt_is_lte : (x : t) -> (y : t) ->
           [SMTPat (lt x y)]
 
 val add_comm : (x : t) -> (y : t) ->
-    Lemma (requires ~(NaN? (kind x)) /\ ~(NaN? (kind y)))
+    Lemma (requires ~(NaN? (kind x)) /\ ~(NaN? (kind y)) /\
+                    ~(NaN? (kind (add x y))))
           (ensures add x y == add y x)
           [SMTPat (add x y)]
 
 val mul_comm : (x : t) -> (y : t) ->
-    Lemma (requires ~(NaN? (kind x)) /\ ~(NaN? (kind y)))
+    Lemma (requires ~(NaN? (kind x)) /\ ~(NaN? (kind y)) /\
+                    ~(NaN? (kind (mul x y))))
           (ensures mul x y == mul y x)
           [SMTPat (mul x y)]
 
 val add_zero : (x : t) ->
     Lemma (requires ~(NaN? (kind x)))
-          (ensures add x zero == x)
+          (ensures eq (add x zero) x)
           [SMTPat (add x zero)]
 
 val  mul_zero : (x : t) ->
     Lemma (requires Finite? (kind x))
-          (ensures mul x zero == zero)
+          (ensures eq (mul x zero) zero)
           [SMTPat (mul x zero)]
 
 val  mul_one : (x : t) ->
@@ -93,8 +106,9 @@ val  mul_one : (x : t) ->
           [SMTPat (mul x one)]
 
 val sub_is_add_neg : (x : t) -> (y : t) ->
-    Lemma (requires ~(NaN? (kind x)) /\ ~(NaN? (kind y)))
-          (ensures sub x y == add x (zero `sub` y))
+    Lemma (requires ~(NaN? (kind x)) /\ ~(NaN? (kind y)) /\
+                    ~(NaN? (kind (sub x y))))
+          (ensures eq (sub x y) (add x (zero `sub` y)))
           [SMTPat (sub x y)]
 
 val largest_val_spec : (x : t) ->
@@ -111,7 +125,7 @@ val fmax : t -> t -> t
 
 val fmax_spec : (x : t) -> (y : t) ->
     Lemma (requires ~(NaN? (kind x)) /\ ~(NaN? (kind y)))
-          (ensures fmax x y == (if lt x y then y else x))
+          (ensures eq (fmax x y) (if lt x y then y else x))
           [SMTPat (fmax x y)]
 
 val fexp : t -> t

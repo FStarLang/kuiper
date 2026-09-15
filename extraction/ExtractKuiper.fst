@@ -84,8 +84,6 @@ let kpr_translate_type_without_decay : translate_type_without_decay_t = fun env 
   | "Kuiper.TensorCore.WGMMA.fragment",    [] -> TQualified ([], "auto_AMP")
   | "Kuiper.Float16.Base.t",               [] -> TInt Float16
   | "Kuiper.BFloat16.Base.t",              [] -> TInt BFloat16
-  | "Kuiper.Float32.Base.t",               [] -> TInt Float32
-  | "Kuiper.Float64.Base.t",               [] -> TInt Float64
   | "Kuiper.Kernel.Stream.stream_t",       [] -> TQualified ([], "cudaStream_t")
   | _ -> raise NotSupportedByKrmlExtension
 
@@ -513,8 +511,8 @@ let kpr_translate_alloc_fragment (cb : mlexpr -> ML expr) et knd m n k layout =
       match et with
       | MLTY_Named ([], (["Kuiper"; "Float16"; "Base"], "t")) -> EQualified ([], "half")
       | MLTY_Named ([], (["Kuiper"; "BFloat16"; "Base"], "t")) -> EQualified ([], "__nv_bfloat16")
-      | MLTY_Named ([], (["Kuiper"; "Float32"; "Base"], "t")) -> EQualified ([], "float")
-      | MLTY_Named ([], (["Kuiper"; "Float64"; "Base"], "t")) -> EQualified ([], "double")
+      | MLTY_Named ([], (["FStar"; "Float32"], "t")) -> EQualified ([], "float")
+      | MLTY_Named ([], (["FStar"; "Float64"], "t")) -> EQualified ([], "double")
     in
     let args =
       [ knd; cb m; cb n; cb k; faketype ]
@@ -756,6 +754,13 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
 
   (******** FLOAT ARITHMETIC *******)
 
+  (* F* handles native Float32/64 arithmetic and IEEE comparison. Bit
+     equality needs representation comparisons rather than C's ==. *)
+  | "FStar.Float32.bit_eq", [], [] -> EQualified ([], "kpr_f32_bit_eq")
+  | "FStar.Float64.bit_eq", [], [] -> EQualified ([], "kpr_f64_bit_eq")
+  | "Kuiper.Float16.Base.bit_eq", [], [] -> EQualified ([], "kpr_f16_bit_eq")
+  | "Kuiper.BFloat16.Base.bit_eq", [], [] -> EQualified ([], "kpr_bf16_bit_eq")
+
    (* For halfs, using operators worked locally but failed on CI, probably
    depends on CUDA version. Just use the intrinsics. *)
   // TODO: review exactly which variant to use here. There are also
@@ -800,45 +805,15 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
     end
   | "Kuiper.BFloat16.Base.of_int", [], [i] -> EApp (EQualified ([], "__ll2bfloat16_rn"), [cb i])
 
-  | "Kuiper.Float32.Base.zero", [], [] -> EConstant (Float32, "0.0f")
-  | "Kuiper.Float32.Base.one",  [], [] -> EConstant (Float32, "1.0f")
-  | "Kuiper.Float32.Base.add",  [], [] -> EOp (Add, Float32)
-  | "Kuiper.Float32.Base.mul",  [], [] -> EOp (Mult, Float32)
-  | "Kuiper.Float32.Base.sub",  [], [] -> EOp (Sub, Float32)
-  | "Kuiper.Float32.Base.div",  [], [] -> EOp (Div, Float32)
   | "Kuiper.Float32.Base.fexp", [], [] -> EQualified ([], "expf")
   | "Kuiper.Float32.Base.flog", [], [] -> EQualified ([], "logf")
-  | "Kuiper.Float32.Base.eq",   [], [] -> EOp (Eq, Float32)
-  | "Kuiper.Float32.Base.lt",   [], [] -> EOp (Lt, Float32)
-  | "Kuiper.Float32.Base.lte",  [], [] -> EOp (Lte, Float32)
   | "Kuiper.Float32.Base.valid",  [], [] -> EQualified ([], "kpr_fisvalid")
   | "Kuiper.Float32.Base.largest",  [], [] -> EConstant (Float32, "FLT_MAX")
   | "Kuiper.Float32.Base.infinity", [], [] -> EConstant (Float32, "INFINITY")
-  | "Kuiper.Float32.Base.of_literal", [], [s] ->
-    begin match s.expr with
-    | MLE_Const (MLC_String v) -> EConstant (Float32, v)
-    | _ -> failwith "Float32.of_literal: expected a string literal"
-    end
-  | "Kuiper.Float32.Base.of_int", [], [i] -> ECast (cb i, TInt Float32)
-  | "Kuiper.Float64.Base.zero", [], [] -> EConstant (Float64, "0.0")
-  | "Kuiper.Float64.Base.one",  [], [] -> EConstant (Float64, "1.0")
-  | "Kuiper.Float64.Base.add",  [], [] -> EOp (Add, Float64)
-  | "Kuiper.Float64.Base.mul",  [], [] -> EOp (Mult, Float64)
-  | "Kuiper.Float64.Base.sub",  [], [] -> EOp (Sub, Float64)
-  | "Kuiper.Float64.Base.div",  [], [] -> EOp (Div, Float64)
   | "Kuiper.Float64.Base.fexp",  [], [] -> EQualified ([], "exp")
   | "Kuiper.Float64.Base.flog",  [], [] -> EQualified ([], "log")
-  | "Kuiper.Float64.Base.lt",   [], [] -> EOp (Lt, Float64)
-  | "Kuiper.Float64.Base.lte",  [], [] -> EOp (Lte, Float64)
-  | "Kuiper.Float64.Base.eq",   [], [] -> EOp (Eq, Float64)
   | "Kuiper.Float64.Base.largest",  [], [] -> EConstant (Float64, "DBL_MAX")
   | "Kuiper.Float64.Base.infinity", [], [] -> EConstant (Float64, "INFINITY")
-  | "Kuiper.Float64.Base.of_int", [], [i] -> ECast (cb i, TInt Float64)
-  | "Kuiper.Float64.Base.of_literal", [], [s] ->
-    begin match s.expr with
-    | MLE_Const (MLC_String v) -> EConstant (Float64, v)
-    | _ -> failwith "Float64.of_literal: expected a string literal"
-    end
 
   (* Transcendental / math primitives *)
 

@@ -78,6 +78,12 @@ let approx_to_real #a {| scalar a, real_like a, precise_real_like a |} (x y: a) 
 
 (* Extra rules for types supporting division and exponentiation. *)
 class floating_real_like (a:Type) {| scalar a, floating a, real_like a |} = {
+  (* Real approximation ignores the sign of zero. This is a property of
+     this relation, not permission to substitute IEEE-equal floats anywhere. *)
+  eq_approx : (x:a) -> (y:a) -> (r:real) ->
+    Lemma (requires eq x y /\ v_approximates y r)
+          (ensures v_approximates x r);
+
   of_int_approx : (x : Int64.t) ->
     squash (v_approximates (of_int #a x) (Real.of_int (Int64.v x)));
 
@@ -109,6 +115,17 @@ class floating_real_like (a:Type) {| scalar a, floating a, real_like a |} = {
                 Lemma (requires v_approximates x r)
                       (ensures v_approximates (rsqrt x) (1.0R /. FStar.Math.Sqrt.sqrt r));
 }
+
+let eq_approx_pat
+  (a:Type) {| scalar a, floating a, real_like a, rr : floating_real_like a |}
+  (x y:a) (r:real)
+  : Lemma (requires eq x y /\ v_approximates y r)
+          (ensures v_approximates x r)
+          [SMTPat (eq x y);
+           SMTPat (v_approximates y r);
+           SMTPat (v_approximates x r);
+           SMTPat (has_type rr (floating_real_like a))]
+  = eq_approx x y r
 
 let fmax_approx_pat
   (a:Type) {| scalar a, floating a, real_like a, rr : floating_real_like a |}
