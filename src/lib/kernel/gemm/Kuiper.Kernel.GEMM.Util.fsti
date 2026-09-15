@@ -118,6 +118,20 @@ val mmcomb_approx_real
               eA %~ rA /\ eB %~ rB /\ eC %~ rC)
     (ensures MS.mmcomb comb eC eA eB %~ MS.mmcomb comb_r rC rA rB)
 
+(* Each cell of the batched combined spec is the corresponding per-page GEMM cell. *)
+val gbmmcomb_all
+  (mapA_r mapB_r : real -> real)
+  (comb_r : binop real)
+  (#batch #bm #bs #bn : nat)
+  (rA : chest3 real batch bm bs)
+  (rB : chest3 real batch bs bn)
+  (rC : chest3 real batch bm bn)
+  : Lemma
+      (forall (page : natlt batch) (row : natlt bm) (col : natlt bn).
+        Kuiper.Chest.acc (MS.gbmmcomb mapA_r mapB_r comb_r rC rA rB) (page, (row, (col, ())))
+          == MS.ggemm_single mapA_r mapB_r comb_r
+               (slice_page rA page) (slice_page rB page) (slice_page rC page) row col)
+
 (* Batched (rank-3) analogue of [mmcomb_approx_real]: the reusable
    approximation lemma for the natively-batched GEMM spec. If eA %~ rA,
    eB %~ rB, eC %~ rC (per batch page) and approx2 comb comb_r, then the

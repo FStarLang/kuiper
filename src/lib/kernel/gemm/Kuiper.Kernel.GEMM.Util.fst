@@ -128,6 +128,41 @@ let chest3_slice_page_approx
       Chest.acc (slice_page e page) idx %~ Chest.acc (slice_page r page) idx
     with aux idx
 
+(* A cell of the batched combined spec equals the per-page rank-2 [ggemm_single]
+   cell.  Reduces the rank-3 [gbmmcomb] obligation cellwise/pagewise. *)
+private let gbmmcomb_cell
+  (mapA_r mapB_r : real -> real)
+  (comb_r : binop real)
+  (#batch #bm #bs #bn : nat)
+  (rA : chest3 real batch bm bs)
+  (rB : chest3 real batch bs bn)
+  (rC : chest3 real batch bm bn)
+  (page : natlt batch) (row : natlt bm) (col : natlt bn)
+  : Lemma
+      (Chest.acc (MS.gbmmcomb mapA_r mapB_r comb_r rC rA rB) (page, (row, (col, ())))
+        == MS.ggemm_single mapA_r mapB_r comb_r
+             (slice_page rA page) (slice_page rB page) (slice_page rC page) row col)
+  = ()
+
+let gbmmcomb_all
+  (mapA_r mapB_r : real -> real)
+  (comb_r : binop real)
+  (#batch #bm #bs #bn : nat)
+  (rA : chest3 real batch bm bs)
+  (rB : chest3 real batch bs bn)
+  (rC : chest3 real batch bm bn)
+  : Lemma
+      (forall (page : natlt batch) (row : natlt bm) (col : natlt bn).
+        Chest.acc (MS.gbmmcomb mapA_r mapB_r comb_r rC rA rB) (page, (row, (col, ())))
+          == MS.ggemm_single mapA_r mapB_r comb_r
+               (slice_page rA page) (slice_page rB page) (slice_page rC page) row col)
+  = introduce
+      forall (page : natlt batch) (row : natlt bm) (col : natlt bn).
+        Chest.acc (MS.gbmmcomb mapA_r mapB_r comb_r rC rA rB) (page, (row, (col, ())))
+          == MS.ggemm_single mapA_r mapB_r comb_r
+               (slice_page rA page) (slice_page rB page) (slice_page rC page) row col
+      with gbmmcomb_cell mapA_r mapB_r comb_r rA rB rC page row col
+
 let bmmcomb_approx_real
   (#et:Type) {| scalar et, real_like et |}
   (comb : binop et)
@@ -395,4 +430,3 @@ let gbmmcomb_slice_page
          (Chest.slice_page eC page)
          (Chest.slice_page eA page)
          (Chest.slice_page eB page)))
-
