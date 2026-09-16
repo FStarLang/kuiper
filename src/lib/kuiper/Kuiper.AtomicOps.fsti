@@ -6,7 +6,7 @@ open FStar.Ghost
 open Pulse.Lib.Core
 open Pulse.Class.PtsTo
 open Kuiper.Base
-open Kuiper.Ref
+open Pulse.Lib.Reference { ref }
 open Kuiper.IntAliases
 open Kuiper.Scalars
 
@@ -16,7 +16,7 @@ open Kuiper.Scalars
 noextract
 atomic
 fn gpu_faa_u32
-  (r : gpu_ref u32)
+  (r : ref u32)
   (i : u32)
   preserves gpu
   requires r |-> 'v0
@@ -27,7 +27,7 @@ fn gpu_faa_u32
 noextract
 atomic
 fn gpu_faa_u64
-  (r : gpu_ref u64)
+  (r : ref u64)
   (i : u64)
   preserves gpu
   requires r |-> 'v0
@@ -38,7 +38,7 @@ fn gpu_faa_u64
 noextract
 atomic
 fn gpu_faa_f32
-  (r : gpu_ref f32)
+  (r : ref f32)
   (i : f32)
   preserves gpu
   requires r |-> 'v0
@@ -49,7 +49,7 @@ fn gpu_faa_f32
 noextract
 atomic
 fn gpu_faa_f64
-  (r : gpu_ref f64)
+  (r : ref f64)
   (i : f64)
   preserves gpu
   requires r |-> 'v0

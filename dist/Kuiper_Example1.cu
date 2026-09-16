@@ -25,3 +25,19 @@ uint64_t Kuiper_Example1_main(void)
     MUST(cudaFree(gr));
     return v;
 }
+
+uint64_t Kuiper_Example1_test_device_to_device(void)
+{
+    uint64_t r = 2ULL;
+    uint64_t *src = (uint64_t *) KPR_GPU_ALLOC(sizeof(uint64_t), 1U);
+    uint64_t *dst = (uint64_t *) KPR_GPU_ALLOC(sizeof(uint64_t), 1U);
+    MUST(cudaMemcpy(src, &r, sizeof(uint64_t), cudaMemcpyHostToDevice));
+    MUST(cudaMemcpy(
+        dst, src, (uint32_t) sizeof(uint64_t), cudaMemcpyDeviceToDevice));
+    r = 0ULL;
+    MUST(cudaMemcpy(&r, dst, sizeof(uint64_t), cudaMemcpyDeviceToHost));
+    uint64_t v = r;
+    MUST(cudaFree(src));
+    MUST(cudaFree(dst));
+    return v;
+}
