@@ -492,7 +492,7 @@ let kpre
   (a : array1 et l)
   (va : chest1 et lena)
   (vr : chest1 real lena)
-  (out : gpu_ref et)
+  (out : ref et)
   (shmem : c_shmems [SHArray et nth])
   (bid : natlt 1)
   (tid : natlt nth)
@@ -516,7 +516,7 @@ let kpost
   (a : array1 et l)
   (va : chest1 et lena)
   (vr : chest1 real lena)
-  (out : gpu_ref et)
+  (out : ref et)
   (shmem : c_shmems [SHArray et nth])
   (bid : natlt 1)
   (tid : natlt nth)
@@ -867,7 +867,7 @@ fn kf
   (a : array1 et l)
   (va : chest1 et lena)
   (vr : chest1 real lena { va %~ vr })
-  (out : gpu_ref et)
+  (out : ref et)
   (shmem : c_shmems [SHArray et nth])
   (bid : szlt 1sz)
   (tid : szlt nth)
@@ -951,7 +951,7 @@ fn kf
     (**)strided_max_is_max pre_map_r (chest1_to_seq vr) nth;
     (**)chest_map_to_seq_map pre_map_r vr;
     (**)assert (pure (Seq.equal (Seq.slice (reveal vr_s) 0 nth) (reveal vr_s)));
-    Kuiper.Ref.write out (array1_read_from_slice sa 0sz);
+    out := array1_read_from_slice sa 0sz;
     with ss. assert array1_pts_to_slice sa 0 nth ss;
     unfold array1_pts_to_slice sa;
     let css : chest1 et nth = hide (mk1 #et #nth (fun (k:natlt nth) -> acc1 ss k));
@@ -993,7 +993,7 @@ fn block_setup
   (a : array1 et l)
   (#va : chest1 et lena)
   (vr : chest1 real lena { va %~ vr })
-  (out : gpu_ref et)
+  (out : ref et)
   (shmem : c_shmems [SHArray et nth])
   (bid : natlt 1)
   ()
@@ -1063,7 +1063,7 @@ fn block_teardown
   (a : array1 et l)
   (#va : chest1 et lena)
   (vr : chest1 real lena { va %~ vr })
-  (out : gpu_ref et)
+  (out : ref et)
   (shmem : c_shmems [SHArray et nth])
   (bid : natlt 1)
   ()
@@ -1113,7 +1113,7 @@ fn setup
   (a : array1 et l { is_global a })
   (#va : chest1 et lena)
   (vr : chest1 real lena { va %~ vr })
-  (out : gpu_ref et)
+  (out : ref et)
   ()
   norewrite
   requires
@@ -1136,7 +1136,7 @@ fn teardown
   (a : array1 et l { is_global a })
   (#va : chest1 et lena)
   (vr : chest1 real lena { va %~ vr })
-  (out : gpu_ref et)
+  (out : ref et)
   ()
   norewrite
   requires
@@ -1159,7 +1159,7 @@ let kernel
   (a : array1 et l { is_global a })
   (#va : chest1 et lena)
   (vr : chest1 real lena { va %~ vr })
-  (out : gpu_ref et)
+  (out : ref et{visibility_of_ref out == gpu_of})
   : kernel_desc
       (a |-> va ** live out)
       (a |-> va ** exists* (v : et). out |-> v ** pure (v %~ seq_max (chest1_to_seq (chest_map pre_map_r vr))))

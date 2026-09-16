@@ -666,6 +666,14 @@ let gpu_array_free (_tys:list cty) (args:list expr) : ML expr =
   | [a] -> must (call "cudaFree" [a] i32)
   | _ -> fail "gpu_array_free: expected 1 argument"
 
+(* References use the same one-element device allocation as their model. *)
+let gpu_ref_alloc (tys:list cty) (args:list expr) : ML expr =
+  match tys, args with
+  | [elt], [sized; _unit] ->
+    let arr = gpu_array_alloc tys [sized; uconst 1] in
+    mk (ECoerce (arr, TRef (RManual, elt))) (TRef (RManual, elt)) E_Impure
+  | _ -> fail "Ref.alloc0: expected one type and two arguments"
+
 let slice_read (_tys:list cty) (args:list expr) : ML expr =
   match args with
   | [a; i] -> mk (EOp ({ po_op = BufRead; po_ty = None }, [a; i])) (pointee a.ty) E_Impure
@@ -1066,6 +1074,8 @@ let _ =
   register_floats ();
 
   (* References and arrays *)
+  prim "Kuiper.Ref.alloc0" 2 gpu_ref_alloc;
+  prim "Kuiper.Ref.free" 1 gpu_array_free;
   prim "Kuiper.Ref.memcpy_host_to_device" 3 (ref_memcpy "cudaMemcpyHostToDevice");
   prim "Kuiper.Ref.memcpy_device_to_host" 3 (ref_memcpy "cudaMemcpyDeviceToHost");
   prim "Kuiper.Ref.memcpy_device_to_device" 3 (ref_memcpy "cudaMemcpyDeviceToDevice");
@@ -1107,9 +1117,6 @@ let _ =
     match args with
     | [x] -> mk (ECast (x, u32)) u32 E_Pure
     | _ -> fail "sizet_to_u32: expected 1 argument");
-  (* Custard's karamel backend prints [r[_zero_for_deref]] as [*r]. *)
-  cconst "Kuiper.Ref.deref_index" (cname "_zero_for_deref" usize);
-
   (* Pairs *)
   prim "FStar.Pervasives.Native.fst" 1 (tuple_proj 0);
   prim "FStar.Pervasives.Native.snd" 1 (tuple_proj 1);

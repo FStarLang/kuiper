@@ -1141,7 +1141,7 @@ let ref_of_cell
   (#et : Type0)
   (a : array et)
   (i : nat)
-  : ref et
+  : r:ref et{Pulse.Lib.Reference.visibility_of_ref r == visibility_of a}
   = magic()
 
 (* Axiom, extracted natively. *)

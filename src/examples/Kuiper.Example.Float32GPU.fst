@@ -112,7 +112,7 @@ fn cannot_inverse_root_on_cpu (x : f32)
 }
 
 inline_for_extraction noextract
-fn multiply_kernel (out : gpu_ref f32) (#old : erased f32) (x y : f32)
+fn multiply_kernel (out : ref f32) (#old : erased f32) (x y : f32)
   preserves gpu
   requires out |-> old
   ensures exists* result. out |-> result
@@ -122,7 +122,7 @@ fn multiply_kernel (out : gpu_ref f32) (#old : erased f32) (x y : f32)
 }
 
 inline_for_extraction noextract
-fn exponentiate_kernel (out : gpu_ref f32) (#old : erased f32) (x : f32)
+fn exponentiate_kernel (out : ref f32) (#old : erased f32) (x : f32)
   preserves gpu
   requires out |-> old
   ensures exists* result. out |-> result
@@ -132,7 +132,7 @@ fn exponentiate_kernel (out : gpu_ref f32) (#old : erased f32) (x : f32)
 }
 
 inline_for_extraction noextract
-fn reciprocal_kernel (out : gpu_ref f32) (#old : erased f32) (x : f32)
+fn reciprocal_kernel (out : ref f32) (#old : erased f32) (x : f32)
   preserves gpu
   requires out |-> old
   ensures exists* result. out |-> result
@@ -142,7 +142,7 @@ fn reciprocal_kernel (out : gpu_ref f32) (#old : erased f32) (x : f32)
 }
 
 inline_for_extraction noextract
-fn inverse_root_kernel (out : gpu_ref f32) (#old : erased f32) (x : f32)
+fn inverse_root_kernel (out : ref f32) (#old : erased f32) (x : f32)
   preserves gpu
   requires out |-> old
   ensures exists* result. out |-> result

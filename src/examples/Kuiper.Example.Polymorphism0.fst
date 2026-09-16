@@ -10,7 +10,7 @@ inline_for_extraction noextract
 [@@CPrologue "__device__"]
 fn kswap
   (#t : Type0)
-  (r1 r2 : gpu_ref t)
+  (r1 r2 : ref t)
   requires gpu ** (r1 |-> 'v1) ** (r2 |-> 'v2)
   ensures  gpu ** (r1 |-> 'v2) ** (r2 |-> 'v1)
 {
@@ -22,7 +22,7 @@ fn kswap
 
 [@@CPrologue "__device__"] // no KrmlPrivate, this is a test
 fn kswap_U64
-  (r1 r2 : gpu_ref u64)
+  (r1 r2 : ref u64)
   requires gpu ** (r1 |-> 'v1) ** (r2 |-> 'v2)
   ensures  gpu ** (r1 |-> 'v2) ** (r2 |-> 'v1)
 {
@@ -31,7 +31,7 @@ fn kswap_U64
 
 [@@CPrologue "__device__"] // no KrmlPrivate, this is a test
 fn kswap_F32
-  (r1 r2 : gpu_ref f32)
+  (r1 r2 : ref f32)
   requires gpu ** (r1 |-> 'v1) ** (r2 |-> 'v2)
   ensures  gpu ** (r1 |-> 'v2) ** (r2 |-> 'v1)
 {
