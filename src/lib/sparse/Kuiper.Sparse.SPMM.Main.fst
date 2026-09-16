@@ -96,7 +96,7 @@ fn kf_main
   // TODO creo tid : natlt p.blockWidth esta bien
   (tid : szlt p.blockWidth)
   (n_idx : sz {SZ.v n_idx == tcol p bid tid })
-  (nnz idx : ref sz) // realmente no necesito una referencia a idx
+  (nnz idx : Pulse.Lib.Reference.ref sz) // realmente no necesito una referencia a idx
   norewrite
   preserves gpu
   preserves csr_matrix_approx' gA #fA elems col_ind row_off relems rA

@@ -3,197 +3,137 @@ module Kuiper.Ref
 #lang-pulse
 
 open Pulse.Lib.Pervasives
-open FStar.Tactics.V2
-open FStar.Tactics.Typeclasses
 open Kuiper.Base
 open Kuiper.Sized
-open Kuiper.Array
 
-module SZ = Kuiper.SizeT
+module A = Pulse.Lib.Array
+module R = Pulse.Lib.Reference
+module RA = Pulse.Lib.Reference.Array
+module C = Kuiper.Array.Core
 
-(* The index of a [gpu_ref]'s only cell. The extraction plugin turns it into
-   karamel's dereference marker, so that [r.(deref_index)] becomes [*r];
-   [no_specialize] stops Custard from unfolding it to [0] first. *)
+include Kuiper.Ref.Base
+
+// Keep the dereference marker through specialization so accesses print as *r.
 [@@FStar.Custard.no_specialize]
-let deref_index : SZ.t = SZ.uint32_to_sizet _zero_for_deref
-
-inline_for_extraction noextract
-let gpu_ref (a:Type u#0) : Type u#0 =
-  x : larray a 1 { is_global x /\ is_full_array x }
-
-// x |-> v
-inline_for_extraction noextract
-let gpu_pts_to
-  (#a:Type u#0)
-  ([@@@mkey]x:gpu_ref a)
-  (#[full_default ()] f : perm)
-  (v : a)
-  : slprop
-  = Pulse.Lib.Array.pts_to x #f seq![v]
+let deref_index : FStar.SizeT.t = FStar.SizeT.uint32_to_sizet _zero_for_deref
 
 ghost
-fn _unfold_loc
-  (#a:Type u#0)
-  (x:gpu_ref a)
-  (#f:perm)
-  (#v:a)
-  requires
-    on gpu_loc (gpu_pts_to #a x #f v)
-  ensures
-    on gpu_loc (Pulse.Lib.Array.pts_to x #f seq![v])
+fn _unfold_loc (#a:Type0) (r:ref a) (#f:perm) (#v:a)
+  requires on gpu_loc (pts_to r #f v)
+  ensures on gpu_loc (A.pts_to (to_array r) #f seq![v])
 {
-  map_loc gpu_loc
-    #(gpu_pts_to x #f v)
-    #(Pulse.Lib.Array.pts_to x #f seq![v])
-    fn _ {
-      unfold gpu_pts_to;
-    };
+  map_loc gpu_loc #(pts_to r #f v)
+    #(A.pts_to (to_array r) #f seq![v])
+    fn _ { unfold pts_to; };
 }
 
 ghost
-fn _fold_loc
-  (#a:Type u#0)
-  (x:gpu_ref a)
-  (#f:perm)
-  (#v : Seq.seq a { Seq.length v > 0 })
-  requires
-    on gpu_loc (Pulse.Lib.Array.pts_to x #f v)
-  ensures
-    on gpu_loc (gpu_pts_to #a x #f (v `Seq.index` 0))
+fn _fold_loc (#a:Type0) (r:ref a)
+  (#f:perm) (#v:Seq.seq a{Seq.length v > 0})
+  requires on gpu_loc (A.pts_to (to_array r) #f v)
+  ensures on gpu_loc (pts_to r #f (Seq.index v 0))
 {
-  map_loc gpu_loc
-    #(Pulse.Lib.Array.pts_to x #f v)
-    #(gpu_pts_to x #f (v `Seq.index` 0))
+  map_loc gpu_loc #(A.pts_to (to_array r) #f v)
+    #(pts_to r #f (Seq.index v 0))
     fn _ {
-      Pulse.Lib.Array.pts_to_len x;
-      assert pure (Seq.equal v (seq![v `Seq.index` 0]));
-      fold gpu_pts_to x #f (v `Seq.index` 0);
+      A.pts_to_len (to_array r);
+      assert pure (Seq.equal v seq![Seq.index v 0]);
+      fold (pts_to r #f (Seq.index v 0));
     };
 }
 
-(* gpu refs are always in gpu global memory *)
-instance is_send_across_gpu_ref
-  (#a:Type u#0)
-  (#f:perm)
-  (r:gpu_ref a)
-  (v:a)
-  : is_send_across gpu_of (gpu_pts_to #a r #f v)
-  = Kuiper.Array.Core.is_send_pts_to _ _
-
 inline_for_extraction noextract
-fn alloc0
-  (#a:Type u#0)
-  {| sized a |}
-  ()
+fn alloc0 (#a:Type0) {| sized a |} ()
   preserves cpu
-  requires emp
-  returns  x : gpu_ref a
-  ensures  exists* (v:a). on gpu_loc (x |-> v)
+  returns r:ref a
+  ensures exists* (v:a). on gpu_loc (r |-> v)
+  ensures pure (is_global_ref r /\ is_full_ref r)
 {
-  let x = gpu_array_alloc #a 1sz;
-  with v. assert on gpu_loc (x |-> v);
-  _fold_loc x;
-  x
+  let arr = C.gpu_array_alloc #a 1sz;
+  let r = of_array arr;
+  with s. assert on gpu_loc (A.pts_to arr s);
+  rewrite on gpu_loc (A.pts_to arr s)
+       as on gpu_loc (A.pts_to (to_array r) s);
+  _fold_loc r #1.0R #s;
+  r
 }
 
-// fn alloc
-//   (#a:Type u#0)
-//   {| sized a |}
-//   (v:a)
-//   requires cpu
-//   returns  x : gpu_ref a
-//   ensures  cpu ** gpu_pts_to x #1.0R v
-
 inline_for_extraction noextract
-fn free
-  (#a:Type u#0)
-  (r : gpu_ref a)
+fn free (#a:Type0) (r:ref a)
   preserves cpu
-  requires on gpu_loc (r |-> 'v)
+  requires pure (is_full_ref r)
+  requires on gpu_loc (r |-> ('v <: a))
   ensures emp
 {
   _unfold_loc r;
-  gpu_array_free r
+  C.gpu_array_free (to_array r)
 }
 
 inline_for_extraction noextract
-fn read
-  (#a:Type u#0)
-  (r : gpu_ref a)
-  (#f : perm)
-  (#v0 : erased a)
-  preserves r |-> Frac f v0
-  requires emp
-  returns  v : a
-  ensures  pure (v == reveal v0)
+fn read (#a:Type0) (r:ref a) (#f:perm) (#v:erased a)
+  preserves r |-> Frac f v
+  returns x:a
+  ensures pure (x == reveal v)
 {
-  unfold gpu_pts_to;
-  let x = r.(deref_index);
-  fold gpu_pts_to;
+  unfold pts_to;
+  let x = A.op_Dot_Lparen_Rparen (to_array r) deref_index;
+  fold (pts_to r #f (reveal v));
   x
 }
 
-let ( ! ) = read
-
 inline_for_extraction noextract
-fn write
-  (#a:Type u#0)
-  (r : gpu_ref a)
-  (v : a)
-  requires  r |-> 'v0
-  ensures   r |-> v
+fn write (#a:Type0) (r:ref a) (v:a)
+  requires r |-> ('old <: a)
+  ensures r |-> v
 {
-  unfold gpu_pts_to;
-  r.(deref_index) <- v;
-  with s.
-    assert Pulse.Lib.Array.pts_to r #1.0R s;
-  assert pure (s `Seq.equal` seq![v]);
-  fold gpu_pts_to r v;
-}
-
-let ( := ) = write
-
-noextract
-fn memcpy_host_to_device
-  (#a:Type u#0)
-  {| sized a |}
-  (dst_gr : gpu_ref a)
-  (src_r  : ref a)
-  preserves cpu
-  preserves src_r |-> Frac 'f 'v
-  requires  on gpu_loc (dst_gr |-> 'gv)
-  ensures   on gpu_loc (dst_gr |-> 'v)
-{
-  admit(); // Cannot be implemented yet, needs to treat ref as vec
-}
-
-noextract
-fn memcpy_device_to_host
-  (#a:Type u#0)
-  {| sized a |}
-  (dst_r  : ref a)
-  (src_gr : gpu_ref a)
-  preserves cpu
-  preserves on gpu_loc (src_gr |-> Frac 'f 'gv)
-  requires dst_r |-> 'v
-  ensures  dst_r |-> 'gv
-{
-  admit(); // Cannot be implemented yet, needs to treat ref as vec
+  unfold pts_to;
+  A.op_Dot_Lparen_Rparen_Less_Minus (to_array r) deref_index v;
+  with s. assert A.pts_to (to_array r) s;
+  assert pure (Seq.equal s seq![v]);
+  fold (pts_to r v);
 }
 
 inline_for_extraction noextract
-fn memcpy_device_to_device
-  (#a:Type u#0)
-  {| sized a |}
-  (dst_r src_gr : gpu_ref a)
+fn memcpy_host_to_device (#a:Type0) {| sized a |}
+  (dst:ref a) (src:R.ref a)
   preserves cpu
-  preserves on gpu_loc (src_gr |-> Frac 'f 'gv)
-  requires on gpu_loc (dst_r |-> 'v)
-  ensures  on gpu_loc (dst_r |-> 'gv)
+  preserves src |-> Frac 'f ('v <: a)
+  requires on gpu_loc (dst |-> ('old <: a))
+  ensures on gpu_loc (dst |-> 'v)
 {
-  _unfold_loc dst_r;
-  _unfold_loc src_gr;
-  Kuiper.Array.Core.memcpy_device_to_device dst_r src_gr 1sz;
-  _fold_loc dst_r;
-  _fold_loc src_gr;
+  _unfold_loc dst;
+  let src_arr = RA.to_array src;
+  C.memcpy_host_to_device (to_array dst) src_arr 1sz;
+  RA.return_to_array src;
+  _fold_loc dst;
+}
+
+inline_for_extraction noextract
+fn memcpy_device_to_host (#a:Type0) {| sized a |}
+  (dst:R.ref a) (src:ref a)
+  preserves cpu
+  preserves on gpu_loc (src |-> Frac 'f ('v <: a))
+  requires dst |-> ('old <: a)
+  ensures dst |-> 'v
+{
+  _unfold_loc src;
+  let dst_arr = RA.to_array dst;
+  C.memcpy_device_to_host dst_arr (to_array src) 1sz;
+  RA.return_to_array dst;
+  _fold_loc src;
+}
+
+inline_for_extraction noextract
+fn memcpy_device_to_device (#a:Type0) {| sized a |}
+  (dst src:ref a)
+  preserves cpu
+  preserves on gpu_loc (src |-> Frac 'f ('v <: a))
+  requires on gpu_loc (dst |-> ('old <: a))
+  ensures on gpu_loc (dst |-> 'v)
+{
+  _unfold_loc dst;
+  _unfold_loc src;
+  C.memcpy_device_to_device (to_array dst) (to_array src) 1sz;
+  _fold_loc dst;
+  _fold_loc src;
 }

@@ -632,12 +632,6 @@ let memcpy_bytes (sized:expr) (elt:cty) (cnt:expr) : ML expr =
   mk (EOp ({ po_op = Mult; po_ty = Some (PInt (Unsigned, W64)) },
            [memcpy_elem_size sized elt; cnt])) wide cnt.eff
 
-(* [Kuiper.Ref.memcpy_*]: one element. *)
-let ref_memcpy (kind:string) (_tys:list cty) (args:list expr) : ML expr =
-  match args with
-  | [sized; dst; src] -> cuda_memcpy kind dst src (memcpy_elem_size sized (pointee dst.ty))
-  | _ -> fail ("Ref.memcpy: expected 3 arguments, got " ^ show (List.length args))
-
 (* [Kuiper.Array.Core.memcpy_*]. *)
 let arr_memcpy (kind:string) (_tys:list cty) (args:list expr) : ML expr =
   match args with
@@ -678,9 +672,7 @@ let slice_write (_tys:list cty) (args:list expr) : ML expr =
 
 let get_ref_of_cell (_tys:list cty) (args:list expr) : ML expr =
   match args with
-  | [a; i] ->
-    let r = mk (EOp ({ po_op = BufSub; po_ty = None }, [a; i])) a.ty E_Pure in
-    mk (ECoerce (r, TRef (RManual, pointee a.ty))) (TRef (RManual, pointee a.ty)) E_Pure
+  | [a; i] -> bufsub a i
   | _ -> fail "get_ref_of_cell: expected 2 arguments"
 
 let array_vec_cpy (_tys:list cty) (args:list expr) : ML expr =
@@ -1065,10 +1057,7 @@ let _ =
   (* Floats *)
   register_floats ();
 
-  (* References and arrays *)
-  prim "Kuiper.Ref.memcpy_host_to_device" 3 (ref_memcpy "cudaMemcpyHostToDevice");
-  prim "Kuiper.Ref.memcpy_device_to_host" 3 (ref_memcpy "cudaMemcpyDeviceToHost");
-  prim "Kuiper.Ref.memcpy_device_to_device" 3 (ref_memcpy "cudaMemcpyDeviceToDevice");
+  (* Arrays *)
   prim "Kuiper.Array.Core.memcpy_host_to_device" 4 (arr_memcpy "cudaMemcpyHostToDevice");
   prim "Kuiper.Array.Core.memcpy_device_to_host" 4 (arr_memcpy "cudaMemcpyDeviceToHost");
   prim "Kuiper.Array.Core.memcpy_device_to_device" 4 (arr_memcpy "cudaMemcpyDeviceToDevice");
@@ -1107,9 +1096,8 @@ let _ =
     match args with
     | [x] -> mk (ECast (x, u32)) u32 E_Pure
     | _ -> fail "sizet_to_u32: expected 1 argument");
-  (* Custard's karamel backend prints [r[_zero_for_deref]] as [*r]. *)
+  (* Preserve the access-index marker that karamel prints as a dereference. *)
   cconst "Kuiper.Ref.deref_index" (cname "_zero_for_deref" usize);
-
   (* Pairs *)
   prim "FStar.Pervasives.Native.fst" 1 (tuple_proj 0);
   prim "FStar.Pervasives.Native.snd" 1 (tuple_proj 1);

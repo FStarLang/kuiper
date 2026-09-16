@@ -17,12 +17,12 @@ class has_atomic_add (t:Type) = {
   [@@@no_method]
   pure_op : t -> t -> t;
   atomic_add :
-    (r : gpu_ref t) ->
+    (r : ref t) ->
     (i : t) ->
     (#v0 : erased t) ->
     stt_atomic t
       emp_inames
-      (requires gpu ** r |-> v0)
+      (requires gpu ** pure (is_atomic_ref r) ** r |-> v0)
       (ensures fun old ->
         ensures gpu ** (r |-> pure_op i v0) ** pure (old == reveal v0));
 }

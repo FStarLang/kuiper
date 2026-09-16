@@ -106,7 +106,7 @@ fn output_epilogue_extract_step
   (wid : natlt (bm / (wm * tm) * (bn / (wn * tn))))
   (lane : natlt warp_size)
   (rD : chest2 real (wm * tm) (wn * tn))
-  (idx_ref : ref (szle (wm * wn)))
+  (idx_ref : Pulse.Lib.Reference.ref (szle (wm * wn)))
   (done : szle (wm * wn) { SZ.v done < wm * wn })
   preserves idx_ref |-> done
   requires
@@ -211,7 +211,7 @@ fn epilogue_loop_step
   (rCWarp : chest2 real (wm * tm) (wn * tn))
   (#_ : squash (
     rCWarp == epilogue_warp_input rC bm bn tm tn wm wn bid tid))
-  (idx : ref (szle (wm * wn)))
+  (idx : Pulse.Lib.Reference.ref (szle (wm * wn)))
   (done : szle (wm * wn) { SZ.v done < wm * wn })
   norewrite
   requires

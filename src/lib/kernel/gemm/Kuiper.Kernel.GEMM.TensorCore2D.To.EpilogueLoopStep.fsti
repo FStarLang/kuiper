@@ -63,7 +63,7 @@ fn epilogue_loop_step
   (rCWarp : chest2 real (wm * tm) (wn * tn))
   (#_ : squash (
     rCWarp == epilogue_warp_input rC bm bn tm tn wm wn bid tid))
-  (idx : ref (szle (wm * wn)))
+  (idx : Pulse.Lib.Reference.ref (szle (wm * wn)))
   (done : szle (wm * wn) { SZ.v done < wm * wn })
   norewrite
   requires

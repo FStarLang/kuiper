@@ -3,7 +3,6 @@ module Kuiper.Array.Core
 open Kuiper.PtsTo
 #lang-pulse
 
-open Pulse.Lib.Vec
 open Pulse.Lib.WithPure
 open Pulse
 open FStar.Tactics.V2
@@ -17,6 +16,7 @@ open Kuiper.ForEvery
 open Kuiper.Divides { (/?+) }
 open Kuiper.ArrayCoreAssumptions
 module A = Pulse.Lib.Array
+module R = Kuiper.Ref.Base
 module SZ = Kuiper.SizeT
 
 instance
@@ -35,8 +35,6 @@ let is_full_slice #et a n =
 
 // let gpu_array (a : Type u#0) (sz : nat) : Type u#0 = (x: A.larray a sz { sz > 0 })
 // let loc_id_of_array #a #sz x = loc_id_of_array x
-let visibility_of #a x = visibility_of_array x
-
 let visibility_of_gsub #a arr i j =
   A.visibility_of_array_gsub arr i j
 
@@ -477,7 +475,7 @@ fn rec memcpy_host_to_device'  //this is a CUDA primitive, so this definition is
   (dst_garr : larray a dst_sz)
   (dst_off : SZ.t)
   (#src_sz : erased nat)
-  (src_arr : vec a)
+  (src_arr : array a)
   (src_off : SZ.t)
   (cnt : SZ.t {
     dst_off + cnt <= dst_sz /\
@@ -516,7 +514,7 @@ fn rec memcpy_host_to_device'  //this is a CUDA primitive, so this definition is
         on_intro (dst_garr |-> Seq.upd gv dst_off x);
         ()
       };
-    Pulse.Lib.Vec.pts_to_len src_arr;
+    A.pts_to_len src_arr;
     memcpy_host_to_device' dst_garr (dst_off +^ 1sz) #src_sz src_arr (src_off +^ 1sz) (cnt -^ 1sz) #f #v #(Seq.upd gv dst_off x);
     with s' . assert (on gpu_loc (dst_garr |-> s'));
     assert pure (Seq.equal s' (seq_blit gv dst_off v src_off cnt));
@@ -530,7 +528,7 @@ fn memcpy_host_to_device
   {| sized a |}
   (#sz : erased nat)
   (dst_garr : larray a sz)
-  (src_arr : vec a)
+  (src_arr : array a)
   (cnt : SZ.t)
   (#f : perm)
   (#v : erased (seq a))
@@ -542,12 +540,12 @@ fn memcpy_host_to_device
     on gpu_loc (dst_garr |-> gv)
   requires
     pure (SZ.v cnt == sz /\
-          (Pulse.Lib.Vec.length src_arr == sz \/ Seq.length v == reveal sz))
+          (A.length src_arr == sz \/ Seq.length v == reveal sz))
   ensures
     on gpu_loc (dst_garr |-> v) **
     pure (Seq.length v == reveal sz)
 {
-  Pulse.Lib.Vec.pts_to_len src_arr;
+  A.pts_to_len src_arr;
   ghost_impersonate gpu_loc
     (on gpu_loc (dst_garr |-> gv))
     (on gpu_loc (dst_garr |-> gv) ** pure (Seq.length gv == reveal sz))
@@ -568,7 +566,7 @@ fn rec memcpy_device_to_host'  //this is a CUDA primitive, so this definition is
   (#a:Type u#0)
   {| sized a |}
   (#dst_sz : erased nat)
-  (dst_arr : vec a)
+  (dst_arr : array a)
   (dst_off : SZ.t)
   (#src_sz : erased nat)
   (src_garr : larray a src_sz)
@@ -607,8 +605,8 @@ fn rec memcpy_device_to_host'  //this is a CUDA primitive, so this definition is
         on_intro (src_garr |-> Frac f (v<:seq _));
         res
       };
-    Pulse.Lib.Vec.(dst_arr.(dst_off) <- x);
-    Pulse.Lib.Vec.pts_to_len dst_arr;
+    A.(dst_arr.(dst_off) <- x);
+    A.pts_to_len dst_arr;
     memcpy_device_to_host' #a #_ #dst_sz dst_arr (dst_off +^ 1sz) src_garr (src_off +^ 1sz) (cnt -^ 1sz);
     with s' . assert (dst_arr |-> s');
     assert pure (Seq.equal s' (seq_blit gv dst_off v src_off cnt));
@@ -620,7 +618,7 @@ fn memcpy_device_to_host
   (#a:Type u#0)
   {| sized a |}
   (#sz : erased nat)
-  (dst_arr : vec a)
+  (dst_arr : array a)
   (src_garr : larray a sz)
   (cnt : SZ.t)
   (#f : perm)
@@ -633,12 +631,12 @@ fn memcpy_device_to_host
     (dst_arr |-> v) **
     pure (
       SZ.v cnt == sz /\
-      (Pulse.Lib.Vec.length dst_arr == sz \/ Seq.length v == reveal sz))
+      (A.length dst_arr == sz \/ Seq.length v == reveal sz))
   ensures
     (dst_arr |-> gv) **
     pure (Seq.length gv == reveal sz)
 {
-  Pulse.Lib.Vec.pts_to_len dst_arr;
+  A.pts_to_len dst_arr;
   ghost_impersonate gpu_loc
     (on gpu_loc (src_garr |-> Frac f gv))
     (on gpu_loc (src_garr |-> Frac f gv) ** pure (Seq.length gv == reveal sz))
@@ -1141,7 +1139,7 @@ let ref_of_cell
   (#et : Type0)
   (a : array et)
   (i : nat)
-  : ref et
+  : r:R.ref et{R.visibility_of_ref r == visibility_of a}
   = magic()
 
 (* Axiom, extracted natively. *)
@@ -1150,7 +1148,7 @@ fn get_ref_of_cell
   (a : array et)
   (i : sz)
   returns
-    r : ref et
+    r : R.ref et
   ensures
     pure (r == ref_of_cell a i)
 {

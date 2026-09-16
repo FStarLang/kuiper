@@ -8,7 +8,7 @@ module U32 = FStar.UInt32
 
 (* The two references name the same cell. Extraction must preserve the
    saved value across a write through the other reference. *)
-fn alias_step (p q : ref U32.t)
+fn alias_step (p q : Pulse.Lib.Reference.ref U32.t)
   requires p |-> 0ul ** pure (p == q)
   ensures p |-> 1ul
 {

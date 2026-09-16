@@ -761,7 +761,7 @@ let ref_of_cell
   (#r : nat) (#s : shape r) (#l : tlayout s)
   (a : tensor et l)
   (i : abs s)
-  : GTot (ref et)
+  : GTot (p:ref et{Kuiper.Ref.visibility_of_ref p == visibility_of (core a)})
   = Array.Core.ref_of_cell (core a) (l.imap.f i)
 
 inline_for_extraction noextract

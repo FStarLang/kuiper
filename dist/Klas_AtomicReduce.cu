@@ -45,14 +45,14 @@ uint32_t Klas_AtomicReduce_reduce_u32(uint32_t n, uint32_t *a)
 {
     uint32_t r = 0U;
     uint32_t *gr = (uint32_t *) KPR_GPU_ALLOC((uint32_t) sizeof(uint32_t), 1U);
-    MUST(cudaMemcpy(
-        gr, &r, (uint64_t) sizeof(uint32_t), cudaMemcpyHostToDevice));
+    MUST(cudaMemcpy(gr, &r, (uint64_t) sizeof(uint32_t) * (uint64_t) 1U,
+        cudaMemcpyHostToDevice));
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_KCALL(__hoisted_reduce_u32_0, n, 1U, 0U, s, a, gr);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
-    MUST(cudaMemcpy(
-        &r, gr, (uint64_t) sizeof(uint32_t), cudaMemcpyDeviceToHost));
+    MUST(cudaMemcpy(&r, gr, (uint64_t) sizeof(uint32_t) * (uint64_t) 1U,
+        cudaMemcpyDeviceToHost));
     MUST(cudaFree(gr));
     return r;
 }
@@ -61,14 +61,14 @@ uint64_t Klas_AtomicReduce_reduce_u64(uint32_t n, uint64_t *a)
 {
     uint64_t r = 0ULL;
     uint64_t *gr = (uint64_t *) KPR_GPU_ALLOC((uint32_t) sizeof(uint64_t), 1U);
-    MUST(cudaMemcpy(
-        gr, &r, (uint64_t) sizeof(uint64_t), cudaMemcpyHostToDevice));
+    MUST(cudaMemcpy(gr, &r, (uint64_t) sizeof(uint64_t) * (uint64_t) 1U,
+        cudaMemcpyHostToDevice));
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_KCALL(__hoisted_reduce_u64_0, n, 1U, 0U, s, a, gr);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
-    MUST(cudaMemcpy(
-        &r, gr, (uint64_t) sizeof(uint64_t), cudaMemcpyDeviceToHost));
+    MUST(cudaMemcpy(&r, gr, (uint64_t) sizeof(uint64_t) * (uint64_t) 1U,
+        cudaMemcpyDeviceToHost));
     MUST(cudaFree(gr));
     return r;
 }
@@ -77,12 +77,14 @@ float Klas_AtomicReduce_reduce_f32(uint32_t n, float *a)
 {
     float r = 0.0f;
     float *gr = (float *) KPR_GPU_ALLOC((uint32_t) sizeof(float), 1U);
-    MUST(cudaMemcpy(gr, &r, (uint64_t) sizeof(float), cudaMemcpyHostToDevice));
+    MUST(cudaMemcpy(gr, &r, (uint64_t) sizeof(float) * (uint64_t) 1U,
+        cudaMemcpyHostToDevice));
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_KCALL(__hoisted_reduce_f32_0, n, 1U, 0U, s, a, gr);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
-    MUST(cudaMemcpy(&r, gr, (uint64_t) sizeof(float), cudaMemcpyDeviceToHost));
+    MUST(cudaMemcpy(&r, gr, (uint64_t) sizeof(float) * (uint64_t) 1U,
+        cudaMemcpyDeviceToHost));
     MUST(cudaFree(gr));
     return r;
 }
@@ -91,12 +93,14 @@ double Klas_AtomicReduce_reduce_f64(uint32_t n, double *a)
 {
     double r = 0.0;
     double *gr = (double *) KPR_GPU_ALLOC((uint32_t) sizeof(double), 1U);
-    MUST(cudaMemcpy(gr, &r, (uint64_t) sizeof(double), cudaMemcpyHostToDevice));
+    MUST(cudaMemcpy(gr, &r, (uint64_t) sizeof(double) * (uint64_t) 1U,
+        cudaMemcpyHostToDevice));
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_KCALL(__hoisted_reduce_f64_0, n, 1U, 0U, s, a, gr);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
-    MUST(cudaMemcpy(&r, gr, (uint64_t) sizeof(double), cudaMemcpyDeviceToHost));
+    MUST(cudaMemcpy(&r, gr, (uint64_t) sizeof(double) * (uint64_t) 1U,
+        cudaMemcpyDeviceToHost));
     MUST(cudaFree(gr));
     return r;
 }

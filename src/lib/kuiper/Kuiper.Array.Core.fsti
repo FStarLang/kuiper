@@ -2,7 +2,6 @@ module Kuiper.Array.Core
 
 #lang-pulse
 
-open Pulse.Lib.Vec
 open Pulse.Lib.WithPure
 open Pulse
 open FStar.Tactics.V2
@@ -19,6 +18,7 @@ open Kuiper.ArrayCoreAssumptions
 module T = FStar.Tactics
 module SZ = Kuiper.SizeT
 module A = Pulse.Lib.Array
+module R = Kuiper.Ref.Base
 
 val is_full_slice
   (#et:Type)
@@ -27,7 +27,7 @@ val is_full_slice
 
 // val gpu_array (a : Type u#0) (sz : nat) : Type u#0
 // val loc_id_of_array (#a:Type u#0) (#sz:nat) (x:gpu_array a sz) : loc_id
-val visibility_of #a (x:array a) : visibility
+let visibility_of #a (x:array a) : visibility = A.visibility_of_array x
 
 val visibility_of_gsub (#a:Type0) (arr:array a) (i:nat)
   (j:nat{i <= j /\ j <= A.length arr})
@@ -304,7 +304,7 @@ fn memcpy_host_to_device'
   (dst_garr : larray a dst_sz)
   (dst_off : SZ.t)
   (#src_sz : erased nat)
-  (src_arr : vec a)
+  (src_arr : array a)
   (src_off : SZ.t)
   (cnt : SZ.t { dst_off + cnt <= dst_sz /\ src_off + cnt <= src_sz })
   (#f : perm)
@@ -325,7 +325,7 @@ fn memcpy_host_to_device
   {| sized a |}
   (#sz : erased nat)
   (dst_garr : larray a sz)
-  (src_arr : vec a)
+  (src_arr : array a)
   (cnt : SZ.t)
   (#f : perm)
   (#v : erased (seq a))
@@ -337,7 +337,7 @@ fn memcpy_host_to_device
     on gpu_loc (dst_garr |-> gv)
   requires
     pure (SZ.v cnt == sz /\
-          (Pulse.Lib.Vec.length src_arr == sz \/ Seq.length v == reveal sz))
+          (A.length src_arr == sz \/ Seq.length v == reveal sz))
   ensures
     on gpu_loc (dst_garr |-> v) **
     pure (Seq.length v == reveal sz)
@@ -347,7 +347,7 @@ fn memcpy_device_to_host'
   (#a:Type u#0)
   {| sized a |}
   (#dst_sz : erased nat)
-  (dst_arr : vec a)
+  (dst_arr : array a)
   (dst_off : SZ.t)
   (#src_sz : erased nat)
   (src_garr : larray a src_sz)
@@ -372,7 +372,7 @@ fn memcpy_device_to_host
   (#a:Type u#0)
   {| sized a |}
   (#sz : erased nat)
-  (dst_arr : vec a)
+  (dst_arr : array a)
   (src_garr : larray a sz)
   (cnt : SZ.t)
   (#f : perm)
@@ -385,7 +385,7 @@ fn memcpy_device_to_host
     dst_arr |-> v **
     pure (
       SZ.v cnt == sz /\
-      (Pulse.Lib.Vec.length dst_arr == sz \/ Seq.length v == reveal sz))
+      (A.length dst_arr == sz \/ Seq.length v == reveal sz))
   ensures
     dst_arr |-> gv **
     pure (Seq.length gv == reveal sz)
@@ -603,18 +603,20 @@ fn array_gather_underspec
 //   ensures
 //     arr |-> Frac 'f ('s1 @+ 's2)
 
+// Taking an element's address preserves the allocation's visibility, including
+// the distinction between global, shared, and thread-local GPU storage.
 val ref_of_cell
   (#et : Type0)
   (a : array et)
   (i : nat)
-  : ref et
+  : r:R.ref et{R.visibility_of_ref r == visibility_of a}
 
 fn get_ref_of_cell
   (#et : Type0)
   (a : array et)
   (i : sz)
   returns
-    r : ref et
+    r : R.ref et
   ensures
     pure (r == ref_of_cell a i)
 
