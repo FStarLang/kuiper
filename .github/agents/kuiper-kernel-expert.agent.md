@@ -43,7 +43,7 @@ When implementing proofs for a new kernel, study simpler implementations first:
 ## When Writing Kuiper Code
 
 1. Always include the `#lang-pulse` directive at the module top
-2. Use proper type annotations with Kuiper types (gpu_ref, gpu_array, f32, u64, etc.)
+2. Use standard reference and array types (`ref`, `array`, `larray`) and Kuiper scalar types (`f32`, `u64`, etc.).
 3. Include separation logic assertions (requires/ensures clauses) that specify pre/post conditions
 4. Use !/:= (aliases for read/write) for references and proper memory operations
 5. Apply synchronization operations (gpu_barrier, sync_stream) when coordinating threads

@@ -6,7 +6,7 @@ open FStar.Ghost
 open Pulse.Lib.Core
 open Pulse.Class.PtsTo
 open Kuiper.Base
-open Kuiper.Ref
+open Pulse.Lib.Reference { ref }
 open Kuiper.IntAliases
 open Kuiper.AtomicOps
 open FStar.Tactics.Typeclasses { no_method }
@@ -17,7 +17,7 @@ class has_atomic_add (t:Type) = {
   [@@@no_method]
   pure_op : t -> t -> t;
   atomic_add :
-    (r : gpu_ref t) ->
+    (r : ref t) ->
     (i : t) ->
     (#v0 : erased t) ->
     stt_atomic t

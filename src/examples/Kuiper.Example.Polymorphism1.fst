@@ -11,7 +11,7 @@ open Kuiper
 fn kswap
   (#t : Type0)
   (#v1 #v2 : erased t)
-  (r1 r2 : gpu_ref t)
+  (r1 r2 : ref t)
   requires gpu ** (r1 |-> v1 ** r2 |-> v2)
   ensures  gpu ** (r1 |-> v2 ** r2 |-> v1)
 {
@@ -24,7 +24,8 @@ inline_for_extraction noextract
 let kernel
   (#t : Type0)
   (#v1 #v2 : _)
-  (r1 r2 : gpu_ref t)
+  (r1 : ref t{visibility_of_ref r1 == gpu_of})
+  (r2 : ref t{visibility_of_ref r2 == gpu_of})
   : kernel_desc
       (r1 |-> v1 ** r2 |-> v2)
       (r1 |-> v2 ** r2 |-> v1)
@@ -56,7 +57,7 @@ fn swap_via_gpu
 
 [@@CPrologue "__device__"; "KrmlPrivate"]
 fn kswap_U64
-  (r1 r2 : gpu_ref u64)
+  (r1 r2 : ref u64)
   ()
   requires gpu ** (r1 |-> 'v1) ** (r2 |-> 'v2)
   ensures  gpu ** (r1 |-> 'v2) ** (r2 |-> 'v1)
@@ -66,7 +67,7 @@ fn kswap_U64
 
 [@@CPrologue "__device__"; "KrmlPrivate"]
 fn kswap_F32
-  (r1 r2 : gpu_ref f32)
+  (r1 r2 : ref f32)
   requires gpu ** (r1 |-> 'v1) ** (r2 |-> 'v2)
   ensures  gpu ** (r1 |-> 'v2) ** (r2 |-> 'v1)
 {
