@@ -357,7 +357,7 @@ __global__ static void kuiper_kernel_0(uint32_t cols, uint32_t shared,
     uint32_t warpRow = (wid / 2);
     uint32_t warpCol = (wid % 2);
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
-        _letpattern1 =
+        _letpattern =
             (FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_) {
                 ._1 = sh._1,
                 ._2 =
@@ -366,9 +366,9 @@ __global__ static void kuiper_kernel_0(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}};
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern2 =
+    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern1 =
         (FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr) {
-            ._1 = _letpattern1._1, ._2 = _letpattern1._2._1};
+            ._1 = _letpattern._1, ._2 = _letpattern._2._1};
     uint32_t num_k_tiles = (shared / 16);
     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16, custard_bf16,
         nvcuda::wmma::row_major>
@@ -395,7 +395,7 @@ __global__ static void kuiper_kernel_0(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, 0.0f);
+        wmma::fill_fragment(__anf1, (float) 0);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -427,7 +427,7 @@ __global__ static void kuiper_kernel_0(uint32_t cols, uint32_t shared,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 16) + cidx);
-                _letpattern2._1[ni] = v;
+                _letpattern1._1[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -459,7 +459,7 @@ __global__ static void kuiper_kernel_0(uint32_t cols, uint32_t shared,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 64) + cidx_1);
-                _letpattern2._2[ni_1] = v_1;
+                _letpattern1._2[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -478,7 +478,7 @@ __global__ static void kuiper_kernel_0(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
                     aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
-                    (_letpattern2._1 +
+                    (_letpattern1._1 +
                         ((((0 + (16 * (warpRow * 32))) + (__anf01_3 * 16)) +
                              (16 * (__anf02_2 * 16))) +
                             0)),
@@ -495,7 +495,7 @@ __global__ static void kuiper_kernel_0(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
                     bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
-                    (_letpattern2._2 +
+                    (_letpattern1._2 +
                         ((((0 + (64 * (__anf02_3 * 16))) + (warpCol * 32)) +
                              0) +
                             (__anf03_3 * 16))),
@@ -638,7 +638,7 @@ __global__ static void kuiper_kernel_1(uint32_t cols, uint32_t shared,
     uint32_t warpRow = (wid / 1);
     uint32_t warpCol = (wid % 1);
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
-        _letpattern1 =
+        _letpattern =
             (FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_) {
                 ._1 = sh._1,
                 ._2 =
@@ -647,9 +647,9 @@ __global__ static void kuiper_kernel_1(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}};
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern2 =
+    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern1 =
         (FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr) {
-            ._1 = _letpattern1._1, ._2 = _letpattern1._2._1};
+            ._1 = _letpattern._1, ._2 = _letpattern._2._1};
     uint32_t num_k_tiles = (shared / 16);
     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16, custard_bf16,
         nvcuda::wmma::row_major>
@@ -676,7 +676,7 @@ __global__ static void kuiper_kernel_1(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, 0.0f);
+        wmma::fill_fragment(__anf1, (float) 0);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -708,7 +708,7 @@ __global__ static void kuiper_kernel_1(uint32_t cols, uint32_t shared,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 16) + cidx);
-                _letpattern2._1[ni] = v;
+                _letpattern1._1[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -740,7 +740,7 @@ __global__ static void kuiper_kernel_1(uint32_t cols, uint32_t shared,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 64) + cidx_1);
-                _letpattern2._2[ni_1] = v_1;
+                _letpattern1._2[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -759,7 +759,7 @@ __global__ static void kuiper_kernel_1(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
                     aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
-                    (_letpattern2._1 +
+                    (_letpattern1._1 +
                         ((((0 + (16 * (warpRow * 32))) + (__anf01_3 * 16)) +
                              (16 * (__anf02_2 * 16))) +
                             0)),
@@ -776,7 +776,7 @@ __global__ static void kuiper_kernel_1(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
                     bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
-                    (_letpattern2._2 +
+                    (_letpattern1._2 +
                         ((((0 + (64 * (__anf02_3 * 16))) + (warpCol * 64)) +
                              0) +
                             (__anf03_3 * 16))),
@@ -904,7 +904,7 @@ __global__ static void kuiper_kernel_2(uint32_t cols, uint32_t shared,
     uint32_t warpRow = (wid / 2);
     uint32_t warpCol = (wid % 2);
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
-        _letpattern1 =
+        _letpattern =
             (FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_) {
                 ._1 = sh._1,
                 ._2 =
@@ -913,9 +913,9 @@ __global__ static void kuiper_kernel_2(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}};
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern2 =
+    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern1 =
         (FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr) {
-            ._1 = _letpattern1._1, ._2 = _letpattern1._2._1};
+            ._1 = _letpattern._1, ._2 = _letpattern._2._1};
     uint32_t num_k_tiles = (shared / 16);
     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16, custard_bf16,
         nvcuda::wmma::row_major>
@@ -942,7 +942,7 @@ __global__ static void kuiper_kernel_2(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, 0.0f);
+        wmma::fill_fragment(__anf1, (float) 0);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -974,7 +974,7 @@ __global__ static void kuiper_kernel_2(uint32_t cols, uint32_t shared,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 16) + cidx);
-                _letpattern2._1[ni] = v;
+                _letpattern1._1[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -1006,7 +1006,7 @@ __global__ static void kuiper_kernel_2(uint32_t cols, uint32_t shared,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 64) + cidx_1);
-                _letpattern2._2[ni_1] = v_1;
+                _letpattern1._2[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -1025,7 +1025,7 @@ __global__ static void kuiper_kernel_2(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
                     aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
-                    (_letpattern2._1 +
+                    (_letpattern1._1 +
                         ((((0 + (16 * (warpRow * 64))) + (__anf01_3 * 16)) +
                              (16 * (__anf02_2 * 16))) +
                             0)),
@@ -1042,7 +1042,7 @@ __global__ static void kuiper_kernel_2(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
                     bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
-                    (_letpattern2._2 +
+                    (_letpattern1._2 +
                         ((((0 + (64 * (__anf02_3 * 16))) + (warpCol * 32)) +
                              0) +
                             (__anf03_3 * 16))),
@@ -1185,7 +1185,7 @@ __global__ static void kuiper_kernel_3(uint32_t cols, uint32_t shared,
     uint32_t warpRow = (wid / 1);
     uint32_t warpCol = (wid % 1);
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
-        _letpattern1 =
+        _letpattern =
             (FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_) {
                 ._1 = sh._1,
                 ._2 =
@@ -1194,9 +1194,9 @@ __global__ static void kuiper_kernel_3(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}};
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern2 =
+    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern1 =
         (FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr) {
-            ._1 = _letpattern1._1, ._2 = _letpattern1._2._1};
+            ._1 = _letpattern._1, ._2 = _letpattern._2._1};
     uint32_t num_k_tiles = (shared / 16);
     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16, custard_bf16,
         nvcuda::wmma::row_major>
@@ -1223,7 +1223,7 @@ __global__ static void kuiper_kernel_3(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, 0.0f);
+        wmma::fill_fragment(__anf1, (float) 0);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -1255,7 +1255,7 @@ __global__ static void kuiper_kernel_3(uint32_t cols, uint32_t shared,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 16) + cidx);
-                _letpattern2._1[ni] = v;
+                _letpattern1._1[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -1287,7 +1287,7 @@ __global__ static void kuiper_kernel_3(uint32_t cols, uint32_t shared,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 64) + cidx_1);
-                _letpattern2._2[ni_1] = v_1;
+                _letpattern1._2[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -1306,7 +1306,7 @@ __global__ static void kuiper_kernel_3(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
                     aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
-                    (_letpattern2._1 +
+                    (_letpattern1._1 +
                         ((((0 + (16 * (warpRow * 64))) + (__anf01_3 * 16)) +
                              (16 * (__anf02_2 * 16))) +
                             0)),
@@ -1323,7 +1323,7 @@ __global__ static void kuiper_kernel_3(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
                     bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
-                    (_letpattern2._2 +
+                    (_letpattern1._2 +
                         ((((0 + (64 * (__anf02_3 * 16))) + (warpCol * 64)) +
                              0) +
                             (__anf03_3 * 16))),
@@ -1459,7 +1459,7 @@ __global__ static void kuiper_kernel_4(uint32_t cols, uint32_t shared,
     uint32_t warpRow = (wid / 2);
     uint32_t warpCol = (wid % 2);
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
-        _letpattern1 =
+        _letpattern =
             (FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_) {
                 ._1 = sh._1,
                 ._2 =
@@ -1468,9 +1468,9 @@ __global__ static void kuiper_kernel_4(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}};
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern2 =
+    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern1 =
         (FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr) {
-            ._1 = _letpattern1._1, ._2 = _letpattern1._2._1};
+            ._1 = _letpattern._1, ._2 = _letpattern._2._1};
     uint32_t num_k_tiles = (shared / 32);
     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16, custard_bf16,
         nvcuda::wmma::row_major>
@@ -1497,7 +1497,7 @@ __global__ static void kuiper_kernel_4(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, 0.0f);
+        wmma::fill_fragment(__anf1, (float) 0);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -1529,7 +1529,7 @@ __global__ static void kuiper_kernel_4(uint32_t cols, uint32_t shared,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 32) + cidx);
-                _letpattern2._1[ni] = v;
+                _letpattern1._1[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -1561,7 +1561,7 @@ __global__ static void kuiper_kernel_4(uint32_t cols, uint32_t shared,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 64) + cidx_1);
-                _letpattern2._2[ni_1] = v_1;
+                _letpattern1._2[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -1580,7 +1580,7 @@ __global__ static void kuiper_kernel_4(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
                     aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
-                    (_letpattern2._1 +
+                    (_letpattern1._1 +
                         ((((0 + (32 * (warpRow * 32))) + (__anf01_3 * 16)) +
                              (32 * (__anf02_2 * 16))) +
                             0)),
@@ -1597,7 +1597,7 @@ __global__ static void kuiper_kernel_4(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
                     bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
-                    (_letpattern2._2 +
+                    (_letpattern1._2 +
                         ((((0 + (64 * (__anf02_3 * 16))) + (warpCol * 32)) +
                              0) +
                             (__anf03_3 * 16))),
@@ -1733,7 +1733,7 @@ __global__ static void kuiper_kernel_5(uint32_t cols, uint32_t shared,
     uint32_t warpRow = (wid / 1);
     uint32_t warpCol = (wid % 1);
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
-        _letpattern1 =
+        _letpattern =
             (FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_) {
                 ._1 = sh._1,
                 ._2 =
@@ -1742,9 +1742,9 @@ __global__ static void kuiper_kernel_5(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}};
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern2 =
+    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern1 =
         (FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr) {
-            ._1 = _letpattern1._1, ._2 = _letpattern1._2._1};
+            ._1 = _letpattern._1, ._2 = _letpattern._2._1};
     uint32_t num_k_tiles = (shared / 32);
     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16, custard_bf16,
         nvcuda::wmma::row_major>
@@ -1771,7 +1771,7 @@ __global__ static void kuiper_kernel_5(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, 0.0f);
+        wmma::fill_fragment(__anf1, (float) 0);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -1803,7 +1803,7 @@ __global__ static void kuiper_kernel_5(uint32_t cols, uint32_t shared,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 32) + cidx);
-                _letpattern2._1[ni] = v;
+                _letpattern1._1[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -1835,7 +1835,7 @@ __global__ static void kuiper_kernel_5(uint32_t cols, uint32_t shared,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 64) + cidx_1);
-                _letpattern2._2[ni_1] = v_1;
+                _letpattern1._2[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -1854,7 +1854,7 @@ __global__ static void kuiper_kernel_5(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
                     aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
-                    (_letpattern2._1 +
+                    (_letpattern1._1 +
                         ((((0 + (32 * (warpRow * 32))) + (__anf01_3 * 16)) +
                              (32 * (__anf02_2 * 16))) +
                             0)),
@@ -1871,7 +1871,7 @@ __global__ static void kuiper_kernel_5(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
                     bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
-                    (_letpattern2._2 +
+                    (_letpattern1._2 +
                         ((((0 + (64 * (__anf02_3 * 16))) + (warpCol * 64)) +
                              0) +
                             (__anf03_3 * 16))),
@@ -1999,7 +1999,7 @@ __global__ static void kuiper_kernel_6(uint32_t cols, uint32_t shared,
     uint32_t warpRow = (wid / 2);
     uint32_t warpCol = (wid % 2);
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
-        _letpattern1 =
+        _letpattern =
             (FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_) {
                 ._1 = sh._1,
                 ._2 =
@@ -2008,9 +2008,9 @@ __global__ static void kuiper_kernel_6(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}};
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern2 =
+    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern1 =
         (FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr) {
-            ._1 = _letpattern1._1, ._2 = _letpattern1._2._1};
+            ._1 = _letpattern._1, ._2 = _letpattern._2._1};
     uint32_t num_k_tiles = (shared / 32);
     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16, custard_bf16,
         nvcuda::wmma::row_major>
@@ -2037,7 +2037,7 @@ __global__ static void kuiper_kernel_6(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, 0.0f);
+        wmma::fill_fragment(__anf1, (float) 0);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -2069,7 +2069,7 @@ __global__ static void kuiper_kernel_6(uint32_t cols, uint32_t shared,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 32) + cidx);
-                _letpattern2._1[ni] = v;
+                _letpattern1._1[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -2101,7 +2101,7 @@ __global__ static void kuiper_kernel_6(uint32_t cols, uint32_t shared,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 64) + cidx_1);
-                _letpattern2._2[ni_1] = v_1;
+                _letpattern1._2[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -2120,7 +2120,7 @@ __global__ static void kuiper_kernel_6(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
                     aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
-                    (_letpattern2._1 +
+                    (_letpattern1._1 +
                         ((((0 + (32 * (warpRow * 64))) + (__anf01_3 * 16)) +
                              (32 * (__anf02_2 * 16))) +
                             0)),
@@ -2137,7 +2137,7 @@ __global__ static void kuiper_kernel_6(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
                     bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
-                    (_letpattern2._2 +
+                    (_letpattern1._2 +
                         ((((0 + (64 * (__anf02_3 * 16))) + (warpCol * 32)) +
                              0) +
                             (__anf03_3 * 16))),
@@ -2273,7 +2273,7 @@ __global__ static void kuiper_kernel_7(uint32_t cols, uint32_t shared,
     uint32_t warpRow = (wid / 1);
     uint32_t warpCol = (wid % 1);
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
-        _letpattern1 =
+        _letpattern =
             (FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_) {
                 ._1 = sh._1,
                 ._2 =
@@ -2282,9 +2282,9 @@ __global__ static void kuiper_kernel_7(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}};
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern2 =
+    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern1 =
         (FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr) {
-            ._1 = _letpattern1._1, ._2 = _letpattern1._2._1};
+            ._1 = _letpattern._1, ._2 = _letpattern._2._1};
     uint32_t num_k_tiles = (shared / 32);
     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16, custard_bf16,
         nvcuda::wmma::row_major>
@@ -2311,7 +2311,7 @@ __global__ static void kuiper_kernel_7(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, 0.0f);
+        wmma::fill_fragment(__anf1, (float) 0);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -2343,7 +2343,7 @@ __global__ static void kuiper_kernel_7(uint32_t cols, uint32_t shared,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 32) + cidx);
-                _letpattern2._1[ni] = v;
+                _letpattern1._1[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -2375,7 +2375,7 @@ __global__ static void kuiper_kernel_7(uint32_t cols, uint32_t shared,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 64) + cidx_1);
-                _letpattern2._2[ni_1] = v_1;
+                _letpattern1._2[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -2394,7 +2394,7 @@ __global__ static void kuiper_kernel_7(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
                     aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
-                    (_letpattern2._1 +
+                    (_letpattern1._1 +
                         ((((0 + (32 * (warpRow * 64))) + (__anf01_3 * 16)) +
                              (32 * (__anf02_2 * 16))) +
                             0)),
@@ -2411,7 +2411,7 @@ __global__ static void kuiper_kernel_7(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
                     bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
-                    (_letpattern2._2 +
+                    (_letpattern1._2 +
                         ((((0 + (64 * (__anf02_3 * 16))) + (warpCol * 64)) +
                              0) +
                             (__anf03_3 * 16))),
@@ -2547,7 +2547,7 @@ __global__ static void kuiper_kernel_8(uint32_t cols, uint32_t shared,
     uint32_t warpRow = (wid / 2);
     uint32_t warpCol = (wid % 2);
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
-        _letpattern1 =
+        _letpattern =
             (FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_) {
                 ._1 = sh._1,
                 ._2 =
@@ -2556,9 +2556,9 @@ __global__ static void kuiper_kernel_8(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}};
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern2 =
+    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern1 =
         (FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr) {
-            ._1 = _letpattern1._1, ._2 = _letpattern1._2._1};
+            ._1 = _letpattern._1, ._2 = _letpattern._2._1};
     uint32_t num_k_tiles = (shared / 64);
     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16, custard_bf16,
         nvcuda::wmma::row_major>
@@ -2585,7 +2585,7 @@ __global__ static void kuiper_kernel_8(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, 0.0f);
+        wmma::fill_fragment(__anf1, (float) 0);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -2617,7 +2617,7 @@ __global__ static void kuiper_kernel_8(uint32_t cols, uint32_t shared,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 64) + cidx);
-                _letpattern2._1[ni] = v;
+                _letpattern1._1[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -2649,7 +2649,7 @@ __global__ static void kuiper_kernel_8(uint32_t cols, uint32_t shared,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 64) + cidx_1);
-                _letpattern2._2[ni_1] = v_1;
+                _letpattern1._2[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -2668,7 +2668,7 @@ __global__ static void kuiper_kernel_8(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
                     aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
-                    (_letpattern2._1 +
+                    (_letpattern1._1 +
                         ((((0 + (64 * (warpRow * 32))) + (__anf01_3 * 16)) +
                              (64 * (__anf02_2 * 16))) +
                             0)),
@@ -2685,7 +2685,7 @@ __global__ static void kuiper_kernel_8(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
                     bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
-                    (_letpattern2._2 +
+                    (_letpattern1._2 +
                         ((((0 + (64 * (__anf02_3 * 16))) + (warpCol * 32)) +
                              0) +
                             (__anf03_3 * 16))),
@@ -2821,7 +2821,7 @@ __global__ static void kuiper_kernel_9(uint32_t cols, uint32_t shared,
     uint32_t warpRow = (wid / 1);
     uint32_t warpCol = (wid % 1);
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
-        _letpattern1 =
+        _letpattern =
             (FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_) {
                 ._1 = sh._1,
                 ._2 =
@@ -2830,9 +2830,9 @@ __global__ static void kuiper_kernel_9(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}};
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern2 =
+    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern1 =
         (FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr) {
-            ._1 = _letpattern1._1, ._2 = _letpattern1._2._1};
+            ._1 = _letpattern._1, ._2 = _letpattern._2._1};
     uint32_t num_k_tiles = (shared / 64);
     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16, custard_bf16,
         nvcuda::wmma::row_major>
@@ -2859,7 +2859,7 @@ __global__ static void kuiper_kernel_9(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, 0.0f);
+        wmma::fill_fragment(__anf1, (float) 0);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -2891,7 +2891,7 @@ __global__ static void kuiper_kernel_9(uint32_t cols, uint32_t shared,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 64) + cidx);
-                _letpattern2._1[ni] = v;
+                _letpattern1._1[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -2923,7 +2923,7 @@ __global__ static void kuiper_kernel_9(uint32_t cols, uint32_t shared,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 64) + cidx_1);
-                _letpattern2._2[ni_1] = v_1;
+                _letpattern1._2[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -2942,7 +2942,7 @@ __global__ static void kuiper_kernel_9(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
                     aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
-                    (_letpattern2._1 +
+                    (_letpattern1._1 +
                         ((((0 + (64 * (warpRow * 32))) + (__anf01_3 * 16)) +
                              (64 * (__anf02_2 * 16))) +
                             0)),
@@ -2959,7 +2959,7 @@ __global__ static void kuiper_kernel_9(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
                     bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
-                    (_letpattern2._2 +
+                    (_letpattern1._2 +
                         ((((0 + (64 * (__anf02_3 * 16))) + (warpCol * 64)) +
                              0) +
                             (__anf03_3 * 16))),
@@ -3087,7 +3087,7 @@ __global__ static void kuiper_kernel_10(uint32_t cols, uint32_t shared,
     uint32_t warpRow = (wid / 2);
     uint32_t warpCol = (wid % 2);
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
-        _letpattern1 =
+        _letpattern =
             (FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_) {
                 ._1 = sh._1,
                 ._2 =
@@ -3096,9 +3096,9 @@ __global__ static void kuiper_kernel_10(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}};
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern2 =
+    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern1 =
         (FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr) {
-            ._1 = _letpattern1._1, ._2 = _letpattern1._2._1};
+            ._1 = _letpattern._1, ._2 = _letpattern._2._1};
     uint32_t num_k_tiles = (shared / 64);
     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16, custard_bf16,
         nvcuda::wmma::row_major>
@@ -3125,7 +3125,7 @@ __global__ static void kuiper_kernel_10(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, 0.0f);
+        wmma::fill_fragment(__anf1, (float) 0);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -3157,7 +3157,7 @@ __global__ static void kuiper_kernel_10(uint32_t cols, uint32_t shared,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 64) + cidx);
-                _letpattern2._1[ni] = v;
+                _letpattern1._1[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -3189,7 +3189,7 @@ __global__ static void kuiper_kernel_10(uint32_t cols, uint32_t shared,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 64) + cidx_1);
-                _letpattern2._2[ni_1] = v_1;
+                _letpattern1._2[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -3208,7 +3208,7 @@ __global__ static void kuiper_kernel_10(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
                     aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
-                    (_letpattern2._1 +
+                    (_letpattern1._1 +
                         ((((0 + (64 * (warpRow * 64))) + (__anf01_3 * 16)) +
                              (64 * (__anf02_2 * 16))) +
                             0)),
@@ -3225,7 +3225,7 @@ __global__ static void kuiper_kernel_10(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
                     bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
-                    (_letpattern2._2 +
+                    (_letpattern1._2 +
                         ((((0 + (64 * (__anf02_3 * 16))) + (warpCol * 32)) +
                              0) +
                             (__anf03_3 * 16))),
@@ -3361,7 +3361,7 @@ __global__ static void kuiper_kernel_11(uint32_t cols, uint32_t shared,
     uint32_t warpRow = (wid / 1);
     uint32_t warpCol = (wid % 1);
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
-        _letpattern1 =
+        _letpattern =
             (FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_) {
                 ._1 = sh._1,
                 ._2 =
@@ -3370,9 +3370,9 @@ __global__ static void kuiper_kernel_11(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}};
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern2 =
+    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern1 =
         (FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr) {
-            ._1 = _letpattern1._1, ._2 = _letpattern1._2._1};
+            ._1 = _letpattern._1, ._2 = _letpattern._2._1};
     uint32_t num_k_tiles = (shared / 64);
     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16, custard_bf16,
         nvcuda::wmma::row_major>
@@ -3399,7 +3399,7 @@ __global__ static void kuiper_kernel_11(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, 0.0f);
+        wmma::fill_fragment(__anf1, (float) 0);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -3431,7 +3431,7 @@ __global__ static void kuiper_kernel_11(uint32_t cols, uint32_t shared,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 64) + cidx);
-                _letpattern2._1[ni] = v;
+                _letpattern1._1[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -3463,7 +3463,7 @@ __global__ static void kuiper_kernel_11(uint32_t cols, uint32_t shared,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 64) + cidx_1);
-                _letpattern2._2[ni_1] = v_1;
+                _letpattern1._2[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -3482,7 +3482,7 @@ __global__ static void kuiper_kernel_11(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
                     aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
-                    (_letpattern2._1 +
+                    (_letpattern1._1 +
                         ((((0 + (64 * (warpRow * 64))) + (__anf01_3 * 16)) +
                              (64 * (__anf02_2 * 16))) +
                             0)),
@@ -3499,7 +3499,7 @@ __global__ static void kuiper_kernel_11(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
                     bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
-                    (_letpattern2._2 +
+                    (_letpattern1._2 +
                         ((((0 + (64 * (__anf02_3 * 16))) + (warpCol * 64)) +
                              0) +
                             (__anf03_3 * 16))),
@@ -3627,7 +3627,7 @@ __global__ static void kuiper_kernel_12(uint32_t cols, uint32_t shared,
     uint32_t warpRow = (wid / 2);
     uint32_t warpCol = (wid % 2);
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
-        _letpattern1 =
+        _letpattern =
             (FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_) {
                 ._1 = sh._1,
                 ._2 =
@@ -3636,9 +3636,9 @@ __global__ static void kuiper_kernel_12(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}};
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern2 =
+    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern1 =
         (FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr) {
-            ._1 = _letpattern1._1, ._2 = _letpattern1._2._1};
+            ._1 = _letpattern._1, ._2 = _letpattern._2._1};
     uint32_t num_k_tiles = (shared / 16);
     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16, custard_bf16,
         nvcuda::wmma::row_major>
@@ -3665,7 +3665,7 @@ __global__ static void kuiper_kernel_12(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, 0.0f);
+        wmma::fill_fragment(__anf1, (float) 0);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -3697,7 +3697,7 @@ __global__ static void kuiper_kernel_12(uint32_t cols, uint32_t shared,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 16) + cidx);
-                _letpattern2._1[ni] = v;
+                _letpattern1._1[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -3729,7 +3729,7 @@ __global__ static void kuiper_kernel_12(uint32_t cols, uint32_t shared,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
-                _letpattern2._2[ni_1] = v_1;
+                _letpattern1._2[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -3748,7 +3748,7 @@ __global__ static void kuiper_kernel_12(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
                     aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
-                    (_letpattern2._1 +
+                    (_letpattern1._1 +
                         ((((0 + (16 * (warpRow * 32))) + (__anf01_3 * 16)) +
                              (16 * (__anf02_2 * 16))) +
                             0)),
@@ -3765,7 +3765,7 @@ __global__ static void kuiper_kernel_12(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
                     bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
-                    (_letpattern2._2 +
+                    (_letpattern1._2 +
                         ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 64)) +
                              0) +
                             (__anf03_3 * 16))),
@@ -3893,7 +3893,7 @@ __global__ static void kuiper_kernel_13(uint32_t cols, uint32_t shared,
     uint32_t warpRow = (wid / 1);
     uint32_t warpCol = (wid % 1);
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
-        _letpattern1 =
+        _letpattern =
             (FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_) {
                 ._1 = sh._1,
                 ._2 =
@@ -3902,9 +3902,9 @@ __global__ static void kuiper_kernel_13(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}};
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern2 =
+    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern1 =
         (FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr) {
-            ._1 = _letpattern1._1, ._2 = _letpattern1._2._1};
+            ._1 = _letpattern._1, ._2 = _letpattern._2._1};
     uint32_t num_k_tiles = (shared / 16);
     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16, custard_bf16,
         nvcuda::wmma::row_major>
@@ -3931,7 +3931,7 @@ __global__ static void kuiper_kernel_13(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, 0.0f);
+        wmma::fill_fragment(__anf1, (float) 0);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -3963,7 +3963,7 @@ __global__ static void kuiper_kernel_13(uint32_t cols, uint32_t shared,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 16) + cidx);
-                _letpattern2._1[ni] = v;
+                _letpattern1._1[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -3995,7 +3995,7 @@ __global__ static void kuiper_kernel_13(uint32_t cols, uint32_t shared,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
-                _letpattern2._2[ni_1] = v_1;
+                _letpattern1._2[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -4014,7 +4014,7 @@ __global__ static void kuiper_kernel_13(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
                     aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
-                    (_letpattern2._1 +
+                    (_letpattern1._1 +
                         ((((0 + (16 * (warpRow * 32))) + (__anf01_3 * 16)) +
                              (16 * (__anf02_2 * 16))) +
                             0)),
@@ -4031,7 +4031,7 @@ __global__ static void kuiper_kernel_13(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
                     bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
-                    (_letpattern2._2 +
+                    (_letpattern1._2 +
                         ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 128)) +
                              0) +
                             (__anf03_3 * 16))),
@@ -4159,7 +4159,7 @@ __global__ static void kuiper_kernel_14(uint32_t cols, uint32_t shared,
     uint32_t warpRow = (wid / 4);
     uint32_t warpCol = (wid % 4);
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
-        _letpattern1 =
+        _letpattern =
             (FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_) {
                 ._1 = sh._1,
                 ._2 =
@@ -4168,9 +4168,9 @@ __global__ static void kuiper_kernel_14(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}};
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern2 =
+    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern1 =
         (FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr) {
-            ._1 = _letpattern1._1, ._2 = _letpattern1._2._1};
+            ._1 = _letpattern._1, ._2 = _letpattern._2._1};
     uint32_t num_k_tiles = (shared / 16);
     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16, custard_bf16,
         nvcuda::wmma::row_major>
@@ -4197,7 +4197,7 @@ __global__ static void kuiper_kernel_14(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, 0.0f);
+        wmma::fill_fragment(__anf1, (float) 0);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -4229,7 +4229,7 @@ __global__ static void kuiper_kernel_14(uint32_t cols, uint32_t shared,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 16) + cidx);
-                _letpattern2._1[ni] = v;
+                _letpattern1._1[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -4261,7 +4261,7 @@ __global__ static void kuiper_kernel_14(uint32_t cols, uint32_t shared,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
-                _letpattern2._2[ni_1] = v_1;
+                _letpattern1._2[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -4280,7 +4280,7 @@ __global__ static void kuiper_kernel_14(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
                     aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
-                    (_letpattern2._1 +
+                    (_letpattern1._1 +
                         ((((0 + (16 * (warpRow * 64))) + (__anf01_3 * 16)) +
                              (16 * (__anf02_2 * 16))) +
                             0)),
@@ -4297,7 +4297,7 @@ __global__ static void kuiper_kernel_14(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
                     bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
-                    (_letpattern2._2 +
+                    (_letpattern1._2 +
                         ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 32)) +
                              0) +
                             (__anf03_3 * 16))),
@@ -4425,7 +4425,7 @@ __global__ static void kuiper_kernel_15(uint32_t cols, uint32_t shared,
     uint32_t warpRow = (wid / 2);
     uint32_t warpCol = (wid % 2);
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
-        _letpattern1 =
+        _letpattern =
             (FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_) {
                 ._1 = sh._1,
                 ._2 =
@@ -4434,9 +4434,9 @@ __global__ static void kuiper_kernel_15(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}};
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern2 =
+    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern1 =
         (FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr) {
-            ._1 = _letpattern1._1, ._2 = _letpattern1._2._1};
+            ._1 = _letpattern._1, ._2 = _letpattern._2._1};
     uint32_t num_k_tiles = (shared / 16);
     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16, custard_bf16,
         nvcuda::wmma::row_major>
@@ -4463,7 +4463,7 @@ __global__ static void kuiper_kernel_15(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, 0.0f);
+        wmma::fill_fragment(__anf1, (float) 0);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -4495,7 +4495,7 @@ __global__ static void kuiper_kernel_15(uint32_t cols, uint32_t shared,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 16) + cidx);
-                _letpattern2._1[ni] = v;
+                _letpattern1._1[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -4527,7 +4527,7 @@ __global__ static void kuiper_kernel_15(uint32_t cols, uint32_t shared,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
-                _letpattern2._2[ni_1] = v_1;
+                _letpattern1._2[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -4546,7 +4546,7 @@ __global__ static void kuiper_kernel_15(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
                     aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
-                    (_letpattern2._1 +
+                    (_letpattern1._1 +
                         ((((0 + (16 * (warpRow * 64))) + (__anf01_3 * 16)) +
                              (16 * (__anf02_2 * 16))) +
                             0)),
@@ -4563,7 +4563,7 @@ __global__ static void kuiper_kernel_15(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
                     bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
-                    (_letpattern2._2 +
+                    (_letpattern1._2 +
                         ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 64)) +
                              0) +
                             (__anf03_3 * 16))),
@@ -4691,7 +4691,7 @@ __global__ static void kuiper_kernel_16(uint32_t cols, uint32_t shared,
     uint32_t warpRow = (wid / 1);
     uint32_t warpCol = (wid % 1);
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
-        _letpattern1 =
+        _letpattern =
             (FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_) {
                 ._1 = sh._1,
                 ._2 =
@@ -4700,9 +4700,9 @@ __global__ static void kuiper_kernel_16(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}};
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern2 =
+    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern1 =
         (FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr) {
-            ._1 = _letpattern1._1, ._2 = _letpattern1._2._1};
+            ._1 = _letpattern._1, ._2 = _letpattern._2._1};
     uint32_t num_k_tiles = (shared / 16);
     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16, custard_bf16,
         nvcuda::wmma::row_major>
@@ -4729,7 +4729,7 @@ __global__ static void kuiper_kernel_16(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, 0.0f);
+        wmma::fill_fragment(__anf1, (float) 0);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -4761,7 +4761,7 @@ __global__ static void kuiper_kernel_16(uint32_t cols, uint32_t shared,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 16) + cidx);
-                _letpattern2._1[ni] = v;
+                _letpattern1._1[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -4793,7 +4793,7 @@ __global__ static void kuiper_kernel_16(uint32_t cols, uint32_t shared,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
-                _letpattern2._2[ni_1] = v_1;
+                _letpattern1._2[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -4812,7 +4812,7 @@ __global__ static void kuiper_kernel_16(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
                     aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
-                    (_letpattern2._1 +
+                    (_letpattern1._1 +
                         ((((0 + (16 * (warpRow * 64))) + (__anf01_3 * 16)) +
                              (16 * (__anf02_2 * 16))) +
                             0)),
@@ -4829,7 +4829,7 @@ __global__ static void kuiper_kernel_16(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
                     bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
-                    (_letpattern2._2 +
+                    (_letpattern1._2 +
                         ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 128)) +
                              0) +
                             (__anf03_3 * 16))),
@@ -4972,7 +4972,7 @@ __global__ static void kuiper_kernel_17(uint32_t cols, uint32_t shared,
     uint32_t warpRow = (wid / 4);
     uint32_t warpCol = (wid % 4);
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
-        _letpattern1 =
+        _letpattern =
             (FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_) {
                 ._1 = sh._1,
                 ._2 =
@@ -4981,9 +4981,9 @@ __global__ static void kuiper_kernel_17(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}};
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern2 =
+    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern1 =
         (FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr) {
-            ._1 = _letpattern1._1, ._2 = _letpattern1._2._1};
+            ._1 = _letpattern._1, ._2 = _letpattern._2._1};
     uint32_t num_k_tiles = (shared / 32);
     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16, custard_bf16,
         nvcuda::wmma::row_major>
@@ -5010,7 +5010,7 @@ __global__ static void kuiper_kernel_17(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, 0.0f);
+        wmma::fill_fragment(__anf1, (float) 0);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -5042,7 +5042,7 @@ __global__ static void kuiper_kernel_17(uint32_t cols, uint32_t shared,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 32) + cidx);
-                _letpattern2._1[ni] = v;
+                _letpattern1._1[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -5074,7 +5074,7 @@ __global__ static void kuiper_kernel_17(uint32_t cols, uint32_t shared,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
-                _letpattern2._2[ni_1] = v_1;
+                _letpattern1._2[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -5093,7 +5093,7 @@ __global__ static void kuiper_kernel_17(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
                     aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
-                    (_letpattern2._1 +
+                    (_letpattern1._1 +
                         ((((0 + (32 * (warpRow * 32))) + (__anf01_3 * 16)) +
                              (32 * (__anf02_2 * 16))) +
                             0)),
@@ -5110,7 +5110,7 @@ __global__ static void kuiper_kernel_17(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
                     bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
-                    (_letpattern2._2 +
+                    (_letpattern1._2 +
                         ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 32)) +
                              0) +
                             (__anf03_3 * 16))),
@@ -5238,7 +5238,7 @@ __global__ static void kuiper_kernel_18(uint32_t cols, uint32_t shared,
     uint32_t warpRow = (wid / 2);
     uint32_t warpCol = (wid % 2);
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
-        _letpattern1 =
+        _letpattern =
             (FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_) {
                 ._1 = sh._1,
                 ._2 =
@@ -5247,9 +5247,9 @@ __global__ static void kuiper_kernel_18(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}};
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern2 =
+    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern1 =
         (FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr) {
-            ._1 = _letpattern1._1, ._2 = _letpattern1._2._1};
+            ._1 = _letpattern._1, ._2 = _letpattern._2._1};
     uint32_t num_k_tiles = (shared / 32);
     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16, custard_bf16,
         nvcuda::wmma::row_major>
@@ -5276,7 +5276,7 @@ __global__ static void kuiper_kernel_18(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, 0.0f);
+        wmma::fill_fragment(__anf1, (float) 0);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -5308,7 +5308,7 @@ __global__ static void kuiper_kernel_18(uint32_t cols, uint32_t shared,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 32) + cidx);
-                _letpattern2._1[ni] = v;
+                _letpattern1._1[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -5340,7 +5340,7 @@ __global__ static void kuiper_kernel_18(uint32_t cols, uint32_t shared,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
-                _letpattern2._2[ni_1] = v_1;
+                _letpattern1._2[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -5359,7 +5359,7 @@ __global__ static void kuiper_kernel_18(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
                     aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
-                    (_letpattern2._1 +
+                    (_letpattern1._1 +
                         ((((0 + (32 * (warpRow * 32))) + (__anf01_3 * 16)) +
                              (32 * (__anf02_2 * 16))) +
                             0)),
@@ -5376,7 +5376,7 @@ __global__ static void kuiper_kernel_18(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
                     bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
-                    (_letpattern2._2 +
+                    (_letpattern1._2 +
                         ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 64)) +
                              0) +
                             (__anf03_3 * 16))),
@@ -5504,7 +5504,7 @@ __global__ static void kuiper_kernel_19(uint32_t cols, uint32_t shared,
     uint32_t warpRow = (wid / 1);
     uint32_t warpCol = (wid % 1);
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
-        _letpattern1 =
+        _letpattern =
             (FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_) {
                 ._1 = sh._1,
                 ._2 =
@@ -5513,9 +5513,9 @@ __global__ static void kuiper_kernel_19(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}};
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern2 =
+    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern1 =
         (FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr) {
-            ._1 = _letpattern1._1, ._2 = _letpattern1._2._1};
+            ._1 = _letpattern._1, ._2 = _letpattern._2._1};
     uint32_t num_k_tiles = (shared / 32);
     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16, custard_bf16,
         nvcuda::wmma::row_major>
@@ -5542,7 +5542,7 @@ __global__ static void kuiper_kernel_19(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, 0.0f);
+        wmma::fill_fragment(__anf1, (float) 0);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -5574,7 +5574,7 @@ __global__ static void kuiper_kernel_19(uint32_t cols, uint32_t shared,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 32) + cidx);
-                _letpattern2._1[ni] = v;
+                _letpattern1._1[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -5606,7 +5606,7 @@ __global__ static void kuiper_kernel_19(uint32_t cols, uint32_t shared,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
-                _letpattern2._2[ni_1] = v_1;
+                _letpattern1._2[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -5625,7 +5625,7 @@ __global__ static void kuiper_kernel_19(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
                     aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
-                    (_letpattern2._1 +
+                    (_letpattern1._1 +
                         ((((0 + (32 * (warpRow * 32))) + (__anf01_3 * 16)) +
                              (32 * (__anf02_2 * 16))) +
                             0)),
@@ -5642,7 +5642,7 @@ __global__ static void kuiper_kernel_19(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
                     bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
-                    (_letpattern2._2 +
+                    (_letpattern1._2 +
                         ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 128)) +
                              0) +
                             (__anf03_3 * 16))),
@@ -5770,7 +5770,7 @@ __global__ static void kuiper_kernel_20(uint32_t cols, uint32_t shared,
     uint32_t warpRow = (wid / 4);
     uint32_t warpCol = (wid % 4);
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
-        _letpattern1 =
+        _letpattern =
             (FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_) {
                 ._1 = sh._1,
                 ._2 =
@@ -5779,9 +5779,9 @@ __global__ static void kuiper_kernel_20(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}};
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern2 =
+    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern1 =
         (FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr) {
-            ._1 = _letpattern1._1, ._2 = _letpattern1._2._1};
+            ._1 = _letpattern._1, ._2 = _letpattern._2._1};
     uint32_t num_k_tiles = (shared / 32);
     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16, custard_bf16,
         nvcuda::wmma::row_major>
@@ -5808,7 +5808,7 @@ __global__ static void kuiper_kernel_20(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, 0.0f);
+        wmma::fill_fragment(__anf1, (float) 0);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -5840,7 +5840,7 @@ __global__ static void kuiper_kernel_20(uint32_t cols, uint32_t shared,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 32) + cidx);
-                _letpattern2._1[ni] = v;
+                _letpattern1._1[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -5872,7 +5872,7 @@ __global__ static void kuiper_kernel_20(uint32_t cols, uint32_t shared,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
-                _letpattern2._2[ni_1] = v_1;
+                _letpattern1._2[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -5891,7 +5891,7 @@ __global__ static void kuiper_kernel_20(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
                     aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
-                    (_letpattern2._1 +
+                    (_letpattern1._1 +
                         ((((0 + (32 * (warpRow * 64))) + (__anf01_3 * 16)) +
                              (32 * (__anf02_2 * 16))) +
                             0)),
@@ -5908,7 +5908,7 @@ __global__ static void kuiper_kernel_20(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
                     bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
-                    (_letpattern2._2 +
+                    (_letpattern1._2 +
                         ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 32)) +
                              0) +
                             (__anf03_3 * 16))),
@@ -6036,7 +6036,7 @@ __global__ static void kuiper_kernel_21(uint32_t cols, uint32_t shared,
     uint32_t warpRow = (wid / 2);
     uint32_t warpCol = (wid % 2);
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
-        _letpattern1 =
+        _letpattern =
             (FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_) {
                 ._1 = sh._1,
                 ._2 =
@@ -6045,9 +6045,9 @@ __global__ static void kuiper_kernel_21(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}};
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern2 =
+    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern1 =
         (FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr) {
-            ._1 = _letpattern1._1, ._2 = _letpattern1._2._1};
+            ._1 = _letpattern._1, ._2 = _letpattern._2._1};
     uint32_t num_k_tiles = (shared / 32);
     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16, custard_bf16,
         nvcuda::wmma::row_major>
@@ -6074,7 +6074,7 @@ __global__ static void kuiper_kernel_21(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, 0.0f);
+        wmma::fill_fragment(__anf1, (float) 0);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -6106,7 +6106,7 @@ __global__ static void kuiper_kernel_21(uint32_t cols, uint32_t shared,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 32) + cidx);
-                _letpattern2._1[ni] = v;
+                _letpattern1._1[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -6138,7 +6138,7 @@ __global__ static void kuiper_kernel_21(uint32_t cols, uint32_t shared,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
-                _letpattern2._2[ni_1] = v_1;
+                _letpattern1._2[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -6157,7 +6157,7 @@ __global__ static void kuiper_kernel_21(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
                     aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
-                    (_letpattern2._1 +
+                    (_letpattern1._1 +
                         ((((0 + (32 * (warpRow * 64))) + (__anf01_3 * 16)) +
                              (32 * (__anf02_2 * 16))) +
                             0)),
@@ -6174,7 +6174,7 @@ __global__ static void kuiper_kernel_21(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
                     bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
-                    (_letpattern2._2 +
+                    (_letpattern1._2 +
                         ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 64)) +
                              0) +
                             (__anf03_3 * 16))),
@@ -6302,7 +6302,7 @@ __global__ static void kuiper_kernel_22(uint32_t cols, uint32_t shared,
     uint32_t warpRow = (wid / 1);
     uint32_t warpCol = (wid % 1);
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
-        _letpattern1 =
+        _letpattern =
             (FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_) {
                 ._1 = sh._1,
                 ._2 =
@@ -6311,9 +6311,9 @@ __global__ static void kuiper_kernel_22(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}};
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern2 =
+    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern1 =
         (FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr) {
-            ._1 = _letpattern1._1, ._2 = _letpattern1._2._1};
+            ._1 = _letpattern._1, ._2 = _letpattern._2._1};
     uint32_t num_k_tiles = (shared / 32);
     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16, custard_bf16,
         nvcuda::wmma::row_major>
@@ -6340,7 +6340,7 @@ __global__ static void kuiper_kernel_22(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, 0.0f);
+        wmma::fill_fragment(__anf1, (float) 0);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -6372,7 +6372,7 @@ __global__ static void kuiper_kernel_22(uint32_t cols, uint32_t shared,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 32) + cidx);
-                _letpattern2._1[ni] = v;
+                _letpattern1._1[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -6404,7 +6404,7 @@ __global__ static void kuiper_kernel_22(uint32_t cols, uint32_t shared,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
-                _letpattern2._2[ni_1] = v_1;
+                _letpattern1._2[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -6423,7 +6423,7 @@ __global__ static void kuiper_kernel_22(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
                     aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
-                    (_letpattern2._1 +
+                    (_letpattern1._1 +
                         ((((0 + (32 * (warpRow * 64))) + (__anf01_3 * 16)) +
                              (32 * (__anf02_2 * 16))) +
                             0)),
@@ -6440,7 +6440,7 @@ __global__ static void kuiper_kernel_22(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
                     bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
-                    (_letpattern2._2 +
+                    (_letpattern1._2 +
                         ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 128)) +
                              0) +
                             (__anf03_3 * 16))),
@@ -6576,7 +6576,7 @@ __global__ static void kuiper_kernel_23(uint32_t cols, uint32_t shared,
     uint32_t warpRow = (wid / 4);
     uint32_t warpCol = (wid % 4);
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
-        _letpattern1 =
+        _letpattern =
             (FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_) {
                 ._1 = sh._1,
                 ._2 =
@@ -6585,9 +6585,9 @@ __global__ static void kuiper_kernel_23(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}};
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern2 =
+    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern1 =
         (FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr) {
-            ._1 = _letpattern1._1, ._2 = _letpattern1._2._1};
+            ._1 = _letpattern._1, ._2 = _letpattern._2._1};
     uint32_t num_k_tiles = (shared / 64);
     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16, custard_bf16,
         nvcuda::wmma::row_major>
@@ -6614,7 +6614,7 @@ __global__ static void kuiper_kernel_23(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, 0.0f);
+        wmma::fill_fragment(__anf1, (float) 0);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -6646,7 +6646,7 @@ __global__ static void kuiper_kernel_23(uint32_t cols, uint32_t shared,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 64) + cidx);
-                _letpattern2._1[ni] = v;
+                _letpattern1._1[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -6678,7 +6678,7 @@ __global__ static void kuiper_kernel_23(uint32_t cols, uint32_t shared,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
-                _letpattern2._2[ni_1] = v_1;
+                _letpattern1._2[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -6697,7 +6697,7 @@ __global__ static void kuiper_kernel_23(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
                     aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
-                    (_letpattern2._1 +
+                    (_letpattern1._1 +
                         ((((0 + (64 * (warpRow * 32))) + (__anf01_3 * 16)) +
                              (64 * (__anf02_2 * 16))) +
                             0)),
@@ -6714,7 +6714,7 @@ __global__ static void kuiper_kernel_23(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
                     bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
-                    (_letpattern2._2 +
+                    (_letpattern1._2 +
                         ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 32)) +
                              0) +
                             (__anf03_3 * 16))),
@@ -6850,7 +6850,7 @@ __global__ static void kuiper_kernel_24(uint32_t cols, uint32_t shared,
     uint32_t warpRow = (wid / 2);
     uint32_t warpCol = (wid % 2);
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
-        _letpattern1 =
+        _letpattern =
             (FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_) {
                 ._1 = sh._1,
                 ._2 =
@@ -6859,9 +6859,9 @@ __global__ static void kuiper_kernel_24(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}};
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern2 =
+    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern1 =
         (FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr) {
-            ._1 = _letpattern1._1, ._2 = _letpattern1._2._1};
+            ._1 = _letpattern._1, ._2 = _letpattern._2._1};
     uint32_t num_k_tiles = (shared / 64);
     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16, custard_bf16,
         nvcuda::wmma::row_major>
@@ -6888,7 +6888,7 @@ __global__ static void kuiper_kernel_24(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, 0.0f);
+        wmma::fill_fragment(__anf1, (float) 0);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -6920,7 +6920,7 @@ __global__ static void kuiper_kernel_24(uint32_t cols, uint32_t shared,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 64) + cidx);
-                _letpattern2._1[ni] = v;
+                _letpattern1._1[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -6952,7 +6952,7 @@ __global__ static void kuiper_kernel_24(uint32_t cols, uint32_t shared,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
-                _letpattern2._2[ni_1] = v_1;
+                _letpattern1._2[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -6971,7 +6971,7 @@ __global__ static void kuiper_kernel_24(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
                     aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
-                    (_letpattern2._1 +
+                    (_letpattern1._1 +
                         ((((0 + (64 * (warpRow * 32))) + (__anf01_3 * 16)) +
                              (64 * (__anf02_2 * 16))) +
                             0)),
@@ -6988,7 +6988,7 @@ __global__ static void kuiper_kernel_24(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
                     bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
-                    (_letpattern2._2 +
+                    (_letpattern1._2 +
                         ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 64)) +
                              0) +
                             (__anf03_3 * 16))),
@@ -7124,7 +7124,7 @@ __global__ static void kuiper_kernel_25(uint32_t cols, uint32_t shared,
     uint32_t warpRow = (wid / 1);
     uint32_t warpCol = (wid % 1);
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
-        _letpattern1 =
+        _letpattern =
             (FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_) {
                 ._1 = sh._1,
                 ._2 =
@@ -7133,9 +7133,9 @@ __global__ static void kuiper_kernel_25(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}};
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern2 =
+    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern1 =
         (FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr) {
-            ._1 = _letpattern1._1, ._2 = _letpattern1._2._1};
+            ._1 = _letpattern._1, ._2 = _letpattern._2._1};
     uint32_t num_k_tiles = (shared / 64);
     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16, custard_bf16,
         nvcuda::wmma::row_major>
@@ -7162,7 +7162,7 @@ __global__ static void kuiper_kernel_25(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, 0.0f);
+        wmma::fill_fragment(__anf1, (float) 0);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -7194,7 +7194,7 @@ __global__ static void kuiper_kernel_25(uint32_t cols, uint32_t shared,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 64) + cidx);
-                _letpattern2._1[ni] = v;
+                _letpattern1._1[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -7226,7 +7226,7 @@ __global__ static void kuiper_kernel_25(uint32_t cols, uint32_t shared,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
-                _letpattern2._2[ni_1] = v_1;
+                _letpattern1._2[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -7245,7 +7245,7 @@ __global__ static void kuiper_kernel_25(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
                     aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
-                    (_letpattern2._1 +
+                    (_letpattern1._1 +
                         ((((0 + (64 * (warpRow * 32))) + (__anf01_3 * 16)) +
                              (64 * (__anf02_2 * 16))) +
                             0)),
@@ -7262,7 +7262,7 @@ __global__ static void kuiper_kernel_25(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
                     bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
-                    (_letpattern2._2 +
+                    (_letpattern1._2 +
                         ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 128)) +
                              0) +
                             (__anf03_3 * 16))),
@@ -7390,7 +7390,7 @@ __global__ static void kuiper_kernel_26(uint32_t cols, uint32_t shared,
     uint32_t warpRow = (wid / 4);
     uint32_t warpCol = (wid % 4);
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
-        _letpattern1 =
+        _letpattern =
             (FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_) {
                 ._1 = sh._1,
                 ._2 =
@@ -7399,9 +7399,9 @@ __global__ static void kuiper_kernel_26(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}};
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern2 =
+    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern1 =
         (FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr) {
-            ._1 = _letpattern1._1, ._2 = _letpattern1._2._1};
+            ._1 = _letpattern._1, ._2 = _letpattern._2._1};
     uint32_t num_k_tiles = (shared / 64);
     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16, custard_bf16,
         nvcuda::wmma::row_major>
@@ -7428,7 +7428,7 @@ __global__ static void kuiper_kernel_26(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, 0.0f);
+        wmma::fill_fragment(__anf1, (float) 0);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -7460,7 +7460,7 @@ __global__ static void kuiper_kernel_26(uint32_t cols, uint32_t shared,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 64) + cidx);
-                _letpattern2._1[ni] = v;
+                _letpattern1._1[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -7492,7 +7492,7 @@ __global__ static void kuiper_kernel_26(uint32_t cols, uint32_t shared,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
-                _letpattern2._2[ni_1] = v_1;
+                _letpattern1._2[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -7511,7 +7511,7 @@ __global__ static void kuiper_kernel_26(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
                     aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
-                    (_letpattern2._1 +
+                    (_letpattern1._1 +
                         ((((0 + (64 * (warpRow * 64))) + (__anf01_3 * 16)) +
                              (64 * (__anf02_2 * 16))) +
                             0)),
@@ -7528,7 +7528,7 @@ __global__ static void kuiper_kernel_26(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
                     bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
-                    (_letpattern2._2 +
+                    (_letpattern1._2 +
                         ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 32)) +
                              0) +
                             (__anf03_3 * 16))),
@@ -7656,7 +7656,7 @@ __global__ static void kuiper_kernel_27(uint32_t cols, uint32_t shared,
     uint32_t warpRow = (wid / 2);
     uint32_t warpCol = (wid % 2);
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
-        _letpattern1 =
+        _letpattern =
             (FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_) {
                 ._1 = sh._1,
                 ._2 =
@@ -7665,9 +7665,9 @@ __global__ static void kuiper_kernel_27(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}};
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern2 =
+    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern1 =
         (FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr) {
-            ._1 = _letpattern1._1, ._2 = _letpattern1._2._1};
+            ._1 = _letpattern._1, ._2 = _letpattern._2._1};
     uint32_t num_k_tiles = (shared / 64);
     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16, custard_bf16,
         nvcuda::wmma::row_major>
@@ -7694,7 +7694,7 @@ __global__ static void kuiper_kernel_27(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, 0.0f);
+        wmma::fill_fragment(__anf1, (float) 0);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -7726,7 +7726,7 @@ __global__ static void kuiper_kernel_27(uint32_t cols, uint32_t shared,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 64) + cidx);
-                _letpattern2._1[ni] = v;
+                _letpattern1._1[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -7758,7 +7758,7 @@ __global__ static void kuiper_kernel_27(uint32_t cols, uint32_t shared,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
-                _letpattern2._2[ni_1] = v_1;
+                _letpattern1._2[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -7777,7 +7777,7 @@ __global__ static void kuiper_kernel_27(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
                     aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
-                    (_letpattern2._1 +
+                    (_letpattern1._1 +
                         ((((0 + (64 * (warpRow * 64))) + (__anf01_3 * 16)) +
                              (64 * (__anf02_2 * 16))) +
                             0)),
@@ -7794,7 +7794,7 @@ __global__ static void kuiper_kernel_27(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
                     bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
-                    (_letpattern2._2 +
+                    (_letpattern1._2 +
                         ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 64)) +
                              0) +
                             (__anf03_3 * 16))),
@@ -7930,7 +7930,7 @@ __global__ static void kuiper_kernel_28(uint32_t cols, uint32_t shared,
     uint32_t warpRow = (wid / 1);
     uint32_t warpCol = (wid % 1);
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
-        _letpattern1 =
+        _letpattern =
             (FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_) {
                 ._1 = sh._1,
                 ._2 =
@@ -7939,9 +7939,9 @@ __global__ static void kuiper_kernel_28(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}};
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern2 =
+    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern1 =
         (FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr) {
-            ._1 = _letpattern1._1, ._2 = _letpattern1._2._1};
+            ._1 = _letpattern._1, ._2 = _letpattern._2._1};
     uint32_t num_k_tiles = (shared / 64);
     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16, custard_bf16,
         nvcuda::wmma::row_major>
@@ -7968,7 +7968,7 @@ __global__ static void kuiper_kernel_28(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, 0.0f);
+        wmma::fill_fragment(__anf1, (float) 0);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -8000,7 +8000,7 @@ __global__ static void kuiper_kernel_28(uint32_t cols, uint32_t shared,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 64) + cidx);
-                _letpattern2._1[ni] = v;
+                _letpattern1._1[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -8032,7 +8032,7 @@ __global__ static void kuiper_kernel_28(uint32_t cols, uint32_t shared,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
-                _letpattern2._2[ni_1] = v_1;
+                _letpattern1._2[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -8051,7 +8051,7 @@ __global__ static void kuiper_kernel_28(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
                     aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
-                    (_letpattern2._1 +
+                    (_letpattern1._1 +
                         ((((0 + (64 * (warpRow * 64))) + (__anf01_3 * 16)) +
                              (64 * (__anf02_2 * 16))) +
                             0)),
@@ -8068,7 +8068,7 @@ __global__ static void kuiper_kernel_28(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
                     bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
-                    (_letpattern2._2 +
+                    (_letpattern1._2 +
                         ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 128)) +
                              0) +
                             (__anf03_3 * 16))),
@@ -8196,7 +8196,7 @@ __global__ static void kuiper_kernel_29(uint32_t cols, uint32_t shared,
     uint32_t warpRow = (wid / 1);
     uint32_t warpCol = (wid % 1);
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
-        _letpattern1 =
+        _letpattern =
             (FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_) {
                 ._1 = sh._1,
                 ._2 =
@@ -8205,9 +8205,9 @@ __global__ static void kuiper_kernel_29(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}};
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern2 =
+    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern1 =
         (FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr) {
-            ._1 = _letpattern1._1, ._2 = _letpattern1._2._1};
+            ._1 = _letpattern._1, ._2 = _letpattern._2._1};
     uint32_t num_k_tiles = (shared / 16);
     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16, custard_bf16,
         nvcuda::wmma::row_major>
@@ -8234,7 +8234,7 @@ __global__ static void kuiper_kernel_29(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, 0.0f);
+        wmma::fill_fragment(__anf1, (float) 0);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -8266,7 +8266,7 @@ __global__ static void kuiper_kernel_29(uint32_t cols, uint32_t shared,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 16) + cidx);
-                _letpattern2._1[ni] = v;
+                _letpattern1._1[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -8298,7 +8298,7 @@ __global__ static void kuiper_kernel_29(uint32_t cols, uint32_t shared,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 64) + cidx_1);
-                _letpattern2._2[ni_1] = v_1;
+                _letpattern1._2[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -8317,7 +8317,7 @@ __global__ static void kuiper_kernel_29(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
                     aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
-                    (_letpattern2._1 +
+                    (_letpattern1._1 +
                         ((((0 + (16 * (warpRow * 32))) + (__anf01_3 * 16)) +
                              (16 * (__anf02_2 * 16))) +
                             0)),
@@ -8334,7 +8334,7 @@ __global__ static void kuiper_kernel_29(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
                     bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
-                    (_letpattern2._2 +
+                    (_letpattern1._2 +
                         ((((0 + (64 * (__anf02_3 * 16))) + (warpCol * 64)) +
                              0) +
                             (__anf03_3 * 16))),
@@ -8462,7 +8462,7 @@ __global__ static void kuiper_kernel_30(uint32_t cols, uint32_t shared,
     uint32_t warpRow = (wid / 2);
     uint32_t warpCol = (wid % 2);
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
-        _letpattern1 =
+        _letpattern =
             (FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_) {
                 ._1 = sh._1,
                 ._2 =
@@ -8471,9 +8471,9 @@ __global__ static void kuiper_kernel_30(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}};
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern2 =
+    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern1 =
         (FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr) {
-            ._1 = _letpattern1._1, ._2 = _letpattern1._2._1};
+            ._1 = _letpattern._1, ._2 = _letpattern._2._1};
     uint32_t num_k_tiles = (shared / 16);
     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16, custard_bf16,
         nvcuda::wmma::row_major>
@@ -8500,7 +8500,7 @@ __global__ static void kuiper_kernel_30(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, 0.0f);
+        wmma::fill_fragment(__anf1, (float) 0);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -8532,7 +8532,7 @@ __global__ static void kuiper_kernel_30(uint32_t cols, uint32_t shared,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 16) + cidx);
-                _letpattern2._1[ni] = v;
+                _letpattern1._1[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -8564,7 +8564,7 @@ __global__ static void kuiper_kernel_30(uint32_t cols, uint32_t shared,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 64) + cidx_1);
-                _letpattern2._2[ni_1] = v_1;
+                _letpattern1._2[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -8583,7 +8583,7 @@ __global__ static void kuiper_kernel_30(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
                     aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
-                    (_letpattern2._1 +
+                    (_letpattern1._1 +
                         ((((0 + (16 * (warpRow * 64))) + (__anf01_3 * 16)) +
                              (16 * (__anf02_2 * 16))) +
                             0)),
@@ -8600,7 +8600,7 @@ __global__ static void kuiper_kernel_30(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
                     bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
-                    (_letpattern2._2 +
+                    (_letpattern1._2 +
                         ((((0 + (64 * (__anf02_3 * 16))) + (warpCol * 32)) +
                              0) +
                             (__anf03_3 * 16))),
@@ -8728,7 +8728,7 @@ __global__ static void kuiper_kernel_31(uint32_t cols, uint32_t shared,
     uint32_t warpRow = (wid / 1);
     uint32_t warpCol = (wid % 1);
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
-        _letpattern1 =
+        _letpattern =
             (FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_) {
                 ._1 = sh._1,
                 ._2 =
@@ -8737,9 +8737,9 @@ __global__ static void kuiper_kernel_31(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}};
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern2 =
+    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern1 =
         (FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr) {
-            ._1 = _letpattern1._1, ._2 = _letpattern1._2._1};
+            ._1 = _letpattern._1, ._2 = _letpattern._2._1};
     uint32_t num_k_tiles = (shared / 16);
     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16, custard_bf16,
         nvcuda::wmma::row_major>
@@ -8766,7 +8766,7 @@ __global__ static void kuiper_kernel_31(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, 0.0f);
+        wmma::fill_fragment(__anf1, (float) 0);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -8798,7 +8798,7 @@ __global__ static void kuiper_kernel_31(uint32_t cols, uint32_t shared,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 16) + cidx);
-                _letpattern2._1[ni] = v;
+                _letpattern1._1[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -8830,7 +8830,7 @@ __global__ static void kuiper_kernel_31(uint32_t cols, uint32_t shared,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 64) + cidx_1);
-                _letpattern2._2[ni_1] = v_1;
+                _letpattern1._2[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -8849,7 +8849,7 @@ __global__ static void kuiper_kernel_31(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
                     aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
-                    (_letpattern2._1 +
+                    (_letpattern1._1 +
                         ((((0 + (16 * (warpRow * 64))) + (__anf01_3 * 16)) +
                              (16 * (__anf02_2 * 16))) +
                             0)),
@@ -8866,7 +8866,7 @@ __global__ static void kuiper_kernel_31(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
                     bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
-                    (_letpattern2._2 +
+                    (_letpattern1._2 +
                         ((((0 + (64 * (__anf02_3 * 16))) + (warpCol * 64)) +
                              0) +
                             (__anf03_3 * 16))),
@@ -8994,7 +8994,7 @@ __global__ static void kuiper_kernel_32(uint32_t cols, uint32_t shared,
     uint32_t warpRow = (wid / 2);
     uint32_t warpCol = (wid % 2);
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
-        _letpattern1 =
+        _letpattern =
             (FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_) {
                 ._1 = sh._1,
                 ._2 =
@@ -9003,9 +9003,9 @@ __global__ static void kuiper_kernel_32(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}};
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern2 =
+    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern1 =
         (FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr) {
-            ._1 = _letpattern1._1, ._2 = _letpattern1._2._1};
+            ._1 = _letpattern._1, ._2 = _letpattern._2._1};
     uint32_t num_k_tiles = (shared / 16);
     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16, custard_bf16,
         nvcuda::wmma::row_major>
@@ -9032,7 +9032,7 @@ __global__ static void kuiper_kernel_32(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, 0.0f);
+        wmma::fill_fragment(__anf1, (float) 0);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -9064,7 +9064,7 @@ __global__ static void kuiper_kernel_32(uint32_t cols, uint32_t shared,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 16) + cidx);
-                _letpattern2._1[ni] = v;
+                _letpattern1._1[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -9096,7 +9096,7 @@ __global__ static void kuiper_kernel_32(uint32_t cols, uint32_t shared,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 64) + cidx_1);
-                _letpattern2._2[ni_1] = v_1;
+                _letpattern1._2[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -9115,7 +9115,7 @@ __global__ static void kuiper_kernel_32(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
                     aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
-                    (_letpattern2._1 +
+                    (_letpattern1._1 +
                         ((((0 + (16 * (warpRow * 128))) + (__anf01_3 * 16)) +
                              (16 * (__anf02_2 * 16))) +
                             0)),
@@ -9132,7 +9132,7 @@ __global__ static void kuiper_kernel_32(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
                     bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
-                    (_letpattern2._2 +
+                    (_letpattern1._2 +
                         ((((0 + (64 * (__anf02_3 * 16))) + (warpCol * 32)) +
                              0) +
                             (__anf03_3 * 16))),
@@ -9260,7 +9260,7 @@ __global__ static void kuiper_kernel_33(uint32_t cols, uint32_t shared,
     uint32_t warpRow = (wid / 1);
     uint32_t warpCol = (wid % 1);
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
-        _letpattern1 =
+        _letpattern =
             (FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_) {
                 ._1 = sh._1,
                 ._2 =
@@ -9269,9 +9269,9 @@ __global__ static void kuiper_kernel_33(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}};
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern2 =
+    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern1 =
         (FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr) {
-            ._1 = _letpattern1._1, ._2 = _letpattern1._2._1};
+            ._1 = _letpattern._1, ._2 = _letpattern._2._1};
     uint32_t num_k_tiles = (shared / 16);
     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16, custard_bf16,
         nvcuda::wmma::row_major>
@@ -9298,7 +9298,7 @@ __global__ static void kuiper_kernel_33(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, 0.0f);
+        wmma::fill_fragment(__anf1, (float) 0);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -9330,7 +9330,7 @@ __global__ static void kuiper_kernel_33(uint32_t cols, uint32_t shared,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 16) + cidx);
-                _letpattern2._1[ni] = v;
+                _letpattern1._1[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -9362,7 +9362,7 @@ __global__ static void kuiper_kernel_33(uint32_t cols, uint32_t shared,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 64) + cidx_1);
-                _letpattern2._2[ni_1] = v_1;
+                _letpattern1._2[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -9381,7 +9381,7 @@ __global__ static void kuiper_kernel_33(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
                     aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
-                    (_letpattern2._1 +
+                    (_letpattern1._1 +
                         ((((0 + (16 * (warpRow * 128))) + (__anf01_3 * 16)) +
                              (16 * (__anf02_2 * 16))) +
                             0)),
@@ -9398,7 +9398,7 @@ __global__ static void kuiper_kernel_33(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
                     bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
-                    (_letpattern2._2 +
+                    (_letpattern1._2 +
                         ((((0 + (64 * (__anf02_3 * 16))) + (warpCol * 64)) +
                              0) +
                             (__anf03_3 * 16))),
@@ -9534,7 +9534,7 @@ __global__ static void kuiper_kernel_34(uint32_t cols, uint32_t shared,
     uint32_t warpRow = (wid / 2);
     uint32_t warpCol = (wid % 2);
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
-        _letpattern1 =
+        _letpattern =
             (FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_) {
                 ._1 = sh._1,
                 ._2 =
@@ -9543,9 +9543,9 @@ __global__ static void kuiper_kernel_34(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}};
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern2 =
+    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern1 =
         (FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr) {
-            ._1 = _letpattern1._1, ._2 = _letpattern1._2._1};
+            ._1 = _letpattern._1, ._2 = _letpattern._2._1};
     uint32_t num_k_tiles = (shared / 32);
     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16, custard_bf16,
         nvcuda::wmma::row_major>
@@ -9572,7 +9572,7 @@ __global__ static void kuiper_kernel_34(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, 0.0f);
+        wmma::fill_fragment(__anf1, (float) 0);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -9604,7 +9604,7 @@ __global__ static void kuiper_kernel_34(uint32_t cols, uint32_t shared,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 32) + cidx);
-                _letpattern2._1[ni] = v;
+                _letpattern1._1[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -9636,7 +9636,7 @@ __global__ static void kuiper_kernel_34(uint32_t cols, uint32_t shared,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 64) + cidx_1);
-                _letpattern2._2[ni_1] = v_1;
+                _letpattern1._2[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -9655,7 +9655,7 @@ __global__ static void kuiper_kernel_34(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
                     aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
-                    (_letpattern2._1 +
+                    (_letpattern1._1 +
                         ((((0 + (32 * (warpRow * 32))) + (__anf01_3 * 16)) +
                              (32 * (__anf02_2 * 16))) +
                             0)),
@@ -9672,7 +9672,7 @@ __global__ static void kuiper_kernel_34(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
                     bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
-                    (_letpattern2._2 +
+                    (_letpattern1._2 +
                         ((((0 + (64 * (__anf02_3 * 16))) + (warpCol * 32)) +
                              0) +
                             (__anf03_3 * 16))),
@@ -9800,7 +9800,7 @@ __global__ static void kuiper_kernel_35(uint32_t cols, uint32_t shared,
     uint32_t warpRow = (wid / 1);
     uint32_t warpCol = (wid % 1);
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
-        _letpattern1 =
+        _letpattern =
             (FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_) {
                 ._1 = sh._1,
                 ._2 =
@@ -9809,9 +9809,9 @@ __global__ static void kuiper_kernel_35(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}};
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern2 =
+    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern1 =
         (FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr) {
-            ._1 = _letpattern1._1, ._2 = _letpattern1._2._1};
+            ._1 = _letpattern._1, ._2 = _letpattern._2._1};
     uint32_t num_k_tiles = (shared / 32);
     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16, custard_bf16,
         nvcuda::wmma::row_major>
@@ -9838,7 +9838,7 @@ __global__ static void kuiper_kernel_35(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, 0.0f);
+        wmma::fill_fragment(__anf1, (float) 0);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -9870,7 +9870,7 @@ __global__ static void kuiper_kernel_35(uint32_t cols, uint32_t shared,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 32) + cidx);
-                _letpattern2._1[ni] = v;
+                _letpattern1._1[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -9902,7 +9902,7 @@ __global__ static void kuiper_kernel_35(uint32_t cols, uint32_t shared,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 64) + cidx_1);
-                _letpattern2._2[ni_1] = v_1;
+                _letpattern1._2[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -9921,7 +9921,7 @@ __global__ static void kuiper_kernel_35(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
                     aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
-                    (_letpattern2._1 +
+                    (_letpattern1._1 +
                         ((((0 + (32 * (warpRow * 32))) + (__anf01_3 * 16)) +
                              (32 * (__anf02_2 * 16))) +
                             0)),
@@ -9938,7 +9938,7 @@ __global__ static void kuiper_kernel_35(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
                     bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
-                    (_letpattern2._2 +
+                    (_letpattern1._2 +
                         ((((0 + (64 * (__anf02_3 * 16))) + (warpCol * 64)) +
                              0) +
                             (__anf03_3 * 16))),
@@ -10066,7 +10066,7 @@ __global__ static void kuiper_kernel_36(uint32_t cols, uint32_t shared,
     uint32_t warpRow = (wid / 2);
     uint32_t warpCol = (wid % 2);
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
-        _letpattern1 =
+        _letpattern =
             (FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_) {
                 ._1 = sh._1,
                 ._2 =
@@ -10075,9 +10075,9 @@ __global__ static void kuiper_kernel_36(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}};
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern2 =
+    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern1 =
         (FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr) {
-            ._1 = _letpattern1._1, ._2 = _letpattern1._2._1};
+            ._1 = _letpattern._1, ._2 = _letpattern._2._1};
     uint32_t num_k_tiles = (shared / 32);
     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16, custard_bf16,
         nvcuda::wmma::row_major>
@@ -10104,7 +10104,7 @@ __global__ static void kuiper_kernel_36(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, 0.0f);
+        wmma::fill_fragment(__anf1, (float) 0);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -10136,7 +10136,7 @@ __global__ static void kuiper_kernel_36(uint32_t cols, uint32_t shared,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 32) + cidx);
-                _letpattern2._1[ni] = v;
+                _letpattern1._1[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -10168,7 +10168,7 @@ __global__ static void kuiper_kernel_36(uint32_t cols, uint32_t shared,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 64) + cidx_1);
-                _letpattern2._2[ni_1] = v_1;
+                _letpattern1._2[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -10187,7 +10187,7 @@ __global__ static void kuiper_kernel_36(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
                     aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
-                    (_letpattern2._1 +
+                    (_letpattern1._1 +
                         ((((0 + (32 * (warpRow * 64))) + (__anf01_3 * 16)) +
                              (32 * (__anf02_2 * 16))) +
                             0)),
@@ -10204,7 +10204,7 @@ __global__ static void kuiper_kernel_36(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
                     bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
-                    (_letpattern2._2 +
+                    (_letpattern1._2 +
                         ((((0 + (64 * (__anf02_3 * 16))) + (warpCol * 32)) +
                              0) +
                             (__anf03_3 * 16))),
@@ -10332,7 +10332,7 @@ __global__ static void kuiper_kernel_37(uint32_t cols, uint32_t shared,
     uint32_t warpRow = (wid / 1);
     uint32_t warpCol = (wid % 1);
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
-        _letpattern1 =
+        _letpattern =
             (FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_) {
                 ._1 = sh._1,
                 ._2 =
@@ -10341,9 +10341,9 @@ __global__ static void kuiper_kernel_37(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}};
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern2 =
+    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern1 =
         (FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr) {
-            ._1 = _letpattern1._1, ._2 = _letpattern1._2._1};
+            ._1 = _letpattern._1, ._2 = _letpattern._2._1};
     uint32_t num_k_tiles = (shared / 32);
     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16, custard_bf16,
         nvcuda::wmma::row_major>
@@ -10370,7 +10370,7 @@ __global__ static void kuiper_kernel_37(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, 0.0f);
+        wmma::fill_fragment(__anf1, (float) 0);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -10402,7 +10402,7 @@ __global__ static void kuiper_kernel_37(uint32_t cols, uint32_t shared,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 32) + cidx);
-                _letpattern2._1[ni] = v;
+                _letpattern1._1[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -10434,7 +10434,7 @@ __global__ static void kuiper_kernel_37(uint32_t cols, uint32_t shared,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 64) + cidx_1);
-                _letpattern2._2[ni_1] = v_1;
+                _letpattern1._2[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -10453,7 +10453,7 @@ __global__ static void kuiper_kernel_37(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
                     aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
-                    (_letpattern2._1 +
+                    (_letpattern1._1 +
                         ((((0 + (32 * (warpRow * 64))) + (__anf01_3 * 16)) +
                              (32 * (__anf02_2 * 16))) +
                             0)),
@@ -10470,7 +10470,7 @@ __global__ static void kuiper_kernel_37(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
                     bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
-                    (_letpattern2._2 +
+                    (_letpattern1._2 +
                         ((((0 + (64 * (__anf02_3 * 16))) + (warpCol * 64)) +
                              0) +
                             (__anf03_3 * 16))),
@@ -10598,7 +10598,7 @@ __global__ static void kuiper_kernel_38(uint32_t cols, uint32_t shared,
     uint32_t warpRow = (wid / 2);
     uint32_t warpCol = (wid % 2);
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
-        _letpattern1 =
+        _letpattern =
             (FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_) {
                 ._1 = sh._1,
                 ._2 =
@@ -10607,9 +10607,9 @@ __global__ static void kuiper_kernel_38(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}};
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern2 =
+    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern1 =
         (FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr) {
-            ._1 = _letpattern1._1, ._2 = _letpattern1._2._1};
+            ._1 = _letpattern._1, ._2 = _letpattern._2._1};
     uint32_t num_k_tiles = (shared / 32);
     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16, custard_bf16,
         nvcuda::wmma::row_major>
@@ -10636,7 +10636,7 @@ __global__ static void kuiper_kernel_38(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, 0.0f);
+        wmma::fill_fragment(__anf1, (float) 0);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -10668,7 +10668,7 @@ __global__ static void kuiper_kernel_38(uint32_t cols, uint32_t shared,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 32) + cidx);
-                _letpattern2._1[ni] = v;
+                _letpattern1._1[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -10700,7 +10700,7 @@ __global__ static void kuiper_kernel_38(uint32_t cols, uint32_t shared,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 64) + cidx_1);
-                _letpattern2._2[ni_1] = v_1;
+                _letpattern1._2[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -10719,7 +10719,7 @@ __global__ static void kuiper_kernel_38(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
                     aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
-                    (_letpattern2._1 +
+                    (_letpattern1._1 +
                         ((((0 + (32 * (warpRow * 128))) + (__anf01_3 * 16)) +
                              (32 * (__anf02_2 * 16))) +
                             0)),
@@ -10736,7 +10736,7 @@ __global__ static void kuiper_kernel_38(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
                     bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
-                    (_letpattern2._2 +
+                    (_letpattern1._2 +
                         ((((0 + (64 * (__anf02_3 * 16))) + (warpCol * 32)) +
                              0) +
                             (__anf03_3 * 16))),
@@ -10864,7 +10864,7 @@ __global__ static void kuiper_kernel_39(uint32_t cols, uint32_t shared,
     uint32_t warpRow = (wid / 1);
     uint32_t warpCol = (wid % 1);
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
-        _letpattern1 =
+        _letpattern =
             (FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_) {
                 ._1 = sh._1,
                 ._2 =
@@ -10873,9 +10873,9 @@ __global__ static void kuiper_kernel_39(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}};
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern2 =
+    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern1 =
         (FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr) {
-            ._1 = _letpattern1._1, ._2 = _letpattern1._2._1};
+            ._1 = _letpattern._1, ._2 = _letpattern._2._1};
     uint32_t num_k_tiles = (shared / 32);
     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16, custard_bf16,
         nvcuda::wmma::row_major>
@@ -10902,7 +10902,7 @@ __global__ static void kuiper_kernel_39(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, 0.0f);
+        wmma::fill_fragment(__anf1, (float) 0);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -10934,7 +10934,7 @@ __global__ static void kuiper_kernel_39(uint32_t cols, uint32_t shared,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 32) + cidx);
-                _letpattern2._1[ni] = v;
+                _letpattern1._1[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -10966,7 +10966,7 @@ __global__ static void kuiper_kernel_39(uint32_t cols, uint32_t shared,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 64) + cidx_1);
-                _letpattern2._2[ni_1] = v_1;
+                _letpattern1._2[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -10985,7 +10985,7 @@ __global__ static void kuiper_kernel_39(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
                     aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
-                    (_letpattern2._1 +
+                    (_letpattern1._1 +
                         ((((0 + (32 * (warpRow * 128))) + (__anf01_3 * 16)) +
                              (32 * (__anf02_2 * 16))) +
                             0)),
@@ -11002,7 +11002,7 @@ __global__ static void kuiper_kernel_39(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
                     bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
-                    (_letpattern2._2 +
+                    (_letpattern1._2 +
                         ((((0 + (64 * (__anf02_3 * 16))) + (warpCol * 64)) +
                              0) +
                             (__anf03_3 * 16))),
@@ -11130,7 +11130,7 @@ __global__ static void kuiper_kernel_40(uint32_t cols, uint32_t shared,
     uint32_t warpRow = (wid / 2);
     uint32_t warpCol = (wid % 2);
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
-        _letpattern1 =
+        _letpattern =
             (FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_) {
                 ._1 = sh._1,
                 ._2 =
@@ -11139,9 +11139,9 @@ __global__ static void kuiper_kernel_40(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}};
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern2 =
+    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern1 =
         (FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr) {
-            ._1 = _letpattern1._1, ._2 = _letpattern1._2._1};
+            ._1 = _letpattern._1, ._2 = _letpattern._2._1};
     uint32_t num_k_tiles = (shared / 64);
     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16, custard_bf16,
         nvcuda::wmma::row_major>
@@ -11168,7 +11168,7 @@ __global__ static void kuiper_kernel_40(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, 0.0f);
+        wmma::fill_fragment(__anf1, (float) 0);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -11200,7 +11200,7 @@ __global__ static void kuiper_kernel_40(uint32_t cols, uint32_t shared,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 64) + cidx);
-                _letpattern2._1[ni] = v;
+                _letpattern1._1[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -11232,7 +11232,7 @@ __global__ static void kuiper_kernel_40(uint32_t cols, uint32_t shared,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 64) + cidx_1);
-                _letpattern2._2[ni_1] = v_1;
+                _letpattern1._2[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -11251,7 +11251,7 @@ __global__ static void kuiper_kernel_40(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
                     aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
-                    (_letpattern2._1 +
+                    (_letpattern1._1 +
                         ((((0 + (64 * (warpRow * 32))) + (__anf01_3 * 16)) +
                              (64 * (__anf02_2 * 16))) +
                             0)),
@@ -11268,7 +11268,7 @@ __global__ static void kuiper_kernel_40(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
                     bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
-                    (_letpattern2._2 +
+                    (_letpattern1._2 +
                         ((((0 + (64 * (__anf02_3 * 16))) + (warpCol * 32)) +
                              0) +
                             (__anf03_3 * 16))),
@@ -11396,7 +11396,7 @@ __global__ static void kuiper_kernel_41(uint32_t cols, uint32_t shared,
     uint32_t warpRow = (wid / 1);
     uint32_t warpCol = (wid % 1);
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
-        _letpattern1 =
+        _letpattern =
             (FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_) {
                 ._1 = sh._1,
                 ._2 =
@@ -11405,9 +11405,9 @@ __global__ static void kuiper_kernel_41(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}};
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern2 =
+    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern1 =
         (FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr) {
-            ._1 = _letpattern1._1, ._2 = _letpattern1._2._1};
+            ._1 = _letpattern._1, ._2 = _letpattern._2._1};
     uint32_t num_k_tiles = (shared / 64);
     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16, custard_bf16,
         nvcuda::wmma::row_major>
@@ -11434,7 +11434,7 @@ __global__ static void kuiper_kernel_41(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, 0.0f);
+        wmma::fill_fragment(__anf1, (float) 0);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -11466,7 +11466,7 @@ __global__ static void kuiper_kernel_41(uint32_t cols, uint32_t shared,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 64) + cidx);
-                _letpattern2._1[ni] = v;
+                _letpattern1._1[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -11498,7 +11498,7 @@ __global__ static void kuiper_kernel_41(uint32_t cols, uint32_t shared,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 64) + cidx_1);
-                _letpattern2._2[ni_1] = v_1;
+                _letpattern1._2[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -11517,7 +11517,7 @@ __global__ static void kuiper_kernel_41(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
                     aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
-                    (_letpattern2._1 +
+                    (_letpattern1._1 +
                         ((((0 + (64 * (warpRow * 32))) + (__anf01_3 * 16)) +
                              (64 * (__anf02_2 * 16))) +
                             0)),
@@ -11534,7 +11534,7 @@ __global__ static void kuiper_kernel_41(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
                     bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
-                    (_letpattern2._2 +
+                    (_letpattern1._2 +
                         ((((0 + (64 * (__anf02_3 * 16))) + (warpCol * 64)) +
                              0) +
                             (__anf03_3 * 16))),
@@ -11662,7 +11662,7 @@ __global__ static void kuiper_kernel_42(uint32_t cols, uint32_t shared,
     uint32_t warpRow = (wid / 2);
     uint32_t warpCol = (wid % 2);
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
-        _letpattern1 =
+        _letpattern =
             (FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_) {
                 ._1 = sh._1,
                 ._2 =
@@ -11671,9 +11671,9 @@ __global__ static void kuiper_kernel_42(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}};
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern2 =
+    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern1 =
         (FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr) {
-            ._1 = _letpattern1._1, ._2 = _letpattern1._2._1};
+            ._1 = _letpattern._1, ._2 = _letpattern._2._1};
     uint32_t num_k_tiles = (shared / 64);
     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16, custard_bf16,
         nvcuda::wmma::row_major>
@@ -11700,7 +11700,7 @@ __global__ static void kuiper_kernel_42(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, 0.0f);
+        wmma::fill_fragment(__anf1, (float) 0);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -11732,7 +11732,7 @@ __global__ static void kuiper_kernel_42(uint32_t cols, uint32_t shared,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 64) + cidx);
-                _letpattern2._1[ni] = v;
+                _letpattern1._1[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -11764,7 +11764,7 @@ __global__ static void kuiper_kernel_42(uint32_t cols, uint32_t shared,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 64) + cidx_1);
-                _letpattern2._2[ni_1] = v_1;
+                _letpattern1._2[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -11783,7 +11783,7 @@ __global__ static void kuiper_kernel_42(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
                     aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
-                    (_letpattern2._1 +
+                    (_letpattern1._1 +
                         ((((0 + (64 * (warpRow * 64))) + (__anf01_3 * 16)) +
                              (64 * (__anf02_2 * 16))) +
                             0)),
@@ -11800,7 +11800,7 @@ __global__ static void kuiper_kernel_42(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
                     bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
-                    (_letpattern2._2 +
+                    (_letpattern1._2 +
                         ((((0 + (64 * (__anf02_3 * 16))) + (warpCol * 32)) +
                              0) +
                             (__anf03_3 * 16))),
@@ -11928,7 +11928,7 @@ __global__ static void kuiper_kernel_43(uint32_t cols, uint32_t shared,
     uint32_t warpRow = (wid / 1);
     uint32_t warpCol = (wid % 1);
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
-        _letpattern1 =
+        _letpattern =
             (FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_) {
                 ._1 = sh._1,
                 ._2 =
@@ -11937,9 +11937,9 @@ __global__ static void kuiper_kernel_43(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}};
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern2 =
+    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern1 =
         (FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr) {
-            ._1 = _letpattern1._1, ._2 = _letpattern1._2._1};
+            ._1 = _letpattern._1, ._2 = _letpattern._2._1};
     uint32_t num_k_tiles = (shared / 64);
     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16, custard_bf16,
         nvcuda::wmma::row_major>
@@ -11966,7 +11966,7 @@ __global__ static void kuiper_kernel_43(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, 0.0f);
+        wmma::fill_fragment(__anf1, (float) 0);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -11998,7 +11998,7 @@ __global__ static void kuiper_kernel_43(uint32_t cols, uint32_t shared,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 64) + cidx);
-                _letpattern2._1[ni] = v;
+                _letpattern1._1[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -12030,7 +12030,7 @@ __global__ static void kuiper_kernel_43(uint32_t cols, uint32_t shared,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 64) + cidx_1);
-                _letpattern2._2[ni_1] = v_1;
+                _letpattern1._2[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -12049,7 +12049,7 @@ __global__ static void kuiper_kernel_43(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
                     aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
-                    (_letpattern2._1 +
+                    (_letpattern1._1 +
                         ((((0 + (64 * (warpRow * 64))) + (__anf01_3 * 16)) +
                              (64 * (__anf02_2 * 16))) +
                             0)),
@@ -12066,7 +12066,7 @@ __global__ static void kuiper_kernel_43(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
                     bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
-                    (_letpattern2._2 +
+                    (_letpattern1._2 +
                         ((((0 + (64 * (__anf02_3 * 16))) + (warpCol * 64)) +
                              0) +
                             (__anf03_3 * 16))),
@@ -12194,7 +12194,7 @@ __global__ static void kuiper_kernel_44(uint32_t cols, uint32_t shared,
     uint32_t warpRow = (wid / 2);
     uint32_t warpCol = (wid % 2);
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
-        _letpattern1 =
+        _letpattern =
             (FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_) {
                 ._1 = sh._1,
                 ._2 =
@@ -12203,9 +12203,9 @@ __global__ static void kuiper_kernel_44(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}};
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern2 =
+    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern1 =
         (FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr) {
-            ._1 = _letpattern1._1, ._2 = _letpattern1._2._1};
+            ._1 = _letpattern._1, ._2 = _letpattern._2._1};
     uint32_t num_k_tiles = (shared / 64);
     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16, custard_bf16,
         nvcuda::wmma::row_major>
@@ -12232,7 +12232,7 @@ __global__ static void kuiper_kernel_44(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, 0.0f);
+        wmma::fill_fragment(__anf1, (float) 0);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -12264,7 +12264,7 @@ __global__ static void kuiper_kernel_44(uint32_t cols, uint32_t shared,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 64) + cidx);
-                _letpattern2._1[ni] = v;
+                _letpattern1._1[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -12296,7 +12296,7 @@ __global__ static void kuiper_kernel_44(uint32_t cols, uint32_t shared,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 64) + cidx_1);
-                _letpattern2._2[ni_1] = v_1;
+                _letpattern1._2[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -12315,7 +12315,7 @@ __global__ static void kuiper_kernel_44(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
                     aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
-                    (_letpattern2._1 +
+                    (_letpattern1._1 +
                         ((((0 + (64 * (warpRow * 128))) + (__anf01_3 * 16)) +
                              (64 * (__anf02_2 * 16))) +
                             0)),
@@ -12332,7 +12332,7 @@ __global__ static void kuiper_kernel_44(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
                     bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
-                    (_letpattern2._2 +
+                    (_letpattern1._2 +
                         ((((0 + (64 * (__anf02_3 * 16))) + (warpCol * 32)) +
                              0) +
                             (__anf03_3 * 16))),
@@ -12460,7 +12460,7 @@ __global__ static void kuiper_kernel_45(uint32_t cols, uint32_t shared,
     uint32_t warpRow = (wid / 1);
     uint32_t warpCol = (wid % 1);
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
-        _letpattern1 =
+        _letpattern =
             (FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_) {
                 ._1 = sh._1,
                 ._2 =
@@ -12469,9 +12469,9 @@ __global__ static void kuiper_kernel_45(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}};
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern2 =
+    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern1 =
         (FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr) {
-            ._1 = _letpattern1._1, ._2 = _letpattern1._2._1};
+            ._1 = _letpattern._1, ._2 = _letpattern._2._1};
     uint32_t num_k_tiles = (shared / 64);
     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16, custard_bf16,
         nvcuda::wmma::row_major>
@@ -12498,7 +12498,7 @@ __global__ static void kuiper_kernel_45(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, 0.0f);
+        wmma::fill_fragment(__anf1, (float) 0);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -12530,7 +12530,7 @@ __global__ static void kuiper_kernel_45(uint32_t cols, uint32_t shared,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 64) + cidx);
-                _letpattern2._1[ni] = v;
+                _letpattern1._1[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -12562,7 +12562,7 @@ __global__ static void kuiper_kernel_45(uint32_t cols, uint32_t shared,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 64) + cidx_1);
-                _letpattern2._2[ni_1] = v_1;
+                _letpattern1._2[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -12581,7 +12581,7 @@ __global__ static void kuiper_kernel_45(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
                     aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
-                    (_letpattern2._1 +
+                    (_letpattern1._1 +
                         ((((0 + (64 * (warpRow * 128))) + (__anf01_3 * 16)) +
                              (64 * (__anf02_2 * 16))) +
                             0)),
@@ -12598,7 +12598,7 @@ __global__ static void kuiper_kernel_45(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
                     bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
-                    (_letpattern2._2 +
+                    (_letpattern1._2 +
                         ((((0 + (64 * (__anf02_3 * 16))) + (warpCol * 64)) +
                              0) +
                             (__anf03_3 * 16))),
@@ -12726,7 +12726,7 @@ __global__ static void kuiper_kernel_46(uint32_t cols, uint32_t shared,
     uint32_t warpRow = (wid / 2);
     uint32_t warpCol = (wid % 2);
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
-        _letpattern1 =
+        _letpattern =
             (FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_) {
                 ._1 = sh._1,
                 ._2 =
@@ -12735,9 +12735,9 @@ __global__ static void kuiper_kernel_46(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}};
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern2 =
+    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern1 =
         (FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr) {
-            ._1 = _letpattern1._1, ._2 = _letpattern1._2._1};
+            ._1 = _letpattern._1, ._2 = _letpattern._2._1};
     uint32_t num_k_tiles = (shared / 16);
     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16, custard_bf16,
         nvcuda::wmma::row_major>
@@ -12764,7 +12764,7 @@ __global__ static void kuiper_kernel_46(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, 0.0f);
+        wmma::fill_fragment(__anf1, (float) 0);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -12796,7 +12796,7 @@ __global__ static void kuiper_kernel_46(uint32_t cols, uint32_t shared,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 16) + cidx);
-                _letpattern2._1[ni] = v;
+                _letpattern1._1[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -12828,7 +12828,7 @@ __global__ static void kuiper_kernel_46(uint32_t cols, uint32_t shared,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
-                _letpattern2._2[ni_1] = v_1;
+                _letpattern1._2[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -12847,7 +12847,7 @@ __global__ static void kuiper_kernel_46(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
                     aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
-                    (_letpattern2._1 +
+                    (_letpattern1._1 +
                         ((((0 + (16 * (warpRow * 32))) + (__anf01_3 * 16)) +
                              (16 * (__anf02_2 * 16))) +
                             0)),
@@ -12864,7 +12864,7 @@ __global__ static void kuiper_kernel_46(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
                     bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
-                    (_letpattern2._2 +
+                    (_letpattern1._2 +
                         ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 64)) +
                              0) +
                             (__anf03_3 * 16))),
@@ -12992,7 +12992,7 @@ __global__ static void kuiper_kernel_47(uint32_t cols, uint32_t shared,
     uint32_t warpRow = (wid / 1);
     uint32_t warpCol = (wid % 1);
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
-        _letpattern1 =
+        _letpattern =
             (FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_) {
                 ._1 = sh._1,
                 ._2 =
@@ -13001,9 +13001,9 @@ __global__ static void kuiper_kernel_47(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}};
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern2 =
+    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern1 =
         (FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr) {
-            ._1 = _letpattern1._1, ._2 = _letpattern1._2._1};
+            ._1 = _letpattern._1, ._2 = _letpattern._2._1};
     uint32_t num_k_tiles = (shared / 16);
     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16, custard_bf16,
         nvcuda::wmma::row_major>
@@ -13030,7 +13030,7 @@ __global__ static void kuiper_kernel_47(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, 0.0f);
+        wmma::fill_fragment(__anf1, (float) 0);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -13062,7 +13062,7 @@ __global__ static void kuiper_kernel_47(uint32_t cols, uint32_t shared,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 16) + cidx);
-                _letpattern2._1[ni] = v;
+                _letpattern1._1[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -13094,7 +13094,7 @@ __global__ static void kuiper_kernel_47(uint32_t cols, uint32_t shared,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
-                _letpattern2._2[ni_1] = v_1;
+                _letpattern1._2[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -13113,7 +13113,7 @@ __global__ static void kuiper_kernel_47(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
                     aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
-                    (_letpattern2._1 +
+                    (_letpattern1._1 +
                         ((((0 + (16 * (warpRow * 32))) + (__anf01_3 * 16)) +
                              (16 * (__anf02_2 * 16))) +
                             0)),
@@ -13130,7 +13130,7 @@ __global__ static void kuiper_kernel_47(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
                     bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
-                    (_letpattern2._2 +
+                    (_letpattern1._2 +
                         ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 128)) +
                              0) +
                             (__anf03_3 * 16))),
@@ -13258,7 +13258,7 @@ __global__ static void kuiper_kernel_48(uint32_t cols, uint32_t shared,
     uint32_t warpRow = (wid / 4);
     uint32_t warpCol = (wid % 4);
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
-        _letpattern1 =
+        _letpattern =
             (FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_) {
                 ._1 = sh._1,
                 ._2 =
@@ -13267,9 +13267,9 @@ __global__ static void kuiper_kernel_48(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}};
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern2 =
+    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern1 =
         (FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr) {
-            ._1 = _letpattern1._1, ._2 = _letpattern1._2._1};
+            ._1 = _letpattern._1, ._2 = _letpattern._2._1};
     uint32_t num_k_tiles = (shared / 16);
     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16, custard_bf16,
         nvcuda::wmma::row_major>
@@ -13296,7 +13296,7 @@ __global__ static void kuiper_kernel_48(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, 0.0f);
+        wmma::fill_fragment(__anf1, (float) 0);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -13328,7 +13328,7 @@ __global__ static void kuiper_kernel_48(uint32_t cols, uint32_t shared,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 16) + cidx);
-                _letpattern2._1[ni] = v;
+                _letpattern1._1[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -13360,7 +13360,7 @@ __global__ static void kuiper_kernel_48(uint32_t cols, uint32_t shared,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
-                _letpattern2._2[ni_1] = v_1;
+                _letpattern1._2[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -13379,7 +13379,7 @@ __global__ static void kuiper_kernel_48(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
                     aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
-                    (_letpattern2._1 +
+                    (_letpattern1._1 +
                         ((((0 + (16 * (warpRow * 64))) + (__anf01_3 * 16)) +
                              (16 * (__anf02_2 * 16))) +
                             0)),
@@ -13396,7 +13396,7 @@ __global__ static void kuiper_kernel_48(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
                     bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
-                    (_letpattern2._2 +
+                    (_letpattern1._2 +
                         ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 32)) +
                              0) +
                             (__anf03_3 * 16))),
@@ -13524,7 +13524,7 @@ __global__ static void kuiper_kernel_49(uint32_t cols, uint32_t shared,
     uint32_t warpRow = (wid / 2);
     uint32_t warpCol = (wid % 2);
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
-        _letpattern1 =
+        _letpattern =
             (FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_) {
                 ._1 = sh._1,
                 ._2 =
@@ -13533,9 +13533,9 @@ __global__ static void kuiper_kernel_49(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}};
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern2 =
+    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern1 =
         (FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr) {
-            ._1 = _letpattern1._1, ._2 = _letpattern1._2._1};
+            ._1 = _letpattern._1, ._2 = _letpattern._2._1};
     uint32_t num_k_tiles = (shared / 16);
     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16, custard_bf16,
         nvcuda::wmma::row_major>
@@ -13562,7 +13562,7 @@ __global__ static void kuiper_kernel_49(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, 0.0f);
+        wmma::fill_fragment(__anf1, (float) 0);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -13594,7 +13594,7 @@ __global__ static void kuiper_kernel_49(uint32_t cols, uint32_t shared,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 16) + cidx);
-                _letpattern2._1[ni] = v;
+                _letpattern1._1[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -13626,7 +13626,7 @@ __global__ static void kuiper_kernel_49(uint32_t cols, uint32_t shared,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
-                _letpattern2._2[ni_1] = v_1;
+                _letpattern1._2[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -13645,7 +13645,7 @@ __global__ static void kuiper_kernel_49(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
                     aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
-                    (_letpattern2._1 +
+                    (_letpattern1._1 +
                         ((((0 + (16 * (warpRow * 64))) + (__anf01_3 * 16)) +
                              (16 * (__anf02_2 * 16))) +
                             0)),
@@ -13662,7 +13662,7 @@ __global__ static void kuiper_kernel_49(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
                     bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
-                    (_letpattern2._2 +
+                    (_letpattern1._2 +
                         ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 64)) +
                              0) +
                             (__anf03_3 * 16))),
@@ -13790,7 +13790,7 @@ __global__ static void kuiper_kernel_50(uint32_t cols, uint32_t shared,
     uint32_t warpRow = (wid / 1);
     uint32_t warpCol = (wid % 1);
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
-        _letpattern1 =
+        _letpattern =
             (FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_) {
                 ._1 = sh._1,
                 ._2 =
@@ -13799,9 +13799,9 @@ __global__ static void kuiper_kernel_50(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}};
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern2 =
+    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern1 =
         (FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr) {
-            ._1 = _letpattern1._1, ._2 = _letpattern1._2._1};
+            ._1 = _letpattern._1, ._2 = _letpattern._2._1};
     uint32_t num_k_tiles = (shared / 16);
     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16, custard_bf16,
         nvcuda::wmma::row_major>
@@ -13828,7 +13828,7 @@ __global__ static void kuiper_kernel_50(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, 0.0f);
+        wmma::fill_fragment(__anf1, (float) 0);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -13860,7 +13860,7 @@ __global__ static void kuiper_kernel_50(uint32_t cols, uint32_t shared,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 16) + cidx);
-                _letpattern2._1[ni] = v;
+                _letpattern1._1[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -13892,7 +13892,7 @@ __global__ static void kuiper_kernel_50(uint32_t cols, uint32_t shared,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
-                _letpattern2._2[ni_1] = v_1;
+                _letpattern1._2[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -13911,7 +13911,7 @@ __global__ static void kuiper_kernel_50(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
                     aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
-                    (_letpattern2._1 +
+                    (_letpattern1._1 +
                         ((((0 + (16 * (warpRow * 64))) + (__anf01_3 * 16)) +
                              (16 * (__anf02_2 * 16))) +
                             0)),
@@ -13928,7 +13928,7 @@ __global__ static void kuiper_kernel_50(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
                     bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
-                    (_letpattern2._2 +
+                    (_letpattern1._2 +
                         ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 128)) +
                              0) +
                             (__anf03_3 * 16))),
@@ -14056,7 +14056,7 @@ __global__ static void kuiper_kernel_51(uint32_t cols, uint32_t shared,
     uint32_t warpRow = (wid / 4);
     uint32_t warpCol = (wid % 4);
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
-        _letpattern1 =
+        _letpattern =
             (FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_) {
                 ._1 = sh._1,
                 ._2 =
@@ -14065,9 +14065,9 @@ __global__ static void kuiper_kernel_51(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}};
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern2 =
+    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern1 =
         (FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr) {
-            ._1 = _letpattern1._1, ._2 = _letpattern1._2._1};
+            ._1 = _letpattern._1, ._2 = _letpattern._2._1};
     uint32_t num_k_tiles = (shared / 16);
     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16, custard_bf16,
         nvcuda::wmma::row_major>
@@ -14094,7 +14094,7 @@ __global__ static void kuiper_kernel_51(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, 0.0f);
+        wmma::fill_fragment(__anf1, (float) 0);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -14126,7 +14126,7 @@ __global__ static void kuiper_kernel_51(uint32_t cols, uint32_t shared,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 16) + cidx);
-                _letpattern2._1[ni] = v;
+                _letpattern1._1[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -14158,7 +14158,7 @@ __global__ static void kuiper_kernel_51(uint32_t cols, uint32_t shared,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
-                _letpattern2._2[ni_1] = v_1;
+                _letpattern1._2[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -14177,7 +14177,7 @@ __global__ static void kuiper_kernel_51(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
                     aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
-                    (_letpattern2._1 +
+                    (_letpattern1._1 +
                         ((((0 + (16 * (warpRow * 128))) + (__anf01_3 * 16)) +
                              (16 * (__anf02_2 * 16))) +
                             0)),
@@ -14194,7 +14194,7 @@ __global__ static void kuiper_kernel_51(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
                     bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
-                    (_letpattern2._2 +
+                    (_letpattern1._2 +
                         ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 32)) +
                              0) +
                             (__anf03_3 * 16))),
@@ -14322,7 +14322,7 @@ __global__ static void kuiper_kernel_52(uint32_t cols, uint32_t shared,
     uint32_t warpRow = (wid / 2);
     uint32_t warpCol = (wid % 2);
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
-        _letpattern1 =
+        _letpattern =
             (FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_) {
                 ._1 = sh._1,
                 ._2 =
@@ -14331,9 +14331,9 @@ __global__ static void kuiper_kernel_52(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}};
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern2 =
+    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern1 =
         (FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr) {
-            ._1 = _letpattern1._1, ._2 = _letpattern1._2._1};
+            ._1 = _letpattern._1, ._2 = _letpattern._2._1};
     uint32_t num_k_tiles = (shared / 16);
     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16, custard_bf16,
         nvcuda::wmma::row_major>
@@ -14360,7 +14360,7 @@ __global__ static void kuiper_kernel_52(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, 0.0f);
+        wmma::fill_fragment(__anf1, (float) 0);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -14392,7 +14392,7 @@ __global__ static void kuiper_kernel_52(uint32_t cols, uint32_t shared,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 16) + cidx);
-                _letpattern2._1[ni] = v;
+                _letpattern1._1[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -14424,7 +14424,7 @@ __global__ static void kuiper_kernel_52(uint32_t cols, uint32_t shared,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
-                _letpattern2._2[ni_1] = v_1;
+                _letpattern1._2[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -14443,7 +14443,7 @@ __global__ static void kuiper_kernel_52(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
                     aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
-                    (_letpattern2._1 +
+                    (_letpattern1._1 +
                         ((((0 + (16 * (warpRow * 128))) + (__anf01_3 * 16)) +
                              (16 * (__anf02_2 * 16))) +
                             0)),
@@ -14460,7 +14460,7 @@ __global__ static void kuiper_kernel_52(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
                     bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
-                    (_letpattern2._2 +
+                    (_letpattern1._2 +
                         ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 64)) +
                              0) +
                             (__anf03_3 * 16))),
@@ -14588,7 +14588,7 @@ __global__ static void kuiper_kernel_53(uint32_t cols, uint32_t shared,
     uint32_t warpRow = (wid / 1);
     uint32_t warpCol = (wid % 1);
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
-        _letpattern1 =
+        _letpattern =
             (FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_) {
                 ._1 = sh._1,
                 ._2 =
@@ -14597,9 +14597,9 @@ __global__ static void kuiper_kernel_53(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}};
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern2 =
+    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern1 =
         (FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr) {
-            ._1 = _letpattern1._1, ._2 = _letpattern1._2._1};
+            ._1 = _letpattern._1, ._2 = _letpattern._2._1};
     uint32_t num_k_tiles = (shared / 16);
     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16, custard_bf16,
         nvcuda::wmma::row_major>
@@ -14626,7 +14626,7 @@ __global__ static void kuiper_kernel_53(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, 0.0f);
+        wmma::fill_fragment(__anf1, (float) 0);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -14658,7 +14658,7 @@ __global__ static void kuiper_kernel_53(uint32_t cols, uint32_t shared,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 16) + cidx);
-                _letpattern2._1[ni] = v;
+                _letpattern1._1[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -14690,7 +14690,7 @@ __global__ static void kuiper_kernel_53(uint32_t cols, uint32_t shared,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
-                _letpattern2._2[ni_1] = v_1;
+                _letpattern1._2[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -14709,7 +14709,7 @@ __global__ static void kuiper_kernel_53(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
                     aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
-                    (_letpattern2._1 +
+                    (_letpattern1._1 +
                         ((((0 + (16 * (warpRow * 128))) + (__anf01_3 * 16)) +
                              (16 * (__anf02_2 * 16))) +
                             0)),
@@ -14726,7 +14726,7 @@ __global__ static void kuiper_kernel_53(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
                     bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
-                    (_letpattern2._2 +
+                    (_letpattern1._2 +
                         ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 128)) +
                              0) +
                             (__anf03_3 * 16))),
@@ -14869,7 +14869,7 @@ __global__ static void kuiper_kernel_54(uint32_t cols, uint32_t shared,
     uint32_t warpRow = (wid / 4);
     uint32_t warpCol = (wid % 4);
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
-        _letpattern1 =
+        _letpattern =
             (FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_) {
                 ._1 = sh._1,
                 ._2 =
@@ -14878,9 +14878,9 @@ __global__ static void kuiper_kernel_54(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}};
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern2 =
+    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern1 =
         (FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr) {
-            ._1 = _letpattern1._1, ._2 = _letpattern1._2._1};
+            ._1 = _letpattern._1, ._2 = _letpattern._2._1};
     uint32_t num_k_tiles = (shared / 32);
     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16, custard_bf16,
         nvcuda::wmma::row_major>
@@ -14907,7 +14907,7 @@ __global__ static void kuiper_kernel_54(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, 0.0f);
+        wmma::fill_fragment(__anf1, (float) 0);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -14939,7 +14939,7 @@ __global__ static void kuiper_kernel_54(uint32_t cols, uint32_t shared,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 32) + cidx);
-                _letpattern2._1[ni] = v;
+                _letpattern1._1[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -14971,7 +14971,7 @@ __global__ static void kuiper_kernel_54(uint32_t cols, uint32_t shared,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
-                _letpattern2._2[ni_1] = v_1;
+                _letpattern1._2[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -14990,7 +14990,7 @@ __global__ static void kuiper_kernel_54(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
                     aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
-                    (_letpattern2._1 +
+                    (_letpattern1._1 +
                         ((((0 + (32 * (warpRow * 32))) + (__anf01_3 * 16)) +
                              (32 * (__anf02_2 * 16))) +
                             0)),
@@ -15007,7 +15007,7 @@ __global__ static void kuiper_kernel_54(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
                     bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
-                    (_letpattern2._2 +
+                    (_letpattern1._2 +
                         ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 32)) +
                              0) +
                             (__anf03_3 * 16))),
@@ -15135,7 +15135,7 @@ __global__ static void kuiper_kernel_55(uint32_t cols, uint32_t shared,
     uint32_t warpRow = (wid / 2);
     uint32_t warpCol = (wid % 2);
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
-        _letpattern1 =
+        _letpattern =
             (FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_) {
                 ._1 = sh._1,
                 ._2 =
@@ -15144,9 +15144,9 @@ __global__ static void kuiper_kernel_55(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}};
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern2 =
+    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern1 =
         (FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr) {
-            ._1 = _letpattern1._1, ._2 = _letpattern1._2._1};
+            ._1 = _letpattern._1, ._2 = _letpattern._2._1};
     uint32_t num_k_tiles = (shared / 32);
     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16, custard_bf16,
         nvcuda::wmma::row_major>
@@ -15173,7 +15173,7 @@ __global__ static void kuiper_kernel_55(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, 0.0f);
+        wmma::fill_fragment(__anf1, (float) 0);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -15205,7 +15205,7 @@ __global__ static void kuiper_kernel_55(uint32_t cols, uint32_t shared,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 32) + cidx);
-                _letpattern2._1[ni] = v;
+                _letpattern1._1[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -15237,7 +15237,7 @@ __global__ static void kuiper_kernel_55(uint32_t cols, uint32_t shared,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
-                _letpattern2._2[ni_1] = v_1;
+                _letpattern1._2[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -15256,7 +15256,7 @@ __global__ static void kuiper_kernel_55(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
                     aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
-                    (_letpattern2._1 +
+                    (_letpattern1._1 +
                         ((((0 + (32 * (warpRow * 32))) + (__anf01_3 * 16)) +
                              (32 * (__anf02_2 * 16))) +
                             0)),
@@ -15273,7 +15273,7 @@ __global__ static void kuiper_kernel_55(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
                     bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
-                    (_letpattern2._2 +
+                    (_letpattern1._2 +
                         ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 64)) +
                              0) +
                             (__anf03_3 * 16))),
@@ -15401,7 +15401,7 @@ __global__ static void kuiper_kernel_56(uint32_t cols, uint32_t shared,
     uint32_t warpRow = (wid / 1);
     uint32_t warpCol = (wid % 1);
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
-        _letpattern1 =
+        _letpattern =
             (FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_) {
                 ._1 = sh._1,
                 ._2 =
@@ -15410,9 +15410,9 @@ __global__ static void kuiper_kernel_56(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}};
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern2 =
+    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern1 =
         (FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr) {
-            ._1 = _letpattern1._1, ._2 = _letpattern1._2._1};
+            ._1 = _letpattern._1, ._2 = _letpattern._2._1};
     uint32_t num_k_tiles = (shared / 32);
     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16, custard_bf16,
         nvcuda::wmma::row_major>
@@ -15439,7 +15439,7 @@ __global__ static void kuiper_kernel_56(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, 0.0f);
+        wmma::fill_fragment(__anf1, (float) 0);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -15471,7 +15471,7 @@ __global__ static void kuiper_kernel_56(uint32_t cols, uint32_t shared,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 32) + cidx);
-                _letpattern2._1[ni] = v;
+                _letpattern1._1[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -15503,7 +15503,7 @@ __global__ static void kuiper_kernel_56(uint32_t cols, uint32_t shared,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
-                _letpattern2._2[ni_1] = v_1;
+                _letpattern1._2[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -15522,7 +15522,7 @@ __global__ static void kuiper_kernel_56(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
                     aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
-                    (_letpattern2._1 +
+                    (_letpattern1._1 +
                         ((((0 + (32 * (warpRow * 32))) + (__anf01_3 * 16)) +
                              (32 * (__anf02_2 * 16))) +
                             0)),
@@ -15539,7 +15539,7 @@ __global__ static void kuiper_kernel_56(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
                     bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
-                    (_letpattern2._2 +
+                    (_letpattern1._2 +
                         ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 128)) +
                              0) +
                             (__anf03_3 * 16))),
@@ -15667,7 +15667,7 @@ __global__ static void kuiper_kernel_57(uint32_t cols, uint32_t shared,
     uint32_t warpRow = (wid / 4);
     uint32_t warpCol = (wid % 4);
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
-        _letpattern1 =
+        _letpattern =
             (FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_) {
                 ._1 = sh._1,
                 ._2 =
@@ -15676,9 +15676,9 @@ __global__ static void kuiper_kernel_57(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}};
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern2 =
+    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern1 =
         (FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr) {
-            ._1 = _letpattern1._1, ._2 = _letpattern1._2._1};
+            ._1 = _letpattern._1, ._2 = _letpattern._2._1};
     uint32_t num_k_tiles = (shared / 32);
     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16, custard_bf16,
         nvcuda::wmma::row_major>
@@ -15705,7 +15705,7 @@ __global__ static void kuiper_kernel_57(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, 0.0f);
+        wmma::fill_fragment(__anf1, (float) 0);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -15737,7 +15737,7 @@ __global__ static void kuiper_kernel_57(uint32_t cols, uint32_t shared,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 32) + cidx);
-                _letpattern2._1[ni] = v;
+                _letpattern1._1[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -15769,7 +15769,7 @@ __global__ static void kuiper_kernel_57(uint32_t cols, uint32_t shared,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
-                _letpattern2._2[ni_1] = v_1;
+                _letpattern1._2[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -15788,7 +15788,7 @@ __global__ static void kuiper_kernel_57(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
                     aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
-                    (_letpattern2._1 +
+                    (_letpattern1._1 +
                         ((((0 + (32 * (warpRow * 64))) + (__anf01_3 * 16)) +
                              (32 * (__anf02_2 * 16))) +
                             0)),
@@ -15805,7 +15805,7 @@ __global__ static void kuiper_kernel_57(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
                     bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
-                    (_letpattern2._2 +
+                    (_letpattern1._2 +
                         ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 32)) +
                              0) +
                             (__anf03_3 * 16))),
@@ -15933,7 +15933,7 @@ __global__ static void kuiper_kernel_58(uint32_t cols, uint32_t shared,
     uint32_t warpRow = (wid / 2);
     uint32_t warpCol = (wid % 2);
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
-        _letpattern1 =
+        _letpattern =
             (FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_) {
                 ._1 = sh._1,
                 ._2 =
@@ -15942,9 +15942,9 @@ __global__ static void kuiper_kernel_58(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}};
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern2 =
+    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern1 =
         (FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr) {
-            ._1 = _letpattern1._1, ._2 = _letpattern1._2._1};
+            ._1 = _letpattern._1, ._2 = _letpattern._2._1};
     uint32_t num_k_tiles = (shared / 32);
     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16, custard_bf16,
         nvcuda::wmma::row_major>
@@ -15971,7 +15971,7 @@ __global__ static void kuiper_kernel_58(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, 0.0f);
+        wmma::fill_fragment(__anf1, (float) 0);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -16003,7 +16003,7 @@ __global__ static void kuiper_kernel_58(uint32_t cols, uint32_t shared,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 32) + cidx);
-                _letpattern2._1[ni] = v;
+                _letpattern1._1[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -16035,7 +16035,7 @@ __global__ static void kuiper_kernel_58(uint32_t cols, uint32_t shared,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
-                _letpattern2._2[ni_1] = v_1;
+                _letpattern1._2[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -16054,7 +16054,7 @@ __global__ static void kuiper_kernel_58(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
                     aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
-                    (_letpattern2._1 +
+                    (_letpattern1._1 +
                         ((((0 + (32 * (warpRow * 64))) + (__anf01_3 * 16)) +
                              (32 * (__anf02_2 * 16))) +
                             0)),
@@ -16071,7 +16071,7 @@ __global__ static void kuiper_kernel_58(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
                     bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
-                    (_letpattern2._2 +
+                    (_letpattern1._2 +
                         ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 64)) +
                              0) +
                             (__anf03_3 * 16))),
@@ -16199,7 +16199,7 @@ __global__ static void kuiper_kernel_59(uint32_t cols, uint32_t shared,
     uint32_t warpRow = (wid / 1);
     uint32_t warpCol = (wid % 1);
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
-        _letpattern1 =
+        _letpattern =
             (FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_) {
                 ._1 = sh._1,
                 ._2 =
@@ -16208,9 +16208,9 @@ __global__ static void kuiper_kernel_59(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}};
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern2 =
+    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern1 =
         (FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr) {
-            ._1 = _letpattern1._1, ._2 = _letpattern1._2._1};
+            ._1 = _letpattern._1, ._2 = _letpattern._2._1};
     uint32_t num_k_tiles = (shared / 32);
     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16, custard_bf16,
         nvcuda::wmma::row_major>
@@ -16237,7 +16237,7 @@ __global__ static void kuiper_kernel_59(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, 0.0f);
+        wmma::fill_fragment(__anf1, (float) 0);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -16269,7 +16269,7 @@ __global__ static void kuiper_kernel_59(uint32_t cols, uint32_t shared,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 32) + cidx);
-                _letpattern2._1[ni] = v;
+                _letpattern1._1[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -16301,7 +16301,7 @@ __global__ static void kuiper_kernel_59(uint32_t cols, uint32_t shared,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
-                _letpattern2._2[ni_1] = v_1;
+                _letpattern1._2[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -16320,7 +16320,7 @@ __global__ static void kuiper_kernel_59(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
                     aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
-                    (_letpattern2._1 +
+                    (_letpattern1._1 +
                         ((((0 + (32 * (warpRow * 64))) + (__anf01_3 * 16)) +
                              (32 * (__anf02_2 * 16))) +
                             0)),
@@ -16337,7 +16337,7 @@ __global__ static void kuiper_kernel_59(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
                     bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
-                    (_letpattern2._2 +
+                    (_letpattern1._2 +
                         ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 128)) +
                              0) +
                             (__anf03_3 * 16))),
@@ -16465,7 +16465,7 @@ __global__ static void kuiper_kernel_60(uint32_t cols, uint32_t shared,
     uint32_t warpRow = (wid / 4);
     uint32_t warpCol = (wid % 4);
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
-        _letpattern1 =
+        _letpattern =
             (FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_) {
                 ._1 = sh._1,
                 ._2 =
@@ -16474,9 +16474,9 @@ __global__ static void kuiper_kernel_60(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}};
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern2 =
+    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern1 =
         (FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr) {
-            ._1 = _letpattern1._1, ._2 = _letpattern1._2._1};
+            ._1 = _letpattern._1, ._2 = _letpattern._2._1};
     uint32_t num_k_tiles = (shared / 32);
     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16, custard_bf16,
         nvcuda::wmma::row_major>
@@ -16503,7 +16503,7 @@ __global__ static void kuiper_kernel_60(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, 0.0f);
+        wmma::fill_fragment(__anf1, (float) 0);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -16535,7 +16535,7 @@ __global__ static void kuiper_kernel_60(uint32_t cols, uint32_t shared,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 32) + cidx);
-                _letpattern2._1[ni] = v;
+                _letpattern1._1[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -16567,7 +16567,7 @@ __global__ static void kuiper_kernel_60(uint32_t cols, uint32_t shared,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
-                _letpattern2._2[ni_1] = v_1;
+                _letpattern1._2[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -16586,7 +16586,7 @@ __global__ static void kuiper_kernel_60(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
                     aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
-                    (_letpattern2._1 +
+                    (_letpattern1._1 +
                         ((((0 + (32 * (warpRow * 128))) + (__anf01_3 * 16)) +
                              (32 * (__anf02_2 * 16))) +
                             0)),
@@ -16603,7 +16603,7 @@ __global__ static void kuiper_kernel_60(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
                     bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
-                    (_letpattern2._2 +
+                    (_letpattern1._2 +
                         ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 32)) +
                              0) +
                             (__anf03_3 * 16))),
@@ -16731,7 +16731,7 @@ __global__ static void kuiper_kernel_61(uint32_t cols, uint32_t shared,
     uint32_t warpRow = (wid / 2);
     uint32_t warpCol = (wid % 2);
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
-        _letpattern1 =
+        _letpattern =
             (FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_) {
                 ._1 = sh._1,
                 ._2 =
@@ -16740,9 +16740,9 @@ __global__ static void kuiper_kernel_61(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}};
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern2 =
+    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern1 =
         (FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr) {
-            ._1 = _letpattern1._1, ._2 = _letpattern1._2._1};
+            ._1 = _letpattern._1, ._2 = _letpattern._2._1};
     uint32_t num_k_tiles = (shared / 32);
     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16, custard_bf16,
         nvcuda::wmma::row_major>
@@ -16769,7 +16769,7 @@ __global__ static void kuiper_kernel_61(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, 0.0f);
+        wmma::fill_fragment(__anf1, (float) 0);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -16801,7 +16801,7 @@ __global__ static void kuiper_kernel_61(uint32_t cols, uint32_t shared,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 32) + cidx);
-                _letpattern2._1[ni] = v;
+                _letpattern1._1[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -16833,7 +16833,7 @@ __global__ static void kuiper_kernel_61(uint32_t cols, uint32_t shared,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
-                _letpattern2._2[ni_1] = v_1;
+                _letpattern1._2[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -16852,7 +16852,7 @@ __global__ static void kuiper_kernel_61(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
                     aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
-                    (_letpattern2._1 +
+                    (_letpattern1._1 +
                         ((((0 + (32 * (warpRow * 128))) + (__anf01_3 * 16)) +
                              (32 * (__anf02_2 * 16))) +
                             0)),
@@ -16869,7 +16869,7 @@ __global__ static void kuiper_kernel_61(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
                     bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
-                    (_letpattern2._2 +
+                    (_letpattern1._2 +
                         ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 64)) +
                              0) +
                             (__anf03_3 * 16))),
@@ -16997,7 +16997,7 @@ __global__ static void kuiper_kernel_62(uint32_t cols, uint32_t shared,
     uint32_t warpRow = (wid / 1);
     uint32_t warpCol = (wid % 1);
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
-        _letpattern1 =
+        _letpattern =
             (FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_) {
                 ._1 = sh._1,
                 ._2 =
@@ -17006,9 +17006,9 @@ __global__ static void kuiper_kernel_62(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}};
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern2 =
+    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern1 =
         (FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr) {
-            ._1 = _letpattern1._1, ._2 = _letpattern1._2._1};
+            ._1 = _letpattern._1, ._2 = _letpattern._2._1};
     uint32_t num_k_tiles = (shared / 32);
     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16, custard_bf16,
         nvcuda::wmma::row_major>
@@ -17035,7 +17035,7 @@ __global__ static void kuiper_kernel_62(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, 0.0f);
+        wmma::fill_fragment(__anf1, (float) 0);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -17067,7 +17067,7 @@ __global__ static void kuiper_kernel_62(uint32_t cols, uint32_t shared,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 32) + cidx);
-                _letpattern2._1[ni] = v;
+                _letpattern1._1[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -17099,7 +17099,7 @@ __global__ static void kuiper_kernel_62(uint32_t cols, uint32_t shared,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
-                _letpattern2._2[ni_1] = v_1;
+                _letpattern1._2[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -17118,7 +17118,7 @@ __global__ static void kuiper_kernel_62(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
                     aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
-                    (_letpattern2._1 +
+                    (_letpattern1._1 +
                         ((((0 + (32 * (warpRow * 128))) + (__anf01_3 * 16)) +
                              (32 * (__anf02_2 * 16))) +
                             0)),
@@ -17135,7 +17135,7 @@ __global__ static void kuiper_kernel_62(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
                     bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
-                    (_letpattern2._2 +
+                    (_letpattern1._2 +
                         ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 128)) +
                              0) +
                             (__anf03_3 * 16))),
@@ -17271,7 +17271,7 @@ __global__ static void kuiper_kernel_63(uint32_t cols, uint32_t shared,
     uint32_t warpRow = (wid / 4);
     uint32_t warpCol = (wid % 4);
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
-        _letpattern1 =
+        _letpattern =
             (FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_) {
                 ._1 = sh._1,
                 ._2 =
@@ -17280,9 +17280,9 @@ __global__ static void kuiper_kernel_63(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}};
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern2 =
+    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern1 =
         (FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr) {
-            ._1 = _letpattern1._1, ._2 = _letpattern1._2._1};
+            ._1 = _letpattern._1, ._2 = _letpattern._2._1};
     uint32_t num_k_tiles = (shared / 64);
     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16, custard_bf16,
         nvcuda::wmma::row_major>
@@ -17309,7 +17309,7 @@ __global__ static void kuiper_kernel_63(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, 0.0f);
+        wmma::fill_fragment(__anf1, (float) 0);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -17341,7 +17341,7 @@ __global__ static void kuiper_kernel_63(uint32_t cols, uint32_t shared,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 64) + cidx);
-                _letpattern2._1[ni] = v;
+                _letpattern1._1[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -17373,7 +17373,7 @@ __global__ static void kuiper_kernel_63(uint32_t cols, uint32_t shared,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
-                _letpattern2._2[ni_1] = v_1;
+                _letpattern1._2[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -17392,7 +17392,7 @@ __global__ static void kuiper_kernel_63(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
                     aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
-                    (_letpattern2._1 +
+                    (_letpattern1._1 +
                         ((((0 + (64 * (warpRow * 32))) + (__anf01_3 * 16)) +
                              (64 * (__anf02_2 * 16))) +
                             0)),
@@ -17409,7 +17409,7 @@ __global__ static void kuiper_kernel_63(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
                     bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
-                    (_letpattern2._2 +
+                    (_letpattern1._2 +
                         ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 32)) +
                              0) +
                             (__anf03_3 * 16))),
@@ -17537,7 +17537,7 @@ __global__ static void kuiper_kernel_64(uint32_t cols, uint32_t shared,
     uint32_t warpRow = (wid / 2);
     uint32_t warpCol = (wid % 2);
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
-        _letpattern1 =
+        _letpattern =
             (FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_) {
                 ._1 = sh._1,
                 ._2 =
@@ -17546,9 +17546,9 @@ __global__ static void kuiper_kernel_64(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}};
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern2 =
+    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern1 =
         (FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr) {
-            ._1 = _letpattern1._1, ._2 = _letpattern1._2._1};
+            ._1 = _letpattern._1, ._2 = _letpattern._2._1};
     uint32_t num_k_tiles = (shared / 64);
     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16, custard_bf16,
         nvcuda::wmma::row_major>
@@ -17575,7 +17575,7 @@ __global__ static void kuiper_kernel_64(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, 0.0f);
+        wmma::fill_fragment(__anf1, (float) 0);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -17607,7 +17607,7 @@ __global__ static void kuiper_kernel_64(uint32_t cols, uint32_t shared,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 64) + cidx);
-                _letpattern2._1[ni] = v;
+                _letpattern1._1[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -17639,7 +17639,7 @@ __global__ static void kuiper_kernel_64(uint32_t cols, uint32_t shared,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
-                _letpattern2._2[ni_1] = v_1;
+                _letpattern1._2[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -17658,7 +17658,7 @@ __global__ static void kuiper_kernel_64(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
                     aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
-                    (_letpattern2._1 +
+                    (_letpattern1._1 +
                         ((((0 + (64 * (warpRow * 32))) + (__anf01_3 * 16)) +
                              (64 * (__anf02_2 * 16))) +
                             0)),
@@ -17675,7 +17675,7 @@ __global__ static void kuiper_kernel_64(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
                     bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
-                    (_letpattern2._2 +
+                    (_letpattern1._2 +
                         ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 64)) +
                              0) +
                             (__anf03_3 * 16))),
@@ -17803,7 +17803,7 @@ __global__ static void kuiper_kernel_65(uint32_t cols, uint32_t shared,
     uint32_t warpRow = (wid / 1);
     uint32_t warpCol = (wid % 1);
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
-        _letpattern1 =
+        _letpattern =
             (FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_) {
                 ._1 = sh._1,
                 ._2 =
@@ -17812,9 +17812,9 @@ __global__ static void kuiper_kernel_65(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}};
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern2 =
+    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern1 =
         (FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr) {
-            ._1 = _letpattern1._1, ._2 = _letpattern1._2._1};
+            ._1 = _letpattern._1, ._2 = _letpattern._2._1};
     uint32_t num_k_tiles = (shared / 64);
     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16, custard_bf16,
         nvcuda::wmma::row_major>
@@ -17841,7 +17841,7 @@ __global__ static void kuiper_kernel_65(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, 0.0f);
+        wmma::fill_fragment(__anf1, (float) 0);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -17873,7 +17873,7 @@ __global__ static void kuiper_kernel_65(uint32_t cols, uint32_t shared,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 64) + cidx);
-                _letpattern2._1[ni] = v;
+                _letpattern1._1[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -17905,7 +17905,7 @@ __global__ static void kuiper_kernel_65(uint32_t cols, uint32_t shared,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
-                _letpattern2._2[ni_1] = v_1;
+                _letpattern1._2[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -17924,7 +17924,7 @@ __global__ static void kuiper_kernel_65(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
                     aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
-                    (_letpattern2._1 +
+                    (_letpattern1._1 +
                         ((((0 + (64 * (warpRow * 32))) + (__anf01_3 * 16)) +
                              (64 * (__anf02_2 * 16))) +
                             0)),
@@ -17941,7 +17941,7 @@ __global__ static void kuiper_kernel_65(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
                     bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
-                    (_letpattern2._2 +
+                    (_letpattern1._2 +
                         ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 128)) +
                              0) +
                             (__anf03_3 * 16))),
@@ -18069,7 +18069,7 @@ __global__ static void kuiper_kernel_66(uint32_t cols, uint32_t shared,
     uint32_t warpRow = (wid / 4);
     uint32_t warpCol = (wid % 4);
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
-        _letpattern1 =
+        _letpattern =
             (FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_) {
                 ._1 = sh._1,
                 ._2 =
@@ -18078,9 +18078,9 @@ __global__ static void kuiper_kernel_66(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}};
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern2 =
+    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern1 =
         (FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr) {
-            ._1 = _letpattern1._1, ._2 = _letpattern1._2._1};
+            ._1 = _letpattern._1, ._2 = _letpattern._2._1};
     uint32_t num_k_tiles = (shared / 64);
     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16, custard_bf16,
         nvcuda::wmma::row_major>
@@ -18107,7 +18107,7 @@ __global__ static void kuiper_kernel_66(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, 0.0f);
+        wmma::fill_fragment(__anf1, (float) 0);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -18139,7 +18139,7 @@ __global__ static void kuiper_kernel_66(uint32_t cols, uint32_t shared,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 64) + cidx);
-                _letpattern2._1[ni] = v;
+                _letpattern1._1[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -18171,7 +18171,7 @@ __global__ static void kuiper_kernel_66(uint32_t cols, uint32_t shared,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
-                _letpattern2._2[ni_1] = v_1;
+                _letpattern1._2[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -18190,7 +18190,7 @@ __global__ static void kuiper_kernel_66(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
                     aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
-                    (_letpattern2._1 +
+                    (_letpattern1._1 +
                         ((((0 + (64 * (warpRow * 64))) + (__anf01_3 * 16)) +
                              (64 * (__anf02_2 * 16))) +
                             0)),
@@ -18207,7 +18207,7 @@ __global__ static void kuiper_kernel_66(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
                     bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
-                    (_letpattern2._2 +
+                    (_letpattern1._2 +
                         ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 32)) +
                              0) +
                             (__anf03_3 * 16))),
@@ -18335,7 +18335,7 @@ __global__ static void kuiper_kernel_67(uint32_t cols, uint32_t shared,
     uint32_t warpRow = (wid / 2);
     uint32_t warpCol = (wid % 2);
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
-        _letpattern1 =
+        _letpattern =
             (FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_) {
                 ._1 = sh._1,
                 ._2 =
@@ -18344,9 +18344,9 @@ __global__ static void kuiper_kernel_67(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}};
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern2 =
+    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern1 =
         (FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr) {
-            ._1 = _letpattern1._1, ._2 = _letpattern1._2._1};
+            ._1 = _letpattern._1, ._2 = _letpattern._2._1};
     uint32_t num_k_tiles = (shared / 64);
     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16, custard_bf16,
         nvcuda::wmma::row_major>
@@ -18373,7 +18373,7 @@ __global__ static void kuiper_kernel_67(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, 0.0f);
+        wmma::fill_fragment(__anf1, (float) 0);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -18405,7 +18405,7 @@ __global__ static void kuiper_kernel_67(uint32_t cols, uint32_t shared,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 64) + cidx);
-                _letpattern2._1[ni] = v;
+                _letpattern1._1[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -18437,7 +18437,7 @@ __global__ static void kuiper_kernel_67(uint32_t cols, uint32_t shared,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
-                _letpattern2._2[ni_1] = v_1;
+                _letpattern1._2[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -18456,7 +18456,7 @@ __global__ static void kuiper_kernel_67(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
                     aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
-                    (_letpattern2._1 +
+                    (_letpattern1._1 +
                         ((((0 + (64 * (warpRow * 64))) + (__anf01_3 * 16)) +
                              (64 * (__anf02_2 * 16))) +
                             0)),
@@ -18473,7 +18473,7 @@ __global__ static void kuiper_kernel_67(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
                     bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
-                    (_letpattern2._2 +
+                    (_letpattern1._2 +
                         ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 64)) +
                              0) +
                             (__anf03_3 * 16))),
@@ -18601,7 +18601,7 @@ __global__ static void kuiper_kernel_68(uint32_t cols, uint32_t shared,
     uint32_t warpRow = (wid / 1);
     uint32_t warpCol = (wid % 1);
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
-        _letpattern1 =
+        _letpattern =
             (FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_) {
                 ._1 = sh._1,
                 ._2 =
@@ -18610,9 +18610,9 @@ __global__ static void kuiper_kernel_68(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}};
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern2 =
+    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern1 =
         (FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr) {
-            ._1 = _letpattern1._1, ._2 = _letpattern1._2._1};
+            ._1 = _letpattern._1, ._2 = _letpattern._2._1};
     uint32_t num_k_tiles = (shared / 64);
     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16, custard_bf16,
         nvcuda::wmma::row_major>
@@ -18639,7 +18639,7 @@ __global__ static void kuiper_kernel_68(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, 0.0f);
+        wmma::fill_fragment(__anf1, (float) 0);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -18671,7 +18671,7 @@ __global__ static void kuiper_kernel_68(uint32_t cols, uint32_t shared,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 64) + cidx);
-                _letpattern2._1[ni] = v;
+                _letpattern1._1[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -18703,7 +18703,7 @@ __global__ static void kuiper_kernel_68(uint32_t cols, uint32_t shared,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
-                _letpattern2._2[ni_1] = v_1;
+                _letpattern1._2[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -18722,7 +18722,7 @@ __global__ static void kuiper_kernel_68(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
                     aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
-                    (_letpattern2._1 +
+                    (_letpattern1._1 +
                         ((((0 + (64 * (warpRow * 64))) + (__anf01_3 * 16)) +
                              (64 * (__anf02_2 * 16))) +
                             0)),
@@ -18739,7 +18739,7 @@ __global__ static void kuiper_kernel_68(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
                     bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
-                    (_letpattern2._2 +
+                    (_letpattern1._2 +
                         ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 128)) +
                              0) +
                             (__anf03_3 * 16))),
@@ -18867,7 +18867,7 @@ __global__ static void kuiper_kernel_69(uint32_t cols, uint32_t shared,
     uint32_t warpRow = (wid / 4);
     uint32_t warpCol = (wid % 4);
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
-        _letpattern1 =
+        _letpattern =
             (FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_) {
                 ._1 = sh._1,
                 ._2 =
@@ -18876,9 +18876,9 @@ __global__ static void kuiper_kernel_69(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}};
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern2 =
+    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern1 =
         (FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr) {
-            ._1 = _letpattern1._1, ._2 = _letpattern1._2._1};
+            ._1 = _letpattern._1, ._2 = _letpattern._2._1};
     uint32_t num_k_tiles = (shared / 64);
     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16, custard_bf16,
         nvcuda::wmma::row_major>
@@ -18905,7 +18905,7 @@ __global__ static void kuiper_kernel_69(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, 0.0f);
+        wmma::fill_fragment(__anf1, (float) 0);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -18937,7 +18937,7 @@ __global__ static void kuiper_kernel_69(uint32_t cols, uint32_t shared,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 64) + cidx);
-                _letpattern2._1[ni] = v;
+                _letpattern1._1[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -18969,7 +18969,7 @@ __global__ static void kuiper_kernel_69(uint32_t cols, uint32_t shared,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
-                _letpattern2._2[ni_1] = v_1;
+                _letpattern1._2[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -18988,7 +18988,7 @@ __global__ static void kuiper_kernel_69(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
                     aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
-                    (_letpattern2._1 +
+                    (_letpattern1._1 +
                         ((((0 + (64 * (warpRow * 128))) + (__anf01_3 * 16)) +
                              (64 * (__anf02_2 * 16))) +
                             0)),
@@ -19005,7 +19005,7 @@ __global__ static void kuiper_kernel_69(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
                     bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
-                    (_letpattern2._2 +
+                    (_letpattern1._2 +
                         ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 32)) +
                              0) +
                             (__anf03_3 * 16))),
@@ -19133,7 +19133,7 @@ __global__ static void kuiper_kernel_70(uint32_t cols, uint32_t shared,
     uint32_t warpRow = (wid / 2);
     uint32_t warpCol = (wid % 2);
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
-        _letpattern1 =
+        _letpattern =
             (FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_) {
                 ._1 = sh._1,
                 ._2 =
@@ -19142,9 +19142,9 @@ __global__ static void kuiper_kernel_70(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}};
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern2 =
+    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern1 =
         (FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr) {
-            ._1 = _letpattern1._1, ._2 = _letpattern1._2._1};
+            ._1 = _letpattern._1, ._2 = _letpattern._2._1};
     uint32_t num_k_tiles = (shared / 64);
     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16, custard_bf16,
         nvcuda::wmma::row_major>
@@ -19171,7 +19171,7 @@ __global__ static void kuiper_kernel_70(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, 0.0f);
+        wmma::fill_fragment(__anf1, (float) 0);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -19203,7 +19203,7 @@ __global__ static void kuiper_kernel_70(uint32_t cols, uint32_t shared,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 64) + cidx);
-                _letpattern2._1[ni] = v;
+                _letpattern1._1[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -19235,7 +19235,7 @@ __global__ static void kuiper_kernel_70(uint32_t cols, uint32_t shared,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
-                _letpattern2._2[ni_1] = v_1;
+                _letpattern1._2[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -19254,7 +19254,7 @@ __global__ static void kuiper_kernel_70(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
                     aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
-                    (_letpattern2._1 +
+                    (_letpattern1._1 +
                         ((((0 + (64 * (warpRow * 128))) + (__anf01_3 * 16)) +
                              (64 * (__anf02_2 * 16))) +
                             0)),
@@ -19271,7 +19271,7 @@ __global__ static void kuiper_kernel_70(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
                     bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
-                    (_letpattern2._2 +
+                    (_letpattern1._2 +
                         ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 64)) +
                              0) +
                             (__anf03_3 * 16))),
@@ -19399,7 +19399,7 @@ __global__ static void kuiper_kernel_71(uint32_t cols, uint32_t shared,
     uint32_t warpRow = (wid / 1);
     uint32_t warpCol = (wid % 1);
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
-        _letpattern1 =
+        _letpattern =
             (FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_) {
                 ._1 = sh._1,
                 ._2 =
@@ -19408,9 +19408,9 @@ __global__ static void kuiper_kernel_71(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}};
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern2 =
+    FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr _letpattern1 =
         (FStar_Pervasives_Native_tuple2__bfloat16_ptr_bfloat16_ptr) {
-            ._1 = _letpattern1._1, ._2 = _letpattern1._2._1};
+            ._1 = _letpattern._1, ._2 = _letpattern._2._1};
     uint32_t num_k_tiles = (shared / 64);
     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16, custard_bf16,
         nvcuda::wmma::row_major>
@@ -19437,7 +19437,7 @@ __global__ static void kuiper_kernel_71(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, 0.0f);
+        wmma::fill_fragment(__anf1, (float) 0);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -19469,7 +19469,7 @@ __global__ static void kuiper_kernel_71(uint32_t cols, uint32_t shared,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 64) + cidx);
-                _letpattern2._1[ni] = v;
+                _letpattern1._1[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -19501,7 +19501,7 @@ __global__ static void kuiper_kernel_71(uint32_t cols, uint32_t shared,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
-                _letpattern2._2[ni_1] = v_1;
+                _letpattern1._2[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -19520,7 +19520,7 @@ __global__ static void kuiper_kernel_71(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
                     aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
-                    (_letpattern2._1 +
+                    (_letpattern1._1 +
                         ((((0 + (64 * (warpRow * 128))) + (__anf01_3 * 16)) +
                              (64 * (__anf02_2 * 16))) +
                             0)),
@@ -19537,7 +19537,7 @@ __global__ static void kuiper_kernel_71(uint32_t cols, uint32_t shared,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
                     bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
-                    (_letpattern2._2 +
+                    (_letpattern1._2 +
                         ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 128)) +
                              0) +
                             (__anf03_3 * 16))),

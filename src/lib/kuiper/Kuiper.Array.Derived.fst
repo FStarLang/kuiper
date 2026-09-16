@@ -81,11 +81,13 @@ fn gpu_array_unslice_1'
   (#sz:nat)
   (arr : larray a sz)
   (#f : perm)
-  requires forall+ (i: natlt sz). exists* v. pts_to_cell arr #f i v
+  requires array_exists arr
+  requires
+    (forall+ (i: natlt sz). exists* v. pts_to_cell arr #f i v)
   ensures  exists* v. pts_to arr #f v
 {
   let ff = forevery_exists #(natlt sz) (fun i v -> pts_to_cell arr #f i v);
   let ss = Seq.init_ghost sz (fun i -> ff i);
   forevery_ext #(natlt sz) _ (fun i -> pts_to_cell arr #f i (ss @! i));
-  array_unslice_1 arr;
+  array_unslice_1_with_exists arr;
 }

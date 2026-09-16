@@ -60,8 +60,8 @@ __global__ static void kuiper_kernel_0(
         n = (__anf01_1 + 1);
     }
     if (tid == 0) {
-        uint32_t ni1 = 0;
-        custard_f16 res = shmem._1[ni1];
+        uint32_t ni_1 = 0;
+        custard_f16 res = shmem._1[ni_1];
         out[bid] = res;
     }
 }
@@ -76,7 +76,7 @@ __global__ static void kuiper_kernel_1(
         (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {._1 = tmp1};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
-    float acc = 0.0f;
+    float acc = (float) 0;
     uint32_t idx = tid;
     while (idx < lena) {
         uint32_t idx_raw = idx;
@@ -114,8 +114,8 @@ __global__ static void kuiper_kernel_1(
         n = (__anf01_1 + 1);
     }
     if (tid == 0) {
-        uint32_t ni1 = 0;
-        float res = shmem._1[ni1];
+        uint32_t ni_1 = 0;
+        float res = shmem._1[ni_1];
         out[bid] = res;
     }
 }
@@ -130,7 +130,7 @@ __global__ static void kuiper_kernel_2(
         (FStar_Pervasives_Native_tuple2__float64_ptr_unit) {._1 = tmp1};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
-    double acc = 0.0;
+    double acc = (double) 0;
     uint32_t idx = tid;
     while (idx < lena) {
         uint32_t idx_raw = idx;
@@ -168,8 +168,8 @@ __global__ static void kuiper_kernel_2(
         n = (__anf01_1 + 1);
     }
     if (tid == 0) {
-        uint32_t ni1 = 0;
-        double res = shmem._1[ni1];
+        uint32_t ni_1 = 0;
+        double res = shmem._1[ni_1];
         out[bid] = res;
     }
 }
@@ -222,8 +222,8 @@ __global__ static void kuiper_kernel_3(
         n = (__anf01_1 + 1);
     }
     if (tid == 0) {
-        uint32_t ni1 = 0;
-        uint32_t res = shmem._1[ni1];
+        uint32_t ni_1 = 0;
+        uint32_t res = shmem._1[ni_1];
         out[bid] = res;
     }
 }
@@ -276,8 +276,8 @@ __global__ static void kuiper_kernel_4(
         n = (__anf01_1 + 1);
     }
     if (tid == 0) {
-        uint32_t ni1 = 0;
-        uint64_t res = shmem._1[ni1];
+        uint32_t ni_1 = 0;
+        uint64_t res = shmem._1[ni_1];
         out[bid] = res;
     }
 }
@@ -330,7 +330,7 @@ float Klas_HReduce_reduce_f32_plus(uint32_t nth, uint32_t lena, float *a)
         abort();
     }
     for (size_t _ci1 = 0; _ci1 < (size_t) 1; _ci1++) {
-        local_out[_ci1] = 0.0f;
+        local_out[_ci1] = (float) 0;
     }
     KPR_MEMCPY_D2H(local_out, out0, (((uint32_t) 4U) * ((uint32_t) 1U)));
     float res = local_out[0];
@@ -358,7 +358,7 @@ double Klas_HReduce_reduce_f64_plus(uint32_t nth, uint32_t lena, double *a)
         abort();
     }
     for (size_t _ci1 = 0; _ci1 < (size_t) 1; _ci1++) {
-        local_out[_ci1] = 0.0;
+        local_out[_ci1] = (double) 0;
     }
     KPR_MEMCPY_D2H(local_out, out0, (((uint32_t) 8U) * ((uint32_t) 1U)));
     double res = local_out[0];

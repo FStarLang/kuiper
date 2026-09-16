@@ -61,7 +61,7 @@ ghost fn sync_stream_ghost
 
 noextract
 fn sync_device ()
-  (frame p q : erased slprop)
+  (frame p q : slprop)
   (justif:
     ghost fn ()
       preserves sync_token

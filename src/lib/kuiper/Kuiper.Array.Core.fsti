@@ -72,6 +72,35 @@ val pts_to_slice
   (v : seq a)
   : slprop
 
+(* Allocation identity, without permission to access any cell. Unlike [emp],
+   this must originate from ownership of the array. It can be copied freely. *)
+val array_exists (#a : Type0) ([@@@mkey] arr : array a) : slprop
+
+[@@erasable]
+instance val duplicable_array_exists (#a : Type0) (arr : array a)
+  : Pulse.Class.Duplicable.duplicable (array_exists arr)
+
+instance val is_send_across_array_exists (#a : Type0) (arr : array a)
+  : is_send_across (visibility_of arr) (array_exists arr)
+
+instance is_send_across_global_array_exists
+  (#a : Type0) (arr : array a{is_global_array arr})
+  : is_send_across gpu_of (array_exists arr) =
+  let i : is_send_across (visibility_of arr) (array_exists arr) = solve in i
+
+ghost
+fn slice_array_exists
+  (#a : Type0) (arr : array a) (#f : perm)
+  (i j : nat) (#v : seq a)
+  preserves pts_to_slice arr #f i j v
+  ensures array_exists arr ** pure (j <= A.length arr)
+
+ghost
+fn empty_slice
+  (#a : Type0) (arr : array a) (f : perm) (i : nat{i <= A.length arr})
+  requires array_exists arr
+  ensures pts_to_slice arr #f i i seq![]
+
 [@@pulse_intro]
 ghost
 fn array_to_slice
@@ -399,30 +428,67 @@ fn slice_split
   ensures  pts_to_slice arr #f i n s1 ** pts_to_slice arr #f n m s2
 
 ghost
-fn array_slice_1
-  (#a:Type u#0)
-  (#sz:nat)
-  (arr : larray a sz)
-  (#f : perm)
-  (#v : erased (seq a) { Seq.length v == sz })
-  requires
-    pts_to arr #f v
+fn slice_to_cells
+  (#a : Type0)
+  (arr : array a) (#f : perm)
+  (i : nat) (j : nat{i <= j})
+  (#v : erased (seq a){Seq.length v == j - i})
+  requires pts_to_slice arr #f i j v
   ensures
-    forall+ (i: natlt sz).
-      pts_to_cell arr #f i (v @! i)
+    (forall+ (k : natlt (j - i)). pts_to_cell arr #f (i + k) (v @! k)) **
+    array_exists arr ** pure (j <= A.length arr)
+
+(* Nonempty cell collections already contain an allocation witness. *)
+ghost
+fn cells_to_nonempty_slice
+  (#a : Type0)
+  (arr : array a) (#f : perm)
+  (i : nat) (j : nat{i < j})
+  (#v : erased (seq a){Seq.length v == j - i})
+  requires forall+ (k : natlt (j - i)). pts_to_cell arr #f (i + k) (v @! k)
+  ensures pts_to_slice arr #f i j v
+
+ghost
+fn cells_to_slice
+  (#a : Type0)
+  (arr : array a) (#f : perm)
+  (i : nat) (j : nat{i <= j})
+  (#v : erased (seq a){Seq.length v == j - i})
+  requires pure (j <= A.length arr)
+  requires array_exists arr
+  requires
+    (forall+ (k : natlt (j - i)). pts_to_cell arr #f (i + k) (v @! k))
+  ensures pts_to_slice arr #f i j v
+
+ghost
+fn array_slice_1
+  (#a : Type0) (#sz : nat)
+  (arr : larray a sz) (#f : perm)
+  (#v : erased (seq a){Seq.length v == sz})
+  requires pts_to arr #f v
+  ensures
+    (forall+ (i : natlt sz). pts_to_cell arr #f i (v @! i)) **
+    array_exists arr
+
+ghost
+fn array_unslice_1_with_exists
+  (#a : Type0) (#sz : nat)
+  (arr : larray a sz) (#f : perm)
+  (#v : erased (seq a){Seq.length v == sz})
+  requires array_exists arr
+  requires
+    (forall+ (i : natlt sz). pts_to_cell arr #f i (v @! i))
+  ensures pts_to arr #f v
 
 ghost
 fn array_unslice_1
-  (#a:Type u#0)
-  (#sz:nat)
-  (arr : larray a sz)
-  (#f : perm)
-  (#v : erased (seq a) { Seq.length v == sz })
+  (#a : Type0) (#sz : nat)
+  (arr : larray a sz) (#f : perm)
+  (#v : erased (seq a){Seq.length v == sz})
+  requires pure (nonempty (natlt sz))
   requires
-    forall+ (i: natlt sz).
-      pts_to_cell arr #f i (v @! i)
-  ensures
-    pts_to arr #f v
+    (forall+ (i : natlt sz). pts_to_cell arr #f i (v @! i))
+  ensures pts_to arr #f v
 
 ghost
 fn slice_share

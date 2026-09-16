@@ -7,7 +7,10 @@ __global__ static void kuiper_kernel_0(float *a, float two);
 __global__ static void kuiper_kernel_0(float *a, float two)
 {
     uint32_t global_idx = 0;
-    float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+    float local[4];
+    for (size_t _ci1 = 0; _ci1 < (size_t) 4; _ci1++) {
+        local[_ci1] = (float) 0;
+    }
     vec_memcpy((local + 0), (a + global_idx));
     float __anf0 = local[0];
     local[0] = (two * __anf0);
@@ -25,7 +28,7 @@ void Kuiper_Example_Array_VectorizedAccess_hf(float *v)
     uint8_t *tmp = (uint8_t *) KPR_GPU_ALLOC(((uint32_t) 4U), ((uint32_t) 4U));
     float *a = (float *) tmp;
     KPR_MEMCPY_H2D(a, v, (((uint32_t) 4U) * ((uint32_t) 4U)));
-    float two = (1.0f + 1.0f);
+    float two = ((float) 1 + (float) 1);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_KCALL(kuiper_kernel_0, ((uint32_t) 1U), ((uint32_t) 1U),
         ((uint32_t) 0U), s, a, two);

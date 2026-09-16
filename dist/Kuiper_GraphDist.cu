@@ -16,7 +16,7 @@ __device__ uint16_t Kuiper_GraphDist_mult(uint16_t x, uint16_t y)
     if ((x == 0) || (y == 0))
         return 0;
     else
-        return ((uint16_t) (x + y));
+        return ((uint16_t) ((unsigned int) (x) + (unsigned int) (y)));
 }
 
 /* hoisted by the Custard Kuiper rule */

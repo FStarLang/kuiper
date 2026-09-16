@@ -136,6 +136,7 @@ fn array2_tile
   (#f : perm)
   requires
     gm |-> Frac f em
+  ensures array_exists (core gm)
   ensures
     forall+
       (tr : natlt (rows / trows))
@@ -143,7 +144,7 @@ fn array2_tile
         array2_subtile gm trows tcols tr tc |-> Frac f (ematrix_subtile em trows tcols tr tc)
 
 ghost
-fn array2_untile'
+fn array2_untile_with_exists'
   (#et:Type0)
   (#rows #cols : nat)
   (#l : layout2 rows cols)
@@ -152,6 +153,7 @@ fn array2_untile'
   (tcols : pos { tcols /? cols })
   (tf : natlt (rows / trows) -> natlt (cols / tcols) -> chest2 et trows tcols)
   (#f : perm)
+  requires array_exists (core gm)
   requires
     pure (SZ.fits (l.ulen))
   requires
@@ -163,7 +165,28 @@ fn array2_untile'
     gm |-> Frac f (ematrix_from_tiles trows tcols tf)
 
 ghost
-fn array2_untile
+fn array2_untile'
+  (#et:Type0)
+  (#rows #cols : nat)
+  (#l : layout2 rows cols)
+  (gm : array2 et l)
+  (trows : pos { trows /? rows })
+  (tcols : pos { tcols /? cols })
+  (tf : natlt (rows / trows) -> natlt (cols / tcols) -> chest2 et trows tcols)
+  (#f : perm)
+  requires pure (nonempty (abs ((rows / trows) @| (cols / tcols) @| INil)))
+  requires
+    pure (SZ.fits (l.ulen))
+  requires
+    forall+
+      (tr : natlt (rows / trows))
+      (tc : natlt (cols / tcols)).
+      (array2_subtile gm trows tcols tr tc |-> Frac f (tf tr tc))
+  ensures
+    gm |-> Frac f (ematrix_from_tiles trows tcols tf)
+
+ghost
+fn array2_untile_with_exists
   (#et:Type0)
   (#rows #cols : nat)
   (#l : layout2 rows cols)
@@ -172,6 +195,7 @@ fn array2_untile
   (tcols : pos { tcols /? cols })
   (#em : chest2 et rows cols)
   (#f : perm)
+  requires array_exists (core gm)
   requires
     pure (SZ.fits (l.ulen))
   requires
@@ -183,6 +207,48 @@ fn array2_untile
     gm |-> Frac f em
 
 ghost
+fn array2_untile
+  (#et:Type0)
+  (#rows #cols : nat)
+  (#l : layout2 rows cols)
+  (gm : array2 et l)
+  (trows : pos { trows /? rows })
+  (tcols : pos { tcols /? cols })
+  (#em : chest2 et rows cols)
+  (#f : perm)
+  requires pure (nonempty (abs ((rows / trows) @| (cols / tcols) @| INil)))
+  requires
+    pure (SZ.fits (l.ulen))
+  requires
+    forall+
+      (tr : natlt (rows / trows))
+      (tc : natlt (cols / tcols)).
+        array2_subtile gm trows tcols tr tc |-> Frac f (ematrix_subtile em trows tcols tr tc)
+  ensures
+    gm |-> Frac f em
+
+ghost
+fn array2_untile_underspec_with_exists
+  (#et:Type0)
+  (#rows #cols : nat)
+  (#l : layout2 rows cols)
+  (gm : array2 et l)
+  (trows : pos { trows /? rows })
+  (tcols : pos { tcols /? cols })
+  (#f : perm)
+  requires array_exists (core gm)
+  requires
+    pure (SZ.fits (l.ulen))
+  requires
+    forall+
+      (tr : natlt (rows / trows))
+      (tc : natlt (cols / tcols)).
+        (exists* (em : chest2 et trows tcols).
+          array2_subtile gm trows tcols tr tc |-> Frac f em)
+  ensures
+    (exists* (em : chest2 et rows cols). gm |-> Frac f em)
+
+ghost
 fn array2_untile_underspec
   (#et:Type0)
   (#rows #cols : nat)
@@ -191,6 +257,7 @@ fn array2_untile_underspec
   (trows : pos { trows /? rows })
   (tcols : pos { tcols /? cols })
   (#f : perm)
+  requires pure (nonempty (abs ((rows / trows) @| (cols / tcols) @| INil)))
   requires
     pure (SZ.fits (l.ulen))
   requires
@@ -302,6 +369,7 @@ fn array2_explode_tiled
   (#em : chest2 et rows cols)
   requires
     gm |-> em
+  ensures array_exists (core gm)
   ensures
     forall+ (tr : natlt (rows / trows)) (tc : natlt (cols / tcols))
             (i : natlt trows) (j : natlt tcols).
@@ -323,6 +391,7 @@ fn array2_implode_tiled
   (trows : pos { trows /? rows })
   (tcols : pos { tcols /? cols })
   (val_fn : natlt (rows / trows) -> natlt (cols / tcols) -> natlt trows -> natlt tcols -> GTot et)
+  requires array_exists (core gm)
   requires
     pure (SZ.fits (l.ulen))
   requires

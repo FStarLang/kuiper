@@ -7,6 +7,7 @@ open Kuiper.SizeT
 include Kuiper.Kernel.Base
 include Kuiper.Kernel.Desc
 friend Kuiper.Array.Core // for gpu_array_alloc_vis, gpu_array_free_gen
+friend Kuiper.Locs // construct launch tokens at the modeled thread locations
 
 #lang-pulse
 
@@ -19,6 +20,15 @@ module Par = Pulse.Lib.Par
 module SH = Kuiper.SHMem
 
 module A = Pulse.Lib.Array.Core
+module L = Kuiper.Locs.Base
+
+(* All blocks and threads of this modeled launch use the same immutable
+   configuration. The exact block location also fixes the thread count,
+   which is not an argument of the public block_id token. *)
+let launch_context_for (#pre #post:slprop) (k:kernel_desc pre post) =
+  ctx:L.launch_context {
+    ctx.launch_gpu == 0 /\ ctx.launch_nblk == k.nblk /\ ctx.launch_nthr == k.nthr
+  }
 
 let c_shmem_full (#d : SH.shmem_desc) (c : SH.c_shmem d) : prop =
   match d with
@@ -120,10 +130,11 @@ divergent
 fn rec run_block_threads
   (#full_pre #full_post : slprop)
   (k : kernel_desc full_pre full_post)
+  (ctx : launch_context_for k)
   (bid: szlt k.nblk)
   (sh: SH.c_shmems k.shmems_desc {SH.c_shmems_inv sh /\ c_shmems_full sh})
   (upto: sz { upto <= k.nthr})
-  preserves block_id k.nblk bid
+  preserves loc (L.block_id_loc ctx bid)
   requires
     (forall+ (i : natlt upto). k.kpre sh bid (natlt_coerce i))
   ensures
@@ -139,15 +150,14 @@ fn rec run_block_threads
     rewrite each (upto - 1) as tid;
     let send_pre = k.kpre_sendable sh () bid tid;
     let send_post = k.kpost_sendable sh () bid tid;
-    let tloc = thread_id_loc bid tid;
-    thread_id_loc_lemma bid tid;
-    unfold (block_id k.nblk bid);
-    fold (block_id k.nblk bid);
+    let tloc = L.thread_id_loc ctx bid tid;
+    L.thread_id_loc_lemma ctx bid tid;
+    L.block_id_loc_lemma ctx bid;
     Kuiper.Kernel.Par.par
       #(k.kpre sh bid tid)
       #(k.kpost sh bid tid)
-      #(block_id k.nblk bid ** forall+ (i : natlt tid). k.kpre sh bid (natlt_coerce i))
-      #(block_id k.nblk bid ** forall+ (i : natlt tid). k.kpost sh bid (natlt_coerce i))
+      #(loc (L.block_id_loc ctx bid) ** forall+ (i : natlt tid). k.kpre sh bid (natlt_coerce i))
+      #(loc (L.block_id_loc ctx bid) ** forall+ (i : natlt tid). k.kpost sh bid (natlt_coerce i))
       block_of tloc
       fn _ {
         fold (thread_id k.nthr tid);
@@ -165,26 +175,11 @@ fn rec run_block_threads
         drop_ (Kuiper.Barrier.barrier_state _);
       }
       fn _ {
-        run_block_threads k bid sh tid
+        run_block_threads k ctx bid sh tid
       };
     rewrite each (v tid) as (upto - 1);
     forevery_natlt_push upto (fun (i: natlt upto) -> k.kpost sh bid (natlt_coerce i));
   }
-}
-
-// Helper to avoid ambiguity below.
-noextract
-fn free_c_shmems'
-  (#bid : int)
-  (d : list SH.shmem_desc)
-  (res : SH.c_shmems d)
-  preserves block_id 'x bid
-  requires SH.live_c_shmems res
-  requires pure (SH.c_shmems_block_inv res /\ c_shmems_full res)
-{
-  unfold block_id 'x bid;
-  free_c_shmems _ d res;
-  fold block_id 'x bid;
 }
 
 noextract
@@ -192,16 +187,13 @@ divergent
 fn run_block
   (#full_pre #full_post : slprop)
   (k : kernel_desc full_pre full_post)
+  (ctx : launch_context_for k)
   (bid: szlt k.nblk)
-  requires
-    block_id k.nblk bid **
-    k.block_pre bid
-  ensures
-    block_id k.nblk bid **
-    k.block_post bid
+  preserves loc (L.block_id_loc ctx bid)
+  requires k.block_pre bid
+  ensures k.block_post bid
 {
-  unfold (block_id k.nblk bid);
-  let sh = alloc_c_shmems _ k.shmems_desc;
+  let sh = alloc_c_shmems (L.block_id_loc ctx bid) k.shmems_desc;
   (* Each block gets a single dynamic shared memory region, 16-byte aligned,
   which the extracted code carves into the requested arrays in declaration
   order (see KPR_SHMEM/KPR_SHMEM_AT in include/kuiper.h). The model allocates
@@ -209,11 +201,10 @@ fn run_block
   cudaMalloc'd arrays. Taking the region to start at 0 is fine: only the
   offsets within it are observable. *)
   assume pure (SH.c_shmems_at sh 0);
-  fold (block_id k.nblk bid);
   let _ : unit = Mkkernel_desc?.block_setup k sh bid ();
-  run_block_threads k bid sh k.nthr;
+  run_block_threads k ctx bid sh k.nthr;
   Mkkernel_desc?.block_teardown k sh bid ();
-  free_c_shmems' _ sh;
+  free_c_shmems (L.block_id_loc ctx bid) _ sh;
   ()
 }
 
@@ -222,6 +213,7 @@ divergent
 fn rec run_blocks
   (#full_pre #full_post : slprop)
   (k : kernel_desc full_pre full_post)
+  (ctx : launch_context_for k)
   (upto: sz { upto <= k.nblk})
 preserves gpu
 requires
@@ -238,8 +230,7 @@ ensures
     rewrite each (upto - 1) as bid;
     let send_pre = k.block_pre_sendable bid;
     let send_post = k.block_post_sendable bid;
-    let bloc = block_id_loc bid;
-    block_id_loc_lemma bid;
+    L.block_id_loc_lemma ctx bid;
     unfold gpu;
     fold gpu;
     Kuiper.Kernel.Par.par
@@ -247,14 +238,12 @@ ensures
       #(k.block_post bid)
       #(gpu ** forall+ (i : natlt bid). k.block_pre (natlt_coerce i))
       #(gpu ** forall+ (i : natlt bid). k.block_post (natlt_coerce i))
-      gpu_of bloc
+      gpu_of (L.block_id_loc ctx bid)
       fn _ {
-        fold (block_id k.nblk bid);
-        run_block k bid;
-        drop_ (block_id _ _);
+        run_block k ctx bid;
       }
       fn _ {
-        run_blocks k bid
+        run_blocks k ctx bid
       };
     rewrite each (v bid) as (upto - 1);
     forevery_natlt_push upto (fun (i: natlt upto) -> k.block_post (natlt_coerce i));
@@ -273,6 +262,9 @@ fn launch_kernel_full_sync
     cpu **
     on gpu_loc full_post
 {
+  let ctx : launch_context_for k = {
+    L.launch_gpu = 0; L.launch_nblk = k.nblk; L.launch_nthr = k.nthr
+  };
   gpu_id_loc_lemma 0;
   Kuiper.Kernel.Par.impersonate_div
     unit
@@ -283,7 +275,7 @@ fn launch_kernel_full_sync
       fold gpu;
       on_elim full_pre;
       Mkkernel_desc?.setup k ();
-      run_blocks k k.nblk;
+      run_blocks k ctx k.nblk;
       Mkkernel_desc?.teardown k ();
       on_intro full_post;
       drop_ gpu;

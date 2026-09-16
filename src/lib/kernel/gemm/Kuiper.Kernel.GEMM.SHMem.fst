@@ -111,6 +111,7 @@ fn explode2
   (#f : perm)
   (#s : chest2 et m n)
   requires a |-> Frac f s
+  ensures array_exists (core a)
   ensures
     forall+ (r : natlt m) (c : natlt n).
       tensor_pts_to_cell a #f (idx2 r c) (acc2 s r c)
@@ -127,6 +128,7 @@ fn implode2
   (a : array2 et l)
   (#f : perm)
   (#s : chest2 et m n)
+  requires pure (nonempty (abs (m @| n @| INil)))
   requires
     pure (SZ.fits (l.ulen))
   requires
@@ -519,41 +521,6 @@ let sbtile_gg_all (batch mrows mcols tile : nat)
           == sbtile_cell_idx batch mrows mcols tile bid tid
       with sbtile_gg_full batch mrows mcols tile bid tid
 #pop-options
-
-(* A cell of the batched combined spec equals the per-page rank-2 [ggemm_single]
-   cell.  Reduces the rank-3 [gbmmcomb] obligation cellwise/pagewise. *)
-let bmmcomb_cell_shmem
-  (mapA_r mapB_r : real -> real)
-  (comb_r : binop real)
-  (#batch #bm #bs #bn : nat)
-  (rA : chest3 real batch bm bs)
-  (rB : chest3 real batch bs bn)
-  (rC : chest3 real batch bm bn)
-  (page : natlt batch) (row : natlt bm) (col : natlt bn)
-  : Lemma
-      (Chest.acc (MS.gbmmcomb mapA_r mapB_r comb_r rC rA rB) (page, (row, (col, ())))
-        == MS.ggemm_single mapA_r mapB_r comb_r
-             (slice_page rA page) (slice_page rB page) (slice_page rC page) row col)
-  = ()
-
-let bmmcomb_all_shmem
-  (mapA_r mapB_r : real -> real)
-  (comb_r : binop real)
-  (#batch #bm #bs #bn : nat)
-  (rA : chest3 real batch bm bs)
-  (rB : chest3 real batch bs bn)
-  (rC : chest3 real batch bm bn)
-  : Lemma
-      (forall (page : natlt batch) (row : natlt bm) (col : natlt bn).
-        Chest.acc (MS.gbmmcomb mapA_r mapB_r comb_r rC rA rB) (page, (row, (col, ())))
-          == MS.ggemm_single mapA_r mapB_r comb_r
-               (slice_page rA page) (slice_page rB page) (slice_page rC page) row col)
-  = introduce
-      forall (page : natlt batch) (row : natlt bm) (col : natlt bn).
-        Chest.acc (MS.gbmmcomb mapA_r mapB_r comb_r rC rA rB) (page, (row, (col, ())))
-          == MS.ggemm_single mapA_r mapB_r comb_r
-               (slice_page rA page) (slice_page rB page) (slice_page rC page) row col
-      with bmmcomb_cell_shmem mapA_r mapB_r comb_r rA rB rC page row col
 
 
 (* ══════════════════════════════════════════════════════════════════════════
@@ -1282,7 +1249,7 @@ fn bteardown
   tensor_implode gC;
 
   (* Final batched matrix-level approximation, reduced cellwise/pagewise. *)
-  bmmcomb_all_shmem mapA_r mapB_r comb_r rA rB rC;
+  MU.gbmmcomb_all mapA_r mapB_r comb_r rA rB rC;
   assert pure (eC' %~ MS.gbmmcomb mapA_r mapB_r comb_r rC rA rB);
   ();
 }

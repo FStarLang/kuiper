@@ -50,6 +50,7 @@ fn tensor_abij
           (acc (chest_bij b s) i);
       ()
     };
+  rewrite array_exists (core a) as array_exists (core a');
   tensor_iraise a';
 }
 

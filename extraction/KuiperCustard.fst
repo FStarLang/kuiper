@@ -684,6 +684,19 @@ let wgmma_mma_sync (_tys : list cty) (args : list expr) : ML expr =
                    ^ show (List.length args))
 
 let _ =
+  (* Custard leaves [bit_eq] out of its float vocabulary on purpose: it is a
+     comparison of representations, and no C operator performs one.  The
+     fallthrough is an external under the mangled name, which links only by
+     accident, so name the helper (include/kuiper/float_bits.h) explicitly.
+     [Kuiper.Float16.Base] and [Kuiper.BFloat16.Base] say the same thing with
+     [@@custard_extern] on the declaration itself; these two cannot, because
+     the declarations are ulib's. *)
+  B.register_rule (Ident.lid_of_str "FStar.Float32.bit_eq")
+                  (B.Rule_extern ({ x_name = Some "kpr_f32_bit_eq";
+                                    x_header = Some "kuiper/float_bits.h" }));
+  B.register_rule (Ident.lid_of_str "FStar.Float64.bit_eq")
+                  (B.Rule_extern ({ x_name = Some "kpr_f64_bit_eq";
+                                    x_header = Some "kuiper/float_bits.h" }));
   B.register_rule (Ident.lid_of_str "Kuiper.TensorCore.Base.mma_sync'")
                   (B.Rule_prim (7, mma_sync));
   B.register_rule (Ident.lid_of_str "Kuiper.TensorCore.Base.mma_loadA_map")

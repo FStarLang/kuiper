@@ -25,10 +25,10 @@ __global__ static void kuiper_kernel_0(
         uint32_t row = (gid / n);
         uint32_t col = (gid % n);
         custard_f16 va = a[row];
+        uint32_t ni = ((row * n) + col);
+        custard_f16 vb = b[ni];
         uint32_t ni1 = ((row * n) + col);
-        custard_f16 vb = b[ni1];
-        uint32_t ni2 = ((row * n) + col);
-        b[ni2] = custard_f16_mul(va, vb);
+        b[ni1] = custard_f16_mul(va, vb);
     }
 }
 
@@ -43,10 +43,10 @@ __global__ static void kuiper_kernel_1(
         uint32_t row = (gid / n);
         uint32_t col = (gid % n);
         custard_f16 va = a[row];
+        uint32_t ni = ((col * m) + row);
+        custard_f16 vb = b[ni];
         uint32_t ni1 = ((col * m) + row);
-        custard_f16 vb = b[ni1];
-        uint32_t ni2 = ((col * m) + row);
-        b[ni2] = custard_f16_mul(va, vb);
+        b[ni1] = custard_f16_mul(va, vb);
     }
 }
 
@@ -61,10 +61,10 @@ __global__ static void kuiper_kernel_2(
         uint32_t row = (gid / n);
         uint32_t col = (gid % n);
         float va = a[row];
+        uint32_t ni = ((row * n) + col);
+        float vb = b[ni];
         uint32_t ni1 = ((row * n) + col);
-        float vb = b[ni1];
-        uint32_t ni2 = ((row * n) + col);
-        b[ni2] = (va * vb);
+        b[ni1] = (va * vb);
     }
 }
 
@@ -79,10 +79,10 @@ __global__ static void kuiper_kernel_3(
         uint32_t row = (gid / n);
         uint32_t col = (gid % n);
         float va = a[row];
+        uint32_t ni = ((col * m) + row);
+        float vb = b[ni];
         uint32_t ni1 = ((col * m) + row);
-        float vb = b[ni1];
-        uint32_t ni2 = ((col * m) + row);
-        b[ni2] = (va * vb);
+        b[ni1] = (va * vb);
     }
 }
 
@@ -97,10 +97,10 @@ __global__ static void kuiper_kernel_4(
         uint32_t row = (gid / n);
         uint32_t col = (gid % n);
         double va = a[row];
+        uint32_t ni = ((row * n) + col);
+        double vb = b[ni];
         uint32_t ni1 = ((row * n) + col);
-        double vb = b[ni1];
-        uint32_t ni2 = ((row * n) + col);
-        b[ni2] = (va * vb);
+        b[ni1] = (va * vb);
     }
 }
 
@@ -115,10 +115,10 @@ __global__ static void kuiper_kernel_5(
         uint32_t row = (gid / n);
         uint32_t col = (gid % n);
         double va = a[row];
+        uint32_t ni = ((col * m) + row);
+        double vb = b[ni];
         uint32_t ni1 = ((col * m) + row);
-        double vb = b[ni1];
-        uint32_t ni2 = ((col * m) + row);
-        b[ni2] = (va * vb);
+        b[ni1] = (va * vb);
     }
 }
 

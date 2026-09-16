@@ -16,6 +16,13 @@ let odd_2x1 (n : int) :
   Lemma (ensures odd (2 * n + 1))
   = ()
 
+let div_mod_of_mul_add (n : pos) (q : nat) (r : nat{r < n})
+  : Lemma ((q * n + r) / n == q /\ (q * n + r) % n == r)
+  = M.lemma_div_plus r q n;
+    M.small_div r n;
+    M.lemma_mod_plus r q n;
+    M.small_mod r n
+
 let rec lemma_log2_pow2 (n: nat) : Lemma (log2 (pow2 n) = n) =
   if n = 0 then () else lemma_log2_pow2 (n - 1)
 

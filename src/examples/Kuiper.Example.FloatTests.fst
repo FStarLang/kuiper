@@ -8,11 +8,16 @@ let test_kind_0 #t {| floating t |} (x : t) =
   assert c is_finite + c is_inf + c is_nan == 1
 
 let test_mul_zero_fin #t {| floating t |} (x : t{is_finite x}) =
+  mul_zero x;
+  mul_comm x zero;
   assert eq (zero `mul` x) zero;
-  assert zero `mul` x == zero;
   assert eq (x `mul` zero) zero;
-  assert x `mul` zero == zero;
   ()
+
+(* Multiplication may produce negative zero. *)
+[@@expect_failure [19]]
+let test_mul_zero_not_exact #t {| floating t |} (x : t{is_finite x}) =
+  assert x `mul` zero == zero
 
 (* 0 times infinity is NOT zero. *)
 [@@expect_failure [19]]
@@ -51,6 +56,8 @@ let test_mul_zero_nan_3 #t {| floating t |} (x : t{is_nan x}) =
 
 
 let test_mul_one_fin #t {| floating t |} (x : t{is_finite x \/ is_inf x}) =
+  mul_one x;
+  mul_comm x one;
   assert eq (one `mul` x) x;
   assert one `mul` x == x;
   assert eq (x `mul` one) x;
@@ -80,11 +87,16 @@ let test_mul_one_nan_3 #t {| floating t |} (x : t{is_nan x}) =
 
 (* x+0 is x for finite and infinite x, but not for NaN. *)
 let test_add_zero_fin #t {| floating t |} (x : t{is_finite x \/ is_inf x}) =
+  add_zero x;
+  add_comm x zero;
   assert eq (zero `add` x) x;
-  assert zero `add` x == x;
   assert eq (x `add` zero) x;
-  assert x `add` zero == x;
   ()
+
+(* Adding positive zero to negative zero changes the representation. *)
+[@@expect_failure [19]]
+let test_add_zero_not_exact #t {| floating t |} (x : t{is_finite x}) =
+  assert x `add` zero == x
 
 // Adding zero to a NaN may not be the same NaN
 [@@expect_failure [19]]

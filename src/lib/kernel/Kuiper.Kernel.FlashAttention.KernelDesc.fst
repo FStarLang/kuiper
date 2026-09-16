@@ -38,34 +38,6 @@ open Kuiper.Math { even, odd }
 
 (* ── array2-over-tensor cell / row helpers (old Array2 shims) ──────────── *)
 
-ghost
-fn milower
-  (#et : Type0) (#rows #cols : nat) (#l : layout2 rows cols)
-  (a : array2 et l) (#f : perm) (#s : chest2 et rows cols)
-  requires
-    a |-> Frac f s
-  ensures
-    pure (SZ.fits (tlayout_ulen l)) **
-    (forall+ (r : natlt rows) (c : natlt cols).
-      tensor_pts_to_cell a #f (idx2 r c) (acc2 s r c))
-{
-  tensor_ilower2 a;
-}
-
-ghost
-fn miraise
-  (#et : Type0) (#rows #cols : nat) (#l : layout2 rows cols)
-  (a : array2 et l) (#f : perm) (#s : chest2 et rows cols)
-  requires
-    pure (SZ.fits (tlayout_ulen l)) **
-    (forall+ (r : natlt rows) (c : natlt cols).
-      tensor_pts_to_cell a #f (idx2 r c) (acc2 s r c))
-  ensures
-    a |-> Frac f s
-{
-  tensor_iraise2 a;
-}
-
 let mrow
   (#et : Type0) (#rows #cols : erased nat) (#l : layout2 rows cols)
   (a : array2 et l) (i : erased nat{i < rows})
@@ -347,7 +319,7 @@ fn array2_stride_tile
       (tc : natlt scols).
         array2_stride_subtile gm srows scols tr tc |-> Frac f (ematrix_stride_subtile em srows scols tr tc)
 {
-  milower gm;
+  tensor_ilower2 gm;
   forevery_factor_2 rows (rows / srows) srows
     cols (cols / scols) scols
     _;
@@ -371,6 +343,7 @@ fn array2_stride_tile
   // order: (tr, tc, i, j)
   ghost
   fn aux (tr : natlt srows) (tc : natlt scols)
+    preserves array_exists (core gm)
     requires
       forall+ (i : natlt (rows / srows)) (j : natlt (cols / scols)).
         tensor_pts_to_cell gm #f (idx2 (i * srows + tr <: natlt rows) (j * scols + tc <: natlt cols))
@@ -395,9 +368,22 @@ fn array2_stride_tile
           tensor_pts_to_cell (array2_stride_subtile gm srows scols tr tc) #f (idx2 i j)
             (acc2 (ematrix_stride_subtile em srows scols tr tc) i j);
       };
-    miraise (array2_stride_subtile gm srows scols tr tc);
+    rewrite array_exists (core gm)
+      as array_exists (core (array2_stride_subtile gm srows scols tr tc));
+    tensor_iraise2_with_exists (array2_stride_subtile gm srows scols tr tc);
+    rewrite array_exists (core (array2_stride_subtile gm srows scols tr tc))
+      as array_exists (core gm);
   };
-  forevery_map_2 _ _ aux;
+  forevery_flatten _;
+  forevery_map_extra #(natlt srows & natlt scols) (array_exists (core gm))
+    (fun trtc -> forall+ (i : natlt (rows / srows)) (j : natlt (cols / scols)).
+      tensor_pts_to_cell gm #f
+        (idx2 (i * srows + trtc._1 <: natlt rows) (j * scols + trtc._2 <: natlt cols))
+        (acc2 em (i * srows + trtc._1) (j * scols + trtc._2)))
+    (fun trtc -> array2_stride_subtile gm srows scols trtc._1 trtc._2
+      |-> Frac f (ematrix_stride_subtile em srows scols trtc._1 trtc._2))
+    fn trtc { aux trtc._1 trtc._2 };
+  forevery_unflatten' _;
 }
 #pop-options
 
@@ -422,6 +408,13 @@ fn array2_stride_untile'
   ensures
     gm |-> Frac f (ematrix_stride_from_tiles srows scols tf)
 {
+  (* There is at least one stride view, even when its cell domain is empty. *)
+  forevery_extract_2 (0 <: natlt srows) (0 <: natlt scols) _;
+  tensor_ilower2 (array2_stride_subtile gm srows scols 0 0);
+  tensor_iraise2_with_exists (array2_stride_subtile gm srows scols 0 0);
+  rewrite array_exists (core (array2_stride_subtile gm srows scols 0 0))
+    as array_exists (core gm);
+  Pulse.Lib.Trade.elim_trade _ _;
   let em = ematrix_stride_from_tiles srows scols tf;
   ghost
   fn aux (tr : natlt srows) (tc : natlt scols)
@@ -432,7 +425,7 @@ fn array2_stride_untile'
         tensor_pts_to_cell gm #f (idx2 (i * srows + tr <: natlt rows) (j * scols + tc <: natlt cols))
           (acc2 em (i * srows + tr) (j * scols + tc))
   {
-    milower (array2_stride_subtile gm srows scols tr tc);
+    tensor_ilower2 (array2_stride_subtile gm srows scols tr tc);
     forevery_map_2
       (fun (i:natlt (rows / srows)) (j:natlt (cols / scols)) ->
         tensor_pts_to_cell (array2_stride_subtile gm srows scols tr tc) #f (idx2 i j)
@@ -477,7 +470,7 @@ fn array2_stride_untile'
   forevery_unfactor_2 rows (rows / srows) srows
     cols (cols / scols) scols
     (fun i j -> tensor_pts_to_cell gm #f (idx2 i j) (acc2 em i j));
-  miraise gm;
+  tensor_iraise2_with_exists gm;
 }
 #pop-options
 
@@ -1012,6 +1005,7 @@ fn rows_split
   (a : array2 et l)
   requires
     exists* (e:chest2 et rows cols). a |-> e
+  ensures array_exists (core a)
   ensures
     forall+ (tid:natlt rows).
       exists* (r:chest2 et 1 cols). array2_subtile a 1 cols tid 0 |-> Frac 1.0R r
@@ -1038,6 +1032,7 @@ fn rows_gather
   (#cols : nat { cols > 0 })
   (#l : layout2 rows cols)
   (a : array2 et l)
+  requires pure (nonempty (abs (rows @| cols @| INil)))
   requires
     pure (SZ.fits (tlayout_ulen l)) **
     (forall+ (tid:natlt rows).

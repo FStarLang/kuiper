@@ -61,8 +61,8 @@ __global__ static void kuiper_kernel_1(
         uint32_t trow = (gid / n);
         uint32_t tcol = (gid % n);
         uint32_t k1 = 0;
-        float acc = 0.0f;
-        float c = 0.0f;
+        float acc = (float) 0;
+        float c = (float) 0;
         while (k1 < k) {
             uint32_t __anf0 = k1;
             uint32_t ni = ((trow * k) + __anf0);
@@ -97,8 +97,8 @@ __global__ static void kuiper_kernel_2(
         uint32_t trow = (gid / n);
         uint32_t tcol = (gid % n);
         uint32_t k1 = 0;
-        double acc = 0.0;
-        double c = 0.0;
+        double acc = (double) 0;
+        double c = (double) 0;
         while (k1 < k) {
             uint32_t __anf0 = k1;
             uint32_t ni = ((trow * k) + __anf0);
@@ -169,8 +169,8 @@ __global__ static void kuiper_kernel_4(
         uint32_t trow = (gid / n);
         uint32_t tcol = (gid % n);
         uint32_t k1 = 0;
-        float acc = 0.0f;
-        float c = 0.0f;
+        float acc = (float) 0;
+        float c = (float) 0;
         while (k1 < k) {
             uint32_t __anf0 = k1;
             uint32_t ni = ((__anf0 * m) + trow);
@@ -205,8 +205,8 @@ __global__ static void kuiper_kernel_5(
         uint32_t trow = (gid / n);
         uint32_t tcol = (gid % n);
         uint32_t k1 = 0;
-        double acc = 0.0;
-        double c = 0.0;
+        double acc = (double) 0;
+        double c = (double) 0;
         while (k1 < k) {
             uint32_t __anf0 = k1;
             uint32_t ni = ((__anf0 * m) + trow);

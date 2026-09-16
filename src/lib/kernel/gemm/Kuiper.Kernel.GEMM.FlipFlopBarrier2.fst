@@ -35,6 +35,7 @@ fn split_array2_into_strided_chunks
   (nthr : pos)
   requires
     m |-> em
+  ensures array_exists (core m)
   ensures
     pure (SZ.fits (l.ulen))
   ensures
@@ -72,6 +73,7 @@ fn join_array2_from_strided_chunks
   (m : array2 et l)
   (#em : chest2 et rows cols)
   (nthr : pos)
+  requires pure (nonempty (abs (rows @| cols @| INil)))
   requires
     pure (SZ.fits (l.ulen))
   requires
@@ -107,6 +109,7 @@ fn join_array2_from_strided_chunks_underspec
   (#l : layout2 rows cols)
   (m : array2 et l)
   (nthr : pos)
+  requires pure (nonempty (abs (rows @| cols @| INil)))
   requires
     pure (SZ.fits (l.ulen))
   requires

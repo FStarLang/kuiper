@@ -25,11 +25,12 @@ instance _ : scalar t = {
 inline_for_extraction noextract
 instance is_floating : floating t = {
   is_scalar = solve;
-  sub; div;
+  sub; div; bit_eq;
   of_int; of_literal; of_int_zero; of_int_one;
-  kind;
+  kind; is_zero;
   largest; infinity;
   kind_one; kind_zero; kind_largest; kind_infinity;
+  zero_is_zero; one_is_nonzero;
   fexp; flog; sqrt; rsqrt; sin; cos; tan; asin; acos; atan;
   sinh; cosh; tanh; ceil; floor; round; fabs; erf; log2;
   log10; exp2; pow; atan2; fmin; fmax; fmod; copysign;
