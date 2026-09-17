@@ -528,7 +528,7 @@ fn tile_vmprod
 inline_for_extraction noextract
 let fma
   (#et : Type0) {| scalar et |}
-  (x1 x2 y : et)
+  (y x1 x2 : et)
 : et = y `add` (x1 `mul` x2)
 
 noextract
@@ -542,7 +542,7 @@ let seq_fma
   (k : nat { k + n <= sz_y })
   (to : natle n)
 : lseq et sz_y
-= seq_replace y k (k + to) (Seq.init to fun i -> fma x1 (x2 @! i) (y @! k + i))
+= seq_replace y k (k + to) (Seq.init to fun i -> fma (y @! k + i) x1 (x2 @! i))
 
 // esto es scalar_prod pero sobre un fragmento del array
 // TODO unificar definiciones?
@@ -554,14 +554,12 @@ fn fma_arr
   (x2 : larray et n)
   (#vx2 : erased (lseq et n))
   (#sz_y : erased nat)
-  // (#ly : layout1 sz_y) {| ctlayout ly |}
   (y : larray et sz_y)
   (#vy : erased (lseq et sz_y))
   (k : sz { k + n <= sz_y })
   preserves gpu
   preserves x2 |-> vx2
   requires  y |-> vy
-  // ensures  y |-> seq_to_chest1 (seq_fma x1 vx2 (chest1_to_seq vy) k n)
   ensures  y |-> seq_fma x1 vx2 vy k n
 {
   let mut ix : sz = 0sz;
@@ -574,23 +572,19 @@ fn fma_arr
         (forall (i : natlt sz_y).
           vy' @! i ==
             (if k <= i && i < k + vix
-             then fma x1 (vx2 @! (i - k)) (vy @! i)
+             then fma (vy @! i) x1 (vx2 @! (i - k))
              else vy @! i))
       )
     decreases (n - !ix)
   {
-    let ixv = !ix;
-    // y[k + ix] += x1 * x2[ix]
     open Pulse.Lib.Array;
-    let x2v = x2.(ixv);
-    let yv =  y.(k +^ ixv <: szlt sz_y);
-    y.(k +^ ixv <: szlt sz_y) <- fma x1 x2v yv;
+    // y[k + ix] += x1 * x2[ix]
+    y.(k +^ !ix) <- fma y.(k +^ !ix) x1 x2.(!ix);
     ix := !ix +^ 1sz;
   };
 
   with vy'. assert y |-> vy';
   assert pure (
-    // equal vy' (seq_to_chest1 (seq_fma x1 vx2 (chest1_to_seq vy) k n))
     Seq.equal vy' (seq_fma x1 vx2 vy k n)
   );
 }
@@ -704,7 +698,6 @@ inline_for_extraction noextract
 fn load_vmprod_row
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
   (#n1 : sz { chunk et /? n1 })
-  // (#ly : layout1 n1) {| ctlayout ly |}
   (y : larray et n1)
   (#vy : erased (lseq et n1))
   (x : et)
@@ -721,7 +714,6 @@ fn load_vmprod_row
   requires  pure (aligned_cont_layout (chunk et) clrow)
   requires  pure (fits (j + n1 * step))
   requires  y |-> vy
-  // ensures   y |-> seq_to_chest1 (seq_load_vmprod_row (chest1_to_seq vy) x (chest1_to_seq vrow) j step (n1 / chunk et))
   ensures   y |-> seq_load_vmprod_row vy x (chest1_to_seq vrow) j step (n1 / chunk et)
 {
   let mut k : sz = 0sz;
@@ -732,20 +724,19 @@ fn load_vmprod_row
       y |-> vy' **
       pure (
         vk <= n1 / chunk et /\
-        // Seq.equal (chest1_to_seq vy') (seq_load_vmprod_row (chest1_to_seq vy) x (chest1_to_seq vrow) j step vk)
         Seq.equal vy' (seq_load_vmprod_row vy x (chest1_to_seq vrow) j step vk)
       )
     decreases (n1 /^ chunk et - !k)
   {
     assert pure (fits (j + !k * step * chunk et));
     lemma_divides_vmprod_offset et j !k step;
-
+    assert pure (chunk et /? (j +^ !k *^ step *^ chunk et));
     load_vmprod_chunk
       y x
       row
       (!k *^ chunk et) (j +^ !k *^ step *^ chunk et);
     k := !k +^ 1sz;
-  }
+  };
 }
 
 noextract
