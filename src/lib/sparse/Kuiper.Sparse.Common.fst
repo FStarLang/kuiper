@@ -524,7 +524,7 @@ let sorted_slice
   forall i j. {:pattern (s @! i); (s @! j)} a <= i /\ i < j /\ j < b ==> s @! i < s @! j
 
 
-noextract
+noextract // aca va noextract? no está siempre
 let sorted (s : seq nat) : prop =
   sorted_slice s 0 (len s)
 

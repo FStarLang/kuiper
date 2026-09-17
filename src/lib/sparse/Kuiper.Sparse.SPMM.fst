@@ -1084,6 +1084,7 @@ let barrier_count
   let ri = row_off @! (brow p bid |~> row_perm) in
   let re = row_off @! (brow p bid |~> row_perm) + 1 in
   let ri' = round2 (max (chunk et) (chunk sz)) ri in
+  assert (re >= ri');
   ((re - ri') / p.blockItemsK + 1) * 2
 
 // Defs de algignment
@@ -2101,6 +2102,7 @@ fn kf
   rewrite each (brow p bid |~> row_perm)
   as (SizeT.v (Seq.Base.index (ordering row_perm) (SizeT.v (brow_ p bid))));
 
+  // TODO renombrar y usar modulo calificado
   gpu_matrix_store_tile_vec
     gC m_idx n_idx (Kuiper.Spec.GEMM.matmul eA eB)
     (p.blockItemsX /^ p.blockWidth) out p.blockWidth;

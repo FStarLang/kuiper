@@ -3,6 +3,7 @@ module Kuiper.Sparse
 #lang-pulse
 include Kuiper.Sparse.Common
 include Kuiper.Sparse.Array
+// no usamos array iterator
 // include Kuiper.Sparse.Array.Iterator
 include Kuiper.Sparse.Matrix
 // TODO tal vez no esta bueno incluir estos dos porque puede haber coincidencias de nombres
