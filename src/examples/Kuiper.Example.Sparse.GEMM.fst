@@ -12,7 +12,7 @@ open Kuiper.Seq.Common { op_At_Bang }
 open Kuiper.Tensor.Layout.Alg { l2_row_major }
 
 noextract
-let rec __dprod
+let _sparse_matmul_single
   (#et : Type0) {| scalar et |}
   (#nnz #shared #cols : nat)
   (elems : lseq et nnz)
@@ -20,21 +20,18 @@ let rec __dprod
   (eB : chest2 et shared cols)
   (ri re : nat{ri <= re /\ re <= nnz /\ sorted_slice col_ind ri re})
   (j : natlt cols)
-  (to : nat{ri <= to /\ to <= re})
+  (to : nat {ri <= to /\ to <= re})
   : GTot et
 =
-  if to = ri
-    then zero
-    else (
-      add
-        (__dprod elems col_ind eB ri re j (to - 1))
-        (mul
-          (elems @! (to - 1))
-          (acc2 eB (col_ind @! (to - 1)) j))
-    )
+  let open Kuiper.Sparse.DotProduct in
+  _sparse_dprod
+    (Seq.slice elems ri re <: lseq et (re - ri))
+    (Seq.slice col_ind ri re)
+    (ematrix_col eB j)
+    (to - ri)
 
 noextract
-let dprod
+let sparse_matmul_single
   (#et : Type0) {| scalar et |}
   (#nnz #shared #cols : nat)
   (elems : lseq et nnz)
@@ -44,9 +41,7 @@ let dprod
   (j : natlt cols)
   : GTot et
 =
-  __dprod elems col_ind eB ri re j re
-
-
+  _sparse_matmul_single elems col_ind eB ri re j re
 
 
 let rec matmul_all_zeros_lemma
@@ -68,48 +63,6 @@ let rec matmul_all_zeros_lemma
       matmul_all_zeros_lemma m1 m2 row col from (to - 1)
     )
 
-#push-options "--z3rlimit 40"
-let rec __matmul_dotprod_lemma
-  (#et : Type0) {| scalar et |}
-  (#nnz #rows #shared #cols : nat)
-  (elems : lseq et nnz)
-  (col_ind : lseq nat nnz{in_bounds 0 shared col_ind})
-  (row_off : lseq nat (rows + 1))
-  (eB : chest2 et shared cols)
-  (i : natlt rows)
-  (j : natlt cols)
-  (to : nat{(row_off @! i) <= to /\ to < (row_off @! (i + 1))})
-  : Lemma
-    (requires valid_smatrix rows shared col_ind row_off)
-    (ensures
-      __dprod elems col_ind eB (row_off @! i) (row_off @! (i + 1)) j (to + 1) ==
-      MS.__matmul_single (smatrix_unsparse _ _ elems col_ind row_off) eB i j ((col_ind @! to) + 1)
-    )
-=
-  let eA = smatrix_unsparse rows shared elems col_ind row_off in
-
-  let ri = row_off @! i in
-  let re = row_off @! (i + 1) in
-
-  if to = ri then (
-    MS.matmul_single_lemma eA eB i j ((col_ind @! to) + 1);
-    matmul_all_zeros_lemma eA eB i j 0 (col_ind @! to)
-  ) else (
-    MS.matmul_single_lemma eA eB i j ((col_ind @! to) + 1);
-    smatrix_all_zeros rows shared elems col_ind row_off i to;
-    matmul_all_zeros_lemma eA eB i j ((col_ind @! to - 1) + 1) (col_ind @! to);
-    __matmul_dotprod_lemma elems col_ind row_off eB i j (to - 1);
-    let k = col_ind @! to in
-    let b = mem_slice k col_ind ri re in
-    assert b;
-    let t = index_mem_slice k col_ind ri re in
-    assert (t == to); // strict sortedness of col_ind on [ri,re) => index is unique
-    assert (acc2 eA i k == elems @! to);
-    ()
-  )
-#pop-options
-
-#push-options "--z3rlimit 20"
 let matmul_dotprod_lemma
   (#et : Type0) {| scalar et |}
   (#nnz #rows #shared #cols : nat)
@@ -122,22 +75,26 @@ let matmul_dotprod_lemma
   : Lemma
     (requires valid_smatrix rows shared col_ind row_off)
     (ensures
-      dprod elems col_ind eB (row_off @! i) (row_off @! (i + 1)) j ==
+      sparse_matmul_single elems col_ind eB (row_off @! i) (row_off @! (i + 1)) j ==
       MS.matmul_single (smatrix_unsparse rows shared elems col_ind row_off) eB i j
     )
 =
+  let open Kuiper.Sparse.DotProduct in
+
   let eA = smatrix_unsparse rows shared elems col_ind row_off in
 
   let ri = row_off @! i in
   let re = row_off @! (i + 1) in
 
-  if ri = re
-    then matmul_all_zeros_lemma eA eB i j 0 shared
-    else (
-      __matmul_dotprod_lemma elems col_ind row_off eB i j (re - 1);
-      matmul_all_zeros_lemma eA eB i j ((col_ind @! (re - 1)) + 1) shared
-    )
-#pop-options
+  let relems   : lseq et  (re - ri) = Seq.slice elems   ri re in
+  let rcol_ind : lseq nat (re - ri) = Seq.slice col_ind ri re in
+
+  unsparse_row_lemma rows shared elems col_ind row_off i;
+  assert unsparse (re - ri) shared relems rcol_ind == ematrix_row eA i;
+
+  sparse_dprod_lemma relems rcol_ind (ematrix_col eB j);
+
+  dprod_is_matmul_single eA eB i j
 
 inline_for_extraction noextract
 fn matmul_dotprod
@@ -180,7 +137,7 @@ fn matmul_dotprod
       live k **
       pure (
         ri <= !k /\ !k <= re /\
-        !dp == __dprod v_elems (cast_pos v_ind) eB ri re j !k
+        !dp == _sparse_matmul_single v_elems (cast_pos v_ind) eB ri re j !k
       )
 
     decreases (re - !k)
@@ -216,13 +173,13 @@ let kpre
   (eB : chest2 et shared cols)
   (eC : chest2 et rows cols)
   (fA fB : perm)
-  (bid : natlt (rows * cols))
+  (gid : natlt (rows * cols))
   : slprop
   =
   gA |-> Frac (fA /. (rows * cols)) eA **
   gB |-> Frac (fB /. (rows * cols)) eB **
-  tensor_pts_to_cell gC (idx2 (bid / cols) (bid % cols))
-    (acc2 eC (bid / cols) (bid % cols))
+  tensor_pts_to_cell gC (idx2 (gid / cols) (gid % cols))
+    (acc2 eC (gid / cols) (gid % cols))
 
 unfold
 let kpost
@@ -238,13 +195,13 @@ let kpost
   (eB : chest2 et shared cols)
   (eC : chest2 et rows cols)
   (fA fB : perm)
-  (bid : natlt (rows * cols))
+  (gid : natlt (rows * cols))
   : slprop
   =
   gA |-> Frac (fA /. (rows * cols)) eA **
   gB |-> Frac (fB /. (rows * cols)) eB **
-  tensor_pts_to_cell gC (idx2 (bid / cols) (bid % cols))
-    (MS.gemm_single comb eA eB eC (bid / cols) (bid % cols))
+  tensor_pts_to_cell gC (idx2 (gid / cols) (gid % cols))
+    (MS.gemm_single comb eA eB eC (gid / cols) (gid % cols))
 
 inline_for_extraction noextract
 fn kf
@@ -261,18 +218,18 @@ fn kf
   (#eB : chest2 et shared cols)
   (#eC : chest2 et rows cols)
   (#fA #fB : perm)
-  (bid : szlt (rows * cols))
+  (gid : szlt (rows * cols))
   ()
   norewrite
   preserves
     gpu
   requires
-    kpre comb gA gB gC eA eB eC fA fB bid
+    kpre comb gA gB gC eA eB eC fA fB gid
   ensures
-    kpost comb gA gB gC eA eB eC fA fB bid
+    kpost comb gA gB gC eA eB eC fA fB gid
 {
-  let trow : sz = bid /^ cols; assert (rewrites_to trow (bid /^ cols));
-  let tcol : sz = bid %^ cols; assert (rewrites_to tcol (bid %^ cols));
+  let trow : sz = gid /^ cols; assert (rewrites_to trow (gid /^ cols));
+  let tcol : sz = gid %^ cols; assert (rewrites_to tcol (gid %^ cols));
 
   let s = matmul_dotprod gA gB trow tcol;
   let v0 = tensor_read_cell gC ((trow <: szlt _), ((tcol <: szlt _), ()));
@@ -425,16 +382,16 @@ let kdesc
 
   frame = emp;
 
-  setup    = setup    comb nthr gA gB gC;
-  teardown = teardown comb nthr gA gB gC;
-
   kpre  = kpre  comb gA gB gC eA eB eC fA fB;
   kpost = kpost comb gA gB gC eA eB eC fA fB;
 
   f = kf comb gA gB gC #eA #eB #eC #fA #fB;
 
-  kpre_sendable = magic(); // fixme
-  kpost_sendable = magic(); // fixme
+  setup    = setup    comb nthr gA gB gC;
+  teardown = teardown comb nthr gA gB gC;
+
+  kpre_sendable = solve;
+  kpost_sendable = solve;
 }
 
 inline_for_extraction noextract
@@ -466,7 +423,7 @@ fn mmcomb_gpu
   launch_sync (kdesc comb gA gB gC);
 }
 
-let _gemm_u32_rr (rows shared cols : szp { SZ.fits (rows * cols) /\ SZ.fits (shared * cols) }) =
+let _mm_u32_rr (rows shared cols : szp { SZ.fits (rows * cols) /\ SZ.fits (shared * cols) }) =
   mmcomb_gpu #u32 #_ (fun _ x -> x)
   #rows #shared #cols
   #(l2_row_major _ _) #(l2_row_major _ _)
