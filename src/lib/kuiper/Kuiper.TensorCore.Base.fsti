@@ -59,13 +59,75 @@ let valid_frag_et_comb
   (et_ab == bf16 /\ et_acc == float) \/
   False
 
+(* The C++ template argument list wants type tags, not F* constructors, so
+   each [fragment_kind] and [fragment_layout] gets a nullary external type.
+   A nullary external prints its target verbatim, which is what makes these
+   usable as template arguments. *)
+
+new [@@FStar.Attributes.custard_extern "nvcuda::wmma::matrix_a";
+     FStar.Attributes.custard_c_header "kuiper/tensorcores.h"]
+val ty_matrix_a : Type0
+
+new [@@FStar.Attributes.custard_extern "nvcuda::wmma::matrix_b";
+     FStar.Attributes.custard_c_header "kuiper/tensorcores.h"]
+val ty_matrix_b : Type0
+
+new [@@FStar.Attributes.custard_extern "nvcuda::wmma::accumulator";
+     FStar.Attributes.custard_c_header "kuiper/tensorcores.h"]
+val ty_accumulator : Type0
+
+new [@@FStar.Attributes.custard_extern "nvcuda::wmma::row_major";
+     FStar.Attributes.custard_c_header "kuiper/tensorcores.h"]
+val ty_row_major : Type0
+
+new [@@FStar.Attributes.custard_extern "nvcuda::wmma::col_major";
+     FStar.Attributes.custard_c_header "kuiper/tensorcores.h"]
+val ty_col_major : Type0
+
+(* The accumulator's Layout parameter is defaulted to [void] in the primary
+   template; spelling it explicitly keeps one arity for all three kinds. *)
+new [@@FStar.Attributes.custard_extern "void"]
+val ty_void : Type0
+
+inline_for_extraction noextract
+let use_ty (knd : fragment_kind) : Type0 =
+  match knd with
+  | FragA   -> ty_matrix_a
+  | FragB   -> ty_matrix_b
+  | FragAcc -> ty_accumulator
+
+inline_for_extraction noextract
+let layout_ty (layout : fragment_layout) : Type0 =
+  match layout with
+  | FragLRM  -> ty_row_major
+  | FragLCM  -> ty_col_major
+  | FragLAcc -> ty_void
+
+(* [fragment] keeps Kuiper's binder order; the placeholders reorder into
+   C++'s <Use, m, n, k, T, Layout>. *)
 new
-val fragment
+(* Section 70.  Kuiper's model makes a fragment a *handle*: an element of an
+   [array_fragment] carries its own [pts_to], so copying the handle is right
+   in F*.  In C++ the fragment is an object, so the handle-copy has to be a
+   reference binding or every write to it is lost. *)
+[@@FStar.Attributes.custard_extern "nvcuda::wmma::fragment<{0}, {1}, {2}, {3}, {4}, {5}>";
+   FStar.Attributes.custard_c_reference;
+   FStar.Attributes.custard_c_header "kuiper/tensorcores.h"]
+val wmma_fragment
+  (use : Type0)
+  (m n k : nat)
+  (t : Type0)
+  (l : Type0)
+  : Type0
+
+inline_for_extraction noextract
+let fragment
   (et : Type0)
   (knd : fragment_kind)
   (m n k : nat)
   (layout : fragment_layout)
   : Type0
+= wmma_fragment (use_ty knd) m n k et (layout_ty layout)
 
 let value_for et knd m n k =
   match knd with

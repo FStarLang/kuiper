@@ -19,6 +19,9 @@
 #include <cuda_fp16.h>
 #include <cuda_bf16.h>
 
+#define BF16_MAX      __ushort_as_bfloat16(0x7F7F)
+#define BF16_INFINITY __float2bfloat16(INFINITY)
+
 #define HLF_MIN      __float2half(6.10352e-5f)
 #define HLF_MAX      __float2half(65504.0f)
 #define HLF_INFINITY __float2half(INFINITY)
@@ -156,5 +159,25 @@
 #define kpr_bf16fmax(f, g)      KPR_BF16FALL2(fmaxf,     f, g)
 #define kpr_bf16fmod(f, g)      KPR_BF16FALL2(fmodf,     f, g)
 #define kpr_bf16copysign(f, g)  KPR_BF16FALL2(copysignf, f, g)
+
+/* ---- float conversions ----------------------------------------------
+ *
+ * One wrapper per ordered pair, so that extraction needs only a name.
+ * The compositions go through float, which is what the narrow types'
+ * intrinsics accept; f32<->f64 is an ordinary C conversion.
+ */
+
+#define kpr_cast_f16_to_f32(x)   __half2float(x)
+#define kpr_cast_f16_to_f64(x)   ((double)__half2float(x))
+#define kpr_cast_f32_to_f16(x)   __float2half_rn(x)
+#define kpr_cast_f32_to_f64(x)   ((double)(x))
+#define kpr_cast_bf16_to_f32(x)  __bfloat162float(x)
+#define kpr_cast_f32_to_bf16(x)  __float2bfloat16(x)
+#define kpr_cast_f16_to_bf16(x)  __float2bfloat16(__half2float(x))
+#define kpr_cast_bf16_to_f16(x)  __float2half_rn(__bfloat162float(x))
+#define kpr_cast_bf16_to_f64(x)  ((double)__bfloat162float(x))
+#define kpr_cast_f64_to_bf16(x)  __float2bfloat16((float)(x))
+#define kpr_cast_f64_to_f16(x)   __float2half_rn((float)(x))
+#define kpr_cast_f64_to_f32(x)   ((float)(x))
 
 #endif /* KUIPER_MATH_H */

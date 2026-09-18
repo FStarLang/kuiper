@@ -2,21 +2,14 @@
 
 set -eux
 
-for p in FStar karamel; do
+for p in FStar; do
 	pushd $p
 	if ! git remote | grep -q upstream; then
 		echo "Adding upstream remote"
 		git remote add upstream https://github.com/FStarLang/$p
 	fi
 
-	if [ $p == FStar ]; then
-		br=master
-	elif [ $p == karamel ]; then
-		br=master
-	else
-		echo "ERROR: unknown project '$p'" >&2
-		exit 1
-	fi
+	br=master
 
 	echo "$ git fetch upstream $br"
 	git fetch upstream $br

@@ -1,6 +1,6 @@
 # Kuiper — Agent Instructions
 
-Kuiper is a DSL for programming and verifying safe GPU kernels, built on F\* and Pulse. Code is written in Pulse (a separation-logic language embedded in F\*), verified for properties like data race freedom and functional correctness, then extracted to CUDA via Karamel.
+Kuiper is a DSL for programming and verifying safe GPU kernels, built on F\* and Pulse. Code is written in Pulse (a separation-logic language embedded in F\*), verified for properties like data race freedom and functional correctness, then extracted directly to CUDA by F*'s Custard backend.
 
 For detailed guidance on writing, reviewing, and debugging Kuiper kernel code, see [`.github/agents/kuiper-kernel-expert.agent.md`](.github/agents/kuiper-kernel-expert.agent.md).
 
@@ -10,9 +10,9 @@ For detailed guidance on writing, reviewing, and debugging Kuiper kernel code, s
 
 ## Build & Verify
 
-The project uses Make. Two git submodules (`FStar`, `karamel`) must be initialized first, both on their `gpu` branches.
+The project uses Make. One git submodule (`FStar`) must be initialized first, on its `gpu` branch.
 
-Building F\* and Karamel needs OCaml on the `PATH`. If `ocamlfind`/`dune` are
+Building F\* needs OCaml on the `PATH`. If `ocamlfind`/`dune` are
 missing, set up the opam environment first (non-interactive shells do not
 inherit it):
 
@@ -31,7 +31,7 @@ make -skj32 dist
 ```
 
 ```bash
-# First-time setup: build F* and Karamel, install pinned clang-format
+# First-time setup: build F*, install pinned clang-format
 make prepare
 
 # Full build: verify all modules, extract to CUDA, compile with nvcc (if available)
@@ -59,7 +59,7 @@ make ADMIT=1
 ### Extracting and compiling
 
 ```bash
-make extract-all    # F* → .krml → .cu via Karamel
+make extract-all    # F* → .cu/.h via the Custard backend
 make dist           # copy generated .cu/.h to dist/
 ```
 
@@ -86,8 +86,8 @@ make lint-c         # clang-format test/*.cu and test/*.c.inc files
 ### Pipeline
 
 1. **Verify**: F\*/Pulse source in `src/` is type-checked and verified (`obj/*.checked`)
-2. **Extract**: Verified modules are extracted to KreMLin IR (`obj/*.krml`) using an extraction plugin from `extraction/`
-3. **Compile to CUDA**: KreMLin (Karamel) translates `.krml` → `.cu`/`.h`, post-processed by `scripts/fixup.sed` and the pinned `clang-format`
+2. **Extract**: Verified modules are extracted straight to CUDA (`obj/pre/*.cu`, `*.h`) by F*'s Custard backend, driven by an extraction plugin from `extraction/`
+3. **Format**: The generated code is canonicalized into `obj/` by the pinned `clang-format`
 4. **Build**: `nvcc` compiles the generated CUDA code (`nvcc.mk`)
 
 ### Source layout
@@ -100,17 +100,16 @@ make lint-c         # clang-format test/*.cu and test/*.c.inc files
 - **`src/lib/views/`** — Array views for zero-copy sub-arrays
 - **`src/lib/ghost/`** — Ghost (erased) utilities
 - **`src/examples/`** — Example kernels (simple to complex)
-- **`extraction/`** — OCaml plugin for custom F\*-to-Karamel extraction
+- **`extraction/`** — F*/OCaml plugin supplying Kuiper's Custard extraction rules (`KuiperCustard.fst`)
 - **`include/`** — C/CUDA headers (`kuiper.h`, atomics, vector ops, tensor cores) included in all generated code
 - **`test/`** — CUDA test drivers and `.output.expected` files
 - **`bench/`** — Benchmarking infrastructure
 
 ### Submodules
 
-Both on their `gpu` branches — these are forked/branched versions with GPU-specific extensions:
+On its `gpu` branch — a forked/branched version with GPU-specific extensions:
 
-- `FStar/` — F\* compiler, standard library, and Pulse separation logic framework
-- `karamel/` — KreMLin compiler (F\* → C/CUDA)
+- `FStar/` — F\* compiler, standard library, Pulse separation logic framework, and the Custard extraction backend
 
 ## Key Conventions
 

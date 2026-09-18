@@ -64,10 +64,6 @@ CLANG_FORMAT_VERSION := 19.1.7
 CLANG_FORMAT := $(CURDIR)/inst/bin/clang-format
 CLANG_FORMAT_FLAGS := --Werror --fail-on-incomplete-format \
 	--style=file:$(CURDIR)/.clang-format
-# Karamel starts generated files with multiple blank lines, which clang-format
-# intentionally preserves. Canonical output retains exactly one.
-NORMALIZE_LEADING_BLANKS := awk 'BEGIN { print "" } NF || seen { seen = 1; print }'
-
 $(CLANG_FORMAT): scripts/install-clang-format.sh
 	$(call msg,"INSTALL","clang-format $(CLANG_FORMAT_VERSION)")
 	$(Q)CLANG_FORMAT_VERSION=$(CLANG_FORMAT_VERSION) \
