@@ -48,30 +48,14 @@ let fexpm1 = Kuiper.Float32.Base.fexpm1
 inline_for_extraction noextract
 let flog1p = Kuiper.Float32.Base.flog1p
 
-private noextract
-noeq type cuda_math_real_like = {
-  expm1_refines :
-    x:t -> r:real ->
-    Lemma
-      (requires v_approximates x r)
-      (ensures v_approximates (fexpm1 x) (exp r -. 1.0R));
-  log1p_refines :
-    x:t -> r:real{r >. 0.0R -. 1.0R} ->
-    Lemma
-      (requires v_approximates x r)
-      (ensures v_approximates (flog1p x) (log (1.0R +. r)));
-}
-
-private noextract
-let trusted_cuda_math : cuda_math_real_like = magic()
-
+(* Approximation semantics for these CUDA math operations is assumed. *)
 let expm1_approx
   (x : t)
   (r : real)
   : Lemma
       (requires v_approximates x r)
       (ensures v_approximates (fexpm1 x) (exp r -. 1.0R))
-= trusted_cuda_math.expm1_refines x r
+= admit()
 
 let log1p_approx
   (x : t)
@@ -79,6 +63,6 @@ let log1p_approx
   : Lemma
       (requires v_approximates x r)
       (ensures v_approximates (flog1p x) (log (1.0R +. r)))
-= trusted_cuda_math.log1p_refines x r
+= admit()
 
 let lem_sizeof () = ()
