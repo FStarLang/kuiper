@@ -106,6 +106,10 @@ int main()
         log10f(x32), tol32);
     check_f32("exp2", Kuiper_Example_MathPrimitives_test_exp2_f32(x32),
         exp2f(x32), tol32);
+    check_f32("expm1", Kuiper_Example_MathPrimitives_test_expm1_f32(x32),
+        expm1f(x32), tol32);
+    check_f32("log1p", Kuiper_Example_MathPrimitives_test_log1p_f32(x32),
+        log1pf(x32), tol32);
 
     /* binary */
     check_f32("pow", Kuiper_Example_MathPrimitives_test_pow_f32(x32, y32),

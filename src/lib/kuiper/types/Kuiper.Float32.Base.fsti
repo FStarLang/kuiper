@@ -130,6 +130,8 @@ val fmax_spec : (x : t) -> (y : t) ->
 
 val fexp : t -> t
 val flog : t -> t
+val fexpm1 : t -> t
+val flog1p : t -> t
 val sqrt : t -> t
 val rsqrt : t -> t
 val sin : t -> t
