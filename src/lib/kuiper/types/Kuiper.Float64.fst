@@ -6,6 +6,7 @@ open Kuiper.Canonical
 open Kuiper.Scalars.Base
 open Kuiper.Floating.Base
 open Kuiper.Approximates.Base
+open Kuiper.Real
 
 open Kuiper.Float64.Base
 
@@ -40,5 +41,28 @@ instance is_floating : floating t = {
 (* Approximation semantics is assumed. *)
 instance is_real_like          : real_like t = magic()
 instance is_floating_real_like : floating_real_like t = magic()
+
+inline_for_extraction noextract
+let fexpm1 = Kuiper.Float64.Base.fexpm1
+
+inline_for_extraction noextract
+let flog1p = Kuiper.Float64.Base.flog1p
+
+(* Approximation semantics for these CUDA math operations is assumed. *)
+let expm1_approx
+  (x : t)
+  (r : real)
+  : Lemma
+      (requires v_approximates x r)
+      (ensures v_approximates (fexpm1 x) (exp r -. 1.0R))
+= admit()
+
+let log1p_approx
+  (x : t)
+  (r : real { r >. 0.0R -. 1.0R })
+  : Lemma
+      (requires v_approximates x r)
+      (ensures v_approximates (flog1p x) (log (1.0R +. r)))
+= admit()
 
 let lem_sizeof () = ()
