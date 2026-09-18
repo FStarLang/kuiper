@@ -16,7 +16,7 @@ __global__ static void kuiper_kernel_0(uint32_t m, uint32_t n, uint32_t k,
         uint32_t trow = (rest / n);
         uint32_t tcol = (rest % n);
         uint32_t k1 = 0;
-        float sum = (float) 0;
+        float sum = 0.0f;
         while (k1 < k) {
             uint32_t vk = k1;
             float __anf2 = sum;

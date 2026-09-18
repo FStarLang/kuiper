@@ -83,20 +83,20 @@ let parse_shmem (e:expr) : ML (cty & expr & expr) =
   let zero  = field_at 1 "zero"  sized in
   (zero.ty, sz, len)
 
-let usize : cty = TInt (Unsigned, Sizet)
+let usize : cty = TInt (Unsigned, WSizet)
 let uop (o:op) (a b : expr) : expr =
-  mk (EOp ({ po_op = o; po_ty = Some (PInt (Unsigned, Sizet)) }, [a; b]))
+  mk (EOp ({ po_op = o; po_ty = Some (PInt (Unsigned, WSizet)) }, [a; b]))
      usize E_Pure
 let uconst (n:int) : expr =
-  mk (EConst (CInt (n, Dec, Some (Unsigned, Sizet)))) usize E_Pure
+  mk (EConst (CInt (n, Dec, Some (Unsigned, WSizet)))) usize E_Pure
 
 (* [KPR_SHMEM_AT(off)] is the base of the block's dynamic shared memory plus
    [off] bytes; the cast to the element type is the [ECoerce]. *)
 let shmem_at (off:expr) (elt:cty) : expr =
   let f = mk (EQual ({ ns = ["Kuiper"; "Example"; "ARPort"];
                        id = "kpr_shmem_at"; spec = None }, []))
-             (TArrow (usize, E_Impure, TBuf (TInt (Unsigned, Int8)))) E_Pure in
-  let call = mk (EApp (f, [off])) (TBuf (TInt (Unsigned, Int8))) E_Impure in
+             (TArrow (usize, E_Impure, TBuf (TInt (Unsigned, W8)))) E_Pure in
+  let call = mk (EApp (f, [off])) (TBuf (TInt (Unsigned, W8))) E_Impure in
   mk (ECoerce (call, TBuf elt)) (TBuf elt) E_Impure
 
 (* [c_shmems ds] is a type-level recursion over the descriptor list: one nested
@@ -180,7 +180,7 @@ let launch (tys : list cty) (args : list expr) : ML expr =
        error 368); give it the base pointer's C type. *)
     let bs = List.map (fun (b:binder) ->
                match b.b_ty with
-               | TAny -> { b with b_ty = TBuf (TInt (Unsigned, Int8)) }
+               | TAny -> { b with b_ty = TBuf (TInt (Unsigned, W8)) }
                | _ -> b) bs in
     let bound = List.map (fun (b:binder) -> b.b_name) bs in
     let caps = BU.remove_dups (fun (a, _) (b, _) -> a = b) (fvs bound inner) in
@@ -328,9 +328,9 @@ let gpu_array_alloc (tys : list cty) (args : list expr) : ML expr =
     let f = mk (EQual ({ ns = ["Kuiper"; "Example"; "ARPort"];
                          id = "kpr_gpu_alloc"; spec = None }, []))
                (TArrow (usize, E_Impure,
-                 TArrow (usize, E_Impure, TBuf (TInt (Unsigned, Int8)))))
+                 TArrow (usize, E_Impure, TBuf (TInt (Unsigned, W8)))))
                E_Pure in
-    let call = mk (EApp (f, [sz; len])) (TBuf (TInt (Unsigned, Int8))) E_Impure in
+    let call = mk (EApp (f, [sz; len])) (TBuf (TInt (Unsigned, W8))) E_Impure in
     mk (ECoerce (call, TBuf elt)) (TBuf elt) E_Impure
   | _ -> failwith "KuiperCustard: gpu_array_alloc arity"
 
@@ -338,17 +338,17 @@ let gpu_array_alloc (tys : list cty) (args : list expr) : ML expr =
    [FStar.SizeT.v] and so cannot be extracted (ExtractKuiper.fst:1104). *)
 let sizet_to_u32 (tys : list cty) (args : list expr) : ML expr =
   match args with
-  | [x] -> mk (ECast (x, TInt (Unsigned, Int32))) (TInt (Unsigned, Int32)) E_Pure
+  | [x] -> mk (ECast (x, TInt (Unsigned, W32))) (TInt (Unsigned, W32)) E_Pure
   | _ -> failwith "KuiperCustard: sizet_to_u32 arity"
 
 (* [Kuiper.SizeT.sizet_and] is a bitwise and at size_t width; its F* body goes
    through [FStar.UInt.logand] and a bit vector (ExtractKuiper.fst:1103). *)
-let sizet_ty : cty = TInt (Unsigned, Sizet)
+let sizet_ty : cty = TInt (Unsigned, WSizet)
 
 let sizet_and (tys : list cty) (args : list expr) : ML expr =
   match args with
   | [x; y] ->
-    mk (EOp ({ po_op = BAnd; po_ty = Some (PInt (Unsigned, Sizet)) }, [x; y]))
+    mk (EOp ({ po_op = BAnd; po_ty = Some (PInt (Unsigned, WSizet)) }, [x; y]))
        sizet_ty E_Pure
   | _ -> failwith "KuiperCustard: sizet_and arity"
 
@@ -424,7 +424,7 @@ let sub_at (b:expr) (o:expr) : ML expr =
 
 let bytes_of (sized:expr) (cnt:expr) : ML expr =
   let sz = field_at 0 "size" sized in
-  mk (EOp ({ po_op = Mult; po_ty = Some (PInt (Unsigned, Sizet)) }, [sz; cnt]))
+  mk (EOp ({ po_op = Mult; po_ty = Some (PInt (Unsigned, WSizet)) }, [sz; cnt]))
      sizet_ty E_Pure
 
 (* [dst] and [src] keep their own element types: the copy is by bytes, and

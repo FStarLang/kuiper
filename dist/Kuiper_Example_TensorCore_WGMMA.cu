@@ -15,7 +15,7 @@ inline __device__ void Kuiper_Example_TensorCore_WGMMA_multiply(
     custard_bf16 *a, custard_bf16 *b, float *c)
 {
     kpr_wgmma_fragment fr = (kpr_wgmma_fragment) {0};
-    kpr_wgmma_fill(fr, (float) 0);
+    kpr_wgmma_fill(fr, 0.0f);
     kpr_wgmma_mma_sync(a, b, fr);
     kpr_wgmma_store(fr, (c + 0), ((uint32_t) 8U));
 }

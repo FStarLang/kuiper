@@ -80,7 +80,7 @@ __global__ static void kuiper_kernel_0(uint32_t nn, uint32_t tile, float *gA,
     FStar_Pervasives_Native_tuple2__uintsize_uintsize _letpattern1 =
         (FStar_Pervasives_Native_tuple2__uintsize_uintsize) {
             ._1 = (tid / tile), ._2 = (tid % tile)};
-    float sum = (float) 0;
+    float sum = 0.0f;
     uint32_t bk = 0;
     while (bk < kk) {
         uint32_t __anf0 = bk;
@@ -98,7 +98,7 @@ __global__ static void kuiper_kernel_0(uint32_t nn, uint32_t tile, float *gA,
         sh._2._1[ni3] = v2;
         __syncthreads();
         uint32_t k1 = 0;
-        float sum1 = (float) 0;
+        float sum1 = 0.0f;
         while (k1 < tile) {
             uint32_t vk = k1;
             float __anf2 = sum1;
@@ -143,7 +143,7 @@ __global__ static void kuiper_kernel_1(uint32_t nn, uint32_t tile, double *gA,
     FStar_Pervasives_Native_tuple2__uintsize_uintsize _letpattern1 =
         (FStar_Pervasives_Native_tuple2__uintsize_uintsize) {
             ._1 = (tid / tile), ._2 = (tid % tile)};
-    double sum = (double) 0;
+    double sum = 0.0;
     uint32_t bk = 0;
     while (bk < kk) {
         uint32_t __anf0 = bk;
@@ -161,7 +161,7 @@ __global__ static void kuiper_kernel_1(uint32_t nn, uint32_t tile, double *gA,
         sh._2._1[ni3] = v2;
         __syncthreads();
         uint32_t k1 = 0;
-        double sum1 = (double) 0;
+        double sum1 = 0.0;
         while (k1 < tile) {
             uint32_t vk = k1;
             double __anf2 = sum1;
@@ -333,7 +333,7 @@ __global__ static void kuiper_kernel_4(uint32_t nn, float *gA, float *gB,
     FStar_Pervasives_Native_tuple2__uintsize_uintsize _letpattern1 =
         (FStar_Pervasives_Native_tuple2__uintsize_uintsize) {
             ._1 = (tid / 32), ._2 = (tid % 32)};
-    float sum = (float) 0;
+    float sum = 0.0f;
     uint32_t bk = 0;
     while (bk < kk) {
         uint32_t __anf0 = bk;
@@ -351,7 +351,7 @@ __global__ static void kuiper_kernel_4(uint32_t nn, float *gA, float *gB,
         sh._2._1[ni3] = v2;
         __syncthreads();
         uint32_t k1 = 0;
-        float sum1 = (float) 0;
+        float sum1 = 0.0f;
         while (k1 < 32) {
             uint32_t vk = k1;
             float __anf2 = sum1;
@@ -397,7 +397,7 @@ __global__ static void kuiper_kernel_5(uint32_t nn, double *gA, double *gB,
     FStar_Pervasives_Native_tuple2__uintsize_uintsize _letpattern1 =
         (FStar_Pervasives_Native_tuple2__uintsize_uintsize) {
             ._1 = (tid / 32), ._2 = (tid % 32)};
-    double sum = (double) 0;
+    double sum = 0.0;
     uint32_t bk = 0;
     while (bk < kk) {
         uint32_t __anf0 = bk;
@@ -415,7 +415,7 @@ __global__ static void kuiper_kernel_5(uint32_t nn, double *gA, double *gB,
         sh._2._1[ni3] = v2;
         __syncthreads();
         uint32_t k1 = 0;
-        double sum1 = (double) 0;
+        double sum1 = 0.0;
         while (k1 < 32) {
             uint32_t vk = k1;
             double __anf2 = sum1;
@@ -589,7 +589,7 @@ __global__ static void kuiper_kernel_8(uint32_t nn, float *gA, float *gB,
     FStar_Pervasives_Native_tuple2__uintsize_uintsize _letpattern1 =
         (FStar_Pervasives_Native_tuple2__uintsize_uintsize) {
             ._1 = (tid / 16), ._2 = (tid % 16)};
-    float sum = (float) 0;
+    float sum = 0.0f;
     uint32_t bk = 0;
     while (bk < kk) {
         uint32_t __anf0 = bk;
@@ -607,7 +607,7 @@ __global__ static void kuiper_kernel_8(uint32_t nn, float *gA, float *gB,
         sh._2._1[ni3] = v2;
         __syncthreads();
         uint32_t k1 = 0;
-        float sum1 = (float) 0;
+        float sum1 = 0.0f;
         while (k1 < 16) {
             uint32_t vk = k1;
             float __anf2 = sum1;
@@ -653,7 +653,7 @@ __global__ static void kuiper_kernel_9(uint32_t nn, double *gA, double *gB,
     FStar_Pervasives_Native_tuple2__uintsize_uintsize _letpattern1 =
         (FStar_Pervasives_Native_tuple2__uintsize_uintsize) {
             ._1 = (tid / 16), ._2 = (tid % 16)};
-    double sum = (double) 0;
+    double sum = 0.0;
     uint32_t bk = 0;
     while (bk < kk) {
         uint32_t __anf0 = bk;
@@ -671,7 +671,7 @@ __global__ static void kuiper_kernel_9(uint32_t nn, double *gA, double *gB,
         sh._2._1[ni3] = v2;
         __syncthreads();
         uint32_t k1 = 0;
-        double sum1 = (double) 0;
+        double sum1 = 0.0;
         while (k1 < 16) {
             uint32_t vk = k1;
             double __anf2 = sum1;
@@ -845,7 +845,7 @@ __global__ static void kuiper_kernel_12(uint32_t nn, uint32_t tile, float *gA,
     FStar_Pervasives_Native_tuple2__uintsize_uintsize _letpattern1 =
         (FStar_Pervasives_Native_tuple2__uintsize_uintsize) {
             ._1 = (tid / tile), ._2 = (tid % tile)};
-    float sum = (float) 0;
+    float sum = 0.0f;
     uint32_t bk = 0;
     while (bk < kk) {
         uint32_t __anf0 = bk;
@@ -863,7 +863,7 @@ __global__ static void kuiper_kernel_12(uint32_t nn, uint32_t tile, float *gA,
         sh._2._1[ni3] = v2;
         __syncthreads();
         uint32_t k1 = 0;
-        float sum1 = (float) 0;
+        float sum1 = 0.0f;
         while (k1 < tile) {
             uint32_t vk = k1;
             float __anf2 = sum1;
@@ -912,7 +912,7 @@ __global__ static void kuiper_kernel_13(uint32_t nn, uint32_t tile, double *gA,
     FStar_Pervasives_Native_tuple2__uintsize_uintsize _letpattern1 =
         (FStar_Pervasives_Native_tuple2__uintsize_uintsize) {
             ._1 = (tid / tile), ._2 = (tid % tile)};
-    double sum = (double) 0;
+    double sum = 0.0;
     uint32_t bk = 0;
     while (bk < kk) {
         uint32_t __anf0 = bk;
@@ -930,7 +930,7 @@ __global__ static void kuiper_kernel_13(uint32_t nn, uint32_t tile, double *gA,
         sh._2._1[ni3] = v2;
         __syncthreads();
         uint32_t k1 = 0;
-        double sum1 = (double) 0;
+        double sum1 = 0.0;
         while (k1 < tile) {
             uint32_t vk = k1;
             double __anf2 = sum1;
@@ -1113,7 +1113,7 @@ __global__ static void kuiper_kernel_16(uint32_t nn, float *gA, float *gB,
     FStar_Pervasives_Native_tuple2__uintsize_uintsize _letpattern1 =
         (FStar_Pervasives_Native_tuple2__uintsize_uintsize) {
             ._1 = (tid / 32), ._2 = (tid % 32)};
-    float sum = (float) 0;
+    float sum = 0.0f;
     uint32_t bk = 0;
     while (bk < kk) {
         uint32_t __anf0 = bk;
@@ -1131,7 +1131,7 @@ __global__ static void kuiper_kernel_16(uint32_t nn, float *gA, float *gB,
         sh._2._1[ni3] = v2;
         __syncthreads();
         uint32_t k1 = 0;
-        float sum1 = (float) 0;
+        float sum1 = 0.0f;
         while (k1 < 32) {
             uint32_t vk = k1;
             float __anf2 = sum1;
@@ -1180,7 +1180,7 @@ __global__ static void kuiper_kernel_17(uint32_t nn, double *gA, double *gB,
     FStar_Pervasives_Native_tuple2__uintsize_uintsize _letpattern1 =
         (FStar_Pervasives_Native_tuple2__uintsize_uintsize) {
             ._1 = (tid / 32), ._2 = (tid % 32)};
-    double sum = (double) 0;
+    double sum = 0.0;
     uint32_t bk = 0;
     while (bk < kk) {
         uint32_t __anf0 = bk;
@@ -1198,7 +1198,7 @@ __global__ static void kuiper_kernel_17(uint32_t nn, double *gA, double *gB,
         sh._2._1[ni3] = v2;
         __syncthreads();
         uint32_t k1 = 0;
-        double sum1 = (double) 0;
+        double sum1 = 0.0;
         while (k1 < 32) {
             uint32_t vk = k1;
             double __anf2 = sum1;
@@ -1383,7 +1383,7 @@ __global__ static void kuiper_kernel_20(uint32_t nn, float *gA, float *gB,
     FStar_Pervasives_Native_tuple2__uintsize_uintsize _letpattern1 =
         (FStar_Pervasives_Native_tuple2__uintsize_uintsize) {
             ._1 = (tid / 16), ._2 = (tid % 16)};
-    float sum = (float) 0;
+    float sum = 0.0f;
     uint32_t bk = 0;
     while (bk < kk) {
         uint32_t __anf0 = bk;
@@ -1401,7 +1401,7 @@ __global__ static void kuiper_kernel_20(uint32_t nn, float *gA, float *gB,
         sh._2._1[ni3] = v2;
         __syncthreads();
         uint32_t k1 = 0;
-        float sum1 = (float) 0;
+        float sum1 = 0.0f;
         while (k1 < 16) {
             uint32_t vk = k1;
             float __anf2 = sum1;
@@ -1450,7 +1450,7 @@ __global__ static void kuiper_kernel_21(uint32_t nn, double *gA, double *gB,
     FStar_Pervasives_Native_tuple2__uintsize_uintsize _letpattern1 =
         (FStar_Pervasives_Native_tuple2__uintsize_uintsize) {
             ._1 = (tid / 16), ._2 = (tid % 16)};
-    double sum = (double) 0;
+    double sum = 0.0;
     uint32_t bk = 0;
     while (bk < kk) {
         uint32_t __anf0 = bk;
@@ -1468,7 +1468,7 @@ __global__ static void kuiper_kernel_21(uint32_t nn, double *gA, double *gB,
         sh._2._1[ni3] = v2;
         __syncthreads();
         uint32_t k1 = 0;
-        double sum1 = (double) 0;
+        double sum1 = 0.0;
         while (k1 < 16) {
             uint32_t vk = k1;
             double __anf2 = sum1;

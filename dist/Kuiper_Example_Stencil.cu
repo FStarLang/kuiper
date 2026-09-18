@@ -32,13 +32,12 @@ __global__ static void kuiper_kernel_0(
     uint32_t ni8 = (((i + 2) * (cols_sub2 + 2)) + (j + 2));
     float br = gIn[ni8];
     float sv =
-        (((((((((tl * (float) 1) + (tm * (float) 1)) + (tr * (float) 1)) +
-                 (ml * (float) 1)) +
-                (mm * (float) 1)) +
-               (mr * (float) 1)) +
-              (bl * (float) 1)) +
-             (bm * (float) 1)) +
-            (br * (float) 1));
+        (((((((((tl * 1.0f) + (tm * 1.0f)) + (tr * 1.0f)) + (ml * 1.0f)) +
+                (mm * 1.0f)) +
+               (mr * 1.0f)) +
+              (bl * 1.0f)) +
+             (bm * 1.0f)) +
+            (br * 1.0f));
     uint32_t ni9 = ((i * cols_sub2) + j);
     gOut[ni9] = sv;
 }

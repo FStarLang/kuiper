@@ -13,8 +13,8 @@ __global__ static void kuiper_kernel_0(uint32_t len, float *a, float *b)
     uint32_t gid = ((1024 * bid) + tid);
     if (gid < len) {
         uint32_t i = 0;
-        float sum = (float) 0;
-        float max = ((float) 0 - INFINITY);
+        float sum = 0.0f;
+        float max = (0.0f - INFINITY);
         while (i < len) {
             uint32_t vk = i;
             float x = a[vk];

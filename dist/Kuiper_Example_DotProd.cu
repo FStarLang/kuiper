@@ -9,7 +9,7 @@ float Kuiper_Example_DotProd_matmul_dotprod_via_slice_f32(uint32_t m,
 {
     (void) m;
     uint32_t k1 = 0;
-    float sum = (float) 0;
+    float sum = 0.0f;
     while (k1 < k) {
         uint32_t vk = k1;
         float __anf2 = sum;

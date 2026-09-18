@@ -380,10 +380,12 @@ __global__ static void kuiper_kernel_0(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float rchProd[64];
-    for (size_t _ci1 = 0; _ci1 < (size_t) 64; _ci1++) {
-        rchProd[_ci1] = (float) 0;
-    }
+    float rchProd[64] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 32);
     uint32_t mrow = (rest / num_n_tiles);
@@ -398,10 +400,7 @@ __global__ static void kuiper_kernel_0(float *gA, float *gB, uint32_t k,
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            float local[4];
-            for (size_t _ci4 = 0; _ci4 < (size_t) 4; _ci4++) {
-                local[_ci4] = (float) 0;
-            }
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -430,10 +429,7 @@ __global__ static void kuiper_kernel_0(float *gA, float *gB, uint32_t k,
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            float local_1[4];
-            for (size_t _ci7 = 0; _ci7 < (size_t) 4; _ci7++) {
-                local_1[_ci7] = (float) 0;
-            }
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 32);
             uint32_t __anf03_1 = i1;
@@ -460,14 +456,8 @@ __global__ static void kuiper_kernel_0(float *gA, float *gB, uint32_t k,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            float rAcol[8];
-            for (size_t _ci10 = 0; _ci10 < (size_t) 8; _ci10++) {
-                rAcol[_ci10] = (float) 0;
-            }
-            float rBrow[8];
-            for (size_t _ci11 = 0; _ci11 < (size_t) 8; _ci11++) {
-                rBrow[_ci11] = (float) 0;
-            }
+            float rAcol[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -748,7 +738,7 @@ __global__ static void kuiper_kernel_2(float *gA, float *gB, uint32_t k,
     uint32_t rest = (bid / 1);
     float rchProd[128];
     for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
-        rchProd[_ci1] = (float) 0;
+        rchProd[_ci1] = 0.0f;
     }
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 32);
@@ -764,10 +754,7 @@ __global__ static void kuiper_kernel_2(float *gA, float *gB, uint32_t k,
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            float local[4];
-            for (size_t _ci4 = 0; _ci4 < (size_t) 4; _ci4++) {
-                local[_ci4] = (float) 0;
-            }
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -796,10 +783,7 @@ __global__ static void kuiper_kernel_2(float *gA, float *gB, uint32_t k,
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            float local_1[4];
-            for (size_t _ci7 = 0; _ci7 < (size_t) 4; _ci7++) {
-                local_1[_ci7] = (float) 0;
-            }
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 32);
             uint32_t __anf03_1 = i1;
@@ -826,14 +810,9 @@ __global__ static void kuiper_kernel_2(float *gA, float *gB, uint32_t k,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            float rAcol[8];
-            for (size_t _ci10 = 0; _ci10 < (size_t) 8; _ci10++) {
-                rAcol[_ci10] = (float) 0;
-            }
-            float rBrow[16];
-            for (size_t _ci11 = 0; _ci11 < (size_t) 16; _ci11++) {
-                rBrow[_ci11] = (float) 0;
-            }
+            float rAcol[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -1101,7 +1080,7 @@ __global__ static void kuiper_kernel_4(float *gA, float *gB, uint32_t k,
     uint32_t rest = (bid / 1);
     float rchProd[128];
     for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
-        rchProd[_ci1] = (float) 0;
+        rchProd[_ci1] = 0.0f;
     }
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 32);
@@ -1117,10 +1096,7 @@ __global__ static void kuiper_kernel_4(float *gA, float *gB, uint32_t k,
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            float local[4];
-            for (size_t _ci4 = 0; _ci4 < (size_t) 4; _ci4++) {
-                local[_ci4] = (float) 0;
-            }
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -1149,10 +1125,7 @@ __global__ static void kuiper_kernel_4(float *gA, float *gB, uint32_t k,
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            float local_1[4];
-            for (size_t _ci7 = 0; _ci7 < (size_t) 4; _ci7++) {
-                local_1[_ci7] = (float) 0;
-            }
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 32);
             uint32_t __anf03_1 = i1;
@@ -1179,14 +1152,9 @@ __global__ static void kuiper_kernel_4(float *gA, float *gB, uint32_t k,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            float rAcol[16];
-            for (size_t _ci10 = 0; _ci10 < (size_t) 16; _ci10++) {
-                rAcol[_ci10] = (float) 0;
-            }
-            float rBrow[8];
-            for (size_t _ci11 = 0; _ci11 < (size_t) 8; _ci11++) {
-                rBrow[_ci11] = (float) 0;
-            }
+            float rAcol[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -1454,7 +1422,7 @@ __global__ static void kuiper_kernel_6(float *gA, float *gB, uint32_t k,
     uint32_t rest = (bid / 1);
     float rchProd[256];
     for (size_t _ci1 = 0; _ci1 < (size_t) 256; _ci1++) {
-        rchProd[_ci1] = (float) 0;
+        rchProd[_ci1] = 0.0f;
     }
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 32);
@@ -1470,10 +1438,7 @@ __global__ static void kuiper_kernel_6(float *gA, float *gB, uint32_t k,
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            float local[4];
-            for (size_t _ci4 = 0; _ci4 < (size_t) 4; _ci4++) {
-                local[_ci4] = (float) 0;
-            }
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -1502,10 +1467,7 @@ __global__ static void kuiper_kernel_6(float *gA, float *gB, uint32_t k,
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            float local_1[4];
-            for (size_t _ci7 = 0; _ci7 < (size_t) 4; _ci7++) {
-                local_1[_ci7] = (float) 0;
-            }
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 32);
             uint32_t __anf03_1 = i1;
@@ -1532,14 +1494,10 @@ __global__ static void kuiper_kernel_6(float *gA, float *gB, uint32_t k,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            float rAcol[16];
-            for (size_t _ci10 = 0; _ci10 < (size_t) 16; _ci10++) {
-                rAcol[_ci10] = (float) 0;
-            }
-            float rBrow[16];
-            for (size_t _ci11 = 0; _ci11 < (size_t) 16; _ci11++) {
-                rBrow[_ci11] = (float) 0;
-            }
+            float rAcol[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -1810,10 +1768,12 @@ __global__ static void kuiper_kernel_8(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float rchProd[64];
-    for (size_t _ci1 = 0; _ci1 < (size_t) 64; _ci1++) {
-        rchProd[_ci1] = (float) 0;
-    }
+    float rchProd[64] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 32);
     uint32_t mrow = (rest / num_n_tiles);
@@ -1828,10 +1788,7 @@ __global__ static void kuiper_kernel_8(float *gA, float *gB, uint32_t k,
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            float local[4];
-            for (size_t _ci4 = 0; _ci4 < (size_t) 4; _ci4++) {
-                local[_ci4] = (float) 0;
-            }
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -1860,10 +1817,7 @@ __global__ static void kuiper_kernel_8(float *gA, float *gB, uint32_t k,
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            float local_1[4];
-            for (size_t _ci7 = 0; _ci7 < (size_t) 4; _ci7++) {
-                local_1[_ci7] = (float) 0;
-            }
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 32);
             uint32_t __anf03_1 = i1;
@@ -1890,14 +1844,8 @@ __global__ static void kuiper_kernel_8(float *gA, float *gB, uint32_t k,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            float rAcol[8];
-            for (size_t _ci10 = 0; _ci10 < (size_t) 8; _ci10++) {
-                rAcol[_ci10] = (float) 0;
-            }
-            float rBrow[8];
-            for (size_t _ci11 = 0; _ci11 < (size_t) 8; _ci11++) {
-                rBrow[_ci11] = (float) 0;
-            }
+            float rAcol[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -2178,7 +2126,7 @@ __global__ static void kuiper_kernel_10(float *gA, float *gB, uint32_t k,
     uint32_t rest = (bid / 1);
     float rchProd[128];
     for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
-        rchProd[_ci1] = (float) 0;
+        rchProd[_ci1] = 0.0f;
     }
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 32);
@@ -2194,10 +2142,7 @@ __global__ static void kuiper_kernel_10(float *gA, float *gB, uint32_t k,
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            float local[4];
-            for (size_t _ci4 = 0; _ci4 < (size_t) 4; _ci4++) {
-                local[_ci4] = (float) 0;
-            }
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -2226,10 +2171,7 @@ __global__ static void kuiper_kernel_10(float *gA, float *gB, uint32_t k,
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            float local_1[4];
-            for (size_t _ci7 = 0; _ci7 < (size_t) 4; _ci7++) {
-                local_1[_ci7] = (float) 0;
-            }
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 32);
             uint32_t __anf03_1 = i1;
@@ -2256,14 +2198,9 @@ __global__ static void kuiper_kernel_10(float *gA, float *gB, uint32_t k,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            float rAcol[8];
-            for (size_t _ci10 = 0; _ci10 < (size_t) 8; _ci10++) {
-                rAcol[_ci10] = (float) 0;
-            }
-            float rBrow[16];
-            for (size_t _ci11 = 0; _ci11 < (size_t) 16; _ci11++) {
-                rBrow[_ci11] = (float) 0;
-            }
+            float rAcol[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -2531,7 +2468,7 @@ __global__ static void kuiper_kernel_12(float *gA, float *gB, uint32_t k,
     uint32_t rest = (bid / 1);
     float rchProd[128];
     for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
-        rchProd[_ci1] = (float) 0;
+        rchProd[_ci1] = 0.0f;
     }
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 32);
@@ -2547,10 +2484,7 @@ __global__ static void kuiper_kernel_12(float *gA, float *gB, uint32_t k,
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            float local[4];
-            for (size_t _ci4 = 0; _ci4 < (size_t) 4; _ci4++) {
-                local[_ci4] = (float) 0;
-            }
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -2579,10 +2513,7 @@ __global__ static void kuiper_kernel_12(float *gA, float *gB, uint32_t k,
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            float local_1[4];
-            for (size_t _ci7 = 0; _ci7 < (size_t) 4; _ci7++) {
-                local_1[_ci7] = (float) 0;
-            }
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 32);
             uint32_t __anf03_1 = i1;
@@ -2609,14 +2540,9 @@ __global__ static void kuiper_kernel_12(float *gA, float *gB, uint32_t k,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            float rAcol[16];
-            for (size_t _ci10 = 0; _ci10 < (size_t) 16; _ci10++) {
-                rAcol[_ci10] = (float) 0;
-            }
-            float rBrow[8];
-            for (size_t _ci11 = 0; _ci11 < (size_t) 8; _ci11++) {
-                rBrow[_ci11] = (float) 0;
-            }
+            float rAcol[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -2884,7 +2810,7 @@ __global__ static void kuiper_kernel_14(float *gA, float *gB, uint32_t k,
     uint32_t rest = (bid / 1);
     float rchProd[256];
     for (size_t _ci1 = 0; _ci1 < (size_t) 256; _ci1++) {
-        rchProd[_ci1] = (float) 0;
+        rchProd[_ci1] = 0.0f;
     }
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 32);
@@ -2900,10 +2826,7 @@ __global__ static void kuiper_kernel_14(float *gA, float *gB, uint32_t k,
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            float local[4];
-            for (size_t _ci4 = 0; _ci4 < (size_t) 4; _ci4++) {
-                local[_ci4] = (float) 0;
-            }
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -2932,10 +2855,7 @@ __global__ static void kuiper_kernel_14(float *gA, float *gB, uint32_t k,
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            float local_1[4];
-            for (size_t _ci7 = 0; _ci7 < (size_t) 4; _ci7++) {
-                local_1[_ci7] = (float) 0;
-            }
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 32);
             uint32_t __anf03_1 = i1;
@@ -2962,14 +2882,10 @@ __global__ static void kuiper_kernel_14(float *gA, float *gB, uint32_t k,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            float rAcol[16];
-            for (size_t _ci10 = 0; _ci10 < (size_t) 16; _ci10++) {
-                rAcol[_ci10] = (float) 0;
-            }
-            float rBrow[16];
-            for (size_t _ci11 = 0; _ci11 < (size_t) 16; _ci11++) {
-                rBrow[_ci11] = (float) 0;
-            }
+            float rAcol[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -3240,10 +3156,12 @@ __global__ static void kuiper_kernel_16(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float rchProd[64];
-    for (size_t _ci1 = 0; _ci1 < (size_t) 64; _ci1++) {
-        rchProd[_ci1] = (float) 0;
-    }
+    float rchProd[64] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 64);
     uint32_t mrow = (rest / num_n_tiles);
@@ -3258,10 +3176,7 @@ __global__ static void kuiper_kernel_16(float *gA, float *gB, uint32_t k,
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            float local[4];
-            for (size_t _ci4 = 0; _ci4 < (size_t) 4; _ci4++) {
-                local[_ci4] = (float) 0;
-            }
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -3290,10 +3205,7 @@ __global__ static void kuiper_kernel_16(float *gA, float *gB, uint32_t k,
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            float local_1[4];
-            for (size_t _ci7 = 0; _ci7 < (size_t) 4; _ci7++) {
-                local_1[_ci7] = (float) 0;
-            }
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 64);
             uint32_t __anf03_1 = i1;
@@ -3320,14 +3232,8 @@ __global__ static void kuiper_kernel_16(float *gA, float *gB, uint32_t k,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            float rAcol[8];
-            for (size_t _ci10 = 0; _ci10 < (size_t) 8; _ci10++) {
-                rAcol[_ci10] = (float) 0;
-            }
-            float rBrow[8];
-            for (size_t _ci11 = 0; _ci11 < (size_t) 8; _ci11++) {
-                rBrow[_ci11] = (float) 0;
-            }
+            float rAcol[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -3608,7 +3514,7 @@ __global__ static void kuiper_kernel_18(float *gA, float *gB, uint32_t k,
     uint32_t rest = (bid / 1);
     float rchProd[128];
     for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
-        rchProd[_ci1] = (float) 0;
+        rchProd[_ci1] = 0.0f;
     }
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 64);
@@ -3624,10 +3530,7 @@ __global__ static void kuiper_kernel_18(float *gA, float *gB, uint32_t k,
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            float local[4];
-            for (size_t _ci4 = 0; _ci4 < (size_t) 4; _ci4++) {
-                local[_ci4] = (float) 0;
-            }
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -3656,10 +3559,7 @@ __global__ static void kuiper_kernel_18(float *gA, float *gB, uint32_t k,
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            float local_1[4];
-            for (size_t _ci7 = 0; _ci7 < (size_t) 4; _ci7++) {
-                local_1[_ci7] = (float) 0;
-            }
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 64);
             uint32_t __anf03_1 = i1;
@@ -3686,14 +3586,9 @@ __global__ static void kuiper_kernel_18(float *gA, float *gB, uint32_t k,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            float rAcol[8];
-            for (size_t _ci10 = 0; _ci10 < (size_t) 8; _ci10++) {
-                rAcol[_ci10] = (float) 0;
-            }
-            float rBrow[16];
-            for (size_t _ci11 = 0; _ci11 < (size_t) 16; _ci11++) {
-                rBrow[_ci11] = (float) 0;
-            }
+            float rAcol[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -3961,7 +3856,7 @@ __global__ static void kuiper_kernel_20(float *gA, float *gB, uint32_t k,
     uint32_t rest = (bid / 1);
     float rchProd[128];
     for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
-        rchProd[_ci1] = (float) 0;
+        rchProd[_ci1] = 0.0f;
     }
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 64);
@@ -3977,10 +3872,7 @@ __global__ static void kuiper_kernel_20(float *gA, float *gB, uint32_t k,
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            float local[4];
-            for (size_t _ci4 = 0; _ci4 < (size_t) 4; _ci4++) {
-                local[_ci4] = (float) 0;
-            }
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -4009,10 +3901,7 @@ __global__ static void kuiper_kernel_20(float *gA, float *gB, uint32_t k,
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            float local_1[4];
-            for (size_t _ci7 = 0; _ci7 < (size_t) 4; _ci7++) {
-                local_1[_ci7] = (float) 0;
-            }
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 64);
             uint32_t __anf03_1 = i1;
@@ -4039,14 +3928,9 @@ __global__ static void kuiper_kernel_20(float *gA, float *gB, uint32_t k,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            float rAcol[16];
-            for (size_t _ci10 = 0; _ci10 < (size_t) 16; _ci10++) {
-                rAcol[_ci10] = (float) 0;
-            }
-            float rBrow[8];
-            for (size_t _ci11 = 0; _ci11 < (size_t) 8; _ci11++) {
-                rBrow[_ci11] = (float) 0;
-            }
+            float rAcol[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -4314,7 +4198,7 @@ __global__ static void kuiper_kernel_22(float *gA, float *gB, uint32_t k,
     uint32_t rest = (bid / 1);
     float rchProd[256];
     for (size_t _ci1 = 0; _ci1 < (size_t) 256; _ci1++) {
-        rchProd[_ci1] = (float) 0;
+        rchProd[_ci1] = 0.0f;
     }
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 64);
@@ -4330,10 +4214,7 @@ __global__ static void kuiper_kernel_22(float *gA, float *gB, uint32_t k,
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            float local[4];
-            for (size_t _ci4 = 0; _ci4 < (size_t) 4; _ci4++) {
-                local[_ci4] = (float) 0;
-            }
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -4362,10 +4243,7 @@ __global__ static void kuiper_kernel_22(float *gA, float *gB, uint32_t k,
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            float local_1[4];
-            for (size_t _ci7 = 0; _ci7 < (size_t) 4; _ci7++) {
-                local_1[_ci7] = (float) 0;
-            }
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 64);
             uint32_t __anf03_1 = i1;
@@ -4392,14 +4270,10 @@ __global__ static void kuiper_kernel_22(float *gA, float *gB, uint32_t k,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            float rAcol[16];
-            for (size_t _ci10 = 0; _ci10 < (size_t) 16; _ci10++) {
-                rAcol[_ci10] = (float) 0;
-            }
-            float rBrow[16];
-            for (size_t _ci11 = 0; _ci11 < (size_t) 16; _ci11++) {
-                rBrow[_ci11] = (float) 0;
-            }
+            float rAcol[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -4670,10 +4544,12 @@ __global__ static void kuiper_kernel_24(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float rchProd[64];
-    for (size_t _ci1 = 0; _ci1 < (size_t) 64; _ci1++) {
-        rchProd[_ci1] = (float) 0;
-    }
+    float rchProd[64] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 64);
     uint32_t mrow = (rest / num_n_tiles);
@@ -4688,10 +4564,7 @@ __global__ static void kuiper_kernel_24(float *gA, float *gB, uint32_t k,
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            float local[4];
-            for (size_t _ci4 = 0; _ci4 < (size_t) 4; _ci4++) {
-                local[_ci4] = (float) 0;
-            }
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -4720,10 +4593,7 @@ __global__ static void kuiper_kernel_24(float *gA, float *gB, uint32_t k,
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            float local_1[4];
-            for (size_t _ci7 = 0; _ci7 < (size_t) 4; _ci7++) {
-                local_1[_ci7] = (float) 0;
-            }
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 64);
             uint32_t __anf03_1 = i1;
@@ -4750,14 +4620,8 @@ __global__ static void kuiper_kernel_24(float *gA, float *gB, uint32_t k,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            float rAcol[8];
-            for (size_t _ci10 = 0; _ci10 < (size_t) 8; _ci10++) {
-                rAcol[_ci10] = (float) 0;
-            }
-            float rBrow[8];
-            for (size_t _ci11 = 0; _ci11 < (size_t) 8; _ci11++) {
-                rBrow[_ci11] = (float) 0;
-            }
+            float rAcol[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -5038,7 +4902,7 @@ __global__ static void kuiper_kernel_26(float *gA, float *gB, uint32_t k,
     uint32_t rest = (bid / 1);
     float rchProd[128];
     for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
-        rchProd[_ci1] = (float) 0;
+        rchProd[_ci1] = 0.0f;
     }
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 64);
@@ -5054,10 +4918,7 @@ __global__ static void kuiper_kernel_26(float *gA, float *gB, uint32_t k,
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            float local[4];
-            for (size_t _ci4 = 0; _ci4 < (size_t) 4; _ci4++) {
-                local[_ci4] = (float) 0;
-            }
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -5086,10 +4947,7 @@ __global__ static void kuiper_kernel_26(float *gA, float *gB, uint32_t k,
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            float local_1[4];
-            for (size_t _ci7 = 0; _ci7 < (size_t) 4; _ci7++) {
-                local_1[_ci7] = (float) 0;
-            }
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 64);
             uint32_t __anf03_1 = i1;
@@ -5116,14 +4974,9 @@ __global__ static void kuiper_kernel_26(float *gA, float *gB, uint32_t k,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            float rAcol[8];
-            for (size_t _ci10 = 0; _ci10 < (size_t) 8; _ci10++) {
-                rAcol[_ci10] = (float) 0;
-            }
-            float rBrow[16];
-            for (size_t _ci11 = 0; _ci11 < (size_t) 16; _ci11++) {
-                rBrow[_ci11] = (float) 0;
-            }
+            float rAcol[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -5391,7 +5244,7 @@ __global__ static void kuiper_kernel_28(float *gA, float *gB, uint32_t k,
     uint32_t rest = (bid / 1);
     float rchProd[128];
     for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
-        rchProd[_ci1] = (float) 0;
+        rchProd[_ci1] = 0.0f;
     }
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 64);
@@ -5407,10 +5260,7 @@ __global__ static void kuiper_kernel_28(float *gA, float *gB, uint32_t k,
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            float local[4];
-            for (size_t _ci4 = 0; _ci4 < (size_t) 4; _ci4++) {
-                local[_ci4] = (float) 0;
-            }
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -5439,10 +5289,7 @@ __global__ static void kuiper_kernel_28(float *gA, float *gB, uint32_t k,
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            float local_1[4];
-            for (size_t _ci7 = 0; _ci7 < (size_t) 4; _ci7++) {
-                local_1[_ci7] = (float) 0;
-            }
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 64);
             uint32_t __anf03_1 = i1;
@@ -5469,14 +5316,9 @@ __global__ static void kuiper_kernel_28(float *gA, float *gB, uint32_t k,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            float rAcol[16];
-            for (size_t _ci10 = 0; _ci10 < (size_t) 16; _ci10++) {
-                rAcol[_ci10] = (float) 0;
-            }
-            float rBrow[8];
-            for (size_t _ci11 = 0; _ci11 < (size_t) 8; _ci11++) {
-                rBrow[_ci11] = (float) 0;
-            }
+            float rAcol[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -5744,7 +5586,7 @@ __global__ static void kuiper_kernel_30(float *gA, float *gB, uint32_t k,
     uint32_t rest = (bid / 1);
     float rchProd[256];
     for (size_t _ci1 = 0; _ci1 < (size_t) 256; _ci1++) {
-        rchProd[_ci1] = (float) 0;
+        rchProd[_ci1] = 0.0f;
     }
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 64);
@@ -5760,10 +5602,7 @@ __global__ static void kuiper_kernel_30(float *gA, float *gB, uint32_t k,
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            float local[4];
-            for (size_t _ci4 = 0; _ci4 < (size_t) 4; _ci4++) {
-                local[_ci4] = (float) 0;
-            }
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -5792,10 +5631,7 @@ __global__ static void kuiper_kernel_30(float *gA, float *gB, uint32_t k,
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            float local_1[4];
-            for (size_t _ci7 = 0; _ci7 < (size_t) 4; _ci7++) {
-                local_1[_ci7] = (float) 0;
-            }
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 64);
             uint32_t __anf03_1 = i1;
@@ -5822,14 +5658,10 @@ __global__ static void kuiper_kernel_30(float *gA, float *gB, uint32_t k,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            float rAcol[16];
-            for (size_t _ci10 = 0; _ci10 < (size_t) 16; _ci10++) {
-                rAcol[_ci10] = (float) 0;
-            }
-            float rBrow[16];
-            for (size_t _ci11 = 0; _ci11 < (size_t) 16; _ci11++) {
-                rBrow[_ci11] = (float) 0;
-            }
+            float rAcol[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -6100,10 +5932,12 @@ __global__ static void kuiper_kernel_32(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float rchProd[64];
-    for (size_t _ci1 = 0; _ci1 < (size_t) 64; _ci1++) {
-        rchProd[_ci1] = (float) 0;
-    }
+    float rchProd[64] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 128);
     uint32_t mrow = (rest / num_n_tiles);
@@ -6118,10 +5952,7 @@ __global__ static void kuiper_kernel_32(float *gA, float *gB, uint32_t k,
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            float local[4];
-            for (size_t _ci4 = 0; _ci4 < (size_t) 4; _ci4++) {
-                local[_ci4] = (float) 0;
-            }
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -6150,10 +5981,7 @@ __global__ static void kuiper_kernel_32(float *gA, float *gB, uint32_t k,
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            float local_1[4];
-            for (size_t _ci7 = 0; _ci7 < (size_t) 4; _ci7++) {
-                local_1[_ci7] = (float) 0;
-            }
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 128);
             uint32_t __anf03_1 = i1;
@@ -6180,14 +6008,8 @@ __global__ static void kuiper_kernel_32(float *gA, float *gB, uint32_t k,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            float rAcol[8];
-            for (size_t _ci10 = 0; _ci10 < (size_t) 8; _ci10++) {
-                rAcol[_ci10] = (float) 0;
-            }
-            float rBrow[8];
-            for (size_t _ci11 = 0; _ci11 < (size_t) 8; _ci11++) {
-                rBrow[_ci11] = (float) 0;
-            }
+            float rAcol[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -6468,7 +6290,7 @@ __global__ static void kuiper_kernel_34(float *gA, float *gB, uint32_t k,
     uint32_t rest = (bid / 1);
     float rchProd[128];
     for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
-        rchProd[_ci1] = (float) 0;
+        rchProd[_ci1] = 0.0f;
     }
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 128);
@@ -6484,10 +6306,7 @@ __global__ static void kuiper_kernel_34(float *gA, float *gB, uint32_t k,
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            float local[4];
-            for (size_t _ci4 = 0; _ci4 < (size_t) 4; _ci4++) {
-                local[_ci4] = (float) 0;
-            }
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -6516,10 +6335,7 @@ __global__ static void kuiper_kernel_34(float *gA, float *gB, uint32_t k,
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            float local_1[4];
-            for (size_t _ci7 = 0; _ci7 < (size_t) 4; _ci7++) {
-                local_1[_ci7] = (float) 0;
-            }
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 128);
             uint32_t __anf03_1 = i1;
@@ -6546,14 +6362,9 @@ __global__ static void kuiper_kernel_34(float *gA, float *gB, uint32_t k,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            float rAcol[8];
-            for (size_t _ci10 = 0; _ci10 < (size_t) 8; _ci10++) {
-                rAcol[_ci10] = (float) 0;
-            }
-            float rBrow[16];
-            for (size_t _ci11 = 0; _ci11 < (size_t) 16; _ci11++) {
-                rBrow[_ci11] = (float) 0;
-            }
+            float rAcol[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -6821,7 +6632,7 @@ __global__ static void kuiper_kernel_36(float *gA, float *gB, uint32_t k,
     uint32_t rest = (bid / 1);
     float rchProd[128];
     for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
-        rchProd[_ci1] = (float) 0;
+        rchProd[_ci1] = 0.0f;
     }
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 128);
@@ -6837,10 +6648,7 @@ __global__ static void kuiper_kernel_36(float *gA, float *gB, uint32_t k,
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            float local[4];
-            for (size_t _ci4 = 0; _ci4 < (size_t) 4; _ci4++) {
-                local[_ci4] = (float) 0;
-            }
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -6869,10 +6677,7 @@ __global__ static void kuiper_kernel_36(float *gA, float *gB, uint32_t k,
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            float local_1[4];
-            for (size_t _ci7 = 0; _ci7 < (size_t) 4; _ci7++) {
-                local_1[_ci7] = (float) 0;
-            }
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 128);
             uint32_t __anf03_1 = i1;
@@ -6899,14 +6704,9 @@ __global__ static void kuiper_kernel_36(float *gA, float *gB, uint32_t k,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            float rAcol[16];
-            for (size_t _ci10 = 0; _ci10 < (size_t) 16; _ci10++) {
-                rAcol[_ci10] = (float) 0;
-            }
-            float rBrow[8];
-            for (size_t _ci11 = 0; _ci11 < (size_t) 8; _ci11++) {
-                rBrow[_ci11] = (float) 0;
-            }
+            float rAcol[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -7174,7 +6974,7 @@ __global__ static void kuiper_kernel_38(float *gA, float *gB, uint32_t k,
     uint32_t rest = (bid / 1);
     float rchProd[256];
     for (size_t _ci1 = 0; _ci1 < (size_t) 256; _ci1++) {
-        rchProd[_ci1] = (float) 0;
+        rchProd[_ci1] = 0.0f;
     }
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 128);
@@ -7190,10 +6990,7 @@ __global__ static void kuiper_kernel_38(float *gA, float *gB, uint32_t k,
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            float local[4];
-            for (size_t _ci4 = 0; _ci4 < (size_t) 4; _ci4++) {
-                local[_ci4] = (float) 0;
-            }
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -7222,10 +7019,7 @@ __global__ static void kuiper_kernel_38(float *gA, float *gB, uint32_t k,
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            float local_1[4];
-            for (size_t _ci7 = 0; _ci7 < (size_t) 4; _ci7++) {
-                local_1[_ci7] = (float) 0;
-            }
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 128);
             uint32_t __anf03_1 = i1;
@@ -7252,14 +7046,10 @@ __global__ static void kuiper_kernel_38(float *gA, float *gB, uint32_t k,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            float rAcol[16];
-            for (size_t _ci10 = 0; _ci10 < (size_t) 16; _ci10++) {
-                rAcol[_ci10] = (float) 0;
-            }
-            float rBrow[16];
-            for (size_t _ci11 = 0; _ci11 < (size_t) 16; _ci11++) {
-                rBrow[_ci11] = (float) 0;
-            }
+            float rAcol[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -7530,10 +7320,12 @@ __global__ static void kuiper_kernel_40(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float rchProd[64];
-    for (size_t _ci1 = 0; _ci1 < (size_t) 64; _ci1++) {
-        rchProd[_ci1] = (float) 0;
-    }
+    float rchProd[64] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 128);
     uint32_t mrow = (rest / num_n_tiles);
@@ -7548,10 +7340,7 @@ __global__ static void kuiper_kernel_40(float *gA, float *gB, uint32_t k,
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            float local[4];
-            for (size_t _ci4 = 0; _ci4 < (size_t) 4; _ci4++) {
-                local[_ci4] = (float) 0;
-            }
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -7580,10 +7369,7 @@ __global__ static void kuiper_kernel_40(float *gA, float *gB, uint32_t k,
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            float local_1[4];
-            for (size_t _ci7 = 0; _ci7 < (size_t) 4; _ci7++) {
-                local_1[_ci7] = (float) 0;
-            }
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 128);
             uint32_t __anf03_1 = i1;
@@ -7610,14 +7396,8 @@ __global__ static void kuiper_kernel_40(float *gA, float *gB, uint32_t k,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            float rAcol[8];
-            for (size_t _ci10 = 0; _ci10 < (size_t) 8; _ci10++) {
-                rAcol[_ci10] = (float) 0;
-            }
-            float rBrow[8];
-            for (size_t _ci11 = 0; _ci11 < (size_t) 8; _ci11++) {
-                rBrow[_ci11] = (float) 0;
-            }
+            float rAcol[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -7898,7 +7678,7 @@ __global__ static void kuiper_kernel_42(float *gA, float *gB, uint32_t k,
     uint32_t rest = (bid / 1);
     float rchProd[128];
     for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
-        rchProd[_ci1] = (float) 0;
+        rchProd[_ci1] = 0.0f;
     }
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 128);
@@ -7914,10 +7694,7 @@ __global__ static void kuiper_kernel_42(float *gA, float *gB, uint32_t k,
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            float local[4];
-            for (size_t _ci4 = 0; _ci4 < (size_t) 4; _ci4++) {
-                local[_ci4] = (float) 0;
-            }
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -7946,10 +7723,7 @@ __global__ static void kuiper_kernel_42(float *gA, float *gB, uint32_t k,
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            float local_1[4];
-            for (size_t _ci7 = 0; _ci7 < (size_t) 4; _ci7++) {
-                local_1[_ci7] = (float) 0;
-            }
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 128);
             uint32_t __anf03_1 = i1;
@@ -7976,14 +7750,9 @@ __global__ static void kuiper_kernel_42(float *gA, float *gB, uint32_t k,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            float rAcol[8];
-            for (size_t _ci10 = 0; _ci10 < (size_t) 8; _ci10++) {
-                rAcol[_ci10] = (float) 0;
-            }
-            float rBrow[16];
-            for (size_t _ci11 = 0; _ci11 < (size_t) 16; _ci11++) {
-                rBrow[_ci11] = (float) 0;
-            }
+            float rAcol[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -8251,7 +8020,7 @@ __global__ static void kuiper_kernel_44(float *gA, float *gB, uint32_t k,
     uint32_t rest = (bid / 1);
     float rchProd[128];
     for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
-        rchProd[_ci1] = (float) 0;
+        rchProd[_ci1] = 0.0f;
     }
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 128);
@@ -8267,10 +8036,7 @@ __global__ static void kuiper_kernel_44(float *gA, float *gB, uint32_t k,
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            float local[4];
-            for (size_t _ci4 = 0; _ci4 < (size_t) 4; _ci4++) {
-                local[_ci4] = (float) 0;
-            }
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -8299,10 +8065,7 @@ __global__ static void kuiper_kernel_44(float *gA, float *gB, uint32_t k,
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            float local_1[4];
-            for (size_t _ci7 = 0; _ci7 < (size_t) 4; _ci7++) {
-                local_1[_ci7] = (float) 0;
-            }
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 128);
             uint32_t __anf03_1 = i1;
@@ -8329,14 +8092,9 @@ __global__ static void kuiper_kernel_44(float *gA, float *gB, uint32_t k,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            float rAcol[16];
-            for (size_t _ci10 = 0; _ci10 < (size_t) 16; _ci10++) {
-                rAcol[_ci10] = (float) 0;
-            }
-            float rBrow[8];
-            for (size_t _ci11 = 0; _ci11 < (size_t) 8; _ci11++) {
-                rBrow[_ci11] = (float) 0;
-            }
+            float rAcol[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -8604,7 +8362,7 @@ __global__ static void kuiper_kernel_46(float *gA, float *gB, uint32_t k,
     uint32_t rest = (bid / 1);
     float rchProd[256];
     for (size_t _ci1 = 0; _ci1 < (size_t) 256; _ci1++) {
-        rchProd[_ci1] = (float) 0;
+        rchProd[_ci1] = 0.0f;
     }
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 128);
@@ -8620,10 +8378,7 @@ __global__ static void kuiper_kernel_46(float *gA, float *gB, uint32_t k,
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            float local[4];
-            for (size_t _ci4 = 0; _ci4 < (size_t) 4; _ci4++) {
-                local[_ci4] = (float) 0;
-            }
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -8652,10 +8407,7 @@ __global__ static void kuiper_kernel_46(float *gA, float *gB, uint32_t k,
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            float local_1[4];
-            for (size_t _ci7 = 0; _ci7 < (size_t) 4; _ci7++) {
-                local_1[_ci7] = (float) 0;
-            }
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 128);
             uint32_t __anf03_1 = i1;
@@ -8682,14 +8434,10 @@ __global__ static void kuiper_kernel_46(float *gA, float *gB, uint32_t k,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            float rAcol[16];
-            for (size_t _ci10 = 0; _ci10 < (size_t) 16; _ci10++) {
-                rAcol[_ci10] = (float) 0;
-            }
-            float rBrow[16];
-            for (size_t _ci11 = 0; _ci11 < (size_t) 16; _ci11++) {
-                rBrow[_ci11] = (float) 0;
-            }
+            float rAcol[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -8960,10 +8708,12 @@ __global__ static void kuiper_kernel_48(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float rchProd[64];
-    for (size_t _ci1 = 0; _ci1 < (size_t) 64; _ci1++) {
-        rchProd[_ci1] = (float) 0;
-    }
+    float rchProd[64] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 32);
     uint32_t mrow = (rest / num_n_tiles);
@@ -8978,10 +8728,7 @@ __global__ static void kuiper_kernel_48(float *gA, float *gB, uint32_t k,
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            float local[4];
-            for (size_t _ci4 = 0; _ci4 < (size_t) 4; _ci4++) {
-                local[_ci4] = (float) 0;
-            }
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -9010,10 +8757,7 @@ __global__ static void kuiper_kernel_48(float *gA, float *gB, uint32_t k,
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            float local_1[4];
-            for (size_t _ci7 = 0; _ci7 < (size_t) 4; _ci7++) {
-                local_1[_ci7] = (float) 0;
-            }
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 32);
             uint32_t __anf03_1 = i1;
@@ -9040,14 +8784,8 @@ __global__ static void kuiper_kernel_48(float *gA, float *gB, uint32_t k,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            float rAcol[8];
-            for (size_t _ci10 = 0; _ci10 < (size_t) 8; _ci10++) {
-                rAcol[_ci10] = (float) 0;
-            }
-            float rBrow[8];
-            for (size_t _ci11 = 0; _ci11 < (size_t) 8; _ci11++) {
-                rBrow[_ci11] = (float) 0;
-            }
+            float rAcol[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -9328,7 +9066,7 @@ __global__ static void kuiper_kernel_50(float *gA, float *gB, uint32_t k,
     uint32_t rest = (bid / 1);
     float rchProd[128];
     for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
-        rchProd[_ci1] = (float) 0;
+        rchProd[_ci1] = 0.0f;
     }
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 32);
@@ -9344,10 +9082,7 @@ __global__ static void kuiper_kernel_50(float *gA, float *gB, uint32_t k,
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            float local[4];
-            for (size_t _ci4 = 0; _ci4 < (size_t) 4; _ci4++) {
-                local[_ci4] = (float) 0;
-            }
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -9376,10 +9111,7 @@ __global__ static void kuiper_kernel_50(float *gA, float *gB, uint32_t k,
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            float local_1[4];
-            for (size_t _ci7 = 0; _ci7 < (size_t) 4; _ci7++) {
-                local_1[_ci7] = (float) 0;
-            }
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 32);
             uint32_t __anf03_1 = i1;
@@ -9406,14 +9138,9 @@ __global__ static void kuiper_kernel_50(float *gA, float *gB, uint32_t k,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            float rAcol[8];
-            for (size_t _ci10 = 0; _ci10 < (size_t) 8; _ci10++) {
-                rAcol[_ci10] = (float) 0;
-            }
-            float rBrow[16];
-            for (size_t _ci11 = 0; _ci11 < (size_t) 16; _ci11++) {
-                rBrow[_ci11] = (float) 0;
-            }
+            float rAcol[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -9681,7 +9408,7 @@ __global__ static void kuiper_kernel_52(float *gA, float *gB, uint32_t k,
     uint32_t rest = (bid / 1);
     float rchProd[128];
     for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
-        rchProd[_ci1] = (float) 0;
+        rchProd[_ci1] = 0.0f;
     }
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 32);
@@ -9697,10 +9424,7 @@ __global__ static void kuiper_kernel_52(float *gA, float *gB, uint32_t k,
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            float local[4];
-            for (size_t _ci4 = 0; _ci4 < (size_t) 4; _ci4++) {
-                local[_ci4] = (float) 0;
-            }
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -9729,10 +9453,7 @@ __global__ static void kuiper_kernel_52(float *gA, float *gB, uint32_t k,
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            float local_1[4];
-            for (size_t _ci7 = 0; _ci7 < (size_t) 4; _ci7++) {
-                local_1[_ci7] = (float) 0;
-            }
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 32);
             uint32_t __anf03_1 = i1;
@@ -9759,14 +9480,9 @@ __global__ static void kuiper_kernel_52(float *gA, float *gB, uint32_t k,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            float rAcol[16];
-            for (size_t _ci10 = 0; _ci10 < (size_t) 16; _ci10++) {
-                rAcol[_ci10] = (float) 0;
-            }
-            float rBrow[8];
-            for (size_t _ci11 = 0; _ci11 < (size_t) 8; _ci11++) {
-                rBrow[_ci11] = (float) 0;
-            }
+            float rAcol[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -10034,7 +9750,7 @@ __global__ static void kuiper_kernel_54(float *gA, float *gB, uint32_t k,
     uint32_t rest = (bid / 1);
     float rchProd[256];
     for (size_t _ci1 = 0; _ci1 < (size_t) 256; _ci1++) {
-        rchProd[_ci1] = (float) 0;
+        rchProd[_ci1] = 0.0f;
     }
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 32);
@@ -10050,10 +9766,7 @@ __global__ static void kuiper_kernel_54(float *gA, float *gB, uint32_t k,
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            float local[4];
-            for (size_t _ci4 = 0; _ci4 < (size_t) 4; _ci4++) {
-                local[_ci4] = (float) 0;
-            }
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -10082,10 +9795,7 @@ __global__ static void kuiper_kernel_54(float *gA, float *gB, uint32_t k,
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            float local_1[4];
-            for (size_t _ci7 = 0; _ci7 < (size_t) 4; _ci7++) {
-                local_1[_ci7] = (float) 0;
-            }
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 32);
             uint32_t __anf03_1 = i1;
@@ -10112,14 +9822,10 @@ __global__ static void kuiper_kernel_54(float *gA, float *gB, uint32_t k,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            float rAcol[16];
-            for (size_t _ci10 = 0; _ci10 < (size_t) 16; _ci10++) {
-                rAcol[_ci10] = (float) 0;
-            }
-            float rBrow[16];
-            for (size_t _ci11 = 0; _ci11 < (size_t) 16; _ci11++) {
-                rBrow[_ci11] = (float) 0;
-            }
+            float rAcol[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -10390,10 +10096,12 @@ __global__ static void kuiper_kernel_56(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float rchProd[64];
-    for (size_t _ci1 = 0; _ci1 < (size_t) 64; _ci1++) {
-        rchProd[_ci1] = (float) 0;
-    }
+    float rchProd[64] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 32);
     uint32_t mrow = (rest / num_n_tiles);
@@ -10408,10 +10116,7 @@ __global__ static void kuiper_kernel_56(float *gA, float *gB, uint32_t k,
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            float local[4];
-            for (size_t _ci4 = 0; _ci4 < (size_t) 4; _ci4++) {
-                local[_ci4] = (float) 0;
-            }
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -10440,10 +10145,7 @@ __global__ static void kuiper_kernel_56(float *gA, float *gB, uint32_t k,
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            float local_1[4];
-            for (size_t _ci7 = 0; _ci7 < (size_t) 4; _ci7++) {
-                local_1[_ci7] = (float) 0;
-            }
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 32);
             uint32_t __anf03_1 = i1;
@@ -10470,14 +10172,8 @@ __global__ static void kuiper_kernel_56(float *gA, float *gB, uint32_t k,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            float rAcol[8];
-            for (size_t _ci10 = 0; _ci10 < (size_t) 8; _ci10++) {
-                rAcol[_ci10] = (float) 0;
-            }
-            float rBrow[8];
-            for (size_t _ci11 = 0; _ci11 < (size_t) 8; _ci11++) {
-                rBrow[_ci11] = (float) 0;
-            }
+            float rAcol[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -10758,7 +10454,7 @@ __global__ static void kuiper_kernel_58(float *gA, float *gB, uint32_t k,
     uint32_t rest = (bid / 1);
     float rchProd[128];
     for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
-        rchProd[_ci1] = (float) 0;
+        rchProd[_ci1] = 0.0f;
     }
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 32);
@@ -10774,10 +10470,7 @@ __global__ static void kuiper_kernel_58(float *gA, float *gB, uint32_t k,
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            float local[4];
-            for (size_t _ci4 = 0; _ci4 < (size_t) 4; _ci4++) {
-                local[_ci4] = (float) 0;
-            }
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -10806,10 +10499,7 @@ __global__ static void kuiper_kernel_58(float *gA, float *gB, uint32_t k,
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            float local_1[4];
-            for (size_t _ci7 = 0; _ci7 < (size_t) 4; _ci7++) {
-                local_1[_ci7] = (float) 0;
-            }
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 32);
             uint32_t __anf03_1 = i1;
@@ -10836,14 +10526,9 @@ __global__ static void kuiper_kernel_58(float *gA, float *gB, uint32_t k,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            float rAcol[8];
-            for (size_t _ci10 = 0; _ci10 < (size_t) 8; _ci10++) {
-                rAcol[_ci10] = (float) 0;
-            }
-            float rBrow[16];
-            for (size_t _ci11 = 0; _ci11 < (size_t) 16; _ci11++) {
-                rBrow[_ci11] = (float) 0;
-            }
+            float rAcol[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -11111,7 +10796,7 @@ __global__ static void kuiper_kernel_60(float *gA, float *gB, uint32_t k,
     uint32_t rest = (bid / 1);
     float rchProd[128];
     for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
-        rchProd[_ci1] = (float) 0;
+        rchProd[_ci1] = 0.0f;
     }
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 32);
@@ -11127,10 +10812,7 @@ __global__ static void kuiper_kernel_60(float *gA, float *gB, uint32_t k,
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            float local[4];
-            for (size_t _ci4 = 0; _ci4 < (size_t) 4; _ci4++) {
-                local[_ci4] = (float) 0;
-            }
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -11159,10 +10841,7 @@ __global__ static void kuiper_kernel_60(float *gA, float *gB, uint32_t k,
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            float local_1[4];
-            for (size_t _ci7 = 0; _ci7 < (size_t) 4; _ci7++) {
-                local_1[_ci7] = (float) 0;
-            }
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 32);
             uint32_t __anf03_1 = i1;
@@ -11189,14 +10868,9 @@ __global__ static void kuiper_kernel_60(float *gA, float *gB, uint32_t k,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            float rAcol[16];
-            for (size_t _ci10 = 0; _ci10 < (size_t) 16; _ci10++) {
-                rAcol[_ci10] = (float) 0;
-            }
-            float rBrow[8];
-            for (size_t _ci11 = 0; _ci11 < (size_t) 8; _ci11++) {
-                rBrow[_ci11] = (float) 0;
-            }
+            float rAcol[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -11464,7 +11138,7 @@ __global__ static void kuiper_kernel_62(float *gA, float *gB, uint32_t k,
     uint32_t rest = (bid / 1);
     float rchProd[256];
     for (size_t _ci1 = 0; _ci1 < (size_t) 256; _ci1++) {
-        rchProd[_ci1] = (float) 0;
+        rchProd[_ci1] = 0.0f;
     }
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 32);
@@ -11480,10 +11154,7 @@ __global__ static void kuiper_kernel_62(float *gA, float *gB, uint32_t k,
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            float local[4];
-            for (size_t _ci4 = 0; _ci4 < (size_t) 4; _ci4++) {
-                local[_ci4] = (float) 0;
-            }
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -11512,10 +11183,7 @@ __global__ static void kuiper_kernel_62(float *gA, float *gB, uint32_t k,
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            float local_1[4];
-            for (size_t _ci7 = 0; _ci7 < (size_t) 4; _ci7++) {
-                local_1[_ci7] = (float) 0;
-            }
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 32);
             uint32_t __anf03_1 = i1;
@@ -11542,14 +11210,10 @@ __global__ static void kuiper_kernel_62(float *gA, float *gB, uint32_t k,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            float rAcol[16];
-            for (size_t _ci10 = 0; _ci10 < (size_t) 16; _ci10++) {
-                rAcol[_ci10] = (float) 0;
-            }
-            float rBrow[16];
-            for (size_t _ci11 = 0; _ci11 < (size_t) 16; _ci11++) {
-                rBrow[_ci11] = (float) 0;
-            }
+            float rAcol[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -11820,10 +11484,12 @@ __global__ static void kuiper_kernel_64(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float rchProd[64];
-    for (size_t _ci1 = 0; _ci1 < (size_t) 64; _ci1++) {
-        rchProd[_ci1] = (float) 0;
-    }
+    float rchProd[64] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 64);
     uint32_t mrow = (rest / num_n_tiles);
@@ -11838,10 +11504,7 @@ __global__ static void kuiper_kernel_64(float *gA, float *gB, uint32_t k,
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            float local[4];
-            for (size_t _ci4 = 0; _ci4 < (size_t) 4; _ci4++) {
-                local[_ci4] = (float) 0;
-            }
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -11870,10 +11533,7 @@ __global__ static void kuiper_kernel_64(float *gA, float *gB, uint32_t k,
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            float local_1[4];
-            for (size_t _ci7 = 0; _ci7 < (size_t) 4; _ci7++) {
-                local_1[_ci7] = (float) 0;
-            }
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 64);
             uint32_t __anf03_1 = i1;
@@ -11900,14 +11560,8 @@ __global__ static void kuiper_kernel_64(float *gA, float *gB, uint32_t k,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            float rAcol[8];
-            for (size_t _ci10 = 0; _ci10 < (size_t) 8; _ci10++) {
-                rAcol[_ci10] = (float) 0;
-            }
-            float rBrow[8];
-            for (size_t _ci11 = 0; _ci11 < (size_t) 8; _ci11++) {
-                rBrow[_ci11] = (float) 0;
-            }
+            float rAcol[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -12188,7 +11842,7 @@ __global__ static void kuiper_kernel_66(float *gA, float *gB, uint32_t k,
     uint32_t rest = (bid / 1);
     float rchProd[128];
     for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
-        rchProd[_ci1] = (float) 0;
+        rchProd[_ci1] = 0.0f;
     }
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 64);
@@ -12204,10 +11858,7 @@ __global__ static void kuiper_kernel_66(float *gA, float *gB, uint32_t k,
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            float local[4];
-            for (size_t _ci4 = 0; _ci4 < (size_t) 4; _ci4++) {
-                local[_ci4] = (float) 0;
-            }
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -12236,10 +11887,7 @@ __global__ static void kuiper_kernel_66(float *gA, float *gB, uint32_t k,
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            float local_1[4];
-            for (size_t _ci7 = 0; _ci7 < (size_t) 4; _ci7++) {
-                local_1[_ci7] = (float) 0;
-            }
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 64);
             uint32_t __anf03_1 = i1;
@@ -12266,14 +11914,9 @@ __global__ static void kuiper_kernel_66(float *gA, float *gB, uint32_t k,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            float rAcol[8];
-            for (size_t _ci10 = 0; _ci10 < (size_t) 8; _ci10++) {
-                rAcol[_ci10] = (float) 0;
-            }
-            float rBrow[16];
-            for (size_t _ci11 = 0; _ci11 < (size_t) 16; _ci11++) {
-                rBrow[_ci11] = (float) 0;
-            }
+            float rAcol[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -12541,7 +12184,7 @@ __global__ static void kuiper_kernel_68(float *gA, float *gB, uint32_t k,
     uint32_t rest = (bid / 1);
     float rchProd[128];
     for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
-        rchProd[_ci1] = (float) 0;
+        rchProd[_ci1] = 0.0f;
     }
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 64);
@@ -12557,10 +12200,7 @@ __global__ static void kuiper_kernel_68(float *gA, float *gB, uint32_t k,
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            float local[4];
-            for (size_t _ci4 = 0; _ci4 < (size_t) 4; _ci4++) {
-                local[_ci4] = (float) 0;
-            }
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -12589,10 +12229,7 @@ __global__ static void kuiper_kernel_68(float *gA, float *gB, uint32_t k,
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            float local_1[4];
-            for (size_t _ci7 = 0; _ci7 < (size_t) 4; _ci7++) {
-                local_1[_ci7] = (float) 0;
-            }
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 64);
             uint32_t __anf03_1 = i1;
@@ -12619,14 +12256,9 @@ __global__ static void kuiper_kernel_68(float *gA, float *gB, uint32_t k,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            float rAcol[16];
-            for (size_t _ci10 = 0; _ci10 < (size_t) 16; _ci10++) {
-                rAcol[_ci10] = (float) 0;
-            }
-            float rBrow[8];
-            for (size_t _ci11 = 0; _ci11 < (size_t) 8; _ci11++) {
-                rBrow[_ci11] = (float) 0;
-            }
+            float rAcol[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -12894,7 +12526,7 @@ __global__ static void kuiper_kernel_70(float *gA, float *gB, uint32_t k,
     uint32_t rest = (bid / 1);
     float rchProd[256];
     for (size_t _ci1 = 0; _ci1 < (size_t) 256; _ci1++) {
-        rchProd[_ci1] = (float) 0;
+        rchProd[_ci1] = 0.0f;
     }
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 64);
@@ -12910,10 +12542,7 @@ __global__ static void kuiper_kernel_70(float *gA, float *gB, uint32_t k,
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            float local[4];
-            for (size_t _ci4 = 0; _ci4 < (size_t) 4; _ci4++) {
-                local[_ci4] = (float) 0;
-            }
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -12942,10 +12571,7 @@ __global__ static void kuiper_kernel_70(float *gA, float *gB, uint32_t k,
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            float local_1[4];
-            for (size_t _ci7 = 0; _ci7 < (size_t) 4; _ci7++) {
-                local_1[_ci7] = (float) 0;
-            }
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 64);
             uint32_t __anf03_1 = i1;
@@ -12972,14 +12598,10 @@ __global__ static void kuiper_kernel_70(float *gA, float *gB, uint32_t k,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            float rAcol[16];
-            for (size_t _ci10 = 0; _ci10 < (size_t) 16; _ci10++) {
-                rAcol[_ci10] = (float) 0;
-            }
-            float rBrow[16];
-            for (size_t _ci11 = 0; _ci11 < (size_t) 16; _ci11++) {
-                rBrow[_ci11] = (float) 0;
-            }
+            float rAcol[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -13250,10 +12872,12 @@ __global__ static void kuiper_kernel_72(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float rchProd[64];
-    for (size_t _ci1 = 0; _ci1 < (size_t) 64; _ci1++) {
-        rchProd[_ci1] = (float) 0;
-    }
+    float rchProd[64] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 64);
     uint32_t mrow = (rest / num_n_tiles);
@@ -13268,10 +12892,7 @@ __global__ static void kuiper_kernel_72(float *gA, float *gB, uint32_t k,
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            float local[4];
-            for (size_t _ci4 = 0; _ci4 < (size_t) 4; _ci4++) {
-                local[_ci4] = (float) 0;
-            }
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -13300,10 +12921,7 @@ __global__ static void kuiper_kernel_72(float *gA, float *gB, uint32_t k,
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            float local_1[4];
-            for (size_t _ci7 = 0; _ci7 < (size_t) 4; _ci7++) {
-                local_1[_ci7] = (float) 0;
-            }
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 64);
             uint32_t __anf03_1 = i1;
@@ -13330,14 +12948,8 @@ __global__ static void kuiper_kernel_72(float *gA, float *gB, uint32_t k,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            float rAcol[8];
-            for (size_t _ci10 = 0; _ci10 < (size_t) 8; _ci10++) {
-                rAcol[_ci10] = (float) 0;
-            }
-            float rBrow[8];
-            for (size_t _ci11 = 0; _ci11 < (size_t) 8; _ci11++) {
-                rBrow[_ci11] = (float) 0;
-            }
+            float rAcol[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -13618,7 +13230,7 @@ __global__ static void kuiper_kernel_74(float *gA, float *gB, uint32_t k,
     uint32_t rest = (bid / 1);
     float rchProd[128];
     for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
-        rchProd[_ci1] = (float) 0;
+        rchProd[_ci1] = 0.0f;
     }
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 64);
@@ -13634,10 +13246,7 @@ __global__ static void kuiper_kernel_74(float *gA, float *gB, uint32_t k,
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            float local[4];
-            for (size_t _ci4 = 0; _ci4 < (size_t) 4; _ci4++) {
-                local[_ci4] = (float) 0;
-            }
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -13666,10 +13275,7 @@ __global__ static void kuiper_kernel_74(float *gA, float *gB, uint32_t k,
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            float local_1[4];
-            for (size_t _ci7 = 0; _ci7 < (size_t) 4; _ci7++) {
-                local_1[_ci7] = (float) 0;
-            }
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 64);
             uint32_t __anf03_1 = i1;
@@ -13696,14 +13302,9 @@ __global__ static void kuiper_kernel_74(float *gA, float *gB, uint32_t k,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            float rAcol[8];
-            for (size_t _ci10 = 0; _ci10 < (size_t) 8; _ci10++) {
-                rAcol[_ci10] = (float) 0;
-            }
-            float rBrow[16];
-            for (size_t _ci11 = 0; _ci11 < (size_t) 16; _ci11++) {
-                rBrow[_ci11] = (float) 0;
-            }
+            float rAcol[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -13971,7 +13572,7 @@ __global__ static void kuiper_kernel_76(float *gA, float *gB, uint32_t k,
     uint32_t rest = (bid / 1);
     float rchProd[128];
     for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
-        rchProd[_ci1] = (float) 0;
+        rchProd[_ci1] = 0.0f;
     }
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 64);
@@ -13987,10 +13588,7 @@ __global__ static void kuiper_kernel_76(float *gA, float *gB, uint32_t k,
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            float local[4];
-            for (size_t _ci4 = 0; _ci4 < (size_t) 4; _ci4++) {
-                local[_ci4] = (float) 0;
-            }
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -14019,10 +13617,7 @@ __global__ static void kuiper_kernel_76(float *gA, float *gB, uint32_t k,
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            float local_1[4];
-            for (size_t _ci7 = 0; _ci7 < (size_t) 4; _ci7++) {
-                local_1[_ci7] = (float) 0;
-            }
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 64);
             uint32_t __anf03_1 = i1;
@@ -14049,14 +13644,9 @@ __global__ static void kuiper_kernel_76(float *gA, float *gB, uint32_t k,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            float rAcol[16];
-            for (size_t _ci10 = 0; _ci10 < (size_t) 16; _ci10++) {
-                rAcol[_ci10] = (float) 0;
-            }
-            float rBrow[8];
-            for (size_t _ci11 = 0; _ci11 < (size_t) 8; _ci11++) {
-                rBrow[_ci11] = (float) 0;
-            }
+            float rAcol[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -14324,7 +13914,7 @@ __global__ static void kuiper_kernel_78(float *gA, float *gB, uint32_t k,
     uint32_t rest = (bid / 1);
     float rchProd[256];
     for (size_t _ci1 = 0; _ci1 < (size_t) 256; _ci1++) {
-        rchProd[_ci1] = (float) 0;
+        rchProd[_ci1] = 0.0f;
     }
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 64);
@@ -14340,10 +13930,7 @@ __global__ static void kuiper_kernel_78(float *gA, float *gB, uint32_t k,
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            float local[4];
-            for (size_t _ci4 = 0; _ci4 < (size_t) 4; _ci4++) {
-                local[_ci4] = (float) 0;
-            }
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -14372,10 +13959,7 @@ __global__ static void kuiper_kernel_78(float *gA, float *gB, uint32_t k,
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            float local_1[4];
-            for (size_t _ci7 = 0; _ci7 < (size_t) 4; _ci7++) {
-                local_1[_ci7] = (float) 0;
-            }
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 64);
             uint32_t __anf03_1 = i1;
@@ -14402,14 +13986,10 @@ __global__ static void kuiper_kernel_78(float *gA, float *gB, uint32_t k,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            float rAcol[16];
-            for (size_t _ci10 = 0; _ci10 < (size_t) 16; _ci10++) {
-                rAcol[_ci10] = (float) 0;
-            }
-            float rBrow[16];
-            for (size_t _ci11 = 0; _ci11 < (size_t) 16; _ci11++) {
-                rBrow[_ci11] = (float) 0;
-            }
+            float rAcol[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -14680,10 +14260,12 @@ __global__ static void kuiper_kernel_80(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float rchProd[64];
-    for (size_t _ci1 = 0; _ci1 < (size_t) 64; _ci1++) {
-        rchProd[_ci1] = (float) 0;
-    }
+    float rchProd[64] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 128);
     uint32_t mrow = (rest / num_n_tiles);
@@ -14698,10 +14280,7 @@ __global__ static void kuiper_kernel_80(float *gA, float *gB, uint32_t k,
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            float local[4];
-            for (size_t _ci4 = 0; _ci4 < (size_t) 4; _ci4++) {
-                local[_ci4] = (float) 0;
-            }
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -14730,10 +14309,7 @@ __global__ static void kuiper_kernel_80(float *gA, float *gB, uint32_t k,
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            float local_1[4];
-            for (size_t _ci7 = 0; _ci7 < (size_t) 4; _ci7++) {
-                local_1[_ci7] = (float) 0;
-            }
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 128);
             uint32_t __anf03_1 = i1;
@@ -14760,14 +14336,8 @@ __global__ static void kuiper_kernel_80(float *gA, float *gB, uint32_t k,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            float rAcol[8];
-            for (size_t _ci10 = 0; _ci10 < (size_t) 8; _ci10++) {
-                rAcol[_ci10] = (float) 0;
-            }
-            float rBrow[8];
-            for (size_t _ci11 = 0; _ci11 < (size_t) 8; _ci11++) {
-                rBrow[_ci11] = (float) 0;
-            }
+            float rAcol[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -15048,7 +14618,7 @@ __global__ static void kuiper_kernel_82(float *gA, float *gB, uint32_t k,
     uint32_t rest = (bid / 1);
     float rchProd[128];
     for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
-        rchProd[_ci1] = (float) 0;
+        rchProd[_ci1] = 0.0f;
     }
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 128);
@@ -15064,10 +14634,7 @@ __global__ static void kuiper_kernel_82(float *gA, float *gB, uint32_t k,
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            float local[4];
-            for (size_t _ci4 = 0; _ci4 < (size_t) 4; _ci4++) {
-                local[_ci4] = (float) 0;
-            }
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -15096,10 +14663,7 @@ __global__ static void kuiper_kernel_82(float *gA, float *gB, uint32_t k,
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            float local_1[4];
-            for (size_t _ci7 = 0; _ci7 < (size_t) 4; _ci7++) {
-                local_1[_ci7] = (float) 0;
-            }
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 128);
             uint32_t __anf03_1 = i1;
@@ -15126,14 +14690,9 @@ __global__ static void kuiper_kernel_82(float *gA, float *gB, uint32_t k,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            float rAcol[8];
-            for (size_t _ci10 = 0; _ci10 < (size_t) 8; _ci10++) {
-                rAcol[_ci10] = (float) 0;
-            }
-            float rBrow[16];
-            for (size_t _ci11 = 0; _ci11 < (size_t) 16; _ci11++) {
-                rBrow[_ci11] = (float) 0;
-            }
+            float rAcol[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -15401,7 +14960,7 @@ __global__ static void kuiper_kernel_84(float *gA, float *gB, uint32_t k,
     uint32_t rest = (bid / 1);
     float rchProd[128];
     for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
-        rchProd[_ci1] = (float) 0;
+        rchProd[_ci1] = 0.0f;
     }
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 128);
@@ -15417,10 +14976,7 @@ __global__ static void kuiper_kernel_84(float *gA, float *gB, uint32_t k,
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            float local[4];
-            for (size_t _ci4 = 0; _ci4 < (size_t) 4; _ci4++) {
-                local[_ci4] = (float) 0;
-            }
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -15449,10 +15005,7 @@ __global__ static void kuiper_kernel_84(float *gA, float *gB, uint32_t k,
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            float local_1[4];
-            for (size_t _ci7 = 0; _ci7 < (size_t) 4; _ci7++) {
-                local_1[_ci7] = (float) 0;
-            }
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 128);
             uint32_t __anf03_1 = i1;
@@ -15479,14 +15032,9 @@ __global__ static void kuiper_kernel_84(float *gA, float *gB, uint32_t k,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            float rAcol[16];
-            for (size_t _ci10 = 0; _ci10 < (size_t) 16; _ci10++) {
-                rAcol[_ci10] = (float) 0;
-            }
-            float rBrow[8];
-            for (size_t _ci11 = 0; _ci11 < (size_t) 8; _ci11++) {
-                rBrow[_ci11] = (float) 0;
-            }
+            float rAcol[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -15754,7 +15302,7 @@ __global__ static void kuiper_kernel_86(float *gA, float *gB, uint32_t k,
     uint32_t rest = (bid / 1);
     float rchProd[256];
     for (size_t _ci1 = 0; _ci1 < (size_t) 256; _ci1++) {
-        rchProd[_ci1] = (float) 0;
+        rchProd[_ci1] = 0.0f;
     }
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 128);
@@ -15770,10 +15318,7 @@ __global__ static void kuiper_kernel_86(float *gA, float *gB, uint32_t k,
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            float local[4];
-            for (size_t _ci4 = 0; _ci4 < (size_t) 4; _ci4++) {
-                local[_ci4] = (float) 0;
-            }
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -15802,10 +15347,7 @@ __global__ static void kuiper_kernel_86(float *gA, float *gB, uint32_t k,
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            float local_1[4];
-            for (size_t _ci7 = 0; _ci7 < (size_t) 4; _ci7++) {
-                local_1[_ci7] = (float) 0;
-            }
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 128);
             uint32_t __anf03_1 = i1;
@@ -15832,14 +15374,10 @@ __global__ static void kuiper_kernel_86(float *gA, float *gB, uint32_t k,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            float rAcol[16];
-            for (size_t _ci10 = 0; _ci10 < (size_t) 16; _ci10++) {
-                rAcol[_ci10] = (float) 0;
-            }
-            float rBrow[16];
-            for (size_t _ci11 = 0; _ci11 < (size_t) 16; _ci11++) {
-                rBrow[_ci11] = (float) 0;
-            }
+            float rAcol[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -16110,10 +15648,12 @@ __global__ static void kuiper_kernel_88(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float rchProd[64];
-    for (size_t _ci1 = 0; _ci1 < (size_t) 64; _ci1++) {
-        rchProd[_ci1] = (float) 0;
-    }
+    float rchProd[64] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 128);
     uint32_t mrow = (rest / num_n_tiles);
@@ -16128,10 +15668,7 @@ __global__ static void kuiper_kernel_88(float *gA, float *gB, uint32_t k,
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            float local[4];
-            for (size_t _ci4 = 0; _ci4 < (size_t) 4; _ci4++) {
-                local[_ci4] = (float) 0;
-            }
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -16160,10 +15697,7 @@ __global__ static void kuiper_kernel_88(float *gA, float *gB, uint32_t k,
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            float local_1[4];
-            for (size_t _ci7 = 0; _ci7 < (size_t) 4; _ci7++) {
-                local_1[_ci7] = (float) 0;
-            }
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 128);
             uint32_t __anf03_1 = i1;
@@ -16190,14 +15724,8 @@ __global__ static void kuiper_kernel_88(float *gA, float *gB, uint32_t k,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            float rAcol[8];
-            for (size_t _ci10 = 0; _ci10 < (size_t) 8; _ci10++) {
-                rAcol[_ci10] = (float) 0;
-            }
-            float rBrow[8];
-            for (size_t _ci11 = 0; _ci11 < (size_t) 8; _ci11++) {
-                rBrow[_ci11] = (float) 0;
-            }
+            float rAcol[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -16478,7 +16006,7 @@ __global__ static void kuiper_kernel_90(float *gA, float *gB, uint32_t k,
     uint32_t rest = (bid / 1);
     float rchProd[128];
     for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
-        rchProd[_ci1] = (float) 0;
+        rchProd[_ci1] = 0.0f;
     }
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 128);
@@ -16494,10 +16022,7 @@ __global__ static void kuiper_kernel_90(float *gA, float *gB, uint32_t k,
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            float local[4];
-            for (size_t _ci4 = 0; _ci4 < (size_t) 4; _ci4++) {
-                local[_ci4] = (float) 0;
-            }
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -16526,10 +16051,7 @@ __global__ static void kuiper_kernel_90(float *gA, float *gB, uint32_t k,
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            float local_1[4];
-            for (size_t _ci7 = 0; _ci7 < (size_t) 4; _ci7++) {
-                local_1[_ci7] = (float) 0;
-            }
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 128);
             uint32_t __anf03_1 = i1;
@@ -16556,14 +16078,9 @@ __global__ static void kuiper_kernel_90(float *gA, float *gB, uint32_t k,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            float rAcol[8];
-            for (size_t _ci10 = 0; _ci10 < (size_t) 8; _ci10++) {
-                rAcol[_ci10] = (float) 0;
-            }
-            float rBrow[16];
-            for (size_t _ci11 = 0; _ci11 < (size_t) 16; _ci11++) {
-                rBrow[_ci11] = (float) 0;
-            }
+            float rAcol[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -16831,7 +16348,7 @@ __global__ static void kuiper_kernel_92(float *gA, float *gB, uint32_t k,
     uint32_t rest = (bid / 1);
     float rchProd[128];
     for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
-        rchProd[_ci1] = (float) 0;
+        rchProd[_ci1] = 0.0f;
     }
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 128);
@@ -16847,10 +16364,7 @@ __global__ static void kuiper_kernel_92(float *gA, float *gB, uint32_t k,
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            float local[4];
-            for (size_t _ci4 = 0; _ci4 < (size_t) 4; _ci4++) {
-                local[_ci4] = (float) 0;
-            }
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -16879,10 +16393,7 @@ __global__ static void kuiper_kernel_92(float *gA, float *gB, uint32_t k,
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            float local_1[4];
-            for (size_t _ci7 = 0; _ci7 < (size_t) 4; _ci7++) {
-                local_1[_ci7] = (float) 0;
-            }
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 128);
             uint32_t __anf03_1 = i1;
@@ -16909,14 +16420,9 @@ __global__ static void kuiper_kernel_92(float *gA, float *gB, uint32_t k,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            float rAcol[16];
-            for (size_t _ci10 = 0; _ci10 < (size_t) 16; _ci10++) {
-                rAcol[_ci10] = (float) 0;
-            }
-            float rBrow[8];
-            for (size_t _ci11 = 0; _ci11 < (size_t) 8; _ci11++) {
-                rBrow[_ci11] = (float) 0;
-            }
+            float rAcol[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -17184,7 +16690,7 @@ __global__ static void kuiper_kernel_94(float *gA, float *gB, uint32_t k,
     uint32_t rest = (bid / 1);
     float rchProd[256];
     for (size_t _ci1 = 0; _ci1 < (size_t) 256; _ci1++) {
-        rchProd[_ci1] = (float) 0;
+        rchProd[_ci1] = 0.0f;
     }
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 128);
@@ -17200,10 +16706,7 @@ __global__ static void kuiper_kernel_94(float *gA, float *gB, uint32_t k,
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            float local[4];
-            for (size_t _ci4 = 0; _ci4 < (size_t) 4; _ci4++) {
-                local[_ci4] = (float) 0;
-            }
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -17232,10 +16735,7 @@ __global__ static void kuiper_kernel_94(float *gA, float *gB, uint32_t k,
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            float local_1[4];
-            for (size_t _ci7 = 0; _ci7 < (size_t) 4; _ci7++) {
-                local_1[_ci7] = (float) 0;
-            }
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 128);
             uint32_t __anf03_1 = i1;
@@ -17262,14 +16762,10 @@ __global__ static void kuiper_kernel_94(float *gA, float *gB, uint32_t k,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            float rAcol[16];
-            for (size_t _ci10 = 0; _ci10 < (size_t) 16; _ci10++) {
-                rAcol[_ci10] = (float) 0;
-            }
-            float rBrow[16];
-            for (size_t _ci11 = 0; _ci11 < (size_t) 16; _ci11++) {
-                rBrow[_ci11] = (float) 0;
-            }
+            float rAcol[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -17540,10 +17036,12 @@ __global__ static void kuiper_kernel_96(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float rchProd[64];
-    for (size_t _ci1 = 0; _ci1 < (size_t) 64; _ci1++) {
-        rchProd[_ci1] = (float) 0;
-    }
+    float rchProd[64] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 32);
     uint32_t mrow = (rest / num_n_tiles);
@@ -17558,10 +17056,7 @@ __global__ static void kuiper_kernel_96(float *gA, float *gB, uint32_t k,
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            float local[4];
-            for (size_t _ci4 = 0; _ci4 < (size_t) 4; _ci4++) {
-                local[_ci4] = (float) 0;
-            }
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -17590,10 +17085,7 @@ __global__ static void kuiper_kernel_96(float *gA, float *gB, uint32_t k,
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            float local_1[4];
-            for (size_t _ci7 = 0; _ci7 < (size_t) 4; _ci7++) {
-                local_1[_ci7] = (float) 0;
-            }
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 32);
             uint32_t __anf03_1 = i1;
@@ -17620,14 +17112,8 @@ __global__ static void kuiper_kernel_96(float *gA, float *gB, uint32_t k,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            float rAcol[8];
-            for (size_t _ci10 = 0; _ci10 < (size_t) 8; _ci10++) {
-                rAcol[_ci10] = (float) 0;
-            }
-            float rBrow[8];
-            for (size_t _ci11 = 0; _ci11 < (size_t) 8; _ci11++) {
-                rBrow[_ci11] = (float) 0;
-            }
+            float rAcol[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -17908,7 +17394,7 @@ __global__ static void kuiper_kernel_98(float *gA, float *gB, uint32_t k,
     uint32_t rest = (bid / 1);
     float rchProd[128];
     for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
-        rchProd[_ci1] = (float) 0;
+        rchProd[_ci1] = 0.0f;
     }
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 32);
@@ -17924,10 +17410,7 @@ __global__ static void kuiper_kernel_98(float *gA, float *gB, uint32_t k,
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            float local[4];
-            for (size_t _ci4 = 0; _ci4 < (size_t) 4; _ci4++) {
-                local[_ci4] = (float) 0;
-            }
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -17956,10 +17439,7 @@ __global__ static void kuiper_kernel_98(float *gA, float *gB, uint32_t k,
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            float local_1[4];
-            for (size_t _ci7 = 0; _ci7 < (size_t) 4; _ci7++) {
-                local_1[_ci7] = (float) 0;
-            }
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 32);
             uint32_t __anf03_1 = i1;
@@ -17986,14 +17466,9 @@ __global__ static void kuiper_kernel_98(float *gA, float *gB, uint32_t k,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            float rAcol[8];
-            for (size_t _ci10 = 0; _ci10 < (size_t) 8; _ci10++) {
-                rAcol[_ci10] = (float) 0;
-            }
-            float rBrow[16];
-            for (size_t _ci11 = 0; _ci11 < (size_t) 16; _ci11++) {
-                rBrow[_ci11] = (float) 0;
-            }
+            float rAcol[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -18261,7 +17736,7 @@ __global__ static void kuiper_kernel_100(float *gA, float *gB, uint32_t k,
     uint32_t rest = (bid / 1);
     float rchProd[128];
     for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
-        rchProd[_ci1] = (float) 0;
+        rchProd[_ci1] = 0.0f;
     }
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 32);
@@ -18277,10 +17752,7 @@ __global__ static void kuiper_kernel_100(float *gA, float *gB, uint32_t k,
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            float local[4];
-            for (size_t _ci4 = 0; _ci4 < (size_t) 4; _ci4++) {
-                local[_ci4] = (float) 0;
-            }
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -18309,10 +17781,7 @@ __global__ static void kuiper_kernel_100(float *gA, float *gB, uint32_t k,
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            float local_1[4];
-            for (size_t _ci7 = 0; _ci7 < (size_t) 4; _ci7++) {
-                local_1[_ci7] = (float) 0;
-            }
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 32);
             uint32_t __anf03_1 = i1;
@@ -18339,14 +17808,9 @@ __global__ static void kuiper_kernel_100(float *gA, float *gB, uint32_t k,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            float rAcol[16];
-            for (size_t _ci10 = 0; _ci10 < (size_t) 16; _ci10++) {
-                rAcol[_ci10] = (float) 0;
-            }
-            float rBrow[8];
-            for (size_t _ci11 = 0; _ci11 < (size_t) 8; _ci11++) {
-                rBrow[_ci11] = (float) 0;
-            }
+            float rAcol[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -18614,7 +18078,7 @@ __global__ static void kuiper_kernel_102(float *gA, float *gB, uint32_t k,
     uint32_t rest = (bid / 1);
     float rchProd[256];
     for (size_t _ci1 = 0; _ci1 < (size_t) 256; _ci1++) {
-        rchProd[_ci1] = (float) 0;
+        rchProd[_ci1] = 0.0f;
     }
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 32);
@@ -18630,10 +18094,7 @@ __global__ static void kuiper_kernel_102(float *gA, float *gB, uint32_t k,
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            float local[4];
-            for (size_t _ci4 = 0; _ci4 < (size_t) 4; _ci4++) {
-                local[_ci4] = (float) 0;
-            }
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -18662,10 +18123,7 @@ __global__ static void kuiper_kernel_102(float *gA, float *gB, uint32_t k,
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            float local_1[4];
-            for (size_t _ci7 = 0; _ci7 < (size_t) 4; _ci7++) {
-                local_1[_ci7] = (float) 0;
-            }
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 32);
             uint32_t __anf03_1 = i1;
@@ -18692,14 +18150,10 @@ __global__ static void kuiper_kernel_102(float *gA, float *gB, uint32_t k,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            float rAcol[16];
-            for (size_t _ci10 = 0; _ci10 < (size_t) 16; _ci10++) {
-                rAcol[_ci10] = (float) 0;
-            }
-            float rBrow[16];
-            for (size_t _ci11 = 0; _ci11 < (size_t) 16; _ci11++) {
-                rBrow[_ci11] = (float) 0;
-            }
+            float rAcol[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -18970,10 +18424,12 @@ __global__ static void kuiper_kernel_104(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float rchProd[64];
-    for (size_t _ci1 = 0; _ci1 < (size_t) 64; _ci1++) {
-        rchProd[_ci1] = (float) 0;
-    }
+    float rchProd[64] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 32);
     uint32_t mrow = (rest / num_n_tiles);
@@ -18988,10 +18444,7 @@ __global__ static void kuiper_kernel_104(float *gA, float *gB, uint32_t k,
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            float local[4];
-            for (size_t _ci4 = 0; _ci4 < (size_t) 4; _ci4++) {
-                local[_ci4] = (float) 0;
-            }
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -19020,10 +18473,7 @@ __global__ static void kuiper_kernel_104(float *gA, float *gB, uint32_t k,
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            float local_1[4];
-            for (size_t _ci7 = 0; _ci7 < (size_t) 4; _ci7++) {
-                local_1[_ci7] = (float) 0;
-            }
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 32);
             uint32_t __anf03_1 = i1;
@@ -19050,14 +18500,8 @@ __global__ static void kuiper_kernel_104(float *gA, float *gB, uint32_t k,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            float rAcol[8];
-            for (size_t _ci10 = 0; _ci10 < (size_t) 8; _ci10++) {
-                rAcol[_ci10] = (float) 0;
-            }
-            float rBrow[8];
-            for (size_t _ci11 = 0; _ci11 < (size_t) 8; _ci11++) {
-                rBrow[_ci11] = (float) 0;
-            }
+            float rAcol[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -19338,7 +18782,7 @@ __global__ static void kuiper_kernel_106(float *gA, float *gB, uint32_t k,
     uint32_t rest = (bid / 1);
     float rchProd[128];
     for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
-        rchProd[_ci1] = (float) 0;
+        rchProd[_ci1] = 0.0f;
     }
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 32);
@@ -19354,10 +18798,7 @@ __global__ static void kuiper_kernel_106(float *gA, float *gB, uint32_t k,
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            float local[4];
-            for (size_t _ci4 = 0; _ci4 < (size_t) 4; _ci4++) {
-                local[_ci4] = (float) 0;
-            }
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -19386,10 +18827,7 @@ __global__ static void kuiper_kernel_106(float *gA, float *gB, uint32_t k,
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            float local_1[4];
-            for (size_t _ci7 = 0; _ci7 < (size_t) 4; _ci7++) {
-                local_1[_ci7] = (float) 0;
-            }
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 32);
             uint32_t __anf03_1 = i1;
@@ -19416,14 +18854,9 @@ __global__ static void kuiper_kernel_106(float *gA, float *gB, uint32_t k,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            float rAcol[8];
-            for (size_t _ci10 = 0; _ci10 < (size_t) 8; _ci10++) {
-                rAcol[_ci10] = (float) 0;
-            }
-            float rBrow[16];
-            for (size_t _ci11 = 0; _ci11 < (size_t) 16; _ci11++) {
-                rBrow[_ci11] = (float) 0;
-            }
+            float rAcol[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -19691,7 +19124,7 @@ __global__ static void kuiper_kernel_108(float *gA, float *gB, uint32_t k,
     uint32_t rest = (bid / 1);
     float rchProd[128];
     for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
-        rchProd[_ci1] = (float) 0;
+        rchProd[_ci1] = 0.0f;
     }
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 32);
@@ -19707,10 +19140,7 @@ __global__ static void kuiper_kernel_108(float *gA, float *gB, uint32_t k,
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            float local[4];
-            for (size_t _ci4 = 0; _ci4 < (size_t) 4; _ci4++) {
-                local[_ci4] = (float) 0;
-            }
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -19739,10 +19169,7 @@ __global__ static void kuiper_kernel_108(float *gA, float *gB, uint32_t k,
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            float local_1[4];
-            for (size_t _ci7 = 0; _ci7 < (size_t) 4; _ci7++) {
-                local_1[_ci7] = (float) 0;
-            }
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 32);
             uint32_t __anf03_1 = i1;
@@ -19769,14 +19196,9 @@ __global__ static void kuiper_kernel_108(float *gA, float *gB, uint32_t k,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            float rAcol[16];
-            for (size_t _ci10 = 0; _ci10 < (size_t) 16; _ci10++) {
-                rAcol[_ci10] = (float) 0;
-            }
-            float rBrow[8];
-            for (size_t _ci11 = 0; _ci11 < (size_t) 8; _ci11++) {
-                rBrow[_ci11] = (float) 0;
-            }
+            float rAcol[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -20044,7 +19466,7 @@ __global__ static void kuiper_kernel_110(float *gA, float *gB, uint32_t k,
     uint32_t rest = (bid / 1);
     float rchProd[256];
     for (size_t _ci1 = 0; _ci1 < (size_t) 256; _ci1++) {
-        rchProd[_ci1] = (float) 0;
+        rchProd[_ci1] = 0.0f;
     }
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 32);
@@ -20060,10 +19482,7 @@ __global__ static void kuiper_kernel_110(float *gA, float *gB, uint32_t k,
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            float local[4];
-            for (size_t _ci4 = 0; _ci4 < (size_t) 4; _ci4++) {
-                local[_ci4] = (float) 0;
-            }
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -20092,10 +19511,7 @@ __global__ static void kuiper_kernel_110(float *gA, float *gB, uint32_t k,
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            float local_1[4];
-            for (size_t _ci7 = 0; _ci7 < (size_t) 4; _ci7++) {
-                local_1[_ci7] = (float) 0;
-            }
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 32);
             uint32_t __anf03_1 = i1;
@@ -20122,14 +19538,10 @@ __global__ static void kuiper_kernel_110(float *gA, float *gB, uint32_t k,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            float rAcol[16];
-            for (size_t _ci10 = 0; _ci10 < (size_t) 16; _ci10++) {
-                rAcol[_ci10] = (float) 0;
-            }
-            float rBrow[16];
-            for (size_t _ci11 = 0; _ci11 < (size_t) 16; _ci11++) {
-                rBrow[_ci11] = (float) 0;
-            }
+            float rAcol[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -20400,10 +19812,12 @@ __global__ static void kuiper_kernel_112(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float rchProd[64];
-    for (size_t _ci1 = 0; _ci1 < (size_t) 64; _ci1++) {
-        rchProd[_ci1] = (float) 0;
-    }
+    float rchProd[64] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 64);
     uint32_t mrow = (rest / num_n_tiles);
@@ -20418,10 +19832,7 @@ __global__ static void kuiper_kernel_112(float *gA, float *gB, uint32_t k,
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            float local[4];
-            for (size_t _ci4 = 0; _ci4 < (size_t) 4; _ci4++) {
-                local[_ci4] = (float) 0;
-            }
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -20450,10 +19861,7 @@ __global__ static void kuiper_kernel_112(float *gA, float *gB, uint32_t k,
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            float local_1[4];
-            for (size_t _ci7 = 0; _ci7 < (size_t) 4; _ci7++) {
-                local_1[_ci7] = (float) 0;
-            }
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 64);
             uint32_t __anf03_1 = i1;
@@ -20480,14 +19888,8 @@ __global__ static void kuiper_kernel_112(float *gA, float *gB, uint32_t k,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            float rAcol[8];
-            for (size_t _ci10 = 0; _ci10 < (size_t) 8; _ci10++) {
-                rAcol[_ci10] = (float) 0;
-            }
-            float rBrow[8];
-            for (size_t _ci11 = 0; _ci11 < (size_t) 8; _ci11++) {
-                rBrow[_ci11] = (float) 0;
-            }
+            float rAcol[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -20768,7 +20170,7 @@ __global__ static void kuiper_kernel_114(float *gA, float *gB, uint32_t k,
     uint32_t rest = (bid / 1);
     float rchProd[128];
     for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
-        rchProd[_ci1] = (float) 0;
+        rchProd[_ci1] = 0.0f;
     }
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 64);
@@ -20784,10 +20186,7 @@ __global__ static void kuiper_kernel_114(float *gA, float *gB, uint32_t k,
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            float local[4];
-            for (size_t _ci4 = 0; _ci4 < (size_t) 4; _ci4++) {
-                local[_ci4] = (float) 0;
-            }
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -20816,10 +20215,7 @@ __global__ static void kuiper_kernel_114(float *gA, float *gB, uint32_t k,
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            float local_1[4];
-            for (size_t _ci7 = 0; _ci7 < (size_t) 4; _ci7++) {
-                local_1[_ci7] = (float) 0;
-            }
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 64);
             uint32_t __anf03_1 = i1;
@@ -20846,14 +20242,9 @@ __global__ static void kuiper_kernel_114(float *gA, float *gB, uint32_t k,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            float rAcol[8];
-            for (size_t _ci10 = 0; _ci10 < (size_t) 8; _ci10++) {
-                rAcol[_ci10] = (float) 0;
-            }
-            float rBrow[16];
-            for (size_t _ci11 = 0; _ci11 < (size_t) 16; _ci11++) {
-                rBrow[_ci11] = (float) 0;
-            }
+            float rAcol[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -21121,7 +20512,7 @@ __global__ static void kuiper_kernel_116(float *gA, float *gB, uint32_t k,
     uint32_t rest = (bid / 1);
     float rchProd[128];
     for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
-        rchProd[_ci1] = (float) 0;
+        rchProd[_ci1] = 0.0f;
     }
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 64);
@@ -21137,10 +20528,7 @@ __global__ static void kuiper_kernel_116(float *gA, float *gB, uint32_t k,
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            float local[4];
-            for (size_t _ci4 = 0; _ci4 < (size_t) 4; _ci4++) {
-                local[_ci4] = (float) 0;
-            }
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -21169,10 +20557,7 @@ __global__ static void kuiper_kernel_116(float *gA, float *gB, uint32_t k,
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            float local_1[4];
-            for (size_t _ci7 = 0; _ci7 < (size_t) 4; _ci7++) {
-                local_1[_ci7] = (float) 0;
-            }
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 64);
             uint32_t __anf03_1 = i1;
@@ -21199,14 +20584,9 @@ __global__ static void kuiper_kernel_116(float *gA, float *gB, uint32_t k,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            float rAcol[16];
-            for (size_t _ci10 = 0; _ci10 < (size_t) 16; _ci10++) {
-                rAcol[_ci10] = (float) 0;
-            }
-            float rBrow[8];
-            for (size_t _ci11 = 0; _ci11 < (size_t) 8; _ci11++) {
-                rBrow[_ci11] = (float) 0;
-            }
+            float rAcol[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -21474,7 +20854,7 @@ __global__ static void kuiper_kernel_118(float *gA, float *gB, uint32_t k,
     uint32_t rest = (bid / 1);
     float rchProd[256];
     for (size_t _ci1 = 0; _ci1 < (size_t) 256; _ci1++) {
-        rchProd[_ci1] = (float) 0;
+        rchProd[_ci1] = 0.0f;
     }
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 64);
@@ -21490,10 +20870,7 @@ __global__ static void kuiper_kernel_118(float *gA, float *gB, uint32_t k,
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            float local[4];
-            for (size_t _ci4 = 0; _ci4 < (size_t) 4; _ci4++) {
-                local[_ci4] = (float) 0;
-            }
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -21522,10 +20899,7 @@ __global__ static void kuiper_kernel_118(float *gA, float *gB, uint32_t k,
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            float local_1[4];
-            for (size_t _ci7 = 0; _ci7 < (size_t) 4; _ci7++) {
-                local_1[_ci7] = (float) 0;
-            }
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 64);
             uint32_t __anf03_1 = i1;
@@ -21552,14 +20926,10 @@ __global__ static void kuiper_kernel_118(float *gA, float *gB, uint32_t k,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            float rAcol[16];
-            for (size_t _ci10 = 0; _ci10 < (size_t) 16; _ci10++) {
-                rAcol[_ci10] = (float) 0;
-            }
-            float rBrow[16];
-            for (size_t _ci11 = 0; _ci11 < (size_t) 16; _ci11++) {
-                rBrow[_ci11] = (float) 0;
-            }
+            float rAcol[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -21830,10 +21200,12 @@ __global__ static void kuiper_kernel_120(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float rchProd[64];
-    for (size_t _ci1 = 0; _ci1 < (size_t) 64; _ci1++) {
-        rchProd[_ci1] = (float) 0;
-    }
+    float rchProd[64] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 64);
     uint32_t mrow = (rest / num_n_tiles);
@@ -21848,10 +21220,7 @@ __global__ static void kuiper_kernel_120(float *gA, float *gB, uint32_t k,
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            float local[4];
-            for (size_t _ci4 = 0; _ci4 < (size_t) 4; _ci4++) {
-                local[_ci4] = (float) 0;
-            }
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -21880,10 +21249,7 @@ __global__ static void kuiper_kernel_120(float *gA, float *gB, uint32_t k,
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            float local_1[4];
-            for (size_t _ci7 = 0; _ci7 < (size_t) 4; _ci7++) {
-                local_1[_ci7] = (float) 0;
-            }
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 64);
             uint32_t __anf03_1 = i1;
@@ -21910,14 +21276,8 @@ __global__ static void kuiper_kernel_120(float *gA, float *gB, uint32_t k,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            float rAcol[8];
-            for (size_t _ci10 = 0; _ci10 < (size_t) 8; _ci10++) {
-                rAcol[_ci10] = (float) 0;
-            }
-            float rBrow[8];
-            for (size_t _ci11 = 0; _ci11 < (size_t) 8; _ci11++) {
-                rBrow[_ci11] = (float) 0;
-            }
+            float rAcol[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -22198,7 +21558,7 @@ __global__ static void kuiper_kernel_122(float *gA, float *gB, uint32_t k,
     uint32_t rest = (bid / 1);
     float rchProd[128];
     for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
-        rchProd[_ci1] = (float) 0;
+        rchProd[_ci1] = 0.0f;
     }
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 64);
@@ -22214,10 +21574,7 @@ __global__ static void kuiper_kernel_122(float *gA, float *gB, uint32_t k,
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            float local[4];
-            for (size_t _ci4 = 0; _ci4 < (size_t) 4; _ci4++) {
-                local[_ci4] = (float) 0;
-            }
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -22246,10 +21603,7 @@ __global__ static void kuiper_kernel_122(float *gA, float *gB, uint32_t k,
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            float local_1[4];
-            for (size_t _ci7 = 0; _ci7 < (size_t) 4; _ci7++) {
-                local_1[_ci7] = (float) 0;
-            }
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 64);
             uint32_t __anf03_1 = i1;
@@ -22276,14 +21630,9 @@ __global__ static void kuiper_kernel_122(float *gA, float *gB, uint32_t k,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            float rAcol[8];
-            for (size_t _ci10 = 0; _ci10 < (size_t) 8; _ci10++) {
-                rAcol[_ci10] = (float) 0;
-            }
-            float rBrow[16];
-            for (size_t _ci11 = 0; _ci11 < (size_t) 16; _ci11++) {
-                rBrow[_ci11] = (float) 0;
-            }
+            float rAcol[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -22551,7 +21900,7 @@ __global__ static void kuiper_kernel_124(float *gA, float *gB, uint32_t k,
     uint32_t rest = (bid / 1);
     float rchProd[128];
     for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
-        rchProd[_ci1] = (float) 0;
+        rchProd[_ci1] = 0.0f;
     }
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 64);
@@ -22567,10 +21916,7 @@ __global__ static void kuiper_kernel_124(float *gA, float *gB, uint32_t k,
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            float local[4];
-            for (size_t _ci4 = 0; _ci4 < (size_t) 4; _ci4++) {
-                local[_ci4] = (float) 0;
-            }
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -22599,10 +21945,7 @@ __global__ static void kuiper_kernel_124(float *gA, float *gB, uint32_t k,
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            float local_1[4];
-            for (size_t _ci7 = 0; _ci7 < (size_t) 4; _ci7++) {
-                local_1[_ci7] = (float) 0;
-            }
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 64);
             uint32_t __anf03_1 = i1;
@@ -22629,14 +21972,9 @@ __global__ static void kuiper_kernel_124(float *gA, float *gB, uint32_t k,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            float rAcol[16];
-            for (size_t _ci10 = 0; _ci10 < (size_t) 16; _ci10++) {
-                rAcol[_ci10] = (float) 0;
-            }
-            float rBrow[8];
-            for (size_t _ci11 = 0; _ci11 < (size_t) 8; _ci11++) {
-                rBrow[_ci11] = (float) 0;
-            }
+            float rAcol[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -22904,7 +22242,7 @@ __global__ static void kuiper_kernel_126(float *gA, float *gB, uint32_t k,
     uint32_t rest = (bid / 1);
     float rchProd[256];
     for (size_t _ci1 = 0; _ci1 < (size_t) 256; _ci1++) {
-        rchProd[_ci1] = (float) 0;
+        rchProd[_ci1] = 0.0f;
     }
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 64);
@@ -22920,10 +22258,7 @@ __global__ static void kuiper_kernel_126(float *gA, float *gB, uint32_t k,
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            float local[4];
-            for (size_t _ci4 = 0; _ci4 < (size_t) 4; _ci4++) {
-                local[_ci4] = (float) 0;
-            }
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -22952,10 +22287,7 @@ __global__ static void kuiper_kernel_126(float *gA, float *gB, uint32_t k,
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            float local_1[4];
-            for (size_t _ci7 = 0; _ci7 < (size_t) 4; _ci7++) {
-                local_1[_ci7] = (float) 0;
-            }
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 64);
             uint32_t __anf03_1 = i1;
@@ -22982,14 +22314,10 @@ __global__ static void kuiper_kernel_126(float *gA, float *gB, uint32_t k,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            float rAcol[16];
-            for (size_t _ci10 = 0; _ci10 < (size_t) 16; _ci10++) {
-                rAcol[_ci10] = (float) 0;
-            }
-            float rBrow[16];
-            for (size_t _ci11 = 0; _ci11 < (size_t) 16; _ci11++) {
-                rBrow[_ci11] = (float) 0;
-            }
+            float rAcol[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -23260,10 +22588,12 @@ __global__ static void kuiper_kernel_128(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float rchProd[64];
-    for (size_t _ci1 = 0; _ci1 < (size_t) 64; _ci1++) {
-        rchProd[_ci1] = (float) 0;
-    }
+    float rchProd[64] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 128);
     uint32_t mrow = (rest / num_n_tiles);
@@ -23278,10 +22608,7 @@ __global__ static void kuiper_kernel_128(float *gA, float *gB, uint32_t k,
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            float local[4];
-            for (size_t _ci4 = 0; _ci4 < (size_t) 4; _ci4++) {
-                local[_ci4] = (float) 0;
-            }
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -23310,10 +22637,7 @@ __global__ static void kuiper_kernel_128(float *gA, float *gB, uint32_t k,
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            float local_1[4];
-            for (size_t _ci7 = 0; _ci7 < (size_t) 4; _ci7++) {
-                local_1[_ci7] = (float) 0;
-            }
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 128);
             uint32_t __anf03_1 = i1;
@@ -23340,14 +22664,8 @@ __global__ static void kuiper_kernel_128(float *gA, float *gB, uint32_t k,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            float rAcol[8];
-            for (size_t _ci10 = 0; _ci10 < (size_t) 8; _ci10++) {
-                rAcol[_ci10] = (float) 0;
-            }
-            float rBrow[8];
-            for (size_t _ci11 = 0; _ci11 < (size_t) 8; _ci11++) {
-                rBrow[_ci11] = (float) 0;
-            }
+            float rAcol[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -23628,7 +22946,7 @@ __global__ static void kuiper_kernel_130(float *gA, float *gB, uint32_t k,
     uint32_t rest = (bid / 1);
     float rchProd[128];
     for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
-        rchProd[_ci1] = (float) 0;
+        rchProd[_ci1] = 0.0f;
     }
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 128);
@@ -23644,10 +22962,7 @@ __global__ static void kuiper_kernel_130(float *gA, float *gB, uint32_t k,
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            float local[4];
-            for (size_t _ci4 = 0; _ci4 < (size_t) 4; _ci4++) {
-                local[_ci4] = (float) 0;
-            }
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -23676,10 +22991,7 @@ __global__ static void kuiper_kernel_130(float *gA, float *gB, uint32_t k,
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            float local_1[4];
-            for (size_t _ci7 = 0; _ci7 < (size_t) 4; _ci7++) {
-                local_1[_ci7] = (float) 0;
-            }
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 128);
             uint32_t __anf03_1 = i1;
@@ -23706,14 +23018,9 @@ __global__ static void kuiper_kernel_130(float *gA, float *gB, uint32_t k,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            float rAcol[8];
-            for (size_t _ci10 = 0; _ci10 < (size_t) 8; _ci10++) {
-                rAcol[_ci10] = (float) 0;
-            }
-            float rBrow[16];
-            for (size_t _ci11 = 0; _ci11 < (size_t) 16; _ci11++) {
-                rBrow[_ci11] = (float) 0;
-            }
+            float rAcol[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -23981,7 +23288,7 @@ __global__ static void kuiper_kernel_132(float *gA, float *gB, uint32_t k,
     uint32_t rest = (bid / 1);
     float rchProd[128];
     for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
-        rchProd[_ci1] = (float) 0;
+        rchProd[_ci1] = 0.0f;
     }
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 128);
@@ -23997,10 +23304,7 @@ __global__ static void kuiper_kernel_132(float *gA, float *gB, uint32_t k,
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            float local[4];
-            for (size_t _ci4 = 0; _ci4 < (size_t) 4; _ci4++) {
-                local[_ci4] = (float) 0;
-            }
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -24029,10 +23333,7 @@ __global__ static void kuiper_kernel_132(float *gA, float *gB, uint32_t k,
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            float local_1[4];
-            for (size_t _ci7 = 0; _ci7 < (size_t) 4; _ci7++) {
-                local_1[_ci7] = (float) 0;
-            }
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 128);
             uint32_t __anf03_1 = i1;
@@ -24059,14 +23360,9 @@ __global__ static void kuiper_kernel_132(float *gA, float *gB, uint32_t k,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            float rAcol[16];
-            for (size_t _ci10 = 0; _ci10 < (size_t) 16; _ci10++) {
-                rAcol[_ci10] = (float) 0;
-            }
-            float rBrow[8];
-            for (size_t _ci11 = 0; _ci11 < (size_t) 8; _ci11++) {
-                rBrow[_ci11] = (float) 0;
-            }
+            float rAcol[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -24334,7 +23630,7 @@ __global__ static void kuiper_kernel_134(float *gA, float *gB, uint32_t k,
     uint32_t rest = (bid / 1);
     float rchProd[256];
     for (size_t _ci1 = 0; _ci1 < (size_t) 256; _ci1++) {
-        rchProd[_ci1] = (float) 0;
+        rchProd[_ci1] = 0.0f;
     }
     uint32_t num_k_tiles = (k / 32);
     uint32_t num_n_tiles = (n / 128);
@@ -24350,10 +23646,7 @@ __global__ static void kuiper_kernel_134(float *gA, float *gB, uint32_t k,
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            float local[4];
-            for (size_t _ci4 = 0; _ci4 < (size_t) 4; _ci4++) {
-                local[_ci4] = (float) 0;
-            }
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 32);
             uint32_t __anf02 = i;
@@ -24382,10 +23675,7 @@ __global__ static void kuiper_kernel_134(float *gA, float *gB, uint32_t k,
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            float local_1[4];
-            for (size_t _ci7 = 0; _ci7 < (size_t) 4; _ci7++) {
-                local_1[_ci7] = (float) 0;
-            }
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 128);
             uint32_t __anf03_1 = i1;
@@ -24412,14 +23702,10 @@ __global__ static void kuiper_kernel_134(float *gA, float *gB, uint32_t k,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 32) {
-            float rAcol[16];
-            for (size_t _ci10 = 0; _ci10 < (size_t) 16; _ci10++) {
-                rAcol[_ci10] = (float) 0;
-            }
-            float rBrow[16];
-            for (size_t _ci11 = 0; _ci11 < (size_t) 16; _ci11++) {
-                rBrow[_ci11] = (float) 0;
-            }
+            float rAcol[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -24690,10 +23976,12 @@ __global__ static void kuiper_kernel_136(float *gA, float *gB, uint32_t k,
     uint32_t tid = threadIdx.x;
     uint32_t page = (bid % 1);
     uint32_t rest = (bid / 1);
-    float rchProd[64];
-    for (size_t _ci1 = 0; _ci1 < (size_t) 64; _ci1++) {
-        rchProd[_ci1] = (float) 0;
-    }
+    float rchProd[64] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 128);
     uint32_t mrow = (rest / num_n_tiles);
@@ -24708,10 +23996,7 @@ __global__ static void kuiper_kernel_136(float *gA, float *gB, uint32_t k,
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            float local[4];
-            for (size_t _ci4 = 0; _ci4 < (size_t) 4; _ci4++) {
-                local[_ci4] = (float) 0;
-            }
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -24740,10 +24025,7 @@ __global__ static void kuiper_kernel_136(float *gA, float *gB, uint32_t k,
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            float local_1[4];
-            for (size_t _ci7 = 0; _ci7 < (size_t) 4; _ci7++) {
-                local_1[_ci7] = (float) 0;
-            }
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 128);
             uint32_t __anf03_1 = i1;
@@ -24770,14 +24052,8 @@ __global__ static void kuiper_kernel_136(float *gA, float *gB, uint32_t k,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            float rAcol[8];
-            for (size_t _ci10 = 0; _ci10 < (size_t) 8; _ci10++) {
-                rAcol[_ci10] = (float) 0;
-            }
-            float rBrow[8];
-            for (size_t _ci11 = 0; _ci11 < (size_t) 8; _ci11++) {
-                rBrow[_ci11] = (float) 0;
-            }
+            float rAcol[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -25058,7 +24334,7 @@ __global__ static void kuiper_kernel_138(float *gA, float *gB, uint32_t k,
     uint32_t rest = (bid / 1);
     float rchProd[128];
     for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
-        rchProd[_ci1] = (float) 0;
+        rchProd[_ci1] = 0.0f;
     }
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 128);
@@ -25074,10 +24350,7 @@ __global__ static void kuiper_kernel_138(float *gA, float *gB, uint32_t k,
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            float local[4];
-            for (size_t _ci4 = 0; _ci4 < (size_t) 4; _ci4++) {
-                local[_ci4] = (float) 0;
-            }
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -25106,10 +24379,7 @@ __global__ static void kuiper_kernel_138(float *gA, float *gB, uint32_t k,
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            float local_1[4];
-            for (size_t _ci7 = 0; _ci7 < (size_t) 4; _ci7++) {
-                local_1[_ci7] = (float) 0;
-            }
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 128);
             uint32_t __anf03_1 = i1;
@@ -25136,14 +24406,9 @@ __global__ static void kuiper_kernel_138(float *gA, float *gB, uint32_t k,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            float rAcol[8];
-            for (size_t _ci10 = 0; _ci10 < (size_t) 8; _ci10++) {
-                rAcol[_ci10] = (float) 0;
-            }
-            float rBrow[16];
-            for (size_t _ci11 = 0; _ci11 < (size_t) 16; _ci11++) {
-                rBrow[_ci11] = (float) 0;
-            }
+            float rAcol[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 8) {
                 uint32_t vj0r = j0;
@@ -25411,7 +24676,7 @@ __global__ static void kuiper_kernel_140(float *gA, float *gB, uint32_t k,
     uint32_t rest = (bid / 1);
     float rchProd[128];
     for (size_t _ci1 = 0; _ci1 < (size_t) 128; _ci1++) {
-        rchProd[_ci1] = (float) 0;
+        rchProd[_ci1] = 0.0f;
     }
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 128);
@@ -25427,10 +24692,7 @@ __global__ static void kuiper_kernel_140(float *gA, float *gB, uint32_t k,
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            float local[4];
-            for (size_t _ci4 = 0; _ci4 < (size_t) 4; _ci4++) {
-                local[_ci4] = (float) 0;
-            }
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -25459,10 +24721,7 @@ __global__ static void kuiper_kernel_140(float *gA, float *gB, uint32_t k,
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            float local_1[4];
-            for (size_t _ci7 = 0; _ci7 < (size_t) 4; _ci7++) {
-                local_1[_ci7] = (float) 0;
-            }
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 128);
             uint32_t __anf03_1 = i1;
@@ -25489,14 +24748,9 @@ __global__ static void kuiper_kernel_140(float *gA, float *gB, uint32_t k,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            float rAcol[16];
-            for (size_t _ci10 = 0; _ci10 < (size_t) 16; _ci10++) {
-                rAcol[_ci10] = (float) 0;
-            }
-            float rBrow[8];
-            for (size_t _ci11 = 0; _ci11 < (size_t) 8; _ci11++) {
-                rBrow[_ci11] = (float) 0;
-            }
+            float rAcol[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[8] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;
@@ -25764,7 +25018,7 @@ __global__ static void kuiper_kernel_142(float *gA, float *gB, uint32_t k,
     uint32_t rest = (bid / 1);
     float rchProd[256];
     for (size_t _ci1 = 0; _ci1 < (size_t) 256; _ci1++) {
-        rchProd[_ci1] = (float) 0;
+        rchProd[_ci1] = 0.0f;
     }
     uint32_t num_k_tiles = (k / 64);
     uint32_t num_n_tiles = (n / 128);
@@ -25780,10 +25034,7 @@ __global__ static void kuiper_kernel_142(float *gA, float *gB, uint32_t k,
         uint32_t offset = (tid * 4);
         uint32_t i = 0;
         while (i < mlen) {
-            float local[4];
-            for (size_t _ci4 = 0; _ci4 < (size_t) 4; _ci4++) {
-                local[_ci4] = (float) 0;
-            }
+            float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf01 = i;
             uint32_t row = ((__anf01 + offset) / 64);
             uint32_t __anf02 = i;
@@ -25812,10 +25063,7 @@ __global__ static void kuiper_kernel_142(float *gA, float *gB, uint32_t k,
         uint32_t offset1_1 = (tid * 4);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
-            float local_1[4];
-            for (size_t _ci7 = 0; _ci7 < (size_t) 4; _ci7++) {
-                local_1[_ci7] = (float) 0;
-            }
+            float local_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t __anf02_1 = i1;
             uint32_t row_1 = ((__anf02_1 + offset1_1) / 128);
             uint32_t __anf03_1 = i1;
@@ -25842,14 +25090,10 @@ __global__ static void kuiper_kernel_142(float *gA, float *gB, uint32_t k,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 64) {
-            float rAcol[16];
-            for (size_t _ci10 = 0; _ci10 < (size_t) 16; _ci10++) {
-                rAcol[_ci10] = (float) 0;
-            }
-            float rBrow[16];
-            for (size_t _ci11 = 0; _ci11 < (size_t) 16; _ci11++) {
-                rBrow[_ci11] = (float) 0;
-            }
+            float rAcol[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            float rBrow[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
             uint32_t j0 = 0;
             while (j0 < 16) {
                 uint32_t vj0r = j0;

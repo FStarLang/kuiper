@@ -70,7 +70,7 @@ uint64_t Klas_AtomicReduce_reduce_u64(uint32_t n, uint64_t *a)
 
 float Klas_AtomicReduce_reduce_f32(uint32_t n, float *a)
 {
-    float r = (float) 0;
+    float r = 0.0f;
     uint8_t *tmp = (uint8_t *) KPR_GPU_ALLOC(((uint32_t) 4U), ((uint32_t) 1U));
     float *gr = (float *) tmp;
     KPR_MEMCPY_H2D(gr, &r, ((uint32_t) 4U));
@@ -85,7 +85,7 @@ float Klas_AtomicReduce_reduce_f32(uint32_t n, float *a)
 
 double Klas_AtomicReduce_reduce_f64(uint32_t n, double *a)
 {
-    double r = (double) 0;
+    double r = 0.0;
     uint8_t *tmp = (uint8_t *) KPR_GPU_ALLOC(((uint32_t) 8U), ((uint32_t) 1U));
     double *gr = (double *) tmp;
     KPR_MEMCPY_H2D(gr, &r, ((uint32_t) 8U));

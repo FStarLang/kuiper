@@ -7,12 +7,12 @@ __global__ static void kuiper_kernel_0(float *gr);
 __global__ static void kuiper_kernel_0(float *gr)
 {
     float __anf0 = gr[0];
-    gr[0] = (__anf0 + (float) 1);
+    gr[0] = (__anf0 + 1.0f);
 }
 
 float Kuiper_Example_BasicFloat_main(void)
 {
-    float r = (float) 0;
+    float r = 0.0f;
     uint8_t *tmp1 = (uint8_t *) KPR_GPU_ALLOC(((uint32_t) 4U), ((uint32_t) 1U));
     float *gr = (float *) tmp1;
     KPR_MEMCPY_H2D(gr, &r, ((uint32_t) 4U));

@@ -43,19 +43,13 @@ bool Kuiper_Example_FloatEquality_bits_f32(float x, float eta)
 
 bool Kuiper_Example_FloatEquality_eq_f32(float x, float y) { return (x == y); }
 
-float Kuiper_Example_FloatEquality_mul_zero_f32(float x)
-{
-    return (x * (float) 0);
-}
+float Kuiper_Example_FloatEquality_mul_zero_f32(float x) { return (x * 0.0f); }
 
-float Kuiper_Example_FloatEquality_add_zero_f32(float x)
-{
-    return (x + (float) 0);
-}
+float Kuiper_Example_FloatEquality_add_zero_f32(float x) { return (x + 0.0f); }
 
 float Kuiper_Example_FloatEquality_reciprocal_f32(float x)
 {
-    return ((float) 1 / x);
+    return (1.0f / x);
 }
 
 bool Kuiper_Example_FloatEquality_ieee_f64(double x, double y)
@@ -73,17 +67,11 @@ bool Kuiper_Example_FloatEquality_eq_f64(double x, double y)
     return (x == y);
 }
 
-double Kuiper_Example_FloatEquality_mul_zero_f64(double x)
-{
-    return (x * (double) 0);
-}
+double Kuiper_Example_FloatEquality_mul_zero_f64(double x) { return (x * 0.0); }
 
-double Kuiper_Example_FloatEquality_add_zero_f64(double x)
-{
-    return (x + (double) 0);
-}
+double Kuiper_Example_FloatEquality_add_zero_f64(double x) { return (x + 0.0); }
 
 double Kuiper_Example_FloatEquality_reciprocal_f64(double x)
 {
-    return ((double) 1 / x);
+    return (1.0 / x);
 }

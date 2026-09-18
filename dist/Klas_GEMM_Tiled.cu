@@ -69,13 +69,13 @@ __global__ static void kuiper_kernel_0(uint32_t nn, uint32_t tile, uint32_t kk,
     uint32_t mcol = (rest % nn);
     uint32_t brow = (tid / tile);
     uint32_t bcol = (tid % tile);
-    float sum = (float) 0;
+    float sum = 0.0f;
     uint32_t bk = 0;
     while (bk < kk) {
         uint32_t __anf0 = bk;
         uint32_t __anf01 = bk;
         uint32_t k1 = 0;
-        float sum1 = (float) 0;
+        float sum1 = 0.0f;
         while (k1 < tile) {
             uint32_t vk = k1;
             float __anf2 = sum1;
@@ -109,13 +109,13 @@ __global__ static void kuiper_kernel_1(uint32_t nn, uint32_t tile, uint32_t kk,
     uint32_t mcol = (rest % nn);
     uint32_t brow = (tid / tile);
     uint32_t bcol = (tid % tile);
-    double sum = (double) 0;
+    double sum = 0.0;
     uint32_t bk = 0;
     while (bk < kk) {
         uint32_t __anf0 = bk;
         uint32_t __anf01 = bk;
         uint32_t k1 = 0;
-        double sum1 = (double) 0;
+        double sum1 = 0.0;
         while (k1 < tile) {
             uint32_t vk = k1;
             double __anf2 = sum1;
@@ -229,13 +229,13 @@ __global__ static void kuiper_kernel_4(uint32_t nn, uint32_t kk, float *gA,
     uint32_t mcol = (rest % nn);
     uint32_t brow = (tid / 32);
     uint32_t bcol = (tid % 32);
-    float sum = (float) 0;
+    float sum = 0.0f;
     uint32_t bk = 0;
     while (bk < kk) {
         uint32_t __anf0 = bk;
         uint32_t __anf01 = bk;
         uint32_t k1 = 0;
-        float sum1 = (float) 0;
+        float sum1 = 0.0f;
         while (k1 < 32) {
             uint32_t vk = k1;
             float __anf2 = sum1;
@@ -267,13 +267,13 @@ __global__ static void kuiper_kernel_5(uint32_t nn, uint32_t kk, double *gA,
     uint32_t mcol = (rest % nn);
     uint32_t brow = (tid / 32);
     uint32_t bcol = (tid % 32);
-    double sum = (double) 0;
+    double sum = 0.0;
     uint32_t bk = 0;
     while (bk < kk) {
         uint32_t __anf0 = bk;
         uint32_t __anf01 = bk;
         uint32_t k1 = 0;
-        double sum1 = (double) 0;
+        double sum1 = 0.0;
         while (k1 < 32) {
             uint32_t vk = k1;
             double __anf2 = sum1;
@@ -381,13 +381,13 @@ __global__ static void kuiper_kernel_8(uint32_t nn, uint32_t kk, float *gA,
     uint32_t mcol = (rest % nn);
     uint32_t brow = (tid / 16);
     uint32_t bcol = (tid % 16);
-    float sum = (float) 0;
+    float sum = 0.0f;
     uint32_t bk = 0;
     while (bk < kk) {
         uint32_t __anf0 = bk;
         uint32_t __anf01 = bk;
         uint32_t k1 = 0;
-        float sum1 = (float) 0;
+        float sum1 = 0.0f;
         while (k1 < 16) {
             uint32_t vk = k1;
             float __anf2 = sum1;
@@ -419,13 +419,13 @@ __global__ static void kuiper_kernel_9(uint32_t nn, uint32_t kk, double *gA,
     uint32_t mcol = (rest % nn);
     uint32_t brow = (tid / 16);
     uint32_t bcol = (tid % 16);
-    double sum = (double) 0;
+    double sum = 0.0;
     uint32_t bk = 0;
     while (bk < kk) {
         uint32_t __anf0 = bk;
         uint32_t __anf01 = bk;
         uint32_t k1 = 0;
-        double sum1 = (double) 0;
+        double sum1 = 0.0;
         while (k1 < 16) {
             uint32_t vk = k1;
             double __anf2 = sum1;
@@ -534,13 +534,13 @@ __global__ static void kuiper_kernel_12(uint32_t nn, uint32_t tile, uint32_t kk,
     uint32_t mcol = (rest % nn);
     uint32_t brow = (tid / tile);
     uint32_t bcol = (tid % tile);
-    float sum = (float) 0;
+    float sum = 0.0f;
     uint32_t bk = 0;
     while (bk < kk) {
         uint32_t __anf0 = bk;
         uint32_t __anf01 = bk;
         uint32_t k1 = 0;
-        float sum1 = (float) 0;
+        float sum1 = 0.0f;
         while (k1 < tile) {
             uint32_t vk = k1;
             float __anf2 = sum1;
@@ -578,13 +578,13 @@ __global__ static void kuiper_kernel_13(uint32_t nn, uint32_t tile, uint32_t kk,
     uint32_t mcol = (rest % nn);
     uint32_t brow = (tid / tile);
     uint32_t bcol = (tid % tile);
-    double sum = (double) 0;
+    double sum = 0.0;
     uint32_t bk = 0;
     while (bk < kk) {
         uint32_t __anf0 = bk;
         uint32_t __anf01 = bk;
         uint32_t k1 = 0;
-        double sum1 = (double) 0;
+        double sum1 = 0.0;
         while (k1 < tile) {
             uint32_t vk = k1;
             double __anf2 = sum1;
@@ -709,13 +709,13 @@ __global__ static void kuiper_kernel_16(uint32_t nn, uint32_t kk, float *gA,
     uint32_t mcol = (rest % nn);
     uint32_t brow = (tid / 32);
     uint32_t bcol = (tid % 32);
-    float sum = (float) 0;
+    float sum = 0.0f;
     uint32_t bk = 0;
     while (bk < kk) {
         uint32_t __anf0 = bk;
         uint32_t __anf01 = bk;
         uint32_t k1 = 0;
-        float sum1 = (float) 0;
+        float sum1 = 0.0f;
         while (k1 < 32) {
             uint32_t vk = k1;
             float __anf2 = sum1;
@@ -750,13 +750,13 @@ __global__ static void kuiper_kernel_17(uint32_t nn, uint32_t kk, double *gA,
     uint32_t mcol = (rest % nn);
     uint32_t brow = (tid / 32);
     uint32_t bcol = (tid % 32);
-    double sum = (double) 0;
+    double sum = 0.0;
     uint32_t bk = 0;
     while (bk < kk) {
         uint32_t __anf0 = bk;
         uint32_t __anf01 = bk;
         uint32_t k1 = 0;
-        double sum1 = (double) 0;
+        double sum1 = 0.0;
         while (k1 < 32) {
             uint32_t vk = k1;
             double __anf2 = sum1;
@@ -875,13 +875,13 @@ __global__ static void kuiper_kernel_20(uint32_t nn, uint32_t kk, float *gA,
     uint32_t mcol = (rest % nn);
     uint32_t brow = (tid / 16);
     uint32_t bcol = (tid % 16);
-    float sum = (float) 0;
+    float sum = 0.0f;
     uint32_t bk = 0;
     while (bk < kk) {
         uint32_t __anf0 = bk;
         uint32_t __anf01 = bk;
         uint32_t k1 = 0;
-        float sum1 = (float) 0;
+        float sum1 = 0.0f;
         while (k1 < 16) {
             uint32_t vk = k1;
             float __anf2 = sum1;
@@ -916,13 +916,13 @@ __global__ static void kuiper_kernel_21(uint32_t nn, uint32_t kk, double *gA,
     uint32_t mcol = (rest % nn);
     uint32_t brow = (tid / 16);
     uint32_t bcol = (tid % 16);
-    double sum = (double) 0;
+    double sum = 0.0;
     uint32_t bk = 0;
     while (bk < kk) {
         uint32_t __anf0 = bk;
         uint32_t __anf01 = bk;
         uint32_t k1 = 0;
-        double sum1 = (double) 0;
+        double sum1 = 0.0;
         while (k1 < 16) {
             uint32_t vk = k1;
             double __anf2 = sum1;

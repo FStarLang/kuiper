@@ -395,7 +395,7 @@ __global__ static void kuiper_kernel_0(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, (float) 0);
+        wmma::fill_fragment(__anf1, 0.0f);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -676,7 +676,7 @@ __global__ static void kuiper_kernel_1(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, (float) 0);
+        wmma::fill_fragment(__anf1, 0.0f);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -942,7 +942,7 @@ __global__ static void kuiper_kernel_2(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, (float) 0);
+        wmma::fill_fragment(__anf1, 0.0f);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -1223,7 +1223,7 @@ __global__ static void kuiper_kernel_3(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, (float) 0);
+        wmma::fill_fragment(__anf1, 0.0f);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -1497,7 +1497,7 @@ __global__ static void kuiper_kernel_4(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, (float) 0);
+        wmma::fill_fragment(__anf1, 0.0f);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -1771,7 +1771,7 @@ __global__ static void kuiper_kernel_5(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, (float) 0);
+        wmma::fill_fragment(__anf1, 0.0f);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -2037,7 +2037,7 @@ __global__ static void kuiper_kernel_6(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, (float) 0);
+        wmma::fill_fragment(__anf1, 0.0f);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -2311,7 +2311,7 @@ __global__ static void kuiper_kernel_7(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, (float) 0);
+        wmma::fill_fragment(__anf1, 0.0f);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -2585,7 +2585,7 @@ __global__ static void kuiper_kernel_8(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, (float) 0);
+        wmma::fill_fragment(__anf1, 0.0f);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -2859,7 +2859,7 @@ __global__ static void kuiper_kernel_9(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, (float) 0);
+        wmma::fill_fragment(__anf1, 0.0f);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -3125,7 +3125,7 @@ __global__ static void kuiper_kernel_10(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, (float) 0);
+        wmma::fill_fragment(__anf1, 0.0f);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -3399,7 +3399,7 @@ __global__ static void kuiper_kernel_11(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, (float) 0);
+        wmma::fill_fragment(__anf1, 0.0f);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -3665,7 +3665,7 @@ __global__ static void kuiper_kernel_12(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, (float) 0);
+        wmma::fill_fragment(__anf1, 0.0f);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -3931,7 +3931,7 @@ __global__ static void kuiper_kernel_13(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, (float) 0);
+        wmma::fill_fragment(__anf1, 0.0f);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -4197,7 +4197,7 @@ __global__ static void kuiper_kernel_14(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, (float) 0);
+        wmma::fill_fragment(__anf1, 0.0f);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -4463,7 +4463,7 @@ __global__ static void kuiper_kernel_15(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, (float) 0);
+        wmma::fill_fragment(__anf1, 0.0f);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -4729,7 +4729,7 @@ __global__ static void kuiper_kernel_16(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, (float) 0);
+        wmma::fill_fragment(__anf1, 0.0f);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -5010,7 +5010,7 @@ __global__ static void kuiper_kernel_17(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, (float) 0);
+        wmma::fill_fragment(__anf1, 0.0f);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -5276,7 +5276,7 @@ __global__ static void kuiper_kernel_18(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, (float) 0);
+        wmma::fill_fragment(__anf1, 0.0f);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -5542,7 +5542,7 @@ __global__ static void kuiper_kernel_19(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, (float) 0);
+        wmma::fill_fragment(__anf1, 0.0f);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -5808,7 +5808,7 @@ __global__ static void kuiper_kernel_20(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, (float) 0);
+        wmma::fill_fragment(__anf1, 0.0f);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -6074,7 +6074,7 @@ __global__ static void kuiper_kernel_21(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, (float) 0);
+        wmma::fill_fragment(__anf1, 0.0f);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -6340,7 +6340,7 @@ __global__ static void kuiper_kernel_22(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, (float) 0);
+        wmma::fill_fragment(__anf1, 0.0f);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -6614,7 +6614,7 @@ __global__ static void kuiper_kernel_23(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, (float) 0);
+        wmma::fill_fragment(__anf1, 0.0f);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -6888,7 +6888,7 @@ __global__ static void kuiper_kernel_24(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, (float) 0);
+        wmma::fill_fragment(__anf1, 0.0f);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -7162,7 +7162,7 @@ __global__ static void kuiper_kernel_25(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, (float) 0);
+        wmma::fill_fragment(__anf1, 0.0f);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -7428,7 +7428,7 @@ __global__ static void kuiper_kernel_26(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, (float) 0);
+        wmma::fill_fragment(__anf1, 0.0f);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -7694,7 +7694,7 @@ __global__ static void kuiper_kernel_27(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, (float) 0);
+        wmma::fill_fragment(__anf1, 0.0f);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -7968,7 +7968,7 @@ __global__ static void kuiper_kernel_28(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, (float) 0);
+        wmma::fill_fragment(__anf1, 0.0f);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -8234,7 +8234,7 @@ __global__ static void kuiper_kernel_29(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, (float) 0);
+        wmma::fill_fragment(__anf1, 0.0f);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -8500,7 +8500,7 @@ __global__ static void kuiper_kernel_30(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, (float) 0);
+        wmma::fill_fragment(__anf1, 0.0f);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -8766,7 +8766,7 @@ __global__ static void kuiper_kernel_31(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, (float) 0);
+        wmma::fill_fragment(__anf1, 0.0f);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -9032,7 +9032,7 @@ __global__ static void kuiper_kernel_32(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, (float) 0);
+        wmma::fill_fragment(__anf1, 0.0f);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -9298,7 +9298,7 @@ __global__ static void kuiper_kernel_33(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, (float) 0);
+        wmma::fill_fragment(__anf1, 0.0f);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -9572,7 +9572,7 @@ __global__ static void kuiper_kernel_34(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, (float) 0);
+        wmma::fill_fragment(__anf1, 0.0f);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -9838,7 +9838,7 @@ __global__ static void kuiper_kernel_35(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, (float) 0);
+        wmma::fill_fragment(__anf1, 0.0f);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -10104,7 +10104,7 @@ __global__ static void kuiper_kernel_36(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, (float) 0);
+        wmma::fill_fragment(__anf1, 0.0f);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -10370,7 +10370,7 @@ __global__ static void kuiper_kernel_37(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, (float) 0);
+        wmma::fill_fragment(__anf1, 0.0f);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -10636,7 +10636,7 @@ __global__ static void kuiper_kernel_38(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, (float) 0);
+        wmma::fill_fragment(__anf1, 0.0f);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -10902,7 +10902,7 @@ __global__ static void kuiper_kernel_39(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, (float) 0);
+        wmma::fill_fragment(__anf1, 0.0f);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -11168,7 +11168,7 @@ __global__ static void kuiper_kernel_40(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, (float) 0);
+        wmma::fill_fragment(__anf1, 0.0f);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -11434,7 +11434,7 @@ __global__ static void kuiper_kernel_41(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, (float) 0);
+        wmma::fill_fragment(__anf1, 0.0f);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -11700,7 +11700,7 @@ __global__ static void kuiper_kernel_42(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, (float) 0);
+        wmma::fill_fragment(__anf1, 0.0f);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -11966,7 +11966,7 @@ __global__ static void kuiper_kernel_43(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, (float) 0);
+        wmma::fill_fragment(__anf1, 0.0f);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -12232,7 +12232,7 @@ __global__ static void kuiper_kernel_44(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, (float) 0);
+        wmma::fill_fragment(__anf1, 0.0f);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -12498,7 +12498,7 @@ __global__ static void kuiper_kernel_45(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, (float) 0);
+        wmma::fill_fragment(__anf1, 0.0f);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -12764,7 +12764,7 @@ __global__ static void kuiper_kernel_46(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, (float) 0);
+        wmma::fill_fragment(__anf1, 0.0f);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -13030,7 +13030,7 @@ __global__ static void kuiper_kernel_47(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, (float) 0);
+        wmma::fill_fragment(__anf1, 0.0f);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -13296,7 +13296,7 @@ __global__ static void kuiper_kernel_48(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, (float) 0);
+        wmma::fill_fragment(__anf1, 0.0f);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -13562,7 +13562,7 @@ __global__ static void kuiper_kernel_49(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, (float) 0);
+        wmma::fill_fragment(__anf1, 0.0f);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -13828,7 +13828,7 @@ __global__ static void kuiper_kernel_50(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, (float) 0);
+        wmma::fill_fragment(__anf1, 0.0f);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -14094,7 +14094,7 @@ __global__ static void kuiper_kernel_51(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, (float) 0);
+        wmma::fill_fragment(__anf1, 0.0f);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -14360,7 +14360,7 @@ __global__ static void kuiper_kernel_52(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, (float) 0);
+        wmma::fill_fragment(__anf1, 0.0f);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -14626,7 +14626,7 @@ __global__ static void kuiper_kernel_53(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, (float) 0);
+        wmma::fill_fragment(__anf1, 0.0f);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -14907,7 +14907,7 @@ __global__ static void kuiper_kernel_54(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, (float) 0);
+        wmma::fill_fragment(__anf1, 0.0f);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -15173,7 +15173,7 @@ __global__ static void kuiper_kernel_55(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, (float) 0);
+        wmma::fill_fragment(__anf1, 0.0f);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -15439,7 +15439,7 @@ __global__ static void kuiper_kernel_56(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, (float) 0);
+        wmma::fill_fragment(__anf1, 0.0f);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -15705,7 +15705,7 @@ __global__ static void kuiper_kernel_57(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, (float) 0);
+        wmma::fill_fragment(__anf1, 0.0f);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -15971,7 +15971,7 @@ __global__ static void kuiper_kernel_58(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, (float) 0);
+        wmma::fill_fragment(__anf1, 0.0f);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -16237,7 +16237,7 @@ __global__ static void kuiper_kernel_59(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, (float) 0);
+        wmma::fill_fragment(__anf1, 0.0f);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -16503,7 +16503,7 @@ __global__ static void kuiper_kernel_60(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, (float) 0);
+        wmma::fill_fragment(__anf1, 0.0f);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -16769,7 +16769,7 @@ __global__ static void kuiper_kernel_61(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, (float) 0);
+        wmma::fill_fragment(__anf1, 0.0f);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -17035,7 +17035,7 @@ __global__ static void kuiper_kernel_62(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, (float) 0);
+        wmma::fill_fragment(__anf1, 0.0f);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -17309,7 +17309,7 @@ __global__ static void kuiper_kernel_63(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, (float) 0);
+        wmma::fill_fragment(__anf1, 0.0f);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -17575,7 +17575,7 @@ __global__ static void kuiper_kernel_64(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, (float) 0);
+        wmma::fill_fragment(__anf1, 0.0f);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -17841,7 +17841,7 @@ __global__ static void kuiper_kernel_65(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, (float) 0);
+        wmma::fill_fragment(__anf1, 0.0f);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -18107,7 +18107,7 @@ __global__ static void kuiper_kernel_66(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, (float) 0);
+        wmma::fill_fragment(__anf1, 0.0f);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -18373,7 +18373,7 @@ __global__ static void kuiper_kernel_67(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, (float) 0);
+        wmma::fill_fragment(__anf1, 0.0f);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -18639,7 +18639,7 @@ __global__ static void kuiper_kernel_68(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, (float) 0);
+        wmma::fill_fragment(__anf1, 0.0f);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -18905,7 +18905,7 @@ __global__ static void kuiper_kernel_69(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, (float) 0);
+        wmma::fill_fragment(__anf1, 0.0f);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -19171,7 +19171,7 @@ __global__ static void kuiper_kernel_70(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, (float) 0);
+        wmma::fill_fragment(__anf1, 0.0f);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }
@@ -19437,7 +19437,7 @@ __global__ static void kuiper_kernel_71(uint32_t cols, uint32_t shared,
         uint32_t __anf0 = fi;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
             void> &__anf1 = accFrags[__anf0];
-        wmma::fill_fragment(__anf1, (float) 0);
+        wmma::fill_fragment(__anf1, 0.0f);
         uint32_t __anf01 = fi;
         fi = (__anf01 + 1);
     }

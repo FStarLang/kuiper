@@ -97,7 +97,7 @@ __global__ static void kuiper_kernel_2(
         (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {._1 = tmp1};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
-    float acc = (float) 0;
+    float acc = 0.0f;
     uint32_t idx = tid;
     while (idx < n) {
         uint32_t idx_raw = idx;
@@ -234,7 +234,7 @@ __global__ static void kuiper_kernel_6(
         (FStar_Pervasives_Native_tuple2__float64_ptr_unit) {._1 = tmp1};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
-    double acc = (double) 0;
+    double acc = 0.0;
     uint32_t idx = tid;
     while (idx < n) {
         uint32_t idx_raw = idx;

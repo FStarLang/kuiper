@@ -1,7 +1,7 @@
 [submodule "FStar"]
 	path = FStar
 	url = ../FStar
-	branch = kuiper
+	branch = master
 	depth = 1
 [submodule "bench/SGEMM_CUDA"]
 	path = bench/SGEMM_CUDA

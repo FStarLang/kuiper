@@ -16,18 +16,18 @@ custard_f16 Kuiper_Example_MathPrimitives_test_of_int_f16(int64_t x)
     return custard_f16_of_i64((int64_t) x);
 }
 
-float Kuiper_Example_MathPrimitives_test_zero_f32(void) { return (float) 0; }
+float Kuiper_Example_MathPrimitives_test_zero_f32(void) { return 0.0f; }
 
-float Kuiper_Example_MathPrimitives_test_one_f32(void) { return (float) 1; }
+float Kuiper_Example_MathPrimitives_test_one_f32(void) { return 1.0f; }
 
 float Kuiper_Example_MathPrimitives_test_of_int_f32(int64_t x)
 {
     return (float) x;
 }
 
-double Kuiper_Example_MathPrimitives_test_zero_f64(void) { return (double) 0; }
+double Kuiper_Example_MathPrimitives_test_zero_f64(void) { return 0.0; }
 
-double Kuiper_Example_MathPrimitives_test_one_f64(void) { return (double) 1; }
+double Kuiper_Example_MathPrimitives_test_one_f64(void) { return 1.0; }
 
 double Kuiper_Example_MathPrimitives_test_of_int_f64(int64_t x)
 {
