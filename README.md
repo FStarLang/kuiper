@@ -101,11 +101,16 @@ F\*/Karamel toolchain and re-verifying the whole library from scratch, seed it
 from a nightly package:
 
 ```bash
-./scripts/seed-from-nightly.sh              # download the latest nightly and seed
+./scripts/seed-from-nightly.sh -j$(nproc)   # seed from the latest nightly, then verify
 ./scripts/seed-from-nightly.sh --tarball kuiper-Linux-x86_64.tar.gz
 ./scripts/seed-from-nightly.sh --no-build   # seed only, don't run make
 ./scripts/seed-from-nightly.sh --help       # all options
 ```
+
+By default, the script runs `make verify` in parallel after seeding. Use
+`--target all` for a full build, or `--no-build` followed by `make
+-skj$(nproc)` to choose the build flags yourself. Seed before starting a build:
+the script replaces `inst/` and the extraction plugin.
 
 This copies the prebuilt toolchain (`inst/`), the extraction plugin, and the
 verified library (`obj/*.checked`) out of the package, marks the tree as
@@ -115,8 +120,9 @@ depends on them). Files matching the package are reused as-is, so a clean
 checkout verifies almost instantly.
 
 > The script leaves a `.packaged` marker behind; `make` will then treat the
-> bundled toolchain as prebuilt instead of rebuilding it from the submodules.
-> Remove it (`rm .packaged`) to go back to full from-source builds.
+> bundled toolchain and extraction plugin as prebuilt. Remove it
+> (`rm .packaged`) to go back to full from-source builds, including when
+> changing F\*, Karamel, or `extraction/`.
 
 ## Getting Started (from source)
 
@@ -173,6 +179,9 @@ opam install batteries zarith stdint yojson dune menhir menhirLib pprint sedlex 
 ```
 
 ### Building
+
+For a fresh checkout, consider [seeding from a nightly package](#seeding-a-source-checkout-from-a-package)
+to reuse verified build artifacts. The steps below build the toolchain from source.
 
 Kuiper includes F\* and Karamel as submodules. First, build them:
 
