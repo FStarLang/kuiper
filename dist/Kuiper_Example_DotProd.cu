@@ -11,7 +11,7 @@ float Kuiper_Example_DotProd_matmul_dotprod_via_slice_f32(uint32_t m,
 {
     KRML_MAYBE_UNUSED_VAR(m);
     uint32_t k1 = 0U;
-    float sum = 0.0f;
+    float sum = (float) 0LL;
     for (; k1 < k; k1++) {
         uint32_t vk = k1;
         sum += gA[i * k + vk] * gB[vk * n + j];

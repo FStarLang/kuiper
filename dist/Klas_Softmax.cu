@@ -178,7 +178,7 @@ __hoisted_softmax_gpu_n_f32_2(
     uint32_t nth, uint32_t lena, float *a_, float *sums)
 {
     float *sa = (float *) KPR_SHMEM_AT(0U);
-    float acc = 0.0f;
+    float acc = (float) 0LL;
     uint32_t idx = threadIdx.x;
     for (; idx < lena; idx += nth) {
         float v_ = expf(a_[idx]);
@@ -304,7 +304,7 @@ __hoisted_softmax_gpu_n_f64_2(
     uint32_t nth, uint32_t lena, double *a_, double *sums)
 {
     double *sa = (double *) KPR_SHMEM_AT(0U);
-    double acc = 0.0;
+    double acc = (double) 0LL;
     uint32_t idx = threadIdx.x;
     for (; idx < lena; idx += nth) {
         double v_ = exp(a_[idx]);
@@ -552,7 +552,7 @@ static void
 __hoisted_softmax_gpu_f32_2(uint32_t lena, float *a_, float *sums)
 {
     float *sa = (float *) KPR_SHMEM_AT(0U);
-    float acc = 0.0f;
+    float acc = (float) 0LL;
     uint32_t idx = threadIdx.x;
     for (; idx < lena; idx += 1024U) {
         float v_ = expf(a_[idx]);
@@ -674,7 +674,7 @@ static void
 __hoisted_softmax_gpu_f64_2(uint32_t lena, double *a_, double *sums)
 {
     double *sa = (double *) KPR_SHMEM_AT(0U);
-    double acc = 0.0;
+    double acc = (double) 0LL;
     uint32_t idx = threadIdx.x;
     for (; idx < lena; idx += 1024U) {
         double v_ = exp(a_[idx]);
@@ -927,7 +927,7 @@ static void
 __hoisted_softmax_n_f32_2(uint32_t nth, uint32_t lena, float *a_, float *sums)
 {
     float *sa = (float *) KPR_SHMEM_AT(0U);
-    float acc = 0.0f;
+    float acc = (float) 0LL;
     uint32_t idx = threadIdx.x;
     for (; idx < lena; idx += nth) {
         float v_ = expf(a_[idx]);
@@ -1058,7 +1058,7 @@ static void
 __hoisted_softmax_n_f64_2(uint32_t nth, uint32_t lena, double *a_, double *sums)
 {
     double *sa = (double *) KPR_SHMEM_AT(0U);
-    double acc = 0.0;
+    double acc = (double) 0LL;
     uint32_t idx = threadIdx.x;
     for (; idx < lena; idx += nth) {
         double v_ = exp(a_[idx]);
@@ -1316,7 +1316,7 @@ static void
 __hoisted_softmax_f32_2(uint32_t lena, float *a_, float *sums)
 {
     float *sa = (float *) KPR_SHMEM_AT(0U);
-    float acc = 0.0f;
+    float acc = (float) 0LL;
     uint32_t idx = threadIdx.x;
     for (; idx < lena; idx += 1024U) {
         float v_ = expf(a_[idx]);
@@ -1442,7 +1442,7 @@ static void
 __hoisted_softmax_f64_2(uint32_t lena, double *a_, double *sums)
 {
     double *sa = (double *) KPR_SHMEM_AT(0U);
-    double acc = 0.0;
+    double acc = (double) 0LL;
     uint32_t idx = threadIdx.x;
     for (; idx < lena; idx += 1024U) {
         double v_ = exp(a_[idx]);

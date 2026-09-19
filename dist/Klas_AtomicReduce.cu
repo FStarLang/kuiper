@@ -61,7 +61,7 @@ __hoisted_reduce_f32_0(float *a, float *gr)
 
 float Klas_AtomicReduce_reduce_f32(uint32_t n, float *a)
 {
-    float r = 0.0f;
+    float r = (float) 0LL;
     float *gr = (float *) KPR_GPU_ALLOC(sizeof(float), 1U);
     MUST(cudaMemcpy(gr, &r, sizeof(float), cudaMemcpyHostToDevice));
     cudaStream_t s = KPR_FRESH_STREAM();
@@ -85,7 +85,7 @@ __hoisted_reduce_f64_0(double *a, double *gr)
 
 double Klas_AtomicReduce_reduce_f64(uint32_t n, double *a)
 {
-    double r = 0.0;
+    double r = (double) 0LL;
     double *gr = (double *) KPR_GPU_ALLOC(sizeof(double), 1U);
     MUST(cudaMemcpy(gr, &r, sizeof(double), cudaMemcpyHostToDevice));
     cudaStream_t s = KPR_FRESH_STREAM();

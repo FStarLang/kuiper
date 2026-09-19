@@ -10,8 +10,8 @@ __hoisted__test_0(uint32_t len, float *a, float *b)
 {
     if (1024U * blockIdx.x + threadIdx.x < len) {
         uint32_t i = 0U;
-        float sum = 0.0f;
-        float max = 0.0f - INFINITY;
+        float sum = (float) 0LL;
+        float max = (float) 0LL - INFINITY;
         while (i < len) {
             float x = a[i];
             float max_ = fmaxf(max, x);
