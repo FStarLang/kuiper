@@ -1,7 +1,7 @@
 
 #include "Kuiper_Example_Stencil.h"
 
-__global__
+__global__ __launch_bounds__(1)
 /**
   hoisted when extracting stencil3x3_f32_add_rr
 */
@@ -10,15 +10,16 @@ __hoisted_stencil3x3_f32_add_rr_0(float *gIn, float *gOut, uint32_t cols_sub2)
 {
     uint32_t i = blockIdx.x / cols_sub2;
     uint32_t j = blockIdx.x % cols_sub2;
-    gOut[i * cols_sub2 + j] = gIn[i * (cols_sub2 + 2U) + j] * 1.0f +
-                              gIn[i * (cols_sub2 + 2U) + j + 1U] * 1.0f +
-                              gIn[i * (cols_sub2 + 2U) + j + 2U] * 1.0f +
-                              gIn[(i + 1U) * (cols_sub2 + 2U) + j] * 1.0f +
-                              gIn[(i + 1U) * (cols_sub2 + 2U) + j + 1U] * 1.0f +
-                              gIn[(i + 1U) * (cols_sub2 + 2U) + j + 2U] * 1.0f +
-                              gIn[(i + 2U) * (cols_sub2 + 2U) + j] * 1.0f +
-                              gIn[(i + 2U) * (cols_sub2 + 2U) + j + 1U] * 1.0f +
-                              gIn[(i + 2U) * (cols_sub2 + 2U) + j + 2U] * 1.0f;
+    gOut[i * cols_sub2 + j] =
+        gIn[i * (cols_sub2 + 2U) + j] * (float) 1LL +
+        gIn[i * (cols_sub2 + 2U) + j + 1U] * (float) 1LL +
+        gIn[i * (cols_sub2 + 2U) + j + 2U] * (float) 1LL +
+        gIn[(i + 1U) * (cols_sub2 + 2U) + j] * (float) 1LL +
+        gIn[(i + 1U) * (cols_sub2 + 2U) + j + 1U] * (float) 1LL +
+        gIn[(i + 1U) * (cols_sub2 + 2U) + j + 2U] * (float) 1LL +
+        gIn[(i + 2U) * (cols_sub2 + 2U) + j] * (float) 1LL +
+        gIn[(i + 2U) * (cols_sub2 + 2U) + j + 1U] * (float) 1LL +
+        gIn[(i + 2U) * (cols_sub2 + 2U) + j + 2U] * (float) 1LL;
 }
 
 void Kuiper_Example_Stencil_stencil3x3_f32_add_rr(
@@ -33,7 +34,7 @@ void Kuiper_Example_Stencil_stencil3x3_f32_add_rr(
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(1)
 /**
   hoisted when extracting stencil3x3_i32_add_mul2_rc
 */

@@ -1,7 +1,7 @@
 
 #include "Klas_AtomicReduce.h"
 
-__global__
+__global__ __launch_bounds__(1)
 /**
   hoisted when extracting reduce_u32
 */
@@ -25,7 +25,7 @@ uint32_t Klas_AtomicReduce_reduce_u32(uint32_t n, uint32_t *a)
     return r;
 }
 
-__global__
+__global__ __launch_bounds__(1)
 /**
   hoisted when extracting reduce_u64
 */
@@ -49,7 +49,7 @@ uint64_t Klas_AtomicReduce_reduce_u64(uint32_t n, uint64_t *a)
     return r;
 }
 
-__global__
+__global__ __launch_bounds__(1)
 /**
   hoisted when extracting reduce_f32
 */
@@ -61,7 +61,7 @@ __hoisted_reduce_f32_0(float *a, float *gr)
 
 float Klas_AtomicReduce_reduce_f32(uint32_t n, float *a)
 {
-    float r = 0.0f;
+    float r = (float) 0LL;
     float *gr = (float *) KPR_GPU_ALLOC(sizeof(float), 1U);
     MUST(cudaMemcpy(gr, &r, sizeof(float), cudaMemcpyHostToDevice));
     cudaStream_t s = KPR_FRESH_STREAM();
@@ -73,7 +73,7 @@ float Klas_AtomicReduce_reduce_f32(uint32_t n, float *a)
     return r;
 }
 
-__global__
+__global__ __launch_bounds__(1)
 /**
   hoisted when extracting reduce_f64
 */
@@ -85,7 +85,7 @@ __hoisted_reduce_f64_0(double *a, double *gr)
 
 double Klas_AtomicReduce_reduce_f64(uint32_t n, double *a)
 {
-    double r = 0.0;
+    double r = (double) 0LL;
     double *gr = (double *) KPR_GPU_ALLOC(sizeof(double), 1U);
     MUST(cudaMemcpy(gr, &r, sizeof(double), cudaMemcpyHostToDevice));
     cudaStream_t s = KPR_FRESH_STREAM();

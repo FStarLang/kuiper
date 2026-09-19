@@ -23,7 +23,7 @@ __device__ static uint16_t mult(uint16_t x, uint16_t y)
         return (uint32_t) x + (uint32_t) y;
 }
 
-__global__
+__global__ __launch_bounds__(1024)
 /**
   hoisted when extracting matmul_dist_gpu
 */

@@ -1,7 +1,7 @@
 
 #include "Klas_GEMM_BlockTiling1D.h"
 
-__global__
+__global__ __launch_bounds__(32)
 /**
   hoisted when extracting g_matmul_f32_tile32_rrr
 */
@@ -59,7 +59,7 @@ void Klas_GEMM_BlockTiling1D_g_matmul_f32_tile32_rrr(
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(32)
 /**
   hoisted when extracting g_matmul_f64_tile32_rrr
 */
@@ -117,7 +117,7 @@ void Klas_GEMM_BlockTiling1D_g_matmul_f64_tile32_rrr(
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(32)
 /**
   hoisted when extracting g_matmul_u32_tile32_rrr
 */
@@ -174,7 +174,7 @@ void Klas_GEMM_BlockTiling1D_g_matmul_u32_tile32_rrr(uint32_t m, uint32_t n,
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(32)
 /**
   hoisted when extracting g_matmul_u64_tile32_rrr
 */
@@ -231,7 +231,7 @@ void Klas_GEMM_BlockTiling1D_g_matmul_u64_tile32_rrr(uint32_t m, uint32_t n,
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(16)
 /**
   hoisted when extracting g_matmul_f32_tile16_rrr
 */
@@ -289,7 +289,7 @@ void Klas_GEMM_BlockTiling1D_g_matmul_f32_tile16_rrr(
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(16)
 /**
   hoisted when extracting g_matmul_f64_tile16_rrr
 */
@@ -347,7 +347,7 @@ void Klas_GEMM_BlockTiling1D_g_matmul_f64_tile16_rrr(
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(16)
 /**
   hoisted when extracting g_matmul_u32_tile16_rrr
 */
@@ -404,7 +404,7 @@ void Klas_GEMM_BlockTiling1D_g_matmul_u32_tile16_rrr(uint32_t m, uint32_t n,
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(16)
 /**
   hoisted when extracting g_matmul_u64_tile16_rrr
 */
@@ -461,7 +461,7 @@ void Klas_GEMM_BlockTiling1D_g_matmul_u64_tile16_rrr(uint32_t m, uint32_t n,
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(32)
 /**
   hoisted when extracting g_gemm_f32_tile32_rrr
 */
@@ -522,7 +522,7 @@ void Klas_GEMM_BlockTiling1D_g_gemm_f32_tile32_rrr(float alpha, float beta,
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(32)
 /**
   hoisted when extracting g_gemm_f64_tile32_rrr
 */
@@ -583,7 +583,7 @@ void Klas_GEMM_BlockTiling1D_g_gemm_f64_tile32_rrr(double alpha, double beta,
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(32)
 /**
   hoisted when extracting g_gemm_u32_tile32_rrr
 */
@@ -645,7 +645,7 @@ void Klas_GEMM_BlockTiling1D_g_gemm_u32_tile32_rrr(uint32_t alpha,
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(32)
 /**
   hoisted when extracting g_gemm_u64_tile32_rrr
 */
@@ -707,7 +707,7 @@ void Klas_GEMM_BlockTiling1D_g_gemm_u64_tile32_rrr(uint64_t alpha,
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(16)
 /**
   hoisted when extracting g_gemm_f32_tile16_rrr
 */
@@ -768,7 +768,7 @@ void Klas_GEMM_BlockTiling1D_g_gemm_f32_tile16_rrr(float alpha, float beta,
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(16)
 /**
   hoisted when extracting g_gemm_f64_tile16_rrr
 */
@@ -829,7 +829,7 @@ void Klas_GEMM_BlockTiling1D_g_gemm_f64_tile16_rrr(double alpha, double beta,
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(16)
 /**
   hoisted when extracting g_gemm_u32_tile16_rrr
 */
@@ -891,7 +891,7 @@ void Klas_GEMM_BlockTiling1D_g_gemm_u32_tile16_rrr(uint32_t alpha,
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(16)
 /**
   hoisted when extracting g_gemm_u64_tile16_rrr
 */

@@ -16,7 +16,7 @@ uint64_t Kuiper_Example_Async_Chain_gread(uint64_t *gr)
     return r;
 }
 
-__global__
+__global__ __launch_bounds__(1)
 /**
   hoisted when extracting main
 */
@@ -26,7 +26,7 @@ __hoisted_main_0(uint64_t *r)
     (*r)++;
 }
 
-__global__
+__global__ __launch_bounds__(1)
 /**
   hoisted when extracting main
 */
@@ -36,7 +36,7 @@ __hoisted_main_1(uint64_t *r)
     (*r)++;
 }
 
-__global__
+__global__ __launch_bounds__(1)
 /**
   hoisted when extracting main
 */

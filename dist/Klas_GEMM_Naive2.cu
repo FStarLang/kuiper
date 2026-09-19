@@ -1,7 +1,7 @@
 
 #include "Klas_GEMM_Naive2.h"
 
-__global__
+__global__ __launch_bounds__(1024)
 /**
   hoisted when extracting g_matmul_f32_rrr
 */
@@ -13,7 +13,7 @@ __hoisted_g_matmul_f32_rrr_0(
         uint32_t trow = (1024U * blockIdx.x + threadIdx.x) / n;
         uint32_t tcol = (1024U * blockIdx.x + threadIdx.x) % n;
         uint32_t k1 = 0U;
-        float sum = 0.0f;
+        float sum = (float) 0LL;
         for (; k1 < k; k1++) {
             uint32_t vk = k1;
             sum += gA[trow * k + vk] * gB[vk * n + tcol];
@@ -33,7 +33,7 @@ void Klas_GEMM_Naive2_g_matmul_f32_rrr(
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(1024)
 /**
   hoisted when extracting g_matmul_f64_rrr
 */
@@ -45,7 +45,7 @@ __hoisted_g_matmul_f64_rrr_0(
         uint32_t trow = (1024U * blockIdx.x + threadIdx.x) / n;
         uint32_t tcol = (1024U * blockIdx.x + threadIdx.x) % n;
         uint32_t k1 = 0U;
-        double sum = 0.0;
+        double sum = (double) 0LL;
         for (; k1 < k; k1++) {
             uint32_t vk = k1;
             sum += gA[trow * k + vk] * gB[vk * n + tcol];
@@ -65,7 +65,7 @@ void Klas_GEMM_Naive2_g_matmul_f64_rrr(
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(1024)
 /**
   hoisted when extracting g_matmul_u32_rrr
 */
@@ -97,7 +97,7 @@ void Klas_GEMM_Naive2_g_matmul_u32_rrr(uint32_t m, uint32_t n, uint32_t k,
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(1024)
 /**
   hoisted when extracting g_matmul_u64_rrr
 */
@@ -129,7 +129,7 @@ void Klas_GEMM_Naive2_g_matmul_u64_rrr(uint32_t m, uint32_t n, uint32_t k,
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(1024)
 /**
   hoisted when extracting g_matmul_f32_ccc
 */
@@ -141,7 +141,7 @@ __hoisted_g_matmul_f32_ccc_0(
         uint32_t trow = (1024U * blockIdx.x + threadIdx.x) / n;
         uint32_t tcol = (1024U * blockIdx.x + threadIdx.x) % n;
         uint32_t k1 = 0U;
-        float sum = 0.0f;
+        float sum = (float) 0LL;
         for (; k1 < k; k1++) {
             uint32_t vk = k1;
             sum += gA[vk * m + trow] * gB[tcol * k + vk];
@@ -161,7 +161,7 @@ void Klas_GEMM_Naive2_g_matmul_f32_ccc(
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(1024)
 /**
   hoisted when extracting g_matmul_f64_ccc
 */
@@ -173,7 +173,7 @@ __hoisted_g_matmul_f64_ccc_0(
         uint32_t trow = (1024U * blockIdx.x + threadIdx.x) / n;
         uint32_t tcol = (1024U * blockIdx.x + threadIdx.x) % n;
         uint32_t k1 = 0U;
-        double sum = 0.0;
+        double sum = (double) 0LL;
         for (; k1 < k; k1++) {
             uint32_t vk = k1;
             sum += gA[vk * m + trow] * gB[tcol * k + vk];
@@ -193,7 +193,7 @@ void Klas_GEMM_Naive2_g_matmul_f64_ccc(
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(1024)
 /**
   hoisted when extracting g_matmul_u32_ccc
 */
@@ -225,7 +225,7 @@ void Klas_GEMM_Naive2_g_matmul_u32_ccc(uint32_t m, uint32_t n, uint32_t k,
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(1024)
 /**
   hoisted when extracting g_matmul_u64_ccc
 */
@@ -257,7 +257,7 @@ void Klas_GEMM_Naive2_g_matmul_u64_ccc(uint32_t m, uint32_t n, uint32_t k,
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(1024)
 /**
   hoisted when extracting batched_matmul_f32
 */
@@ -271,7 +271,7 @@ __hoisted_batched_matmul_f32_0(uint32_t batch, uint32_t m, uint32_t n,
         uint32_t trow = rest / n;
         uint32_t tcol = rest % n;
         uint32_t k1 = 0U;
-        float sum = 0.0f;
+        float sum = (float) 0LL;
         for (; k1 < k; k1++) {
             uint32_t vk = k1;
             sum += a[page * m * k + trow * k + vk] *
@@ -292,7 +292,7 @@ void Klas_GEMM_Naive2_batched_matmul_f32(uint32_t batch, uint32_t m, uint32_t n,
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(1024)
 /**
   hoisted when extracting batched_gemm_f32
 */
@@ -306,7 +306,7 @@ __hoisted_batched_gemm_f32_0(float alpha, float beta, uint32_t batch,
         uint32_t trow = rest / n;
         uint32_t tcol = rest % n;
         uint32_t k1 = 0U;
-        float sum = 0.0f;
+        float sum = (float) 0LL;
         for (; k1 < k; k1++) {
             uint32_t vk = k1;
             sum += a[page * m * k + trow * k + vk] *

@@ -13,5 +13,6 @@ SpaceAfterCStyleCast: true
 PointerAlignment: Right
 AttributeMacros:
   - __global__
+  - __launch_bounds__
   - __device__
   - __host__

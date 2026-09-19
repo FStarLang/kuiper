@@ -247,7 +247,20 @@ let rec explode_fvs (g : env) (fvs : list (string & mlty)) (e : mlexpr) :
       let (rest_fvs, e', rest_args) = explode_fvs g rest e in
       ((v, t) :: rest_fvs, e', (with_ty t <| MLE_Var v) :: rest_args)
 
-let hoist (g : env) (e : mlexpr) : ML mlexpr =
+(* A launch bound is an upper limit, not a request for a minimum occupancy.
+   Only attach one when extraction knows the actual block size. In particular,
+   a runtime-sized launch must not inherit a bound from another instantiation.
+   Arithmetic expressions are deliberately left to the existing fallback. *)
+let kernel_qualifier (nthr : expr) : string =
+  match nthr with
+  | EConstant (UInt32, s) ->
+    (match FStarC.Util.safe_int_of_string s with
+     | Some n when 0 < n && n <= 1024 ->
+       "__global__ __launch_bounds__(" ^ string_of_int n ^ ")"
+     | _ -> "__global__")
+  | _ -> "__global__"
+
+let hoist (g : env) (nthr : expr) (e : mlexpr) : ML mlexpr =
   let e0 = e in
   // let e = remove_trailing_units e in // ???
   let e = eta e in
@@ -299,7 +312,7 @@ let hoist (g : env) (e : mlexpr) : ML mlexpr =
   let flags = [
     Krml.Comment ("  hoisted when extracting " ^ Option.dflt "<unknown>" !krml_current_decl);
     Krml.Private;
-    Krml.Prologue "__global__";
+    Krml.Prologue (kernel_qualifier nthr);
   ]
   in
   let decl = DFunction (None, flags, 0, translate_type (add_binders g0 bs) et, ([], fresh), kbs, lambda) in
@@ -431,7 +444,7 @@ let extract_kcall (cb : mlexpr -> ML expr) (env : Krml.env) (kdesc : mlexpr) (st
       let kf = apply_lam kf ml_unit in
       let kf = collapse_tuple_proj kf in
       let kf = collapse_tuple_matches kf in
-      let kf = hoist env kf in
+      let kf = hoist env (cb nthr) kf in
       let hd, rest_args = head_and_args kf in
       return (nblk, nthr, shmem_bytesz, hd, rest_args)
 
