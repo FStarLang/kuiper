@@ -8,12 +8,12 @@ __global__
 static void
 __hoisted_main_0(float *gr)
 {
-    *gr += 1.0f;
+    (*gr)++;
 }
 
 float Kuiper_Example_BasicFloat_main(void)
 {
-    float r = 0.0f;
+    float r = (float) 0LL;
     float *gr = (float *) KPR_GPU_ALLOC(sizeof(float), 1U);
     MUST(cudaMemcpy(gr, &r, sizeof(float), cudaMemcpyHostToDevice));
     cudaStream_t s = KPR_FRESH_STREAM();

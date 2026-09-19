@@ -13,7 +13,7 @@ __hoisted_g_matmul_f32_rrr_0(
         uint32_t trow = (1024U * blockIdx.x + threadIdx.x) / n;
         uint32_t tcol = (1024U * blockIdx.x + threadIdx.x) % n;
         uint32_t k1 = 0U;
-        float sum = 0.0f;
+        float sum = (float) 0LL;
         for (; k1 < k; k1++) {
             uint32_t vk = k1;
             sum += gA[trow * k + vk] * gB[vk * n + tcol];
@@ -45,7 +45,7 @@ __hoisted_g_matmul_f64_rrr_0(
         uint32_t trow = (1024U * blockIdx.x + threadIdx.x) / n;
         uint32_t tcol = (1024U * blockIdx.x + threadIdx.x) % n;
         uint32_t k1 = 0U;
-        double sum = 0.0;
+        double sum = (double) 0LL;
         for (; k1 < k; k1++) {
             uint32_t vk = k1;
             sum += gA[trow * k + vk] * gB[vk * n + tcol];
@@ -141,7 +141,7 @@ __hoisted_g_matmul_f32_ccc_0(
         uint32_t trow = (1024U * blockIdx.x + threadIdx.x) / n;
         uint32_t tcol = (1024U * blockIdx.x + threadIdx.x) % n;
         uint32_t k1 = 0U;
-        float sum = 0.0f;
+        float sum = (float) 0LL;
         for (; k1 < k; k1++) {
             uint32_t vk = k1;
             sum += gA[vk * m + trow] * gB[tcol * k + vk];
@@ -173,7 +173,7 @@ __hoisted_g_matmul_f64_ccc_0(
         uint32_t trow = (1024U * blockIdx.x + threadIdx.x) / n;
         uint32_t tcol = (1024U * blockIdx.x + threadIdx.x) % n;
         uint32_t k1 = 0U;
-        double sum = 0.0;
+        double sum = (double) 0LL;
         for (; k1 < k; k1++) {
             uint32_t vk = k1;
             sum += gA[vk * m + trow] * gB[tcol * k + vk];
@@ -271,7 +271,7 @@ __hoisted_batched_matmul_f32_0(uint32_t batch, uint32_t m, uint32_t n,
         uint32_t trow = rest / n;
         uint32_t tcol = rest % n;
         uint32_t k1 = 0U;
-        float sum = 0.0f;
+        float sum = (float) 0LL;
         for (; k1 < k; k1++) {
             uint32_t vk = k1;
             sum += a[page * m * k + trow * k + vk] *
@@ -306,7 +306,7 @@ __hoisted_batched_gemm_f32_0(float alpha, float beta, uint32_t batch,
         uint32_t trow = rest / n;
         uint32_t tcol = rest % n;
         uint32_t k1 = 0U;
-        float sum = 0.0f;
+        float sum = (float) 0LL;
         for (; k1 < k; k1++) {
             uint32_t vk = k1;
             sum += a[page * m * k + trow * k + vk] *

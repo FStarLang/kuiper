@@ -10,7 +10,7 @@ __hoisted_main_0(float *a, float *b, float *s1)
 {
     if (1024U * blockIdx.x + threadIdx.x < 1048576U) {
         uint32_t k = 0U;
-        float sum = 0.0f;
+        float sum = (float) 0LL;
         for (; k < 1024U; k++) {
             uint32_t vk = k;
             sum += a[(1024U * blockIdx.x + threadIdx.x) / 1024U * 1024U + vk] *
@@ -29,7 +29,7 @@ __hoisted_main_1(float *c1, float *d, float *s2)
 {
     if (1024U * blockIdx.x + threadIdx.x < 1048576U) {
         uint32_t k = 0U;
-        float sum = 0.0f;
+        float sum = (float) 0LL;
         for (; k < 1024U; k++) {
             uint32_t vk = k;
             sum += c1[(1024U * blockIdx.x + threadIdx.x) / 1024U * 1024U + vk] *
@@ -48,7 +48,7 @@ __hoisted_main_2(float *r, float *s1, float *s2)
 {
     if (1024U * blockIdx.x + threadIdx.x < 1048576U) {
         uint32_t k = 0U;
-        float sum = 0.0f;
+        float sum = (float) 0LL;
         for (; k < 1024U; k++) {
             uint32_t vk = k;
             sum += s1[(1024U * blockIdx.x + threadIdx.x) / 1024U * 1024U + vk] *

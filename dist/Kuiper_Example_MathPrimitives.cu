@@ -16,18 +16,21 @@ half Kuiper_Example_MathPrimitives_test_of_int_f16(int64_t x)
     return __ll2half_rn(x);
 }
 
-float Kuiper_Example_MathPrimitives_test_zero_f32(void) { return 0.0f; }
+float Kuiper_Example_MathPrimitives_test_zero_f32(void) { return (float) 0LL; }
 
-float Kuiper_Example_MathPrimitives_test_one_f32(void) { return 1.0f; }
+float Kuiper_Example_MathPrimitives_test_one_f32(void) { return (float) 1LL; }
 
 float Kuiper_Example_MathPrimitives_test_of_int_f32(int64_t x)
 {
     return (float) x;
 }
 
-double Kuiper_Example_MathPrimitives_test_zero_f64(void) { return 0.0; }
+double Kuiper_Example_MathPrimitives_test_zero_f64(void)
+{
+    return (double) 0LL;
+}
 
-double Kuiper_Example_MathPrimitives_test_one_f64(void) { return 1.0; }
+double Kuiper_Example_MathPrimitives_test_one_f64(void) { return (double) 1LL; }
 
 double Kuiper_Example_MathPrimitives_test_of_int_f64(int64_t x)
 {
@@ -115,6 +118,16 @@ half Kuiper_Example_MathPrimitives_test_log10_f16(half x)
 half Kuiper_Example_MathPrimitives_test_exp2_f16(half x)
 {
     return kpr_hexp2(x);
+}
+
+half Kuiper_Example_MathPrimitives_test_expm1_f16(half x)
+{
+    return kpr_hexpm1(x);
+}
+
+half Kuiper_Example_MathPrimitives_test_log1p_f16(half x)
+{
+    return kpr_hlog1p(x);
 }
 
 half Kuiper_Example_MathPrimitives_test_pow_f16(half x, half y)
@@ -209,6 +222,16 @@ float Kuiper_Example_MathPrimitives_test_log10_f32(float x)
 
 float Kuiper_Example_MathPrimitives_test_exp2_f32(float x) { return exp2f(x); }
 
+float Kuiper_Example_MathPrimitives_test_expm1_f32(float x)
+{
+    return expm1f(x);
+}
+
+float Kuiper_Example_MathPrimitives_test_log1p_f32(float x)
+{
+    return log1pf(x);
+}
+
 float Kuiper_Example_MathPrimitives_test_pow_f32(float x, float y)
 {
     return powf(x, y);
@@ -298,6 +321,16 @@ double Kuiper_Example_MathPrimitives_test_log10_f64(double x)
 
 double Kuiper_Example_MathPrimitives_test_exp2_f64(double x) { return exp2(x); }
 
+double Kuiper_Example_MathPrimitives_test_expm1_f64(double x)
+{
+    return expm1(x);
+}
+
+double Kuiper_Example_MathPrimitives_test_log1p_f64(double x)
+{
+    return log1p(x);
+}
+
 double Kuiper_Example_MathPrimitives_test_pow_f64(double x, double y)
 {
     return pow(x, y);
@@ -338,4 +371,14 @@ double Kuiper_Example_MathPrimitives_test_largest_f64(void) { return DBL_MAX; }
 double Kuiper_Example_MathPrimitives_test_infinity_f64(void)
 {
     return INFINITY;
+}
+
+__nv_bfloat16 Kuiper_Example_MathPrimitives_test_expm1_bf16(__nv_bfloat16 x)
+{
+    return kpr_bf16expm1(x);
+}
+
+__nv_bfloat16 Kuiper_Example_MathPrimitives_test_log1p_bf16(__nv_bfloat16 x)
+{
+    return kpr_bf16log1p(x);
 }
