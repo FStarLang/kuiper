@@ -823,6 +823,13 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
   | "Kuiper.Float64.Base.largest",  [], [] -> EConstant (Float64, "DBL_MAX")
   | "Kuiper.Float64.Base.infinity", [], [] -> EConstant (Float64, "INFINITY")
 
+  (* Thread-local PTX instructions *)
+
+  | "Kuiper.PTX.mul_rn_ftz_f32", [], [] ->
+    EQualified ([], "kpr_ptx_mul_rn_ftz_f32")
+  | "Kuiper.PTX.ex2_approx_ftz_f32", [], [] ->
+    EQualified ([], "kpr_ptx_ex2_approx_ftz_f32")
+
   (* Transcendental / math primitives *)
 
   | "Kuiper.Float16.Base.sqrt",  [], [] -> EQualified ([], "kpr_hsqrt")
