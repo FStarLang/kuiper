@@ -63,7 +63,7 @@ static void
 __hoisted_reduce_f32_plus_0(uint32_t nth, uint32_t lena, float *x_, float *out)
 {
     float *sa = (float *) KPR_SHMEM_AT(0U);
-    float acc = 0.0f;
+    float acc = (float) 0LL;
     uint32_t idx = threadIdx.x;
     for (; idx < lena; idx += nth)
         acc += x_[idx];
@@ -100,7 +100,7 @@ float Klas_HReduce_reduce_f32_plus(uint32_t nth, uint32_t lena, float *a)
     MUST(cudaStreamDestroy(s));
     float *local_out = (float *) KRML_HOST_MALLOC(sizeof(float));
     if (local_out != NULL)
-        *local_out = 0.0f;
+        *local_out = (float) 0LL;
     MUST(cudaMemcpy(
         local_out, out0, (uint32_t) sizeof(float), cudaMemcpyDeviceToHost));
     float res = *local_out;
@@ -118,7 +118,7 @@ __hoisted_reduce_f64_plus_0(
     uint32_t nth, uint32_t lena, double *x_, double *out)
 {
     double *sa = (double *) KPR_SHMEM_AT(0U);
-    double acc = 0.0;
+    double acc = (double) 0LL;
     uint32_t idx = threadIdx.x;
     for (; idx < lena; idx += nth)
         acc += x_[idx];
@@ -155,7 +155,7 @@ double Klas_HReduce_reduce_f64_plus(uint32_t nth, uint32_t lena, double *a)
     MUST(cudaStreamDestroy(s));
     double *local_out = (double *) KRML_HOST_MALLOC(sizeof(double));
     if (local_out != NULL)
-        *local_out = 0.0;
+        *local_out = (double) 0LL;
     MUST(cudaMemcpy(
         local_out, out0, (uint32_t) sizeof(double), cudaMemcpyDeviceToHost));
     double res = *local_out;

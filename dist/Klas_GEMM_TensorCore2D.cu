@@ -145,7 +145,7 @@ __hoisted_g_gemm_bf16_f32_64x64x16_16x16x16_2x2_0(uint32_t shared,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, float), 4U);
     uint32_t fi = 0U;
     for (; fi < 4U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], (float) 0LL);
     uint32_t num_k_tiles = shared / 16U;
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
@@ -386,7 +386,7 @@ __hoisted_g_gemm_bf16_f32_64x64x16_16x16x16_2x4_0(uint32_t shared,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, float), 8U);
     uint32_t fi = 0U;
     for (; fi < 8U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], (float) 0LL);
     uint32_t num_k_tiles = shared / 16U;
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
@@ -627,7 +627,7 @@ __hoisted_g_gemm_bf16_f32_64x64x16_16x16x16_4x2_0(uint32_t shared,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, float), 8U);
     uint32_t fi = 0U;
     for (; fi < 8U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], (float) 0LL);
     uint32_t num_k_tiles = shared / 16U;
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
@@ -868,7 +868,7 @@ __hoisted_g_gemm_bf16_f32_64x64x16_16x16x16_4x4_0(uint32_t shared,
         kpr_fragment(wmma::accumulator, 16U, 16U, 16U, float), 16U);
     uint32_t fi = 0U;
     for (; fi < 16U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], (float) 0LL);
     uint32_t num_k_tiles = shared / 16U;
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
@@ -1109,7 +1109,7 @@ __hoisted_g_gemm_bf16_f32_64x64x32_16x16x16_2x2_0(uint32_t shared,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, float), 4U);
     uint32_t fi = 0U;
     for (; fi < 4U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], (float) 0LL);
     uint32_t num_k_tiles = shared / 32U;
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
@@ -1350,7 +1350,7 @@ __hoisted_g_gemm_bf16_f32_64x64x32_16x16x16_2x4_0(uint32_t shared,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, float), 8U);
     uint32_t fi = 0U;
     for (; fi < 8U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], (float) 0LL);
     uint32_t num_k_tiles = shared / 32U;
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
@@ -1591,7 +1591,7 @@ __hoisted_g_gemm_bf16_f32_64x64x32_16x16x16_4x2_0(uint32_t shared,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, float), 8U);
     uint32_t fi = 0U;
     for (; fi < 8U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], (float) 0LL);
     uint32_t num_k_tiles = shared / 32U;
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
@@ -1832,7 +1832,7 @@ __hoisted_g_gemm_bf16_f32_64x64x32_16x16x16_4x4_0(uint32_t shared,
         kpr_fragment(wmma::accumulator, 16U, 16U, 16U, float), 16U);
     uint32_t fi = 0U;
     for (; fi < 16U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], (float) 0LL);
     uint32_t num_k_tiles = shared / 32U;
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
@@ -2073,7 +2073,7 @@ __hoisted_g_gemm_bf16_f32_64x64x64_16x16x16_2x2_0(uint32_t shared,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, float), 4U);
     uint32_t fi = 0U;
     for (; fi < 4U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], (float) 0LL);
     uint32_t num_k_tiles = shared / 64U;
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
@@ -2314,7 +2314,7 @@ __hoisted_g_gemm_bf16_f32_64x64x64_16x16x16_2x4_0(uint32_t shared,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, float), 8U);
     uint32_t fi = 0U;
     for (; fi < 8U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], (float) 0LL);
     uint32_t num_k_tiles = shared / 64U;
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
@@ -2555,7 +2555,7 @@ __hoisted_g_gemm_bf16_f32_64x64x64_16x16x16_4x2_0(uint32_t shared,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, float), 8U);
     uint32_t fi = 0U;
     for (; fi < 8U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], (float) 0LL);
     uint32_t num_k_tiles = shared / 64U;
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
@@ -2796,7 +2796,7 @@ __hoisted_g_gemm_bf16_f32_64x64x64_16x16x16_4x4_0(uint32_t shared,
         kpr_fragment(wmma::accumulator, 16U, 16U, 16U, float), 16U);
     uint32_t fi = 0U;
     for (; fi < 16U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], (float) 0LL);
     uint32_t num_k_tiles = shared / 64U;
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
@@ -3037,7 +3037,7 @@ __hoisted_g_gemm_bf16_f32_64x128x16_16x16x16_2x4_0(uint32_t shared,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, float), 8U);
     uint32_t fi = 0U;
     for (; fi < 8U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], (float) 0LL);
     uint32_t num_k_tiles = shared / 16U;
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
@@ -3278,7 +3278,7 @@ __hoisted_g_gemm_bf16_f32_64x128x16_16x16x16_2x8_0(uint32_t shared,
         kpr_fragment(wmma::accumulator, 16U, 16U, 16U, float), 16U);
     uint32_t fi = 0U;
     for (; fi < 16U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], (float) 0LL);
     uint32_t num_k_tiles = shared / 16U;
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
@@ -3519,7 +3519,7 @@ __hoisted_g_gemm_bf16_f32_64x128x16_16x16x16_4x2_0(uint32_t shared,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, float), 8U);
     uint32_t fi = 0U;
     for (; fi < 8U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], (float) 0LL);
     uint32_t num_k_tiles = shared / 16U;
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
@@ -3764,7 +3764,7 @@ __hoisted_g_gemm_bf16_f32_64x128x16_16x16x16_4x4_0(uint32_t shared,
         kpr_fragment(wmma::accumulator, 16U, 16U, 16U, float), 16U);
     uint32_t fi = 0U;
     for (; fi < 16U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], (float) 0LL);
     uint32_t num_k_tiles = shared / 16U;
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
@@ -4005,7 +4005,7 @@ __hoisted_g_gemm_bf16_f32_64x128x16_16x16x16_4x8_0(uint32_t shared,
         kpr_fragment(wmma::accumulator, 16U, 16U, 16U, float), 32U);
     uint32_t fi = 0U;
     for (; fi < 32U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], (float) 0LL);
     uint32_t num_k_tiles = shared / 16U;
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
@@ -4246,7 +4246,7 @@ __hoisted_g_gemm_bf16_f32_64x128x32_16x16x16_2x2_0(uint32_t shared,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, float), 4U);
     uint32_t fi = 0U;
     for (; fi < 4U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], (float) 0LL);
     uint32_t num_k_tiles = shared / 32U;
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
@@ -4491,7 +4491,7 @@ __hoisted_g_gemm_bf16_f32_64x128x32_16x16x16_2x4_0(uint32_t shared,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, float), 8U);
     uint32_t fi = 0U;
     for (; fi < 8U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], (float) 0LL);
     uint32_t num_k_tiles = shared / 32U;
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
@@ -4732,7 +4732,7 @@ __hoisted_g_gemm_bf16_f32_64x128x32_16x16x16_2x8_0(uint32_t shared,
         kpr_fragment(wmma::accumulator, 16U, 16U, 16U, float), 16U);
     uint32_t fi = 0U;
     for (; fi < 16U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], (float) 0LL);
     uint32_t num_k_tiles = shared / 32U;
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
@@ -4973,7 +4973,7 @@ __hoisted_g_gemm_bf16_f32_64x128x32_16x16x16_4x2_0(uint32_t shared,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, float), 8U);
     uint32_t fi = 0U;
     for (; fi < 8U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], (float) 0LL);
     uint32_t num_k_tiles = shared / 32U;
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
@@ -5218,7 +5218,7 @@ __hoisted_g_gemm_bf16_f32_64x128x32_16x16x16_4x4_0(uint32_t shared,
         kpr_fragment(wmma::accumulator, 16U, 16U, 16U, float), 16U);
     uint32_t fi = 0U;
     for (; fi < 16U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], (float) 0LL);
     uint32_t num_k_tiles = shared / 32U;
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
@@ -5459,7 +5459,7 @@ __hoisted_g_gemm_bf16_f32_64x128x32_16x16x16_4x8_0(uint32_t shared,
         kpr_fragment(wmma::accumulator, 16U, 16U, 16U, float), 32U);
     uint32_t fi = 0U;
     for (; fi < 32U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], (float) 0LL);
     uint32_t num_k_tiles = shared / 32U;
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
@@ -5700,7 +5700,7 @@ __hoisted_g_gemm_bf16_f32_64x128x64_16x16x16_2x2_0(uint32_t shared,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, float), 4U);
     uint32_t fi = 0U;
     for (; fi < 4U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], (float) 0LL);
     uint32_t num_k_tiles = shared / 64U;
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
@@ -5945,7 +5945,7 @@ __hoisted_g_gemm_bf16_f32_64x128x64_16x16x16_2x4_0(uint32_t shared,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, float), 8U);
     uint32_t fi = 0U;
     for (; fi < 8U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], (float) 0LL);
     uint32_t num_k_tiles = shared / 64U;
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
@@ -6186,7 +6186,7 @@ __hoisted_g_gemm_bf16_f32_64x128x64_16x16x16_2x8_0(uint32_t shared,
         kpr_fragment(wmma::accumulator, 16U, 16U, 16U, float), 16U);
     uint32_t fi = 0U;
     for (; fi < 16U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], (float) 0LL);
     uint32_t num_k_tiles = shared / 64U;
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
@@ -6427,7 +6427,7 @@ __hoisted_g_gemm_bf16_f32_64x128x64_16x16x16_4x2_0(uint32_t shared,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, float), 8U);
     uint32_t fi = 0U;
     for (; fi < 8U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], (float) 0LL);
     uint32_t num_k_tiles = shared / 64U;
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
@@ -6672,7 +6672,7 @@ __hoisted_g_gemm_bf16_f32_64x128x64_16x16x16_4x4_0(uint32_t shared,
         kpr_fragment(wmma::accumulator, 16U, 16U, 16U, float), 16U);
     uint32_t fi = 0U;
     for (; fi < 16U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], (float) 0LL);
     uint32_t num_k_tiles = shared / 64U;
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
@@ -6913,7 +6913,7 @@ __hoisted_g_gemm_bf16_f32_64x128x64_16x16x16_4x8_0(uint32_t shared,
         kpr_fragment(wmma::accumulator, 16U, 16U, 16U, float), 32U);
     uint32_t fi = 0U;
     for (; fi < 32U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], (float) 0LL);
     uint32_t num_k_tiles = shared / 64U;
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
@@ -7150,7 +7150,7 @@ __hoisted_g_gemm_bf16_f32_128x64x16_16x16x16_2x4_0(uint32_t shared,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, float), 8U);
     uint32_t fi = 0U;
     for (; fi < 8U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], (float) 0LL);
     uint32_t num_k_tiles = shared / 16U;
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
@@ -7391,7 +7391,7 @@ __hoisted_g_gemm_bf16_f32_128x64x16_16x16x16_4x2_0(uint32_t shared,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, float), 8U);
     uint32_t fi = 0U;
     for (; fi < 8U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], (float) 0LL);
     uint32_t num_k_tiles = shared / 16U;
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
@@ -7632,7 +7632,7 @@ __hoisted_g_gemm_bf16_f32_128x64x16_16x16x16_4x4_0(uint32_t shared,
         kpr_fragment(wmma::accumulator, 16U, 16U, 16U, float), 16U);
     uint32_t fi = 0U;
     for (; fi < 16U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], (float) 0LL);
     uint32_t num_k_tiles = shared / 16U;
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
@@ -7873,7 +7873,7 @@ __hoisted_g_gemm_bf16_f32_128x64x16_16x16x16_8x2_0(uint32_t shared,
         kpr_fragment(wmma::accumulator, 16U, 16U, 16U, float), 16U);
     uint32_t fi = 0U;
     for (; fi < 16U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], (float) 0LL);
     uint32_t num_k_tiles = shared / 16U;
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
@@ -8114,7 +8114,7 @@ __hoisted_g_gemm_bf16_f32_128x64x16_16x16x16_8x4_0(uint32_t shared,
         kpr_fragment(wmma::accumulator, 16U, 16U, 16U, float), 32U);
     uint32_t fi = 0U;
     for (; fi < 32U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], (float) 0LL);
     uint32_t num_k_tiles = shared / 16U;
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
@@ -8355,7 +8355,7 @@ __hoisted_g_gemm_bf16_f32_128x64x32_16x16x16_2x2_0(uint32_t shared,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, float), 4U);
     uint32_t fi = 0U;
     for (; fi < 4U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], (float) 0LL);
     uint32_t num_k_tiles = shared / 32U;
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
@@ -8596,7 +8596,7 @@ __hoisted_g_gemm_bf16_f32_128x64x32_16x16x16_2x4_0(uint32_t shared,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, float), 8U);
     uint32_t fi = 0U;
     for (; fi < 8U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], (float) 0LL);
     uint32_t num_k_tiles = shared / 32U;
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
@@ -8837,7 +8837,7 @@ __hoisted_g_gemm_bf16_f32_128x64x32_16x16x16_4x2_0(uint32_t shared,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, float), 8U);
     uint32_t fi = 0U;
     for (; fi < 8U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], (float) 0LL);
     uint32_t num_k_tiles = shared / 32U;
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
@@ -9078,7 +9078,7 @@ __hoisted_g_gemm_bf16_f32_128x64x32_16x16x16_4x4_0(uint32_t shared,
         kpr_fragment(wmma::accumulator, 16U, 16U, 16U, float), 16U);
     uint32_t fi = 0U;
     for (; fi < 16U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], (float) 0LL);
     uint32_t num_k_tiles = shared / 32U;
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
@@ -9319,7 +9319,7 @@ __hoisted_g_gemm_bf16_f32_128x64x32_16x16x16_8x2_0(uint32_t shared,
         kpr_fragment(wmma::accumulator, 16U, 16U, 16U, float), 16U);
     uint32_t fi = 0U;
     for (; fi < 16U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], (float) 0LL);
     uint32_t num_k_tiles = shared / 32U;
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
@@ -9560,7 +9560,7 @@ __hoisted_g_gemm_bf16_f32_128x64x32_16x16x16_8x4_0(uint32_t shared,
         kpr_fragment(wmma::accumulator, 16U, 16U, 16U, float), 32U);
     uint32_t fi = 0U;
     for (; fi < 32U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], (float) 0LL);
     uint32_t num_k_tiles = shared / 32U;
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
@@ -9801,7 +9801,7 @@ __hoisted_g_gemm_bf16_f32_128x64x64_16x16x16_2x2_0(uint32_t shared,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, float), 4U);
     uint32_t fi = 0U;
     for (; fi < 4U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], (float) 0LL);
     uint32_t num_k_tiles = shared / 64U;
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
@@ -10042,7 +10042,7 @@ __hoisted_g_gemm_bf16_f32_128x64x64_16x16x16_2x4_0(uint32_t shared,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, float), 8U);
     uint32_t fi = 0U;
     for (; fi < 8U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], (float) 0LL);
     uint32_t num_k_tiles = shared / 64U;
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
@@ -10283,7 +10283,7 @@ __hoisted_g_gemm_bf16_f32_128x64x64_16x16x16_4x2_0(uint32_t shared,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, float), 8U);
     uint32_t fi = 0U;
     for (; fi < 8U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], (float) 0LL);
     uint32_t num_k_tiles = shared / 64U;
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
@@ -10524,7 +10524,7 @@ __hoisted_g_gemm_bf16_f32_128x64x64_16x16x16_4x4_0(uint32_t shared,
         kpr_fragment(wmma::accumulator, 16U, 16U, 16U, float), 16U);
     uint32_t fi = 0U;
     for (; fi < 16U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], (float) 0LL);
     uint32_t num_k_tiles = shared / 64U;
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
@@ -10765,7 +10765,7 @@ __hoisted_g_gemm_bf16_f32_128x64x64_16x16x16_8x2_0(uint32_t shared,
         kpr_fragment(wmma::accumulator, 16U, 16U, 16U, float), 16U);
     uint32_t fi = 0U;
     for (; fi < 16U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], (float) 0LL);
     uint32_t num_k_tiles = shared / 64U;
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
@@ -11006,7 +11006,7 @@ __hoisted_g_gemm_bf16_f32_128x64x64_16x16x16_8x4_0(uint32_t shared,
         kpr_fragment(wmma::accumulator, 16U, 16U, 16U, float), 32U);
     uint32_t fi = 0U;
     for (; fi < 32U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], (float) 0LL);
     uint32_t num_k_tiles = shared / 64U;
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
@@ -11247,7 +11247,7 @@ __hoisted_g_gemm_bf16_f32_128x128x16_16x16x16_2x4_0(uint32_t shared,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, float), 8U);
     uint32_t fi = 0U;
     for (; fi < 8U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], (float) 0LL);
     uint32_t num_k_tiles = shared / 16U;
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
@@ -11488,7 +11488,7 @@ __hoisted_g_gemm_bf16_f32_128x128x16_16x16x16_2x8_0(uint32_t shared,
         kpr_fragment(wmma::accumulator, 16U, 16U, 16U, float), 16U);
     uint32_t fi = 0U;
     for (; fi < 16U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], (float) 0LL);
     uint32_t num_k_tiles = shared / 16U;
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
@@ -11729,7 +11729,7 @@ __hoisted_g_gemm_bf16_f32_128x128x16_16x16x16_4x2_0(uint32_t shared,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, float), 8U);
     uint32_t fi = 0U;
     for (; fi < 8U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], (float) 0LL);
     uint32_t num_k_tiles = shared / 16U;
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
@@ -11974,7 +11974,7 @@ __hoisted_g_gemm_bf16_f32_128x128x16_16x16x16_4x4_0(uint32_t shared,
         kpr_fragment(wmma::accumulator, 16U, 16U, 16U, float), 16U);
     uint32_t fi = 0U;
     for (; fi < 16U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], (float) 0LL);
     uint32_t num_k_tiles = shared / 16U;
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
@@ -12215,7 +12215,7 @@ __hoisted_g_gemm_bf16_f32_128x128x16_16x16x16_4x8_0(uint32_t shared,
         kpr_fragment(wmma::accumulator, 16U, 16U, 16U, float), 32U);
     uint32_t fi = 0U;
     for (; fi < 32U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], (float) 0LL);
     uint32_t num_k_tiles = shared / 16U;
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
@@ -12456,7 +12456,7 @@ __hoisted_g_gemm_bf16_f32_128x128x16_16x16x16_8x2_0(uint32_t shared,
         kpr_fragment(wmma::accumulator, 16U, 16U, 16U, float), 16U);
     uint32_t fi = 0U;
     for (; fi < 16U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], (float) 0LL);
     uint32_t num_k_tiles = shared / 16U;
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
@@ -12701,7 +12701,7 @@ __hoisted_g_gemm_bf16_f32_128x128x16_16x16x16_8x4_0(uint32_t shared,
         kpr_fragment(wmma::accumulator, 16U, 16U, 16U, float), 32U);
     uint32_t fi = 0U;
     for (; fi < 32U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], (float) 0LL);
     uint32_t num_k_tiles = shared / 16U;
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
@@ -12942,7 +12942,7 @@ __hoisted_g_gemm_bf16_f32_128x128x16_16x16x16_8x8_0(uint32_t shared,
         kpr_fragment(wmma::accumulator, 16U, 16U, 16U, float), 64U);
     uint32_t fi = 0U;
     for (; fi < 64U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], (float) 0LL);
     uint32_t num_k_tiles = shared / 16U;
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
@@ -13183,7 +13183,7 @@ __hoisted_g_gemm_bf16_f32_128x128x32_16x16x16_2x2_0(uint32_t shared,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, float), 4U);
     uint32_t fi = 0U;
     for (; fi < 4U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], (float) 0LL);
     uint32_t num_k_tiles = shared / 32U;
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
@@ -13428,7 +13428,7 @@ __hoisted_g_gemm_bf16_f32_128x128x32_16x16x16_2x4_0(uint32_t shared,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, float), 8U);
     uint32_t fi = 0U;
     for (; fi < 8U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], (float) 0LL);
     uint32_t num_k_tiles = shared / 32U;
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
@@ -13669,7 +13669,7 @@ __hoisted_g_gemm_bf16_f32_128x128x32_16x16x16_2x8_0(uint32_t shared,
         kpr_fragment(wmma::accumulator, 16U, 16U, 16U, float), 16U);
     uint32_t fi = 0U;
     for (; fi < 16U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], (float) 0LL);
     uint32_t num_k_tiles = shared / 32U;
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
@@ -13910,7 +13910,7 @@ __hoisted_g_gemm_bf16_f32_128x128x32_16x16x16_4x2_0(uint32_t shared,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, float), 8U);
     uint32_t fi = 0U;
     for (; fi < 8U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], (float) 0LL);
     uint32_t num_k_tiles = shared / 32U;
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
@@ -14155,7 +14155,7 @@ __hoisted_g_gemm_bf16_f32_128x128x32_16x16x16_4x4_0(uint32_t shared,
         kpr_fragment(wmma::accumulator, 16U, 16U, 16U, float), 16U);
     uint32_t fi = 0U;
     for (; fi < 16U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], (float) 0LL);
     uint32_t num_k_tiles = shared / 32U;
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
@@ -14396,7 +14396,7 @@ __hoisted_g_gemm_bf16_f32_128x128x32_16x16x16_4x8_0(uint32_t shared,
         kpr_fragment(wmma::accumulator, 16U, 16U, 16U, float), 32U);
     uint32_t fi = 0U;
     for (; fi < 32U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], (float) 0LL);
     uint32_t num_k_tiles = shared / 32U;
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
@@ -14637,7 +14637,7 @@ __hoisted_g_gemm_bf16_f32_128x128x32_16x16x16_8x2_0(uint32_t shared,
         kpr_fragment(wmma::accumulator, 16U, 16U, 16U, float), 16U);
     uint32_t fi = 0U;
     for (; fi < 16U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], (float) 0LL);
     uint32_t num_k_tiles = shared / 32U;
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
@@ -14882,7 +14882,7 @@ __hoisted_g_gemm_bf16_f32_128x128x32_16x16x16_8x4_0(uint32_t shared,
         kpr_fragment(wmma::accumulator, 16U, 16U, 16U, float), 32U);
     uint32_t fi = 0U;
     for (; fi < 32U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], (float) 0LL);
     uint32_t num_k_tiles = shared / 32U;
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
@@ -15123,7 +15123,7 @@ __hoisted_g_gemm_bf16_f32_128x128x32_16x16x16_8x8_0(uint32_t shared,
         kpr_fragment(wmma::accumulator, 16U, 16U, 16U, float), 64U);
     uint32_t fi = 0U;
     for (; fi < 64U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], (float) 0LL);
     uint32_t num_k_tiles = shared / 32U;
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
@@ -15364,7 +15364,7 @@ __hoisted_g_gemm_bf16_f32_128x128x64_16x16x16_2x2_0(uint32_t shared,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, float), 4U);
     uint32_t fi = 0U;
     for (; fi < 4U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], (float) 0LL);
     uint32_t num_k_tiles = shared / 64U;
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
@@ -15609,7 +15609,7 @@ __hoisted_g_gemm_bf16_f32_128x128x64_16x16x16_2x4_0(uint32_t shared,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, float), 8U);
     uint32_t fi = 0U;
     for (; fi < 8U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], (float) 0LL);
     uint32_t num_k_tiles = shared / 64U;
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
@@ -15850,7 +15850,7 @@ __hoisted_g_gemm_bf16_f32_128x128x64_16x16x16_2x8_0(uint32_t shared,
         kpr_fragment(wmma::accumulator, 16U, 16U, 16U, float), 16U);
     uint32_t fi = 0U;
     for (; fi < 16U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], (float) 0LL);
     uint32_t num_k_tiles = shared / 64U;
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
@@ -16091,7 +16091,7 @@ __hoisted_g_gemm_bf16_f32_128x128x64_16x16x16_4x2_0(uint32_t shared,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, float), 8U);
     uint32_t fi = 0U;
     for (; fi < 8U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], (float) 0LL);
     uint32_t num_k_tiles = shared / 64U;
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
@@ -16336,7 +16336,7 @@ __hoisted_g_gemm_bf16_f32_128x128x64_16x16x16_4x4_0(uint32_t shared,
         kpr_fragment(wmma::accumulator, 16U, 16U, 16U, float), 16U);
     uint32_t fi = 0U;
     for (; fi < 16U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], (float) 0LL);
     uint32_t num_k_tiles = shared / 64U;
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
@@ -16577,7 +16577,7 @@ __hoisted_g_gemm_bf16_f32_128x128x64_16x16x16_4x8_0(uint32_t shared,
         kpr_fragment(wmma::accumulator, 16U, 16U, 16U, float), 32U);
     uint32_t fi = 0U;
     for (; fi < 32U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], (float) 0LL);
     uint32_t num_k_tiles = shared / 64U;
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
@@ -16818,7 +16818,7 @@ __hoisted_g_gemm_bf16_f32_128x128x64_16x16x16_8x2_0(uint32_t shared,
         kpr_fragment(wmma::accumulator, 16U, 16U, 16U, float), 16U);
     uint32_t fi = 0U;
     for (; fi < 16U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], (float) 0LL);
     uint32_t num_k_tiles = shared / 64U;
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
@@ -17063,7 +17063,7 @@ __hoisted_g_gemm_bf16_f32_128x128x64_16x16x16_8x4_0(uint32_t shared,
         kpr_fragment(wmma::accumulator, 16U, 16U, 16U, float), 32U);
     uint32_t fi = 0U;
     for (; fi < 32U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], (float) 0LL);
     uint32_t num_k_tiles = shared / 64U;
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
@@ -17304,7 +17304,7 @@ __hoisted_g_gemm_bf16_f32_128x128x64_16x16x16_8x8_0(uint32_t shared,
         kpr_fragment(wmma::accumulator, 16U, 16U, 16U, float), 64U);
     uint32_t fi = 0U;
     for (; fi < 64U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], (float) 0LL);
     uint32_t num_k_tiles = shared / 64U;
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {

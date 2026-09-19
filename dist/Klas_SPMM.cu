@@ -1,7 +1,7 @@
 
 #include "Klas_SPMM.h"
 
-__global__
+__global__ __launch_bounds__(32)
 /**
   hoisted when extracting spmm_u32
 */
@@ -151,7 +151,7 @@ void Klas_SPMM_spmm_u32(uint32_t rows, uint32_t shared, uint32_t cols,
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(64)
 /**
   hoisted when extracting spmm_f32
 */
@@ -184,7 +184,7 @@ __hoisted_spmm_f32_0(uint32_t rows, uint32_t cols,
         uint32_t to_ = (ri - ri_ + 63U - threadIdx.x) / 64U;
         uint32_t i2 = 0U;
         for (; i2 < to_; i2++)
-            elems_tile[i2 * 64U + threadIdx.x] = 0.0f;
+            elems_tile[i2 * 64U + threadIdx.x] = (float) 0LL;
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 512U; k++) {
@@ -305,7 +305,7 @@ void Klas_SPMM_spmm_f32(uint32_t rows, uint32_t shared, uint32_t cols,
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(1)
 /**
   hoisted when extracting g_spmm_f32_32x4x1
 */
@@ -338,7 +338,7 @@ __hoisted_g_spmm_f32_32x4x1_0(uint32_t rows, uint32_t cols,
         uint32_t to_ = ri - ri_ - threadIdx.x;
         uint32_t i2 = 0U;
         for (; i2 < to_; i2++)
-            elems_tile[i2 + threadIdx.x] = 0.0f;
+            elems_tile[i2 + threadIdx.x] = (float) 0LL;
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 32U; k++) {
@@ -455,7 +455,7 @@ void Klas_SPMM_g_spmm_f32_32x4x1(uint32_t rows, uint32_t shared, uint32_t cols,
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(2)
 /**
   hoisted when extracting g_spmm_f32_32x8x2
 */
@@ -488,7 +488,7 @@ __hoisted_g_spmm_f32_32x8x2_0(uint32_t rows, uint32_t cols,
         uint32_t to_ = (ri - ri_ + 1U - threadIdx.x) / 2U;
         uint32_t i2 = 0U;
         for (; i2 < to_; i2++)
-            elems_tile[i2 * 2U + threadIdx.x] = 0.0f;
+            elems_tile[i2 * 2U + threadIdx.x] = (float) 0LL;
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 32U; k++) {
@@ -609,7 +609,7 @@ void Klas_SPMM_g_spmm_f32_32x8x2(uint32_t rows, uint32_t shared, uint32_t cols,
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(4)
 /**
   hoisted when extracting g_spmm_f32_32x16x4
 */
@@ -642,7 +642,7 @@ __hoisted_g_spmm_f32_32x16x4_0(uint32_t rows, uint32_t cols,
         uint32_t to_ = (ri - ri_ + 3U - threadIdx.x) / 4U;
         uint32_t i2 = 0U;
         for (; i2 < to_; i2++)
-            elems_tile[i2 * 4U + threadIdx.x] = 0.0f;
+            elems_tile[i2 * 4U + threadIdx.x] = (float) 0LL;
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 32U; k++) {
@@ -763,7 +763,7 @@ void Klas_SPMM_g_spmm_f32_32x16x4(uint32_t rows, uint32_t shared, uint32_t cols,
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(8)
 /**
   hoisted when extracting g_spmm_f32_32x32x8
 */
@@ -796,7 +796,7 @@ __hoisted_g_spmm_f32_32x32x8_0(uint32_t rows, uint32_t cols,
         uint32_t to_ = (ri - ri_ + 7U - threadIdx.x) / 8U;
         uint32_t i2 = 0U;
         for (; i2 < to_; i2++)
-            elems_tile[i2 * 8U + threadIdx.x] = 0.0f;
+            elems_tile[i2 * 8U + threadIdx.x] = (float) 0LL;
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 32U; k++) {
@@ -917,7 +917,7 @@ void Klas_SPMM_g_spmm_f32_32x32x8(uint32_t rows, uint32_t shared, uint32_t cols,
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(8)
 /**
   hoisted when extracting g_spmm_f32_32x64x8
 */
@@ -950,7 +950,7 @@ __hoisted_g_spmm_f32_32x64x8_0(uint32_t rows, uint32_t cols,
         uint32_t to_ = (ri - ri_ + 7U - threadIdx.x) / 8U;
         uint32_t i2 = 0U;
         for (; i2 < to_; i2++)
-            elems_tile[i2 * 8U + threadIdx.x] = 0.0f;
+            elems_tile[i2 * 8U + threadIdx.x] = (float) 0LL;
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 32U; k++) {
@@ -1071,7 +1071,7 @@ void Klas_SPMM_g_spmm_f32_32x64x8(uint32_t rows, uint32_t shared, uint32_t cols,
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(1)
 /**
   hoisted when extracting g_spmm_f32_32x4x1_on
 */
@@ -1104,7 +1104,7 @@ __hoisted_g_spmm_f32_32x4x1_on_0(uint32_t rows, uint32_t cols,
         uint32_t to_ = ri - ri_ - threadIdx.x;
         uint32_t i2 = 0U;
         for (; i2 < to_; i2++)
-            elems_tile[i2 + threadIdx.x] = 0.0f;
+            elems_tile[i2 + threadIdx.x] = (float) 0LL;
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 32U; k++) {
@@ -1218,7 +1218,7 @@ void Klas_SPMM_g_spmm_f32_32x4x1_on(uint32_t rows, uint32_t shared,
         cols, gA, row_indices, gB, gC);
 }
 
-__global__
+__global__ __launch_bounds__(2)
 /**
   hoisted when extracting g_spmm_f32_32x8x2_on
 */
@@ -1251,7 +1251,7 @@ __hoisted_g_spmm_f32_32x8x2_on_0(uint32_t rows, uint32_t cols,
         uint32_t to_ = (ri - ri_ + 1U - threadIdx.x) / 2U;
         uint32_t i2 = 0U;
         for (; i2 < to_; i2++)
-            elems_tile[i2 * 2U + threadIdx.x] = 0.0f;
+            elems_tile[i2 * 2U + threadIdx.x] = (float) 0LL;
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 32U; k++) {
@@ -1369,7 +1369,7 @@ void Klas_SPMM_g_spmm_f32_32x8x2_on(uint32_t rows, uint32_t shared,
         cols, gA, row_indices, gB, gC);
 }
 
-__global__
+__global__ __launch_bounds__(4)
 /**
   hoisted when extracting g_spmm_f32_32x16x4_on
 */
@@ -1402,7 +1402,7 @@ __hoisted_g_spmm_f32_32x16x4_on_0(uint32_t rows, uint32_t cols,
         uint32_t to_ = (ri - ri_ + 3U - threadIdx.x) / 4U;
         uint32_t i2 = 0U;
         for (; i2 < to_; i2++)
-            elems_tile[i2 * 4U + threadIdx.x] = 0.0f;
+            elems_tile[i2 * 4U + threadIdx.x] = (float) 0LL;
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 32U; k++) {
@@ -1520,7 +1520,7 @@ void Klas_SPMM_g_spmm_f32_32x16x4_on(uint32_t rows, uint32_t shared,
         cols, gA, row_indices, gB, gC);
 }
 
-__global__
+__global__ __launch_bounds__(8)
 /**
   hoisted when extracting g_spmm_f32_32x32x8_on
 */
@@ -1553,7 +1553,7 @@ __hoisted_g_spmm_f32_32x32x8_on_0(uint32_t rows, uint32_t cols,
         uint32_t to_ = (ri - ri_ + 7U - threadIdx.x) / 8U;
         uint32_t i2 = 0U;
         for (; i2 < to_; i2++)
-            elems_tile[i2 * 8U + threadIdx.x] = 0.0f;
+            elems_tile[i2 * 8U + threadIdx.x] = (float) 0LL;
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 32U; k++) {
@@ -1671,7 +1671,7 @@ void Klas_SPMM_g_spmm_f32_32x32x8_on(uint32_t rows, uint32_t shared,
         cols, gA, row_indices, gB, gC);
 }
 
-__global__
+__global__ __launch_bounds__(8)
 /**
   hoisted when extracting g_spmm_f32_32x64x8_on
 */
@@ -1704,7 +1704,7 @@ __hoisted_g_spmm_f32_32x64x8_on_0(uint32_t rows, uint32_t cols,
         uint32_t to_ = (ri - ri_ + 7U - threadIdx.x) / 8U;
         uint32_t i2 = 0U;
         for (; i2 < to_; i2++)
-            elems_tile[i2 * 8U + threadIdx.x] = 0.0f;
+            elems_tile[i2 * 8U + threadIdx.x] = (float) 0LL;
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 32U; k++) {
@@ -1822,7 +1822,7 @@ void Klas_SPMM_g_spmm_f32_32x64x8_on(uint32_t rows, uint32_t shared,
         cols, gA, row_indices, gB, gC);
 }
 
-__global__
+__global__ __launch_bounds__(16)
 /**
   hoisted when extracting g_spmm_f32_64x64x16
 */
@@ -1855,7 +1855,7 @@ __hoisted_g_spmm_f32_64x64x16_0(uint32_t rows, uint32_t cols,
         uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
         uint32_t i2 = 0U;
         for (; i2 < to_; i2++)
-            elems_tile[i2 * 16U + threadIdx.x] = 0.0f;
+            elems_tile[i2 * 16U + threadIdx.x] = (float) 0LL;
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 64U; k++) {
@@ -1976,7 +1976,7 @@ void Klas_SPMM_g_spmm_f32_64x64x16(uint32_t rows, uint32_t shared,
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(16)
 /**
   hoisted when extracting g_spmm_f32_64x64x16_on
 */
@@ -2009,7 +2009,7 @@ __hoisted_g_spmm_f32_64x64x16_on_0(uint32_t rows, uint32_t cols,
         uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
         uint32_t i2 = 0U;
         for (; i2 < to_; i2++)
-            elems_tile[i2 * 16U + threadIdx.x] = 0.0f;
+            elems_tile[i2 * 16U + threadIdx.x] = (float) 0LL;
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 64U; k++) {
@@ -2127,7 +2127,7 @@ void Klas_SPMM_g_spmm_f32_64x64x16_on(uint32_t rows, uint32_t shared,
         cols, gA, row_indices, gB, gC);
 }
 
-__global__
+__global__ __launch_bounds__(16)
 /**
   hoisted when extracting g_spmm_f32_64x128x16
 */
@@ -2160,7 +2160,7 @@ __hoisted_g_spmm_f32_64x128x16_0(uint32_t rows, uint32_t cols,
         uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
         uint32_t i2 = 0U;
         for (; i2 < to_; i2++)
-            elems_tile[i2 * 16U + threadIdx.x] = 0.0f;
+            elems_tile[i2 * 16U + threadIdx.x] = (float) 0LL;
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 64U; k++) {
@@ -2281,7 +2281,7 @@ void Klas_SPMM_g_spmm_f32_64x128x16(uint32_t rows, uint32_t shared,
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(16)
 /**
   hoisted when extracting g_spmm_f32_64x128x16_on
 */
@@ -2314,7 +2314,7 @@ __hoisted_g_spmm_f32_64x128x16_on_0(uint32_t rows, uint32_t cols,
         uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
         uint32_t i2 = 0U;
         for (; i2 < to_; i2++)
-            elems_tile[i2 * 16U + threadIdx.x] = 0.0f;
+            elems_tile[i2 * 16U + threadIdx.x] = (float) 0LL;
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 64U; k++) {
@@ -2432,7 +2432,7 @@ void Klas_SPMM_g_spmm_f32_64x128x16_on(uint32_t rows, uint32_t shared,
         rows, cols, gA, row_indices, gB, gC);
 }
 
-__global__
+__global__ __launch_bounds__(16)
 /**
   hoisted when extracting g_spmm_f32_64x256x16
 */
@@ -2465,7 +2465,7 @@ __hoisted_g_spmm_f32_64x256x16_0(uint32_t rows, uint32_t cols,
         uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
         uint32_t i2 = 0U;
         for (; i2 < to_; i2++)
-            elems_tile[i2 * 16U + threadIdx.x] = 0.0f;
+            elems_tile[i2 * 16U + threadIdx.x] = (float) 0LL;
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 64U; k++) {
@@ -2586,7 +2586,7 @@ void Klas_SPMM_g_spmm_f32_64x256x16(uint32_t rows, uint32_t shared,
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(16)
 /**
   hoisted when extracting g_spmm_f32_64x256x16_on
 */
@@ -2619,7 +2619,7 @@ __hoisted_g_spmm_f32_64x256x16_on_0(uint32_t rows, uint32_t cols,
         uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
         uint32_t i2 = 0U;
         for (; i2 < to_; i2++)
-            elems_tile[i2 * 16U + threadIdx.x] = 0.0f;
+            elems_tile[i2 * 16U + threadIdx.x] = (float) 0LL;
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 64U; k++) {
@@ -2737,7 +2737,7 @@ void Klas_SPMM_g_spmm_f32_64x256x16_on(uint32_t rows, uint32_t shared,
         rows, cols, gA, row_indices, gB, gC);
 }
 
-__global__
+__global__ __launch_bounds__(16)
 /**
   hoisted when extracting g_spmm_f32_64x512x16
 */
@@ -2770,7 +2770,7 @@ __hoisted_g_spmm_f32_64x512x16_0(uint32_t rows, uint32_t cols,
         uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
         uint32_t i2 = 0U;
         for (; i2 < to_; i2++)
-            elems_tile[i2 * 16U + threadIdx.x] = 0.0f;
+            elems_tile[i2 * 16U + threadIdx.x] = (float) 0LL;
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 64U; k++) {
@@ -2891,7 +2891,7 @@ void Klas_SPMM_g_spmm_f32_64x512x16(uint32_t rows, uint32_t shared,
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(16)
 /**
   hoisted when extracting g_spmm_f32_64x512x16_on
 */
@@ -2924,7 +2924,7 @@ __hoisted_g_spmm_f32_64x512x16_on_0(uint32_t rows, uint32_t cols,
         uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
         uint32_t i2 = 0U;
         for (; i2 < to_; i2++)
-            elems_tile[i2 * 16U + threadIdx.x] = 0.0f;
+            elems_tile[i2 * 16U + threadIdx.x] = (float) 0LL;
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 64U; k++) {
@@ -3042,7 +3042,7 @@ void Klas_SPMM_g_spmm_f32_64x512x16_on(uint32_t rows, uint32_t shared,
         rows, cols, gA, row_indices, gB, gC);
 }
 
-__global__
+__global__ __launch_bounds__(16)
 /**
   hoisted when extracting g_spmm_f32_128x64x16
 */
@@ -3075,7 +3075,7 @@ __hoisted_g_spmm_f32_128x64x16_0(uint32_t rows, uint32_t cols,
         uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
         uint32_t i2 = 0U;
         for (; i2 < to_; i2++)
-            elems_tile[i2 * 16U + threadIdx.x] = 0.0f;
+            elems_tile[i2 * 16U + threadIdx.x] = (float) 0LL;
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 128U; k++) {
@@ -3196,7 +3196,7 @@ void Klas_SPMM_g_spmm_f32_128x64x16(uint32_t rows, uint32_t shared,
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(16)
 /**
   hoisted when extracting g_spmm_f32_128x64x16_on
 */
@@ -3229,7 +3229,7 @@ __hoisted_g_spmm_f32_128x64x16_on_0(uint32_t rows, uint32_t cols,
         uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
         uint32_t i2 = 0U;
         for (; i2 < to_; i2++)
-            elems_tile[i2 * 16U + threadIdx.x] = 0.0f;
+            elems_tile[i2 * 16U + threadIdx.x] = (float) 0LL;
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 128U; k++) {
@@ -3347,7 +3347,7 @@ void Klas_SPMM_g_spmm_f32_128x64x16_on(uint32_t rows, uint32_t shared,
         rows, cols, gA, row_indices, gB, gC);
 }
 
-__global__
+__global__ __launch_bounds__(16)
 /**
   hoisted when extracting g_spmm_f32_128x128x16
 */
@@ -3380,7 +3380,7 @@ __hoisted_g_spmm_f32_128x128x16_0(uint32_t rows, uint32_t cols,
         uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
         uint32_t i2 = 0U;
         for (; i2 < to_; i2++)
-            elems_tile[i2 * 16U + threadIdx.x] = 0.0f;
+            elems_tile[i2 * 16U + threadIdx.x] = (float) 0LL;
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 128U; k++) {
@@ -3501,7 +3501,7 @@ void Klas_SPMM_g_spmm_f32_128x128x16(uint32_t rows, uint32_t shared,
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(16)
 /**
   hoisted when extracting g_spmm_f32_128x128x16_on
 */
@@ -3534,7 +3534,7 @@ __hoisted_g_spmm_f32_128x128x16_on_0(uint32_t rows, uint32_t cols,
         uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
         uint32_t i2 = 0U;
         for (; i2 < to_; i2++)
-            elems_tile[i2 * 16U + threadIdx.x] = 0.0f;
+            elems_tile[i2 * 16U + threadIdx.x] = (float) 0LL;
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 128U; k++) {
@@ -3652,7 +3652,7 @@ void Klas_SPMM_g_spmm_f32_128x128x16_on(uint32_t rows, uint32_t shared,
         rows, cols, gA, row_indices, gB, gC);
 }
 
-__global__
+__global__ __launch_bounds__(32)
 /**
   hoisted when extracting g_spmm_f32_128x128x32
 */
@@ -3685,7 +3685,7 @@ __hoisted_g_spmm_f32_128x128x32_0(uint32_t rows, uint32_t cols,
         uint32_t to_ = (ri - ri_ + 31U - threadIdx.x) / 32U;
         uint32_t i2 = 0U;
         for (; i2 < to_; i2++)
-            elems_tile[i2 * 32U + threadIdx.x] = 0.0f;
+            elems_tile[i2 * 32U + threadIdx.x] = (float) 0LL;
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 128U; k++) {
@@ -3806,7 +3806,7 @@ void Klas_SPMM_g_spmm_f32_128x128x32(uint32_t rows, uint32_t shared,
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(32)
 /**
   hoisted when extracting g_spmm_f32_128x128x32_on
 */
@@ -3839,7 +3839,7 @@ __hoisted_g_spmm_f32_128x128x32_on_0(uint32_t rows, uint32_t cols,
         uint32_t to_ = (ri - ri_ + 31U - threadIdx.x) / 32U;
         uint32_t i2 = 0U;
         for (; i2 < to_; i2++)
-            elems_tile[i2 * 32U + threadIdx.x] = 0.0f;
+            elems_tile[i2 * 32U + threadIdx.x] = (float) 0LL;
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 128U; k++) {
@@ -3957,7 +3957,7 @@ void Klas_SPMM_g_spmm_f32_128x128x32_on(uint32_t rows, uint32_t shared,
         rows, cols, gA, row_indices, gB, gC);
 }
 
-__global__
+__global__ __launch_bounds__(16)
 /**
   hoisted when extracting g_spmm_f32_128x256x16
 */
@@ -3990,7 +3990,7 @@ __hoisted_g_spmm_f32_128x256x16_0(uint32_t rows, uint32_t cols,
         uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
         uint32_t i2 = 0U;
         for (; i2 < to_; i2++)
-            elems_tile[i2 * 16U + threadIdx.x] = 0.0f;
+            elems_tile[i2 * 16U + threadIdx.x] = (float) 0LL;
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 128U; k++) {
@@ -4111,7 +4111,7 @@ void Klas_SPMM_g_spmm_f32_128x256x16(uint32_t rows, uint32_t shared,
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(16)
 /**
   hoisted when extracting g_spmm_f32_128x256x16_on
 */
@@ -4144,7 +4144,7 @@ __hoisted_g_spmm_f32_128x256x16_on_0(uint32_t rows, uint32_t cols,
         uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
         uint32_t i2 = 0U;
         for (; i2 < to_; i2++)
-            elems_tile[i2 * 16U + threadIdx.x] = 0.0f;
+            elems_tile[i2 * 16U + threadIdx.x] = (float) 0LL;
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 128U; k++) {
@@ -4262,7 +4262,7 @@ void Klas_SPMM_g_spmm_f32_128x256x16_on(uint32_t rows, uint32_t shared,
         rows, cols, gA, row_indices, gB, gC);
 }
 
-__global__
+__global__ __launch_bounds__(32)
 /**
   hoisted when extracting g_spmm_f32_128x256x32
 */
@@ -4295,7 +4295,7 @@ __hoisted_g_spmm_f32_128x256x32_0(uint32_t rows, uint32_t cols,
         uint32_t to_ = (ri - ri_ + 31U - threadIdx.x) / 32U;
         uint32_t i2 = 0U;
         for (; i2 < to_; i2++)
-            elems_tile[i2 * 32U + threadIdx.x] = 0.0f;
+            elems_tile[i2 * 32U + threadIdx.x] = (float) 0LL;
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 128U; k++) {
@@ -4416,7 +4416,7 @@ void Klas_SPMM_g_spmm_f32_128x256x32(uint32_t rows, uint32_t shared,
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(32)
 /**
   hoisted when extracting g_spmm_f32_128x256x32_on
 */
@@ -4449,7 +4449,7 @@ __hoisted_g_spmm_f32_128x256x32_on_0(uint32_t rows, uint32_t cols,
         uint32_t to_ = (ri - ri_ + 31U - threadIdx.x) / 32U;
         uint32_t i2 = 0U;
         for (; i2 < to_; i2++)
-            elems_tile[i2 * 32U + threadIdx.x] = 0.0f;
+            elems_tile[i2 * 32U + threadIdx.x] = (float) 0LL;
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 128U; k++) {
@@ -4567,7 +4567,7 @@ void Klas_SPMM_g_spmm_f32_128x256x32_on(uint32_t rows, uint32_t shared,
         rows, cols, gA, row_indices, gB, gC);
 }
 
-__global__
+__global__ __launch_bounds__(16)
 /**
   hoisted when extracting g_spmm_f32_128x512x16
 */
@@ -4600,7 +4600,7 @@ __hoisted_g_spmm_f32_128x512x16_0(uint32_t rows, uint32_t cols,
         uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
         uint32_t i2 = 0U;
         for (; i2 < to_; i2++)
-            elems_tile[i2 * 16U + threadIdx.x] = 0.0f;
+            elems_tile[i2 * 16U + threadIdx.x] = (float) 0LL;
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 128U; k++) {
@@ -4721,7 +4721,7 @@ void Klas_SPMM_g_spmm_f32_128x512x16(uint32_t rows, uint32_t shared,
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(16)
 /**
   hoisted when extracting g_spmm_f32_128x512x16_on
 */
@@ -4754,7 +4754,7 @@ __hoisted_g_spmm_f32_128x512x16_on_0(uint32_t rows, uint32_t cols,
         uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
         uint32_t i2 = 0U;
         for (; i2 < to_; i2++)
-            elems_tile[i2 * 16U + threadIdx.x] = 0.0f;
+            elems_tile[i2 * 16U + threadIdx.x] = (float) 0LL;
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 128U; k++) {
@@ -4872,7 +4872,7 @@ void Klas_SPMM_g_spmm_f32_128x512x16_on(uint32_t rows, uint32_t shared,
         rows, cols, gA, row_indices, gB, gC);
 }
 
-__global__
+__global__ __launch_bounds__(32)
 /**
   hoisted when extracting g_spmm_f32_128x512x32
 */
@@ -4905,7 +4905,7 @@ __hoisted_g_spmm_f32_128x512x32_0(uint32_t rows, uint32_t cols,
         uint32_t to_ = (ri - ri_ + 31U - threadIdx.x) / 32U;
         uint32_t i2 = 0U;
         for (; i2 < to_; i2++)
-            elems_tile[i2 * 32U + threadIdx.x] = 0.0f;
+            elems_tile[i2 * 32U + threadIdx.x] = (float) 0LL;
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 128U; k++) {
@@ -5026,7 +5026,7 @@ void Klas_SPMM_g_spmm_f32_128x512x32(uint32_t rows, uint32_t shared,
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(32)
 /**
   hoisted when extracting g_spmm_f32_128x512x32_on
 */
@@ -5059,7 +5059,7 @@ __hoisted_g_spmm_f32_128x512x32_on_0(uint32_t rows, uint32_t cols,
         uint32_t to_ = (ri - ri_ + 31U - threadIdx.x) / 32U;
         uint32_t i2 = 0U;
         for (; i2 < to_; i2++)
-            elems_tile[i2 * 32U + threadIdx.x] = 0.0f;
+            elems_tile[i2 * 32U + threadIdx.x] = (float) 0LL;
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 128U; k++) {
@@ -5177,7 +5177,7 @@ void Klas_SPMM_g_spmm_f32_128x512x32_on(uint32_t rows, uint32_t shared,
         rows, cols, gA, row_indices, gB, gC);
 }
 
-__global__
+__global__ __launch_bounds__(16)
 /**
   hoisted when extracting g_spmm_f32_256x64x16
 */
@@ -5210,7 +5210,7 @@ __hoisted_g_spmm_f32_256x64x16_0(uint32_t rows, uint32_t cols,
         uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
         uint32_t i2 = 0U;
         for (; i2 < to_; i2++)
-            elems_tile[i2 * 16U + threadIdx.x] = 0.0f;
+            elems_tile[i2 * 16U + threadIdx.x] = (float) 0LL;
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 256U; k++) {
@@ -5331,7 +5331,7 @@ void Klas_SPMM_g_spmm_f32_256x64x16(uint32_t rows, uint32_t shared,
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(16)
 /**
   hoisted when extracting g_spmm_f32_256x64x16_on
 */
@@ -5364,7 +5364,7 @@ __hoisted_g_spmm_f32_256x64x16_on_0(uint32_t rows, uint32_t cols,
         uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
         uint32_t i2 = 0U;
         for (; i2 < to_; i2++)
-            elems_tile[i2 * 16U + threadIdx.x] = 0.0f;
+            elems_tile[i2 * 16U + threadIdx.x] = (float) 0LL;
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 256U; k++) {
@@ -5482,7 +5482,7 @@ void Klas_SPMM_g_spmm_f32_256x64x16_on(uint32_t rows, uint32_t shared,
         rows, cols, gA, row_indices, gB, gC);
 }
 
-__global__
+__global__ __launch_bounds__(16)
 /**
   hoisted when extracting g_spmm_f32_256x128x16
 */
@@ -5515,7 +5515,7 @@ __hoisted_g_spmm_f32_256x128x16_0(uint32_t rows, uint32_t cols,
         uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
         uint32_t i2 = 0U;
         for (; i2 < to_; i2++)
-            elems_tile[i2 * 16U + threadIdx.x] = 0.0f;
+            elems_tile[i2 * 16U + threadIdx.x] = (float) 0LL;
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 256U; k++) {
@@ -5636,7 +5636,7 @@ void Klas_SPMM_g_spmm_f32_256x128x16(uint32_t rows, uint32_t shared,
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(16)
 /**
   hoisted when extracting g_spmm_f32_256x128x16_on
 */
@@ -5669,7 +5669,7 @@ __hoisted_g_spmm_f32_256x128x16_on_0(uint32_t rows, uint32_t cols,
         uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
         uint32_t i2 = 0U;
         for (; i2 < to_; i2++)
-            elems_tile[i2 * 16U + threadIdx.x] = 0.0f;
+            elems_tile[i2 * 16U + threadIdx.x] = (float) 0LL;
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 256U; k++) {
@@ -5787,7 +5787,7 @@ void Klas_SPMM_g_spmm_f32_256x128x16_on(uint32_t rows, uint32_t shared,
         rows, cols, gA, row_indices, gB, gC);
 }
 
-__global__
+__global__ __launch_bounds__(32)
 /**
   hoisted when extracting g_spmm_f32_256x128x32
 */
@@ -5820,7 +5820,7 @@ __hoisted_g_spmm_f32_256x128x32_0(uint32_t rows, uint32_t cols,
         uint32_t to_ = (ri - ri_ + 31U - threadIdx.x) / 32U;
         uint32_t i2 = 0U;
         for (; i2 < to_; i2++)
-            elems_tile[i2 * 32U + threadIdx.x] = 0.0f;
+            elems_tile[i2 * 32U + threadIdx.x] = (float) 0LL;
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 256U; k++) {
@@ -5941,7 +5941,7 @@ void Klas_SPMM_g_spmm_f32_256x128x32(uint32_t rows, uint32_t shared,
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(32)
 /**
   hoisted when extracting g_spmm_f32_256x128x32_on
 */
@@ -5974,7 +5974,7 @@ __hoisted_g_spmm_f32_256x128x32_on_0(uint32_t rows, uint32_t cols,
         uint32_t to_ = (ri - ri_ + 31U - threadIdx.x) / 32U;
         uint32_t i2 = 0U;
         for (; i2 < to_; i2++)
-            elems_tile[i2 * 32U + threadIdx.x] = 0.0f;
+            elems_tile[i2 * 32U + threadIdx.x] = (float) 0LL;
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 256U; k++) {
@@ -6092,7 +6092,7 @@ void Klas_SPMM_g_spmm_f32_256x128x32_on(uint32_t rows, uint32_t shared,
         rows, cols, gA, row_indices, gB, gC);
 }
 
-__global__
+__global__ __launch_bounds__(16)
 /**
   hoisted when extracting g_spmm_f32_256x256x16
 */
@@ -6125,7 +6125,7 @@ __hoisted_g_spmm_f32_256x256x16_0(uint32_t rows, uint32_t cols,
         uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
         uint32_t i2 = 0U;
         for (; i2 < to_; i2++)
-            elems_tile[i2 * 16U + threadIdx.x] = 0.0f;
+            elems_tile[i2 * 16U + threadIdx.x] = (float) 0LL;
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 256U; k++) {
@@ -6246,7 +6246,7 @@ void Klas_SPMM_g_spmm_f32_256x256x16(uint32_t rows, uint32_t shared,
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(16)
 /**
   hoisted when extracting g_spmm_f32_256x256x16_on
 */
@@ -6279,7 +6279,7 @@ __hoisted_g_spmm_f32_256x256x16_on_0(uint32_t rows, uint32_t cols,
         uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
         uint32_t i2 = 0U;
         for (; i2 < to_; i2++)
-            elems_tile[i2 * 16U + threadIdx.x] = 0.0f;
+            elems_tile[i2 * 16U + threadIdx.x] = (float) 0LL;
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 256U; k++) {
@@ -6397,7 +6397,7 @@ void Klas_SPMM_g_spmm_f32_256x256x16_on(uint32_t rows, uint32_t shared,
         rows, cols, gA, row_indices, gB, gC);
 }
 
-__global__
+__global__ __launch_bounds__(32)
 /**
   hoisted when extracting g_spmm_f32_256x256x32
 */
@@ -6430,7 +6430,7 @@ __hoisted_g_spmm_f32_256x256x32_0(uint32_t rows, uint32_t cols,
         uint32_t to_ = (ri - ri_ + 31U - threadIdx.x) / 32U;
         uint32_t i2 = 0U;
         for (; i2 < to_; i2++)
-            elems_tile[i2 * 32U + threadIdx.x] = 0.0f;
+            elems_tile[i2 * 32U + threadIdx.x] = (float) 0LL;
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 256U; k++) {
@@ -6551,7 +6551,7 @@ void Klas_SPMM_g_spmm_f32_256x256x32(uint32_t rows, uint32_t shared,
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(32)
 /**
   hoisted when extracting g_spmm_f32_256x256x32_on
 */
@@ -6584,7 +6584,7 @@ __hoisted_g_spmm_f32_256x256x32_on_0(uint32_t rows, uint32_t cols,
         uint32_t to_ = (ri - ri_ + 31U - threadIdx.x) / 32U;
         uint32_t i2 = 0U;
         for (; i2 < to_; i2++)
-            elems_tile[i2 * 32U + threadIdx.x] = 0.0f;
+            elems_tile[i2 * 32U + threadIdx.x] = (float) 0LL;
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 256U; k++) {
@@ -6702,7 +6702,7 @@ void Klas_SPMM_g_spmm_f32_256x256x32_on(uint32_t rows, uint32_t shared,
         rows, cols, gA, row_indices, gB, gC);
 }
 
-__global__
+__global__ __launch_bounds__(64)
 /**
   hoisted when extracting g_spmm_f32_256x256x64
 */
@@ -6735,7 +6735,7 @@ __hoisted_g_spmm_f32_256x256x64_0(uint32_t rows, uint32_t cols,
         uint32_t to_ = (ri - ri_ + 63U - threadIdx.x) / 64U;
         uint32_t i2 = 0U;
         for (; i2 < to_; i2++)
-            elems_tile[i2 * 64U + threadIdx.x] = 0.0f;
+            elems_tile[i2 * 64U + threadIdx.x] = (float) 0LL;
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 256U; k++) {
@@ -6856,7 +6856,7 @@ void Klas_SPMM_g_spmm_f32_256x256x64(uint32_t rows, uint32_t shared,
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(64)
 /**
   hoisted when extracting g_spmm_f32_256x256x64_on
 */
@@ -6889,7 +6889,7 @@ __hoisted_g_spmm_f32_256x256x64_on_0(uint32_t rows, uint32_t cols,
         uint32_t to_ = (ri - ri_ + 63U - threadIdx.x) / 64U;
         uint32_t i2 = 0U;
         for (; i2 < to_; i2++)
-            elems_tile[i2 * 64U + threadIdx.x] = 0.0f;
+            elems_tile[i2 * 64U + threadIdx.x] = (float) 0LL;
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 256U; k++) {
@@ -7007,7 +7007,7 @@ void Klas_SPMM_g_spmm_f32_256x256x64_on(uint32_t rows, uint32_t shared,
         rows, cols, gA, row_indices, gB, gC);
 }
 
-__global__
+__global__ __launch_bounds__(16)
 /**
   hoisted when extracting g_spmm_f32_256x512x16
 */
@@ -7040,7 +7040,7 @@ __hoisted_g_spmm_f32_256x512x16_0(uint32_t rows, uint32_t cols,
         uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
         uint32_t i2 = 0U;
         for (; i2 < to_; i2++)
-            elems_tile[i2 * 16U + threadIdx.x] = 0.0f;
+            elems_tile[i2 * 16U + threadIdx.x] = (float) 0LL;
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 256U; k++) {
@@ -7161,7 +7161,7 @@ void Klas_SPMM_g_spmm_f32_256x512x16(uint32_t rows, uint32_t shared,
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(16)
 /**
   hoisted when extracting g_spmm_f32_256x512x16_on
 */
@@ -7194,7 +7194,7 @@ __hoisted_g_spmm_f32_256x512x16_on_0(uint32_t rows, uint32_t cols,
         uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
         uint32_t i2 = 0U;
         for (; i2 < to_; i2++)
-            elems_tile[i2 * 16U + threadIdx.x] = 0.0f;
+            elems_tile[i2 * 16U + threadIdx.x] = (float) 0LL;
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 256U; k++) {
@@ -7312,7 +7312,7 @@ void Klas_SPMM_g_spmm_f32_256x512x16_on(uint32_t rows, uint32_t shared,
         rows, cols, gA, row_indices, gB, gC);
 }
 
-__global__
+__global__ __launch_bounds__(32)
 /**
   hoisted when extracting g_spmm_f32_256x512x32
 */
@@ -7345,7 +7345,7 @@ __hoisted_g_spmm_f32_256x512x32_0(uint32_t rows, uint32_t cols,
         uint32_t to_ = (ri - ri_ + 31U - threadIdx.x) / 32U;
         uint32_t i2 = 0U;
         for (; i2 < to_; i2++)
-            elems_tile[i2 * 32U + threadIdx.x] = 0.0f;
+            elems_tile[i2 * 32U + threadIdx.x] = (float) 0LL;
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 256U; k++) {
@@ -7466,7 +7466,7 @@ void Klas_SPMM_g_spmm_f32_256x512x32(uint32_t rows, uint32_t shared,
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(32)
 /**
   hoisted when extracting g_spmm_f32_256x512x32_on
 */
@@ -7499,7 +7499,7 @@ __hoisted_g_spmm_f32_256x512x32_on_0(uint32_t rows, uint32_t cols,
         uint32_t to_ = (ri - ri_ + 31U - threadIdx.x) / 32U;
         uint32_t i2 = 0U;
         for (; i2 < to_; i2++)
-            elems_tile[i2 * 32U + threadIdx.x] = 0.0f;
+            elems_tile[i2 * 32U + threadIdx.x] = (float) 0LL;
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 256U; k++) {
@@ -7617,7 +7617,7 @@ void Klas_SPMM_g_spmm_f32_256x512x32_on(uint32_t rows, uint32_t shared,
         rows, cols, gA, row_indices, gB, gC);
 }
 
-__global__
+__global__ __launch_bounds__(64)
 /**
   hoisted when extracting g_spmm_f32_256x512x64
 */
@@ -7650,7 +7650,7 @@ __hoisted_g_spmm_f32_256x512x64_0(uint32_t rows, uint32_t cols,
         uint32_t to_ = (ri - ri_ + 63U - threadIdx.x) / 64U;
         uint32_t i2 = 0U;
         for (; i2 < to_; i2++)
-            elems_tile[i2 * 64U + threadIdx.x] = 0.0f;
+            elems_tile[i2 * 64U + threadIdx.x] = (float) 0LL;
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 256U; k++) {
@@ -7771,7 +7771,7 @@ void Klas_SPMM_g_spmm_f32_256x512x64(uint32_t rows, uint32_t shared,
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(64)
 /**
   hoisted when extracting g_spmm_f32_256x512x64_on
 */
@@ -7804,7 +7804,7 @@ __hoisted_g_spmm_f32_256x512x64_on_0(uint32_t rows, uint32_t cols,
         uint32_t to_ = (ri - ri_ + 63U - threadIdx.x) / 64U;
         uint32_t i2 = 0U;
         for (; i2 < to_; i2++)
-            elems_tile[i2 * 64U + threadIdx.x] = 0.0f;
+            elems_tile[i2 * 64U + threadIdx.x] = (float) 0LL;
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 256U; k++) {
@@ -7922,7 +7922,7 @@ void Klas_SPMM_g_spmm_f32_256x512x64_on(uint32_t rows, uint32_t shared,
         rows, cols, gA, row_indices, gB, gC);
 }
 
-__global__
+__global__ __launch_bounds__(16)
 /**
   hoisted when extracting g_spmm_f32_512x64x16
 */
@@ -7955,7 +7955,7 @@ __hoisted_g_spmm_f32_512x64x16_0(uint32_t rows, uint32_t cols,
         uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
         uint32_t i2 = 0U;
         for (; i2 < to_; i2++)
-            elems_tile[i2 * 16U + threadIdx.x] = 0.0f;
+            elems_tile[i2 * 16U + threadIdx.x] = (float) 0LL;
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 512U; k++) {
@@ -8076,7 +8076,7 @@ void Klas_SPMM_g_spmm_f32_512x64x16(uint32_t rows, uint32_t shared,
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(16)
 /**
   hoisted when extracting g_spmm_f32_512x64x16_on
 */
@@ -8109,7 +8109,7 @@ __hoisted_g_spmm_f32_512x64x16_on_0(uint32_t rows, uint32_t cols,
         uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
         uint32_t i2 = 0U;
         for (; i2 < to_; i2++)
-            elems_tile[i2 * 16U + threadIdx.x] = 0.0f;
+            elems_tile[i2 * 16U + threadIdx.x] = (float) 0LL;
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 512U; k++) {
@@ -8227,7 +8227,7 @@ void Klas_SPMM_g_spmm_f32_512x64x16_on(uint32_t rows, uint32_t shared,
         rows, cols, gA, row_indices, gB, gC);
 }
 
-__global__
+__global__ __launch_bounds__(16)
 /**
   hoisted when extracting g_spmm_f32_512x128x16
 */
@@ -8260,7 +8260,7 @@ __hoisted_g_spmm_f32_512x128x16_0(uint32_t rows, uint32_t cols,
         uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
         uint32_t i2 = 0U;
         for (; i2 < to_; i2++)
-            elems_tile[i2 * 16U + threadIdx.x] = 0.0f;
+            elems_tile[i2 * 16U + threadIdx.x] = (float) 0LL;
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 512U; k++) {
@@ -8381,7 +8381,7 @@ void Klas_SPMM_g_spmm_f32_512x128x16(uint32_t rows, uint32_t shared,
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(16)
 /**
   hoisted when extracting g_spmm_f32_512x128x16_on
 */
@@ -8414,7 +8414,7 @@ __hoisted_g_spmm_f32_512x128x16_on_0(uint32_t rows, uint32_t cols,
         uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
         uint32_t i2 = 0U;
         for (; i2 < to_; i2++)
-            elems_tile[i2 * 16U + threadIdx.x] = 0.0f;
+            elems_tile[i2 * 16U + threadIdx.x] = (float) 0LL;
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 512U; k++) {
@@ -8532,7 +8532,7 @@ void Klas_SPMM_g_spmm_f32_512x128x16_on(uint32_t rows, uint32_t shared,
         rows, cols, gA, row_indices, gB, gC);
 }
 
-__global__
+__global__ __launch_bounds__(32)
 /**
   hoisted when extracting g_spmm_f32_512x128x32
 */
@@ -8565,7 +8565,7 @@ __hoisted_g_spmm_f32_512x128x32_0(uint32_t rows, uint32_t cols,
         uint32_t to_ = (ri - ri_ + 31U - threadIdx.x) / 32U;
         uint32_t i2 = 0U;
         for (; i2 < to_; i2++)
-            elems_tile[i2 * 32U + threadIdx.x] = 0.0f;
+            elems_tile[i2 * 32U + threadIdx.x] = (float) 0LL;
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 512U; k++) {
@@ -8686,7 +8686,7 @@ void Klas_SPMM_g_spmm_f32_512x128x32(uint32_t rows, uint32_t shared,
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(32)
 /**
   hoisted when extracting g_spmm_f32_512x128x32_on
 */
@@ -8719,7 +8719,7 @@ __hoisted_g_spmm_f32_512x128x32_on_0(uint32_t rows, uint32_t cols,
         uint32_t to_ = (ri - ri_ + 31U - threadIdx.x) / 32U;
         uint32_t i2 = 0U;
         for (; i2 < to_; i2++)
-            elems_tile[i2 * 32U + threadIdx.x] = 0.0f;
+            elems_tile[i2 * 32U + threadIdx.x] = (float) 0LL;
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 512U; k++) {
@@ -8837,7 +8837,7 @@ void Klas_SPMM_g_spmm_f32_512x128x32_on(uint32_t rows, uint32_t shared,
         rows, cols, gA, row_indices, gB, gC);
 }
 
-__global__
+__global__ __launch_bounds__(16)
 /**
   hoisted when extracting g_spmm_f32_512x256x16
 */
@@ -8870,7 +8870,7 @@ __hoisted_g_spmm_f32_512x256x16_0(uint32_t rows, uint32_t cols,
         uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
         uint32_t i2 = 0U;
         for (; i2 < to_; i2++)
-            elems_tile[i2 * 16U + threadIdx.x] = 0.0f;
+            elems_tile[i2 * 16U + threadIdx.x] = (float) 0LL;
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 512U; k++) {
@@ -8991,7 +8991,7 @@ void Klas_SPMM_g_spmm_f32_512x256x16(uint32_t rows, uint32_t shared,
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(16)
 /**
   hoisted when extracting g_spmm_f32_512x256x16_on
 */
@@ -9024,7 +9024,7 @@ __hoisted_g_spmm_f32_512x256x16_on_0(uint32_t rows, uint32_t cols,
         uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
         uint32_t i2 = 0U;
         for (; i2 < to_; i2++)
-            elems_tile[i2 * 16U + threadIdx.x] = 0.0f;
+            elems_tile[i2 * 16U + threadIdx.x] = (float) 0LL;
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 512U; k++) {
@@ -9142,7 +9142,7 @@ void Klas_SPMM_g_spmm_f32_512x256x16_on(uint32_t rows, uint32_t shared,
         rows, cols, gA, row_indices, gB, gC);
 }
 
-__global__
+__global__ __launch_bounds__(32)
 /**
   hoisted when extracting g_spmm_f32_512x256x32
 */
@@ -9175,7 +9175,7 @@ __hoisted_g_spmm_f32_512x256x32_0(uint32_t rows, uint32_t cols,
         uint32_t to_ = (ri - ri_ + 31U - threadIdx.x) / 32U;
         uint32_t i2 = 0U;
         for (; i2 < to_; i2++)
-            elems_tile[i2 * 32U + threadIdx.x] = 0.0f;
+            elems_tile[i2 * 32U + threadIdx.x] = (float) 0LL;
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 512U; k++) {
@@ -9296,7 +9296,7 @@ void Klas_SPMM_g_spmm_f32_512x256x32(uint32_t rows, uint32_t shared,
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(32)
 /**
   hoisted when extracting g_spmm_f32_512x256x32_on
 */
@@ -9329,7 +9329,7 @@ __hoisted_g_spmm_f32_512x256x32_on_0(uint32_t rows, uint32_t cols,
         uint32_t to_ = (ri - ri_ + 31U - threadIdx.x) / 32U;
         uint32_t i2 = 0U;
         for (; i2 < to_; i2++)
-            elems_tile[i2 * 32U + threadIdx.x] = 0.0f;
+            elems_tile[i2 * 32U + threadIdx.x] = (float) 0LL;
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 512U; k++) {
@@ -9447,7 +9447,7 @@ void Klas_SPMM_g_spmm_f32_512x256x32_on(uint32_t rows, uint32_t shared,
         rows, cols, gA, row_indices, gB, gC);
 }
 
-__global__
+__global__ __launch_bounds__(64)
 /**
   hoisted when extracting g_spmm_f32_512x256x64
 */
@@ -9480,7 +9480,7 @@ __hoisted_g_spmm_f32_512x256x64_0(uint32_t rows, uint32_t cols,
         uint32_t to_ = (ri - ri_ + 63U - threadIdx.x) / 64U;
         uint32_t i2 = 0U;
         for (; i2 < to_; i2++)
-            elems_tile[i2 * 64U + threadIdx.x] = 0.0f;
+            elems_tile[i2 * 64U + threadIdx.x] = (float) 0LL;
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 512U; k++) {
@@ -9601,7 +9601,7 @@ void Klas_SPMM_g_spmm_f32_512x256x64(uint32_t rows, uint32_t shared,
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(64)
 /**
   hoisted when extracting g_spmm_f32_512x256x64_on
 */
@@ -9634,7 +9634,7 @@ __hoisted_g_spmm_f32_512x256x64_on_0(uint32_t rows, uint32_t cols,
         uint32_t to_ = (ri - ri_ + 63U - threadIdx.x) / 64U;
         uint32_t i2 = 0U;
         for (; i2 < to_; i2++)
-            elems_tile[i2 * 64U + threadIdx.x] = 0.0f;
+            elems_tile[i2 * 64U + threadIdx.x] = (float) 0LL;
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 512U; k++) {
@@ -9752,7 +9752,7 @@ void Klas_SPMM_g_spmm_f32_512x256x64_on(uint32_t rows, uint32_t shared,
         rows, cols, gA, row_indices, gB, gC);
 }
 
-__global__
+__global__ __launch_bounds__(16)
 /**
   hoisted when extracting g_spmm_f32_512x512x16
 */
@@ -9785,7 +9785,7 @@ __hoisted_g_spmm_f32_512x512x16_0(uint32_t rows, uint32_t cols,
         uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
         uint32_t i2 = 0U;
         for (; i2 < to_; i2++)
-            elems_tile[i2 * 16U + threadIdx.x] = 0.0f;
+            elems_tile[i2 * 16U + threadIdx.x] = (float) 0LL;
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 512U; k++) {
@@ -9906,7 +9906,7 @@ void Klas_SPMM_g_spmm_f32_512x512x16(uint32_t rows, uint32_t shared,
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(16)
 /**
   hoisted when extracting g_spmm_f32_512x512x16_on
 */
@@ -9939,7 +9939,7 @@ __hoisted_g_spmm_f32_512x512x16_on_0(uint32_t rows, uint32_t cols,
         uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
         uint32_t i2 = 0U;
         for (; i2 < to_; i2++)
-            elems_tile[i2 * 16U + threadIdx.x] = 0.0f;
+            elems_tile[i2 * 16U + threadIdx.x] = (float) 0LL;
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 512U; k++) {
@@ -10057,7 +10057,7 @@ void Klas_SPMM_g_spmm_f32_512x512x16_on(uint32_t rows, uint32_t shared,
         rows, cols, gA, row_indices, gB, gC);
 }
 
-__global__
+__global__ __launch_bounds__(32)
 /**
   hoisted when extracting g_spmm_f32_512x512x32
 */
@@ -10090,7 +10090,7 @@ __hoisted_g_spmm_f32_512x512x32_0(uint32_t rows, uint32_t cols,
         uint32_t to_ = (ri - ri_ + 31U - threadIdx.x) / 32U;
         uint32_t i2 = 0U;
         for (; i2 < to_; i2++)
-            elems_tile[i2 * 32U + threadIdx.x] = 0.0f;
+            elems_tile[i2 * 32U + threadIdx.x] = (float) 0LL;
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 512U; k++) {
@@ -10211,7 +10211,7 @@ void Klas_SPMM_g_spmm_f32_512x512x32(uint32_t rows, uint32_t shared,
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(32)
 /**
   hoisted when extracting g_spmm_f32_512x512x32_on
 */
@@ -10244,7 +10244,7 @@ __hoisted_g_spmm_f32_512x512x32_on_0(uint32_t rows, uint32_t cols,
         uint32_t to_ = (ri - ri_ + 31U - threadIdx.x) / 32U;
         uint32_t i2 = 0U;
         for (; i2 < to_; i2++)
-            elems_tile[i2 * 32U + threadIdx.x] = 0.0f;
+            elems_tile[i2 * 32U + threadIdx.x] = (float) 0LL;
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 512U; k++) {
@@ -10362,7 +10362,7 @@ void Klas_SPMM_g_spmm_f32_512x512x32_on(uint32_t rows, uint32_t shared,
         rows, cols, gA, row_indices, gB, gC);
 }
 
-__global__
+__global__ __launch_bounds__(64)
 /**
   hoisted when extracting g_spmm_f32_512x512x64
 */
@@ -10395,7 +10395,7 @@ __hoisted_g_spmm_f32_512x512x64_0(uint32_t rows, uint32_t cols,
         uint32_t to_ = (ri - ri_ + 63U - threadIdx.x) / 64U;
         uint32_t i2 = 0U;
         for (; i2 < to_; i2++)
-            elems_tile[i2 * 64U + threadIdx.x] = 0.0f;
+            elems_tile[i2 * 64U + threadIdx.x] = (float) 0LL;
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 512U; k++) {
@@ -10516,7 +10516,7 @@ void Klas_SPMM_g_spmm_f32_512x512x64(uint32_t rows, uint32_t shared,
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(64)
 /**
   hoisted when extracting g_spmm_f32_512x512x64_on
 */
@@ -10549,7 +10549,7 @@ __hoisted_g_spmm_f32_512x512x64_on_0(uint32_t rows, uint32_t cols,
         uint32_t to_ = (ri - ri_ + 63U - threadIdx.x) / 64U;
         uint32_t i2 = 0U;
         for (; i2 < to_; i2++)
-            elems_tile[i2 * 64U + threadIdx.x] = 0.0f;
+            elems_tile[i2 * 64U + threadIdx.x] = (float) 0LL;
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 512U; k++) {
@@ -10667,7 +10667,7 @@ void Klas_SPMM_g_spmm_f32_512x512x64_on(uint32_t rows, uint32_t shared,
         rows, cols, gA, row_indices, gB, gC);
 }
 
-__global__
+__global__ __launch_bounds__(128)
 /**
   hoisted when extracting g_spmm_f32_512x512x128
 */
@@ -10700,7 +10700,7 @@ __hoisted_g_spmm_f32_512x512x128_0(uint32_t rows, uint32_t cols,
         uint32_t to_ = (ri - ri_ + 127U - threadIdx.x) / 128U;
         uint32_t i2 = 0U;
         for (; i2 < to_; i2++)
-            elems_tile[i2 * 128U + threadIdx.x] = 0.0f;
+            elems_tile[i2 * 128U + threadIdx.x] = (float) 0LL;
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 512U; k++) {
@@ -10821,7 +10821,7 @@ void Klas_SPMM_g_spmm_f32_512x512x128(uint32_t rows, uint32_t shared,
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(128)
 /**
   hoisted when extracting g_spmm_f32_512x512x128_on
 */
@@ -10854,7 +10854,7 @@ __hoisted_g_spmm_f32_512x512x128_on_0(uint32_t rows, uint32_t cols,
         uint32_t to_ = (ri - ri_ + 127U - threadIdx.x) / 128U;
         uint32_t i2 = 0U;
         for (; i2 < to_; i2++)
-            elems_tile[i2 * 128U + threadIdx.x] = 0.0f;
+            elems_tile[i2 * 128U + threadIdx.x] = (float) 0LL;
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 512U; k++) {

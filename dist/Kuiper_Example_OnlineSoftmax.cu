@@ -1,7 +1,7 @@
 
 #include "Kuiper_Example_OnlineSoftmax.h"
 
-__global__
+__global__ __launch_bounds__(1024)
 /**
   hoisted when extracting _test
 */
@@ -10,8 +10,8 @@ __hoisted__test_0(uint32_t len, float *a, float *b)
 {
     if (1024U * blockIdx.x + threadIdx.x < len) {
         uint32_t i = 0U;
-        float sum = 0.0f;
-        float max = 0.0f - INFINITY;
+        float sum = (float) 0LL;
+        float max = (float) 0LL - INFINITY;
         while (i < len) {
             float x = a[i];
             float max_ = fmaxf(max, x);
@@ -39,7 +39,7 @@ void Kuiper_Example_OnlineSoftmax__test(uint32_t len, float *a, float *b)
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(1024)
 /**
   hoisted when extracting _testh
 */

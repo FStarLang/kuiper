@@ -13,7 +13,7 @@ __hoisted_g_matmul_f32_rrr_0(uint32_t tile, uint32_t n, uint32_t k, float *gA,
     uint32_t mcol = blockIdx.x % nn;
     uint32_t brow = threadIdx.x / tile;
     uint32_t bcol = threadIdx.x % tile;
-    float sum = 0.0f;
+    float sum = (float) 0LL;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
         uint32_t __anf0 = bk;
@@ -21,7 +21,7 @@ __hoisted_g_matmul_f32_rrr_0(uint32_t tile, uint32_t n, uint32_t k, float *gA,
         uint32_t __anf01 = bk;
         float *bbkbj = gB;
         uint32_t k1 = 0U;
-        float sum1 = 0.0f;
+        float sum1 = (float) 0LL;
         for (; k1 < tile; k1++) {
             uint32_t vk = k1;
             sum1 += abibk[(mrow * tile + brow) * k + __anf0 * tile + vk] *
@@ -58,7 +58,7 @@ __hoisted_g_matmul_f64_rrr_0(uint32_t tile, uint32_t n, uint32_t k, double *gA,
     uint32_t mcol = blockIdx.x % nn;
     uint32_t brow = threadIdx.x / tile;
     uint32_t bcol = threadIdx.x % tile;
-    double sum = 0.0;
+    double sum = (double) 0LL;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
         uint32_t __anf0 = bk;
@@ -66,7 +66,7 @@ __hoisted_g_matmul_f64_rrr_0(uint32_t tile, uint32_t n, uint32_t k, double *gA,
         uint32_t __anf01 = bk;
         double *bbkbj = gB;
         uint32_t k1 = 0U;
-        double sum1 = 0.0;
+        double sum1 = (double) 0LL;
         for (; k1 < tile; k1++) {
             uint32_t vk = k1;
             sum1 += abibk[(mrow * tile + brow) * k + __anf0 * tile + vk] *
@@ -181,7 +181,7 @@ void Klas_GEMM_Tiled_g_matmul_u64_rrr(uint32_t tile, uint32_t m, uint32_t n,
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(1024)
 /**
   hoisted when extracting g_matmul_f32_tile32_rrr
 */
@@ -191,7 +191,7 @@ __hoisted_g_matmul_f32_tile32_rrr_0(uint32_t n, uint32_t k, float *gA,
 {
     uint32_t mrow = blockIdx.x / nn;
     uint32_t mcol = blockIdx.x % nn;
-    float sum = 0.0f;
+    float sum = (float) 0LL;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
         uint32_t __anf0 = bk;
@@ -199,7 +199,7 @@ __hoisted_g_matmul_f32_tile32_rrr_0(uint32_t n, uint32_t k, float *gA,
         uint32_t __anf01 = bk;
         float *bbkbj = gB;
         uint32_t k1 = 0U;
-        float sum1 = 0.0f;
+        float sum1 = (float) 0LL;
         for (; k1 < 32U; k1++) {
             uint32_t vk = k1;
             sum1 += abibk[(mrow * 32U + threadIdx.x / 32U) * k + __anf0 * 32U +
@@ -227,7 +227,7 @@ void Klas_GEMM_Tiled_g_matmul_f32_tile32_rrr(
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(1024)
 /**
   hoisted when extracting g_matmul_f64_tile32_rrr
 */
@@ -237,7 +237,7 @@ __hoisted_g_matmul_f64_tile32_rrr_0(uint32_t n, uint32_t k, double *gA,
 {
     uint32_t mrow = blockIdx.x / nn;
     uint32_t mcol = blockIdx.x % nn;
-    double sum = 0.0;
+    double sum = (double) 0LL;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
         uint32_t __anf0 = bk;
@@ -245,7 +245,7 @@ __hoisted_g_matmul_f64_tile32_rrr_0(uint32_t n, uint32_t k, double *gA,
         uint32_t __anf01 = bk;
         double *bbkbj = gB;
         uint32_t k1 = 0U;
-        double sum1 = 0.0;
+        double sum1 = (double) 0LL;
         for (; k1 < 32U; k1++) {
             uint32_t vk = k1;
             sum1 += abibk[(mrow * 32U + threadIdx.x / 32U) * k + __anf0 * 32U +
@@ -273,7 +273,7 @@ void Klas_GEMM_Tiled_g_matmul_f64_tile32_rrr(
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(1024)
 /**
   hoisted when extracting g_matmul_u32_tile32_rrr
 */
@@ -319,7 +319,7 @@ void Klas_GEMM_Tiled_g_matmul_u32_tile32_rrr(uint32_t m, uint32_t n, uint32_t k,
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(1024)
 /**
   hoisted when extracting g_matmul_u64_tile32_rrr
 */
@@ -365,7 +365,7 @@ void Klas_GEMM_Tiled_g_matmul_u64_tile32_rrr(uint32_t m, uint32_t n, uint32_t k,
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(256)
 /**
   hoisted when extracting g_matmul_f32_tile16_rrr
 */
@@ -375,7 +375,7 @@ __hoisted_g_matmul_f32_tile16_rrr_0(uint32_t n, uint32_t k, float *gA,
 {
     uint32_t mrow = blockIdx.x / nn;
     uint32_t mcol = blockIdx.x % nn;
-    float sum = 0.0f;
+    float sum = (float) 0LL;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
         uint32_t __anf0 = bk;
@@ -383,7 +383,7 @@ __hoisted_g_matmul_f32_tile16_rrr_0(uint32_t n, uint32_t k, float *gA,
         uint32_t __anf01 = bk;
         float *bbkbj = gB;
         uint32_t k1 = 0U;
-        float sum1 = 0.0f;
+        float sum1 = (float) 0LL;
         for (; k1 < 16U; k1++) {
             uint32_t vk = k1;
             sum1 += abibk[(mrow * 16U + threadIdx.x / 16U) * k + __anf0 * 16U +
@@ -411,7 +411,7 @@ void Klas_GEMM_Tiled_g_matmul_f32_tile16_rrr(
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(256)
 /**
   hoisted when extracting g_matmul_f64_tile16_rrr
 */
@@ -421,7 +421,7 @@ __hoisted_g_matmul_f64_tile16_rrr_0(uint32_t n, uint32_t k, double *gA,
 {
     uint32_t mrow = blockIdx.x / nn;
     uint32_t mcol = blockIdx.x % nn;
-    double sum = 0.0;
+    double sum = (double) 0LL;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
         uint32_t __anf0 = bk;
@@ -429,7 +429,7 @@ __hoisted_g_matmul_f64_tile16_rrr_0(uint32_t n, uint32_t k, double *gA,
         uint32_t __anf01 = bk;
         double *bbkbj = gB;
         uint32_t k1 = 0U;
-        double sum1 = 0.0;
+        double sum1 = (double) 0LL;
         for (; k1 < 16U; k1++) {
             uint32_t vk = k1;
             sum1 += abibk[(mrow * 16U + threadIdx.x / 16U) * k + __anf0 * 16U +
@@ -457,7 +457,7 @@ void Klas_GEMM_Tiled_g_matmul_f64_tile16_rrr(
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(256)
 /**
   hoisted when extracting g_matmul_u32_tile16_rrr
 */
@@ -503,7 +503,7 @@ void Klas_GEMM_Tiled_g_matmul_u32_tile16_rrr(uint32_t m, uint32_t n, uint32_t k,
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(256)
 /**
   hoisted when extracting g_matmul_u64_tile16_rrr
 */
@@ -561,7 +561,7 @@ __hoisted_g_gemm_f32_rrr_0(uint32_t tile, float alpha, float beta, uint32_t n,
     uint32_t mcol = blockIdx.x % nn;
     uint32_t brow = threadIdx.x / tile;
     uint32_t bcol = threadIdx.x % tile;
-    float sum = 0.0f;
+    float sum = (float) 0LL;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
         uint32_t __anf0 = bk;
@@ -569,7 +569,7 @@ __hoisted_g_gemm_f32_rrr_0(uint32_t tile, float alpha, float beta, uint32_t n,
         uint32_t __anf01 = bk;
         float *bbkbj = gB;
         uint32_t k1 = 0U;
-        float sum1 = 0.0f;
+        float sum1 = (float) 0LL;
         for (; k1 < tile; k1++) {
             uint32_t vk = k1;
             sum1 += abibk[(mrow * tile + brow) * k + __anf0 * tile + vk] *
@@ -608,7 +608,7 @@ __hoisted_g_gemm_f64_rrr_0(uint32_t tile, double alpha, double beta, uint32_t n,
     uint32_t mcol = blockIdx.x % nn;
     uint32_t brow = threadIdx.x / tile;
     uint32_t bcol = threadIdx.x % tile;
-    double sum = 0.0;
+    double sum = (double) 0LL;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
         uint32_t __anf0 = bk;
@@ -616,7 +616,7 @@ __hoisted_g_gemm_f64_rrr_0(uint32_t tile, double alpha, double beta, uint32_t n,
         uint32_t __anf01 = bk;
         double *bbkbj = gB;
         uint32_t k1 = 0U;
-        double sum1 = 0.0;
+        double sum1 = (double) 0LL;
         for (; k1 < tile; k1++) {
             uint32_t vk = k1;
             sum1 += abibk[(mrow * tile + brow) * k + __anf0 * tile + vk] *
@@ -741,7 +741,7 @@ void Klas_GEMM_Tiled_g_gemm_u64_rrr(uint32_t tile, uint64_t alpha,
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(1024)
 /**
   hoisted when extracting g_gemm_f32_tile32_rrr
 */
@@ -751,7 +751,7 @@ __hoisted_g_gemm_f32_tile32_rrr_0(float alpha, float beta, uint32_t n,
 {
     uint32_t mrow = blockIdx.x / nn;
     uint32_t mcol = blockIdx.x % nn;
-    float sum = 0.0f;
+    float sum = (float) 0LL;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
         uint32_t __anf0 = bk;
@@ -759,7 +759,7 @@ __hoisted_g_gemm_f32_tile32_rrr_0(float alpha, float beta, uint32_t n,
         uint32_t __anf01 = bk;
         float *bbkbj = gB;
         uint32_t k1 = 0U;
-        float sum1 = 0.0f;
+        float sum1 = (float) 0LL;
         for (; k1 < 32U; k1++) {
             uint32_t vk = k1;
             sum1 += abibk[(mrow * 32U + threadIdx.x / 32U) * k + __anf0 * 32U +
@@ -790,7 +790,7 @@ void Klas_GEMM_Tiled_g_gemm_f32_tile32_rrr(float alpha, float beta, uint32_t m,
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(1024)
 /**
   hoisted when extracting g_gemm_f64_tile32_rrr
 */
@@ -800,7 +800,7 @@ __hoisted_g_gemm_f64_tile32_rrr_0(double alpha, double beta, uint32_t n,
 {
     uint32_t mrow = blockIdx.x / nn;
     uint32_t mcol = blockIdx.x % nn;
-    double sum = 0.0;
+    double sum = (double) 0LL;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
         uint32_t __anf0 = bk;
@@ -808,7 +808,7 @@ __hoisted_g_gemm_f64_tile32_rrr_0(double alpha, double beta, uint32_t n,
         uint32_t __anf01 = bk;
         double *bbkbj = gB;
         uint32_t k1 = 0U;
-        double sum1 = 0.0;
+        double sum1 = (double) 0LL;
         for (; k1 < 32U; k1++) {
             uint32_t vk = k1;
             sum1 += abibk[(mrow * 32U + threadIdx.x / 32U) * k + __anf0 * 32U +
@@ -839,7 +839,7 @@ void Klas_GEMM_Tiled_g_gemm_f64_tile32_rrr(double alpha, double beta,
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(1024)
 /**
   hoisted when extracting g_gemm_u32_tile32_rrr
 */
@@ -890,7 +890,7 @@ void Klas_GEMM_Tiled_g_gemm_u32_tile32_rrr(uint32_t alpha, uint32_t beta,
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(1024)
 /**
   hoisted when extracting g_gemm_u64_tile32_rrr
 */
@@ -941,7 +941,7 @@ void Klas_GEMM_Tiled_g_gemm_u64_tile32_rrr(uint64_t alpha, uint64_t beta,
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(256)
 /**
   hoisted when extracting g_gemm_f32_tile16_rrr
 */
@@ -951,7 +951,7 @@ __hoisted_g_gemm_f32_tile16_rrr_0(float alpha, float beta, uint32_t n,
 {
     uint32_t mrow = blockIdx.x / nn;
     uint32_t mcol = blockIdx.x % nn;
-    float sum = 0.0f;
+    float sum = (float) 0LL;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
         uint32_t __anf0 = bk;
@@ -959,7 +959,7 @@ __hoisted_g_gemm_f32_tile16_rrr_0(float alpha, float beta, uint32_t n,
         uint32_t __anf01 = bk;
         float *bbkbj = gB;
         uint32_t k1 = 0U;
-        float sum1 = 0.0f;
+        float sum1 = (float) 0LL;
         for (; k1 < 16U; k1++) {
             uint32_t vk = k1;
             sum1 += abibk[(mrow * 16U + threadIdx.x / 16U) * k + __anf0 * 16U +
@@ -990,7 +990,7 @@ void Klas_GEMM_Tiled_g_gemm_f32_tile16_rrr(float alpha, float beta, uint32_t m,
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(256)
 /**
   hoisted when extracting g_gemm_f64_tile16_rrr
 */
@@ -1000,7 +1000,7 @@ __hoisted_g_gemm_f64_tile16_rrr_0(double alpha, double beta, uint32_t n,
 {
     uint32_t mrow = blockIdx.x / nn;
     uint32_t mcol = blockIdx.x % nn;
-    double sum = 0.0;
+    double sum = (double) 0LL;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
         uint32_t __anf0 = bk;
@@ -1008,7 +1008,7 @@ __hoisted_g_gemm_f64_tile16_rrr_0(double alpha, double beta, uint32_t n,
         uint32_t __anf01 = bk;
         double *bbkbj = gB;
         uint32_t k1 = 0U;
-        double sum1 = 0.0;
+        double sum1 = (double) 0LL;
         for (; k1 < 16U; k1++) {
             uint32_t vk = k1;
             sum1 += abibk[(mrow * 16U + threadIdx.x / 16U) * k + __anf0 * 16U +
@@ -1039,7 +1039,7 @@ void Klas_GEMM_Tiled_g_gemm_f64_tile16_rrr(double alpha, double beta,
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(256)
 /**
   hoisted when extracting g_gemm_u32_tile16_rrr
 */
@@ -1090,7 +1090,7 @@ void Klas_GEMM_Tiled_g_gemm_u32_tile16_rrr(uint32_t alpha, uint32_t beta,
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(256)
 /**
   hoisted when extracting g_gemm_u64_tile16_rrr
 */

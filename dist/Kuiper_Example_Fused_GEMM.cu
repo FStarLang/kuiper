@@ -1,7 +1,7 @@
 
 #include "Kuiper_Example_Fused_GEMM.h"
 
-__global__
+__global__ __launch_bounds__(1024)
 /**
   hoisted when extracting gemm_sqrt_fused
 */
@@ -13,7 +13,7 @@ __hoisted_gemm_sqrt_fused_0(
         uint32_t trow = (1024U * blockIdx.x + threadIdx.x) / n;
         uint32_t tcol = (1024U * blockIdx.x + threadIdx.x) % n;
         uint32_t k1 = 0U;
-        float sum = 0.0f;
+        float sum = (float) 0LL;
         for (; k1 < k; k1++) {
             uint32_t vk = k1;
             float __anf2 = sum;

@@ -1,7 +1,7 @@
 
 #include "Kuiper_Example_ArrayReversal.h"
 
-__global__
+__global__ __launch_bounds__(1)
 /**
   hoisted when extracting reverse_u64
 */

@@ -29,7 +29,7 @@ __hoisted_softmax_gpu_n_f16_0(
         maxs[blockIdx.x] = *sa;
 }
 
-__global__
+__global__ __launch_bounds__(1024)
 /**
   hoisted when extracting softmax_gpu_n_f16
 */
@@ -73,7 +73,7 @@ __hoisted_softmax_gpu_n_f16_2(uint32_t nth, uint32_t lena, half *a_, half *sums)
         sums[blockIdx.x] = *sa;
 }
 
-__global__
+__global__ __launch_bounds__(1024)
 /**
   hoisted when extracting softmax_gpu_n_f16
 */
@@ -156,7 +156,7 @@ __hoisted_softmax_gpu_n_f32_0(
         maxs[blockIdx.x] = *sa;
 }
 
-__global__
+__global__ __launch_bounds__(1024)
 /**
   hoisted when extracting softmax_gpu_n_f32
 */
@@ -178,7 +178,7 @@ __hoisted_softmax_gpu_n_f32_2(
     uint32_t nth, uint32_t lena, float *a_, float *sums)
 {
     float *sa = (float *) KPR_SHMEM_AT(0U);
-    float acc = 0.0f;
+    float acc = (float) 0LL;
     uint32_t idx = threadIdx.x;
     for (; idx < lena; idx += nth) {
         float v_ = expf(a_[idx]);
@@ -199,7 +199,7 @@ __hoisted_softmax_gpu_n_f32_2(
         sums[blockIdx.x] = *sa;
 }
 
-__global__
+__global__ __launch_bounds__(1024)
 /**
   hoisted when extracting softmax_gpu_n_f32
 */
@@ -282,7 +282,7 @@ __hoisted_softmax_gpu_n_f64_0(
         maxs[blockIdx.x] = *sa;
 }
 
-__global__
+__global__ __launch_bounds__(1024)
 /**
   hoisted when extracting softmax_gpu_n_f64
 */
@@ -304,7 +304,7 @@ __hoisted_softmax_gpu_n_f64_2(
     uint32_t nth, uint32_t lena, double *a_, double *sums)
 {
     double *sa = (double *) KPR_SHMEM_AT(0U);
-    double acc = 0.0;
+    double acc = (double) 0LL;
     uint32_t idx = threadIdx.x;
     for (; idx < lena; idx += nth) {
         double v_ = exp(a_[idx]);
@@ -325,7 +325,7 @@ __hoisted_softmax_gpu_n_f64_2(
         sums[blockIdx.x] = *sa;
 }
 
-__global__
+__global__ __launch_bounds__(1024)
 /**
   hoisted when extracting softmax_gpu_n_f64
 */
@@ -407,7 +407,7 @@ __hoisted_softmax_gpu_f16_0(uint32_t lena, half *a_, half *maxs, uint32_t nthm)
         maxs[blockIdx.x] = *sa;
 }
 
-__global__
+__global__ __launch_bounds__(1024)
 /**
   hoisted when extracting softmax_gpu_f16
 */
@@ -422,7 +422,7 @@ __hoisted_softmax_gpu_f16_1(uint32_t lena, half *a_, half *maxs)
     }
 }
 
-__global__
+__global__ __launch_bounds__(1024)
 /**
   hoisted when extracting softmax_gpu_f16
 */
@@ -451,7 +451,7 @@ __hoisted_softmax_gpu_f16_2(uint32_t lena, half *a_, half *sums)
         sums[blockIdx.x] = *sa;
 }
 
-__global__
+__global__ __launch_bounds__(1024)
 /**
   hoisted when extracting softmax_gpu_f16
 */
@@ -531,7 +531,7 @@ __hoisted_softmax_gpu_f32_0(
         maxs[blockIdx.x] = *sa;
 }
 
-__global__
+__global__ __launch_bounds__(1024)
 /**
   hoisted when extracting softmax_gpu_f32
 */
@@ -544,7 +544,7 @@ __hoisted_softmax_gpu_f32_1(uint32_t lena, float *a_, float *maxs)
     }
 }
 
-__global__
+__global__ __launch_bounds__(1024)
 /**
   hoisted when extracting softmax_gpu_f32
 */
@@ -552,7 +552,7 @@ static void
 __hoisted_softmax_gpu_f32_2(uint32_t lena, float *a_, float *sums)
 {
     float *sa = (float *) KPR_SHMEM_AT(0U);
-    float acc = 0.0f;
+    float acc = (float) 0LL;
     uint32_t idx = threadIdx.x;
     for (; idx < lena; idx += 1024U) {
         float v_ = expf(a_[idx]);
@@ -573,7 +573,7 @@ __hoisted_softmax_gpu_f32_2(uint32_t lena, float *a_, float *sums)
         sums[blockIdx.x] = *sa;
 }
 
-__global__
+__global__ __launch_bounds__(1024)
 /**
   hoisted when extracting softmax_gpu_f32
 */
@@ -653,7 +653,7 @@ __hoisted_softmax_gpu_f64_0(
         maxs[blockIdx.x] = *sa;
 }
 
-__global__
+__global__ __launch_bounds__(1024)
 /**
   hoisted when extracting softmax_gpu_f64
 */
@@ -666,7 +666,7 @@ __hoisted_softmax_gpu_f64_1(uint32_t lena, double *a_, double *maxs)
     }
 }
 
-__global__
+__global__ __launch_bounds__(1024)
 /**
   hoisted when extracting softmax_gpu_f64
 */
@@ -674,7 +674,7 @@ static void
 __hoisted_softmax_gpu_f64_2(uint32_t lena, double *a_, double *sums)
 {
     double *sa = (double *) KPR_SHMEM_AT(0U);
-    double acc = 0.0;
+    double acc = (double) 0LL;
     uint32_t idx = threadIdx.x;
     for (; idx < lena; idx += 1024U) {
         double v_ = exp(a_[idx]);
@@ -695,7 +695,7 @@ __hoisted_softmax_gpu_f64_2(uint32_t lena, double *a_, double *sums)
         sums[blockIdx.x] = *sa;
 }
 
-__global__
+__global__ __launch_bounds__(1024)
 /**
   hoisted when extracting softmax_gpu_f64
 */
@@ -774,7 +774,7 @@ __hoisted_softmax_n_f16_0(uint32_t lena, half *a_, half *maxs, uint32_t nthm)
         maxs[blockIdx.x] = *sa;
 }
 
-__global__
+__global__ __launch_bounds__(1024)
 /**
   hoisted when extracting softmax_n_f16
 */
@@ -818,7 +818,7 @@ __hoisted_softmax_n_f16_2(uint32_t nth, uint32_t lena, half *a_, half *sums)
         sums[blockIdx.x] = *sa;
 }
 
-__global__
+__global__ __launch_bounds__(1024)
 /**
   hoisted when extracting softmax_n_f16
 */
@@ -906,7 +906,7 @@ __hoisted_softmax_n_f32_0(uint32_t lena, float *a_, float *maxs, uint32_t nthm)
         maxs[blockIdx.x] = *sa;
 }
 
-__global__
+__global__ __launch_bounds__(1024)
 /**
   hoisted when extracting softmax_n_f32
 */
@@ -927,7 +927,7 @@ static void
 __hoisted_softmax_n_f32_2(uint32_t nth, uint32_t lena, float *a_, float *sums)
 {
     float *sa = (float *) KPR_SHMEM_AT(0U);
-    float acc = 0.0f;
+    float acc = (float) 0LL;
     uint32_t idx = threadIdx.x;
     for (; idx < lena; idx += nth) {
         float v_ = expf(a_[idx]);
@@ -948,7 +948,7 @@ __hoisted_softmax_n_f32_2(uint32_t nth, uint32_t lena, float *a_, float *sums)
         sums[blockIdx.x] = *sa;
 }
 
-__global__
+__global__ __launch_bounds__(1024)
 /**
   hoisted when extracting softmax_n_f32
 */
@@ -1037,7 +1037,7 @@ __hoisted_softmax_n_f64_0(
         maxs[blockIdx.x] = *sa;
 }
 
-__global__
+__global__ __launch_bounds__(1024)
 /**
   hoisted when extracting softmax_n_f64
 */
@@ -1058,7 +1058,7 @@ static void
 __hoisted_softmax_n_f64_2(uint32_t nth, uint32_t lena, double *a_, double *sums)
 {
     double *sa = (double *) KPR_SHMEM_AT(0U);
-    double acc = 0.0;
+    double acc = (double) 0LL;
     uint32_t idx = threadIdx.x;
     for (; idx < lena; idx += nth) {
         double v_ = exp(a_[idx]);
@@ -1079,7 +1079,7 @@ __hoisted_softmax_n_f64_2(uint32_t nth, uint32_t lena, double *a_, double *sums)
         sums[blockIdx.x] = *sa;
 }
 
-__global__
+__global__ __launch_bounds__(1024)
 /**
   hoisted when extracting softmax_n_f64
 */
@@ -1167,7 +1167,7 @@ __hoisted_softmax_f16_0(uint32_t lena, half *a_, half *maxs, uint32_t nthm)
         maxs[blockIdx.x] = *sa;
 }
 
-__global__
+__global__ __launch_bounds__(1024)
 /**
   hoisted when extracting softmax_f16
 */
@@ -1182,7 +1182,7 @@ __hoisted_softmax_f16_1(uint32_t lena, half *a_, half *maxs)
     }
 }
 
-__global__
+__global__ __launch_bounds__(1024)
 /**
   hoisted when extracting softmax_f16
 */
@@ -1211,7 +1211,7 @@ __hoisted_softmax_f16_2(uint32_t lena, half *a_, half *sums)
         sums[blockIdx.x] = *sa;
 }
 
-__global__
+__global__ __launch_bounds__(1024)
 /**
   hoisted when extracting softmax_f16
 */
@@ -1295,7 +1295,7 @@ __hoisted_softmax_f32_0(uint32_t lena, float *a_, float *maxs, uint32_t nthm)
         maxs[blockIdx.x] = *sa;
 }
 
-__global__
+__global__ __launch_bounds__(1024)
 /**
   hoisted when extracting softmax_f32
 */
@@ -1308,7 +1308,7 @@ __hoisted_softmax_f32_1(uint32_t lena, float *a_, float *maxs)
     }
 }
 
-__global__
+__global__ __launch_bounds__(1024)
 /**
   hoisted when extracting softmax_f32
 */
@@ -1316,7 +1316,7 @@ static void
 __hoisted_softmax_f32_2(uint32_t lena, float *a_, float *sums)
 {
     float *sa = (float *) KPR_SHMEM_AT(0U);
-    float acc = 0.0f;
+    float acc = (float) 0LL;
     uint32_t idx = threadIdx.x;
     for (; idx < lena; idx += 1024U) {
         float v_ = expf(a_[idx]);
@@ -1337,7 +1337,7 @@ __hoisted_softmax_f32_2(uint32_t lena, float *a_, float *sums)
         sums[blockIdx.x] = *sa;
 }
 
-__global__
+__global__ __launch_bounds__(1024)
 /**
   hoisted when extracting softmax_f32
 */
@@ -1421,7 +1421,7 @@ __hoisted_softmax_f64_0(uint32_t lena, double *a_, double *maxs, uint32_t nthm)
         maxs[blockIdx.x] = *sa;
 }
 
-__global__
+__global__ __launch_bounds__(1024)
 /**
   hoisted when extracting softmax_f64
 */
@@ -1434,7 +1434,7 @@ __hoisted_softmax_f64_1(uint32_t lena, double *a_, double *maxs)
     }
 }
 
-__global__
+__global__ __launch_bounds__(1024)
 /**
   hoisted when extracting softmax_f64
 */
@@ -1442,7 +1442,7 @@ static void
 __hoisted_softmax_f64_2(uint32_t lena, double *a_, double *sums)
 {
     double *sa = (double *) KPR_SHMEM_AT(0U);
-    double acc = 0.0;
+    double acc = (double) 0LL;
     uint32_t idx = threadIdx.x;
     for (; idx < lena; idx += 1024U) {
         double v_ = exp(a_[idx]);
@@ -1463,7 +1463,7 @@ __hoisted_softmax_f64_2(uint32_t lena, double *a_, double *sums)
         sums[blockIdx.x] = *sa;
 }
 
-__global__
+__global__ __launch_bounds__(1024)
 /**
   hoisted when extracting softmax_f64
 */

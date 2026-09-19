@@ -1,7 +1,7 @@
 
 #include "Kuiper_Example_TMap.h"
 
-__global__
+__global__ __launch_bounds__(1024)
 /**
   hoisted when extracting incr_all_1d
 */
@@ -25,7 +25,7 @@ typedef struct __uint32_t__uint32_t_______s {
     uint32_t snd;
 } __uint32_t__uint32_t______;
 
-__global__
+__global__ __launch_bounds__(1024)
 /**
   hoisted when extracting incr_all_1d2
 */
