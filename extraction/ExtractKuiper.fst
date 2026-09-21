@@ -621,6 +621,12 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
   | "Kuiper.Base.get_bdim", [], [ _unit; _erasednthr; _erasedntid ] ->
     EQualified ([], "blockDim_x")
 
+  | "Kuiper.Base.get_bid", [], [ _unit; _erasednblk; _erasednbid ] ->
+    EQualified ([], "blockIdx_x")
+
+  | "Kuiper.Base.get_tid", [], [ _unit; _erasednthr; _erasedntid ] ->
+    EQualified ([], "threadIdx_x")
+
   (******** BARRIERS ********)
 
   | "Kuiper.Barrier.barrier_wait", [], [ _unit; _n; _contract; _it; _tid ] ->
