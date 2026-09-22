@@ -14,7 +14,6 @@
 #include "kuiper/vectorops.h"
 #include "kuiper/math.h"
 #include "kuiper/float_bits.h"
-#include "kuiper/ptx.h"
 
 #if (!defined(KUIPER_CFG_TENSORCORES) || KUIPER_CFG_TENSORCORES)
 #include "kuiper/tensorcores.h"

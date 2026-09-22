@@ -243,6 +243,19 @@ The proof regressions run with `make -j$(nproc) verify`. To check the extracted
 API on the CPU and GPU, run
 `make -j$(nproc) obj/Test_Kuiper_Example_FloatEquality.test`.
 
+### GPU-only Float32 operations
+
+`Kuiper.Float32.mul_rn_ftz` and `Kuiper.Float32.exp2_approx_ftz` require and
+preserve the `gpu` capability. They extract to `mul.rn.ftz.f32` and
+`ex2.approx.ftz.f32`, respectively; CPU calls are rejected during verification.
+Their trusted real approximation contracts describe multiplication and
+`FStar.Math.Pow.exp2`, not bitwise equality or numerical error bounds.
+
+`Kuiper.Example.Float32GPU` checks composition of these contracts and rejection
+of CPU calls. Its runtime test compares extracted GPU operations with direct PTX
+and checks FTZ and signed-zero behavior:
+`make -j$(nproc) obj/Test_Kuiper_Example_Float32GPU.test`.
+
 ### Project Structure
 
 Kuiper source lives under `src/`. The core library (`src/lib/kuiper/`) provides

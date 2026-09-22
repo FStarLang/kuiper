@@ -1,5 +1,9 @@
 module Kuiper.Float32
 
+#lang-pulse
+
+open Pulse.Lib.Core
+open Kuiper.Locs
 open FStar.Tactics.Typeclasses { solve }
 open Kuiper.Sized
 open Kuiper.Canonical
@@ -7,6 +11,7 @@ open Kuiper.Scalars.Base
 open Kuiper.Floating.Base
 open Kuiper.Approximates.Base
 open Kuiper.Real
+module Pow = FStar.Math.Pow
 
 open Kuiper.Float32.Base
 
@@ -64,5 +69,30 @@ let log1p_approx
       (requires v_approximates x r)
       (ensures v_approximates (flog1p x) (log (1.0R +. r)))
 = admit()
+
+(* Extracted primitively; the approximation contracts are trusted. *)
+noextract
+fn mul_rn_ftz (x y : t)
+  preserves gpu
+  returns result : t
+  ensures pure (
+    forall (xr yr : real).
+      v_approximates x xr /\ v_approximates y yr ==>
+      v_approximates result (xr *. yr))
+{
+  admit()
+}
+
+noextract
+fn exp2_approx_ftz (x : t)
+  preserves gpu
+  returns result : t
+  ensures pure (
+    forall (xr : real).
+      v_approximates x xr ==>
+      v_approximates result (Pow.exp2 xr))
+{
+  admit()
+}
 
 let lem_sizeof () = ()

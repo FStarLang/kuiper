@@ -832,6 +832,8 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
   | "Kuiper.Float32.Base.flog", [], [] -> EQualified ([], "logf")
   | "Kuiper.Float32.Base.fexpm1", [], [] -> EQualified ([], "expm1f")
   | "Kuiper.Float32.Base.flog1p", [], [] -> EQualified ([], "log1pf")
+  | "Kuiper.Float32.mul_rn_ftz", [], [] -> EQualified ([], "kpr_f32_mul_rn_ftz")
+  | "Kuiper.Float32.exp2_approx_ftz", [], [] -> EQualified ([], "kpr_f32_exp2_approx_ftz")
   | "Kuiper.Float32.Base.valid",  [], [] -> EQualified ([], "kpr_fisvalid")
   | "Kuiper.Float32.Base.largest",  [], [] -> EConstant (Float32, "FLT_MAX")
   | "Kuiper.Float32.Base.infinity", [], [] -> EConstant (Float32, "INFINITY")
@@ -841,13 +843,6 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
   | "Kuiper.Float64.Base.flog1p", [], [] -> EQualified ([], "log1p")
   | "Kuiper.Float64.Base.largest",  [], [] -> EConstant (Float64, "DBL_MAX")
   | "Kuiper.Float64.Base.infinity", [], [] -> EConstant (Float64, "INFINITY")
-
-  (* Thread-local PTX instructions *)
-
-  | "Kuiper.PTX.mul_rn_ftz_f32", [], [] ->
-    EQualified ([], "kpr_ptx_mul_rn_ftz_f32")
-  | "Kuiper.PTX.ex2_approx_ftz_f32", [], [] ->
-    EQualified ([], "kpr_ptx_ex2_approx_ftz_f32")
 
   (* Transcendental / math primitives *)
 
