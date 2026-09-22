@@ -10,7 +10,28 @@ For detailed guidance on writing, reviewing, and debugging Kuiper kernel code, s
 
 ## Build & Verify
 
-The project uses Make. Two git submodules (`FStar`, `karamel`) must be initialized first, both on their `gpu` branches.
+The project uses Make. Before a clean build, consider seeding the checkout from
+a nightly package to reuse the prebuilt toolchain, extraction plugin, and
+verified `obj/*.checked` files:
+
+```bash
+./scripts/seed-from-nightly.sh --no-build
+make -skj16
+```
+
+Changed Kuiper source files and their dependents are re-verified. Without
+`--no-build`, the script runs `make verify` in parallel; use `-j N` to choose
+its parallelism. See [the README](README.md#seeding-a-source-checkout-from-a-package)
+for package-selection options.
+
+Seeding replaces `inst/` and the extraction plugin and creates `.packaged`,
+which disables rebuilding those components. Use it before starting a build and
+only when the bundled toolchain/plugin are suitable. For changes to F\*,
+Karamel, or `extraction/`, build those components from source; remove
+`.packaged` first if the checkout was seeded.
+
+For a fully from-source build, two git submodules (`FStar`, `karamel`) must be
+initialized first.
 
 Building F\* and Karamel needs OCaml on the `PATH`. If `ocamlfind`/`dune` are
 missing, set up the opam environment first (non-interactive shells do not
@@ -107,7 +128,7 @@ make lint-c         # clang-format test/*.cu and test/*.c.inc files
 
 ### Submodules
 
-Both on their `gpu` branches — these are forked/branched versions with GPU-specific extensions:
+These are forked/branched versions with GPU-specific extensions:
 
 - `FStar/` — F\* compiler, standard library, and Pulse separation logic framework
 - `karamel/` — KreMLin compiler (F\* → C/CUDA)

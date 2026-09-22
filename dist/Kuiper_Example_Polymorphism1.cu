@@ -8,7 +8,7 @@ __device__ static void kswap__uint64_t(uint64_t *r1, uint64_t *r2)
     *r2 = v11;
 }
 
-__global__
+__global__ __launch_bounds__(1)
 /**
   hoisted when extracting swap_U64
 */
@@ -41,7 +41,7 @@ __device__ static void kswap__float(float *r1, float *r2)
     *r2 = v11;
 }
 
-__global__
+__global__ __launch_bounds__(1)
 /**
   hoisted when extracting swap_F32
 */

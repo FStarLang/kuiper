@@ -247,7 +247,20 @@ let rec explode_fvs (g : env) (fvs : list (string & mlty)) (e : mlexpr) :
       let (rest_fvs, e', rest_args) = explode_fvs g rest e in
       ((v, t) :: rest_fvs, e', (with_ty t <| MLE_Var v) :: rest_args)
 
-let hoist (g : env) (e : mlexpr) : ML mlexpr =
+(* A launch bound is an upper limit, not a request for a minimum occupancy.
+   Only attach one when extraction knows the actual block size. In particular,
+   a runtime-sized launch must not inherit a bound from another instantiation.
+   Arithmetic expressions are deliberately left to the existing fallback. *)
+let kernel_qualifier (nthr : expr) : string =
+  match nthr with
+  | EConstant (UInt32, s) ->
+    (match FStarC.Util.safe_int_of_string s with
+     | Some n when 0 < n && n <= 1024 ->
+       "__global__ __launch_bounds__(" ^ string_of_int n ^ ")"
+     | _ -> "__global__")
+  | _ -> "__global__"
+
+let hoist (g : env) (nthr : expr) (e : mlexpr) : ML mlexpr =
   let e0 = e in
   // let e = remove_trailing_units e in // ???
   let e = eta e in
@@ -299,7 +312,7 @@ let hoist (g : env) (e : mlexpr) : ML mlexpr =
   let flags = [
     Krml.Comment ("  hoisted when extracting " ^ Option.dflt "<unknown>" !krml_current_decl);
     Krml.Private;
-    Krml.Prologue "__global__";
+    Krml.Prologue (kernel_qualifier nthr);
   ]
   in
   let decl = DFunction (None, flags, 0, translate_type (add_binders g0 bs) et, ([], fresh), kbs, lambda) in
@@ -431,7 +444,7 @@ let extract_kcall (cb : mlexpr -> ML expr) (env : Krml.env) (kdesc : mlexpr) (st
       let kf = apply_lam kf ml_unit in
       let kf = collapse_tuple_proj kf in
       let kf = collapse_tuple_matches kf in
-      let kf = hoist env kf in
+      let kf = hoist env (cb nthr) kf in
       let hd, rest_args = head_and_args kf in
       return (nblk, nthr, shmem_bytesz, hd, rest_args)
 
@@ -608,6 +621,12 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
   | "Kuiper.Base.get_bdim", [], [ _unit; _erasednthr; _erasedntid ] ->
     EQualified ([], "blockDim_x")
 
+  | "Kuiper.Base.get_bid", [], [ _unit; _erasednblk; _erasednbid ] ->
+    EQualified ([], "blockIdx_x")
+
+  | "Kuiper.Base.get_tid", [], [ _unit; _erasednthr; _erasedntid ] ->
+    EQualified ([], "threadIdx_x")
+
   (******** BARRIERS ********)
 
   | "Kuiper.Barrier.barrier_wait", [], [ _unit; _n; _contract; _it; _tid ] ->
@@ -773,6 +792,8 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
   | "Kuiper.Float16.Base.div",  [], [] -> EQualified ([], "__hdiv")
   | "Kuiper.Float16.Base.fexp", [], [] -> EQualified ([], "hexp")
   | "Kuiper.Float16.Base.flog", [], [] -> EQualified ([], "hlog")
+  | "Kuiper.Float16.Base.fexpm1", [], [] -> EQualified ([], "kpr_hexpm1")
+  | "Kuiper.Float16.Base.flog1p", [], [] -> EQualified ([], "kpr_hlog1p")
   | "Kuiper.Float16.Base.eq",   [], [] -> EOp (Eq, Float16)
   | "Kuiper.Float16.Base.lt",   [], [] -> EOp (Lt, Float16)
   | "Kuiper.Float16.Base.lte",  [], [] -> EOp (Lte, Float16)
@@ -793,6 +814,8 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
   | "Kuiper.BFloat16.Base.div",  [], [] -> EQualified ([], "kpr_bf16div")
   | "Kuiper.BFloat16.Base.fexp", [], [] -> EQualified ([], "kpr_bf16exp")
   | "Kuiper.BFloat16.Base.flog", [], [] -> EQualified ([], "kpr_bf16log")
+  | "Kuiper.BFloat16.Base.fexpm1", [], [] -> EQualified ([], "kpr_bf16expm1")
+  | "Kuiper.BFloat16.Base.flog1p", [], [] -> EQualified ([], "kpr_bf16log1p")
   | "Kuiper.BFloat16.Base.eq",   [], [] -> EOp (Eq, BFloat16)
   | "Kuiper.BFloat16.Base.lt",   [], [] -> EOp (Lt, BFloat16)
   | "Kuiper.BFloat16.Base.lte",  [], [] -> EOp (Lte, BFloat16)
@@ -807,11 +830,15 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
 
   | "Kuiper.Float32.Base.fexp", [], [] -> EQualified ([], "expf")
   | "Kuiper.Float32.Base.flog", [], [] -> EQualified ([], "logf")
+  | "Kuiper.Float32.Base.fexpm1", [], [] -> EQualified ([], "expm1f")
+  | "Kuiper.Float32.Base.flog1p", [], [] -> EQualified ([], "log1pf")
   | "Kuiper.Float32.Base.valid",  [], [] -> EQualified ([], "kpr_fisvalid")
   | "Kuiper.Float32.Base.largest",  [], [] -> EConstant (Float32, "FLT_MAX")
   | "Kuiper.Float32.Base.infinity", [], [] -> EConstant (Float32, "INFINITY")
   | "Kuiper.Float64.Base.fexp",  [], [] -> EQualified ([], "exp")
   | "Kuiper.Float64.Base.flog",  [], [] -> EQualified ([], "log")
+  | "Kuiper.Float64.Base.fexpm1", [], [] -> EQualified ([], "expm1")
+  | "Kuiper.Float64.Base.flog1p", [], [] -> EQualified ([], "log1p")
   | "Kuiper.Float64.Base.largest",  [], [] -> EConstant (Float64, "DBL_MAX")
   | "Kuiper.Float64.Base.infinity", [], [] -> EConstant (Float64, "INFINITY")
 

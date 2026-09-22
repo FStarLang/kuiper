@@ -1,7 +1,7 @@
 
 #include "Klas_GEMM_Naive3.h"
 
-__global__
+__global__ __launch_bounds__(1024)
 /**
   hoisted when extracting g_matmul_bf16_rrr
 */
@@ -40,7 +40,7 @@ void Klas_GEMM_Naive3_g_matmul_bf16_rrr(uint32_t m, uint32_t n, uint32_t k,
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(1024)
 /**
   hoisted when extracting g_matmul_f32_rrr
 */
@@ -52,8 +52,8 @@ __hoisted_g_matmul_f32_rrr_0(
         uint32_t trow = (1024U * blockIdx.x + threadIdx.x) / n;
         uint32_t tcol = (1024U * blockIdx.x + threadIdx.x) % n;
         uint32_t k1 = 0U;
-        float acc = 0.0f;
-        float c = 0.0f;
+        float acc = (float) 0LL;
+        float c = (float) 0LL;
         for (; k1 < k; k1++) {
             uint32_t __anf0 = k1;
             float old_acc = acc;
@@ -77,7 +77,7 @@ void Klas_GEMM_Naive3_g_matmul_f32_rrr(
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(1024)
 /**
   hoisted when extracting g_matmul_f64_rrr
 */
@@ -89,8 +89,8 @@ __hoisted_g_matmul_f64_rrr_0(
         uint32_t trow = (1024U * blockIdx.x + threadIdx.x) / n;
         uint32_t tcol = (1024U * blockIdx.x + threadIdx.x) % n;
         uint32_t k1 = 0U;
-        double acc = 0.0;
-        double c = 0.0;
+        double acc = (double) 0LL;
+        double c = (double) 0LL;
         for (; k1 < k; k1++) {
             uint32_t __anf0 = k1;
             double old_acc = acc;
@@ -114,7 +114,7 @@ void Klas_GEMM_Naive3_g_matmul_f64_rrr(
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(1024)
 /**
   hoisted when extracting g_matmul_bf16_ccc
 */
@@ -153,7 +153,7 @@ void Klas_GEMM_Naive3_g_matmul_bf16_ccc(uint32_t m, uint32_t n, uint32_t k,
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(1024)
 /**
   hoisted when extracting g_matmul_f32_ccc
 */
@@ -165,8 +165,8 @@ __hoisted_g_matmul_f32_ccc_0(
         uint32_t trow = (1024U * blockIdx.x + threadIdx.x) / n;
         uint32_t tcol = (1024U * blockIdx.x + threadIdx.x) % n;
         uint32_t k1 = 0U;
-        float acc = 0.0f;
-        float c = 0.0f;
+        float acc = (float) 0LL;
+        float c = (float) 0LL;
         for (; k1 < k; k1++) {
             uint32_t __anf0 = k1;
             float old_acc = acc;
@@ -190,7 +190,7 @@ void Klas_GEMM_Naive3_g_matmul_f32_ccc(
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(1024)
 /**
   hoisted when extracting g_matmul_f64_ccc
 */
@@ -202,8 +202,8 @@ __hoisted_g_matmul_f64_ccc_0(
         uint32_t trow = (1024U * blockIdx.x + threadIdx.x) / n;
         uint32_t tcol = (1024U * blockIdx.x + threadIdx.x) % n;
         uint32_t k1 = 0U;
-        double acc = 0.0;
-        double c = 0.0;
+        double acc = (double) 0LL;
+        double c = (double) 0LL;
         for (; k1 < k; k1++) {
             uint32_t __anf0 = k1;
             double old_acc = acc;

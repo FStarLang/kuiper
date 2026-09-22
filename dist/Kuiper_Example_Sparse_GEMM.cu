@@ -1,7 +1,7 @@
 
 #include "Kuiper_Example_Sparse_GEMM.h"
 
-__global__
+__global__ __launch_bounds__(1024)
 /**
   hoisted when extracting _gemm_u32_rr
 */

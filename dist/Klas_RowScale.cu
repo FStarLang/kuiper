@@ -1,7 +1,7 @@
 
 #include "Klas_RowScale.h"
 
-__global__
+__global__ __launch_bounds__(1024)
 /**
   hoisted when extracting rowscale_f16_rowmajor
 */
@@ -27,7 +27,7 @@ void Klas_RowScale_rowscale_f16_rowmajor(
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(1024)
 /**
   hoisted when extracting rowscale_f16_colmajor
 */
@@ -53,7 +53,7 @@ void Klas_RowScale_rowscale_f16_colmajor(
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(1024)
 /**
   hoisted when extracting rowscale_f32_rowmajor
 */
@@ -78,7 +78,7 @@ void Klas_RowScale_rowscale_f32_rowmajor(
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(1024)
 /**
   hoisted when extracting rowscale_f32_colmajor
 */
@@ -103,7 +103,7 @@ void Klas_RowScale_rowscale_f32_colmajor(
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(1024)
 /**
   hoisted when extracting rowscale_f64_rowmajor
 */
@@ -128,7 +128,7 @@ void Klas_RowScale_rowscale_f64_rowmajor(
     MUST(cudaStreamDestroy(s));
 }
 
-__global__
+__global__ __launch_bounds__(1024)
 /**
   hoisted when extracting rowscale_f64_colmajor
 */
