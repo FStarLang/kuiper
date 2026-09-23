@@ -828,14 +828,13 @@ __device__ static void Kuiper_For_for_loop___0(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
     uint32_t i = 0;
     while (i < 1) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 32) + tmp6) * 4)),
+            (tmp3.elems + (((tmp8 / 4) * 4) + (((__anf0 * 32) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -846,14 +845,13 @@ __device__ static void Kuiper_For_for_loop___1(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
     uint32_t i = 0;
     while (i < 1) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 32) + tmp6) * 4)),
+            (tmp3.col_ind + (((tmp8 / 4) * 4) + (((__anf0 * 32) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -876,15 +874,14 @@ __device__ static void Kuiper_For_for_loop___3(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
-    (void) tmp9;
     uint32_t i = 0;
     while (i < 1) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 32) + tmp6) * 4)),
+            (tmp3.elems + ((((tmp8 / 4) * 4) + (tmp9 * 128)) +
+                              (((__anf0 * 32) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -895,15 +892,14 @@ __device__ static void Kuiper_For_for_loop___4(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
-    (void) tmp9;
     uint32_t i = 0;
     while (i < 1) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 32) + tmp6) * 4)),
+            (tmp3.col_ind + ((((tmp8 / 4) * 4) + (tmp9 * 128)) +
+                                (((__anf0 * 32) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -930,17 +926,18 @@ __device__ static void Kuiper_For_for_loop___5(uint32_t tmp, uint32_t tmp1,
 __device__ static void Kuiper_For_for_loop___6(uint32_t tmp, uint32_t tmp1,
     uint32_t *tmp2, uint32_t tmp3, uint32_t tmp4, uint32_t tmp5, uint32_t *tmp6)
 {
-    (void) tmp;
-    (void) tmp1;
-    (void) tmp2;
-    (void) tmp3;
-    (void) tmp4;
-    (void) tmp5;
-    (void) tmp6;
     uint32_t i = 0;
     while (i < 1) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        if (((((tmp3 / tmp) * 128) + (tmp4 * 4)) + ((__anf0 * 32) * 4)) <
+            tmp1) {
+            uint32_t offset =
+                ((0 + (tmp1 * tmp5)) + ((((tmp3 / tmp) * 128) + (tmp4 * 4)) +
+                                           ((__anf0 * 32) * 4)));
+            vec_memcpy((tmp2 + offset), (tmp6 + (__anf0 * 4)));
+        }
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -950,7 +947,6 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_0(
     Kuiper_Sparse_Matrix_smatrix__uint32 gA, uint32_t shared, uint32_t cols,
     uint32_t *gB, uint32_t *gC)
 {
-    (void) gB;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     uint32_t *tmp1 = (uint32_t *) tmp;
     uint8_t *tmp2 =
@@ -981,6 +977,7 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_0(
         uint32_t k = 0;
         while (k < 128) {
             uint32_t kv = k;
+            uint32_t kr = sh._2._1[kv];
             uint32_t kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 1) {
@@ -988,6 +985,9 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_0(
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 32) * 4)) < cols) {
                     uint32_t lchunk[4] = {0};
+                    vec_memcpy((lchunk + 0),
+                        (gB + ((0 + (cols * kr)) +
+                                  (n_idx + ((__anf01 * 32) * 4)))));
                     uint32_t ix = 0;
                     while (ix < 4) {
                         uint32_t ixv = ix;
@@ -1018,6 +1018,7 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_0(
             uint32_t k1_1 = 0;
             while (k1_1 < 128) {
                 uint32_t kv_1 = k1_1;
+                uint32_t kr_1 = sh._2._1[kv_1];
                 uint32_t kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 1) {
@@ -1025,6 +1026,9 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_0(
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 32) * 4)) < cols) {
                         uint32_t lchunk_1[4] = {0};
+                        vec_memcpy((lchunk_1 + 0),
+                            (gB + ((0 + (cols * kr_1)) +
+                                      (n_idx + ((__anf03 * 32) * 4)))));
                         uint32_t ix_1 = 0;
                         while (ix_1 < 4) {
                             uint32_t ixv_1 = ix_1;
@@ -1058,6 +1062,7 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_0(
     uint32_t k_1 = 0;
     while (k_1 < nnz) {
         uint32_t kv_2 = k_1;
+        uint32_t kr_2 = sh._2._1[kv_2];
         uint32_t kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 1) {
@@ -1065,6 +1070,9 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_0(
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 32) * 4)) < cols) {
                 uint32_t lchunk_2[4] = {0};
+                vec_memcpy((lchunk_2 + 0),
+                    (gB + ((0 + (cols * kr_2)) +
+                              (n_idx + ((__anf02_3 * 32) * 4)))));
                 uint32_t ix_2 = 0;
                 while (ix_2 < 4) {
                     uint32_t ixv_2 = ix_2;
@@ -1091,14 +1099,13 @@ __device__ static void Kuiper_For_for_loop___7(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
     uint32_t i = 0;
     while (i < 2) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 64) + tmp6) * 4)),
+            (tmp3.elems + (((tmp8 / 4) * 4) + (((__anf0 * 64) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -1109,14 +1116,13 @@ __device__ static void Kuiper_For_for_loop___8(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
     uint32_t i = 0;
     while (i < 2) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 64) + tmp6) * 4)),
+            (tmp3.col_ind + (((tmp8 / 4) * 4) + (((__anf0 * 64) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -1139,15 +1145,14 @@ __device__ static void Kuiper_For_for_loop___10(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
-    (void) tmp9;
     uint32_t i = 0;
     while (i < 2) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 64) + tmp6) * 4)),
+            (tmp3.elems + ((((tmp8 / 4) * 4) + (tmp9 * 512)) +
+                              (((__anf0 * 64) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -1158,15 +1163,14 @@ __device__ static void Kuiper_For_for_loop___11(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
-    (void) tmp9;
     uint32_t i = 0;
     while (i < 2) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 64) + tmp6) * 4)),
+            (tmp3.col_ind + ((((tmp8 / 4) * 4) + (tmp9 * 512)) +
+                                (((__anf0 * 64) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -1193,17 +1197,18 @@ __device__ static void Kuiper_For_for_loop___12(uint32_t tmp, uint32_t tmp1,
 __device__ static void Kuiper_For_for_loop___13(uint32_t tmp, uint32_t tmp1,
     float *tmp2, uint32_t tmp3, uint32_t tmp4, uint32_t tmp5, float *tmp6)
 {
-    (void) tmp;
-    (void) tmp1;
-    (void) tmp2;
-    (void) tmp3;
-    (void) tmp4;
-    (void) tmp5;
-    (void) tmp6;
     uint32_t i = 0;
     while (i < 2) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        if (((((tmp3 / tmp) * 512) + (tmp4 * 4)) + ((__anf0 * 64) * 4)) <
+            tmp1) {
+            uint32_t offset =
+                ((0 + (tmp1 * tmp5)) + ((((tmp3 / tmp) * 512) + (tmp4 * 4)) +
+                                           ((__anf0 * 64) * 4)));
+            vec_memcpy((tmp2 + offset), (tmp6 + (__anf0 * 4)));
+        }
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -1213,7 +1218,6 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_1(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    (void) gB;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
     uint8_t *tmp2 =
@@ -1244,6 +1248,7 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_1(
         uint32_t k = 0;
         while (k < 512) {
             uint32_t kv = k;
+            uint32_t kr = sh._2._1[kv];
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 2) {
@@ -1251,6 +1256,9 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_1(
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 64) * 4)) < cols) {
                     float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                    vec_memcpy((lchunk + 0),
+                        (gB + ((0 + (cols * kr)) +
+                                  (n_idx + ((__anf01 * 64) * 4)))));
                     uint32_t ix = 0;
                     while (ix < 4) {
                         uint32_t ixv = ix;
@@ -1281,6 +1289,7 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_1(
             uint32_t k1_1 = 0;
             while (k1_1 < 512) {
                 uint32_t kv_1 = k1_1;
+                uint32_t kr_1 = sh._2._1[kv_1];
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 2) {
@@ -1288,6 +1297,9 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_1(
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 64) * 4)) < cols) {
                         float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                        vec_memcpy((lchunk_1 + 0),
+                            (gB + ((0 + (cols * kr_1)) +
+                                      (n_idx + ((__anf03 * 64) * 4)))));
                         uint32_t ix_1 = 0;
                         while (ix_1 < 4) {
                             uint32_t ixv_1 = ix_1;
@@ -1321,6 +1333,7 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_1(
     uint32_t k_1 = 0;
     while (k_1 < nnz) {
         uint32_t kv_2 = k_1;
+        uint32_t kr_2 = sh._2._1[kv_2];
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 2) {
@@ -1328,6 +1341,9 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_1(
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 64) * 4)) < cols) {
                 float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                vec_memcpy((lchunk_2 + 0),
+                    (gB + ((0 + (cols * kr_2)) +
+                              (n_idx + ((__anf02_3 * 64) * 4)))));
                 uint32_t ix_2 = 0;
                 while (ix_2 < 4) {
                     uint32_t ixv_2 = ix_2;
@@ -1354,14 +1370,13 @@ __device__ static void Kuiper_For_for_loop___14(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
     uint32_t i = 0;
     while (i < 8) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 1) + tmp6) * 4)),
+            (tmp3.elems + (((tmp8 / 4) * 4) + (((__anf0 * 1) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -1372,14 +1387,13 @@ __device__ static void Kuiper_For_for_loop___15(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
     uint32_t i = 0;
     while (i < 8) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 1) + tmp6) * 4)),
+            (tmp3.col_ind + (((tmp8 / 4) * 4) + (((__anf0 * 1) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -1402,15 +1416,14 @@ __device__ static void Kuiper_For_for_loop___17(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
-    (void) tmp9;
     uint32_t i = 0;
     while (i < 8) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 1) + tmp6) * 4)),
+            (tmp3.elems + ((((tmp8 / 4) * 4) + (tmp9 * 32)) +
+                              (((__anf0 * 1) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -1421,15 +1434,14 @@ __device__ static void Kuiper_For_for_loop___18(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
-    (void) tmp9;
     uint32_t i = 0;
     while (i < 8) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 1) + tmp6) * 4)),
+            (tmp3.col_ind + ((((tmp8 / 4) * 4) + (tmp9 * 32)) +
+                                (((__anf0 * 1) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -1456,17 +1468,17 @@ __device__ static void Kuiper_For_for_loop___19(uint32_t tmp, uint32_t tmp1,
 __device__ static void Kuiper_For_for_loop___20(uint32_t tmp, uint32_t tmp1,
     float *tmp2, uint32_t tmp3, uint32_t tmp4, uint32_t tmp5, float *tmp6)
 {
-    (void) tmp;
-    (void) tmp1;
-    (void) tmp2;
-    (void) tmp3;
-    (void) tmp4;
-    (void) tmp5;
-    (void) tmp6;
     uint32_t i = 0;
     while (i < 1) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        if (((((tmp3 / tmp) * 4) + (tmp4 * 4)) + ((__anf0 * 1) * 4)) < tmp1) {
+            uint32_t offset =
+                ((0 + (tmp1 * tmp5)) +
+                    ((((tmp3 / tmp) * 4) + (tmp4 * 4)) + ((__anf0 * 1) * 4)));
+            vec_memcpy((tmp2 + offset), (tmp6 + (__anf0 * 4)));
+        }
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -1476,7 +1488,6 @@ __global__ __launch_bounds__(1) static void kuiper_kernel_2(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    (void) gB;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
     uint8_t *tmp2 =
@@ -1507,6 +1518,7 @@ __global__ __launch_bounds__(1) static void kuiper_kernel_2(
         uint32_t k = 0;
         while (k < 32) {
             uint32_t kv = k;
+            uint32_t kr = sh._2._1[kv];
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 1) {
@@ -1514,6 +1526,9 @@ __global__ __launch_bounds__(1) static void kuiper_kernel_2(
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 1) * 4)) < cols) {
                     float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                    vec_memcpy((lchunk + 0),
+                        (gB + ((0 + (cols * kr)) +
+                                  (n_idx + ((__anf01 * 1) * 4)))));
                     uint32_t ix = 0;
                     while (ix < 4) {
                         uint32_t ixv = ix;
@@ -1544,6 +1559,7 @@ __global__ __launch_bounds__(1) static void kuiper_kernel_2(
             uint32_t k1_1 = 0;
             while (k1_1 < 32) {
                 uint32_t kv_1 = k1_1;
+                uint32_t kr_1 = sh._2._1[kv_1];
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 1) {
@@ -1551,6 +1567,9 @@ __global__ __launch_bounds__(1) static void kuiper_kernel_2(
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 1) * 4)) < cols) {
                         float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                        vec_memcpy((lchunk_1 + 0),
+                            (gB + ((0 + (cols * kr_1)) +
+                                      (n_idx + ((__anf03 * 1) * 4)))));
                         uint32_t ix_1 = 0;
                         while (ix_1 < 4) {
                             uint32_t ixv_1 = ix_1;
@@ -1584,6 +1603,7 @@ __global__ __launch_bounds__(1) static void kuiper_kernel_2(
     uint32_t k_1 = 0;
     while (k_1 < nnz) {
         uint32_t kv_2 = k_1;
+        uint32_t kr_2 = sh._2._1[kv_2];
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 1) {
@@ -1591,6 +1611,9 @@ __global__ __launch_bounds__(1) static void kuiper_kernel_2(
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 1) * 4)) < cols) {
                 float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                vec_memcpy((lchunk_2 + 0),
+                    (gB + ((0 + (cols * kr_2)) +
+                              (n_idx + ((__anf02_3 * 1) * 4)))));
                 uint32_t ix_2 = 0;
                 while (ix_2 < 4) {
                     uint32_t ixv_2 = ix_2;
@@ -1617,14 +1640,13 @@ __device__ static void Kuiper_For_for_loop___21(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
     uint32_t i = 0;
     while (i < 4) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 2) + tmp6) * 4)),
+            (tmp3.elems + (((tmp8 / 4) * 4) + (((__anf0 * 2) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -1635,14 +1657,13 @@ __device__ static void Kuiper_For_for_loop___22(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
     uint32_t i = 0;
     while (i < 4) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 2) + tmp6) * 4)),
+            (tmp3.col_ind + (((tmp8 / 4) * 4) + (((__anf0 * 2) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -1665,15 +1686,14 @@ __device__ static void Kuiper_For_for_loop___24(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
-    (void) tmp9;
     uint32_t i = 0;
     while (i < 4) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 2) + tmp6) * 4)),
+            (tmp3.elems + ((((tmp8 / 4) * 4) + (tmp9 * 32)) +
+                              (((__anf0 * 2) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -1684,15 +1704,14 @@ __device__ static void Kuiper_For_for_loop___25(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
-    (void) tmp9;
     uint32_t i = 0;
     while (i < 4) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 2) + tmp6) * 4)),
+            (tmp3.col_ind + ((((tmp8 / 4) * 4) + (tmp9 * 32)) +
+                                (((__anf0 * 2) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -1719,17 +1738,17 @@ __device__ static void Kuiper_For_for_loop___26(uint32_t tmp, uint32_t tmp1,
 __device__ static void Kuiper_For_for_loop___27(uint32_t tmp, uint32_t tmp1,
     float *tmp2, uint32_t tmp3, uint32_t tmp4, uint32_t tmp5, float *tmp6)
 {
-    (void) tmp;
-    (void) tmp1;
-    (void) tmp2;
-    (void) tmp3;
-    (void) tmp4;
-    (void) tmp5;
-    (void) tmp6;
     uint32_t i = 0;
     while (i < 1) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        if (((((tmp3 / tmp) * 8) + (tmp4 * 4)) + ((__anf0 * 2) * 4)) < tmp1) {
+            uint32_t offset =
+                ((0 + (tmp1 * tmp5)) +
+                    ((((tmp3 / tmp) * 8) + (tmp4 * 4)) + ((__anf0 * 2) * 4)));
+            vec_memcpy((tmp2 + offset), (tmp6 + (__anf0 * 4)));
+        }
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -1739,7 +1758,6 @@ __global__ __launch_bounds__(2) static void kuiper_kernel_3(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    (void) gB;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
     uint8_t *tmp2 =
@@ -1770,6 +1788,7 @@ __global__ __launch_bounds__(2) static void kuiper_kernel_3(
         uint32_t k = 0;
         while (k < 32) {
             uint32_t kv = k;
+            uint32_t kr = sh._2._1[kv];
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 1) {
@@ -1777,6 +1796,9 @@ __global__ __launch_bounds__(2) static void kuiper_kernel_3(
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 2) * 4)) < cols) {
                     float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                    vec_memcpy((lchunk + 0),
+                        (gB + ((0 + (cols * kr)) +
+                                  (n_idx + ((__anf01 * 2) * 4)))));
                     uint32_t ix = 0;
                     while (ix < 4) {
                         uint32_t ixv = ix;
@@ -1807,6 +1829,7 @@ __global__ __launch_bounds__(2) static void kuiper_kernel_3(
             uint32_t k1_1 = 0;
             while (k1_1 < 32) {
                 uint32_t kv_1 = k1_1;
+                uint32_t kr_1 = sh._2._1[kv_1];
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 1) {
@@ -1814,6 +1837,9 @@ __global__ __launch_bounds__(2) static void kuiper_kernel_3(
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 2) * 4)) < cols) {
                         float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                        vec_memcpy((lchunk_1 + 0),
+                            (gB + ((0 + (cols * kr_1)) +
+                                      (n_idx + ((__anf03 * 2) * 4)))));
                         uint32_t ix_1 = 0;
                         while (ix_1 < 4) {
                             uint32_t ixv_1 = ix_1;
@@ -1847,6 +1873,7 @@ __global__ __launch_bounds__(2) static void kuiper_kernel_3(
     uint32_t k_1 = 0;
     while (k_1 < nnz) {
         uint32_t kv_2 = k_1;
+        uint32_t kr_2 = sh._2._1[kv_2];
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 1) {
@@ -1854,6 +1881,9 @@ __global__ __launch_bounds__(2) static void kuiper_kernel_3(
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 2) * 4)) < cols) {
                 float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                vec_memcpy((lchunk_2 + 0),
+                    (gB + ((0 + (cols * kr_2)) +
+                              (n_idx + ((__anf02_3 * 2) * 4)))));
                 uint32_t ix_2 = 0;
                 while (ix_2 < 4) {
                     uint32_t ixv_2 = ix_2;
@@ -1880,14 +1910,13 @@ __device__ static void Kuiper_For_for_loop___28(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
     uint32_t i = 0;
     while (i < 2) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 4) + tmp6) * 4)),
+            (tmp3.elems + (((tmp8 / 4) * 4) + (((__anf0 * 4) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -1898,14 +1927,13 @@ __device__ static void Kuiper_For_for_loop___29(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
     uint32_t i = 0;
     while (i < 2) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 4) + tmp6) * 4)),
+            (tmp3.col_ind + (((tmp8 / 4) * 4) + (((__anf0 * 4) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -1928,15 +1956,14 @@ __device__ static void Kuiper_For_for_loop___31(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
-    (void) tmp9;
     uint32_t i = 0;
     while (i < 2) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 4) + tmp6) * 4)),
+            (tmp3.elems + ((((tmp8 / 4) * 4) + (tmp9 * 32)) +
+                              (((__anf0 * 4) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -1947,15 +1974,14 @@ __device__ static void Kuiper_For_for_loop___32(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
-    (void) tmp9;
     uint32_t i = 0;
     while (i < 2) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 4) + tmp6) * 4)),
+            (tmp3.col_ind + ((((tmp8 / 4) * 4) + (tmp9 * 32)) +
+                                (((__anf0 * 4) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -1982,17 +2008,17 @@ __device__ static void Kuiper_For_for_loop___33(uint32_t tmp, uint32_t tmp1,
 __device__ static void Kuiper_For_for_loop___34(uint32_t tmp, uint32_t tmp1,
     float *tmp2, uint32_t tmp3, uint32_t tmp4, uint32_t tmp5, float *tmp6)
 {
-    (void) tmp;
-    (void) tmp1;
-    (void) tmp2;
-    (void) tmp3;
-    (void) tmp4;
-    (void) tmp5;
-    (void) tmp6;
     uint32_t i = 0;
     while (i < 1) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        if (((((tmp3 / tmp) * 16) + (tmp4 * 4)) + ((__anf0 * 4) * 4)) < tmp1) {
+            uint32_t offset =
+                ((0 + (tmp1 * tmp5)) +
+                    ((((tmp3 / tmp) * 16) + (tmp4 * 4)) + ((__anf0 * 4) * 4)));
+            vec_memcpy((tmp2 + offset), (tmp6 + (__anf0 * 4)));
+        }
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -2002,7 +2028,6 @@ __global__ __launch_bounds__(4) static void kuiper_kernel_4(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    (void) gB;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
     uint8_t *tmp2 =
@@ -2033,6 +2058,7 @@ __global__ __launch_bounds__(4) static void kuiper_kernel_4(
         uint32_t k = 0;
         while (k < 32) {
             uint32_t kv = k;
+            uint32_t kr = sh._2._1[kv];
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 1) {
@@ -2040,6 +2066,9 @@ __global__ __launch_bounds__(4) static void kuiper_kernel_4(
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 4) * 4)) < cols) {
                     float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                    vec_memcpy((lchunk + 0),
+                        (gB + ((0 + (cols * kr)) +
+                                  (n_idx + ((__anf01 * 4) * 4)))));
                     uint32_t ix = 0;
                     while (ix < 4) {
                         uint32_t ixv = ix;
@@ -2070,6 +2099,7 @@ __global__ __launch_bounds__(4) static void kuiper_kernel_4(
             uint32_t k1_1 = 0;
             while (k1_1 < 32) {
                 uint32_t kv_1 = k1_1;
+                uint32_t kr_1 = sh._2._1[kv_1];
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 1) {
@@ -2077,6 +2107,9 @@ __global__ __launch_bounds__(4) static void kuiper_kernel_4(
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 4) * 4)) < cols) {
                         float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                        vec_memcpy((lchunk_1 + 0),
+                            (gB + ((0 + (cols * kr_1)) +
+                                      (n_idx + ((__anf03 * 4) * 4)))));
                         uint32_t ix_1 = 0;
                         while (ix_1 < 4) {
                             uint32_t ixv_1 = ix_1;
@@ -2110,6 +2143,7 @@ __global__ __launch_bounds__(4) static void kuiper_kernel_4(
     uint32_t k_1 = 0;
     while (k_1 < nnz) {
         uint32_t kv_2 = k_1;
+        uint32_t kr_2 = sh._2._1[kv_2];
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 1) {
@@ -2117,6 +2151,9 @@ __global__ __launch_bounds__(4) static void kuiper_kernel_4(
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 4) * 4)) < cols) {
                 float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                vec_memcpy((lchunk_2 + 0),
+                    (gB + ((0 + (cols * kr_2)) +
+                              (n_idx + ((__anf02_3 * 4) * 4)))));
                 uint32_t ix_2 = 0;
                 while (ix_2 < 4) {
                     uint32_t ixv_2 = ix_2;
@@ -2143,14 +2180,13 @@ __device__ static void Kuiper_For_for_loop___35(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
     uint32_t i = 0;
     while (i < 1) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 8) + tmp6) * 4)),
+            (tmp3.elems + (((tmp8 / 4) * 4) + (((__anf0 * 8) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -2161,14 +2197,13 @@ __device__ static void Kuiper_For_for_loop___36(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
     uint32_t i = 0;
     while (i < 1) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 8) + tmp6) * 4)),
+            (tmp3.col_ind + (((tmp8 / 4) * 4) + (((__anf0 * 8) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -2191,15 +2226,14 @@ __device__ static void Kuiper_For_for_loop___38(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
-    (void) tmp9;
     uint32_t i = 0;
     while (i < 1) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 8) + tmp6) * 4)),
+            (tmp3.elems + ((((tmp8 / 4) * 4) + (tmp9 * 32)) +
+                              (((__anf0 * 8) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -2210,15 +2244,14 @@ __device__ static void Kuiper_For_for_loop___39(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
-    (void) tmp9;
     uint32_t i = 0;
     while (i < 1) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 8) + tmp6) * 4)),
+            (tmp3.col_ind + ((((tmp8 / 4) * 4) + (tmp9 * 32)) +
+                                (((__anf0 * 8) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -2245,17 +2278,17 @@ __device__ static void Kuiper_For_for_loop___40(uint32_t tmp, uint32_t tmp1,
 __device__ static void Kuiper_For_for_loop___41(uint32_t tmp, uint32_t tmp1,
     float *tmp2, uint32_t tmp3, uint32_t tmp4, uint32_t tmp5, float *tmp6)
 {
-    (void) tmp;
-    (void) tmp1;
-    (void) tmp2;
-    (void) tmp3;
-    (void) tmp4;
-    (void) tmp5;
-    (void) tmp6;
     uint32_t i = 0;
     while (i < 1) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        if (((((tmp3 / tmp) * 32) + (tmp4 * 4)) + ((__anf0 * 8) * 4)) < tmp1) {
+            uint32_t offset =
+                ((0 + (tmp1 * tmp5)) +
+                    ((((tmp3 / tmp) * 32) + (tmp4 * 4)) + ((__anf0 * 8) * 4)));
+            vec_memcpy((tmp2 + offset), (tmp6 + (__anf0 * 4)));
+        }
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -2265,7 +2298,6 @@ __global__ __launch_bounds__(8) static void kuiper_kernel_5(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    (void) gB;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
     uint8_t *tmp2 =
@@ -2296,6 +2328,7 @@ __global__ __launch_bounds__(8) static void kuiper_kernel_5(
         uint32_t k = 0;
         while (k < 32) {
             uint32_t kv = k;
+            uint32_t kr = sh._2._1[kv];
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 1) {
@@ -2303,6 +2336,9 @@ __global__ __launch_bounds__(8) static void kuiper_kernel_5(
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 8) * 4)) < cols) {
                     float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                    vec_memcpy((lchunk + 0),
+                        (gB + ((0 + (cols * kr)) +
+                                  (n_idx + ((__anf01 * 8) * 4)))));
                     uint32_t ix = 0;
                     while (ix < 4) {
                         uint32_t ixv = ix;
@@ -2333,6 +2369,7 @@ __global__ __launch_bounds__(8) static void kuiper_kernel_5(
             uint32_t k1_1 = 0;
             while (k1_1 < 32) {
                 uint32_t kv_1 = k1_1;
+                uint32_t kr_1 = sh._2._1[kv_1];
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 1) {
@@ -2340,6 +2377,9 @@ __global__ __launch_bounds__(8) static void kuiper_kernel_5(
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 8) * 4)) < cols) {
                         float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                        vec_memcpy((lchunk_1 + 0),
+                            (gB + ((0 + (cols * kr_1)) +
+                                      (n_idx + ((__anf03 * 8) * 4)))));
                         uint32_t ix_1 = 0;
                         while (ix_1 < 4) {
                             uint32_t ixv_1 = ix_1;
@@ -2373,6 +2413,7 @@ __global__ __launch_bounds__(8) static void kuiper_kernel_5(
     uint32_t k_1 = 0;
     while (k_1 < nnz) {
         uint32_t kv_2 = k_1;
+        uint32_t kr_2 = sh._2._1[kv_2];
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 1) {
@@ -2380,6 +2421,9 @@ __global__ __launch_bounds__(8) static void kuiper_kernel_5(
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 8) * 4)) < cols) {
                 float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                vec_memcpy((lchunk_2 + 0),
+                    (gB + ((0 + (cols * kr_2)) +
+                              (n_idx + ((__anf02_3 * 8) * 4)))));
                 uint32_t ix_2 = 0;
                 while (ix_2 < 4) {
                     uint32_t ixv_2 = ix_2;
@@ -2406,14 +2450,13 @@ __device__ static void Kuiper_For_for_loop___42(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
     uint32_t i = 0;
     while (i < 1) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 8) + tmp6) * 4)),
+            (tmp3.elems + (((tmp8 / 4) * 4) + (((__anf0 * 8) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -2424,14 +2467,13 @@ __device__ static void Kuiper_For_for_loop___43(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
     uint32_t i = 0;
     while (i < 1) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 8) + tmp6) * 4)),
+            (tmp3.col_ind + (((tmp8 / 4) * 4) + (((__anf0 * 8) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -2442,15 +2484,14 @@ __device__ static void Kuiper_For_for_loop___44(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
-    (void) tmp9;
     uint32_t i = 0;
     while (i < 1) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 8) + tmp6) * 4)),
+            (tmp3.elems + ((((tmp8 / 4) * 4) + (tmp9 * 32)) +
+                              (((__anf0 * 8) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -2461,15 +2502,14 @@ __device__ static void Kuiper_For_for_loop___45(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
-    (void) tmp9;
     uint32_t i = 0;
     while (i < 1) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 8) + tmp6) * 4)),
+            (tmp3.col_ind + ((((tmp8 / 4) * 4) + (tmp9 * 32)) +
+                                (((__anf0 * 8) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -2496,17 +2536,17 @@ __device__ static void Kuiper_For_for_loop___46(uint32_t tmp, uint32_t tmp1,
 __device__ static void Kuiper_For_for_loop___47(uint32_t tmp, uint32_t tmp1,
     float *tmp2, uint32_t tmp3, uint32_t tmp4, uint32_t tmp5, float *tmp6)
 {
-    (void) tmp;
-    (void) tmp1;
-    (void) tmp2;
-    (void) tmp3;
-    (void) tmp4;
-    (void) tmp5;
-    (void) tmp6;
     uint32_t i = 0;
     while (i < 2) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        if (((((tmp3 / tmp) * 64) + (tmp4 * 4)) + ((__anf0 * 8) * 4)) < tmp1) {
+            uint32_t offset =
+                ((0 + (tmp1 * tmp5)) +
+                    ((((tmp3 / tmp) * 64) + (tmp4 * 4)) + ((__anf0 * 8) * 4)));
+            vec_memcpy((tmp2 + offset), (tmp6 + (__anf0 * 4)));
+        }
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -2516,7 +2556,6 @@ __global__ __launch_bounds__(8) static void kuiper_kernel_6(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    (void) gB;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
     uint8_t *tmp2 =
@@ -2547,6 +2586,7 @@ __global__ __launch_bounds__(8) static void kuiper_kernel_6(
         uint32_t k = 0;
         while (k < 32) {
             uint32_t kv = k;
+            uint32_t kr = sh._2._1[kv];
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 2) {
@@ -2554,6 +2594,9 @@ __global__ __launch_bounds__(8) static void kuiper_kernel_6(
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 8) * 4)) < cols) {
                     float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                    vec_memcpy((lchunk + 0),
+                        (gB + ((0 + (cols * kr)) +
+                                  (n_idx + ((__anf01 * 8) * 4)))));
                     uint32_t ix = 0;
                     while (ix < 4) {
                         uint32_t ixv = ix;
@@ -2584,6 +2627,7 @@ __global__ __launch_bounds__(8) static void kuiper_kernel_6(
             uint32_t k1_1 = 0;
             while (k1_1 < 32) {
                 uint32_t kv_1 = k1_1;
+                uint32_t kr_1 = sh._2._1[kv_1];
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 2) {
@@ -2591,6 +2635,9 @@ __global__ __launch_bounds__(8) static void kuiper_kernel_6(
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 8) * 4)) < cols) {
                         float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                        vec_memcpy((lchunk_1 + 0),
+                            (gB + ((0 + (cols * kr_1)) +
+                                      (n_idx + ((__anf03 * 8) * 4)))));
                         uint32_t ix_1 = 0;
                         while (ix_1 < 4) {
                             uint32_t ixv_1 = ix_1;
@@ -2624,6 +2671,7 @@ __global__ __launch_bounds__(8) static void kuiper_kernel_6(
     uint32_t k_1 = 0;
     while (k_1 < nnz) {
         uint32_t kv_2 = k_1;
+        uint32_t kr_2 = sh._2._1[kv_2];
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 2) {
@@ -2631,6 +2679,9 @@ __global__ __launch_bounds__(8) static void kuiper_kernel_6(
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 8) * 4)) < cols) {
                 float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                vec_memcpy((lchunk_2 + 0),
+                    (gB + ((0 + (cols * kr_2)) +
+                              (n_idx + ((__anf02_3 * 8) * 4)))));
                 uint32_t ix_2 = 0;
                 while (ix_2 < 4) {
                     uint32_t ixv_2 = ix_2;
@@ -2656,7 +2707,6 @@ __global__ __launch_bounds__(1) static void kuiper_kernel_7(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    (void) gB;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
     uint8_t *tmp2 =
@@ -2687,6 +2737,7 @@ __global__ __launch_bounds__(1) static void kuiper_kernel_7(
         uint32_t k = 0;
         while (k < 32) {
             uint32_t kv = k;
+            uint32_t kr = sh._2._1[kv];
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 1) {
@@ -2694,6 +2745,9 @@ __global__ __launch_bounds__(1) static void kuiper_kernel_7(
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 1) * 4)) < cols) {
                     float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                    vec_memcpy((lchunk + 0),
+                        (gB + ((0 + (cols * kr)) +
+                                  (n_idx + ((__anf01 * 1) * 4)))));
                     uint32_t ix = 0;
                     while (ix < 4) {
                         uint32_t ixv = ix;
@@ -2724,6 +2778,7 @@ __global__ __launch_bounds__(1) static void kuiper_kernel_7(
             uint32_t k1_1 = 0;
             while (k1_1 < 32) {
                 uint32_t kv_1 = k1_1;
+                uint32_t kr_1 = sh._2._1[kv_1];
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 1) {
@@ -2731,6 +2786,9 @@ __global__ __launch_bounds__(1) static void kuiper_kernel_7(
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 1) * 4)) < cols) {
                         float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                        vec_memcpy((lchunk_1 + 0),
+                            (gB + ((0 + (cols * kr_1)) +
+                                      (n_idx + ((__anf03 * 1) * 4)))));
                         uint32_t ix_1 = 0;
                         while (ix_1 < 4) {
                             uint32_t ixv_1 = ix_1;
@@ -2764,6 +2822,7 @@ __global__ __launch_bounds__(1) static void kuiper_kernel_7(
     uint32_t k_1 = 0;
     while (k_1 < nnz) {
         uint32_t kv_2 = k_1;
+        uint32_t kr_2 = sh._2._1[kv_2];
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 1) {
@@ -2771,6 +2830,9 @@ __global__ __launch_bounds__(1) static void kuiper_kernel_7(
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 1) * 4)) < cols) {
                 float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                vec_memcpy((lchunk_2 + 0),
+                    (gB + ((0 + (cols * kr_2)) +
+                              (n_idx + ((__anf02_3 * 1) * 4)))));
                 uint32_t ix_2 = 0;
                 while (ix_2 < 4) {
                     uint32_t ixv_2 = ix_2;
@@ -2796,7 +2858,6 @@ __global__ __launch_bounds__(2) static void kuiper_kernel_8(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    (void) gB;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
     uint8_t *tmp2 =
@@ -2827,6 +2888,7 @@ __global__ __launch_bounds__(2) static void kuiper_kernel_8(
         uint32_t k = 0;
         while (k < 32) {
             uint32_t kv = k;
+            uint32_t kr = sh._2._1[kv];
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 1) {
@@ -2834,6 +2896,9 @@ __global__ __launch_bounds__(2) static void kuiper_kernel_8(
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 2) * 4)) < cols) {
                     float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                    vec_memcpy((lchunk + 0),
+                        (gB + ((0 + (cols * kr)) +
+                                  (n_idx + ((__anf01 * 2) * 4)))));
                     uint32_t ix = 0;
                     while (ix < 4) {
                         uint32_t ixv = ix;
@@ -2864,6 +2929,7 @@ __global__ __launch_bounds__(2) static void kuiper_kernel_8(
             uint32_t k1_1 = 0;
             while (k1_1 < 32) {
                 uint32_t kv_1 = k1_1;
+                uint32_t kr_1 = sh._2._1[kv_1];
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 1) {
@@ -2871,6 +2937,9 @@ __global__ __launch_bounds__(2) static void kuiper_kernel_8(
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 2) * 4)) < cols) {
                         float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                        vec_memcpy((lchunk_1 + 0),
+                            (gB + ((0 + (cols * kr_1)) +
+                                      (n_idx + ((__anf03 * 2) * 4)))));
                         uint32_t ix_1 = 0;
                         while (ix_1 < 4) {
                             uint32_t ixv_1 = ix_1;
@@ -2904,6 +2973,7 @@ __global__ __launch_bounds__(2) static void kuiper_kernel_8(
     uint32_t k_1 = 0;
     while (k_1 < nnz) {
         uint32_t kv_2 = k_1;
+        uint32_t kr_2 = sh._2._1[kv_2];
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 1) {
@@ -2911,6 +2981,9 @@ __global__ __launch_bounds__(2) static void kuiper_kernel_8(
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 2) * 4)) < cols) {
                 float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                vec_memcpy((lchunk_2 + 0),
+                    (gB + ((0 + (cols * kr_2)) +
+                              (n_idx + ((__anf02_3 * 2) * 4)))));
                 uint32_t ix_2 = 0;
                 while (ix_2 < 4) {
                     uint32_t ixv_2 = ix_2;
@@ -2936,7 +3009,6 @@ __global__ __launch_bounds__(4) static void kuiper_kernel_9(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    (void) gB;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
     uint8_t *tmp2 =
@@ -2967,6 +3039,7 @@ __global__ __launch_bounds__(4) static void kuiper_kernel_9(
         uint32_t k = 0;
         while (k < 32) {
             uint32_t kv = k;
+            uint32_t kr = sh._2._1[kv];
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 1) {
@@ -2974,6 +3047,9 @@ __global__ __launch_bounds__(4) static void kuiper_kernel_9(
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 4) * 4)) < cols) {
                     float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                    vec_memcpy((lchunk + 0),
+                        (gB + ((0 + (cols * kr)) +
+                                  (n_idx + ((__anf01 * 4) * 4)))));
                     uint32_t ix = 0;
                     while (ix < 4) {
                         uint32_t ixv = ix;
@@ -3004,6 +3080,7 @@ __global__ __launch_bounds__(4) static void kuiper_kernel_9(
             uint32_t k1_1 = 0;
             while (k1_1 < 32) {
                 uint32_t kv_1 = k1_1;
+                uint32_t kr_1 = sh._2._1[kv_1];
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 1) {
@@ -3011,6 +3088,9 @@ __global__ __launch_bounds__(4) static void kuiper_kernel_9(
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 4) * 4)) < cols) {
                         float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                        vec_memcpy((lchunk_1 + 0),
+                            (gB + ((0 + (cols * kr_1)) +
+                                      (n_idx + ((__anf03 * 4) * 4)))));
                         uint32_t ix_1 = 0;
                         while (ix_1 < 4) {
                             uint32_t ixv_1 = ix_1;
@@ -3044,6 +3124,7 @@ __global__ __launch_bounds__(4) static void kuiper_kernel_9(
     uint32_t k_1 = 0;
     while (k_1 < nnz) {
         uint32_t kv_2 = k_1;
+        uint32_t kr_2 = sh._2._1[kv_2];
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 1) {
@@ -3051,6 +3132,9 @@ __global__ __launch_bounds__(4) static void kuiper_kernel_9(
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 4) * 4)) < cols) {
                 float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                vec_memcpy((lchunk_2 + 0),
+                    (gB + ((0 + (cols * kr_2)) +
+                              (n_idx + ((__anf02_3 * 4) * 4)))));
                 uint32_t ix_2 = 0;
                 while (ix_2 < 4) {
                     uint32_t ixv_2 = ix_2;
@@ -3076,7 +3160,6 @@ __global__ __launch_bounds__(8) static void kuiper_kernel_10(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    (void) gB;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
     uint8_t *tmp2 =
@@ -3107,6 +3190,7 @@ __global__ __launch_bounds__(8) static void kuiper_kernel_10(
         uint32_t k = 0;
         while (k < 32) {
             uint32_t kv = k;
+            uint32_t kr = sh._2._1[kv];
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 1) {
@@ -3114,6 +3198,9 @@ __global__ __launch_bounds__(8) static void kuiper_kernel_10(
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 8) * 4)) < cols) {
                     float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                    vec_memcpy((lchunk + 0),
+                        (gB + ((0 + (cols * kr)) +
+                                  (n_idx + ((__anf01 * 8) * 4)))));
                     uint32_t ix = 0;
                     while (ix < 4) {
                         uint32_t ixv = ix;
@@ -3144,6 +3231,7 @@ __global__ __launch_bounds__(8) static void kuiper_kernel_10(
             uint32_t k1_1 = 0;
             while (k1_1 < 32) {
                 uint32_t kv_1 = k1_1;
+                uint32_t kr_1 = sh._2._1[kv_1];
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 1) {
@@ -3151,6 +3239,9 @@ __global__ __launch_bounds__(8) static void kuiper_kernel_10(
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 8) * 4)) < cols) {
                         float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                        vec_memcpy((lchunk_1 + 0),
+                            (gB + ((0 + (cols * kr_1)) +
+                                      (n_idx + ((__anf03 * 8) * 4)))));
                         uint32_t ix_1 = 0;
                         while (ix_1 < 4) {
                             uint32_t ixv_1 = ix_1;
@@ -3184,6 +3275,7 @@ __global__ __launch_bounds__(8) static void kuiper_kernel_10(
     uint32_t k_1 = 0;
     while (k_1 < nnz) {
         uint32_t kv_2 = k_1;
+        uint32_t kr_2 = sh._2._1[kv_2];
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 1) {
@@ -3191,6 +3283,9 @@ __global__ __launch_bounds__(8) static void kuiper_kernel_10(
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 8) * 4)) < cols) {
                 float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                vec_memcpy((lchunk_2 + 0),
+                    (gB + ((0 + (cols * kr_2)) +
+                              (n_idx + ((__anf02_3 * 8) * 4)))));
                 uint32_t ix_2 = 0;
                 while (ix_2 < 4) {
                     uint32_t ixv_2 = ix_2;
@@ -3216,7 +3311,6 @@ __global__ __launch_bounds__(8) static void kuiper_kernel_11(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    (void) gB;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
     uint8_t *tmp2 =
@@ -3247,6 +3341,7 @@ __global__ __launch_bounds__(8) static void kuiper_kernel_11(
         uint32_t k = 0;
         while (k < 32) {
             uint32_t kv = k;
+            uint32_t kr = sh._2._1[kv];
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 2) {
@@ -3254,6 +3349,9 @@ __global__ __launch_bounds__(8) static void kuiper_kernel_11(
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 8) * 4)) < cols) {
                     float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                    vec_memcpy((lchunk + 0),
+                        (gB + ((0 + (cols * kr)) +
+                                  (n_idx + ((__anf01 * 8) * 4)))));
                     uint32_t ix = 0;
                     while (ix < 4) {
                         uint32_t ixv = ix;
@@ -3284,6 +3382,7 @@ __global__ __launch_bounds__(8) static void kuiper_kernel_11(
             uint32_t k1_1 = 0;
             while (k1_1 < 32) {
                 uint32_t kv_1 = k1_1;
+                uint32_t kr_1 = sh._2._1[kv_1];
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 2) {
@@ -3291,6 +3390,9 @@ __global__ __launch_bounds__(8) static void kuiper_kernel_11(
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 8) * 4)) < cols) {
                         float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                        vec_memcpy((lchunk_1 + 0),
+                            (gB + ((0 + (cols * kr_1)) +
+                                      (n_idx + ((__anf03 * 8) * 4)))));
                         uint32_t ix_1 = 0;
                         while (ix_1 < 4) {
                             uint32_t ixv_1 = ix_1;
@@ -3324,6 +3426,7 @@ __global__ __launch_bounds__(8) static void kuiper_kernel_11(
     uint32_t k_1 = 0;
     while (k_1 < nnz) {
         uint32_t kv_2 = k_1;
+        uint32_t kr_2 = sh._2._1[kv_2];
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 2) {
@@ -3331,6 +3434,9 @@ __global__ __launch_bounds__(8) static void kuiper_kernel_11(
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 8) * 4)) < cols) {
                 float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                vec_memcpy((lchunk_2 + 0),
+                    (gB + ((0 + (cols * kr_2)) +
+                              (n_idx + ((__anf02_3 * 8) * 4)))));
                 uint32_t ix_2 = 0;
                 while (ix_2 < 4) {
                     uint32_t ixv_2 = ix_2;
@@ -3357,14 +3463,13 @@ __device__ static void Kuiper_For_for_loop___48(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
     uint32_t i = 0;
     while (i < 1) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 16) + tmp6) * 4)),
+            (tmp3.elems + (((tmp8 / 4) * 4) + (((__anf0 * 16) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -3375,14 +3480,13 @@ __device__ static void Kuiper_For_for_loop___49(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
     uint32_t i = 0;
     while (i < 1) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 16) + tmp6) * 4)),
+            (tmp3.col_ind + (((tmp8 / 4) * 4) + (((__anf0 * 16) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -3405,15 +3509,14 @@ __device__ static void Kuiper_For_for_loop___51(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
-    (void) tmp9;
     uint32_t i = 0;
     while (i < 1) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 16) + tmp6) * 4)),
+            (tmp3.elems + ((((tmp8 / 4) * 4) + (tmp9 * 64)) +
+                              (((__anf0 * 16) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -3424,15 +3527,14 @@ __device__ static void Kuiper_For_for_loop___52(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
-    (void) tmp9;
     uint32_t i = 0;
     while (i < 1) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 16) + tmp6) * 4)),
+            (tmp3.col_ind + ((((tmp8 / 4) * 4) + (tmp9 * 64)) +
+                                (((__anf0 * 16) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -3459,17 +3561,17 @@ __device__ static void Kuiper_For_for_loop___53(uint32_t tmp, uint32_t tmp1,
 __device__ static void Kuiper_For_for_loop___54(uint32_t tmp, uint32_t tmp1,
     float *tmp2, uint32_t tmp3, uint32_t tmp4, uint32_t tmp5, float *tmp6)
 {
-    (void) tmp;
-    (void) tmp1;
-    (void) tmp2;
-    (void) tmp3;
-    (void) tmp4;
-    (void) tmp5;
-    (void) tmp6;
     uint32_t i = 0;
     while (i < 1) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        if (((((tmp3 / tmp) * 64) + (tmp4 * 4)) + ((__anf0 * 16) * 4)) < tmp1) {
+            uint32_t offset =
+                ((0 + (tmp1 * tmp5)) +
+                    ((((tmp3 / tmp) * 64) + (tmp4 * 4)) + ((__anf0 * 16) * 4)));
+            vec_memcpy((tmp2 + offset), (tmp6 + (__anf0 * 4)));
+        }
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -3479,7 +3581,6 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_12(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    (void) gB;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
     uint8_t *tmp2 =
@@ -3510,6 +3611,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_12(
         uint32_t k = 0;
         while (k < 64) {
             uint32_t kv = k;
+            uint32_t kr = sh._2._1[kv];
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 1) {
@@ -3517,6 +3619,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_12(
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 16) * 4)) < cols) {
                     float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                    vec_memcpy((lchunk + 0),
+                        (gB + ((0 + (cols * kr)) +
+                                  (n_idx + ((__anf01 * 16) * 4)))));
                     uint32_t ix = 0;
                     while (ix < 4) {
                         uint32_t ixv = ix;
@@ -3547,6 +3652,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_12(
             uint32_t k1_1 = 0;
             while (k1_1 < 64) {
                 uint32_t kv_1 = k1_1;
+                uint32_t kr_1 = sh._2._1[kv_1];
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 1) {
@@ -3554,6 +3660,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_12(
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 16) * 4)) < cols) {
                         float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                        vec_memcpy((lchunk_1 + 0),
+                            (gB + ((0 + (cols * kr_1)) +
+                                      (n_idx + ((__anf03 * 16) * 4)))));
                         uint32_t ix_1 = 0;
                         while (ix_1 < 4) {
                             uint32_t ixv_1 = ix_1;
@@ -3587,6 +3696,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_12(
     uint32_t k_1 = 0;
     while (k_1 < nnz) {
         uint32_t kv_2 = k_1;
+        uint32_t kr_2 = sh._2._1[kv_2];
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 1) {
@@ -3594,6 +3704,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_12(
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 16) * 4)) < cols) {
                 float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                vec_memcpy((lchunk_2 + 0),
+                    (gB + ((0 + (cols * kr_2)) +
+                              (n_idx + ((__anf02_3 * 16) * 4)))));
                 uint32_t ix_2 = 0;
                 while (ix_2 < 4) {
                     uint32_t ixv_2 = ix_2;
@@ -3619,7 +3732,6 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_13(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    (void) gB;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
     uint8_t *tmp2 =
@@ -3650,6 +3762,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_13(
         uint32_t k = 0;
         while (k < 64) {
             uint32_t kv = k;
+            uint32_t kr = sh._2._1[kv];
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 1) {
@@ -3657,6 +3770,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_13(
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 16) * 4)) < cols) {
                     float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                    vec_memcpy((lchunk + 0),
+                        (gB + ((0 + (cols * kr)) +
+                                  (n_idx + ((__anf01 * 16) * 4)))));
                     uint32_t ix = 0;
                     while (ix < 4) {
                         uint32_t ixv = ix;
@@ -3687,6 +3803,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_13(
             uint32_t k1_1 = 0;
             while (k1_1 < 64) {
                 uint32_t kv_1 = k1_1;
+                uint32_t kr_1 = sh._2._1[kv_1];
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 1) {
@@ -3694,6 +3811,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_13(
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 16) * 4)) < cols) {
                         float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                        vec_memcpy((lchunk_1 + 0),
+                            (gB + ((0 + (cols * kr_1)) +
+                                      (n_idx + ((__anf03 * 16) * 4)))));
                         uint32_t ix_1 = 0;
                         while (ix_1 < 4) {
                             uint32_t ixv_1 = ix_1;
@@ -3727,6 +3847,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_13(
     uint32_t k_1 = 0;
     while (k_1 < nnz) {
         uint32_t kv_2 = k_1;
+        uint32_t kr_2 = sh._2._1[kv_2];
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 1) {
@@ -3734,6 +3855,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_13(
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 16) * 4)) < cols) {
                 float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                vec_memcpy((lchunk_2 + 0),
+                    (gB + ((0 + (cols * kr_2)) +
+                              (n_idx + ((__anf02_3 * 16) * 4)))));
                 uint32_t ix_2 = 0;
                 while (ix_2 < 4) {
                     uint32_t ixv_2 = ix_2;
@@ -3760,14 +3884,13 @@ __device__ static void Kuiper_For_for_loop___55(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
     uint32_t i = 0;
     while (i < 1) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 16) + tmp6) * 4)),
+            (tmp3.elems + (((tmp8 / 4) * 4) + (((__anf0 * 16) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -3778,14 +3901,13 @@ __device__ static void Kuiper_For_for_loop___56(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
     uint32_t i = 0;
     while (i < 1) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 16) + tmp6) * 4)),
+            (tmp3.col_ind + (((tmp8 / 4) * 4) + (((__anf0 * 16) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -3796,15 +3918,14 @@ __device__ static void Kuiper_For_for_loop___57(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
-    (void) tmp9;
     uint32_t i = 0;
     while (i < 1) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 16) + tmp6) * 4)),
+            (tmp3.elems + ((((tmp8 / 4) * 4) + (tmp9 * 64)) +
+                              (((__anf0 * 16) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -3815,15 +3936,14 @@ __device__ static void Kuiper_For_for_loop___58(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
-    (void) tmp9;
     uint32_t i = 0;
     while (i < 1) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 16) + tmp6) * 4)),
+            (tmp3.col_ind + ((((tmp8 / 4) * 4) + (tmp9 * 64)) +
+                                (((__anf0 * 16) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -3850,17 +3970,18 @@ __device__ static void Kuiper_For_for_loop___59(uint32_t tmp, uint32_t tmp1,
 __device__ static void Kuiper_For_for_loop___60(uint32_t tmp, uint32_t tmp1,
     float *tmp2, uint32_t tmp3, uint32_t tmp4, uint32_t tmp5, float *tmp6)
 {
-    (void) tmp;
-    (void) tmp1;
-    (void) tmp2;
-    (void) tmp3;
-    (void) tmp4;
-    (void) tmp5;
-    (void) tmp6;
     uint32_t i = 0;
     while (i < 2) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        if (((((tmp3 / tmp) * 128) + (tmp4 * 4)) + ((__anf0 * 16) * 4)) <
+            tmp1) {
+            uint32_t offset =
+                ((0 + (tmp1 * tmp5)) + ((((tmp3 / tmp) * 128) + (tmp4 * 4)) +
+                                           ((__anf0 * 16) * 4)));
+            vec_memcpy((tmp2 + offset), (tmp6 + (__anf0 * 4)));
+        }
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -3870,7 +3991,6 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_14(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    (void) gB;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
     uint8_t *tmp2 =
@@ -3901,6 +4021,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_14(
         uint32_t k = 0;
         while (k < 64) {
             uint32_t kv = k;
+            uint32_t kr = sh._2._1[kv];
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 2) {
@@ -3908,6 +4029,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_14(
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 16) * 4)) < cols) {
                     float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                    vec_memcpy((lchunk + 0),
+                        (gB + ((0 + (cols * kr)) +
+                                  (n_idx + ((__anf01 * 16) * 4)))));
                     uint32_t ix = 0;
                     while (ix < 4) {
                         uint32_t ixv = ix;
@@ -3938,6 +4062,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_14(
             uint32_t k1_1 = 0;
             while (k1_1 < 64) {
                 uint32_t kv_1 = k1_1;
+                uint32_t kr_1 = sh._2._1[kv_1];
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 2) {
@@ -3945,6 +4070,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_14(
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 16) * 4)) < cols) {
                         float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                        vec_memcpy((lchunk_1 + 0),
+                            (gB + ((0 + (cols * kr_1)) +
+                                      (n_idx + ((__anf03 * 16) * 4)))));
                         uint32_t ix_1 = 0;
                         while (ix_1 < 4) {
                             uint32_t ixv_1 = ix_1;
@@ -3978,6 +4106,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_14(
     uint32_t k_1 = 0;
     while (k_1 < nnz) {
         uint32_t kv_2 = k_1;
+        uint32_t kr_2 = sh._2._1[kv_2];
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 2) {
@@ -3985,6 +4114,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_14(
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 16) * 4)) < cols) {
                 float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                vec_memcpy((lchunk_2 + 0),
+                    (gB + ((0 + (cols * kr_2)) +
+                              (n_idx + ((__anf02_3 * 16) * 4)))));
                 uint32_t ix_2 = 0;
                 while (ix_2 < 4) {
                     uint32_t ixv_2 = ix_2;
@@ -4010,7 +4142,6 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_15(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    (void) gB;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
     uint8_t *tmp2 =
@@ -4041,6 +4172,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_15(
         uint32_t k = 0;
         while (k < 64) {
             uint32_t kv = k;
+            uint32_t kr = sh._2._1[kv];
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 2) {
@@ -4048,6 +4180,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_15(
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 16) * 4)) < cols) {
                     float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                    vec_memcpy((lchunk + 0),
+                        (gB + ((0 + (cols * kr)) +
+                                  (n_idx + ((__anf01 * 16) * 4)))));
                     uint32_t ix = 0;
                     while (ix < 4) {
                         uint32_t ixv = ix;
@@ -4078,6 +4213,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_15(
             uint32_t k1_1 = 0;
             while (k1_1 < 64) {
                 uint32_t kv_1 = k1_1;
+                uint32_t kr_1 = sh._2._1[kv_1];
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 2) {
@@ -4085,6 +4221,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_15(
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 16) * 4)) < cols) {
                         float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                        vec_memcpy((lchunk_1 + 0),
+                            (gB + ((0 + (cols * kr_1)) +
+                                      (n_idx + ((__anf03 * 16) * 4)))));
                         uint32_t ix_1 = 0;
                         while (ix_1 < 4) {
                             uint32_t ixv_1 = ix_1;
@@ -4118,6 +4257,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_15(
     uint32_t k_1 = 0;
     while (k_1 < nnz) {
         uint32_t kv_2 = k_1;
+        uint32_t kr_2 = sh._2._1[kv_2];
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 2) {
@@ -4125,6 +4265,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_15(
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 16) * 4)) < cols) {
                 float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                vec_memcpy((lchunk_2 + 0),
+                    (gB + ((0 + (cols * kr_2)) +
+                              (n_idx + ((__anf02_3 * 16) * 4)))));
                 uint32_t ix_2 = 0;
                 while (ix_2 < 4) {
                     uint32_t ixv_2 = ix_2;
@@ -4151,14 +4294,13 @@ __device__ static void Kuiper_For_for_loop___61(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
     uint32_t i = 0;
     while (i < 1) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 16) + tmp6) * 4)),
+            (tmp3.elems + (((tmp8 / 4) * 4) + (((__anf0 * 16) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -4169,14 +4311,13 @@ __device__ static void Kuiper_For_for_loop___62(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
     uint32_t i = 0;
     while (i < 1) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 16) + tmp6) * 4)),
+            (tmp3.col_ind + (((tmp8 / 4) * 4) + (((__anf0 * 16) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -4187,15 +4328,14 @@ __device__ static void Kuiper_For_for_loop___63(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
-    (void) tmp9;
     uint32_t i = 0;
     while (i < 1) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 16) + tmp6) * 4)),
+            (tmp3.elems + ((((tmp8 / 4) * 4) + (tmp9 * 64)) +
+                              (((__anf0 * 16) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -4206,15 +4346,14 @@ __device__ static void Kuiper_For_for_loop___64(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
-    (void) tmp9;
     uint32_t i = 0;
     while (i < 1) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 16) + tmp6) * 4)),
+            (tmp3.col_ind + ((((tmp8 / 4) * 4) + (tmp9 * 64)) +
+                                (((__anf0 * 16) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -4241,17 +4380,18 @@ __device__ static void Kuiper_For_for_loop___65(uint32_t tmp, uint32_t tmp1,
 __device__ static void Kuiper_For_for_loop___66(uint32_t tmp, uint32_t tmp1,
     float *tmp2, uint32_t tmp3, uint32_t tmp4, uint32_t tmp5, float *tmp6)
 {
-    (void) tmp;
-    (void) tmp1;
-    (void) tmp2;
-    (void) tmp3;
-    (void) tmp4;
-    (void) tmp5;
-    (void) tmp6;
     uint32_t i = 0;
     while (i < 4) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        if (((((tmp3 / tmp) * 256) + (tmp4 * 4)) + ((__anf0 * 16) * 4)) <
+            tmp1) {
+            uint32_t offset =
+                ((0 + (tmp1 * tmp5)) + ((((tmp3 / tmp) * 256) + (tmp4 * 4)) +
+                                           ((__anf0 * 16) * 4)));
+            vec_memcpy((tmp2 + offset), (tmp6 + (__anf0 * 4)));
+        }
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -4261,7 +4401,6 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_16(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    (void) gB;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
     uint8_t *tmp2 =
@@ -4293,6 +4432,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_16(
         uint32_t k = 0;
         while (k < 64) {
             uint32_t kv = k;
+            uint32_t kr = sh._2._1[kv];
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 4) {
@@ -4300,6 +4440,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_16(
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 16) * 4)) < cols) {
                     float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                    vec_memcpy((lchunk + 0),
+                        (gB + ((0 + (cols * kr)) +
+                                  (n_idx + ((__anf01 * 16) * 4)))));
                     uint32_t ix = 0;
                     while (ix < 4) {
                         uint32_t ixv = ix;
@@ -4330,6 +4473,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_16(
             uint32_t k1_1 = 0;
             while (k1_1 < 64) {
                 uint32_t kv_1 = k1_1;
+                uint32_t kr_1 = sh._2._1[kv_1];
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 4) {
@@ -4337,6 +4481,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_16(
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 16) * 4)) < cols) {
                         float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                        vec_memcpy((lchunk_1 + 0),
+                            (gB + ((0 + (cols * kr_1)) +
+                                      (n_idx + ((__anf03 * 16) * 4)))));
                         uint32_t ix_1 = 0;
                         while (ix_1 < 4) {
                             uint32_t ixv_1 = ix_1;
@@ -4370,6 +4517,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_16(
     uint32_t k_1 = 0;
     while (k_1 < nnz) {
         uint32_t kv_2 = k_1;
+        uint32_t kr_2 = sh._2._1[kv_2];
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 4) {
@@ -4377,6 +4525,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_16(
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 16) * 4)) < cols) {
                 float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                vec_memcpy((lchunk_2 + 0),
+                    (gB + ((0 + (cols * kr_2)) +
+                              (n_idx + ((__anf02_3 * 16) * 4)))));
                 uint32_t ix_2 = 0;
                 while (ix_2 < 4) {
                     uint32_t ixv_2 = ix_2;
@@ -4402,7 +4553,6 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_17(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    (void) gB;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
     uint8_t *tmp2 =
@@ -4434,6 +4584,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_17(
         uint32_t k = 0;
         while (k < 64) {
             uint32_t kv = k;
+            uint32_t kr = sh._2._1[kv];
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 4) {
@@ -4441,6 +4592,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_17(
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 16) * 4)) < cols) {
                     float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                    vec_memcpy((lchunk + 0),
+                        (gB + ((0 + (cols * kr)) +
+                                  (n_idx + ((__anf01 * 16) * 4)))));
                     uint32_t ix = 0;
                     while (ix < 4) {
                         uint32_t ixv = ix;
@@ -4471,6 +4625,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_17(
             uint32_t k1_1 = 0;
             while (k1_1 < 64) {
                 uint32_t kv_1 = k1_1;
+                uint32_t kr_1 = sh._2._1[kv_1];
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 4) {
@@ -4478,6 +4633,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_17(
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 16) * 4)) < cols) {
                         float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                        vec_memcpy((lchunk_1 + 0),
+                            (gB + ((0 + (cols * kr_1)) +
+                                      (n_idx + ((__anf03 * 16) * 4)))));
                         uint32_t ix_1 = 0;
                         while (ix_1 < 4) {
                             uint32_t ixv_1 = ix_1;
@@ -4511,6 +4669,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_17(
     uint32_t k_1 = 0;
     while (k_1 < nnz) {
         uint32_t kv_2 = k_1;
+        uint32_t kr_2 = sh._2._1[kv_2];
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 4) {
@@ -4518,6 +4677,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_17(
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 16) * 4)) < cols) {
                 float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                vec_memcpy((lchunk_2 + 0),
+                    (gB + ((0 + (cols * kr_2)) +
+                              (n_idx + ((__anf02_3 * 16) * 4)))));
                 uint32_t ix_2 = 0;
                 while (ix_2 < 4) {
                     uint32_t ixv_2 = ix_2;
@@ -4544,14 +4706,13 @@ __device__ static void Kuiper_For_for_loop___67(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
     uint32_t i = 0;
     while (i < 1) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 16) + tmp6) * 4)),
+            (tmp3.elems + (((tmp8 / 4) * 4) + (((__anf0 * 16) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -4562,14 +4723,13 @@ __device__ static void Kuiper_For_for_loop___68(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
     uint32_t i = 0;
     while (i < 1) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 16) + tmp6) * 4)),
+            (tmp3.col_ind + (((tmp8 / 4) * 4) + (((__anf0 * 16) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -4580,15 +4740,14 @@ __device__ static void Kuiper_For_for_loop___69(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
-    (void) tmp9;
     uint32_t i = 0;
     while (i < 1) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 16) + tmp6) * 4)),
+            (tmp3.elems + ((((tmp8 / 4) * 4) + (tmp9 * 64)) +
+                              (((__anf0 * 16) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -4599,15 +4758,14 @@ __device__ static void Kuiper_For_for_loop___70(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
-    (void) tmp9;
     uint32_t i = 0;
     while (i < 1) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 16) + tmp6) * 4)),
+            (tmp3.col_ind + ((((tmp8 / 4) * 4) + (tmp9 * 64)) +
+                                (((__anf0 * 16) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -4634,17 +4792,18 @@ __device__ static void Kuiper_For_for_loop___71(uint32_t tmp, uint32_t tmp1,
 __device__ static void Kuiper_For_for_loop___72(uint32_t tmp, uint32_t tmp1,
     float *tmp2, uint32_t tmp3, uint32_t tmp4, uint32_t tmp5, float *tmp6)
 {
-    (void) tmp;
-    (void) tmp1;
-    (void) tmp2;
-    (void) tmp3;
-    (void) tmp4;
-    (void) tmp5;
-    (void) tmp6;
     uint32_t i = 0;
     while (i < 8) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        if (((((tmp3 / tmp) * 512) + (tmp4 * 4)) + ((__anf0 * 16) * 4)) <
+            tmp1) {
+            uint32_t offset =
+                ((0 + (tmp1 * tmp5)) + ((((tmp3 / tmp) * 512) + (tmp4 * 4)) +
+                                           ((__anf0 * 16) * 4)));
+            vec_memcpy((tmp2 + offset), (tmp6 + (__anf0 * 4)));
+        }
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -4654,7 +4813,6 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_18(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    (void) gB;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
     uint8_t *tmp2 =
@@ -4687,6 +4845,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_18(
         uint32_t k = 0;
         while (k < 64) {
             uint32_t kv = k;
+            uint32_t kr = sh._2._1[kv];
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 8) {
@@ -4694,6 +4853,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_18(
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 16) * 4)) < cols) {
                     float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                    vec_memcpy((lchunk + 0),
+                        (gB + ((0 + (cols * kr)) +
+                                  (n_idx + ((__anf01 * 16) * 4)))));
                     uint32_t ix = 0;
                     while (ix < 4) {
                         uint32_t ixv = ix;
@@ -4724,6 +4886,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_18(
             uint32_t k1_1 = 0;
             while (k1_1 < 64) {
                 uint32_t kv_1 = k1_1;
+                uint32_t kr_1 = sh._2._1[kv_1];
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 8) {
@@ -4731,6 +4894,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_18(
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 16) * 4)) < cols) {
                         float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                        vec_memcpy((lchunk_1 + 0),
+                            (gB + ((0 + (cols * kr_1)) +
+                                      (n_idx + ((__anf03 * 16) * 4)))));
                         uint32_t ix_1 = 0;
                         while (ix_1 < 4) {
                             uint32_t ixv_1 = ix_1;
@@ -4764,6 +4930,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_18(
     uint32_t k_1 = 0;
     while (k_1 < nnz) {
         uint32_t kv_2 = k_1;
+        uint32_t kr_2 = sh._2._1[kv_2];
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 8) {
@@ -4771,6 +4938,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_18(
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 16) * 4)) < cols) {
                 float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                vec_memcpy((lchunk_2 + 0),
+                    (gB + ((0 + (cols * kr_2)) +
+                              (n_idx + ((__anf02_3 * 16) * 4)))));
                 uint32_t ix_2 = 0;
                 while (ix_2 < 4) {
                     uint32_t ixv_2 = ix_2;
@@ -4796,7 +4966,6 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_19(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    (void) gB;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
     uint8_t *tmp2 =
@@ -4829,6 +4998,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_19(
         uint32_t k = 0;
         while (k < 64) {
             uint32_t kv = k;
+            uint32_t kr = sh._2._1[kv];
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 8) {
@@ -4836,6 +5006,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_19(
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 16) * 4)) < cols) {
                     float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                    vec_memcpy((lchunk + 0),
+                        (gB + ((0 + (cols * kr)) +
+                                  (n_idx + ((__anf01 * 16) * 4)))));
                     uint32_t ix = 0;
                     while (ix < 4) {
                         uint32_t ixv = ix;
@@ -4866,6 +5039,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_19(
             uint32_t k1_1 = 0;
             while (k1_1 < 64) {
                 uint32_t kv_1 = k1_1;
+                uint32_t kr_1 = sh._2._1[kv_1];
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 8) {
@@ -4873,6 +5047,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_19(
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 16) * 4)) < cols) {
                         float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                        vec_memcpy((lchunk_1 + 0),
+                            (gB + ((0 + (cols * kr_1)) +
+                                      (n_idx + ((__anf03 * 16) * 4)))));
                         uint32_t ix_1 = 0;
                         while (ix_1 < 4) {
                             uint32_t ixv_1 = ix_1;
@@ -4906,6 +5083,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_19(
     uint32_t k_1 = 0;
     while (k_1 < nnz) {
         uint32_t kv_2 = k_1;
+        uint32_t kr_2 = sh._2._1[kv_2];
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 8) {
@@ -4913,6 +5091,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_19(
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 16) * 4)) < cols) {
                 float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                vec_memcpy((lchunk_2 + 0),
+                    (gB + ((0 + (cols * kr_2)) +
+                              (n_idx + ((__anf02_3 * 16) * 4)))));
                 uint32_t ix_2 = 0;
                 while (ix_2 < 4) {
                     uint32_t ixv_2 = ix_2;
@@ -4939,14 +5120,13 @@ __device__ static void Kuiper_For_for_loop___73(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
     uint32_t i = 0;
     while (i < 2) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 16) + tmp6) * 4)),
+            (tmp3.elems + (((tmp8 / 4) * 4) + (((__anf0 * 16) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -4957,14 +5137,13 @@ __device__ static void Kuiper_For_for_loop___74(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
     uint32_t i = 0;
     while (i < 2) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 16) + tmp6) * 4)),
+            (tmp3.col_ind + (((tmp8 / 4) * 4) + (((__anf0 * 16) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -4975,15 +5154,14 @@ __device__ static void Kuiper_For_for_loop___75(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
-    (void) tmp9;
     uint32_t i = 0;
     while (i < 2) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 16) + tmp6) * 4)),
+            (tmp3.elems + ((((tmp8 / 4) * 4) + (tmp9 * 128)) +
+                              (((__anf0 * 16) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -4994,15 +5172,14 @@ __device__ static void Kuiper_For_for_loop___76(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
-    (void) tmp9;
     uint32_t i = 0;
     while (i < 2) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 16) + tmp6) * 4)),
+            (tmp3.col_ind + ((((tmp8 / 4) * 4) + (tmp9 * 128)) +
+                                (((__anf0 * 16) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -5012,7 +5189,6 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_20(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    (void) gB;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
     uint8_t *tmp2 =
@@ -5043,6 +5219,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_20(
         uint32_t k = 0;
         while (k < 128) {
             uint32_t kv = k;
+            uint32_t kr = sh._2._1[kv];
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 1) {
@@ -5050,6 +5227,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_20(
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 16) * 4)) < cols) {
                     float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                    vec_memcpy((lchunk + 0),
+                        (gB + ((0 + (cols * kr)) +
+                                  (n_idx + ((__anf01 * 16) * 4)))));
                     uint32_t ix = 0;
                     while (ix < 4) {
                         uint32_t ixv = ix;
@@ -5080,6 +5260,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_20(
             uint32_t k1_1 = 0;
             while (k1_1 < 128) {
                 uint32_t kv_1 = k1_1;
+                uint32_t kr_1 = sh._2._1[kv_1];
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 1) {
@@ -5087,6 +5268,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_20(
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 16) * 4)) < cols) {
                         float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                        vec_memcpy((lchunk_1 + 0),
+                            (gB + ((0 + (cols * kr_1)) +
+                                      (n_idx + ((__anf03 * 16) * 4)))));
                         uint32_t ix_1 = 0;
                         while (ix_1 < 4) {
                             uint32_t ixv_1 = ix_1;
@@ -5120,6 +5304,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_20(
     uint32_t k_1 = 0;
     while (k_1 < nnz) {
         uint32_t kv_2 = k_1;
+        uint32_t kr_2 = sh._2._1[kv_2];
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 1) {
@@ -5127,6 +5312,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_20(
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 16) * 4)) < cols) {
                 float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                vec_memcpy((lchunk_2 + 0),
+                    (gB + ((0 + (cols * kr_2)) +
+                              (n_idx + ((__anf02_3 * 16) * 4)))));
                 uint32_t ix_2 = 0;
                 while (ix_2 < 4) {
                     uint32_t ixv_2 = ix_2;
@@ -5152,7 +5340,6 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_21(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    (void) gB;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
     uint8_t *tmp2 =
@@ -5183,6 +5370,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_21(
         uint32_t k = 0;
         while (k < 128) {
             uint32_t kv = k;
+            uint32_t kr = sh._2._1[kv];
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 1) {
@@ -5190,6 +5378,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_21(
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 16) * 4)) < cols) {
                     float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                    vec_memcpy((lchunk + 0),
+                        (gB + ((0 + (cols * kr)) +
+                                  (n_idx + ((__anf01 * 16) * 4)))));
                     uint32_t ix = 0;
                     while (ix < 4) {
                         uint32_t ixv = ix;
@@ -5220,6 +5411,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_21(
             uint32_t k1_1 = 0;
             while (k1_1 < 128) {
                 uint32_t kv_1 = k1_1;
+                uint32_t kr_1 = sh._2._1[kv_1];
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 1) {
@@ -5227,6 +5419,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_21(
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 16) * 4)) < cols) {
                         float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                        vec_memcpy((lchunk_1 + 0),
+                            (gB + ((0 + (cols * kr_1)) +
+                                      (n_idx + ((__anf03 * 16) * 4)))));
                         uint32_t ix_1 = 0;
                         while (ix_1 < 4) {
                             uint32_t ixv_1 = ix_1;
@@ -5260,6 +5455,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_21(
     uint32_t k_1 = 0;
     while (k_1 < nnz) {
         uint32_t kv_2 = k_1;
+        uint32_t kr_2 = sh._2._1[kv_2];
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 1) {
@@ -5267,6 +5463,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_21(
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 16) * 4)) < cols) {
                 float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                vec_memcpy((lchunk_2 + 0),
+                    (gB + ((0 + (cols * kr_2)) +
+                              (n_idx + ((__anf02_3 * 16) * 4)))));
                 uint32_t ix_2 = 0;
                 while (ix_2 < 4) {
                     uint32_t ixv_2 = ix_2;
@@ -5293,14 +5492,13 @@ __device__ static void Kuiper_For_for_loop___77(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
     uint32_t i = 0;
     while (i < 2) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 16) + tmp6) * 4)),
+            (tmp3.elems + (((tmp8 / 4) * 4) + (((__anf0 * 16) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -5311,14 +5509,13 @@ __device__ static void Kuiper_For_for_loop___78(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
     uint32_t i = 0;
     while (i < 2) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 16) + tmp6) * 4)),
+            (tmp3.col_ind + (((tmp8 / 4) * 4) + (((__anf0 * 16) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -5329,15 +5526,14 @@ __device__ static void Kuiper_For_for_loop___79(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
-    (void) tmp9;
     uint32_t i = 0;
     while (i < 2) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 16) + tmp6) * 4)),
+            (tmp3.elems + ((((tmp8 / 4) * 4) + (tmp9 * 128)) +
+                              (((__anf0 * 16) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -5348,15 +5544,14 @@ __device__ static void Kuiper_For_for_loop___80(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
-    (void) tmp9;
     uint32_t i = 0;
     while (i < 2) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 16) + tmp6) * 4)),
+            (tmp3.col_ind + ((((tmp8 / 4) * 4) + (tmp9 * 128)) +
+                                (((__anf0 * 16) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -5366,7 +5561,6 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_22(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    (void) gB;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
     uint8_t *tmp2 =
@@ -5397,6 +5591,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_22(
         uint32_t k = 0;
         while (k < 128) {
             uint32_t kv = k;
+            uint32_t kr = sh._2._1[kv];
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 2) {
@@ -5404,6 +5599,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_22(
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 16) * 4)) < cols) {
                     float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                    vec_memcpy((lchunk + 0),
+                        (gB + ((0 + (cols * kr)) +
+                                  (n_idx + ((__anf01 * 16) * 4)))));
                     uint32_t ix = 0;
                     while (ix < 4) {
                         uint32_t ixv = ix;
@@ -5434,6 +5632,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_22(
             uint32_t k1_1 = 0;
             while (k1_1 < 128) {
                 uint32_t kv_1 = k1_1;
+                uint32_t kr_1 = sh._2._1[kv_1];
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 2) {
@@ -5441,6 +5640,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_22(
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 16) * 4)) < cols) {
                         float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                        vec_memcpy((lchunk_1 + 0),
+                            (gB + ((0 + (cols * kr_1)) +
+                                      (n_idx + ((__anf03 * 16) * 4)))));
                         uint32_t ix_1 = 0;
                         while (ix_1 < 4) {
                             uint32_t ixv_1 = ix_1;
@@ -5474,6 +5676,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_22(
     uint32_t k_1 = 0;
     while (k_1 < nnz) {
         uint32_t kv_2 = k_1;
+        uint32_t kr_2 = sh._2._1[kv_2];
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 2) {
@@ -5481,6 +5684,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_22(
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 16) * 4)) < cols) {
                 float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                vec_memcpy((lchunk_2 + 0),
+                    (gB + ((0 + (cols * kr_2)) +
+                              (n_idx + ((__anf02_3 * 16) * 4)))));
                 uint32_t ix_2 = 0;
                 while (ix_2 < 4) {
                     uint32_t ixv_2 = ix_2;
@@ -5506,7 +5712,6 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_23(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    (void) gB;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
     uint8_t *tmp2 =
@@ -5537,6 +5742,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_23(
         uint32_t k = 0;
         while (k < 128) {
             uint32_t kv = k;
+            uint32_t kr = sh._2._1[kv];
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 2) {
@@ -5544,6 +5750,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_23(
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 16) * 4)) < cols) {
                     float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                    vec_memcpy((lchunk + 0),
+                        (gB + ((0 + (cols * kr)) +
+                                  (n_idx + ((__anf01 * 16) * 4)))));
                     uint32_t ix = 0;
                     while (ix < 4) {
                         uint32_t ixv = ix;
@@ -5574,6 +5783,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_23(
             uint32_t k1_1 = 0;
             while (k1_1 < 128) {
                 uint32_t kv_1 = k1_1;
+                uint32_t kr_1 = sh._2._1[kv_1];
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 2) {
@@ -5581,6 +5791,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_23(
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 16) * 4)) < cols) {
                         float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                        vec_memcpy((lchunk_1 + 0),
+                            (gB + ((0 + (cols * kr_1)) +
+                                      (n_idx + ((__anf03 * 16) * 4)))));
                         uint32_t ix_1 = 0;
                         while (ix_1 < 4) {
                             uint32_t ixv_1 = ix_1;
@@ -5614,6 +5827,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_23(
     uint32_t k_1 = 0;
     while (k_1 < nnz) {
         uint32_t kv_2 = k_1;
+        uint32_t kr_2 = sh._2._1[kv_2];
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 2) {
@@ -5621,6 +5835,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_23(
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 16) * 4)) < cols) {
                 float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                vec_memcpy((lchunk_2 + 0),
+                    (gB + ((0 + (cols * kr_2)) +
+                              (n_idx + ((__anf02_3 * 16) * 4)))));
                 uint32_t ix_2 = 0;
                 while (ix_2 < 4) {
                     uint32_t ixv_2 = ix_2;
@@ -5647,14 +5864,13 @@ __device__ static void Kuiper_For_for_loop___81(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
     uint32_t i = 0;
     while (i < 1) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 32) + tmp6) * 4)),
+            (tmp3.elems + (((tmp8 / 4) * 4) + (((__anf0 * 32) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -5665,14 +5881,13 @@ __device__ static void Kuiper_For_for_loop___82(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
     uint32_t i = 0;
     while (i < 1) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 32) + tmp6) * 4)),
+            (tmp3.col_ind + (((tmp8 / 4) * 4) + (((__anf0 * 32) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -5695,15 +5910,14 @@ __device__ static void Kuiper_For_for_loop___84(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
-    (void) tmp9;
     uint32_t i = 0;
     while (i < 1) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 32) + tmp6) * 4)),
+            (tmp3.elems + ((((tmp8 / 4) * 4) + (tmp9 * 128)) +
+                              (((__anf0 * 32) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -5714,15 +5928,14 @@ __device__ static void Kuiper_For_for_loop___85(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
-    (void) tmp9;
     uint32_t i = 0;
     while (i < 1) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 32) + tmp6) * 4)),
+            (tmp3.col_ind + ((((tmp8 / 4) * 4) + (tmp9 * 128)) +
+                                (((__anf0 * 32) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -5749,17 +5962,18 @@ __device__ static void Kuiper_For_for_loop___86(uint32_t tmp, uint32_t tmp1,
 __device__ static void Kuiper_For_for_loop___87(uint32_t tmp, uint32_t tmp1,
     float *tmp2, uint32_t tmp3, uint32_t tmp4, uint32_t tmp5, float *tmp6)
 {
-    (void) tmp;
-    (void) tmp1;
-    (void) tmp2;
-    (void) tmp3;
-    (void) tmp4;
-    (void) tmp5;
-    (void) tmp6;
     uint32_t i = 0;
     while (i < 1) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        if (((((tmp3 / tmp) * 128) + (tmp4 * 4)) + ((__anf0 * 32) * 4)) <
+            tmp1) {
+            uint32_t offset =
+                ((0 + (tmp1 * tmp5)) + ((((tmp3 / tmp) * 128) + (tmp4 * 4)) +
+                                           ((__anf0 * 32) * 4)));
+            vec_memcpy((tmp2 + offset), (tmp6 + (__anf0 * 4)));
+        }
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -5769,7 +5983,6 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_24(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    (void) gB;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
     uint8_t *tmp2 =
@@ -5800,6 +6013,7 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_24(
         uint32_t k = 0;
         while (k < 128) {
             uint32_t kv = k;
+            uint32_t kr = sh._2._1[kv];
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 1) {
@@ -5807,6 +6021,9 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_24(
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 32) * 4)) < cols) {
                     float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                    vec_memcpy((lchunk + 0),
+                        (gB + ((0 + (cols * kr)) +
+                                  (n_idx + ((__anf01 * 32) * 4)))));
                     uint32_t ix = 0;
                     while (ix < 4) {
                         uint32_t ixv = ix;
@@ -5837,6 +6054,7 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_24(
             uint32_t k1_1 = 0;
             while (k1_1 < 128) {
                 uint32_t kv_1 = k1_1;
+                uint32_t kr_1 = sh._2._1[kv_1];
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 1) {
@@ -5844,6 +6062,9 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_24(
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 32) * 4)) < cols) {
                         float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                        vec_memcpy((lchunk_1 + 0),
+                            (gB + ((0 + (cols * kr_1)) +
+                                      (n_idx + ((__anf03 * 32) * 4)))));
                         uint32_t ix_1 = 0;
                         while (ix_1 < 4) {
                             uint32_t ixv_1 = ix_1;
@@ -5877,6 +6098,7 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_24(
     uint32_t k_1 = 0;
     while (k_1 < nnz) {
         uint32_t kv_2 = k_1;
+        uint32_t kr_2 = sh._2._1[kv_2];
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 1) {
@@ -5884,6 +6106,9 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_24(
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 32) * 4)) < cols) {
                 float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                vec_memcpy((lchunk_2 + 0),
+                    (gB + ((0 + (cols * kr_2)) +
+                              (n_idx + ((__anf02_3 * 32) * 4)))));
                 uint32_t ix_2 = 0;
                 while (ix_2 < 4) {
                     uint32_t ixv_2 = ix_2;
@@ -5909,7 +6134,6 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_25(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    (void) gB;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
     uint8_t *tmp2 =
@@ -5940,6 +6164,7 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_25(
         uint32_t k = 0;
         while (k < 128) {
             uint32_t kv = k;
+            uint32_t kr = sh._2._1[kv];
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 1) {
@@ -5947,6 +6172,9 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_25(
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 32) * 4)) < cols) {
                     float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                    vec_memcpy((lchunk + 0),
+                        (gB + ((0 + (cols * kr)) +
+                                  (n_idx + ((__anf01 * 32) * 4)))));
                     uint32_t ix = 0;
                     while (ix < 4) {
                         uint32_t ixv = ix;
@@ -5977,6 +6205,7 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_25(
             uint32_t k1_1 = 0;
             while (k1_1 < 128) {
                 uint32_t kv_1 = k1_1;
+                uint32_t kr_1 = sh._2._1[kv_1];
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 1) {
@@ -5984,6 +6213,9 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_25(
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 32) * 4)) < cols) {
                         float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                        vec_memcpy((lchunk_1 + 0),
+                            (gB + ((0 + (cols * kr_1)) +
+                                      (n_idx + ((__anf03 * 32) * 4)))));
                         uint32_t ix_1 = 0;
                         while (ix_1 < 4) {
                             uint32_t ixv_1 = ix_1;
@@ -6017,6 +6249,7 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_25(
     uint32_t k_1 = 0;
     while (k_1 < nnz) {
         uint32_t kv_2 = k_1;
+        uint32_t kr_2 = sh._2._1[kv_2];
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 1) {
@@ -6024,6 +6257,9 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_25(
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 32) * 4)) < cols) {
                 float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                vec_memcpy((lchunk_2 + 0),
+                    (gB + ((0 + (cols * kr_2)) +
+                              (n_idx + ((__anf02_3 * 32) * 4)))));
                 uint32_t ix_2 = 0;
                 while (ix_2 < 4) {
                     uint32_t ixv_2 = ix_2;
@@ -6050,14 +6286,13 @@ __device__ static void Kuiper_For_for_loop___88(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
     uint32_t i = 0;
     while (i < 2) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 16) + tmp6) * 4)),
+            (tmp3.elems + (((tmp8 / 4) * 4) + (((__anf0 * 16) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -6068,14 +6303,13 @@ __device__ static void Kuiper_For_for_loop___89(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
     uint32_t i = 0;
     while (i < 2) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 16) + tmp6) * 4)),
+            (tmp3.col_ind + (((tmp8 / 4) * 4) + (((__anf0 * 16) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -6086,15 +6320,14 @@ __device__ static void Kuiper_For_for_loop___90(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
-    (void) tmp9;
     uint32_t i = 0;
     while (i < 2) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 16) + tmp6) * 4)),
+            (tmp3.elems + ((((tmp8 / 4) * 4) + (tmp9 * 128)) +
+                              (((__anf0 * 16) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -6105,15 +6338,14 @@ __device__ static void Kuiper_For_for_loop___91(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
-    (void) tmp9;
     uint32_t i = 0;
     while (i < 2) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 16) + tmp6) * 4)),
+            (tmp3.col_ind + ((((tmp8 / 4) * 4) + (tmp9 * 128)) +
+                                (((__anf0 * 16) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -6123,7 +6355,6 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_26(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    (void) gB;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
     uint8_t *tmp2 =
@@ -6155,6 +6386,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_26(
         uint32_t k = 0;
         while (k < 128) {
             uint32_t kv = k;
+            uint32_t kr = sh._2._1[kv];
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 4) {
@@ -6162,6 +6394,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_26(
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 16) * 4)) < cols) {
                     float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                    vec_memcpy((lchunk + 0),
+                        (gB + ((0 + (cols * kr)) +
+                                  (n_idx + ((__anf01 * 16) * 4)))));
                     uint32_t ix = 0;
                     while (ix < 4) {
                         uint32_t ixv = ix;
@@ -6192,6 +6427,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_26(
             uint32_t k1_1 = 0;
             while (k1_1 < 128) {
                 uint32_t kv_1 = k1_1;
+                uint32_t kr_1 = sh._2._1[kv_1];
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 4) {
@@ -6199,6 +6435,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_26(
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 16) * 4)) < cols) {
                         float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                        vec_memcpy((lchunk_1 + 0),
+                            (gB + ((0 + (cols * kr_1)) +
+                                      (n_idx + ((__anf03 * 16) * 4)))));
                         uint32_t ix_1 = 0;
                         while (ix_1 < 4) {
                             uint32_t ixv_1 = ix_1;
@@ -6232,6 +6471,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_26(
     uint32_t k_1 = 0;
     while (k_1 < nnz) {
         uint32_t kv_2 = k_1;
+        uint32_t kr_2 = sh._2._1[kv_2];
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 4) {
@@ -6239,6 +6479,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_26(
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 16) * 4)) < cols) {
                 float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                vec_memcpy((lchunk_2 + 0),
+                    (gB + ((0 + (cols * kr_2)) +
+                              (n_idx + ((__anf02_3 * 16) * 4)))));
                 uint32_t ix_2 = 0;
                 while (ix_2 < 4) {
                     uint32_t ixv_2 = ix_2;
@@ -6264,7 +6507,6 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_27(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    (void) gB;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
     uint8_t *tmp2 =
@@ -6296,6 +6538,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_27(
         uint32_t k = 0;
         while (k < 128) {
             uint32_t kv = k;
+            uint32_t kr = sh._2._1[kv];
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 4) {
@@ -6303,6 +6546,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_27(
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 16) * 4)) < cols) {
                     float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                    vec_memcpy((lchunk + 0),
+                        (gB + ((0 + (cols * kr)) +
+                                  (n_idx + ((__anf01 * 16) * 4)))));
                     uint32_t ix = 0;
                     while (ix < 4) {
                         uint32_t ixv = ix;
@@ -6333,6 +6579,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_27(
             uint32_t k1_1 = 0;
             while (k1_1 < 128) {
                 uint32_t kv_1 = k1_1;
+                uint32_t kr_1 = sh._2._1[kv_1];
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 4) {
@@ -6340,6 +6587,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_27(
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 16) * 4)) < cols) {
                         float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                        vec_memcpy((lchunk_1 + 0),
+                            (gB + ((0 + (cols * kr_1)) +
+                                      (n_idx + ((__anf03 * 16) * 4)))));
                         uint32_t ix_1 = 0;
                         while (ix_1 < 4) {
                             uint32_t ixv_1 = ix_1;
@@ -6373,6 +6623,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_27(
     uint32_t k_1 = 0;
     while (k_1 < nnz) {
         uint32_t kv_2 = k_1;
+        uint32_t kr_2 = sh._2._1[kv_2];
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 4) {
@@ -6380,6 +6631,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_27(
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 16) * 4)) < cols) {
                 float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                vec_memcpy((lchunk_2 + 0),
+                    (gB + ((0 + (cols * kr_2)) +
+                              (n_idx + ((__anf02_3 * 16) * 4)))));
                 uint32_t ix_2 = 0;
                 while (ix_2 < 4) {
                     uint32_t ixv_2 = ix_2;
@@ -6406,14 +6660,13 @@ __device__ static void Kuiper_For_for_loop___92(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
     uint32_t i = 0;
     while (i < 1) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 32) + tmp6) * 4)),
+            (tmp3.elems + (((tmp8 / 4) * 4) + (((__anf0 * 32) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -6424,14 +6677,13 @@ __device__ static void Kuiper_For_for_loop___93(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
     uint32_t i = 0;
     while (i < 1) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 32) + tmp6) * 4)),
+            (tmp3.col_ind + (((tmp8 / 4) * 4) + (((__anf0 * 32) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -6442,15 +6694,14 @@ __device__ static void Kuiper_For_for_loop___94(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
-    (void) tmp9;
     uint32_t i = 0;
     while (i < 1) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 32) + tmp6) * 4)),
+            (tmp3.elems + ((((tmp8 / 4) * 4) + (tmp9 * 128)) +
+                              (((__anf0 * 32) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -6461,15 +6712,14 @@ __device__ static void Kuiper_For_for_loop___95(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
-    (void) tmp9;
     uint32_t i = 0;
     while (i < 1) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 32) + tmp6) * 4)),
+            (tmp3.col_ind + ((((tmp8 / 4) * 4) + (tmp9 * 128)) +
+                                (((__anf0 * 32) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -6496,17 +6746,18 @@ __device__ static void Kuiper_For_for_loop___96(uint32_t tmp, uint32_t tmp1,
 __device__ static void Kuiper_For_for_loop___97(uint32_t tmp, uint32_t tmp1,
     float *tmp2, uint32_t tmp3, uint32_t tmp4, uint32_t tmp5, float *tmp6)
 {
-    (void) tmp;
-    (void) tmp1;
-    (void) tmp2;
-    (void) tmp3;
-    (void) tmp4;
-    (void) tmp5;
-    (void) tmp6;
     uint32_t i = 0;
     while (i < 2) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        if (((((tmp3 / tmp) * 256) + (tmp4 * 4)) + ((__anf0 * 32) * 4)) <
+            tmp1) {
+            uint32_t offset =
+                ((0 + (tmp1 * tmp5)) + ((((tmp3 / tmp) * 256) + (tmp4 * 4)) +
+                                           ((__anf0 * 32) * 4)));
+            vec_memcpy((tmp2 + offset), (tmp6 + (__anf0 * 4)));
+        }
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -6516,7 +6767,6 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_28(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    (void) gB;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
     uint8_t *tmp2 =
@@ -6547,6 +6797,7 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_28(
         uint32_t k = 0;
         while (k < 128) {
             uint32_t kv = k;
+            uint32_t kr = sh._2._1[kv];
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 2) {
@@ -6554,6 +6805,9 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_28(
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 32) * 4)) < cols) {
                     float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                    vec_memcpy((lchunk + 0),
+                        (gB + ((0 + (cols * kr)) +
+                                  (n_idx + ((__anf01 * 32) * 4)))));
                     uint32_t ix = 0;
                     while (ix < 4) {
                         uint32_t ixv = ix;
@@ -6584,6 +6838,7 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_28(
             uint32_t k1_1 = 0;
             while (k1_1 < 128) {
                 uint32_t kv_1 = k1_1;
+                uint32_t kr_1 = sh._2._1[kv_1];
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 2) {
@@ -6591,6 +6846,9 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_28(
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 32) * 4)) < cols) {
                         float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                        vec_memcpy((lchunk_1 + 0),
+                            (gB + ((0 + (cols * kr_1)) +
+                                      (n_idx + ((__anf03 * 32) * 4)))));
                         uint32_t ix_1 = 0;
                         while (ix_1 < 4) {
                             uint32_t ixv_1 = ix_1;
@@ -6624,6 +6882,7 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_28(
     uint32_t k_1 = 0;
     while (k_1 < nnz) {
         uint32_t kv_2 = k_1;
+        uint32_t kr_2 = sh._2._1[kv_2];
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 2) {
@@ -6631,6 +6890,9 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_28(
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 32) * 4)) < cols) {
                 float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                vec_memcpy((lchunk_2 + 0),
+                    (gB + ((0 + (cols * kr_2)) +
+                              (n_idx + ((__anf02_3 * 32) * 4)))));
                 uint32_t ix_2 = 0;
                 while (ix_2 < 4) {
                     uint32_t ixv_2 = ix_2;
@@ -6656,7 +6918,6 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_29(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    (void) gB;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
     uint8_t *tmp2 =
@@ -6687,6 +6948,7 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_29(
         uint32_t k = 0;
         while (k < 128) {
             uint32_t kv = k;
+            uint32_t kr = sh._2._1[kv];
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 2) {
@@ -6694,6 +6956,9 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_29(
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 32) * 4)) < cols) {
                     float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                    vec_memcpy((lchunk + 0),
+                        (gB + ((0 + (cols * kr)) +
+                                  (n_idx + ((__anf01 * 32) * 4)))));
                     uint32_t ix = 0;
                     while (ix < 4) {
                         uint32_t ixv = ix;
@@ -6724,6 +6989,7 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_29(
             uint32_t k1_1 = 0;
             while (k1_1 < 128) {
                 uint32_t kv_1 = k1_1;
+                uint32_t kr_1 = sh._2._1[kv_1];
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 2) {
@@ -6731,6 +6997,9 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_29(
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 32) * 4)) < cols) {
                         float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                        vec_memcpy((lchunk_1 + 0),
+                            (gB + ((0 + (cols * kr_1)) +
+                                      (n_idx + ((__anf03 * 32) * 4)))));
                         uint32_t ix_1 = 0;
                         while (ix_1 < 4) {
                             uint32_t ixv_1 = ix_1;
@@ -6764,6 +7033,7 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_29(
     uint32_t k_1 = 0;
     while (k_1 < nnz) {
         uint32_t kv_2 = k_1;
+        uint32_t kr_2 = sh._2._1[kv_2];
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 2) {
@@ -6771,6 +7041,9 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_29(
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 32) * 4)) < cols) {
                 float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                vec_memcpy((lchunk_2 + 0),
+                    (gB + ((0 + (cols * kr_2)) +
+                              (n_idx + ((__anf02_3 * 32) * 4)))));
                 uint32_t ix_2 = 0;
                 while (ix_2 < 4) {
                     uint32_t ixv_2 = ix_2;
@@ -6797,14 +7070,13 @@ __device__ static void Kuiper_For_for_loop___98(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
     uint32_t i = 0;
     while (i < 2) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 16) + tmp6) * 4)),
+            (tmp3.elems + (((tmp8 / 4) * 4) + (((__anf0 * 16) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -6815,14 +7087,13 @@ __device__ static void Kuiper_For_for_loop___99(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
     uint32_t i = 0;
     while (i < 2) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 16) + tmp6) * 4)),
+            (tmp3.col_ind + (((tmp8 / 4) * 4) + (((__anf0 * 16) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -6833,15 +7104,14 @@ __device__ static void Kuiper_For_for_loop___100(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
-    (void) tmp9;
     uint32_t i = 0;
     while (i < 2) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 16) + tmp6) * 4)),
+            (tmp3.elems + ((((tmp8 / 4) * 4) + (tmp9 * 128)) +
+                              (((__anf0 * 16) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -6852,15 +7122,14 @@ __device__ static void Kuiper_For_for_loop___101(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
-    (void) tmp9;
     uint32_t i = 0;
     while (i < 2) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 16) + tmp6) * 4)),
+            (tmp3.col_ind + ((((tmp8 / 4) * 4) + (tmp9 * 128)) +
+                                (((__anf0 * 16) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -6870,7 +7139,6 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_30(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    (void) gB;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
     uint8_t *tmp2 =
@@ -6903,6 +7171,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_30(
         uint32_t k = 0;
         while (k < 128) {
             uint32_t kv = k;
+            uint32_t kr = sh._2._1[kv];
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 8) {
@@ -6910,6 +7179,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_30(
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 16) * 4)) < cols) {
                     float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                    vec_memcpy((lchunk + 0),
+                        (gB + ((0 + (cols * kr)) +
+                                  (n_idx + ((__anf01 * 16) * 4)))));
                     uint32_t ix = 0;
                     while (ix < 4) {
                         uint32_t ixv = ix;
@@ -6940,6 +7212,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_30(
             uint32_t k1_1 = 0;
             while (k1_1 < 128) {
                 uint32_t kv_1 = k1_1;
+                uint32_t kr_1 = sh._2._1[kv_1];
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 8) {
@@ -6947,6 +7220,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_30(
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 16) * 4)) < cols) {
                         float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                        vec_memcpy((lchunk_1 + 0),
+                            (gB + ((0 + (cols * kr_1)) +
+                                      (n_idx + ((__anf03 * 16) * 4)))));
                         uint32_t ix_1 = 0;
                         while (ix_1 < 4) {
                             uint32_t ixv_1 = ix_1;
@@ -6980,6 +7256,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_30(
     uint32_t k_1 = 0;
     while (k_1 < nnz) {
         uint32_t kv_2 = k_1;
+        uint32_t kr_2 = sh._2._1[kv_2];
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 8) {
@@ -6987,6 +7264,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_30(
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 16) * 4)) < cols) {
                 float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                vec_memcpy((lchunk_2 + 0),
+                    (gB + ((0 + (cols * kr_2)) +
+                              (n_idx + ((__anf02_3 * 16) * 4)))));
                 uint32_t ix_2 = 0;
                 while (ix_2 < 4) {
                     uint32_t ixv_2 = ix_2;
@@ -7012,7 +7292,6 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_31(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    (void) gB;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
     uint8_t *tmp2 =
@@ -7045,6 +7324,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_31(
         uint32_t k = 0;
         while (k < 128) {
             uint32_t kv = k;
+            uint32_t kr = sh._2._1[kv];
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 8) {
@@ -7052,6 +7332,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_31(
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 16) * 4)) < cols) {
                     float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                    vec_memcpy((lchunk + 0),
+                        (gB + ((0 + (cols * kr)) +
+                                  (n_idx + ((__anf01 * 16) * 4)))));
                     uint32_t ix = 0;
                     while (ix < 4) {
                         uint32_t ixv = ix;
@@ -7082,6 +7365,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_31(
             uint32_t k1_1 = 0;
             while (k1_1 < 128) {
                 uint32_t kv_1 = k1_1;
+                uint32_t kr_1 = sh._2._1[kv_1];
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 8) {
@@ -7089,6 +7373,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_31(
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 16) * 4)) < cols) {
                         float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                        vec_memcpy((lchunk_1 + 0),
+                            (gB + ((0 + (cols * kr_1)) +
+                                      (n_idx + ((__anf03 * 16) * 4)))));
                         uint32_t ix_1 = 0;
                         while (ix_1 < 4) {
                             uint32_t ixv_1 = ix_1;
@@ -7122,6 +7409,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_31(
     uint32_t k_1 = 0;
     while (k_1 < nnz) {
         uint32_t kv_2 = k_1;
+        uint32_t kr_2 = sh._2._1[kv_2];
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 8) {
@@ -7129,6 +7417,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_31(
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 16) * 4)) < cols) {
                 float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                vec_memcpy((lchunk_2 + 0),
+                    (gB + ((0 + (cols * kr_2)) +
+                              (n_idx + ((__anf02_3 * 16) * 4)))));
                 uint32_t ix_2 = 0;
                 while (ix_2 < 4) {
                     uint32_t ixv_2 = ix_2;
@@ -7155,14 +7446,13 @@ __device__ static void Kuiper_For_for_loop___102(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
     uint32_t i = 0;
     while (i < 1) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 32) + tmp6) * 4)),
+            (tmp3.elems + (((tmp8 / 4) * 4) + (((__anf0 * 32) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -7173,14 +7463,13 @@ __device__ static void Kuiper_For_for_loop___103(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
     uint32_t i = 0;
     while (i < 1) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 32) + tmp6) * 4)),
+            (tmp3.col_ind + (((tmp8 / 4) * 4) + (((__anf0 * 32) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -7191,15 +7480,14 @@ __device__ static void Kuiper_For_for_loop___104(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
-    (void) tmp9;
     uint32_t i = 0;
     while (i < 1) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 32) + tmp6) * 4)),
+            (tmp3.elems + ((((tmp8 / 4) * 4) + (tmp9 * 128)) +
+                              (((__anf0 * 32) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -7210,15 +7498,14 @@ __device__ static void Kuiper_For_for_loop___105(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
-    (void) tmp9;
     uint32_t i = 0;
     while (i < 1) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 32) + tmp6) * 4)),
+            (tmp3.col_ind + ((((tmp8 / 4) * 4) + (tmp9 * 128)) +
+                                (((__anf0 * 32) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -7245,17 +7532,18 @@ __device__ static void Kuiper_For_for_loop___106(uint32_t tmp, uint32_t tmp1,
 __device__ static void Kuiper_For_for_loop___107(uint32_t tmp, uint32_t tmp1,
     float *tmp2, uint32_t tmp3, uint32_t tmp4, uint32_t tmp5, float *tmp6)
 {
-    (void) tmp;
-    (void) tmp1;
-    (void) tmp2;
-    (void) tmp3;
-    (void) tmp4;
-    (void) tmp5;
-    (void) tmp6;
     uint32_t i = 0;
     while (i < 4) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        if (((((tmp3 / tmp) * 512) + (tmp4 * 4)) + ((__anf0 * 32) * 4)) <
+            tmp1) {
+            uint32_t offset =
+                ((0 + (tmp1 * tmp5)) + ((((tmp3 / tmp) * 512) + (tmp4 * 4)) +
+                                           ((__anf0 * 32) * 4)));
+            vec_memcpy((tmp2 + offset), (tmp6 + (__anf0 * 4)));
+        }
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -7265,7 +7553,6 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_32(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    (void) gB;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
     uint8_t *tmp2 =
@@ -7297,6 +7584,7 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_32(
         uint32_t k = 0;
         while (k < 128) {
             uint32_t kv = k;
+            uint32_t kr = sh._2._1[kv];
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 4) {
@@ -7304,6 +7592,9 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_32(
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 32) * 4)) < cols) {
                     float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                    vec_memcpy((lchunk + 0),
+                        (gB + ((0 + (cols * kr)) +
+                                  (n_idx + ((__anf01 * 32) * 4)))));
                     uint32_t ix = 0;
                     while (ix < 4) {
                         uint32_t ixv = ix;
@@ -7334,6 +7625,7 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_32(
             uint32_t k1_1 = 0;
             while (k1_1 < 128) {
                 uint32_t kv_1 = k1_1;
+                uint32_t kr_1 = sh._2._1[kv_1];
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 4) {
@@ -7341,6 +7633,9 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_32(
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 32) * 4)) < cols) {
                         float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                        vec_memcpy((lchunk_1 + 0),
+                            (gB + ((0 + (cols * kr_1)) +
+                                      (n_idx + ((__anf03 * 32) * 4)))));
                         uint32_t ix_1 = 0;
                         while (ix_1 < 4) {
                             uint32_t ixv_1 = ix_1;
@@ -7374,6 +7669,7 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_32(
     uint32_t k_1 = 0;
     while (k_1 < nnz) {
         uint32_t kv_2 = k_1;
+        uint32_t kr_2 = sh._2._1[kv_2];
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 4) {
@@ -7381,6 +7677,9 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_32(
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 32) * 4)) < cols) {
                 float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                vec_memcpy((lchunk_2 + 0),
+                    (gB + ((0 + (cols * kr_2)) +
+                              (n_idx + ((__anf02_3 * 32) * 4)))));
                 uint32_t ix_2 = 0;
                 while (ix_2 < 4) {
                     uint32_t ixv_2 = ix_2;
@@ -7406,7 +7705,6 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_33(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    (void) gB;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
     uint8_t *tmp2 =
@@ -7438,6 +7736,7 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_33(
         uint32_t k = 0;
         while (k < 128) {
             uint32_t kv = k;
+            uint32_t kr = sh._2._1[kv];
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 4) {
@@ -7445,6 +7744,9 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_33(
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 32) * 4)) < cols) {
                     float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                    vec_memcpy((lchunk + 0),
+                        (gB + ((0 + (cols * kr)) +
+                                  (n_idx + ((__anf01 * 32) * 4)))));
                     uint32_t ix = 0;
                     while (ix < 4) {
                         uint32_t ixv = ix;
@@ -7475,6 +7777,7 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_33(
             uint32_t k1_1 = 0;
             while (k1_1 < 128) {
                 uint32_t kv_1 = k1_1;
+                uint32_t kr_1 = sh._2._1[kv_1];
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 4) {
@@ -7482,6 +7785,9 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_33(
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 32) * 4)) < cols) {
                         float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                        vec_memcpy((lchunk_1 + 0),
+                            (gB + ((0 + (cols * kr_1)) +
+                                      (n_idx + ((__anf03 * 32) * 4)))));
                         uint32_t ix_1 = 0;
                         while (ix_1 < 4) {
                             uint32_t ixv_1 = ix_1;
@@ -7515,6 +7821,7 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_33(
     uint32_t k_1 = 0;
     while (k_1 < nnz) {
         uint32_t kv_2 = k_1;
+        uint32_t kr_2 = sh._2._1[kv_2];
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 4) {
@@ -7522,6 +7829,9 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_33(
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 32) * 4)) < cols) {
                 float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                vec_memcpy((lchunk_2 + 0),
+                    (gB + ((0 + (cols * kr_2)) +
+                              (n_idx + ((__anf02_3 * 32) * 4)))));
                 uint32_t ix_2 = 0;
                 while (ix_2 < 4) {
                     uint32_t ixv_2 = ix_2;
@@ -7548,14 +7858,13 @@ __device__ static void Kuiper_For_for_loop___108(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
     uint32_t i = 0;
     while (i < 4) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 16) + tmp6) * 4)),
+            (tmp3.elems + (((tmp8 / 4) * 4) + (((__anf0 * 16) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -7566,14 +7875,13 @@ __device__ static void Kuiper_For_for_loop___109(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
     uint32_t i = 0;
     while (i < 4) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 16) + tmp6) * 4)),
+            (tmp3.col_ind + (((tmp8 / 4) * 4) + (((__anf0 * 16) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -7584,15 +7892,14 @@ __device__ static void Kuiper_For_for_loop___110(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
-    (void) tmp9;
     uint32_t i = 0;
     while (i < 4) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 16) + tmp6) * 4)),
+            (tmp3.elems + ((((tmp8 / 4) * 4) + (tmp9 * 256)) +
+                              (((__anf0 * 16) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -7603,15 +7910,14 @@ __device__ static void Kuiper_For_for_loop___111(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
-    (void) tmp9;
     uint32_t i = 0;
     while (i < 4) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 16) + tmp6) * 4)),
+            (tmp3.col_ind + ((((tmp8 / 4) * 4) + (tmp9 * 256)) +
+                                (((__anf0 * 16) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -7621,7 +7927,6 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_34(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    (void) gB;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
     uint8_t *tmp2 =
@@ -7652,6 +7957,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_34(
         uint32_t k = 0;
         while (k < 256) {
             uint32_t kv = k;
+            uint32_t kr = sh._2._1[kv];
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 1) {
@@ -7659,6 +7965,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_34(
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 16) * 4)) < cols) {
                     float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                    vec_memcpy((lchunk + 0),
+                        (gB + ((0 + (cols * kr)) +
+                                  (n_idx + ((__anf01 * 16) * 4)))));
                     uint32_t ix = 0;
                     while (ix < 4) {
                         uint32_t ixv = ix;
@@ -7689,6 +7998,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_34(
             uint32_t k1_1 = 0;
             while (k1_1 < 256) {
                 uint32_t kv_1 = k1_1;
+                uint32_t kr_1 = sh._2._1[kv_1];
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 1) {
@@ -7696,6 +8006,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_34(
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 16) * 4)) < cols) {
                         float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                        vec_memcpy((lchunk_1 + 0),
+                            (gB + ((0 + (cols * kr_1)) +
+                                      (n_idx + ((__anf03 * 16) * 4)))));
                         uint32_t ix_1 = 0;
                         while (ix_1 < 4) {
                             uint32_t ixv_1 = ix_1;
@@ -7729,6 +8042,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_34(
     uint32_t k_1 = 0;
     while (k_1 < nnz) {
         uint32_t kv_2 = k_1;
+        uint32_t kr_2 = sh._2._1[kv_2];
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 1) {
@@ -7736,6 +8050,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_34(
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 16) * 4)) < cols) {
                 float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                vec_memcpy((lchunk_2 + 0),
+                    (gB + ((0 + (cols * kr_2)) +
+                              (n_idx + ((__anf02_3 * 16) * 4)))));
                 uint32_t ix_2 = 0;
                 while (ix_2 < 4) {
                     uint32_t ixv_2 = ix_2;
@@ -7761,7 +8078,6 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_35(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    (void) gB;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
     uint8_t *tmp2 =
@@ -7792,6 +8108,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_35(
         uint32_t k = 0;
         while (k < 256) {
             uint32_t kv = k;
+            uint32_t kr = sh._2._1[kv];
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 1) {
@@ -7799,6 +8116,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_35(
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 16) * 4)) < cols) {
                     float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                    vec_memcpy((lchunk + 0),
+                        (gB + ((0 + (cols * kr)) +
+                                  (n_idx + ((__anf01 * 16) * 4)))));
                     uint32_t ix = 0;
                     while (ix < 4) {
                         uint32_t ixv = ix;
@@ -7829,6 +8149,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_35(
             uint32_t k1_1 = 0;
             while (k1_1 < 256) {
                 uint32_t kv_1 = k1_1;
+                uint32_t kr_1 = sh._2._1[kv_1];
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 1) {
@@ -7836,6 +8157,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_35(
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 16) * 4)) < cols) {
                         float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                        vec_memcpy((lchunk_1 + 0),
+                            (gB + ((0 + (cols * kr_1)) +
+                                      (n_idx + ((__anf03 * 16) * 4)))));
                         uint32_t ix_1 = 0;
                         while (ix_1 < 4) {
                             uint32_t ixv_1 = ix_1;
@@ -7869,6 +8193,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_35(
     uint32_t k_1 = 0;
     while (k_1 < nnz) {
         uint32_t kv_2 = k_1;
+        uint32_t kr_2 = sh._2._1[kv_2];
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 1) {
@@ -7876,6 +8201,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_35(
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 16) * 4)) < cols) {
                 float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                vec_memcpy((lchunk_2 + 0),
+                    (gB + ((0 + (cols * kr_2)) +
+                              (n_idx + ((__anf02_3 * 16) * 4)))));
                 uint32_t ix_2 = 0;
                 while (ix_2 < 4) {
                     uint32_t ixv_2 = ix_2;
@@ -7902,14 +8230,13 @@ __device__ static void Kuiper_For_for_loop___112(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
     uint32_t i = 0;
     while (i < 4) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 16) + tmp6) * 4)),
+            (tmp3.elems + (((tmp8 / 4) * 4) + (((__anf0 * 16) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -7920,14 +8247,13 @@ __device__ static void Kuiper_For_for_loop___113(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
     uint32_t i = 0;
     while (i < 4) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 16) + tmp6) * 4)),
+            (tmp3.col_ind + (((tmp8 / 4) * 4) + (((__anf0 * 16) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -7938,15 +8264,14 @@ __device__ static void Kuiper_For_for_loop___114(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
-    (void) tmp9;
     uint32_t i = 0;
     while (i < 4) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 16) + tmp6) * 4)),
+            (tmp3.elems + ((((tmp8 / 4) * 4) + (tmp9 * 256)) +
+                              (((__anf0 * 16) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -7957,15 +8282,14 @@ __device__ static void Kuiper_For_for_loop___115(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
-    (void) tmp9;
     uint32_t i = 0;
     while (i < 4) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 16) + tmp6) * 4)),
+            (tmp3.col_ind + ((((tmp8 / 4) * 4) + (tmp9 * 256)) +
+                                (((__anf0 * 16) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -7975,7 +8299,6 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_36(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    (void) gB;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
     uint8_t *tmp2 =
@@ -8006,6 +8329,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_36(
         uint32_t k = 0;
         while (k < 256) {
             uint32_t kv = k;
+            uint32_t kr = sh._2._1[kv];
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 2) {
@@ -8013,6 +8337,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_36(
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 16) * 4)) < cols) {
                     float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                    vec_memcpy((lchunk + 0),
+                        (gB + ((0 + (cols * kr)) +
+                                  (n_idx + ((__anf01 * 16) * 4)))));
                     uint32_t ix = 0;
                     while (ix < 4) {
                         uint32_t ixv = ix;
@@ -8043,6 +8370,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_36(
             uint32_t k1_1 = 0;
             while (k1_1 < 256) {
                 uint32_t kv_1 = k1_1;
+                uint32_t kr_1 = sh._2._1[kv_1];
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 2) {
@@ -8050,6 +8378,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_36(
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 16) * 4)) < cols) {
                         float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                        vec_memcpy((lchunk_1 + 0),
+                            (gB + ((0 + (cols * kr_1)) +
+                                      (n_idx + ((__anf03 * 16) * 4)))));
                         uint32_t ix_1 = 0;
                         while (ix_1 < 4) {
                             uint32_t ixv_1 = ix_1;
@@ -8083,6 +8414,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_36(
     uint32_t k_1 = 0;
     while (k_1 < nnz) {
         uint32_t kv_2 = k_1;
+        uint32_t kr_2 = sh._2._1[kv_2];
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 2) {
@@ -8090,6 +8422,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_36(
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 16) * 4)) < cols) {
                 float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                vec_memcpy((lchunk_2 + 0),
+                    (gB + ((0 + (cols * kr_2)) +
+                              (n_idx + ((__anf02_3 * 16) * 4)))));
                 uint32_t ix_2 = 0;
                 while (ix_2 < 4) {
                     uint32_t ixv_2 = ix_2;
@@ -8115,7 +8450,6 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_37(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    (void) gB;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
     uint8_t *tmp2 =
@@ -8146,6 +8480,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_37(
         uint32_t k = 0;
         while (k < 256) {
             uint32_t kv = k;
+            uint32_t kr = sh._2._1[kv];
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 2) {
@@ -8153,6 +8488,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_37(
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 16) * 4)) < cols) {
                     float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                    vec_memcpy((lchunk + 0),
+                        (gB + ((0 + (cols * kr)) +
+                                  (n_idx + ((__anf01 * 16) * 4)))));
                     uint32_t ix = 0;
                     while (ix < 4) {
                         uint32_t ixv = ix;
@@ -8183,6 +8521,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_37(
             uint32_t k1_1 = 0;
             while (k1_1 < 256) {
                 uint32_t kv_1 = k1_1;
+                uint32_t kr_1 = sh._2._1[kv_1];
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 2) {
@@ -8190,6 +8529,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_37(
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 16) * 4)) < cols) {
                         float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                        vec_memcpy((lchunk_1 + 0),
+                            (gB + ((0 + (cols * kr_1)) +
+                                      (n_idx + ((__anf03 * 16) * 4)))));
                         uint32_t ix_1 = 0;
                         while (ix_1 < 4) {
                             uint32_t ixv_1 = ix_1;
@@ -8223,6 +8565,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_37(
     uint32_t k_1 = 0;
     while (k_1 < nnz) {
         uint32_t kv_2 = k_1;
+        uint32_t kr_2 = sh._2._1[kv_2];
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 2) {
@@ -8230,6 +8573,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_37(
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 16) * 4)) < cols) {
                 float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                vec_memcpy((lchunk_2 + 0),
+                    (gB + ((0 + (cols * kr_2)) +
+                              (n_idx + ((__anf02_3 * 16) * 4)))));
                 uint32_t ix_2 = 0;
                 while (ix_2 < 4) {
                     uint32_t ixv_2 = ix_2;
@@ -8256,14 +8602,13 @@ __device__ static void Kuiper_For_for_loop___116(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
     uint32_t i = 0;
     while (i < 2) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 32) + tmp6) * 4)),
+            (tmp3.elems + (((tmp8 / 4) * 4) + (((__anf0 * 32) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -8274,14 +8619,13 @@ __device__ static void Kuiper_For_for_loop___117(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
     uint32_t i = 0;
     while (i < 2) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 32) + tmp6) * 4)),
+            (tmp3.col_ind + (((tmp8 / 4) * 4) + (((__anf0 * 32) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -8292,15 +8636,14 @@ __device__ static void Kuiper_For_for_loop___118(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
-    (void) tmp9;
     uint32_t i = 0;
     while (i < 2) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 32) + tmp6) * 4)),
+            (tmp3.elems + ((((tmp8 / 4) * 4) + (tmp9 * 256)) +
+                              (((__anf0 * 32) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -8311,15 +8654,14 @@ __device__ static void Kuiper_For_for_loop___119(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
-    (void) tmp9;
     uint32_t i = 0;
     while (i < 2) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 32) + tmp6) * 4)),
+            (tmp3.col_ind + ((((tmp8 / 4) * 4) + (tmp9 * 256)) +
+                                (((__anf0 * 32) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -8329,7 +8671,6 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_38(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    (void) gB;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
     uint8_t *tmp2 =
@@ -8360,6 +8701,7 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_38(
         uint32_t k = 0;
         while (k < 256) {
             uint32_t kv = k;
+            uint32_t kr = sh._2._1[kv];
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 1) {
@@ -8367,6 +8709,9 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_38(
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 32) * 4)) < cols) {
                     float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                    vec_memcpy((lchunk + 0),
+                        (gB + ((0 + (cols * kr)) +
+                                  (n_idx + ((__anf01 * 32) * 4)))));
                     uint32_t ix = 0;
                     while (ix < 4) {
                         uint32_t ixv = ix;
@@ -8397,6 +8742,7 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_38(
             uint32_t k1_1 = 0;
             while (k1_1 < 256) {
                 uint32_t kv_1 = k1_1;
+                uint32_t kr_1 = sh._2._1[kv_1];
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 1) {
@@ -8404,6 +8750,9 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_38(
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 32) * 4)) < cols) {
                         float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                        vec_memcpy((lchunk_1 + 0),
+                            (gB + ((0 + (cols * kr_1)) +
+                                      (n_idx + ((__anf03 * 32) * 4)))));
                         uint32_t ix_1 = 0;
                         while (ix_1 < 4) {
                             uint32_t ixv_1 = ix_1;
@@ -8437,6 +8786,7 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_38(
     uint32_t k_1 = 0;
     while (k_1 < nnz) {
         uint32_t kv_2 = k_1;
+        uint32_t kr_2 = sh._2._1[kv_2];
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 1) {
@@ -8444,6 +8794,9 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_38(
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 32) * 4)) < cols) {
                 float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                vec_memcpy((lchunk_2 + 0),
+                    (gB + ((0 + (cols * kr_2)) +
+                              (n_idx + ((__anf02_3 * 32) * 4)))));
                 uint32_t ix_2 = 0;
                 while (ix_2 < 4) {
                     uint32_t ixv_2 = ix_2;
@@ -8469,7 +8822,6 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_39(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    (void) gB;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
     uint8_t *tmp2 =
@@ -8500,6 +8852,7 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_39(
         uint32_t k = 0;
         while (k < 256) {
             uint32_t kv = k;
+            uint32_t kr = sh._2._1[kv];
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 1) {
@@ -8507,6 +8860,9 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_39(
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 32) * 4)) < cols) {
                     float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                    vec_memcpy((lchunk + 0),
+                        (gB + ((0 + (cols * kr)) +
+                                  (n_idx + ((__anf01 * 32) * 4)))));
                     uint32_t ix = 0;
                     while (ix < 4) {
                         uint32_t ixv = ix;
@@ -8537,6 +8893,7 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_39(
             uint32_t k1_1 = 0;
             while (k1_1 < 256) {
                 uint32_t kv_1 = k1_1;
+                uint32_t kr_1 = sh._2._1[kv_1];
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 1) {
@@ -8544,6 +8901,9 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_39(
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 32) * 4)) < cols) {
                         float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                        vec_memcpy((lchunk_1 + 0),
+                            (gB + ((0 + (cols * kr_1)) +
+                                      (n_idx + ((__anf03 * 32) * 4)))));
                         uint32_t ix_1 = 0;
                         while (ix_1 < 4) {
                             uint32_t ixv_1 = ix_1;
@@ -8577,6 +8937,7 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_39(
     uint32_t k_1 = 0;
     while (k_1 < nnz) {
         uint32_t kv_2 = k_1;
+        uint32_t kr_2 = sh._2._1[kv_2];
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 1) {
@@ -8584,6 +8945,9 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_39(
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 32) * 4)) < cols) {
                 float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                vec_memcpy((lchunk_2 + 0),
+                    (gB + ((0 + (cols * kr_2)) +
+                              (n_idx + ((__anf02_3 * 32) * 4)))));
                 uint32_t ix_2 = 0;
                 while (ix_2 < 4) {
                     uint32_t ixv_2 = ix_2;
@@ -8610,14 +8974,13 @@ __device__ static void Kuiper_For_for_loop___120(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
     uint32_t i = 0;
     while (i < 4) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 16) + tmp6) * 4)),
+            (tmp3.elems + (((tmp8 / 4) * 4) + (((__anf0 * 16) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -8628,14 +8991,13 @@ __device__ static void Kuiper_For_for_loop___121(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
     uint32_t i = 0;
     while (i < 4) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 16) + tmp6) * 4)),
+            (tmp3.col_ind + (((tmp8 / 4) * 4) + (((__anf0 * 16) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -8646,15 +9008,14 @@ __device__ static void Kuiper_For_for_loop___122(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
-    (void) tmp9;
     uint32_t i = 0;
     while (i < 4) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 16) + tmp6) * 4)),
+            (tmp3.elems + ((((tmp8 / 4) * 4) + (tmp9 * 256)) +
+                              (((__anf0 * 16) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -8665,15 +9026,14 @@ __device__ static void Kuiper_For_for_loop___123(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
-    (void) tmp9;
     uint32_t i = 0;
     while (i < 4) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 16) + tmp6) * 4)),
+            (tmp3.col_ind + ((((tmp8 / 4) * 4) + (tmp9 * 256)) +
+                                (((__anf0 * 16) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -8683,7 +9043,6 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_40(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    (void) gB;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
     uint8_t *tmp2 =
@@ -8715,6 +9074,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_40(
         uint32_t k = 0;
         while (k < 256) {
             uint32_t kv = k;
+            uint32_t kr = sh._2._1[kv];
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 4) {
@@ -8722,6 +9082,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_40(
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 16) * 4)) < cols) {
                     float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                    vec_memcpy((lchunk + 0),
+                        (gB + ((0 + (cols * kr)) +
+                                  (n_idx + ((__anf01 * 16) * 4)))));
                     uint32_t ix = 0;
                     while (ix < 4) {
                         uint32_t ixv = ix;
@@ -8752,6 +9115,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_40(
             uint32_t k1_1 = 0;
             while (k1_1 < 256) {
                 uint32_t kv_1 = k1_1;
+                uint32_t kr_1 = sh._2._1[kv_1];
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 4) {
@@ -8759,6 +9123,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_40(
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 16) * 4)) < cols) {
                         float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                        vec_memcpy((lchunk_1 + 0),
+                            (gB + ((0 + (cols * kr_1)) +
+                                      (n_idx + ((__anf03 * 16) * 4)))));
                         uint32_t ix_1 = 0;
                         while (ix_1 < 4) {
                             uint32_t ixv_1 = ix_1;
@@ -8792,6 +9159,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_40(
     uint32_t k_1 = 0;
     while (k_1 < nnz) {
         uint32_t kv_2 = k_1;
+        uint32_t kr_2 = sh._2._1[kv_2];
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 4) {
@@ -8799,6 +9167,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_40(
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 16) * 4)) < cols) {
                 float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                vec_memcpy((lchunk_2 + 0),
+                    (gB + ((0 + (cols * kr_2)) +
+                              (n_idx + ((__anf02_3 * 16) * 4)))));
                 uint32_t ix_2 = 0;
                 while (ix_2 < 4) {
                     uint32_t ixv_2 = ix_2;
@@ -8824,7 +9195,6 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_41(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    (void) gB;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
     uint8_t *tmp2 =
@@ -8856,6 +9226,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_41(
         uint32_t k = 0;
         while (k < 256) {
             uint32_t kv = k;
+            uint32_t kr = sh._2._1[kv];
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 4) {
@@ -8863,6 +9234,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_41(
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 16) * 4)) < cols) {
                     float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                    vec_memcpy((lchunk + 0),
+                        (gB + ((0 + (cols * kr)) +
+                                  (n_idx + ((__anf01 * 16) * 4)))));
                     uint32_t ix = 0;
                     while (ix < 4) {
                         uint32_t ixv = ix;
@@ -8893,6 +9267,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_41(
             uint32_t k1_1 = 0;
             while (k1_1 < 256) {
                 uint32_t kv_1 = k1_1;
+                uint32_t kr_1 = sh._2._1[kv_1];
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 4) {
@@ -8900,6 +9275,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_41(
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 16) * 4)) < cols) {
                         float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                        vec_memcpy((lchunk_1 + 0),
+                            (gB + ((0 + (cols * kr_1)) +
+                                      (n_idx + ((__anf03 * 16) * 4)))));
                         uint32_t ix_1 = 0;
                         while (ix_1 < 4) {
                             uint32_t ixv_1 = ix_1;
@@ -8933,6 +9311,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_41(
     uint32_t k_1 = 0;
     while (k_1 < nnz) {
         uint32_t kv_2 = k_1;
+        uint32_t kr_2 = sh._2._1[kv_2];
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 4) {
@@ -8940,6 +9319,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_41(
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 16) * 4)) < cols) {
                 float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                vec_memcpy((lchunk_2 + 0),
+                    (gB + ((0 + (cols * kr_2)) +
+                              (n_idx + ((__anf02_3 * 16) * 4)))));
                 uint32_t ix_2 = 0;
                 while (ix_2 < 4) {
                     uint32_t ixv_2 = ix_2;
@@ -8966,14 +9348,13 @@ __device__ static void Kuiper_For_for_loop___124(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
     uint32_t i = 0;
     while (i < 2) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 32) + tmp6) * 4)),
+            (tmp3.elems + (((tmp8 / 4) * 4) + (((__anf0 * 32) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -8984,14 +9365,13 @@ __device__ static void Kuiper_For_for_loop___125(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
     uint32_t i = 0;
     while (i < 2) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 32) + tmp6) * 4)),
+            (tmp3.col_ind + (((tmp8 / 4) * 4) + (((__anf0 * 32) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -9002,15 +9382,14 @@ __device__ static void Kuiper_For_for_loop___126(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
-    (void) tmp9;
     uint32_t i = 0;
     while (i < 2) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 32) + tmp6) * 4)),
+            (tmp3.elems + ((((tmp8 / 4) * 4) + (tmp9 * 256)) +
+                              (((__anf0 * 32) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -9021,15 +9400,14 @@ __device__ static void Kuiper_For_for_loop___127(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
-    (void) tmp9;
     uint32_t i = 0;
     while (i < 2) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 32) + tmp6) * 4)),
+            (tmp3.col_ind + ((((tmp8 / 4) * 4) + (tmp9 * 256)) +
+                                (((__anf0 * 32) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -9039,7 +9417,6 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_42(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    (void) gB;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
     uint8_t *tmp2 =
@@ -9070,6 +9447,7 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_42(
         uint32_t k = 0;
         while (k < 256) {
             uint32_t kv = k;
+            uint32_t kr = sh._2._1[kv];
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 2) {
@@ -9077,6 +9455,9 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_42(
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 32) * 4)) < cols) {
                     float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                    vec_memcpy((lchunk + 0),
+                        (gB + ((0 + (cols * kr)) +
+                                  (n_idx + ((__anf01 * 32) * 4)))));
                     uint32_t ix = 0;
                     while (ix < 4) {
                         uint32_t ixv = ix;
@@ -9107,6 +9488,7 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_42(
             uint32_t k1_1 = 0;
             while (k1_1 < 256) {
                 uint32_t kv_1 = k1_1;
+                uint32_t kr_1 = sh._2._1[kv_1];
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 2) {
@@ -9114,6 +9496,9 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_42(
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 32) * 4)) < cols) {
                         float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                        vec_memcpy((lchunk_1 + 0),
+                            (gB + ((0 + (cols * kr_1)) +
+                                      (n_idx + ((__anf03 * 32) * 4)))));
                         uint32_t ix_1 = 0;
                         while (ix_1 < 4) {
                             uint32_t ixv_1 = ix_1;
@@ -9147,6 +9532,7 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_42(
     uint32_t k_1 = 0;
     while (k_1 < nnz) {
         uint32_t kv_2 = k_1;
+        uint32_t kr_2 = sh._2._1[kv_2];
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 2) {
@@ -9154,6 +9540,9 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_42(
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 32) * 4)) < cols) {
                 float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                vec_memcpy((lchunk_2 + 0),
+                    (gB + ((0 + (cols * kr_2)) +
+                              (n_idx + ((__anf02_3 * 32) * 4)))));
                 uint32_t ix_2 = 0;
                 while (ix_2 < 4) {
                     uint32_t ixv_2 = ix_2;
@@ -9179,7 +9568,6 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_43(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    (void) gB;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
     uint8_t *tmp2 =
@@ -9210,6 +9598,7 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_43(
         uint32_t k = 0;
         while (k < 256) {
             uint32_t kv = k;
+            uint32_t kr = sh._2._1[kv];
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 2) {
@@ -9217,6 +9606,9 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_43(
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 32) * 4)) < cols) {
                     float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                    vec_memcpy((lchunk + 0),
+                        (gB + ((0 + (cols * kr)) +
+                                  (n_idx + ((__anf01 * 32) * 4)))));
                     uint32_t ix = 0;
                     while (ix < 4) {
                         uint32_t ixv = ix;
@@ -9247,6 +9639,7 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_43(
             uint32_t k1_1 = 0;
             while (k1_1 < 256) {
                 uint32_t kv_1 = k1_1;
+                uint32_t kr_1 = sh._2._1[kv_1];
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 2) {
@@ -9254,6 +9647,9 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_43(
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 32) * 4)) < cols) {
                         float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                        vec_memcpy((lchunk_1 + 0),
+                            (gB + ((0 + (cols * kr_1)) +
+                                      (n_idx + ((__anf03 * 32) * 4)))));
                         uint32_t ix_1 = 0;
                         while (ix_1 < 4) {
                             uint32_t ixv_1 = ix_1;
@@ -9287,6 +9683,7 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_43(
     uint32_t k_1 = 0;
     while (k_1 < nnz) {
         uint32_t kv_2 = k_1;
+        uint32_t kr_2 = sh._2._1[kv_2];
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 2) {
@@ -9294,6 +9691,9 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_43(
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 32) * 4)) < cols) {
                 float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                vec_memcpy((lchunk_2 + 0),
+                    (gB + ((0 + (cols * kr_2)) +
+                              (n_idx + ((__anf02_3 * 32) * 4)))));
                 uint32_t ix_2 = 0;
                 while (ix_2 < 4) {
                     uint32_t ixv_2 = ix_2;
@@ -9320,14 +9720,13 @@ __device__ static void Kuiper_For_for_loop___128(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
     uint32_t i = 0;
     while (i < 1) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 64) + tmp6) * 4)),
+            (tmp3.elems + (((tmp8 / 4) * 4) + (((__anf0 * 64) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -9338,14 +9737,13 @@ __device__ static void Kuiper_For_for_loop___129(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
     uint32_t i = 0;
     while (i < 1) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 64) + tmp6) * 4)),
+            (tmp3.col_ind + (((tmp8 / 4) * 4) + (((__anf0 * 64) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -9356,15 +9754,14 @@ __device__ static void Kuiper_For_for_loop___130(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
-    (void) tmp9;
     uint32_t i = 0;
     while (i < 1) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 64) + tmp6) * 4)),
+            (tmp3.elems + ((((tmp8 / 4) * 4) + (tmp9 * 256)) +
+                              (((__anf0 * 64) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -9375,15 +9772,14 @@ __device__ static void Kuiper_For_for_loop___131(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
-    (void) tmp9;
     uint32_t i = 0;
     while (i < 1) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 64) + tmp6) * 4)),
+            (tmp3.col_ind + ((((tmp8 / 4) * 4) + (tmp9 * 256)) +
+                                (((__anf0 * 64) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -9410,17 +9806,18 @@ __device__ static void Kuiper_For_for_loop___132(uint32_t tmp, uint32_t tmp1,
 __device__ static void Kuiper_For_for_loop___133(uint32_t tmp, uint32_t tmp1,
     float *tmp2, uint32_t tmp3, uint32_t tmp4, uint32_t tmp5, float *tmp6)
 {
-    (void) tmp;
-    (void) tmp1;
-    (void) tmp2;
-    (void) tmp3;
-    (void) tmp4;
-    (void) tmp5;
-    (void) tmp6;
     uint32_t i = 0;
     while (i < 1) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        if (((((tmp3 / tmp) * 256) + (tmp4 * 4)) + ((__anf0 * 64) * 4)) <
+            tmp1) {
+            uint32_t offset =
+                ((0 + (tmp1 * tmp5)) + ((((tmp3 / tmp) * 256) + (tmp4 * 4)) +
+                                           ((__anf0 * 64) * 4)));
+            vec_memcpy((tmp2 + offset), (tmp6 + (__anf0 * 4)));
+        }
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -9430,7 +9827,6 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_44(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    (void) gB;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
     uint8_t *tmp2 =
@@ -9461,6 +9857,7 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_44(
         uint32_t k = 0;
         while (k < 256) {
             uint32_t kv = k;
+            uint32_t kr = sh._2._1[kv];
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 1) {
@@ -9468,6 +9865,9 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_44(
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 64) * 4)) < cols) {
                     float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                    vec_memcpy((lchunk + 0),
+                        (gB + ((0 + (cols * kr)) +
+                                  (n_idx + ((__anf01 * 64) * 4)))));
                     uint32_t ix = 0;
                     while (ix < 4) {
                         uint32_t ixv = ix;
@@ -9498,6 +9898,7 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_44(
             uint32_t k1_1 = 0;
             while (k1_1 < 256) {
                 uint32_t kv_1 = k1_1;
+                uint32_t kr_1 = sh._2._1[kv_1];
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 1) {
@@ -9505,6 +9906,9 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_44(
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 64) * 4)) < cols) {
                         float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                        vec_memcpy((lchunk_1 + 0),
+                            (gB + ((0 + (cols * kr_1)) +
+                                      (n_idx + ((__anf03 * 64) * 4)))));
                         uint32_t ix_1 = 0;
                         while (ix_1 < 4) {
                             uint32_t ixv_1 = ix_1;
@@ -9538,6 +9942,7 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_44(
     uint32_t k_1 = 0;
     while (k_1 < nnz) {
         uint32_t kv_2 = k_1;
+        uint32_t kr_2 = sh._2._1[kv_2];
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 1) {
@@ -9545,6 +9950,9 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_44(
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 64) * 4)) < cols) {
                 float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                vec_memcpy((lchunk_2 + 0),
+                    (gB + ((0 + (cols * kr_2)) +
+                              (n_idx + ((__anf02_3 * 64) * 4)))));
                 uint32_t ix_2 = 0;
                 while (ix_2 < 4) {
                     uint32_t ixv_2 = ix_2;
@@ -9570,7 +9978,6 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_45(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    (void) gB;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
     uint8_t *tmp2 =
@@ -9601,6 +10008,7 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_45(
         uint32_t k = 0;
         while (k < 256) {
             uint32_t kv = k;
+            uint32_t kr = sh._2._1[kv];
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 1) {
@@ -9608,6 +10016,9 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_45(
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 64) * 4)) < cols) {
                     float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                    vec_memcpy((lchunk + 0),
+                        (gB + ((0 + (cols * kr)) +
+                                  (n_idx + ((__anf01 * 64) * 4)))));
                     uint32_t ix = 0;
                     while (ix < 4) {
                         uint32_t ixv = ix;
@@ -9638,6 +10049,7 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_45(
             uint32_t k1_1 = 0;
             while (k1_1 < 256) {
                 uint32_t kv_1 = k1_1;
+                uint32_t kr_1 = sh._2._1[kv_1];
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 1) {
@@ -9645,6 +10057,9 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_45(
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 64) * 4)) < cols) {
                         float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                        vec_memcpy((lchunk_1 + 0),
+                            (gB + ((0 + (cols * kr_1)) +
+                                      (n_idx + ((__anf03 * 64) * 4)))));
                         uint32_t ix_1 = 0;
                         while (ix_1 < 4) {
                             uint32_t ixv_1 = ix_1;
@@ -9678,6 +10093,7 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_45(
     uint32_t k_1 = 0;
     while (k_1 < nnz) {
         uint32_t kv_2 = k_1;
+        uint32_t kr_2 = sh._2._1[kv_2];
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 1) {
@@ -9685,6 +10101,9 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_45(
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 64) * 4)) < cols) {
                 float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                vec_memcpy((lchunk_2 + 0),
+                    (gB + ((0 + (cols * kr_2)) +
+                              (n_idx + ((__anf02_3 * 64) * 4)))));
                 uint32_t ix_2 = 0;
                 while (ix_2 < 4) {
                     uint32_t ixv_2 = ix_2;
@@ -9711,14 +10130,13 @@ __device__ static void Kuiper_For_for_loop___134(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
     uint32_t i = 0;
     while (i < 4) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 16) + tmp6) * 4)),
+            (tmp3.elems + (((tmp8 / 4) * 4) + (((__anf0 * 16) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -9729,14 +10147,13 @@ __device__ static void Kuiper_For_for_loop___135(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
     uint32_t i = 0;
     while (i < 4) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 16) + tmp6) * 4)),
+            (tmp3.col_ind + (((tmp8 / 4) * 4) + (((__anf0 * 16) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -9747,15 +10164,14 @@ __device__ static void Kuiper_For_for_loop___136(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
-    (void) tmp9;
     uint32_t i = 0;
     while (i < 4) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 16) + tmp6) * 4)),
+            (tmp3.elems + ((((tmp8 / 4) * 4) + (tmp9 * 256)) +
+                              (((__anf0 * 16) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -9766,15 +10182,14 @@ __device__ static void Kuiper_For_for_loop___137(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
-    (void) tmp9;
     uint32_t i = 0;
     while (i < 4) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 16) + tmp6) * 4)),
+            (tmp3.col_ind + ((((tmp8 / 4) * 4) + (tmp9 * 256)) +
+                                (((__anf0 * 16) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -9784,7 +10199,6 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_46(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    (void) gB;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
     uint8_t *tmp2 =
@@ -9817,6 +10231,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_46(
         uint32_t k = 0;
         while (k < 256) {
             uint32_t kv = k;
+            uint32_t kr = sh._2._1[kv];
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 8) {
@@ -9824,6 +10239,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_46(
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 16) * 4)) < cols) {
                     float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                    vec_memcpy((lchunk + 0),
+                        (gB + ((0 + (cols * kr)) +
+                                  (n_idx + ((__anf01 * 16) * 4)))));
                     uint32_t ix = 0;
                     while (ix < 4) {
                         uint32_t ixv = ix;
@@ -9854,6 +10272,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_46(
             uint32_t k1_1 = 0;
             while (k1_1 < 256) {
                 uint32_t kv_1 = k1_1;
+                uint32_t kr_1 = sh._2._1[kv_1];
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 8) {
@@ -9861,6 +10280,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_46(
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 16) * 4)) < cols) {
                         float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                        vec_memcpy((lchunk_1 + 0),
+                            (gB + ((0 + (cols * kr_1)) +
+                                      (n_idx + ((__anf03 * 16) * 4)))));
                         uint32_t ix_1 = 0;
                         while (ix_1 < 4) {
                             uint32_t ixv_1 = ix_1;
@@ -9894,6 +10316,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_46(
     uint32_t k_1 = 0;
     while (k_1 < nnz) {
         uint32_t kv_2 = k_1;
+        uint32_t kr_2 = sh._2._1[kv_2];
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 8) {
@@ -9901,6 +10324,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_46(
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 16) * 4)) < cols) {
                 float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                vec_memcpy((lchunk_2 + 0),
+                    (gB + ((0 + (cols * kr_2)) +
+                              (n_idx + ((__anf02_3 * 16) * 4)))));
                 uint32_t ix_2 = 0;
                 while (ix_2 < 4) {
                     uint32_t ixv_2 = ix_2;
@@ -9926,7 +10352,6 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_47(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    (void) gB;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
     uint8_t *tmp2 =
@@ -9959,6 +10384,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_47(
         uint32_t k = 0;
         while (k < 256) {
             uint32_t kv = k;
+            uint32_t kr = sh._2._1[kv];
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 8) {
@@ -9966,6 +10392,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_47(
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 16) * 4)) < cols) {
                     float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                    vec_memcpy((lchunk + 0),
+                        (gB + ((0 + (cols * kr)) +
+                                  (n_idx + ((__anf01 * 16) * 4)))));
                     uint32_t ix = 0;
                     while (ix < 4) {
                         uint32_t ixv = ix;
@@ -9996,6 +10425,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_47(
             uint32_t k1_1 = 0;
             while (k1_1 < 256) {
                 uint32_t kv_1 = k1_1;
+                uint32_t kr_1 = sh._2._1[kv_1];
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 8) {
@@ -10003,6 +10433,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_47(
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 16) * 4)) < cols) {
                         float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                        vec_memcpy((lchunk_1 + 0),
+                            (gB + ((0 + (cols * kr_1)) +
+                                      (n_idx + ((__anf03 * 16) * 4)))));
                         uint32_t ix_1 = 0;
                         while (ix_1 < 4) {
                             uint32_t ixv_1 = ix_1;
@@ -10036,6 +10469,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_47(
     uint32_t k_1 = 0;
     while (k_1 < nnz) {
         uint32_t kv_2 = k_1;
+        uint32_t kr_2 = sh._2._1[kv_2];
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 8) {
@@ -10043,6 +10477,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_47(
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 16) * 4)) < cols) {
                 float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                vec_memcpy((lchunk_2 + 0),
+                    (gB + ((0 + (cols * kr_2)) +
+                              (n_idx + ((__anf02_3 * 16) * 4)))));
                 uint32_t ix_2 = 0;
                 while (ix_2 < 4) {
                     uint32_t ixv_2 = ix_2;
@@ -10069,14 +10506,13 @@ __device__ static void Kuiper_For_for_loop___138(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
     uint32_t i = 0;
     while (i < 2) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 32) + tmp6) * 4)),
+            (tmp3.elems + (((tmp8 / 4) * 4) + (((__anf0 * 32) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -10087,14 +10523,13 @@ __device__ static void Kuiper_For_for_loop___139(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
     uint32_t i = 0;
     while (i < 2) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 32) + tmp6) * 4)),
+            (tmp3.col_ind + (((tmp8 / 4) * 4) + (((__anf0 * 32) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -10105,15 +10540,14 @@ __device__ static void Kuiper_For_for_loop___140(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
-    (void) tmp9;
     uint32_t i = 0;
     while (i < 2) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 32) + tmp6) * 4)),
+            (tmp3.elems + ((((tmp8 / 4) * 4) + (tmp9 * 256)) +
+                              (((__anf0 * 32) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -10124,15 +10558,14 @@ __device__ static void Kuiper_For_for_loop___141(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
-    (void) tmp9;
     uint32_t i = 0;
     while (i < 2) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 32) + tmp6) * 4)),
+            (tmp3.col_ind + ((((tmp8 / 4) * 4) + (tmp9 * 256)) +
+                                (((__anf0 * 32) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -10142,7 +10575,6 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_48(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    (void) gB;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
     uint8_t *tmp2 =
@@ -10174,6 +10606,7 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_48(
         uint32_t k = 0;
         while (k < 256) {
             uint32_t kv = k;
+            uint32_t kr = sh._2._1[kv];
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 4) {
@@ -10181,6 +10614,9 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_48(
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 32) * 4)) < cols) {
                     float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                    vec_memcpy((lchunk + 0),
+                        (gB + ((0 + (cols * kr)) +
+                                  (n_idx + ((__anf01 * 32) * 4)))));
                     uint32_t ix = 0;
                     while (ix < 4) {
                         uint32_t ixv = ix;
@@ -10211,6 +10647,7 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_48(
             uint32_t k1_1 = 0;
             while (k1_1 < 256) {
                 uint32_t kv_1 = k1_1;
+                uint32_t kr_1 = sh._2._1[kv_1];
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 4) {
@@ -10218,6 +10655,9 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_48(
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 32) * 4)) < cols) {
                         float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                        vec_memcpy((lchunk_1 + 0),
+                            (gB + ((0 + (cols * kr_1)) +
+                                      (n_idx + ((__anf03 * 32) * 4)))));
                         uint32_t ix_1 = 0;
                         while (ix_1 < 4) {
                             uint32_t ixv_1 = ix_1;
@@ -10251,6 +10691,7 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_48(
     uint32_t k_1 = 0;
     while (k_1 < nnz) {
         uint32_t kv_2 = k_1;
+        uint32_t kr_2 = sh._2._1[kv_2];
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 4) {
@@ -10258,6 +10699,9 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_48(
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 32) * 4)) < cols) {
                 float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                vec_memcpy((lchunk_2 + 0),
+                    (gB + ((0 + (cols * kr_2)) +
+                              (n_idx + ((__anf02_3 * 32) * 4)))));
                 uint32_t ix_2 = 0;
                 while (ix_2 < 4) {
                     uint32_t ixv_2 = ix_2;
@@ -10283,7 +10727,6 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_49(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    (void) gB;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
     uint8_t *tmp2 =
@@ -10315,6 +10758,7 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_49(
         uint32_t k = 0;
         while (k < 256) {
             uint32_t kv = k;
+            uint32_t kr = sh._2._1[kv];
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 4) {
@@ -10322,6 +10766,9 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_49(
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 32) * 4)) < cols) {
                     float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                    vec_memcpy((lchunk + 0),
+                        (gB + ((0 + (cols * kr)) +
+                                  (n_idx + ((__anf01 * 32) * 4)))));
                     uint32_t ix = 0;
                     while (ix < 4) {
                         uint32_t ixv = ix;
@@ -10352,6 +10799,7 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_49(
             uint32_t k1_1 = 0;
             while (k1_1 < 256) {
                 uint32_t kv_1 = k1_1;
+                uint32_t kr_1 = sh._2._1[kv_1];
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 4) {
@@ -10359,6 +10807,9 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_49(
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 32) * 4)) < cols) {
                         float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                        vec_memcpy((lchunk_1 + 0),
+                            (gB + ((0 + (cols * kr_1)) +
+                                      (n_idx + ((__anf03 * 32) * 4)))));
                         uint32_t ix_1 = 0;
                         while (ix_1 < 4) {
                             uint32_t ixv_1 = ix_1;
@@ -10392,6 +10843,7 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_49(
     uint32_t k_1 = 0;
     while (k_1 < nnz) {
         uint32_t kv_2 = k_1;
+        uint32_t kr_2 = sh._2._1[kv_2];
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 4) {
@@ -10399,6 +10851,9 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_49(
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 32) * 4)) < cols) {
                 float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                vec_memcpy((lchunk_2 + 0),
+                    (gB + ((0 + (cols * kr_2)) +
+                              (n_idx + ((__anf02_3 * 32) * 4)))));
                 uint32_t ix_2 = 0;
                 while (ix_2 < 4) {
                     uint32_t ixv_2 = ix_2;
@@ -10425,14 +10880,13 @@ __device__ static void Kuiper_For_for_loop___142(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
     uint32_t i = 0;
     while (i < 1) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 64) + tmp6) * 4)),
+            (tmp3.elems + (((tmp8 / 4) * 4) + (((__anf0 * 64) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -10443,14 +10897,13 @@ __device__ static void Kuiper_For_for_loop___143(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
     uint32_t i = 0;
     while (i < 1) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 64) + tmp6) * 4)),
+            (tmp3.col_ind + (((tmp8 / 4) * 4) + (((__anf0 * 64) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -10461,15 +10914,14 @@ __device__ static void Kuiper_For_for_loop___144(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
-    (void) tmp9;
     uint32_t i = 0;
     while (i < 1) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 64) + tmp6) * 4)),
+            (tmp3.elems + ((((tmp8 / 4) * 4) + (tmp9 * 256)) +
+                              (((__anf0 * 64) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -10480,15 +10932,14 @@ __device__ static void Kuiper_For_for_loop___145(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
-    (void) tmp9;
     uint32_t i = 0;
     while (i < 1) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 64) + tmp6) * 4)),
+            (tmp3.col_ind + ((((tmp8 / 4) * 4) + (tmp9 * 256)) +
+                                (((__anf0 * 64) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -10498,7 +10949,6 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_50(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    (void) gB;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
     uint8_t *tmp2 =
@@ -10529,6 +10979,7 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_50(
         uint32_t k = 0;
         while (k < 256) {
             uint32_t kv = k;
+            uint32_t kr = sh._2._1[kv];
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 2) {
@@ -10536,6 +10987,9 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_50(
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 64) * 4)) < cols) {
                     float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                    vec_memcpy((lchunk + 0),
+                        (gB + ((0 + (cols * kr)) +
+                                  (n_idx + ((__anf01 * 64) * 4)))));
                     uint32_t ix = 0;
                     while (ix < 4) {
                         uint32_t ixv = ix;
@@ -10566,6 +11020,7 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_50(
             uint32_t k1_1 = 0;
             while (k1_1 < 256) {
                 uint32_t kv_1 = k1_1;
+                uint32_t kr_1 = sh._2._1[kv_1];
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 2) {
@@ -10573,6 +11028,9 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_50(
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 64) * 4)) < cols) {
                         float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                        vec_memcpy((lchunk_1 + 0),
+                            (gB + ((0 + (cols * kr_1)) +
+                                      (n_idx + ((__anf03 * 64) * 4)))));
                         uint32_t ix_1 = 0;
                         while (ix_1 < 4) {
                             uint32_t ixv_1 = ix_1;
@@ -10606,6 +11064,7 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_50(
     uint32_t k_1 = 0;
     while (k_1 < nnz) {
         uint32_t kv_2 = k_1;
+        uint32_t kr_2 = sh._2._1[kv_2];
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 2) {
@@ -10613,6 +11072,9 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_50(
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 64) * 4)) < cols) {
                 float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                vec_memcpy((lchunk_2 + 0),
+                    (gB + ((0 + (cols * kr_2)) +
+                              (n_idx + ((__anf02_3 * 64) * 4)))));
                 uint32_t ix_2 = 0;
                 while (ix_2 < 4) {
                     uint32_t ixv_2 = ix_2;
@@ -10638,7 +11100,6 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_51(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    (void) gB;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
     uint8_t *tmp2 =
@@ -10669,6 +11130,7 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_51(
         uint32_t k = 0;
         while (k < 256) {
             uint32_t kv = k;
+            uint32_t kr = sh._2._1[kv];
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 2) {
@@ -10676,6 +11138,9 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_51(
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 64) * 4)) < cols) {
                     float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                    vec_memcpy((lchunk + 0),
+                        (gB + ((0 + (cols * kr)) +
+                                  (n_idx + ((__anf01 * 64) * 4)))));
                     uint32_t ix = 0;
                     while (ix < 4) {
                         uint32_t ixv = ix;
@@ -10706,6 +11171,7 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_51(
             uint32_t k1_1 = 0;
             while (k1_1 < 256) {
                 uint32_t kv_1 = k1_1;
+                uint32_t kr_1 = sh._2._1[kv_1];
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 2) {
@@ -10713,6 +11179,9 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_51(
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 64) * 4)) < cols) {
                         float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                        vec_memcpy((lchunk_1 + 0),
+                            (gB + ((0 + (cols * kr_1)) +
+                                      (n_idx + ((__anf03 * 64) * 4)))));
                         uint32_t ix_1 = 0;
                         while (ix_1 < 4) {
                             uint32_t ixv_1 = ix_1;
@@ -10746,6 +11215,7 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_51(
     uint32_t k_1 = 0;
     while (k_1 < nnz) {
         uint32_t kv_2 = k_1;
+        uint32_t kr_2 = sh._2._1[kv_2];
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 2) {
@@ -10753,6 +11223,9 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_51(
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 64) * 4)) < cols) {
                 float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                vec_memcpy((lchunk_2 + 0),
+                    (gB + ((0 + (cols * kr_2)) +
+                              (n_idx + ((__anf02_3 * 64) * 4)))));
                 uint32_t ix_2 = 0;
                 while (ix_2 < 4) {
                     uint32_t ixv_2 = ix_2;
@@ -10779,14 +11252,13 @@ __device__ static void Kuiper_For_for_loop___146(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
     uint32_t i = 0;
     while (i < 8) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 16) + tmp6) * 4)),
+            (tmp3.elems + (((tmp8 / 4) * 4) + (((__anf0 * 16) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -10797,14 +11269,13 @@ __device__ static void Kuiper_For_for_loop___147(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
     uint32_t i = 0;
     while (i < 8) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 16) + tmp6) * 4)),
+            (tmp3.col_ind + (((tmp8 / 4) * 4) + (((__anf0 * 16) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -10815,15 +11286,14 @@ __device__ static void Kuiper_For_for_loop___148(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
-    (void) tmp9;
     uint32_t i = 0;
     while (i < 8) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 16) + tmp6) * 4)),
+            (tmp3.elems + ((((tmp8 / 4) * 4) + (tmp9 * 512)) +
+                              (((__anf0 * 16) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -10834,15 +11304,14 @@ __device__ static void Kuiper_For_for_loop___149(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
-    (void) tmp9;
     uint32_t i = 0;
     while (i < 8) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 16) + tmp6) * 4)),
+            (tmp3.col_ind + ((((tmp8 / 4) * 4) + (tmp9 * 512)) +
+                                (((__anf0 * 16) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -10852,7 +11321,6 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_52(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    (void) gB;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
     uint8_t *tmp2 =
@@ -10883,6 +11351,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_52(
         uint32_t k = 0;
         while (k < 512) {
             uint32_t kv = k;
+            uint32_t kr = sh._2._1[kv];
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 1) {
@@ -10890,6 +11359,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_52(
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 16) * 4)) < cols) {
                     float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                    vec_memcpy((lchunk + 0),
+                        (gB + ((0 + (cols * kr)) +
+                                  (n_idx + ((__anf01 * 16) * 4)))));
                     uint32_t ix = 0;
                     while (ix < 4) {
                         uint32_t ixv = ix;
@@ -10920,6 +11392,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_52(
             uint32_t k1_1 = 0;
             while (k1_1 < 512) {
                 uint32_t kv_1 = k1_1;
+                uint32_t kr_1 = sh._2._1[kv_1];
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 1) {
@@ -10927,6 +11400,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_52(
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 16) * 4)) < cols) {
                         float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                        vec_memcpy((lchunk_1 + 0),
+                            (gB + ((0 + (cols * kr_1)) +
+                                      (n_idx + ((__anf03 * 16) * 4)))));
                         uint32_t ix_1 = 0;
                         while (ix_1 < 4) {
                             uint32_t ixv_1 = ix_1;
@@ -10960,6 +11436,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_52(
     uint32_t k_1 = 0;
     while (k_1 < nnz) {
         uint32_t kv_2 = k_1;
+        uint32_t kr_2 = sh._2._1[kv_2];
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 1) {
@@ -10967,6 +11444,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_52(
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 16) * 4)) < cols) {
                 float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                vec_memcpy((lchunk_2 + 0),
+                    (gB + ((0 + (cols * kr_2)) +
+                              (n_idx + ((__anf02_3 * 16) * 4)))));
                 uint32_t ix_2 = 0;
                 while (ix_2 < 4) {
                     uint32_t ixv_2 = ix_2;
@@ -10992,7 +11472,6 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_53(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    (void) gB;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
     uint8_t *tmp2 =
@@ -11023,6 +11502,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_53(
         uint32_t k = 0;
         while (k < 512) {
             uint32_t kv = k;
+            uint32_t kr = sh._2._1[kv];
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 1) {
@@ -11030,6 +11510,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_53(
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 16) * 4)) < cols) {
                     float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                    vec_memcpy((lchunk + 0),
+                        (gB + ((0 + (cols * kr)) +
+                                  (n_idx + ((__anf01 * 16) * 4)))));
                     uint32_t ix = 0;
                     while (ix < 4) {
                         uint32_t ixv = ix;
@@ -11060,6 +11543,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_53(
             uint32_t k1_1 = 0;
             while (k1_1 < 512) {
                 uint32_t kv_1 = k1_1;
+                uint32_t kr_1 = sh._2._1[kv_1];
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 1) {
@@ -11067,6 +11551,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_53(
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 16) * 4)) < cols) {
                         float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                        vec_memcpy((lchunk_1 + 0),
+                            (gB + ((0 + (cols * kr_1)) +
+                                      (n_idx + ((__anf03 * 16) * 4)))));
                         uint32_t ix_1 = 0;
                         while (ix_1 < 4) {
                             uint32_t ixv_1 = ix_1;
@@ -11100,6 +11587,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_53(
     uint32_t k_1 = 0;
     while (k_1 < nnz) {
         uint32_t kv_2 = k_1;
+        uint32_t kr_2 = sh._2._1[kv_2];
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 1) {
@@ -11107,6 +11595,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_53(
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 16) * 4)) < cols) {
                 float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                vec_memcpy((lchunk_2 + 0),
+                    (gB + ((0 + (cols * kr_2)) +
+                              (n_idx + ((__anf02_3 * 16) * 4)))));
                 uint32_t ix_2 = 0;
                 while (ix_2 < 4) {
                     uint32_t ixv_2 = ix_2;
@@ -11133,14 +11624,13 @@ __device__ static void Kuiper_For_for_loop___150(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
     uint32_t i = 0;
     while (i < 8) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 16) + tmp6) * 4)),
+            (tmp3.elems + (((tmp8 / 4) * 4) + (((__anf0 * 16) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -11151,14 +11641,13 @@ __device__ static void Kuiper_For_for_loop___151(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
     uint32_t i = 0;
     while (i < 8) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 16) + tmp6) * 4)),
+            (tmp3.col_ind + (((tmp8 / 4) * 4) + (((__anf0 * 16) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -11169,15 +11658,14 @@ __device__ static void Kuiper_For_for_loop___152(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
-    (void) tmp9;
     uint32_t i = 0;
     while (i < 8) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 16) + tmp6) * 4)),
+            (tmp3.elems + ((((tmp8 / 4) * 4) + (tmp9 * 512)) +
+                              (((__anf0 * 16) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -11188,15 +11676,14 @@ __device__ static void Kuiper_For_for_loop___153(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
-    (void) tmp9;
     uint32_t i = 0;
     while (i < 8) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 16) + tmp6) * 4)),
+            (tmp3.col_ind + ((((tmp8 / 4) * 4) + (tmp9 * 512)) +
+                                (((__anf0 * 16) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -11206,7 +11693,6 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_54(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    (void) gB;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
     uint8_t *tmp2 =
@@ -11237,6 +11723,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_54(
         uint32_t k = 0;
         while (k < 512) {
             uint32_t kv = k;
+            uint32_t kr = sh._2._1[kv];
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 2) {
@@ -11244,6 +11731,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_54(
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 16) * 4)) < cols) {
                     float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                    vec_memcpy((lchunk + 0),
+                        (gB + ((0 + (cols * kr)) +
+                                  (n_idx + ((__anf01 * 16) * 4)))));
                     uint32_t ix = 0;
                     while (ix < 4) {
                         uint32_t ixv = ix;
@@ -11274,6 +11764,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_54(
             uint32_t k1_1 = 0;
             while (k1_1 < 512) {
                 uint32_t kv_1 = k1_1;
+                uint32_t kr_1 = sh._2._1[kv_1];
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 2) {
@@ -11281,6 +11772,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_54(
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 16) * 4)) < cols) {
                         float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                        vec_memcpy((lchunk_1 + 0),
+                            (gB + ((0 + (cols * kr_1)) +
+                                      (n_idx + ((__anf03 * 16) * 4)))));
                         uint32_t ix_1 = 0;
                         while (ix_1 < 4) {
                             uint32_t ixv_1 = ix_1;
@@ -11314,6 +11808,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_54(
     uint32_t k_1 = 0;
     while (k_1 < nnz) {
         uint32_t kv_2 = k_1;
+        uint32_t kr_2 = sh._2._1[kv_2];
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 2) {
@@ -11321,6 +11816,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_54(
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 16) * 4)) < cols) {
                 float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                vec_memcpy((lchunk_2 + 0),
+                    (gB + ((0 + (cols * kr_2)) +
+                              (n_idx + ((__anf02_3 * 16) * 4)))));
                 uint32_t ix_2 = 0;
                 while (ix_2 < 4) {
                     uint32_t ixv_2 = ix_2;
@@ -11346,7 +11844,6 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_55(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    (void) gB;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
     uint8_t *tmp2 =
@@ -11377,6 +11874,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_55(
         uint32_t k = 0;
         while (k < 512) {
             uint32_t kv = k;
+            uint32_t kr = sh._2._1[kv];
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 2) {
@@ -11384,6 +11882,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_55(
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 16) * 4)) < cols) {
                     float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                    vec_memcpy((lchunk + 0),
+                        (gB + ((0 + (cols * kr)) +
+                                  (n_idx + ((__anf01 * 16) * 4)))));
                     uint32_t ix = 0;
                     while (ix < 4) {
                         uint32_t ixv = ix;
@@ -11414,6 +11915,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_55(
             uint32_t k1_1 = 0;
             while (k1_1 < 512) {
                 uint32_t kv_1 = k1_1;
+                uint32_t kr_1 = sh._2._1[kv_1];
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 2) {
@@ -11421,6 +11923,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_55(
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 16) * 4)) < cols) {
                         float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                        vec_memcpy((lchunk_1 + 0),
+                            (gB + ((0 + (cols * kr_1)) +
+                                      (n_idx + ((__anf03 * 16) * 4)))));
                         uint32_t ix_1 = 0;
                         while (ix_1 < 4) {
                             uint32_t ixv_1 = ix_1;
@@ -11454,6 +11959,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_55(
     uint32_t k_1 = 0;
     while (k_1 < nnz) {
         uint32_t kv_2 = k_1;
+        uint32_t kr_2 = sh._2._1[kv_2];
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 2) {
@@ -11461,6 +11967,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_55(
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 16) * 4)) < cols) {
                 float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                vec_memcpy((lchunk_2 + 0),
+                    (gB + ((0 + (cols * kr_2)) +
+                              (n_idx + ((__anf02_3 * 16) * 4)))));
                 uint32_t ix_2 = 0;
                 while (ix_2 < 4) {
                     uint32_t ixv_2 = ix_2;
@@ -11487,14 +11996,13 @@ __device__ static void Kuiper_For_for_loop___154(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
     uint32_t i = 0;
     while (i < 4) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 32) + tmp6) * 4)),
+            (tmp3.elems + (((tmp8 / 4) * 4) + (((__anf0 * 32) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -11505,14 +12013,13 @@ __device__ static void Kuiper_For_for_loop___155(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
     uint32_t i = 0;
     while (i < 4) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 32) + tmp6) * 4)),
+            (tmp3.col_ind + (((tmp8 / 4) * 4) + (((__anf0 * 32) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -11523,15 +12030,14 @@ __device__ static void Kuiper_For_for_loop___156(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
-    (void) tmp9;
     uint32_t i = 0;
     while (i < 4) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 32) + tmp6) * 4)),
+            (tmp3.elems + ((((tmp8 / 4) * 4) + (tmp9 * 512)) +
+                              (((__anf0 * 32) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -11542,15 +12048,14 @@ __device__ static void Kuiper_For_for_loop___157(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
-    (void) tmp9;
     uint32_t i = 0;
     while (i < 4) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 32) + tmp6) * 4)),
+            (tmp3.col_ind + ((((tmp8 / 4) * 4) + (tmp9 * 512)) +
+                                (((__anf0 * 32) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -11560,7 +12065,6 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_56(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    (void) gB;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
     uint8_t *tmp2 =
@@ -11591,6 +12095,7 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_56(
         uint32_t k = 0;
         while (k < 512) {
             uint32_t kv = k;
+            uint32_t kr = sh._2._1[kv];
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 1) {
@@ -11598,6 +12103,9 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_56(
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 32) * 4)) < cols) {
                     float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                    vec_memcpy((lchunk + 0),
+                        (gB + ((0 + (cols * kr)) +
+                                  (n_idx + ((__anf01 * 32) * 4)))));
                     uint32_t ix = 0;
                     while (ix < 4) {
                         uint32_t ixv = ix;
@@ -11628,6 +12136,7 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_56(
             uint32_t k1_1 = 0;
             while (k1_1 < 512) {
                 uint32_t kv_1 = k1_1;
+                uint32_t kr_1 = sh._2._1[kv_1];
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 1) {
@@ -11635,6 +12144,9 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_56(
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 32) * 4)) < cols) {
                         float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                        vec_memcpy((lchunk_1 + 0),
+                            (gB + ((0 + (cols * kr_1)) +
+                                      (n_idx + ((__anf03 * 32) * 4)))));
                         uint32_t ix_1 = 0;
                         while (ix_1 < 4) {
                             uint32_t ixv_1 = ix_1;
@@ -11668,6 +12180,7 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_56(
     uint32_t k_1 = 0;
     while (k_1 < nnz) {
         uint32_t kv_2 = k_1;
+        uint32_t kr_2 = sh._2._1[kv_2];
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 1) {
@@ -11675,6 +12188,9 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_56(
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 32) * 4)) < cols) {
                 float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                vec_memcpy((lchunk_2 + 0),
+                    (gB + ((0 + (cols * kr_2)) +
+                              (n_idx + ((__anf02_3 * 32) * 4)))));
                 uint32_t ix_2 = 0;
                 while (ix_2 < 4) {
                     uint32_t ixv_2 = ix_2;
@@ -11700,7 +12216,6 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_57(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    (void) gB;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
     uint8_t *tmp2 =
@@ -11731,6 +12246,7 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_57(
         uint32_t k = 0;
         while (k < 512) {
             uint32_t kv = k;
+            uint32_t kr = sh._2._1[kv];
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 1) {
@@ -11738,6 +12254,9 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_57(
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 32) * 4)) < cols) {
                     float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                    vec_memcpy((lchunk + 0),
+                        (gB + ((0 + (cols * kr)) +
+                                  (n_idx + ((__anf01 * 32) * 4)))));
                     uint32_t ix = 0;
                     while (ix < 4) {
                         uint32_t ixv = ix;
@@ -11768,6 +12287,7 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_57(
             uint32_t k1_1 = 0;
             while (k1_1 < 512) {
                 uint32_t kv_1 = k1_1;
+                uint32_t kr_1 = sh._2._1[kv_1];
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 1) {
@@ -11775,6 +12295,9 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_57(
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 32) * 4)) < cols) {
                         float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                        vec_memcpy((lchunk_1 + 0),
+                            (gB + ((0 + (cols * kr_1)) +
+                                      (n_idx + ((__anf03 * 32) * 4)))));
                         uint32_t ix_1 = 0;
                         while (ix_1 < 4) {
                             uint32_t ixv_1 = ix_1;
@@ -11808,6 +12331,7 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_57(
     uint32_t k_1 = 0;
     while (k_1 < nnz) {
         uint32_t kv_2 = k_1;
+        uint32_t kr_2 = sh._2._1[kv_2];
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 1) {
@@ -11815,6 +12339,9 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_57(
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 32) * 4)) < cols) {
                 float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                vec_memcpy((lchunk_2 + 0),
+                    (gB + ((0 + (cols * kr_2)) +
+                              (n_idx + ((__anf02_3 * 32) * 4)))));
                 uint32_t ix_2 = 0;
                 while (ix_2 < 4) {
                     uint32_t ixv_2 = ix_2;
@@ -11841,14 +12368,13 @@ __device__ static void Kuiper_For_for_loop___158(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
     uint32_t i = 0;
     while (i < 8) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 16) + tmp6) * 4)),
+            (tmp3.elems + (((tmp8 / 4) * 4) + (((__anf0 * 16) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -11859,14 +12385,13 @@ __device__ static void Kuiper_For_for_loop___159(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
     uint32_t i = 0;
     while (i < 8) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 16) + tmp6) * 4)),
+            (tmp3.col_ind + (((tmp8 / 4) * 4) + (((__anf0 * 16) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -11877,15 +12402,14 @@ __device__ static void Kuiper_For_for_loop___160(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
-    (void) tmp9;
     uint32_t i = 0;
     while (i < 8) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 16) + tmp6) * 4)),
+            (tmp3.elems + ((((tmp8 / 4) * 4) + (tmp9 * 512)) +
+                              (((__anf0 * 16) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -11896,15 +12420,14 @@ __device__ static void Kuiper_For_for_loop___161(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
-    (void) tmp9;
     uint32_t i = 0;
     while (i < 8) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 16) + tmp6) * 4)),
+            (tmp3.col_ind + ((((tmp8 / 4) * 4) + (tmp9 * 512)) +
+                                (((__anf0 * 16) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -11914,7 +12437,6 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_58(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    (void) gB;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
     uint8_t *tmp2 =
@@ -11946,6 +12468,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_58(
         uint32_t k = 0;
         while (k < 512) {
             uint32_t kv = k;
+            uint32_t kr = sh._2._1[kv];
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 4) {
@@ -11953,6 +12476,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_58(
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 16) * 4)) < cols) {
                     float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                    vec_memcpy((lchunk + 0),
+                        (gB + ((0 + (cols * kr)) +
+                                  (n_idx + ((__anf01 * 16) * 4)))));
                     uint32_t ix = 0;
                     while (ix < 4) {
                         uint32_t ixv = ix;
@@ -11983,6 +12509,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_58(
             uint32_t k1_1 = 0;
             while (k1_1 < 512) {
                 uint32_t kv_1 = k1_1;
+                uint32_t kr_1 = sh._2._1[kv_1];
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 4) {
@@ -11990,6 +12517,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_58(
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 16) * 4)) < cols) {
                         float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                        vec_memcpy((lchunk_1 + 0),
+                            (gB + ((0 + (cols * kr_1)) +
+                                      (n_idx + ((__anf03 * 16) * 4)))));
                         uint32_t ix_1 = 0;
                         while (ix_1 < 4) {
                             uint32_t ixv_1 = ix_1;
@@ -12023,6 +12553,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_58(
     uint32_t k_1 = 0;
     while (k_1 < nnz) {
         uint32_t kv_2 = k_1;
+        uint32_t kr_2 = sh._2._1[kv_2];
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 4) {
@@ -12030,6 +12561,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_58(
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 16) * 4)) < cols) {
                 float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                vec_memcpy((lchunk_2 + 0),
+                    (gB + ((0 + (cols * kr_2)) +
+                              (n_idx + ((__anf02_3 * 16) * 4)))));
                 uint32_t ix_2 = 0;
                 while (ix_2 < 4) {
                     uint32_t ixv_2 = ix_2;
@@ -12055,7 +12589,6 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_59(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    (void) gB;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
     uint8_t *tmp2 =
@@ -12087,6 +12620,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_59(
         uint32_t k = 0;
         while (k < 512) {
             uint32_t kv = k;
+            uint32_t kr = sh._2._1[kv];
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 4) {
@@ -12094,6 +12628,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_59(
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 16) * 4)) < cols) {
                     float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                    vec_memcpy((lchunk + 0),
+                        (gB + ((0 + (cols * kr)) +
+                                  (n_idx + ((__anf01 * 16) * 4)))));
                     uint32_t ix = 0;
                     while (ix < 4) {
                         uint32_t ixv = ix;
@@ -12124,6 +12661,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_59(
             uint32_t k1_1 = 0;
             while (k1_1 < 512) {
                 uint32_t kv_1 = k1_1;
+                uint32_t kr_1 = sh._2._1[kv_1];
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 4) {
@@ -12131,6 +12669,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_59(
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 16) * 4)) < cols) {
                         float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                        vec_memcpy((lchunk_1 + 0),
+                            (gB + ((0 + (cols * kr_1)) +
+                                      (n_idx + ((__anf03 * 16) * 4)))));
                         uint32_t ix_1 = 0;
                         while (ix_1 < 4) {
                             uint32_t ixv_1 = ix_1;
@@ -12164,6 +12705,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_59(
     uint32_t k_1 = 0;
     while (k_1 < nnz) {
         uint32_t kv_2 = k_1;
+        uint32_t kr_2 = sh._2._1[kv_2];
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 4) {
@@ -12171,6 +12713,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_59(
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 16) * 4)) < cols) {
                 float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                vec_memcpy((lchunk_2 + 0),
+                    (gB + ((0 + (cols * kr_2)) +
+                              (n_idx + ((__anf02_3 * 16) * 4)))));
                 uint32_t ix_2 = 0;
                 while (ix_2 < 4) {
                     uint32_t ixv_2 = ix_2;
@@ -12197,14 +12742,13 @@ __device__ static void Kuiper_For_for_loop___162(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
     uint32_t i = 0;
     while (i < 4) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 32) + tmp6) * 4)),
+            (tmp3.elems + (((tmp8 / 4) * 4) + (((__anf0 * 32) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -12215,14 +12759,13 @@ __device__ static void Kuiper_For_for_loop___163(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
     uint32_t i = 0;
     while (i < 4) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 32) + tmp6) * 4)),
+            (tmp3.col_ind + (((tmp8 / 4) * 4) + (((__anf0 * 32) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -12233,15 +12776,14 @@ __device__ static void Kuiper_For_for_loop___164(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
-    (void) tmp9;
     uint32_t i = 0;
     while (i < 4) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 32) + tmp6) * 4)),
+            (tmp3.elems + ((((tmp8 / 4) * 4) + (tmp9 * 512)) +
+                              (((__anf0 * 32) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -12252,15 +12794,14 @@ __device__ static void Kuiper_For_for_loop___165(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
-    (void) tmp9;
     uint32_t i = 0;
     while (i < 4) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 32) + tmp6) * 4)),
+            (tmp3.col_ind + ((((tmp8 / 4) * 4) + (tmp9 * 512)) +
+                                (((__anf0 * 32) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -12270,7 +12811,6 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_60(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    (void) gB;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
     uint8_t *tmp2 =
@@ -12301,6 +12841,7 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_60(
         uint32_t k = 0;
         while (k < 512) {
             uint32_t kv = k;
+            uint32_t kr = sh._2._1[kv];
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 2) {
@@ -12308,6 +12849,9 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_60(
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 32) * 4)) < cols) {
                     float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                    vec_memcpy((lchunk + 0),
+                        (gB + ((0 + (cols * kr)) +
+                                  (n_idx + ((__anf01 * 32) * 4)))));
                     uint32_t ix = 0;
                     while (ix < 4) {
                         uint32_t ixv = ix;
@@ -12338,6 +12882,7 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_60(
             uint32_t k1_1 = 0;
             while (k1_1 < 512) {
                 uint32_t kv_1 = k1_1;
+                uint32_t kr_1 = sh._2._1[kv_1];
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 2) {
@@ -12345,6 +12890,9 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_60(
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 32) * 4)) < cols) {
                         float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                        vec_memcpy((lchunk_1 + 0),
+                            (gB + ((0 + (cols * kr_1)) +
+                                      (n_idx + ((__anf03 * 32) * 4)))));
                         uint32_t ix_1 = 0;
                         while (ix_1 < 4) {
                             uint32_t ixv_1 = ix_1;
@@ -12378,6 +12926,7 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_60(
     uint32_t k_1 = 0;
     while (k_1 < nnz) {
         uint32_t kv_2 = k_1;
+        uint32_t kr_2 = sh._2._1[kv_2];
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 2) {
@@ -12385,6 +12934,9 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_60(
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 32) * 4)) < cols) {
                 float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                vec_memcpy((lchunk_2 + 0),
+                    (gB + ((0 + (cols * kr_2)) +
+                              (n_idx + ((__anf02_3 * 32) * 4)))));
                 uint32_t ix_2 = 0;
                 while (ix_2 < 4) {
                     uint32_t ixv_2 = ix_2;
@@ -12410,7 +12962,6 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_61(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    (void) gB;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
     uint8_t *tmp2 =
@@ -12441,6 +12992,7 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_61(
         uint32_t k = 0;
         while (k < 512) {
             uint32_t kv = k;
+            uint32_t kr = sh._2._1[kv];
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 2) {
@@ -12448,6 +13000,9 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_61(
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 32) * 4)) < cols) {
                     float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                    vec_memcpy((lchunk + 0),
+                        (gB + ((0 + (cols * kr)) +
+                                  (n_idx + ((__anf01 * 32) * 4)))));
                     uint32_t ix = 0;
                     while (ix < 4) {
                         uint32_t ixv = ix;
@@ -12478,6 +13033,7 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_61(
             uint32_t k1_1 = 0;
             while (k1_1 < 512) {
                 uint32_t kv_1 = k1_1;
+                uint32_t kr_1 = sh._2._1[kv_1];
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 2) {
@@ -12485,6 +13041,9 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_61(
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 32) * 4)) < cols) {
                         float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                        vec_memcpy((lchunk_1 + 0),
+                            (gB + ((0 + (cols * kr_1)) +
+                                      (n_idx + ((__anf03 * 32) * 4)))));
                         uint32_t ix_1 = 0;
                         while (ix_1 < 4) {
                             uint32_t ixv_1 = ix_1;
@@ -12518,6 +13077,7 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_61(
     uint32_t k_1 = 0;
     while (k_1 < nnz) {
         uint32_t kv_2 = k_1;
+        uint32_t kr_2 = sh._2._1[kv_2];
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 2) {
@@ -12525,6 +13085,9 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_61(
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 32) * 4)) < cols) {
                 float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                vec_memcpy((lchunk_2 + 0),
+                    (gB + ((0 + (cols * kr_2)) +
+                              (n_idx + ((__anf02_3 * 32) * 4)))));
                 uint32_t ix_2 = 0;
                 while (ix_2 < 4) {
                     uint32_t ixv_2 = ix_2;
@@ -12551,14 +13114,13 @@ __device__ static void Kuiper_For_for_loop___166(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
     uint32_t i = 0;
     while (i < 2) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 64) + tmp6) * 4)),
+            (tmp3.elems + (((tmp8 / 4) * 4) + (((__anf0 * 64) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -12569,14 +13131,13 @@ __device__ static void Kuiper_For_for_loop___167(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
     uint32_t i = 0;
     while (i < 2) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 64) + tmp6) * 4)),
+            (tmp3.col_ind + (((tmp8 / 4) * 4) + (((__anf0 * 64) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -12587,15 +13148,14 @@ __device__ static void Kuiper_For_for_loop___168(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
-    (void) tmp9;
     uint32_t i = 0;
     while (i < 2) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 64) + tmp6) * 4)),
+            (tmp3.elems + ((((tmp8 / 4) * 4) + (tmp9 * 512)) +
+                              (((__anf0 * 64) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -12606,15 +13166,14 @@ __device__ static void Kuiper_For_for_loop___169(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
-    (void) tmp9;
     uint32_t i = 0;
     while (i < 2) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 64) + tmp6) * 4)),
+            (tmp3.col_ind + ((((tmp8 / 4) * 4) + (tmp9 * 512)) +
+                                (((__anf0 * 64) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -12624,7 +13183,6 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_62(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    (void) gB;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
     uint8_t *tmp2 =
@@ -12655,6 +13213,7 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_62(
         uint32_t k = 0;
         while (k < 512) {
             uint32_t kv = k;
+            uint32_t kr = sh._2._1[kv];
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 1) {
@@ -12662,6 +13221,9 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_62(
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 64) * 4)) < cols) {
                     float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                    vec_memcpy((lchunk + 0),
+                        (gB + ((0 + (cols * kr)) +
+                                  (n_idx + ((__anf01 * 64) * 4)))));
                     uint32_t ix = 0;
                     while (ix < 4) {
                         uint32_t ixv = ix;
@@ -12692,6 +13254,7 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_62(
             uint32_t k1_1 = 0;
             while (k1_1 < 512) {
                 uint32_t kv_1 = k1_1;
+                uint32_t kr_1 = sh._2._1[kv_1];
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 1) {
@@ -12699,6 +13262,9 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_62(
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 64) * 4)) < cols) {
                         float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                        vec_memcpy((lchunk_1 + 0),
+                            (gB + ((0 + (cols * kr_1)) +
+                                      (n_idx + ((__anf03 * 64) * 4)))));
                         uint32_t ix_1 = 0;
                         while (ix_1 < 4) {
                             uint32_t ixv_1 = ix_1;
@@ -12732,6 +13298,7 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_62(
     uint32_t k_1 = 0;
     while (k_1 < nnz) {
         uint32_t kv_2 = k_1;
+        uint32_t kr_2 = sh._2._1[kv_2];
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 1) {
@@ -12739,6 +13306,9 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_62(
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 64) * 4)) < cols) {
                 float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                vec_memcpy((lchunk_2 + 0),
+                    (gB + ((0 + (cols * kr_2)) +
+                              (n_idx + ((__anf02_3 * 64) * 4)))));
                 uint32_t ix_2 = 0;
                 while (ix_2 < 4) {
                     uint32_t ixv_2 = ix_2;
@@ -12764,7 +13334,6 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_63(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    (void) gB;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
     uint8_t *tmp2 =
@@ -12795,6 +13364,7 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_63(
         uint32_t k = 0;
         while (k < 512) {
             uint32_t kv = k;
+            uint32_t kr = sh._2._1[kv];
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 1) {
@@ -12802,6 +13372,9 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_63(
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 64) * 4)) < cols) {
                     float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                    vec_memcpy((lchunk + 0),
+                        (gB + ((0 + (cols * kr)) +
+                                  (n_idx + ((__anf01 * 64) * 4)))));
                     uint32_t ix = 0;
                     while (ix < 4) {
                         uint32_t ixv = ix;
@@ -12832,6 +13405,7 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_63(
             uint32_t k1_1 = 0;
             while (k1_1 < 512) {
                 uint32_t kv_1 = k1_1;
+                uint32_t kr_1 = sh._2._1[kv_1];
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 1) {
@@ -12839,6 +13413,9 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_63(
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 64) * 4)) < cols) {
                         float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                        vec_memcpy((lchunk_1 + 0),
+                            (gB + ((0 + (cols * kr_1)) +
+                                      (n_idx + ((__anf03 * 64) * 4)))));
                         uint32_t ix_1 = 0;
                         while (ix_1 < 4) {
                             uint32_t ixv_1 = ix_1;
@@ -12872,6 +13449,7 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_63(
     uint32_t k_1 = 0;
     while (k_1 < nnz) {
         uint32_t kv_2 = k_1;
+        uint32_t kr_2 = sh._2._1[kv_2];
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 1) {
@@ -12879,6 +13457,9 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_63(
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 64) * 4)) < cols) {
                 float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                vec_memcpy((lchunk_2 + 0),
+                    (gB + ((0 + (cols * kr_2)) +
+                              (n_idx + ((__anf02_3 * 64) * 4)))));
                 uint32_t ix_2 = 0;
                 while (ix_2 < 4) {
                     uint32_t ixv_2 = ix_2;
@@ -12905,14 +13486,13 @@ __device__ static void Kuiper_For_for_loop___170(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
     uint32_t i = 0;
     while (i < 8) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 16) + tmp6) * 4)),
+            (tmp3.elems + (((tmp8 / 4) * 4) + (((__anf0 * 16) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -12923,14 +13503,13 @@ __device__ static void Kuiper_For_for_loop___171(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
     uint32_t i = 0;
     while (i < 8) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 16) + tmp6) * 4)),
+            (tmp3.col_ind + (((tmp8 / 4) * 4) + (((__anf0 * 16) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -12941,15 +13520,14 @@ __device__ static void Kuiper_For_for_loop___172(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
-    (void) tmp9;
     uint32_t i = 0;
     while (i < 8) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 16) + tmp6) * 4)),
+            (tmp3.elems + ((((tmp8 / 4) * 4) + (tmp9 * 512)) +
+                              (((__anf0 * 16) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -12960,15 +13538,14 @@ __device__ static void Kuiper_For_for_loop___173(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
-    (void) tmp9;
     uint32_t i = 0;
     while (i < 8) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 16) + tmp6) * 4)),
+            (tmp3.col_ind + ((((tmp8 / 4) * 4) + (tmp9 * 512)) +
+                                (((__anf0 * 16) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -12978,7 +13555,6 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_64(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    (void) gB;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
     uint8_t *tmp2 =
@@ -13011,6 +13587,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_64(
         uint32_t k = 0;
         while (k < 512) {
             uint32_t kv = k;
+            uint32_t kr = sh._2._1[kv];
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 8) {
@@ -13018,6 +13595,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_64(
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 16) * 4)) < cols) {
                     float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                    vec_memcpy((lchunk + 0),
+                        (gB + ((0 + (cols * kr)) +
+                                  (n_idx + ((__anf01 * 16) * 4)))));
                     uint32_t ix = 0;
                     while (ix < 4) {
                         uint32_t ixv = ix;
@@ -13048,6 +13628,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_64(
             uint32_t k1_1 = 0;
             while (k1_1 < 512) {
                 uint32_t kv_1 = k1_1;
+                uint32_t kr_1 = sh._2._1[kv_1];
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 8) {
@@ -13055,6 +13636,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_64(
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 16) * 4)) < cols) {
                         float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                        vec_memcpy((lchunk_1 + 0),
+                            (gB + ((0 + (cols * kr_1)) +
+                                      (n_idx + ((__anf03 * 16) * 4)))));
                         uint32_t ix_1 = 0;
                         while (ix_1 < 4) {
                             uint32_t ixv_1 = ix_1;
@@ -13088,6 +13672,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_64(
     uint32_t k_1 = 0;
     while (k_1 < nnz) {
         uint32_t kv_2 = k_1;
+        uint32_t kr_2 = sh._2._1[kv_2];
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 8) {
@@ -13095,6 +13680,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_64(
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 16) * 4)) < cols) {
                 float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                vec_memcpy((lchunk_2 + 0),
+                    (gB + ((0 + (cols * kr_2)) +
+                              (n_idx + ((__anf02_3 * 16) * 4)))));
                 uint32_t ix_2 = 0;
                 while (ix_2 < 4) {
                     uint32_t ixv_2 = ix_2;
@@ -13120,7 +13708,6 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_65(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    (void) gB;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
     uint8_t *tmp2 =
@@ -13153,6 +13740,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_65(
         uint32_t k = 0;
         while (k < 512) {
             uint32_t kv = k;
+            uint32_t kr = sh._2._1[kv];
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 8) {
@@ -13160,6 +13748,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_65(
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 16) * 4)) < cols) {
                     float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                    vec_memcpy((lchunk + 0),
+                        (gB + ((0 + (cols * kr)) +
+                                  (n_idx + ((__anf01 * 16) * 4)))));
                     uint32_t ix = 0;
                     while (ix < 4) {
                         uint32_t ixv = ix;
@@ -13190,6 +13781,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_65(
             uint32_t k1_1 = 0;
             while (k1_1 < 512) {
                 uint32_t kv_1 = k1_1;
+                uint32_t kr_1 = sh._2._1[kv_1];
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 8) {
@@ -13197,6 +13789,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_65(
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 16) * 4)) < cols) {
                         float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                        vec_memcpy((lchunk_1 + 0),
+                            (gB + ((0 + (cols * kr_1)) +
+                                      (n_idx + ((__anf03 * 16) * 4)))));
                         uint32_t ix_1 = 0;
                         while (ix_1 < 4) {
                             uint32_t ixv_1 = ix_1;
@@ -13230,6 +13825,7 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_65(
     uint32_t k_1 = 0;
     while (k_1 < nnz) {
         uint32_t kv_2 = k_1;
+        uint32_t kr_2 = sh._2._1[kv_2];
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 8) {
@@ -13237,6 +13833,9 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_65(
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 16) * 4)) < cols) {
                 float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                vec_memcpy((lchunk_2 + 0),
+                    (gB + ((0 + (cols * kr_2)) +
+                              (n_idx + ((__anf02_3 * 16) * 4)))));
                 uint32_t ix_2 = 0;
                 while (ix_2 < 4) {
                     uint32_t ixv_2 = ix_2;
@@ -13263,14 +13862,13 @@ __device__ static void Kuiper_For_for_loop___174(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
     uint32_t i = 0;
     while (i < 4) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 32) + tmp6) * 4)),
+            (tmp3.elems + (((tmp8 / 4) * 4) + (((__anf0 * 32) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -13281,14 +13879,13 @@ __device__ static void Kuiper_For_for_loop___175(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
     uint32_t i = 0;
     while (i < 4) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 32) + tmp6) * 4)),
+            (tmp3.col_ind + (((tmp8 / 4) * 4) + (((__anf0 * 32) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -13299,15 +13896,14 @@ __device__ static void Kuiper_For_for_loop___176(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
-    (void) tmp9;
     uint32_t i = 0;
     while (i < 4) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 32) + tmp6) * 4)),
+            (tmp3.elems + ((((tmp8 / 4) * 4) + (tmp9 * 512)) +
+                              (((__anf0 * 32) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -13318,15 +13914,14 @@ __device__ static void Kuiper_For_for_loop___177(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
-    (void) tmp9;
     uint32_t i = 0;
     while (i < 4) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 32) + tmp6) * 4)),
+            (tmp3.col_ind + ((((tmp8 / 4) * 4) + (tmp9 * 512)) +
+                                (((__anf0 * 32) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -13336,7 +13931,6 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_66(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    (void) gB;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
     uint8_t *tmp2 =
@@ -13368,6 +13962,7 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_66(
         uint32_t k = 0;
         while (k < 512) {
             uint32_t kv = k;
+            uint32_t kr = sh._2._1[kv];
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 4) {
@@ -13375,6 +13970,9 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_66(
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 32) * 4)) < cols) {
                     float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                    vec_memcpy((lchunk + 0),
+                        (gB + ((0 + (cols * kr)) +
+                                  (n_idx + ((__anf01 * 32) * 4)))));
                     uint32_t ix = 0;
                     while (ix < 4) {
                         uint32_t ixv = ix;
@@ -13405,6 +14003,7 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_66(
             uint32_t k1_1 = 0;
             while (k1_1 < 512) {
                 uint32_t kv_1 = k1_1;
+                uint32_t kr_1 = sh._2._1[kv_1];
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 4) {
@@ -13412,6 +14011,9 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_66(
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 32) * 4)) < cols) {
                         float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                        vec_memcpy((lchunk_1 + 0),
+                            (gB + ((0 + (cols * kr_1)) +
+                                      (n_idx + ((__anf03 * 32) * 4)))));
                         uint32_t ix_1 = 0;
                         while (ix_1 < 4) {
                             uint32_t ixv_1 = ix_1;
@@ -13445,6 +14047,7 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_66(
     uint32_t k_1 = 0;
     while (k_1 < nnz) {
         uint32_t kv_2 = k_1;
+        uint32_t kr_2 = sh._2._1[kv_2];
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 4) {
@@ -13452,6 +14055,9 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_66(
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 32) * 4)) < cols) {
                 float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                vec_memcpy((lchunk_2 + 0),
+                    (gB + ((0 + (cols * kr_2)) +
+                              (n_idx + ((__anf02_3 * 32) * 4)))));
                 uint32_t ix_2 = 0;
                 while (ix_2 < 4) {
                     uint32_t ixv_2 = ix_2;
@@ -13477,7 +14083,6 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_67(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    (void) gB;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
     uint8_t *tmp2 =
@@ -13509,6 +14114,7 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_67(
         uint32_t k = 0;
         while (k < 512) {
             uint32_t kv = k;
+            uint32_t kr = sh._2._1[kv];
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 4) {
@@ -13516,6 +14122,9 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_67(
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 32) * 4)) < cols) {
                     float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                    vec_memcpy((lchunk + 0),
+                        (gB + ((0 + (cols * kr)) +
+                                  (n_idx + ((__anf01 * 32) * 4)))));
                     uint32_t ix = 0;
                     while (ix < 4) {
                         uint32_t ixv = ix;
@@ -13546,6 +14155,7 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_67(
             uint32_t k1_1 = 0;
             while (k1_1 < 512) {
                 uint32_t kv_1 = k1_1;
+                uint32_t kr_1 = sh._2._1[kv_1];
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 4) {
@@ -13553,6 +14163,9 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_67(
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 32) * 4)) < cols) {
                         float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                        vec_memcpy((lchunk_1 + 0),
+                            (gB + ((0 + (cols * kr_1)) +
+                                      (n_idx + ((__anf03 * 32) * 4)))));
                         uint32_t ix_1 = 0;
                         while (ix_1 < 4) {
                             uint32_t ixv_1 = ix_1;
@@ -13586,6 +14199,7 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_67(
     uint32_t k_1 = 0;
     while (k_1 < nnz) {
         uint32_t kv_2 = k_1;
+        uint32_t kr_2 = sh._2._1[kv_2];
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 4) {
@@ -13593,6 +14207,9 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_67(
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 32) * 4)) < cols) {
                 float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                vec_memcpy((lchunk_2 + 0),
+                    (gB + ((0 + (cols * kr_2)) +
+                              (n_idx + ((__anf02_3 * 32) * 4)))));
                 uint32_t ix_2 = 0;
                 while (ix_2 < 4) {
                     uint32_t ixv_2 = ix_2;
@@ -13618,7 +14235,6 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_68(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    (void) gB;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
     uint8_t *tmp2 =
@@ -13649,6 +14265,7 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_68(
         uint32_t k = 0;
         while (k < 512) {
             uint32_t kv = k;
+            uint32_t kr = sh._2._1[kv];
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 2) {
@@ -13656,6 +14273,9 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_68(
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 64) * 4)) < cols) {
                     float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                    vec_memcpy((lchunk + 0),
+                        (gB + ((0 + (cols * kr)) +
+                                  (n_idx + ((__anf01 * 64) * 4)))));
                     uint32_t ix = 0;
                     while (ix < 4) {
                         uint32_t ixv = ix;
@@ -13686,6 +14306,7 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_68(
             uint32_t k1_1 = 0;
             while (k1_1 < 512) {
                 uint32_t kv_1 = k1_1;
+                uint32_t kr_1 = sh._2._1[kv_1];
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 2) {
@@ -13693,6 +14314,9 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_68(
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 64) * 4)) < cols) {
                         float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                        vec_memcpy((lchunk_1 + 0),
+                            (gB + ((0 + (cols * kr_1)) +
+                                      (n_idx + ((__anf03 * 64) * 4)))));
                         uint32_t ix_1 = 0;
                         while (ix_1 < 4) {
                             uint32_t ixv_1 = ix_1;
@@ -13726,6 +14350,7 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_68(
     uint32_t k_1 = 0;
     while (k_1 < nnz) {
         uint32_t kv_2 = k_1;
+        uint32_t kr_2 = sh._2._1[kv_2];
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 2) {
@@ -13733,6 +14358,9 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_68(
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 64) * 4)) < cols) {
                 float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                vec_memcpy((lchunk_2 + 0),
+                    (gB + ((0 + (cols * kr_2)) +
+                              (n_idx + ((__anf02_3 * 64) * 4)))));
                 uint32_t ix_2 = 0;
                 while (ix_2 < 4) {
                     uint32_t ixv_2 = ix_2;
@@ -13758,7 +14386,6 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_69(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    (void) gB;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
     uint8_t *tmp2 =
@@ -13789,6 +14416,7 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_69(
         uint32_t k = 0;
         while (k < 512) {
             uint32_t kv = k;
+            uint32_t kr = sh._2._1[kv];
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 2) {
@@ -13796,6 +14424,9 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_69(
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 64) * 4)) < cols) {
                     float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                    vec_memcpy((lchunk + 0),
+                        (gB + ((0 + (cols * kr)) +
+                                  (n_idx + ((__anf01 * 64) * 4)))));
                     uint32_t ix = 0;
                     while (ix < 4) {
                         uint32_t ixv = ix;
@@ -13826,6 +14457,7 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_69(
             uint32_t k1_1 = 0;
             while (k1_1 < 512) {
                 uint32_t kv_1 = k1_1;
+                uint32_t kr_1 = sh._2._1[kv_1];
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 2) {
@@ -13833,6 +14465,9 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_69(
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 64) * 4)) < cols) {
                         float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                        vec_memcpy((lchunk_1 + 0),
+                            (gB + ((0 + (cols * kr_1)) +
+                                      (n_idx + ((__anf03 * 64) * 4)))));
                         uint32_t ix_1 = 0;
                         while (ix_1 < 4) {
                             uint32_t ixv_1 = ix_1;
@@ -13866,6 +14501,7 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_69(
     uint32_t k_1 = 0;
     while (k_1 < nnz) {
         uint32_t kv_2 = k_1;
+        uint32_t kr_2 = sh._2._1[kv_2];
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 2) {
@@ -13873,6 +14509,9 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_69(
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 64) * 4)) < cols) {
                 float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                vec_memcpy((lchunk_2 + 0),
+                    (gB + ((0 + (cols * kr_2)) +
+                              (n_idx + ((__anf02_3 * 64) * 4)))));
                 uint32_t ix_2 = 0;
                 while (ix_2 < 4) {
                     uint32_t ixv_2 = ix_2;
@@ -13899,14 +14538,13 @@ __device__ static void Kuiper_For_for_loop___178(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
     uint32_t i = 0;
     while (i < 1) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 128) + tmp6) * 4)),
+            (tmp3.elems + (((tmp8 / 4) * 4) + (((__anf0 * 128) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -13917,14 +14555,14 @@ __device__ static void Kuiper_For_for_loop___179(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
     uint32_t i = 0;
     while (i < 1) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 128) + tmp6) * 4)),
+            (tmp3.col_ind +
+                (((tmp8 / 4) * 4) + (((__anf0 * 128) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -13947,15 +14585,14 @@ __device__ static void Kuiper_For_for_loop___181(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
-    (void) tmp9;
     uint32_t i = 0;
     while (i < 1) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 128) + tmp6) * 4)),
+            (tmp3.elems + ((((tmp8 / 4) * 4) + (tmp9 * 512)) +
+                              (((__anf0 * 128) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -13966,15 +14603,14 @@ __device__ static void Kuiper_For_for_loop___182(uint32_t tmp, uint32_t tmp1,
     (void) tmp;
     (void) tmp1;
     (void) tmp2;
-    (void) tmp3;
-    (void) tmp6;
-    (void) tmp7;
-    (void) tmp8;
-    (void) tmp9;
     uint32_t i = 0;
     while (i < 1) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        vec_memcpy((tmp7 + (((__anf0 * 128) + tmp6) * 4)),
+            (tmp3.col_ind + ((((tmp8 / 4) * 4) + (tmp9 * 512)) +
+                                (((__anf0 * 128) + tmp6) * 4))));
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -14001,17 +14637,18 @@ __device__ static void Kuiper_For_for_loop___183(uint32_t tmp, uint32_t tmp1,
 __device__ static void Kuiper_For_for_loop___184(uint32_t tmp, uint32_t tmp1,
     float *tmp2, uint32_t tmp3, uint32_t tmp4, uint32_t tmp5, float *tmp6)
 {
-    (void) tmp;
-    (void) tmp1;
-    (void) tmp2;
-    (void) tmp3;
-    (void) tmp4;
-    (void) tmp5;
-    (void) tmp6;
     uint32_t i = 0;
     while (i < 1) {
         uint32_t __anf0 = i;
-        i = (__anf0 + 1);
+        if (((((tmp3 / tmp) * 512) + (tmp4 * 4)) + ((__anf0 * 128) * 4)) <
+            tmp1) {
+            uint32_t offset =
+                ((0 + (tmp1 * tmp5)) + ((((tmp3 / tmp) * 512) + (tmp4 * 4)) +
+                                           ((__anf0 * 128) * 4)));
+            vec_memcpy((tmp2 + offset), (tmp6 + (__anf0 * 4)));
+        }
+        uint32_t __anf01 = i;
+        i = (__anf01 + 1);
     }
 }
 
@@ -14021,7 +14658,6 @@ __global__ __launch_bounds__(128) static void kuiper_kernel_70(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    (void) gB;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
     uint8_t *tmp2 =
@@ -14052,6 +14688,7 @@ __global__ __launch_bounds__(128) static void kuiper_kernel_70(
         uint32_t k = 0;
         while (k < 512) {
             uint32_t kv = k;
+            uint32_t kr = sh._2._1[kv];
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 1) {
@@ -14059,6 +14696,9 @@ __global__ __launch_bounds__(128) static void kuiper_kernel_70(
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 128) * 4)) < cols) {
                     float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                    vec_memcpy((lchunk + 0),
+                        (gB + ((0 + (cols * kr)) +
+                                  (n_idx + ((__anf01 * 128) * 4)))));
                     uint32_t ix = 0;
                     while (ix < 4) {
                         uint32_t ixv = ix;
@@ -14089,6 +14729,7 @@ __global__ __launch_bounds__(128) static void kuiper_kernel_70(
             uint32_t k1_1 = 0;
             while (k1_1 < 512) {
                 uint32_t kv_1 = k1_1;
+                uint32_t kr_1 = sh._2._1[kv_1];
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 1) {
@@ -14096,6 +14737,9 @@ __global__ __launch_bounds__(128) static void kuiper_kernel_70(
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 128) * 4)) < cols) {
                         float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                        vec_memcpy((lchunk_1 + 0),
+                            (gB + ((0 + (cols * kr_1)) +
+                                      (n_idx + ((__anf03 * 128) * 4)))));
                         uint32_t ix_1 = 0;
                         while (ix_1 < 4) {
                             uint32_t ixv_1 = ix_1;
@@ -14129,6 +14773,7 @@ __global__ __launch_bounds__(128) static void kuiper_kernel_70(
     uint32_t k_1 = 0;
     while (k_1 < nnz) {
         uint32_t kv_2 = k_1;
+        uint32_t kr_2 = sh._2._1[kv_2];
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 1) {
@@ -14136,6 +14781,9 @@ __global__ __launch_bounds__(128) static void kuiper_kernel_70(
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 128) * 4)) < cols) {
                 float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                vec_memcpy((lchunk_2 + 0),
+                    (gB + ((0 + (cols * kr_2)) +
+                              (n_idx + ((__anf02_3 * 128) * 4)))));
                 uint32_t ix_2 = 0;
                 while (ix_2 < 4) {
                     uint32_t ixv_2 = ix_2;
@@ -14161,7 +14809,6 @@ __global__ __launch_bounds__(128) static void kuiper_kernel_71(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    (void) gB;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
     uint8_t *tmp2 =
@@ -14192,6 +14839,7 @@ __global__ __launch_bounds__(128) static void kuiper_kernel_71(
         uint32_t k = 0;
         while (k < 512) {
             uint32_t kv = k;
+            uint32_t kr = sh._2._1[kv];
             float kx = sh._1[kv];
             uint32_t k1 = 0;
             while (k1 < 1) {
@@ -14199,6 +14847,9 @@ __global__ __launch_bounds__(128) static void kuiper_kernel_71(
                 uint32_t __anf01 = k1;
                 if ((n_idx + ((__anf01 * 128) * 4)) < cols) {
                     float lchunk[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                    vec_memcpy((lchunk + 0),
+                        (gB + ((0 + (cols * kr)) +
+                                  (n_idx + ((__anf01 * 128) * 4)))));
                     uint32_t ix = 0;
                     while (ix < 4) {
                         uint32_t ixv = ix;
@@ -14229,6 +14880,7 @@ __global__ __launch_bounds__(128) static void kuiper_kernel_71(
             uint32_t k1_1 = 0;
             while (k1_1 < 512) {
                 uint32_t kv_1 = k1_1;
+                uint32_t kr_1 = sh._2._1[kv_1];
                 float kx_1 = sh._1[kv_1];
                 uint32_t k2 = 0;
                 while (k2 < 1) {
@@ -14236,6 +14888,9 @@ __global__ __launch_bounds__(128) static void kuiper_kernel_71(
                     uint32_t __anf03 = k2;
                     if ((n_idx + ((__anf03 * 128) * 4)) < cols) {
                         float lchunk_1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                        vec_memcpy((lchunk_1 + 0),
+                            (gB + ((0 + (cols * kr_1)) +
+                                      (n_idx + ((__anf03 * 128) * 4)))));
                         uint32_t ix_1 = 0;
                         while (ix_1 < 4) {
                             uint32_t ixv_1 = ix_1;
@@ -14269,6 +14924,7 @@ __global__ __launch_bounds__(128) static void kuiper_kernel_71(
     uint32_t k_1 = 0;
     while (k_1 < nnz) {
         uint32_t kv_2 = k_1;
+        uint32_t kr_2 = sh._2._1[kv_2];
         float kx_2 = sh._1[kv_2];
         uint32_t k1_2 = 0;
         while (k1_2 < 1) {
@@ -14276,6 +14932,9 @@ __global__ __launch_bounds__(128) static void kuiper_kernel_71(
             uint32_t __anf02_3 = k1_2;
             if ((n_idx + ((__anf02_3 * 128) * 4)) < cols) {
                 float lchunk_2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                vec_memcpy((lchunk_2 + 0),
+                    (gB + ((0 + (cols * kr_2)) +
+                              (n_idx + ((__anf02_3 * 128) * 4)))));
                 uint32_t ix_2 = 0;
                 while (ix_2 < 4) {
                     uint32_t ixv_2 = ix_2;

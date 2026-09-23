@@ -744,8 +744,14 @@ let _ =
                   (B.Rule_prim (3, slice_write));
   B.register_rule (Ident.lid_of_str "Kuiper.Kernel.Base.launch_kernel_full")
                   (B.Rule_prim (2, launch));
+  (* Arity 6, not 10: [array_vec_cpy]'s four [#_ : squash (...)] preconditions
+     are binders now that pre/postconditions are desugared, and they are erased.
+     An arity that is too large is not an error -- the call is eta-expanded to
+     reach it, and the resulting function value is then a pure term that the
+     simplifier deletes, so every [vec_memcpy] silently vanished from the
+     generated CUDA.  [--custard_dump_ir] reports the mismatch as a warning. *)
   B.register_rule (Ident.lid_of_str "Kuiper.Array.Vectorized.array_vec_cpy")
-                  (B.Rule_prim (10, vec_cpy));
+                  (B.Rule_prim (6, vec_cpy));
 
 (* Section 79: the host-side runtime. *)
   B.register_rule (Ident.lid_of_str "Kuiper.Ref.memcpy_host_to_device")

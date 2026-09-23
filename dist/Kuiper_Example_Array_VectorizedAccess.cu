@@ -7,8 +7,9 @@ __global__ __launch_bounds__(1) static void kuiper_kernel_0(
 /* hoisted by the Custard Kuiper rule */
 __global__ __launch_bounds__(1) static void kuiper_kernel_0(float *a, float two)
 {
-    (void) a;
+    uint32_t global_idx = 0;
     float local[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+    vec_memcpy((local + 0), (a + global_idx));
     float __anf0 = local[0];
     local[0] = (two * __anf0);
     float __anf01 = local[1];
@@ -17,6 +18,7 @@ __global__ __launch_bounds__(1) static void kuiper_kernel_0(float *a, float two)
     local[2] = (two * __anf02);
     float __anf03 = local[3];
     local[3] = (two * __anf03);
+    vec_memcpy((a + global_idx), (local + 0));
 }
 
 void Kuiper_Example_Array_VectorizedAccess_hf(float *v)

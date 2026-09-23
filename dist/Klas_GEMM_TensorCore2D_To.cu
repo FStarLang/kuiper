@@ -329,8 +329,6 @@ __global__ static void kuiper_kernel_0(uint32_t cols, uint32_t shared,
     custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
     float beta, float alpha, custard_bf16 *gD)
 {
-    (void) gA;
-    (void) gB;
     (void) nthr;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     custard_bf16 *tmp1 = (custard_bf16 *) tmp;
@@ -352,6 +350,9 @@ __global__ static void kuiper_kernel_0(uint32_t cols, uint32_t shared,
                 ._1 = tmp1, ._2 = tmp7};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    uint32_t num_n_tiles = (cols / 64);
+    uint32_t mrow = (bid / num_n_tiles);
+    uint32_t mcol = (bid % num_n_tiles);
     uint32_t wid = (tid / 32);
     uint32_t warpRow = (wid / 2);
     uint32_t warpCol = (wid % 2);
@@ -390,6 +391,7 @@ __global__ static void kuiper_kernel_0(uint32_t cols, uint32_t shared,
     }
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
+        uint32_t __anf0_1 = bkIdx;
         __syncthreads();
         uint32_t mlen = 1024;
         uint32_t offset = (tid * 8);
@@ -399,26 +401,31 @@ __global__ static void kuiper_kernel_0(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_1 = i;
-            uint32_t row = ((__anf0_1 + offset) / 16);
             uint32_t __anf01_1 = i;
-            uint32_t col = ((__anf01_1 + offset) % 16);
+            uint32_t row = ((__anf01_1 + offset) / 16);
+            uint32_t __anf02 = i;
+            uint32_t col = ((__anf02 + offset) % 16);
+            uint32_t offset1 =
+                ((((0 + (shared * (mrow * 64))) + (__anf0_1 * 16)) +
+                     (shared * row)) +
+                    col);
+            vec_memcpy((local + 0), (gA + offset1));
             uint32_t k = 0;
             while (k < 8) {
-                uint32_t __anf02 = k;
-                custard_bf16 v = local[__anf02];
                 uint32_t __anf03 = k;
-                uint32_t cidx = (col + __anf03);
+                custard_bf16 v = local[__anf03];
+                uint32_t __anf04 = k;
+                uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 16) + cidx);
                 _letpattern._1[ni] = v;
-                uint32_t __anf04 = k;
-                k = (__anf04 + 1);
+                uint32_t __anf05 = k;
+                k = (__anf05 + 1);
             }
             uint32_t vi = i;
             i = (vi + 1024);
         }
         uint32_t mlen1 = 1024;
-        uint32_t offset1 = (tid * 8);
+        uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
             custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
@@ -426,20 +433,25 @@ __global__ static void kuiper_kernel_0(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_2 = i1;
-            uint32_t row_1 = ((__anf0_2 + offset1) / 64);
             uint32_t __anf01_2 = i1;
-            uint32_t col_1 = ((__anf01_2 + offset1) % 64);
+            uint32_t row_1 = ((__anf01_2 + offset1_1) / 64);
+            uint32_t __anf02_1 = i1;
+            uint32_t col_1 = ((__anf02_1 + offset1_1) % 64);
+            uint32_t offset2 =
+                ((((0 + (cols * (__anf0_1 * 16))) + (mcol * 64)) +
+                     (cols * row_1)) +
+                    col_1);
+            vec_memcpy((local_1 + 0), (gB + offset2));
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                uint32_t __anf02_1 = k_1;
-                custard_bf16 v_1 = local_1[__anf02_1];
                 uint32_t __anf03_1 = k_1;
-                uint32_t cidx_1 = (col_1 + __anf03_1);
+                custard_bf16 v_1 = local_1[__anf03_1];
+                uint32_t __anf04_1 = k_1;
+                uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 64) + cidx_1);
                 _letpattern._2[ni_1] = v_1;
-                uint32_t __anf04_1 = k_1;
-                k_1 = (__anf04_1 + 1);
+                uint32_t __anf05_1 = k_1;
+                k_1 = (__anf05_1 + 1);
             }
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 1024);
@@ -447,39 +459,39 @@ __global__ static void kuiper_kernel_0(uint32_t cols, uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 1) {
-            uint32_t __anf0_3 = dotIdx;
+            uint32_t __anf01_3 = dotIdx;
             uint32_t i0 = 0;
             while (i0 < 2) {
-                uint32_t __anf01_3 = i0;
                 uint32_t __anf02_2 = i0;
+                uint32_t __anf03_2 = i0;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
-                    aFrags[__anf02_2];
+                    aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
                     (_letpattern._1 +
-                        ((((0 + (16 * (warpRow * 32))) + (__anf0_3 * 16)) +
-                             (16 * (__anf01_3 * 16))) +
+                        ((((0 + (16 * (warpRow * 32))) + (__anf01_3 * 16)) +
+                             (16 * (__anf02_2 * 16))) +
                             0)),
                     ((uint32_t) 16U));
-                uint32_t __anf03_2 = i0;
-                i0 = (__anf03_2 + 1);
+                uint32_t __anf04_2 = i0;
+                i0 = (__anf04_2 + 1);
             }
-            uint32_t __anf01_4 = dotIdx;
+            uint32_t __anf02_3 = dotIdx;
             uint32_t i11 = 0;
             while (i11 < 2) {
-                uint32_t __anf02_3 = i11;
                 uint32_t __anf03_3 = i11;
+                uint32_t __anf04_3 = i11;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
-                    bFrags[__anf03_3];
+                    bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
                     (_letpattern._2 +
-                        ((((0 + (64 * (__anf01_4 * 16))) + (warpCol * 32)) +
+                        ((((0 + (64 * (__anf02_3 * 16))) + (warpCol * 32)) +
                              0) +
-                            (__anf02_3 * 16))),
+                            (__anf03_3 * 16))),
                     ((uint32_t) 64U));
-                uint32_t __anf04_2 = i11;
-                i11 = (__anf04_2 + 1);
+                uint32_t __anf05_2 = i11;
+                i11 = (__anf05_2 + 1);
             }
             uint32_t resIdxM = 0;
             while (resIdxM < 2) {
@@ -488,26 +500,26 @@ __global__ static void kuiper_kernel_0(uint32_t cols, uint32_t shared,
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &a_frag =
                         aFrags[resIdxM];
-                    uint32_t __anf03_4 = resIdxN;
+                    uint32_t __anf04_4 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &b_frag =
-                        bFrags[__anf03_4];
-                    uint32_t __anf04_3 = resIdxN;
+                        bFrags[__anf04_4];
+                    uint32_t __anf05_3 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16,
                         16, float, void> &acc_frag =
-                        accFrags[((resIdxM * 2) + __anf04_3)];
+                        accFrags[((resIdxM * 2) + __anf05_3)];
                     wmma::mma_sync(acc_frag, a_frag, b_frag, acc_frag);
-                    uint32_t __anf05 = resIdxN;
-                    resIdxN = (__anf05 + 1);
+                    uint32_t __anf06 = resIdxN;
+                    resIdxN = (__anf06 + 1);
                 }
-                uint32_t __anf02_4 = resIdxM;
-                resIdxM = (__anf02_4 + 1);
+                uint32_t __anf03_4 = resIdxM;
+                resIdxM = (__anf03_4 + 1);
             }
-            uint32_t __anf02_5 = dotIdx;
-            dotIdx = (__anf02_5 + 1);
+            uint32_t __anf03_5 = dotIdx;
+            dotIdx = (__anf03_5 + 1);
         }
-        uint32_t __anf0_4 = bkIdx;
-        bkIdx = (__anf0_4 + 1);
+        uint32_t __anf01_4 = bkIdx;
+        bkIdx = (__anf01_4 + 1);
     }
     uint32_t bm = 64;
     uint32_t bn = 64;
@@ -519,8 +531,8 @@ __global__ static void kuiper_kernel_0(uint32_t cols, uint32_t shared,
     uint32_t lane = (tid % 32);
     uint32_t idx = 0;
     while (idx < (wm * wn)) {
-        uint32_t mrow = (bid / (cols / bn));
-        uint32_t mcol = (bid % (cols / bn));
+        uint32_t mrow1 = (bid / (cols / bn));
+        uint32_t mcol1 = (bid % (cols / bn));
         uint32_t warpRow1 = (wid1 / (bn / (wn * tn)));
         uint32_t warpCol1 = (wid1 % (bn / (wn * tn)));
         float *sTile = FStar_Pervasives_Native_fst__array_t_unit(
@@ -533,22 +545,22 @@ __global__ static void kuiper_kernel_0(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}})));
-        uint32_t __anf0_5 = idx;
+        uint32_t __anf0_2 = idx;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
-            void> &__anf1_3 = accFrags[__anf0_5];
+            void> &__anf1_3 = accFrags[__anf0_2];
         KPR_STORE(
             (sTile + ((0 + (tn * (wid1 * tm))) + (0 * tn))), __anf1_3, tn);
         uint32_t __anf01_5 = idx;
         uint32_t area = (tm * tn);
         uint32_t flat = lane;
         while (flat < area) {
-            uint32_t __anf02_6 = flat;
-            uint32_t row_2 = (__anf02_6 / tn);
-            uint32_t col_2 = (__anf02_6 % tn);
-            uint32_t globalRow = ((((mrow * bm) + (warpRow1 * (wm * tm))) +
+            uint32_t __anf02_4 = flat;
+            uint32_t row_2 = (__anf02_4 / tn);
+            uint32_t col_2 = (__anf02_4 % tn);
+            uint32_t globalRow = ((((mrow1 * bm) + (warpRow1 * (wm * tm))) +
                                       ((__anf01_5 / wn) * tm)) +
                                   row_2);
-            uint32_t globalCol = ((((mcol * bn) + (warpCol1 * (wn * tn))) +
+            uint32_t globalCol = ((((mcol1 * bn) + (warpCol1 * (wn * tn))) +
                                       ((__anf01_5 % wn) * tn)) +
                                   col_2);
             uint32_t ni_2 = ((globalRow * cols) + globalCol);
@@ -563,8 +575,8 @@ __global__ static void kuiper_kernel_0(uint32_t cols, uint32_t shared,
             uint32_t vflat = flat;
             flat = (vflat + 32);
         }
-        uint32_t __anf02_7 = idx;
-        idx = (__anf02_7 + 1);
+        uint32_t __anf02_5 = idx;
+        idx = (__anf02_5 + 1);
     }
 }
 
@@ -588,8 +600,6 @@ __global__ static void kuiper_kernel_1(uint32_t cols, uint32_t shared,
     custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
     float beta, float alpha, custard_bf16 *gD)
 {
-    (void) gA;
-    (void) gB;
     (void) nthr;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     custard_bf16 *tmp1 = (custard_bf16 *) tmp;
@@ -611,6 +621,9 @@ __global__ static void kuiper_kernel_1(uint32_t cols, uint32_t shared,
                 ._1 = tmp1, ._2 = tmp7};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    uint32_t num_n_tiles = (cols / 64);
+    uint32_t mrow = (bid / num_n_tiles);
+    uint32_t mcol = (bid % num_n_tiles);
     uint32_t wid = (tid / 32);
     uint32_t warpRow = (wid / 1);
     uint32_t warpCol = (wid % 1);
@@ -649,6 +662,7 @@ __global__ static void kuiper_kernel_1(uint32_t cols, uint32_t shared,
     }
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
+        uint32_t __anf0_1 = bkIdx;
         __syncthreads();
         uint32_t mlen = 1024;
         uint32_t offset = (tid * 8);
@@ -658,26 +672,31 @@ __global__ static void kuiper_kernel_1(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_1 = i;
-            uint32_t row = ((__anf0_1 + offset) / 16);
             uint32_t __anf01_1 = i;
-            uint32_t col = ((__anf01_1 + offset) % 16);
+            uint32_t row = ((__anf01_1 + offset) / 16);
+            uint32_t __anf02 = i;
+            uint32_t col = ((__anf02 + offset) % 16);
+            uint32_t offset1 =
+                ((((0 + (shared * (mrow * 64))) + (__anf0_1 * 16)) +
+                     (shared * row)) +
+                    col);
+            vec_memcpy((local + 0), (gA + offset1));
             uint32_t k = 0;
             while (k < 8) {
-                uint32_t __anf02 = k;
-                custard_bf16 v = local[__anf02];
                 uint32_t __anf03 = k;
-                uint32_t cidx = (col + __anf03);
+                custard_bf16 v = local[__anf03];
+                uint32_t __anf04 = k;
+                uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 16) + cidx);
                 _letpattern._1[ni] = v;
-                uint32_t __anf04 = k;
-                k = (__anf04 + 1);
+                uint32_t __anf05 = k;
+                k = (__anf05 + 1);
             }
             uint32_t vi = i;
             i = (vi + 512);
         }
         uint32_t mlen1 = 1024;
-        uint32_t offset1 = (tid * 8);
+        uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
             custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
@@ -685,20 +704,25 @@ __global__ static void kuiper_kernel_1(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_2 = i1;
-            uint32_t row_1 = ((__anf0_2 + offset1) / 64);
             uint32_t __anf01_2 = i1;
-            uint32_t col_1 = ((__anf01_2 + offset1) % 64);
+            uint32_t row_1 = ((__anf01_2 + offset1_1) / 64);
+            uint32_t __anf02_1 = i1;
+            uint32_t col_1 = ((__anf02_1 + offset1_1) % 64);
+            uint32_t offset2 =
+                ((((0 + (cols * (__anf0_1 * 16))) + (mcol * 64)) +
+                     (cols * row_1)) +
+                    col_1);
+            vec_memcpy((local_1 + 0), (gB + offset2));
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                uint32_t __anf02_1 = k_1;
-                custard_bf16 v_1 = local_1[__anf02_1];
                 uint32_t __anf03_1 = k_1;
-                uint32_t cidx_1 = (col_1 + __anf03_1);
+                custard_bf16 v_1 = local_1[__anf03_1];
+                uint32_t __anf04_1 = k_1;
+                uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 64) + cidx_1);
                 _letpattern._2[ni_1] = v_1;
-                uint32_t __anf04_1 = k_1;
-                k_1 = (__anf04_1 + 1);
+                uint32_t __anf05_1 = k_1;
+                k_1 = (__anf05_1 + 1);
             }
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 512);
@@ -706,39 +730,39 @@ __global__ static void kuiper_kernel_1(uint32_t cols, uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 1) {
-            uint32_t __anf0_3 = dotIdx;
+            uint32_t __anf01_3 = dotIdx;
             uint32_t i0 = 0;
             while (i0 < 2) {
-                uint32_t __anf01_3 = i0;
                 uint32_t __anf02_2 = i0;
+                uint32_t __anf03_2 = i0;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
-                    aFrags[__anf02_2];
+                    aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
                     (_letpattern._1 +
-                        ((((0 + (16 * (warpRow * 32))) + (__anf0_3 * 16)) +
-                             (16 * (__anf01_3 * 16))) +
+                        ((((0 + (16 * (warpRow * 32))) + (__anf01_3 * 16)) +
+                             (16 * (__anf02_2 * 16))) +
                             0)),
                     ((uint32_t) 16U));
-                uint32_t __anf03_2 = i0;
-                i0 = (__anf03_2 + 1);
+                uint32_t __anf04_2 = i0;
+                i0 = (__anf04_2 + 1);
             }
-            uint32_t __anf01_4 = dotIdx;
+            uint32_t __anf02_3 = dotIdx;
             uint32_t i11 = 0;
             while (i11 < 4) {
-                uint32_t __anf02_3 = i11;
                 uint32_t __anf03_3 = i11;
+                uint32_t __anf04_3 = i11;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
-                    bFrags[__anf03_3];
+                    bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
                     (_letpattern._2 +
-                        ((((0 + (64 * (__anf01_4 * 16))) + (warpCol * 64)) +
+                        ((((0 + (64 * (__anf02_3 * 16))) + (warpCol * 64)) +
                              0) +
-                            (__anf02_3 * 16))),
+                            (__anf03_3 * 16))),
                     ((uint32_t) 64U));
-                uint32_t __anf04_2 = i11;
-                i11 = (__anf04_2 + 1);
+                uint32_t __anf05_2 = i11;
+                i11 = (__anf05_2 + 1);
             }
             uint32_t resIdxM = 0;
             while (resIdxM < 2) {
@@ -747,26 +771,26 @@ __global__ static void kuiper_kernel_1(uint32_t cols, uint32_t shared,
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &a_frag =
                         aFrags[resIdxM];
-                    uint32_t __anf03_4 = resIdxN;
+                    uint32_t __anf04_4 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &b_frag =
-                        bFrags[__anf03_4];
-                    uint32_t __anf04_3 = resIdxN;
+                        bFrags[__anf04_4];
+                    uint32_t __anf05_3 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16,
                         16, float, void> &acc_frag =
-                        accFrags[((resIdxM * 4) + __anf04_3)];
+                        accFrags[((resIdxM * 4) + __anf05_3)];
                     wmma::mma_sync(acc_frag, a_frag, b_frag, acc_frag);
-                    uint32_t __anf05 = resIdxN;
-                    resIdxN = (__anf05 + 1);
+                    uint32_t __anf06 = resIdxN;
+                    resIdxN = (__anf06 + 1);
                 }
-                uint32_t __anf02_4 = resIdxM;
-                resIdxM = (__anf02_4 + 1);
+                uint32_t __anf03_4 = resIdxM;
+                resIdxM = (__anf03_4 + 1);
             }
-            uint32_t __anf02_5 = dotIdx;
-            dotIdx = (__anf02_5 + 1);
+            uint32_t __anf03_5 = dotIdx;
+            dotIdx = (__anf03_5 + 1);
         }
-        uint32_t __anf0_4 = bkIdx;
-        bkIdx = (__anf0_4 + 1);
+        uint32_t __anf01_4 = bkIdx;
+        bkIdx = (__anf01_4 + 1);
     }
     uint32_t bm = 64;
     uint32_t bn = 64;
@@ -778,8 +802,8 @@ __global__ static void kuiper_kernel_1(uint32_t cols, uint32_t shared,
     uint32_t lane = (tid % 32);
     uint32_t idx = 0;
     while (idx < (wm * wn)) {
-        uint32_t mrow = (bid / (cols / bn));
-        uint32_t mcol = (bid % (cols / bn));
+        uint32_t mrow1 = (bid / (cols / bn));
+        uint32_t mcol1 = (bid % (cols / bn));
         uint32_t warpRow1 = (wid1 / (bn / (wn * tn)));
         uint32_t warpCol1 = (wid1 % (bn / (wn * tn)));
         float *sTile = FStar_Pervasives_Native_fst__array_t_unit(
@@ -792,22 +816,22 @@ __global__ static void kuiper_kernel_1(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}})));
-        uint32_t __anf0_5 = idx;
+        uint32_t __anf0_2 = idx;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
-            void> &__anf1_3 = accFrags[__anf0_5];
+            void> &__anf1_3 = accFrags[__anf0_2];
         KPR_STORE(
             (sTile + ((0 + (tn * (wid1 * tm))) + (0 * tn))), __anf1_3, tn);
         uint32_t __anf01_5 = idx;
         uint32_t area = (tm * tn);
         uint32_t flat = lane;
         while (flat < area) {
-            uint32_t __anf02_6 = flat;
-            uint32_t row_2 = (__anf02_6 / tn);
-            uint32_t col_2 = (__anf02_6 % tn);
-            uint32_t globalRow = ((((mrow * bm) + (warpRow1 * (wm * tm))) +
+            uint32_t __anf02_4 = flat;
+            uint32_t row_2 = (__anf02_4 / tn);
+            uint32_t col_2 = (__anf02_4 % tn);
+            uint32_t globalRow = ((((mrow1 * bm) + (warpRow1 * (wm * tm))) +
                                       ((__anf01_5 / wn) * tm)) +
                                   row_2);
-            uint32_t globalCol = ((((mcol * bn) + (warpCol1 * (wn * tn))) +
+            uint32_t globalCol = ((((mcol1 * bn) + (warpCol1 * (wn * tn))) +
                                       ((__anf01_5 % wn) * tn)) +
                                   col_2);
             uint32_t ni_2 = ((globalRow * cols) + globalCol);
@@ -822,8 +846,8 @@ __global__ static void kuiper_kernel_1(uint32_t cols, uint32_t shared,
             uint32_t vflat = flat;
             flat = (vflat + 32);
         }
-        uint32_t __anf02_7 = idx;
-        idx = (__anf02_7 + 1);
+        uint32_t __anf02_5 = idx;
+        idx = (__anf02_5 + 1);
     }
 }
 
@@ -832,8 +856,6 @@ __global__ static void kuiper_kernel_2(uint32_t cols, uint32_t shared,
     custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
     float beta, float alpha, custard_bf16 *gD)
 {
-    (void) gA;
-    (void) gB;
     (void) nthr;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     custard_bf16 *tmp1 = (custard_bf16 *) tmp;
@@ -855,6 +877,9 @@ __global__ static void kuiper_kernel_2(uint32_t cols, uint32_t shared,
                 ._1 = tmp1, ._2 = tmp7};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    uint32_t num_n_tiles = (cols / 64);
+    uint32_t mrow = (bid / num_n_tiles);
+    uint32_t mcol = (bid % num_n_tiles);
     uint32_t wid = (tid / 32);
     uint32_t warpRow = (wid / 2);
     uint32_t warpCol = (wid % 2);
@@ -893,6 +918,7 @@ __global__ static void kuiper_kernel_2(uint32_t cols, uint32_t shared,
     }
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
+        uint32_t __anf0_1 = bkIdx;
         __syncthreads();
         uint32_t mlen = 1024;
         uint32_t offset = (tid * 8);
@@ -902,26 +928,31 @@ __global__ static void kuiper_kernel_2(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_1 = i;
-            uint32_t row = ((__anf0_1 + offset) / 16);
             uint32_t __anf01_1 = i;
-            uint32_t col = ((__anf01_1 + offset) % 16);
+            uint32_t row = ((__anf01_1 + offset) / 16);
+            uint32_t __anf02 = i;
+            uint32_t col = ((__anf02 + offset) % 16);
+            uint32_t offset1 =
+                ((((0 + (shared * (mrow * 64))) + (__anf0_1 * 16)) +
+                     (shared * row)) +
+                    col);
+            vec_memcpy((local + 0), (gA + offset1));
             uint32_t k = 0;
             while (k < 8) {
-                uint32_t __anf02 = k;
-                custard_bf16 v = local[__anf02];
                 uint32_t __anf03 = k;
-                uint32_t cidx = (col + __anf03);
+                custard_bf16 v = local[__anf03];
+                uint32_t __anf04 = k;
+                uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 16) + cidx);
                 _letpattern._1[ni] = v;
-                uint32_t __anf04 = k;
-                k = (__anf04 + 1);
+                uint32_t __anf05 = k;
+                k = (__anf05 + 1);
             }
             uint32_t vi = i;
             i = (vi + 512);
         }
         uint32_t mlen1 = 1024;
-        uint32_t offset1 = (tid * 8);
+        uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
             custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
@@ -929,20 +960,25 @@ __global__ static void kuiper_kernel_2(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_2 = i1;
-            uint32_t row_1 = ((__anf0_2 + offset1) / 64);
             uint32_t __anf01_2 = i1;
-            uint32_t col_1 = ((__anf01_2 + offset1) % 64);
+            uint32_t row_1 = ((__anf01_2 + offset1_1) / 64);
+            uint32_t __anf02_1 = i1;
+            uint32_t col_1 = ((__anf02_1 + offset1_1) % 64);
+            uint32_t offset2 =
+                ((((0 + (cols * (__anf0_1 * 16))) + (mcol * 64)) +
+                     (cols * row_1)) +
+                    col_1);
+            vec_memcpy((local_1 + 0), (gB + offset2));
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                uint32_t __anf02_1 = k_1;
-                custard_bf16 v_1 = local_1[__anf02_1];
                 uint32_t __anf03_1 = k_1;
-                uint32_t cidx_1 = (col_1 + __anf03_1);
+                custard_bf16 v_1 = local_1[__anf03_1];
+                uint32_t __anf04_1 = k_1;
+                uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 64) + cidx_1);
                 _letpattern._2[ni_1] = v_1;
-                uint32_t __anf04_1 = k_1;
-                k_1 = (__anf04_1 + 1);
+                uint32_t __anf05_1 = k_1;
+                k_1 = (__anf05_1 + 1);
             }
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 512);
@@ -950,39 +986,39 @@ __global__ static void kuiper_kernel_2(uint32_t cols, uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 1) {
-            uint32_t __anf0_3 = dotIdx;
+            uint32_t __anf01_3 = dotIdx;
             uint32_t i0 = 0;
             while (i0 < 4) {
-                uint32_t __anf01_3 = i0;
                 uint32_t __anf02_2 = i0;
+                uint32_t __anf03_2 = i0;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
-                    aFrags[__anf02_2];
+                    aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
                     (_letpattern._1 +
-                        ((((0 + (16 * (warpRow * 64))) + (__anf0_3 * 16)) +
-                             (16 * (__anf01_3 * 16))) +
+                        ((((0 + (16 * (warpRow * 64))) + (__anf01_3 * 16)) +
+                             (16 * (__anf02_2 * 16))) +
                             0)),
                     ((uint32_t) 16U));
-                uint32_t __anf03_2 = i0;
-                i0 = (__anf03_2 + 1);
+                uint32_t __anf04_2 = i0;
+                i0 = (__anf04_2 + 1);
             }
-            uint32_t __anf01_4 = dotIdx;
+            uint32_t __anf02_3 = dotIdx;
             uint32_t i11 = 0;
             while (i11 < 2) {
-                uint32_t __anf02_3 = i11;
                 uint32_t __anf03_3 = i11;
+                uint32_t __anf04_3 = i11;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
-                    bFrags[__anf03_3];
+                    bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
                     (_letpattern._2 +
-                        ((((0 + (64 * (__anf01_4 * 16))) + (warpCol * 32)) +
+                        ((((0 + (64 * (__anf02_3 * 16))) + (warpCol * 32)) +
                              0) +
-                            (__anf02_3 * 16))),
+                            (__anf03_3 * 16))),
                     ((uint32_t) 64U));
-                uint32_t __anf04_2 = i11;
-                i11 = (__anf04_2 + 1);
+                uint32_t __anf05_2 = i11;
+                i11 = (__anf05_2 + 1);
             }
             uint32_t resIdxM = 0;
             while (resIdxM < 4) {
@@ -991,26 +1027,26 @@ __global__ static void kuiper_kernel_2(uint32_t cols, uint32_t shared,
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &a_frag =
                         aFrags[resIdxM];
-                    uint32_t __anf03_4 = resIdxN;
+                    uint32_t __anf04_4 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &b_frag =
-                        bFrags[__anf03_4];
-                    uint32_t __anf04_3 = resIdxN;
+                        bFrags[__anf04_4];
+                    uint32_t __anf05_3 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16,
                         16, float, void> &acc_frag =
-                        accFrags[((resIdxM * 2) + __anf04_3)];
+                        accFrags[((resIdxM * 2) + __anf05_3)];
                     wmma::mma_sync(acc_frag, a_frag, b_frag, acc_frag);
-                    uint32_t __anf05 = resIdxN;
-                    resIdxN = (__anf05 + 1);
+                    uint32_t __anf06 = resIdxN;
+                    resIdxN = (__anf06 + 1);
                 }
-                uint32_t __anf02_4 = resIdxM;
-                resIdxM = (__anf02_4 + 1);
+                uint32_t __anf03_4 = resIdxM;
+                resIdxM = (__anf03_4 + 1);
             }
-            uint32_t __anf02_5 = dotIdx;
-            dotIdx = (__anf02_5 + 1);
+            uint32_t __anf03_5 = dotIdx;
+            dotIdx = (__anf03_5 + 1);
         }
-        uint32_t __anf0_4 = bkIdx;
-        bkIdx = (__anf0_4 + 1);
+        uint32_t __anf01_4 = bkIdx;
+        bkIdx = (__anf01_4 + 1);
     }
     uint32_t bm = 64;
     uint32_t bn = 64;
@@ -1022,8 +1058,8 @@ __global__ static void kuiper_kernel_2(uint32_t cols, uint32_t shared,
     uint32_t lane = (tid % 32);
     uint32_t idx = 0;
     while (idx < (wm * wn)) {
-        uint32_t mrow = (bid / (cols / bn));
-        uint32_t mcol = (bid % (cols / bn));
+        uint32_t mrow1 = (bid / (cols / bn));
+        uint32_t mcol1 = (bid % (cols / bn));
         uint32_t warpRow1 = (wid1 / (bn / (wn * tn)));
         uint32_t warpCol1 = (wid1 % (bn / (wn * tn)));
         float *sTile = FStar_Pervasives_Native_fst__array_t_unit(
@@ -1036,22 +1072,22 @@ __global__ static void kuiper_kernel_2(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}})));
-        uint32_t __anf0_5 = idx;
+        uint32_t __anf0_2 = idx;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
-            void> &__anf1_3 = accFrags[__anf0_5];
+            void> &__anf1_3 = accFrags[__anf0_2];
         KPR_STORE(
             (sTile + ((0 + (tn * (wid1 * tm))) + (0 * tn))), __anf1_3, tn);
         uint32_t __anf01_5 = idx;
         uint32_t area = (tm * tn);
         uint32_t flat = lane;
         while (flat < area) {
-            uint32_t __anf02_6 = flat;
-            uint32_t row_2 = (__anf02_6 / tn);
-            uint32_t col_2 = (__anf02_6 % tn);
-            uint32_t globalRow = ((((mrow * bm) + (warpRow1 * (wm * tm))) +
+            uint32_t __anf02_4 = flat;
+            uint32_t row_2 = (__anf02_4 / tn);
+            uint32_t col_2 = (__anf02_4 % tn);
+            uint32_t globalRow = ((((mrow1 * bm) + (warpRow1 * (wm * tm))) +
                                       ((__anf01_5 / wn) * tm)) +
                                   row_2);
-            uint32_t globalCol = ((((mcol * bn) + (warpCol1 * (wn * tn))) +
+            uint32_t globalCol = ((((mcol1 * bn) + (warpCol1 * (wn * tn))) +
                                       ((__anf01_5 % wn) * tn)) +
                                   col_2);
             uint32_t ni_2 = ((globalRow * cols) + globalCol);
@@ -1066,8 +1102,8 @@ __global__ static void kuiper_kernel_2(uint32_t cols, uint32_t shared,
             uint32_t vflat = flat;
             flat = (vflat + 32);
         }
-        uint32_t __anf02_7 = idx;
-        idx = (__anf02_7 + 1);
+        uint32_t __anf02_5 = idx;
+        idx = (__anf02_5 + 1);
     }
 }
 
@@ -1091,8 +1127,6 @@ __global__ static void kuiper_kernel_3(uint32_t cols, uint32_t shared,
     custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
     float beta, float alpha, custard_bf16 *gD)
 {
-    (void) gA;
-    (void) gB;
     (void) nthr;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     custard_bf16 *tmp1 = (custard_bf16 *) tmp;
@@ -1114,6 +1148,9 @@ __global__ static void kuiper_kernel_3(uint32_t cols, uint32_t shared,
                 ._1 = tmp1, ._2 = tmp7};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    uint32_t num_n_tiles = (cols / 64);
+    uint32_t mrow = (bid / num_n_tiles);
+    uint32_t mcol = (bid % num_n_tiles);
     uint32_t wid = (tid / 32);
     uint32_t warpRow = (wid / 1);
     uint32_t warpCol = (wid % 1);
@@ -1152,6 +1189,7 @@ __global__ static void kuiper_kernel_3(uint32_t cols, uint32_t shared,
     }
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
+        uint32_t __anf0_1 = bkIdx;
         __syncthreads();
         uint32_t mlen = 1024;
         uint32_t offset = (tid * 8);
@@ -1161,26 +1199,31 @@ __global__ static void kuiper_kernel_3(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_1 = i;
-            uint32_t row = ((__anf0_1 + offset) / 16);
             uint32_t __anf01_1 = i;
-            uint32_t col = ((__anf01_1 + offset) % 16);
+            uint32_t row = ((__anf01_1 + offset) / 16);
+            uint32_t __anf02 = i;
+            uint32_t col = ((__anf02 + offset) % 16);
+            uint32_t offset1 =
+                ((((0 + (shared * (mrow * 64))) + (__anf0_1 * 16)) +
+                     (shared * row)) +
+                    col);
+            vec_memcpy((local + 0), (gA + offset1));
             uint32_t k = 0;
             while (k < 8) {
-                uint32_t __anf02 = k;
-                custard_bf16 v = local[__anf02];
                 uint32_t __anf03 = k;
-                uint32_t cidx = (col + __anf03);
+                custard_bf16 v = local[__anf03];
+                uint32_t __anf04 = k;
+                uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 16) + cidx);
                 _letpattern._1[ni] = v;
-                uint32_t __anf04 = k;
-                k = (__anf04 + 1);
+                uint32_t __anf05 = k;
+                k = (__anf05 + 1);
             }
             uint32_t vi = i;
             i = (vi + 256);
         }
         uint32_t mlen1 = 1024;
-        uint32_t offset1 = (tid * 8);
+        uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
             custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
@@ -1188,20 +1231,25 @@ __global__ static void kuiper_kernel_3(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_2 = i1;
-            uint32_t row_1 = ((__anf0_2 + offset1) / 64);
             uint32_t __anf01_2 = i1;
-            uint32_t col_1 = ((__anf01_2 + offset1) % 64);
+            uint32_t row_1 = ((__anf01_2 + offset1_1) / 64);
+            uint32_t __anf02_1 = i1;
+            uint32_t col_1 = ((__anf02_1 + offset1_1) % 64);
+            uint32_t offset2 =
+                ((((0 + (cols * (__anf0_1 * 16))) + (mcol * 64)) +
+                     (cols * row_1)) +
+                    col_1);
+            vec_memcpy((local_1 + 0), (gB + offset2));
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                uint32_t __anf02_1 = k_1;
-                custard_bf16 v_1 = local_1[__anf02_1];
                 uint32_t __anf03_1 = k_1;
-                uint32_t cidx_1 = (col_1 + __anf03_1);
+                custard_bf16 v_1 = local_1[__anf03_1];
+                uint32_t __anf04_1 = k_1;
+                uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 64) + cidx_1);
                 _letpattern._2[ni_1] = v_1;
-                uint32_t __anf04_1 = k_1;
-                k_1 = (__anf04_1 + 1);
+                uint32_t __anf05_1 = k_1;
+                k_1 = (__anf05_1 + 1);
             }
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 256);
@@ -1209,39 +1257,39 @@ __global__ static void kuiper_kernel_3(uint32_t cols, uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 1) {
-            uint32_t __anf0_3 = dotIdx;
+            uint32_t __anf01_3 = dotIdx;
             uint32_t i0 = 0;
             while (i0 < 4) {
-                uint32_t __anf01_3 = i0;
                 uint32_t __anf02_2 = i0;
+                uint32_t __anf03_2 = i0;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
-                    aFrags[__anf02_2];
+                    aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
                     (_letpattern._1 +
-                        ((((0 + (16 * (warpRow * 64))) + (__anf0_3 * 16)) +
-                             (16 * (__anf01_3 * 16))) +
+                        ((((0 + (16 * (warpRow * 64))) + (__anf01_3 * 16)) +
+                             (16 * (__anf02_2 * 16))) +
                             0)),
                     ((uint32_t) 16U));
-                uint32_t __anf03_2 = i0;
-                i0 = (__anf03_2 + 1);
+                uint32_t __anf04_2 = i0;
+                i0 = (__anf04_2 + 1);
             }
-            uint32_t __anf01_4 = dotIdx;
+            uint32_t __anf02_3 = dotIdx;
             uint32_t i11 = 0;
             while (i11 < 4) {
-                uint32_t __anf02_3 = i11;
                 uint32_t __anf03_3 = i11;
+                uint32_t __anf04_3 = i11;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
-                    bFrags[__anf03_3];
+                    bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
                     (_letpattern._2 +
-                        ((((0 + (64 * (__anf01_4 * 16))) + (warpCol * 64)) +
+                        ((((0 + (64 * (__anf02_3 * 16))) + (warpCol * 64)) +
                              0) +
-                            (__anf02_3 * 16))),
+                            (__anf03_3 * 16))),
                     ((uint32_t) 64U));
-                uint32_t __anf04_2 = i11;
-                i11 = (__anf04_2 + 1);
+                uint32_t __anf05_2 = i11;
+                i11 = (__anf05_2 + 1);
             }
             uint32_t resIdxM = 0;
             while (resIdxM < 4) {
@@ -1250,26 +1298,26 @@ __global__ static void kuiper_kernel_3(uint32_t cols, uint32_t shared,
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &a_frag =
                         aFrags[resIdxM];
-                    uint32_t __anf03_4 = resIdxN;
+                    uint32_t __anf04_4 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &b_frag =
-                        bFrags[__anf03_4];
-                    uint32_t __anf04_3 = resIdxN;
+                        bFrags[__anf04_4];
+                    uint32_t __anf05_3 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16,
                         16, float, void> &acc_frag =
-                        accFrags[((resIdxM * 4) + __anf04_3)];
+                        accFrags[((resIdxM * 4) + __anf05_3)];
                     wmma::mma_sync(acc_frag, a_frag, b_frag, acc_frag);
-                    uint32_t __anf05 = resIdxN;
-                    resIdxN = (__anf05 + 1);
+                    uint32_t __anf06 = resIdxN;
+                    resIdxN = (__anf06 + 1);
                 }
-                uint32_t __anf02_4 = resIdxM;
-                resIdxM = (__anf02_4 + 1);
+                uint32_t __anf03_4 = resIdxM;
+                resIdxM = (__anf03_4 + 1);
             }
-            uint32_t __anf02_5 = dotIdx;
-            dotIdx = (__anf02_5 + 1);
+            uint32_t __anf03_5 = dotIdx;
+            dotIdx = (__anf03_5 + 1);
         }
-        uint32_t __anf0_4 = bkIdx;
-        bkIdx = (__anf0_4 + 1);
+        uint32_t __anf01_4 = bkIdx;
+        bkIdx = (__anf01_4 + 1);
     }
     uint32_t bm = 64;
     uint32_t bn = 64;
@@ -1281,8 +1329,8 @@ __global__ static void kuiper_kernel_3(uint32_t cols, uint32_t shared,
     uint32_t lane = (tid % 32);
     uint32_t idx = 0;
     while (idx < (wm * wn)) {
-        uint32_t mrow = (bid / (cols / bn));
-        uint32_t mcol = (bid % (cols / bn));
+        uint32_t mrow1 = (bid / (cols / bn));
+        uint32_t mcol1 = (bid % (cols / bn));
         uint32_t warpRow1 = (wid1 / (bn / (wn * tn)));
         uint32_t warpCol1 = (wid1 % (bn / (wn * tn)));
         float *sTile = FStar_Pervasives_Native_fst__array_t_unit(
@@ -1295,22 +1343,22 @@ __global__ static void kuiper_kernel_3(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}})));
-        uint32_t __anf0_5 = idx;
+        uint32_t __anf0_2 = idx;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
-            void> &__anf1_3 = accFrags[__anf0_5];
+            void> &__anf1_3 = accFrags[__anf0_2];
         KPR_STORE(
             (sTile + ((0 + (tn * (wid1 * tm))) + (0 * tn))), __anf1_3, tn);
         uint32_t __anf01_5 = idx;
         uint32_t area = (tm * tn);
         uint32_t flat = lane;
         while (flat < area) {
-            uint32_t __anf02_6 = flat;
-            uint32_t row_2 = (__anf02_6 / tn);
-            uint32_t col_2 = (__anf02_6 % tn);
-            uint32_t globalRow = ((((mrow * bm) + (warpRow1 * (wm * tm))) +
+            uint32_t __anf02_4 = flat;
+            uint32_t row_2 = (__anf02_4 / tn);
+            uint32_t col_2 = (__anf02_4 % tn);
+            uint32_t globalRow = ((((mrow1 * bm) + (warpRow1 * (wm * tm))) +
                                       ((__anf01_5 / wn) * tm)) +
                                   row_2);
-            uint32_t globalCol = ((((mcol * bn) + (warpCol1 * (wn * tn))) +
+            uint32_t globalCol = ((((mcol1 * bn) + (warpCol1 * (wn * tn))) +
                                       ((__anf01_5 % wn) * tn)) +
                                   col_2);
             uint32_t ni_2 = ((globalRow * cols) + globalCol);
@@ -1325,8 +1373,8 @@ __global__ static void kuiper_kernel_3(uint32_t cols, uint32_t shared,
             uint32_t vflat = flat;
             flat = (vflat + 32);
         }
-        uint32_t __anf02_7 = idx;
-        idx = (__anf02_7 + 1);
+        uint32_t __anf02_5 = idx;
+        idx = (__anf02_5 + 1);
     }
 }
 
@@ -1343,8 +1391,6 @@ __global__ static void kuiper_kernel_4(uint32_t cols, uint32_t shared,
     custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
     float beta, float alpha, custard_bf16 *gD)
 {
-    (void) gA;
-    (void) gB;
     (void) nthr;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     custard_bf16 *tmp1 = (custard_bf16 *) tmp;
@@ -1366,6 +1412,9 @@ __global__ static void kuiper_kernel_4(uint32_t cols, uint32_t shared,
                 ._1 = tmp1, ._2 = tmp7};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    uint32_t num_n_tiles = (cols / 64);
+    uint32_t mrow = (bid / num_n_tiles);
+    uint32_t mcol = (bid % num_n_tiles);
     uint32_t wid = (tid / 32);
     uint32_t warpRow = (wid / 2);
     uint32_t warpCol = (wid % 2);
@@ -1404,6 +1453,7 @@ __global__ static void kuiper_kernel_4(uint32_t cols, uint32_t shared,
     }
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
+        uint32_t __anf0_1 = bkIdx;
         __syncthreads();
         uint32_t mlen = 2048;
         uint32_t offset = (tid * 8);
@@ -1413,26 +1463,31 @@ __global__ static void kuiper_kernel_4(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_1 = i;
-            uint32_t row = ((__anf0_1 + offset) / 32);
             uint32_t __anf01_1 = i;
-            uint32_t col = ((__anf01_1 + offset) % 32);
+            uint32_t row = ((__anf01_1 + offset) / 32);
+            uint32_t __anf02 = i;
+            uint32_t col = ((__anf02 + offset) % 32);
+            uint32_t offset1 =
+                ((((0 + (shared * (mrow * 64))) + (__anf0_1 * 32)) +
+                     (shared * row)) +
+                    col);
+            vec_memcpy((local + 0), (gA + offset1));
             uint32_t k = 0;
             while (k < 8) {
-                uint32_t __anf02 = k;
-                custard_bf16 v = local[__anf02];
                 uint32_t __anf03 = k;
-                uint32_t cidx = (col + __anf03);
+                custard_bf16 v = local[__anf03];
+                uint32_t __anf04 = k;
+                uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 32) + cidx);
                 _letpattern._1[ni] = v;
-                uint32_t __anf04 = k;
-                k = (__anf04 + 1);
+                uint32_t __anf05 = k;
+                k = (__anf05 + 1);
             }
             uint32_t vi = i;
             i = (vi + 1024);
         }
         uint32_t mlen1 = 2048;
-        uint32_t offset1 = (tid * 8);
+        uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
             custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
@@ -1440,20 +1495,25 @@ __global__ static void kuiper_kernel_4(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_2 = i1;
-            uint32_t row_1 = ((__anf0_2 + offset1) / 64);
             uint32_t __anf01_2 = i1;
-            uint32_t col_1 = ((__anf01_2 + offset1) % 64);
+            uint32_t row_1 = ((__anf01_2 + offset1_1) / 64);
+            uint32_t __anf02_1 = i1;
+            uint32_t col_1 = ((__anf02_1 + offset1_1) % 64);
+            uint32_t offset2 =
+                ((((0 + (cols * (__anf0_1 * 32))) + (mcol * 64)) +
+                     (cols * row_1)) +
+                    col_1);
+            vec_memcpy((local_1 + 0), (gB + offset2));
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                uint32_t __anf02_1 = k_1;
-                custard_bf16 v_1 = local_1[__anf02_1];
                 uint32_t __anf03_1 = k_1;
-                uint32_t cidx_1 = (col_1 + __anf03_1);
+                custard_bf16 v_1 = local_1[__anf03_1];
+                uint32_t __anf04_1 = k_1;
+                uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 64) + cidx_1);
                 _letpattern._2[ni_1] = v_1;
-                uint32_t __anf04_1 = k_1;
-                k_1 = (__anf04_1 + 1);
+                uint32_t __anf05_1 = k_1;
+                k_1 = (__anf05_1 + 1);
             }
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 1024);
@@ -1461,39 +1521,39 @@ __global__ static void kuiper_kernel_4(uint32_t cols, uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 2) {
-            uint32_t __anf0_3 = dotIdx;
+            uint32_t __anf01_3 = dotIdx;
             uint32_t i0 = 0;
             while (i0 < 2) {
-                uint32_t __anf01_3 = i0;
                 uint32_t __anf02_2 = i0;
+                uint32_t __anf03_2 = i0;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
-                    aFrags[__anf02_2];
+                    aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
                     (_letpattern._1 +
-                        ((((0 + (32 * (warpRow * 32))) + (__anf0_3 * 16)) +
-                             (32 * (__anf01_3 * 16))) +
+                        ((((0 + (32 * (warpRow * 32))) + (__anf01_3 * 16)) +
+                             (32 * (__anf02_2 * 16))) +
                             0)),
                     ((uint32_t) 32U));
-                uint32_t __anf03_2 = i0;
-                i0 = (__anf03_2 + 1);
+                uint32_t __anf04_2 = i0;
+                i0 = (__anf04_2 + 1);
             }
-            uint32_t __anf01_4 = dotIdx;
+            uint32_t __anf02_3 = dotIdx;
             uint32_t i11 = 0;
             while (i11 < 2) {
-                uint32_t __anf02_3 = i11;
                 uint32_t __anf03_3 = i11;
+                uint32_t __anf04_3 = i11;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
-                    bFrags[__anf03_3];
+                    bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
                     (_letpattern._2 +
-                        ((((0 + (64 * (__anf01_4 * 16))) + (warpCol * 32)) +
+                        ((((0 + (64 * (__anf02_3 * 16))) + (warpCol * 32)) +
                              0) +
-                            (__anf02_3 * 16))),
+                            (__anf03_3 * 16))),
                     ((uint32_t) 64U));
-                uint32_t __anf04_2 = i11;
-                i11 = (__anf04_2 + 1);
+                uint32_t __anf05_2 = i11;
+                i11 = (__anf05_2 + 1);
             }
             uint32_t resIdxM = 0;
             while (resIdxM < 2) {
@@ -1502,26 +1562,26 @@ __global__ static void kuiper_kernel_4(uint32_t cols, uint32_t shared,
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &a_frag =
                         aFrags[resIdxM];
-                    uint32_t __anf03_4 = resIdxN;
+                    uint32_t __anf04_4 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &b_frag =
-                        bFrags[__anf03_4];
-                    uint32_t __anf04_3 = resIdxN;
+                        bFrags[__anf04_4];
+                    uint32_t __anf05_3 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16,
                         16, float, void> &acc_frag =
-                        accFrags[((resIdxM * 2) + __anf04_3)];
+                        accFrags[((resIdxM * 2) + __anf05_3)];
                     wmma::mma_sync(acc_frag, a_frag, b_frag, acc_frag);
-                    uint32_t __anf05 = resIdxN;
-                    resIdxN = (__anf05 + 1);
+                    uint32_t __anf06 = resIdxN;
+                    resIdxN = (__anf06 + 1);
                 }
-                uint32_t __anf02_4 = resIdxM;
-                resIdxM = (__anf02_4 + 1);
+                uint32_t __anf03_4 = resIdxM;
+                resIdxM = (__anf03_4 + 1);
             }
-            uint32_t __anf02_5 = dotIdx;
-            dotIdx = (__anf02_5 + 1);
+            uint32_t __anf03_5 = dotIdx;
+            dotIdx = (__anf03_5 + 1);
         }
-        uint32_t __anf0_4 = bkIdx;
-        bkIdx = (__anf0_4 + 1);
+        uint32_t __anf01_4 = bkIdx;
+        bkIdx = (__anf01_4 + 1);
     }
     uint32_t bm = 64;
     uint32_t bn = 64;
@@ -1533,8 +1593,8 @@ __global__ static void kuiper_kernel_4(uint32_t cols, uint32_t shared,
     uint32_t lane = (tid % 32);
     uint32_t idx = 0;
     while (idx < (wm * wn)) {
-        uint32_t mrow = (bid / (cols / bn));
-        uint32_t mcol = (bid % (cols / bn));
+        uint32_t mrow1 = (bid / (cols / bn));
+        uint32_t mcol1 = (bid % (cols / bn));
         uint32_t warpRow1 = (wid1 / (bn / (wn * tn)));
         uint32_t warpCol1 = (wid1 % (bn / (wn * tn)));
         float *sTile = FStar_Pervasives_Native_fst__array_t_unit(
@@ -1547,22 +1607,22 @@ __global__ static void kuiper_kernel_4(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}})));
-        uint32_t __anf0_5 = idx;
+        uint32_t __anf0_2 = idx;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
-            void> &__anf1_3 = accFrags[__anf0_5];
+            void> &__anf1_3 = accFrags[__anf0_2];
         KPR_STORE(
             (sTile + ((0 + (tn * (wid1 * tm))) + (0 * tn))), __anf1_3, tn);
         uint32_t __anf01_5 = idx;
         uint32_t area = (tm * tn);
         uint32_t flat = lane;
         while (flat < area) {
-            uint32_t __anf02_6 = flat;
-            uint32_t row_2 = (__anf02_6 / tn);
-            uint32_t col_2 = (__anf02_6 % tn);
-            uint32_t globalRow = ((((mrow * bm) + (warpRow1 * (wm * tm))) +
+            uint32_t __anf02_4 = flat;
+            uint32_t row_2 = (__anf02_4 / tn);
+            uint32_t col_2 = (__anf02_4 % tn);
+            uint32_t globalRow = ((((mrow1 * bm) + (warpRow1 * (wm * tm))) +
                                       ((__anf01_5 / wn) * tm)) +
                                   row_2);
-            uint32_t globalCol = ((((mcol * bn) + (warpCol1 * (wn * tn))) +
+            uint32_t globalCol = ((((mcol1 * bn) + (warpCol1 * (wn * tn))) +
                                       ((__anf01_5 % wn) * tn)) +
                                   col_2);
             uint32_t ni_2 = ((globalRow * cols) + globalCol);
@@ -1577,8 +1637,8 @@ __global__ static void kuiper_kernel_4(uint32_t cols, uint32_t shared,
             uint32_t vflat = flat;
             flat = (vflat + 32);
         }
-        uint32_t __anf02_7 = idx;
-        idx = (__anf02_7 + 1);
+        uint32_t __anf02_5 = idx;
+        idx = (__anf02_5 + 1);
     }
 }
 
@@ -1595,8 +1655,6 @@ __global__ static void kuiper_kernel_5(uint32_t cols, uint32_t shared,
     custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
     float beta, float alpha, custard_bf16 *gD)
 {
-    (void) gA;
-    (void) gB;
     (void) nthr;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     custard_bf16 *tmp1 = (custard_bf16 *) tmp;
@@ -1618,6 +1676,9 @@ __global__ static void kuiper_kernel_5(uint32_t cols, uint32_t shared,
                 ._1 = tmp1, ._2 = tmp7};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    uint32_t num_n_tiles = (cols / 64);
+    uint32_t mrow = (bid / num_n_tiles);
+    uint32_t mcol = (bid % num_n_tiles);
     uint32_t wid = (tid / 32);
     uint32_t warpRow = (wid / 1);
     uint32_t warpCol = (wid % 1);
@@ -1656,6 +1717,7 @@ __global__ static void kuiper_kernel_5(uint32_t cols, uint32_t shared,
     }
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
+        uint32_t __anf0_1 = bkIdx;
         __syncthreads();
         uint32_t mlen = 2048;
         uint32_t offset = (tid * 8);
@@ -1665,26 +1727,31 @@ __global__ static void kuiper_kernel_5(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_1 = i;
-            uint32_t row = ((__anf0_1 + offset) / 32);
             uint32_t __anf01_1 = i;
-            uint32_t col = ((__anf01_1 + offset) % 32);
+            uint32_t row = ((__anf01_1 + offset) / 32);
+            uint32_t __anf02 = i;
+            uint32_t col = ((__anf02 + offset) % 32);
+            uint32_t offset1 =
+                ((((0 + (shared * (mrow * 64))) + (__anf0_1 * 32)) +
+                     (shared * row)) +
+                    col);
+            vec_memcpy((local + 0), (gA + offset1));
             uint32_t k = 0;
             while (k < 8) {
-                uint32_t __anf02 = k;
-                custard_bf16 v = local[__anf02];
                 uint32_t __anf03 = k;
-                uint32_t cidx = (col + __anf03);
+                custard_bf16 v = local[__anf03];
+                uint32_t __anf04 = k;
+                uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 32) + cidx);
                 _letpattern._1[ni] = v;
-                uint32_t __anf04 = k;
-                k = (__anf04 + 1);
+                uint32_t __anf05 = k;
+                k = (__anf05 + 1);
             }
             uint32_t vi = i;
             i = (vi + 512);
         }
         uint32_t mlen1 = 2048;
-        uint32_t offset1 = (tid * 8);
+        uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
             custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
@@ -1692,20 +1759,25 @@ __global__ static void kuiper_kernel_5(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_2 = i1;
-            uint32_t row_1 = ((__anf0_2 + offset1) / 64);
             uint32_t __anf01_2 = i1;
-            uint32_t col_1 = ((__anf01_2 + offset1) % 64);
+            uint32_t row_1 = ((__anf01_2 + offset1_1) / 64);
+            uint32_t __anf02_1 = i1;
+            uint32_t col_1 = ((__anf02_1 + offset1_1) % 64);
+            uint32_t offset2 =
+                ((((0 + (cols * (__anf0_1 * 32))) + (mcol * 64)) +
+                     (cols * row_1)) +
+                    col_1);
+            vec_memcpy((local_1 + 0), (gB + offset2));
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                uint32_t __anf02_1 = k_1;
-                custard_bf16 v_1 = local_1[__anf02_1];
                 uint32_t __anf03_1 = k_1;
-                uint32_t cidx_1 = (col_1 + __anf03_1);
+                custard_bf16 v_1 = local_1[__anf03_1];
+                uint32_t __anf04_1 = k_1;
+                uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 64) + cidx_1);
                 _letpattern._2[ni_1] = v_1;
-                uint32_t __anf04_1 = k_1;
-                k_1 = (__anf04_1 + 1);
+                uint32_t __anf05_1 = k_1;
+                k_1 = (__anf05_1 + 1);
             }
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 512);
@@ -1713,39 +1785,39 @@ __global__ static void kuiper_kernel_5(uint32_t cols, uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 2) {
-            uint32_t __anf0_3 = dotIdx;
+            uint32_t __anf01_3 = dotIdx;
             uint32_t i0 = 0;
             while (i0 < 2) {
-                uint32_t __anf01_3 = i0;
                 uint32_t __anf02_2 = i0;
+                uint32_t __anf03_2 = i0;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
-                    aFrags[__anf02_2];
+                    aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
                     (_letpattern._1 +
-                        ((((0 + (32 * (warpRow * 32))) + (__anf0_3 * 16)) +
-                             (32 * (__anf01_3 * 16))) +
+                        ((((0 + (32 * (warpRow * 32))) + (__anf01_3 * 16)) +
+                             (32 * (__anf02_2 * 16))) +
                             0)),
                     ((uint32_t) 32U));
-                uint32_t __anf03_2 = i0;
-                i0 = (__anf03_2 + 1);
+                uint32_t __anf04_2 = i0;
+                i0 = (__anf04_2 + 1);
             }
-            uint32_t __anf01_4 = dotIdx;
+            uint32_t __anf02_3 = dotIdx;
             uint32_t i11 = 0;
             while (i11 < 4) {
-                uint32_t __anf02_3 = i11;
                 uint32_t __anf03_3 = i11;
+                uint32_t __anf04_3 = i11;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
-                    bFrags[__anf03_3];
+                    bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
                     (_letpattern._2 +
-                        ((((0 + (64 * (__anf01_4 * 16))) + (warpCol * 64)) +
+                        ((((0 + (64 * (__anf02_3 * 16))) + (warpCol * 64)) +
                              0) +
-                            (__anf02_3 * 16))),
+                            (__anf03_3 * 16))),
                     ((uint32_t) 64U));
-                uint32_t __anf04_2 = i11;
-                i11 = (__anf04_2 + 1);
+                uint32_t __anf05_2 = i11;
+                i11 = (__anf05_2 + 1);
             }
             uint32_t resIdxM = 0;
             while (resIdxM < 2) {
@@ -1754,26 +1826,26 @@ __global__ static void kuiper_kernel_5(uint32_t cols, uint32_t shared,
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &a_frag =
                         aFrags[resIdxM];
-                    uint32_t __anf03_4 = resIdxN;
+                    uint32_t __anf04_4 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &b_frag =
-                        bFrags[__anf03_4];
-                    uint32_t __anf04_3 = resIdxN;
+                        bFrags[__anf04_4];
+                    uint32_t __anf05_3 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16,
                         16, float, void> &acc_frag =
-                        accFrags[((resIdxM * 4) + __anf04_3)];
+                        accFrags[((resIdxM * 4) + __anf05_3)];
                     wmma::mma_sync(acc_frag, a_frag, b_frag, acc_frag);
-                    uint32_t __anf05 = resIdxN;
-                    resIdxN = (__anf05 + 1);
+                    uint32_t __anf06 = resIdxN;
+                    resIdxN = (__anf06 + 1);
                 }
-                uint32_t __anf02_4 = resIdxM;
-                resIdxM = (__anf02_4 + 1);
+                uint32_t __anf03_4 = resIdxM;
+                resIdxM = (__anf03_4 + 1);
             }
-            uint32_t __anf02_5 = dotIdx;
-            dotIdx = (__anf02_5 + 1);
+            uint32_t __anf03_5 = dotIdx;
+            dotIdx = (__anf03_5 + 1);
         }
-        uint32_t __anf0_4 = bkIdx;
-        bkIdx = (__anf0_4 + 1);
+        uint32_t __anf01_4 = bkIdx;
+        bkIdx = (__anf01_4 + 1);
     }
     uint32_t bm = 64;
     uint32_t bn = 64;
@@ -1785,8 +1857,8 @@ __global__ static void kuiper_kernel_5(uint32_t cols, uint32_t shared,
     uint32_t lane = (tid % 32);
     uint32_t idx = 0;
     while (idx < (wm * wn)) {
-        uint32_t mrow = (bid / (cols / bn));
-        uint32_t mcol = (bid % (cols / bn));
+        uint32_t mrow1 = (bid / (cols / bn));
+        uint32_t mcol1 = (bid % (cols / bn));
         uint32_t warpRow1 = (wid1 / (bn / (wn * tn)));
         uint32_t warpCol1 = (wid1 % (bn / (wn * tn)));
         float *sTile = FStar_Pervasives_Native_fst__array_t_unit(
@@ -1799,22 +1871,22 @@ __global__ static void kuiper_kernel_5(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}})));
-        uint32_t __anf0_5 = idx;
+        uint32_t __anf0_2 = idx;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
-            void> &__anf1_3 = accFrags[__anf0_5];
+            void> &__anf1_3 = accFrags[__anf0_2];
         KPR_STORE(
             (sTile + ((0 + (tn * (wid1 * tm))) + (0 * tn))), __anf1_3, tn);
         uint32_t __anf01_5 = idx;
         uint32_t area = (tm * tn);
         uint32_t flat = lane;
         while (flat < area) {
-            uint32_t __anf02_6 = flat;
-            uint32_t row_2 = (__anf02_6 / tn);
-            uint32_t col_2 = (__anf02_6 % tn);
-            uint32_t globalRow = ((((mrow * bm) + (warpRow1 * (wm * tm))) +
+            uint32_t __anf02_4 = flat;
+            uint32_t row_2 = (__anf02_4 / tn);
+            uint32_t col_2 = (__anf02_4 % tn);
+            uint32_t globalRow = ((((mrow1 * bm) + (warpRow1 * (wm * tm))) +
                                       ((__anf01_5 / wn) * tm)) +
                                   row_2);
-            uint32_t globalCol = ((((mcol * bn) + (warpCol1 * (wn * tn))) +
+            uint32_t globalCol = ((((mcol1 * bn) + (warpCol1 * (wn * tn))) +
                                       ((__anf01_5 % wn) * tn)) +
                                   col_2);
             uint32_t ni_2 = ((globalRow * cols) + globalCol);
@@ -1829,8 +1901,8 @@ __global__ static void kuiper_kernel_5(uint32_t cols, uint32_t shared,
             uint32_t vflat = flat;
             flat = (vflat + 32);
         }
-        uint32_t __anf02_7 = idx;
-        idx = (__anf02_7 + 1);
+        uint32_t __anf02_5 = idx;
+        idx = (__anf02_5 + 1);
     }
 }
 
@@ -1839,8 +1911,6 @@ __global__ static void kuiper_kernel_6(uint32_t cols, uint32_t shared,
     custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
     float beta, float alpha, custard_bf16 *gD)
 {
-    (void) gA;
-    (void) gB;
     (void) nthr;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     custard_bf16 *tmp1 = (custard_bf16 *) tmp;
@@ -1862,6 +1932,9 @@ __global__ static void kuiper_kernel_6(uint32_t cols, uint32_t shared,
                 ._1 = tmp1, ._2 = tmp7};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    uint32_t num_n_tiles = (cols / 64);
+    uint32_t mrow = (bid / num_n_tiles);
+    uint32_t mcol = (bid % num_n_tiles);
     uint32_t wid = (tid / 32);
     uint32_t warpRow = (wid / 2);
     uint32_t warpCol = (wid % 2);
@@ -1900,6 +1973,7 @@ __global__ static void kuiper_kernel_6(uint32_t cols, uint32_t shared,
     }
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
+        uint32_t __anf0_1 = bkIdx;
         __syncthreads();
         uint32_t mlen = 2048;
         uint32_t offset = (tid * 8);
@@ -1909,26 +1983,31 @@ __global__ static void kuiper_kernel_6(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_1 = i;
-            uint32_t row = ((__anf0_1 + offset) / 32);
             uint32_t __anf01_1 = i;
-            uint32_t col = ((__anf01_1 + offset) % 32);
+            uint32_t row = ((__anf01_1 + offset) / 32);
+            uint32_t __anf02 = i;
+            uint32_t col = ((__anf02 + offset) % 32);
+            uint32_t offset1 =
+                ((((0 + (shared * (mrow * 64))) + (__anf0_1 * 32)) +
+                     (shared * row)) +
+                    col);
+            vec_memcpy((local + 0), (gA + offset1));
             uint32_t k = 0;
             while (k < 8) {
-                uint32_t __anf02 = k;
-                custard_bf16 v = local[__anf02];
                 uint32_t __anf03 = k;
-                uint32_t cidx = (col + __anf03);
+                custard_bf16 v = local[__anf03];
+                uint32_t __anf04 = k;
+                uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 32) + cidx);
                 _letpattern._1[ni] = v;
-                uint32_t __anf04 = k;
-                k = (__anf04 + 1);
+                uint32_t __anf05 = k;
+                k = (__anf05 + 1);
             }
             uint32_t vi = i;
             i = (vi + 512);
         }
         uint32_t mlen1 = 2048;
-        uint32_t offset1 = (tid * 8);
+        uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
             custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
@@ -1936,20 +2015,25 @@ __global__ static void kuiper_kernel_6(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_2 = i1;
-            uint32_t row_1 = ((__anf0_2 + offset1) / 64);
             uint32_t __anf01_2 = i1;
-            uint32_t col_1 = ((__anf01_2 + offset1) % 64);
+            uint32_t row_1 = ((__anf01_2 + offset1_1) / 64);
+            uint32_t __anf02_1 = i1;
+            uint32_t col_1 = ((__anf02_1 + offset1_1) % 64);
+            uint32_t offset2 =
+                ((((0 + (cols * (__anf0_1 * 32))) + (mcol * 64)) +
+                     (cols * row_1)) +
+                    col_1);
+            vec_memcpy((local_1 + 0), (gB + offset2));
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                uint32_t __anf02_1 = k_1;
-                custard_bf16 v_1 = local_1[__anf02_1];
                 uint32_t __anf03_1 = k_1;
-                uint32_t cidx_1 = (col_1 + __anf03_1);
+                custard_bf16 v_1 = local_1[__anf03_1];
+                uint32_t __anf04_1 = k_1;
+                uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 64) + cidx_1);
                 _letpattern._2[ni_1] = v_1;
-                uint32_t __anf04_1 = k_1;
-                k_1 = (__anf04_1 + 1);
+                uint32_t __anf05_1 = k_1;
+                k_1 = (__anf05_1 + 1);
             }
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 512);
@@ -1957,39 +2041,39 @@ __global__ static void kuiper_kernel_6(uint32_t cols, uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 2) {
-            uint32_t __anf0_3 = dotIdx;
+            uint32_t __anf01_3 = dotIdx;
             uint32_t i0 = 0;
             while (i0 < 4) {
-                uint32_t __anf01_3 = i0;
                 uint32_t __anf02_2 = i0;
+                uint32_t __anf03_2 = i0;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
-                    aFrags[__anf02_2];
+                    aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
                     (_letpattern._1 +
-                        ((((0 + (32 * (warpRow * 64))) + (__anf0_3 * 16)) +
-                             (32 * (__anf01_3 * 16))) +
+                        ((((0 + (32 * (warpRow * 64))) + (__anf01_3 * 16)) +
+                             (32 * (__anf02_2 * 16))) +
                             0)),
                     ((uint32_t) 32U));
-                uint32_t __anf03_2 = i0;
-                i0 = (__anf03_2 + 1);
+                uint32_t __anf04_2 = i0;
+                i0 = (__anf04_2 + 1);
             }
-            uint32_t __anf01_4 = dotIdx;
+            uint32_t __anf02_3 = dotIdx;
             uint32_t i11 = 0;
             while (i11 < 2) {
-                uint32_t __anf02_3 = i11;
                 uint32_t __anf03_3 = i11;
+                uint32_t __anf04_3 = i11;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
-                    bFrags[__anf03_3];
+                    bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
                     (_letpattern._2 +
-                        ((((0 + (64 * (__anf01_4 * 16))) + (warpCol * 32)) +
+                        ((((0 + (64 * (__anf02_3 * 16))) + (warpCol * 32)) +
                              0) +
-                            (__anf02_3 * 16))),
+                            (__anf03_3 * 16))),
                     ((uint32_t) 64U));
-                uint32_t __anf04_2 = i11;
-                i11 = (__anf04_2 + 1);
+                uint32_t __anf05_2 = i11;
+                i11 = (__anf05_2 + 1);
             }
             uint32_t resIdxM = 0;
             while (resIdxM < 4) {
@@ -1998,26 +2082,26 @@ __global__ static void kuiper_kernel_6(uint32_t cols, uint32_t shared,
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &a_frag =
                         aFrags[resIdxM];
-                    uint32_t __anf03_4 = resIdxN;
+                    uint32_t __anf04_4 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &b_frag =
-                        bFrags[__anf03_4];
-                    uint32_t __anf04_3 = resIdxN;
+                        bFrags[__anf04_4];
+                    uint32_t __anf05_3 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16,
                         16, float, void> &acc_frag =
-                        accFrags[((resIdxM * 2) + __anf04_3)];
+                        accFrags[((resIdxM * 2) + __anf05_3)];
                     wmma::mma_sync(acc_frag, a_frag, b_frag, acc_frag);
-                    uint32_t __anf05 = resIdxN;
-                    resIdxN = (__anf05 + 1);
+                    uint32_t __anf06 = resIdxN;
+                    resIdxN = (__anf06 + 1);
                 }
-                uint32_t __anf02_4 = resIdxM;
-                resIdxM = (__anf02_4 + 1);
+                uint32_t __anf03_4 = resIdxM;
+                resIdxM = (__anf03_4 + 1);
             }
-            uint32_t __anf02_5 = dotIdx;
-            dotIdx = (__anf02_5 + 1);
+            uint32_t __anf03_5 = dotIdx;
+            dotIdx = (__anf03_5 + 1);
         }
-        uint32_t __anf0_4 = bkIdx;
-        bkIdx = (__anf0_4 + 1);
+        uint32_t __anf01_4 = bkIdx;
+        bkIdx = (__anf01_4 + 1);
     }
     uint32_t bm = 64;
     uint32_t bn = 64;
@@ -2029,8 +2113,8 @@ __global__ static void kuiper_kernel_6(uint32_t cols, uint32_t shared,
     uint32_t lane = (tid % 32);
     uint32_t idx = 0;
     while (idx < (wm * wn)) {
-        uint32_t mrow = (bid / (cols / bn));
-        uint32_t mcol = (bid % (cols / bn));
+        uint32_t mrow1 = (bid / (cols / bn));
+        uint32_t mcol1 = (bid % (cols / bn));
         uint32_t warpRow1 = (wid1 / (bn / (wn * tn)));
         uint32_t warpCol1 = (wid1 % (bn / (wn * tn)));
         float *sTile = FStar_Pervasives_Native_fst__array_t_unit(
@@ -2043,22 +2127,22 @@ __global__ static void kuiper_kernel_6(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}})));
-        uint32_t __anf0_5 = idx;
+        uint32_t __anf0_2 = idx;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
-            void> &__anf1_3 = accFrags[__anf0_5];
+            void> &__anf1_3 = accFrags[__anf0_2];
         KPR_STORE(
             (sTile + ((0 + (tn * (wid1 * tm))) + (0 * tn))), __anf1_3, tn);
         uint32_t __anf01_5 = idx;
         uint32_t area = (tm * tn);
         uint32_t flat = lane;
         while (flat < area) {
-            uint32_t __anf02_6 = flat;
-            uint32_t row_2 = (__anf02_6 / tn);
-            uint32_t col_2 = (__anf02_6 % tn);
-            uint32_t globalRow = ((((mrow * bm) + (warpRow1 * (wm * tm))) +
+            uint32_t __anf02_4 = flat;
+            uint32_t row_2 = (__anf02_4 / tn);
+            uint32_t col_2 = (__anf02_4 % tn);
+            uint32_t globalRow = ((((mrow1 * bm) + (warpRow1 * (wm * tm))) +
                                       ((__anf01_5 / wn) * tm)) +
                                   row_2);
-            uint32_t globalCol = ((((mcol * bn) + (warpCol1 * (wn * tn))) +
+            uint32_t globalCol = ((((mcol1 * bn) + (warpCol1 * (wn * tn))) +
                                       ((__anf01_5 % wn) * tn)) +
                                   col_2);
             uint32_t ni_2 = ((globalRow * cols) + globalCol);
@@ -2073,8 +2157,8 @@ __global__ static void kuiper_kernel_6(uint32_t cols, uint32_t shared,
             uint32_t vflat = flat;
             flat = (vflat + 32);
         }
-        uint32_t __anf02_7 = idx;
-        idx = (__anf02_7 + 1);
+        uint32_t __anf02_5 = idx;
+        idx = (__anf02_5 + 1);
     }
 }
 
@@ -2091,8 +2175,6 @@ __global__ static void kuiper_kernel_7(uint32_t cols, uint32_t shared,
     custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
     float beta, float alpha, custard_bf16 *gD)
 {
-    (void) gA;
-    (void) gB;
     (void) nthr;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     custard_bf16 *tmp1 = (custard_bf16 *) tmp;
@@ -2114,6 +2196,9 @@ __global__ static void kuiper_kernel_7(uint32_t cols, uint32_t shared,
                 ._1 = tmp1, ._2 = tmp7};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    uint32_t num_n_tiles = (cols / 64);
+    uint32_t mrow = (bid / num_n_tiles);
+    uint32_t mcol = (bid % num_n_tiles);
     uint32_t wid = (tid / 32);
     uint32_t warpRow = (wid / 1);
     uint32_t warpCol = (wid % 1);
@@ -2152,6 +2237,7 @@ __global__ static void kuiper_kernel_7(uint32_t cols, uint32_t shared,
     }
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
+        uint32_t __anf0_1 = bkIdx;
         __syncthreads();
         uint32_t mlen = 2048;
         uint32_t offset = (tid * 8);
@@ -2161,26 +2247,31 @@ __global__ static void kuiper_kernel_7(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_1 = i;
-            uint32_t row = ((__anf0_1 + offset) / 32);
             uint32_t __anf01_1 = i;
-            uint32_t col = ((__anf01_1 + offset) % 32);
+            uint32_t row = ((__anf01_1 + offset) / 32);
+            uint32_t __anf02 = i;
+            uint32_t col = ((__anf02 + offset) % 32);
+            uint32_t offset1 =
+                ((((0 + (shared * (mrow * 64))) + (__anf0_1 * 32)) +
+                     (shared * row)) +
+                    col);
+            vec_memcpy((local + 0), (gA + offset1));
             uint32_t k = 0;
             while (k < 8) {
-                uint32_t __anf02 = k;
-                custard_bf16 v = local[__anf02];
                 uint32_t __anf03 = k;
-                uint32_t cidx = (col + __anf03);
+                custard_bf16 v = local[__anf03];
+                uint32_t __anf04 = k;
+                uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 32) + cidx);
                 _letpattern._1[ni] = v;
-                uint32_t __anf04 = k;
-                k = (__anf04 + 1);
+                uint32_t __anf05 = k;
+                k = (__anf05 + 1);
             }
             uint32_t vi = i;
             i = (vi + 256);
         }
         uint32_t mlen1 = 2048;
-        uint32_t offset1 = (tid * 8);
+        uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
             custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
@@ -2188,20 +2279,25 @@ __global__ static void kuiper_kernel_7(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_2 = i1;
-            uint32_t row_1 = ((__anf0_2 + offset1) / 64);
             uint32_t __anf01_2 = i1;
-            uint32_t col_1 = ((__anf01_2 + offset1) % 64);
+            uint32_t row_1 = ((__anf01_2 + offset1_1) / 64);
+            uint32_t __anf02_1 = i1;
+            uint32_t col_1 = ((__anf02_1 + offset1_1) % 64);
+            uint32_t offset2 =
+                ((((0 + (cols * (__anf0_1 * 32))) + (mcol * 64)) +
+                     (cols * row_1)) +
+                    col_1);
+            vec_memcpy((local_1 + 0), (gB + offset2));
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                uint32_t __anf02_1 = k_1;
-                custard_bf16 v_1 = local_1[__anf02_1];
                 uint32_t __anf03_1 = k_1;
-                uint32_t cidx_1 = (col_1 + __anf03_1);
+                custard_bf16 v_1 = local_1[__anf03_1];
+                uint32_t __anf04_1 = k_1;
+                uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 64) + cidx_1);
                 _letpattern._2[ni_1] = v_1;
-                uint32_t __anf04_1 = k_1;
-                k_1 = (__anf04_1 + 1);
+                uint32_t __anf05_1 = k_1;
+                k_1 = (__anf05_1 + 1);
             }
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 256);
@@ -2209,39 +2305,39 @@ __global__ static void kuiper_kernel_7(uint32_t cols, uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 2) {
-            uint32_t __anf0_3 = dotIdx;
+            uint32_t __anf01_3 = dotIdx;
             uint32_t i0 = 0;
             while (i0 < 4) {
-                uint32_t __anf01_3 = i0;
                 uint32_t __anf02_2 = i0;
+                uint32_t __anf03_2 = i0;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
-                    aFrags[__anf02_2];
+                    aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
                     (_letpattern._1 +
-                        ((((0 + (32 * (warpRow * 64))) + (__anf0_3 * 16)) +
-                             (32 * (__anf01_3 * 16))) +
+                        ((((0 + (32 * (warpRow * 64))) + (__anf01_3 * 16)) +
+                             (32 * (__anf02_2 * 16))) +
                             0)),
                     ((uint32_t) 32U));
-                uint32_t __anf03_2 = i0;
-                i0 = (__anf03_2 + 1);
+                uint32_t __anf04_2 = i0;
+                i0 = (__anf04_2 + 1);
             }
-            uint32_t __anf01_4 = dotIdx;
+            uint32_t __anf02_3 = dotIdx;
             uint32_t i11 = 0;
             while (i11 < 4) {
-                uint32_t __anf02_3 = i11;
                 uint32_t __anf03_3 = i11;
+                uint32_t __anf04_3 = i11;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
-                    bFrags[__anf03_3];
+                    bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
                     (_letpattern._2 +
-                        ((((0 + (64 * (__anf01_4 * 16))) + (warpCol * 64)) +
+                        ((((0 + (64 * (__anf02_3 * 16))) + (warpCol * 64)) +
                              0) +
-                            (__anf02_3 * 16))),
+                            (__anf03_3 * 16))),
                     ((uint32_t) 64U));
-                uint32_t __anf04_2 = i11;
-                i11 = (__anf04_2 + 1);
+                uint32_t __anf05_2 = i11;
+                i11 = (__anf05_2 + 1);
             }
             uint32_t resIdxM = 0;
             while (resIdxM < 4) {
@@ -2250,26 +2346,26 @@ __global__ static void kuiper_kernel_7(uint32_t cols, uint32_t shared,
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &a_frag =
                         aFrags[resIdxM];
-                    uint32_t __anf03_4 = resIdxN;
+                    uint32_t __anf04_4 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &b_frag =
-                        bFrags[__anf03_4];
-                    uint32_t __anf04_3 = resIdxN;
+                        bFrags[__anf04_4];
+                    uint32_t __anf05_3 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16,
                         16, float, void> &acc_frag =
-                        accFrags[((resIdxM * 4) + __anf04_3)];
+                        accFrags[((resIdxM * 4) + __anf05_3)];
                     wmma::mma_sync(acc_frag, a_frag, b_frag, acc_frag);
-                    uint32_t __anf05 = resIdxN;
-                    resIdxN = (__anf05 + 1);
+                    uint32_t __anf06 = resIdxN;
+                    resIdxN = (__anf06 + 1);
                 }
-                uint32_t __anf02_4 = resIdxM;
-                resIdxM = (__anf02_4 + 1);
+                uint32_t __anf03_4 = resIdxM;
+                resIdxM = (__anf03_4 + 1);
             }
-            uint32_t __anf02_5 = dotIdx;
-            dotIdx = (__anf02_5 + 1);
+            uint32_t __anf03_5 = dotIdx;
+            dotIdx = (__anf03_5 + 1);
         }
-        uint32_t __anf0_4 = bkIdx;
-        bkIdx = (__anf0_4 + 1);
+        uint32_t __anf01_4 = bkIdx;
+        bkIdx = (__anf01_4 + 1);
     }
     uint32_t bm = 64;
     uint32_t bn = 64;
@@ -2281,8 +2377,8 @@ __global__ static void kuiper_kernel_7(uint32_t cols, uint32_t shared,
     uint32_t lane = (tid % 32);
     uint32_t idx = 0;
     while (idx < (wm * wn)) {
-        uint32_t mrow = (bid / (cols / bn));
-        uint32_t mcol = (bid % (cols / bn));
+        uint32_t mrow1 = (bid / (cols / bn));
+        uint32_t mcol1 = (bid % (cols / bn));
         uint32_t warpRow1 = (wid1 / (bn / (wn * tn)));
         uint32_t warpCol1 = (wid1 % (bn / (wn * tn)));
         float *sTile = FStar_Pervasives_Native_fst__array_t_unit(
@@ -2295,22 +2391,22 @@ __global__ static void kuiper_kernel_7(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}})));
-        uint32_t __anf0_5 = idx;
+        uint32_t __anf0_2 = idx;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
-            void> &__anf1_3 = accFrags[__anf0_5];
+            void> &__anf1_3 = accFrags[__anf0_2];
         KPR_STORE(
             (sTile + ((0 + (tn * (wid1 * tm))) + (0 * tn))), __anf1_3, tn);
         uint32_t __anf01_5 = idx;
         uint32_t area = (tm * tn);
         uint32_t flat = lane;
         while (flat < area) {
-            uint32_t __anf02_6 = flat;
-            uint32_t row_2 = (__anf02_6 / tn);
-            uint32_t col_2 = (__anf02_6 % tn);
-            uint32_t globalRow = ((((mrow * bm) + (warpRow1 * (wm * tm))) +
+            uint32_t __anf02_4 = flat;
+            uint32_t row_2 = (__anf02_4 / tn);
+            uint32_t col_2 = (__anf02_4 % tn);
+            uint32_t globalRow = ((((mrow1 * bm) + (warpRow1 * (wm * tm))) +
                                       ((__anf01_5 / wn) * tm)) +
                                   row_2);
-            uint32_t globalCol = ((((mcol * bn) + (warpCol1 * (wn * tn))) +
+            uint32_t globalCol = ((((mcol1 * bn) + (warpCol1 * (wn * tn))) +
                                       ((__anf01_5 % wn) * tn)) +
                                   col_2);
             uint32_t ni_2 = ((globalRow * cols) + globalCol);
@@ -2325,8 +2421,8 @@ __global__ static void kuiper_kernel_7(uint32_t cols, uint32_t shared,
             uint32_t vflat = flat;
             flat = (vflat + 32);
         }
-        uint32_t __anf02_7 = idx;
-        idx = (__anf02_7 + 1);
+        uint32_t __anf02_5 = idx;
+        idx = (__anf02_5 + 1);
     }
 }
 
@@ -2343,8 +2439,6 @@ __global__ static void kuiper_kernel_8(uint32_t cols, uint32_t shared,
     custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
     float beta, float alpha, custard_bf16 *gD)
 {
-    (void) gA;
-    (void) gB;
     (void) nthr;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     custard_bf16 *tmp1 = (custard_bf16 *) tmp;
@@ -2366,6 +2460,9 @@ __global__ static void kuiper_kernel_8(uint32_t cols, uint32_t shared,
                 ._1 = tmp1, ._2 = tmp7};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    uint32_t num_n_tiles = (cols / 64);
+    uint32_t mrow = (bid / num_n_tiles);
+    uint32_t mcol = (bid % num_n_tiles);
     uint32_t wid = (tid / 32);
     uint32_t warpRow = (wid / 2);
     uint32_t warpCol = (wid % 2);
@@ -2404,6 +2501,7 @@ __global__ static void kuiper_kernel_8(uint32_t cols, uint32_t shared,
     }
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
+        uint32_t __anf0_1 = bkIdx;
         __syncthreads();
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 8);
@@ -2413,26 +2511,31 @@ __global__ static void kuiper_kernel_8(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_1 = i;
-            uint32_t row = ((__anf0_1 + offset) / 64);
             uint32_t __anf01_1 = i;
-            uint32_t col = ((__anf01_1 + offset) % 64);
+            uint32_t row = ((__anf01_1 + offset) / 64);
+            uint32_t __anf02 = i;
+            uint32_t col = ((__anf02 + offset) % 64);
+            uint32_t offset1 =
+                ((((0 + (shared * (mrow * 64))) + (__anf0_1 * 64)) +
+                     (shared * row)) +
+                    col);
+            vec_memcpy((local + 0), (gA + offset1));
             uint32_t k = 0;
             while (k < 8) {
-                uint32_t __anf02 = k;
-                custard_bf16 v = local[__anf02];
                 uint32_t __anf03 = k;
-                uint32_t cidx = (col + __anf03);
+                custard_bf16 v = local[__anf03];
+                uint32_t __anf04 = k;
+                uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 64) + cidx);
                 _letpattern._1[ni] = v;
-                uint32_t __anf04 = k;
-                k = (__anf04 + 1);
+                uint32_t __anf05 = k;
+                k = (__anf05 + 1);
             }
             uint32_t vi = i;
             i = (vi + 1024);
         }
         uint32_t mlen1 = 4096;
-        uint32_t offset1 = (tid * 8);
+        uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
             custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
@@ -2440,20 +2543,25 @@ __global__ static void kuiper_kernel_8(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_2 = i1;
-            uint32_t row_1 = ((__anf0_2 + offset1) / 64);
             uint32_t __anf01_2 = i1;
-            uint32_t col_1 = ((__anf01_2 + offset1) % 64);
+            uint32_t row_1 = ((__anf01_2 + offset1_1) / 64);
+            uint32_t __anf02_1 = i1;
+            uint32_t col_1 = ((__anf02_1 + offset1_1) % 64);
+            uint32_t offset2 =
+                ((((0 + (cols * (__anf0_1 * 64))) + (mcol * 64)) +
+                     (cols * row_1)) +
+                    col_1);
+            vec_memcpy((local_1 + 0), (gB + offset2));
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                uint32_t __anf02_1 = k_1;
-                custard_bf16 v_1 = local_1[__anf02_1];
                 uint32_t __anf03_1 = k_1;
-                uint32_t cidx_1 = (col_1 + __anf03_1);
+                custard_bf16 v_1 = local_1[__anf03_1];
+                uint32_t __anf04_1 = k_1;
+                uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 64) + cidx_1);
                 _letpattern._2[ni_1] = v_1;
-                uint32_t __anf04_1 = k_1;
-                k_1 = (__anf04_1 + 1);
+                uint32_t __anf05_1 = k_1;
+                k_1 = (__anf05_1 + 1);
             }
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 1024);
@@ -2461,39 +2569,39 @@ __global__ static void kuiper_kernel_8(uint32_t cols, uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 4) {
-            uint32_t __anf0_3 = dotIdx;
+            uint32_t __anf01_3 = dotIdx;
             uint32_t i0 = 0;
             while (i0 < 2) {
-                uint32_t __anf01_3 = i0;
                 uint32_t __anf02_2 = i0;
+                uint32_t __anf03_2 = i0;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
-                    aFrags[__anf02_2];
+                    aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
                     (_letpattern._1 +
-                        ((((0 + (64 * (warpRow * 32))) + (__anf0_3 * 16)) +
-                             (64 * (__anf01_3 * 16))) +
+                        ((((0 + (64 * (warpRow * 32))) + (__anf01_3 * 16)) +
+                             (64 * (__anf02_2 * 16))) +
                             0)),
                     ((uint32_t) 64U));
-                uint32_t __anf03_2 = i0;
-                i0 = (__anf03_2 + 1);
+                uint32_t __anf04_2 = i0;
+                i0 = (__anf04_2 + 1);
             }
-            uint32_t __anf01_4 = dotIdx;
+            uint32_t __anf02_3 = dotIdx;
             uint32_t i11 = 0;
             while (i11 < 2) {
-                uint32_t __anf02_3 = i11;
                 uint32_t __anf03_3 = i11;
+                uint32_t __anf04_3 = i11;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
-                    bFrags[__anf03_3];
+                    bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
                     (_letpattern._2 +
-                        ((((0 + (64 * (__anf01_4 * 16))) + (warpCol * 32)) +
+                        ((((0 + (64 * (__anf02_3 * 16))) + (warpCol * 32)) +
                              0) +
-                            (__anf02_3 * 16))),
+                            (__anf03_3 * 16))),
                     ((uint32_t) 64U));
-                uint32_t __anf04_2 = i11;
-                i11 = (__anf04_2 + 1);
+                uint32_t __anf05_2 = i11;
+                i11 = (__anf05_2 + 1);
             }
             uint32_t resIdxM = 0;
             while (resIdxM < 2) {
@@ -2502,26 +2610,26 @@ __global__ static void kuiper_kernel_8(uint32_t cols, uint32_t shared,
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &a_frag =
                         aFrags[resIdxM];
-                    uint32_t __anf03_4 = resIdxN;
+                    uint32_t __anf04_4 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &b_frag =
-                        bFrags[__anf03_4];
-                    uint32_t __anf04_3 = resIdxN;
+                        bFrags[__anf04_4];
+                    uint32_t __anf05_3 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16,
                         16, float, void> &acc_frag =
-                        accFrags[((resIdxM * 2) + __anf04_3)];
+                        accFrags[((resIdxM * 2) + __anf05_3)];
                     wmma::mma_sync(acc_frag, a_frag, b_frag, acc_frag);
-                    uint32_t __anf05 = resIdxN;
-                    resIdxN = (__anf05 + 1);
+                    uint32_t __anf06 = resIdxN;
+                    resIdxN = (__anf06 + 1);
                 }
-                uint32_t __anf02_4 = resIdxM;
-                resIdxM = (__anf02_4 + 1);
+                uint32_t __anf03_4 = resIdxM;
+                resIdxM = (__anf03_4 + 1);
             }
-            uint32_t __anf02_5 = dotIdx;
-            dotIdx = (__anf02_5 + 1);
+            uint32_t __anf03_5 = dotIdx;
+            dotIdx = (__anf03_5 + 1);
         }
-        uint32_t __anf0_4 = bkIdx;
-        bkIdx = (__anf0_4 + 1);
+        uint32_t __anf01_4 = bkIdx;
+        bkIdx = (__anf01_4 + 1);
     }
     uint32_t bm = 64;
     uint32_t bn = 64;
@@ -2533,8 +2641,8 @@ __global__ static void kuiper_kernel_8(uint32_t cols, uint32_t shared,
     uint32_t lane = (tid % 32);
     uint32_t idx = 0;
     while (idx < (wm * wn)) {
-        uint32_t mrow = (bid / (cols / bn));
-        uint32_t mcol = (bid % (cols / bn));
+        uint32_t mrow1 = (bid / (cols / bn));
+        uint32_t mcol1 = (bid % (cols / bn));
         uint32_t warpRow1 = (wid1 / (bn / (wn * tn)));
         uint32_t warpCol1 = (wid1 % (bn / (wn * tn)));
         float *sTile = FStar_Pervasives_Native_fst__array_t_unit(
@@ -2547,22 +2655,22 @@ __global__ static void kuiper_kernel_8(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}})));
-        uint32_t __anf0_5 = idx;
+        uint32_t __anf0_2 = idx;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
-            void> &__anf1_3 = accFrags[__anf0_5];
+            void> &__anf1_3 = accFrags[__anf0_2];
         KPR_STORE(
             (sTile + ((0 + (tn * (wid1 * tm))) + (0 * tn))), __anf1_3, tn);
         uint32_t __anf01_5 = idx;
         uint32_t area = (tm * tn);
         uint32_t flat = lane;
         while (flat < area) {
-            uint32_t __anf02_6 = flat;
-            uint32_t row_2 = (__anf02_6 / tn);
-            uint32_t col_2 = (__anf02_6 % tn);
-            uint32_t globalRow = ((((mrow * bm) + (warpRow1 * (wm * tm))) +
+            uint32_t __anf02_4 = flat;
+            uint32_t row_2 = (__anf02_4 / tn);
+            uint32_t col_2 = (__anf02_4 % tn);
+            uint32_t globalRow = ((((mrow1 * bm) + (warpRow1 * (wm * tm))) +
                                       ((__anf01_5 / wn) * tm)) +
                                   row_2);
-            uint32_t globalCol = ((((mcol * bn) + (warpCol1 * (wn * tn))) +
+            uint32_t globalCol = ((((mcol1 * bn) + (warpCol1 * (wn * tn))) +
                                       ((__anf01_5 % wn) * tn)) +
                                   col_2);
             uint32_t ni_2 = ((globalRow * cols) + globalCol);
@@ -2577,8 +2685,8 @@ __global__ static void kuiper_kernel_8(uint32_t cols, uint32_t shared,
             uint32_t vflat = flat;
             flat = (vflat + 32);
         }
-        uint32_t __anf02_7 = idx;
-        idx = (__anf02_7 + 1);
+        uint32_t __anf02_5 = idx;
+        idx = (__anf02_5 + 1);
     }
 }
 
@@ -2595,8 +2703,6 @@ __global__ static void kuiper_kernel_9(uint32_t cols, uint32_t shared,
     custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
     float beta, float alpha, custard_bf16 *gD)
 {
-    (void) gA;
-    (void) gB;
     (void) nthr;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     custard_bf16 *tmp1 = (custard_bf16 *) tmp;
@@ -2618,6 +2724,9 @@ __global__ static void kuiper_kernel_9(uint32_t cols, uint32_t shared,
                 ._1 = tmp1, ._2 = tmp7};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    uint32_t num_n_tiles = (cols / 64);
+    uint32_t mrow = (bid / num_n_tiles);
+    uint32_t mcol = (bid % num_n_tiles);
     uint32_t wid = (tid / 32);
     uint32_t warpRow = (wid / 1);
     uint32_t warpCol = (wid % 1);
@@ -2656,6 +2765,7 @@ __global__ static void kuiper_kernel_9(uint32_t cols, uint32_t shared,
     }
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
+        uint32_t __anf0_1 = bkIdx;
         __syncthreads();
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 8);
@@ -2665,26 +2775,31 @@ __global__ static void kuiper_kernel_9(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_1 = i;
-            uint32_t row = ((__anf0_1 + offset) / 64);
             uint32_t __anf01_1 = i;
-            uint32_t col = ((__anf01_1 + offset) % 64);
+            uint32_t row = ((__anf01_1 + offset) / 64);
+            uint32_t __anf02 = i;
+            uint32_t col = ((__anf02 + offset) % 64);
+            uint32_t offset1 =
+                ((((0 + (shared * (mrow * 64))) + (__anf0_1 * 64)) +
+                     (shared * row)) +
+                    col);
+            vec_memcpy((local + 0), (gA + offset1));
             uint32_t k = 0;
             while (k < 8) {
-                uint32_t __anf02 = k;
-                custard_bf16 v = local[__anf02];
                 uint32_t __anf03 = k;
-                uint32_t cidx = (col + __anf03);
+                custard_bf16 v = local[__anf03];
+                uint32_t __anf04 = k;
+                uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 64) + cidx);
                 _letpattern._1[ni] = v;
-                uint32_t __anf04 = k;
-                k = (__anf04 + 1);
+                uint32_t __anf05 = k;
+                k = (__anf05 + 1);
             }
             uint32_t vi = i;
             i = (vi + 512);
         }
         uint32_t mlen1 = 4096;
-        uint32_t offset1 = (tid * 8);
+        uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
             custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
@@ -2692,20 +2807,25 @@ __global__ static void kuiper_kernel_9(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_2 = i1;
-            uint32_t row_1 = ((__anf0_2 + offset1) / 64);
             uint32_t __anf01_2 = i1;
-            uint32_t col_1 = ((__anf01_2 + offset1) % 64);
+            uint32_t row_1 = ((__anf01_2 + offset1_1) / 64);
+            uint32_t __anf02_1 = i1;
+            uint32_t col_1 = ((__anf02_1 + offset1_1) % 64);
+            uint32_t offset2 =
+                ((((0 + (cols * (__anf0_1 * 64))) + (mcol * 64)) +
+                     (cols * row_1)) +
+                    col_1);
+            vec_memcpy((local_1 + 0), (gB + offset2));
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                uint32_t __anf02_1 = k_1;
-                custard_bf16 v_1 = local_1[__anf02_1];
                 uint32_t __anf03_1 = k_1;
-                uint32_t cidx_1 = (col_1 + __anf03_1);
+                custard_bf16 v_1 = local_1[__anf03_1];
+                uint32_t __anf04_1 = k_1;
+                uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 64) + cidx_1);
                 _letpattern._2[ni_1] = v_1;
-                uint32_t __anf04_1 = k_1;
-                k_1 = (__anf04_1 + 1);
+                uint32_t __anf05_1 = k_1;
+                k_1 = (__anf05_1 + 1);
             }
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 512);
@@ -2713,39 +2833,39 @@ __global__ static void kuiper_kernel_9(uint32_t cols, uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 4) {
-            uint32_t __anf0_3 = dotIdx;
+            uint32_t __anf01_3 = dotIdx;
             uint32_t i0 = 0;
             while (i0 < 2) {
-                uint32_t __anf01_3 = i0;
                 uint32_t __anf02_2 = i0;
+                uint32_t __anf03_2 = i0;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
-                    aFrags[__anf02_2];
+                    aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
                     (_letpattern._1 +
-                        ((((0 + (64 * (warpRow * 32))) + (__anf0_3 * 16)) +
-                             (64 * (__anf01_3 * 16))) +
+                        ((((0 + (64 * (warpRow * 32))) + (__anf01_3 * 16)) +
+                             (64 * (__anf02_2 * 16))) +
                             0)),
                     ((uint32_t) 64U));
-                uint32_t __anf03_2 = i0;
-                i0 = (__anf03_2 + 1);
+                uint32_t __anf04_2 = i0;
+                i0 = (__anf04_2 + 1);
             }
-            uint32_t __anf01_4 = dotIdx;
+            uint32_t __anf02_3 = dotIdx;
             uint32_t i11 = 0;
             while (i11 < 4) {
-                uint32_t __anf02_3 = i11;
                 uint32_t __anf03_3 = i11;
+                uint32_t __anf04_3 = i11;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
-                    bFrags[__anf03_3];
+                    bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
                     (_letpattern._2 +
-                        ((((0 + (64 * (__anf01_4 * 16))) + (warpCol * 64)) +
+                        ((((0 + (64 * (__anf02_3 * 16))) + (warpCol * 64)) +
                              0) +
-                            (__anf02_3 * 16))),
+                            (__anf03_3 * 16))),
                     ((uint32_t) 64U));
-                uint32_t __anf04_2 = i11;
-                i11 = (__anf04_2 + 1);
+                uint32_t __anf05_2 = i11;
+                i11 = (__anf05_2 + 1);
             }
             uint32_t resIdxM = 0;
             while (resIdxM < 2) {
@@ -2754,26 +2874,26 @@ __global__ static void kuiper_kernel_9(uint32_t cols, uint32_t shared,
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &a_frag =
                         aFrags[resIdxM];
-                    uint32_t __anf03_4 = resIdxN;
+                    uint32_t __anf04_4 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &b_frag =
-                        bFrags[__anf03_4];
-                    uint32_t __anf04_3 = resIdxN;
+                        bFrags[__anf04_4];
+                    uint32_t __anf05_3 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16,
                         16, float, void> &acc_frag =
-                        accFrags[((resIdxM * 4) + __anf04_3)];
+                        accFrags[((resIdxM * 4) + __anf05_3)];
                     wmma::mma_sync(acc_frag, a_frag, b_frag, acc_frag);
-                    uint32_t __anf05 = resIdxN;
-                    resIdxN = (__anf05 + 1);
+                    uint32_t __anf06 = resIdxN;
+                    resIdxN = (__anf06 + 1);
                 }
-                uint32_t __anf02_4 = resIdxM;
-                resIdxM = (__anf02_4 + 1);
+                uint32_t __anf03_4 = resIdxM;
+                resIdxM = (__anf03_4 + 1);
             }
-            uint32_t __anf02_5 = dotIdx;
-            dotIdx = (__anf02_5 + 1);
+            uint32_t __anf03_5 = dotIdx;
+            dotIdx = (__anf03_5 + 1);
         }
-        uint32_t __anf0_4 = bkIdx;
-        bkIdx = (__anf0_4 + 1);
+        uint32_t __anf01_4 = bkIdx;
+        bkIdx = (__anf01_4 + 1);
     }
     uint32_t bm = 64;
     uint32_t bn = 64;
@@ -2785,8 +2905,8 @@ __global__ static void kuiper_kernel_9(uint32_t cols, uint32_t shared,
     uint32_t lane = (tid % 32);
     uint32_t idx = 0;
     while (idx < (wm * wn)) {
-        uint32_t mrow = (bid / (cols / bn));
-        uint32_t mcol = (bid % (cols / bn));
+        uint32_t mrow1 = (bid / (cols / bn));
+        uint32_t mcol1 = (bid % (cols / bn));
         uint32_t warpRow1 = (wid1 / (bn / (wn * tn)));
         uint32_t warpCol1 = (wid1 % (bn / (wn * tn)));
         float *sTile = FStar_Pervasives_Native_fst__array_t_unit(
@@ -2799,22 +2919,22 @@ __global__ static void kuiper_kernel_9(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}})));
-        uint32_t __anf0_5 = idx;
+        uint32_t __anf0_2 = idx;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
-            void> &__anf1_3 = accFrags[__anf0_5];
+            void> &__anf1_3 = accFrags[__anf0_2];
         KPR_STORE(
             (sTile + ((0 + (tn * (wid1 * tm))) + (0 * tn))), __anf1_3, tn);
         uint32_t __anf01_5 = idx;
         uint32_t area = (tm * tn);
         uint32_t flat = lane;
         while (flat < area) {
-            uint32_t __anf02_6 = flat;
-            uint32_t row_2 = (__anf02_6 / tn);
-            uint32_t col_2 = (__anf02_6 % tn);
-            uint32_t globalRow = ((((mrow * bm) + (warpRow1 * (wm * tm))) +
+            uint32_t __anf02_4 = flat;
+            uint32_t row_2 = (__anf02_4 / tn);
+            uint32_t col_2 = (__anf02_4 % tn);
+            uint32_t globalRow = ((((mrow1 * bm) + (warpRow1 * (wm * tm))) +
                                       ((__anf01_5 / wn) * tm)) +
                                   row_2);
-            uint32_t globalCol = ((((mcol * bn) + (warpCol1 * (wn * tn))) +
+            uint32_t globalCol = ((((mcol1 * bn) + (warpCol1 * (wn * tn))) +
                                       ((__anf01_5 % wn) * tn)) +
                                   col_2);
             uint32_t ni_2 = ((globalRow * cols) + globalCol);
@@ -2829,8 +2949,8 @@ __global__ static void kuiper_kernel_9(uint32_t cols, uint32_t shared,
             uint32_t vflat = flat;
             flat = (vflat + 32);
         }
-        uint32_t __anf02_7 = idx;
-        idx = (__anf02_7 + 1);
+        uint32_t __anf02_5 = idx;
+        idx = (__anf02_5 + 1);
     }
 }
 
@@ -2839,8 +2959,6 @@ __global__ static void kuiper_kernel_10(uint32_t cols, uint32_t shared,
     custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
     float beta, float alpha, custard_bf16 *gD)
 {
-    (void) gA;
-    (void) gB;
     (void) nthr;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     custard_bf16 *tmp1 = (custard_bf16 *) tmp;
@@ -2862,6 +2980,9 @@ __global__ static void kuiper_kernel_10(uint32_t cols, uint32_t shared,
                 ._1 = tmp1, ._2 = tmp7};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    uint32_t num_n_tiles = (cols / 64);
+    uint32_t mrow = (bid / num_n_tiles);
+    uint32_t mcol = (bid % num_n_tiles);
     uint32_t wid = (tid / 32);
     uint32_t warpRow = (wid / 2);
     uint32_t warpCol = (wid % 2);
@@ -2900,6 +3021,7 @@ __global__ static void kuiper_kernel_10(uint32_t cols, uint32_t shared,
     }
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
+        uint32_t __anf0_1 = bkIdx;
         __syncthreads();
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 8);
@@ -2909,26 +3031,31 @@ __global__ static void kuiper_kernel_10(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_1 = i;
-            uint32_t row = ((__anf0_1 + offset) / 64);
             uint32_t __anf01_1 = i;
-            uint32_t col = ((__anf01_1 + offset) % 64);
+            uint32_t row = ((__anf01_1 + offset) / 64);
+            uint32_t __anf02 = i;
+            uint32_t col = ((__anf02 + offset) % 64);
+            uint32_t offset1 =
+                ((((0 + (shared * (mrow * 64))) + (__anf0_1 * 64)) +
+                     (shared * row)) +
+                    col);
+            vec_memcpy((local + 0), (gA + offset1));
             uint32_t k = 0;
             while (k < 8) {
-                uint32_t __anf02 = k;
-                custard_bf16 v = local[__anf02];
                 uint32_t __anf03 = k;
-                uint32_t cidx = (col + __anf03);
+                custard_bf16 v = local[__anf03];
+                uint32_t __anf04 = k;
+                uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 64) + cidx);
                 _letpattern._1[ni] = v;
-                uint32_t __anf04 = k;
-                k = (__anf04 + 1);
+                uint32_t __anf05 = k;
+                k = (__anf05 + 1);
             }
             uint32_t vi = i;
             i = (vi + 512);
         }
         uint32_t mlen1 = 4096;
-        uint32_t offset1 = (tid * 8);
+        uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
             custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
@@ -2936,20 +3063,25 @@ __global__ static void kuiper_kernel_10(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_2 = i1;
-            uint32_t row_1 = ((__anf0_2 + offset1) / 64);
             uint32_t __anf01_2 = i1;
-            uint32_t col_1 = ((__anf01_2 + offset1) % 64);
+            uint32_t row_1 = ((__anf01_2 + offset1_1) / 64);
+            uint32_t __anf02_1 = i1;
+            uint32_t col_1 = ((__anf02_1 + offset1_1) % 64);
+            uint32_t offset2 =
+                ((((0 + (cols * (__anf0_1 * 64))) + (mcol * 64)) +
+                     (cols * row_1)) +
+                    col_1);
+            vec_memcpy((local_1 + 0), (gB + offset2));
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                uint32_t __anf02_1 = k_1;
-                custard_bf16 v_1 = local_1[__anf02_1];
                 uint32_t __anf03_1 = k_1;
-                uint32_t cidx_1 = (col_1 + __anf03_1);
+                custard_bf16 v_1 = local_1[__anf03_1];
+                uint32_t __anf04_1 = k_1;
+                uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 64) + cidx_1);
                 _letpattern._2[ni_1] = v_1;
-                uint32_t __anf04_1 = k_1;
-                k_1 = (__anf04_1 + 1);
+                uint32_t __anf05_1 = k_1;
+                k_1 = (__anf05_1 + 1);
             }
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 512);
@@ -2957,39 +3089,39 @@ __global__ static void kuiper_kernel_10(uint32_t cols, uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 4) {
-            uint32_t __anf0_3 = dotIdx;
+            uint32_t __anf01_3 = dotIdx;
             uint32_t i0 = 0;
             while (i0 < 4) {
-                uint32_t __anf01_3 = i0;
                 uint32_t __anf02_2 = i0;
+                uint32_t __anf03_2 = i0;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
-                    aFrags[__anf02_2];
+                    aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
                     (_letpattern._1 +
-                        ((((0 + (64 * (warpRow * 64))) + (__anf0_3 * 16)) +
-                             (64 * (__anf01_3 * 16))) +
+                        ((((0 + (64 * (warpRow * 64))) + (__anf01_3 * 16)) +
+                             (64 * (__anf02_2 * 16))) +
                             0)),
                     ((uint32_t) 64U));
-                uint32_t __anf03_2 = i0;
-                i0 = (__anf03_2 + 1);
+                uint32_t __anf04_2 = i0;
+                i0 = (__anf04_2 + 1);
             }
-            uint32_t __anf01_4 = dotIdx;
+            uint32_t __anf02_3 = dotIdx;
             uint32_t i11 = 0;
             while (i11 < 2) {
-                uint32_t __anf02_3 = i11;
                 uint32_t __anf03_3 = i11;
+                uint32_t __anf04_3 = i11;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
-                    bFrags[__anf03_3];
+                    bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
                     (_letpattern._2 +
-                        ((((0 + (64 * (__anf01_4 * 16))) + (warpCol * 32)) +
+                        ((((0 + (64 * (__anf02_3 * 16))) + (warpCol * 32)) +
                              0) +
-                            (__anf02_3 * 16))),
+                            (__anf03_3 * 16))),
                     ((uint32_t) 64U));
-                uint32_t __anf04_2 = i11;
-                i11 = (__anf04_2 + 1);
+                uint32_t __anf05_2 = i11;
+                i11 = (__anf05_2 + 1);
             }
             uint32_t resIdxM = 0;
             while (resIdxM < 4) {
@@ -2998,26 +3130,26 @@ __global__ static void kuiper_kernel_10(uint32_t cols, uint32_t shared,
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &a_frag =
                         aFrags[resIdxM];
-                    uint32_t __anf03_4 = resIdxN;
+                    uint32_t __anf04_4 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &b_frag =
-                        bFrags[__anf03_4];
-                    uint32_t __anf04_3 = resIdxN;
+                        bFrags[__anf04_4];
+                    uint32_t __anf05_3 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16,
                         16, float, void> &acc_frag =
-                        accFrags[((resIdxM * 2) + __anf04_3)];
+                        accFrags[((resIdxM * 2) + __anf05_3)];
                     wmma::mma_sync(acc_frag, a_frag, b_frag, acc_frag);
-                    uint32_t __anf05 = resIdxN;
-                    resIdxN = (__anf05 + 1);
+                    uint32_t __anf06 = resIdxN;
+                    resIdxN = (__anf06 + 1);
                 }
-                uint32_t __anf02_4 = resIdxM;
-                resIdxM = (__anf02_4 + 1);
+                uint32_t __anf03_4 = resIdxM;
+                resIdxM = (__anf03_4 + 1);
             }
-            uint32_t __anf02_5 = dotIdx;
-            dotIdx = (__anf02_5 + 1);
+            uint32_t __anf03_5 = dotIdx;
+            dotIdx = (__anf03_5 + 1);
         }
-        uint32_t __anf0_4 = bkIdx;
-        bkIdx = (__anf0_4 + 1);
+        uint32_t __anf01_4 = bkIdx;
+        bkIdx = (__anf01_4 + 1);
     }
     uint32_t bm = 64;
     uint32_t bn = 64;
@@ -3029,8 +3161,8 @@ __global__ static void kuiper_kernel_10(uint32_t cols, uint32_t shared,
     uint32_t lane = (tid % 32);
     uint32_t idx = 0;
     while (idx < (wm * wn)) {
-        uint32_t mrow = (bid / (cols / bn));
-        uint32_t mcol = (bid % (cols / bn));
+        uint32_t mrow1 = (bid / (cols / bn));
+        uint32_t mcol1 = (bid % (cols / bn));
         uint32_t warpRow1 = (wid1 / (bn / (wn * tn)));
         uint32_t warpCol1 = (wid1 % (bn / (wn * tn)));
         float *sTile = FStar_Pervasives_Native_fst__array_t_unit(
@@ -3043,22 +3175,22 @@ __global__ static void kuiper_kernel_10(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}})));
-        uint32_t __anf0_5 = idx;
+        uint32_t __anf0_2 = idx;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
-            void> &__anf1_3 = accFrags[__anf0_5];
+            void> &__anf1_3 = accFrags[__anf0_2];
         KPR_STORE(
             (sTile + ((0 + (tn * (wid1 * tm))) + (0 * tn))), __anf1_3, tn);
         uint32_t __anf01_5 = idx;
         uint32_t area = (tm * tn);
         uint32_t flat = lane;
         while (flat < area) {
-            uint32_t __anf02_6 = flat;
-            uint32_t row_2 = (__anf02_6 / tn);
-            uint32_t col_2 = (__anf02_6 % tn);
-            uint32_t globalRow = ((((mrow * bm) + (warpRow1 * (wm * tm))) +
+            uint32_t __anf02_4 = flat;
+            uint32_t row_2 = (__anf02_4 / tn);
+            uint32_t col_2 = (__anf02_4 % tn);
+            uint32_t globalRow = ((((mrow1 * bm) + (warpRow1 * (wm * tm))) +
                                       ((__anf01_5 / wn) * tm)) +
                                   row_2);
-            uint32_t globalCol = ((((mcol * bn) + (warpCol1 * (wn * tn))) +
+            uint32_t globalCol = ((((mcol1 * bn) + (warpCol1 * (wn * tn))) +
                                       ((__anf01_5 % wn) * tn)) +
                                   col_2);
             uint32_t ni_2 = ((globalRow * cols) + globalCol);
@@ -3073,8 +3205,8 @@ __global__ static void kuiper_kernel_10(uint32_t cols, uint32_t shared,
             uint32_t vflat = flat;
             flat = (vflat + 32);
         }
-        uint32_t __anf02_7 = idx;
-        idx = (__anf02_7 + 1);
+        uint32_t __anf02_5 = idx;
+        idx = (__anf02_5 + 1);
     }
 }
 
@@ -3091,8 +3223,6 @@ __global__ static void kuiper_kernel_11(uint32_t cols, uint32_t shared,
     custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
     float beta, float alpha, custard_bf16 *gD)
 {
-    (void) gA;
-    (void) gB;
     (void) nthr;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     custard_bf16 *tmp1 = (custard_bf16 *) tmp;
@@ -3114,6 +3244,9 @@ __global__ static void kuiper_kernel_11(uint32_t cols, uint32_t shared,
                 ._1 = tmp1, ._2 = tmp7};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    uint32_t num_n_tiles = (cols / 64);
+    uint32_t mrow = (bid / num_n_tiles);
+    uint32_t mcol = (bid % num_n_tiles);
     uint32_t wid = (tid / 32);
     uint32_t warpRow = (wid / 1);
     uint32_t warpCol = (wid % 1);
@@ -3152,6 +3285,7 @@ __global__ static void kuiper_kernel_11(uint32_t cols, uint32_t shared,
     }
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
+        uint32_t __anf0_1 = bkIdx;
         __syncthreads();
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 8);
@@ -3161,26 +3295,31 @@ __global__ static void kuiper_kernel_11(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_1 = i;
-            uint32_t row = ((__anf0_1 + offset) / 64);
             uint32_t __anf01_1 = i;
-            uint32_t col = ((__anf01_1 + offset) % 64);
+            uint32_t row = ((__anf01_1 + offset) / 64);
+            uint32_t __anf02 = i;
+            uint32_t col = ((__anf02 + offset) % 64);
+            uint32_t offset1 =
+                ((((0 + (shared * (mrow * 64))) + (__anf0_1 * 64)) +
+                     (shared * row)) +
+                    col);
+            vec_memcpy((local + 0), (gA + offset1));
             uint32_t k = 0;
             while (k < 8) {
-                uint32_t __anf02 = k;
-                custard_bf16 v = local[__anf02];
                 uint32_t __anf03 = k;
-                uint32_t cidx = (col + __anf03);
+                custard_bf16 v = local[__anf03];
+                uint32_t __anf04 = k;
+                uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 64) + cidx);
                 _letpattern._1[ni] = v;
-                uint32_t __anf04 = k;
-                k = (__anf04 + 1);
+                uint32_t __anf05 = k;
+                k = (__anf05 + 1);
             }
             uint32_t vi = i;
             i = (vi + 256);
         }
         uint32_t mlen1 = 4096;
-        uint32_t offset1 = (tid * 8);
+        uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
             custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
@@ -3188,20 +3327,25 @@ __global__ static void kuiper_kernel_11(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_2 = i1;
-            uint32_t row_1 = ((__anf0_2 + offset1) / 64);
             uint32_t __anf01_2 = i1;
-            uint32_t col_1 = ((__anf01_2 + offset1) % 64);
+            uint32_t row_1 = ((__anf01_2 + offset1_1) / 64);
+            uint32_t __anf02_1 = i1;
+            uint32_t col_1 = ((__anf02_1 + offset1_1) % 64);
+            uint32_t offset2 =
+                ((((0 + (cols * (__anf0_1 * 64))) + (mcol * 64)) +
+                     (cols * row_1)) +
+                    col_1);
+            vec_memcpy((local_1 + 0), (gB + offset2));
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                uint32_t __anf02_1 = k_1;
-                custard_bf16 v_1 = local_1[__anf02_1];
                 uint32_t __anf03_1 = k_1;
-                uint32_t cidx_1 = (col_1 + __anf03_1);
+                custard_bf16 v_1 = local_1[__anf03_1];
+                uint32_t __anf04_1 = k_1;
+                uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 64) + cidx_1);
                 _letpattern._2[ni_1] = v_1;
-                uint32_t __anf04_1 = k_1;
-                k_1 = (__anf04_1 + 1);
+                uint32_t __anf05_1 = k_1;
+                k_1 = (__anf05_1 + 1);
             }
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 256);
@@ -3209,39 +3353,39 @@ __global__ static void kuiper_kernel_11(uint32_t cols, uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 4) {
-            uint32_t __anf0_3 = dotIdx;
+            uint32_t __anf01_3 = dotIdx;
             uint32_t i0 = 0;
             while (i0 < 4) {
-                uint32_t __anf01_3 = i0;
                 uint32_t __anf02_2 = i0;
+                uint32_t __anf03_2 = i0;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
-                    aFrags[__anf02_2];
+                    aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
                     (_letpattern._1 +
-                        ((((0 + (64 * (warpRow * 64))) + (__anf0_3 * 16)) +
-                             (64 * (__anf01_3 * 16))) +
+                        ((((0 + (64 * (warpRow * 64))) + (__anf01_3 * 16)) +
+                             (64 * (__anf02_2 * 16))) +
                             0)),
                     ((uint32_t) 64U));
-                uint32_t __anf03_2 = i0;
-                i0 = (__anf03_2 + 1);
+                uint32_t __anf04_2 = i0;
+                i0 = (__anf04_2 + 1);
             }
-            uint32_t __anf01_4 = dotIdx;
+            uint32_t __anf02_3 = dotIdx;
             uint32_t i11 = 0;
             while (i11 < 4) {
-                uint32_t __anf02_3 = i11;
                 uint32_t __anf03_3 = i11;
+                uint32_t __anf04_3 = i11;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
-                    bFrags[__anf03_3];
+                    bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
                     (_letpattern._2 +
-                        ((((0 + (64 * (__anf01_4 * 16))) + (warpCol * 64)) +
+                        ((((0 + (64 * (__anf02_3 * 16))) + (warpCol * 64)) +
                              0) +
-                            (__anf02_3 * 16))),
+                            (__anf03_3 * 16))),
                     ((uint32_t) 64U));
-                uint32_t __anf04_2 = i11;
-                i11 = (__anf04_2 + 1);
+                uint32_t __anf05_2 = i11;
+                i11 = (__anf05_2 + 1);
             }
             uint32_t resIdxM = 0;
             while (resIdxM < 4) {
@@ -3250,26 +3394,26 @@ __global__ static void kuiper_kernel_11(uint32_t cols, uint32_t shared,
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &a_frag =
                         aFrags[resIdxM];
-                    uint32_t __anf03_4 = resIdxN;
+                    uint32_t __anf04_4 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &b_frag =
-                        bFrags[__anf03_4];
-                    uint32_t __anf04_3 = resIdxN;
+                        bFrags[__anf04_4];
+                    uint32_t __anf05_3 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16,
                         16, float, void> &acc_frag =
-                        accFrags[((resIdxM * 4) + __anf04_3)];
+                        accFrags[((resIdxM * 4) + __anf05_3)];
                     wmma::mma_sync(acc_frag, a_frag, b_frag, acc_frag);
-                    uint32_t __anf05 = resIdxN;
-                    resIdxN = (__anf05 + 1);
+                    uint32_t __anf06 = resIdxN;
+                    resIdxN = (__anf06 + 1);
                 }
-                uint32_t __anf02_4 = resIdxM;
-                resIdxM = (__anf02_4 + 1);
+                uint32_t __anf03_4 = resIdxM;
+                resIdxM = (__anf03_4 + 1);
             }
-            uint32_t __anf02_5 = dotIdx;
-            dotIdx = (__anf02_5 + 1);
+            uint32_t __anf03_5 = dotIdx;
+            dotIdx = (__anf03_5 + 1);
         }
-        uint32_t __anf0_4 = bkIdx;
-        bkIdx = (__anf0_4 + 1);
+        uint32_t __anf01_4 = bkIdx;
+        bkIdx = (__anf01_4 + 1);
     }
     uint32_t bm = 64;
     uint32_t bn = 64;
@@ -3281,8 +3425,8 @@ __global__ static void kuiper_kernel_11(uint32_t cols, uint32_t shared,
     uint32_t lane = (tid % 32);
     uint32_t idx = 0;
     while (idx < (wm * wn)) {
-        uint32_t mrow = (bid / (cols / bn));
-        uint32_t mcol = (bid % (cols / bn));
+        uint32_t mrow1 = (bid / (cols / bn));
+        uint32_t mcol1 = (bid % (cols / bn));
         uint32_t warpRow1 = (wid1 / (bn / (wn * tn)));
         uint32_t warpCol1 = (wid1 % (bn / (wn * tn)));
         float *sTile = FStar_Pervasives_Native_fst__array_t_unit(
@@ -3295,22 +3439,22 @@ __global__ static void kuiper_kernel_11(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}})));
-        uint32_t __anf0_5 = idx;
+        uint32_t __anf0_2 = idx;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
-            void> &__anf1_3 = accFrags[__anf0_5];
+            void> &__anf1_3 = accFrags[__anf0_2];
         KPR_STORE(
             (sTile + ((0 + (tn * (wid1 * tm))) + (0 * tn))), __anf1_3, tn);
         uint32_t __anf01_5 = idx;
         uint32_t area = (tm * tn);
         uint32_t flat = lane;
         while (flat < area) {
-            uint32_t __anf02_6 = flat;
-            uint32_t row_2 = (__anf02_6 / tn);
-            uint32_t col_2 = (__anf02_6 % tn);
-            uint32_t globalRow = ((((mrow * bm) + (warpRow1 * (wm * tm))) +
+            uint32_t __anf02_4 = flat;
+            uint32_t row_2 = (__anf02_4 / tn);
+            uint32_t col_2 = (__anf02_4 % tn);
+            uint32_t globalRow = ((((mrow1 * bm) + (warpRow1 * (wm * tm))) +
                                       ((__anf01_5 / wn) * tm)) +
                                   row_2);
-            uint32_t globalCol = ((((mcol * bn) + (warpCol1 * (wn * tn))) +
+            uint32_t globalCol = ((((mcol1 * bn) + (warpCol1 * (wn * tn))) +
                                       ((__anf01_5 % wn) * tn)) +
                                   col_2);
             uint32_t ni_2 = ((globalRow * cols) + globalCol);
@@ -3325,8 +3469,8 @@ __global__ static void kuiper_kernel_11(uint32_t cols, uint32_t shared,
             uint32_t vflat = flat;
             flat = (vflat + 32);
         }
-        uint32_t __anf02_7 = idx;
-        idx = (__anf02_7 + 1);
+        uint32_t __anf02_5 = idx;
+        idx = (__anf02_5 + 1);
     }
 }
 
@@ -3335,8 +3479,6 @@ __global__ static void kuiper_kernel_12(uint32_t cols, uint32_t shared,
     custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
     float beta, float alpha, custard_bf16 *gD)
 {
-    (void) gA;
-    (void) gB;
     (void) nthr;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     custard_bf16 *tmp1 = (custard_bf16 *) tmp;
@@ -3358,6 +3500,9 @@ __global__ static void kuiper_kernel_12(uint32_t cols, uint32_t shared,
                 ._1 = tmp1, ._2 = tmp7};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    uint32_t num_n_tiles = (cols / 128);
+    uint32_t mrow = (bid / num_n_tiles);
+    uint32_t mcol = (bid % num_n_tiles);
     uint32_t wid = (tid / 32);
     uint32_t warpRow = (wid / 2);
     uint32_t warpCol = (wid % 2);
@@ -3396,6 +3541,7 @@ __global__ static void kuiper_kernel_12(uint32_t cols, uint32_t shared,
     }
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
+        uint32_t __anf0_1 = bkIdx;
         __syncthreads();
         uint32_t mlen = 1024;
         uint32_t offset = (tid * 8);
@@ -3405,26 +3551,31 @@ __global__ static void kuiper_kernel_12(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_1 = i;
-            uint32_t row = ((__anf0_1 + offset) / 16);
             uint32_t __anf01_1 = i;
-            uint32_t col = ((__anf01_1 + offset) % 16);
+            uint32_t row = ((__anf01_1 + offset) / 16);
+            uint32_t __anf02 = i;
+            uint32_t col = ((__anf02 + offset) % 16);
+            uint32_t offset1 =
+                ((((0 + (shared * (mrow * 64))) + (__anf0_1 * 16)) +
+                     (shared * row)) +
+                    col);
+            vec_memcpy((local + 0), (gA + offset1));
             uint32_t k = 0;
             while (k < 8) {
-                uint32_t __anf02 = k;
-                custard_bf16 v = local[__anf02];
                 uint32_t __anf03 = k;
-                uint32_t cidx = (col + __anf03);
+                custard_bf16 v = local[__anf03];
+                uint32_t __anf04 = k;
+                uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 16) + cidx);
                 _letpattern._1[ni] = v;
-                uint32_t __anf04 = k;
-                k = (__anf04 + 1);
+                uint32_t __anf05 = k;
+                k = (__anf05 + 1);
             }
             uint32_t vi = i;
             i = (vi + 1024);
         }
         uint32_t mlen1 = 2048;
-        uint32_t offset1 = (tid * 8);
+        uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
             custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
@@ -3432,20 +3583,25 @@ __global__ static void kuiper_kernel_12(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_2 = i1;
-            uint32_t row_1 = ((__anf0_2 + offset1) / 128);
             uint32_t __anf01_2 = i1;
-            uint32_t col_1 = ((__anf01_2 + offset1) % 128);
+            uint32_t row_1 = ((__anf01_2 + offset1_1) / 128);
+            uint32_t __anf02_1 = i1;
+            uint32_t col_1 = ((__anf02_1 + offset1_1) % 128);
+            uint32_t offset2 =
+                ((((0 + (cols * (__anf0_1 * 16))) + (mcol * 128)) +
+                     (cols * row_1)) +
+                    col_1);
+            vec_memcpy((local_1 + 0), (gB + offset2));
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                uint32_t __anf02_1 = k_1;
-                custard_bf16 v_1 = local_1[__anf02_1];
                 uint32_t __anf03_1 = k_1;
-                uint32_t cidx_1 = (col_1 + __anf03_1);
+                custard_bf16 v_1 = local_1[__anf03_1];
+                uint32_t __anf04_1 = k_1;
+                uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
                 _letpattern._2[ni_1] = v_1;
-                uint32_t __anf04_1 = k_1;
-                k_1 = (__anf04_1 + 1);
+                uint32_t __anf05_1 = k_1;
+                k_1 = (__anf05_1 + 1);
             }
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 1024);
@@ -3453,39 +3609,39 @@ __global__ static void kuiper_kernel_12(uint32_t cols, uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 1) {
-            uint32_t __anf0_3 = dotIdx;
+            uint32_t __anf01_3 = dotIdx;
             uint32_t i0 = 0;
             while (i0 < 2) {
-                uint32_t __anf01_3 = i0;
                 uint32_t __anf02_2 = i0;
+                uint32_t __anf03_2 = i0;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
-                    aFrags[__anf02_2];
+                    aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
                     (_letpattern._1 +
-                        ((((0 + (16 * (warpRow * 32))) + (__anf0_3 * 16)) +
-                             (16 * (__anf01_3 * 16))) +
+                        ((((0 + (16 * (warpRow * 32))) + (__anf01_3 * 16)) +
+                             (16 * (__anf02_2 * 16))) +
                             0)),
                     ((uint32_t) 16U));
-                uint32_t __anf03_2 = i0;
-                i0 = (__anf03_2 + 1);
+                uint32_t __anf04_2 = i0;
+                i0 = (__anf04_2 + 1);
             }
-            uint32_t __anf01_4 = dotIdx;
+            uint32_t __anf02_3 = dotIdx;
             uint32_t i11 = 0;
             while (i11 < 4) {
-                uint32_t __anf02_3 = i11;
                 uint32_t __anf03_3 = i11;
+                uint32_t __anf04_3 = i11;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
-                    bFrags[__anf03_3];
+                    bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
                     (_letpattern._2 +
-                        ((((0 + (128 * (__anf01_4 * 16))) + (warpCol * 64)) +
+                        ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 64)) +
                              0) +
-                            (__anf02_3 * 16))),
+                            (__anf03_3 * 16))),
                     ((uint32_t) 128U));
-                uint32_t __anf04_2 = i11;
-                i11 = (__anf04_2 + 1);
+                uint32_t __anf05_2 = i11;
+                i11 = (__anf05_2 + 1);
             }
             uint32_t resIdxM = 0;
             while (resIdxM < 2) {
@@ -3494,26 +3650,26 @@ __global__ static void kuiper_kernel_12(uint32_t cols, uint32_t shared,
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &a_frag =
                         aFrags[resIdxM];
-                    uint32_t __anf03_4 = resIdxN;
+                    uint32_t __anf04_4 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &b_frag =
-                        bFrags[__anf03_4];
-                    uint32_t __anf04_3 = resIdxN;
+                        bFrags[__anf04_4];
+                    uint32_t __anf05_3 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16,
                         16, float, void> &acc_frag =
-                        accFrags[((resIdxM * 4) + __anf04_3)];
+                        accFrags[((resIdxM * 4) + __anf05_3)];
                     wmma::mma_sync(acc_frag, a_frag, b_frag, acc_frag);
-                    uint32_t __anf05 = resIdxN;
-                    resIdxN = (__anf05 + 1);
+                    uint32_t __anf06 = resIdxN;
+                    resIdxN = (__anf06 + 1);
                 }
-                uint32_t __anf02_4 = resIdxM;
-                resIdxM = (__anf02_4 + 1);
+                uint32_t __anf03_4 = resIdxM;
+                resIdxM = (__anf03_4 + 1);
             }
-            uint32_t __anf02_5 = dotIdx;
-            dotIdx = (__anf02_5 + 1);
+            uint32_t __anf03_5 = dotIdx;
+            dotIdx = (__anf03_5 + 1);
         }
-        uint32_t __anf0_4 = bkIdx;
-        bkIdx = (__anf0_4 + 1);
+        uint32_t __anf01_4 = bkIdx;
+        bkIdx = (__anf01_4 + 1);
     }
     uint32_t bm = 64;
     uint32_t bn = 128;
@@ -3525,8 +3681,8 @@ __global__ static void kuiper_kernel_12(uint32_t cols, uint32_t shared,
     uint32_t lane = (tid % 32);
     uint32_t idx = 0;
     while (idx < (wm * wn)) {
-        uint32_t mrow = (bid / (cols / bn));
-        uint32_t mcol = (bid % (cols / bn));
+        uint32_t mrow1 = (bid / (cols / bn));
+        uint32_t mcol1 = (bid % (cols / bn));
         uint32_t warpRow1 = (wid1 / (bn / (wn * tn)));
         uint32_t warpCol1 = (wid1 % (bn / (wn * tn)));
         float *sTile = FStar_Pervasives_Native_fst__array_t_unit(
@@ -3539,22 +3695,22 @@ __global__ static void kuiper_kernel_12(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}})));
-        uint32_t __anf0_5 = idx;
+        uint32_t __anf0_2 = idx;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
-            void> &__anf1_3 = accFrags[__anf0_5];
+            void> &__anf1_3 = accFrags[__anf0_2];
         KPR_STORE(
             (sTile + ((0 + (tn * (wid1 * tm))) + (0 * tn))), __anf1_3, tn);
         uint32_t __anf01_5 = idx;
         uint32_t area = (tm * tn);
         uint32_t flat = lane;
         while (flat < area) {
-            uint32_t __anf02_6 = flat;
-            uint32_t row_2 = (__anf02_6 / tn);
-            uint32_t col_2 = (__anf02_6 % tn);
-            uint32_t globalRow = ((((mrow * bm) + (warpRow1 * (wm * tm))) +
+            uint32_t __anf02_4 = flat;
+            uint32_t row_2 = (__anf02_4 / tn);
+            uint32_t col_2 = (__anf02_4 % tn);
+            uint32_t globalRow = ((((mrow1 * bm) + (warpRow1 * (wm * tm))) +
                                       ((__anf01_5 / wn) * tm)) +
                                   row_2);
-            uint32_t globalCol = ((((mcol * bn) + (warpCol1 * (wn * tn))) +
+            uint32_t globalCol = ((((mcol1 * bn) + (warpCol1 * (wn * tn))) +
                                       ((__anf01_5 % wn) * tn)) +
                                   col_2);
             uint32_t ni_2 = ((globalRow * cols) + globalCol);
@@ -3569,8 +3725,8 @@ __global__ static void kuiper_kernel_12(uint32_t cols, uint32_t shared,
             uint32_t vflat = flat;
             flat = (vflat + 32);
         }
-        uint32_t __anf02_7 = idx;
-        idx = (__anf02_7 + 1);
+        uint32_t __anf02_5 = idx;
+        idx = (__anf02_5 + 1);
     }
 }
 
@@ -3579,8 +3735,6 @@ __global__ static void kuiper_kernel_13(uint32_t cols, uint32_t shared,
     custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
     float beta, float alpha, custard_bf16 *gD)
 {
-    (void) gA;
-    (void) gB;
     (void) nthr;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     custard_bf16 *tmp1 = (custard_bf16 *) tmp;
@@ -3602,6 +3756,9 @@ __global__ static void kuiper_kernel_13(uint32_t cols, uint32_t shared,
                 ._1 = tmp1, ._2 = tmp7};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    uint32_t num_n_tiles = (cols / 128);
+    uint32_t mrow = (bid / num_n_tiles);
+    uint32_t mcol = (bid % num_n_tiles);
     uint32_t wid = (tid / 32);
     uint32_t warpRow = (wid / 1);
     uint32_t warpCol = (wid % 1);
@@ -3640,6 +3797,7 @@ __global__ static void kuiper_kernel_13(uint32_t cols, uint32_t shared,
     }
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
+        uint32_t __anf0_1 = bkIdx;
         __syncthreads();
         uint32_t mlen = 1024;
         uint32_t offset = (tid * 8);
@@ -3649,26 +3807,31 @@ __global__ static void kuiper_kernel_13(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_1 = i;
-            uint32_t row = ((__anf0_1 + offset) / 16);
             uint32_t __anf01_1 = i;
-            uint32_t col = ((__anf01_1 + offset) % 16);
+            uint32_t row = ((__anf01_1 + offset) / 16);
+            uint32_t __anf02 = i;
+            uint32_t col = ((__anf02 + offset) % 16);
+            uint32_t offset1 =
+                ((((0 + (shared * (mrow * 64))) + (__anf0_1 * 16)) +
+                     (shared * row)) +
+                    col);
+            vec_memcpy((local + 0), (gA + offset1));
             uint32_t k = 0;
             while (k < 8) {
-                uint32_t __anf02 = k;
-                custard_bf16 v = local[__anf02];
                 uint32_t __anf03 = k;
-                uint32_t cidx = (col + __anf03);
+                custard_bf16 v = local[__anf03];
+                uint32_t __anf04 = k;
+                uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 16) + cidx);
                 _letpattern._1[ni] = v;
-                uint32_t __anf04 = k;
-                k = (__anf04 + 1);
+                uint32_t __anf05 = k;
+                k = (__anf05 + 1);
             }
             uint32_t vi = i;
             i = (vi + 512);
         }
         uint32_t mlen1 = 2048;
-        uint32_t offset1 = (tid * 8);
+        uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
             custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
@@ -3676,20 +3839,25 @@ __global__ static void kuiper_kernel_13(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_2 = i1;
-            uint32_t row_1 = ((__anf0_2 + offset1) / 128);
             uint32_t __anf01_2 = i1;
-            uint32_t col_1 = ((__anf01_2 + offset1) % 128);
+            uint32_t row_1 = ((__anf01_2 + offset1_1) / 128);
+            uint32_t __anf02_1 = i1;
+            uint32_t col_1 = ((__anf02_1 + offset1_1) % 128);
+            uint32_t offset2 =
+                ((((0 + (cols * (__anf0_1 * 16))) + (mcol * 128)) +
+                     (cols * row_1)) +
+                    col_1);
+            vec_memcpy((local_1 + 0), (gB + offset2));
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                uint32_t __anf02_1 = k_1;
-                custard_bf16 v_1 = local_1[__anf02_1];
                 uint32_t __anf03_1 = k_1;
-                uint32_t cidx_1 = (col_1 + __anf03_1);
+                custard_bf16 v_1 = local_1[__anf03_1];
+                uint32_t __anf04_1 = k_1;
+                uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
                 _letpattern._2[ni_1] = v_1;
-                uint32_t __anf04_1 = k_1;
-                k_1 = (__anf04_1 + 1);
+                uint32_t __anf05_1 = k_1;
+                k_1 = (__anf05_1 + 1);
             }
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 512);
@@ -3697,39 +3865,39 @@ __global__ static void kuiper_kernel_13(uint32_t cols, uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 1) {
-            uint32_t __anf0_3 = dotIdx;
+            uint32_t __anf01_3 = dotIdx;
             uint32_t i0 = 0;
             while (i0 < 2) {
-                uint32_t __anf01_3 = i0;
                 uint32_t __anf02_2 = i0;
+                uint32_t __anf03_2 = i0;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
-                    aFrags[__anf02_2];
+                    aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
                     (_letpattern._1 +
-                        ((((0 + (16 * (warpRow * 32))) + (__anf0_3 * 16)) +
-                             (16 * (__anf01_3 * 16))) +
+                        ((((0 + (16 * (warpRow * 32))) + (__anf01_3 * 16)) +
+                             (16 * (__anf02_2 * 16))) +
                             0)),
                     ((uint32_t) 16U));
-                uint32_t __anf03_2 = i0;
-                i0 = (__anf03_2 + 1);
+                uint32_t __anf04_2 = i0;
+                i0 = (__anf04_2 + 1);
             }
-            uint32_t __anf01_4 = dotIdx;
+            uint32_t __anf02_3 = dotIdx;
             uint32_t i11 = 0;
             while (i11 < 8) {
-                uint32_t __anf02_3 = i11;
                 uint32_t __anf03_3 = i11;
+                uint32_t __anf04_3 = i11;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
-                    bFrags[__anf03_3];
+                    bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
                     (_letpattern._2 +
-                        ((((0 + (128 * (__anf01_4 * 16))) + (warpCol * 128)) +
+                        ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 128)) +
                              0) +
-                            (__anf02_3 * 16))),
+                            (__anf03_3 * 16))),
                     ((uint32_t) 128U));
-                uint32_t __anf04_2 = i11;
-                i11 = (__anf04_2 + 1);
+                uint32_t __anf05_2 = i11;
+                i11 = (__anf05_2 + 1);
             }
             uint32_t resIdxM = 0;
             while (resIdxM < 2) {
@@ -3738,26 +3906,26 @@ __global__ static void kuiper_kernel_13(uint32_t cols, uint32_t shared,
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &a_frag =
                         aFrags[resIdxM];
-                    uint32_t __anf03_4 = resIdxN;
+                    uint32_t __anf04_4 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &b_frag =
-                        bFrags[__anf03_4];
-                    uint32_t __anf04_3 = resIdxN;
+                        bFrags[__anf04_4];
+                    uint32_t __anf05_3 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16,
                         16, float, void> &acc_frag =
-                        accFrags[((resIdxM * 8) + __anf04_3)];
+                        accFrags[((resIdxM * 8) + __anf05_3)];
                     wmma::mma_sync(acc_frag, a_frag, b_frag, acc_frag);
-                    uint32_t __anf05 = resIdxN;
-                    resIdxN = (__anf05 + 1);
+                    uint32_t __anf06 = resIdxN;
+                    resIdxN = (__anf06 + 1);
                 }
-                uint32_t __anf02_4 = resIdxM;
-                resIdxM = (__anf02_4 + 1);
+                uint32_t __anf03_4 = resIdxM;
+                resIdxM = (__anf03_4 + 1);
             }
-            uint32_t __anf02_5 = dotIdx;
-            dotIdx = (__anf02_5 + 1);
+            uint32_t __anf03_5 = dotIdx;
+            dotIdx = (__anf03_5 + 1);
         }
-        uint32_t __anf0_4 = bkIdx;
-        bkIdx = (__anf0_4 + 1);
+        uint32_t __anf01_4 = bkIdx;
+        bkIdx = (__anf01_4 + 1);
     }
     uint32_t bm = 64;
     uint32_t bn = 128;
@@ -3769,8 +3937,8 @@ __global__ static void kuiper_kernel_13(uint32_t cols, uint32_t shared,
     uint32_t lane = (tid % 32);
     uint32_t idx = 0;
     while (idx < (wm * wn)) {
-        uint32_t mrow = (bid / (cols / bn));
-        uint32_t mcol = (bid % (cols / bn));
+        uint32_t mrow1 = (bid / (cols / bn));
+        uint32_t mcol1 = (bid % (cols / bn));
         uint32_t warpRow1 = (wid1 / (bn / (wn * tn)));
         uint32_t warpCol1 = (wid1 % (bn / (wn * tn)));
         float *sTile = FStar_Pervasives_Native_fst__array_t_unit(
@@ -3783,22 +3951,22 @@ __global__ static void kuiper_kernel_13(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}})));
-        uint32_t __anf0_5 = idx;
+        uint32_t __anf0_2 = idx;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
-            void> &__anf1_3 = accFrags[__anf0_5];
+            void> &__anf1_3 = accFrags[__anf0_2];
         KPR_STORE(
             (sTile + ((0 + (tn * (wid1 * tm))) + (0 * tn))), __anf1_3, tn);
         uint32_t __anf01_5 = idx;
         uint32_t area = (tm * tn);
         uint32_t flat = lane;
         while (flat < area) {
-            uint32_t __anf02_6 = flat;
-            uint32_t row_2 = (__anf02_6 / tn);
-            uint32_t col_2 = (__anf02_6 % tn);
-            uint32_t globalRow = ((((mrow * bm) + (warpRow1 * (wm * tm))) +
+            uint32_t __anf02_4 = flat;
+            uint32_t row_2 = (__anf02_4 / tn);
+            uint32_t col_2 = (__anf02_4 % tn);
+            uint32_t globalRow = ((((mrow1 * bm) + (warpRow1 * (wm * tm))) +
                                       ((__anf01_5 / wn) * tm)) +
                                   row_2);
-            uint32_t globalCol = ((((mcol * bn) + (warpCol1 * (wn * tn))) +
+            uint32_t globalCol = ((((mcol1 * bn) + (warpCol1 * (wn * tn))) +
                                       ((__anf01_5 % wn) * tn)) +
                                   col_2);
             uint32_t ni_2 = ((globalRow * cols) + globalCol);
@@ -3813,8 +3981,8 @@ __global__ static void kuiper_kernel_13(uint32_t cols, uint32_t shared,
             uint32_t vflat = flat;
             flat = (vflat + 32);
         }
-        uint32_t __anf02_7 = idx;
-        idx = (__anf02_7 + 1);
+        uint32_t __anf02_5 = idx;
+        idx = (__anf02_5 + 1);
     }
 }
 
@@ -3823,8 +3991,6 @@ __global__ static void kuiper_kernel_14(uint32_t cols, uint32_t shared,
     custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
     float beta, float alpha, custard_bf16 *gD)
 {
-    (void) gA;
-    (void) gB;
     (void) nthr;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     custard_bf16 *tmp1 = (custard_bf16 *) tmp;
@@ -3846,6 +4012,9 @@ __global__ static void kuiper_kernel_14(uint32_t cols, uint32_t shared,
                 ._1 = tmp1, ._2 = tmp7};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    uint32_t num_n_tiles = (cols / 128);
+    uint32_t mrow = (bid / num_n_tiles);
+    uint32_t mcol = (bid % num_n_tiles);
     uint32_t wid = (tid / 32);
     uint32_t warpRow = (wid / 4);
     uint32_t warpCol = (wid % 4);
@@ -3884,6 +4053,7 @@ __global__ static void kuiper_kernel_14(uint32_t cols, uint32_t shared,
     }
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
+        uint32_t __anf0_1 = bkIdx;
         __syncthreads();
         uint32_t mlen = 1024;
         uint32_t offset = (tid * 8);
@@ -3893,26 +4063,31 @@ __global__ static void kuiper_kernel_14(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_1 = i;
-            uint32_t row = ((__anf0_1 + offset) / 16);
             uint32_t __anf01_1 = i;
-            uint32_t col = ((__anf01_1 + offset) % 16);
+            uint32_t row = ((__anf01_1 + offset) / 16);
+            uint32_t __anf02 = i;
+            uint32_t col = ((__anf02 + offset) % 16);
+            uint32_t offset1 =
+                ((((0 + (shared * (mrow * 64))) + (__anf0_1 * 16)) +
+                     (shared * row)) +
+                    col);
+            vec_memcpy((local + 0), (gA + offset1));
             uint32_t k = 0;
             while (k < 8) {
-                uint32_t __anf02 = k;
-                custard_bf16 v = local[__anf02];
                 uint32_t __anf03 = k;
-                uint32_t cidx = (col + __anf03);
+                custard_bf16 v = local[__anf03];
+                uint32_t __anf04 = k;
+                uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 16) + cidx);
                 _letpattern._1[ni] = v;
-                uint32_t __anf04 = k;
-                k = (__anf04 + 1);
+                uint32_t __anf05 = k;
+                k = (__anf05 + 1);
             }
             uint32_t vi = i;
             i = (vi + 1024);
         }
         uint32_t mlen1 = 2048;
-        uint32_t offset1 = (tid * 8);
+        uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
             custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
@@ -3920,20 +4095,25 @@ __global__ static void kuiper_kernel_14(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_2 = i1;
-            uint32_t row_1 = ((__anf0_2 + offset1) / 128);
             uint32_t __anf01_2 = i1;
-            uint32_t col_1 = ((__anf01_2 + offset1) % 128);
+            uint32_t row_1 = ((__anf01_2 + offset1_1) / 128);
+            uint32_t __anf02_1 = i1;
+            uint32_t col_1 = ((__anf02_1 + offset1_1) % 128);
+            uint32_t offset2 =
+                ((((0 + (cols * (__anf0_1 * 16))) + (mcol * 128)) +
+                     (cols * row_1)) +
+                    col_1);
+            vec_memcpy((local_1 + 0), (gB + offset2));
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                uint32_t __anf02_1 = k_1;
-                custard_bf16 v_1 = local_1[__anf02_1];
                 uint32_t __anf03_1 = k_1;
-                uint32_t cidx_1 = (col_1 + __anf03_1);
+                custard_bf16 v_1 = local_1[__anf03_1];
+                uint32_t __anf04_1 = k_1;
+                uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
                 _letpattern._2[ni_1] = v_1;
-                uint32_t __anf04_1 = k_1;
-                k_1 = (__anf04_1 + 1);
+                uint32_t __anf05_1 = k_1;
+                k_1 = (__anf05_1 + 1);
             }
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 1024);
@@ -3941,39 +4121,39 @@ __global__ static void kuiper_kernel_14(uint32_t cols, uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 1) {
-            uint32_t __anf0_3 = dotIdx;
+            uint32_t __anf01_3 = dotIdx;
             uint32_t i0 = 0;
             while (i0 < 4) {
-                uint32_t __anf01_3 = i0;
                 uint32_t __anf02_2 = i0;
+                uint32_t __anf03_2 = i0;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
-                    aFrags[__anf02_2];
+                    aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
                     (_letpattern._1 +
-                        ((((0 + (16 * (warpRow * 64))) + (__anf0_3 * 16)) +
-                             (16 * (__anf01_3 * 16))) +
+                        ((((0 + (16 * (warpRow * 64))) + (__anf01_3 * 16)) +
+                             (16 * (__anf02_2 * 16))) +
                             0)),
                     ((uint32_t) 16U));
-                uint32_t __anf03_2 = i0;
-                i0 = (__anf03_2 + 1);
+                uint32_t __anf04_2 = i0;
+                i0 = (__anf04_2 + 1);
             }
-            uint32_t __anf01_4 = dotIdx;
+            uint32_t __anf02_3 = dotIdx;
             uint32_t i11 = 0;
             while (i11 < 2) {
-                uint32_t __anf02_3 = i11;
                 uint32_t __anf03_3 = i11;
+                uint32_t __anf04_3 = i11;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
-                    bFrags[__anf03_3];
+                    bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
                     (_letpattern._2 +
-                        ((((0 + (128 * (__anf01_4 * 16))) + (warpCol * 32)) +
+                        ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 32)) +
                              0) +
-                            (__anf02_3 * 16))),
+                            (__anf03_3 * 16))),
                     ((uint32_t) 128U));
-                uint32_t __anf04_2 = i11;
-                i11 = (__anf04_2 + 1);
+                uint32_t __anf05_2 = i11;
+                i11 = (__anf05_2 + 1);
             }
             uint32_t resIdxM = 0;
             while (resIdxM < 4) {
@@ -3982,26 +4162,26 @@ __global__ static void kuiper_kernel_14(uint32_t cols, uint32_t shared,
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &a_frag =
                         aFrags[resIdxM];
-                    uint32_t __anf03_4 = resIdxN;
+                    uint32_t __anf04_4 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &b_frag =
-                        bFrags[__anf03_4];
-                    uint32_t __anf04_3 = resIdxN;
+                        bFrags[__anf04_4];
+                    uint32_t __anf05_3 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16,
                         16, float, void> &acc_frag =
-                        accFrags[((resIdxM * 2) + __anf04_3)];
+                        accFrags[((resIdxM * 2) + __anf05_3)];
                     wmma::mma_sync(acc_frag, a_frag, b_frag, acc_frag);
-                    uint32_t __anf05 = resIdxN;
-                    resIdxN = (__anf05 + 1);
+                    uint32_t __anf06 = resIdxN;
+                    resIdxN = (__anf06 + 1);
                 }
-                uint32_t __anf02_4 = resIdxM;
-                resIdxM = (__anf02_4 + 1);
+                uint32_t __anf03_4 = resIdxM;
+                resIdxM = (__anf03_4 + 1);
             }
-            uint32_t __anf02_5 = dotIdx;
-            dotIdx = (__anf02_5 + 1);
+            uint32_t __anf03_5 = dotIdx;
+            dotIdx = (__anf03_5 + 1);
         }
-        uint32_t __anf0_4 = bkIdx;
-        bkIdx = (__anf0_4 + 1);
+        uint32_t __anf01_4 = bkIdx;
+        bkIdx = (__anf01_4 + 1);
     }
     uint32_t bm = 64;
     uint32_t bn = 128;
@@ -4013,8 +4193,8 @@ __global__ static void kuiper_kernel_14(uint32_t cols, uint32_t shared,
     uint32_t lane = (tid % 32);
     uint32_t idx = 0;
     while (idx < (wm * wn)) {
-        uint32_t mrow = (bid / (cols / bn));
-        uint32_t mcol = (bid % (cols / bn));
+        uint32_t mrow1 = (bid / (cols / bn));
+        uint32_t mcol1 = (bid % (cols / bn));
         uint32_t warpRow1 = (wid1 / (bn / (wn * tn)));
         uint32_t warpCol1 = (wid1 % (bn / (wn * tn)));
         float *sTile = FStar_Pervasives_Native_fst__array_t_unit(
@@ -4027,22 +4207,22 @@ __global__ static void kuiper_kernel_14(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}})));
-        uint32_t __anf0_5 = idx;
+        uint32_t __anf0_2 = idx;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
-            void> &__anf1_3 = accFrags[__anf0_5];
+            void> &__anf1_3 = accFrags[__anf0_2];
         KPR_STORE(
             (sTile + ((0 + (tn * (wid1 * tm))) + (0 * tn))), __anf1_3, tn);
         uint32_t __anf01_5 = idx;
         uint32_t area = (tm * tn);
         uint32_t flat = lane;
         while (flat < area) {
-            uint32_t __anf02_6 = flat;
-            uint32_t row_2 = (__anf02_6 / tn);
-            uint32_t col_2 = (__anf02_6 % tn);
-            uint32_t globalRow = ((((mrow * bm) + (warpRow1 * (wm * tm))) +
+            uint32_t __anf02_4 = flat;
+            uint32_t row_2 = (__anf02_4 / tn);
+            uint32_t col_2 = (__anf02_4 % tn);
+            uint32_t globalRow = ((((mrow1 * bm) + (warpRow1 * (wm * tm))) +
                                       ((__anf01_5 / wn) * tm)) +
                                   row_2);
-            uint32_t globalCol = ((((mcol * bn) + (warpCol1 * (wn * tn))) +
+            uint32_t globalCol = ((((mcol1 * bn) + (warpCol1 * (wn * tn))) +
                                       ((__anf01_5 % wn) * tn)) +
                                   col_2);
             uint32_t ni_2 = ((globalRow * cols) + globalCol);
@@ -4057,8 +4237,8 @@ __global__ static void kuiper_kernel_14(uint32_t cols, uint32_t shared,
             uint32_t vflat = flat;
             flat = (vflat + 32);
         }
-        uint32_t __anf02_7 = idx;
-        idx = (__anf02_7 + 1);
+        uint32_t __anf02_5 = idx;
+        idx = (__anf02_5 + 1);
     }
 }
 
@@ -4067,8 +4247,6 @@ __global__ static void kuiper_kernel_15(uint32_t cols, uint32_t shared,
     custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
     float beta, float alpha, custard_bf16 *gD)
 {
-    (void) gA;
-    (void) gB;
     (void) nthr;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     custard_bf16 *tmp1 = (custard_bf16 *) tmp;
@@ -4090,6 +4268,9 @@ __global__ static void kuiper_kernel_15(uint32_t cols, uint32_t shared,
                 ._1 = tmp1, ._2 = tmp7};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    uint32_t num_n_tiles = (cols / 128);
+    uint32_t mrow = (bid / num_n_tiles);
+    uint32_t mcol = (bid % num_n_tiles);
     uint32_t wid = (tid / 32);
     uint32_t warpRow = (wid / 2);
     uint32_t warpCol = (wid % 2);
@@ -4128,6 +4309,7 @@ __global__ static void kuiper_kernel_15(uint32_t cols, uint32_t shared,
     }
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
+        uint32_t __anf0_1 = bkIdx;
         __syncthreads();
         uint32_t mlen = 1024;
         uint32_t offset = (tid * 8);
@@ -4137,26 +4319,31 @@ __global__ static void kuiper_kernel_15(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_1 = i;
-            uint32_t row = ((__anf0_1 + offset) / 16);
             uint32_t __anf01_1 = i;
-            uint32_t col = ((__anf01_1 + offset) % 16);
+            uint32_t row = ((__anf01_1 + offset) / 16);
+            uint32_t __anf02 = i;
+            uint32_t col = ((__anf02 + offset) % 16);
+            uint32_t offset1 =
+                ((((0 + (shared * (mrow * 64))) + (__anf0_1 * 16)) +
+                     (shared * row)) +
+                    col);
+            vec_memcpy((local + 0), (gA + offset1));
             uint32_t k = 0;
             while (k < 8) {
-                uint32_t __anf02 = k;
-                custard_bf16 v = local[__anf02];
                 uint32_t __anf03 = k;
-                uint32_t cidx = (col + __anf03);
+                custard_bf16 v = local[__anf03];
+                uint32_t __anf04 = k;
+                uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 16) + cidx);
                 _letpattern._1[ni] = v;
-                uint32_t __anf04 = k;
-                k = (__anf04 + 1);
+                uint32_t __anf05 = k;
+                k = (__anf05 + 1);
             }
             uint32_t vi = i;
             i = (vi + 512);
         }
         uint32_t mlen1 = 2048;
-        uint32_t offset1 = (tid * 8);
+        uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
             custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
@@ -4164,20 +4351,25 @@ __global__ static void kuiper_kernel_15(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_2 = i1;
-            uint32_t row_1 = ((__anf0_2 + offset1) / 128);
             uint32_t __anf01_2 = i1;
-            uint32_t col_1 = ((__anf01_2 + offset1) % 128);
+            uint32_t row_1 = ((__anf01_2 + offset1_1) / 128);
+            uint32_t __anf02_1 = i1;
+            uint32_t col_1 = ((__anf02_1 + offset1_1) % 128);
+            uint32_t offset2 =
+                ((((0 + (cols * (__anf0_1 * 16))) + (mcol * 128)) +
+                     (cols * row_1)) +
+                    col_1);
+            vec_memcpy((local_1 + 0), (gB + offset2));
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                uint32_t __anf02_1 = k_1;
-                custard_bf16 v_1 = local_1[__anf02_1];
                 uint32_t __anf03_1 = k_1;
-                uint32_t cidx_1 = (col_1 + __anf03_1);
+                custard_bf16 v_1 = local_1[__anf03_1];
+                uint32_t __anf04_1 = k_1;
+                uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
                 _letpattern._2[ni_1] = v_1;
-                uint32_t __anf04_1 = k_1;
-                k_1 = (__anf04_1 + 1);
+                uint32_t __anf05_1 = k_1;
+                k_1 = (__anf05_1 + 1);
             }
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 512);
@@ -4185,39 +4377,39 @@ __global__ static void kuiper_kernel_15(uint32_t cols, uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 1) {
-            uint32_t __anf0_3 = dotIdx;
+            uint32_t __anf01_3 = dotIdx;
             uint32_t i0 = 0;
             while (i0 < 4) {
-                uint32_t __anf01_3 = i0;
                 uint32_t __anf02_2 = i0;
+                uint32_t __anf03_2 = i0;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
-                    aFrags[__anf02_2];
+                    aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
                     (_letpattern._1 +
-                        ((((0 + (16 * (warpRow * 64))) + (__anf0_3 * 16)) +
-                             (16 * (__anf01_3 * 16))) +
+                        ((((0 + (16 * (warpRow * 64))) + (__anf01_3 * 16)) +
+                             (16 * (__anf02_2 * 16))) +
                             0)),
                     ((uint32_t) 16U));
-                uint32_t __anf03_2 = i0;
-                i0 = (__anf03_2 + 1);
+                uint32_t __anf04_2 = i0;
+                i0 = (__anf04_2 + 1);
             }
-            uint32_t __anf01_4 = dotIdx;
+            uint32_t __anf02_3 = dotIdx;
             uint32_t i11 = 0;
             while (i11 < 4) {
-                uint32_t __anf02_3 = i11;
                 uint32_t __anf03_3 = i11;
+                uint32_t __anf04_3 = i11;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
-                    bFrags[__anf03_3];
+                    bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
                     (_letpattern._2 +
-                        ((((0 + (128 * (__anf01_4 * 16))) + (warpCol * 64)) +
+                        ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 64)) +
                              0) +
-                            (__anf02_3 * 16))),
+                            (__anf03_3 * 16))),
                     ((uint32_t) 128U));
-                uint32_t __anf04_2 = i11;
-                i11 = (__anf04_2 + 1);
+                uint32_t __anf05_2 = i11;
+                i11 = (__anf05_2 + 1);
             }
             uint32_t resIdxM = 0;
             while (resIdxM < 4) {
@@ -4226,26 +4418,26 @@ __global__ static void kuiper_kernel_15(uint32_t cols, uint32_t shared,
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &a_frag =
                         aFrags[resIdxM];
-                    uint32_t __anf03_4 = resIdxN;
+                    uint32_t __anf04_4 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &b_frag =
-                        bFrags[__anf03_4];
-                    uint32_t __anf04_3 = resIdxN;
+                        bFrags[__anf04_4];
+                    uint32_t __anf05_3 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16,
                         16, float, void> &acc_frag =
-                        accFrags[((resIdxM * 4) + __anf04_3)];
+                        accFrags[((resIdxM * 4) + __anf05_3)];
                     wmma::mma_sync(acc_frag, a_frag, b_frag, acc_frag);
-                    uint32_t __anf05 = resIdxN;
-                    resIdxN = (__anf05 + 1);
+                    uint32_t __anf06 = resIdxN;
+                    resIdxN = (__anf06 + 1);
                 }
-                uint32_t __anf02_4 = resIdxM;
-                resIdxM = (__anf02_4 + 1);
+                uint32_t __anf03_4 = resIdxM;
+                resIdxM = (__anf03_4 + 1);
             }
-            uint32_t __anf02_5 = dotIdx;
-            dotIdx = (__anf02_5 + 1);
+            uint32_t __anf03_5 = dotIdx;
+            dotIdx = (__anf03_5 + 1);
         }
-        uint32_t __anf0_4 = bkIdx;
-        bkIdx = (__anf0_4 + 1);
+        uint32_t __anf01_4 = bkIdx;
+        bkIdx = (__anf01_4 + 1);
     }
     uint32_t bm = 64;
     uint32_t bn = 128;
@@ -4257,8 +4449,8 @@ __global__ static void kuiper_kernel_15(uint32_t cols, uint32_t shared,
     uint32_t lane = (tid % 32);
     uint32_t idx = 0;
     while (idx < (wm * wn)) {
-        uint32_t mrow = (bid / (cols / bn));
-        uint32_t mcol = (bid % (cols / bn));
+        uint32_t mrow1 = (bid / (cols / bn));
+        uint32_t mcol1 = (bid % (cols / bn));
         uint32_t warpRow1 = (wid1 / (bn / (wn * tn)));
         uint32_t warpCol1 = (wid1 % (bn / (wn * tn)));
         float *sTile = FStar_Pervasives_Native_fst__array_t_unit(
@@ -4271,22 +4463,22 @@ __global__ static void kuiper_kernel_15(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}})));
-        uint32_t __anf0_5 = idx;
+        uint32_t __anf0_2 = idx;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
-            void> &__anf1_3 = accFrags[__anf0_5];
+            void> &__anf1_3 = accFrags[__anf0_2];
         KPR_STORE(
             (sTile + ((0 + (tn * (wid1 * tm))) + (0 * tn))), __anf1_3, tn);
         uint32_t __anf01_5 = idx;
         uint32_t area = (tm * tn);
         uint32_t flat = lane;
         while (flat < area) {
-            uint32_t __anf02_6 = flat;
-            uint32_t row_2 = (__anf02_6 / tn);
-            uint32_t col_2 = (__anf02_6 % tn);
-            uint32_t globalRow = ((((mrow * bm) + (warpRow1 * (wm * tm))) +
+            uint32_t __anf02_4 = flat;
+            uint32_t row_2 = (__anf02_4 / tn);
+            uint32_t col_2 = (__anf02_4 % tn);
+            uint32_t globalRow = ((((mrow1 * bm) + (warpRow1 * (wm * tm))) +
                                       ((__anf01_5 / wn) * tm)) +
                                   row_2);
-            uint32_t globalCol = ((((mcol * bn) + (warpCol1 * (wn * tn))) +
+            uint32_t globalCol = ((((mcol1 * bn) + (warpCol1 * (wn * tn))) +
                                       ((__anf01_5 % wn) * tn)) +
                                   col_2);
             uint32_t ni_2 = ((globalRow * cols) + globalCol);
@@ -4301,8 +4493,8 @@ __global__ static void kuiper_kernel_15(uint32_t cols, uint32_t shared,
             uint32_t vflat = flat;
             flat = (vflat + 32);
         }
-        uint32_t __anf02_7 = idx;
-        idx = (__anf02_7 + 1);
+        uint32_t __anf02_5 = idx;
+        idx = (__anf02_5 + 1);
     }
 }
 
@@ -4311,8 +4503,6 @@ __global__ static void kuiper_kernel_16(uint32_t cols, uint32_t shared,
     custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
     float beta, float alpha, custard_bf16 *gD)
 {
-    (void) gA;
-    (void) gB;
     (void) nthr;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     custard_bf16 *tmp1 = (custard_bf16 *) tmp;
@@ -4334,6 +4524,9 @@ __global__ static void kuiper_kernel_16(uint32_t cols, uint32_t shared,
                 ._1 = tmp1, ._2 = tmp7};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    uint32_t num_n_tiles = (cols / 128);
+    uint32_t mrow = (bid / num_n_tiles);
+    uint32_t mcol = (bid % num_n_tiles);
     uint32_t wid = (tid / 32);
     uint32_t warpRow = (wid / 1);
     uint32_t warpCol = (wid % 1);
@@ -4372,6 +4565,7 @@ __global__ static void kuiper_kernel_16(uint32_t cols, uint32_t shared,
     }
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
+        uint32_t __anf0_1 = bkIdx;
         __syncthreads();
         uint32_t mlen = 1024;
         uint32_t offset = (tid * 8);
@@ -4381,26 +4575,31 @@ __global__ static void kuiper_kernel_16(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_1 = i;
-            uint32_t row = ((__anf0_1 + offset) / 16);
             uint32_t __anf01_1 = i;
-            uint32_t col = ((__anf01_1 + offset) % 16);
+            uint32_t row = ((__anf01_1 + offset) / 16);
+            uint32_t __anf02 = i;
+            uint32_t col = ((__anf02 + offset) % 16);
+            uint32_t offset1 =
+                ((((0 + (shared * (mrow * 64))) + (__anf0_1 * 16)) +
+                     (shared * row)) +
+                    col);
+            vec_memcpy((local + 0), (gA + offset1));
             uint32_t k = 0;
             while (k < 8) {
-                uint32_t __anf02 = k;
-                custard_bf16 v = local[__anf02];
                 uint32_t __anf03 = k;
-                uint32_t cidx = (col + __anf03);
+                custard_bf16 v = local[__anf03];
+                uint32_t __anf04 = k;
+                uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 16) + cidx);
                 _letpattern._1[ni] = v;
-                uint32_t __anf04 = k;
-                k = (__anf04 + 1);
+                uint32_t __anf05 = k;
+                k = (__anf05 + 1);
             }
             uint32_t vi = i;
             i = (vi + 256);
         }
         uint32_t mlen1 = 2048;
-        uint32_t offset1 = (tid * 8);
+        uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
             custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
@@ -4408,20 +4607,25 @@ __global__ static void kuiper_kernel_16(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_2 = i1;
-            uint32_t row_1 = ((__anf0_2 + offset1) / 128);
             uint32_t __anf01_2 = i1;
-            uint32_t col_1 = ((__anf01_2 + offset1) % 128);
+            uint32_t row_1 = ((__anf01_2 + offset1_1) / 128);
+            uint32_t __anf02_1 = i1;
+            uint32_t col_1 = ((__anf02_1 + offset1_1) % 128);
+            uint32_t offset2 =
+                ((((0 + (cols * (__anf0_1 * 16))) + (mcol * 128)) +
+                     (cols * row_1)) +
+                    col_1);
+            vec_memcpy((local_1 + 0), (gB + offset2));
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                uint32_t __anf02_1 = k_1;
-                custard_bf16 v_1 = local_1[__anf02_1];
                 uint32_t __anf03_1 = k_1;
-                uint32_t cidx_1 = (col_1 + __anf03_1);
+                custard_bf16 v_1 = local_1[__anf03_1];
+                uint32_t __anf04_1 = k_1;
+                uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
                 _letpattern._2[ni_1] = v_1;
-                uint32_t __anf04_1 = k_1;
-                k_1 = (__anf04_1 + 1);
+                uint32_t __anf05_1 = k_1;
+                k_1 = (__anf05_1 + 1);
             }
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 256);
@@ -4429,39 +4633,39 @@ __global__ static void kuiper_kernel_16(uint32_t cols, uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 1) {
-            uint32_t __anf0_3 = dotIdx;
+            uint32_t __anf01_3 = dotIdx;
             uint32_t i0 = 0;
             while (i0 < 4) {
-                uint32_t __anf01_3 = i0;
                 uint32_t __anf02_2 = i0;
+                uint32_t __anf03_2 = i0;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
-                    aFrags[__anf02_2];
+                    aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
                     (_letpattern._1 +
-                        ((((0 + (16 * (warpRow * 64))) + (__anf0_3 * 16)) +
-                             (16 * (__anf01_3 * 16))) +
+                        ((((0 + (16 * (warpRow * 64))) + (__anf01_3 * 16)) +
+                             (16 * (__anf02_2 * 16))) +
                             0)),
                     ((uint32_t) 16U));
-                uint32_t __anf03_2 = i0;
-                i0 = (__anf03_2 + 1);
+                uint32_t __anf04_2 = i0;
+                i0 = (__anf04_2 + 1);
             }
-            uint32_t __anf01_4 = dotIdx;
+            uint32_t __anf02_3 = dotIdx;
             uint32_t i11 = 0;
             while (i11 < 8) {
-                uint32_t __anf02_3 = i11;
                 uint32_t __anf03_3 = i11;
+                uint32_t __anf04_3 = i11;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
-                    bFrags[__anf03_3];
+                    bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
                     (_letpattern._2 +
-                        ((((0 + (128 * (__anf01_4 * 16))) + (warpCol * 128)) +
+                        ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 128)) +
                              0) +
-                            (__anf02_3 * 16))),
+                            (__anf03_3 * 16))),
                     ((uint32_t) 128U));
-                uint32_t __anf04_2 = i11;
-                i11 = (__anf04_2 + 1);
+                uint32_t __anf05_2 = i11;
+                i11 = (__anf05_2 + 1);
             }
             uint32_t resIdxM = 0;
             while (resIdxM < 4) {
@@ -4470,26 +4674,26 @@ __global__ static void kuiper_kernel_16(uint32_t cols, uint32_t shared,
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &a_frag =
                         aFrags[resIdxM];
-                    uint32_t __anf03_4 = resIdxN;
+                    uint32_t __anf04_4 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &b_frag =
-                        bFrags[__anf03_4];
-                    uint32_t __anf04_3 = resIdxN;
+                        bFrags[__anf04_4];
+                    uint32_t __anf05_3 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16,
                         16, float, void> &acc_frag =
-                        accFrags[((resIdxM * 8) + __anf04_3)];
+                        accFrags[((resIdxM * 8) + __anf05_3)];
                     wmma::mma_sync(acc_frag, a_frag, b_frag, acc_frag);
-                    uint32_t __anf05 = resIdxN;
-                    resIdxN = (__anf05 + 1);
+                    uint32_t __anf06 = resIdxN;
+                    resIdxN = (__anf06 + 1);
                 }
-                uint32_t __anf02_4 = resIdxM;
-                resIdxM = (__anf02_4 + 1);
+                uint32_t __anf03_4 = resIdxM;
+                resIdxM = (__anf03_4 + 1);
             }
-            uint32_t __anf02_5 = dotIdx;
-            dotIdx = (__anf02_5 + 1);
+            uint32_t __anf03_5 = dotIdx;
+            dotIdx = (__anf03_5 + 1);
         }
-        uint32_t __anf0_4 = bkIdx;
-        bkIdx = (__anf0_4 + 1);
+        uint32_t __anf01_4 = bkIdx;
+        bkIdx = (__anf01_4 + 1);
     }
     uint32_t bm = 64;
     uint32_t bn = 128;
@@ -4501,8 +4705,8 @@ __global__ static void kuiper_kernel_16(uint32_t cols, uint32_t shared,
     uint32_t lane = (tid % 32);
     uint32_t idx = 0;
     while (idx < (wm * wn)) {
-        uint32_t mrow = (bid / (cols / bn));
-        uint32_t mcol = (bid % (cols / bn));
+        uint32_t mrow1 = (bid / (cols / bn));
+        uint32_t mcol1 = (bid % (cols / bn));
         uint32_t warpRow1 = (wid1 / (bn / (wn * tn)));
         uint32_t warpCol1 = (wid1 % (bn / (wn * tn)));
         float *sTile = FStar_Pervasives_Native_fst__array_t_unit(
@@ -4515,22 +4719,22 @@ __global__ static void kuiper_kernel_16(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}})));
-        uint32_t __anf0_5 = idx;
+        uint32_t __anf0_2 = idx;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
-            void> &__anf1_3 = accFrags[__anf0_5];
+            void> &__anf1_3 = accFrags[__anf0_2];
         KPR_STORE(
             (sTile + ((0 + (tn * (wid1 * tm))) + (0 * tn))), __anf1_3, tn);
         uint32_t __anf01_5 = idx;
         uint32_t area = (tm * tn);
         uint32_t flat = lane;
         while (flat < area) {
-            uint32_t __anf02_6 = flat;
-            uint32_t row_2 = (__anf02_6 / tn);
-            uint32_t col_2 = (__anf02_6 % tn);
-            uint32_t globalRow = ((((mrow * bm) + (warpRow1 * (wm * tm))) +
+            uint32_t __anf02_4 = flat;
+            uint32_t row_2 = (__anf02_4 / tn);
+            uint32_t col_2 = (__anf02_4 % tn);
+            uint32_t globalRow = ((((mrow1 * bm) + (warpRow1 * (wm * tm))) +
                                       ((__anf01_5 / wn) * tm)) +
                                   row_2);
-            uint32_t globalCol = ((((mcol * bn) + (warpCol1 * (wn * tn))) +
+            uint32_t globalCol = ((((mcol1 * bn) + (warpCol1 * (wn * tn))) +
                                       ((__anf01_5 % wn) * tn)) +
                                   col_2);
             uint32_t ni_2 = ((globalRow * cols) + globalCol);
@@ -4545,8 +4749,8 @@ __global__ static void kuiper_kernel_16(uint32_t cols, uint32_t shared,
             uint32_t vflat = flat;
             flat = (vflat + 32);
         }
-        uint32_t __anf02_7 = idx;
-        idx = (__anf02_7 + 1);
+        uint32_t __anf02_5 = idx;
+        idx = (__anf02_5 + 1);
     }
 }
 
@@ -4570,8 +4774,6 @@ __global__ static void kuiper_kernel_17(uint32_t cols, uint32_t shared,
     custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
     float beta, float alpha, custard_bf16 *gD)
 {
-    (void) gA;
-    (void) gB;
     (void) nthr;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     custard_bf16 *tmp1 = (custard_bf16 *) tmp;
@@ -4593,6 +4795,9 @@ __global__ static void kuiper_kernel_17(uint32_t cols, uint32_t shared,
                 ._1 = tmp1, ._2 = tmp7};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    uint32_t num_n_tiles = (cols / 128);
+    uint32_t mrow = (bid / num_n_tiles);
+    uint32_t mcol = (bid % num_n_tiles);
     uint32_t wid = (tid / 32);
     uint32_t warpRow = (wid / 4);
     uint32_t warpCol = (wid % 4);
@@ -4631,6 +4836,7 @@ __global__ static void kuiper_kernel_17(uint32_t cols, uint32_t shared,
     }
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
+        uint32_t __anf0_1 = bkIdx;
         __syncthreads();
         uint32_t mlen = 2048;
         uint32_t offset = (tid * 8);
@@ -4640,26 +4846,31 @@ __global__ static void kuiper_kernel_17(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_1 = i;
-            uint32_t row = ((__anf0_1 + offset) / 32);
             uint32_t __anf01_1 = i;
-            uint32_t col = ((__anf01_1 + offset) % 32);
+            uint32_t row = ((__anf01_1 + offset) / 32);
+            uint32_t __anf02 = i;
+            uint32_t col = ((__anf02 + offset) % 32);
+            uint32_t offset1 =
+                ((((0 + (shared * (mrow * 64))) + (__anf0_1 * 32)) +
+                     (shared * row)) +
+                    col);
+            vec_memcpy((local + 0), (gA + offset1));
             uint32_t k = 0;
             while (k < 8) {
-                uint32_t __anf02 = k;
-                custard_bf16 v = local[__anf02];
                 uint32_t __anf03 = k;
-                uint32_t cidx = (col + __anf03);
+                custard_bf16 v = local[__anf03];
+                uint32_t __anf04 = k;
+                uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 32) + cidx);
                 _letpattern._1[ni] = v;
-                uint32_t __anf04 = k;
-                k = (__anf04 + 1);
+                uint32_t __anf05 = k;
+                k = (__anf05 + 1);
             }
             uint32_t vi = i;
             i = (vi + 2048);
         }
         uint32_t mlen1 = 4096;
-        uint32_t offset1 = (tid * 8);
+        uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
             custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
@@ -4667,20 +4878,25 @@ __global__ static void kuiper_kernel_17(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_2 = i1;
-            uint32_t row_1 = ((__anf0_2 + offset1) / 128);
             uint32_t __anf01_2 = i1;
-            uint32_t col_1 = ((__anf01_2 + offset1) % 128);
+            uint32_t row_1 = ((__anf01_2 + offset1_1) / 128);
+            uint32_t __anf02_1 = i1;
+            uint32_t col_1 = ((__anf02_1 + offset1_1) % 128);
+            uint32_t offset2 =
+                ((((0 + (cols * (__anf0_1 * 32))) + (mcol * 128)) +
+                     (cols * row_1)) +
+                    col_1);
+            vec_memcpy((local_1 + 0), (gB + offset2));
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                uint32_t __anf02_1 = k_1;
-                custard_bf16 v_1 = local_1[__anf02_1];
                 uint32_t __anf03_1 = k_1;
-                uint32_t cidx_1 = (col_1 + __anf03_1);
+                custard_bf16 v_1 = local_1[__anf03_1];
+                uint32_t __anf04_1 = k_1;
+                uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
                 _letpattern._2[ni_1] = v_1;
-                uint32_t __anf04_1 = k_1;
-                k_1 = (__anf04_1 + 1);
+                uint32_t __anf05_1 = k_1;
+                k_1 = (__anf05_1 + 1);
             }
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 2048);
@@ -4688,39 +4904,39 @@ __global__ static void kuiper_kernel_17(uint32_t cols, uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 2) {
-            uint32_t __anf0_3 = dotIdx;
+            uint32_t __anf01_3 = dotIdx;
             uint32_t i0 = 0;
             while (i0 < 2) {
-                uint32_t __anf01_3 = i0;
                 uint32_t __anf02_2 = i0;
+                uint32_t __anf03_2 = i0;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
-                    aFrags[__anf02_2];
+                    aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
                     (_letpattern._1 +
-                        ((((0 + (32 * (warpRow * 32))) + (__anf0_3 * 16)) +
-                             (32 * (__anf01_3 * 16))) +
+                        ((((0 + (32 * (warpRow * 32))) + (__anf01_3 * 16)) +
+                             (32 * (__anf02_2 * 16))) +
                             0)),
                     ((uint32_t) 32U));
-                uint32_t __anf03_2 = i0;
-                i0 = (__anf03_2 + 1);
+                uint32_t __anf04_2 = i0;
+                i0 = (__anf04_2 + 1);
             }
-            uint32_t __anf01_4 = dotIdx;
+            uint32_t __anf02_3 = dotIdx;
             uint32_t i11 = 0;
             while (i11 < 2) {
-                uint32_t __anf02_3 = i11;
                 uint32_t __anf03_3 = i11;
+                uint32_t __anf04_3 = i11;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
-                    bFrags[__anf03_3];
+                    bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
                     (_letpattern._2 +
-                        ((((0 + (128 * (__anf01_4 * 16))) + (warpCol * 32)) +
+                        ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 32)) +
                              0) +
-                            (__anf02_3 * 16))),
+                            (__anf03_3 * 16))),
                     ((uint32_t) 128U));
-                uint32_t __anf04_2 = i11;
-                i11 = (__anf04_2 + 1);
+                uint32_t __anf05_2 = i11;
+                i11 = (__anf05_2 + 1);
             }
             uint32_t resIdxM = 0;
             while (resIdxM < 2) {
@@ -4729,26 +4945,26 @@ __global__ static void kuiper_kernel_17(uint32_t cols, uint32_t shared,
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &a_frag =
                         aFrags[resIdxM];
-                    uint32_t __anf03_4 = resIdxN;
+                    uint32_t __anf04_4 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &b_frag =
-                        bFrags[__anf03_4];
-                    uint32_t __anf04_3 = resIdxN;
+                        bFrags[__anf04_4];
+                    uint32_t __anf05_3 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16,
                         16, float, void> &acc_frag =
-                        accFrags[((resIdxM * 2) + __anf04_3)];
+                        accFrags[((resIdxM * 2) + __anf05_3)];
                     wmma::mma_sync(acc_frag, a_frag, b_frag, acc_frag);
-                    uint32_t __anf05 = resIdxN;
-                    resIdxN = (__anf05 + 1);
+                    uint32_t __anf06 = resIdxN;
+                    resIdxN = (__anf06 + 1);
                 }
-                uint32_t __anf02_4 = resIdxM;
-                resIdxM = (__anf02_4 + 1);
+                uint32_t __anf03_4 = resIdxM;
+                resIdxM = (__anf03_4 + 1);
             }
-            uint32_t __anf02_5 = dotIdx;
-            dotIdx = (__anf02_5 + 1);
+            uint32_t __anf03_5 = dotIdx;
+            dotIdx = (__anf03_5 + 1);
         }
-        uint32_t __anf0_4 = bkIdx;
-        bkIdx = (__anf0_4 + 1);
+        uint32_t __anf01_4 = bkIdx;
+        bkIdx = (__anf01_4 + 1);
     }
     uint32_t bm = 64;
     uint32_t bn = 128;
@@ -4760,8 +4976,8 @@ __global__ static void kuiper_kernel_17(uint32_t cols, uint32_t shared,
     uint32_t lane = (tid % 32);
     uint32_t idx = 0;
     while (idx < (wm * wn)) {
-        uint32_t mrow = (bid / (cols / bn));
-        uint32_t mcol = (bid % (cols / bn));
+        uint32_t mrow1 = (bid / (cols / bn));
+        uint32_t mcol1 = (bid % (cols / bn));
         uint32_t warpRow1 = (wid1 / (bn / (wn * tn)));
         uint32_t warpCol1 = (wid1 % (bn / (wn * tn)));
         float *sTile = FStar_Pervasives_Native_fst__array_t_unit(
@@ -4774,22 +4990,22 @@ __global__ static void kuiper_kernel_17(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}})));
-        uint32_t __anf0_5 = idx;
+        uint32_t __anf0_2 = idx;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
-            void> &__anf1_3 = accFrags[__anf0_5];
+            void> &__anf1_3 = accFrags[__anf0_2];
         KPR_STORE(
             (sTile + ((0 + (tn * (wid1 * tm))) + (0 * tn))), __anf1_3, tn);
         uint32_t __anf01_5 = idx;
         uint32_t area = (tm * tn);
         uint32_t flat = lane;
         while (flat < area) {
-            uint32_t __anf02_6 = flat;
-            uint32_t row_2 = (__anf02_6 / tn);
-            uint32_t col_2 = (__anf02_6 % tn);
-            uint32_t globalRow = ((((mrow * bm) + (warpRow1 * (wm * tm))) +
+            uint32_t __anf02_4 = flat;
+            uint32_t row_2 = (__anf02_4 / tn);
+            uint32_t col_2 = (__anf02_4 % tn);
+            uint32_t globalRow = ((((mrow1 * bm) + (warpRow1 * (wm * tm))) +
                                       ((__anf01_5 / wn) * tm)) +
                                   row_2);
-            uint32_t globalCol = ((((mcol * bn) + (warpCol1 * (wn * tn))) +
+            uint32_t globalCol = ((((mcol1 * bn) + (warpCol1 * (wn * tn))) +
                                       ((__anf01_5 % wn) * tn)) +
                                   col_2);
             uint32_t ni_2 = ((globalRow * cols) + globalCol);
@@ -4804,8 +5020,8 @@ __global__ static void kuiper_kernel_17(uint32_t cols, uint32_t shared,
             uint32_t vflat = flat;
             flat = (vflat + 32);
         }
-        uint32_t __anf02_7 = idx;
-        idx = (__anf02_7 + 1);
+        uint32_t __anf02_5 = idx;
+        idx = (__anf02_5 + 1);
     }
 }
 
@@ -4814,8 +5030,6 @@ __global__ static void kuiper_kernel_18(uint32_t cols, uint32_t shared,
     custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
     float beta, float alpha, custard_bf16 *gD)
 {
-    (void) gA;
-    (void) gB;
     (void) nthr;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     custard_bf16 *tmp1 = (custard_bf16 *) tmp;
@@ -4837,6 +5051,9 @@ __global__ static void kuiper_kernel_18(uint32_t cols, uint32_t shared,
                 ._1 = tmp1, ._2 = tmp7};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    uint32_t num_n_tiles = (cols / 128);
+    uint32_t mrow = (bid / num_n_tiles);
+    uint32_t mcol = (bid % num_n_tiles);
     uint32_t wid = (tid / 32);
     uint32_t warpRow = (wid / 2);
     uint32_t warpCol = (wid % 2);
@@ -4875,6 +5092,7 @@ __global__ static void kuiper_kernel_18(uint32_t cols, uint32_t shared,
     }
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
+        uint32_t __anf0_1 = bkIdx;
         __syncthreads();
         uint32_t mlen = 2048;
         uint32_t offset = (tid * 8);
@@ -4884,26 +5102,31 @@ __global__ static void kuiper_kernel_18(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_1 = i;
-            uint32_t row = ((__anf0_1 + offset) / 32);
             uint32_t __anf01_1 = i;
-            uint32_t col = ((__anf01_1 + offset) % 32);
+            uint32_t row = ((__anf01_1 + offset) / 32);
+            uint32_t __anf02 = i;
+            uint32_t col = ((__anf02 + offset) % 32);
+            uint32_t offset1 =
+                ((((0 + (shared * (mrow * 64))) + (__anf0_1 * 32)) +
+                     (shared * row)) +
+                    col);
+            vec_memcpy((local + 0), (gA + offset1));
             uint32_t k = 0;
             while (k < 8) {
-                uint32_t __anf02 = k;
-                custard_bf16 v = local[__anf02];
                 uint32_t __anf03 = k;
-                uint32_t cidx = (col + __anf03);
+                custard_bf16 v = local[__anf03];
+                uint32_t __anf04 = k;
+                uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 32) + cidx);
                 _letpattern._1[ni] = v;
-                uint32_t __anf04 = k;
-                k = (__anf04 + 1);
+                uint32_t __anf05 = k;
+                k = (__anf05 + 1);
             }
             uint32_t vi = i;
             i = (vi + 1024);
         }
         uint32_t mlen1 = 4096;
-        uint32_t offset1 = (tid * 8);
+        uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
             custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
@@ -4911,20 +5134,25 @@ __global__ static void kuiper_kernel_18(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_2 = i1;
-            uint32_t row_1 = ((__anf0_2 + offset1) / 128);
             uint32_t __anf01_2 = i1;
-            uint32_t col_1 = ((__anf01_2 + offset1) % 128);
+            uint32_t row_1 = ((__anf01_2 + offset1_1) / 128);
+            uint32_t __anf02_1 = i1;
+            uint32_t col_1 = ((__anf02_1 + offset1_1) % 128);
+            uint32_t offset2 =
+                ((((0 + (cols * (__anf0_1 * 32))) + (mcol * 128)) +
+                     (cols * row_1)) +
+                    col_1);
+            vec_memcpy((local_1 + 0), (gB + offset2));
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                uint32_t __anf02_1 = k_1;
-                custard_bf16 v_1 = local_1[__anf02_1];
                 uint32_t __anf03_1 = k_1;
-                uint32_t cidx_1 = (col_1 + __anf03_1);
+                custard_bf16 v_1 = local_1[__anf03_1];
+                uint32_t __anf04_1 = k_1;
+                uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
                 _letpattern._2[ni_1] = v_1;
-                uint32_t __anf04_1 = k_1;
-                k_1 = (__anf04_1 + 1);
+                uint32_t __anf05_1 = k_1;
+                k_1 = (__anf05_1 + 1);
             }
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 1024);
@@ -4932,39 +5160,39 @@ __global__ static void kuiper_kernel_18(uint32_t cols, uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 2) {
-            uint32_t __anf0_3 = dotIdx;
+            uint32_t __anf01_3 = dotIdx;
             uint32_t i0 = 0;
             while (i0 < 2) {
-                uint32_t __anf01_3 = i0;
                 uint32_t __anf02_2 = i0;
+                uint32_t __anf03_2 = i0;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
-                    aFrags[__anf02_2];
+                    aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
                     (_letpattern._1 +
-                        ((((0 + (32 * (warpRow * 32))) + (__anf0_3 * 16)) +
-                             (32 * (__anf01_3 * 16))) +
+                        ((((0 + (32 * (warpRow * 32))) + (__anf01_3 * 16)) +
+                             (32 * (__anf02_2 * 16))) +
                             0)),
                     ((uint32_t) 32U));
-                uint32_t __anf03_2 = i0;
-                i0 = (__anf03_2 + 1);
+                uint32_t __anf04_2 = i0;
+                i0 = (__anf04_2 + 1);
             }
-            uint32_t __anf01_4 = dotIdx;
+            uint32_t __anf02_3 = dotIdx;
             uint32_t i11 = 0;
             while (i11 < 4) {
-                uint32_t __anf02_3 = i11;
                 uint32_t __anf03_3 = i11;
+                uint32_t __anf04_3 = i11;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
-                    bFrags[__anf03_3];
+                    bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
                     (_letpattern._2 +
-                        ((((0 + (128 * (__anf01_4 * 16))) + (warpCol * 64)) +
+                        ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 64)) +
                              0) +
-                            (__anf02_3 * 16))),
+                            (__anf03_3 * 16))),
                     ((uint32_t) 128U));
-                uint32_t __anf04_2 = i11;
-                i11 = (__anf04_2 + 1);
+                uint32_t __anf05_2 = i11;
+                i11 = (__anf05_2 + 1);
             }
             uint32_t resIdxM = 0;
             while (resIdxM < 2) {
@@ -4973,26 +5201,26 @@ __global__ static void kuiper_kernel_18(uint32_t cols, uint32_t shared,
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &a_frag =
                         aFrags[resIdxM];
-                    uint32_t __anf03_4 = resIdxN;
+                    uint32_t __anf04_4 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &b_frag =
-                        bFrags[__anf03_4];
-                    uint32_t __anf04_3 = resIdxN;
+                        bFrags[__anf04_4];
+                    uint32_t __anf05_3 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16,
                         16, float, void> &acc_frag =
-                        accFrags[((resIdxM * 4) + __anf04_3)];
+                        accFrags[((resIdxM * 4) + __anf05_3)];
                     wmma::mma_sync(acc_frag, a_frag, b_frag, acc_frag);
-                    uint32_t __anf05 = resIdxN;
-                    resIdxN = (__anf05 + 1);
+                    uint32_t __anf06 = resIdxN;
+                    resIdxN = (__anf06 + 1);
                 }
-                uint32_t __anf02_4 = resIdxM;
-                resIdxM = (__anf02_4 + 1);
+                uint32_t __anf03_4 = resIdxM;
+                resIdxM = (__anf03_4 + 1);
             }
-            uint32_t __anf02_5 = dotIdx;
-            dotIdx = (__anf02_5 + 1);
+            uint32_t __anf03_5 = dotIdx;
+            dotIdx = (__anf03_5 + 1);
         }
-        uint32_t __anf0_4 = bkIdx;
-        bkIdx = (__anf0_4 + 1);
+        uint32_t __anf01_4 = bkIdx;
+        bkIdx = (__anf01_4 + 1);
     }
     uint32_t bm = 64;
     uint32_t bn = 128;
@@ -5004,8 +5232,8 @@ __global__ static void kuiper_kernel_18(uint32_t cols, uint32_t shared,
     uint32_t lane = (tid % 32);
     uint32_t idx = 0;
     while (idx < (wm * wn)) {
-        uint32_t mrow = (bid / (cols / bn));
-        uint32_t mcol = (bid % (cols / bn));
+        uint32_t mrow1 = (bid / (cols / bn));
+        uint32_t mcol1 = (bid % (cols / bn));
         uint32_t warpRow1 = (wid1 / (bn / (wn * tn)));
         uint32_t warpCol1 = (wid1 % (bn / (wn * tn)));
         float *sTile = FStar_Pervasives_Native_fst__array_t_unit(
@@ -5018,22 +5246,22 @@ __global__ static void kuiper_kernel_18(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}})));
-        uint32_t __anf0_5 = idx;
+        uint32_t __anf0_2 = idx;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
-            void> &__anf1_3 = accFrags[__anf0_5];
+            void> &__anf1_3 = accFrags[__anf0_2];
         KPR_STORE(
             (sTile + ((0 + (tn * (wid1 * tm))) + (0 * tn))), __anf1_3, tn);
         uint32_t __anf01_5 = idx;
         uint32_t area = (tm * tn);
         uint32_t flat = lane;
         while (flat < area) {
-            uint32_t __anf02_6 = flat;
-            uint32_t row_2 = (__anf02_6 / tn);
-            uint32_t col_2 = (__anf02_6 % tn);
-            uint32_t globalRow = ((((mrow * bm) + (warpRow1 * (wm * tm))) +
+            uint32_t __anf02_4 = flat;
+            uint32_t row_2 = (__anf02_4 / tn);
+            uint32_t col_2 = (__anf02_4 % tn);
+            uint32_t globalRow = ((((mrow1 * bm) + (warpRow1 * (wm * tm))) +
                                       ((__anf01_5 / wn) * tm)) +
                                   row_2);
-            uint32_t globalCol = ((((mcol * bn) + (warpCol1 * (wn * tn))) +
+            uint32_t globalCol = ((((mcol1 * bn) + (warpCol1 * (wn * tn))) +
                                       ((__anf01_5 % wn) * tn)) +
                                   col_2);
             uint32_t ni_2 = ((globalRow * cols) + globalCol);
@@ -5048,8 +5276,8 @@ __global__ static void kuiper_kernel_18(uint32_t cols, uint32_t shared,
             uint32_t vflat = flat;
             flat = (vflat + 32);
         }
-        uint32_t __anf02_7 = idx;
-        idx = (__anf02_7 + 1);
+        uint32_t __anf02_5 = idx;
+        idx = (__anf02_5 + 1);
     }
 }
 
@@ -5058,8 +5286,6 @@ __global__ static void kuiper_kernel_19(uint32_t cols, uint32_t shared,
     custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
     float beta, float alpha, custard_bf16 *gD)
 {
-    (void) gA;
-    (void) gB;
     (void) nthr;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     custard_bf16 *tmp1 = (custard_bf16 *) tmp;
@@ -5081,6 +5307,9 @@ __global__ static void kuiper_kernel_19(uint32_t cols, uint32_t shared,
                 ._1 = tmp1, ._2 = tmp7};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    uint32_t num_n_tiles = (cols / 128);
+    uint32_t mrow = (bid / num_n_tiles);
+    uint32_t mcol = (bid % num_n_tiles);
     uint32_t wid = (tid / 32);
     uint32_t warpRow = (wid / 1);
     uint32_t warpCol = (wid % 1);
@@ -5119,6 +5348,7 @@ __global__ static void kuiper_kernel_19(uint32_t cols, uint32_t shared,
     }
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
+        uint32_t __anf0_1 = bkIdx;
         __syncthreads();
         uint32_t mlen = 2048;
         uint32_t offset = (tid * 8);
@@ -5128,26 +5358,31 @@ __global__ static void kuiper_kernel_19(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_1 = i;
-            uint32_t row = ((__anf0_1 + offset) / 32);
             uint32_t __anf01_1 = i;
-            uint32_t col = ((__anf01_1 + offset) % 32);
+            uint32_t row = ((__anf01_1 + offset) / 32);
+            uint32_t __anf02 = i;
+            uint32_t col = ((__anf02 + offset) % 32);
+            uint32_t offset1 =
+                ((((0 + (shared * (mrow * 64))) + (__anf0_1 * 32)) +
+                     (shared * row)) +
+                    col);
+            vec_memcpy((local + 0), (gA + offset1));
             uint32_t k = 0;
             while (k < 8) {
-                uint32_t __anf02 = k;
-                custard_bf16 v = local[__anf02];
                 uint32_t __anf03 = k;
-                uint32_t cidx = (col + __anf03);
+                custard_bf16 v = local[__anf03];
+                uint32_t __anf04 = k;
+                uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 32) + cidx);
                 _letpattern._1[ni] = v;
-                uint32_t __anf04 = k;
-                k = (__anf04 + 1);
+                uint32_t __anf05 = k;
+                k = (__anf05 + 1);
             }
             uint32_t vi = i;
             i = (vi + 512);
         }
         uint32_t mlen1 = 4096;
-        uint32_t offset1 = (tid * 8);
+        uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
             custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
@@ -5155,20 +5390,25 @@ __global__ static void kuiper_kernel_19(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_2 = i1;
-            uint32_t row_1 = ((__anf0_2 + offset1) / 128);
             uint32_t __anf01_2 = i1;
-            uint32_t col_1 = ((__anf01_2 + offset1) % 128);
+            uint32_t row_1 = ((__anf01_2 + offset1_1) / 128);
+            uint32_t __anf02_1 = i1;
+            uint32_t col_1 = ((__anf02_1 + offset1_1) % 128);
+            uint32_t offset2 =
+                ((((0 + (cols * (__anf0_1 * 32))) + (mcol * 128)) +
+                     (cols * row_1)) +
+                    col_1);
+            vec_memcpy((local_1 + 0), (gB + offset2));
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                uint32_t __anf02_1 = k_1;
-                custard_bf16 v_1 = local_1[__anf02_1];
                 uint32_t __anf03_1 = k_1;
-                uint32_t cidx_1 = (col_1 + __anf03_1);
+                custard_bf16 v_1 = local_1[__anf03_1];
+                uint32_t __anf04_1 = k_1;
+                uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
                 _letpattern._2[ni_1] = v_1;
-                uint32_t __anf04_1 = k_1;
-                k_1 = (__anf04_1 + 1);
+                uint32_t __anf05_1 = k_1;
+                k_1 = (__anf05_1 + 1);
             }
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 512);
@@ -5176,39 +5416,39 @@ __global__ static void kuiper_kernel_19(uint32_t cols, uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 2) {
-            uint32_t __anf0_3 = dotIdx;
+            uint32_t __anf01_3 = dotIdx;
             uint32_t i0 = 0;
             while (i0 < 2) {
-                uint32_t __anf01_3 = i0;
                 uint32_t __anf02_2 = i0;
+                uint32_t __anf03_2 = i0;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
-                    aFrags[__anf02_2];
+                    aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
                     (_letpattern._1 +
-                        ((((0 + (32 * (warpRow * 32))) + (__anf0_3 * 16)) +
-                             (32 * (__anf01_3 * 16))) +
+                        ((((0 + (32 * (warpRow * 32))) + (__anf01_3 * 16)) +
+                             (32 * (__anf02_2 * 16))) +
                             0)),
                     ((uint32_t) 32U));
-                uint32_t __anf03_2 = i0;
-                i0 = (__anf03_2 + 1);
+                uint32_t __anf04_2 = i0;
+                i0 = (__anf04_2 + 1);
             }
-            uint32_t __anf01_4 = dotIdx;
+            uint32_t __anf02_3 = dotIdx;
             uint32_t i11 = 0;
             while (i11 < 8) {
-                uint32_t __anf02_3 = i11;
                 uint32_t __anf03_3 = i11;
+                uint32_t __anf04_3 = i11;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
-                    bFrags[__anf03_3];
+                    bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
                     (_letpattern._2 +
-                        ((((0 + (128 * (__anf01_4 * 16))) + (warpCol * 128)) +
+                        ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 128)) +
                              0) +
-                            (__anf02_3 * 16))),
+                            (__anf03_3 * 16))),
                     ((uint32_t) 128U));
-                uint32_t __anf04_2 = i11;
-                i11 = (__anf04_2 + 1);
+                uint32_t __anf05_2 = i11;
+                i11 = (__anf05_2 + 1);
             }
             uint32_t resIdxM = 0;
             while (resIdxM < 2) {
@@ -5217,26 +5457,26 @@ __global__ static void kuiper_kernel_19(uint32_t cols, uint32_t shared,
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &a_frag =
                         aFrags[resIdxM];
-                    uint32_t __anf03_4 = resIdxN;
+                    uint32_t __anf04_4 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &b_frag =
-                        bFrags[__anf03_4];
-                    uint32_t __anf04_3 = resIdxN;
+                        bFrags[__anf04_4];
+                    uint32_t __anf05_3 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16,
                         16, float, void> &acc_frag =
-                        accFrags[((resIdxM * 8) + __anf04_3)];
+                        accFrags[((resIdxM * 8) + __anf05_3)];
                     wmma::mma_sync(acc_frag, a_frag, b_frag, acc_frag);
-                    uint32_t __anf05 = resIdxN;
-                    resIdxN = (__anf05 + 1);
+                    uint32_t __anf06 = resIdxN;
+                    resIdxN = (__anf06 + 1);
                 }
-                uint32_t __anf02_4 = resIdxM;
-                resIdxM = (__anf02_4 + 1);
+                uint32_t __anf03_4 = resIdxM;
+                resIdxM = (__anf03_4 + 1);
             }
-            uint32_t __anf02_5 = dotIdx;
-            dotIdx = (__anf02_5 + 1);
+            uint32_t __anf03_5 = dotIdx;
+            dotIdx = (__anf03_5 + 1);
         }
-        uint32_t __anf0_4 = bkIdx;
-        bkIdx = (__anf0_4 + 1);
+        uint32_t __anf01_4 = bkIdx;
+        bkIdx = (__anf01_4 + 1);
     }
     uint32_t bm = 64;
     uint32_t bn = 128;
@@ -5248,8 +5488,8 @@ __global__ static void kuiper_kernel_19(uint32_t cols, uint32_t shared,
     uint32_t lane = (tid % 32);
     uint32_t idx = 0;
     while (idx < (wm * wn)) {
-        uint32_t mrow = (bid / (cols / bn));
-        uint32_t mcol = (bid % (cols / bn));
+        uint32_t mrow1 = (bid / (cols / bn));
+        uint32_t mcol1 = (bid % (cols / bn));
         uint32_t warpRow1 = (wid1 / (bn / (wn * tn)));
         uint32_t warpCol1 = (wid1 % (bn / (wn * tn)));
         float *sTile = FStar_Pervasives_Native_fst__array_t_unit(
@@ -5262,22 +5502,22 @@ __global__ static void kuiper_kernel_19(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}})));
-        uint32_t __anf0_5 = idx;
+        uint32_t __anf0_2 = idx;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
-            void> &__anf1_3 = accFrags[__anf0_5];
+            void> &__anf1_3 = accFrags[__anf0_2];
         KPR_STORE(
             (sTile + ((0 + (tn * (wid1 * tm))) + (0 * tn))), __anf1_3, tn);
         uint32_t __anf01_5 = idx;
         uint32_t area = (tm * tn);
         uint32_t flat = lane;
         while (flat < area) {
-            uint32_t __anf02_6 = flat;
-            uint32_t row_2 = (__anf02_6 / tn);
-            uint32_t col_2 = (__anf02_6 % tn);
-            uint32_t globalRow = ((((mrow * bm) + (warpRow1 * (wm * tm))) +
+            uint32_t __anf02_4 = flat;
+            uint32_t row_2 = (__anf02_4 / tn);
+            uint32_t col_2 = (__anf02_4 % tn);
+            uint32_t globalRow = ((((mrow1 * bm) + (warpRow1 * (wm * tm))) +
                                       ((__anf01_5 / wn) * tm)) +
                                   row_2);
-            uint32_t globalCol = ((((mcol * bn) + (warpCol1 * (wn * tn))) +
+            uint32_t globalCol = ((((mcol1 * bn) + (warpCol1 * (wn * tn))) +
                                       ((__anf01_5 % wn) * tn)) +
                                   col_2);
             uint32_t ni_2 = ((globalRow * cols) + globalCol);
@@ -5292,8 +5532,8 @@ __global__ static void kuiper_kernel_19(uint32_t cols, uint32_t shared,
             uint32_t vflat = flat;
             flat = (vflat + 32);
         }
-        uint32_t __anf02_7 = idx;
-        idx = (__anf02_7 + 1);
+        uint32_t __anf02_5 = idx;
+        idx = (__anf02_5 + 1);
     }
 }
 
@@ -5302,8 +5542,6 @@ __global__ static void kuiper_kernel_20(uint32_t cols, uint32_t shared,
     custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
     float beta, float alpha, custard_bf16 *gD)
 {
-    (void) gA;
-    (void) gB;
     (void) nthr;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     custard_bf16 *tmp1 = (custard_bf16 *) tmp;
@@ -5325,6 +5563,9 @@ __global__ static void kuiper_kernel_20(uint32_t cols, uint32_t shared,
                 ._1 = tmp1, ._2 = tmp7};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    uint32_t num_n_tiles = (cols / 128);
+    uint32_t mrow = (bid / num_n_tiles);
+    uint32_t mcol = (bid % num_n_tiles);
     uint32_t wid = (tid / 32);
     uint32_t warpRow = (wid / 4);
     uint32_t warpCol = (wid % 4);
@@ -5363,6 +5604,7 @@ __global__ static void kuiper_kernel_20(uint32_t cols, uint32_t shared,
     }
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
+        uint32_t __anf0_1 = bkIdx;
         __syncthreads();
         uint32_t mlen = 2048;
         uint32_t offset = (tid * 8);
@@ -5372,26 +5614,31 @@ __global__ static void kuiper_kernel_20(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_1 = i;
-            uint32_t row = ((__anf0_1 + offset) / 32);
             uint32_t __anf01_1 = i;
-            uint32_t col = ((__anf01_1 + offset) % 32);
+            uint32_t row = ((__anf01_1 + offset) / 32);
+            uint32_t __anf02 = i;
+            uint32_t col = ((__anf02 + offset) % 32);
+            uint32_t offset1 =
+                ((((0 + (shared * (mrow * 64))) + (__anf0_1 * 32)) +
+                     (shared * row)) +
+                    col);
+            vec_memcpy((local + 0), (gA + offset1));
             uint32_t k = 0;
             while (k < 8) {
-                uint32_t __anf02 = k;
-                custard_bf16 v = local[__anf02];
                 uint32_t __anf03 = k;
-                uint32_t cidx = (col + __anf03);
+                custard_bf16 v = local[__anf03];
+                uint32_t __anf04 = k;
+                uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 32) + cidx);
                 _letpattern._1[ni] = v;
-                uint32_t __anf04 = k;
-                k = (__anf04 + 1);
+                uint32_t __anf05 = k;
+                k = (__anf05 + 1);
             }
             uint32_t vi = i;
             i = (vi + 1024);
         }
         uint32_t mlen1 = 4096;
-        uint32_t offset1 = (tid * 8);
+        uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
             custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
@@ -5399,20 +5646,25 @@ __global__ static void kuiper_kernel_20(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_2 = i1;
-            uint32_t row_1 = ((__anf0_2 + offset1) / 128);
             uint32_t __anf01_2 = i1;
-            uint32_t col_1 = ((__anf01_2 + offset1) % 128);
+            uint32_t row_1 = ((__anf01_2 + offset1_1) / 128);
+            uint32_t __anf02_1 = i1;
+            uint32_t col_1 = ((__anf02_1 + offset1_1) % 128);
+            uint32_t offset2 =
+                ((((0 + (cols * (__anf0_1 * 32))) + (mcol * 128)) +
+                     (cols * row_1)) +
+                    col_1);
+            vec_memcpy((local_1 + 0), (gB + offset2));
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                uint32_t __anf02_1 = k_1;
-                custard_bf16 v_1 = local_1[__anf02_1];
                 uint32_t __anf03_1 = k_1;
-                uint32_t cidx_1 = (col_1 + __anf03_1);
+                custard_bf16 v_1 = local_1[__anf03_1];
+                uint32_t __anf04_1 = k_1;
+                uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
                 _letpattern._2[ni_1] = v_1;
-                uint32_t __anf04_1 = k_1;
-                k_1 = (__anf04_1 + 1);
+                uint32_t __anf05_1 = k_1;
+                k_1 = (__anf05_1 + 1);
             }
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 1024);
@@ -5420,39 +5672,39 @@ __global__ static void kuiper_kernel_20(uint32_t cols, uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 2) {
-            uint32_t __anf0_3 = dotIdx;
+            uint32_t __anf01_3 = dotIdx;
             uint32_t i0 = 0;
             while (i0 < 4) {
-                uint32_t __anf01_3 = i0;
                 uint32_t __anf02_2 = i0;
+                uint32_t __anf03_2 = i0;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
-                    aFrags[__anf02_2];
+                    aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
                     (_letpattern._1 +
-                        ((((0 + (32 * (warpRow * 64))) + (__anf0_3 * 16)) +
-                             (32 * (__anf01_3 * 16))) +
+                        ((((0 + (32 * (warpRow * 64))) + (__anf01_3 * 16)) +
+                             (32 * (__anf02_2 * 16))) +
                             0)),
                     ((uint32_t) 32U));
-                uint32_t __anf03_2 = i0;
-                i0 = (__anf03_2 + 1);
+                uint32_t __anf04_2 = i0;
+                i0 = (__anf04_2 + 1);
             }
-            uint32_t __anf01_4 = dotIdx;
+            uint32_t __anf02_3 = dotIdx;
             uint32_t i11 = 0;
             while (i11 < 2) {
-                uint32_t __anf02_3 = i11;
                 uint32_t __anf03_3 = i11;
+                uint32_t __anf04_3 = i11;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
-                    bFrags[__anf03_3];
+                    bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
                     (_letpattern._2 +
-                        ((((0 + (128 * (__anf01_4 * 16))) + (warpCol * 32)) +
+                        ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 32)) +
                              0) +
-                            (__anf02_3 * 16))),
+                            (__anf03_3 * 16))),
                     ((uint32_t) 128U));
-                uint32_t __anf04_2 = i11;
-                i11 = (__anf04_2 + 1);
+                uint32_t __anf05_2 = i11;
+                i11 = (__anf05_2 + 1);
             }
             uint32_t resIdxM = 0;
             while (resIdxM < 4) {
@@ -5461,26 +5713,26 @@ __global__ static void kuiper_kernel_20(uint32_t cols, uint32_t shared,
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &a_frag =
                         aFrags[resIdxM];
-                    uint32_t __anf03_4 = resIdxN;
+                    uint32_t __anf04_4 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &b_frag =
-                        bFrags[__anf03_4];
-                    uint32_t __anf04_3 = resIdxN;
+                        bFrags[__anf04_4];
+                    uint32_t __anf05_3 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16,
                         16, float, void> &acc_frag =
-                        accFrags[((resIdxM * 2) + __anf04_3)];
+                        accFrags[((resIdxM * 2) + __anf05_3)];
                     wmma::mma_sync(acc_frag, a_frag, b_frag, acc_frag);
-                    uint32_t __anf05 = resIdxN;
-                    resIdxN = (__anf05 + 1);
+                    uint32_t __anf06 = resIdxN;
+                    resIdxN = (__anf06 + 1);
                 }
-                uint32_t __anf02_4 = resIdxM;
-                resIdxM = (__anf02_4 + 1);
+                uint32_t __anf03_4 = resIdxM;
+                resIdxM = (__anf03_4 + 1);
             }
-            uint32_t __anf02_5 = dotIdx;
-            dotIdx = (__anf02_5 + 1);
+            uint32_t __anf03_5 = dotIdx;
+            dotIdx = (__anf03_5 + 1);
         }
-        uint32_t __anf0_4 = bkIdx;
-        bkIdx = (__anf0_4 + 1);
+        uint32_t __anf01_4 = bkIdx;
+        bkIdx = (__anf01_4 + 1);
     }
     uint32_t bm = 64;
     uint32_t bn = 128;
@@ -5492,8 +5744,8 @@ __global__ static void kuiper_kernel_20(uint32_t cols, uint32_t shared,
     uint32_t lane = (tid % 32);
     uint32_t idx = 0;
     while (idx < (wm * wn)) {
-        uint32_t mrow = (bid / (cols / bn));
-        uint32_t mcol = (bid % (cols / bn));
+        uint32_t mrow1 = (bid / (cols / bn));
+        uint32_t mcol1 = (bid % (cols / bn));
         uint32_t warpRow1 = (wid1 / (bn / (wn * tn)));
         uint32_t warpCol1 = (wid1 % (bn / (wn * tn)));
         float *sTile = FStar_Pervasives_Native_fst__array_t_unit(
@@ -5506,22 +5758,22 @@ __global__ static void kuiper_kernel_20(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}})));
-        uint32_t __anf0_5 = idx;
+        uint32_t __anf0_2 = idx;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
-            void> &__anf1_3 = accFrags[__anf0_5];
+            void> &__anf1_3 = accFrags[__anf0_2];
         KPR_STORE(
             (sTile + ((0 + (tn * (wid1 * tm))) + (0 * tn))), __anf1_3, tn);
         uint32_t __anf01_5 = idx;
         uint32_t area = (tm * tn);
         uint32_t flat = lane;
         while (flat < area) {
-            uint32_t __anf02_6 = flat;
-            uint32_t row_2 = (__anf02_6 / tn);
-            uint32_t col_2 = (__anf02_6 % tn);
-            uint32_t globalRow = ((((mrow * bm) + (warpRow1 * (wm * tm))) +
+            uint32_t __anf02_4 = flat;
+            uint32_t row_2 = (__anf02_4 / tn);
+            uint32_t col_2 = (__anf02_4 % tn);
+            uint32_t globalRow = ((((mrow1 * bm) + (warpRow1 * (wm * tm))) +
                                       ((__anf01_5 / wn) * tm)) +
                                   row_2);
-            uint32_t globalCol = ((((mcol * bn) + (warpCol1 * (wn * tn))) +
+            uint32_t globalCol = ((((mcol1 * bn) + (warpCol1 * (wn * tn))) +
                                       ((__anf01_5 % wn) * tn)) +
                                   col_2);
             uint32_t ni_2 = ((globalRow * cols) + globalCol);
@@ -5536,8 +5788,8 @@ __global__ static void kuiper_kernel_20(uint32_t cols, uint32_t shared,
             uint32_t vflat = flat;
             flat = (vflat + 32);
         }
-        uint32_t __anf02_7 = idx;
-        idx = (__anf02_7 + 1);
+        uint32_t __anf02_5 = idx;
+        idx = (__anf02_5 + 1);
     }
 }
 
@@ -5546,8 +5798,6 @@ __global__ static void kuiper_kernel_21(uint32_t cols, uint32_t shared,
     custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
     float beta, float alpha, custard_bf16 *gD)
 {
-    (void) gA;
-    (void) gB;
     (void) nthr;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     custard_bf16 *tmp1 = (custard_bf16 *) tmp;
@@ -5569,6 +5819,9 @@ __global__ static void kuiper_kernel_21(uint32_t cols, uint32_t shared,
                 ._1 = tmp1, ._2 = tmp7};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    uint32_t num_n_tiles = (cols / 128);
+    uint32_t mrow = (bid / num_n_tiles);
+    uint32_t mcol = (bid % num_n_tiles);
     uint32_t wid = (tid / 32);
     uint32_t warpRow = (wid / 2);
     uint32_t warpCol = (wid % 2);
@@ -5607,6 +5860,7 @@ __global__ static void kuiper_kernel_21(uint32_t cols, uint32_t shared,
     }
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
+        uint32_t __anf0_1 = bkIdx;
         __syncthreads();
         uint32_t mlen = 2048;
         uint32_t offset = (tid * 8);
@@ -5616,26 +5870,31 @@ __global__ static void kuiper_kernel_21(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_1 = i;
-            uint32_t row = ((__anf0_1 + offset) / 32);
             uint32_t __anf01_1 = i;
-            uint32_t col = ((__anf01_1 + offset) % 32);
+            uint32_t row = ((__anf01_1 + offset) / 32);
+            uint32_t __anf02 = i;
+            uint32_t col = ((__anf02 + offset) % 32);
+            uint32_t offset1 =
+                ((((0 + (shared * (mrow * 64))) + (__anf0_1 * 32)) +
+                     (shared * row)) +
+                    col);
+            vec_memcpy((local + 0), (gA + offset1));
             uint32_t k = 0;
             while (k < 8) {
-                uint32_t __anf02 = k;
-                custard_bf16 v = local[__anf02];
                 uint32_t __anf03 = k;
-                uint32_t cidx = (col + __anf03);
+                custard_bf16 v = local[__anf03];
+                uint32_t __anf04 = k;
+                uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 32) + cidx);
                 _letpattern._1[ni] = v;
-                uint32_t __anf04 = k;
-                k = (__anf04 + 1);
+                uint32_t __anf05 = k;
+                k = (__anf05 + 1);
             }
             uint32_t vi = i;
             i = (vi + 512);
         }
         uint32_t mlen1 = 4096;
-        uint32_t offset1 = (tid * 8);
+        uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
             custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
@@ -5643,20 +5902,25 @@ __global__ static void kuiper_kernel_21(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_2 = i1;
-            uint32_t row_1 = ((__anf0_2 + offset1) / 128);
             uint32_t __anf01_2 = i1;
-            uint32_t col_1 = ((__anf01_2 + offset1) % 128);
+            uint32_t row_1 = ((__anf01_2 + offset1_1) / 128);
+            uint32_t __anf02_1 = i1;
+            uint32_t col_1 = ((__anf02_1 + offset1_1) % 128);
+            uint32_t offset2 =
+                ((((0 + (cols * (__anf0_1 * 32))) + (mcol * 128)) +
+                     (cols * row_1)) +
+                    col_1);
+            vec_memcpy((local_1 + 0), (gB + offset2));
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                uint32_t __anf02_1 = k_1;
-                custard_bf16 v_1 = local_1[__anf02_1];
                 uint32_t __anf03_1 = k_1;
-                uint32_t cidx_1 = (col_1 + __anf03_1);
+                custard_bf16 v_1 = local_1[__anf03_1];
+                uint32_t __anf04_1 = k_1;
+                uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
                 _letpattern._2[ni_1] = v_1;
-                uint32_t __anf04_1 = k_1;
-                k_1 = (__anf04_1 + 1);
+                uint32_t __anf05_1 = k_1;
+                k_1 = (__anf05_1 + 1);
             }
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 512);
@@ -5664,39 +5928,39 @@ __global__ static void kuiper_kernel_21(uint32_t cols, uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 2) {
-            uint32_t __anf0_3 = dotIdx;
+            uint32_t __anf01_3 = dotIdx;
             uint32_t i0 = 0;
             while (i0 < 4) {
-                uint32_t __anf01_3 = i0;
                 uint32_t __anf02_2 = i0;
+                uint32_t __anf03_2 = i0;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
-                    aFrags[__anf02_2];
+                    aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
                     (_letpattern._1 +
-                        ((((0 + (32 * (warpRow * 64))) + (__anf0_3 * 16)) +
-                             (32 * (__anf01_3 * 16))) +
+                        ((((0 + (32 * (warpRow * 64))) + (__anf01_3 * 16)) +
+                             (32 * (__anf02_2 * 16))) +
                             0)),
                     ((uint32_t) 32U));
-                uint32_t __anf03_2 = i0;
-                i0 = (__anf03_2 + 1);
+                uint32_t __anf04_2 = i0;
+                i0 = (__anf04_2 + 1);
             }
-            uint32_t __anf01_4 = dotIdx;
+            uint32_t __anf02_3 = dotIdx;
             uint32_t i11 = 0;
             while (i11 < 4) {
-                uint32_t __anf02_3 = i11;
                 uint32_t __anf03_3 = i11;
+                uint32_t __anf04_3 = i11;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
-                    bFrags[__anf03_3];
+                    bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
                     (_letpattern._2 +
-                        ((((0 + (128 * (__anf01_4 * 16))) + (warpCol * 64)) +
+                        ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 64)) +
                              0) +
-                            (__anf02_3 * 16))),
+                            (__anf03_3 * 16))),
                     ((uint32_t) 128U));
-                uint32_t __anf04_2 = i11;
-                i11 = (__anf04_2 + 1);
+                uint32_t __anf05_2 = i11;
+                i11 = (__anf05_2 + 1);
             }
             uint32_t resIdxM = 0;
             while (resIdxM < 4) {
@@ -5705,26 +5969,26 @@ __global__ static void kuiper_kernel_21(uint32_t cols, uint32_t shared,
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &a_frag =
                         aFrags[resIdxM];
-                    uint32_t __anf03_4 = resIdxN;
+                    uint32_t __anf04_4 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &b_frag =
-                        bFrags[__anf03_4];
-                    uint32_t __anf04_3 = resIdxN;
+                        bFrags[__anf04_4];
+                    uint32_t __anf05_3 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16,
                         16, float, void> &acc_frag =
-                        accFrags[((resIdxM * 4) + __anf04_3)];
+                        accFrags[((resIdxM * 4) + __anf05_3)];
                     wmma::mma_sync(acc_frag, a_frag, b_frag, acc_frag);
-                    uint32_t __anf05 = resIdxN;
-                    resIdxN = (__anf05 + 1);
+                    uint32_t __anf06 = resIdxN;
+                    resIdxN = (__anf06 + 1);
                 }
-                uint32_t __anf02_4 = resIdxM;
-                resIdxM = (__anf02_4 + 1);
+                uint32_t __anf03_4 = resIdxM;
+                resIdxM = (__anf03_4 + 1);
             }
-            uint32_t __anf02_5 = dotIdx;
-            dotIdx = (__anf02_5 + 1);
+            uint32_t __anf03_5 = dotIdx;
+            dotIdx = (__anf03_5 + 1);
         }
-        uint32_t __anf0_4 = bkIdx;
-        bkIdx = (__anf0_4 + 1);
+        uint32_t __anf01_4 = bkIdx;
+        bkIdx = (__anf01_4 + 1);
     }
     uint32_t bm = 64;
     uint32_t bn = 128;
@@ -5736,8 +6000,8 @@ __global__ static void kuiper_kernel_21(uint32_t cols, uint32_t shared,
     uint32_t lane = (tid % 32);
     uint32_t idx = 0;
     while (idx < (wm * wn)) {
-        uint32_t mrow = (bid / (cols / bn));
-        uint32_t mcol = (bid % (cols / bn));
+        uint32_t mrow1 = (bid / (cols / bn));
+        uint32_t mcol1 = (bid % (cols / bn));
         uint32_t warpRow1 = (wid1 / (bn / (wn * tn)));
         uint32_t warpCol1 = (wid1 % (bn / (wn * tn)));
         float *sTile = FStar_Pervasives_Native_fst__array_t_unit(
@@ -5750,22 +6014,22 @@ __global__ static void kuiper_kernel_21(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}})));
-        uint32_t __anf0_5 = idx;
+        uint32_t __anf0_2 = idx;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
-            void> &__anf1_3 = accFrags[__anf0_5];
+            void> &__anf1_3 = accFrags[__anf0_2];
         KPR_STORE(
             (sTile + ((0 + (tn * (wid1 * tm))) + (0 * tn))), __anf1_3, tn);
         uint32_t __anf01_5 = idx;
         uint32_t area = (tm * tn);
         uint32_t flat = lane;
         while (flat < area) {
-            uint32_t __anf02_6 = flat;
-            uint32_t row_2 = (__anf02_6 / tn);
-            uint32_t col_2 = (__anf02_6 % tn);
-            uint32_t globalRow = ((((mrow * bm) + (warpRow1 * (wm * tm))) +
+            uint32_t __anf02_4 = flat;
+            uint32_t row_2 = (__anf02_4 / tn);
+            uint32_t col_2 = (__anf02_4 % tn);
+            uint32_t globalRow = ((((mrow1 * bm) + (warpRow1 * (wm * tm))) +
                                       ((__anf01_5 / wn) * tm)) +
                                   row_2);
-            uint32_t globalCol = ((((mcol * bn) + (warpCol1 * (wn * tn))) +
+            uint32_t globalCol = ((((mcol1 * bn) + (warpCol1 * (wn * tn))) +
                                       ((__anf01_5 % wn) * tn)) +
                                   col_2);
             uint32_t ni_2 = ((globalRow * cols) + globalCol);
@@ -5780,8 +6044,8 @@ __global__ static void kuiper_kernel_21(uint32_t cols, uint32_t shared,
             uint32_t vflat = flat;
             flat = (vflat + 32);
         }
-        uint32_t __anf02_7 = idx;
-        idx = (__anf02_7 + 1);
+        uint32_t __anf02_5 = idx;
+        idx = (__anf02_5 + 1);
     }
 }
 
@@ -5790,8 +6054,6 @@ __global__ static void kuiper_kernel_22(uint32_t cols, uint32_t shared,
     custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
     float beta, float alpha, custard_bf16 *gD)
 {
-    (void) gA;
-    (void) gB;
     (void) nthr;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     custard_bf16 *tmp1 = (custard_bf16 *) tmp;
@@ -5813,6 +6075,9 @@ __global__ static void kuiper_kernel_22(uint32_t cols, uint32_t shared,
                 ._1 = tmp1, ._2 = tmp7};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    uint32_t num_n_tiles = (cols / 128);
+    uint32_t mrow = (bid / num_n_tiles);
+    uint32_t mcol = (bid % num_n_tiles);
     uint32_t wid = (tid / 32);
     uint32_t warpRow = (wid / 1);
     uint32_t warpCol = (wid % 1);
@@ -5851,6 +6116,7 @@ __global__ static void kuiper_kernel_22(uint32_t cols, uint32_t shared,
     }
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
+        uint32_t __anf0_1 = bkIdx;
         __syncthreads();
         uint32_t mlen = 2048;
         uint32_t offset = (tid * 8);
@@ -5860,26 +6126,31 @@ __global__ static void kuiper_kernel_22(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_1 = i;
-            uint32_t row = ((__anf0_1 + offset) / 32);
             uint32_t __anf01_1 = i;
-            uint32_t col = ((__anf01_1 + offset) % 32);
+            uint32_t row = ((__anf01_1 + offset) / 32);
+            uint32_t __anf02 = i;
+            uint32_t col = ((__anf02 + offset) % 32);
+            uint32_t offset1 =
+                ((((0 + (shared * (mrow * 64))) + (__anf0_1 * 32)) +
+                     (shared * row)) +
+                    col);
+            vec_memcpy((local + 0), (gA + offset1));
             uint32_t k = 0;
             while (k < 8) {
-                uint32_t __anf02 = k;
-                custard_bf16 v = local[__anf02];
                 uint32_t __anf03 = k;
-                uint32_t cidx = (col + __anf03);
+                custard_bf16 v = local[__anf03];
+                uint32_t __anf04 = k;
+                uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 32) + cidx);
                 _letpattern._1[ni] = v;
-                uint32_t __anf04 = k;
-                k = (__anf04 + 1);
+                uint32_t __anf05 = k;
+                k = (__anf05 + 1);
             }
             uint32_t vi = i;
             i = (vi + 256);
         }
         uint32_t mlen1 = 4096;
-        uint32_t offset1 = (tid * 8);
+        uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
             custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
@@ -5887,20 +6158,25 @@ __global__ static void kuiper_kernel_22(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_2 = i1;
-            uint32_t row_1 = ((__anf0_2 + offset1) / 128);
             uint32_t __anf01_2 = i1;
-            uint32_t col_1 = ((__anf01_2 + offset1) % 128);
+            uint32_t row_1 = ((__anf01_2 + offset1_1) / 128);
+            uint32_t __anf02_1 = i1;
+            uint32_t col_1 = ((__anf02_1 + offset1_1) % 128);
+            uint32_t offset2 =
+                ((((0 + (cols * (__anf0_1 * 32))) + (mcol * 128)) +
+                     (cols * row_1)) +
+                    col_1);
+            vec_memcpy((local_1 + 0), (gB + offset2));
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                uint32_t __anf02_1 = k_1;
-                custard_bf16 v_1 = local_1[__anf02_1];
                 uint32_t __anf03_1 = k_1;
-                uint32_t cidx_1 = (col_1 + __anf03_1);
+                custard_bf16 v_1 = local_1[__anf03_1];
+                uint32_t __anf04_1 = k_1;
+                uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
                 _letpattern._2[ni_1] = v_1;
-                uint32_t __anf04_1 = k_1;
-                k_1 = (__anf04_1 + 1);
+                uint32_t __anf05_1 = k_1;
+                k_1 = (__anf05_1 + 1);
             }
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 256);
@@ -5908,39 +6184,39 @@ __global__ static void kuiper_kernel_22(uint32_t cols, uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 2) {
-            uint32_t __anf0_3 = dotIdx;
+            uint32_t __anf01_3 = dotIdx;
             uint32_t i0 = 0;
             while (i0 < 4) {
-                uint32_t __anf01_3 = i0;
                 uint32_t __anf02_2 = i0;
+                uint32_t __anf03_2 = i0;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
-                    aFrags[__anf02_2];
+                    aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
                     (_letpattern._1 +
-                        ((((0 + (32 * (warpRow * 64))) + (__anf0_3 * 16)) +
-                             (32 * (__anf01_3 * 16))) +
+                        ((((0 + (32 * (warpRow * 64))) + (__anf01_3 * 16)) +
+                             (32 * (__anf02_2 * 16))) +
                             0)),
                     ((uint32_t) 32U));
-                uint32_t __anf03_2 = i0;
-                i0 = (__anf03_2 + 1);
+                uint32_t __anf04_2 = i0;
+                i0 = (__anf04_2 + 1);
             }
-            uint32_t __anf01_4 = dotIdx;
+            uint32_t __anf02_3 = dotIdx;
             uint32_t i11 = 0;
             while (i11 < 8) {
-                uint32_t __anf02_3 = i11;
                 uint32_t __anf03_3 = i11;
+                uint32_t __anf04_3 = i11;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
-                    bFrags[__anf03_3];
+                    bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
                     (_letpattern._2 +
-                        ((((0 + (128 * (__anf01_4 * 16))) + (warpCol * 128)) +
+                        ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 128)) +
                              0) +
-                            (__anf02_3 * 16))),
+                            (__anf03_3 * 16))),
                     ((uint32_t) 128U));
-                uint32_t __anf04_2 = i11;
-                i11 = (__anf04_2 + 1);
+                uint32_t __anf05_2 = i11;
+                i11 = (__anf05_2 + 1);
             }
             uint32_t resIdxM = 0;
             while (resIdxM < 4) {
@@ -5949,26 +6225,26 @@ __global__ static void kuiper_kernel_22(uint32_t cols, uint32_t shared,
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &a_frag =
                         aFrags[resIdxM];
-                    uint32_t __anf03_4 = resIdxN;
+                    uint32_t __anf04_4 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &b_frag =
-                        bFrags[__anf03_4];
-                    uint32_t __anf04_3 = resIdxN;
+                        bFrags[__anf04_4];
+                    uint32_t __anf05_3 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16,
                         16, float, void> &acc_frag =
-                        accFrags[((resIdxM * 8) + __anf04_3)];
+                        accFrags[((resIdxM * 8) + __anf05_3)];
                     wmma::mma_sync(acc_frag, a_frag, b_frag, acc_frag);
-                    uint32_t __anf05 = resIdxN;
-                    resIdxN = (__anf05 + 1);
+                    uint32_t __anf06 = resIdxN;
+                    resIdxN = (__anf06 + 1);
                 }
-                uint32_t __anf02_4 = resIdxM;
-                resIdxM = (__anf02_4 + 1);
+                uint32_t __anf03_4 = resIdxM;
+                resIdxM = (__anf03_4 + 1);
             }
-            uint32_t __anf02_5 = dotIdx;
-            dotIdx = (__anf02_5 + 1);
+            uint32_t __anf03_5 = dotIdx;
+            dotIdx = (__anf03_5 + 1);
         }
-        uint32_t __anf0_4 = bkIdx;
-        bkIdx = (__anf0_4 + 1);
+        uint32_t __anf01_4 = bkIdx;
+        bkIdx = (__anf01_4 + 1);
     }
     uint32_t bm = 64;
     uint32_t bn = 128;
@@ -5980,8 +6256,8 @@ __global__ static void kuiper_kernel_22(uint32_t cols, uint32_t shared,
     uint32_t lane = (tid % 32);
     uint32_t idx = 0;
     while (idx < (wm * wn)) {
-        uint32_t mrow = (bid / (cols / bn));
-        uint32_t mcol = (bid % (cols / bn));
+        uint32_t mrow1 = (bid / (cols / bn));
+        uint32_t mcol1 = (bid % (cols / bn));
         uint32_t warpRow1 = (wid1 / (bn / (wn * tn)));
         uint32_t warpCol1 = (wid1 % (bn / (wn * tn)));
         float *sTile = FStar_Pervasives_Native_fst__array_t_unit(
@@ -5994,22 +6270,22 @@ __global__ static void kuiper_kernel_22(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}})));
-        uint32_t __anf0_5 = idx;
+        uint32_t __anf0_2 = idx;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
-            void> &__anf1_3 = accFrags[__anf0_5];
+            void> &__anf1_3 = accFrags[__anf0_2];
         KPR_STORE(
             (sTile + ((0 + (tn * (wid1 * tm))) + (0 * tn))), __anf1_3, tn);
         uint32_t __anf01_5 = idx;
         uint32_t area = (tm * tn);
         uint32_t flat = lane;
         while (flat < area) {
-            uint32_t __anf02_6 = flat;
-            uint32_t row_2 = (__anf02_6 / tn);
-            uint32_t col_2 = (__anf02_6 % tn);
-            uint32_t globalRow = ((((mrow * bm) + (warpRow1 * (wm * tm))) +
+            uint32_t __anf02_4 = flat;
+            uint32_t row_2 = (__anf02_4 / tn);
+            uint32_t col_2 = (__anf02_4 % tn);
+            uint32_t globalRow = ((((mrow1 * bm) + (warpRow1 * (wm * tm))) +
                                       ((__anf01_5 / wn) * tm)) +
                                   row_2);
-            uint32_t globalCol = ((((mcol * bn) + (warpCol1 * (wn * tn))) +
+            uint32_t globalCol = ((((mcol1 * bn) + (warpCol1 * (wn * tn))) +
                                       ((__anf01_5 % wn) * tn)) +
                                   col_2);
             uint32_t ni_2 = ((globalRow * cols) + globalCol);
@@ -6024,8 +6300,8 @@ __global__ static void kuiper_kernel_22(uint32_t cols, uint32_t shared,
             uint32_t vflat = flat;
             flat = (vflat + 32);
         }
-        uint32_t __anf02_7 = idx;
-        idx = (__anf02_7 + 1);
+        uint32_t __anf02_5 = idx;
+        idx = (__anf02_5 + 1);
     }
 }
 
@@ -6042,8 +6318,6 @@ __global__ static void kuiper_kernel_23(uint32_t cols, uint32_t shared,
     custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
     float beta, float alpha, custard_bf16 *gD)
 {
-    (void) gA;
-    (void) gB;
     (void) nthr;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     custard_bf16 *tmp1 = (custard_bf16 *) tmp;
@@ -6065,6 +6339,9 @@ __global__ static void kuiper_kernel_23(uint32_t cols, uint32_t shared,
                 ._1 = tmp1, ._2 = tmp7};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    uint32_t num_n_tiles = (cols / 128);
+    uint32_t mrow = (bid / num_n_tiles);
+    uint32_t mcol = (bid % num_n_tiles);
     uint32_t wid = (tid / 32);
     uint32_t warpRow = (wid / 4);
     uint32_t warpCol = (wid % 4);
@@ -6103,6 +6380,7 @@ __global__ static void kuiper_kernel_23(uint32_t cols, uint32_t shared,
     }
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
+        uint32_t __anf0_1 = bkIdx;
         __syncthreads();
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 8);
@@ -6112,26 +6390,31 @@ __global__ static void kuiper_kernel_23(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_1 = i;
-            uint32_t row = ((__anf0_1 + offset) / 64);
             uint32_t __anf01_1 = i;
-            uint32_t col = ((__anf01_1 + offset) % 64);
+            uint32_t row = ((__anf01_1 + offset) / 64);
+            uint32_t __anf02 = i;
+            uint32_t col = ((__anf02 + offset) % 64);
+            uint32_t offset1 =
+                ((((0 + (shared * (mrow * 64))) + (__anf0_1 * 64)) +
+                     (shared * row)) +
+                    col);
+            vec_memcpy((local + 0), (gA + offset1));
             uint32_t k = 0;
             while (k < 8) {
-                uint32_t __anf02 = k;
-                custard_bf16 v = local[__anf02];
                 uint32_t __anf03 = k;
-                uint32_t cidx = (col + __anf03);
+                custard_bf16 v = local[__anf03];
+                uint32_t __anf04 = k;
+                uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 64) + cidx);
                 _letpattern._1[ni] = v;
-                uint32_t __anf04 = k;
-                k = (__anf04 + 1);
+                uint32_t __anf05 = k;
+                k = (__anf05 + 1);
             }
             uint32_t vi = i;
             i = (vi + 2048);
         }
         uint32_t mlen1 = 8192;
-        uint32_t offset1 = (tid * 8);
+        uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
             custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
@@ -6139,20 +6422,25 @@ __global__ static void kuiper_kernel_23(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_2 = i1;
-            uint32_t row_1 = ((__anf0_2 + offset1) / 128);
             uint32_t __anf01_2 = i1;
-            uint32_t col_1 = ((__anf01_2 + offset1) % 128);
+            uint32_t row_1 = ((__anf01_2 + offset1_1) / 128);
+            uint32_t __anf02_1 = i1;
+            uint32_t col_1 = ((__anf02_1 + offset1_1) % 128);
+            uint32_t offset2 =
+                ((((0 + (cols * (__anf0_1 * 64))) + (mcol * 128)) +
+                     (cols * row_1)) +
+                    col_1);
+            vec_memcpy((local_1 + 0), (gB + offset2));
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                uint32_t __anf02_1 = k_1;
-                custard_bf16 v_1 = local_1[__anf02_1];
                 uint32_t __anf03_1 = k_1;
-                uint32_t cidx_1 = (col_1 + __anf03_1);
+                custard_bf16 v_1 = local_1[__anf03_1];
+                uint32_t __anf04_1 = k_1;
+                uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
                 _letpattern._2[ni_1] = v_1;
-                uint32_t __anf04_1 = k_1;
-                k_1 = (__anf04_1 + 1);
+                uint32_t __anf05_1 = k_1;
+                k_1 = (__anf05_1 + 1);
             }
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 2048);
@@ -6160,39 +6448,39 @@ __global__ static void kuiper_kernel_23(uint32_t cols, uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 4) {
-            uint32_t __anf0_3 = dotIdx;
+            uint32_t __anf01_3 = dotIdx;
             uint32_t i0 = 0;
             while (i0 < 2) {
-                uint32_t __anf01_3 = i0;
                 uint32_t __anf02_2 = i0;
+                uint32_t __anf03_2 = i0;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
-                    aFrags[__anf02_2];
+                    aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
                     (_letpattern._1 +
-                        ((((0 + (64 * (warpRow * 32))) + (__anf0_3 * 16)) +
-                             (64 * (__anf01_3 * 16))) +
+                        ((((0 + (64 * (warpRow * 32))) + (__anf01_3 * 16)) +
+                             (64 * (__anf02_2 * 16))) +
                             0)),
                     ((uint32_t) 64U));
-                uint32_t __anf03_2 = i0;
-                i0 = (__anf03_2 + 1);
+                uint32_t __anf04_2 = i0;
+                i0 = (__anf04_2 + 1);
             }
-            uint32_t __anf01_4 = dotIdx;
+            uint32_t __anf02_3 = dotIdx;
             uint32_t i11 = 0;
             while (i11 < 2) {
-                uint32_t __anf02_3 = i11;
                 uint32_t __anf03_3 = i11;
+                uint32_t __anf04_3 = i11;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
-                    bFrags[__anf03_3];
+                    bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
                     (_letpattern._2 +
-                        ((((0 + (128 * (__anf01_4 * 16))) + (warpCol * 32)) +
+                        ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 32)) +
                              0) +
-                            (__anf02_3 * 16))),
+                            (__anf03_3 * 16))),
                     ((uint32_t) 128U));
-                uint32_t __anf04_2 = i11;
-                i11 = (__anf04_2 + 1);
+                uint32_t __anf05_2 = i11;
+                i11 = (__anf05_2 + 1);
             }
             uint32_t resIdxM = 0;
             while (resIdxM < 2) {
@@ -6201,26 +6489,26 @@ __global__ static void kuiper_kernel_23(uint32_t cols, uint32_t shared,
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &a_frag =
                         aFrags[resIdxM];
-                    uint32_t __anf03_4 = resIdxN;
+                    uint32_t __anf04_4 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &b_frag =
-                        bFrags[__anf03_4];
-                    uint32_t __anf04_3 = resIdxN;
+                        bFrags[__anf04_4];
+                    uint32_t __anf05_3 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16,
                         16, float, void> &acc_frag =
-                        accFrags[((resIdxM * 2) + __anf04_3)];
+                        accFrags[((resIdxM * 2) + __anf05_3)];
                     wmma::mma_sync(acc_frag, a_frag, b_frag, acc_frag);
-                    uint32_t __anf05 = resIdxN;
-                    resIdxN = (__anf05 + 1);
+                    uint32_t __anf06 = resIdxN;
+                    resIdxN = (__anf06 + 1);
                 }
-                uint32_t __anf02_4 = resIdxM;
-                resIdxM = (__anf02_4 + 1);
+                uint32_t __anf03_4 = resIdxM;
+                resIdxM = (__anf03_4 + 1);
             }
-            uint32_t __anf02_5 = dotIdx;
-            dotIdx = (__anf02_5 + 1);
+            uint32_t __anf03_5 = dotIdx;
+            dotIdx = (__anf03_5 + 1);
         }
-        uint32_t __anf0_4 = bkIdx;
-        bkIdx = (__anf0_4 + 1);
+        uint32_t __anf01_4 = bkIdx;
+        bkIdx = (__anf01_4 + 1);
     }
     uint32_t bm = 64;
     uint32_t bn = 128;
@@ -6232,8 +6520,8 @@ __global__ static void kuiper_kernel_23(uint32_t cols, uint32_t shared,
     uint32_t lane = (tid % 32);
     uint32_t idx = 0;
     while (idx < (wm * wn)) {
-        uint32_t mrow = (bid / (cols / bn));
-        uint32_t mcol = (bid % (cols / bn));
+        uint32_t mrow1 = (bid / (cols / bn));
+        uint32_t mcol1 = (bid % (cols / bn));
         uint32_t warpRow1 = (wid1 / (bn / (wn * tn)));
         uint32_t warpCol1 = (wid1 % (bn / (wn * tn)));
         float *sTile = FStar_Pervasives_Native_fst__array_t_unit(
@@ -6246,22 +6534,22 @@ __global__ static void kuiper_kernel_23(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}})));
-        uint32_t __anf0_5 = idx;
+        uint32_t __anf0_2 = idx;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
-            void> &__anf1_3 = accFrags[__anf0_5];
+            void> &__anf1_3 = accFrags[__anf0_2];
         KPR_STORE(
             (sTile + ((0 + (tn * (wid1 * tm))) + (0 * tn))), __anf1_3, tn);
         uint32_t __anf01_5 = idx;
         uint32_t area = (tm * tn);
         uint32_t flat = lane;
         while (flat < area) {
-            uint32_t __anf02_6 = flat;
-            uint32_t row_2 = (__anf02_6 / tn);
-            uint32_t col_2 = (__anf02_6 % tn);
-            uint32_t globalRow = ((((mrow * bm) + (warpRow1 * (wm * tm))) +
+            uint32_t __anf02_4 = flat;
+            uint32_t row_2 = (__anf02_4 / tn);
+            uint32_t col_2 = (__anf02_4 % tn);
+            uint32_t globalRow = ((((mrow1 * bm) + (warpRow1 * (wm * tm))) +
                                       ((__anf01_5 / wn) * tm)) +
                                   row_2);
-            uint32_t globalCol = ((((mcol * bn) + (warpCol1 * (wn * tn))) +
+            uint32_t globalCol = ((((mcol1 * bn) + (warpCol1 * (wn * tn))) +
                                       ((__anf01_5 % wn) * tn)) +
                                   col_2);
             uint32_t ni_2 = ((globalRow * cols) + globalCol);
@@ -6276,8 +6564,8 @@ __global__ static void kuiper_kernel_23(uint32_t cols, uint32_t shared,
             uint32_t vflat = flat;
             flat = (vflat + 32);
         }
-        uint32_t __anf02_7 = idx;
-        idx = (__anf02_7 + 1);
+        uint32_t __anf02_5 = idx;
+        idx = (__anf02_5 + 1);
     }
 }
 
@@ -6294,8 +6582,6 @@ __global__ static void kuiper_kernel_24(uint32_t cols, uint32_t shared,
     custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
     float beta, float alpha, custard_bf16 *gD)
 {
-    (void) gA;
-    (void) gB;
     (void) nthr;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     custard_bf16 *tmp1 = (custard_bf16 *) tmp;
@@ -6317,6 +6603,9 @@ __global__ static void kuiper_kernel_24(uint32_t cols, uint32_t shared,
                 ._1 = tmp1, ._2 = tmp7};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    uint32_t num_n_tiles = (cols / 128);
+    uint32_t mrow = (bid / num_n_tiles);
+    uint32_t mcol = (bid % num_n_tiles);
     uint32_t wid = (tid / 32);
     uint32_t warpRow = (wid / 2);
     uint32_t warpCol = (wid % 2);
@@ -6355,6 +6644,7 @@ __global__ static void kuiper_kernel_24(uint32_t cols, uint32_t shared,
     }
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
+        uint32_t __anf0_1 = bkIdx;
         __syncthreads();
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 8);
@@ -6364,26 +6654,31 @@ __global__ static void kuiper_kernel_24(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_1 = i;
-            uint32_t row = ((__anf0_1 + offset) / 64);
             uint32_t __anf01_1 = i;
-            uint32_t col = ((__anf01_1 + offset) % 64);
+            uint32_t row = ((__anf01_1 + offset) / 64);
+            uint32_t __anf02 = i;
+            uint32_t col = ((__anf02 + offset) % 64);
+            uint32_t offset1 =
+                ((((0 + (shared * (mrow * 64))) + (__anf0_1 * 64)) +
+                     (shared * row)) +
+                    col);
+            vec_memcpy((local + 0), (gA + offset1));
             uint32_t k = 0;
             while (k < 8) {
-                uint32_t __anf02 = k;
-                custard_bf16 v = local[__anf02];
                 uint32_t __anf03 = k;
-                uint32_t cidx = (col + __anf03);
+                custard_bf16 v = local[__anf03];
+                uint32_t __anf04 = k;
+                uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 64) + cidx);
                 _letpattern._1[ni] = v;
-                uint32_t __anf04 = k;
-                k = (__anf04 + 1);
+                uint32_t __anf05 = k;
+                k = (__anf05 + 1);
             }
             uint32_t vi = i;
             i = (vi + 1024);
         }
         uint32_t mlen1 = 8192;
-        uint32_t offset1 = (tid * 8);
+        uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
             custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
@@ -6391,20 +6686,25 @@ __global__ static void kuiper_kernel_24(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_2 = i1;
-            uint32_t row_1 = ((__anf0_2 + offset1) / 128);
             uint32_t __anf01_2 = i1;
-            uint32_t col_1 = ((__anf01_2 + offset1) % 128);
+            uint32_t row_1 = ((__anf01_2 + offset1_1) / 128);
+            uint32_t __anf02_1 = i1;
+            uint32_t col_1 = ((__anf02_1 + offset1_1) % 128);
+            uint32_t offset2 =
+                ((((0 + (cols * (__anf0_1 * 64))) + (mcol * 128)) +
+                     (cols * row_1)) +
+                    col_1);
+            vec_memcpy((local_1 + 0), (gB + offset2));
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                uint32_t __anf02_1 = k_1;
-                custard_bf16 v_1 = local_1[__anf02_1];
                 uint32_t __anf03_1 = k_1;
-                uint32_t cidx_1 = (col_1 + __anf03_1);
+                custard_bf16 v_1 = local_1[__anf03_1];
+                uint32_t __anf04_1 = k_1;
+                uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
                 _letpattern._2[ni_1] = v_1;
-                uint32_t __anf04_1 = k_1;
-                k_1 = (__anf04_1 + 1);
+                uint32_t __anf05_1 = k_1;
+                k_1 = (__anf05_1 + 1);
             }
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 1024);
@@ -6412,39 +6712,39 @@ __global__ static void kuiper_kernel_24(uint32_t cols, uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 4) {
-            uint32_t __anf0_3 = dotIdx;
+            uint32_t __anf01_3 = dotIdx;
             uint32_t i0 = 0;
             while (i0 < 2) {
-                uint32_t __anf01_3 = i0;
                 uint32_t __anf02_2 = i0;
+                uint32_t __anf03_2 = i0;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
-                    aFrags[__anf02_2];
+                    aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
                     (_letpattern._1 +
-                        ((((0 + (64 * (warpRow * 32))) + (__anf0_3 * 16)) +
-                             (64 * (__anf01_3 * 16))) +
+                        ((((0 + (64 * (warpRow * 32))) + (__anf01_3 * 16)) +
+                             (64 * (__anf02_2 * 16))) +
                             0)),
                     ((uint32_t) 64U));
-                uint32_t __anf03_2 = i0;
-                i0 = (__anf03_2 + 1);
+                uint32_t __anf04_2 = i0;
+                i0 = (__anf04_2 + 1);
             }
-            uint32_t __anf01_4 = dotIdx;
+            uint32_t __anf02_3 = dotIdx;
             uint32_t i11 = 0;
             while (i11 < 4) {
-                uint32_t __anf02_3 = i11;
                 uint32_t __anf03_3 = i11;
+                uint32_t __anf04_3 = i11;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
-                    bFrags[__anf03_3];
+                    bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
                     (_letpattern._2 +
-                        ((((0 + (128 * (__anf01_4 * 16))) + (warpCol * 64)) +
+                        ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 64)) +
                              0) +
-                            (__anf02_3 * 16))),
+                            (__anf03_3 * 16))),
                     ((uint32_t) 128U));
-                uint32_t __anf04_2 = i11;
-                i11 = (__anf04_2 + 1);
+                uint32_t __anf05_2 = i11;
+                i11 = (__anf05_2 + 1);
             }
             uint32_t resIdxM = 0;
             while (resIdxM < 2) {
@@ -6453,26 +6753,26 @@ __global__ static void kuiper_kernel_24(uint32_t cols, uint32_t shared,
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &a_frag =
                         aFrags[resIdxM];
-                    uint32_t __anf03_4 = resIdxN;
+                    uint32_t __anf04_4 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &b_frag =
-                        bFrags[__anf03_4];
-                    uint32_t __anf04_3 = resIdxN;
+                        bFrags[__anf04_4];
+                    uint32_t __anf05_3 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16,
                         16, float, void> &acc_frag =
-                        accFrags[((resIdxM * 4) + __anf04_3)];
+                        accFrags[((resIdxM * 4) + __anf05_3)];
                     wmma::mma_sync(acc_frag, a_frag, b_frag, acc_frag);
-                    uint32_t __anf05 = resIdxN;
-                    resIdxN = (__anf05 + 1);
+                    uint32_t __anf06 = resIdxN;
+                    resIdxN = (__anf06 + 1);
                 }
-                uint32_t __anf02_4 = resIdxM;
-                resIdxM = (__anf02_4 + 1);
+                uint32_t __anf03_4 = resIdxM;
+                resIdxM = (__anf03_4 + 1);
             }
-            uint32_t __anf02_5 = dotIdx;
-            dotIdx = (__anf02_5 + 1);
+            uint32_t __anf03_5 = dotIdx;
+            dotIdx = (__anf03_5 + 1);
         }
-        uint32_t __anf0_4 = bkIdx;
-        bkIdx = (__anf0_4 + 1);
+        uint32_t __anf01_4 = bkIdx;
+        bkIdx = (__anf01_4 + 1);
     }
     uint32_t bm = 64;
     uint32_t bn = 128;
@@ -6484,8 +6784,8 @@ __global__ static void kuiper_kernel_24(uint32_t cols, uint32_t shared,
     uint32_t lane = (tid % 32);
     uint32_t idx = 0;
     while (idx < (wm * wn)) {
-        uint32_t mrow = (bid / (cols / bn));
-        uint32_t mcol = (bid % (cols / bn));
+        uint32_t mrow1 = (bid / (cols / bn));
+        uint32_t mcol1 = (bid % (cols / bn));
         uint32_t warpRow1 = (wid1 / (bn / (wn * tn)));
         uint32_t warpCol1 = (wid1 % (bn / (wn * tn)));
         float *sTile = FStar_Pervasives_Native_fst__array_t_unit(
@@ -6498,22 +6798,22 @@ __global__ static void kuiper_kernel_24(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}})));
-        uint32_t __anf0_5 = idx;
+        uint32_t __anf0_2 = idx;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
-            void> &__anf1_3 = accFrags[__anf0_5];
+            void> &__anf1_3 = accFrags[__anf0_2];
         KPR_STORE(
             (sTile + ((0 + (tn * (wid1 * tm))) + (0 * tn))), __anf1_3, tn);
         uint32_t __anf01_5 = idx;
         uint32_t area = (tm * tn);
         uint32_t flat = lane;
         while (flat < area) {
-            uint32_t __anf02_6 = flat;
-            uint32_t row_2 = (__anf02_6 / tn);
-            uint32_t col_2 = (__anf02_6 % tn);
-            uint32_t globalRow = ((((mrow * bm) + (warpRow1 * (wm * tm))) +
+            uint32_t __anf02_4 = flat;
+            uint32_t row_2 = (__anf02_4 / tn);
+            uint32_t col_2 = (__anf02_4 % tn);
+            uint32_t globalRow = ((((mrow1 * bm) + (warpRow1 * (wm * tm))) +
                                       ((__anf01_5 / wn) * tm)) +
                                   row_2);
-            uint32_t globalCol = ((((mcol * bn) + (warpCol1 * (wn * tn))) +
+            uint32_t globalCol = ((((mcol1 * bn) + (warpCol1 * (wn * tn))) +
                                       ((__anf01_5 % wn) * tn)) +
                                   col_2);
             uint32_t ni_2 = ((globalRow * cols) + globalCol);
@@ -6528,8 +6828,8 @@ __global__ static void kuiper_kernel_24(uint32_t cols, uint32_t shared,
             uint32_t vflat = flat;
             flat = (vflat + 32);
         }
-        uint32_t __anf02_7 = idx;
-        idx = (__anf02_7 + 1);
+        uint32_t __anf02_5 = idx;
+        idx = (__anf02_5 + 1);
     }
 }
 
@@ -6546,8 +6846,6 @@ __global__ static void kuiper_kernel_25(uint32_t cols, uint32_t shared,
     custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
     float beta, float alpha, custard_bf16 *gD)
 {
-    (void) gA;
-    (void) gB;
     (void) nthr;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     custard_bf16 *tmp1 = (custard_bf16 *) tmp;
@@ -6569,6 +6867,9 @@ __global__ static void kuiper_kernel_25(uint32_t cols, uint32_t shared,
                 ._1 = tmp1, ._2 = tmp7};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    uint32_t num_n_tiles = (cols / 128);
+    uint32_t mrow = (bid / num_n_tiles);
+    uint32_t mcol = (bid % num_n_tiles);
     uint32_t wid = (tid / 32);
     uint32_t warpRow = (wid / 1);
     uint32_t warpCol = (wid % 1);
@@ -6607,6 +6908,7 @@ __global__ static void kuiper_kernel_25(uint32_t cols, uint32_t shared,
     }
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
+        uint32_t __anf0_1 = bkIdx;
         __syncthreads();
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 8);
@@ -6616,26 +6918,31 @@ __global__ static void kuiper_kernel_25(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_1 = i;
-            uint32_t row = ((__anf0_1 + offset) / 64);
             uint32_t __anf01_1 = i;
-            uint32_t col = ((__anf01_1 + offset) % 64);
+            uint32_t row = ((__anf01_1 + offset) / 64);
+            uint32_t __anf02 = i;
+            uint32_t col = ((__anf02 + offset) % 64);
+            uint32_t offset1 =
+                ((((0 + (shared * (mrow * 64))) + (__anf0_1 * 64)) +
+                     (shared * row)) +
+                    col);
+            vec_memcpy((local + 0), (gA + offset1));
             uint32_t k = 0;
             while (k < 8) {
-                uint32_t __anf02 = k;
-                custard_bf16 v = local[__anf02];
                 uint32_t __anf03 = k;
-                uint32_t cidx = (col + __anf03);
+                custard_bf16 v = local[__anf03];
+                uint32_t __anf04 = k;
+                uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 64) + cidx);
                 _letpattern._1[ni] = v;
-                uint32_t __anf04 = k;
-                k = (__anf04 + 1);
+                uint32_t __anf05 = k;
+                k = (__anf05 + 1);
             }
             uint32_t vi = i;
             i = (vi + 512);
         }
         uint32_t mlen1 = 8192;
-        uint32_t offset1 = (tid * 8);
+        uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
             custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
@@ -6643,20 +6950,25 @@ __global__ static void kuiper_kernel_25(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_2 = i1;
-            uint32_t row_1 = ((__anf0_2 + offset1) / 128);
             uint32_t __anf01_2 = i1;
-            uint32_t col_1 = ((__anf01_2 + offset1) % 128);
+            uint32_t row_1 = ((__anf01_2 + offset1_1) / 128);
+            uint32_t __anf02_1 = i1;
+            uint32_t col_1 = ((__anf02_1 + offset1_1) % 128);
+            uint32_t offset2 =
+                ((((0 + (cols * (__anf0_1 * 64))) + (mcol * 128)) +
+                     (cols * row_1)) +
+                    col_1);
+            vec_memcpy((local_1 + 0), (gB + offset2));
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                uint32_t __anf02_1 = k_1;
-                custard_bf16 v_1 = local_1[__anf02_1];
                 uint32_t __anf03_1 = k_1;
-                uint32_t cidx_1 = (col_1 + __anf03_1);
+                custard_bf16 v_1 = local_1[__anf03_1];
+                uint32_t __anf04_1 = k_1;
+                uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
                 _letpattern._2[ni_1] = v_1;
-                uint32_t __anf04_1 = k_1;
-                k_1 = (__anf04_1 + 1);
+                uint32_t __anf05_1 = k_1;
+                k_1 = (__anf05_1 + 1);
             }
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 512);
@@ -6664,39 +6976,39 @@ __global__ static void kuiper_kernel_25(uint32_t cols, uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 4) {
-            uint32_t __anf0_3 = dotIdx;
+            uint32_t __anf01_3 = dotIdx;
             uint32_t i0 = 0;
             while (i0 < 2) {
-                uint32_t __anf01_3 = i0;
                 uint32_t __anf02_2 = i0;
+                uint32_t __anf03_2 = i0;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
-                    aFrags[__anf02_2];
+                    aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
                     (_letpattern._1 +
-                        ((((0 + (64 * (warpRow * 32))) + (__anf0_3 * 16)) +
-                             (64 * (__anf01_3 * 16))) +
+                        ((((0 + (64 * (warpRow * 32))) + (__anf01_3 * 16)) +
+                             (64 * (__anf02_2 * 16))) +
                             0)),
                     ((uint32_t) 64U));
-                uint32_t __anf03_2 = i0;
-                i0 = (__anf03_2 + 1);
+                uint32_t __anf04_2 = i0;
+                i0 = (__anf04_2 + 1);
             }
-            uint32_t __anf01_4 = dotIdx;
+            uint32_t __anf02_3 = dotIdx;
             uint32_t i11 = 0;
             while (i11 < 8) {
-                uint32_t __anf02_3 = i11;
                 uint32_t __anf03_3 = i11;
+                uint32_t __anf04_3 = i11;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
-                    bFrags[__anf03_3];
+                    bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
                     (_letpattern._2 +
-                        ((((0 + (128 * (__anf01_4 * 16))) + (warpCol * 128)) +
+                        ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 128)) +
                              0) +
-                            (__anf02_3 * 16))),
+                            (__anf03_3 * 16))),
                     ((uint32_t) 128U));
-                uint32_t __anf04_2 = i11;
-                i11 = (__anf04_2 + 1);
+                uint32_t __anf05_2 = i11;
+                i11 = (__anf05_2 + 1);
             }
             uint32_t resIdxM = 0;
             while (resIdxM < 2) {
@@ -6705,26 +7017,26 @@ __global__ static void kuiper_kernel_25(uint32_t cols, uint32_t shared,
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &a_frag =
                         aFrags[resIdxM];
-                    uint32_t __anf03_4 = resIdxN;
+                    uint32_t __anf04_4 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &b_frag =
-                        bFrags[__anf03_4];
-                    uint32_t __anf04_3 = resIdxN;
+                        bFrags[__anf04_4];
+                    uint32_t __anf05_3 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16,
                         16, float, void> &acc_frag =
-                        accFrags[((resIdxM * 8) + __anf04_3)];
+                        accFrags[((resIdxM * 8) + __anf05_3)];
                     wmma::mma_sync(acc_frag, a_frag, b_frag, acc_frag);
-                    uint32_t __anf05 = resIdxN;
-                    resIdxN = (__anf05 + 1);
+                    uint32_t __anf06 = resIdxN;
+                    resIdxN = (__anf06 + 1);
                 }
-                uint32_t __anf02_4 = resIdxM;
-                resIdxM = (__anf02_4 + 1);
+                uint32_t __anf03_4 = resIdxM;
+                resIdxM = (__anf03_4 + 1);
             }
-            uint32_t __anf02_5 = dotIdx;
-            dotIdx = (__anf02_5 + 1);
+            uint32_t __anf03_5 = dotIdx;
+            dotIdx = (__anf03_5 + 1);
         }
-        uint32_t __anf0_4 = bkIdx;
-        bkIdx = (__anf0_4 + 1);
+        uint32_t __anf01_4 = bkIdx;
+        bkIdx = (__anf01_4 + 1);
     }
     uint32_t bm = 64;
     uint32_t bn = 128;
@@ -6736,8 +7048,8 @@ __global__ static void kuiper_kernel_25(uint32_t cols, uint32_t shared,
     uint32_t lane = (tid % 32);
     uint32_t idx = 0;
     while (idx < (wm * wn)) {
-        uint32_t mrow = (bid / (cols / bn));
-        uint32_t mcol = (bid % (cols / bn));
+        uint32_t mrow1 = (bid / (cols / bn));
+        uint32_t mcol1 = (bid % (cols / bn));
         uint32_t warpRow1 = (wid1 / (bn / (wn * tn)));
         uint32_t warpCol1 = (wid1 % (bn / (wn * tn)));
         float *sTile = FStar_Pervasives_Native_fst__array_t_unit(
@@ -6750,22 +7062,22 @@ __global__ static void kuiper_kernel_25(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}})));
-        uint32_t __anf0_5 = idx;
+        uint32_t __anf0_2 = idx;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
-            void> &__anf1_3 = accFrags[__anf0_5];
+            void> &__anf1_3 = accFrags[__anf0_2];
         KPR_STORE(
             (sTile + ((0 + (tn * (wid1 * tm))) + (0 * tn))), __anf1_3, tn);
         uint32_t __anf01_5 = idx;
         uint32_t area = (tm * tn);
         uint32_t flat = lane;
         while (flat < area) {
-            uint32_t __anf02_6 = flat;
-            uint32_t row_2 = (__anf02_6 / tn);
-            uint32_t col_2 = (__anf02_6 % tn);
-            uint32_t globalRow = ((((mrow * bm) + (warpRow1 * (wm * tm))) +
+            uint32_t __anf02_4 = flat;
+            uint32_t row_2 = (__anf02_4 / tn);
+            uint32_t col_2 = (__anf02_4 % tn);
+            uint32_t globalRow = ((((mrow1 * bm) + (warpRow1 * (wm * tm))) +
                                       ((__anf01_5 / wn) * tm)) +
                                   row_2);
-            uint32_t globalCol = ((((mcol * bn) + (warpCol1 * (wn * tn))) +
+            uint32_t globalCol = ((((mcol1 * bn) + (warpCol1 * (wn * tn))) +
                                       ((__anf01_5 % wn) * tn)) +
                                   col_2);
             uint32_t ni_2 = ((globalRow * cols) + globalCol);
@@ -6780,8 +7092,8 @@ __global__ static void kuiper_kernel_25(uint32_t cols, uint32_t shared,
             uint32_t vflat = flat;
             flat = (vflat + 32);
         }
-        uint32_t __anf02_7 = idx;
-        idx = (__anf02_7 + 1);
+        uint32_t __anf02_5 = idx;
+        idx = (__anf02_5 + 1);
     }
 }
 
@@ -6790,8 +7102,6 @@ __global__ static void kuiper_kernel_26(uint32_t cols, uint32_t shared,
     custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
     float beta, float alpha, custard_bf16 *gD)
 {
-    (void) gA;
-    (void) gB;
     (void) nthr;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     custard_bf16 *tmp1 = (custard_bf16 *) tmp;
@@ -6813,6 +7123,9 @@ __global__ static void kuiper_kernel_26(uint32_t cols, uint32_t shared,
                 ._1 = tmp1, ._2 = tmp7};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    uint32_t num_n_tiles = (cols / 128);
+    uint32_t mrow = (bid / num_n_tiles);
+    uint32_t mcol = (bid % num_n_tiles);
     uint32_t wid = (tid / 32);
     uint32_t warpRow = (wid / 4);
     uint32_t warpCol = (wid % 4);
@@ -6851,6 +7164,7 @@ __global__ static void kuiper_kernel_26(uint32_t cols, uint32_t shared,
     }
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
+        uint32_t __anf0_1 = bkIdx;
         __syncthreads();
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 8);
@@ -6860,26 +7174,31 @@ __global__ static void kuiper_kernel_26(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_1 = i;
-            uint32_t row = ((__anf0_1 + offset) / 64);
             uint32_t __anf01_1 = i;
-            uint32_t col = ((__anf01_1 + offset) % 64);
+            uint32_t row = ((__anf01_1 + offset) / 64);
+            uint32_t __anf02 = i;
+            uint32_t col = ((__anf02 + offset) % 64);
+            uint32_t offset1 =
+                ((((0 + (shared * (mrow * 64))) + (__anf0_1 * 64)) +
+                     (shared * row)) +
+                    col);
+            vec_memcpy((local + 0), (gA + offset1));
             uint32_t k = 0;
             while (k < 8) {
-                uint32_t __anf02 = k;
-                custard_bf16 v = local[__anf02];
                 uint32_t __anf03 = k;
-                uint32_t cidx = (col + __anf03);
+                custard_bf16 v = local[__anf03];
+                uint32_t __anf04 = k;
+                uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 64) + cidx);
                 _letpattern._1[ni] = v;
-                uint32_t __anf04 = k;
-                k = (__anf04 + 1);
+                uint32_t __anf05 = k;
+                k = (__anf05 + 1);
             }
             uint32_t vi = i;
             i = (vi + 1024);
         }
         uint32_t mlen1 = 8192;
-        uint32_t offset1 = (tid * 8);
+        uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
             custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
@@ -6887,20 +7206,25 @@ __global__ static void kuiper_kernel_26(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_2 = i1;
-            uint32_t row_1 = ((__anf0_2 + offset1) / 128);
             uint32_t __anf01_2 = i1;
-            uint32_t col_1 = ((__anf01_2 + offset1) % 128);
+            uint32_t row_1 = ((__anf01_2 + offset1_1) / 128);
+            uint32_t __anf02_1 = i1;
+            uint32_t col_1 = ((__anf02_1 + offset1_1) % 128);
+            uint32_t offset2 =
+                ((((0 + (cols * (__anf0_1 * 64))) + (mcol * 128)) +
+                     (cols * row_1)) +
+                    col_1);
+            vec_memcpy((local_1 + 0), (gB + offset2));
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                uint32_t __anf02_1 = k_1;
-                custard_bf16 v_1 = local_1[__anf02_1];
                 uint32_t __anf03_1 = k_1;
-                uint32_t cidx_1 = (col_1 + __anf03_1);
+                custard_bf16 v_1 = local_1[__anf03_1];
+                uint32_t __anf04_1 = k_1;
+                uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
                 _letpattern._2[ni_1] = v_1;
-                uint32_t __anf04_1 = k_1;
-                k_1 = (__anf04_1 + 1);
+                uint32_t __anf05_1 = k_1;
+                k_1 = (__anf05_1 + 1);
             }
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 1024);
@@ -6908,39 +7232,39 @@ __global__ static void kuiper_kernel_26(uint32_t cols, uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 4) {
-            uint32_t __anf0_3 = dotIdx;
+            uint32_t __anf01_3 = dotIdx;
             uint32_t i0 = 0;
             while (i0 < 4) {
-                uint32_t __anf01_3 = i0;
                 uint32_t __anf02_2 = i0;
+                uint32_t __anf03_2 = i0;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
-                    aFrags[__anf02_2];
+                    aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
                     (_letpattern._1 +
-                        ((((0 + (64 * (warpRow * 64))) + (__anf0_3 * 16)) +
-                             (64 * (__anf01_3 * 16))) +
+                        ((((0 + (64 * (warpRow * 64))) + (__anf01_3 * 16)) +
+                             (64 * (__anf02_2 * 16))) +
                             0)),
                     ((uint32_t) 64U));
-                uint32_t __anf03_2 = i0;
-                i0 = (__anf03_2 + 1);
+                uint32_t __anf04_2 = i0;
+                i0 = (__anf04_2 + 1);
             }
-            uint32_t __anf01_4 = dotIdx;
+            uint32_t __anf02_3 = dotIdx;
             uint32_t i11 = 0;
             while (i11 < 2) {
-                uint32_t __anf02_3 = i11;
                 uint32_t __anf03_3 = i11;
+                uint32_t __anf04_3 = i11;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
-                    bFrags[__anf03_3];
+                    bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
                     (_letpattern._2 +
-                        ((((0 + (128 * (__anf01_4 * 16))) + (warpCol * 32)) +
+                        ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 32)) +
                              0) +
-                            (__anf02_3 * 16))),
+                            (__anf03_3 * 16))),
                     ((uint32_t) 128U));
-                uint32_t __anf04_2 = i11;
-                i11 = (__anf04_2 + 1);
+                uint32_t __anf05_2 = i11;
+                i11 = (__anf05_2 + 1);
             }
             uint32_t resIdxM = 0;
             while (resIdxM < 4) {
@@ -6949,26 +7273,26 @@ __global__ static void kuiper_kernel_26(uint32_t cols, uint32_t shared,
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &a_frag =
                         aFrags[resIdxM];
-                    uint32_t __anf03_4 = resIdxN;
+                    uint32_t __anf04_4 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &b_frag =
-                        bFrags[__anf03_4];
-                    uint32_t __anf04_3 = resIdxN;
+                        bFrags[__anf04_4];
+                    uint32_t __anf05_3 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16,
                         16, float, void> &acc_frag =
-                        accFrags[((resIdxM * 2) + __anf04_3)];
+                        accFrags[((resIdxM * 2) + __anf05_3)];
                     wmma::mma_sync(acc_frag, a_frag, b_frag, acc_frag);
-                    uint32_t __anf05 = resIdxN;
-                    resIdxN = (__anf05 + 1);
+                    uint32_t __anf06 = resIdxN;
+                    resIdxN = (__anf06 + 1);
                 }
-                uint32_t __anf02_4 = resIdxM;
-                resIdxM = (__anf02_4 + 1);
+                uint32_t __anf03_4 = resIdxM;
+                resIdxM = (__anf03_4 + 1);
             }
-            uint32_t __anf02_5 = dotIdx;
-            dotIdx = (__anf02_5 + 1);
+            uint32_t __anf03_5 = dotIdx;
+            dotIdx = (__anf03_5 + 1);
         }
-        uint32_t __anf0_4 = bkIdx;
-        bkIdx = (__anf0_4 + 1);
+        uint32_t __anf01_4 = bkIdx;
+        bkIdx = (__anf01_4 + 1);
     }
     uint32_t bm = 64;
     uint32_t bn = 128;
@@ -6980,8 +7304,8 @@ __global__ static void kuiper_kernel_26(uint32_t cols, uint32_t shared,
     uint32_t lane = (tid % 32);
     uint32_t idx = 0;
     while (idx < (wm * wn)) {
-        uint32_t mrow = (bid / (cols / bn));
-        uint32_t mcol = (bid % (cols / bn));
+        uint32_t mrow1 = (bid / (cols / bn));
+        uint32_t mcol1 = (bid % (cols / bn));
         uint32_t warpRow1 = (wid1 / (bn / (wn * tn)));
         uint32_t warpCol1 = (wid1 % (bn / (wn * tn)));
         float *sTile = FStar_Pervasives_Native_fst__array_t_unit(
@@ -6994,22 +7318,22 @@ __global__ static void kuiper_kernel_26(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}})));
-        uint32_t __anf0_5 = idx;
+        uint32_t __anf0_2 = idx;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
-            void> &__anf1_3 = accFrags[__anf0_5];
+            void> &__anf1_3 = accFrags[__anf0_2];
         KPR_STORE(
             (sTile + ((0 + (tn * (wid1 * tm))) + (0 * tn))), __anf1_3, tn);
         uint32_t __anf01_5 = idx;
         uint32_t area = (tm * tn);
         uint32_t flat = lane;
         while (flat < area) {
-            uint32_t __anf02_6 = flat;
-            uint32_t row_2 = (__anf02_6 / tn);
-            uint32_t col_2 = (__anf02_6 % tn);
-            uint32_t globalRow = ((((mrow * bm) + (warpRow1 * (wm * tm))) +
+            uint32_t __anf02_4 = flat;
+            uint32_t row_2 = (__anf02_4 / tn);
+            uint32_t col_2 = (__anf02_4 % tn);
+            uint32_t globalRow = ((((mrow1 * bm) + (warpRow1 * (wm * tm))) +
                                       ((__anf01_5 / wn) * tm)) +
                                   row_2);
-            uint32_t globalCol = ((((mcol * bn) + (warpCol1 * (wn * tn))) +
+            uint32_t globalCol = ((((mcol1 * bn) + (warpCol1 * (wn * tn))) +
                                       ((__anf01_5 % wn) * tn)) +
                                   col_2);
             uint32_t ni_2 = ((globalRow * cols) + globalCol);
@@ -7024,8 +7348,8 @@ __global__ static void kuiper_kernel_26(uint32_t cols, uint32_t shared,
             uint32_t vflat = flat;
             flat = (vflat + 32);
         }
-        uint32_t __anf02_7 = idx;
-        idx = (__anf02_7 + 1);
+        uint32_t __anf02_5 = idx;
+        idx = (__anf02_5 + 1);
     }
 }
 
@@ -7034,8 +7358,6 @@ __global__ static void kuiper_kernel_27(uint32_t cols, uint32_t shared,
     custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
     float beta, float alpha, custard_bf16 *gD)
 {
-    (void) gA;
-    (void) gB;
     (void) nthr;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     custard_bf16 *tmp1 = (custard_bf16 *) tmp;
@@ -7057,6 +7379,9 @@ __global__ static void kuiper_kernel_27(uint32_t cols, uint32_t shared,
                 ._1 = tmp1, ._2 = tmp7};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    uint32_t num_n_tiles = (cols / 128);
+    uint32_t mrow = (bid / num_n_tiles);
+    uint32_t mcol = (bid % num_n_tiles);
     uint32_t wid = (tid / 32);
     uint32_t warpRow = (wid / 2);
     uint32_t warpCol = (wid % 2);
@@ -7095,6 +7420,7 @@ __global__ static void kuiper_kernel_27(uint32_t cols, uint32_t shared,
     }
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
+        uint32_t __anf0_1 = bkIdx;
         __syncthreads();
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 8);
@@ -7104,26 +7430,31 @@ __global__ static void kuiper_kernel_27(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_1 = i;
-            uint32_t row = ((__anf0_1 + offset) / 64);
             uint32_t __anf01_1 = i;
-            uint32_t col = ((__anf01_1 + offset) % 64);
+            uint32_t row = ((__anf01_1 + offset) / 64);
+            uint32_t __anf02 = i;
+            uint32_t col = ((__anf02 + offset) % 64);
+            uint32_t offset1 =
+                ((((0 + (shared * (mrow * 64))) + (__anf0_1 * 64)) +
+                     (shared * row)) +
+                    col);
+            vec_memcpy((local + 0), (gA + offset1));
             uint32_t k = 0;
             while (k < 8) {
-                uint32_t __anf02 = k;
-                custard_bf16 v = local[__anf02];
                 uint32_t __anf03 = k;
-                uint32_t cidx = (col + __anf03);
+                custard_bf16 v = local[__anf03];
+                uint32_t __anf04 = k;
+                uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 64) + cidx);
                 _letpattern._1[ni] = v;
-                uint32_t __anf04 = k;
-                k = (__anf04 + 1);
+                uint32_t __anf05 = k;
+                k = (__anf05 + 1);
             }
             uint32_t vi = i;
             i = (vi + 512);
         }
         uint32_t mlen1 = 8192;
-        uint32_t offset1 = (tid * 8);
+        uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
             custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
@@ -7131,20 +7462,25 @@ __global__ static void kuiper_kernel_27(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_2 = i1;
-            uint32_t row_1 = ((__anf0_2 + offset1) / 128);
             uint32_t __anf01_2 = i1;
-            uint32_t col_1 = ((__anf01_2 + offset1) % 128);
+            uint32_t row_1 = ((__anf01_2 + offset1_1) / 128);
+            uint32_t __anf02_1 = i1;
+            uint32_t col_1 = ((__anf02_1 + offset1_1) % 128);
+            uint32_t offset2 =
+                ((((0 + (cols * (__anf0_1 * 64))) + (mcol * 128)) +
+                     (cols * row_1)) +
+                    col_1);
+            vec_memcpy((local_1 + 0), (gB + offset2));
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                uint32_t __anf02_1 = k_1;
-                custard_bf16 v_1 = local_1[__anf02_1];
                 uint32_t __anf03_1 = k_1;
-                uint32_t cidx_1 = (col_1 + __anf03_1);
+                custard_bf16 v_1 = local_1[__anf03_1];
+                uint32_t __anf04_1 = k_1;
+                uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
                 _letpattern._2[ni_1] = v_1;
-                uint32_t __anf04_1 = k_1;
-                k_1 = (__anf04_1 + 1);
+                uint32_t __anf05_1 = k_1;
+                k_1 = (__anf05_1 + 1);
             }
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 512);
@@ -7152,39 +7488,39 @@ __global__ static void kuiper_kernel_27(uint32_t cols, uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 4) {
-            uint32_t __anf0_3 = dotIdx;
+            uint32_t __anf01_3 = dotIdx;
             uint32_t i0 = 0;
             while (i0 < 4) {
-                uint32_t __anf01_3 = i0;
                 uint32_t __anf02_2 = i0;
+                uint32_t __anf03_2 = i0;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
-                    aFrags[__anf02_2];
+                    aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
                     (_letpattern._1 +
-                        ((((0 + (64 * (warpRow * 64))) + (__anf0_3 * 16)) +
-                             (64 * (__anf01_3 * 16))) +
+                        ((((0 + (64 * (warpRow * 64))) + (__anf01_3 * 16)) +
+                             (64 * (__anf02_2 * 16))) +
                             0)),
                     ((uint32_t) 64U));
-                uint32_t __anf03_2 = i0;
-                i0 = (__anf03_2 + 1);
+                uint32_t __anf04_2 = i0;
+                i0 = (__anf04_2 + 1);
             }
-            uint32_t __anf01_4 = dotIdx;
+            uint32_t __anf02_3 = dotIdx;
             uint32_t i11 = 0;
             while (i11 < 4) {
-                uint32_t __anf02_3 = i11;
                 uint32_t __anf03_3 = i11;
+                uint32_t __anf04_3 = i11;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
-                    bFrags[__anf03_3];
+                    bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
                     (_letpattern._2 +
-                        ((((0 + (128 * (__anf01_4 * 16))) + (warpCol * 64)) +
+                        ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 64)) +
                              0) +
-                            (__anf02_3 * 16))),
+                            (__anf03_3 * 16))),
                     ((uint32_t) 128U));
-                uint32_t __anf04_2 = i11;
-                i11 = (__anf04_2 + 1);
+                uint32_t __anf05_2 = i11;
+                i11 = (__anf05_2 + 1);
             }
             uint32_t resIdxM = 0;
             while (resIdxM < 4) {
@@ -7193,26 +7529,26 @@ __global__ static void kuiper_kernel_27(uint32_t cols, uint32_t shared,
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &a_frag =
                         aFrags[resIdxM];
-                    uint32_t __anf03_4 = resIdxN;
+                    uint32_t __anf04_4 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &b_frag =
-                        bFrags[__anf03_4];
-                    uint32_t __anf04_3 = resIdxN;
+                        bFrags[__anf04_4];
+                    uint32_t __anf05_3 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16,
                         16, float, void> &acc_frag =
-                        accFrags[((resIdxM * 4) + __anf04_3)];
+                        accFrags[((resIdxM * 4) + __anf05_3)];
                     wmma::mma_sync(acc_frag, a_frag, b_frag, acc_frag);
-                    uint32_t __anf05 = resIdxN;
-                    resIdxN = (__anf05 + 1);
+                    uint32_t __anf06 = resIdxN;
+                    resIdxN = (__anf06 + 1);
                 }
-                uint32_t __anf02_4 = resIdxM;
-                resIdxM = (__anf02_4 + 1);
+                uint32_t __anf03_4 = resIdxM;
+                resIdxM = (__anf03_4 + 1);
             }
-            uint32_t __anf02_5 = dotIdx;
-            dotIdx = (__anf02_5 + 1);
+            uint32_t __anf03_5 = dotIdx;
+            dotIdx = (__anf03_5 + 1);
         }
-        uint32_t __anf0_4 = bkIdx;
-        bkIdx = (__anf0_4 + 1);
+        uint32_t __anf01_4 = bkIdx;
+        bkIdx = (__anf01_4 + 1);
     }
     uint32_t bm = 64;
     uint32_t bn = 128;
@@ -7224,8 +7560,8 @@ __global__ static void kuiper_kernel_27(uint32_t cols, uint32_t shared,
     uint32_t lane = (tid % 32);
     uint32_t idx = 0;
     while (idx < (wm * wn)) {
-        uint32_t mrow = (bid / (cols / bn));
-        uint32_t mcol = (bid % (cols / bn));
+        uint32_t mrow1 = (bid / (cols / bn));
+        uint32_t mcol1 = (bid % (cols / bn));
         uint32_t warpRow1 = (wid1 / (bn / (wn * tn)));
         uint32_t warpCol1 = (wid1 % (bn / (wn * tn)));
         float *sTile = FStar_Pervasives_Native_fst__array_t_unit(
@@ -7238,22 +7574,22 @@ __global__ static void kuiper_kernel_27(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}})));
-        uint32_t __anf0_5 = idx;
+        uint32_t __anf0_2 = idx;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
-            void> &__anf1_3 = accFrags[__anf0_5];
+            void> &__anf1_3 = accFrags[__anf0_2];
         KPR_STORE(
             (sTile + ((0 + (tn * (wid1 * tm))) + (0 * tn))), __anf1_3, tn);
         uint32_t __anf01_5 = idx;
         uint32_t area = (tm * tn);
         uint32_t flat = lane;
         while (flat < area) {
-            uint32_t __anf02_6 = flat;
-            uint32_t row_2 = (__anf02_6 / tn);
-            uint32_t col_2 = (__anf02_6 % tn);
-            uint32_t globalRow = ((((mrow * bm) + (warpRow1 * (wm * tm))) +
+            uint32_t __anf02_4 = flat;
+            uint32_t row_2 = (__anf02_4 / tn);
+            uint32_t col_2 = (__anf02_4 % tn);
+            uint32_t globalRow = ((((mrow1 * bm) + (warpRow1 * (wm * tm))) +
                                       ((__anf01_5 / wn) * tm)) +
                                   row_2);
-            uint32_t globalCol = ((((mcol * bn) + (warpCol1 * (wn * tn))) +
+            uint32_t globalCol = ((((mcol1 * bn) + (warpCol1 * (wn * tn))) +
                                       ((__anf01_5 % wn) * tn)) +
                                   col_2);
             uint32_t ni_2 = ((globalRow * cols) + globalCol);
@@ -7268,8 +7604,8 @@ __global__ static void kuiper_kernel_27(uint32_t cols, uint32_t shared,
             uint32_t vflat = flat;
             flat = (vflat + 32);
         }
-        uint32_t __anf02_7 = idx;
-        idx = (__anf02_7 + 1);
+        uint32_t __anf02_5 = idx;
+        idx = (__anf02_5 + 1);
     }
 }
 
@@ -7286,8 +7622,6 @@ __global__ static void kuiper_kernel_28(uint32_t cols, uint32_t shared,
     custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
     float beta, float alpha, custard_bf16 *gD)
 {
-    (void) gA;
-    (void) gB;
     (void) nthr;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     custard_bf16 *tmp1 = (custard_bf16 *) tmp;
@@ -7309,6 +7643,9 @@ __global__ static void kuiper_kernel_28(uint32_t cols, uint32_t shared,
                 ._1 = tmp1, ._2 = tmp7};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    uint32_t num_n_tiles = (cols / 128);
+    uint32_t mrow = (bid / num_n_tiles);
+    uint32_t mcol = (bid % num_n_tiles);
     uint32_t wid = (tid / 32);
     uint32_t warpRow = (wid / 1);
     uint32_t warpCol = (wid % 1);
@@ -7347,6 +7684,7 @@ __global__ static void kuiper_kernel_28(uint32_t cols, uint32_t shared,
     }
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
+        uint32_t __anf0_1 = bkIdx;
         __syncthreads();
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 8);
@@ -7356,26 +7694,31 @@ __global__ static void kuiper_kernel_28(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_1 = i;
-            uint32_t row = ((__anf0_1 + offset) / 64);
             uint32_t __anf01_1 = i;
-            uint32_t col = ((__anf01_1 + offset) % 64);
+            uint32_t row = ((__anf01_1 + offset) / 64);
+            uint32_t __anf02 = i;
+            uint32_t col = ((__anf02 + offset) % 64);
+            uint32_t offset1 =
+                ((((0 + (shared * (mrow * 64))) + (__anf0_1 * 64)) +
+                     (shared * row)) +
+                    col);
+            vec_memcpy((local + 0), (gA + offset1));
             uint32_t k = 0;
             while (k < 8) {
-                uint32_t __anf02 = k;
-                custard_bf16 v = local[__anf02];
                 uint32_t __anf03 = k;
-                uint32_t cidx = (col + __anf03);
+                custard_bf16 v = local[__anf03];
+                uint32_t __anf04 = k;
+                uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 64) + cidx);
                 _letpattern._1[ni] = v;
-                uint32_t __anf04 = k;
-                k = (__anf04 + 1);
+                uint32_t __anf05 = k;
+                k = (__anf05 + 1);
             }
             uint32_t vi = i;
             i = (vi + 256);
         }
         uint32_t mlen1 = 8192;
-        uint32_t offset1 = (tid * 8);
+        uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
             custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
@@ -7383,20 +7726,25 @@ __global__ static void kuiper_kernel_28(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_2 = i1;
-            uint32_t row_1 = ((__anf0_2 + offset1) / 128);
             uint32_t __anf01_2 = i1;
-            uint32_t col_1 = ((__anf01_2 + offset1) % 128);
+            uint32_t row_1 = ((__anf01_2 + offset1_1) / 128);
+            uint32_t __anf02_1 = i1;
+            uint32_t col_1 = ((__anf02_1 + offset1_1) % 128);
+            uint32_t offset2 =
+                ((((0 + (cols * (__anf0_1 * 64))) + (mcol * 128)) +
+                     (cols * row_1)) +
+                    col_1);
+            vec_memcpy((local_1 + 0), (gB + offset2));
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                uint32_t __anf02_1 = k_1;
-                custard_bf16 v_1 = local_1[__anf02_1];
                 uint32_t __anf03_1 = k_1;
-                uint32_t cidx_1 = (col_1 + __anf03_1);
+                custard_bf16 v_1 = local_1[__anf03_1];
+                uint32_t __anf04_1 = k_1;
+                uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
                 _letpattern._2[ni_1] = v_1;
-                uint32_t __anf04_1 = k_1;
-                k_1 = (__anf04_1 + 1);
+                uint32_t __anf05_1 = k_1;
+                k_1 = (__anf05_1 + 1);
             }
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 256);
@@ -7404,39 +7752,39 @@ __global__ static void kuiper_kernel_28(uint32_t cols, uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 4) {
-            uint32_t __anf0_3 = dotIdx;
+            uint32_t __anf01_3 = dotIdx;
             uint32_t i0 = 0;
             while (i0 < 4) {
-                uint32_t __anf01_3 = i0;
                 uint32_t __anf02_2 = i0;
+                uint32_t __anf03_2 = i0;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
-                    aFrags[__anf02_2];
+                    aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
                     (_letpattern._1 +
-                        ((((0 + (64 * (warpRow * 64))) + (__anf0_3 * 16)) +
-                             (64 * (__anf01_3 * 16))) +
+                        ((((0 + (64 * (warpRow * 64))) + (__anf01_3 * 16)) +
+                             (64 * (__anf02_2 * 16))) +
                             0)),
                     ((uint32_t) 64U));
-                uint32_t __anf03_2 = i0;
-                i0 = (__anf03_2 + 1);
+                uint32_t __anf04_2 = i0;
+                i0 = (__anf04_2 + 1);
             }
-            uint32_t __anf01_4 = dotIdx;
+            uint32_t __anf02_3 = dotIdx;
             uint32_t i11 = 0;
             while (i11 < 8) {
-                uint32_t __anf02_3 = i11;
                 uint32_t __anf03_3 = i11;
+                uint32_t __anf04_3 = i11;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
-                    bFrags[__anf03_3];
+                    bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
                     (_letpattern._2 +
-                        ((((0 + (128 * (__anf01_4 * 16))) + (warpCol * 128)) +
+                        ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 128)) +
                              0) +
-                            (__anf02_3 * 16))),
+                            (__anf03_3 * 16))),
                     ((uint32_t) 128U));
-                uint32_t __anf04_2 = i11;
-                i11 = (__anf04_2 + 1);
+                uint32_t __anf05_2 = i11;
+                i11 = (__anf05_2 + 1);
             }
             uint32_t resIdxM = 0;
             while (resIdxM < 4) {
@@ -7445,26 +7793,26 @@ __global__ static void kuiper_kernel_28(uint32_t cols, uint32_t shared,
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &a_frag =
                         aFrags[resIdxM];
-                    uint32_t __anf03_4 = resIdxN;
+                    uint32_t __anf04_4 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &b_frag =
-                        bFrags[__anf03_4];
-                    uint32_t __anf04_3 = resIdxN;
+                        bFrags[__anf04_4];
+                    uint32_t __anf05_3 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16,
                         16, float, void> &acc_frag =
-                        accFrags[((resIdxM * 8) + __anf04_3)];
+                        accFrags[((resIdxM * 8) + __anf05_3)];
                     wmma::mma_sync(acc_frag, a_frag, b_frag, acc_frag);
-                    uint32_t __anf05 = resIdxN;
-                    resIdxN = (__anf05 + 1);
+                    uint32_t __anf06 = resIdxN;
+                    resIdxN = (__anf06 + 1);
                 }
-                uint32_t __anf02_4 = resIdxM;
-                resIdxM = (__anf02_4 + 1);
+                uint32_t __anf03_4 = resIdxM;
+                resIdxM = (__anf03_4 + 1);
             }
-            uint32_t __anf02_5 = dotIdx;
-            dotIdx = (__anf02_5 + 1);
+            uint32_t __anf03_5 = dotIdx;
+            dotIdx = (__anf03_5 + 1);
         }
-        uint32_t __anf0_4 = bkIdx;
-        bkIdx = (__anf0_4 + 1);
+        uint32_t __anf01_4 = bkIdx;
+        bkIdx = (__anf01_4 + 1);
     }
     uint32_t bm = 64;
     uint32_t bn = 128;
@@ -7476,8 +7824,8 @@ __global__ static void kuiper_kernel_28(uint32_t cols, uint32_t shared,
     uint32_t lane = (tid % 32);
     uint32_t idx = 0;
     while (idx < (wm * wn)) {
-        uint32_t mrow = (bid / (cols / bn));
-        uint32_t mcol = (bid % (cols / bn));
+        uint32_t mrow1 = (bid / (cols / bn));
+        uint32_t mcol1 = (bid % (cols / bn));
         uint32_t warpRow1 = (wid1 / (bn / (wn * tn)));
         uint32_t warpCol1 = (wid1 % (bn / (wn * tn)));
         float *sTile = FStar_Pervasives_Native_fst__array_t_unit(
@@ -7490,22 +7838,22 @@ __global__ static void kuiper_kernel_28(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}})));
-        uint32_t __anf0_5 = idx;
+        uint32_t __anf0_2 = idx;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
-            void> &__anf1_3 = accFrags[__anf0_5];
+            void> &__anf1_3 = accFrags[__anf0_2];
         KPR_STORE(
             (sTile + ((0 + (tn * (wid1 * tm))) + (0 * tn))), __anf1_3, tn);
         uint32_t __anf01_5 = idx;
         uint32_t area = (tm * tn);
         uint32_t flat = lane;
         while (flat < area) {
-            uint32_t __anf02_6 = flat;
-            uint32_t row_2 = (__anf02_6 / tn);
-            uint32_t col_2 = (__anf02_6 % tn);
-            uint32_t globalRow = ((((mrow * bm) + (warpRow1 * (wm * tm))) +
+            uint32_t __anf02_4 = flat;
+            uint32_t row_2 = (__anf02_4 / tn);
+            uint32_t col_2 = (__anf02_4 % tn);
+            uint32_t globalRow = ((((mrow1 * bm) + (warpRow1 * (wm * tm))) +
                                       ((__anf01_5 / wn) * tm)) +
                                   row_2);
-            uint32_t globalCol = ((((mcol * bn) + (warpCol1 * (wn * tn))) +
+            uint32_t globalCol = ((((mcol1 * bn) + (warpCol1 * (wn * tn))) +
                                       ((__anf01_5 % wn) * tn)) +
                                   col_2);
             uint32_t ni_2 = ((globalRow * cols) + globalCol);
@@ -7520,8 +7868,8 @@ __global__ static void kuiper_kernel_28(uint32_t cols, uint32_t shared,
             uint32_t vflat = flat;
             flat = (vflat + 32);
         }
-        uint32_t __anf02_7 = idx;
-        idx = (__anf02_7 + 1);
+        uint32_t __anf02_5 = idx;
+        idx = (__anf02_5 + 1);
     }
 }
 
@@ -7530,8 +7878,6 @@ __global__ static void kuiper_kernel_29(uint32_t cols, uint32_t shared,
     custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
     float beta, float alpha, custard_bf16 *gD)
 {
-    (void) gA;
-    (void) gB;
     (void) nthr;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     custard_bf16 *tmp1 = (custard_bf16 *) tmp;
@@ -7553,6 +7899,9 @@ __global__ static void kuiper_kernel_29(uint32_t cols, uint32_t shared,
                 ._1 = tmp1, ._2 = tmp7};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    uint32_t num_n_tiles = (cols / 64);
+    uint32_t mrow = (bid / num_n_tiles);
+    uint32_t mcol = (bid % num_n_tiles);
     uint32_t wid = (tid / 32);
     uint32_t warpRow = (wid / 1);
     uint32_t warpCol = (wid % 1);
@@ -7591,6 +7940,7 @@ __global__ static void kuiper_kernel_29(uint32_t cols, uint32_t shared,
     }
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
+        uint32_t __anf0_1 = bkIdx;
         __syncthreads();
         uint32_t mlen = 2048;
         uint32_t offset = (tid * 8);
@@ -7600,26 +7950,31 @@ __global__ static void kuiper_kernel_29(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_1 = i;
-            uint32_t row = ((__anf0_1 + offset) / 16);
             uint32_t __anf01_1 = i;
-            uint32_t col = ((__anf01_1 + offset) % 16);
+            uint32_t row = ((__anf01_1 + offset) / 16);
+            uint32_t __anf02 = i;
+            uint32_t col = ((__anf02 + offset) % 16);
+            uint32_t offset1 =
+                ((((0 + (shared * (mrow * 128))) + (__anf0_1 * 16)) +
+                     (shared * row)) +
+                    col);
+            vec_memcpy((local + 0), (gA + offset1));
             uint32_t k = 0;
             while (k < 8) {
-                uint32_t __anf02 = k;
-                custard_bf16 v = local[__anf02];
                 uint32_t __anf03 = k;
-                uint32_t cidx = (col + __anf03);
+                custard_bf16 v = local[__anf03];
+                uint32_t __anf04 = k;
+                uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 16) + cidx);
                 _letpattern._1[ni] = v;
-                uint32_t __anf04 = k;
-                k = (__anf04 + 1);
+                uint32_t __anf05 = k;
+                k = (__anf05 + 1);
             }
             uint32_t vi = i;
             i = (vi + 1024);
         }
         uint32_t mlen1 = 1024;
-        uint32_t offset1 = (tid * 8);
+        uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
             custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
@@ -7627,20 +7982,25 @@ __global__ static void kuiper_kernel_29(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_2 = i1;
-            uint32_t row_1 = ((__anf0_2 + offset1) / 64);
             uint32_t __anf01_2 = i1;
-            uint32_t col_1 = ((__anf01_2 + offset1) % 64);
+            uint32_t row_1 = ((__anf01_2 + offset1_1) / 64);
+            uint32_t __anf02_1 = i1;
+            uint32_t col_1 = ((__anf02_1 + offset1_1) % 64);
+            uint32_t offset2 =
+                ((((0 + (cols * (__anf0_1 * 16))) + (mcol * 64)) +
+                     (cols * row_1)) +
+                    col_1);
+            vec_memcpy((local_1 + 0), (gB + offset2));
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                uint32_t __anf02_1 = k_1;
-                custard_bf16 v_1 = local_1[__anf02_1];
                 uint32_t __anf03_1 = k_1;
-                uint32_t cidx_1 = (col_1 + __anf03_1);
+                custard_bf16 v_1 = local_1[__anf03_1];
+                uint32_t __anf04_1 = k_1;
+                uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 64) + cidx_1);
                 _letpattern._2[ni_1] = v_1;
-                uint32_t __anf04_1 = k_1;
-                k_1 = (__anf04_1 + 1);
+                uint32_t __anf05_1 = k_1;
+                k_1 = (__anf05_1 + 1);
             }
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 1024);
@@ -7648,39 +8008,39 @@ __global__ static void kuiper_kernel_29(uint32_t cols, uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 1) {
-            uint32_t __anf0_3 = dotIdx;
+            uint32_t __anf01_3 = dotIdx;
             uint32_t i0 = 0;
             while (i0 < 2) {
-                uint32_t __anf01_3 = i0;
                 uint32_t __anf02_2 = i0;
+                uint32_t __anf03_2 = i0;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
-                    aFrags[__anf02_2];
+                    aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
                     (_letpattern._1 +
-                        ((((0 + (16 * (warpRow * 32))) + (__anf0_3 * 16)) +
-                             (16 * (__anf01_3 * 16))) +
+                        ((((0 + (16 * (warpRow * 32))) + (__anf01_3 * 16)) +
+                             (16 * (__anf02_2 * 16))) +
                             0)),
                     ((uint32_t) 16U));
-                uint32_t __anf03_2 = i0;
-                i0 = (__anf03_2 + 1);
+                uint32_t __anf04_2 = i0;
+                i0 = (__anf04_2 + 1);
             }
-            uint32_t __anf01_4 = dotIdx;
+            uint32_t __anf02_3 = dotIdx;
             uint32_t i11 = 0;
             while (i11 < 4) {
-                uint32_t __anf02_3 = i11;
                 uint32_t __anf03_3 = i11;
+                uint32_t __anf04_3 = i11;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
-                    bFrags[__anf03_3];
+                    bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
                     (_letpattern._2 +
-                        ((((0 + (64 * (__anf01_4 * 16))) + (warpCol * 64)) +
+                        ((((0 + (64 * (__anf02_3 * 16))) + (warpCol * 64)) +
                              0) +
-                            (__anf02_3 * 16))),
+                            (__anf03_3 * 16))),
                     ((uint32_t) 64U));
-                uint32_t __anf04_2 = i11;
-                i11 = (__anf04_2 + 1);
+                uint32_t __anf05_2 = i11;
+                i11 = (__anf05_2 + 1);
             }
             uint32_t resIdxM = 0;
             while (resIdxM < 2) {
@@ -7689,26 +8049,26 @@ __global__ static void kuiper_kernel_29(uint32_t cols, uint32_t shared,
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &a_frag =
                         aFrags[resIdxM];
-                    uint32_t __anf03_4 = resIdxN;
+                    uint32_t __anf04_4 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &b_frag =
-                        bFrags[__anf03_4];
-                    uint32_t __anf04_3 = resIdxN;
+                        bFrags[__anf04_4];
+                    uint32_t __anf05_3 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16,
                         16, float, void> &acc_frag =
-                        accFrags[((resIdxM * 4) + __anf04_3)];
+                        accFrags[((resIdxM * 4) + __anf05_3)];
                     wmma::mma_sync(acc_frag, a_frag, b_frag, acc_frag);
-                    uint32_t __anf05 = resIdxN;
-                    resIdxN = (__anf05 + 1);
+                    uint32_t __anf06 = resIdxN;
+                    resIdxN = (__anf06 + 1);
                 }
-                uint32_t __anf02_4 = resIdxM;
-                resIdxM = (__anf02_4 + 1);
+                uint32_t __anf03_4 = resIdxM;
+                resIdxM = (__anf03_4 + 1);
             }
-            uint32_t __anf02_5 = dotIdx;
-            dotIdx = (__anf02_5 + 1);
+            uint32_t __anf03_5 = dotIdx;
+            dotIdx = (__anf03_5 + 1);
         }
-        uint32_t __anf0_4 = bkIdx;
-        bkIdx = (__anf0_4 + 1);
+        uint32_t __anf01_4 = bkIdx;
+        bkIdx = (__anf01_4 + 1);
     }
     uint32_t bm = 128;
     uint32_t bn = 64;
@@ -7720,8 +8080,8 @@ __global__ static void kuiper_kernel_29(uint32_t cols, uint32_t shared,
     uint32_t lane = (tid % 32);
     uint32_t idx = 0;
     while (idx < (wm * wn)) {
-        uint32_t mrow = (bid / (cols / bn));
-        uint32_t mcol = (bid % (cols / bn));
+        uint32_t mrow1 = (bid / (cols / bn));
+        uint32_t mcol1 = (bid % (cols / bn));
         uint32_t warpRow1 = (wid1 / (bn / (wn * tn)));
         uint32_t warpCol1 = (wid1 % (bn / (wn * tn)));
         float *sTile = FStar_Pervasives_Native_fst__array_t_unit(
@@ -7734,22 +8094,22 @@ __global__ static void kuiper_kernel_29(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}})));
-        uint32_t __anf0_5 = idx;
+        uint32_t __anf0_2 = idx;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
-            void> &__anf1_3 = accFrags[__anf0_5];
+            void> &__anf1_3 = accFrags[__anf0_2];
         KPR_STORE(
             (sTile + ((0 + (tn * (wid1 * tm))) + (0 * tn))), __anf1_3, tn);
         uint32_t __anf01_5 = idx;
         uint32_t area = (tm * tn);
         uint32_t flat = lane;
         while (flat < area) {
-            uint32_t __anf02_6 = flat;
-            uint32_t row_2 = (__anf02_6 / tn);
-            uint32_t col_2 = (__anf02_6 % tn);
-            uint32_t globalRow = ((((mrow * bm) + (warpRow1 * (wm * tm))) +
+            uint32_t __anf02_4 = flat;
+            uint32_t row_2 = (__anf02_4 / tn);
+            uint32_t col_2 = (__anf02_4 % tn);
+            uint32_t globalRow = ((((mrow1 * bm) + (warpRow1 * (wm * tm))) +
                                       ((__anf01_5 / wn) * tm)) +
                                   row_2);
-            uint32_t globalCol = ((((mcol * bn) + (warpCol1 * (wn * tn))) +
+            uint32_t globalCol = ((((mcol1 * bn) + (warpCol1 * (wn * tn))) +
                                       ((__anf01_5 % wn) * tn)) +
                                   col_2);
             uint32_t ni_2 = ((globalRow * cols) + globalCol);
@@ -7764,8 +8124,8 @@ __global__ static void kuiper_kernel_29(uint32_t cols, uint32_t shared,
             uint32_t vflat = flat;
             flat = (vflat + 32);
         }
-        uint32_t __anf02_7 = idx;
-        idx = (__anf02_7 + 1);
+        uint32_t __anf02_5 = idx;
+        idx = (__anf02_5 + 1);
     }
 }
 
@@ -7774,8 +8134,6 @@ __global__ static void kuiper_kernel_30(uint32_t cols, uint32_t shared,
     custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
     float beta, float alpha, custard_bf16 *gD)
 {
-    (void) gA;
-    (void) gB;
     (void) nthr;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     custard_bf16 *tmp1 = (custard_bf16 *) tmp;
@@ -7797,6 +8155,9 @@ __global__ static void kuiper_kernel_30(uint32_t cols, uint32_t shared,
                 ._1 = tmp1, ._2 = tmp7};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    uint32_t num_n_tiles = (cols / 64);
+    uint32_t mrow = (bid / num_n_tiles);
+    uint32_t mcol = (bid % num_n_tiles);
     uint32_t wid = (tid / 32);
     uint32_t warpRow = (wid / 2);
     uint32_t warpCol = (wid % 2);
@@ -7835,6 +8196,7 @@ __global__ static void kuiper_kernel_30(uint32_t cols, uint32_t shared,
     }
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
+        uint32_t __anf0_1 = bkIdx;
         __syncthreads();
         uint32_t mlen = 2048;
         uint32_t offset = (tid * 8);
@@ -7844,26 +8206,31 @@ __global__ static void kuiper_kernel_30(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_1 = i;
-            uint32_t row = ((__anf0_1 + offset) / 16);
             uint32_t __anf01_1 = i;
-            uint32_t col = ((__anf01_1 + offset) % 16);
+            uint32_t row = ((__anf01_1 + offset) / 16);
+            uint32_t __anf02 = i;
+            uint32_t col = ((__anf02 + offset) % 16);
+            uint32_t offset1 =
+                ((((0 + (shared * (mrow * 128))) + (__anf0_1 * 16)) +
+                     (shared * row)) +
+                    col);
+            vec_memcpy((local + 0), (gA + offset1));
             uint32_t k = 0;
             while (k < 8) {
-                uint32_t __anf02 = k;
-                custard_bf16 v = local[__anf02];
                 uint32_t __anf03 = k;
-                uint32_t cidx = (col + __anf03);
+                custard_bf16 v = local[__anf03];
+                uint32_t __anf04 = k;
+                uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 16) + cidx);
                 _letpattern._1[ni] = v;
-                uint32_t __anf04 = k;
-                k = (__anf04 + 1);
+                uint32_t __anf05 = k;
+                k = (__anf05 + 1);
             }
             uint32_t vi = i;
             i = (vi + 1024);
         }
         uint32_t mlen1 = 1024;
-        uint32_t offset1 = (tid * 8);
+        uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
             custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
@@ -7871,20 +8238,25 @@ __global__ static void kuiper_kernel_30(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_2 = i1;
-            uint32_t row_1 = ((__anf0_2 + offset1) / 64);
             uint32_t __anf01_2 = i1;
-            uint32_t col_1 = ((__anf01_2 + offset1) % 64);
+            uint32_t row_1 = ((__anf01_2 + offset1_1) / 64);
+            uint32_t __anf02_1 = i1;
+            uint32_t col_1 = ((__anf02_1 + offset1_1) % 64);
+            uint32_t offset2 =
+                ((((0 + (cols * (__anf0_1 * 16))) + (mcol * 64)) +
+                     (cols * row_1)) +
+                    col_1);
+            vec_memcpy((local_1 + 0), (gB + offset2));
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                uint32_t __anf02_1 = k_1;
-                custard_bf16 v_1 = local_1[__anf02_1];
                 uint32_t __anf03_1 = k_1;
-                uint32_t cidx_1 = (col_1 + __anf03_1);
+                custard_bf16 v_1 = local_1[__anf03_1];
+                uint32_t __anf04_1 = k_1;
+                uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 64) + cidx_1);
                 _letpattern._2[ni_1] = v_1;
-                uint32_t __anf04_1 = k_1;
-                k_1 = (__anf04_1 + 1);
+                uint32_t __anf05_1 = k_1;
+                k_1 = (__anf05_1 + 1);
             }
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 1024);
@@ -7892,39 +8264,39 @@ __global__ static void kuiper_kernel_30(uint32_t cols, uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 1) {
-            uint32_t __anf0_3 = dotIdx;
+            uint32_t __anf01_3 = dotIdx;
             uint32_t i0 = 0;
             while (i0 < 4) {
-                uint32_t __anf01_3 = i0;
                 uint32_t __anf02_2 = i0;
+                uint32_t __anf03_2 = i0;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
-                    aFrags[__anf02_2];
+                    aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
                     (_letpattern._1 +
-                        ((((0 + (16 * (warpRow * 64))) + (__anf0_3 * 16)) +
-                             (16 * (__anf01_3 * 16))) +
+                        ((((0 + (16 * (warpRow * 64))) + (__anf01_3 * 16)) +
+                             (16 * (__anf02_2 * 16))) +
                             0)),
                     ((uint32_t) 16U));
-                uint32_t __anf03_2 = i0;
-                i0 = (__anf03_2 + 1);
+                uint32_t __anf04_2 = i0;
+                i0 = (__anf04_2 + 1);
             }
-            uint32_t __anf01_4 = dotIdx;
+            uint32_t __anf02_3 = dotIdx;
             uint32_t i11 = 0;
             while (i11 < 2) {
-                uint32_t __anf02_3 = i11;
                 uint32_t __anf03_3 = i11;
+                uint32_t __anf04_3 = i11;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
-                    bFrags[__anf03_3];
+                    bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
                     (_letpattern._2 +
-                        ((((0 + (64 * (__anf01_4 * 16))) + (warpCol * 32)) +
+                        ((((0 + (64 * (__anf02_3 * 16))) + (warpCol * 32)) +
                              0) +
-                            (__anf02_3 * 16))),
+                            (__anf03_3 * 16))),
                     ((uint32_t) 64U));
-                uint32_t __anf04_2 = i11;
-                i11 = (__anf04_2 + 1);
+                uint32_t __anf05_2 = i11;
+                i11 = (__anf05_2 + 1);
             }
             uint32_t resIdxM = 0;
             while (resIdxM < 4) {
@@ -7933,26 +8305,26 @@ __global__ static void kuiper_kernel_30(uint32_t cols, uint32_t shared,
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &a_frag =
                         aFrags[resIdxM];
-                    uint32_t __anf03_4 = resIdxN;
+                    uint32_t __anf04_4 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &b_frag =
-                        bFrags[__anf03_4];
-                    uint32_t __anf04_3 = resIdxN;
+                        bFrags[__anf04_4];
+                    uint32_t __anf05_3 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16,
                         16, float, void> &acc_frag =
-                        accFrags[((resIdxM * 2) + __anf04_3)];
+                        accFrags[((resIdxM * 2) + __anf05_3)];
                     wmma::mma_sync(acc_frag, a_frag, b_frag, acc_frag);
-                    uint32_t __anf05 = resIdxN;
-                    resIdxN = (__anf05 + 1);
+                    uint32_t __anf06 = resIdxN;
+                    resIdxN = (__anf06 + 1);
                 }
-                uint32_t __anf02_4 = resIdxM;
-                resIdxM = (__anf02_4 + 1);
+                uint32_t __anf03_4 = resIdxM;
+                resIdxM = (__anf03_4 + 1);
             }
-            uint32_t __anf02_5 = dotIdx;
-            dotIdx = (__anf02_5 + 1);
+            uint32_t __anf03_5 = dotIdx;
+            dotIdx = (__anf03_5 + 1);
         }
-        uint32_t __anf0_4 = bkIdx;
-        bkIdx = (__anf0_4 + 1);
+        uint32_t __anf01_4 = bkIdx;
+        bkIdx = (__anf01_4 + 1);
     }
     uint32_t bm = 128;
     uint32_t bn = 64;
@@ -7964,8 +8336,8 @@ __global__ static void kuiper_kernel_30(uint32_t cols, uint32_t shared,
     uint32_t lane = (tid % 32);
     uint32_t idx = 0;
     while (idx < (wm * wn)) {
-        uint32_t mrow = (bid / (cols / bn));
-        uint32_t mcol = (bid % (cols / bn));
+        uint32_t mrow1 = (bid / (cols / bn));
+        uint32_t mcol1 = (bid % (cols / bn));
         uint32_t warpRow1 = (wid1 / (bn / (wn * tn)));
         uint32_t warpCol1 = (wid1 % (bn / (wn * tn)));
         float *sTile = FStar_Pervasives_Native_fst__array_t_unit(
@@ -7978,22 +8350,22 @@ __global__ static void kuiper_kernel_30(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}})));
-        uint32_t __anf0_5 = idx;
+        uint32_t __anf0_2 = idx;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
-            void> &__anf1_3 = accFrags[__anf0_5];
+            void> &__anf1_3 = accFrags[__anf0_2];
         KPR_STORE(
             (sTile + ((0 + (tn * (wid1 * tm))) + (0 * tn))), __anf1_3, tn);
         uint32_t __anf01_5 = idx;
         uint32_t area = (tm * tn);
         uint32_t flat = lane;
         while (flat < area) {
-            uint32_t __anf02_6 = flat;
-            uint32_t row_2 = (__anf02_6 / tn);
-            uint32_t col_2 = (__anf02_6 % tn);
-            uint32_t globalRow = ((((mrow * bm) + (warpRow1 * (wm * tm))) +
+            uint32_t __anf02_4 = flat;
+            uint32_t row_2 = (__anf02_4 / tn);
+            uint32_t col_2 = (__anf02_4 % tn);
+            uint32_t globalRow = ((((mrow1 * bm) + (warpRow1 * (wm * tm))) +
                                       ((__anf01_5 / wn) * tm)) +
                                   row_2);
-            uint32_t globalCol = ((((mcol * bn) + (warpCol1 * (wn * tn))) +
+            uint32_t globalCol = ((((mcol1 * bn) + (warpCol1 * (wn * tn))) +
                                       ((__anf01_5 % wn) * tn)) +
                                   col_2);
             uint32_t ni_2 = ((globalRow * cols) + globalCol);
@@ -8008,8 +8380,8 @@ __global__ static void kuiper_kernel_30(uint32_t cols, uint32_t shared,
             uint32_t vflat = flat;
             flat = (vflat + 32);
         }
-        uint32_t __anf02_7 = idx;
-        idx = (__anf02_7 + 1);
+        uint32_t __anf02_5 = idx;
+        idx = (__anf02_5 + 1);
     }
 }
 
@@ -8018,8 +8390,6 @@ __global__ static void kuiper_kernel_31(uint32_t cols, uint32_t shared,
     custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
     float beta, float alpha, custard_bf16 *gD)
 {
-    (void) gA;
-    (void) gB;
     (void) nthr;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     custard_bf16 *tmp1 = (custard_bf16 *) tmp;
@@ -8041,6 +8411,9 @@ __global__ static void kuiper_kernel_31(uint32_t cols, uint32_t shared,
                 ._1 = tmp1, ._2 = tmp7};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    uint32_t num_n_tiles = (cols / 64);
+    uint32_t mrow = (bid / num_n_tiles);
+    uint32_t mcol = (bid % num_n_tiles);
     uint32_t wid = (tid / 32);
     uint32_t warpRow = (wid / 1);
     uint32_t warpCol = (wid % 1);
@@ -8079,6 +8452,7 @@ __global__ static void kuiper_kernel_31(uint32_t cols, uint32_t shared,
     }
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
+        uint32_t __anf0_1 = bkIdx;
         __syncthreads();
         uint32_t mlen = 2048;
         uint32_t offset = (tid * 8);
@@ -8088,26 +8462,31 @@ __global__ static void kuiper_kernel_31(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_1 = i;
-            uint32_t row = ((__anf0_1 + offset) / 16);
             uint32_t __anf01_1 = i;
-            uint32_t col = ((__anf01_1 + offset) % 16);
+            uint32_t row = ((__anf01_1 + offset) / 16);
+            uint32_t __anf02 = i;
+            uint32_t col = ((__anf02 + offset) % 16);
+            uint32_t offset1 =
+                ((((0 + (shared * (mrow * 128))) + (__anf0_1 * 16)) +
+                     (shared * row)) +
+                    col);
+            vec_memcpy((local + 0), (gA + offset1));
             uint32_t k = 0;
             while (k < 8) {
-                uint32_t __anf02 = k;
-                custard_bf16 v = local[__anf02];
                 uint32_t __anf03 = k;
-                uint32_t cidx = (col + __anf03);
+                custard_bf16 v = local[__anf03];
+                uint32_t __anf04 = k;
+                uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 16) + cidx);
                 _letpattern._1[ni] = v;
-                uint32_t __anf04 = k;
-                k = (__anf04 + 1);
+                uint32_t __anf05 = k;
+                k = (__anf05 + 1);
             }
             uint32_t vi = i;
             i = (vi + 512);
         }
         uint32_t mlen1 = 1024;
-        uint32_t offset1 = (tid * 8);
+        uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
             custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
@@ -8115,20 +8494,25 @@ __global__ static void kuiper_kernel_31(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_2 = i1;
-            uint32_t row_1 = ((__anf0_2 + offset1) / 64);
             uint32_t __anf01_2 = i1;
-            uint32_t col_1 = ((__anf01_2 + offset1) % 64);
+            uint32_t row_1 = ((__anf01_2 + offset1_1) / 64);
+            uint32_t __anf02_1 = i1;
+            uint32_t col_1 = ((__anf02_1 + offset1_1) % 64);
+            uint32_t offset2 =
+                ((((0 + (cols * (__anf0_1 * 16))) + (mcol * 64)) +
+                     (cols * row_1)) +
+                    col_1);
+            vec_memcpy((local_1 + 0), (gB + offset2));
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                uint32_t __anf02_1 = k_1;
-                custard_bf16 v_1 = local_1[__anf02_1];
                 uint32_t __anf03_1 = k_1;
-                uint32_t cidx_1 = (col_1 + __anf03_1);
+                custard_bf16 v_1 = local_1[__anf03_1];
+                uint32_t __anf04_1 = k_1;
+                uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 64) + cidx_1);
                 _letpattern._2[ni_1] = v_1;
-                uint32_t __anf04_1 = k_1;
-                k_1 = (__anf04_1 + 1);
+                uint32_t __anf05_1 = k_1;
+                k_1 = (__anf05_1 + 1);
             }
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 512);
@@ -8136,39 +8520,39 @@ __global__ static void kuiper_kernel_31(uint32_t cols, uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 1) {
-            uint32_t __anf0_3 = dotIdx;
+            uint32_t __anf01_3 = dotIdx;
             uint32_t i0 = 0;
             while (i0 < 4) {
-                uint32_t __anf01_3 = i0;
                 uint32_t __anf02_2 = i0;
+                uint32_t __anf03_2 = i0;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
-                    aFrags[__anf02_2];
+                    aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
                     (_letpattern._1 +
-                        ((((0 + (16 * (warpRow * 64))) + (__anf0_3 * 16)) +
-                             (16 * (__anf01_3 * 16))) +
+                        ((((0 + (16 * (warpRow * 64))) + (__anf01_3 * 16)) +
+                             (16 * (__anf02_2 * 16))) +
                             0)),
                     ((uint32_t) 16U));
-                uint32_t __anf03_2 = i0;
-                i0 = (__anf03_2 + 1);
+                uint32_t __anf04_2 = i0;
+                i0 = (__anf04_2 + 1);
             }
-            uint32_t __anf01_4 = dotIdx;
+            uint32_t __anf02_3 = dotIdx;
             uint32_t i11 = 0;
             while (i11 < 4) {
-                uint32_t __anf02_3 = i11;
                 uint32_t __anf03_3 = i11;
+                uint32_t __anf04_3 = i11;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
-                    bFrags[__anf03_3];
+                    bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
                     (_letpattern._2 +
-                        ((((0 + (64 * (__anf01_4 * 16))) + (warpCol * 64)) +
+                        ((((0 + (64 * (__anf02_3 * 16))) + (warpCol * 64)) +
                              0) +
-                            (__anf02_3 * 16))),
+                            (__anf03_3 * 16))),
                     ((uint32_t) 64U));
-                uint32_t __anf04_2 = i11;
-                i11 = (__anf04_2 + 1);
+                uint32_t __anf05_2 = i11;
+                i11 = (__anf05_2 + 1);
             }
             uint32_t resIdxM = 0;
             while (resIdxM < 4) {
@@ -8177,26 +8561,26 @@ __global__ static void kuiper_kernel_31(uint32_t cols, uint32_t shared,
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &a_frag =
                         aFrags[resIdxM];
-                    uint32_t __anf03_4 = resIdxN;
+                    uint32_t __anf04_4 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &b_frag =
-                        bFrags[__anf03_4];
-                    uint32_t __anf04_3 = resIdxN;
+                        bFrags[__anf04_4];
+                    uint32_t __anf05_3 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16,
                         16, float, void> &acc_frag =
-                        accFrags[((resIdxM * 4) + __anf04_3)];
+                        accFrags[((resIdxM * 4) + __anf05_3)];
                     wmma::mma_sync(acc_frag, a_frag, b_frag, acc_frag);
-                    uint32_t __anf05 = resIdxN;
-                    resIdxN = (__anf05 + 1);
+                    uint32_t __anf06 = resIdxN;
+                    resIdxN = (__anf06 + 1);
                 }
-                uint32_t __anf02_4 = resIdxM;
-                resIdxM = (__anf02_4 + 1);
+                uint32_t __anf03_4 = resIdxM;
+                resIdxM = (__anf03_4 + 1);
             }
-            uint32_t __anf02_5 = dotIdx;
-            dotIdx = (__anf02_5 + 1);
+            uint32_t __anf03_5 = dotIdx;
+            dotIdx = (__anf03_5 + 1);
         }
-        uint32_t __anf0_4 = bkIdx;
-        bkIdx = (__anf0_4 + 1);
+        uint32_t __anf01_4 = bkIdx;
+        bkIdx = (__anf01_4 + 1);
     }
     uint32_t bm = 128;
     uint32_t bn = 64;
@@ -8208,8 +8592,8 @@ __global__ static void kuiper_kernel_31(uint32_t cols, uint32_t shared,
     uint32_t lane = (tid % 32);
     uint32_t idx = 0;
     while (idx < (wm * wn)) {
-        uint32_t mrow = (bid / (cols / bn));
-        uint32_t mcol = (bid % (cols / bn));
+        uint32_t mrow1 = (bid / (cols / bn));
+        uint32_t mcol1 = (bid % (cols / bn));
         uint32_t warpRow1 = (wid1 / (bn / (wn * tn)));
         uint32_t warpCol1 = (wid1 % (bn / (wn * tn)));
         float *sTile = FStar_Pervasives_Native_fst__array_t_unit(
@@ -8222,22 +8606,22 @@ __global__ static void kuiper_kernel_31(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}})));
-        uint32_t __anf0_5 = idx;
+        uint32_t __anf0_2 = idx;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
-            void> &__anf1_3 = accFrags[__anf0_5];
+            void> &__anf1_3 = accFrags[__anf0_2];
         KPR_STORE(
             (sTile + ((0 + (tn * (wid1 * tm))) + (0 * tn))), __anf1_3, tn);
         uint32_t __anf01_5 = idx;
         uint32_t area = (tm * tn);
         uint32_t flat = lane;
         while (flat < area) {
-            uint32_t __anf02_6 = flat;
-            uint32_t row_2 = (__anf02_6 / tn);
-            uint32_t col_2 = (__anf02_6 % tn);
-            uint32_t globalRow = ((((mrow * bm) + (warpRow1 * (wm * tm))) +
+            uint32_t __anf02_4 = flat;
+            uint32_t row_2 = (__anf02_4 / tn);
+            uint32_t col_2 = (__anf02_4 % tn);
+            uint32_t globalRow = ((((mrow1 * bm) + (warpRow1 * (wm * tm))) +
                                       ((__anf01_5 / wn) * tm)) +
                                   row_2);
-            uint32_t globalCol = ((((mcol * bn) + (warpCol1 * (wn * tn))) +
+            uint32_t globalCol = ((((mcol1 * bn) + (warpCol1 * (wn * tn))) +
                                       ((__anf01_5 % wn) * tn)) +
                                   col_2);
             uint32_t ni_2 = ((globalRow * cols) + globalCol);
@@ -8252,8 +8636,8 @@ __global__ static void kuiper_kernel_31(uint32_t cols, uint32_t shared,
             uint32_t vflat = flat;
             flat = (vflat + 32);
         }
-        uint32_t __anf02_7 = idx;
-        idx = (__anf02_7 + 1);
+        uint32_t __anf02_5 = idx;
+        idx = (__anf02_5 + 1);
     }
 }
 
@@ -8262,8 +8646,6 @@ __global__ static void kuiper_kernel_32(uint32_t cols, uint32_t shared,
     custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
     float beta, float alpha, custard_bf16 *gD)
 {
-    (void) gA;
-    (void) gB;
     (void) nthr;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     custard_bf16 *tmp1 = (custard_bf16 *) tmp;
@@ -8285,6 +8667,9 @@ __global__ static void kuiper_kernel_32(uint32_t cols, uint32_t shared,
                 ._1 = tmp1, ._2 = tmp7};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    uint32_t num_n_tiles = (cols / 64);
+    uint32_t mrow = (bid / num_n_tiles);
+    uint32_t mcol = (bid % num_n_tiles);
     uint32_t wid = (tid / 32);
     uint32_t warpRow = (wid / 2);
     uint32_t warpCol = (wid % 2);
@@ -8323,6 +8708,7 @@ __global__ static void kuiper_kernel_32(uint32_t cols, uint32_t shared,
     }
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
+        uint32_t __anf0_1 = bkIdx;
         __syncthreads();
         uint32_t mlen = 2048;
         uint32_t offset = (tid * 8);
@@ -8332,26 +8718,31 @@ __global__ static void kuiper_kernel_32(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_1 = i;
-            uint32_t row = ((__anf0_1 + offset) / 16);
             uint32_t __anf01_1 = i;
-            uint32_t col = ((__anf01_1 + offset) % 16);
+            uint32_t row = ((__anf01_1 + offset) / 16);
+            uint32_t __anf02 = i;
+            uint32_t col = ((__anf02 + offset) % 16);
+            uint32_t offset1 =
+                ((((0 + (shared * (mrow * 128))) + (__anf0_1 * 16)) +
+                     (shared * row)) +
+                    col);
+            vec_memcpy((local + 0), (gA + offset1));
             uint32_t k = 0;
             while (k < 8) {
-                uint32_t __anf02 = k;
-                custard_bf16 v = local[__anf02];
                 uint32_t __anf03 = k;
-                uint32_t cidx = (col + __anf03);
+                custard_bf16 v = local[__anf03];
+                uint32_t __anf04 = k;
+                uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 16) + cidx);
                 _letpattern._1[ni] = v;
-                uint32_t __anf04 = k;
-                k = (__anf04 + 1);
+                uint32_t __anf05 = k;
+                k = (__anf05 + 1);
             }
             uint32_t vi = i;
             i = (vi + 512);
         }
         uint32_t mlen1 = 1024;
-        uint32_t offset1 = (tid * 8);
+        uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
             custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
@@ -8359,20 +8750,25 @@ __global__ static void kuiper_kernel_32(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_2 = i1;
-            uint32_t row_1 = ((__anf0_2 + offset1) / 64);
             uint32_t __anf01_2 = i1;
-            uint32_t col_1 = ((__anf01_2 + offset1) % 64);
+            uint32_t row_1 = ((__anf01_2 + offset1_1) / 64);
+            uint32_t __anf02_1 = i1;
+            uint32_t col_1 = ((__anf02_1 + offset1_1) % 64);
+            uint32_t offset2 =
+                ((((0 + (cols * (__anf0_1 * 16))) + (mcol * 64)) +
+                     (cols * row_1)) +
+                    col_1);
+            vec_memcpy((local_1 + 0), (gB + offset2));
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                uint32_t __anf02_1 = k_1;
-                custard_bf16 v_1 = local_1[__anf02_1];
                 uint32_t __anf03_1 = k_1;
-                uint32_t cidx_1 = (col_1 + __anf03_1);
+                custard_bf16 v_1 = local_1[__anf03_1];
+                uint32_t __anf04_1 = k_1;
+                uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 64) + cidx_1);
                 _letpattern._2[ni_1] = v_1;
-                uint32_t __anf04_1 = k_1;
-                k_1 = (__anf04_1 + 1);
+                uint32_t __anf05_1 = k_1;
+                k_1 = (__anf05_1 + 1);
             }
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 512);
@@ -8380,39 +8776,39 @@ __global__ static void kuiper_kernel_32(uint32_t cols, uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 1) {
-            uint32_t __anf0_3 = dotIdx;
+            uint32_t __anf01_3 = dotIdx;
             uint32_t i0 = 0;
             while (i0 < 8) {
-                uint32_t __anf01_3 = i0;
                 uint32_t __anf02_2 = i0;
+                uint32_t __anf03_2 = i0;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
-                    aFrags[__anf02_2];
+                    aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
                     (_letpattern._1 +
-                        ((((0 + (16 * (warpRow * 128))) + (__anf0_3 * 16)) +
-                             (16 * (__anf01_3 * 16))) +
+                        ((((0 + (16 * (warpRow * 128))) + (__anf01_3 * 16)) +
+                             (16 * (__anf02_2 * 16))) +
                             0)),
                     ((uint32_t) 16U));
-                uint32_t __anf03_2 = i0;
-                i0 = (__anf03_2 + 1);
+                uint32_t __anf04_2 = i0;
+                i0 = (__anf04_2 + 1);
             }
-            uint32_t __anf01_4 = dotIdx;
+            uint32_t __anf02_3 = dotIdx;
             uint32_t i11 = 0;
             while (i11 < 2) {
-                uint32_t __anf02_3 = i11;
                 uint32_t __anf03_3 = i11;
+                uint32_t __anf04_3 = i11;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
-                    bFrags[__anf03_3];
+                    bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
                     (_letpattern._2 +
-                        ((((0 + (64 * (__anf01_4 * 16))) + (warpCol * 32)) +
+                        ((((0 + (64 * (__anf02_3 * 16))) + (warpCol * 32)) +
                              0) +
-                            (__anf02_3 * 16))),
+                            (__anf03_3 * 16))),
                     ((uint32_t) 64U));
-                uint32_t __anf04_2 = i11;
-                i11 = (__anf04_2 + 1);
+                uint32_t __anf05_2 = i11;
+                i11 = (__anf05_2 + 1);
             }
             uint32_t resIdxM = 0;
             while (resIdxM < 8) {
@@ -8421,26 +8817,26 @@ __global__ static void kuiper_kernel_32(uint32_t cols, uint32_t shared,
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &a_frag =
                         aFrags[resIdxM];
-                    uint32_t __anf03_4 = resIdxN;
+                    uint32_t __anf04_4 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &b_frag =
-                        bFrags[__anf03_4];
-                    uint32_t __anf04_3 = resIdxN;
+                        bFrags[__anf04_4];
+                    uint32_t __anf05_3 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16,
                         16, float, void> &acc_frag =
-                        accFrags[((resIdxM * 2) + __anf04_3)];
+                        accFrags[((resIdxM * 2) + __anf05_3)];
                     wmma::mma_sync(acc_frag, a_frag, b_frag, acc_frag);
-                    uint32_t __anf05 = resIdxN;
-                    resIdxN = (__anf05 + 1);
+                    uint32_t __anf06 = resIdxN;
+                    resIdxN = (__anf06 + 1);
                 }
-                uint32_t __anf02_4 = resIdxM;
-                resIdxM = (__anf02_4 + 1);
+                uint32_t __anf03_4 = resIdxM;
+                resIdxM = (__anf03_4 + 1);
             }
-            uint32_t __anf02_5 = dotIdx;
-            dotIdx = (__anf02_5 + 1);
+            uint32_t __anf03_5 = dotIdx;
+            dotIdx = (__anf03_5 + 1);
         }
-        uint32_t __anf0_4 = bkIdx;
-        bkIdx = (__anf0_4 + 1);
+        uint32_t __anf01_4 = bkIdx;
+        bkIdx = (__anf01_4 + 1);
     }
     uint32_t bm = 128;
     uint32_t bn = 64;
@@ -8452,8 +8848,8 @@ __global__ static void kuiper_kernel_32(uint32_t cols, uint32_t shared,
     uint32_t lane = (tid % 32);
     uint32_t idx = 0;
     while (idx < (wm * wn)) {
-        uint32_t mrow = (bid / (cols / bn));
-        uint32_t mcol = (bid % (cols / bn));
+        uint32_t mrow1 = (bid / (cols / bn));
+        uint32_t mcol1 = (bid % (cols / bn));
         uint32_t warpRow1 = (wid1 / (bn / (wn * tn)));
         uint32_t warpCol1 = (wid1 % (bn / (wn * tn)));
         float *sTile = FStar_Pervasives_Native_fst__array_t_unit(
@@ -8466,22 +8862,22 @@ __global__ static void kuiper_kernel_32(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}})));
-        uint32_t __anf0_5 = idx;
+        uint32_t __anf0_2 = idx;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
-            void> &__anf1_3 = accFrags[__anf0_5];
+            void> &__anf1_3 = accFrags[__anf0_2];
         KPR_STORE(
             (sTile + ((0 + (tn * (wid1 * tm))) + (0 * tn))), __anf1_3, tn);
         uint32_t __anf01_5 = idx;
         uint32_t area = (tm * tn);
         uint32_t flat = lane;
         while (flat < area) {
-            uint32_t __anf02_6 = flat;
-            uint32_t row_2 = (__anf02_6 / tn);
-            uint32_t col_2 = (__anf02_6 % tn);
-            uint32_t globalRow = ((((mrow * bm) + (warpRow1 * (wm * tm))) +
+            uint32_t __anf02_4 = flat;
+            uint32_t row_2 = (__anf02_4 / tn);
+            uint32_t col_2 = (__anf02_4 % tn);
+            uint32_t globalRow = ((((mrow1 * bm) + (warpRow1 * (wm * tm))) +
                                       ((__anf01_5 / wn) * tm)) +
                                   row_2);
-            uint32_t globalCol = ((((mcol * bn) + (warpCol1 * (wn * tn))) +
+            uint32_t globalCol = ((((mcol1 * bn) + (warpCol1 * (wn * tn))) +
                                       ((__anf01_5 % wn) * tn)) +
                                   col_2);
             uint32_t ni_2 = ((globalRow * cols) + globalCol);
@@ -8496,8 +8892,8 @@ __global__ static void kuiper_kernel_32(uint32_t cols, uint32_t shared,
             uint32_t vflat = flat;
             flat = (vflat + 32);
         }
-        uint32_t __anf02_7 = idx;
-        idx = (__anf02_7 + 1);
+        uint32_t __anf02_5 = idx;
+        idx = (__anf02_5 + 1);
     }
 }
 
@@ -8506,8 +8902,6 @@ __global__ static void kuiper_kernel_33(uint32_t cols, uint32_t shared,
     custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
     float beta, float alpha, custard_bf16 *gD)
 {
-    (void) gA;
-    (void) gB;
     (void) nthr;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     custard_bf16 *tmp1 = (custard_bf16 *) tmp;
@@ -8529,6 +8923,9 @@ __global__ static void kuiper_kernel_33(uint32_t cols, uint32_t shared,
                 ._1 = tmp1, ._2 = tmp7};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    uint32_t num_n_tiles = (cols / 64);
+    uint32_t mrow = (bid / num_n_tiles);
+    uint32_t mcol = (bid % num_n_tiles);
     uint32_t wid = (tid / 32);
     uint32_t warpRow = (wid / 1);
     uint32_t warpCol = (wid % 1);
@@ -8567,6 +8964,7 @@ __global__ static void kuiper_kernel_33(uint32_t cols, uint32_t shared,
     }
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
+        uint32_t __anf0_1 = bkIdx;
         __syncthreads();
         uint32_t mlen = 2048;
         uint32_t offset = (tid * 8);
@@ -8576,26 +8974,31 @@ __global__ static void kuiper_kernel_33(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_1 = i;
-            uint32_t row = ((__anf0_1 + offset) / 16);
             uint32_t __anf01_1 = i;
-            uint32_t col = ((__anf01_1 + offset) % 16);
+            uint32_t row = ((__anf01_1 + offset) / 16);
+            uint32_t __anf02 = i;
+            uint32_t col = ((__anf02 + offset) % 16);
+            uint32_t offset1 =
+                ((((0 + (shared * (mrow * 128))) + (__anf0_1 * 16)) +
+                     (shared * row)) +
+                    col);
+            vec_memcpy((local + 0), (gA + offset1));
             uint32_t k = 0;
             while (k < 8) {
-                uint32_t __anf02 = k;
-                custard_bf16 v = local[__anf02];
                 uint32_t __anf03 = k;
-                uint32_t cidx = (col + __anf03);
+                custard_bf16 v = local[__anf03];
+                uint32_t __anf04 = k;
+                uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 16) + cidx);
                 _letpattern._1[ni] = v;
-                uint32_t __anf04 = k;
-                k = (__anf04 + 1);
+                uint32_t __anf05 = k;
+                k = (__anf05 + 1);
             }
             uint32_t vi = i;
             i = (vi + 256);
         }
         uint32_t mlen1 = 1024;
-        uint32_t offset1 = (tid * 8);
+        uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
             custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
@@ -8603,20 +9006,25 @@ __global__ static void kuiper_kernel_33(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_2 = i1;
-            uint32_t row_1 = ((__anf0_2 + offset1) / 64);
             uint32_t __anf01_2 = i1;
-            uint32_t col_1 = ((__anf01_2 + offset1) % 64);
+            uint32_t row_1 = ((__anf01_2 + offset1_1) / 64);
+            uint32_t __anf02_1 = i1;
+            uint32_t col_1 = ((__anf02_1 + offset1_1) % 64);
+            uint32_t offset2 =
+                ((((0 + (cols * (__anf0_1 * 16))) + (mcol * 64)) +
+                     (cols * row_1)) +
+                    col_1);
+            vec_memcpy((local_1 + 0), (gB + offset2));
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                uint32_t __anf02_1 = k_1;
-                custard_bf16 v_1 = local_1[__anf02_1];
                 uint32_t __anf03_1 = k_1;
-                uint32_t cidx_1 = (col_1 + __anf03_1);
+                custard_bf16 v_1 = local_1[__anf03_1];
+                uint32_t __anf04_1 = k_1;
+                uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 64) + cidx_1);
                 _letpattern._2[ni_1] = v_1;
-                uint32_t __anf04_1 = k_1;
-                k_1 = (__anf04_1 + 1);
+                uint32_t __anf05_1 = k_1;
+                k_1 = (__anf05_1 + 1);
             }
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 256);
@@ -8624,39 +9032,39 @@ __global__ static void kuiper_kernel_33(uint32_t cols, uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 1) {
-            uint32_t __anf0_3 = dotIdx;
+            uint32_t __anf01_3 = dotIdx;
             uint32_t i0 = 0;
             while (i0 < 8) {
-                uint32_t __anf01_3 = i0;
                 uint32_t __anf02_2 = i0;
+                uint32_t __anf03_2 = i0;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
-                    aFrags[__anf02_2];
+                    aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
                     (_letpattern._1 +
-                        ((((0 + (16 * (warpRow * 128))) + (__anf0_3 * 16)) +
-                             (16 * (__anf01_3 * 16))) +
+                        ((((0 + (16 * (warpRow * 128))) + (__anf01_3 * 16)) +
+                             (16 * (__anf02_2 * 16))) +
                             0)),
                     ((uint32_t) 16U));
-                uint32_t __anf03_2 = i0;
-                i0 = (__anf03_2 + 1);
+                uint32_t __anf04_2 = i0;
+                i0 = (__anf04_2 + 1);
             }
-            uint32_t __anf01_4 = dotIdx;
+            uint32_t __anf02_3 = dotIdx;
             uint32_t i11 = 0;
             while (i11 < 4) {
-                uint32_t __anf02_3 = i11;
                 uint32_t __anf03_3 = i11;
+                uint32_t __anf04_3 = i11;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
-                    bFrags[__anf03_3];
+                    bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
                     (_letpattern._2 +
-                        ((((0 + (64 * (__anf01_4 * 16))) + (warpCol * 64)) +
+                        ((((0 + (64 * (__anf02_3 * 16))) + (warpCol * 64)) +
                              0) +
-                            (__anf02_3 * 16))),
+                            (__anf03_3 * 16))),
                     ((uint32_t) 64U));
-                uint32_t __anf04_2 = i11;
-                i11 = (__anf04_2 + 1);
+                uint32_t __anf05_2 = i11;
+                i11 = (__anf05_2 + 1);
             }
             uint32_t resIdxM = 0;
             while (resIdxM < 8) {
@@ -8665,26 +9073,26 @@ __global__ static void kuiper_kernel_33(uint32_t cols, uint32_t shared,
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &a_frag =
                         aFrags[resIdxM];
-                    uint32_t __anf03_4 = resIdxN;
+                    uint32_t __anf04_4 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &b_frag =
-                        bFrags[__anf03_4];
-                    uint32_t __anf04_3 = resIdxN;
+                        bFrags[__anf04_4];
+                    uint32_t __anf05_3 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16,
                         16, float, void> &acc_frag =
-                        accFrags[((resIdxM * 4) + __anf04_3)];
+                        accFrags[((resIdxM * 4) + __anf05_3)];
                     wmma::mma_sync(acc_frag, a_frag, b_frag, acc_frag);
-                    uint32_t __anf05 = resIdxN;
-                    resIdxN = (__anf05 + 1);
+                    uint32_t __anf06 = resIdxN;
+                    resIdxN = (__anf06 + 1);
                 }
-                uint32_t __anf02_4 = resIdxM;
-                resIdxM = (__anf02_4 + 1);
+                uint32_t __anf03_4 = resIdxM;
+                resIdxM = (__anf03_4 + 1);
             }
-            uint32_t __anf02_5 = dotIdx;
-            dotIdx = (__anf02_5 + 1);
+            uint32_t __anf03_5 = dotIdx;
+            dotIdx = (__anf03_5 + 1);
         }
-        uint32_t __anf0_4 = bkIdx;
-        bkIdx = (__anf0_4 + 1);
+        uint32_t __anf01_4 = bkIdx;
+        bkIdx = (__anf01_4 + 1);
     }
     uint32_t bm = 128;
     uint32_t bn = 64;
@@ -8696,8 +9104,8 @@ __global__ static void kuiper_kernel_33(uint32_t cols, uint32_t shared,
     uint32_t lane = (tid % 32);
     uint32_t idx = 0;
     while (idx < (wm * wn)) {
-        uint32_t mrow = (bid / (cols / bn));
-        uint32_t mcol = (bid % (cols / bn));
+        uint32_t mrow1 = (bid / (cols / bn));
+        uint32_t mcol1 = (bid % (cols / bn));
         uint32_t warpRow1 = (wid1 / (bn / (wn * tn)));
         uint32_t warpCol1 = (wid1 % (bn / (wn * tn)));
         float *sTile = FStar_Pervasives_Native_fst__array_t_unit(
@@ -8710,22 +9118,22 @@ __global__ static void kuiper_kernel_33(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}})));
-        uint32_t __anf0_5 = idx;
+        uint32_t __anf0_2 = idx;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
-            void> &__anf1_3 = accFrags[__anf0_5];
+            void> &__anf1_3 = accFrags[__anf0_2];
         KPR_STORE(
             (sTile + ((0 + (tn * (wid1 * tm))) + (0 * tn))), __anf1_3, tn);
         uint32_t __anf01_5 = idx;
         uint32_t area = (tm * tn);
         uint32_t flat = lane;
         while (flat < area) {
-            uint32_t __anf02_6 = flat;
-            uint32_t row_2 = (__anf02_6 / tn);
-            uint32_t col_2 = (__anf02_6 % tn);
-            uint32_t globalRow = ((((mrow * bm) + (warpRow1 * (wm * tm))) +
+            uint32_t __anf02_4 = flat;
+            uint32_t row_2 = (__anf02_4 / tn);
+            uint32_t col_2 = (__anf02_4 % tn);
+            uint32_t globalRow = ((((mrow1 * bm) + (warpRow1 * (wm * tm))) +
                                       ((__anf01_5 / wn) * tm)) +
                                   row_2);
-            uint32_t globalCol = ((((mcol * bn) + (warpCol1 * (wn * tn))) +
+            uint32_t globalCol = ((((mcol1 * bn) + (warpCol1 * (wn * tn))) +
                                       ((__anf01_5 % wn) * tn)) +
                                   col_2);
             uint32_t ni_2 = ((globalRow * cols) + globalCol);
@@ -8740,8 +9148,8 @@ __global__ static void kuiper_kernel_33(uint32_t cols, uint32_t shared,
             uint32_t vflat = flat;
             flat = (vflat + 32);
         }
-        uint32_t __anf02_7 = idx;
-        idx = (__anf02_7 + 1);
+        uint32_t __anf02_5 = idx;
+        idx = (__anf02_5 + 1);
     }
 }
 
@@ -8758,8 +9166,6 @@ __global__ static void kuiper_kernel_34(uint32_t cols, uint32_t shared,
     custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
     float beta, float alpha, custard_bf16 *gD)
 {
-    (void) gA;
-    (void) gB;
     (void) nthr;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     custard_bf16 *tmp1 = (custard_bf16 *) tmp;
@@ -8781,6 +9187,9 @@ __global__ static void kuiper_kernel_34(uint32_t cols, uint32_t shared,
                 ._1 = tmp1, ._2 = tmp7};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    uint32_t num_n_tiles = (cols / 64);
+    uint32_t mrow = (bid / num_n_tiles);
+    uint32_t mcol = (bid % num_n_tiles);
     uint32_t wid = (tid / 32);
     uint32_t warpRow = (wid / 2);
     uint32_t warpCol = (wid % 2);
@@ -8819,6 +9228,7 @@ __global__ static void kuiper_kernel_34(uint32_t cols, uint32_t shared,
     }
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
+        uint32_t __anf0_1 = bkIdx;
         __syncthreads();
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 8);
@@ -8828,26 +9238,31 @@ __global__ static void kuiper_kernel_34(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_1 = i;
-            uint32_t row = ((__anf0_1 + offset) / 32);
             uint32_t __anf01_1 = i;
-            uint32_t col = ((__anf01_1 + offset) % 32);
+            uint32_t row = ((__anf01_1 + offset) / 32);
+            uint32_t __anf02 = i;
+            uint32_t col = ((__anf02 + offset) % 32);
+            uint32_t offset1 =
+                ((((0 + (shared * (mrow * 128))) + (__anf0_1 * 32)) +
+                     (shared * row)) +
+                    col);
+            vec_memcpy((local + 0), (gA + offset1));
             uint32_t k = 0;
             while (k < 8) {
-                uint32_t __anf02 = k;
-                custard_bf16 v = local[__anf02];
                 uint32_t __anf03 = k;
-                uint32_t cidx = (col + __anf03);
+                custard_bf16 v = local[__anf03];
+                uint32_t __anf04 = k;
+                uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 32) + cidx);
                 _letpattern._1[ni] = v;
-                uint32_t __anf04 = k;
-                k = (__anf04 + 1);
+                uint32_t __anf05 = k;
+                k = (__anf05 + 1);
             }
             uint32_t vi = i;
             i = (vi + 2048);
         }
         uint32_t mlen1 = 2048;
-        uint32_t offset1 = (tid * 8);
+        uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
             custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
@@ -8855,20 +9270,25 @@ __global__ static void kuiper_kernel_34(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_2 = i1;
-            uint32_t row_1 = ((__anf0_2 + offset1) / 64);
             uint32_t __anf01_2 = i1;
-            uint32_t col_1 = ((__anf01_2 + offset1) % 64);
+            uint32_t row_1 = ((__anf01_2 + offset1_1) / 64);
+            uint32_t __anf02_1 = i1;
+            uint32_t col_1 = ((__anf02_1 + offset1_1) % 64);
+            uint32_t offset2 =
+                ((((0 + (cols * (__anf0_1 * 32))) + (mcol * 64)) +
+                     (cols * row_1)) +
+                    col_1);
+            vec_memcpy((local_1 + 0), (gB + offset2));
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                uint32_t __anf02_1 = k_1;
-                custard_bf16 v_1 = local_1[__anf02_1];
                 uint32_t __anf03_1 = k_1;
-                uint32_t cidx_1 = (col_1 + __anf03_1);
+                custard_bf16 v_1 = local_1[__anf03_1];
+                uint32_t __anf04_1 = k_1;
+                uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 64) + cidx_1);
                 _letpattern._2[ni_1] = v_1;
-                uint32_t __anf04_1 = k_1;
-                k_1 = (__anf04_1 + 1);
+                uint32_t __anf05_1 = k_1;
+                k_1 = (__anf05_1 + 1);
             }
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 2048);
@@ -8876,39 +9296,39 @@ __global__ static void kuiper_kernel_34(uint32_t cols, uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 2) {
-            uint32_t __anf0_3 = dotIdx;
+            uint32_t __anf01_3 = dotIdx;
             uint32_t i0 = 0;
             while (i0 < 2) {
-                uint32_t __anf01_3 = i0;
                 uint32_t __anf02_2 = i0;
+                uint32_t __anf03_2 = i0;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
-                    aFrags[__anf02_2];
+                    aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
                     (_letpattern._1 +
-                        ((((0 + (32 * (warpRow * 32))) + (__anf0_3 * 16)) +
-                             (32 * (__anf01_3 * 16))) +
+                        ((((0 + (32 * (warpRow * 32))) + (__anf01_3 * 16)) +
+                             (32 * (__anf02_2 * 16))) +
                             0)),
                     ((uint32_t) 32U));
-                uint32_t __anf03_2 = i0;
-                i0 = (__anf03_2 + 1);
+                uint32_t __anf04_2 = i0;
+                i0 = (__anf04_2 + 1);
             }
-            uint32_t __anf01_4 = dotIdx;
+            uint32_t __anf02_3 = dotIdx;
             uint32_t i11 = 0;
             while (i11 < 2) {
-                uint32_t __anf02_3 = i11;
                 uint32_t __anf03_3 = i11;
+                uint32_t __anf04_3 = i11;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
-                    bFrags[__anf03_3];
+                    bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
                     (_letpattern._2 +
-                        ((((0 + (64 * (__anf01_4 * 16))) + (warpCol * 32)) +
+                        ((((0 + (64 * (__anf02_3 * 16))) + (warpCol * 32)) +
                              0) +
-                            (__anf02_3 * 16))),
+                            (__anf03_3 * 16))),
                     ((uint32_t) 64U));
-                uint32_t __anf04_2 = i11;
-                i11 = (__anf04_2 + 1);
+                uint32_t __anf05_2 = i11;
+                i11 = (__anf05_2 + 1);
             }
             uint32_t resIdxM = 0;
             while (resIdxM < 2) {
@@ -8917,26 +9337,26 @@ __global__ static void kuiper_kernel_34(uint32_t cols, uint32_t shared,
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &a_frag =
                         aFrags[resIdxM];
-                    uint32_t __anf03_4 = resIdxN;
+                    uint32_t __anf04_4 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &b_frag =
-                        bFrags[__anf03_4];
-                    uint32_t __anf04_3 = resIdxN;
+                        bFrags[__anf04_4];
+                    uint32_t __anf05_3 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16,
                         16, float, void> &acc_frag =
-                        accFrags[((resIdxM * 2) + __anf04_3)];
+                        accFrags[((resIdxM * 2) + __anf05_3)];
                     wmma::mma_sync(acc_frag, a_frag, b_frag, acc_frag);
-                    uint32_t __anf05 = resIdxN;
-                    resIdxN = (__anf05 + 1);
+                    uint32_t __anf06 = resIdxN;
+                    resIdxN = (__anf06 + 1);
                 }
-                uint32_t __anf02_4 = resIdxM;
-                resIdxM = (__anf02_4 + 1);
+                uint32_t __anf03_4 = resIdxM;
+                resIdxM = (__anf03_4 + 1);
             }
-            uint32_t __anf02_5 = dotIdx;
-            dotIdx = (__anf02_5 + 1);
+            uint32_t __anf03_5 = dotIdx;
+            dotIdx = (__anf03_5 + 1);
         }
-        uint32_t __anf0_4 = bkIdx;
-        bkIdx = (__anf0_4 + 1);
+        uint32_t __anf01_4 = bkIdx;
+        bkIdx = (__anf01_4 + 1);
     }
     uint32_t bm = 128;
     uint32_t bn = 64;
@@ -8948,8 +9368,8 @@ __global__ static void kuiper_kernel_34(uint32_t cols, uint32_t shared,
     uint32_t lane = (tid % 32);
     uint32_t idx = 0;
     while (idx < (wm * wn)) {
-        uint32_t mrow = (bid / (cols / bn));
-        uint32_t mcol = (bid % (cols / bn));
+        uint32_t mrow1 = (bid / (cols / bn));
+        uint32_t mcol1 = (bid % (cols / bn));
         uint32_t warpRow1 = (wid1 / (bn / (wn * tn)));
         uint32_t warpCol1 = (wid1 % (bn / (wn * tn)));
         float *sTile = FStar_Pervasives_Native_fst__array_t_unit(
@@ -8962,22 +9382,22 @@ __global__ static void kuiper_kernel_34(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}})));
-        uint32_t __anf0_5 = idx;
+        uint32_t __anf0_2 = idx;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
-            void> &__anf1_3 = accFrags[__anf0_5];
+            void> &__anf1_3 = accFrags[__anf0_2];
         KPR_STORE(
             (sTile + ((0 + (tn * (wid1 * tm))) + (0 * tn))), __anf1_3, tn);
         uint32_t __anf01_5 = idx;
         uint32_t area = (tm * tn);
         uint32_t flat = lane;
         while (flat < area) {
-            uint32_t __anf02_6 = flat;
-            uint32_t row_2 = (__anf02_6 / tn);
-            uint32_t col_2 = (__anf02_6 % tn);
-            uint32_t globalRow = ((((mrow * bm) + (warpRow1 * (wm * tm))) +
+            uint32_t __anf02_4 = flat;
+            uint32_t row_2 = (__anf02_4 / tn);
+            uint32_t col_2 = (__anf02_4 % tn);
+            uint32_t globalRow = ((((mrow1 * bm) + (warpRow1 * (wm * tm))) +
                                       ((__anf01_5 / wn) * tm)) +
                                   row_2);
-            uint32_t globalCol = ((((mcol * bn) + (warpCol1 * (wn * tn))) +
+            uint32_t globalCol = ((((mcol1 * bn) + (warpCol1 * (wn * tn))) +
                                       ((__anf01_5 % wn) * tn)) +
                                   col_2);
             uint32_t ni_2 = ((globalRow * cols) + globalCol);
@@ -8992,8 +9412,8 @@ __global__ static void kuiper_kernel_34(uint32_t cols, uint32_t shared,
             uint32_t vflat = flat;
             flat = (vflat + 32);
         }
-        uint32_t __anf02_7 = idx;
-        idx = (__anf02_7 + 1);
+        uint32_t __anf02_5 = idx;
+        idx = (__anf02_5 + 1);
     }
 }
 
@@ -9002,8 +9422,6 @@ __global__ static void kuiper_kernel_35(uint32_t cols, uint32_t shared,
     custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
     float beta, float alpha, custard_bf16 *gD)
 {
-    (void) gA;
-    (void) gB;
     (void) nthr;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     custard_bf16 *tmp1 = (custard_bf16 *) tmp;
@@ -9025,6 +9443,9 @@ __global__ static void kuiper_kernel_35(uint32_t cols, uint32_t shared,
                 ._1 = tmp1, ._2 = tmp7};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    uint32_t num_n_tiles = (cols / 64);
+    uint32_t mrow = (bid / num_n_tiles);
+    uint32_t mcol = (bid % num_n_tiles);
     uint32_t wid = (tid / 32);
     uint32_t warpRow = (wid / 1);
     uint32_t warpCol = (wid % 1);
@@ -9063,6 +9484,7 @@ __global__ static void kuiper_kernel_35(uint32_t cols, uint32_t shared,
     }
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
+        uint32_t __anf0_1 = bkIdx;
         __syncthreads();
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 8);
@@ -9072,26 +9494,31 @@ __global__ static void kuiper_kernel_35(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_1 = i;
-            uint32_t row = ((__anf0_1 + offset) / 32);
             uint32_t __anf01_1 = i;
-            uint32_t col = ((__anf01_1 + offset) % 32);
+            uint32_t row = ((__anf01_1 + offset) / 32);
+            uint32_t __anf02 = i;
+            uint32_t col = ((__anf02 + offset) % 32);
+            uint32_t offset1 =
+                ((((0 + (shared * (mrow * 128))) + (__anf0_1 * 32)) +
+                     (shared * row)) +
+                    col);
+            vec_memcpy((local + 0), (gA + offset1));
             uint32_t k = 0;
             while (k < 8) {
-                uint32_t __anf02 = k;
-                custard_bf16 v = local[__anf02];
                 uint32_t __anf03 = k;
-                uint32_t cidx = (col + __anf03);
+                custard_bf16 v = local[__anf03];
+                uint32_t __anf04 = k;
+                uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 32) + cidx);
                 _letpattern._1[ni] = v;
-                uint32_t __anf04 = k;
-                k = (__anf04 + 1);
+                uint32_t __anf05 = k;
+                k = (__anf05 + 1);
             }
             uint32_t vi = i;
             i = (vi + 1024);
         }
         uint32_t mlen1 = 2048;
-        uint32_t offset1 = (tid * 8);
+        uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
             custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
@@ -9099,20 +9526,25 @@ __global__ static void kuiper_kernel_35(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_2 = i1;
-            uint32_t row_1 = ((__anf0_2 + offset1) / 64);
             uint32_t __anf01_2 = i1;
-            uint32_t col_1 = ((__anf01_2 + offset1) % 64);
+            uint32_t row_1 = ((__anf01_2 + offset1_1) / 64);
+            uint32_t __anf02_1 = i1;
+            uint32_t col_1 = ((__anf02_1 + offset1_1) % 64);
+            uint32_t offset2 =
+                ((((0 + (cols * (__anf0_1 * 32))) + (mcol * 64)) +
+                     (cols * row_1)) +
+                    col_1);
+            vec_memcpy((local_1 + 0), (gB + offset2));
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                uint32_t __anf02_1 = k_1;
-                custard_bf16 v_1 = local_1[__anf02_1];
                 uint32_t __anf03_1 = k_1;
-                uint32_t cidx_1 = (col_1 + __anf03_1);
+                custard_bf16 v_1 = local_1[__anf03_1];
+                uint32_t __anf04_1 = k_1;
+                uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 64) + cidx_1);
                 _letpattern._2[ni_1] = v_1;
-                uint32_t __anf04_1 = k_1;
-                k_1 = (__anf04_1 + 1);
+                uint32_t __anf05_1 = k_1;
+                k_1 = (__anf05_1 + 1);
             }
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 1024);
@@ -9120,39 +9552,39 @@ __global__ static void kuiper_kernel_35(uint32_t cols, uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 2) {
-            uint32_t __anf0_3 = dotIdx;
+            uint32_t __anf01_3 = dotIdx;
             uint32_t i0 = 0;
             while (i0 < 2) {
-                uint32_t __anf01_3 = i0;
                 uint32_t __anf02_2 = i0;
+                uint32_t __anf03_2 = i0;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
-                    aFrags[__anf02_2];
+                    aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
                     (_letpattern._1 +
-                        ((((0 + (32 * (warpRow * 32))) + (__anf0_3 * 16)) +
-                             (32 * (__anf01_3 * 16))) +
+                        ((((0 + (32 * (warpRow * 32))) + (__anf01_3 * 16)) +
+                             (32 * (__anf02_2 * 16))) +
                             0)),
                     ((uint32_t) 32U));
-                uint32_t __anf03_2 = i0;
-                i0 = (__anf03_2 + 1);
+                uint32_t __anf04_2 = i0;
+                i0 = (__anf04_2 + 1);
             }
-            uint32_t __anf01_4 = dotIdx;
+            uint32_t __anf02_3 = dotIdx;
             uint32_t i11 = 0;
             while (i11 < 4) {
-                uint32_t __anf02_3 = i11;
                 uint32_t __anf03_3 = i11;
+                uint32_t __anf04_3 = i11;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
-                    bFrags[__anf03_3];
+                    bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
                     (_letpattern._2 +
-                        ((((0 + (64 * (__anf01_4 * 16))) + (warpCol * 64)) +
+                        ((((0 + (64 * (__anf02_3 * 16))) + (warpCol * 64)) +
                              0) +
-                            (__anf02_3 * 16))),
+                            (__anf03_3 * 16))),
                     ((uint32_t) 64U));
-                uint32_t __anf04_2 = i11;
-                i11 = (__anf04_2 + 1);
+                uint32_t __anf05_2 = i11;
+                i11 = (__anf05_2 + 1);
             }
             uint32_t resIdxM = 0;
             while (resIdxM < 2) {
@@ -9161,26 +9593,26 @@ __global__ static void kuiper_kernel_35(uint32_t cols, uint32_t shared,
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &a_frag =
                         aFrags[resIdxM];
-                    uint32_t __anf03_4 = resIdxN;
+                    uint32_t __anf04_4 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &b_frag =
-                        bFrags[__anf03_4];
-                    uint32_t __anf04_3 = resIdxN;
+                        bFrags[__anf04_4];
+                    uint32_t __anf05_3 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16,
                         16, float, void> &acc_frag =
-                        accFrags[((resIdxM * 4) + __anf04_3)];
+                        accFrags[((resIdxM * 4) + __anf05_3)];
                     wmma::mma_sync(acc_frag, a_frag, b_frag, acc_frag);
-                    uint32_t __anf05 = resIdxN;
-                    resIdxN = (__anf05 + 1);
+                    uint32_t __anf06 = resIdxN;
+                    resIdxN = (__anf06 + 1);
                 }
-                uint32_t __anf02_4 = resIdxM;
-                resIdxM = (__anf02_4 + 1);
+                uint32_t __anf03_4 = resIdxM;
+                resIdxM = (__anf03_4 + 1);
             }
-            uint32_t __anf02_5 = dotIdx;
-            dotIdx = (__anf02_5 + 1);
+            uint32_t __anf03_5 = dotIdx;
+            dotIdx = (__anf03_5 + 1);
         }
-        uint32_t __anf0_4 = bkIdx;
-        bkIdx = (__anf0_4 + 1);
+        uint32_t __anf01_4 = bkIdx;
+        bkIdx = (__anf01_4 + 1);
     }
     uint32_t bm = 128;
     uint32_t bn = 64;
@@ -9192,8 +9624,8 @@ __global__ static void kuiper_kernel_35(uint32_t cols, uint32_t shared,
     uint32_t lane = (tid % 32);
     uint32_t idx = 0;
     while (idx < (wm * wn)) {
-        uint32_t mrow = (bid / (cols / bn));
-        uint32_t mcol = (bid % (cols / bn));
+        uint32_t mrow1 = (bid / (cols / bn));
+        uint32_t mcol1 = (bid % (cols / bn));
         uint32_t warpRow1 = (wid1 / (bn / (wn * tn)));
         uint32_t warpCol1 = (wid1 % (bn / (wn * tn)));
         float *sTile = FStar_Pervasives_Native_fst__array_t_unit(
@@ -9206,22 +9638,22 @@ __global__ static void kuiper_kernel_35(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}})));
-        uint32_t __anf0_5 = idx;
+        uint32_t __anf0_2 = idx;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
-            void> &__anf1_3 = accFrags[__anf0_5];
+            void> &__anf1_3 = accFrags[__anf0_2];
         KPR_STORE(
             (sTile + ((0 + (tn * (wid1 * tm))) + (0 * tn))), __anf1_3, tn);
         uint32_t __anf01_5 = idx;
         uint32_t area = (tm * tn);
         uint32_t flat = lane;
         while (flat < area) {
-            uint32_t __anf02_6 = flat;
-            uint32_t row_2 = (__anf02_6 / tn);
-            uint32_t col_2 = (__anf02_6 % tn);
-            uint32_t globalRow = ((((mrow * bm) + (warpRow1 * (wm * tm))) +
+            uint32_t __anf02_4 = flat;
+            uint32_t row_2 = (__anf02_4 / tn);
+            uint32_t col_2 = (__anf02_4 % tn);
+            uint32_t globalRow = ((((mrow1 * bm) + (warpRow1 * (wm * tm))) +
                                       ((__anf01_5 / wn) * tm)) +
                                   row_2);
-            uint32_t globalCol = ((((mcol * bn) + (warpCol1 * (wn * tn))) +
+            uint32_t globalCol = ((((mcol1 * bn) + (warpCol1 * (wn * tn))) +
                                       ((__anf01_5 % wn) * tn)) +
                                   col_2);
             uint32_t ni_2 = ((globalRow * cols) + globalCol);
@@ -9236,8 +9668,8 @@ __global__ static void kuiper_kernel_35(uint32_t cols, uint32_t shared,
             uint32_t vflat = flat;
             flat = (vflat + 32);
         }
-        uint32_t __anf02_7 = idx;
-        idx = (__anf02_7 + 1);
+        uint32_t __anf02_5 = idx;
+        idx = (__anf02_5 + 1);
     }
 }
 
@@ -9246,8 +9678,6 @@ __global__ static void kuiper_kernel_36(uint32_t cols, uint32_t shared,
     custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
     float beta, float alpha, custard_bf16 *gD)
 {
-    (void) gA;
-    (void) gB;
     (void) nthr;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     custard_bf16 *tmp1 = (custard_bf16 *) tmp;
@@ -9269,6 +9699,9 @@ __global__ static void kuiper_kernel_36(uint32_t cols, uint32_t shared,
                 ._1 = tmp1, ._2 = tmp7};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    uint32_t num_n_tiles = (cols / 64);
+    uint32_t mrow = (bid / num_n_tiles);
+    uint32_t mcol = (bid % num_n_tiles);
     uint32_t wid = (tid / 32);
     uint32_t warpRow = (wid / 2);
     uint32_t warpCol = (wid % 2);
@@ -9307,6 +9740,7 @@ __global__ static void kuiper_kernel_36(uint32_t cols, uint32_t shared,
     }
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
+        uint32_t __anf0_1 = bkIdx;
         __syncthreads();
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 8);
@@ -9316,26 +9750,31 @@ __global__ static void kuiper_kernel_36(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_1 = i;
-            uint32_t row = ((__anf0_1 + offset) / 32);
             uint32_t __anf01_1 = i;
-            uint32_t col = ((__anf01_1 + offset) % 32);
+            uint32_t row = ((__anf01_1 + offset) / 32);
+            uint32_t __anf02 = i;
+            uint32_t col = ((__anf02 + offset) % 32);
+            uint32_t offset1 =
+                ((((0 + (shared * (mrow * 128))) + (__anf0_1 * 32)) +
+                     (shared * row)) +
+                    col);
+            vec_memcpy((local + 0), (gA + offset1));
             uint32_t k = 0;
             while (k < 8) {
-                uint32_t __anf02 = k;
-                custard_bf16 v = local[__anf02];
                 uint32_t __anf03 = k;
-                uint32_t cidx = (col + __anf03);
+                custard_bf16 v = local[__anf03];
+                uint32_t __anf04 = k;
+                uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 32) + cidx);
                 _letpattern._1[ni] = v;
-                uint32_t __anf04 = k;
-                k = (__anf04 + 1);
+                uint32_t __anf05 = k;
+                k = (__anf05 + 1);
             }
             uint32_t vi = i;
             i = (vi + 1024);
         }
         uint32_t mlen1 = 2048;
-        uint32_t offset1 = (tid * 8);
+        uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
             custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
@@ -9343,20 +9782,25 @@ __global__ static void kuiper_kernel_36(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_2 = i1;
-            uint32_t row_1 = ((__anf0_2 + offset1) / 64);
             uint32_t __anf01_2 = i1;
-            uint32_t col_1 = ((__anf01_2 + offset1) % 64);
+            uint32_t row_1 = ((__anf01_2 + offset1_1) / 64);
+            uint32_t __anf02_1 = i1;
+            uint32_t col_1 = ((__anf02_1 + offset1_1) % 64);
+            uint32_t offset2 =
+                ((((0 + (cols * (__anf0_1 * 32))) + (mcol * 64)) +
+                     (cols * row_1)) +
+                    col_1);
+            vec_memcpy((local_1 + 0), (gB + offset2));
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                uint32_t __anf02_1 = k_1;
-                custard_bf16 v_1 = local_1[__anf02_1];
                 uint32_t __anf03_1 = k_1;
-                uint32_t cidx_1 = (col_1 + __anf03_1);
+                custard_bf16 v_1 = local_1[__anf03_1];
+                uint32_t __anf04_1 = k_1;
+                uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 64) + cidx_1);
                 _letpattern._2[ni_1] = v_1;
-                uint32_t __anf04_1 = k_1;
-                k_1 = (__anf04_1 + 1);
+                uint32_t __anf05_1 = k_1;
+                k_1 = (__anf05_1 + 1);
             }
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 1024);
@@ -9364,39 +9808,39 @@ __global__ static void kuiper_kernel_36(uint32_t cols, uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 2) {
-            uint32_t __anf0_3 = dotIdx;
+            uint32_t __anf01_3 = dotIdx;
             uint32_t i0 = 0;
             while (i0 < 4) {
-                uint32_t __anf01_3 = i0;
                 uint32_t __anf02_2 = i0;
+                uint32_t __anf03_2 = i0;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
-                    aFrags[__anf02_2];
+                    aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
                     (_letpattern._1 +
-                        ((((0 + (32 * (warpRow * 64))) + (__anf0_3 * 16)) +
-                             (32 * (__anf01_3 * 16))) +
+                        ((((0 + (32 * (warpRow * 64))) + (__anf01_3 * 16)) +
+                             (32 * (__anf02_2 * 16))) +
                             0)),
                     ((uint32_t) 32U));
-                uint32_t __anf03_2 = i0;
-                i0 = (__anf03_2 + 1);
+                uint32_t __anf04_2 = i0;
+                i0 = (__anf04_2 + 1);
             }
-            uint32_t __anf01_4 = dotIdx;
+            uint32_t __anf02_3 = dotIdx;
             uint32_t i11 = 0;
             while (i11 < 2) {
-                uint32_t __anf02_3 = i11;
                 uint32_t __anf03_3 = i11;
+                uint32_t __anf04_3 = i11;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
-                    bFrags[__anf03_3];
+                    bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
                     (_letpattern._2 +
-                        ((((0 + (64 * (__anf01_4 * 16))) + (warpCol * 32)) +
+                        ((((0 + (64 * (__anf02_3 * 16))) + (warpCol * 32)) +
                              0) +
-                            (__anf02_3 * 16))),
+                            (__anf03_3 * 16))),
                     ((uint32_t) 64U));
-                uint32_t __anf04_2 = i11;
-                i11 = (__anf04_2 + 1);
+                uint32_t __anf05_2 = i11;
+                i11 = (__anf05_2 + 1);
             }
             uint32_t resIdxM = 0;
             while (resIdxM < 4) {
@@ -9405,26 +9849,26 @@ __global__ static void kuiper_kernel_36(uint32_t cols, uint32_t shared,
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &a_frag =
                         aFrags[resIdxM];
-                    uint32_t __anf03_4 = resIdxN;
+                    uint32_t __anf04_4 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &b_frag =
-                        bFrags[__anf03_4];
-                    uint32_t __anf04_3 = resIdxN;
+                        bFrags[__anf04_4];
+                    uint32_t __anf05_3 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16,
                         16, float, void> &acc_frag =
-                        accFrags[((resIdxM * 2) + __anf04_3)];
+                        accFrags[((resIdxM * 2) + __anf05_3)];
                     wmma::mma_sync(acc_frag, a_frag, b_frag, acc_frag);
-                    uint32_t __anf05 = resIdxN;
-                    resIdxN = (__anf05 + 1);
+                    uint32_t __anf06 = resIdxN;
+                    resIdxN = (__anf06 + 1);
                 }
-                uint32_t __anf02_4 = resIdxM;
-                resIdxM = (__anf02_4 + 1);
+                uint32_t __anf03_4 = resIdxM;
+                resIdxM = (__anf03_4 + 1);
             }
-            uint32_t __anf02_5 = dotIdx;
-            dotIdx = (__anf02_5 + 1);
+            uint32_t __anf03_5 = dotIdx;
+            dotIdx = (__anf03_5 + 1);
         }
-        uint32_t __anf0_4 = bkIdx;
-        bkIdx = (__anf0_4 + 1);
+        uint32_t __anf01_4 = bkIdx;
+        bkIdx = (__anf01_4 + 1);
     }
     uint32_t bm = 128;
     uint32_t bn = 64;
@@ -9436,8 +9880,8 @@ __global__ static void kuiper_kernel_36(uint32_t cols, uint32_t shared,
     uint32_t lane = (tid % 32);
     uint32_t idx = 0;
     while (idx < (wm * wn)) {
-        uint32_t mrow = (bid / (cols / bn));
-        uint32_t mcol = (bid % (cols / bn));
+        uint32_t mrow1 = (bid / (cols / bn));
+        uint32_t mcol1 = (bid % (cols / bn));
         uint32_t warpRow1 = (wid1 / (bn / (wn * tn)));
         uint32_t warpCol1 = (wid1 % (bn / (wn * tn)));
         float *sTile = FStar_Pervasives_Native_fst__array_t_unit(
@@ -9450,22 +9894,22 @@ __global__ static void kuiper_kernel_36(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}})));
-        uint32_t __anf0_5 = idx;
+        uint32_t __anf0_2 = idx;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
-            void> &__anf1_3 = accFrags[__anf0_5];
+            void> &__anf1_3 = accFrags[__anf0_2];
         KPR_STORE(
             (sTile + ((0 + (tn * (wid1 * tm))) + (0 * tn))), __anf1_3, tn);
         uint32_t __anf01_5 = idx;
         uint32_t area = (tm * tn);
         uint32_t flat = lane;
         while (flat < area) {
-            uint32_t __anf02_6 = flat;
-            uint32_t row_2 = (__anf02_6 / tn);
-            uint32_t col_2 = (__anf02_6 % tn);
-            uint32_t globalRow = ((((mrow * bm) + (warpRow1 * (wm * tm))) +
+            uint32_t __anf02_4 = flat;
+            uint32_t row_2 = (__anf02_4 / tn);
+            uint32_t col_2 = (__anf02_4 % tn);
+            uint32_t globalRow = ((((mrow1 * bm) + (warpRow1 * (wm * tm))) +
                                       ((__anf01_5 / wn) * tm)) +
                                   row_2);
-            uint32_t globalCol = ((((mcol * bn) + (warpCol1 * (wn * tn))) +
+            uint32_t globalCol = ((((mcol1 * bn) + (warpCol1 * (wn * tn))) +
                                       ((__anf01_5 % wn) * tn)) +
                                   col_2);
             uint32_t ni_2 = ((globalRow * cols) + globalCol);
@@ -9480,8 +9924,8 @@ __global__ static void kuiper_kernel_36(uint32_t cols, uint32_t shared,
             uint32_t vflat = flat;
             flat = (vflat + 32);
         }
-        uint32_t __anf02_7 = idx;
-        idx = (__anf02_7 + 1);
+        uint32_t __anf02_5 = idx;
+        idx = (__anf02_5 + 1);
     }
 }
 
@@ -9490,8 +9934,6 @@ __global__ static void kuiper_kernel_37(uint32_t cols, uint32_t shared,
     custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
     float beta, float alpha, custard_bf16 *gD)
 {
-    (void) gA;
-    (void) gB;
     (void) nthr;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     custard_bf16 *tmp1 = (custard_bf16 *) tmp;
@@ -9513,6 +9955,9 @@ __global__ static void kuiper_kernel_37(uint32_t cols, uint32_t shared,
                 ._1 = tmp1, ._2 = tmp7};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    uint32_t num_n_tiles = (cols / 64);
+    uint32_t mrow = (bid / num_n_tiles);
+    uint32_t mcol = (bid % num_n_tiles);
     uint32_t wid = (tid / 32);
     uint32_t warpRow = (wid / 1);
     uint32_t warpCol = (wid % 1);
@@ -9551,6 +9996,7 @@ __global__ static void kuiper_kernel_37(uint32_t cols, uint32_t shared,
     }
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
+        uint32_t __anf0_1 = bkIdx;
         __syncthreads();
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 8);
@@ -9560,26 +10006,31 @@ __global__ static void kuiper_kernel_37(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_1 = i;
-            uint32_t row = ((__anf0_1 + offset) / 32);
             uint32_t __anf01_1 = i;
-            uint32_t col = ((__anf01_1 + offset) % 32);
+            uint32_t row = ((__anf01_1 + offset) / 32);
+            uint32_t __anf02 = i;
+            uint32_t col = ((__anf02 + offset) % 32);
+            uint32_t offset1 =
+                ((((0 + (shared * (mrow * 128))) + (__anf0_1 * 32)) +
+                     (shared * row)) +
+                    col);
+            vec_memcpy((local + 0), (gA + offset1));
             uint32_t k = 0;
             while (k < 8) {
-                uint32_t __anf02 = k;
-                custard_bf16 v = local[__anf02];
                 uint32_t __anf03 = k;
-                uint32_t cidx = (col + __anf03);
+                custard_bf16 v = local[__anf03];
+                uint32_t __anf04 = k;
+                uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 32) + cidx);
                 _letpattern._1[ni] = v;
-                uint32_t __anf04 = k;
-                k = (__anf04 + 1);
+                uint32_t __anf05 = k;
+                k = (__anf05 + 1);
             }
             uint32_t vi = i;
             i = (vi + 512);
         }
         uint32_t mlen1 = 2048;
-        uint32_t offset1 = (tid * 8);
+        uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
             custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
@@ -9587,20 +10038,25 @@ __global__ static void kuiper_kernel_37(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_2 = i1;
-            uint32_t row_1 = ((__anf0_2 + offset1) / 64);
             uint32_t __anf01_2 = i1;
-            uint32_t col_1 = ((__anf01_2 + offset1) % 64);
+            uint32_t row_1 = ((__anf01_2 + offset1_1) / 64);
+            uint32_t __anf02_1 = i1;
+            uint32_t col_1 = ((__anf02_1 + offset1_1) % 64);
+            uint32_t offset2 =
+                ((((0 + (cols * (__anf0_1 * 32))) + (mcol * 64)) +
+                     (cols * row_1)) +
+                    col_1);
+            vec_memcpy((local_1 + 0), (gB + offset2));
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                uint32_t __anf02_1 = k_1;
-                custard_bf16 v_1 = local_1[__anf02_1];
                 uint32_t __anf03_1 = k_1;
-                uint32_t cidx_1 = (col_1 + __anf03_1);
+                custard_bf16 v_1 = local_1[__anf03_1];
+                uint32_t __anf04_1 = k_1;
+                uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 64) + cidx_1);
                 _letpattern._2[ni_1] = v_1;
-                uint32_t __anf04_1 = k_1;
-                k_1 = (__anf04_1 + 1);
+                uint32_t __anf05_1 = k_1;
+                k_1 = (__anf05_1 + 1);
             }
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 512);
@@ -9608,39 +10064,39 @@ __global__ static void kuiper_kernel_37(uint32_t cols, uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 2) {
-            uint32_t __anf0_3 = dotIdx;
+            uint32_t __anf01_3 = dotIdx;
             uint32_t i0 = 0;
             while (i0 < 4) {
-                uint32_t __anf01_3 = i0;
                 uint32_t __anf02_2 = i0;
+                uint32_t __anf03_2 = i0;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
-                    aFrags[__anf02_2];
+                    aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
                     (_letpattern._1 +
-                        ((((0 + (32 * (warpRow * 64))) + (__anf0_3 * 16)) +
-                             (32 * (__anf01_3 * 16))) +
+                        ((((0 + (32 * (warpRow * 64))) + (__anf01_3 * 16)) +
+                             (32 * (__anf02_2 * 16))) +
                             0)),
                     ((uint32_t) 32U));
-                uint32_t __anf03_2 = i0;
-                i0 = (__anf03_2 + 1);
+                uint32_t __anf04_2 = i0;
+                i0 = (__anf04_2 + 1);
             }
-            uint32_t __anf01_4 = dotIdx;
+            uint32_t __anf02_3 = dotIdx;
             uint32_t i11 = 0;
             while (i11 < 4) {
-                uint32_t __anf02_3 = i11;
                 uint32_t __anf03_3 = i11;
+                uint32_t __anf04_3 = i11;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
-                    bFrags[__anf03_3];
+                    bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
                     (_letpattern._2 +
-                        ((((0 + (64 * (__anf01_4 * 16))) + (warpCol * 64)) +
+                        ((((0 + (64 * (__anf02_3 * 16))) + (warpCol * 64)) +
                              0) +
-                            (__anf02_3 * 16))),
+                            (__anf03_3 * 16))),
                     ((uint32_t) 64U));
-                uint32_t __anf04_2 = i11;
-                i11 = (__anf04_2 + 1);
+                uint32_t __anf05_2 = i11;
+                i11 = (__anf05_2 + 1);
             }
             uint32_t resIdxM = 0;
             while (resIdxM < 4) {
@@ -9649,26 +10105,26 @@ __global__ static void kuiper_kernel_37(uint32_t cols, uint32_t shared,
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &a_frag =
                         aFrags[resIdxM];
-                    uint32_t __anf03_4 = resIdxN;
+                    uint32_t __anf04_4 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &b_frag =
-                        bFrags[__anf03_4];
-                    uint32_t __anf04_3 = resIdxN;
+                        bFrags[__anf04_4];
+                    uint32_t __anf05_3 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16,
                         16, float, void> &acc_frag =
-                        accFrags[((resIdxM * 4) + __anf04_3)];
+                        accFrags[((resIdxM * 4) + __anf05_3)];
                     wmma::mma_sync(acc_frag, a_frag, b_frag, acc_frag);
-                    uint32_t __anf05 = resIdxN;
-                    resIdxN = (__anf05 + 1);
+                    uint32_t __anf06 = resIdxN;
+                    resIdxN = (__anf06 + 1);
                 }
-                uint32_t __anf02_4 = resIdxM;
-                resIdxM = (__anf02_4 + 1);
+                uint32_t __anf03_4 = resIdxM;
+                resIdxM = (__anf03_4 + 1);
             }
-            uint32_t __anf02_5 = dotIdx;
-            dotIdx = (__anf02_5 + 1);
+            uint32_t __anf03_5 = dotIdx;
+            dotIdx = (__anf03_5 + 1);
         }
-        uint32_t __anf0_4 = bkIdx;
-        bkIdx = (__anf0_4 + 1);
+        uint32_t __anf01_4 = bkIdx;
+        bkIdx = (__anf01_4 + 1);
     }
     uint32_t bm = 128;
     uint32_t bn = 64;
@@ -9680,8 +10136,8 @@ __global__ static void kuiper_kernel_37(uint32_t cols, uint32_t shared,
     uint32_t lane = (tid % 32);
     uint32_t idx = 0;
     while (idx < (wm * wn)) {
-        uint32_t mrow = (bid / (cols / bn));
-        uint32_t mcol = (bid % (cols / bn));
+        uint32_t mrow1 = (bid / (cols / bn));
+        uint32_t mcol1 = (bid % (cols / bn));
         uint32_t warpRow1 = (wid1 / (bn / (wn * tn)));
         uint32_t warpCol1 = (wid1 % (bn / (wn * tn)));
         float *sTile = FStar_Pervasives_Native_fst__array_t_unit(
@@ -9694,22 +10150,22 @@ __global__ static void kuiper_kernel_37(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}})));
-        uint32_t __anf0_5 = idx;
+        uint32_t __anf0_2 = idx;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
-            void> &__anf1_3 = accFrags[__anf0_5];
+            void> &__anf1_3 = accFrags[__anf0_2];
         KPR_STORE(
             (sTile + ((0 + (tn * (wid1 * tm))) + (0 * tn))), __anf1_3, tn);
         uint32_t __anf01_5 = idx;
         uint32_t area = (tm * tn);
         uint32_t flat = lane;
         while (flat < area) {
-            uint32_t __anf02_6 = flat;
-            uint32_t row_2 = (__anf02_6 / tn);
-            uint32_t col_2 = (__anf02_6 % tn);
-            uint32_t globalRow = ((((mrow * bm) + (warpRow1 * (wm * tm))) +
+            uint32_t __anf02_4 = flat;
+            uint32_t row_2 = (__anf02_4 / tn);
+            uint32_t col_2 = (__anf02_4 % tn);
+            uint32_t globalRow = ((((mrow1 * bm) + (warpRow1 * (wm * tm))) +
                                       ((__anf01_5 / wn) * tm)) +
                                   row_2);
-            uint32_t globalCol = ((((mcol * bn) + (warpCol1 * (wn * tn))) +
+            uint32_t globalCol = ((((mcol1 * bn) + (warpCol1 * (wn * tn))) +
                                       ((__anf01_5 % wn) * tn)) +
                                   col_2);
             uint32_t ni_2 = ((globalRow * cols) + globalCol);
@@ -9724,8 +10180,8 @@ __global__ static void kuiper_kernel_37(uint32_t cols, uint32_t shared,
             uint32_t vflat = flat;
             flat = (vflat + 32);
         }
-        uint32_t __anf02_7 = idx;
-        idx = (__anf02_7 + 1);
+        uint32_t __anf02_5 = idx;
+        idx = (__anf02_5 + 1);
     }
 }
 
@@ -9734,8 +10190,6 @@ __global__ static void kuiper_kernel_38(uint32_t cols, uint32_t shared,
     custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
     float beta, float alpha, custard_bf16 *gD)
 {
-    (void) gA;
-    (void) gB;
     (void) nthr;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     custard_bf16 *tmp1 = (custard_bf16 *) tmp;
@@ -9757,6 +10211,9 @@ __global__ static void kuiper_kernel_38(uint32_t cols, uint32_t shared,
                 ._1 = tmp1, ._2 = tmp7};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    uint32_t num_n_tiles = (cols / 64);
+    uint32_t mrow = (bid / num_n_tiles);
+    uint32_t mcol = (bid % num_n_tiles);
     uint32_t wid = (tid / 32);
     uint32_t warpRow = (wid / 2);
     uint32_t warpCol = (wid % 2);
@@ -9795,6 +10252,7 @@ __global__ static void kuiper_kernel_38(uint32_t cols, uint32_t shared,
     }
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
+        uint32_t __anf0_1 = bkIdx;
         __syncthreads();
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 8);
@@ -9804,26 +10262,31 @@ __global__ static void kuiper_kernel_38(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_1 = i;
-            uint32_t row = ((__anf0_1 + offset) / 32);
             uint32_t __anf01_1 = i;
-            uint32_t col = ((__anf01_1 + offset) % 32);
+            uint32_t row = ((__anf01_1 + offset) / 32);
+            uint32_t __anf02 = i;
+            uint32_t col = ((__anf02 + offset) % 32);
+            uint32_t offset1 =
+                ((((0 + (shared * (mrow * 128))) + (__anf0_1 * 32)) +
+                     (shared * row)) +
+                    col);
+            vec_memcpy((local + 0), (gA + offset1));
             uint32_t k = 0;
             while (k < 8) {
-                uint32_t __anf02 = k;
-                custard_bf16 v = local[__anf02];
                 uint32_t __anf03 = k;
-                uint32_t cidx = (col + __anf03);
+                custard_bf16 v = local[__anf03];
+                uint32_t __anf04 = k;
+                uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 32) + cidx);
                 _letpattern._1[ni] = v;
-                uint32_t __anf04 = k;
-                k = (__anf04 + 1);
+                uint32_t __anf05 = k;
+                k = (__anf05 + 1);
             }
             uint32_t vi = i;
             i = (vi + 512);
         }
         uint32_t mlen1 = 2048;
-        uint32_t offset1 = (tid * 8);
+        uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
             custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
@@ -9831,20 +10294,25 @@ __global__ static void kuiper_kernel_38(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_2 = i1;
-            uint32_t row_1 = ((__anf0_2 + offset1) / 64);
             uint32_t __anf01_2 = i1;
-            uint32_t col_1 = ((__anf01_2 + offset1) % 64);
+            uint32_t row_1 = ((__anf01_2 + offset1_1) / 64);
+            uint32_t __anf02_1 = i1;
+            uint32_t col_1 = ((__anf02_1 + offset1_1) % 64);
+            uint32_t offset2 =
+                ((((0 + (cols * (__anf0_1 * 32))) + (mcol * 64)) +
+                     (cols * row_1)) +
+                    col_1);
+            vec_memcpy((local_1 + 0), (gB + offset2));
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                uint32_t __anf02_1 = k_1;
-                custard_bf16 v_1 = local_1[__anf02_1];
                 uint32_t __anf03_1 = k_1;
-                uint32_t cidx_1 = (col_1 + __anf03_1);
+                custard_bf16 v_1 = local_1[__anf03_1];
+                uint32_t __anf04_1 = k_1;
+                uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 64) + cidx_1);
                 _letpattern._2[ni_1] = v_1;
-                uint32_t __anf04_1 = k_1;
-                k_1 = (__anf04_1 + 1);
+                uint32_t __anf05_1 = k_1;
+                k_1 = (__anf05_1 + 1);
             }
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 512);
@@ -9852,39 +10320,39 @@ __global__ static void kuiper_kernel_38(uint32_t cols, uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 2) {
-            uint32_t __anf0_3 = dotIdx;
+            uint32_t __anf01_3 = dotIdx;
             uint32_t i0 = 0;
             while (i0 < 8) {
-                uint32_t __anf01_3 = i0;
                 uint32_t __anf02_2 = i0;
+                uint32_t __anf03_2 = i0;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
-                    aFrags[__anf02_2];
+                    aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
                     (_letpattern._1 +
-                        ((((0 + (32 * (warpRow * 128))) + (__anf0_3 * 16)) +
-                             (32 * (__anf01_3 * 16))) +
+                        ((((0 + (32 * (warpRow * 128))) + (__anf01_3 * 16)) +
+                             (32 * (__anf02_2 * 16))) +
                             0)),
                     ((uint32_t) 32U));
-                uint32_t __anf03_2 = i0;
-                i0 = (__anf03_2 + 1);
+                uint32_t __anf04_2 = i0;
+                i0 = (__anf04_2 + 1);
             }
-            uint32_t __anf01_4 = dotIdx;
+            uint32_t __anf02_3 = dotIdx;
             uint32_t i11 = 0;
             while (i11 < 2) {
-                uint32_t __anf02_3 = i11;
                 uint32_t __anf03_3 = i11;
+                uint32_t __anf04_3 = i11;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
-                    bFrags[__anf03_3];
+                    bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
                     (_letpattern._2 +
-                        ((((0 + (64 * (__anf01_4 * 16))) + (warpCol * 32)) +
+                        ((((0 + (64 * (__anf02_3 * 16))) + (warpCol * 32)) +
                              0) +
-                            (__anf02_3 * 16))),
+                            (__anf03_3 * 16))),
                     ((uint32_t) 64U));
-                uint32_t __anf04_2 = i11;
-                i11 = (__anf04_2 + 1);
+                uint32_t __anf05_2 = i11;
+                i11 = (__anf05_2 + 1);
             }
             uint32_t resIdxM = 0;
             while (resIdxM < 8) {
@@ -9893,26 +10361,26 @@ __global__ static void kuiper_kernel_38(uint32_t cols, uint32_t shared,
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &a_frag =
                         aFrags[resIdxM];
-                    uint32_t __anf03_4 = resIdxN;
+                    uint32_t __anf04_4 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &b_frag =
-                        bFrags[__anf03_4];
-                    uint32_t __anf04_3 = resIdxN;
+                        bFrags[__anf04_4];
+                    uint32_t __anf05_3 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16,
                         16, float, void> &acc_frag =
-                        accFrags[((resIdxM * 2) + __anf04_3)];
+                        accFrags[((resIdxM * 2) + __anf05_3)];
                     wmma::mma_sync(acc_frag, a_frag, b_frag, acc_frag);
-                    uint32_t __anf05 = resIdxN;
-                    resIdxN = (__anf05 + 1);
+                    uint32_t __anf06 = resIdxN;
+                    resIdxN = (__anf06 + 1);
                 }
-                uint32_t __anf02_4 = resIdxM;
-                resIdxM = (__anf02_4 + 1);
+                uint32_t __anf03_4 = resIdxM;
+                resIdxM = (__anf03_4 + 1);
             }
-            uint32_t __anf02_5 = dotIdx;
-            dotIdx = (__anf02_5 + 1);
+            uint32_t __anf03_5 = dotIdx;
+            dotIdx = (__anf03_5 + 1);
         }
-        uint32_t __anf0_4 = bkIdx;
-        bkIdx = (__anf0_4 + 1);
+        uint32_t __anf01_4 = bkIdx;
+        bkIdx = (__anf01_4 + 1);
     }
     uint32_t bm = 128;
     uint32_t bn = 64;
@@ -9924,8 +10392,8 @@ __global__ static void kuiper_kernel_38(uint32_t cols, uint32_t shared,
     uint32_t lane = (tid % 32);
     uint32_t idx = 0;
     while (idx < (wm * wn)) {
-        uint32_t mrow = (bid / (cols / bn));
-        uint32_t mcol = (bid % (cols / bn));
+        uint32_t mrow1 = (bid / (cols / bn));
+        uint32_t mcol1 = (bid % (cols / bn));
         uint32_t warpRow1 = (wid1 / (bn / (wn * tn)));
         uint32_t warpCol1 = (wid1 % (bn / (wn * tn)));
         float *sTile = FStar_Pervasives_Native_fst__array_t_unit(
@@ -9938,22 +10406,22 @@ __global__ static void kuiper_kernel_38(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}})));
-        uint32_t __anf0_5 = idx;
+        uint32_t __anf0_2 = idx;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
-            void> &__anf1_3 = accFrags[__anf0_5];
+            void> &__anf1_3 = accFrags[__anf0_2];
         KPR_STORE(
             (sTile + ((0 + (tn * (wid1 * tm))) + (0 * tn))), __anf1_3, tn);
         uint32_t __anf01_5 = idx;
         uint32_t area = (tm * tn);
         uint32_t flat = lane;
         while (flat < area) {
-            uint32_t __anf02_6 = flat;
-            uint32_t row_2 = (__anf02_6 / tn);
-            uint32_t col_2 = (__anf02_6 % tn);
-            uint32_t globalRow = ((((mrow * bm) + (warpRow1 * (wm * tm))) +
+            uint32_t __anf02_4 = flat;
+            uint32_t row_2 = (__anf02_4 / tn);
+            uint32_t col_2 = (__anf02_4 % tn);
+            uint32_t globalRow = ((((mrow1 * bm) + (warpRow1 * (wm * tm))) +
                                       ((__anf01_5 / wn) * tm)) +
                                   row_2);
-            uint32_t globalCol = ((((mcol * bn) + (warpCol1 * (wn * tn))) +
+            uint32_t globalCol = ((((mcol1 * bn) + (warpCol1 * (wn * tn))) +
                                       ((__anf01_5 % wn) * tn)) +
                                   col_2);
             uint32_t ni_2 = ((globalRow * cols) + globalCol);
@@ -9968,8 +10436,8 @@ __global__ static void kuiper_kernel_38(uint32_t cols, uint32_t shared,
             uint32_t vflat = flat;
             flat = (vflat + 32);
         }
-        uint32_t __anf02_7 = idx;
-        idx = (__anf02_7 + 1);
+        uint32_t __anf02_5 = idx;
+        idx = (__anf02_5 + 1);
     }
 }
 
@@ -9978,8 +10446,6 @@ __global__ static void kuiper_kernel_39(uint32_t cols, uint32_t shared,
     custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
     float beta, float alpha, custard_bf16 *gD)
 {
-    (void) gA;
-    (void) gB;
     (void) nthr;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     custard_bf16 *tmp1 = (custard_bf16 *) tmp;
@@ -10001,6 +10467,9 @@ __global__ static void kuiper_kernel_39(uint32_t cols, uint32_t shared,
                 ._1 = tmp1, ._2 = tmp7};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    uint32_t num_n_tiles = (cols / 64);
+    uint32_t mrow = (bid / num_n_tiles);
+    uint32_t mcol = (bid % num_n_tiles);
     uint32_t wid = (tid / 32);
     uint32_t warpRow = (wid / 1);
     uint32_t warpCol = (wid % 1);
@@ -10039,6 +10508,7 @@ __global__ static void kuiper_kernel_39(uint32_t cols, uint32_t shared,
     }
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
+        uint32_t __anf0_1 = bkIdx;
         __syncthreads();
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 8);
@@ -10048,26 +10518,31 @@ __global__ static void kuiper_kernel_39(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_1 = i;
-            uint32_t row = ((__anf0_1 + offset) / 32);
             uint32_t __anf01_1 = i;
-            uint32_t col = ((__anf01_1 + offset) % 32);
+            uint32_t row = ((__anf01_1 + offset) / 32);
+            uint32_t __anf02 = i;
+            uint32_t col = ((__anf02 + offset) % 32);
+            uint32_t offset1 =
+                ((((0 + (shared * (mrow * 128))) + (__anf0_1 * 32)) +
+                     (shared * row)) +
+                    col);
+            vec_memcpy((local + 0), (gA + offset1));
             uint32_t k = 0;
             while (k < 8) {
-                uint32_t __anf02 = k;
-                custard_bf16 v = local[__anf02];
                 uint32_t __anf03 = k;
-                uint32_t cidx = (col + __anf03);
+                custard_bf16 v = local[__anf03];
+                uint32_t __anf04 = k;
+                uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 32) + cidx);
                 _letpattern._1[ni] = v;
-                uint32_t __anf04 = k;
-                k = (__anf04 + 1);
+                uint32_t __anf05 = k;
+                k = (__anf05 + 1);
             }
             uint32_t vi = i;
             i = (vi + 256);
         }
         uint32_t mlen1 = 2048;
-        uint32_t offset1 = (tid * 8);
+        uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
             custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
@@ -10075,20 +10550,25 @@ __global__ static void kuiper_kernel_39(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_2 = i1;
-            uint32_t row_1 = ((__anf0_2 + offset1) / 64);
             uint32_t __anf01_2 = i1;
-            uint32_t col_1 = ((__anf01_2 + offset1) % 64);
+            uint32_t row_1 = ((__anf01_2 + offset1_1) / 64);
+            uint32_t __anf02_1 = i1;
+            uint32_t col_1 = ((__anf02_1 + offset1_1) % 64);
+            uint32_t offset2 =
+                ((((0 + (cols * (__anf0_1 * 32))) + (mcol * 64)) +
+                     (cols * row_1)) +
+                    col_1);
+            vec_memcpy((local_1 + 0), (gB + offset2));
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                uint32_t __anf02_1 = k_1;
-                custard_bf16 v_1 = local_1[__anf02_1];
                 uint32_t __anf03_1 = k_1;
-                uint32_t cidx_1 = (col_1 + __anf03_1);
+                custard_bf16 v_1 = local_1[__anf03_1];
+                uint32_t __anf04_1 = k_1;
+                uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 64) + cidx_1);
                 _letpattern._2[ni_1] = v_1;
-                uint32_t __anf04_1 = k_1;
-                k_1 = (__anf04_1 + 1);
+                uint32_t __anf05_1 = k_1;
+                k_1 = (__anf05_1 + 1);
             }
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 256);
@@ -10096,39 +10576,39 @@ __global__ static void kuiper_kernel_39(uint32_t cols, uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 2) {
-            uint32_t __anf0_3 = dotIdx;
+            uint32_t __anf01_3 = dotIdx;
             uint32_t i0 = 0;
             while (i0 < 8) {
-                uint32_t __anf01_3 = i0;
                 uint32_t __anf02_2 = i0;
+                uint32_t __anf03_2 = i0;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
-                    aFrags[__anf02_2];
+                    aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
                     (_letpattern._1 +
-                        ((((0 + (32 * (warpRow * 128))) + (__anf0_3 * 16)) +
-                             (32 * (__anf01_3 * 16))) +
+                        ((((0 + (32 * (warpRow * 128))) + (__anf01_3 * 16)) +
+                             (32 * (__anf02_2 * 16))) +
                             0)),
                     ((uint32_t) 32U));
-                uint32_t __anf03_2 = i0;
-                i0 = (__anf03_2 + 1);
+                uint32_t __anf04_2 = i0;
+                i0 = (__anf04_2 + 1);
             }
-            uint32_t __anf01_4 = dotIdx;
+            uint32_t __anf02_3 = dotIdx;
             uint32_t i11 = 0;
             while (i11 < 4) {
-                uint32_t __anf02_3 = i11;
                 uint32_t __anf03_3 = i11;
+                uint32_t __anf04_3 = i11;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
-                    bFrags[__anf03_3];
+                    bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
                     (_letpattern._2 +
-                        ((((0 + (64 * (__anf01_4 * 16))) + (warpCol * 64)) +
+                        ((((0 + (64 * (__anf02_3 * 16))) + (warpCol * 64)) +
                              0) +
-                            (__anf02_3 * 16))),
+                            (__anf03_3 * 16))),
                     ((uint32_t) 64U));
-                uint32_t __anf04_2 = i11;
-                i11 = (__anf04_2 + 1);
+                uint32_t __anf05_2 = i11;
+                i11 = (__anf05_2 + 1);
             }
             uint32_t resIdxM = 0;
             while (resIdxM < 8) {
@@ -10137,26 +10617,26 @@ __global__ static void kuiper_kernel_39(uint32_t cols, uint32_t shared,
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &a_frag =
                         aFrags[resIdxM];
-                    uint32_t __anf03_4 = resIdxN;
+                    uint32_t __anf04_4 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &b_frag =
-                        bFrags[__anf03_4];
-                    uint32_t __anf04_3 = resIdxN;
+                        bFrags[__anf04_4];
+                    uint32_t __anf05_3 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16,
                         16, float, void> &acc_frag =
-                        accFrags[((resIdxM * 4) + __anf04_3)];
+                        accFrags[((resIdxM * 4) + __anf05_3)];
                     wmma::mma_sync(acc_frag, a_frag, b_frag, acc_frag);
-                    uint32_t __anf05 = resIdxN;
-                    resIdxN = (__anf05 + 1);
+                    uint32_t __anf06 = resIdxN;
+                    resIdxN = (__anf06 + 1);
                 }
-                uint32_t __anf02_4 = resIdxM;
-                resIdxM = (__anf02_4 + 1);
+                uint32_t __anf03_4 = resIdxM;
+                resIdxM = (__anf03_4 + 1);
             }
-            uint32_t __anf02_5 = dotIdx;
-            dotIdx = (__anf02_5 + 1);
+            uint32_t __anf03_5 = dotIdx;
+            dotIdx = (__anf03_5 + 1);
         }
-        uint32_t __anf0_4 = bkIdx;
-        bkIdx = (__anf0_4 + 1);
+        uint32_t __anf01_4 = bkIdx;
+        bkIdx = (__anf01_4 + 1);
     }
     uint32_t bm = 128;
     uint32_t bn = 64;
@@ -10168,8 +10648,8 @@ __global__ static void kuiper_kernel_39(uint32_t cols, uint32_t shared,
     uint32_t lane = (tid % 32);
     uint32_t idx = 0;
     while (idx < (wm * wn)) {
-        uint32_t mrow = (bid / (cols / bn));
-        uint32_t mcol = (bid % (cols / bn));
+        uint32_t mrow1 = (bid / (cols / bn));
+        uint32_t mcol1 = (bid % (cols / bn));
         uint32_t warpRow1 = (wid1 / (bn / (wn * tn)));
         uint32_t warpCol1 = (wid1 % (bn / (wn * tn)));
         float *sTile = FStar_Pervasives_Native_fst__array_t_unit(
@@ -10182,22 +10662,22 @@ __global__ static void kuiper_kernel_39(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}})));
-        uint32_t __anf0_5 = idx;
+        uint32_t __anf0_2 = idx;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
-            void> &__anf1_3 = accFrags[__anf0_5];
+            void> &__anf1_3 = accFrags[__anf0_2];
         KPR_STORE(
             (sTile + ((0 + (tn * (wid1 * tm))) + (0 * tn))), __anf1_3, tn);
         uint32_t __anf01_5 = idx;
         uint32_t area = (tm * tn);
         uint32_t flat = lane;
         while (flat < area) {
-            uint32_t __anf02_6 = flat;
-            uint32_t row_2 = (__anf02_6 / tn);
-            uint32_t col_2 = (__anf02_6 % tn);
-            uint32_t globalRow = ((((mrow * bm) + (warpRow1 * (wm * tm))) +
+            uint32_t __anf02_4 = flat;
+            uint32_t row_2 = (__anf02_4 / tn);
+            uint32_t col_2 = (__anf02_4 % tn);
+            uint32_t globalRow = ((((mrow1 * bm) + (warpRow1 * (wm * tm))) +
                                       ((__anf01_5 / wn) * tm)) +
                                   row_2);
-            uint32_t globalCol = ((((mcol * bn) + (warpCol1 * (wn * tn))) +
+            uint32_t globalCol = ((((mcol1 * bn) + (warpCol1 * (wn * tn))) +
                                       ((__anf01_5 % wn) * tn)) +
                                   col_2);
             uint32_t ni_2 = ((globalRow * cols) + globalCol);
@@ -10212,8 +10692,8 @@ __global__ static void kuiper_kernel_39(uint32_t cols, uint32_t shared,
             uint32_t vflat = flat;
             flat = (vflat + 32);
         }
-        uint32_t __anf02_7 = idx;
-        idx = (__anf02_7 + 1);
+        uint32_t __anf02_5 = idx;
+        idx = (__anf02_5 + 1);
     }
 }
 
@@ -10222,8 +10702,6 @@ __global__ static void kuiper_kernel_40(uint32_t cols, uint32_t shared,
     custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
     float beta, float alpha, custard_bf16 *gD)
 {
-    (void) gA;
-    (void) gB;
     (void) nthr;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     custard_bf16 *tmp1 = (custard_bf16 *) tmp;
@@ -10245,6 +10723,9 @@ __global__ static void kuiper_kernel_40(uint32_t cols, uint32_t shared,
                 ._1 = tmp1, ._2 = tmp7};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    uint32_t num_n_tiles = (cols / 64);
+    uint32_t mrow = (bid / num_n_tiles);
+    uint32_t mcol = (bid % num_n_tiles);
     uint32_t wid = (tid / 32);
     uint32_t warpRow = (wid / 2);
     uint32_t warpCol = (wid % 2);
@@ -10283,6 +10764,7 @@ __global__ static void kuiper_kernel_40(uint32_t cols, uint32_t shared,
     }
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
+        uint32_t __anf0_1 = bkIdx;
         __syncthreads();
         uint32_t mlen = 8192;
         uint32_t offset = (tid * 8);
@@ -10292,26 +10774,31 @@ __global__ static void kuiper_kernel_40(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_1 = i;
-            uint32_t row = ((__anf0_1 + offset) / 64);
             uint32_t __anf01_1 = i;
-            uint32_t col = ((__anf01_1 + offset) % 64);
+            uint32_t row = ((__anf01_1 + offset) / 64);
+            uint32_t __anf02 = i;
+            uint32_t col = ((__anf02 + offset) % 64);
+            uint32_t offset1 =
+                ((((0 + (shared * (mrow * 128))) + (__anf0_1 * 64)) +
+                     (shared * row)) +
+                    col);
+            vec_memcpy((local + 0), (gA + offset1));
             uint32_t k = 0;
             while (k < 8) {
-                uint32_t __anf02 = k;
-                custard_bf16 v = local[__anf02];
                 uint32_t __anf03 = k;
-                uint32_t cidx = (col + __anf03);
+                custard_bf16 v = local[__anf03];
+                uint32_t __anf04 = k;
+                uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 64) + cidx);
                 _letpattern._1[ni] = v;
-                uint32_t __anf04 = k;
-                k = (__anf04 + 1);
+                uint32_t __anf05 = k;
+                k = (__anf05 + 1);
             }
             uint32_t vi = i;
             i = (vi + 2048);
         }
         uint32_t mlen1 = 4096;
-        uint32_t offset1 = (tid * 8);
+        uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
             custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
@@ -10319,20 +10806,25 @@ __global__ static void kuiper_kernel_40(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_2 = i1;
-            uint32_t row_1 = ((__anf0_2 + offset1) / 64);
             uint32_t __anf01_2 = i1;
-            uint32_t col_1 = ((__anf01_2 + offset1) % 64);
+            uint32_t row_1 = ((__anf01_2 + offset1_1) / 64);
+            uint32_t __anf02_1 = i1;
+            uint32_t col_1 = ((__anf02_1 + offset1_1) % 64);
+            uint32_t offset2 =
+                ((((0 + (cols * (__anf0_1 * 64))) + (mcol * 64)) +
+                     (cols * row_1)) +
+                    col_1);
+            vec_memcpy((local_1 + 0), (gB + offset2));
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                uint32_t __anf02_1 = k_1;
-                custard_bf16 v_1 = local_1[__anf02_1];
                 uint32_t __anf03_1 = k_1;
-                uint32_t cidx_1 = (col_1 + __anf03_1);
+                custard_bf16 v_1 = local_1[__anf03_1];
+                uint32_t __anf04_1 = k_1;
+                uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 64) + cidx_1);
                 _letpattern._2[ni_1] = v_1;
-                uint32_t __anf04_1 = k_1;
-                k_1 = (__anf04_1 + 1);
+                uint32_t __anf05_1 = k_1;
+                k_1 = (__anf05_1 + 1);
             }
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 2048);
@@ -10340,39 +10832,39 @@ __global__ static void kuiper_kernel_40(uint32_t cols, uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 4) {
-            uint32_t __anf0_3 = dotIdx;
+            uint32_t __anf01_3 = dotIdx;
             uint32_t i0 = 0;
             while (i0 < 2) {
-                uint32_t __anf01_3 = i0;
                 uint32_t __anf02_2 = i0;
+                uint32_t __anf03_2 = i0;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
-                    aFrags[__anf02_2];
+                    aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
                     (_letpattern._1 +
-                        ((((0 + (64 * (warpRow * 32))) + (__anf0_3 * 16)) +
-                             (64 * (__anf01_3 * 16))) +
+                        ((((0 + (64 * (warpRow * 32))) + (__anf01_3 * 16)) +
+                             (64 * (__anf02_2 * 16))) +
                             0)),
                     ((uint32_t) 64U));
-                uint32_t __anf03_2 = i0;
-                i0 = (__anf03_2 + 1);
+                uint32_t __anf04_2 = i0;
+                i0 = (__anf04_2 + 1);
             }
-            uint32_t __anf01_4 = dotIdx;
+            uint32_t __anf02_3 = dotIdx;
             uint32_t i11 = 0;
             while (i11 < 2) {
-                uint32_t __anf02_3 = i11;
                 uint32_t __anf03_3 = i11;
+                uint32_t __anf04_3 = i11;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
-                    bFrags[__anf03_3];
+                    bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
                     (_letpattern._2 +
-                        ((((0 + (64 * (__anf01_4 * 16))) + (warpCol * 32)) +
+                        ((((0 + (64 * (__anf02_3 * 16))) + (warpCol * 32)) +
                              0) +
-                            (__anf02_3 * 16))),
+                            (__anf03_3 * 16))),
                     ((uint32_t) 64U));
-                uint32_t __anf04_2 = i11;
-                i11 = (__anf04_2 + 1);
+                uint32_t __anf05_2 = i11;
+                i11 = (__anf05_2 + 1);
             }
             uint32_t resIdxM = 0;
             while (resIdxM < 2) {
@@ -10381,26 +10873,26 @@ __global__ static void kuiper_kernel_40(uint32_t cols, uint32_t shared,
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &a_frag =
                         aFrags[resIdxM];
-                    uint32_t __anf03_4 = resIdxN;
+                    uint32_t __anf04_4 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &b_frag =
-                        bFrags[__anf03_4];
-                    uint32_t __anf04_3 = resIdxN;
+                        bFrags[__anf04_4];
+                    uint32_t __anf05_3 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16,
                         16, float, void> &acc_frag =
-                        accFrags[((resIdxM * 2) + __anf04_3)];
+                        accFrags[((resIdxM * 2) + __anf05_3)];
                     wmma::mma_sync(acc_frag, a_frag, b_frag, acc_frag);
-                    uint32_t __anf05 = resIdxN;
-                    resIdxN = (__anf05 + 1);
+                    uint32_t __anf06 = resIdxN;
+                    resIdxN = (__anf06 + 1);
                 }
-                uint32_t __anf02_4 = resIdxM;
-                resIdxM = (__anf02_4 + 1);
+                uint32_t __anf03_4 = resIdxM;
+                resIdxM = (__anf03_4 + 1);
             }
-            uint32_t __anf02_5 = dotIdx;
-            dotIdx = (__anf02_5 + 1);
+            uint32_t __anf03_5 = dotIdx;
+            dotIdx = (__anf03_5 + 1);
         }
-        uint32_t __anf0_4 = bkIdx;
-        bkIdx = (__anf0_4 + 1);
+        uint32_t __anf01_4 = bkIdx;
+        bkIdx = (__anf01_4 + 1);
     }
     uint32_t bm = 128;
     uint32_t bn = 64;
@@ -10412,8 +10904,8 @@ __global__ static void kuiper_kernel_40(uint32_t cols, uint32_t shared,
     uint32_t lane = (tid % 32);
     uint32_t idx = 0;
     while (idx < (wm * wn)) {
-        uint32_t mrow = (bid / (cols / bn));
-        uint32_t mcol = (bid % (cols / bn));
+        uint32_t mrow1 = (bid / (cols / bn));
+        uint32_t mcol1 = (bid % (cols / bn));
         uint32_t warpRow1 = (wid1 / (bn / (wn * tn)));
         uint32_t warpCol1 = (wid1 % (bn / (wn * tn)));
         float *sTile = FStar_Pervasives_Native_fst__array_t_unit(
@@ -10426,22 +10918,22 @@ __global__ static void kuiper_kernel_40(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}})));
-        uint32_t __anf0_5 = idx;
+        uint32_t __anf0_2 = idx;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
-            void> &__anf1_3 = accFrags[__anf0_5];
+            void> &__anf1_3 = accFrags[__anf0_2];
         KPR_STORE(
             (sTile + ((0 + (tn * (wid1 * tm))) + (0 * tn))), __anf1_3, tn);
         uint32_t __anf01_5 = idx;
         uint32_t area = (tm * tn);
         uint32_t flat = lane;
         while (flat < area) {
-            uint32_t __anf02_6 = flat;
-            uint32_t row_2 = (__anf02_6 / tn);
-            uint32_t col_2 = (__anf02_6 % tn);
-            uint32_t globalRow = ((((mrow * bm) + (warpRow1 * (wm * tm))) +
+            uint32_t __anf02_4 = flat;
+            uint32_t row_2 = (__anf02_4 / tn);
+            uint32_t col_2 = (__anf02_4 % tn);
+            uint32_t globalRow = ((((mrow1 * bm) + (warpRow1 * (wm * tm))) +
                                       ((__anf01_5 / wn) * tm)) +
                                   row_2);
-            uint32_t globalCol = ((((mcol * bn) + (warpCol1 * (wn * tn))) +
+            uint32_t globalCol = ((((mcol1 * bn) + (warpCol1 * (wn * tn))) +
                                       ((__anf01_5 % wn) * tn)) +
                                   col_2);
             uint32_t ni_2 = ((globalRow * cols) + globalCol);
@@ -10456,8 +10948,8 @@ __global__ static void kuiper_kernel_40(uint32_t cols, uint32_t shared,
             uint32_t vflat = flat;
             flat = (vflat + 32);
         }
-        uint32_t __anf02_7 = idx;
-        idx = (__anf02_7 + 1);
+        uint32_t __anf02_5 = idx;
+        idx = (__anf02_5 + 1);
     }
 }
 
@@ -10466,8 +10958,6 @@ __global__ static void kuiper_kernel_41(uint32_t cols, uint32_t shared,
     custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
     float beta, float alpha, custard_bf16 *gD)
 {
-    (void) gA;
-    (void) gB;
     (void) nthr;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     custard_bf16 *tmp1 = (custard_bf16 *) tmp;
@@ -10489,6 +10979,9 @@ __global__ static void kuiper_kernel_41(uint32_t cols, uint32_t shared,
                 ._1 = tmp1, ._2 = tmp7};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    uint32_t num_n_tiles = (cols / 64);
+    uint32_t mrow = (bid / num_n_tiles);
+    uint32_t mcol = (bid % num_n_tiles);
     uint32_t wid = (tid / 32);
     uint32_t warpRow = (wid / 1);
     uint32_t warpCol = (wid % 1);
@@ -10527,6 +11020,7 @@ __global__ static void kuiper_kernel_41(uint32_t cols, uint32_t shared,
     }
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
+        uint32_t __anf0_1 = bkIdx;
         __syncthreads();
         uint32_t mlen = 8192;
         uint32_t offset = (tid * 8);
@@ -10536,26 +11030,31 @@ __global__ static void kuiper_kernel_41(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_1 = i;
-            uint32_t row = ((__anf0_1 + offset) / 64);
             uint32_t __anf01_1 = i;
-            uint32_t col = ((__anf01_1 + offset) % 64);
+            uint32_t row = ((__anf01_1 + offset) / 64);
+            uint32_t __anf02 = i;
+            uint32_t col = ((__anf02 + offset) % 64);
+            uint32_t offset1 =
+                ((((0 + (shared * (mrow * 128))) + (__anf0_1 * 64)) +
+                     (shared * row)) +
+                    col);
+            vec_memcpy((local + 0), (gA + offset1));
             uint32_t k = 0;
             while (k < 8) {
-                uint32_t __anf02 = k;
-                custard_bf16 v = local[__anf02];
                 uint32_t __anf03 = k;
-                uint32_t cidx = (col + __anf03);
+                custard_bf16 v = local[__anf03];
+                uint32_t __anf04 = k;
+                uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 64) + cidx);
                 _letpattern._1[ni] = v;
-                uint32_t __anf04 = k;
-                k = (__anf04 + 1);
+                uint32_t __anf05 = k;
+                k = (__anf05 + 1);
             }
             uint32_t vi = i;
             i = (vi + 1024);
         }
         uint32_t mlen1 = 4096;
-        uint32_t offset1 = (tid * 8);
+        uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
             custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
@@ -10563,20 +11062,25 @@ __global__ static void kuiper_kernel_41(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_2 = i1;
-            uint32_t row_1 = ((__anf0_2 + offset1) / 64);
             uint32_t __anf01_2 = i1;
-            uint32_t col_1 = ((__anf01_2 + offset1) % 64);
+            uint32_t row_1 = ((__anf01_2 + offset1_1) / 64);
+            uint32_t __anf02_1 = i1;
+            uint32_t col_1 = ((__anf02_1 + offset1_1) % 64);
+            uint32_t offset2 =
+                ((((0 + (cols * (__anf0_1 * 64))) + (mcol * 64)) +
+                     (cols * row_1)) +
+                    col_1);
+            vec_memcpy((local_1 + 0), (gB + offset2));
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                uint32_t __anf02_1 = k_1;
-                custard_bf16 v_1 = local_1[__anf02_1];
                 uint32_t __anf03_1 = k_1;
-                uint32_t cidx_1 = (col_1 + __anf03_1);
+                custard_bf16 v_1 = local_1[__anf03_1];
+                uint32_t __anf04_1 = k_1;
+                uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 64) + cidx_1);
                 _letpattern._2[ni_1] = v_1;
-                uint32_t __anf04_1 = k_1;
-                k_1 = (__anf04_1 + 1);
+                uint32_t __anf05_1 = k_1;
+                k_1 = (__anf05_1 + 1);
             }
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 1024);
@@ -10584,39 +11088,39 @@ __global__ static void kuiper_kernel_41(uint32_t cols, uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 4) {
-            uint32_t __anf0_3 = dotIdx;
+            uint32_t __anf01_3 = dotIdx;
             uint32_t i0 = 0;
             while (i0 < 2) {
-                uint32_t __anf01_3 = i0;
                 uint32_t __anf02_2 = i0;
+                uint32_t __anf03_2 = i0;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
-                    aFrags[__anf02_2];
+                    aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
                     (_letpattern._1 +
-                        ((((0 + (64 * (warpRow * 32))) + (__anf0_3 * 16)) +
-                             (64 * (__anf01_3 * 16))) +
+                        ((((0 + (64 * (warpRow * 32))) + (__anf01_3 * 16)) +
+                             (64 * (__anf02_2 * 16))) +
                             0)),
                     ((uint32_t) 64U));
-                uint32_t __anf03_2 = i0;
-                i0 = (__anf03_2 + 1);
+                uint32_t __anf04_2 = i0;
+                i0 = (__anf04_2 + 1);
             }
-            uint32_t __anf01_4 = dotIdx;
+            uint32_t __anf02_3 = dotIdx;
             uint32_t i11 = 0;
             while (i11 < 4) {
-                uint32_t __anf02_3 = i11;
                 uint32_t __anf03_3 = i11;
+                uint32_t __anf04_3 = i11;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
-                    bFrags[__anf03_3];
+                    bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
                     (_letpattern._2 +
-                        ((((0 + (64 * (__anf01_4 * 16))) + (warpCol * 64)) +
+                        ((((0 + (64 * (__anf02_3 * 16))) + (warpCol * 64)) +
                              0) +
-                            (__anf02_3 * 16))),
+                            (__anf03_3 * 16))),
                     ((uint32_t) 64U));
-                uint32_t __anf04_2 = i11;
-                i11 = (__anf04_2 + 1);
+                uint32_t __anf05_2 = i11;
+                i11 = (__anf05_2 + 1);
             }
             uint32_t resIdxM = 0;
             while (resIdxM < 2) {
@@ -10625,26 +11129,26 @@ __global__ static void kuiper_kernel_41(uint32_t cols, uint32_t shared,
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &a_frag =
                         aFrags[resIdxM];
-                    uint32_t __anf03_4 = resIdxN;
+                    uint32_t __anf04_4 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &b_frag =
-                        bFrags[__anf03_4];
-                    uint32_t __anf04_3 = resIdxN;
+                        bFrags[__anf04_4];
+                    uint32_t __anf05_3 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16,
                         16, float, void> &acc_frag =
-                        accFrags[((resIdxM * 4) + __anf04_3)];
+                        accFrags[((resIdxM * 4) + __anf05_3)];
                     wmma::mma_sync(acc_frag, a_frag, b_frag, acc_frag);
-                    uint32_t __anf05 = resIdxN;
-                    resIdxN = (__anf05 + 1);
+                    uint32_t __anf06 = resIdxN;
+                    resIdxN = (__anf06 + 1);
                 }
-                uint32_t __anf02_4 = resIdxM;
-                resIdxM = (__anf02_4 + 1);
+                uint32_t __anf03_4 = resIdxM;
+                resIdxM = (__anf03_4 + 1);
             }
-            uint32_t __anf02_5 = dotIdx;
-            dotIdx = (__anf02_5 + 1);
+            uint32_t __anf03_5 = dotIdx;
+            dotIdx = (__anf03_5 + 1);
         }
-        uint32_t __anf0_4 = bkIdx;
-        bkIdx = (__anf0_4 + 1);
+        uint32_t __anf01_4 = bkIdx;
+        bkIdx = (__anf01_4 + 1);
     }
     uint32_t bm = 128;
     uint32_t bn = 64;
@@ -10656,8 +11160,8 @@ __global__ static void kuiper_kernel_41(uint32_t cols, uint32_t shared,
     uint32_t lane = (tid % 32);
     uint32_t idx = 0;
     while (idx < (wm * wn)) {
-        uint32_t mrow = (bid / (cols / bn));
-        uint32_t mcol = (bid % (cols / bn));
+        uint32_t mrow1 = (bid / (cols / bn));
+        uint32_t mcol1 = (bid % (cols / bn));
         uint32_t warpRow1 = (wid1 / (bn / (wn * tn)));
         uint32_t warpCol1 = (wid1 % (bn / (wn * tn)));
         float *sTile = FStar_Pervasives_Native_fst__array_t_unit(
@@ -10670,22 +11174,22 @@ __global__ static void kuiper_kernel_41(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}})));
-        uint32_t __anf0_5 = idx;
+        uint32_t __anf0_2 = idx;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
-            void> &__anf1_3 = accFrags[__anf0_5];
+            void> &__anf1_3 = accFrags[__anf0_2];
         KPR_STORE(
             (sTile + ((0 + (tn * (wid1 * tm))) + (0 * tn))), __anf1_3, tn);
         uint32_t __anf01_5 = idx;
         uint32_t area = (tm * tn);
         uint32_t flat = lane;
         while (flat < area) {
-            uint32_t __anf02_6 = flat;
-            uint32_t row_2 = (__anf02_6 / tn);
-            uint32_t col_2 = (__anf02_6 % tn);
-            uint32_t globalRow = ((((mrow * bm) + (warpRow1 * (wm * tm))) +
+            uint32_t __anf02_4 = flat;
+            uint32_t row_2 = (__anf02_4 / tn);
+            uint32_t col_2 = (__anf02_4 % tn);
+            uint32_t globalRow = ((((mrow1 * bm) + (warpRow1 * (wm * tm))) +
                                       ((__anf01_5 / wn) * tm)) +
                                   row_2);
-            uint32_t globalCol = ((((mcol * bn) + (warpCol1 * (wn * tn))) +
+            uint32_t globalCol = ((((mcol1 * bn) + (warpCol1 * (wn * tn))) +
                                       ((__anf01_5 % wn) * tn)) +
                                   col_2);
             uint32_t ni_2 = ((globalRow * cols) + globalCol);
@@ -10700,8 +11204,8 @@ __global__ static void kuiper_kernel_41(uint32_t cols, uint32_t shared,
             uint32_t vflat = flat;
             flat = (vflat + 32);
         }
-        uint32_t __anf02_7 = idx;
-        idx = (__anf02_7 + 1);
+        uint32_t __anf02_5 = idx;
+        idx = (__anf02_5 + 1);
     }
 }
 
@@ -10710,8 +11214,6 @@ __global__ static void kuiper_kernel_42(uint32_t cols, uint32_t shared,
     custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
     float beta, float alpha, custard_bf16 *gD)
 {
-    (void) gA;
-    (void) gB;
     (void) nthr;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     custard_bf16 *tmp1 = (custard_bf16 *) tmp;
@@ -10733,6 +11235,9 @@ __global__ static void kuiper_kernel_42(uint32_t cols, uint32_t shared,
                 ._1 = tmp1, ._2 = tmp7};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    uint32_t num_n_tiles = (cols / 64);
+    uint32_t mrow = (bid / num_n_tiles);
+    uint32_t mcol = (bid % num_n_tiles);
     uint32_t wid = (tid / 32);
     uint32_t warpRow = (wid / 2);
     uint32_t warpCol = (wid % 2);
@@ -10771,6 +11276,7 @@ __global__ static void kuiper_kernel_42(uint32_t cols, uint32_t shared,
     }
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
+        uint32_t __anf0_1 = bkIdx;
         __syncthreads();
         uint32_t mlen = 8192;
         uint32_t offset = (tid * 8);
@@ -10780,26 +11286,31 @@ __global__ static void kuiper_kernel_42(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_1 = i;
-            uint32_t row = ((__anf0_1 + offset) / 64);
             uint32_t __anf01_1 = i;
-            uint32_t col = ((__anf01_1 + offset) % 64);
+            uint32_t row = ((__anf01_1 + offset) / 64);
+            uint32_t __anf02 = i;
+            uint32_t col = ((__anf02 + offset) % 64);
+            uint32_t offset1 =
+                ((((0 + (shared * (mrow * 128))) + (__anf0_1 * 64)) +
+                     (shared * row)) +
+                    col);
+            vec_memcpy((local + 0), (gA + offset1));
             uint32_t k = 0;
             while (k < 8) {
-                uint32_t __anf02 = k;
-                custard_bf16 v = local[__anf02];
                 uint32_t __anf03 = k;
-                uint32_t cidx = (col + __anf03);
+                custard_bf16 v = local[__anf03];
+                uint32_t __anf04 = k;
+                uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 64) + cidx);
                 _letpattern._1[ni] = v;
-                uint32_t __anf04 = k;
-                k = (__anf04 + 1);
+                uint32_t __anf05 = k;
+                k = (__anf05 + 1);
             }
             uint32_t vi = i;
             i = (vi + 1024);
         }
         uint32_t mlen1 = 4096;
-        uint32_t offset1 = (tid * 8);
+        uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
             custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
@@ -10807,20 +11318,25 @@ __global__ static void kuiper_kernel_42(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_2 = i1;
-            uint32_t row_1 = ((__anf0_2 + offset1) / 64);
             uint32_t __anf01_2 = i1;
-            uint32_t col_1 = ((__anf01_2 + offset1) % 64);
+            uint32_t row_1 = ((__anf01_2 + offset1_1) / 64);
+            uint32_t __anf02_1 = i1;
+            uint32_t col_1 = ((__anf02_1 + offset1_1) % 64);
+            uint32_t offset2 =
+                ((((0 + (cols * (__anf0_1 * 64))) + (mcol * 64)) +
+                     (cols * row_1)) +
+                    col_1);
+            vec_memcpy((local_1 + 0), (gB + offset2));
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                uint32_t __anf02_1 = k_1;
-                custard_bf16 v_1 = local_1[__anf02_1];
                 uint32_t __anf03_1 = k_1;
-                uint32_t cidx_1 = (col_1 + __anf03_1);
+                custard_bf16 v_1 = local_1[__anf03_1];
+                uint32_t __anf04_1 = k_1;
+                uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 64) + cidx_1);
                 _letpattern._2[ni_1] = v_1;
-                uint32_t __anf04_1 = k_1;
-                k_1 = (__anf04_1 + 1);
+                uint32_t __anf05_1 = k_1;
+                k_1 = (__anf05_1 + 1);
             }
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 1024);
@@ -10828,39 +11344,39 @@ __global__ static void kuiper_kernel_42(uint32_t cols, uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 4) {
-            uint32_t __anf0_3 = dotIdx;
+            uint32_t __anf01_3 = dotIdx;
             uint32_t i0 = 0;
             while (i0 < 4) {
-                uint32_t __anf01_3 = i0;
                 uint32_t __anf02_2 = i0;
+                uint32_t __anf03_2 = i0;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
-                    aFrags[__anf02_2];
+                    aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
                     (_letpattern._1 +
-                        ((((0 + (64 * (warpRow * 64))) + (__anf0_3 * 16)) +
-                             (64 * (__anf01_3 * 16))) +
+                        ((((0 + (64 * (warpRow * 64))) + (__anf01_3 * 16)) +
+                             (64 * (__anf02_2 * 16))) +
                             0)),
                     ((uint32_t) 64U));
-                uint32_t __anf03_2 = i0;
-                i0 = (__anf03_2 + 1);
+                uint32_t __anf04_2 = i0;
+                i0 = (__anf04_2 + 1);
             }
-            uint32_t __anf01_4 = dotIdx;
+            uint32_t __anf02_3 = dotIdx;
             uint32_t i11 = 0;
             while (i11 < 2) {
-                uint32_t __anf02_3 = i11;
                 uint32_t __anf03_3 = i11;
+                uint32_t __anf04_3 = i11;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
-                    bFrags[__anf03_3];
+                    bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
                     (_letpattern._2 +
-                        ((((0 + (64 * (__anf01_4 * 16))) + (warpCol * 32)) +
+                        ((((0 + (64 * (__anf02_3 * 16))) + (warpCol * 32)) +
                              0) +
-                            (__anf02_3 * 16))),
+                            (__anf03_3 * 16))),
                     ((uint32_t) 64U));
-                uint32_t __anf04_2 = i11;
-                i11 = (__anf04_2 + 1);
+                uint32_t __anf05_2 = i11;
+                i11 = (__anf05_2 + 1);
             }
             uint32_t resIdxM = 0;
             while (resIdxM < 4) {
@@ -10869,26 +11385,26 @@ __global__ static void kuiper_kernel_42(uint32_t cols, uint32_t shared,
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &a_frag =
                         aFrags[resIdxM];
-                    uint32_t __anf03_4 = resIdxN;
+                    uint32_t __anf04_4 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &b_frag =
-                        bFrags[__anf03_4];
-                    uint32_t __anf04_3 = resIdxN;
+                        bFrags[__anf04_4];
+                    uint32_t __anf05_3 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16,
                         16, float, void> &acc_frag =
-                        accFrags[((resIdxM * 2) + __anf04_3)];
+                        accFrags[((resIdxM * 2) + __anf05_3)];
                     wmma::mma_sync(acc_frag, a_frag, b_frag, acc_frag);
-                    uint32_t __anf05 = resIdxN;
-                    resIdxN = (__anf05 + 1);
+                    uint32_t __anf06 = resIdxN;
+                    resIdxN = (__anf06 + 1);
                 }
-                uint32_t __anf02_4 = resIdxM;
-                resIdxM = (__anf02_4 + 1);
+                uint32_t __anf03_4 = resIdxM;
+                resIdxM = (__anf03_4 + 1);
             }
-            uint32_t __anf02_5 = dotIdx;
-            dotIdx = (__anf02_5 + 1);
+            uint32_t __anf03_5 = dotIdx;
+            dotIdx = (__anf03_5 + 1);
         }
-        uint32_t __anf0_4 = bkIdx;
-        bkIdx = (__anf0_4 + 1);
+        uint32_t __anf01_4 = bkIdx;
+        bkIdx = (__anf01_4 + 1);
     }
     uint32_t bm = 128;
     uint32_t bn = 64;
@@ -10900,8 +11416,8 @@ __global__ static void kuiper_kernel_42(uint32_t cols, uint32_t shared,
     uint32_t lane = (tid % 32);
     uint32_t idx = 0;
     while (idx < (wm * wn)) {
-        uint32_t mrow = (bid / (cols / bn));
-        uint32_t mcol = (bid % (cols / bn));
+        uint32_t mrow1 = (bid / (cols / bn));
+        uint32_t mcol1 = (bid % (cols / bn));
         uint32_t warpRow1 = (wid1 / (bn / (wn * tn)));
         uint32_t warpCol1 = (wid1 % (bn / (wn * tn)));
         float *sTile = FStar_Pervasives_Native_fst__array_t_unit(
@@ -10914,22 +11430,22 @@ __global__ static void kuiper_kernel_42(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}})));
-        uint32_t __anf0_5 = idx;
+        uint32_t __anf0_2 = idx;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
-            void> &__anf1_3 = accFrags[__anf0_5];
+            void> &__anf1_3 = accFrags[__anf0_2];
         KPR_STORE(
             (sTile + ((0 + (tn * (wid1 * tm))) + (0 * tn))), __anf1_3, tn);
         uint32_t __anf01_5 = idx;
         uint32_t area = (tm * tn);
         uint32_t flat = lane;
         while (flat < area) {
-            uint32_t __anf02_6 = flat;
-            uint32_t row_2 = (__anf02_6 / tn);
-            uint32_t col_2 = (__anf02_6 % tn);
-            uint32_t globalRow = ((((mrow * bm) + (warpRow1 * (wm * tm))) +
+            uint32_t __anf02_4 = flat;
+            uint32_t row_2 = (__anf02_4 / tn);
+            uint32_t col_2 = (__anf02_4 % tn);
+            uint32_t globalRow = ((((mrow1 * bm) + (warpRow1 * (wm * tm))) +
                                       ((__anf01_5 / wn) * tm)) +
                                   row_2);
-            uint32_t globalCol = ((((mcol * bn) + (warpCol1 * (wn * tn))) +
+            uint32_t globalCol = ((((mcol1 * bn) + (warpCol1 * (wn * tn))) +
                                       ((__anf01_5 % wn) * tn)) +
                                   col_2);
             uint32_t ni_2 = ((globalRow * cols) + globalCol);
@@ -10944,8 +11460,8 @@ __global__ static void kuiper_kernel_42(uint32_t cols, uint32_t shared,
             uint32_t vflat = flat;
             flat = (vflat + 32);
         }
-        uint32_t __anf02_7 = idx;
-        idx = (__anf02_7 + 1);
+        uint32_t __anf02_5 = idx;
+        idx = (__anf02_5 + 1);
     }
 }
 
@@ -10954,8 +11470,6 @@ __global__ static void kuiper_kernel_43(uint32_t cols, uint32_t shared,
     custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
     float beta, float alpha, custard_bf16 *gD)
 {
-    (void) gA;
-    (void) gB;
     (void) nthr;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     custard_bf16 *tmp1 = (custard_bf16 *) tmp;
@@ -10977,6 +11491,9 @@ __global__ static void kuiper_kernel_43(uint32_t cols, uint32_t shared,
                 ._1 = tmp1, ._2 = tmp7};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    uint32_t num_n_tiles = (cols / 64);
+    uint32_t mrow = (bid / num_n_tiles);
+    uint32_t mcol = (bid % num_n_tiles);
     uint32_t wid = (tid / 32);
     uint32_t warpRow = (wid / 1);
     uint32_t warpCol = (wid % 1);
@@ -11015,6 +11532,7 @@ __global__ static void kuiper_kernel_43(uint32_t cols, uint32_t shared,
     }
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
+        uint32_t __anf0_1 = bkIdx;
         __syncthreads();
         uint32_t mlen = 8192;
         uint32_t offset = (tid * 8);
@@ -11024,26 +11542,31 @@ __global__ static void kuiper_kernel_43(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_1 = i;
-            uint32_t row = ((__anf0_1 + offset) / 64);
             uint32_t __anf01_1 = i;
-            uint32_t col = ((__anf01_1 + offset) % 64);
+            uint32_t row = ((__anf01_1 + offset) / 64);
+            uint32_t __anf02 = i;
+            uint32_t col = ((__anf02 + offset) % 64);
+            uint32_t offset1 =
+                ((((0 + (shared * (mrow * 128))) + (__anf0_1 * 64)) +
+                     (shared * row)) +
+                    col);
+            vec_memcpy((local + 0), (gA + offset1));
             uint32_t k = 0;
             while (k < 8) {
-                uint32_t __anf02 = k;
-                custard_bf16 v = local[__anf02];
                 uint32_t __anf03 = k;
-                uint32_t cidx = (col + __anf03);
+                custard_bf16 v = local[__anf03];
+                uint32_t __anf04 = k;
+                uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 64) + cidx);
                 _letpattern._1[ni] = v;
-                uint32_t __anf04 = k;
-                k = (__anf04 + 1);
+                uint32_t __anf05 = k;
+                k = (__anf05 + 1);
             }
             uint32_t vi = i;
             i = (vi + 512);
         }
         uint32_t mlen1 = 4096;
-        uint32_t offset1 = (tid * 8);
+        uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
             custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
@@ -11051,20 +11574,25 @@ __global__ static void kuiper_kernel_43(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_2 = i1;
-            uint32_t row_1 = ((__anf0_2 + offset1) / 64);
             uint32_t __anf01_2 = i1;
-            uint32_t col_1 = ((__anf01_2 + offset1) % 64);
+            uint32_t row_1 = ((__anf01_2 + offset1_1) / 64);
+            uint32_t __anf02_1 = i1;
+            uint32_t col_1 = ((__anf02_1 + offset1_1) % 64);
+            uint32_t offset2 =
+                ((((0 + (cols * (__anf0_1 * 64))) + (mcol * 64)) +
+                     (cols * row_1)) +
+                    col_1);
+            vec_memcpy((local_1 + 0), (gB + offset2));
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                uint32_t __anf02_1 = k_1;
-                custard_bf16 v_1 = local_1[__anf02_1];
                 uint32_t __anf03_1 = k_1;
-                uint32_t cidx_1 = (col_1 + __anf03_1);
+                custard_bf16 v_1 = local_1[__anf03_1];
+                uint32_t __anf04_1 = k_1;
+                uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 64) + cidx_1);
                 _letpattern._2[ni_1] = v_1;
-                uint32_t __anf04_1 = k_1;
-                k_1 = (__anf04_1 + 1);
+                uint32_t __anf05_1 = k_1;
+                k_1 = (__anf05_1 + 1);
             }
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 512);
@@ -11072,39 +11600,39 @@ __global__ static void kuiper_kernel_43(uint32_t cols, uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 4) {
-            uint32_t __anf0_3 = dotIdx;
+            uint32_t __anf01_3 = dotIdx;
             uint32_t i0 = 0;
             while (i0 < 4) {
-                uint32_t __anf01_3 = i0;
                 uint32_t __anf02_2 = i0;
+                uint32_t __anf03_2 = i0;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
-                    aFrags[__anf02_2];
+                    aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
                     (_letpattern._1 +
-                        ((((0 + (64 * (warpRow * 64))) + (__anf0_3 * 16)) +
-                             (64 * (__anf01_3 * 16))) +
+                        ((((0 + (64 * (warpRow * 64))) + (__anf01_3 * 16)) +
+                             (64 * (__anf02_2 * 16))) +
                             0)),
                     ((uint32_t) 64U));
-                uint32_t __anf03_2 = i0;
-                i0 = (__anf03_2 + 1);
+                uint32_t __anf04_2 = i0;
+                i0 = (__anf04_2 + 1);
             }
-            uint32_t __anf01_4 = dotIdx;
+            uint32_t __anf02_3 = dotIdx;
             uint32_t i11 = 0;
             while (i11 < 4) {
-                uint32_t __anf02_3 = i11;
                 uint32_t __anf03_3 = i11;
+                uint32_t __anf04_3 = i11;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
-                    bFrags[__anf03_3];
+                    bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
                     (_letpattern._2 +
-                        ((((0 + (64 * (__anf01_4 * 16))) + (warpCol * 64)) +
+                        ((((0 + (64 * (__anf02_3 * 16))) + (warpCol * 64)) +
                              0) +
-                            (__anf02_3 * 16))),
+                            (__anf03_3 * 16))),
                     ((uint32_t) 64U));
-                uint32_t __anf04_2 = i11;
-                i11 = (__anf04_2 + 1);
+                uint32_t __anf05_2 = i11;
+                i11 = (__anf05_2 + 1);
             }
             uint32_t resIdxM = 0;
             while (resIdxM < 4) {
@@ -11113,26 +11641,26 @@ __global__ static void kuiper_kernel_43(uint32_t cols, uint32_t shared,
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &a_frag =
                         aFrags[resIdxM];
-                    uint32_t __anf03_4 = resIdxN;
+                    uint32_t __anf04_4 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &b_frag =
-                        bFrags[__anf03_4];
-                    uint32_t __anf04_3 = resIdxN;
+                        bFrags[__anf04_4];
+                    uint32_t __anf05_3 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16,
                         16, float, void> &acc_frag =
-                        accFrags[((resIdxM * 4) + __anf04_3)];
+                        accFrags[((resIdxM * 4) + __anf05_3)];
                     wmma::mma_sync(acc_frag, a_frag, b_frag, acc_frag);
-                    uint32_t __anf05 = resIdxN;
-                    resIdxN = (__anf05 + 1);
+                    uint32_t __anf06 = resIdxN;
+                    resIdxN = (__anf06 + 1);
                 }
-                uint32_t __anf02_4 = resIdxM;
-                resIdxM = (__anf02_4 + 1);
+                uint32_t __anf03_4 = resIdxM;
+                resIdxM = (__anf03_4 + 1);
             }
-            uint32_t __anf02_5 = dotIdx;
-            dotIdx = (__anf02_5 + 1);
+            uint32_t __anf03_5 = dotIdx;
+            dotIdx = (__anf03_5 + 1);
         }
-        uint32_t __anf0_4 = bkIdx;
-        bkIdx = (__anf0_4 + 1);
+        uint32_t __anf01_4 = bkIdx;
+        bkIdx = (__anf01_4 + 1);
     }
     uint32_t bm = 128;
     uint32_t bn = 64;
@@ -11144,8 +11672,8 @@ __global__ static void kuiper_kernel_43(uint32_t cols, uint32_t shared,
     uint32_t lane = (tid % 32);
     uint32_t idx = 0;
     while (idx < (wm * wn)) {
-        uint32_t mrow = (bid / (cols / bn));
-        uint32_t mcol = (bid % (cols / bn));
+        uint32_t mrow1 = (bid / (cols / bn));
+        uint32_t mcol1 = (bid % (cols / bn));
         uint32_t warpRow1 = (wid1 / (bn / (wn * tn)));
         uint32_t warpCol1 = (wid1 % (bn / (wn * tn)));
         float *sTile = FStar_Pervasives_Native_fst__array_t_unit(
@@ -11158,22 +11686,22 @@ __global__ static void kuiper_kernel_43(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}})));
-        uint32_t __anf0_5 = idx;
+        uint32_t __anf0_2 = idx;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
-            void> &__anf1_3 = accFrags[__anf0_5];
+            void> &__anf1_3 = accFrags[__anf0_2];
         KPR_STORE(
             (sTile + ((0 + (tn * (wid1 * tm))) + (0 * tn))), __anf1_3, tn);
         uint32_t __anf01_5 = idx;
         uint32_t area = (tm * tn);
         uint32_t flat = lane;
         while (flat < area) {
-            uint32_t __anf02_6 = flat;
-            uint32_t row_2 = (__anf02_6 / tn);
-            uint32_t col_2 = (__anf02_6 % tn);
-            uint32_t globalRow = ((((mrow * bm) + (warpRow1 * (wm * tm))) +
+            uint32_t __anf02_4 = flat;
+            uint32_t row_2 = (__anf02_4 / tn);
+            uint32_t col_2 = (__anf02_4 % tn);
+            uint32_t globalRow = ((((mrow1 * bm) + (warpRow1 * (wm * tm))) +
                                       ((__anf01_5 / wn) * tm)) +
                                   row_2);
-            uint32_t globalCol = ((((mcol * bn) + (warpCol1 * (wn * tn))) +
+            uint32_t globalCol = ((((mcol1 * bn) + (warpCol1 * (wn * tn))) +
                                       ((__anf01_5 % wn) * tn)) +
                                   col_2);
             uint32_t ni_2 = ((globalRow * cols) + globalCol);
@@ -11188,8 +11716,8 @@ __global__ static void kuiper_kernel_43(uint32_t cols, uint32_t shared,
             uint32_t vflat = flat;
             flat = (vflat + 32);
         }
-        uint32_t __anf02_7 = idx;
-        idx = (__anf02_7 + 1);
+        uint32_t __anf02_5 = idx;
+        idx = (__anf02_5 + 1);
     }
 }
 
@@ -11198,8 +11726,6 @@ __global__ static void kuiper_kernel_44(uint32_t cols, uint32_t shared,
     custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
     float beta, float alpha, custard_bf16 *gD)
 {
-    (void) gA;
-    (void) gB;
     (void) nthr;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     custard_bf16 *tmp1 = (custard_bf16 *) tmp;
@@ -11221,6 +11747,9 @@ __global__ static void kuiper_kernel_44(uint32_t cols, uint32_t shared,
                 ._1 = tmp1, ._2 = tmp7};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    uint32_t num_n_tiles = (cols / 64);
+    uint32_t mrow = (bid / num_n_tiles);
+    uint32_t mcol = (bid % num_n_tiles);
     uint32_t wid = (tid / 32);
     uint32_t warpRow = (wid / 2);
     uint32_t warpCol = (wid % 2);
@@ -11259,6 +11788,7 @@ __global__ static void kuiper_kernel_44(uint32_t cols, uint32_t shared,
     }
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
+        uint32_t __anf0_1 = bkIdx;
         __syncthreads();
         uint32_t mlen = 8192;
         uint32_t offset = (tid * 8);
@@ -11268,26 +11798,31 @@ __global__ static void kuiper_kernel_44(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_1 = i;
-            uint32_t row = ((__anf0_1 + offset) / 64);
             uint32_t __anf01_1 = i;
-            uint32_t col = ((__anf01_1 + offset) % 64);
+            uint32_t row = ((__anf01_1 + offset) / 64);
+            uint32_t __anf02 = i;
+            uint32_t col = ((__anf02 + offset) % 64);
+            uint32_t offset1 =
+                ((((0 + (shared * (mrow * 128))) + (__anf0_1 * 64)) +
+                     (shared * row)) +
+                    col);
+            vec_memcpy((local + 0), (gA + offset1));
             uint32_t k = 0;
             while (k < 8) {
-                uint32_t __anf02 = k;
-                custard_bf16 v = local[__anf02];
                 uint32_t __anf03 = k;
-                uint32_t cidx = (col + __anf03);
+                custard_bf16 v = local[__anf03];
+                uint32_t __anf04 = k;
+                uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 64) + cidx);
                 _letpattern._1[ni] = v;
-                uint32_t __anf04 = k;
-                k = (__anf04 + 1);
+                uint32_t __anf05 = k;
+                k = (__anf05 + 1);
             }
             uint32_t vi = i;
             i = (vi + 512);
         }
         uint32_t mlen1 = 4096;
-        uint32_t offset1 = (tid * 8);
+        uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
             custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
@@ -11295,20 +11830,25 @@ __global__ static void kuiper_kernel_44(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_2 = i1;
-            uint32_t row_1 = ((__anf0_2 + offset1) / 64);
             uint32_t __anf01_2 = i1;
-            uint32_t col_1 = ((__anf01_2 + offset1) % 64);
+            uint32_t row_1 = ((__anf01_2 + offset1_1) / 64);
+            uint32_t __anf02_1 = i1;
+            uint32_t col_1 = ((__anf02_1 + offset1_1) % 64);
+            uint32_t offset2 =
+                ((((0 + (cols * (__anf0_1 * 64))) + (mcol * 64)) +
+                     (cols * row_1)) +
+                    col_1);
+            vec_memcpy((local_1 + 0), (gB + offset2));
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                uint32_t __anf02_1 = k_1;
-                custard_bf16 v_1 = local_1[__anf02_1];
                 uint32_t __anf03_1 = k_1;
-                uint32_t cidx_1 = (col_1 + __anf03_1);
+                custard_bf16 v_1 = local_1[__anf03_1];
+                uint32_t __anf04_1 = k_1;
+                uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 64) + cidx_1);
                 _letpattern._2[ni_1] = v_1;
-                uint32_t __anf04_1 = k_1;
-                k_1 = (__anf04_1 + 1);
+                uint32_t __anf05_1 = k_1;
+                k_1 = (__anf05_1 + 1);
             }
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 512);
@@ -11316,39 +11856,39 @@ __global__ static void kuiper_kernel_44(uint32_t cols, uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 4) {
-            uint32_t __anf0_3 = dotIdx;
+            uint32_t __anf01_3 = dotIdx;
             uint32_t i0 = 0;
             while (i0 < 8) {
-                uint32_t __anf01_3 = i0;
                 uint32_t __anf02_2 = i0;
+                uint32_t __anf03_2 = i0;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
-                    aFrags[__anf02_2];
+                    aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
                     (_letpattern._1 +
-                        ((((0 + (64 * (warpRow * 128))) + (__anf0_3 * 16)) +
-                             (64 * (__anf01_3 * 16))) +
+                        ((((0 + (64 * (warpRow * 128))) + (__anf01_3 * 16)) +
+                             (64 * (__anf02_2 * 16))) +
                             0)),
                     ((uint32_t) 64U));
-                uint32_t __anf03_2 = i0;
-                i0 = (__anf03_2 + 1);
+                uint32_t __anf04_2 = i0;
+                i0 = (__anf04_2 + 1);
             }
-            uint32_t __anf01_4 = dotIdx;
+            uint32_t __anf02_3 = dotIdx;
             uint32_t i11 = 0;
             while (i11 < 2) {
-                uint32_t __anf02_3 = i11;
                 uint32_t __anf03_3 = i11;
+                uint32_t __anf04_3 = i11;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
-                    bFrags[__anf03_3];
+                    bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
                     (_letpattern._2 +
-                        ((((0 + (64 * (__anf01_4 * 16))) + (warpCol * 32)) +
+                        ((((0 + (64 * (__anf02_3 * 16))) + (warpCol * 32)) +
                              0) +
-                            (__anf02_3 * 16))),
+                            (__anf03_3 * 16))),
                     ((uint32_t) 64U));
-                uint32_t __anf04_2 = i11;
-                i11 = (__anf04_2 + 1);
+                uint32_t __anf05_2 = i11;
+                i11 = (__anf05_2 + 1);
             }
             uint32_t resIdxM = 0;
             while (resIdxM < 8) {
@@ -11357,26 +11897,26 @@ __global__ static void kuiper_kernel_44(uint32_t cols, uint32_t shared,
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &a_frag =
                         aFrags[resIdxM];
-                    uint32_t __anf03_4 = resIdxN;
+                    uint32_t __anf04_4 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &b_frag =
-                        bFrags[__anf03_4];
-                    uint32_t __anf04_3 = resIdxN;
+                        bFrags[__anf04_4];
+                    uint32_t __anf05_3 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16,
                         16, float, void> &acc_frag =
-                        accFrags[((resIdxM * 2) + __anf04_3)];
+                        accFrags[((resIdxM * 2) + __anf05_3)];
                     wmma::mma_sync(acc_frag, a_frag, b_frag, acc_frag);
-                    uint32_t __anf05 = resIdxN;
-                    resIdxN = (__anf05 + 1);
+                    uint32_t __anf06 = resIdxN;
+                    resIdxN = (__anf06 + 1);
                 }
-                uint32_t __anf02_4 = resIdxM;
-                resIdxM = (__anf02_4 + 1);
+                uint32_t __anf03_4 = resIdxM;
+                resIdxM = (__anf03_4 + 1);
             }
-            uint32_t __anf02_5 = dotIdx;
-            dotIdx = (__anf02_5 + 1);
+            uint32_t __anf03_5 = dotIdx;
+            dotIdx = (__anf03_5 + 1);
         }
-        uint32_t __anf0_4 = bkIdx;
-        bkIdx = (__anf0_4 + 1);
+        uint32_t __anf01_4 = bkIdx;
+        bkIdx = (__anf01_4 + 1);
     }
     uint32_t bm = 128;
     uint32_t bn = 64;
@@ -11388,8 +11928,8 @@ __global__ static void kuiper_kernel_44(uint32_t cols, uint32_t shared,
     uint32_t lane = (tid % 32);
     uint32_t idx = 0;
     while (idx < (wm * wn)) {
-        uint32_t mrow = (bid / (cols / bn));
-        uint32_t mcol = (bid % (cols / bn));
+        uint32_t mrow1 = (bid / (cols / bn));
+        uint32_t mcol1 = (bid % (cols / bn));
         uint32_t warpRow1 = (wid1 / (bn / (wn * tn)));
         uint32_t warpCol1 = (wid1 % (bn / (wn * tn)));
         float *sTile = FStar_Pervasives_Native_fst__array_t_unit(
@@ -11402,22 +11942,22 @@ __global__ static void kuiper_kernel_44(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}})));
-        uint32_t __anf0_5 = idx;
+        uint32_t __anf0_2 = idx;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
-            void> &__anf1_3 = accFrags[__anf0_5];
+            void> &__anf1_3 = accFrags[__anf0_2];
         KPR_STORE(
             (sTile + ((0 + (tn * (wid1 * tm))) + (0 * tn))), __anf1_3, tn);
         uint32_t __anf01_5 = idx;
         uint32_t area = (tm * tn);
         uint32_t flat = lane;
         while (flat < area) {
-            uint32_t __anf02_6 = flat;
-            uint32_t row_2 = (__anf02_6 / tn);
-            uint32_t col_2 = (__anf02_6 % tn);
-            uint32_t globalRow = ((((mrow * bm) + (warpRow1 * (wm * tm))) +
+            uint32_t __anf02_4 = flat;
+            uint32_t row_2 = (__anf02_4 / tn);
+            uint32_t col_2 = (__anf02_4 % tn);
+            uint32_t globalRow = ((((mrow1 * bm) + (warpRow1 * (wm * tm))) +
                                       ((__anf01_5 / wn) * tm)) +
                                   row_2);
-            uint32_t globalCol = ((((mcol * bn) + (warpCol1 * (wn * tn))) +
+            uint32_t globalCol = ((((mcol1 * bn) + (warpCol1 * (wn * tn))) +
                                       ((__anf01_5 % wn) * tn)) +
                                   col_2);
             uint32_t ni_2 = ((globalRow * cols) + globalCol);
@@ -11432,8 +11972,8 @@ __global__ static void kuiper_kernel_44(uint32_t cols, uint32_t shared,
             uint32_t vflat = flat;
             flat = (vflat + 32);
         }
-        uint32_t __anf02_7 = idx;
-        idx = (__anf02_7 + 1);
+        uint32_t __anf02_5 = idx;
+        idx = (__anf02_5 + 1);
     }
 }
 
@@ -11442,8 +11982,6 @@ __global__ static void kuiper_kernel_45(uint32_t cols, uint32_t shared,
     custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
     float beta, float alpha, custard_bf16 *gD)
 {
-    (void) gA;
-    (void) gB;
     (void) nthr;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     custard_bf16 *tmp1 = (custard_bf16 *) tmp;
@@ -11465,6 +12003,9 @@ __global__ static void kuiper_kernel_45(uint32_t cols, uint32_t shared,
                 ._1 = tmp1, ._2 = tmp7};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    uint32_t num_n_tiles = (cols / 64);
+    uint32_t mrow = (bid / num_n_tiles);
+    uint32_t mcol = (bid % num_n_tiles);
     uint32_t wid = (tid / 32);
     uint32_t warpRow = (wid / 1);
     uint32_t warpCol = (wid % 1);
@@ -11503,6 +12044,7 @@ __global__ static void kuiper_kernel_45(uint32_t cols, uint32_t shared,
     }
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
+        uint32_t __anf0_1 = bkIdx;
         __syncthreads();
         uint32_t mlen = 8192;
         uint32_t offset = (tid * 8);
@@ -11512,26 +12054,31 @@ __global__ static void kuiper_kernel_45(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_1 = i;
-            uint32_t row = ((__anf0_1 + offset) / 64);
             uint32_t __anf01_1 = i;
-            uint32_t col = ((__anf01_1 + offset) % 64);
+            uint32_t row = ((__anf01_1 + offset) / 64);
+            uint32_t __anf02 = i;
+            uint32_t col = ((__anf02 + offset) % 64);
+            uint32_t offset1 =
+                ((((0 + (shared * (mrow * 128))) + (__anf0_1 * 64)) +
+                     (shared * row)) +
+                    col);
+            vec_memcpy((local + 0), (gA + offset1));
             uint32_t k = 0;
             while (k < 8) {
-                uint32_t __anf02 = k;
-                custard_bf16 v = local[__anf02];
                 uint32_t __anf03 = k;
-                uint32_t cidx = (col + __anf03);
+                custard_bf16 v = local[__anf03];
+                uint32_t __anf04 = k;
+                uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 64) + cidx);
                 _letpattern._1[ni] = v;
-                uint32_t __anf04 = k;
-                k = (__anf04 + 1);
+                uint32_t __anf05 = k;
+                k = (__anf05 + 1);
             }
             uint32_t vi = i;
             i = (vi + 256);
         }
         uint32_t mlen1 = 4096;
-        uint32_t offset1 = (tid * 8);
+        uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
             custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
@@ -11539,20 +12086,25 @@ __global__ static void kuiper_kernel_45(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_2 = i1;
-            uint32_t row_1 = ((__anf0_2 + offset1) / 64);
             uint32_t __anf01_2 = i1;
-            uint32_t col_1 = ((__anf01_2 + offset1) % 64);
+            uint32_t row_1 = ((__anf01_2 + offset1_1) / 64);
+            uint32_t __anf02_1 = i1;
+            uint32_t col_1 = ((__anf02_1 + offset1_1) % 64);
+            uint32_t offset2 =
+                ((((0 + (cols * (__anf0_1 * 64))) + (mcol * 64)) +
+                     (cols * row_1)) +
+                    col_1);
+            vec_memcpy((local_1 + 0), (gB + offset2));
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                uint32_t __anf02_1 = k_1;
-                custard_bf16 v_1 = local_1[__anf02_1];
                 uint32_t __anf03_1 = k_1;
-                uint32_t cidx_1 = (col_1 + __anf03_1);
+                custard_bf16 v_1 = local_1[__anf03_1];
+                uint32_t __anf04_1 = k_1;
+                uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 64) + cidx_1);
                 _letpattern._2[ni_1] = v_1;
-                uint32_t __anf04_1 = k_1;
-                k_1 = (__anf04_1 + 1);
+                uint32_t __anf05_1 = k_1;
+                k_1 = (__anf05_1 + 1);
             }
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 256);
@@ -11560,39 +12112,39 @@ __global__ static void kuiper_kernel_45(uint32_t cols, uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 4) {
-            uint32_t __anf0_3 = dotIdx;
+            uint32_t __anf01_3 = dotIdx;
             uint32_t i0 = 0;
             while (i0 < 8) {
-                uint32_t __anf01_3 = i0;
                 uint32_t __anf02_2 = i0;
+                uint32_t __anf03_2 = i0;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
-                    aFrags[__anf02_2];
+                    aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
                     (_letpattern._1 +
-                        ((((0 + (64 * (warpRow * 128))) + (__anf0_3 * 16)) +
-                             (64 * (__anf01_3 * 16))) +
+                        ((((0 + (64 * (warpRow * 128))) + (__anf01_3 * 16)) +
+                             (64 * (__anf02_2 * 16))) +
                             0)),
                     ((uint32_t) 64U));
-                uint32_t __anf03_2 = i0;
-                i0 = (__anf03_2 + 1);
+                uint32_t __anf04_2 = i0;
+                i0 = (__anf04_2 + 1);
             }
-            uint32_t __anf01_4 = dotIdx;
+            uint32_t __anf02_3 = dotIdx;
             uint32_t i11 = 0;
             while (i11 < 4) {
-                uint32_t __anf02_3 = i11;
                 uint32_t __anf03_3 = i11;
+                uint32_t __anf04_3 = i11;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
-                    bFrags[__anf03_3];
+                    bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
                     (_letpattern._2 +
-                        ((((0 + (64 * (__anf01_4 * 16))) + (warpCol * 64)) +
+                        ((((0 + (64 * (__anf02_3 * 16))) + (warpCol * 64)) +
                              0) +
-                            (__anf02_3 * 16))),
+                            (__anf03_3 * 16))),
                     ((uint32_t) 64U));
-                uint32_t __anf04_2 = i11;
-                i11 = (__anf04_2 + 1);
+                uint32_t __anf05_2 = i11;
+                i11 = (__anf05_2 + 1);
             }
             uint32_t resIdxM = 0;
             while (resIdxM < 8) {
@@ -11601,26 +12153,26 @@ __global__ static void kuiper_kernel_45(uint32_t cols, uint32_t shared,
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &a_frag =
                         aFrags[resIdxM];
-                    uint32_t __anf03_4 = resIdxN;
+                    uint32_t __anf04_4 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &b_frag =
-                        bFrags[__anf03_4];
-                    uint32_t __anf04_3 = resIdxN;
+                        bFrags[__anf04_4];
+                    uint32_t __anf05_3 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16,
                         16, float, void> &acc_frag =
-                        accFrags[((resIdxM * 4) + __anf04_3)];
+                        accFrags[((resIdxM * 4) + __anf05_3)];
                     wmma::mma_sync(acc_frag, a_frag, b_frag, acc_frag);
-                    uint32_t __anf05 = resIdxN;
-                    resIdxN = (__anf05 + 1);
+                    uint32_t __anf06 = resIdxN;
+                    resIdxN = (__anf06 + 1);
                 }
-                uint32_t __anf02_4 = resIdxM;
-                resIdxM = (__anf02_4 + 1);
+                uint32_t __anf03_4 = resIdxM;
+                resIdxM = (__anf03_4 + 1);
             }
-            uint32_t __anf02_5 = dotIdx;
-            dotIdx = (__anf02_5 + 1);
+            uint32_t __anf03_5 = dotIdx;
+            dotIdx = (__anf03_5 + 1);
         }
-        uint32_t __anf0_4 = bkIdx;
-        bkIdx = (__anf0_4 + 1);
+        uint32_t __anf01_4 = bkIdx;
+        bkIdx = (__anf01_4 + 1);
     }
     uint32_t bm = 128;
     uint32_t bn = 64;
@@ -11632,8 +12184,8 @@ __global__ static void kuiper_kernel_45(uint32_t cols, uint32_t shared,
     uint32_t lane = (tid % 32);
     uint32_t idx = 0;
     while (idx < (wm * wn)) {
-        uint32_t mrow = (bid / (cols / bn));
-        uint32_t mcol = (bid % (cols / bn));
+        uint32_t mrow1 = (bid / (cols / bn));
+        uint32_t mcol1 = (bid % (cols / bn));
         uint32_t warpRow1 = (wid1 / (bn / (wn * tn)));
         uint32_t warpCol1 = (wid1 % (bn / (wn * tn)));
         float *sTile = FStar_Pervasives_Native_fst__array_t_unit(
@@ -11646,22 +12198,22 @@ __global__ static void kuiper_kernel_45(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}})));
-        uint32_t __anf0_5 = idx;
+        uint32_t __anf0_2 = idx;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
-            void> &__anf1_3 = accFrags[__anf0_5];
+            void> &__anf1_3 = accFrags[__anf0_2];
         KPR_STORE(
             (sTile + ((0 + (tn * (wid1 * tm))) + (0 * tn))), __anf1_3, tn);
         uint32_t __anf01_5 = idx;
         uint32_t area = (tm * tn);
         uint32_t flat = lane;
         while (flat < area) {
-            uint32_t __anf02_6 = flat;
-            uint32_t row_2 = (__anf02_6 / tn);
-            uint32_t col_2 = (__anf02_6 % tn);
-            uint32_t globalRow = ((((mrow * bm) + (warpRow1 * (wm * tm))) +
+            uint32_t __anf02_4 = flat;
+            uint32_t row_2 = (__anf02_4 / tn);
+            uint32_t col_2 = (__anf02_4 % tn);
+            uint32_t globalRow = ((((mrow1 * bm) + (warpRow1 * (wm * tm))) +
                                       ((__anf01_5 / wn) * tm)) +
                                   row_2);
-            uint32_t globalCol = ((((mcol * bn) + (warpCol1 * (wn * tn))) +
+            uint32_t globalCol = ((((mcol1 * bn) + (warpCol1 * (wn * tn))) +
                                       ((__anf01_5 % wn) * tn)) +
                                   col_2);
             uint32_t ni_2 = ((globalRow * cols) + globalCol);
@@ -11676,8 +12228,8 @@ __global__ static void kuiper_kernel_45(uint32_t cols, uint32_t shared,
             uint32_t vflat = flat;
             flat = (vflat + 32);
         }
-        uint32_t __anf02_7 = idx;
-        idx = (__anf02_7 + 1);
+        uint32_t __anf02_5 = idx;
+        idx = (__anf02_5 + 1);
     }
 }
 
@@ -11686,8 +12238,6 @@ __global__ static void kuiper_kernel_46(uint32_t cols, uint32_t shared,
     custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
     float beta, float alpha, custard_bf16 *gD)
 {
-    (void) gA;
-    (void) gB;
     (void) nthr;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     custard_bf16 *tmp1 = (custard_bf16 *) tmp;
@@ -11709,6 +12259,9 @@ __global__ static void kuiper_kernel_46(uint32_t cols, uint32_t shared,
                 ._1 = tmp1, ._2 = tmp7};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    uint32_t num_n_tiles = (cols / 128);
+    uint32_t mrow = (bid / num_n_tiles);
+    uint32_t mcol = (bid % num_n_tiles);
     uint32_t wid = (tid / 32);
     uint32_t warpRow = (wid / 2);
     uint32_t warpCol = (wid % 2);
@@ -11747,6 +12300,7 @@ __global__ static void kuiper_kernel_46(uint32_t cols, uint32_t shared,
     }
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
+        uint32_t __anf0_1 = bkIdx;
         __syncthreads();
         uint32_t mlen = 2048;
         uint32_t offset = (tid * 8);
@@ -11756,26 +12310,31 @@ __global__ static void kuiper_kernel_46(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_1 = i;
-            uint32_t row = ((__anf0_1 + offset) / 16);
             uint32_t __anf01_1 = i;
-            uint32_t col = ((__anf01_1 + offset) % 16);
+            uint32_t row = ((__anf01_1 + offset) / 16);
+            uint32_t __anf02 = i;
+            uint32_t col = ((__anf02 + offset) % 16);
+            uint32_t offset1 =
+                ((((0 + (shared * (mrow * 128))) + (__anf0_1 * 16)) +
+                     (shared * row)) +
+                    col);
+            vec_memcpy((local + 0), (gA + offset1));
             uint32_t k = 0;
             while (k < 8) {
-                uint32_t __anf02 = k;
-                custard_bf16 v = local[__anf02];
                 uint32_t __anf03 = k;
-                uint32_t cidx = (col + __anf03);
+                custard_bf16 v = local[__anf03];
+                uint32_t __anf04 = k;
+                uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 16) + cidx);
                 _letpattern._1[ni] = v;
-                uint32_t __anf04 = k;
-                k = (__anf04 + 1);
+                uint32_t __anf05 = k;
+                k = (__anf05 + 1);
             }
             uint32_t vi = i;
             i = (vi + 2048);
         }
         uint32_t mlen1 = 2048;
-        uint32_t offset1 = (tid * 8);
+        uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
             custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
@@ -11783,20 +12342,25 @@ __global__ static void kuiper_kernel_46(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_2 = i1;
-            uint32_t row_1 = ((__anf0_2 + offset1) / 128);
             uint32_t __anf01_2 = i1;
-            uint32_t col_1 = ((__anf01_2 + offset1) % 128);
+            uint32_t row_1 = ((__anf01_2 + offset1_1) / 128);
+            uint32_t __anf02_1 = i1;
+            uint32_t col_1 = ((__anf02_1 + offset1_1) % 128);
+            uint32_t offset2 =
+                ((((0 + (cols * (__anf0_1 * 16))) + (mcol * 128)) +
+                     (cols * row_1)) +
+                    col_1);
+            vec_memcpy((local_1 + 0), (gB + offset2));
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                uint32_t __anf02_1 = k_1;
-                custard_bf16 v_1 = local_1[__anf02_1];
                 uint32_t __anf03_1 = k_1;
-                uint32_t cidx_1 = (col_1 + __anf03_1);
+                custard_bf16 v_1 = local_1[__anf03_1];
+                uint32_t __anf04_1 = k_1;
+                uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
                 _letpattern._2[ni_1] = v_1;
-                uint32_t __anf04_1 = k_1;
-                k_1 = (__anf04_1 + 1);
+                uint32_t __anf05_1 = k_1;
+                k_1 = (__anf05_1 + 1);
             }
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 2048);
@@ -11804,39 +12368,39 @@ __global__ static void kuiper_kernel_46(uint32_t cols, uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 1) {
-            uint32_t __anf0_3 = dotIdx;
+            uint32_t __anf01_3 = dotIdx;
             uint32_t i0 = 0;
             while (i0 < 2) {
-                uint32_t __anf01_3 = i0;
                 uint32_t __anf02_2 = i0;
+                uint32_t __anf03_2 = i0;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
-                    aFrags[__anf02_2];
+                    aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
                     (_letpattern._1 +
-                        ((((0 + (16 * (warpRow * 32))) + (__anf0_3 * 16)) +
-                             (16 * (__anf01_3 * 16))) +
+                        ((((0 + (16 * (warpRow * 32))) + (__anf01_3 * 16)) +
+                             (16 * (__anf02_2 * 16))) +
                             0)),
                     ((uint32_t) 16U));
-                uint32_t __anf03_2 = i0;
-                i0 = (__anf03_2 + 1);
+                uint32_t __anf04_2 = i0;
+                i0 = (__anf04_2 + 1);
             }
-            uint32_t __anf01_4 = dotIdx;
+            uint32_t __anf02_3 = dotIdx;
             uint32_t i11 = 0;
             while (i11 < 4) {
-                uint32_t __anf02_3 = i11;
                 uint32_t __anf03_3 = i11;
+                uint32_t __anf04_3 = i11;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
-                    bFrags[__anf03_3];
+                    bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
                     (_letpattern._2 +
-                        ((((0 + (128 * (__anf01_4 * 16))) + (warpCol * 64)) +
+                        ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 64)) +
                              0) +
-                            (__anf02_3 * 16))),
+                            (__anf03_3 * 16))),
                     ((uint32_t) 128U));
-                uint32_t __anf04_2 = i11;
-                i11 = (__anf04_2 + 1);
+                uint32_t __anf05_2 = i11;
+                i11 = (__anf05_2 + 1);
             }
             uint32_t resIdxM = 0;
             while (resIdxM < 2) {
@@ -11845,26 +12409,26 @@ __global__ static void kuiper_kernel_46(uint32_t cols, uint32_t shared,
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &a_frag =
                         aFrags[resIdxM];
-                    uint32_t __anf03_4 = resIdxN;
+                    uint32_t __anf04_4 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &b_frag =
-                        bFrags[__anf03_4];
-                    uint32_t __anf04_3 = resIdxN;
+                        bFrags[__anf04_4];
+                    uint32_t __anf05_3 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16,
                         16, float, void> &acc_frag =
-                        accFrags[((resIdxM * 4) + __anf04_3)];
+                        accFrags[((resIdxM * 4) + __anf05_3)];
                     wmma::mma_sync(acc_frag, a_frag, b_frag, acc_frag);
-                    uint32_t __anf05 = resIdxN;
-                    resIdxN = (__anf05 + 1);
+                    uint32_t __anf06 = resIdxN;
+                    resIdxN = (__anf06 + 1);
                 }
-                uint32_t __anf02_4 = resIdxM;
-                resIdxM = (__anf02_4 + 1);
+                uint32_t __anf03_4 = resIdxM;
+                resIdxM = (__anf03_4 + 1);
             }
-            uint32_t __anf02_5 = dotIdx;
-            dotIdx = (__anf02_5 + 1);
+            uint32_t __anf03_5 = dotIdx;
+            dotIdx = (__anf03_5 + 1);
         }
-        uint32_t __anf0_4 = bkIdx;
-        bkIdx = (__anf0_4 + 1);
+        uint32_t __anf01_4 = bkIdx;
+        bkIdx = (__anf01_4 + 1);
     }
     uint32_t bm = 128;
     uint32_t bn = 128;
@@ -11876,8 +12440,8 @@ __global__ static void kuiper_kernel_46(uint32_t cols, uint32_t shared,
     uint32_t lane = (tid % 32);
     uint32_t idx = 0;
     while (idx < (wm * wn)) {
-        uint32_t mrow = (bid / (cols / bn));
-        uint32_t mcol = (bid % (cols / bn));
+        uint32_t mrow1 = (bid / (cols / bn));
+        uint32_t mcol1 = (bid % (cols / bn));
         uint32_t warpRow1 = (wid1 / (bn / (wn * tn)));
         uint32_t warpCol1 = (wid1 % (bn / (wn * tn)));
         float *sTile = FStar_Pervasives_Native_fst__array_t_unit(
@@ -11890,22 +12454,22 @@ __global__ static void kuiper_kernel_46(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}})));
-        uint32_t __anf0_5 = idx;
+        uint32_t __anf0_2 = idx;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
-            void> &__anf1_3 = accFrags[__anf0_5];
+            void> &__anf1_3 = accFrags[__anf0_2];
         KPR_STORE(
             (sTile + ((0 + (tn * (wid1 * tm))) + (0 * tn))), __anf1_3, tn);
         uint32_t __anf01_5 = idx;
         uint32_t area = (tm * tn);
         uint32_t flat = lane;
         while (flat < area) {
-            uint32_t __anf02_6 = flat;
-            uint32_t row_2 = (__anf02_6 / tn);
-            uint32_t col_2 = (__anf02_6 % tn);
-            uint32_t globalRow = ((((mrow * bm) + (warpRow1 * (wm * tm))) +
+            uint32_t __anf02_4 = flat;
+            uint32_t row_2 = (__anf02_4 / tn);
+            uint32_t col_2 = (__anf02_4 % tn);
+            uint32_t globalRow = ((((mrow1 * bm) + (warpRow1 * (wm * tm))) +
                                       ((__anf01_5 / wn) * tm)) +
                                   row_2);
-            uint32_t globalCol = ((((mcol * bn) + (warpCol1 * (wn * tn))) +
+            uint32_t globalCol = ((((mcol1 * bn) + (warpCol1 * (wn * tn))) +
                                       ((__anf01_5 % wn) * tn)) +
                                   col_2);
             uint32_t ni_2 = ((globalRow * cols) + globalCol);
@@ -11920,8 +12484,8 @@ __global__ static void kuiper_kernel_46(uint32_t cols, uint32_t shared,
             uint32_t vflat = flat;
             flat = (vflat + 32);
         }
-        uint32_t __anf02_7 = idx;
-        idx = (__anf02_7 + 1);
+        uint32_t __anf02_5 = idx;
+        idx = (__anf02_5 + 1);
     }
 }
 
@@ -11930,8 +12494,6 @@ __global__ static void kuiper_kernel_47(uint32_t cols, uint32_t shared,
     custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
     float beta, float alpha, custard_bf16 *gD)
 {
-    (void) gA;
-    (void) gB;
     (void) nthr;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     custard_bf16 *tmp1 = (custard_bf16 *) tmp;
@@ -11953,6 +12515,9 @@ __global__ static void kuiper_kernel_47(uint32_t cols, uint32_t shared,
                 ._1 = tmp1, ._2 = tmp7};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    uint32_t num_n_tiles = (cols / 128);
+    uint32_t mrow = (bid / num_n_tiles);
+    uint32_t mcol = (bid % num_n_tiles);
     uint32_t wid = (tid / 32);
     uint32_t warpRow = (wid / 1);
     uint32_t warpCol = (wid % 1);
@@ -11991,6 +12556,7 @@ __global__ static void kuiper_kernel_47(uint32_t cols, uint32_t shared,
     }
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
+        uint32_t __anf0_1 = bkIdx;
         __syncthreads();
         uint32_t mlen = 2048;
         uint32_t offset = (tid * 8);
@@ -12000,26 +12566,31 @@ __global__ static void kuiper_kernel_47(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_1 = i;
-            uint32_t row = ((__anf0_1 + offset) / 16);
             uint32_t __anf01_1 = i;
-            uint32_t col = ((__anf01_1 + offset) % 16);
+            uint32_t row = ((__anf01_1 + offset) / 16);
+            uint32_t __anf02 = i;
+            uint32_t col = ((__anf02 + offset) % 16);
+            uint32_t offset1 =
+                ((((0 + (shared * (mrow * 128))) + (__anf0_1 * 16)) +
+                     (shared * row)) +
+                    col);
+            vec_memcpy((local + 0), (gA + offset1));
             uint32_t k = 0;
             while (k < 8) {
-                uint32_t __anf02 = k;
-                custard_bf16 v = local[__anf02];
                 uint32_t __anf03 = k;
-                uint32_t cidx = (col + __anf03);
+                custard_bf16 v = local[__anf03];
+                uint32_t __anf04 = k;
+                uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 16) + cidx);
                 _letpattern._1[ni] = v;
-                uint32_t __anf04 = k;
-                k = (__anf04 + 1);
+                uint32_t __anf05 = k;
+                k = (__anf05 + 1);
             }
             uint32_t vi = i;
             i = (vi + 1024);
         }
         uint32_t mlen1 = 2048;
-        uint32_t offset1 = (tid * 8);
+        uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
             custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
@@ -12027,20 +12598,25 @@ __global__ static void kuiper_kernel_47(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_2 = i1;
-            uint32_t row_1 = ((__anf0_2 + offset1) / 128);
             uint32_t __anf01_2 = i1;
-            uint32_t col_1 = ((__anf01_2 + offset1) % 128);
+            uint32_t row_1 = ((__anf01_2 + offset1_1) / 128);
+            uint32_t __anf02_1 = i1;
+            uint32_t col_1 = ((__anf02_1 + offset1_1) % 128);
+            uint32_t offset2 =
+                ((((0 + (cols * (__anf0_1 * 16))) + (mcol * 128)) +
+                     (cols * row_1)) +
+                    col_1);
+            vec_memcpy((local_1 + 0), (gB + offset2));
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                uint32_t __anf02_1 = k_1;
-                custard_bf16 v_1 = local_1[__anf02_1];
                 uint32_t __anf03_1 = k_1;
-                uint32_t cidx_1 = (col_1 + __anf03_1);
+                custard_bf16 v_1 = local_1[__anf03_1];
+                uint32_t __anf04_1 = k_1;
+                uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
                 _letpattern._2[ni_1] = v_1;
-                uint32_t __anf04_1 = k_1;
-                k_1 = (__anf04_1 + 1);
+                uint32_t __anf05_1 = k_1;
+                k_1 = (__anf05_1 + 1);
             }
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 1024);
@@ -12048,39 +12624,39 @@ __global__ static void kuiper_kernel_47(uint32_t cols, uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 1) {
-            uint32_t __anf0_3 = dotIdx;
+            uint32_t __anf01_3 = dotIdx;
             uint32_t i0 = 0;
             while (i0 < 2) {
-                uint32_t __anf01_3 = i0;
                 uint32_t __anf02_2 = i0;
+                uint32_t __anf03_2 = i0;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
-                    aFrags[__anf02_2];
+                    aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
                     (_letpattern._1 +
-                        ((((0 + (16 * (warpRow * 32))) + (__anf0_3 * 16)) +
-                             (16 * (__anf01_3 * 16))) +
+                        ((((0 + (16 * (warpRow * 32))) + (__anf01_3 * 16)) +
+                             (16 * (__anf02_2 * 16))) +
                             0)),
                     ((uint32_t) 16U));
-                uint32_t __anf03_2 = i0;
-                i0 = (__anf03_2 + 1);
+                uint32_t __anf04_2 = i0;
+                i0 = (__anf04_2 + 1);
             }
-            uint32_t __anf01_4 = dotIdx;
+            uint32_t __anf02_3 = dotIdx;
             uint32_t i11 = 0;
             while (i11 < 8) {
-                uint32_t __anf02_3 = i11;
                 uint32_t __anf03_3 = i11;
+                uint32_t __anf04_3 = i11;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
-                    bFrags[__anf03_3];
+                    bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
                     (_letpattern._2 +
-                        ((((0 + (128 * (__anf01_4 * 16))) + (warpCol * 128)) +
+                        ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 128)) +
                              0) +
-                            (__anf02_3 * 16))),
+                            (__anf03_3 * 16))),
                     ((uint32_t) 128U));
-                uint32_t __anf04_2 = i11;
-                i11 = (__anf04_2 + 1);
+                uint32_t __anf05_2 = i11;
+                i11 = (__anf05_2 + 1);
             }
             uint32_t resIdxM = 0;
             while (resIdxM < 2) {
@@ -12089,26 +12665,26 @@ __global__ static void kuiper_kernel_47(uint32_t cols, uint32_t shared,
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &a_frag =
                         aFrags[resIdxM];
-                    uint32_t __anf03_4 = resIdxN;
+                    uint32_t __anf04_4 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &b_frag =
-                        bFrags[__anf03_4];
-                    uint32_t __anf04_3 = resIdxN;
+                        bFrags[__anf04_4];
+                    uint32_t __anf05_3 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16,
                         16, float, void> &acc_frag =
-                        accFrags[((resIdxM * 8) + __anf04_3)];
+                        accFrags[((resIdxM * 8) + __anf05_3)];
                     wmma::mma_sync(acc_frag, a_frag, b_frag, acc_frag);
-                    uint32_t __anf05 = resIdxN;
-                    resIdxN = (__anf05 + 1);
+                    uint32_t __anf06 = resIdxN;
+                    resIdxN = (__anf06 + 1);
                 }
-                uint32_t __anf02_4 = resIdxM;
-                resIdxM = (__anf02_4 + 1);
+                uint32_t __anf03_4 = resIdxM;
+                resIdxM = (__anf03_4 + 1);
             }
-            uint32_t __anf02_5 = dotIdx;
-            dotIdx = (__anf02_5 + 1);
+            uint32_t __anf03_5 = dotIdx;
+            dotIdx = (__anf03_5 + 1);
         }
-        uint32_t __anf0_4 = bkIdx;
-        bkIdx = (__anf0_4 + 1);
+        uint32_t __anf01_4 = bkIdx;
+        bkIdx = (__anf01_4 + 1);
     }
     uint32_t bm = 128;
     uint32_t bn = 128;
@@ -12120,8 +12696,8 @@ __global__ static void kuiper_kernel_47(uint32_t cols, uint32_t shared,
     uint32_t lane = (tid % 32);
     uint32_t idx = 0;
     while (idx < (wm * wn)) {
-        uint32_t mrow = (bid / (cols / bn));
-        uint32_t mcol = (bid % (cols / bn));
+        uint32_t mrow1 = (bid / (cols / bn));
+        uint32_t mcol1 = (bid % (cols / bn));
         uint32_t warpRow1 = (wid1 / (bn / (wn * tn)));
         uint32_t warpCol1 = (wid1 % (bn / (wn * tn)));
         float *sTile = FStar_Pervasives_Native_fst__array_t_unit(
@@ -12134,22 +12710,22 @@ __global__ static void kuiper_kernel_47(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}})));
-        uint32_t __anf0_5 = idx;
+        uint32_t __anf0_2 = idx;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
-            void> &__anf1_3 = accFrags[__anf0_5];
+            void> &__anf1_3 = accFrags[__anf0_2];
         KPR_STORE(
             (sTile + ((0 + (tn * (wid1 * tm))) + (0 * tn))), __anf1_3, tn);
         uint32_t __anf01_5 = idx;
         uint32_t area = (tm * tn);
         uint32_t flat = lane;
         while (flat < area) {
-            uint32_t __anf02_6 = flat;
-            uint32_t row_2 = (__anf02_6 / tn);
-            uint32_t col_2 = (__anf02_6 % tn);
-            uint32_t globalRow = ((((mrow * bm) + (warpRow1 * (wm * tm))) +
+            uint32_t __anf02_4 = flat;
+            uint32_t row_2 = (__anf02_4 / tn);
+            uint32_t col_2 = (__anf02_4 % tn);
+            uint32_t globalRow = ((((mrow1 * bm) + (warpRow1 * (wm * tm))) +
                                       ((__anf01_5 / wn) * tm)) +
                                   row_2);
-            uint32_t globalCol = ((((mcol * bn) + (warpCol1 * (wn * tn))) +
+            uint32_t globalCol = ((((mcol1 * bn) + (warpCol1 * (wn * tn))) +
                                       ((__anf01_5 % wn) * tn)) +
                                   col_2);
             uint32_t ni_2 = ((globalRow * cols) + globalCol);
@@ -12164,8 +12740,8 @@ __global__ static void kuiper_kernel_47(uint32_t cols, uint32_t shared,
             uint32_t vflat = flat;
             flat = (vflat + 32);
         }
-        uint32_t __anf02_7 = idx;
-        idx = (__anf02_7 + 1);
+        uint32_t __anf02_5 = idx;
+        idx = (__anf02_5 + 1);
     }
 }
 
@@ -12174,8 +12750,6 @@ __global__ static void kuiper_kernel_48(uint32_t cols, uint32_t shared,
     custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
     float beta, float alpha, custard_bf16 *gD)
 {
-    (void) gA;
-    (void) gB;
     (void) nthr;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     custard_bf16 *tmp1 = (custard_bf16 *) tmp;
@@ -12197,6 +12771,9 @@ __global__ static void kuiper_kernel_48(uint32_t cols, uint32_t shared,
                 ._1 = tmp1, ._2 = tmp7};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    uint32_t num_n_tiles = (cols / 128);
+    uint32_t mrow = (bid / num_n_tiles);
+    uint32_t mcol = (bid % num_n_tiles);
     uint32_t wid = (tid / 32);
     uint32_t warpRow = (wid / 4);
     uint32_t warpCol = (wid % 4);
@@ -12235,6 +12812,7 @@ __global__ static void kuiper_kernel_48(uint32_t cols, uint32_t shared,
     }
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
+        uint32_t __anf0_1 = bkIdx;
         __syncthreads();
         uint32_t mlen = 2048;
         uint32_t offset = (tid * 8);
@@ -12244,26 +12822,31 @@ __global__ static void kuiper_kernel_48(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_1 = i;
-            uint32_t row = ((__anf0_1 + offset) / 16);
             uint32_t __anf01_1 = i;
-            uint32_t col = ((__anf01_1 + offset) % 16);
+            uint32_t row = ((__anf01_1 + offset) / 16);
+            uint32_t __anf02 = i;
+            uint32_t col = ((__anf02 + offset) % 16);
+            uint32_t offset1 =
+                ((((0 + (shared * (mrow * 128))) + (__anf0_1 * 16)) +
+                     (shared * row)) +
+                    col);
+            vec_memcpy((local + 0), (gA + offset1));
             uint32_t k = 0;
             while (k < 8) {
-                uint32_t __anf02 = k;
-                custard_bf16 v = local[__anf02];
                 uint32_t __anf03 = k;
-                uint32_t cidx = (col + __anf03);
+                custard_bf16 v = local[__anf03];
+                uint32_t __anf04 = k;
+                uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 16) + cidx);
                 _letpattern._1[ni] = v;
-                uint32_t __anf04 = k;
-                k = (__anf04 + 1);
+                uint32_t __anf05 = k;
+                k = (__anf05 + 1);
             }
             uint32_t vi = i;
             i = (vi + 2048);
         }
         uint32_t mlen1 = 2048;
-        uint32_t offset1 = (tid * 8);
+        uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
             custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
@@ -12271,20 +12854,25 @@ __global__ static void kuiper_kernel_48(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_2 = i1;
-            uint32_t row_1 = ((__anf0_2 + offset1) / 128);
             uint32_t __anf01_2 = i1;
-            uint32_t col_1 = ((__anf01_2 + offset1) % 128);
+            uint32_t row_1 = ((__anf01_2 + offset1_1) / 128);
+            uint32_t __anf02_1 = i1;
+            uint32_t col_1 = ((__anf02_1 + offset1_1) % 128);
+            uint32_t offset2 =
+                ((((0 + (cols * (__anf0_1 * 16))) + (mcol * 128)) +
+                     (cols * row_1)) +
+                    col_1);
+            vec_memcpy((local_1 + 0), (gB + offset2));
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                uint32_t __anf02_1 = k_1;
-                custard_bf16 v_1 = local_1[__anf02_1];
                 uint32_t __anf03_1 = k_1;
-                uint32_t cidx_1 = (col_1 + __anf03_1);
+                custard_bf16 v_1 = local_1[__anf03_1];
+                uint32_t __anf04_1 = k_1;
+                uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
                 _letpattern._2[ni_1] = v_1;
-                uint32_t __anf04_1 = k_1;
-                k_1 = (__anf04_1 + 1);
+                uint32_t __anf05_1 = k_1;
+                k_1 = (__anf05_1 + 1);
             }
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 2048);
@@ -12292,39 +12880,39 @@ __global__ static void kuiper_kernel_48(uint32_t cols, uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 1) {
-            uint32_t __anf0_3 = dotIdx;
+            uint32_t __anf01_3 = dotIdx;
             uint32_t i0 = 0;
             while (i0 < 4) {
-                uint32_t __anf01_3 = i0;
                 uint32_t __anf02_2 = i0;
+                uint32_t __anf03_2 = i0;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
-                    aFrags[__anf02_2];
+                    aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
                     (_letpattern._1 +
-                        ((((0 + (16 * (warpRow * 64))) + (__anf0_3 * 16)) +
-                             (16 * (__anf01_3 * 16))) +
+                        ((((0 + (16 * (warpRow * 64))) + (__anf01_3 * 16)) +
+                             (16 * (__anf02_2 * 16))) +
                             0)),
                     ((uint32_t) 16U));
-                uint32_t __anf03_2 = i0;
-                i0 = (__anf03_2 + 1);
+                uint32_t __anf04_2 = i0;
+                i0 = (__anf04_2 + 1);
             }
-            uint32_t __anf01_4 = dotIdx;
+            uint32_t __anf02_3 = dotIdx;
             uint32_t i11 = 0;
             while (i11 < 2) {
-                uint32_t __anf02_3 = i11;
                 uint32_t __anf03_3 = i11;
+                uint32_t __anf04_3 = i11;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
-                    bFrags[__anf03_3];
+                    bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
                     (_letpattern._2 +
-                        ((((0 + (128 * (__anf01_4 * 16))) + (warpCol * 32)) +
+                        ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 32)) +
                              0) +
-                            (__anf02_3 * 16))),
+                            (__anf03_3 * 16))),
                     ((uint32_t) 128U));
-                uint32_t __anf04_2 = i11;
-                i11 = (__anf04_2 + 1);
+                uint32_t __anf05_2 = i11;
+                i11 = (__anf05_2 + 1);
             }
             uint32_t resIdxM = 0;
             while (resIdxM < 4) {
@@ -12333,26 +12921,26 @@ __global__ static void kuiper_kernel_48(uint32_t cols, uint32_t shared,
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &a_frag =
                         aFrags[resIdxM];
-                    uint32_t __anf03_4 = resIdxN;
+                    uint32_t __anf04_4 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &b_frag =
-                        bFrags[__anf03_4];
-                    uint32_t __anf04_3 = resIdxN;
+                        bFrags[__anf04_4];
+                    uint32_t __anf05_3 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16,
                         16, float, void> &acc_frag =
-                        accFrags[((resIdxM * 2) + __anf04_3)];
+                        accFrags[((resIdxM * 2) + __anf05_3)];
                     wmma::mma_sync(acc_frag, a_frag, b_frag, acc_frag);
-                    uint32_t __anf05 = resIdxN;
-                    resIdxN = (__anf05 + 1);
+                    uint32_t __anf06 = resIdxN;
+                    resIdxN = (__anf06 + 1);
                 }
-                uint32_t __anf02_4 = resIdxM;
-                resIdxM = (__anf02_4 + 1);
+                uint32_t __anf03_4 = resIdxM;
+                resIdxM = (__anf03_4 + 1);
             }
-            uint32_t __anf02_5 = dotIdx;
-            dotIdx = (__anf02_5 + 1);
+            uint32_t __anf03_5 = dotIdx;
+            dotIdx = (__anf03_5 + 1);
         }
-        uint32_t __anf0_4 = bkIdx;
-        bkIdx = (__anf0_4 + 1);
+        uint32_t __anf01_4 = bkIdx;
+        bkIdx = (__anf01_4 + 1);
     }
     uint32_t bm = 128;
     uint32_t bn = 128;
@@ -12364,8 +12952,8 @@ __global__ static void kuiper_kernel_48(uint32_t cols, uint32_t shared,
     uint32_t lane = (tid % 32);
     uint32_t idx = 0;
     while (idx < (wm * wn)) {
-        uint32_t mrow = (bid / (cols / bn));
-        uint32_t mcol = (bid % (cols / bn));
+        uint32_t mrow1 = (bid / (cols / bn));
+        uint32_t mcol1 = (bid % (cols / bn));
         uint32_t warpRow1 = (wid1 / (bn / (wn * tn)));
         uint32_t warpCol1 = (wid1 % (bn / (wn * tn)));
         float *sTile = FStar_Pervasives_Native_fst__array_t_unit(
@@ -12378,22 +12966,22 @@ __global__ static void kuiper_kernel_48(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}})));
-        uint32_t __anf0_5 = idx;
+        uint32_t __anf0_2 = idx;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
-            void> &__anf1_3 = accFrags[__anf0_5];
+            void> &__anf1_3 = accFrags[__anf0_2];
         KPR_STORE(
             (sTile + ((0 + (tn * (wid1 * tm))) + (0 * tn))), __anf1_3, tn);
         uint32_t __anf01_5 = idx;
         uint32_t area = (tm * tn);
         uint32_t flat = lane;
         while (flat < area) {
-            uint32_t __anf02_6 = flat;
-            uint32_t row_2 = (__anf02_6 / tn);
-            uint32_t col_2 = (__anf02_6 % tn);
-            uint32_t globalRow = ((((mrow * bm) + (warpRow1 * (wm * tm))) +
+            uint32_t __anf02_4 = flat;
+            uint32_t row_2 = (__anf02_4 / tn);
+            uint32_t col_2 = (__anf02_4 % tn);
+            uint32_t globalRow = ((((mrow1 * bm) + (warpRow1 * (wm * tm))) +
                                       ((__anf01_5 / wn) * tm)) +
                                   row_2);
-            uint32_t globalCol = ((((mcol * bn) + (warpCol1 * (wn * tn))) +
+            uint32_t globalCol = ((((mcol1 * bn) + (warpCol1 * (wn * tn))) +
                                       ((__anf01_5 % wn) * tn)) +
                                   col_2);
             uint32_t ni_2 = ((globalRow * cols) + globalCol);
@@ -12408,8 +12996,8 @@ __global__ static void kuiper_kernel_48(uint32_t cols, uint32_t shared,
             uint32_t vflat = flat;
             flat = (vflat + 32);
         }
-        uint32_t __anf02_7 = idx;
-        idx = (__anf02_7 + 1);
+        uint32_t __anf02_5 = idx;
+        idx = (__anf02_5 + 1);
     }
 }
 
@@ -12418,8 +13006,6 @@ __global__ static void kuiper_kernel_49(uint32_t cols, uint32_t shared,
     custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
     float beta, float alpha, custard_bf16 *gD)
 {
-    (void) gA;
-    (void) gB;
     (void) nthr;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     custard_bf16 *tmp1 = (custard_bf16 *) tmp;
@@ -12441,6 +13027,9 @@ __global__ static void kuiper_kernel_49(uint32_t cols, uint32_t shared,
                 ._1 = tmp1, ._2 = tmp7};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    uint32_t num_n_tiles = (cols / 128);
+    uint32_t mrow = (bid / num_n_tiles);
+    uint32_t mcol = (bid % num_n_tiles);
     uint32_t wid = (tid / 32);
     uint32_t warpRow = (wid / 2);
     uint32_t warpCol = (wid % 2);
@@ -12479,6 +13068,7 @@ __global__ static void kuiper_kernel_49(uint32_t cols, uint32_t shared,
     }
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
+        uint32_t __anf0_1 = bkIdx;
         __syncthreads();
         uint32_t mlen = 2048;
         uint32_t offset = (tid * 8);
@@ -12488,26 +13078,31 @@ __global__ static void kuiper_kernel_49(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_1 = i;
-            uint32_t row = ((__anf0_1 + offset) / 16);
             uint32_t __anf01_1 = i;
-            uint32_t col = ((__anf01_1 + offset) % 16);
+            uint32_t row = ((__anf01_1 + offset) / 16);
+            uint32_t __anf02 = i;
+            uint32_t col = ((__anf02 + offset) % 16);
+            uint32_t offset1 =
+                ((((0 + (shared * (mrow * 128))) + (__anf0_1 * 16)) +
+                     (shared * row)) +
+                    col);
+            vec_memcpy((local + 0), (gA + offset1));
             uint32_t k = 0;
             while (k < 8) {
-                uint32_t __anf02 = k;
-                custard_bf16 v = local[__anf02];
                 uint32_t __anf03 = k;
-                uint32_t cidx = (col + __anf03);
+                custard_bf16 v = local[__anf03];
+                uint32_t __anf04 = k;
+                uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 16) + cidx);
                 _letpattern._1[ni] = v;
-                uint32_t __anf04 = k;
-                k = (__anf04 + 1);
+                uint32_t __anf05 = k;
+                k = (__anf05 + 1);
             }
             uint32_t vi = i;
             i = (vi + 1024);
         }
         uint32_t mlen1 = 2048;
-        uint32_t offset1 = (tid * 8);
+        uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
             custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
@@ -12515,20 +13110,25 @@ __global__ static void kuiper_kernel_49(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_2 = i1;
-            uint32_t row_1 = ((__anf0_2 + offset1) / 128);
             uint32_t __anf01_2 = i1;
-            uint32_t col_1 = ((__anf01_2 + offset1) % 128);
+            uint32_t row_1 = ((__anf01_2 + offset1_1) / 128);
+            uint32_t __anf02_1 = i1;
+            uint32_t col_1 = ((__anf02_1 + offset1_1) % 128);
+            uint32_t offset2 =
+                ((((0 + (cols * (__anf0_1 * 16))) + (mcol * 128)) +
+                     (cols * row_1)) +
+                    col_1);
+            vec_memcpy((local_1 + 0), (gB + offset2));
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                uint32_t __anf02_1 = k_1;
-                custard_bf16 v_1 = local_1[__anf02_1];
                 uint32_t __anf03_1 = k_1;
-                uint32_t cidx_1 = (col_1 + __anf03_1);
+                custard_bf16 v_1 = local_1[__anf03_1];
+                uint32_t __anf04_1 = k_1;
+                uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
                 _letpattern._2[ni_1] = v_1;
-                uint32_t __anf04_1 = k_1;
-                k_1 = (__anf04_1 + 1);
+                uint32_t __anf05_1 = k_1;
+                k_1 = (__anf05_1 + 1);
             }
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 1024);
@@ -12536,39 +13136,39 @@ __global__ static void kuiper_kernel_49(uint32_t cols, uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 1) {
-            uint32_t __anf0_3 = dotIdx;
+            uint32_t __anf01_3 = dotIdx;
             uint32_t i0 = 0;
             while (i0 < 4) {
-                uint32_t __anf01_3 = i0;
                 uint32_t __anf02_2 = i0;
+                uint32_t __anf03_2 = i0;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
-                    aFrags[__anf02_2];
+                    aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
                     (_letpattern._1 +
-                        ((((0 + (16 * (warpRow * 64))) + (__anf0_3 * 16)) +
-                             (16 * (__anf01_3 * 16))) +
+                        ((((0 + (16 * (warpRow * 64))) + (__anf01_3 * 16)) +
+                             (16 * (__anf02_2 * 16))) +
                             0)),
                     ((uint32_t) 16U));
-                uint32_t __anf03_2 = i0;
-                i0 = (__anf03_2 + 1);
+                uint32_t __anf04_2 = i0;
+                i0 = (__anf04_2 + 1);
             }
-            uint32_t __anf01_4 = dotIdx;
+            uint32_t __anf02_3 = dotIdx;
             uint32_t i11 = 0;
             while (i11 < 4) {
-                uint32_t __anf02_3 = i11;
                 uint32_t __anf03_3 = i11;
+                uint32_t __anf04_3 = i11;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
-                    bFrags[__anf03_3];
+                    bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
                     (_letpattern._2 +
-                        ((((0 + (128 * (__anf01_4 * 16))) + (warpCol * 64)) +
+                        ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 64)) +
                              0) +
-                            (__anf02_3 * 16))),
+                            (__anf03_3 * 16))),
                     ((uint32_t) 128U));
-                uint32_t __anf04_2 = i11;
-                i11 = (__anf04_2 + 1);
+                uint32_t __anf05_2 = i11;
+                i11 = (__anf05_2 + 1);
             }
             uint32_t resIdxM = 0;
             while (resIdxM < 4) {
@@ -12577,26 +13177,26 @@ __global__ static void kuiper_kernel_49(uint32_t cols, uint32_t shared,
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &a_frag =
                         aFrags[resIdxM];
-                    uint32_t __anf03_4 = resIdxN;
+                    uint32_t __anf04_4 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &b_frag =
-                        bFrags[__anf03_4];
-                    uint32_t __anf04_3 = resIdxN;
+                        bFrags[__anf04_4];
+                    uint32_t __anf05_3 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16,
                         16, float, void> &acc_frag =
-                        accFrags[((resIdxM * 4) + __anf04_3)];
+                        accFrags[((resIdxM * 4) + __anf05_3)];
                     wmma::mma_sync(acc_frag, a_frag, b_frag, acc_frag);
-                    uint32_t __anf05 = resIdxN;
-                    resIdxN = (__anf05 + 1);
+                    uint32_t __anf06 = resIdxN;
+                    resIdxN = (__anf06 + 1);
                 }
-                uint32_t __anf02_4 = resIdxM;
-                resIdxM = (__anf02_4 + 1);
+                uint32_t __anf03_4 = resIdxM;
+                resIdxM = (__anf03_4 + 1);
             }
-            uint32_t __anf02_5 = dotIdx;
-            dotIdx = (__anf02_5 + 1);
+            uint32_t __anf03_5 = dotIdx;
+            dotIdx = (__anf03_5 + 1);
         }
-        uint32_t __anf0_4 = bkIdx;
-        bkIdx = (__anf0_4 + 1);
+        uint32_t __anf01_4 = bkIdx;
+        bkIdx = (__anf01_4 + 1);
     }
     uint32_t bm = 128;
     uint32_t bn = 128;
@@ -12608,8 +13208,8 @@ __global__ static void kuiper_kernel_49(uint32_t cols, uint32_t shared,
     uint32_t lane = (tid % 32);
     uint32_t idx = 0;
     while (idx < (wm * wn)) {
-        uint32_t mrow = (bid / (cols / bn));
-        uint32_t mcol = (bid % (cols / bn));
+        uint32_t mrow1 = (bid / (cols / bn));
+        uint32_t mcol1 = (bid % (cols / bn));
         uint32_t warpRow1 = (wid1 / (bn / (wn * tn)));
         uint32_t warpCol1 = (wid1 % (bn / (wn * tn)));
         float *sTile = FStar_Pervasives_Native_fst__array_t_unit(
@@ -12622,22 +13222,22 @@ __global__ static void kuiper_kernel_49(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}})));
-        uint32_t __anf0_5 = idx;
+        uint32_t __anf0_2 = idx;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
-            void> &__anf1_3 = accFrags[__anf0_5];
+            void> &__anf1_3 = accFrags[__anf0_2];
         KPR_STORE(
             (sTile + ((0 + (tn * (wid1 * tm))) + (0 * tn))), __anf1_3, tn);
         uint32_t __anf01_5 = idx;
         uint32_t area = (tm * tn);
         uint32_t flat = lane;
         while (flat < area) {
-            uint32_t __anf02_6 = flat;
-            uint32_t row_2 = (__anf02_6 / tn);
-            uint32_t col_2 = (__anf02_6 % tn);
-            uint32_t globalRow = ((((mrow * bm) + (warpRow1 * (wm * tm))) +
+            uint32_t __anf02_4 = flat;
+            uint32_t row_2 = (__anf02_4 / tn);
+            uint32_t col_2 = (__anf02_4 % tn);
+            uint32_t globalRow = ((((mrow1 * bm) + (warpRow1 * (wm * tm))) +
                                       ((__anf01_5 / wn) * tm)) +
                                   row_2);
-            uint32_t globalCol = ((((mcol * bn) + (warpCol1 * (wn * tn))) +
+            uint32_t globalCol = ((((mcol1 * bn) + (warpCol1 * (wn * tn))) +
                                       ((__anf01_5 % wn) * tn)) +
                                   col_2);
             uint32_t ni_2 = ((globalRow * cols) + globalCol);
@@ -12652,8 +13252,8 @@ __global__ static void kuiper_kernel_49(uint32_t cols, uint32_t shared,
             uint32_t vflat = flat;
             flat = (vflat + 32);
         }
-        uint32_t __anf02_7 = idx;
-        idx = (__anf02_7 + 1);
+        uint32_t __anf02_5 = idx;
+        idx = (__anf02_5 + 1);
     }
 }
 
@@ -12662,8 +13262,6 @@ __global__ static void kuiper_kernel_50(uint32_t cols, uint32_t shared,
     custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
     float beta, float alpha, custard_bf16 *gD)
 {
-    (void) gA;
-    (void) gB;
     (void) nthr;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     custard_bf16 *tmp1 = (custard_bf16 *) tmp;
@@ -12685,6 +13283,9 @@ __global__ static void kuiper_kernel_50(uint32_t cols, uint32_t shared,
                 ._1 = tmp1, ._2 = tmp7};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    uint32_t num_n_tiles = (cols / 128);
+    uint32_t mrow = (bid / num_n_tiles);
+    uint32_t mcol = (bid % num_n_tiles);
     uint32_t wid = (tid / 32);
     uint32_t warpRow = (wid / 1);
     uint32_t warpCol = (wid % 1);
@@ -12723,6 +13324,7 @@ __global__ static void kuiper_kernel_50(uint32_t cols, uint32_t shared,
     }
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
+        uint32_t __anf0_1 = bkIdx;
         __syncthreads();
         uint32_t mlen = 2048;
         uint32_t offset = (tid * 8);
@@ -12732,26 +13334,31 @@ __global__ static void kuiper_kernel_50(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_1 = i;
-            uint32_t row = ((__anf0_1 + offset) / 16);
             uint32_t __anf01_1 = i;
-            uint32_t col = ((__anf01_1 + offset) % 16);
+            uint32_t row = ((__anf01_1 + offset) / 16);
+            uint32_t __anf02 = i;
+            uint32_t col = ((__anf02 + offset) % 16);
+            uint32_t offset1 =
+                ((((0 + (shared * (mrow * 128))) + (__anf0_1 * 16)) +
+                     (shared * row)) +
+                    col);
+            vec_memcpy((local + 0), (gA + offset1));
             uint32_t k = 0;
             while (k < 8) {
-                uint32_t __anf02 = k;
-                custard_bf16 v = local[__anf02];
                 uint32_t __anf03 = k;
-                uint32_t cidx = (col + __anf03);
+                custard_bf16 v = local[__anf03];
+                uint32_t __anf04 = k;
+                uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 16) + cidx);
                 _letpattern._1[ni] = v;
-                uint32_t __anf04 = k;
-                k = (__anf04 + 1);
+                uint32_t __anf05 = k;
+                k = (__anf05 + 1);
             }
             uint32_t vi = i;
             i = (vi + 512);
         }
         uint32_t mlen1 = 2048;
-        uint32_t offset1 = (tid * 8);
+        uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
             custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
@@ -12759,20 +13366,25 @@ __global__ static void kuiper_kernel_50(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_2 = i1;
-            uint32_t row_1 = ((__anf0_2 + offset1) / 128);
             uint32_t __anf01_2 = i1;
-            uint32_t col_1 = ((__anf01_2 + offset1) % 128);
+            uint32_t row_1 = ((__anf01_2 + offset1_1) / 128);
+            uint32_t __anf02_1 = i1;
+            uint32_t col_1 = ((__anf02_1 + offset1_1) % 128);
+            uint32_t offset2 =
+                ((((0 + (cols * (__anf0_1 * 16))) + (mcol * 128)) +
+                     (cols * row_1)) +
+                    col_1);
+            vec_memcpy((local_1 + 0), (gB + offset2));
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                uint32_t __anf02_1 = k_1;
-                custard_bf16 v_1 = local_1[__anf02_1];
                 uint32_t __anf03_1 = k_1;
-                uint32_t cidx_1 = (col_1 + __anf03_1);
+                custard_bf16 v_1 = local_1[__anf03_1];
+                uint32_t __anf04_1 = k_1;
+                uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
                 _letpattern._2[ni_1] = v_1;
-                uint32_t __anf04_1 = k_1;
-                k_1 = (__anf04_1 + 1);
+                uint32_t __anf05_1 = k_1;
+                k_1 = (__anf05_1 + 1);
             }
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 512);
@@ -12780,39 +13392,39 @@ __global__ static void kuiper_kernel_50(uint32_t cols, uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 1) {
-            uint32_t __anf0_3 = dotIdx;
+            uint32_t __anf01_3 = dotIdx;
             uint32_t i0 = 0;
             while (i0 < 4) {
-                uint32_t __anf01_3 = i0;
                 uint32_t __anf02_2 = i0;
+                uint32_t __anf03_2 = i0;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
-                    aFrags[__anf02_2];
+                    aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
                     (_letpattern._1 +
-                        ((((0 + (16 * (warpRow * 64))) + (__anf0_3 * 16)) +
-                             (16 * (__anf01_3 * 16))) +
+                        ((((0 + (16 * (warpRow * 64))) + (__anf01_3 * 16)) +
+                             (16 * (__anf02_2 * 16))) +
                             0)),
                     ((uint32_t) 16U));
-                uint32_t __anf03_2 = i0;
-                i0 = (__anf03_2 + 1);
+                uint32_t __anf04_2 = i0;
+                i0 = (__anf04_2 + 1);
             }
-            uint32_t __anf01_4 = dotIdx;
+            uint32_t __anf02_3 = dotIdx;
             uint32_t i11 = 0;
             while (i11 < 8) {
-                uint32_t __anf02_3 = i11;
                 uint32_t __anf03_3 = i11;
+                uint32_t __anf04_3 = i11;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
-                    bFrags[__anf03_3];
+                    bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
                     (_letpattern._2 +
-                        ((((0 + (128 * (__anf01_4 * 16))) + (warpCol * 128)) +
+                        ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 128)) +
                              0) +
-                            (__anf02_3 * 16))),
+                            (__anf03_3 * 16))),
                     ((uint32_t) 128U));
-                uint32_t __anf04_2 = i11;
-                i11 = (__anf04_2 + 1);
+                uint32_t __anf05_2 = i11;
+                i11 = (__anf05_2 + 1);
             }
             uint32_t resIdxM = 0;
             while (resIdxM < 4) {
@@ -12821,26 +13433,26 @@ __global__ static void kuiper_kernel_50(uint32_t cols, uint32_t shared,
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &a_frag =
                         aFrags[resIdxM];
-                    uint32_t __anf03_4 = resIdxN;
+                    uint32_t __anf04_4 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &b_frag =
-                        bFrags[__anf03_4];
-                    uint32_t __anf04_3 = resIdxN;
+                        bFrags[__anf04_4];
+                    uint32_t __anf05_3 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16,
                         16, float, void> &acc_frag =
-                        accFrags[((resIdxM * 8) + __anf04_3)];
+                        accFrags[((resIdxM * 8) + __anf05_3)];
                     wmma::mma_sync(acc_frag, a_frag, b_frag, acc_frag);
-                    uint32_t __anf05 = resIdxN;
-                    resIdxN = (__anf05 + 1);
+                    uint32_t __anf06 = resIdxN;
+                    resIdxN = (__anf06 + 1);
                 }
-                uint32_t __anf02_4 = resIdxM;
-                resIdxM = (__anf02_4 + 1);
+                uint32_t __anf03_4 = resIdxM;
+                resIdxM = (__anf03_4 + 1);
             }
-            uint32_t __anf02_5 = dotIdx;
-            dotIdx = (__anf02_5 + 1);
+            uint32_t __anf03_5 = dotIdx;
+            dotIdx = (__anf03_5 + 1);
         }
-        uint32_t __anf0_4 = bkIdx;
-        bkIdx = (__anf0_4 + 1);
+        uint32_t __anf01_4 = bkIdx;
+        bkIdx = (__anf01_4 + 1);
     }
     uint32_t bm = 128;
     uint32_t bn = 128;
@@ -12852,8 +13464,8 @@ __global__ static void kuiper_kernel_50(uint32_t cols, uint32_t shared,
     uint32_t lane = (tid % 32);
     uint32_t idx = 0;
     while (idx < (wm * wn)) {
-        uint32_t mrow = (bid / (cols / bn));
-        uint32_t mcol = (bid % (cols / bn));
+        uint32_t mrow1 = (bid / (cols / bn));
+        uint32_t mcol1 = (bid % (cols / bn));
         uint32_t warpRow1 = (wid1 / (bn / (wn * tn)));
         uint32_t warpCol1 = (wid1 % (bn / (wn * tn)));
         float *sTile = FStar_Pervasives_Native_fst__array_t_unit(
@@ -12866,22 +13478,22 @@ __global__ static void kuiper_kernel_50(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}})));
-        uint32_t __anf0_5 = idx;
+        uint32_t __anf0_2 = idx;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
-            void> &__anf1_3 = accFrags[__anf0_5];
+            void> &__anf1_3 = accFrags[__anf0_2];
         KPR_STORE(
             (sTile + ((0 + (tn * (wid1 * tm))) + (0 * tn))), __anf1_3, tn);
         uint32_t __anf01_5 = idx;
         uint32_t area = (tm * tn);
         uint32_t flat = lane;
         while (flat < area) {
-            uint32_t __anf02_6 = flat;
-            uint32_t row_2 = (__anf02_6 / tn);
-            uint32_t col_2 = (__anf02_6 % tn);
-            uint32_t globalRow = ((((mrow * bm) + (warpRow1 * (wm * tm))) +
+            uint32_t __anf02_4 = flat;
+            uint32_t row_2 = (__anf02_4 / tn);
+            uint32_t col_2 = (__anf02_4 % tn);
+            uint32_t globalRow = ((((mrow1 * bm) + (warpRow1 * (wm * tm))) +
                                       ((__anf01_5 / wn) * tm)) +
                                   row_2);
-            uint32_t globalCol = ((((mcol * bn) + (warpCol1 * (wn * tn))) +
+            uint32_t globalCol = ((((mcol1 * bn) + (warpCol1 * (wn * tn))) +
                                       ((__anf01_5 % wn) * tn)) +
                                   col_2);
             uint32_t ni_2 = ((globalRow * cols) + globalCol);
@@ -12896,8 +13508,8 @@ __global__ static void kuiper_kernel_50(uint32_t cols, uint32_t shared,
             uint32_t vflat = flat;
             flat = (vflat + 32);
         }
-        uint32_t __anf02_7 = idx;
-        idx = (__anf02_7 + 1);
+        uint32_t __anf02_5 = idx;
+        idx = (__anf02_5 + 1);
     }
 }
 
@@ -12906,8 +13518,6 @@ __global__ static void kuiper_kernel_51(uint32_t cols, uint32_t shared,
     custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
     float beta, float alpha, custard_bf16 *gD)
 {
-    (void) gA;
-    (void) gB;
     (void) nthr;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     custard_bf16 *tmp1 = (custard_bf16 *) tmp;
@@ -12929,6 +13539,9 @@ __global__ static void kuiper_kernel_51(uint32_t cols, uint32_t shared,
                 ._1 = tmp1, ._2 = tmp7};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    uint32_t num_n_tiles = (cols / 128);
+    uint32_t mrow = (bid / num_n_tiles);
+    uint32_t mcol = (bid % num_n_tiles);
     uint32_t wid = (tid / 32);
     uint32_t warpRow = (wid / 4);
     uint32_t warpCol = (wid % 4);
@@ -12967,6 +13580,7 @@ __global__ static void kuiper_kernel_51(uint32_t cols, uint32_t shared,
     }
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
+        uint32_t __anf0_1 = bkIdx;
         __syncthreads();
         uint32_t mlen = 2048;
         uint32_t offset = (tid * 8);
@@ -12976,26 +13590,31 @@ __global__ static void kuiper_kernel_51(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_1 = i;
-            uint32_t row = ((__anf0_1 + offset) / 16);
             uint32_t __anf01_1 = i;
-            uint32_t col = ((__anf01_1 + offset) % 16);
+            uint32_t row = ((__anf01_1 + offset) / 16);
+            uint32_t __anf02 = i;
+            uint32_t col = ((__anf02 + offset) % 16);
+            uint32_t offset1 =
+                ((((0 + (shared * (mrow * 128))) + (__anf0_1 * 16)) +
+                     (shared * row)) +
+                    col);
+            vec_memcpy((local + 0), (gA + offset1));
             uint32_t k = 0;
             while (k < 8) {
-                uint32_t __anf02 = k;
-                custard_bf16 v = local[__anf02];
                 uint32_t __anf03 = k;
-                uint32_t cidx = (col + __anf03);
+                custard_bf16 v = local[__anf03];
+                uint32_t __anf04 = k;
+                uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 16) + cidx);
                 _letpattern._1[ni] = v;
-                uint32_t __anf04 = k;
-                k = (__anf04 + 1);
+                uint32_t __anf05 = k;
+                k = (__anf05 + 1);
             }
             uint32_t vi = i;
             i = (vi + 1024);
         }
         uint32_t mlen1 = 2048;
-        uint32_t offset1 = (tid * 8);
+        uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
             custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
@@ -13003,20 +13622,25 @@ __global__ static void kuiper_kernel_51(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_2 = i1;
-            uint32_t row_1 = ((__anf0_2 + offset1) / 128);
             uint32_t __anf01_2 = i1;
-            uint32_t col_1 = ((__anf01_2 + offset1) % 128);
+            uint32_t row_1 = ((__anf01_2 + offset1_1) / 128);
+            uint32_t __anf02_1 = i1;
+            uint32_t col_1 = ((__anf02_1 + offset1_1) % 128);
+            uint32_t offset2 =
+                ((((0 + (cols * (__anf0_1 * 16))) + (mcol * 128)) +
+                     (cols * row_1)) +
+                    col_1);
+            vec_memcpy((local_1 + 0), (gB + offset2));
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                uint32_t __anf02_1 = k_1;
-                custard_bf16 v_1 = local_1[__anf02_1];
                 uint32_t __anf03_1 = k_1;
-                uint32_t cidx_1 = (col_1 + __anf03_1);
+                custard_bf16 v_1 = local_1[__anf03_1];
+                uint32_t __anf04_1 = k_1;
+                uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
                 _letpattern._2[ni_1] = v_1;
-                uint32_t __anf04_1 = k_1;
-                k_1 = (__anf04_1 + 1);
+                uint32_t __anf05_1 = k_1;
+                k_1 = (__anf05_1 + 1);
             }
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 1024);
@@ -13024,39 +13648,39 @@ __global__ static void kuiper_kernel_51(uint32_t cols, uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 1) {
-            uint32_t __anf0_3 = dotIdx;
+            uint32_t __anf01_3 = dotIdx;
             uint32_t i0 = 0;
             while (i0 < 8) {
-                uint32_t __anf01_3 = i0;
                 uint32_t __anf02_2 = i0;
+                uint32_t __anf03_2 = i0;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
-                    aFrags[__anf02_2];
+                    aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
                     (_letpattern._1 +
-                        ((((0 + (16 * (warpRow * 128))) + (__anf0_3 * 16)) +
-                             (16 * (__anf01_3 * 16))) +
+                        ((((0 + (16 * (warpRow * 128))) + (__anf01_3 * 16)) +
+                             (16 * (__anf02_2 * 16))) +
                             0)),
                     ((uint32_t) 16U));
-                uint32_t __anf03_2 = i0;
-                i0 = (__anf03_2 + 1);
+                uint32_t __anf04_2 = i0;
+                i0 = (__anf04_2 + 1);
             }
-            uint32_t __anf01_4 = dotIdx;
+            uint32_t __anf02_3 = dotIdx;
             uint32_t i11 = 0;
             while (i11 < 2) {
-                uint32_t __anf02_3 = i11;
                 uint32_t __anf03_3 = i11;
+                uint32_t __anf04_3 = i11;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
-                    bFrags[__anf03_3];
+                    bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
                     (_letpattern._2 +
-                        ((((0 + (128 * (__anf01_4 * 16))) + (warpCol * 32)) +
+                        ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 32)) +
                              0) +
-                            (__anf02_3 * 16))),
+                            (__anf03_3 * 16))),
                     ((uint32_t) 128U));
-                uint32_t __anf04_2 = i11;
-                i11 = (__anf04_2 + 1);
+                uint32_t __anf05_2 = i11;
+                i11 = (__anf05_2 + 1);
             }
             uint32_t resIdxM = 0;
             while (resIdxM < 8) {
@@ -13065,26 +13689,26 @@ __global__ static void kuiper_kernel_51(uint32_t cols, uint32_t shared,
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &a_frag =
                         aFrags[resIdxM];
-                    uint32_t __anf03_4 = resIdxN;
+                    uint32_t __anf04_4 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &b_frag =
-                        bFrags[__anf03_4];
-                    uint32_t __anf04_3 = resIdxN;
+                        bFrags[__anf04_4];
+                    uint32_t __anf05_3 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16,
                         16, float, void> &acc_frag =
-                        accFrags[((resIdxM * 2) + __anf04_3)];
+                        accFrags[((resIdxM * 2) + __anf05_3)];
                     wmma::mma_sync(acc_frag, a_frag, b_frag, acc_frag);
-                    uint32_t __anf05 = resIdxN;
-                    resIdxN = (__anf05 + 1);
+                    uint32_t __anf06 = resIdxN;
+                    resIdxN = (__anf06 + 1);
                 }
-                uint32_t __anf02_4 = resIdxM;
-                resIdxM = (__anf02_4 + 1);
+                uint32_t __anf03_4 = resIdxM;
+                resIdxM = (__anf03_4 + 1);
             }
-            uint32_t __anf02_5 = dotIdx;
-            dotIdx = (__anf02_5 + 1);
+            uint32_t __anf03_5 = dotIdx;
+            dotIdx = (__anf03_5 + 1);
         }
-        uint32_t __anf0_4 = bkIdx;
-        bkIdx = (__anf0_4 + 1);
+        uint32_t __anf01_4 = bkIdx;
+        bkIdx = (__anf01_4 + 1);
     }
     uint32_t bm = 128;
     uint32_t bn = 128;
@@ -13096,8 +13720,8 @@ __global__ static void kuiper_kernel_51(uint32_t cols, uint32_t shared,
     uint32_t lane = (tid % 32);
     uint32_t idx = 0;
     while (idx < (wm * wn)) {
-        uint32_t mrow = (bid / (cols / bn));
-        uint32_t mcol = (bid % (cols / bn));
+        uint32_t mrow1 = (bid / (cols / bn));
+        uint32_t mcol1 = (bid % (cols / bn));
         uint32_t warpRow1 = (wid1 / (bn / (wn * tn)));
         uint32_t warpCol1 = (wid1 % (bn / (wn * tn)));
         float *sTile = FStar_Pervasives_Native_fst__array_t_unit(
@@ -13110,22 +13734,22 @@ __global__ static void kuiper_kernel_51(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}})));
-        uint32_t __anf0_5 = idx;
+        uint32_t __anf0_2 = idx;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
-            void> &__anf1_3 = accFrags[__anf0_5];
+            void> &__anf1_3 = accFrags[__anf0_2];
         KPR_STORE(
             (sTile + ((0 + (tn * (wid1 * tm))) + (0 * tn))), __anf1_3, tn);
         uint32_t __anf01_5 = idx;
         uint32_t area = (tm * tn);
         uint32_t flat = lane;
         while (flat < area) {
-            uint32_t __anf02_6 = flat;
-            uint32_t row_2 = (__anf02_6 / tn);
-            uint32_t col_2 = (__anf02_6 % tn);
-            uint32_t globalRow = ((((mrow * bm) + (warpRow1 * (wm * tm))) +
+            uint32_t __anf02_4 = flat;
+            uint32_t row_2 = (__anf02_4 / tn);
+            uint32_t col_2 = (__anf02_4 % tn);
+            uint32_t globalRow = ((((mrow1 * bm) + (warpRow1 * (wm * tm))) +
                                       ((__anf01_5 / wn) * tm)) +
                                   row_2);
-            uint32_t globalCol = ((((mcol * bn) + (warpCol1 * (wn * tn))) +
+            uint32_t globalCol = ((((mcol1 * bn) + (warpCol1 * (wn * tn))) +
                                       ((__anf01_5 % wn) * tn)) +
                                   col_2);
             uint32_t ni_2 = ((globalRow * cols) + globalCol);
@@ -13140,8 +13764,8 @@ __global__ static void kuiper_kernel_51(uint32_t cols, uint32_t shared,
             uint32_t vflat = flat;
             flat = (vflat + 32);
         }
-        uint32_t __anf02_7 = idx;
-        idx = (__anf02_7 + 1);
+        uint32_t __anf02_5 = idx;
+        idx = (__anf02_5 + 1);
     }
 }
 
@@ -13150,8 +13774,6 @@ __global__ static void kuiper_kernel_52(uint32_t cols, uint32_t shared,
     custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
     float beta, float alpha, custard_bf16 *gD)
 {
-    (void) gA;
-    (void) gB;
     (void) nthr;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     custard_bf16 *tmp1 = (custard_bf16 *) tmp;
@@ -13173,6 +13795,9 @@ __global__ static void kuiper_kernel_52(uint32_t cols, uint32_t shared,
                 ._1 = tmp1, ._2 = tmp7};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    uint32_t num_n_tiles = (cols / 128);
+    uint32_t mrow = (bid / num_n_tiles);
+    uint32_t mcol = (bid % num_n_tiles);
     uint32_t wid = (tid / 32);
     uint32_t warpRow = (wid / 2);
     uint32_t warpCol = (wid % 2);
@@ -13211,6 +13836,7 @@ __global__ static void kuiper_kernel_52(uint32_t cols, uint32_t shared,
     }
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
+        uint32_t __anf0_1 = bkIdx;
         __syncthreads();
         uint32_t mlen = 2048;
         uint32_t offset = (tid * 8);
@@ -13220,26 +13846,31 @@ __global__ static void kuiper_kernel_52(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_1 = i;
-            uint32_t row = ((__anf0_1 + offset) / 16);
             uint32_t __anf01_1 = i;
-            uint32_t col = ((__anf01_1 + offset) % 16);
+            uint32_t row = ((__anf01_1 + offset) / 16);
+            uint32_t __anf02 = i;
+            uint32_t col = ((__anf02 + offset) % 16);
+            uint32_t offset1 =
+                ((((0 + (shared * (mrow * 128))) + (__anf0_1 * 16)) +
+                     (shared * row)) +
+                    col);
+            vec_memcpy((local + 0), (gA + offset1));
             uint32_t k = 0;
             while (k < 8) {
-                uint32_t __anf02 = k;
-                custard_bf16 v = local[__anf02];
                 uint32_t __anf03 = k;
-                uint32_t cidx = (col + __anf03);
+                custard_bf16 v = local[__anf03];
+                uint32_t __anf04 = k;
+                uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 16) + cidx);
                 _letpattern._1[ni] = v;
-                uint32_t __anf04 = k;
-                k = (__anf04 + 1);
+                uint32_t __anf05 = k;
+                k = (__anf05 + 1);
             }
             uint32_t vi = i;
             i = (vi + 512);
         }
         uint32_t mlen1 = 2048;
-        uint32_t offset1 = (tid * 8);
+        uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
             custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
@@ -13247,20 +13878,25 @@ __global__ static void kuiper_kernel_52(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_2 = i1;
-            uint32_t row_1 = ((__anf0_2 + offset1) / 128);
             uint32_t __anf01_2 = i1;
-            uint32_t col_1 = ((__anf01_2 + offset1) % 128);
+            uint32_t row_1 = ((__anf01_2 + offset1_1) / 128);
+            uint32_t __anf02_1 = i1;
+            uint32_t col_1 = ((__anf02_1 + offset1_1) % 128);
+            uint32_t offset2 =
+                ((((0 + (cols * (__anf0_1 * 16))) + (mcol * 128)) +
+                     (cols * row_1)) +
+                    col_1);
+            vec_memcpy((local_1 + 0), (gB + offset2));
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                uint32_t __anf02_1 = k_1;
-                custard_bf16 v_1 = local_1[__anf02_1];
                 uint32_t __anf03_1 = k_1;
-                uint32_t cidx_1 = (col_1 + __anf03_1);
+                custard_bf16 v_1 = local_1[__anf03_1];
+                uint32_t __anf04_1 = k_1;
+                uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
                 _letpattern._2[ni_1] = v_1;
-                uint32_t __anf04_1 = k_1;
-                k_1 = (__anf04_1 + 1);
+                uint32_t __anf05_1 = k_1;
+                k_1 = (__anf05_1 + 1);
             }
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 512);
@@ -13268,39 +13904,39 @@ __global__ static void kuiper_kernel_52(uint32_t cols, uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 1) {
-            uint32_t __anf0_3 = dotIdx;
+            uint32_t __anf01_3 = dotIdx;
             uint32_t i0 = 0;
             while (i0 < 8) {
-                uint32_t __anf01_3 = i0;
                 uint32_t __anf02_2 = i0;
+                uint32_t __anf03_2 = i0;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
-                    aFrags[__anf02_2];
+                    aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
                     (_letpattern._1 +
-                        ((((0 + (16 * (warpRow * 128))) + (__anf0_3 * 16)) +
-                             (16 * (__anf01_3 * 16))) +
+                        ((((0 + (16 * (warpRow * 128))) + (__anf01_3 * 16)) +
+                             (16 * (__anf02_2 * 16))) +
                             0)),
                     ((uint32_t) 16U));
-                uint32_t __anf03_2 = i0;
-                i0 = (__anf03_2 + 1);
+                uint32_t __anf04_2 = i0;
+                i0 = (__anf04_2 + 1);
             }
-            uint32_t __anf01_4 = dotIdx;
+            uint32_t __anf02_3 = dotIdx;
             uint32_t i11 = 0;
             while (i11 < 4) {
-                uint32_t __anf02_3 = i11;
                 uint32_t __anf03_3 = i11;
+                uint32_t __anf04_3 = i11;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
-                    bFrags[__anf03_3];
+                    bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
                     (_letpattern._2 +
-                        ((((0 + (128 * (__anf01_4 * 16))) + (warpCol * 64)) +
+                        ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 64)) +
                              0) +
-                            (__anf02_3 * 16))),
+                            (__anf03_3 * 16))),
                     ((uint32_t) 128U));
-                uint32_t __anf04_2 = i11;
-                i11 = (__anf04_2 + 1);
+                uint32_t __anf05_2 = i11;
+                i11 = (__anf05_2 + 1);
             }
             uint32_t resIdxM = 0;
             while (resIdxM < 8) {
@@ -13309,26 +13945,26 @@ __global__ static void kuiper_kernel_52(uint32_t cols, uint32_t shared,
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &a_frag =
                         aFrags[resIdxM];
-                    uint32_t __anf03_4 = resIdxN;
+                    uint32_t __anf04_4 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &b_frag =
-                        bFrags[__anf03_4];
-                    uint32_t __anf04_3 = resIdxN;
+                        bFrags[__anf04_4];
+                    uint32_t __anf05_3 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16,
                         16, float, void> &acc_frag =
-                        accFrags[((resIdxM * 4) + __anf04_3)];
+                        accFrags[((resIdxM * 4) + __anf05_3)];
                     wmma::mma_sync(acc_frag, a_frag, b_frag, acc_frag);
-                    uint32_t __anf05 = resIdxN;
-                    resIdxN = (__anf05 + 1);
+                    uint32_t __anf06 = resIdxN;
+                    resIdxN = (__anf06 + 1);
                 }
-                uint32_t __anf02_4 = resIdxM;
-                resIdxM = (__anf02_4 + 1);
+                uint32_t __anf03_4 = resIdxM;
+                resIdxM = (__anf03_4 + 1);
             }
-            uint32_t __anf02_5 = dotIdx;
-            dotIdx = (__anf02_5 + 1);
+            uint32_t __anf03_5 = dotIdx;
+            dotIdx = (__anf03_5 + 1);
         }
-        uint32_t __anf0_4 = bkIdx;
-        bkIdx = (__anf0_4 + 1);
+        uint32_t __anf01_4 = bkIdx;
+        bkIdx = (__anf01_4 + 1);
     }
     uint32_t bm = 128;
     uint32_t bn = 128;
@@ -13340,8 +13976,8 @@ __global__ static void kuiper_kernel_52(uint32_t cols, uint32_t shared,
     uint32_t lane = (tid % 32);
     uint32_t idx = 0;
     while (idx < (wm * wn)) {
-        uint32_t mrow = (bid / (cols / bn));
-        uint32_t mcol = (bid % (cols / bn));
+        uint32_t mrow1 = (bid / (cols / bn));
+        uint32_t mcol1 = (bid % (cols / bn));
         uint32_t warpRow1 = (wid1 / (bn / (wn * tn)));
         uint32_t warpCol1 = (wid1 % (bn / (wn * tn)));
         float *sTile = FStar_Pervasives_Native_fst__array_t_unit(
@@ -13354,22 +13990,22 @@ __global__ static void kuiper_kernel_52(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}})));
-        uint32_t __anf0_5 = idx;
+        uint32_t __anf0_2 = idx;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
-            void> &__anf1_3 = accFrags[__anf0_5];
+            void> &__anf1_3 = accFrags[__anf0_2];
         KPR_STORE(
             (sTile + ((0 + (tn * (wid1 * tm))) + (0 * tn))), __anf1_3, tn);
         uint32_t __anf01_5 = idx;
         uint32_t area = (tm * tn);
         uint32_t flat = lane;
         while (flat < area) {
-            uint32_t __anf02_6 = flat;
-            uint32_t row_2 = (__anf02_6 / tn);
-            uint32_t col_2 = (__anf02_6 % tn);
-            uint32_t globalRow = ((((mrow * bm) + (warpRow1 * (wm * tm))) +
+            uint32_t __anf02_4 = flat;
+            uint32_t row_2 = (__anf02_4 / tn);
+            uint32_t col_2 = (__anf02_4 % tn);
+            uint32_t globalRow = ((((mrow1 * bm) + (warpRow1 * (wm * tm))) +
                                       ((__anf01_5 / wn) * tm)) +
                                   row_2);
-            uint32_t globalCol = ((((mcol * bn) + (warpCol1 * (wn * tn))) +
+            uint32_t globalCol = ((((mcol1 * bn) + (warpCol1 * (wn * tn))) +
                                       ((__anf01_5 % wn) * tn)) +
                                   col_2);
             uint32_t ni_2 = ((globalRow * cols) + globalCol);
@@ -13384,8 +14020,8 @@ __global__ static void kuiper_kernel_52(uint32_t cols, uint32_t shared,
             uint32_t vflat = flat;
             flat = (vflat + 32);
         }
-        uint32_t __anf02_7 = idx;
-        idx = (__anf02_7 + 1);
+        uint32_t __anf02_5 = idx;
+        idx = (__anf02_5 + 1);
     }
 }
 
@@ -13394,8 +14030,6 @@ __global__ static void kuiper_kernel_53(uint32_t cols, uint32_t shared,
     custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
     float beta, float alpha, custard_bf16 *gD)
 {
-    (void) gA;
-    (void) gB;
     (void) nthr;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     custard_bf16 *tmp1 = (custard_bf16 *) tmp;
@@ -13417,6 +14051,9 @@ __global__ static void kuiper_kernel_53(uint32_t cols, uint32_t shared,
                 ._1 = tmp1, ._2 = tmp7};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    uint32_t num_n_tiles = (cols / 128);
+    uint32_t mrow = (bid / num_n_tiles);
+    uint32_t mcol = (bid % num_n_tiles);
     uint32_t wid = (tid / 32);
     uint32_t warpRow = (wid / 1);
     uint32_t warpCol = (wid % 1);
@@ -13455,6 +14092,7 @@ __global__ static void kuiper_kernel_53(uint32_t cols, uint32_t shared,
     }
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
+        uint32_t __anf0_1 = bkIdx;
         __syncthreads();
         uint32_t mlen = 2048;
         uint32_t offset = (tid * 8);
@@ -13464,26 +14102,31 @@ __global__ static void kuiper_kernel_53(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_1 = i;
-            uint32_t row = ((__anf0_1 + offset) / 16);
             uint32_t __anf01_1 = i;
-            uint32_t col = ((__anf01_1 + offset) % 16);
+            uint32_t row = ((__anf01_1 + offset) / 16);
+            uint32_t __anf02 = i;
+            uint32_t col = ((__anf02 + offset) % 16);
+            uint32_t offset1 =
+                ((((0 + (shared * (mrow * 128))) + (__anf0_1 * 16)) +
+                     (shared * row)) +
+                    col);
+            vec_memcpy((local + 0), (gA + offset1));
             uint32_t k = 0;
             while (k < 8) {
-                uint32_t __anf02 = k;
-                custard_bf16 v = local[__anf02];
                 uint32_t __anf03 = k;
-                uint32_t cidx = (col + __anf03);
+                custard_bf16 v = local[__anf03];
+                uint32_t __anf04 = k;
+                uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 16) + cidx);
                 _letpattern._1[ni] = v;
-                uint32_t __anf04 = k;
-                k = (__anf04 + 1);
+                uint32_t __anf05 = k;
+                k = (__anf05 + 1);
             }
             uint32_t vi = i;
             i = (vi + 256);
         }
         uint32_t mlen1 = 2048;
-        uint32_t offset1 = (tid * 8);
+        uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
             custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
@@ -13491,20 +14134,25 @@ __global__ static void kuiper_kernel_53(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_2 = i1;
-            uint32_t row_1 = ((__anf0_2 + offset1) / 128);
             uint32_t __anf01_2 = i1;
-            uint32_t col_1 = ((__anf01_2 + offset1) % 128);
+            uint32_t row_1 = ((__anf01_2 + offset1_1) / 128);
+            uint32_t __anf02_1 = i1;
+            uint32_t col_1 = ((__anf02_1 + offset1_1) % 128);
+            uint32_t offset2 =
+                ((((0 + (cols * (__anf0_1 * 16))) + (mcol * 128)) +
+                     (cols * row_1)) +
+                    col_1);
+            vec_memcpy((local_1 + 0), (gB + offset2));
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                uint32_t __anf02_1 = k_1;
-                custard_bf16 v_1 = local_1[__anf02_1];
                 uint32_t __anf03_1 = k_1;
-                uint32_t cidx_1 = (col_1 + __anf03_1);
+                custard_bf16 v_1 = local_1[__anf03_1];
+                uint32_t __anf04_1 = k_1;
+                uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
                 _letpattern._2[ni_1] = v_1;
-                uint32_t __anf04_1 = k_1;
-                k_1 = (__anf04_1 + 1);
+                uint32_t __anf05_1 = k_1;
+                k_1 = (__anf05_1 + 1);
             }
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 256);
@@ -13512,39 +14160,39 @@ __global__ static void kuiper_kernel_53(uint32_t cols, uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 1) {
-            uint32_t __anf0_3 = dotIdx;
+            uint32_t __anf01_3 = dotIdx;
             uint32_t i0 = 0;
             while (i0 < 8) {
-                uint32_t __anf01_3 = i0;
                 uint32_t __anf02_2 = i0;
+                uint32_t __anf03_2 = i0;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
-                    aFrags[__anf02_2];
+                    aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
                     (_letpattern._1 +
-                        ((((0 + (16 * (warpRow * 128))) + (__anf0_3 * 16)) +
-                             (16 * (__anf01_3 * 16))) +
+                        ((((0 + (16 * (warpRow * 128))) + (__anf01_3 * 16)) +
+                             (16 * (__anf02_2 * 16))) +
                             0)),
                     ((uint32_t) 16U));
-                uint32_t __anf03_2 = i0;
-                i0 = (__anf03_2 + 1);
+                uint32_t __anf04_2 = i0;
+                i0 = (__anf04_2 + 1);
             }
-            uint32_t __anf01_4 = dotIdx;
+            uint32_t __anf02_3 = dotIdx;
             uint32_t i11 = 0;
             while (i11 < 8) {
-                uint32_t __anf02_3 = i11;
                 uint32_t __anf03_3 = i11;
+                uint32_t __anf04_3 = i11;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
-                    bFrags[__anf03_3];
+                    bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
                     (_letpattern._2 +
-                        ((((0 + (128 * (__anf01_4 * 16))) + (warpCol * 128)) +
+                        ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 128)) +
                              0) +
-                            (__anf02_3 * 16))),
+                            (__anf03_3 * 16))),
                     ((uint32_t) 128U));
-                uint32_t __anf04_2 = i11;
-                i11 = (__anf04_2 + 1);
+                uint32_t __anf05_2 = i11;
+                i11 = (__anf05_2 + 1);
             }
             uint32_t resIdxM = 0;
             while (resIdxM < 8) {
@@ -13553,26 +14201,26 @@ __global__ static void kuiper_kernel_53(uint32_t cols, uint32_t shared,
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &a_frag =
                         aFrags[resIdxM];
-                    uint32_t __anf03_4 = resIdxN;
+                    uint32_t __anf04_4 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &b_frag =
-                        bFrags[__anf03_4];
-                    uint32_t __anf04_3 = resIdxN;
+                        bFrags[__anf04_4];
+                    uint32_t __anf05_3 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16,
                         16, float, void> &acc_frag =
-                        accFrags[((resIdxM * 8) + __anf04_3)];
+                        accFrags[((resIdxM * 8) + __anf05_3)];
                     wmma::mma_sync(acc_frag, a_frag, b_frag, acc_frag);
-                    uint32_t __anf05 = resIdxN;
-                    resIdxN = (__anf05 + 1);
+                    uint32_t __anf06 = resIdxN;
+                    resIdxN = (__anf06 + 1);
                 }
-                uint32_t __anf02_4 = resIdxM;
-                resIdxM = (__anf02_4 + 1);
+                uint32_t __anf03_4 = resIdxM;
+                resIdxM = (__anf03_4 + 1);
             }
-            uint32_t __anf02_5 = dotIdx;
-            dotIdx = (__anf02_5 + 1);
+            uint32_t __anf03_5 = dotIdx;
+            dotIdx = (__anf03_5 + 1);
         }
-        uint32_t __anf0_4 = bkIdx;
-        bkIdx = (__anf0_4 + 1);
+        uint32_t __anf01_4 = bkIdx;
+        bkIdx = (__anf01_4 + 1);
     }
     uint32_t bm = 128;
     uint32_t bn = 128;
@@ -13584,8 +14232,8 @@ __global__ static void kuiper_kernel_53(uint32_t cols, uint32_t shared,
     uint32_t lane = (tid % 32);
     uint32_t idx = 0;
     while (idx < (wm * wn)) {
-        uint32_t mrow = (bid / (cols / bn));
-        uint32_t mcol = (bid % (cols / bn));
+        uint32_t mrow1 = (bid / (cols / bn));
+        uint32_t mcol1 = (bid % (cols / bn));
         uint32_t warpRow1 = (wid1 / (bn / (wn * tn)));
         uint32_t warpCol1 = (wid1 % (bn / (wn * tn)));
         float *sTile = FStar_Pervasives_Native_fst__array_t_unit(
@@ -13598,22 +14246,22 @@ __global__ static void kuiper_kernel_53(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}})));
-        uint32_t __anf0_5 = idx;
+        uint32_t __anf0_2 = idx;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
-            void> &__anf1_3 = accFrags[__anf0_5];
+            void> &__anf1_3 = accFrags[__anf0_2];
         KPR_STORE(
             (sTile + ((0 + (tn * (wid1 * tm))) + (0 * tn))), __anf1_3, tn);
         uint32_t __anf01_5 = idx;
         uint32_t area = (tm * tn);
         uint32_t flat = lane;
         while (flat < area) {
-            uint32_t __anf02_6 = flat;
-            uint32_t row_2 = (__anf02_6 / tn);
-            uint32_t col_2 = (__anf02_6 % tn);
-            uint32_t globalRow = ((((mrow * bm) + (warpRow1 * (wm * tm))) +
+            uint32_t __anf02_4 = flat;
+            uint32_t row_2 = (__anf02_4 / tn);
+            uint32_t col_2 = (__anf02_4 % tn);
+            uint32_t globalRow = ((((mrow1 * bm) + (warpRow1 * (wm * tm))) +
                                       ((__anf01_5 / wn) * tm)) +
                                   row_2);
-            uint32_t globalCol = ((((mcol * bn) + (warpCol1 * (wn * tn))) +
+            uint32_t globalCol = ((((mcol1 * bn) + (warpCol1 * (wn * tn))) +
                                       ((__anf01_5 % wn) * tn)) +
                                   col_2);
             uint32_t ni_2 = ((globalRow * cols) + globalCol);
@@ -13628,8 +14276,8 @@ __global__ static void kuiper_kernel_53(uint32_t cols, uint32_t shared,
             uint32_t vflat = flat;
             flat = (vflat + 32);
         }
-        uint32_t __anf02_7 = idx;
-        idx = (__anf02_7 + 1);
+        uint32_t __anf02_5 = idx;
+        idx = (__anf02_5 + 1);
     }
 }
 
@@ -13653,8 +14301,6 @@ __global__ static void kuiper_kernel_54(uint32_t cols, uint32_t shared,
     custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
     float beta, float alpha, custard_bf16 *gD)
 {
-    (void) gA;
-    (void) gB;
     (void) nthr;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     custard_bf16 *tmp1 = (custard_bf16 *) tmp;
@@ -13676,6 +14322,9 @@ __global__ static void kuiper_kernel_54(uint32_t cols, uint32_t shared,
                 ._1 = tmp1, ._2 = tmp7};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    uint32_t num_n_tiles = (cols / 128);
+    uint32_t mrow = (bid / num_n_tiles);
+    uint32_t mcol = (bid % num_n_tiles);
     uint32_t wid = (tid / 32);
     uint32_t warpRow = (wid / 4);
     uint32_t warpCol = (wid % 4);
@@ -13714,6 +14363,7 @@ __global__ static void kuiper_kernel_54(uint32_t cols, uint32_t shared,
     }
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
+        uint32_t __anf0_1 = bkIdx;
         __syncthreads();
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 8);
@@ -13723,26 +14373,31 @@ __global__ static void kuiper_kernel_54(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_1 = i;
-            uint32_t row = ((__anf0_1 + offset) / 32);
             uint32_t __anf01_1 = i;
-            uint32_t col = ((__anf01_1 + offset) % 32);
+            uint32_t row = ((__anf01_1 + offset) / 32);
+            uint32_t __anf02 = i;
+            uint32_t col = ((__anf02 + offset) % 32);
+            uint32_t offset1 =
+                ((((0 + (shared * (mrow * 128))) + (__anf0_1 * 32)) +
+                     (shared * row)) +
+                    col);
+            vec_memcpy((local + 0), (gA + offset1));
             uint32_t k = 0;
             while (k < 8) {
-                uint32_t __anf02 = k;
-                custard_bf16 v = local[__anf02];
                 uint32_t __anf03 = k;
-                uint32_t cidx = (col + __anf03);
+                custard_bf16 v = local[__anf03];
+                uint32_t __anf04 = k;
+                uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 32) + cidx);
                 _letpattern._1[ni] = v;
-                uint32_t __anf04 = k;
-                k = (__anf04 + 1);
+                uint32_t __anf05 = k;
+                k = (__anf05 + 1);
             }
             uint32_t vi = i;
             i = (vi + 4096);
         }
         uint32_t mlen1 = 4096;
-        uint32_t offset1 = (tid * 8);
+        uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
             custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
@@ -13750,20 +14405,25 @@ __global__ static void kuiper_kernel_54(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_2 = i1;
-            uint32_t row_1 = ((__anf0_2 + offset1) / 128);
             uint32_t __anf01_2 = i1;
-            uint32_t col_1 = ((__anf01_2 + offset1) % 128);
+            uint32_t row_1 = ((__anf01_2 + offset1_1) / 128);
+            uint32_t __anf02_1 = i1;
+            uint32_t col_1 = ((__anf02_1 + offset1_1) % 128);
+            uint32_t offset2 =
+                ((((0 + (cols * (__anf0_1 * 32))) + (mcol * 128)) +
+                     (cols * row_1)) +
+                    col_1);
+            vec_memcpy((local_1 + 0), (gB + offset2));
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                uint32_t __anf02_1 = k_1;
-                custard_bf16 v_1 = local_1[__anf02_1];
                 uint32_t __anf03_1 = k_1;
-                uint32_t cidx_1 = (col_1 + __anf03_1);
+                custard_bf16 v_1 = local_1[__anf03_1];
+                uint32_t __anf04_1 = k_1;
+                uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
                 _letpattern._2[ni_1] = v_1;
-                uint32_t __anf04_1 = k_1;
-                k_1 = (__anf04_1 + 1);
+                uint32_t __anf05_1 = k_1;
+                k_1 = (__anf05_1 + 1);
             }
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 4096);
@@ -13771,39 +14431,39 @@ __global__ static void kuiper_kernel_54(uint32_t cols, uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 2) {
-            uint32_t __anf0_3 = dotIdx;
+            uint32_t __anf01_3 = dotIdx;
             uint32_t i0 = 0;
             while (i0 < 2) {
-                uint32_t __anf01_3 = i0;
                 uint32_t __anf02_2 = i0;
+                uint32_t __anf03_2 = i0;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
-                    aFrags[__anf02_2];
+                    aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
                     (_letpattern._1 +
-                        ((((0 + (32 * (warpRow * 32))) + (__anf0_3 * 16)) +
-                             (32 * (__anf01_3 * 16))) +
+                        ((((0 + (32 * (warpRow * 32))) + (__anf01_3 * 16)) +
+                             (32 * (__anf02_2 * 16))) +
                             0)),
                     ((uint32_t) 32U));
-                uint32_t __anf03_2 = i0;
-                i0 = (__anf03_2 + 1);
+                uint32_t __anf04_2 = i0;
+                i0 = (__anf04_2 + 1);
             }
-            uint32_t __anf01_4 = dotIdx;
+            uint32_t __anf02_3 = dotIdx;
             uint32_t i11 = 0;
             while (i11 < 2) {
-                uint32_t __anf02_3 = i11;
                 uint32_t __anf03_3 = i11;
+                uint32_t __anf04_3 = i11;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
-                    bFrags[__anf03_3];
+                    bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
                     (_letpattern._2 +
-                        ((((0 + (128 * (__anf01_4 * 16))) + (warpCol * 32)) +
+                        ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 32)) +
                              0) +
-                            (__anf02_3 * 16))),
+                            (__anf03_3 * 16))),
                     ((uint32_t) 128U));
-                uint32_t __anf04_2 = i11;
-                i11 = (__anf04_2 + 1);
+                uint32_t __anf05_2 = i11;
+                i11 = (__anf05_2 + 1);
             }
             uint32_t resIdxM = 0;
             while (resIdxM < 2) {
@@ -13812,26 +14472,26 @@ __global__ static void kuiper_kernel_54(uint32_t cols, uint32_t shared,
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &a_frag =
                         aFrags[resIdxM];
-                    uint32_t __anf03_4 = resIdxN;
+                    uint32_t __anf04_4 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &b_frag =
-                        bFrags[__anf03_4];
-                    uint32_t __anf04_3 = resIdxN;
+                        bFrags[__anf04_4];
+                    uint32_t __anf05_3 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16,
                         16, float, void> &acc_frag =
-                        accFrags[((resIdxM * 2) + __anf04_3)];
+                        accFrags[((resIdxM * 2) + __anf05_3)];
                     wmma::mma_sync(acc_frag, a_frag, b_frag, acc_frag);
-                    uint32_t __anf05 = resIdxN;
-                    resIdxN = (__anf05 + 1);
+                    uint32_t __anf06 = resIdxN;
+                    resIdxN = (__anf06 + 1);
                 }
-                uint32_t __anf02_4 = resIdxM;
-                resIdxM = (__anf02_4 + 1);
+                uint32_t __anf03_4 = resIdxM;
+                resIdxM = (__anf03_4 + 1);
             }
-            uint32_t __anf02_5 = dotIdx;
-            dotIdx = (__anf02_5 + 1);
+            uint32_t __anf03_5 = dotIdx;
+            dotIdx = (__anf03_5 + 1);
         }
-        uint32_t __anf0_4 = bkIdx;
-        bkIdx = (__anf0_4 + 1);
+        uint32_t __anf01_4 = bkIdx;
+        bkIdx = (__anf01_4 + 1);
     }
     uint32_t bm = 128;
     uint32_t bn = 128;
@@ -13843,8 +14503,8 @@ __global__ static void kuiper_kernel_54(uint32_t cols, uint32_t shared,
     uint32_t lane = (tid % 32);
     uint32_t idx = 0;
     while (idx < (wm * wn)) {
-        uint32_t mrow = (bid / (cols / bn));
-        uint32_t mcol = (bid % (cols / bn));
+        uint32_t mrow1 = (bid / (cols / bn));
+        uint32_t mcol1 = (bid % (cols / bn));
         uint32_t warpRow1 = (wid1 / (bn / (wn * tn)));
         uint32_t warpCol1 = (wid1 % (bn / (wn * tn)));
         float *sTile = FStar_Pervasives_Native_fst__array_t_unit(
@@ -13857,22 +14517,22 @@ __global__ static void kuiper_kernel_54(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}})));
-        uint32_t __anf0_5 = idx;
+        uint32_t __anf0_2 = idx;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
-            void> &__anf1_3 = accFrags[__anf0_5];
+            void> &__anf1_3 = accFrags[__anf0_2];
         KPR_STORE(
             (sTile + ((0 + (tn * (wid1 * tm))) + (0 * tn))), __anf1_3, tn);
         uint32_t __anf01_5 = idx;
         uint32_t area = (tm * tn);
         uint32_t flat = lane;
         while (flat < area) {
-            uint32_t __anf02_6 = flat;
-            uint32_t row_2 = (__anf02_6 / tn);
-            uint32_t col_2 = (__anf02_6 % tn);
-            uint32_t globalRow = ((((mrow * bm) + (warpRow1 * (wm * tm))) +
+            uint32_t __anf02_4 = flat;
+            uint32_t row_2 = (__anf02_4 / tn);
+            uint32_t col_2 = (__anf02_4 % tn);
+            uint32_t globalRow = ((((mrow1 * bm) + (warpRow1 * (wm * tm))) +
                                       ((__anf01_5 / wn) * tm)) +
                                   row_2);
-            uint32_t globalCol = ((((mcol * bn) + (warpCol1 * (wn * tn))) +
+            uint32_t globalCol = ((((mcol1 * bn) + (warpCol1 * (wn * tn))) +
                                       ((__anf01_5 % wn) * tn)) +
                                   col_2);
             uint32_t ni_2 = ((globalRow * cols) + globalCol);
@@ -13887,8 +14547,8 @@ __global__ static void kuiper_kernel_54(uint32_t cols, uint32_t shared,
             uint32_t vflat = flat;
             flat = (vflat + 32);
         }
-        uint32_t __anf02_7 = idx;
-        idx = (__anf02_7 + 1);
+        uint32_t __anf02_5 = idx;
+        idx = (__anf02_5 + 1);
     }
 }
 
@@ -13897,8 +14557,6 @@ __global__ static void kuiper_kernel_55(uint32_t cols, uint32_t shared,
     custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
     float beta, float alpha, custard_bf16 *gD)
 {
-    (void) gA;
-    (void) gB;
     (void) nthr;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     custard_bf16 *tmp1 = (custard_bf16 *) tmp;
@@ -13920,6 +14578,9 @@ __global__ static void kuiper_kernel_55(uint32_t cols, uint32_t shared,
                 ._1 = tmp1, ._2 = tmp7};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    uint32_t num_n_tiles = (cols / 128);
+    uint32_t mrow = (bid / num_n_tiles);
+    uint32_t mcol = (bid % num_n_tiles);
     uint32_t wid = (tid / 32);
     uint32_t warpRow = (wid / 2);
     uint32_t warpCol = (wid % 2);
@@ -13958,6 +14619,7 @@ __global__ static void kuiper_kernel_55(uint32_t cols, uint32_t shared,
     }
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
+        uint32_t __anf0_1 = bkIdx;
         __syncthreads();
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 8);
@@ -13967,26 +14629,31 @@ __global__ static void kuiper_kernel_55(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_1 = i;
-            uint32_t row = ((__anf0_1 + offset) / 32);
             uint32_t __anf01_1 = i;
-            uint32_t col = ((__anf01_1 + offset) % 32);
+            uint32_t row = ((__anf01_1 + offset) / 32);
+            uint32_t __anf02 = i;
+            uint32_t col = ((__anf02 + offset) % 32);
+            uint32_t offset1 =
+                ((((0 + (shared * (mrow * 128))) + (__anf0_1 * 32)) +
+                     (shared * row)) +
+                    col);
+            vec_memcpy((local + 0), (gA + offset1));
             uint32_t k = 0;
             while (k < 8) {
-                uint32_t __anf02 = k;
-                custard_bf16 v = local[__anf02];
                 uint32_t __anf03 = k;
-                uint32_t cidx = (col + __anf03);
+                custard_bf16 v = local[__anf03];
+                uint32_t __anf04 = k;
+                uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 32) + cidx);
                 _letpattern._1[ni] = v;
-                uint32_t __anf04 = k;
-                k = (__anf04 + 1);
+                uint32_t __anf05 = k;
+                k = (__anf05 + 1);
             }
             uint32_t vi = i;
             i = (vi + 2048);
         }
         uint32_t mlen1 = 4096;
-        uint32_t offset1 = (tid * 8);
+        uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
             custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
@@ -13994,20 +14661,25 @@ __global__ static void kuiper_kernel_55(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_2 = i1;
-            uint32_t row_1 = ((__anf0_2 + offset1) / 128);
             uint32_t __anf01_2 = i1;
-            uint32_t col_1 = ((__anf01_2 + offset1) % 128);
+            uint32_t row_1 = ((__anf01_2 + offset1_1) / 128);
+            uint32_t __anf02_1 = i1;
+            uint32_t col_1 = ((__anf02_1 + offset1_1) % 128);
+            uint32_t offset2 =
+                ((((0 + (cols * (__anf0_1 * 32))) + (mcol * 128)) +
+                     (cols * row_1)) +
+                    col_1);
+            vec_memcpy((local_1 + 0), (gB + offset2));
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                uint32_t __anf02_1 = k_1;
-                custard_bf16 v_1 = local_1[__anf02_1];
                 uint32_t __anf03_1 = k_1;
-                uint32_t cidx_1 = (col_1 + __anf03_1);
+                custard_bf16 v_1 = local_1[__anf03_1];
+                uint32_t __anf04_1 = k_1;
+                uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
                 _letpattern._2[ni_1] = v_1;
-                uint32_t __anf04_1 = k_1;
-                k_1 = (__anf04_1 + 1);
+                uint32_t __anf05_1 = k_1;
+                k_1 = (__anf05_1 + 1);
             }
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 2048);
@@ -14015,39 +14687,39 @@ __global__ static void kuiper_kernel_55(uint32_t cols, uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 2) {
-            uint32_t __anf0_3 = dotIdx;
+            uint32_t __anf01_3 = dotIdx;
             uint32_t i0 = 0;
             while (i0 < 2) {
-                uint32_t __anf01_3 = i0;
                 uint32_t __anf02_2 = i0;
+                uint32_t __anf03_2 = i0;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
-                    aFrags[__anf02_2];
+                    aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
                     (_letpattern._1 +
-                        ((((0 + (32 * (warpRow * 32))) + (__anf0_3 * 16)) +
-                             (32 * (__anf01_3 * 16))) +
+                        ((((0 + (32 * (warpRow * 32))) + (__anf01_3 * 16)) +
+                             (32 * (__anf02_2 * 16))) +
                             0)),
                     ((uint32_t) 32U));
-                uint32_t __anf03_2 = i0;
-                i0 = (__anf03_2 + 1);
+                uint32_t __anf04_2 = i0;
+                i0 = (__anf04_2 + 1);
             }
-            uint32_t __anf01_4 = dotIdx;
+            uint32_t __anf02_3 = dotIdx;
             uint32_t i11 = 0;
             while (i11 < 4) {
-                uint32_t __anf02_3 = i11;
                 uint32_t __anf03_3 = i11;
+                uint32_t __anf04_3 = i11;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
-                    bFrags[__anf03_3];
+                    bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
                     (_letpattern._2 +
-                        ((((0 + (128 * (__anf01_4 * 16))) + (warpCol * 64)) +
+                        ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 64)) +
                              0) +
-                            (__anf02_3 * 16))),
+                            (__anf03_3 * 16))),
                     ((uint32_t) 128U));
-                uint32_t __anf04_2 = i11;
-                i11 = (__anf04_2 + 1);
+                uint32_t __anf05_2 = i11;
+                i11 = (__anf05_2 + 1);
             }
             uint32_t resIdxM = 0;
             while (resIdxM < 2) {
@@ -14056,26 +14728,26 @@ __global__ static void kuiper_kernel_55(uint32_t cols, uint32_t shared,
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &a_frag =
                         aFrags[resIdxM];
-                    uint32_t __anf03_4 = resIdxN;
+                    uint32_t __anf04_4 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &b_frag =
-                        bFrags[__anf03_4];
-                    uint32_t __anf04_3 = resIdxN;
+                        bFrags[__anf04_4];
+                    uint32_t __anf05_3 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16,
                         16, float, void> &acc_frag =
-                        accFrags[((resIdxM * 4) + __anf04_3)];
+                        accFrags[((resIdxM * 4) + __anf05_3)];
                     wmma::mma_sync(acc_frag, a_frag, b_frag, acc_frag);
-                    uint32_t __anf05 = resIdxN;
-                    resIdxN = (__anf05 + 1);
+                    uint32_t __anf06 = resIdxN;
+                    resIdxN = (__anf06 + 1);
                 }
-                uint32_t __anf02_4 = resIdxM;
-                resIdxM = (__anf02_4 + 1);
+                uint32_t __anf03_4 = resIdxM;
+                resIdxM = (__anf03_4 + 1);
             }
-            uint32_t __anf02_5 = dotIdx;
-            dotIdx = (__anf02_5 + 1);
+            uint32_t __anf03_5 = dotIdx;
+            dotIdx = (__anf03_5 + 1);
         }
-        uint32_t __anf0_4 = bkIdx;
-        bkIdx = (__anf0_4 + 1);
+        uint32_t __anf01_4 = bkIdx;
+        bkIdx = (__anf01_4 + 1);
     }
     uint32_t bm = 128;
     uint32_t bn = 128;
@@ -14087,8 +14759,8 @@ __global__ static void kuiper_kernel_55(uint32_t cols, uint32_t shared,
     uint32_t lane = (tid % 32);
     uint32_t idx = 0;
     while (idx < (wm * wn)) {
-        uint32_t mrow = (bid / (cols / bn));
-        uint32_t mcol = (bid % (cols / bn));
+        uint32_t mrow1 = (bid / (cols / bn));
+        uint32_t mcol1 = (bid % (cols / bn));
         uint32_t warpRow1 = (wid1 / (bn / (wn * tn)));
         uint32_t warpCol1 = (wid1 % (bn / (wn * tn)));
         float *sTile = FStar_Pervasives_Native_fst__array_t_unit(
@@ -14101,22 +14773,22 @@ __global__ static void kuiper_kernel_55(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}})));
-        uint32_t __anf0_5 = idx;
+        uint32_t __anf0_2 = idx;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
-            void> &__anf1_3 = accFrags[__anf0_5];
+            void> &__anf1_3 = accFrags[__anf0_2];
         KPR_STORE(
             (sTile + ((0 + (tn * (wid1 * tm))) + (0 * tn))), __anf1_3, tn);
         uint32_t __anf01_5 = idx;
         uint32_t area = (tm * tn);
         uint32_t flat = lane;
         while (flat < area) {
-            uint32_t __anf02_6 = flat;
-            uint32_t row_2 = (__anf02_6 / tn);
-            uint32_t col_2 = (__anf02_6 % tn);
-            uint32_t globalRow = ((((mrow * bm) + (warpRow1 * (wm * tm))) +
+            uint32_t __anf02_4 = flat;
+            uint32_t row_2 = (__anf02_4 / tn);
+            uint32_t col_2 = (__anf02_4 % tn);
+            uint32_t globalRow = ((((mrow1 * bm) + (warpRow1 * (wm * tm))) +
                                       ((__anf01_5 / wn) * tm)) +
                                   row_2);
-            uint32_t globalCol = ((((mcol * bn) + (warpCol1 * (wn * tn))) +
+            uint32_t globalCol = ((((mcol1 * bn) + (warpCol1 * (wn * tn))) +
                                       ((__anf01_5 % wn) * tn)) +
                                   col_2);
             uint32_t ni_2 = ((globalRow * cols) + globalCol);
@@ -14131,8 +14803,8 @@ __global__ static void kuiper_kernel_55(uint32_t cols, uint32_t shared,
             uint32_t vflat = flat;
             flat = (vflat + 32);
         }
-        uint32_t __anf02_7 = idx;
-        idx = (__anf02_7 + 1);
+        uint32_t __anf02_5 = idx;
+        idx = (__anf02_5 + 1);
     }
 }
 
@@ -14141,8 +14813,6 @@ __global__ static void kuiper_kernel_56(uint32_t cols, uint32_t shared,
     custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
     float beta, float alpha, custard_bf16 *gD)
 {
-    (void) gA;
-    (void) gB;
     (void) nthr;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     custard_bf16 *tmp1 = (custard_bf16 *) tmp;
@@ -14164,6 +14834,9 @@ __global__ static void kuiper_kernel_56(uint32_t cols, uint32_t shared,
                 ._1 = tmp1, ._2 = tmp7};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    uint32_t num_n_tiles = (cols / 128);
+    uint32_t mrow = (bid / num_n_tiles);
+    uint32_t mcol = (bid % num_n_tiles);
     uint32_t wid = (tid / 32);
     uint32_t warpRow = (wid / 1);
     uint32_t warpCol = (wid % 1);
@@ -14202,6 +14875,7 @@ __global__ static void kuiper_kernel_56(uint32_t cols, uint32_t shared,
     }
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
+        uint32_t __anf0_1 = bkIdx;
         __syncthreads();
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 8);
@@ -14211,26 +14885,31 @@ __global__ static void kuiper_kernel_56(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_1 = i;
-            uint32_t row = ((__anf0_1 + offset) / 32);
             uint32_t __anf01_1 = i;
-            uint32_t col = ((__anf01_1 + offset) % 32);
+            uint32_t row = ((__anf01_1 + offset) / 32);
+            uint32_t __anf02 = i;
+            uint32_t col = ((__anf02 + offset) % 32);
+            uint32_t offset1 =
+                ((((0 + (shared * (mrow * 128))) + (__anf0_1 * 32)) +
+                     (shared * row)) +
+                    col);
+            vec_memcpy((local + 0), (gA + offset1));
             uint32_t k = 0;
             while (k < 8) {
-                uint32_t __anf02 = k;
-                custard_bf16 v = local[__anf02];
                 uint32_t __anf03 = k;
-                uint32_t cidx = (col + __anf03);
+                custard_bf16 v = local[__anf03];
+                uint32_t __anf04 = k;
+                uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 32) + cidx);
                 _letpattern._1[ni] = v;
-                uint32_t __anf04 = k;
-                k = (__anf04 + 1);
+                uint32_t __anf05 = k;
+                k = (__anf05 + 1);
             }
             uint32_t vi = i;
             i = (vi + 1024);
         }
         uint32_t mlen1 = 4096;
-        uint32_t offset1 = (tid * 8);
+        uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
             custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
@@ -14238,20 +14917,25 @@ __global__ static void kuiper_kernel_56(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_2 = i1;
-            uint32_t row_1 = ((__anf0_2 + offset1) / 128);
             uint32_t __anf01_2 = i1;
-            uint32_t col_1 = ((__anf01_2 + offset1) % 128);
+            uint32_t row_1 = ((__anf01_2 + offset1_1) / 128);
+            uint32_t __anf02_1 = i1;
+            uint32_t col_1 = ((__anf02_1 + offset1_1) % 128);
+            uint32_t offset2 =
+                ((((0 + (cols * (__anf0_1 * 32))) + (mcol * 128)) +
+                     (cols * row_1)) +
+                    col_1);
+            vec_memcpy((local_1 + 0), (gB + offset2));
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                uint32_t __anf02_1 = k_1;
-                custard_bf16 v_1 = local_1[__anf02_1];
                 uint32_t __anf03_1 = k_1;
-                uint32_t cidx_1 = (col_1 + __anf03_1);
+                custard_bf16 v_1 = local_1[__anf03_1];
+                uint32_t __anf04_1 = k_1;
+                uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
                 _letpattern._2[ni_1] = v_1;
-                uint32_t __anf04_1 = k_1;
-                k_1 = (__anf04_1 + 1);
+                uint32_t __anf05_1 = k_1;
+                k_1 = (__anf05_1 + 1);
             }
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 1024);
@@ -14259,39 +14943,39 @@ __global__ static void kuiper_kernel_56(uint32_t cols, uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 2) {
-            uint32_t __anf0_3 = dotIdx;
+            uint32_t __anf01_3 = dotIdx;
             uint32_t i0 = 0;
             while (i0 < 2) {
-                uint32_t __anf01_3 = i0;
                 uint32_t __anf02_2 = i0;
+                uint32_t __anf03_2 = i0;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
-                    aFrags[__anf02_2];
+                    aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
                     (_letpattern._1 +
-                        ((((0 + (32 * (warpRow * 32))) + (__anf0_3 * 16)) +
-                             (32 * (__anf01_3 * 16))) +
+                        ((((0 + (32 * (warpRow * 32))) + (__anf01_3 * 16)) +
+                             (32 * (__anf02_2 * 16))) +
                             0)),
                     ((uint32_t) 32U));
-                uint32_t __anf03_2 = i0;
-                i0 = (__anf03_2 + 1);
+                uint32_t __anf04_2 = i0;
+                i0 = (__anf04_2 + 1);
             }
-            uint32_t __anf01_4 = dotIdx;
+            uint32_t __anf02_3 = dotIdx;
             uint32_t i11 = 0;
             while (i11 < 8) {
-                uint32_t __anf02_3 = i11;
                 uint32_t __anf03_3 = i11;
+                uint32_t __anf04_3 = i11;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
-                    bFrags[__anf03_3];
+                    bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
                     (_letpattern._2 +
-                        ((((0 + (128 * (__anf01_4 * 16))) + (warpCol * 128)) +
+                        ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 128)) +
                              0) +
-                            (__anf02_3 * 16))),
+                            (__anf03_3 * 16))),
                     ((uint32_t) 128U));
-                uint32_t __anf04_2 = i11;
-                i11 = (__anf04_2 + 1);
+                uint32_t __anf05_2 = i11;
+                i11 = (__anf05_2 + 1);
             }
             uint32_t resIdxM = 0;
             while (resIdxM < 2) {
@@ -14300,26 +14984,26 @@ __global__ static void kuiper_kernel_56(uint32_t cols, uint32_t shared,
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &a_frag =
                         aFrags[resIdxM];
-                    uint32_t __anf03_4 = resIdxN;
+                    uint32_t __anf04_4 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &b_frag =
-                        bFrags[__anf03_4];
-                    uint32_t __anf04_3 = resIdxN;
+                        bFrags[__anf04_4];
+                    uint32_t __anf05_3 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16,
                         16, float, void> &acc_frag =
-                        accFrags[((resIdxM * 8) + __anf04_3)];
+                        accFrags[((resIdxM * 8) + __anf05_3)];
                     wmma::mma_sync(acc_frag, a_frag, b_frag, acc_frag);
-                    uint32_t __anf05 = resIdxN;
-                    resIdxN = (__anf05 + 1);
+                    uint32_t __anf06 = resIdxN;
+                    resIdxN = (__anf06 + 1);
                 }
-                uint32_t __anf02_4 = resIdxM;
-                resIdxM = (__anf02_4 + 1);
+                uint32_t __anf03_4 = resIdxM;
+                resIdxM = (__anf03_4 + 1);
             }
-            uint32_t __anf02_5 = dotIdx;
-            dotIdx = (__anf02_5 + 1);
+            uint32_t __anf03_5 = dotIdx;
+            dotIdx = (__anf03_5 + 1);
         }
-        uint32_t __anf0_4 = bkIdx;
-        bkIdx = (__anf0_4 + 1);
+        uint32_t __anf01_4 = bkIdx;
+        bkIdx = (__anf01_4 + 1);
     }
     uint32_t bm = 128;
     uint32_t bn = 128;
@@ -14331,8 +15015,8 @@ __global__ static void kuiper_kernel_56(uint32_t cols, uint32_t shared,
     uint32_t lane = (tid % 32);
     uint32_t idx = 0;
     while (idx < (wm * wn)) {
-        uint32_t mrow = (bid / (cols / bn));
-        uint32_t mcol = (bid % (cols / bn));
+        uint32_t mrow1 = (bid / (cols / bn));
+        uint32_t mcol1 = (bid % (cols / bn));
         uint32_t warpRow1 = (wid1 / (bn / (wn * tn)));
         uint32_t warpCol1 = (wid1 % (bn / (wn * tn)));
         float *sTile = FStar_Pervasives_Native_fst__array_t_unit(
@@ -14345,22 +15029,22 @@ __global__ static void kuiper_kernel_56(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}})));
-        uint32_t __anf0_5 = idx;
+        uint32_t __anf0_2 = idx;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
-            void> &__anf1_3 = accFrags[__anf0_5];
+            void> &__anf1_3 = accFrags[__anf0_2];
         KPR_STORE(
             (sTile + ((0 + (tn * (wid1 * tm))) + (0 * tn))), __anf1_3, tn);
         uint32_t __anf01_5 = idx;
         uint32_t area = (tm * tn);
         uint32_t flat = lane;
         while (flat < area) {
-            uint32_t __anf02_6 = flat;
-            uint32_t row_2 = (__anf02_6 / tn);
-            uint32_t col_2 = (__anf02_6 % tn);
-            uint32_t globalRow = ((((mrow * bm) + (warpRow1 * (wm * tm))) +
+            uint32_t __anf02_4 = flat;
+            uint32_t row_2 = (__anf02_4 / tn);
+            uint32_t col_2 = (__anf02_4 % tn);
+            uint32_t globalRow = ((((mrow1 * bm) + (warpRow1 * (wm * tm))) +
                                       ((__anf01_5 / wn) * tm)) +
                                   row_2);
-            uint32_t globalCol = ((((mcol * bn) + (warpCol1 * (wn * tn))) +
+            uint32_t globalCol = ((((mcol1 * bn) + (warpCol1 * (wn * tn))) +
                                       ((__anf01_5 % wn) * tn)) +
                                   col_2);
             uint32_t ni_2 = ((globalRow * cols) + globalCol);
@@ -14375,8 +15059,8 @@ __global__ static void kuiper_kernel_56(uint32_t cols, uint32_t shared,
             uint32_t vflat = flat;
             flat = (vflat + 32);
         }
-        uint32_t __anf02_7 = idx;
-        idx = (__anf02_7 + 1);
+        uint32_t __anf02_5 = idx;
+        idx = (__anf02_5 + 1);
     }
 }
 
@@ -14385,8 +15069,6 @@ __global__ static void kuiper_kernel_57(uint32_t cols, uint32_t shared,
     custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
     float beta, float alpha, custard_bf16 *gD)
 {
-    (void) gA;
-    (void) gB;
     (void) nthr;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     custard_bf16 *tmp1 = (custard_bf16 *) tmp;
@@ -14408,6 +15090,9 @@ __global__ static void kuiper_kernel_57(uint32_t cols, uint32_t shared,
                 ._1 = tmp1, ._2 = tmp7};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    uint32_t num_n_tiles = (cols / 128);
+    uint32_t mrow = (bid / num_n_tiles);
+    uint32_t mcol = (bid % num_n_tiles);
     uint32_t wid = (tid / 32);
     uint32_t warpRow = (wid / 4);
     uint32_t warpCol = (wid % 4);
@@ -14446,6 +15131,7 @@ __global__ static void kuiper_kernel_57(uint32_t cols, uint32_t shared,
     }
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
+        uint32_t __anf0_1 = bkIdx;
         __syncthreads();
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 8);
@@ -14455,26 +15141,31 @@ __global__ static void kuiper_kernel_57(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_1 = i;
-            uint32_t row = ((__anf0_1 + offset) / 32);
             uint32_t __anf01_1 = i;
-            uint32_t col = ((__anf01_1 + offset) % 32);
+            uint32_t row = ((__anf01_1 + offset) / 32);
+            uint32_t __anf02 = i;
+            uint32_t col = ((__anf02 + offset) % 32);
+            uint32_t offset1 =
+                ((((0 + (shared * (mrow * 128))) + (__anf0_1 * 32)) +
+                     (shared * row)) +
+                    col);
+            vec_memcpy((local + 0), (gA + offset1));
             uint32_t k = 0;
             while (k < 8) {
-                uint32_t __anf02 = k;
-                custard_bf16 v = local[__anf02];
                 uint32_t __anf03 = k;
-                uint32_t cidx = (col + __anf03);
+                custard_bf16 v = local[__anf03];
+                uint32_t __anf04 = k;
+                uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 32) + cidx);
                 _letpattern._1[ni] = v;
-                uint32_t __anf04 = k;
-                k = (__anf04 + 1);
+                uint32_t __anf05 = k;
+                k = (__anf05 + 1);
             }
             uint32_t vi = i;
             i = (vi + 2048);
         }
         uint32_t mlen1 = 4096;
-        uint32_t offset1 = (tid * 8);
+        uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
             custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
@@ -14482,20 +15173,25 @@ __global__ static void kuiper_kernel_57(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_2 = i1;
-            uint32_t row_1 = ((__anf0_2 + offset1) / 128);
             uint32_t __anf01_2 = i1;
-            uint32_t col_1 = ((__anf01_2 + offset1) % 128);
+            uint32_t row_1 = ((__anf01_2 + offset1_1) / 128);
+            uint32_t __anf02_1 = i1;
+            uint32_t col_1 = ((__anf02_1 + offset1_1) % 128);
+            uint32_t offset2 =
+                ((((0 + (cols * (__anf0_1 * 32))) + (mcol * 128)) +
+                     (cols * row_1)) +
+                    col_1);
+            vec_memcpy((local_1 + 0), (gB + offset2));
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                uint32_t __anf02_1 = k_1;
-                custard_bf16 v_1 = local_1[__anf02_1];
                 uint32_t __anf03_1 = k_1;
-                uint32_t cidx_1 = (col_1 + __anf03_1);
+                custard_bf16 v_1 = local_1[__anf03_1];
+                uint32_t __anf04_1 = k_1;
+                uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
                 _letpattern._2[ni_1] = v_1;
-                uint32_t __anf04_1 = k_1;
-                k_1 = (__anf04_1 + 1);
+                uint32_t __anf05_1 = k_1;
+                k_1 = (__anf05_1 + 1);
             }
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 2048);
@@ -14503,39 +15199,39 @@ __global__ static void kuiper_kernel_57(uint32_t cols, uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 2) {
-            uint32_t __anf0_3 = dotIdx;
+            uint32_t __anf01_3 = dotIdx;
             uint32_t i0 = 0;
             while (i0 < 4) {
-                uint32_t __anf01_3 = i0;
                 uint32_t __anf02_2 = i0;
+                uint32_t __anf03_2 = i0;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
-                    aFrags[__anf02_2];
+                    aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
                     (_letpattern._1 +
-                        ((((0 + (32 * (warpRow * 64))) + (__anf0_3 * 16)) +
-                             (32 * (__anf01_3 * 16))) +
+                        ((((0 + (32 * (warpRow * 64))) + (__anf01_3 * 16)) +
+                             (32 * (__anf02_2 * 16))) +
                             0)),
                     ((uint32_t) 32U));
-                uint32_t __anf03_2 = i0;
-                i0 = (__anf03_2 + 1);
+                uint32_t __anf04_2 = i0;
+                i0 = (__anf04_2 + 1);
             }
-            uint32_t __anf01_4 = dotIdx;
+            uint32_t __anf02_3 = dotIdx;
             uint32_t i11 = 0;
             while (i11 < 2) {
-                uint32_t __anf02_3 = i11;
                 uint32_t __anf03_3 = i11;
+                uint32_t __anf04_3 = i11;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
-                    bFrags[__anf03_3];
+                    bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
                     (_letpattern._2 +
-                        ((((0 + (128 * (__anf01_4 * 16))) + (warpCol * 32)) +
+                        ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 32)) +
                              0) +
-                            (__anf02_3 * 16))),
+                            (__anf03_3 * 16))),
                     ((uint32_t) 128U));
-                uint32_t __anf04_2 = i11;
-                i11 = (__anf04_2 + 1);
+                uint32_t __anf05_2 = i11;
+                i11 = (__anf05_2 + 1);
             }
             uint32_t resIdxM = 0;
             while (resIdxM < 4) {
@@ -14544,26 +15240,26 @@ __global__ static void kuiper_kernel_57(uint32_t cols, uint32_t shared,
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &a_frag =
                         aFrags[resIdxM];
-                    uint32_t __anf03_4 = resIdxN;
+                    uint32_t __anf04_4 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &b_frag =
-                        bFrags[__anf03_4];
-                    uint32_t __anf04_3 = resIdxN;
+                        bFrags[__anf04_4];
+                    uint32_t __anf05_3 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16,
                         16, float, void> &acc_frag =
-                        accFrags[((resIdxM * 2) + __anf04_3)];
+                        accFrags[((resIdxM * 2) + __anf05_3)];
                     wmma::mma_sync(acc_frag, a_frag, b_frag, acc_frag);
-                    uint32_t __anf05 = resIdxN;
-                    resIdxN = (__anf05 + 1);
+                    uint32_t __anf06 = resIdxN;
+                    resIdxN = (__anf06 + 1);
                 }
-                uint32_t __anf02_4 = resIdxM;
-                resIdxM = (__anf02_4 + 1);
+                uint32_t __anf03_4 = resIdxM;
+                resIdxM = (__anf03_4 + 1);
             }
-            uint32_t __anf02_5 = dotIdx;
-            dotIdx = (__anf02_5 + 1);
+            uint32_t __anf03_5 = dotIdx;
+            dotIdx = (__anf03_5 + 1);
         }
-        uint32_t __anf0_4 = bkIdx;
-        bkIdx = (__anf0_4 + 1);
+        uint32_t __anf01_4 = bkIdx;
+        bkIdx = (__anf01_4 + 1);
     }
     uint32_t bm = 128;
     uint32_t bn = 128;
@@ -14575,8 +15271,8 @@ __global__ static void kuiper_kernel_57(uint32_t cols, uint32_t shared,
     uint32_t lane = (tid % 32);
     uint32_t idx = 0;
     while (idx < (wm * wn)) {
-        uint32_t mrow = (bid / (cols / bn));
-        uint32_t mcol = (bid % (cols / bn));
+        uint32_t mrow1 = (bid / (cols / bn));
+        uint32_t mcol1 = (bid % (cols / bn));
         uint32_t warpRow1 = (wid1 / (bn / (wn * tn)));
         uint32_t warpCol1 = (wid1 % (bn / (wn * tn)));
         float *sTile = FStar_Pervasives_Native_fst__array_t_unit(
@@ -14589,22 +15285,22 @@ __global__ static void kuiper_kernel_57(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}})));
-        uint32_t __anf0_5 = idx;
+        uint32_t __anf0_2 = idx;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
-            void> &__anf1_3 = accFrags[__anf0_5];
+            void> &__anf1_3 = accFrags[__anf0_2];
         KPR_STORE(
             (sTile + ((0 + (tn * (wid1 * tm))) + (0 * tn))), __anf1_3, tn);
         uint32_t __anf01_5 = idx;
         uint32_t area = (tm * tn);
         uint32_t flat = lane;
         while (flat < area) {
-            uint32_t __anf02_6 = flat;
-            uint32_t row_2 = (__anf02_6 / tn);
-            uint32_t col_2 = (__anf02_6 % tn);
-            uint32_t globalRow = ((((mrow * bm) + (warpRow1 * (wm * tm))) +
+            uint32_t __anf02_4 = flat;
+            uint32_t row_2 = (__anf02_4 / tn);
+            uint32_t col_2 = (__anf02_4 % tn);
+            uint32_t globalRow = ((((mrow1 * bm) + (warpRow1 * (wm * tm))) +
                                       ((__anf01_5 / wn) * tm)) +
                                   row_2);
-            uint32_t globalCol = ((((mcol * bn) + (warpCol1 * (wn * tn))) +
+            uint32_t globalCol = ((((mcol1 * bn) + (warpCol1 * (wn * tn))) +
                                       ((__anf01_5 % wn) * tn)) +
                                   col_2);
             uint32_t ni_2 = ((globalRow * cols) + globalCol);
@@ -14619,8 +15315,8 @@ __global__ static void kuiper_kernel_57(uint32_t cols, uint32_t shared,
             uint32_t vflat = flat;
             flat = (vflat + 32);
         }
-        uint32_t __anf02_7 = idx;
-        idx = (__anf02_7 + 1);
+        uint32_t __anf02_5 = idx;
+        idx = (__anf02_5 + 1);
     }
 }
 
@@ -14629,8 +15325,6 @@ __global__ static void kuiper_kernel_58(uint32_t cols, uint32_t shared,
     custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
     float beta, float alpha, custard_bf16 *gD)
 {
-    (void) gA;
-    (void) gB;
     (void) nthr;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     custard_bf16 *tmp1 = (custard_bf16 *) tmp;
@@ -14652,6 +15346,9 @@ __global__ static void kuiper_kernel_58(uint32_t cols, uint32_t shared,
                 ._1 = tmp1, ._2 = tmp7};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    uint32_t num_n_tiles = (cols / 128);
+    uint32_t mrow = (bid / num_n_tiles);
+    uint32_t mcol = (bid % num_n_tiles);
     uint32_t wid = (tid / 32);
     uint32_t warpRow = (wid / 2);
     uint32_t warpCol = (wid % 2);
@@ -14690,6 +15387,7 @@ __global__ static void kuiper_kernel_58(uint32_t cols, uint32_t shared,
     }
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
+        uint32_t __anf0_1 = bkIdx;
         __syncthreads();
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 8);
@@ -14699,26 +15397,31 @@ __global__ static void kuiper_kernel_58(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_1 = i;
-            uint32_t row = ((__anf0_1 + offset) / 32);
             uint32_t __anf01_1 = i;
-            uint32_t col = ((__anf01_1 + offset) % 32);
+            uint32_t row = ((__anf01_1 + offset) / 32);
+            uint32_t __anf02 = i;
+            uint32_t col = ((__anf02 + offset) % 32);
+            uint32_t offset1 =
+                ((((0 + (shared * (mrow * 128))) + (__anf0_1 * 32)) +
+                     (shared * row)) +
+                    col);
+            vec_memcpy((local + 0), (gA + offset1));
             uint32_t k = 0;
             while (k < 8) {
-                uint32_t __anf02 = k;
-                custard_bf16 v = local[__anf02];
                 uint32_t __anf03 = k;
-                uint32_t cidx = (col + __anf03);
+                custard_bf16 v = local[__anf03];
+                uint32_t __anf04 = k;
+                uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 32) + cidx);
                 _letpattern._1[ni] = v;
-                uint32_t __anf04 = k;
-                k = (__anf04 + 1);
+                uint32_t __anf05 = k;
+                k = (__anf05 + 1);
             }
             uint32_t vi = i;
             i = (vi + 1024);
         }
         uint32_t mlen1 = 4096;
-        uint32_t offset1 = (tid * 8);
+        uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
             custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
@@ -14726,20 +15429,25 @@ __global__ static void kuiper_kernel_58(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_2 = i1;
-            uint32_t row_1 = ((__anf0_2 + offset1) / 128);
             uint32_t __anf01_2 = i1;
-            uint32_t col_1 = ((__anf01_2 + offset1) % 128);
+            uint32_t row_1 = ((__anf01_2 + offset1_1) / 128);
+            uint32_t __anf02_1 = i1;
+            uint32_t col_1 = ((__anf02_1 + offset1_1) % 128);
+            uint32_t offset2 =
+                ((((0 + (cols * (__anf0_1 * 32))) + (mcol * 128)) +
+                     (cols * row_1)) +
+                    col_1);
+            vec_memcpy((local_1 + 0), (gB + offset2));
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                uint32_t __anf02_1 = k_1;
-                custard_bf16 v_1 = local_1[__anf02_1];
                 uint32_t __anf03_1 = k_1;
-                uint32_t cidx_1 = (col_1 + __anf03_1);
+                custard_bf16 v_1 = local_1[__anf03_1];
+                uint32_t __anf04_1 = k_1;
+                uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
                 _letpattern._2[ni_1] = v_1;
-                uint32_t __anf04_1 = k_1;
-                k_1 = (__anf04_1 + 1);
+                uint32_t __anf05_1 = k_1;
+                k_1 = (__anf05_1 + 1);
             }
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 1024);
@@ -14747,39 +15455,39 @@ __global__ static void kuiper_kernel_58(uint32_t cols, uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 2) {
-            uint32_t __anf0_3 = dotIdx;
+            uint32_t __anf01_3 = dotIdx;
             uint32_t i0 = 0;
             while (i0 < 4) {
-                uint32_t __anf01_3 = i0;
                 uint32_t __anf02_2 = i0;
+                uint32_t __anf03_2 = i0;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
-                    aFrags[__anf02_2];
+                    aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
                     (_letpattern._1 +
-                        ((((0 + (32 * (warpRow * 64))) + (__anf0_3 * 16)) +
-                             (32 * (__anf01_3 * 16))) +
+                        ((((0 + (32 * (warpRow * 64))) + (__anf01_3 * 16)) +
+                             (32 * (__anf02_2 * 16))) +
                             0)),
                     ((uint32_t) 32U));
-                uint32_t __anf03_2 = i0;
-                i0 = (__anf03_2 + 1);
+                uint32_t __anf04_2 = i0;
+                i0 = (__anf04_2 + 1);
             }
-            uint32_t __anf01_4 = dotIdx;
+            uint32_t __anf02_3 = dotIdx;
             uint32_t i11 = 0;
             while (i11 < 4) {
-                uint32_t __anf02_3 = i11;
                 uint32_t __anf03_3 = i11;
+                uint32_t __anf04_3 = i11;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
-                    bFrags[__anf03_3];
+                    bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
                     (_letpattern._2 +
-                        ((((0 + (128 * (__anf01_4 * 16))) + (warpCol * 64)) +
+                        ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 64)) +
                              0) +
-                            (__anf02_3 * 16))),
+                            (__anf03_3 * 16))),
                     ((uint32_t) 128U));
-                uint32_t __anf04_2 = i11;
-                i11 = (__anf04_2 + 1);
+                uint32_t __anf05_2 = i11;
+                i11 = (__anf05_2 + 1);
             }
             uint32_t resIdxM = 0;
             while (resIdxM < 4) {
@@ -14788,26 +15496,26 @@ __global__ static void kuiper_kernel_58(uint32_t cols, uint32_t shared,
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &a_frag =
                         aFrags[resIdxM];
-                    uint32_t __anf03_4 = resIdxN;
+                    uint32_t __anf04_4 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &b_frag =
-                        bFrags[__anf03_4];
-                    uint32_t __anf04_3 = resIdxN;
+                        bFrags[__anf04_4];
+                    uint32_t __anf05_3 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16,
                         16, float, void> &acc_frag =
-                        accFrags[((resIdxM * 4) + __anf04_3)];
+                        accFrags[((resIdxM * 4) + __anf05_3)];
                     wmma::mma_sync(acc_frag, a_frag, b_frag, acc_frag);
-                    uint32_t __anf05 = resIdxN;
-                    resIdxN = (__anf05 + 1);
+                    uint32_t __anf06 = resIdxN;
+                    resIdxN = (__anf06 + 1);
                 }
-                uint32_t __anf02_4 = resIdxM;
-                resIdxM = (__anf02_4 + 1);
+                uint32_t __anf03_4 = resIdxM;
+                resIdxM = (__anf03_4 + 1);
             }
-            uint32_t __anf02_5 = dotIdx;
-            dotIdx = (__anf02_5 + 1);
+            uint32_t __anf03_5 = dotIdx;
+            dotIdx = (__anf03_5 + 1);
         }
-        uint32_t __anf0_4 = bkIdx;
-        bkIdx = (__anf0_4 + 1);
+        uint32_t __anf01_4 = bkIdx;
+        bkIdx = (__anf01_4 + 1);
     }
     uint32_t bm = 128;
     uint32_t bn = 128;
@@ -14819,8 +15527,8 @@ __global__ static void kuiper_kernel_58(uint32_t cols, uint32_t shared,
     uint32_t lane = (tid % 32);
     uint32_t idx = 0;
     while (idx < (wm * wn)) {
-        uint32_t mrow = (bid / (cols / bn));
-        uint32_t mcol = (bid % (cols / bn));
+        uint32_t mrow1 = (bid / (cols / bn));
+        uint32_t mcol1 = (bid % (cols / bn));
         uint32_t warpRow1 = (wid1 / (bn / (wn * tn)));
         uint32_t warpCol1 = (wid1 % (bn / (wn * tn)));
         float *sTile = FStar_Pervasives_Native_fst__array_t_unit(
@@ -14833,22 +15541,22 @@ __global__ static void kuiper_kernel_58(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}})));
-        uint32_t __anf0_5 = idx;
+        uint32_t __anf0_2 = idx;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
-            void> &__anf1_3 = accFrags[__anf0_5];
+            void> &__anf1_3 = accFrags[__anf0_2];
         KPR_STORE(
             (sTile + ((0 + (tn * (wid1 * tm))) + (0 * tn))), __anf1_3, tn);
         uint32_t __anf01_5 = idx;
         uint32_t area = (tm * tn);
         uint32_t flat = lane;
         while (flat < area) {
-            uint32_t __anf02_6 = flat;
-            uint32_t row_2 = (__anf02_6 / tn);
-            uint32_t col_2 = (__anf02_6 % tn);
-            uint32_t globalRow = ((((mrow * bm) + (warpRow1 * (wm * tm))) +
+            uint32_t __anf02_4 = flat;
+            uint32_t row_2 = (__anf02_4 / tn);
+            uint32_t col_2 = (__anf02_4 % tn);
+            uint32_t globalRow = ((((mrow1 * bm) + (warpRow1 * (wm * tm))) +
                                       ((__anf01_5 / wn) * tm)) +
                                   row_2);
-            uint32_t globalCol = ((((mcol * bn) + (warpCol1 * (wn * tn))) +
+            uint32_t globalCol = ((((mcol1 * bn) + (warpCol1 * (wn * tn))) +
                                       ((__anf01_5 % wn) * tn)) +
                                   col_2);
             uint32_t ni_2 = ((globalRow * cols) + globalCol);
@@ -14863,8 +15571,8 @@ __global__ static void kuiper_kernel_58(uint32_t cols, uint32_t shared,
             uint32_t vflat = flat;
             flat = (vflat + 32);
         }
-        uint32_t __anf02_7 = idx;
-        idx = (__anf02_7 + 1);
+        uint32_t __anf02_5 = idx;
+        idx = (__anf02_5 + 1);
     }
 }
 
@@ -14873,8 +15581,6 @@ __global__ static void kuiper_kernel_59(uint32_t cols, uint32_t shared,
     custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
     float beta, float alpha, custard_bf16 *gD)
 {
-    (void) gA;
-    (void) gB;
     (void) nthr;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     custard_bf16 *tmp1 = (custard_bf16 *) tmp;
@@ -14896,6 +15602,9 @@ __global__ static void kuiper_kernel_59(uint32_t cols, uint32_t shared,
                 ._1 = tmp1, ._2 = tmp7};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    uint32_t num_n_tiles = (cols / 128);
+    uint32_t mrow = (bid / num_n_tiles);
+    uint32_t mcol = (bid % num_n_tiles);
     uint32_t wid = (tid / 32);
     uint32_t warpRow = (wid / 1);
     uint32_t warpCol = (wid % 1);
@@ -14934,6 +15643,7 @@ __global__ static void kuiper_kernel_59(uint32_t cols, uint32_t shared,
     }
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
+        uint32_t __anf0_1 = bkIdx;
         __syncthreads();
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 8);
@@ -14943,26 +15653,31 @@ __global__ static void kuiper_kernel_59(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_1 = i;
-            uint32_t row = ((__anf0_1 + offset) / 32);
             uint32_t __anf01_1 = i;
-            uint32_t col = ((__anf01_1 + offset) % 32);
+            uint32_t row = ((__anf01_1 + offset) / 32);
+            uint32_t __anf02 = i;
+            uint32_t col = ((__anf02 + offset) % 32);
+            uint32_t offset1 =
+                ((((0 + (shared * (mrow * 128))) + (__anf0_1 * 32)) +
+                     (shared * row)) +
+                    col);
+            vec_memcpy((local + 0), (gA + offset1));
             uint32_t k = 0;
             while (k < 8) {
-                uint32_t __anf02 = k;
-                custard_bf16 v = local[__anf02];
                 uint32_t __anf03 = k;
-                uint32_t cidx = (col + __anf03);
+                custard_bf16 v = local[__anf03];
+                uint32_t __anf04 = k;
+                uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 32) + cidx);
                 _letpattern._1[ni] = v;
-                uint32_t __anf04 = k;
-                k = (__anf04 + 1);
+                uint32_t __anf05 = k;
+                k = (__anf05 + 1);
             }
             uint32_t vi = i;
             i = (vi + 512);
         }
         uint32_t mlen1 = 4096;
-        uint32_t offset1 = (tid * 8);
+        uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
             custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
@@ -14970,20 +15685,25 @@ __global__ static void kuiper_kernel_59(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_2 = i1;
-            uint32_t row_1 = ((__anf0_2 + offset1) / 128);
             uint32_t __anf01_2 = i1;
-            uint32_t col_1 = ((__anf01_2 + offset1) % 128);
+            uint32_t row_1 = ((__anf01_2 + offset1_1) / 128);
+            uint32_t __anf02_1 = i1;
+            uint32_t col_1 = ((__anf02_1 + offset1_1) % 128);
+            uint32_t offset2 =
+                ((((0 + (cols * (__anf0_1 * 32))) + (mcol * 128)) +
+                     (cols * row_1)) +
+                    col_1);
+            vec_memcpy((local_1 + 0), (gB + offset2));
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                uint32_t __anf02_1 = k_1;
-                custard_bf16 v_1 = local_1[__anf02_1];
                 uint32_t __anf03_1 = k_1;
-                uint32_t cidx_1 = (col_1 + __anf03_1);
+                custard_bf16 v_1 = local_1[__anf03_1];
+                uint32_t __anf04_1 = k_1;
+                uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
                 _letpattern._2[ni_1] = v_1;
-                uint32_t __anf04_1 = k_1;
-                k_1 = (__anf04_1 + 1);
+                uint32_t __anf05_1 = k_1;
+                k_1 = (__anf05_1 + 1);
             }
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 512);
@@ -14991,39 +15711,39 @@ __global__ static void kuiper_kernel_59(uint32_t cols, uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 2) {
-            uint32_t __anf0_3 = dotIdx;
+            uint32_t __anf01_3 = dotIdx;
             uint32_t i0 = 0;
             while (i0 < 4) {
-                uint32_t __anf01_3 = i0;
                 uint32_t __anf02_2 = i0;
+                uint32_t __anf03_2 = i0;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
-                    aFrags[__anf02_2];
+                    aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
                     (_letpattern._1 +
-                        ((((0 + (32 * (warpRow * 64))) + (__anf0_3 * 16)) +
-                             (32 * (__anf01_3 * 16))) +
+                        ((((0 + (32 * (warpRow * 64))) + (__anf01_3 * 16)) +
+                             (32 * (__anf02_2 * 16))) +
                             0)),
                     ((uint32_t) 32U));
-                uint32_t __anf03_2 = i0;
-                i0 = (__anf03_2 + 1);
+                uint32_t __anf04_2 = i0;
+                i0 = (__anf04_2 + 1);
             }
-            uint32_t __anf01_4 = dotIdx;
+            uint32_t __anf02_3 = dotIdx;
             uint32_t i11 = 0;
             while (i11 < 8) {
-                uint32_t __anf02_3 = i11;
                 uint32_t __anf03_3 = i11;
+                uint32_t __anf04_3 = i11;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
-                    bFrags[__anf03_3];
+                    bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
                     (_letpattern._2 +
-                        ((((0 + (128 * (__anf01_4 * 16))) + (warpCol * 128)) +
+                        ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 128)) +
                              0) +
-                            (__anf02_3 * 16))),
+                            (__anf03_3 * 16))),
                     ((uint32_t) 128U));
-                uint32_t __anf04_2 = i11;
-                i11 = (__anf04_2 + 1);
+                uint32_t __anf05_2 = i11;
+                i11 = (__anf05_2 + 1);
             }
             uint32_t resIdxM = 0;
             while (resIdxM < 4) {
@@ -15032,26 +15752,26 @@ __global__ static void kuiper_kernel_59(uint32_t cols, uint32_t shared,
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &a_frag =
                         aFrags[resIdxM];
-                    uint32_t __anf03_4 = resIdxN;
+                    uint32_t __anf04_4 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &b_frag =
-                        bFrags[__anf03_4];
-                    uint32_t __anf04_3 = resIdxN;
+                        bFrags[__anf04_4];
+                    uint32_t __anf05_3 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16,
                         16, float, void> &acc_frag =
-                        accFrags[((resIdxM * 8) + __anf04_3)];
+                        accFrags[((resIdxM * 8) + __anf05_3)];
                     wmma::mma_sync(acc_frag, a_frag, b_frag, acc_frag);
-                    uint32_t __anf05 = resIdxN;
-                    resIdxN = (__anf05 + 1);
+                    uint32_t __anf06 = resIdxN;
+                    resIdxN = (__anf06 + 1);
                 }
-                uint32_t __anf02_4 = resIdxM;
-                resIdxM = (__anf02_4 + 1);
+                uint32_t __anf03_4 = resIdxM;
+                resIdxM = (__anf03_4 + 1);
             }
-            uint32_t __anf02_5 = dotIdx;
-            dotIdx = (__anf02_5 + 1);
+            uint32_t __anf03_5 = dotIdx;
+            dotIdx = (__anf03_5 + 1);
         }
-        uint32_t __anf0_4 = bkIdx;
-        bkIdx = (__anf0_4 + 1);
+        uint32_t __anf01_4 = bkIdx;
+        bkIdx = (__anf01_4 + 1);
     }
     uint32_t bm = 128;
     uint32_t bn = 128;
@@ -15063,8 +15783,8 @@ __global__ static void kuiper_kernel_59(uint32_t cols, uint32_t shared,
     uint32_t lane = (tid % 32);
     uint32_t idx = 0;
     while (idx < (wm * wn)) {
-        uint32_t mrow = (bid / (cols / bn));
-        uint32_t mcol = (bid % (cols / bn));
+        uint32_t mrow1 = (bid / (cols / bn));
+        uint32_t mcol1 = (bid % (cols / bn));
         uint32_t warpRow1 = (wid1 / (bn / (wn * tn)));
         uint32_t warpCol1 = (wid1 % (bn / (wn * tn)));
         float *sTile = FStar_Pervasives_Native_fst__array_t_unit(
@@ -15077,22 +15797,22 @@ __global__ static void kuiper_kernel_59(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}})));
-        uint32_t __anf0_5 = idx;
+        uint32_t __anf0_2 = idx;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
-            void> &__anf1_3 = accFrags[__anf0_5];
+            void> &__anf1_3 = accFrags[__anf0_2];
         KPR_STORE(
             (sTile + ((0 + (tn * (wid1 * tm))) + (0 * tn))), __anf1_3, tn);
         uint32_t __anf01_5 = idx;
         uint32_t area = (tm * tn);
         uint32_t flat = lane;
         while (flat < area) {
-            uint32_t __anf02_6 = flat;
-            uint32_t row_2 = (__anf02_6 / tn);
-            uint32_t col_2 = (__anf02_6 % tn);
-            uint32_t globalRow = ((((mrow * bm) + (warpRow1 * (wm * tm))) +
+            uint32_t __anf02_4 = flat;
+            uint32_t row_2 = (__anf02_4 / tn);
+            uint32_t col_2 = (__anf02_4 % tn);
+            uint32_t globalRow = ((((mrow1 * bm) + (warpRow1 * (wm * tm))) +
                                       ((__anf01_5 / wn) * tm)) +
                                   row_2);
-            uint32_t globalCol = ((((mcol * bn) + (warpCol1 * (wn * tn))) +
+            uint32_t globalCol = ((((mcol1 * bn) + (warpCol1 * (wn * tn))) +
                                       ((__anf01_5 % wn) * tn)) +
                                   col_2);
             uint32_t ni_2 = ((globalRow * cols) + globalCol);
@@ -15107,8 +15827,8 @@ __global__ static void kuiper_kernel_59(uint32_t cols, uint32_t shared,
             uint32_t vflat = flat;
             flat = (vflat + 32);
         }
-        uint32_t __anf02_7 = idx;
-        idx = (__anf02_7 + 1);
+        uint32_t __anf02_5 = idx;
+        idx = (__anf02_5 + 1);
     }
 }
 
@@ -15117,8 +15837,6 @@ __global__ static void kuiper_kernel_60(uint32_t cols, uint32_t shared,
     custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
     float beta, float alpha, custard_bf16 *gD)
 {
-    (void) gA;
-    (void) gB;
     (void) nthr;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     custard_bf16 *tmp1 = (custard_bf16 *) tmp;
@@ -15140,6 +15858,9 @@ __global__ static void kuiper_kernel_60(uint32_t cols, uint32_t shared,
                 ._1 = tmp1, ._2 = tmp7};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    uint32_t num_n_tiles = (cols / 128);
+    uint32_t mrow = (bid / num_n_tiles);
+    uint32_t mcol = (bid % num_n_tiles);
     uint32_t wid = (tid / 32);
     uint32_t warpRow = (wid / 4);
     uint32_t warpCol = (wid % 4);
@@ -15178,6 +15899,7 @@ __global__ static void kuiper_kernel_60(uint32_t cols, uint32_t shared,
     }
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
+        uint32_t __anf0_1 = bkIdx;
         __syncthreads();
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 8);
@@ -15187,26 +15909,31 @@ __global__ static void kuiper_kernel_60(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_1 = i;
-            uint32_t row = ((__anf0_1 + offset) / 32);
             uint32_t __anf01_1 = i;
-            uint32_t col = ((__anf01_1 + offset) % 32);
+            uint32_t row = ((__anf01_1 + offset) / 32);
+            uint32_t __anf02 = i;
+            uint32_t col = ((__anf02 + offset) % 32);
+            uint32_t offset1 =
+                ((((0 + (shared * (mrow * 128))) + (__anf0_1 * 32)) +
+                     (shared * row)) +
+                    col);
+            vec_memcpy((local + 0), (gA + offset1));
             uint32_t k = 0;
             while (k < 8) {
-                uint32_t __anf02 = k;
-                custard_bf16 v = local[__anf02];
                 uint32_t __anf03 = k;
-                uint32_t cidx = (col + __anf03);
+                custard_bf16 v = local[__anf03];
+                uint32_t __anf04 = k;
+                uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 32) + cidx);
                 _letpattern._1[ni] = v;
-                uint32_t __anf04 = k;
-                k = (__anf04 + 1);
+                uint32_t __anf05 = k;
+                k = (__anf05 + 1);
             }
             uint32_t vi = i;
             i = (vi + 1024);
         }
         uint32_t mlen1 = 4096;
-        uint32_t offset1 = (tid * 8);
+        uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
             custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
@@ -15214,20 +15941,25 @@ __global__ static void kuiper_kernel_60(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_2 = i1;
-            uint32_t row_1 = ((__anf0_2 + offset1) / 128);
             uint32_t __anf01_2 = i1;
-            uint32_t col_1 = ((__anf01_2 + offset1) % 128);
+            uint32_t row_1 = ((__anf01_2 + offset1_1) / 128);
+            uint32_t __anf02_1 = i1;
+            uint32_t col_1 = ((__anf02_1 + offset1_1) % 128);
+            uint32_t offset2 =
+                ((((0 + (cols * (__anf0_1 * 32))) + (mcol * 128)) +
+                     (cols * row_1)) +
+                    col_1);
+            vec_memcpy((local_1 + 0), (gB + offset2));
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                uint32_t __anf02_1 = k_1;
-                custard_bf16 v_1 = local_1[__anf02_1];
                 uint32_t __anf03_1 = k_1;
-                uint32_t cidx_1 = (col_1 + __anf03_1);
+                custard_bf16 v_1 = local_1[__anf03_1];
+                uint32_t __anf04_1 = k_1;
+                uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
                 _letpattern._2[ni_1] = v_1;
-                uint32_t __anf04_1 = k_1;
-                k_1 = (__anf04_1 + 1);
+                uint32_t __anf05_1 = k_1;
+                k_1 = (__anf05_1 + 1);
             }
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 1024);
@@ -15235,39 +15967,39 @@ __global__ static void kuiper_kernel_60(uint32_t cols, uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 2) {
-            uint32_t __anf0_3 = dotIdx;
+            uint32_t __anf01_3 = dotIdx;
             uint32_t i0 = 0;
             while (i0 < 8) {
-                uint32_t __anf01_3 = i0;
                 uint32_t __anf02_2 = i0;
+                uint32_t __anf03_2 = i0;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
-                    aFrags[__anf02_2];
+                    aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
                     (_letpattern._1 +
-                        ((((0 + (32 * (warpRow * 128))) + (__anf0_3 * 16)) +
-                             (32 * (__anf01_3 * 16))) +
+                        ((((0 + (32 * (warpRow * 128))) + (__anf01_3 * 16)) +
+                             (32 * (__anf02_2 * 16))) +
                             0)),
                     ((uint32_t) 32U));
-                uint32_t __anf03_2 = i0;
-                i0 = (__anf03_2 + 1);
+                uint32_t __anf04_2 = i0;
+                i0 = (__anf04_2 + 1);
             }
-            uint32_t __anf01_4 = dotIdx;
+            uint32_t __anf02_3 = dotIdx;
             uint32_t i11 = 0;
             while (i11 < 2) {
-                uint32_t __anf02_3 = i11;
                 uint32_t __anf03_3 = i11;
+                uint32_t __anf04_3 = i11;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
-                    bFrags[__anf03_3];
+                    bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
                     (_letpattern._2 +
-                        ((((0 + (128 * (__anf01_4 * 16))) + (warpCol * 32)) +
+                        ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 32)) +
                              0) +
-                            (__anf02_3 * 16))),
+                            (__anf03_3 * 16))),
                     ((uint32_t) 128U));
-                uint32_t __anf04_2 = i11;
-                i11 = (__anf04_2 + 1);
+                uint32_t __anf05_2 = i11;
+                i11 = (__anf05_2 + 1);
             }
             uint32_t resIdxM = 0;
             while (resIdxM < 8) {
@@ -15276,26 +16008,26 @@ __global__ static void kuiper_kernel_60(uint32_t cols, uint32_t shared,
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &a_frag =
                         aFrags[resIdxM];
-                    uint32_t __anf03_4 = resIdxN;
+                    uint32_t __anf04_4 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &b_frag =
-                        bFrags[__anf03_4];
-                    uint32_t __anf04_3 = resIdxN;
+                        bFrags[__anf04_4];
+                    uint32_t __anf05_3 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16,
                         16, float, void> &acc_frag =
-                        accFrags[((resIdxM * 2) + __anf04_3)];
+                        accFrags[((resIdxM * 2) + __anf05_3)];
                     wmma::mma_sync(acc_frag, a_frag, b_frag, acc_frag);
-                    uint32_t __anf05 = resIdxN;
-                    resIdxN = (__anf05 + 1);
+                    uint32_t __anf06 = resIdxN;
+                    resIdxN = (__anf06 + 1);
                 }
-                uint32_t __anf02_4 = resIdxM;
-                resIdxM = (__anf02_4 + 1);
+                uint32_t __anf03_4 = resIdxM;
+                resIdxM = (__anf03_4 + 1);
             }
-            uint32_t __anf02_5 = dotIdx;
-            dotIdx = (__anf02_5 + 1);
+            uint32_t __anf03_5 = dotIdx;
+            dotIdx = (__anf03_5 + 1);
         }
-        uint32_t __anf0_4 = bkIdx;
-        bkIdx = (__anf0_4 + 1);
+        uint32_t __anf01_4 = bkIdx;
+        bkIdx = (__anf01_4 + 1);
     }
     uint32_t bm = 128;
     uint32_t bn = 128;
@@ -15307,8 +16039,8 @@ __global__ static void kuiper_kernel_60(uint32_t cols, uint32_t shared,
     uint32_t lane = (tid % 32);
     uint32_t idx = 0;
     while (idx < (wm * wn)) {
-        uint32_t mrow = (bid / (cols / bn));
-        uint32_t mcol = (bid % (cols / bn));
+        uint32_t mrow1 = (bid / (cols / bn));
+        uint32_t mcol1 = (bid % (cols / bn));
         uint32_t warpRow1 = (wid1 / (bn / (wn * tn)));
         uint32_t warpCol1 = (wid1 % (bn / (wn * tn)));
         float *sTile = FStar_Pervasives_Native_fst__array_t_unit(
@@ -15321,22 +16053,22 @@ __global__ static void kuiper_kernel_60(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}})));
-        uint32_t __anf0_5 = idx;
+        uint32_t __anf0_2 = idx;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
-            void> &__anf1_3 = accFrags[__anf0_5];
+            void> &__anf1_3 = accFrags[__anf0_2];
         KPR_STORE(
             (sTile + ((0 + (tn * (wid1 * tm))) + (0 * tn))), __anf1_3, tn);
         uint32_t __anf01_5 = idx;
         uint32_t area = (tm * tn);
         uint32_t flat = lane;
         while (flat < area) {
-            uint32_t __anf02_6 = flat;
-            uint32_t row_2 = (__anf02_6 / tn);
-            uint32_t col_2 = (__anf02_6 % tn);
-            uint32_t globalRow = ((((mrow * bm) + (warpRow1 * (wm * tm))) +
+            uint32_t __anf02_4 = flat;
+            uint32_t row_2 = (__anf02_4 / tn);
+            uint32_t col_2 = (__anf02_4 % tn);
+            uint32_t globalRow = ((((mrow1 * bm) + (warpRow1 * (wm * tm))) +
                                       ((__anf01_5 / wn) * tm)) +
                                   row_2);
-            uint32_t globalCol = ((((mcol * bn) + (warpCol1 * (wn * tn))) +
+            uint32_t globalCol = ((((mcol1 * bn) + (warpCol1 * (wn * tn))) +
                                       ((__anf01_5 % wn) * tn)) +
                                   col_2);
             uint32_t ni_2 = ((globalRow * cols) + globalCol);
@@ -15351,8 +16083,8 @@ __global__ static void kuiper_kernel_60(uint32_t cols, uint32_t shared,
             uint32_t vflat = flat;
             flat = (vflat + 32);
         }
-        uint32_t __anf02_7 = idx;
-        idx = (__anf02_7 + 1);
+        uint32_t __anf02_5 = idx;
+        idx = (__anf02_5 + 1);
     }
 }
 
@@ -15361,8 +16093,6 @@ __global__ static void kuiper_kernel_61(uint32_t cols, uint32_t shared,
     custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
     float beta, float alpha, custard_bf16 *gD)
 {
-    (void) gA;
-    (void) gB;
     (void) nthr;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     custard_bf16 *tmp1 = (custard_bf16 *) tmp;
@@ -15384,6 +16114,9 @@ __global__ static void kuiper_kernel_61(uint32_t cols, uint32_t shared,
                 ._1 = tmp1, ._2 = tmp7};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    uint32_t num_n_tiles = (cols / 128);
+    uint32_t mrow = (bid / num_n_tiles);
+    uint32_t mcol = (bid % num_n_tiles);
     uint32_t wid = (tid / 32);
     uint32_t warpRow = (wid / 2);
     uint32_t warpCol = (wid % 2);
@@ -15422,6 +16155,7 @@ __global__ static void kuiper_kernel_61(uint32_t cols, uint32_t shared,
     }
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
+        uint32_t __anf0_1 = bkIdx;
         __syncthreads();
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 8);
@@ -15431,26 +16165,31 @@ __global__ static void kuiper_kernel_61(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_1 = i;
-            uint32_t row = ((__anf0_1 + offset) / 32);
             uint32_t __anf01_1 = i;
-            uint32_t col = ((__anf01_1 + offset) % 32);
+            uint32_t row = ((__anf01_1 + offset) / 32);
+            uint32_t __anf02 = i;
+            uint32_t col = ((__anf02 + offset) % 32);
+            uint32_t offset1 =
+                ((((0 + (shared * (mrow * 128))) + (__anf0_1 * 32)) +
+                     (shared * row)) +
+                    col);
+            vec_memcpy((local + 0), (gA + offset1));
             uint32_t k = 0;
             while (k < 8) {
-                uint32_t __anf02 = k;
-                custard_bf16 v = local[__anf02];
                 uint32_t __anf03 = k;
-                uint32_t cidx = (col + __anf03);
+                custard_bf16 v = local[__anf03];
+                uint32_t __anf04 = k;
+                uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 32) + cidx);
                 _letpattern._1[ni] = v;
-                uint32_t __anf04 = k;
-                k = (__anf04 + 1);
+                uint32_t __anf05 = k;
+                k = (__anf05 + 1);
             }
             uint32_t vi = i;
             i = (vi + 512);
         }
         uint32_t mlen1 = 4096;
-        uint32_t offset1 = (tid * 8);
+        uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
             custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
@@ -15458,20 +16197,25 @@ __global__ static void kuiper_kernel_61(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_2 = i1;
-            uint32_t row_1 = ((__anf0_2 + offset1) / 128);
             uint32_t __anf01_2 = i1;
-            uint32_t col_1 = ((__anf01_2 + offset1) % 128);
+            uint32_t row_1 = ((__anf01_2 + offset1_1) / 128);
+            uint32_t __anf02_1 = i1;
+            uint32_t col_1 = ((__anf02_1 + offset1_1) % 128);
+            uint32_t offset2 =
+                ((((0 + (cols * (__anf0_1 * 32))) + (mcol * 128)) +
+                     (cols * row_1)) +
+                    col_1);
+            vec_memcpy((local_1 + 0), (gB + offset2));
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                uint32_t __anf02_1 = k_1;
-                custard_bf16 v_1 = local_1[__anf02_1];
                 uint32_t __anf03_1 = k_1;
-                uint32_t cidx_1 = (col_1 + __anf03_1);
+                custard_bf16 v_1 = local_1[__anf03_1];
+                uint32_t __anf04_1 = k_1;
+                uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
                 _letpattern._2[ni_1] = v_1;
-                uint32_t __anf04_1 = k_1;
-                k_1 = (__anf04_1 + 1);
+                uint32_t __anf05_1 = k_1;
+                k_1 = (__anf05_1 + 1);
             }
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 512);
@@ -15479,39 +16223,39 @@ __global__ static void kuiper_kernel_61(uint32_t cols, uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 2) {
-            uint32_t __anf0_3 = dotIdx;
+            uint32_t __anf01_3 = dotIdx;
             uint32_t i0 = 0;
             while (i0 < 8) {
-                uint32_t __anf01_3 = i0;
                 uint32_t __anf02_2 = i0;
+                uint32_t __anf03_2 = i0;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
-                    aFrags[__anf02_2];
+                    aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
                     (_letpattern._1 +
-                        ((((0 + (32 * (warpRow * 128))) + (__anf0_3 * 16)) +
-                             (32 * (__anf01_3 * 16))) +
+                        ((((0 + (32 * (warpRow * 128))) + (__anf01_3 * 16)) +
+                             (32 * (__anf02_2 * 16))) +
                             0)),
                     ((uint32_t) 32U));
-                uint32_t __anf03_2 = i0;
-                i0 = (__anf03_2 + 1);
+                uint32_t __anf04_2 = i0;
+                i0 = (__anf04_2 + 1);
             }
-            uint32_t __anf01_4 = dotIdx;
+            uint32_t __anf02_3 = dotIdx;
             uint32_t i11 = 0;
             while (i11 < 4) {
-                uint32_t __anf02_3 = i11;
                 uint32_t __anf03_3 = i11;
+                uint32_t __anf04_3 = i11;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
-                    bFrags[__anf03_3];
+                    bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
                     (_letpattern._2 +
-                        ((((0 + (128 * (__anf01_4 * 16))) + (warpCol * 64)) +
+                        ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 64)) +
                              0) +
-                            (__anf02_3 * 16))),
+                            (__anf03_3 * 16))),
                     ((uint32_t) 128U));
-                uint32_t __anf04_2 = i11;
-                i11 = (__anf04_2 + 1);
+                uint32_t __anf05_2 = i11;
+                i11 = (__anf05_2 + 1);
             }
             uint32_t resIdxM = 0;
             while (resIdxM < 8) {
@@ -15520,26 +16264,26 @@ __global__ static void kuiper_kernel_61(uint32_t cols, uint32_t shared,
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &a_frag =
                         aFrags[resIdxM];
-                    uint32_t __anf03_4 = resIdxN;
+                    uint32_t __anf04_4 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &b_frag =
-                        bFrags[__anf03_4];
-                    uint32_t __anf04_3 = resIdxN;
+                        bFrags[__anf04_4];
+                    uint32_t __anf05_3 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16,
                         16, float, void> &acc_frag =
-                        accFrags[((resIdxM * 4) + __anf04_3)];
+                        accFrags[((resIdxM * 4) + __anf05_3)];
                     wmma::mma_sync(acc_frag, a_frag, b_frag, acc_frag);
-                    uint32_t __anf05 = resIdxN;
-                    resIdxN = (__anf05 + 1);
+                    uint32_t __anf06 = resIdxN;
+                    resIdxN = (__anf06 + 1);
                 }
-                uint32_t __anf02_4 = resIdxM;
-                resIdxM = (__anf02_4 + 1);
+                uint32_t __anf03_4 = resIdxM;
+                resIdxM = (__anf03_4 + 1);
             }
-            uint32_t __anf02_5 = dotIdx;
-            dotIdx = (__anf02_5 + 1);
+            uint32_t __anf03_5 = dotIdx;
+            dotIdx = (__anf03_5 + 1);
         }
-        uint32_t __anf0_4 = bkIdx;
-        bkIdx = (__anf0_4 + 1);
+        uint32_t __anf01_4 = bkIdx;
+        bkIdx = (__anf01_4 + 1);
     }
     uint32_t bm = 128;
     uint32_t bn = 128;
@@ -15551,8 +16295,8 @@ __global__ static void kuiper_kernel_61(uint32_t cols, uint32_t shared,
     uint32_t lane = (tid % 32);
     uint32_t idx = 0;
     while (idx < (wm * wn)) {
-        uint32_t mrow = (bid / (cols / bn));
-        uint32_t mcol = (bid % (cols / bn));
+        uint32_t mrow1 = (bid / (cols / bn));
+        uint32_t mcol1 = (bid % (cols / bn));
         uint32_t warpRow1 = (wid1 / (bn / (wn * tn)));
         uint32_t warpCol1 = (wid1 % (bn / (wn * tn)));
         float *sTile = FStar_Pervasives_Native_fst__array_t_unit(
@@ -15565,22 +16309,22 @@ __global__ static void kuiper_kernel_61(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}})));
-        uint32_t __anf0_5 = idx;
+        uint32_t __anf0_2 = idx;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
-            void> &__anf1_3 = accFrags[__anf0_5];
+            void> &__anf1_3 = accFrags[__anf0_2];
         KPR_STORE(
             (sTile + ((0 + (tn * (wid1 * tm))) + (0 * tn))), __anf1_3, tn);
         uint32_t __anf01_5 = idx;
         uint32_t area = (tm * tn);
         uint32_t flat = lane;
         while (flat < area) {
-            uint32_t __anf02_6 = flat;
-            uint32_t row_2 = (__anf02_6 / tn);
-            uint32_t col_2 = (__anf02_6 % tn);
-            uint32_t globalRow = ((((mrow * bm) + (warpRow1 * (wm * tm))) +
+            uint32_t __anf02_4 = flat;
+            uint32_t row_2 = (__anf02_4 / tn);
+            uint32_t col_2 = (__anf02_4 % tn);
+            uint32_t globalRow = ((((mrow1 * bm) + (warpRow1 * (wm * tm))) +
                                       ((__anf01_5 / wn) * tm)) +
                                   row_2);
-            uint32_t globalCol = ((((mcol * bn) + (warpCol1 * (wn * tn))) +
+            uint32_t globalCol = ((((mcol1 * bn) + (warpCol1 * (wn * tn))) +
                                       ((__anf01_5 % wn) * tn)) +
                                   col_2);
             uint32_t ni_2 = ((globalRow * cols) + globalCol);
@@ -15595,8 +16339,8 @@ __global__ static void kuiper_kernel_61(uint32_t cols, uint32_t shared,
             uint32_t vflat = flat;
             flat = (vflat + 32);
         }
-        uint32_t __anf02_7 = idx;
-        idx = (__anf02_7 + 1);
+        uint32_t __anf02_5 = idx;
+        idx = (__anf02_5 + 1);
     }
 }
 
@@ -15605,8 +16349,6 @@ __global__ static void kuiper_kernel_62(uint32_t cols, uint32_t shared,
     custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
     float beta, float alpha, custard_bf16 *gD)
 {
-    (void) gA;
-    (void) gB;
     (void) nthr;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     custard_bf16 *tmp1 = (custard_bf16 *) tmp;
@@ -15628,6 +16370,9 @@ __global__ static void kuiper_kernel_62(uint32_t cols, uint32_t shared,
                 ._1 = tmp1, ._2 = tmp7};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    uint32_t num_n_tiles = (cols / 128);
+    uint32_t mrow = (bid / num_n_tiles);
+    uint32_t mcol = (bid % num_n_tiles);
     uint32_t wid = (tid / 32);
     uint32_t warpRow = (wid / 1);
     uint32_t warpCol = (wid % 1);
@@ -15666,6 +16411,7 @@ __global__ static void kuiper_kernel_62(uint32_t cols, uint32_t shared,
     }
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
+        uint32_t __anf0_1 = bkIdx;
         __syncthreads();
         uint32_t mlen = 4096;
         uint32_t offset = (tid * 8);
@@ -15675,26 +16421,31 @@ __global__ static void kuiper_kernel_62(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_1 = i;
-            uint32_t row = ((__anf0_1 + offset) / 32);
             uint32_t __anf01_1 = i;
-            uint32_t col = ((__anf01_1 + offset) % 32);
+            uint32_t row = ((__anf01_1 + offset) / 32);
+            uint32_t __anf02 = i;
+            uint32_t col = ((__anf02 + offset) % 32);
+            uint32_t offset1 =
+                ((((0 + (shared * (mrow * 128))) + (__anf0_1 * 32)) +
+                     (shared * row)) +
+                    col);
+            vec_memcpy((local + 0), (gA + offset1));
             uint32_t k = 0;
             while (k < 8) {
-                uint32_t __anf02 = k;
-                custard_bf16 v = local[__anf02];
                 uint32_t __anf03 = k;
-                uint32_t cidx = (col + __anf03);
+                custard_bf16 v = local[__anf03];
+                uint32_t __anf04 = k;
+                uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 32) + cidx);
                 _letpattern._1[ni] = v;
-                uint32_t __anf04 = k;
-                k = (__anf04 + 1);
+                uint32_t __anf05 = k;
+                k = (__anf05 + 1);
             }
             uint32_t vi = i;
             i = (vi + 256);
         }
         uint32_t mlen1 = 4096;
-        uint32_t offset1 = (tid * 8);
+        uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
             custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
@@ -15702,20 +16453,25 @@ __global__ static void kuiper_kernel_62(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_2 = i1;
-            uint32_t row_1 = ((__anf0_2 + offset1) / 128);
             uint32_t __anf01_2 = i1;
-            uint32_t col_1 = ((__anf01_2 + offset1) % 128);
+            uint32_t row_1 = ((__anf01_2 + offset1_1) / 128);
+            uint32_t __anf02_1 = i1;
+            uint32_t col_1 = ((__anf02_1 + offset1_1) % 128);
+            uint32_t offset2 =
+                ((((0 + (cols * (__anf0_1 * 32))) + (mcol * 128)) +
+                     (cols * row_1)) +
+                    col_1);
+            vec_memcpy((local_1 + 0), (gB + offset2));
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                uint32_t __anf02_1 = k_1;
-                custard_bf16 v_1 = local_1[__anf02_1];
                 uint32_t __anf03_1 = k_1;
-                uint32_t cidx_1 = (col_1 + __anf03_1);
+                custard_bf16 v_1 = local_1[__anf03_1];
+                uint32_t __anf04_1 = k_1;
+                uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
                 _letpattern._2[ni_1] = v_1;
-                uint32_t __anf04_1 = k_1;
-                k_1 = (__anf04_1 + 1);
+                uint32_t __anf05_1 = k_1;
+                k_1 = (__anf05_1 + 1);
             }
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 256);
@@ -15723,39 +16479,39 @@ __global__ static void kuiper_kernel_62(uint32_t cols, uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 2) {
-            uint32_t __anf0_3 = dotIdx;
+            uint32_t __anf01_3 = dotIdx;
             uint32_t i0 = 0;
             while (i0 < 8) {
-                uint32_t __anf01_3 = i0;
                 uint32_t __anf02_2 = i0;
+                uint32_t __anf03_2 = i0;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
-                    aFrags[__anf02_2];
+                    aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
                     (_letpattern._1 +
-                        ((((0 + (32 * (warpRow * 128))) + (__anf0_3 * 16)) +
-                             (32 * (__anf01_3 * 16))) +
+                        ((((0 + (32 * (warpRow * 128))) + (__anf01_3 * 16)) +
+                             (32 * (__anf02_2 * 16))) +
                             0)),
                     ((uint32_t) 32U));
-                uint32_t __anf03_2 = i0;
-                i0 = (__anf03_2 + 1);
+                uint32_t __anf04_2 = i0;
+                i0 = (__anf04_2 + 1);
             }
-            uint32_t __anf01_4 = dotIdx;
+            uint32_t __anf02_3 = dotIdx;
             uint32_t i11 = 0;
             while (i11 < 8) {
-                uint32_t __anf02_3 = i11;
                 uint32_t __anf03_3 = i11;
+                uint32_t __anf04_3 = i11;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
-                    bFrags[__anf03_3];
+                    bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
                     (_letpattern._2 +
-                        ((((0 + (128 * (__anf01_4 * 16))) + (warpCol * 128)) +
+                        ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 128)) +
                              0) +
-                            (__anf02_3 * 16))),
+                            (__anf03_3 * 16))),
                     ((uint32_t) 128U));
-                uint32_t __anf04_2 = i11;
-                i11 = (__anf04_2 + 1);
+                uint32_t __anf05_2 = i11;
+                i11 = (__anf05_2 + 1);
             }
             uint32_t resIdxM = 0;
             while (resIdxM < 8) {
@@ -15764,26 +16520,26 @@ __global__ static void kuiper_kernel_62(uint32_t cols, uint32_t shared,
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &a_frag =
                         aFrags[resIdxM];
-                    uint32_t __anf03_4 = resIdxN;
+                    uint32_t __anf04_4 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &b_frag =
-                        bFrags[__anf03_4];
-                    uint32_t __anf04_3 = resIdxN;
+                        bFrags[__anf04_4];
+                    uint32_t __anf05_3 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16,
                         16, float, void> &acc_frag =
-                        accFrags[((resIdxM * 8) + __anf04_3)];
+                        accFrags[((resIdxM * 8) + __anf05_3)];
                     wmma::mma_sync(acc_frag, a_frag, b_frag, acc_frag);
-                    uint32_t __anf05 = resIdxN;
-                    resIdxN = (__anf05 + 1);
+                    uint32_t __anf06 = resIdxN;
+                    resIdxN = (__anf06 + 1);
                 }
-                uint32_t __anf02_4 = resIdxM;
-                resIdxM = (__anf02_4 + 1);
+                uint32_t __anf03_4 = resIdxM;
+                resIdxM = (__anf03_4 + 1);
             }
-            uint32_t __anf02_5 = dotIdx;
-            dotIdx = (__anf02_5 + 1);
+            uint32_t __anf03_5 = dotIdx;
+            dotIdx = (__anf03_5 + 1);
         }
-        uint32_t __anf0_4 = bkIdx;
-        bkIdx = (__anf0_4 + 1);
+        uint32_t __anf01_4 = bkIdx;
+        bkIdx = (__anf01_4 + 1);
     }
     uint32_t bm = 128;
     uint32_t bn = 128;
@@ -15795,8 +16551,8 @@ __global__ static void kuiper_kernel_62(uint32_t cols, uint32_t shared,
     uint32_t lane = (tid % 32);
     uint32_t idx = 0;
     while (idx < (wm * wn)) {
-        uint32_t mrow = (bid / (cols / bn));
-        uint32_t mcol = (bid % (cols / bn));
+        uint32_t mrow1 = (bid / (cols / bn));
+        uint32_t mcol1 = (bid % (cols / bn));
         uint32_t warpRow1 = (wid1 / (bn / (wn * tn)));
         uint32_t warpCol1 = (wid1 % (bn / (wn * tn)));
         float *sTile = FStar_Pervasives_Native_fst__array_t_unit(
@@ -15809,22 +16565,22 @@ __global__ static void kuiper_kernel_62(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}})));
-        uint32_t __anf0_5 = idx;
+        uint32_t __anf0_2 = idx;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
-            void> &__anf1_3 = accFrags[__anf0_5];
+            void> &__anf1_3 = accFrags[__anf0_2];
         KPR_STORE(
             (sTile + ((0 + (tn * (wid1 * tm))) + (0 * tn))), __anf1_3, tn);
         uint32_t __anf01_5 = idx;
         uint32_t area = (tm * tn);
         uint32_t flat = lane;
         while (flat < area) {
-            uint32_t __anf02_6 = flat;
-            uint32_t row_2 = (__anf02_6 / tn);
-            uint32_t col_2 = (__anf02_6 % tn);
-            uint32_t globalRow = ((((mrow * bm) + (warpRow1 * (wm * tm))) +
+            uint32_t __anf02_4 = flat;
+            uint32_t row_2 = (__anf02_4 / tn);
+            uint32_t col_2 = (__anf02_4 % tn);
+            uint32_t globalRow = ((((mrow1 * bm) + (warpRow1 * (wm * tm))) +
                                       ((__anf01_5 / wn) * tm)) +
                                   row_2);
-            uint32_t globalCol = ((((mcol * bn) + (warpCol1 * (wn * tn))) +
+            uint32_t globalCol = ((((mcol1 * bn) + (warpCol1 * (wn * tn))) +
                                       ((__anf01_5 % wn) * tn)) +
                                   col_2);
             uint32_t ni_2 = ((globalRow * cols) + globalCol);
@@ -15839,8 +16595,8 @@ __global__ static void kuiper_kernel_62(uint32_t cols, uint32_t shared,
             uint32_t vflat = flat;
             flat = (vflat + 32);
         }
-        uint32_t __anf02_7 = idx;
-        idx = (__anf02_7 + 1);
+        uint32_t __anf02_5 = idx;
+        idx = (__anf02_5 + 1);
     }
 }
 
@@ -15857,8 +16613,6 @@ __global__ static void kuiper_kernel_63(uint32_t cols, uint32_t shared,
     custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
     float beta, float alpha, custard_bf16 *gD)
 {
-    (void) gA;
-    (void) gB;
     (void) nthr;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     custard_bf16 *tmp1 = (custard_bf16 *) tmp;
@@ -15880,6 +16634,9 @@ __global__ static void kuiper_kernel_63(uint32_t cols, uint32_t shared,
                 ._1 = tmp1, ._2 = tmp7};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    uint32_t num_n_tiles = (cols / 128);
+    uint32_t mrow = (bid / num_n_tiles);
+    uint32_t mcol = (bid % num_n_tiles);
     uint32_t wid = (tid / 32);
     uint32_t warpRow = (wid / 4);
     uint32_t warpCol = (wid % 4);
@@ -15918,6 +16675,7 @@ __global__ static void kuiper_kernel_63(uint32_t cols, uint32_t shared,
     }
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
+        uint32_t __anf0_1 = bkIdx;
         __syncthreads();
         uint32_t mlen = 8192;
         uint32_t offset = (tid * 8);
@@ -15927,26 +16685,31 @@ __global__ static void kuiper_kernel_63(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_1 = i;
-            uint32_t row = ((__anf0_1 + offset) / 64);
             uint32_t __anf01_1 = i;
-            uint32_t col = ((__anf01_1 + offset) % 64);
+            uint32_t row = ((__anf01_1 + offset) / 64);
+            uint32_t __anf02 = i;
+            uint32_t col = ((__anf02 + offset) % 64);
+            uint32_t offset1 =
+                ((((0 + (shared * (mrow * 128))) + (__anf0_1 * 64)) +
+                     (shared * row)) +
+                    col);
+            vec_memcpy((local + 0), (gA + offset1));
             uint32_t k = 0;
             while (k < 8) {
-                uint32_t __anf02 = k;
-                custard_bf16 v = local[__anf02];
                 uint32_t __anf03 = k;
-                uint32_t cidx = (col + __anf03);
+                custard_bf16 v = local[__anf03];
+                uint32_t __anf04 = k;
+                uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 64) + cidx);
                 _letpattern._1[ni] = v;
-                uint32_t __anf04 = k;
-                k = (__anf04 + 1);
+                uint32_t __anf05 = k;
+                k = (__anf05 + 1);
             }
             uint32_t vi = i;
             i = (vi + 4096);
         }
         uint32_t mlen1 = 8192;
-        uint32_t offset1 = (tid * 8);
+        uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
             custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
@@ -15954,20 +16717,25 @@ __global__ static void kuiper_kernel_63(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_2 = i1;
-            uint32_t row_1 = ((__anf0_2 + offset1) / 128);
             uint32_t __anf01_2 = i1;
-            uint32_t col_1 = ((__anf01_2 + offset1) % 128);
+            uint32_t row_1 = ((__anf01_2 + offset1_1) / 128);
+            uint32_t __anf02_1 = i1;
+            uint32_t col_1 = ((__anf02_1 + offset1_1) % 128);
+            uint32_t offset2 =
+                ((((0 + (cols * (__anf0_1 * 64))) + (mcol * 128)) +
+                     (cols * row_1)) +
+                    col_1);
+            vec_memcpy((local_1 + 0), (gB + offset2));
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                uint32_t __anf02_1 = k_1;
-                custard_bf16 v_1 = local_1[__anf02_1];
                 uint32_t __anf03_1 = k_1;
-                uint32_t cidx_1 = (col_1 + __anf03_1);
+                custard_bf16 v_1 = local_1[__anf03_1];
+                uint32_t __anf04_1 = k_1;
+                uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
                 _letpattern._2[ni_1] = v_1;
-                uint32_t __anf04_1 = k_1;
-                k_1 = (__anf04_1 + 1);
+                uint32_t __anf05_1 = k_1;
+                k_1 = (__anf05_1 + 1);
             }
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 4096);
@@ -15975,39 +16743,39 @@ __global__ static void kuiper_kernel_63(uint32_t cols, uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 4) {
-            uint32_t __anf0_3 = dotIdx;
+            uint32_t __anf01_3 = dotIdx;
             uint32_t i0 = 0;
             while (i0 < 2) {
-                uint32_t __anf01_3 = i0;
                 uint32_t __anf02_2 = i0;
+                uint32_t __anf03_2 = i0;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
-                    aFrags[__anf02_2];
+                    aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
                     (_letpattern._1 +
-                        ((((0 + (64 * (warpRow * 32))) + (__anf0_3 * 16)) +
-                             (64 * (__anf01_3 * 16))) +
+                        ((((0 + (64 * (warpRow * 32))) + (__anf01_3 * 16)) +
+                             (64 * (__anf02_2 * 16))) +
                             0)),
                     ((uint32_t) 64U));
-                uint32_t __anf03_2 = i0;
-                i0 = (__anf03_2 + 1);
+                uint32_t __anf04_2 = i0;
+                i0 = (__anf04_2 + 1);
             }
-            uint32_t __anf01_4 = dotIdx;
+            uint32_t __anf02_3 = dotIdx;
             uint32_t i11 = 0;
             while (i11 < 2) {
-                uint32_t __anf02_3 = i11;
                 uint32_t __anf03_3 = i11;
+                uint32_t __anf04_3 = i11;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
-                    bFrags[__anf03_3];
+                    bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
                     (_letpattern._2 +
-                        ((((0 + (128 * (__anf01_4 * 16))) + (warpCol * 32)) +
+                        ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 32)) +
                              0) +
-                            (__anf02_3 * 16))),
+                            (__anf03_3 * 16))),
                     ((uint32_t) 128U));
-                uint32_t __anf04_2 = i11;
-                i11 = (__anf04_2 + 1);
+                uint32_t __anf05_2 = i11;
+                i11 = (__anf05_2 + 1);
             }
             uint32_t resIdxM = 0;
             while (resIdxM < 2) {
@@ -16016,26 +16784,26 @@ __global__ static void kuiper_kernel_63(uint32_t cols, uint32_t shared,
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &a_frag =
                         aFrags[resIdxM];
-                    uint32_t __anf03_4 = resIdxN;
+                    uint32_t __anf04_4 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &b_frag =
-                        bFrags[__anf03_4];
-                    uint32_t __anf04_3 = resIdxN;
+                        bFrags[__anf04_4];
+                    uint32_t __anf05_3 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16,
                         16, float, void> &acc_frag =
-                        accFrags[((resIdxM * 2) + __anf04_3)];
+                        accFrags[((resIdxM * 2) + __anf05_3)];
                     wmma::mma_sync(acc_frag, a_frag, b_frag, acc_frag);
-                    uint32_t __anf05 = resIdxN;
-                    resIdxN = (__anf05 + 1);
+                    uint32_t __anf06 = resIdxN;
+                    resIdxN = (__anf06 + 1);
                 }
-                uint32_t __anf02_4 = resIdxM;
-                resIdxM = (__anf02_4 + 1);
+                uint32_t __anf03_4 = resIdxM;
+                resIdxM = (__anf03_4 + 1);
             }
-            uint32_t __anf02_5 = dotIdx;
-            dotIdx = (__anf02_5 + 1);
+            uint32_t __anf03_5 = dotIdx;
+            dotIdx = (__anf03_5 + 1);
         }
-        uint32_t __anf0_4 = bkIdx;
-        bkIdx = (__anf0_4 + 1);
+        uint32_t __anf01_4 = bkIdx;
+        bkIdx = (__anf01_4 + 1);
     }
     uint32_t bm = 128;
     uint32_t bn = 128;
@@ -16047,8 +16815,8 @@ __global__ static void kuiper_kernel_63(uint32_t cols, uint32_t shared,
     uint32_t lane = (tid % 32);
     uint32_t idx = 0;
     while (idx < (wm * wn)) {
-        uint32_t mrow = (bid / (cols / bn));
-        uint32_t mcol = (bid % (cols / bn));
+        uint32_t mrow1 = (bid / (cols / bn));
+        uint32_t mcol1 = (bid % (cols / bn));
         uint32_t warpRow1 = (wid1 / (bn / (wn * tn)));
         uint32_t warpCol1 = (wid1 % (bn / (wn * tn)));
         float *sTile = FStar_Pervasives_Native_fst__array_t_unit(
@@ -16061,22 +16829,22 @@ __global__ static void kuiper_kernel_63(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}})));
-        uint32_t __anf0_5 = idx;
+        uint32_t __anf0_2 = idx;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
-            void> &__anf1_3 = accFrags[__anf0_5];
+            void> &__anf1_3 = accFrags[__anf0_2];
         KPR_STORE(
             (sTile + ((0 + (tn * (wid1 * tm))) + (0 * tn))), __anf1_3, tn);
         uint32_t __anf01_5 = idx;
         uint32_t area = (tm * tn);
         uint32_t flat = lane;
         while (flat < area) {
-            uint32_t __anf02_6 = flat;
-            uint32_t row_2 = (__anf02_6 / tn);
-            uint32_t col_2 = (__anf02_6 % tn);
-            uint32_t globalRow = ((((mrow * bm) + (warpRow1 * (wm * tm))) +
+            uint32_t __anf02_4 = flat;
+            uint32_t row_2 = (__anf02_4 / tn);
+            uint32_t col_2 = (__anf02_4 % tn);
+            uint32_t globalRow = ((((mrow1 * bm) + (warpRow1 * (wm * tm))) +
                                       ((__anf01_5 / wn) * tm)) +
                                   row_2);
-            uint32_t globalCol = ((((mcol * bn) + (warpCol1 * (wn * tn))) +
+            uint32_t globalCol = ((((mcol1 * bn) + (warpCol1 * (wn * tn))) +
                                       ((__anf01_5 % wn) * tn)) +
                                   col_2);
             uint32_t ni_2 = ((globalRow * cols) + globalCol);
@@ -16091,8 +16859,8 @@ __global__ static void kuiper_kernel_63(uint32_t cols, uint32_t shared,
             uint32_t vflat = flat;
             flat = (vflat + 32);
         }
-        uint32_t __anf02_7 = idx;
-        idx = (__anf02_7 + 1);
+        uint32_t __anf02_5 = idx;
+        idx = (__anf02_5 + 1);
     }
 }
 
@@ -16101,8 +16869,6 @@ __global__ static void kuiper_kernel_64(uint32_t cols, uint32_t shared,
     custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
     float beta, float alpha, custard_bf16 *gD)
 {
-    (void) gA;
-    (void) gB;
     (void) nthr;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     custard_bf16 *tmp1 = (custard_bf16 *) tmp;
@@ -16124,6 +16890,9 @@ __global__ static void kuiper_kernel_64(uint32_t cols, uint32_t shared,
                 ._1 = tmp1, ._2 = tmp7};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    uint32_t num_n_tiles = (cols / 128);
+    uint32_t mrow = (bid / num_n_tiles);
+    uint32_t mcol = (bid % num_n_tiles);
     uint32_t wid = (tid / 32);
     uint32_t warpRow = (wid / 2);
     uint32_t warpCol = (wid % 2);
@@ -16162,6 +16931,7 @@ __global__ static void kuiper_kernel_64(uint32_t cols, uint32_t shared,
     }
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
+        uint32_t __anf0_1 = bkIdx;
         __syncthreads();
         uint32_t mlen = 8192;
         uint32_t offset = (tid * 8);
@@ -16171,26 +16941,31 @@ __global__ static void kuiper_kernel_64(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_1 = i;
-            uint32_t row = ((__anf0_1 + offset) / 64);
             uint32_t __anf01_1 = i;
-            uint32_t col = ((__anf01_1 + offset) % 64);
+            uint32_t row = ((__anf01_1 + offset) / 64);
+            uint32_t __anf02 = i;
+            uint32_t col = ((__anf02 + offset) % 64);
+            uint32_t offset1 =
+                ((((0 + (shared * (mrow * 128))) + (__anf0_1 * 64)) +
+                     (shared * row)) +
+                    col);
+            vec_memcpy((local + 0), (gA + offset1));
             uint32_t k = 0;
             while (k < 8) {
-                uint32_t __anf02 = k;
-                custard_bf16 v = local[__anf02];
                 uint32_t __anf03 = k;
-                uint32_t cidx = (col + __anf03);
+                custard_bf16 v = local[__anf03];
+                uint32_t __anf04 = k;
+                uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 64) + cidx);
                 _letpattern._1[ni] = v;
-                uint32_t __anf04 = k;
-                k = (__anf04 + 1);
+                uint32_t __anf05 = k;
+                k = (__anf05 + 1);
             }
             uint32_t vi = i;
             i = (vi + 2048);
         }
         uint32_t mlen1 = 8192;
-        uint32_t offset1 = (tid * 8);
+        uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
             custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
@@ -16198,20 +16973,25 @@ __global__ static void kuiper_kernel_64(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_2 = i1;
-            uint32_t row_1 = ((__anf0_2 + offset1) / 128);
             uint32_t __anf01_2 = i1;
-            uint32_t col_1 = ((__anf01_2 + offset1) % 128);
+            uint32_t row_1 = ((__anf01_2 + offset1_1) / 128);
+            uint32_t __anf02_1 = i1;
+            uint32_t col_1 = ((__anf02_1 + offset1_1) % 128);
+            uint32_t offset2 =
+                ((((0 + (cols * (__anf0_1 * 64))) + (mcol * 128)) +
+                     (cols * row_1)) +
+                    col_1);
+            vec_memcpy((local_1 + 0), (gB + offset2));
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                uint32_t __anf02_1 = k_1;
-                custard_bf16 v_1 = local_1[__anf02_1];
                 uint32_t __anf03_1 = k_1;
-                uint32_t cidx_1 = (col_1 + __anf03_1);
+                custard_bf16 v_1 = local_1[__anf03_1];
+                uint32_t __anf04_1 = k_1;
+                uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
                 _letpattern._2[ni_1] = v_1;
-                uint32_t __anf04_1 = k_1;
-                k_1 = (__anf04_1 + 1);
+                uint32_t __anf05_1 = k_1;
+                k_1 = (__anf05_1 + 1);
             }
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 2048);
@@ -16219,39 +16999,39 @@ __global__ static void kuiper_kernel_64(uint32_t cols, uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 4) {
-            uint32_t __anf0_3 = dotIdx;
+            uint32_t __anf01_3 = dotIdx;
             uint32_t i0 = 0;
             while (i0 < 2) {
-                uint32_t __anf01_3 = i0;
                 uint32_t __anf02_2 = i0;
+                uint32_t __anf03_2 = i0;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
-                    aFrags[__anf02_2];
+                    aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
                     (_letpattern._1 +
-                        ((((0 + (64 * (warpRow * 32))) + (__anf0_3 * 16)) +
-                             (64 * (__anf01_3 * 16))) +
+                        ((((0 + (64 * (warpRow * 32))) + (__anf01_3 * 16)) +
+                             (64 * (__anf02_2 * 16))) +
                             0)),
                     ((uint32_t) 64U));
-                uint32_t __anf03_2 = i0;
-                i0 = (__anf03_2 + 1);
+                uint32_t __anf04_2 = i0;
+                i0 = (__anf04_2 + 1);
             }
-            uint32_t __anf01_4 = dotIdx;
+            uint32_t __anf02_3 = dotIdx;
             uint32_t i11 = 0;
             while (i11 < 4) {
-                uint32_t __anf02_3 = i11;
                 uint32_t __anf03_3 = i11;
+                uint32_t __anf04_3 = i11;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
-                    bFrags[__anf03_3];
+                    bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
                     (_letpattern._2 +
-                        ((((0 + (128 * (__anf01_4 * 16))) + (warpCol * 64)) +
+                        ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 64)) +
                              0) +
-                            (__anf02_3 * 16))),
+                            (__anf03_3 * 16))),
                     ((uint32_t) 128U));
-                uint32_t __anf04_2 = i11;
-                i11 = (__anf04_2 + 1);
+                uint32_t __anf05_2 = i11;
+                i11 = (__anf05_2 + 1);
             }
             uint32_t resIdxM = 0;
             while (resIdxM < 2) {
@@ -16260,26 +17040,26 @@ __global__ static void kuiper_kernel_64(uint32_t cols, uint32_t shared,
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &a_frag =
                         aFrags[resIdxM];
-                    uint32_t __anf03_4 = resIdxN;
+                    uint32_t __anf04_4 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &b_frag =
-                        bFrags[__anf03_4];
-                    uint32_t __anf04_3 = resIdxN;
+                        bFrags[__anf04_4];
+                    uint32_t __anf05_3 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16,
                         16, float, void> &acc_frag =
-                        accFrags[((resIdxM * 4) + __anf04_3)];
+                        accFrags[((resIdxM * 4) + __anf05_3)];
                     wmma::mma_sync(acc_frag, a_frag, b_frag, acc_frag);
-                    uint32_t __anf05 = resIdxN;
-                    resIdxN = (__anf05 + 1);
+                    uint32_t __anf06 = resIdxN;
+                    resIdxN = (__anf06 + 1);
                 }
-                uint32_t __anf02_4 = resIdxM;
-                resIdxM = (__anf02_4 + 1);
+                uint32_t __anf03_4 = resIdxM;
+                resIdxM = (__anf03_4 + 1);
             }
-            uint32_t __anf02_5 = dotIdx;
-            dotIdx = (__anf02_5 + 1);
+            uint32_t __anf03_5 = dotIdx;
+            dotIdx = (__anf03_5 + 1);
         }
-        uint32_t __anf0_4 = bkIdx;
-        bkIdx = (__anf0_4 + 1);
+        uint32_t __anf01_4 = bkIdx;
+        bkIdx = (__anf01_4 + 1);
     }
     uint32_t bm = 128;
     uint32_t bn = 128;
@@ -16291,8 +17071,8 @@ __global__ static void kuiper_kernel_64(uint32_t cols, uint32_t shared,
     uint32_t lane = (tid % 32);
     uint32_t idx = 0;
     while (idx < (wm * wn)) {
-        uint32_t mrow = (bid / (cols / bn));
-        uint32_t mcol = (bid % (cols / bn));
+        uint32_t mrow1 = (bid / (cols / bn));
+        uint32_t mcol1 = (bid % (cols / bn));
         uint32_t warpRow1 = (wid1 / (bn / (wn * tn)));
         uint32_t warpCol1 = (wid1 % (bn / (wn * tn)));
         float *sTile = FStar_Pervasives_Native_fst__array_t_unit(
@@ -16305,22 +17085,22 @@ __global__ static void kuiper_kernel_64(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}})));
-        uint32_t __anf0_5 = idx;
+        uint32_t __anf0_2 = idx;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
-            void> &__anf1_3 = accFrags[__anf0_5];
+            void> &__anf1_3 = accFrags[__anf0_2];
         KPR_STORE(
             (sTile + ((0 + (tn * (wid1 * tm))) + (0 * tn))), __anf1_3, tn);
         uint32_t __anf01_5 = idx;
         uint32_t area = (tm * tn);
         uint32_t flat = lane;
         while (flat < area) {
-            uint32_t __anf02_6 = flat;
-            uint32_t row_2 = (__anf02_6 / tn);
-            uint32_t col_2 = (__anf02_6 % tn);
-            uint32_t globalRow = ((((mrow * bm) + (warpRow1 * (wm * tm))) +
+            uint32_t __anf02_4 = flat;
+            uint32_t row_2 = (__anf02_4 / tn);
+            uint32_t col_2 = (__anf02_4 % tn);
+            uint32_t globalRow = ((((mrow1 * bm) + (warpRow1 * (wm * tm))) +
                                       ((__anf01_5 / wn) * tm)) +
                                   row_2);
-            uint32_t globalCol = ((((mcol * bn) + (warpCol1 * (wn * tn))) +
+            uint32_t globalCol = ((((mcol1 * bn) + (warpCol1 * (wn * tn))) +
                                       ((__anf01_5 % wn) * tn)) +
                                   col_2);
             uint32_t ni_2 = ((globalRow * cols) + globalCol);
@@ -16335,8 +17115,8 @@ __global__ static void kuiper_kernel_64(uint32_t cols, uint32_t shared,
             uint32_t vflat = flat;
             flat = (vflat + 32);
         }
-        uint32_t __anf02_7 = idx;
-        idx = (__anf02_7 + 1);
+        uint32_t __anf02_5 = idx;
+        idx = (__anf02_5 + 1);
     }
 }
 
@@ -16345,8 +17125,6 @@ __global__ static void kuiper_kernel_65(uint32_t cols, uint32_t shared,
     custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
     float beta, float alpha, custard_bf16 *gD)
 {
-    (void) gA;
-    (void) gB;
     (void) nthr;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     custard_bf16 *tmp1 = (custard_bf16 *) tmp;
@@ -16368,6 +17146,9 @@ __global__ static void kuiper_kernel_65(uint32_t cols, uint32_t shared,
                 ._1 = tmp1, ._2 = tmp7};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    uint32_t num_n_tiles = (cols / 128);
+    uint32_t mrow = (bid / num_n_tiles);
+    uint32_t mcol = (bid % num_n_tiles);
     uint32_t wid = (tid / 32);
     uint32_t warpRow = (wid / 1);
     uint32_t warpCol = (wid % 1);
@@ -16406,6 +17187,7 @@ __global__ static void kuiper_kernel_65(uint32_t cols, uint32_t shared,
     }
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
+        uint32_t __anf0_1 = bkIdx;
         __syncthreads();
         uint32_t mlen = 8192;
         uint32_t offset = (tid * 8);
@@ -16415,26 +17197,31 @@ __global__ static void kuiper_kernel_65(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_1 = i;
-            uint32_t row = ((__anf0_1 + offset) / 64);
             uint32_t __anf01_1 = i;
-            uint32_t col = ((__anf01_1 + offset) % 64);
+            uint32_t row = ((__anf01_1 + offset) / 64);
+            uint32_t __anf02 = i;
+            uint32_t col = ((__anf02 + offset) % 64);
+            uint32_t offset1 =
+                ((((0 + (shared * (mrow * 128))) + (__anf0_1 * 64)) +
+                     (shared * row)) +
+                    col);
+            vec_memcpy((local + 0), (gA + offset1));
             uint32_t k = 0;
             while (k < 8) {
-                uint32_t __anf02 = k;
-                custard_bf16 v = local[__anf02];
                 uint32_t __anf03 = k;
-                uint32_t cidx = (col + __anf03);
+                custard_bf16 v = local[__anf03];
+                uint32_t __anf04 = k;
+                uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 64) + cidx);
                 _letpattern._1[ni] = v;
-                uint32_t __anf04 = k;
-                k = (__anf04 + 1);
+                uint32_t __anf05 = k;
+                k = (__anf05 + 1);
             }
             uint32_t vi = i;
             i = (vi + 1024);
         }
         uint32_t mlen1 = 8192;
-        uint32_t offset1 = (tid * 8);
+        uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
             custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
@@ -16442,20 +17229,25 @@ __global__ static void kuiper_kernel_65(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_2 = i1;
-            uint32_t row_1 = ((__anf0_2 + offset1) / 128);
             uint32_t __anf01_2 = i1;
-            uint32_t col_1 = ((__anf01_2 + offset1) % 128);
+            uint32_t row_1 = ((__anf01_2 + offset1_1) / 128);
+            uint32_t __anf02_1 = i1;
+            uint32_t col_1 = ((__anf02_1 + offset1_1) % 128);
+            uint32_t offset2 =
+                ((((0 + (cols * (__anf0_1 * 64))) + (mcol * 128)) +
+                     (cols * row_1)) +
+                    col_1);
+            vec_memcpy((local_1 + 0), (gB + offset2));
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                uint32_t __anf02_1 = k_1;
-                custard_bf16 v_1 = local_1[__anf02_1];
                 uint32_t __anf03_1 = k_1;
-                uint32_t cidx_1 = (col_1 + __anf03_1);
+                custard_bf16 v_1 = local_1[__anf03_1];
+                uint32_t __anf04_1 = k_1;
+                uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
                 _letpattern._2[ni_1] = v_1;
-                uint32_t __anf04_1 = k_1;
-                k_1 = (__anf04_1 + 1);
+                uint32_t __anf05_1 = k_1;
+                k_1 = (__anf05_1 + 1);
             }
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 1024);
@@ -16463,39 +17255,39 @@ __global__ static void kuiper_kernel_65(uint32_t cols, uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 4) {
-            uint32_t __anf0_3 = dotIdx;
+            uint32_t __anf01_3 = dotIdx;
             uint32_t i0 = 0;
             while (i0 < 2) {
-                uint32_t __anf01_3 = i0;
                 uint32_t __anf02_2 = i0;
+                uint32_t __anf03_2 = i0;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
-                    aFrags[__anf02_2];
+                    aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
                     (_letpattern._1 +
-                        ((((0 + (64 * (warpRow * 32))) + (__anf0_3 * 16)) +
-                             (64 * (__anf01_3 * 16))) +
+                        ((((0 + (64 * (warpRow * 32))) + (__anf01_3 * 16)) +
+                             (64 * (__anf02_2 * 16))) +
                             0)),
                     ((uint32_t) 64U));
-                uint32_t __anf03_2 = i0;
-                i0 = (__anf03_2 + 1);
+                uint32_t __anf04_2 = i0;
+                i0 = (__anf04_2 + 1);
             }
-            uint32_t __anf01_4 = dotIdx;
+            uint32_t __anf02_3 = dotIdx;
             uint32_t i11 = 0;
             while (i11 < 8) {
-                uint32_t __anf02_3 = i11;
                 uint32_t __anf03_3 = i11;
+                uint32_t __anf04_3 = i11;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
-                    bFrags[__anf03_3];
+                    bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
                     (_letpattern._2 +
-                        ((((0 + (128 * (__anf01_4 * 16))) + (warpCol * 128)) +
+                        ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 128)) +
                              0) +
-                            (__anf02_3 * 16))),
+                            (__anf03_3 * 16))),
                     ((uint32_t) 128U));
-                uint32_t __anf04_2 = i11;
-                i11 = (__anf04_2 + 1);
+                uint32_t __anf05_2 = i11;
+                i11 = (__anf05_2 + 1);
             }
             uint32_t resIdxM = 0;
             while (resIdxM < 2) {
@@ -16504,26 +17296,26 @@ __global__ static void kuiper_kernel_65(uint32_t cols, uint32_t shared,
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &a_frag =
                         aFrags[resIdxM];
-                    uint32_t __anf03_4 = resIdxN;
+                    uint32_t __anf04_4 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &b_frag =
-                        bFrags[__anf03_4];
-                    uint32_t __anf04_3 = resIdxN;
+                        bFrags[__anf04_4];
+                    uint32_t __anf05_3 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16,
                         16, float, void> &acc_frag =
-                        accFrags[((resIdxM * 8) + __anf04_3)];
+                        accFrags[((resIdxM * 8) + __anf05_3)];
                     wmma::mma_sync(acc_frag, a_frag, b_frag, acc_frag);
-                    uint32_t __anf05 = resIdxN;
-                    resIdxN = (__anf05 + 1);
+                    uint32_t __anf06 = resIdxN;
+                    resIdxN = (__anf06 + 1);
                 }
-                uint32_t __anf02_4 = resIdxM;
-                resIdxM = (__anf02_4 + 1);
+                uint32_t __anf03_4 = resIdxM;
+                resIdxM = (__anf03_4 + 1);
             }
-            uint32_t __anf02_5 = dotIdx;
-            dotIdx = (__anf02_5 + 1);
+            uint32_t __anf03_5 = dotIdx;
+            dotIdx = (__anf03_5 + 1);
         }
-        uint32_t __anf0_4 = bkIdx;
-        bkIdx = (__anf0_4 + 1);
+        uint32_t __anf01_4 = bkIdx;
+        bkIdx = (__anf01_4 + 1);
     }
     uint32_t bm = 128;
     uint32_t bn = 128;
@@ -16535,8 +17327,8 @@ __global__ static void kuiper_kernel_65(uint32_t cols, uint32_t shared,
     uint32_t lane = (tid % 32);
     uint32_t idx = 0;
     while (idx < (wm * wn)) {
-        uint32_t mrow = (bid / (cols / bn));
-        uint32_t mcol = (bid % (cols / bn));
+        uint32_t mrow1 = (bid / (cols / bn));
+        uint32_t mcol1 = (bid % (cols / bn));
         uint32_t warpRow1 = (wid1 / (bn / (wn * tn)));
         uint32_t warpCol1 = (wid1 % (bn / (wn * tn)));
         float *sTile = FStar_Pervasives_Native_fst__array_t_unit(
@@ -16549,22 +17341,22 @@ __global__ static void kuiper_kernel_65(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}})));
-        uint32_t __anf0_5 = idx;
+        uint32_t __anf0_2 = idx;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
-            void> &__anf1_3 = accFrags[__anf0_5];
+            void> &__anf1_3 = accFrags[__anf0_2];
         KPR_STORE(
             (sTile + ((0 + (tn * (wid1 * tm))) + (0 * tn))), __anf1_3, tn);
         uint32_t __anf01_5 = idx;
         uint32_t area = (tm * tn);
         uint32_t flat = lane;
         while (flat < area) {
-            uint32_t __anf02_6 = flat;
-            uint32_t row_2 = (__anf02_6 / tn);
-            uint32_t col_2 = (__anf02_6 % tn);
-            uint32_t globalRow = ((((mrow * bm) + (warpRow1 * (wm * tm))) +
+            uint32_t __anf02_4 = flat;
+            uint32_t row_2 = (__anf02_4 / tn);
+            uint32_t col_2 = (__anf02_4 % tn);
+            uint32_t globalRow = ((((mrow1 * bm) + (warpRow1 * (wm * tm))) +
                                       ((__anf01_5 / wn) * tm)) +
                                   row_2);
-            uint32_t globalCol = ((((mcol * bn) + (warpCol1 * (wn * tn))) +
+            uint32_t globalCol = ((((mcol1 * bn) + (warpCol1 * (wn * tn))) +
                                       ((__anf01_5 % wn) * tn)) +
                                   col_2);
             uint32_t ni_2 = ((globalRow * cols) + globalCol);
@@ -16579,8 +17371,8 @@ __global__ static void kuiper_kernel_65(uint32_t cols, uint32_t shared,
             uint32_t vflat = flat;
             flat = (vflat + 32);
         }
-        uint32_t __anf02_7 = idx;
-        idx = (__anf02_7 + 1);
+        uint32_t __anf02_5 = idx;
+        idx = (__anf02_5 + 1);
     }
 }
 
@@ -16589,8 +17381,6 @@ __global__ static void kuiper_kernel_66(uint32_t cols, uint32_t shared,
     custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
     float beta, float alpha, custard_bf16 *gD)
 {
-    (void) gA;
-    (void) gB;
     (void) nthr;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     custard_bf16 *tmp1 = (custard_bf16 *) tmp;
@@ -16612,6 +17402,9 @@ __global__ static void kuiper_kernel_66(uint32_t cols, uint32_t shared,
                 ._1 = tmp1, ._2 = tmp7};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    uint32_t num_n_tiles = (cols / 128);
+    uint32_t mrow = (bid / num_n_tiles);
+    uint32_t mcol = (bid % num_n_tiles);
     uint32_t wid = (tid / 32);
     uint32_t warpRow = (wid / 4);
     uint32_t warpCol = (wid % 4);
@@ -16650,6 +17443,7 @@ __global__ static void kuiper_kernel_66(uint32_t cols, uint32_t shared,
     }
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
+        uint32_t __anf0_1 = bkIdx;
         __syncthreads();
         uint32_t mlen = 8192;
         uint32_t offset = (tid * 8);
@@ -16659,26 +17453,31 @@ __global__ static void kuiper_kernel_66(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_1 = i;
-            uint32_t row = ((__anf0_1 + offset) / 64);
             uint32_t __anf01_1 = i;
-            uint32_t col = ((__anf01_1 + offset) % 64);
+            uint32_t row = ((__anf01_1 + offset) / 64);
+            uint32_t __anf02 = i;
+            uint32_t col = ((__anf02 + offset) % 64);
+            uint32_t offset1 =
+                ((((0 + (shared * (mrow * 128))) + (__anf0_1 * 64)) +
+                     (shared * row)) +
+                    col);
+            vec_memcpy((local + 0), (gA + offset1));
             uint32_t k = 0;
             while (k < 8) {
-                uint32_t __anf02 = k;
-                custard_bf16 v = local[__anf02];
                 uint32_t __anf03 = k;
-                uint32_t cidx = (col + __anf03);
+                custard_bf16 v = local[__anf03];
+                uint32_t __anf04 = k;
+                uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 64) + cidx);
                 _letpattern._1[ni] = v;
-                uint32_t __anf04 = k;
-                k = (__anf04 + 1);
+                uint32_t __anf05 = k;
+                k = (__anf05 + 1);
             }
             uint32_t vi = i;
             i = (vi + 2048);
         }
         uint32_t mlen1 = 8192;
-        uint32_t offset1 = (tid * 8);
+        uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
             custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
@@ -16686,20 +17485,25 @@ __global__ static void kuiper_kernel_66(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_2 = i1;
-            uint32_t row_1 = ((__anf0_2 + offset1) / 128);
             uint32_t __anf01_2 = i1;
-            uint32_t col_1 = ((__anf01_2 + offset1) % 128);
+            uint32_t row_1 = ((__anf01_2 + offset1_1) / 128);
+            uint32_t __anf02_1 = i1;
+            uint32_t col_1 = ((__anf02_1 + offset1_1) % 128);
+            uint32_t offset2 =
+                ((((0 + (cols * (__anf0_1 * 64))) + (mcol * 128)) +
+                     (cols * row_1)) +
+                    col_1);
+            vec_memcpy((local_1 + 0), (gB + offset2));
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                uint32_t __anf02_1 = k_1;
-                custard_bf16 v_1 = local_1[__anf02_1];
                 uint32_t __anf03_1 = k_1;
-                uint32_t cidx_1 = (col_1 + __anf03_1);
+                custard_bf16 v_1 = local_1[__anf03_1];
+                uint32_t __anf04_1 = k_1;
+                uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
                 _letpattern._2[ni_1] = v_1;
-                uint32_t __anf04_1 = k_1;
-                k_1 = (__anf04_1 + 1);
+                uint32_t __anf05_1 = k_1;
+                k_1 = (__anf05_1 + 1);
             }
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 2048);
@@ -16707,39 +17511,39 @@ __global__ static void kuiper_kernel_66(uint32_t cols, uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 4) {
-            uint32_t __anf0_3 = dotIdx;
+            uint32_t __anf01_3 = dotIdx;
             uint32_t i0 = 0;
             while (i0 < 4) {
-                uint32_t __anf01_3 = i0;
                 uint32_t __anf02_2 = i0;
+                uint32_t __anf03_2 = i0;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
-                    aFrags[__anf02_2];
+                    aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
                     (_letpattern._1 +
-                        ((((0 + (64 * (warpRow * 64))) + (__anf0_3 * 16)) +
-                             (64 * (__anf01_3 * 16))) +
+                        ((((0 + (64 * (warpRow * 64))) + (__anf01_3 * 16)) +
+                             (64 * (__anf02_2 * 16))) +
                             0)),
                     ((uint32_t) 64U));
-                uint32_t __anf03_2 = i0;
-                i0 = (__anf03_2 + 1);
+                uint32_t __anf04_2 = i0;
+                i0 = (__anf04_2 + 1);
             }
-            uint32_t __anf01_4 = dotIdx;
+            uint32_t __anf02_3 = dotIdx;
             uint32_t i11 = 0;
             while (i11 < 2) {
-                uint32_t __anf02_3 = i11;
                 uint32_t __anf03_3 = i11;
+                uint32_t __anf04_3 = i11;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
-                    bFrags[__anf03_3];
+                    bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
                     (_letpattern._2 +
-                        ((((0 + (128 * (__anf01_4 * 16))) + (warpCol * 32)) +
+                        ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 32)) +
                              0) +
-                            (__anf02_3 * 16))),
+                            (__anf03_3 * 16))),
                     ((uint32_t) 128U));
-                uint32_t __anf04_2 = i11;
-                i11 = (__anf04_2 + 1);
+                uint32_t __anf05_2 = i11;
+                i11 = (__anf05_2 + 1);
             }
             uint32_t resIdxM = 0;
             while (resIdxM < 4) {
@@ -16748,26 +17552,26 @@ __global__ static void kuiper_kernel_66(uint32_t cols, uint32_t shared,
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &a_frag =
                         aFrags[resIdxM];
-                    uint32_t __anf03_4 = resIdxN;
+                    uint32_t __anf04_4 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &b_frag =
-                        bFrags[__anf03_4];
-                    uint32_t __anf04_3 = resIdxN;
+                        bFrags[__anf04_4];
+                    uint32_t __anf05_3 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16,
                         16, float, void> &acc_frag =
-                        accFrags[((resIdxM * 2) + __anf04_3)];
+                        accFrags[((resIdxM * 2) + __anf05_3)];
                     wmma::mma_sync(acc_frag, a_frag, b_frag, acc_frag);
-                    uint32_t __anf05 = resIdxN;
-                    resIdxN = (__anf05 + 1);
+                    uint32_t __anf06 = resIdxN;
+                    resIdxN = (__anf06 + 1);
                 }
-                uint32_t __anf02_4 = resIdxM;
-                resIdxM = (__anf02_4 + 1);
+                uint32_t __anf03_4 = resIdxM;
+                resIdxM = (__anf03_4 + 1);
             }
-            uint32_t __anf02_5 = dotIdx;
-            dotIdx = (__anf02_5 + 1);
+            uint32_t __anf03_5 = dotIdx;
+            dotIdx = (__anf03_5 + 1);
         }
-        uint32_t __anf0_4 = bkIdx;
-        bkIdx = (__anf0_4 + 1);
+        uint32_t __anf01_4 = bkIdx;
+        bkIdx = (__anf01_4 + 1);
     }
     uint32_t bm = 128;
     uint32_t bn = 128;
@@ -16779,8 +17583,8 @@ __global__ static void kuiper_kernel_66(uint32_t cols, uint32_t shared,
     uint32_t lane = (tid % 32);
     uint32_t idx = 0;
     while (idx < (wm * wn)) {
-        uint32_t mrow = (bid / (cols / bn));
-        uint32_t mcol = (bid % (cols / bn));
+        uint32_t mrow1 = (bid / (cols / bn));
+        uint32_t mcol1 = (bid % (cols / bn));
         uint32_t warpRow1 = (wid1 / (bn / (wn * tn)));
         uint32_t warpCol1 = (wid1 % (bn / (wn * tn)));
         float *sTile = FStar_Pervasives_Native_fst__array_t_unit(
@@ -16793,22 +17597,22 @@ __global__ static void kuiper_kernel_66(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}})));
-        uint32_t __anf0_5 = idx;
+        uint32_t __anf0_2 = idx;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
-            void> &__anf1_3 = accFrags[__anf0_5];
+            void> &__anf1_3 = accFrags[__anf0_2];
         KPR_STORE(
             (sTile + ((0 + (tn * (wid1 * tm))) + (0 * tn))), __anf1_3, tn);
         uint32_t __anf01_5 = idx;
         uint32_t area = (tm * tn);
         uint32_t flat = lane;
         while (flat < area) {
-            uint32_t __anf02_6 = flat;
-            uint32_t row_2 = (__anf02_6 / tn);
-            uint32_t col_2 = (__anf02_6 % tn);
-            uint32_t globalRow = ((((mrow * bm) + (warpRow1 * (wm * tm))) +
+            uint32_t __anf02_4 = flat;
+            uint32_t row_2 = (__anf02_4 / tn);
+            uint32_t col_2 = (__anf02_4 % tn);
+            uint32_t globalRow = ((((mrow1 * bm) + (warpRow1 * (wm * tm))) +
                                       ((__anf01_5 / wn) * tm)) +
                                   row_2);
-            uint32_t globalCol = ((((mcol * bn) + (warpCol1 * (wn * tn))) +
+            uint32_t globalCol = ((((mcol1 * bn) + (warpCol1 * (wn * tn))) +
                                       ((__anf01_5 % wn) * tn)) +
                                   col_2);
             uint32_t ni_2 = ((globalRow * cols) + globalCol);
@@ -16823,8 +17627,8 @@ __global__ static void kuiper_kernel_66(uint32_t cols, uint32_t shared,
             uint32_t vflat = flat;
             flat = (vflat + 32);
         }
-        uint32_t __anf02_7 = idx;
-        idx = (__anf02_7 + 1);
+        uint32_t __anf02_5 = idx;
+        idx = (__anf02_5 + 1);
     }
 }
 
@@ -16833,8 +17637,6 @@ __global__ static void kuiper_kernel_67(uint32_t cols, uint32_t shared,
     custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
     float beta, float alpha, custard_bf16 *gD)
 {
-    (void) gA;
-    (void) gB;
     (void) nthr;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     custard_bf16 *tmp1 = (custard_bf16 *) tmp;
@@ -16856,6 +17658,9 @@ __global__ static void kuiper_kernel_67(uint32_t cols, uint32_t shared,
                 ._1 = tmp1, ._2 = tmp7};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    uint32_t num_n_tiles = (cols / 128);
+    uint32_t mrow = (bid / num_n_tiles);
+    uint32_t mcol = (bid % num_n_tiles);
     uint32_t wid = (tid / 32);
     uint32_t warpRow = (wid / 2);
     uint32_t warpCol = (wid % 2);
@@ -16894,6 +17699,7 @@ __global__ static void kuiper_kernel_67(uint32_t cols, uint32_t shared,
     }
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
+        uint32_t __anf0_1 = bkIdx;
         __syncthreads();
         uint32_t mlen = 8192;
         uint32_t offset = (tid * 8);
@@ -16903,26 +17709,31 @@ __global__ static void kuiper_kernel_67(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_1 = i;
-            uint32_t row = ((__anf0_1 + offset) / 64);
             uint32_t __anf01_1 = i;
-            uint32_t col = ((__anf01_1 + offset) % 64);
+            uint32_t row = ((__anf01_1 + offset) / 64);
+            uint32_t __anf02 = i;
+            uint32_t col = ((__anf02 + offset) % 64);
+            uint32_t offset1 =
+                ((((0 + (shared * (mrow * 128))) + (__anf0_1 * 64)) +
+                     (shared * row)) +
+                    col);
+            vec_memcpy((local + 0), (gA + offset1));
             uint32_t k = 0;
             while (k < 8) {
-                uint32_t __anf02 = k;
-                custard_bf16 v = local[__anf02];
                 uint32_t __anf03 = k;
-                uint32_t cidx = (col + __anf03);
+                custard_bf16 v = local[__anf03];
+                uint32_t __anf04 = k;
+                uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 64) + cidx);
                 _letpattern._1[ni] = v;
-                uint32_t __anf04 = k;
-                k = (__anf04 + 1);
+                uint32_t __anf05 = k;
+                k = (__anf05 + 1);
             }
             uint32_t vi = i;
             i = (vi + 1024);
         }
         uint32_t mlen1 = 8192;
-        uint32_t offset1 = (tid * 8);
+        uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
             custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
@@ -16930,20 +17741,25 @@ __global__ static void kuiper_kernel_67(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_2 = i1;
-            uint32_t row_1 = ((__anf0_2 + offset1) / 128);
             uint32_t __anf01_2 = i1;
-            uint32_t col_1 = ((__anf01_2 + offset1) % 128);
+            uint32_t row_1 = ((__anf01_2 + offset1_1) / 128);
+            uint32_t __anf02_1 = i1;
+            uint32_t col_1 = ((__anf02_1 + offset1_1) % 128);
+            uint32_t offset2 =
+                ((((0 + (cols * (__anf0_1 * 64))) + (mcol * 128)) +
+                     (cols * row_1)) +
+                    col_1);
+            vec_memcpy((local_1 + 0), (gB + offset2));
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                uint32_t __anf02_1 = k_1;
-                custard_bf16 v_1 = local_1[__anf02_1];
                 uint32_t __anf03_1 = k_1;
-                uint32_t cidx_1 = (col_1 + __anf03_1);
+                custard_bf16 v_1 = local_1[__anf03_1];
+                uint32_t __anf04_1 = k_1;
+                uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
                 _letpattern._2[ni_1] = v_1;
-                uint32_t __anf04_1 = k_1;
-                k_1 = (__anf04_1 + 1);
+                uint32_t __anf05_1 = k_1;
+                k_1 = (__anf05_1 + 1);
             }
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 1024);
@@ -16951,39 +17767,39 @@ __global__ static void kuiper_kernel_67(uint32_t cols, uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 4) {
-            uint32_t __anf0_3 = dotIdx;
+            uint32_t __anf01_3 = dotIdx;
             uint32_t i0 = 0;
             while (i0 < 4) {
-                uint32_t __anf01_3 = i0;
                 uint32_t __anf02_2 = i0;
+                uint32_t __anf03_2 = i0;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
-                    aFrags[__anf02_2];
+                    aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
                     (_letpattern._1 +
-                        ((((0 + (64 * (warpRow * 64))) + (__anf0_3 * 16)) +
-                             (64 * (__anf01_3 * 16))) +
+                        ((((0 + (64 * (warpRow * 64))) + (__anf01_3 * 16)) +
+                             (64 * (__anf02_2 * 16))) +
                             0)),
                     ((uint32_t) 64U));
-                uint32_t __anf03_2 = i0;
-                i0 = (__anf03_2 + 1);
+                uint32_t __anf04_2 = i0;
+                i0 = (__anf04_2 + 1);
             }
-            uint32_t __anf01_4 = dotIdx;
+            uint32_t __anf02_3 = dotIdx;
             uint32_t i11 = 0;
             while (i11 < 4) {
-                uint32_t __anf02_3 = i11;
                 uint32_t __anf03_3 = i11;
+                uint32_t __anf04_3 = i11;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
-                    bFrags[__anf03_3];
+                    bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
                     (_letpattern._2 +
-                        ((((0 + (128 * (__anf01_4 * 16))) + (warpCol * 64)) +
+                        ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 64)) +
                              0) +
-                            (__anf02_3 * 16))),
+                            (__anf03_3 * 16))),
                     ((uint32_t) 128U));
-                uint32_t __anf04_2 = i11;
-                i11 = (__anf04_2 + 1);
+                uint32_t __anf05_2 = i11;
+                i11 = (__anf05_2 + 1);
             }
             uint32_t resIdxM = 0;
             while (resIdxM < 4) {
@@ -16992,26 +17808,26 @@ __global__ static void kuiper_kernel_67(uint32_t cols, uint32_t shared,
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &a_frag =
                         aFrags[resIdxM];
-                    uint32_t __anf03_4 = resIdxN;
+                    uint32_t __anf04_4 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &b_frag =
-                        bFrags[__anf03_4];
-                    uint32_t __anf04_3 = resIdxN;
+                        bFrags[__anf04_4];
+                    uint32_t __anf05_3 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16,
                         16, float, void> &acc_frag =
-                        accFrags[((resIdxM * 4) + __anf04_3)];
+                        accFrags[((resIdxM * 4) + __anf05_3)];
                     wmma::mma_sync(acc_frag, a_frag, b_frag, acc_frag);
-                    uint32_t __anf05 = resIdxN;
-                    resIdxN = (__anf05 + 1);
+                    uint32_t __anf06 = resIdxN;
+                    resIdxN = (__anf06 + 1);
                 }
-                uint32_t __anf02_4 = resIdxM;
-                resIdxM = (__anf02_4 + 1);
+                uint32_t __anf03_4 = resIdxM;
+                resIdxM = (__anf03_4 + 1);
             }
-            uint32_t __anf02_5 = dotIdx;
-            dotIdx = (__anf02_5 + 1);
+            uint32_t __anf03_5 = dotIdx;
+            dotIdx = (__anf03_5 + 1);
         }
-        uint32_t __anf0_4 = bkIdx;
-        bkIdx = (__anf0_4 + 1);
+        uint32_t __anf01_4 = bkIdx;
+        bkIdx = (__anf01_4 + 1);
     }
     uint32_t bm = 128;
     uint32_t bn = 128;
@@ -17023,8 +17839,8 @@ __global__ static void kuiper_kernel_67(uint32_t cols, uint32_t shared,
     uint32_t lane = (tid % 32);
     uint32_t idx = 0;
     while (idx < (wm * wn)) {
-        uint32_t mrow = (bid / (cols / bn));
-        uint32_t mcol = (bid % (cols / bn));
+        uint32_t mrow1 = (bid / (cols / bn));
+        uint32_t mcol1 = (bid % (cols / bn));
         uint32_t warpRow1 = (wid1 / (bn / (wn * tn)));
         uint32_t warpCol1 = (wid1 % (bn / (wn * tn)));
         float *sTile = FStar_Pervasives_Native_fst__array_t_unit(
@@ -17037,22 +17853,22 @@ __global__ static void kuiper_kernel_67(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}})));
-        uint32_t __anf0_5 = idx;
+        uint32_t __anf0_2 = idx;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
-            void> &__anf1_3 = accFrags[__anf0_5];
+            void> &__anf1_3 = accFrags[__anf0_2];
         KPR_STORE(
             (sTile + ((0 + (tn * (wid1 * tm))) + (0 * tn))), __anf1_3, tn);
         uint32_t __anf01_5 = idx;
         uint32_t area = (tm * tn);
         uint32_t flat = lane;
         while (flat < area) {
-            uint32_t __anf02_6 = flat;
-            uint32_t row_2 = (__anf02_6 / tn);
-            uint32_t col_2 = (__anf02_6 % tn);
-            uint32_t globalRow = ((((mrow * bm) + (warpRow1 * (wm * tm))) +
+            uint32_t __anf02_4 = flat;
+            uint32_t row_2 = (__anf02_4 / tn);
+            uint32_t col_2 = (__anf02_4 % tn);
+            uint32_t globalRow = ((((mrow1 * bm) + (warpRow1 * (wm * tm))) +
                                       ((__anf01_5 / wn) * tm)) +
                                   row_2);
-            uint32_t globalCol = ((((mcol * bn) + (warpCol1 * (wn * tn))) +
+            uint32_t globalCol = ((((mcol1 * bn) + (warpCol1 * (wn * tn))) +
                                       ((__anf01_5 % wn) * tn)) +
                                   col_2);
             uint32_t ni_2 = ((globalRow * cols) + globalCol);
@@ -17067,8 +17883,8 @@ __global__ static void kuiper_kernel_67(uint32_t cols, uint32_t shared,
             uint32_t vflat = flat;
             flat = (vflat + 32);
         }
-        uint32_t __anf02_7 = idx;
-        idx = (__anf02_7 + 1);
+        uint32_t __anf02_5 = idx;
+        idx = (__anf02_5 + 1);
     }
 }
 
@@ -17077,8 +17893,6 @@ __global__ static void kuiper_kernel_68(uint32_t cols, uint32_t shared,
     custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
     float beta, float alpha, custard_bf16 *gD)
 {
-    (void) gA;
-    (void) gB;
     (void) nthr;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     custard_bf16 *tmp1 = (custard_bf16 *) tmp;
@@ -17100,6 +17914,9 @@ __global__ static void kuiper_kernel_68(uint32_t cols, uint32_t shared,
                 ._1 = tmp1, ._2 = tmp7};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    uint32_t num_n_tiles = (cols / 128);
+    uint32_t mrow = (bid / num_n_tiles);
+    uint32_t mcol = (bid % num_n_tiles);
     uint32_t wid = (tid / 32);
     uint32_t warpRow = (wid / 1);
     uint32_t warpCol = (wid % 1);
@@ -17138,6 +17955,7 @@ __global__ static void kuiper_kernel_68(uint32_t cols, uint32_t shared,
     }
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
+        uint32_t __anf0_1 = bkIdx;
         __syncthreads();
         uint32_t mlen = 8192;
         uint32_t offset = (tid * 8);
@@ -17147,26 +17965,31 @@ __global__ static void kuiper_kernel_68(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_1 = i;
-            uint32_t row = ((__anf0_1 + offset) / 64);
             uint32_t __anf01_1 = i;
-            uint32_t col = ((__anf01_1 + offset) % 64);
+            uint32_t row = ((__anf01_1 + offset) / 64);
+            uint32_t __anf02 = i;
+            uint32_t col = ((__anf02 + offset) % 64);
+            uint32_t offset1 =
+                ((((0 + (shared * (mrow * 128))) + (__anf0_1 * 64)) +
+                     (shared * row)) +
+                    col);
+            vec_memcpy((local + 0), (gA + offset1));
             uint32_t k = 0;
             while (k < 8) {
-                uint32_t __anf02 = k;
-                custard_bf16 v = local[__anf02];
                 uint32_t __anf03 = k;
-                uint32_t cidx = (col + __anf03);
+                custard_bf16 v = local[__anf03];
+                uint32_t __anf04 = k;
+                uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 64) + cidx);
                 _letpattern._1[ni] = v;
-                uint32_t __anf04 = k;
-                k = (__anf04 + 1);
+                uint32_t __anf05 = k;
+                k = (__anf05 + 1);
             }
             uint32_t vi = i;
             i = (vi + 512);
         }
         uint32_t mlen1 = 8192;
-        uint32_t offset1 = (tid * 8);
+        uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
             custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
@@ -17174,20 +17997,25 @@ __global__ static void kuiper_kernel_68(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_2 = i1;
-            uint32_t row_1 = ((__anf0_2 + offset1) / 128);
             uint32_t __anf01_2 = i1;
-            uint32_t col_1 = ((__anf01_2 + offset1) % 128);
+            uint32_t row_1 = ((__anf01_2 + offset1_1) / 128);
+            uint32_t __anf02_1 = i1;
+            uint32_t col_1 = ((__anf02_1 + offset1_1) % 128);
+            uint32_t offset2 =
+                ((((0 + (cols * (__anf0_1 * 64))) + (mcol * 128)) +
+                     (cols * row_1)) +
+                    col_1);
+            vec_memcpy((local_1 + 0), (gB + offset2));
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                uint32_t __anf02_1 = k_1;
-                custard_bf16 v_1 = local_1[__anf02_1];
                 uint32_t __anf03_1 = k_1;
-                uint32_t cidx_1 = (col_1 + __anf03_1);
+                custard_bf16 v_1 = local_1[__anf03_1];
+                uint32_t __anf04_1 = k_1;
+                uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
                 _letpattern._2[ni_1] = v_1;
-                uint32_t __anf04_1 = k_1;
-                k_1 = (__anf04_1 + 1);
+                uint32_t __anf05_1 = k_1;
+                k_1 = (__anf05_1 + 1);
             }
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 512);
@@ -17195,39 +18023,39 @@ __global__ static void kuiper_kernel_68(uint32_t cols, uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 4) {
-            uint32_t __anf0_3 = dotIdx;
+            uint32_t __anf01_3 = dotIdx;
             uint32_t i0 = 0;
             while (i0 < 4) {
-                uint32_t __anf01_3 = i0;
                 uint32_t __anf02_2 = i0;
+                uint32_t __anf03_2 = i0;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
-                    aFrags[__anf02_2];
+                    aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
                     (_letpattern._1 +
-                        ((((0 + (64 * (warpRow * 64))) + (__anf0_3 * 16)) +
-                             (64 * (__anf01_3 * 16))) +
+                        ((((0 + (64 * (warpRow * 64))) + (__anf01_3 * 16)) +
+                             (64 * (__anf02_2 * 16))) +
                             0)),
                     ((uint32_t) 64U));
-                uint32_t __anf03_2 = i0;
-                i0 = (__anf03_2 + 1);
+                uint32_t __anf04_2 = i0;
+                i0 = (__anf04_2 + 1);
             }
-            uint32_t __anf01_4 = dotIdx;
+            uint32_t __anf02_3 = dotIdx;
             uint32_t i11 = 0;
             while (i11 < 8) {
-                uint32_t __anf02_3 = i11;
                 uint32_t __anf03_3 = i11;
+                uint32_t __anf04_3 = i11;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
-                    bFrags[__anf03_3];
+                    bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
                     (_letpattern._2 +
-                        ((((0 + (128 * (__anf01_4 * 16))) + (warpCol * 128)) +
+                        ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 128)) +
                              0) +
-                            (__anf02_3 * 16))),
+                            (__anf03_3 * 16))),
                     ((uint32_t) 128U));
-                uint32_t __anf04_2 = i11;
-                i11 = (__anf04_2 + 1);
+                uint32_t __anf05_2 = i11;
+                i11 = (__anf05_2 + 1);
             }
             uint32_t resIdxM = 0;
             while (resIdxM < 4) {
@@ -17236,26 +18064,26 @@ __global__ static void kuiper_kernel_68(uint32_t cols, uint32_t shared,
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &a_frag =
                         aFrags[resIdxM];
-                    uint32_t __anf03_4 = resIdxN;
+                    uint32_t __anf04_4 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &b_frag =
-                        bFrags[__anf03_4];
-                    uint32_t __anf04_3 = resIdxN;
+                        bFrags[__anf04_4];
+                    uint32_t __anf05_3 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16,
                         16, float, void> &acc_frag =
-                        accFrags[((resIdxM * 8) + __anf04_3)];
+                        accFrags[((resIdxM * 8) + __anf05_3)];
                     wmma::mma_sync(acc_frag, a_frag, b_frag, acc_frag);
-                    uint32_t __anf05 = resIdxN;
-                    resIdxN = (__anf05 + 1);
+                    uint32_t __anf06 = resIdxN;
+                    resIdxN = (__anf06 + 1);
                 }
-                uint32_t __anf02_4 = resIdxM;
-                resIdxM = (__anf02_4 + 1);
+                uint32_t __anf03_4 = resIdxM;
+                resIdxM = (__anf03_4 + 1);
             }
-            uint32_t __anf02_5 = dotIdx;
-            dotIdx = (__anf02_5 + 1);
+            uint32_t __anf03_5 = dotIdx;
+            dotIdx = (__anf03_5 + 1);
         }
-        uint32_t __anf0_4 = bkIdx;
-        bkIdx = (__anf0_4 + 1);
+        uint32_t __anf01_4 = bkIdx;
+        bkIdx = (__anf01_4 + 1);
     }
     uint32_t bm = 128;
     uint32_t bn = 128;
@@ -17267,8 +18095,8 @@ __global__ static void kuiper_kernel_68(uint32_t cols, uint32_t shared,
     uint32_t lane = (tid % 32);
     uint32_t idx = 0;
     while (idx < (wm * wn)) {
-        uint32_t mrow = (bid / (cols / bn));
-        uint32_t mcol = (bid % (cols / bn));
+        uint32_t mrow1 = (bid / (cols / bn));
+        uint32_t mcol1 = (bid % (cols / bn));
         uint32_t warpRow1 = (wid1 / (bn / (wn * tn)));
         uint32_t warpCol1 = (wid1 % (bn / (wn * tn)));
         float *sTile = FStar_Pervasives_Native_fst__array_t_unit(
@@ -17281,22 +18109,22 @@ __global__ static void kuiper_kernel_68(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}})));
-        uint32_t __anf0_5 = idx;
+        uint32_t __anf0_2 = idx;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
-            void> &__anf1_3 = accFrags[__anf0_5];
+            void> &__anf1_3 = accFrags[__anf0_2];
         KPR_STORE(
             (sTile + ((0 + (tn * (wid1 * tm))) + (0 * tn))), __anf1_3, tn);
         uint32_t __anf01_5 = idx;
         uint32_t area = (tm * tn);
         uint32_t flat = lane;
         while (flat < area) {
-            uint32_t __anf02_6 = flat;
-            uint32_t row_2 = (__anf02_6 / tn);
-            uint32_t col_2 = (__anf02_6 % tn);
-            uint32_t globalRow = ((((mrow * bm) + (warpRow1 * (wm * tm))) +
+            uint32_t __anf02_4 = flat;
+            uint32_t row_2 = (__anf02_4 / tn);
+            uint32_t col_2 = (__anf02_4 % tn);
+            uint32_t globalRow = ((((mrow1 * bm) + (warpRow1 * (wm * tm))) +
                                       ((__anf01_5 / wn) * tm)) +
                                   row_2);
-            uint32_t globalCol = ((((mcol * bn) + (warpCol1 * (wn * tn))) +
+            uint32_t globalCol = ((((mcol1 * bn) + (warpCol1 * (wn * tn))) +
                                       ((__anf01_5 % wn) * tn)) +
                                   col_2);
             uint32_t ni_2 = ((globalRow * cols) + globalCol);
@@ -17311,8 +18139,8 @@ __global__ static void kuiper_kernel_68(uint32_t cols, uint32_t shared,
             uint32_t vflat = flat;
             flat = (vflat + 32);
         }
-        uint32_t __anf02_7 = idx;
-        idx = (__anf02_7 + 1);
+        uint32_t __anf02_5 = idx;
+        idx = (__anf02_5 + 1);
     }
 }
 
@@ -17321,8 +18149,6 @@ __global__ static void kuiper_kernel_69(uint32_t cols, uint32_t shared,
     custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
     float beta, float alpha, custard_bf16 *gD)
 {
-    (void) gA;
-    (void) gB;
     (void) nthr;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     custard_bf16 *tmp1 = (custard_bf16 *) tmp;
@@ -17344,6 +18170,9 @@ __global__ static void kuiper_kernel_69(uint32_t cols, uint32_t shared,
                 ._1 = tmp1, ._2 = tmp7};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    uint32_t num_n_tiles = (cols / 128);
+    uint32_t mrow = (bid / num_n_tiles);
+    uint32_t mcol = (bid % num_n_tiles);
     uint32_t wid = (tid / 32);
     uint32_t warpRow = (wid / 4);
     uint32_t warpCol = (wid % 4);
@@ -17382,6 +18211,7 @@ __global__ static void kuiper_kernel_69(uint32_t cols, uint32_t shared,
     }
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
+        uint32_t __anf0_1 = bkIdx;
         __syncthreads();
         uint32_t mlen = 8192;
         uint32_t offset = (tid * 8);
@@ -17391,26 +18221,31 @@ __global__ static void kuiper_kernel_69(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_1 = i;
-            uint32_t row = ((__anf0_1 + offset) / 64);
             uint32_t __anf01_1 = i;
-            uint32_t col = ((__anf01_1 + offset) % 64);
+            uint32_t row = ((__anf01_1 + offset) / 64);
+            uint32_t __anf02 = i;
+            uint32_t col = ((__anf02 + offset) % 64);
+            uint32_t offset1 =
+                ((((0 + (shared * (mrow * 128))) + (__anf0_1 * 64)) +
+                     (shared * row)) +
+                    col);
+            vec_memcpy((local + 0), (gA + offset1));
             uint32_t k = 0;
             while (k < 8) {
-                uint32_t __anf02 = k;
-                custard_bf16 v = local[__anf02];
                 uint32_t __anf03 = k;
-                uint32_t cidx = (col + __anf03);
+                custard_bf16 v = local[__anf03];
+                uint32_t __anf04 = k;
+                uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 64) + cidx);
                 _letpattern._1[ni] = v;
-                uint32_t __anf04 = k;
-                k = (__anf04 + 1);
+                uint32_t __anf05 = k;
+                k = (__anf05 + 1);
             }
             uint32_t vi = i;
             i = (vi + 1024);
         }
         uint32_t mlen1 = 8192;
-        uint32_t offset1 = (tid * 8);
+        uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
             custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
@@ -17418,20 +18253,25 @@ __global__ static void kuiper_kernel_69(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_2 = i1;
-            uint32_t row_1 = ((__anf0_2 + offset1) / 128);
             uint32_t __anf01_2 = i1;
-            uint32_t col_1 = ((__anf01_2 + offset1) % 128);
+            uint32_t row_1 = ((__anf01_2 + offset1_1) / 128);
+            uint32_t __anf02_1 = i1;
+            uint32_t col_1 = ((__anf02_1 + offset1_1) % 128);
+            uint32_t offset2 =
+                ((((0 + (cols * (__anf0_1 * 64))) + (mcol * 128)) +
+                     (cols * row_1)) +
+                    col_1);
+            vec_memcpy((local_1 + 0), (gB + offset2));
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                uint32_t __anf02_1 = k_1;
-                custard_bf16 v_1 = local_1[__anf02_1];
                 uint32_t __anf03_1 = k_1;
-                uint32_t cidx_1 = (col_1 + __anf03_1);
+                custard_bf16 v_1 = local_1[__anf03_1];
+                uint32_t __anf04_1 = k_1;
+                uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
                 _letpattern._2[ni_1] = v_1;
-                uint32_t __anf04_1 = k_1;
-                k_1 = (__anf04_1 + 1);
+                uint32_t __anf05_1 = k_1;
+                k_1 = (__anf05_1 + 1);
             }
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 1024);
@@ -17439,39 +18279,39 @@ __global__ static void kuiper_kernel_69(uint32_t cols, uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 4) {
-            uint32_t __anf0_3 = dotIdx;
+            uint32_t __anf01_3 = dotIdx;
             uint32_t i0 = 0;
             while (i0 < 8) {
-                uint32_t __anf01_3 = i0;
                 uint32_t __anf02_2 = i0;
+                uint32_t __anf03_2 = i0;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
-                    aFrags[__anf02_2];
+                    aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
                     (_letpattern._1 +
-                        ((((0 + (64 * (warpRow * 128))) + (__anf0_3 * 16)) +
-                             (64 * (__anf01_3 * 16))) +
+                        ((((0 + (64 * (warpRow * 128))) + (__anf01_3 * 16)) +
+                             (64 * (__anf02_2 * 16))) +
                             0)),
                     ((uint32_t) 64U));
-                uint32_t __anf03_2 = i0;
-                i0 = (__anf03_2 + 1);
+                uint32_t __anf04_2 = i0;
+                i0 = (__anf04_2 + 1);
             }
-            uint32_t __anf01_4 = dotIdx;
+            uint32_t __anf02_3 = dotIdx;
             uint32_t i11 = 0;
             while (i11 < 2) {
-                uint32_t __anf02_3 = i11;
                 uint32_t __anf03_3 = i11;
+                uint32_t __anf04_3 = i11;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
-                    bFrags[__anf03_3];
+                    bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
                     (_letpattern._2 +
-                        ((((0 + (128 * (__anf01_4 * 16))) + (warpCol * 32)) +
+                        ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 32)) +
                              0) +
-                            (__anf02_3 * 16))),
+                            (__anf03_3 * 16))),
                     ((uint32_t) 128U));
-                uint32_t __anf04_2 = i11;
-                i11 = (__anf04_2 + 1);
+                uint32_t __anf05_2 = i11;
+                i11 = (__anf05_2 + 1);
             }
             uint32_t resIdxM = 0;
             while (resIdxM < 8) {
@@ -17480,26 +18320,26 @@ __global__ static void kuiper_kernel_69(uint32_t cols, uint32_t shared,
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &a_frag =
                         aFrags[resIdxM];
-                    uint32_t __anf03_4 = resIdxN;
+                    uint32_t __anf04_4 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &b_frag =
-                        bFrags[__anf03_4];
-                    uint32_t __anf04_3 = resIdxN;
+                        bFrags[__anf04_4];
+                    uint32_t __anf05_3 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16,
                         16, float, void> &acc_frag =
-                        accFrags[((resIdxM * 2) + __anf04_3)];
+                        accFrags[((resIdxM * 2) + __anf05_3)];
                     wmma::mma_sync(acc_frag, a_frag, b_frag, acc_frag);
-                    uint32_t __anf05 = resIdxN;
-                    resIdxN = (__anf05 + 1);
+                    uint32_t __anf06 = resIdxN;
+                    resIdxN = (__anf06 + 1);
                 }
-                uint32_t __anf02_4 = resIdxM;
-                resIdxM = (__anf02_4 + 1);
+                uint32_t __anf03_4 = resIdxM;
+                resIdxM = (__anf03_4 + 1);
             }
-            uint32_t __anf02_5 = dotIdx;
-            dotIdx = (__anf02_5 + 1);
+            uint32_t __anf03_5 = dotIdx;
+            dotIdx = (__anf03_5 + 1);
         }
-        uint32_t __anf0_4 = bkIdx;
-        bkIdx = (__anf0_4 + 1);
+        uint32_t __anf01_4 = bkIdx;
+        bkIdx = (__anf01_4 + 1);
     }
     uint32_t bm = 128;
     uint32_t bn = 128;
@@ -17511,8 +18351,8 @@ __global__ static void kuiper_kernel_69(uint32_t cols, uint32_t shared,
     uint32_t lane = (tid % 32);
     uint32_t idx = 0;
     while (idx < (wm * wn)) {
-        uint32_t mrow = (bid / (cols / bn));
-        uint32_t mcol = (bid % (cols / bn));
+        uint32_t mrow1 = (bid / (cols / bn));
+        uint32_t mcol1 = (bid % (cols / bn));
         uint32_t warpRow1 = (wid1 / (bn / (wn * tn)));
         uint32_t warpCol1 = (wid1 % (bn / (wn * tn)));
         float *sTile = FStar_Pervasives_Native_fst__array_t_unit(
@@ -17525,22 +18365,22 @@ __global__ static void kuiper_kernel_69(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}})));
-        uint32_t __anf0_5 = idx;
+        uint32_t __anf0_2 = idx;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
-            void> &__anf1_3 = accFrags[__anf0_5];
+            void> &__anf1_3 = accFrags[__anf0_2];
         KPR_STORE(
             (sTile + ((0 + (tn * (wid1 * tm))) + (0 * tn))), __anf1_3, tn);
         uint32_t __anf01_5 = idx;
         uint32_t area = (tm * tn);
         uint32_t flat = lane;
         while (flat < area) {
-            uint32_t __anf02_6 = flat;
-            uint32_t row_2 = (__anf02_6 / tn);
-            uint32_t col_2 = (__anf02_6 % tn);
-            uint32_t globalRow = ((((mrow * bm) + (warpRow1 * (wm * tm))) +
+            uint32_t __anf02_4 = flat;
+            uint32_t row_2 = (__anf02_4 / tn);
+            uint32_t col_2 = (__anf02_4 % tn);
+            uint32_t globalRow = ((((mrow1 * bm) + (warpRow1 * (wm * tm))) +
                                       ((__anf01_5 / wn) * tm)) +
                                   row_2);
-            uint32_t globalCol = ((((mcol * bn) + (warpCol1 * (wn * tn))) +
+            uint32_t globalCol = ((((mcol1 * bn) + (warpCol1 * (wn * tn))) +
                                       ((__anf01_5 % wn) * tn)) +
                                   col_2);
             uint32_t ni_2 = ((globalRow * cols) + globalCol);
@@ -17555,8 +18395,8 @@ __global__ static void kuiper_kernel_69(uint32_t cols, uint32_t shared,
             uint32_t vflat = flat;
             flat = (vflat + 32);
         }
-        uint32_t __anf02_7 = idx;
-        idx = (__anf02_7 + 1);
+        uint32_t __anf02_5 = idx;
+        idx = (__anf02_5 + 1);
     }
 }
 
@@ -17565,8 +18405,6 @@ __global__ static void kuiper_kernel_70(uint32_t cols, uint32_t shared,
     custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
     float beta, float alpha, custard_bf16 *gD)
 {
-    (void) gA;
-    (void) gB;
     (void) nthr;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     custard_bf16 *tmp1 = (custard_bf16 *) tmp;
@@ -17588,6 +18426,9 @@ __global__ static void kuiper_kernel_70(uint32_t cols, uint32_t shared,
                 ._1 = tmp1, ._2 = tmp7};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    uint32_t num_n_tiles = (cols / 128);
+    uint32_t mrow = (bid / num_n_tiles);
+    uint32_t mcol = (bid % num_n_tiles);
     uint32_t wid = (tid / 32);
     uint32_t warpRow = (wid / 2);
     uint32_t warpCol = (wid % 2);
@@ -17626,6 +18467,7 @@ __global__ static void kuiper_kernel_70(uint32_t cols, uint32_t shared,
     }
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
+        uint32_t __anf0_1 = bkIdx;
         __syncthreads();
         uint32_t mlen = 8192;
         uint32_t offset = (tid * 8);
@@ -17635,26 +18477,31 @@ __global__ static void kuiper_kernel_70(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_1 = i;
-            uint32_t row = ((__anf0_1 + offset) / 64);
             uint32_t __anf01_1 = i;
-            uint32_t col = ((__anf01_1 + offset) % 64);
+            uint32_t row = ((__anf01_1 + offset) / 64);
+            uint32_t __anf02 = i;
+            uint32_t col = ((__anf02 + offset) % 64);
+            uint32_t offset1 =
+                ((((0 + (shared * (mrow * 128))) + (__anf0_1 * 64)) +
+                     (shared * row)) +
+                    col);
+            vec_memcpy((local + 0), (gA + offset1));
             uint32_t k = 0;
             while (k < 8) {
-                uint32_t __anf02 = k;
-                custard_bf16 v = local[__anf02];
                 uint32_t __anf03 = k;
-                uint32_t cidx = (col + __anf03);
+                custard_bf16 v = local[__anf03];
+                uint32_t __anf04 = k;
+                uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 64) + cidx);
                 _letpattern._1[ni] = v;
-                uint32_t __anf04 = k;
-                k = (__anf04 + 1);
+                uint32_t __anf05 = k;
+                k = (__anf05 + 1);
             }
             uint32_t vi = i;
             i = (vi + 512);
         }
         uint32_t mlen1 = 8192;
-        uint32_t offset1 = (tid * 8);
+        uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
             custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
@@ -17662,20 +18509,25 @@ __global__ static void kuiper_kernel_70(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_2 = i1;
-            uint32_t row_1 = ((__anf0_2 + offset1) / 128);
             uint32_t __anf01_2 = i1;
-            uint32_t col_1 = ((__anf01_2 + offset1) % 128);
+            uint32_t row_1 = ((__anf01_2 + offset1_1) / 128);
+            uint32_t __anf02_1 = i1;
+            uint32_t col_1 = ((__anf02_1 + offset1_1) % 128);
+            uint32_t offset2 =
+                ((((0 + (cols * (__anf0_1 * 64))) + (mcol * 128)) +
+                     (cols * row_1)) +
+                    col_1);
+            vec_memcpy((local_1 + 0), (gB + offset2));
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                uint32_t __anf02_1 = k_1;
-                custard_bf16 v_1 = local_1[__anf02_1];
                 uint32_t __anf03_1 = k_1;
-                uint32_t cidx_1 = (col_1 + __anf03_1);
+                custard_bf16 v_1 = local_1[__anf03_1];
+                uint32_t __anf04_1 = k_1;
+                uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
                 _letpattern._2[ni_1] = v_1;
-                uint32_t __anf04_1 = k_1;
-                k_1 = (__anf04_1 + 1);
+                uint32_t __anf05_1 = k_1;
+                k_1 = (__anf05_1 + 1);
             }
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 512);
@@ -17683,39 +18535,39 @@ __global__ static void kuiper_kernel_70(uint32_t cols, uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 4) {
-            uint32_t __anf0_3 = dotIdx;
+            uint32_t __anf01_3 = dotIdx;
             uint32_t i0 = 0;
             while (i0 < 8) {
-                uint32_t __anf01_3 = i0;
                 uint32_t __anf02_2 = i0;
+                uint32_t __anf03_2 = i0;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
-                    aFrags[__anf02_2];
+                    aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
                     (_letpattern._1 +
-                        ((((0 + (64 * (warpRow * 128))) + (__anf0_3 * 16)) +
-                             (64 * (__anf01_3 * 16))) +
+                        ((((0 + (64 * (warpRow * 128))) + (__anf01_3 * 16)) +
+                             (64 * (__anf02_2 * 16))) +
                             0)),
                     ((uint32_t) 64U));
-                uint32_t __anf03_2 = i0;
-                i0 = (__anf03_2 + 1);
+                uint32_t __anf04_2 = i0;
+                i0 = (__anf04_2 + 1);
             }
-            uint32_t __anf01_4 = dotIdx;
+            uint32_t __anf02_3 = dotIdx;
             uint32_t i11 = 0;
             while (i11 < 4) {
-                uint32_t __anf02_3 = i11;
                 uint32_t __anf03_3 = i11;
+                uint32_t __anf04_3 = i11;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
-                    bFrags[__anf03_3];
+                    bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
                     (_letpattern._2 +
-                        ((((0 + (128 * (__anf01_4 * 16))) + (warpCol * 64)) +
+                        ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 64)) +
                              0) +
-                            (__anf02_3 * 16))),
+                            (__anf03_3 * 16))),
                     ((uint32_t) 128U));
-                uint32_t __anf04_2 = i11;
-                i11 = (__anf04_2 + 1);
+                uint32_t __anf05_2 = i11;
+                i11 = (__anf05_2 + 1);
             }
             uint32_t resIdxM = 0;
             while (resIdxM < 8) {
@@ -17724,26 +18576,26 @@ __global__ static void kuiper_kernel_70(uint32_t cols, uint32_t shared,
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &a_frag =
                         aFrags[resIdxM];
-                    uint32_t __anf03_4 = resIdxN;
+                    uint32_t __anf04_4 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &b_frag =
-                        bFrags[__anf03_4];
-                    uint32_t __anf04_3 = resIdxN;
+                        bFrags[__anf04_4];
+                    uint32_t __anf05_3 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16,
                         16, float, void> &acc_frag =
-                        accFrags[((resIdxM * 4) + __anf04_3)];
+                        accFrags[((resIdxM * 4) + __anf05_3)];
                     wmma::mma_sync(acc_frag, a_frag, b_frag, acc_frag);
-                    uint32_t __anf05 = resIdxN;
-                    resIdxN = (__anf05 + 1);
+                    uint32_t __anf06 = resIdxN;
+                    resIdxN = (__anf06 + 1);
                 }
-                uint32_t __anf02_4 = resIdxM;
-                resIdxM = (__anf02_4 + 1);
+                uint32_t __anf03_4 = resIdxM;
+                resIdxM = (__anf03_4 + 1);
             }
-            uint32_t __anf02_5 = dotIdx;
-            dotIdx = (__anf02_5 + 1);
+            uint32_t __anf03_5 = dotIdx;
+            dotIdx = (__anf03_5 + 1);
         }
-        uint32_t __anf0_4 = bkIdx;
-        bkIdx = (__anf0_4 + 1);
+        uint32_t __anf01_4 = bkIdx;
+        bkIdx = (__anf01_4 + 1);
     }
     uint32_t bm = 128;
     uint32_t bn = 128;
@@ -17755,8 +18607,8 @@ __global__ static void kuiper_kernel_70(uint32_t cols, uint32_t shared,
     uint32_t lane = (tid % 32);
     uint32_t idx = 0;
     while (idx < (wm * wn)) {
-        uint32_t mrow = (bid / (cols / bn));
-        uint32_t mcol = (bid % (cols / bn));
+        uint32_t mrow1 = (bid / (cols / bn));
+        uint32_t mcol1 = (bid % (cols / bn));
         uint32_t warpRow1 = (wid1 / (bn / (wn * tn)));
         uint32_t warpCol1 = (wid1 % (bn / (wn * tn)));
         float *sTile = FStar_Pervasives_Native_fst__array_t_unit(
@@ -17769,22 +18621,22 @@ __global__ static void kuiper_kernel_70(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}})));
-        uint32_t __anf0_5 = idx;
+        uint32_t __anf0_2 = idx;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
-            void> &__anf1_3 = accFrags[__anf0_5];
+            void> &__anf1_3 = accFrags[__anf0_2];
         KPR_STORE(
             (sTile + ((0 + (tn * (wid1 * tm))) + (0 * tn))), __anf1_3, tn);
         uint32_t __anf01_5 = idx;
         uint32_t area = (tm * tn);
         uint32_t flat = lane;
         while (flat < area) {
-            uint32_t __anf02_6 = flat;
-            uint32_t row_2 = (__anf02_6 / tn);
-            uint32_t col_2 = (__anf02_6 % tn);
-            uint32_t globalRow = ((((mrow * bm) + (warpRow1 * (wm * tm))) +
+            uint32_t __anf02_4 = flat;
+            uint32_t row_2 = (__anf02_4 / tn);
+            uint32_t col_2 = (__anf02_4 % tn);
+            uint32_t globalRow = ((((mrow1 * bm) + (warpRow1 * (wm * tm))) +
                                       ((__anf01_5 / wn) * tm)) +
                                   row_2);
-            uint32_t globalCol = ((((mcol * bn) + (warpCol1 * (wn * tn))) +
+            uint32_t globalCol = ((((mcol1 * bn) + (warpCol1 * (wn * tn))) +
                                       ((__anf01_5 % wn) * tn)) +
                                   col_2);
             uint32_t ni_2 = ((globalRow * cols) + globalCol);
@@ -17799,8 +18651,8 @@ __global__ static void kuiper_kernel_70(uint32_t cols, uint32_t shared,
             uint32_t vflat = flat;
             flat = (vflat + 32);
         }
-        uint32_t __anf02_7 = idx;
-        idx = (__anf02_7 + 1);
+        uint32_t __anf02_5 = idx;
+        idx = (__anf02_5 + 1);
     }
 }
 
@@ -17809,8 +18661,6 @@ __global__ static void kuiper_kernel_71(uint32_t cols, uint32_t shared,
     custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
     float beta, float alpha, custard_bf16 *gD)
 {
-    (void) gA;
-    (void) gB;
     (void) nthr;
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     custard_bf16 *tmp1 = (custard_bf16 *) tmp;
@@ -17832,6 +18682,9 @@ __global__ static void kuiper_kernel_71(uint32_t cols, uint32_t shared,
                 ._1 = tmp1, ._2 = tmp7};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    uint32_t num_n_tiles = (cols / 128);
+    uint32_t mrow = (bid / num_n_tiles);
+    uint32_t mcol = (bid % num_n_tiles);
     uint32_t wid = (tid / 32);
     uint32_t warpRow = (wid / 1);
     uint32_t warpCol = (wid % 1);
@@ -17870,6 +18723,7 @@ __global__ static void kuiper_kernel_71(uint32_t cols, uint32_t shared,
     }
     uint32_t bkIdx = 0;
     while (bkIdx < num_k_tiles) {
+        uint32_t __anf0_1 = bkIdx;
         __syncthreads();
         uint32_t mlen = 8192;
         uint32_t offset = (tid * 8);
@@ -17879,26 +18733,31 @@ __global__ static void kuiper_kernel_71(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_1 = i;
-            uint32_t row = ((__anf0_1 + offset) / 64);
             uint32_t __anf01_1 = i;
-            uint32_t col = ((__anf01_1 + offset) % 64);
+            uint32_t row = ((__anf01_1 + offset) / 64);
+            uint32_t __anf02 = i;
+            uint32_t col = ((__anf02 + offset) % 64);
+            uint32_t offset1 =
+                ((((0 + (shared * (mrow * 128))) + (__anf0_1 * 64)) +
+                     (shared * row)) +
+                    col);
+            vec_memcpy((local + 0), (gA + offset1));
             uint32_t k = 0;
             while (k < 8) {
-                uint32_t __anf02 = k;
-                custard_bf16 v = local[__anf02];
                 uint32_t __anf03 = k;
-                uint32_t cidx = (col + __anf03);
+                custard_bf16 v = local[__anf03];
+                uint32_t __anf04 = k;
+                uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 64) + cidx);
                 _letpattern._1[ni] = v;
-                uint32_t __anf04 = k;
-                k = (__anf04 + 1);
+                uint32_t __anf05 = k;
+                k = (__anf05 + 1);
             }
             uint32_t vi = i;
             i = (vi + 256);
         }
         uint32_t mlen1 = 8192;
-        uint32_t offset1 = (tid * 8);
+        uint32_t offset1_1 = (tid * 8);
         uint32_t i1 = 0;
         while (i1 < mlen1) {
             custard_bf16 local_1[8] = {CUSTARD_BF16_LIT(0U),
@@ -17906,20 +18765,25 @@ __global__ static void kuiper_kernel_71(uint32_t cols, uint32_t shared,
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U), CUSTARD_BF16_LIT(0U),
                 CUSTARD_BF16_LIT(0U)};
-            uint32_t __anf0_2 = i1;
-            uint32_t row_1 = ((__anf0_2 + offset1) / 128);
             uint32_t __anf01_2 = i1;
-            uint32_t col_1 = ((__anf01_2 + offset1) % 128);
+            uint32_t row_1 = ((__anf01_2 + offset1_1) / 128);
+            uint32_t __anf02_1 = i1;
+            uint32_t col_1 = ((__anf02_1 + offset1_1) % 128);
+            uint32_t offset2 =
+                ((((0 + (cols * (__anf0_1 * 64))) + (mcol * 128)) +
+                     (cols * row_1)) +
+                    col_1);
+            vec_memcpy((local_1 + 0), (gB + offset2));
             uint32_t k_1 = 0;
             while (k_1 < 8) {
-                uint32_t __anf02_1 = k_1;
-                custard_bf16 v_1 = local_1[__anf02_1];
                 uint32_t __anf03_1 = k_1;
-                uint32_t cidx_1 = (col_1 + __anf03_1);
+                custard_bf16 v_1 = local_1[__anf03_1];
+                uint32_t __anf04_1 = k_1;
+                uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 128) + cidx_1);
                 _letpattern._2[ni_1] = v_1;
-                uint32_t __anf04_1 = k_1;
-                k_1 = (__anf04_1 + 1);
+                uint32_t __anf05_1 = k_1;
+                k_1 = (__anf05_1 + 1);
             }
             uint32_t vi_1 = i1;
             i1 = (vi_1 + 256);
@@ -17927,39 +18791,39 @@ __global__ static void kuiper_kernel_71(uint32_t cols, uint32_t shared,
         __syncthreads();
         uint32_t dotIdx = 0;
         while (dotIdx < 4) {
-            uint32_t __anf0_3 = dotIdx;
+            uint32_t __anf01_3 = dotIdx;
             uint32_t i0 = 0;
             while (i0 < 8) {
-                uint32_t __anf01_3 = i0;
                 uint32_t __anf02_2 = i0;
+                uint32_t __anf03_2 = i0;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_1 =
-                    aFrags[__anf02_2];
+                    aFrags[__anf03_2];
                 wmma::load_matrix_sync(__anf1_1,
                     (_letpattern._1 +
-                        ((((0 + (64 * (warpRow * 128))) + (__anf0_3 * 16)) +
-                             (64 * (__anf01_3 * 16))) +
+                        ((((0 + (64 * (warpRow * 128))) + (__anf01_3 * 16)) +
+                             (64 * (__anf02_2 * 16))) +
                             0)),
                     ((uint32_t) 64U));
-                uint32_t __anf03_2 = i0;
-                i0 = (__anf03_2 + 1);
+                uint32_t __anf04_2 = i0;
+                i0 = (__anf04_2 + 1);
             }
-            uint32_t __anf01_4 = dotIdx;
+            uint32_t __anf02_3 = dotIdx;
             uint32_t i11 = 0;
             while (i11 < 8) {
-                uint32_t __anf02_3 = i11;
                 uint32_t __anf03_3 = i11;
+                uint32_t __anf04_3 = i11;
                 nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                     custard_bf16, nvcuda::wmma::row_major> &__anf1_2 =
-                    bFrags[__anf03_3];
+                    bFrags[__anf04_3];
                 wmma::load_matrix_sync(__anf1_2,
                     (_letpattern._2 +
-                        ((((0 + (128 * (__anf01_4 * 16))) + (warpCol * 128)) +
+                        ((((0 + (128 * (__anf02_3 * 16))) + (warpCol * 128)) +
                              0) +
-                            (__anf02_3 * 16))),
+                            (__anf03_3 * 16))),
                     ((uint32_t) 128U));
-                uint32_t __anf04_2 = i11;
-                i11 = (__anf04_2 + 1);
+                uint32_t __anf05_2 = i11;
+                i11 = (__anf05_2 + 1);
             }
             uint32_t resIdxM = 0;
             while (resIdxM < 8) {
@@ -17968,26 +18832,26 @@ __global__ static void kuiper_kernel_71(uint32_t cols, uint32_t shared,
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &a_frag =
                         aFrags[resIdxM];
-                    uint32_t __anf03_4 = resIdxN;
+                    uint32_t __anf04_4 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, 16, 16, 16,
                         custard_bf16, nvcuda::wmma::row_major> &b_frag =
-                        bFrags[__anf03_4];
-                    uint32_t __anf04_3 = resIdxN;
+                        bFrags[__anf04_4];
+                    uint32_t __anf05_3 = resIdxN;
                     nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16,
                         16, float, void> &acc_frag =
-                        accFrags[((resIdxM * 8) + __anf04_3)];
+                        accFrags[((resIdxM * 8) + __anf05_3)];
                     wmma::mma_sync(acc_frag, a_frag, b_frag, acc_frag);
-                    uint32_t __anf05 = resIdxN;
-                    resIdxN = (__anf05 + 1);
+                    uint32_t __anf06 = resIdxN;
+                    resIdxN = (__anf06 + 1);
                 }
-                uint32_t __anf02_4 = resIdxM;
-                resIdxM = (__anf02_4 + 1);
+                uint32_t __anf03_4 = resIdxM;
+                resIdxM = (__anf03_4 + 1);
             }
-            uint32_t __anf02_5 = dotIdx;
-            dotIdx = (__anf02_5 + 1);
+            uint32_t __anf03_5 = dotIdx;
+            dotIdx = (__anf03_5 + 1);
         }
-        uint32_t __anf0_4 = bkIdx;
-        bkIdx = (__anf0_4 + 1);
+        uint32_t __anf01_4 = bkIdx;
+        bkIdx = (__anf01_4 + 1);
     }
     uint32_t bm = 128;
     uint32_t bn = 128;
@@ -17999,8 +18863,8 @@ __global__ static void kuiper_kernel_71(uint32_t cols, uint32_t shared,
     uint32_t lane = (tid % 32);
     uint32_t idx = 0;
     while (idx < (wm * wn)) {
-        uint32_t mrow = (bid / (cols / bn));
-        uint32_t mcol = (bid % (cols / bn));
+        uint32_t mrow1 = (bid / (cols / bn));
+        uint32_t mcol1 = (bid % (cols / bn));
         uint32_t warpRow1 = (wid1 / (bn / (wn * tn)));
         uint32_t warpCol1 = (wid1 % (bn / (wn * tn)));
         float *sTile = FStar_Pervasives_Native_fst__array_t_unit(
@@ -18013,22 +18877,22 @@ __global__ static void kuiper_kernel_71(uint32_t cols, uint32_t shared,
                         ._2 =
                             (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
                                 ._1 = sh._2._2._1}}})));
-        uint32_t __anf0_5 = idx;
+        uint32_t __anf0_2 = idx;
         nvcuda::wmma::fragment<nvcuda::wmma::accumulator, 16, 16, 16, float,
-            void> &__anf1_3 = accFrags[__anf0_5];
+            void> &__anf1_3 = accFrags[__anf0_2];
         KPR_STORE(
             (sTile + ((0 + (tn * (wid1 * tm))) + (0 * tn))), __anf1_3, tn);
         uint32_t __anf01_5 = idx;
         uint32_t area = (tm * tn);
         uint32_t flat = lane;
         while (flat < area) {
-            uint32_t __anf02_6 = flat;
-            uint32_t row_2 = (__anf02_6 / tn);
-            uint32_t col_2 = (__anf02_6 % tn);
-            uint32_t globalRow = ((((mrow * bm) + (warpRow1 * (wm * tm))) +
+            uint32_t __anf02_4 = flat;
+            uint32_t row_2 = (__anf02_4 / tn);
+            uint32_t col_2 = (__anf02_4 % tn);
+            uint32_t globalRow = ((((mrow1 * bm) + (warpRow1 * (wm * tm))) +
                                       ((__anf01_5 / wn) * tm)) +
                                   row_2);
-            uint32_t globalCol = ((((mcol * bn) + (warpCol1 * (wn * tn))) +
+            uint32_t globalCol = ((((mcol1 * bn) + (warpCol1 * (wn * tn))) +
                                       ((__anf01_5 % wn) * tn)) +
                                   col_2);
             uint32_t ni_2 = ((globalRow * cols) + globalCol);
@@ -18043,8 +18907,8 @@ __global__ static void kuiper_kernel_71(uint32_t cols, uint32_t shared,
             uint32_t vflat = flat;
             flat = (vflat + 32);
         }
-        uint32_t __anf02_7 = idx;
-        idx = (__anf02_7 + 1);
+        uint32_t __anf02_5 = idx;
+        idx = (__anf02_5 + 1);
     }
 }
 

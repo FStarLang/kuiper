@@ -30,6 +30,12 @@ CUSTARD_FLAGS += --load_cmxs $(PLUGIN)
 # set is order-only: it sequences extraction after verification without making
 # every module re-extract whenever any other one changes.
 CUSTARD_FLAGS += --already_cached '*'
+# Warning 381 says a rule's declared arity exceeds the binders the declaration
+# retains after erasure.  Custard then eta-expands every use to reach the
+# arity, so the rule's result is a lambda nothing applies and the simplifier
+# deletes it: the call disappears from the generated CUDA with no other sign.
+# That silently removed all 1120 vec_memcpy calls once, so it is an error here.
+CUSTARD_FLAGS += --warn_error @381
 CUSTARD_FLAGS += $(CUSTARD_OTHERFLAGS)
 
 # One rule per module rather than a pattern rule: Custard extracts a whole
