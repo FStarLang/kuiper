@@ -18,6 +18,8 @@ static void check_f32(const char *name, float got, float expected, float tol)
     float err = fabsf(got - expected);
     int ok = (err <= tol) || (isnan(got) && isnan(expected)) ||
              (isinf(got) && isinf(expected) && got == expected);
+    if (got == 0.0f && expected == 0.0f)
+        ok = signbit(got) == signbit(expected);
     if (ok) {
         n_pass++;
     } else {
@@ -32,6 +34,8 @@ static void check_f64(const char *name, double got, double expected, double tol)
     double err = fabs(got - expected);
     int ok = (err <= tol) || (isnan(got) && isnan(expected)) ||
              (isinf(got) && isinf(expected) && got == expected);
+    if (got == 0.0 && expected == 0.0)
+        ok = signbit(got) == signbit(expected);
     if (ok) {
         n_pass++;
     } else {
@@ -49,11 +53,27 @@ static void check_f16(const char *name, half got, float expected, float tol)
     float err = __half2float(__float2half(fabsf(g - expected)));
     int ok = (err <= tol) || (isnan(g) && isnan(expected)) ||
              (isinf(g) && isinf(expected) && g == expected);
+    if (g == 0.0f && expected == 0.0f)
+        ok = signbit(g) == signbit(expected);
     if (ok) {
         n_pass++;
     } else {
         printf("FAIL f16 %-12s  got=%e  expected=%e  err=%e\n", name, g,
             expected, err);
+    }
+}
+
+static void check_bf16(const char *name, __nv_bfloat16 got, float expected)
+{
+    n_tests++;
+    float g = __bfloat162float(got);
+    int ok = (g == expected) || (isnan(g) && isnan(expected));
+    if (g == 0.0f && expected == 0.0f)
+        ok = signbit(g) == signbit(expected);
+    if (ok) {
+        n_pass++;
+    } else {
+        printf("FAIL bf16 %-12s  got=%e  expected=%e\n", name, g, expected);
     }
 }
 
@@ -247,6 +267,46 @@ int main()
         copysignf(0.5f, -2.0f), tol16);
     check_f16("fma", Kuiper_Example_MathPrimitives_test_fma_f16(x16, y16, z16),
         fmaf(0.5f, 2.0f, 3.0f), tol16);
+
+    /* Small inputs catch cancellation from exp(x)-1 or log(1+x).
+       Also cover signed zero, the log1p domain boundary, infinities,
+       NaNs, and an input whose low bits require double precision.
+       Compare host results exactly after rounding to the output type. */
+    const double expm1_log1p_inputs[] = {
+        -INFINITY,
+        -2.0,
+        -1.0,
+        -0.5,
+        -0x1p-20,
+        -0.0,
+        0.0,
+        0x1p-20,
+        0.5,
+        0x1.0000000000001p-1,
+        INFINITY,
+        NAN,
+    };
+    for (double x : expm1_log1p_inputs) {
+        float xf = (float) x;
+        half xh = __float2half(xf);
+        __nv_bfloat16 xb = __float2bfloat16(xf);
+        check_f32("expm1", Kuiper_Example_MathPrimitives_test_expm1_f32(xf),
+            expm1f(xf), 0.0f);
+        check_f32("log1p", Kuiper_Example_MathPrimitives_test_log1p_f32(xf),
+            log1pf(xf), 0.0f);
+        check_f64("expm1", Kuiper_Example_MathPrimitives_test_expm1_f64(x),
+            expm1(x), 0.0);
+        check_f64("log1p", Kuiper_Example_MathPrimitives_test_log1p_f64(x),
+            log1p(x), 0.0);
+        check_f16("expm1", Kuiper_Example_MathPrimitives_test_expm1_f16(xh),
+            __half2float(__float2half(expm1f(__half2float(xh)))), 0.0f);
+        check_f16("log1p", Kuiper_Example_MathPrimitives_test_log1p_f16(xh),
+            __half2float(__float2half(log1pf(__half2float(xh)))), 0.0f);
+        check_bf16("expm1", Kuiper_Example_MathPrimitives_test_expm1_bf16(xb),
+            __bfloat162float(__float2bfloat16(expm1f(__bfloat162float(xb)))));
+        check_bf16("log1p", Kuiper_Example_MathPrimitives_test_log1p_bf16(xb),
+            __bfloat162float(__float2bfloat16(log1pf(__bfloat162float(xb)))));
+    }
 
     /* ---- valid / min_val / max_val ---- */
 

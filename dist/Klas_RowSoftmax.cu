@@ -3,19 +3,19 @@
 
 __global__ static void kuiper_kernel_0(
     uint32_t n, float *a, uint32_t nthm, float *maxs);
-__global__ static void kuiper_kernel_1(
+__global__ __launch_bounds__(1024) static void kuiper_kernel_1(
     uint32_t m, uint32_t n, float *maxs, float *a);
 __global__ static void kuiper_kernel_2(
     uint32_t n, float *a, uint32_t nth, float *sums);
-__global__ static void kuiper_kernel_3(
+__global__ __launch_bounds__(1024) static void kuiper_kernel_3(
     uint32_t m, uint32_t n, float *sums, float *a);
 __global__ static void kuiper_kernel_4(
     uint32_t n, double *a, uint32_t nthm, double *maxs);
-__global__ static void kuiper_kernel_5(
+__global__ __launch_bounds__(1024) static void kuiper_kernel_5(
     uint32_t m, uint32_t n, double *maxs, double *a);
 __global__ static void kuiper_kernel_6(
     uint32_t n, double *a, uint32_t nth, double *sums);
-__global__ static void kuiper_kernel_7(
+__global__ __launch_bounds__(1024) static void kuiper_kernel_7(
     uint32_t m, uint32_t n, double *sums, double *a);
 
 /* hoisted by the Custard Kuiper rule */
@@ -70,7 +70,7 @@ __global__ static void kuiper_kernel_0(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_1(
+__global__ __launch_bounds__(1024) static void kuiper_kernel_1(
     uint32_t m, uint32_t n, float *maxs, float *a)
 {
     uint32_t bid = blockIdx.x;
@@ -138,7 +138,7 @@ __global__ static void kuiper_kernel_2(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_3(
+__global__ __launch_bounds__(1024) static void kuiper_kernel_3(
     uint32_t m, uint32_t n, float *sums, float *a)
 {
     uint32_t bid = blockIdx.x;
@@ -207,7 +207,7 @@ __global__ static void kuiper_kernel_4(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_5(
+__global__ __launch_bounds__(1024) static void kuiper_kernel_5(
     uint32_t m, uint32_t n, double *maxs, double *a)
 {
     uint32_t bid = blockIdx.x;
@@ -275,7 +275,7 @@ __global__ static void kuiper_kernel_6(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_7(
+__global__ __launch_bounds__(1024) static void kuiper_kernel_7(
     uint32_t m, uint32_t n, double *sums, double *a)
 {
     uint32_t bid = blockIdx.x;

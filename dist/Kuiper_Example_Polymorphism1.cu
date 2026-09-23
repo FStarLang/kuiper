@@ -3,10 +3,12 @@
 
 __device__ static void Kuiper_Example_Polymorphism1_kswap__t(
     uint64_t *r1, uint64_t *r2);
-__global__ static void kuiper_kernel_0(uint64_t *gr1, uint64_t *gr2);
+__global__ __launch_bounds__(1) static void kuiper_kernel_0(
+    uint64_t *gr1, uint64_t *gr2);
 __device__ static void Kuiper_Example_Polymorphism1_kswap__t_1(
     float *r1, float *r2);
-__global__ static void kuiper_kernel_1(float *gr1, float *gr2);
+__global__ __launch_bounds__(1) static void kuiper_kernel_1(
+    float *gr1, float *gr2);
 
 __device__ static void Kuiper_Example_Polymorphism1_kswap__t(
     uint64_t *r1, uint64_t *r2)
@@ -18,7 +20,8 @@ __device__ static void Kuiper_Example_Polymorphism1_kswap__t(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_0(uint64_t *gr1, uint64_t *gr2)
+__global__ __launch_bounds__(1) static void kuiper_kernel_0(
+    uint64_t *gr1, uint64_t *gr2)
 {
     Kuiper_Example_Polymorphism1_kswap__t(gr1, gr2);
 }
@@ -33,7 +36,8 @@ __device__ static void Kuiper_Example_Polymorphism1_kswap__t_1(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_1(float *gr1, float *gr2)
+__global__ __launch_bounds__(1) static void kuiper_kernel_1(
+    float *gr1, float *gr2)
 {
     Kuiper_Example_Polymorphism1_kswap__t_1(gr1, gr2);
 }

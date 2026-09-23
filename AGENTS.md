@@ -10,7 +10,28 @@ For detailed guidance on writing, reviewing, and debugging Kuiper kernel code, s
 
 ## Build & Verify
 
-The project uses Make. One git submodule (`FStar`) must be initialized first, on its `gpu` branch.
+The project uses Make. Before a clean build, consider seeding the checkout from
+a nightly package to reuse the prebuilt toolchain, extraction plugin, and
+verified `obj/*.checked` files:
+
+```bash
+./scripts/seed-from-nightly.sh --no-build
+make -skj16
+```
+
+Changed Kuiper source files and their dependents are re-verified. Without
+`--no-build`, the script runs `make verify` in parallel; use `-j N` to choose
+its parallelism. See [the README](README.md#seeding-a-source-checkout-from-a-package)
+for package-selection options.
+
+Seeding replaces `inst/` and the extraction plugin and creates `.packaged`,
+which disables rebuilding those components. Use it before starting a build and
+only when the bundled toolchain/plugin are suitable. For changes to F\* or
+`extraction/`, build those components from source; remove `.packaged` first if
+the checkout was seeded.
+
+For a fully from-source build, one git submodule (`FStar`) must be initialized
+first.
 
 Building F\* needs OCaml on the `PATH`. If `ocamlfind`/`dune` are
 missing, set up the opam environment first (non-interactive shells do not
@@ -107,7 +128,8 @@ make lint-c         # clang-format test/*.cu and test/*.c.inc files
 
 ### Submodules
 
-On its `gpu` branch — a forked/branched version with GPU-specific extensions:
+Tracks upstream `master`. Now that Custard has merged, Kuiper needs no F\*
+patches of its own:
 
 - `FStar/` — F\* compiler, standard library, Pulse separation logic framework, and the Custard extraction backend
 

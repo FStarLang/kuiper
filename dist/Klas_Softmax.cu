@@ -3,88 +3,99 @@
 
 __global__ static void kuiper_kernel_0(
     custard_f16 *a_, uint32_t nthm, uint32_t lena, custard_f16 *maxs);
-__global__ static void kuiper_kernel_1(
+__global__ __launch_bounds__(1024) static void kuiper_kernel_1(
     uint32_t lena, custard_f16 *maxs, custard_f16 *a_);
 __global__ static void kuiper_kernel_2(
     uint32_t lena, custard_f16 *a_, uint32_t nth, custard_f16 *sums);
-__global__ static void kuiper_kernel_3(
+__global__ __launch_bounds__(1024) static void kuiper_kernel_3(
     uint32_t lena, custard_f16 *sums, custard_f16 *a_);
 __global__ static void kuiper_kernel_4(
     float *a_, uint32_t nthm, uint32_t lena, float *maxs);
-__global__ static void kuiper_kernel_5(uint32_t lena, float *maxs, float *a_);
+__global__ __launch_bounds__(1024) static void kuiper_kernel_5(
+    uint32_t lena, float *maxs, float *a_);
 __global__ static void kuiper_kernel_6(
     uint32_t lena, float *a_, uint32_t nth, float *sums);
-__global__ static void kuiper_kernel_7(uint32_t lena, float *sums, float *a_);
+__global__ __launch_bounds__(1024) static void kuiper_kernel_7(
+    uint32_t lena, float *sums, float *a_);
 __global__ static void kuiper_kernel_8(
     double *a_, uint32_t nthm, uint32_t lena, double *maxs);
-__global__ static void kuiper_kernel_9(uint32_t lena, double *maxs, double *a_);
+__global__ __launch_bounds__(1024) static void kuiper_kernel_9(
+    uint32_t lena, double *maxs, double *a_);
 __global__ static void kuiper_kernel_10(
     uint32_t lena, double *a_, uint32_t nth, double *sums);
-__global__ static void kuiper_kernel_11(
+__global__ __launch_bounds__(1024) static void kuiper_kernel_11(
     uint32_t lena, double *sums, double *a_);
 __global__ static void kuiper_kernel_12(
     custard_f16 *a_, uint32_t nthm, uint32_t lena, custard_f16 *maxs);
-__global__ static void kuiper_kernel_13(
+__global__ __launch_bounds__(1024) static void kuiper_kernel_13(
     uint32_t lena, custard_f16 *maxs, custard_f16 *a_);
-__global__ static void kuiper_kernel_14(
+__global__ __launch_bounds__(1024) static void kuiper_kernel_14(
     uint32_t lena, custard_f16 *a_, custard_f16 *sums);
-__global__ static void kuiper_kernel_15(
+__global__ __launch_bounds__(1024) static void kuiper_kernel_15(
     uint32_t lena, custard_f16 *sums, custard_f16 *a_);
 __global__ static void kuiper_kernel_16(
     float *a_, uint32_t nthm, uint32_t lena, float *maxs);
-__global__ static void kuiper_kernel_17(uint32_t lena, float *maxs, float *a_);
-__global__ static void kuiper_kernel_18(uint32_t lena, float *a_, float *sums);
-__global__ static void kuiper_kernel_19(uint32_t lena, float *sums, float *a_);
+__global__ __launch_bounds__(1024) static void kuiper_kernel_17(
+    uint32_t lena, float *maxs, float *a_);
+__global__ __launch_bounds__(1024) static void kuiper_kernel_18(
+    uint32_t lena, float *a_, float *sums);
+__global__ __launch_bounds__(1024) static void kuiper_kernel_19(
+    uint32_t lena, float *sums, float *a_);
 __global__ static void kuiper_kernel_20(
     double *a_, uint32_t nthm, uint32_t lena, double *maxs);
-__global__ static void kuiper_kernel_21(
+__global__ __launch_bounds__(1024) static void kuiper_kernel_21(
     uint32_t lena, double *maxs, double *a_);
-__global__ static void kuiper_kernel_22(
+__global__ __launch_bounds__(1024) static void kuiper_kernel_22(
     uint32_t lena, double *a_, double *sums);
-__global__ static void kuiper_kernel_23(
+__global__ __launch_bounds__(1024) static void kuiper_kernel_23(
     uint32_t lena, double *sums, double *a_);
 __global__ static void kuiper_kernel_24(
     custard_f16 *a_, uint32_t nthm, uint32_t lena, custard_f16 *maxs);
-__global__ static void kuiper_kernel_25(
+__global__ __launch_bounds__(1024) static void kuiper_kernel_25(
     uint32_t lena, custard_f16 *maxs, custard_f16 *a_);
 __global__ static void kuiper_kernel_26(
     uint32_t lena, custard_f16 *a_, uint32_t nth, custard_f16 *sums);
-__global__ static void kuiper_kernel_27(
+__global__ __launch_bounds__(1024) static void kuiper_kernel_27(
     uint32_t lena, custard_f16 *sums, custard_f16 *a_);
 __global__ static void kuiper_kernel_28(
     float *a_, uint32_t nthm, uint32_t lena, float *maxs);
-__global__ static void kuiper_kernel_29(uint32_t lena, float *maxs, float *a_);
+__global__ __launch_bounds__(1024) static void kuiper_kernel_29(
+    uint32_t lena, float *maxs, float *a_);
 __global__ static void kuiper_kernel_30(
     uint32_t lena, float *a_, uint32_t nth, float *sums);
-__global__ static void kuiper_kernel_31(uint32_t lena, float *sums, float *a_);
+__global__ __launch_bounds__(1024) static void kuiper_kernel_31(
+    uint32_t lena, float *sums, float *a_);
 __global__ static void kuiper_kernel_32(
     double *a_, uint32_t nthm, uint32_t lena, double *maxs);
-__global__ static void kuiper_kernel_33(
+__global__ __launch_bounds__(1024) static void kuiper_kernel_33(
     uint32_t lena, double *maxs, double *a_);
 __global__ static void kuiper_kernel_34(
     uint32_t lena, double *a_, uint32_t nth, double *sums);
-__global__ static void kuiper_kernel_35(
+__global__ __launch_bounds__(1024) static void kuiper_kernel_35(
     uint32_t lena, double *sums, double *a_);
 __global__ static void kuiper_kernel_36(
     custard_f16 *a_, uint32_t nthm, uint32_t lena, custard_f16 *maxs);
-__global__ static void kuiper_kernel_37(
+__global__ __launch_bounds__(1024) static void kuiper_kernel_37(
     uint32_t lena, custard_f16 *maxs, custard_f16 *a_);
-__global__ static void kuiper_kernel_38(
+__global__ __launch_bounds__(1024) static void kuiper_kernel_38(
     uint32_t lena, custard_f16 *a_, custard_f16 *sums);
-__global__ static void kuiper_kernel_39(
+__global__ __launch_bounds__(1024) static void kuiper_kernel_39(
     uint32_t lena, custard_f16 *sums, custard_f16 *a_);
 __global__ static void kuiper_kernel_40(
     float *a_, uint32_t nthm, uint32_t lena, float *maxs);
-__global__ static void kuiper_kernel_41(uint32_t lena, float *maxs, float *a_);
-__global__ static void kuiper_kernel_42(uint32_t lena, float *a_, float *sums);
-__global__ static void kuiper_kernel_43(uint32_t lena, float *sums, float *a_);
+__global__ __launch_bounds__(1024) static void kuiper_kernel_41(
+    uint32_t lena, float *maxs, float *a_);
+__global__ __launch_bounds__(1024) static void kuiper_kernel_42(
+    uint32_t lena, float *a_, float *sums);
+__global__ __launch_bounds__(1024) static void kuiper_kernel_43(
+    uint32_t lena, float *sums, float *a_);
 __global__ static void kuiper_kernel_44(
     double *a_, uint32_t nthm, uint32_t lena, double *maxs);
-__global__ static void kuiper_kernel_45(
+__global__ __launch_bounds__(1024) static void kuiper_kernel_45(
     uint32_t lena, double *maxs, double *a_);
-__global__ static void kuiper_kernel_46(
+__global__ __launch_bounds__(1024) static void kuiper_kernel_46(
     uint32_t lena, double *a_, double *sums);
-__global__ static void kuiper_kernel_47(
+__global__ __launch_bounds__(1024) static void kuiper_kernel_47(
     uint32_t lena, double *sums, double *a_);
 
 /* hoisted by the Custard Kuiper rule */
@@ -148,7 +159,7 @@ __global__ static void kuiper_kernel_0(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_1(
+__global__ __launch_bounds__(1024) static void kuiper_kernel_1(
     uint32_t lena, custard_f16 *maxs, custard_f16 *a_)
 {
     uint32_t bid = blockIdx.x;
@@ -231,7 +242,7 @@ __global__ static void kuiper_kernel_2(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_3(
+__global__ __launch_bounds__(1024) static void kuiper_kernel_3(
     uint32_t lena, custard_f16 *sums, custard_f16 *a_)
 {
     uint32_t bid = blockIdx.x;
@@ -319,7 +330,8 @@ __global__ static void kuiper_kernel_4(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_5(uint32_t lena, float *maxs, float *a_)
+__global__ __launch_bounds__(1024) static void kuiper_kernel_5(
+    uint32_t lena, float *maxs, float *a_)
 {
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
@@ -401,7 +413,8 @@ __global__ static void kuiper_kernel_6(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_7(uint32_t lena, float *sums, float *a_)
+__global__ __launch_bounds__(1024) static void kuiper_kernel_7(
+    uint32_t lena, float *sums, float *a_)
 {
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
@@ -488,7 +501,8 @@ __global__ static void kuiper_kernel_8(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_9(uint32_t lena, double *maxs, double *a_)
+__global__ __launch_bounds__(1024) static void kuiper_kernel_9(
+    uint32_t lena, double *maxs, double *a_)
 {
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
@@ -570,7 +584,8 @@ __global__ static void kuiper_kernel_10(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_11(uint32_t lena, double *sums, double *a_)
+__global__ __launch_bounds__(1024) static void kuiper_kernel_11(
+    uint32_t lena, double *sums, double *a_)
 {
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
@@ -657,7 +672,7 @@ __global__ static void kuiper_kernel_12(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_13(
+__global__ __launch_bounds__(1024) static void kuiper_kernel_13(
     uint32_t lena, custard_f16 *maxs, custard_f16 *a_)
 {
     uint32_t bid = blockIdx.x;
@@ -685,7 +700,7 @@ __global__ static void kuiper_kernel_13(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_14(
+__global__ __launch_bounds__(1024) static void kuiper_kernel_14(
     uint32_t lena, custard_f16 *a_, custard_f16 *sums)
 {
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
@@ -740,7 +755,7 @@ __global__ static void kuiper_kernel_14(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_15(
+__global__ __launch_bounds__(1024) static void kuiper_kernel_15(
     uint32_t lena, custard_f16 *sums, custard_f16 *a_)
 {
     uint32_t bid = blockIdx.x;
@@ -828,7 +843,8 @@ __global__ static void kuiper_kernel_16(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_17(uint32_t lena, float *maxs, float *a_)
+__global__ __launch_bounds__(1024) static void kuiper_kernel_17(
+    uint32_t lena, float *maxs, float *a_)
 {
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
@@ -855,7 +871,8 @@ __global__ static void kuiper_kernel_17(uint32_t lena, float *maxs, float *a_)
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_18(uint32_t lena, float *a_, float *sums)
+__global__ __launch_bounds__(1024) static void kuiper_kernel_18(
+    uint32_t lena, float *a_, float *sums)
 {
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
@@ -909,7 +926,8 @@ __global__ static void kuiper_kernel_18(uint32_t lena, float *a_, float *sums)
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_19(uint32_t lena, float *sums, float *a_)
+__global__ __launch_bounds__(1024) static void kuiper_kernel_19(
+    uint32_t lena, float *sums, float *a_)
 {
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
@@ -996,7 +1014,8 @@ __global__ static void kuiper_kernel_20(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_21(uint32_t lena, double *maxs, double *a_)
+__global__ __launch_bounds__(1024) static void kuiper_kernel_21(
+    uint32_t lena, double *maxs, double *a_)
 {
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
@@ -1023,7 +1042,8 @@ __global__ static void kuiper_kernel_21(uint32_t lena, double *maxs, double *a_)
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_22(uint32_t lena, double *a_, double *sums)
+__global__ __launch_bounds__(1024) static void kuiper_kernel_22(
+    uint32_t lena, double *a_, double *sums)
 {
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     double *tmp1 = (double *) tmp;
@@ -1077,7 +1097,8 @@ __global__ static void kuiper_kernel_22(uint32_t lena, double *a_, double *sums)
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_23(uint32_t lena, double *sums, double *a_)
+__global__ __launch_bounds__(1024) static void kuiper_kernel_23(
+    uint32_t lena, double *sums, double *a_)
 {
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
@@ -1164,7 +1185,7 @@ __global__ static void kuiper_kernel_24(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_25(
+__global__ __launch_bounds__(1024) static void kuiper_kernel_25(
     uint32_t lena, custard_f16 *maxs, custard_f16 *a_)
 {
     uint32_t bid = blockIdx.x;
@@ -1247,7 +1268,7 @@ __global__ static void kuiper_kernel_26(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_27(
+__global__ __launch_bounds__(1024) static void kuiper_kernel_27(
     uint32_t lena, custard_f16 *sums, custard_f16 *a_)
 {
     uint32_t bid = blockIdx.x;
@@ -1335,7 +1356,8 @@ __global__ static void kuiper_kernel_28(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_29(uint32_t lena, float *maxs, float *a_)
+__global__ __launch_bounds__(1024) static void kuiper_kernel_29(
+    uint32_t lena, float *maxs, float *a_)
 {
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
@@ -1417,7 +1439,8 @@ __global__ static void kuiper_kernel_30(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_31(uint32_t lena, float *sums, float *a_)
+__global__ __launch_bounds__(1024) static void kuiper_kernel_31(
+    uint32_t lena, float *sums, float *a_)
 {
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
@@ -1504,7 +1527,8 @@ __global__ static void kuiper_kernel_32(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_33(uint32_t lena, double *maxs, double *a_)
+__global__ __launch_bounds__(1024) static void kuiper_kernel_33(
+    uint32_t lena, double *maxs, double *a_)
 {
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
@@ -1586,7 +1610,8 @@ __global__ static void kuiper_kernel_34(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_35(uint32_t lena, double *sums, double *a_)
+__global__ __launch_bounds__(1024) static void kuiper_kernel_35(
+    uint32_t lena, double *sums, double *a_)
 {
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
@@ -1673,7 +1698,7 @@ __global__ static void kuiper_kernel_36(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_37(
+__global__ __launch_bounds__(1024) static void kuiper_kernel_37(
     uint32_t lena, custard_f16 *maxs, custard_f16 *a_)
 {
     uint32_t bid = blockIdx.x;
@@ -1701,7 +1726,7 @@ __global__ static void kuiper_kernel_37(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_38(
+__global__ __launch_bounds__(1024) static void kuiper_kernel_38(
     uint32_t lena, custard_f16 *a_, custard_f16 *sums)
 {
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
@@ -1756,7 +1781,7 @@ __global__ static void kuiper_kernel_38(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_39(
+__global__ __launch_bounds__(1024) static void kuiper_kernel_39(
     uint32_t lena, custard_f16 *sums, custard_f16 *a_)
 {
     uint32_t bid = blockIdx.x;
@@ -1844,7 +1869,8 @@ __global__ static void kuiper_kernel_40(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_41(uint32_t lena, float *maxs, float *a_)
+__global__ __launch_bounds__(1024) static void kuiper_kernel_41(
+    uint32_t lena, float *maxs, float *a_)
 {
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
@@ -1871,7 +1897,8 @@ __global__ static void kuiper_kernel_41(uint32_t lena, float *maxs, float *a_)
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_42(uint32_t lena, float *a_, float *sums)
+__global__ __launch_bounds__(1024) static void kuiper_kernel_42(
+    uint32_t lena, float *a_, float *sums)
 {
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
@@ -1925,7 +1952,8 @@ __global__ static void kuiper_kernel_42(uint32_t lena, float *a_, float *sums)
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_43(uint32_t lena, float *sums, float *a_)
+__global__ __launch_bounds__(1024) static void kuiper_kernel_43(
+    uint32_t lena, float *sums, float *a_)
 {
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
@@ -2012,7 +2040,8 @@ __global__ static void kuiper_kernel_44(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_45(uint32_t lena, double *maxs, double *a_)
+__global__ __launch_bounds__(1024) static void kuiper_kernel_45(
+    uint32_t lena, double *maxs, double *a_)
 {
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
@@ -2039,7 +2068,8 @@ __global__ static void kuiper_kernel_45(uint32_t lena, double *maxs, double *a_)
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_46(uint32_t lena, double *a_, double *sums)
+__global__ __launch_bounds__(1024) static void kuiper_kernel_46(
+    uint32_t lena, double *a_, double *sums)
 {
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     double *tmp1 = (double *) tmp;
@@ -2093,7 +2123,8 @@ __global__ static void kuiper_kernel_46(uint32_t lena, double *a_, double *sums)
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_47(uint32_t lena, double *sums, double *a_)
+__global__ __launch_bounds__(1024) static void kuiper_kernel_47(
+    uint32_t lena, double *sums, double *a_)
 {
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;

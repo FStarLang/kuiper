@@ -9,22 +9,26 @@ __global__ static void kuiper_kernel_2(uint32_t nn, uint32_t tile, uint32_t *gA,
     uint32_t *gB, uint32_t kk, uint32_t k, uint32_t n, uint32_t *gC);
 __global__ static void kuiper_kernel_3(uint32_t nn, uint32_t tile, uint64_t *gA,
     uint64_t *gB, uint32_t kk, uint32_t k, uint32_t n, uint64_t *gC);
-__global__ static void kuiper_kernel_4(uint32_t nn, float *gA, float *gB,
-    uint32_t kk, uint32_t k, uint32_t n, float *gC);
-__global__ static void kuiper_kernel_5(uint32_t nn, double *gA, double *gB,
-    uint32_t kk, uint32_t k, uint32_t n, double *gC);
-__global__ static void kuiper_kernel_6(uint32_t nn, uint32_t *gA, uint32_t *gB,
-    uint32_t kk, uint32_t k, uint32_t n, uint32_t *gC);
-__global__ static void kuiper_kernel_7(uint32_t nn, uint64_t *gA, uint64_t *gB,
-    uint32_t kk, uint32_t k, uint32_t n, uint64_t *gC);
-__global__ static void kuiper_kernel_8(uint32_t nn, float *gA, float *gB,
-    uint32_t kk, uint32_t k, uint32_t n, float *gC);
-__global__ static void kuiper_kernel_9(uint32_t nn, double *gA, double *gB,
-    uint32_t kk, uint32_t k, uint32_t n, double *gC);
-__global__ static void kuiper_kernel_10(uint32_t nn, uint32_t *gA, uint32_t *gB,
-    uint32_t kk, uint32_t k, uint32_t n, uint32_t *gC);
-__global__ static void kuiper_kernel_11(uint32_t nn, uint64_t *gA, uint64_t *gB,
-    uint32_t kk, uint32_t k, uint32_t n, uint64_t *gC);
+__global__ __launch_bounds__(1024) static void kuiper_kernel_4(uint32_t nn,
+    float *gA, float *gB, uint32_t kk, uint32_t k, uint32_t n, float *gC);
+__global__ __launch_bounds__(1024) static void kuiper_kernel_5(uint32_t nn,
+    double *gA, double *gB, uint32_t kk, uint32_t k, uint32_t n, double *gC);
+__global__ __launch_bounds__(1024) static void kuiper_kernel_6(uint32_t nn,
+    uint32_t *gA, uint32_t *gB, uint32_t kk, uint32_t k, uint32_t n,
+    uint32_t *gC);
+__global__ __launch_bounds__(1024) static void kuiper_kernel_7(uint32_t nn,
+    uint64_t *gA, uint64_t *gB, uint32_t kk, uint32_t k, uint32_t n,
+    uint64_t *gC);
+__global__ __launch_bounds__(256) static void kuiper_kernel_8(uint32_t nn,
+    float *gA, float *gB, uint32_t kk, uint32_t k, uint32_t n, float *gC);
+__global__ __launch_bounds__(256) static void kuiper_kernel_9(uint32_t nn,
+    double *gA, double *gB, uint32_t kk, uint32_t k, uint32_t n, double *gC);
+__global__ __launch_bounds__(256) static void kuiper_kernel_10(uint32_t nn,
+    uint32_t *gA, uint32_t *gB, uint32_t kk, uint32_t k, uint32_t n,
+    uint32_t *gC);
+__global__ __launch_bounds__(256) static void kuiper_kernel_11(uint32_t nn,
+    uint64_t *gA, uint64_t *gB, uint32_t kk, uint32_t k, uint32_t n,
+    uint64_t *gC);
 __global__ static void kuiper_kernel_12(uint32_t nn, uint32_t tile, float *gA,
     float *gB, uint32_t kk, uint32_t k, uint32_t n, float *gC, float beta,
     float alpha);
@@ -37,26 +41,30 @@ __global__ static void kuiper_kernel_14(uint32_t nn, uint32_t tile,
 __global__ static void kuiper_kernel_15(uint32_t nn, uint32_t tile,
     uint64_t *gA, uint64_t *gB, uint32_t kk, uint32_t k, uint32_t n,
     uint64_t *gC, uint64_t beta, uint64_t alpha);
-__global__ static void kuiper_kernel_16(uint32_t nn, float *gA, float *gB,
-    uint32_t kk, uint32_t k, uint32_t n, float *gC, float beta, float alpha);
-__global__ static void kuiper_kernel_17(uint32_t nn, double *gA, double *gB,
-    uint32_t kk, uint32_t k, uint32_t n, double *gC, double beta, double alpha);
-__global__ static void kuiper_kernel_18(uint32_t nn, uint32_t *gA, uint32_t *gB,
-    uint32_t kk, uint32_t k, uint32_t n, uint32_t *gC, uint32_t beta,
-    uint32_t alpha);
-__global__ static void kuiper_kernel_19(uint32_t nn, uint64_t *gA, uint64_t *gB,
-    uint32_t kk, uint32_t k, uint32_t n, uint64_t *gC, uint64_t beta,
-    uint64_t alpha);
-__global__ static void kuiper_kernel_20(uint32_t nn, float *gA, float *gB,
-    uint32_t kk, uint32_t k, uint32_t n, float *gC, float beta, float alpha);
-__global__ static void kuiper_kernel_21(uint32_t nn, double *gA, double *gB,
-    uint32_t kk, uint32_t k, uint32_t n, double *gC, double beta, double alpha);
-__global__ static void kuiper_kernel_22(uint32_t nn, uint32_t *gA, uint32_t *gB,
-    uint32_t kk, uint32_t k, uint32_t n, uint32_t *gC, uint32_t beta,
-    uint32_t alpha);
-__global__ static void kuiper_kernel_23(uint32_t nn, uint64_t *gA, uint64_t *gB,
-    uint32_t kk, uint32_t k, uint32_t n, uint64_t *gC, uint64_t beta,
-    uint64_t alpha);
+__global__ __launch_bounds__(1024) static void kuiper_kernel_16(uint32_t nn,
+    float *gA, float *gB, uint32_t kk, uint32_t k, uint32_t n, float *gC,
+    float beta, float alpha);
+__global__ __launch_bounds__(1024) static void kuiper_kernel_17(uint32_t nn,
+    double *gA, double *gB, uint32_t kk, uint32_t k, uint32_t n, double *gC,
+    double beta, double alpha);
+__global__ __launch_bounds__(1024) static void kuiper_kernel_18(uint32_t nn,
+    uint32_t *gA, uint32_t *gB, uint32_t kk, uint32_t k, uint32_t n,
+    uint32_t *gC, uint32_t beta, uint32_t alpha);
+__global__ __launch_bounds__(1024) static void kuiper_kernel_19(uint32_t nn,
+    uint64_t *gA, uint64_t *gB, uint32_t kk, uint32_t k, uint32_t n,
+    uint64_t *gC, uint64_t beta, uint64_t alpha);
+__global__ __launch_bounds__(256) static void kuiper_kernel_20(uint32_t nn,
+    float *gA, float *gB, uint32_t kk, uint32_t k, uint32_t n, float *gC,
+    float beta, float alpha);
+__global__ __launch_bounds__(256) static void kuiper_kernel_21(uint32_t nn,
+    double *gA, double *gB, uint32_t kk, uint32_t k, uint32_t n, double *gC,
+    double beta, double alpha);
+__global__ __launch_bounds__(256) static void kuiper_kernel_22(uint32_t nn,
+    uint32_t *gA, uint32_t *gB, uint32_t kk, uint32_t k, uint32_t n,
+    uint32_t *gC, uint32_t beta, uint32_t alpha);
+__global__ __launch_bounds__(256) static void kuiper_kernel_23(uint32_t nn,
+    uint64_t *gA, uint64_t *gB, uint32_t kk, uint32_t k, uint32_t n,
+    uint64_t *gC, uint64_t beta, uint64_t alpha);
 
 /* hoisted by the Custard Kuiper rule */
 __global__ static void kuiper_kernel_0(uint32_t nn, uint32_t tile, float *gA,
@@ -311,8 +319,8 @@ __global__ static void kuiper_kernel_3(uint32_t nn, uint32_t tile, uint64_t *gA,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_4(uint32_t nn, float *gA, float *gB,
-    uint32_t kk, uint32_t k, uint32_t n, float *gC)
+__global__ __launch_bounds__(1024) static void kuiper_kernel_4(uint32_t nn,
+    float *gA, float *gB, uint32_t kk, uint32_t k, uint32_t n, float *gC)
 {
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
@@ -375,8 +383,8 @@ __global__ static void kuiper_kernel_4(uint32_t nn, float *gA, float *gB,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_5(uint32_t nn, double *gA, double *gB,
-    uint32_t kk, uint32_t k, uint32_t n, double *gC)
+__global__ __launch_bounds__(1024) static void kuiper_kernel_5(uint32_t nn,
+    double *gA, double *gB, uint32_t kk, uint32_t k, uint32_t n, double *gC)
 {
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     double *tmp1 = (double *) tmp;
@@ -439,8 +447,9 @@ __global__ static void kuiper_kernel_5(uint32_t nn, double *gA, double *gB,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_6(uint32_t nn, uint32_t *gA, uint32_t *gB,
-    uint32_t kk, uint32_t k, uint32_t n, uint32_t *gC)
+__global__ __launch_bounds__(1024) static void kuiper_kernel_6(uint32_t nn,
+    uint32_t *gA, uint32_t *gB, uint32_t kk, uint32_t k, uint32_t n,
+    uint32_t *gC)
 {
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     uint32_t *tmp1 = (uint32_t *) tmp;
@@ -503,8 +512,9 @@ __global__ static void kuiper_kernel_6(uint32_t nn, uint32_t *gA, uint32_t *gB,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_7(uint32_t nn, uint64_t *gA, uint64_t *gB,
-    uint32_t kk, uint32_t k, uint32_t n, uint64_t *gC)
+__global__ __launch_bounds__(1024) static void kuiper_kernel_7(uint32_t nn,
+    uint64_t *gA, uint64_t *gB, uint32_t kk, uint32_t k, uint32_t n,
+    uint64_t *gC)
 {
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     uint64_t *tmp1 = (uint64_t *) tmp;
@@ -567,8 +577,8 @@ __global__ static void kuiper_kernel_7(uint32_t nn, uint64_t *gA, uint64_t *gB,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_8(uint32_t nn, float *gA, float *gB,
-    uint32_t kk, uint32_t k, uint32_t n, float *gC)
+__global__ __launch_bounds__(256) static void kuiper_kernel_8(uint32_t nn,
+    float *gA, float *gB, uint32_t kk, uint32_t k, uint32_t n, float *gC)
 {
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
@@ -631,8 +641,8 @@ __global__ static void kuiper_kernel_8(uint32_t nn, float *gA, float *gB,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_9(uint32_t nn, double *gA, double *gB,
-    uint32_t kk, uint32_t k, uint32_t n, double *gC)
+__global__ __launch_bounds__(256) static void kuiper_kernel_9(uint32_t nn,
+    double *gA, double *gB, uint32_t kk, uint32_t k, uint32_t n, double *gC)
 {
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     double *tmp1 = (double *) tmp;
@@ -695,8 +705,9 @@ __global__ static void kuiper_kernel_9(uint32_t nn, double *gA, double *gB,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_10(uint32_t nn, uint32_t *gA, uint32_t *gB,
-    uint32_t kk, uint32_t k, uint32_t n, uint32_t *gC)
+__global__ __launch_bounds__(256) static void kuiper_kernel_10(uint32_t nn,
+    uint32_t *gA, uint32_t *gB, uint32_t kk, uint32_t k, uint32_t n,
+    uint32_t *gC)
 {
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     uint32_t *tmp1 = (uint32_t *) tmp;
@@ -759,8 +770,9 @@ __global__ static void kuiper_kernel_10(uint32_t nn, uint32_t *gA, uint32_t *gB,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_11(uint32_t nn, uint64_t *gA, uint64_t *gB,
-    uint32_t kk, uint32_t k, uint32_t n, uint64_t *gC)
+__global__ __launch_bounds__(256) static void kuiper_kernel_11(uint32_t nn,
+    uint64_t *gA, uint64_t *gB, uint32_t kk, uint32_t k, uint32_t n,
+    uint64_t *gC)
 {
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     uint64_t *tmp1 = (uint64_t *) tmp;
@@ -1091,8 +1103,9 @@ __global__ static void kuiper_kernel_15(uint32_t nn, uint32_t tile,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_16(uint32_t nn, float *gA, float *gB,
-    uint32_t kk, uint32_t k, uint32_t n, float *gC, float beta, float alpha)
+__global__ __launch_bounds__(1024) static void kuiper_kernel_16(uint32_t nn,
+    float *gA, float *gB, uint32_t kk, uint32_t k, uint32_t n, float *gC,
+    float beta, float alpha)
 {
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
@@ -1158,8 +1171,9 @@ __global__ static void kuiper_kernel_16(uint32_t nn, float *gA, float *gB,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_17(uint32_t nn, double *gA, double *gB,
-    uint32_t kk, uint32_t k, uint32_t n, double *gC, double beta, double alpha)
+__global__ __launch_bounds__(1024) static void kuiper_kernel_17(uint32_t nn,
+    double *gA, double *gB, uint32_t kk, uint32_t k, uint32_t n, double *gC,
+    double beta, double alpha)
 {
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     double *tmp1 = (double *) tmp;
@@ -1225,9 +1239,9 @@ __global__ static void kuiper_kernel_17(uint32_t nn, double *gA, double *gB,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_18(uint32_t nn, uint32_t *gA, uint32_t *gB,
-    uint32_t kk, uint32_t k, uint32_t n, uint32_t *gC, uint32_t beta,
-    uint32_t alpha)
+__global__ __launch_bounds__(1024) static void kuiper_kernel_18(uint32_t nn,
+    uint32_t *gA, uint32_t *gB, uint32_t kk, uint32_t k, uint32_t n,
+    uint32_t *gC, uint32_t beta, uint32_t alpha)
 {
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     uint32_t *tmp1 = (uint32_t *) tmp;
@@ -1293,9 +1307,9 @@ __global__ static void kuiper_kernel_18(uint32_t nn, uint32_t *gA, uint32_t *gB,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_19(uint32_t nn, uint64_t *gA, uint64_t *gB,
-    uint32_t kk, uint32_t k, uint32_t n, uint64_t *gC, uint64_t beta,
-    uint64_t alpha)
+__global__ __launch_bounds__(1024) static void kuiper_kernel_19(uint32_t nn,
+    uint64_t *gA, uint64_t *gB, uint32_t kk, uint32_t k, uint32_t n,
+    uint64_t *gC, uint64_t beta, uint64_t alpha)
 {
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     uint64_t *tmp1 = (uint64_t *) tmp;
@@ -1361,8 +1375,9 @@ __global__ static void kuiper_kernel_19(uint32_t nn, uint64_t *gA, uint64_t *gB,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_20(uint32_t nn, float *gA, float *gB,
-    uint32_t kk, uint32_t k, uint32_t n, float *gC, float beta, float alpha)
+__global__ __launch_bounds__(256) static void kuiper_kernel_20(uint32_t nn,
+    float *gA, float *gB, uint32_t kk, uint32_t k, uint32_t n, float *gC,
+    float beta, float alpha)
 {
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     float *tmp1 = (float *) tmp;
@@ -1428,8 +1443,9 @@ __global__ static void kuiper_kernel_20(uint32_t nn, float *gA, float *gB,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_21(uint32_t nn, double *gA, double *gB,
-    uint32_t kk, uint32_t k, uint32_t n, double *gC, double beta, double alpha)
+__global__ __launch_bounds__(256) static void kuiper_kernel_21(uint32_t nn,
+    double *gA, double *gB, uint32_t kk, uint32_t k, uint32_t n, double *gC,
+    double beta, double alpha)
 {
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     double *tmp1 = (double *) tmp;
@@ -1495,9 +1511,9 @@ __global__ static void kuiper_kernel_21(uint32_t nn, double *gA, double *gB,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_22(uint32_t nn, uint32_t *gA, uint32_t *gB,
-    uint32_t kk, uint32_t k, uint32_t n, uint32_t *gC, uint32_t beta,
-    uint32_t alpha)
+__global__ __launch_bounds__(256) static void kuiper_kernel_22(uint32_t nn,
+    uint32_t *gA, uint32_t *gB, uint32_t kk, uint32_t k, uint32_t n,
+    uint32_t *gC, uint32_t beta, uint32_t alpha)
 {
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     uint32_t *tmp1 = (uint32_t *) tmp;
@@ -1563,9 +1579,9 @@ __global__ static void kuiper_kernel_22(uint32_t nn, uint32_t *gA, uint32_t *gB,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_23(uint32_t nn, uint64_t *gA, uint64_t *gB,
-    uint32_t kk, uint32_t k, uint32_t n, uint64_t *gC, uint64_t beta,
-    uint64_t alpha)
+__global__ __launch_bounds__(256) static void kuiper_kernel_23(uint32_t nn,
+    uint64_t *gA, uint64_t *gB, uint32_t kk, uint32_t k, uint32_t n,
+    uint64_t *gC, uint64_t beta, uint64_t alpha)
 {
     uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     uint64_t *tmp1 = (uint64_t *) tmp;

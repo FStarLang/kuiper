@@ -21,7 +21,8 @@ __device__ static void Kuiper_For_for_loop___5(uint32_t tmp, uint32_t tmp1,
 __device__ static void Kuiper_For_for_loop___6(uint32_t tmp, uint32_t tmp1,
     uint32_t *tmp2, uint32_t tmp3, uint32_t tmp4, uint32_t tmp5,
     uint32_t *tmp6);
-__global__ static void kuiper_kernel_0(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(32) static void kuiper_kernel_0(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__uint32 gA, uint32_t shared, uint32_t cols,
     uint32_t *gB, uint32_t *gC);
 __device__ static void Kuiper_For_for_loop___7(uint32_t tmp, uint32_t tmp1,
@@ -43,7 +44,8 @@ __device__ static void Kuiper_For_for_loop___12(uint32_t tmp, uint32_t tmp1,
     float *tmp6, uint32_t *tmp7, uint32_t tmp8, uint32_t tmp9);
 __device__ static void Kuiper_For_for_loop___13(uint32_t tmp, uint32_t tmp1,
     float *tmp2, uint32_t tmp3, uint32_t tmp4, uint32_t tmp5, float *tmp6);
-__global__ static void kuiper_kernel_1(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(64) static void kuiper_kernel_1(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
 __device__ static void Kuiper_For_for_loop___14(uint32_t tmp, uint32_t tmp1,
@@ -65,7 +67,8 @@ __device__ static void Kuiper_For_for_loop___19(uint32_t tmp, uint32_t tmp1,
     float *tmp6, uint32_t *tmp7, uint32_t tmp8, uint32_t tmp9);
 __device__ static void Kuiper_For_for_loop___20(uint32_t tmp, uint32_t tmp1,
     float *tmp2, uint32_t tmp3, uint32_t tmp4, uint32_t tmp5, float *tmp6);
-__global__ static void kuiper_kernel_2(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(1) static void kuiper_kernel_2(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
 __device__ static void Kuiper_For_for_loop___21(uint32_t tmp, uint32_t tmp1,
@@ -87,7 +90,8 @@ __device__ static void Kuiper_For_for_loop___26(uint32_t tmp, uint32_t tmp1,
     float *tmp6, uint32_t *tmp7, uint32_t tmp8, uint32_t tmp9);
 __device__ static void Kuiper_For_for_loop___27(uint32_t tmp, uint32_t tmp1,
     float *tmp2, uint32_t tmp3, uint32_t tmp4, uint32_t tmp5, float *tmp6);
-__global__ static void kuiper_kernel_3(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(2) static void kuiper_kernel_3(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
 __device__ static void Kuiper_For_for_loop___28(uint32_t tmp, uint32_t tmp1,
@@ -109,7 +113,8 @@ __device__ static void Kuiper_For_for_loop___33(uint32_t tmp, uint32_t tmp1,
     float *tmp6, uint32_t *tmp7, uint32_t tmp8, uint32_t tmp9);
 __device__ static void Kuiper_For_for_loop___34(uint32_t tmp, uint32_t tmp1,
     float *tmp2, uint32_t tmp3, uint32_t tmp4, uint32_t tmp5, float *tmp6);
-__global__ static void kuiper_kernel_4(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(4) static void kuiper_kernel_4(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
 __device__ static void Kuiper_For_for_loop___35(uint32_t tmp, uint32_t tmp1,
@@ -131,7 +136,8 @@ __device__ static void Kuiper_For_for_loop___40(uint32_t tmp, uint32_t tmp1,
     float *tmp6, uint32_t *tmp7, uint32_t tmp8, uint32_t tmp9);
 __device__ static void Kuiper_For_for_loop___41(uint32_t tmp, uint32_t tmp1,
     float *tmp2, uint32_t tmp3, uint32_t tmp4, uint32_t tmp5, float *tmp6);
-__global__ static void kuiper_kernel_5(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(8) static void kuiper_kernel_5(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
 __device__ static void Kuiper_For_for_loop___42(uint32_t tmp, uint32_t tmp1,
@@ -151,22 +157,28 @@ __device__ static void Kuiper_For_for_loop___46(uint32_t tmp, uint32_t tmp1,
     float *tmp6, uint32_t *tmp7, uint32_t tmp8, uint32_t tmp9);
 __device__ static void Kuiper_For_for_loop___47(uint32_t tmp, uint32_t tmp1,
     float *tmp2, uint32_t tmp3, uint32_t tmp4, uint32_t tmp5, float *tmp6);
-__global__ static void kuiper_kernel_6(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(8) static void kuiper_kernel_6(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
-__global__ static void kuiper_kernel_7(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(1) static void kuiper_kernel_7(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
-__global__ static void kuiper_kernel_8(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(2) static void kuiper_kernel_8(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
-__global__ static void kuiper_kernel_9(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(4) static void kuiper_kernel_9(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
-__global__ static void kuiper_kernel_10(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(8) static void kuiper_kernel_10(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
-__global__ static void kuiper_kernel_11(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(8) static void kuiper_kernel_11(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
 __device__ static void Kuiper_For_for_loop___48(uint32_t tmp, uint32_t tmp1,
@@ -188,10 +200,12 @@ __device__ static void Kuiper_For_for_loop___53(uint32_t tmp, uint32_t tmp1,
     float *tmp6, uint32_t *tmp7, uint32_t tmp8, uint32_t tmp9);
 __device__ static void Kuiper_For_for_loop___54(uint32_t tmp, uint32_t tmp1,
     float *tmp2, uint32_t tmp3, uint32_t tmp4, uint32_t tmp5, float *tmp6);
-__global__ static void kuiper_kernel_12(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void kuiper_kernel_12(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
-__global__ static void kuiper_kernel_13(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void kuiper_kernel_13(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
 __device__ static void Kuiper_For_for_loop___55(uint32_t tmp, uint32_t tmp1,
@@ -211,10 +225,12 @@ __device__ static void Kuiper_For_for_loop___59(uint32_t tmp, uint32_t tmp1,
     float *tmp6, uint32_t *tmp7, uint32_t tmp8, uint32_t tmp9);
 __device__ static void Kuiper_For_for_loop___60(uint32_t tmp, uint32_t tmp1,
     float *tmp2, uint32_t tmp3, uint32_t tmp4, uint32_t tmp5, float *tmp6);
-__global__ static void kuiper_kernel_14(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void kuiper_kernel_14(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
-__global__ static void kuiper_kernel_15(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void kuiper_kernel_15(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
 __device__ static void Kuiper_For_for_loop___61(uint32_t tmp, uint32_t tmp1,
@@ -234,10 +250,12 @@ __device__ static void Kuiper_For_for_loop___65(uint32_t tmp, uint32_t tmp1,
     float *tmp6, uint32_t *tmp7, uint32_t tmp8, uint32_t tmp9);
 __device__ static void Kuiper_For_for_loop___66(uint32_t tmp, uint32_t tmp1,
     float *tmp2, uint32_t tmp3, uint32_t tmp4, uint32_t tmp5, float *tmp6);
-__global__ static void kuiper_kernel_16(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void kuiper_kernel_16(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
-__global__ static void kuiper_kernel_17(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void kuiper_kernel_17(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
 __device__ static void Kuiper_For_for_loop___67(uint32_t tmp, uint32_t tmp1,
@@ -257,10 +275,12 @@ __device__ static void Kuiper_For_for_loop___71(uint32_t tmp, uint32_t tmp1,
     float *tmp6, uint32_t *tmp7, uint32_t tmp8, uint32_t tmp9);
 __device__ static void Kuiper_For_for_loop___72(uint32_t tmp, uint32_t tmp1,
     float *tmp2, uint32_t tmp3, uint32_t tmp4, uint32_t tmp5, float *tmp6);
-__global__ static void kuiper_kernel_18(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void kuiper_kernel_18(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
-__global__ static void kuiper_kernel_19(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void kuiper_kernel_19(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
 __device__ static void Kuiper_For_for_loop___73(uint32_t tmp, uint32_t tmp1,
@@ -275,10 +295,12 @@ __device__ static void Kuiper_For_for_loop___75(uint32_t tmp, uint32_t tmp1,
 __device__ static void Kuiper_For_for_loop___76(uint32_t tmp, uint32_t tmp1,
     uint32_t tmp2, Kuiper_Sparse_Matrix_smatrix__float32 tmp3, uint32_t tmp6,
     uint32_t *tmp7, uint32_t tmp8, uint32_t tmp9);
-__global__ static void kuiper_kernel_20(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void kuiper_kernel_20(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
-__global__ static void kuiper_kernel_21(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void kuiper_kernel_21(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
 __device__ static void Kuiper_For_for_loop___77(uint32_t tmp, uint32_t tmp1,
@@ -293,10 +315,12 @@ __device__ static void Kuiper_For_for_loop___79(uint32_t tmp, uint32_t tmp1,
 __device__ static void Kuiper_For_for_loop___80(uint32_t tmp, uint32_t tmp1,
     uint32_t tmp2, Kuiper_Sparse_Matrix_smatrix__float32 tmp3, uint32_t tmp6,
     uint32_t *tmp7, uint32_t tmp8, uint32_t tmp9);
-__global__ static void kuiper_kernel_22(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void kuiper_kernel_22(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
-__global__ static void kuiper_kernel_23(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void kuiper_kernel_23(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
 __device__ static void Kuiper_For_for_loop___81(uint32_t tmp, uint32_t tmp1,
@@ -318,10 +342,12 @@ __device__ static void Kuiper_For_for_loop___86(uint32_t tmp, uint32_t tmp1,
     float *tmp6, uint32_t *tmp7, uint32_t tmp8, uint32_t tmp9);
 __device__ static void Kuiper_For_for_loop___87(uint32_t tmp, uint32_t tmp1,
     float *tmp2, uint32_t tmp3, uint32_t tmp4, uint32_t tmp5, float *tmp6);
-__global__ static void kuiper_kernel_24(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(32) static void kuiper_kernel_24(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
-__global__ static void kuiper_kernel_25(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(32) static void kuiper_kernel_25(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
 __device__ static void Kuiper_For_for_loop___88(uint32_t tmp, uint32_t tmp1,
@@ -336,10 +362,12 @@ __device__ static void Kuiper_For_for_loop___90(uint32_t tmp, uint32_t tmp1,
 __device__ static void Kuiper_For_for_loop___91(uint32_t tmp, uint32_t tmp1,
     uint32_t tmp2, Kuiper_Sparse_Matrix_smatrix__float32 tmp3, uint32_t tmp6,
     uint32_t *tmp7, uint32_t tmp8, uint32_t tmp9);
-__global__ static void kuiper_kernel_26(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void kuiper_kernel_26(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
-__global__ static void kuiper_kernel_27(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void kuiper_kernel_27(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
 __device__ static void Kuiper_For_for_loop___92(uint32_t tmp, uint32_t tmp1,
@@ -359,10 +387,12 @@ __device__ static void Kuiper_For_for_loop___96(uint32_t tmp, uint32_t tmp1,
     float *tmp6, uint32_t *tmp7, uint32_t tmp8, uint32_t tmp9);
 __device__ static void Kuiper_For_for_loop___97(uint32_t tmp, uint32_t tmp1,
     float *tmp2, uint32_t tmp3, uint32_t tmp4, uint32_t tmp5, float *tmp6);
-__global__ static void kuiper_kernel_28(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(32) static void kuiper_kernel_28(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
-__global__ static void kuiper_kernel_29(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(32) static void kuiper_kernel_29(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
 __device__ static void Kuiper_For_for_loop___98(uint32_t tmp, uint32_t tmp1,
@@ -377,10 +407,12 @@ __device__ static void Kuiper_For_for_loop___100(uint32_t tmp, uint32_t tmp1,
 __device__ static void Kuiper_For_for_loop___101(uint32_t tmp, uint32_t tmp1,
     uint32_t tmp2, Kuiper_Sparse_Matrix_smatrix__float32 tmp3, uint32_t tmp6,
     uint32_t *tmp7, uint32_t tmp8, uint32_t tmp9);
-__global__ static void kuiper_kernel_30(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void kuiper_kernel_30(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
-__global__ static void kuiper_kernel_31(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void kuiper_kernel_31(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
 __device__ static void Kuiper_For_for_loop___102(uint32_t tmp, uint32_t tmp1,
@@ -400,10 +432,12 @@ __device__ static void Kuiper_For_for_loop___106(uint32_t tmp, uint32_t tmp1,
     float *tmp6, uint32_t *tmp7, uint32_t tmp8, uint32_t tmp9);
 __device__ static void Kuiper_For_for_loop___107(uint32_t tmp, uint32_t tmp1,
     float *tmp2, uint32_t tmp3, uint32_t tmp4, uint32_t tmp5, float *tmp6);
-__global__ static void kuiper_kernel_32(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(32) static void kuiper_kernel_32(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
-__global__ static void kuiper_kernel_33(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(32) static void kuiper_kernel_33(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
 __device__ static void Kuiper_For_for_loop___108(uint32_t tmp, uint32_t tmp1,
@@ -418,10 +452,12 @@ __device__ static void Kuiper_For_for_loop___110(uint32_t tmp, uint32_t tmp1,
 __device__ static void Kuiper_For_for_loop___111(uint32_t tmp, uint32_t tmp1,
     uint32_t tmp2, Kuiper_Sparse_Matrix_smatrix__float32 tmp3, uint32_t tmp6,
     uint32_t *tmp7, uint32_t tmp8, uint32_t tmp9);
-__global__ static void kuiper_kernel_34(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void kuiper_kernel_34(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
-__global__ static void kuiper_kernel_35(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void kuiper_kernel_35(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
 __device__ static void Kuiper_For_for_loop___112(uint32_t tmp, uint32_t tmp1,
@@ -436,10 +472,12 @@ __device__ static void Kuiper_For_for_loop___114(uint32_t tmp, uint32_t tmp1,
 __device__ static void Kuiper_For_for_loop___115(uint32_t tmp, uint32_t tmp1,
     uint32_t tmp2, Kuiper_Sparse_Matrix_smatrix__float32 tmp3, uint32_t tmp6,
     uint32_t *tmp7, uint32_t tmp8, uint32_t tmp9);
-__global__ static void kuiper_kernel_36(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void kuiper_kernel_36(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
-__global__ static void kuiper_kernel_37(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void kuiper_kernel_37(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
 __device__ static void Kuiper_For_for_loop___116(uint32_t tmp, uint32_t tmp1,
@@ -454,10 +492,12 @@ __device__ static void Kuiper_For_for_loop___118(uint32_t tmp, uint32_t tmp1,
 __device__ static void Kuiper_For_for_loop___119(uint32_t tmp, uint32_t tmp1,
     uint32_t tmp2, Kuiper_Sparse_Matrix_smatrix__float32 tmp3, uint32_t tmp6,
     uint32_t *tmp7, uint32_t tmp8, uint32_t tmp9);
-__global__ static void kuiper_kernel_38(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(32) static void kuiper_kernel_38(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
-__global__ static void kuiper_kernel_39(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(32) static void kuiper_kernel_39(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
 __device__ static void Kuiper_For_for_loop___120(uint32_t tmp, uint32_t tmp1,
@@ -472,10 +512,12 @@ __device__ static void Kuiper_For_for_loop___122(uint32_t tmp, uint32_t tmp1,
 __device__ static void Kuiper_For_for_loop___123(uint32_t tmp, uint32_t tmp1,
     uint32_t tmp2, Kuiper_Sparse_Matrix_smatrix__float32 tmp3, uint32_t tmp6,
     uint32_t *tmp7, uint32_t tmp8, uint32_t tmp9);
-__global__ static void kuiper_kernel_40(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void kuiper_kernel_40(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
-__global__ static void kuiper_kernel_41(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void kuiper_kernel_41(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
 __device__ static void Kuiper_For_for_loop___124(uint32_t tmp, uint32_t tmp1,
@@ -490,10 +532,12 @@ __device__ static void Kuiper_For_for_loop___126(uint32_t tmp, uint32_t tmp1,
 __device__ static void Kuiper_For_for_loop___127(uint32_t tmp, uint32_t tmp1,
     uint32_t tmp2, Kuiper_Sparse_Matrix_smatrix__float32 tmp3, uint32_t tmp6,
     uint32_t *tmp7, uint32_t tmp8, uint32_t tmp9);
-__global__ static void kuiper_kernel_42(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(32) static void kuiper_kernel_42(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
-__global__ static void kuiper_kernel_43(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(32) static void kuiper_kernel_43(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
 __device__ static void Kuiper_For_for_loop___128(uint32_t tmp, uint32_t tmp1,
@@ -513,10 +557,12 @@ __device__ static void Kuiper_For_for_loop___132(uint32_t tmp, uint32_t tmp1,
     float *tmp6, uint32_t *tmp7, uint32_t tmp8, uint32_t tmp9);
 __device__ static void Kuiper_For_for_loop___133(uint32_t tmp, uint32_t tmp1,
     float *tmp2, uint32_t tmp3, uint32_t tmp4, uint32_t tmp5, float *tmp6);
-__global__ static void kuiper_kernel_44(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(64) static void kuiper_kernel_44(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
-__global__ static void kuiper_kernel_45(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(64) static void kuiper_kernel_45(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
 __device__ static void Kuiper_For_for_loop___134(uint32_t tmp, uint32_t tmp1,
@@ -531,10 +577,12 @@ __device__ static void Kuiper_For_for_loop___136(uint32_t tmp, uint32_t tmp1,
 __device__ static void Kuiper_For_for_loop___137(uint32_t tmp, uint32_t tmp1,
     uint32_t tmp2, Kuiper_Sparse_Matrix_smatrix__float32 tmp3, uint32_t tmp6,
     uint32_t *tmp7, uint32_t tmp8, uint32_t tmp9);
-__global__ static void kuiper_kernel_46(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void kuiper_kernel_46(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
-__global__ static void kuiper_kernel_47(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void kuiper_kernel_47(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
 __device__ static void Kuiper_For_for_loop___138(uint32_t tmp, uint32_t tmp1,
@@ -549,10 +597,12 @@ __device__ static void Kuiper_For_for_loop___140(uint32_t tmp, uint32_t tmp1,
 __device__ static void Kuiper_For_for_loop___141(uint32_t tmp, uint32_t tmp1,
     uint32_t tmp2, Kuiper_Sparse_Matrix_smatrix__float32 tmp3, uint32_t tmp6,
     uint32_t *tmp7, uint32_t tmp8, uint32_t tmp9);
-__global__ static void kuiper_kernel_48(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(32) static void kuiper_kernel_48(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
-__global__ static void kuiper_kernel_49(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(32) static void kuiper_kernel_49(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
 __device__ static void Kuiper_For_for_loop___142(uint32_t tmp, uint32_t tmp1,
@@ -567,10 +617,12 @@ __device__ static void Kuiper_For_for_loop___144(uint32_t tmp, uint32_t tmp1,
 __device__ static void Kuiper_For_for_loop___145(uint32_t tmp, uint32_t tmp1,
     uint32_t tmp2, Kuiper_Sparse_Matrix_smatrix__float32 tmp3, uint32_t tmp6,
     uint32_t *tmp7, uint32_t tmp8, uint32_t tmp9);
-__global__ static void kuiper_kernel_50(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(64) static void kuiper_kernel_50(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
-__global__ static void kuiper_kernel_51(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(64) static void kuiper_kernel_51(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
 __device__ static void Kuiper_For_for_loop___146(uint32_t tmp, uint32_t tmp1,
@@ -585,10 +637,12 @@ __device__ static void Kuiper_For_for_loop___148(uint32_t tmp, uint32_t tmp1,
 __device__ static void Kuiper_For_for_loop___149(uint32_t tmp, uint32_t tmp1,
     uint32_t tmp2, Kuiper_Sparse_Matrix_smatrix__float32 tmp3, uint32_t tmp6,
     uint32_t *tmp7, uint32_t tmp8, uint32_t tmp9);
-__global__ static void kuiper_kernel_52(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void kuiper_kernel_52(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
-__global__ static void kuiper_kernel_53(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void kuiper_kernel_53(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
 __device__ static void Kuiper_For_for_loop___150(uint32_t tmp, uint32_t tmp1,
@@ -603,10 +657,12 @@ __device__ static void Kuiper_For_for_loop___152(uint32_t tmp, uint32_t tmp1,
 __device__ static void Kuiper_For_for_loop___153(uint32_t tmp, uint32_t tmp1,
     uint32_t tmp2, Kuiper_Sparse_Matrix_smatrix__float32 tmp3, uint32_t tmp6,
     uint32_t *tmp7, uint32_t tmp8, uint32_t tmp9);
-__global__ static void kuiper_kernel_54(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void kuiper_kernel_54(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
-__global__ static void kuiper_kernel_55(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void kuiper_kernel_55(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
 __device__ static void Kuiper_For_for_loop___154(uint32_t tmp, uint32_t tmp1,
@@ -621,10 +677,12 @@ __device__ static void Kuiper_For_for_loop___156(uint32_t tmp, uint32_t tmp1,
 __device__ static void Kuiper_For_for_loop___157(uint32_t tmp, uint32_t tmp1,
     uint32_t tmp2, Kuiper_Sparse_Matrix_smatrix__float32 tmp3, uint32_t tmp6,
     uint32_t *tmp7, uint32_t tmp8, uint32_t tmp9);
-__global__ static void kuiper_kernel_56(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(32) static void kuiper_kernel_56(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
-__global__ static void kuiper_kernel_57(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(32) static void kuiper_kernel_57(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
 __device__ static void Kuiper_For_for_loop___158(uint32_t tmp, uint32_t tmp1,
@@ -639,10 +697,12 @@ __device__ static void Kuiper_For_for_loop___160(uint32_t tmp, uint32_t tmp1,
 __device__ static void Kuiper_For_for_loop___161(uint32_t tmp, uint32_t tmp1,
     uint32_t tmp2, Kuiper_Sparse_Matrix_smatrix__float32 tmp3, uint32_t tmp6,
     uint32_t *tmp7, uint32_t tmp8, uint32_t tmp9);
-__global__ static void kuiper_kernel_58(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void kuiper_kernel_58(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
-__global__ static void kuiper_kernel_59(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void kuiper_kernel_59(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
 __device__ static void Kuiper_For_for_loop___162(uint32_t tmp, uint32_t tmp1,
@@ -657,10 +717,12 @@ __device__ static void Kuiper_For_for_loop___164(uint32_t tmp, uint32_t tmp1,
 __device__ static void Kuiper_For_for_loop___165(uint32_t tmp, uint32_t tmp1,
     uint32_t tmp2, Kuiper_Sparse_Matrix_smatrix__float32 tmp3, uint32_t tmp6,
     uint32_t *tmp7, uint32_t tmp8, uint32_t tmp9);
-__global__ static void kuiper_kernel_60(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(32) static void kuiper_kernel_60(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
-__global__ static void kuiper_kernel_61(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(32) static void kuiper_kernel_61(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
 __device__ static void Kuiper_For_for_loop___166(uint32_t tmp, uint32_t tmp1,
@@ -675,10 +737,12 @@ __device__ static void Kuiper_For_for_loop___168(uint32_t tmp, uint32_t tmp1,
 __device__ static void Kuiper_For_for_loop___169(uint32_t tmp, uint32_t tmp1,
     uint32_t tmp2, Kuiper_Sparse_Matrix_smatrix__float32 tmp3, uint32_t tmp6,
     uint32_t *tmp7, uint32_t tmp8, uint32_t tmp9);
-__global__ static void kuiper_kernel_62(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(64) static void kuiper_kernel_62(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
-__global__ static void kuiper_kernel_63(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(64) static void kuiper_kernel_63(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
 __device__ static void Kuiper_For_for_loop___170(uint32_t tmp, uint32_t tmp1,
@@ -693,10 +757,12 @@ __device__ static void Kuiper_For_for_loop___172(uint32_t tmp, uint32_t tmp1,
 __device__ static void Kuiper_For_for_loop___173(uint32_t tmp, uint32_t tmp1,
     uint32_t tmp2, Kuiper_Sparse_Matrix_smatrix__float32 tmp3, uint32_t tmp6,
     uint32_t *tmp7, uint32_t tmp8, uint32_t tmp9);
-__global__ static void kuiper_kernel_64(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void kuiper_kernel_64(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
-__global__ static void kuiper_kernel_65(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void kuiper_kernel_65(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
 __device__ static void Kuiper_For_for_loop___174(uint32_t tmp, uint32_t tmp1,
@@ -711,16 +777,20 @@ __device__ static void Kuiper_For_for_loop___176(uint32_t tmp, uint32_t tmp1,
 __device__ static void Kuiper_For_for_loop___177(uint32_t tmp, uint32_t tmp1,
     uint32_t tmp2, Kuiper_Sparse_Matrix_smatrix__float32 tmp3, uint32_t tmp6,
     uint32_t *tmp7, uint32_t tmp8, uint32_t tmp9);
-__global__ static void kuiper_kernel_66(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(32) static void kuiper_kernel_66(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
-__global__ static void kuiper_kernel_67(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(32) static void kuiper_kernel_67(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
-__global__ static void kuiper_kernel_68(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(64) static void kuiper_kernel_68(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
-__global__ static void kuiper_kernel_69(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(64) static void kuiper_kernel_69(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
 __device__ static void Kuiper_For_for_loop___178(uint32_t tmp, uint32_t tmp1,
@@ -742,10 +812,12 @@ __device__ static void Kuiper_For_for_loop___183(uint32_t tmp, uint32_t tmp1,
     float *tmp6, uint32_t *tmp7, uint32_t tmp8, uint32_t tmp9);
 __device__ static void Kuiper_For_for_loop___184(uint32_t tmp, uint32_t tmp1,
     float *tmp2, uint32_t tmp3, uint32_t tmp4, uint32_t tmp5, float *tmp6);
-__global__ static void kuiper_kernel_70(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(128) static void kuiper_kernel_70(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
-__global__ static void kuiper_kernel_71(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(128) static void kuiper_kernel_71(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
 
@@ -870,7 +942,8 @@ __device__ static void Kuiper_For_for_loop___6(uint32_t tmp, uint32_t tmp1,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_0(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(32) static void kuiper_kernel_0(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__uint32 gA, uint32_t shared, uint32_t cols,
     uint32_t *gB, uint32_t *gC)
 {
@@ -1140,7 +1213,8 @@ __device__ static void Kuiper_For_for_loop___13(uint32_t tmp, uint32_t tmp1,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_1(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(64) static void kuiper_kernel_1(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -1409,7 +1483,8 @@ __device__ static void Kuiper_For_for_loop___20(uint32_t tmp, uint32_t tmp1,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_2(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(1) static void kuiper_kernel_2(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -1678,7 +1753,8 @@ __device__ static void Kuiper_For_for_loop___27(uint32_t tmp, uint32_t tmp1,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_3(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(2) static void kuiper_kernel_3(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -1947,7 +2023,8 @@ __device__ static void Kuiper_For_for_loop___34(uint32_t tmp, uint32_t tmp1,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_4(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(4) static void kuiper_kernel_4(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -2216,7 +2293,8 @@ __device__ static void Kuiper_For_for_loop___41(uint32_t tmp, uint32_t tmp1,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_5(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(8) static void kuiper_kernel_5(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -2473,7 +2551,8 @@ __device__ static void Kuiper_For_for_loop___47(uint32_t tmp, uint32_t tmp1,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_6(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(8) static void kuiper_kernel_6(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -2623,7 +2702,8 @@ __global__ static void kuiper_kernel_6(uint32_t *row_indices, uint32_t rows,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_7(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(1) static void kuiper_kernel_7(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -2773,7 +2853,8 @@ __global__ static void kuiper_kernel_7(uint32_t *row_indices, uint32_t rows,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_8(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(2) static void kuiper_kernel_8(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -2923,7 +3004,8 @@ __global__ static void kuiper_kernel_8(uint32_t *row_indices, uint32_t rows,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_9(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(4) static void kuiper_kernel_9(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -3073,7 +3155,8 @@ __global__ static void kuiper_kernel_9(uint32_t *row_indices, uint32_t rows,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_10(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(8) static void kuiper_kernel_10(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -3223,7 +3306,8 @@ __global__ static void kuiper_kernel_10(uint32_t *row_indices, uint32_t rows,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_11(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(8) static void kuiper_kernel_11(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -3492,7 +3576,8 @@ __device__ static void Kuiper_For_for_loop___54(uint32_t tmp, uint32_t tmp1,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_12(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void kuiper_kernel_12(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -3642,7 +3727,8 @@ __global__ static void kuiper_kernel_12(uint32_t *row_indices, uint32_t rows,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_13(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void kuiper_kernel_13(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -3900,7 +3986,8 @@ __device__ static void Kuiper_For_for_loop___60(uint32_t tmp, uint32_t tmp1,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_14(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void kuiper_kernel_14(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -4050,7 +4137,8 @@ __global__ static void kuiper_kernel_14(uint32_t *row_indices, uint32_t rows,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_15(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void kuiper_kernel_15(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -4308,7 +4396,8 @@ __device__ static void Kuiper_For_for_loop___66(uint32_t tmp, uint32_t tmp1,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_16(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void kuiper_kernel_16(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -4459,7 +4548,8 @@ __global__ static void kuiper_kernel_16(uint32_t *row_indices, uint32_t rows,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_17(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void kuiper_kernel_17(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -4718,7 +4808,8 @@ __device__ static void Kuiper_For_for_loop___72(uint32_t tmp, uint32_t tmp1,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_18(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void kuiper_kernel_18(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -4870,7 +4961,8 @@ __global__ static void kuiper_kernel_18(uint32_t *row_indices, uint32_t rows,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_19(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void kuiper_kernel_19(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -5092,7 +5184,8 @@ __device__ static void Kuiper_For_for_loop___76(uint32_t tmp, uint32_t tmp1,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_20(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void kuiper_kernel_20(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -5242,7 +5335,8 @@ __global__ static void kuiper_kernel_20(uint32_t *row_indices, uint32_t rows,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_21(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void kuiper_kernel_21(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -5462,7 +5556,8 @@ __device__ static void Kuiper_For_for_loop___80(uint32_t tmp, uint32_t tmp1,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_22(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void kuiper_kernel_22(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -5612,7 +5707,8 @@ __global__ static void kuiper_kernel_22(uint32_t *row_indices, uint32_t rows,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_23(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void kuiper_kernel_23(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -5882,7 +5978,8 @@ __device__ static void Kuiper_For_for_loop___87(uint32_t tmp, uint32_t tmp1,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_24(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(32) static void kuiper_kernel_24(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -6032,7 +6129,8 @@ __global__ static void kuiper_kernel_24(uint32_t *row_indices, uint32_t rows,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_25(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(32) static void kuiper_kernel_25(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -6252,7 +6350,8 @@ __device__ static void Kuiper_For_for_loop___91(uint32_t tmp, uint32_t tmp1,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_26(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void kuiper_kernel_26(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -6403,7 +6502,8 @@ __global__ static void kuiper_kernel_26(uint32_t *row_indices, uint32_t rows,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_27(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void kuiper_kernel_27(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -6662,7 +6762,8 @@ __device__ static void Kuiper_For_for_loop___97(uint32_t tmp, uint32_t tmp1,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_28(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(32) static void kuiper_kernel_28(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -6812,7 +6913,8 @@ __global__ static void kuiper_kernel_28(uint32_t *row_indices, uint32_t rows,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_29(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(32) static void kuiper_kernel_29(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -7032,7 +7134,8 @@ __device__ static void Kuiper_For_for_loop___101(uint32_t tmp, uint32_t tmp1,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_30(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void kuiper_kernel_30(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -7184,7 +7287,8 @@ __global__ static void kuiper_kernel_30(uint32_t *row_indices, uint32_t rows,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_31(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void kuiper_kernel_31(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -7444,7 +7548,8 @@ __device__ static void Kuiper_For_for_loop___107(uint32_t tmp, uint32_t tmp1,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_32(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(32) static void kuiper_kernel_32(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -7595,7 +7700,8 @@ __global__ static void kuiper_kernel_32(uint32_t *row_indices, uint32_t rows,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_33(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(32) static void kuiper_kernel_33(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -7816,7 +7922,8 @@ __device__ static void Kuiper_For_for_loop___111(uint32_t tmp, uint32_t tmp1,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_34(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void kuiper_kernel_34(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -7966,7 +8073,8 @@ __global__ static void kuiper_kernel_34(uint32_t *row_indices, uint32_t rows,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_35(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void kuiper_kernel_35(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -8186,7 +8294,8 @@ __device__ static void Kuiper_For_for_loop___115(uint32_t tmp, uint32_t tmp1,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_36(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void kuiper_kernel_36(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -8336,7 +8445,8 @@ __global__ static void kuiper_kernel_36(uint32_t *row_indices, uint32_t rows,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_37(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void kuiper_kernel_37(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -8556,7 +8666,8 @@ __device__ static void Kuiper_For_for_loop___119(uint32_t tmp, uint32_t tmp1,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_38(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(32) static void kuiper_kernel_38(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -8706,7 +8817,8 @@ __global__ static void kuiper_kernel_38(uint32_t *row_indices, uint32_t rows,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_39(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(32) static void kuiper_kernel_39(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -8926,7 +9038,8 @@ __device__ static void Kuiper_For_for_loop___123(uint32_t tmp, uint32_t tmp1,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_40(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void kuiper_kernel_40(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -9077,7 +9190,8 @@ __global__ static void kuiper_kernel_40(uint32_t *row_indices, uint32_t rows,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_41(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void kuiper_kernel_41(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -9298,7 +9412,8 @@ __device__ static void Kuiper_For_for_loop___127(uint32_t tmp, uint32_t tmp1,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_42(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(32) static void kuiper_kernel_42(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -9448,7 +9563,8 @@ __global__ static void kuiper_kernel_42(uint32_t *row_indices, uint32_t rows,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_43(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(32) static void kuiper_kernel_43(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -9706,7 +9822,8 @@ __device__ static void Kuiper_For_for_loop___133(uint32_t tmp, uint32_t tmp1,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_44(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(64) static void kuiper_kernel_44(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -9856,7 +9973,8 @@ __global__ static void kuiper_kernel_44(uint32_t *row_indices, uint32_t rows,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_45(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(64) static void kuiper_kernel_45(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -10076,7 +10194,8 @@ __device__ static void Kuiper_For_for_loop___137(uint32_t tmp, uint32_t tmp1,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_46(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void kuiper_kernel_46(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -10228,7 +10347,8 @@ __global__ static void kuiper_kernel_46(uint32_t *row_indices, uint32_t rows,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_47(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void kuiper_kernel_47(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -10450,7 +10570,8 @@ __device__ static void Kuiper_For_for_loop___141(uint32_t tmp, uint32_t tmp1,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_48(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(32) static void kuiper_kernel_48(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -10601,7 +10722,8 @@ __global__ static void kuiper_kernel_48(uint32_t *row_indices, uint32_t rows,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_49(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(32) static void kuiper_kernel_49(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -10822,7 +10944,8 @@ __device__ static void Kuiper_For_for_loop___145(uint32_t tmp, uint32_t tmp1,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_50(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(64) static void kuiper_kernel_50(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -10972,7 +11095,8 @@ __global__ static void kuiper_kernel_50(uint32_t *row_indices, uint32_t rows,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_51(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(64) static void kuiper_kernel_51(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -11192,7 +11316,8 @@ __device__ static void Kuiper_For_for_loop___149(uint32_t tmp, uint32_t tmp1,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_52(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void kuiper_kernel_52(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -11342,7 +11467,8 @@ __global__ static void kuiper_kernel_52(uint32_t *row_indices, uint32_t rows,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_53(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void kuiper_kernel_53(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -11562,7 +11688,8 @@ __device__ static void Kuiper_For_for_loop___153(uint32_t tmp, uint32_t tmp1,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_54(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void kuiper_kernel_54(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -11712,7 +11839,8 @@ __global__ static void kuiper_kernel_54(uint32_t *row_indices, uint32_t rows,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_55(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void kuiper_kernel_55(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -11932,7 +12060,8 @@ __device__ static void Kuiper_For_for_loop___157(uint32_t tmp, uint32_t tmp1,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_56(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(32) static void kuiper_kernel_56(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -12082,7 +12211,8 @@ __global__ static void kuiper_kernel_56(uint32_t *row_indices, uint32_t rows,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_57(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(32) static void kuiper_kernel_57(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -12302,7 +12432,8 @@ __device__ static void Kuiper_For_for_loop___161(uint32_t tmp, uint32_t tmp1,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_58(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void kuiper_kernel_58(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -12453,7 +12584,8 @@ __global__ static void kuiper_kernel_58(uint32_t *row_indices, uint32_t rows,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_59(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void kuiper_kernel_59(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -12674,7 +12806,8 @@ __device__ static void Kuiper_For_for_loop___165(uint32_t tmp, uint32_t tmp1,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_60(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(32) static void kuiper_kernel_60(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -12824,7 +12957,8 @@ __global__ static void kuiper_kernel_60(uint32_t *row_indices, uint32_t rows,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_61(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(32) static void kuiper_kernel_61(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -13044,7 +13178,8 @@ __device__ static void Kuiper_For_for_loop___169(uint32_t tmp, uint32_t tmp1,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_62(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(64) static void kuiper_kernel_62(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -13194,7 +13329,8 @@ __global__ static void kuiper_kernel_62(uint32_t *row_indices, uint32_t rows,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_63(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(64) static void kuiper_kernel_63(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -13414,7 +13550,8 @@ __device__ static void Kuiper_For_for_loop___173(uint32_t tmp, uint32_t tmp1,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_64(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void kuiper_kernel_64(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -13566,7 +13703,8 @@ __global__ static void kuiper_kernel_64(uint32_t *row_indices, uint32_t rows,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_65(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void kuiper_kernel_65(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -13788,7 +13926,8 @@ __device__ static void Kuiper_For_for_loop___177(uint32_t tmp, uint32_t tmp1,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_66(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(32) static void kuiper_kernel_66(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -13939,7 +14078,8 @@ __global__ static void kuiper_kernel_66(uint32_t *row_indices, uint32_t rows,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_67(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(32) static void kuiper_kernel_67(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -14090,7 +14230,8 @@ __global__ static void kuiper_kernel_67(uint32_t *row_indices, uint32_t rows,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_68(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(64) static void kuiper_kernel_68(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -14240,7 +14381,8 @@ __global__ static void kuiper_kernel_68(uint32_t *row_indices, uint32_t rows,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_69(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(64) static void kuiper_kernel_69(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -14511,7 +14653,8 @@ __device__ static void Kuiper_For_for_loop___184(uint32_t tmp, uint32_t tmp1,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_70(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(128) static void kuiper_kernel_70(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -14661,7 +14804,8 @@ __global__ static void kuiper_kernel_70(uint32_t *row_indices, uint32_t rows,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_71(uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(128) static void kuiper_kernel_71(
+    uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {

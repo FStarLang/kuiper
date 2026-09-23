@@ -35,3 +35,15 @@ fn get_bdim ()
   preserves thread_id 'nthr 'tid
   returns   x : SZ.t
   ensures   pure (SZ.v x == 'nthr)
+
+(* Get the executing block's index (~ blockIdx.x) *)
+fn get_bid ()
+  preserves block_id 'nblk 'bid
+  returns   x : SZ.t
+  ensures   pure (SZ.v x == 'bid)
+
+(* Get the executing thread's index within its block (~ threadIdx.x) *)
+fn get_tid ()
+  preserves thread_id 'nthr 'tid
+  returns   x : SZ.t
+  ensures   pure (SZ.v x == 'tid)

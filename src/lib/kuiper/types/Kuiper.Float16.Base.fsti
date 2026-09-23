@@ -153,6 +153,12 @@ val fexp : t -> t
 [@@FStar.Attributes.custard_extern "hlog";
    FStar.Attributes.custard_c_header "kuiper/math.h"]
 val flog : t -> t
+[@@FStar.Attributes.custard_extern "kpr_hexpm1";
+   FStar.Attributes.custard_c_header "kuiper/math.h"]
+val fexpm1 : t -> t
+[@@FStar.Attributes.custard_extern "kpr_hlog1p";
+   FStar.Attributes.custard_c_header "kuiper/math.h"]
+val flog1p : t -> t
 [@@FStar.Attributes.custard_extern "kpr_hsqrt";
    FStar.Attributes.custard_c_header "kuiper/math.h"]
 val sqrt : t -> t

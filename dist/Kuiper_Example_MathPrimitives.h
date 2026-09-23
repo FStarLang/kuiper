@@ -51,6 +51,8 @@ custard_f16 Kuiper_Example_MathPrimitives_test_erf_f16(custard_f16 x);
 custard_f16 Kuiper_Example_MathPrimitives_test_log2_f16(custard_f16 x);
 custard_f16 Kuiper_Example_MathPrimitives_test_log10_f16(custard_f16 x);
 custard_f16 Kuiper_Example_MathPrimitives_test_exp2_f16(custard_f16 x);
+custard_f16 Kuiper_Example_MathPrimitives_test_expm1_f16(custard_f16 x);
+custard_f16 Kuiper_Example_MathPrimitives_test_log1p_f16(custard_f16 x);
 custard_f16 Kuiper_Example_MathPrimitives_test_pow_f16(
     custard_f16 x, custard_f16 eta);
 custard_f16 Kuiper_Example_MathPrimitives_test_atan2_f16(
@@ -86,6 +88,8 @@ float Kuiper_Example_MathPrimitives_test_erf_f32(float x);
 float Kuiper_Example_MathPrimitives_test_log2_f32(float x);
 float Kuiper_Example_MathPrimitives_test_log10_f32(float x);
 float Kuiper_Example_MathPrimitives_test_exp2_f32(float x);
+float Kuiper_Example_MathPrimitives_test_expm1_f32(float x);
+float Kuiper_Example_MathPrimitives_test_log1p_f32(float x);
 float Kuiper_Example_MathPrimitives_test_pow_f32(float x, float eta);
 float Kuiper_Example_MathPrimitives_test_atan2_f32(float x, float eta);
 float Kuiper_Example_MathPrimitives_test_fmin_f32(float x, float eta);
@@ -115,6 +119,8 @@ double Kuiper_Example_MathPrimitives_test_erf_f64(double x);
 double Kuiper_Example_MathPrimitives_test_log2_f64(double x);
 double Kuiper_Example_MathPrimitives_test_log10_f64(double x);
 double Kuiper_Example_MathPrimitives_test_exp2_f64(double x);
+double Kuiper_Example_MathPrimitives_test_expm1_f64(double x);
+double Kuiper_Example_MathPrimitives_test_log1p_f64(double x);
 double Kuiper_Example_MathPrimitives_test_pow_f64(double x, double eta);
 double Kuiper_Example_MathPrimitives_test_atan2_f64(double x, double eta);
 double Kuiper_Example_MathPrimitives_test_fmin_f64(double x, double eta);
@@ -125,6 +131,8 @@ double Kuiper_Example_MathPrimitives_test_fma_f64(
     double x, double eta, double eta1);
 double Kuiper_Example_MathPrimitives_test_largest_f64(void);
 double Kuiper_Example_MathPrimitives_test_infinity_f64(void);
+custard_bf16 Kuiper_Example_MathPrimitives_test_expm1_bf16(custard_bf16 x);
+custard_bf16 Kuiper_Example_MathPrimitives_test_log1p_bf16(custard_bf16 x);
 
 #ifdef __cplusplus
 }

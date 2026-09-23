@@ -161,6 +161,19 @@ let threadidx_lid = "Kuiper.Example.ARPort.kpr_threadidx"
 let cuda_index (id:string) (t:cty) : expr =
   mk (EQual ({ ns = port_ns; id = id; spec = None }, [])) t E_Pure
 
+(* A launch bound is an upper limit on the block size, not a request for a
+   minimum occupancy, so it is only sound to attach one when extraction knows
+   the actual block size: a runtime-sized launch must not inherit a bound from
+   another instantiation.  Arithmetic expressions are deliberately left alone.
+   nvcc caps the bound at 1024 threads. *)
+let kernel_prologue (nthr : expr) : ML string =
+  match nthr.e with
+  | EConst (CInt (n, _, _)) ->
+    if 0 < n && n <= 1024
+    then "__global__ __launch_bounds__(" ^ show n ^ ")"
+    else "__global__"
+  | _ -> "__global__"
+
 (* [launch_kernel_full] arrives as [desc; stream; _; _; _], the descriptor
    fully reduced to [Mkkernel_desc(nblk, nthr, shmems, f)]. *)
 let launch (tys : list cty) (args : list expr) : ML expr =
@@ -239,7 +252,7 @@ let launch (tys : list cty) (args : list expr) : ML expr =
     let closed = mk (EFun (closed_bs, inner)) closed_ty E_Impure in
     let kernel = B.lift_named (fresh_kernel_name ())
                    [Comment "hoisted by the Custard Kuiper rule";
-                    Prologue "__global__";
+                    Prologue (kernel_prologue nthr);
                     (* Section 51.3.  Anything the kernel body reaches is
                        device code; a helper shared with host code needs
                        both qualifiers or nvcc rejects one of the two calls. *)
