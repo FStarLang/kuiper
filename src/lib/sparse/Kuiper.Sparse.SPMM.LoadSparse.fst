@@ -44,6 +44,10 @@ fn load_array_vec
 {
   unfold thread_live_chunks x nthr tid;
 
+  (* n / (nthr * chunk) == n / nthr / chunk.  Nonlinear; the combined
+     multiplication/division fact is no longer supplied for free. *)
+  FStar.Math.Lemmas.division_multiplication_lemma
+    (FStar.SizeT.v n) (FStar.SizeT.v nthr) (FStar.SizeT.v (chunk et));
   forevery_rw_size (n / (nthr * (chunk et))) (n /^ nthr /^ chunk et);
 
   load_array_vec_bounds n m i nthr (chunk et) tid;

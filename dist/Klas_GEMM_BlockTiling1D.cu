@@ -69,9 +69,8 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_0(uint32_t nn,
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t rest = (bid / 1);
-    FStar_Pervasives_Native_tuple2__uintsize_uintsize _letpattern =
-        (FStar_Pervasives_Native_tuple2__uintsize_uintsize) {
-            ._1 = (rest / nn), ._2 = (rest % nn)};
+    uint32_t mrow = (rest / nn);
+    uint32_t mcol = (rest % nn);
     float sums[32] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
@@ -82,14 +81,12 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_0(uint32_t nn,
         uint32_t i = 0;
         while (i < 32) {
             uint32_t ci = i;
-            uint32_t ni =
-                ((((32 * _letpattern._1) + ci) * k) + ((32 * __anf0) + tid));
+            uint32_t ni = ((((32 * mrow) + ci) * k) + ((32 * __anf0) + tid));
             float v1 = gA[ni];
             uint32_t ni1 = ((ci * 32) + tid);
             sh._1[ni1] = v1;
             uint32_t ci1 = i;
-            uint32_t ni2 =
-                ((((32 * __anf0) + ci1) * n) + ((32 * _letpattern._2) + tid));
+            uint32_t ni2 = ((((32 * __anf0) + ci1) * n) + ((32 * mcol) + tid));
             float v2 = gB[ni2];
             uint32_t ni3 = ((ci1 * 32) + tid);
             sh._2._1[ni3] = v2;
@@ -124,8 +121,8 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_0(uint32_t nn,
     uint32_t row = 0;
     while (row < 32) {
         uint32_t crow = row;
-        uint32_t grow_sz = ((_letpattern._1 * 32) + crow);
-        uint32_t gcol_sz = ((_letpattern._2 * 32) + tid);
+        uint32_t grow_sz = ((mrow * 32) + crow);
+        uint32_t gcol_sz = ((mcol * 32) + tid);
         uint32_t __anf0_1 = row;
         float v1_2 = sums[__anf0_1];
         uint32_t ni1_2 = ((grow_sz * n) + gcol_sz);
@@ -155,9 +152,8 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_1(uint32_t nn,
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t rest = (bid / 1);
-    FStar_Pervasives_Native_tuple2__uintsize_uintsize _letpattern =
-        (FStar_Pervasives_Native_tuple2__uintsize_uintsize) {
-            ._1 = (rest / nn), ._2 = (rest % nn)};
+    uint32_t mrow = (rest / nn);
+    uint32_t mcol = (rest % nn);
     double sums[32] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
         0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
         0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
@@ -168,14 +164,12 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_1(uint32_t nn,
         uint32_t i = 0;
         while (i < 32) {
             uint32_t ci = i;
-            uint32_t ni =
-                ((((32 * _letpattern._1) + ci) * k) + ((32 * __anf0) + tid));
+            uint32_t ni = ((((32 * mrow) + ci) * k) + ((32 * __anf0) + tid));
             double v1 = gA[ni];
             uint32_t ni1 = ((ci * 32) + tid);
             sh._1[ni1] = v1;
             uint32_t ci1 = i;
-            uint32_t ni2 =
-                ((((32 * __anf0) + ci1) * n) + ((32 * _letpattern._2) + tid));
+            uint32_t ni2 = ((((32 * __anf0) + ci1) * n) + ((32 * mcol) + tid));
             double v2 = gB[ni2];
             uint32_t ni3 = ((ci1 * 32) + tid);
             sh._2._1[ni3] = v2;
@@ -210,8 +204,8 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_1(uint32_t nn,
     uint32_t row = 0;
     while (row < 32) {
         uint32_t crow = row;
-        uint32_t grow_sz = ((_letpattern._1 * 32) + crow);
-        uint32_t gcol_sz = ((_letpattern._2 * 32) + tid);
+        uint32_t grow_sz = ((mrow * 32) + crow);
+        uint32_t gcol_sz = ((mcol * 32) + tid);
         uint32_t __anf0_1 = row;
         double v1_2 = sums[__anf0_1];
         uint32_t ni1_2 = ((grow_sz * n) + gcol_sz);
@@ -241,9 +235,8 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_2(uint32_t nn,
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t rest = (bid / 1);
-    FStar_Pervasives_Native_tuple2__uintsize_uintsize _letpattern =
-        (FStar_Pervasives_Native_tuple2__uintsize_uintsize) {
-            ._1 = (rest / nn), ._2 = (rest % nn)};
+    uint32_t mrow = (rest / nn);
+    uint32_t mcol = (rest % nn);
     uint32_t sums[32] = {0};
     uint32_t bk = 0;
     while (bk < kk) {
@@ -252,14 +245,12 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_2(uint32_t nn,
         uint32_t i = 0;
         while (i < 32) {
             uint32_t ci = i;
-            uint32_t ni =
-                ((((32 * _letpattern._1) + ci) * k) + ((32 * __anf0) + tid));
+            uint32_t ni = ((((32 * mrow) + ci) * k) + ((32 * __anf0) + tid));
             uint32_t v1 = gA[ni];
             uint32_t ni1 = ((ci * 32) + tid);
             sh._1[ni1] = v1;
             uint32_t ci1 = i;
-            uint32_t ni2 =
-                ((((32 * __anf0) + ci1) * n) + ((32 * _letpattern._2) + tid));
+            uint32_t ni2 = ((((32 * __anf0) + ci1) * n) + ((32 * mcol) + tid));
             uint32_t v2 = gB[ni2];
             uint32_t ni3 = ((ci1 * 32) + tid);
             sh._2._1[ni3] = v2;
@@ -294,8 +285,8 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_2(uint32_t nn,
     uint32_t row = 0;
     while (row < 32) {
         uint32_t crow = row;
-        uint32_t grow_sz = ((_letpattern._1 * 32) + crow);
-        uint32_t gcol_sz = ((_letpattern._2 * 32) + tid);
+        uint32_t grow_sz = ((mrow * 32) + crow);
+        uint32_t gcol_sz = ((mcol * 32) + tid);
         uint32_t __anf0_1 = row;
         uint32_t v1_2 = sums[__anf0_1];
         uint32_t ni1_2 = ((grow_sz * n) + gcol_sz);
@@ -325,9 +316,8 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_3(uint32_t nn,
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t rest = (bid / 1);
-    FStar_Pervasives_Native_tuple2__uintsize_uintsize _letpattern =
-        (FStar_Pervasives_Native_tuple2__uintsize_uintsize) {
-            ._1 = (rest / nn), ._2 = (rest % nn)};
+    uint32_t mrow = (rest / nn);
+    uint32_t mcol = (rest % nn);
     uint64_t sums[32] = {0};
     uint32_t bk = 0;
     while (bk < kk) {
@@ -336,14 +326,12 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_3(uint32_t nn,
         uint32_t i = 0;
         while (i < 32) {
             uint32_t ci = i;
-            uint32_t ni =
-                ((((32 * _letpattern._1) + ci) * k) + ((32 * __anf0) + tid));
+            uint32_t ni = ((((32 * mrow) + ci) * k) + ((32 * __anf0) + tid));
             uint64_t v1 = gA[ni];
             uint32_t ni1 = ((ci * 32) + tid);
             sh._1[ni1] = v1;
             uint32_t ci1 = i;
-            uint32_t ni2 =
-                ((((32 * __anf0) + ci1) * n) + ((32 * _letpattern._2) + tid));
+            uint32_t ni2 = ((((32 * __anf0) + ci1) * n) + ((32 * mcol) + tid));
             uint64_t v2 = gB[ni2];
             uint32_t ni3 = ((ci1 * 32) + tid);
             sh._2._1[ni3] = v2;
@@ -378,8 +366,8 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_3(uint32_t nn,
     uint32_t row = 0;
     while (row < 32) {
         uint32_t crow = row;
-        uint32_t grow_sz = ((_letpattern._1 * 32) + crow);
-        uint32_t gcol_sz = ((_letpattern._2 * 32) + tid);
+        uint32_t grow_sz = ((mrow * 32) + crow);
+        uint32_t gcol_sz = ((mcol * 32) + tid);
         uint32_t __anf0_1 = row;
         uint64_t v1_2 = sums[__anf0_1];
         uint32_t ni1_2 = ((grow_sz * n) + gcol_sz);
@@ -409,9 +397,8 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_4(uint32_t nn,
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t rest = (bid / 1);
-    FStar_Pervasives_Native_tuple2__uintsize_uintsize _letpattern =
-        (FStar_Pervasives_Native_tuple2__uintsize_uintsize) {
-            ._1 = (rest / nn), ._2 = (rest % nn)};
+    uint32_t mrow = (rest / nn);
+    uint32_t mcol = (rest % nn);
     float sums[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t bk = 0;
@@ -421,14 +408,12 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_4(uint32_t nn,
         uint32_t i = 0;
         while (i < 16) {
             uint32_t ci = i;
-            uint32_t ni =
-                ((((16 * _letpattern._1) + ci) * k) + ((16 * __anf0) + tid));
+            uint32_t ni = ((((16 * mrow) + ci) * k) + ((16 * __anf0) + tid));
             float v1 = gA[ni];
             uint32_t ni1 = ((ci * 16) + tid);
             sh._1[ni1] = v1;
             uint32_t ci1 = i;
-            uint32_t ni2 =
-                ((((16 * __anf0) + ci1) * n) + ((16 * _letpattern._2) + tid));
+            uint32_t ni2 = ((((16 * __anf0) + ci1) * n) + ((16 * mcol) + tid));
             float v2 = gB[ni2];
             uint32_t ni3 = ((ci1 * 16) + tid);
             sh._2._1[ni3] = v2;
@@ -463,8 +448,8 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_4(uint32_t nn,
     uint32_t row = 0;
     while (row < 16) {
         uint32_t crow = row;
-        uint32_t grow_sz = ((_letpattern._1 * 16) + crow);
-        uint32_t gcol_sz = ((_letpattern._2 * 16) + tid);
+        uint32_t grow_sz = ((mrow * 16) + crow);
+        uint32_t gcol_sz = ((mcol * 16) + tid);
         uint32_t __anf0_1 = row;
         float v1_2 = sums[__anf0_1];
         uint32_t ni1_2 = ((grow_sz * n) + gcol_sz);
@@ -494,9 +479,8 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_5(uint32_t nn,
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t rest = (bid / 1);
-    FStar_Pervasives_Native_tuple2__uintsize_uintsize _letpattern =
-        (FStar_Pervasives_Native_tuple2__uintsize_uintsize) {
-            ._1 = (rest / nn), ._2 = (rest % nn)};
+    uint32_t mrow = (rest / nn);
+    uint32_t mcol = (rest % nn);
     double sums[16] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
         0.0, 0.0, 0.0, 0.0, 0.0};
     uint32_t bk = 0;
@@ -506,14 +490,12 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_5(uint32_t nn,
         uint32_t i = 0;
         while (i < 16) {
             uint32_t ci = i;
-            uint32_t ni =
-                ((((16 * _letpattern._1) + ci) * k) + ((16 * __anf0) + tid));
+            uint32_t ni = ((((16 * mrow) + ci) * k) + ((16 * __anf0) + tid));
             double v1 = gA[ni];
             uint32_t ni1 = ((ci * 16) + tid);
             sh._1[ni1] = v1;
             uint32_t ci1 = i;
-            uint32_t ni2 =
-                ((((16 * __anf0) + ci1) * n) + ((16 * _letpattern._2) + tid));
+            uint32_t ni2 = ((((16 * __anf0) + ci1) * n) + ((16 * mcol) + tid));
             double v2 = gB[ni2];
             uint32_t ni3 = ((ci1 * 16) + tid);
             sh._2._1[ni3] = v2;
@@ -548,8 +530,8 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_5(uint32_t nn,
     uint32_t row = 0;
     while (row < 16) {
         uint32_t crow = row;
-        uint32_t grow_sz = ((_letpattern._1 * 16) + crow);
-        uint32_t gcol_sz = ((_letpattern._2 * 16) + tid);
+        uint32_t grow_sz = ((mrow * 16) + crow);
+        uint32_t gcol_sz = ((mcol * 16) + tid);
         uint32_t __anf0_1 = row;
         double v1_2 = sums[__anf0_1];
         uint32_t ni1_2 = ((grow_sz * n) + gcol_sz);
@@ -579,9 +561,8 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_6(uint32_t nn,
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t rest = (bid / 1);
-    FStar_Pervasives_Native_tuple2__uintsize_uintsize _letpattern =
-        (FStar_Pervasives_Native_tuple2__uintsize_uintsize) {
-            ._1 = (rest / nn), ._2 = (rest % nn)};
+    uint32_t mrow = (rest / nn);
+    uint32_t mcol = (rest % nn);
     uint32_t sums[16] = {0};
     uint32_t bk = 0;
     while (bk < kk) {
@@ -590,14 +571,12 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_6(uint32_t nn,
         uint32_t i = 0;
         while (i < 16) {
             uint32_t ci = i;
-            uint32_t ni =
-                ((((16 * _letpattern._1) + ci) * k) + ((16 * __anf0) + tid));
+            uint32_t ni = ((((16 * mrow) + ci) * k) + ((16 * __anf0) + tid));
             uint32_t v1 = gA[ni];
             uint32_t ni1 = ((ci * 16) + tid);
             sh._1[ni1] = v1;
             uint32_t ci1 = i;
-            uint32_t ni2 =
-                ((((16 * __anf0) + ci1) * n) + ((16 * _letpattern._2) + tid));
+            uint32_t ni2 = ((((16 * __anf0) + ci1) * n) + ((16 * mcol) + tid));
             uint32_t v2 = gB[ni2];
             uint32_t ni3 = ((ci1 * 16) + tid);
             sh._2._1[ni3] = v2;
@@ -632,8 +611,8 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_6(uint32_t nn,
     uint32_t row = 0;
     while (row < 16) {
         uint32_t crow = row;
-        uint32_t grow_sz = ((_letpattern._1 * 16) + crow);
-        uint32_t gcol_sz = ((_letpattern._2 * 16) + tid);
+        uint32_t grow_sz = ((mrow * 16) + crow);
+        uint32_t gcol_sz = ((mcol * 16) + tid);
         uint32_t __anf0_1 = row;
         uint32_t v1_2 = sums[__anf0_1];
         uint32_t ni1_2 = ((grow_sz * n) + gcol_sz);
@@ -663,9 +642,8 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_7(uint32_t nn,
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t rest = (bid / 1);
-    FStar_Pervasives_Native_tuple2__uintsize_uintsize _letpattern =
-        (FStar_Pervasives_Native_tuple2__uintsize_uintsize) {
-            ._1 = (rest / nn), ._2 = (rest % nn)};
+    uint32_t mrow = (rest / nn);
+    uint32_t mcol = (rest % nn);
     uint64_t sums[16] = {0};
     uint32_t bk = 0;
     while (bk < kk) {
@@ -674,14 +652,12 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_7(uint32_t nn,
         uint32_t i = 0;
         while (i < 16) {
             uint32_t ci = i;
-            uint32_t ni =
-                ((((16 * _letpattern._1) + ci) * k) + ((16 * __anf0) + tid));
+            uint32_t ni = ((((16 * mrow) + ci) * k) + ((16 * __anf0) + tid));
             uint64_t v1 = gA[ni];
             uint32_t ni1 = ((ci * 16) + tid);
             sh._1[ni1] = v1;
             uint32_t ci1 = i;
-            uint32_t ni2 =
-                ((((16 * __anf0) + ci1) * n) + ((16 * _letpattern._2) + tid));
+            uint32_t ni2 = ((((16 * __anf0) + ci1) * n) + ((16 * mcol) + tid));
             uint64_t v2 = gB[ni2];
             uint32_t ni3 = ((ci1 * 16) + tid);
             sh._2._1[ni3] = v2;
@@ -716,8 +692,8 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_7(uint32_t nn,
     uint32_t row = 0;
     while (row < 16) {
         uint32_t crow = row;
-        uint32_t grow_sz = ((_letpattern._1 * 16) + crow);
-        uint32_t gcol_sz = ((_letpattern._2 * 16) + tid);
+        uint32_t grow_sz = ((mrow * 16) + crow);
+        uint32_t gcol_sz = ((mcol * 16) + tid);
         uint32_t __anf0_1 = row;
         uint64_t v1_2 = sums[__anf0_1];
         uint32_t ni1_2 = ((grow_sz * n) + gcol_sz);
@@ -747,9 +723,8 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_8(uint32_t nn,
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t rest = (bid / 1);
-    FStar_Pervasives_Native_tuple2__uintsize_uintsize _letpattern =
-        (FStar_Pervasives_Native_tuple2__uintsize_uintsize) {
-            ._1 = (rest / nn), ._2 = (rest % nn)};
+    uint32_t mrow = (rest / nn);
+    uint32_t mcol = (rest % nn);
     float sums[32] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
@@ -760,14 +735,12 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_8(uint32_t nn,
         uint32_t i = 0;
         while (i < 32) {
             uint32_t ci = i;
-            uint32_t ni =
-                ((((32 * _letpattern._1) + ci) * k) + ((32 * __anf0) + tid));
+            uint32_t ni = ((((32 * mrow) + ci) * k) + ((32 * __anf0) + tid));
             float v1 = gA[ni];
             uint32_t ni1 = ((ci * 32) + tid);
             sh._1[ni1] = v1;
             uint32_t ci1 = i;
-            uint32_t ni2 =
-                ((((32 * __anf0) + ci1) * n) + ((32 * _letpattern._2) + tid));
+            uint32_t ni2 = ((((32 * __anf0) + ci1) * n) + ((32 * mcol) + tid));
             float v2 = gB[ni2];
             uint32_t ni3 = ((ci1 * 32) + tid);
             sh._2._1[ni3] = v2;
@@ -802,8 +775,8 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_8(uint32_t nn,
     uint32_t row = 0;
     while (row < 32) {
         uint32_t crow = row;
-        uint32_t grow_sz = ((_letpattern._1 * 32) + crow);
-        uint32_t gcol_sz = ((_letpattern._2 * 32) + tid);
+        uint32_t grow_sz = ((mrow * 32) + crow);
+        uint32_t gcol_sz = ((mcol * 32) + tid);
         uint32_t ni_2 = ((grow_sz * n) + gcol_sz);
         float v0 = gC[ni_2];
         uint32_t __anf0_1 = row;
@@ -836,9 +809,8 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_9(uint32_t nn,
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t rest = (bid / 1);
-    FStar_Pervasives_Native_tuple2__uintsize_uintsize _letpattern =
-        (FStar_Pervasives_Native_tuple2__uintsize_uintsize) {
-            ._1 = (rest / nn), ._2 = (rest % nn)};
+    uint32_t mrow = (rest / nn);
+    uint32_t mcol = (rest % nn);
     double sums[32] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
         0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
         0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
@@ -849,14 +821,12 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_9(uint32_t nn,
         uint32_t i = 0;
         while (i < 32) {
             uint32_t ci = i;
-            uint32_t ni =
-                ((((32 * _letpattern._1) + ci) * k) + ((32 * __anf0) + tid));
+            uint32_t ni = ((((32 * mrow) + ci) * k) + ((32 * __anf0) + tid));
             double v1 = gA[ni];
             uint32_t ni1 = ((ci * 32) + tid);
             sh._1[ni1] = v1;
             uint32_t ci1 = i;
-            uint32_t ni2 =
-                ((((32 * __anf0) + ci1) * n) + ((32 * _letpattern._2) + tid));
+            uint32_t ni2 = ((((32 * __anf0) + ci1) * n) + ((32 * mcol) + tid));
             double v2 = gB[ni2];
             uint32_t ni3 = ((ci1 * 32) + tid);
             sh._2._1[ni3] = v2;
@@ -891,8 +861,8 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_9(uint32_t nn,
     uint32_t row = 0;
     while (row < 32) {
         uint32_t crow = row;
-        uint32_t grow_sz = ((_letpattern._1 * 32) + crow);
-        uint32_t gcol_sz = ((_letpattern._2 * 32) + tid);
+        uint32_t grow_sz = ((mrow * 32) + crow);
+        uint32_t gcol_sz = ((mcol * 32) + tid);
         uint32_t ni_2 = ((grow_sz * n) + gcol_sz);
         double v0 = gC[ni_2];
         uint32_t __anf0_1 = row;
@@ -925,9 +895,8 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_10(uint32_t nn,
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t rest = (bid / 1);
-    FStar_Pervasives_Native_tuple2__uintsize_uintsize _letpattern =
-        (FStar_Pervasives_Native_tuple2__uintsize_uintsize) {
-            ._1 = (rest / nn), ._2 = (rest % nn)};
+    uint32_t mrow = (rest / nn);
+    uint32_t mcol = (rest % nn);
     uint32_t sums[32] = {0};
     uint32_t bk = 0;
     while (bk < kk) {
@@ -936,14 +905,12 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_10(uint32_t nn,
         uint32_t i = 0;
         while (i < 32) {
             uint32_t ci = i;
-            uint32_t ni =
-                ((((32 * _letpattern._1) + ci) * k) + ((32 * __anf0) + tid));
+            uint32_t ni = ((((32 * mrow) + ci) * k) + ((32 * __anf0) + tid));
             uint32_t v1 = gA[ni];
             uint32_t ni1 = ((ci * 32) + tid);
             sh._1[ni1] = v1;
             uint32_t ci1 = i;
-            uint32_t ni2 =
-                ((((32 * __anf0) + ci1) * n) + ((32 * _letpattern._2) + tid));
+            uint32_t ni2 = ((((32 * __anf0) + ci1) * n) + ((32 * mcol) + tid));
             uint32_t v2 = gB[ni2];
             uint32_t ni3 = ((ci1 * 32) + tid);
             sh._2._1[ni3] = v2;
@@ -978,8 +945,8 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_10(uint32_t nn,
     uint32_t row = 0;
     while (row < 32) {
         uint32_t crow = row;
-        uint32_t grow_sz = ((_letpattern._1 * 32) + crow);
-        uint32_t gcol_sz = ((_letpattern._2 * 32) + tid);
+        uint32_t grow_sz = ((mrow * 32) + crow);
+        uint32_t gcol_sz = ((mcol * 32) + tid);
         uint32_t ni_2 = ((grow_sz * n) + gcol_sz);
         uint32_t v0 = gC[ni_2];
         uint32_t __anf0_1 = row;
@@ -1012,9 +979,8 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_11(uint32_t nn,
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t rest = (bid / 1);
-    FStar_Pervasives_Native_tuple2__uintsize_uintsize _letpattern =
-        (FStar_Pervasives_Native_tuple2__uintsize_uintsize) {
-            ._1 = (rest / nn), ._2 = (rest % nn)};
+    uint32_t mrow = (rest / nn);
+    uint32_t mcol = (rest % nn);
     uint64_t sums[32] = {0};
     uint32_t bk = 0;
     while (bk < kk) {
@@ -1023,14 +989,12 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_11(uint32_t nn,
         uint32_t i = 0;
         while (i < 32) {
             uint32_t ci = i;
-            uint32_t ni =
-                ((((32 * _letpattern._1) + ci) * k) + ((32 * __anf0) + tid));
+            uint32_t ni = ((((32 * mrow) + ci) * k) + ((32 * __anf0) + tid));
             uint64_t v1 = gA[ni];
             uint32_t ni1 = ((ci * 32) + tid);
             sh._1[ni1] = v1;
             uint32_t ci1 = i;
-            uint32_t ni2 =
-                ((((32 * __anf0) + ci1) * n) + ((32 * _letpattern._2) + tid));
+            uint32_t ni2 = ((((32 * __anf0) + ci1) * n) + ((32 * mcol) + tid));
             uint64_t v2 = gB[ni2];
             uint32_t ni3 = ((ci1 * 32) + tid);
             sh._2._1[ni3] = v2;
@@ -1065,8 +1029,8 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_11(uint32_t nn,
     uint32_t row = 0;
     while (row < 32) {
         uint32_t crow = row;
-        uint32_t grow_sz = ((_letpattern._1 * 32) + crow);
-        uint32_t gcol_sz = ((_letpattern._2 * 32) + tid);
+        uint32_t grow_sz = ((mrow * 32) + crow);
+        uint32_t gcol_sz = ((mcol * 32) + tid);
         uint32_t ni_2 = ((grow_sz * n) + gcol_sz);
         uint64_t v0 = gC[ni_2];
         uint32_t __anf0_1 = row;
@@ -1099,9 +1063,8 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_12(uint32_t nn,
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t rest = (bid / 1);
-    FStar_Pervasives_Native_tuple2__uintsize_uintsize _letpattern =
-        (FStar_Pervasives_Native_tuple2__uintsize_uintsize) {
-            ._1 = (rest / nn), ._2 = (rest % nn)};
+    uint32_t mrow = (rest / nn);
+    uint32_t mcol = (rest % nn);
     float sums[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
     uint32_t bk = 0;
@@ -1111,14 +1074,12 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_12(uint32_t nn,
         uint32_t i = 0;
         while (i < 16) {
             uint32_t ci = i;
-            uint32_t ni =
-                ((((16 * _letpattern._1) + ci) * k) + ((16 * __anf0) + tid));
+            uint32_t ni = ((((16 * mrow) + ci) * k) + ((16 * __anf0) + tid));
             float v1 = gA[ni];
             uint32_t ni1 = ((ci * 16) + tid);
             sh._1[ni1] = v1;
             uint32_t ci1 = i;
-            uint32_t ni2 =
-                ((((16 * __anf0) + ci1) * n) + ((16 * _letpattern._2) + tid));
+            uint32_t ni2 = ((((16 * __anf0) + ci1) * n) + ((16 * mcol) + tid));
             float v2 = gB[ni2];
             uint32_t ni3 = ((ci1 * 16) + tid);
             sh._2._1[ni3] = v2;
@@ -1153,8 +1114,8 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_12(uint32_t nn,
     uint32_t row = 0;
     while (row < 16) {
         uint32_t crow = row;
-        uint32_t grow_sz = ((_letpattern._1 * 16) + crow);
-        uint32_t gcol_sz = ((_letpattern._2 * 16) + tid);
+        uint32_t grow_sz = ((mrow * 16) + crow);
+        uint32_t gcol_sz = ((mcol * 16) + tid);
         uint32_t ni_2 = ((grow_sz * n) + gcol_sz);
         float v0 = gC[ni_2];
         uint32_t __anf0_1 = row;
@@ -1187,9 +1148,8 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_13(uint32_t nn,
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t rest = (bid / 1);
-    FStar_Pervasives_Native_tuple2__uintsize_uintsize _letpattern =
-        (FStar_Pervasives_Native_tuple2__uintsize_uintsize) {
-            ._1 = (rest / nn), ._2 = (rest % nn)};
+    uint32_t mrow = (rest / nn);
+    uint32_t mcol = (rest % nn);
     double sums[16] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
         0.0, 0.0, 0.0, 0.0, 0.0};
     uint32_t bk = 0;
@@ -1199,14 +1159,12 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_13(uint32_t nn,
         uint32_t i = 0;
         while (i < 16) {
             uint32_t ci = i;
-            uint32_t ni =
-                ((((16 * _letpattern._1) + ci) * k) + ((16 * __anf0) + tid));
+            uint32_t ni = ((((16 * mrow) + ci) * k) + ((16 * __anf0) + tid));
             double v1 = gA[ni];
             uint32_t ni1 = ((ci * 16) + tid);
             sh._1[ni1] = v1;
             uint32_t ci1 = i;
-            uint32_t ni2 =
-                ((((16 * __anf0) + ci1) * n) + ((16 * _letpattern._2) + tid));
+            uint32_t ni2 = ((((16 * __anf0) + ci1) * n) + ((16 * mcol) + tid));
             double v2 = gB[ni2];
             uint32_t ni3 = ((ci1 * 16) + tid);
             sh._2._1[ni3] = v2;
@@ -1241,8 +1199,8 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_13(uint32_t nn,
     uint32_t row = 0;
     while (row < 16) {
         uint32_t crow = row;
-        uint32_t grow_sz = ((_letpattern._1 * 16) + crow);
-        uint32_t gcol_sz = ((_letpattern._2 * 16) + tid);
+        uint32_t grow_sz = ((mrow * 16) + crow);
+        uint32_t gcol_sz = ((mcol * 16) + tid);
         uint32_t ni_2 = ((grow_sz * n) + gcol_sz);
         double v0 = gC[ni_2];
         uint32_t __anf0_1 = row;
@@ -1275,9 +1233,8 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_14(uint32_t nn,
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t rest = (bid / 1);
-    FStar_Pervasives_Native_tuple2__uintsize_uintsize _letpattern =
-        (FStar_Pervasives_Native_tuple2__uintsize_uintsize) {
-            ._1 = (rest / nn), ._2 = (rest % nn)};
+    uint32_t mrow = (rest / nn);
+    uint32_t mcol = (rest % nn);
     uint32_t sums[16] = {0};
     uint32_t bk = 0;
     while (bk < kk) {
@@ -1286,14 +1243,12 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_14(uint32_t nn,
         uint32_t i = 0;
         while (i < 16) {
             uint32_t ci = i;
-            uint32_t ni =
-                ((((16 * _letpattern._1) + ci) * k) + ((16 * __anf0) + tid));
+            uint32_t ni = ((((16 * mrow) + ci) * k) + ((16 * __anf0) + tid));
             uint32_t v1 = gA[ni];
             uint32_t ni1 = ((ci * 16) + tid);
             sh._1[ni1] = v1;
             uint32_t ci1 = i;
-            uint32_t ni2 =
-                ((((16 * __anf0) + ci1) * n) + ((16 * _letpattern._2) + tid));
+            uint32_t ni2 = ((((16 * __anf0) + ci1) * n) + ((16 * mcol) + tid));
             uint32_t v2 = gB[ni2];
             uint32_t ni3 = ((ci1 * 16) + tid);
             sh._2._1[ni3] = v2;
@@ -1328,8 +1283,8 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_14(uint32_t nn,
     uint32_t row = 0;
     while (row < 16) {
         uint32_t crow = row;
-        uint32_t grow_sz = ((_letpattern._1 * 16) + crow);
-        uint32_t gcol_sz = ((_letpattern._2 * 16) + tid);
+        uint32_t grow_sz = ((mrow * 16) + crow);
+        uint32_t gcol_sz = ((mcol * 16) + tid);
         uint32_t ni_2 = ((grow_sz * n) + gcol_sz);
         uint32_t v0 = gC[ni_2];
         uint32_t __anf0_1 = row;
@@ -1362,9 +1317,8 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_15(uint32_t nn,
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t rest = (bid / 1);
-    FStar_Pervasives_Native_tuple2__uintsize_uintsize _letpattern =
-        (FStar_Pervasives_Native_tuple2__uintsize_uintsize) {
-            ._1 = (rest / nn), ._2 = (rest % nn)};
+    uint32_t mrow = (rest / nn);
+    uint32_t mcol = (rest % nn);
     uint64_t sums[16] = {0};
     uint32_t bk = 0;
     while (bk < kk) {
@@ -1373,14 +1327,12 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_15(uint32_t nn,
         uint32_t i = 0;
         while (i < 16) {
             uint32_t ci = i;
-            uint32_t ni =
-                ((((16 * _letpattern._1) + ci) * k) + ((16 * __anf0) + tid));
+            uint32_t ni = ((((16 * mrow) + ci) * k) + ((16 * __anf0) + tid));
             uint64_t v1 = gA[ni];
             uint32_t ni1 = ((ci * 16) + tid);
             sh._1[ni1] = v1;
             uint32_t ci1 = i;
-            uint32_t ni2 =
-                ((((16 * __anf0) + ci1) * n) + ((16 * _letpattern._2) + tid));
+            uint32_t ni2 = ((((16 * __anf0) + ci1) * n) + ((16 * mcol) + tid));
             uint64_t v2 = gB[ni2];
             uint32_t ni3 = ((ci1 * 16) + tid);
             sh._2._1[ni3] = v2;
@@ -1415,8 +1367,8 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_15(uint32_t nn,
     uint32_t row = 0;
     while (row < 16) {
         uint32_t crow = row;
-        uint32_t grow_sz = ((_letpattern._1 * 16) + crow);
-        uint32_t gcol_sz = ((_letpattern._2 * 16) + tid);
+        uint32_t grow_sz = ((mrow * 16) + crow);
+        uint32_t gcol_sz = ((mcol * 16) + tid);
         uint32_t ni_2 = ((grow_sz * n) + gcol_sz);
         uint64_t v0 = gC[ni_2];
         uint32_t __anf0_1 = row;

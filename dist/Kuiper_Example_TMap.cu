@@ -40,28 +40,28 @@ __global__ __launch_bounds__(1024) static void kuiper_kernel_1(uint32_t *a)
         FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit _ct1;
         uint32_t major = (gid / 1024);
         uint32_t minor = (gid % 1024);
-        FStar_Pervasives_Native_tuple2__uintsize_unit _ct2;
         uint32_t major1 = (minor / 1);
-        _ct2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {._1 = major1};
+        FStar_Pervasives_Native_tuple2__uintsize_unit rest =
+            (FStar_Pervasives_Native_tuple2__uintsize_unit) {._1 = major1};
         _ct1 = (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-            ._1 = major, ._2 = _ct2};
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit _cs3 =
+            ._1 = major, ._2 = rest};
+        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit _cs2 =
             _ct1;
-        ni = ((_cs3._1 * 1024) + _cs3._2._1);
+        ni = ((_cs2._1 * 1024) + _cs2._2._1);
         uint32_t x = a[ni];
         uint32_t __anf0 = (1 + x);
         uint32_t ni1;
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit _ct4;
+        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit _ct3;
         uint32_t major_1 = (gid / 1024);
         uint32_t minor_1 = (gid % 1024);
-        FStar_Pervasives_Native_tuple2__uintsize_unit _ct5;
         uint32_t major1_1 = (minor_1 / 1);
-        _ct5 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {._1 = major1_1};
-        _ct4 = (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-            ._1 = major_1, ._2 = _ct5};
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit _cs6 =
-            _ct4;
-        ni1 = ((_cs6._1 * 1024) + _cs6._2._1);
+        FStar_Pervasives_Native_tuple2__uintsize_unit rest_1 =
+            (FStar_Pervasives_Native_tuple2__uintsize_unit) {._1 = major1_1};
+        _ct3 = (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
+            ._1 = major_1, ._2 = rest_1};
+        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit _cs4 =
+            _ct3;
+        ni1 = ((_cs4._1 * 1024) + _cs4._2._1);
         a[ni1] = __anf0;
     }
 }

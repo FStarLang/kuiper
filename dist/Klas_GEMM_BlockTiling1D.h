@@ -20,8 +20,6 @@ typedef struct FStar_Pervasives_Native_tuple2__float32_ptr_unit_s
 typedef struct
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_float32_ptr_unit_s
         FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_float32_ptr_unit;
-typedef struct FStar_Pervasives_Native_tuple2__uintsize_uintsize_s
-    FStar_Pervasives_Native_tuple2__uintsize_uintsize;
 typedef struct FStar_Pervasives_Native_tuple2__float64_ptr_unit_s
     FStar_Pervasives_Native_tuple2__float64_ptr_unit;
 typedef struct
@@ -44,10 +42,6 @@ struct FStar_Pervasives_Native_tuple2__float32_ptr_unit_s {
 struct FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_float32_ptr_unit_s {
     float *_1;
     FStar_Pervasives_Native_tuple2__float32_ptr_unit _2;
-};
-struct FStar_Pervasives_Native_tuple2__uintsize_uintsize_s {
-    uint32_t _1;
-    uint32_t _2;
 };
 struct FStar_Pervasives_Native_tuple2__float64_ptr_unit_s {
     double *_1;

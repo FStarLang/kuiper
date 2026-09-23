@@ -15,14 +15,6 @@
 extern "C" {
 #endif
 
-typedef struct FStar_Pervasives_Native_tuple2__uint32_ptr_uint32_ptr_s
-    FStar_Pervasives_Native_tuple2__uint32_ptr_uint32_ptr;
-
-struct FStar_Pervasives_Native_tuple2__uint32_ptr_uint32_ptr_s {
-    uint32_t *_1;
-    uint32_t *_2;
-};
-
 uint32_t Kuiper_Example_ArrayView_Test_EvenOdds2_foo_even(uint32_t *a);
 uint32_t Kuiper_Example_ArrayView_Test_EvenOdds2_foo_odd(uint32_t *a);
 void Kuiper_Example_ArrayView_Test_EvenOdds2_write_even(uint32_t *a);

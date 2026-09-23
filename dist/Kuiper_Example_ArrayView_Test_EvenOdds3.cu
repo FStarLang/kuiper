@@ -15,23 +15,15 @@ uint32_t Kuiper_Example_ArrayView_Test_EvenOdds3_foo_odd(uint32_t *a)
 
 uint32_t Kuiper_Example_ArrayView_Test_EvenOdds3_test(uint32_t *a)
 {
-    FStar_Pervasives_Native_tuple2__uint32_ptr_uint32_ptr _letpattern =
-        (FStar_Pervasives_Native_tuple2__uint32_ptr_uint32_ptr) {
-            ._1 = a, ._2 = a};
-    uint32_t x =
-        Kuiper_Example_ArrayView_Test_EvenOdds3_foo_even(_letpattern._1);
-    uint32_t y =
-        Kuiper_Example_ArrayView_Test_EvenOdds3_foo_odd(_letpattern._2);
+    uint32_t x = Kuiper_Example_ArrayView_Test_EvenOdds3_foo_even(a);
+    uint32_t y = Kuiper_Example_ArrayView_Test_EvenOdds3_foo_odd(a);
     return (x + y);
 }
 
 void Kuiper_Example_ArrayView_Test_EvenOdds3_test_write(uint32_t *a)
 {
-    FStar_Pervasives_Native_tuple2__uint32_ptr_uint32_ptr _letpattern =
-        (FStar_Pervasives_Native_tuple2__uint32_ptr_uint32_ptr) {
-            ._1 = a, ._2 = a};
     uint32_t ni = 20;
-    _letpattern._1[ni] = 42;
+    a[ni] = 42;
     uint32_t ni1 = 41;
-    _letpattern._2[ni1] = 43;
+    a[ni1] = 43;
 }

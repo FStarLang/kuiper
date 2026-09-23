@@ -1562,6 +1562,9 @@ fn kf_main
   {
     let row_elems_ : erased (lseq et (re - ri)) = hide (Seq.slice elems ri re);
     let row_elems : erased (lseq et (re - ri')) = seq_mask (ri - ri') #(re - ri) row_elems_;
+    (* Record the defining equation while the context is still small: inside
+       the loop below, re-deriving it from the let-binding times out. *)
+    assert pure (reveal row_elems == seq_mask (ri - ri') #(re - ri) row_elems_);
 
     // let row_ind : erased (lseq nat (re - ri')) = hide (Seq.slice (cast_pos col_ind) ri' re);
     let row_ind_ : erased (lseq sz (re - ri')) = hide (Seq.slice col_ind ri' re);

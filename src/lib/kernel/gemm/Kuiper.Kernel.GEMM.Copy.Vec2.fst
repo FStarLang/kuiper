@@ -263,6 +263,17 @@ let add_helper
           (ensures i + nthr * chunk_et == (git + 1) * nthr * chunk_et)
   = ()
 
+(* g <= m / (nthr * c)  ==>  g * nthr * c <= m.  Nonlinear; needed to show the
+   loop measure stays non-negative, which is no longer supplied for free. *)
+let bound_helper (g nthr c m : nat)
+  : Lemma (requires nthr * c > 0 /\ g <= m / (nthr * c))
+          (ensures g * nthr * c <= m)
+  = let nc : pos = nthr * c in
+    FStar.Math.Lemmas.paren_mul_right g nthr c;
+    FStar.Math.Lemmas.lemma_mult_le_right nc g (m / nc);
+    FStar.Math.Lemmas.multiply_fractions m nc;
+    FStar.Math.Lemmas.swap_mul nc (m / nc)
+
 let divides_helper
   (d : pos)
   (a b r c : nat)
@@ -573,6 +584,14 @@ fn cp_array2_vec
 
     em_fade'_fade esrc edst nthr tid vgit ();
     own_strided_chunks_rw _ nthr tid _ (em_fade edst esrc nthr (vgit + 1));
+
+    (* Spell out the strict decrease of the loop measure: in the enlarged
+       context the combined multiplication/division query times out. *)
+    assert pure (nthr * chunk et > 0);
+    assert pure (SZ.v !i == vi + nthr * chunk et);
+    bound_helper (vgit + 1) nthr (chunk et) mlen;
+    assert pure (SZ.v !i <= mlen);
+    assert pure (mlen - SZ.v !i < mlen - vi);
     ()
   };
 

@@ -140,6 +140,10 @@ let sdpa_scores_spec_slice
   Kuiper.Chest.lemma_equal_intro lhs rhs;
   Kuiper.Chest.ext lhs rhs
 
+(* [lhs] and [rhs] reach each other only by unfolding [sdpa_probs_spec],
+   [slice_page4], [mk4] and [acc2].  That was inside the default budget before
+   the primitive-effect change enlarged the ambient context. *)
+#push-options "--z3rlimit 20"
 let sdpa_probs_spec_slice
   (#n #h #l #s : nat)
   (scores : chest4 real n h l s)
@@ -156,6 +160,7 @@ let sdpa_probs_spec_slice
   with ();
   Kuiper.Chest.lemma_equal_intro lhs rhs;
   Kuiper.Chest.ext lhs rhs
+#pop-options
 
 let sdpa_softmax_aux
   (#n #h #l #s : pos)
@@ -322,11 +327,12 @@ let scaled_add_approx
     a_mul y scale ry (to_real scale);
     a_add x (y `mul` scale) rx (ry *. to_real scale)
   in
-  (* F* master cannot infer the predicate implicit of [forall_intro_4] (it
-     occurs only in the postcondition), so state the goal explicitly. *)
-  introduce forall (x y : et) (rx ry : real).
-    (x %~ rx /\ y %~ ry) ==> (x `add` (y `mul` scale)) %~ (rx +. (ry *. to_real scale))
-  with introduce _ ==> _ with aux x y rx ry
+  (* A [requires] is a binder now, so [aux]'s type is
+     [... -> #_:squash (...) -> Tot (_:unit{...})] rather than an arrow into
+     [Lemma].  The two holes of an [introduce _ ==> _] are inferred from that
+     type and are left deferred (Error 54); [move_requires_4] does not depend
+     on inferring them. *)
+  Classical.forall_intro_4 (Classical.move_requires_4 aux)
 
 let comb2_approx
   (#et : Type0) {| scalar et, real_like et |}

@@ -108,23 +108,12 @@ __global__ static void kuiper_kernel_0(
         (FStar_Pervasives_Native_tuple2__float16_ptr_unit) {._1 = tmp1};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
-    FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp2 =
-        (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-            ._1 = bid,
-            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {._1 = tid}};
-    uint32_t ni = tmp2._2._1;
-    custard_f16 v0 = a_[ni];
+    custard_f16 v0 = a_[tid];
     custard_f16 acc = v0;
     uint32_t idx = (tid + nthm);
     while (idx < lena) {
         uint32_t idx_raw = idx;
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp3 =
-            (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-                ._1 = bid,
-                ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {
-                    ._1 = idx_raw}};
-        uint32_t ni1 = tmp3._2._1;
-        custard_f16 v = a_[ni1];
+        custard_f16 v = a_[idx_raw];
         custard_f16 __anf0 = acc;
         acc = kpr_hfmax(__anf0, v);
         uint32_t __anf01 = idx;
@@ -152,8 +141,8 @@ __global__ static void kuiper_kernel_0(
         n = (__anf01_1 + 1);
     }
     if (tid == 0) {
-        uint32_t ni1_1 = 0;
-        custard_f16 res = shmem._1[ni1_1];
+        uint32_t ni = 0;
+        custard_f16 res = shmem._1[ni];
         maxs[bid] = res;
     }
 }
@@ -169,20 +158,8 @@ __global__ __launch_bounds__(1024) static void kuiper_kernel_1(
         uint32_t row = (gid / lena);
         uint32_t col = (gid % lena);
         custard_f16 va = maxs[row];
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp =
-            (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-                ._1 = row,
-                ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {
-                    ._1 = col}};
-        uint32_t ni = tmp._2._1;
-        custard_f16 vb = a_[ni];
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp1 =
-            (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-                ._1 = row,
-                ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {
-                    ._1 = col}};
-        uint32_t ni1 = tmp1._2._1;
-        a_[ni1] = custard_f16_sub(vb, va);
+        custard_f16 vb = a_[col];
+        a_[col] = custard_f16_sub(vb, va);
     }
 }
 
@@ -200,13 +177,7 @@ __global__ static void kuiper_kernel_2(
     uint32_t idx = tid;
     while (idx < lena) {
         uint32_t idx_raw = idx;
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp2 =
-            (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-                ._1 = bid,
-                ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {
-                    ._1 = idx_raw}};
-        uint32_t ni = tmp2._2._1;
-        custard_f16 v = a_[ni];
+        custard_f16 v = a_[idx_raw];
         custard_f16 v_ = hexp(v);
         custard_f16 __anf0 = acc;
         acc = custard_f16_add(__anf0, v_);
@@ -235,8 +206,8 @@ __global__ static void kuiper_kernel_2(
         n = (__anf01_1 + 1);
     }
     if (tid == 0) {
-        uint32_t ni_1 = 0;
-        custard_f16 res = shmem._1[ni_1];
+        uint32_t ni = 0;
+        custard_f16 res = shmem._1[ni];
         sums[bid] = res;
     }
 }
@@ -252,20 +223,8 @@ __global__ __launch_bounds__(1024) static void kuiper_kernel_3(
         uint32_t row = (gid / lena);
         uint32_t col = (gid % lena);
         custard_f16 va = sums[row];
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp =
-            (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-                ._1 = row,
-                ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {
-                    ._1 = col}};
-        uint32_t ni = tmp._2._1;
-        custard_f16 vb = a_[ni];
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp1 =
-            (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-                ._1 = row,
-                ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {
-                    ._1 = col}};
-        uint32_t ni1 = tmp1._2._1;
-        a_[ni1] = custard_f16_div(hexp(vb), va);
+        custard_f16 vb = a_[col];
+        a_[col] = custard_f16_div(hexp(vb), va);
     }
 }
 
@@ -279,23 +238,12 @@ __global__ static void kuiper_kernel_4(
         (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {._1 = tmp1};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
-    FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp2 =
-        (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-            ._1 = bid,
-            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {._1 = tid}};
-    uint32_t ni = tmp2._2._1;
-    float v0 = a_[ni];
+    float v0 = a_[tid];
     float acc = v0;
     uint32_t idx = (tid + nthm);
     while (idx < lena) {
         uint32_t idx_raw = idx;
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp3 =
-            (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-                ._1 = bid,
-                ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {
-                    ._1 = idx_raw}};
-        uint32_t ni1 = tmp3._2._1;
-        float v = a_[ni1];
+        float v = a_[idx_raw];
         float __anf0 = acc;
         acc = fmaxf(__anf0, v);
         uint32_t __anf01 = idx;
@@ -323,8 +271,8 @@ __global__ static void kuiper_kernel_4(
         n = (__anf01_1 + 1);
     }
     if (tid == 0) {
-        uint32_t ni1_1 = 0;
-        float res = shmem._1[ni1_1];
+        uint32_t ni = 0;
+        float res = shmem._1[ni];
         maxs[bid] = res;
     }
 }
@@ -340,20 +288,8 @@ __global__ __launch_bounds__(1024) static void kuiper_kernel_5(
         uint32_t row = (gid / lena);
         uint32_t col = (gid % lena);
         float va = maxs[row];
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp =
-            (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-                ._1 = row,
-                ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {
-                    ._1 = col}};
-        uint32_t ni = tmp._2._1;
-        float vb = a_[ni];
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp1 =
-            (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-                ._1 = row,
-                ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {
-                    ._1 = col}};
-        uint32_t ni1 = tmp1._2._1;
-        a_[ni1] = (vb - va);
+        float vb = a_[col];
+        a_[col] = (vb - va);
     }
 }
 
@@ -371,13 +307,7 @@ __global__ static void kuiper_kernel_6(
     uint32_t idx = tid;
     while (idx < lena) {
         uint32_t idx_raw = idx;
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp2 =
-            (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-                ._1 = bid,
-                ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {
-                    ._1 = idx_raw}};
-        uint32_t ni = tmp2._2._1;
-        float v = a_[ni];
+        float v = a_[idx_raw];
         float v_ = expf(v);
         float __anf0 = acc;
         acc = (__anf0 + v_);
@@ -406,8 +336,8 @@ __global__ static void kuiper_kernel_6(
         n = (__anf01_1 + 1);
     }
     if (tid == 0) {
-        uint32_t ni_1 = 0;
-        float res = shmem._1[ni_1];
+        uint32_t ni = 0;
+        float res = shmem._1[ni];
         sums[bid] = res;
     }
 }
@@ -423,20 +353,8 @@ __global__ __launch_bounds__(1024) static void kuiper_kernel_7(
         uint32_t row = (gid / lena);
         uint32_t col = (gid % lena);
         float va = sums[row];
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp =
-            (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-                ._1 = row,
-                ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {
-                    ._1 = col}};
-        uint32_t ni = tmp._2._1;
-        float vb = a_[ni];
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp1 =
-            (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-                ._1 = row,
-                ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {
-                    ._1 = col}};
-        uint32_t ni1 = tmp1._2._1;
-        a_[ni1] = (expf(vb) / va);
+        float vb = a_[col];
+        a_[col] = (expf(vb) / va);
     }
 }
 
@@ -450,23 +368,12 @@ __global__ static void kuiper_kernel_8(
         (FStar_Pervasives_Native_tuple2__float64_ptr_unit) {._1 = tmp1};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
-    FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp2 =
-        (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-            ._1 = bid,
-            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {._1 = tid}};
-    uint32_t ni = tmp2._2._1;
-    double v0 = a_[ni];
+    double v0 = a_[tid];
     double acc = v0;
     uint32_t idx = (tid + nthm);
     while (idx < lena) {
         uint32_t idx_raw = idx;
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp3 =
-            (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-                ._1 = bid,
-                ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {
-                    ._1 = idx_raw}};
-        uint32_t ni1 = tmp3._2._1;
-        double v = a_[ni1];
+        double v = a_[idx_raw];
         double __anf0 = acc;
         acc = fmax(__anf0, v);
         uint32_t __anf01 = idx;
@@ -494,8 +401,8 @@ __global__ static void kuiper_kernel_8(
         n = (__anf01_1 + 1);
     }
     if (tid == 0) {
-        uint32_t ni1_1 = 0;
-        double res = shmem._1[ni1_1];
+        uint32_t ni = 0;
+        double res = shmem._1[ni];
         maxs[bid] = res;
     }
 }
@@ -511,20 +418,8 @@ __global__ __launch_bounds__(1024) static void kuiper_kernel_9(
         uint32_t row = (gid / lena);
         uint32_t col = (gid % lena);
         double va = maxs[row];
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp =
-            (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-                ._1 = row,
-                ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {
-                    ._1 = col}};
-        uint32_t ni = tmp._2._1;
-        double vb = a_[ni];
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp1 =
-            (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-                ._1 = row,
-                ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {
-                    ._1 = col}};
-        uint32_t ni1 = tmp1._2._1;
-        a_[ni1] = (vb - va);
+        double vb = a_[col];
+        a_[col] = (vb - va);
     }
 }
 
@@ -542,13 +437,7 @@ __global__ static void kuiper_kernel_10(
     uint32_t idx = tid;
     while (idx < lena) {
         uint32_t idx_raw = idx;
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp2 =
-            (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-                ._1 = bid,
-                ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {
-                    ._1 = idx_raw}};
-        uint32_t ni = tmp2._2._1;
-        double v = a_[ni];
+        double v = a_[idx_raw];
         double v_ = exp(v);
         double __anf0 = acc;
         acc = (__anf0 + v_);
@@ -577,8 +466,8 @@ __global__ static void kuiper_kernel_10(
         n = (__anf01_1 + 1);
     }
     if (tid == 0) {
-        uint32_t ni_1 = 0;
-        double res = shmem._1[ni_1];
+        uint32_t ni = 0;
+        double res = shmem._1[ni];
         sums[bid] = res;
     }
 }
@@ -594,20 +483,8 @@ __global__ __launch_bounds__(1024) static void kuiper_kernel_11(
         uint32_t row = (gid / lena);
         uint32_t col = (gid % lena);
         double va = sums[row];
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp =
-            (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-                ._1 = row,
-                ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {
-                    ._1 = col}};
-        uint32_t ni = tmp._2._1;
-        double vb = a_[ni];
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp1 =
-            (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-                ._1 = row,
-                ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {
-                    ._1 = col}};
-        uint32_t ni1 = tmp1._2._1;
-        a_[ni1] = (exp(vb) / va);
+        double vb = a_[col];
+        a_[col] = (exp(vb) / va);
     }
 }
 
@@ -621,23 +498,12 @@ __global__ static void kuiper_kernel_12(
         (FStar_Pervasives_Native_tuple2__float16_ptr_unit) {._1 = tmp1};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
-    FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp2 =
-        (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-            ._1 = bid,
-            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {._1 = tid}};
-    uint32_t ni = tmp2._2._1;
-    custard_f16 v0 = a_[ni];
+    custard_f16 v0 = a_[tid];
     custard_f16 acc = v0;
     uint32_t idx = (tid + nthm);
     while (idx < lena) {
         uint32_t idx_raw = idx;
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp3 =
-            (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-                ._1 = bid,
-                ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {
-                    ._1 = idx_raw}};
-        uint32_t ni1 = tmp3._2._1;
-        custard_f16 v = a_[ni1];
+        custard_f16 v = a_[idx_raw];
         custard_f16 __anf0 = acc;
         acc = kpr_hfmax(__anf0, v);
         uint32_t __anf01 = idx;
@@ -665,8 +531,8 @@ __global__ static void kuiper_kernel_12(
         n = (__anf01_1 + 1);
     }
     if (tid == 0) {
-        uint32_t ni1_1 = 0;
-        custard_f16 res = shmem._1[ni1_1];
+        uint32_t ni = 0;
+        custard_f16 res = shmem._1[ni];
         maxs[bid] = res;
     }
 }
@@ -682,20 +548,8 @@ __global__ __launch_bounds__(1024) static void kuiper_kernel_13(
         uint32_t row = (gid / lena);
         uint32_t col = (gid % lena);
         custard_f16 va = maxs[row];
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp =
-            (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-                ._1 = row,
-                ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {
-                    ._1 = col}};
-        uint32_t ni = tmp._2._1;
-        custard_f16 vb = a_[ni];
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp1 =
-            (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-                ._1 = row,
-                ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {
-                    ._1 = col}};
-        uint32_t ni1 = tmp1._2._1;
-        a_[ni1] = custard_f16_sub(vb, va);
+        custard_f16 vb = a_[col];
+        a_[col] = custard_f16_sub(vb, va);
     }
 }
 
@@ -713,13 +567,7 @@ __global__ __launch_bounds__(1024) static void kuiper_kernel_14(
     uint32_t idx = tid;
     while (idx < lena) {
         uint32_t idx_raw = idx;
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp2 =
-            (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-                ._1 = bid,
-                ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {
-                    ._1 = idx_raw}};
-        uint32_t ni = tmp2._2._1;
-        custard_f16 v = a_[ni];
+        custard_f16 v = a_[idx_raw];
         custard_f16 v_ = hexp(v);
         custard_f16 __anf0 = acc;
         acc = custard_f16_add(__anf0, v_);
@@ -748,8 +596,8 @@ __global__ __launch_bounds__(1024) static void kuiper_kernel_14(
         n = (__anf01_1 + 1);
     }
     if (tid == 0) {
-        uint32_t ni_1 = 0;
-        custard_f16 res = shmem._1[ni_1];
+        uint32_t ni = 0;
+        custard_f16 res = shmem._1[ni];
         sums[bid] = res;
     }
 }
@@ -765,20 +613,8 @@ __global__ __launch_bounds__(1024) static void kuiper_kernel_15(
         uint32_t row = (gid / lena);
         uint32_t col = (gid % lena);
         custard_f16 va = sums[row];
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp =
-            (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-                ._1 = row,
-                ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {
-                    ._1 = col}};
-        uint32_t ni = tmp._2._1;
-        custard_f16 vb = a_[ni];
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp1 =
-            (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-                ._1 = row,
-                ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {
-                    ._1 = col}};
-        uint32_t ni1 = tmp1._2._1;
-        a_[ni1] = custard_f16_div(hexp(vb), va);
+        custard_f16 vb = a_[col];
+        a_[col] = custard_f16_div(hexp(vb), va);
     }
 }
 
@@ -792,23 +628,12 @@ __global__ static void kuiper_kernel_16(
         (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {._1 = tmp1};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
-    FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp2 =
-        (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-            ._1 = bid,
-            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {._1 = tid}};
-    uint32_t ni = tmp2._2._1;
-    float v0 = a_[ni];
+    float v0 = a_[tid];
     float acc = v0;
     uint32_t idx = (tid + nthm);
     while (idx < lena) {
         uint32_t idx_raw = idx;
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp3 =
-            (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-                ._1 = bid,
-                ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {
-                    ._1 = idx_raw}};
-        uint32_t ni1 = tmp3._2._1;
-        float v = a_[ni1];
+        float v = a_[idx_raw];
         float __anf0 = acc;
         acc = fmaxf(__anf0, v);
         uint32_t __anf01 = idx;
@@ -836,8 +661,8 @@ __global__ static void kuiper_kernel_16(
         n = (__anf01_1 + 1);
     }
     if (tid == 0) {
-        uint32_t ni1_1 = 0;
-        float res = shmem._1[ni1_1];
+        uint32_t ni = 0;
+        float res = shmem._1[ni];
         maxs[bid] = res;
     }
 }
@@ -853,20 +678,8 @@ __global__ __launch_bounds__(1024) static void kuiper_kernel_17(
         uint32_t row = (gid / lena);
         uint32_t col = (gid % lena);
         float va = maxs[row];
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp =
-            (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-                ._1 = row,
-                ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {
-                    ._1 = col}};
-        uint32_t ni = tmp._2._1;
-        float vb = a_[ni];
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp1 =
-            (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-                ._1 = row,
-                ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {
-                    ._1 = col}};
-        uint32_t ni1 = tmp1._2._1;
-        a_[ni1] = (vb - va);
+        float vb = a_[col];
+        a_[col] = (vb - va);
     }
 }
 
@@ -884,13 +697,7 @@ __global__ __launch_bounds__(1024) static void kuiper_kernel_18(
     uint32_t idx = tid;
     while (idx < lena) {
         uint32_t idx_raw = idx;
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp2 =
-            (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-                ._1 = bid,
-                ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {
-                    ._1 = idx_raw}};
-        uint32_t ni = tmp2._2._1;
-        float v = a_[ni];
+        float v = a_[idx_raw];
         float v_ = expf(v);
         float __anf0 = acc;
         acc = (__anf0 + v_);
@@ -919,8 +726,8 @@ __global__ __launch_bounds__(1024) static void kuiper_kernel_18(
         n = (__anf01_1 + 1);
     }
     if (tid == 0) {
-        uint32_t ni_1 = 0;
-        float res = shmem._1[ni_1];
+        uint32_t ni = 0;
+        float res = shmem._1[ni];
         sums[bid] = res;
     }
 }
@@ -936,20 +743,8 @@ __global__ __launch_bounds__(1024) static void kuiper_kernel_19(
         uint32_t row = (gid / lena);
         uint32_t col = (gid % lena);
         float va = sums[row];
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp =
-            (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-                ._1 = row,
-                ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {
-                    ._1 = col}};
-        uint32_t ni = tmp._2._1;
-        float vb = a_[ni];
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp1 =
-            (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-                ._1 = row,
-                ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {
-                    ._1 = col}};
-        uint32_t ni1 = tmp1._2._1;
-        a_[ni1] = (expf(vb) / va);
+        float vb = a_[col];
+        a_[col] = (expf(vb) / va);
     }
 }
 
@@ -963,23 +758,12 @@ __global__ static void kuiper_kernel_20(
         (FStar_Pervasives_Native_tuple2__float64_ptr_unit) {._1 = tmp1};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
-    FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp2 =
-        (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-            ._1 = bid,
-            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {._1 = tid}};
-    uint32_t ni = tmp2._2._1;
-    double v0 = a_[ni];
+    double v0 = a_[tid];
     double acc = v0;
     uint32_t idx = (tid + nthm);
     while (idx < lena) {
         uint32_t idx_raw = idx;
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp3 =
-            (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-                ._1 = bid,
-                ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {
-                    ._1 = idx_raw}};
-        uint32_t ni1 = tmp3._2._1;
-        double v = a_[ni1];
+        double v = a_[idx_raw];
         double __anf0 = acc;
         acc = fmax(__anf0, v);
         uint32_t __anf01 = idx;
@@ -1007,8 +791,8 @@ __global__ static void kuiper_kernel_20(
         n = (__anf01_1 + 1);
     }
     if (tid == 0) {
-        uint32_t ni1_1 = 0;
-        double res = shmem._1[ni1_1];
+        uint32_t ni = 0;
+        double res = shmem._1[ni];
         maxs[bid] = res;
     }
 }
@@ -1024,20 +808,8 @@ __global__ __launch_bounds__(1024) static void kuiper_kernel_21(
         uint32_t row = (gid / lena);
         uint32_t col = (gid % lena);
         double va = maxs[row];
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp =
-            (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-                ._1 = row,
-                ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {
-                    ._1 = col}};
-        uint32_t ni = tmp._2._1;
-        double vb = a_[ni];
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp1 =
-            (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-                ._1 = row,
-                ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {
-                    ._1 = col}};
-        uint32_t ni1 = tmp1._2._1;
-        a_[ni1] = (vb - va);
+        double vb = a_[col];
+        a_[col] = (vb - va);
     }
 }
 
@@ -1055,13 +827,7 @@ __global__ __launch_bounds__(1024) static void kuiper_kernel_22(
     uint32_t idx = tid;
     while (idx < lena) {
         uint32_t idx_raw = idx;
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp2 =
-            (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-                ._1 = bid,
-                ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {
-                    ._1 = idx_raw}};
-        uint32_t ni = tmp2._2._1;
-        double v = a_[ni];
+        double v = a_[idx_raw];
         double v_ = exp(v);
         double __anf0 = acc;
         acc = (__anf0 + v_);
@@ -1090,8 +856,8 @@ __global__ __launch_bounds__(1024) static void kuiper_kernel_22(
         n = (__anf01_1 + 1);
     }
     if (tid == 0) {
-        uint32_t ni_1 = 0;
-        double res = shmem._1[ni_1];
+        uint32_t ni = 0;
+        double res = shmem._1[ni];
         sums[bid] = res;
     }
 }
@@ -1107,20 +873,8 @@ __global__ __launch_bounds__(1024) static void kuiper_kernel_23(
         uint32_t row = (gid / lena);
         uint32_t col = (gid % lena);
         double va = sums[row];
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp =
-            (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-                ._1 = row,
-                ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {
-                    ._1 = col}};
-        uint32_t ni = tmp._2._1;
-        double vb = a_[ni];
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp1 =
-            (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-                ._1 = row,
-                ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {
-                    ._1 = col}};
-        uint32_t ni1 = tmp1._2._1;
-        a_[ni1] = (exp(vb) / va);
+        double vb = a_[col];
+        a_[col] = (exp(vb) / va);
     }
 }
 
@@ -1134,23 +888,12 @@ __global__ static void kuiper_kernel_24(
         (FStar_Pervasives_Native_tuple2__float16_ptr_unit) {._1 = tmp1};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
-    FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp2 =
-        (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-            ._1 = bid,
-            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {._1 = tid}};
-    uint32_t ni = tmp2._2._1;
-    custard_f16 v0 = a_[ni];
+    custard_f16 v0 = a_[tid];
     custard_f16 acc = v0;
     uint32_t idx = (tid + nthm);
     while (idx < lena) {
         uint32_t idx_raw = idx;
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp3 =
-            (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-                ._1 = bid,
-                ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {
-                    ._1 = idx_raw}};
-        uint32_t ni1 = tmp3._2._1;
-        custard_f16 v = a_[ni1];
+        custard_f16 v = a_[idx_raw];
         custard_f16 __anf0 = acc;
         acc = kpr_hfmax(__anf0, v);
         uint32_t __anf01 = idx;
@@ -1178,8 +921,8 @@ __global__ static void kuiper_kernel_24(
         n = (__anf01_1 + 1);
     }
     if (tid == 0) {
-        uint32_t ni1_1 = 0;
-        custard_f16 res = shmem._1[ni1_1];
+        uint32_t ni = 0;
+        custard_f16 res = shmem._1[ni];
         maxs[bid] = res;
     }
 }
@@ -1195,20 +938,8 @@ __global__ __launch_bounds__(1024) static void kuiper_kernel_25(
         uint32_t row = (gid / lena);
         uint32_t col = (gid % lena);
         custard_f16 va = maxs[row];
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp =
-            (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-                ._1 = row,
-                ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {
-                    ._1 = col}};
-        uint32_t ni = tmp._2._1;
-        custard_f16 vb = a_[ni];
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp1 =
-            (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-                ._1 = row,
-                ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {
-                    ._1 = col}};
-        uint32_t ni1 = tmp1._2._1;
-        a_[ni1] = custard_f16_sub(vb, va);
+        custard_f16 vb = a_[col];
+        a_[col] = custard_f16_sub(vb, va);
     }
 }
 
@@ -1226,13 +957,7 @@ __global__ static void kuiper_kernel_26(
     uint32_t idx = tid;
     while (idx < lena) {
         uint32_t idx_raw = idx;
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp2 =
-            (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-                ._1 = bid,
-                ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {
-                    ._1 = idx_raw}};
-        uint32_t ni = tmp2._2._1;
-        custard_f16 v = a_[ni];
+        custard_f16 v = a_[idx_raw];
         custard_f16 v_ = hexp(v);
         custard_f16 __anf0 = acc;
         acc = custard_f16_add(__anf0, v_);
@@ -1261,8 +986,8 @@ __global__ static void kuiper_kernel_26(
         n = (__anf01_1 + 1);
     }
     if (tid == 0) {
-        uint32_t ni_1 = 0;
-        custard_f16 res = shmem._1[ni_1];
+        uint32_t ni = 0;
+        custard_f16 res = shmem._1[ni];
         sums[bid] = res;
     }
 }
@@ -1278,20 +1003,8 @@ __global__ __launch_bounds__(1024) static void kuiper_kernel_27(
         uint32_t row = (gid / lena);
         uint32_t col = (gid % lena);
         custard_f16 va = sums[row];
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp =
-            (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-                ._1 = row,
-                ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {
-                    ._1 = col}};
-        uint32_t ni = tmp._2._1;
-        custard_f16 vb = a_[ni];
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp1 =
-            (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-                ._1 = row,
-                ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {
-                    ._1 = col}};
-        uint32_t ni1 = tmp1._2._1;
-        a_[ni1] = custard_f16_div(hexp(vb), va);
+        custard_f16 vb = a_[col];
+        a_[col] = custard_f16_div(hexp(vb), va);
     }
 }
 
@@ -1305,23 +1018,12 @@ __global__ static void kuiper_kernel_28(
         (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {._1 = tmp1};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
-    FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp2 =
-        (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-            ._1 = bid,
-            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {._1 = tid}};
-    uint32_t ni = tmp2._2._1;
-    float v0 = a_[ni];
+    float v0 = a_[tid];
     float acc = v0;
     uint32_t idx = (tid + nthm);
     while (idx < lena) {
         uint32_t idx_raw = idx;
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp3 =
-            (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-                ._1 = bid,
-                ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {
-                    ._1 = idx_raw}};
-        uint32_t ni1 = tmp3._2._1;
-        float v = a_[ni1];
+        float v = a_[idx_raw];
         float __anf0 = acc;
         acc = fmaxf(__anf0, v);
         uint32_t __anf01 = idx;
@@ -1349,8 +1051,8 @@ __global__ static void kuiper_kernel_28(
         n = (__anf01_1 + 1);
     }
     if (tid == 0) {
-        uint32_t ni1_1 = 0;
-        float res = shmem._1[ni1_1];
+        uint32_t ni = 0;
+        float res = shmem._1[ni];
         maxs[bid] = res;
     }
 }
@@ -1366,20 +1068,8 @@ __global__ __launch_bounds__(1024) static void kuiper_kernel_29(
         uint32_t row = (gid / lena);
         uint32_t col = (gid % lena);
         float va = maxs[row];
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp =
-            (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-                ._1 = row,
-                ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {
-                    ._1 = col}};
-        uint32_t ni = tmp._2._1;
-        float vb = a_[ni];
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp1 =
-            (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-                ._1 = row,
-                ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {
-                    ._1 = col}};
-        uint32_t ni1 = tmp1._2._1;
-        a_[ni1] = (vb - va);
+        float vb = a_[col];
+        a_[col] = (vb - va);
     }
 }
 
@@ -1397,13 +1087,7 @@ __global__ static void kuiper_kernel_30(
     uint32_t idx = tid;
     while (idx < lena) {
         uint32_t idx_raw = idx;
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp2 =
-            (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-                ._1 = bid,
-                ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {
-                    ._1 = idx_raw}};
-        uint32_t ni = tmp2._2._1;
-        float v = a_[ni];
+        float v = a_[idx_raw];
         float v_ = expf(v);
         float __anf0 = acc;
         acc = (__anf0 + v_);
@@ -1432,8 +1116,8 @@ __global__ static void kuiper_kernel_30(
         n = (__anf01_1 + 1);
     }
     if (tid == 0) {
-        uint32_t ni_1 = 0;
-        float res = shmem._1[ni_1];
+        uint32_t ni = 0;
+        float res = shmem._1[ni];
         sums[bid] = res;
     }
 }
@@ -1449,20 +1133,8 @@ __global__ __launch_bounds__(1024) static void kuiper_kernel_31(
         uint32_t row = (gid / lena);
         uint32_t col = (gid % lena);
         float va = sums[row];
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp =
-            (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-                ._1 = row,
-                ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {
-                    ._1 = col}};
-        uint32_t ni = tmp._2._1;
-        float vb = a_[ni];
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp1 =
-            (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-                ._1 = row,
-                ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {
-                    ._1 = col}};
-        uint32_t ni1 = tmp1._2._1;
-        a_[ni1] = (expf(vb) / va);
+        float vb = a_[col];
+        a_[col] = (expf(vb) / va);
     }
 }
 
@@ -1476,23 +1148,12 @@ __global__ static void kuiper_kernel_32(
         (FStar_Pervasives_Native_tuple2__float64_ptr_unit) {._1 = tmp1};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
-    FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp2 =
-        (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-            ._1 = bid,
-            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {._1 = tid}};
-    uint32_t ni = tmp2._2._1;
-    double v0 = a_[ni];
+    double v0 = a_[tid];
     double acc = v0;
     uint32_t idx = (tid + nthm);
     while (idx < lena) {
         uint32_t idx_raw = idx;
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp3 =
-            (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-                ._1 = bid,
-                ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {
-                    ._1 = idx_raw}};
-        uint32_t ni1 = tmp3._2._1;
-        double v = a_[ni1];
+        double v = a_[idx_raw];
         double __anf0 = acc;
         acc = fmax(__anf0, v);
         uint32_t __anf01 = idx;
@@ -1520,8 +1181,8 @@ __global__ static void kuiper_kernel_32(
         n = (__anf01_1 + 1);
     }
     if (tid == 0) {
-        uint32_t ni1_1 = 0;
-        double res = shmem._1[ni1_1];
+        uint32_t ni = 0;
+        double res = shmem._1[ni];
         maxs[bid] = res;
     }
 }
@@ -1537,20 +1198,8 @@ __global__ __launch_bounds__(1024) static void kuiper_kernel_33(
         uint32_t row = (gid / lena);
         uint32_t col = (gid % lena);
         double va = maxs[row];
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp =
-            (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-                ._1 = row,
-                ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {
-                    ._1 = col}};
-        uint32_t ni = tmp._2._1;
-        double vb = a_[ni];
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp1 =
-            (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-                ._1 = row,
-                ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {
-                    ._1 = col}};
-        uint32_t ni1 = tmp1._2._1;
-        a_[ni1] = (vb - va);
+        double vb = a_[col];
+        a_[col] = (vb - va);
     }
 }
 
@@ -1568,13 +1217,7 @@ __global__ static void kuiper_kernel_34(
     uint32_t idx = tid;
     while (idx < lena) {
         uint32_t idx_raw = idx;
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp2 =
-            (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-                ._1 = bid,
-                ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {
-                    ._1 = idx_raw}};
-        uint32_t ni = tmp2._2._1;
-        double v = a_[ni];
+        double v = a_[idx_raw];
         double v_ = exp(v);
         double __anf0 = acc;
         acc = (__anf0 + v_);
@@ -1603,8 +1246,8 @@ __global__ static void kuiper_kernel_34(
         n = (__anf01_1 + 1);
     }
     if (tid == 0) {
-        uint32_t ni_1 = 0;
-        double res = shmem._1[ni_1];
+        uint32_t ni = 0;
+        double res = shmem._1[ni];
         sums[bid] = res;
     }
 }
@@ -1620,20 +1263,8 @@ __global__ __launch_bounds__(1024) static void kuiper_kernel_35(
         uint32_t row = (gid / lena);
         uint32_t col = (gid % lena);
         double va = sums[row];
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp =
-            (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-                ._1 = row,
-                ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {
-                    ._1 = col}};
-        uint32_t ni = tmp._2._1;
-        double vb = a_[ni];
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp1 =
-            (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-                ._1 = row,
-                ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {
-                    ._1 = col}};
-        uint32_t ni1 = tmp1._2._1;
-        a_[ni1] = (exp(vb) / va);
+        double vb = a_[col];
+        a_[col] = (exp(vb) / va);
     }
 }
 
@@ -1647,23 +1278,12 @@ __global__ static void kuiper_kernel_36(
         (FStar_Pervasives_Native_tuple2__float16_ptr_unit) {._1 = tmp1};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
-    FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp2 =
-        (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-            ._1 = bid,
-            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {._1 = tid}};
-    uint32_t ni = tmp2._2._1;
-    custard_f16 v0 = a_[ni];
+    custard_f16 v0 = a_[tid];
     custard_f16 acc = v0;
     uint32_t idx = (tid + nthm);
     while (idx < lena) {
         uint32_t idx_raw = idx;
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp3 =
-            (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-                ._1 = bid,
-                ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {
-                    ._1 = idx_raw}};
-        uint32_t ni1 = tmp3._2._1;
-        custard_f16 v = a_[ni1];
+        custard_f16 v = a_[idx_raw];
         custard_f16 __anf0 = acc;
         acc = kpr_hfmax(__anf0, v);
         uint32_t __anf01 = idx;
@@ -1691,8 +1311,8 @@ __global__ static void kuiper_kernel_36(
         n = (__anf01_1 + 1);
     }
     if (tid == 0) {
-        uint32_t ni1_1 = 0;
-        custard_f16 res = shmem._1[ni1_1];
+        uint32_t ni = 0;
+        custard_f16 res = shmem._1[ni];
         maxs[bid] = res;
     }
 }
@@ -1708,20 +1328,8 @@ __global__ __launch_bounds__(1024) static void kuiper_kernel_37(
         uint32_t row = (gid / lena);
         uint32_t col = (gid % lena);
         custard_f16 va = maxs[row];
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp =
-            (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-                ._1 = row,
-                ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {
-                    ._1 = col}};
-        uint32_t ni = tmp._2._1;
-        custard_f16 vb = a_[ni];
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp1 =
-            (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-                ._1 = row,
-                ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {
-                    ._1 = col}};
-        uint32_t ni1 = tmp1._2._1;
-        a_[ni1] = custard_f16_sub(vb, va);
+        custard_f16 vb = a_[col];
+        a_[col] = custard_f16_sub(vb, va);
     }
 }
 
@@ -1739,13 +1347,7 @@ __global__ __launch_bounds__(1024) static void kuiper_kernel_38(
     uint32_t idx = tid;
     while (idx < lena) {
         uint32_t idx_raw = idx;
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp2 =
-            (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-                ._1 = bid,
-                ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {
-                    ._1 = idx_raw}};
-        uint32_t ni = tmp2._2._1;
-        custard_f16 v = a_[ni];
+        custard_f16 v = a_[idx_raw];
         custard_f16 v_ = hexp(v);
         custard_f16 __anf0 = acc;
         acc = custard_f16_add(__anf0, v_);
@@ -1774,8 +1376,8 @@ __global__ __launch_bounds__(1024) static void kuiper_kernel_38(
         n = (__anf01_1 + 1);
     }
     if (tid == 0) {
-        uint32_t ni_1 = 0;
-        custard_f16 res = shmem._1[ni_1];
+        uint32_t ni = 0;
+        custard_f16 res = shmem._1[ni];
         sums[bid] = res;
     }
 }
@@ -1791,20 +1393,8 @@ __global__ __launch_bounds__(1024) static void kuiper_kernel_39(
         uint32_t row = (gid / lena);
         uint32_t col = (gid % lena);
         custard_f16 va = sums[row];
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp =
-            (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-                ._1 = row,
-                ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {
-                    ._1 = col}};
-        uint32_t ni = tmp._2._1;
-        custard_f16 vb = a_[ni];
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp1 =
-            (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-                ._1 = row,
-                ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {
-                    ._1 = col}};
-        uint32_t ni1 = tmp1._2._1;
-        a_[ni1] = custard_f16_div(hexp(vb), va);
+        custard_f16 vb = a_[col];
+        a_[col] = custard_f16_div(hexp(vb), va);
     }
 }
 
@@ -1818,23 +1408,12 @@ __global__ static void kuiper_kernel_40(
         (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {._1 = tmp1};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
-    FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp2 =
-        (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-            ._1 = bid,
-            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {._1 = tid}};
-    uint32_t ni = tmp2._2._1;
-    float v0 = a_[ni];
+    float v0 = a_[tid];
     float acc = v0;
     uint32_t idx = (tid + nthm);
     while (idx < lena) {
         uint32_t idx_raw = idx;
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp3 =
-            (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-                ._1 = bid,
-                ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {
-                    ._1 = idx_raw}};
-        uint32_t ni1 = tmp3._2._1;
-        float v = a_[ni1];
+        float v = a_[idx_raw];
         float __anf0 = acc;
         acc = fmaxf(__anf0, v);
         uint32_t __anf01 = idx;
@@ -1862,8 +1441,8 @@ __global__ static void kuiper_kernel_40(
         n = (__anf01_1 + 1);
     }
     if (tid == 0) {
-        uint32_t ni1_1 = 0;
-        float res = shmem._1[ni1_1];
+        uint32_t ni = 0;
+        float res = shmem._1[ni];
         maxs[bid] = res;
     }
 }
@@ -1879,20 +1458,8 @@ __global__ __launch_bounds__(1024) static void kuiper_kernel_41(
         uint32_t row = (gid / lena);
         uint32_t col = (gid % lena);
         float va = maxs[row];
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp =
-            (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-                ._1 = row,
-                ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {
-                    ._1 = col}};
-        uint32_t ni = tmp._2._1;
-        float vb = a_[ni];
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp1 =
-            (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-                ._1 = row,
-                ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {
-                    ._1 = col}};
-        uint32_t ni1 = tmp1._2._1;
-        a_[ni1] = (vb - va);
+        float vb = a_[col];
+        a_[col] = (vb - va);
     }
 }
 
@@ -1910,13 +1477,7 @@ __global__ __launch_bounds__(1024) static void kuiper_kernel_42(
     uint32_t idx = tid;
     while (idx < lena) {
         uint32_t idx_raw = idx;
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp2 =
-            (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-                ._1 = bid,
-                ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {
-                    ._1 = idx_raw}};
-        uint32_t ni = tmp2._2._1;
-        float v = a_[ni];
+        float v = a_[idx_raw];
         float v_ = expf(v);
         float __anf0 = acc;
         acc = (__anf0 + v_);
@@ -1945,8 +1506,8 @@ __global__ __launch_bounds__(1024) static void kuiper_kernel_42(
         n = (__anf01_1 + 1);
     }
     if (tid == 0) {
-        uint32_t ni_1 = 0;
-        float res = shmem._1[ni_1];
+        uint32_t ni = 0;
+        float res = shmem._1[ni];
         sums[bid] = res;
     }
 }
@@ -1962,20 +1523,8 @@ __global__ __launch_bounds__(1024) static void kuiper_kernel_43(
         uint32_t row = (gid / lena);
         uint32_t col = (gid % lena);
         float va = sums[row];
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp =
-            (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-                ._1 = row,
-                ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {
-                    ._1 = col}};
-        uint32_t ni = tmp._2._1;
-        float vb = a_[ni];
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp1 =
-            (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-                ._1 = row,
-                ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {
-                    ._1 = col}};
-        uint32_t ni1 = tmp1._2._1;
-        a_[ni1] = (expf(vb) / va);
+        float vb = a_[col];
+        a_[col] = (expf(vb) / va);
     }
 }
 
@@ -1989,23 +1538,12 @@ __global__ static void kuiper_kernel_44(
         (FStar_Pervasives_Native_tuple2__float64_ptr_unit) {._1 = tmp1};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
-    FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp2 =
-        (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-            ._1 = bid,
-            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {._1 = tid}};
-    uint32_t ni = tmp2._2._1;
-    double v0 = a_[ni];
+    double v0 = a_[tid];
     double acc = v0;
     uint32_t idx = (tid + nthm);
     while (idx < lena) {
         uint32_t idx_raw = idx;
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp3 =
-            (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-                ._1 = bid,
-                ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {
-                    ._1 = idx_raw}};
-        uint32_t ni1 = tmp3._2._1;
-        double v = a_[ni1];
+        double v = a_[idx_raw];
         double __anf0 = acc;
         acc = fmax(__anf0, v);
         uint32_t __anf01 = idx;
@@ -2033,8 +1571,8 @@ __global__ static void kuiper_kernel_44(
         n = (__anf01_1 + 1);
     }
     if (tid == 0) {
-        uint32_t ni1_1 = 0;
-        double res = shmem._1[ni1_1];
+        uint32_t ni = 0;
+        double res = shmem._1[ni];
         maxs[bid] = res;
     }
 }
@@ -2050,20 +1588,8 @@ __global__ __launch_bounds__(1024) static void kuiper_kernel_45(
         uint32_t row = (gid / lena);
         uint32_t col = (gid % lena);
         double va = maxs[row];
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp =
-            (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-                ._1 = row,
-                ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {
-                    ._1 = col}};
-        uint32_t ni = tmp._2._1;
-        double vb = a_[ni];
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp1 =
-            (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-                ._1 = row,
-                ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {
-                    ._1 = col}};
-        uint32_t ni1 = tmp1._2._1;
-        a_[ni1] = (vb - va);
+        double vb = a_[col];
+        a_[col] = (vb - va);
     }
 }
 
@@ -2081,13 +1607,7 @@ __global__ __launch_bounds__(1024) static void kuiper_kernel_46(
     uint32_t idx = tid;
     while (idx < lena) {
         uint32_t idx_raw = idx;
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp2 =
-            (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-                ._1 = bid,
-                ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {
-                    ._1 = idx_raw}};
-        uint32_t ni = tmp2._2._1;
-        double v = a_[ni];
+        double v = a_[idx_raw];
         double v_ = exp(v);
         double __anf0 = acc;
         acc = (__anf0 + v_);
@@ -2116,8 +1636,8 @@ __global__ __launch_bounds__(1024) static void kuiper_kernel_46(
         n = (__anf01_1 + 1);
     }
     if (tid == 0) {
-        uint32_t ni_1 = 0;
-        double res = shmem._1[ni_1];
+        uint32_t ni = 0;
+        double res = shmem._1[ni];
         sums[bid] = res;
     }
 }
@@ -2133,20 +1653,8 @@ __global__ __launch_bounds__(1024) static void kuiper_kernel_47(
         uint32_t row = (gid / lena);
         uint32_t col = (gid % lena);
         double va = sums[row];
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp =
-            (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-                ._1 = row,
-                ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {
-                    ._1 = col}};
-        uint32_t ni = tmp._2._1;
-        double vb = a_[ni];
-        FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit tmp1 =
-            (FStar_Pervasives_Native_tuple2__uintsize_tuple2_uintsize_unit) {
-                ._1 = row,
-                ._2 = (FStar_Pervasives_Native_tuple2__uintsize_unit) {
-                    ._1 = col}};
-        uint32_t ni1 = tmp1._2._1;
-        a_[ni1] = (exp(vb) / va);
+        double vb = a_[col];
+        a_[col] = (exp(vb) / va);
     }
 }
 
