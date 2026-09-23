@@ -95,9 +95,9 @@ let uconst (n:int) : expr =
 let shmem_at (off:expr) (elt:cty) : expr =
   let f = mk (EQual ({ ns = ["Kuiper"; "Example"; "ARPort"];
                        id = "kpr_shmem_at"; spec = None }, []))
-             (TArrow (usize, E_Impure, TBuf (TInt (Unsigned, W8)))) E_Pure in
-  let call = mk (EApp (f, [off])) (TBuf (TInt (Unsigned, W8))) E_Impure in
-  mk (ECoerce (call, TBuf elt)) (TBuf elt) E_Impure
+             (TArrow (usize, E_Pure, TBuf (TInt (Unsigned, W8)))) E_Pure in
+  let call = mk (EApp (f, [off])) (TBuf (TInt (Unsigned, W8))) E_Pure in
+  mk (ECoerce (call, TBuf elt)) (TBuf elt) E_Pure
 
 (* [c_shmems ds] is a type-level recursion over the descriptor list: one nested
    pair per request, ending in [unit].  The witness is a value of that shape,
@@ -122,7 +122,11 @@ let rec build_shmems (off:expr) (exp_ty:cty) (ds : list (cty & expr & expr))
     let rest = build_shmems off' rest_ty ds' in
     let mktup2 = { ns = ["FStar"; "Pervasives"; "Native"];
                    id = "Mktuple2"; spec = None } in
-    mk (ECtor (mktup2, [here; rest])) exp_ty E_Impure
+    (* Pure: the pair is a compound literal over addresses, and [shmem_at] is
+       address arithmetic on the block's shared-memory base.  Tagging either
+       impure costs an ANF temporary per request and per nesting level, for a
+       computation that reads and writes nothing. *)
+    mk (ECtor (mktup2, [here; rest])) exp_ty E_Pure
 
 let rec pvars (p:pat) : ML (list string) =
   match p with

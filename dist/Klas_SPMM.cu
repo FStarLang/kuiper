@@ -947,16 +947,12 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_0(
     Kuiper_Sparse_Matrix_smatrix__uint32 gA, uint32_t shared, uint32_t cols,
     uint32_t *gB, uint32_t *gC)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    uint32_t *tmp1 = (uint32_t *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 4U) * ((uint32_t) 128U))));
-    uint32_t *tmp3 = (uint32_t *) tmp2;
-    FStar_Pervasives_Native_tuple2__uintsize_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__uint32_ptr_tuple2_uintsize_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__uint32_ptr_tuple2_uintsize_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (uint32_t *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {
+                ._1 = (uint32_t *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 4U) * ((uint32_t) 128U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t m_idx = row_indices[(bid % rows)];
@@ -1218,16 +1214,12 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_1(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    float *tmp1 = (float *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 4U) * ((uint32_t) 512U))));
-    uint32_t *tmp3 = (uint32_t *) tmp2;
-    FStar_Pervasives_Native_tuple2__uintsize_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (float *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {
+                ._1 = (uint32_t *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 4U) * ((uint32_t) 512U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t m_idx = row_indices[(bid % rows)];
@@ -1488,16 +1480,12 @@ __global__ __launch_bounds__(1) static void kuiper_kernel_2(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    float *tmp1 = (float *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 4U) * ((uint32_t) 32U))));
-    uint32_t *tmp3 = (uint32_t *) tmp2;
-    FStar_Pervasives_Native_tuple2__uintsize_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (float *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {
+                ._1 = (uint32_t *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 4U) * ((uint32_t) 32U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t m_idx = row_indices[(bid % rows)];
@@ -1758,16 +1746,12 @@ __global__ __launch_bounds__(2) static void kuiper_kernel_3(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    float *tmp1 = (float *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 4U) * ((uint32_t) 32U))));
-    uint32_t *tmp3 = (uint32_t *) tmp2;
-    FStar_Pervasives_Native_tuple2__uintsize_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (float *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {
+                ._1 = (uint32_t *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 4U) * ((uint32_t) 32U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t m_idx = row_indices[(bid % rows)];
@@ -2028,16 +2012,12 @@ __global__ __launch_bounds__(4) static void kuiper_kernel_4(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    float *tmp1 = (float *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 4U) * ((uint32_t) 32U))));
-    uint32_t *tmp3 = (uint32_t *) tmp2;
-    FStar_Pervasives_Native_tuple2__uintsize_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (float *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {
+                ._1 = (uint32_t *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 4U) * ((uint32_t) 32U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t m_idx = row_indices[(bid % rows)];
@@ -2298,16 +2278,12 @@ __global__ __launch_bounds__(8) static void kuiper_kernel_5(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    float *tmp1 = (float *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 4U) * ((uint32_t) 32U))));
-    uint32_t *tmp3 = (uint32_t *) tmp2;
-    FStar_Pervasives_Native_tuple2__uintsize_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (float *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {
+                ._1 = (uint32_t *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 4U) * ((uint32_t) 32U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t m_idx = row_indices[(bid % rows)];
@@ -2556,16 +2532,12 @@ __global__ __launch_bounds__(8) static void kuiper_kernel_6(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    float *tmp1 = (float *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 4U) * ((uint32_t) 32U))));
-    uint32_t *tmp3 = (uint32_t *) tmp2;
-    FStar_Pervasives_Native_tuple2__uintsize_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (float *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {
+                ._1 = (uint32_t *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 4U) * ((uint32_t) 32U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t m_idx = row_indices[(bid % rows)];
@@ -2707,16 +2679,12 @@ __global__ __launch_bounds__(1) static void kuiper_kernel_7(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    float *tmp1 = (float *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 4U) * ((uint32_t) 32U))));
-    uint32_t *tmp3 = (uint32_t *) tmp2;
-    FStar_Pervasives_Native_tuple2__uintsize_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (float *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {
+                ._1 = (uint32_t *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 4U) * ((uint32_t) 32U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t m_idx = row_indices[(bid % rows)];
@@ -2858,16 +2826,12 @@ __global__ __launch_bounds__(2) static void kuiper_kernel_8(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    float *tmp1 = (float *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 4U) * ((uint32_t) 32U))));
-    uint32_t *tmp3 = (uint32_t *) tmp2;
-    FStar_Pervasives_Native_tuple2__uintsize_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (float *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {
+                ._1 = (uint32_t *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 4U) * ((uint32_t) 32U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t m_idx = row_indices[(bid % rows)];
@@ -3009,16 +2973,12 @@ __global__ __launch_bounds__(4) static void kuiper_kernel_9(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    float *tmp1 = (float *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 4U) * ((uint32_t) 32U))));
-    uint32_t *tmp3 = (uint32_t *) tmp2;
-    FStar_Pervasives_Native_tuple2__uintsize_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (float *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {
+                ._1 = (uint32_t *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 4U) * ((uint32_t) 32U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t m_idx = row_indices[(bid % rows)];
@@ -3160,16 +3120,12 @@ __global__ __launch_bounds__(8) static void kuiper_kernel_10(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    float *tmp1 = (float *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 4U) * ((uint32_t) 32U))));
-    uint32_t *tmp3 = (uint32_t *) tmp2;
-    FStar_Pervasives_Native_tuple2__uintsize_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (float *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {
+                ._1 = (uint32_t *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 4U) * ((uint32_t) 32U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t m_idx = row_indices[(bid % rows)];
@@ -3311,16 +3267,12 @@ __global__ __launch_bounds__(8) static void kuiper_kernel_11(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    float *tmp1 = (float *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 4U) * ((uint32_t) 32U))));
-    uint32_t *tmp3 = (uint32_t *) tmp2;
-    FStar_Pervasives_Native_tuple2__uintsize_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (float *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {
+                ._1 = (uint32_t *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 4U) * ((uint32_t) 32U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t m_idx = row_indices[(bid % rows)];
@@ -3581,16 +3533,12 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_12(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    float *tmp1 = (float *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 4U) * ((uint32_t) 64U))));
-    uint32_t *tmp3 = (uint32_t *) tmp2;
-    FStar_Pervasives_Native_tuple2__uintsize_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (float *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {
+                ._1 = (uint32_t *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 4U) * ((uint32_t) 64U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t m_idx = row_indices[(bid % rows)];
@@ -3732,16 +3680,12 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_13(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    float *tmp1 = (float *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 4U) * ((uint32_t) 64U))));
-    uint32_t *tmp3 = (uint32_t *) tmp2;
-    FStar_Pervasives_Native_tuple2__uintsize_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (float *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {
+                ._1 = (uint32_t *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 4U) * ((uint32_t) 64U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t m_idx = row_indices[(bid % rows)];
@@ -3991,16 +3935,12 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_14(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    float *tmp1 = (float *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 4U) * ((uint32_t) 64U))));
-    uint32_t *tmp3 = (uint32_t *) tmp2;
-    FStar_Pervasives_Native_tuple2__uintsize_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (float *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {
+                ._1 = (uint32_t *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 4U) * ((uint32_t) 64U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t m_idx = row_indices[(bid % rows)];
@@ -4142,16 +4082,12 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_15(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    float *tmp1 = (float *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 4U) * ((uint32_t) 64U))));
-    uint32_t *tmp3 = (uint32_t *) tmp2;
-    FStar_Pervasives_Native_tuple2__uintsize_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (float *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {
+                ._1 = (uint32_t *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 4U) * ((uint32_t) 64U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t m_idx = row_indices[(bid % rows)];
@@ -4401,16 +4337,12 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_16(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    float *tmp1 = (float *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 4U) * ((uint32_t) 64U))));
-    uint32_t *tmp3 = (uint32_t *) tmp2;
-    FStar_Pervasives_Native_tuple2__uintsize_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (float *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {
+                ._1 = (uint32_t *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 4U) * ((uint32_t) 64U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t m_idx = row_indices[(bid % rows)];
@@ -4553,16 +4485,12 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_17(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    float *tmp1 = (float *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 4U) * ((uint32_t) 64U))));
-    uint32_t *tmp3 = (uint32_t *) tmp2;
-    FStar_Pervasives_Native_tuple2__uintsize_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (float *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {
+                ._1 = (uint32_t *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 4U) * ((uint32_t) 64U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t m_idx = row_indices[(bid % rows)];
@@ -4813,16 +4741,12 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_18(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    float *tmp1 = (float *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 4U) * ((uint32_t) 64U))));
-    uint32_t *tmp3 = (uint32_t *) tmp2;
-    FStar_Pervasives_Native_tuple2__uintsize_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (float *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {
+                ._1 = (uint32_t *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 4U) * ((uint32_t) 64U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t m_idx = row_indices[(bid % rows)];
@@ -4966,16 +4890,12 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_19(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    float *tmp1 = (float *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 4U) * ((uint32_t) 64U))));
-    uint32_t *tmp3 = (uint32_t *) tmp2;
-    FStar_Pervasives_Native_tuple2__uintsize_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (float *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {
+                ._1 = (uint32_t *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 4U) * ((uint32_t) 64U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t m_idx = row_indices[(bid % rows)];
@@ -5189,16 +5109,12 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_20(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    float *tmp1 = (float *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 4U) * ((uint32_t) 128U))));
-    uint32_t *tmp3 = (uint32_t *) tmp2;
-    FStar_Pervasives_Native_tuple2__uintsize_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (float *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {
+                ._1 = (uint32_t *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 4U) * ((uint32_t) 128U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t m_idx = row_indices[(bid % rows)];
@@ -5340,16 +5256,12 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_21(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    float *tmp1 = (float *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 4U) * ((uint32_t) 128U))));
-    uint32_t *tmp3 = (uint32_t *) tmp2;
-    FStar_Pervasives_Native_tuple2__uintsize_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (float *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {
+                ._1 = (uint32_t *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 4U) * ((uint32_t) 128U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t m_idx = row_indices[(bid % rows)];
@@ -5561,16 +5473,12 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_22(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    float *tmp1 = (float *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 4U) * ((uint32_t) 128U))));
-    uint32_t *tmp3 = (uint32_t *) tmp2;
-    FStar_Pervasives_Native_tuple2__uintsize_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (float *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {
+                ._1 = (uint32_t *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 4U) * ((uint32_t) 128U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t m_idx = row_indices[(bid % rows)];
@@ -5712,16 +5620,12 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_23(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    float *tmp1 = (float *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 4U) * ((uint32_t) 128U))));
-    uint32_t *tmp3 = (uint32_t *) tmp2;
-    FStar_Pervasives_Native_tuple2__uintsize_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (float *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {
+                ._1 = (uint32_t *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 4U) * ((uint32_t) 128U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t m_idx = row_indices[(bid % rows)];
@@ -5983,16 +5887,12 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_24(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    float *tmp1 = (float *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 4U) * ((uint32_t) 128U))));
-    uint32_t *tmp3 = (uint32_t *) tmp2;
-    FStar_Pervasives_Native_tuple2__uintsize_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (float *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {
+                ._1 = (uint32_t *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 4U) * ((uint32_t) 128U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t m_idx = row_indices[(bid % rows)];
@@ -6134,16 +6034,12 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_25(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    float *tmp1 = (float *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 4U) * ((uint32_t) 128U))));
-    uint32_t *tmp3 = (uint32_t *) tmp2;
-    FStar_Pervasives_Native_tuple2__uintsize_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (float *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {
+                ._1 = (uint32_t *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 4U) * ((uint32_t) 128U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t m_idx = row_indices[(bid % rows)];
@@ -6355,16 +6251,12 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_26(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    float *tmp1 = (float *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 4U) * ((uint32_t) 128U))));
-    uint32_t *tmp3 = (uint32_t *) tmp2;
-    FStar_Pervasives_Native_tuple2__uintsize_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (float *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {
+                ._1 = (uint32_t *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 4U) * ((uint32_t) 128U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t m_idx = row_indices[(bid % rows)];
@@ -6507,16 +6399,12 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_27(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    float *tmp1 = (float *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 4U) * ((uint32_t) 128U))));
-    uint32_t *tmp3 = (uint32_t *) tmp2;
-    FStar_Pervasives_Native_tuple2__uintsize_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (float *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {
+                ._1 = (uint32_t *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 4U) * ((uint32_t) 128U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t m_idx = row_indices[(bid % rows)];
@@ -6767,16 +6655,12 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_28(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    float *tmp1 = (float *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 4U) * ((uint32_t) 128U))));
-    uint32_t *tmp3 = (uint32_t *) tmp2;
-    FStar_Pervasives_Native_tuple2__uintsize_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (float *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {
+                ._1 = (uint32_t *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 4U) * ((uint32_t) 128U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t m_idx = row_indices[(bid % rows)];
@@ -6918,16 +6802,12 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_29(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    float *tmp1 = (float *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 4U) * ((uint32_t) 128U))));
-    uint32_t *tmp3 = (uint32_t *) tmp2;
-    FStar_Pervasives_Native_tuple2__uintsize_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (float *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {
+                ._1 = (uint32_t *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 4U) * ((uint32_t) 128U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t m_idx = row_indices[(bid % rows)];
@@ -7139,16 +7019,12 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_30(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    float *tmp1 = (float *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 4U) * ((uint32_t) 128U))));
-    uint32_t *tmp3 = (uint32_t *) tmp2;
-    FStar_Pervasives_Native_tuple2__uintsize_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (float *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {
+                ._1 = (uint32_t *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 4U) * ((uint32_t) 128U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t m_idx = row_indices[(bid % rows)];
@@ -7292,16 +7168,12 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_31(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    float *tmp1 = (float *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 4U) * ((uint32_t) 128U))));
-    uint32_t *tmp3 = (uint32_t *) tmp2;
-    FStar_Pervasives_Native_tuple2__uintsize_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (float *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {
+                ._1 = (uint32_t *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 4U) * ((uint32_t) 128U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t m_idx = row_indices[(bid % rows)];
@@ -7553,16 +7425,12 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_32(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    float *tmp1 = (float *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 4U) * ((uint32_t) 128U))));
-    uint32_t *tmp3 = (uint32_t *) tmp2;
-    FStar_Pervasives_Native_tuple2__uintsize_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (float *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {
+                ._1 = (uint32_t *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 4U) * ((uint32_t) 128U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t m_idx = row_indices[(bid % rows)];
@@ -7705,16 +7573,12 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_33(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    float *tmp1 = (float *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 4U) * ((uint32_t) 128U))));
-    uint32_t *tmp3 = (uint32_t *) tmp2;
-    FStar_Pervasives_Native_tuple2__uintsize_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (float *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {
+                ._1 = (uint32_t *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 4U) * ((uint32_t) 128U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t m_idx = row_indices[(bid % rows)];
@@ -7927,16 +7791,12 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_34(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    float *tmp1 = (float *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 4U) * ((uint32_t) 256U))));
-    uint32_t *tmp3 = (uint32_t *) tmp2;
-    FStar_Pervasives_Native_tuple2__uintsize_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (float *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {
+                ._1 = (uint32_t *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 4U) * ((uint32_t) 256U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t m_idx = row_indices[(bid % rows)];
@@ -8078,16 +7938,12 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_35(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    float *tmp1 = (float *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 4U) * ((uint32_t) 256U))));
-    uint32_t *tmp3 = (uint32_t *) tmp2;
-    FStar_Pervasives_Native_tuple2__uintsize_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (float *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {
+                ._1 = (uint32_t *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 4U) * ((uint32_t) 256U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t m_idx = row_indices[(bid % rows)];
@@ -8299,16 +8155,12 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_36(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    float *tmp1 = (float *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 4U) * ((uint32_t) 256U))));
-    uint32_t *tmp3 = (uint32_t *) tmp2;
-    FStar_Pervasives_Native_tuple2__uintsize_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (float *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {
+                ._1 = (uint32_t *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 4U) * ((uint32_t) 256U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t m_idx = row_indices[(bid % rows)];
@@ -8450,16 +8302,12 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_37(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    float *tmp1 = (float *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 4U) * ((uint32_t) 256U))));
-    uint32_t *tmp3 = (uint32_t *) tmp2;
-    FStar_Pervasives_Native_tuple2__uintsize_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (float *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {
+                ._1 = (uint32_t *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 4U) * ((uint32_t) 256U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t m_idx = row_indices[(bid % rows)];
@@ -8671,16 +8519,12 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_38(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    float *tmp1 = (float *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 4U) * ((uint32_t) 256U))));
-    uint32_t *tmp3 = (uint32_t *) tmp2;
-    FStar_Pervasives_Native_tuple2__uintsize_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (float *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {
+                ._1 = (uint32_t *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 4U) * ((uint32_t) 256U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t m_idx = row_indices[(bid % rows)];
@@ -8822,16 +8666,12 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_39(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    float *tmp1 = (float *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 4U) * ((uint32_t) 256U))));
-    uint32_t *tmp3 = (uint32_t *) tmp2;
-    FStar_Pervasives_Native_tuple2__uintsize_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (float *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {
+                ._1 = (uint32_t *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 4U) * ((uint32_t) 256U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t m_idx = row_indices[(bid % rows)];
@@ -9043,16 +8883,12 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_40(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    float *tmp1 = (float *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 4U) * ((uint32_t) 256U))));
-    uint32_t *tmp3 = (uint32_t *) tmp2;
-    FStar_Pervasives_Native_tuple2__uintsize_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (float *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {
+                ._1 = (uint32_t *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 4U) * ((uint32_t) 256U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t m_idx = row_indices[(bid % rows)];
@@ -9195,16 +9031,12 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_41(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    float *tmp1 = (float *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 4U) * ((uint32_t) 256U))));
-    uint32_t *tmp3 = (uint32_t *) tmp2;
-    FStar_Pervasives_Native_tuple2__uintsize_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (float *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {
+                ._1 = (uint32_t *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 4U) * ((uint32_t) 256U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t m_idx = row_indices[(bid % rows)];
@@ -9417,16 +9249,12 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_42(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    float *tmp1 = (float *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 4U) * ((uint32_t) 256U))));
-    uint32_t *tmp3 = (uint32_t *) tmp2;
-    FStar_Pervasives_Native_tuple2__uintsize_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (float *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {
+                ._1 = (uint32_t *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 4U) * ((uint32_t) 256U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t m_idx = row_indices[(bid % rows)];
@@ -9568,16 +9396,12 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_43(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    float *tmp1 = (float *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 4U) * ((uint32_t) 256U))));
-    uint32_t *tmp3 = (uint32_t *) tmp2;
-    FStar_Pervasives_Native_tuple2__uintsize_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (float *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {
+                ._1 = (uint32_t *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 4U) * ((uint32_t) 256U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t m_idx = row_indices[(bid % rows)];
@@ -9827,16 +9651,12 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_44(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    float *tmp1 = (float *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 4U) * ((uint32_t) 256U))));
-    uint32_t *tmp3 = (uint32_t *) tmp2;
-    FStar_Pervasives_Native_tuple2__uintsize_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (float *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {
+                ._1 = (uint32_t *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 4U) * ((uint32_t) 256U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t m_idx = row_indices[(bid % rows)];
@@ -9978,16 +9798,12 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_45(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    float *tmp1 = (float *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 4U) * ((uint32_t) 256U))));
-    uint32_t *tmp3 = (uint32_t *) tmp2;
-    FStar_Pervasives_Native_tuple2__uintsize_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (float *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {
+                ._1 = (uint32_t *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 4U) * ((uint32_t) 256U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t m_idx = row_indices[(bid % rows)];
@@ -10199,16 +10015,12 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_46(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    float *tmp1 = (float *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 4U) * ((uint32_t) 256U))));
-    uint32_t *tmp3 = (uint32_t *) tmp2;
-    FStar_Pervasives_Native_tuple2__uintsize_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (float *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {
+                ._1 = (uint32_t *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 4U) * ((uint32_t) 256U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t m_idx = row_indices[(bid % rows)];
@@ -10352,16 +10164,12 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_47(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    float *tmp1 = (float *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 4U) * ((uint32_t) 256U))));
-    uint32_t *tmp3 = (uint32_t *) tmp2;
-    FStar_Pervasives_Native_tuple2__uintsize_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (float *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {
+                ._1 = (uint32_t *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 4U) * ((uint32_t) 256U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t m_idx = row_indices[(bid % rows)];
@@ -10575,16 +10383,12 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_48(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    float *tmp1 = (float *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 4U) * ((uint32_t) 256U))));
-    uint32_t *tmp3 = (uint32_t *) tmp2;
-    FStar_Pervasives_Native_tuple2__uintsize_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (float *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {
+                ._1 = (uint32_t *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 4U) * ((uint32_t) 256U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t m_idx = row_indices[(bid % rows)];
@@ -10727,16 +10531,12 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_49(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    float *tmp1 = (float *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 4U) * ((uint32_t) 256U))));
-    uint32_t *tmp3 = (uint32_t *) tmp2;
-    FStar_Pervasives_Native_tuple2__uintsize_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (float *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {
+                ._1 = (uint32_t *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 4U) * ((uint32_t) 256U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t m_idx = row_indices[(bid % rows)];
@@ -10949,16 +10749,12 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_50(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    float *tmp1 = (float *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 4U) * ((uint32_t) 256U))));
-    uint32_t *tmp3 = (uint32_t *) tmp2;
-    FStar_Pervasives_Native_tuple2__uintsize_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (float *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {
+                ._1 = (uint32_t *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 4U) * ((uint32_t) 256U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t m_idx = row_indices[(bid % rows)];
@@ -11100,16 +10896,12 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_51(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    float *tmp1 = (float *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 4U) * ((uint32_t) 256U))));
-    uint32_t *tmp3 = (uint32_t *) tmp2;
-    FStar_Pervasives_Native_tuple2__uintsize_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (float *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {
+                ._1 = (uint32_t *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 4U) * ((uint32_t) 256U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t m_idx = row_indices[(bid % rows)];
@@ -11321,16 +11113,12 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_52(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    float *tmp1 = (float *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 4U) * ((uint32_t) 512U))));
-    uint32_t *tmp3 = (uint32_t *) tmp2;
-    FStar_Pervasives_Native_tuple2__uintsize_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (float *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {
+                ._1 = (uint32_t *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 4U) * ((uint32_t) 512U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t m_idx = row_indices[(bid % rows)];
@@ -11472,16 +11260,12 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_53(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    float *tmp1 = (float *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 4U) * ((uint32_t) 512U))));
-    uint32_t *tmp3 = (uint32_t *) tmp2;
-    FStar_Pervasives_Native_tuple2__uintsize_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (float *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {
+                ._1 = (uint32_t *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 4U) * ((uint32_t) 512U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t m_idx = row_indices[(bid % rows)];
@@ -11693,16 +11477,12 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_54(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    float *tmp1 = (float *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 4U) * ((uint32_t) 512U))));
-    uint32_t *tmp3 = (uint32_t *) tmp2;
-    FStar_Pervasives_Native_tuple2__uintsize_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (float *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {
+                ._1 = (uint32_t *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 4U) * ((uint32_t) 512U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t m_idx = row_indices[(bid % rows)];
@@ -11844,16 +11624,12 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_55(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    float *tmp1 = (float *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 4U) * ((uint32_t) 512U))));
-    uint32_t *tmp3 = (uint32_t *) tmp2;
-    FStar_Pervasives_Native_tuple2__uintsize_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (float *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {
+                ._1 = (uint32_t *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 4U) * ((uint32_t) 512U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t m_idx = row_indices[(bid % rows)];
@@ -12065,16 +11841,12 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_56(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    float *tmp1 = (float *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 4U) * ((uint32_t) 512U))));
-    uint32_t *tmp3 = (uint32_t *) tmp2;
-    FStar_Pervasives_Native_tuple2__uintsize_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (float *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {
+                ._1 = (uint32_t *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 4U) * ((uint32_t) 512U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t m_idx = row_indices[(bid % rows)];
@@ -12216,16 +11988,12 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_57(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    float *tmp1 = (float *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 4U) * ((uint32_t) 512U))));
-    uint32_t *tmp3 = (uint32_t *) tmp2;
-    FStar_Pervasives_Native_tuple2__uintsize_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (float *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {
+                ._1 = (uint32_t *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 4U) * ((uint32_t) 512U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t m_idx = row_indices[(bid % rows)];
@@ -12437,16 +12205,12 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_58(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    float *tmp1 = (float *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 4U) * ((uint32_t) 512U))));
-    uint32_t *tmp3 = (uint32_t *) tmp2;
-    FStar_Pervasives_Native_tuple2__uintsize_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (float *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {
+                ._1 = (uint32_t *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 4U) * ((uint32_t) 512U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t m_idx = row_indices[(bid % rows)];
@@ -12589,16 +12353,12 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_59(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    float *tmp1 = (float *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 4U) * ((uint32_t) 512U))));
-    uint32_t *tmp3 = (uint32_t *) tmp2;
-    FStar_Pervasives_Native_tuple2__uintsize_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (float *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {
+                ._1 = (uint32_t *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 4U) * ((uint32_t) 512U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t m_idx = row_indices[(bid % rows)];
@@ -12811,16 +12571,12 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_60(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    float *tmp1 = (float *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 4U) * ((uint32_t) 512U))));
-    uint32_t *tmp3 = (uint32_t *) tmp2;
-    FStar_Pervasives_Native_tuple2__uintsize_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (float *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {
+                ._1 = (uint32_t *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 4U) * ((uint32_t) 512U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t m_idx = row_indices[(bid % rows)];
@@ -12962,16 +12718,12 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_61(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    float *tmp1 = (float *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 4U) * ((uint32_t) 512U))));
-    uint32_t *tmp3 = (uint32_t *) tmp2;
-    FStar_Pervasives_Native_tuple2__uintsize_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (float *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {
+                ._1 = (uint32_t *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 4U) * ((uint32_t) 512U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t m_idx = row_indices[(bid % rows)];
@@ -13183,16 +12935,12 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_62(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    float *tmp1 = (float *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 4U) * ((uint32_t) 512U))));
-    uint32_t *tmp3 = (uint32_t *) tmp2;
-    FStar_Pervasives_Native_tuple2__uintsize_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (float *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {
+                ._1 = (uint32_t *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 4U) * ((uint32_t) 512U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t m_idx = row_indices[(bid % rows)];
@@ -13334,16 +13082,12 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_63(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    float *tmp1 = (float *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 4U) * ((uint32_t) 512U))));
-    uint32_t *tmp3 = (uint32_t *) tmp2;
-    FStar_Pervasives_Native_tuple2__uintsize_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (float *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {
+                ._1 = (uint32_t *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 4U) * ((uint32_t) 512U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t m_idx = row_indices[(bid % rows)];
@@ -13555,16 +13299,12 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_64(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    float *tmp1 = (float *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 4U) * ((uint32_t) 512U))));
-    uint32_t *tmp3 = (uint32_t *) tmp2;
-    FStar_Pervasives_Native_tuple2__uintsize_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (float *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {
+                ._1 = (uint32_t *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 4U) * ((uint32_t) 512U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t m_idx = row_indices[(bid % rows)];
@@ -13708,16 +13448,12 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_65(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    float *tmp1 = (float *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 4U) * ((uint32_t) 512U))));
-    uint32_t *tmp3 = (uint32_t *) tmp2;
-    FStar_Pervasives_Native_tuple2__uintsize_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (float *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {
+                ._1 = (uint32_t *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 4U) * ((uint32_t) 512U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t m_idx = row_indices[(bid % rows)];
@@ -13931,16 +13667,12 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_66(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    float *tmp1 = (float *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 4U) * ((uint32_t) 512U))));
-    uint32_t *tmp3 = (uint32_t *) tmp2;
-    FStar_Pervasives_Native_tuple2__uintsize_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (float *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {
+                ._1 = (uint32_t *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 4U) * ((uint32_t) 512U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t m_idx = row_indices[(bid % rows)];
@@ -14083,16 +13815,12 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_67(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    float *tmp1 = (float *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 4U) * ((uint32_t) 512U))));
-    uint32_t *tmp3 = (uint32_t *) tmp2;
-    FStar_Pervasives_Native_tuple2__uintsize_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (float *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {
+                ._1 = (uint32_t *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 4U) * ((uint32_t) 512U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t m_idx = row_indices[(bid % rows)];
@@ -14235,16 +13963,12 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_68(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    float *tmp1 = (float *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 4U) * ((uint32_t) 512U))));
-    uint32_t *tmp3 = (uint32_t *) tmp2;
-    FStar_Pervasives_Native_tuple2__uintsize_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (float *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {
+                ._1 = (uint32_t *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 4U) * ((uint32_t) 512U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t m_idx = row_indices[(bid % rows)];
@@ -14386,16 +14110,12 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_69(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    float *tmp1 = (float *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 4U) * ((uint32_t) 512U))));
-    uint32_t *tmp3 = (uint32_t *) tmp2;
-    FStar_Pervasives_Native_tuple2__uintsize_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (float *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {
+                ._1 = (uint32_t *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 4U) * ((uint32_t) 512U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t m_idx = row_indices[(bid % rows)];
@@ -14658,16 +14378,12 @@ __global__ __launch_bounds__(128) static void kuiper_kernel_70(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    float *tmp1 = (float *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 4U) * ((uint32_t) 512U))));
-    uint32_t *tmp3 = (uint32_t *) tmp2;
-    FStar_Pervasives_Native_tuple2__uintsize_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (float *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {
+                ._1 = (uint32_t *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 4U) * ((uint32_t) 512U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t m_idx = row_indices[(bid % rows)];
@@ -14809,16 +14525,12 @@ __global__ __launch_bounds__(128) static void kuiper_kernel_71(
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    float *tmp1 = (float *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 4U) * ((uint32_t) 512U))));
-    uint32_t *tmp3 = (uint32_t *) tmp2;
-    FStar_Pervasives_Native_tuple2__uintsize_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (float *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__uintsize_ptr_unit) {
+                ._1 = (uint32_t *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 4U) * ((uint32_t) 512U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t m_idx = row_indices[(bid % rows)];

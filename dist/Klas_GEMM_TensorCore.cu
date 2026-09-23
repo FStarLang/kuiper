@@ -28,16 +28,12 @@ __global__ static void kuiper_kernel_10(uint32_t shared, uint32_t cols,
 __global__ static void kuiper_kernel_0(uint32_t shared, uint32_t cols,
     custard_f16 *gC, custard_f16 *gA, uint32_t nthr, custard_f16 *gB)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    custard_f16 *tmp1 = (custard_f16 *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 2U) * ((uint32_t) 1024U))));
-    custard_f16 *tmp3 = (custard_f16 *) tmp2;
-    FStar_Pervasives_Native_tuple2__float16_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__float16_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float16_ptr_tuple2_float16_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float16_ptr_tuple2_float16_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (custard_f16 *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__float16_ptr_unit) {
+                ._1 = (custard_f16 *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 2U) * ((uint32_t) 1024U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t num_k_tiles = (shared / 16);
@@ -157,16 +153,12 @@ __global__ static void kuiper_kernel_0(uint32_t shared, uint32_t cols,
 __global__ static void kuiper_kernel_1(uint32_t shared, uint32_t cols,
     custard_f16 *gC, custard_f16 *gA, uint32_t nthr, custard_f16 *gB)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    custard_f16 *tmp1 = (custard_f16 *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 2U) * ((uint32_t) 1024U))));
-    custard_f16 *tmp3 = (custard_f16 *) tmp2;
-    FStar_Pervasives_Native_tuple2__float16_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__float16_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float16_ptr_tuple2_float16_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float16_ptr_tuple2_float16_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (custard_f16 *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__float16_ptr_unit) {
+                ._1 = (custard_f16 *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 2U) * ((uint32_t) 1024U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t num_k_tiles = (shared / 32);
@@ -286,16 +278,12 @@ __global__ static void kuiper_kernel_1(uint32_t shared, uint32_t cols,
 __global__ static void kuiper_kernel_2(uint32_t shared, uint32_t cols,
     custard_f16 *gC, custard_f16 *gA, uint32_t nthr, custard_f16 *gB)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    custard_f16 *tmp1 = (custard_f16 *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 2U) * ((uint32_t) 1024U))));
-    custard_f16 *tmp3 = (custard_f16 *) tmp2;
-    FStar_Pervasives_Native_tuple2__float16_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__float16_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float16_ptr_tuple2_float16_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float16_ptr_tuple2_float16_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (custard_f16 *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__float16_ptr_unit) {
+                ._1 = (custard_f16 *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 2U) * ((uint32_t) 1024U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t num_k_tiles = (shared / 32);
@@ -415,16 +403,12 @@ __global__ static void kuiper_kernel_2(uint32_t shared, uint32_t cols,
 __global__ static void kuiper_kernel_3(uint32_t shared, uint32_t cols,
     custard_f16 *gC, custard_f16 *gA, uint32_t nthr, custard_f16 *gB)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    custard_f16 *tmp1 = (custard_f16 *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 2U) * ((uint32_t) 512U))));
-    custard_f16 *tmp3 = (custard_f16 *) tmp2;
-    FStar_Pervasives_Native_tuple2__float16_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__float16_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float16_ptr_tuple2_float16_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float16_ptr_tuple2_float16_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (custard_f16 *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__float16_ptr_unit) {
+                ._1 = (custard_f16 *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 2U) * ((uint32_t) 512U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t num_k_tiles = (shared / 16);
@@ -544,16 +528,12 @@ __global__ static void kuiper_kernel_3(uint32_t shared, uint32_t cols,
 __global__ static void kuiper_kernel_4(uint32_t shared, uint32_t cols,
     custard_f16 *gC, custard_f16 *gA, uint32_t nthr, custard_f16 *gB)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    custard_f16 *tmp1 = (custard_f16 *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 2U) * ((uint32_t) 1024U))));
-    custard_f16 *tmp3 = (custard_f16 *) tmp2;
-    FStar_Pervasives_Native_tuple2__float16_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__float16_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float16_ptr_tuple2_float16_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float16_ptr_tuple2_float16_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (custard_f16 *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__float16_ptr_unit) {
+                ._1 = (custard_f16 *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 2U) * ((uint32_t) 1024U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t num_k_tiles = (shared / 32);
@@ -673,16 +653,12 @@ __global__ static void kuiper_kernel_4(uint32_t shared, uint32_t cols,
 __global__ static void kuiper_kernel_5(uint32_t shared, uint32_t cols,
     custard_f16 *gC, custard_f16 *gA, uint32_t nthr, custard_f16 *gB)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    custard_f16 *tmp1 = (custard_f16 *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))));
-    custard_f16 *tmp3 = (custard_f16 *) tmp2;
-    FStar_Pervasives_Native_tuple2__float16_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__float16_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float16_ptr_tuple2_float16_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float16_ptr_tuple2_float16_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (custard_f16 *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__float16_ptr_unit) {
+                ._1 = (custard_f16 *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 2U) * ((uint32_t) 4096U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t num_k_tiles = (shared / 64);
@@ -802,16 +778,12 @@ __global__ static void kuiper_kernel_5(uint32_t shared, uint32_t cols,
 __global__ static void kuiper_kernel_6(uint32_t shared, uint32_t cols,
     custard_f16 *gC, custard_f16 *gA, uint32_t nthr, custard_f16 *gB)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    custard_f16 *tmp1 = (custard_f16 *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))));
-    custard_f16 *tmp3 = (custard_f16 *) tmp2;
-    FStar_Pervasives_Native_tuple2__float16_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__float16_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float16_ptr_tuple2_float16_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float16_ptr_tuple2_float16_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (custard_f16 *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__float16_ptr_unit) {
+                ._1 = (custard_f16 *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 2U) * ((uint32_t) 4096U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t num_k_tiles = (shared / 64);
@@ -931,16 +903,12 @@ __global__ static void kuiper_kernel_6(uint32_t shared, uint32_t cols,
 __global__ static void kuiper_kernel_7(uint32_t shared, uint32_t cols,
     custard_f16 *gC, custard_f16 *gA, uint32_t nthr, custard_f16 *gB)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    custard_f16 *tmp1 = (custard_f16 *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))));
-    custard_f16 *tmp3 = (custard_f16 *) tmp2;
-    FStar_Pervasives_Native_tuple2__float16_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__float16_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float16_ptr_tuple2_float16_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float16_ptr_tuple2_float16_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (custard_f16 *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__float16_ptr_unit) {
+                ._1 = (custard_f16 *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 2U) * ((uint32_t) 4096U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t num_k_tiles = (shared / 64);
@@ -1060,16 +1028,12 @@ __global__ static void kuiper_kernel_7(uint32_t shared, uint32_t cols,
 __global__ static void kuiper_kernel_8(uint32_t shared, uint32_t cols,
     custard_f16 *gC, custard_f16 *gA, uint32_t nthr, custard_f16 *gB)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    custard_f16 *tmp1 = (custard_f16 *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 2U) * ((uint32_t) 1024U))));
-    custard_f16 *tmp3 = (custard_f16 *) tmp2;
-    FStar_Pervasives_Native_tuple2__float16_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__float16_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float16_ptr_tuple2_float16_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float16_ptr_tuple2_float16_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (custard_f16 *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__float16_ptr_unit) {
+                ._1 = (custard_f16 *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 2U) * ((uint32_t) 1024U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t num_k_tiles = (shared / 32);
@@ -1189,16 +1153,12 @@ __global__ static void kuiper_kernel_8(uint32_t shared, uint32_t cols,
 __global__ static void kuiper_kernel_9(uint32_t shared, uint32_t cols,
     custard_f16 *gC, custard_f16 *gA, uint32_t nthr, custard_f16 *gB)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    custard_f16 *tmp1 = (custard_f16 *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 2U) * ((uint32_t) 256U))));
-    custard_f16 *tmp3 = (custard_f16 *) tmp2;
-    FStar_Pervasives_Native_tuple2__float16_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__float16_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float16_ptr_tuple2_float16_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float16_ptr_tuple2_float16_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (custard_f16 *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__float16_ptr_unit) {
+                ._1 = (custard_f16 *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 2U) * ((uint32_t) 256U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t num_k_tiles = (shared / 16);
@@ -1318,16 +1278,12 @@ __global__ static void kuiper_kernel_9(uint32_t shared, uint32_t cols,
 __global__ static void kuiper_kernel_10(uint32_t shared, uint32_t cols,
     float *gC, custard_f16 *gA, uint32_t nthr, custard_f16 *gB)
 {
-    uint8_t *tmp = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
-    custard_f16 *tmp1 = (custard_f16 *) tmp;
-    uint8_t *tmp2 =
-        (uint8_t *) KPR_SHMEM_AT((0 + (((uint32_t) 2U) * ((uint32_t) 1024U))));
-    custard_f16 *tmp3 = (custard_f16 *) tmp2;
-    FStar_Pervasives_Native_tuple2__float16_ptr_unit tmp4 =
-        (FStar_Pervasives_Native_tuple2__float16_ptr_unit) {._1 = tmp3};
     FStar_Pervasives_Native_tuple2__float16_ptr_tuple2_float16_ptr_unit sh =
         (FStar_Pervasives_Native_tuple2__float16_ptr_tuple2_float16_ptr_unit) {
-            ._1 = tmp1, ._2 = tmp4};
+            ._1 = (custard_f16 *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
+            ._2 = (FStar_Pervasives_Native_tuple2__float16_ptr_unit) {
+                ._1 = (custard_f16 *) (uint8_t *) KPR_SHMEM_AT(
+                    (0 + (((uint32_t) 2U) * ((uint32_t) 1024U))))}};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t num_k_tiles = (shared / 32);
