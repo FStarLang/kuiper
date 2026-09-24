@@ -100,5 +100,3 @@ fn store
   preserves fr |-> v
   requires c |-> Frac (1.0R /. warpgroup_size) vc
   ensures c |-> Frac (1.0R /. warpgroup_size) v
-
-inline_for_extraction let () = ()
