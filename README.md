@@ -243,6 +243,31 @@ The proof regressions run with `make -j$(nproc) verify`. To check the extracted
 API on the CPU and GPU, run
 `make -j$(nproc) obj/Test_Kuiper_Example_FloatEquality.test`.
 
+### Register-level BF16 tensor-core MMA
+
+`Kuiper.TensorCore.MMA` exposes the specific
+`mma.sync.aligned.m16n8k16.row.col.f32.bf16.bf16.f32` operation on `sm_80` or newer.
+It accepts strided row-major 16x16 BF16 A and column-major 16x8 BF16 B views,
+with a row-major 16x8 FP32 accumulator. Layout offsets and leading dimensions
+are preserved during extraction. This is a 32-thread operation, not WMMA's
+opaque fragment layout or WGMMA's 128-thread operation.
+
+All operations require the `gpu` capability. As with the existing tensor-core
+interfaces, callers must arrange full-warp convergent participation with the
+same operation sequence, matrix views and fill values, and publish input writes.
+Those obligations are not proved by the capability. The interface adds no hidden
+barrier or scalar fallback.
+
+The hardware result is opaque and distinct from the other tensor-core
+operations. Its real approximation is trusted; it does not equate unspecified
+hardware accumulation/rounding behavior with a scalar FMA loop.
+
+The extracted example covers multiplication and repeated accumulation through
+nonzero-offset subtiles. Its regression compares with independent direct PTX
+and an exact small-integer oracle, including two warps in a multidimensional
+block, special values and untouched output padding:
+`make -j$(nproc) NVCC_ARCH=sm_80 obj/Test_Kuiper_Example_TensorCore_MMA.test`.
+
 ### Project Structure
 
 Kuiper source lives under `src/`. The core library (`src/lib/kuiper/`) provides
