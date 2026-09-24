@@ -35,6 +35,20 @@ static __device__ __forceinline__ float kpr_f32_exp2_approx_ftz(float x)
     return result;
 }
 
+static __device__ __forceinline__ float kpr_f32_rcp_approx_ftz(float x)
+{
+    float result;
+    asm volatile("rcp.approx.ftz.f32 %0, %1;" : "=f"(result) : "f"(x));
+    return result;
+}
+
+static __device__ __forceinline__ float kpr_f32_rsqrt_approx_ftz(float x)
+{
+    float result;
+    asm volatile("rsqrt.approx.ftz.f32 %0, %1;" : "=f"(result) : "f"(x));
+    return result;
+}
+
 #define HLF_MIN      __float2half(6.10352e-5f)
 #define HLF_MAX      __float2half(65504.0f)
 #define HLF_INFINITY __float2half(INFINITY)

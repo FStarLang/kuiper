@@ -834,6 +834,8 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
   | "Kuiper.Float32.Base.flog1p", [], [] -> EQualified ([], "log1pf")
   | "Kuiper.Float32.mul_rn_ftz", [], [] -> EQualified ([], "kpr_f32_mul_rn_ftz")
   | "Kuiper.Float32.exp2_approx_ftz", [], [] -> EQualified ([], "kpr_f32_exp2_approx_ftz")
+  | "Kuiper.Float32.rcp_approx_ftz", [], [] -> EQualified ([], "kpr_f32_rcp_approx_ftz")
+  | "Kuiper.Float32.rsqrt_approx_ftz", [], [] -> EQualified ([], "kpr_f32_rsqrt_approx_ftz")
   | "Kuiper.Float32.Base.valid",  [], [] -> EQualified ([], "kpr_fisvalid")
   | "Kuiper.Float32.Base.largest",  [], [] -> EConstant (Float32, "FLT_MAX")
   | "Kuiper.Float32.Base.infinity", [], [] -> EConstant (Float32, "INFINITY")

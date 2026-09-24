@@ -12,6 +12,7 @@ open Kuiper.Floating.Base
 open Kuiper.Approximates.Base
 open Kuiper.Real
 module Pow = FStar.Math.Pow
+module Sqrt = FStar.Math.Sqrt
 
 open Kuiper.Float32.Base
 
@@ -91,6 +92,30 @@ fn exp2_approx_ftz (x : t)
     forall (xr : real).
       v_approximates x xr ==>
       v_approximates result (Pow.exp2 xr))
+{
+  admit()
+}
+
+noextract
+fn rcp_approx_ftz (x : t)
+  preserves gpu
+  returns result : t
+  ensures pure (
+    forall (xr : real{xr =!= 0.0R}).
+      v_approximates x xr ==>
+      v_approximates result (1.0R /. xr))
+{
+  admit()
+}
+
+noextract
+fn rsqrt_approx_ftz (x : t)
+  preserves gpu
+  returns result : t
+  ensures pure (
+    forall (xr : Sqrt.rpos).
+      v_approximates x xr ==>
+      v_approximates result (1.0R /. Sqrt.sqrt xr))
 {
   admit()
 }

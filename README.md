@@ -245,15 +245,26 @@ API on the CPU and GPU, run
 
 ### GPU-only Float32 operations
 
-`Kuiper.Float32.mul_rn_ftz` and `Kuiper.Float32.exp2_approx_ftz` require and
-preserve the `gpu` capability. They extract to `mul.rn.ftz.f32` and
-`ex2.approx.ftz.f32`, respectively; CPU calls are rejected during verification.
-Their trusted real approximation contracts describe multiplication and
-`FStar.Math.Pow.exp2`, not bitwise equality or numerical error bounds.
+These `Kuiper.Float32` operations require and preserve the `gpu` capability;
+CPU calls are rejected during verification.
+
+| Operation | Extracted PTX | Trusted real approximation |
+| --- | --- | --- |
+| `mul_rn_ftz` | `mul.rn.ftz.f32` | Multiplication |
+| `exp2_approx_ftz` | `ex2.approx.ftz.f32` | `FStar.Math.Pow.exp2` |
+| `rcp_approx_ftz` | `rcp.approx.ftz.f32` | `1 / x`, for nonzero real `x` |
+| `rsqrt_approx_ftz` | `rsqrt.approx.ftz.f32` | `1 / FStar.Math.Sqrt.sqrt x`, for positive real `x` |
+
+The runtime operations accept all Float32 inputs and preserve the named PTX
+instruction's FTZ and special-value behavior; they do not fall back to CUDA
+division or `rsqrtf`. The domain restrictions above apply only to the real
+approximation contracts. As with the other floating operations, those contracts
+do not prove bitwise equality, FTZ behavior, or numerical error bounds.
 
 `Kuiper.Example.Float32GPU` checks composition of these contracts and rejection
 of CPU calls. Its runtime test compares extracted GPU operations with direct PTX
-and checks FTZ and signed-zero behavior:
+and checks FTZ, signed zeros, infinities and NaNs. Reciprocal and reciprocal-square-root
+comparisons require identical bits, including for NaN results:
 `make -j$(nproc) obj/Test_Kuiper_Example_Float32GPU.test`.
 
 ### Project Structure
