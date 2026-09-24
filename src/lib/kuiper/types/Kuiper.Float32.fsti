@@ -1,8 +1,14 @@
 module Kuiper.Float32
 
+#lang-pulse
+
+open Pulse.Lib.Core
+open Kuiper.Locs
 open Kuiper.Floating.Base
 open Kuiper.Approximates.Base
 open Kuiper.Real
+module Pow = FStar.Math.Pow
+module Sqrt = FStar.Math.Sqrt
 
 inline_for_extraction noextract
 val t : Type0
@@ -32,5 +38,44 @@ val log1p_approx
   : Lemma
       (requires v_approximates x r)
       (ensures v_approximates (flog1p x) (log (1.0R +. r)))
+
+(* GPU-only operations with explicit rounding and flush-to-zero behavior.
+   As for the other floating operations, the trusted real approximation
+   contracts do not model rounding, FTZ, or numerical error bounds. *)
+noextract
+fn mul_rn_ftz (x y : t)
+  preserves gpu
+  returns result : t
+  ensures pure (
+    forall (xr yr : real).
+      v_approximates x xr /\ v_approximates y yr ==>
+      v_approximates result (xr *. yr))
+
+noextract
+fn exp2_approx_ftz (x : t)
+  preserves gpu
+  returns result : t
+  ensures pure (
+    forall (xr : real).
+      v_approximates x xr ==>
+      v_approximates result (Pow.exp2 xr))
+
+noextract
+fn rcp_approx_ftz (x : t)
+  preserves gpu
+  returns result : t
+  ensures pure (
+    forall (xr : real{xr =!= 0.0R}).
+      v_approximates x xr ==>
+      v_approximates result (1.0R /. xr))
+
+noextract
+fn rsqrt_approx_ftz (x : t)
+  preserves gpu
+  returns result : t
+  ensures pure (
+    forall (xr : Sqrt.rpos).
+      v_approximates x xr ==>
+      v_approximates result (1.0R /. Sqrt.sqrt xr))
 
 val lem_sizeof () : Lemma (Sized.size #t == 4sz)
