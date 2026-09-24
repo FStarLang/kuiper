@@ -2,6 +2,7 @@
 #define KUIPER_TENSORCORES_H 1
 
 #include <mma.h>
+#include "mma.h"
 #include "wgmma.h"
 using namespace nvcuda;
 

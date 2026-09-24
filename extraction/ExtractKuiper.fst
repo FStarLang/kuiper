@@ -81,6 +81,7 @@ let kpr_translate_type_without_decay : translate_type_without_decay_t = fun env 
     //    expand to the proper templated type.
     TQualified ([], "auto_AMP") // sed subtitutes this to auto&
 
+  | "Kuiper.TensorCore.MMA.fragment",      [] -> TQualified ([], "auto_AMP")
   | "Kuiper.TensorCore.WGMMA.fragment",    [] -> TQualified ([], "auto_AMP")
   | "Kuiper.Float16.Base.t",               [] -> TInt Float16
   | "Kuiper.BFloat16.Base.t",              [] -> TInt BFloat16
@@ -635,6 +636,31 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
     EApp (EQualified ([], "__syncwarp"), [ EUnit ])
 
   (******** TENSOR CORE OPERATIONS, FRAGMENTS, ETC ********)
+
+  | "Kuiper.TensorCore.MMA.alloc_fragment", [], [ _unit ] ->
+    EApp (EQualified ([], "KPR_INIT"), [EQualified ([], "kpr_mma_fragment")])
+
+  | "Kuiper.TensorCore.MMA.fill", [], [ fr; x; _v ] ->
+    EApp (EQualified ([], "kpr_mma_fill"), [cb fr; cb x])
+
+  | "Kuiper.TensorCore.MMA.load_accum", [], [ fr; _; strided_l; c; _; _; _ ]
+  | "Kuiper.TensorCore.MMA.store", [], [ fr; _; strided_l; c; _; _ ] ->
+    let name, _, _ = Some?.v x in
+    let op = if name = "Kuiper.TensorCore.MMA.load_accum"
+             then "kpr_mma_load_accum" else "kpr_mma_store" in
+    let stride = cb <| get_strided_row_major_stride strided_l in
+    let offset = cb <| get_strided_row_major_offset strided_l in
+    EApp (EQualified ([], op), [cb fr; EBufSub (cb c, offset); stride])
+
+  | "Kuiper.TensorCore.MMA.mma_sync", [],
+      [ _la; strided_a; a; _lb; strided_b; b; fr; _fa; _fb; _va; _vb; _vc ] ->
+    let stride_a = cb <| get_strided_row_major_stride strided_a in
+    let offset_a = cb <| get_strided_row_major_offset strided_a in
+    let stride_b = cb <| get_strided_row_major_stride strided_b in
+    let offset_b = cb <| get_strided_row_major_offset strided_b in
+    EApp (EQualified ([], "kpr_mma_mma_sync"),
+      [EBufSub (cb a, offset_a); stride_a;
+       EBufSub (cb b, offset_b); stride_b; cb fr])
 
   | "Kuiper.TensorCore.WGMMA.alloc_fragment", [], [ _unit ] ->
     EApp (EQualified ([], "KPR_INIT"), [EQualified ([], "kpr_wgmma_fragment")])
