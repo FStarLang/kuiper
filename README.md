@@ -31,7 +31,7 @@ PLDI 2026. https://doi.org/10.1145/3808280
 
 - **The Next Frontier for AI-Generated Kernels: Correctness**
 *Guido Martínez, Tyler Sorensen*.
-PAgE 2026. https://doi.org/10.1145/3819802.3820580
+PAgE 2026. https://doi.org/10.1145/3819802.3820580. See related repository: https://github.com/mtzguido/kuiperbench
 
 ## Using Verified Kernels
 
