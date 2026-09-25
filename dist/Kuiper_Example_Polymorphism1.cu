@@ -3,12 +3,12 @@
 
 __device__ static void Kuiper_Example_Polymorphism1_kswap__t(
     uint64_t *r1, uint64_t *r2);
-__global__ __launch_bounds__(1) static void kuiper_kernel_0(
-    uint64_t *gr1, uint64_t *gr2);
+__global__ __launch_bounds__(1) static void
+Kuiper_Example_Polymorphism1_swap_U64_kernel_0(uint64_t *gr1, uint64_t *gr2);
 __device__ static void Kuiper_Example_Polymorphism1_kswap__t_1(
     float *r1, float *r2);
-__global__ __launch_bounds__(1) static void kuiper_kernel_1(
-    float *gr1, float *gr2);
+__global__ __launch_bounds__(1) static void
+Kuiper_Example_Polymorphism1_swap_F32_kernel_1(float *gr1, float *gr2);
 
 __device__ static void Kuiper_Example_Polymorphism1_kswap__t(
     uint64_t *r1, uint64_t *r2)
@@ -20,8 +20,8 @@ __device__ static void Kuiper_Example_Polymorphism1_kswap__t(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ __launch_bounds__(1) static void kuiper_kernel_0(
-    uint64_t *gr1, uint64_t *gr2)
+__global__ __launch_bounds__(1) static void
+Kuiper_Example_Polymorphism1_swap_U64_kernel_0(uint64_t *gr1, uint64_t *gr2)
 {
     Kuiper_Example_Polymorphism1_kswap__t(gr1, gr2);
 }
@@ -36,8 +36,8 @@ __device__ static void Kuiper_Example_Polymorphism1_kswap__t_1(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ __launch_bounds__(1) static void kuiper_kernel_1(
-    float *gr1, float *gr2)
+__global__ __launch_bounds__(1) static void
+Kuiper_Example_Polymorphism1_swap_F32_kernel_1(float *gr1, float *gr2)
 {
     Kuiper_Example_Polymorphism1_kswap__t_1(gr1, gr2);
 }
@@ -62,8 +62,8 @@ void Kuiper_Example_Polymorphism1_swap_U64(uint64_t *r1, uint64_t *r2)
     KPR_MEMCPY_H2D(gr1, r1, ((uint32_t) 8U));
     KPR_MEMCPY_H2D(gr2, r2, ((uint32_t) 8U));
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_KCALL(kuiper_kernel_0, ((uint32_t) 1U), ((uint32_t) 1U),
-        ((uint32_t) 0U), s, gr1, gr2);
+    KPR_KCALL(Kuiper_Example_Polymorphism1_swap_U64_kernel_0, ((uint32_t) 1U),
+        ((uint32_t) 1U), ((uint32_t) 0U), s, gr1, gr2);
     KPR_MUST_stream_sync(s);
     KPR_MUST_stream_destroy(s);
     KPR_MEMCPY_D2H(r1, gr1, ((uint32_t) 8U));
@@ -81,8 +81,8 @@ void Kuiper_Example_Polymorphism1_swap_F32(float *r1, float *r2)
     KPR_MEMCPY_H2D(gr1, r1, ((uint32_t) 4U));
     KPR_MEMCPY_H2D(gr2, r2, ((uint32_t) 4U));
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_KCALL(kuiper_kernel_1, ((uint32_t) 1U), ((uint32_t) 1U),
-        ((uint32_t) 0U), s, gr1, gr2);
+    KPR_KCALL(Kuiper_Example_Polymorphism1_swap_F32_kernel_1, ((uint32_t) 1U),
+        ((uint32_t) 1U), ((uint32_t) 0U), s, gr1, gr2);
     KPR_MUST_stream_sync(s);
     KPR_MUST_stream_destroy(s);
     KPR_MEMCPY_D2H(r1, gr1, ((uint32_t) 4U));

@@ -21,7 +21,7 @@ __device__ static void Kuiper_For_for_loop___5(uint32_t tmp, uint32_t tmp1,
 __device__ static void Kuiper_For_for_loop___6(uint32_t tmp, uint32_t tmp1,
     uint32_t *tmp2, uint32_t tmp3, uint32_t tmp4, uint32_t tmp5,
     uint32_t *tmp6);
-__global__ __launch_bounds__(32) static void kuiper_kernel_0(
+__global__ __launch_bounds__(32) static void Klas_SPMM_spmm_u32_kernel_0(
     uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__uint32 gA, uint32_t shared, uint32_t cols,
     uint32_t *gB, uint32_t *gC);
@@ -44,7 +44,7 @@ __device__ static void Kuiper_For_for_loop___12(uint32_t tmp, uint32_t tmp1,
     float *tmp6, uint32_t *tmp7, uint32_t tmp8, uint32_t tmp9);
 __device__ static void Kuiper_For_for_loop___13(uint32_t tmp, uint32_t tmp1,
     float *tmp2, uint32_t tmp3, uint32_t tmp4, uint32_t tmp5, float *tmp6);
-__global__ __launch_bounds__(64) static void kuiper_kernel_1(
+__global__ __launch_bounds__(64) static void Klas_SPMM_spmm_f32_kernel_1(
     uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
@@ -67,8 +67,8 @@ __device__ static void Kuiper_For_for_loop___19(uint32_t tmp, uint32_t tmp1,
     float *tmp6, uint32_t *tmp7, uint32_t tmp8, uint32_t tmp9);
 __device__ static void Kuiper_For_for_loop___20(uint32_t tmp, uint32_t tmp1,
     float *tmp2, uint32_t tmp3, uint32_t tmp4, uint32_t tmp5, float *tmp6);
-__global__ __launch_bounds__(1) static void kuiper_kernel_2(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(1) static void
+Klas_SPMM_g_spmm_f32_32x4x1_kernel_2(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
 __device__ static void Kuiper_For_for_loop___21(uint32_t tmp, uint32_t tmp1,
@@ -90,8 +90,8 @@ __device__ static void Kuiper_For_for_loop___26(uint32_t tmp, uint32_t tmp1,
     float *tmp6, uint32_t *tmp7, uint32_t tmp8, uint32_t tmp9);
 __device__ static void Kuiper_For_for_loop___27(uint32_t tmp, uint32_t tmp1,
     float *tmp2, uint32_t tmp3, uint32_t tmp4, uint32_t tmp5, float *tmp6);
-__global__ __launch_bounds__(2) static void kuiper_kernel_3(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(2) static void
+Klas_SPMM_g_spmm_f32_32x8x2_kernel_3(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
 __device__ static void Kuiper_For_for_loop___28(uint32_t tmp, uint32_t tmp1,
@@ -113,8 +113,8 @@ __device__ static void Kuiper_For_for_loop___33(uint32_t tmp, uint32_t tmp1,
     float *tmp6, uint32_t *tmp7, uint32_t tmp8, uint32_t tmp9);
 __device__ static void Kuiper_For_for_loop___34(uint32_t tmp, uint32_t tmp1,
     float *tmp2, uint32_t tmp3, uint32_t tmp4, uint32_t tmp5, float *tmp6);
-__global__ __launch_bounds__(4) static void kuiper_kernel_4(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(4) static void
+Klas_SPMM_g_spmm_f32_32x16x4_kernel_4(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
 __device__ static void Kuiper_For_for_loop___35(uint32_t tmp, uint32_t tmp1,
@@ -136,8 +136,8 @@ __device__ static void Kuiper_For_for_loop___40(uint32_t tmp, uint32_t tmp1,
     float *tmp6, uint32_t *tmp7, uint32_t tmp8, uint32_t tmp9);
 __device__ static void Kuiper_For_for_loop___41(uint32_t tmp, uint32_t tmp1,
     float *tmp2, uint32_t tmp3, uint32_t tmp4, uint32_t tmp5, float *tmp6);
-__global__ __launch_bounds__(8) static void kuiper_kernel_5(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(8) static void
+Klas_SPMM_g_spmm_f32_32x32x8_kernel_5(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
 __device__ static void Kuiper_For_for_loop___42(uint32_t tmp, uint32_t tmp1,
@@ -157,28 +157,28 @@ __device__ static void Kuiper_For_for_loop___46(uint32_t tmp, uint32_t tmp1,
     float *tmp6, uint32_t *tmp7, uint32_t tmp8, uint32_t tmp9);
 __device__ static void Kuiper_For_for_loop___47(uint32_t tmp, uint32_t tmp1,
     float *tmp2, uint32_t tmp3, uint32_t tmp4, uint32_t tmp5, float *tmp6);
-__global__ __launch_bounds__(8) static void kuiper_kernel_6(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(8) static void
+Klas_SPMM_g_spmm_f32_32x64x8_kernel_6(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
-__global__ __launch_bounds__(1) static void kuiper_kernel_7(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(1) static void
+Klas_SPMM_g_spmm_f32_32x4x1_on_kernel_7(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
-__global__ __launch_bounds__(2) static void kuiper_kernel_8(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(2) static void
+Klas_SPMM_g_spmm_f32_32x8x2_on_kernel_8(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
-__global__ __launch_bounds__(4) static void kuiper_kernel_9(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(4) static void
+Klas_SPMM_g_spmm_f32_32x16x4_on_kernel_9(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
-__global__ __launch_bounds__(8) static void kuiper_kernel_10(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(8) static void
+Klas_SPMM_g_spmm_f32_32x32x8_on_kernel_10(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
-__global__ __launch_bounds__(8) static void kuiper_kernel_11(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(8) static void
+Klas_SPMM_g_spmm_f32_32x64x8_on_kernel_11(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
 __device__ static void Kuiper_For_for_loop___48(uint32_t tmp, uint32_t tmp1,
@@ -200,12 +200,12 @@ __device__ static void Kuiper_For_for_loop___53(uint32_t tmp, uint32_t tmp1,
     float *tmp6, uint32_t *tmp7, uint32_t tmp8, uint32_t tmp9);
 __device__ static void Kuiper_For_for_loop___54(uint32_t tmp, uint32_t tmp1,
     float *tmp2, uint32_t tmp3, uint32_t tmp4, uint32_t tmp5, float *tmp6);
-__global__ __launch_bounds__(16) static void kuiper_kernel_12(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void
+Klas_SPMM_g_spmm_f32_64x64x16_kernel_12(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
-__global__ __launch_bounds__(16) static void kuiper_kernel_13(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void
+Klas_SPMM_g_spmm_f32_64x64x16_on_kernel_13(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
 __device__ static void Kuiper_For_for_loop___55(uint32_t tmp, uint32_t tmp1,
@@ -225,14 +225,14 @@ __device__ static void Kuiper_For_for_loop___59(uint32_t tmp, uint32_t tmp1,
     float *tmp6, uint32_t *tmp7, uint32_t tmp8, uint32_t tmp9);
 __device__ static void Kuiper_For_for_loop___60(uint32_t tmp, uint32_t tmp1,
     float *tmp2, uint32_t tmp3, uint32_t tmp4, uint32_t tmp5, float *tmp6);
-__global__ __launch_bounds__(16) static void kuiper_kernel_14(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void
+Klas_SPMM_g_spmm_f32_64x128x16_kernel_14(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
-__global__ __launch_bounds__(16) static void kuiper_kernel_15(
-    uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
-    float *gB, float *gC);
+__global__ __launch_bounds__(16) static void
+Klas_SPMM_g_spmm_f32_64x128x16_on_kernel_15(uint32_t *row_indices,
+    uint32_t rows, Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared,
+    uint32_t cols, float *gB, float *gC);
 __device__ static void Kuiper_For_for_loop___61(uint32_t tmp, uint32_t tmp1,
     uint32_t tmp2, Kuiper_Sparse_Matrix_smatrix__float32 tmp3, uint32_t tmp6,
     float *tmp7, uint32_t tmp8);
@@ -250,14 +250,14 @@ __device__ static void Kuiper_For_for_loop___65(uint32_t tmp, uint32_t tmp1,
     float *tmp6, uint32_t *tmp7, uint32_t tmp8, uint32_t tmp9);
 __device__ static void Kuiper_For_for_loop___66(uint32_t tmp, uint32_t tmp1,
     float *tmp2, uint32_t tmp3, uint32_t tmp4, uint32_t tmp5, float *tmp6);
-__global__ __launch_bounds__(16) static void kuiper_kernel_16(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void
+Klas_SPMM_g_spmm_f32_64x256x16_kernel_16(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
-__global__ __launch_bounds__(16) static void kuiper_kernel_17(
-    uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
-    float *gB, float *gC);
+__global__ __launch_bounds__(16) static void
+Klas_SPMM_g_spmm_f32_64x256x16_on_kernel_17(uint32_t *row_indices,
+    uint32_t rows, Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared,
+    uint32_t cols, float *gB, float *gC);
 __device__ static void Kuiper_For_for_loop___67(uint32_t tmp, uint32_t tmp1,
     uint32_t tmp2, Kuiper_Sparse_Matrix_smatrix__float32 tmp3, uint32_t tmp6,
     float *tmp7, uint32_t tmp8);
@@ -275,14 +275,14 @@ __device__ static void Kuiper_For_for_loop___71(uint32_t tmp, uint32_t tmp1,
     float *tmp6, uint32_t *tmp7, uint32_t tmp8, uint32_t tmp9);
 __device__ static void Kuiper_For_for_loop___72(uint32_t tmp, uint32_t tmp1,
     float *tmp2, uint32_t tmp3, uint32_t tmp4, uint32_t tmp5, float *tmp6);
-__global__ __launch_bounds__(16) static void kuiper_kernel_18(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void
+Klas_SPMM_g_spmm_f32_64x512x16_kernel_18(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
-__global__ __launch_bounds__(16) static void kuiper_kernel_19(
-    uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
-    float *gB, float *gC);
+__global__ __launch_bounds__(16) static void
+Klas_SPMM_g_spmm_f32_64x512x16_on_kernel_19(uint32_t *row_indices,
+    uint32_t rows, Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared,
+    uint32_t cols, float *gB, float *gC);
 __device__ static void Kuiper_For_for_loop___73(uint32_t tmp, uint32_t tmp1,
     uint32_t tmp2, Kuiper_Sparse_Matrix_smatrix__float32 tmp3, uint32_t tmp6,
     float *tmp7, uint32_t tmp8);
@@ -295,14 +295,14 @@ __device__ static void Kuiper_For_for_loop___75(uint32_t tmp, uint32_t tmp1,
 __device__ static void Kuiper_For_for_loop___76(uint32_t tmp, uint32_t tmp1,
     uint32_t tmp2, Kuiper_Sparse_Matrix_smatrix__float32 tmp3, uint32_t tmp6,
     uint32_t *tmp7, uint32_t tmp8, uint32_t tmp9);
-__global__ __launch_bounds__(16) static void kuiper_kernel_20(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void
+Klas_SPMM_g_spmm_f32_128x64x16_kernel_20(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
-__global__ __launch_bounds__(16) static void kuiper_kernel_21(
-    uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
-    float *gB, float *gC);
+__global__ __launch_bounds__(16) static void
+Klas_SPMM_g_spmm_f32_128x64x16_on_kernel_21(uint32_t *row_indices,
+    uint32_t rows, Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared,
+    uint32_t cols, float *gB, float *gC);
 __device__ static void Kuiper_For_for_loop___77(uint32_t tmp, uint32_t tmp1,
     uint32_t tmp2, Kuiper_Sparse_Matrix_smatrix__float32 tmp3, uint32_t tmp6,
     float *tmp7, uint32_t tmp8);
@@ -315,14 +315,14 @@ __device__ static void Kuiper_For_for_loop___79(uint32_t tmp, uint32_t tmp1,
 __device__ static void Kuiper_For_for_loop___80(uint32_t tmp, uint32_t tmp1,
     uint32_t tmp2, Kuiper_Sparse_Matrix_smatrix__float32 tmp3, uint32_t tmp6,
     uint32_t *tmp7, uint32_t tmp8, uint32_t tmp9);
-__global__ __launch_bounds__(16) static void kuiper_kernel_22(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void
+Klas_SPMM_g_spmm_f32_128x128x16_kernel_22(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
-__global__ __launch_bounds__(16) static void kuiper_kernel_23(
-    uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
-    float *gB, float *gC);
+__global__ __launch_bounds__(16) static void
+Klas_SPMM_g_spmm_f32_128x128x16_on_kernel_23(uint32_t *row_indices,
+    uint32_t rows, Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared,
+    uint32_t cols, float *gB, float *gC);
 __device__ static void Kuiper_For_for_loop___81(uint32_t tmp, uint32_t tmp1,
     uint32_t tmp2, Kuiper_Sparse_Matrix_smatrix__float32 tmp3, uint32_t tmp6,
     float *tmp7, uint32_t tmp8);
@@ -342,14 +342,14 @@ __device__ static void Kuiper_For_for_loop___86(uint32_t tmp, uint32_t tmp1,
     float *tmp6, uint32_t *tmp7, uint32_t tmp8, uint32_t tmp9);
 __device__ static void Kuiper_For_for_loop___87(uint32_t tmp, uint32_t tmp1,
     float *tmp2, uint32_t tmp3, uint32_t tmp4, uint32_t tmp5, float *tmp6);
-__global__ __launch_bounds__(32) static void kuiper_kernel_24(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(32) static void
+Klas_SPMM_g_spmm_f32_128x128x32_kernel_24(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
-__global__ __launch_bounds__(32) static void kuiper_kernel_25(
-    uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
-    float *gB, float *gC);
+__global__ __launch_bounds__(32) static void
+Klas_SPMM_g_spmm_f32_128x128x32_on_kernel_25(uint32_t *row_indices,
+    uint32_t rows, Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared,
+    uint32_t cols, float *gB, float *gC);
 __device__ static void Kuiper_For_for_loop___88(uint32_t tmp, uint32_t tmp1,
     uint32_t tmp2, Kuiper_Sparse_Matrix_smatrix__float32 tmp3, uint32_t tmp6,
     float *tmp7, uint32_t tmp8);
@@ -362,14 +362,14 @@ __device__ static void Kuiper_For_for_loop___90(uint32_t tmp, uint32_t tmp1,
 __device__ static void Kuiper_For_for_loop___91(uint32_t tmp, uint32_t tmp1,
     uint32_t tmp2, Kuiper_Sparse_Matrix_smatrix__float32 tmp3, uint32_t tmp6,
     uint32_t *tmp7, uint32_t tmp8, uint32_t tmp9);
-__global__ __launch_bounds__(16) static void kuiper_kernel_26(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void
+Klas_SPMM_g_spmm_f32_128x256x16_kernel_26(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
-__global__ __launch_bounds__(16) static void kuiper_kernel_27(
-    uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
-    float *gB, float *gC);
+__global__ __launch_bounds__(16) static void
+Klas_SPMM_g_spmm_f32_128x256x16_on_kernel_27(uint32_t *row_indices,
+    uint32_t rows, Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared,
+    uint32_t cols, float *gB, float *gC);
 __device__ static void Kuiper_For_for_loop___92(uint32_t tmp, uint32_t tmp1,
     uint32_t tmp2, Kuiper_Sparse_Matrix_smatrix__float32 tmp3, uint32_t tmp6,
     float *tmp7, uint32_t tmp8);
@@ -387,14 +387,14 @@ __device__ static void Kuiper_For_for_loop___96(uint32_t tmp, uint32_t tmp1,
     float *tmp6, uint32_t *tmp7, uint32_t tmp8, uint32_t tmp9);
 __device__ static void Kuiper_For_for_loop___97(uint32_t tmp, uint32_t tmp1,
     float *tmp2, uint32_t tmp3, uint32_t tmp4, uint32_t tmp5, float *tmp6);
-__global__ __launch_bounds__(32) static void kuiper_kernel_28(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(32) static void
+Klas_SPMM_g_spmm_f32_128x256x32_kernel_28(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
-__global__ __launch_bounds__(32) static void kuiper_kernel_29(
-    uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
-    float *gB, float *gC);
+__global__ __launch_bounds__(32) static void
+Klas_SPMM_g_spmm_f32_128x256x32_on_kernel_29(uint32_t *row_indices,
+    uint32_t rows, Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared,
+    uint32_t cols, float *gB, float *gC);
 __device__ static void Kuiper_For_for_loop___98(uint32_t tmp, uint32_t tmp1,
     uint32_t tmp2, Kuiper_Sparse_Matrix_smatrix__float32 tmp3, uint32_t tmp6,
     float *tmp7, uint32_t tmp8);
@@ -407,14 +407,14 @@ __device__ static void Kuiper_For_for_loop___100(uint32_t tmp, uint32_t tmp1,
 __device__ static void Kuiper_For_for_loop___101(uint32_t tmp, uint32_t tmp1,
     uint32_t tmp2, Kuiper_Sparse_Matrix_smatrix__float32 tmp3, uint32_t tmp6,
     uint32_t *tmp7, uint32_t tmp8, uint32_t tmp9);
-__global__ __launch_bounds__(16) static void kuiper_kernel_30(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void
+Klas_SPMM_g_spmm_f32_128x512x16_kernel_30(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
-__global__ __launch_bounds__(16) static void kuiper_kernel_31(
-    uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
-    float *gB, float *gC);
+__global__ __launch_bounds__(16) static void
+Klas_SPMM_g_spmm_f32_128x512x16_on_kernel_31(uint32_t *row_indices,
+    uint32_t rows, Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared,
+    uint32_t cols, float *gB, float *gC);
 __device__ static void Kuiper_For_for_loop___102(uint32_t tmp, uint32_t tmp1,
     uint32_t tmp2, Kuiper_Sparse_Matrix_smatrix__float32 tmp3, uint32_t tmp6,
     float *tmp7, uint32_t tmp8);
@@ -432,14 +432,14 @@ __device__ static void Kuiper_For_for_loop___106(uint32_t tmp, uint32_t tmp1,
     float *tmp6, uint32_t *tmp7, uint32_t tmp8, uint32_t tmp9);
 __device__ static void Kuiper_For_for_loop___107(uint32_t tmp, uint32_t tmp1,
     float *tmp2, uint32_t tmp3, uint32_t tmp4, uint32_t tmp5, float *tmp6);
-__global__ __launch_bounds__(32) static void kuiper_kernel_32(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(32) static void
+Klas_SPMM_g_spmm_f32_128x512x32_kernel_32(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
-__global__ __launch_bounds__(32) static void kuiper_kernel_33(
-    uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
-    float *gB, float *gC);
+__global__ __launch_bounds__(32) static void
+Klas_SPMM_g_spmm_f32_128x512x32_on_kernel_33(uint32_t *row_indices,
+    uint32_t rows, Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared,
+    uint32_t cols, float *gB, float *gC);
 __device__ static void Kuiper_For_for_loop___108(uint32_t tmp, uint32_t tmp1,
     uint32_t tmp2, Kuiper_Sparse_Matrix_smatrix__float32 tmp3, uint32_t tmp6,
     float *tmp7, uint32_t tmp8);
@@ -452,14 +452,14 @@ __device__ static void Kuiper_For_for_loop___110(uint32_t tmp, uint32_t tmp1,
 __device__ static void Kuiper_For_for_loop___111(uint32_t tmp, uint32_t tmp1,
     uint32_t tmp2, Kuiper_Sparse_Matrix_smatrix__float32 tmp3, uint32_t tmp6,
     uint32_t *tmp7, uint32_t tmp8, uint32_t tmp9);
-__global__ __launch_bounds__(16) static void kuiper_kernel_34(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void
+Klas_SPMM_g_spmm_f32_256x64x16_kernel_34(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
-__global__ __launch_bounds__(16) static void kuiper_kernel_35(
-    uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
-    float *gB, float *gC);
+__global__ __launch_bounds__(16) static void
+Klas_SPMM_g_spmm_f32_256x64x16_on_kernel_35(uint32_t *row_indices,
+    uint32_t rows, Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared,
+    uint32_t cols, float *gB, float *gC);
 __device__ static void Kuiper_For_for_loop___112(uint32_t tmp, uint32_t tmp1,
     uint32_t tmp2, Kuiper_Sparse_Matrix_smatrix__float32 tmp3, uint32_t tmp6,
     float *tmp7, uint32_t tmp8);
@@ -472,14 +472,14 @@ __device__ static void Kuiper_For_for_loop___114(uint32_t tmp, uint32_t tmp1,
 __device__ static void Kuiper_For_for_loop___115(uint32_t tmp, uint32_t tmp1,
     uint32_t tmp2, Kuiper_Sparse_Matrix_smatrix__float32 tmp3, uint32_t tmp6,
     uint32_t *tmp7, uint32_t tmp8, uint32_t tmp9);
-__global__ __launch_bounds__(16) static void kuiper_kernel_36(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void
+Klas_SPMM_g_spmm_f32_256x128x16_kernel_36(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
-__global__ __launch_bounds__(16) static void kuiper_kernel_37(
-    uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
-    float *gB, float *gC);
+__global__ __launch_bounds__(16) static void
+Klas_SPMM_g_spmm_f32_256x128x16_on_kernel_37(uint32_t *row_indices,
+    uint32_t rows, Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared,
+    uint32_t cols, float *gB, float *gC);
 __device__ static void Kuiper_For_for_loop___116(uint32_t tmp, uint32_t tmp1,
     uint32_t tmp2, Kuiper_Sparse_Matrix_smatrix__float32 tmp3, uint32_t tmp6,
     float *tmp7, uint32_t tmp8);
@@ -492,14 +492,14 @@ __device__ static void Kuiper_For_for_loop___118(uint32_t tmp, uint32_t tmp1,
 __device__ static void Kuiper_For_for_loop___119(uint32_t tmp, uint32_t tmp1,
     uint32_t tmp2, Kuiper_Sparse_Matrix_smatrix__float32 tmp3, uint32_t tmp6,
     uint32_t *tmp7, uint32_t tmp8, uint32_t tmp9);
-__global__ __launch_bounds__(32) static void kuiper_kernel_38(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(32) static void
+Klas_SPMM_g_spmm_f32_256x128x32_kernel_38(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
-__global__ __launch_bounds__(32) static void kuiper_kernel_39(
-    uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
-    float *gB, float *gC);
+__global__ __launch_bounds__(32) static void
+Klas_SPMM_g_spmm_f32_256x128x32_on_kernel_39(uint32_t *row_indices,
+    uint32_t rows, Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared,
+    uint32_t cols, float *gB, float *gC);
 __device__ static void Kuiper_For_for_loop___120(uint32_t tmp, uint32_t tmp1,
     uint32_t tmp2, Kuiper_Sparse_Matrix_smatrix__float32 tmp3, uint32_t tmp6,
     float *tmp7, uint32_t tmp8);
@@ -512,14 +512,14 @@ __device__ static void Kuiper_For_for_loop___122(uint32_t tmp, uint32_t tmp1,
 __device__ static void Kuiper_For_for_loop___123(uint32_t tmp, uint32_t tmp1,
     uint32_t tmp2, Kuiper_Sparse_Matrix_smatrix__float32 tmp3, uint32_t tmp6,
     uint32_t *tmp7, uint32_t tmp8, uint32_t tmp9);
-__global__ __launch_bounds__(16) static void kuiper_kernel_40(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void
+Klas_SPMM_g_spmm_f32_256x256x16_kernel_40(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
-__global__ __launch_bounds__(16) static void kuiper_kernel_41(
-    uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
-    float *gB, float *gC);
+__global__ __launch_bounds__(16) static void
+Klas_SPMM_g_spmm_f32_256x256x16_on_kernel_41(uint32_t *row_indices,
+    uint32_t rows, Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared,
+    uint32_t cols, float *gB, float *gC);
 __device__ static void Kuiper_For_for_loop___124(uint32_t tmp, uint32_t tmp1,
     uint32_t tmp2, Kuiper_Sparse_Matrix_smatrix__float32 tmp3, uint32_t tmp6,
     float *tmp7, uint32_t tmp8);
@@ -532,14 +532,14 @@ __device__ static void Kuiper_For_for_loop___126(uint32_t tmp, uint32_t tmp1,
 __device__ static void Kuiper_For_for_loop___127(uint32_t tmp, uint32_t tmp1,
     uint32_t tmp2, Kuiper_Sparse_Matrix_smatrix__float32 tmp3, uint32_t tmp6,
     uint32_t *tmp7, uint32_t tmp8, uint32_t tmp9);
-__global__ __launch_bounds__(32) static void kuiper_kernel_42(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(32) static void
+Klas_SPMM_g_spmm_f32_256x256x32_kernel_42(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
-__global__ __launch_bounds__(32) static void kuiper_kernel_43(
-    uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
-    float *gB, float *gC);
+__global__ __launch_bounds__(32) static void
+Klas_SPMM_g_spmm_f32_256x256x32_on_kernel_43(uint32_t *row_indices,
+    uint32_t rows, Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared,
+    uint32_t cols, float *gB, float *gC);
 __device__ static void Kuiper_For_for_loop___128(uint32_t tmp, uint32_t tmp1,
     uint32_t tmp2, Kuiper_Sparse_Matrix_smatrix__float32 tmp3, uint32_t tmp6,
     float *tmp7, uint32_t tmp8);
@@ -557,14 +557,14 @@ __device__ static void Kuiper_For_for_loop___132(uint32_t tmp, uint32_t tmp1,
     float *tmp6, uint32_t *tmp7, uint32_t tmp8, uint32_t tmp9);
 __device__ static void Kuiper_For_for_loop___133(uint32_t tmp, uint32_t tmp1,
     float *tmp2, uint32_t tmp3, uint32_t tmp4, uint32_t tmp5, float *tmp6);
-__global__ __launch_bounds__(64) static void kuiper_kernel_44(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(64) static void
+Klas_SPMM_g_spmm_f32_256x256x64_kernel_44(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
-__global__ __launch_bounds__(64) static void kuiper_kernel_45(
-    uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
-    float *gB, float *gC);
+__global__ __launch_bounds__(64) static void
+Klas_SPMM_g_spmm_f32_256x256x64_on_kernel_45(uint32_t *row_indices,
+    uint32_t rows, Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared,
+    uint32_t cols, float *gB, float *gC);
 __device__ static void Kuiper_For_for_loop___134(uint32_t tmp, uint32_t tmp1,
     uint32_t tmp2, Kuiper_Sparse_Matrix_smatrix__float32 tmp3, uint32_t tmp6,
     float *tmp7, uint32_t tmp8);
@@ -577,14 +577,14 @@ __device__ static void Kuiper_For_for_loop___136(uint32_t tmp, uint32_t tmp1,
 __device__ static void Kuiper_For_for_loop___137(uint32_t tmp, uint32_t tmp1,
     uint32_t tmp2, Kuiper_Sparse_Matrix_smatrix__float32 tmp3, uint32_t tmp6,
     uint32_t *tmp7, uint32_t tmp8, uint32_t tmp9);
-__global__ __launch_bounds__(16) static void kuiper_kernel_46(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void
+Klas_SPMM_g_spmm_f32_256x512x16_kernel_46(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
-__global__ __launch_bounds__(16) static void kuiper_kernel_47(
-    uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
-    float *gB, float *gC);
+__global__ __launch_bounds__(16) static void
+Klas_SPMM_g_spmm_f32_256x512x16_on_kernel_47(uint32_t *row_indices,
+    uint32_t rows, Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared,
+    uint32_t cols, float *gB, float *gC);
 __device__ static void Kuiper_For_for_loop___138(uint32_t tmp, uint32_t tmp1,
     uint32_t tmp2, Kuiper_Sparse_Matrix_smatrix__float32 tmp3, uint32_t tmp6,
     float *tmp7, uint32_t tmp8);
@@ -597,14 +597,14 @@ __device__ static void Kuiper_For_for_loop___140(uint32_t tmp, uint32_t tmp1,
 __device__ static void Kuiper_For_for_loop___141(uint32_t tmp, uint32_t tmp1,
     uint32_t tmp2, Kuiper_Sparse_Matrix_smatrix__float32 tmp3, uint32_t tmp6,
     uint32_t *tmp7, uint32_t tmp8, uint32_t tmp9);
-__global__ __launch_bounds__(32) static void kuiper_kernel_48(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(32) static void
+Klas_SPMM_g_spmm_f32_256x512x32_kernel_48(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
-__global__ __launch_bounds__(32) static void kuiper_kernel_49(
-    uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
-    float *gB, float *gC);
+__global__ __launch_bounds__(32) static void
+Klas_SPMM_g_spmm_f32_256x512x32_on_kernel_49(uint32_t *row_indices,
+    uint32_t rows, Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared,
+    uint32_t cols, float *gB, float *gC);
 __device__ static void Kuiper_For_for_loop___142(uint32_t tmp, uint32_t tmp1,
     uint32_t tmp2, Kuiper_Sparse_Matrix_smatrix__float32 tmp3, uint32_t tmp6,
     float *tmp7, uint32_t tmp8);
@@ -617,14 +617,14 @@ __device__ static void Kuiper_For_for_loop___144(uint32_t tmp, uint32_t tmp1,
 __device__ static void Kuiper_For_for_loop___145(uint32_t tmp, uint32_t tmp1,
     uint32_t tmp2, Kuiper_Sparse_Matrix_smatrix__float32 tmp3, uint32_t tmp6,
     uint32_t *tmp7, uint32_t tmp8, uint32_t tmp9);
-__global__ __launch_bounds__(64) static void kuiper_kernel_50(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(64) static void
+Klas_SPMM_g_spmm_f32_256x512x64_kernel_50(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
-__global__ __launch_bounds__(64) static void kuiper_kernel_51(
-    uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
-    float *gB, float *gC);
+__global__ __launch_bounds__(64) static void
+Klas_SPMM_g_spmm_f32_256x512x64_on_kernel_51(uint32_t *row_indices,
+    uint32_t rows, Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared,
+    uint32_t cols, float *gB, float *gC);
 __device__ static void Kuiper_For_for_loop___146(uint32_t tmp, uint32_t tmp1,
     uint32_t tmp2, Kuiper_Sparse_Matrix_smatrix__float32 tmp3, uint32_t tmp6,
     float *tmp7, uint32_t tmp8);
@@ -637,14 +637,14 @@ __device__ static void Kuiper_For_for_loop___148(uint32_t tmp, uint32_t tmp1,
 __device__ static void Kuiper_For_for_loop___149(uint32_t tmp, uint32_t tmp1,
     uint32_t tmp2, Kuiper_Sparse_Matrix_smatrix__float32 tmp3, uint32_t tmp6,
     uint32_t *tmp7, uint32_t tmp8, uint32_t tmp9);
-__global__ __launch_bounds__(16) static void kuiper_kernel_52(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void
+Klas_SPMM_g_spmm_f32_512x64x16_kernel_52(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
-__global__ __launch_bounds__(16) static void kuiper_kernel_53(
-    uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
-    float *gB, float *gC);
+__global__ __launch_bounds__(16) static void
+Klas_SPMM_g_spmm_f32_512x64x16_on_kernel_53(uint32_t *row_indices,
+    uint32_t rows, Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared,
+    uint32_t cols, float *gB, float *gC);
 __device__ static void Kuiper_For_for_loop___150(uint32_t tmp, uint32_t tmp1,
     uint32_t tmp2, Kuiper_Sparse_Matrix_smatrix__float32 tmp3, uint32_t tmp6,
     float *tmp7, uint32_t tmp8);
@@ -657,14 +657,14 @@ __device__ static void Kuiper_For_for_loop___152(uint32_t tmp, uint32_t tmp1,
 __device__ static void Kuiper_For_for_loop___153(uint32_t tmp, uint32_t tmp1,
     uint32_t tmp2, Kuiper_Sparse_Matrix_smatrix__float32 tmp3, uint32_t tmp6,
     uint32_t *tmp7, uint32_t tmp8, uint32_t tmp9);
-__global__ __launch_bounds__(16) static void kuiper_kernel_54(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void
+Klas_SPMM_g_spmm_f32_512x128x16_kernel_54(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
-__global__ __launch_bounds__(16) static void kuiper_kernel_55(
-    uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
-    float *gB, float *gC);
+__global__ __launch_bounds__(16) static void
+Klas_SPMM_g_spmm_f32_512x128x16_on_kernel_55(uint32_t *row_indices,
+    uint32_t rows, Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared,
+    uint32_t cols, float *gB, float *gC);
 __device__ static void Kuiper_For_for_loop___154(uint32_t tmp, uint32_t tmp1,
     uint32_t tmp2, Kuiper_Sparse_Matrix_smatrix__float32 tmp3, uint32_t tmp6,
     float *tmp7, uint32_t tmp8);
@@ -677,14 +677,14 @@ __device__ static void Kuiper_For_for_loop___156(uint32_t tmp, uint32_t tmp1,
 __device__ static void Kuiper_For_for_loop___157(uint32_t tmp, uint32_t tmp1,
     uint32_t tmp2, Kuiper_Sparse_Matrix_smatrix__float32 tmp3, uint32_t tmp6,
     uint32_t *tmp7, uint32_t tmp8, uint32_t tmp9);
-__global__ __launch_bounds__(32) static void kuiper_kernel_56(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(32) static void
+Klas_SPMM_g_spmm_f32_512x128x32_kernel_56(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
-__global__ __launch_bounds__(32) static void kuiper_kernel_57(
-    uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
-    float *gB, float *gC);
+__global__ __launch_bounds__(32) static void
+Klas_SPMM_g_spmm_f32_512x128x32_on_kernel_57(uint32_t *row_indices,
+    uint32_t rows, Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared,
+    uint32_t cols, float *gB, float *gC);
 __device__ static void Kuiper_For_for_loop___158(uint32_t tmp, uint32_t tmp1,
     uint32_t tmp2, Kuiper_Sparse_Matrix_smatrix__float32 tmp3, uint32_t tmp6,
     float *tmp7, uint32_t tmp8);
@@ -697,14 +697,14 @@ __device__ static void Kuiper_For_for_loop___160(uint32_t tmp, uint32_t tmp1,
 __device__ static void Kuiper_For_for_loop___161(uint32_t tmp, uint32_t tmp1,
     uint32_t tmp2, Kuiper_Sparse_Matrix_smatrix__float32 tmp3, uint32_t tmp6,
     uint32_t *tmp7, uint32_t tmp8, uint32_t tmp9);
-__global__ __launch_bounds__(16) static void kuiper_kernel_58(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void
+Klas_SPMM_g_spmm_f32_512x256x16_kernel_58(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
-__global__ __launch_bounds__(16) static void kuiper_kernel_59(
-    uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
-    float *gB, float *gC);
+__global__ __launch_bounds__(16) static void
+Klas_SPMM_g_spmm_f32_512x256x16_on_kernel_59(uint32_t *row_indices,
+    uint32_t rows, Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared,
+    uint32_t cols, float *gB, float *gC);
 __device__ static void Kuiper_For_for_loop___162(uint32_t tmp, uint32_t tmp1,
     uint32_t tmp2, Kuiper_Sparse_Matrix_smatrix__float32 tmp3, uint32_t tmp6,
     float *tmp7, uint32_t tmp8);
@@ -717,14 +717,14 @@ __device__ static void Kuiper_For_for_loop___164(uint32_t tmp, uint32_t tmp1,
 __device__ static void Kuiper_For_for_loop___165(uint32_t tmp, uint32_t tmp1,
     uint32_t tmp2, Kuiper_Sparse_Matrix_smatrix__float32 tmp3, uint32_t tmp6,
     uint32_t *tmp7, uint32_t tmp8, uint32_t tmp9);
-__global__ __launch_bounds__(32) static void kuiper_kernel_60(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(32) static void
+Klas_SPMM_g_spmm_f32_512x256x32_kernel_60(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
-__global__ __launch_bounds__(32) static void kuiper_kernel_61(
-    uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
-    float *gB, float *gC);
+__global__ __launch_bounds__(32) static void
+Klas_SPMM_g_spmm_f32_512x256x32_on_kernel_61(uint32_t *row_indices,
+    uint32_t rows, Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared,
+    uint32_t cols, float *gB, float *gC);
 __device__ static void Kuiper_For_for_loop___166(uint32_t tmp, uint32_t tmp1,
     uint32_t tmp2, Kuiper_Sparse_Matrix_smatrix__float32 tmp3, uint32_t tmp6,
     float *tmp7, uint32_t tmp8);
@@ -737,14 +737,14 @@ __device__ static void Kuiper_For_for_loop___168(uint32_t tmp, uint32_t tmp1,
 __device__ static void Kuiper_For_for_loop___169(uint32_t tmp, uint32_t tmp1,
     uint32_t tmp2, Kuiper_Sparse_Matrix_smatrix__float32 tmp3, uint32_t tmp6,
     uint32_t *tmp7, uint32_t tmp8, uint32_t tmp9);
-__global__ __launch_bounds__(64) static void kuiper_kernel_62(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(64) static void
+Klas_SPMM_g_spmm_f32_512x256x64_kernel_62(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
-__global__ __launch_bounds__(64) static void kuiper_kernel_63(
-    uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
-    float *gB, float *gC);
+__global__ __launch_bounds__(64) static void
+Klas_SPMM_g_spmm_f32_512x256x64_on_kernel_63(uint32_t *row_indices,
+    uint32_t rows, Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared,
+    uint32_t cols, float *gB, float *gC);
 __device__ static void Kuiper_For_for_loop___170(uint32_t tmp, uint32_t tmp1,
     uint32_t tmp2, Kuiper_Sparse_Matrix_smatrix__float32 tmp3, uint32_t tmp6,
     float *tmp7, uint32_t tmp8);
@@ -757,14 +757,14 @@ __device__ static void Kuiper_For_for_loop___172(uint32_t tmp, uint32_t tmp1,
 __device__ static void Kuiper_For_for_loop___173(uint32_t tmp, uint32_t tmp1,
     uint32_t tmp2, Kuiper_Sparse_Matrix_smatrix__float32 tmp3, uint32_t tmp6,
     uint32_t *tmp7, uint32_t tmp8, uint32_t tmp9);
-__global__ __launch_bounds__(16) static void kuiper_kernel_64(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void
+Klas_SPMM_g_spmm_f32_512x512x16_kernel_64(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
-__global__ __launch_bounds__(16) static void kuiper_kernel_65(
-    uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
-    float *gB, float *gC);
+__global__ __launch_bounds__(16) static void
+Klas_SPMM_g_spmm_f32_512x512x16_on_kernel_65(uint32_t *row_indices,
+    uint32_t rows, Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared,
+    uint32_t cols, float *gB, float *gC);
 __device__ static void Kuiper_For_for_loop___174(uint32_t tmp, uint32_t tmp1,
     uint32_t tmp2, Kuiper_Sparse_Matrix_smatrix__float32 tmp3, uint32_t tmp6,
     float *tmp7, uint32_t tmp8);
@@ -777,22 +777,22 @@ __device__ static void Kuiper_For_for_loop___176(uint32_t tmp, uint32_t tmp1,
 __device__ static void Kuiper_For_for_loop___177(uint32_t tmp, uint32_t tmp1,
     uint32_t tmp2, Kuiper_Sparse_Matrix_smatrix__float32 tmp3, uint32_t tmp6,
     uint32_t *tmp7, uint32_t tmp8, uint32_t tmp9);
-__global__ __launch_bounds__(32) static void kuiper_kernel_66(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(32) static void
+Klas_SPMM_g_spmm_f32_512x512x32_kernel_66(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
-__global__ __launch_bounds__(32) static void kuiper_kernel_67(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(32) static void
+Klas_SPMM_g_spmm_f32_512x512x32_on_kernel_67(uint32_t *row_indices,
+    uint32_t rows, Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared,
+    uint32_t cols, float *gB, float *gC);
+__global__ __launch_bounds__(64) static void
+Klas_SPMM_g_spmm_f32_512x512x64_kernel_68(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
-__global__ __launch_bounds__(64) static void kuiper_kernel_68(
-    uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
-    float *gB, float *gC);
-__global__ __launch_bounds__(64) static void kuiper_kernel_69(
-    uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
-    float *gB, float *gC);
+__global__ __launch_bounds__(64) static void
+Klas_SPMM_g_spmm_f32_512x512x64_on_kernel_69(uint32_t *row_indices,
+    uint32_t rows, Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared,
+    uint32_t cols, float *gB, float *gC);
 __device__ static void Kuiper_For_for_loop___178(uint32_t tmp, uint32_t tmp1,
     uint32_t tmp2, Kuiper_Sparse_Matrix_smatrix__float32 tmp3, uint32_t tmp6,
     float *tmp7, uint32_t tmp8);
@@ -812,14 +812,14 @@ __device__ static void Kuiper_For_for_loop___183(uint32_t tmp, uint32_t tmp1,
     float *tmp6, uint32_t *tmp7, uint32_t tmp8, uint32_t tmp9);
 __device__ static void Kuiper_For_for_loop___184(uint32_t tmp, uint32_t tmp1,
     float *tmp2, uint32_t tmp3, uint32_t tmp4, uint32_t tmp5, float *tmp6);
-__global__ __launch_bounds__(128) static void kuiper_kernel_70(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(128) static void
+Klas_SPMM_g_spmm_f32_512x512x128_kernel_70(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC);
-__global__ __launch_bounds__(128) static void kuiper_kernel_71(
-    uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
-    float *gB, float *gC);
+__global__ __launch_bounds__(128) static void
+Klas_SPMM_g_spmm_f32_512x512x128_on_kernel_71(uint32_t *row_indices,
+    uint32_t rows, Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared,
+    uint32_t cols, float *gB, float *gC);
 
 __device__ static void Kuiper_For_for_loop___0(uint32_t tmp, uint32_t tmp1,
     uint32_t tmp2, Kuiper_Sparse_Matrix_smatrix__uint32 tmp3, uint32_t tmp6,
@@ -942,7 +942,7 @@ __device__ static void Kuiper_For_for_loop___6(uint32_t tmp, uint32_t tmp1,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ __launch_bounds__(32) static void kuiper_kernel_0(
+__global__ __launch_bounds__(32) static void Klas_SPMM_spmm_u32_kernel_0(
     uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__uint32 gA, uint32_t shared, uint32_t cols,
     uint32_t *gB, uint32_t *gC)
@@ -1220,7 +1220,7 @@ __device__ static void Kuiper_For_for_loop___13(uint32_t tmp, uint32_t tmp1,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ __launch_bounds__(64) static void kuiper_kernel_1(
+__global__ __launch_bounds__(64) static void Klas_SPMM_spmm_f32_kernel_1(
     uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
@@ -1497,8 +1497,8 @@ __device__ static void Kuiper_For_for_loop___20(uint32_t tmp, uint32_t tmp1,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ __launch_bounds__(1) static void kuiper_kernel_2(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(1) static void
+Klas_SPMM_g_spmm_f32_32x4x1_kernel_2(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -1773,8 +1773,8 @@ __device__ static void Kuiper_For_for_loop___27(uint32_t tmp, uint32_t tmp1,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ __launch_bounds__(2) static void kuiper_kernel_3(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(2) static void
+Klas_SPMM_g_spmm_f32_32x8x2_kernel_3(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -2049,8 +2049,8 @@ __device__ static void Kuiper_For_for_loop___34(uint32_t tmp, uint32_t tmp1,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ __launch_bounds__(4) static void kuiper_kernel_4(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(4) static void
+Klas_SPMM_g_spmm_f32_32x16x4_kernel_4(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -2325,8 +2325,8 @@ __device__ static void Kuiper_For_for_loop___41(uint32_t tmp, uint32_t tmp1,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ __launch_bounds__(8) static void kuiper_kernel_5(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(8) static void
+Klas_SPMM_g_spmm_f32_32x32x8_kernel_5(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -2589,8 +2589,8 @@ __device__ static void Kuiper_For_for_loop___47(uint32_t tmp, uint32_t tmp1,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ __launch_bounds__(8) static void kuiper_kernel_6(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(8) static void
+Klas_SPMM_g_spmm_f32_32x64x8_kernel_6(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -2746,8 +2746,8 @@ __global__ __launch_bounds__(8) static void kuiper_kernel_6(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ __launch_bounds__(1) static void kuiper_kernel_7(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(1) static void
+Klas_SPMM_g_spmm_f32_32x4x1_on_kernel_7(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -2903,8 +2903,8 @@ __global__ __launch_bounds__(1) static void kuiper_kernel_7(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ __launch_bounds__(2) static void kuiper_kernel_8(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(2) static void
+Klas_SPMM_g_spmm_f32_32x8x2_on_kernel_8(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -3060,8 +3060,8 @@ __global__ __launch_bounds__(2) static void kuiper_kernel_8(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ __launch_bounds__(4) static void kuiper_kernel_9(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(4) static void
+Klas_SPMM_g_spmm_f32_32x16x4_on_kernel_9(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -3217,8 +3217,8 @@ __global__ __launch_bounds__(4) static void kuiper_kernel_9(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ __launch_bounds__(8) static void kuiper_kernel_10(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(8) static void
+Klas_SPMM_g_spmm_f32_32x32x8_on_kernel_10(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -3374,8 +3374,8 @@ __global__ __launch_bounds__(8) static void kuiper_kernel_10(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ __launch_bounds__(8) static void kuiper_kernel_11(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(8) static void
+Klas_SPMM_g_spmm_f32_32x64x8_on_kernel_11(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -3650,8 +3650,8 @@ __device__ static void Kuiper_For_for_loop___54(uint32_t tmp, uint32_t tmp1,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ __launch_bounds__(16) static void kuiper_kernel_12(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void
+Klas_SPMM_g_spmm_f32_64x64x16_kernel_12(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -3807,8 +3807,8 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_12(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ __launch_bounds__(16) static void kuiper_kernel_13(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void
+Klas_SPMM_g_spmm_f32_64x64x16_on_kernel_13(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -4072,8 +4072,8 @@ __device__ static void Kuiper_For_for_loop___60(uint32_t tmp, uint32_t tmp1,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ __launch_bounds__(16) static void kuiper_kernel_14(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void
+Klas_SPMM_g_spmm_f32_64x128x16_kernel_14(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -4229,10 +4229,10 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_14(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ __launch_bounds__(16) static void kuiper_kernel_15(
-    uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
-    float *gB, float *gC)
+__global__ __launch_bounds__(16) static void
+Klas_SPMM_g_spmm_f32_64x128x16_on_kernel_15(uint32_t *row_indices,
+    uint32_t rows, Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared,
+    uint32_t cols, float *gB, float *gC)
 {
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
@@ -4494,8 +4494,8 @@ __device__ static void Kuiper_For_for_loop___66(uint32_t tmp, uint32_t tmp1,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ __launch_bounds__(16) static void kuiper_kernel_16(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void
+Klas_SPMM_g_spmm_f32_64x256x16_kernel_16(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -4652,10 +4652,10 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_16(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ __launch_bounds__(16) static void kuiper_kernel_17(
-    uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
-    float *gB, float *gC)
+__global__ __launch_bounds__(16) static void
+Klas_SPMM_g_spmm_f32_64x256x16_on_kernel_17(uint32_t *row_indices,
+    uint32_t rows, Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared,
+    uint32_t cols, float *gB, float *gC)
 {
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
@@ -4918,8 +4918,8 @@ __device__ static void Kuiper_For_for_loop___72(uint32_t tmp, uint32_t tmp1,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ __launch_bounds__(16) static void kuiper_kernel_18(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void
+Klas_SPMM_g_spmm_f32_64x512x16_kernel_18(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -5077,10 +5077,10 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_18(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ __launch_bounds__(16) static void kuiper_kernel_19(
-    uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
-    float *gB, float *gC)
+__global__ __launch_bounds__(16) static void
+Klas_SPMM_g_spmm_f32_64x512x16_on_kernel_19(uint32_t *row_indices,
+    uint32_t rows, Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared,
+    uint32_t cols, float *gB, float *gC)
 {
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
@@ -5306,8 +5306,8 @@ __device__ static void Kuiper_For_for_loop___76(uint32_t tmp, uint32_t tmp1,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ __launch_bounds__(16) static void kuiper_kernel_20(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void
+Klas_SPMM_g_spmm_f32_128x64x16_kernel_20(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -5464,10 +5464,10 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_20(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ __launch_bounds__(16) static void kuiper_kernel_21(
-    uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
-    float *gB, float *gC)
+__global__ __launch_bounds__(16) static void
+Klas_SPMM_g_spmm_f32_128x64x16_on_kernel_21(uint32_t *row_indices,
+    uint32_t rows, Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared,
+    uint32_t cols, float *gB, float *gC)
 {
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
@@ -5692,8 +5692,8 @@ __device__ static void Kuiper_For_for_loop___80(uint32_t tmp, uint32_t tmp1,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ __launch_bounds__(16) static void kuiper_kernel_22(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void
+Klas_SPMM_g_spmm_f32_128x128x16_kernel_22(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -5850,10 +5850,10 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_22(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ __launch_bounds__(16) static void kuiper_kernel_23(
-    uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
-    float *gB, float *gC)
+__global__ __launch_bounds__(16) static void
+Klas_SPMM_g_spmm_f32_128x128x16_on_kernel_23(uint32_t *row_indices,
+    uint32_t rows, Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared,
+    uint32_t cols, float *gB, float *gC)
 {
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
@@ -6128,8 +6128,8 @@ __device__ static void Kuiper_For_for_loop___87(uint32_t tmp, uint32_t tmp1,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ __launch_bounds__(32) static void kuiper_kernel_24(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(32) static void
+Klas_SPMM_g_spmm_f32_128x128x32_kernel_24(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -6286,10 +6286,10 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_24(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ __launch_bounds__(32) static void kuiper_kernel_25(
-    uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
-    float *gB, float *gC)
+__global__ __launch_bounds__(32) static void
+Klas_SPMM_g_spmm_f32_128x128x32_on_kernel_25(uint32_t *row_indices,
+    uint32_t rows, Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared,
+    uint32_t cols, float *gB, float *gC)
 {
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
@@ -6514,8 +6514,8 @@ __device__ static void Kuiper_For_for_loop___91(uint32_t tmp, uint32_t tmp1,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ __launch_bounds__(16) static void kuiper_kernel_26(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void
+Klas_SPMM_g_spmm_f32_128x256x16_kernel_26(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -6673,10 +6673,10 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_26(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ __launch_bounds__(16) static void kuiper_kernel_27(
-    uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
-    float *gB, float *gC)
+__global__ __launch_bounds__(16) static void
+Klas_SPMM_g_spmm_f32_128x256x16_on_kernel_27(uint32_t *row_indices,
+    uint32_t rows, Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared,
+    uint32_t cols, float *gB, float *gC)
 {
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
@@ -6940,8 +6940,8 @@ __device__ static void Kuiper_For_for_loop___97(uint32_t tmp, uint32_t tmp1,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ __launch_bounds__(32) static void kuiper_kernel_28(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(32) static void
+Klas_SPMM_g_spmm_f32_128x256x32_kernel_28(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -7098,10 +7098,10 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_28(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ __launch_bounds__(32) static void kuiper_kernel_29(
-    uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
-    float *gB, float *gC)
+__global__ __launch_bounds__(32) static void
+Klas_SPMM_g_spmm_f32_128x256x32_on_kernel_29(uint32_t *row_indices,
+    uint32_t rows, Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared,
+    uint32_t cols, float *gB, float *gC)
 {
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
@@ -7326,8 +7326,8 @@ __device__ static void Kuiper_For_for_loop___101(uint32_t tmp, uint32_t tmp1,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ __launch_bounds__(16) static void kuiper_kernel_30(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void
+Klas_SPMM_g_spmm_f32_128x512x16_kernel_30(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -7486,10 +7486,10 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_30(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ __launch_bounds__(16) static void kuiper_kernel_31(
-    uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
-    float *gB, float *gC)
+__global__ __launch_bounds__(16) static void
+Klas_SPMM_g_spmm_f32_128x512x16_on_kernel_31(uint32_t *row_indices,
+    uint32_t rows, Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared,
+    uint32_t cols, float *gB, float *gC)
 {
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
@@ -7754,8 +7754,8 @@ __device__ static void Kuiper_For_for_loop___107(uint32_t tmp, uint32_t tmp1,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ __launch_bounds__(32) static void kuiper_kernel_32(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(32) static void
+Klas_SPMM_g_spmm_f32_128x512x32_kernel_32(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -7913,10 +7913,10 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_32(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ __launch_bounds__(32) static void kuiper_kernel_33(
-    uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
-    float *gB, float *gC)
+__global__ __launch_bounds__(32) static void
+Klas_SPMM_g_spmm_f32_128x512x32_on_kernel_33(uint32_t *row_indices,
+    uint32_t rows, Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared,
+    uint32_t cols, float *gB, float *gC)
 {
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
@@ -8142,8 +8142,8 @@ __device__ static void Kuiper_For_for_loop___111(uint32_t tmp, uint32_t tmp1,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ __launch_bounds__(16) static void kuiper_kernel_34(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void
+Klas_SPMM_g_spmm_f32_256x64x16_kernel_34(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -8300,10 +8300,10 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_34(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ __launch_bounds__(16) static void kuiper_kernel_35(
-    uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
-    float *gB, float *gC)
+__global__ __launch_bounds__(16) static void
+Klas_SPMM_g_spmm_f32_256x64x16_on_kernel_35(uint32_t *row_indices,
+    uint32_t rows, Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared,
+    uint32_t cols, float *gB, float *gC)
 {
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
@@ -8528,8 +8528,8 @@ __device__ static void Kuiper_For_for_loop___115(uint32_t tmp, uint32_t tmp1,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ __launch_bounds__(16) static void kuiper_kernel_36(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void
+Klas_SPMM_g_spmm_f32_256x128x16_kernel_36(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -8686,10 +8686,10 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_36(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ __launch_bounds__(16) static void kuiper_kernel_37(
-    uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
-    float *gB, float *gC)
+__global__ __launch_bounds__(16) static void
+Klas_SPMM_g_spmm_f32_256x128x16_on_kernel_37(uint32_t *row_indices,
+    uint32_t rows, Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared,
+    uint32_t cols, float *gB, float *gC)
 {
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
@@ -8914,8 +8914,8 @@ __device__ static void Kuiper_For_for_loop___119(uint32_t tmp, uint32_t tmp1,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ __launch_bounds__(32) static void kuiper_kernel_38(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(32) static void
+Klas_SPMM_g_spmm_f32_256x128x32_kernel_38(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -9072,10 +9072,10 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_38(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ __launch_bounds__(32) static void kuiper_kernel_39(
-    uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
-    float *gB, float *gC)
+__global__ __launch_bounds__(32) static void
+Klas_SPMM_g_spmm_f32_256x128x32_on_kernel_39(uint32_t *row_indices,
+    uint32_t rows, Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared,
+    uint32_t cols, float *gB, float *gC)
 {
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
@@ -9300,8 +9300,8 @@ __device__ static void Kuiper_For_for_loop___123(uint32_t tmp, uint32_t tmp1,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ __launch_bounds__(16) static void kuiper_kernel_40(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void
+Klas_SPMM_g_spmm_f32_256x256x16_kernel_40(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -9459,10 +9459,10 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_40(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ __launch_bounds__(16) static void kuiper_kernel_41(
-    uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
-    float *gB, float *gC)
+__global__ __launch_bounds__(16) static void
+Klas_SPMM_g_spmm_f32_256x256x16_on_kernel_41(uint32_t *row_indices,
+    uint32_t rows, Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared,
+    uint32_t cols, float *gB, float *gC)
 {
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
@@ -9688,8 +9688,8 @@ __device__ static void Kuiper_For_for_loop___127(uint32_t tmp, uint32_t tmp1,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ __launch_bounds__(32) static void kuiper_kernel_42(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(32) static void
+Klas_SPMM_g_spmm_f32_256x256x32_kernel_42(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -9846,10 +9846,10 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_42(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ __launch_bounds__(32) static void kuiper_kernel_43(
-    uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
-    float *gB, float *gC)
+__global__ __launch_bounds__(32) static void
+Klas_SPMM_g_spmm_f32_256x256x32_on_kernel_43(uint32_t *row_indices,
+    uint32_t rows, Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared,
+    uint32_t cols, float *gB, float *gC)
 {
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
@@ -10112,8 +10112,8 @@ __device__ static void Kuiper_For_for_loop___133(uint32_t tmp, uint32_t tmp1,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ __launch_bounds__(64) static void kuiper_kernel_44(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(64) static void
+Klas_SPMM_g_spmm_f32_256x256x64_kernel_44(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -10270,10 +10270,10 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_44(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ __launch_bounds__(64) static void kuiper_kernel_45(
-    uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
-    float *gB, float *gC)
+__global__ __launch_bounds__(64) static void
+Klas_SPMM_g_spmm_f32_256x256x64_on_kernel_45(uint32_t *row_indices,
+    uint32_t rows, Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared,
+    uint32_t cols, float *gB, float *gC)
 {
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
@@ -10498,8 +10498,8 @@ __device__ static void Kuiper_For_for_loop___137(uint32_t tmp, uint32_t tmp1,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ __launch_bounds__(16) static void kuiper_kernel_46(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void
+Klas_SPMM_g_spmm_f32_256x512x16_kernel_46(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -10658,10 +10658,10 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_46(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ __launch_bounds__(16) static void kuiper_kernel_47(
-    uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
-    float *gB, float *gC)
+__global__ __launch_bounds__(16) static void
+Klas_SPMM_g_spmm_f32_256x512x16_on_kernel_47(uint32_t *row_indices,
+    uint32_t rows, Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared,
+    uint32_t cols, float *gB, float *gC)
 {
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
@@ -10888,8 +10888,8 @@ __device__ static void Kuiper_For_for_loop___141(uint32_t tmp, uint32_t tmp1,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ __launch_bounds__(32) static void kuiper_kernel_48(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(32) static void
+Klas_SPMM_g_spmm_f32_256x512x32_kernel_48(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -11047,10 +11047,10 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_48(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ __launch_bounds__(32) static void kuiper_kernel_49(
-    uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
-    float *gB, float *gC)
+__global__ __launch_bounds__(32) static void
+Klas_SPMM_g_spmm_f32_256x512x32_on_kernel_49(uint32_t *row_indices,
+    uint32_t rows, Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared,
+    uint32_t cols, float *gB, float *gC)
 {
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
@@ -11276,8 +11276,8 @@ __device__ static void Kuiper_For_for_loop___145(uint32_t tmp, uint32_t tmp1,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ __launch_bounds__(64) static void kuiper_kernel_50(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(64) static void
+Klas_SPMM_g_spmm_f32_256x512x64_kernel_50(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -11434,10 +11434,10 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_50(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ __launch_bounds__(64) static void kuiper_kernel_51(
-    uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
-    float *gB, float *gC)
+__global__ __launch_bounds__(64) static void
+Klas_SPMM_g_spmm_f32_256x512x64_on_kernel_51(uint32_t *row_indices,
+    uint32_t rows, Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared,
+    uint32_t cols, float *gB, float *gC)
 {
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
@@ -11662,8 +11662,8 @@ __device__ static void Kuiper_For_for_loop___149(uint32_t tmp, uint32_t tmp1,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ __launch_bounds__(16) static void kuiper_kernel_52(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void
+Klas_SPMM_g_spmm_f32_512x64x16_kernel_52(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -11820,10 +11820,10 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_52(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ __launch_bounds__(16) static void kuiper_kernel_53(
-    uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
-    float *gB, float *gC)
+__global__ __launch_bounds__(16) static void
+Klas_SPMM_g_spmm_f32_512x64x16_on_kernel_53(uint32_t *row_indices,
+    uint32_t rows, Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared,
+    uint32_t cols, float *gB, float *gC)
 {
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
@@ -12048,8 +12048,8 @@ __device__ static void Kuiper_For_for_loop___153(uint32_t tmp, uint32_t tmp1,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ __launch_bounds__(16) static void kuiper_kernel_54(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void
+Klas_SPMM_g_spmm_f32_512x128x16_kernel_54(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -12206,10 +12206,10 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_54(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ __launch_bounds__(16) static void kuiper_kernel_55(
-    uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
-    float *gB, float *gC)
+__global__ __launch_bounds__(16) static void
+Klas_SPMM_g_spmm_f32_512x128x16_on_kernel_55(uint32_t *row_indices,
+    uint32_t rows, Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared,
+    uint32_t cols, float *gB, float *gC)
 {
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
@@ -12434,8 +12434,8 @@ __device__ static void Kuiper_For_for_loop___157(uint32_t tmp, uint32_t tmp1,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ __launch_bounds__(32) static void kuiper_kernel_56(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(32) static void
+Klas_SPMM_g_spmm_f32_512x128x32_kernel_56(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -12592,10 +12592,10 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_56(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ __launch_bounds__(32) static void kuiper_kernel_57(
-    uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
-    float *gB, float *gC)
+__global__ __launch_bounds__(32) static void
+Klas_SPMM_g_spmm_f32_512x128x32_on_kernel_57(uint32_t *row_indices,
+    uint32_t rows, Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared,
+    uint32_t cols, float *gB, float *gC)
 {
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
@@ -12820,8 +12820,8 @@ __device__ static void Kuiper_For_for_loop___161(uint32_t tmp, uint32_t tmp1,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ __launch_bounds__(16) static void kuiper_kernel_58(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void
+Klas_SPMM_g_spmm_f32_512x256x16_kernel_58(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -12979,10 +12979,10 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_58(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ __launch_bounds__(16) static void kuiper_kernel_59(
-    uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
-    float *gB, float *gC)
+__global__ __launch_bounds__(16) static void
+Klas_SPMM_g_spmm_f32_512x256x16_on_kernel_59(uint32_t *row_indices,
+    uint32_t rows, Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared,
+    uint32_t cols, float *gB, float *gC)
 {
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
@@ -13208,8 +13208,8 @@ __device__ static void Kuiper_For_for_loop___165(uint32_t tmp, uint32_t tmp1,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ __launch_bounds__(32) static void kuiper_kernel_60(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(32) static void
+Klas_SPMM_g_spmm_f32_512x256x32_kernel_60(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -13366,10 +13366,10 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_60(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ __launch_bounds__(32) static void kuiper_kernel_61(
-    uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
-    float *gB, float *gC)
+__global__ __launch_bounds__(32) static void
+Klas_SPMM_g_spmm_f32_512x256x32_on_kernel_61(uint32_t *row_indices,
+    uint32_t rows, Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared,
+    uint32_t cols, float *gB, float *gC)
 {
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
@@ -13594,8 +13594,8 @@ __device__ static void Kuiper_For_for_loop___169(uint32_t tmp, uint32_t tmp1,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ __launch_bounds__(64) static void kuiper_kernel_62(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(64) static void
+Klas_SPMM_g_spmm_f32_512x256x64_kernel_62(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -13752,10 +13752,10 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_62(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ __launch_bounds__(64) static void kuiper_kernel_63(
-    uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
-    float *gB, float *gC)
+__global__ __launch_bounds__(64) static void
+Klas_SPMM_g_spmm_f32_512x256x64_on_kernel_63(uint32_t *row_indices,
+    uint32_t rows, Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared,
+    uint32_t cols, float *gB, float *gC)
 {
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
@@ -13980,8 +13980,8 @@ __device__ static void Kuiper_For_for_loop___173(uint32_t tmp, uint32_t tmp1,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ __launch_bounds__(16) static void kuiper_kernel_64(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(16) static void
+Klas_SPMM_g_spmm_f32_512x512x16_kernel_64(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -14140,10 +14140,10 @@ __global__ __launch_bounds__(16) static void kuiper_kernel_64(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ __launch_bounds__(16) static void kuiper_kernel_65(
-    uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
-    float *gB, float *gC)
+__global__ __launch_bounds__(16) static void
+Klas_SPMM_g_spmm_f32_512x512x16_on_kernel_65(uint32_t *row_indices,
+    uint32_t rows, Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared,
+    uint32_t cols, float *gB, float *gC)
 {
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
@@ -14370,8 +14370,8 @@ __device__ static void Kuiper_For_for_loop___177(uint32_t tmp, uint32_t tmp1,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ __launch_bounds__(32) static void kuiper_kernel_66(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(32) static void
+Klas_SPMM_g_spmm_f32_512x512x32_kernel_66(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -14529,10 +14529,10 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_66(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ __launch_bounds__(32) static void kuiper_kernel_67(
-    uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
-    float *gB, float *gC)
+__global__ __launch_bounds__(32) static void
+Klas_SPMM_g_spmm_f32_512x512x32_on_kernel_67(uint32_t *row_indices,
+    uint32_t rows, Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared,
+    uint32_t cols, float *gB, float *gC)
 {
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
@@ -14688,8 +14688,8 @@ __global__ __launch_bounds__(32) static void kuiper_kernel_67(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ __launch_bounds__(64) static void kuiper_kernel_68(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(64) static void
+Klas_SPMM_g_spmm_f32_512x512x64_kernel_68(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -14846,10 +14846,10 @@ __global__ __launch_bounds__(64) static void kuiper_kernel_68(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ __launch_bounds__(64) static void kuiper_kernel_69(
-    uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
-    float *gB, float *gC)
+__global__ __launch_bounds__(64) static void
+Klas_SPMM_g_spmm_f32_512x512x64_on_kernel_69(uint32_t *row_indices,
+    uint32_t rows, Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared,
+    uint32_t cols, float *gB, float *gC)
 {
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
@@ -15125,8 +15125,8 @@ __device__ static void Kuiper_For_for_loop___184(uint32_t tmp, uint32_t tmp1,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ __launch_bounds__(128) static void kuiper_kernel_70(
-    uint32_t *row_indices, uint32_t rows,
+__global__ __launch_bounds__(128) static void
+Klas_SPMM_g_spmm_f32_512x512x128_kernel_70(uint32_t *row_indices, uint32_t rows,
     Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
     float *gB, float *gC)
 {
@@ -15283,10 +15283,10 @@ __global__ __launch_bounds__(128) static void kuiper_kernel_70(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ __launch_bounds__(128) static void kuiper_kernel_71(
-    uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared, uint32_t cols,
-    float *gB, float *gC)
+__global__ __launch_bounds__(128) static void
+Klas_SPMM_g_spmm_f32_512x512x128_on_kernel_71(uint32_t *row_indices,
+    uint32_t rows, Kuiper_Sparse_Matrix_smatrix__float32 gA, uint32_t shared,
+    uint32_t cols, float *gB, float *gC)
 {
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_uintsize_ptr_unit sh =
@@ -15450,15 +15450,16 @@ void Klas_SPMM_spmm_u32(uint32_t rows, uint32_t shared, uint32_t cols,
     KPR_GUARD((cols < 10000));
     KPR_SHMEM_FITS(((0 + (((uint32_t) 4U) * ((uint32_t) 128U))) +
                     (((uint32_t) 4U) * ((uint32_t) 128U))));
-    KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_0, ((0 + (((uint32_t) 4U) * ((uint32_t) 128U))) +
-                             (((uint32_t) 4U) * ((uint32_t) 128U))));
+    KPR_SET_MAX_DYN_SHMEM(Klas_SPMM_spmm_u32_kernel_0,
+        ((0 + (((uint32_t) 4U) * ((uint32_t) 128U))) +
+            (((uint32_t) 4U) * ((uint32_t) 128U))));
     uint32_t _ct1;
     if ((cols % 128) != 0)
         _ct1 = 1;
     else
         _ct1 = 0;
-    KPR_KCALL(kuiper_kernel_0, (rows * ((cols / 128) + _ct1)), ((uint32_t) 32U),
+    KPR_KCALL(Klas_SPMM_spmm_u32_kernel_0, (rows * ((cols / 128) + _ct1)),
+        ((uint32_t) 32U),
         ((0 + (((uint32_t) 4U) * ((uint32_t) 128U))) +
             (((uint32_t) 4U) * ((uint32_t) 128U))),
         s, row_indices, rows, gA, shared, cols, gB, gC);
@@ -15476,15 +15477,16 @@ void Klas_SPMM_spmm_f32(uint32_t rows, uint32_t shared, uint32_t cols,
     KPR_GUARD((cols < 10000));
     KPR_SHMEM_FITS(((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
                     (((uint32_t) 4U) * ((uint32_t) 512U))));
-    KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_1, ((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
-                             (((uint32_t) 4U) * ((uint32_t) 512U))));
+    KPR_SET_MAX_DYN_SHMEM(Klas_SPMM_spmm_f32_kernel_1,
+        ((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
+            (((uint32_t) 4U) * ((uint32_t) 512U))));
     uint32_t _ct1;
     if ((cols % 512) != 0)
         _ct1 = 1;
     else
         _ct1 = 0;
-    KPR_KCALL(kuiper_kernel_1, (rows * ((cols / 512) + _ct1)), ((uint32_t) 64U),
+    KPR_KCALL(Klas_SPMM_spmm_f32_kernel_1, (rows * ((cols / 512) + _ct1)),
+        ((uint32_t) 64U),
         ((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
             (((uint32_t) 4U) * ((uint32_t) 512U))),
         s, row_indices, rows, gA, shared, cols, gB, gC);
@@ -15502,15 +15504,16 @@ void Klas_SPMM_g_spmm_f32_32x4x1(uint32_t rows, uint32_t shared, uint32_t cols,
     KPR_GUARD((cols < 10000));
     KPR_SHMEM_FITS(((0 + (((uint32_t) 4U) * ((uint32_t) 32U))) +
                     (((uint32_t) 4U) * ((uint32_t) 32U))));
-    KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_2, ((0 + (((uint32_t) 4U) * ((uint32_t) 32U))) +
-                             (((uint32_t) 4U) * ((uint32_t) 32U))));
+    KPR_SET_MAX_DYN_SHMEM(Klas_SPMM_g_spmm_f32_32x4x1_kernel_2,
+        ((0 + (((uint32_t) 4U) * ((uint32_t) 32U))) +
+            (((uint32_t) 4U) * ((uint32_t) 32U))));
     uint32_t _ct1;
     if ((cols % 4) != 0)
         _ct1 = 1;
     else
         _ct1 = 0;
-    KPR_KCALL(kuiper_kernel_2, (rows * ((cols / 4) + _ct1)), ((uint32_t) 1U),
+    KPR_KCALL(Klas_SPMM_g_spmm_f32_32x4x1_kernel_2,
+        (rows * ((cols / 4) + _ct1)), ((uint32_t) 1U),
         ((0 + (((uint32_t) 4U) * ((uint32_t) 32U))) +
             (((uint32_t) 4U) * ((uint32_t) 32U))),
         s, row_indices, rows, gA, shared, cols, gB, gC);
@@ -15528,15 +15531,16 @@ void Klas_SPMM_g_spmm_f32_32x8x2(uint32_t rows, uint32_t shared, uint32_t cols,
     KPR_GUARD((cols < 10000));
     KPR_SHMEM_FITS(((0 + (((uint32_t) 4U) * ((uint32_t) 32U))) +
                     (((uint32_t) 4U) * ((uint32_t) 32U))));
-    KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_3, ((0 + (((uint32_t) 4U) * ((uint32_t) 32U))) +
-                             (((uint32_t) 4U) * ((uint32_t) 32U))));
+    KPR_SET_MAX_DYN_SHMEM(Klas_SPMM_g_spmm_f32_32x8x2_kernel_3,
+        ((0 + (((uint32_t) 4U) * ((uint32_t) 32U))) +
+            (((uint32_t) 4U) * ((uint32_t) 32U))));
     uint32_t _ct1;
     if ((cols % 8) != 0)
         _ct1 = 1;
     else
         _ct1 = 0;
-    KPR_KCALL(kuiper_kernel_3, (rows * ((cols / 8) + _ct1)), ((uint32_t) 2U),
+    KPR_KCALL(Klas_SPMM_g_spmm_f32_32x8x2_kernel_3,
+        (rows * ((cols / 8) + _ct1)), ((uint32_t) 2U),
         ((0 + (((uint32_t) 4U) * ((uint32_t) 32U))) +
             (((uint32_t) 4U) * ((uint32_t) 32U))),
         s, row_indices, rows, gA, shared, cols, gB, gC);
@@ -15554,15 +15558,16 @@ void Klas_SPMM_g_spmm_f32_32x16x4(uint32_t rows, uint32_t shared, uint32_t cols,
     KPR_GUARD((cols < 10000));
     KPR_SHMEM_FITS(((0 + (((uint32_t) 4U) * ((uint32_t) 32U))) +
                     (((uint32_t) 4U) * ((uint32_t) 32U))));
-    KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_4, ((0 + (((uint32_t) 4U) * ((uint32_t) 32U))) +
-                             (((uint32_t) 4U) * ((uint32_t) 32U))));
+    KPR_SET_MAX_DYN_SHMEM(Klas_SPMM_g_spmm_f32_32x16x4_kernel_4,
+        ((0 + (((uint32_t) 4U) * ((uint32_t) 32U))) +
+            (((uint32_t) 4U) * ((uint32_t) 32U))));
     uint32_t _ct1;
     if ((cols % 16) != 0)
         _ct1 = 1;
     else
         _ct1 = 0;
-    KPR_KCALL(kuiper_kernel_4, (rows * ((cols / 16) + _ct1)), ((uint32_t) 4U),
+    KPR_KCALL(Klas_SPMM_g_spmm_f32_32x16x4_kernel_4,
+        (rows * ((cols / 16) + _ct1)), ((uint32_t) 4U),
         ((0 + (((uint32_t) 4U) * ((uint32_t) 32U))) +
             (((uint32_t) 4U) * ((uint32_t) 32U))),
         s, row_indices, rows, gA, shared, cols, gB, gC);
@@ -15580,15 +15585,16 @@ void Klas_SPMM_g_spmm_f32_32x32x8(uint32_t rows, uint32_t shared, uint32_t cols,
     KPR_GUARD((cols < 10000));
     KPR_SHMEM_FITS(((0 + (((uint32_t) 4U) * ((uint32_t) 32U))) +
                     (((uint32_t) 4U) * ((uint32_t) 32U))));
-    KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_5, ((0 + (((uint32_t) 4U) * ((uint32_t) 32U))) +
-                             (((uint32_t) 4U) * ((uint32_t) 32U))));
+    KPR_SET_MAX_DYN_SHMEM(Klas_SPMM_g_spmm_f32_32x32x8_kernel_5,
+        ((0 + (((uint32_t) 4U) * ((uint32_t) 32U))) +
+            (((uint32_t) 4U) * ((uint32_t) 32U))));
     uint32_t _ct1;
     if ((cols % 32) != 0)
         _ct1 = 1;
     else
         _ct1 = 0;
-    KPR_KCALL(kuiper_kernel_5, (rows * ((cols / 32) + _ct1)), ((uint32_t) 8U),
+    KPR_KCALL(Klas_SPMM_g_spmm_f32_32x32x8_kernel_5,
+        (rows * ((cols / 32) + _ct1)), ((uint32_t) 8U),
         ((0 + (((uint32_t) 4U) * ((uint32_t) 32U))) +
             (((uint32_t) 4U) * ((uint32_t) 32U))),
         s, row_indices, rows, gA, shared, cols, gB, gC);
@@ -15606,15 +15612,16 @@ void Klas_SPMM_g_spmm_f32_32x64x8(uint32_t rows, uint32_t shared, uint32_t cols,
     KPR_GUARD((cols < 10000));
     KPR_SHMEM_FITS(((0 + (((uint32_t) 4U) * ((uint32_t) 32U))) +
                     (((uint32_t) 4U) * ((uint32_t) 32U))));
-    KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_6, ((0 + (((uint32_t) 4U) * ((uint32_t) 32U))) +
-                             (((uint32_t) 4U) * ((uint32_t) 32U))));
+    KPR_SET_MAX_DYN_SHMEM(Klas_SPMM_g_spmm_f32_32x64x8_kernel_6,
+        ((0 + (((uint32_t) 4U) * ((uint32_t) 32U))) +
+            (((uint32_t) 4U) * ((uint32_t) 32U))));
     uint32_t _ct1;
     if ((cols % 64) != 0)
         _ct1 = 1;
     else
         _ct1 = 0;
-    KPR_KCALL(kuiper_kernel_6, (rows * ((cols / 64) + _ct1)), ((uint32_t) 8U),
+    KPR_KCALL(Klas_SPMM_g_spmm_f32_32x64x8_kernel_6,
+        (rows * ((cols / 64) + _ct1)), ((uint32_t) 8U),
         ((0 + (((uint32_t) 4U) * ((uint32_t) 32U))) +
             (((uint32_t) 4U) * ((uint32_t) 32U))),
         s, row_indices, rows, gA, shared, cols, gB, gC);
@@ -15631,15 +15638,16 @@ void Klas_SPMM_g_spmm_f32_32x4x1_on(uint32_t rows, uint32_t shared,
     KPR_GUARD((cols < 10000));
     KPR_SHMEM_FITS(((0 + (((uint32_t) 4U) * ((uint32_t) 32U))) +
                     (((uint32_t) 4U) * ((uint32_t) 32U))));
-    KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_7, ((0 + (((uint32_t) 4U) * ((uint32_t) 32U))) +
-                             (((uint32_t) 4U) * ((uint32_t) 32U))));
+    KPR_SET_MAX_DYN_SHMEM(Klas_SPMM_g_spmm_f32_32x4x1_on_kernel_7,
+        ((0 + (((uint32_t) 4U) * ((uint32_t) 32U))) +
+            (((uint32_t) 4U) * ((uint32_t) 32U))));
     uint32_t _ct1;
     if ((cols % 4) != 0)
         _ct1 = 1;
     else
         _ct1 = 0;
-    KPR_KCALL(kuiper_kernel_7, (rows * ((cols / 4) + _ct1)), ((uint32_t) 1U),
+    KPR_KCALL(Klas_SPMM_g_spmm_f32_32x4x1_on_kernel_7,
+        (rows * ((cols / 4) + _ct1)), ((uint32_t) 1U),
         ((0 + (((uint32_t) 4U) * ((uint32_t) 32U))) +
             (((uint32_t) 4U) * ((uint32_t) 32U))),
         s, row_indices, rows, gA, shared, cols, gB, gC);
@@ -15654,15 +15662,16 @@ void Klas_SPMM_g_spmm_f32_32x8x2_on(uint32_t rows, uint32_t shared,
     KPR_GUARD((cols < 10000));
     KPR_SHMEM_FITS(((0 + (((uint32_t) 4U) * ((uint32_t) 32U))) +
                     (((uint32_t) 4U) * ((uint32_t) 32U))));
-    KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_8, ((0 + (((uint32_t) 4U) * ((uint32_t) 32U))) +
-                             (((uint32_t) 4U) * ((uint32_t) 32U))));
+    KPR_SET_MAX_DYN_SHMEM(Klas_SPMM_g_spmm_f32_32x8x2_on_kernel_8,
+        ((0 + (((uint32_t) 4U) * ((uint32_t) 32U))) +
+            (((uint32_t) 4U) * ((uint32_t) 32U))));
     uint32_t _ct1;
     if ((cols % 8) != 0)
         _ct1 = 1;
     else
         _ct1 = 0;
-    KPR_KCALL(kuiper_kernel_8, (rows * ((cols / 8) + _ct1)), ((uint32_t) 2U),
+    KPR_KCALL(Klas_SPMM_g_spmm_f32_32x8x2_on_kernel_8,
+        (rows * ((cols / 8) + _ct1)), ((uint32_t) 2U),
         ((0 + (((uint32_t) 4U) * ((uint32_t) 32U))) +
             (((uint32_t) 4U) * ((uint32_t) 32U))),
         s, row_indices, rows, gA, shared, cols, gB, gC);
@@ -15677,15 +15686,16 @@ void Klas_SPMM_g_spmm_f32_32x16x4_on(uint32_t rows, uint32_t shared,
     KPR_GUARD((cols < 10000));
     KPR_SHMEM_FITS(((0 + (((uint32_t) 4U) * ((uint32_t) 32U))) +
                     (((uint32_t) 4U) * ((uint32_t) 32U))));
-    KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_9, ((0 + (((uint32_t) 4U) * ((uint32_t) 32U))) +
-                             (((uint32_t) 4U) * ((uint32_t) 32U))));
+    KPR_SET_MAX_DYN_SHMEM(Klas_SPMM_g_spmm_f32_32x16x4_on_kernel_9,
+        ((0 + (((uint32_t) 4U) * ((uint32_t) 32U))) +
+            (((uint32_t) 4U) * ((uint32_t) 32U))));
     uint32_t _ct1;
     if ((cols % 16) != 0)
         _ct1 = 1;
     else
         _ct1 = 0;
-    KPR_KCALL(kuiper_kernel_9, (rows * ((cols / 16) + _ct1)), ((uint32_t) 4U),
+    KPR_KCALL(Klas_SPMM_g_spmm_f32_32x16x4_on_kernel_9,
+        (rows * ((cols / 16) + _ct1)), ((uint32_t) 4U),
         ((0 + (((uint32_t) 4U) * ((uint32_t) 32U))) +
             (((uint32_t) 4U) * ((uint32_t) 32U))),
         s, row_indices, rows, gA, shared, cols, gB, gC);
@@ -15700,15 +15710,16 @@ void Klas_SPMM_g_spmm_f32_32x32x8_on(uint32_t rows, uint32_t shared,
     KPR_GUARD((cols < 10000));
     KPR_SHMEM_FITS(((0 + (((uint32_t) 4U) * ((uint32_t) 32U))) +
                     (((uint32_t) 4U) * ((uint32_t) 32U))));
-    KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_10, ((0 + (((uint32_t) 4U) * ((uint32_t) 32U))) +
-                              (((uint32_t) 4U) * ((uint32_t) 32U))));
+    KPR_SET_MAX_DYN_SHMEM(Klas_SPMM_g_spmm_f32_32x32x8_on_kernel_10,
+        ((0 + (((uint32_t) 4U) * ((uint32_t) 32U))) +
+            (((uint32_t) 4U) * ((uint32_t) 32U))));
     uint32_t _ct1;
     if ((cols % 32) != 0)
         _ct1 = 1;
     else
         _ct1 = 0;
-    KPR_KCALL(kuiper_kernel_10, (rows * ((cols / 32) + _ct1)), ((uint32_t) 8U),
+    KPR_KCALL(Klas_SPMM_g_spmm_f32_32x32x8_on_kernel_10,
+        (rows * ((cols / 32) + _ct1)), ((uint32_t) 8U),
         ((0 + (((uint32_t) 4U) * ((uint32_t) 32U))) +
             (((uint32_t) 4U) * ((uint32_t) 32U))),
         s, row_indices, rows, gA, shared, cols, gB, gC);
@@ -15723,15 +15734,16 @@ void Klas_SPMM_g_spmm_f32_32x64x8_on(uint32_t rows, uint32_t shared,
     KPR_GUARD((cols < 10000));
     KPR_SHMEM_FITS(((0 + (((uint32_t) 4U) * ((uint32_t) 32U))) +
                     (((uint32_t) 4U) * ((uint32_t) 32U))));
-    KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_11, ((0 + (((uint32_t) 4U) * ((uint32_t) 32U))) +
-                              (((uint32_t) 4U) * ((uint32_t) 32U))));
+    KPR_SET_MAX_DYN_SHMEM(Klas_SPMM_g_spmm_f32_32x64x8_on_kernel_11,
+        ((0 + (((uint32_t) 4U) * ((uint32_t) 32U))) +
+            (((uint32_t) 4U) * ((uint32_t) 32U))));
     uint32_t _ct1;
     if ((cols % 64) != 0)
         _ct1 = 1;
     else
         _ct1 = 0;
-    KPR_KCALL(kuiper_kernel_11, (rows * ((cols / 64) + _ct1)), ((uint32_t) 8U),
+    KPR_KCALL(Klas_SPMM_g_spmm_f32_32x64x8_on_kernel_11,
+        (rows * ((cols / 64) + _ct1)), ((uint32_t) 8U),
         ((0 + (((uint32_t) 4U) * ((uint32_t) 32U))) +
             (((uint32_t) 4U) * ((uint32_t) 32U))),
         s, row_indices, rows, gA, shared, cols, gB, gC);
@@ -15747,15 +15759,16 @@ void Klas_SPMM_g_spmm_f32_64x64x16(uint32_t rows, uint32_t shared,
     KPR_GUARD((cols < 10000));
     KPR_SHMEM_FITS(((0 + (((uint32_t) 4U) * ((uint32_t) 64U))) +
                     (((uint32_t) 4U) * ((uint32_t) 64U))));
-    KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_12, ((0 + (((uint32_t) 4U) * ((uint32_t) 64U))) +
-                              (((uint32_t) 4U) * ((uint32_t) 64U))));
+    KPR_SET_MAX_DYN_SHMEM(Klas_SPMM_g_spmm_f32_64x64x16_kernel_12,
+        ((0 + (((uint32_t) 4U) * ((uint32_t) 64U))) +
+            (((uint32_t) 4U) * ((uint32_t) 64U))));
     uint32_t _ct1;
     if ((cols % 64) != 0)
         _ct1 = 1;
     else
         _ct1 = 0;
-    KPR_KCALL(kuiper_kernel_12, (rows * ((cols / 64) + _ct1)), ((uint32_t) 16U),
+    KPR_KCALL(Klas_SPMM_g_spmm_f32_64x64x16_kernel_12,
+        (rows * ((cols / 64) + _ct1)), ((uint32_t) 16U),
         ((0 + (((uint32_t) 4U) * ((uint32_t) 64U))) +
             (((uint32_t) 4U) * ((uint32_t) 64U))),
         s, row_indices, rows, gA, shared, cols, gB, gC);
@@ -15772,15 +15785,16 @@ void Klas_SPMM_g_spmm_f32_64x64x16_on(uint32_t rows, uint32_t shared,
     KPR_GUARD((cols < 10000));
     KPR_SHMEM_FITS(((0 + (((uint32_t) 4U) * ((uint32_t) 64U))) +
                     (((uint32_t) 4U) * ((uint32_t) 64U))));
-    KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_13, ((0 + (((uint32_t) 4U) * ((uint32_t) 64U))) +
-                              (((uint32_t) 4U) * ((uint32_t) 64U))));
+    KPR_SET_MAX_DYN_SHMEM(Klas_SPMM_g_spmm_f32_64x64x16_on_kernel_13,
+        ((0 + (((uint32_t) 4U) * ((uint32_t) 64U))) +
+            (((uint32_t) 4U) * ((uint32_t) 64U))));
     uint32_t _ct1;
     if ((cols % 64) != 0)
         _ct1 = 1;
     else
         _ct1 = 0;
-    KPR_KCALL(kuiper_kernel_13, (rows * ((cols / 64) + _ct1)), ((uint32_t) 16U),
+    KPR_KCALL(Klas_SPMM_g_spmm_f32_64x64x16_on_kernel_13,
+        (rows * ((cols / 64) + _ct1)), ((uint32_t) 16U),
         ((0 + (((uint32_t) 4U) * ((uint32_t) 64U))) +
             (((uint32_t) 4U) * ((uint32_t) 64U))),
         s, row_indices, rows, gA, shared, cols, gB, gC);
@@ -15796,16 +15810,16 @@ void Klas_SPMM_g_spmm_f32_64x128x16(uint32_t rows, uint32_t shared,
     KPR_GUARD((cols < 10000));
     KPR_SHMEM_FITS(((0 + (((uint32_t) 4U) * ((uint32_t) 64U))) +
                     (((uint32_t) 4U) * ((uint32_t) 64U))));
-    KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_14, ((0 + (((uint32_t) 4U) * ((uint32_t) 64U))) +
-                              (((uint32_t) 4U) * ((uint32_t) 64U))));
+    KPR_SET_MAX_DYN_SHMEM(Klas_SPMM_g_spmm_f32_64x128x16_kernel_14,
+        ((0 + (((uint32_t) 4U) * ((uint32_t) 64U))) +
+            (((uint32_t) 4U) * ((uint32_t) 64U))));
     uint32_t _ct1;
     if ((cols % 128) != 0)
         _ct1 = 1;
     else
         _ct1 = 0;
-    KPR_KCALL(kuiper_kernel_14, (rows * ((cols / 128) + _ct1)),
-        ((uint32_t) 16U),
+    KPR_KCALL(Klas_SPMM_g_spmm_f32_64x128x16_kernel_14,
+        (rows * ((cols / 128) + _ct1)), ((uint32_t) 16U),
         ((0 + (((uint32_t) 4U) * ((uint32_t) 64U))) +
             (((uint32_t) 4U) * ((uint32_t) 64U))),
         s, row_indices, rows, gA, shared, cols, gB, gC);
@@ -15822,16 +15836,16 @@ void Klas_SPMM_g_spmm_f32_64x128x16_on(uint32_t rows, uint32_t shared,
     KPR_GUARD((cols < 10000));
     KPR_SHMEM_FITS(((0 + (((uint32_t) 4U) * ((uint32_t) 64U))) +
                     (((uint32_t) 4U) * ((uint32_t) 64U))));
-    KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_15, ((0 + (((uint32_t) 4U) * ((uint32_t) 64U))) +
-                              (((uint32_t) 4U) * ((uint32_t) 64U))));
+    KPR_SET_MAX_DYN_SHMEM(Klas_SPMM_g_spmm_f32_64x128x16_on_kernel_15,
+        ((0 + (((uint32_t) 4U) * ((uint32_t) 64U))) +
+            (((uint32_t) 4U) * ((uint32_t) 64U))));
     uint32_t _ct1;
     if ((cols % 128) != 0)
         _ct1 = 1;
     else
         _ct1 = 0;
-    KPR_KCALL(kuiper_kernel_15, (rows * ((cols / 128) + _ct1)),
-        ((uint32_t) 16U),
+    KPR_KCALL(Klas_SPMM_g_spmm_f32_64x128x16_on_kernel_15,
+        (rows * ((cols / 128) + _ct1)), ((uint32_t) 16U),
         ((0 + (((uint32_t) 4U) * ((uint32_t) 64U))) +
             (((uint32_t) 4U) * ((uint32_t) 64U))),
         s, row_indices, rows, gA, shared, cols, gB, gC);
@@ -15847,16 +15861,16 @@ void Klas_SPMM_g_spmm_f32_64x256x16(uint32_t rows, uint32_t shared,
     KPR_GUARD((cols < 10000));
     KPR_SHMEM_FITS(((0 + (((uint32_t) 4U) * ((uint32_t) 64U))) +
                     (((uint32_t) 4U) * ((uint32_t) 64U))));
-    KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_16, ((0 + (((uint32_t) 4U) * ((uint32_t) 64U))) +
-                              (((uint32_t) 4U) * ((uint32_t) 64U))));
+    KPR_SET_MAX_DYN_SHMEM(Klas_SPMM_g_spmm_f32_64x256x16_kernel_16,
+        ((0 + (((uint32_t) 4U) * ((uint32_t) 64U))) +
+            (((uint32_t) 4U) * ((uint32_t) 64U))));
     uint32_t _ct1;
     if ((cols % 256) != 0)
         _ct1 = 1;
     else
         _ct1 = 0;
-    KPR_KCALL(kuiper_kernel_16, (rows * ((cols / 256) + _ct1)),
-        ((uint32_t) 16U),
+    KPR_KCALL(Klas_SPMM_g_spmm_f32_64x256x16_kernel_16,
+        (rows * ((cols / 256) + _ct1)), ((uint32_t) 16U),
         ((0 + (((uint32_t) 4U) * ((uint32_t) 64U))) +
             (((uint32_t) 4U) * ((uint32_t) 64U))),
         s, row_indices, rows, gA, shared, cols, gB, gC);
@@ -15873,16 +15887,16 @@ void Klas_SPMM_g_spmm_f32_64x256x16_on(uint32_t rows, uint32_t shared,
     KPR_GUARD((cols < 10000));
     KPR_SHMEM_FITS(((0 + (((uint32_t) 4U) * ((uint32_t) 64U))) +
                     (((uint32_t) 4U) * ((uint32_t) 64U))));
-    KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_17, ((0 + (((uint32_t) 4U) * ((uint32_t) 64U))) +
-                              (((uint32_t) 4U) * ((uint32_t) 64U))));
+    KPR_SET_MAX_DYN_SHMEM(Klas_SPMM_g_spmm_f32_64x256x16_on_kernel_17,
+        ((0 + (((uint32_t) 4U) * ((uint32_t) 64U))) +
+            (((uint32_t) 4U) * ((uint32_t) 64U))));
     uint32_t _ct1;
     if ((cols % 256) != 0)
         _ct1 = 1;
     else
         _ct1 = 0;
-    KPR_KCALL(kuiper_kernel_17, (rows * ((cols / 256) + _ct1)),
-        ((uint32_t) 16U),
+    KPR_KCALL(Klas_SPMM_g_spmm_f32_64x256x16_on_kernel_17,
+        (rows * ((cols / 256) + _ct1)), ((uint32_t) 16U),
         ((0 + (((uint32_t) 4U) * ((uint32_t) 64U))) +
             (((uint32_t) 4U) * ((uint32_t) 64U))),
         s, row_indices, rows, gA, shared, cols, gB, gC);
@@ -15898,16 +15912,16 @@ void Klas_SPMM_g_spmm_f32_64x512x16(uint32_t rows, uint32_t shared,
     KPR_GUARD((cols < 10000));
     KPR_SHMEM_FITS(((0 + (((uint32_t) 4U) * ((uint32_t) 64U))) +
                     (((uint32_t) 4U) * ((uint32_t) 64U))));
-    KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_18, ((0 + (((uint32_t) 4U) * ((uint32_t) 64U))) +
-                              (((uint32_t) 4U) * ((uint32_t) 64U))));
+    KPR_SET_MAX_DYN_SHMEM(Klas_SPMM_g_spmm_f32_64x512x16_kernel_18,
+        ((0 + (((uint32_t) 4U) * ((uint32_t) 64U))) +
+            (((uint32_t) 4U) * ((uint32_t) 64U))));
     uint32_t _ct1;
     if ((cols % 512) != 0)
         _ct1 = 1;
     else
         _ct1 = 0;
-    KPR_KCALL(kuiper_kernel_18, (rows * ((cols / 512) + _ct1)),
-        ((uint32_t) 16U),
+    KPR_KCALL(Klas_SPMM_g_spmm_f32_64x512x16_kernel_18,
+        (rows * ((cols / 512) + _ct1)), ((uint32_t) 16U),
         ((0 + (((uint32_t) 4U) * ((uint32_t) 64U))) +
             (((uint32_t) 4U) * ((uint32_t) 64U))),
         s, row_indices, rows, gA, shared, cols, gB, gC);
@@ -15924,16 +15938,16 @@ void Klas_SPMM_g_spmm_f32_64x512x16_on(uint32_t rows, uint32_t shared,
     KPR_GUARD((cols < 10000));
     KPR_SHMEM_FITS(((0 + (((uint32_t) 4U) * ((uint32_t) 64U))) +
                     (((uint32_t) 4U) * ((uint32_t) 64U))));
-    KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_19, ((0 + (((uint32_t) 4U) * ((uint32_t) 64U))) +
-                              (((uint32_t) 4U) * ((uint32_t) 64U))));
+    KPR_SET_MAX_DYN_SHMEM(Klas_SPMM_g_spmm_f32_64x512x16_on_kernel_19,
+        ((0 + (((uint32_t) 4U) * ((uint32_t) 64U))) +
+            (((uint32_t) 4U) * ((uint32_t) 64U))));
     uint32_t _ct1;
     if ((cols % 512) != 0)
         _ct1 = 1;
     else
         _ct1 = 0;
-    KPR_KCALL(kuiper_kernel_19, (rows * ((cols / 512) + _ct1)),
-        ((uint32_t) 16U),
+    KPR_KCALL(Klas_SPMM_g_spmm_f32_64x512x16_on_kernel_19,
+        (rows * ((cols / 512) + _ct1)), ((uint32_t) 16U),
         ((0 + (((uint32_t) 4U) * ((uint32_t) 64U))) +
             (((uint32_t) 4U) * ((uint32_t) 64U))),
         s, row_indices, rows, gA, shared, cols, gB, gC);
@@ -15949,15 +15963,16 @@ void Klas_SPMM_g_spmm_f32_128x64x16(uint32_t rows, uint32_t shared,
     KPR_GUARD((cols < 10000));
     KPR_SHMEM_FITS(((0 + (((uint32_t) 4U) * ((uint32_t) 128U))) +
                     (((uint32_t) 4U) * ((uint32_t) 128U))));
-    KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_20, ((0 + (((uint32_t) 4U) * ((uint32_t) 128U))) +
-                              (((uint32_t) 4U) * ((uint32_t) 128U))));
+    KPR_SET_MAX_DYN_SHMEM(Klas_SPMM_g_spmm_f32_128x64x16_kernel_20,
+        ((0 + (((uint32_t) 4U) * ((uint32_t) 128U))) +
+            (((uint32_t) 4U) * ((uint32_t) 128U))));
     uint32_t _ct1;
     if ((cols % 64) != 0)
         _ct1 = 1;
     else
         _ct1 = 0;
-    KPR_KCALL(kuiper_kernel_20, (rows * ((cols / 64) + _ct1)), ((uint32_t) 16U),
+    KPR_KCALL(Klas_SPMM_g_spmm_f32_128x64x16_kernel_20,
+        (rows * ((cols / 64) + _ct1)), ((uint32_t) 16U),
         ((0 + (((uint32_t) 4U) * ((uint32_t) 128U))) +
             (((uint32_t) 4U) * ((uint32_t) 128U))),
         s, row_indices, rows, gA, shared, cols, gB, gC);
@@ -15974,15 +15989,16 @@ void Klas_SPMM_g_spmm_f32_128x64x16_on(uint32_t rows, uint32_t shared,
     KPR_GUARD((cols < 10000));
     KPR_SHMEM_FITS(((0 + (((uint32_t) 4U) * ((uint32_t) 128U))) +
                     (((uint32_t) 4U) * ((uint32_t) 128U))));
-    KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_21, ((0 + (((uint32_t) 4U) * ((uint32_t) 128U))) +
-                              (((uint32_t) 4U) * ((uint32_t) 128U))));
+    KPR_SET_MAX_DYN_SHMEM(Klas_SPMM_g_spmm_f32_128x64x16_on_kernel_21,
+        ((0 + (((uint32_t) 4U) * ((uint32_t) 128U))) +
+            (((uint32_t) 4U) * ((uint32_t) 128U))));
     uint32_t _ct1;
     if ((cols % 64) != 0)
         _ct1 = 1;
     else
         _ct1 = 0;
-    KPR_KCALL(kuiper_kernel_21, (rows * ((cols / 64) + _ct1)), ((uint32_t) 16U),
+    KPR_KCALL(Klas_SPMM_g_spmm_f32_128x64x16_on_kernel_21,
+        (rows * ((cols / 64) + _ct1)), ((uint32_t) 16U),
         ((0 + (((uint32_t) 4U) * ((uint32_t) 128U))) +
             (((uint32_t) 4U) * ((uint32_t) 128U))),
         s, row_indices, rows, gA, shared, cols, gB, gC);
@@ -15998,16 +16014,16 @@ void Klas_SPMM_g_spmm_f32_128x128x16(uint32_t rows, uint32_t shared,
     KPR_GUARD((cols < 10000));
     KPR_SHMEM_FITS(((0 + (((uint32_t) 4U) * ((uint32_t) 128U))) +
                     (((uint32_t) 4U) * ((uint32_t) 128U))));
-    KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_22, ((0 + (((uint32_t) 4U) * ((uint32_t) 128U))) +
-                              (((uint32_t) 4U) * ((uint32_t) 128U))));
+    KPR_SET_MAX_DYN_SHMEM(Klas_SPMM_g_spmm_f32_128x128x16_kernel_22,
+        ((0 + (((uint32_t) 4U) * ((uint32_t) 128U))) +
+            (((uint32_t) 4U) * ((uint32_t) 128U))));
     uint32_t _ct1;
     if ((cols % 128) != 0)
         _ct1 = 1;
     else
         _ct1 = 0;
-    KPR_KCALL(kuiper_kernel_22, (rows * ((cols / 128) + _ct1)),
-        ((uint32_t) 16U),
+    KPR_KCALL(Klas_SPMM_g_spmm_f32_128x128x16_kernel_22,
+        (rows * ((cols / 128) + _ct1)), ((uint32_t) 16U),
         ((0 + (((uint32_t) 4U) * ((uint32_t) 128U))) +
             (((uint32_t) 4U) * ((uint32_t) 128U))),
         s, row_indices, rows, gA, shared, cols, gB, gC);
@@ -16024,16 +16040,16 @@ void Klas_SPMM_g_spmm_f32_128x128x16_on(uint32_t rows, uint32_t shared,
     KPR_GUARD((cols < 10000));
     KPR_SHMEM_FITS(((0 + (((uint32_t) 4U) * ((uint32_t) 128U))) +
                     (((uint32_t) 4U) * ((uint32_t) 128U))));
-    KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_23, ((0 + (((uint32_t) 4U) * ((uint32_t) 128U))) +
-                              (((uint32_t) 4U) * ((uint32_t) 128U))));
+    KPR_SET_MAX_DYN_SHMEM(Klas_SPMM_g_spmm_f32_128x128x16_on_kernel_23,
+        ((0 + (((uint32_t) 4U) * ((uint32_t) 128U))) +
+            (((uint32_t) 4U) * ((uint32_t) 128U))));
     uint32_t _ct1;
     if ((cols % 128) != 0)
         _ct1 = 1;
     else
         _ct1 = 0;
-    KPR_KCALL(kuiper_kernel_23, (rows * ((cols / 128) + _ct1)),
-        ((uint32_t) 16U),
+    KPR_KCALL(Klas_SPMM_g_spmm_f32_128x128x16_on_kernel_23,
+        (rows * ((cols / 128) + _ct1)), ((uint32_t) 16U),
         ((0 + (((uint32_t) 4U) * ((uint32_t) 128U))) +
             (((uint32_t) 4U) * ((uint32_t) 128U))),
         s, row_indices, rows, gA, shared, cols, gB, gC);
@@ -16049,16 +16065,16 @@ void Klas_SPMM_g_spmm_f32_128x128x32(uint32_t rows, uint32_t shared,
     KPR_GUARD((cols < 10000));
     KPR_SHMEM_FITS(((0 + (((uint32_t) 4U) * ((uint32_t) 128U))) +
                     (((uint32_t) 4U) * ((uint32_t) 128U))));
-    KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_24, ((0 + (((uint32_t) 4U) * ((uint32_t) 128U))) +
-                              (((uint32_t) 4U) * ((uint32_t) 128U))));
+    KPR_SET_MAX_DYN_SHMEM(Klas_SPMM_g_spmm_f32_128x128x32_kernel_24,
+        ((0 + (((uint32_t) 4U) * ((uint32_t) 128U))) +
+            (((uint32_t) 4U) * ((uint32_t) 128U))));
     uint32_t _ct1;
     if ((cols % 128) != 0)
         _ct1 = 1;
     else
         _ct1 = 0;
-    KPR_KCALL(kuiper_kernel_24, (rows * ((cols / 128) + _ct1)),
-        ((uint32_t) 32U),
+    KPR_KCALL(Klas_SPMM_g_spmm_f32_128x128x32_kernel_24,
+        (rows * ((cols / 128) + _ct1)), ((uint32_t) 32U),
         ((0 + (((uint32_t) 4U) * ((uint32_t) 128U))) +
             (((uint32_t) 4U) * ((uint32_t) 128U))),
         s, row_indices, rows, gA, shared, cols, gB, gC);
@@ -16075,16 +16091,16 @@ void Klas_SPMM_g_spmm_f32_128x128x32_on(uint32_t rows, uint32_t shared,
     KPR_GUARD((cols < 10000));
     KPR_SHMEM_FITS(((0 + (((uint32_t) 4U) * ((uint32_t) 128U))) +
                     (((uint32_t) 4U) * ((uint32_t) 128U))));
-    KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_25, ((0 + (((uint32_t) 4U) * ((uint32_t) 128U))) +
-                              (((uint32_t) 4U) * ((uint32_t) 128U))));
+    KPR_SET_MAX_DYN_SHMEM(Klas_SPMM_g_spmm_f32_128x128x32_on_kernel_25,
+        ((0 + (((uint32_t) 4U) * ((uint32_t) 128U))) +
+            (((uint32_t) 4U) * ((uint32_t) 128U))));
     uint32_t _ct1;
     if ((cols % 128) != 0)
         _ct1 = 1;
     else
         _ct1 = 0;
-    KPR_KCALL(kuiper_kernel_25, (rows * ((cols / 128) + _ct1)),
-        ((uint32_t) 32U),
+    KPR_KCALL(Klas_SPMM_g_spmm_f32_128x128x32_on_kernel_25,
+        (rows * ((cols / 128) + _ct1)), ((uint32_t) 32U),
         ((0 + (((uint32_t) 4U) * ((uint32_t) 128U))) +
             (((uint32_t) 4U) * ((uint32_t) 128U))),
         s, row_indices, rows, gA, shared, cols, gB, gC);
@@ -16100,16 +16116,16 @@ void Klas_SPMM_g_spmm_f32_128x256x16(uint32_t rows, uint32_t shared,
     KPR_GUARD((cols < 10000));
     KPR_SHMEM_FITS(((0 + (((uint32_t) 4U) * ((uint32_t) 128U))) +
                     (((uint32_t) 4U) * ((uint32_t) 128U))));
-    KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_26, ((0 + (((uint32_t) 4U) * ((uint32_t) 128U))) +
-                              (((uint32_t) 4U) * ((uint32_t) 128U))));
+    KPR_SET_MAX_DYN_SHMEM(Klas_SPMM_g_spmm_f32_128x256x16_kernel_26,
+        ((0 + (((uint32_t) 4U) * ((uint32_t) 128U))) +
+            (((uint32_t) 4U) * ((uint32_t) 128U))));
     uint32_t _ct1;
     if ((cols % 256) != 0)
         _ct1 = 1;
     else
         _ct1 = 0;
-    KPR_KCALL(kuiper_kernel_26, (rows * ((cols / 256) + _ct1)),
-        ((uint32_t) 16U),
+    KPR_KCALL(Klas_SPMM_g_spmm_f32_128x256x16_kernel_26,
+        (rows * ((cols / 256) + _ct1)), ((uint32_t) 16U),
         ((0 + (((uint32_t) 4U) * ((uint32_t) 128U))) +
             (((uint32_t) 4U) * ((uint32_t) 128U))),
         s, row_indices, rows, gA, shared, cols, gB, gC);
@@ -16126,16 +16142,16 @@ void Klas_SPMM_g_spmm_f32_128x256x16_on(uint32_t rows, uint32_t shared,
     KPR_GUARD((cols < 10000));
     KPR_SHMEM_FITS(((0 + (((uint32_t) 4U) * ((uint32_t) 128U))) +
                     (((uint32_t) 4U) * ((uint32_t) 128U))));
-    KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_27, ((0 + (((uint32_t) 4U) * ((uint32_t) 128U))) +
-                              (((uint32_t) 4U) * ((uint32_t) 128U))));
+    KPR_SET_MAX_DYN_SHMEM(Klas_SPMM_g_spmm_f32_128x256x16_on_kernel_27,
+        ((0 + (((uint32_t) 4U) * ((uint32_t) 128U))) +
+            (((uint32_t) 4U) * ((uint32_t) 128U))));
     uint32_t _ct1;
     if ((cols % 256) != 0)
         _ct1 = 1;
     else
         _ct1 = 0;
-    KPR_KCALL(kuiper_kernel_27, (rows * ((cols / 256) + _ct1)),
-        ((uint32_t) 16U),
+    KPR_KCALL(Klas_SPMM_g_spmm_f32_128x256x16_on_kernel_27,
+        (rows * ((cols / 256) + _ct1)), ((uint32_t) 16U),
         ((0 + (((uint32_t) 4U) * ((uint32_t) 128U))) +
             (((uint32_t) 4U) * ((uint32_t) 128U))),
         s, row_indices, rows, gA, shared, cols, gB, gC);
@@ -16151,16 +16167,16 @@ void Klas_SPMM_g_spmm_f32_128x256x32(uint32_t rows, uint32_t shared,
     KPR_GUARD((cols < 10000));
     KPR_SHMEM_FITS(((0 + (((uint32_t) 4U) * ((uint32_t) 128U))) +
                     (((uint32_t) 4U) * ((uint32_t) 128U))));
-    KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_28, ((0 + (((uint32_t) 4U) * ((uint32_t) 128U))) +
-                              (((uint32_t) 4U) * ((uint32_t) 128U))));
+    KPR_SET_MAX_DYN_SHMEM(Klas_SPMM_g_spmm_f32_128x256x32_kernel_28,
+        ((0 + (((uint32_t) 4U) * ((uint32_t) 128U))) +
+            (((uint32_t) 4U) * ((uint32_t) 128U))));
     uint32_t _ct1;
     if ((cols % 256) != 0)
         _ct1 = 1;
     else
         _ct1 = 0;
-    KPR_KCALL(kuiper_kernel_28, (rows * ((cols / 256) + _ct1)),
-        ((uint32_t) 32U),
+    KPR_KCALL(Klas_SPMM_g_spmm_f32_128x256x32_kernel_28,
+        (rows * ((cols / 256) + _ct1)), ((uint32_t) 32U),
         ((0 + (((uint32_t) 4U) * ((uint32_t) 128U))) +
             (((uint32_t) 4U) * ((uint32_t) 128U))),
         s, row_indices, rows, gA, shared, cols, gB, gC);
@@ -16177,16 +16193,16 @@ void Klas_SPMM_g_spmm_f32_128x256x32_on(uint32_t rows, uint32_t shared,
     KPR_GUARD((cols < 10000));
     KPR_SHMEM_FITS(((0 + (((uint32_t) 4U) * ((uint32_t) 128U))) +
                     (((uint32_t) 4U) * ((uint32_t) 128U))));
-    KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_29, ((0 + (((uint32_t) 4U) * ((uint32_t) 128U))) +
-                              (((uint32_t) 4U) * ((uint32_t) 128U))));
+    KPR_SET_MAX_DYN_SHMEM(Klas_SPMM_g_spmm_f32_128x256x32_on_kernel_29,
+        ((0 + (((uint32_t) 4U) * ((uint32_t) 128U))) +
+            (((uint32_t) 4U) * ((uint32_t) 128U))));
     uint32_t _ct1;
     if ((cols % 256) != 0)
         _ct1 = 1;
     else
         _ct1 = 0;
-    KPR_KCALL(kuiper_kernel_29, (rows * ((cols / 256) + _ct1)),
-        ((uint32_t) 32U),
+    KPR_KCALL(Klas_SPMM_g_spmm_f32_128x256x32_on_kernel_29,
+        (rows * ((cols / 256) + _ct1)), ((uint32_t) 32U),
         ((0 + (((uint32_t) 4U) * ((uint32_t) 128U))) +
             (((uint32_t) 4U) * ((uint32_t) 128U))),
         s, row_indices, rows, gA, shared, cols, gB, gC);
@@ -16202,16 +16218,16 @@ void Klas_SPMM_g_spmm_f32_128x512x16(uint32_t rows, uint32_t shared,
     KPR_GUARD((cols < 10000));
     KPR_SHMEM_FITS(((0 + (((uint32_t) 4U) * ((uint32_t) 128U))) +
                     (((uint32_t) 4U) * ((uint32_t) 128U))));
-    KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_30, ((0 + (((uint32_t) 4U) * ((uint32_t) 128U))) +
-                              (((uint32_t) 4U) * ((uint32_t) 128U))));
+    KPR_SET_MAX_DYN_SHMEM(Klas_SPMM_g_spmm_f32_128x512x16_kernel_30,
+        ((0 + (((uint32_t) 4U) * ((uint32_t) 128U))) +
+            (((uint32_t) 4U) * ((uint32_t) 128U))));
     uint32_t _ct1;
     if ((cols % 512) != 0)
         _ct1 = 1;
     else
         _ct1 = 0;
-    KPR_KCALL(kuiper_kernel_30, (rows * ((cols / 512) + _ct1)),
-        ((uint32_t) 16U),
+    KPR_KCALL(Klas_SPMM_g_spmm_f32_128x512x16_kernel_30,
+        (rows * ((cols / 512) + _ct1)), ((uint32_t) 16U),
         ((0 + (((uint32_t) 4U) * ((uint32_t) 128U))) +
             (((uint32_t) 4U) * ((uint32_t) 128U))),
         s, row_indices, rows, gA, shared, cols, gB, gC);
@@ -16228,16 +16244,16 @@ void Klas_SPMM_g_spmm_f32_128x512x16_on(uint32_t rows, uint32_t shared,
     KPR_GUARD((cols < 10000));
     KPR_SHMEM_FITS(((0 + (((uint32_t) 4U) * ((uint32_t) 128U))) +
                     (((uint32_t) 4U) * ((uint32_t) 128U))));
-    KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_31, ((0 + (((uint32_t) 4U) * ((uint32_t) 128U))) +
-                              (((uint32_t) 4U) * ((uint32_t) 128U))));
+    KPR_SET_MAX_DYN_SHMEM(Klas_SPMM_g_spmm_f32_128x512x16_on_kernel_31,
+        ((0 + (((uint32_t) 4U) * ((uint32_t) 128U))) +
+            (((uint32_t) 4U) * ((uint32_t) 128U))));
     uint32_t _ct1;
     if ((cols % 512) != 0)
         _ct1 = 1;
     else
         _ct1 = 0;
-    KPR_KCALL(kuiper_kernel_31, (rows * ((cols / 512) + _ct1)),
-        ((uint32_t) 16U),
+    KPR_KCALL(Klas_SPMM_g_spmm_f32_128x512x16_on_kernel_31,
+        (rows * ((cols / 512) + _ct1)), ((uint32_t) 16U),
         ((0 + (((uint32_t) 4U) * ((uint32_t) 128U))) +
             (((uint32_t) 4U) * ((uint32_t) 128U))),
         s, row_indices, rows, gA, shared, cols, gB, gC);
@@ -16253,16 +16269,16 @@ void Klas_SPMM_g_spmm_f32_128x512x32(uint32_t rows, uint32_t shared,
     KPR_GUARD((cols < 10000));
     KPR_SHMEM_FITS(((0 + (((uint32_t) 4U) * ((uint32_t) 128U))) +
                     (((uint32_t) 4U) * ((uint32_t) 128U))));
-    KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_32, ((0 + (((uint32_t) 4U) * ((uint32_t) 128U))) +
-                              (((uint32_t) 4U) * ((uint32_t) 128U))));
+    KPR_SET_MAX_DYN_SHMEM(Klas_SPMM_g_spmm_f32_128x512x32_kernel_32,
+        ((0 + (((uint32_t) 4U) * ((uint32_t) 128U))) +
+            (((uint32_t) 4U) * ((uint32_t) 128U))));
     uint32_t _ct1;
     if ((cols % 512) != 0)
         _ct1 = 1;
     else
         _ct1 = 0;
-    KPR_KCALL(kuiper_kernel_32, (rows * ((cols / 512) + _ct1)),
-        ((uint32_t) 32U),
+    KPR_KCALL(Klas_SPMM_g_spmm_f32_128x512x32_kernel_32,
+        (rows * ((cols / 512) + _ct1)), ((uint32_t) 32U),
         ((0 + (((uint32_t) 4U) * ((uint32_t) 128U))) +
             (((uint32_t) 4U) * ((uint32_t) 128U))),
         s, row_indices, rows, gA, shared, cols, gB, gC);
@@ -16279,16 +16295,16 @@ void Klas_SPMM_g_spmm_f32_128x512x32_on(uint32_t rows, uint32_t shared,
     KPR_GUARD((cols < 10000));
     KPR_SHMEM_FITS(((0 + (((uint32_t) 4U) * ((uint32_t) 128U))) +
                     (((uint32_t) 4U) * ((uint32_t) 128U))));
-    KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_33, ((0 + (((uint32_t) 4U) * ((uint32_t) 128U))) +
-                              (((uint32_t) 4U) * ((uint32_t) 128U))));
+    KPR_SET_MAX_DYN_SHMEM(Klas_SPMM_g_spmm_f32_128x512x32_on_kernel_33,
+        ((0 + (((uint32_t) 4U) * ((uint32_t) 128U))) +
+            (((uint32_t) 4U) * ((uint32_t) 128U))));
     uint32_t _ct1;
     if ((cols % 512) != 0)
         _ct1 = 1;
     else
         _ct1 = 0;
-    KPR_KCALL(kuiper_kernel_33, (rows * ((cols / 512) + _ct1)),
-        ((uint32_t) 32U),
+    KPR_KCALL(Klas_SPMM_g_spmm_f32_128x512x32_on_kernel_33,
+        (rows * ((cols / 512) + _ct1)), ((uint32_t) 32U),
         ((0 + (((uint32_t) 4U) * ((uint32_t) 128U))) +
             (((uint32_t) 4U) * ((uint32_t) 128U))),
         s, row_indices, rows, gA, shared, cols, gB, gC);
@@ -16304,15 +16320,16 @@ void Klas_SPMM_g_spmm_f32_256x64x16(uint32_t rows, uint32_t shared,
     KPR_GUARD((cols < 10000));
     KPR_SHMEM_FITS(((0 + (((uint32_t) 4U) * ((uint32_t) 256U))) +
                     (((uint32_t) 4U) * ((uint32_t) 256U))));
-    KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_34, ((0 + (((uint32_t) 4U) * ((uint32_t) 256U))) +
-                              (((uint32_t) 4U) * ((uint32_t) 256U))));
+    KPR_SET_MAX_DYN_SHMEM(Klas_SPMM_g_spmm_f32_256x64x16_kernel_34,
+        ((0 + (((uint32_t) 4U) * ((uint32_t) 256U))) +
+            (((uint32_t) 4U) * ((uint32_t) 256U))));
     uint32_t _ct1;
     if ((cols % 64) != 0)
         _ct1 = 1;
     else
         _ct1 = 0;
-    KPR_KCALL(kuiper_kernel_34, (rows * ((cols / 64) + _ct1)), ((uint32_t) 16U),
+    KPR_KCALL(Klas_SPMM_g_spmm_f32_256x64x16_kernel_34,
+        (rows * ((cols / 64) + _ct1)), ((uint32_t) 16U),
         ((0 + (((uint32_t) 4U) * ((uint32_t) 256U))) +
             (((uint32_t) 4U) * ((uint32_t) 256U))),
         s, row_indices, rows, gA, shared, cols, gB, gC);
@@ -16329,15 +16346,16 @@ void Klas_SPMM_g_spmm_f32_256x64x16_on(uint32_t rows, uint32_t shared,
     KPR_GUARD((cols < 10000));
     KPR_SHMEM_FITS(((0 + (((uint32_t) 4U) * ((uint32_t) 256U))) +
                     (((uint32_t) 4U) * ((uint32_t) 256U))));
-    KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_35, ((0 + (((uint32_t) 4U) * ((uint32_t) 256U))) +
-                              (((uint32_t) 4U) * ((uint32_t) 256U))));
+    KPR_SET_MAX_DYN_SHMEM(Klas_SPMM_g_spmm_f32_256x64x16_on_kernel_35,
+        ((0 + (((uint32_t) 4U) * ((uint32_t) 256U))) +
+            (((uint32_t) 4U) * ((uint32_t) 256U))));
     uint32_t _ct1;
     if ((cols % 64) != 0)
         _ct1 = 1;
     else
         _ct1 = 0;
-    KPR_KCALL(kuiper_kernel_35, (rows * ((cols / 64) + _ct1)), ((uint32_t) 16U),
+    KPR_KCALL(Klas_SPMM_g_spmm_f32_256x64x16_on_kernel_35,
+        (rows * ((cols / 64) + _ct1)), ((uint32_t) 16U),
         ((0 + (((uint32_t) 4U) * ((uint32_t) 256U))) +
             (((uint32_t) 4U) * ((uint32_t) 256U))),
         s, row_indices, rows, gA, shared, cols, gB, gC);
@@ -16353,16 +16371,16 @@ void Klas_SPMM_g_spmm_f32_256x128x16(uint32_t rows, uint32_t shared,
     KPR_GUARD((cols < 10000));
     KPR_SHMEM_FITS(((0 + (((uint32_t) 4U) * ((uint32_t) 256U))) +
                     (((uint32_t) 4U) * ((uint32_t) 256U))));
-    KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_36, ((0 + (((uint32_t) 4U) * ((uint32_t) 256U))) +
-                              (((uint32_t) 4U) * ((uint32_t) 256U))));
+    KPR_SET_MAX_DYN_SHMEM(Klas_SPMM_g_spmm_f32_256x128x16_kernel_36,
+        ((0 + (((uint32_t) 4U) * ((uint32_t) 256U))) +
+            (((uint32_t) 4U) * ((uint32_t) 256U))));
     uint32_t _ct1;
     if ((cols % 128) != 0)
         _ct1 = 1;
     else
         _ct1 = 0;
-    KPR_KCALL(kuiper_kernel_36, (rows * ((cols / 128) + _ct1)),
-        ((uint32_t) 16U),
+    KPR_KCALL(Klas_SPMM_g_spmm_f32_256x128x16_kernel_36,
+        (rows * ((cols / 128) + _ct1)), ((uint32_t) 16U),
         ((0 + (((uint32_t) 4U) * ((uint32_t) 256U))) +
             (((uint32_t) 4U) * ((uint32_t) 256U))),
         s, row_indices, rows, gA, shared, cols, gB, gC);
@@ -16379,16 +16397,16 @@ void Klas_SPMM_g_spmm_f32_256x128x16_on(uint32_t rows, uint32_t shared,
     KPR_GUARD((cols < 10000));
     KPR_SHMEM_FITS(((0 + (((uint32_t) 4U) * ((uint32_t) 256U))) +
                     (((uint32_t) 4U) * ((uint32_t) 256U))));
-    KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_37, ((0 + (((uint32_t) 4U) * ((uint32_t) 256U))) +
-                              (((uint32_t) 4U) * ((uint32_t) 256U))));
+    KPR_SET_MAX_DYN_SHMEM(Klas_SPMM_g_spmm_f32_256x128x16_on_kernel_37,
+        ((0 + (((uint32_t) 4U) * ((uint32_t) 256U))) +
+            (((uint32_t) 4U) * ((uint32_t) 256U))));
     uint32_t _ct1;
     if ((cols % 128) != 0)
         _ct1 = 1;
     else
         _ct1 = 0;
-    KPR_KCALL(kuiper_kernel_37, (rows * ((cols / 128) + _ct1)),
-        ((uint32_t) 16U),
+    KPR_KCALL(Klas_SPMM_g_spmm_f32_256x128x16_on_kernel_37,
+        (rows * ((cols / 128) + _ct1)), ((uint32_t) 16U),
         ((0 + (((uint32_t) 4U) * ((uint32_t) 256U))) +
             (((uint32_t) 4U) * ((uint32_t) 256U))),
         s, row_indices, rows, gA, shared, cols, gB, gC);
@@ -16404,16 +16422,16 @@ void Klas_SPMM_g_spmm_f32_256x128x32(uint32_t rows, uint32_t shared,
     KPR_GUARD((cols < 10000));
     KPR_SHMEM_FITS(((0 + (((uint32_t) 4U) * ((uint32_t) 256U))) +
                     (((uint32_t) 4U) * ((uint32_t) 256U))));
-    KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_38, ((0 + (((uint32_t) 4U) * ((uint32_t) 256U))) +
-                              (((uint32_t) 4U) * ((uint32_t) 256U))));
+    KPR_SET_MAX_DYN_SHMEM(Klas_SPMM_g_spmm_f32_256x128x32_kernel_38,
+        ((0 + (((uint32_t) 4U) * ((uint32_t) 256U))) +
+            (((uint32_t) 4U) * ((uint32_t) 256U))));
     uint32_t _ct1;
     if ((cols % 128) != 0)
         _ct1 = 1;
     else
         _ct1 = 0;
-    KPR_KCALL(kuiper_kernel_38, (rows * ((cols / 128) + _ct1)),
-        ((uint32_t) 32U),
+    KPR_KCALL(Klas_SPMM_g_spmm_f32_256x128x32_kernel_38,
+        (rows * ((cols / 128) + _ct1)), ((uint32_t) 32U),
         ((0 + (((uint32_t) 4U) * ((uint32_t) 256U))) +
             (((uint32_t) 4U) * ((uint32_t) 256U))),
         s, row_indices, rows, gA, shared, cols, gB, gC);
@@ -16430,16 +16448,16 @@ void Klas_SPMM_g_spmm_f32_256x128x32_on(uint32_t rows, uint32_t shared,
     KPR_GUARD((cols < 10000));
     KPR_SHMEM_FITS(((0 + (((uint32_t) 4U) * ((uint32_t) 256U))) +
                     (((uint32_t) 4U) * ((uint32_t) 256U))));
-    KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_39, ((0 + (((uint32_t) 4U) * ((uint32_t) 256U))) +
-                              (((uint32_t) 4U) * ((uint32_t) 256U))));
+    KPR_SET_MAX_DYN_SHMEM(Klas_SPMM_g_spmm_f32_256x128x32_on_kernel_39,
+        ((0 + (((uint32_t) 4U) * ((uint32_t) 256U))) +
+            (((uint32_t) 4U) * ((uint32_t) 256U))));
     uint32_t _ct1;
     if ((cols % 128) != 0)
         _ct1 = 1;
     else
         _ct1 = 0;
-    KPR_KCALL(kuiper_kernel_39, (rows * ((cols / 128) + _ct1)),
-        ((uint32_t) 32U),
+    KPR_KCALL(Klas_SPMM_g_spmm_f32_256x128x32_on_kernel_39,
+        (rows * ((cols / 128) + _ct1)), ((uint32_t) 32U),
         ((0 + (((uint32_t) 4U) * ((uint32_t) 256U))) +
             (((uint32_t) 4U) * ((uint32_t) 256U))),
         s, row_indices, rows, gA, shared, cols, gB, gC);
@@ -16455,16 +16473,16 @@ void Klas_SPMM_g_spmm_f32_256x256x16(uint32_t rows, uint32_t shared,
     KPR_GUARD((cols < 10000));
     KPR_SHMEM_FITS(((0 + (((uint32_t) 4U) * ((uint32_t) 256U))) +
                     (((uint32_t) 4U) * ((uint32_t) 256U))));
-    KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_40, ((0 + (((uint32_t) 4U) * ((uint32_t) 256U))) +
-                              (((uint32_t) 4U) * ((uint32_t) 256U))));
+    KPR_SET_MAX_DYN_SHMEM(Klas_SPMM_g_spmm_f32_256x256x16_kernel_40,
+        ((0 + (((uint32_t) 4U) * ((uint32_t) 256U))) +
+            (((uint32_t) 4U) * ((uint32_t) 256U))));
     uint32_t _ct1;
     if ((cols % 256) != 0)
         _ct1 = 1;
     else
         _ct1 = 0;
-    KPR_KCALL(kuiper_kernel_40, (rows * ((cols / 256) + _ct1)),
-        ((uint32_t) 16U),
+    KPR_KCALL(Klas_SPMM_g_spmm_f32_256x256x16_kernel_40,
+        (rows * ((cols / 256) + _ct1)), ((uint32_t) 16U),
         ((0 + (((uint32_t) 4U) * ((uint32_t) 256U))) +
             (((uint32_t) 4U) * ((uint32_t) 256U))),
         s, row_indices, rows, gA, shared, cols, gB, gC);
@@ -16481,16 +16499,16 @@ void Klas_SPMM_g_spmm_f32_256x256x16_on(uint32_t rows, uint32_t shared,
     KPR_GUARD((cols < 10000));
     KPR_SHMEM_FITS(((0 + (((uint32_t) 4U) * ((uint32_t) 256U))) +
                     (((uint32_t) 4U) * ((uint32_t) 256U))));
-    KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_41, ((0 + (((uint32_t) 4U) * ((uint32_t) 256U))) +
-                              (((uint32_t) 4U) * ((uint32_t) 256U))));
+    KPR_SET_MAX_DYN_SHMEM(Klas_SPMM_g_spmm_f32_256x256x16_on_kernel_41,
+        ((0 + (((uint32_t) 4U) * ((uint32_t) 256U))) +
+            (((uint32_t) 4U) * ((uint32_t) 256U))));
     uint32_t _ct1;
     if ((cols % 256) != 0)
         _ct1 = 1;
     else
         _ct1 = 0;
-    KPR_KCALL(kuiper_kernel_41, (rows * ((cols / 256) + _ct1)),
-        ((uint32_t) 16U),
+    KPR_KCALL(Klas_SPMM_g_spmm_f32_256x256x16_on_kernel_41,
+        (rows * ((cols / 256) + _ct1)), ((uint32_t) 16U),
         ((0 + (((uint32_t) 4U) * ((uint32_t) 256U))) +
             (((uint32_t) 4U) * ((uint32_t) 256U))),
         s, row_indices, rows, gA, shared, cols, gB, gC);
@@ -16506,16 +16524,16 @@ void Klas_SPMM_g_spmm_f32_256x256x32(uint32_t rows, uint32_t shared,
     KPR_GUARD((cols < 10000));
     KPR_SHMEM_FITS(((0 + (((uint32_t) 4U) * ((uint32_t) 256U))) +
                     (((uint32_t) 4U) * ((uint32_t) 256U))));
-    KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_42, ((0 + (((uint32_t) 4U) * ((uint32_t) 256U))) +
-                              (((uint32_t) 4U) * ((uint32_t) 256U))));
+    KPR_SET_MAX_DYN_SHMEM(Klas_SPMM_g_spmm_f32_256x256x32_kernel_42,
+        ((0 + (((uint32_t) 4U) * ((uint32_t) 256U))) +
+            (((uint32_t) 4U) * ((uint32_t) 256U))));
     uint32_t _ct1;
     if ((cols % 256) != 0)
         _ct1 = 1;
     else
         _ct1 = 0;
-    KPR_KCALL(kuiper_kernel_42, (rows * ((cols / 256) + _ct1)),
-        ((uint32_t) 32U),
+    KPR_KCALL(Klas_SPMM_g_spmm_f32_256x256x32_kernel_42,
+        (rows * ((cols / 256) + _ct1)), ((uint32_t) 32U),
         ((0 + (((uint32_t) 4U) * ((uint32_t) 256U))) +
             (((uint32_t) 4U) * ((uint32_t) 256U))),
         s, row_indices, rows, gA, shared, cols, gB, gC);
@@ -16532,16 +16550,16 @@ void Klas_SPMM_g_spmm_f32_256x256x32_on(uint32_t rows, uint32_t shared,
     KPR_GUARD((cols < 10000));
     KPR_SHMEM_FITS(((0 + (((uint32_t) 4U) * ((uint32_t) 256U))) +
                     (((uint32_t) 4U) * ((uint32_t) 256U))));
-    KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_43, ((0 + (((uint32_t) 4U) * ((uint32_t) 256U))) +
-                              (((uint32_t) 4U) * ((uint32_t) 256U))));
+    KPR_SET_MAX_DYN_SHMEM(Klas_SPMM_g_spmm_f32_256x256x32_on_kernel_43,
+        ((0 + (((uint32_t) 4U) * ((uint32_t) 256U))) +
+            (((uint32_t) 4U) * ((uint32_t) 256U))));
     uint32_t _ct1;
     if ((cols % 256) != 0)
         _ct1 = 1;
     else
         _ct1 = 0;
-    KPR_KCALL(kuiper_kernel_43, (rows * ((cols / 256) + _ct1)),
-        ((uint32_t) 32U),
+    KPR_KCALL(Klas_SPMM_g_spmm_f32_256x256x32_on_kernel_43,
+        (rows * ((cols / 256) + _ct1)), ((uint32_t) 32U),
         ((0 + (((uint32_t) 4U) * ((uint32_t) 256U))) +
             (((uint32_t) 4U) * ((uint32_t) 256U))),
         s, row_indices, rows, gA, shared, cols, gB, gC);
@@ -16557,16 +16575,16 @@ void Klas_SPMM_g_spmm_f32_256x256x64(uint32_t rows, uint32_t shared,
     KPR_GUARD((cols < 10000));
     KPR_SHMEM_FITS(((0 + (((uint32_t) 4U) * ((uint32_t) 256U))) +
                     (((uint32_t) 4U) * ((uint32_t) 256U))));
-    KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_44, ((0 + (((uint32_t) 4U) * ((uint32_t) 256U))) +
-                              (((uint32_t) 4U) * ((uint32_t) 256U))));
+    KPR_SET_MAX_DYN_SHMEM(Klas_SPMM_g_spmm_f32_256x256x64_kernel_44,
+        ((0 + (((uint32_t) 4U) * ((uint32_t) 256U))) +
+            (((uint32_t) 4U) * ((uint32_t) 256U))));
     uint32_t _ct1;
     if ((cols % 256) != 0)
         _ct1 = 1;
     else
         _ct1 = 0;
-    KPR_KCALL(kuiper_kernel_44, (rows * ((cols / 256) + _ct1)),
-        ((uint32_t) 64U),
+    KPR_KCALL(Klas_SPMM_g_spmm_f32_256x256x64_kernel_44,
+        (rows * ((cols / 256) + _ct1)), ((uint32_t) 64U),
         ((0 + (((uint32_t) 4U) * ((uint32_t) 256U))) +
             (((uint32_t) 4U) * ((uint32_t) 256U))),
         s, row_indices, rows, gA, shared, cols, gB, gC);
@@ -16583,16 +16601,16 @@ void Klas_SPMM_g_spmm_f32_256x256x64_on(uint32_t rows, uint32_t shared,
     KPR_GUARD((cols < 10000));
     KPR_SHMEM_FITS(((0 + (((uint32_t) 4U) * ((uint32_t) 256U))) +
                     (((uint32_t) 4U) * ((uint32_t) 256U))));
-    KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_45, ((0 + (((uint32_t) 4U) * ((uint32_t) 256U))) +
-                              (((uint32_t) 4U) * ((uint32_t) 256U))));
+    KPR_SET_MAX_DYN_SHMEM(Klas_SPMM_g_spmm_f32_256x256x64_on_kernel_45,
+        ((0 + (((uint32_t) 4U) * ((uint32_t) 256U))) +
+            (((uint32_t) 4U) * ((uint32_t) 256U))));
     uint32_t _ct1;
     if ((cols % 256) != 0)
         _ct1 = 1;
     else
         _ct1 = 0;
-    KPR_KCALL(kuiper_kernel_45, (rows * ((cols / 256) + _ct1)),
-        ((uint32_t) 64U),
+    KPR_KCALL(Klas_SPMM_g_spmm_f32_256x256x64_on_kernel_45,
+        (rows * ((cols / 256) + _ct1)), ((uint32_t) 64U),
         ((0 + (((uint32_t) 4U) * ((uint32_t) 256U))) +
             (((uint32_t) 4U) * ((uint32_t) 256U))),
         s, row_indices, rows, gA, shared, cols, gB, gC);
@@ -16608,16 +16626,16 @@ void Klas_SPMM_g_spmm_f32_256x512x16(uint32_t rows, uint32_t shared,
     KPR_GUARD((cols < 10000));
     KPR_SHMEM_FITS(((0 + (((uint32_t) 4U) * ((uint32_t) 256U))) +
                     (((uint32_t) 4U) * ((uint32_t) 256U))));
-    KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_46, ((0 + (((uint32_t) 4U) * ((uint32_t) 256U))) +
-                              (((uint32_t) 4U) * ((uint32_t) 256U))));
+    KPR_SET_MAX_DYN_SHMEM(Klas_SPMM_g_spmm_f32_256x512x16_kernel_46,
+        ((0 + (((uint32_t) 4U) * ((uint32_t) 256U))) +
+            (((uint32_t) 4U) * ((uint32_t) 256U))));
     uint32_t _ct1;
     if ((cols % 512) != 0)
         _ct1 = 1;
     else
         _ct1 = 0;
-    KPR_KCALL(kuiper_kernel_46, (rows * ((cols / 512) + _ct1)),
-        ((uint32_t) 16U),
+    KPR_KCALL(Klas_SPMM_g_spmm_f32_256x512x16_kernel_46,
+        (rows * ((cols / 512) + _ct1)), ((uint32_t) 16U),
         ((0 + (((uint32_t) 4U) * ((uint32_t) 256U))) +
             (((uint32_t) 4U) * ((uint32_t) 256U))),
         s, row_indices, rows, gA, shared, cols, gB, gC);
@@ -16634,16 +16652,16 @@ void Klas_SPMM_g_spmm_f32_256x512x16_on(uint32_t rows, uint32_t shared,
     KPR_GUARD((cols < 10000));
     KPR_SHMEM_FITS(((0 + (((uint32_t) 4U) * ((uint32_t) 256U))) +
                     (((uint32_t) 4U) * ((uint32_t) 256U))));
-    KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_47, ((0 + (((uint32_t) 4U) * ((uint32_t) 256U))) +
-                              (((uint32_t) 4U) * ((uint32_t) 256U))));
+    KPR_SET_MAX_DYN_SHMEM(Klas_SPMM_g_spmm_f32_256x512x16_on_kernel_47,
+        ((0 + (((uint32_t) 4U) * ((uint32_t) 256U))) +
+            (((uint32_t) 4U) * ((uint32_t) 256U))));
     uint32_t _ct1;
     if ((cols % 512) != 0)
         _ct1 = 1;
     else
         _ct1 = 0;
-    KPR_KCALL(kuiper_kernel_47, (rows * ((cols / 512) + _ct1)),
-        ((uint32_t) 16U),
+    KPR_KCALL(Klas_SPMM_g_spmm_f32_256x512x16_on_kernel_47,
+        (rows * ((cols / 512) + _ct1)), ((uint32_t) 16U),
         ((0 + (((uint32_t) 4U) * ((uint32_t) 256U))) +
             (((uint32_t) 4U) * ((uint32_t) 256U))),
         s, row_indices, rows, gA, shared, cols, gB, gC);
@@ -16659,16 +16677,16 @@ void Klas_SPMM_g_spmm_f32_256x512x32(uint32_t rows, uint32_t shared,
     KPR_GUARD((cols < 10000));
     KPR_SHMEM_FITS(((0 + (((uint32_t) 4U) * ((uint32_t) 256U))) +
                     (((uint32_t) 4U) * ((uint32_t) 256U))));
-    KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_48, ((0 + (((uint32_t) 4U) * ((uint32_t) 256U))) +
-                              (((uint32_t) 4U) * ((uint32_t) 256U))));
+    KPR_SET_MAX_DYN_SHMEM(Klas_SPMM_g_spmm_f32_256x512x32_kernel_48,
+        ((0 + (((uint32_t) 4U) * ((uint32_t) 256U))) +
+            (((uint32_t) 4U) * ((uint32_t) 256U))));
     uint32_t _ct1;
     if ((cols % 512) != 0)
         _ct1 = 1;
     else
         _ct1 = 0;
-    KPR_KCALL(kuiper_kernel_48, (rows * ((cols / 512) + _ct1)),
-        ((uint32_t) 32U),
+    KPR_KCALL(Klas_SPMM_g_spmm_f32_256x512x32_kernel_48,
+        (rows * ((cols / 512) + _ct1)), ((uint32_t) 32U),
         ((0 + (((uint32_t) 4U) * ((uint32_t) 256U))) +
             (((uint32_t) 4U) * ((uint32_t) 256U))),
         s, row_indices, rows, gA, shared, cols, gB, gC);
@@ -16685,16 +16703,16 @@ void Klas_SPMM_g_spmm_f32_256x512x32_on(uint32_t rows, uint32_t shared,
     KPR_GUARD((cols < 10000));
     KPR_SHMEM_FITS(((0 + (((uint32_t) 4U) * ((uint32_t) 256U))) +
                     (((uint32_t) 4U) * ((uint32_t) 256U))));
-    KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_49, ((0 + (((uint32_t) 4U) * ((uint32_t) 256U))) +
-                              (((uint32_t) 4U) * ((uint32_t) 256U))));
+    KPR_SET_MAX_DYN_SHMEM(Klas_SPMM_g_spmm_f32_256x512x32_on_kernel_49,
+        ((0 + (((uint32_t) 4U) * ((uint32_t) 256U))) +
+            (((uint32_t) 4U) * ((uint32_t) 256U))));
     uint32_t _ct1;
     if ((cols % 512) != 0)
         _ct1 = 1;
     else
         _ct1 = 0;
-    KPR_KCALL(kuiper_kernel_49, (rows * ((cols / 512) + _ct1)),
-        ((uint32_t) 32U),
+    KPR_KCALL(Klas_SPMM_g_spmm_f32_256x512x32_on_kernel_49,
+        (rows * ((cols / 512) + _ct1)), ((uint32_t) 32U),
         ((0 + (((uint32_t) 4U) * ((uint32_t) 256U))) +
             (((uint32_t) 4U) * ((uint32_t) 256U))),
         s, row_indices, rows, gA, shared, cols, gB, gC);
@@ -16710,16 +16728,16 @@ void Klas_SPMM_g_spmm_f32_256x512x64(uint32_t rows, uint32_t shared,
     KPR_GUARD((cols < 10000));
     KPR_SHMEM_FITS(((0 + (((uint32_t) 4U) * ((uint32_t) 256U))) +
                     (((uint32_t) 4U) * ((uint32_t) 256U))));
-    KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_50, ((0 + (((uint32_t) 4U) * ((uint32_t) 256U))) +
-                              (((uint32_t) 4U) * ((uint32_t) 256U))));
+    KPR_SET_MAX_DYN_SHMEM(Klas_SPMM_g_spmm_f32_256x512x64_kernel_50,
+        ((0 + (((uint32_t) 4U) * ((uint32_t) 256U))) +
+            (((uint32_t) 4U) * ((uint32_t) 256U))));
     uint32_t _ct1;
     if ((cols % 512) != 0)
         _ct1 = 1;
     else
         _ct1 = 0;
-    KPR_KCALL(kuiper_kernel_50, (rows * ((cols / 512) + _ct1)),
-        ((uint32_t) 64U),
+    KPR_KCALL(Klas_SPMM_g_spmm_f32_256x512x64_kernel_50,
+        (rows * ((cols / 512) + _ct1)), ((uint32_t) 64U),
         ((0 + (((uint32_t) 4U) * ((uint32_t) 256U))) +
             (((uint32_t) 4U) * ((uint32_t) 256U))),
         s, row_indices, rows, gA, shared, cols, gB, gC);
@@ -16736,16 +16754,16 @@ void Klas_SPMM_g_spmm_f32_256x512x64_on(uint32_t rows, uint32_t shared,
     KPR_GUARD((cols < 10000));
     KPR_SHMEM_FITS(((0 + (((uint32_t) 4U) * ((uint32_t) 256U))) +
                     (((uint32_t) 4U) * ((uint32_t) 256U))));
-    KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_51, ((0 + (((uint32_t) 4U) * ((uint32_t) 256U))) +
-                              (((uint32_t) 4U) * ((uint32_t) 256U))));
+    KPR_SET_MAX_DYN_SHMEM(Klas_SPMM_g_spmm_f32_256x512x64_on_kernel_51,
+        ((0 + (((uint32_t) 4U) * ((uint32_t) 256U))) +
+            (((uint32_t) 4U) * ((uint32_t) 256U))));
     uint32_t _ct1;
     if ((cols % 512) != 0)
         _ct1 = 1;
     else
         _ct1 = 0;
-    KPR_KCALL(kuiper_kernel_51, (rows * ((cols / 512) + _ct1)),
-        ((uint32_t) 64U),
+    KPR_KCALL(Klas_SPMM_g_spmm_f32_256x512x64_on_kernel_51,
+        (rows * ((cols / 512) + _ct1)), ((uint32_t) 64U),
         ((0 + (((uint32_t) 4U) * ((uint32_t) 256U))) +
             (((uint32_t) 4U) * ((uint32_t) 256U))),
         s, row_indices, rows, gA, shared, cols, gB, gC);
@@ -16761,15 +16779,16 @@ void Klas_SPMM_g_spmm_f32_512x64x16(uint32_t rows, uint32_t shared,
     KPR_GUARD((cols < 10000));
     KPR_SHMEM_FITS(((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
                     (((uint32_t) 4U) * ((uint32_t) 512U))));
-    KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_52, ((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
-                              (((uint32_t) 4U) * ((uint32_t) 512U))));
+    KPR_SET_MAX_DYN_SHMEM(Klas_SPMM_g_spmm_f32_512x64x16_kernel_52,
+        ((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
+            (((uint32_t) 4U) * ((uint32_t) 512U))));
     uint32_t _ct1;
     if ((cols % 64) != 0)
         _ct1 = 1;
     else
         _ct1 = 0;
-    KPR_KCALL(kuiper_kernel_52, (rows * ((cols / 64) + _ct1)), ((uint32_t) 16U),
+    KPR_KCALL(Klas_SPMM_g_spmm_f32_512x64x16_kernel_52,
+        (rows * ((cols / 64) + _ct1)), ((uint32_t) 16U),
         ((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
             (((uint32_t) 4U) * ((uint32_t) 512U))),
         s, row_indices, rows, gA, shared, cols, gB, gC);
@@ -16786,15 +16805,16 @@ void Klas_SPMM_g_spmm_f32_512x64x16_on(uint32_t rows, uint32_t shared,
     KPR_GUARD((cols < 10000));
     KPR_SHMEM_FITS(((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
                     (((uint32_t) 4U) * ((uint32_t) 512U))));
-    KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_53, ((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
-                              (((uint32_t) 4U) * ((uint32_t) 512U))));
+    KPR_SET_MAX_DYN_SHMEM(Klas_SPMM_g_spmm_f32_512x64x16_on_kernel_53,
+        ((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
+            (((uint32_t) 4U) * ((uint32_t) 512U))));
     uint32_t _ct1;
     if ((cols % 64) != 0)
         _ct1 = 1;
     else
         _ct1 = 0;
-    KPR_KCALL(kuiper_kernel_53, (rows * ((cols / 64) + _ct1)), ((uint32_t) 16U),
+    KPR_KCALL(Klas_SPMM_g_spmm_f32_512x64x16_on_kernel_53,
+        (rows * ((cols / 64) + _ct1)), ((uint32_t) 16U),
         ((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
             (((uint32_t) 4U) * ((uint32_t) 512U))),
         s, row_indices, rows, gA, shared, cols, gB, gC);
@@ -16810,16 +16830,16 @@ void Klas_SPMM_g_spmm_f32_512x128x16(uint32_t rows, uint32_t shared,
     KPR_GUARD((cols < 10000));
     KPR_SHMEM_FITS(((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
                     (((uint32_t) 4U) * ((uint32_t) 512U))));
-    KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_54, ((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
-                              (((uint32_t) 4U) * ((uint32_t) 512U))));
+    KPR_SET_MAX_DYN_SHMEM(Klas_SPMM_g_spmm_f32_512x128x16_kernel_54,
+        ((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
+            (((uint32_t) 4U) * ((uint32_t) 512U))));
     uint32_t _ct1;
     if ((cols % 128) != 0)
         _ct1 = 1;
     else
         _ct1 = 0;
-    KPR_KCALL(kuiper_kernel_54, (rows * ((cols / 128) + _ct1)),
-        ((uint32_t) 16U),
+    KPR_KCALL(Klas_SPMM_g_spmm_f32_512x128x16_kernel_54,
+        (rows * ((cols / 128) + _ct1)), ((uint32_t) 16U),
         ((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
             (((uint32_t) 4U) * ((uint32_t) 512U))),
         s, row_indices, rows, gA, shared, cols, gB, gC);
@@ -16836,16 +16856,16 @@ void Klas_SPMM_g_spmm_f32_512x128x16_on(uint32_t rows, uint32_t shared,
     KPR_GUARD((cols < 10000));
     KPR_SHMEM_FITS(((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
                     (((uint32_t) 4U) * ((uint32_t) 512U))));
-    KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_55, ((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
-                              (((uint32_t) 4U) * ((uint32_t) 512U))));
+    KPR_SET_MAX_DYN_SHMEM(Klas_SPMM_g_spmm_f32_512x128x16_on_kernel_55,
+        ((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
+            (((uint32_t) 4U) * ((uint32_t) 512U))));
     uint32_t _ct1;
     if ((cols % 128) != 0)
         _ct1 = 1;
     else
         _ct1 = 0;
-    KPR_KCALL(kuiper_kernel_55, (rows * ((cols / 128) + _ct1)),
-        ((uint32_t) 16U),
+    KPR_KCALL(Klas_SPMM_g_spmm_f32_512x128x16_on_kernel_55,
+        (rows * ((cols / 128) + _ct1)), ((uint32_t) 16U),
         ((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
             (((uint32_t) 4U) * ((uint32_t) 512U))),
         s, row_indices, rows, gA, shared, cols, gB, gC);
@@ -16861,16 +16881,16 @@ void Klas_SPMM_g_spmm_f32_512x128x32(uint32_t rows, uint32_t shared,
     KPR_GUARD((cols < 10000));
     KPR_SHMEM_FITS(((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
                     (((uint32_t) 4U) * ((uint32_t) 512U))));
-    KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_56, ((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
-                              (((uint32_t) 4U) * ((uint32_t) 512U))));
+    KPR_SET_MAX_DYN_SHMEM(Klas_SPMM_g_spmm_f32_512x128x32_kernel_56,
+        ((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
+            (((uint32_t) 4U) * ((uint32_t) 512U))));
     uint32_t _ct1;
     if ((cols % 128) != 0)
         _ct1 = 1;
     else
         _ct1 = 0;
-    KPR_KCALL(kuiper_kernel_56, (rows * ((cols / 128) + _ct1)),
-        ((uint32_t) 32U),
+    KPR_KCALL(Klas_SPMM_g_spmm_f32_512x128x32_kernel_56,
+        (rows * ((cols / 128) + _ct1)), ((uint32_t) 32U),
         ((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
             (((uint32_t) 4U) * ((uint32_t) 512U))),
         s, row_indices, rows, gA, shared, cols, gB, gC);
@@ -16887,16 +16907,16 @@ void Klas_SPMM_g_spmm_f32_512x128x32_on(uint32_t rows, uint32_t shared,
     KPR_GUARD((cols < 10000));
     KPR_SHMEM_FITS(((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
                     (((uint32_t) 4U) * ((uint32_t) 512U))));
-    KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_57, ((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
-                              (((uint32_t) 4U) * ((uint32_t) 512U))));
+    KPR_SET_MAX_DYN_SHMEM(Klas_SPMM_g_spmm_f32_512x128x32_on_kernel_57,
+        ((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
+            (((uint32_t) 4U) * ((uint32_t) 512U))));
     uint32_t _ct1;
     if ((cols % 128) != 0)
         _ct1 = 1;
     else
         _ct1 = 0;
-    KPR_KCALL(kuiper_kernel_57, (rows * ((cols / 128) + _ct1)),
-        ((uint32_t) 32U),
+    KPR_KCALL(Klas_SPMM_g_spmm_f32_512x128x32_on_kernel_57,
+        (rows * ((cols / 128) + _ct1)), ((uint32_t) 32U),
         ((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
             (((uint32_t) 4U) * ((uint32_t) 512U))),
         s, row_indices, rows, gA, shared, cols, gB, gC);
@@ -16912,16 +16932,16 @@ void Klas_SPMM_g_spmm_f32_512x256x16(uint32_t rows, uint32_t shared,
     KPR_GUARD((cols < 10000));
     KPR_SHMEM_FITS(((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
                     (((uint32_t) 4U) * ((uint32_t) 512U))));
-    KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_58, ((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
-                              (((uint32_t) 4U) * ((uint32_t) 512U))));
+    KPR_SET_MAX_DYN_SHMEM(Klas_SPMM_g_spmm_f32_512x256x16_kernel_58,
+        ((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
+            (((uint32_t) 4U) * ((uint32_t) 512U))));
     uint32_t _ct1;
     if ((cols % 256) != 0)
         _ct1 = 1;
     else
         _ct1 = 0;
-    KPR_KCALL(kuiper_kernel_58, (rows * ((cols / 256) + _ct1)),
-        ((uint32_t) 16U),
+    KPR_KCALL(Klas_SPMM_g_spmm_f32_512x256x16_kernel_58,
+        (rows * ((cols / 256) + _ct1)), ((uint32_t) 16U),
         ((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
             (((uint32_t) 4U) * ((uint32_t) 512U))),
         s, row_indices, rows, gA, shared, cols, gB, gC);
@@ -16938,16 +16958,16 @@ void Klas_SPMM_g_spmm_f32_512x256x16_on(uint32_t rows, uint32_t shared,
     KPR_GUARD((cols < 10000));
     KPR_SHMEM_FITS(((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
                     (((uint32_t) 4U) * ((uint32_t) 512U))));
-    KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_59, ((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
-                              (((uint32_t) 4U) * ((uint32_t) 512U))));
+    KPR_SET_MAX_DYN_SHMEM(Klas_SPMM_g_spmm_f32_512x256x16_on_kernel_59,
+        ((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
+            (((uint32_t) 4U) * ((uint32_t) 512U))));
     uint32_t _ct1;
     if ((cols % 256) != 0)
         _ct1 = 1;
     else
         _ct1 = 0;
-    KPR_KCALL(kuiper_kernel_59, (rows * ((cols / 256) + _ct1)),
-        ((uint32_t) 16U),
+    KPR_KCALL(Klas_SPMM_g_spmm_f32_512x256x16_on_kernel_59,
+        (rows * ((cols / 256) + _ct1)), ((uint32_t) 16U),
         ((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
             (((uint32_t) 4U) * ((uint32_t) 512U))),
         s, row_indices, rows, gA, shared, cols, gB, gC);
@@ -16963,16 +16983,16 @@ void Klas_SPMM_g_spmm_f32_512x256x32(uint32_t rows, uint32_t shared,
     KPR_GUARD((cols < 10000));
     KPR_SHMEM_FITS(((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
                     (((uint32_t) 4U) * ((uint32_t) 512U))));
-    KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_60, ((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
-                              (((uint32_t) 4U) * ((uint32_t) 512U))));
+    KPR_SET_MAX_DYN_SHMEM(Klas_SPMM_g_spmm_f32_512x256x32_kernel_60,
+        ((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
+            (((uint32_t) 4U) * ((uint32_t) 512U))));
     uint32_t _ct1;
     if ((cols % 256) != 0)
         _ct1 = 1;
     else
         _ct1 = 0;
-    KPR_KCALL(kuiper_kernel_60, (rows * ((cols / 256) + _ct1)),
-        ((uint32_t) 32U),
+    KPR_KCALL(Klas_SPMM_g_spmm_f32_512x256x32_kernel_60,
+        (rows * ((cols / 256) + _ct1)), ((uint32_t) 32U),
         ((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
             (((uint32_t) 4U) * ((uint32_t) 512U))),
         s, row_indices, rows, gA, shared, cols, gB, gC);
@@ -16989,16 +17009,16 @@ void Klas_SPMM_g_spmm_f32_512x256x32_on(uint32_t rows, uint32_t shared,
     KPR_GUARD((cols < 10000));
     KPR_SHMEM_FITS(((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
                     (((uint32_t) 4U) * ((uint32_t) 512U))));
-    KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_61, ((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
-                              (((uint32_t) 4U) * ((uint32_t) 512U))));
+    KPR_SET_MAX_DYN_SHMEM(Klas_SPMM_g_spmm_f32_512x256x32_on_kernel_61,
+        ((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
+            (((uint32_t) 4U) * ((uint32_t) 512U))));
     uint32_t _ct1;
     if ((cols % 256) != 0)
         _ct1 = 1;
     else
         _ct1 = 0;
-    KPR_KCALL(kuiper_kernel_61, (rows * ((cols / 256) + _ct1)),
-        ((uint32_t) 32U),
+    KPR_KCALL(Klas_SPMM_g_spmm_f32_512x256x32_on_kernel_61,
+        (rows * ((cols / 256) + _ct1)), ((uint32_t) 32U),
         ((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
             (((uint32_t) 4U) * ((uint32_t) 512U))),
         s, row_indices, rows, gA, shared, cols, gB, gC);
@@ -17014,16 +17034,16 @@ void Klas_SPMM_g_spmm_f32_512x256x64(uint32_t rows, uint32_t shared,
     KPR_GUARD((cols < 10000));
     KPR_SHMEM_FITS(((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
                     (((uint32_t) 4U) * ((uint32_t) 512U))));
-    KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_62, ((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
-                              (((uint32_t) 4U) * ((uint32_t) 512U))));
+    KPR_SET_MAX_DYN_SHMEM(Klas_SPMM_g_spmm_f32_512x256x64_kernel_62,
+        ((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
+            (((uint32_t) 4U) * ((uint32_t) 512U))));
     uint32_t _ct1;
     if ((cols % 256) != 0)
         _ct1 = 1;
     else
         _ct1 = 0;
-    KPR_KCALL(kuiper_kernel_62, (rows * ((cols / 256) + _ct1)),
-        ((uint32_t) 64U),
+    KPR_KCALL(Klas_SPMM_g_spmm_f32_512x256x64_kernel_62,
+        (rows * ((cols / 256) + _ct1)), ((uint32_t) 64U),
         ((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
             (((uint32_t) 4U) * ((uint32_t) 512U))),
         s, row_indices, rows, gA, shared, cols, gB, gC);
@@ -17040,16 +17060,16 @@ void Klas_SPMM_g_spmm_f32_512x256x64_on(uint32_t rows, uint32_t shared,
     KPR_GUARD((cols < 10000));
     KPR_SHMEM_FITS(((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
                     (((uint32_t) 4U) * ((uint32_t) 512U))));
-    KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_63, ((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
-                              (((uint32_t) 4U) * ((uint32_t) 512U))));
+    KPR_SET_MAX_DYN_SHMEM(Klas_SPMM_g_spmm_f32_512x256x64_on_kernel_63,
+        ((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
+            (((uint32_t) 4U) * ((uint32_t) 512U))));
     uint32_t _ct1;
     if ((cols % 256) != 0)
         _ct1 = 1;
     else
         _ct1 = 0;
-    KPR_KCALL(kuiper_kernel_63, (rows * ((cols / 256) + _ct1)),
-        ((uint32_t) 64U),
+    KPR_KCALL(Klas_SPMM_g_spmm_f32_512x256x64_on_kernel_63,
+        (rows * ((cols / 256) + _ct1)), ((uint32_t) 64U),
         ((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
             (((uint32_t) 4U) * ((uint32_t) 512U))),
         s, row_indices, rows, gA, shared, cols, gB, gC);
@@ -17065,16 +17085,16 @@ void Klas_SPMM_g_spmm_f32_512x512x16(uint32_t rows, uint32_t shared,
     KPR_GUARD((cols < 10000));
     KPR_SHMEM_FITS(((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
                     (((uint32_t) 4U) * ((uint32_t) 512U))));
-    KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_64, ((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
-                              (((uint32_t) 4U) * ((uint32_t) 512U))));
+    KPR_SET_MAX_DYN_SHMEM(Klas_SPMM_g_spmm_f32_512x512x16_kernel_64,
+        ((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
+            (((uint32_t) 4U) * ((uint32_t) 512U))));
     uint32_t _ct1;
     if ((cols % 512) != 0)
         _ct1 = 1;
     else
         _ct1 = 0;
-    KPR_KCALL(kuiper_kernel_64, (rows * ((cols / 512) + _ct1)),
-        ((uint32_t) 16U),
+    KPR_KCALL(Klas_SPMM_g_spmm_f32_512x512x16_kernel_64,
+        (rows * ((cols / 512) + _ct1)), ((uint32_t) 16U),
         ((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
             (((uint32_t) 4U) * ((uint32_t) 512U))),
         s, row_indices, rows, gA, shared, cols, gB, gC);
@@ -17091,16 +17111,16 @@ void Klas_SPMM_g_spmm_f32_512x512x16_on(uint32_t rows, uint32_t shared,
     KPR_GUARD((cols < 10000));
     KPR_SHMEM_FITS(((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
                     (((uint32_t) 4U) * ((uint32_t) 512U))));
-    KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_65, ((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
-                              (((uint32_t) 4U) * ((uint32_t) 512U))));
+    KPR_SET_MAX_DYN_SHMEM(Klas_SPMM_g_spmm_f32_512x512x16_on_kernel_65,
+        ((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
+            (((uint32_t) 4U) * ((uint32_t) 512U))));
     uint32_t _ct1;
     if ((cols % 512) != 0)
         _ct1 = 1;
     else
         _ct1 = 0;
-    KPR_KCALL(kuiper_kernel_65, (rows * ((cols / 512) + _ct1)),
-        ((uint32_t) 16U),
+    KPR_KCALL(Klas_SPMM_g_spmm_f32_512x512x16_on_kernel_65,
+        (rows * ((cols / 512) + _ct1)), ((uint32_t) 16U),
         ((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
             (((uint32_t) 4U) * ((uint32_t) 512U))),
         s, row_indices, rows, gA, shared, cols, gB, gC);
@@ -17116,16 +17136,16 @@ void Klas_SPMM_g_spmm_f32_512x512x32(uint32_t rows, uint32_t shared,
     KPR_GUARD((cols < 10000));
     KPR_SHMEM_FITS(((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
                     (((uint32_t) 4U) * ((uint32_t) 512U))));
-    KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_66, ((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
-                              (((uint32_t) 4U) * ((uint32_t) 512U))));
+    KPR_SET_MAX_DYN_SHMEM(Klas_SPMM_g_spmm_f32_512x512x32_kernel_66,
+        ((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
+            (((uint32_t) 4U) * ((uint32_t) 512U))));
     uint32_t _ct1;
     if ((cols % 512) != 0)
         _ct1 = 1;
     else
         _ct1 = 0;
-    KPR_KCALL(kuiper_kernel_66, (rows * ((cols / 512) + _ct1)),
-        ((uint32_t) 32U),
+    KPR_KCALL(Klas_SPMM_g_spmm_f32_512x512x32_kernel_66,
+        (rows * ((cols / 512) + _ct1)), ((uint32_t) 32U),
         ((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
             (((uint32_t) 4U) * ((uint32_t) 512U))),
         s, row_indices, rows, gA, shared, cols, gB, gC);
@@ -17142,16 +17162,16 @@ void Klas_SPMM_g_spmm_f32_512x512x32_on(uint32_t rows, uint32_t shared,
     KPR_GUARD((cols < 10000));
     KPR_SHMEM_FITS(((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
                     (((uint32_t) 4U) * ((uint32_t) 512U))));
-    KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_67, ((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
-                              (((uint32_t) 4U) * ((uint32_t) 512U))));
+    KPR_SET_MAX_DYN_SHMEM(Klas_SPMM_g_spmm_f32_512x512x32_on_kernel_67,
+        ((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
+            (((uint32_t) 4U) * ((uint32_t) 512U))));
     uint32_t _ct1;
     if ((cols % 512) != 0)
         _ct1 = 1;
     else
         _ct1 = 0;
-    KPR_KCALL(kuiper_kernel_67, (rows * ((cols / 512) + _ct1)),
-        ((uint32_t) 32U),
+    KPR_KCALL(Klas_SPMM_g_spmm_f32_512x512x32_on_kernel_67,
+        (rows * ((cols / 512) + _ct1)), ((uint32_t) 32U),
         ((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
             (((uint32_t) 4U) * ((uint32_t) 512U))),
         s, row_indices, rows, gA, shared, cols, gB, gC);
@@ -17167,16 +17187,16 @@ void Klas_SPMM_g_spmm_f32_512x512x64(uint32_t rows, uint32_t shared,
     KPR_GUARD((cols < 10000));
     KPR_SHMEM_FITS(((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
                     (((uint32_t) 4U) * ((uint32_t) 512U))));
-    KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_68, ((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
-                              (((uint32_t) 4U) * ((uint32_t) 512U))));
+    KPR_SET_MAX_DYN_SHMEM(Klas_SPMM_g_spmm_f32_512x512x64_kernel_68,
+        ((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
+            (((uint32_t) 4U) * ((uint32_t) 512U))));
     uint32_t _ct1;
     if ((cols % 512) != 0)
         _ct1 = 1;
     else
         _ct1 = 0;
-    KPR_KCALL(kuiper_kernel_68, (rows * ((cols / 512) + _ct1)),
-        ((uint32_t) 64U),
+    KPR_KCALL(Klas_SPMM_g_spmm_f32_512x512x64_kernel_68,
+        (rows * ((cols / 512) + _ct1)), ((uint32_t) 64U),
         ((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
             (((uint32_t) 4U) * ((uint32_t) 512U))),
         s, row_indices, rows, gA, shared, cols, gB, gC);
@@ -17193,16 +17213,16 @@ void Klas_SPMM_g_spmm_f32_512x512x64_on(uint32_t rows, uint32_t shared,
     KPR_GUARD((cols < 10000));
     KPR_SHMEM_FITS(((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
                     (((uint32_t) 4U) * ((uint32_t) 512U))));
-    KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_69, ((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
-                              (((uint32_t) 4U) * ((uint32_t) 512U))));
+    KPR_SET_MAX_DYN_SHMEM(Klas_SPMM_g_spmm_f32_512x512x64_on_kernel_69,
+        ((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
+            (((uint32_t) 4U) * ((uint32_t) 512U))));
     uint32_t _ct1;
     if ((cols % 512) != 0)
         _ct1 = 1;
     else
         _ct1 = 0;
-    KPR_KCALL(kuiper_kernel_69, (rows * ((cols / 512) + _ct1)),
-        ((uint32_t) 64U),
+    KPR_KCALL(Klas_SPMM_g_spmm_f32_512x512x64_on_kernel_69,
+        (rows * ((cols / 512) + _ct1)), ((uint32_t) 64U),
         ((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
             (((uint32_t) 4U) * ((uint32_t) 512U))),
         s, row_indices, rows, gA, shared, cols, gB, gC);
@@ -17218,16 +17238,16 @@ void Klas_SPMM_g_spmm_f32_512x512x128(uint32_t rows, uint32_t shared,
     KPR_GUARD((cols < 10000));
     KPR_SHMEM_FITS(((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
                     (((uint32_t) 4U) * ((uint32_t) 512U))));
-    KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_70, ((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
-                              (((uint32_t) 4U) * ((uint32_t) 512U))));
+    KPR_SET_MAX_DYN_SHMEM(Klas_SPMM_g_spmm_f32_512x512x128_kernel_70,
+        ((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
+            (((uint32_t) 4U) * ((uint32_t) 512U))));
     uint32_t _ct1;
     if ((cols % 512) != 0)
         _ct1 = 1;
     else
         _ct1 = 0;
-    KPR_KCALL(kuiper_kernel_70, (rows * ((cols / 512) + _ct1)),
-        ((uint32_t) 128U),
+    KPR_KCALL(Klas_SPMM_g_spmm_f32_512x512x128_kernel_70,
+        (rows * ((cols / 512) + _ct1)), ((uint32_t) 128U),
         ((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
             (((uint32_t) 4U) * ((uint32_t) 512U))),
         s, row_indices, rows, gA, shared, cols, gB, gC);
@@ -17244,16 +17264,16 @@ void Klas_SPMM_g_spmm_f32_512x512x128_on(uint32_t rows, uint32_t shared,
     KPR_GUARD((cols < 10000));
     KPR_SHMEM_FITS(((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
                     (((uint32_t) 4U) * ((uint32_t) 512U))));
-    KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_71, ((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
-                              (((uint32_t) 4U) * ((uint32_t) 512U))));
+    KPR_SET_MAX_DYN_SHMEM(Klas_SPMM_g_spmm_f32_512x512x128_on_kernel_71,
+        ((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
+            (((uint32_t) 4U) * ((uint32_t) 512U))));
     uint32_t _ct1;
     if ((cols % 512) != 0)
         _ct1 = 1;
     else
         _ct1 = 0;
-    KPR_KCALL(kuiper_kernel_71, (rows * ((cols / 512) + _ct1)),
-        ((uint32_t) 128U),
+    KPR_KCALL(Klas_SPMM_g_spmm_f32_512x512x128_on_kernel_71,
+        (rows * ((cols / 512) + _ct1)), ((uint32_t) 128U),
         ((0 + (((uint32_t) 4U) * ((uint32_t) 512U))) +
             (((uint32_t) 4U) * ((uint32_t) 512U))),
         s, row_indices, rows, gA, shared, cols, gB, gC);

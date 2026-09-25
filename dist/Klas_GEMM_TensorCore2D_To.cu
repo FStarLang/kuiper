@@ -10,9 +10,10 @@ __device__ static FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_float32_pt
 FStar_Pervasives_Native_snd__array_t_tuple2_array_tuple2_unit(
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
         x);
-__global__ static void kuiper_kernel_0(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD);
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_2x2_kernel_0(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD);
 __device__ static FStar_Pervasives_Native_tuple2__float32_ptr_unit
 FStar_Pervasives_Native_snd__array_t_tuple2_array_unit_2(
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_float32_ptr_unit x);
@@ -20,12 +21,14 @@ __device__ static FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_float32_pt
 FStar_Pervasives_Native_snd__array_t_tuple2_array_tuple2_unit_3(
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
         x);
-__global__ static void kuiper_kernel_1(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD);
-__global__ static void kuiper_kernel_2(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD);
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_2x4_kernel_1(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD);
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_4x2_kernel_2(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD);
 __device__ static FStar_Pervasives_Native_tuple2__float32_ptr_unit
 FStar_Pervasives_Native_snd__array_t_tuple2_array_unit_4(
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_float32_ptr_unit x);
@@ -33,72 +36,86 @@ __device__ static FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_float32_pt
 FStar_Pervasives_Native_snd__array_t_tuple2_array_tuple2_unit_5(
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
         x);
-__global__ static void kuiper_kernel_3(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD);
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_4x4_kernel_3(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD);
 __device__ static FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_float32_ptr_unit
 FStar_Pervasives_Native_snd__array_t_tuple2_array_tuple2_unit_6(
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
         x);
-__global__ static void kuiper_kernel_4(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD);
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_2x2_kernel_4(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD);
 __device__ static FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_float32_ptr_unit
 FStar_Pervasives_Native_snd__array_t_tuple2_array_tuple2_unit_7(
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
         x);
-__global__ static void kuiper_kernel_5(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD);
-__global__ static void kuiper_kernel_6(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD);
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_2x4_kernel_5(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD);
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_4x2_kernel_6(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD);
 __device__ static FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_float32_ptr_unit
 FStar_Pervasives_Native_snd__array_t_tuple2_array_tuple2_unit_8(
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
         x);
-__global__ static void kuiper_kernel_7(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD);
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_4x4_kernel_7(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD);
 __device__ static FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_float32_ptr_unit
 FStar_Pervasives_Native_snd__array_t_tuple2_array_tuple2_unit_9(
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
         x);
-__global__ static void kuiper_kernel_8(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD);
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_2x2_kernel_8(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD);
 __device__ static FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_float32_ptr_unit
 FStar_Pervasives_Native_snd__array_t_tuple2_array_tuple2_unit_10(
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
         x);
-__global__ static void kuiper_kernel_9(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD);
-__global__ static void kuiper_kernel_10(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD);
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_2x4_kernel_9(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD);
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_4x2_kernel_10(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD);
 __device__ static FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_float32_ptr_unit
 FStar_Pervasives_Native_snd__array_t_tuple2_array_tuple2_unit_11(
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
         x);
-__global__ static void kuiper_kernel_11(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD);
-__global__ static void kuiper_kernel_12(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD);
-__global__ static void kuiper_kernel_13(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD);
-__global__ static void kuiper_kernel_14(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD);
-__global__ static void kuiper_kernel_15(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD);
-__global__ static void kuiper_kernel_16(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD);
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_4x4_kernel_11(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD);
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_2x4_kernel_12(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD);
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_2x8_kernel_13(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD);
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_4x2_kernel_14(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD);
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_4x4_kernel_15(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD);
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_4x8_kernel_16(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD);
 __device__ static FStar_Pervasives_Native_tuple2__float32_ptr_unit
 FStar_Pervasives_Native_snd__array_t_tuple2_array_unit_12(
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_float32_ptr_unit x);
@@ -106,137 +123,174 @@ __device__ static FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_float32_pt
 FStar_Pervasives_Native_snd__array_t_tuple2_array_tuple2_unit_13(
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
         x);
-__global__ static void kuiper_kernel_17(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD);
-__global__ static void kuiper_kernel_18(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD);
-__global__ static void kuiper_kernel_19(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD);
-__global__ static void kuiper_kernel_20(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD);
-__global__ static void kuiper_kernel_21(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD);
-__global__ static void kuiper_kernel_22(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD);
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_2x2_kernel_17(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD);
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_2x4_kernel_18(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD);
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_2x8_kernel_19(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD);
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_4x2_kernel_20(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD);
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_4x4_kernel_21(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD);
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_4x8_kernel_22(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD);
 __device__ static FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_float32_ptr_unit
 FStar_Pervasives_Native_snd__array_t_tuple2_array_tuple2_unit_14(
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
         x);
-__global__ static void kuiper_kernel_23(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD);
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_2x2_kernel_23(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD);
 __device__ static FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_float32_ptr_unit
 FStar_Pervasives_Native_snd__array_t_tuple2_array_tuple2_unit_15(
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
         x);
-__global__ static void kuiper_kernel_24(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD);
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_2x4_kernel_24(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD);
 __device__ static FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_float32_ptr_unit
 FStar_Pervasives_Native_snd__array_t_tuple2_array_tuple2_unit_16(
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
         x);
-__global__ static void kuiper_kernel_25(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD);
-__global__ static void kuiper_kernel_26(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD);
-__global__ static void kuiper_kernel_27(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD);
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_2x8_kernel_25(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD);
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_4x2_kernel_26(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD);
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_4x4_kernel_27(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD);
 __device__ static FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_float32_ptr_unit
 FStar_Pervasives_Native_snd__array_t_tuple2_array_tuple2_unit_17(
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
         x);
-__global__ static void kuiper_kernel_28(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD);
-__global__ static void kuiper_kernel_29(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD);
-__global__ static void kuiper_kernel_30(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD);
-__global__ static void kuiper_kernel_31(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD);
-__global__ static void kuiper_kernel_32(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD);
-__global__ static void kuiper_kernel_33(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD);
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_4x8_kernel_28(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD);
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_2x4_kernel_29(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD);
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_4x2_kernel_30(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD);
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_4x4_kernel_31(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD);
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_8x2_kernel_32(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD);
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_8x4_kernel_33(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD);
 __device__ static FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_float32_ptr_unit
 FStar_Pervasives_Native_snd__array_t_tuple2_array_tuple2_unit_18(
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
         x);
-__global__ static void kuiper_kernel_34(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD);
-__global__ static void kuiper_kernel_35(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD);
-__global__ static void kuiper_kernel_36(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD);
-__global__ static void kuiper_kernel_37(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD);
-__global__ static void kuiper_kernel_38(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD);
-__global__ static void kuiper_kernel_39(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD);
-__global__ static void kuiper_kernel_40(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD);
-__global__ static void kuiper_kernel_41(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD);
-__global__ static void kuiper_kernel_42(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD);
-__global__ static void kuiper_kernel_43(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD);
-__global__ static void kuiper_kernel_44(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD);
-__global__ static void kuiper_kernel_45(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD);
-__global__ static void kuiper_kernel_46(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD);
-__global__ static void kuiper_kernel_47(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD);
-__global__ static void kuiper_kernel_48(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD);
-__global__ static void kuiper_kernel_49(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD);
-__global__ static void kuiper_kernel_50(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD);
-__global__ static void kuiper_kernel_51(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD);
-__global__ static void kuiper_kernel_52(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD);
-__global__ static void kuiper_kernel_53(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD);
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_2x2_kernel_34(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD);
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_2x4_kernel_35(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD);
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_4x2_kernel_36(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD);
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_4x4_kernel_37(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD);
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_8x2_kernel_38(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD);
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_8x4_kernel_39(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD);
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_2x2_kernel_40(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD);
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_2x4_kernel_41(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD);
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_4x2_kernel_42(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD);
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_4x4_kernel_43(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD);
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_8x2_kernel_44(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD);
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_8x4_kernel_45(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD);
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_2x4_kernel_46(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD);
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_2x8_kernel_47(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD);
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_4x2_kernel_48(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD);
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_4x4_kernel_49(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD);
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_4x8_kernel_50(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD);
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_8x2_kernel_51(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD);
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_8x4_kernel_52(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD);
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_8x8_kernel_53(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD);
 __device__ static FStar_Pervasives_Native_tuple2__float32_ptr_unit
 FStar_Pervasives_Native_snd__array_t_tuple2_array_unit_19(
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_float32_ptr_unit x);
@@ -244,64 +298,82 @@ __device__ static FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_float32_pt
 FStar_Pervasives_Native_snd__array_t_tuple2_array_tuple2_unit_20(
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
         x);
-__global__ static void kuiper_kernel_54(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD);
-__global__ static void kuiper_kernel_55(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD);
-__global__ static void kuiper_kernel_56(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD);
-__global__ static void kuiper_kernel_57(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD);
-__global__ static void kuiper_kernel_58(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD);
-__global__ static void kuiper_kernel_59(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD);
-__global__ static void kuiper_kernel_60(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD);
-__global__ static void kuiper_kernel_61(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD);
-__global__ static void kuiper_kernel_62(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD);
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_2x2_kernel_54(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD);
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_2x4_kernel_55(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD);
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_2x8_kernel_56(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD);
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_4x2_kernel_57(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD);
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_4x4_kernel_58(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD);
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_4x8_kernel_59(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD);
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_8x2_kernel_60(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD);
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_8x4_kernel_61(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD);
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_8x8_kernel_62(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD);
 __device__ static FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_float32_ptr_unit
 FStar_Pervasives_Native_snd__array_t_tuple2_array_tuple2_unit_21(
     FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_tuple2_float32_
         x);
-__global__ static void kuiper_kernel_63(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD);
-__global__ static void kuiper_kernel_64(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD);
-__global__ static void kuiper_kernel_65(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD);
-__global__ static void kuiper_kernel_66(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD);
-__global__ static void kuiper_kernel_67(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD);
-__global__ static void kuiper_kernel_68(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD);
-__global__ static void kuiper_kernel_69(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD);
-__global__ static void kuiper_kernel_70(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD);
-__global__ static void kuiper_kernel_71(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD);
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_2x2_kernel_63(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD);
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_2x4_kernel_64(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD);
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_2x8_kernel_65(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD);
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_4x2_kernel_66(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD);
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_4x4_kernel_67(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD);
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_4x8_kernel_68(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD);
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_8x2_kernel_69(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD);
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_8x4_kernel_70(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD);
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_8x8_kernel_71(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD);
 
 __device__ static float *FStar_Pervasives_Native_fst__array_t_unit(
     FStar_Pervasives_Native_tuple2__float32_ptr_unit x)
@@ -325,9 +397,10 @@ FStar_Pervasives_Native_snd__array_t_tuple2_array_tuple2_unit(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_0(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD)
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_2x2_kernel_0(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD)
 {
     (void) nthr;
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
@@ -593,9 +666,10 @@ FStar_Pervasives_Native_snd__array_t_tuple2_array_tuple2_unit_3(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_1(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD)
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_2x4_kernel_1(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD)
 {
     (void) nthr;
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
@@ -846,9 +920,10 @@ __global__ static void kuiper_kernel_1(uint32_t cols, uint32_t shared,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_2(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD)
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_4x2_kernel_2(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD)
 {
     (void) nthr;
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
@@ -1114,9 +1189,10 @@ FStar_Pervasives_Native_snd__array_t_tuple2_array_tuple2_unit_5(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_3(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD)
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_4x4_kernel_3(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD)
 {
     (void) nthr;
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
@@ -1375,9 +1451,10 @@ FStar_Pervasives_Native_snd__array_t_tuple2_array_tuple2_unit_6(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_4(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD)
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_2x2_kernel_4(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD)
 {
     (void) nthr;
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
@@ -1636,9 +1713,10 @@ FStar_Pervasives_Native_snd__array_t_tuple2_array_tuple2_unit_7(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_5(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD)
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_2x4_kernel_5(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD)
 {
     (void) nthr;
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
@@ -1889,9 +1967,10 @@ __global__ static void kuiper_kernel_5(uint32_t cols, uint32_t shared,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_6(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD)
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_4x2_kernel_6(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD)
 {
     (void) nthr;
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
@@ -2150,9 +2229,10 @@ FStar_Pervasives_Native_snd__array_t_tuple2_array_tuple2_unit_8(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_7(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD)
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_4x4_kernel_7(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD)
 {
     (void) nthr;
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
@@ -2411,9 +2491,10 @@ FStar_Pervasives_Native_snd__array_t_tuple2_array_tuple2_unit_9(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_8(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD)
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_2x2_kernel_8(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD)
 {
     (void) nthr;
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
@@ -2672,9 +2753,10 @@ FStar_Pervasives_Native_snd__array_t_tuple2_array_tuple2_unit_10(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_9(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD)
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_2x4_kernel_9(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD)
 {
     (void) nthr;
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
@@ -2925,9 +3007,10 @@ __global__ static void kuiper_kernel_9(uint32_t cols, uint32_t shared,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_10(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD)
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_4x2_kernel_10(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD)
 {
     (void) nthr;
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
@@ -3186,9 +3269,10 @@ FStar_Pervasives_Native_snd__array_t_tuple2_array_tuple2_unit_11(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_11(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD)
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_4x4_kernel_11(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD)
 {
     (void) nthr;
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
@@ -3439,9 +3523,10 @@ __global__ static void kuiper_kernel_11(uint32_t cols, uint32_t shared,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_12(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD)
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_2x4_kernel_12(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD)
 {
     (void) nthr;
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
@@ -3692,9 +3777,10 @@ __global__ static void kuiper_kernel_12(uint32_t cols, uint32_t shared,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_13(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD)
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_2x8_kernel_13(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD)
 {
     (void) nthr;
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
@@ -3945,9 +4031,10 @@ __global__ static void kuiper_kernel_13(uint32_t cols, uint32_t shared,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_14(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD)
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_4x2_kernel_14(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD)
 {
     (void) nthr;
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
@@ -4198,9 +4285,10 @@ __global__ static void kuiper_kernel_14(uint32_t cols, uint32_t shared,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_15(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD)
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_4x4_kernel_15(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD)
 {
     (void) nthr;
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
@@ -4451,9 +4539,10 @@ __global__ static void kuiper_kernel_15(uint32_t cols, uint32_t shared,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_16(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD)
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_4x8_kernel_16(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD)
 {
     (void) nthr;
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
@@ -4719,9 +4808,10 @@ FStar_Pervasives_Native_snd__array_t_tuple2_array_tuple2_unit_13(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_17(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD)
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_2x2_kernel_17(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD)
 {
     (void) nthr;
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
@@ -4972,9 +5062,10 @@ __global__ static void kuiper_kernel_17(uint32_t cols, uint32_t shared,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_18(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD)
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_2x4_kernel_18(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD)
 {
     (void) nthr;
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
@@ -5225,9 +5316,10 @@ __global__ static void kuiper_kernel_18(uint32_t cols, uint32_t shared,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_19(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD)
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_2x8_kernel_19(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD)
 {
     (void) nthr;
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
@@ -5478,9 +5570,10 @@ __global__ static void kuiper_kernel_19(uint32_t cols, uint32_t shared,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_20(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD)
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_4x2_kernel_20(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD)
 {
     (void) nthr;
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
@@ -5731,9 +5824,10 @@ __global__ static void kuiper_kernel_20(uint32_t cols, uint32_t shared,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_21(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD)
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_4x4_kernel_21(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD)
 {
     (void) nthr;
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
@@ -5984,9 +6078,10 @@ __global__ static void kuiper_kernel_21(uint32_t cols, uint32_t shared,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_22(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD)
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_4x8_kernel_22(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD)
 {
     (void) nthr;
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
@@ -6245,9 +6340,10 @@ FStar_Pervasives_Native_snd__array_t_tuple2_array_tuple2_unit_14(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_23(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD)
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_2x2_kernel_23(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD)
 {
     (void) nthr;
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
@@ -6506,9 +6602,10 @@ FStar_Pervasives_Native_snd__array_t_tuple2_array_tuple2_unit_15(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_24(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD)
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_2x4_kernel_24(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD)
 {
     (void) nthr;
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
@@ -6767,9 +6864,10 @@ FStar_Pervasives_Native_snd__array_t_tuple2_array_tuple2_unit_16(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_25(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD)
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_2x8_kernel_25(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD)
 {
     (void) nthr;
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
@@ -7020,9 +7118,10 @@ __global__ static void kuiper_kernel_25(uint32_t cols, uint32_t shared,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_26(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD)
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_4x2_kernel_26(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD)
 {
     (void) nthr;
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
@@ -7273,9 +7372,10 @@ __global__ static void kuiper_kernel_26(uint32_t cols, uint32_t shared,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_27(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD)
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_4x4_kernel_27(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD)
 {
     (void) nthr;
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
@@ -7534,9 +7634,10 @@ FStar_Pervasives_Native_snd__array_t_tuple2_array_tuple2_unit_17(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_28(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD)
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_4x8_kernel_28(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD)
 {
     (void) nthr;
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
@@ -7787,9 +7888,10 @@ __global__ static void kuiper_kernel_28(uint32_t cols, uint32_t shared,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_29(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD)
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_2x4_kernel_29(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD)
 {
     (void) nthr;
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
@@ -8040,9 +8142,10 @@ __global__ static void kuiper_kernel_29(uint32_t cols, uint32_t shared,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_30(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD)
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_4x2_kernel_30(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD)
 {
     (void) nthr;
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
@@ -8293,9 +8396,10 @@ __global__ static void kuiper_kernel_30(uint32_t cols, uint32_t shared,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_31(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD)
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_4x4_kernel_31(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD)
 {
     (void) nthr;
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
@@ -8546,9 +8650,10 @@ __global__ static void kuiper_kernel_31(uint32_t cols, uint32_t shared,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_32(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD)
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_8x2_kernel_32(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD)
 {
     (void) nthr;
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
@@ -8799,9 +8904,10 @@ __global__ static void kuiper_kernel_32(uint32_t cols, uint32_t shared,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_33(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD)
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_8x4_kernel_33(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD)
 {
     (void) nthr;
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
@@ -9060,9 +9166,10 @@ FStar_Pervasives_Native_snd__array_t_tuple2_array_tuple2_unit_18(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_34(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD)
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_2x2_kernel_34(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD)
 {
     (void) nthr;
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
@@ -9313,9 +9420,10 @@ __global__ static void kuiper_kernel_34(uint32_t cols, uint32_t shared,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_35(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD)
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_2x4_kernel_35(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD)
 {
     (void) nthr;
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
@@ -9566,9 +9674,10 @@ __global__ static void kuiper_kernel_35(uint32_t cols, uint32_t shared,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_36(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD)
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_4x2_kernel_36(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD)
 {
     (void) nthr;
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
@@ -9819,9 +9928,10 @@ __global__ static void kuiper_kernel_36(uint32_t cols, uint32_t shared,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_37(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD)
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_4x4_kernel_37(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD)
 {
     (void) nthr;
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
@@ -10072,9 +10182,10 @@ __global__ static void kuiper_kernel_37(uint32_t cols, uint32_t shared,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_38(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD)
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_8x2_kernel_38(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD)
 {
     (void) nthr;
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
@@ -10325,9 +10436,10 @@ __global__ static void kuiper_kernel_38(uint32_t cols, uint32_t shared,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_39(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD)
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_8x4_kernel_39(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD)
 {
     (void) nthr;
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
@@ -10578,9 +10690,10 @@ __global__ static void kuiper_kernel_39(uint32_t cols, uint32_t shared,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_40(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD)
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_2x2_kernel_40(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD)
 {
     (void) nthr;
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
@@ -10831,9 +10944,10 @@ __global__ static void kuiper_kernel_40(uint32_t cols, uint32_t shared,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_41(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD)
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_2x4_kernel_41(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD)
 {
     (void) nthr;
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
@@ -11084,9 +11198,10 @@ __global__ static void kuiper_kernel_41(uint32_t cols, uint32_t shared,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_42(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD)
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_4x2_kernel_42(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD)
 {
     (void) nthr;
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
@@ -11337,9 +11452,10 @@ __global__ static void kuiper_kernel_42(uint32_t cols, uint32_t shared,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_43(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD)
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_4x4_kernel_43(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD)
 {
     (void) nthr;
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
@@ -11590,9 +11706,10 @@ __global__ static void kuiper_kernel_43(uint32_t cols, uint32_t shared,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_44(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD)
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_8x2_kernel_44(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD)
 {
     (void) nthr;
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
@@ -11843,9 +11960,10 @@ __global__ static void kuiper_kernel_44(uint32_t cols, uint32_t shared,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_45(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD)
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_8x4_kernel_45(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD)
 {
     (void) nthr;
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
@@ -12096,9 +12214,10 @@ __global__ static void kuiper_kernel_45(uint32_t cols, uint32_t shared,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_46(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD)
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_2x4_kernel_46(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD)
 {
     (void) nthr;
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
@@ -12349,9 +12468,10 @@ __global__ static void kuiper_kernel_46(uint32_t cols, uint32_t shared,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_47(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD)
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_2x8_kernel_47(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD)
 {
     (void) nthr;
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
@@ -12602,9 +12722,10 @@ __global__ static void kuiper_kernel_47(uint32_t cols, uint32_t shared,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_48(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD)
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_4x2_kernel_48(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD)
 {
     (void) nthr;
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
@@ -12855,9 +12976,10 @@ __global__ static void kuiper_kernel_48(uint32_t cols, uint32_t shared,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_49(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD)
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_4x4_kernel_49(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD)
 {
     (void) nthr;
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
@@ -13108,9 +13230,10 @@ __global__ static void kuiper_kernel_49(uint32_t cols, uint32_t shared,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_50(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD)
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_4x8_kernel_50(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD)
 {
     (void) nthr;
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
@@ -13361,9 +13484,10 @@ __global__ static void kuiper_kernel_50(uint32_t cols, uint32_t shared,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_51(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD)
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_8x2_kernel_51(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD)
 {
     (void) nthr;
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
@@ -13614,9 +13738,10 @@ __global__ static void kuiper_kernel_51(uint32_t cols, uint32_t shared,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_52(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD)
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_8x4_kernel_52(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD)
 {
     (void) nthr;
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
@@ -13867,9 +13992,10 @@ __global__ static void kuiper_kernel_52(uint32_t cols, uint32_t shared,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_53(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD)
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_8x8_kernel_53(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD)
 {
     (void) nthr;
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
@@ -14135,9 +14261,10 @@ FStar_Pervasives_Native_snd__array_t_tuple2_array_tuple2_unit_20(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_54(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD)
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_2x2_kernel_54(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD)
 {
     (void) nthr;
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
@@ -14388,9 +14515,10 @@ __global__ static void kuiper_kernel_54(uint32_t cols, uint32_t shared,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_55(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD)
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_2x4_kernel_55(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD)
 {
     (void) nthr;
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
@@ -14641,9 +14769,10 @@ __global__ static void kuiper_kernel_55(uint32_t cols, uint32_t shared,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_56(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD)
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_2x8_kernel_56(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD)
 {
     (void) nthr;
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
@@ -14894,9 +15023,10 @@ __global__ static void kuiper_kernel_56(uint32_t cols, uint32_t shared,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_57(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD)
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_4x2_kernel_57(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD)
 {
     (void) nthr;
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
@@ -15147,9 +15277,10 @@ __global__ static void kuiper_kernel_57(uint32_t cols, uint32_t shared,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_58(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD)
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_4x4_kernel_58(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD)
 {
     (void) nthr;
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
@@ -15400,9 +15531,10 @@ __global__ static void kuiper_kernel_58(uint32_t cols, uint32_t shared,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_59(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD)
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_4x8_kernel_59(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD)
 {
     (void) nthr;
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
@@ -15653,9 +15785,10 @@ __global__ static void kuiper_kernel_59(uint32_t cols, uint32_t shared,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_60(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD)
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_8x2_kernel_60(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD)
 {
     (void) nthr;
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
@@ -15906,9 +16039,10 @@ __global__ static void kuiper_kernel_60(uint32_t cols, uint32_t shared,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_61(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD)
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_8x4_kernel_61(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD)
 {
     (void) nthr;
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
@@ -16159,9 +16293,10 @@ __global__ static void kuiper_kernel_61(uint32_t cols, uint32_t shared,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_62(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD)
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_8x8_kernel_62(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD)
 {
     (void) nthr;
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
@@ -16420,9 +16555,10 @@ FStar_Pervasives_Native_snd__array_t_tuple2_array_tuple2_unit_21(
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_63(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD)
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_2x2_kernel_63(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD)
 {
     (void) nthr;
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
@@ -16673,9 +16809,10 @@ __global__ static void kuiper_kernel_63(uint32_t cols, uint32_t shared,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_64(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD)
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_2x4_kernel_64(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD)
 {
     (void) nthr;
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
@@ -16926,9 +17063,10 @@ __global__ static void kuiper_kernel_64(uint32_t cols, uint32_t shared,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_65(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD)
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_2x8_kernel_65(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD)
 {
     (void) nthr;
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
@@ -17179,9 +17317,10 @@ __global__ static void kuiper_kernel_65(uint32_t cols, uint32_t shared,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_66(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD)
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_4x2_kernel_66(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD)
 {
     (void) nthr;
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
@@ -17432,9 +17571,10 @@ __global__ static void kuiper_kernel_66(uint32_t cols, uint32_t shared,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_67(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD)
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_4x4_kernel_67(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD)
 {
     (void) nthr;
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
@@ -17685,9 +17825,10 @@ __global__ static void kuiper_kernel_67(uint32_t cols, uint32_t shared,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_68(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD)
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_4x8_kernel_68(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD)
 {
     (void) nthr;
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
@@ -17938,9 +18079,10 @@ __global__ static void kuiper_kernel_68(uint32_t cols, uint32_t shared,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_69(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD)
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_8x2_kernel_69(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD)
 {
     (void) nthr;
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
@@ -18191,9 +18333,10 @@ __global__ static void kuiper_kernel_69(uint32_t cols, uint32_t shared,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_70(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD)
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_8x4_kernel_70(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD)
 {
     (void) nthr;
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
@@ -18444,9 +18587,10 @@ __global__ static void kuiper_kernel_70(uint32_t cols, uint32_t shared,
 }
 
 /* hoisted by the Custard Kuiper rule */
-__global__ static void kuiper_kernel_71(uint32_t cols, uint32_t shared,
-    custard_bf16 *gA, custard_bf16 *gB, uint32_t nthr, custard_bf16 *gC,
-    float beta, float alpha, custard_bf16 *gD)
+__global__ static void
+Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_8x8_kernel_71(
+    uint32_t cols, uint32_t shared, custard_bf16 *gA, custard_bf16 *gB,
+    uint32_t nthr, custard_bf16 *gC, float beta, float alpha, custard_bf16 *gD)
 {
     (void) nthr;
     uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
@@ -18714,10 +18858,13 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_2x2(
                         (((uint32_t) 2U) * ((uint32_t) 1024U))) +
                     (4 * (((nthr / 32) * 16) * 16))));
     KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_0, (((0 + (((uint32_t) 2U) * ((uint32_t) 1024U))) +
-                              (((uint32_t) 2U) * ((uint32_t) 1024U))) +
-                             (4 * (((nthr / 32) * 16) * 16))));
-    KPR_KCALL(kuiper_kernel_0, nblk, nthr,
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_2x2_kernel_0,
+        (((0 + (((uint32_t) 2U) * ((uint32_t) 1024U))) +
+             (((uint32_t) 2U) * ((uint32_t) 1024U))) +
+            (4 * (((nthr / 32) * 16) * 16))));
+    KPR_KCALL(
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_2x2_kernel_0,
+        nblk, nthr,
         (((0 + (((uint32_t) 2U) * ((uint32_t) 1024U))) +
              (((uint32_t) 2U) * ((uint32_t) 1024U))) +
             (4 * (((nthr / 32) * 16) * 16))),
@@ -18744,10 +18891,13 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_2x4(
                         (((uint32_t) 2U) * ((uint32_t) 1024U))) +
                     (4 * (((nthr / 32) * 16) * 16))));
     KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_1, (((0 + (((uint32_t) 2U) * ((uint32_t) 1024U))) +
-                              (((uint32_t) 2U) * ((uint32_t) 1024U))) +
-                             (4 * (((nthr / 32) * 16) * 16))));
-    KPR_KCALL(kuiper_kernel_1, nblk, nthr,
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_2x4_kernel_1,
+        (((0 + (((uint32_t) 2U) * ((uint32_t) 1024U))) +
+             (((uint32_t) 2U) * ((uint32_t) 1024U))) +
+            (4 * (((nthr / 32) * 16) * 16))));
+    KPR_KCALL(
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_2x4_kernel_1,
+        nblk, nthr,
         (((0 + (((uint32_t) 2U) * ((uint32_t) 1024U))) +
              (((uint32_t) 2U) * ((uint32_t) 1024U))) +
             (4 * (((nthr / 32) * 16) * 16))),
@@ -18774,10 +18924,13 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_4x2(
                         (((uint32_t) 2U) * ((uint32_t) 1024U))) +
                     (4 * (((nthr / 32) * 16) * 16))));
     KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_2, (((0 + (((uint32_t) 2U) * ((uint32_t) 1024U))) +
-                              (((uint32_t) 2U) * ((uint32_t) 1024U))) +
-                             (4 * (((nthr / 32) * 16) * 16))));
-    KPR_KCALL(kuiper_kernel_2, nblk, nthr,
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_4x2_kernel_2,
+        (((0 + (((uint32_t) 2U) * ((uint32_t) 1024U))) +
+             (((uint32_t) 2U) * ((uint32_t) 1024U))) +
+            (4 * (((nthr / 32) * 16) * 16))));
+    KPR_KCALL(
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_4x2_kernel_2,
+        nblk, nthr,
         (((0 + (((uint32_t) 2U) * ((uint32_t) 1024U))) +
              (((uint32_t) 2U) * ((uint32_t) 1024U))) +
             (4 * (((nthr / 32) * 16) * 16))),
@@ -18804,10 +18957,13 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_4x4(
                         (((uint32_t) 2U) * ((uint32_t) 1024U))) +
                     (4 * (((nthr / 32) * 16) * 16))));
     KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_3, (((0 + (((uint32_t) 2U) * ((uint32_t) 1024U))) +
-                              (((uint32_t) 2U) * ((uint32_t) 1024U))) +
-                             (4 * (((nthr / 32) * 16) * 16))));
-    KPR_KCALL(kuiper_kernel_3, nblk, nthr,
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_4x4_kernel_3,
+        (((0 + (((uint32_t) 2U) * ((uint32_t) 1024U))) +
+             (((uint32_t) 2U) * ((uint32_t) 1024U))) +
+            (4 * (((nthr / 32) * 16) * 16))));
+    KPR_KCALL(
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_4x4_kernel_3,
+        nblk, nthr,
         (((0 + (((uint32_t) 2U) * ((uint32_t) 1024U))) +
              (((uint32_t) 2U) * ((uint32_t) 1024U))) +
             (4 * (((nthr / 32) * 16) * 16))),
@@ -18834,10 +18990,13 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_2x2(
                         (((uint32_t) 2U) * ((uint32_t) 2048U))) +
                     (4 * (((nthr / 32) * 16) * 16))));
     KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_4, (((0 + (((uint32_t) 2U) * ((uint32_t) 2048U))) +
-                              (((uint32_t) 2U) * ((uint32_t) 2048U))) +
-                             (4 * (((nthr / 32) * 16) * 16))));
-    KPR_KCALL(kuiper_kernel_4, nblk, nthr,
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_2x2_kernel_4,
+        (((0 + (((uint32_t) 2U) * ((uint32_t) 2048U))) +
+             (((uint32_t) 2U) * ((uint32_t) 2048U))) +
+            (4 * (((nthr / 32) * 16) * 16))));
+    KPR_KCALL(
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_2x2_kernel_4,
+        nblk, nthr,
         (((0 + (((uint32_t) 2U) * ((uint32_t) 2048U))) +
              (((uint32_t) 2U) * ((uint32_t) 2048U))) +
             (4 * (((nthr / 32) * 16) * 16))),
@@ -18864,10 +19023,13 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_2x4(
                         (((uint32_t) 2U) * ((uint32_t) 2048U))) +
                     (4 * (((nthr / 32) * 16) * 16))));
     KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_5, (((0 + (((uint32_t) 2U) * ((uint32_t) 2048U))) +
-                              (((uint32_t) 2U) * ((uint32_t) 2048U))) +
-                             (4 * (((nthr / 32) * 16) * 16))));
-    KPR_KCALL(kuiper_kernel_5, nblk, nthr,
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_2x4_kernel_5,
+        (((0 + (((uint32_t) 2U) * ((uint32_t) 2048U))) +
+             (((uint32_t) 2U) * ((uint32_t) 2048U))) +
+            (4 * (((nthr / 32) * 16) * 16))));
+    KPR_KCALL(
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_2x4_kernel_5,
+        nblk, nthr,
         (((0 + (((uint32_t) 2U) * ((uint32_t) 2048U))) +
              (((uint32_t) 2U) * ((uint32_t) 2048U))) +
             (4 * (((nthr / 32) * 16) * 16))),
@@ -18894,10 +19056,13 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_4x2(
                         (((uint32_t) 2U) * ((uint32_t) 2048U))) +
                     (4 * (((nthr / 32) * 16) * 16))));
     KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_6, (((0 + (((uint32_t) 2U) * ((uint32_t) 2048U))) +
-                              (((uint32_t) 2U) * ((uint32_t) 2048U))) +
-                             (4 * (((nthr / 32) * 16) * 16))));
-    KPR_KCALL(kuiper_kernel_6, nblk, nthr,
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_4x2_kernel_6,
+        (((0 + (((uint32_t) 2U) * ((uint32_t) 2048U))) +
+             (((uint32_t) 2U) * ((uint32_t) 2048U))) +
+            (4 * (((nthr / 32) * 16) * 16))));
+    KPR_KCALL(
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_4x2_kernel_6,
+        nblk, nthr,
         (((0 + (((uint32_t) 2U) * ((uint32_t) 2048U))) +
              (((uint32_t) 2U) * ((uint32_t) 2048U))) +
             (4 * (((nthr / 32) * 16) * 16))),
@@ -18924,10 +19089,13 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_4x4(
                         (((uint32_t) 2U) * ((uint32_t) 2048U))) +
                     (4 * (((nthr / 32) * 16) * 16))));
     KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_7, (((0 + (((uint32_t) 2U) * ((uint32_t) 2048U))) +
-                              (((uint32_t) 2U) * ((uint32_t) 2048U))) +
-                             (4 * (((nthr / 32) * 16) * 16))));
-    KPR_KCALL(kuiper_kernel_7, nblk, nthr,
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_4x4_kernel_7,
+        (((0 + (((uint32_t) 2U) * ((uint32_t) 2048U))) +
+             (((uint32_t) 2U) * ((uint32_t) 2048U))) +
+            (4 * (((nthr / 32) * 16) * 16))));
+    KPR_KCALL(
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_4x4_kernel_7,
+        nblk, nthr,
         (((0 + (((uint32_t) 2U) * ((uint32_t) 2048U))) +
              (((uint32_t) 2U) * ((uint32_t) 2048U))) +
             (4 * (((nthr / 32) * 16) * 16))),
@@ -18954,10 +19122,13 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_2x2(
                         (((uint32_t) 2U) * ((uint32_t) 4096U))) +
                     (4 * (((nthr / 32) * 16) * 16))));
     KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_8, (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
-                              (((uint32_t) 2U) * ((uint32_t) 4096U))) +
-                             (4 * (((nthr / 32) * 16) * 16))));
-    KPR_KCALL(kuiper_kernel_8, nblk, nthr,
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_2x2_kernel_8,
+        (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
+             (((uint32_t) 2U) * ((uint32_t) 4096U))) +
+            (4 * (((nthr / 32) * 16) * 16))));
+    KPR_KCALL(
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_2x2_kernel_8,
+        nblk, nthr,
         (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
              (((uint32_t) 2U) * ((uint32_t) 4096U))) +
             (4 * (((nthr / 32) * 16) * 16))),
@@ -18984,10 +19155,13 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_2x4(
                         (((uint32_t) 2U) * ((uint32_t) 4096U))) +
                     (4 * (((nthr / 32) * 16) * 16))));
     KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_9, (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
-                              (((uint32_t) 2U) * ((uint32_t) 4096U))) +
-                             (4 * (((nthr / 32) * 16) * 16))));
-    KPR_KCALL(kuiper_kernel_9, nblk, nthr,
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_2x4_kernel_9,
+        (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
+             (((uint32_t) 2U) * ((uint32_t) 4096U))) +
+            (4 * (((nthr / 32) * 16) * 16))));
+    KPR_KCALL(
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_2x4_kernel_9,
+        nblk, nthr,
         (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
              (((uint32_t) 2U) * ((uint32_t) 4096U))) +
             (4 * (((nthr / 32) * 16) * 16))),
@@ -19014,10 +19188,13 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_4x2(
                         (((uint32_t) 2U) * ((uint32_t) 4096U))) +
                     (4 * (((nthr / 32) * 16) * 16))));
     KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_10, (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
-                               (((uint32_t) 2U) * ((uint32_t) 4096U))) +
-                              (4 * (((nthr / 32) * 16) * 16))));
-    KPR_KCALL(kuiper_kernel_10, nblk, nthr,
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_4x2_kernel_10,
+        (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
+             (((uint32_t) 2U) * ((uint32_t) 4096U))) +
+            (4 * (((nthr / 32) * 16) * 16))));
+    KPR_KCALL(
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_4x2_kernel_10,
+        nblk, nthr,
         (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
              (((uint32_t) 2U) * ((uint32_t) 4096U))) +
             (4 * (((nthr / 32) * 16) * 16))),
@@ -19044,10 +19221,13 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_4x4(
                         (((uint32_t) 2U) * ((uint32_t) 4096U))) +
                     (4 * (((nthr / 32) * 16) * 16))));
     KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_11, (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
-                               (((uint32_t) 2U) * ((uint32_t) 4096U))) +
-                              (4 * (((nthr / 32) * 16) * 16))));
-    KPR_KCALL(kuiper_kernel_11, nblk, nthr,
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_4x4_kernel_11,
+        (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
+             (((uint32_t) 2U) * ((uint32_t) 4096U))) +
+            (4 * (((nthr / 32) * 16) * 16))));
+    KPR_KCALL(
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_4x4_kernel_11,
+        nblk, nthr,
         (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
              (((uint32_t) 2U) * ((uint32_t) 4096U))) +
             (4 * (((nthr / 32) * 16) * 16))),
@@ -19074,10 +19254,13 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_2x4(
                         (((uint32_t) 2U) * ((uint32_t) 2048U))) +
                     (4 * (((nthr / 32) * 16) * 16))));
     KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_12, (((0 + (((uint32_t) 2U) * ((uint32_t) 1024U))) +
-                               (((uint32_t) 2U) * ((uint32_t) 2048U))) +
-                              (4 * (((nthr / 32) * 16) * 16))));
-    KPR_KCALL(kuiper_kernel_12, nblk, nthr,
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_2x4_kernel_12,
+        (((0 + (((uint32_t) 2U) * ((uint32_t) 1024U))) +
+             (((uint32_t) 2U) * ((uint32_t) 2048U))) +
+            (4 * (((nthr / 32) * 16) * 16))));
+    KPR_KCALL(
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_2x4_kernel_12,
+        nblk, nthr,
         (((0 + (((uint32_t) 2U) * ((uint32_t) 1024U))) +
              (((uint32_t) 2U) * ((uint32_t) 2048U))) +
             (4 * (((nthr / 32) * 16) * 16))),
@@ -19104,10 +19287,13 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_2x8(
                         (((uint32_t) 2U) * ((uint32_t) 2048U))) +
                     (4 * (((nthr / 32) * 16) * 16))));
     KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_13, (((0 + (((uint32_t) 2U) * ((uint32_t) 1024U))) +
-                               (((uint32_t) 2U) * ((uint32_t) 2048U))) +
-                              (4 * (((nthr / 32) * 16) * 16))));
-    KPR_KCALL(kuiper_kernel_13, nblk, nthr,
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_2x8_kernel_13,
+        (((0 + (((uint32_t) 2U) * ((uint32_t) 1024U))) +
+             (((uint32_t) 2U) * ((uint32_t) 2048U))) +
+            (4 * (((nthr / 32) * 16) * 16))));
+    KPR_KCALL(
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_2x8_kernel_13,
+        nblk, nthr,
         (((0 + (((uint32_t) 2U) * ((uint32_t) 1024U))) +
              (((uint32_t) 2U) * ((uint32_t) 2048U))) +
             (4 * (((nthr / 32) * 16) * 16))),
@@ -19134,10 +19320,13 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_4x2(
                         (((uint32_t) 2U) * ((uint32_t) 2048U))) +
                     (4 * (((nthr / 32) * 16) * 16))));
     KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_14, (((0 + (((uint32_t) 2U) * ((uint32_t) 1024U))) +
-                               (((uint32_t) 2U) * ((uint32_t) 2048U))) +
-                              (4 * (((nthr / 32) * 16) * 16))));
-    KPR_KCALL(kuiper_kernel_14, nblk, nthr,
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_4x2_kernel_14,
+        (((0 + (((uint32_t) 2U) * ((uint32_t) 1024U))) +
+             (((uint32_t) 2U) * ((uint32_t) 2048U))) +
+            (4 * (((nthr / 32) * 16) * 16))));
+    KPR_KCALL(
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_4x2_kernel_14,
+        nblk, nthr,
         (((0 + (((uint32_t) 2U) * ((uint32_t) 1024U))) +
              (((uint32_t) 2U) * ((uint32_t) 2048U))) +
             (4 * (((nthr / 32) * 16) * 16))),
@@ -19164,10 +19353,13 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_4x4(
                         (((uint32_t) 2U) * ((uint32_t) 2048U))) +
                     (4 * (((nthr / 32) * 16) * 16))));
     KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_15, (((0 + (((uint32_t) 2U) * ((uint32_t) 1024U))) +
-                               (((uint32_t) 2U) * ((uint32_t) 2048U))) +
-                              (4 * (((nthr / 32) * 16) * 16))));
-    KPR_KCALL(kuiper_kernel_15, nblk, nthr,
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_4x4_kernel_15,
+        (((0 + (((uint32_t) 2U) * ((uint32_t) 1024U))) +
+             (((uint32_t) 2U) * ((uint32_t) 2048U))) +
+            (4 * (((nthr / 32) * 16) * 16))));
+    KPR_KCALL(
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_4x4_kernel_15,
+        nblk, nthr,
         (((0 + (((uint32_t) 2U) * ((uint32_t) 1024U))) +
              (((uint32_t) 2U) * ((uint32_t) 2048U))) +
             (4 * (((nthr / 32) * 16) * 16))),
@@ -19194,10 +19386,13 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_4x8(
                         (((uint32_t) 2U) * ((uint32_t) 2048U))) +
                     (4 * (((nthr / 32) * 16) * 16))));
     KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_16, (((0 + (((uint32_t) 2U) * ((uint32_t) 1024U))) +
-                               (((uint32_t) 2U) * ((uint32_t) 2048U))) +
-                              (4 * (((nthr / 32) * 16) * 16))));
-    KPR_KCALL(kuiper_kernel_16, nblk, nthr,
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_4x8_kernel_16,
+        (((0 + (((uint32_t) 2U) * ((uint32_t) 1024U))) +
+             (((uint32_t) 2U) * ((uint32_t) 2048U))) +
+            (4 * (((nthr / 32) * 16) * 16))));
+    KPR_KCALL(
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_4x8_kernel_16,
+        nblk, nthr,
         (((0 + (((uint32_t) 2U) * ((uint32_t) 1024U))) +
              (((uint32_t) 2U) * ((uint32_t) 2048U))) +
             (4 * (((nthr / 32) * 16) * 16))),
@@ -19224,10 +19419,13 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_2x2(
                         (((uint32_t) 2U) * ((uint32_t) 4096U))) +
                     (4 * (((nthr / 32) * 16) * 16))));
     KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_17, (((0 + (((uint32_t) 2U) * ((uint32_t) 2048U))) +
-                               (((uint32_t) 2U) * ((uint32_t) 4096U))) +
-                              (4 * (((nthr / 32) * 16) * 16))));
-    KPR_KCALL(kuiper_kernel_17, nblk, nthr,
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_2x2_kernel_17,
+        (((0 + (((uint32_t) 2U) * ((uint32_t) 2048U))) +
+             (((uint32_t) 2U) * ((uint32_t) 4096U))) +
+            (4 * (((nthr / 32) * 16) * 16))));
+    KPR_KCALL(
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_2x2_kernel_17,
+        nblk, nthr,
         (((0 + (((uint32_t) 2U) * ((uint32_t) 2048U))) +
              (((uint32_t) 2U) * ((uint32_t) 4096U))) +
             (4 * (((nthr / 32) * 16) * 16))),
@@ -19254,10 +19452,13 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_2x4(
                         (((uint32_t) 2U) * ((uint32_t) 4096U))) +
                     (4 * (((nthr / 32) * 16) * 16))));
     KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_18, (((0 + (((uint32_t) 2U) * ((uint32_t) 2048U))) +
-                               (((uint32_t) 2U) * ((uint32_t) 4096U))) +
-                              (4 * (((nthr / 32) * 16) * 16))));
-    KPR_KCALL(kuiper_kernel_18, nblk, nthr,
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_2x4_kernel_18,
+        (((0 + (((uint32_t) 2U) * ((uint32_t) 2048U))) +
+             (((uint32_t) 2U) * ((uint32_t) 4096U))) +
+            (4 * (((nthr / 32) * 16) * 16))));
+    KPR_KCALL(
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_2x4_kernel_18,
+        nblk, nthr,
         (((0 + (((uint32_t) 2U) * ((uint32_t) 2048U))) +
              (((uint32_t) 2U) * ((uint32_t) 4096U))) +
             (4 * (((nthr / 32) * 16) * 16))),
@@ -19284,10 +19485,13 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_2x8(
                         (((uint32_t) 2U) * ((uint32_t) 4096U))) +
                     (4 * (((nthr / 32) * 16) * 16))));
     KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_19, (((0 + (((uint32_t) 2U) * ((uint32_t) 2048U))) +
-                               (((uint32_t) 2U) * ((uint32_t) 4096U))) +
-                              (4 * (((nthr / 32) * 16) * 16))));
-    KPR_KCALL(kuiper_kernel_19, nblk, nthr,
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_2x8_kernel_19,
+        (((0 + (((uint32_t) 2U) * ((uint32_t) 2048U))) +
+             (((uint32_t) 2U) * ((uint32_t) 4096U))) +
+            (4 * (((nthr / 32) * 16) * 16))));
+    KPR_KCALL(
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_2x8_kernel_19,
+        nblk, nthr,
         (((0 + (((uint32_t) 2U) * ((uint32_t) 2048U))) +
              (((uint32_t) 2U) * ((uint32_t) 4096U))) +
             (4 * (((nthr / 32) * 16) * 16))),
@@ -19314,10 +19518,13 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_4x2(
                         (((uint32_t) 2U) * ((uint32_t) 4096U))) +
                     (4 * (((nthr / 32) * 16) * 16))));
     KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_20, (((0 + (((uint32_t) 2U) * ((uint32_t) 2048U))) +
-                               (((uint32_t) 2U) * ((uint32_t) 4096U))) +
-                              (4 * (((nthr / 32) * 16) * 16))));
-    KPR_KCALL(kuiper_kernel_20, nblk, nthr,
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_4x2_kernel_20,
+        (((0 + (((uint32_t) 2U) * ((uint32_t) 2048U))) +
+             (((uint32_t) 2U) * ((uint32_t) 4096U))) +
+            (4 * (((nthr / 32) * 16) * 16))));
+    KPR_KCALL(
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_4x2_kernel_20,
+        nblk, nthr,
         (((0 + (((uint32_t) 2U) * ((uint32_t) 2048U))) +
              (((uint32_t) 2U) * ((uint32_t) 4096U))) +
             (4 * (((nthr / 32) * 16) * 16))),
@@ -19344,10 +19551,13 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_4x4(
                         (((uint32_t) 2U) * ((uint32_t) 4096U))) +
                     (4 * (((nthr / 32) * 16) * 16))));
     KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_21, (((0 + (((uint32_t) 2U) * ((uint32_t) 2048U))) +
-                               (((uint32_t) 2U) * ((uint32_t) 4096U))) +
-                              (4 * (((nthr / 32) * 16) * 16))));
-    KPR_KCALL(kuiper_kernel_21, nblk, nthr,
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_4x4_kernel_21,
+        (((0 + (((uint32_t) 2U) * ((uint32_t) 2048U))) +
+             (((uint32_t) 2U) * ((uint32_t) 4096U))) +
+            (4 * (((nthr / 32) * 16) * 16))));
+    KPR_KCALL(
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_4x4_kernel_21,
+        nblk, nthr,
         (((0 + (((uint32_t) 2U) * ((uint32_t) 2048U))) +
              (((uint32_t) 2U) * ((uint32_t) 4096U))) +
             (4 * (((nthr / 32) * 16) * 16))),
@@ -19374,10 +19584,13 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_4x8(
                         (((uint32_t) 2U) * ((uint32_t) 4096U))) +
                     (4 * (((nthr / 32) * 16) * 16))));
     KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_22, (((0 + (((uint32_t) 2U) * ((uint32_t) 2048U))) +
-                               (((uint32_t) 2U) * ((uint32_t) 4096U))) +
-                              (4 * (((nthr / 32) * 16) * 16))));
-    KPR_KCALL(kuiper_kernel_22, nblk, nthr,
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_4x8_kernel_22,
+        (((0 + (((uint32_t) 2U) * ((uint32_t) 2048U))) +
+             (((uint32_t) 2U) * ((uint32_t) 4096U))) +
+            (4 * (((nthr / 32) * 16) * 16))));
+    KPR_KCALL(
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_4x8_kernel_22,
+        nblk, nthr,
         (((0 + (((uint32_t) 2U) * ((uint32_t) 2048U))) +
              (((uint32_t) 2U) * ((uint32_t) 4096U))) +
             (4 * (((nthr / 32) * 16) * 16))),
@@ -19404,10 +19617,13 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_2x2(
                         (((uint32_t) 2U) * ((uint32_t) 8192U))) +
                     (4 * (((nthr / 32) * 16) * 16))));
     KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_23, (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
-                               (((uint32_t) 2U) * ((uint32_t) 8192U))) +
-                              (4 * (((nthr / 32) * 16) * 16))));
-    KPR_KCALL(kuiper_kernel_23, nblk, nthr,
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_2x2_kernel_23,
+        (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
+             (((uint32_t) 2U) * ((uint32_t) 8192U))) +
+            (4 * (((nthr / 32) * 16) * 16))));
+    KPR_KCALL(
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_2x2_kernel_23,
+        nblk, nthr,
         (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
              (((uint32_t) 2U) * ((uint32_t) 8192U))) +
             (4 * (((nthr / 32) * 16) * 16))),
@@ -19434,10 +19650,13 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_2x4(
                         (((uint32_t) 2U) * ((uint32_t) 8192U))) +
                     (4 * (((nthr / 32) * 16) * 16))));
     KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_24, (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
-                               (((uint32_t) 2U) * ((uint32_t) 8192U))) +
-                              (4 * (((nthr / 32) * 16) * 16))));
-    KPR_KCALL(kuiper_kernel_24, nblk, nthr,
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_2x4_kernel_24,
+        (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
+             (((uint32_t) 2U) * ((uint32_t) 8192U))) +
+            (4 * (((nthr / 32) * 16) * 16))));
+    KPR_KCALL(
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_2x4_kernel_24,
+        nblk, nthr,
         (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
              (((uint32_t) 2U) * ((uint32_t) 8192U))) +
             (4 * (((nthr / 32) * 16) * 16))),
@@ -19464,10 +19683,13 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_2x8(
                         (((uint32_t) 2U) * ((uint32_t) 8192U))) +
                     (4 * (((nthr / 32) * 16) * 16))));
     KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_25, (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
-                               (((uint32_t) 2U) * ((uint32_t) 8192U))) +
-                              (4 * (((nthr / 32) * 16) * 16))));
-    KPR_KCALL(kuiper_kernel_25, nblk, nthr,
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_2x8_kernel_25,
+        (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
+             (((uint32_t) 2U) * ((uint32_t) 8192U))) +
+            (4 * (((nthr / 32) * 16) * 16))));
+    KPR_KCALL(
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_2x8_kernel_25,
+        nblk, nthr,
         (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
              (((uint32_t) 2U) * ((uint32_t) 8192U))) +
             (4 * (((nthr / 32) * 16) * 16))),
@@ -19494,10 +19716,13 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_4x2(
                         (((uint32_t) 2U) * ((uint32_t) 8192U))) +
                     (4 * (((nthr / 32) * 16) * 16))));
     KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_26, (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
-                               (((uint32_t) 2U) * ((uint32_t) 8192U))) +
-                              (4 * (((nthr / 32) * 16) * 16))));
-    KPR_KCALL(kuiper_kernel_26, nblk, nthr,
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_4x2_kernel_26,
+        (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
+             (((uint32_t) 2U) * ((uint32_t) 8192U))) +
+            (4 * (((nthr / 32) * 16) * 16))));
+    KPR_KCALL(
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_4x2_kernel_26,
+        nblk, nthr,
         (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
              (((uint32_t) 2U) * ((uint32_t) 8192U))) +
             (4 * (((nthr / 32) * 16) * 16))),
@@ -19524,10 +19749,13 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_4x4(
                         (((uint32_t) 2U) * ((uint32_t) 8192U))) +
                     (4 * (((nthr / 32) * 16) * 16))));
     KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_27, (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
-                               (((uint32_t) 2U) * ((uint32_t) 8192U))) +
-                              (4 * (((nthr / 32) * 16) * 16))));
-    KPR_KCALL(kuiper_kernel_27, nblk, nthr,
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_4x4_kernel_27,
+        (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
+             (((uint32_t) 2U) * ((uint32_t) 8192U))) +
+            (4 * (((nthr / 32) * 16) * 16))));
+    KPR_KCALL(
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_4x4_kernel_27,
+        nblk, nthr,
         (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
              (((uint32_t) 2U) * ((uint32_t) 8192U))) +
             (4 * (((nthr / 32) * 16) * 16))),
@@ -19554,10 +19782,13 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_4x8(
                         (((uint32_t) 2U) * ((uint32_t) 8192U))) +
                     (4 * (((nthr / 32) * 16) * 16))));
     KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_28, (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
-                               (((uint32_t) 2U) * ((uint32_t) 8192U))) +
-                              (4 * (((nthr / 32) * 16) * 16))));
-    KPR_KCALL(kuiper_kernel_28, nblk, nthr,
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_4x8_kernel_28,
+        (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
+             (((uint32_t) 2U) * ((uint32_t) 8192U))) +
+            (4 * (((nthr / 32) * 16) * 16))));
+    KPR_KCALL(
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_4x8_kernel_28,
+        nblk, nthr,
         (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
              (((uint32_t) 2U) * ((uint32_t) 8192U))) +
             (4 * (((nthr / 32) * 16) * 16))),
@@ -19584,10 +19815,13 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_2x4(
                         (((uint32_t) 2U) * ((uint32_t) 1024U))) +
                     (4 * (((nthr / 32) * 16) * 16))));
     KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_29, (((0 + (((uint32_t) 2U) * ((uint32_t) 2048U))) +
-                               (((uint32_t) 2U) * ((uint32_t) 1024U))) +
-                              (4 * (((nthr / 32) * 16) * 16))));
-    KPR_KCALL(kuiper_kernel_29, nblk, nthr,
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_2x4_kernel_29,
+        (((0 + (((uint32_t) 2U) * ((uint32_t) 2048U))) +
+             (((uint32_t) 2U) * ((uint32_t) 1024U))) +
+            (4 * (((nthr / 32) * 16) * 16))));
+    KPR_KCALL(
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_2x4_kernel_29,
+        nblk, nthr,
         (((0 + (((uint32_t) 2U) * ((uint32_t) 2048U))) +
              (((uint32_t) 2U) * ((uint32_t) 1024U))) +
             (4 * (((nthr / 32) * 16) * 16))),
@@ -19614,10 +19848,13 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_4x2(
                         (((uint32_t) 2U) * ((uint32_t) 1024U))) +
                     (4 * (((nthr / 32) * 16) * 16))));
     KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_30, (((0 + (((uint32_t) 2U) * ((uint32_t) 2048U))) +
-                               (((uint32_t) 2U) * ((uint32_t) 1024U))) +
-                              (4 * (((nthr / 32) * 16) * 16))));
-    KPR_KCALL(kuiper_kernel_30, nblk, nthr,
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_4x2_kernel_30,
+        (((0 + (((uint32_t) 2U) * ((uint32_t) 2048U))) +
+             (((uint32_t) 2U) * ((uint32_t) 1024U))) +
+            (4 * (((nthr / 32) * 16) * 16))));
+    KPR_KCALL(
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_4x2_kernel_30,
+        nblk, nthr,
         (((0 + (((uint32_t) 2U) * ((uint32_t) 2048U))) +
              (((uint32_t) 2U) * ((uint32_t) 1024U))) +
             (4 * (((nthr / 32) * 16) * 16))),
@@ -19644,10 +19881,13 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_4x4(
                         (((uint32_t) 2U) * ((uint32_t) 1024U))) +
                     (4 * (((nthr / 32) * 16) * 16))));
     KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_31, (((0 + (((uint32_t) 2U) * ((uint32_t) 2048U))) +
-                               (((uint32_t) 2U) * ((uint32_t) 1024U))) +
-                              (4 * (((nthr / 32) * 16) * 16))));
-    KPR_KCALL(kuiper_kernel_31, nblk, nthr,
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_4x4_kernel_31,
+        (((0 + (((uint32_t) 2U) * ((uint32_t) 2048U))) +
+             (((uint32_t) 2U) * ((uint32_t) 1024U))) +
+            (4 * (((nthr / 32) * 16) * 16))));
+    KPR_KCALL(
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_4x4_kernel_31,
+        nblk, nthr,
         (((0 + (((uint32_t) 2U) * ((uint32_t) 2048U))) +
              (((uint32_t) 2U) * ((uint32_t) 1024U))) +
             (4 * (((nthr / 32) * 16) * 16))),
@@ -19674,10 +19914,13 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_8x2(
                         (((uint32_t) 2U) * ((uint32_t) 1024U))) +
                     (4 * (((nthr / 32) * 16) * 16))));
     KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_32, (((0 + (((uint32_t) 2U) * ((uint32_t) 2048U))) +
-                               (((uint32_t) 2U) * ((uint32_t) 1024U))) +
-                              (4 * (((nthr / 32) * 16) * 16))));
-    KPR_KCALL(kuiper_kernel_32, nblk, nthr,
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_8x2_kernel_32,
+        (((0 + (((uint32_t) 2U) * ((uint32_t) 2048U))) +
+             (((uint32_t) 2U) * ((uint32_t) 1024U))) +
+            (4 * (((nthr / 32) * 16) * 16))));
+    KPR_KCALL(
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_8x2_kernel_32,
+        nblk, nthr,
         (((0 + (((uint32_t) 2U) * ((uint32_t) 2048U))) +
              (((uint32_t) 2U) * ((uint32_t) 1024U))) +
             (4 * (((nthr / 32) * 16) * 16))),
@@ -19704,10 +19947,13 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_8x4(
                         (((uint32_t) 2U) * ((uint32_t) 1024U))) +
                     (4 * (((nthr / 32) * 16) * 16))));
     KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_33, (((0 + (((uint32_t) 2U) * ((uint32_t) 2048U))) +
-                               (((uint32_t) 2U) * ((uint32_t) 1024U))) +
-                              (4 * (((nthr / 32) * 16) * 16))));
-    KPR_KCALL(kuiper_kernel_33, nblk, nthr,
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_8x4_kernel_33,
+        (((0 + (((uint32_t) 2U) * ((uint32_t) 2048U))) +
+             (((uint32_t) 2U) * ((uint32_t) 1024U))) +
+            (4 * (((nthr / 32) * 16) * 16))));
+    KPR_KCALL(
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_8x4_kernel_33,
+        nblk, nthr,
         (((0 + (((uint32_t) 2U) * ((uint32_t) 2048U))) +
              (((uint32_t) 2U) * ((uint32_t) 1024U))) +
             (4 * (((nthr / 32) * 16) * 16))),
@@ -19734,10 +19980,13 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_2x2(
                         (((uint32_t) 2U) * ((uint32_t) 2048U))) +
                     (4 * (((nthr / 32) * 16) * 16))));
     KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_34, (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
-                               (((uint32_t) 2U) * ((uint32_t) 2048U))) +
-                              (4 * (((nthr / 32) * 16) * 16))));
-    KPR_KCALL(kuiper_kernel_34, nblk, nthr,
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_2x2_kernel_34,
+        (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
+             (((uint32_t) 2U) * ((uint32_t) 2048U))) +
+            (4 * (((nthr / 32) * 16) * 16))));
+    KPR_KCALL(
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_2x2_kernel_34,
+        nblk, nthr,
         (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
              (((uint32_t) 2U) * ((uint32_t) 2048U))) +
             (4 * (((nthr / 32) * 16) * 16))),
@@ -19764,10 +20013,13 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_2x4(
                         (((uint32_t) 2U) * ((uint32_t) 2048U))) +
                     (4 * (((nthr / 32) * 16) * 16))));
     KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_35, (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
-                               (((uint32_t) 2U) * ((uint32_t) 2048U))) +
-                              (4 * (((nthr / 32) * 16) * 16))));
-    KPR_KCALL(kuiper_kernel_35, nblk, nthr,
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_2x4_kernel_35,
+        (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
+             (((uint32_t) 2U) * ((uint32_t) 2048U))) +
+            (4 * (((nthr / 32) * 16) * 16))));
+    KPR_KCALL(
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_2x4_kernel_35,
+        nblk, nthr,
         (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
              (((uint32_t) 2U) * ((uint32_t) 2048U))) +
             (4 * (((nthr / 32) * 16) * 16))),
@@ -19794,10 +20046,13 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_4x2(
                         (((uint32_t) 2U) * ((uint32_t) 2048U))) +
                     (4 * (((nthr / 32) * 16) * 16))));
     KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_36, (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
-                               (((uint32_t) 2U) * ((uint32_t) 2048U))) +
-                              (4 * (((nthr / 32) * 16) * 16))));
-    KPR_KCALL(kuiper_kernel_36, nblk, nthr,
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_4x2_kernel_36,
+        (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
+             (((uint32_t) 2U) * ((uint32_t) 2048U))) +
+            (4 * (((nthr / 32) * 16) * 16))));
+    KPR_KCALL(
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_4x2_kernel_36,
+        nblk, nthr,
         (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
              (((uint32_t) 2U) * ((uint32_t) 2048U))) +
             (4 * (((nthr / 32) * 16) * 16))),
@@ -19824,10 +20079,13 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_4x4(
                         (((uint32_t) 2U) * ((uint32_t) 2048U))) +
                     (4 * (((nthr / 32) * 16) * 16))));
     KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_37, (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
-                               (((uint32_t) 2U) * ((uint32_t) 2048U))) +
-                              (4 * (((nthr / 32) * 16) * 16))));
-    KPR_KCALL(kuiper_kernel_37, nblk, nthr,
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_4x4_kernel_37,
+        (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
+             (((uint32_t) 2U) * ((uint32_t) 2048U))) +
+            (4 * (((nthr / 32) * 16) * 16))));
+    KPR_KCALL(
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_4x4_kernel_37,
+        nblk, nthr,
         (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
              (((uint32_t) 2U) * ((uint32_t) 2048U))) +
             (4 * (((nthr / 32) * 16) * 16))),
@@ -19854,10 +20112,13 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_8x2(
                         (((uint32_t) 2U) * ((uint32_t) 2048U))) +
                     (4 * (((nthr / 32) * 16) * 16))));
     KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_38, (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
-                               (((uint32_t) 2U) * ((uint32_t) 2048U))) +
-                              (4 * (((nthr / 32) * 16) * 16))));
-    KPR_KCALL(kuiper_kernel_38, nblk, nthr,
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_8x2_kernel_38,
+        (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
+             (((uint32_t) 2U) * ((uint32_t) 2048U))) +
+            (4 * (((nthr / 32) * 16) * 16))));
+    KPR_KCALL(
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_8x2_kernel_38,
+        nblk, nthr,
         (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
              (((uint32_t) 2U) * ((uint32_t) 2048U))) +
             (4 * (((nthr / 32) * 16) * 16))),
@@ -19884,10 +20145,13 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_8x4(
                         (((uint32_t) 2U) * ((uint32_t) 2048U))) +
                     (4 * (((nthr / 32) * 16) * 16))));
     KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_39, (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
-                               (((uint32_t) 2U) * ((uint32_t) 2048U))) +
-                              (4 * (((nthr / 32) * 16) * 16))));
-    KPR_KCALL(kuiper_kernel_39, nblk, nthr,
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_8x4_kernel_39,
+        (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
+             (((uint32_t) 2U) * ((uint32_t) 2048U))) +
+            (4 * (((nthr / 32) * 16) * 16))));
+    KPR_KCALL(
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_8x4_kernel_39,
+        nblk, nthr,
         (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
              (((uint32_t) 2U) * ((uint32_t) 2048U))) +
             (4 * (((nthr / 32) * 16) * 16))),
@@ -19914,10 +20178,13 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_2x2(
                         (((uint32_t) 2U) * ((uint32_t) 4096U))) +
                     (4 * (((nthr / 32) * 16) * 16))));
     KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_40, (((0 + (((uint32_t) 2U) * ((uint32_t) 8192U))) +
-                               (((uint32_t) 2U) * ((uint32_t) 4096U))) +
-                              (4 * (((nthr / 32) * 16) * 16))));
-    KPR_KCALL(kuiper_kernel_40, nblk, nthr,
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_2x2_kernel_40,
+        (((0 + (((uint32_t) 2U) * ((uint32_t) 8192U))) +
+             (((uint32_t) 2U) * ((uint32_t) 4096U))) +
+            (4 * (((nthr / 32) * 16) * 16))));
+    KPR_KCALL(
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_2x2_kernel_40,
+        nblk, nthr,
         (((0 + (((uint32_t) 2U) * ((uint32_t) 8192U))) +
              (((uint32_t) 2U) * ((uint32_t) 4096U))) +
             (4 * (((nthr / 32) * 16) * 16))),
@@ -19944,10 +20211,13 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_2x4(
                         (((uint32_t) 2U) * ((uint32_t) 4096U))) +
                     (4 * (((nthr / 32) * 16) * 16))));
     KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_41, (((0 + (((uint32_t) 2U) * ((uint32_t) 8192U))) +
-                               (((uint32_t) 2U) * ((uint32_t) 4096U))) +
-                              (4 * (((nthr / 32) * 16) * 16))));
-    KPR_KCALL(kuiper_kernel_41, nblk, nthr,
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_2x4_kernel_41,
+        (((0 + (((uint32_t) 2U) * ((uint32_t) 8192U))) +
+             (((uint32_t) 2U) * ((uint32_t) 4096U))) +
+            (4 * (((nthr / 32) * 16) * 16))));
+    KPR_KCALL(
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_2x4_kernel_41,
+        nblk, nthr,
         (((0 + (((uint32_t) 2U) * ((uint32_t) 8192U))) +
              (((uint32_t) 2U) * ((uint32_t) 4096U))) +
             (4 * (((nthr / 32) * 16) * 16))),
@@ -19974,10 +20244,13 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_4x2(
                         (((uint32_t) 2U) * ((uint32_t) 4096U))) +
                     (4 * (((nthr / 32) * 16) * 16))));
     KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_42, (((0 + (((uint32_t) 2U) * ((uint32_t) 8192U))) +
-                               (((uint32_t) 2U) * ((uint32_t) 4096U))) +
-                              (4 * (((nthr / 32) * 16) * 16))));
-    KPR_KCALL(kuiper_kernel_42, nblk, nthr,
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_4x2_kernel_42,
+        (((0 + (((uint32_t) 2U) * ((uint32_t) 8192U))) +
+             (((uint32_t) 2U) * ((uint32_t) 4096U))) +
+            (4 * (((nthr / 32) * 16) * 16))));
+    KPR_KCALL(
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_4x2_kernel_42,
+        nblk, nthr,
         (((0 + (((uint32_t) 2U) * ((uint32_t) 8192U))) +
              (((uint32_t) 2U) * ((uint32_t) 4096U))) +
             (4 * (((nthr / 32) * 16) * 16))),
@@ -20004,10 +20277,13 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_4x4(
                         (((uint32_t) 2U) * ((uint32_t) 4096U))) +
                     (4 * (((nthr / 32) * 16) * 16))));
     KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_43, (((0 + (((uint32_t) 2U) * ((uint32_t) 8192U))) +
-                               (((uint32_t) 2U) * ((uint32_t) 4096U))) +
-                              (4 * (((nthr / 32) * 16) * 16))));
-    KPR_KCALL(kuiper_kernel_43, nblk, nthr,
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_4x4_kernel_43,
+        (((0 + (((uint32_t) 2U) * ((uint32_t) 8192U))) +
+             (((uint32_t) 2U) * ((uint32_t) 4096U))) +
+            (4 * (((nthr / 32) * 16) * 16))));
+    KPR_KCALL(
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_4x4_kernel_43,
+        nblk, nthr,
         (((0 + (((uint32_t) 2U) * ((uint32_t) 8192U))) +
              (((uint32_t) 2U) * ((uint32_t) 4096U))) +
             (4 * (((nthr / 32) * 16) * 16))),
@@ -20034,10 +20310,13 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_8x2(
                         (((uint32_t) 2U) * ((uint32_t) 4096U))) +
                     (4 * (((nthr / 32) * 16) * 16))));
     KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_44, (((0 + (((uint32_t) 2U) * ((uint32_t) 8192U))) +
-                               (((uint32_t) 2U) * ((uint32_t) 4096U))) +
-                              (4 * (((nthr / 32) * 16) * 16))));
-    KPR_KCALL(kuiper_kernel_44, nblk, nthr,
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_8x2_kernel_44,
+        (((0 + (((uint32_t) 2U) * ((uint32_t) 8192U))) +
+             (((uint32_t) 2U) * ((uint32_t) 4096U))) +
+            (4 * (((nthr / 32) * 16) * 16))));
+    KPR_KCALL(
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_8x2_kernel_44,
+        nblk, nthr,
         (((0 + (((uint32_t) 2U) * ((uint32_t) 8192U))) +
              (((uint32_t) 2U) * ((uint32_t) 4096U))) +
             (4 * (((nthr / 32) * 16) * 16))),
@@ -20064,10 +20343,13 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_8x4(
                         (((uint32_t) 2U) * ((uint32_t) 4096U))) +
                     (4 * (((nthr / 32) * 16) * 16))));
     KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_45, (((0 + (((uint32_t) 2U) * ((uint32_t) 8192U))) +
-                               (((uint32_t) 2U) * ((uint32_t) 4096U))) +
-                              (4 * (((nthr / 32) * 16) * 16))));
-    KPR_KCALL(kuiper_kernel_45, nblk, nthr,
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_8x4_kernel_45,
+        (((0 + (((uint32_t) 2U) * ((uint32_t) 8192U))) +
+             (((uint32_t) 2U) * ((uint32_t) 4096U))) +
+            (4 * (((nthr / 32) * 16) * 16))));
+    KPR_KCALL(
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_8x4_kernel_45,
+        nblk, nthr,
         (((0 + (((uint32_t) 2U) * ((uint32_t) 8192U))) +
              (((uint32_t) 2U) * ((uint32_t) 4096U))) +
             (4 * (((nthr / 32) * 16) * 16))),
@@ -20094,10 +20376,13 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_2x4(
                         (((uint32_t) 2U) * ((uint32_t) 2048U))) +
                     (4 * (((nthr / 32) * 16) * 16))));
     KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_46, (((0 + (((uint32_t) 2U) * ((uint32_t) 2048U))) +
-                               (((uint32_t) 2U) * ((uint32_t) 2048U))) +
-                              (4 * (((nthr / 32) * 16) * 16))));
-    KPR_KCALL(kuiper_kernel_46, nblk, nthr,
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_2x4_kernel_46,
+        (((0 + (((uint32_t) 2U) * ((uint32_t) 2048U))) +
+             (((uint32_t) 2U) * ((uint32_t) 2048U))) +
+            (4 * (((nthr / 32) * 16) * 16))));
+    KPR_KCALL(
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_2x4_kernel_46,
+        nblk, nthr,
         (((0 + (((uint32_t) 2U) * ((uint32_t) 2048U))) +
              (((uint32_t) 2U) * ((uint32_t) 2048U))) +
             (4 * (((nthr / 32) * 16) * 16))),
@@ -20124,10 +20409,13 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_2x8(
                         (((uint32_t) 2U) * ((uint32_t) 2048U))) +
                     (4 * (((nthr / 32) * 16) * 16))));
     KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_47, (((0 + (((uint32_t) 2U) * ((uint32_t) 2048U))) +
-                               (((uint32_t) 2U) * ((uint32_t) 2048U))) +
-                              (4 * (((nthr / 32) * 16) * 16))));
-    KPR_KCALL(kuiper_kernel_47, nblk, nthr,
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_2x8_kernel_47,
+        (((0 + (((uint32_t) 2U) * ((uint32_t) 2048U))) +
+             (((uint32_t) 2U) * ((uint32_t) 2048U))) +
+            (4 * (((nthr / 32) * 16) * 16))));
+    KPR_KCALL(
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_2x8_kernel_47,
+        nblk, nthr,
         (((0 + (((uint32_t) 2U) * ((uint32_t) 2048U))) +
              (((uint32_t) 2U) * ((uint32_t) 2048U))) +
             (4 * (((nthr / 32) * 16) * 16))),
@@ -20154,10 +20442,13 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_4x2(
                         (((uint32_t) 2U) * ((uint32_t) 2048U))) +
                     (4 * (((nthr / 32) * 16) * 16))));
     KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_48, (((0 + (((uint32_t) 2U) * ((uint32_t) 2048U))) +
-                               (((uint32_t) 2U) * ((uint32_t) 2048U))) +
-                              (4 * (((nthr / 32) * 16) * 16))));
-    KPR_KCALL(kuiper_kernel_48, nblk, nthr,
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_4x2_kernel_48,
+        (((0 + (((uint32_t) 2U) * ((uint32_t) 2048U))) +
+             (((uint32_t) 2U) * ((uint32_t) 2048U))) +
+            (4 * (((nthr / 32) * 16) * 16))));
+    KPR_KCALL(
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_4x2_kernel_48,
+        nblk, nthr,
         (((0 + (((uint32_t) 2U) * ((uint32_t) 2048U))) +
              (((uint32_t) 2U) * ((uint32_t) 2048U))) +
             (4 * (((nthr / 32) * 16) * 16))),
@@ -20184,10 +20475,13 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_4x4(
                         (((uint32_t) 2U) * ((uint32_t) 2048U))) +
                     (4 * (((nthr / 32) * 16) * 16))));
     KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_49, (((0 + (((uint32_t) 2U) * ((uint32_t) 2048U))) +
-                               (((uint32_t) 2U) * ((uint32_t) 2048U))) +
-                              (4 * (((nthr / 32) * 16) * 16))));
-    KPR_KCALL(kuiper_kernel_49, nblk, nthr,
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_4x4_kernel_49,
+        (((0 + (((uint32_t) 2U) * ((uint32_t) 2048U))) +
+             (((uint32_t) 2U) * ((uint32_t) 2048U))) +
+            (4 * (((nthr / 32) * 16) * 16))));
+    KPR_KCALL(
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_4x4_kernel_49,
+        nblk, nthr,
         (((0 + (((uint32_t) 2U) * ((uint32_t) 2048U))) +
              (((uint32_t) 2U) * ((uint32_t) 2048U))) +
             (4 * (((nthr / 32) * 16) * 16))),
@@ -20214,10 +20508,13 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_4x8(
                         (((uint32_t) 2U) * ((uint32_t) 2048U))) +
                     (4 * (((nthr / 32) * 16) * 16))));
     KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_50, (((0 + (((uint32_t) 2U) * ((uint32_t) 2048U))) +
-                               (((uint32_t) 2U) * ((uint32_t) 2048U))) +
-                              (4 * (((nthr / 32) * 16) * 16))));
-    KPR_KCALL(kuiper_kernel_50, nblk, nthr,
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_4x8_kernel_50,
+        (((0 + (((uint32_t) 2U) * ((uint32_t) 2048U))) +
+             (((uint32_t) 2U) * ((uint32_t) 2048U))) +
+            (4 * (((nthr / 32) * 16) * 16))));
+    KPR_KCALL(
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_4x8_kernel_50,
+        nblk, nthr,
         (((0 + (((uint32_t) 2U) * ((uint32_t) 2048U))) +
              (((uint32_t) 2U) * ((uint32_t) 2048U))) +
             (4 * (((nthr / 32) * 16) * 16))),
@@ -20244,10 +20541,13 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_8x2(
                         (((uint32_t) 2U) * ((uint32_t) 2048U))) +
                     (4 * (((nthr / 32) * 16) * 16))));
     KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_51, (((0 + (((uint32_t) 2U) * ((uint32_t) 2048U))) +
-                               (((uint32_t) 2U) * ((uint32_t) 2048U))) +
-                              (4 * (((nthr / 32) * 16) * 16))));
-    KPR_KCALL(kuiper_kernel_51, nblk, nthr,
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_8x2_kernel_51,
+        (((0 + (((uint32_t) 2U) * ((uint32_t) 2048U))) +
+             (((uint32_t) 2U) * ((uint32_t) 2048U))) +
+            (4 * (((nthr / 32) * 16) * 16))));
+    KPR_KCALL(
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_8x2_kernel_51,
+        nblk, nthr,
         (((0 + (((uint32_t) 2U) * ((uint32_t) 2048U))) +
              (((uint32_t) 2U) * ((uint32_t) 2048U))) +
             (4 * (((nthr / 32) * 16) * 16))),
@@ -20274,10 +20574,13 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_8x4(
                         (((uint32_t) 2U) * ((uint32_t) 2048U))) +
                     (4 * (((nthr / 32) * 16) * 16))));
     KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_52, (((0 + (((uint32_t) 2U) * ((uint32_t) 2048U))) +
-                               (((uint32_t) 2U) * ((uint32_t) 2048U))) +
-                              (4 * (((nthr / 32) * 16) * 16))));
-    KPR_KCALL(kuiper_kernel_52, nblk, nthr,
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_8x4_kernel_52,
+        (((0 + (((uint32_t) 2U) * ((uint32_t) 2048U))) +
+             (((uint32_t) 2U) * ((uint32_t) 2048U))) +
+            (4 * (((nthr / 32) * 16) * 16))));
+    KPR_KCALL(
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_8x4_kernel_52,
+        nblk, nthr,
         (((0 + (((uint32_t) 2U) * ((uint32_t) 2048U))) +
              (((uint32_t) 2U) * ((uint32_t) 2048U))) +
             (4 * (((nthr / 32) * 16) * 16))),
@@ -20304,10 +20607,13 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_8x8(
                         (((uint32_t) 2U) * ((uint32_t) 2048U))) +
                     (4 * (((nthr / 32) * 16) * 16))));
     KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_53, (((0 + (((uint32_t) 2U) * ((uint32_t) 2048U))) +
-                               (((uint32_t) 2U) * ((uint32_t) 2048U))) +
-                              (4 * (((nthr / 32) * 16) * 16))));
-    KPR_KCALL(kuiper_kernel_53, nblk, nthr,
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_8x8_kernel_53,
+        (((0 + (((uint32_t) 2U) * ((uint32_t) 2048U))) +
+             (((uint32_t) 2U) * ((uint32_t) 2048U))) +
+            (4 * (((nthr / 32) * 16) * 16))));
+    KPR_KCALL(
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_8x8_kernel_53,
+        nblk, nthr,
         (((0 + (((uint32_t) 2U) * ((uint32_t) 2048U))) +
              (((uint32_t) 2U) * ((uint32_t) 2048U))) +
             (4 * (((nthr / 32) * 16) * 16))),
@@ -20334,10 +20640,13 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_2x2(
                         (((uint32_t) 2U) * ((uint32_t) 4096U))) +
                     (4 * (((nthr / 32) * 16) * 16))));
     KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_54, (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
-                               (((uint32_t) 2U) * ((uint32_t) 4096U))) +
-                              (4 * (((nthr / 32) * 16) * 16))));
-    KPR_KCALL(kuiper_kernel_54, nblk, nthr,
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_2x2_kernel_54,
+        (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
+             (((uint32_t) 2U) * ((uint32_t) 4096U))) +
+            (4 * (((nthr / 32) * 16) * 16))));
+    KPR_KCALL(
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_2x2_kernel_54,
+        nblk, nthr,
         (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
              (((uint32_t) 2U) * ((uint32_t) 4096U))) +
             (4 * (((nthr / 32) * 16) * 16))),
@@ -20364,10 +20673,13 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_2x4(
                         (((uint32_t) 2U) * ((uint32_t) 4096U))) +
                     (4 * (((nthr / 32) * 16) * 16))));
     KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_55, (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
-                               (((uint32_t) 2U) * ((uint32_t) 4096U))) +
-                              (4 * (((nthr / 32) * 16) * 16))));
-    KPR_KCALL(kuiper_kernel_55, nblk, nthr,
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_2x4_kernel_55,
+        (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
+             (((uint32_t) 2U) * ((uint32_t) 4096U))) +
+            (4 * (((nthr / 32) * 16) * 16))));
+    KPR_KCALL(
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_2x4_kernel_55,
+        nblk, nthr,
         (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
              (((uint32_t) 2U) * ((uint32_t) 4096U))) +
             (4 * (((nthr / 32) * 16) * 16))),
@@ -20394,10 +20706,13 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_2x8(
                         (((uint32_t) 2U) * ((uint32_t) 4096U))) +
                     (4 * (((nthr / 32) * 16) * 16))));
     KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_56, (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
-                               (((uint32_t) 2U) * ((uint32_t) 4096U))) +
-                              (4 * (((nthr / 32) * 16) * 16))));
-    KPR_KCALL(kuiper_kernel_56, nblk, nthr,
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_2x8_kernel_56,
+        (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
+             (((uint32_t) 2U) * ((uint32_t) 4096U))) +
+            (4 * (((nthr / 32) * 16) * 16))));
+    KPR_KCALL(
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_2x8_kernel_56,
+        nblk, nthr,
         (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
              (((uint32_t) 2U) * ((uint32_t) 4096U))) +
             (4 * (((nthr / 32) * 16) * 16))),
@@ -20424,10 +20739,13 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_4x2(
                         (((uint32_t) 2U) * ((uint32_t) 4096U))) +
                     (4 * (((nthr / 32) * 16) * 16))));
     KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_57, (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
-                               (((uint32_t) 2U) * ((uint32_t) 4096U))) +
-                              (4 * (((nthr / 32) * 16) * 16))));
-    KPR_KCALL(kuiper_kernel_57, nblk, nthr,
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_4x2_kernel_57,
+        (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
+             (((uint32_t) 2U) * ((uint32_t) 4096U))) +
+            (4 * (((nthr / 32) * 16) * 16))));
+    KPR_KCALL(
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_4x2_kernel_57,
+        nblk, nthr,
         (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
              (((uint32_t) 2U) * ((uint32_t) 4096U))) +
             (4 * (((nthr / 32) * 16) * 16))),
@@ -20454,10 +20772,13 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_4x4(
                         (((uint32_t) 2U) * ((uint32_t) 4096U))) +
                     (4 * (((nthr / 32) * 16) * 16))));
     KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_58, (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
-                               (((uint32_t) 2U) * ((uint32_t) 4096U))) +
-                              (4 * (((nthr / 32) * 16) * 16))));
-    KPR_KCALL(kuiper_kernel_58, nblk, nthr,
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_4x4_kernel_58,
+        (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
+             (((uint32_t) 2U) * ((uint32_t) 4096U))) +
+            (4 * (((nthr / 32) * 16) * 16))));
+    KPR_KCALL(
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_4x4_kernel_58,
+        nblk, nthr,
         (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
              (((uint32_t) 2U) * ((uint32_t) 4096U))) +
             (4 * (((nthr / 32) * 16) * 16))),
@@ -20484,10 +20805,13 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_4x8(
                         (((uint32_t) 2U) * ((uint32_t) 4096U))) +
                     (4 * (((nthr / 32) * 16) * 16))));
     KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_59, (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
-                               (((uint32_t) 2U) * ((uint32_t) 4096U))) +
-                              (4 * (((nthr / 32) * 16) * 16))));
-    KPR_KCALL(kuiper_kernel_59, nblk, nthr,
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_4x8_kernel_59,
+        (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
+             (((uint32_t) 2U) * ((uint32_t) 4096U))) +
+            (4 * (((nthr / 32) * 16) * 16))));
+    KPR_KCALL(
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_4x8_kernel_59,
+        nblk, nthr,
         (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
              (((uint32_t) 2U) * ((uint32_t) 4096U))) +
             (4 * (((nthr / 32) * 16) * 16))),
@@ -20514,10 +20838,13 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_8x2(
                         (((uint32_t) 2U) * ((uint32_t) 4096U))) +
                     (4 * (((nthr / 32) * 16) * 16))));
     KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_60, (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
-                               (((uint32_t) 2U) * ((uint32_t) 4096U))) +
-                              (4 * (((nthr / 32) * 16) * 16))));
-    KPR_KCALL(kuiper_kernel_60, nblk, nthr,
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_8x2_kernel_60,
+        (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
+             (((uint32_t) 2U) * ((uint32_t) 4096U))) +
+            (4 * (((nthr / 32) * 16) * 16))));
+    KPR_KCALL(
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_8x2_kernel_60,
+        nblk, nthr,
         (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
              (((uint32_t) 2U) * ((uint32_t) 4096U))) +
             (4 * (((nthr / 32) * 16) * 16))),
@@ -20544,10 +20871,13 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_8x4(
                         (((uint32_t) 2U) * ((uint32_t) 4096U))) +
                     (4 * (((nthr / 32) * 16) * 16))));
     KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_61, (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
-                               (((uint32_t) 2U) * ((uint32_t) 4096U))) +
-                              (4 * (((nthr / 32) * 16) * 16))));
-    KPR_KCALL(kuiper_kernel_61, nblk, nthr,
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_8x4_kernel_61,
+        (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
+             (((uint32_t) 2U) * ((uint32_t) 4096U))) +
+            (4 * (((nthr / 32) * 16) * 16))));
+    KPR_KCALL(
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_8x4_kernel_61,
+        nblk, nthr,
         (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
              (((uint32_t) 2U) * ((uint32_t) 4096U))) +
             (4 * (((nthr / 32) * 16) * 16))),
@@ -20574,10 +20904,13 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_8x8(
                         (((uint32_t) 2U) * ((uint32_t) 4096U))) +
                     (4 * (((nthr / 32) * 16) * 16))));
     KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_62, (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
-                               (((uint32_t) 2U) * ((uint32_t) 4096U))) +
-                              (4 * (((nthr / 32) * 16) * 16))));
-    KPR_KCALL(kuiper_kernel_62, nblk, nthr,
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_8x8_kernel_62,
+        (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
+             (((uint32_t) 2U) * ((uint32_t) 4096U))) +
+            (4 * (((nthr / 32) * 16) * 16))));
+    KPR_KCALL(
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_8x8_kernel_62,
+        nblk, nthr,
         (((0 + (((uint32_t) 2U) * ((uint32_t) 4096U))) +
              (((uint32_t) 2U) * ((uint32_t) 4096U))) +
             (4 * (((nthr / 32) * 16) * 16))),
@@ -20604,10 +20937,13 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_2x2(
                         (((uint32_t) 2U) * ((uint32_t) 8192U))) +
                     (4 * (((nthr / 32) * 16) * 16))));
     KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_63, (((0 + (((uint32_t) 2U) * ((uint32_t) 8192U))) +
-                               (((uint32_t) 2U) * ((uint32_t) 8192U))) +
-                              (4 * (((nthr / 32) * 16) * 16))));
-    KPR_KCALL(kuiper_kernel_63, nblk, nthr,
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_2x2_kernel_63,
+        (((0 + (((uint32_t) 2U) * ((uint32_t) 8192U))) +
+             (((uint32_t) 2U) * ((uint32_t) 8192U))) +
+            (4 * (((nthr / 32) * 16) * 16))));
+    KPR_KCALL(
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_2x2_kernel_63,
+        nblk, nthr,
         (((0 + (((uint32_t) 2U) * ((uint32_t) 8192U))) +
              (((uint32_t) 2U) * ((uint32_t) 8192U))) +
             (4 * (((nthr / 32) * 16) * 16))),
@@ -20634,10 +20970,13 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_2x4(
                         (((uint32_t) 2U) * ((uint32_t) 8192U))) +
                     (4 * (((nthr / 32) * 16) * 16))));
     KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_64, (((0 + (((uint32_t) 2U) * ((uint32_t) 8192U))) +
-                               (((uint32_t) 2U) * ((uint32_t) 8192U))) +
-                              (4 * (((nthr / 32) * 16) * 16))));
-    KPR_KCALL(kuiper_kernel_64, nblk, nthr,
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_2x4_kernel_64,
+        (((0 + (((uint32_t) 2U) * ((uint32_t) 8192U))) +
+             (((uint32_t) 2U) * ((uint32_t) 8192U))) +
+            (4 * (((nthr / 32) * 16) * 16))));
+    KPR_KCALL(
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_2x4_kernel_64,
+        nblk, nthr,
         (((0 + (((uint32_t) 2U) * ((uint32_t) 8192U))) +
              (((uint32_t) 2U) * ((uint32_t) 8192U))) +
             (4 * (((nthr / 32) * 16) * 16))),
@@ -20664,10 +21003,13 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_2x8(
                         (((uint32_t) 2U) * ((uint32_t) 8192U))) +
                     (4 * (((nthr / 32) * 16) * 16))));
     KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_65, (((0 + (((uint32_t) 2U) * ((uint32_t) 8192U))) +
-                               (((uint32_t) 2U) * ((uint32_t) 8192U))) +
-                              (4 * (((nthr / 32) * 16) * 16))));
-    KPR_KCALL(kuiper_kernel_65, nblk, nthr,
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_2x8_kernel_65,
+        (((0 + (((uint32_t) 2U) * ((uint32_t) 8192U))) +
+             (((uint32_t) 2U) * ((uint32_t) 8192U))) +
+            (4 * (((nthr / 32) * 16) * 16))));
+    KPR_KCALL(
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_2x8_kernel_65,
+        nblk, nthr,
         (((0 + (((uint32_t) 2U) * ((uint32_t) 8192U))) +
              (((uint32_t) 2U) * ((uint32_t) 8192U))) +
             (4 * (((nthr / 32) * 16) * 16))),
@@ -20694,10 +21036,13 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_4x2(
                         (((uint32_t) 2U) * ((uint32_t) 8192U))) +
                     (4 * (((nthr / 32) * 16) * 16))));
     KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_66, (((0 + (((uint32_t) 2U) * ((uint32_t) 8192U))) +
-                               (((uint32_t) 2U) * ((uint32_t) 8192U))) +
-                              (4 * (((nthr / 32) * 16) * 16))));
-    KPR_KCALL(kuiper_kernel_66, nblk, nthr,
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_4x2_kernel_66,
+        (((0 + (((uint32_t) 2U) * ((uint32_t) 8192U))) +
+             (((uint32_t) 2U) * ((uint32_t) 8192U))) +
+            (4 * (((nthr / 32) * 16) * 16))));
+    KPR_KCALL(
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_4x2_kernel_66,
+        nblk, nthr,
         (((0 + (((uint32_t) 2U) * ((uint32_t) 8192U))) +
              (((uint32_t) 2U) * ((uint32_t) 8192U))) +
             (4 * (((nthr / 32) * 16) * 16))),
@@ -20724,10 +21069,13 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_4x4(
                         (((uint32_t) 2U) * ((uint32_t) 8192U))) +
                     (4 * (((nthr / 32) * 16) * 16))));
     KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_67, (((0 + (((uint32_t) 2U) * ((uint32_t) 8192U))) +
-                               (((uint32_t) 2U) * ((uint32_t) 8192U))) +
-                              (4 * (((nthr / 32) * 16) * 16))));
-    KPR_KCALL(kuiper_kernel_67, nblk, nthr,
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_4x4_kernel_67,
+        (((0 + (((uint32_t) 2U) * ((uint32_t) 8192U))) +
+             (((uint32_t) 2U) * ((uint32_t) 8192U))) +
+            (4 * (((nthr / 32) * 16) * 16))));
+    KPR_KCALL(
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_4x4_kernel_67,
+        nblk, nthr,
         (((0 + (((uint32_t) 2U) * ((uint32_t) 8192U))) +
              (((uint32_t) 2U) * ((uint32_t) 8192U))) +
             (4 * (((nthr / 32) * 16) * 16))),
@@ -20754,10 +21102,13 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_4x8(
                         (((uint32_t) 2U) * ((uint32_t) 8192U))) +
                     (4 * (((nthr / 32) * 16) * 16))));
     KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_68, (((0 + (((uint32_t) 2U) * ((uint32_t) 8192U))) +
-                               (((uint32_t) 2U) * ((uint32_t) 8192U))) +
-                              (4 * (((nthr / 32) * 16) * 16))));
-    KPR_KCALL(kuiper_kernel_68, nblk, nthr,
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_4x8_kernel_68,
+        (((0 + (((uint32_t) 2U) * ((uint32_t) 8192U))) +
+             (((uint32_t) 2U) * ((uint32_t) 8192U))) +
+            (4 * (((nthr / 32) * 16) * 16))));
+    KPR_KCALL(
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_4x8_kernel_68,
+        nblk, nthr,
         (((0 + (((uint32_t) 2U) * ((uint32_t) 8192U))) +
              (((uint32_t) 2U) * ((uint32_t) 8192U))) +
             (4 * (((nthr / 32) * 16) * 16))),
@@ -20784,10 +21135,13 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_8x2(
                         (((uint32_t) 2U) * ((uint32_t) 8192U))) +
                     (4 * (((nthr / 32) * 16) * 16))));
     KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_69, (((0 + (((uint32_t) 2U) * ((uint32_t) 8192U))) +
-                               (((uint32_t) 2U) * ((uint32_t) 8192U))) +
-                              (4 * (((nthr / 32) * 16) * 16))));
-    KPR_KCALL(kuiper_kernel_69, nblk, nthr,
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_8x2_kernel_69,
+        (((0 + (((uint32_t) 2U) * ((uint32_t) 8192U))) +
+             (((uint32_t) 2U) * ((uint32_t) 8192U))) +
+            (4 * (((nthr / 32) * 16) * 16))));
+    KPR_KCALL(
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_8x2_kernel_69,
+        nblk, nthr,
         (((0 + (((uint32_t) 2U) * ((uint32_t) 8192U))) +
              (((uint32_t) 2U) * ((uint32_t) 8192U))) +
             (4 * (((nthr / 32) * 16) * 16))),
@@ -20814,10 +21168,13 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_8x4(
                         (((uint32_t) 2U) * ((uint32_t) 8192U))) +
                     (4 * (((nthr / 32) * 16) * 16))));
     KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_70, (((0 + (((uint32_t) 2U) * ((uint32_t) 8192U))) +
-                               (((uint32_t) 2U) * ((uint32_t) 8192U))) +
-                              (4 * (((nthr / 32) * 16) * 16))));
-    KPR_KCALL(kuiper_kernel_70, nblk, nthr,
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_8x4_kernel_70,
+        (((0 + (((uint32_t) 2U) * ((uint32_t) 8192U))) +
+             (((uint32_t) 2U) * ((uint32_t) 8192U))) +
+            (4 * (((nthr / 32) * 16) * 16))));
+    KPR_KCALL(
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_8x4_kernel_70,
+        nblk, nthr,
         (((0 + (((uint32_t) 2U) * ((uint32_t) 8192U))) +
              (((uint32_t) 2U) * ((uint32_t) 8192U))) +
             (4 * (((nthr / 32) * 16) * 16))),
@@ -20844,10 +21201,13 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_8x8(
                         (((uint32_t) 2U) * ((uint32_t) 8192U))) +
                     (4 * (((nthr / 32) * 16) * 16))));
     KPR_SET_MAX_DYN_SHMEM(
-        kuiper_kernel_71, (((0 + (((uint32_t) 2U) * ((uint32_t) 8192U))) +
-                               (((uint32_t) 2U) * ((uint32_t) 8192U))) +
-                              (4 * (((nthr / 32) * 16) * 16))));
-    KPR_KCALL(kuiper_kernel_71, nblk, nthr,
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_8x8_kernel_71,
+        (((0 + (((uint32_t) 2U) * ((uint32_t) 8192U))) +
+             (((uint32_t) 2U) * ((uint32_t) 8192U))) +
+            (4 * (((nthr / 32) * 16) * 16))));
+    KPR_KCALL(
+        Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_8x8_kernel_71,
+        nblk, nthr,
         (((0 + (((uint32_t) 2U) * ((uint32_t) 8192U))) +
              (((uint32_t) 2U) * ((uint32_t) 8192U))) +
             (4 * (((nthr / 32) * 16) * 16))),

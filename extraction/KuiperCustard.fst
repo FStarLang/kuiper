@@ -20,15 +20,26 @@ module Ident  = FStarC.Ident
 module BU     = FStarC.Util
 
 (* Every kernel is lifted, and [lift_named] is verbatim, so two kernels in
-   one unit are one symbol (error 378).  A rule cannot see the definition it
-   is expanding inside, so the only thing here that distinguishes two lifts
-   is the order they happen in. *)
+   one unit are one symbol (error 378).  [current_decl] is the definition the
+   rule is being expanded inside -- the launcher -- and naming the kernel
+   after it is what makes the symbol mean something in [nsys] output and in
+   disassembly.  The counter stays because one launcher may launch more than
+   one kernel, and because a definition Custard cannot name (there is none
+   today) would otherwise produce a name that collides.
+
+   It is the target name, so it already carries the specialization key: two
+   instantiations of one polymorphic launcher get two distinct kernels rather
+   than a collision. *)
 let kernel_seq : ref int = mk_ref 0
 
 let fresh_kernel_name () : ML string =
   let n = !kernel_seq in
   kernel_seq := n + 1;
-  "kuiper_kernel_" ^ show n
+  let base =
+    match B.current_decl () with
+    | Some nm -> string_of_name nm
+    | None    -> "kuiper" in
+  base ^ "_kernel_" ^ show n
 
 let tag (e:expr) : string =
   match e.e with
