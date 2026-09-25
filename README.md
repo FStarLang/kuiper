@@ -243,6 +243,26 @@ The proof regressions run with `make -j$(nproc) verify`. To check the extracted
 API on the CPU and GPU, run
 `make -j$(nproc) obj/Test_Kuiper_Example_FloatEquality.test`.
 
+### Float32 ordering
+
+`Kuiper.Float32.lt_ordered x y` establishes that a successful strict comparison
+has no NaN operand. `Kuiper.Float32.lt_transitive x y z` establishes `x < z`
+from `x < y` and `y < z`. Neither requires callers to exclude NaNs in advance.
+These are ghost lemmas: they add no runtime operations or comparison wrappers.
+
+The laws explicitly extend the existing trusted CUDA binary32 interface in
+`Kuiper.Float32.Base`; they are not derived from an exact bit-level model or
+from real approximation. They specify ordinary ordered comparison, not an
+unordered predicate or a total order on representations. NaNs remain
+unordered, and signed zeros remain numerically equal but bit-distinct.
+The other floating-point formats are unchanged.
+
+`Kuiper.Example.Float32Order` checks both laws and rejection of invalid
+comparability/representation-equality claims. Its runtime test compares the
+same extracted comparison on CPU and GPU against an integer-bit oracle,
+including signed zeros, subnormals, infinities and signed quiet/signaling NaNs:
+`make -j$(nproc) obj/Test_Kuiper_Example_Float32Order.test`.
+
 ### GPU-only Float32 operations
 
 These `Kuiper.Float32` operations require and preserve the `gpu` capability;
@@ -266,6 +286,32 @@ of CPU calls. Its runtime test compares extracted GPU operations with direct PTX
 and checks FTZ, signed zeros, infinities and NaNs. Reciprocal and reciprocal-square-root
 comparisons require identical bits, including for NaN results:
 `make -j$(nproc) obj/Test_Kuiper_Example_Float32GPU.test`.
+
+### CUDA fast-math intrinsics
+
+`Kuiper.Float32.FastMath` provides device-only, source-faithful CUDA operations:
+
+| Operation | Extracted CUDA | Trusted real approximation |
+| --- | --- | --- |
+| `exp` | `__expf` | Natural exponential |
+| `divide` | `__fdividef` | Division, for a nonzero real denominator |
+| `fma_rn` | `__fmaf_rn` | Multiply-add |
+| `sub_rn` | `__fsub_rn` | Subtraction |
+
+Extraction calls the named intrinsic directly, without replacing it with a
+library function, FTZ expansion, or separately rounded multiply/add. No
+`--use_fast_math` flag is needed. All Float32 storage patterns are accepted;
+the denominator restriction concerns only the real model, not runtime inputs.
+Exact lowering means the same intrinsic under the same CUDA compiler settings,
+not mathematically exact arithmetic or a universal bit-level proof.
+
+The interface is an explicit extension of the trusted native approximation
+boundary. Its contracts use the existing approximation relation, with no
+numerical error bounds or claims about exceptional-value bits. The example
+verifies contract composition and rejects CPU calls; its native regression
+compares extracted results bitwise with direct CUDA intrinsics, including
+subnormals, signed zeros, infinities and signed quiet/signaling NaNs:
+`make -j$(nproc) obj/Test_Kuiper_Example_Float32FastMath.test`.
 
 ### Project Structure
 
