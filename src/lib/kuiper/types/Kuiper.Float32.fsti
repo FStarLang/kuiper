@@ -19,6 +19,17 @@ instance val is_floating : floating t
 instance val is_real_like : real_like t
 instance val is_floating_real_like : floating_real_like t
 
+(* Exact comparison laws inherited from the trusted native binary32 interface. *)
+val lt_ordered (x y : t)
+  : Lemma
+      (requires lt x y)
+      (ensures ~(NaN? (kind x)) /\ ~(NaN? (kind y)))
+
+val lt_transitive (x y z : t)
+  : Lemma
+      (requires lt x y /\ lt y z)
+      (ensures lt x z)
+
 inline_for_extraction noextract
 val fexpm1 : t -> t
 
