@@ -20,7 +20,12 @@ include Kuiper.TensorCore.WGMMA.Layout
    synchronization protocol is exposed or modelled here. *)
 let warpgroup_size : pos = 128
 
-new
+(* [custard_c_reference] for the same reason as [wmma_fragment]: every
+   operation below takes [kpr_wgmma_fragment &], so a fragment bound by copy
+   would silently lose every write to it rather than fail to compile. *)
+new [@@FStar.Attributes.custard_extern "kpr_wgmma_fragment";
+     FStar.Attributes.custard_c_reference;
+     FStar.Attributes.custard_c_header "kuiper/wgmma.h"]
 val fragment : Type0
 
 val fragment_pts_to

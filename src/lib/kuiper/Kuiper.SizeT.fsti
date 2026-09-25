@@ -38,9 +38,11 @@ type szpmultiple (k:pos) = x:szp{k /? SZ.v x}
 (* Throughout this repo we would like to assume a 64bit machine, and use
    size_t for array indices and whatnot, BUT, size_t has very poor
    performance on the GPU compared to a 32-bit integer, mostly due
-   to increasing register pressure! So, our fork of karamel extracts
-   size_t to uint32_t, which means we should
-   NOT assume that a size_t can fit a u64, lest we could get overflow.
+   to increasing register pressure!  The karamel pipeline used to narrow
+   size_t to uint32_t on extraction; Custard does not, and emits a real
+   size_t.  The assumption below is kept because the library's arithmetic
+   was developed under it: we do NOT assume that a size_t can fit a u64,
+   lest we could get overflow.
 
    The right thing to do is use FStar.UInt32.t instead of SZ.t where
    this matters, but this is a pervasive change. *)

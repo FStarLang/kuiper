@@ -32,11 +32,12 @@ accept:
 extract-all:
 	+$(MAKE) -f verify.mk extract-all
 
+.PHONY: check-no-admits
+check-no-admits:
+	+$(MAKE) -f verify.mk check-no-admits
+
 .PHONY: echo-fstar
 echo-fstar:
-	+$(MAKE) -f verify.mk $@
-.PHONY: echo-krml
-echo-krml:
 	+$(MAKE) -f verify.mk $@
 
 .PHONY: ci
@@ -139,11 +140,9 @@ kuiper-src.tar.gz:
 	git archive HEAD -o kuiper-src.tar
 	# Archive submodules and concatenate them
 	git -C FStar   archive --prefix=FStar/   HEAD -o ../fstar.tar
-	git -C karamel archive --prefix=karamel/ HEAD -o ../karamel.tar
 	tar --concatenate --file=kuiper-src.tar fstar.tar
-	tar --concatenate --file=kuiper-src.tar karamel.tar
 	gzip kuiper-src.tar
-	rm -f fstar.tar karamel.tar kuiper-src.tar
+	rm -f fstar.tar kuiper-src.tar
 
 # "bench package" is also a "test package"
 .PHONY: bench-package

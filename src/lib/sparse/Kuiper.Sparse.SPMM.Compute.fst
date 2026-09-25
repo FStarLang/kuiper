@@ -927,6 +927,39 @@ let seq_fma_lemma
 = ()
 
 noextract
+(* If cnt divides both a and b and a < b then a + cnt <= b.  Nonlinear, and
+   no longer discharged for free inside seq_fma_cell_prop' below. *)
+let divides_lt_step_aux (c : pos) (a b : nat)
+  : Lemma (requires c /? a /\ c /? b /\ a < b)
+          (ensures a + c <= b)
+  = lemma_divides_exact c a;
+    lemma_divides_exact c b;
+    FStar.Math.Lemmas.lemma_mult_le_right c (a / c + 1) (b / c);
+    FStar.Math.Lemmas.distributivity_add_left (a / c) 1 c;
+    FStar.Math.Lemmas.swap_mul c (a / c);
+    FStar.Math.Lemmas.swap_mul c (b / c)
+
+noextract
+let divides_lt_step (cnt a b : nat)
+  : Lemma (requires cnt /? a /\ cnt /? b)
+          (ensures a < b ==> a + cnt <= b)
+          [SMTPat (cnt /? a); SMTPat (cnt /? b)]
+  = if cnt = 0 then () else
+      let c : pos = cnt in
+      FStar.Classical.move_requires (divides_lt_step_aux c a) b
+
+noextract
+(* ik < m / c  ==>  ik * c + c <= m, when c divides m.  Nonlinear. *)
+let mul_succ_le (c m ik : nat)
+  : Lemma (requires c > 0 /\ c /? m /\ ik < m / c)
+          (ensures ik * c + c <= m)
+  = let cp : pos = c in
+    lemma_divides_exact cp m;
+    FStar.Math.Lemmas.lemma_mult_le_right cp (ik + 1) (m / cp);
+    FStar.Math.Lemmas.distributivity_add_left ik 1 cp;
+    FStar.Math.Lemmas.swap_mul cp (m / cp)
+
+noextract
 let seq_fma_cell_prop'
   (#et : Type0) {| scalar et |}
   (cnt : nat)
@@ -1009,6 +1042,7 @@ let seq_load_vmprod_row_cell_prop_
 : prop
 =
   lineal_divides (chunk et) j (chunk et) (ik * step);
+  mul_succ_le (chunk et) n1 ik;
   seq_fma_cell_prop'
     (chunk et) x row
     y0
@@ -1074,6 +1108,8 @@ let rec seq_load_vmprod_row_cell_lemma0
   if k = 0 then ()
   else (
     lineal_divides (chunk et) j (chunk et) ((k - 1) * step);
+    (* (k-1) * chunk == k * chunk - chunk <= i.  Nonlinear. *)
+    FStar.Math.Lemmas.distributivity_sub_left k 1 (chunk et);
     seq_load_vmprod_row_cell_lemma0 y0 x row j step (k - 1) i;
     seq_fma_lemma0' (chunk et) x row
       (seq_load_vmprod_row y0 x row j step (k - 1))
@@ -1081,7 +1117,7 @@ let rec seq_load_vmprod_row_cell_lemma0
     ()
   )
 
-#push-options "--z3rlimit 10"
+#push-options "--z3rlimit 40"
 noextract
 let rec seq_load_vmprod_row_cell_lemma_
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
@@ -1107,9 +1143,13 @@ let rec seq_load_vmprod_row_cell_lemma_
   if k = 0 then ()
   else (
     lineal_divides (chunk et) j (chunk et) ((k - 1) * step);
+    mul_succ_le (chunk et) n1 (k - 1);
     if ik < k - 1
       then (
         seq_load_vmprod_row_cell_lemma_ y0 x row j step (k - 1) ik ix;
+        (* ik * chunk + ix < (ik+1) * chunk <= (k-1) * chunk.  Nonlinear. *)
+        FStar.Math.Lemmas.distributivity_add_left ik 1 (chunk et);
+        FStar.Math.Lemmas.lemma_mult_le_right (chunk et) (ik + 1) (k - 1);
         assert ik * chunk et + ix < (k - 1) * chunk et;
         seq_fma_lemma0' (chunk et) x row
           (seq_load_vmprod_row y0 x row j step (k - 1))

@@ -248,7 +248,7 @@ static void gen_sparse_nonuniform(int rows, int cols, int avg_density_pct,
 
 static float bench_kuiper(int rows, int shared, int cols,
                           uint32_t *d_row_indices,
-                          Kuiper_Sparse_Matrix_smatrix__float dA,
+                          Kuiper_Sparse_Matrix_smatrix__float32 dA,
                           float *dB, float *dC,
                           int warmup, int iters)
 {
@@ -398,7 +398,7 @@ static void run_bench_csr(CSR &csr, int cols, const char *label,
         B[i] = rand_unit();
 
     /* Upload Kuiper data (float values, uint32_t indices) */
-    Kuiper_Sparse_Matrix_smatrix__float dA_k;
+    Kuiper_Sparse_Matrix_smatrix__float32 dA_k;
     dA_k.nnz     = (uint32_t)csr.nnz;
     dA_k.elems   = to_gpu(csr.values);
     dA_k.col_ind = to_gpu(csr.col_ind);
@@ -560,7 +560,7 @@ static void run_bench_nonuniform(int rows, int shared, int cols,
  */
 static float bench_kuiper_with_perm(int rows, int shared, int cols,
                                     const std::vector<uint32_t> &perm,
-                                    Kuiper_Sparse_Matrix_smatrix__float dA,
+                                    Kuiper_Sparse_Matrix_smatrix__float32 dA,
                                     float *dB, float *dC,
                                     int warmup, int iters)
 {
@@ -616,7 +616,7 @@ static void run_swizzle_test(int rows, int shared, int cols,
         B[i] = rand_unit();
 
     /* Upload shared data */
-    Kuiper_Sparse_Matrix_smatrix__float dA_k;
+    Kuiper_Sparse_Matrix_smatrix__float32 dA_k;
     dA_k.nnz     = (uint32_t)csr.nnz;
     dA_k.elems   = to_gpu(csr.values);
     dA_k.col_ind = to_gpu(csr.col_ind);

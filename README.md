@@ -46,7 +46,7 @@ include the relevant Kuiper header files in `include/`.
 
 If you want to *write and build your own kernels* without compiling the whole
 toolchain from source, install a prebuilt Kuiper package. Each package is a
-self-contained tree bundling F\*, Karamel, Z3, a pinned `clang-format`, and the
+self-contained tree bundling F\*, Z3, a pinned `clang-format`, and the
 verified Kuiper library — everything needed to verify, extract, and compile new
 kernels. Nightly packages are published as prereleases (tagged `nightly-*`) on
 this repository's
@@ -97,7 +97,7 @@ The daily nightly schedule continues as before.
 ### Seeding a source checkout from a package
 
 If you have a source checkout and want to iterate on it *without* building the
-F\*/Karamel toolchain and re-verifying the whole library from scratch, seed it
+F\* toolchain and re-verifying the whole library from scratch, seed it
 from a nightly package:
 
 ```bash
@@ -122,7 +122,7 @@ checkout verifies almost instantly.
 > The script leaves a `.packaged` marker behind; `make` will then treat the
 > bundled toolchain and extraction plugin as prebuilt. Remove it
 > (`rm .packaged`) to go back to full from-source builds, including when
-> changing F\*, Karamel, or `extraction/`.
+> changing F\* or `extraction/`.
 
 ## Getting Started (from source)
 
@@ -133,11 +133,11 @@ GitHub Codespace or in VS Code with the Dev Containers extension. The container
 includes OCaml, OPAM, and Z3 pre-installed.
 
 Once the container starts, submodules are fetched automatically. You then need to
-build F\* and Karamel:
+build F\*:
 
 ```bash
 eval $(opam env)
-make prepare       # builds F*/Karamel and installs clang-format (~10 min with -j)
+make prepare       # builds F* and installs clang-format (~10 min with -j)
 ```
 
 The [F\* VS Code extension](https://github.com/FStarLang/fstar-vscode-assistant/)
@@ -183,7 +183,7 @@ opam install batteries zarith stdint yojson dune menhir menhirLib pprint sedlex 
 For a fresh checkout, consider [seeding from a nightly package](#seeding-a-source-checkout-from-a-package)
 to reuse verified build artifacts. The steps below build the toolchain from source.
 
-Kuiper includes F\* and Karamel as submodules. First, build them:
+Kuiper includes F\* as a submodule. First, build it:
 
 ```bash
 eval $(opam env)

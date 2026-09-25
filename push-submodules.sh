@@ -2,7 +2,7 @@
 
 set -eux
 
-for p in FStar karamel; do
+for p in FStar; do
 	pushd $p
 
 	echo "$ git push -f origin HEAD:refs/kuiper/objects"

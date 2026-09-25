@@ -691,6 +691,10 @@ let lemma_tile_scale_le (tile bk mshared : nat)
           [SMTPat (bk * tile); SMTPat (mshared * tile)]
   = FStar.Math.Lemmas.lemma_mult_le_right tile bk mshared
 
+(* Trivially true, but the context at the use site is large enough that
+   discharging it inline times out; prove it standalone instead. *)
+let double_succ (x : nat) : Lemma (2 * (x + 1) == 2 * x + 1 + 1) = ()
+
 #push-options "--z3rlimit 40 --fuel 1 --ifuel 1 --z3refresh"
 inline_for_extraction noextract
 fn bkf
@@ -954,6 +958,7 @@ fn bkf
       MS.__gmatmul_single 0.0R ( *. ) ( +. ) (Chest.chest_map mapA_r (rA_p)) (Chest.chest_map mapB_r (rB_p)) grow gcol (SZ.v !bk * SZ.v tile + SZ.v tile)
       == r_partial +. r_subtile));
 
+    double_succ (SZ.v !bk);
     assert (pure (2 * (!bk + 1) == 2 * !bk + 1 + 1));
 
     bk := !bk +^ 1sz;

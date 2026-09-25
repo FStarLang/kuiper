@@ -238,6 +238,5 @@ val l4_batched_row_major_imap
   : Lemma (
       (l4_batched_row_major r1 r2 m n).imap.f
         (SZ.v i, (SZ.v j, (SZ.v k, (SZ.v l, ())))) ==
-      SZ.v (
-        SZ.add (SZ.mul i (SZ.mul r2 (SZ.mul m n)))
-          (SZ.add (SZ.mul j (SZ.mul m n)) (SZ.add (SZ.mul k n) l))))
+      SZ.v i * (SZ.v r2 * (SZ.v m * SZ.v n))
+        + (SZ.v j * (SZ.v m * SZ.v n) + (SZ.v k * SZ.v n + SZ.v l)))

@@ -429,6 +429,10 @@ let output_cell
   exists* (value : tc). tensor_pts_to_cell gC idx value **
     pure (if initialized then value %~ expected else value == initial)
 
+(* Trivially true, but the context at the use site is large enough that
+   discharging it inline times out; prove it standalone instead. *)
+let double_succ (x : nat) : Lemma (2 * (x + 1) == 2 * x + 1 + 1) = ()
+
 (* ─── batched thread function (page-batched barrier GEMM) ──────────────────── *)
 #push-options "--z3rlimit 200 --fuel 1 --ifuel 1"
 inline_for_extraction noextract
@@ -590,6 +594,7 @@ fn bkf
       mrow mcol tid !bk s0 s1;
 
     (* Move to next tile *)
+    double_succ (SZ.v !bk);
     bk := !bk +^ 1sz;
   };
 
