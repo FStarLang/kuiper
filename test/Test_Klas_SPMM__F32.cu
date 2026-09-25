@@ -3,6 +3,7 @@
 const char *progname = __FILE__;
 
 typedef Kuiper_Sparse_Matrix_smatrix__float32 smatrix_t;
+typedef decltype(&Klas_SPMM_spmm_f32) spmm_fn;
 
 static int g_ok = 1;
 static int g_tests = 0;
@@ -20,8 +21,8 @@ static void cpu_matmul(
         }
 }
 
-static void run_spmm(
-    const char *label, float *AD, int rows, int shared, int cols)
+static void run_spmm(const char *label, float *AD, int rows, int shared,
+    int cols, spmm_fn spmm = Klas_SPMM_spmm_f32)
 {
     smatrix_t A = sparsify_f32(AD, rows, shared);
     spmm_idx_t *row_indices = mk_row_indices(rows, A);
@@ -38,8 +39,7 @@ static void run_spmm(
         rows, shared, cols, A, row_indices, B, &dA, &drow_indices, &dB, &dC);
 
     float t;
-    TIME_void(
-        Klas_SPMM_spmm_f32(rows, shared, cols, dA, drow_indices, dB, dC), &t);
+    TIME_void(spmm(rows, shared, cols, dA, drow_indices, dB, dC), &t);
     fprintf(stderr,
         ">>> RES (rows=%d, shared=%d, cols=%d, sparsity=%.2f%%) \t GFLOPS: "
         "%.3f\n",
@@ -120,6 +120,32 @@ static void test_single_per_row(int rows, int shared, int cols)
     free(AD);
 }
 
+static void test_one_chunk_reduction_tails()
+{
+    // Exercise the one-vector-chunk fast path across load, tile, and residue
+    // boundaries. Different row lengths also vary CSR row-start alignment.
+    const int lengths[] = {0, 1, 3, 4, 5, 31, 32, 33, 63, 64, 65, 124, 125, 126,
+        127, 128, 129, 255, 256, 511};
+    const int rows = 7, shared = 512;
+    for (int nnz : lengths) {
+        float *AD = (float *) calloc(rows * shared, sizeof AD[0]);
+        for (int row = 0; row < rows; row++) {
+            int count = nnz > row % 4 ? nnz - row % 4 : 0;
+            for (int k = 0; k < count; k++)
+                AD[row * shared + k] = (float) (1 + (row + k) % 7);
+        }
+        // Public instantiation contracts require cols divisible by the tile.
+        for (int cols : {128, 256}) {
+            char label[128];
+            snprintf(
+                label, sizeof label, "one_chunk(nnz=%d, cols=%d)", nnz, cols);
+            run_spmm(
+                label, AD, rows, shared, cols, Klas_SPMM_g_spmm_f32_128x128x32);
+        }
+        free(AD);
+    }
+}
+
 int main(int argc, char **argv)
 {
     if (argc > 1 && strcmp(argv[1], "--no-check") == 0) {
@@ -166,6 +192,7 @@ int main(int argc, char **argv)
     test_single_per_row(128, 256, 128);
     test_single_per_row(256, 512, 256);
     test_single_per_row(1024, 1024, 128);
+    test_one_chunk_reduction_tails();
 
     printf("%d tests, %s\n", g_tests, g_ok ? "OK" : "FAILED");
     return g_ok ? 0 : 1;

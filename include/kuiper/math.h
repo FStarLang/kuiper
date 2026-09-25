@@ -22,6 +22,36 @@
 #define BF16_MAX      __ushort_as_bfloat16(0x7F7F)
 #define BF16_INFINITY __float2bfloat16(INFINITY)
 
+/* ---- device-only Float32 operations ---------------------------------- */
+
+static __device__ __forceinline__ float kpr_f32_mul_rn_ftz(float x, float y)
+{
+    float result;
+    asm volatile("mul.rn.ftz.f32 %0, %1, %2;" : "=f"(result) : "f"(x), "f"(y));
+    return result;
+}
+
+static __device__ __forceinline__ float kpr_f32_exp2_approx_ftz(float x)
+{
+    float result;
+    asm volatile("ex2.approx.ftz.f32 %0, %1;" : "=f"(result) : "f"(x));
+    return result;
+}
+
+static __device__ __forceinline__ float kpr_f32_rcp_approx_ftz(float x)
+{
+    float result;
+    asm volatile("rcp.approx.ftz.f32 %0, %1;" : "=f"(result) : "f"(x));
+    return result;
+}
+
+static __device__ __forceinline__ float kpr_f32_rsqrt_approx_ftz(float x)
+{
+    float result;
+    asm volatile("rsqrt.approx.ftz.f32 %0, %1;" : "=f"(result) : "f"(x));
+    return result;
+}
+
 #define HLF_MIN      __float2half(6.10352e-5f)
 #define HLF_MAX      __float2half(65504.0f)
 #define HLF_INFINITY __float2half(INFINITY)

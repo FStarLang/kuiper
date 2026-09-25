@@ -636,15 +636,17 @@ fn load_vmprod_chunk
   (#vrow : chest1 et n2)
   (k1 : sz { k1 + chunk et <= n1 })
   (k2 : sz { chunk et /? k2 })
+  (bounds_checked : bool)
   preserves gpu
   preserves row |-> Frac frow vrow
   requires  pure (aligned 16 (core row))
   requires  pure (aligned_cont_layout (chunk et) clrow)
+  requires  pure (bounds_checked ==> k2 < n2)
   requires  y |-> vy
   // ensures   y |-> seq_to_chest1 (seq_fma' (chunk et) x (chest1_to_seq vrow) (chest1_to_seq vy) k1 k2)
   ensures   y |-> seq_fma' (chunk et) x (chest1_to_seq vrow) vy k1 k2
 {
-  if (k2 <^ n2)
+  if (bounds_checked || k2 <^ n2)
   {
     let mut lchunk = [| zero #et #_; chunk et |];
     // Freshly allocated scratch buffer is suitably aligned for vectorized copy
@@ -715,11 +717,13 @@ fn load_vmprod_row
   (#vrow : chest1 et n2)
   (j : sz { chunk et /? j })
   (step : sz)
+  (bounds_checked : bool)
   preserves gpu
   preserves row |-> Frac frow vrow
   requires  pure (aligned 16 (core row))
   requires  pure (aligned_cont_layout (chunk et) clrow)
   requires  pure (fits (j + n1 * step))
+  requires  pure (bounds_checked ==> n1 == chunk et /\ j < n2)
   requires  y |-> vy
   // ensures   y |-> seq_to_chest1 (seq_load_vmprod_row (chest1_to_seq vy) x (chest1_to_seq vrow) j step (n1 / chunk et))
   ensures   y |-> seq_load_vmprod_row vy x (chest1_to_seq vrow) j step (n1 / chunk et)
@@ -743,7 +747,8 @@ fn load_vmprod_row
     load_vmprod_chunk
       y x
       row
-      (!k *^ chunk et) (j +^ !k *^ step *^ chunk et);
+      (!k *^ chunk et) (j +^ !k *^ step *^ chunk et)
+      bounds_checked;
     k := !k +^ 1sz;
   }
 }
@@ -770,6 +775,44 @@ let rec seq_load_vmprod
         (elems @! to - 1)
         (ematrix_row em (row_ind @! to - 1))
         j step (n1 / chunk et)
+
+
+
+(* A thread starting beyond the matrix width has no active vector chunks.
+   These lemmas justify skipping its reduction without changing the spec. *)
+noextract
+let rec seq_load_vmprod_row_outside
+  (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
+  (#n1 : nat { chunk et /? n1 })
+  (y : lseq et n1)
+  (x : et)
+  (#n2 : nat { chunk et /? n2 })
+  (row : lseq et n2)
+  (j : nat { chunk et /? j /\ n2 <= j })
+  (step : nat)
+  (k : natle (n1 / chunk et))
+  : Lemma (seq_load_vmprod_row y x row j step k == y)
+  = if k > 0 then seq_load_vmprod_row_outside y x row j step (k - 1)
+
+noextract
+let rec seq_load_vmprod_outside
+  (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
+  (#m1 #n1 : nat { chunk et /? n1 })
+  (y : lseq et n1)
+  (elems : lseq et m1)
+  (row_ind : lseq nat m1)
+  (#m2 #n2 : pos { chunk et /? n2 })
+  (em : chest2 et m2 n2)
+  (j : nat { chunk et /? j /\ n2 <= j })
+  (step : nat)
+  (#_ : squash (in_bounds 0 m2 row_ind))
+  (to : natle m1)
+  : Lemma (seq_load_vmprod y elems row_ind em j step to == y)
+  = if to > 0 then (
+      seq_load_vmprod_outside y elems row_ind em j step (to - 1);
+      seq_load_vmprod_row_outside y (elems @! to - 1)
+        (ematrix_row em (row_ind @! to - 1)) j step (n1 / chunk et)
+    )
 
 
 open Kuiper.Array2.Strided { strided_row_major, aligned_strided_row_major }
@@ -804,39 +847,51 @@ fn load_vmprod
   // ensures   y |-> seq_to_chest1 (seq_load_vmprod (chest1_to_seq vy) (chest1_to_seq velems) (cast_pos (chest1_to_seq vrow_ind)) em j step to)
   ensures   y |-> seq_load_vmprod vy velems (cast_pos vrow_ind) em j step to
 {
-  let mut k : sz = 0sz;
+  // All vector chunks owned by this thread start at or after j. Threads
+  // outside the output can skip the reduction, but must still participate
+  // in the caller's shared-memory loads and barriers.
+  if (j <^ n2) {
+    // With one vector chunk per thread, the outer check proves every load
+    // in bounds. The static flag removes the check from the reduction loop.
+    let mut k : sz = 0sz;
 
-  while (!k <^ to)
-    // invariant exists* vk (vy' : chest1 et n1).
-    invariant exists* vk (vy' : lseq et n1).
-      k |-> vk **
-      y |-> vy' **
-      pure (
-        vk <= to /\
-        // Seq.equal (chest1_to_seq vy') (seq_load_vmprod (chest1_to_seq vy) (chest1_to_seq velems) (cast_pos (chest1_to_seq vrow_ind)) em j step vk)
-        Seq.equal vy' (seq_load_vmprod vy velems (cast_pos vrow_ind) em j step vk)
-      )
-    decreases (to - !k)
-  {
-    let kv = !k;
-    let kr = slice_read row_ind kv;
-    let kx = slice_read elems kv;
+    while (!k <^ to)
+      // invariant exists* vk (vy' : chest1 et n1).
+      invariant exists* vk (vy' : lseq et n1).
+        k |-> vk **
+        y |-> vy' **
+        pure (
+          vk <= to /\
+          // Seq.equal (chest1_to_seq vy') (seq_load_vmprod (chest1_to_seq vy) (chest1_to_seq velems) (cast_pos (chest1_to_seq vrow_ind)) em j step vk)
+          Seq.equal vy' (seq_load_vmprod vy velems (cast_pos vrow_ind) em j step vk)
+        )
+      decreases (to - !k)
+    {
+      let kv = !k;
+      let kr = slice_read row_ind kv;
+      let kx = slice_read elems kv;
 
-    // [kr] indexes a valid row of [m] by the sparsity bound.
-    assert pure (v kr == cast_pos vrow_ind @! kv);
+      // [kr] indexes a valid row of [m] by the sparsity bound.
+      assert pure (v kr == cast_pos vrow_ind @! kv);
 
-    tensor_extract_row_ro m (v kr);
-    row_core_lemma m (v kr);
-    aligned_cont_strided_row_major lm (chunk et) kr;
+      tensor_extract_row_ro m (v kr);
+      row_core_lemma m (v kr);
+      aligned_cont_strided_row_major lm (chunk et) kr;
 
-    load_vmprod_row
-      y kx
-      #_ #_ #(ctlayout_slice _ 0 (v kr)) // should not be needed
-      (tensor_row m (v kr)) j step;
+      load_vmprod_row
+        y kx
+        #_ #_ #(ctlayout_slice _ 0 (v kr)) // should not be needed
+        (tensor_row m (v kr)) j step (FStar.SizeT.eq n1 (chunk et));
 
-    tensor_restore_row m (v kr);
+      tensor_restore_row m (v kr);
 
-    k := !k +^ 1sz;
+      k := !k +^ 1sz;
+    }
+  } else {
+    seq_load_vmprod_outside vy velems (cast_pos vrow_ind) em j step to;
+    assert pure (seq_load_vmprod vy velems (cast_pos vrow_ind) em j step to == vy);
+    rewrite (y |-> vy)
+         as (y |-> seq_load_vmprod vy velems (cast_pos vrow_ind) em j step to);
   }
 }
 

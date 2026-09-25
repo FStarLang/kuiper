@@ -731,6 +731,23 @@ let _ =
   B.register_rule (Ident.lid_of_str "FStar.Float64.bit_eq")
                   (B.Rule_extern ({ x_name = Some "kpr_f64_bit_eq";
                                     x_header = Some "kuiper/float_bits.h" }));
+  (* The GPU-only Float32 primitives.  Each is a single PTX instruction with
+     rounding and flush-to-zero spelled out, so there is no C operator that
+     means the same thing and no point asking Custard's float vocabulary for
+     one; the bodies are [admit()] and the wrappers in include/kuiper/math.h
+     are what actually runs. *)
+  B.register_rule (Ident.lid_of_str "Kuiper.Float32.mul_rn_ftz")
+                  (B.Rule_extern ({ x_name = Some "kpr_f32_mul_rn_ftz";
+                                    x_header = Some "kuiper/math.h" }));
+  B.register_rule (Ident.lid_of_str "Kuiper.Float32.exp2_approx_ftz")
+                  (B.Rule_extern ({ x_name = Some "kpr_f32_exp2_approx_ftz";
+                                    x_header = Some "kuiper/math.h" }));
+  B.register_rule (Ident.lid_of_str "Kuiper.Float32.rcp_approx_ftz")
+                  (B.Rule_extern ({ x_name = Some "kpr_f32_rcp_approx_ftz";
+                                    x_header = Some "kuiper/math.h" }));
+  B.register_rule (Ident.lid_of_str "Kuiper.Float32.rsqrt_approx_ftz")
+                  (B.Rule_extern ({ x_name = Some "kpr_f32_rsqrt_approx_ftz";
+                                    x_header = Some "kuiper/math.h" }));
   B.register_rule (Ident.lid_of_str "Kuiper.TensorCore.Base.mma_sync'")
                   (B.Rule_prim (7, mma_sync));
   B.register_rule (Ident.lid_of_str "Kuiper.TensorCore.Base.mma_loadA_map")
