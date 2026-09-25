@@ -15,56 +15,6 @@
 extern "C" {
 #endif
 
-typedef struct FStar_Pervasives_Native_tuple2__float32_ptr_unit_s
-    FStar_Pervasives_Native_tuple2__float32_ptr_unit;
-typedef struct
-    FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_float32_ptr_unit_s
-        FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_float32_ptr_unit;
-typedef struct FStar_Pervasives_Native_tuple2__float64_ptr_unit_s
-    FStar_Pervasives_Native_tuple2__float64_ptr_unit;
-typedef struct
-    FStar_Pervasives_Native_tuple2__float64_ptr_tuple2_float64_ptr_unit_s
-        FStar_Pervasives_Native_tuple2__float64_ptr_tuple2_float64_ptr_unit;
-typedef struct FStar_Pervasives_Native_tuple2__uint32_ptr_unit_s
-    FStar_Pervasives_Native_tuple2__uint32_ptr_unit;
-typedef struct
-    FStar_Pervasives_Native_tuple2__uint32_ptr_tuple2_uint32_ptr_unit_s
-        FStar_Pervasives_Native_tuple2__uint32_ptr_tuple2_uint32_ptr_unit;
-typedef struct FStar_Pervasives_Native_tuple2__uint64_ptr_unit_s
-    FStar_Pervasives_Native_tuple2__uint64_ptr_unit;
-typedef struct
-    FStar_Pervasives_Native_tuple2__uint64_ptr_tuple2_uint64_ptr_unit_s
-        FStar_Pervasives_Native_tuple2__uint64_ptr_tuple2_uint64_ptr_unit;
-
-struct FStar_Pervasives_Native_tuple2__float32_ptr_unit_s {
-    float *_1;
-};
-struct FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_float32_ptr_unit_s {
-    float *_1;
-    FStar_Pervasives_Native_tuple2__float32_ptr_unit _2;
-};
-struct FStar_Pervasives_Native_tuple2__float64_ptr_unit_s {
-    double *_1;
-};
-struct FStar_Pervasives_Native_tuple2__float64_ptr_tuple2_float64_ptr_unit_s {
-    double *_1;
-    FStar_Pervasives_Native_tuple2__float64_ptr_unit _2;
-};
-struct FStar_Pervasives_Native_tuple2__uint32_ptr_unit_s {
-    uint32_t *_1;
-};
-struct FStar_Pervasives_Native_tuple2__uint32_ptr_tuple2_uint32_ptr_unit_s {
-    uint32_t *_1;
-    FStar_Pervasives_Native_tuple2__uint32_ptr_unit _2;
-};
-struct FStar_Pervasives_Native_tuple2__uint64_ptr_unit_s {
-    uint64_t *_1;
-};
-struct FStar_Pervasives_Native_tuple2__uint64_ptr_tuple2_uint64_ptr_unit_s {
-    uint64_t *_1;
-    FStar_Pervasives_Native_tuple2__uint64_ptr_unit _2;
-};
-
 void Klas_GEMM_BlockTiling1D_g_matmul_f32_tile32_rrr(
     uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
 void Klas_GEMM_BlockTiling1D_g_matmul_f64_tile32_rrr(

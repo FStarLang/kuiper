@@ -16,9 +16,10 @@ __global__ static void kuiper_kernel_4(
 __global__ static void kuiper_kernel_0(
     uint32_t lena, custard_f16 *x_, uint32_t nth, custard_f16 *out)
 {
+    uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     FStar_Pervasives_Native_tuple2__float16_ptr_unit shmem =
         (FStar_Pervasives_Native_tuple2__float16_ptr_unit) {
-            ._1 = (custard_f16 *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U))};
+            ._1 = (custard_f16 *) (shmem_base + 0)};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     custard_f16 acc = CUSTARD_F16_LIT(0U);
@@ -63,9 +64,10 @@ __global__ static void kuiper_kernel_0(
 __global__ static void kuiper_kernel_1(
     uint32_t lena, float *x_, uint32_t nth, float *out)
 {
+    uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     FStar_Pervasives_Native_tuple2__float32_ptr_unit shmem =
         (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
-            ._1 = (float *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U))};
+            ._1 = (float *) (shmem_base + 0)};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     float acc = 0.0f;
@@ -110,9 +112,10 @@ __global__ static void kuiper_kernel_1(
 __global__ static void kuiper_kernel_2(
     uint32_t lena, double *x_, uint32_t nth, double *out)
 {
+    uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     FStar_Pervasives_Native_tuple2__float64_ptr_unit shmem =
         (FStar_Pervasives_Native_tuple2__float64_ptr_unit) {
-            ._1 = (double *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U))};
+            ._1 = (double *) (shmem_base + 0)};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     double acc = 0.0;
@@ -157,9 +160,10 @@ __global__ static void kuiper_kernel_2(
 __global__ static void kuiper_kernel_3(
     uint32_t lena, uint32_t *x_, uint32_t nth, uint32_t *out)
 {
+    uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     FStar_Pervasives_Native_tuple2__uint32_ptr_unit shmem =
         (FStar_Pervasives_Native_tuple2__uint32_ptr_unit) {
-            ._1 = (uint32_t *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U))};
+            ._1 = (uint32_t *) (shmem_base + 0)};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t acc = 0;
@@ -204,9 +208,10 @@ __global__ static void kuiper_kernel_3(
 __global__ static void kuiper_kernel_4(
     uint32_t lena, uint64_t *x_, uint32_t nth, uint64_t *out)
 {
+    uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     FStar_Pervasives_Native_tuple2__uint64_ptr_unit shmem =
         (FStar_Pervasives_Native_tuple2__uint64_ptr_unit) {
-            ._1 = (uint64_t *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U))};
+            ._1 = (uint64_t *) (shmem_base + 0)};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint64_t acc = 0;

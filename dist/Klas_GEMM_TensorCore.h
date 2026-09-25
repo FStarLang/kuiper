@@ -20,20 +20,6 @@
 extern "C" {
 #endif
 
-typedef struct FStar_Pervasives_Native_tuple2__float16_ptr_unit_s
-    FStar_Pervasives_Native_tuple2__float16_ptr_unit;
-typedef struct
-    FStar_Pervasives_Native_tuple2__float16_ptr_tuple2_float16_ptr_unit_s
-        FStar_Pervasives_Native_tuple2__float16_ptr_tuple2_float16_ptr_unit;
-
-struct FStar_Pervasives_Native_tuple2__float16_ptr_unit_s {
-    custard_f16 *_1;
-};
-struct FStar_Pervasives_Native_tuple2__float16_ptr_tuple2_float16_ptr_unit_s {
-    custard_f16 *_1;
-    FStar_Pervasives_Native_tuple2__float16_ptr_unit _2;
-};
-
 void Klas_GEMM_TensorCore_g_gemm_f16_f16_64x64x16_16x16x16(uint32_t rows,
     uint32_t shared, uint32_t cols, custard_f16 *gA, custard_f16 *gB,
     custard_f16 *gC);

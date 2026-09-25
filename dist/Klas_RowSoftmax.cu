@@ -22,9 +22,10 @@ __global__ __launch_bounds__(1024) static void kuiper_kernel_7(
 __global__ static void kuiper_kernel_0(
     uint32_t n, float *a, uint32_t nthm, float *maxs)
 {
+    uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     FStar_Pervasives_Native_tuple2__float32_ptr_unit shmem =
         (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
-            ._1 = (float *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U))};
+            ._1 = (float *) (shmem_base + 0)};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t ni = ((bid * n) + tid);
@@ -90,9 +91,10 @@ __global__ __launch_bounds__(1024) static void kuiper_kernel_1(
 __global__ static void kuiper_kernel_2(
     uint32_t n, float *a, uint32_t nth, float *sums)
 {
+    uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     FStar_Pervasives_Native_tuple2__float32_ptr_unit shmem =
         (FStar_Pervasives_Native_tuple2__float32_ptr_unit) {
-            ._1 = (float *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U))};
+            ._1 = (float *) (shmem_base + 0)};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     float acc = 0.0f;
@@ -157,9 +159,10 @@ __global__ __launch_bounds__(1024) static void kuiper_kernel_3(
 __global__ static void kuiper_kernel_4(
     uint32_t n, double *a, uint32_t nthm, double *maxs)
 {
+    uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     FStar_Pervasives_Native_tuple2__float64_ptr_unit shmem =
         (FStar_Pervasives_Native_tuple2__float64_ptr_unit) {
-            ._1 = (double *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U))};
+            ._1 = (double *) (shmem_base + 0)};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     uint32_t ni = ((bid * n) + tid);
@@ -225,9 +228,10 @@ __global__ __launch_bounds__(1024) static void kuiper_kernel_5(
 __global__ static void kuiper_kernel_6(
     uint32_t n, double *a, uint32_t nth, double *sums)
 {
+    uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     FStar_Pervasives_Native_tuple2__float64_ptr_unit shmem =
         (FStar_Pervasives_Native_tuple2__float64_ptr_unit) {
-            ._1 = (double *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U))};
+            ._1 = (double *) (shmem_base + 0)};
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
     double acc = 0.0;

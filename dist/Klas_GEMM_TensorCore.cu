@@ -28,14 +28,13 @@ __global__ static void kuiper_kernel_10(uint32_t shared, uint32_t cols,
 __global__ static void kuiper_kernel_0(uint32_t shared, uint32_t cols,
     custard_f16 *gC, custard_f16 *gA, uint32_t nthr, custard_f16 *gB)
 {
-    FStar_Pervasives_Native_tuple2__float16_ptr_tuple2_float16_ptr_unit sh =
-        (FStar_Pervasives_Native_tuple2__float16_ptr_tuple2_float16_ptr_unit) {
-            ._1 = (custard_f16 *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
-            ._2 = (FStar_Pervasives_Native_tuple2__float16_ptr_unit) {
-                ._1 = (custard_f16 *) (uint8_t *) KPR_SHMEM_AT(
-                    (0 + (((uint32_t) 2U) * ((uint32_t) 1024U))))}};
+    uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    custard_f16 *sarA = (custard_f16 *) (shmem_base + 0);
+    custard_f16 *sarB =
+        (custard_f16 *) (shmem_base +
+                         (0 + (((uint32_t) 2U) * ((uint32_t) 1024U))));
     uint32_t num_k_tiles = (shared / 16);
     uint32_t num_n_tiles = (cols / 64);
     uint32_t mrow = (bid / num_n_tiles);
@@ -88,7 +87,7 @@ __global__ static void kuiper_kernel_0(uint32_t shared, uint32_t cols,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 16) + cidx);
-                sh._1[ni] = v;
+                sarA[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -117,7 +116,7 @@ __global__ static void kuiper_kernel_0(uint32_t shared, uint32_t cols,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 64) + cidx_1);
-                sh._2._1[ni_1] = v_1;
+                sarB[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -130,10 +129,10 @@ __global__ static void kuiper_kernel_0(uint32_t shared, uint32_t cols,
             uint32_t __anf01_2 = dotIdx;
             uint32_t __anf02_2 = dotIdx;
             wmma::load_matrix_sync(aFrag,
-                (sh._1 + ((0 + (16 * (warpRow * 16))) + (__anf01_2 * 16))),
+                (sarA + ((0 + (16 * (warpRow * 16))) + (__anf01_2 * 16))),
                 ((uint32_t) 16U));
             wmma::load_matrix_sync(bFrag,
-                (sh._2._1 + ((0 + (64 * (__anf02_2 * 16))) + (warpCol * 16))),
+                (sarB + ((0 + (64 * (__anf02_2 * 16))) + (warpCol * 16))),
                 ((uint32_t) 64U));
             wmma::mma_sync(accumFrag, aFrag, bFrag, accumFrag);
             uint32_t __anf03_2 = dotIdx;
@@ -153,14 +152,13 @@ __global__ static void kuiper_kernel_0(uint32_t shared, uint32_t cols,
 __global__ static void kuiper_kernel_1(uint32_t shared, uint32_t cols,
     custard_f16 *gC, custard_f16 *gA, uint32_t nthr, custard_f16 *gB)
 {
-    FStar_Pervasives_Native_tuple2__float16_ptr_tuple2_float16_ptr_unit sh =
-        (FStar_Pervasives_Native_tuple2__float16_ptr_tuple2_float16_ptr_unit) {
-            ._1 = (custard_f16 *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
-            ._2 = (FStar_Pervasives_Native_tuple2__float16_ptr_unit) {
-                ._1 = (custard_f16 *) (uint8_t *) KPR_SHMEM_AT(
-                    (0 + (((uint32_t) 2U) * ((uint32_t) 1024U))))}};
+    uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    custard_f16 *sarA = (custard_f16 *) (shmem_base + 0);
+    custard_f16 *sarB =
+        (custard_f16 *) (shmem_base +
+                         (0 + (((uint32_t) 2U) * ((uint32_t) 1024U))));
     uint32_t num_k_tiles = (shared / 32);
     uint32_t num_n_tiles = (cols / 32);
     uint32_t mrow = (bid / num_n_tiles);
@@ -213,7 +211,7 @@ __global__ static void kuiper_kernel_1(uint32_t shared, uint32_t cols,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 32) + cidx);
-                sh._1[ni] = v;
+                sarA[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -242,7 +240,7 @@ __global__ static void kuiper_kernel_1(uint32_t shared, uint32_t cols,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 32) + cidx_1);
-                sh._2._1[ni_1] = v_1;
+                sarB[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -255,10 +253,10 @@ __global__ static void kuiper_kernel_1(uint32_t shared, uint32_t cols,
             uint32_t __anf01_2 = dotIdx;
             uint32_t __anf02_2 = dotIdx;
             wmma::load_matrix_sync(aFrag,
-                (sh._1 + ((0 + (32 * (warpRow * 32))) + (__anf01_2 * 16))),
+                (sarA + ((0 + (32 * (warpRow * 32))) + (__anf01_2 * 16))),
                 ((uint32_t) 32U));
             wmma::load_matrix_sync(bFrag,
-                (sh._2._1 + ((0 + (32 * (__anf02_2 * 16))) + (warpCol * 8))),
+                (sarB + ((0 + (32 * (__anf02_2 * 16))) + (warpCol * 8))),
                 ((uint32_t) 32U));
             wmma::mma_sync(accumFrag, aFrag, bFrag, accumFrag);
             uint32_t __anf03_2 = dotIdx;
@@ -278,14 +276,13 @@ __global__ static void kuiper_kernel_1(uint32_t shared, uint32_t cols,
 __global__ static void kuiper_kernel_2(uint32_t shared, uint32_t cols,
     custard_f16 *gC, custard_f16 *gA, uint32_t nthr, custard_f16 *gB)
 {
-    FStar_Pervasives_Native_tuple2__float16_ptr_tuple2_float16_ptr_unit sh =
-        (FStar_Pervasives_Native_tuple2__float16_ptr_tuple2_float16_ptr_unit) {
-            ._1 = (custard_f16 *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
-            ._2 = (FStar_Pervasives_Native_tuple2__float16_ptr_unit) {
-                ._1 = (custard_f16 *) (uint8_t *) KPR_SHMEM_AT(
-                    (0 + (((uint32_t) 2U) * ((uint32_t) 1024U))))}};
+    uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    custard_f16 *sarA = (custard_f16 *) (shmem_base + 0);
+    custard_f16 *sarB =
+        (custard_f16 *) (shmem_base +
+                         (0 + (((uint32_t) 2U) * ((uint32_t) 1024U))));
     uint32_t num_k_tiles = (shared / 32);
     uint32_t num_n_tiles = (cols / 32);
     uint32_t mrow = (bid / num_n_tiles);
@@ -338,7 +335,7 @@ __global__ static void kuiper_kernel_2(uint32_t shared, uint32_t cols,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 32) + cidx);
-                sh._1[ni] = v;
+                sarA[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -367,7 +364,7 @@ __global__ static void kuiper_kernel_2(uint32_t shared, uint32_t cols,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 32) + cidx_1);
-                sh._2._1[ni_1] = v_1;
+                sarB[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -380,10 +377,10 @@ __global__ static void kuiper_kernel_2(uint32_t shared, uint32_t cols,
             uint32_t __anf01_2 = dotIdx;
             uint32_t __anf02_2 = dotIdx;
             wmma::load_matrix_sync(aFrag,
-                (sh._1 + ((0 + (32 * (warpRow * 8))) + (__anf01_2 * 16))),
+                (sarA + ((0 + (32 * (warpRow * 8))) + (__anf01_2 * 16))),
                 ((uint32_t) 32U));
             wmma::load_matrix_sync(bFrag,
-                (sh._2._1 + ((0 + (32 * (__anf02_2 * 16))) + (warpCol * 32))),
+                (sarB + ((0 + (32 * (__anf02_2 * 16))) + (warpCol * 32))),
                 ((uint32_t) 32U));
             wmma::mma_sync(accumFrag, aFrag, bFrag, accumFrag);
             uint32_t __anf03_2 = dotIdx;
@@ -403,14 +400,13 @@ __global__ static void kuiper_kernel_2(uint32_t shared, uint32_t cols,
 __global__ static void kuiper_kernel_3(uint32_t shared, uint32_t cols,
     custard_f16 *gC, custard_f16 *gA, uint32_t nthr, custard_f16 *gB)
 {
-    FStar_Pervasives_Native_tuple2__float16_ptr_tuple2_float16_ptr_unit sh =
-        (FStar_Pervasives_Native_tuple2__float16_ptr_tuple2_float16_ptr_unit) {
-            ._1 = (custard_f16 *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
-            ._2 = (FStar_Pervasives_Native_tuple2__float16_ptr_unit) {
-                ._1 = (custard_f16 *) (uint8_t *) KPR_SHMEM_AT(
-                    (0 + (((uint32_t) 2U) * ((uint32_t) 512U))))}};
+    uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    custard_f16 *sarA = (custard_f16 *) (shmem_base + 0);
+    custard_f16 *sarB =
+        (custard_f16 *) (shmem_base +
+                         (0 + (((uint32_t) 2U) * ((uint32_t) 512U))));
     uint32_t num_k_tiles = (shared / 16);
     uint32_t num_n_tiles = (cols / 8);
     uint32_t mrow = (bid / num_n_tiles);
@@ -463,7 +459,7 @@ __global__ static void kuiper_kernel_3(uint32_t shared, uint32_t cols,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 16) + cidx);
-                sh._1[ni] = v;
+                sarA[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -492,7 +488,7 @@ __global__ static void kuiper_kernel_3(uint32_t shared, uint32_t cols,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 8) + cidx_1);
-                sh._2._1[ni_1] = v_1;
+                sarB[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -505,10 +501,10 @@ __global__ static void kuiper_kernel_3(uint32_t shared, uint32_t cols,
             uint32_t __anf01_2 = dotIdx;
             uint32_t __anf02_2 = dotIdx;
             wmma::load_matrix_sync(aFrag,
-                (sh._1 + ((0 + (16 * (warpRow * 32))) + (__anf01_2 * 16))),
+                (sarA + ((0 + (16 * (warpRow * 32))) + (__anf01_2 * 16))),
                 ((uint32_t) 16U));
             wmma::load_matrix_sync(bFrag,
-                (sh._2._1 + ((0 + (8 * (__anf02_2 * 16))) + (warpCol * 8))),
+                (sarB + ((0 + (8 * (__anf02_2 * 16))) + (warpCol * 8))),
                 ((uint32_t) 8U));
             wmma::mma_sync(accumFrag, aFrag, bFrag, accumFrag);
             uint32_t __anf03_2 = dotIdx;
@@ -528,14 +524,13 @@ __global__ static void kuiper_kernel_3(uint32_t shared, uint32_t cols,
 __global__ static void kuiper_kernel_4(uint32_t shared, uint32_t cols,
     custard_f16 *gC, custard_f16 *gA, uint32_t nthr, custard_f16 *gB)
 {
-    FStar_Pervasives_Native_tuple2__float16_ptr_tuple2_float16_ptr_unit sh =
-        (FStar_Pervasives_Native_tuple2__float16_ptr_tuple2_float16_ptr_unit) {
-            ._1 = (custard_f16 *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
-            ._2 = (FStar_Pervasives_Native_tuple2__float16_ptr_unit) {
-                ._1 = (custard_f16 *) (uint8_t *) KPR_SHMEM_AT(
-                    (0 + (((uint32_t) 2U) * ((uint32_t) 1024U))))}};
+    uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    custard_f16 *sarA = (custard_f16 *) (shmem_base + 0);
+    custard_f16 *sarB =
+        (custard_f16 *) (shmem_base +
+                         (0 + (((uint32_t) 2U) * ((uint32_t) 1024U))));
     uint32_t num_k_tiles = (shared / 32);
     uint32_t num_n_tiles = (cols / 32);
     uint32_t mrow = (bid / num_n_tiles);
@@ -588,7 +583,7 @@ __global__ static void kuiper_kernel_4(uint32_t shared, uint32_t cols,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 32) + cidx);
-                sh._1[ni] = v;
+                sarA[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -617,7 +612,7 @@ __global__ static void kuiper_kernel_4(uint32_t shared, uint32_t cols,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 32) + cidx_1);
-                sh._2._1[ni_1] = v_1;
+                sarB[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -630,10 +625,10 @@ __global__ static void kuiper_kernel_4(uint32_t shared, uint32_t cols,
             uint32_t __anf01_2 = dotIdx;
             uint32_t __anf02_2 = dotIdx;
             wmma::load_matrix_sync(aFrag,
-                (sh._1 + ((0 + (32 * (warpRow * 8))) + (__anf01_2 * 16))),
+                (sarA + ((0 + (32 * (warpRow * 8))) + (__anf01_2 * 16))),
                 ((uint32_t) 32U));
             wmma::load_matrix_sync(bFrag,
-                (sh._2._1 + ((0 + (32 * (__anf02_2 * 16))) + (warpCol * 32))),
+                (sarB + ((0 + (32 * (__anf02_2 * 16))) + (warpCol * 32))),
                 ((uint32_t) 32U));
             wmma::mma_sync(accumFrag, aFrag, bFrag, accumFrag);
             uint32_t __anf03_2 = dotIdx;
@@ -653,14 +648,13 @@ __global__ static void kuiper_kernel_4(uint32_t shared, uint32_t cols,
 __global__ static void kuiper_kernel_5(uint32_t shared, uint32_t cols,
     custard_f16 *gC, custard_f16 *gA, uint32_t nthr, custard_f16 *gB)
 {
-    FStar_Pervasives_Native_tuple2__float16_ptr_tuple2_float16_ptr_unit sh =
-        (FStar_Pervasives_Native_tuple2__float16_ptr_tuple2_float16_ptr_unit) {
-            ._1 = (custard_f16 *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
-            ._2 = (FStar_Pervasives_Native_tuple2__float16_ptr_unit) {
-                ._1 = (custard_f16 *) (uint8_t *) KPR_SHMEM_AT(
-                    (0 + (((uint32_t) 2U) * ((uint32_t) 4096U))))}};
+    uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    custard_f16 *sarA = (custard_f16 *) (shmem_base + 0);
+    custard_f16 *sarB =
+        (custard_f16 *) (shmem_base +
+                         (0 + (((uint32_t) 2U) * ((uint32_t) 4096U))));
     uint32_t num_k_tiles = (shared / 64);
     uint32_t num_n_tiles = (cols / 64);
     uint32_t mrow = (bid / num_n_tiles);
@@ -713,7 +707,7 @@ __global__ static void kuiper_kernel_5(uint32_t shared, uint32_t cols,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 64) + cidx);
-                sh._1[ni] = v;
+                sarA[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -742,7 +736,7 @@ __global__ static void kuiper_kernel_5(uint32_t shared, uint32_t cols,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 64) + cidx_1);
-                sh._2._1[ni_1] = v_1;
+                sarB[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -755,10 +749,10 @@ __global__ static void kuiper_kernel_5(uint32_t shared, uint32_t cols,
             uint32_t __anf01_2 = dotIdx;
             uint32_t __anf02_2 = dotIdx;
             wmma::load_matrix_sync(aFrag,
-                (sh._1 + ((0 + (64 * (warpRow * 16))) + (__anf01_2 * 16))),
+                (sarA + ((0 + (64 * (warpRow * 16))) + (__anf01_2 * 16))),
                 ((uint32_t) 64U));
             wmma::load_matrix_sync(bFrag,
-                (sh._2._1 + ((0 + (64 * (__anf02_2 * 16))) + (warpCol * 16))),
+                (sarB + ((0 + (64 * (__anf02_2 * 16))) + (warpCol * 16))),
                 ((uint32_t) 64U));
             wmma::mma_sync(accumFrag, aFrag, bFrag, accumFrag);
             uint32_t __anf03_2 = dotIdx;
@@ -778,14 +772,13 @@ __global__ static void kuiper_kernel_5(uint32_t shared, uint32_t cols,
 __global__ static void kuiper_kernel_6(uint32_t shared, uint32_t cols,
     custard_f16 *gC, custard_f16 *gA, uint32_t nthr, custard_f16 *gB)
 {
-    FStar_Pervasives_Native_tuple2__float16_ptr_tuple2_float16_ptr_unit sh =
-        (FStar_Pervasives_Native_tuple2__float16_ptr_tuple2_float16_ptr_unit) {
-            ._1 = (custard_f16 *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
-            ._2 = (FStar_Pervasives_Native_tuple2__float16_ptr_unit) {
-                ._1 = (custard_f16 *) (uint8_t *) KPR_SHMEM_AT(
-                    (0 + (((uint32_t) 2U) * ((uint32_t) 4096U))))}};
+    uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    custard_f16 *sarA = (custard_f16 *) (shmem_base + 0);
+    custard_f16 *sarB =
+        (custard_f16 *) (shmem_base +
+                         (0 + (((uint32_t) 2U) * ((uint32_t) 4096U))));
     uint32_t num_k_tiles = (shared / 64);
     uint32_t num_n_tiles = (cols / 64);
     uint32_t mrow = (bid / num_n_tiles);
@@ -838,7 +831,7 @@ __global__ static void kuiper_kernel_6(uint32_t shared, uint32_t cols,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 64) + cidx);
-                sh._1[ni] = v;
+                sarA[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -867,7 +860,7 @@ __global__ static void kuiper_kernel_6(uint32_t shared, uint32_t cols,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 64) + cidx_1);
-                sh._2._1[ni_1] = v_1;
+                sarB[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -880,10 +873,10 @@ __global__ static void kuiper_kernel_6(uint32_t shared, uint32_t cols,
             uint32_t __anf01_2 = dotIdx;
             uint32_t __anf02_2 = dotIdx;
             wmma::load_matrix_sync(aFrag,
-                (sh._1 + ((0 + (64 * (warpRow * 32))) + (__anf01_2 * 16))),
+                (sarA + ((0 + (64 * (warpRow * 32))) + (__anf01_2 * 16))),
                 ((uint32_t) 64U));
             wmma::load_matrix_sync(bFrag,
-                (sh._2._1 + ((0 + (64 * (__anf02_2 * 16))) + (warpCol * 8))),
+                (sarB + ((0 + (64 * (__anf02_2 * 16))) + (warpCol * 8))),
                 ((uint32_t) 64U));
             wmma::mma_sync(accumFrag, aFrag, bFrag, accumFrag);
             uint32_t __anf03_2 = dotIdx;
@@ -903,14 +896,13 @@ __global__ static void kuiper_kernel_6(uint32_t shared, uint32_t cols,
 __global__ static void kuiper_kernel_7(uint32_t shared, uint32_t cols,
     custard_f16 *gC, custard_f16 *gA, uint32_t nthr, custard_f16 *gB)
 {
-    FStar_Pervasives_Native_tuple2__float16_ptr_tuple2_float16_ptr_unit sh =
-        (FStar_Pervasives_Native_tuple2__float16_ptr_tuple2_float16_ptr_unit) {
-            ._1 = (custard_f16 *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
-            ._2 = (FStar_Pervasives_Native_tuple2__float16_ptr_unit) {
-                ._1 = (custard_f16 *) (uint8_t *) KPR_SHMEM_AT(
-                    (0 + (((uint32_t) 2U) * ((uint32_t) 4096U))))}};
+    uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    custard_f16 *sarA = (custard_f16 *) (shmem_base + 0);
+    custard_f16 *sarB =
+        (custard_f16 *) (shmem_base +
+                         (0 + (((uint32_t) 2U) * ((uint32_t) 4096U))));
     uint32_t num_k_tiles = (shared / 64);
     uint32_t num_n_tiles = (cols / 64);
     uint32_t mrow = (bid / num_n_tiles);
@@ -963,7 +955,7 @@ __global__ static void kuiper_kernel_7(uint32_t shared, uint32_t cols,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 64) + cidx);
-                sh._1[ni] = v;
+                sarA[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -992,7 +984,7 @@ __global__ static void kuiper_kernel_7(uint32_t shared, uint32_t cols,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 64) + cidx_1);
-                sh._2._1[ni_1] = v_1;
+                sarB[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -1005,10 +997,10 @@ __global__ static void kuiper_kernel_7(uint32_t shared, uint32_t cols,
             uint32_t __anf01_2 = dotIdx;
             uint32_t __anf02_2 = dotIdx;
             wmma::load_matrix_sync(aFrag,
-                (sh._1 + ((0 + (64 * (warpRow * 8))) + (__anf01_2 * 16))),
+                (sarA + ((0 + (64 * (warpRow * 8))) + (__anf01_2 * 16))),
                 ((uint32_t) 64U));
             wmma::load_matrix_sync(bFrag,
-                (sh._2._1 + ((0 + (64 * (__anf02_2 * 16))) + (warpCol * 32))),
+                (sarB + ((0 + (64 * (__anf02_2 * 16))) + (warpCol * 32))),
                 ((uint32_t) 64U));
             wmma::mma_sync(accumFrag, aFrag, bFrag, accumFrag);
             uint32_t __anf03_2 = dotIdx;
@@ -1028,14 +1020,13 @@ __global__ static void kuiper_kernel_7(uint32_t shared, uint32_t cols,
 __global__ static void kuiper_kernel_8(uint32_t shared, uint32_t cols,
     custard_f16 *gC, custard_f16 *gA, uint32_t nthr, custard_f16 *gB)
 {
-    FStar_Pervasives_Native_tuple2__float16_ptr_tuple2_float16_ptr_unit sh =
-        (FStar_Pervasives_Native_tuple2__float16_ptr_tuple2_float16_ptr_unit) {
-            ._1 = (custard_f16 *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
-            ._2 = (FStar_Pervasives_Native_tuple2__float16_ptr_unit) {
-                ._1 = (custard_f16 *) (uint8_t *) KPR_SHMEM_AT(
-                    (0 + (((uint32_t) 2U) * ((uint32_t) 1024U))))}};
+    uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    custard_f16 *sarA = (custard_f16 *) (shmem_base + 0);
+    custard_f16 *sarB =
+        (custard_f16 *) (shmem_base +
+                         (0 + (((uint32_t) 2U) * ((uint32_t) 1024U))));
     uint32_t num_k_tiles = (shared / 32);
     uint32_t num_n_tiles = (cols / 32);
     uint32_t mrow = (bid / num_n_tiles);
@@ -1088,7 +1079,7 @@ __global__ static void kuiper_kernel_8(uint32_t shared, uint32_t cols,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 32) + cidx);
-                sh._1[ni] = v;
+                sarA[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -1117,7 +1108,7 @@ __global__ static void kuiper_kernel_8(uint32_t shared, uint32_t cols,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 32) + cidx_1);
-                sh._2._1[ni_1] = v_1;
+                sarB[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -1130,10 +1121,10 @@ __global__ static void kuiper_kernel_8(uint32_t shared, uint32_t cols,
             uint32_t __anf01_2 = dotIdx;
             uint32_t __anf02_2 = dotIdx;
             wmma::load_matrix_sync(aFrag,
-                (sh._1 + ((0 + (32 * (warpRow * 16))) + (__anf01_2 * 16))),
+                (sarA + ((0 + (32 * (warpRow * 16))) + (__anf01_2 * 16))),
                 ((uint32_t) 32U));
             wmma::load_matrix_sync(bFrag,
-                (sh._2._1 + ((0 + (32 * (__anf02_2 * 16))) + (warpCol * 16))),
+                (sarB + ((0 + (32 * (__anf02_2 * 16))) + (warpCol * 16))),
                 ((uint32_t) 32U));
             wmma::mma_sync(accumFrag, aFrag, bFrag, accumFrag);
             uint32_t __anf03_2 = dotIdx;
@@ -1153,14 +1144,13 @@ __global__ static void kuiper_kernel_8(uint32_t shared, uint32_t cols,
 __global__ static void kuiper_kernel_9(uint32_t shared, uint32_t cols,
     custard_f16 *gC, custard_f16 *gA, uint32_t nthr, custard_f16 *gB)
 {
-    FStar_Pervasives_Native_tuple2__float16_ptr_tuple2_float16_ptr_unit sh =
-        (FStar_Pervasives_Native_tuple2__float16_ptr_tuple2_float16_ptr_unit) {
-            ._1 = (custard_f16 *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
-            ._2 = (FStar_Pervasives_Native_tuple2__float16_ptr_unit) {
-                ._1 = (custard_f16 *) (uint8_t *) KPR_SHMEM_AT(
-                    (0 + (((uint32_t) 2U) * ((uint32_t) 256U))))}};
+    uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    custard_f16 *sarA = (custard_f16 *) (shmem_base + 0);
+    custard_f16 *sarB =
+        (custard_f16 *) (shmem_base +
+                         (0 + (((uint32_t) 2U) * ((uint32_t) 256U))));
     uint32_t num_k_tiles = (shared / 16);
     uint32_t num_n_tiles = (cols / 16);
     uint32_t mrow = (bid / num_n_tiles);
@@ -1213,7 +1203,7 @@ __global__ static void kuiper_kernel_9(uint32_t shared, uint32_t cols,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 16) + cidx);
-                sh._1[ni] = v;
+                sarA[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -1242,7 +1232,7 @@ __global__ static void kuiper_kernel_9(uint32_t shared, uint32_t cols,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 16) + cidx_1);
-                sh._2._1[ni_1] = v_1;
+                sarB[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -1255,10 +1245,10 @@ __global__ static void kuiper_kernel_9(uint32_t shared, uint32_t cols,
             uint32_t __anf01_2 = dotIdx;
             uint32_t __anf02_2 = dotIdx;
             wmma::load_matrix_sync(aFrag,
-                (sh._1 + ((0 + (16 * (warpRow * 16))) + (__anf01_2 * 16))),
+                (sarA + ((0 + (16 * (warpRow * 16))) + (__anf01_2 * 16))),
                 ((uint32_t) 16U));
             wmma::load_matrix_sync(bFrag,
-                (sh._2._1 + ((0 + (16 * (__anf02_2 * 16))) + (warpCol * 16))),
+                (sarB + ((0 + (16 * (__anf02_2 * 16))) + (warpCol * 16))),
                 ((uint32_t) 16U));
             wmma::mma_sync(accumFrag, aFrag, bFrag, accumFrag);
             uint32_t __anf03_2 = dotIdx;
@@ -1278,14 +1268,13 @@ __global__ static void kuiper_kernel_9(uint32_t shared, uint32_t cols,
 __global__ static void kuiper_kernel_10(uint32_t shared, uint32_t cols,
     float *gC, custard_f16 *gA, uint32_t nthr, custard_f16 *gB)
 {
-    FStar_Pervasives_Native_tuple2__float16_ptr_tuple2_float16_ptr_unit sh =
-        (FStar_Pervasives_Native_tuple2__float16_ptr_tuple2_float16_ptr_unit) {
-            ._1 = (custard_f16 *) (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U)),
-            ._2 = (FStar_Pervasives_Native_tuple2__float16_ptr_unit) {
-                ._1 = (custard_f16 *) (uint8_t *) KPR_SHMEM_AT(
-                    (0 + (((uint32_t) 2U) * ((uint32_t) 1024U))))}};
+    uint8_t *shmem_base = (uint8_t *) KPR_SHMEM_AT(((uint32_t) 0U));
     uint32_t bid = blockIdx.x;
     uint32_t tid = threadIdx.x;
+    custard_f16 *sarA = (custard_f16 *) (shmem_base + 0);
+    custard_f16 *sarB =
+        (custard_f16 *) (shmem_base +
+                         (0 + (((uint32_t) 2U) * ((uint32_t) 1024U))));
     uint32_t num_k_tiles = (shared / 32);
     uint32_t num_n_tiles = (cols / 32);
     uint32_t mrow = (bid / num_n_tiles);
@@ -1337,7 +1326,7 @@ __global__ static void kuiper_kernel_10(uint32_t shared, uint32_t cols,
                 uint32_t __anf04 = k;
                 uint32_t cidx = (col + __anf04);
                 uint32_t ni = ((row * 32) + cidx);
-                sh._1[ni] = v;
+                sarA[ni] = v;
                 uint32_t __anf05 = k;
                 k = (__anf05 + 1);
             }
@@ -1366,7 +1355,7 @@ __global__ static void kuiper_kernel_10(uint32_t shared, uint32_t cols,
                 uint32_t __anf04_1 = k_1;
                 uint32_t cidx_1 = (col_1 + __anf04_1);
                 uint32_t ni_1 = ((row_1 * 32) + cidx_1);
-                sh._2._1[ni_1] = v_1;
+                sarB[ni_1] = v_1;
                 uint32_t __anf05_1 = k_1;
                 k_1 = (__anf05_1 + 1);
             }
@@ -1379,10 +1368,10 @@ __global__ static void kuiper_kernel_10(uint32_t shared, uint32_t cols,
             uint32_t __anf01_2 = dotIdx;
             uint32_t __anf02_2 = dotIdx;
             wmma::load_matrix_sync(aFrag,
-                (sh._1 + ((0 + (32 * (warpRow * 16))) + (__anf01_2 * 16))),
+                (sarA + ((0 + (32 * (warpRow * 16))) + (__anf01_2 * 16))),
                 ((uint32_t) 32U));
             wmma::load_matrix_sync(bFrag,
-                (sh._2._1 + ((0 + (32 * (__anf02_2 * 16))) + (warpCol * 16))),
+                (sarB + ((0 + (32 * (__anf02_2 * 16))) + (warpCol * 16))),
                 ((uint32_t) 32U));
             wmma::mma_sync(accumFrag, aFrag, bFrag, accumFrag);
             uint32_t __anf03_2 = dotIdx;

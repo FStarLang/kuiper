@@ -227,6 +227,12 @@ let sum_aview_fam
   (vws : natlt n -> aview et st)
   (#_ : squash (no_overlap_fam n vws))
   : aview et (natlt n ^->> st) =
+  (* [solve] has to find the container at the summed view's [ait], and that
+     is the sum's [ait] field rather than the sigma type spelled out here.
+     Unfolding the record to see they agree is no longer something the
+     unifier does on its own, so the equation is stated. *)
+  assert_norm ((sum_aiview_fam n (fun i -> (vws i).iview)).ait
+               == (x : natlt n & (vws x).iview.ait));
 {
   iview = sum_aiview_fam n (fun i -> (vws i).iview);
   ctn   = solve;

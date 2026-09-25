@@ -20,32 +20,6 @@
 extern "C" {
 #endif
 
-typedef struct FStar_Pervasives_Native_tuple2__float32_ptr_unit_s
-    FStar_Pervasives_Native_tuple2__float32_ptr_unit;
-typedef struct
-    FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_float32_ptr_unit_s
-        FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_float32_ptr_unit;
-typedef struct FStar_Pervasives_Native_tuple2__bfloat16_ptr_unit_s
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_unit;
-typedef struct
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_unit_s
-        FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_unit;
-
-struct FStar_Pervasives_Native_tuple2__float32_ptr_unit_s {
-    float *_1;
-};
-struct FStar_Pervasives_Native_tuple2__float32_ptr_tuple2_float32_ptr_unit_s {
-    float *_1;
-    FStar_Pervasives_Native_tuple2__float32_ptr_unit _2;
-};
-struct FStar_Pervasives_Native_tuple2__bfloat16_ptr_unit_s {
-    custard_bf16 *_1;
-};
-struct FStar_Pervasives_Native_tuple2__bfloat16_ptr_tuple2_bfloat16_ptr_unit_s {
-    custard_bf16 *_1;
-    FStar_Pervasives_Native_tuple2__bfloat16_ptr_unit _2;
-};
-
 void Klas_GEMM_BlockTiling2D_g_gemm_f32_32x32x32_8x8(float alpha, float beta,
     uint32_t m, uint32_t n, uint32_t k, float *gA, float *gB, float *gC);
 void Klas_GEMM_BlockTiling2D_g_gemm_bf16_32x32x32_8x8(custard_bf16 alpha,

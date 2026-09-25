@@ -90,14 +90,25 @@ let uop (o:op) (a b : expr) : expr =
 let uconst (n:int) : expr =
   mk (EConst (CInt (n, Dec, Some (Unsigned, WSizet)))) usize E_Pure
 
-(* [KPR_SHMEM_AT(off)] is the base of the block's dynamic shared memory plus
-   [off] bytes; the cast to the element type is the [ECoerce]. *)
-let shmem_at (off:expr) (elt:cty) : expr =
+let u8buf : cty = TBuf (TInt (Unsigned, W8))
+
+(* The base of the block's dynamic shared memory: [KPR_SHMEM_AT(0)].  Called
+   once and bound to a name; every request is an offset from it. *)
+let shmem_base () : expr =
   let f = mk (EQual ({ ns = ["Kuiper"; "Example"; "ARPort"];
                        id = "kpr_shmem_at"; spec = None }, []))
-             (TArrow (usize, E_Pure, TBuf (TInt (Unsigned, W8)))) E_Pure in
-  let call = mk (EApp (f, [off])) (TBuf (TInt (Unsigned, W8))) E_Pure in
-  mk (ECoerce (call, TBuf elt)) (TBuf elt) E_Pure
+             (TArrow (usize, E_Pure, u8buf)) E_Pure in
+  mk (EApp (f, [uconst 0])) u8buf E_Pure
+
+(* [base + off] bytes, cast to the element type.  Deliberately [BufSub] over a
+   bound base rather than a second [KPR_SHMEM_AT(off)] call: an [EOp] over a
+   variable is [Simplify.reeval], an [EApp] is not, and that predicate is what
+   decides whether the [c_shmems] pair built out of these can be substituted
+   into the match that destructures it.  A call per request leaves the pair in
+   the generated code; an offset per request lets it disappear. *)
+let shmem_at_base (base:expr) (off:expr) (elt:cty) : expr =
+  let sub = mk (EOp ({ po_op = BufSub; po_ty = None }, [base; off])) u8buf E_Pure in
+  mk (ECoerce (sub, TBuf elt)) (TBuf elt) E_Pure
 
 (* [c_shmems ds] is a type-level recursion over the descriptor list: one nested
    pair per request, ending in [unit].  The witness is a value of that shape,
@@ -107,19 +118,19 @@ let shmem_at (off:expr) (elt:cty) : expr =
    Reuse it rather than rebuilding it: each nested [tuple2] instance is
    declared only because the source mentions it, so a freshly built [TTuple]
    would match no declaration (error 368). *)
-let rec build_shmems (off:expr) (exp_ty:cty) (ds : list (cty & expr & expr))
-      : ML expr =
+let rec build_shmems (base:expr) (off:expr) (exp_ty:cty)
+                     (ds : list (cty & expr & expr)) : ML expr =
   match ds with
   | [] -> mk (EConst CUnit) exp_ty E_Pure
   | (elt, sz, len) :: ds' ->
-    let here = shmem_at off elt in
+    let here = shmem_at_base base off elt in
     let off' = uop Add off (uop Mult sz len) in
     let rest_ty =
       match exp_ty with
       | TApp (_, [_; r]) -> r
       | TTuple [_; r] -> r
       | _ -> die_ty "a two-argument tuple type" exp_ty in
-    let rest = build_shmems off' rest_ty ds' in
+    let rest = build_shmems base off' rest_ty ds' in
     let mktup2 = { ns = ["FStar"; "Pervasives"; "Native"];
                    id = "Mktuple2"; spec = None } in
     (* Pure: the pair is a compound literal over addresses, and [shmem_at] is
@@ -234,8 +245,14 @@ let launch (tys : list cty) (args : list expr) : ML expr =
       if nshmem = 0 then inner
       else
         let b : binder = List.nth bs 0 in
-        let sh_val = build_shmems (uconst 0) b.b_ty descs in
-        mk (ELet (b.b_name, b.b_ty, sh_val, inner)) inner.ty inner.eff in
+        (* The base binding goes *outside* the pair's, not inside its
+           definition: a definition that is itself a [let] is not an [ECtor],
+           and section 129's fold only looks at an [ECtor]. *)
+        let bname = "shmem_base" in
+        let basev = mk (EVar bname) u8buf E_Pure in
+        let sh_val = build_shmems basev (uconst 0) b.b_ty descs in
+        let body = mk (ELet (b.b_name, b.b_ty, sh_val, inner)) inner.ty inner.eff in
+        mk (ELet (bname, u8buf, shmem_base (), body)) inner.ty inner.eff in
     (* Bytes the launch must reserve: sum of [size * len] over the requests. *)
     let smem =
       List.fold_left (fun acc (_, sz, len) -> uop Add acc (uop Mult sz len))
