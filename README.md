@@ -250,6 +250,8 @@ CPU calls are rejected during verification.
 
 | Operation | Extracted PTX | Trusted real approximation |
 | --- | --- | --- |
+| `add_rn_ftz` | `add.rn.ftz.f32` | Addition |
+| `fma_rn_ftz` | `fma.rn.ftz.f32` | Fused multiply-add |
 | `mul_rn_ftz` | `mul.rn.ftz.f32` | Multiplication |
 | `exp2_approx_ftz` | `ex2.approx.ftz.f32` | `FStar.Math.Pow.exp2` |
 | `rcp_approx_ftz` | `rcp.approx.ftz.f32` | `1 / x`, for nonzero real `x` |
@@ -260,10 +262,14 @@ instruction's FTZ and special-value behavior; they do not fall back to CUDA
 division or `rsqrtf`. The domain restrictions above apply only to the real
 approximation contracts. As with the other floating operations, those contracts
 do not prove bitwise equality, FTZ behavior, or numerical error bounds.
+FTZ addition and FMA use direct PTX, not ordinary CUDA arithmetic or a
+flush-before/after composition. In particular, rounding a non-FTZ FMA before
+flushing its result can differ at the smallest-normal boundary. No global
+fast-math or FTZ compiler flag is required.
 
 `Kuiper.Example.Float32GPU` checks composition of these contracts and rejection
 of CPU calls. Its runtime test compares extracted GPU operations with direct PTX
-and checks FTZ, signed zeros, infinities and NaNs. Reciprocal and reciprocal-square-root
+and checks FTZ, signed zeros, infinities and NaNs. Addition, FMA, reciprocal and reciprocal-square-root
 comparisons require identical bits, including for NaN results:
 `make -j$(nproc) obj/Test_Kuiper_Example_Float32GPU.test`.
 
