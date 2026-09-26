@@ -73,6 +73,30 @@ let log1p_approx
 
 (* Extracted primitively; the approximation contracts are trusted. *)
 noextract
+fn add_rn_ftz (x y : t)
+  preserves gpu
+  returns result : t
+  ensures pure (
+    forall (xr yr : real).
+      v_approximates x xr /\ v_approximates y yr ==>
+      v_approximates result (xr +. yr))
+{
+  admit()
+}
+
+noextract
+fn fma_rn_ftz (x y z : t)
+  preserves gpu
+  returns result : t
+  ensures pure (
+    forall (xr yr zr : real).
+      v_approximates x xr /\ v_approximates y yr /\ v_approximates z zr ==>
+      v_approximates result (xr *. yr +. zr))
+{
+  admit()
+}
+
+noextract
 fn mul_rn_ftz (x y : t)
   preserves gpu
   returns result : t

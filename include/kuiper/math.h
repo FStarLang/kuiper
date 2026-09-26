@@ -21,6 +21,20 @@
 
 /* ---- device-only Float32 operations ---------------------------------- */
 
+static __device__ __forceinline__ float kpr_f32_add_rn_ftz(float x, float y)
+{
+    float result;
+    asm volatile("add.rn.ftz.f32 %0, %1, %2;" : "=f"(result) : "f"(x), "f"(y));
+    return result;
+}
+
+static __device__ __forceinline__ float kpr_f32_fma_rn_ftz(float x, float y, float z)
+{
+    float result;
+    asm volatile("fma.rn.ftz.f32 %0, %1, %2, %3;" : "=f"(result) : "f"(x), "f"(y), "f"(z));
+    return result;
+}
+
 static __device__ __forceinline__ float kpr_f32_mul_rn_ftz(float x, float y)
 {
     float result;
