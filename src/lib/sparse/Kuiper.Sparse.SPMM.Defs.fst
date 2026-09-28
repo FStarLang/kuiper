@@ -106,8 +106,17 @@ let bcol_
   #et {| sized et, has_vec_cpy et |}
   (p : parameters et { size_req p }) (bid : szlt (nblocks_ p))
 : Tot (n : sz {SZ.v n == bcol p bid})
+  (* [( *^ )] carries a [fits] side condition, and discharging it needs
+     [bid / p.rows < p.cols / p.blockItemsX], i.e. exactly [bcol p bid < p.cols].
+     [SZ.div]'s [ensures] is a refinement on its result type, but only on the
+     *occurrence*, so the quotient has to be bound to a [let] with an explicit
+     refinement to become a usable equation; the remaining step is nonlinear,
+     so it is stated as an [assert].  Neither is a strengthening: both restate
+     facts already implied by [size_req p]. *)
 = FStar.SizeT.fits_at_least_16 (bcol p bid);
-  (bid /^ p.rows) *^ p.blockItemsX
+  let q : (q : sz { SZ.v q == SZ.v bid / SZ.v p.rows }) = bid /^ p.rows in
+  assert (bcol p (SZ.v bid) < SZ.v p.cols);
+  q *^ p.blockItemsX
 
 noextract
 let tcol
@@ -134,7 +143,19 @@ let tcol_
   (bid : szlt (nblocks_ p))
   (tid : szlt p.blockWidth)
 : Pure sz (requires true) (ensures fun c -> SZ.v c == tcol p bid tid)
-= bcol_ p bid +^ tid *^ chunk et
+  (* Same shape as [bcol_]: [( *^ )] and [( +^ )] have [fits] side conditions
+     whose proofs are nonlinear.  [chunk et * size et == 16] with [chunk et >= 1]
+     gives [chunk et <= 16], but Z3 will not take that step unaided, and the
+     product [tid * chunk et] needs [tid < blockWidth <= max_threads] to be in
+     scope as well.  The two [let]s bind the machine operations to explicitly
+     refined types so that their specs are available as equations rather than
+     only at their occurrences. *)
+= assert (SZ.v (chunk et) * SZ.v (size #et) == 16);
+  assert (SZ.v (chunk et) <= 16);
+  assert (SZ.v tid < SZ.v p.blockWidth /\ SZ.v p.blockWidth <= SZ.v max_threads);
+  let c : (c : sz { SZ.v c == SZ.v tid * SZ.v (chunk et) }) = tid *^ chunk et in
+  let b : (b : sz { SZ.v b == bcol p bid }) = bcol_ p bid in
+  b +^ c
 
 // MAYBE definir threadItemsX?
 
@@ -172,6 +193,9 @@ let block_lemma whole block k
       FStar.Math.Lemmas.lemma_mult_le_right block (k + 1) (whole / block)
     end
 
+(* [block_lemma] is the same fact minus [off]; chaining it explicitly replaces
+   a nonlinear search (from [block /? whole] and [k * block < whole], conclude
+   [k * block + block <= whole]) that Z3 no longer completes on its own. *)
 let block_lemma_off whole block k off
   : Lemma (requires block /? whole /\ k * block < whole /\ off < block)
           (ensures k * block + off < whole)

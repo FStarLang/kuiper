@@ -62,6 +62,10 @@ let lemma_divides_trans (x y z : pos)
           [SMTPat (x /? y); SMTPat (y /? z)]
   = let f1 = get_factor x y in
     let f2 = get_factor y z in
+    (* x * f1 == y and y * f2 == z, so x * (f1 * f2) == z, but only after
+       reassociating the product: the SMT solver no longer finds this
+       instance of associativity on its own within the default rlimit. *)
+    M.paren_mul_right x f1 f2;
     assert (x * (f1*f2) == z);
     ()
 
@@ -157,7 +161,7 @@ let lemma_div_product (a b c : pos)
     b * (c/b);
     == {} // b * (c/b) == c
     c;
-    == {} // a * (c/a) == c
+    == { M.swap_mul a (c/a) } // a * (c/a) == c
     (c/a) * a;
   };
   M.lemma_cancel_mul (b/a * (c/b)) (c/a) a

@@ -27,7 +27,14 @@ let softmax_real_pos (#n : nat) (s : chest1 real n)
     )
 
 // Log of softmax.
-let log_softmax_real #n (s : chest1 real n) =
+(* The result annotation is required.  [chest_refine] gives a chest whose type
+   carries the [>. 0.0R] refinement, and [chest_map]'s [ensures] is now a
+   refinement on *its* result type, so the inferred type of the body is a
+   refined [chest] rather than [chest1 real n].  Typeclass resolution matches
+   instance heads up to that type, and [can_approximate (chest1 et n) _] then
+   fails to fire (Error 228).  Ascribing the intended type here keeps the
+   instance head in the shape clients expect. *)
+let log_softmax_real #n (s : chest1 real n) : chest1 real n =
   softmax_real_pos s;
   chest_map log (chest_refine (fun x -> x >. 0.0R) (KS.softmax_real s))
 

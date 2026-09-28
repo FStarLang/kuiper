@@ -71,11 +71,17 @@ let shift_left_1_lemma_false (i j : szlt 32)
     then ()
     else lemma_nth_1 ()
 
+(* [UI.nth (setBit u i) (31 - i)] used to go through by brute force.  [setBit]
+   is [u | (1 << i)], so the fact is [shift_left_lemma_2] (bit [31-i] of
+   [1 << i] is bit [31] of [1]) composed with [logor_definition]; naming the
+   two steps replaces a search over the whole bitvector encoding. *)
 let setBit_lemma_ensures (u : u32) (i : szlt 32)
 : Lemma
     (requires true)
     (ensures UI.nth #32 (setBit u i) (31 - i))
-= ()
+=
+  UI.shift_left_lemma_2 #32 1 i (31 - i);
+  UI.logor_definition u (UI.shift_left #32 1 i) (31 - i)
 
 
 let setBit_lemma_preserves (u : u32) (i j : szlt 32)

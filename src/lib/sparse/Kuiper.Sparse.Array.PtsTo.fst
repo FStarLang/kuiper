@@ -400,6 +400,15 @@ fn thread_share_chunks
     fn tid { fold thread_live_chunks x nthr tid };
 }
 
+(* The two spellings of a cell index -- [(k * nthr + tid) * ch + j] on the
+   sliced view and [k * (nthr * ch) + (tid * ch + j)] on the flat one -- are
+   related here under a [forall j] by [forevery_ext], which (unlike the
+   [forevery_map] used in [thread_share_chunks] above) offers no per-element
+   proof hook.  Both the index identity and the resulting [Seq] bounds are
+   nonlinear, and discharging them under the quantifier now exhausts the
+   default rlimit.  Factor 2 is enough; the goals are resource-bound
+   ("canceled"), not saturating.  *)
+#push-options "--z3rlimit_factor 2"
 ghost
 fn thread_gather_chunks
   (#et : Type0) {| sized et, has_vec_cpy et |}
@@ -494,3 +503,4 @@ fn thread_gather_chunks
     );
   array_unslice_1_with_exists x;
 }
+#pop-options

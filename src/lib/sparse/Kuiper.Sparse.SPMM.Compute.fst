@@ -595,6 +595,23 @@ fn fma_arr
   );
 }
 
+(* [cnt] divides both [k] and [n], and [k < n], so [k] is a whole [cnt] short
+   of [n].  Getting there needs [k/cnt + 1 <= n/cnt] scaled by [cnt], which is
+   nonlinear; Z3 used to find it by brute force at each of the four use sites
+   below and no longer does, so it is proved once here in a minimal context.
+   Note there is deliberately no [SMTPat]: patterning this on [divides] does
+   discharge all four goals, but it also breaks an unrelated [decreases] check
+   in [seq_fma'] forty lines below. *)
+let __divides_next (cnt k n : nat)
+  : Lemma (requires cnt /? k /\ cnt /? n /\ k < n)
+          (ensures k + cnt <= n)
+  = if cnt = 0 then ()
+    else begin
+      lemma_divides_exact cnt k;
+      lemma_divides_exact cnt n;
+      FStar.Math.Lemmas.lemma_mult_le_left cnt (k / cnt + 1) (n / cnt)
+    end
+
 noextract
 let seq_fma'
   (#et : Type0) {| scalar et |}
@@ -609,7 +626,8 @@ let seq_fma'
 : Tot (lseq et sz_y)
 =
   if k2 < n
-    then seq_fma x1 #cnt (Seq.slice x2 k2 (k2 + cnt)) y k1 cnt
+    then (__divides_next cnt k2 n;
+          seq_fma x1 #cnt (Seq.slice x2 k2 (k2 + cnt)) y k1 cnt)
     else y
 
 open Kuiper.Sparse.Load { array_vec_cpy_dh }
@@ -652,6 +670,8 @@ fn load_vmprod_chunk
     // Freshly allocated scratch buffer is suitably aligned for vectorized copy
     // (cf. the [assume pure (aligned ...)] allocation idiom in Kuiper.Array.Core).
     assume pure (aligned 16 lchunk);
+    (* [array_vec_cpy_dh] slices [row] at [k2 .. k2 + chunk et]. *)
+    __divides_next (chunk et) k2 n2;
     rewrite (row |-> Frac frow vrow)
          as (row |-> Frac frow (seq_to_chest1 (chest1_to_seq vrow)));
     chunk_end_bound n2 k2 (chunk et);
@@ -741,6 +761,12 @@ fn load_vmprod_row
       )
     decreases (n1 /^ chunk et - !k)
   {
+    (* [fits (j + !k * step * chunk et)] below: the loop bounds give
+       [!k < n1 / chunk et], and turning that into [!k * chunk et <= n1] and
+       then scaling by [step] are both nonlinear steps. *)
+    lemma_divides_exact (chunk et) n1;
+    FStar.Math.Lemmas.lemma_mult_le_left (chunk et) !k (n1 / chunk et);
+    FStar.Math.Lemmas.lemma_mult_le_right step (chunk et * !k) n1;
     assert pure (fits (j + !k * step * chunk et));
     lemma_divides_vmprod_offset et j !k step;
 
@@ -941,7 +967,14 @@ let seq_fma_cell_prop'
   (ix : natlt cnt)
 : prop
 =
-  k2 < n ==> y @! k1 + ix == add (y0 @! k1 + ix) (x1 `mul` (x2 @! k2 + ix))
+  (* This is a [prop] *definition*, so there is no statement position in which
+     to sequence the lemma call the [Seq] indices need.  Binding it with
+     [let _ = ... in] puts its conclusion in scope for the body -- which works
+     precisely because a [Lemma] is now [Tot (squash _)], so sequencing one
+     introduces a binder whose type is the fact. *)
+  k2 < n ==>
+    (let _ = __divides_next cnt k2 n in
+     y @! k1 + ix == add (y0 @! k1 + ix) (x1 `mul` (x2 @! k2 + ix)))
 
 noextract
 let seq_fma_lemma0'
@@ -1191,17 +1224,24 @@ let rec seq_load_vmprod_cell_lemma
       (elems @! to - 1)
       (ematrix_row em (row_ind @! to - 1))
       j step (n1 / chunk et) (k1 / chunk et) (k1 % chunk et);
-    // seq_load_vmprod_row_cell_prop_equiv
-    //   (seq_load_vmprod y elems row_ind em j step (to - 1))
-    //   (elems @! to - 1)
-    //   (ematrix_row em (row_ind @! to - 1))
-    //   j step
-    //   (seq_load_vmprod_row
-    //     (seq_load_vmprod y elems row_ind em j step (to - 1))
-    //     (elems @! to - 1)
-    //     (ematrix_row em (row_ind @! to - 1))
-    //     j step (n1 / chunk et))
-    //   (n1 / chunk et) k1;
+    // `seq_load_vmprod_row_cell_lemma_` establishes the `_prop_` form, indexed
+    // by the pair `(k1 / chunk et, k1 % chunk et)`; `tile_vmprod_cell_prop`
+    // wants the `_prop` form, indexed by `k1` itself. Recombining the two is a
+    // nonlinear division/modulus step that used to be free and now exhausts the
+    // budget (measured: `canceled` at exactly 5.000). The author had already
+    // written the bridging call and commented it out; naming the step is the
+    // right fix here, and it is cheaper than any rlimit that works.
+    seq_load_vmprod_row_cell_prop_equiv
+      (seq_load_vmprod y elems row_ind em j step (to - 1))
+      (elems @! to - 1)
+      (ematrix_row em (row_ind @! to - 1))
+      j step
+      (seq_load_vmprod_row
+        (seq_load_vmprod y elems row_ind em j step (to - 1))
+        (elems @! to - 1)
+        (ematrix_row em (row_ind @! to - 1))
+        j step (n1 / chunk et))
+      (n1 / chunk et) k1;
     ()
   )
 

@@ -1298,8 +1298,8 @@ let bt2d_ite_thresh_slprop
   (ptr : (natlt nn) -> GTot (abs d))
   (fA fB : (natlt nn) -> GTot et)
   : Lemma (forall (x : natlt nn). ~(x == ci0) ==>
-      T.tensor_pts_to_cell a (ptr x) (if x < ci0 + 1 then fA x else fB x)
-      == T.tensor_pts_to_cell a (ptr x) (if x < ci0 then fA x else fB x))
+      T.tensor_pts_to_cell a #1.0R (ptr x) (if x < ci0 + 1 then fA x else fB x)
+      == T.tensor_pts_to_cell a #1.0R (ptr x) (if x < ci0 then fA x else fB x))
   = ()
 
 #push-options "--fuel 4 --ifuel 4 --z3rlimit 40"

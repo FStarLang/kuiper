@@ -295,6 +295,9 @@ instance c_l4_batched_row_major
 #pop-options
 
 #push-options "--fuel 2 --ifuel 2 --z3rlimit 80"
+(* See the interface: the conclusion is stated over [nat] rather than as
+   [SZ.v (SZ.add (SZ.mul ...) ...)], so that the statement itself carries no
+   [fits] side conditions to discharge by nonlinear arithmetic. *)
 let l4_batched_row_major_imap
   (r1: erased nat{SZ.fits r1})
   (r2: SZ.t{SZ.fits (r1 * r2)})
@@ -307,8 +310,7 @@ let l4_batched_row_major_imap
   : Lemma (
       (l4_batched_row_major r1 r2 m n).imap.f
         (SZ.v i, (SZ.v j, (SZ.v k, (SZ.v l, ())))) ==
-      SZ.v (
-        SZ.add (SZ.mul i (SZ.mul r2 (SZ.mul m n)))
-          (SZ.add (SZ.mul j (SZ.mul m n)) (SZ.add (SZ.mul k n) l))))
+      SZ.v i * (SZ.v r2 * (SZ.v m * SZ.v n)) +
+      (SZ.v j * (SZ.v m * SZ.v n) + (SZ.v k * SZ.v n + SZ.v l)))
   = ()
 #pop-options

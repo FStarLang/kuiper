@@ -263,6 +263,25 @@ let add_helper
           (ensures i + nthr * chunk_et == (git + 1) * nthr * chunk_et)
   = ()
 
+(* The upper bound half of the [cp_array2_vec] loop measure: after [add_helper]
+   the new index is [(git + 1) * nthr * chunk_et], and it stays within [mlen]
+   because [chunk_et * nthr] divides [mlen] and [git] is below the quotient.
+   Chasing that through division, commutation and reassociation inside the loop
+   body costs over 300s and exhausts the (already generous) rlimit of 120 there;
+   in an empty context it is instant. *)
+let cp_measure_helper (git nthr chunk_et mlen : nat)
+  : Lemma (requires nthr > 0 /\ chunk_et > 0 /\
+                    mlen % (chunk_et * nthr) == 0 /\
+                    git < mlen / (chunk_et * nthr))
+          (ensures (git + 1) * nthr * chunk_et <= mlen /\
+                   nthr * chunk_et > 0)
+  = let nc = chunk_et * nthr in
+    lemma_divides_exact nc mlen;
+    FStar.Math.Lemmas.lemma_mult_le_right nc (git + 1) (mlen / nc);
+    FStar.Math.Lemmas.swap_mul (mlen / nc) nc;
+    FStar.Math.Lemmas.paren_mul_right (git + 1) nthr chunk_et;
+    FStar.Math.Lemmas.swap_mul nthr chunk_et
+
 let divides_helper
   (d : pos)
   (a b r c : nat)
@@ -569,6 +588,7 @@ fn cp_array2_vec
 
     assert pure (SZ.v vi == vgit * nthr * chunk et);
     add_helper vi vgit nthr (chunk et);
+    cp_measure_helper vgit nthr (chunk et) mlen;
     assert pure (SZ.v !i == GR.read git * nthr * chunk et);
 
     em_fade'_fade esrc edst nthr tid vgit ();

@@ -1073,7 +1073,10 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
     [ _sized; _has_vec_cpy;
       dst_arr; dst_off; _dst_slice_i; _dst_slice_j;
       src_arr; src_off; _src_slice_i; _src_slice_j;
-      _f; _ss; _ds; _sq1; _sq2; _sq3; _sq4 ] ->
+      _f; _ss; _ds ] ->
+    (* [array_vec_cpy]'s four trailing [squash] implicits are dropped by
+       extraction (they are spec binders and carry no computational content),
+       so they do not appear among the arguments here. *)
     let dst_arr = EBufSub (cb dst_arr, cb dst_off) in
     let src_arr = EBufSub (cb src_arr, cb src_off) in
     EApp (EQualified ([], "vec_memcpy"), [ dst_arr; src_arr; ])

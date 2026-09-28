@@ -146,6 +146,13 @@ let prod_preserves_divides (c d : pos) (a : nat)
 =
   lemma_divides_product_l c a d;
   lemma_divides_exact c (a * d);
+  (* [intro_divides] wants the witness in the shape [(c * d) * ((a / c))];
+     what is in scope is [c * (a / c) == a].  Reassociating [c * d * (a/c)]
+     into [(c * (a/c)) * d] is nonlinear, and Z3 no longer does it unaided. *)
+  lemma_divides_exact c a;
+  FStar.Math.Lemmas.paren_mul_right c d (a / c);
+  FStar.Math.Lemmas.swap_mul d (a / c);
+  FStar.Math.Lemmas.paren_mul_right c (a / c) d;
   intro_divides (c * d) (a / c) (a * d)
 
 let lemma_divides_leq

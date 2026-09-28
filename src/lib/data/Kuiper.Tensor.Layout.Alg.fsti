@@ -226,6 +226,13 @@ instance val c_l4_batched_row_major
   (n : SZ.t{SZ.fits (m * n) /\ SZ.fits (r2 * (m * n)) /\ SZ.fits (r1 * (r2 * (m * n)))})
   : T.ctlayout (l4_batched_row_major r1 r2 m n)
 
+(* Stated over [nat] rather than as [SZ.v (SZ.add (SZ.mul ...) ...)].  The
+   [SZ.add]/[SZ.mul] spelling makes the *statement* carry the [fits]
+   preconditions of four machine operations, and discharging those from the
+   binders' refinements is nonlinear (it needs [i < r1 ==> i * X <= r1 * X]
+   for each partial product).  The [nat] form is the same equation -- [SZ.v]
+   commutes with [add]/[mul] whenever they [fits] -- but has no side
+   conditions at all, and every caller here wants the [nat] shape anyway. *)
 val l4_batched_row_major_imap
   (r1: erased nat{SZ.fits r1})
   (r2: SZ.t{SZ.fits (r1 * r2)})
@@ -238,6 +245,5 @@ val l4_batched_row_major_imap
   : Lemma (
       (l4_batched_row_major r1 r2 m n).imap.f
         (SZ.v i, (SZ.v j, (SZ.v k, (SZ.v l, ())))) ==
-      SZ.v (
-        SZ.add (SZ.mul i (SZ.mul r2 (SZ.mul m n)))
-          (SZ.add (SZ.mul j (SZ.mul m n)) (SZ.add (SZ.mul k n) l))))
+      SZ.v i * (SZ.v r2 * (SZ.v m * SZ.v n)) +
+      (SZ.v j * (SZ.v m * SZ.v n) + (SZ.v k * SZ.v n + SZ.v l)))
