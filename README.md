@@ -225,48 +225,6 @@ To verify a single file:
 ./fstar.sh src/path/to/Module.fst
 ```
 
-### Floating-point equality
-
-For `f16`, `bf16`, `f32`, and `f64`, `Kuiper.Floating.ieee_eq` compares numerical
-values: the two zero signs compare equal, and NaNs never compare equal. The
-existing `eq` operation retains this behavior. `Kuiper.Floating.bit_eq` compares
-representations, including zero signs and NaN payloads, and corresponds to F\*
-propositional equality (`==`). Only bit equality supports arbitrary substitution
-in proofs; for example, reciprocals distinguish positive and negative zero.
-
-Zero identities such as `mul_zero` and `add_zero` therefore guarantee IEEE
-equality. Real approximation respects IEEE equality without identifying the
-underlying representations. Internally, `f32` and `f64` reuse `FStar.Float32` and
-`FStar.Float64`; the 16-bit formats retain Kuiper's CUDA primitives.
-
-The proof regressions run with `make -j$(nproc) verify`. To check the extracted
-API on the CPU and GPU, run
-`make -j$(nproc) obj/Test_Kuiper_Example_FloatEquality.test`.
-
-### GPU-only Float32 operations
-
-These `Kuiper.Float32` operations require and preserve the `gpu` capability;
-CPU calls are rejected during verification.
-
-| Operation | Extracted PTX | Trusted real approximation |
-| --- | --- | --- |
-| `mul_rn_ftz` | `mul.rn.ftz.f32` | Multiplication |
-| `exp2_approx_ftz` | `ex2.approx.ftz.f32` | `FStar.Math.Pow.exp2` |
-| `rcp_approx_ftz` | `rcp.approx.ftz.f32` | `1 / x`, for nonzero real `x` |
-| `rsqrt_approx_ftz` | `rsqrt.approx.ftz.f32` | `1 / FStar.Math.Sqrt.sqrt x`, for positive real `x` |
-
-The runtime operations accept all Float32 inputs and preserve the named PTX
-instruction's FTZ and special-value behavior; they do not fall back to CUDA
-division or `rsqrtf`. The domain restrictions above apply only to the real
-approximation contracts. As with the other floating operations, those contracts
-do not prove bitwise equality, FTZ behavior, or numerical error bounds.
-
-`Kuiper.Example.Float32GPU` checks composition of these contracts and rejection
-of CPU calls. Its runtime test compares extracted GPU operations with direct PTX
-and checks FTZ, signed zeros, infinities and NaNs. Reciprocal and reciprocal-square-root
-comparisons require identical bits, including for NaN results:
-`make -j$(nproc) obj/Test_Kuiper_Example_Float32GPU.test`.
-
 ### Project Structure
 
 Kuiper source lives under `src/`. The core library (`src/lib/kuiper/`) provides
