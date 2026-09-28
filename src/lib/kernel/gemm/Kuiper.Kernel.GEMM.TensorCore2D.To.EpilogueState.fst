@@ -9,7 +9,3 @@ open Kuiper.TensorCore
 open Pulse.Lib.Array
 open Kuiper.Kernel.GEMM.TensorCore2D.KernelDesc
 open Kuiper.Kernel.GEMM.TensorCore2D.To.KernelDesc
-#lang-pulse
-
-inline_for_extraction let () = ()
-

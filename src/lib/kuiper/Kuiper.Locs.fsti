@@ -12,8 +12,6 @@ include Kuiper.Locs.Base {
   is_cpu_loc, is_cpu_loc_single_process
 }
 
-inline_for_extraction let () = ()
-
 instance send_across_if_send_across_gpu (p:slprop) (sp:is_send_across gpu_of p)
 : is_send_across block_of p
 = fun l0 l1 ->
