@@ -25,7 +25,7 @@ fn load_cell
   (j : szlt n)
   preserves gpu ** y |-> Frac f s
   requires array_live_cell x i
-  ensures  Cell (x <: array et) (SZ.v i) |-> Seq.index s j
+  ensures  Cell (x <: array et) (SZ.v i <: nat) |-> Seq.index s j
 {
   unfold array_live_cell x;
   slice_write x i (Pulse.Lib.Array.(y.(j)));

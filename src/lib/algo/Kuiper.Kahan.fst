@@ -11,6 +11,13 @@ let sum_step (len : nat) (vf : natlt len -> GTot real) (k : nat{k < len})
   : Lemma (sum 0 (k+1) vf == sum 0 k vf +. vf k)
   = sum_pop_right 0 (k+1) vf
 
+(* Prove this separately: approximation patterns make the same goal
+   expensive inside kahan_sum. *)
+let kahan_delta_zero (s0 s1 y : real)
+  : Lemma (requires s1 == s0 +. y)
+          (ensures (s1 -. s0) -. (y -. 0.0R) == 0.0R)
+  = ()
+
 #push-options "--z3rlimit 20 --fuel 1 --ifuel 1"
 inline_for_extraction noextract
 fn kahan_sum
@@ -58,6 +65,7 @@ fn kahan_sum
     sub_approx delta yc
       (sum 0 (!k + 1) vf -. sum 0 !k vf)
       (vf !k -. 0.0R);
+    kahan_delta_zero (sum 0 !k vf) (sum 0 (!k + 1) vf) (vf !k);
     assert pure (new_c %~ 0.0R);
     c := new_c;
     acc := t;

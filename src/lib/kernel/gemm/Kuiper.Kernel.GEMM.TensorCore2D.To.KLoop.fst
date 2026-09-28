@@ -102,6 +102,9 @@ let lemma_double_div (k bk : pos)
           (ensures 2 * k / bk == 2 * (k / bk))
   = Kuiper.Divides.lemma_nat_divides_pos_divides bk k;
     assert (bk * (k / bk) == k);
+    FStar.Math.Lemmas.paren_mul_right 2 (k / bk) bk;
+    FStar.Math.Lemmas.swap_mul (k / bk) bk;
+    assert (2 * (k / bk) * bk == 2 * k);
     FStar.Math.Lemmas.cancel_mul_div (2 * (k / bk)) bk
 
 #push-options "--z3rlimit 60"

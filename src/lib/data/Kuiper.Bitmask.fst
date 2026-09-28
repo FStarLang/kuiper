@@ -75,7 +75,9 @@ let setBit_lemma_ensures (u : u32) (i : szlt 32)
 : Lemma
     (requires true)
     (ensures UI.nth #32 (setBit u i) (31 - i))
-= ()
+=
+  UI.shift_left_lemma_2 #32 1 i (31 - i);
+  UI.logor_definition u (UI.shift_left #32 1 i) (31 - i)
 
 
 let setBit_lemma_preserves (u : u32) (i j : szlt 32)

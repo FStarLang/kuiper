@@ -21,6 +21,10 @@ let load_array_vec_bounds
       i + (k * nthr + tid) * ch <= m - ch
     with ()
 
+let load_array_vec_size (n : nat) (nthr ch : pos)
+  : Lemma (n / (nthr * ch) == n / nthr / ch)
+  = FStar.Math.Lemmas.division_multiplication_lemma n nthr ch
+
 #push-options "--z3rlimit 30"
 inline_for_extraction noextract
 fn load_array_vec
@@ -44,6 +48,7 @@ fn load_array_vec
 {
   unfold thread_live_chunks x nthr tid;
 
+  load_array_vec_size n nthr (chunk et);
   forevery_rw_size (n / (nthr * (chunk et))) (n /^ nthr /^ chunk et);
 
   load_array_vec_bounds n m i nthr (chunk et) tid;
@@ -66,6 +71,8 @@ fn load_array_vec
       y (i +^ ((k *^ nthr +^ tid) *^ chunk et));
   };
 
+  // Re-establishing this after the [foreach] is a heavier query than
+  // establishing it before; supply the division chain explicitly.
   FStar.Math.Lemmas.division_multiplication_lemma n nthr (chunk et);
   forevery_rw_size (n /^ nthr /^ chunk et) (n / (nthr * (chunk et)));
 

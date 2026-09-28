@@ -27,7 +27,7 @@ let softmax_real_pos (#n : nat) (s : chest1 real n)
     )
 
 // Log of softmax.
-let log_softmax_real #n (s : chest1 real n) =
+let log_softmax_real #n (s : chest1 real n) : chest1 real n =
   softmax_real_pos s;
   chest_map log (chest_refine (fun x -> x >. 0.0R) (KS.softmax_real s))
 

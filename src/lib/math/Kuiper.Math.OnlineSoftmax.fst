@@ -92,8 +92,9 @@ let l_distr_r' (a b c: real) : ((a +. b) *. c == (a *. c) +. (b *. c)) = ()
 
 let cancel_md (a : real) (b : real{b =!= 0.0R}) : Lemma (a *. b /. b == a) = ()
 let cancel_dm (a : real) (b : real{b =!= 0.0R}) : Lemma (a /. b *. b == a) = ()
-let abcd_adcb (a b c d : real{b =!= 0.0R /\ d =!= 0.0R})
-  : Lemma (a /. b *. c /. d == a /. d *. c /. b) = ()
+let abcd_adcb (a b c d : real)
+  : Lemma (requires b =!= 0.0R /\ d =!= 0.0R)
+          (ensures a /. b *. c /. d == a /. d *. c /. b) = ()
 
 let assoc_mul (a b c: real) : Lemma ((a *. b) *. c == a *. (b *. c)) = ()
 

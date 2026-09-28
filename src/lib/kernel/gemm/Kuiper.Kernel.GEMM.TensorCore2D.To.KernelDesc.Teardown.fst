@@ -455,6 +455,15 @@ fn gather_warp
 
 #pop-options
 
+(* [gather_block]/[gather_output] index warp tiles by their flattened index
+   [wr * (bn/(wn*tn)) + wc] inside slprop-valued lambdas, where no lemma call
+   can be sequenced.  Z3 no longer rediscovers this nonlinear bound on its
+   own within the ambient proof state, so provide it as a pattern. *)
+let flat_index_bound_pat (m n : pos) (i : natlt m) (j : natlt n)
+  : Lemma (i * n + j < m * n)
+          [SMTPat (i * n + j); SMTPat (m * n)]
+  = flat_index_bound m n i j
+
 ghost
 fn gather_block
   (#et_cd : Type0) {| scalar et_cd, real_like et_cd |}
