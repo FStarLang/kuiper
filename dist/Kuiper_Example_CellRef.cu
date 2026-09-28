@@ -3,12 +3,12 @@
 
 uint32_t Kuiper_Example_CellRef_cell_get(uint32_t *a, uint32_t i)
 {
-    return *(a + i);
+    return *(uint32_t *) (a + i);
 }
 
 void Kuiper_Example_CellRef_cell_set(uint32_t *a, uint32_t i, uint32_t w)
 {
-    *(a + i) = w;
+    *(uint32_t *) (a + i) = w;
 }
 
 void Kuiper_Example_CellRef_array_set_via_ref(
