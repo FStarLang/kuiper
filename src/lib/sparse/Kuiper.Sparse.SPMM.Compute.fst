@@ -595,13 +595,8 @@ fn fma_arr
   );
 }
 
-(* [cnt] divides both [k] and [n], and [k < n], so [k] is a whole [cnt] short
-   of [n].  Getting there needs [k/cnt + 1 <= n/cnt] scaled by [cnt], which is
-   nonlinear; Z3 used to find it by brute force at each of the four use sites
-   below and no longer does, so it is proved once here in a minimal context.
-   Note there is deliberately no [SMTPat]: patterning this on [divides] does
-   discharge all four goals, but it also breaks an unrelated [decreases] check
-   in [seq_fma'] forty lines below. *)
+(* No SMTPat: triggering on divides interferes with the termination proof
+   in seq_fma'. *)
 let __divides_next (cnt k n : nat)
   : Lemma (requires cnt /? k /\ cnt /? n /\ k < n)
           (ensures k + cnt <= n)
@@ -761,9 +756,6 @@ fn load_vmprod_row
       )
     decreases (n1 /^ chunk et - !k)
   {
-    (* [fits (j + !k * step * chunk et)] below: the loop bounds give
-       [!k < n1 / chunk et], and turning that into [!k * chunk et <= n1] and
-       then scaling by [step] are both nonlinear steps. *)
     lemma_divides_exact (chunk et) n1;
     FStar.Math.Lemmas.lemma_mult_le_left (chunk et) !k (n1 / chunk et);
     FStar.Math.Lemmas.lemma_mult_le_right step (chunk et * !k) n1;
@@ -1224,13 +1216,6 @@ let rec seq_load_vmprod_cell_lemma
       (elems @! to - 1)
       (ematrix_row em (row_ind @! to - 1))
       j step (n1 / chunk et) (k1 / chunk et) (k1 % chunk et);
-    // `seq_load_vmprod_row_cell_lemma_` establishes the `_prop_` form, indexed
-    // by the pair `(k1 / chunk et, k1 % chunk et)`; `tile_vmprod_cell_prop`
-    // wants the `_prop` form, indexed by `k1` itself. Recombining the two is a
-    // nonlinear division/modulus step that used to be free and now exhausts the
-    // budget (measured: `canceled` at exactly 5.000). The author had already
-    // written the bridging call and commented it out; naming the step is the
-    // right fix here, and it is cheaper than any rlimit that works.
     seq_load_vmprod_row_cell_prop_equiv
       (seq_load_vmprod y elems row_ind em j step (to - 1))
       (elems @! to - 1)

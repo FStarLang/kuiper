@@ -140,11 +140,6 @@ let sdpa_scores_spec_slice
   Kuiper.Chest.lemma_equal_intro lhs rhs;
   Kuiper.Chest.ext lhs rhs
 
-(* Unlike [sdpa_scores_spec_slice] just above, the right-hand side here goes
-   through [row_softmax_real], so the pointwise goal [acc lhs idx == acc rhs idx]
-   has to unfold one more layer of [mk4]/[slice_page4]/[acc2].  That is now just
-   over the default rlimit (z3 reports "canceled" at exactly 5.000, i.e. the
-   goal is resource-bound rather than saturating); factor 2 is enough. *)
 #push-options "--z3rlimit_factor 2"
 let sdpa_probs_spec_slice
   (#n #h #l #s : nat)
@@ -329,13 +324,6 @@ let scaled_add_approx
     a_mul y scale ry (to_real scale);
     a_add x (y `mul` scale) rx (ry *. to_real scale)
   in
-  (* This used to need the goal spelled out with [introduce ... with], because
-     [forall_intro_4]'s predicate implicit occurs only in the postcondition and
-     F* master could not infer it.  It can now: [aux]'s [requires] is a real
-     hypothesis rather than part of a computation type, so [move_requires_4]
-     has something to unify against.  (The dual case is in
-     Kuiper.Example.ArrayView.Test.EvenOdds2, where a lemma with *no*
-     [requires] can no longer be passed to [move_requires] at all.) *)
   FStar.Classical.forall_intro_4 (FStar.Classical.move_requires_4 aux)
 
 let comb2_approx

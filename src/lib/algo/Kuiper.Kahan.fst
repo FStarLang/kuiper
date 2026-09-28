@@ -11,12 +11,8 @@ let sum_step (len : nat) (vf : natlt len -> GTot real) (k : nat{k < len})
   : Lemma (sum 0 (k+1) vf == sum 0 k vf +. vf k)
   = sum_pop_right 0 (k+1) vf
 
-(* The real-arithmetic core of the Kahan invariant: the new compensation term
-   is exactly zero.  Stated as a top-level lemma so that it is discharged in an
-   empty context; proving it in place inside [kahan_sum] costs more than the
-   whole rest of the loop body, because the ambient context there is saturated
-   with the [_approx_pat] SMT patterns of [Kuiper.Approximates.Base] and every
-   one of them fires on the [sub]s in the body. *)
+(* Prove this separately: approximation patterns make the same goal
+   expensive inside kahan_sum. *)
 let kahan_delta_zero (s0 s1 y : real)
   : Lemma (requires s1 == s0 +. y)
           (ensures (s1 -. s0) -. (y -. 0.0R) == 0.0R)

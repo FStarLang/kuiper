@@ -263,12 +263,8 @@ let add_helper
           (ensures i + nthr * chunk_et == (git + 1) * nthr * chunk_et)
   = ()
 
-(* The upper bound half of the [cp_array2_vec] loop measure: after [add_helper]
-   the new index is [(git + 1) * nthr * chunk_et], and it stays within [mlen]
-   because [chunk_et * nthr] divides [mlen] and [git] is below the quotient.
-   Chasing that through division, commutation and reassociation inside the loop
-   body costs over 300s and exhausts the (already generous) rlimit of 120 there;
-   in an empty context it is instant. *)
+(* Proving this bound separately avoids costly nonlinear arithmetic
+   in the loop's large proof context. *)
 let cp_measure_helper (git nthr chunk_et mlen : nat)
   : Lemma (requires nthr > 0 /\ chunk_et > 0 /\
                     mlen % (chunk_et * nthr) == 0 /\

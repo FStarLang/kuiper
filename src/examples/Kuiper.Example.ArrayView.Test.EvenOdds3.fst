@@ -134,21 +134,6 @@ let __it_of_nat (#len:nat) (i : natlt len) : GTot (either (natlt ((len + 1) / 2)
   else
     Inr (i / 2)
 
-(* [it_of_nat] takes [i : natlt vw.len{in_image vw.step.imap.f i}], so any
-   *statement* that mentions [it_of_nat vw i] now has to discharge that
-   refinement where the statement is elaborated.  Two consequences:
-
-   - [all_in_image] has to be declared *before* the two lemmas below, so that
-     its [SMTPat] is in scope while their statements are checked; and
-   - those two lemmas take [in_image ...] as a [requires] rather than
-     re-deriving it.
-
-   Both lemmas keep the same [SMTPat], and [all_in_image] establishes
-   [in_image] for every [i < len], so no client is weakened by the added
-   precondition -- it is discharged by [all_in_image] wherever the pattern
-   fires.  [all_in_image] itself is proved from [__it_of_nat] being a
-   right inverse, which is what the old [it_of_nat_lem] said; the circularity
-   in the old ordering is what stopped working. *)
 #push-options "--z3rlimit 20"
 let all_in_image (len i : nat)
   : Lemma (i < len ==> in_image (sum_aview (even_view u32 len) (odd_view u32 len)).iview.step.imap.f i)

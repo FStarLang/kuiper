@@ -142,11 +142,6 @@ let rec cunflatten
     | CCons #_ #h ch #t ct ->
       let major : szlt h          = x /^ csizeof ct in
       let minor : szlt (sizeof t) = x %^ csizeof ct in
-      (* The [ensures] of [cunflatten] is now a refinement on its result type,
-         so this pair is checked against [c:conc d{up c == unflatten d (SZ.v x)}]
-         directly.  Without the ascription the checker compares the refined
-         type against the pair's *inferred* type and reports a subtyping
-         failure; ascribing the plain pair type first makes the two line up. *)
       ((major, cunflatten ct minor) <: (szlt h & conc t))
 
 [@@strict_on_arguments [2]]

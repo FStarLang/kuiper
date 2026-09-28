@@ -92,12 +92,6 @@ let l_distr_r' (a b c: real) : ((a +. b) *. c == (a *. c) +. (b *. c)) = ()
 
 let cancel_md (a : real) (b : real{b =!= 0.0R}) : Lemma (a *. b /. b == a) = ()
 let cancel_dm (a : real) (b : real{b =!= 0.0R}) : Lemma (a /. b *. b == a) = ()
-(* The non-zero side conditions are stated as a [requires] rather than as
-   refinements on [b] and [d].  Both forms verify, but the refinement form
-   makes the four divisions in the conclusion each re-derive their own
-   [_ =!= 0.0R] guard, and those guards now survive as extra ground
-   disequalities in the goal's context.  nlsat case-splits every one of them,
-   so the refinement form takes 11s where this one takes 0.3s. *)
 let abcd_adcb (a b c d : real)
   : Lemma (requires b =!= 0.0R /\ d =!= 0.0R)
           (ensures a /. b *. c /. d == a /. d *. c /. b) = ()

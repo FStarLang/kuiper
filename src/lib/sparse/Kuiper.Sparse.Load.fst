@@ -25,10 +25,6 @@ fn load_cell
   (j : szlt n)
   preserves gpu ** y |-> Frac f s
   requires array_live_cell x i
-  (* [SZ.v] is [Pure nat (ensures fun y -> fits y)], so its result type is now
-     literally [y:nat{fits y}].  Left alone, [Cell (x <: array et) (SZ.v i)]
-     therefore has index type [nat{fits _}] and the [has_pts_to (cell _ nat) et]
-     instance no longer matches (Error 228).  The [<: nat] widens it back. *)
   ensures  Cell (x <: array et) (SZ.v i <: nat) |-> Seq.index s j
 {
   unfold array_live_cell x;

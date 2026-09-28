@@ -691,11 +691,6 @@ let lemma_tile_scale_le (tile bk mshared : nat)
           [SMTPat (bk * tile); SMTPat (mshared * tile)]
   = FStar.Math.Lemmas.lemma_mult_le_right tile bk mshared
 
-(* [2 * (x+1) == 2*x+1+1] is linear and trivial, but by the point [bkf]'s
-   loop body needs it the ambient Pulse context is large enough that Z3 spends
-   its whole budget before reaching it.  Proving it once here, in an empty
-   context, is what keeps [bkf] at its original rlimit of 40 -- without it the
-   module needs rlimit 100 (50, 60 and 80 all still fail). *)
 let __double_succ (x : nat) : Lemma (2 * (x + 1) == 2 * x + 1 + 1) = ()
 
 #push-options "--z3rlimit 40 --fuel 1 --ifuel 1 --z3refresh"

@@ -239,11 +239,7 @@ let from_stride_subtiles_id
   ()
 #pop-options
 
-(* The strided index [j * scols + tc] is checked against [natlt cols] inside a
-   lambda, so its non-negativity obligation is quantified over [j] and a ground
-   [nat_times_nat_is_nat] instance cannot discharge it.  Z3 finds the bound for
-   the row index but loses the identical one for the column index. *)
-private let __nat_mul_pos_nonneg (a : nat) (b : pos)
+let __nat_mul_pos_nonneg (a : nat) (b : pos)
   : Lemma (a * b >= 0) [SMTPat (a * b)]
   = FStar.Math.Lemmas.nat_times_nat_is_nat a b
 

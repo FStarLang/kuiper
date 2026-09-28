@@ -295,9 +295,6 @@ instance c_l4_batched_row_major
 #pop-options
 
 #push-options "--fuel 2 --ifuel 2 --z3rlimit 80"
-(* See the interface: the conclusion is stated over [nat] rather than as
-   [SZ.v (SZ.add (SZ.mul ...) ...)], so that the statement itself carries no
-   [fits] side conditions to discharge by nonlinear arithmetic. *)
 let l4_batched_row_major_imap
   (r1: erased nat{SZ.fits r1})
   (r2: SZ.t{SZ.fits (r1 * r2)})

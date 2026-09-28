@@ -21,11 +21,6 @@ let load_array_vec_bounds
       i + (k * nthr + tid) * ch <= m - ch
     with ()
 
-// `n / (nthr * ch) == n / nthr / ch` is a single application of
-// `division_multiplication_lemma`, but inside `load_array_vec` it is asked of
-// z3 in a context carrying the whole `thread_live_chunks` unfolding, and there
-// it is nonlinear enough to exhaust rlimit 30 (measured: `canceled` at exactly
-// 30.000 at fuel 2/4/8). Proved here in an empty context it is instant.
 let load_array_vec_size (n : nat) (nthr ch : pos)
   : Lemma (n / (nthr * ch) == n / nthr / ch)
   = FStar.Math.Lemmas.division_multiplication_lemma n nthr ch

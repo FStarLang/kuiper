@@ -610,15 +610,6 @@ fn barrier_out_unfold_residue_post
 
 (* --- Main barrier transform --- *)
 
-// `barrier_in`'s two implicit divisibility squashes are spelled
-// `(chunk et * p.blockWidth) /? p.blockItemsK`, while the `parameters` record
-// refines `blockWidth` with the commuted `(k * chunk et) /? blockItemsK`. In
-// every other caller enough of the divisibility is already in scope; here they
-// have to be discharged from the record refinement alone, in a context that
-// also carries `well_formed`/`valid_smatrix`, and the commutation now just
-// misses the default budget (measured: `canceled` at exactly 5.000 in 5s at
-// fuel 2/4/8; rlimit 8 is already enough). Scoped to this one declaration
-// rather than respelling the 69 occurrences of the binder.
 #push-options "--z3rlimit_factor 2"
 ghost
 fn barrier_p_to_q_transform

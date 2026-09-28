@@ -295,16 +295,6 @@ fn even_barrier_p_to_q
       live_strided_chunks (from_array l1 sar1) nthr tid) _;
 }
 
-(* The only rlimit increase kuiper needs for this PR.  [odd_barrier_p_to_q]
-   differs from [even_barrier_p_to_q] above only in that its slprops mention
-   the concrete k-tile [it/2] rather than an existential, and that is enough to
-   make even [it / 2 >= 0] unprovable at the default budget -- it fails in 54s
-   whether it is asked at the point of use or as the first [assert pure] of the
-   body, so it is the size of the ambient VC, not the goal, that costs.  A hint
-   does not help: a [Lemma] sequenced here reaches the query as a [Prims.unit]
-   binder, with its conclusion dropped.  Measured: 20 and 40 fail, 60, 80 and
-   100 all succeed; 80 is used to leave margin over 40 without carrying the
-   original 100. *)
 #push-options "--z3rlimit 80"
 ghost
 fn odd_barrier_p_to_q
