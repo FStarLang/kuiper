@@ -133,3 +133,7 @@ let batched_gemm_f32 alpha beta (batch m n k : szp)
     #(l3_batched_row_major _ _ _)
     #(l3_batched_row_major _ _ _)
     #(l3_batched_row_major _ _ _)
+
+(* Section 65.  The same kernel at the two 16-bit widths. *)
+let g_matmul_f16_rrr  = spec_2d f16  l2_row_major l2_row_major l2_row_major
+let g_matmul_bf16_rrr = spec_2d bf16 l2_row_major l2_row_major l2_row_major

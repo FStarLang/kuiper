@@ -10,7 +10,7 @@ WORKDIR $HOME
 # Copy kuiper (with submodules already included by build-artifact.sh)
 COPY --chown=$USER kuiper/ kuiper/
 
-# Build F*, Karamel, and Pulse so reviewers don't have to wait
+# Build F* and Pulse so reviewers don't have to wait
 RUN . $HOME/.bash_profile && cd kuiper/ && make -j$(nproc) prepare
 
 # Install code-server and F* extension

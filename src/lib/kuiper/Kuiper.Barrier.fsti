@@ -56,6 +56,8 @@ val barrier_state (it : nat) : slprop
 (* Wait on the barrier. This function blocks until all threads call it
    simultaneously. Each thread provides the current p
    and gets the current q. The iteration counter is incremented. *)
+[@@FStar.Attributes.custard_extern "__syncthreads";
+   FStar.Attributes.custard_c_header "kuiper.h"]
 fn barrier_wait
   ()
   (#n : erased nat)

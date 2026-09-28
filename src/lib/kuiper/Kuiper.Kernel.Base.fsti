@@ -39,6 +39,8 @@ fn launch_kernel_full
 
 (* Synchronization enqueues no work, so it leaves the queue position alone. *)
 noextract
+[@@FStar.Attributes.custard_extern "KPR_MUST_stream_sync";
+   FStar.Attributes.custard_c_header "kuiper.h"]
 fn sync_stream
   (s: stream_t)
   (#e:epoch_t)

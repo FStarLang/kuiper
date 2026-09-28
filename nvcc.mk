@@ -74,6 +74,9 @@ EXTRACT += $(wildcard src/examples/*.fst)
 # Extract everything in src/klas , they are the C api for the library
 EXTRACT += $(wildcard src/klas/*.fst)
 EXTRACT += src/lib/graph/Kuiper.GraphDist.fst
+# Kuiper.Externs, which declares the C vocabulary the extraction rules emit,
+# used to need listing here.  It now lives under src/lib/ and so is never
+# picked up by the src/examples wildcard in the first place.
 NOEXTRACT :=
 
 # The Inst.fst modules just contain an instantiation function, not to be extracted.
@@ -82,8 +85,10 @@ EXTRACT := $(filter-out $(INST_MODULES),$(EXTRACT))
 
 EXTRACT := $(filter-out $(NOEXTRACT),$(EXTRACT))
 
-extract-all: $(patsubst %,obj/%.cu,$(subst .,_,$(basename $(notdir $(EXTRACT)))))
-extract-all: $(patsubst %,obj/%.h, $(subst .,_,$(basename $(notdir $(EXTRACT)))))
+EXTRACTED_CU := $(patsubst %,$(OUTDIR)/%.cu,$(subst .,_,$(basename $(notdir $(EXTRACT)))))
+EXTRACTED_H  := $(patsubst %,$(OUTDIR)/%.h, $(subst .,_,$(basename $(notdir $(EXTRACT)))))
+
+extract-all: $(EXTRACTED_CU) $(EXTRACTED_H)
 
 EXTRACT_MINIMAL := $(EXTRACT)
 TENSORCORE_EXTRACT := $(foreach f,$(EXTRACT),$(if $(findstring TensorCore,$(f)),$(f)))

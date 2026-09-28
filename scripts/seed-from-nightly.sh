@@ -5,7 +5,7 @@
 #
 # It copies the prebuilt toolchain (inst/), the extraction plugin, and the
 # verified library (obj/*.checked) out of a package into this checkout, marks
-# the tree as `.packaged` (so make does not rebuild F*/Karamel from the
+# the tree as `.packaged` (so make does not rebuild F* from the
 # submodules), and then lets F*'s content-hash-based incremental build figure
 # out which .checked files are stale and rebuild exactly those (and whatever
 # transitively depends on them).
@@ -151,7 +151,7 @@ DEP_STAMP="$(date -d "@$((oldest - 60))"  '+%Y-%m-%d %H:%M:%S')"
 # than the checked files, make treats the toolchain and plugin as prebuilt and
 # up to date and never tries to rebuild them from the (absent) submodules.
 touch .packaged
-touch -d "$OLD_STAMP" .fstar.src.touch .fstar.touch .krml.src.touch .krml.touch .plugin.touch
+touch -d "$OLD_STAMP" .fstar.src.touch .fstar.touch .plugin.touch
 # .depend newer than the sources/touch files (so it is not needlessly
 # regenerated) but older than the checked files.
 [ -f .depend ] && touch -d "$DEP_STAMP" .depend

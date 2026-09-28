@@ -4,7 +4,7 @@ This is a self-contained [Kuiper](https://github.com/FStarLang/kuiper) binary
 package. It bundles everything needed to write, verify, extract, and compile
 GPU kernels in Kuiper:
 
-- the F\* and Karamel toolchain (`inst/bin/fstar.exe`, `inst/bin/krml`),
+- the F\* toolchain (`inst/bin/fstar.exe`),
 - Z3 (bundled under `inst/lib/fstar/`),
 - a pinned `clang-format` executable (`inst/bin/clang-format`),
 - the verified Kuiper library (`obj/*.checked`) and its extraction plugin,
@@ -54,7 +54,7 @@ make verify
 
 The `.packaged` marker in this directory tells the build system that the
 toolchain, checked library, and extraction plugin are prebuilt, so `make` will
-**not** try to rebuild F\*/Karamel from source.
+**not** try to rebuild F\* from source.
 
 ## Writing a new kernel
 
@@ -67,7 +67,7 @@ toolchain, checked library, and extraction plugin are prebuilt, so `make` will
    ```
 3. Extract it to CUDA and (if `nvcc` is available) compile:
    ```bash
-   make obj/Klas_MyKernel.cu     # F* -> .krml -> .cu/.h
+   make obj/Klas_MyKernel.cu     # F* -> .cu/.h via the Custard backend
    ```
    The generated `.cu`/`.h` land in `obj/`. Compile them against the headers in
    `include/`.
@@ -77,11 +77,10 @@ only touches your new files.
 
 ## Using the toolchain directly
 
-`fstar.sh` and `krml.sh` wrap the bundled binaries with the correct include
+`fstar.sh` wraps the bundled binary with the correct include
 paths and flags. You can also call the binaries directly:
 
 ```bash
 ./inst/bin/fstar.exe --version
-./inst/bin/krml -version
 ./inst/bin/clang-format --version
 ```

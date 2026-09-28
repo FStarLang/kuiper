@@ -137,8 +137,10 @@ fn output_epilogue_extract_step
       gD bm bn tm tn wm wn bid wid lane rD (SZ.v done + 1));
 }
 
-(* The epilogue-state step below needs 4x the file's default rlimit. *)
-#push-options "--z3rlimit 60"
+(* The epilogue-state step below needs 4x the file's default rlimit.  It also
+   needs fuel 1: at fuel 0 the fragment-approximation goal exhausts the whole
+   rlimit before F* retries, which is both slow and fragile. *)
+#push-options "--z3rlimit 60 --initial_fuel 1"
 inline_for_extraction noextract
 fn epilogue_loop_step
   (#et_ab #et_cd #et_acc : Type0)

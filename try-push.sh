@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# try-push.sh: push the FStar/karamel submodule objects to origin, then
+# try-push.sh: push the FStar submodule objects to origin, then
 # advance the submodule pointers in this repo and push the result.
 
 set -euo pipefail
@@ -9,7 +9,7 @@ set -euo pipefail
 cd "$(dirname "$0")"
 
 # Submodules tracked and advanced by this repo.
-SUBMODULES=(FStar karamel)
+SUBMODULES=(FStar)
 
 fail () {
 	echo "ERROR: $*" >&2
