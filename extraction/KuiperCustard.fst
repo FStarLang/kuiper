@@ -82,7 +82,7 @@ let rec elements (e:expr) : ML (list expr) =
 let die_ty (#a:Type) (want:string) (t:cty) : ML a =
   failwith ("KuiperCustard: expected " ^ want ^ ", got " ^ show t)
 
-let shmem_at_lid = "Kuiper.Example.ARPort.kpr_shmem_at"
+let shmem_at_lid = "Kuiper.Externs.kpr_shmem_at"
 
 (* One shared-memory request: [SHArray (Mksized (size, zero)) len].  The
    element *type* was erased from [SHArray], but the [sized] instance carries
@@ -106,7 +106,7 @@ let u8buf : cty = TBuf (TInt (Unsigned, W8))
 (* The base of the block's dynamic shared memory: [KPR_SHMEM_AT(0)].  Called
    once and bound to a name; every request is an offset from it. *)
 let shmem_base () : expr =
-  let f = mk (EQual ({ ns = ["Kuiper"; "Example"; "ARPort"];
+  let f = mk (EQual ({ ns = ["Kuiper"; "Externs"];
                        id = "kpr_shmem_at"; spec = None }, []))
              (TArrow (usize, E_Pure, u8buf)) E_Pure in
   mk (EApp (f, [uconst 0])) u8buf E_Pure
@@ -176,10 +176,10 @@ let rec fvs (bound : list string) (e : expr) : ML (list (string & cty)) =
       (match g with Some ge -> fvs bound ge | None -> []) @ fvs bound b) brs
   | _ -> []
 
-let port_ns = ["Kuiper"; "Example"; "ARPort"]
-let kcall_lid    = "Kuiper.Example.ARPort.kcall"
-let blockidx_lid = "Kuiper.Example.ARPort.kpr_blockidx"
-let threadidx_lid = "Kuiper.Example.ARPort.kpr_threadidx"
+let port_ns = ["Kuiper"; "Externs"]
+let kcall_lid    = "Kuiper.Externs.kcall"
+let blockidx_lid = "Kuiper.Externs.kpr_blockidx"
+let threadidx_lid = "Kuiper.Externs.kpr_threadidx"
 
 (* [blockIdx.x] and [threadIdx.x] are read from CUDA inside the kernel, so the
    body's index binders are not launch parameters: bind them at the top of the
@@ -370,7 +370,7 @@ let gpu_array_alloc (tys : list cty) (args : list expr) : ML expr =
     let sz   = field_at 0 "size" sized in
     let dflt = field_at 1 "zero" sized in
     let elt  = dflt.ty in
-    let f = mk (EQual ({ ns = ["Kuiper"; "Example"; "ARPort"];
+    let f = mk (EQual ({ ns = ["Kuiper"; "Externs"];
                          id = "kpr_gpu_alloc"; spec = None }, []))
                (TArrow (usize, E_Impure,
                  TArrow (usize, E_Impure, TBuf (TInt (Unsigned, W8)))))
@@ -840,33 +840,33 @@ let _ =
                   (B.Rule_prim (1, assert_like "kpr_assert"));
   B.register_rule (Ident.lid_of_str "Kuiper.Kernel.Base.sync_device")
                   (B.Rule_prim (1, sync_device));
-  B.register_root (Ident.lid_of_str "Kuiper.Example.ARPort.kpr_memcpy_h2d");
-  B.register_root (Ident.lid_of_str "Kuiper.Example.ARPort.kpr_memcpy_d2h");
-  B.register_root (Ident.lid_of_str "Kuiper.Example.ARPort.kpr_memcpy_d2d");
-  B.register_root (Ident.lid_of_str "Kuiper.Example.ARPort.kpr_gpu_free");
-  B.register_root (Ident.lid_of_str "Kuiper.Example.ARPort.kpr_guard");
-  B.register_root (Ident.lid_of_str "Kuiper.Example.ARPort.kpr_assert");
-  B.register_root (Ident.lid_of_str "Kuiper.Example.ARPort.kpr_sync_device");
-  B.register_root (Ident.lid_of_str "Kuiper.Example.ARPort.kpr_shmem_fits");
-  B.register_root (Ident.lid_of_str "Kuiper.Example.ARPort.kpr_set_max_dyn_shmem");
+  B.register_root (Ident.lid_of_str "Kuiper.Externs.kpr_memcpy_h2d");
+  B.register_root (Ident.lid_of_str "Kuiper.Externs.kpr_memcpy_d2h");
+  B.register_root (Ident.lid_of_str "Kuiper.Externs.kpr_memcpy_d2d");
+  B.register_root (Ident.lid_of_str "Kuiper.Externs.kpr_gpu_free");
+  B.register_root (Ident.lid_of_str "Kuiper.Externs.kpr_guard");
+  B.register_root (Ident.lid_of_str "Kuiper.Externs.kpr_assert");
+  B.register_root (Ident.lid_of_str "Kuiper.Externs.kpr_sync_device");
+  B.register_root (Ident.lid_of_str "Kuiper.Externs.kpr_shmem_fits");
+  B.register_root (Ident.lid_of_str "Kuiper.Externs.kpr_set_max_dyn_shmem");
 
-  B.register_root (Ident.lid_of_str "Kuiper.Example.ARPort.vec_memcpy");
-  B.register_root (Ident.lid_of_str "Kuiper.Example.ARPort.kpr_gpu_alloc");
+  B.register_root (Ident.lid_of_str "Kuiper.Externs.vec_memcpy");
+  B.register_root (Ident.lid_of_str "Kuiper.Externs.kpr_gpu_alloc");
   B.register_root (Ident.lid_of_str shmem_at_lid);
   (* One launcher per capture count; all of them are the same variadic macro. *)
   B.register_root (Ident.lid_of_str kcall_lid);
   List.iter
     (fun n -> B.register_root (Ident.lid_of_str (kcall_lid ^ show n)))
     [1; 2; 3; 4; 5; 6; 7; 8; 9; 10; 11; 12];
-  B.register_root (Ident.lid_of_str ("Kuiper.Example.ARPort.kpr_mma_sync"));
-  B.register_root (Ident.lid_of_str ("Kuiper.Example.ARPort.kpr_store"));
-  B.register_root (Ident.lid_of_str ("Kuiper.Example.ARPort.kpr_load_ab"));
-  B.register_root (Ident.lid_of_str ("Kuiper.Example.ARPort.kpr_load_accum"));
-  B.register_root (Ident.lid_of_str ("Kuiper.Example.ARPort.kpr_fill"));
-  B.register_root (Ident.lid_of_str ("Kuiper.Example.ARPort.kpr_wgmma_fill"));
-  B.register_root (Ident.lid_of_str ("Kuiper.Example.ARPort.kpr_wgmma_load_accum"));
-  B.register_root (Ident.lid_of_str ("Kuiper.Example.ARPort.kpr_wgmma_store"));
-  B.register_root (Ident.lid_of_str ("Kuiper.Example.ARPort.kpr_wgmma_mma_sync"));
+  B.register_root (Ident.lid_of_str ("Kuiper.Externs.kpr_mma_sync"));
+  B.register_root (Ident.lid_of_str ("Kuiper.Externs.kpr_store"));
+  B.register_root (Ident.lid_of_str ("Kuiper.Externs.kpr_load_ab"));
+  B.register_root (Ident.lid_of_str ("Kuiper.Externs.kpr_load_accum"));
+  B.register_root (Ident.lid_of_str ("Kuiper.Externs.kpr_fill"));
+  B.register_root (Ident.lid_of_str ("Kuiper.Externs.kpr_wgmma_fill"));
+  B.register_root (Ident.lid_of_str ("Kuiper.Externs.kpr_wgmma_load_accum"));
+  B.register_root (Ident.lid_of_str ("Kuiper.Externs.kpr_wgmma_store"));
+  B.register_root (Ident.lid_of_str ("Kuiper.Externs.kpr_wgmma_mma_sync"));
   (* Section 69: the rule names these type declarations directly. *)
   B.register_root (Ident.lid_of_str ("Kuiper.TensorCore.Base.wmma_fragment"));
   B.register_root (Ident.lid_of_str ("Kuiper.TensorCore.WGMMA.fragment"));

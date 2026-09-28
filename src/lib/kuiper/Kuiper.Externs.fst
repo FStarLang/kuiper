@@ -1,10 +1,38 @@
-module Kuiper.Example.ARPort
+module Kuiper.Externs
 #lang-pulse
 open Pulse.Lib.Pervasives
 open Kuiper
 
-(* The runtime entries the Custard rule's emitted code names.  Nothing in the
-   source calls them, so the rule must [register_root] each one. *)
+(** The C and CUDA vocabulary Kuiper's extraction rules emit.
+
+    Nothing in Kuiper calls anything declared here, and nothing should: these
+    are not an API.  They exist so that the extraction plugin has something to
+    point at.
+
+    A Custard rule (see [extraction/KuiperCustard.fst]) is consulted in step 1
+    of the extraction loop, before a name's definition is looked up, and builds
+    a target-language term out of the call's arguments.  To emit a call to,
+    say, [KPR_KCALL], the rule constructs an [EQual] naming a *specific* F*
+    lid -- so every C symbol a rule can emit needs a declaration somewhere for
+    that lid to resolve to.  This file is that set, in one place, each carrying
+    the [custard_extern] target spelling and the [custard_c_header] that makes
+    the right [#include] appear.
+
+    Two consequences worth knowing:
+
+    - Because no source call reaches them, they would all be dropped by
+      dead-code elimination.  [KuiperCustard.fst] therefore [register_root]s
+      each one; forgetting to is error 379.
+
+    - They are declared in [FStar.All.ML], not [Tot], and that is load-bearing
+      twice over.  A pure extern returning [unit] is dead code and Custard
+      deletes the call outright, and a pure extern returning a value is
+      [reeval]-able, so duplicate calls are shared -- fatal for
+      [KPR_MEMCPY_H2D] or [KPR_GPU_ALLOC], whose whole point is the effect.
+      [Tot] would also make them functions in the *logic*, where
+      [kpr_gpu_alloc n == kpr_gpu_alloc n] becomes provable: two distinct
+      allocations equal, which is a contradiction waiting to be used.  [ML]
+      keeps them out of the logic entirely. *)
 
 (* [KPR_KCALL] is a variadic C macro.  A Custard [external] has a fixed arity,
    so there is one declaration per capture count -- but it need not be fixed in
@@ -70,6 +98,19 @@ assume val kcall5 (#a1 #a2 #a3 #a4 #a5 : Type0)
 
 [@@FStar.Attributes.custard_extern "KPR_KCALL";
    FStar.Attributes.custard_c_header "kuiper.h"]
+assume val kcall6 (#a1 #a2 #a3 #a4 #a5 #a6 : Type0)
+                  (k : unit -> FStar.All.ML unit)
+                  (nblk nthr smem : Kuiper.SizeT.t)
+                  (s : Kuiper.Kernel.Stream.stream_t)
+                  (x1 : a1)
+                  (x2 : a2)
+                  (x3 : a3)
+                  (x4 : a4)
+                  (x5 : a5)
+                  (x6 : a6) : FStar.All.ML unit
+
+[@@FStar.Attributes.custard_extern "KPR_KCALL";
+   FStar.Attributes.custard_c_header "kuiper.h"]
 assume val kcall7 (#a1 #a2 #a3 #a4 #a5 #a6 #a7 : Type0)
                   (k : unit -> FStar.All.ML unit)
                   (nblk nthr smem : Kuiper.SizeT.t)
@@ -81,19 +122,6 @@ assume val kcall7 (#a1 #a2 #a3 #a4 #a5 #a6 #a7 : Type0)
                   (x5 : a5)
                   (x6 : a6)
                   (x7 : a7) : FStar.All.ML unit
-
-[@@FStar.Attributes.custard_extern "KPR_KCALL";
-   FStar.Attributes.custard_c_header "kuiper.h"]
-assume val kcall6 (#a1 #a2 #a3 #a4 #a5 #a6 : Type0)
-                  (k : unit -> FStar.All.ML unit)
-                  (nblk nthr smem : Kuiper.SizeT.t)
-                  (s : Kuiper.Kernel.Stream.stream_t)
-                  (x1 : a1)
-                  (x2 : a2)
-                  (x3 : a3)
-                  (x4 : a4)
-                  (x5 : a5)
-                  (x6 : a6) : FStar.All.ML unit
 
 [@@FStar.Attributes.custard_extern "KPR_KCALL";
    FStar.Attributes.custard_c_header "kuiper.h"]
@@ -187,8 +215,6 @@ assume val kpr_blockidx : Kuiper.SizeT.t
 [@@FStar.Attributes.custard_extern "threadIdx.x";
    FStar.Attributes.custard_c_header "kuiper.h"]
 assume val kpr_threadidx : Kuiper.SizeT.t
-
-let reverse_u64 = Kuiper.Example.ArrayReversal.reverse #FStar.UInt64.t
 
 (* The base of the block's dynamic shared memory, plus a byte offset.  The
    rule casts the result to each request's element type. *)

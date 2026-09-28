@@ -74,11 +74,10 @@ EXTRACT += $(wildcard src/examples/*.fst)
 # Extract everything in src/klas , they are the C api for the library
 EXTRACT += $(wildcard src/klas/*.fst)
 EXTRACT += src/lib/graph/Kuiper.GraphDist.fst
+# Kuiper.Externs, which declares the C vocabulary the extraction rules emit,
+# used to need listing here.  It now lives under src/lib/ and so is never
+# picked up by the src/examples wildcard in the first place.
 NOEXTRACT :=
-# ARPort declares nothing but the C vocabulary the extraction rules emit
-# (KPR_KCALL, KPR_SHMEM_AT, the wmma:: names, ...).  It is a leaf that every
-# other module pulls in, never an entry point of its own.
-NOEXTRACT += src/examples/Kuiper.Example.ARPort.fst
 
 # The Inst.fst modules just contain an instantiation function, not to be extracted.
 INST_MODULES := $(foreach f,$(EXTRACT),$(if $(findstring Inst.fst,$(f)),$(f)))
