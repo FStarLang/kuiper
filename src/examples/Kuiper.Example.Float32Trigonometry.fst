@@ -18,21 +18,21 @@ let nonconstant ()
   Trig.cos_remainder 1.0R 2
 
 inline_for_extraction noextract
-fn sine_contract (x : f32) (xr : erased real)
+fn sine_contract (x : f32) (xr : real)
   preserves gpu
   requires pure (x %~ xr)
   returns result : f32
-  ensures pure (result %~ Trig.sin (reveal xr))
+  ensures pure (result %~ Trig.sin xr)
 {
   Fast.sin x
 }
 
 inline_for_extraction noextract
-fn cosine_contract (x : f32) (xr : erased real)
+fn cosine_contract (x : f32) (xr : real)
   preserves gpu
   requires pure (x %~ xr)
   returns result : f32
-  ensures pure (result %~ Trig.cos (reveal xr))
+  ensures pure (result %~ Trig.cos xr)
 {
   Fast.cos x
 }
@@ -81,6 +81,7 @@ fn kernel
   }
 }
 
+(* The generic instance targets visibility_of arr; launch_kernel_1 needs gpu_of. *)
 instance send_global_array_contents
   (#a : Type0)
   (arr : array a{is_global_array arr})

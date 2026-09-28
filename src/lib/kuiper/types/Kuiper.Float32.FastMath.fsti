@@ -28,5 +28,3 @@ fn cos (x : t)
     forall (xr : real).
       v_approximates x xr ==>
       v_approximates result (Trig.cos xr))
-
-inline_for_extraction let () = ()

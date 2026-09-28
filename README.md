@@ -267,35 +267,6 @@ and checks FTZ, signed zeros, infinities and NaNs. Reciprocal and reciprocal-squ
 comparisons require identical bits, including for NaN results:
 `make -j$(nproc) obj/Test_Kuiper_Example_Float32GPU.test`.
 
-### Native Float32 trigonometry
-
-`Kuiper.Float32.FastMath.sin` and `.cos` require and preserve `gpu`, and
-extract directly to CUDA `__sinf` and `__cosf`. Generic floating `sin`/`cos`
-continue to use `sinf`/`cosf`; they are not bitwise substitutes. No global
-`--use_fast_math` flag or host fallback is used, and all Float32 storage
-patterns remain accepted.
-
-These APIs add **new trusted real-approximation contracts**, not refinements
-derived from the generic floating trigonometry API.
-`Kuiper.Real.Trigonometry` separately introduces trusted real sine/cosine in
-radians and Taylor remainder laws at every real argument and natural
-truncation order. Those laws characterize the ordinary power series, rather
-than arbitrary coefficients or recorded lookup tables. Zero-value lemmas
-are derived from the laws.
-
-The real Taylor remainders are not bounds on CUDA errors. The native
-contracts do not characterize IEEE exceptional-value bits or prove universal
-bitwise correspondence. Both the real mathematical assumptions and the
-native approximation/extraction boundary must be disclosed by proofs using
-these functions.
-
-`Kuiper.Example.Float32Trigonometry` checks contract composition, derived
-zero/nonconstant real properties, and rejection of CPU calls. Its native
-regression compares extracted results bitwise against the named intrinsics
-on every BF16 storage pattern promoted to FP32, raw FP32 samples and special
-values, with generic-libm negative controls and input/output-guard checks:
-`make -j$(nproc) obj/Test_Kuiper_Example_Float32Trigonometry.test`.
-
 ### Project Structure
 
 Kuiper source lives under `src/`. The core library (`src/lib/kuiper/`) provides
