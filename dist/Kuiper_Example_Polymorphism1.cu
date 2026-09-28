@@ -49,32 +49,36 @@ __device__ void Kuiper_Example_Polymorphism1_kswap_F32(float *r1, float *r2)
 
 void Kuiper_Example_Polymorphism1_swap_U64(uint64_t *r1, uint64_t *r2)
 {
-    uint64_t *gr1 = (uint64_t *) KPR_GPU_ALLOC(8U, 1U);
-    uint64_t *gr2 = (uint64_t *) KPR_GPU_ALLOC(8U, 1U);
-    MUST(cudaMemcpy(gr1, r1, 8U, cudaMemcpyHostToDevice));
-    MUST(cudaMemcpy(gr2, r2, 8U, cudaMemcpyHostToDevice));
+    uint64_t *gr1 = (uint64_t *) KPR_GPU_ALLOC((uint32_t) sizeof(uint64_t), 1U);
+    uint64_t *gr2 = (uint64_t *) KPR_GPU_ALLOC((uint32_t) sizeof(uint64_t), 1U);
+    MUST(cudaMemcpy(
+        gr1, r1, (uint32_t) sizeof(uint64_t), cudaMemcpyHostToDevice));
+    MUST(cudaMemcpy(
+        gr2, r2, (uint32_t) sizeof(uint64_t), cudaMemcpyHostToDevice));
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_KCALL(__hoisted_swap_U64_0, 1U, 1U, 0U, s, gr1, gr2);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
-    MUST(cudaMemcpy(r1, gr1, 8U, cudaMemcpyDeviceToHost));
-    MUST(cudaMemcpy(r2, gr2, 8U, cudaMemcpyDeviceToHost));
+    MUST(cudaMemcpy(
+        r1, gr1, (uint32_t) sizeof(uint64_t), cudaMemcpyDeviceToHost));
+    MUST(cudaMemcpy(
+        r2, gr2, (uint32_t) sizeof(uint64_t), cudaMemcpyDeviceToHost));
     MUST(cudaFree(gr1));
     MUST(cudaFree(gr2));
 }
 
 void Kuiper_Example_Polymorphism1_swap_F32(float *r1, float *r2)
 {
-    float *gr1 = (float *) KPR_GPU_ALLOC(4U, 1U);
-    float *gr2 = (float *) KPR_GPU_ALLOC(4U, 1U);
-    MUST(cudaMemcpy(gr1, r1, 4U, cudaMemcpyHostToDevice));
-    MUST(cudaMemcpy(gr2, r2, 4U, cudaMemcpyHostToDevice));
+    float *gr1 = (float *) KPR_GPU_ALLOC((uint32_t) sizeof(float), 1U);
+    float *gr2 = (float *) KPR_GPU_ALLOC((uint32_t) sizeof(float), 1U);
+    MUST(cudaMemcpy(gr1, r1, (uint32_t) sizeof(float), cudaMemcpyHostToDevice));
+    MUST(cudaMemcpy(gr2, r2, (uint32_t) sizeof(float), cudaMemcpyHostToDevice));
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_KCALL(__hoisted_swap_F32_0, 1U, 1U, 0U, s, gr1, gr2);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
-    MUST(cudaMemcpy(r1, gr1, 4U, cudaMemcpyDeviceToHost));
-    MUST(cudaMemcpy(r2, gr2, 4U, cudaMemcpyDeviceToHost));
+    MUST(cudaMemcpy(r1, gr1, (uint32_t) sizeof(float), cudaMemcpyDeviceToHost));
+    MUST(cudaMemcpy(r2, gr2, (uint32_t) sizeof(float), cudaMemcpyDeviceToHost));
     MUST(cudaFree(gr1));
     MUST(cudaFree(gr2));
 }

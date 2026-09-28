@@ -44,12 +44,13 @@ __hoisted_inverse_root_0(float x, float *device)
 float Kuiper_Example_Float32GPU_multiply(float x, float y)
 {
     float out = 0.0f;
-    float *device = (float *) KPR_GPU_ALLOC(4U, 1U);
+    float *device = (float *) KPR_GPU_ALLOC((uint32_t) sizeof(float), 1U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_KCALL(__hoisted_multiply_0, 1U, 1U, 0U, s, x, y, device);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
-    MUST(cudaMemcpy(&out, device, 4U, cudaMemcpyDeviceToHost));
+    MUST(cudaMemcpy(
+        &out, device, (uint32_t) sizeof(float), cudaMemcpyDeviceToHost));
     float result = out;
     MUST(cudaFree(device));
     return result;
@@ -58,12 +59,13 @@ float Kuiper_Example_Float32GPU_multiply(float x, float y)
 float Kuiper_Example_Float32GPU_exponentiate(float x)
 {
     float out = 0.0f;
-    float *device = (float *) KPR_GPU_ALLOC(4U, 1U);
+    float *device = (float *) KPR_GPU_ALLOC((uint32_t) sizeof(float), 1U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_KCALL(__hoisted_exponentiate_0, 1U, 1U, 0U, s, x, device);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
-    MUST(cudaMemcpy(&out, device, 4U, cudaMemcpyDeviceToHost));
+    MUST(cudaMemcpy(
+        &out, device, (uint32_t) sizeof(float), cudaMemcpyDeviceToHost));
     float result = out;
     MUST(cudaFree(device));
     return result;
@@ -72,12 +74,13 @@ float Kuiper_Example_Float32GPU_exponentiate(float x)
 float Kuiper_Example_Float32GPU_reciprocal(float x)
 {
     float out = 0.0f;
-    float *device = (float *) KPR_GPU_ALLOC(4U, 1U);
+    float *device = (float *) KPR_GPU_ALLOC((uint32_t) sizeof(float), 1U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_KCALL(__hoisted_reciprocal_0, 1U, 1U, 0U, s, x, device);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
-    MUST(cudaMemcpy(&out, device, 4U, cudaMemcpyDeviceToHost));
+    MUST(cudaMemcpy(
+        &out, device, (uint32_t) sizeof(float), cudaMemcpyDeviceToHost));
     float result = out;
     MUST(cudaFree(device));
     return result;
@@ -86,12 +89,13 @@ float Kuiper_Example_Float32GPU_reciprocal(float x)
 float Kuiper_Example_Float32GPU_inverse_root(float x)
 {
     float out = 0.0f;
-    float *device = (float *) KPR_GPU_ALLOC(4U, 1U);
+    float *device = (float *) KPR_GPU_ALLOC((uint32_t) sizeof(float), 1U);
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_KCALL(__hoisted_inverse_root_0, 1U, 1U, 0U, s, x, device);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
-    MUST(cudaMemcpy(&out, device, 4U, cudaMemcpyDeviceToHost));
+    MUST(cudaMemcpy(
+        &out, device, (uint32_t) sizeof(float), cudaMemcpyDeviceToHost));
     float result = out;
     MUST(cudaFree(device));
     return result;
