@@ -27,7 +27,7 @@ static void run_spmm(const char *label, float *AD, int rows, int shared,
     smatrix_t A = sparsify_f32(AD, rows, shared);
     uint32_t *row_indices = mk_row_indices(rows, A);
     float *B = mk_dense_matrix_f32(shared, cols, 50);
-    float *CD = (float *) calloc(rows * cols, sizeof CD[0]);
+    float *CD = (float *) calloc((size_t) rows * cols, sizeof CD[0]);
 
     if (do_check)
         cpu_matmul(AD, B, CD, rows, shared, cols);
@@ -46,7 +46,7 @@ static void run_spmm(const char *label, float *AD, int rows, int shared,
         rows, shared, cols, (1.0 - (double) A.nnz / (rows * shared)) * 100.0,
         (A.nnz * cols * 2.0) / t / 1e9);
 
-    float *C = (float *) calloc(rows * cols, sizeof C[0]);
+    float *C = (float *) calloc((size_t) rows * cols, sizeof C[0]);
     MUST(cudaMemcpy(C, dC, sizeof C[0] * rows * cols, cudaMemcpyDeviceToHost));
 
     free_spmm_device_f32(dA, drow_indices, dB, dC);
