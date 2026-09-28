@@ -10,5 +10,3 @@ open Kuiper.EMatrix
 open Kuiper.EMatrix.Tiling
 open Kuiper.TensorCore
 open Pulse.Lib.Array
-
-inline_for_extraction let () = ()
