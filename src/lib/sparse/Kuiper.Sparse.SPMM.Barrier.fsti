@@ -610,6 +610,7 @@ fn barrier_out_unfold_residue_post
 
 (* --- Main barrier transform --- *)
 
+#push-options "--z3rlimit_factor 2"
 ghost
 fn barrier_p_to_q_transform
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
@@ -632,3 +633,5 @@ fn barrier_p_to_q_transform
     forall+ (tid : natlt p.blockWidth).
       barrier_out p row_perm elems col_ind row_off
         elems_tile col_ind_tile bid it tid
+
+#pop-options

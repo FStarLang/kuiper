@@ -38,7 +38,7 @@ let sizet_and_div_pow2 (x y : SZ.t) (n:nat)
         SZ.v (sizet_and x (y -^ 1sz));
         == {}
         FStar.SizeT.v x `FStar.UInt.logand #32` 0;
-        == { from_vec_zero #32 (UInt.to_vec #32 (FStar.SizeT.v x `FStar.UInt.logand #32` 0)) }
+        == { FStar.UInt.logand_lemma_1 #32 (FStar.SizeT.v x) }
         0;
       }
     ) else

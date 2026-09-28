@@ -211,7 +211,7 @@ let merge_lemma #et (#len:nat) (sl : lseq et ((len + 1) / 2)) (sr : lseq et (len
       : Lemma (to_seq vw (sl, sr) @! i == seq_interleave sl sr @! i)
   = if i % 2 = 0 then lem_idx1 #et #len i #() else lem_idx2 #et #len i #()
   in
-  Classical.forall_intro (Classical.move_requires aux);
+  Classical.forall_intro aux;
   assert (to_seq vw (sl, sr) `Seq.equal` seq_interleave sl sr)
 #pop-options
 

@@ -142,12 +142,7 @@ let rec cunflatten
     | CCons #_ #h ch #t ct ->
       let major : szlt h          = x /^ csizeof ct in
       let minor : szlt (sizeof t) = x %^ csizeof ct in
-      (* Binding the recursive call at an explicit type keeps its postcondition
-         as a hypothesis about [rest].  Left inline, the refinement is instead
-         propagated onto the type of the pair, which then does not subtype
-         [conc d]. *)
-      let rest : conc t = cunflatten ct minor in
-      (major, rest)
+      ((major, cunflatten ct minor) <: (szlt h & conc t))
 
 [@@strict_on_arguments [2]]
 inline_for_extraction noextract

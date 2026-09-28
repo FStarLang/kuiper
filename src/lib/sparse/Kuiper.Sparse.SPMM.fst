@@ -1480,7 +1480,7 @@ fn kf_head
 }
 
 #pop-options
-#push-options "--z3rlimit 20"
+#push-options "--z3rlimit 40"
 inline_for_extraction noextract
 fn kf_main
   (#et : Type0) {| d : scalar et, sized et, hvc : has_vec_cpy et |}

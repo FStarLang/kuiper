@@ -263,16 +263,20 @@ let add_helper
           (ensures i + nthr * chunk_et == (git + 1) * nthr * chunk_et)
   = ()
 
-(* g <= m / (nthr * c)  ==>  g * nthr * c <= m.  Nonlinear; needed to show the
-   loop measure stays non-negative, which is no longer supplied for free. *)
-let bound_helper (g nthr c m : nat)
-  : Lemma (requires nthr * c > 0 /\ g <= m / (nthr * c))
-          (ensures g * nthr * c <= m)
-  = let nc : pos = nthr * c in
-    FStar.Math.Lemmas.paren_mul_right g nthr c;
-    FStar.Math.Lemmas.lemma_mult_le_right nc g (m / nc);
-    FStar.Math.Lemmas.multiply_fractions m nc;
-    FStar.Math.Lemmas.swap_mul nc (m / nc)
+(* Proving this bound separately avoids costly nonlinear arithmetic
+   in the loop's large proof context. *)
+let cp_measure_helper (git nthr chunk_et mlen : nat)
+  : Lemma (requires nthr > 0 /\ chunk_et > 0 /\
+                    mlen % (chunk_et * nthr) == 0 /\
+                    git < mlen / (chunk_et * nthr))
+          (ensures (git + 1) * nthr * chunk_et <= mlen /\
+                   nthr * chunk_et > 0)
+  = let nc = chunk_et * nthr in
+    lemma_divides_exact nc mlen;
+    FStar.Math.Lemmas.lemma_mult_le_right nc (git + 1) (mlen / nc);
+    FStar.Math.Lemmas.swap_mul (mlen / nc) nc;
+    FStar.Math.Lemmas.paren_mul_right (git + 1) nthr chunk_et;
+    FStar.Math.Lemmas.swap_mul nthr chunk_et
 
 let divides_helper
   (d : pos)
@@ -580,18 +584,11 @@ fn cp_array2_vec
 
     assert pure (SZ.v vi == vgit * nthr * chunk et);
     add_helper vi vgit nthr (chunk et);
+    cp_measure_helper vgit nthr (chunk et) mlen;
     assert pure (SZ.v !i == GR.read git * nthr * chunk et);
 
     em_fade'_fade esrc edst nthr tid vgit ();
     own_strided_chunks_rw _ nthr tid _ (em_fade edst esrc nthr (vgit + 1));
-
-    (* Spell out the strict decrease of the loop measure: in the enlarged
-       context the combined multiplication/division query times out. *)
-    assert pure (nthr * chunk et > 0);
-    assert pure (SZ.v !i == vi + nthr * chunk et);
-    bound_helper (vgit + 1) nthr (chunk et) mlen;
-    assert pure (SZ.v !i <= mlen);
-    assert pure (mlen - SZ.v !i < mlen - vi);
     ()
   };
 

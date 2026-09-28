@@ -62,8 +62,6 @@ let lemma_divides_trans (x y z : pos)
           [SMTPat (x /? y); SMTPat (y /? z)]
   = let f1 = get_factor x y in
     let f2 = get_factor y z in
-    (* x * (f1 * f2) == (x * f1) * f2 == y * f2 == z.  The regrouping is a
-       nonlinear step; the old encoding supplied it as a ground fact. *)
     M.paren_mul_right x f1 f2;
     assert (x * (f1*f2) == z);
     ()

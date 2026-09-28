@@ -239,23 +239,9 @@ let from_stride_subtiles_id
   ()
 #pop-options
 
-(* Accessor for ematrix_stride_subtile.  Stating this separately keeps the
-   index well-typedness obligation (j * scols + tc : natlt cols) in a small
-   context; inline in update_stride_tile_self below it now times out. *)
-let acc2_stride_subtile
-  (#et : _)
-  (#rows #cols : _)
-  (em : chest2 et rows cols)
-  (srows : pos {srows /? rows})
-  (scols : pos {scols /? cols})
-  (tr : natlt srows)
-  (tc : natlt scols)
-  (i : natlt (rows / srows))
-  (j : natlt (cols / scols))
-  : Lemma (acc2 (ematrix_stride_subtile em srows scols tr tc) i j
-           == acc2 em (i * srows + tr) (j * scols + tc))
-  = Kuiper.EMatrix.macc_mkM #et #(rows / srows) #(cols / scols)
-      (fun i j -> acc2 em (i * srows + tr) (j * scols + tc)) i j
+let __nat_mul_pos_nonneg (a : nat) (b : pos)
+  : Lemma (a * b >= 0) [SMTPat (a * b)]
+  = FStar.Math.Lemmas.nat_times_nat_is_nat a b
 
 let update_stride_tile_self
   (#et : _)
@@ -283,7 +269,9 @@ let update_stride_tile_self
             acc2 em i j)
         i j;
       if i % srows = tr && j % scols = tc then begin
-        acc2_stride_subtile em srows scols tr tc (i / srows) (j / scols);
+        Kuiper.EMatrix.macc_mkM #et #(rows / srows) #(cols / scols)
+          (fun i j -> acc2 em (i * srows + tr) (j * scols + tc))
+          (i / srows) (j / scols);
         FStar.Math.Lemmas.euclidean_division_definition i srows;
         FStar.Math.Lemmas.euclidean_division_definition j scols
       end
