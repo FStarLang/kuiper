@@ -12,8 +12,11 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_2x2_0(uint32_t cols,
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
     __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(2048U);
-    float *sarAcc = (float *) KPR_SHMEM_AT(4096U);
+    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 1024U);
+    float *sarAcc =
+        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 1024U +
+                               (uint32_t) sizeof(__nv_bfloat16) * 1024U);
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
@@ -125,8 +128,11 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_2x4_0(uint32_t cols,
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
     __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(2048U);
-    float *sarAcc = (float *) KPR_SHMEM_AT(4096U);
+    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 1024U);
+    float *sarAcc =
+        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 1024U +
+                               (uint32_t) sizeof(__nv_bfloat16) * 1024U);
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
@@ -235,8 +241,11 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_4x2_0(uint32_t cols,
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
     __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(2048U);
-    float *sarAcc = (float *) KPR_SHMEM_AT(4096U);
+    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 1024U);
+    float *sarAcc =
+        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 1024U +
+                               (uint32_t) sizeof(__nv_bfloat16) * 1024U);
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
@@ -348,8 +357,11 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_4x4_0(uint32_t cols,
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
     __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(2048U);
-    float *sarAcc = (float *) KPR_SHMEM_AT(4096U);
+    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 1024U);
+    float *sarAcc =
+        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 1024U +
+                               (uint32_t) sizeof(__nv_bfloat16) * 1024U);
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
@@ -458,8 +470,11 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_2x2_0(uint32_t cols,
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
     __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(4096U);
-    float *sarAcc = (float *) KPR_SHMEM_AT(8192U);
+    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 2048U);
+    float *sarAcc =
+        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                               (uint32_t) sizeof(__nv_bfloat16) * 2048U);
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
@@ -571,8 +586,11 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_2x4_0(uint32_t cols,
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
     __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(4096U);
-    float *sarAcc = (float *) KPR_SHMEM_AT(8192U);
+    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 2048U);
+    float *sarAcc =
+        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                               (uint32_t) sizeof(__nv_bfloat16) * 2048U);
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
@@ -681,8 +699,11 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_4x2_0(uint32_t cols,
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
     __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(4096U);
-    float *sarAcc = (float *) KPR_SHMEM_AT(8192U);
+    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 2048U);
+    float *sarAcc =
+        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                               (uint32_t) sizeof(__nv_bfloat16) * 2048U);
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
@@ -794,8 +815,11 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_4x4_0(uint32_t cols,
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
     __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(4096U);
-    float *sarAcc = (float *) KPR_SHMEM_AT(8192U);
+    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 2048U);
+    float *sarAcc =
+        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                               (uint32_t) sizeof(__nv_bfloat16) * 2048U);
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
@@ -904,8 +928,11 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_2x2_0(uint32_t cols,
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
     __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(8192U);
-    float *sarAcc = (float *) KPR_SHMEM_AT(16384U);
+    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
+    float *sarAcc =
+        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                               (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
@@ -1017,8 +1044,11 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_2x4_0(uint32_t cols,
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
     __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(8192U);
-    float *sarAcc = (float *) KPR_SHMEM_AT(16384U);
+    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
+    float *sarAcc =
+        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                               (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
@@ -1127,8 +1157,11 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_4x2_0(uint32_t cols,
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
     __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(8192U);
-    float *sarAcc = (float *) KPR_SHMEM_AT(16384U);
+    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
+    float *sarAcc =
+        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                               (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
@@ -1240,8 +1273,11 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_4x4_0(uint32_t cols,
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
     __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(8192U);
-    float *sarAcc = (float *) KPR_SHMEM_AT(16384U);
+    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
+    float *sarAcc =
+        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                               (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
@@ -1350,8 +1386,11 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_2x4_0(uint32_t cols,
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
     __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(2048U);
-    float *sarAcc = (float *) KPR_SHMEM_AT(6144U);
+    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 1024U);
+    float *sarAcc =
+        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 1024U +
+                               (uint32_t) sizeof(__nv_bfloat16) * 2048U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
@@ -1463,8 +1502,11 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_2x8_0(uint32_t cols,
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
     __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(2048U);
-    float *sarAcc = (float *) KPR_SHMEM_AT(6144U);
+    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 1024U);
+    float *sarAcc =
+        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 1024U +
+                               (uint32_t) sizeof(__nv_bfloat16) * 2048U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
@@ -1573,8 +1615,11 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_4x2_0(uint32_t cols,
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
     __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(2048U);
-    float *sarAcc = (float *) KPR_SHMEM_AT(6144U);
+    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 1024U);
+    float *sarAcc =
+        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 1024U +
+                               (uint32_t) sizeof(__nv_bfloat16) * 2048U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
@@ -1686,8 +1731,11 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_4x4_0(uint32_t cols,
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
     __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(2048U);
-    float *sarAcc = (float *) KPR_SHMEM_AT(6144U);
+    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 1024U);
+    float *sarAcc =
+        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 1024U +
+                               (uint32_t) sizeof(__nv_bfloat16) * 2048U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
@@ -1799,8 +1847,11 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_4x8_0(uint32_t cols,
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
     __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(2048U);
-    float *sarAcc = (float *) KPR_SHMEM_AT(6144U);
+    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 1024U);
+    float *sarAcc =
+        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 1024U +
+                               (uint32_t) sizeof(__nv_bfloat16) * 2048U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
@@ -1909,8 +1960,11 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_2x2_0(uint32_t cols,
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
     __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(4096U);
-    float *sarAcc = (float *) KPR_SHMEM_AT(12288U);
+    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 2048U);
+    float *sarAcc =
+        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                               (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
@@ -2022,8 +2076,11 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_2x4_0(uint32_t cols,
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
     __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(4096U);
-    float *sarAcc = (float *) KPR_SHMEM_AT(12288U);
+    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 2048U);
+    float *sarAcc =
+        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                               (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
@@ -2135,8 +2192,11 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_2x8_0(uint32_t cols,
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
     __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(4096U);
-    float *sarAcc = (float *) KPR_SHMEM_AT(12288U);
+    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 2048U);
+    float *sarAcc =
+        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                               (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
@@ -2245,8 +2305,11 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_4x2_0(uint32_t cols,
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
     __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(4096U);
-    float *sarAcc = (float *) KPR_SHMEM_AT(12288U);
+    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 2048U);
+    float *sarAcc =
+        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                               (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
@@ -2358,8 +2421,11 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_4x4_0(uint32_t cols,
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
     __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(4096U);
-    float *sarAcc = (float *) KPR_SHMEM_AT(12288U);
+    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 2048U);
+    float *sarAcc =
+        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                               (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
@@ -2471,8 +2537,11 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_4x8_0(uint32_t cols,
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
     __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(4096U);
-    float *sarAcc = (float *) KPR_SHMEM_AT(12288U);
+    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 2048U);
+    float *sarAcc =
+        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                               (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
@@ -2581,8 +2650,11 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_2x2_0(uint32_t cols,
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
     __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(8192U);
-    float *sarAcc = (float *) KPR_SHMEM_AT(24576U);
+    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
+    float *sarAcc =
+        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                               (uint32_t) sizeof(__nv_bfloat16) * 8192U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
@@ -2694,8 +2766,11 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_2x4_0(uint32_t cols,
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
     __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(8192U);
-    float *sarAcc = (float *) KPR_SHMEM_AT(24576U);
+    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
+    float *sarAcc =
+        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                               (uint32_t) sizeof(__nv_bfloat16) * 8192U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
@@ -2807,8 +2882,11 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_2x8_0(uint32_t cols,
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
     __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(8192U);
-    float *sarAcc = (float *) KPR_SHMEM_AT(24576U);
+    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
+    float *sarAcc =
+        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                               (uint32_t) sizeof(__nv_bfloat16) * 8192U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
@@ -2917,8 +2995,11 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_4x2_0(uint32_t cols,
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
     __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(8192U);
-    float *sarAcc = (float *) KPR_SHMEM_AT(24576U);
+    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
+    float *sarAcc =
+        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                               (uint32_t) sizeof(__nv_bfloat16) * 8192U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
@@ -3030,8 +3111,11 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_4x4_0(uint32_t cols,
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
     __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(8192U);
-    float *sarAcc = (float *) KPR_SHMEM_AT(24576U);
+    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
+    float *sarAcc =
+        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                               (uint32_t) sizeof(__nv_bfloat16) * 8192U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
@@ -3143,8 +3227,11 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_4x8_0(uint32_t cols,
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
     __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(8192U);
-    float *sarAcc = (float *) KPR_SHMEM_AT(24576U);
+    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
+    float *sarAcc =
+        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                               (uint32_t) sizeof(__nv_bfloat16) * 8192U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
@@ -3253,8 +3340,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_2x4_0(uint32_t cols,
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
     __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(4096U);
-    float *sarAcc = (float *) KPR_SHMEM_AT(6144U);
+    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 2048U);
+    float *sarAcc =
+        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                               (uint32_t) sizeof(__nv_bfloat16) * 1024U);
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
@@ -3363,8 +3453,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_4x2_0(uint32_t cols,
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
     __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(4096U);
-    float *sarAcc = (float *) KPR_SHMEM_AT(6144U);
+    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 2048U);
+    float *sarAcc =
+        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                               (uint32_t) sizeof(__nv_bfloat16) * 1024U);
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
@@ -3476,8 +3569,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_4x4_0(uint32_t cols,
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
     __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(4096U);
-    float *sarAcc = (float *) KPR_SHMEM_AT(6144U);
+    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 2048U);
+    float *sarAcc =
+        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                               (uint32_t) sizeof(__nv_bfloat16) * 1024U);
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
@@ -3586,8 +3682,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_8x2_0(uint32_t cols,
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
     __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(4096U);
-    float *sarAcc = (float *) KPR_SHMEM_AT(6144U);
+    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 2048U);
+    float *sarAcc =
+        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                               (uint32_t) sizeof(__nv_bfloat16) * 1024U);
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
@@ -3699,8 +3798,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_8x4_0(uint32_t cols,
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
     __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(4096U);
-    float *sarAcc = (float *) KPR_SHMEM_AT(6144U);
+    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 2048U);
+    float *sarAcc =
+        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                               (uint32_t) sizeof(__nv_bfloat16) * 1024U);
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
@@ -3809,8 +3911,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_2x2_0(uint32_t cols,
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
     __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(8192U);
-    float *sarAcc = (float *) KPR_SHMEM_AT(12288U);
+    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
+    float *sarAcc =
+        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                               (uint32_t) sizeof(__nv_bfloat16) * 2048U);
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
@@ -3922,8 +4027,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_2x4_0(uint32_t cols,
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
     __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(8192U);
-    float *sarAcc = (float *) KPR_SHMEM_AT(12288U);
+    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
+    float *sarAcc =
+        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                               (uint32_t) sizeof(__nv_bfloat16) * 2048U);
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
@@ -4032,8 +4140,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_4x2_0(uint32_t cols,
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
     __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(8192U);
-    float *sarAcc = (float *) KPR_SHMEM_AT(12288U);
+    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
+    float *sarAcc =
+        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                               (uint32_t) sizeof(__nv_bfloat16) * 2048U);
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
@@ -4145,8 +4256,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_4x4_0(uint32_t cols,
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
     __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(8192U);
-    float *sarAcc = (float *) KPR_SHMEM_AT(12288U);
+    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
+    float *sarAcc =
+        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                               (uint32_t) sizeof(__nv_bfloat16) * 2048U);
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
@@ -4255,8 +4369,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_8x2_0(uint32_t cols,
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
     __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(8192U);
-    float *sarAcc = (float *) KPR_SHMEM_AT(12288U);
+    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
+    float *sarAcc =
+        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                               (uint32_t) sizeof(__nv_bfloat16) * 2048U);
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
@@ -4368,8 +4485,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_8x4_0(uint32_t cols,
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
     __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(8192U);
-    float *sarAcc = (float *) KPR_SHMEM_AT(12288U);
+    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
+    float *sarAcc =
+        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                               (uint32_t) sizeof(__nv_bfloat16) * 2048U);
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
@@ -4478,8 +4598,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_2x2_0(uint32_t cols,
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
     __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(16384U);
-    float *sarAcc = (float *) KPR_SHMEM_AT(24576U);
+    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 8192U);
+    float *sarAcc =
+        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                               (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
@@ -4591,8 +4714,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_2x4_0(uint32_t cols,
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
     __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(16384U);
-    float *sarAcc = (float *) KPR_SHMEM_AT(24576U);
+    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 8192U);
+    float *sarAcc =
+        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                               (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
@@ -4701,8 +4827,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_4x2_0(uint32_t cols,
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
     __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(16384U);
-    float *sarAcc = (float *) KPR_SHMEM_AT(24576U);
+    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 8192U);
+    float *sarAcc =
+        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                               (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
@@ -4814,8 +4943,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_4x4_0(uint32_t cols,
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
     __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(16384U);
-    float *sarAcc = (float *) KPR_SHMEM_AT(24576U);
+    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 8192U);
+    float *sarAcc =
+        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                               (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
@@ -4924,8 +5056,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_8x2_0(uint32_t cols,
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
     __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(16384U);
-    float *sarAcc = (float *) KPR_SHMEM_AT(24576U);
+    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 8192U);
+    float *sarAcc =
+        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                               (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
@@ -5037,8 +5172,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_8x4_0(uint32_t cols,
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
     __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(16384U);
-    float *sarAcc = (float *) KPR_SHMEM_AT(24576U);
+    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 8192U);
+    float *sarAcc =
+        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                               (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
@@ -5147,8 +5285,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_2x4_0(uint32_t cols,
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
     __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(4096U);
-    float *sarAcc = (float *) KPR_SHMEM_AT(8192U);
+    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 2048U);
+    float *sarAcc =
+        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                               (uint32_t) sizeof(__nv_bfloat16) * 2048U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
@@ -5260,8 +5401,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_2x8_0(uint32_t cols,
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
     __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(4096U);
-    float *sarAcc = (float *) KPR_SHMEM_AT(8192U);
+    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 2048U);
+    float *sarAcc =
+        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                               (uint32_t) sizeof(__nv_bfloat16) * 2048U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
@@ -5370,8 +5514,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_4x2_0(uint32_t cols,
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
     __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(4096U);
-    float *sarAcc = (float *) KPR_SHMEM_AT(8192U);
+    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 2048U);
+    float *sarAcc =
+        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                               (uint32_t) sizeof(__nv_bfloat16) * 2048U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
@@ -5483,8 +5630,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_4x4_0(uint32_t cols,
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
     __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(4096U);
-    float *sarAcc = (float *) KPR_SHMEM_AT(8192U);
+    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 2048U);
+    float *sarAcc =
+        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                               (uint32_t) sizeof(__nv_bfloat16) * 2048U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
@@ -5596,8 +5746,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_4x8_0(uint32_t cols,
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
     __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(4096U);
-    float *sarAcc = (float *) KPR_SHMEM_AT(8192U);
+    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 2048U);
+    float *sarAcc =
+        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                               (uint32_t) sizeof(__nv_bfloat16) * 2048U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
@@ -5706,8 +5859,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_8x2_0(uint32_t cols,
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
     __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(4096U);
-    float *sarAcc = (float *) KPR_SHMEM_AT(8192U);
+    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 2048U);
+    float *sarAcc =
+        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                               (uint32_t) sizeof(__nv_bfloat16) * 2048U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
@@ -5819,8 +5975,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_8x4_0(uint32_t cols,
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
     __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(4096U);
-    float *sarAcc = (float *) KPR_SHMEM_AT(8192U);
+    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 2048U);
+    float *sarAcc =
+        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                               (uint32_t) sizeof(__nv_bfloat16) * 2048U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
@@ -5932,8 +6091,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_8x8_0(uint32_t cols,
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
     __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(4096U);
-    float *sarAcc = (float *) KPR_SHMEM_AT(8192U);
+    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 2048U);
+    float *sarAcc =
+        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                               (uint32_t) sizeof(__nv_bfloat16) * 2048U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
@@ -6042,8 +6204,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_2x2_0(uint32_t cols,
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
     __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(8192U);
-    float *sarAcc = (float *) KPR_SHMEM_AT(16384U);
+    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
+    float *sarAcc =
+        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                               (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
@@ -6155,8 +6320,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_2x4_0(uint32_t cols,
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
     __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(8192U);
-    float *sarAcc = (float *) KPR_SHMEM_AT(16384U);
+    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
+    float *sarAcc =
+        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                               (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
@@ -6268,8 +6436,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_2x8_0(uint32_t cols,
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
     __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(8192U);
-    float *sarAcc = (float *) KPR_SHMEM_AT(16384U);
+    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
+    float *sarAcc =
+        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                               (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
@@ -6378,8 +6549,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_4x2_0(uint32_t cols,
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
     __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(8192U);
-    float *sarAcc = (float *) KPR_SHMEM_AT(16384U);
+    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
+    float *sarAcc =
+        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                               (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
@@ -6491,8 +6665,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_4x4_0(uint32_t cols,
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
     __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(8192U);
-    float *sarAcc = (float *) KPR_SHMEM_AT(16384U);
+    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
+    float *sarAcc =
+        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                               (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
@@ -6604,8 +6781,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_4x8_0(uint32_t cols,
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
     __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(8192U);
-    float *sarAcc = (float *) KPR_SHMEM_AT(16384U);
+    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
+    float *sarAcc =
+        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                               (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
@@ -6714,8 +6894,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_8x2_0(uint32_t cols,
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
     __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(8192U);
-    float *sarAcc = (float *) KPR_SHMEM_AT(16384U);
+    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
+    float *sarAcc =
+        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                               (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
@@ -6827,8 +7010,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_8x4_0(uint32_t cols,
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
     __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(8192U);
-    float *sarAcc = (float *) KPR_SHMEM_AT(16384U);
+    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
+    float *sarAcc =
+        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                               (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
@@ -6940,8 +7126,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_8x8_0(uint32_t cols,
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
     __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(8192U);
-    float *sarAcc = (float *) KPR_SHMEM_AT(16384U);
+    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
+    float *sarAcc =
+        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                               (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
@@ -7050,8 +7239,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_2x2_0(uint32_t cols,
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
     __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(16384U);
-    float *sarAcc = (float *) KPR_SHMEM_AT(32768U);
+    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 8192U);
+    float *sarAcc =
+        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                               (uint32_t) sizeof(__nv_bfloat16) * 8192U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
@@ -7163,8 +7355,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_2x4_0(uint32_t cols,
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
     __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(16384U);
-    float *sarAcc = (float *) KPR_SHMEM_AT(32768U);
+    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 8192U);
+    float *sarAcc =
+        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                               (uint32_t) sizeof(__nv_bfloat16) * 8192U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
@@ -7276,8 +7471,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_2x8_0(uint32_t cols,
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
     __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(16384U);
-    float *sarAcc = (float *) KPR_SHMEM_AT(32768U);
+    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 8192U);
+    float *sarAcc =
+        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                               (uint32_t) sizeof(__nv_bfloat16) * 8192U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
@@ -7386,8 +7584,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_4x2_0(uint32_t cols,
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
     __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(16384U);
-    float *sarAcc = (float *) KPR_SHMEM_AT(32768U);
+    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 8192U);
+    float *sarAcc =
+        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                               (uint32_t) sizeof(__nv_bfloat16) * 8192U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
@@ -7499,8 +7700,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_4x4_0(uint32_t cols,
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
     __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(16384U);
-    float *sarAcc = (float *) KPR_SHMEM_AT(32768U);
+    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 8192U);
+    float *sarAcc =
+        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                               (uint32_t) sizeof(__nv_bfloat16) * 8192U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
@@ -7612,8 +7816,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_4x8_0(uint32_t cols,
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
     __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(16384U);
-    float *sarAcc = (float *) KPR_SHMEM_AT(32768U);
+    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 8192U);
+    float *sarAcc =
+        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                               (uint32_t) sizeof(__nv_bfloat16) * 8192U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
@@ -7722,8 +7929,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_8x2_0(uint32_t cols,
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
     __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(16384U);
-    float *sarAcc = (float *) KPR_SHMEM_AT(32768U);
+    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 8192U);
+    float *sarAcc =
+        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                               (uint32_t) sizeof(__nv_bfloat16) * 8192U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
@@ -7835,8 +8045,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_8x4_0(uint32_t cols,
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
     __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(16384U);
-    float *sarAcc = (float *) KPR_SHMEM_AT(32768U);
+    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 8192U);
+    float *sarAcc =
+        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                               (uint32_t) sizeof(__nv_bfloat16) * 8192U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
@@ -7948,8 +8161,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_8x8_0(uint32_t cols,
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
     __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(16384U);
-    float *sarAcc = (float *) KPR_SHMEM_AT(32768U);
+    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 8192U);
+    float *sarAcc =
+        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                               (uint32_t) sizeof(__nv_bfloat16) * 8192U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
@@ -8060,9 +8276,25 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_2x2(
     KPR_ASSERT(true);
     KPR_ASSERT(true);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS(8192U);
+    KPR_SHMEM_FITS((uint32_t) sizeof(__nv_bfloat16) * 1024U +
+                   (uint32_t) sizeof(__nv_bfloat16) * 1024U +
+                   (uint32_t) sizeof(float) * 1024U);
+    if ((uint32_t) sizeof(__nv_bfloat16) * 1024U +
+            (uint32_t) sizeof(__nv_bfloat16) * 1024U +
+            (uint32_t) sizeof(float) * 1024U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(
+            __hoisted_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_2x2_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(__nv_bfloat16) * 1024U +
+                (uint32_t) sizeof(__nv_bfloat16) * 1024U +
+                (uint32_t) sizeof(float) * 1024U));
     KPR_KCALL(__hoisted_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_2x2_0, nblk,
-        128U, 8192U, s, cols, shared, gA, gB, 128U, gC, beta, alpha, gD);
+        128U,
+        (uint32_t) sizeof(__nv_bfloat16) * 1024U +
+            (uint32_t) sizeof(__nv_bfloat16) * 1024U +
+            (uint32_t) sizeof(float) * 1024U,
+        s, cols, shared, gA, gB, 128U, gC, beta, alpha, gD);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -8080,9 +8312,24 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_2x4(
     KPR_ASSERT(true);
     KPR_ASSERT(true);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS(6144U);
+    KPR_SHMEM_FITS((uint32_t) sizeof(__nv_bfloat16) * 1024U +
+                   (uint32_t) sizeof(__nv_bfloat16) * 1024U +
+                   (uint32_t) sizeof(float) * 512U);
+    if ((uint32_t) sizeof(__nv_bfloat16) * 1024U +
+            (uint32_t) sizeof(__nv_bfloat16) * 1024U +
+            (uint32_t) sizeof(float) * 512U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(
+            __hoisted_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_2x4_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(__nv_bfloat16) * 1024U +
+                (uint32_t) sizeof(__nv_bfloat16) * 1024U +
+                (uint32_t) sizeof(float) * 512U));
     KPR_KCALL(__hoisted_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_2x4_0, nblk, 64U,
-        6144U, s, cols, shared, gA, gB, 64U, gC, beta, alpha, gD);
+        (uint32_t) sizeof(__nv_bfloat16) * 1024U +
+            (uint32_t) sizeof(__nv_bfloat16) * 1024U +
+            (uint32_t) sizeof(float) * 512U,
+        s, cols, shared, gA, gB, 64U, gC, beta, alpha, gD);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -8100,9 +8347,24 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_4x2(
     KPR_ASSERT(true);
     KPR_ASSERT(true);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS(6144U);
+    KPR_SHMEM_FITS((uint32_t) sizeof(__nv_bfloat16) * 1024U +
+                   (uint32_t) sizeof(__nv_bfloat16) * 1024U +
+                   (uint32_t) sizeof(float) * 512U);
+    if ((uint32_t) sizeof(__nv_bfloat16) * 1024U +
+            (uint32_t) sizeof(__nv_bfloat16) * 1024U +
+            (uint32_t) sizeof(float) * 512U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(
+            __hoisted_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_4x2_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(__nv_bfloat16) * 1024U +
+                (uint32_t) sizeof(__nv_bfloat16) * 1024U +
+                (uint32_t) sizeof(float) * 512U));
     KPR_KCALL(__hoisted_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_4x2_0, nblk, 64U,
-        6144U, s, cols, shared, gA, gB, 64U, gC, beta, alpha, gD);
+        (uint32_t) sizeof(__nv_bfloat16) * 1024U +
+            (uint32_t) sizeof(__nv_bfloat16) * 1024U +
+            (uint32_t) sizeof(float) * 512U,
+        s, cols, shared, gA, gB, 64U, gC, beta, alpha, gD);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -8120,9 +8382,24 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_4x4(
     KPR_ASSERT(true);
     KPR_ASSERT(true);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS(5120U);
+    KPR_SHMEM_FITS((uint32_t) sizeof(__nv_bfloat16) * 1024U +
+                   (uint32_t) sizeof(__nv_bfloat16) * 1024U +
+                   (uint32_t) sizeof(float) * 256U);
+    if ((uint32_t) sizeof(__nv_bfloat16) * 1024U +
+            (uint32_t) sizeof(__nv_bfloat16) * 1024U +
+            (uint32_t) sizeof(float) * 256U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(
+            __hoisted_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_4x4_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(__nv_bfloat16) * 1024U +
+                (uint32_t) sizeof(__nv_bfloat16) * 1024U +
+                (uint32_t) sizeof(float) * 256U));
     KPR_KCALL(__hoisted_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_4x4_0, nblk, 32U,
-        5120U, s, cols, shared, gA, gB, 32U, gC, beta, alpha, gD);
+        (uint32_t) sizeof(__nv_bfloat16) * 1024U +
+            (uint32_t) sizeof(__nv_bfloat16) * 1024U +
+            (uint32_t) sizeof(float) * 256U,
+        s, cols, shared, gA, gB, 32U, gC, beta, alpha, gD);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -8140,9 +8417,25 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_2x2(
     KPR_ASSERT(true);
     KPR_ASSERT(true);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS(12288U);
+    KPR_SHMEM_FITS((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                   (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                   (uint32_t) sizeof(float) * 1024U);
+    if ((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(float) * 1024U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(
+            __hoisted_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_2x2_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                (uint32_t) sizeof(float) * 1024U));
     KPR_KCALL(__hoisted_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_2x2_0, nblk,
-        128U, 12288U, s, cols, shared, gA, gB, 128U, gC, beta, alpha, gD);
+        128U,
+        (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(float) * 1024U,
+        s, cols, shared, gA, gB, 128U, gC, beta, alpha, gD);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -8160,9 +8453,24 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_2x4(
     KPR_ASSERT(true);
     KPR_ASSERT(true);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS(10240U);
+    KPR_SHMEM_FITS((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                   (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                   (uint32_t) sizeof(float) * 512U);
+    if ((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(float) * 512U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(
+            __hoisted_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_2x4_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                (uint32_t) sizeof(float) * 512U));
     KPR_KCALL(__hoisted_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_2x4_0, nblk, 64U,
-        10240U, s, cols, shared, gA, gB, 64U, gC, beta, alpha, gD);
+        (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(float) * 512U,
+        s, cols, shared, gA, gB, 64U, gC, beta, alpha, gD);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -8180,9 +8488,24 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_4x2(
     KPR_ASSERT(true);
     KPR_ASSERT(true);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS(10240U);
+    KPR_SHMEM_FITS((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                   (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                   (uint32_t) sizeof(float) * 512U);
+    if ((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(float) * 512U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(
+            __hoisted_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_4x2_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                (uint32_t) sizeof(float) * 512U));
     KPR_KCALL(__hoisted_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_4x2_0, nblk, 64U,
-        10240U, s, cols, shared, gA, gB, 64U, gC, beta, alpha, gD);
+        (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(float) * 512U,
+        s, cols, shared, gA, gB, 64U, gC, beta, alpha, gD);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -8200,9 +8523,24 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_4x4(
     KPR_ASSERT(true);
     KPR_ASSERT(true);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS(9216U);
+    KPR_SHMEM_FITS((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                   (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                   (uint32_t) sizeof(float) * 256U);
+    if ((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(float) * 256U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(
+            __hoisted_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_4x4_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                (uint32_t) sizeof(float) * 256U));
     KPR_KCALL(__hoisted_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_4x4_0, nblk, 32U,
-        9216U, s, cols, shared, gA, gB, 32U, gC, beta, alpha, gD);
+        (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(float) * 256U,
+        s, cols, shared, gA, gB, 32U, gC, beta, alpha, gD);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -8220,9 +8558,25 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_2x2(
     KPR_ASSERT(true);
     KPR_ASSERT(true);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS(20480U);
+    KPR_SHMEM_FITS((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                   (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                   (uint32_t) sizeof(float) * 1024U);
+    if ((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(float) * 1024U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(
+            __hoisted_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_2x2_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                (uint32_t) sizeof(float) * 1024U));
     KPR_KCALL(__hoisted_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_2x2_0, nblk,
-        128U, 20480U, s, cols, shared, gA, gB, 128U, gC, beta, alpha, gD);
+        128U,
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(float) * 1024U,
+        s, cols, shared, gA, gB, 128U, gC, beta, alpha, gD);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -8240,9 +8594,24 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_2x4(
     KPR_ASSERT(true);
     KPR_ASSERT(true);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS(18432U);
+    KPR_SHMEM_FITS((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                   (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                   (uint32_t) sizeof(float) * 512U);
+    if ((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(float) * 512U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(
+            __hoisted_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_2x4_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                (uint32_t) sizeof(float) * 512U));
     KPR_KCALL(__hoisted_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_2x4_0, nblk, 64U,
-        18432U, s, cols, shared, gA, gB, 64U, gC, beta, alpha, gD);
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(float) * 512U,
+        s, cols, shared, gA, gB, 64U, gC, beta, alpha, gD);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -8260,9 +8629,24 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_4x2(
     KPR_ASSERT(true);
     KPR_ASSERT(true);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS(18432U);
+    KPR_SHMEM_FITS((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                   (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                   (uint32_t) sizeof(float) * 512U);
+    if ((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(float) * 512U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(
+            __hoisted_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_4x2_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                (uint32_t) sizeof(float) * 512U));
     KPR_KCALL(__hoisted_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_4x2_0, nblk, 64U,
-        18432U, s, cols, shared, gA, gB, 64U, gC, beta, alpha, gD);
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(float) * 512U,
+        s, cols, shared, gA, gB, 64U, gC, beta, alpha, gD);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -8280,9 +8664,24 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_4x4(
     KPR_ASSERT(true);
     KPR_ASSERT(true);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS(17408U);
+    KPR_SHMEM_FITS((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                   (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                   (uint32_t) sizeof(float) * 256U);
+    if ((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(float) * 256U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(
+            __hoisted_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_4x4_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                (uint32_t) sizeof(float) * 256U));
     KPR_KCALL(__hoisted_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_4x4_0, nblk, 32U,
-        17408U, s, cols, shared, gA, gB, 32U, gC, beta, alpha, gD);
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(float) * 256U,
+        s, cols, shared, gA, gB, 32U, gC, beta, alpha, gD);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -8300,9 +8699,25 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_2x4(
     KPR_ASSERT(true);
     KPR_ASSERT(true);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS(10240U);
+    KPR_SHMEM_FITS((uint32_t) sizeof(__nv_bfloat16) * 1024U +
+                   (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                   (uint32_t) sizeof(float) * 1024U);
+    if ((uint32_t) sizeof(__nv_bfloat16) * 1024U +
+            (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(float) * 1024U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(
+            __hoisted_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_2x4_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(__nv_bfloat16) * 1024U +
+                (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                (uint32_t) sizeof(float) * 1024U));
     KPR_KCALL(__hoisted_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_2x4_0, nblk,
-        128U, 10240U, s, cols, shared, gA, gB, 128U, gC, beta, alpha, gD);
+        128U,
+        (uint32_t) sizeof(__nv_bfloat16) * 1024U +
+            (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(float) * 1024U,
+        s, cols, shared, gA, gB, 128U, gC, beta, alpha, gD);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -8320,9 +8735,25 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_2x8(
     KPR_ASSERT(true);
     KPR_ASSERT(true);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS(8192U);
+    KPR_SHMEM_FITS((uint32_t) sizeof(__nv_bfloat16) * 1024U +
+                   (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                   (uint32_t) sizeof(float) * 512U);
+    if ((uint32_t) sizeof(__nv_bfloat16) * 1024U +
+            (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(float) * 512U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(
+            __hoisted_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_2x8_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(__nv_bfloat16) * 1024U +
+                (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                (uint32_t) sizeof(float) * 512U));
     KPR_KCALL(__hoisted_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_2x8_0, nblk,
-        64U, 8192U, s, cols, shared, gA, gB, 64U, gC, beta, alpha, gD);
+        64U,
+        (uint32_t) sizeof(__nv_bfloat16) * 1024U +
+            (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(float) * 512U,
+        s, cols, shared, gA, gB, 64U, gC, beta, alpha, gD);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -8340,9 +8771,25 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_4x2(
     KPR_ASSERT(true);
     KPR_ASSERT(true);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS(10240U);
+    KPR_SHMEM_FITS((uint32_t) sizeof(__nv_bfloat16) * 1024U +
+                   (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                   (uint32_t) sizeof(float) * 1024U);
+    if ((uint32_t) sizeof(__nv_bfloat16) * 1024U +
+            (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(float) * 1024U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(
+            __hoisted_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_4x2_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(__nv_bfloat16) * 1024U +
+                (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                (uint32_t) sizeof(float) * 1024U));
     KPR_KCALL(__hoisted_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_4x2_0, nblk,
-        128U, 10240U, s, cols, shared, gA, gB, 128U, gC, beta, alpha, gD);
+        128U,
+        (uint32_t) sizeof(__nv_bfloat16) * 1024U +
+            (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(float) * 1024U,
+        s, cols, shared, gA, gB, 128U, gC, beta, alpha, gD);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -8360,9 +8807,25 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_4x4(
     KPR_ASSERT(true);
     KPR_ASSERT(true);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS(8192U);
+    KPR_SHMEM_FITS((uint32_t) sizeof(__nv_bfloat16) * 1024U +
+                   (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                   (uint32_t) sizeof(float) * 512U);
+    if ((uint32_t) sizeof(__nv_bfloat16) * 1024U +
+            (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(float) * 512U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(
+            __hoisted_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_4x4_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(__nv_bfloat16) * 1024U +
+                (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                (uint32_t) sizeof(float) * 512U));
     KPR_KCALL(__hoisted_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_4x4_0, nblk,
-        64U, 8192U, s, cols, shared, gA, gB, 64U, gC, beta, alpha, gD);
+        64U,
+        (uint32_t) sizeof(__nv_bfloat16) * 1024U +
+            (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(float) * 512U,
+        s, cols, shared, gA, gB, 64U, gC, beta, alpha, gD);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -8380,9 +8843,25 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_4x8(
     KPR_ASSERT(true);
     KPR_ASSERT(true);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS(7168U);
+    KPR_SHMEM_FITS((uint32_t) sizeof(__nv_bfloat16) * 1024U +
+                   (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                   (uint32_t) sizeof(float) * 256U);
+    if ((uint32_t) sizeof(__nv_bfloat16) * 1024U +
+            (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(float) * 256U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(
+            __hoisted_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_4x8_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(__nv_bfloat16) * 1024U +
+                (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                (uint32_t) sizeof(float) * 256U));
     KPR_KCALL(__hoisted_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_4x8_0, nblk,
-        32U, 7168U, s, cols, shared, gA, gB, 32U, gC, beta, alpha, gD);
+        32U,
+        (uint32_t) sizeof(__nv_bfloat16) * 1024U +
+            (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(float) * 256U,
+        s, cols, shared, gA, gB, 32U, gC, beta, alpha, gD);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -8400,9 +8879,25 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_2x2(
     KPR_ASSERT(true);
     KPR_ASSERT(true);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS(20480U);
+    KPR_SHMEM_FITS((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                   (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                   (uint32_t) sizeof(float) * 2048U);
+    if ((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(float) * 2048U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(
+            __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_2x2_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                (uint32_t) sizeof(float) * 2048U));
     KPR_KCALL(__hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_2x2_0, nblk,
-        256U, 20480U, s, cols, shared, gA, gB, 256U, gC, beta, alpha, gD);
+        256U,
+        (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(float) * 2048U,
+        s, cols, shared, gA, gB, 256U, gC, beta, alpha, gD);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -8420,9 +8915,25 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_2x4(
     KPR_ASSERT(true);
     KPR_ASSERT(true);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS(16384U);
+    KPR_SHMEM_FITS((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                   (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                   (uint32_t) sizeof(float) * 1024U);
+    if ((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(float) * 1024U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(
+            __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_2x4_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                (uint32_t) sizeof(float) * 1024U));
     KPR_KCALL(__hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_2x4_0, nblk,
-        128U, 16384U, s, cols, shared, gA, gB, 128U, gC, beta, alpha, gD);
+        128U,
+        (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(float) * 1024U,
+        s, cols, shared, gA, gB, 128U, gC, beta, alpha, gD);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -8440,9 +8951,25 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_2x8(
     KPR_ASSERT(true);
     KPR_ASSERT(true);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS(14336U);
+    KPR_SHMEM_FITS((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                   (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                   (uint32_t) sizeof(float) * 512U);
+    if ((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(float) * 512U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(
+            __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_2x8_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                (uint32_t) sizeof(float) * 512U));
     KPR_KCALL(__hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_2x8_0, nblk,
-        64U, 14336U, s, cols, shared, gA, gB, 64U, gC, beta, alpha, gD);
+        64U,
+        (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(float) * 512U,
+        s, cols, shared, gA, gB, 64U, gC, beta, alpha, gD);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -8460,9 +8987,25 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_4x2(
     KPR_ASSERT(true);
     KPR_ASSERT(true);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS(16384U);
+    KPR_SHMEM_FITS((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                   (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                   (uint32_t) sizeof(float) * 1024U);
+    if ((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(float) * 1024U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(
+            __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_4x2_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                (uint32_t) sizeof(float) * 1024U));
     KPR_KCALL(__hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_4x2_0, nblk,
-        128U, 16384U, s, cols, shared, gA, gB, 128U, gC, beta, alpha, gD);
+        128U,
+        (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(float) * 1024U,
+        s, cols, shared, gA, gB, 128U, gC, beta, alpha, gD);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -8480,9 +9023,25 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_4x4(
     KPR_ASSERT(true);
     KPR_ASSERT(true);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS(14336U);
+    KPR_SHMEM_FITS((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                   (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                   (uint32_t) sizeof(float) * 512U);
+    if ((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(float) * 512U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(
+            __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_4x4_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                (uint32_t) sizeof(float) * 512U));
     KPR_KCALL(__hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_4x4_0, nblk,
-        64U, 14336U, s, cols, shared, gA, gB, 64U, gC, beta, alpha, gD);
+        64U,
+        (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(float) * 512U,
+        s, cols, shared, gA, gB, 64U, gC, beta, alpha, gD);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -8500,9 +9059,25 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_4x8(
     KPR_ASSERT(true);
     KPR_ASSERT(true);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS(13312U);
+    KPR_SHMEM_FITS((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                   (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                   (uint32_t) sizeof(float) * 256U);
+    if ((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(float) * 256U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(
+            __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_4x8_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                (uint32_t) sizeof(float) * 256U));
     KPR_KCALL(__hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_4x8_0, nblk,
-        32U, 13312U, s, cols, shared, gA, gB, 32U, gC, beta, alpha, gD);
+        32U,
+        (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(float) * 256U,
+        s, cols, shared, gA, gB, 32U, gC, beta, alpha, gD);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -8520,9 +9095,25 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_2x2(
     KPR_ASSERT(true);
     KPR_ASSERT(true);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS(32768U);
+    KPR_SHMEM_FITS((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                   (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                   (uint32_t) sizeof(float) * 2048U);
+    if ((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+            (uint32_t) sizeof(float) * 2048U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(
+            __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_2x2_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                (uint32_t) sizeof(float) * 2048U));
     KPR_KCALL(__hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_2x2_0, nblk,
-        256U, 32768U, s, cols, shared, gA, gB, 256U, gC, beta, alpha, gD);
+        256U,
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+            (uint32_t) sizeof(float) * 2048U,
+        s, cols, shared, gA, gB, 256U, gC, beta, alpha, gD);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -8540,9 +9131,25 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_2x4(
     KPR_ASSERT(true);
     KPR_ASSERT(true);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS(28672U);
+    KPR_SHMEM_FITS((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                   (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                   (uint32_t) sizeof(float) * 1024U);
+    if ((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+            (uint32_t) sizeof(float) * 1024U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(
+            __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_2x4_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                (uint32_t) sizeof(float) * 1024U));
     KPR_KCALL(__hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_2x4_0, nblk,
-        128U, 28672U, s, cols, shared, gA, gB, 128U, gC, beta, alpha, gD);
+        128U,
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+            (uint32_t) sizeof(float) * 1024U,
+        s, cols, shared, gA, gB, 128U, gC, beta, alpha, gD);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -8560,9 +9167,25 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_2x8(
     KPR_ASSERT(true);
     KPR_ASSERT(true);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS(26624U);
+    KPR_SHMEM_FITS((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                   (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                   (uint32_t) sizeof(float) * 512U);
+    if ((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+            (uint32_t) sizeof(float) * 512U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(
+            __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_2x8_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                (uint32_t) sizeof(float) * 512U));
     KPR_KCALL(__hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_2x8_0, nblk,
-        64U, 26624U, s, cols, shared, gA, gB, 64U, gC, beta, alpha, gD);
+        64U,
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+            (uint32_t) sizeof(float) * 512U,
+        s, cols, shared, gA, gB, 64U, gC, beta, alpha, gD);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -8580,9 +9203,25 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_4x2(
     KPR_ASSERT(true);
     KPR_ASSERT(true);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS(28672U);
+    KPR_SHMEM_FITS((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                   (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                   (uint32_t) sizeof(float) * 1024U);
+    if ((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+            (uint32_t) sizeof(float) * 1024U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(
+            __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_4x2_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                (uint32_t) sizeof(float) * 1024U));
     KPR_KCALL(__hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_4x2_0, nblk,
-        128U, 28672U, s, cols, shared, gA, gB, 128U, gC, beta, alpha, gD);
+        128U,
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+            (uint32_t) sizeof(float) * 1024U,
+        s, cols, shared, gA, gB, 128U, gC, beta, alpha, gD);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -8600,9 +9239,25 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_4x4(
     KPR_ASSERT(true);
     KPR_ASSERT(true);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS(26624U);
+    KPR_SHMEM_FITS((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                   (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                   (uint32_t) sizeof(float) * 512U);
+    if ((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+            (uint32_t) sizeof(float) * 512U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(
+            __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_4x4_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                (uint32_t) sizeof(float) * 512U));
     KPR_KCALL(__hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_4x4_0, nblk,
-        64U, 26624U, s, cols, shared, gA, gB, 64U, gC, beta, alpha, gD);
+        64U,
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+            (uint32_t) sizeof(float) * 512U,
+        s, cols, shared, gA, gB, 64U, gC, beta, alpha, gD);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -8620,9 +9275,25 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_4x8(
     KPR_ASSERT(true);
     KPR_ASSERT(true);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS(25600U);
+    KPR_SHMEM_FITS((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                   (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                   (uint32_t) sizeof(float) * 256U);
+    if ((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+            (uint32_t) sizeof(float) * 256U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(
+            __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_4x8_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                (uint32_t) sizeof(float) * 256U));
     KPR_KCALL(__hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_4x8_0, nblk,
-        32U, 25600U, s, cols, shared, gA, gB, 32U, gC, beta, alpha, gD);
+        32U,
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+            (uint32_t) sizeof(float) * 256U,
+        s, cols, shared, gA, gB, 32U, gC, beta, alpha, gD);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -8640,9 +9311,25 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_2x4(
     KPR_ASSERT(true);
     KPR_ASSERT(true);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS(10240U);
+    KPR_SHMEM_FITS((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                   (uint32_t) sizeof(__nv_bfloat16) * 1024U +
+                   (uint32_t) sizeof(float) * 1024U);
+    if ((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(__nv_bfloat16) * 1024U +
+            (uint32_t) sizeof(float) * 1024U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(
+            __hoisted_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_2x4_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                (uint32_t) sizeof(__nv_bfloat16) * 1024U +
+                (uint32_t) sizeof(float) * 1024U));
     KPR_KCALL(__hoisted_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_2x4_0, nblk,
-        128U, 10240U, s, cols, shared, gA, gB, 128U, gC, beta, alpha, gD);
+        128U,
+        (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(__nv_bfloat16) * 1024U +
+            (uint32_t) sizeof(float) * 1024U,
+        s, cols, shared, gA, gB, 128U, gC, beta, alpha, gD);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -8660,9 +9347,25 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_4x2(
     KPR_ASSERT(true);
     KPR_ASSERT(true);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS(10240U);
+    KPR_SHMEM_FITS((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                   (uint32_t) sizeof(__nv_bfloat16) * 1024U +
+                   (uint32_t) sizeof(float) * 1024U);
+    if ((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(__nv_bfloat16) * 1024U +
+            (uint32_t) sizeof(float) * 1024U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(
+            __hoisted_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_4x2_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                (uint32_t) sizeof(__nv_bfloat16) * 1024U +
+                (uint32_t) sizeof(float) * 1024U));
     KPR_KCALL(__hoisted_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_4x2_0, nblk,
-        128U, 10240U, s, cols, shared, gA, gB, 128U, gC, beta, alpha, gD);
+        128U,
+        (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(__nv_bfloat16) * 1024U +
+            (uint32_t) sizeof(float) * 1024U,
+        s, cols, shared, gA, gB, 128U, gC, beta, alpha, gD);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -8680,9 +9383,25 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_4x4(
     KPR_ASSERT(true);
     KPR_ASSERT(true);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS(8192U);
+    KPR_SHMEM_FITS((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                   (uint32_t) sizeof(__nv_bfloat16) * 1024U +
+                   (uint32_t) sizeof(float) * 512U);
+    if ((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(__nv_bfloat16) * 1024U +
+            (uint32_t) sizeof(float) * 512U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(
+            __hoisted_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_4x4_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                (uint32_t) sizeof(__nv_bfloat16) * 1024U +
+                (uint32_t) sizeof(float) * 512U));
     KPR_KCALL(__hoisted_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_4x4_0, nblk,
-        64U, 8192U, s, cols, shared, gA, gB, 64U, gC, beta, alpha, gD);
+        64U,
+        (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(__nv_bfloat16) * 1024U +
+            (uint32_t) sizeof(float) * 512U,
+        s, cols, shared, gA, gB, 64U, gC, beta, alpha, gD);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -8700,9 +9419,25 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_8x2(
     KPR_ASSERT(true);
     KPR_ASSERT(true);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS(8192U);
+    KPR_SHMEM_FITS((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                   (uint32_t) sizeof(__nv_bfloat16) * 1024U +
+                   (uint32_t) sizeof(float) * 512U);
+    if ((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(__nv_bfloat16) * 1024U +
+            (uint32_t) sizeof(float) * 512U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(
+            __hoisted_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_8x2_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                (uint32_t) sizeof(__nv_bfloat16) * 1024U +
+                (uint32_t) sizeof(float) * 512U));
     KPR_KCALL(__hoisted_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_8x2_0, nblk,
-        64U, 8192U, s, cols, shared, gA, gB, 64U, gC, beta, alpha, gD);
+        64U,
+        (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(__nv_bfloat16) * 1024U +
+            (uint32_t) sizeof(float) * 512U,
+        s, cols, shared, gA, gB, 64U, gC, beta, alpha, gD);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -8720,9 +9455,25 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_8x4(
     KPR_ASSERT(true);
     KPR_ASSERT(true);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS(7168U);
+    KPR_SHMEM_FITS((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                   (uint32_t) sizeof(__nv_bfloat16) * 1024U +
+                   (uint32_t) sizeof(float) * 256U);
+    if ((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(__nv_bfloat16) * 1024U +
+            (uint32_t) sizeof(float) * 256U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(
+            __hoisted_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_8x4_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                (uint32_t) sizeof(__nv_bfloat16) * 1024U +
+                (uint32_t) sizeof(float) * 256U));
     KPR_KCALL(__hoisted_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_8x4_0, nblk,
-        32U, 7168U, s, cols, shared, gA, gB, 32U, gC, beta, alpha, gD);
+        32U,
+        (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(__nv_bfloat16) * 1024U +
+            (uint32_t) sizeof(float) * 256U,
+        s, cols, shared, gA, gB, 32U, gC, beta, alpha, gD);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -8740,9 +9491,25 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_2x2(
     KPR_ASSERT(true);
     KPR_ASSERT(true);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS(20480U);
+    KPR_SHMEM_FITS((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                   (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                   (uint32_t) sizeof(float) * 2048U);
+    if ((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(float) * 2048U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(
+            __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_2x2_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                (uint32_t) sizeof(float) * 2048U));
     KPR_KCALL(__hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_2x2_0, nblk,
-        256U, 20480U, s, cols, shared, gA, gB, 256U, gC, beta, alpha, gD);
+        256U,
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(float) * 2048U,
+        s, cols, shared, gA, gB, 256U, gC, beta, alpha, gD);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -8760,9 +9527,25 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_2x4(
     KPR_ASSERT(true);
     KPR_ASSERT(true);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS(16384U);
+    KPR_SHMEM_FITS((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                   (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                   (uint32_t) sizeof(float) * 1024U);
+    if ((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(float) * 1024U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(
+            __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_2x4_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                (uint32_t) sizeof(float) * 1024U));
     KPR_KCALL(__hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_2x4_0, nblk,
-        128U, 16384U, s, cols, shared, gA, gB, 128U, gC, beta, alpha, gD);
+        128U,
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(float) * 1024U,
+        s, cols, shared, gA, gB, 128U, gC, beta, alpha, gD);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -8780,9 +9563,25 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_4x2(
     KPR_ASSERT(true);
     KPR_ASSERT(true);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS(16384U);
+    KPR_SHMEM_FITS((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                   (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                   (uint32_t) sizeof(float) * 1024U);
+    if ((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(float) * 1024U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(
+            __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_4x2_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                (uint32_t) sizeof(float) * 1024U));
     KPR_KCALL(__hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_4x2_0, nblk,
-        128U, 16384U, s, cols, shared, gA, gB, 128U, gC, beta, alpha, gD);
+        128U,
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(float) * 1024U,
+        s, cols, shared, gA, gB, 128U, gC, beta, alpha, gD);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -8800,9 +9599,25 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_4x4(
     KPR_ASSERT(true);
     KPR_ASSERT(true);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS(14336U);
+    KPR_SHMEM_FITS((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                   (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                   (uint32_t) sizeof(float) * 512U);
+    if ((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(float) * 512U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(
+            __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_4x4_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                (uint32_t) sizeof(float) * 512U));
     KPR_KCALL(__hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_4x4_0, nblk,
-        64U, 14336U, s, cols, shared, gA, gB, 64U, gC, beta, alpha, gD);
+        64U,
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(float) * 512U,
+        s, cols, shared, gA, gB, 64U, gC, beta, alpha, gD);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -8820,9 +9635,25 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_8x2(
     KPR_ASSERT(true);
     KPR_ASSERT(true);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS(14336U);
+    KPR_SHMEM_FITS((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                   (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                   (uint32_t) sizeof(float) * 512U);
+    if ((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(float) * 512U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(
+            __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_8x2_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                (uint32_t) sizeof(float) * 512U));
     KPR_KCALL(__hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_8x2_0, nblk,
-        64U, 14336U, s, cols, shared, gA, gB, 64U, gC, beta, alpha, gD);
+        64U,
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(float) * 512U,
+        s, cols, shared, gA, gB, 64U, gC, beta, alpha, gD);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -8840,9 +9671,25 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_8x4(
     KPR_ASSERT(true);
     KPR_ASSERT(true);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS(13312U);
+    KPR_SHMEM_FITS((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                   (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                   (uint32_t) sizeof(float) * 256U);
+    if ((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(float) * 256U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(
+            __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_8x4_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                (uint32_t) sizeof(float) * 256U));
     KPR_KCALL(__hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_8x4_0, nblk,
-        32U, 13312U, s, cols, shared, gA, gB, 32U, gC, beta, alpha, gD);
+        32U,
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(float) * 256U,
+        s, cols, shared, gA, gB, 32U, gC, beta, alpha, gD);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -8860,9 +9707,25 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_2x2(
     KPR_ASSERT(true);
     KPR_ASSERT(true);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS(32768U);
+    KPR_SHMEM_FITS((uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                   (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                   (uint32_t) sizeof(float) * 2048U);
+    if ((uint32_t) sizeof(__nv_bfloat16) * 8192U +
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(float) * 2048U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(
+            __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_2x2_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                (uint32_t) sizeof(float) * 2048U));
     KPR_KCALL(__hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_2x2_0, nblk,
-        256U, 32768U, s, cols, shared, gA, gB, 256U, gC, beta, alpha, gD);
+        256U,
+        (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(float) * 2048U,
+        s, cols, shared, gA, gB, 256U, gC, beta, alpha, gD);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -8880,9 +9743,25 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_2x4(
     KPR_ASSERT(true);
     KPR_ASSERT(true);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS(28672U);
+    KPR_SHMEM_FITS((uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                   (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                   (uint32_t) sizeof(float) * 1024U);
+    if ((uint32_t) sizeof(__nv_bfloat16) * 8192U +
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(float) * 1024U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(
+            __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_2x4_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                (uint32_t) sizeof(float) * 1024U));
     KPR_KCALL(__hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_2x4_0, nblk,
-        128U, 28672U, s, cols, shared, gA, gB, 128U, gC, beta, alpha, gD);
+        128U,
+        (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(float) * 1024U,
+        s, cols, shared, gA, gB, 128U, gC, beta, alpha, gD);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -8900,9 +9779,25 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_4x2(
     KPR_ASSERT(true);
     KPR_ASSERT(true);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS(28672U);
+    KPR_SHMEM_FITS((uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                   (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                   (uint32_t) sizeof(float) * 1024U);
+    if ((uint32_t) sizeof(__nv_bfloat16) * 8192U +
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(float) * 1024U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(
+            __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_4x2_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                (uint32_t) sizeof(float) * 1024U));
     KPR_KCALL(__hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_4x2_0, nblk,
-        128U, 28672U, s, cols, shared, gA, gB, 128U, gC, beta, alpha, gD);
+        128U,
+        (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(float) * 1024U,
+        s, cols, shared, gA, gB, 128U, gC, beta, alpha, gD);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -8920,9 +9815,25 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_4x4(
     KPR_ASSERT(true);
     KPR_ASSERT(true);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS(26624U);
+    KPR_SHMEM_FITS((uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                   (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                   (uint32_t) sizeof(float) * 512U);
+    if ((uint32_t) sizeof(__nv_bfloat16) * 8192U +
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(float) * 512U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(
+            __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_4x4_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                (uint32_t) sizeof(float) * 512U));
     KPR_KCALL(__hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_4x4_0, nblk,
-        64U, 26624U, s, cols, shared, gA, gB, 64U, gC, beta, alpha, gD);
+        64U,
+        (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(float) * 512U,
+        s, cols, shared, gA, gB, 64U, gC, beta, alpha, gD);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -8940,9 +9851,25 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_8x2(
     KPR_ASSERT(true);
     KPR_ASSERT(true);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS(26624U);
+    KPR_SHMEM_FITS((uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                   (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                   (uint32_t) sizeof(float) * 512U);
+    if ((uint32_t) sizeof(__nv_bfloat16) * 8192U +
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(float) * 512U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(
+            __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_8x2_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                (uint32_t) sizeof(float) * 512U));
     KPR_KCALL(__hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_8x2_0, nblk,
-        64U, 26624U, s, cols, shared, gA, gB, 64U, gC, beta, alpha, gD);
+        64U,
+        (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(float) * 512U,
+        s, cols, shared, gA, gB, 64U, gC, beta, alpha, gD);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -8960,9 +9887,25 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_8x4(
     KPR_ASSERT(true);
     KPR_ASSERT(true);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS(25600U);
+    KPR_SHMEM_FITS((uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                   (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                   (uint32_t) sizeof(float) * 256U);
+    if ((uint32_t) sizeof(__nv_bfloat16) * 8192U +
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(float) * 256U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(
+            __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_8x4_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                (uint32_t) sizeof(float) * 256U));
     KPR_KCALL(__hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_8x4_0, nblk,
-        32U, 25600U, s, cols, shared, gA, gB, 32U, gC, beta, alpha, gD);
+        32U,
+        (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(float) * 256U,
+        s, cols, shared, gA, gB, 32U, gC, beta, alpha, gD);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -8980,9 +9923,25 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_2x4(
     KPR_ASSERT(true);
     KPR_ASSERT(true);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS(16384U);
+    KPR_SHMEM_FITS((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                   (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                   (uint32_t) sizeof(float) * 2048U);
+    if ((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(float) * 2048U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(
+            __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_2x4_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                (uint32_t) sizeof(float) * 2048U));
     KPR_KCALL(__hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_2x4_0, nblk,
-        256U, 16384U, s, cols, shared, gA, gB, 256U, gC, beta, alpha, gD);
+        256U,
+        (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(float) * 2048U,
+        s, cols, shared, gA, gB, 256U, gC, beta, alpha, gD);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -9000,9 +9959,25 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_2x8(
     KPR_ASSERT(true);
     KPR_ASSERT(true);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS(12288U);
+    KPR_SHMEM_FITS((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                   (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                   (uint32_t) sizeof(float) * 1024U);
+    if ((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(float) * 1024U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(
+            __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_2x8_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                (uint32_t) sizeof(float) * 1024U));
     KPR_KCALL(__hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_2x8_0, nblk,
-        128U, 12288U, s, cols, shared, gA, gB, 128U, gC, beta, alpha, gD);
+        128U,
+        (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(float) * 1024U,
+        s, cols, shared, gA, gB, 128U, gC, beta, alpha, gD);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -9020,9 +9995,25 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_4x2(
     KPR_ASSERT(true);
     KPR_ASSERT(true);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS(16384U);
+    KPR_SHMEM_FITS((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                   (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                   (uint32_t) sizeof(float) * 2048U);
+    if ((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(float) * 2048U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(
+            __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_4x2_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                (uint32_t) sizeof(float) * 2048U));
     KPR_KCALL(__hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_4x2_0, nblk,
-        256U, 16384U, s, cols, shared, gA, gB, 256U, gC, beta, alpha, gD);
+        256U,
+        (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(float) * 2048U,
+        s, cols, shared, gA, gB, 256U, gC, beta, alpha, gD);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -9040,9 +10031,25 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_4x4(
     KPR_ASSERT(true);
     KPR_ASSERT(true);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS(12288U);
+    KPR_SHMEM_FITS((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                   (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                   (uint32_t) sizeof(float) * 1024U);
+    if ((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(float) * 1024U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(
+            __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_4x4_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                (uint32_t) sizeof(float) * 1024U));
     KPR_KCALL(__hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_4x4_0, nblk,
-        128U, 12288U, s, cols, shared, gA, gB, 128U, gC, beta, alpha, gD);
+        128U,
+        (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(float) * 1024U,
+        s, cols, shared, gA, gB, 128U, gC, beta, alpha, gD);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -9060,9 +10067,25 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_4x8(
     KPR_ASSERT(true);
     KPR_ASSERT(true);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS(10240U);
+    KPR_SHMEM_FITS((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                   (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                   (uint32_t) sizeof(float) * 512U);
+    if ((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(float) * 512U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(
+            __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_4x8_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                (uint32_t) sizeof(float) * 512U));
     KPR_KCALL(__hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_4x8_0, nblk,
-        64U, 10240U, s, cols, shared, gA, gB, 64U, gC, beta, alpha, gD);
+        64U,
+        (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(float) * 512U,
+        s, cols, shared, gA, gB, 64U, gC, beta, alpha, gD);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -9080,9 +10103,25 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_8x2(
     KPR_ASSERT(true);
     KPR_ASSERT(true);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS(12288U);
+    KPR_SHMEM_FITS((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                   (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                   (uint32_t) sizeof(float) * 1024U);
+    if ((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(float) * 1024U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(
+            __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_8x2_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                (uint32_t) sizeof(float) * 1024U));
     KPR_KCALL(__hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_8x2_0, nblk,
-        128U, 12288U, s, cols, shared, gA, gB, 128U, gC, beta, alpha, gD);
+        128U,
+        (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(float) * 1024U,
+        s, cols, shared, gA, gB, 128U, gC, beta, alpha, gD);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -9100,9 +10139,25 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_8x4(
     KPR_ASSERT(true);
     KPR_ASSERT(true);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS(10240U);
+    KPR_SHMEM_FITS((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                   (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                   (uint32_t) sizeof(float) * 512U);
+    if ((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(float) * 512U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(
+            __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_8x4_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                (uint32_t) sizeof(float) * 512U));
     KPR_KCALL(__hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_8x4_0, nblk,
-        64U, 10240U, s, cols, shared, gA, gB, 64U, gC, beta, alpha, gD);
+        64U,
+        (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(float) * 512U,
+        s, cols, shared, gA, gB, 64U, gC, beta, alpha, gD);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -9120,9 +10175,25 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_8x8(
     KPR_ASSERT(true);
     KPR_ASSERT(true);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS(9216U);
+    KPR_SHMEM_FITS((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                   (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                   (uint32_t) sizeof(float) * 256U);
+    if ((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(float) * 256U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(
+            __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_8x8_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                (uint32_t) sizeof(float) * 256U));
     KPR_KCALL(__hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_8x8_0, nblk,
-        32U, 9216U, s, cols, shared, gA, gB, 32U, gC, beta, alpha, gD);
+        32U,
+        (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(__nv_bfloat16) * 2048U +
+            (uint32_t) sizeof(float) * 256U,
+        s, cols, shared, gA, gB, 32U, gC, beta, alpha, gD);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -9140,9 +10211,25 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_2x2(
     KPR_ASSERT(true);
     KPR_ASSERT(true);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS(32768U);
+    KPR_SHMEM_FITS((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                   (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                   (uint32_t) sizeof(float) * 4096U);
+    if ((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(float) * 4096U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(
+            __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_2x2_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                (uint32_t) sizeof(float) * 4096U));
     KPR_KCALL(__hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_2x2_0, nblk,
-        512U, 32768U, s, cols, shared, gA, gB, 512U, gC, beta, alpha, gD);
+        512U,
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(float) * 4096U,
+        s, cols, shared, gA, gB, 512U, gC, beta, alpha, gD);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -9160,9 +10247,25 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_2x4(
     KPR_ASSERT(true);
     KPR_ASSERT(true);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS(24576U);
+    KPR_SHMEM_FITS((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                   (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                   (uint32_t) sizeof(float) * 2048U);
+    if ((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(float) * 2048U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(
+            __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_2x4_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                (uint32_t) sizeof(float) * 2048U));
     KPR_KCALL(__hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_2x4_0, nblk,
-        256U, 24576U, s, cols, shared, gA, gB, 256U, gC, beta, alpha, gD);
+        256U,
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(float) * 2048U,
+        s, cols, shared, gA, gB, 256U, gC, beta, alpha, gD);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -9180,9 +10283,25 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_2x8(
     KPR_ASSERT(true);
     KPR_ASSERT(true);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS(20480U);
+    KPR_SHMEM_FITS((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                   (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                   (uint32_t) sizeof(float) * 1024U);
+    if ((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(float) * 1024U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(
+            __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_2x8_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                (uint32_t) sizeof(float) * 1024U));
     KPR_KCALL(__hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_2x8_0, nblk,
-        128U, 20480U, s, cols, shared, gA, gB, 128U, gC, beta, alpha, gD);
+        128U,
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(float) * 1024U,
+        s, cols, shared, gA, gB, 128U, gC, beta, alpha, gD);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -9200,9 +10319,25 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_4x2(
     KPR_ASSERT(true);
     KPR_ASSERT(true);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS(24576U);
+    KPR_SHMEM_FITS((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                   (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                   (uint32_t) sizeof(float) * 2048U);
+    if ((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(float) * 2048U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(
+            __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_4x2_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                (uint32_t) sizeof(float) * 2048U));
     KPR_KCALL(__hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_4x2_0, nblk,
-        256U, 24576U, s, cols, shared, gA, gB, 256U, gC, beta, alpha, gD);
+        256U,
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(float) * 2048U,
+        s, cols, shared, gA, gB, 256U, gC, beta, alpha, gD);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -9220,9 +10355,25 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_4x4(
     KPR_ASSERT(true);
     KPR_ASSERT(true);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS(20480U);
+    KPR_SHMEM_FITS((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                   (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                   (uint32_t) sizeof(float) * 1024U);
+    if ((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(float) * 1024U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(
+            __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_4x4_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                (uint32_t) sizeof(float) * 1024U));
     KPR_KCALL(__hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_4x4_0, nblk,
-        128U, 20480U, s, cols, shared, gA, gB, 128U, gC, beta, alpha, gD);
+        128U,
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(float) * 1024U,
+        s, cols, shared, gA, gB, 128U, gC, beta, alpha, gD);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -9240,9 +10391,25 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_4x8(
     KPR_ASSERT(true);
     KPR_ASSERT(true);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS(18432U);
+    KPR_SHMEM_FITS((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                   (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                   (uint32_t) sizeof(float) * 512U);
+    if ((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(float) * 512U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(
+            __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_4x8_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                (uint32_t) sizeof(float) * 512U));
     KPR_KCALL(__hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_4x8_0, nblk,
-        64U, 18432U, s, cols, shared, gA, gB, 64U, gC, beta, alpha, gD);
+        64U,
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(float) * 512U,
+        s, cols, shared, gA, gB, 64U, gC, beta, alpha, gD);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -9260,9 +10427,25 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_8x2(
     KPR_ASSERT(true);
     KPR_ASSERT(true);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS(20480U);
+    KPR_SHMEM_FITS((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                   (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                   (uint32_t) sizeof(float) * 1024U);
+    if ((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(float) * 1024U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(
+            __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_8x2_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                (uint32_t) sizeof(float) * 1024U));
     KPR_KCALL(__hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_8x2_0, nblk,
-        128U, 20480U, s, cols, shared, gA, gB, 128U, gC, beta, alpha, gD);
+        128U,
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(float) * 1024U,
+        s, cols, shared, gA, gB, 128U, gC, beta, alpha, gD);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -9280,9 +10463,25 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_8x4(
     KPR_ASSERT(true);
     KPR_ASSERT(true);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS(18432U);
+    KPR_SHMEM_FITS((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                   (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                   (uint32_t) sizeof(float) * 512U);
+    if ((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(float) * 512U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(
+            __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_8x4_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                (uint32_t) sizeof(float) * 512U));
     KPR_KCALL(__hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_8x4_0, nblk,
-        64U, 18432U, s, cols, shared, gA, gB, 64U, gC, beta, alpha, gD);
+        64U,
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(float) * 512U,
+        s, cols, shared, gA, gB, 64U, gC, beta, alpha, gD);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -9300,9 +10499,25 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_8x8(
     KPR_ASSERT(true);
     KPR_ASSERT(true);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS(17408U);
+    KPR_SHMEM_FITS((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                   (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                   (uint32_t) sizeof(float) * 256U);
+    if ((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(float) * 256U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(
+            __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_8x8_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                (uint32_t) sizeof(float) * 256U));
     KPR_KCALL(__hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_8x8_0, nblk,
-        32U, 17408U, s, cols, shared, gA, gB, 32U, gC, beta, alpha, gD);
+        32U,
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(__nv_bfloat16) * 4096U +
+            (uint32_t) sizeof(float) * 256U,
+        s, cols, shared, gA, gB, 32U, gC, beta, alpha, gD);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -9320,12 +10535,25 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_2x2(
     KPR_ASSERT(true);
     KPR_ASSERT(true);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS(49152U);
-    MUST(cudaFuncSetAttribute(
-        __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_2x2_0,
-        cudaFuncAttributeMaxDynamicSharedMemorySize, 49152U));
+    KPR_SHMEM_FITS((uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                   (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                   (uint32_t) sizeof(float) * 4096U);
+    if ((uint32_t) sizeof(__nv_bfloat16) * 8192U +
+            (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+            (uint32_t) sizeof(float) * 4096U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(
+            __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_2x2_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                (uint32_t) sizeof(float) * 4096U));
     KPR_KCALL(__hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_2x2_0, nblk,
-        512U, 49152U, s, cols, shared, gA, gB, 512U, gC, beta, alpha, gD);
+        512U,
+        (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+            (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+            (uint32_t) sizeof(float) * 4096U,
+        s, cols, shared, gA, gB, 512U, gC, beta, alpha, gD);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -9343,9 +10571,25 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_2x4(
     KPR_ASSERT(true);
     KPR_ASSERT(true);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS(40960U);
+    KPR_SHMEM_FITS((uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                   (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                   (uint32_t) sizeof(float) * 2048U);
+    if ((uint32_t) sizeof(__nv_bfloat16) * 8192U +
+            (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+            (uint32_t) sizeof(float) * 2048U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(
+            __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_2x4_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                (uint32_t) sizeof(float) * 2048U));
     KPR_KCALL(__hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_2x4_0, nblk,
-        256U, 40960U, s, cols, shared, gA, gB, 256U, gC, beta, alpha, gD);
+        256U,
+        (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+            (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+            (uint32_t) sizeof(float) * 2048U,
+        s, cols, shared, gA, gB, 256U, gC, beta, alpha, gD);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -9363,9 +10607,25 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_2x8(
     KPR_ASSERT(true);
     KPR_ASSERT(true);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS(36864U);
+    KPR_SHMEM_FITS((uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                   (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                   (uint32_t) sizeof(float) * 1024U);
+    if ((uint32_t) sizeof(__nv_bfloat16) * 8192U +
+            (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+            (uint32_t) sizeof(float) * 1024U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(
+            __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_2x8_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                (uint32_t) sizeof(float) * 1024U));
     KPR_KCALL(__hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_2x8_0, nblk,
-        128U, 36864U, s, cols, shared, gA, gB, 128U, gC, beta, alpha, gD);
+        128U,
+        (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+            (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+            (uint32_t) sizeof(float) * 1024U,
+        s, cols, shared, gA, gB, 128U, gC, beta, alpha, gD);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -9383,9 +10643,25 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_4x2(
     KPR_ASSERT(true);
     KPR_ASSERT(true);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS(40960U);
+    KPR_SHMEM_FITS((uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                   (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                   (uint32_t) sizeof(float) * 2048U);
+    if ((uint32_t) sizeof(__nv_bfloat16) * 8192U +
+            (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+            (uint32_t) sizeof(float) * 2048U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(
+            __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_4x2_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                (uint32_t) sizeof(float) * 2048U));
     KPR_KCALL(__hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_4x2_0, nblk,
-        256U, 40960U, s, cols, shared, gA, gB, 256U, gC, beta, alpha, gD);
+        256U,
+        (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+            (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+            (uint32_t) sizeof(float) * 2048U,
+        s, cols, shared, gA, gB, 256U, gC, beta, alpha, gD);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -9403,9 +10679,25 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_4x4(
     KPR_ASSERT(true);
     KPR_ASSERT(true);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS(36864U);
+    KPR_SHMEM_FITS((uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                   (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                   (uint32_t) sizeof(float) * 1024U);
+    if ((uint32_t) sizeof(__nv_bfloat16) * 8192U +
+            (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+            (uint32_t) sizeof(float) * 1024U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(
+            __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_4x4_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                (uint32_t) sizeof(float) * 1024U));
     KPR_KCALL(__hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_4x4_0, nblk,
-        128U, 36864U, s, cols, shared, gA, gB, 128U, gC, beta, alpha, gD);
+        128U,
+        (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+            (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+            (uint32_t) sizeof(float) * 1024U,
+        s, cols, shared, gA, gB, 128U, gC, beta, alpha, gD);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -9423,9 +10715,25 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_4x8(
     KPR_ASSERT(true);
     KPR_ASSERT(true);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS(34816U);
+    KPR_SHMEM_FITS((uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                   (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                   (uint32_t) sizeof(float) * 512U);
+    if ((uint32_t) sizeof(__nv_bfloat16) * 8192U +
+            (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+            (uint32_t) sizeof(float) * 512U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(
+            __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_4x8_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                (uint32_t) sizeof(float) * 512U));
     KPR_KCALL(__hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_4x8_0, nblk,
-        64U, 34816U, s, cols, shared, gA, gB, 64U, gC, beta, alpha, gD);
+        64U,
+        (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+            (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+            (uint32_t) sizeof(float) * 512U,
+        s, cols, shared, gA, gB, 64U, gC, beta, alpha, gD);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -9443,9 +10751,25 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_8x2(
     KPR_ASSERT(true);
     KPR_ASSERT(true);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS(36864U);
+    KPR_SHMEM_FITS((uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                   (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                   (uint32_t) sizeof(float) * 1024U);
+    if ((uint32_t) sizeof(__nv_bfloat16) * 8192U +
+            (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+            (uint32_t) sizeof(float) * 1024U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(
+            __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_8x2_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                (uint32_t) sizeof(float) * 1024U));
     KPR_KCALL(__hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_8x2_0, nblk,
-        128U, 36864U, s, cols, shared, gA, gB, 128U, gC, beta, alpha, gD);
+        128U,
+        (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+            (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+            (uint32_t) sizeof(float) * 1024U,
+        s, cols, shared, gA, gB, 128U, gC, beta, alpha, gD);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -9463,9 +10787,25 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_8x4(
     KPR_ASSERT(true);
     KPR_ASSERT(true);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS(34816U);
+    KPR_SHMEM_FITS((uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                   (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                   (uint32_t) sizeof(float) * 512U);
+    if ((uint32_t) sizeof(__nv_bfloat16) * 8192U +
+            (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+            (uint32_t) sizeof(float) * 512U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(
+            __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_8x4_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                (uint32_t) sizeof(float) * 512U));
     KPR_KCALL(__hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_8x4_0, nblk,
-        64U, 34816U, s, cols, shared, gA, gB, 64U, gC, beta, alpha, gD);
+        64U,
+        (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+            (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+            (uint32_t) sizeof(float) * 512U,
+        s, cols, shared, gA, gB, 64U, gC, beta, alpha, gD);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -9483,9 +10823,25 @@ void Klas_GEMM_TensorCore2D_To_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_8x8(
     KPR_ASSERT(true);
     KPR_ASSERT(true);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS(33792U);
+    KPR_SHMEM_FITS((uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                   (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                   (uint32_t) sizeof(float) * 256U);
+    if ((uint32_t) sizeof(__nv_bfloat16) * 8192U +
+            (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+            (uint32_t) sizeof(float) * 256U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(
+            __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_8x8_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                (uint32_t) sizeof(float) * 256U));
     KPR_KCALL(__hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_8x8_0, nblk,
-        32U, 33792U, s, cols, shared, gA, gB, 32U, gC, beta, alpha, gD);
+        32U,
+        (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+            (uint32_t) sizeof(__nv_bfloat16) * 8192U +
+            (uint32_t) sizeof(float) * 256U,
+        s, cols, shared, gA, gB, 32U, gC, beta, alpha, gD);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
