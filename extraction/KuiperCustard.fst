@@ -656,7 +656,10 @@ let mma_store_comb (tys : list cty) (args : list expr) : ML expr =
     let gm = bufsub gm off in
     let ft = fr.ty in
     (* [g acc old]: returning binder 0 keeps the accumulator and drops the
-       resident tile, which is a plain store. *)
+       resident tile, which is a plain store.  karamel emitted this branch as
+       [store_matrix_sync; __syncwarp()]; the __syncwarp lives inside the
+       KPR_STORE macro so that this rule stays a single application of a
+       declared symbol (error 379). *)
     if returns_binder 2 0 gcomb then
       let f = ext "kpr_store" (arrows [gm.ty; ft; ldm.ty] TUnit) [ft; elem_ty gm.ty] in
       mk (EApp (f, [gm; fr; ldm])) TUnit E_Impure

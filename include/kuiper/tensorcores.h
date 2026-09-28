@@ -76,8 +76,21 @@ using namespace nvcuda;
 // rule referring only to declarations.
 #define KPR_LOAD_ACCUM(fr, gm, ldm)                                            \
   wmma::load_matrix_sync((fr), (gm), (ldm), wmma::mem_row_major)
+
+// The trailing __syncwarp() is not incidental: the karamel plugin emitted the
+// trivial-overwrite store as the two-statement sequence
+//   [ wmma::store_matrix_sync(..., wmma::mem_row_major); __syncwarp(); ]
+// (ExtractKuiper.fst, "is_overwrite_comb" branch).  KPR_STORE is the Custard
+// spelling of exactly that branch -- it is emitted by mma_store_comb and by
+// nothing else -- so the reconvergence belongs here, inside the macro, rather
+// than being dropped.  Keeping it in the macro (instead of emitting a sequence
+// from the rule) is what lets the rule stay a single application of a declared
+// symbol, per the error-379 constraint described above.
 #define KPR_STORE(gm, fr, ldm)                                                 \
-  wmma::store_matrix_sync((gm), (fr), (ldm), wmma::mem_row_major)
+  do {                                                                         \
+    wmma::store_matrix_sync((gm), (fr), (ldm), wmma::mem_row_major);           \
+    __syncwarp();                                                              \
+  } while (0)
 
 #endif /* KUIPER_CFG_TENSORCORES */
 
