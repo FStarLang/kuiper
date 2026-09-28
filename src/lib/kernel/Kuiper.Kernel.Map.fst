@@ -85,11 +85,7 @@ fn map_to_kd_post
   (#lena : erased nat)
   (#li #lo : layout1 lena)
   (input : array1 it li)
-  (* Spelled as [tensor] rather than [array1]: the post this has to line up
-     with comes from [TMap.kmap], whose array is a [tensor], and the
-     abbreviation is no longer unfolded while matching the [has_pts_to]
-     instance's type argument. *)
-  (output : tensor ot lo)
+  (output : array1 ot lo)
   (#si : chest1 it lena)
   (#so : chest1 ot lena)
   (#fi : perm)
@@ -183,10 +179,7 @@ fn map2_kd_post
   (f : et -> et -> et)
   (#lena : erased nat)
   (#la #lb : layout1 lena)
-  (* [tensor] rather than [array1], for the reason given on [map_to_kd_post]:
-     [a] is the array [TMap.kmap] writes through, and its post spells the
-     type unabbreviated. *)
-  (a : tensor et la)
+  (a : array1 et la)
   (b : array1 et lb)
   (#sa #sb : chest1 et lena)
   (#fb : perm)
@@ -377,8 +370,7 @@ fn map3_to_kd_pre
   (#at #bt #ct #ot : Type0)
   (#lena : erased nat)
   (#la #lb #lc #lo : layout1 lena)
-  (* [output] as [tensor]: see [map_to_kd_post]. *)
-  (a : array1 at la) (b : array1 bt lb) (c : array1 ct lc) (output : tensor ot lo)
+  (a : array1 at la) (b : array1 bt lb) (c : array1 ct lc) (output : array1 ot lo)
   (#sa : chest1 at lena) (#sb : chest1 bt lena) (#sc : chest1 ct lena)
   (#so : chest1 ot lena)
   (#fa #fb #fc : perm)
@@ -400,8 +392,7 @@ fn map3_to_kd_post
   (f : at -> bt -> ct -> ot)
   (#lena : erased nat)
   (#la #lb #lc #lo : layout1 lena)
-  (* [output] as [tensor]: see [map_to_kd_post]. *)
-  (a : array1 at la) (b : array1 bt lb) (c : array1 ct lc) (output : tensor ot lo)
+  (a : array1 at la) (b : array1 bt lb) (c : array1 ct lc) (output : array1 ot lo)
   (#sa : chest1 at lena) (#sb : chest1 bt lena) (#sc : chest1 ct lena)
   (#so : chest1 ot lena)
   (#fa #fb #fc : perm)
