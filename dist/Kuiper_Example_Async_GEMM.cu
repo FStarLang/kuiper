@@ -63,9 +63,9 @@ void Kuiper_Example_Async_GEMM_main(
 {
     cudaStream_t str1 = KPR_FRESH_STREAM();
     cudaStream_t str2 = KPR_FRESH_STREAM();
-    float *s1 = (float *) KPR_GPU_ALLOC(4U, 1048576U);
+    float *s1 = (float *) KPR_GPU_ALLOC((uint32_t) sizeof(float), 1048576U);
     KPR_KCALL(__hoisted_main_0, 1024U, 1024U, 0U, str1, a, b, s1);
-    float *s2 = (float *) KPR_GPU_ALLOC(4U, 1048576U);
+    float *s2 = (float *) KPR_GPU_ALLOC((uint32_t) sizeof(float), 1048576U);
     KPR_KCALL(__hoisted_main_1, 1024U, 1024U, 0U, str2, c, d, s2);
     MUST(cudaStreamSynchronize(str1));
     MUST(cudaStreamSynchronize(str2));
