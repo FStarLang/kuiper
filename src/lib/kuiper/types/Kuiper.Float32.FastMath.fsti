@@ -28,3 +28,30 @@ fn cos (x : t)
     forall (xr : real).
       v_approximates x xr ==>
       v_approximates result (Trig.cos xr))
+
+private let log_refinement (x : t)
+  : Lemma (
+      forall (xr : real{xr >. 0.0R}).
+        v_approximates x xr ==>
+        v_approximates (Kuiper.Floating.Base.flog x) (Kuiper.Real.log xr))
+  = let related (xr : real{xr >. 0.0R /\ v_approximates x xr})
+      : Lemma (
+          v_approximates (Kuiper.Floating.Base.flog x) (Kuiper.Real.log xr))
+      = Kuiper.Approximates.Base.log_approx x xr
+    in FStar.Classical.forall_intro related
+
+(* The refinement follows the existing logarithm model. Native extraction to
+   __logf is a separate trusted lowering, not bitwise equality with flog.
+   The real relation does not specify exceptional values or error bounds. *)
+noextract
+fn log (x : t)
+  preserves gpu
+  returns result : t
+  ensures pure (
+    forall (xr : real{xr >. 0.0R}).
+      v_approximates x xr ==>
+      v_approximates result (Kuiper.Real.log xr))
+{
+  log_refinement x;
+  Kuiper.Floating.Base.flog x
+}
