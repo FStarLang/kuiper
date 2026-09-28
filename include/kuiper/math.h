@@ -205,4 +205,17 @@ static __device__ __forceinline__ float kpr_f32_rsqrt_approx_ftz(float x)
 #define kpr_bf16fmod(f, g)      KPR_BF16FALL2(fmodf,     f, g)
 #define kpr_bf16copysign(f, g)  KPR_BF16FALL2(copysignf, f, g)
 
+/* ======================================================================== */
+/* Half/BFloat16 comparisons                                                */
+/* ======================================================================== */
+
+/* Opaque to karamel, which has no half types and would otherwise treat these
+   as structural equality; the operator overloads work on host and device. */
+#define kpr_f16_eq(f, g)    ((f) == (g))
+#define kpr_f16_lt(f, g)    ((f) < (g))
+#define kpr_f16_lte(f, g)   ((f) <= (g))
+#define kpr_bf16_eq(f, g)   ((f) == (g))
+#define kpr_bf16_lt(f, g)   ((f) < (g))
+#define kpr_bf16_lte(f, g)  ((f) <= (g))
+
 #endif /* KUIPER_MATH_H */
