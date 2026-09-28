@@ -4,9 +4,11 @@
 
 #include <kuiper.h>
 
-typedef uint16_t Kuiper_GraphDist_dist;
+__device__ uint16_t Kuiper_GraphDist_add_(uint16_t x, uint16_t y);
 
-bool Kuiper_GraphDist_uu___is_D(uint16_t projectee);
+__device__ uint16_t Kuiper_GraphDist_mult(uint16_t x, uint16_t y);
+
+typedef uint16_t Kuiper_GraphDist_dist;
 
 void Kuiper_GraphDist_matmul_dist_gpu(uint32_t size, uint16_t *a, uint16_t *b);
 
